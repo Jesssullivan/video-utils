@@ -1,64 +1,102 @@
 # video-utils parallel work board
 
-As-of factual snapshot: October 5, 2026, approximately 20:57 UTC / 4:57 p.m.
-America/New_York. Root's observed goal start is 20:49:34 UTC; the planned ten-hour
-end is October 6, 06:49:34 UTC / 2:49:34 a.m. EDT. The active goal's objective/status
-mechanism does not itself enforce a time deadline. This is the repository-local board for the operator's
-ten-hour goal; the global Lab board remains under its own authority. Root owns
-integrated status and must refresh this snapshot from live worker handoffs.
+As-of integration snapshot: October 5, 2026, 21:49:26 UTC / 5:49:26 p.m. EDT.
+Root's observed run/test receipts are distinguished from pending publication.
+Root's observed goal start is 20:49:34 UTC; the planned ten-hour end is October 6,
+06:49:34 UTC / 2:49:34 a.m. EDT. The active objective/status mechanism does not
+itself enforce a time deadline. This repository-local board does not replace the
+global Lab board. Root owns integrated status and refreshes observed handoffs.
 
 Authority: operator-approved parallel implementation and ten-hour goal;
 R-HOOK-CONVERGENCE-20261004 / R-N11/R-N12/R-N13, TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`.
 
-Plan and ownership: [TEN_HOUR_PLAN.md](../spec/TEN_HOUR_PLAN.md).
-Prompt record: [2026-10-05-user-prompts.md](2026-10-05-user-prompts.md).
-Project/issue identities: [linear.json](../../program/linear.json).
-Active goal issue: [TIN-5495 — ten-hour parallel implementation](https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal).
+Plan: [TEN_HOUR_PLAN.md](../spec/TEN_HOUR_PLAN.md).
+Prompts: [2026-10-05-user-prompts.md](2026-10-05-user-prompts.md).
+Checkpoint log: [2026-10-05-goal-checkpoints.md](2026-10-05-goal-checkpoints.md).
+Project/issue IDs: [linear.json](../../program/linear.json).
+Active goal: [TIN-5495](https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal).
 
 | Stream | Owner | Repo / branch | State / evidence | Next |
 | --- | --- | --- | --- | --- |
-| Integration/publication | `/root` | `video-utils` / `main` | Initial signed local commit exists; private remote, Linear project and TIN-5495 created; 108-test integrated suite passed including integer overflow/fallback; strict-JSON follow-up targeted27tests passed; push state must be read back | Publish tested first-release files/plans; future new-code acceptance stays separate |
-| Cleaned demo | `/root` | `video-utils` / `main` | Run `20261005T203619Z-f94eb8eb2a1a` completed; measured −18.00 LUFS / −1.50 dBTP master; listening unreviewed | Preserve baseline evidence; compare new analysis without inventing listening acceptance |
-| Rhythm/tempo/clicks | `/root/rhythm_analysis` | `video-utils` / `main` | Actual fallback fit verified at 88.800719 BPM; double interpretation 177.6014; approximate operator 178 kept separately; direct 178-seed fit abstained | Retain heuristic confidence/metronome uncertainty; next click candidates and attack-preservation comparison |
-| Automatic guitar features/pitch | `/root/guitar_features` | `video-utils` / `main` | Actual post-denoise librosa pass: 47 segment candidates, 10 recurrence pairs, 112 four-pulse proxies, 57 proposed review spans; tuning context regenerated in noise/tone/notes/phrases | Integrate candidates as hypotheses; next `scripts/pitch.py`, `tests/test_pitch.py`, PITCH_LANE; no intended-note verdict without reference |
-| Phrase DAG/comparison | `/root/phrase_dag` | `video-utils` / `main` | DAG/markers/report rerun: 177 source-time review/navigation flags; all discovery or difference hypotheses, no confirmed errors | Next recurrence-difference worker and tests; native editor import remains separate |
-| Typed tool extensions | `/root/tool_hooks` | `video-utils` / `main` | Twelve hooks; oversized JSON integer `10**400` overflow handling fixed with regression test; 108-test integrated suite and27-test targeted strict-JSON suite passed | Next MCP_EXTENSION_LANE/contract tests; existing registry edits after root first-push broadcast |
-| Tool skill extensions | `/root/tool_skills` | `video-utils` / `main` | Twelve skills; next SKILL_EXTENSION_LANE | Extend per-tool skills after validated contract handoff |
-| Graphical evidence review | `/root/plan_review` | `video-utils` / `main` | Local report foundation; next `review_server.py`, tests, REVIEW_LANE and `staticreview/**` | Local source-time graphical review with path/resource safeguards |
-| Research/spec/docs | `/root/clip_baseline` | `video-utils` / `main` | Docs/tuning handoff complete; standby | Further research only after explicit assignment; root appends observed integration facts |
-| Benchmark/annotation | `/root/repo_patterns` | `video-utils` / `main` | Tooling handoff complete; assigned `benchmark.py`, tests, benchmarks.json and BENCHMARK_LANE | Bounded reproducible fixtures/results and exact provenance |
-| Native AU architecture spike | `/root/au_architecture` | `video-utils` / `main` | CLI/DSP handoff complete; assigned `native/au-spike/**` and AU_SPIKE | ABI/render constraints and bounded spike tests; actual Logic acceptance remains unknown |
-| Durable goal/prompts | `/root/goal_plan` | `video-utils` / `main` | Owned prompt archive, exact horizon, assignment plan and this board written | Root integrates/publishes and refreshes live lane facts |
-| Additional lanes | Unassigned | `video-utils` / isolated named files required | No further assignment claim | Root records exact owner, files, acceptance and dependencies before delegation |
-| Listening/AU/editor acceptance | Operator / future named lane | Local run / future host | Listening pending; AU/Logic and native FCP/Resolve import unverified | Audition current media; separately plan actual host/application acceptance |
+| Integration/publication | `/root` | `video-utils` / `main` | Final nineteen-tool suite: 219/219 passed in 160.966 s; wave2 source publication pending; hosted repair CI unverified | Publish selected verified source, then record remote/CI readback; listening and native hosting separate |
+| Cleaned demo | `/root` | `video-utils` / `main` | Calibrated run `20261005T211103Z-c6d0bac2fcd2`: master −18.01 LUFS/−1.50 dBTP; final decoded AAC −18.07/−1.56 after −0.06 dB feed; strict target verified | Publish repaired measured iteration; retain first failure history; listening pending |
+| Media processing latency | `/root/media_latency` | `video-utils` / `main` | 1102-sample calibrated compensation and bounded AAC-headroom retry verified in current run; final encoded target passes | Preserve executable/profile provenance and synthetic timing checks; real-performance ground-truth alignment remains unmeasured |
+| Rhythm/tempo/clicks | `/root/rhythm_analysis` | `video-utils` / `main` | New-run fallback 88.800907 BPM / double 177.6018; operator 178 separate; direct seed abstained; click lane active | Measured click candidates/attenuation and attack preservation; no default click removal or verified metronome identity claim |
+| Automatic features/pitch | `/root/guitar_features` | `video-utils` / `main` | Current 48 regions/14 recurrence pairs; sparse pitch sampled 20 seconds including ending; intended notes unknown | Publish source-bound candidate excerpts; do not promote sparse coverage into whole-take transcription |
+| Meter inference | `/root/meter_inference` | `video-utils` / new tools | Meter worker included in 219-test local suite; actual meter remains unknown | Publish qualified hypotheses and abstention; no time-signature confirmation |
+| Tonal inference | `/root/tonal_inference` | `video-utils` / new tools | Tonal worker included in 219-test local suite; actual tonic/mode remains unknown | Publish nullable evidence and limitations; no tonal or intended-note verdict |
+| Phrase DAG/comparison | `/root/phrase_dag` | `video-utils` / `main` | New calibrated artifacts: 186 flags; comparator 21+markers 6 tests passed; earlier real pilot 10 alignments/4159 cells/0.109 s with 9 rate/shift hypotheses; attack edits abstained | Marker upstream-staleness repair; preserve main flags; root verifies new tool before publication |
+| Typed tool extensions | `/root/tool_hooks` | `video-utils` / `main` | Nineteen hooks/skills in verified local integration; full 219-test suite passed; wave2 source not yet published | Root stages/publishes tested bundle and records readback; hosted CI remains separate |
+| Tool skill extensions | `/root/tool_skills` | `video-utils` / `main` | Nineteen repository skills matched local tool integration; wave2 publication pending | Retain validated intent/knob/evidence guidance; root publication receipt |
+| Graphical evidence review | `/root/plan_review` | `video-utils` / `main` | Actual browser muted playback/filter/decode passed; synthetic annotation edit/refresh passed; no dummy annotations in actual take | Preserve synthetic-vs-real annotation boundary; listening acceptance still pending |
+| Research/spec/docs | `/root/clip_baseline` | `video-utils` / `main` | New research assignment FOSS_AUDIO_MATRIX and RESEARCH_LANE | Primary-source FOSS comparisons with licensing/applicability to distorted nine-string guitar |
+| Benchmark/annotation | `/root/repo_patterns` | `video-utils` / `main` | Post-fix three standard-library+three optional cases: zero candidate shift, click recall 1; optional phrase IoU 0.935; synthetic evidence only | Retain old failure history; root publishes reproducible metrics without real-recording quality claim |
+| Native AU architecture | `/root/au_architecture` | `video-utils` / `main` | Initial compiled ARC audit and root native recipe passed; next only automation/** +AU_AUTOMATION; existing native code frozen until publication | Isolated automation experiment; no installation/auval/Logic proof |
+| Independent release review | `/root/release_review` | `video-utils` / read-only first release | Review completed; no release blockers reported; marker upstream-staleness improvement assigned to DAG owner | Verify follow-up and separately review new tools |
+| Durable goal/prompts | `/root/goal_plan` | `video-utils` / `main` | Final prepublication board/checkpoint refreshed; documentation lane frozen after handoff | Root stages selected receipts; further edits require follow-up; goal remains active |
+| Additional lanes | Unassigned | `video-utils` / isolated files required | No further assignment claim | Root records owner, files, acceptance and dependencies before delegation |
+| Listening/AU/editor acceptance | Operator / future lane | Local run / future host | Listening pending; AU/Logic and native FCP/Resolve import unverified | Audition media and separately validate actual host/application acceptance |
 
-The initial 81 Python tests and seven Rust tests passed before these active
-automatic-discovery/tuning enhancements. A later 108-test Python suite passed including integer-overflow and tempo-fallback
-regressions. The subsequent strict-JSON parser fixes passed27targeted tool/MCP
-checks. Root records these against the source/publication receipt; future new
-worker tests and host/application acceptance remain separate.
+First-release local evidence: 108 full Python tests and 27 targeted strict-JSON
+checks passed without skips under the proper FFmpeg environment; seven Rust
+tests passed earlier. Hosted CI
+[37373112479](https://github.com/Jesssullivan/video-utils/actions/runs/37373112479)
+failed one nesting-depth test after 109 tests with three optional-backend skips.
+Local success is not hosted success. Deterministic repair now passes 28 targeted
+checks under actual Python 3.14.6 and is published as signed/verified
+`9883069b826bc1fcedbc99fe781ee41b54196d4f`; hosted rerun ended with overall failure and a cancelled job containing no steps; GitHub annotation reports no hosted runner acquired after repeated attempts.
+The new-tool bundle remains
+unaccepted until root records integrated results/publication.
 
-Observed current analysis: operator declaration 178 BPM is marked
-`operator_declared_not_audio_verified`. The direct 178-seed fit abstained, and
-the audio-periodicity fallback now fits 88.80071920784458 BPM with limited
-heuristic evidence; its double-time interpretation is approximately 177.6014.
-Selection is `audio_periodicity_fallback_after_declared_seed_fit_abstention`.
-This is not verified metronome identity or confirmation of an exact 178 grid.
+Additional physical-timing finding: source-to-denoised click times shifted about
+25 ms on three synthetic fixtures, with source 20 ms-threshold recall 1 and
+processed recall 0. Strong 32 Hz content was preserved. Container/picture timing
+checks remain valid; they do not prove unchanged waveform alignment.
+Executable/profile-bound calibration and 1102-sample compensation have now been
+used for the new actual run. Three standard-library and three optional synthetic
+cases show zero candidate shift/click recall 1. This is processing-chain fixture
+evidence; real-performance ground-truth alignment is not measured.
 
-Observed regenerated flag breakdown: 112 four-pulse navigation proxies, 43
-spectral-texture regions, 9 recurrence regions, 6 attack-density differences,
-4 low-register riff/breakdown candidates, and 3 motif-timing differences,
-total 177. Navigation and texture flags are not performance errors. Four-pulse
-proxies do not establish meter or musical bars, and the 47 segmented regions do
-not establish semantic phrases. Tonic/mode and definite performance errors remain
-unknown. Root must refresh facts after any additional rerun.
+Current operator declaration 178 BPM is `operator_declared_not_audio_verified`.
+The direct seed fit abstained; the new-run audio-periodicity fallback is
+88.80090652730368 BPM with limited heuristic evidence and approximately 177.6018
+double interpretation. Earlier 88.800719/177.6014 values belong to the first run.
+Selection: `audio_periodicity_fallback_after_declared_seed_fit_abstention`.
+This is not verified metronome identity or an exact 178 BPM acceptance claim.
 
-Publication freeze: existing shared files remain frozen until root broadcasts
-the first integrated publication. Newly assigned isolated files may proceed.
-The board records assignments, not proof that each worker is executing them or
-that its acceptance checks have passed.
+Current flag breakdown: 112 four-pulse navigation proxies, 45 texture regions,
+11 recurrence regions, 6 attack-density differences, 3 low-register riff/breakdown
+candidates, 9 motif-timing differences; total 186. These are hypotheses, not
+confirmed errors. Four-pulse proxies do not establish meter/bars, and 48 regions
+do not establish semantic phrases. Tonic/mode and definite errors remain unknown.
 
-Checkpoint updates should be short factual rows. State blockers as unknown/hold
-with the next resolving action. Do not advertise queued work, source-only checks,
-generic marker export, or rendered media as live host acceptance.
+Root's first-publication broadcast released the existing-file freeze for each
+named owner. Ownership still applies; shared mutations/publication remain root's
+responsibility. New-lane test results are worker handoffs pending root integration,
+not proof that the published source contains those tools.
+
+Latest root checkpoint: nineteen-tool integration passed 219/219 tests in 160.966 s,
+recorded in `artifacts/nineteen-tool-release-tests.log` (writer independently read
+its final OK). Current calibrated run `20261005T211103Z-c6d0bac2fcd2` now has
+verified final decoded AAC −18.07 LUFS/−1.56 dBTP after −0.06 dB encoder feed.
+Master measured −18.01/−1.50. The earlier −1.49 encoded failure is preserved
+historical evidence and has been repaired by bounded retry. Listening is pending.
+Wave2 source publication is pending root; main 9883069 / CI 37373960394 were last
+reported queued/unverified in the preceding snapshot. Live root readback at21:51UTC shows overall failure with a cancelled job containing no steps, so no hosted test result exists for this revision.
+Discovery remains 48 regions, 14 recurrence pairs and 186 review/navigation flags,
+all hypotheses. Sparse pitch covers 20 sampled seconds including the ending;
+meter and tonic/mode remain unknown. These are not whole-take note grading.
+
+Linear: TIN-5485 In Review, listening pending; publication comment
+`9d2e2ef7-6b74-49b3-972c-d75bd2884804`. TIN-5495 In Progress; goal comment
+`353d44f7-02e8-4706-83d7-8b3e61232060`. The horizon remains October 6,
+06:49:34 UTC. First publication does not end or complete the goal.
+
+New meter/tonal/AU-automation lanes share this horizon and the following-week
+allocation. They add no duplicate weekly hours. Their locally tested source/contracts
+remain unpublished until root records integrated publication.
+
+Checkpoint updates are short factual rows. Mark unknown/hold and next resolving
+action. Never promote queued work, source checks, generic markers or rendered
+media into host/application acceptance.

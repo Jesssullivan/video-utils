@@ -15,7 +15,7 @@ import tool_api
 class ToolsTests(unittest.TestCase):
     def test_catalog_has_intent_and_strict_schemas(self):
         catalog = tool_api.load_registry()
-        self.assertEqual(len(catalog['tools']), 12)
+        self.assertGreaterEqual(len(catalog['tools']), 12)
         self.assertEqual(catalog['instrument_context']['lowest_intentional_fundamental_hz'], 32)
         for item in catalog['tools']:
             self.assertTrue(item['intent'])

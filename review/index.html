@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guitar take · listening review</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">LOCAL SESSION / LISTENING REVIEW</p>
+    <h1>Hear it. Mark it. Revisit it.</h1>
+    <p id="source-name" class="lead">Loading the recording…</p>
+    <p id="tempo-context" class="muted"></p>
+    <p class="boundary">Automatic proposals are listening prompts. Your notes remain separate from confirmed performance errors and master acceptance.</p>
+  </header>
+  <p id="notice" role="status" aria-live="polite"></p>
+  <div class="workspace">
+    <section class="listening-panel" aria-labelledby="listen-title">
+      <div class="section-heading"><h2 id="listen-title">Listen to the take</h2><span id="source-position" class="clock">00:00.000</span></div>
+      <div id="player-tabs" class="tabs" aria-label="Listening source"></div>
+      <div id="players"></div>
+      <p class="muted">Compare original and clean at their matched audition levels. The removed signal is a separate diagnostic. Preserve the intended low register and distorted tone.</p>
+      <label for="position">Source position</label>
+      <input id="position" type="range" step="0.01" aria-label="Source timeline position">
+      <div id="marker-track" aria-label="Candidate spans on the source timeline"></div>
+      <div class="transport"><button id="span-start" type="button">Use position as start</button><button id="span-end" type="button">Use position as end</button><label class="checkbox"><input id="loop-span" type="checkbox">Loop marked span</label></div>
+      <p class="muted">Selecting a proposal or moving the position does not start playback.</p>
+    </section>
+    <section class="candidate-panel" aria-labelledby="candidate-title">
+      <div class="section-heading"><h2 id="candidate-title">Review proposals</h2><span id="candidate-count" class="badge">0</span></div>
+      <div class="filters"><label>Kind<select id="kind-filter"><option value="">All kinds</option></select></label><label>Confidence<select id="confidence-filter"><option value="">All evidence levels</option></select></label></div>
+      <p class="muted">Confidence labels are heuristic evidence, not probabilities. Meter and musical section identity can remain uncertain.</p>
+      <div id="candidates" class="candidate-list"></div>
+    </section>
+  </div>
+  <div class="notes-workspace">
+    <section class="editor-panel" aria-labelledby="note-title">
+      <div class="section-heading"><h2 id="note-title">Mark a listening span</h2><button id="new-note" type="button" class="quiet">New note</button></div>
+      <p id="selected-proposal" class="muted">Select a proposal or capture your own span.</p>
+      <form id="annotation-form">
+        <div class="form-row"><label>Source start, seconds<input id="note-start" type="number" step="0.001" required></label><label>Source end, seconds<input id="note-end" type="number" step="0.001" required></label></div>
+        <div class="form-row"><label>Topic<select id="note-category"><option value="phrase">Phrase</option><option value="rhythm">Rhythm</option><option value="tone">Tone</option><option value="noise">Noise</option><option value="other">Other</option></select></label><label>Review state<select id="note-status"><option value="needs_review">Needs another listen</option><option value="accepted_observation">Observation recorded</option><option value="dismissed_candidate">Candidate dismissed</option></select></label></div>
+        <label>What did you hear?<textarea id="note-text" rows="5" maxlength="4000" placeholder="Describe the passage, uncertainty or comparison you want to revisit." required></textarea></label>
+        <button class="primary" type="submit">Save listening note</button>
+      </form>
+      <p class="muted">Saving records your observation for this recording. It does not approve the master or establish missed notes.</p>
+    </section>
+    <section class="saved-panel" aria-labelledby="saved-title">
+      <div class="section-heading"><h2 id="saved-title">Saved listening notes</h2><div><button id="refresh-notes" type="button" class="quiet">Refresh</button><button id="download-notes" type="button" class="quiet">Download JSON</button></div></div>
+      <div id="saved-notes"></div>
+      <details class="receipt"><summary>Recording identity</summary><p id="identity"></p></details>
+    </section>
+  </div>
+  <footer>Private local review · source timestamps retained · generic markers; native editor import unverified.</footer>
+</main>
+</body>
+</html>

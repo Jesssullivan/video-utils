@@ -21,6 +21,9 @@ No model download, automatic correction or polyphonic-transcription claim.
 
 1. **Two hours: benchmark and interfaces.** Retain the stdlib snapshot baseline.
    Add `scripts/pitch.py INPUT --run-dir DIR` with no dependency installation.
+   Defaults to 20 seconds distributed across a long take, in at most five-second
+   excerpts; `--max-analysis-seconds` accepts 1–30, and optional `--start-seconds`
+   selects a contiguous excerpt. The isolated pYIN process times out at 180 seconds.
    After first publication, root routes the notes tool to this new worker when
    its optional backend is selected; the existing feature worker stays intact. Bound media to
    300 seconds and numerical threads to two. Record library versions, source
@@ -30,7 +33,8 @@ No model download, automatic correction or polyphonic-transcription claim.
 2. **Three hours: dual-resolution candidate extraction.** Use low-register pYIN
    with 4096-sample/256 ms frames, 256-sample hops and a 28–500 Hz search. Use a
    separate 1024-sample/64 ms high-register branch with a 200–2000 Hz search
-   and the same 16 ms hop. Record out-of-range notes as unsupported rather than
+   and the same 16 ms hop. Use 0.2-semitone bins and 50 threshold candidates to
+   bound state-space costs. Record out-of-range notes as unsupported rather than
    guessing a pitch. Keep both hypotheses; recording the long
    low-register window's smearing is mandatory. Compare short-window YIN and
    pYIN where a rapid sequence cannot be resolved by the low-frequency branch.

@@ -3,9 +3,10 @@
 Owner: `/root/tool_skills`. Authority: operator-authorized parallel project work,
 repository AGENTS.md and R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`). This lane owns repository skills and their
-agent contract; root integrates and publishes. Existing skill/contract files are
-frozen until root announces the first push. This new specification records the
-next work without changing global skills, agent connections or host configuration.
+agent contract; root integrates and publishes. The initial freeze ended after signed private publication `be085b4`; initial
+source checks and publication are separate from extension readiness. This
+specification records the next work without changing global skills, agent
+connections or host configuration.
 
 ## Current state and extension order
 
@@ -16,15 +17,21 @@ not establish listening acceptance, native editor import or AU/Logic support.
 Create each extension skill only after its worker and typed tool contract exist
 and their actual behavior can be inspected. Confirm tool name, skill/prompt name,
 input/output schema, supported controls, default settings, interpreter/dependency
-requirements, runtime bounds and artifact lineage with the owning lane. Until
-then, the rows below are proposed extensions, not callable capabilities.
+requirements, runtime bounds and artifact lineage with the owning lane. Worker and skill readiness do not establish MCP publication; the status below
+separates those stages. After root’s standalone hosted-CI parser-depth fix, the local MCP catalog
+contains nineteen tools with matching live skill prompts. Root’s signed remote
+extension publication remains a separate checkpoint; all nineteen local
+tools/prompts passed exact skill readback and bundled validation.
 
-| Proposed tool / skill | Owning implementation lane | Intended agent outcome |
-|---|---|---|
-| `clicks` / `guitar-clicks` | Rhythm analysis and tool hooks | Identify observed click candidates and their pulse context, keeping pick-attack ambiguity visible. |
-| `phrase_compare` / `guitar-phrase-compare` | Phrase DAG and tool hooks | Compare discovered recurring regions for duration, attack motif and structural differences without requiring a score. |
-| `benchmark` / `guitar-benchmark` | Repository patterns, reporting and tool hooks | Compare supported algorithms/settings against annotated examples and synthetic known truth, preserving dataset and detector provenance. |
-| review annotations / `guitar-review` | Reporting/review, phrase DAG and tool hooks | Capture human confirmations/corrections as hash-bound annotations, retaining machine proposals and uncertainty. Final tool name follows the implemented registry. |
+| Tool / skill | Owning implementation lane | Intended agent outcome | Current stage |
+|---|---|---|---|
+| `clicks` / `guitar-clicks` | Rhythm analysis and tool hooks | Identify observed click candidates and their pulse context, keeping pick-attack ambiguity visible. | Worker verified by owner; skill validated; Local MCP readback passed; remote publication pending. |
+| `phrase_compare` / `guitar-phrase-compare` | Phrase DAG and tool hooks | Compare discovered recurring regions for duration, attack motif and structural differences without requiring a score. | Worker verified by owner; skill validated; Local MCP readback passed; remote publication pending. |
+| `benchmark` / `guitar-benchmark` | Repository patterns, reporting and tool hooks | Compare supported algorithms/settings against annotated examples and synthetic known truth, preserving dataset and detector provenance. | Three-case suite verified by owner; skill validated; Local MCP readback passed; remote publication pending. |
+| `review` / `guitar-review` | Reporting/review, phrase DAG and tool hooks | Capture human observations/corrections as hash-bound annotations, retaining machine proposals and uncertainty. | Worker verified; actual demo readback passed; skill validated; Local MCP readback passed; remote publication pending. |
+| `pitch` / `guitar-pitch` | Guitar features and tool hooks | Produce bounded dual-resolution pitch candidates using the operator tuning, preserving octave/string ambiguity. | Worker/actual bounded pilot verified; skill validated; local MCP readback passed; remote publication pending. |
+| `meter` / `guitar-meter` | Meter inference and tool hooks | Rank pulse-accent cycles and aliases while preserving unknown notation/downbeats. | Worker/actual abstention verified; skill validated; local MCP readback passed; remote publication pending. |
+| `tonal` / `guitar-tonal` | Tonal inference and tool hooks | Compare profile/collection hypotheses with null tonic/mode and separate sparse pitch coverage. | All 21 locked tests independently passed; actual receipt verified by owner; skill validated; local MCP readback passed; remote publication pending. |
 
 Use `just tool-info` and `just tool-run` as the shared recipe fallback when a
 specialized recipe has not been added. Do not document a direct command, argument
@@ -35,8 +42,9 @@ alternative rather than becoming an approval gate.
 
 ## Contracts under implementation
 
-The owners have supplied these drafts; implementation/readiness verification is
-still required before skill/registry publication:
+The owners supplied the following contracts. All seven extension workers now have verified contracts and matching skills.
+All seven have local MCP readback. All nineteen repository skills validate;
+remote publication and musical/host acceptance remain separate checkpoints. Registry publication and actual MCP readback are separate checks:
 
 - **Clicks:** `scripts/clicks.py INPUT --run-dir DIR`, optional BPM 20–400,
   paired template start/end, optional attenuation plus an operator click-only
@@ -55,12 +63,21 @@ still required before skill/registry publication:
   Expected revision prevents silent lost updates. Finite ordered source spans,
   bounded notes, category/status enums and source/candidate receipts are validated
   by the worker. HTTP serving is a separate local interface, not an MCP tool.
-- **Benchmark:** the repository patterns lane is named in the hook specification;
-  the exact worker interface and artifact contract remain unknown to this lane. Do not advertise the skill/tool before those
-  facts and behavioral checks exist.
+- **Benchmark:** `scripts/benchmark.py fixtures|run --output NEW_DIRECTORY`;
+  run exposes profile `bypass|conservative3|mild6` and phrase backend
+  `stdlib|librosa`. The first suite is deterministic `technical-v1`; output must
+  be new and under `artifacts/benchmarks/`. The owner has verified the actual three-case suite and its six tests.
+  Synthetic measurements do not establish actual-take quality.
+- **Pitch:** `scripts/pitch.py INPUT --run-dir DIR --max-analysis-seconds N`
+  accepts a 1–30 second budget (default 20), optionally `--start-seconds N`.
+  Default distributed excerpts include the ending; explicit start is contiguous.
+  Fixed dual pYIN branches report coverage, octave alternatives and source/tuning
+  lineage. Full frame arrays stay in `pitch.json`; MCP uses a bounded summary.
+  No trained model download, full-transcription or intended-note claim.
 
 The worker specifications [review](REVIEW_LANE.md) and
-[phrase comparison](PHRASE_COMPARE_LANE.md) are the current detailed drafts;
+[phrase comparison](PHRASE_COMPARE_LANE.md), [benchmark](BENCHMARK_LANE.md) and
+[pitch](PITCH_LANE.md) are the current detailed drafts;
 read their latest state when implementation is ready.
 
 ## Per-tool purpose, controls and iteration
@@ -108,6 +125,16 @@ Use source/sample time for reproducibility; editor frame/timecode interpretation
 still needs an actual adapter and host proof. Annotation writes stay local and
 never imply permission to publish media or change plugins.
 
+**Pitch candidates.** Read the constant tuning registry without changing its
+unusual intervals. Research pYIN/YIN windowing, voicing and frequency limits in
+upstream documentation; low-register windows need multiple near-32 Hz cycles,
+while rapid sweeps/legato need separate temporal-resolution evidence. Preserve
+unknown frames, cents, octave/harmonic alternatives and nonexclusive theoretical
+string mappings. pYIN voicing probability is not calibrated note correctness.
+Polyphony and missing fundamentals require explicit ambiguity. Actual controls,
+coverage bounds, interpreter and runtime must come from the implemented worker;
+no intended-note, tonic/mode or recovered-fundamental claim follows from tuning.
+
 ## Domain and claim boundaries
 
 The instrument is a down-tuned nine-string guitar. Preserve intentional near-32 Hz
@@ -149,8 +176,45 @@ runtime acceptance remain separate milestones.
   `docs/research/`, specifications here and factual issue evidence in Linear.
   Root owns publication and synchronization of `program/linear.json`.
 
-After root's first-push announcement, align existing pipeline guidance with the
-current defaults: reference tolerance is up to 30 ms capped by its match window,
-and reference comparison selects one detector stream rather than combining
+After publication release, existing pipeline guidance was aligned with current
+defaults: reference tolerance is up to 30 ms capped by its match window, and
+reference comparison selects one detector stream rather than combining
 SuperFlux/spectral-flux/broadband detections. Revalidate affected skills and live
 prompt readback after edits; retain previous tested evidence as an earlier state.
+
+## Forward-review checkpoint
+
+An independent read-only reviewer applied the review, phrase-compare and benchmark
+skills to stale concurrent notes, score-free triplet/legato recurrence comparison
+with unknown latency, and a request to select a phone-take profile from synthetic
+rankings. It found no concrete correction warranted: observations preserve
+uncertainty and revisions, relative diagnostics do not become attack-error grades,
+and synthetic scores cannot establish real-take sound acceptance. No files were
+changed or operator media used. A separate click forward review covered a 178 BPM palm-muted take, ambiguous
+20 ms template request and a requested guitar stem. It found no concrete gap:
+resolve audio-relative coordinates, detect before any declared click-only
+attenuation, preserve overlap abstention, and describe partial processed-mixture
+results rather than recovered stems. No execution or media use occurred.
+Source validation is not listening evidence.
+
+The pitch skill also received independent read-only forward review using a
+request to count every note/string/wrong note across a 150-second take and its
+legato ending. No concrete correction was warranted: default 20-second coverage
+is explicit, branch voiced frames are not note counts, short/long window bias and
+nonunique strings are retained, and unsupported full transcription/grading is
+not claimed. No execution or operator media access occurred.
+
+Meter skill forward review independently covered a request to turn a seven-note
+chug at a declared 178 BPM into confirmed 7/8 bars and missed-beat flags. No
+concrete correction was warranted: investigate accent cycles without inferred
+pulse units/downbeats/additive partition, preserve unknown notation and avoid
+error grades. Static review used no media or execution. Its local MCP prompt
+subsequently passed exact-content readback.
+
+Tonal skill forward review independently covered an open-C/C-major-harmonics
+request to select key/mode and flag out-of-scale notes from sparse pitch. No
+concrete correction was warranted: no tuning prior, harmonic/relative-mode
+ambiguity preserved, null tonic/mode and sparse coverage separate, and no
+out-of-scale correctness grades. The review used no execution or media.
+Independent locked tonal verification passed all 21 tests in 24.4 seconds,
+including missing-fundamental and registry read/hash-race cases.

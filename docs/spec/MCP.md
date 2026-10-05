@@ -22,10 +22,10 @@ agent sampling, task capability, or protocol resource subscription. See the
 [stdio transport](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports).
 
 - `ping` returns an empty object.
-- `tools/list` returns twelve typed tools, including schemas, annotations and
+- `tools/list` returns the typed tool catalog, including schemas, annotations and
   `video-utils` metadata for skills, intent, dependency suggestions and status.
 - `tools/call` dispatches a validated tool invocation to a fixed local worker.
-- `prompts/list` lists the twelve skill directory names.
+- `prompts/list` lists one skill directory name per tool.
 - `prompts/get` reads the actual skill file and adds optional string context
   `input`, `run_dir`, and `goal` as a separate user message containing JSON data.
 
@@ -66,6 +66,13 @@ unvalidated.
 | `report` | Local audition/evidence HTML | `guitar-report` | Available |
 | `pipeline` | Existing-artifact provenance and reference review | `guitar-pipeline` | Experimental |
 | `markers` | Generic source-timestamp CSV/JSON | `phrase-markers` | Experimental; editor import unvalidated |
+| `clicks` | Candidate detection and opt-in guarded attenuation | `guitar-clicks` | Experimental; identity and listening unverified |
+| `phrase_compare` | Hash-bound within-take feature alignment | `guitar-phrase-compare` | Experimental; relative review hypotheses |
+| `benchmark` | Synthetic fixtures and tool measurements | `guitar-benchmark` | Experimental; real-take quality unverified |
+| `review` | Local revision-checked operator annotations | `guitar-review` | Experimental; no HTTP start or listening acceptance |
+| `pitch` | Bounded dual-resolution pYIN excerpts and theoretical tuning maps | `guitar-pitch` | Experimental; sparse hypotheses, no transcription grade |
+| `meter` | Verified-derivative accent cycles and pulse aliases | `guitar-meter` | Experimental; notation and downbeats unconfirmed |
+| `tonal` | Same-source chroma/profile context and recurrence comparisons | `guitar-tonal` | Experimental; tonic/mode null, no note grade |
 
 The music context is nine-string, downtuned deathcore/technical guitar, with
 intentional fundamentals around 32 Hz. Hooks do not automatically high-pass,
@@ -96,6 +103,72 @@ python3 scripts/tool_api.py describe rhythm
 python3 scripts/tool_api.py run rhythm --arguments '{"input":"/private/take.mov","run_dir":"/private/run-a","backend":"stdlib"}'
 ```
 
+
+## Extended worker contracts
+
+- `clicks` accepts `input`, `run_dir`, optional 20–400 `bpm`, paired audio-relative
+  `template_start`/`template_end`, `strength` 0–0.5, and explicit booleans
+  `attenuate`/`template_click_only`. Default detection creates JSON/CSV without
+  WAV. Attenuation requires the operator-declared template to span 5–120 ms
+  inside the input; overlap/fit uncertainty may abstain. Each invocation creates
+  an immutable run beneath `run_dir/clicks`. Native extent, rate and channels
+  remain separate from listening acceptance. NumPy/SciPy uses the explicit
+  `VIDEO_UTILS_ANALYSIS_PYTHON` even though the tool has no backend parameter.
+- `phrase_compare` consumes an existing run's same-source manifest, analysis
+  features and recurrence candidates. Knobs are `max_pairs` 1–60 (default 30),
+  `band_fraction` >0 and ≤0.5 (default 0.20), `min_rate` 0.25–1 (default 0.5),
+  `max_rate` 1–4 (default 2). It writes `phrase-comparisons.json`; missing features
+  produce explicit unavailability, mismatched source/derivative hashes reject.
+  It compares relative timing without requiring predefined intended phrases;
+  unknown confidence/legato can abstain from attack-edit hypotheses.
+- `benchmark` accepts required new `output` beneath repository
+  `artifacts/benchmarks/` and `operation: fixtures|run` (default run). Only run
+  accepts `profile` and `phrase_backend: stdlib|librosa`. The suite measures three
+  bounded synthetic cases and stores provenance; no private recording is
+  acquired. Use an explicit analysis interpreter for librosa. Structural
+  failures, synthetic quality alerts and real-recording acceptance remain
+  distinct. Its own suite deadline is 600 seconds; a caller can choose a longer
+  common tool deadline up to 900 seconds for final bookkeeping.
+- `review` accepts `run_dir` and `operation: read|write` (default read). Writes
+  require an existing local `input` request JSON with `expected_revision` and one
+  annotation. Read rejects an input request. Worker validation binds original
+  source identity and finite timeline spans, rejects stale revisions, caps
+  requests at 20,000 bytes, stores at 1,000,000 bytes and annotations at 200.
+  Operator notes remain separate from algorithm observations and listening
+  acceptance; read/write never invoke the separate HTTP serve subcommand.
+
+
+- `pitch` accepts `input`, `run_dir`, `max_analysis_seconds` 1–30 (default 20),
+  and optional nonnegative `start_seconds`. Default sampling distributes bounded
+  ≤5-second excerpts including the ending; an explicit start selects one capped
+  contiguous excerpt. Fixed low/high pYIN branches preserve window extents,
+  ambiguity, theoretical tuning and nonunique string mappings. It requires
+  explicit `VIDEO_UTILS_ANALYSIS_PYTHON` or an already installed analysis server
+  interpreter. MCP returns a compact summary and local `pitch.json` path; full
+  frame evidence is not inlined. Coverage is sampled analysis, not full-song
+  transcription. Its isolated pYIN child has a 180-second deadline.
+- `meter` accepts only `run_dir` and the common deadline. It verifies the existing
+  run-local derivative, manifest, analysis and original timestamp mapping, then
+  writes an immutable meter receipt and returns `status`, `output`, `sha256`.
+  Accent cycles and pulse aliases are hypotheses; notation/downbeats/additive
+  grouping remain unconfirmed. Unknown meter is a supported result, including
+  uniform clicks or continuous legato. No media decoding or changes occur.
+
+
+- `tonal` accepts `run_dir`, `max_regions` 1–256 (default 128) and
+  `max_recurrences` 1–60 (default 30). It consumes current hash-bound restored
+  feature/context artifacts without decoding audio or importing librosa, writes
+  an immutable `tonal/<nonce>/tonal.json`, and returns a compact path/status/count
+  summary with null tonic/mode. Chroma profile scores and compatible scale
+  rotations are uncalibrated hypotheses; low-register chroma resolution remains
+  unqualified. Tuning metadata is not a tonic prior and sparse pitch branches
+  are retained separately rather than counted as independent note votes.
+
+The standard deadline applies to each extension. All extensions have repository
+skills, research/iteration guidance, fixed dispatcher targets and strict schemas.
+No tool accepts a caller-selected executable, shell command, URL fetch or
+installation request.
+
 ## Bounds, outputs and limitations
 
 Inputs reject unknown keys, wrong types, nonfinite numbers and unsupported
@@ -122,7 +195,8 @@ process group it created. The returned tool error includes an actor/ownership/
 reason/ruling/prior-state/result receipt with the observed PID and process group.
 This targets the invocation's recorded ownership under
 R-N11; it never signals other sessions. Worker output is file-backed and accepted
-JSON is capped at 2 MiB; input messages are capped at 1 MiB. Trusted fixed workers
+JSON is capped at 2 MiB; input messages are capped at 1 MiB. JSON nesting is capped portably at 128
+levels; quoted punctuation and escapes do not count toward nesting. Trusted fixed workers
 may write larger temporary log files before this check. Client cancellation
 notifications are ignored in the serial implementation; they cannot interrupt a
 running call, which completes or reaches its deadline. Choose a client timeout

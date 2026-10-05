@@ -7,6 +7,8 @@ from fractions import Fraction
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
+import wave
 
 REPO = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("media_worker", REPO / "scripts" / "media.py")
@@ -77,6 +79,51 @@ class MediaIntegrationTests(unittest.TestCase):
         samples = array.array("f")
         samples.frombytes(result.stdout)
         return samples
+
+    def test_compensated_attack_alignment_and_tail_at_44100_and_48000(self):
+        for rate in (44100, 48000):
+            with self.subTest(rate=rate):
+                # Include a non-hop-multiple extent and a final attack inside
+                # the last 25 ms; trimming an old delayed WAV loses that attack.
+                count = rate * 4 + 137
+                positions = (rate // 3, rate * 2 + 17, count - 100)
+                values = array.array("h", [0]) * count
+                for index in range(rate // 2, count):
+                    values[index] = int(3000 * math.sin(2 * math.pi * 32 * index / rate))
+                for position in positions:
+                    values[position] += 24000
+                source = self.directory / f"attacks-{rate}.wav"
+                with wave.open(str(source), "wb") as handle:
+                    handle.setnchannels(1)
+                    handle.setsampwidth(2)
+                    handle.setframerate(rate)
+                    handle.writeframes(values.tobytes())
+                manifest = media.clean(source, self.profile("conservative3"))
+                directory = Path(manifest["run_dir"])
+                latency = manifest["dsp_latency"]["denoise"]
+                self.assertEqual(latency["delay_samples"], 2 * (rate // 80))
+                self.assertEqual(latency["measured_impulse_offsets_samples"], [2 * (rate // 80)] * 2)
+                self.assertFalse(manifest["dsp_latency"]["physical_audio_video_sync_verified"])
+                for name in ("denoised.wav", "baseline.wav", "cleaned.wav"):
+                    samples = self.raw_samples(directory / name)
+                    self.assertEqual(len(samples), count)
+                    for position in positions:
+                        hit = max(range(max(0, position - 20), min(count, position + 21)),
+                                  key=lambda i: abs(samples[i]))
+                        self.assertEqual(hit, position, f"{name} displaced the attack")
+                        self.assertGreater(abs(samples[position]), 0.1, f"{name} lost the source tail")
+                self.assertEqual(manifest["loudness"]["cleaned"]["render"]["normalization_type"], "dynamic")
+                # Prove this fixture detects the original bug: uncorrected
+                # filtering displaces both interior attacks by two FFT hops.
+                control = self.directory / f"uncompensated-{rate}.wav"
+                media.ffmpeg(["-i", str(source), "-af", "afftdn=nr=3:nf=-40:tn=0:gs=5",
+                              "-c:a", "pcm_f32le", str(control)])
+                damaged = self.raw_samples(control)
+                for position in positions[:2]:
+                    search = range(position, position + latency["delay_samples"] + 30)
+                    hit = max(search, key=lambda i: abs(damaged[i]))
+                    self.assertEqual(hit - position, latency["delay_samples"])
+                self.assertLess(abs(damaged[positions[-1]]), 0.15)
 
     def test_32hz_preservation_native_pcm_and_source_immutability(self):
         # Spaces and shell syntax in input name must remain ordinary path data.
@@ -154,6 +201,62 @@ class MediaIntegrationTests(unittest.TestCase):
             handle.write(b"tampered")
         with self.assertRaises(media.MediaError):
             media.export(manifest["run_dir"])
+
+    def peak_fixture(self):
+        source = self.directory / "aac-overshoot.mov"
+        media.ffmpeg(["-f", "lavfi", "-i", "color=c=black:s=64x64:r=10:d=2",
+                      "-f", "lavfi", "-i", "sine=frequency=220:sample_rate=48000:duration=2",
+                      "-map", "0:v:0", "-map", "1:a:0", "-c:v", "mpeg4",
+                      "-c:a", "pcm_s16le", str(source)])
+        manifest = media.clean(source, self.profile("bypass"))
+        directory = Path(manifest["run_dir"])
+        # Construct a source-bound test master at the exact -1.50 dBTP ceiling.
+        # This demonstrates lossy delivery overshoot independently of mastering.
+        replacement = self.directory / "peak-master.wav"
+        gain = 8 * 10 ** (-1.5 / 20)
+        media.ffmpeg(["-f", "lavfi", "-i", "sine=frequency=220:sample_rate=48000:duration=2",
+                      "-af", f"volume={gain}", "-c:a", "pcm_s24le", str(replacement)])
+        replacement.replace(directory / "cleaned.wav")
+        manifest["output_sha256"]["cleaned.wav"] = media.sha256(directory / "cleaned.wav")
+        media.json_write(directory / "manifest.json", manifest)
+        return manifest, directory
+
+    def test_actual_aac_overshoot_retry_preserves_master_and_picture(self):
+        manifest, directory = self.peak_fixture()
+        master_hash = media.sha256(directory / "cleaned.wav")
+        outcome = media.export(directory)
+        headroom = outcome["aac_headroom"]
+        self.assertGreater(len(headroom["attempts"]), 1)
+        self.assertLessEqual(len(headroom["attempts"]), 3)
+        self.assertFalse(headroom["attempts"][0]["true_peak_within_target"])
+        self.assertGreater(headroom["attempts"][0]["decoded_true_peak_dbtp"], -1.5)
+        self.assertTrue(headroom["attempts"][-1]["true_peak_within_target"])
+        self.assertGreaterEqual(headroom["feed_gain_db"], -1.0)
+        self.assertLess(headroom["feed_gain_db"], 0)
+        self.assertEqual(media.sha256(directory / "cleaned.wav"), master_hash)
+        self.assertEqual(headroom["target_true_peak_dbtp"], -1.5)
+        self.assertTrue(outcome["verification"]["final_true_peak_within_target"])
+        self.assertTrue(outcome["verification"]["video_packet_payload_hashes_preserved"])
+        self.assertTrue(outcome["verification"]["video_packet_timeline_preserved"])
+
+    def test_aac_headroom_failure_is_bounded_and_retains_receipt_master(self):
+        manifest, directory = self.peak_fixture()
+        master_hash = media.sha256(directory / "cleaned.wav")
+        # A stubborn measurement exercises retry exhaustion without weakening
+        # the ceiling; the actual encoder still executes for each bounded try.
+        with patch.object(media, "loudness", return_value={"input_tp": "-1.40", "input_i": "-18.0"}):
+            with self.assertRaisesRegex(media.MediaError, "bounded headroom retries exhausted"):
+                media.export(directory)
+        self.assertEqual(media.sha256(directory / "cleaned.wav"), master_hash)
+        self.assertFalse((directory / "export").exists())
+        receipts = list((directory / "export-failures").glob("*.json"))
+        self.assertEqual(len(receipts), 1)
+        receipt = json.loads(receipts[0].read_text())
+        self.assertEqual(receipt["status"], "export_failed_master_retained")
+        self.assertEqual(len(receipt["aac_attempts"]), 3)
+        self.assertTrue(all(not attempt["true_peak_within_target"] for attempt in receipt["aac_attempts"]))
+        self.assertEqual(receipt["master_sha256"], master_hash)
+        self.assertFalse(list(directory.glob(".export-staging-*")))
 
     def test_export_rejects_changed_source(self):
         source = self.directory / "changed.wav"

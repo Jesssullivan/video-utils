@@ -7,6 +7,7 @@ All media outputs are private local artifacts, not publication approvals.
 from __future__ import annotations
 
 import argparse
+import array
 from datetime import datetime, timezone
 from fractions import Fraction
 import hashlib
@@ -19,6 +20,7 @@ import subprocess
 import sys
 import tempfile
 import uuid
+import wave
 
 ROOT = Path(__file__).resolve().parents[1]
 TIMEOUT = 600
@@ -207,6 +209,62 @@ def ensure_pcm_matches(path: Path, reference: dict) -> dict:
     return info
 
 
+def calibrate_denoise_latency(directory: Path, audio_filter: str, rate: int,
+                              channels: int) -> dict:
+    """Validate the actual afftdn binary's insertion delay, rather than its PTS.
+
+    High-amplitude separated impulses exercise the overlap-add path. This is a
+    bounded filter calibration, not an alignment score for the musician's take.
+    """
+    advance = rate // 80
+    if advance < 1:
+        raise MediaError("sample rate is too low for afftdn latency calibration")
+    delay = 2 * advance
+    count = rate
+    positions = [rate // 4, rate * 3 // 5]
+    samples = array.array("h", [0]) * (count * channels)
+    for position in positions:
+        for channel in range(channels):
+            samples[position * channels + channel] = 24576
+    source, output = directory / ".latency-input.wav", directory / ".latency-output.f32"
+    try:
+        with wave.open(str(source), "wb") as handle:
+            handle.setnchannels(channels)
+            handle.setsampwidth(2)
+            handle.setframerate(rate)
+            handle.writeframes(samples.tobytes())
+        ffmpeg(["-i", str(source), "-af", audio_filter, "-ar", str(rate),
+                "-ac", str(channels), "-c:a", "pcm_f32le", "-f", "f32le", str(output)])
+        rendered = array.array("f")
+        with output.open("rb") as handle:
+            rendered.fromfile(handle, output.stat().st_size // rendered.itemsize)
+        if sys.byteorder != "little":
+            rendered.byteswap()
+        if len(rendered) != count * channels:
+            raise MediaError("denoiser latency calibration changed sample extent")
+        offsets = []
+        for position in positions:
+            for channel in range(channels):
+                start, end = max(0, position - delay), min(count, position + 2 * delay + 1)
+                peak = max(range(start, end), key=lambda i: abs(rendered[i * channels + channel]))
+                if abs(rendered[peak * channels + channel]) < 0.1:
+                    raise MediaError("denoiser calibration impulse was not observable")
+                offsets.append(peak - position)
+        if any(offset != delay for offset in offsets):
+            raise MediaError(f"afftdn latency differs from calibrated source model: {offsets}, expected {delay}")
+        return {"status": "measured_and_compensated", "filter": "afftdn",
+                "sample_advance": advance, "delay_samples": delay,
+                "delay_seconds": delay / rate, "measured_impulse_offsets_samples": offsets,
+                "method": "two isolated impulses in each native-rate channel; exact output peak displacement",
+                "source_model": "FFmpeg 8.1 af_afftdn.c: window_length=3*(sample_rate/80); insertion offset=2*(sample_rate/80)",
+                "compensation": "pad input tail before filtering, discard filter leading delay, trim to original extent, reset sample timestamps",
+                "remaining_bulk_delay_samples": 0,
+                "actual_recording_waveform_alignment_measured": False}
+    finally:
+        source.unlink(missing_ok=True)
+        output.unlink(missing_ok=True)
+
+
 def video_frame_count(path: Path, stream_index: int) -> int:
     result = run([executable("ffprobe"), "-v", "error", "-threads", THREADS,
                   "-count_frames", "-select_streams", str(stream_index),
@@ -334,12 +392,15 @@ def verify_video_export(video: Path, manifest: dict, final_path: Path) -> dict:
                              "video_frame_count_preserved": True,
                              "relative_audio_video_start_delta_seconds": offset_delta,
                              "relative_audio_video_start_verified": offset_delta is not None,
+                             "dsp_latency_compensation_recorded": manifest.get("dsp_latency", {}).get("denoise", {}).get("status") in ("measured_and_compensated", "bypass_no_filter_delay"),
+                             "physical_audio_video_sync_verified": False,
                              "video_duration_delta_seconds": duration_delta,
                              "video_header_duration_diagnostic_only": True,
                              "audio_duration_delta_seconds": audio_duration_delta,
                              "aac_timing_tolerance_seconds": tolerance,
                              "final_true_peak_target_dbtp": target_peak,
-                             "final_true_peak_within_target": None if peak is None else peak <= target_peak}}
+                             "final_true_peak_within_target": (peak <= target_peak if peak is not None else
+                                                               True if measurement.get("input_tp") == "-inf" else None)}}
 
 
 def clean(value: str | Path, profile_value: str | Path) -> dict:
@@ -372,16 +433,25 @@ def clean(value: str | Path, profile_value: str | Path) -> dict:
         if profile["denoise"]:
             audio_filter = (f"afftdn=nr={profile['reduction_db']}:nf={profile['noise_floor_db']}:"
                             f"tn=0:gs={profile['gain_smooth']}")
+            latency = calibrate_denoise_latency(staging, audio_filter, audio["sample_rate"], audio["channels"])
+            delay = latency["delay_samples"]
             if interval is not None:
                 audio_filter = (f"asendcmd=c='{interval[0]} afftdn sn start;"
                                 f"{interval[1]} afftdn sn stop'," + audio_filter)
                 assumptions.append("Operator-approved noise capture updates the filter after the selected interval; earlier audio uses the fixed floor.")
             else:
                 assumptions.append(f"Fixed noise floor {profile['noise_floor_db']} dB is an unverified diagnostic heuristic, not a measured noise profile; tracking is disabled.")
+            # afftdn copies timestamps while its overlap-add samples lag by two
+            # hops. Padding must precede the filter so the original tail survives.
+            audio_filter = (f"apad=pad_len={delay}," + audio_filter +
+                            f",atrim=start_sample={delay}:end_sample={delay + reference['sample_count']},asetpts=N/SR/TB")
             ffmpeg(["-i", str(working), "-af", audio_filter, "-ar", str(audio["sample_rate"]),
                     "-ac", str(audio["channels"]), "-c:a", "pcm_f32le", str(denoised)])
         else:
             shutil.copyfile(working, denoised)
+            latency = {"status": "bypass_no_filter_delay", "delay_samples": 0,
+                       "remaining_bulk_delay_samples": 0,
+                       "actual_recording_waveform_alignment_measured": True}
         ensure_pcm_matches(denoised, reference)
         residue = staging / "residue.wav"
         ffmpeg(["-i", str(working), "-i", str(denoised), "-filter_complex",
@@ -403,6 +473,12 @@ def clean(value: str | Path, profile_value: str | Path) -> dict:
                                  "audio_start_seconds": audio["start_time"],
                                  "decoded_audio_origin": "first decoded source audio sample",
                                  "no_time_stretch": True},
+                    "dsp_latency": {"denoise": latency,
+                                    "normalization": {"policy": "FFmpeg loudnorm native compensated timestamps; no additional trimming",
+                                                      "actual_recording_waveform_alignment_measured": False,
+                                                      "validation": "separate 44.1/48 kHz dynamic-mode impulse regression; not a listening or complete physical A/V synchronization claim"},
+                                    "analysis_derivative_sample_mapping": "denoised sample zero maps to decoded source sample zero after calibrated filter-delay compensation",
+                                    "physical_audio_video_sync_verified": False},
                     "outputs": {"source": "source.wav", "denoised": "denoised.wav",
                                 "baseline": "baseline.wav", "cleaned": "cleaned.wav", "residue": "residue.wav"},
                     "loudness": {"baseline": baseline, "cleaned": restored},
@@ -420,6 +496,50 @@ def clean(value: str | Path, profile_value: str | Path) -> dict:
     except BaseException:
         shutil.rmtree(staging, ignore_errors=True)
         raise
+
+
+def encode_video_with_headroom(source: Path, cleaned: Path, video: Path,
+                               manifest: dict, attempts: list[dict]) -> dict:
+    """Bound delivery-only AAC gain by decoded true-peak measurements."""
+    original = manifest["source"]["probe"]
+    target = manifest["profile"]["true_peak_dbtp"]
+    gain_db = 0.0
+    max_attempts, max_attenuation, safety_margin = 3, 1.0, 0.05
+    for index in range(max_attempts):
+        audio_start = original["audio"]["start_time"] or 0.0
+        format_start = original["format"]["start_time"] or 0.0
+        args = ["-copyts", "-i", str(source), "-itsoffset", str(audio_start), "-i", str(cleaned),
+                "-map", f"0:{original['video']['index']}", "-map", "1:a:0", "-map_metadata", "0",
+                "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-threads", THREADS]
+        if gain_db:
+            args += ["-af", f"volume={gain_db:.8f}dB"]
+        args += ["-output_ts_offset", str(-format_start), "-avoid_negative_ts", "disabled",
+                 "-movflags", "+faststart", str(video)]
+        ffmpeg(args)
+        measured = loudness(video, manifest["profile"])
+        peak = number(measured.get("input_tp"))
+        within = peak is not None and peak <= target
+        # True digital silence cannot overshoot; other undefined measurements
+        # cannot support a bounded attenuation estimate.
+        if peak is None and measured.get("input_tp") == "-inf":
+            within = True
+        attempts.append({"attempt": index + 1, "feed_gain_db": gain_db,
+                         "decoded_true_peak_dbtp": peak, "loudness": measured,
+                         "true_peak_within_target": within, "encoded_sha256": sha256(video)})
+        if within:
+            return {"status": "decoded_aac_true_peak_verified", "target_true_peak_dbtp": target,
+                    "feed_gain_db": gain_db, "attempts": attempts,
+                    "max_attempts": max_attempts, "max_attenuation_db": max_attenuation,
+                    "retry_safety_margin_db": safety_margin,
+                    "scope": "delivery AAC feed only; PCM master unchanged; no performance correction"}
+        if peak is None:
+            raise MediaError("AAC true peak is unavailable; export cannot be verified")
+        proposed = gain_db - (peak - target + safety_margin)
+        if index + 1 == max_attempts or proposed < -max_attenuation:
+            raise MediaError(f"AAC true peak {peak:.2f} dBTP exceeds target {target:.2f}; bounded headroom retries exhausted")
+        gain_db = proposed
+        video.unlink()  # Owned failed staging encode; its measurements/hash survive.
+    raise MediaError("AAC headroom verification did not finish")
 
 
 def export(value: str | Path) -> dict:
@@ -450,6 +570,8 @@ def export(value: str | Path) -> dict:
             if "cleaned-video.mov" not in outcome.get("output_sha256", {}):
                 raise MediaError("cached video export has no integrity receipt")
             outcome.update(verify_video_export(video, manifest, video))
+            if outcome["verification"]["final_true_peak_within_target"] is False:
+                raise MediaError("cached AAC export exceeds its true-peak target; preserve it as a revision before creating a fresh export")
         else:
             outcome["final_audio_loudness"] = loudness(cleaned, manifest["profile"])
         # Upgrade older completed receipts without rewriting media.
@@ -458,21 +580,19 @@ def export(value: str | Path) -> dict:
         receipt.replace(destination / "outcome.json")
         return outcome
     staging = Path(tempfile.mkdtemp(prefix=".export-staging-", dir=directory))
+    peak_attempts: list[dict] = []
     try:
         metadata = manifest["source"]["probe"]
         outcome = {"schema_version": 1, "status": "exported_unreviewed", "run_dir": str(directory),
                    "audio_master": str(cleaned), "video": None, "source_sha256": manifest["source"]["sha256"],
+                   "dsp_latency": manifest.get("dsp_latency", {"status": "legacy_uncalibrated"}),
                    "listening_accepted": False}
         if metadata["video"] is not None:
-            audio_start = metadata["audio"]["start_time"] or 0.0
-            format_start = metadata["format"]["start_time"] or 0.0
             video = staging / "cleaned-video.mov"
-            ffmpeg(["-copyts", "-i", str(source), "-itsoffset", str(audio_start), "-i", str(cleaned),
-                    "-map", f"0:{metadata['video']['index']}", "-map", "1:a:0", "-map_metadata", "0",
-                    "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-threads", THREADS,
-                    "-output_ts_offset", str(-format_start), "-avoid_negative_ts", "disabled",
-                    "-movflags", "+faststart", str(video)])
+            outcome["aac_headroom"] = encode_video_with_headroom(source, cleaned, video, manifest, peak_attempts)
             outcome.update(verify_video_export(video, manifest, destination / video.name))
+            if outcome["verification"]["final_true_peak_within_target"] is False:
+                raise MediaError("verified final AAC peak disagrees with successful headroom measurement")
             outcome.update(video=str(destination / video.name),
                            timeline_policy="copy original video timestamps; place replacement audio at original audio start; shift both by original container start; no shortest truncation")
         else:
@@ -484,7 +604,15 @@ def export(value: str | Path) -> dict:
         json_write(staging / "outcome.json", outcome)
         staging.rename(destination)
         return outcome
-    except BaseException:
+    except BaseException as exc:
+        if peak_attempts:
+            failure_dir = directory / "export-failures"
+            failure_dir.mkdir(exist_ok=True)
+            json_write(failure_dir / (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:12] + ".json"),
+                       {"status": "export_failed_master_retained", "error": str(exc),
+                        "source_sha256": manifest["source"]["sha256"],
+                        "master_sha256": manifest["output_sha256"]["cleaned.wav"],
+                        "aac_attempts": peak_attempts, "commands": COMMANDS[command_origin:]})
         shutil.rmtree(staging, ignore_errors=True)
         raise
 

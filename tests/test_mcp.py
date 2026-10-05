@@ -24,10 +24,10 @@ def initialization(version='2025-11-25'):
                                     'clientInfo': {'name': 'test-client', 'version': '1'}})
 
 
-def exchange(messages):
+def exchange(messages, timeout=30):
     raw = ''.join((json.dumps(message) if isinstance(message, dict) else message) + '\n' for message in messages)
     process = subprocess.run([sys.executable, str(ROOT / 'scripts/mcp_server.py')], input=raw,
-                             capture_output=True, text=True, timeout=30)
+                             capture_output=True, text=True, timeout=timeout)
     if process.returncode:
         raise AssertionError(process.stderr)
     return [json.loads(line) for line in process.stdout.splitlines()], process.stderr
@@ -85,13 +85,13 @@ class MCPTests(unittest.TestCase):
     def test_every_advertised_tool_has_a_readable_skill_prompt(self):
         server = mcp_server.Server()
         prompts = server.prompts()
-        self.assertEqual(len(prompts), 12)
+        self.assertEqual(len(prompts), len(server.catalog['tools']))
         messages = [initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'}]
         messages.extend(request(index + 2, 'prompts/get', {'name': prompt['name']})
                         for index, prompt in enumerate(prompts))
         replies, stderr = exchange(messages)
         self.assertEqual(stderr, '')
-        self.assertEqual(len(replies), 13)
+        self.assertEqual(len(replies), len(prompts) + 1)
         for prompt, reply in zip(prompts, replies[1:]):
             with self.subTest(prompt=prompt['name']):
                 self.assertNotIn('error', reply)

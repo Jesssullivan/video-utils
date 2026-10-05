@@ -72,9 +72,9 @@ they do not establish that this project's plugin loads or sounds correct.
 | Evidence state | Current status |
 |---|---|
 | Durable plan and installed toolchain inspection | Observed; October 5, 2026 |
-| Rust C ABI source and harness | Pending |
-| Native render kernel and Swift scaffold | Pending |
-| Bounded native compilation and behavioral tests | Pending |
+| Rust C ABI source and harness | Implemented; three Rust tests and the compiled C harness passed |
+| Native render kernel and Swift scaffold | Implemented and compiled with the installed Apple toolchain |
+| Bounded native compilation and behavioral tests | Passed after libc++ linkage and ARC correction; three Rust tests, C ABI harness, native callback harness, compiled render-body audit and direct Swift object lifecycle |
 | AU extension bundle, signing and registration | Not performed |
 | `auval` validation | Not performed |
 | Logic insertion, automation and save/reopen | Not performed |
@@ -82,3 +82,57 @@ they do not establish that this project's plugin loads or sounds correct.
 
 No installation, plugin repair, component registration or host mutation is
 authorized implicitly by running this spike's checks.
+
+First bounded check at 2026-10-05 20:57 UTC used one Cargo job, offline locked
+dependencies and the installed SDK. It passed ABI validation and 1024 native
+render calls with zero counted C++ `operator new` calls; the Rust allocator
+counter separately recorded zero allocations across 1024 gain calls. Swift
+linking initially lacked libc++; explicit linkage fixed the next bounded check.
+The counters cover these exercised code paths, not every
+allocation API or arbitrary host behavior.
+
+The corrected check at **2026-10-05 20:58 UTC** passed native linking and direct
+Swift object construction/resource allocation/deallocation at 48 kHz stereo and
+44.1 kHz mono. Mismatched channel configurations were rejected. C/ABI tests cover
+null, misalignment, maximum lengths, nonfinite gain/samples and overflow without
+partial mutation. Native callback checks cover pre-allocation/post-release calls,
+wrong bus, oversized blocks, undersized buffers, unsupported events, nonfinite
+input, null output-buffer adoption and retained-block lifetime. No audio device
+or registered component was used by these harnesses.
+
+Independent compiled-code review found that the initial Objective-C++ callback
+and helper retained their pull-input block parameters through ARC. Their source
+contained no explicit message calls, but the object code invoked
+`objc_storeStrong`. Both render-side parameters now use `__unsafe_unretained`;
+the host owns the pull block for the invocation. Compiled callback inspection is
+required alongside the allocation counters before claiming the callback avoids
+Objective-C runtime entry. Getter/block construction and destruction occur
+outside rendering and still use normal ownership.
+
+At **2026-10-05 21:03 UTC**, the corrected source passed all native checks and
+the compiled render-body audit. Independent read-only review of both complete
+disassembly bodies confirmed no Objective-C/Block runtime references and closed
+the ARC finding. The automated check fails if either expected body is absent or
+contains runtime references; it does not claim to audit every transitive callee
+or a foreign host's pull callback.
+
+Reproduce with `python3 native/au-spike/check.py`. The checker uses installed
+toolchains, one Cargo/Swift job, offline locked dependencies and 120-second command
+deadlines. It records source hashes, command arguments, tool versions and exact
+evidence states in ignored `.cache/au-spike/receipt.json`; generated binaries and
+Swift module caches are kept beside that receipt. It never installs or registers
+an AU. Current gain is fixed at unity in the Swift scaffold; kernel gain changes
+are exercised by the native harness, without advertising a host parameter tree.
+No UI, gain smoothing, parameter events, state serialization, containing app,
+extension metadata, universal build, Developer ID signature or installer ships
+in this spike.
+
+Each command runs in a new owned process group. A deadline expiry checks the
+actual group identity and live child before stopping only this invocation's
+compiler/harness descendants, under R-N11; it never signals a shared build or
+another session. Failed checks retain their diagnostic receipt with the
+command and deadline failure rather than promoting native acceptance.
+
+| Actor | Target/ownership | Reason | Ruling | Prior state | Result |
+|---|---|---|---|---|---|
+| AU implementation lane | Owned `native/au-spike/` and ignored build artifacts | Qualify an isolated native bridge using bounded installed tools | Operator request; R-N12 advisory hooks and R-N13 durability | Source scaffold; first Swift link lacked libc++ | Native compilation and harnesses passed; AU/Logic acceptance remains unperformed |

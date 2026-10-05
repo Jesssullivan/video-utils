@@ -16,6 +16,7 @@ COLUMNS = ["source_time_seconds", "end_seconds", "name", "confidence", "status",
 
 def build(run_dir: Path) -> tuple[dict, str]:
     flags_path = run_dir / "flags.json"
+    input_hashes = {name: sha256(run_dir / name) for name in ("flags.json", "manifest.json")}
     flags = load(flags_path)
     manifest = load(run_dir / "manifest.json")
     source_hash = manifest.get("source", {}).get("sha256")
@@ -23,9 +24,22 @@ def build(run_dir: Path) -> tuple[dict, str]:
         raise ValueError("Marker source hash must match the run manifest")
     graph_path = run_dir / "dag.json"
     if graph_path.is_file():
+        input_hashes["dag.json"] = sha256(graph_path)
         graph = load(graph_path)
         if graph.get("source_sha256") != source_hash or graph.get("flags_sha256") != sha256(flags_path):
             raise ValueError("DAG flags hash is stale or source identity differs; rerun dag.py")
+        hashes = graph.get("artifact_hashes", {})
+        if not isinstance(hashes, dict):
+            raise ValueError("DAG artifact_hashes must be an object")
+        for name, expected in hashes.items():
+            if not isinstance(name, str) or Path(name).name != name or not name or name in (".", ".."):
+                raise ValueError("DAG artifact path must be a local filename")
+            artifact_path = run_dir / name
+            if not artifact_path.is_file() or artifact_path.resolve().parent != run_dir.resolve():
+                raise ValueError(f"DAG artifact missing or outside run directory: {name}")
+            if not isinstance(expected, str) or len(expected) != 64 or sha256(artifact_path) != expected:
+                raise ValueError(f"DAG upstream artifact is stale: {name}; rerun dag.py")
+            input_hashes[name] = expected
     items = flags.get("flags", [])
     if not isinstance(items, list) or len(items) > 50_000:
         raise ValueError("Marker input must contain at most 50000 flags")
@@ -55,6 +69,8 @@ def build(run_dir: Path) -> tuple[dict, str]:
     writer.writeheader()
     for marker in markers:
         writer.writerow({**marker, "evidence": json.dumps(marker["evidence"], ensure_ascii=False, allow_nan=False)})
+    if any(sha256(run_dir / name) != expected for name, expected in input_hashes.items()):
+        raise ValueError("Marker input changed during export preparation; rerun against stable artifacts")
     return result, stream.getvalue()
 
 

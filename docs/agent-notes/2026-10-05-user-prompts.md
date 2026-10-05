@@ -83,3 +83,39 @@ The operator's answer was:
 Authority: operator implementation and parallel-work requests above;
 R-HOOK-CONVERGENCE-20261004, TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`; R-N11/R-N12/R-N13.
+
+## 10. Operator-supplied global AGENTS.md instructions
+
+The following user-supplied instruction block is retained verbatim. The repository
+contract is a separate file and is not part of this quoted user message.
+
+```text
+# AGENTS.md instructions
+
+<INSTRUCTIONS>
+# Global lab doctrine (Home Manager managed, R-C218)
+
+Repo `AGENTS.md` and nearest overlays take precedence. In Lab, read root
+`AGENTS.md` first. Current authority: **R-HOOK-CONVERGENCE-20261004**, TIN-3692
+comment `98cf680c-7299-4949-bfb2-60079053ad43`.
+
+## Ratified rulings (TIN-3692)
+
+- **R-N11:** Own recorded tasks and named services may be signalled after ownership and live-session check. Cross-session actions need explicit user authorization. See repo AGENTS.md and Lab's `docs/operations/HOOK_ADVISORY.md`.
+- **R-N12:** All Lab hooks are advisory, including credential checks. Findings and dark hooks are diagnostics, not approval gates. Record findings and use a traceable alternative within the authorized task.
+- **R-N13:** Receipts cite authority; durable work goes to `docs/agent-notes/`, facts to Linear. Do not leave the only copy in tmp or scratchpads.
+
+## Live workstreams
+
+Live board: newest board on Linear TIN-3692; Lab pointer:
+`docs/operations/WORKSTREAM_BOARD.md`. Brief advisory rows suffice:
+`stream | owner | repo/branch | state/evidence | next`; mark holds/unknowns.
+
+## Durability
+
+Process escape-hatch receipt:
+`actor | target/ownership | reason | ruling | prior_state | result`.
+Inspect the actual target; do not infer ownership from an empty default tmux
+socket. Command names in documentation and searches are data.
+</INSTRUCTIONS>
+```

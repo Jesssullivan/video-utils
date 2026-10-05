@@ -63,7 +63,7 @@ notes. A four-pulse grouping is a hypothesis, not confirmed meter.
    candidates with confidence and limitations. The report exposes review spans
    with local playback/seek controls. Empty or unknown results remain permitted
    when evidence is insufficient; populate candidates only from measured data.
-3. All twelve tool contracts and skills agree with supported knobs, input
+3. All registered tool contracts and skills agree with supported knobs, input
    schemas, dependencies, timeouts and provenance. Optional analysis dependencies
    are reproducible and explicit; no silent model downloads.
 4. Relevant synthetic/integration tests and an actual-take run substantiate
@@ -92,21 +92,36 @@ navigation/review flags, all hypotheses rather than confirmed mistakes. See the
 live board for counts and remaining test/publication evidence. Goal tracking is
 [TIN-5495](https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal).
 
+Later benchmark evidence found approximately 25 ms source-to-denoised click
+delay in three synthetic fixtures. Executable/profile-bound calibration and
+1102-sample compensation were then used in new run
+`20261005T211103Z-c6d0bac2fcd2`; three standard-library and three optional-backend
+synthetic cases now show zero candidate shift and click recall 1. This qualifies
+the tested processing chain, not a ground-truth alignment of the real performance.
+The new run completed all stages with 48 candidate regions, 14 recurrence pairs
+and 186 review/navigation flags. Its encoded AAC true peak measured −1.49 dBTP,
+failing the strict −1.50 target; bounded headroom retry repair is in progress.
+Root has not published the new bundle. `/root/media_latency` owns media/latency
+tests and `docs/spec/MEDIA_LATENCY.md`; definition-of-done item 1 remains open
+until final encoded acceptance and publication evidence are recorded.
+
 ## Parallel lanes and ownership
 
 Workers edit their assigned files only. Root resolves interface changes and owns
 shared entrypoints, publication, Linear writes, and integrated run receipts.
-**Existing shared files are frozen until root broadcasts the first integrated
-publication.** New assigned files below may proceed during that freeze. The
-initial ownership table records integration responsibilities; it does not revoke
-the publication freeze. Use the live board for status.
+The initial existing-file freeze **was released by root's first-publication
+broadcast** after signed commit `be085b4316c27ba59d66091a01480493ed9c996d` was
+pushed and verified. Named owners may resume their assigned files; root still
+coordinates shared interfaces and publication. These tables retain the assignment
+contract; the live board records current evidence and remaining acceptance.
+Publishing the first iteration does not complete the ten-hour goal.
 
 | Lane | Owned files | Deliverable and verification | Dependency / checkpoint |
 | --- | --- | --- | --- |
 | `/root/rhythm_analysis` | `scripts/rhythm.py`, `tests/test_rhythm.py`, `requirements-analysis.*` | Declared versus fitted tempo, bounded optional onset backend, subdivision ambiguity; known-grid and real-take checks | Agree schema with features/tools/report before integration |
 | `/root/guitar_features` | `scripts/guitar_features.py`, `tests/test_guitar_features.py`, `docs/research/LOW_TUNING.md` | Beat-synchronous novelty/self-similarity/recurrence candidates without intent; low-register and legato fixtures | Uses post-denoise identity and tempo context; publish schema to DAG/report |
 | `/root/phrase_dag` | `scripts/dag.py`, `scripts/markers.py`, `program/dags/guitar-take.json`, `tests/test_dag.py`, `tests/test_markers.py`, `docs/spec/PHRASE_DAG.md` | Provenance evaluator, automatic review spans, optional qualified-reference comparator, generic markers | Feature artifact schema first; no native editor-import claim |
-| `/root/tool_hooks` | `scripts/tool_api.py`, `scripts/mcp_server.py`, `program/tools.json`, `tests/test_tools.py`, `tests/test_mcp.py`, `docs/spec/MCP.md` | Typed twelve-tool interfaces, validated knobs, bounded workers and explicit backend selection | Coordinate worker arguments and skills; actual stdio checks |
+| `/root/tool_hooks` | `scripts/tool_api.py`, `scripts/mcp_server.py`, `program/tools.json`, `tests/test_tools.py`, `tests/test_mcp.py`, `docs/spec/MCP.md` | Typed interfaces for all registered tools, validated knobs, bounded workers and explicit backend selection | Coordinate worker arguments and skills; actual stdio checks |
 | `/root/tool_skills` | `.agents/skills/**`, `docs/spec/AGENT_TOOLS.md` | Tool intent/research/iteration instructions matching actual contracts | Contracts first, validator plus live prompt reads |
 | `/root/plan_review` | `scripts/report.py`, `reports/demo.qmd`, `reports/plots.R`, `tests/test_report.py` | Evidence report, declared/fitted tempo, candidate spans/recurrence seeks, stale-artifact rejection | Feature/DAG schemas; no invented browser or Quarto runtime proof |
 | `/root/clip_baseline` | `README.md`, `docs/spec/PROJECT.md`, `docs/research/RESEARCH.md`, `docs/agent-notes/2026-10-05-implementation.md`, `program/models.json` | Domain/acceptance/research documentation and current roadmap; preserve observed receipts | Root supplies actual integrated measurements/publication |
@@ -116,19 +131,34 @@ the publication freeze. Use the live board for status.
 | Root integration | `AGENTS.md`, `scripts/run_demo.py`, other explicitly retained shared files, `program/linear.json`, final publication receipts | Integrate and test, rerun real media/analysis, commit/push, publish factual Linear updates | Root alone updates shared entrypoint/publication; no race with named owners |
 
 The root has assigned the following next work to existing named agents, using
-new files to avoid races with first-publication integration:
+new files to avoid races with first-publication integration. References to
+"after first push" below describe a dependency now satisfied; new contracts/tests
+still require root integration before publication:
 
 | Owner | New files / scope | Acceptance checkpoint |
 | --- | --- | --- |
 | `/root/rhythm_analysis` | `scripts/clicks.py`, `tests/test_clicks.py`, `docs/spec/CLICK_LANE.md`, `docs/research/CLICK_RESEARCH.md` | Measured click candidates and bounded attenuation experiment; overlapping guitar attacks protected; primary-source research |
 | `/root/guitar_features` | `scripts/pitch.py`, `tests/test_pitch.py`, `docs/spec/PITCH_LANE.md` | Use constant tuning with inferred-octave evidence; bounded optional dual-resolution pitch candidates; low-register/intentional-distortion ambiguity and unknowns retained |
+| `/root/meter_inference` | `scripts/meter.py`, `tests/test_meter.py`, `docs/spec/METER_LANE.md`, `docs/research/METER.md` | Confidence-qualified meter candidates without intended arrangement; ambiguous accents, subdivisions and half/double interpretations permit unknown |
+| `/root/tonal_inference` | `scripts/tonal.py`, `tests/test_tonal.py`, `docs/spec/TONAL_LANE.md`, `docs/research/TONAL.md` | Distortion-aware tonic/mode candidates with primary-source methods, protected low register and abstention on insufficient evidence |
 | `/root/phrase_dag` | `scripts/phrase_compare.py`, `tests/test_phrase_compare.py`, `docs/spec/PHRASE_COMPARE_LANE.md` | Reference-free recurrence-difference review with source spans; tests distinguish hypotheses from correctness |
 | `/root/repo_patterns` | `scripts/benchmark.py`, `tests/test_benchmark.py`, `program/benchmarks.json`, `docs/spec/BENCHMARK_LANE.md` | Reproducible benchmark records with exact fixture/output provenance and bounded resources |
 | `/root/plan_review` | `scripts/review_server.py`, `tests/test_review_server.py`, `docs/spec/REVIEW_LANE.md`, `staticreview/**` | Local graphical review and source-time navigation; resource/path boundaries and playback claims tested |
-| `/root/au_architecture` | `native/au-spike/**`, `docs/spec/AU_SPIKE.md` | Bounded native architecture/ABI spike; no allocation/I/O/subprocesses in render path; host acceptance separate |
+| `/root/au_architecture` | Initial `native/au-spike/**` and `docs/spec/AU_SPIKE.md` handoff; next only `native/au-spike/automation/**` and `docs/spec/AU_AUTOMATION.md` | Isolated automation experiments; existing native spike frozen until root publication; no installation or host-acceptance claim |
 | `/root/tool_hooks` | `docs/spec/MCP_EXTENSION_LANE.md`, `tests/test_tool_contracts.py`; existing registry only after root's first-push broadcast | Extension contracts agree with supported operations and explicit dependencies before shared registry edits |
 | `/root/tool_skills` | `docs/spec/SKILL_EXTENSION_LANE.md`; per-tool extensions after contract handoff | Agent guidance matches actual validated new tool contracts |
-| `/root/clip_baseline` | Standby after docs/tuning handoff | Root explicitly assigns further research before additional edits |
+| `/root/clip_baseline` | `docs/research/FOSS_AUDIO_MATRIX.md`, `docs/spec/RESEARCH_LANE.md` | Primary-source FOSS applicability/licensing comparison for distorted low-register guitar; separate repairs research from host changes |
+
+Assignment versus execution: the earlier publication broadcast did not trigger
+the idle pitch worker. Root explicitly started `/root/guitar_features`'s pitch
+follow-up around 21:20 UTC. Treat earlier pitch rows as assignments, not evidence
+that pitch implementation was running before that follow-up.
+
+Meter, tonal and AU automation assignments continue the existing ten-hour
+horizon. They do not create extra hours beyond the project's 35-hour core plus
+optional 35-hour following-week allocation. Root prioritizes bounded evidence and
+unknowns; new workers/tools remain unpublished until their implementation,
+contracts and relevant tests are integrated and verified.
 
 Any additional lane remains unassigned until root records an exact owner and
 isolated files. An idle lane does not authorize another agent to overwrite its

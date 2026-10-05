@@ -165,3 +165,55 @@ two-pulse variant fixes a synthetic continuous-riff boundary failure and
 requires the final root pipeline run to refresh the artifact. All 15 feature
 tests pass in the locked analysis environment, including the optional two
 NumPy segmentation tests. No learned model or GPU is used.
+
+## Tuning-aware pitch worker receipt
+
+After first publication, `scripts/pitch.py` adds a separate optional locked-librosa
+worker. `INPUT --run-dir DIR` defaults to four distributed five-second excerpts
+including the end of a long take. `--max-analysis-seconds` selects a total budget
+from one to 30 seconds (default 20); `--start-seconds` selects a contiguous
+excerpt instead. Known input duration remains bounded to 300 seconds. The
+isolated pYIN process has a 180-second wall timeout, a bounded request, and at
+most two numerical threads. Console/MCP stdout is a compact summary and artifact
+pointer; complete frame evidence is kept in local `pitch.json`.
+
+Low-register pYIN uses 4096-sample/256 ms windows over 28–500 Hz; high-register
+pYIN uses 1024-sample/64 ms windows over 200–2000 Hz. Both have a 256-sample/16 ms
+hop. To bound the state space, this pilot uses 0.2-semitone bins and 50 threshold
+candidates. A reported cents offset is conditional on this coarse algorithm
+estimate, inferred registry octaves and theoretical A4=440 tuning; it is not
+qualified intonation accuracy. Each branch retains unvoiced frames, window
+extents, incomplete excerpt-edge context, algorithm voicing probability and
+spectral support near the first eight hypothesized harmonics. Half/double-octave
+alternatives remain explicit. Neither a strong probability nor harmonic support
+identifies a unique played note in a mixture.
+
+Each supported frequency maps to a nearest theoretical note/cents value and
+nonexclusive semitone distances above compatible supplied open strings. No
+physical fret limit is invented and no played string is selected. The source
+hash, canonical manifest lineage, registry contents/hash, interpreter/library
+versions, worker hash, coverage spans and elapsed time make the run inspectable.
+Full-song transcription, actual tuning measurement, tonic/mode, techniques and
+intended-note grading remain unsupported by this worker.
+
+Eleven tests passed in the locked analysis environment. They include distorted
+C1 recovery within 0.6 Hz, a missing C1 fundamental with its second/third
+harmonics while retaining ambiguity, a phase-continuous octave glide with median
+error below 35 cents, eight synthetic sweep steps below 35 cents at stable
+centers, silence abstention, bounded coverage, theoretical tuning mappings,
+nonzero source offsets and subprocess timeout behavior. These results describe
+synthetic monophonic fixtures, not measured transcription accuracy on real
+nine-string distorted mixtures.
+
+The actual calibrated restoration run `20261005T211103Z-c6d0bac2fcd2` was analyzed
+successfully: 20.000 seconds of distributed coverage (13.248% of the take),
+2504 branch frames, 420 voiced candidate hypotheses and 2084 abstentions in
+30.2 seconds wall time. Twelve candidate frames had incomplete excerpt-edge
+context. The four spans were 0–5, 48.6537–53.6537, 97.3074–102.3074 and
+145.9611–150.9611 seconds. Low/high branches can duplicate or disagree; the
+420 count is not a count of distinct notes. Input hash was
+`dbd8b40eaf9928eb2f80791cfbdc9c3562ed10b57bcf859ad96d8a202fc93b12`, matched to
+the restoration manifest's canonical denoised derivative. No actual-note
+accuracy or listening claim is made. The first receipt predates the additive
+worker-hash/interpreter provenance fields; the next final integration run
+refreshes those fields without changing the pitch algorithm.

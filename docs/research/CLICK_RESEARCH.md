@@ -36,6 +36,13 @@ guitar attacks can be percussive; deleting that component is not click isolation
 
 ## Chosen prototype and claim boundaries
 
+[SciPy polyphase resampling](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.resample_poly.html)
+uses a zero-phase low-pass FIR and preserves the first sample's alignment. Record
+the separate analysis rate and refine proposed positions on native samples;
+this is not a resampled master. [SciPy WAV writing](https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.write.html)
+supports float32 PCM arrays and multi-channel arrays; verify the emitted extent
+and preserve the native rate/channel count.
+
 Use a click-only interval supplied by the operator, candidate correlation,
 bounded native waveform fitting and conservative overlap abstention. Default
 to detection only. Subtraction is capped at 50 percent and independently protects

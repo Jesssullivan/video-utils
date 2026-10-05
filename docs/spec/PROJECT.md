@@ -49,7 +49,7 @@ rhythm analysis, and reporting. Local artifacts are isolated per run under
 `artifacts/runs/`; provenance records source identity, commands, tool versions,
 profile parameters, analysis resampling, and output measurements.
 
-The current versioned tool/API contract, local MCP stdio adapter, and twelve
+The current versioned tool/API contract, local MCP stdio adapter, and nineteen
 per-tool skills expose the same bounded operations. Agent guidance connects research evidence
 to explicit, auditable parameter suggestions for noise, tone, and note analysis.
 Suggestions require comparative evaluation; agents cannot silently change the
@@ -125,10 +125,10 @@ reference can qualify correctness grading; it is not a gate on automatic
 discovery or self-consistency review. Intended-pitch verdicts additionally need
 confirmed tuning and an intended-note reference.
 
-The initial graph/provenance and generic marker CSV are a foundation for visual
-review. Graphical video annotations and Final Cut/DaVinci Resolve marker imports
-are the next development milestone, with a format spike before any compatibility
-promise. Marker records retain source-timeline start/end times, label/flag kind,
+The graph/provenance and generic marker CSV support the local graphical review
+server, which provides playback, marker filtering and source-bound annotations.
+Final Cut/DaVinci Resolve marker imports remain a later development milestone,
+with a format spike before any compatibility promise. Marker records retain source-timeline start/end times, label/flag kind,
 confidence, review status, and supporting evidence/reference identity. Preserve
 the source start offset, actual frame-rate/time-base metadata, and VFR/CFR
 identity; define frame rounding and drop-frame timecode explicitly for each

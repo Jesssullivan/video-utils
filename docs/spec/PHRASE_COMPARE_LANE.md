@@ -33,6 +33,11 @@ CLI: `python3 scripts/phrase_compare.py RUN_DIR [--max-pairs 30]
 [--band-fraction 0.20] [--min-rate 0.5] [--max-rate 2.0]`.
 The worker atomically writes `phrase-comparisons.json`, never modifies audio or
 existing DAG/marker artifacts, downloads no model, and uses no subprocesses.
+Pair count accepts 1–60, band fraction `(0,0.5]`, minimum rate `0.25–1`, maximum
+rate `1–4`. Rate means elapsed second-phrase time per elapsed first-phrase time.
+Local steps admit only rates allowed by those bounds: tightening around 1 can
+exclude the non-diagonal 0.5/2 steps and leave no valid path. Increasing the limits
+does not add new steps. No-path is an explicit abstention, never a silent fallback.
 
 - Read hash-consistent `manifest.json`, `analysis.json` and `phrases.json`.
   Verify any restored analysis source against actual manifest-bound media.
@@ -55,6 +60,22 @@ existing DAG/marker artifacts, downloads no model, and uses no subprocesses.
   nullable detector/boundary confidence and articulation context. Every proposed
   review marker retains `needs_review` and `performance_issue_confirmed:false`.
 
+The retained MFCC coefficients exclude MFCC0 (absolute energy). Coefficients are
+jointly standardized and L2-normalized; chroma is independently normalized with
+equal family weights. Comparative chroma/tone is weak evidence for highly
+distorted/polyphonic 32 Hz guitar. Constant temporal texture abstains; mean
+feature cost above 0.35 rejects timing/edit flags. These thresholds are fixed pilot
+settings, not validated musician-error detectors. Path cost includes a 0.05
+non-diagonal step penalty; every setting is recorded/hash-bound.
+
+Attack-edit hypotheses require detector score ≥0.7, both boundary scores ≥0.6 and
+at least three detected attacks in each motif. Scores remain heuristics. Explicit
+legato, tapping or sweeping hints abstain from attack-edit flags even with high
+scores. Unknown scores retain unmatched numerical detections without labeling
+them omissions/additions. Absolute capture latency is not required for relative
+comparison; detector/boundary bias remains unknown. Invalid/outside-target mapped
+onsets also abstain from edit flags.
+
 ## Acceptance and integration boundary
 
 Synthetic cases: identical motif; fixed relative shift; compressed/rushed motif;
@@ -66,3 +87,23 @@ Run on the actual 150-second take after source publication and compare the
 proposed regions against playback. No synthetic pass is real-recording accuracy.
 Root owns later DAG, MCP registry, marker and report integration. This lane creates
 only its new worker, tests and specification until root authorizes integration.
+
+## October 5 implementation evidence
+
+Synthetic worker and actual-CLI tests pass. The actual demo run
+`20261005T203619Z-f94eb8eb2a1a` produced ten aligned recurrence comparisons using
+4,159 sparse cells in approximately 0.109 seconds. It proposed five relative
+alignment-shift and four relative rate-difference review flags. All ten motif-edit
+comparisons abstained because detector/boundary confidence was unqualified;
+none established missing notes, phrase mistakes or listening acceptance.
+
+The comparison artifact is stored separately at
+`experiments/phrase-compare/phrase-comparisons.json` under that ignored run.
+This benchmark did not overwrite the main DAG, report, flags or markers.
+Future source/runtime revisions must rerun comparison from their own hash-bound
+artifacts; this timing snapshot is not a throughput guarantee.
+
+The released marker exporter also now rejects changed upstream DAG inputs before
+export, even when the flags hash itself still matches. It validates local artifact
+paths/hashes and stable inputs. A changed-analysis regression and an escaped-path
+regression verify that direct marker calls cannot bypass this provenance check.

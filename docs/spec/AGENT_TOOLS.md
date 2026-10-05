@@ -40,6 +40,10 @@ exposed controls. Media/model downloads and uploads are never implicit.
 
 ## Tool map and capability boundaries
 
+The nineteen entries below are available in the local stdio catalog. Local
+registry/readback evidence is separate from root’s signed remote publication
+receipt. Consult `tools/list` for the current installed checkout.
+
 | MCP tool | MCP prompt / repository skill | State and intended output |
 |---|---|---|
 | `probe` | `video-probe` | Stream, source-hash and timeline inspection; not a complete restoration/measurement run. |
@@ -54,6 +58,13 @@ exposed controls. Media/model downloads and uploads are never implicit.
 | `report` | `guitar-report` | Current local evidence HTML; missing analysis and acceptance remain explicit. |
 | `pipeline` | `guitar-pipeline` | Existing-run provenance DAG, automatic candidate/self-consistency review and optional approved-reference comparisons; no automatic analysis scheduling. |
 | `markers` | `phrase-markers` | Current generic source-time JSON/CSV review exchange; native editor import remains unverified. |
+| `clicks` | `guitar-clicks` | Detection-first click-shaped candidates; optional bounded template attenuation variant, no recovered-stem claim. |
+| `phrase_compare` | `guitar-phrase-compare` | Bounded within-take feature alignment and relative review hypotheses, no intended-score prerequisite. |
+| `benchmark` | `guitar-benchmark` | Deterministic synthetic fixture generation/evaluation, no actual-take listening acceptance. |
+| `review` | `guitar-review` | Source-bound annotation read/write with revision checks; no implicit HTTP server or master acceptance. |
+| `pitch` | `guitar-pitch` | Bounded dual-resolution pYIN candidates with explicit coverage and octave/string ambiguity; no full transcription or intended-note grades. |
+| `meter` | `guitar-meter` | Pulse-accent cycle/alias hypotheses with explicit unknowns; no confirmed time signature, downbeat or missed-beat grade. |
+| `tonal` | `guitar-tonal` | Automatic chroma/profile/collection hypotheses with null tonic/mode, no tuning prior or intended-note grades. |
 
 Each skill's worker fallback is documented in its `SKILL.md`. Experimental
 feature tools use `scripts/guitar_features.py TOOL INPUT --run-dir DIR`; discover
@@ -67,6 +78,11 @@ must be implemented and validated before an agent promises their effect. The BPM
 worker supports backend selection and a manual BPM seed. Denoise accepts registered
 profiles through MCP; a proposed custom noise-capture profile uses the direct
 recipe after interval confirmation and profile validation.
+
+Additional extension contracts and worker/registry readiness are tracked in
+[the skill extension lane](SKILL_EXTENSION_LANE.md). All nineteen local tools/prompts passed exact-content readback and bundled skill
+validation. Worker checks, local catalog evidence, signed remote publication and
+musical acceptance remain separate states.
 
 ## Nine-string interpretation and comparison
 
@@ -103,9 +119,9 @@ comparisons. Intended flags include incomplete phrases, loop start/end mismatch,
 skips, rushes and unclear spans with source timestamps and confidence. Current
 workers provide periodicity and envelope suggestions, nullable tonal context,
 and source-timestamped review spans. The pipeline adds experimental
-reference-relative attack/phrase comparisons and generic markers. Tonal-center/
-mode inference, semantic phrase grading and native editor imports remain planned
-capabilities. Discover structure despite missing tonal/intent context; recurrence
+reference-relative attack/phrase comparisons and generic markers. The tonal tool
+adds ranked profile/collection fits while retaining null tonic/mode; confirmed
+tonality, semantic phrase grading and native editor imports remain unproven. Discover structure despite missing tonal/intent context; recurrence
 duration and onset-motif differences can be review candidates. A hypothesis does
 not establish a definite error when the relevant expected pattern is unknown.
 
@@ -128,7 +144,9 @@ Use the following agent loop for every tool:
 
 The implemented existing-run graph declares
 `denoise → bpm → notes (nullable tonic/mode) → phrases → flags → report`, with
-parallel tone and raw-click diagnostics. Use `pipeline` to evaluate it; it does
+parallel tone and raw-click diagnostics. Dedicated pitch, tonal and meter tools
+produce separate hash-bound evidence; their calls do not turn the artifact graph
+into an autonomous scheduler. Use `pipeline` to evaluate it; it does
 not rerender analyses or schedule tool calls. Stages record source/artifact,
 settings, registry and reference hashes, dependency identities, and
 `preliminary_raw_source` versus `post_denoise` context. The latter requires a
@@ -143,7 +161,10 @@ phrase worker reads same-source analysis/notes context and rejects mismatched,
 invalid or oversized inputs.
 
 For exact approved-reference semantics, calibration and matching constraints,
-read [the phrase DAG interface](PHRASE_DAG.md). Without an approved reference,
+read [the phrase DAG interface](PHRASE_DAG.md). Default reference tolerance is
+up to 30 ms capped by the match window. The comparator selects a single detector
+stream (SuperFlux before spectral-flux before broadband); it never blends or
+double-counts those streams. Without an approved reference,
 still discover phrase/bar/breakdown proposals and recurrence-based duration or
 onset-motif differences, retaining candidate spans and unknown tonal context.
 Intended phrases are not an input prerequisite. With a reference, one-to-one attack

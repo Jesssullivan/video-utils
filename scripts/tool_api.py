@@ -17,7 +17,7 @@ REGISTRY = ROOT / 'program' / 'tools.json'
 MAX_WORKER_OUTPUT = 2 * 1024 * 1024
 MAX_JSON_NESTING = 128
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
-                         'minimum', 'maximum', 'minLength', 'maxLength', 'description', 'default'}
+                         'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default'}
 OUTPUT_SCHEMA = {'type': 'object', 'properties': {
     'schema_version': {'type': 'integer', 'enum': [1]},
     'tool': {'type': 'string'}, 'status': {'type': 'string', 'enum': ['completed']},
@@ -160,6 +160,8 @@ def validate(value, schema, label='arguments'):
     elif kind in {'number', 'integer'}:
         if 'minimum' in schema and value < schema['minimum']:
             raise ValidationError(f'{label} is below minimum')
+        if 'exclusiveMinimum' in schema and value <= schema['exclusiveMinimum']:
+            raise ValidationError(f'{label} must exceed exclusiveMinimum')
         if 'maximum' in schema and value > schema['maximum']:
             raise ValidationError(f'{label} is above maximum')
 
@@ -173,10 +175,35 @@ def local_path(value, must_exist=False, directory=False):
     return str(path)
 
 
+
+def validate_tool_arguments(name, args):
+    """Cross-field rules that are known before a worker or file read starts."""
+    if name == 'review':
+        operation = args.get('operation', 'read')
+        if operation == 'read' and 'input' in args:
+            raise ValidationError('review input is accepted only for operation write')
+        if operation == 'write' and 'input' not in args:
+            raise ValidationError('review operation write requires input request JSON file')
+    if name == 'benchmark' and args.get('operation', 'run') == 'fixtures':
+        if any(key in args for key in ('profile', 'phrase_backend')):
+            raise ValidationError('benchmark profile/phrase_backend apply only to operation run')
+    if name == 'clicks':
+        supplied = ('template_start' in args, 'template_end' in args)
+        if supplied[0] != supplied[1]:
+            raise ValidationError('click template_start and template_end must be supplied together')
+        if all(supplied):
+            duration = args['template_end'] - args['template_start']
+            if not .005 <= duration <= .120 + 1e-10:
+                raise ValidationError('click template duration must be 5–120 ms')
+        if args.get('attenuate') and (not all(supplied) or not args.get('template_click_only')):
+            raise ValidationError('click attenuation requires a template and explicit click-only declaration')
+
+
 def worker_command(name, args):
     """Only fixed scripts and individual validated arguments, never a shell."""
     interpreter = os.environ.get('VIDEO_UTILS_PYTHON', sys.executable)
-    if args.get('backend') == 'librosa':
+    if (name in {'clicks', 'pitch'} or args.get('backend') == 'librosa'
+            or args.get('phrase_backend') == 'librosa'):
         interpreter = os.environ.get('VIDEO_UTILS_ANALYSIS_PYTHON', interpreter)
     head = [interpreter]
     source = local_path(args['input'], must_exist=True) if 'input' in args else None
@@ -184,6 +211,56 @@ def worker_command(name, args):
         return head + [str(ROOT / 'scripts/media.py'), 'probe', source]
     if name == 'denoise':
         return head + [str(ROOT / 'scripts/media.py'), 'clean', source, args.get('profile', 'conservative3')]
+    if name == 'benchmark':
+        operation = args.get('operation', 'run')
+        output = local_path(args['output'], directory=True)
+        command = head + [str(ROOT / 'scripts/benchmark.py'), operation, '--output', output]
+        if operation == 'run':
+            command += ['--profile', args.get('profile', 'conservative3'),
+                        '--phrase-backend', args.get('phrase_backend', 'stdlib')]
+        return command
+    if name == 'review':
+        operation = args.get('operation', 'read')
+        directory = local_path(args['run_dir'], must_exist=True, directory=True)
+        command = head + [str(ROOT / 'scripts/review_server.py'),
+                          'annotate' if operation == 'write' else 'annotations', directory]
+        if operation == 'write':
+            command += ['--input', source]
+        return command
+    if name == 'phrase_compare':
+        directory = local_path(args['run_dir'], must_exist=True, directory=True)
+        command = head + [str(ROOT / 'scripts/phrase_compare.py'), directory]
+        for field in ('max_pairs', 'band_fraction', 'min_rate', 'max_rate'):
+            if field in args:
+                command += ['--' + field.replace('_', '-'), str(args[field])]
+        return command
+    if name == 'tonal':
+        directory = local_path(args['run_dir'], must_exist=True, directory=True)
+        command = head + [str(ROOT / 'scripts/tonal.py'), directory]
+        for field in ('max_regions', 'max_recurrences'):
+            if field in args:
+                command += ['--' + field.replace('_', '-'), str(args[field])]
+        return command
+    if name == 'meter':
+        directory = local_path(args['run_dir'], must_exist=True, directory=True)
+        return head + [str(ROOT / 'scripts/meter.py'), '--run-dir', directory]
+    if name == 'pitch':
+        directory = local_path(args['run_dir'], directory=True)
+        command = head + [str(ROOT / 'scripts/pitch.py'), source, '--run-dir', directory,
+                          '--max-analysis-seconds', str(args.get('max_analysis_seconds', 20))]
+        if 'start_seconds' in args:
+            command += ['--start-seconds', str(args['start_seconds'])]
+        return command
+    if name == 'clicks':
+        directory = local_path(args['run_dir'], directory=True)
+        command = head + [str(ROOT / 'scripts/clicks.py'), source, '--run-dir', directory]
+        for field in ('bpm', 'template_start', 'template_end', 'strength'):
+            if field in args:
+                command += ['--' + field.replace('_', '-'), str(args[field])]
+        for field in ('attenuate', 'template_click_only'):
+            if args.get(field):
+                command += ['--' + field.replace('_', '-')]
+        return command
     if name in {'export', 'report', 'pipeline', 'markers'}:
         directory = local_path(args['run_dir'], must_exist=True, directory=True)
         if name == 'export':
@@ -273,6 +350,7 @@ def run_worker(command, timeout):
 def execute(name, arguments):
     info = descriptor(name)
     validate(arguments, info['inputSchema'])
+    validate_tool_arguments(name, arguments)
     timeout = arguments.get('timeout_seconds', 600)
     result = run_worker(worker_command(name, arguments), timeout)
     return {'schema_version': 1, 'tool': name, 'status': 'completed',

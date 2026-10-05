@@ -3,9 +3,9 @@
 This lane adds agent hooks to actual local workers for metronome analysis,
 recurrence comparison, benchmark evaluation, and operator review annotations.
 It does not treat a planned tool, published schema, or successful worker exit as
-musical acceptance. Existing MCP/dispatcher/registry files remain frozen until
-root releases the first publication checkpoint; new contract tests and this
-specification can land independently.
+musical acceptance. Root released the publication freeze after signed CI-repair commit
+`9883069b826bc1fcedbc99fe781ee41b54196d4f`. The four verified worker/skill
+extensions are integrated locally as one bundle; publication remains root-owned.
 
 Authority: repository `AGENTS.md`; R-HOOK-CONVERGENCE-20261004, TIN-3692 comment
 98cf680c-7299-4949-bfb2-60079053ad43. Contributors own named files; root integrates
@@ -16,23 +16,23 @@ signal only the invocation's recorded, inspected process group under R-N11.
 
 | Tool | Worker owner | Skill directory | Interface status |
 |---|---|---|---|
-| `clicks` | rhythm analysis lane | `guitar-clicks` | Draft CLI received; implementation pending |
-| `phrase_compare` | phrase DAG lane | `guitar-phrase-compare` | Worker ready locally; hook unpublished |
-| `benchmark` | repository patterns lane | `guitar-benchmark` | Worker ready locally; hook unpublished |
-| `review` | report/review lane | `guitar-review` | Worker ready locally; hook unpublished |
+| `clicks` | rhythm analysis lane | `guitar-clicks` | Hook integrated locally; publication pending |
+| `phrase_compare` | phrase DAG lane | `guitar-phrase-compare` | Hook integrated locally; publication pending |
+| `benchmark` | repository patterns lane | `guitar-benchmark` | Hook integrated locally; publication pending |
+| `review` | report/review lane | `guitar-review` | Hook integrated locally; publication pending |
 
-Tool names and skill directories above are reserved proposals. Each row must be
-updated with the worker's actual command, accepted arguments, artifact schema,
-provenance and bounds before it is advertised. A review HTTP server is a
+The four tool names and skill directories above now match actual worker
+contracts and readable skills. Source verification and publication remain
+separate evidence states. A review HTTP server is a
 separate lifecycle; merely exposing annotation tools must never start a server,
 change global configuration, or assert editor integration. Root resolves any
 worker name conflict before discovery publication.
 
 
-## Received draft interfaces
+## Verified worker interfaces
 
-These are owner-supplied contracts, not published capabilities. Discoverable
-schema publication waits for worker readiness and root's freeze release.
+These owner-supplied contracts are implemented and discoverable locally. Remote
+publication and hosted-CI acceptance remain root-owned and must be verified.
 
 - **Clicks:** `scripts/clicks.py INPUT --run-dir DIR`, optional `--bpm` 20–400,
   paired `--template-start`/`--template-end` seconds, `--attenuate`,
@@ -164,3 +164,79 @@ scanner now caps nesting at 128 levels while ignoring punctuation inside quoted
 strings and handling escapes. Tests cover the exact boundary and quoted braces,
 arrays, escaped quotes and backslashes. This replaces reliance on CPython's
 parser recursion behavior; finite-number checks are retained.
+
+## Local extension readback
+
+The integrated local catalog has sixteen tools and sixteen corresponding skill
+prompts. All skill files were read back through real stdio `prompts/get`.
+Thirty-three hook tests passed: fourteen contract tests, eleven dispatcher tests
+and eight MCP conversation tests. These include annotation revision/source
+rejection, phrase-comparison source mismatch, fixture output-root rejection,
+unknown knob rejection before launch and process-group deadline cleanup.
+
+An actual `clicks` MCP call used an explicit `.venv` analysis interpreter on a
+three-second synthetic 32 Hz tone with 178 BPM click events. It returned nine
+candidates, unverified identity, and no WAV in default detection mode. The local
+run envelope is retained at
+`artifacts/contracts/clicks-bbc804919ee3/mcp-outcome.json`. This checks the actual
+hook/worker/dependency path; it does not establish click accuracy or listening
+acceptance on the operator's recording. The benchmark hook distinguishes
+synthetic fixture generation from actual tool measurements in its evidence kind.
+
+Publication of source, skills and registry must remain one root-owned bundle;
+local test success is not hosted-CI or native-editor acceptance.
+
+## Pitch and meter additions
+
+The local catalog subsequently adds `pitch`/`guitar-pitch` and
+`meter`/`guitar-meter`, bringing it to eighteen verified hooks. Pitch accepts
+`input`, `run_dir`, `max_analysis_seconds` 1–30 (default 20) and optional
+nonnegative `start_seconds`; its fixed librosa backend selects the explicit
+analysis interpreter. Full per-frame evidence remains in local `pitch.json`,
+while MCP returns a bounded summary containing source, lineage and actual
+coverage. A known distorted-C1 MCP fixture passed in the locked Python 3.14
+environment: one-second contiguous coverage of a two-second input, C1 within
+1 Hz, nonunique string mapping and ungraded intended notes retained.
+
+Meter accepts `run_dir` only besides the deadline and calls
+`meter.py --run-dir`. The actual stdio fixture verified immutable output hashes,
+unknown notation despite an accent-cycle hypothesis, and rejection after the
+analyzed derivative changed. Final readiness and publication remain separate;
+these source tests do not establish notation or listening acceptance on the take.
+
+The fixture-generation conversation test now uses an explicit 90-second worker
+deadline and a 120-second client deadline. Its earlier 30-second client timeout
+expired during a loaded-host run; the bounded retry passed in 40.9 seconds.
+This aligns client waiting with the worker's actual hard deadline rather than
+changing benchmark measurements or generating a false successful result.
+
+## Tonal addition
+
+The nineteenth local hook is `tonal`/`guitar-tonal`, following independent passage
+of all twenty-one locked worker tests including the optional harmonic fixture
+and instrument-registry mutation check. Its exact knobs are `run_dir`,
+`max_regions` 1–256 (default 128), `max_recurrences` 1–60 (default 30), and the
+common deadline. It consumes existing verified restored features and writes an
+immutable receipt; no decode, model download, install or expected-score gate.
+The actual stdio fixture preserved null tonic/mode, separate theoretical tuning,
+ungraded performance and unchanged derivative bytes. A changed derivative
+rejected before an additional receipt could be written.
+
+All nineteen catalog entries have corresponding repository skills. These
+source/fixture checks do not confirm tonic, mode, intended notes, real-recording
+accuracy or listening acceptance.
+
+## Final local hook verification
+
+The integrated nineteen-tool catalog passed all thirty-seven targeted tests in
+the locked Python 3.14 environment: eighteen contract tests, eleven dispatcher
+tests and eight stdio MCP tests, with no skips. FFmpeg and FFprobe were explicitly
+selected from the pinned Nix FFmpeg 8.1.2 installation. The nineteen prompts were
+read through real `prompts/get` conversations and matched their corresponding
+skill files exactly. Tests include real bounded C1 pitch analysis, immutable
+meter/tonal receipts, stale derivative rejection, annotation revision checks,
+synthetic fixture output bounds and owned-process timeout cleanup.
+
+This receipt establishes local source and fixture verification. Root owns the
+matching worker/skill/registry publication bundle and hosted-CI verification;
+these tests do not establish native editor, AU, Logic or listening acceptance.

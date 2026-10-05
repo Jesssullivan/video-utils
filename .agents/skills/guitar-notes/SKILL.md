@@ -11,7 +11,7 @@ description: Inspect experimental low-register pitch candidates in distorted nin
 
 ## Use and controls
 
-Use MCP `notes`; fallback: `just tool-run notes '{"input":"<input>","run_dir":"<run-dir>"}'`. The direct worker is `python3 scripts/guitar_features.py notes "<input>" --run-dir "<run-dir>"`. Inspect candidate windows with audio/spectra; record actual tuning and the lowest intended fundamental before proposing fret/note interpretations.
+Use MCP `notes`; fallback: `just tool-run notes '{"input":"<input>","run_dir":"<run-dir>"}'`. The direct worker is `python3 scripts/guitar_features.py notes "<input>" --run-dir "<run-dir>"`. Inspect candidate windows with audio/spectra; use `program/instrument.json` for the operator’s constant custom tuning and preserve its stated-pitch-class versus inferred-octave distinction. Confirm recording-specific changes before proposing fret/note interpretations; theoretical tuning does not identify a played note.
 
 The experimental worker accepts input/run directory only; its sparse autocorrelation uses 0.256 s frames, a 28–1000 Hz range and at most 120 frames. Range/window controls are not yet exposed. Preserve alternate octaves and unknown results. This sampling cannot transcribe every note in rapid passages; review sustained lows and sweeps separately.
 

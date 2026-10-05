@@ -72,3 +72,27 @@ waveform. A guitar attack resembling the template remains an identification
 ambiguity, even with a strong fit. A regular grid does not establish musical
 meter, intended subdivisions or performance correctness. The fixed thresholds
 are conservative experimental defaults requiring measured and listening review.
+
+## First implementation receipt: 2026-10-05
+
+The worker and 11 meaningful tests pass in the locked analysis environment
+(NumPy 2.5.3, SciPy 1.18.1). Tests cover overlap abstention, noise/tone non-removal,
+zero-strength bypass, native stereo extent, immutable detection-only receipts,
+actual float WAV writing/readback, and known-source click/32 Hz/attack comparisons.
+The synthetic accepted-click test retains the 32 Hz complex DFT component within
+1e-5 relative change; independent overlap and non-overlap attack windows stay
+within 1 percent relative signal error. These are fixture measurements, not
+listening acceptance on the actual guitar take.
+
+Actual detection-only receipt:
+`artifacts/runs/20261005T203619Z-f94eb8eb2a1a/clicks/20261005T210755Z-12d6e534b8db/clicks.json`.
+It analyzed the native 44.1 kHz mono denoised derivative with 6,657,385 samples,
+preserving the parent original-media hash and axis through the run manifest.
+The declared approximate 178 BPM was retained; 220 periodic high-frequency
+transient proposals were emitted. No waveform template was supplied, zero
+events were attenuated, and no WAV was emitted. Click identity, a suitable
+click-only template interval and actual-take attenuation/listening remain open.
+
+Process receipt: `rhythm_analysis | owned click worker and named files | bounded
+candidate experiment | R-N11/R-N12/R-N13 and repository AGENTS | source preserved,
+click identity unknown | 11 tests pass and actual detection-only receipt saved`.

@@ -1,0 +1,18 @@
+[package]
+name = "video-utils-gain-ffi"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+license = "MIT"
+publish = false
+
+[lib]
+name = "video_utils_gain_ffi"
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+video-utils = { path = "../.." }
+
+[profile.release]
+panic = "abort"
+overflow-checks = true

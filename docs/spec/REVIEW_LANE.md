@@ -22,7 +22,7 @@ No action claims Final Cut Pro or DaVinci Resolve import.
 
 ## Implementation contract
 
-- Run `python3 scripts/review_server.py RUN_DIR --port 8765`; bind only
+- Run `python3 scripts/review_server.py serve RUN_DIR --port 8765`; bind only
   `127.0.0.1`. No daemon, remote assets, uploads, model downloads or browser autoplay.
 - Serve a dedicated static review UI, a curated JSON session description and only
   verified run-local media/marker artifacts. Reject traversal, external paths,
@@ -39,6 +39,13 @@ No action claims Final Cut Pro or DaVinci Resolve import.
   validate finite ordered source spans, allowed review states and bounded text.
   Concurrent writes use a lock and optional revision checks to prevent silent
   lost updates. User data enters the UI through text nodes.
+- Stateless tools use `annotations RUN_DIR` for JSON reads and
+  `annotate RUN_DIR --input REQUEST.json` for one JSON write. A request contains
+  `expected_revision` and an `annotation` object with source start/end seconds,
+  category, review state, nonempty note (up to 4,000 characters), optional existing
+  annotation UUID and optional current candidate ID. Enforce 200 annotations and
+  a 1,000,000-byte store limit. Cross-process writes use a nonblocking file lock;
+  changed manifest/candidate receipts and stale revisions require a fresh review.
 
 ## Acceptance and checkpoints
 
@@ -51,3 +58,43 @@ and token checks, annotation persistence and stale revisions, invalid/oversized
 requests, and escaping. Synthetic server tests and graphical UI verification are
 separate from actual take listening acceptance. Root integrates the recipe/tool
 entrypoint and performs the final run review and publishing.
+
+## Implemented checkpoint
+
+The loopback worker, stateless annotation commands and separate browser UI are
+implemented. Twelve focused tests pass for provenance, locking/revisions, HTTP
+ranges, path boundaries, malformed requests and manual-text preservation.
+
+An isolated Chrome/CDP check used the actual
+`20261005T203619Z-f94eb8eb2a1a` run, original source SHA-256
+`a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6`.
+It loaded 177 candidates, filtered to 9, selected source span 1.348–2.697 seconds,
+and decoded the exported video plus all three WAV auditions without media errors.
+Muted video playback advanced 0.649 seconds with 45 decoded frames. Desktop and
+390-pixel mobile layouts had no horizontal overflow or JavaScript exceptions.
+The screenshot was visually inspected. These are decoding/navigation checks;
+they do not establish listening quality or human review acceptance.
+
+Repeat the bounded graphical check with
+`python3 review/browser_smoke.py RUN_DIR OUTPUT_DIR` using Node 22+ and the local
+Chrome binary. It creates an owned isolated profile, binds an ephemeral loopback
+server and writes `browser-evidence.json`, `review-preview.png` and a cleanup
+receipt. The profile/browser are closed after checking the actual process's
+unique profile argument; no user browser is signalled. Startup is bounded to 45
+seconds by default, because a 10-second first attempt did not expose CDP here.
+The actual checked server was stopped; no background service remains running.
+
+Process receipt: `review-lane | owned Chrome 93072, unique temporary profile and
+live command checked | bounded graphical verification | R-N11,
+R-HOOK-CONVERGENCE-20261004 | newly spawned owned process | closed with exit 0`.
+Detailed local receipts are in ignored `artifacts/review-preview/`; the counts and
+acceptance boundary above are the durable record.
+
+A separate synthetic-audio browser fixture verified form submission, editing and
+refreshing a saved note through the real local JSON API. The store advanced twice,
+preserved the updated note and retained `listening_acceptance: not_established`.
+Both audio players decoded and the mobile layout remained within 390 pixels.
+The actual take's annotation store was not changed by this check. Reproduce this
+optional mutation only with `--annotation-smoke` on a source named `synthetic-*`;
+the checker rejects that option for an actual take. Its receipts are in ignored
+`artifacts/review-fixture-preview/`.

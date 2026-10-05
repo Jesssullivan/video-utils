@@ -53,6 +53,29 @@ class MarkerTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 markers.build(directory)
 
+    def test_changed_upstream_rejected_even_when_flags_hash_matches(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            self.fixture(directory)
+            (directory / "analysis.json").write_text(json.dumps({"version": "first analysis"}))
+            graph = {"source_sha256": "a" * 64, "flags_sha256": markers.sha256(directory / "flags.json"),
+                     "artifact_hashes": {"analysis.json": markers.sha256(directory / "analysis.json")}}
+            (directory / "dag.json").write_text(json.dumps(graph))
+            markers.build(directory)
+            (directory / "analysis.json").write_text(json.dumps({"version": "changed analysis"}))
+            with self.assertRaisesRegex(ValueError, "upstream artifact is stale"):
+                markers.build(directory)
+
+    def test_graph_cannot_read_paths_outside_run_directory(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            self.fixture(directory)
+            graph = {"source_sha256": "a" * 64, "flags_sha256": markers.sha256(directory / "flags.json"),
+                     "artifact_hashes": {"../analysis.json": "b" * 64}}
+            (directory / "dag.json").write_text(json.dumps(graph))
+            with self.assertRaisesRegex(ValueError, "local filename"):
+                markers.build(directory)
+
     def test_invalid_end_rejected_and_negative_stream_start_supported(self):
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)
