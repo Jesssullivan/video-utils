@@ -1,58 +1,65 @@
-# Nineteen-tool source and calibrated demo checkpoint
+# Nineteen-tool publication and calibrated demo
 
 Authority: operator implementation, parallel-work and ten-hour goal requests;
 R-HOOK-CONVERGENCE-20261004, R-N11/R-N12/R-N13. Root owns integration.
 
-The prompt archive and TEN_HOUR_PLAN reassert the user scope durably. The active
-goal was created at20:49:34UTC October5 and has a planned ten-hour horizon ending
-06:49:34UTC October6. This checkpoint does not close that goal.
+The prompt archive and TEN_HOUR_PLAN preserve and reassert today's scope.
+The active goal was created at 20:49:34 UTC October 5, with a planned end of
+06:49:34 UTC October 6. This delivery does not complete the goal.
 
 ## Actual local demo
 
-Run `artifacts/runs/20261005T211103Z-c6d0bac2fcd2` uses the unchanged Documents
-recording SHA256 a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6.
-The original 44.1kHz mono decode has6,657,385samples. Conservatively restored
-master measures−18.01LUFS/−1.50dBTP. The final decodedAAC video measures
-−18.07LUFS/−1.56dBTP after a bounded−0.06dB feed adjustment. Initial−1.49dBTP
-export is preserved in `export-revisions/initial-unreviewed`. Picture packet
-payload/timestamps match all3631source packets. Physical capture A/V sync is
-unverified; the measured1102sample FFT-denoiser delay is calibrated and
-compensated, with rate, channels, length and tail preserved.
+Run: `artifacts/runs/20261005T211103Z-c6d0bac2fcd2`. The Documents recording is
+unchanged, SHA256 `a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6`.
+Its 44.1 kHz mono decode has 6,657,385 samples. The master measures −18.01 LUFS
+and −1.50 dBTP. Final decoded AAC measures −18.07 LUFS and −1.56 dBTP after
+a bounded −0.06 dB feed adjustment. The initial −1.49 dBTP export is preserved
+in `export-revisions/initial-unreviewed`. All 3,631 picture packet payloads and
+timestamps match source. The calibrated 1,102-sample FFT denoiser delay is
+compensated, preserving rate, channels, length and tail. Physical capture A/V
+synchronization and listening acceptance remain unverified.
 
-Automatic discovery produces48candidate regions,14recurrence pairs and186
-review/navigation flags. Sparse-DTW comparison adds11hypotheses across14pairs;
-these are not confirmed mistakes. Detection-only click analysis finds219
-candidates; identity is unverified and audio is unmodified. Pitch analysis
-samples20seconds across the take including its ending (13.25%coverage):420
-voiced branch hypotheses and2084abstentions, not unique notes. Meter remains
-unknown; tonal tonic/mode remain null. No model weights are downloaded.
+Automatic discovery produced 48 candidate regions, 14 recurrence pairs and
+186 review/navigation flags. Sparse DTW adds 11 comparison hypotheses across
+14 pairs. These are not confirmed mistakes. Detection-only analysis finds
+219 click candidates, with metronome identity unverified and audio unchanged.
+Pitch samples 20 seconds across the take, including its ending (13.25% coverage),
+producing 420 voiced branch hypotheses and 2,084 abstentions, not unique notes.
+Meter remains unknown; tonal tonic/mode remain null. No model weights downloaded.
 
-## Local source verification
+## Verification and publication
 
-Final integrated suite:219/219PASS in160.966seconds, without skips, using the
-locked analysis interpreter and explicit FFmpeg/FFprobe. Separate MCP target
-checks:37/37PASS; all19typed tools, exact19skill prompt bodies and19skill
-validations independently verified. Behavior covers32Hz preservation, low
-notes/missing fundamentals, legato, ambiguity, strict JSON, bounded workers,
-provenance changes, immutable results, AAC peak repair, and annotations.
+The local locked analysis environment passed all 219 tests without skips in
+160.966 seconds. Separate MCP checks passed 37 tests. All 19 typed tools, exact
+skill prompt bodies and skill validations were independently verified. Fixtures
+cover 32 Hz preservation, missing fundamentals, legato, ambiguity, strict JSON,
+bounded workers, provenance changes, immutable results, AAC repair and annotations.
 
-Root `just au-spike-check` passes isolated ABI/Swift lifecycle/render checks.
-Root `just au-automation-check` passes release and ASan/UBSan behavior checks
-plus direct native runtime-reference audits. The observed10,000-block local
-run has p95.958microseconds/max23microseconds and0nominal deadline overruns;
-this scheduling sample is not a real-time or host guarantee.1000render calls
-record0C++new calls. No AU package, registration, auval, Logic load, audio
-device, editor import or listening acceptance is claimed.
+Signed source commit `6f7d1965b3c99a9b2ed261d58ea8949c0d6a1b26` is published
+to private Jesssullivan/video-utils main. GitHub confirms private visibility and
+a verified signature. Hosted CI 37378799943 succeeded at 21:54:10 UTC: 219
+discovered Python tests, 198 passed and 21 optional-backend skips; seven Rust
+tests passed; secret scan passed. The local environment exercised those optional
+backends. Earlier repair CI 37373960394 failed before any job steps because a
+hosted runner could not be acquired after repeated attempts.
 
-Private GitHub source publication and current hosted CI are recorded separately
-below after live readback. Original media and derivatives remain ignored.
+Root native checks pass ABI, Swift lifecycle and direct render-runtime audits.
+Isolated native automation passes release and ASan/UBSan behavior checks. Its
+last 10,000-block scheduling sample has p95 0.917 microseconds, maximum 63.958
+microseconds and zero nominal deadline overruns; 1,000 processing calls record
+zero C++ new calls. Source hashes are in `.cache/au-automation/receipt.json`.
+These checks do not establish a hard real-time guarantee, packaged AU, auval,
+Logic load, audio-device operation or native editor import.
 
-Hosted repair run37373960394 at9883069 ended overall failure; its single offline
-job was cancelled with no steps/logs. GitHub annotation reports no hosted runner
-was acquired after repeated attempts; this is not a source-test
-failure or a hosted pass. Root's local219-test result is separate evidence.
+Linear project content is refreshed. Updated D0 comment
+`6b0c27ce-950d-4f6a-a492-2cd6e821e567` and active-goal comment
+`18776874-b339-416f-a144-69a746ffdc9e` record source, demo and hosted evidence.
+The six-owner continuation is in GRAPH_INTEGRATION_LANE.md. The active goal
+continues; originals and derivatives remain ignored.
 
-Process receipt: root | pid79901,parent79889,own live gitleaks dir invocation
-verified by ps | directory scan includes regenerable private artifacts; replace
-with bounded staged-source scan | R-N11/R-N12/R-N13 | running | SIGTERM sent only
-to inspected owned process. Staged-source scan found no leaks (611,529bytes).
+## Process receipt
+
+Root | pid 79901, parent 79889, owned live gitleaks invocation verified by ps |
+directory scan included regenerable private artifacts; replace with staged scan |
+R-N11/R-N12/R-N13 | running | SIGTERM sent only to inspected owned process.
+The bounded staged scan found no leaks in approximately 612 KB of source.

@@ -203,3 +203,42 @@ publication need not wait on a normal runner queue, but no hosted-pass claim is
 made. Root now owns selected source staging/publication and subsequent remote
 receipt. This documentation lane freezes its owned files after this handoff to
 avoid racing root's publication. Further checkpoint edits require a follow-up.
+
+## Wave2 publication and hosted acceptance checkpoint — 21:54:58 UTC
+
+Root verified signed/private source
+**`6f7d1965b3c99a9b2ed261d58ea8949c0d6a1b26`** published to main. Nineteen tools
+and nineteen skills are now published, resolving the preceding pending-source
+receipt. Hosted CI
+[37378799943](https://github.com/Jesssullivan/video-utils/actions/runs/37378799943)
+**succeeded at 21:54:10 UTC**: Python/media, Rust and secret scan all passed.
+Exact hosted detail: 219 Python tests discovered, 198 passed, 21 optional-backend
+skips in 18.903 s; seven Rust tests and secret scan passed. The local analysis
+environment ran all 219 without skips; hosted optional-backend coverage differs.
+Local 219/219 tests in 160.966 s remain the runtime integration receipt. Hosted
+source checks do not substitute for listening, native hosting or editor import.
+
+Earlier parser-repair 9883069 run 37373960394 ended with overall failure and no
+job steps. Exact annotation: “job was not acquired by Runner of type hosted even
+after multiple attempts”. It provided no hosted test result. The subsequent
+published-source run above passed; preserve these different evidence states.
+
+Root synchronized new Linear receipts: D0 comment
+`6b0c27ce-950d-4f6a-a492-2cd6e821e567`; goal comment
+`18776874-b339-416f-a144-69a746ffdc9e`. D0 remains In Review for listening;
+goal remains active/In Progress through the planned 06:49:34 UTC horizon.
+
+Root explicitly assigned **six active continuation lanes** in
+[GRAPH_INTEGRATION_LANE.md](../spec/GRAPH_INTEGRATION_LANE.md). The current
+[board](WORKSTREAM_BOARD.md) records exact files and dependencies: phrase_dag
+publishes an artifact-selector contract; plan_review and tool_hooks depend on
+that contract; repo_patterns owns explicit-reviewer corpus manifests;
+clip_baseline owns source-only FCPXML/Resolve research; au_architecture owns only
+isolated native parameter-state files. Existing native/automation files stay
+frozen. Other workers finished their handoffs and are not active by default.
+
+These lanes share the existing time/week budgets. Assignment is not completion;
+new evidence is not accepted until root tests, integrates and publishes it.
+Meter/tonal remain nullable, sparse pitch coverage remains visible, and no guessed
+musician ground truth may enter the report. This documentation lane freezes after
+handoff for root's selected doc-only receipt publication.
