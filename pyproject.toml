@@ -1,0 +1,17 @@
+[project]
+name = "video-utils"
+version = "0.1.0"
+description = "Local-first guitar video restoration and evidence-based rhythm analysis"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/Jesssullivan/video-utils"
+
+[project.optional-dependencies]
+analysis = ["librosa==0.11.0"]
+
+[tool.uv]
+package = false

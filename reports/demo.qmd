@@ -1,0 +1,77 @@
+---
+title: "Guitar take: research report"
+subtitle: "Local offline evidence; listening acceptance is separate"
+format:
+  html:
+    embed-resources: false
+    toc: true
+params:
+  run_dir: "../runs/demo"
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+This optional Quarto report consumes the same run exports as the standard-library
+`report.html`. It does not establish listening quality, source recovery, intended
+meter or performance mistakes.
+
+## Run evidence
+
+```{r}
+run_dir <- normalizePath(params$run_dir, mustWork = FALSE)
+manifest_path <- file.path(run_dir, "manifest.json")
+lineage_code <- paste(
+  "import sys; from pathlib import Path;",
+  "sys.path.insert(0,str(Path(sys.argv[1]).resolve())); import report;",
+  "root=Path(sys.argv[2]).resolve();",
+  "print(report.analysis_lineage(root,report.load_json(root/'manifest.json'),report.load_json(root/'analysis.json')))"
+)
+analysis_lineage <- suppressWarnings(system2(
+  "python3", c("-c", shQuote(lineage_code), shQuote("../scripts"), shQuote(run_dir)),
+  stdout = TRUE, stderr = FALSE
+))
+analysis_bound <- length(analysis_lineage) == 1 && analysis_lineage %in%
+  c("original_source_hash_bound", "verified_run_derivative_hash_bound")
+if (!file.exists(manifest_path)) {
+  cat("Run manifest unavailable. Render with the intended run_dir parameter.")
+} else if (!requireNamespace("jsonlite", quietly = TRUE)) {
+  cat("Manifest exists; jsonlite is unavailable. The local static HTML report remains usable.")
+} else {
+  manifest <- jsonlite::fromJSON(manifest_path, simplifyVector = FALSE)
+  measurements <- manifest$measurements
+  if (is.null(measurements)) measurements <- manifest$metrics
+  if (is.null(measurements)) measurements <- manifest$loudness
+  if (is.null(measurements)) {
+    cat("Measurements unavailable in this manifest.")
+  } else {
+    print(measurements)
+  }
+}
+```
+
+## Timing candidates
+
+```{r}
+source("plots.R")
+if (analysis_bound) {
+  plot_run_events(run_dir)
+} else {
+  plot.new()
+  text(0.5, 0.5, "Source-bound rhythm analysis unavailable or rejected")
+}
+```
+
+The plot uses decoded-audio-relative seconds. Click and guitar onset candidates
+may overlap; detector bias and room propagation delay affect timing. A tempo
+candidate is not an accepted beat grid. Missed or extra notes require an approved
+expected-rhythm reference.
+
+## Listening review
+
+Open the run directory's `report.html` for manual original/processed/residual
+playback and processed video. Compare at matched playback loudness. Listen for
+preserved pick attacks, palm-mute articulation, sustained harmonics and natural
+tails; inspect the residual for removed musical detail. A mono-mixture residual
+is a diagnostic estimate, not a recovered original stem.

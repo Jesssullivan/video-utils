@@ -1,0 +1,13 @@
+[package]
+name = "video-utils"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+description = "Local guitar video restoration and evidence-based rhythm analysis"
+license = "MIT"
+publish = false
+
+[dependencies]
+
+[profile.release]
+overflow-checks = true

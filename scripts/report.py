@@ -1,0 +1,533 @@
+#!/usr/bin/env python3
+"""Render a private, portable run report using only the Python standard library."""
+from __future__ import annotations
+
+import argparse
+import csv
+import hashlib
+import html
+import json
+import math
+import os
+from pathlib import Path
+import struct
+import tempfile
+from urllib.parse import quote
+
+
+def escape(value):
+    return html.escape(str(value), quote=True)
+
+
+def load_json(path):
+    if not path.is_file():
+        return {}
+    with path.open(encoding="utf-8") as handle:
+        value = json.load(handle)
+    if not isinstance(value, dict):
+        raise ValueError(f"{path.name} must contain a JSON object")
+    return value
+
+
+def finite(value):
+    try:
+        number = float(value)
+        return number if math.isfinite(number) else None
+    except (TypeError, ValueError):
+        return None
+
+
+def artifact(root, value):
+    """Accept existing run-local files, including safe nested artifact paths."""
+    if isinstance(value, dict):
+        value = value.get("path", value.get("file"))
+    if not isinstance(value, str) or not value or "\\" in value:
+        return None
+    candidate = Path(value)
+    if candidate.is_absolute() or ":" in value or ".." in candidate.parts:
+        return None
+    resolved = (root / candidate).resolve()
+    if not resolved.is_relative_to(root.resolve()) or not resolved.is_file():
+        return None
+    return candidate.as_posix()
+
+
+def sha256(path):
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def source_identity(payload):
+    source = payload.get("source", {})
+    return source.get("sha256") if isinstance(source, dict) else None
+
+
+def analysis_lineage(root, manifest, analysis):
+    if not analysis:
+        return "unavailable"
+    fingerprint = source_identity(analysis)
+    original = source_identity(manifest)
+    if not fingerprint or not original:
+        return "rejected_missing_source_identity"
+    if fingerprint == original:
+        return "original_source_hash_bound"
+    hashes = manifest.get("output_sha256", {})
+    if isinstance(hashes, dict):
+        for name, expected in hashes.items():
+            if name not in {"source.wav", "denoised.wav", "cleaned.wav"} or expected != fingerprint:
+                continue
+            local = artifact(root, name)
+            if local and sha256(root / local) == expected:
+                return "verified_run_derivative_hash_bound"
+    return "rejected_unrelated_or_modified_source"
+
+
+def export_evidence(root, manifest):
+    outcome = load_json(root / "export" / "outcome.json")
+    if not outcome:
+        return {}, "unavailable"
+    if not source_identity(manifest) or outcome.get("source_sha256") != source_identity(manifest):
+        return {}, "rejected_export_source_identity"
+    value = outcome.get("video")
+    if isinstance(value, str) and Path(value).is_absolute():
+        try:
+            value = Path(value).resolve().relative_to(root.resolve()).as_posix()
+        except ValueError:
+            return {}, "rejected_export_path"
+    local = artifact(root, value) if value else None
+    if value and not local:
+        return {}, "rejected_export_path"
+    hashes = outcome.get("output_sha256", {})
+    expected = hashes.get(Path(local).name) if local and isinstance(hashes, dict) else None
+    if expected and sha256(root / local) != expected:
+        return {}, "rejected_export_hash_mismatch"
+    result = dict(outcome)
+    result["video"] = local
+    return result, "source_and_video_hash_verified" if expected else "source_hash_bound_export_unverified"
+
+
+def auxiliary_evidence(root, manifest):
+    original = source_identity(manifest)
+    payloads = {}
+    statuses = {}
+    for name in ("dag", "flags", "markers"):
+        payload = load_json(root / f"{name}.json")
+        if not payload:
+            statuses[name] = "unavailable"
+        elif not original or payload.get("source_sha256") != original:
+            statuses[name] = "rejected_source_identity"
+        else:
+            payloads[name] = payload
+            statuses[name] = "source_hash_bound"
+    graph = payloads.get("dag", {})
+    hashes = graph.get("artifact_hashes", {})
+    if isinstance(hashes, dict):
+        for name, expected in hashes.items():
+            local = artifact(root, name)
+            if not local or sha256(root / local) != expected:
+                statuses["dag"] = "rejected_stale_artifact_hash"
+                payloads.pop("dag", None)
+                break
+    for name in ("dag", "markers"):
+        expected = payloads.get(name, {}).get("flags_sha256")
+        if expected and (not (root / "flags.json").is_file() or sha256(root / "flags.json") != expected):
+            statuses[name] = "rejected_stale_flags_hash"
+            payloads.pop(name, None)
+            if name == "dag":
+                statuses["flags"] = "rejected_stale_dag_flags_binding"
+                payloads.pop("flags", None)
+    if statuses.get("dag", "").startswith("rejected"):
+        for name in ("flags", "markers"):
+            if name in payloads:
+                statuses[name] = "rejected_stale_graph_context"
+                payloads.pop(name)
+    return payloads, statuses
+
+
+def review_section(manifest, payloads, statuses):
+    flags = payloads.get("flags", {})
+    items = flags.get("flags", [])
+    if not isinstance(items, list):
+        items = []
+    timeline = manifest.get("timeline", {})
+    if not isinstance(timeline, dict):
+        timeline = {}
+    audio_start = finite(timeline.get("audio_start_seconds")) or 0
+    format_start = finite(timeline.get("format_start_seconds")) or 0
+    rows = []
+    for item in items[:1000]:
+        if not isinstance(item, dict):
+            continue
+        start = finite(item.get("source_time_seconds"))
+        end = finite(item.get("end_seconds", start))
+        if start is None or end is None or end < start:
+            continue
+        audio = finite(item.get("audio_relative_seconds"))
+        audio = max(0, audio if audio is not None else start - audio_start)
+        video = max(0, start - format_start)
+        kind = item.get("kind", "review_candidate")
+        status = item.get("status", "needs_review")
+        confidence = item.get("confidence", "unknown")
+        rows.append(f'<tr><th>{escape(kind)}</th><td>{start:.3f}–{end:.3f}s</td><td>{escape(status)}<br><span class="caption">{escape(confidence)}</span></td><td><button data-media="audio" data-time="{audio:.6f}">Seek audio</button> <button data-media="video" data-time="{video:.6f}">Seek video</button></td></tr>')
+    body = '<table><thead><tr><th>Review candidate</th><th>Original source time</th><th>Review state</th><th>Navigate</th></tr></thead><tbody>' + ''.join(rows) + '</tbody></table>' if rows else '<p class="unavailable">No source-bound review spans are available. This does not establish an error-free performance.</p>'
+    stages = payloads.get("dag", {}).get("stages", [])
+    stage_rows = ''.join(f'<tr><th>{escape(stage.get("id", "stage"))}</th><td>{escape(stage.get("status", "unknown"))}</td></tr>' for stage in stages if isinstance(stage, dict)) if isinstance(stages, list) else ''
+    graph = f'<details><summary>Artifact graph evidence</summary><table>{stage_rows}</table><p class="caption">Artifact provenance graph; no autonomous execution or listening acceptance claim.</p></details>' if stage_rows else ''
+    marker_count = len(payloads.get("markers", {}).get("markers", [])) if isinstance(payloads.get("markers", {}).get("markers", []), list) else 0
+    boundary = f'Review state: {escape(flags.get("status", "unavailable"))}. {len(items)} exported flags; showing at most 1,000. {marker_count} source-bound generic markers; native editor import is unvalidated.'
+    identities = ' · '.join(f'{escape(name)}: {escape(status)}' for name, status in statuses.items())
+    return f'<section><h2>Rhythm and phrase review</h2><p class="note">Flags are review hypotheses, including reference-comparison candidates where supplied; detector misses do not prove missed notes. Seeking does not start playback. Listen before accepting a finding.</p><p class="caption">{boundary}</p>{body}{graph}<p class="caption">{identities}</p><p id="seek-status" class="caption" role="status"></p></section>'
+
+
+def feature_evidence(root, manifest):
+    payloads, statuses = {}, {}
+    for name in ("noise", "tone", "notes", "phrases"):
+        payload = load_json(root / f"{name}.json")
+        status = analysis_lineage(root, manifest, payload)
+        statuses[name] = status
+        if payload and not status.startswith("rejected"):
+            payloads[name] = payload
+    return payloads, statuses
+
+
+def feature_section(payloads, statuses):
+    tone = payloads.get("tone", {}).get("observations", {})
+    bands = tone.get("sampled_band_energies", []) if isinstance(tone, dict) else []
+    band_rows = []
+    for band in bands if isinstance(bands, list) else []:
+        if not isinstance(band, dict):
+            continue
+        low, high, energy = [finite(band.get(key)) for key in ("low_hz", "high_hz_exclusive", "rms_dbfs")]
+        if low is None or high is None or energy is None:
+            continue
+        fraction = finite(band.get("fraction_of_ac_energy"))
+        share = f"{fraction * 100:.2f}%" if fraction is not None else "Unknown"
+        band_rows.append(f'<tr><th>{low:g}–{high:g} Hz</th><td>{energy:.2f} dBFS</td><td>{share}</td></tr>')
+    band_table = '<table><thead><tr><th>Analysis band</th><th>Sampled RMS</th><th>Share of sampled AC energy</th></tr></thead><tbody>' + ''.join(band_rows) + '</tbody></table>' if band_rows else '<p class="unavailable">Source-bound band measurements unavailable.</p>'
+    noise = payloads.get("noise", {}).get("observations", {})
+    windows = noise.get("quiet_candidate_windows", []) if isinstance(noise, dict) else []
+    quiet_rows = []
+    for window in windows[:20] if isinstance(windows, list) else []:
+        if not isinstance(window, dict):
+            continue
+        start, end, energy = [finite(window.get(key)) for key in ("start_seconds", "end_seconds", "rms_dbfs")]
+        if start is None or end is None or energy is None or start < 0 or end < start:
+            continue
+        quiet_rows.append(f'<tr><th>{start:.3f}–{end:.3f}s</th><td>{energy:.2f} dBFS</td><td><button data-media="audio" data-time="{start:.6f}">Seek audio</button></td></tr>')
+    quiet_table = '<details><summary>Quiet passage candidates · audition before profiling</summary><table><thead><tr><th>Decoded audio interval</th><th>Measured RMS</th><th>Navigate</th></tr></thead><tbody>' + ''.join(quiet_rows) + '</tbody></table></details>' if quiet_rows else '<p class="unavailable">Quiet candidate intervals unavailable.</p>'
+    notes = payloads.get("notes", {})
+    observations = notes.get("observations", {})
+    frames = observations.get("sparse_analysis_frames", []) if isinstance(observations, dict) else []
+    pitch_rows = []
+    for frame in frames if isinstance(frames, list) else []:
+        if not isinstance(frame, dict):
+            continue
+        candidate = frame.get("periodicity_candidate", {})
+        if not isinstance(candidate, dict):
+            continue
+        frequency = finite(candidate.get("frequency_hz"))
+        start = finite(frame.get("start_seconds"))
+        score = finite(candidate.get("normalized_autocorrelation_score"))
+        if frequency is None or start is None:
+            continue
+        pitch_rows.append(f'<tr><th>{start:.3f}s</th><td>{frequency:.2f} Hz</td><td>{score:.3f} heuristic score</td></tr>' if score is not None else f'<tr><th>{start:.3f}s</th><td>{frequency:.2f} Hz</td><td>Confidence unknown</td></tr>')
+        if len(pitch_rows) >= 8:
+            break
+    interpretation = notes.get("interpretation", {})
+    if not isinstance(interpretation, dict):
+        interpretation = {}
+    context = ' · '.join(f'{label}: {escape(interpretation.get(key) or "unknown")}' for key, label in [("tonic", "Tonic"), ("mode", "Mode"), ("note_transcription", "Note transcription")])
+    pitch_table = '<details><summary>Sparse-mixture periodicity candidates · first eight available</summary><table><thead><tr><th>Decoded audio time</th><th>Periodic frequency candidate</th><th>Evidence</th></tr></thead><tbody>' + ''.join(pitch_rows) + '</tbody></table></details>' if pitch_rows else '<p class="unavailable">No source-bound periodic-frequency candidates displayed.</p>'
+    identities = ' · '.join(f'{escape(name)}: {escape(status)}' for name, status in statuses.items())
+    return f'<section><h2>Low register, noise and tonal context</h2><p class="note">The intended low register near 32 Hz is musical content. These sampled analysis-copy bands describe the mixture and do not prove preserved fundamentals, guitar identity or preferred tone. A quiet interval may contain sustain or metronome; approve a noise-only region before profiling. Speech denoisers are outside these guitar cleanup presets.</p>{band_table}{quiet_table}<p class="caption">{context}. Exact tuning, intended notes and string identity require a confirmed reference. Distorted harmonics can create octave ambiguity; sparse frequency candidates do not establish note mistakes.</p>{pitch_table}<p class="caption">{identities}</p></section>'
+
+
+def media_paths(root, manifest, outcome=None):
+    outputs = manifest.get("outputs", manifest.get("artifacts", {}))
+    if not isinstance(outputs, dict):
+        outputs = {}
+    groups = {
+        "original": (["baseline", "original_audio", "original_wav", "source_audio", "raw_audio", "original", "source"], ["baseline.wav", "original.wav", "source.wav", "working.wav"]),
+        "source": (["source", "source_audio", "original_wav"], ["source.wav", "original.wav", "working.wav"]),
+        "clean": (["cleaned", "clean_audio", "clean_wav", "processed_audio", "master_audio", "clean"], ["cleaned.wav", "clean.wav", "master.wav"]),
+        "residual": (["residue", "residual_audio", "residue_audio", "residual_wav", "residual"], ["residue.wav", "residual.wav"]),
+        "video": (["processed_video", "clean_video", "video"], ["processed.mp4", "clean.mp4", "cleaned.mp4"]),
+    }
+    result = {}
+    for role, (keys, fallback) in groups.items():
+        found = next((artifact(root, outputs[key]) for key in keys if artifact(root, outputs.get(key))), None)
+        result[role] = found or next((name for name in fallback if artifact(root, name)), None)
+    if outcome and artifact(root, outcome.get("video")):
+        result["video"] = outcome["video"]
+    return result
+
+
+def waveform(path, bins=480):
+    """Read PCM integer/float RIFF WAV; return peak bins and sample duration."""
+    with path.open("rb") as stream:
+        if stream.read(4) != b"RIFF":
+            return None
+        stream.read(4)
+        if stream.read(4) != b"WAVE":
+            return None
+        fmt = None
+        data = None
+        while True:
+            header = stream.read(8)
+            if len(header) != 8:
+                break
+            tag, size = struct.unpack("<4sI", header)
+            if tag == b"fmt ":
+                fmt = stream.read(size)
+            elif tag == b"data":
+                data = (stream.tell(), size)
+                break
+            else:
+                stream.seek(size, 1)
+            if size % 2:
+                stream.seek(1, 1)
+        if not fmt or len(fmt) < 16 or not data:
+            return None
+        encoding, channels, rate, _, align, bits = struct.unpack("<HHIIHH", fmt[:16])
+        if encoding == 65534 and len(fmt) >= 40:
+            encoding = struct.unpack("<H", fmt[24:26])[0]
+        if encoding not in (1, 3) or bits not in (8, 16, 24, 32, 64) or not channels or not rate or not align:
+            return None
+        if encoding == 3 and bits not in (32, 64):
+            return None
+        width = bits // 8
+        if width * channels != align:
+            return None
+        frames = data[1] // align
+        if not frames:
+            return None
+        peaks = []
+        count = min(bins, frames)
+        for index in range(count):
+            start = frames * index // count
+            end = frames * (index + 1) // count
+            stream.seek(data[0] + start * align)
+            samples = stream.read((end - start) * align)
+            peak = 0.0
+            # Bound rendering work on long recordings without changing the audio.
+            stride = max(1, (end - start) // 1024) * align
+            for offset in range(0, len(samples) - align + 1, stride):
+                for channel in range(channels):
+                    raw = samples[offset + channel * width:offset + (channel + 1) * width]
+                    if encoding == 3:
+                        value = struct.unpack("<f" if bits == 32 else "<d", raw)[0]
+                    elif bits == 8:
+                        value = (raw[0] - 128) / 128
+                    else:
+                        value = int.from_bytes(raw, "little", signed=True) / (2 ** (bits - 1))
+                    if math.isfinite(value):
+                        peak = max(peak, abs(value))
+            peaks.append(peak)
+        return peaks, frames / rate
+
+
+def read_events(root):
+    path = root / "events.csv"
+    if not path.is_file():
+        return []
+    with path.open(newline="", encoding="utf-8") as stream:
+        return list(csv.DictReader(stream))
+
+
+def visualization(root, paths, events, analysis):
+    audio = paths.get("source") or paths.get("original")
+    try:
+        wave = waveform(root / audio) if audio else None
+    except (OSError, ValueError, struct.error):
+        wave = None
+    if not wave:
+        return '<p class="unavailable">Waveform unavailable for this audio format.</p>'
+    peaks, duration = wave
+    width, left, span = 960, 35, 890
+    points = []
+    for i, peak in enumerate(peaks):
+        x = left + i * span / max(1, len(peaks) - 1)
+        amp = min(1.0, peak) * 65
+        points.append(f'M{x:.2f} {100-amp:.2f}V{100+amp:.2f}')
+    marks = []
+    offsets = []
+    for event in events[:10000]:
+        time = finite(event.get("audio_relative_seconds", event.get("time_s", event.get("time_seconds", event.get("time")))))
+        if time is None or not 0 <= time <= duration:
+            continue
+        kind = str(event.get("kind", event.get("type", event.get("event_type", "onset"))))
+        click = "click" in kind.lower() or "beat" in kind.lower() or "periodic_high_frequency" in kind.lower()
+        x = left + time * span / duration
+        marks.append(f'<circle cx="{x:.2f}" cy="{195 if click else 215}" r="2.3" class="{"click" if click else "onset"}"><title>{escape(kind)} at {time:.3f}s</title></circle>')
+        offset = finite(event.get("grid_offset_ms"))
+        if not click and offset is not None:
+            y = 330 - max(-100, min(100, offset)) * 0.45
+            offsets.append(f'<circle cx="{x:.2f}" cy="{y:.2f}" r="2.4" class="onset"><title>Candidate attack at {time:.3f}s; grid offset {offset:+.2f}ms (uncalibrated)</title></circle>')
+    ticks = ''.join(f'<text x="{left+i*span/4:.1f}" y="245">{duration*i/4:.1f}s</text>' for i in range(5))
+    offset_plot = f'<text x="35" y="278">Candidate attack offset to proposed periodic grid · uncalibrated</text><line x1="35" y1="330" x2="925" y2="330" class="axis"/><text x="35" y="312">+100 ms</text><text x="35" y="371">−100 ms</text>{"".join(offsets)}' if offsets else ''
+    return f'''<svg class="timeline" viewBox="0 0 {width} {390 if offsets else 260}" role="img" aria-label="Original PCM waveform and available detected event times">
+<line x1="35" y1="100" x2="925" y2="100" class="axis"/>
+<path d="{' '.join(points)}" class="wave"/>{''.join(marks)}{ticks}{offset_plot}
+</svg><p class="caption">Original PCM amplitude, sampled for display; times are relative to the first decoded audio sample. Gold: periodic high-frequency / click candidates. Coral: broadband attack candidates. Neither lane establishes instrument identity. {len(events)} exported events. {'Offset display is limited to ±100 ms; hover a point for its complete value. Offsets are not performance grades or confirmed rhythm issues.' if offsets else 'No calibrated attack-to-grid offsets are displayed.'}</p>'''
+
+
+def metric_rows(manifest, analysis, outcome=None):
+    rows = []
+    metrics = manifest.get("measurements", manifest.get("metrics", {}))
+    if not isinstance(metrics, dict):
+        metrics = {}
+    metrics = dict(metrics)
+    loudness = manifest.get("loudness", {})
+    if isinstance(loudness, dict):
+        for role, measurement in loudness.items():
+            if isinstance(measurement, dict) and isinstance(measurement.get("output"), dict):
+                metrics[role] = measurement["output"]
+    if outcome and isinstance(outcome.get("final_audio_loudness"), dict):
+        metrics["final encoded delivery"] = outcome["final_audio_loudness"]
+    aliases = [("Integrated loudness", "LUFS", ["integrated_lufs", "input_i", "lufs_i"]),
+               ("True peak", "dBTP", ["true_peak_dbtp", "input_tp", "true_peak_db"]),
+               ("Loudness range", "LU", ["lra_lu", "input_lra", "loudness_range_lu"])]
+    for label, unit, keys in aliases:
+        for role, values in metrics.items():
+            if not isinstance(values, dict):
+                continue
+            value = next((finite(values[k]) for k in keys if finite(values.get(k)) is not None), None)
+            if value is not None:
+                rows.append(f'<tr><th>{escape(role)} · {label}</th><td>{value:.2f} {unit}</td><td>Measured</td></tr>')
+    tempo = analysis.get("tempo", {})
+    if isinstance(tempo, dict):
+        bpm = finite(tempo.get("bpm", tempo.get("estimated_bpm")))
+        if bpm is not None:
+            rows.append(f'<tr><th>Tempo candidate</th><td>{bpm:.2f} BPM</td><td>Inferred; metrical interpretation unverified</td></tr>')
+    candidates = analysis.get("tempo_candidates", [])
+    if isinstance(candidates, list):
+        bpms = [finite(item.get("bpm")) for item in candidates if isinstance(item, dict)]
+        bpms = [value for value in bpms if value is not None]
+        if bpms:
+            values = " / ".join(f"{value:.2f}" for value in bpms[:5])
+            rows.append(f'<tr><th>Periodicity candidates</th><td>{values} BPM</td><td>Inferred; metronome identity and meter unverified</td></tr>')
+    interpretations = analysis.get("metrical_interpretations", [])
+    if isinstance(interpretations, list):
+        bpms = [finite(item.get("bpm")) for item in interpretations if isinstance(item, dict)]
+        bpms = [value for value in bpms if value is not None]
+        if bpms:
+            values = " / ".join(f"{value:.2f}" for value in bpms[:5])
+            rows.append(f'<tr><th>Metrical interpretations</th><td>{values} BPM</td><td>Derived half/double pulse ambiguity; not independent detections</td></tr>')
+    grid = analysis.get("click_grid")
+    if isinstance(grid, dict):
+        bpm = finite(grid.get("bpm"))
+        if bpm is not None:
+            rows.append(f'<tr><th>Proposed periodic grid</th><td>{bpm:.2f} BPM</td><td>Inferred; click identity and intended tempo unverified</td></tr>')
+        residual = finite(grid.get("median_absolute_residual_ms"))
+        if residual is not None:
+            rows.append(f'<tr><th>Periodic-candidate grid residual</th><td>{residual:.2f} ms</td><td>Heuristic grid fit; not a guitar performance grade</td></tr>')
+    bands = manifest.get("low_frequency_metrics", {})
+    if isinstance(bands, dict):
+        for role, values in bands.items():
+            if not isinstance(values, dict):
+                continue
+            value = finite(values.get("rms_32_80_hz_dbfs"))
+            if value is not None:
+                rows.append(f'<tr><th>{escape(role)} · 32–80 Hz band RMS</th><td>{value:.2f} dBFS</td><td>Measured band energy; not a pitch or tone-quality grade</td></tr>')
+    return ''.join(rows) or '<tr><td colspan="3">Measurements unavailable in this run manifest.</td></tr>'
+
+
+def render(root, manifest, analysis, events, outcome=None, identity_status="unavailable", export_status="unavailable", auxiliary=None, auxiliary_status=None, features=None, feature_status=None):
+    paths = media_paths(root, manifest, outcome)
+    source = manifest.get("source", manifest.get("input", {}))
+    if isinstance(source, dict):
+        source = source.get("filename", source.get("name", source.get("path", "Private recording")))
+    source_name = str(source).replace("\\", "/").split("/")[-1]
+    cards = []
+    baseline = artifact(root, manifest.get("outputs", {}).get("baseline")) if isinstance(manifest.get("outputs"), dict) else None
+    matched = bool(baseline) and paths.get("original") == baseline
+    original_note = "Original recording with playback-level normalization for A/B comparison." if matched else "Unprocessed decoded recording; match playback loudness manually."
+    for role, title, note in [("original", "Original · audition", original_note), ("clean", "Clean iteration", "Conservative processing; listening acceptance pending."), ("residual", "Removed signal", "Pre-gain diagnostic; inspect for removed guitar detail. This is not an isolated source.")]:
+        name = paths[role]
+        player = f'<audio controls preload="none" src="{escape(quote(name))}"></audio><a href="{escape(quote(name))}" download>Download WAV</a>' if name else '<p class="unavailable">Artifact unavailable.</p>'
+        cards.append(f'<article class="card"><h3>{title}</h3><p>{note}</p>{player}</article>')
+    video = paths["video"]
+    video_html = f'<video controls preload="none" playsinline src="{escape(quote(video))}"></video>' if video else '<p class="unavailable">Processed video unavailable.</p>'
+    availability = "Analysis exported" if analysis else "Rhythm analysis unavailable"
+    style = '''*{box-sizing:border-box}body{margin:0;background:#171614;color:#ece7dd;font:16px/1.65 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:1120px;margin:auto;padding:64px 28px 48px}h1,h2,h3{line-height:1.2;font-weight:550;letter-spacing:-.035em}h1{font-size:clamp(35px,6vw,64px);margin:14px 0 20px}h2{font-size:25px;margin:0 0 20px}h3{font-size:21px;margin:0 0 12px}.eyebrow{color:#ceb179;text-transform:uppercase;letter-spacing:.17em;font-size:12px}.lead{color:#bdb6aa;max-width:780px}section{border-top:1px solid #38342e;margin-top:40px;padding-top:30px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{background:#211f1b;border:1px solid #3d372e;padding:24px;border-radius:12px}.card p,.caption{color:#aaa294;font-size:14px}audio{width:100%;margin:12px 0}a{color:#d8ba80;text-underline-offset:4px;font-size:14px}video{width:100%;max-height:660px;border-radius:10px;background:#0e0d0c}.unavailable{color:#a99f90}table{border-collapse:collapse;width:100%;font-size:15px}th,td{padding:14px 12px;text-align:left;border-bottom:1px solid #38342e}th{font-weight:500}td:last-child{color:#b0a696}.status{display:inline-block;border:1px solid #574a32;color:#d1b67e;border-radius:30px;padding:5px 13px;font-size:12px}.timeline{width:100%;background:#1e1c18;border-radius:10px}.wave{stroke:#a69980;stroke-width:1;fill:none}.axis{stroke:#413c32}.click{fill:#dbba76}.onset{fill:#ca8772}.timeline text{fill:#aaa294;font-size:13px}.note{border-left:2px solid #a88a55;padding-left:18px;color:#bbb2a4}footer{font-size:12px;color:#928879;margin-top:48px}@media(max-width:760px){main{padding:36px 18px}.cards{grid-template-columns:1fr}th,td{padding:11px 5px;font-size:13px}}'''
+    style += 'button{background:#302a20;color:#d8ba80;border:1px solid #655238;border-radius:6px;padding:7px 10px;cursor:pointer;margin:3px 0;font:inherit;font-size:12px}button:focus-visible{outline:2px solid #e3c98f;outline-offset:3px}details{margin-top:20px}summary{cursor:pointer;color:#c4ad82}'
+    seek_script = '''<script>document.addEventListener("click",function(event){const button=event.target.closest("button[data-media]");if(!button)return;const time=Number(button.dataset.time);if(!Number.isFinite(time)||time<0)return;const players=document.querySelectorAll(button.dataset.media==="video"?"video":"audio");const status=document.getElementById("seek-status");if(!players.length){status.textContent="This media artifact is unavailable.";return;}players.forEach(function(player){const seek=function(){try{player.currentTime=Number.isFinite(player.duration)?Math.min(time,player.duration):time;}catch(error){status.textContent="Seeking is unavailable in this browser; use the player controls.";}};if(player.readyState<1){player.addEventListener("loadedmetadata",seek,{once:true});player.load();}else{seek();}});status.textContent="Position set to "+time.toFixed(3)+" seconds. Start playback with the player controls.";});</script>'''
+    review = review_section(manifest, auxiliary or {}, auxiliary_status or {})
+    feature_report = feature_section(features or {}, feature_status or {})
+    fingerprint = source_identity(manifest)
+    source_receipt = f'<p class="caption">Original source SHA-256: <code>{escape(fingerprint)}</code></p>' if isinstance(fingerprint, str) and len(fingerprint) == 64 and all(char in "0123456789abcdefABCDEF" for char in fingerprint) else ''
+    profile = manifest.get("profile", {})
+    settings = []
+    if isinstance(profile, dict):
+        for key, label, unit in [("reduction_db", "Denoise reduction", "dB"), ("noise_floor_db", "Configured noise floor", "dBFS"), ("integrated_lufs", "Loudness target", "LUFS"), ("preserve_low_fundamental_hz", "Low-register design target", "Hz")]:
+            value = finite(profile.get(key))
+            if value is not None:
+                settings.append(f'{label}: {value:g} {unit}')
+    settings_receipt = f'<p class="caption">{escape(" · ".join(settings))}. Settings are processing controls, not measurements or acceptance.</p>' if settings else ''
+    verification = (outcome or {}).get("verification", {})
+    checks = []
+    if isinstance(verification, dict):
+        for field, label in [("video_frame_count_preserved", "Video frame count preserved"), ("relative_audio_video_start_verified", "Relative audio/video start verified"), ("final_true_peak_within_target", "Final encoded true peak within target")]:
+            if field in verification:
+                value = verification[field]
+                checks.append(f'{label}: {"passed" if value is True else "failed" if value is False else "unknown"}')
+    export_caption = f'Export evidence: {escape(export_status)}. ' + escape(' · '.join(checks))
+    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer"><title>Guitar take · local run report</title><style>{style}</style></head><body><main>
+<header><div class="eyebrow">VIDEO UTILS / LOCAL SESSION</div><h1>A guitar take, examined.</h1><p class="lead">Compare the original recording with a conservative cleanup and inspect the evidence behind the iteration. Playback is manual; all media stays beside this report.</p><p class="lead">Source: {escape(source_name)}<br>Instrument context: 9-string downtuned deathcore / technical guitar; preserve the intended low register around 32 Hz and distorted tone.</p><span class="status">{availability} · listening acceptance pending</span></header>
+<section><h2>Listen and compare</h2><p class="note">{'Original and cleaned auditions target the same integrated loudness; check their measured values below.' if matched else 'These files may have different playback loudness; match levels manually.'} A louder iteration or less distortion does not establish better tone. The removed-signal player is a diagnostic at its own level.</p><div class="cards">{''.join(cards)}</div></section>
+<section><h2>Processed video</h2>{video_html}<p class="caption">{export_caption}</p><p class="caption">A rendered video is a delivery artifact; audiovisual sync and listening quality require separate acceptance.</p></section>
+<section><h2>Waveform and timing candidates</h2>{visualization(root, paths, events, analysis)}</section>
+<section><h2>Run evidence</h2><p class="caption">Analysis lineage: {escape(identity_status)}. Unrelated or modified analysis inputs are excluded from this report.</p>{source_receipt}{settings_receipt}<table><thead><tr><th>Measure</th><th>Value</th><th>Evidence boundary</th></tr></thead><tbody>{metric_rows(manifest, analysis, outcome)}</tbody></table></section>
+{review}
+{feature_report}
+<section><h2>What remains uncertain</h2><p class="note">A mono room recording combines distorted guitar, metronome, room sound and recorder processing. Denoising can remove intended harmonics and low-string fundamentals; residuals are diagnostic estimates. Tempo candidates do not establish intended tempo or meter. Without an approved expected-rhythm or phrase reference, timing deviations cannot establish missed notes, extra notes or phrase mistakes. Acoustic travel time and detector bias can affect onset offsets. Signal-phase troubleshooting is outside this workflow; musical phrase mistakes require an intended reference. Intended-note and tone-quality judgments remain unverified.</p><p class="caption">{'Source-bound analysis exports are available; review them before interpreting performance.' if analysis else 'Source-bound rhythm analysis is unavailable or rejected. BPM, meter, phrasing and performance findings are unavailable.'}</p></section>
+<footer>Static standard-library HTML report · no remote assets · not a Quarto-rendered report. Preserve the complete run directory when sharing.</footer>
+</main>{seek_script}</body></html>'''
+
+
+def write_report(root):
+    root = Path(root).resolve()
+    manifest = load_json(root / "manifest.json")
+    if not manifest:
+        raise ValueError("manifest.json is required and must not be empty")
+    analysis = load_json(root / "analysis.json")
+    identity_status = analysis_lineage(root, manifest, analysis)
+    if identity_status.startswith("rejected"):
+        analysis = {}
+    exported_events = analysis.get("events")
+    events = exported_events if isinstance(exported_events, list) else read_events(root) if analysis else []
+    events = [event for event in events if isinstance(event, dict)]
+    outcome, export_status = export_evidence(root, manifest)
+    auxiliary, auxiliary_status = auxiliary_evidence(root, manifest)
+    features, feature_status = feature_evidence(root, manifest)
+    document = render(root, manifest, analysis, events, outcome, identity_status, export_status, auxiliary, auxiliary_status, features, feature_status)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=root, prefix=".report-", suffix=".html", delete=False) as stream:
+            temporary = Path(stream.name)
+            stream.write(document)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, root / "report.html")
+    finally:
+        if temporary and temporary.exists():
+            temporary.unlink()
+    return {"report": "report.html", "analysis_available": bool(analysis), "analysis_lineage": identity_status, "export_evidence": export_status, "auxiliary_evidence": auxiliary_status, "feature_evidence": feature_status, "event_count": len(events), "renderer": "python-stdlib-html", "listening_acceptance": "pending"}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("run_dir", type=Path)
+    arguments = parser.parse_args()
+    try:
+        result = write_report(arguments.run_dir)
+    except (OSError, ValueError, csv.Error) as error:
+        parser.exit(1, f"Report failed: {type(error).__name__}; inspect run files.\n")
+    print(json.dumps(result, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

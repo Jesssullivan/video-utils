@@ -1,0 +1,26 @@
+name: Private offline checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  offline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      CARGO_BUILD_JOBS: "1"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7 # v31
+      - name: Python and synthetic media checks
+        run: nix develop --no-write-lock-file --command just check
+      - name: Rust checks on the supported hosted builder
+        run: nix develop --no-write-lock-file --command just test-rust
+      - name: Secret scan
+        run: nix develop --no-write-lock-file --command gitleaks dir --redact .
+      # No private recording acquisition, media upload or model downloads in CI.

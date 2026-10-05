@@ -1,0 +1,4 @@
+# Compatibility direct pin; authoritative complete dependency lock is uv.lock.
+# Install explicitly with just analysis-setup (uv sync --extra analysis --frozen).
+# The stdlib baseline requires no optional packages.
+librosa==0.11.0

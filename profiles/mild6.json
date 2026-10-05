@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "name": "mild6",
+  "denoise": true,
+  "reduction_db": 6,
+  "noise_floor_db": -40,
+  "gain_smooth": 5,
+  "preserve_low_fundamental_hz": 32,
+  "integrated_lufs": -18,
+  "true_peak_dbtp": -1.5,
+  "description": "Comparison-only mild reduction. Fixed noise floor is an unverified diagnostic heuristic, not a measured noise profile. No automatic tracking."
+}

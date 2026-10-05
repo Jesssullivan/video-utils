@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "authority": "Operator approved plan / Implement the plan; R-HOOK-CONVERGENCE-20261004 / R-N13",
+  "repository": "https://github.com/Jesssullivan/video-utils",
+  "team_id": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+  "updated_at": "2026-10-05T20:40:44.623018+00:00",
+  "milestones": [
+    {
+      "id": "71bd7738-f346-48dd-8426-4095575a386a",
+      "name": "First processed take"
+    },
+    {
+      "id": "909f11f9-0de6-4889-b172-ebab6540d624",
+      "name": "35h core toolkit"
+    },
+    {
+      "id": "cabe4152-556b-444b-a02a-391ad1f2b096",
+      "name": "Optional 35h extension"
+    }
+  ],
+  "issues": [
+    {
+      "id": "87f4c52a-8275-45db-8e5a-0e7dab9d3557",
+      "identifier": "TIN-5485",
+      "title": "D0 \u2014 First cleaned guitar WAV/video and matched listening report",
+      "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report"
+    },
+    {
+      "id": "dcce7716-5bbe-4180-9614-877e42e2e5c7",
+      "identifier": "TIN-5486",
+      "title": "D1 \u2014 Reproducible ingestion and Rust CLI",
+      "url": "https://linear.app/tinyland/issue/TIN-5486/d1-reproducible-ingestion-and-rust-cli"
+    },
+    {
+      "id": "89fd64e3-2822-4d9d-92be-9c151102c9f0",
+      "identifier": "TIN-5487",
+      "title": "D2 \u2014 Restoration profiles and measured media delivery",
+      "url": "https://linear.app/tinyland/issue/TIN-5487/d2-restoration-profiles-and-measured-media-delivery"
+    },
+    {
+      "id": "1a2854b8-667c-4c9c-8946-664923aab0d8",
+      "identifier": "TIN-5488",
+      "title": "D3 \u2014 Metronome detection and bounded attenuation",
+      "url": "https://linear.app/tinyland/issue/TIN-5488/d3-metronome-detection-and-bounded-attenuation"
+    },
+    {
+      "id": "6b0a92b4-408c-4c38-bcab-bfef6f93092a",
+      "identifier": "TIN-5489",
+      "title": "D4 \u2014 Mark reference-qualified rhythm and loop timing issues",
+      "url": "https://linear.app/tinyland/issue/TIN-5489/d4-mark-reference-qualified-rhythm-and-loop-timing-issues"
+    },
+    {
+      "id": "8e1db109-96e7-468b-b1f9-7f74c09916d7",
+      "identifier": "TIN-5490",
+      "title": "D5 \u2014 Nine-string pitch, tonic and phrase recurrence candidates",
+      "url": "https://linear.app/tinyland/issue/TIN-5490/d5-nine-string-pitch-tonic-and-phrase-recurrence-candidates"
+    },
+    {
+      "id": "28d0291e-6556-4f49-b6e3-5d50a016c539",
+      "identifier": "TIN-5491",
+      "title": "D6 \u2014 Annotated benchmark and R/Quarto listening report",
+      "url": "https://linear.app/tinyland/issue/TIN-5491/d6-annotated-benchmark-and-rquarto-listening-report"
+    },
+    {
+      "id": "3f6a3993-cde3-4ef1-9556-001c40b4d171",
+      "identifier": "TIN-5492",
+      "title": "D7 \u2014 Hardening, agent tool contracts and release handoff",
+      "url": "https://linear.app/tinyland/issue/TIN-5492/d7-hardening-agent-tool-contracts-and-release-handoff"
+    },
+    {
+      "id": "63027dfb-9ea9-4f5f-a03e-b39023a3af89",
+      "identifier": "TIN-5493",
+      "title": "Cross-cutting \u2014 MCP hooks and skill per audio tool",
+      "url": "https://linear.app/tinyland/issue/TIN-5493/cross-cutting-mcp-hooks-and-skill-per-audio-tool"
+    },
+    {
+      "id": "99918a4a-9278-48a2-a9b8-34016a2a4279",
+      "identifier": "TIN-5494",
+      "title": "Future \u2014 Final Cut and Resolve phrase-marker interoperability",
+      "url": "https://linear.app/tinyland/issue/TIN-5494/future-final-cut-and-resolve-phrase-marker-interoperability"
+    }
+  ],
+  "evidence_state": "Actual demo completed all stages; 81 Python and 7 Rust tests pass; unreviewed listening; no AU/editor import proof",
+  "project": {
+    "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+    "name": "video-utils \u2014 guitar restoration and performance analysis",
+    "url": "https://linear.app/tinyland/project/video-utils-guitar-restoration-and-performance-analysis-243628f290ab"
+  }
+}

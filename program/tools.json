@@ -1,0 +1,763 @@
+{
+  "schema_version": 1,
+  "instrument_context": {
+    "strings": 9,
+    "lowest_intentional_fundamental_hz": 32,
+    "styles": [
+      "deathcore",
+      "technical",
+      "virtuoso"
+    ],
+    "preserve_distortion": true,
+    "automatic_high_pass": false
+  },
+  "tools": [
+    {
+      "name": "probe",
+      "title": "Probe",
+      "description": "Inspect media streams, timeline and source fingerprint before choosing processing. Source metadata does not establish sound quality or instrument identity.",
+      "intent": "Inspect media streams, timeline and source fingerprint before choosing processing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local recording path; source is never overwritten."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "input"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/video-probe/SKILL.md",
+      "implementation_status": "available",
+      "evidence_kind": "measured",
+      "limitations": [
+        "Source metadata does not establish sound quality or instrument identity."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [],
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface."
+      },
+      "agent_workflow": {
+        "identify": "Read the skill prompt and inspect evidence; confirm operator intent and distinguish observations from inferences.",
+        "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
+        "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
+        "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "denoise",
+      "title": "Denoise",
+      "description": "Conservatively reduce recording noise while retaining distorted 9-string guitar and intended fundamentals near 32 Hz. No automatic high-pass or hum notch; denoising can still remove intended fundamentals and harmonics. Listening acceptance is required.",
+      "intent": "Conservatively reduce recording noise while retaining distorted 9-string guitar and intended fundamentals near 32 Hz.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local recording path; source is never overwritten."
+          },
+          "profile": {
+            "type": "string",
+            "enum": [
+              "bypass",
+              "conservative3",
+              "mild6"
+            ],
+            "default": "conservative3",
+            "description": "Bounded preset; compare matched-level baseline and removed-signal residue before accepting."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "input"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-denoise/SKILL.md",
+      "implementation_status": "available",
+      "evidence_kind": "rendered_unreviewed",
+      "limitations": [
+        "No automatic high-pass or hum notch; denoising can still remove intended fundamentals and harmonics. Listening acceptance is required."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "probe",
+          "noise"
+        ],
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface."
+      },
+      "agent_workflow": {
+        "identify": "Read the skill prompt and inspect evidence; confirm operator intent and distinguish observations from inferences.",
+        "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
+        "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
+        "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "bpm",
+      "title": "Bpm",
+      "description": "Estimate metronome/rhythm periodicity candidates with half/double-tempo ambiguity. Clicks and pick attacks overlap in a mono mixture. BPM candidates are not confirmed metronome identity or meter.",
+      "intent": "Estimate metronome/rhythm periodicity candidates with half/double-tempo ambiguity.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local recording path; source is never overwritten."
+          },
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Local artifact directory. Analysis files here may be replaced on rerun; choose a new directory for comparisons."
+          },
+          "backend": {
+            "type": "string",
+            "enum": [
+              "stdlib",
+              "librosa"
+            ],
+            "default": "stdlib"
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 20,
+            "maximum": 400,
+            "description": "Optional manual seed; not an approved intended rhythm."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "input",
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-bpm/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "inferred",
+      "limitations": [
+        "Clicks and pick attacks overlap in a mono mixture. BPM candidates are not confirmed metronome identity or meter."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "probe",
+          "denoise"
+        ],
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface."
+      },
+      "agent_workflow": {
+        "identify": "Read the skill prompt and inspect evidence; confirm operator intent and distinguish observations from inferences.",
+        "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
+        "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
+        "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "noise",
+      "title": "Noise",
+      "description": "Measure quiet-region and low-register candidates without treating 32 Hz guitar as unwanted rumble. Quiet intervals are noise candidates, not proven noise-only captures; never automatically authorize denoise training from them.",
+      "intent": "Measure quiet-region and low-register candidates without treating 32 Hz guitar as unwanted rumble.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local recording path; source is never overwritten."
+          },
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Local artifact directory. Analysis files here may be replaced on rerun; choose a new directory for comparisons."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "input",
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-noise/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "measured_and_inferred",
+      "limitations": [
+        "Quiet intervals are noise candidates, not proven noise-only captures; never automatically authorize denoise training from them."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "probe"
+        ],
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface."
+      },
+      "agent_workflow": {
+        "identify": "Read the skill prompt and inspect evidence; confirm operator intent and distinguish observations from inferences.",
+        "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
+        "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
+        "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "tone",
+      "title": "Tone",
+      "description": "Measure frequency-band energy and distorted-tone descriptors across the extended low register. Band energy is not a tone-quality grade or a recovered guitar stem; room/recorder coloration remains mixed.",
+      "intent": "Measure frequency-band energy and distorted-tone descriptors across the extended low register.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local recording path; source is never overwritten."
+          },
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Local artifact directory. Analysis files here may be replaced on rerun; choose a new directory for comparisons."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "input",
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-tone/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "measured",
+      "limitations": [
+        "Band energy is not a tone-quality grade or a recovered guitar stem; room/recorder coloration remains mixed."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "probe",
+          "denoise"
+        ],
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface."
+      },
+      "agent_workflow": {
+        "identify": "Read the skill prompt and inspect evidence; confirm operator intent and distinguish observations from inferences.",
+        "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
+        "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
+        "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "notes",
+      "title": "Notes",
+      "description": "Suggest low-register periodicity/pitch candidates while abstaining from intended-note and exact transcription claims. Distortion, polyphony and weak fundamentals cause octave ambiguity. Intended notes require a separately approved reference.",
+      "intent": "Suggest low-register periodicity/pitch candidates while abstaining from intended-note and exact transcription claims.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local recording path; source is never overwritten."
+          },
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Local artifact directory. Analysis files here may be replaced on rerun; choose a new directory for comparisons."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "input",
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-notes/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "inferred",
+      "limitations": [
+        "Distortion, polyphony and weak fundamentals cause octave ambiguity. Intended notes require a separately approved reference."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "probe",
+          "denoise",
+          "tone"
+        ],
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface."
+      },
+      "agent_workflow": {
+        "identify": "Read the skill prompt and inspect evidence; confirm operator intent and distinguish observations from inferences.",
+        "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
+        "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
+        "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "rhythm",
+      "title": "Rhythm",
+      "description": "Mark signed onset offsets and beat-grid phase relationships for technical deathcore guitar review. Without approved expected-rhythm and calibration, offsets cannot establish missed, extra or rushed notes. Grid phase is not physical audio phase.",
+      "intent": "Mark signed onset offsets and beat-grid phase relationships for technical deathcore guitar review.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local recording path; source is never overwritten."
+          },
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Local artifact directory. Analysis files here may be replaced on rerun; choose a new directory for comparisons."
+          },
+          "backend": {
+            "type": "string",
+            "enum": [
+              "stdlib",
+              "librosa"
+            ],
+            "default": "stdlib"
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 20,
+            "maximum": 400,
+            "description": "Optional manual seed; does not authorize performance grading."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "input",
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-rhythm/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "inferred",
+      "limitations": [
+        "Without approved expected-rhythm and calibration, offsets cannot establish missed, extra or rushed notes. Grid phase is not physical audio phase."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "bpm",
+          "notes"
+        ],
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface."
+      },
+      "agent_workflow": {
+        "identify": "Read the skill prompt and inspect evidence; confirm operator intent and distinguish observations from inferences.",
+        "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
+        "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
+        "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "phrases",
+      "title": "Phrases",
+      "description": "Propose envelope phrase boundaries for manual annotation and repeated-region research. Energy boundaries do not establish musical phrases, meter, or phrase mistakes; an intended phrase reference is required.",
+      "intent": "Propose envelope phrase boundaries for manual annotation and repeated-region research.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local recording path; source is never overwritten."
+          },
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Local artifact directory. Analysis files here may be replaced on rerun; choose a new directory for comparisons."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "input",
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-phrases/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "inferred",
+      "limitations": [
+        "Energy boundaries do not establish musical phrases, meter, or phrase mistakes; an intended phrase reference is required."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "bpm",
+          "notes",
+          "rhythm"
+        ],
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface."
+      },
+      "agent_workflow": {
+        "identify": "Read the skill prompt and inspect evidence; confirm operator intent and distinguish observations from inferences.",
+        "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
+        "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
+        "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "export",
+      "title": "Export",
+      "description": "Export a completed restoration run with preserved original video stream and recorded audio timing. Rendered export and audiovisual/listening acceptance are separate; no timing correction or isolated source is implied.",
+      "intent": "Export a completed restoration run with preserved original video stream and recorded audio timing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Local artifact directory. Analysis files here may be replaced on rerun; choose a new directory for comparisons."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/media-export/SKILL.md",
+      "implementation_status": "available",
+      "evidence_kind": "exported_unreviewed",
+      "limitations": [
+        "Rendered export and audiovisual/listening acceptance are separate; no timing correction or isolated source is implied."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "denoise"
+        ],
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface."
+      },
+      "agent_workflow": {
+        "identify": "Read the skill prompt and inspect evidence; confirm operator intent and distinguish observations from inferences.",
+        "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
+        "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
+        "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "report",
+      "title": "Report",
+      "description": "Build a local evidence report with audition, event timeline and claim boundaries. The report preserves existing measurements and inferences; it does not create listening acceptance or establish intended notes.",
+      "intent": "Build a local evidence report with audition, event timeline and claim boundaries.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Local artifact directory. Analysis files here may be replaced on rerun; choose a new directory for comparisons."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-report/SKILL.md",
+      "implementation_status": "available",
+      "evidence_kind": "report_rendered",
+      "limitations": [
+        "The report preserves existing measurements and inferences; it does not create listening acceptance or establish intended notes."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "export",
+          "rhythm",
+          "phrases"
+        ],
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface."
+      },
+      "agent_workflow": {
+        "identify": "Read the skill prompt and inspect evidence; confirm operator intent and distinguish observations from inferences.",
+        "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
+        "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
+        "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "pipeline",
+      "title": "Pipeline",
+      "description": "Evaluate an existing restoration/analysis provenance DAG and reference-based musical review candidates. Evaluates existing artifacts and their source lineage; does not execute the full render pipeline. Tonic/mode remain nullable and flags are review hypotheses.",
+      "intent": "Evaluate an existing restoration/analysis provenance DAG and reference-based musical review candidates.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Local artifact directory. Analysis files here may be replaced on rerun; choose a new directory for comparisons."
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Optional existing local approved-reference JSON; the worker validates approval, source binding, expected events, calibration and phrase spans."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-pipeline/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "artifact_provenance_and_reference_candidates",
+      "limitations": [
+        "Evaluates existing artifacts and their source lineage; does not execute the full render pipeline. Tonic/mode remain nullable and flags are review hypotheses."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "denoise",
+          "bpm",
+          "tone",
+          "notes",
+          "rhythm",
+          "phrases"
+        ],
+        "enforced": false,
+        "note": "Worker validates existing artifact/source relationships; this descriptor is dependency discovery guidance."
+      },
+      "agent_workflow": {
+        "identify": "Read the skill prompt and inspect evidence; confirm operator intent and distinguish observations from inferences.",
+        "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
+        "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
+        "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "markers",
+      "title": "Markers",
+      "description": "Export existing rhythm and musical-phrase review flags as generic source-timestamp CSV/JSON. Generic seconds-based CSV/JSON is not a validated Final Cut Pro or DaVinci Resolve import. Flags retain their uncertainty; physical audio phase is unrelated.",
+      "intent": "Export existing rhythm and musical-phrase review flags as generic source-timestamp CSV/JSON.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Local artifact directory. Analysis files here may be replaced on rerun; choose a new directory for comparisons."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/phrase-markers/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "review_metadata_exported",
+      "limitations": [
+        "Generic seconds-based CSV/JSON is not a validated Final Cut Pro or DaVinci Resolve import. Flags retain their uncertainty; physical audio phase is unrelated."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "pipeline"
+        ],
+        "enforced": false,
+        "note": "Worker validates existing artifact/source relationships; this descriptor is dependency discovery guidance."
+      },
+      "agent_workflow": {
+        "identify": "Read the skill prompt and inspect evidence; confirm operator intent and distinguish observations from inferences.",
+        "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
+        "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
+        "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    }
+  ]
+}

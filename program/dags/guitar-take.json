@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "instrument_context": {"strings": 9, "lowest_intentional_fundamental_hz": 32, "style": "deathcore_technical_virtuoso", "phase_means": "musical_phrase_alignment", "automatic_high_pass": false},
+  "stages": [
+    {"id": "denoise", "tool": "denoise", "intent": "Restore conservatively without sacrificing intentional low notes, attacks or distortion", "artifact": "manifest.json", "depends_on": []},
+    {"id": "bpm", "tool": "bpm", "intent": "Inspect post-restoration click and tempo candidates; retain half/double ambiguity", "artifact": "analysis.json", "depends_on": ["denoise"]},
+    {"id": "tone", "tool": "tone", "intent": "Measure mixture tone including intentional low register", "artifact": "tone.json", "depends_on": ["denoise"]},
+    {"id": "notes", "tool": "notes", "intent": "Inspect experimental pitch candidates; tonic, mode and intended notes may remain unknown", "artifact": "notes.json", "depends_on": ["denoise", "bpm"]},
+    {"id": "phrases", "tool": "phrases", "intent": "Suggest phrase boundaries and recurrences with nullable tonal and rhythm context", "artifact": "phrases.json", "depends_on": ["bpm", "notes"]},
+    {"id": "flags", "tool": "pipeline", "intent": "Record review spans and compare observed attacks against explicitly approved rhythm/phrase annotations", "artifact": "flags.json", "depends_on": ["bpm", "notes", "phrases"]},
+    {"id": "report", "tool": "report", "intent": "Present artifact lineage, review flags and listening boundaries", "artifact": "report.html", "depends_on": ["denoise", "tone", "flags"]}
+  ],
+  "parallel_diagnostics": [{"id": "raw_clicks", "tool": "bpm", "intent": "Keep raw metronome evidence available when restoration alters clicks", "status": "optional_separate_analysis_copy"}],
+  "execution_policy": "Registry declares intended dependencies; dag.py verifies existing artifacts and never runs DSP or downloads models. Raw-source artifacts are explicitly preliminary."
+}

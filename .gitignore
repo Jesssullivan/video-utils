@@ -1,0 +1,32 @@
+# Private inputs and regenerable derivatives never enter Git.
+/data/
+/artifacts/
+/models/
+/.cache/
+/.local/
+/target/
+/.direnv/
+/.venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+.env
+.env.*
+*.mov
+*.mp4
+*.m4v
+*.wav
+*.flac
+*.aiff
+*.aac
+*.mp3
+*.pt
+*.pth
+*.onnx
+*.safetensors
+*.MOV
+*.MP4
+*.WAV
+*.FLAC
+*.AIFF
+# Documentation figures and committed synthetic fixture metadata remain allowed.
