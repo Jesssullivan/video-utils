@@ -3,7 +3,7 @@
   "authority": "Operator approved plan / Implement the plan; R-HOOK-CONVERGENCE-20261004 / R-N13",
   "repository": "https://github.com/Jesssullivan/video-utils",
   "team_id": "a2c482c8-4d0d-4171-82d9-553265b6c706",
-  "updated_at": "2026-10-05T21:53:26.822359+00:00",
+  "updated_at": "2026-10-05T22:39:06.798746+00:00",
   "milestones": [
     {
       "id": "71bd7738-f346-48dd-8426-4095575a386a",
@@ -87,34 +87,60 @@
       "kind": "ten_hour_goal"
     }
   ],
-  "evidence_state": "219 Python tests passed; nineteen hooks and skills; calibrated real demo48regions/14recurrences/186 review flags; encoded\u221218.07LUFS/\u22121.56dBTP; listening pending; ten-hour goal active; no AU/editor import proof",
+  "evidence_state": "291 Python tests passed without skips; twenty hooks and skills; all fifteen actual extended stages/five selections verified;48regions/14recurrences/197ungradedflags; encoded\u221218.07LUFS/\u22121.56dBTP; listening pending; ten-hour goal active; calibration lanes released; no AU/editor import proof",
   "project": {
     "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
     "name": "video-utils \u2014 guitar restoration and performance analysis",
     "url": "https://linear.app/tinyland/project/video-utils-guitar-restoration-and-performance-analysis-243628f290ab"
   },
   "publication": {
-    "source_commit": "6f7d1965b3c99a9b2ed261d58ea8949c0d6a1b26",
+    "source_commit": "45a1313ccbcb0ecc097f3a017979254e5719a3c6",
     "private": true,
     "signature_verified": true,
     "comments": [
       {
         "issue": "TIN-5485",
-        "id": "6b0c27ce-950d-4f6a-a492-2cd6e821e567",
-        "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-6b0c27ce"
+        "id": "44694369-4105-4fad-814d-eea730c867c8",
+        "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-44694369"
       },
       {
         "issue": "TIN-5495",
-        "id": "18776874-b339-416f-a144-69a746ffdc9e",
-        "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-18776874"
+        "id": "83ef0855-6b81-4b76-9a96-4911f58216ba",
+        "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-83ef0855"
       }
     ],
-    "published_at": "2026-10-05T21:53:26.822359+00:00",
+    "published_at": "2026-10-05T22:39:06.798746+00:00",
     "hosted_ci": {
-      "id": 37378799943,
+      "id": 37383660576,
       "status_at_readback": "completed",
       "conclusion": "success",
-      "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37378799943"
+      "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37383660576"
     }
-  }
+  },
+  "publication_history": [
+    {
+      "source_commit": "6f7d1965b3c99a9b2ed261d58ea8949c0d6a1b26",
+      "private": true,
+      "signature_verified": true,
+      "comments": [
+        {
+          "issue": "TIN-5485",
+          "id": "6b0c27ce-950d-4f6a-a492-2cd6e821e567",
+          "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-6b0c27ce"
+        },
+        {
+          "issue": "TIN-5495",
+          "id": "18776874-b339-416f-a144-69a746ffdc9e",
+          "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-18776874"
+        }
+      ],
+      "published_at": "2026-10-05T21:53:26.822359+00:00",
+      "hosted_ci": {
+        "id": 37378799943,
+        "status_at_readback": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37378799943"
+      }
+    }
+  ]
 }

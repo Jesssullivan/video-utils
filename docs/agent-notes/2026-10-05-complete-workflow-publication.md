@@ -59,3 +59,33 @@ application import. Next calibration plans define a bounded twelve-fixture,
 remain evaluation-only. Root releases their implementation after publication.
 
 Private source/hosted-CI readbacks and factual Linear receipts follow separately.
+
+## Publication and tracker readbacks
+
+Signed source `45a1313ccbcb0ecc097f3a017979254e5719a3c6` is pushed to
+private `Jesssullivan/video-utils`; GitHub reports signature verification
+`true`, reason `valid`. Hosted run
+[37383660576](https://github.com/Jesssullivan/video-utils/actions/runs/37383660576)
+completed successfully at 22:38:45 UTC. It discovered 291 Python tests,
+passed 270 and skipped 21 optional-analysis checks in 25.450 seconds;
+seven Rust tests and secret scanning also passed. The separate locked local
+suite passed all 291 without skips. Optional runtime coverage is not inferred
+from the hosted skips.
+
+Linear project content is refreshed and factual comments are read back on
+[D0](https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-44694369)
+and the
+[active ten-hour goal](https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-83ef0855).
+Comment IDs are `44694369-4105-4fad-814d-eea730c867c8` and
+`83ef0855-6b81-4b76-9a96-4911f58216ba`; both receive the exact source CI
+success update. `program/linear.json` retains the prior publication history.
+
+Root releases the next named implementation lanes after this publication:
+`repo_patterns` owns technical-v2 generation; `guitar_features` owns the new
+pitch evaluator; `phrase_dag` owns the new phrase evaluator; `tool_hooks` owns
+their registry/dispatch contracts; `tool_skills` owns corresponding skills;
+`goal_plan` owns durable tracking. Root owns the composite calibration pilot,
+shared recipes, integration and publication. Independent calibration review and
+AU parameter/state integration planning own separate notes only. These are
+active assignments, not claims that planned calibration or AU integration is
+already implemented. The ten-hour goal remains active.
