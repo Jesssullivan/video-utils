@@ -142,5 +142,24 @@
         "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37378799943"
       }
     }
-  ]
+  ],
+  "restoration_comparison": {
+    "receipt": "docs/agent-notes/2026-10-05-restoration-comparison.md",
+    "numeric_sha256": "01f5996b95dd88932e8232e6b08dc03c9506e1c6861ad5b89c12c10e722475f4",
+    "comments": [
+      {
+        "issue": "TIN-5485",
+        "id": "5d7d5b17-72ef-4add-b6d8-79f404bc83f7",
+        "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-5d7d5b17"
+      },
+      {
+        "issue": "TIN-5495",
+        "id": "0c101757-4135-4720-ab21-4a407d5b65df",
+        "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-0c101757"
+      }
+    ],
+    "recorded_at": "2026-10-05T22:56:43.180269+00:00",
+    "listening_accepted": false,
+    "source_unchanged": true
+  }
 }

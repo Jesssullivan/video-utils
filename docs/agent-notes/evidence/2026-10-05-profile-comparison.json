@@ -1,0 +1,314 @@
+{
+  "schema_version": 1,
+  "kind": "actual_source_bound_profile_comparison",
+  "worker_sha256": "4f739c5e157e50e19956c78a63ee991c4d1aaf94b9636c835b7b9be58ba7e854",
+  "method": {
+    "spectral": "SciPy Welch density, Hann65536, overlap32768, mean, complete native mono take; integrated selected FFT-bin power ratios before presentation normalization",
+    "band_intervals_hz": [
+      [
+        20,
+        45
+      ],
+      [
+        45,
+        120
+      ],
+      [
+        120,
+        500
+      ],
+      [
+        500,
+        2000
+      ],
+      [
+        2000,
+        8000
+      ],
+      [
+        8000,
+        20000
+      ]
+    ],
+    "quiet_candidate_intervals_seconds": [
+      [
+        4,
+        5
+      ],
+      [
+        149,
+        150
+      ]
+    ],
+    "qualifications": [
+      "Bands are mixture-energy measurements, not identified guitar fundamentals or SNR.",
+      "Candidate quiet intervals are not confirmed noise-only.",
+      "No fitted time shift/gain or acoustic alignment assertion.",
+      "Normalized candidates match integrated loudness within0.01LU; local dynamic gain may differ.",
+      "No listening acceptance or best-profile selection."
+    ]
+  },
+  "profiles": [
+    {
+      "profile": "bypass",
+      "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T224706Z-2a72efe386ab",
+      "manifest_sha256": "05057c75c7be38401c654894fb65c3e2c3e51f61a9358f257063433bfc38c726",
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "output_hashes": {
+        "baseline.wav": "0dd6f502323fd27d9abc7a54fb89e11c3a1a0c297f68164e1a8a9f38b9e398e8",
+        "cleaned.wav": "0dd6f502323fd27d9abc7a54fb89e11c3a1a0c297f68164e1a8a9f38b9e398e8",
+        "denoised.wav": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a",
+        "residue.wav": "2a17bebc62e8cfeb8c5037da67afef76b8f7005e5e68251d560cb14d52d0538b",
+        "source.wav": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a"
+      },
+      "sample_rate": 44100,
+      "sample_count": 6657385,
+      "channels": 1,
+      "measured_master_integrated_lufs": -18.01,
+      "measured_master_true_peak_dbtp": -1.5,
+      "pre_normalization_whole_take_rms_change_db": 0.0,
+      "pre_normalization_band_energy_changes": [
+        {
+          "range_hz": [
+            20,
+            45
+          ],
+          "power_change_db": 0.0
+        },
+        {
+          "range_hz": [
+            45,
+            120
+          ],
+          "power_change_db": 0.0
+        },
+        {
+          "range_hz": [
+            120,
+            500
+          ],
+          "power_change_db": 0.0
+        },
+        {
+          "range_hz": [
+            500,
+            2000
+          ],
+          "power_change_db": 0.0
+        },
+        {
+          "range_hz": [
+            2000,
+            8000
+          ],
+          "power_change_db": 0.0
+        },
+        {
+          "range_hz": [
+            8000,
+            20000
+          ],
+          "power_change_db": 0.0
+        }
+      ],
+      "quiet_candidates": [
+        {
+          "interval_seconds": [
+            4,
+            5
+          ],
+          "input_rms": 0.017517328215900768,
+          "denoised_rms": 0.017517328215900768,
+          "change_db": 0.0,
+          "noise_only_confirmed": false
+        },
+        {
+          "interval_seconds": [
+            149,
+            150
+          ],
+          "input_rms": 0.01927616105272972,
+          "denoised_rms": 0.01927616105272972,
+          "change_db": 0.0,
+          "noise_only_confirmed": false
+        }
+      ],
+      "source_unchanged": true,
+      "source_denoised_hashes_identical": true,
+      "baseline_cleaned_hashes_identical": true
+    },
+    {
+      "profile": "conservative3",
+      "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T211103Z-c6d0bac2fcd2",
+      "manifest_sha256": "0438657188d136c36073789e5496ccf27d3a19aa9604eaca0f3941a36ec9162d",
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "output_hashes": {
+        "baseline.wav": "0dd6f502323fd27d9abc7a54fb89e11c3a1a0c297f68164e1a8a9f38b9e398e8",
+        "cleaned.wav": "d5a0423d72e3dd6e5cf6a7ff6106b46488b36c3bd28cf19e788d1a293da457f4",
+        "denoised.wav": "dbd8b40eaf9928eb2f80791cfbdc9c3562ed10b57bcf859ad96d8a202fc93b12",
+        "residue.wav": "1f28f0929995f88ccba9b71926429311e0a42dcbc95269a14cb53aa4d87290cf",
+        "source.wav": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a"
+      },
+      "sample_rate": 44100,
+      "sample_count": 6657385,
+      "channels": 1,
+      "measured_master_integrated_lufs": -18.01,
+      "measured_master_true_peak_dbtp": -1.5,
+      "pre_normalization_whole_take_rms_change_db": -0.06340372967076695,
+      "pre_normalization_band_energy_changes": [
+        {
+          "range_hz": [
+            20,
+            45
+          ],
+          "power_change_db": -0.025421543074588063
+        },
+        {
+          "range_hz": [
+            45,
+            120
+          ],
+          "power_change_db": -0.001365578049056032
+        },
+        {
+          "range_hz": [
+            120,
+            500
+          ],
+          "power_change_db": -0.0005270776438795617
+        },
+        {
+          "range_hz": [
+            500,
+            2000
+          ],
+          "power_change_db": -0.23732397786261974
+        },
+        {
+          "range_hz": [
+            2000,
+            8000
+          ],
+          "power_change_db": -0.415751999078266
+        },
+        {
+          "range_hz": [
+            8000,
+            20000
+          ],
+          "power_change_db": -2.575418120076858
+        }
+      ],
+      "quiet_candidates": [
+        {
+          "interval_seconds": [
+            4,
+            5
+          ],
+          "input_rms": 0.017517328215900768,
+          "denoised_rms": 0.016790696219760783,
+          "change_db": -0.36798325804369897,
+          "noise_only_confirmed": false
+        },
+        {
+          "interval_seconds": [
+            149,
+            150
+          ],
+          "input_rms": 0.01927616105272972,
+          "denoised_rms": 0.01811065810472671,
+          "change_db": -0.5417262839792502,
+          "noise_only_confirmed": false
+        }
+      ],
+      "source_unchanged": true
+    },
+    {
+      "profile": "mild6",
+      "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T224733Z-0e920a701cf8",
+      "manifest_sha256": "dbdfea880ff1f6c03acb4702ab950f0084becb3b6bb16a5adadd5cf46e96e241",
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "output_hashes": {
+        "baseline.wav": "0dd6f502323fd27d9abc7a54fb89e11c3a1a0c297f68164e1a8a9f38b9e398e8",
+        "cleaned.wav": "7ff7dc3a539f43a0584235b1c692bd3046e9b6621275a90f6af8737cf1feaaf5",
+        "denoised.wav": "df4f143718dfb7a49a90ba9e8ff97cdd672c21ac7a0644905e20dfab0c12facd",
+        "residue.wav": "3b73c6f5cc438b18135350ff922b0df7c90c8b3d864a382ffede7be7c87eaf0a",
+        "source.wav": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a"
+      },
+      "sample_rate": 44100,
+      "sample_count": 6657385,
+      "channels": 1,
+      "measured_master_integrated_lufs": -18.0,
+      "measured_master_true_peak_dbtp": -1.5,
+      "pre_normalization_whole_take_rms_change_db": -0.07464722158483314,
+      "pre_normalization_band_energy_changes": [
+        {
+          "range_hz": [
+            20,
+            45
+          ],
+          "power_change_db": -0.027851449929988482
+        },
+        {
+          "range_hz": [
+            45,
+            120
+          ],
+          "power_change_db": -0.0014409828556510057
+        },
+        {
+          "range_hz": [
+            120,
+            500
+          ],
+          "power_change_db": -0.0005466466498235826
+        },
+        {
+          "range_hz": [
+            500,
+            2000
+          ],
+          "power_change_db": -0.27836537938072553
+        },
+        {
+          "range_hz": [
+            2000,
+            8000
+          ],
+          "power_change_db": -0.49054188937639354
+        },
+        {
+          "range_hz": [
+            8000,
+            20000
+          ],
+          "power_change_db": -4.623708052527174
+        }
+      ],
+      "quiet_candidates": [
+        {
+          "interval_seconds": [
+            4,
+            5
+          ],
+          "input_rms": 0.017517328215900768,
+          "denoised_rms": 0.016555723198041307,
+          "change_db": -0.49039421252470244,
+          "noise_only_confirmed": false
+        },
+        {
+          "interval_seconds": [
+            149,
+            150
+          ],
+          "input_rms": 0.01927616105272972,
+          "denoised_rms": 0.017765388544270375,
+          "change_db": -0.7089167172430633,
+          "noise_only_confirmed": false
+        }
+      ],
+      "source_unchanged": true
+    }
+  ],
+  "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6"
+}
