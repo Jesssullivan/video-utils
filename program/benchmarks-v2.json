@@ -1,0 +1,46 @@
+{
+  "schema_version": 2,
+  "suite": "technical-v2",
+  "license": "MIT",
+  "sample_rate": 48000,
+  "bpm": 178,
+  "seed": 20261005,
+  "fixtures": [
+    {"id": "low32-sustain", "kind": "sustain", "duration_seconds": 8, "fundamental_hz": 32.0, "legacy_v1": true},
+    {"id": "palm-muted-recurrence", "kind": "palm_mute", "duration_seconds": 8, "fundamental_hz": 32.703195663, "legacy_v1": true},
+    {"id": "legato-recurrence", "kind": "legato", "duration_seconds": 8, "fundamental_hz": 32.703195663, "upper_frequency_hz": 43.653528929, "legacy_v1": true},
+    {"id": "c1-missing-fundamental", "kind": "missing_fundamental", "duration_seconds": 8, "fundamental_hz": 32.703195663},
+    {"id": "tuning-ladder", "kind": "ladder", "duration_seconds": 8, "fundamental_hz": 32.703195663},
+    {"id": "legato-transition", "kind": "legato_transition", "duration_seconds": 10, "fundamental_hz": 32.703195663},
+    {"id": "sweep-and-polyphony", "kind": "sweep_polyphony", "duration_seconds": 10, "fundamental_hz": 32.703195663},
+    {"id": "rest-syncopation-tuplets", "kind": "tuplets", "duration_seconds": 12, "fundamental_hz": 32.703195663},
+    {"id": "variable-tempo", "kind": "tempo_ramp", "duration_seconds": 12, "fundamental_hz": 32.703195663},
+    {"id": "click-overlap-abstention", "kind": "click_overlap", "duration_seconds": 12, "fundamental_hz": 32.703195663},
+    {"id": "timing-reference", "kind": "timing_reference", "duration_seconds": 12, "fundamental_hz": 32.703195663},
+    {"id": "timing-errors", "kind": "timing_errors", "duration_seconds": 12, "fundamental_hz": 32.703195663}
+  ],
+  "bounds": {
+    "max_cases": 12,
+    "max_duration_seconds": 12,
+    "max_total_duration_seconds": 120,
+    "worker_timeout_seconds": 120,
+    "overall_timeout_seconds": 600,
+    "max_json_bytes": 5000000,
+    "max_worker_output_bytes": 8000000,
+    "max_decoded_bytes": 3000000,
+    "math_threads": 2
+  },
+  "metric_policy": {
+    "click_tolerance_seconds": 0.02,
+    "low_frequency_alert_below_db": -0.5,
+    "recurrence_minimum_interval_iou": 0.5,
+    "quality_alerts_fail_process": false,
+    "listening_acceptance": "unverified"
+  },
+  "limitations": [
+    "Generated signals and scores qualify generator operations only, never musician truth or actual-take labels.",
+    "Harmonic synthesis and tanh distortion do not model an amplifier, phone codec, room, AGC or AEC.",
+    "Missing-fundamental reference describes known periodicity; inferred pitch on real mixtures remains uncertain.",
+    "Initial detector precision, pitch and phrase measurements are baselines, not real-guitar quality acceptance."
+  ]
+}

@@ -18,6 +18,7 @@ MAX_WORKER_OUTPUT = 2 * 1024 * 1024
 MAX_JSON_NESTING = 128
 PIPELINE_SELECTORS = ('clicks_artifact', 'pitch_artifact', 'meter_artifact',
                       'tonal_artifact', 'comparisons_artifact')
+CALIBRATION_TOOLS = {'pitch_evaluate': 5_000_000, 'phrase_evaluate': 20_000_000}
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
                          'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default'}
 OUTPUT_SCHEMA = {'type': 'object', 'properties': {
@@ -226,6 +227,73 @@ def corpus_worker_paths(args):
     return str(path), str(root)
 
 
+def calibration_path(value, *, output=False, max_bytes=None):
+    """Exact safe local index/output paths under the repository benchmark root."""
+    try:
+        path = Path(value).expanduser().absolute()
+    except (RuntimeError, OSError) as error:
+        raise ToolError('calibration path cannot be expanded to a local path') from error
+    boundary = ROOT / 'artifacts' / 'benchmarks'
+    try:
+        relative = path.relative_to(boundary)
+    except ValueError as error:
+        raise ToolError('calibration paths must remain beneath repository artifacts/benchmarks') from error
+    if not relative.parts:
+        raise ToolError('calibration path must name a child of artifacts/benchmarks')
+    candidate = ROOT
+    for part in path.relative_to(ROOT).parts:
+        candidate = candidate / part
+        if candidate.is_symlink():
+            raise ToolError('calibration paths cannot contain a symlink component')
+        if candidate != path and candidate.exists() and not candidate.is_dir():
+            raise ToolError('calibration path parents must be directories')
+    if output:
+        if path.exists():
+            raise ToolError('calibration output must be a new directory')
+    elif not path.is_file():
+        raise ToolError('calibration index must be an existing regular JSON file')
+    elif max_bytes is not None:
+        try:
+            size = path.stat().st_size
+        except OSError as error:
+            raise ToolError('calibration index became unavailable before launch') from error
+        if size > max_bytes:
+            raise ToolError('calibration index exceeds worker metadata byte limit')
+    return str(path)
+
+
+def marked_video_directory(value, *, output=False):
+    """Repository-relative preview paths; inspect original components first."""
+    if '\\' in value or '..' in value.split('/'):
+        raise ValidationError('marked video directories cannot contain traversal or backslash components')
+    try:
+        path = Path(value).expanduser()
+    except (RuntimeError, OSError) as error:
+        raise ToolError('marked video directory cannot be expanded') from error
+    if not path.is_absolute():
+        path = ROOT / path
+    boundary = ROOT / 'artifacts' / 'runs'
+    try:
+        relative = path.relative_to(boundary)
+    except ValueError as error:
+        raise ToolError('marked video directories must remain beneath repository artifacts/runs') from error
+    if not relative.parts:
+        raise ToolError('marked video directory must name a child of artifacts/runs')
+    candidate = ROOT
+    for part in path.relative_to(ROOT).parts:
+        candidate = candidate / part
+        if candidate.is_symlink():
+            raise ToolError('marked video directories cannot contain a symlink component')
+        if candidate != path and candidate.exists() and not candidate.is_dir():
+            raise ToolError('marked video directory parents must be directories')
+    if output:
+        if path.exists():
+            raise ToolError('marked video output must be a fresh directory')
+    elif not path.is_dir():
+        raise ToolError('marked video run_dir must be an existing directory')
+    return str(path)
+
+
 
 def validate_tool_arguments(name, args):
     """Cross-field rules that are known before a worker or file read starts."""
@@ -244,6 +312,19 @@ def validate_tool_arguments(name, args):
                 validate_evidence_selector(args[field])
     if name == 'corpus' and any(part == '..' for part in args['manifest'].split('/')):
         raise ValidationError('corpus manifest cannot contain traversal components')
+    if name == 'marked_video':
+        for field in ('run_dir', 'output'):
+            if '\\' in args[field] or '..' in args[field].split('/'):
+                raise ValidationError('marked video directories cannot contain traversal or backslash components')
+    if name in CALIBRATION_TOOLS:
+        for field in ('fixture_index', 'pilot_index', 'output'):
+            value = args[field]
+            parts = value.split('/')
+            if value.startswith('/'):
+                parts = parts[1:]
+            if (':' in value or '\\' in value or any(not part or part.startswith('.') or '.partial' in part for part in parts)
+                    or (field != 'output' and not value.endswith('.json'))):
+                raise ValidationError('calibration paths require exact JSON indices and a fresh safe local output path')
     if name == 'clicks':
         supplied = ('template_start' in args, 'template_end' in args)
         if supplied[0] != supplied[1]:
@@ -270,12 +351,24 @@ def worker_command(name, args):
         manifest, root = corpus_worker_paths(args)
         return head + [str(ROOT / 'scripts/corpus.py'), 'validate', manifest,
                        '--root', root, '--summary']
+    if name == 'marked_video':
+        return head + [str(ROOT / 'scripts/marked_video.py'),
+                       '--run-dir', marked_video_directory(args['run_dir']),
+                       '--selection', args.get('selection', 'phrase-review'),
+                       '--output', marked_video_directory(args['output'], output=True)]
+    if name in CALIBRATION_TOOLS:
+        return head + [str(ROOT / ('scripts/' + name + '.py')),
+                       '--fixture-index', calibration_path(args['fixture_index'], max_bytes=CALIBRATION_TOOLS[name]),
+                       '--pilot-index', calibration_path(args['pilot_index'], max_bytes=CALIBRATION_TOOLS[name]),
+                       '--output', calibration_path(args['output'], output=True), '--summary']
     if name == 'denoise':
         return head + [str(ROOT / 'scripts/media.py'), 'clean', source, args.get('profile', 'conservative3')]
     if name == 'benchmark':
         operation = args.get('operation', 'run')
         output = local_path(args['output'], directory=True)
         command = head + [str(ROOT / 'scripts/benchmark.py'), operation, '--output', output]
+        if 'suite' in args:
+            command += ['--suite', args['suite']]
         if operation == 'run':
             command += ['--profile', args.get('profile', 'conservative3'),
                         '--phrase-backend', args.get('phrase_backend', 'stdlib')]
@@ -416,7 +509,8 @@ def execute(name, arguments):
     info = descriptor(name)
     validate(arguments, info['inputSchema'])
     validate_tool_arguments(name, arguments)
-    timeout = arguments.get('timeout_seconds', 600)
+    timeout = arguments.get('timeout_seconds',
+                            info['inputSchema']['properties'].get('timeout_seconds', {}).get('default', 600))
     result = run_worker(worker_command(name, arguments), timeout)
     return {'schema_version': 1, 'tool': name, 'status': 'completed',
             'evidence_kind': info['evidence_kind'], 'implementation_status': info['implementation_status'],

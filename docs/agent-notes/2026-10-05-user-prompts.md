@@ -119,3 +119,58 @@ Inspect the actual target; do not infer ownership from an empty default tmux
 socket. Command names in documentation and searches are data.
 </INSTRUCTIONS>
 ```
+
+## 11. Evening status and marked-video steering
+
+Root observed this steering around 22:59 UTC on October 5; the exact user-message
+clock was not supplied. The prompt is appended verbatim, without changing the
+earlier quoted requests:
+
+> lets check in wihtout pausing any currentl workstreams; where aer we at withour paralel goals, timlines and tooling ojbetives, as well as the MVP video status?  looking forward to a completed video render (idally with markers included re. phrae / mess ups) end of evening; where are we at? no rusheither.
+
+This requests a status check and an evening marked-video iteration while
+explicitly continuing current workstreams. It does not pause the ten-hour goal.
+Review markers remain confidence-qualified phrase/possible-issue hypotheses;
+definite performance grading still requires separately qualified intent/evidence.
+
+## 12. Stronger restoration requested
+
+No exact message timestamp was supplied. Appended verbatim:
+
+> the cleaned video artifact could definately used more denoising (ie. the inital esction of mvp video provided fan / bg noise capture opprotinity) and we definately have work to do noramalizing, compressing, imporoving guitart calrity and frequency respose.
+
+## 13. Reference sounds and box-fan context
+
+No exact message timestamp was supplied. Appended verbatim:
+
+> reference guitar sounds / spectra perhaps worth checking include sounds like the guitar town of lornashore / the haunted / meshugga / kubmikan tx /  mgla / children of bodom etc for the quality of guitar sound the video capture / practice clips we can expcet to be capturing; thre is a large box fan  present in the bg noise.  thesea rae context for the type of content we are working with
+
+## 14. Treat capture context as constants
+
+No exact message timestamp was supplied. Appended verbatim:
+
+> (and can be treated as constants in thie project
+
+## 15. Product and repository axioms
+
+No exact message timestamp was supplied. Appended verbatim:
+
+> indeed; this is broadly part of the impetus for this project and noting in readme, as most generic denoising / practice tools do not combine viruosio guitar specific markers and detection paradigms (particualrly desireable for techincal guitar playing practice, and broadly absent from the market) agent in the loop for take processing / capture analysis (also broadly missing from the FOSS guitar practice utility landcsape, only real competatiors are in very large sutdio oriented software pachages that are nor really gearted for "woodshedding" and practice work / creating sharable, clear and commmunicative denoised and stemmable clips with real data (bpm, phasing analysis, missed beats etc) fo real working techincal bands; thirdly, there are not products on the market speciifically for the heavily distorted / unique low tuning guitar work in the techincal guitar scene.  I'd love to capturue these repo andproduct axioms in agents md and readme.
+
+The operator's reported box fan and reference-tone context shape new capture
+metadata and restoration comparisons. These statements are operator inputs,
+not independently measured spectra or a completed global market survey.
+Product differentiation is a research hypothesis; current/reference and intended
+note evidence remain distinct. Stronger denoise, EQ/compression and listening
+acceptance require new measured comparison runs. These requests continue current
+workstreams and do not pause the active goal.
+
+## 16. Existing spectrogram and PCEN work
+
+No exact user-message timestamp was supplied. Appended verbatim:
+
+> another lane / subagent / conept worth eamining: we have xod-spectrogram for mel data and PCEN work in my gh; you may seek to leverage that work or package if deemed useful.
+
+This authorizes a named parallel research/adoption-ablation lane examining the
+operator's existing spectrogram work. Reuse remains evidence-dependent; stronger
+audio restoration and the marked-video iteration retain delivery priority.

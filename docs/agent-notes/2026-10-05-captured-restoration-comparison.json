@@ -1,0 +1,1836 @@
+{
+  "candidates": [
+    {
+      "artifacts": {
+        "baseline": {
+          "band_power_dbfs": {
+            "10000-22050": -52.085587021044795,
+            "190-225": -36.74489621757623,
+            "20-45": -53.78272713211936,
+            "2000-10000": -27.17862768549056,
+            "250-2000": -22.187876529528076,
+            "28-80": -37.19310216883634,
+            "55-70": -45.07566142115004,
+            "80-250": -20.72903241287209
+          },
+          "channels": 1,
+          "crest_db": 16.29228076147296,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -21.10044574915354,
+            "p50": -18.042019792328183,
+            "p90": -15.464382518041441
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T211103Z-c6d0bac2fcd2/baseline.wav",
+          "rms_dbfs": -17.792893652613856,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -1.5006128911408942,
+          "sample_rate": 44100,
+          "sha256": "0dd6f502323fd27d9abc7a54fb89e11c3a1a0c297f68164e1a8a9f38b9e398e8",
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -17.821134291880778,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -31.816557793953507,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -26.198226571587764,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -26.40074439142608,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "cleaned": {
+          "band_delta_vs_source_db": {
+            "10000-22050": 0.7453932141842969,
+            "190-225": 3.6240742398471113,
+            "20-45": 3.5050724142863317,
+            "2000-10000": 2.9839057453581006,
+            "250-2000": 3.475986287988089,
+            "28-80": 3.443778191948809,
+            "55-70": 3.385826879116003,
+            "80-250": 3.3132399116404727
+          },
+          "band_power_dbfs": {
+            "10000-22050": -54.60137787730059,
+            "190-225": -36.62025702213207,
+            "20-45": -53.69216752317929,
+            "2000-10000": -27.4720366195405,
+            "250-2000": -22.105141022636424,
+            "28-80": -37.068972195370506,
+            "55-70": -44.958453379846326,
+            "80-250": -20.601223465035915
+          },
+          "channels": 1,
+          "crest_db": 16.22784369784143,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -21.101794700713018,
+            "p50": -17.969707579726602,
+            "p90": -15.356268378524732
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T211103Z-c6d0bac2fcd2/cleaned.wav",
+          "rms_dbfs": -17.728828270774223,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -1.5009845729327929,
+          "sample_rate": 44100,
+          "sha256": "d5a0423d72e3dd6e5cf6a7ff6106b46488b36c3bd28cf19e788d1a293da457f4",
+          "window_delta_vs_conservative3_master_db": {
+            "0-1": 0.0,
+            "149-150": 0.0,
+            "4-5": 0.0,
+            "4.1-4.95": 0.0
+          },
+          "window_delta_vs_matched_baseline_db": {
+            "0-1": 0.03472518624039367,
+            "149-150": -0.40647575384350887,
+            "4-5": -0.2784183357160934,
+            "4.1-4.95": -0.30093162723639466
+          },
+          "window_delta_vs_source_db": {
+            "0-1": 7.314961304754888,
+            "149-150": 2.0765555285263773,
+            "4-5": 8.653997747351262,
+            "4.1-4.95": 8.643590417638663
+          },
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -17.786409105640384,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -32.223033547797016,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -26.476644907303857,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -26.701676018662475,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "denoised": {
+          "band_delta_vs_source_db": {
+            "10000-22050": -2.621502957652069,
+            "190-225": -0.00013718017825681272,
+            "20-45": -0.02542154307459299,
+            "2000-10000": -0.42157453923948296,
+            "250-2000": -0.04449808047290915,
+            "28-80": -0.0030231098778301657,
+            "55-70": -0.006710495352265866,
+            "80-250": -0.0008928816099995629
+          },
+          "band_power_dbfs": {
+            "10000-22050": -57.96827404913696,
+            "190-225": -40.24446844215744,
+            "20-45": -57.22266148054022,
+            "2000-10000": -30.877516904138083,
+            "250-2000": -25.625625391097422,
+            "28-80": -40.515773497197145,
+            "55-70": -48.350990754314594,
+            "80-250": -23.915356258286387
+          },
+          "channels": 1,
+          "crest_db": 16.958020220442698,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -24.72564582384228,
+            "p50": -21.88500106583618,
+            "p90": -18.526962044100504
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T211103Z-c6d0bac2fcd2/denoised.wav",
+          "rms_dbfs": -21.133785479851905,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -4.175765259409205,
+          "sample_rate": 44100,
+          "sha256": "dbd8b40eaf9928eb2f80791cfbdc9c3562ed10b57bcf859ad96d8a202fc93b12",
+          "window_delta_vs_source_db": {
+            "0-1": -0.03677695752629617,
+            "149-150": -0.5417262839792514,
+            "4-5": -0.3679832580437008,
+            "4.1-4.95": -0.3913340853799596
+          },
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -25.13814736792157,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -34.841315360302644,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -35.49862591269882,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -35.7366005216811,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "residue": {
+          "band_power_dbfs": {
+            "10000-22050": -66.87593902028736,
+            "190-225": -109.13005813575037,
+            "20-45": -91.56620737065468,
+            "2000-10000": -54.30538072800452,
+            "250-2000": -58.87507707387239,
+            "28-80": -87.65467187369269,
+            "55-70": -93.19157360920799,
+            "80-250": -80.75859233590512
+          },
+          "channels": 1,
+          "crest_db": 20.802306651979237,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -53.338386250087666,
+            "p50": -52.788502607467194,
+            "p90": -52.08491858549098
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T211103Z-c6d0bac2fcd2/residue.wav",
+          "rms_dbfs": -52.82377067516306,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -32.021464023183825,
+          "sample_rate": 44100,
+          "sha256": "1f28f0929995f88ccba9b71926429311e0a42dcbc95269a14cb53aa4d87290cf",
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -55.87021174643695,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -54.305520019874905,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -56.103566736013676,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -56.04665872728102,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "source": {
+          "band_power_dbfs": {
+            "10000-22050": -55.34677109148489,
+            "190-225": -40.244331261979184,
+            "20-45": -57.197239937465625,
+            "2000-10000": -30.4559423648986,
+            "250-2000": -25.581127310624513,
+            "28-80": -40.512750387319315,
+            "55-70": -48.34428025896233,
+            "80-250": -23.914463376676387
+          },
+          "channels": 1,
+          "crest_db": 16.90055428857555,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -24.564886798577177,
+            "p50": -21.800999659431127,
+            "p90": -18.500915449698873
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T211103Z-c6d0bac2fcd2/source.wav",
+          "rms_dbfs": -21.07038175018114,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -4.16982746160559,
+          "sample_rate": 44100,
+          "sha256": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a",
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -25.101370410395273,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -34.29958907632339,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -35.13064265465512,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -35.34526643630114,
+              "sample_frames": 37485
+            }
+          }
+        }
+      },
+      "capture": null,
+      "latency": {
+        "analysis_derivative_sample_mapping": "denoised sample zero maps to decoded source sample zero after calibrated filter-delay compensation",
+        "denoise": {
+          "actual_recording_waveform_alignment_measured": false,
+          "compensation": "pad input tail before filtering, discard filter leading delay, trim to original extent, reset sample timestamps",
+          "delay_samples": 1102,
+          "delay_seconds": 0.024988662131519273,
+          "filter": "afftdn",
+          "measured_impulse_offsets_samples": [
+            1102,
+            1102
+          ],
+          "method": "two isolated impulses in each native-rate channel; exact output peak displacement",
+          "remaining_bulk_delay_samples": 0,
+          "sample_advance": 551,
+          "source_model": "FFmpeg 8.1 af_afftdn.c: window_length=3*(sample_rate/80); insertion offset=2*(sample_rate/80)",
+          "status": "measured_and_compensated"
+        },
+        "normalization": {
+          "actual_recording_waveform_alignment_measured": false,
+          "policy": "FFmpeg loudnorm native compensated timestamps; no additional trimming",
+          "validation": "separate 44.1/48 kHz dynamic-mode impulse regression; not a listening or complete physical A/V synchronization claim"
+        },
+        "physical_audio_video_sync_verified": false
+      },
+      "manifest_output_loudness": {
+        "input_i": "-18.01",
+        "input_lra": "3.90",
+        "input_thresh": "-28.14",
+        "input_tp": "-1.50",
+        "normalization_type": "dynamic",
+        "output_i": "-18.38",
+        "output_lra": "3.50",
+        "output_thresh": "-28.44",
+        "output_tp": "-1.50",
+        "target_offset": "0.38"
+      },
+      "measured_master_loudness": {
+        "command": [
+          "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+          "-hide_banner",
+          "-nostdin",
+          "-loglevel",
+          "info",
+          "-threads",
+          "2",
+          "-filter_threads",
+          "2",
+          "-filter_complex_threads",
+          "2",
+          "-i",
+          "/Users/jess/git/video-utils/artifacts/runs/20261005T211103Z-c6d0bac2fcd2/cleaned.wav",
+          "-map",
+          "0:a:0",
+          "-af",
+          "loudnorm=I=-18:TP=-1.5:LRA=50:print_format=json",
+          "-f",
+          "null",
+          "-"
+        ],
+        "integrated_lufs": -18.01,
+        "loudness_range_lu": 3.9,
+        "threshold_lufs": -28.14,
+        "true_peak_dbtp": -1.5
+      },
+      "normalization_render_type": "dynamic",
+      "profile": {
+        "denoise": true,
+        "description": "Conservative comparison preset. Fixed noise floor is an unverified diagnostic heuristic, not a measured noise profile. No automatic tracking.",
+        "gain_smooth": 5,
+        "integrated_lufs": -18,
+        "name": "conservative3",
+        "noise_floor_db": -40,
+        "preserve_low_fundamental_hz": 32,
+        "reduction_db": 3,
+        "schema_version": 1,
+        "true_peak_dbtp": -1.5
+      },
+      "residue_equality": {
+        "equation": "source - denoised - residue",
+        "max_abs_full_scale": 9.313225746154785e-10,
+        "rms_dbfs": -217.74491067109565
+      },
+      "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T211103Z-c6d0bac2fcd2",
+      "run_id": "20261005T211103Z-c6d0bac2fcd2"
+    },
+    {
+      "artifacts": {
+        "baseline": {
+          "band_power_dbfs": {
+            "10000-22050": -52.085587021044795,
+            "190-225": -36.74489621757623,
+            "20-45": -53.78272713211936,
+            "2000-10000": -27.17862768549056,
+            "250-2000": -22.187876529528076,
+            "28-80": -37.19310216883634,
+            "55-70": -45.07566142115004,
+            "80-250": -20.72903241287209
+          },
+          "channels": 1,
+          "crest_db": 16.29228076147296,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -21.10044574915354,
+            "p50": -18.042019792328183,
+            "p90": -15.464382518041441
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232627Z-eb7bead2ae74/baseline.wav",
+          "rms_dbfs": -17.792893652613856,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -1.5006128911408942,
+          "sample_rate": 44100,
+          "sha256": "0dd6f502323fd27d9abc7a54fb89e11c3a1a0c297f68164e1a8a9f38b9e398e8",
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -17.821134291880778,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -31.816557793953507,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -26.198226571587764,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -26.40074439142608,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "cleaned": {
+          "band_delta_vs_source_db": {
+            "10000-22050": 3.141410681632543,
+            "190-225": 3.2978671374953947,
+            "20-45": 1.0960757243279744,
+            "2000-10000": 3.3337381600285063,
+            "250-2000": 3.2095126627521076,
+            "28-80": 2.977202627301068,
+            "55-70": 2.563049227864269,
+            "80-250": 3.2184730746806096
+          },
+          "band_power_dbfs": {
+            "10000-22050": -52.20536040985235,
+            "190-225": -36.94646412448379,
+            "20-45": -56.10116421313765,
+            "2000-10000": -27.122204204870094,
+            "250-2000": -22.371614647872406,
+            "28-80": -37.53554776001825,
+            "55-70": -45.78123103109806,
+            "80-250": -20.695990301995778
+          },
+          "channels": 1,
+          "crest_db": 16.33613516787141,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -21.378247557352548,
+            "p50": -18.05802956869148,
+            "p90": -15.333587435773936
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232627Z-eb7bead2ae74/cleaned.wav",
+          "rms_dbfs": -17.837634214030878,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -1.5014990461594642,
+          "sample_rate": 44100,
+          "sha256": "0133ce592b1d9ab5dde0dbb1229711ba0572d61502361df8f6fbdeb2e999d6c5",
+          "window_delta_vs_conservative3_master_db": {
+            "0-1": -0.05563963502356728,
+            "149-150": -2.5485956553363422,
+            "4-5": -4.186216828054114,
+            "4.1-4.95": -4.284243746544789
+          },
+          "window_delta_vs_matched_baseline_db": {
+            "0-1": -0.02091444878317361,
+            "149-150": -2.955071409179851,
+            "4-5": -4.4646351637702075,
+            "4.1-4.95": -4.585175373781183
+          },
+          "window_delta_vs_source_db": {
+            "0-1": 7.259321669731321,
+            "149-150": -0.472040126809965,
+            "4-5": 4.467780919297148,
+            "4.1-4.95": 4.359346671093874
+          },
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -17.84204874066395,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -34.77162920313336,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -30.66286173535797,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -30.985919765207264,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "denoised": {
+          "band_delta_vs_source_db": {
+            "10000-22050": -0.2454349481010496,
+            "190-225": -0.27768790658912224,
+            "20-45": -2.319743104412936,
+            "2000-10000": -0.10760469249755644,
+            "250-2000": -0.32531728895765966,
+            "28-80": -0.46166558000619773,
+            "55-70": -0.772074249882138,
+            "80-250": -0.1068422928257462
+          },
+          "band_power_dbfs": {
+            "10000-22050": -55.59220603958594,
+            "190-225": -40.522019168568306,
+            "20-45": -59.51698304187856,
+            "2000-10000": -30.563547057396157,
+            "250-2000": -25.906444599582173,
+            "28-80": -40.97441596732551,
+            "55-70": -49.116354508844466,
+            "80-250": -24.021305669502134
+          },
+          "channels": 1,
+          "crest_db": 17.118787398597362,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -25.035857300619718,
+            "p50": -22.057101961692915,
+            "p90": -18.582192033202585
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232627Z-eb7bead2ae74/denoised.wav",
+          "rms_dbfs": -21.25669123381811,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -4.137903835220748,
+          "sample_rate": 44100,
+          "sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+          "window_delta_vs_source_db": {
+            "0-1": -0.5563473029364978,
+            "149-150": -3.0995994880859783,
+            "4-5": -4.445315209321571,
+            "4.1-4.95": -4.562735054460589
+          },
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -25.65771771333177,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -37.39918856440937,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -39.57595786397669,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -39.90800149076173,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "residue": {
+          "band_power_dbfs": {
+            "10000-22050": -75.27968913415268,
+            "190-225": -61.175991190033855,
+            "20-45": -67.46435794358922,
+            "2000-10000": -60.260766329539464,
+            "250-2000": -46.75588155217056,
+            "28-80": -60.98254367912804,
+            "55-70": -65.94693105258825,
+            "80-250": -52.38766742209782
+          },
+          "channels": 1,
+          "crest_db": 15.603186204419725,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -47.59256770239189,
+            "p50": -45.69087623386687,
+            "p90": -43.73131090096842
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232627Z-eb7bead2ae74/residue.wav",
+          "rms_dbfs": -45.40929908079338,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -29.80611287637366,
+          "sample_rate": 44100,
+          "sha256": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc",
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -44.20231120235641,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -42.35940387876688,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -42.32368647911099,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -42.36642981138051,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "source": {
+          "band_power_dbfs": {
+            "10000-22050": -55.34677109148489,
+            "190-225": -40.244331261979184,
+            "20-45": -57.197239937465625,
+            "2000-10000": -30.4559423648986,
+            "250-2000": -25.581127310624513,
+            "28-80": -40.512750387319315,
+            "55-70": -48.34428025896233,
+            "80-250": -23.914463376676387
+          },
+          "channels": 1,
+          "crest_db": 16.90055428857555,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -24.564886798577177,
+            "p50": -21.800999659431127,
+            "p90": -18.500915449698873
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232627Z-eb7bead2ae74/source.wav",
+          "rms_dbfs": -21.07038175018114,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -4.16982746160559,
+          "sample_rate": 44100,
+          "sha256": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a",
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -25.101370410395273,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -34.29958907632339,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -35.13064265465512,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -35.34526643630114,
+              "sample_frames": 37485
+            }
+          }
+        }
+      },
+      "capture": {
+        "absolute_floor_basis": "explicit candidate control; captured band shape is centered, not an independently measured absolute floor",
+        "absolute_noise_floor_db": -40,
+        "actual_selected_seconds": [
+          4.1,
+          4.95
+        ],
+        "applies_to_original_start": true,
+        "authorization": "authorized_source_bound_noise_interval",
+        "capture_stop_filter_seconds": 0.85,
+        "captured_band_shape_db_per_channel": [
+          [
+            12.926349,
+            18.11836,
+            19.727773,
+            18.818182,
+            16.266441,
+            12.762665,
+            8.810227,
+            4.725761,
+            0.639162,
+            -3.506416,
+            -7.95456,
+            -13.135596,
+            -19.666589,
+            -24.0,
+            -24.0
+          ]
+        ],
+        "command_boundary_scope": "FFmpeg commands applied at audio-frame boundaries; silence guard separates stop from original body",
+        "filter_delay_samples_removed": 1102,
+        "guard_samples": 4410,
+        "interval_time_axis": "relative to first decoded original audio sample",
+        "method": "selected source interval copied into internal afftdn sampling preroll",
+        "noise_only_verified_by_worker": false,
+        "preroll_samples_removed": 41895,
+        "profile_update_status": "observed_ffmpeg_afftdn_band_profile_update",
+        "review": "Root reviewed decoded-source-sample interval 4.10-4.95 seconds under user-authorized noise capture. Lowest nearby quarter-second RMS about -35.8 dBFS; click-like candidates at 3.8075 and 5.2375 seconds are outside the selected interval. Root viewed the 4.3-second frame. Absence of guitar sustain/music is uncertain; this is not an operator-exact interval or verified noise-only reference.",
+        "selected_samples": [
+          180810,
+          218295
+        ],
+        "selected_seconds": [
+          4.1,
+          4.95
+        ],
+        "source_axis_sample_count_preserved": true,
+        "source_media_span_seconds": [
+          4.1,
+          4.95
+        ],
+        "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6"
+      },
+      "latency": {
+        "analysis_derivative_sample_mapping": "denoised sample zero maps to decoded source sample zero after calibrated filter-delay compensation",
+        "denoise": {
+          "actual_recording_waveform_alignment_measured": false,
+          "compensation": "pad input tail before filtering, discard filter leading delay, trim to original extent, reset sample timestamps",
+          "delay_samples": 1102,
+          "delay_seconds": 0.024988662131519273,
+          "filter": "afftdn",
+          "measured_impulse_offsets_samples": [
+            1102,
+            1102
+          ],
+          "method": "two isolated impulses in each native-rate channel; exact output peak displacement",
+          "remaining_bulk_delay_samples": 0,
+          "sample_advance": 551,
+          "source_model": "FFmpeg 8.1 af_afftdn.c: window_length=3*(sample_rate/80); insertion offset=2*(sample_rate/80)",
+          "status": "measured_and_compensated"
+        },
+        "normalization": {
+          "actual_recording_waveform_alignment_measured": false,
+          "policy": "FFmpeg loudnorm native compensated timestamps; no additional trimming",
+          "validation": "separate 44.1/48 kHz dynamic-mode impulse regression; not a listening or complete physical A/V synchronization claim"
+        },
+        "physical_audio_video_sync_verified": false,
+        "post_denoise": {
+          "complete_acoustic_alignment_verified": false,
+          "sample_count_preserved": true,
+          "stages": []
+        }
+      },
+      "manifest_output_loudness": {
+        "input_i": "-18.01",
+        "input_lra": "4.10",
+        "input_thresh": "-28.19",
+        "input_tp": "-1.50",
+        "normalization_type": "dynamic",
+        "output_i": "-18.44",
+        "output_lra": "3.60",
+        "output_thresh": "-28.53",
+        "output_tp": "-1.50",
+        "target_offset": "0.44"
+      },
+      "measured_master_loudness": {
+        "command": [
+          "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+          "-hide_banner",
+          "-nostdin",
+          "-loglevel",
+          "info",
+          "-threads",
+          "2",
+          "-filter_threads",
+          "2",
+          "-filter_complex_threads",
+          "2",
+          "-i",
+          "/Users/jess/git/video-utils/artifacts/runs/20261005T232627Z-eb7bead2ae74/cleaned.wav",
+          "-map",
+          "0:a:0",
+          "-af",
+          "loudnorm=I=-18:TP=-1.5:LRA=50:print_format=json",
+          "-f",
+          "null",
+          "-"
+        ],
+        "integrated_lufs": -18.01,
+        "loudness_range_lu": 4.1,
+        "threshold_lufs": -28.19,
+        "true_peak_dbtp": -1.5
+      },
+      "normalization_render_type": "dynamic",
+      "profile": {
+        "adaptivity": 0,
+        "denoise": true,
+        "description": "Experimental source-bound captured-band-shape comparison, 8 dB reduction. Absolute -40 dB floor remains an explicit candidate control. Instant adaptation and zero gain smoothing qualified only by generated fixtures. Native extent and compensated bulk delay retained; pick attacks, tails and musical-noise artifacts require real listening review.",
+        "gain_smooth": 0,
+        "integrated_lufs": -18,
+        "name": "captured8",
+        "noise_capture_authorized": true,
+        "noise_capture_review": "Root reviewed decoded-source-sample interval 4.10-4.95 seconds under user-authorized noise capture. Lowest nearby quarter-second RMS about -35.8 dBFS; click-like candidates at 3.8075 and 5.2375 seconds are outside the selected interval. Root viewed the 4.3-second frame. Absence of guitar sustain/music is uncertain; this is not an operator-exact interval or verified noise-only reference.",
+        "noise_capture_seconds": [
+          4.1,
+          4.95
+        ],
+        "noise_capture_source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+        "noise_floor_db": -40,
+        "preserve_low_fundamental_hz": 32,
+        "reduction_db": 8,
+        "schema_version": 1,
+        "true_peak_dbtp": -1.5
+      },
+      "residue_equality": {
+        "equation": "source - denoised - residue",
+        "max_abs_full_scale": 9.313225746154785e-10,
+        "rms_dbfs": -206.64694898590395
+      },
+      "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T232627Z-eb7bead2ae74",
+      "run_id": "20261005T232627Z-eb7bead2ae74"
+    },
+    {
+      "artifacts": {
+        "baseline": {
+          "band_power_dbfs": {
+            "10000-22050": -52.085587021044795,
+            "190-225": -36.74489621757623,
+            "20-45": -53.78272713211936,
+            "2000-10000": -27.17862768549056,
+            "250-2000": -22.187876529528076,
+            "28-80": -37.19310216883634,
+            "55-70": -45.07566142115004,
+            "80-250": -20.72903241287209
+          },
+          "channels": 1,
+          "crest_db": 16.29228076147296,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -21.10044574915354,
+            "p50": -18.042019792328183,
+            "p90": -15.464382518041441
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232714Z-04afdec97f2b/baseline.wav",
+          "rms_dbfs": -17.792893652613856,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -1.5006128911408942,
+          "sample_rate": 44100,
+          "sha256": "0dd6f502323fd27d9abc7a54fb89e11c3a1a0c297f68164e1a8a9f38b9e398e8",
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -17.821134291880778,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -31.816557793953507,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -26.198226571587764,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -26.40074439142608,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "cleaned": {
+          "band_delta_vs_source_db": {
+            "10000-22050": 3.1270589061979166,
+            "190-225": 3.2829655229048598,
+            "20-45": 0.9466777951496113,
+            "2000-10000": 3.3347829806221263,
+            "250-2000": 3.1989348130925777,
+            "28-80": 2.9576337043813155,
+            "55-70": 2.5149661390578757,
+            "80-250": 3.217201411585144
+          },
+          "band_power_dbfs": {
+            "10000-22050": -52.21971218528697,
+            "190-225": -36.961365739074324,
+            "20-45": -56.250562142316014,
+            "2000-10000": -27.121159384276474,
+            "250-2000": -22.382192497531936,
+            "28-80": -37.555116682938,
+            "55-70": -45.82931411990445,
+            "80-250": -20.697261965091243
+          },
+          "channels": 1,
+          "crest_db": 16.340295845634458,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -21.38668856918106,
+            "p50": -18.070530274680173,
+            "p90": -15.334651398708997
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232714Z-04afdec97f2b/cleaned.wav",
+          "rms_dbfs": -17.842018906405904,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -1.5017230607714482,
+          "sample_rate": 44100,
+          "sha256": "ca03fb1d409cbbd2d497d850e66091483703e171c0be9c78dc1cc911fad9260f",
+          "window_delta_vs_conservative3_master_db": {
+            "0-1": -0.04929732828201949,
+            "149-150": -3.085652042742538,
+            "4-5": -5.298788502751734,
+            "4.1-4.95": -5.444442765137644
+          },
+          "window_delta_vs_matched_baseline_db": {
+            "0-1": -0.014572142041625824,
+            "149-150": -3.492127796586047,
+            "4-5": -5.577206838467827,
+            "4.1-4.95": -5.745374392374039
+          },
+          "window_delta_vs_source_db": {
+            "0-1": 7.265663976472869,
+            "149-150": -1.0090965142161608,
+            "4-5": 3.3552092445995285,
+            "4.1-4.95": 3.1991476525010185
+          },
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -17.835706433922404,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -35.308685590539554,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -31.77543341005559,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -32.14611878380012,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "denoised": {
+          "band_delta_vs_source_db": {
+            "10000-22050": -0.257079443210138,
+            "190-225": -0.28375868907408375,
+            "20-45": -2.437274725299581,
+            "2000-10000": -0.1091911189898731,
+            "250-2000": -0.33547054778821916,
+            "28-80": -0.4777561432466939,
+            "55-70": -0.8083721523721792,
+            "80-250": -0.1082447320654154
+          },
+          "band_power_dbfs": {
+            "10000-22050": -55.60385053469503,
+            "190-225": -40.52808995105327,
+            "20-45": -59.634514662765206,
+            "2000-10000": -30.565133483888474,
+            "250-2000": -25.916597858412732,
+            "28-80": -40.99050653056601,
+            "55-70": -49.15265241133451,
+            "80-250": -24.022708108741803
+          },
+          "channels": 1,
+          "crest_db": 17.137674847863767,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -25.06100596882475,
+            "p50": -22.06094425919715,
+            "p90": -18.58379195357091
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232714Z-04afdec97f2b/denoised.wav",
+          "rms_dbfs": -21.261304799174233,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -4.123629951310466,
+          "sample_rate": 44100,
+          "sha256": "c608c46bfa73b034d7a3eb4fd20cbf896ab244f5d03c898ddec2a76683e62b1b",
+          "window_delta_vs_source_db": {
+            "0-1": -0.5734508774217488,
+            "149-150": -3.640783341835238,
+            "4-5": -5.4330222962570645,
+            "4.1-4.95": -5.601393392661784
+          },
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -25.67482128781702,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -37.94037241815863,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -40.563664950912184,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -40.94665982896292,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "residue": {
+          "band_power_dbfs": {
+            "10000-22050": -74.34268383683163,
+            "190-225": -60.54541012008322,
+            "20-45": -66.62653341641133,
+            "2000-10000": -59.4997973303311,
+            "250-2000": -45.97518145445768,
+            "28-80": -60.16747250714146,
+            "55-70": -65.07840848497601,
+            "80-250": -51.85799991826273
+          },
+          "channels": 1,
+          "crest_db": 16.422676221486604,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -46.937644535527184,
+            "p50": -45.17260431889344,
+            "p90": -42.83799529123723
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232714Z-04afdec97f2b/residue.wav",
+          "rms_dbfs": -44.668808217524614,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -28.24613199603801,
+          "sample_rate": 44100,
+          "sha256": "6e5dfbf6dbe19e2ed7dc296193037af2c6ac90dc8262a44f6d426ad0d6aadc5c",
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -43.24826978684719,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -40.735287157235035,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -40.715083833136106,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -40.73834177779568,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "source": {
+          "band_power_dbfs": {
+            "10000-22050": -55.34677109148489,
+            "190-225": -40.244331261979184,
+            "20-45": -57.197239937465625,
+            "2000-10000": -30.4559423648986,
+            "250-2000": -25.581127310624513,
+            "28-80": -40.512750387319315,
+            "55-70": -48.34428025896233,
+            "80-250": -23.914463376676387
+          },
+          "channels": 1,
+          "crest_db": 16.90055428857555,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -24.564886798577177,
+            "p50": -21.800999659431127,
+            "p90": -18.500915449698873
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232714Z-04afdec97f2b/source.wav",
+          "rms_dbfs": -21.07038175018114,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -4.16982746160559,
+          "sample_rate": 44100,
+          "sha256": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a",
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -25.101370410395273,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -34.29958907632339,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -35.13064265465512,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -35.34526643630114,
+              "sample_frames": 37485
+            }
+          }
+        }
+      },
+      "capture": {
+        "absolute_floor_basis": "explicit candidate control; captured band shape is centered, not an independently measured absolute floor",
+        "absolute_noise_floor_db": -40,
+        "actual_selected_seconds": [
+          4.1,
+          4.95
+        ],
+        "applies_to_original_start": true,
+        "authorization": "authorized_source_bound_noise_interval",
+        "capture_stop_filter_seconds": 0.85,
+        "captured_band_shape_db_per_channel": [
+          [
+            12.926349,
+            18.11836,
+            19.727773,
+            18.818182,
+            16.266441,
+            12.762665,
+            8.810227,
+            4.725761,
+            0.639162,
+            -3.506416,
+            -7.95456,
+            -13.135596,
+            -19.666589,
+            -24.0,
+            -24.0
+          ]
+        ],
+        "command_boundary_scope": "FFmpeg commands applied at audio-frame boundaries; silence guard separates stop from original body",
+        "filter_delay_samples_removed": 1102,
+        "guard_samples": 4410,
+        "interval_time_axis": "relative to first decoded original audio sample",
+        "method": "selected source interval copied into internal afftdn sampling preroll",
+        "noise_only_verified_by_worker": false,
+        "preroll_samples_removed": 41895,
+        "profile_update_status": "observed_ffmpeg_afftdn_band_profile_update",
+        "review": "Root reviewed decoded-source-sample interval 4.10-4.95 seconds under user-authorized noise capture. Lowest nearby quarter-second RMS about -35.8 dBFS; click-like candidates at 3.8075 and 5.2375 seconds are outside the selected interval. Root viewed the 4.3-second frame. Absence of guitar sustain/music is uncertain; this is not an operator-exact interval or verified noise-only reference.",
+        "selected_samples": [
+          180810,
+          218295
+        ],
+        "selected_seconds": [
+          4.1,
+          4.95
+        ],
+        "source_axis_sample_count_preserved": true,
+        "source_media_span_seconds": [
+          4.1,
+          4.95
+        ],
+        "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6"
+      },
+      "latency": {
+        "analysis_derivative_sample_mapping": "denoised sample zero maps to decoded source sample zero after calibrated filter-delay compensation",
+        "denoise": {
+          "actual_recording_waveform_alignment_measured": false,
+          "compensation": "pad input tail before filtering, discard filter leading delay, trim to original extent, reset sample timestamps",
+          "delay_samples": 1102,
+          "delay_seconds": 0.024988662131519273,
+          "filter": "afftdn",
+          "measured_impulse_offsets_samples": [
+            1102,
+            1102
+          ],
+          "method": "two isolated impulses in each native-rate channel; exact output peak displacement",
+          "remaining_bulk_delay_samples": 0,
+          "sample_advance": 551,
+          "source_model": "FFmpeg 8.1 af_afftdn.c: window_length=3*(sample_rate/80); insertion offset=2*(sample_rate/80)",
+          "status": "measured_and_compensated"
+        },
+        "normalization": {
+          "actual_recording_waveform_alignment_measured": false,
+          "policy": "FFmpeg loudnorm native compensated timestamps; no additional trimming",
+          "validation": "separate 44.1/48 kHz dynamic-mode impulse regression; not a listening or complete physical A/V synchronization claim"
+        },
+        "physical_audio_video_sync_verified": false,
+        "post_denoise": {
+          "complete_acoustic_alignment_verified": false,
+          "sample_count_preserved": true,
+          "stages": []
+        }
+      },
+      "manifest_output_loudness": {
+        "input_i": "-18.01",
+        "input_lra": "4.10",
+        "input_thresh": "-28.19",
+        "input_tp": "-1.50",
+        "normalization_type": "dynamic",
+        "output_i": "-18.44",
+        "output_lra": "3.60",
+        "output_thresh": "-28.53",
+        "output_tp": "-1.50",
+        "target_offset": "0.44"
+      },
+      "measured_master_loudness": {
+        "command": [
+          "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+          "-hide_banner",
+          "-nostdin",
+          "-loglevel",
+          "info",
+          "-threads",
+          "2",
+          "-filter_threads",
+          "2",
+          "-filter_complex_threads",
+          "2",
+          "-i",
+          "/Users/jess/git/video-utils/artifacts/runs/20261005T232714Z-04afdec97f2b/cleaned.wav",
+          "-map",
+          "0:a:0",
+          "-af",
+          "loudnorm=I=-18:TP=-1.5:LRA=50:print_format=json",
+          "-f",
+          "null",
+          "-"
+        ],
+        "integrated_lufs": -18.01,
+        "loudness_range_lu": 4.1,
+        "threshold_lufs": -28.19,
+        "true_peak_dbtp": -1.5
+      },
+      "normalization_render_type": "dynamic",
+      "profile": {
+        "adaptivity": 0,
+        "denoise": true,
+        "description": "Experimental stronger source-bound captured-band-shape comparison, 12 dB reduction. Absolute -40 dB floor remains an explicit candidate control. Instant adaptation and zero gain smoothing qualified only by generated fixtures. Stronger removal can damage guitar energy, short attacks and tails; no real-recording listening acceptance.",
+        "gain_smooth": 0,
+        "integrated_lufs": -18,
+        "name": "captured12",
+        "noise_capture_authorized": true,
+        "noise_capture_review": "Root reviewed decoded-source-sample interval 4.10-4.95 seconds under user-authorized noise capture. Lowest nearby quarter-second RMS about -35.8 dBFS; click-like candidates at 3.8075 and 5.2375 seconds are outside the selected interval. Root viewed the 4.3-second frame. Absence of guitar sustain/music is uncertain; this is not an operator-exact interval or verified noise-only reference.",
+        "noise_capture_seconds": [
+          4.1,
+          4.95
+        ],
+        "noise_capture_source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+        "noise_floor_db": -40,
+        "preserve_low_fundamental_hz": 32,
+        "reduction_db": 12,
+        "schema_version": 1,
+        "true_peak_dbtp": -1.5
+      },
+      "residue_equality": {
+        "equation": "source - denoised - residue",
+        "max_abs_full_scale": 1.862645149230957e-09,
+        "rms_dbfs": -204.3346765416831
+      },
+      "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T232714Z-04afdec97f2b",
+      "run_id": "20261005T232714Z-04afdec97f2b"
+    },
+    {
+      "artifacts": {
+        "baseline": {
+          "band_power_dbfs": {
+            "10000-22050": -52.085587021044795,
+            "190-225": -36.74489621757623,
+            "20-45": -53.78272713211936,
+            "2000-10000": -27.17862768549056,
+            "250-2000": -22.187876529528076,
+            "28-80": -37.19310216883634,
+            "55-70": -45.07566142115004,
+            "80-250": -20.72903241287209
+          },
+          "channels": 1,
+          "crest_db": 16.29228076147296,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -21.10044574915354,
+            "p50": -18.042019792328183,
+            "p90": -15.464382518041441
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/baseline.wav",
+          "rms_dbfs": -17.792893652613856,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -1.5006128911408942,
+          "sample_rate": 44100,
+          "sha256": "0dd6f502323fd27d9abc7a54fb89e11c3a1a0c297f68164e1a8a9f38b9e398e8",
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -17.821134291880778,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -31.816557793953507,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -26.198226571587764,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -26.40074439142608,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "cleaned": {
+          "band_delta_vs_source_db": {
+            "10000-22050": 3.643308126673247,
+            "190-225": 2.4231094946064644,
+            "20-45": 1.4759550660711653,
+            "2000-10000": 4.440179949670146,
+            "250-2000": 2.3550957729504134,
+            "28-80": 3.228401110535799,
+            "55-70": 2.959534666886981,
+            "80-250": 2.95766471429803
+          },
+          "band_power_dbfs": {
+            "10000-22050": -51.70346296481164,
+            "190-225": -37.82122176737272,
+            "20-45": -55.72128487139446,
+            "2000-10000": -26.015762415228455,
+            "250-2000": -23.2260315376741,
+            "28-80": -37.284349276783516,
+            "55-70": -45.38474559207535,
+            "80-250": -20.956798662378358
+          },
+          "channels": 1,
+          "crest_db": 16.349103948719538,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -21.228985234140808,
+            "p50": -18.698611025721632,
+            "p90": -15.70547603270158
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/cleaned.wav",
+          "rms_dbfs": -18.106833754212253,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -1.757729805492714,
+          "sample_rate": 44100,
+          "sha256": "99d56a25d05e434b4bb8f4149488c7b143558872c826ecc55df344012f4fbafd",
+          "window_delta_vs_conservative3_master_db": {
+            "0-1": -4.854510645886428,
+            "149-150": -1.0901654690832814,
+            "4-5": -9.955983101664401,
+            "4.1-4.95": -10.055609318624796
+          },
+          "window_delta_vs_matched_baseline_db": {
+            "0-1": -4.8197854596460346,
+            "149-150": -1.4966412229267902,
+            "4-5": -10.234401437380495,
+            "4.1-4.95": -10.356540945861191
+          },
+          "window_delta_vs_source_db": {
+            "0-1": 2.46045065886846,
+            "149-150": 0.9863900594430959,
+            "4-5": -1.301985354313139,
+            "4.1-4.95": -1.4120189009861335
+          },
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -22.640919751526813,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -33.3131990168803,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -36.43262800896826,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -36.75728533728727,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "denoised": {
+          "band_delta_vs_source_db": {
+            "10000-22050": -0.2454349481010496,
+            "190-225": -0.27768790658912224,
+            "20-45": -2.319743104412936,
+            "2000-10000": -0.10760469249755644,
+            "250-2000": -0.32531728895765966,
+            "28-80": -0.46166558000619773,
+            "55-70": -0.772074249882138,
+            "80-250": -0.1068422928257462
+          },
+          "band_power_dbfs": {
+            "10000-22050": -55.59220603958594,
+            "190-225": -40.522019168568306,
+            "20-45": -59.51698304187856,
+            "2000-10000": -30.563547057396157,
+            "250-2000": -25.906444599582173,
+            "28-80": -40.97441596732551,
+            "55-70": -49.116354508844466,
+            "80-250": -24.021305669502134
+          },
+          "channels": 1,
+          "crest_db": 17.118787398597362,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -25.035857300619718,
+            "p50": -22.057101961692915,
+            "p90": -18.582192033202585
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/denoised.wav",
+          "rms_dbfs": -21.25669123381811,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -4.137903835220748,
+          "sample_rate": 44100,
+          "sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+          "window_delta_vs_source_db": {
+            "0-1": -0.5563473029364978,
+            "149-150": -3.0995994880859783,
+            "4-5": -4.445315209321571,
+            "4.1-4.95": -4.562735054460589
+          },
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -25.65771771333177,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -37.39918856440937,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -39.57595786397669,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -39.90800149076173,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "processed": {
+          "band_delta_vs_source_db": {
+            "10000-22050": -0.30669188325556007,
+            "190-225": -1.5268904945908517,
+            "20-45": -2.474044961882207,
+            "2000-10000": 0.49017994695409683,
+            "250-2000": -1.5949042282646673,
+            "28-80": -0.7215988946774772,
+            "55-70": -0.9904653712975033,
+            "80-250": -0.992335286672553
+          },
+          "band_power_dbfs": {
+            "10000-22050": -55.65346297474045,
+            "190-225": -41.771221756570036,
+            "20-45": -59.67128489934783,
+            "2000-10000": -29.965762417944504,
+            "250-2000": -27.17603153888918,
+            "28-80": -41.23434928199679,
+            "55-70": -49.33474563025983,
+            "80-250": -24.90679866334894
+          },
+          "channels": 1,
+          "crest_db": 16.34910413092178,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -25.17898527015404,
+            "p50": -22.648611039665358,
+            "p90": -19.655476041753293
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/processed.wav",
+          "rms_dbfs": -22.056833755721726,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -5.707729624799946,
+          "sample_rate": 44100,
+          "sha256": "a721053fb61234547bd5c9efdddf626ceea1dc02b114cf3435604c1a650f66a8",
+          "window_delta_vs_source_db": {
+            "0-1": -1.4895493646399842,
+            "149-150": -2.963610016961617,
+            "4-5": -5.251985300100188,
+            "4.1-4.95": -5.362018865788208
+          },
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -26.590919775035257,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -37.26319909328501,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -40.38262795475531,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -40.707285302089346,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "residue": {
+          "band_power_dbfs": {
+            "10000-22050": -75.27968913415268,
+            "190-225": -61.175991190033855,
+            "20-45": -67.46435794358922,
+            "2000-10000": -60.260766329539464,
+            "250-2000": -46.75588155217056,
+            "28-80": -60.98254367912804,
+            "55-70": -65.94693105258825,
+            "80-250": -52.38766742209782
+          },
+          "channels": 1,
+          "crest_db": 15.603186204419725,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -47.59256770239189,
+            "p50": -45.69087623386687,
+            "p90": -43.73131090096842
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/residue.wav",
+          "rms_dbfs": -45.40929908079338,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -29.80611287637366,
+          "sample_rate": 44100,
+          "sha256": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc",
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -44.20231120235641,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -42.35940387876688,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -42.32368647911099,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -42.36642981138051,
+              "sample_frames": 37485
+            }
+          }
+        },
+        "source": {
+          "band_power_dbfs": {
+            "10000-22050": -55.34677109148489,
+            "190-225": -40.244331261979184,
+            "20-45": -57.197239937465625,
+            "2000-10000": -30.4559423648986,
+            "250-2000": -25.581127310624513,
+            "28-80": -40.512750387319315,
+            "55-70": -48.34428025896233,
+            "80-250": -23.914463376676387
+          },
+          "channels": 1,
+          "crest_db": 16.90055428857555,
+          "duration_seconds": 150.9611111111111,
+          "hash_verified": true,
+          "one_second_rms_dbfs_percentiles": {
+            "p10": -24.564886798577177,
+            "p50": -21.800999659431127,
+            "p90": -18.500915449698873
+          },
+          "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/source.wav",
+          "rms_dbfs": -21.07038175018114,
+          "sample_frames": 6657385,
+          "sample_peak_dbfs": -4.16982746160559,
+          "sample_rate": 44100,
+          "sha256": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a",
+          "windows": {
+            "0-1": {
+              "rms_dbfs": -25.101370410395273,
+              "sample_frames": 44100
+            },
+            "149-150": {
+              "rms_dbfs": -34.29958907632339,
+              "sample_frames": 44100
+            },
+            "4-5": {
+              "rms_dbfs": -35.13064265465512,
+              "sample_frames": 44100
+            },
+            "4.1-4.95": {
+              "rms_dbfs": -35.34526643630114,
+              "sample_frames": 37485
+            }
+          }
+        }
+      },
+      "capture": {
+        "absolute_floor_basis": "explicit candidate control; captured band shape is centered, not an independently measured absolute floor",
+        "absolute_noise_floor_db": -40,
+        "actual_selected_seconds": [
+          4.1,
+          4.95
+        ],
+        "applies_to_original_start": true,
+        "authorization": "authorized_source_bound_noise_interval",
+        "capture_stop_filter_seconds": 0.85,
+        "captured_band_shape_db_per_channel": [
+          [
+            12.926349,
+            18.11836,
+            19.727773,
+            18.818182,
+            16.266441,
+            12.762665,
+            8.810227,
+            4.725761,
+            0.639162,
+            -3.506416,
+            -7.95456,
+            -13.135596,
+            -19.666589,
+            -24.0,
+            -24.0
+          ]
+        ],
+        "command_boundary_scope": "FFmpeg commands applied at audio-frame boundaries; silence guard separates stop from original body",
+        "filter_delay_samples_removed": 1102,
+        "guard_samples": 4410,
+        "interval_time_axis": "relative to first decoded original audio sample",
+        "method": "selected source interval copied into internal afftdn sampling preroll",
+        "noise_only_verified_by_worker": false,
+        "preroll_samples_removed": 41895,
+        "profile_update_status": "observed_ffmpeg_afftdn_band_profile_update",
+        "review": "Root reviewed decoded-source-sample interval 4.10-4.95 seconds under user-authorized noise capture. Lowest nearby quarter-second RMS about -35.8 dBFS; click-like candidates at 3.8075 and 5.2375 seconds are outside the selected interval. Root viewed the 4.3-second frame. Absence of guitar sustain/music is uncertain; this is not an operator-exact interval or verified noise-only reference.",
+        "selected_samples": [
+          180810,
+          218295
+        ],
+        "selected_seconds": [
+          4.1,
+          4.95
+        ],
+        "source_axis_sample_count_preserved": true,
+        "source_media_span_seconds": [
+          4.1,
+          4.95
+        ],
+        "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6"
+      },
+      "denoise_matches_captured8": true,
+      "latency": {
+        "analysis_derivative_sample_mapping": "denoised sample zero maps to decoded source sample zero after calibrated filter-delay compensation",
+        "denoise": {
+          "actual_recording_waveform_alignment_measured": false,
+          "compensation": "pad input tail before filtering, discard filter leading delay, trim to original extent, reset sample timestamps",
+          "delay_samples": 1102,
+          "delay_seconds": 0.024988662131519273,
+          "filter": "afftdn",
+          "measured_impulse_offsets_samples": [
+            1102,
+            1102
+          ],
+          "method": "two isolated impulses in each native-rate channel; exact output peak displacement",
+          "remaining_bulk_delay_samples": 0,
+          "sample_advance": 551,
+          "source_model": "FFmpeg 8.1 af_afftdn.c: window_length=3*(sample_rate/80); insertion offset=2*(sample_rate/80)",
+          "status": "measured_and_compensated"
+        },
+        "normalization": {
+          "actual_recording_waveform_alignment_measured": false,
+          "policy": "FFmpeg loudnorm native compensated timestamps; no additional trimming",
+          "validation": "separate 44.1/48 kHz dynamic-mode impulse regression; not a listening or complete physical A/V synchronization claim"
+        },
+        "physical_audio_video_sync_verified": false,
+        "post_denoise": {
+          "complete_acoustic_alignment_verified": false,
+          "sample_count_preserved": true,
+          "stages": [
+            {
+              "acoustic_alignment_verified": false,
+              "frequency_dependent_phase": true,
+              "sample_axis_policy": "causal forward IIR; no block delay or time stretch"
+            },
+            {
+              "acoustic_alignment_verified": false,
+              "frequency_dependent_phase": true,
+              "sample_axis_policy": "causal forward IIR; no block delay or time stretch"
+            },
+            {
+              "acoustic_alignment_verified": false,
+              "attack_release_change_amplitude": true,
+              "sample_axis_policy": "causal gain envelope; no lookahead or sample-axis trimming"
+            }
+          ]
+        }
+      },
+      "manifest_output_loudness": {
+        "input_i": "-18.00",
+        "input_lra": "3.40",
+        "input_thresh": "-28.21",
+        "input_tp": "-1.75",
+        "normalization_type": "dynamic",
+        "output_i": "-17.24",
+        "output_lra": "3.50",
+        "output_thresh": "-27.35",
+        "output_tp": "-1.50",
+        "target_offset": "-0.76"
+      },
+      "measured_master_loudness": {
+        "command": [
+          "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+          "-hide_banner",
+          "-nostdin",
+          "-loglevel",
+          "info",
+          "-threads",
+          "2",
+          "-filter_threads",
+          "2",
+          "-filter_complex_threads",
+          "2",
+          "-i",
+          "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/cleaned.wav",
+          "-map",
+          "0:a:0",
+          "-af",
+          "loudnorm=I=-18:TP=-1.5:LRA=50:print_format=json",
+          "-f",
+          "null",
+          "-"
+        ],
+        "integrated_lufs": -18.0,
+        "loudness_range_lu": 3.4,
+        "threshold_lufs": -28.21,
+        "true_peak_dbtp": -1.75
+      },
+      "measured_processed_loudness": {
+        "command": [
+          "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+          "-hide_banner",
+          "-nostdin",
+          "-loglevel",
+          "info",
+          "-threads",
+          "2",
+          "-filter_threads",
+          "2",
+          "-filter_complex_threads",
+          "2",
+          "-i",
+          "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/processed.wav",
+          "-map",
+          "0:a:0",
+          "-af",
+          "loudnorm=I=-18:TP=-1.5:LRA=50:print_format=json",
+          "-f",
+          "null",
+          "-"
+        ],
+        "integrated_lufs": -21.95,
+        "loudness_range_lu": 3.3,
+        "threshold_lufs": -32.15,
+        "true_peak_dbtp": -5.7
+      },
+      "normalization_render_type": "linear",
+      "processed_vs_denoised_rms_delta_db": -0.800142521903618,
+      "profile": {
+        "adaptivity": 0,
+        "compressor": {
+          "attack_ms": 15,
+          "knee_db": 3,
+          "ratio": 2,
+          "release_ms": 100,
+          "threshold_db": -18
+        },
+        "denoise": true,
+        "description": "Experimental captured8 plus broad comparison EQ then linked RMS compression before measured loudness normalization. Compressor fixed 25 percent wet blend bounds stage attenuation to 2.50 dB with no makeup gain. EQ phase varies by frequency; settings are not an inferred optimal tone. Pure denoise and residue artifacts retained separately from processed.wav. Requires actual listening and residue review.",
+        "gain_smooth": 0,
+        "integrated_lufs": -18,
+        "name": "captured8-clarity",
+        "noise_capture_authorized": true,
+        "noise_capture_review": "Root reviewed decoded-source-sample interval 4.10-4.95 seconds under user-authorized noise capture. Lowest nearby quarter-second RMS about -35.8 dBFS; click-like candidates at 3.8075 and 5.2375 seconds are outside the selected interval. Root viewed the 4.3-second frame. Absence of guitar sustain/music is uncertain; this is not an operator-exact interval or verified noise-only reference.",
+        "noise_capture_seconds": [
+          4.1,
+          4.95
+        ],
+        "noise_capture_source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+        "noise_floor_db": -40,
+        "peaking_eq": [
+          {
+            "frequency_hz": 300,
+            "gain_db": -1.5,
+            "q": 0.8
+          },
+          {
+            "frequency_hz": 2200,
+            "gain_db": 1,
+            "q": 0.8
+          }
+        ],
+        "preserve_low_fundamental_hz": 32,
+        "reduction_db": 8,
+        "schema_version": 1,
+        "true_peak_dbtp": -1.5
+      },
+      "residue_equality": {
+        "equation": "source - denoised - residue",
+        "max_abs_full_scale": 9.313225746154785e-10,
+        "rms_dbfs": -206.64694898590395
+      },
+      "residue_matches_captured8": true,
+      "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009",
+      "run_id": "20261005T232741Z-2b5dc43fd009"
+    }
+  ],
+  "decoded_source_wav_sha256": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a",
+  "limitations": [
+    "Selected quiet windows may contain guitar/metronome/room sound; changes are not fan-only SNR.",
+    "Whole-take band energy mixes noise and music; no low-note or pick-preservation proof.",
+    "Equal frame counts and calibrated bulk delay are not complete acoustic A/V alignment.",
+    "No real listening acceptance, automated best tone or performance correctness claim."
+  ],
+  "measured_source_loudness": {
+    "command": [
+      "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+      "-hide_banner",
+      "-nostdin",
+      "-loglevel",
+      "info",
+      "-threads",
+      "2",
+      "-filter_threads",
+      "2",
+      "-filter_complex_threads",
+      "2",
+      "-i",
+      "/Users/jess/git/video-utils/artifacts/runs/20261005T211103Z-c6d0bac2fcd2/source.wav",
+      "-map",
+      "0:a:0",
+      "-af",
+      "loudnorm=I=-18:TP=-1.5:LRA=50:print_format=json",
+      "-f",
+      "null",
+      "-"
+    ],
+    "integrated_lufs": -21.24,
+    "loudness_range_lu": 4.0,
+    "threshold_lufs": -31.42,
+    "true_peak_dbtp": -4.16
+  },
+  "method": {
+    "dynamics": "crest and one-second RMS descriptive only; no musical quality score",
+    "levels": "full-scale-normalized native WAV; dB power relative 1; no level matching before denoise deltas",
+    "numpy": "2.5.3",
+    "python": "3.14.6 (main, Jun 11 2026, 03:55:33) [Clang 22.1.3 ]",
+    "scipy": "1.18.1",
+    "threads": 2,
+    "welch": {
+      "band_integration": "sum PSD bins * df; lower inclusive upper exclusive",
+      "detrend": false,
+      "noverlap": 32768,
+      "nperseg": 65536,
+      "scaling": "density",
+      "window": "hann"
+    },
+    "window_sample_rounding": "Python round(seconds*sample_rate)",
+    "worker_sha256": "e62498f5e00325e37da2b7d6463ae813c98ae3ae0a27d5bfafd5c3d47cf5efef"
+  },
+  "schema_version": 1,
+  "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "source_unchanged_after_worker": true,
+  "worker_inputs": [
+    {
+      "receipt": "artifacts/runs/20261005T211103Z-c6d0bac2fcd2/manifest.json",
+      "sha256": "0438657188d136c36073789e5496ccf27d3a19aa9604eaca0f3941a36ec9162d"
+    },
+    {
+      "receipt": "artifacts/root-captured8-render.json",
+      "sha256": "660f636956fbff1221ceb99de01b4538b25e0cb4a5c8b8849e0b449aefe60d2c"
+    },
+    {
+      "receipt": "artifacts/root-captured12-render.json",
+      "sha256": "b1f587a53ca6afeed2762da6451de8910066ed5615064e49778902f92ee17c27"
+    },
+    {
+      "receipt": "artifacts/root-captured8-clarity-render.json",
+      "sha256": "178670d8469b8c48755852fd8073f112b721a3047d730d92e689eeeed12dce87"
+    }
+  ]
+}

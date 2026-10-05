@@ -150,6 +150,13 @@ def load_profile(value: str | Path) -> dict:
         raise MediaError(f"cannot read profile: {value}") from exc
     if not isinstance(profile, dict) or profile.get("schema_version") != 1:
         raise MediaError("profile requires schema_version: 1")
+    allowed = {"schema_version", "name", "description", "denoise", "reduction_db",
+               "noise_floor_db", "gain_smooth", "preserve_low_fundamental_hz",
+               "integrated_lufs", "true_peak_dbtp", "noise_capture_seconds",
+               "noise_capture_authorized", "noise_capture_source_sha256",
+               "noise_capture_review", "adaptivity", "peaking_eq", "compressor"}
+    if set(profile) - allowed:
+        raise MediaError("profile contains unsupported fields")
     if not isinstance(profile.get("denoise"), bool):
         raise MediaError("profile denoise must be a boolean")
     limits = {"integrated_lufs": (-70, -5), "true_peak_dbtp": (-9, 0),
@@ -158,20 +165,107 @@ def load_profile(value: str | Path) -> dict:
     required = ["integrated_lufs", "true_peak_dbtp"]
     if profile["denoise"]:
         required += ["reduction_db", "noise_floor_db", "gain_smooth"]
-    for key in required:
+    for key in set(required) | (set(profile) & set(limits)):
         val = profile.get(key)
         low, high = limits[key]
         if isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(val) or not low <= val <= high:
             raise MediaError(f"profile {key} must be between {low} and {high}")
+    if "gain_smooth" in profile and (isinstance(profile["gain_smooth"], bool)
+                                    or not isinstance(profile["gain_smooth"], int)):
+        raise MediaError("profile gain_smooth must be an integer")
+    for key in ("name", "description", "noise_capture_review"):
+        if key in profile and (not isinstance(profile[key], str) or len(profile[key]) > 2000):
+            raise MediaError(f"profile {key} must be bounded text")
+    if "noise_capture_authorized" in profile and not isinstance(profile["noise_capture_authorized"], bool):
+        raise MediaError("noise_capture_authorized must be a boolean")
+    if "preserve_low_fundamental_hz" in profile:
+        numeric_control(profile["preserve_low_fundamental_hz"], 28, 40, "preserve_low_fundamental_hz")
+    if "adaptivity" in profile:
+        numeric_control(profile["adaptivity"], 0, 1, "adaptivity")
     interval = profile.get("noise_capture_seconds")
     if interval is not None:
         if (not profile["denoise"] or profile.get("noise_capture_authorized") is not True
                 or not isinstance(interval, list) or len(interval) != 2
                 or any(isinstance(x, bool) or not isinstance(x, (int, float))
                        or not math.isfinite(x) for x in interval)
-                or interval[0] < 0 or interval[1] <= interval[0]):
+                or interval[0] < 0 or not 0.1 <= interval[1] - interval[0] <= 10):
             raise MediaError("noise capture needs an explicitly authorized [start, end] interval")
+        capture_hash = profile.get("noise_capture_source_sha256")
+        if (not isinstance(capture_hash, str) or len(capture_hash) != 64
+                or any(char not in "0123456789abcdef" for char in capture_hash)):
+            raise MediaError("noise capture requires original source SHA-256 binding")
+    elif any(key in profile for key in ("noise_capture_source_sha256", "noise_capture_authorized", "noise_capture_review")):
+        raise MediaError("noise capture metadata requires an interval")
+    validate_post_controls(profile)
     return profile
+
+
+def numeric_control(value, low: float, high: float, name: str) -> float:
+    if (isinstance(value, bool) or not isinstance(value, (int, float))
+            or not math.isfinite(value) or not low <= value <= high):
+        raise MediaError(f"{name} must be numeric between {low} and {high}")
+    return float(value)
+
+
+def validate_post_controls(profile: dict):
+    bands = profile.get("peaking_eq", [])
+    if not isinstance(bands, list) or len(bands) > 3:
+        raise MediaError("peaking_eq must contain at most three numeric bands")
+    for band in bands:
+        if not isinstance(band, dict) or set(band) != {"frequency_hz", "gain_db", "q"}:
+            raise MediaError("EQ bands require exactly frequency_hz, gain_db and q")
+        numeric_control(band["frequency_hz"], 160, 6000, "EQ frequency_hz")
+        numeric_control(band["gain_db"], -3, 3, "EQ gain_db")
+        numeric_control(band["q"], 0.5, 2, "EQ q")
+    compressor = profile.get("compressor")
+    if compressor is not None:
+        limits = {"threshold_db": (-36, -6), "ratio": (1, 3),
+                  "attack_ms": (8, 20), "release_ms": (60, 200), "knee_db": (0, 6)}
+        if not isinstance(compressor, dict) or set(compressor) != set(limits):
+            raise MediaError("compressor requires exactly threshold_db, ratio, attack_ms, release_ms and knee_db")
+        for key, (low, high) in limits.items():
+            numeric_control(compressor[key], low, high, f"compressor {key}")
+
+
+def post_denoise_filters(profile: dict, sample_rate: int) -> list[dict]:
+    """Build a closed set of serial stages; profile values cannot inject filters."""
+    validate_post_controls(profile)
+    stages = []
+    for index, band in enumerate(profile.get("peaking_eq", [])):
+        if band["frequency_hz"] >= sample_rate / 2:
+            raise MediaError("EQ frequency must be below source Nyquist")
+        stages.append({"stage": f"peaking_eq_{index + 1}", "controls": dict(band),
+                       "filter": (f"equalizer=f={float(band['frequency_hz']):.9g}:t=q:"
+                                  f"w={float(band['q']):.9g}:g={float(band['gain_db']):.9g}:b=0:r=f64"),
+                       "timing": {"sample_axis_policy": "causal forward IIR; no block delay or time stretch",
+                                  "frequency_dependent_phase": True,
+                                  "acoustic_alignment_verified": False}})
+    compressor = profile.get("compressor")
+    if compressor is not None:
+        threshold = 10 ** (compressor["threshold_db"] / 20)
+        knee = 10 ** (compressor["knee_db"] / 20)
+        stages.append({"stage": "rms_compressor", "controls": dict(compressor),
+                       "fixed_parallel_wet_fraction": 0.25,
+                       "maximum_stage_attenuation_db": -20 * math.log10(0.75),
+                       "filter": (f"acompressor=threshold={threshold:.12g}:ratio={float(compressor['ratio']):.9g}:"
+                                  f"attack={float(compressor['attack_ms']):.9g}:release={float(compressor['release_ms']):.9g}:"
+                                  f"knee={knee:.12g}:makeup=1:level_in=1:mode=downward:link=maximum:detection=rms:mix=0.25"),
+                       "timing": {"sample_axis_policy": "causal gain envelope; no lookahead or sample-axis trimming",
+                                  "attack_release_change_amplitude": True,
+                                  "acoustic_alignment_verified": False}})
+    return stages
+
+
+def render_post_denoise(input_path: Path, output_path: Path, profile: dict,
+                        reference: dict) -> list[dict]:
+    stages = post_denoise_filters(profile, reference["sample_rate"])
+    if not stages:
+        return []
+    ffmpeg(["-i", str(input_path), "-af", ",".join(stage["filter"] for stage in stages),
+            "-ar", str(reference["sample_rate"]), "-ac", str(reference["channels"]),
+            "-c:a", "pcm_f32le", str(output_path)])
+    ensure_pcm_matches(output_path, reference)
+    return stages
 
 
 def pcm_info(path: Path) -> dict:
@@ -439,6 +533,9 @@ def clean(value: str | Path, profile_value: str | Path) -> dict:
     profile = load_profile(profile_value)
     source_stat = source.stat()
     source_hash = sha256(source)
+    if (profile.get("noise_capture_seconds") is not None
+            and profile["noise_capture_source_sha256"] != source_hash):
+        raise MediaError("noise capture source SHA-256 differs from this recording")
     metadata = probe(source)
     audio = metadata["audio"]
     audio_origin = audio_timeline_origin(source, metadata)
@@ -459,25 +556,80 @@ def clean(value: str | Path, profile_value: str | Path) -> dict:
                        "No metronome removal, timing correction, source separation, or declipping is applied.",
                        "Nine-string down-tuned guitar can contain intentional fundamentals near 32 Hz. No high-pass, rumble filter, or mains-hum notch is applied; denoising still requires review for low-frequency damage."]
         interval = profile.get("noise_capture_seconds")
+        capture = None
         if interval is not None and interval[1] > reference["sample_count"] / reference["sample_rate"]:
             raise MediaError("noise capture interval extends beyond decoded audio")
         if profile["denoise"]:
             audio_filter = (f"afftdn=nr={profile['reduction_db']}:nf={profile['noise_floor_db']}:"
                             f"tn=0:gs={profile['gain_smooth']}")
+            if "adaptivity" in profile:
+                audio_filter += f":ad={float(profile['adaptivity']):.9g}"
             latency = calibrate_denoise_latency(staging, audio_filter, audio["sample_rate"], audio["channels"])
             delay = latency["delay_samples"]
             if interval is not None:
-                audio_filter = (f"asendcmd=c='{interval[0]} afftdn sn start;"
-                                f"{interval[1]} afftdn sn stop'," + audio_filter)
-                assumptions.append("Operator-approved noise capture updates the filter after the selected interval; earlier audio uses the fixed floor.")
+                rate = reference["sample_rate"]
+                start, end = round(interval[0] * rate), round(interval[1] * rate)
+                if not 0 <= start < end <= reference["sample_count"]:
+                    raise MediaError("noise capture sample interval is outside decoded audio")
+                training_samples = end - start
+                guard = math.ceil(rate / 10)
+                prefix = training_samples + guard
+                stop = training_samples / rate
+                # Training is private preroll, not inserted into the published
+                # source axis. The silence guard keeps frame-quantized stop
+                # delivery away from original guitar/click samples.
+                audio_filter = (f"[0:a]asplit=2[noise][body];"
+                                f"[noise]atrim=start_sample={start}:end_sample={end},"
+                                f"asetpts=N/SR/TB,apad=pad_len={guard}[training];"
+                                f"[body]asetpts=N/SR/TB[take];"
+                                f"[training][take]concat=n=2:v=0:a=1,apad=pad_len={delay},"
+                                f"asendcmd=c='0 afftdn sn start;{stop:.12g} afftdn sn stop',"
+                                f"{audio_filter},atrim=start_sample={prefix + delay}:"
+                                f"end_sample={prefix + delay + reference['sample_count']},asetpts=N/SR/TB[out]")
+                capture = {"source_sha256": source_hash,
+                           "selected_seconds": interval, "selected_samples": [start, end],
+                           "actual_selected_seconds": [start / rate, end / rate],
+                           "interval_time_axis": "relative to first decoded original audio sample",
+                           "source_media_span_seconds": ([audio_origin["seconds"] + start / rate,
+                                                          audio_origin["seconds"] + end / rate]
+                                                         if audio_origin["seconds"] is not None else None),
+                           "authorization": "authorized_source_bound_noise_interval",
+                           "review": profile.get("noise_capture_review", "selection supplied; absence of music/clicks not machine-verified"),
+                           "noise_only_verified_by_worker": False,
+                           "method": "selected source interval copied into internal afftdn sampling preroll",
+                           "capture_stop_filter_seconds": stop,
+                           "command_boundary_scope": "FFmpeg commands applied at audio-frame boundaries; silence guard separates stop from original body",
+                           "guard_samples": guard, "preroll_samples_removed": prefix,
+                           "filter_delay_samples_removed": delay,
+                           "applies_to_original_start": True,
+                           "absolute_noise_floor_db": profile["noise_floor_db"],
+                           "absolute_floor_basis": "explicit candidate control; captured band shape is centered, not an independently measured absolute floor",
+                           "source_axis_sample_count_preserved": True}
+                assumptions.append("Source-bound noise sampling occurs in internal preroll; selected noise and silence guard plus calibrated afftdn delay are removed before publication, so the measured profile applies from original sample zero.")
+                rendered_capture = ffmpeg(["-i", str(working), "-filter_complex", audio_filter, "-map", "[out]",
+                                           "-ar", str(audio["sample_rate"]), "-ac", str(audio["channels"]),
+                                           "-c:a", "pcm_f32le", str(denoised)])
+                measured_bands = []
+                for line in rendered_capture.stderr.splitlines():
+                    if "bn=" in line:
+                        try:
+                            bands = [float(item) for item in line.split("bn=", 1)[1].split()]
+                        except ValueError as exc:
+                            raise MediaError("captured noise-band update is unreadable") from exc
+                        if len(bands) != 15 or any(not math.isfinite(item) for item in bands):
+                            raise MediaError("captured noise-band update is invalid")
+                        measured_bands.append(bands)
+                if len(measured_bands) != audio["channels"]:
+                    raise MediaError("FFmpeg did not confirm one captured noise-band profile per channel")
+                capture["captured_band_shape_db_per_channel"] = measured_bands
+                capture["profile_update_status"] = "observed_ffmpeg_afftdn_band_profile_update"
             else:
                 assumptions.append(f"Fixed noise floor {profile['noise_floor_db']} dB is an unverified diagnostic heuristic, not a measured noise profile; tracking is disabled.")
-            # afftdn copies timestamps while its overlap-add samples lag by two
-            # hops. Padding must precede the filter so the original tail survives.
-            audio_filter = (f"apad=pad_len={delay}," + audio_filter +
-                            f",atrim=start_sample={delay}:end_sample={delay + reference['sample_count']},asetpts=N/SR/TB")
-            ffmpeg(["-i", str(working), "-af", audio_filter, "-ar", str(audio["sample_rate"]),
-                    "-ac", str(audio["channels"]), "-c:a", "pcm_f32le", str(denoised)])
+                # Padding precedes the delayed filter to retain original tail.
+                audio_filter = (f"apad=pad_len={delay}," + audio_filter +
+                                f",atrim=start_sample={delay}:end_sample={delay + reference['sample_count']},asetpts=N/SR/TB")
+                ffmpeg(["-i", str(working), "-af", audio_filter, "-ar", str(audio["sample_rate"]),
+                        "-ac", str(audio["channels"]), "-c:a", "pcm_f32le", str(denoised)])
         else:
             shutil.copyfile(working, denoised)
             latency = {"status": "bypass_no_filter_delay", "delay_samples": 0,
@@ -490,8 +642,13 @@ def clean(value: str | Path, profile_value: str | Path) -> dict:
                 "-ar", str(audio["sample_rate"]), "-ac", str(audio["channels"]),
                 "-c:a", "pcm_f32le", str(residue)])
         ensure_pcm_matches(residue, reference)
+        processed = staging / "processed.wav"
+        post_stages = render_post_denoise(denoised, processed, profile, reference)
+        final_pre_gain = processed if post_stages else denoised
+        if post_stages:
+            assumptions.append("Optional forward peaking EQ changes frequency-dependent phase; RMS compression changes attack/sustain amplitudes. No complete acoustic alignment or improved-tone acceptance is claimed.")
         baseline = normalize(working, staging / "baseline.wav", profile, audio)
-        restored = normalize(denoised, staging / "cleaned.wav", profile, audio)
+        restored = normalize(final_pre_gain, staging / "cleaned.wav", profile, audio)
         ensure_pcm_matches(staging / "baseline.wav", reference)
         ensure_pcm_matches(staging / "cleaned.wav", reference)
         if source.stat().st_size != source_stat.st_size or source.stat().st_mtime_ns != source_stat.st_mtime_ns or sha256(source) != source_hash:
@@ -500,19 +657,29 @@ def clean(value: str | Path, profile_value: str | Path) -> dict:
                     "run_dir": str(final), "profile": profile,
                     "source": {"path": str(source), "sha256": source_hash, "probe": metadata},
                     "pcm": reference,
+                    "noise_capture": capture,
+                    "restoration_stages": [{"stage": "afftdn" if profile["denoise"] else "denoise_bypass",
+                                             "output": "denoised.wav", "latency": latency},
+                                            *post_stages,
+                                            {"stage": "measured_loudness_normalization", "input": final_pre_gain.name,
+                                             "output": "cleaned.wav"}],
                     "timeline": {"format_start_seconds": metadata["format"]["start_time"],
                                  "audio_start_seconds": audio_origin["seconds"],
                                  "audio_origin_receipt": audio_origin,
                                  "decoded_audio_origin": "first decoded source audio sample",
                                  "no_time_stretch": True},
                     "dsp_latency": {"denoise": latency,
+                                    "post_denoise": {"stages": [stage["timing"] for stage in post_stages],
+                                                     "sample_count_preserved": True,
+                                                     "complete_acoustic_alignment_verified": False},
                                     "normalization": {"policy": "FFmpeg loudnorm native compensated timestamps; no additional trimming",
                                                       "actual_recording_waveform_alignment_measured": False,
                                                       "validation": "separate 44.1/48 kHz dynamic-mode impulse regression; not a listening or complete physical A/V synchronization claim"},
                                     "analysis_derivative_sample_mapping": "denoised sample zero maps to decoded source sample zero after calibrated filter-delay compensation",
                                     "physical_audio_video_sync_verified": False},
                     "outputs": {"source": "source.wav", "denoised": "denoised.wav",
-                                "baseline": "baseline.wav", "cleaned": "cleaned.wav", "residue": "residue.wav"},
+                                "baseline": "baseline.wav", "cleaned": "cleaned.wav", "residue": "residue.wav",
+                                **({"processed": "processed.wav"} if post_stages else {})},
                     "loudness": {"baseline": baseline, "cleaned": restored},
                     "tools": {name: run([executable(name), "-version"], 30).stdout.splitlines()[0]
                               for name in ("ffmpeg", "ffprobe")},

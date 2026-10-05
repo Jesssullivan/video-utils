@@ -18,6 +18,379 @@ import mcp_server
 
 
 class ToolContractTests(unittest.TestCase):
+    def test_captured_profile_enum_is_denoise_only_and_literal(self):
+        captured = ('captured8', 'captured12', 'captured8-clarity')
+        denoise = tool_api.descriptor('denoise')['inputSchema']
+        benchmark = tool_api.descriptor('benchmark')['inputSchema']
+        self.assertEqual(benchmark['properties']['profile']['enum'], ['bypass', 'conservative3', 'mild6'])
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / 'different $(literal); recording.wav'; source.write_bytes(b'not the captured source')
+            for name in captured:
+                arguments = {'input': str(source), 'profile': name}
+                tool_api.validate(arguments, denoise)
+                self.assertEqual(tool_api.worker_command('denoise', arguments)[1:],
+                    [str(ROOT / 'scripts/media.py'), 'clean', str(source.resolve()), name])
+                with patch.object(tool_api, 'run_worker') as worker:
+                    with self.assertRaises(tool_api.ValidationError):
+                        tool_api.execute('benchmark', {'output': 'artifacts/benchmarks/new', 'profile': name})
+                    worker.assert_not_called()
+            with patch.object(tool_api, 'run_worker') as worker:
+                with self.assertRaises(tool_api.ValidationError):
+                    tool_api.execute('denoise', {'input': str(source), 'profile': 'captured8', 'peaking_eq': []})
+                worker.assert_not_called()
+
+    def test_real_captured_profile_wrong_source_rejects_before_media_or_run_creation(self):
+        from test_mcp import exchange, initialization, request
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / 'different recording.wav'
+            source.write_bytes(b'Wrong source; deliberately not decodable audio')
+            original = hashlib.sha256(source.read_bytes()).hexdigest()
+            import media
+            with patch.object(media, 'ROOT', Path(temporary)), patch.object(media, 'probe') as probe:
+                for profile in ('captured8', 'captured12', 'captured8-clarity'):
+                    with self.assertRaisesRegex(media.MediaError, 'noise capture source SHA-256 differs'):
+                        media.clean(source, ROOT / 'profiles' / (profile + '.json'))
+                probe.assert_not_called()
+                self.assertFalse((Path(temporary) / 'artifacts').exists())
+            messages = [initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'}]
+            for index, profile in enumerate(('captured8', 'captured12', 'captured8-clarity'), 2):
+                messages.append(request(index, 'tools/call', {'name': 'denoise', 'arguments': {
+                    'input': str(source), 'profile': profile, 'timeout_seconds': 5}}))
+            with patch.dict(os.environ, {'FFMPEG': '/nonexistent/ffmpeg', 'FFPROBE': '/nonexistent/ffprobe'}):
+                replies, stderr = exchange(messages, timeout=15)
+            self.assertEqual(stderr, '')
+            for reply in replies[1:]:
+                self.assertTrue(reply['result']['isError'])
+                self.assertIn('noise capture source SHA-256 differs from this recording', reply['result']['content'][0]['text'])
+            self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), original)
+
+    def test_marked_video_paths_fixed_dispatch_and_default_deadline(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            runs = root / 'artifacts/runs'; runs.mkdir(parents=True)
+            run = runs / 'existing $(literal); run'; run.mkdir()
+            with patch.object(tool_api, 'ROOT', root):
+                output = runs / 'new preview'
+                args = {'run_dir': str(run), 'output': str(output)}
+                command = tool_api.worker_command('marked_video', args)
+                self.assertEqual(command[1:], [str(root / 'scripts/marked_video.py'),
+                    '--run-dir', str(run), '--selection', 'phrase-review', '--output', str(output)])
+                self.assertEqual(tool_api.marked_video_directory('artifacts/runs/' + run.name), str(run))
+                with patch.object(tool_api, 'run_worker', return_value={'status': 'fixture'}) as worker:
+                    tool_api.execute('marked_video', args)
+                    self.assertEqual(worker.call_args.args[1], 600)
+                alias = runs / 'alias'; alias.symlink_to(run, target_is_directory=True)
+                for value in (str(alias), str(runs), str(root / 'outside'), str(run / '..' / 'other')):
+                    with self.subTest(value=value), self.assertRaises((tool_api.ToolError, tool_api.ValidationError)):
+                        tool_api.marked_video_directory(value)
+                with self.assertRaises(tool_api.ToolError):
+                    tool_api.marked_video_directory(str(run), output=True)
+                file = runs / 'file'; file.write_text('regular')
+                with self.assertRaises(tool_api.ToolError):
+                    tool_api.marked_video_directory(str(file / 'new'), output=True)
+                moved = root / 'moved-runs'; runs.rename(moved); runs.symlink_to(moved, target_is_directory=True)
+                with self.assertRaises(tool_api.ToolError):
+                    tool_api.marked_video_directory('artifacts/runs/' + run.name)
+
+    def test_marked_video_schema_rejects_unknown_and_unsafe_knobs(self):
+        valid = {'run_dir': 'artifacts/runs/existing', 'output': 'artifacts/runs/new'}
+        cases = [dict(valid, selection='confirmed-errors'), dict(valid, output='../new'),
+                 dict(valid, run_dir='artifacts\\runs\\old'), dict(valid, timeout_seconds=True),
+                 dict(valid, timeout_seconds=901), dict(valid, timeout_seconds=float('nan')),
+                 dict(valid, input='take.mov'), dict(valid, title='MISTAKE'), dict(valid, install_font=True),
+                 dict(valid, output='x' * 4097), {'run_dir': valid['run_dir']}]
+        for args in cases:
+            with self.subTest(arguments=args), patch.object(tool_api, 'run_worker') as worker:
+                with self.assertRaises(tool_api.ValidationError):
+                    tool_api.execute('marked_video', args)
+                worker.assert_not_called()
+
+    def test_real_marked_video_mcp_preserves_vfr_audio_and_rejects_stale_evidence(self):
+        from test_marked_video import create_verified_fixture
+        from test_mcp import exchange, initialization, request
+        ffmpeg = os.environ.get('FFMPEG') or shutil.which('ffmpeg')
+        ffprobe = os.environ.get('FFPROBE') or shutil.which('ffprobe')
+        if not ffmpeg or not ffprobe:
+            self.skipTest('Explicit FFmpeg/FFprobe required for real preview proof')
+        root = ROOT / 'artifacts/runs' / ('contract-marked-' + uuid.uuid4().hex)
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        run = root / 'run'
+        create_verified_fixture(run, ffmpeg, ffprobe, origin=2., vfr=True)
+        before = {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in run.rglob('*') if path.is_file()}
+        output = root / 'preview'
+        def invoke(destination):
+            replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+                request(2, 'tools/call', {'name': 'marked_video', 'arguments': {
+                    'run_dir': str(run), 'output': str(destination), 'timeout_seconds': 60}})], timeout=90)
+            self.assertEqual(stderr, '')
+            return replies[1]['result']
+        reply = invoke(output)
+        self.assertFalse(reply['isError'])
+        result = reply['structuredContent']['result']
+        self.assertEqual(result['status'], 'marked_review_preview_verified_unreviewed')
+        self.assertFalse(result['listening_accepted'])
+        self.assertEqual(result['selected_marker_count'], 1)
+        receipt = json.loads(Path(result['outcome_json']).read_text())
+        for key in ('decoded_video_frame_pts_preserved', 'aac_packet_payloads_timing_and_padding_preserved',
+                    'decoded_audio_pcm_sha256_preserved', 'decoded_video_variable_frame_intervals_observed'):
+            self.assertTrue(receipt['verification'][key])
+        self.assertEqual(receipt['verification']['decoded_video_frame_count'], 21)
+        self.assertTrue(receipt['input_hashes_preserved'])
+        for path, digest in before.items():
+            self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), digest)
+        selection = json.loads(Path(result['selection_json']).read_text())
+        self.assertEqual(selection['selected_markers'][0]['source_start_seconds'], 2.25)
+        self.assertEqual(selection['selected_markers'][0]['video_start_seconds'], .25)
+        self.assertFalse(selection['performance_issue_confirmed'])
+        self.assertTrue(invoke(output)['isError'])
+        marker_path = run / 'markers.json'; markers = json.loads(marker_path.read_text())
+        markers['markers'][0]['source_time_seconds'] = 9
+        marker_path.write_text(json.dumps(markers))
+        stale = root / 'stale-preview'
+        reply = invoke(stale)
+        self.assertTrue(reply['isError'])
+        self.assertIn('markers differ', reply['content'][0]['text'])
+        self.assertFalse(stale.exists())
+
+    def test_marked_video_prompt_exact_readback(self):
+        from test_mcp import exchange, initialization, request
+        replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+            request(2, 'prompts/get', {'name': 'guitar-marked-video'})])
+        self.assertEqual(stderr, '')
+        body = replies[1]['result']['messages'][0]['content']['text']
+        self.assertEqual(body, (ROOT / '.agents/skills/guitar-marked-video/SKILL.md').read_text())
+
+
+    def test_benchmark_suite_schema_and_dispatch_preserve_v1_default(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            arguments = {'output': str(Path(temporary) / 'new-output'), 'operation': 'fixtures'}
+            default = tool_api.worker_command('benchmark', arguments)
+            self.assertNotIn('--suite', default)
+            schema = tool_api.descriptor('benchmark')['inputSchema']
+            self.assertEqual(schema['properties']['suite']['default'], 'technical-v1')
+            command = tool_api.worker_command('benchmark', dict(arguments, suite='technical-v2'))
+            self.assertEqual(command[-2:], ['--suite', 'technical-v2'])
+            with patch.object(tool_api, 'run_worker') as worker:
+                with self.assertRaises(tool_api.ValidationError):
+                    tool_api.execute('benchmark', dict(arguments, suite='private-recordings'))
+                worker.assert_not_called()
+                with self.assertRaises(tool_api.ValidationError):
+                    tool_api.execute('benchmark', dict(arguments, suite='technical-v2', case='low-C1'))
+                worker.assert_not_called()
+
+    def test_real_benchmark_v2_hook_generates_bounded_synthetic_bank(self):
+        from test_mcp import exchange, initialization, request
+        output = ROOT / 'artifacts' / 'benchmarks' / ('contract-v2-bank-' + uuid.uuid4().hex)
+        self.addCleanup(shutil.rmtree, output, ignore_errors=True)
+        replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+            request(2, 'tools/call', {'name': 'benchmark', 'arguments': {
+                'operation': 'fixtures', 'suite': 'technical-v2', 'output': str(output),
+                'timeout_seconds': 90}})], timeout=120)
+        self.assertEqual(stderr, '')
+        self.assertFalse(replies[1]['result']['isError'])
+        result = replies[1]['result']['structuredContent']['result']
+        self.assertEqual(result['status'], 'fixtures_created')
+        self.assertEqual(result['case_count'], 12)
+        index = json.loads(Path(result['result']).read_text())
+        self.assertEqual(index['suite'], 'technical-v2')
+        self.assertEqual(index['case_count'], 12)
+        self.assertEqual(index['total_duration_seconds'], 120)
+        self.assertEqual(len(list(output.rglob('*.wav'))), 48)
+        for case in index['cases']:
+            self.assertLessEqual(case['duration_seconds'], 12)
+            truth_path = output / case['truth']
+            self.assertEqual(hashlib.sha256(truth_path.read_bytes()).hexdigest(), case['truth_sha256'])
+            truth = json.loads(truth_path.read_text())
+            self.assertEqual(truth['ground_truth_scope'], 'generator_only_not_musician')
+
+    def test_calibration_paths_keep_original_components_and_fresh_output(self):
+        with patch.object(Path, 'expanduser', side_effect=RuntimeError('unknown local user')):
+            with self.assertRaises(tool_api.ToolError):
+                tool_api.calibration_path('~unknown/fixture.json')
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            bank = root / 'artifacts' / 'benchmarks'; bank.mkdir(parents=True)
+            index = bank / 'fixture $(literal);.json'; index.write_text('{}')
+            with patch.object(tool_api, 'ROOT', root):
+                self.assertEqual(tool_api.calibration_path(str(index), max_bytes=100), str(index))
+                self.assertEqual(tool_api.calibration_path(str(bank / 'new'), output=True), str(bank / 'new'))
+                for path in (root / 'outside.json', bank / 'missing.json'):
+                    with self.subTest(path=path), self.assertRaises(tool_api.ToolError):
+                        tool_api.calibration_path(str(path), max_bytes=100)
+                with self.assertRaises(tool_api.ToolError):
+                    tool_api.calibration_path(str(bank), output=True)
+                with self.assertRaises(tool_api.ToolError):
+                    tool_api.calibration_path(str(index), output=True)
+                with self.assertRaises(tool_api.ToolError):
+                    tool_api.calibration_path(str(index), max_bytes=1)
+                with self.assertRaises(tool_api.ToolError):
+                    tool_api.calibration_path(str(index / 'child.json'), max_bytes=100)
+                (bank / 'linked.json').symlink_to(index)
+                (bank / 'linked-dir').symlink_to(bank, target_is_directory=True)
+                for path in (bank / 'linked.json', bank / 'linked-dir' / index.name):
+                    with self.subTest(path=path), self.assertRaises(tool_api.ToolError):
+                        tool_api.calibration_path(str(path), max_bytes=100)
+
+    def test_calibration_dispatch_uses_fixed_workers_and_summary(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            bank = root / 'artifacts' / 'benchmarks'; bank.mkdir(parents=True)
+            index = bank / 'fixture $(literal);.json'; index.write_text('{}')
+            pilot = bank / 'pilot with spaces.json'; pilot.write_text('{}')
+            with patch.object(tool_api, 'ROOT', root):
+                for name in tool_api.CALIBRATION_TOOLS:
+                    output = bank / (name + '-new')
+                    arguments = {'fixture_index': str(index), 'pilot_index': str(pilot), 'output': str(output)}
+                    command = tool_api.worker_command(name, arguments)
+                    self.assertEqual(command[1:], [str(root / ('scripts/' + name + '.py')),
+                        '--fixture-index', str(index), '--pilot-index', str(pilot),
+                        '--output', str(output), '--summary'])
+
+    def test_evaluator_schema_and_default_deadline_are_enforced(self):
+        valid = {'fixture_index': 'artifacts/benchmarks/fixture.json',
+                 'pilot_index': 'artifacts/benchmarks/pilot.json', 'output': 'artifacts/benchmarks/new'}
+        bad = [dict(valid, timeout_seconds=True), dict(valid, timeout_seconds=901),
+               dict(valid, timeout_seconds=float('nan')), dict(valid, fixture_index='../fixture.json'),
+               dict(valid, fixture_index='a//fixture.json'), dict(valid, fixture_index='a.partial/fixture.json'),
+               dict(valid, fixture_index='a/.hidden/fixture.json'), dict(valid, fixture_index='file:fixture.json'),
+               dict(valid, fixture_index='a\\fixture.json'), dict(valid, fixture_index='source.wav'),
+               dict(valid, pilot_index=['pilot.json']), dict(valid, output='x' * 4097),
+               dict(valid, bpm=178), dict(valid, intended_notes=['C1']), dict(valid, install_model=True)]
+        for name in tool_api.CALIBRATION_TOOLS:
+            for arguments in bad:
+                with self.subTest(tool=name, arguments=arguments), patch.object(tool_api, 'run_worker') as worker:
+                    with self.assertRaises(tool_api.ValidationError):
+                        tool_api.execute(name, arguments)
+                    worker.assert_not_called()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            bank = root / 'artifacts' / 'benchmarks'; bank.mkdir(parents=True)
+            index = bank / 'fixture.json'; index.write_text('{}')
+            pilot = bank / 'pilot.json'; pilot.write_text('{}')
+            with patch.object(tool_api, 'ROOT', root):
+                for name in tool_api.CALIBRATION_TOOLS:
+                    with patch.object(tool_api, 'run_worker', return_value={'status': 'fixture'}) as worker:
+                        tool_api.execute(name, {'fixture_index': str(index), 'pilot_index': str(pilot),
+                                                'output': str(bank / name)})
+                        self.assertEqual(worker.call_args.args[1], 120)
+
+    def test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate(self):
+        from test_phrase_evaluate import make_bank, write
+        from test_mcp import exchange, initialization, request
+        root = ROOT / 'artifacts' / 'benchmarks' / ('contract-phrase-evaluate-' + uuid.uuid4().hex)
+        root.mkdir(parents=True)
+        self.addCleanup(shutil.rmtree, root)
+        index, pilot = make_bank(root)
+        registry_hash = hashlib.sha256((ROOT / 'program/instrument.json').read_bytes()).hexdigest()
+        bank = json.loads(index.read_text()); bank['instrument_registry_sha256'] = registry_hash
+        for case in bank['cases']:
+            truth_path = index.parent / case['truth']
+            truth = json.loads(truth_path.read_text()); truth['instrument_registry_sha256'] = registry_hash
+            case['truth_sha256'] = write(truth_path, truth)
+        write(index, bank)
+        jobs = json.loads(pilot.read_text())
+        jobs['instrument_registry_sha256'] = registry_hash
+        jobs['bank_index_sha256'] = hashlib.sha256(index.read_bytes()).hexdigest()
+        write(pilot, jobs)
+        arguments = {'fixture_index': str(index), 'pilot_index': str(pilot), 'output': str(root / 'new-result')}
+        conversation = [initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+            request(2, 'tools/call', {'name': 'phrase_evaluate', 'arguments': arguments})]
+        before = {str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest()
+                  for path in root.rglob('*') if path.is_file()}
+        replies, stderr = exchange(conversation)
+        self.assertEqual(stderr, '')
+        self.assertFalse(replies[1]['result']['isError'])
+        result = replies[1]['result']['structuredContent']['result']
+        self.assertEqual(result['fixture_count'], 1)
+        self.assertEqual(result['unsupported_confirmed_claim_count'], 0)
+        self.assertTrue(result['hard_gates_passed'])
+        self.assertTrue(result['source_read'])
+        self.assertFalse(result['source_audio_decoded'])
+        self.assertFalse(result['inference_invoked'])
+        self.assertEqual(result['ground_truth_scope'], 'generator_only_not_musician')
+        self.assertFalse(result['listening_acceptance'])
+        self.assertNotIn('fixtures', result, 'full calibration rows must stay in local artifact')
+        evidence = json.loads(Path(result['evaluation_json']).read_text())
+        self.assertEqual(evidence['fixtures'][0]['boundary_metrics'][0]['f1'], 0)
+        self.assertEqual(evidence['fixtures'][0]['boundary_metrics'][1]['f1'], 1)
+        for relative, digest in before.items():
+            self.assertEqual(hashlib.sha256((root / relative).read_bytes()).hexdigest(), digest)
+        artifact = pilot.parent / 'run' / 'analysis.json'
+        payload = json.loads(artifact.read_text()); payload['contract_test_changed'] = True
+        write(artifact, payload)
+        arguments['output'] = str(root / 'stale-result')
+        replies, _ = exchange(conversation)
+        self.assertTrue(replies[1]['result']['isError'])
+        self.assertIn('hash mismatch', replies[1]['result']['content'][0]['text'])
+        self.assertTrue(Path(result['evaluation_json']).is_file())
+        jobs['cases'][0]['analysis']['sha256'] = hashlib.sha256(artifact.read_bytes()).hexdigest()
+        phrases_path = pilot.parent / 'run' / 'phrases.json'
+        phrases = json.loads(phrases_path.read_text()); phrases['performance_issue_confirmed'] = True
+        write(phrases_path, phrases)
+        jobs['cases'][0]['phrases']['sha256'] = hashlib.sha256(phrases_path.read_bytes()).hexdigest()
+        write(pilot, jobs)
+        arguments['output'] = str(root / 'unsupported-claim-result')
+        replies, _ = exchange(conversation)
+        self.assertTrue(replies[1]['result']['isError'])
+        failed = json.loads((root / 'unsupported-claim-result' / 'phrase-evaluation.json').read_text())
+        self.assertFalse(failed['hard_gates_passed'])
+        self.assertEqual(failed['unsupported_confirmed_claim_count'], 1)
+        self.assertEqual(failed['status'], 'generated_fixture_calibration_failed_hard_gates')
+
+    def test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure(self):
+        from test_pitch_evaluate import create_valid_fixture
+        from test_mcp import exchange, initialization, request
+        root = ROOT / 'artifacts' / 'benchmarks' / ('contract-pitch-evaluate-' + uuid.uuid4().hex)
+        root.mkdir(parents=True)
+        self.addCleanup(shutil.rmtree, root)
+        index, pilot = create_valid_fixture(root / 'bank')
+        before = {str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest()
+                  for path in root.rglob('*') if path.is_file()}
+        arguments = {'fixture_index': str(index), 'pilot_index': str(pilot), 'output': str(root / 'new-result')}
+        conversation = [initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+            request(2, 'tools/call', {'name': 'pitch_evaluate', 'arguments': arguments})]
+        replies, stderr = exchange(conversation)
+        self.assertEqual(stderr, '')
+        self.assertFalse(replies[1]['result']['isError'])
+        result = replies[1]['result']['structuredContent']['result']
+        self.assertEqual(result['case_count'], 4)
+        self.assertEqual(result['pilot_coverage_seconds'], 30)
+        self.assertEqual(result['hard_failure_count'], 0)
+        self.assertEqual(result['frame_count'], 3750)
+        self.assertTrue(result['hard_gates_passed'])
+        self.assertTrue(result['source_audio_bytes_read'])
+        self.assertFalse(result['source_audio_decoded'])
+        self.assertFalse(result['inference_invoked'])
+        self.assertEqual(result['ground_truth_scope'], 'generator_only_not_musician')
+        self.assertFalse(result['listening_accepted'])
+        self.assertFalse(result['real_performance_grading'])
+        self.assertTrue(result['quality_alerts'], 'all-abstaining oracle metadata must not become a quality pass')
+        self.assertNotIn('cases', result, 'full case/frame evidence must stay local')
+        self.assertLess(len(json.dumps(result)), 20_000)
+        evidence = json.loads(Path(result['evaluation_json']).read_text())
+        self.assertEqual(evidence['case_count'], 4)
+        for branch in evidence['aggregate_branches']:
+            self.assertEqual(branch['counts']['covered_frames'], branch['counts']['abstained_frames'])
+            cents = branch['stable_monophonic_metrics']['cents_error']
+            self.assertEqual(cents['n'], 0)
+            self.assertIsNone(cents['median_absolute'])
+        self.assertTrue(Path(result['frame_errors_csv']).is_file())
+        for relative, digest in before.items():
+            self.assertEqual(hashlib.sha256((root / relative).read_bytes()).hexdigest(), digest)
+        jobs = json.loads(pilot.read_text())
+        pitch_path = Path(jobs['jobs'][0]['pitch_path'])
+        payload = json.loads(pitch_path.read_text()); payload['contract_test_changed'] = True
+        pitch_path.write_text(json.dumps(payload))
+        arguments['output'] = str(root / 'stale-result')
+        replies, _ = exchange(conversation)
+        self.assertTrue(replies[1]['result']['isError'])
+        self.assertIn('retained', replies[1]['result']['content'][0]['text'])
+        failed = json.loads((root / 'stale-result' / 'pitch-calibration.json').read_text())
+        self.assertEqual(failed['status'], 'failed_structural')
+        self.assertEqual(failed['hard_failure_count'], 1)
+        self.assertFalse(failed['real_performance_grading'])
+        self.assertTrue(Path(result['evaluation_json']).is_file())
+
     def test_corpus_schema_errors_do_not_launch(self):
         for arguments in ({}, {'manifest': True}, {'manifest': 'x', 'local_root': []},
                           {'manifest': 'x', 'operation': 'train'}, {'manifest': 'x', 'decode_audio': True},
@@ -129,7 +502,7 @@ class ToolContractTests(unittest.TestCase):
             expected = [item for field in tool_api.PIPELINE_SELECTORS
                         for item in ('--' + field.replace('_', '-'), arguments[field])]
             self.assertEqual(command[3:], expected)
-            self.assertEqual(len(tool_api.descriptors()), 20)
+            self.assertEqual(len(tool_api.descriptors()), 23)
 
     def test_pipeline_missing_or_symlink_selector_does_not_launch(self):
         with tempfile.TemporaryDirectory() as temporary, tempfile.TemporaryDirectory() as outside:
@@ -157,12 +530,12 @@ class ToolContractTests(unittest.TestCase):
         self.assertEqual(envelope['status'], 'completed')
         self.assertNotEqual(envelope['result']['selected_evidence']['tonal']['status'], 'verified')
 
-    def test_pipeline_prompt_exact_readback_and_twenty_tool_catalog(self):
+    def test_pipeline_prompt_exact_readback_and_twenty_three_tool_catalog(self):
         from test_mcp import exchange, initialization, request
         replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
             request(2, 'tools/list'), request(3, 'prompts/get', {'name': 'guitar-pipeline'})])
         self.assertEqual(stderr, '')
-        self.assertEqual(len(replies[1]['result']['tools']), 20)
+        self.assertEqual(len(replies[1]['result']['tools']), 23)
         pipeline = next(tool for tool in replies[1]['result']['tools'] if tool['name'] == 'pipeline')
         self.assertTrue(set(tool_api.PIPELINE_SELECTORS) <= set(pipeline['inputSchema']['properties']))
         self.assertEqual(replies[2]['result']['messages'][0]['content']['text'],

@@ -314,6 +314,69 @@ class ReportTests(unittest.TestCase):
         report.write_report(self.root)
         self.assertIn("Pitch excerpt coverage: unknown · unknown seconds", (self.root / "report.html").read_text())
 
+    def test_captured_delivery_stages_are_escaped_and_denoise_scope_stays_separate(self):
+        (self.root / "denoised.wav").write_bytes(b"pure denoise")
+        (self.root / "processed.wav").write_bytes(b"EQ and compressor")
+        denoised, processed = report.sha256(self.root / "denoised.wav"), report.sha256(self.root / "processed.wav")
+        manifest = {"source": {"path": "take.mov", "sha256": "a" * 64},
+                    "output_sha256": {"denoised.wav": denoised, "processed.wav": processed},
+                    "profile": {"name": 'captured8-<clarity>', "reduction_db": 8, "noise_floor_db": -40},
+                    "noise_capture": {"actual_selected_seconds": [4.1, 4.95], "noise_only_verified_by_worker": False,
+                                      "review": 'Root reviewed <script>candidate</script>; sustain uncertain.'},
+                    "restoration_stages": [{"stage": "afftdn"},
+                        {"stage": "peaking_eq_1", "controls": {"frequency_hz": 300, "gain_db": -1.5, "q": .8}},
+                        {"stage": "rms_compressor", "controls": {"threshold_db": -18, "ratio": 2,
+                            "attack_ms": 15, "release_ms": 100}, "fixed_parallel_wet_fraction": .25},
+                        {"stage": "measured_loudness_normalization"}]}
+        self.manifest(manifest)
+        (self.root / "analysis.json").write_text(json.dumps({"source": {"sha256": denoised}}))
+        result = report.write_report(self.root)
+        text = (self.root / "report.html").read_text()
+        self.assertTrue(result["analysis_available"])
+        for fragment in ['captured8-&lt;clarity&gt;', 'NR 8.00 dB; NF -40.00 dBFS',
+                         'captured 4.10–4.95s', 'noise-only unverified', 'Root reviewed &lt;script&gt;',
+                         'peaking EQ 300 Hz / -1.50 dB / Q 0.80', 'RMS compression', 'wet 25%',
+                         'measured loudness normalization', 'Listening acceptance pending.',
+                         'source.wav minus denoised.wav', 'Excludes subsequent EQ, compression and loudness normalization',
+                         'Analysis input: pure denoised.wav', 'do not describe processed.wav or the final mastering chain']:
+            self.assertIn(fragment, text)
+        self.assertNotIn('<script>candidate</script>', text)
+        self.assertTrue(report.analysis_lineage(self.root, manifest, {"source": {"sha256": processed}}).startswith("rejected"))
+
+    def test_legacy_manifest_reports_unrecorded_chain_without_inventing_stages(self):
+        self.manifest({"source": {"sha256": "a" * 64}, "profile": {"name": "old profile"}})
+        report.write_report(self.root)
+        text = (self.root / "report.html").read_text()
+        self.assertIn("stage chain not recorded in this legacy manifest", text)
+        self.assertNotIn("Recorded delivery chain [old profile]", text)
+        self.assertNotIn("peaking EQ", text)
+
+    def test_selected_receipts_preserve_and_display_binding_scope_without_runtime_promotion(self):
+        graph = self.selected_graph({"pitch": {"summary": {}}, "meter": {"time_signature": None}})
+        legacy = {"manifest_binding_kind": "derived_current_canonical_pcm_not_producer_manifest_hash",
+                  "settings_binding_kind": "derived_from_selected_payload_not_producer_receipt",
+                  "producer_worker_status": "not_recorded", "producer_worker_sha256": None}
+        producer = {"manifest_binding_kind": "producer_receipt_verified",
+                    "settings_binding_kind": "producer_receipt_verified",
+                    "producer_worker_status": "reported_not_current_code_reverified",
+                    "producer_worker_sha256": 'worker<unsafe>'}
+        graph["selected_evidence"]["pitch"].update(legacy)
+        graph["selected_evidence"]["meter"].update(producer)
+        (self.root / "dag.json").write_text(json.dumps(graph))
+        result = report.write_report(self.root)
+        text = (self.root / "report.html").read_text()
+        for slot, expected in (("pitch", legacy), ("meter", producer)):
+            receipt = result["selected_evidence_receipts"][slot]
+            self.assertEqual({key: receipt[key] for key in expected}, expected)
+        self.assertIn('Manifest binding: derived_current_canonical_pcm_not_producer_manifest_hash', text)
+        self.assertIn('Settings binding: derived_from_selected_payload_not_producer_receipt', text)
+        self.assertIn('Producer worker: not_recorded', text)
+        self.assertIn('Manifest binding: producer_receipt_verified', text)
+        self.assertIn('reported_not_current_code_reverified', text)
+        self.assertIn('worker&lt;unsafe&gt;', text)
+        self.assertNotIn('worker<unsafe>', text)
+        self.assertIn('Derived bindings do not establish a producer manifest receipt or reverify current worker code', text)
+
 
 if __name__ == "__main__":
     unittest.main()

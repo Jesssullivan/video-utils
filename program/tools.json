@@ -67,7 +67,7 @@
     {
       "name": "denoise",
       "title": "Denoise",
-      "description": "Conservatively reduce recording noise while retaining distorted 9-string guitar and intended fundamentals near 32 Hz. No automatic high-pass or hum notch; denoising can still remove intended fundamentals and harmonics. Listening acceptance is required.",
+      "description": "Conservatively reduce recording noise while retaining distorted 9-string guitar and intended fundamentals near 32 Hz. No automatic high-pass or hum notch; denoising can still remove intended fundamentals and harmonics. Listening acceptance is required. Captured8/12 presets are source-bound experimental comparisons; captured8-clarity additionally applies fixed EQ and compression in a separate processed artifact. The reviewed capture is not proven noise-only.",
       "intent": "Conservatively reduce recording noise while retaining distorted 9-string guitar and intended fundamentals near 32 Hz.",
       "inputSchema": {
         "type": "object",
@@ -83,10 +83,13 @@
             "enum": [
               "bypass",
               "conservative3",
-              "mild6"
+              "mild6",
+              "captured8",
+              "captured12",
+              "captured8-clarity"
             ],
             "default": "conservative3",
-            "description": "Bounded preset; compare matched-level baseline and removed-signal residue before accepting."
+            "description": "Fixed bounded preset. Captured presets bind the reviewed original-source SHA and 4.10\u20134.95 second capture interval; different recordings reject before rendering. Clarity adds separate EQ/compression processing. Compare matched-level baseline, pure denoised audio and residue before acceptance."
           },
           "timeout_seconds": {
             "type": "integer",
@@ -105,7 +108,10 @@
       "implementation_status": "available",
       "evidence_kind": "rendered_unreviewed",
       "limitations": [
-        "No automatic high-pass or hum notch; denoising can still remove intended fundamentals and harmonics. Listening acceptance is required."
+        "No automatic high-pass or hum notch; denoising can still remove intended fundamentals and harmonics. Listening acceptance is required.",
+        "Captured presets require original SHA a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6 and root-reviewed 4.10\u20134.95 second audio-relative interval. Different sources reject before probe/render; music or sustain absence is uncertain.",
+        "Pure denoised.wav and removed-signal residue remain separate from optional processed.wav EQ/compression and final cleaned.wav normalization. No optimal-tone or listening acceptance claim.",
+        "Only fixed profile names are exposed; no arbitrary capture interval, EQ or compressor object. Actual source-bound presets are excluded from synthetic benchmark profile choices."
       ],
       "annotations": {
         "readOnlyHint": false,
@@ -991,7 +997,7 @@
     {
       "name": "benchmark",
       "title": "Benchmark",
-      "description": "Generate bounded synthetic technical-guitar fixtures or measure the restoration/rhythm/phrase tools against known synthetic components. Three bounded synthetic cases cannot establish quality or correctness on the operator recording. Structural failures, experimental quality alerts and listening acceptance remain separate; no private media is acquired.",
+      "description": "Generate bounded synthetic technical-guitar fixtures or measure restoration/rhythm/phrase tools against known synthetic components. Choose technical-v1 (default, three cases) or technical-v2 (twelve cases, 120 seconds total). Synthetic results cannot establish real-recording quality or correctness; structural failures, experimental quality alerts and listening acceptance remain separate.",
       "intent": "Generate bounded synthetic technical-guitar fixtures or measure the restoration/rhythm/phrase tools against known synthetic components.",
       "inputSchema": {
         "type": "object",
@@ -1029,6 +1035,15 @@
             "default": "stdlib",
             "description": "Applies only to operation run; librosa requires an installed explicit analysis environment."
           },
+          "suite": {
+            "type": "string",
+            "enum": [
+              "technical-v1",
+              "technical-v2"
+            ],
+            "default": "technical-v1",
+            "description": "Applies to fixtures and run. Default v1 retains three 8-second cases; v2 uses twelve bounded technical-guitar cases totaling 120 seconds. No case selector or private recording acquisition."
+          },
           "timeout_seconds": {
             "type": "integer",
             "minimum": 1,
@@ -1046,7 +1061,9 @@
       "implementation_status": "experimental",
       "evidence_kind": "synthetic_fixture_or_tool_measurements",
       "limitations": [
-        "Three bounded synthetic cases cannot establish quality or correctness on the operator recording. Structural failures, experimental quality alerts and listening acceptance remain separate; no private media is acquired."
+        "technical-v1 default behavior is preserved; technical-v2 is twelve synthetic cases, 120 seconds total and at most 12 seconds per case.",
+        "Synthetic references and measurements do not establish correctness or musician intent on the operator recording; structural failures, quality alerts and listening acceptance remain separate.",
+        "Bounded local workers only: no downloads, models, installation, network or private-media acquisition."
       ],
       "annotations": {
         "readOnlyHint": false,
@@ -1394,6 +1411,230 @@
         "research": "Read the repository corpus schema and primary annotation/evaluation guidance; record uncertainty and separate assertions from checked metadata facts.",
         "iterate": "Correct an explicitly authored metadata inconsistency only within operator scope, rerun bounded validation, and compare receipt hashes; never auto-label or silently refresh a stale annotation.",
         "acceptance": "Metadata consistency and successful execution do not establish listening, reviewer authenticity, musical correctness, ground truth or real-take labels.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "pitch_evaluate",
+      "title": "Pitch pilot calibration",
+      "description": "Score an existing four-job, thirty-second pitch pilot against generated reference signals with branch-specific eligibility, abstentions, coverage and uncertainty retained. Existing artifact evaluator only: reads bounded WAV bytes for hash/header checks, with no decoding or inference. Compact summary follows full selected-evidence validation; output is a fresh local directory. Synthetic results never establish real-performance grading or listening acceptance.",
+      "intent": "Score an existing four-job, thirty-second pitch pilot against generated reference signals with branch-specific eligibility, abstentions, coverage and uncertainty retained.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "fixture_index": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing generated fixture bank JSON index beneath repository artifacts/benchmarks; no traversal, symlink, hidden or staging components."
+          },
+          "pilot_index": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing hash-bound pilot JSON index beneath repository artifacts/benchmarks. Worker validates selected source, reference, component, instrument, settings and observation receipts."
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "New directory beneath repository artifacts/benchmarks; root escape, symlinks and output reuse are rejected. No input overwrite."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 120,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "fixture_index",
+          "pilot_index",
+          "output"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-pitch-evaluate/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "synthetic_generated_reference_calibration",
+      "limitations": [
+        "Only the selected four-job/30-second pilot is evaluated; unrequested bank coverage is not whole-bank inference or transcription.",
+        "5 MB ancillary JSON, 64 MB per pitch artifact, 4000 branch frames per artifact, source WAV <=3 MB; no truth-selected branch/octave or fitted pitch/timing correction.",
+        "Source WAV bytes are read for hashes/native headers; source_audio_decoded and inference_invoked remain false. No discovery, model, installation, network or private-source acquisition.",
+        "References are generator_only_not_musician; listening and real-performance grading remain unestablished. Structural rejection and failed hard gates are errors; quality alerts remain visible baseline measurements.",
+        "Fixed --summary after full selected-evidence validation; full metric rows remain in local immutable evaluation artifacts."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "benchmark",
+          "pitch"
+        ],
+        "enforced": false,
+        "note": "Existing generated bank and pilot artifacts are required; this evaluator does not run prior discovery tools."
+      },
+      "agent_workflow": {
+        "identify": "Inspect explicit generated origin, pilot scope, hashes, native extents, sample coverage, exclusions and unknowns; distinguish validated structure from detection quality.",
+        "research": "Read the calibration metric contract and primary evaluation references; preserve exact denominators, context exclusions and generated-reference scope.",
+        "iterate": "Choose existing fixed pilot artifacts and a fresh output directory, run bounded evaluation, inspect quality alerts and full local metrics; do not regenerate convenient truth, choose a truth-favored branch, or alter the real take.",
+        "acceptance": "Synthetic calibration, structural success and generated label agreement do not establish real musician intent, transcription, correctness, listening or AU/Logic acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "phrase_evaluate",
+      "title": "Phrase pilot calibration",
+      "description": "Measure existing generated-fixture boundary, recurrence, alignment and attack hypotheses against generated references, retaining one-to-one matching, abstentions and pre-warp differences. Existing artifact evaluator only: reads bounded WAV bytes for hash/header checks, with no decoding or inference. Compact summary follows full selected-evidence validation; output is a fresh local directory. Synthetic results never establish real-performance grading or listening acceptance.",
+      "intent": "Measure existing generated-fixture boundary, recurrence, alignment and attack hypotheses against generated references, retaining one-to-one matching, abstentions and pre-warp differences.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "fixture_index": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing generated fixture bank JSON index beneath repository artifacts/benchmarks; no traversal, symlink, hidden or staging components."
+          },
+          "pilot_index": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing hash-bound pilot JSON index beneath repository artifacts/benchmarks. Worker validates selected source, reference, component, instrument, settings and observation receipts."
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "New directory beneath repository artifacts/benchmarks; root escape, symlinks and output reuse are rejected. No input overwrite."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 120,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "fixture_index",
+          "pilot_index",
+          "output"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-phrase-evaluate/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "synthetic_generated_reference_calibration",
+      "limitations": [
+        "At most 12 generated fixtures and 120 seconds; metadata 20 MB per file/64 MB aggregate, full evaluation JSON 20 MB and compact stdout 8 KB.",
+        "Boundary/phrase/attack quality metrics are initial baselines; generated reference agreement does not confirm semantic phrases, musician intent or real performance correctness.",
+        "Source WAV bytes are read for hashes/native headers; source_audio_decoded and inference_invoked remain false. No discovery, model, installation, network or private-source acquisition.",
+        "References are generator_only_not_musician; listening and real-performance grading remain unestablished. Structural rejection and failed hard gates are errors; quality alerts remain visible baseline measurements.",
+        "Fixed --summary after full selected-evidence validation; full metric rows remain in local immutable evaluation artifacts."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "benchmark",
+          "phrases",
+          "phrase_compare"
+        ],
+        "enforced": false,
+        "note": "Existing generated bank and pilot artifacts are required; this evaluator does not run prior discovery tools."
+      },
+      "agent_workflow": {
+        "identify": "Inspect explicit generated origin, pilot scope, hashes, native extents, sample coverage, exclusions and unknowns; distinguish validated structure from detection quality.",
+        "research": "Read the calibration metric contract and primary evaluation references; preserve exact denominators, context exclusions and generated-reference scope.",
+        "iterate": "Choose existing fixed pilot artifacts and a fresh output directory, run bounded evaluation, inspect quality alerts and full local metrics; do not regenerate convenient truth, choose a truth-favored branch, or alter the real take.",
+        "acceptance": "Synthetic calibration, structural success and generated label agreement do not establish real musician intent, transcription, correctness, listening or AU/Logic acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "marked_video",
+      "title": "Marked guitar review preview",
+      "description": "Render a separate video with burned uncertain phrase/recurrence review callouts from an existing hash-bound run. Reencode picture, copy AAC, and verify decoded VFR frame timestamps, AAC packet timing/payload and PCM identity. No new analysis or master overwrite; fixed compact summary and fresh local output.",
+      "intent": "Make existing uncertain source-time phrase and timing review evidence visible while preserving delivery audio and original media.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing verified run beneath repository artifacts/runs. Relative paths use repository root; traversal and symlinks are rejected."
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Fresh output directory beneath repository artifacts/runs; no source or master overwrite."
+          },
+          "selection": {
+            "type": "string",
+            "enum": [
+              "phrase-review",
+              "recurrences",
+              "all-review"
+            ],
+            "default": "phrase-review",
+            "description": "Fixed review-marker selection; no inferred correctness or new discovery."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard owned-worker/process-group deadline in seconds, including renderer children."
+          }
+        },
+        "required": [
+          "run_dir",
+          "output"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-marked-video/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "verified_media_preservation_with_uncertain_review_callouts",
+      "limitations": [
+        "All callouts remain uncertain review hypotheses, not confirmed note or performance mistakes.",
+        "Existing current manifest, export, DAG, flags and markers are required; stale provenance rejects before output creation. Later render failures retain local diagnostics.",
+        "Source duration <=600 seconds; <=5000 input markers, <=128 selected except all-review <=5000; two codec/filter threads and bounded child output.",
+        "Picture is reencoded; AAC packet timing/payload and decoded PCM identity are verified. ASS cues have 10 ms quantization; physical capture synchronization and listening remain unverified.",
+        "No new analysis, original/master overwrite, native editor import, AU/Logic validation or automatic installation."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "export",
+          "pipeline",
+          "markers"
+        ],
+        "enforced": false,
+        "note": "Current verified artifacts are required; prior tools are not invoked automatically."
+      },
+      "agent_workflow": {
+        "identify": "Inspect current hashes, source-time evidence, uncertainty and marker selection; distinguish review hypotheses from definite errors.",
+        "research": "Read rendering and source-time contracts; compare fixed selection purposes and investigate unexpected alignment before rerendering.",
+        "iterate": "Choose an explicit supported selection and fresh output, render within a bounded deadline, inspect selection and verification receipts, then review visually and by listening.",
+        "acceptance": "Transport and media-identity verification do not establish musical correctness, listening acceptance, physical capture sync or native editor/AU host compatibility.",
         "max_comparison_candidates_default": 3
       }
     }

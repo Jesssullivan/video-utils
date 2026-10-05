@@ -2,9 +2,9 @@
 
 Authority: operator-authorized ten-hour goal; repository AGENTS.md;
 R-HOOK-CONVERGENCE-20261004 / R-N12 / R-N13. Owner: `guitar_features`.
-This document is a research and implementation contract during root's
-publication freeze. It changes no active worker, tests, registry or fixture.
-Implementation starts only after root releases the lane and assigns source files.
+Root released implementation after publication `45a1313ccbcb0ecc097f3a017979254e5719a3c6`.
+The evaluator and independent tests implement this contract without changing the
+published pitch worker, instrument registry or generated bank.
 
 ## Goal and fixed pilot
 
@@ -46,9 +46,12 @@ FFT bin or a post-synthesis nonlinear transform that could regenerate F0.
 
 ## Input and output contracts
 
-The benchmark owner generates the bank, truth and pitch job receipts. A future
-`scripts/pitch_calibration.py --fixture-index BANK --pilot-index PILOT --output NEW_DIRECTORY`
-will evaluate existing artifacts; it will not invoke pitch or regenerate audio.
+The benchmark owner generates the bank and truth; the calibration controller
+records discovery receipts.
+`scripts/pitch_evaluate.py --fixture-index BANK --pilot-index PILOT --output NEW_DIRECTORY [--summary]`
+evaluates existing artifacts without invoking pitch or regenerating audio.
+`--summary` emits compact paths, status, counts and read/acceptance flags after
+full validation; the complete receipt and CSVs always remain on disk.
 Outputs are new directories under ignored `artifacts/benchmarks/`. Root owns the
 recipe, hook, report and publication integration after the implementation passes.
 
@@ -75,7 +78,15 @@ or nonfinite timestamps/frequencies, unsupported schemas, duplicate branch
 frame centers, overlapping requested excerpts, coverage outside the input, or
 coverage beyond the 30-second aggregate pilot. Allow nullable probabilities and
 frequency abstentions. Bounds: 5 MB per bank/truth/pilot JSON, 64 MB per pitch
-artifact, six excerpts per artifact and 4000 total branch frames per artifact.
+artifact, 3 MB per source WAV, one fixed contiguous excerpt per pilot artifact
+and 4000 total branch frames per artifact. Metadata nesting is bounded at 128;
+duplicate keys and nonfinite values, including overflow exponents, are rejected.
+Every path stays beneath repository `artifacts/benchmarks` without traversal or
+symlink components. Source bytes and PCM headers are hash verified without
+waveform decoding or inference: `source_audio_bytes_read: true`,
+`source_audio_decoded: false`, `inference_invoked: false`. Opaque input aliases
+are accepted only when their byte hash and PCM extent match the selected bank
+component; the mixture parent and canonical component are verified separately.
 Validate counts before calculating metrics. No frame artifacts or audio enter Git.
 
 Write atomic `pitch-calibration.json` with schema version 1, bank/pilot/evaluator
@@ -198,3 +209,19 @@ convention are informed by the official
 No new mir_eval dependency is required. The full-window masks, context exclusions,
 30-second sampling budget and alert thresholds above are explicit project choices;
 neither source establishes accuracy on distorted nine-string recordings.
+
+## Implemented failure policy
+
+Structural failures retain a diagnostic-only receipt with no metric cases and
+exit 1. Valid measurements with unsupported nested confirmed-note, musical-error
+or listening-acceptance claims retain their metrics, set
+`status: generated_fixture_calibration_failed_hard_gates`,
+`hard_gates_passed: false` and exit 1. Compact stdout remains JSON; stderr names
+the failure and retained receipt. Poor pitch/voicing/octave baselines produce
+visible quality alerts and exit 0; no accuracy threshold forces a fabricated
+pass. Fresh output directory violations exit 2 and never overwrite a receipt.
+
+The portable test helper uses clearly marked structural smoke signals and
+constructed abstaining estimates. It validates evaluator behavior and is not the
+technical-v2 inference pilot or evidence of pYIN accuracy. Root owns the actual
+four-job 30-second discovery pilot against the complete generated bank.

@@ -285,7 +285,10 @@ def selected_feature_evidence(root, manifest, auxiliary, auxiliary_status):
         payloads[name] = payload
         receipts[name] = {"selector": local, "artifact_sha256": expected,
                           "timing_status": row.get("timing_status", "unknown"),
-                          "payload_status": row.get("payload_status", payload.get("status", "unknown"))}
+                          "payload_status": row.get("payload_status", payload.get("status", "unknown")),
+                          **{key: row.get(key, None if key == "producer_worker_sha256" else "not_recorded")
+                             for key in ("manifest_binding_kind", "settings_binding_kind",
+                                         "producer_worker_status", "producer_worker_sha256")}}
     # Detect changed graph inputs before promoting any selected payload.
     if payloads and any(not strict_artifact(root, path) or sha256(root / path) != expected
                         for path, expected in hashes.items()):
@@ -430,6 +433,12 @@ def selected_feature_section(manifest, payloads, statuses, receipts):
         body = renderers[name](manifest, payloads[name]) if name in payloads else '<p class="unavailable">No graph-verified selection is displayed. Candidate absence is not established.</p>'
         link = f'<a href="{escape(quote(receipt["selector"]))}">Selected evidence JSON</a>' if receipt else ''
         caption = f'<p class="caption">Selection: {feature_escape(status)}. Payload: {feature_escape(receipt.get("payload_status", "unknown"))}. Timing: {feature_escape(receipt.get("timing_status", "unknown"))}. {link}</p>'
+        if receipt:
+            scope = [('Manifest binding', receipt.get('manifest_binding_kind')),
+                     ('Settings binding', receipt.get('settings_binding_kind')),
+                     ('Producer worker', receipt.get('producer_worker_status')),
+                     ('Producer worker SHA-256', receipt.get('producer_worker_sha256') or 'not_recorded')]
+            caption += '<p class="caption">' + ' · '.join(f'{label}: {feature_escape(value)}' for label, value in scope) + '. Derived bindings do not establish a producer manifest receipt or reverify current worker code.</p>'
         sections.append(f'<details><summary>{labels[name]} · {feature_escape(status)}</summary>{caption}{body}</details>')
     return '<section><h2>Selected feature evidence</h2><p class="caption">Only explicit graph selections with current artifact and upstream hashes appear here. DSP timing verification does not establish physical capture delay, detector calibration, musical correctness or listening acceptance.</p>' + ''.join(sections) + '</section>'
 
@@ -767,6 +776,54 @@ def metric_rows(manifest, analysis, outcome=None):
     return ''.join(rows) or '<tr><td colspan="3">Measurements unavailable in this run manifest.</td></tr>'
 
 
+def restoration_caption(manifest):
+    """Describe recorded delivery stages without inferring successful audition."""
+    stages = objects(manifest.get("restoration_stages"), 16)
+    if not stages:
+        return "Cleanup delivery; stage chain not recorded in this legacy manifest. Listening acceptance pending."
+    profile = manifest.get("profile") or {}
+    profile = profile if isinstance(profile, dict) else {}
+    capture = manifest.get("noise_capture") or {}
+    capture = capture if isinstance(capture, dict) else {}
+    chain = []
+    for item in stages:
+        name = str(item.get("stage", "unknown"))[:100]
+        controls = item.get("controls") or {}
+        controls = controls if isinstance(controls, dict) else {}
+        if name == "afftdn":
+            label = f'afftdn (NR {shown(profile.get("reduction_db"), 2)} dB; NF {shown(profile.get("noise_floor_db"), 2)} dBFS)'
+            interval = capture.get("actual_selected_seconds", capture.get("selected_seconds", profile.get("noise_capture_seconds")))
+            if isinstance(interval, list) and len(interval) == 2 and all(finite(v) is not None for v in interval):
+                label += f'; captured {shown(interval[0], 2)}–{shown(interval[1], 2)}s of decoded source'
+                label += '; noise-only verified' if capture.get("noise_only_verified_by_worker") is True else '; noise-only unverified'
+            chain.append(label)
+        elif name.startswith("peaking_eq_"):
+            chain.append(f'peaking EQ {shown(controls.get("frequency_hz"), 0)} Hz / {shown(controls.get("gain_db"), 2)} dB / Q {shown(controls.get("q"), 2)}')
+        elif name == "rms_compressor":
+            chain.append(f'RMS compression {shown(controls.get("threshold_db"), 1)} dB / {shown(controls.get("ratio"), 2)}:1 / attack {shown(controls.get("attack_ms"), 1)} ms / release {shown(controls.get("release_ms"), 1)} ms / wet {shown(finite(item.get("fixed_parallel_wet_fraction")) * 100 if finite(item.get("fixed_parallel_wet_fraction")) is not None else None, 0)}%')
+        elif name == "measured_loudness_normalization":
+            chain.append("measured loudness normalization")
+        else:
+            chain.append(name.replace("_", " "))
+    label = str(profile.get("name", "unnamed profile"))[:100]
+    review = capture.get("review", profile.get("noise_capture_review"))
+    review_note = f' Capture review: {str(review)[:300]}.' if isinstance(review, str) and review else ''
+    return f'Recorded delivery chain [{label}]: ' + ' → '.join(chain) + '.' + review_note + ' Listening acceptance pending.'
+
+
+def analysis_stage_caption(manifest, analysis):
+    identity = source_identity(analysis)
+    denoised = manifest.get("output_sha256", {}).get("denoised.wav")
+    stages = objects(manifest.get("restoration_stages"), 16)
+    post = any(str(item.get("stage", "")).startswith("peaking_eq_") or item.get("stage") == "rms_compressor" for item in stages)
+    if identity and denoised and identity == denoised:
+        scope = "Analysis input: pure denoised.wav before delivery loudness normalization."
+        if post:
+            scope += " The rendered cleaned.wav audition includes subsequent EQ/compression; these analysis findings do not describe processed.wav or the final mastering chain."
+        return scope
+    return "Analysis scope follows the verified input lineage; a rendered final audition does not establish that its full mastering chain was analyzed."
+
+
 def render(root, manifest, analysis, events, outcome=None, identity_status="unavailable", export_status="unavailable", auxiliary=None, auxiliary_status=None, features=None, feature_status=None, selected=None, selected_status=None, selected_receipts=None):
     paths = media_paths(root, manifest, outcome)
     source = manifest.get("source", manifest.get("input", {}))
@@ -777,10 +834,11 @@ def render(root, manifest, analysis, events, outcome=None, identity_status="unav
     baseline = artifact(root, manifest.get("outputs", {}).get("baseline")) if isinstance(manifest.get("outputs"), dict) else None
     matched = bool(baseline) and paths.get("original") == baseline
     original_note = "Original recording with playback-level normalization for A/B comparison." if matched else "Unprocessed decoded recording; match playback loudness manually."
-    for role, title, note in [("original", "Original · audition", original_note), ("clean", "Clean iteration", "Conservative processing; listening acceptance pending."), ("residual", "Removed signal", "Pre-gain diagnostic; inspect for removed guitar detail. This is not an isolated source.")]:
+    residue_note = "Pure pre-gain denoise diagnostic: source.wav minus denoised.wav. Excludes subsequent EQ, compression and loudness normalization; it is not an isolated source or the final mastering difference. Inspect for removed guitar detail."
+    for role, title, note in [("original", "Original · audition", original_note), ("clean", "Clean iteration", restoration_caption(manifest)), ("residual", "Removed signal", residue_note)]:
         name = paths[role]
         player = f'<audio controls preload="none" src="{escape(quote(name))}"></audio><a href="{escape(quote(name))}" download>Download WAV</a>' if name else '<p class="unavailable">Artifact unavailable.</p>'
-        cards.append(f'<article class="card"><h3>{title}</h3><p>{note}</p>{player}</article>')
+        cards.append(f'<article class="card"><h3>{title}</h3><p>{escape(note)}</p>{player}</article>')
     video = paths["video"]
     video_html = f'<video controls preload="none" playsinline src="{escape(quote(video))}"></video>' if video else '<p class="unavailable">Processed video unavailable.</p>'
     availability = "Analysis exported" if analysis else "Rhythm analysis unavailable"
@@ -815,7 +873,7 @@ def render(root, manifest, analysis, events, outcome=None, identity_status="unav
 <section><h2>Listen and compare</h2><p class="note">{'Original and cleaned auditions target the same integrated loudness; check their measured values below.' if matched else 'These files may have different playback loudness; match levels manually.'} A louder iteration or less distortion does not establish better tone. The removed-signal player is a diagnostic at its own level.</p><div class="cards">{''.join(cards)}</div></section>
 <section><h2>Processed video</h2>{video_html}<p class="caption">{export_caption}</p><p class="caption">A rendered video is a delivery artifact; audiovisual sync and listening quality require separate acceptance.</p></section>
 <section><h2>Waveform and timing candidates</h2>{visualization(root, paths, events, analysis)}{subdivisions}</section>
-<section><h2>Run evidence</h2><p class="caption">Analysis lineage: {escape(identity_status)}. Unrelated or modified analysis inputs are excluded from this report.</p>{source_receipt}{settings_receipt}<table><thead><tr><th>Measure</th><th>Value</th><th>Evidence boundary</th></tr></thead><tbody>{metric_rows(manifest, analysis, outcome)}</tbody></table></section>
+<section><h2>Run evidence</h2><p class="caption">Analysis lineage: {escape(identity_status)}. Unrelated or modified analysis inputs are excluded from this report.</p><p class="caption">{escape(analysis_stage_caption(manifest, analysis))}</p>{source_receipt}{settings_receipt}<table><thead><tr><th>Measure</th><th>Value</th><th>Evidence boundary</th></tr></thead><tbody>{metric_rows(manifest, analysis, outcome)}</tbody></table></section>
 {review}
 {phrase_report}
 {feature_report}
@@ -853,7 +911,7 @@ def write_report(root):
     finally:
         if temporary and temporary.exists():
             temporary.unlink()
-    return {"report": "report.html", "analysis_available": bool(analysis), "analysis_lineage": identity_status, "export_evidence": export_status, "auxiliary_evidence": auxiliary_status, "feature_evidence": feature_status, "selected_evidence": selected_status, "event_count": len(events), "renderer": "python-stdlib-html", "listening_acceptance": "pending"}
+    return {"report": "report.html", "analysis_available": bool(analysis), "analysis_lineage": identity_status, "export_evidence": export_status, "auxiliary_evidence": auxiliary_status, "feature_evidence": feature_status, "selected_evidence": selected_status, "selected_evidence_receipts": selected_receipts, "event_count": len(events), "renderer": "python-stdlib-html", "listening_acceptance": "pending"}
 
 
 def main():

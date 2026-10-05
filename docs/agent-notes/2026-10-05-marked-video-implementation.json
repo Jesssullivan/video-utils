@@ -1,0 +1,57 @@
+{
+  "actor": "media_latency",
+  "created_at": "2026-10-05T23:15:51.846606+00:00",
+  "authority": "R-HOOK-CONVERGENCE-20261004; operator ten-hour parallel goal; R-N11/R-N13",
+  "status": "implementation_and_tiny_vfr_render_verified_actual_render_pending_root",
+  "worker": "scripts/marked_video.py",
+  "worker_sha256": "a39280f22b60814b31a7f1bff2bfce693aacfa3e82c148df82a3513862fba300",
+  "tests": {
+    "command": "FFMPEG=<pinned ffmpeg> FFPROBE=<pinned ffprobe> python3 -m unittest discover -s tests -p test_marked_video.py -v",
+    "count": 13,
+    "passed": true,
+    "real_render": true
+  },
+  "fixture": {
+    "output": "artifacts/runs/marked-vfr-fixture-20261005T231231Z/marked-video/frozen-proof",
+    "outcome_sha256": "bcad7ebb39985631713fc60a72a8d65ee189daeff5af258a7632bbb4267c5eae",
+    "original_container_start_seconds": 2,
+    "verification": {
+      "decoded_video_frame_count": 21,
+      "decoded_video_frame_pts_preserved": true,
+      "decoded_video_last_extent_preserved": true,
+      "aac_packet_payloads_timing_and_padding_preserved": true,
+      "decoded_video_first_pts_seconds": 0.0,
+      "decoded_video_last_extent_seconds": 2.0,
+      "picture_geometry_preserved": true,
+      "decoded_video_variable_frame_intervals_observed": true,
+      "decoded_video_frame_pts_sha256": "b429013b6bbd9d47457fe306971fb17ac7905995e00ad080bd2a273b9b6a235b",
+      "decoded_audio_pcm_sha256_preserved": true,
+      "decoded_audio_pcm_hash": "SHA256=de1b8726e19d5918e6a6ef057e3e93fae5e251b9095d6964ca6ed9504b355e63",
+      "audio_sample_rate": 48000,
+      "audio_channels": 1,
+      "picture_reencoded": true,
+      "physical_audio_video_sync_verified": false
+    },
+    "preview_sha256": "cf56c13c3fb5ee0aa80679574c9f1364942d8f4541fe4adbdd3fd21703129550"
+  },
+  "actual_delivery_read_only": {
+    "run": "artifacts/runs/20261005T211103Z-c6d0bac2fcd2",
+    "frames": 3621,
+    "aac_packets": 6503,
+    "last_decoded_frame_extent_seconds": 150.885,
+    "decoded_pcm_hash": "SHA256=236c38376bca1c7e6af0ac6d11c298ecb34347d8dec5fd536cba11463c96e55d",
+    "selected_markers": 40,
+    "composed_callouts": 33,
+    "excluded_navigation_texture_proxies": 157,
+    "actual_marked_render_run": false
+  },
+  "process_scope": "direct FFmpeg/FFprobe children retain controller group; named live own child cleanup only; 2MiB pipes,120s probes,600s encode,two math/codec/filter threads",
+  "preserved": "original/PCM master/cleaned video/report/latest unchanged",
+  "listening_accepted": false,
+  "visual_acceptance_scope": "toy fixture amber uncertain two-line callout visually inspected; root owns full actual render and review",
+  "limitations": [
+    "Review hypotheses are not confirmed mistakes.",
+    "SOURCE ranges are presentation intervals; original evidence and exact flag IDs remain in selection.json.",
+    "Original capture physical A/V sync, native NLE import and Logic acceptance remain unverified."
+  ]
+}

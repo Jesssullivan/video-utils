@@ -218,3 +218,47 @@ ambiguity preserved, null tonic/mode and sparse coverage separate, and no
 out-of-scale correctness grades. The review used no execution or media.
 Independent locked tonal verification passed all 21 tests in 24.4 seconds,
 including missing-fundamental and registry read/hash-race cases.
+
+## October 5 captured-denoise skill refinement
+
+Definition of done before this skill update: inspect the three source-bound
+profile files and implemented restoration stages, match the denoise hook's
+supported enum, preserve uncertain capture provenance and explicit absolute
+floor, distinguish pure denoise/residue from optional EQ/compression and final
+normalization, then validate all twenty-three skills and exact MCP prompt
+readbacks. This checkpoint edits only `guitar-denoise` and this owned receipt;
+root owns profiles, actual comparisons, publication and acceptance.
+
+The updated skill now documents `captured8`, `captured12` and
+`captured8-clarity` from their actual profile files and worker stages. Source
+binding is original SHA256
+`a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6`;
+root selected decoded-audio interval 4.10–4.95 seconds under user-authorized
+capture. It is not an operator-exact or verified noise-only interval. Fifteen-band
+shape is captured in private preroll and applied from original sample zero;
+the explicit −40 dB floor remains a candidate control, not measured SNR.
+Reduction 8/12 dB with ad=0/gs=0 retains attack/sustain/artifact risk.
+
+Clarity's 300 Hz/−1.5 dB and 2,200 Hz/+1 dB Q=0.8 EQ precedes the stated linked
+2:1 RMS compressor, −18 dB threshold, 15/100 ms attack/release, 3 dB knee and
+25% wet blend. Its approximately 2.50 dB compressor-stage attenuation bound
+does not qualify total chain changes. Pure denoised/residue and optional
+processed/final normalized artifacts are distinguished. Prior weak comparisons
+and stronger candidates have no accepted best tone; this take's settings are
+not a transferable universal preset.
+
+After hook enum activation, all twenty-three bundles validate and an actual
+initialized MCP session returns twenty-three tools/prompts with exact content
+readback for every skill and empty stderr. Denoise exposes exactly six named
+profiles while benchmark retains its original three. The hook owner reports
+two focused tests passing, including three actual wrong-source MCP errors before
+probe/render even with FFmpeg unavailable. These prove local source/interface
+boundaries, not actual captured-render quality or listening acceptance.
+
+Independent read-only forward review covered transplanting the captured profile
+to another same-tuned take, declaring the capture noise-only, reading its floor
+as measured SNR, accepting clarity as best and using pure residue to certify
+later-stage fidelity. It found no concrete gap: preserve source binding,
+uncertain capture, explicit controls, matched comparisons and separate chain
+artifacts/limitations. No media, writes, renders, listening claims or network
+were used in that review.

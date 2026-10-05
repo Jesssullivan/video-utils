@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "evidence": "operator_stated_project_constants_2026-10-05",
+  "instrument_registry": "program/instrument.json",
+  "recording_context": {
+    "content": "nine-string down-tuned technical guitar practice and performance",
+    "capture_types": ["phone video", "Photo Booth video"],
+    "background": {
+      "large_box_fan_present": true,
+      "noise_spectrum": "measure per take",
+      "motor_or_blade_frequency_hz": null
+    }
+  },
+  "tone_reference_artists": [
+    {"name": "Lorna Shore", "operator_text": "lornashore"},
+    {"name": "The Haunted", "operator_text": "the haunted"},
+    {"name": "Meshuggah", "operator_text": "meshugga"},
+    {"name": "Kublai Khan TX", "operator_text": "kubmikan tx", "normalization": "inferred name from operator context"},
+    {"name": "Mgła", "operator_text": "mgla"},
+    {"name": "Children of Bodom", "operator_text": "children of bodom"}
+  ],
+  "reference_scope": "articulation, saturation texture, string separation and low-register weight",
+  "processing_policy": {
+    "noise_capture": "source-bound reviewed opening interval; profile applies to complete take",
+    "dynamics_and_eq": "bounded measured comparison with listening review",
+    "low_frequency_content": "protect musical fundamentals around 32 Hz and sustain",
+    "artist_spectrum_is_target_eq": false,
+    "artist_reference_is_expected_score": false,
+    "fixed_mains_or_fan_notch": false
+  }
+}

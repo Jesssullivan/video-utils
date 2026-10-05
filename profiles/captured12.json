@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "name": "captured12",
+  "denoise": true,
+  "reduction_db": 12,
+  "noise_floor_db": -40,
+  "adaptivity": 0,
+  "gain_smooth": 0,
+  "preserve_low_fundamental_hz": 32,
+  "integrated_lufs": -18,
+  "true_peak_dbtp": -1.5,
+  "noise_capture_seconds": [4.1, 4.95],
+  "noise_capture_authorized": true,
+  "noise_capture_source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "noise_capture_review": "Root reviewed decoded-source-sample interval 4.10-4.95 seconds under user-authorized noise capture. Lowest nearby quarter-second RMS about -35.8 dBFS; click-like candidates at 3.8075 and 5.2375 seconds are outside the selected interval. Root viewed the 4.3-second frame. Absence of guitar sustain/music is uncertain; this is not an operator-exact interval or verified noise-only reference.",
+  "description": "Experimental stronger source-bound captured-band-shape comparison, 12 dB reduction. Absolute -40 dB floor remains an explicit candidate control. Instant adaptation and zero gain smoothing qualified only by generated fixtures. Stronger removal can damage guitar energy, short attacks and tails; no real-recording listening acceptance."
+}

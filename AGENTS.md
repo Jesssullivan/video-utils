@@ -16,6 +16,32 @@ receipts, durable notes here, and factual tracker evidence. Do not edit sibling
 repositories, terminate other sessions, or change host/plugin configuration as
 part of this project.
 
+## Product axioms
+
+Build for technical-guitar woodshedding, practice and clear communication among
+working bands. A take should become a shareable restored clip with source-timed
+musical review data and reproducible processing evidence. Evaluate changes by
+their effect on that practice workflow and the unusual distorted nine-string
+instrument, rather than by a generic speech-cleanup or studio-mastering score.
+
+1. Technical/virtuoso detection must account for riffs, irregular subdivisions,
+   palm mutes, rests, tapping, sweeps and legato. Musical phrase and timing review
+   work without a predefined score; correctness claims need sufficient intent
+   and calibrated evidence. Attack counts alone never identify missed notes.
+2. Agent participation is part of the product: every processing primitive has
+   a typed MCP hook and skill stating intent, knobs, dependencies, research,
+   iteration and evidence. Preserve comparisons, sparse coverage, uncertainty
+   and failures so agents and musicians can assess a proposed setting.
+3. Heavy distortion and unusual low tuning shape all processing and benchmarks.
+   Protect approximately 32 Hz musical content, low-string weight, saturated
+   texture, pick transients and sustain; compare fan cleanup, dynamics and EQ
+   with the recorded instrument context and listening feedback.
+
+Clip delivery combines restored audio/video and useful phrase/rhythm review;
+optional stems remain estimates with source provenance. The underserved-market
+assertion is a product hypothesis: cite dated primary comparisons, acknowledge
+overlapping features, and retain unverified specialized accuracy as unknown.
+
 ## Work and interfaces
 
 - `just` is the operator entrypoint. Root `justfile` routes `just/*.just`.
@@ -71,3 +97,20 @@ compare supported knobs and record evidence. Intended notes require tuning and
 a reference; note correctness cannot follow from a dominant spectral peak.
 Generic markers are an interchange pilot; Final Cut/Resolve import requires
 actual application proof in a future milestone.
+
+## Constant recording and tone context
+
+`program/capture-context.json` records the operator's large-box-fan background
+and artist references: Lorna Shore, The Haunted, Meshuggah, Kublai Khan TX,
+Mgła and Children of Bodom. Treat these as persistent project context. Preserve
+low-string weight, string separation, pick attacks, saturated texture, sustain,
+tapping and legato. Studio/full-band spectra do not establish the guitar's
+isolated spectrum, microphone response, expected score or an automatic EQ curve.
+
+Noise capture must bind the current source and reviewed opening interval;
+apply a measured captured profile to the complete take when requested. Fan
+frequency, microphone position and noise level require per-take measurements.
+Do not assume mains/blade lines or apply a notch that overlaps musical notes.
+Compare stronger denoising, controlled compression and bounded EQ reversibly,
+with matched presentation level and explicit residue/artifact review. Keep pure
+denoising separate from tone/dynamics processing and reanalyze changed inputs.

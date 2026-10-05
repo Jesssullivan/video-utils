@@ -2,11 +2,13 @@
 
 Authority: operator ten-hour parallel goal; R-HOOK-CONVERGENCE-20261004,
 R-N12/R-N13. Owner `repo_patterns` currently owns this new specification only.
-This is research and a proposed implementation contract, **not executable v2**.
-Root's publication/source freeze protects `scripts/benchmark.py`,
+This began as a research-only contract. Root released implementation after
+signed publication `45a1313ccbcb0ecc097f3a017979254e5719a3c6`; the implemented
+bank checkpoint is recorded below. Root's publication/source freeze protected `scripts/benchmark.py`,
 `tests/test_benchmark.py`, `program/benchmarks.json` and all active full-suite
-inputs. No runner, test, configuration, hook or skill change is authorized here
-until root explicitly broadcasts release and assigns files.
+inputs during planning. Explicitly assigned implementation now owns the runner,
+new bank helper/tests/configuration, this spec and its dated receipt; root owns
+hooks, recipes, publication and actual composite calibration.
 
 ## Definition of done before implementation
 
@@ -155,9 +157,12 @@ Keep these task-specific sections explicit:
 
 Discovery workers receive audio and their normal supported settings only. They
 must not receive score events, pitch truth, phrase boundaries or warp references.
-Evaluators read those labels afterwards. A declared-BPM experiment is separately
-tagged `reference_grid_supplied`; the variable-tempo discovery run receives no
-forced global 178 BPM. A reference-pair evaluator may use the generated score only
+Evaluators read those labels afterwards. Root's clarified v2 baseline is
+**unseeded for every case**, with no `--bpm` and no truth-derived waveform
+template. Historical v1 retains its existing declared178/template controls.
+A future explicitly requested declared-BPM experiment must be separately
+tagged `reference_grid_supplied`; it is not implemented by the v2 default.
+A reference-pair evaluator may use the generated score only
 when its output clearly describes a generated reference task, not score-free
 discovery. No labels or acceptance states are transferred to real recordings.
 
@@ -220,12 +225,12 @@ Preserve existing v1 process semantics for historical reproducibility.
 
 ## Proposed extension and bounded evaluation
 
-After release, add opt-in `--suite technical-v2` to existing `fixtures`/`run`
+The released extension adds opt-in `--suite technical-v2` to existing `fixtures`/`run`
 commands, keeping the default `technical-v1` behavior. A future repeated
 `--case ID` selector may choose only registered cases, never an arbitrary input.
-Root assigns the configuration file/typed-hook/skill changes explicitly before
-they are edited. No v2 operation is advertised until its direct worker and
-registry contract pass. Future examples, currently unavailable:
+The separate `program/benchmarks-v2.json` preserves the original v1 configuration
+bytes and hash. No `--case` selector is implemented. Root assigns typed-hook/skill
+changes separately. Actual direct commands:
 
 ```text
 python3 scripts/benchmark.py fixtures --suite technical-v2 --output NEW_DIRECTORY
@@ -290,3 +295,65 @@ Receipt: `repo_patterns | new BENCHMARK_CALIBRATION_LANE.md only | authorized
 research/design during root full-suite source freeze | R-N12/R-N13,
 R-HOOK-CONVERGENCE-20261004 | technical-v1 existing3cases, no expanded evaluator |
 proposed12cases120s and30s pitch pilot; await explicit root release before code`.
+
+## Implemented bank and freeze checkpoint
+
+The opt-in generator, truth-schema2, source/component/native extent receipts,
+unseeded v2 restoration/rhythm/click/phrase measurements and maximum-cardinality
+event scorer are implemented. V1 defaults/configuration/waveforms remain intact.
+`fixtures.json` and all component paths in truth are relative to the fixture
+index's parent, not to individual truth files. New generated-score sections
+declare `status: complete_generated_score` and `attack_reference_known: true`.
+Legacy cases retain attack-time aliases and explicitly unqualified pitch/score
+coverage rather than invented full transcripts.
+
+After PCM16 rendering, the absent-F0 case fits sine/cosine coefficients for
+harmonic indices1,2,3,4,5,7 jointly on seconds1–7, using native stride24 (2kHz,
+above twice its highest generated harmonic). F0 amplitude must be below5e-5;
+each known harmonic amplitude must differ by at most5e-5 (about1.64 PCM16 LSB).
+This is a declared generated-coefficient bound, not audible missing-pitch proof.
+Configuration and registry objects are parsed and hashed from the same byte
+snapshots; the legacy generator's source hash is also retained. A changed input
+or generator before completion rejects the bank. Nine ladder condition midpoint
+envelope/phase resets are recorded as generator nuisance transitions, distinct
+from picked attacks, so their detector responses can be reviewed honestly.
+
+The v2 runner evaluates source immutability/native extent, the32Hz sentinel, and
+**exact** pre-normalization denoised bypass sample identity. Its profile still
+uses measured presentation gain separately; it makes no normalized-master
+bypass identity claim. Unrequested click attenuation has an explicit
+`not_evaluated` protected-overlap gate. Hard evaluated failures fail the run;
+ordinary detector-quality alerts remain measurements. Pitch and expanded phrase
+calibration run through the independently assigned read-only evaluators, not
+inside this benchmark runner, and are explicitly `not_requested` here. Runtime
+status remains the compatible `completed_synthetic_measurements`/`failed` envelope
+with detailed metric/task/gate disposition; planned evaluator status names above
+are not a claim that every optional calibration task ran.
+
+Sixteen benchmark tests pass locally, covering the seven existing checks plus
+registered bounds, all12 previously published v1 component hashes through both
+suites, config snapshot drift, rendered-F0 absence/injected-F0 rejection, exact
+tuning/condition spans, independent tempo integration/inversion, injected edits,
+tuplets/legato/polyphony/overlap context and the non-greedy matching counterexample.
+Command: `python3 -m unittest discover -s tests -p 'test_benchmark*.py' -v`.
+The latest measured local run took8.460seconds; this is no capacity percentile.
+
+Generation-only smoke produced
+`artifacts/benchmarks/technical-v2-bank-first/fixtures.json`, hash
+`0787f66631238c6aff089fe06d3b6fc34856689975826bfa4ba53a766784cf64`.
+It contains12cases/120seconds/48component WAVs. Independent reads verified all
+108truth/component SHA/native-header facts. Rendered clean F0 coefficient was
+2.1125001369e-8; retained harmonic amplitudes were approximately
+0.129999967,0.079999796,0.049999947,0.040000064,0.020000052. No processing or
+musician-quality pass follows from this generation check. Its legacy-runner hash
+predates the final runner-only tightening of the bypass gate to exact zero; it
+remains a preserved prior receipt. Root generates a fresh final-source bank for
+the actual composite pilot. No newest-directory inference is permitted.
+
+Source freeze hashes: runner`9b8dc2a8aea58fcabf0fe74dfb3cfc967319e0a060a44ba7c40d6e57aa4c1656`,
+helper`087a67c009bb48abeac78259fc2719c02886e81b956ef8a9c62a22e6ee3913d5`,
+v2config`94fe5085f641c430b579d038736b9036962abfabec8bad86dea0ba163ce245ab`.
+Original v1config remains
+`c115f37df98ef50a0c8d853928ebdce910a1188abe8291d8cf2bdd51c94fdd52`.
+The final two runner gate lines were tightened after the focused test process
+loaded its module; root's joint source-checkpoint tests cover the final freeze.

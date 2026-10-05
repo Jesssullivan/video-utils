@@ -1,10 +1,10 @@
 # Phrase calibration: bounded generated-fixture evaluation
 
 Authority: operator's active ten-hour parallel goal, R-HOOK-CONVERGENCE-20261004
-and R-N13. This checkpoint is **research and planning only** during root's release
-freeze. It owns this new document; it does not change graph/comparator scripts,
-tests, audio artifacts or published interfaces. Implementation requires root's
-release broadcast and a subsequent named-file assignment.
+and R-N13. Root released implementation after publication
+`45a1313ccbcb0ecc097f3a017979254e5719a3c6`. The lane owns the new evaluator,
+its tests, this document and its dated receipt. Existing discovery, graph and
+comparator scripts remain outside this implementation's ownership.
 
 ## Purpose and primary-source basis
 
@@ -135,3 +135,92 @@ per-fixture metrics/coverage/status, aggregate counts and limitations. It is sav
 as a new immutable artifact, not folded into the real take's ground truth. Root
 owns implementation-file assignment, execution, tracker facts and publication
 after releasing the current source freeze.
+
+## Implemented operator contract
+
+```sh
+python3 scripts/phrase_evaluate.py \
+  --fixture-index artifacts/benchmarks/BANK/fixtures.json \
+  --pilot-index artifacts/benchmarks/PILOT/phrase-pilot-index.json \
+  --output artifacts/benchmarks/NEW-EVALUATION --summary
+```
+
+All three paths are required. `--summary` retains the default compact stdout;
+it never skips validation, metrics or receipt creation. Inputs and the fresh
+output directory must be beneath repository `artifacts/benchmarks`. Symlink
+components and parent traversal reject before reads. Output is atomic
+`phrase-evaluation.json`, not a replacement of any bank, discovery or real-take
+artifact. No audio decoding, inference, subprocess, dependency installation or
+network request occurs. WAV bytes are read for hashes and native header extents:
+`source_read:true`, `source_audio_decoded:false`, `inference_invoked:false`.
+
+The separate phrase pilot index is schema 1:
+
+```json
+{
+  "schema_version": 1,
+  "bank_index_sha256": "64 lowercase hex digits",
+  "instrument_registry_sha256": "64 lowercase hex digits",
+  "cases": [{
+    "id": "bank-case-id",
+    "run_dir": "discovery/case-01",
+    "analysis": {"path": "discovery/case-01/analysis.json", "sha256": "..."},
+    "phrases": {"path": "discovery/case-01/phrases.json", "sha256": "..."},
+    "comparisons": {"path": "discovery/case-01/phrase-comparisons.json", "sha256": "..."}
+  }]
+}
+```
+
+Paths are relative to the pilot index parent, or absolute beneath the same
+benchmark artifact root. Artifact receipts may include `settings_sha256`;
+comparisons may be null. Each bank case must have exactly one pilot row. Discovery
+uses opaque byte-identical raw-mixture aliases and no generated labels or tempo
+seed. Raw identity is accepted only when both analysis and phrase source hashes
+equal the generated waveform identity; comparison original/input hashes must
+also agree. Pilot artifacts must belong to their named run directory. Comparison
+upstream hashes are verified before evaluation. Original sample-zero origin is
+required; this lane does not calibrate detector latency.
+
+Producer settings hashes, when present, are checked against canonical sorted-key
+JSON. A hash derived by the pilot is labeled
+`pilot_receipt_verified_producer_receipt_not_recorded`; absent settings receipts
+are explicitly derived from the payload. Neither invents an original worker
+receipt. The generated source, components, truth, bank/pilot indices, fixed
+instrument registry and settings are hash-bound, and stable input bytes are
+checked again before publication. Truth context hashes must agree with the bank.
+
+Implemented allocation bounds are 20 MB per JSON file, 64 MB aggregate JSON,
+128 levels of JSON nesting, 128 MB per hashed waveform and 512 MB aggregate
+hashed inputs; at most 512 matching items, 65,536 matching edges, 60 comparisons
+and 384 path landmarks. Duplicate keys, nonfinite values including overflow
+exponents, invalid extents/intervals and unknown warp mapping kinds reject.
+The evaluator is standard-library only and starts no numerical workers.
+
+Boundary, attack, span and ordered recurrence metrics retain per-fixture and
+micro/macro aggregates. Null semantic references are excluded; an explicitly
+known empty attack reference still records false positives. Legacy attack-only
+truth uses its provided `guitar_onsets_seconds`, while its missing pitch score is
+not synthesized. Small-sample p95 is explicitly a descriptive nearest-rank
+sample quantile with its count, never a confidence guarantee.
+
+The comparator's `median_relative_offset_seconds` is a median of y-minus-x,
+not an affine intercept when rate differs. The evaluator compares that field to
+the corresponding generated median and separately publishes the generated
+intercept. Raw generated landmark offsets and producer-detected motif offsets
+remain alongside their warped residuals. Missing coverage stays null; paths are
+never extrapolated beyond their actual support.
+Timing-absorption diagnostics require an affected landmark with a generated
+offset of at least 60 ms, or both endpoints of an affected rate interval of at
+least 10%, to be covered with residuals below 20 ms. Changes outside path support
+remain explicitly unknown with affected-coverage counts. Per-attack renderer
+injections are retained as separate context and do not by themselves prove warp
+absorption or note correspondence.
+
+Compact stdout contains status, evaluation path, fixture count/duration, unsupported
+confirmed-claim count, hard-gate result, read/decode/inference flags, generator-only
+scope and listening acceptance false. Provenance/structure failures exit 1 with
+no promoted receipt. Unsupported confirmed claims retain a valid immutable
+diagnostic receipt and compact summary, status
+`generated_fixture_calibration_failed_hard_gates`, and exit 1. Low audio-derived
+F1/IoU or high abstention remain visible baseline measurements with exit 0;
+there is no invented audio-quality pass threshold.

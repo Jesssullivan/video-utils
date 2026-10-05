@@ -1,0 +1,726 @@
+{
+  "candidates": [
+    {
+      "denoised_sha256": "dbd8b40eaf9928eb2f80791cfbdc9c3562ed10b57bcf859ad96d8a202fc93b12",
+      "intervals": [
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9996951241931181,
+              "coherence_source_power_weighted": 0.9998233770760818,
+              "delta_db": -0.011276258076605927,
+              "denoised_power_dbfs": -58.09642954554569,
+              "source_power_dbfs": -58.08515328746908
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9999715737852997,
+              "coherence_source_power_weighted": 0.9999955041564769,
+              "delta_db": -0.0015281155906592403,
+              "denoised_power_dbfs": -31.831574145784934,
+              "source_power_dbfs": -31.830046030194275
+            }
+          },
+          "denoised_rms_dbfs": -22.334039465331003,
+          "end_seconds": 20,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -22.244801235244722,
+          "start_seconds": 10,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9991721313289236,
+              "coherence_source_power_weighted": 0.9995070507182239,
+              "delta_db": -0.03533296088630067,
+              "denoised_power_dbfs": -57.39011548876082,
+              "source_power_dbfs": -57.35478252787452
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9999621189846181,
+              "coherence_source_power_weighted": 0.9999903048692995,
+              "delta_db": -0.0032205759875054696,
+              "denoised_power_dbfs": -29.874755918721398,
+              "source_power_dbfs": -29.871535342733893
+            }
+          },
+          "denoised_rms_dbfs": -20.210853451948232,
+          "end_seconds": 50,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -20.158573504528153,
+          "start_seconds": 40,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9993509573444251,
+              "coherence_source_power_weighted": 0.9996678186195941,
+              "delta_db": -0.029180094073154805,
+              "denoised_power_dbfs": -56.476166787534055,
+              "source_power_dbfs": -56.4469866934609
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9999716679999507,
+              "coherence_source_power_weighted": 0.9999928819782059,
+              "delta_db": -0.0024940573277731914,
+              "denoised_power_dbfs": -30.726152116103247,
+              "source_power_dbfs": -30.723658058775474
+            }
+          },
+          "denoised_rms_dbfs": -20.507035530322053,
+          "end_seconds": 100,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -20.44648445304871,
+          "start_seconds": 90,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9995588168006484,
+              "coherence_source_power_weighted": 0.9998571985856174,
+              "delta_db": -0.018268642679011293,
+              "denoised_power_dbfs": -57.061338928158854,
+              "source_power_dbfs": -57.04307028547984
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9999888191805116,
+              "coherence_source_power_weighted": 0.9999978162218411,
+              "delta_db": -0.0009508215227640449,
+              "denoised_power_dbfs": -28.030685941530493,
+              "source_power_dbfs": -28.02973512000773
+            }
+          },
+          "denoised_rms_dbfs": -21.499207789166327,
+          "end_seconds": 140,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -21.42062472098129,
+          "start_seconds": 130,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9791592153186787,
+              "coherence_source_power_weighted": 0.992144626662318,
+              "delta_db": -1.2133930903496406,
+              "denoised_power_dbfs": -67.03864245814785,
+              "source_power_dbfs": -65.82524936779821
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9993914239158807,
+              "coherence_source_power_weighted": 0.9996411110505722,
+              "delta_db": -0.39596108658303564,
+              "denoised_power_dbfs": -48.7941073301516,
+              "source_power_dbfs": -48.39814624356856
+            }
+          },
+          "denoised_rms_dbfs": -35.49862591269882,
+          "end_seconds": 5,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "quiet_candidate",
+          "sample_frames": 44100,
+          "source_rms_dbfs": -35.13064265465512,
+          "start_seconds": 4,
+          "welch_segment_count": 4
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9936960824763889,
+              "coherence_source_power_weighted": 0.9975500805580639,
+              "delta_db": -1.2161376115828872,
+              "denoised_power_dbfs": -63.84129374038275,
+              "source_power_dbfs": -62.625156128799865
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9995568137692958,
+              "coherence_source_power_weighted": 0.9998506699654237,
+              "delta_db": -0.3352459727563257,
+              "denoised_power_dbfs": -46.19255428721266,
+              "source_power_dbfs": -45.85730831445633
+            }
+          },
+          "denoised_rms_dbfs": -34.841315360302644,
+          "end_seconds": 150,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "quiet_candidate",
+          "sample_frames": 44100,
+          "source_rms_dbfs": -34.29958907632339,
+          "start_seconds": 149,
+          "welch_segment_count": 4
+        }
+      ],
+      "profile": "conservative3",
+      "run_id": "20261005T211103Z-c6d0bac2fcd2"
+    },
+    {
+      "denoised_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+      "intervals": [
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9074451132383667,
+              "coherence_source_power_weighted": 0.9493131297087062,
+              "delta_db": -2.7590619743027887,
+              "denoised_power_dbfs": -60.84421526177187,
+              "source_power_dbfs": -58.08515328746908
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9928142597963608,
+              "coherence_source_power_weighted": 0.9987775051208533,
+              "delta_db": -0.19643103351970836,
+              "denoised_power_dbfs": -32.02647706371398,
+              "source_power_dbfs": -31.830046030194275
+            }
+          },
+          "denoised_rms_dbfs": -22.530641916926136,
+          "end_seconds": 20,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -22.244801235244722,
+          "start_seconds": 10,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9230124137153687,
+              "coherence_source_power_weighted": 0.9498746798821242,
+              "delta_db": -2.039834848229475,
+              "denoised_power_dbfs": -59.394617376103994,
+              "source_power_dbfs": -57.35478252787452
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9926841596103243,
+              "coherence_source_power_weighted": 0.9987145401020793,
+              "delta_db": -0.10760549032738709,
+              "denoised_power_dbfs": -29.97914083306128,
+              "source_power_dbfs": -29.871535342733893
+            }
+          },
+          "denoised_rms_dbfs": -20.291356107433426,
+          "end_seconds": 50,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -20.158573504528153,
+          "start_seconds": 40,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9182834977652519,
+              "coherence_source_power_weighted": 0.9575948450916256,
+              "delta_db": -2.0633934792111432,
+              "denoised_power_dbfs": -58.51038017267204,
+              "source_power_dbfs": -56.4469866934609
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9932728198610022,
+              "coherence_source_power_weighted": 0.9985379288201538,
+              "delta_db": -0.12067065837731761,
+              "denoised_power_dbfs": -30.84432871715279,
+              "source_power_dbfs": -30.723658058775474
+            }
+          },
+          "denoised_rms_dbfs": -20.59357734849555,
+          "end_seconds": 100,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -20.44648445304871,
+          "start_seconds": 90,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.8749842943072192,
+              "coherence_source_power_weighted": 0.9501402071720934,
+              "delta_db": -2.404105626228173,
+              "denoised_power_dbfs": -59.447175911708015,
+              "source_power_dbfs": -57.04307028547984
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9951129665599938,
+              "coherence_source_power_weighted": 0.9993831363461916,
+              "delta_db": -0.08596571136693854,
+              "denoised_power_dbfs": -28.115700831374667,
+              "source_power_dbfs": -28.02973512000773
+            }
+          },
+          "denoised_rms_dbfs": -21.640153104014388,
+          "end_seconds": 140,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -21.42062472098129,
+          "start_seconds": 130,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9122825645805265,
+              "coherence_source_power_weighted": 0.9338683261164882,
+              "delta_db": -7.219790770151079,
+              "denoised_power_dbfs": -73.04504013794929,
+              "source_power_dbfs": -65.82524936779821
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9813952015150461,
+              "coherence_source_power_weighted": 0.9869241877994133,
+              "delta_db": -6.820059674885599,
+              "denoised_power_dbfs": -55.21820591845416,
+              "source_power_dbfs": -48.39814624356856
+            }
+          },
+          "denoised_rms_dbfs": -39.57595786397669,
+          "end_seconds": 5,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "quiet_candidate",
+          "sample_frames": 44100,
+          "source_rms_dbfs": -35.13064265465512,
+          "start_seconds": 4,
+          "welch_segment_count": 4
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.975594254692842,
+              "coherence_source_power_weighted": 0.9889099634795675,
+              "delta_db": -6.986420668502468,
+              "denoised_power_dbfs": -69.61157679730233,
+              "source_power_dbfs": -62.625156128799865
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.97365539554915,
+              "coherence_source_power_weighted": 0.9853849736096284,
+              "delta_db": -5.072109284780495,
+              "denoised_power_dbfs": -50.92941759923683,
+              "source_power_dbfs": -45.85730831445633
+            }
+          },
+          "denoised_rms_dbfs": -37.39918856440937,
+          "end_seconds": 150,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "quiet_candidate",
+          "sample_frames": 44100,
+          "source_rms_dbfs": -34.29958907632339,
+          "start_seconds": 149,
+          "welch_segment_count": 4
+        }
+      ],
+      "profile": "captured8",
+      "run_id": "20261005T232627Z-eb7bead2ae74"
+    },
+    {
+      "denoised_sha256": "c608c46bfa73b034d7a3eb4fd20cbf896ab244f5d03c898ddec2a76683e62b1b",
+      "intervals": [
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.8718367145812168,
+              "coherence_source_power_weighted": 0.9258297350060619,
+              "delta_db": -2.9251110100204087,
+              "denoised_power_dbfs": -61.01026429748949,
+              "source_power_dbfs": -58.08515328746908
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9901144326719571,
+              "coherence_source_power_weighted": 0.998566506267475,
+              "delta_db": -0.19927094127059064,
+              "denoised_power_dbfs": -32.029316971464866,
+              "source_power_dbfs": -31.830046030194275
+            }
+          },
+          "denoised_rms_dbfs": -22.536185067237472,
+          "end_seconds": 20,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -22.244801235244722,
+          "start_seconds": 10,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9016057607765648,
+              "coherence_source_power_weighted": 0.9324651260614956,
+              "delta_db": -2.1336191818925343,
+              "denoised_power_dbfs": -59.488401709767054,
+              "source_power_dbfs": -57.35478252787452
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9898313331944637,
+              "coherence_source_power_weighted": 0.9984391093513352,
+              "delta_db": -0.11070377396428555,
+              "denoised_power_dbfs": -29.982239116698178,
+              "source_power_dbfs": -29.871535342733893
+            }
+          },
+          "denoised_rms_dbfs": -20.294979115366765,
+          "end_seconds": 50,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -20.158573504528153,
+          "start_seconds": 40,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.8970266801811388,
+              "coherence_source_power_weighted": 0.9426048301195669,
+              "delta_db": -2.1467029013015164,
+              "denoised_power_dbfs": -58.59368959476242,
+              "source_power_dbfs": -56.4469866934609
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.990988645454471,
+              "coherence_source_power_weighted": 0.9981759090635908,
+              "delta_db": -0.12411567817892433,
+              "denoised_power_dbfs": -30.847773736954398,
+              "source_power_dbfs": -30.723658058775474
+            }
+          },
+          "denoised_rms_dbfs": -20.59820382840453,
+          "end_seconds": 100,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -20.44648445304871,
+          "start_seconds": 90,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.8345886902135684,
+              "coherence_source_power_weighted": 0.9306922459946149,
+              "delta_db": -2.5299736083865483,
+              "denoised_power_dbfs": -59.57304389386639,
+              "source_power_dbfs": -57.04307028547984
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.993872681492625,
+              "coherence_source_power_weighted": 0.9992997252722958,
+              "delta_db": -0.0873187879195072,
+              "denoised_power_dbfs": -28.117053907927236,
+              "source_power_dbfs": -28.02973512000773
+            }
+          },
+          "denoised_rms_dbfs": -21.645485790525306,
+          "end_seconds": 140,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -21.42062472098129,
+          "start_seconds": 130,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.7354401609887429,
+              "coherence_source_power_weighted": 0.771539640964877,
+              "delta_db": -9.708100030059668,
+              "denoised_power_dbfs": -75.53334939785788,
+              "source_power_dbfs": -65.82524936779821
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9367225925987958,
+              "coherence_source_power_weighted": 0.956363232691061,
+              "delta_db": -9.366239264283848,
+              "denoised_power_dbfs": -57.76438550785241,
+              "source_power_dbfs": -48.39814624356856
+            }
+          },
+          "denoised_rms_dbfs": -40.563664950912184,
+          "end_seconds": 5,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "quiet_candidate",
+          "sample_frames": 44100,
+          "source_rms_dbfs": -35.13064265465512,
+          "start_seconds": 4,
+          "welch_segment_count": 4
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9111697865114906,
+              "coherence_source_power_weighted": 0.9599266590635759,
+              "delta_db": -9.755361885750055,
+              "denoised_power_dbfs": -72.38051801454992,
+              "source_power_dbfs": -62.625156128799865
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9328843120154708,
+              "coherence_source_power_weighted": 0.9631434819704134,
+              "delta_db": -6.397646300581229,
+              "denoised_power_dbfs": -52.25495461503756,
+              "source_power_dbfs": -45.85730831445633
+            }
+          },
+          "denoised_rms_dbfs": -37.94037241815863,
+          "end_seconds": 150,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "quiet_candidate",
+          "sample_frames": 44100,
+          "source_rms_dbfs": -34.29958907632339,
+          "start_seconds": 149,
+          "welch_segment_count": 4
+        }
+      ],
+      "profile": "captured12",
+      "run_id": "20261005T232714Z-04afdec97f2b"
+    },
+    {
+      "denoised_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+      "intervals": [
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9074451132383667,
+              "coherence_source_power_weighted": 0.9493131297087062,
+              "delta_db": -2.7590619743027887,
+              "denoised_power_dbfs": -60.84421526177187,
+              "source_power_dbfs": -58.08515328746908
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9928142597963608,
+              "coherence_source_power_weighted": 0.9987775051208533,
+              "delta_db": -0.19643103351970836,
+              "denoised_power_dbfs": -32.02647706371398,
+              "source_power_dbfs": -31.830046030194275
+            }
+          },
+          "denoised_rms_dbfs": -22.530641916926136,
+          "end_seconds": 20,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -22.244801235244722,
+          "start_seconds": 10,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9230124137153687,
+              "coherence_source_power_weighted": 0.9498746798821242,
+              "delta_db": -2.039834848229475,
+              "denoised_power_dbfs": -59.394617376103994,
+              "source_power_dbfs": -57.35478252787452
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9926841596103243,
+              "coherence_source_power_weighted": 0.9987145401020793,
+              "delta_db": -0.10760549032738709,
+              "denoised_power_dbfs": -29.97914083306128,
+              "source_power_dbfs": -29.871535342733893
+            }
+          },
+          "denoised_rms_dbfs": -20.291356107433426,
+          "end_seconds": 50,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -20.158573504528153,
+          "start_seconds": 40,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9182834977652519,
+              "coherence_source_power_weighted": 0.9575948450916256,
+              "delta_db": -2.0633934792111432,
+              "denoised_power_dbfs": -58.51038017267204,
+              "source_power_dbfs": -56.4469866934609
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9932728198610022,
+              "coherence_source_power_weighted": 0.9985379288201538,
+              "delta_db": -0.12067065837731761,
+              "denoised_power_dbfs": -30.84432871715279,
+              "source_power_dbfs": -30.723658058775474
+            }
+          },
+          "denoised_rms_dbfs": -20.59357734849555,
+          "end_seconds": 100,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -20.44648445304871,
+          "start_seconds": 90,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.8749842943072192,
+              "coherence_source_power_weighted": 0.9501402071720934,
+              "delta_db": -2.404105626228173,
+              "denoised_power_dbfs": -59.447175911708015,
+              "source_power_dbfs": -57.04307028547984
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9951129665599938,
+              "coherence_source_power_weighted": 0.9993831363461916,
+              "delta_db": -0.08596571136693854,
+              "denoised_power_dbfs": -28.115700831374667,
+              "source_power_dbfs": -28.02973512000773
+            }
+          },
+          "denoised_rms_dbfs": -21.640153104014388,
+          "end_seconds": 140,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "active_candidate",
+          "sample_frames": 441000,
+          "source_rms_dbfs": -21.42062472098129,
+          "start_seconds": 130,
+          "welch_segment_count": 52
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.9122825645805265,
+              "coherence_source_power_weighted": 0.9338683261164882,
+              "delta_db": -7.219790770151079,
+              "denoised_power_dbfs": -73.04504013794929,
+              "source_power_dbfs": -65.82524936779821
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.9813952015150461,
+              "coherence_source_power_weighted": 0.9869241877994133,
+              "delta_db": -6.820059674885599,
+              "denoised_power_dbfs": -55.21820591845416,
+              "source_power_dbfs": -48.39814624356856
+            }
+          },
+          "denoised_rms_dbfs": -39.57595786397669,
+          "end_seconds": 5,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "quiet_candidate",
+          "sample_frames": 44100,
+          "source_rms_dbfs": -35.13064265465512,
+          "start_seconds": 4,
+          "welch_segment_count": 4
+        },
+        {
+          "bands": {
+            "20-45": {
+              "bin_count": 9,
+              "coherence_mean": 0.975594254692842,
+              "coherence_source_power_weighted": 0.9889099634795675,
+              "delta_db": -6.986420668502468,
+              "denoised_power_dbfs": -69.61157679730233,
+              "source_power_dbfs": -62.625156128799865
+            },
+            "45-120": {
+              "bin_count": 28,
+              "coherence_mean": 0.97365539554915,
+              "coherence_source_power_weighted": 0.9853849736096284,
+              "delta_db": -5.072109284780495,
+              "denoised_power_dbfs": -50.92941759923683,
+              "source_power_dbfs": -45.85730831445633
+            }
+          },
+          "denoised_rms_dbfs": -37.39918856440937,
+          "end_seconds": 150,
+          "frequency_bin_hz": 2.691650390625,
+          "label": "quiet_candidate",
+          "sample_frames": 44100,
+          "source_rms_dbfs": -34.29958907632339,
+          "start_seconds": 149,
+          "welch_segment_count": 4
+        }
+      ],
+      "profile": "captured8-clarity",
+      "run_id": "20261005T232741Z-2b5dc43fd009"
+    }
+  ],
+  "comparison_path": "artifacts/worker-captured-restoration-20261005-final.json",
+  "comparison_sha256": "16a333af8d6068aabb4215cf183fa2d18b6726d38affcbe439c29d55cf004e0f",
+  "comparison_worker_sha256": "e62498f5e00325e37da2b7d6463ae813c98ae3ae0a27d5bfafd5c3d47cf5efef",
+  "limitations": [
+    "Activity/quiet labels are amplitude/context candidates, not isolated musical/noise references.",
+    "High source/output coherence can coexist with attenuation and correlated noise removal; it is not preservation proof.",
+    "One-second windows have only four overlapped segments; coherence is descriptive and statistically limited.",
+    "Band power includes fan, guitar and other sounds; no specific C1-note identification."
+  ],
+  "method": {
+    "band_power": "sum lower-inclusive upper-exclusive PSD bins * df",
+    "coherence": "magnitude-squared coherence; both mean bins and source-PSD-weighted mean",
+    "detrend": false,
+    "noverlap": 8192,
+    "nperseg": 16384,
+    "sample_rate": 44100,
+    "threads": 2,
+    "window": "hann"
+  },
+  "schema_version": 1,
+  "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "worker_sha256": "c195d711d42b86585a6bdc9486c5189e459916930df8a8088562c188e7b39294"
+}

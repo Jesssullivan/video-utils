@@ -63,16 +63,39 @@ def inspect_render_object(path):
             bodies[name].append(line)
     selected = {name: body for name, body in bodies.items()
                 if "VUGainKernel renderBlock]_block_invoke" in name
-                or "GLOBAL__N_16renderE" in name}
-    if len(selected) != 2:
-        raise RuntimeError("compiled render audit could not locate callback and helper bodies")
+                or "GLOBAL__N_16renderE" in name
+                or "VUGainKernel gainValueObserver]_block_invoke" in name
+                or "VUGainKernel gainValueProvider]_block_invoke" in name}
+    if len(selected) != 4:
+        raise RuntimeError("compiled render audit could not locate render/helper/parameter bodies")
+    forbidden = ("_objc_", "_Block_", "_malloc", "_calloc", "_realloc", "__Zn", "pthread_mutex", "dispatch_", "_printf", "_fopen")
     references = [line.strip() for body in selected.values() for line in body
-                  if "_objc_" in line or "_Block_" in line]
+                  if any(token in line for token in forbidden)]
     if references:
-        raise RuntimeError("Objective-C/Block ownership runtime enters rendering: " + "; ".join(references))
+        raise RuntimeError("Forbidden runtime enters rendering: " + "; ".join(references))
     return {"status": "passed", "symbols_checked": sorted(selected),
             "objc_block_runtime_references": references,
             "scope": "direct callback/helper; not arbitrary host callbacks or every callee"}
+
+
+def inspect_support_object(path, tokens):
+    assembly = run(["xcrun", "llvm-objdump", "--macho", "--disassemble", "--symbolize-operands", str(path)])
+    bodies, name = {}, None
+    for line in assembly.splitlines():
+        if line.endswith(":") and line and not line[0].isspace():
+            name = line[:-1]
+            bodies[name] = []
+        elif name:
+            bodies[name].append(line)
+    selected = {name: lines for name, lines in bodies.items() if any(token in name for token in tokens)}
+    if any(not any(token in name for name in selected) for token in tokens):
+        raise RuntimeError("support audit missing required symbol")
+    forbidden = ("_objc_", "_Block_", "_malloc", "_calloc", "_realloc", "__Zn", "pthread_mutex", "dispatch_", "_printf", "_fopen")
+    hits = [line.strip() for lines in selected.values() for line in lines if any(token in line for token in forbidden)]
+    if hits:
+        raise RuntimeError("support processing runtime audit failed: " + "; ".join(hits))
+    return {"symbols_checked": sorted(selected), "forbidden_direct_references": hits,
+            "scope": "named direct native helpers; atomics not qualified wait-free; not arbitrary hosts/all callees"}
 
 
 def main():
@@ -88,7 +111,7 @@ def main():
                "authority": "Operator-approved native scaffold; R-HOOK-CONVERGENCE-20261004/R-N12/R-N13",
                "source_sha256": {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
                                  for path in sorted(LANE.rglob("*")) if path.is_file()
-                                 and path.suffix in {".rs", ".c", ".h", ".mm", ".swift", ".py", ".toml", ".lock"}}}
+                                 and path.suffix in {".rs", ".c", ".h", ".cpp", ".hpp", ".mm", ".swift", ".py", ".toml", ".lock"}}}
     receipt["source_sha256"]["src/lib.rs"] = hashlib.sha256((ROOT / "src/lib.rs").read_bytes()).hexdigest()
     try:
         receipt["toolchains"] = {"rust": run(["rustc", "--version"]),
@@ -113,19 +136,45 @@ def main():
         kernel = BUILD / "GainKernel.o"
         run([*native, "-c", str(LANE / "apple/GainKernel.mm"), "-o", str(kernel)])
         receipt["compiled_render_runtime_audit"] = inspect_render_object(kernel)
-        run([*native, str(LANE / "tests/kernel_harness.mm"), str(kernel), str(library),
+        supporting = []
+        receipt["support_runtime_audits"] = {}
+        support_tokens = {"GainAutomation": ["6Engine7process", "6Engine5begin", "6Engine7advance"],
+                          "AppleEvents": ["12convertApple"], "ParameterState": ["7Session"],
+                          "ControlIngress": ["14ControlIngress"]}
+        for relative in ["automation/GainAutomation.cpp", "automation/AppleEvents.mm", "state/ParameterState.cpp", "integration/ControlIngress.cpp"]:
+            path = BUILD / (Path(relative).stem + ".o")
+            run([*native, "-c", str(LANE / relative), "-o", str(path)])
+            supporting.append(str(path))
+            receipt["support_runtime_audits"][Path(relative).stem] = inspect_support_object(path,support_tokens[Path(relative).stem])
+        run([*native, str(LANE / "tests/kernel_harness.mm"), str(kernel), *supporting, str(library),
              *frameworks, "-o", str(BUILD / "kernel-harness")])
         receipt["native_kernel"] = json.loads(run([str(BUILD / "kernel-harness")]))
+        integrated_sources = [str(LANE / "integration/parameter_state_harness.mm"), str(kernel), *supporting, str(library)]
+        run([*native, *integrated_sources, *frameworks, "-o", str(BUILD / "parameter-state-harness")])
+        receipt["parameter_state_release"] = json.loads(run([str(BUILD / "parameter-state-harness")]))
+        # Instrument the owned native sources and harness; the unchanged Rust ABI
+        # remains separately qualified by its tests/allocation receipt.
+        sanitized_sources = [str(LANE / "integration/parameter_state_harness.mm"),
+                             str(LANE / "apple/GainKernel.mm"),
+                             *[str(LANE / relative) for relative in ["automation/GainAutomation.cpp", "automation/AppleEvents.mm", "state/ParameterState.cpp", "integration/ControlIngress.cpp"]], str(library)]
+        run([*native, "-O1", "-fsanitize=address,undefined", "-fno-omit-frame-pointer", *sanitized_sources,
+             *frameworks, "-o", str(BUILD / "parameter-state-sanitized")])
+        receipt["parameter_state_asan_ubsan"] = json.loads(run([str(BUILD / "parameter-state-sanitized")]))
         swift = ["xcrun", "swiftc", "-j1", "-swift-version", "6", "-sdk", sdk,
                  "-module-cache-path", str(BUILD / "swift-module-cache"),
                  "-import-objc-header", str(LANE / "apple/GainKernel.h"),
-                 str(LANE / "apple/GuitarGainAudioUnit.swift"), str(kernel), str(library),
+                 str(LANE / "apple/GuitarGainAudioUnit.swift"), str(kernel), *supporting, str(library),
                  "-lc++", *frameworks]
         run([*swift, "-emit-library", "-emit-module", "-module-name", "VideoUtilsAUSpike",
              "-emit-module-path", str(BUILD / "VideoUtilsAUSpike.swiftmodule"),
              "-o", str(BUILD / "libVideoUtilsAUSpike.dylib")])
         run([*swift, str(LANE / "tests/main.swift"), "-o", str(BUILD / "swift-lifecycle")])
         receipt["swift_lifecycle"] = json.loads(run([str(BUILD / "swift-lifecycle")]))
+        run([*swift, str(LANE / "integration/state_harness.swift"), "-o", str(BUILD / "swift-state")])
+        receipt["swift_parameter_state"] = json.loads(run([str(BUILD / "swift-state")]))
+        if any(hashlib.sha256((ROOT / relative).read_bytes()).hexdigest() != expected
+               for relative, expected in receipt["source_sha256"].items()):
+            raise RuntimeError("source changed during check; rerun against stable source")
         receipt["status"] = "native_checks_passed_not_au_host_qualified"
     except (RuntimeError, OSError, subprocess.TimeoutExpired, ValueError) as error:
         receipt["status"] = "failed"

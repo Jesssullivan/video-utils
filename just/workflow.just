@@ -56,6 +56,10 @@ dag run_dir reference="" clicks="" pitch="" meter="" tonal="" comparisons="":
 markers run_dir:
     python3 scripts/markers.py {{quote(run_dir)}}
 
+# Burn selected review hypotheses into a separate synchronized video preview.
+marked-video run_dir output selection="phrase-review":
+    python3 scripts/marked_video.py --run-dir {{quote(run_dir)}} --output {{quote(output)}} --selection {{quote(selection)}}
+
 # Local stdio MCP; stdout is reserved exclusively for JSON-RPC messages.
 mcp:
     @python3 scripts/mcp_server.py
@@ -81,8 +85,26 @@ phrase-compare run_dir:
     python3 scripts/phrase_compare.py {{quote(run_dir)}}
 
 # Bounded generated fixtures; output must be a new directory under artifacts/.
-benchmark output backend="stdlib":
-    if [[ {{quote(backend)}} == librosa ]]; then "${VIDEO_UTILS_ANALYSIS_PYTHON:-python3}" scripts/benchmark.py run --output {{quote(output)}} --phrase-backend {{quote(backend)}}; else python3 scripts/benchmark.py run --output {{quote(output)}} --phrase-backend {{quote(backend)}}; fi
+benchmark output backend="stdlib" suite="technical-v1":
+    if [[ {{quote(backend)}} == librosa ]]; then "${VIDEO_UTILS_ANALYSIS_PYTHON:-python3}" scripts/benchmark.py run --output {{quote(output)}} --phrase-backend {{quote(backend)}} --suite {{quote(suite)}}; else python3 scripts/benchmark.py run --output {{quote(output)}} --phrase-backend {{quote(backend)}} --suite {{quote(suite)}}; fi
+
+# Generate source/component truth only; reference labels remain outside discovery.
+benchmark-fixtures output suite="technical-v2":
+    python3 scripts/benchmark.py fixtures --output {{quote(output)}} --suite {{quote(suite)}}
+
+# Unseeded generated discovery, then evaluation; explicit optional interpreter.
+calibrate fixture_index output backend="librosa" timeout="900":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    : "${VIDEO_UTILS_ANALYSIS_PYTHON:?Set VIDEO_UTILS_ANALYSIS_PYTHON to the locked analysis interpreter}"
+    python3 scripts/calibration_pilot.py --fixture-index {{quote(fixture_index)}} --output {{quote(output)}} --analysis-python "$VIDEO_UTILS_ANALYSIS_PYTHON" --backend {{quote(backend)}} --overall-timeout {{quote(timeout)}}
+
+# Score existing hash-bound generated receipts; no inference or real-note grade.
+pitch-evaluate fixture_index pilot_index output:
+    python3 scripts/pitch_evaluate.py --fixture-index {{quote(fixture_index)}} --pilot-index {{quote(pilot_index)}} --output {{quote(output)}} --summary
+
+phrase-evaluate fixture_index pilot_index output:
+    python3 scripts/phrase_evaluate.py --fixture-index {{quote(fixture_index)}} --pilot-index {{quote(pilot_index)}} --output {{quote(output)}} --summary
 
 # Manual local video/audio review with source-bound annotations.
 review run_dir port="8765":

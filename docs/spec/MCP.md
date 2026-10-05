@@ -41,6 +41,15 @@ interface.
 
 ## Tools and agent workflow
 
+At the October 5, 2026, 23:25 UTC reconciliation checkpoint, the working registry
+contains twenty-three tools/prompts; committed `HEAD` and `origin/main`
+`04f64844c2c15d69adda2fc0b1e89a4e2702b82f` contain twenty. The new
+`pitch_evaluate`, `phrase_evaluate` and `marked_video` contracts have local
+worker/hook/skill checks and are source-verified but unpublished at that
+checkpoint. Generated evaluator and VFR preview smoke results are separate
+from real-take results, listening and later root publication. `tools/list` always
+reflects the launched checkout; registry presence is not remote delivery.
+
 `program/tools.json` is the discoverable specification. Each tool records
 purpose, strict input schema, limitations, implementation status, evidence kind,
 repository skill, recommended predecessor tools and an identify/research/iterate
@@ -73,6 +82,10 @@ unvalidated.
 | `pitch` | Bounded dual-resolution pYIN excerpts and theoretical tuning maps | `guitar-pitch` | Experimental; sparse hypotheses, no transcription grade |
 | `meter` | Verified-derivative accent cycles and pulse aliases | `guitar-meter` | Experimental; notation and downbeats unconfirmed |
 | `tonal` | Same-source chroma/profile context and recurrence comparisons | `guitar-tonal` | Experimental; tonic/mode null, no note grade |
+| `corpus` | Existing sparse review metadata validation | `guitar-corpus` | Experimental; supplied assertions, no audio read or authenticated ground truth |
+| `pitch_evaluate` | Existing generated pitch pilot scoring, no inference | `guitar-pitch-evaluate` | Experimental; local source/hook verified, synthetic evidence only |
+| `phrase_evaluate` | Existing generated boundary/recurrence/alignment scoring | `guitar-phrase-evaluate` | Experimental; local source/hook verified, no real-phrase grading |
+| `marked_video` | Separate burned uncertain review preview | `guitar-marked-video` | Experimental; local generated-VFR proof, real-take listening separate |
 
 The music context is nine-string, downtuned deathcore/technical guitar, with
 intentional fundamentals around 32 Hz. Hooks do not automatically high-pass,
@@ -123,8 +136,11 @@ python3 scripts/tool_api.py run rhythm --arguments '{"input":"/private/take.mov"
   unknown confidence/legato can abstain from attack-edit hypotheses.
 - `benchmark` accepts required new `output` beneath repository
   `artifacts/benchmarks/` and `operation: fixtures|run` (default run). Only run
-  accepts `profile` and `phrase_backend: stdlib|librosa`. The suite measures three
-  bounded synthetic cases and stores provenance; no private recording is
+  accepts `profile` and `phrase_backend: stdlib|librosa`. `suite` accepts
+  `technical-v1` (default, existing three-case behavior) or `technical-v2`
+  (twelve generated cases totaling 120 seconds, at most twelve seconds/case).
+  Both fixtures and run support the suite selector; no case selector is exposed.
+  The suite measures bounded synthetic cases and stores provenance; no private recording is
   acquired. Use an explicit analysis interpreter for librosa. Structural
   failures, synthetic quality alerts and real-recording acceptance remain
   distinct. Its own suite deadline is 600 seconds; a caller can choose a longer
@@ -164,6 +180,36 @@ python3 scripts/tool_api.py run rhythm --arguments '{"input":"/private/take.mov"
   unqualified. Tuning metadata is not a tonic prior and sparse pitch branches
   are retained separately rather than counted as independent note votes.
 
+- `pitch_evaluate` and `phrase_evaluate` require existing `fixture_index`,
+  `pilot_index` and fresh `output` paths beneath repository
+  `artifacts/benchmarks`. Optional integer `timeout_seconds` is 1–900, default
+  120. Traversal, symlink/hidden/staging components, root escape, output reuse
+  and additional schema fields are rejected. Fixed dispatch invokes the selected
+  evaluator with `--summary` after complete evidence validation; no discovery,
+  audio decoding, inference, installation, acquisition or network occurs.
+  Bounded WAV bytes are read for hashes/native headers and this read is declared.
+  Pitch uses the fixed four-job/30-second pilot with 5 MB ancillary JSON,
+  64 MB pitch artifacts, 3 MB source WAV and 4,000 branch frames/artifact limits.
+  Phrase bounds metadata to 20 MB/file and 64 MB aggregate and the generated bank
+  to twelve fixtures/120 seconds. Full metric evidence remains local. Structural
+  failures and unsupported confirmed-claim gates are errors; low generated
+  accuracy and quality alerts remain valid baseline results. Neither evaluator
+  establishes musician intent, real-note/phrase correctness or listening.
+- `marked_video` requires existing `run_dir` and fresh `output` directories
+  beneath repository `artifacts/runs`. Optional `selection` is `phrase-review`
+  (default), `recurrences` or `all-review`; integer `timeout_seconds` is 1–900,
+  default 600. It consumes current manifest/export/DAG/flags/markers, validates
+  provenance before output, reencodes picture and copies AAC to a separate
+  review preview. Limits are 600 source seconds, 5,000 input markers and 128
+  selected callouts except `all-review` (up to 5,000), with two codec/filter
+  threads. Outputs are `marked-video.mov`, `callouts.ass`, `selection.json` and
+  `outcome.json`. Decoded VFR frame PTS/count, AAC packets and decoded PCM identity
+  are checked; ASS cue quantization is 10 ms. No analysis/master overwrite,
+  confirmed mistake label, physical-sync or native editor/AU acceptance follows.
+  Later renderer failures preserve diagnostics. See
+  [calibration contracts](CALIBRATION_TOOL_CONTRACT.md) and
+  [marked-video contract and local verification](MARKED_VIDEO_TOOL_CONTRACT.md).
+
 The standard deadline applies to each extension. All extensions have repository
 skills, research/iteration guidance, fixed dispatcher targets and strict schemas.
 No tool accepts a caller-selected executable, shell command, URL fetch or
@@ -189,8 +235,9 @@ JSON; its worker validates approval and expected rhythm. `markers` accepts only
 `FFMPEG`/`FFPROBE` overrides are host configuration supplied by the
 operator, not tool parameters. No downloads occur through these hooks.
 
-Tools execute serially. A hard per-call deadline defaults to 600 seconds and can
-be set to 1–900 seconds. On expiry the server inspects and stops only the worker
+Tools execute serially. A hard per-call deadline defaults to 600 seconds, except
+the two generated evaluators (120 seconds), and can be set to 1–900 seconds.
+On expiry the server inspects and stops only the worker
 process group it created. The returned tool error includes an actor/ownership/
 reason/ruling/prior-state/result receipt with the observed PID and process group.
 This targets the invocation's recorded ownership under
@@ -224,9 +271,17 @@ no newest-file discovery occurs. Consult GRAPH_TOOL_CONTRACT.md for proof and
 rejection semantics. CLI `just evaluate` executes the extended workflow before
 evaluating these receipts; the MCP evaluator does not schedule processing.
 
-The twentieth operation, `corpus`, validates explicitly authored sparse review
+`corpus` validates explicitly authored sparse review
 metadata using `manifest`, optional `local_root` and `timeout_seconds`. A compact
 summary follows complete validation, with no audio read, writes, network or
 models. Supplied labels, source origins and reviewer identities are assertions,
 not authenticated ground truth. See CORPUS_TOOL_CONTRACT.md and the paired
 `guitar-corpus` skill.
+
+Selected pitch evidence may explicitly report a derived current canonical-PCM
+manifest binding or derived settings binding when historical producer receipts
+are absent. `producer_worker_status: not_recorded` remains unknown producer
+identity, even for a currently compatible, hash-verified artifact. Graph timing
+verification remains distinct from acoustic capture delay and detector
+calibration. Clients must retain these selection-scope fields rather than
+summarizing every `verified` row as complete producer provenance.

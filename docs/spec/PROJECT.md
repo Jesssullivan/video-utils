@@ -25,6 +25,23 @@ F4≈349.228 Hz. [UNSW documents the note/MIDI/frequency relationship](https://p
 Registered instrument context supplies analysis priors; it does not establish
 the notes played, tonic/mode, or note correctness in this recording.
 
+The operator also makes the **large box fan background** and artist tone
+references project constants: **Lorna Shore, The Haunted, Meshuggah, Kublai Khan
+TX, Mgła and Children of Bodom**. Their machine-readable context is
+`program/capture-context.json`, separate from the fixed tuning registry so existing
+tuning-bound analysis remains intact. Use these references for articulation,
+string separation, low-register weight, saturation and sustain. Measure each
+take's fan spectrum and capture interval rather than copying a studio/full-band
+EQ curve or assuming motor/mains frequencies.
+
+Evening listening feedback identifies the initial conservative demo as too mild.
+The next audio iteration needs reviewed opening noise capture applied to the
+whole take, stronger denoising comparisons, controlled compression and bounded
+frequency-response/clarity trials. Preserve old renders, pure denoise/residue
+evidence, 32Hz content, pick attacks and tails. The marked video preview should
+use the improved iteration after source, timeline and peak checks; callouts remain
+musical review hypotheses. Existing calibration and AU lanes continue in parallel.
+
 ## Deliverables and architecture
 
 By **6:00 p.m. America/New_York on October 5**, produce an auditionable iteration
@@ -49,7 +66,7 @@ rhythm analysis, and reporting. Local artifacts are isolated per run under
 `artifacts/runs/`; provenance records source identity, commands, tool versions,
 profile parameters, analysis resampling, and output measurements.
 
-The current versioned tool/API contract, local MCP stdio adapter, and twenty
+The current versioned tool/API contract, local MCP stdio adapter, and twenty-three
 per-tool skills expose the same bounded operations. Agent guidance connects research evidence
 to explicit, auditable parameter suggestions for noise, tone, and note analysis.
 Suggestions require comparative evaluation; agents cannot silently change the

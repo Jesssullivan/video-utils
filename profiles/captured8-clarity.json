@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "name": "captured8-clarity",
+  "denoise": true,
+  "reduction_db": 8,
+  "noise_floor_db": -40,
+  "adaptivity": 0,
+  "gain_smooth": 0,
+  "preserve_low_fundamental_hz": 32,
+  "integrated_lufs": -18,
+  "true_peak_dbtp": -1.5,
+  "noise_capture_seconds": [4.1, 4.95],
+  "noise_capture_authorized": true,
+  "noise_capture_source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "noise_capture_review": "Root reviewed decoded-source-sample interval 4.10-4.95 seconds under user-authorized noise capture. Lowest nearby quarter-second RMS about -35.8 dBFS; click-like candidates at 3.8075 and 5.2375 seconds are outside the selected interval. Root viewed the 4.3-second frame. Absence of guitar sustain/music is uncertain; this is not an operator-exact interval or verified noise-only reference.",
+  "peaking_eq": [
+    {"frequency_hz": 300, "gain_db": -1.5, "q": 0.8},
+    {"frequency_hz": 2200, "gain_db": 1, "q": 0.8}
+  ],
+  "compressor": {
+    "threshold_db": -18,
+    "ratio": 2,
+    "attack_ms": 15,
+    "release_ms": 100,
+    "knee_db": 3
+  },
+  "description": "Experimental captured8 plus broad comparison EQ then linked RMS compression before measured loudness normalization. Compressor fixed 25 percent wet blend bounds stage attenuation to 2.50 dB with no makeup gain. EQ phase varies by frequency; settings are not an inferred optimal tone. Pure denoise and residue artifacts retained separately from processed.wav. Requires actual listening and residue review."
+}

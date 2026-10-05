@@ -45,9 +45,9 @@ int main() {
         assert(![kernel prepareWithMaximumFrames:0 channels:2]);
         assert(![kernel prepareWithMaximumFrames:4097 channels:2]);
         assert(![kernel prepareWithMaximumFrames:64 channels:3]);
-        assert([kernel prepareWithMaximumFrames:64 channels:2]);
         assert(![kernel setLinearGain:NAN]);
         assert([kernel setLinearGain:2]);
+        assert([kernel prepareWithMaximumFrames:64 channels:2]);
         newCalls.store(0);
         trackNew.store(true);
         OSStatus status = noErr;

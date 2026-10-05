@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "status": "model_bytes_qualified_runtime_unverified",
+  "independent_local_review": {
+    "reviewer": "/root/tonal_inference/tonal_audit",
+    "status": "verification_pass_no_mustfix",
+    "verified": [
+      "archive_sha256_and_size",
+      "member_count_and_uncompressed_size",
+      "onnx_sha256_size_and_pinned_git_blob",
+      "record_digest",
+      "all_extracted_evidence_hashes",
+      "exactly_one_extracted_model",
+      "durable_receipt_linkage"
+    ],
+    "scope": "local reads only; no network, imports, inference, installation or edits"
+  },
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; root explicit archive qualification release",
+  "recorded_utc": "2026-10-05T23:04:29.875904+00:00",
+  "source_release": "v0.4.0",
+  "source_commit": "9991303bba609a3b93089d13ec80d1d495083596",
+  "archive": {
+    "url": "https://files.pythonhosted.org/packages/99/0e/3a36d22562daeb0ae3c78ac78da3f8dba96543c5576ed57d4acb8ddbab5b/basic_pitch-0.4.0-py2.py3-none-any.whl",
+    "final_url": "https://files.pythonhosted.org/packages/99/0e/3a36d22562daeb0ae3c78ac78da3f8dba96543c5576ed57d4acb8ddbab5b/basic_pitch-0.4.0-py2.py3-none-any.whl",
+    "path": "artifacts/model-qualification/20261005T230424Z-33788bf0000a/basic_pitch-0.4.0-py2.py3-none-any.whl",
+    "filename": "basic_pitch-0.4.0-py2.py3-none-any.whl",
+    "bytes": 758279,
+    "sha256": "738adb503aae7fdfc7d1e1511aa0ce35052315f260a19531ef4c356708425db0",
+    "verified_before_zip_parse": true
+  },
+  "archive_member_count": 43,
+  "total_uncompressed_bytes": 2243620,
+  "extraction_limits": {
+    "archive_bytes": 20000000,
+    "members": 200,
+    "total_uncompressed_bytes": 100000000,
+    "text_member_bytes": 1000000,
+    "model_bytes": 230444
+  },
+  "model": {
+    "member": "basic_pitch/saved_models/icassp_2022/nmp.onnx",
+    "path": "artifacts/model-qualification/20261005T230424Z-33788bf0000a/nmp.onnx",
+    "bytes": 230444,
+    "sha256": "2c3c1d144bfa61ad236e92e169c13535c880469a12a047d4e73451f2c059a0ec",
+    "git_blob_sha1": "c30e5f9438e798604b7177aa26be1fe64482f767"
+  },
+  "registry_candidate": {
+    "id": "spotify-basic-pitch-0.4.0-onnx",
+    "entry": {
+      "url": "https://raw.githubusercontent.com/spotify/basic-pitch/9991303bba609a3b93089d13ec80d1d495083596/basic_pitch/saved_models/icassp_2022/nmp.onnx",
+      "sha256": "2c3c1d144bfa61ad236e92e169c13535c880469a12a047d4e73451f2c059a0ec",
+      "max_bytes": 230444,
+      "format": "onnx",
+      "license": "Apache-2.0 repository-wide; bundled-weight applicability inferred",
+      "source_commit": "9991303bba609a3b93089d13ec80d1d495083596"
+    }
+  },
+  "license_members": [
+    "basic_pitch-0.4.0.dist-info/LICENSE",
+    "basic_pitch-0.4.0.dist-info/NOTICE"
+  ],
+  "model_local_license_members": [],
+  "weight_terms_evidence": "repository-wide Apache-2.0 plus bundled-artifact inference; no independent weight license found",
+  "additional_integrity_checks": {
+    "onnx_record_digest_matches_file": true,
+    "onnx_record_size_matches_file": true,
+    "extracted_config_and_license_sha256_match_pinned_source": {
+      "basic_pitch/constants.py": "3374330dbf374cc4ba3d76eba6aad06e089a40252c4c68b3bf93510bd7b37214",
+      "basic_pitch/inference.py": "b2dd343a318b85ee91c6d660eae2f48d7e39a8678d82575ab606c1c3617a6269",
+      "basic_pitch/note_creation.py": "9c813509acf57ed9b902d2b9fcd9f8118b2c5ffe568a06df9cfa60f5c5ee2572",
+      "basic_pitch/models.py": "31303f7198d9e0c4a3aa2141427c9855fa32add7f964adf0557abd242330375c",
+      "basic_pitch-0.4.0.dist-info/LICENSE": "929c910bae2152fa87199a5d0660e09263419b7eee6d4b301d05ee2aaf211c37",
+      "basic_pitch-0.4.0.dist-info/NOTICE": "b810e55c0e3b520fabb45fc2ccc74880187bf84e309971968541cc812dcde905"
+    }
+  },
+  "extracted_evidence": [
+    {
+      "member": "basic_pitch/__init__.py",
+      "path": "artifacts/model-qualification/20261005T230424Z-33788bf0000a/evidence/01-__init__.py",
+      "bytes": 2495,
+      "sha256": "808fdb533896d7682441a15008a002884333e5a0344637d61f3424764229be4a"
+    },
+    {
+      "member": "basic_pitch/constants.py",
+      "path": "artifacts/model-qualification/20261005T230424Z-33788bf0000a/evidence/02-constants.py",
+      "bytes": 2355,
+      "sha256": "3374330dbf374cc4ba3d76eba6aad06e089a40252c4c68b3bf93510bd7b37214"
+    },
+    {
+      "member": "basic_pitch/inference.py",
+      "path": "artifacts/model-qualification/20261005T230424Z-33788bf0000a/evidence/03-inference.py",
+      "bytes": 22548,
+      "sha256": "b2dd343a318b85ee91c6d660eae2f48d7e39a8678d82575ab606c1c3617a6269"
+    },
+    {
+      "member": "basic_pitch/models.py",
+      "path": "artifacts/model-qualification/20261005T230424Z-33788bf0000a/evidence/04-models.py",
+      "bytes": 9870,
+      "sha256": "31303f7198d9e0c4a3aa2141427c9855fa32add7f964adf0557abd242330375c"
+    },
+    {
+      "member": "basic_pitch/note_creation.py",
+      "path": "artifacts/model-qualification/20261005T230424Z-33788bf0000a/evidence/05-note_creation.py",
+      "bytes": 18929,
+      "sha256": "9c813509acf57ed9b902d2b9fcd9f8118b2c5ffe568a06df9cfa60f5c5ee2572"
+    },
+    {
+      "member": "basic_pitch-0.4.0.dist-info/LICENSE",
+      "path": "artifacts/model-qualification/20261005T230424Z-33788bf0000a/evidence/06-LICENSE",
+      "bytes": 11384,
+      "sha256": "929c910bae2152fa87199a5d0660e09263419b7eee6d4b301d05ee2aaf211c37"
+    },
+    {
+      "member": "basic_pitch-0.4.0.dist-info/METADATA",
+      "path": "artifacts/model-qualification/20261005T230424Z-33788bf0000a/evidence/07-METADATA",
+      "bytes": 12739,
+      "sha256": "6936af5f4e73920794c3e2a9133390557188ecea5ca500e2ae7c8e20129fc5a2"
+    },
+    {
+      "member": "basic_pitch-0.4.0.dist-info/NOTICE",
+      "path": "artifacts/model-qualification/20261005T230424Z-33788bf0000a/evidence/08-NOTICE",
+      "bytes": 1034,
+      "sha256": "b810e55c0e3b520fabb45fc2ccc74880187bf84e309971968541cc812dcde905"
+    },
+    {
+      "member": "basic_pitch-0.4.0.dist-info/WHEEL",
+      "path": "artifacts/model-qualification/20261005T230424Z-33788bf0000a/evidence/09-WHEEL",
+      "bytes": 109,
+      "sha256": "3389f8ce614acd0664e262c273270d2332173bb60f284fdbe42c383e7847120f"
+    },
+    {
+      "member": "basic_pitch-0.4.0.dist-info/RECORD",
+      "path": "artifacts/model-qualification/20261005T230424Z-33788bf0000a/evidence/10-RECORD",
+      "bytes": 4021,
+      "sha256": "233a188470d963f2c24e475af52fe14f777f28d0f40ff3c16a383efe64b8f30f"
+    }
+  ],
+  "local_full_receipt": {
+    "path": "artifacts/model-qualification/20261005T230424Z-33788bf0000a/qualification.json",
+    "sha256": "110ff0c654ca10853d4f49edfc16594721042bf14b9c7e2597fbb888836d8480"
+  },
+  "not_performed": [
+    "dependency_install",
+    "venv_mutation",
+    "model_registration",
+    "model_inference",
+    "other_artifact_downloads",
+    "other_model_extraction",
+    "host_changes"
+  ]
+}

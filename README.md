@@ -4,6 +4,36 @@ Local-first restoration and rhythm analysis for guitar takes recorded on a phone
 or in Photo Booth. Rust provides the CLI and reusable DSP; FFmpeg handles media;
 bounded Python handles offline analysis; R and Quarto support research reports.
 
+## Product axioms
+
+This project centers **woodshedding and technical-guitar practice**: turn a room
+recording into a clear, shareable clip with useful musical feedback for working
+bands. Three axioms shape the implementation:
+
+- **Technical playing drives detection.** Low-tuned riffs, fast subdivisions,
+  palm mutes, intentional rests, sweeps, tapping and legato need phrase/rhythm
+  review that preserves ambiguity and does not equate every attack with a note.
+- **Agents participate in take processing.** Each tool exposes its intent,
+  supported knobs, evidence and skill through MCP. Agents inspect capture/noise,
+  research options, run bounded comparisons and retain the result and provenance.
+- **Heavy distortion and unusual low tuning drive the defaults.** Protect the
+  nine-string instrument's approximately32Hz fundamentals, saturated texture,
+  pick attacks and sustain in denoising, dynamics, EQ and analysis benchmarks.
+
+The intended output combines restored video, source-timed phrase/timing review,
+BPM and uncertainty, listening comparisons, and optional estimated stems. A
+musician should be able to communicate a riff or practice issue through a clip
+and its evidence without assembling a large studio workflow. Stem estimation
+remains an optional extension; a mono mixture does not identify original tracks.
+
+Our product hypothesis is that this complete local, agent-guided practice
+workflow is underserved. Existing products cover many individual features,
+including practice video, stems, tempo, looping and custom nine-string notation;
+the [dated landscape comparison](docs/research/PRACTICE_LANDSCAPE.md) records that
+overlap and leaves specialized distorted-low-guitar accuracy unverified.
+Automatic review markers remain hypotheses until musical intent and calibration
+support stronger missed-beat, wrong-note or phrase-error judgments.
+
 The reference instrument is a downtuned nine-string guitar reaching approximately
 32 Hz. Restoration must preserve its low fundamentals, palm-mute weight, and
 intentional distortion; low-frequency energy is not automatically noise.
@@ -30,6 +60,16 @@ Machine-readable context lives in [program/instrument.json](program/instrument.j
 Frequency/MIDI calculation follows [UNSW's note reference](https://phys.unsw.edu.au/jw/notes.html);
 [Fender's standard-tuning reference](https://www.fender.com/articles/setup/standard-tuning-how-eadgbe-came-to-be)
 provides the standard high-E context.
+
+Project constants also include a **large box fan in the recording background**
+and tone references **Lorna Shore, The Haunted, Meshuggah, Kublai Khan TX,
+Mgła and Children of Bodom**. They guide string separation, low-string weight,
+pick articulation and saturated texture. Store this context in
+[program/capture-context.json](program/capture-context.json); measure the fan
+spectrum and usable noise-capture interval per take. Artist references supply
+context rather than an expected score or universal EQ curve. Restoration
+comparisons include stronger captured-noise processing, controlled compression
+and bounded EQ, with source preservation and listening review.
 
 Source repository: [Jesssullivan/video-utils](https://github.com/Jesssullivan/video-utils)
 (private). The approved [project specification](docs/spec/PROJECT.md) separates
@@ -68,9 +108,14 @@ overwrite the input.
 | `just tool-run NAME JSON` | Invoke a tool through its typed contract |
 | `just dag RUN_DIR [REFERENCE]` | Verify ancestry, review self-consistency, optionally compare a reference |
 | `just markers RUN_DIR` | Export generic timestamp/span review markers |
+| `just marked-video RUN_DIR OUTPUT [SELECTION]` | Render a separate preview with phrase review callouts |
 | `just clicks INPUT RUN_DIR [BPM]` | Detect click candidates without modifying audio |
 | `just phrase-compare RUN_DIR` | Compare discovered recurring regions |
-| `just benchmark OUTPUT [BACKEND]` | Evaluate generated technical-guitar fixtures |
+| `just benchmark OUTPUT [BACKEND] [SUITE]` | Evaluate generated technical-guitar fixtures |
+| `just benchmark-fixtures OUTPUT [SUITE]` | Generate a component-labelled fixture bank |
+| `just calibrate FIXTURES OUTPUT [BACKEND] [TIMEOUT]` | Run unseeded discovery, then evaluate generated truth |
+| `just pitch-evaluate FIXTURES PILOT OUTPUT` | Score existing synthetic pitch receipts |
+| `just phrase-evaluate FIXTURES PILOT OUTPUT` | Score existing synthetic phrase receipts |
 | `just review RUN_DIR [PORT]` | Open a local video/audio review and annotation screen |
 | `just pitch INPUT RUN_DIR [SECONDS]` | Inspect bounded pitch candidates including the ending |
 | `just meter RUN_DIR` | Rank metrical hypotheses or retain unknown |
@@ -97,7 +142,7 @@ milestone. Model inference is optional:
 the initial registry contains no downloaded, hash-qualified models.
 
 The repository includes a versioned tool contract, a local MCP stdio server,
-and twenty per-tool skills for researching and tuning restoration, analysis, comparison, and review.
+and twenty-three per-tool skills for researching and tuning restoration, analysis, comparison, and review.
 Inspect `just tool-info NAME` or launch
 `just mcp` from the repository root. Local invocation is
 separate from connecting an external agent client; see

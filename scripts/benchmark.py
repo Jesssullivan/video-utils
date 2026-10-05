@@ -6,6 +6,7 @@ import argparse
 import array
 from datetime import datetime, timezone
 import hashlib
+import importlib.util
 import json
 import math
 import os
@@ -21,6 +22,16 @@ import wave
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "program" / "benchmarks.json"
+_BANK = None
+
+
+def bank_module():
+    global _BANK
+    if _BANK is None:
+        spec = importlib.util.spec_from_file_location("video_utils_benchmark_bank", ROOT/"scripts"/"benchmark_bank.py")
+        _BANK = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_BANK)
+    return _BANK
 
 
 def digest(path: Path) -> str:
@@ -41,7 +52,12 @@ def write_json(path: Path, value):
     temporary.replace(path)
 
 
-def configuration():
+def configuration(suite="technical-v1"):
+    if suite == "technical-v2":
+        bank = bank_module()
+        return bank.validate_configuration(read_json(bank.CONFIG))
+    if suite != "technical-v1":
+        raise ValueError("Unsupported benchmark suite")
     config = read_json(CONFIG)
     if config.get("schema_version") != 1 or config.get("suite") != "technical-v1":
         raise ValueError("Unsupported benchmark suite")
@@ -92,9 +108,11 @@ def pcm16(path: Path, samples, rate: int):
     os.chmod(path, 0o600)
 
 
-def read_pcm16(path: Path):
+def read_pcm16(path: Path, max_frames=384000):
+    if type(max_frames) is not int or not 0 < max_frames <= 576000:
+        raise ValueError("Invalid native fixture frame ceiling")
     with wave.open(str(path), "rb") as handle:
-        if handle.getnchannels() != 1 or handle.getsampwidth() != 2 or handle.getnframes() > 384000:
+        if handle.getnchannels() != 1 or handle.getsampwidth() != 2 or handle.getnframes() > max_frames:
             raise ValueError("Expected bounded mono PCM16 fixture")
         rate = handle.getframerate()
         samples = array.array("h")
@@ -178,7 +196,9 @@ def fixture_signals(definition, config):
     return {"clean":clean,"click":clicks,"noise":noise,"mix":mixed}, truth
 
 
-def create_fixtures(output: Path, config):
+def create_fixtures(output: Path, config, deadline=None):
+    if config.get("suite") == "technical-v2":
+        return bank_module().create_fixtures(output,config,fixture_signals,pcm16,read_pcm16,digest,write_json,deadline)
     cases=[]
     for definition in config["fixtures"]:
         directory=output/definition["id"]
@@ -225,9 +245,13 @@ def signal_metrics(reference, before, after, rate, truth):
         return {"fitted_gain":gain,"gain_adjusted_mse":mse,
                 "gain_adjusted_sdr_db":None if mse==0 else 10*math.log10(energy/len(reference)/mse)}
     previous,current=error_metrics(before),error_metrics(after)
-    baseline_amplitude=amplitude(before,rate,truth["fundamental_hz"],truth["lf_measurement_interval_seconds"])
-    final_amplitude=amplitude(after,rate,truth["fundamental_hz"],truth["lf_measurement_interval_seconds"])
-    lf_delta=None if baseline_amplitude<1e-7 or final_amplitude<=0 else 20*math.log10(final_amplitude/baseline_amplitude)
+    lf_interval=truth["lf_measurement_interval_seconds"]
+    if lf_interval is None:
+        lf_delta=None
+    else:
+        baseline_amplitude=amplitude(before,rate,truth["fundamental_hz"],lf_interval)
+        final_amplitude=amplitude(after,rate,truth["fundamental_hz"],lf_interval)
+        lf_delta=None if baseline_amplitude<1e-7 or final_amplitude<=0 else 20*math.log10(final_amplitude/baseline_amplitude)
     quiet=[]
     for start,end in truth["noise_only_intervals_seconds"]:
         old,new=before[round(start*rate):round(end*rate)],after[round(start*rate):round(end*rate)]
@@ -265,6 +289,46 @@ def event_metrics(expected, observed, tolerance=.02):
             "missed_count":len(expected)-count,"signed_offsets_seconds":offsets,"tolerance_seconds":tolerance,
             "latency_calibration":"none","nearest_truth_median_offset_seconds":statistics.median(nearest) if nearest else None,
             "nearest_offset_window_seconds":.1,"interpretation":"timestamp matching does not prove causal click identity"}
+
+
+def event_metrics_v2(expected, observed, tolerance=.02):
+    """Ordered maximum-cardinality/minimum-total-error matching, bounded to 512²."""
+    if not math.isfinite(tolerance) or tolerance<=0 or len(expected)>512 or len(observed)>512:
+        raise ValueError("Invalid or over-budget v2 event matching")
+    if any(type(value) not in (int,float) or not math.isfinite(value) for value in [*expected,*observed]):
+        raise ValueError("Event times must be finite numbers")
+    first,second=sorted(expected),sorted(observed)
+    scores=[[(0,0.0)]*(len(second)+1) for _ in range(len(first)+1)]
+    back={}
+    for i,a in enumerate(first,1):
+        for j,b in enumerate(second,1):
+            options=[(scores[i-1][j],(i-1,j)),(scores[i][j-1],(i,j-1))]
+            if abs(b-a)<=tolerance:
+                count,cost=scores[i-1][j-1]
+                options.append(((count+1,cost+abs(b-a)),(i-1,j-1)))
+            score,previous=max(options,key=lambda item:(item[0][0],-item[0][1]))
+            scores[i][j],back[i,j]=score,previous
+    i,j=len(first),len(second)
+    offsets=[]
+    while i and j:
+        previous=back[i,j]
+        if previous==(i-1,j-1):
+            offsets.append(second[j-1]-first[i-1])
+        i,j=previous
+    offsets.reverse()
+    count=len(offsets)
+    nearest=[b-min(first,key=lambda a:abs(a-b)) for b in second] if first else []
+    nearest=[offset for offset in nearest if abs(offset)<=.1]
+    precision=None if not observed else count/len(observed)
+    recall=None if not expected else count/len(expected)
+    return {"expected_count":len(expected),"observed_count":len(observed),"matched_count":count,
+            "precision":precision,"recall":recall,"f1":None if precision is None or recall is None else
+            0.0 if precision+recall==0 else 2*precision*recall/(precision+recall),
+            "false_positive_count":len(observed)-count,"missed_count":len(expected)-count,
+            "signed_offsets_seconds":offsets,"tolerance_seconds":tolerance,"latency_calibration":"none",
+            "matcher":"v2_maximum_cardinality_then_minimum_absolute_error",
+            "nearest_truth_median_offset_seconds":statistics.median(nearest) if nearest else None,
+            "nearest_offset_window_seconds":.1,"interpretation":"generated event timestamps only; causal identity unverified"}
 
 
 def interval_iou(first,second):
@@ -353,6 +417,10 @@ def audit_artifact(path: Path, expected_hash: str):
 
 
 def evaluate_case(case, fixture_root: Path, output: Path, config, profile, backend, deadline):
+    v2=config["suite"]=="technical-v2"
+    if v2:
+        config=dict(config,duration_seconds=case["duration_seconds"])
+    event_score=event_metrics_v2 if v2 else event_metrics
     truth=read_json(fixture_root/case["truth"])
     if digest(fixture_root/case["truth"])!=case["truth_sha256"]:
         raise ValueError("Fixture truth hash mismatch")
@@ -393,8 +461,9 @@ def evaluate_case(case, fixture_root: Path, output: Path, config, profile, backe
     for name,sha in manifest["output_sha256"].items():
         if name in ("source.wav","denoised.wav","cleaned.wav"):
             result["artifacts"][name]=audit_artifact(run/name,sha)
-    original,_=read_pcm16(source)
-    clean,_=read_pcm16(fixture_root/truth["artifacts"]["clean"]["path"])
+    max_frames=576000 if v2 else 384000
+    original,_=read_pcm16(source,max_frames)
+    clean,_=read_pcm16(fixture_root/truth["artifacts"]["clean"]["path"],max_frames)
     processed=decode(run/"denoised.wav",directory,config["sample_rate"],config)
     result["metrics"]["restoration"]=signal_metrics(clean,original,processed,config["sample_rate"],truth)
     lf=result["metrics"]["restoration"]["coherent_fundamental_gain_db"]
@@ -413,18 +482,30 @@ def evaluate_case(case, fixture_root: Path, output: Path, config, profile, backe
     write_json(analysis_dir/"manifest.json",analysis_manifest)
     result["analysis_origin"]={"seconds":0.0,"evidence":"synthetic_generator_sample_zero_only","original_manifest_unchanged":True}
     source_analysis=directory/"source-analysis"
-    worker("source_rhythm","rhythm.py",[source,"--output",source_analysis,"--bpm",config["bpm"]])
+    # V2 discovery is unseeded across the entire bank. Generated score/grid
+    # labels belong only to evaluation; preserve the historical v1 control.
+    bpm_args=[] if v2 else ["--bpm",config["bpm"]]
+    worker("source_rhythm","rhythm.py",[source,"--output",source_analysis,*bpm_args])
     baseline_rhythm=read_json(source_analysis/"analysis.json")
     if baseline_rhythm.get("source",{}).get("sha256")!=truth["artifacts"]["mix"]["sha256"]:
         raise ValueError("Source rhythm lineage mismatch")
     baseline_events=[e["audio_relative_seconds"] for e in baseline_rhythm.get("events",[]) if e.get("kind")=="periodic_high_frequency_candidate"]
-    result["metrics"]["source_click_timing"]={"status":"measured_unverified_rhythm_candidates",**event_metrics(truth["click_times_seconds"],baseline_events,config["metric_policy"]["click_tolerance_seconds"])}
-    worker("rhythm","rhythm.py",[run/"denoised.wav","--run-dir",analysis_dir,"--bpm",config["bpm"]])
+    result["metrics"]["source_click_timing"]={"status":"measured_unverified_rhythm_candidates",**event_score(truth["click_times_seconds"],baseline_events,config["metric_policy"]["click_tolerance_seconds"])}
+    worker("rhythm","rhythm.py",[run/"denoised.wav","--run-dir",analysis_dir,*bpm_args])
     analysis=read_json(analysis_dir/"analysis.json")
     if analysis.get("source",{}).get("sha256")!=manifest["output_sha256"]["denoised.wav"]:
         raise ValueError("Rhythm source lineage mismatch")
     events=[e["audio_relative_seconds"] for e in analysis.get("events",[]) if e.get("kind")=="periodic_high_frequency_candidate"]
-    result["metrics"]["click_timing"]={"status":"measured_unverified_rhythm_candidates",**event_metrics(truth["click_times_seconds"],events,config["metric_policy"]["click_tolerance_seconds"])}
+    result["metrics"]["click_timing"]={"status":"measured_unverified_rhythm_candidates",**event_score(truth["click_times_seconds"],events,config["metric_policy"]["click_tolerance_seconds"])}
+    if v2:
+        attacks=[e["audio_relative_seconds"] for e in analysis.get("events",[]) if e.get("kind")=="broadband_attack_candidate"]
+        result["metrics"]["generated_attack_timing"]={"status":"measured_generated_pick_candidates",
+            "by_tolerance_seconds":{str(t):event_score(truth["guitar_onsets_seconds"],attacks,t) for t in (.02,.05,.1)},
+            "ground_truth_scope":"generator_only_not_musician","score_supplied_to_discovery":False}
+        result["metrics"]["pitch"]={"status":"not_requested","integration":"separate_read_only_pitch_evaluator"}
+        result["metrics"]["injected_edit_estimation"]={"status":"not_requested","integration":"separate_read_only_phrase_evaluator"}
+        result["reference_grid_supplied"]=bool(bpm_args)
+        result["signal_transition_context"]=truth.get("signal_transition_events",[])
     before_offset=result["metrics"]["source_click_timing"]["nearest_truth_median_offset_seconds"]
     after_offset=result["metrics"]["click_timing"]["nearest_truth_median_offset_seconds"]
     result["metrics"]["candidate_processing_shift"]={"seconds":None if before_offset is None or after_offset is None else after_offset-before_offset,
@@ -433,18 +514,18 @@ def evaluate_case(case, fixture_root: Path, output: Path, config, profile, backe
     if backend=="librosa" and (ROOT/"scripts"/"clicks.py").is_file():
         click_dir=directory/"dedicated-click-analysis"
         template=truth["click_only_template_seconds"]
-        summary=worker("dedicated_clicks","clicks.py",[source,"--run-dir",click_dir,"--bpm",config["bpm"],
-                                                       "--template-start",template[0],"--template-end",template[1],"--template-click-only"])
+        template_args=[] if v2 else ["--template-start",template[0],"--template-end",template[1],"--template-click-only"]
+        summary=worker("dedicated_clicks","clicks.py",[source,"--run-dir",click_dir,*bpm_args,*template_args])
         clicks_path=Path(summary["clicks_json"])
         clicks=read_json(clicks_path)
         if clicks.get("source",{}).get("sha256")!=truth["artifacts"]["mix"]["sha256"]:
             raise ValueError("Dedicated click source lineage mismatch")
         click_times=[item["audio_relative_seconds"] for item in clicks.get("events",[])]
-        result["metrics"]["dedicated_clicks"]={"status":"measured_synthetic_template_candidates","attenuation":False,
-                                              "input":"unprocessed_generated_mixture","template_origin":"generated_click_only_interval",
-                                              **event_metrics(truth["click_times_seconds"],click_times,config["metric_policy"]["click_tolerance_seconds"])}
+        result["metrics"]["dedicated_clicks"]={"status":"measured_unseeded_periodic_candidates" if v2 else "measured_synthetic_template_candidates","attenuation":False,
+                                              "input":"unprocessed_generated_mixture","template_origin":"not_supplied" if v2 else "generated_click_only_interval",
+                                              **event_score(truth["click_times_seconds"],click_times,config["metric_policy"]["click_tolerance_seconds"])}
         result["artifacts"]["clicks.json"]=audit_artifact(clicks_path,digest(clicks_path))
-    worker("phrases","guitar_features.py",["phrases",run/"denoised.wav","--run-dir",analysis_dir,"--backend",backend,"--bpm",config["bpm"]])
+    worker("phrases","guitar_features.py",["phrases",run/"denoised.wav","--run-dir",analysis_dir,"--backend",backend,*bpm_args])
     phrases=read_json(analysis_dir/"phrases.json")
     if phrases.get("source",{}).get("sha256")!=manifest["output_sha256"]["denoised.wav"]:
         raise ValueError("Phrase source lineage mismatch")
@@ -457,7 +538,23 @@ def evaluate_case(case, fixture_root: Path, output: Path, config, profile, backe
     result["artifacts"]["original_media_manifest"]=audit_artifact(run/"manifest.json",analysis_manifest["benchmark_parent_manifest"]["sha256"])
     result["artifacts"]["source_analysis.json"]=audit_artifact(source_analysis/"analysis.json",digest(source_analysis/"analysis.json"))
     result["source_immutable"]=digest(source)==truth["artifacts"]["mix"]["sha256"]
+    if v2:
+        bypass_error=max(abs(a-b) for a,b in zip(original,processed)) if profile=="bypass" else None
+        gates=[{"gate":"original_source_immutable","status":"passed" if result["source_immutable"] else "failed"},
+               {"gate":"native_pcm_extent","status":"passed"},
+               {"gate":"low32_preservation","status":"not_applicable" if truth["id"]!="low32-sustain" else
+                "failed" if lf is None or lf<config["metric_policy"]["low_frequency_alert_below_db"] else "passed","gain_db":lf},
+               {"gate":"bypass_sample_identity","status":"not_requested" if bypass_error is None else
+                "passed" if bypass_error==0.0 else "failed","max_absolute_error":bypass_error,
+                "domain":"denoised_pre_normalization","absolute_tolerance":0.0},
+               {"gate":"protected_click_overlap_attenuation","status":"not_evaluated","reason":"attenuation_never_requested"}]
+        result["hard_integrity_gates"]=gates
+        result["hard_failure_count"]=sum(gate["status"]=="failed" for gate in gates)
+        result["hard_gates_passed"]=result["hard_failure_count"]==0
+        result["integrity_scope"]="evaluated_gates_only_not_all_tasks_or_audio_quality"
     result["status"]="completed_synthetic_measurements"
+    if v2 and result["hard_failure_count"]:
+        result["status"]="failed"
     write_json(directory/"case.json",result)
     return result
 
@@ -466,17 +563,24 @@ def run_suite(output: Path,config,profile="conservative3",backend="stdlib"):
     started=time.monotonic(); deadline=started+config["bounds"]["overall_timeout_seconds"]
     fixtures=output/"fixtures"; fixtures.mkdir(mode=0o700)
     sources=output/"sources"; sources.mkdir(mode=0o700)
-    for path in (CONFIG,Path(__file__),ROOT/"profiles"/f"{profile}.json",ROOT/"flake.lock",ROOT/"uv.lock",ROOT/"Cargo.lock"):
+    config_path=bank_module().CONFIG if config["suite"]=="technical-v2" else CONFIG
+    snapshot_paths=[config_path,Path(__file__),ROOT/"profiles"/f"{profile}.json",ROOT/"flake.lock",ROOT/"uv.lock",ROOT/"Cargo.lock"]
+    if config["suite"]=="technical-v2":
+        snapshot_paths.extend((ROOT/"scripts"/"benchmark_bank.py",ROOT/"program"/"instrument.json"))
+    for path in snapshot_paths:
         (sources/path.name).write_bytes(path.read_bytes())
-    index=create_fixtures(fixtures,config)
+    index=create_fixtures(fixtures,config,deadline)
     receipt={"schema_version":1,"suite":config["suite"],"status":"running","cases":[],
              "created_at":datetime.now(timezone.utc).isoformat(),"profile":profile,"phrase_backend":backend,
-             "configuration_sha256":digest(CONFIG),"runner_sha256":digest(Path(__file__)),
+             "configuration_sha256":digest(config_path),"runner_sha256":digest(Path(__file__)),
              "runtime":{"python":sys.version,"platform":sys.platform},
              "worker_sha256":{name:digest(ROOT/"scripts"/name) for name in ("media.py","rhythm.py","guitar_features.py","clicks.py") if (ROOT/"scripts"/name).is_file()},
              "lock_sha256":{name:digest(ROOT/name) for name in ("flake.lock","uv.lock","Cargo.lock")},
              "listening_accepted":False,"limitations":config["limitations"]}
     for case in index["cases"]:
+        if time.monotonic()>=deadline:
+            receipt["cases"].append({"id":case["id"],"status":"failed","reason":"suite_deadline_not_scheduled"})
+            continue
         try:
             result=evaluate_case(case,fixtures,output,config,profile,backend,deadline)
         except (ValueError,OSError,KeyError,TypeError,subprocess.SubprocessError) as exc:
@@ -496,6 +600,12 @@ def run_suite(output: Path,config,profile="conservative3",backend="stdlib"):
                    seconds=time.monotonic()-started,quality_alert_count=sum(len(c.get("quality_alerts",[])) for c in receipt["cases"]))
     if any(len(hashes)!=1 for hashes in revisions.values()):
         receipt.update(status="failed",comparison_failure="Worker revisions changed between fixture cases; measurements retained but not a consistent suite comparison")
+    if config["suite"]=="technical-v2":
+        receipt.update(ground_truth_scope="generator_only_not_musician",reference_grid_supplied=False,
+                       hard_failure_count=sum(case.get("hard_failure_count",0)+(case.get("status")=="failed" and not case.get("hard_failure_count")) for case in receipt["cases"])
+                       +int(any(len(hashes)!=1 for hashes in revisions.values())),
+                       truth_supplied_to_discovery=False,fixture_index_sha256=digest(fixtures/"fixtures.json"),
+                       tasks_not_requested=["pitch_evaluation","phrase_calibration_evaluation","click_attenuation"])
     write_json(output/"benchmark.json",receipt)
     return receipt
 
@@ -505,13 +615,15 @@ def main():
     commands=parser.add_subparsers(dest="command",required=True)
     for name in ("fixtures","run"):
         command=commands.add_parser(name); command.add_argument("--output",required=True,type=Path)
+        command.add_argument("--suite",choices=("technical-v1","technical-v2"),default="technical-v1")
         if name=="run":
             command.add_argument("--profile",choices=("bypass","conservative3","mild6"),default="conservative3")
             command.add_argument("--phrase-backend",choices=("stdlib","librosa"),default="stdlib")
     args=parser.parse_args()
     try:
-        config=configuration(); output=destination(args.output)
-        result=create_fixtures(output,config) if args.command=="fixtures" else run_suite(output,config,args.profile,args.phrase_backend)
+        config=configuration(args.suite); output=destination(args.output)
+        generation_deadline=time.monotonic()+config["bounds"]["overall_timeout_seconds"]
+        result=create_fixtures(output,config,generation_deadline) if args.command=="fixtures" else run_suite(output,config,args.profile,args.phrase_backend)
         print(json.dumps({"status":result.get("status","fixtures_created"),"output":str(output),"case_count":len(result["cases"]),"result":str(output/("fixtures.json" if args.command=="fixtures" else "benchmark.json"))}))
         return int(result.get("status")=="failed")
     except (ValueError,OSError,subprocess.SubprocessError) as exc:

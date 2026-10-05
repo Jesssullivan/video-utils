@@ -40,9 +40,16 @@ exposed controls. Media/model downloads and uploads are never implicit.
 
 ## Tool map and capability boundaries
 
-The twenty entries below are available in the local stdio catalog. Local
-registry/readback evidence is separate from root’s signed remote publication
-receipt. Consult `tools/list` for the current installed checkout.
+The twenty-three entries below are present in the current local registry.
+The dated reconciliation checkpoint at October 5, 2026, 23:25 UTC found twenty
+tools in committed `HEAD` and `origin/main` (`04f64844c2c15d69adda2fc0b1e89a4e2702b82f`),
+and twenty-three in the working tree. `pitch_evaluate`, `phrase_evaluate` and
+`marked_video` have local worker/typed-hook/skill checks but were unpublished at
+that checkpoint. The two evaluator smoke runs use generated fixtures; the
+marked-video smoke uses generated VFR media. They do not establish actual-take
+accuracy or listening acceptance. Root's later publication and real-run receipts
+supersede this checkpoint; `tools/list` describes the checkout a client actually
+launches.
 
 | MCP tool | MCP prompt / repository skill | State and intended output |
 |---|---|---|
@@ -66,6 +73,9 @@ receipt. Consult `tools/list` for the current installed checkout.
 | `meter` | `guitar-meter` | Pulse-accent cycle/alias hypotheses with explicit unknowns; no confirmed time signature, downbeat or missed-beat grade. |
 | `corpus` | `guitar-corpus` | Read-only sparse annotation metadata validation with compact summary; supplied labels/reviewer identities are not authenticated ground truth. |
 | `tonal` | `guitar-tonal` | Automatic chroma/profile/collection hypotheses with null tonic/mode, no tuning prior or intended-note grades. |
+| `pitch_evaluate` | `guitar-pitch-evaluate` | Source-verified local generated-reference evaluator; validates an existing four-job/30-second pitch pilot without decoding or inference; real-note accuracy unestablished. |
+| `phrase_evaluate` | `guitar-phrase-evaluate` | Source-verified local generated-reference boundary/recurrence/alignment evaluator; keeps abstentions, sparse coverage and pre-warp differences; real phrase correctness unestablished. |
+| `marked_video` | `guitar-marked-video` | Source-verified local separate burned review preview with generated VFR preservation checks; uncertain callouts, no master overwrite or real-take listening claim. |
 
 Each skill's worker fallback is documented in its `SKILL.md`. Experimental
 feature tools use `scripts/guitar_features.py TOOL INPUT --run-dir DIR`; discover
@@ -81,9 +91,30 @@ profiles through MCP; a proposed custom noise-capture profile uses the direct
 recipe after interval confirmation and profile validation.
 
 Additional extension contracts and worker/registry readiness are tracked in
-[the skill extension lane](SKILL_EXTENSION_LANE.md). All twenty local tools/prompts passed exact-content readback and bundled skill
-validation. Worker checks, local catalog evidence, signed remote publication and
-musical acceptance remain separate states.
+[the skill extension lane](SKILL_EXTENSION_LANE.md),
+[calibration hooks](CALIBRATION_TOOL_CONTRACT.md) and
+[marked-video hook](MARKED_VIDEO_TOOL_CONTRACT.md). The latter records 58 targeted
+local tests and exact-content readback/bundle validation of all twenty-three
+skills/prompts. These are recorded source checks, not a twenty-three-tool remote
+publication or actual-take quality receipt. Worker checks, local catalog evidence,
+signed remote publication and musical acceptance remain separate states.
+
+The new evaluator hooks require existing `fixture_index`, `pilot_index` and a
+fresh `output` directory beneath repository `artifacts/benchmarks`. They accept
+only optional integer `timeout_seconds` (1–900, default 120); they do not run
+pitch/phrase discovery, regenerate fixtures or acquire private audio. Bounded
+source WAV bytes are read for hash/header checks, while `source_audio_decoded`
+and `inference_invoked` remain false. Full results stay in local receipts;
+synthetic low accuracy and abstention remain visible rather than becoming a
+real-performance verdict.
+
+`marked_video` requires existing `run_dir` and fresh `output` beneath repository
+`artifacts/runs`; optional `selection` is `phrase-review` (default), `recurrences`
+or `all-review`, and integer `timeout_seconds` is 1–900 (default 600). It consumes
+current export/DAG/flags/markers, reencodes picture and copies AAC. Picture
+timestamps/count, AAC payload/timing and decoded PCM identity are independently
+checked. Callouts remain uncertain review hypotheses. This is a separate
+shareable preview, not native editor import or replacement of the clean master.
 
 ## Nine-string interpretation and comparison
 
@@ -154,6 +185,16 @@ settings, registry and reference hashes, dependency identities, and
 hash-verified restored input from the manifest. Preserve source analysis beside
 cleaned analysis so processing artifacts never become the only evidence.
 
+`pipeline` can select exact click/pitch/meter/tonal/comparison receipts through
+its five optional run-relative artifact selectors. Selection verification checks
+source/upstream/settings/context bindings and retains rejected/not-selected
+slots; it never chooses the newest receipt implicitly. A verified selected
+legacy pitch payload can carry a **derived current canonical-PCM binding**
+instead of a producer manifest receipt, and derived settings instead of a
+producer settings receipt. A missing producer worker hash stays `not_recorded`;
+compatible current media does not recreate historical producer proof. Preserve
+these scope fields beside sampled coverage and timing uncertainty.
+
 The MCP tool registry also describes recommended prior tools and the
 identify/research/iterate/acceptance loop. Its recommendations are advisory,
 not an enforced runtime scheduler. Individual tool calls remain independently
@@ -213,3 +254,24 @@ is the graph evaluator; it does not schedule audio processing. Corpus metadata
 validation accepts `manifest`, optional `local_root` and bounded deadline; see
 [its contract](CORPUS_TOOL_CONTRACT.md). No recording bytes or models are opened
 by that operation.
+
+### Restoration and report integration boundary
+
+The in-progress restoration lane retains `denoised.wav` as pure denoising and
+optionally writes `processed.wav` for subsequent peaking EQ/compression before
+normalizing the delivery `cleaned.wav`. `residue.wav` is source minus pure
+denoising before gain; it does not measure removal or alteration caused by EQ,
+compression or normalization. Analysis on `denoised.wav` therefore describes a
+different processing stage from a tone/dynamics-enhanced delivery. Source-level
+stage support and new profile controls require their own real-run and registry
+receipts; they are not implied by the twenty-three-tool catalog.
+
+Read-only report review at the reconciliation checkpoint recommends three small
+integration changes: show the actual restoration chain and captured-noise
+interval beside the clean player; label residue with its precise stage scope;
+and display the selected receipt's manifest/settings/producer binding fields,
+including legacy pitch's derived bindings and unrecorded producer identity.
+Those report changes were not made by this documentation lane. The report's
+analysis-input allowlist currently excludes `processed.wav`; extending it alone
+would not extend upstream feature/DAG lineage support. Keep delivery and analyzed
+stage labels separate until that coordinated contract is verified.

@@ -3,6 +3,7 @@ import array
 import importlib.util
 import json
 import math
+import random
 from fractions import Fraction
 from pathlib import Path
 import tempfile
@@ -17,6 +18,20 @@ spec.loader.exec_module(media)
 
 
 class ProfileTests(unittest.TestCase):
+    def test_captured_presets_bind_reviewed_source_and_keep_typed_stages(self):
+        original = "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6"
+        for name in ("captured8", "captured12", "captured8-clarity"):
+            with self.subTest(name=name):
+                profile = media.load_profile(REPO / "profiles" / f"{name}.json")
+                self.assertEqual(profile["noise_capture_source_sha256"], original)
+                self.assertEqual(profile["noise_capture_seconds"], [4.1, 4.95])
+                self.assertIn("Root reviewed", profile["noise_capture_review"])
+                self.assertIn("not an operator-exact", profile["noise_capture_review"])
+                self.assertEqual(profile["noise_floor_db"], -40)
+                self.assertEqual(profile["adaptivity"], 0)
+                self.assertEqual(profile["gain_smooth"], 0)
+                self.assertEqual(len(media.post_denoise_filters(profile, 44100)), 3 if name.endswith("clarity") else 0)
+
     def test_packet_timing_rejects_shift_and_picture_payload_changes(self):
         packets = [{"pts": index * 20, "dts": index * 20 - 20, "duration": 20,
                     "data_hash": f"SHA256:picture-{index}"} for index in range(3)]
@@ -42,7 +57,36 @@ class ProfileTests(unittest.TestCase):
                 media.load_profile(path)
             profile["noise_capture_authorized"] = True
             path.write_text(json.dumps(profile))
+            with self.assertRaises(media.MediaError):
+                media.load_profile(path)
+            profile["noise_capture_source_sha256"] = "a" * 64
+            path.write_text(json.dumps(profile))
             self.assertEqual(media.load_profile(path)["noise_capture_seconds"], [0, 0.5])
+
+    def test_strict_numeric_restoration_controls_reject_injection_and_nonfinite(self):
+        base = json.loads((REPO / "profiles" / "conservative3.json").read_text())
+        invalid = [{"filter": "highpass=f=80"}, {"gain_smooth": 2.5},
+                   {"compressor": {"ratio": 2}},
+                   {"peaking_eq": [{"frequency_hz": "300,highpass=80", "gain_db": 1, "q": 1}]},
+                   {"peaking_eq": [{"frequency_hz": 300, "gain_db": True, "q": 1}]},
+                   {"peaking_eq": [{"frequency_hz": 32, "gain_db": -3, "q": 1}]},
+                   {"peaking_eq": [{"frequency_hz": 300, "gain_db": 4, "q": 1}]},
+                   {"peaking_eq": [{"frequency_hz": 300, "gain_db": float("nan"), "q": 1}]}]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "profile.json"
+            for update in invalid:
+                with self.subTest(update=update):
+                    path.write_text(json.dumps(dict(base, **update)))
+                    with self.assertRaises(media.MediaError):
+                        media.load_profile(path)
+        compressor = {"threshold_db": -18, "ratio": 2, "attack_ms": 15,
+                      "release_ms": 100, "knee_db": 3}
+        for key, bad in [("ratio", 4), ("attack_ms", 0), ("release_ms", 9000),
+                         ("threshold_db", -90), ("knee_db", float("inf"))]:
+            with self.subTest(key=key), self.assertRaises(media.MediaError):
+                media.post_denoise_filters({"compressor": dict(compressor, **{key: bad})}, 48000)
+        with self.assertRaises(media.MediaError):
+            media.post_denoise_filters({"peaking_eq": [{"frequency_hz": 6000, "gain_db": 1, "q": 1}]}, 8000)
 
 
 class MediaIntegrationTests(unittest.TestCase):
@@ -293,16 +337,189 @@ class MediaIntegrationTests(unittest.TestCase):
         source = self.directory / "capture.wav"
         self.tone(source)
         profile = json.loads(self.profile("conservative3").read_text())
-        profile.update(noise_capture_seconds=[0, 0.2], noise_capture_authorized=True)
+        profile.update(noise_capture_seconds=[0, 0.2], noise_capture_authorized=True,
+                       noise_capture_source_sha256=media.sha256(source))
         profile_path = self.directory / "profile.json"
         profile_path.write_text(json.dumps(profile))
         manifest = media.clean(source, profile_path)
-        self.assertTrue(any("after the selected interval" in text for text in manifest["assumptions"]))
+        self.assertTrue(manifest["noise_capture"]["applies_to_original_start"])
+        self.assertEqual(manifest["noise_capture"]["authorization"], "authorized_source_bound_noise_interval")
+        self.assertEqual(manifest["noise_capture"]["source_sha256"], media.sha256(source))
+        profile["noise_capture_source_sha256"] = "f" * 64
+        profile_path.write_text(json.dumps(profile))
+        with self.assertRaises(media.MediaError):
+            media.clean(source, profile_path)
+        profile["noise_capture_source_sha256"] = media.sha256(source)
         profile["noise_capture_seconds"] = [0, 20]
         profile_path.write_text(json.dumps(profile))
         with self.assertRaises(media.MediaError):
             media.clean(source, profile_path)
         self.assertFalse(list((self.directory / "artifacts" / "runs").glob(".staging-*")))
+
+    def fixture_wav(self, name, rate, channels, values):
+        path = self.directory / name
+        raw = array.array("h", (round(max(-.99, min(.99, value)) * 32767) for value in values))
+        with wave.open(str(path), "wb") as handle:
+            handle.setnchannels(channels)
+            handle.setsampwidth(2)
+            handle.setframerate(rate)
+            handle.writeframes(raw.tobytes())
+        return path
+
+    def test_each_forward_stage_preserves_support_stereo_rate_and_tail(self):
+        stages = [{"peaking_eq": [{"frequency_hz": 300, "gain_db": -1.5, "q": .8},
+                                   {"frequency_hz": 2200, "gain_db": 1, "q": .8}]},
+                  {"compressor": {"threshold_db": -18, "ratio": 2, "attack_ms": 15,
+                                  "release_ms": 100, "knee_db": 3}}]
+        for rate in (44100, 48000):
+            count, channels = rate + 137, 2
+            positions = (rate // 4, count - 100)
+            values = [0.] * (count * channels)
+            for position in positions:
+                values[position * channels] = .8
+                values[position * channels + 1] = -.4
+            source = self.fixture_wav(f"support-{rate}.wav", rate, channels, values)
+            reference = media.pcm_info(source)
+            for index, controls in enumerate(stages):
+                with self.subTest(rate=rate, stage=index):
+                    output = self.directory / f"stage-{rate}-{index}.wav"
+                    receipt = media.render_post_denoise(source, output, controls, reference)
+                    samples = self.raw_samples(output)
+                    for position in positions:
+                        self.assertGreater(samples[position * 2], .6)
+                        self.assertLess(samples[position * 2 + 1], -.3)
+                        self.assertLess(max(abs(x) for x in samples[(position-30)*2:position*2]), 1e-7)
+                    self.assertFalse(receipt[0]["timing"]["acoustic_alignment_verified"])
+                    self.assertEqual(len(samples), count * 2)
+
+    def test_eq_low_sustain_and_compressor_level_dependence(self):
+        rate = 48000
+        compressor = {"compressor": {"threshold_db": -18, "ratio": 2,
+                                     "attack_ms": 15, "release_ms": 100, "knee_db": 3}}
+        eq = {"peaking_eq": [{"frequency_hz": 300, "gain_db": -1.5, "q": .8},
+                             {"frequency_hz": 2200, "gain_db": 1, "q": .8}]}
+        for level in (.02, .7):
+            source = self.fixture_wav(f"sustain-{level}.wav", rate, 1,
+                                      [level * math.sin(2*math.pi*32*i/rate) for i in range(rate * 2)])
+            before = self.raw_samples(source)
+            for name, controls in (("eq", eq), ("compressor", compressor)):
+                output = self.directory / f"sustain-{level}-{name}.wav"
+                media.render_post_denoise(source, output, controls, media.pcm_info(source))
+                after = self.raw_samples(output)
+                start, end = rate, rate * 2
+                ratio = math.sqrt(sum(x*x for x in after[start:end]) / sum(x*x for x in before[start:end]))
+                if name == "eq":
+                    self.assertGreater(ratio, .97)
+                    self.assertLess(ratio, 1.03)
+                elif level < .1:
+                    self.assertAlmostEqual(ratio, 1, places=4)
+                else:
+                    self.assertLess(ratio, .95)
+                    self.assertGreaterEqual(ratio, .75)
+                    # Gain control changes amplitude; it does not move the
+                    # established waveform zero crossings/sample support.
+                    crossings = lambda xs: [i for i in range(start+1,end) if xs[i-1] < 0 <= xs[i]]
+                    self.assertEqual(crossings(before), crossings(after))
+
+    def test_capture_preroll_reduces_initial_fan_and_preserves_32hz_attacks(self):
+        for rate, channels, reduction_db in ((44100, 1, 8), (48000, 2, 12)):
+            with self.subTest(rate=rate, channels=channels, reduction_db=reduction_db):
+                rng = random.Random(914)
+                count = rate * 3 + 137
+                values = []
+                attack = rate * 2 + 17
+                for i in range(count):
+                    fan = .008 * rng.uniform(-1, 1) + .003 * math.sin(2*math.pi*240*i/rate)
+                    guitar = (.22 * math.sin(2*math.pi*32*i/rate)
+                              + .06 * math.sin(2*math.pi*160*i/rate)) if i >= rate else 0
+                    # A damped5ms pick burst has musical transient energy.
+                    # One-sample impulses are tested separately for sample
+                    # support, not promoted into an attack-fidelity guarantee.
+                    pick = 0.
+                    for position in (attack, count-round(.007*rate)):
+                        offset = i-position
+                        if 0 <= offset < round(.005*rate):
+                            pick += .6 * math.exp(-offset/(.002*rate)) * math.cos(2*math.pi*2100*offset/rate)
+                    sample = fan + guitar + pick
+                    values.extend(sample * (1 if channel == 0 else .75) for channel in range(channels))
+                source = self.fixture_wav(f"fan-{rate}.wav", rate, channels, values)
+                profile = json.loads(self.profile("conservative3").read_text())
+                profile.update(reduction_db=reduction_db, adaptivity=0, gain_smooth=0, noise_capture_seconds=[.2,.6],
+                               noise_capture_authorized=True,
+                               noise_capture_source_sha256=media.sha256(source))
+                path = self.directory / f"capture-{rate}.json"
+                path.write_text(json.dumps(profile))
+                manifest = media.clean(source, path)
+                before = self.raw_samples(source)[::channels]
+                after = self.raw_samples(Path(manifest["run_dir"]) / "denoised.wav")[::channels]
+                self.assertEqual(len(after), count)
+                window = slice(round(.05*rate), round(.15*rate))
+                reduction = 10*math.log10(sum(x*x for x in after[window]) / sum(x*x for x in before[window]))
+                self.assertLess(reduction, -3, f"opening fan change {reduction:.2f} dB")
+                # Compare the independently generated guitar's coherent32Hz
+                # component, rather than mistaking lower noise for fidelity.
+                component = lambda xs: 2/rate * abs(sum(xs[i]*complex(math.cos(2*math.pi*32*i/rate),
+                                                                     -math.sin(2*math.pi*32*i/rate))
+                                                          for i in range(rate*2,rate*3)))
+                self.assertGreater(component(after), .22*.9)
+                for position in (attack, count-round(.007*rate)):
+                    extent = round(.005*rate)
+                    before_peak = max(abs(x) for x in before[position:position+extent])
+                    after_peak = max(abs(x) for x in after[position:position+extent])
+                    self.assertGreater(after_peak, 10**(-1.5/20) * before_peak)
+                    # Leading-sample amplitude can differ more than the burst
+                    # peak; keep this separate3dB envelope budget explicit.
+                    self.assertGreater(abs(after[position]), 10**(-3/20) * abs(before[position]))
+                self.assertEqual(manifest["noise_capture"]["preroll_samples_removed"], round(.4*rate)+math.ceil(rate/10))
+                self.assertEqual(manifest["dsp_latency"]["denoise"]["remaining_bulk_delay_samples"], 0)
+
+    def test_strong_capture_delta_amplitude_damage_is_not_transparency(self):
+        rate, count = 48000, 48000 * 2
+        rng = random.Random(914)
+        values = [.008*rng.uniform(-1,1) for _ in range(count)]
+        position = rate + 17
+        values[position] += .6
+        source = self.fixture_wav("single-sample-damage.wav", rate, 1, values)
+        profile = json.loads(self.profile("conservative3").read_text())
+        profile.update(reduction_db=12, adaptivity=0, gain_smooth=0,
+                       noise_capture_seconds=[.2,.6], noise_capture_authorized=True,
+                       noise_capture_source_sha256=media.sha256(source))
+        path = self.directory / "delta-capture.json"
+        path.write_text(json.dumps(profile))
+        manifest = media.clean(source, path)
+        before = self.raw_samples(source)
+        after = self.raw_samples(Path(manifest["run_dir"]) / "denoised.wav")
+        peak = max(range(position-2,position+3), key=lambda i: abs(after[i]))
+        self.assertEqual(peak, position)
+        self.assertLess(abs(after[peak])/abs(before[position]), .85)
+        self.assertFalse(manifest["frequency_preservation"]["music_preservation_listening_verified"])
+
+    def test_clarity_clean_contract_keeps_denoise_residue_separate(self):
+        rate = 44100
+        source = self.fixture_wav("clarity.wav", rate, 2,
+                                 [channel * .7 * math.sin(2*math.pi*32*i/rate)
+                                  for i in range(rate*2+137) for channel in (1, .5)])
+        profile = json.loads(self.profile("bypass").read_text())
+        profile.update(peaking_eq=[{"frequency_hz": 300, "gain_db": -1.5, "q": .8},
+                                   {"frequency_hz": 2200, "gain_db": 1, "q": .8}],
+                       compressor={"threshold_db": -18, "ratio": 2, "attack_ms": 15,
+                                   "release_ms": 100, "knee_db": 3})
+        path = self.directory / "clarity.json"
+        path.write_text(json.dumps(profile))
+        manifest = media.clean(source, path)
+        directory = Path(manifest["run_dir"])
+        self.assertEqual(manifest["outputs"]["processed"], "processed.wav")
+        self.assertEqual(manifest["restoration_stages"][-1]["input"], "processed.wav")
+        self.assertEqual([stage["stage"] for stage in manifest["restoration_stages"]],
+                         ["denoise_bypass", "peaking_eq_1", "peaking_eq_2", "rms_compressor",
+                          "measured_loudness_normalization"])
+        self.assertEqual(self.raw_samples(directory/"source.wav"), self.raw_samples(directory/"denoised.wav"))
+        self.assertLess(max(abs(value) for value in self.raw_samples(directory/"residue.wav")), 1e-7)
+        self.assertNotEqual(media.sha256(directory/"processed.wav"), media.sha256(directory/"denoised.wav"))
+        self.assertEqual(media.sha256(directory/"processed.wav"), manifest["output_sha256"]["processed.wav"])
+        for filename in manifest["outputs"].values():
+            media.ensure_pcm_matches(directory/filename, manifest["pcm"])
+        self.assertFalse(manifest["dsp_latency"]["post_denoise"]["complete_acoustic_alignment_verified"])
 
 
 if __name__ == "__main__":

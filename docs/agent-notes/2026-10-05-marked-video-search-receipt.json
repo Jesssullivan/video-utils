@@ -1,0 +1,12 @@
+{
+  "actor": "media_latency",
+  "target_ownership": {
+    "pid": 1350,
+    "recorded_session_id": 95757,
+    "live": "1350  2735  1350 /bin/bash -c rg --files /nix/store | rg '/bin/ff(mpeg|probe)$' | head -10"
+  },
+  "reason": "Stop my broad executable-location search after exact pinned FFmpeg path was located in current export receipt",
+  "ruling": "R-N11; R-HOOK-CONVERGENCE-20261004",
+  "prior_state": "own recorded shell and live process group inspected",
+  "result": "owned search process group signalled"
+}
