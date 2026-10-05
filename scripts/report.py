@@ -245,6 +245,92 @@ def feature_section(payloads, statuses):
     return f'<section><h2>Low register, noise and tonal context</h2><p class="note">The intended low register near 32 Hz is musical content. These sampled analysis-copy bands describe the mixture and do not prove preserved fundamentals, guitar identity or preferred tone. A quiet interval may contain sustain or metronome; approve a noise-only region before profiling. Speech denoisers are outside these guitar cleanup presets.</p>{band_table}{quiet_table}<p class="caption">{context}. Exact tuning, intended notes and string identity require a confirmed reference. Distorted harmonics can create octave ambiguity; sparse frequency candidates do not establish note mistakes.</p>{pitch_table}<p class="caption">{identities}</p></section>'
 
 
+def subdivision_section(analysis):
+    payload = analysis.get("subdivisions", {})
+    if not isinstance(payload, dict):
+        return ""
+    candidates = payload.get("candidates", [])
+    if not isinstance(candidates, list) or not candidates:
+        return ""
+    rows = []
+    for item in candidates[:12]:
+        if not isinstance(item, dict):
+            continue
+        divisions = finite(item.get("subdivisions_per_declared_or_fitted_pulse"))
+        fraction = finite(item.get("within_tolerance_fraction"))
+        tolerance = finite(item.get("tolerance_ms"))
+        offset = finite(item.get("median_absolute_offset_ms"))
+        if divisions is None:
+            continue
+        coverage = f"{fraction * 100:.1f}%" if fraction is not None else "Unknown"
+        timing = f"{offset:.2f} ms" if offset is not None else "Unknown"
+        window = f"±{tolerance:g} ms" if tolerance is not None else "Unknown"
+        rows.append(f'<tr><th>{divisions:g} per pulse</th><td>{coverage} within {window}</td><td>{timing}</td></tr>')
+    if not rows:
+        return ""
+    return '<details><summary>Automatic pulse-subdivision candidates</summary><p class="caption">Detected attack alignment is measured against possible subdivisions. Increasing grid density can improve coverage by chance; these candidates do not establish intended notes, tuplets or rests.</p><table><thead><tr><th>Subdivision hypothesis</th><th>Candidate coverage</th><th>Median absolute offset</th></tr></thead><tbody>' + ''.join(rows) + '</tbody></table></details>'
+
+
+def phrase_section(manifest, payloads):
+    phrases = payloads.get("phrases", {})
+    observations = phrases.get("observations", {})
+    spans = observations.get("proposed_review_spans", []) if isinstance(observations, dict) else []
+    if not isinstance(spans, list) or not spans:
+        return '<section><h2>Automatic phrase and section proposals</h2><p class="unavailable">No source-bound phrase spans have been exported yet.</p><p class="caption">Phrase boundaries, repeated regions and possible bars can be proposed from the recording without an intended score. Semantic section names and performance correctness remain review decisions.</p></section>'
+    timeline = manifest.get("timeline", {})
+    audio_start = finite(timeline.get("audio_start_seconds")) or 0 if isinstance(timeline, dict) else 0
+    format_start = finite(timeline.get("format_start_seconds")) or 0 if isinstance(timeline, dict) else 0
+    source = phrases.get("source", {})
+    feature_origin = finite(source.get("audio_stream_start_seconds")) if isinstance(source, dict) else None
+    rows = []
+    for span in spans[:1000]:
+        if not isinstance(span, dict):
+            continue
+        start = finite(span.get("start_seconds"))
+        end = finite(span.get("end_seconds", start))
+        if start is None or end is None or start < 0 or end < start:
+            continue
+        source_start = finite(span.get("source_start_seconds"))
+        source_end = finite(span.get("source_end_seconds"))
+        source_start = source_start if source_start is not None else start + (feature_origin if feature_origin is not None else audio_start)
+        source_end = source_end if source_end is not None else source_start + end - start
+        kind = span.get("kind", "phrase_region_candidate")
+        label = span.get("label", str(kind).replace("_", " "))
+        evidence = span.get("evidence", "automatic proposal")
+        score = finite(span.get("score"))
+        reference_start = finite(span.get("reference_start_seconds"))
+        reference_link = f' <button data-media="audio" data-time="{reference_start:.6f}">Compare recurrence</button>' if reference_start is not None and reference_start >= 0 else ''
+        score_label = f" · {score:.3f} heuristic score" if score is not None else ''
+        confidence = finite(span.get("confidence"))
+        confidence_label = f" · {confidence:.3f} novelty heuristic" if confidence is not None else ''
+        rows.append(f'<tr><th>{escape(label)}<br><span class="caption">{escape(str(kind).replace("_", " "))}</span></th><td>{source_start:.3f}–{source_end:.3f}s</td><td>{escape(evidence)}{score_label}{confidence_label}</td><td><button data-media="audio" data-time="{max(0, source_start-audio_start):.6f}">Seek audio</button> <button data-media="video" data-time="{max(0, source_start-format_start):.6f}">Seek video</button>{reference_link}</td></tr>')
+    bars = observations.get("bar_proxy_candidates", [])
+    bar_rows = []
+    for index, bar in enumerate(bars[:24] if isinstance(bars, list) else []):
+        if not isinstance(bar, dict):
+            continue
+        start, end = finite(bar.get("start_seconds")), finite(bar.get("end_seconds"))
+        if start is None or end is None or start < 0 or end < start:
+            continue
+        source_start = finite(bar.get("source_start_seconds"))
+        source_start = source_start if source_start is not None else start + (feature_origin if feature_origin is not None else audio_start)
+        bar_rows.append(f'<tr><th>Four-pulse region {index+1}</th><td>{source_start:.3f}–{source_start+end-start:.3f}s</td><td><button data-media="audio" data-time="{max(0,source_start-audio_start):.6f}">Seek audio</button></td></tr>')
+    bar_table = '<details><summary>Four-pulse bar hypotheses · first 24</summary><p class="caption">Four pulses are grouped for navigation. Time signature and downbeat are unknown; these are bar proxies, not established 4/4 bars.</p><table>' + ''.join(bar_rows) + '</table></details>' if bar_rows else ''
+    curve = observations.get("novelty_curve", [])
+    points = [(finite(item.get("seconds")), finite(item.get("score"))) for item in curve if isinstance(item, dict)] if isinstance(curve, list) else []
+    points = [(time, score) for time, score in points if time is not None and score is not None and time >= 0]
+    novelty = ''
+    if len(points) > 1:
+        duration = max(time for time, _ in points) or 1
+        scale = max(max(score for _, score in points), .001)
+        line = ' '.join(f'{35+890*time/duration:.2f},{145-110*max(0,score)/scale:.2f}' for time, score in points[:20000])
+        novelty = f'<svg class="timeline" viewBox="0 0 960 185" role="img" aria-label="Automatic structural novelty in decoded audio seconds"><line x1="35" y1="145" x2="925" y2="145" class="axis"/><polyline points="{line}" fill="none" stroke="#dbba76" stroke-width="2"/><text x="35" y="173">0s</text><text x="865" y="173">{duration:.1f}s</text></svg><p class="caption">Beat-synchronous feature novelty, scaled for display. Peaks suggest structural changes; their scores are unvalidated heuristics.</p>'
+    segments = observations.get("segment_candidates", [])
+    recurrences = observations.get("recurrence_candidates", [])
+    counts = f'{len(segments) if isinstance(segments, list) else 0} region proposals · {len(recurrences) if isinstance(recurrences, list) else 0} recurrence proposals · {len(bars) if isinstance(bars, list) else 0} four-pulse proxies · {len(spans)} review spans'
+    return '<section><h2>Automatic phrase and section proposals</h2><p class="note">Boundaries and repeated regions are inferred directly from this take. Structural differences can flag passages for review without an intended score. Proposed bars, riffs and breakdown regions remain hypotheses; a reference is needed to judge whether a passage was played as intended.</p><p class="caption">' + counts + '</p>' + novelty + '<table><thead><tr><th>Proposal</th><th>Original source span</th><th>Evidence</th><th>Navigate</th></tr></thead><tbody>' + ''.join(rows) + '</tbody></table>' + bar_table + '<p class="caption">Automatic labels describe review candidates, not confirmed verse/chorus/breakdown identities. Recurrence can reflect spectral or rhythmic resemblance without matching notes. Showing at most 1,000 spans.</p></section>'
+
+
 def media_paths(root, manifest, outcome=None):
     outputs = manifest.get("outputs", manifest.get("artifacts", {}))
     if not isinstance(outputs, dict):
@@ -397,6 +483,11 @@ def metric_rows(manifest, analysis, outcome=None):
             value = next((finite(values[k]) for k in keys if finite(values.get(k)) is not None), None)
             if value is not None:
                 rows.append(f'<tr><th>{escape(role)} · {label}</th><td>{value:.2f} {unit}</td><td>Measured</td></tr>')
+    declared = analysis.get("declared_tempo", {})
+    if isinstance(declared, dict):
+        bpm = finite(declared.get("bpm"))
+        if bpm is not None:
+            rows.append(f'<tr><th>Operator-declared tempo</th><td>{bpm:g} BPM</td><td>Approximate user reference; separate from the fitted audio pulse</td></tr>')
     tempo = analysis.get("tempo", {})
     if isinstance(tempo, dict):
         bpm = finite(tempo.get("bpm", tempo.get("estimated_bpm")))
@@ -420,7 +511,7 @@ def metric_rows(manifest, analysis, outcome=None):
     if isinstance(grid, dict):
         bpm = finite(grid.get("bpm"))
         if bpm is not None:
-            rows.append(f'<tr><th>Proposed periodic grid</th><td>{bpm:.2f} BPM</td><td>Inferred; click identity and intended tempo unverified</td></tr>')
+            rows.append(f'<tr><th>Fitted periodic grid</th><td>{bpm:.2f} BPM</td><td>Recorded-pulse estimate; click identity and subdivisions remain uncertain</td></tr>')
         residual = finite(grid.get("median_absolute_residual_ms"))
         if residual is not None:
             rows.append(f'<tr><th>Periodic-candidate grid residual</th><td>{residual:.2f} ms</td><td>Heuristic grid fit; not a guitar performance grade</td></tr>')
@@ -453,10 +544,12 @@ def render(root, manifest, analysis, events, outcome=None, identity_status="unav
     video_html = f'<video controls preload="none" playsinline src="{escape(quote(video))}"></video>' if video else '<p class="unavailable">Processed video unavailable.</p>'
     availability = "Analysis exported" if analysis else "Rhythm analysis unavailable"
     style = '''*{box-sizing:border-box}body{margin:0;background:#171614;color:#ece7dd;font:16px/1.65 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:1120px;margin:auto;padding:64px 28px 48px}h1,h2,h3{line-height:1.2;font-weight:550;letter-spacing:-.035em}h1{font-size:clamp(35px,6vw,64px);margin:14px 0 20px}h2{font-size:25px;margin:0 0 20px}h3{font-size:21px;margin:0 0 12px}.eyebrow{color:#ceb179;text-transform:uppercase;letter-spacing:.17em;font-size:12px}.lead{color:#bdb6aa;max-width:780px}section{border-top:1px solid #38342e;margin-top:40px;padding-top:30px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{background:#211f1b;border:1px solid #3d372e;padding:24px;border-radius:12px}.card p,.caption{color:#aaa294;font-size:14px}audio{width:100%;margin:12px 0}a{color:#d8ba80;text-underline-offset:4px;font-size:14px}video{width:100%;max-height:660px;border-radius:10px;background:#0e0d0c}.unavailable{color:#a99f90}table{border-collapse:collapse;width:100%;font-size:15px}th,td{padding:14px 12px;text-align:left;border-bottom:1px solid #38342e}th{font-weight:500}td:last-child{color:#b0a696}.status{display:inline-block;border:1px solid #574a32;color:#d1b67e;border-radius:30px;padding:5px 13px;font-size:12px}.timeline{width:100%;background:#1e1c18;border-radius:10px}.wave{stroke:#a69980;stroke-width:1;fill:none}.axis{stroke:#413c32}.click{fill:#dbba76}.onset{fill:#ca8772}.timeline text{fill:#aaa294;font-size:13px}.note{border-left:2px solid #a88a55;padding-left:18px;color:#bbb2a4}footer{font-size:12px;color:#928879;margin-top:48px}@media(max-width:760px){main{padding:36px 18px}.cards{grid-template-columns:1fr}th,td{padding:11px 5px;font-size:13px}}'''
-    style += 'button{background:#302a20;color:#d8ba80;border:1px solid #655238;border-radius:6px;padding:7px 10px;cursor:pointer;margin:3px 0;font:inherit;font-size:12px}button:focus-visible{outline:2px solid #e3c98f;outline-offset:3px}details{margin-top:20px}summary{cursor:pointer;color:#c4ad82}'
+    style += 'th,td{overflow-wrap:anywhere}code{overflow-wrap:anywhere}button{background:#302a20;color:#d8ba80;border:1px solid #655238;border-radius:6px;padding:7px 10px;cursor:pointer;margin:3px 0;font:inherit;font-size:12px}button:focus-visible{outline:2px solid #e3c98f;outline-offset:3px}details{margin-top:20px}summary{cursor:pointer;color:#c4ad82}'
     seek_script = '''<script>document.addEventListener("click",function(event){const button=event.target.closest("button[data-media]");if(!button)return;const time=Number(button.dataset.time);if(!Number.isFinite(time)||time<0)return;const players=document.querySelectorAll(button.dataset.media==="video"?"video":"audio");const status=document.getElementById("seek-status");if(!players.length){status.textContent="This media artifact is unavailable.";return;}players.forEach(function(player){const seek=function(){try{player.currentTime=Number.isFinite(player.duration)?Math.min(time,player.duration):time;}catch(error){status.textContent="Seeking is unavailable in this browser; use the player controls.";}};if(player.readyState<1){player.addEventListener("loadedmetadata",seek,{once:true});player.load();}else{seek();}});status.textContent="Position set to "+time.toFixed(3)+" seconds. Start playback with the player controls.";});</script>'''
     review = review_section(manifest, auxiliary or {}, auxiliary_status or {})
     feature_report = feature_section(features or {}, feature_status or {})
+    phrase_report = phrase_section(manifest, features or {})
+    subdivisions = subdivision_section(analysis)
     fingerprint = source_identity(manifest)
     source_receipt = f'<p class="caption">Original source SHA-256: <code>{escape(fingerprint)}</code></p>' if isinstance(fingerprint, str) and len(fingerprint) == 64 and all(char in "0123456789abcdefABCDEF" for char in fingerprint) else ''
     profile = manifest.get("profile", {})
@@ -479,11 +572,12 @@ def render(root, manifest, analysis, events, outcome=None, identity_status="unav
 <header><div class="eyebrow">VIDEO UTILS / LOCAL SESSION</div><h1>A guitar take, examined.</h1><p class="lead">Compare the original recording with a conservative cleanup and inspect the evidence behind the iteration. Playback is manual; all media stays beside this report.</p><p class="lead">Source: {escape(source_name)}<br>Instrument context: 9-string downtuned deathcore / technical guitar; preserve the intended low register around 32 Hz and distorted tone.</p><span class="status">{availability} · listening acceptance pending</span></header>
 <section><h2>Listen and compare</h2><p class="note">{'Original and cleaned auditions target the same integrated loudness; check their measured values below.' if matched else 'These files may have different playback loudness; match levels manually.'} A louder iteration or less distortion does not establish better tone. The removed-signal player is a diagnostic at its own level.</p><div class="cards">{''.join(cards)}</div></section>
 <section><h2>Processed video</h2>{video_html}<p class="caption">{export_caption}</p><p class="caption">A rendered video is a delivery artifact; audiovisual sync and listening quality require separate acceptance.</p></section>
-<section><h2>Waveform and timing candidates</h2>{visualization(root, paths, events, analysis)}</section>
+<section><h2>Waveform and timing candidates</h2>{visualization(root, paths, events, analysis)}{subdivisions}</section>
 <section><h2>Run evidence</h2><p class="caption">Analysis lineage: {escape(identity_status)}. Unrelated or modified analysis inputs are excluded from this report.</p>{source_receipt}{settings_receipt}<table><thead><tr><th>Measure</th><th>Value</th><th>Evidence boundary</th></tr></thead><tbody>{metric_rows(manifest, analysis, outcome)}</tbody></table></section>
 {review}
+{phrase_report}
 {feature_report}
-<section><h2>What remains uncertain</h2><p class="note">A mono room recording combines distorted guitar, metronome, room sound and recorder processing. Denoising can remove intended harmonics and low-string fundamentals; residuals are diagnostic estimates. Tempo candidates do not establish intended tempo or meter. Without an approved expected-rhythm or phrase reference, timing deviations cannot establish missed notes, extra notes or phrase mistakes. Acoustic travel time and detector bias can affect onset offsets. Signal-phase troubleshooting is outside this workflow; musical phrase mistakes require an intended reference. Intended-note and tone-quality judgments remain unverified.</p><p class="caption">{'Source-bound analysis exports are available; review them before interpreting performance.' if analysis else 'Source-bound rhythm analysis is unavailable or rejected. BPM, meter, phrasing and performance findings are unavailable.'}</p></section>
+<section><h2>What remains uncertain</h2><p class="note">A mono room recording combines distorted guitar, metronome, room sound and recorder processing. Denoising can remove intended harmonics and low-string fundamentals; residuals are diagnostic estimates. Operator-declared tempo and fitted recording pulse are separate evidence. Automatic phrase, recurrence and bar proposals are available without an intended score, while meter and semantic section identity remain uncertain. Missed-note, extra-note and intended phrase-correctness judgments require stronger references. Acoustic travel time and detector bias affect onset offsets. Intended-note and tone-quality judgments remain unverified.</p><p class="caption">{'Source-bound analysis exports are available; review them before interpreting performance.' if analysis else 'Source-bound rhythm analysis is unavailable or rejected. Review any independently source-bound phrase proposals separately.'}</p></section>
 <footer>Static standard-library HTML report · no remote assets · not a Quarto-rendered report. Preserve the complete run directory when sharing.</footer>
 </main>{seek_script}</body></html>'''
 

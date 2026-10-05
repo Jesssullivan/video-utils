@@ -3,8 +3,8 @@ doctor:
     python3 scripts/doctor.py
 
 # Produce processed audio/video, rhythm measurements and a local comparison report.
-demo input:
-    python3 scripts/run_demo.py {{quote(input)}}
+demo input bpm="" backend="stdlib":
+    if [[ -n {{quote(bpm)}} ]]; then python3 scripts/run_demo.py {{quote(input)}} --bpm {{quote(bpm)}} --backend {{quote(backend)}}; else python3 scripts/run_demo.py {{quote(input)}} --backend {{quote(backend)}}; fi
 
 # Preserve the input and create a new private run directory.
 clean input profile="conservative3":

@@ -26,10 +26,10 @@ lineage_code <- paste(
   "import sys; from pathlib import Path;",
   "sys.path.insert(0,str(Path(sys.argv[1]).resolve())); import report;",
   "root=Path(sys.argv[2]).resolve();",
-  "print(report.analysis_lineage(root,report.load_json(root/'manifest.json'),report.load_json(root/'analysis.json')))"
+  "print(report.analysis_lineage(root,report.load_json(root/'manifest.json'),report.load_json(root/sys.argv[3])))"
 )
 analysis_lineage <- suppressWarnings(system2(
-  "python3", c("-c", shQuote(lineage_code), shQuote("../scripts"), shQuote(run_dir)),
+  "python3", c("-c", shQuote(lineage_code), shQuote("../scripts"), shQuote(run_dir), "analysis.json"),
   stdout = TRUE, stderr = FALSE
 ))
 analysis_bound <- length(analysis_lineage) == 1 && analysis_lineage %in%
@@ -53,9 +53,22 @@ if (!file.exists(manifest_path)) {
 
 ## Timing candidates
 
+Operator-declared tempo and the fitted recording pulse are separate evidence.
+Subdivision alignment remains uncertain, particularly for rests, syncopation,
+tuplets and merged attacks.
+
 ```{r}
 source("plots.R")
 if (analysis_bound) {
+  if (requireNamespace("jsonlite", quietly = TRUE)) {
+    analysis <- jsonlite::fromJSON(file.path(run_dir, "analysis.json"), simplifyVector = FALSE)
+    if (!is.null(analysis$declared_tempo$bpm)) {
+      cat("Operator-declared approximate tempo:", analysis$declared_tempo$bpm, "BPM\n\n")
+    }
+    if (!is.null(analysis$click_grid$bpm)) {
+      cat("Fitted recording pulse:", round(analysis$click_grid$bpm, 2), "BPM\n\n")
+    }
+  }
   plot_run_events(run_dir)
 } else {
   plot.new()
@@ -67,6 +80,43 @@ The plot uses decoded-audio-relative seconds. Click and guitar onset candidates
 may overlap; detector bias and room propagation delay affect timing. A tempo
 candidate is not an accepted beat grid. Missed or extra notes require an approved
 expected-rhythm reference.
+
+## Automatic phrase and section proposals
+
+Phrase boundaries, repeated regions and possible bars can be proposed directly
+from the recording without a prior intended score. Self-consistency differences
+can flag passages for listening review. Riff or breakdown labels are hypotheses;
+grading intended correctness or missed notes requires stronger references.
+
+```{r}
+phrase_lineage <- suppressWarnings(system2(
+  "python3", c("-c", shQuote(lineage_code), shQuote("../scripts"), shQuote(run_dir), "phrases.json"),
+  stdout = TRUE, stderr = FALSE
+))
+phrase_bound <- length(phrase_lineage) == 1 && phrase_lineage %in%
+  c("original_source_hash_bound", "verified_run_derivative_hash_bound")
+if (phrase_bound && requireNamespace("jsonlite", quietly = TRUE)) {
+  phrases <- jsonlite::fromJSON(file.path(run_dir, "phrases.json"), simplifyVector = FALSE)
+  spans <- phrases$observations$proposed_review_spans
+  if (length(spans)) {
+    rows <- lapply(spans, function(span) data.frame(
+      proposal = if (is.null(span$label)) span$kind else span$label,
+      source_start_seconds = span$source_start_seconds,
+      source_end_seconds = span$source_end_seconds,
+      stringsAsFactors = FALSE
+    ))
+    print(knitr::kable(do.call(rbind, rows)))
+  } else {
+    cat("No automatic phrase spans exported.")
+  }
+} else {
+  cat("Source-bound phrase proposals unavailable, rejected, or jsonlite absent.")
+}
+```
+
+The portable HTML report provides source-span navigation and recurrence
+comparisons. Four-pulse bar proxies do not establish meter or downbeat. Tonic,
+mode, exact tuning and intended notes may remain unknown.
 
 ## Listening review
 

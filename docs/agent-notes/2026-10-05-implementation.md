@@ -134,3 +134,84 @@ Original media and all local derivatives remain ignored. Durable spec, research,
 source and these receipts are committed; no unrelated checkout was edited.
 Git commit/push identity and browser preview are recorded in the final publication
 receipt after their actual readback. User listening acceptance remains pending.
+
+## Later operator steering: automatic discovery and tempo context
+
+The operator stated a metronome setting of approximately 178 BPM. The existing
+88.8007 BPM periodic fit implies approximately 177.6 BPM at the corresponding
+double-time interpretation. Keep operator-stated context separate from measured
+grid evidence and preserve alternate interpretations and heuristic confidence.
+Meter, bar count, and four-bar phrases are not thereby confirmed. Further note
+subdivisions and the ending sweep/tapping legato are explicit analysis context.
+
+Automatic phrase, bar, and breakdown discovery must not require a predeclared
+intended song. Unsupervised features and recurrence propose candidates; internal
+self-consistency can flag timestamp/span hypotheses for starts/ends, skips,
+rushing, possible missing loops, and unclear riffs. Approved references qualify
+definite correctness grading, not discovery or review flags. Intended-pitch
+verdicts still need confirmed tuning and an intended-note reference. The 32 Hz
+nine-string context is retained, with no generic speech-cleanup substitution.
+
+The earlier empty-marker receipt describes that historical run, not a discovery
+requirement. Richer onset/phrase workers and the locked librosa environment are
+under integration; installation, rerun outputs, counts, and validation belong in
+the next actual root receipt. No new render or acceptance claim is made here.
+
+## Root optional-analysis and ten-hour checkpoint
+
+The operator's later requests and clarifications are preserved verbatim in
+`docs/agent-notes/2026-10-05-user-prompts.md`; the reasserted outcome, ownership,
+checkpoints and ten-hour horizon are in `docs/spec/TEN_HOUR_PLAN.md` and the live
+repo board. Root created the active goal at 2026-10-05T20:49:34Z, with a planned
+horizon ending 2026-10-06T06:49:34Z. Linear TIN-5495 tracks this parallel sprint.
+This is a work horizon; the goal API does not enforce a wall-clock deadline.
+
+The locked optional environment was subsequently installed explicitly using
+existing CPython3.14.6 and binary wheels only, without source builds, interpreter
+downloads or learned-model downloads. Runtime librosa0.11.0 was exercised on
+synthetic fixtures and the actual take. Numerical threads were bounded to two.
+The earlier no-installation receipt remains a historical checkpoint.
+
+The current actual run's source/cleaned media are unchanged. Its original
+standard-library analysis is retained in `analysis-revisions/stdlib-initial`.
+New post-denoise rhythm and noise/tone/notes/phrases artifacts retain verified
+original-source lineage and the constant tuning metadata. Operator pitch classes
+are C F Bb Eb Bb Eb Ab C F; octaves C1 F1 Bb1 Eb2 Bb2 Eb3 Ab3 C4 F4 are inferred,
+and A440 frequencies are theoretical. This is not a played-note measurement.
+
+The declared178BPM seed did not produce a stable direct observed fit. The
+worker records that abstention and a separate audio-derived fallback fit of
+88.800719BPM, whose double-time interpretation is177.601438BPM. No metronome
+identity is thereby proven. Subdivision candidates remain unvalidated; the
+actual alignment statistics do not support a confirmed subdivision verdict.
+
+Automatic spectral novelty/recurrence, without predeclared intent, produced
+47candidate regions and10recurrence pairs. The integrated graph/marker/report
+contains177source-time review markers:112four-pulse navigation proxies,
+43texture regions,9recurrence regions,6attack-density differences,
+4low-register riff/breakdown candidates and3motif timing differences.
+These are hypotheses, not177performance errors; meter/tonic/mode remain unknown.
+Four-pulse proxies are not detected bars/downbeats. Listening remains pending.
+
+Final first-phase verification:108Python tests passed in the locked optional
+environment, including actual librosa fixture processing, schema/timeout checks,
+large-integer input rejection and declared-seed fallback. The previously passed
+seven Rust tests/rustfmt still apply to unchanged Rust source. All12skill
+validation and live MCP prompt readbacks passed. Actual HTML regeneration verifies
+source/export hashes and all four feature derivative identities. The report's
+plain-HTML renderer is runtime-qualified; optional Quarto/R runtime is not.
+
+An isolated headless-browser preview initially exceeded its parent timeout.
+Inspection found no remaining process with that owned profile. The generated
+preview PNG was subsequently found and visually inspected: layout is readable,
+but players were not loaded in that snapshot. This is visual layout evidence
+for the preceding report revision, not playback/listening acceptance.
+
+Authority: operator implementation, tuning and ten-hour fanout requests;
+R-HOOK-CONVERGENCE-20261004 / R-N12 advisory findings / R-N13 durability.
+Publication commit, private remote readback and tracker comment IDs follow in a
+separate observed publication receipt.
+
+The subsequent strict-JSON hardening rejects exponent overflow and excessive
+nesting as typed errors;27targeted tool/MCP tests passed after those parser
+changes. No new worker capability was advertised by that hardening.

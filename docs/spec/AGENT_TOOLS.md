@@ -49,16 +49,21 @@ exposed controls. Media/model downloads and uploads are never implicit.
 | `tone` | `guitar-tone` | Experimental spectral bands; not amplifier reconstruction or intended-tone classification. |
 | `notes` | `guitar-notes` | Experimental sparse periodic pitch candidates; not polyphonic transcription or wrong-note grading. |
 | `rhythm` | `guitar-rhythm` | Experimental recorded-transient offsets; intended rhythm and calibration are needed for error grading. |
-| `phrases` | `guitar-phrases` | Experimental pause/recurrence review spans with same-source context; not confirmed form or phrase-mistake grading. |
+| `phrases` | `guitar-phrases` | Automatic experimental phrase/bar/breakdown and recurrence candidates; intended phrases are not a prerequisite. |
 | `export` | `media-export` | Current local WAV/video delivery with timeline/hash checks; codec and listening acceptance remain distinct. |
 | `report` | `guitar-report` | Current local evidence HTML; missing analysis and acceptance remain explicit. |
-| `pipeline` | `guitar-pipeline` | Current existing-run provenance DAG and experimental approved-reference comparisons; no automatic analysis scheduling. |
+| `pipeline` | `guitar-pipeline` | Existing-run provenance DAG, automatic candidate/self-consistency review and optional approved-reference comparisons; no automatic analysis scheduling. |
 | `markers` | `phrase-markers` | Current generic source-time JSON/CSV review exchange; native editor import remains unverified. |
 
-Each skill's worker fallback is documented in its `SKILL.md`. The four experimental
-feature tools use `scripts/guitar_features.py TOOL INPUT --run-dir DIR`; they
-accept no adjustable algorithm knobs in this version. Proposed controls must be
-implemented and validated before an agent promises their effect. The BPM/rhythm
+Each skill's worker fallback is documented in its `SKILL.md`. Experimental
+feature tools use `scripts/guitar_features.py TOOL INPUT --run-dir DIR`; discover
+the current schemas from `tools/list`. `phrases` exposes `backend` (`stdlib` or
+optional `librosa`) and `bpm` (20–400); `noise`, `tone` and `notes` do not expose
+these controls. The librosa backend needs the locked analysis interpreter and an
+explicit BPM seed or same-source tempo artifact. Use the environment interpreter
+for the MCP server or `VIDEO_UTILS_ANALYSIS_PYTHON` when configured; dependency
+installation is never implicit. Proposed controls
+must be implemented and validated before an agent promises their effect. The BPM/rhythm
 worker supports backend selection and a manual BPM seed. Denoise accepts registered
 profiles through MCP; a proposed custom noise-capture profile uses the direct
 recipe after interval confirmation and profile validation.
@@ -85,8 +90,10 @@ Rhythm assessment must represent rests, syncopation, tuplets, changing meter,
 palm mutes, legato and sweep picking. An event nearest a quarter-note grid is not
 a correct/incorrect judgment. Keep observed attack candidates separate from
 confirmed guitar attacks, expected-rhythm notes and independently calibrated
-latency. Define the intended reference before calling missing/extra notes, wrong
-notes or phrase mistakes.
+latency. Automatic structure discovery and recurrence-based issue hypotheses do
+not require a predefined intended phrase. A supplied intended reference is needed
+for definite correctness judgments, including missed/extra notes, wrong notes or
+confirmed phrase mistakes.
 
 The operator confirmed “phase mistakes” means **musical phrase mistakes**.
 Signal-phase troubleshooting is outside this project workflow. The phrase lane
@@ -98,8 +105,9 @@ workers provide periodicity and envelope suggestions, nullable tonal context,
 and source-timestamped review spans. The pipeline adds experimental
 reference-relative attack/phrase comparisons and generic markers. Tonal-center/
 mode inference, semantic phrase grading and native editor imports remain planned
-capabilities. No flag establishes an error when the relevant expected pattern is
-unknown.
+capabilities. Discover structure despite missing tonal/intent context; recurrence
+duration and onset-motif differences can be review candidates. A hypothesis does
+not establish a definite error when the relevant expected pattern is unknown.
 
 Use the following agent loop for every tool:
 
@@ -136,10 +144,16 @@ invalid or oversized inputs.
 
 For exact approved-reference semantics, calibration and matching constraints,
 read [the phrase DAG interface](PHRASE_DAG.md). Without an approved reference,
-retain candidate spans and unknown tonal context. With one, one-to-one attack
+still discover phrase/bar/breakdown proposals and recurrence-based duration or
+onset-motif differences, retaining candidate spans and unknown tonal context.
+Intended phrases are not an input prerequisite. With a reference, one-to-one attack
 comparison still yields mixture-transient mismatch candidates, not confirmed
-note errors. Early/late labels require an explicit latency correction value;
-that declaration still needs a calibration receipt for musician-facing claims.
+note errors. Absolute reference-relative early/late labels require an explicit latency
+correction value; that declaration still needs a calibration receipt for
+musician-facing claims. Unknown capture latency does not block relative loop
+duration or onset-motif comparison: a constant offset cancels, while detector
+and boundary bias remain uncertain. A four-pulse bar proxy and 4/8/16-pulse
+recurrence proposals do not confirm meter or intended phrase length.
 
 Use `markers` for generic source-time CSV/JSON from validated flags. Marker status
 remains `needs_review`. Native Final Cut Pro and DaVinci Resolve imports require

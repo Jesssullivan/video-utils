@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "suite": "technical-v1",
+  "license": "MIT",
+  "sample_rate": 48000,
+  "duration_seconds": 8,
+  "bpm": 178,
+  "seed": 20261005,
+  "fixtures": [
+    {"id": "low32-sustain", "kind": "sustain", "fundamental_hz": 32.0},
+    {"id": "palm-muted-recurrence", "kind": "palm_mute", "fundamental_hz": 32.703195663},
+    {"id": "legato-recurrence", "kind": "legato", "fundamental_hz": 32.703195663, "upper_frequency_hz": 43.653528929}
+  ],
+  "bounds": {
+    "max_cases": 3,
+    "max_duration_seconds": 8,
+    "worker_timeout_seconds": 120,
+    "overall_timeout_seconds": 600,
+    "max_json_bytes": 5000000,
+    "max_worker_output_bytes": 8000000,
+    "max_decoded_bytes": 2000000
+  },
+  "metric_policy": {
+    "click_tolerance_seconds": 0.02,
+    "low_frequency_alert_below_db": -0.5,
+    "recurrence_minimum_interval_iou": 0.5,
+    "quality_alerts_fail_process": false,
+    "listening_acceptance": "unverified"
+  },
+  "limitations": [
+    "Synthetic distortion and noise do not reproduce an amplifier, room, phone codec, AGC or AEC.",
+    "Known synthetic click components do not establish causal click identification in real mono mixtures.",
+    "Generated repeated regions are synthetic truth, not musical-phrase or intended-note acceptance."
+  ]
+}

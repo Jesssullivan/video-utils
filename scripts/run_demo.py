@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import math
 import os
 from pathlib import Path
 import subprocess
@@ -13,8 +14,9 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def invoke(script: str, arguments: list[str], timeout: int = 1200) -> dict:
-    result = subprocess.run([sys.executable, str(ROOT / "scripts" / script), *arguments],
+def invoke(script: str, arguments: list[str], timeout: int = 1200,
+           interpreter: str | None = None) -> dict:
+    result = subprocess.run([interpreter or sys.executable, str(ROOT / "scripts" / script), *arguments],
                             stdin=subprocess.DEVNULL, capture_output=True, text=True,
                             timeout=timeout, check=False)
     if result.returncode:
@@ -26,7 +28,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input")
     parser.add_argument("--profile", default="conservative3")
+    parser.add_argument("--bpm", type=float, help="Approximate operator pulse; not an intended score")
+    parser.add_argument("--backend", choices=("stdlib", "librosa"), default="stdlib")
     args = parser.parse_args()
+    if args.bpm is not None and (not math.isfinite(args.bpm) or not 20 <= args.bpm <= 400):
+        parser.error("--bpm must be finite and between 20 and 400")
+    analysis_python = os.environ.get("VIDEO_UTILS_ANALYSIS_PYTHON", sys.executable)
+    analysis_options = ["--backend", args.backend]
+    if args.bpm is not None:
+        analysis_options += ["--bpm", str(args.bpm)]
     try:
         print("Rendering conservative audio and synchronized video…", file=sys.stderr)
         media = invoke("media.py", ["demo", args.input, "--profile", args.profile])
@@ -34,18 +44,19 @@ def main() -> int:
         processing_input = str(directory / "denoised.wav")
         stages = {"media": {"status": "rendered_unreviewed"}}
         for name, script, arguments in [
-            ("rhythm", "rhythm.py", [processing_input, "--run-dir", str(directory)]),
+            ("rhythm", "rhythm.py", [processing_input, "--run-dir", str(directory), *analysis_options]),
             ("noise", "guitar_features.py", ["noise", processing_input, "--run-dir", str(directory)]),
             ("tone", "guitar_features.py", ["tone", processing_input, "--run-dir", str(directory)]),
             ("notes", "guitar_features.py", ["notes", processing_input, "--run-dir", str(directory)]),
-            ("phrases", "guitar_features.py", ["phrases", processing_input, "--run-dir", str(directory)]),
+            ("phrases", "guitar_features.py", ["phrases", processing_input, "--run-dir", str(directory), *analysis_options]),
         ]:
             if not (ROOT / "scripts" / script).is_file():
                 stages[name] = {"status": "unavailable", "reason": "Worker not implemented"}
                 continue
             print(f"Measuring {name} candidates…", file=sys.stderr)
             try:
-                data = invoke(script, arguments, 240)
+                data = invoke(script, arguments, 600,
+                              analysis_python if name in {"rhythm", "phrases"} and args.backend == "librosa" else None)
                 stages[name] = {"status": "measured_candidates", "result": data}
             except (RuntimeError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
                 # A failed experimental analysis must not discard a completed render.
@@ -58,6 +69,7 @@ def main() -> int:
                     stages[name] = {"status": "failed", "reason": str(exc)}
         report = invoke("report.py", [str(directory)], 180)
         receipt = {"schema_version": 1, "created_at": datetime.now(timezone.utc).isoformat(),
+                   "analysis_settings": {"backend": args.backend, "operator_bpm": args.bpm},
                    "run_dir": str(directory), "stages": stages, "report": report,
                    "listening_accepted": False, "instrument": {"strings": 9, "low_fundamental_hz": 32},
                    "authority": "Operator approved implementation; R-HOOK-CONVERGENCE-20261004/R-N13"}

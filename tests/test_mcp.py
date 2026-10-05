@@ -81,6 +81,23 @@ class MCPTests(unittest.TestCase):
         self.assertEqual(result['messages'][0]['content']['text'], skill.read_text())
         self.assertIn('Preserve 32 Hz guitar', result['messages'][1]['content']['text'])
 
+
+    def test_every_advertised_tool_has_a_readable_skill_prompt(self):
+        server = mcp_server.Server()
+        prompts = server.prompts()
+        self.assertEqual(len(prompts), 12)
+        messages = [initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'}]
+        messages.extend(request(index + 2, 'prompts/get', {'name': prompt['name']})
+                        for index, prompt in enumerate(prompts))
+        replies, stderr = exchange(messages)
+        self.assertEqual(stderr, '')
+        self.assertEqual(len(replies), 13)
+        for prompt, reply in zip(prompts, replies[1:]):
+            with self.subTest(prompt=prompt['name']):
+                self.assertNotIn('error', reply)
+                skill = ROOT / '.agents/skills' / prompt['name'] / 'SKILL.md'
+                self.assertEqual(reply['result']['messages'][0]['content']['text'], skill.read_text())
+
     @unittest.skipUnless(shutil.which(os.environ.get('FFPROBE', 'ffprobe')), 'ffprobe unavailable')
     def test_real_tool_call_probe_returns_structured_media_evidence(self):
         with tempfile.TemporaryDirectory() as temporary:

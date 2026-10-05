@@ -15,6 +15,42 @@ def sine(frequency, count=guitar.FRAME, amplitude=.3):
 
 
 class GuitarFeatureTests(unittest.TestCase):
+    @unittest.skipUnless(importlib.util.find_spec("numpy"), "optional locked analysis environment")
+    def test_automatic_recurrence_uses_notes_without_intent_or_pause(self):
+        import numpy as np
+        a = np.eye(12)[[0,2,4,2,0,4,7,4]]
+        b = np.eye(12)[[1,3,6,3,1,6,8,6]]
+        features = np.hstack((np.ones((32, 1)), np.vstack((a,a,b,b))))
+        result = guitar.discover_phrase_features(features, .5, 16)
+        self.assertTrue(result["segment_candidates"])
+        self.assertTrue(any(abs(s["start_seconds"]-8) <= 1 for s in result["segment_candidates"]))
+        recurrences = result["recurrence_candidates"]
+        self.assertTrue(any(r["first_start_seconds"] == 0 and r["second_start_seconds"] == 4
+                            and r["pulse_count"] == 8 for r in recurrences))
+        self.assertFalse(any(r["first_start_seconds"] == 0 and r["second_start_seconds"] == 8
+                             and r["pulse_count"] == 8 for r in recurrences))
+        self.assertTrue(all(s["performance_issue"] is None for s in result["segment_candidates"]))
+        self.assertTrue(all(b["time_signature"] is None for b in result["bar_proxy_candidates"]))
+
+    @unittest.skipUnless(importlib.util.find_spec("numpy"), "optional locked analysis environment")
+    def test_automatic_silence_or_constant_features_abstain(self):
+        import numpy as np
+        for features in (np.zeros((32,12)), np.ones((32,12))):
+            result = guitar.discover_phrase_features(features, .5, 16)
+            self.assertEqual(result["segment_candidates"], [])
+            self.assertEqual(result["recurrence_candidates"], [])
+
+    def test_instrument_registry_retains_operator_pitch_classes_and_assumptions(self):
+        context = guitar.instrument_context()
+        self.assertEqual(context["operator_pitch_classes"], ["C", "F", "Bb", "Eb", "Bb", "Eb", "Ab", "C", "F"])
+        self.assertEqual(context["exact_tuning"], ["C1", "F1", "Bb1", "Eb2", "Bb2", "Eb3", "Ab3", "C4", "F4"])
+        self.assertEqual(context["pitch_class_evidence"], "operator_stated")
+        self.assertEqual(context["octave_evidence"], "inferred")
+        self.assertEqual(context["frequency_evidence"], "computed_equal_temperament_not_measured")
+        self.assertEqual(context["tuning_metadata"]["strings"][4]["midi"]-context["tuning_metadata"]["strings"][3]["midi"], 7)
+        self.assertAlmostEqual(context["lowest_open_string_theoretical_hz"], 32.7032, delta=.0001)
+        self.assertEqual(len(context["tuning_metadata_sha256"]), 64)
+
     def test_32hz_is_measured_in_protected_band(self):
         result = guitar.spectrum(sine(32))
         self.assertGreater(result["bands"][0]["mean_square"], .04)

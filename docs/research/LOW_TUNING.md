@@ -113,3 +113,55 @@ records the input and original recording hashes, canonical PCM description and
 manifest path. A filename alone never establishes timeline inheritance.
 The actual-take measurement receipt above used the earlier 32–80 Hz band; new
 runs explicitly label the protected 28–80 Hz guard band.
+
+## Automatic phrase backend (optional locked librosa)
+
+The operator requested automatic phrase/bar/breakdown discovery without
+predeclared intent. `phrases --backend librosa --bpm 178` enables an independent
+feature-segmentation pilot; the take's 178 BPM seed is operator supplied. With
+no explicit seed, a same-source rhythm artifact may supply a periodicity
+candidate. Tempo is a pulse grid, not an expected score or proof of time
+signature. The stdlib backend remains an envelope baseline.
+
+The backend extracts 11 MFCC coefficients excluding the energy coefficient,
+12 chroma dimensions, spectral centroid, flatness and log RMS from 256 ms FFT
+windows at a 16 ms hop. Mel analysis starts at 28 Hz. It aggregates median
+features into pulse intervals, scales varying dimensions, and compares feature
+changes across four-pulse windows plus a smaller two-pulse term. Local novelty
+peaks above a robust threshold, separated by at least four pulses, propose
+section boundaries. These can occur in a continuously played riff without any
+pause. Descriptive region labels use feature similarity, relative spectral
+brightness and candidate onset density, not declared intent.
+
+Nonoverlapping 4/8/16-pulse feature sequences are compared by cosine similarity;
+up to 60 deduplicated candidates above 0.8 are returned, with relative onset
+candidates for recurrence self-consistency review. The 0.8 score is an
+experimental operating threshold, not a confidence probability. Four-pulse
+“bar proxies” are a separate unlabeled-meter grouping hypothesis. No automatic
+technique diagnosis is claimed: a bright ending is not sufficient evidence of
+sweeping, tapping or legato, and a low-register texture is only a possible
+breakdown. Tonic/mode abstain because distorted mixture chroma is not yet
+validated against annotated material.
+
+The feature design is informed by official
+[librosa MFCC documentation](https://librosa.org/doc/0.11.0/generated/librosa.feature.mfcc.html)
+and its
+[recurrence-matrix documentation](https://librosa.org/doc/0.11.0/generated/librosa.segment.recurrence_matrix.html).
+This worker implements explicit cosine sequence comparisons rather than
+claiming to call `recurrence_matrix`. Automatic structural hypotheses and
+relative recurrence discrepancies require no intended score; definitive wrong
+notes, skipped intended events and performance grades still require suitable
+reference evidence. Tests include repeated note features and a different-note
+riff with an unchanged amplitude envelope, plus silence/constant-feature
+abstention. Optional tests run in the locked analysis environment.
+
+First actual automatic pilot on the hash-verified denoised derivative returned
+44 texture-region candidates, ten recurrence pairs, 112 four-pulse bar proxies,
+and 552 onset candidates. This differs from the envelope baseline's zero
+proposals because spectral/chroma structure can change without pauses. These
+counts are a feasibility receipt, not segmentation accuracy. That first run
+records the two-pulse novelty prototype; the current four-pulse plus 0.3-times
+two-pulse variant fixes a synthetic continuous-riff boundary failure and
+requires the final root pipeline run to refresh the artifact. All 15 feature
+tests pass in the locked analysis environment, including the optional two
+NumPy segmentation tests. No learned model or GPU is used.

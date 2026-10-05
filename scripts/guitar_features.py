@@ -25,6 +25,35 @@ INSTRUMENT = {"instrument": "nine_string_down_tuned_distorted_guitar", "lowest_e
               "exact_tuning": None, "low_frequency_is_not_automatically_noise": True}
 
 
+def instrument_context(path: Path | None = None) -> dict:
+    """Carry operator pitch classes and inferred octave assumptions verbatim."""
+    path = path or Path(__file__).resolve().parents[1] / "program/instrument.json"
+    if not path.exists():
+        return {**INSTRUMENT, "tuning_metadata_status": "not_available"}
+    raw = path.read_bytes()
+    if len(raw) > 64_000:
+        raise ValueError("Instrument metadata is oversized")
+    context = json.loads(raw)
+    strings = context.get("strings")
+    if (context.get("schema_version") != 1 or context.get("string_count") != 9
+            or context.get("tuning_direction") != "lowest_to_highest"
+            or not isinstance(strings, list) or len(strings) != 9):
+        raise ValueError("Invalid nine-string instrument metadata")
+    if any(not isinstance(s, dict) or not isinstance(s.get("pitch_class"), str)
+           or not isinstance(s.get("note"), str) or not isinstance(s.get("frequency_hz"), (int,float))
+           or not math.isfinite(s["frequency_hz"]) or s["frequency_hz"] <= 0 for s in strings):
+        raise ValueError("Invalid instrument string metadata")
+    return {**INSTRUMENT, "exact_tuning": [s["note"] for s in strings],
+            "operator_pitch_classes": [s["pitch_class"] for s in strings],
+            "pitch_class_evidence": context["pitch_class_evidence"],
+            "octave_evidence": context["octave_evidence"],
+            "frequency_evidence": context["frequency_evidence"],
+            "lowest_open_string_theoretical_hz": strings[0]["frequency_hz"],
+            "tuning_metadata_status": "operator_pitch_classes_with_inferred_octaves",
+            "tuning_metadata": context, "tuning_metadata_path": str(path),
+            "tuning_metadata_sha256": hashlib.sha256(raw).hexdigest()}
+
+
 def db(value: float) -> float | None:
     return round(20 * math.log10(value), 4) if value > 0 else None
 
@@ -229,6 +258,179 @@ def phrases(samples) -> dict:
                                "warning": "Envelope resemblance is not a repeated riff. Confirm phrases and an expected-rhythm reference before judging mistakes."}}
 
 
+def discover_phrase_features(features, pulse_period: float, duration: float, onsets=(),
+                             pulse_origin: float = 0.0, centroids=None) -> dict:
+    """Unsupervised segmentation and motif recurrence; no intended-score input."""
+    import numpy as np
+    x = np.asarray(features, dtype=float)
+    if x.ndim != 2 or not np.isfinite(x).all() or pulse_period <= 0:
+        raise ValueError("Finite pulse-feature matrix and positive period required")
+    count = len(x)
+    if count < 4:
+        return {"segment_candidates": [], "recurrence_candidates": [], "novelty_curve": [],
+                "bar_proxy_candidates": []}
+    # Global dimension scaling preserves changed notes despite a constant amplitude envelope.
+    scale = np.std(x, axis=0)
+    active = scale > 1e-5
+    if not active.any():
+        return {"segment_candidates": [], "recurrence_candidates": [], "novelty_curve": [],
+                "bar_proxy_candidates": []}
+    z = np.clip((x[:, active] - np.mean(x[:, active], axis=0)) / scale[active], -4, 4)
+    novelty = np.zeros(count)
+    for i in range(2, count-2):
+        before, after = z[i-2:i].mean(axis=0), z[i:i+2].mean(axis=0)
+        wide_before = z[max(0,i-4):i].mean(axis=0)
+        wide_after = z[i:min(count,i+4)].mean(axis=0)
+        novelty[i] = np.sqrt(np.mean((wide_before-wide_after)**2)) + .3*np.sqrt(np.mean((before-after)**2))
+    median = float(np.median(novelty))
+    mad = float(np.median(np.abs(novelty-median)))
+    threshold = max(.25, float(np.quantile(novelty, .75)), median + .5*mad)
+    peaks = [i for i in range(2, count-2) if novelty[i] >= threshold
+             and novelty[i] >= novelty[i-1] and novelty[i] > novelty[i+1]]
+    selected = []
+    for i in sorted(peaks, key=lambda index: novelty[index], reverse=True):
+        if all(abs(i-other) >= 4 for other in selected):
+            selected.append(i)
+    selected.sort()
+    boundaries = [0] + selected + [count]
+    segments, representatives = [], []
+    for begin, end in zip(boundaries, boundaries[1:]):
+        start_time = max(0, pulse_origin + begin*pulse_period)
+        end_time = min(duration, pulse_origin + end*pulse_period)
+        if end_time <= start_time:
+            continue
+        representative = z[begin:end].mean(axis=0)
+        label_index = len(representatives)
+        for index, reference in enumerate(representatives):
+            denominator = np.linalg.norm(reference)*np.linalg.norm(representative)
+            if denominator > 1e-8 and float(reference@representative/denominator) > .8:
+                label_index = index
+                break
+        if label_index == len(representatives):
+            representatives.append(representative)
+        local_onsets = [float(t) for t in onsets if start_time <= t < end_time]
+        confidence = min(1.0, float(novelty[begin]) / max(threshold*2, 1e-8)) if begin else None
+        kind = "spectral_texture_region_candidate"
+        description = "feature region; musical phrase extent unverified"
+        if centroids is not None and len(centroids) == count:
+            region_centroid = float(np.mean(centroids[begin:end]))
+            global_centroid = float(np.median(centroids))
+            if region_centroid < global_centroid*.8:
+                kind = "low_register_riff_or_breakdown_candidate"
+                description = "relatively low spectral centroid; breakdown identity unverified"
+            if end_time >= duration-pulse_period*2 and region_centroid > global_centroid*1.15:
+                kind = "bright_ending_texture_candidate"
+                description = "bright ending; sweep/tapping/legato identity requires listening"
+        segments.append({"start_seconds": start_time, "end_seconds": end_time,
+                         "kind": kind, "label": f"riff_region_{label_index+1}", "description": description,
+                         "confidence": confidence, "confidence_kind": "unvalidated_feature_novelty_not_probability",
+                         "pulse_count": end-begin, "onset_candidate_count": len(local_onsets),
+                         "onset_candidates_per_second": len(local_onsets)/(end_time-start_time),
+                         "performance_issue": None})
+    recurrences = []
+    for length in (4, 8, 16):
+        if count < 2*length:
+            continue
+        vectors = np.stack([z[i:i+length].ravel() for i in range(count-length+1)])
+        norms = np.linalg.norm(vectors, axis=1)
+        normalized = vectors/np.maximum(norms[:, None], 1e-10)
+        similarities = normalized@normalized.T
+        for first in range(len(vectors)-length):
+            if norms[first] < 1e-6:
+                continue
+            candidates = similarities[first, first+length:]
+            if not len(candidates):
+                continue
+            second = first+length+int(np.argmax(candidates))
+            score = float(np.clip(similarities[first, second], -1, 1))
+            if score < .8:
+                continue
+            recurrences.append({"first_start_seconds": max(0, pulse_origin+first*pulse_period),
+                                "first_end_seconds": min(duration, pulse_origin+(first+length)*pulse_period),
+                                "second_start_seconds": max(0, pulse_origin+second*pulse_period),
+                                "second_end_seconds": min(duration, pulse_origin+(second+length)*pulse_period),
+                                "similarity": score, "pulse_period_seconds": pulse_period, "pulse_count": length,
+                                "confidence_kind": "unvalidated_multifeature_cosine_not_probability"})
+    kept = []
+    for item in sorted(recurrences, key=lambda c: c["similarity"], reverse=True):
+        if any(abs(item["first_start_seconds"]-other["first_start_seconds"]) < pulse_period*2
+               and abs(item["second_start_seconds"]-other["second_start_seconds"]) < pulse_period*2
+               for other in kept):
+            continue
+        for prefix in ("first", "second"):
+            start, end = item[f"{prefix}_start_seconds"], item[f"{prefix}_end_seconds"]
+            item[f"{prefix}_onset_offsets_seconds"] = [float(t)-start for t in onsets if start <= t < end]
+        kept.append(item)
+        if len(kept) == 60:
+            break
+    bars = [{"start_seconds": max(0, pulse_origin+i*pulse_period),
+             "end_seconds": min(duration, pulse_origin+(i+4)*pulse_period),
+             "kind": "four_pulse_bar_proxy", "time_signature": None}
+            for i in range(0, count-3, 4)]
+    return {"segment_candidates": segments, "recurrence_candidates": kept,
+            "novelty_curve": [{"seconds": max(0, pulse_origin+i*pulse_period), "score": float(v)}
+                              for i,v in enumerate(novelty)], "bar_proxy_candidates": bars}
+
+
+def phrases_librosa(samples, bpm: float, pulse_origin: float = 0.0) -> dict:
+    # Bound newly loaded numerical libraries without overriding existing tighter limits.
+    for variable in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMBA_NUM_THREADS"):
+        try:
+            configured = int(os.environ.get(variable, "2"))
+        except ValueError:
+            configured = 2
+        os.environ[variable] = str(max(1, min(2, configured)))
+    try:
+        import librosa
+        import numpy as np
+    except ImportError as exc:
+        raise ValueError("librosa phrase backend requires the locked analysis environment") from exc
+    y = np.asarray(samples, dtype=np.float32)
+    hop = 256
+    power = np.abs(librosa.stft(y, n_fft=FRAME, hop_length=hop, center=True))**2
+    mel = librosa.feature.melspectrogram(S=power, sr=RATE, n_fft=FRAME, n_mels=48, fmin=28)
+    mfcc = librosa.feature.mfcc(S=librosa.power_to_db(mel), n_mfcc=12)[1:]
+    chroma = librosa.feature.chroma_stft(S=power, sr=RATE, n_fft=FRAME, hop_length=hop, tuning=0)
+    centroid = librosa.feature.spectral_centroid(S=np.sqrt(power), sr=RATE)[0]
+    flatness = librosa.feature.spectral_flatness(S=np.sqrt(power))[0]
+    rms = librosa.feature.rms(S=np.sqrt(power), frame_length=FRAME, hop_length=hop)[0]
+    frame_features = np.vstack((mfcc, chroma*3, np.log1p(centroid), flatness, np.log(np.maximum(rms, 1e-8))))
+    duration = len(samples)/RATE
+    period = 60/bpm
+    start = max(0.0, pulse_origin)
+    beat_edges = np.arange(start, duration+period, period)
+    frame_times = librosa.frames_to_time(np.arange(power.shape[1]), sr=RATE, hop_length=hop)
+    pulse_features, pulse_centroids = [], []
+    for low,high in zip(beat_edges, beat_edges[1:]):
+        selected = (frame_times >= low)&(frame_times < min(high, duration))
+        if not selected.any():
+            continue
+        pulse_features.append(np.median(frame_features[:, selected], axis=1))
+        pulse_centroids.append(float(np.median(centroid[selected])))
+    onset_frames = librosa.onset.onset_detect(y=y, sr=RATE, hop_length=hop, units="frames", backtrack=False)
+    onset_times = librosa.frames_to_time(onset_frames, sr=RATE, hop_length=hop).tolist()
+    observations = discover_phrase_features(pulse_features, period, duration, onset_times, start, pulse_centroids)
+    for item in observations["recurrence_candidates"]:
+        item.update({"onset_detector": "librosa.onset.onset_detect_spectral_flux",
+                     "articulation_hint": None, "detector_confidence": None,
+                     "first_boundary_confidence": None, "second_boundary_confidence": None})
+    observations["onset_candidates_seconds"] = onset_times
+    observations["low_energy_gap_candidates"] = []
+    observations["similar_envelope_region_candidates"] = []
+    return {"observations": observations,
+            "interpretation": {"semantic_phrases": "automatic_feature_hypotheses_no_score_required",
+                               "phrase_mistakes": "not_graded", "tonic": None, "mode": None,
+                               "meter": "unknown_four_pulse_proxy_is_not_confirmed_bar",
+                               "warning": "Automatic texture and recurrence estimates do not establish intended notes, technique or player errors."},
+            "phrase_backend": {"name": "librosa", "version": librosa.__version__, "numpy_version": np.__version__,
+                               "bpm": bpm, "pulse_origin_seconds": start, "hop_samples": hop,
+                               "mfcc_count_excluding_energy": 11, "chroma_bins": 12, "mel_minimum_hz": 28,
+                               "recurrence_lengths_pulses": [4,8,16], "recurrence_minimum_cosine": .8,
+                               "segmentation": "four_pulse_plus_0.3_two_pulse_mean_difference_novelty_robust_threshold_minimum_four_pulses",
+                               "expected_score_reference_required": False,
+                               "timing_precision_warning": "beat_quantized_boundaries_and_256ms_spectral_window"}}
+
+
 def inherit_manifest_lineage(result: dict, run_dir: Path) -> None:
     """Rebase only a cryptographically matched, untimed canonical PCM derivative."""
     manifest_path = run_dir / "manifest.json"
@@ -314,10 +516,30 @@ def phrase_context(result: dict, run_dir: Path) -> None:
                       "kind": "recurrence_review_candidate", "reference_start_seconds": item["first_start_seconds"],
                       "evidence": "amplitude_envelope_similarity", "score": item["envelope_similarity"],
                       "uncertainty": "same_envelope_does_not_establish_same_notes_or_intent", "performance_issue": None})
+    for item in result["observations"].get("segment_candidates", []):
+        spans.append({"start_seconds": item["start_seconds"], "end_seconds": item["end_seconds"],
+                      "kind": item["kind"], "label": item["label"], "confidence": item["confidence"],
+                      "evidence": "beat_synchronous_multifeature_segmentation",
+                      "uncertainty": "automatic_region_musical_phrase_interpretation_unverified", "performance_issue": None})
+    for item in result["observations"].get("recurrence_candidates", []):
+        spans.append({"start_seconds": item["second_start_seconds"], "end_seconds": item["second_end_seconds"],
+                      "kind": "multifeature_recurrence_candidate", "reference_start_seconds": item["first_start_seconds"],
+                      "evidence": "beat_synchronous_MFCC_chroma_texture_similarity", "score": item["similarity"],
+                      "uncertainty": "recurrence_estimate_not_approved_intended_score", "performance_issue": None})
     start = result["source"]["audio_stream_start_seconds"]
     for span in spans:
         span["source_start_seconds"] = start + span["start_seconds"]
         span["source_end_seconds"] = start + span["end_seconds"]
+    for item in result["observations"].get("segment_candidates", []):
+        item["source_start_seconds"] = start + item["start_seconds"]
+        item["source_end_seconds"] = start + item["end_seconds"]
+    for item in result["observations"].get("bar_proxy_candidates", []):
+        item["source_start_seconds"] = start + item["start_seconds"]
+        item["source_end_seconds"] = start + item["end_seconds"]
+    for item in result["observations"].get("recurrence_candidates", []):
+        for prefix in ("first", "second"):
+            item[f"{prefix}_source_start_seconds"] = start + item[f"{prefix}_start_seconds"]
+            item[f"{prefix}_source_end_seconds"] = start + item[f"{prefix}_end_seconds"]
     result["observations"]["proposed_review_spans"] = sorted(spans, key=lambda s: s["start_seconds"])
 
 
@@ -347,6 +569,8 @@ def main() -> int:
     parser.add_argument("tool", choices=("noise", "tone", "notes", "phrases"))
     parser.add_argument("input", type=Path)
     parser.add_argument("--run-dir", type=Path, required=True)
+    parser.add_argument("--backend", choices=("stdlib", "librosa"), default="stdlib")
+    parser.add_argument("--bpm", type=float, help="Pulse seed for automatic phrase analysis; not an intended score")
     args = parser.parse_args()
     try:
         source = args.input.expanduser().resolve(strict=True)
@@ -361,13 +585,37 @@ def main() -> int:
             for block in iter(lambda: handle.read(1024 * 1024), b""):
                 digest.update(block)
         audio = provenance["audio_stream"]
+        if args.tool != "phrases" and (args.backend != "stdlib" or args.bpm is not None):
+            raise ValueError("--backend/--bpm apply only to phrases")
+        if args.bpm is not None and (not math.isfinite(args.bpm) or not 20 <= args.bpm <= 400):
+            raise ValueError("BPM must be finite and between 20 and 400")
+        bpm, origin, tempo_source = args.bpm, 0.0, "explicit_cli_pulse_seed"
+        if args.tool == "phrases" and args.backend == "librosa" and bpm is None:
+            context_path = destination.parent / "analysis.json"
+            if context_path.is_file() and context_path.stat().st_size <= 5_000_000:
+                context = json.loads(context_path.read_text())
+                if context.get("source", {}).get("sha256") == digest.hexdigest():
+                    grid = context.get("click_grid") or {}
+                    bpm = grid.get("bpm") or (context.get("selected_periodicity") or {}).get("bpm")
+                    origin = max(0, float(grid.get("phase_seconds_audio_relative", 0)) % (60/bpm)) if bpm else 0
+                    tempo_source = "same_source_analysis_periodicity_candidate"
+            if bpm is None:
+                raise ValueError("librosa phrases needs --bpm or same-source analysis.json tempo")
+        if args.tool == "phrases" and args.backend == "librosa":
+            bpm = float(bpm)
+            if not math.isfinite(bpm) or not 20 <= bpm <= 400:
+                raise ValueError("Inferred BPM must be finite and between 20 and 400")
+        measured = phrases_librosa(samples, bpm, origin) if args.tool == "phrases" and args.backend == "librosa" else globals()[args.tool](samples)
+        if "phrase_backend" in measured:
+            measured["phrase_backend"]["tempo_source"] = tempo_source
         result = {"schema_version": 1, "tool": args.tool, "status": "experimental",
-                  "instrument_context": INSTRUMENT, "source": {"path": str(source), "sha256": digest.hexdigest(),
+                  "instrument_context": instrument_context(), "source": {"path": str(source), "sha256": digest.hexdigest(),
                   "audio_stream_start_seconds": float(audio.get("start_time", 0)),
                   "sample_rate": int(audio["sample_rate"]), "channels": audio["channels"]},
                   "analysis": {"sample_rate": RATE, "channels": 1, "sample_format": "f32le",
                   "duration_seconds": len(samples) / RATE, "maximum_input_seconds": MAX_SECONDS,
-                  "frame_samples": FRAME, "frame_seconds": FRAME / RATE, "spectral_hop_seconds": 1,
+                  "frame_samples": FRAME, "frame_seconds": FRAME / RATE,
+                  "spectral_hop_seconds": .016 if args.backend == "librosa" else 1,
                   "pitch_maximum_frames": 120, "pitch_range_hz": [28, 1000], "rms_window_seconds": .5,
                   "timestamp_basis": "decoded_audio_relative_add_source_audio_stream_start_for_source_timeline",
                   "maximum_ffmpeg_threads": 2, "ffmpeg_timeout_seconds": 300,
@@ -376,9 +624,9 @@ def main() -> int:
                   "band_boundaries_hz": [list(b) for b in BANDS], "spectrum_method": "demeaned_Hann_radix2_FFT",
                   "pitch_method": "zero_padded_FFT_normalized_autocorrelation_not_YIN",
                   "quiet_candidate_rule": "lowest_10_percent_RMS_windows_maximum20",
-                  "phrase_rule": "gaps_at_15percent_median_RMS_minimum1second_and_8second_envelope_similarity_above0.9",
-                  "settings_are_fixed_in_this_pilot": True}, "provenance": provenance,
-                  **globals()[args.tool](samples)}
+                  "phrase_rule": measured.get("phrase_backend", {}).get("segmentation", "gaps_at_15percent_median_RMS_minimum1second_and_8second_envelope_similarity_above0.9"),
+                  "settings_are_fixed_in_this_pilot": args.backend == "stdlib"}, "provenance": provenance,
+                  **measured}
         inherit_manifest_lineage(result, destination.parent)
         if args.tool == "phrases":
             phrase_context(result, destination.parent)

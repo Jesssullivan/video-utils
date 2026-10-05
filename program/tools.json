@@ -470,8 +470,8 @@
     {
       "name": "phrases",
       "title": "Phrases",
-      "description": "Propose envelope phrase boundaries for manual annotation and repeated-region research. Energy boundaries do not establish musical phrases, meter, or phrase mistakes; an intended phrase reference is required.",
-      "intent": "Propose envelope phrase boundaries for manual annotation and repeated-region research.",
+      "description": "Discover repeated regions and propose musical phrase boundaries automatically for technical nine-string guitar. Candidate musical phrases can be discovered without an intended-phrase reference; confirmed phrase mistakes require an approved reference. Optional librosa needs an explicitly installed local analysis environment.",
+      "intent": "Discover repeated regions and propose musical phrase boundaries automatically for technical nine-string guitar.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -493,6 +493,21 @@
             "maximum": 900,
             "default": 600,
             "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          },
+          "backend": {
+            "type": "string",
+            "enum": [
+              "stdlib",
+              "librosa"
+            ],
+            "default": "stdlib",
+            "description": "stdlib envelope proposals or optional librosa audio-similarity phrase discovery; no install/download is performed by this call."
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 20,
+            "maximum": 400,
+            "description": "Optional operator tempo seed (for this take 178 BPM); phrase discovery remains possible without an approved intended phrase."
           }
         },
         "required": [
@@ -505,7 +520,7 @@
       "implementation_status": "experimental",
       "evidence_kind": "inferred",
       "limitations": [
-        "Energy boundaries do not establish musical phrases, meter, or phrase mistakes; an intended phrase reference is required."
+        "Candidate musical phrases can be discovered without an intended-phrase reference; confirmed phrase mistakes require an approved reference. Optional librosa needs an explicitly installed local analysis environment."
       ],
       "annotations": {
         "readOnlyHint": false,

@@ -194,6 +194,27 @@ class ReportTests(unittest.TestCase):
         self.assertNotIn("-40.85 dBFS", text)
         self.assertNotIn("169.09 Hz", text)
 
+    def test_declared_tempo_and_automatic_phrase_proposals(self):
+        self.manifest({"source": {"path": "take.mov", "sha256": "a" * 64}, "timeline": {"audio_start_seconds": 10, "format_start_seconds": 9}})
+        analysis = {"source": {"sha256": "a" * 64}, "declared_tempo": {"bpm": 178, "status": "operator_declared_not_audio_verified"}, "click_grid": {"bpm": 177.6}, "subdivisions": {"candidates": [{"subdivisions_per_declared_or_fitted_pulse": 4, "within_tolerance_fraction": .6, "tolerance_ms": 20, "median_absolute_offset_ms": 15}]}}
+        (self.root / "analysis.json").write_text(json.dumps(analysis))
+        phrases = {"source": {"sha256": "a" * 64, "audio_stream_start_seconds": 10}, "observations": {"proposed_review_spans": [{"start_seconds": 2, "end_seconds": 7, "source_start_seconds": 12, "source_end_seconds": 17, "kind": "low_register_riff_or_breakdown_candidate", "label": "riff_<region>", "confidence": .8, "evidence": "beat_synchronous_multifeature_segmentation"}, {"start_seconds": 8, "end_seconds": 12, "kind": "multifeature_recurrence_candidate", "reference_start_seconds": 2, "score": .91}], "bar_proxy_candidates": [{"start_seconds": 2, "end_seconds": 3.35, "time_signature": None}], "novelty_curve": [{"seconds": 0, "score": 0}, {"seconds": 2, "score": .8}, {"seconds": 7, "score": .2}]}}
+        (self.root / "phrases.json").write_text(json.dumps(phrases))
+        result = report.write_report(self.root)
+        text = (self.root / "report.html").read_text()
+        self.assertTrue(result["analysis_available"])
+        self.assertIn("178 BPM", text)
+        self.assertIn("177.60 BPM", text)
+        self.assertIn("Operator-declared tempo", text)
+        self.assertIn("4 per pulse", text)
+        self.assertIn("riff_&lt;region&gt;", text)
+        self.assertIn("12.000–17.000s", text)
+        self.assertIn('data-media="video" data-time="3.000000"', text)
+        self.assertIn("Compare recurrence", text)
+        self.assertIn("Four-pulse bar hypotheses", text)
+        self.assertIn("without an intended score", text)
+        self.assertNotIn("confirmed verse", text.split("Automatic labels")[0])
+
 
 if __name__ == "__main__":
     unittest.main()

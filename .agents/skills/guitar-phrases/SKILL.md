@@ -1,27 +1,29 @@
 ---
 name: guitar-phrases
-description: Suggest repeated regions and musical phrase boundaries in technical guitar; review incomplete phrases and loop alignment against a confirmed reference.
+description: Discover phrase, bar and breakdown candidates in technical guitar automatically, and mark recurrence differences for review without requiring a predefined intended phrase.
 ---
 
-# Create reviewable phrase/repetition suggestions and reference-relative phrase markers.
+# Discover guitar phrases and mark self-consistency differences
 
 **Hook:** MCP tool `phrases` and MCP prompt `guitar-phrases`. Launch the repository stdio server with `just mcp`; inspect `tools/list` before a call. Skill availability does not imply a server connection has been installed in this agent.
 
-**Capability:** Experimental envelope/repetition suggestions and source-timestamped review spans. Same-source BPM/notes context is attached when available; musical form and intended phrases remain unconfirmed.
+**Capability:** Experimental automatic phrase/recurrence discovery and source-timestamped review spans. Same-source BPM/notes context is attached when available. Candidate musical structure can be discovered without an intended-rhythm reference; definite correctness judgments remain separate.
 
 ## Use and controls
 
-Use MCP `phrases`; fallback: `just tool-run phrases '{"input":"<input>","run_dir":"<run-dir>"}'`. The direct worker is `python3 scripts/guitar_features.py phrases "<input>" --run-dir "<run-dir>"`. Listen around suggested boundaries, distinguish a mute/rest from a structural change, then annotate confirmed phrases.
+Use MCP `phrases`; fallback: `just tool-run phrases '{"input":"<input>","run_dir":"<run-dir>"}'`. The direct worker is `python3 scripts/guitar_features.py phrases "<input>" --run-dir "<run-dir>"`. Run discovery even when no intended phrase or score has been supplied. Use available beat-synchronous features and recurrence evidence to propose phrase/bar/breakdown boundaries, listen around suggestions, and distinguish a mute/rest from a structural change before confirming structure.
 
-The experimental worker accepts input/run directory only; it uses 0.5 s energy blocks for pause boundaries and 8 s envelope recurrence proposals. Window/repetition knobs are not yet exposed. Strength and recurrence are heuristics, not probabilities. Intended phrase starts/ends need reference annotations before calling a phrase mistake.
+Current MCP controls are `backend` (`stdlib` default or optional `librosa`), `bpm` (20–400 pulse seed) and bounded `timeout_seconds`. Inspect `tools/list` before calls because schema and dependency qualification may change. Pass an operator-confirmed BPM when available, retaining its provenance; otherwise preserve tempo alternatives. The stdlib fallback uses energy pauses and envelope recurrence. The librosa backend compares beat-synchronous timbral/tonal features and needs the locked analysis environment plus a BPM seed or same-source `analysis.json` tempo; requesting it does not install dependencies. Select the analysis interpreter explicitly when needed, following the tool contract. Recurrence scores are heuristic, not calibrated probabilities.
 
 ## Guitar-specific interpretation
 
-Deathcore repetitions, tempo changes, meter shifts and long sweeps complicate boundaries. Similar envelopes need not imply identical notes. The operator confirmed “phase mistakes” means musical phrase mistakes. Signal-phase troubleshooting is outside this workflow.
+Deathcore repetitions, tempo changes, meter shifts and long sweeps complicate boundaries. Similar envelopes or MFCC/chroma features need not imply identical notes. The optional backend uses 4/8/16-pulse recurrence proposals and a four-pulse bar proxy; this does not confirm a time signature. Breakdown/low-register-riff or brightening-texture labels are hypotheses; picking technique needs listening evidence. The operator confirmed “phase mistakes” means musical phrase mistakes. Signal-phase troubleshooting is outside this workflow.
 
-For the week’s phrase workflow, consume denoising and candidate/confirmed click-BPM evidence first, then nullable tonic/mode/pitch evidence, repeated-pattern proposals and recurrence comparisons. Mark incomplete phrases, loop start/end mismatches, skips, rushes and unclear spans only when supported by explicit reference/context; include source timestamps and confidence. The current worker produces envelope suggestions and nullable review spans (`performance_issue` remains null), and reads same-source `analysis.json`/`notes.json` context. Use the pipeline skill for implemented experimental reference-relative attack/phrase comparisons, then the marker skill for generic source-time CSV/JSON export. Tonic/mode inference, semantic phrase grading, and native editor imports remain planned.
+Consume denoising and candidate/confirmed click-BPM evidence first, then nullable pitch/tonal context, repeated-pattern proposals and recurrence comparisons. Do not let unknown tonic/mode or absent intended phrases block segmentation. Compare recurring regions for duration and onset-motif differences, and surface possible incomplete phrases, loop start/end differences, skips, rushes or unclear spans as timestamped hypotheses with comparative evidence. A repeated region provides a self-consistency baseline, not proof that its first rendition was correct.
 
-**Review scenario:** Repeated chugs with differing accent patterns may have similar envelopes; keep multiple plausible boundaries instead of declaring a compositional mistake.
+Use the pipeline skill to collect automatic candidates and compare an approved reference when one exists, then the marker skill for generic source-time CSV/JSON export. Definite mistake or missed/extra-note grading requires expected intent plus listening/calibration evidence. Semantic phrase correctness, learned tonic/mode and native editor imports remain beyond the pilot.
+
+**Review scenario:** With only a take and confirmed tempo, discover repeating chug groups and possible breakdown transitions. Flag a shorter recurrence or changed onset motif for review without demanding a score or declaring it wrong; preserve possible intentional variation.
 
 ## Agent iteration
 

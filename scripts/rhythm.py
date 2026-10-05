@@ -186,6 +186,69 @@ def grid_offset(time: float, grid: dict) -> tuple[int, float]:
     return beat, (time - (grid["phase_seconds_audio_relative"] + beat * grid["period_seconds"])) * 1000
 
 
+def subdivision_candidates(times: list[float], grid: dict | None) -> dict:
+    """Describe attack alignment with possible subdivisions, without a score/reference."""
+    if not grid or len(times) < 4:
+        return {"status": "insufficient_grid_or_attack_evidence", "candidates": []}
+    candidates = []
+    period, phase = grid["period_seconds"], grid["phase_seconds_audio_relative"]
+    for subdivisions in (1, 2, 3, 4, 6, 8):
+        step = period / subdivisions
+        errors = [abs((time - phase) - round((time - phase) / step) * step) for time in times]
+        tolerance = min(.020, step * .10)
+        fraction = sum(error <= tolerance for error in errors) / len(errors)
+        chance_coverage = min(1.0, 2 * tolerance / step)
+        excess = (fraction - chance_coverage) / max(1e-9, 1 - chance_coverage)
+        candidates.append({"subdivisions_per_declared_or_fitted_pulse": subdivisions,
+                           "subdivision_seconds": step, "within_tolerance_fraction": fraction,
+                           "tolerance_ms": tolerance * 1000, "median_absolute_offset_ms": statistics.median(errors) * 1000,
+                           "alignment_excess_over_uniform_phase": excess,
+                           "confidence_kind": "heuristic_not_probability", "status": "candidate_not_intended_rhythm"})
+    return {"status": "automatic_candidates", "event_basis": "detected_attack_candidates_not_note_transcription",
+            "candidates": sorted(candidates, key=lambda c: c["alignment_excess_over_uniform_phase"], reverse=True),
+            "limitations": "Denser grids, syncopation, blended clicks and detector bias can mimic subdivision support; mixed subdivisions are allowed."}
+
+
+def librosa_analysis(samples) -> dict:
+    try:
+        os.environ.setdefault("NUMBA_NUM_THREADS", "1")
+        import librosa
+        import numpy as np
+        from threadpoolctl import threadpool_limits
+    except ImportError as exc:
+        raise RuntimeError("librosa backend requested but dependencies are not installed; use --backend stdlib") from exc
+    with threadpool_limits(limits=1):
+        signal = np.asarray(samples, dtype=np.float32)
+        mel = librosa.feature.melspectrogram(y=signal, sr=RATE, n_fft=1024, hop_length=HOP,
+                                            n_mels=128, fmin=27.5)
+        log_mel = librosa.power_to_db(mel, ref=np.max)
+        flux = librosa.onset.onset_strength(S=log_mel, sr=RATE, hop_length=HOP, lag=1, max_size=1)
+        superflux = librosa.onset.onset_strength(S=log_mel, sr=RATE, hop_length=HOP, lag=2, max_size=3)
+        onsets = {}
+        for name, envelope in (("spectral_flux", flux), ("superflux", superflux)):
+            frames = librosa.onset.onset_detect(onset_envelope=envelope, sr=RATE, hop_length=HOP, units="frames")
+            onsets[name] = {"frames": np.asarray(frames, dtype=int).tolist(),
+                            "audio_relative_seconds": librosa.frames_to_time(frames, sr=RATE, hop_length=HOP).tolist()}
+        tempo, beats = librosa.beat.beat_track(onset_envelope=superflux, sr=RATE, hop_length=HOP, units="time")
+        feature_stride = 10
+        mfcc = librosa.feature.mfcc(S=log_mel, sr=RATE, n_mfcc=13)[:, ::feature_stride]
+        chroma = librosa.feature.chroma_stft(y=signal, sr=RATE, n_fft=4096, hop_length=HOP * feature_stride)
+        count = min(mfcc.shape[1], chroma.shape[1])
+        features = {"status": "automatic_comparative_features_not_tonic_or_note_inference",
+                    "matrix_layout": "feature_by_frame", "hop_samples": HOP * feature_stride,
+                    "frame_times_audio_relative_seconds": (np.arange(count) * HOP * feature_stride / RATE).tolist(),
+                    "mfcc": np.round(mfcc[:, :count], 5).tolist(), "chroma": np.round(chroma[:, :count], 5).tolist(),
+                    "mfcc_fft_samples": 1024, "chroma_fft_samples": 4096,
+                    "limitations": "Distortion harmonics, changing articulation and click contamination can create artificial similarity; features do not prove notes or tonal center."}
+    return {"version": librosa.__version__, "bpm": np.asarray(tempo).tolist(),
+            "beats_audio_relative_seconds": np.asarray(beats).tolist(), "onsets": onsets, "features": features,
+            "onset_parameters": {"sample_rate": RATE, "hop_samples": HOP, "n_fft": 1024, "n_mels": 128,
+                                 "fmin_hz": 27.5, "spectral_flux": {"lag": 1, "max_size": 1},
+                                 "superflux": {"lag": 2, "max_size": 3},
+                                 "timestamp_convention": "librosa_frame_time_center_compensated", "delay_status": "uncalibrated"},
+            "interpretation": "unverified_classical_analysis_independent_of_declared_tempo_and_click_grid"}
+
+
 def analyze(samples, source_start: float = 0.0, bpm: float | None = None, backend: str = "stdlib") -> dict:
     hop_seconds = HOP / RATE
     rms, high = envelopes(samples)
@@ -194,11 +257,29 @@ def analyze(samples, source_start: float = 0.0, bpm: float | None = None, backen
     selected = choose_tempo(candidates)
     period = 60 / bpm if bpm else selected["period_seconds"] if selected else None
     grid = fit_click_grid(high_novelty, period, hop_seconds) if period else None
+    attempts = []
+    selection = "manual_bpm_seed_then_observed_fit" if bpm else "heuristic_preference_70_to_150_bpm_when_comparable"
+    fit_seed_bpm = bpm if bpm else 60 / period if period else None
+    if period:
+        attempts.append({"seed_bpm": fit_seed_bpm,
+                         "provenance": "operator_declared_approximate" if bpm else "audio_periodicity_heuristic",
+                         "status": "observed_fit" if grid else "no_stable_observed_fit"})
+    if grid is None and bpm and selected:
+        period = selected["period_seconds"]
+        fit_seed_bpm = 60 / period
+        grid = fit_click_grid(high_novelty, period, hop_seconds)
+        selection = "audio_periodicity_fallback_after_declared_seed_fit_abstention"
+        attempts.append({"seed_bpm": fit_seed_bpm, "provenance": "audio_periodicity_heuristic_fallback",
+                         "status": "observed_fit" if grid else "no_stable_observed_fit"})
     if grid:
-        grid["selection"] = "manual_bpm_seed_then_observed_fit" if bpm else "heuristic_preference_70_to_150_bpm_when_comparable"
+        grid["selection"] = selection
+        grid["tempo_seed_bpm"] = bpm
+        grid["tempo_seed_provenance"] = "operator_declared_approximate" if bpm else "audio_periodicity_heuristic"
+        grid["observed_fit_seed_bpm"] = fit_seed_bpm
         grid["autocorrelation_score"] = selected["autocorrelation_score"] if selected else None
         if not selected or selected["autocorrelation_score"] < .4:
             grid["confidence_label"] = "limited_periodic_evidence"
+    interpretation_period = grid["period_seconds"] if grid else period
     attacks = novelty(rms)
     threshold = max(statistics.median(attacks) * 4, max(attacks, default=0) * .08)
     indices = peak_indices(attacks, threshold, 6)
@@ -206,44 +287,56 @@ def analyze(samples, source_start: float = 0.0, bpm: float | None = None, backen
     for item in grid["observed_events"] if grid else []:
         events.append({"kind": "periodic_high_frequency_candidate", **item,
                        "source_timeline_seconds": source_start + item["audio_relative_seconds"],
+                       "analysis_sample_position": (item["analysis_frame"] + .5) * HOP,
+                       "timestamp_convention": "frame_midpoint",
                        "confidence_label": grid["confidence_label"]})
     for index in indices:
         time = (index + .5) * hop_seconds
         beat, offset = grid_offset(time, grid) if grid else (None, None)
         events.append({"kind": "broadband_attack_candidate", "analysis_frame": index,
+                       "analysis_sample_position": (index + .5) * HOP, "timestamp_convention": "frame_midpoint",
                        "audio_relative_seconds": time, "source_timeline_seconds": source_start + time,
                        "beat_index": beat, "grid_offset_ms": offset, "confidence_label": "unvalidated_attack_approximation"})
     optional = None
     if backend == "librosa":
-        try:
-            import librosa
-            import numpy as np
-        except ImportError as exc:
-            raise RuntimeError("librosa backend requested but dependencies are not installed; use --backend stdlib") from exc
-        signal = np.asarray(samples, dtype=np.float32)
-        tempo, beats = librosa.beat.beat_track(y=signal, sr=RATE, hop_length=HOP, units="time")
-        optional = {"version": librosa.__version__, "bpm": np.asarray(tempo).tolist(), "beats_audio_relative_seconds": np.asarray(beats).tolist(),
-                    "interpretation": "unverified_model_estimate_independent_of_click_grid"}
+        optional = librosa_analysis(samples)
+        for name, data in optional["onsets"].items():
+            for frame, time in zip(data["frames"], data["audio_relative_seconds"]):
+                beat, offset = grid_offset(time, grid) if grid else (None, None)
+                events.append({"kind": name + "_attack_candidate", "analysis_frame": frame,
+                               "analysis_sample_position": frame * HOP,
+                               "timestamp_convention": "librosa_frame_time_center_compensated",
+                               "audio_relative_seconds": time, "source_timeline_seconds": source_start + time,
+                               "beat_index": beat, "grid_offset_ms": offset,
+                               "confidence_label": "unvalidated_spectral_attack_not_note_identity"})
+    attack_times = optional["onsets"]["superflux"]["audio_relative_seconds"] if optional else [(index + .5) * hop_seconds for index in indices]
     return {"schema_version": 1, "backend": backend, "analysis": {"sample_rate": RATE, "channels": 1, "samples": len(samples),
             "duration_seconds": len(samples) / RATE, "hop_samples": HOP, "hop_seconds": hop_seconds,
             "frame_timestamp": "frame_midpoint", "frame_midpoint_offset_seconds": hop_seconds / 2,
+            "event_timestamp_conventions": {"stdlib": "frame_midpoint", "librosa": "librosa_frame_time_center_compensated"},
             "onset_detector_delay_seconds": None, "onset_detector_delay_status": "uncalibrated",
             "resampling": "FFmpeg mono analysis copy; source unchanged"},
             "timeline": {"audio_stream_start_seconds": source_start, "event_time_origin": "first_decoded_audio_sample",
                          "source_axis": "audio_stream_start_plus_audio_relative_time", "decoder_priming_correction": "FFmpeg_decoder_handled_not_independently_verified"},
             "tempo_candidates": candidates, "selected_periodicity": selected, "click_grid": grid,
-            "metrical_interpretations": [{"bpm": round((60 / period) * factor, 3), "pulse_multiplier": factor,
+            "grid_fit_attempts": attempts,
+            "declared_tempo": {"bpm": bpm, "provenance": "operator_statement_via_--bpm", "precision": "approximate",
+                               "status": "operator_declared_not_audio_verified"} if bpm else None,
+            "subdivisions": subdivision_candidates(attack_times, grid),
+            "metrical_interpretations": [{"bpm": round((60 / interpretation_period) * factor, 3), "pulse_multiplier": factor,
+                                          "basis": "observed_fitted_grid" if grid else "unfitted_seed_or_periodicity_candidate",
                                           "evidence": "derived_half_double_ambiguity_not_independent_detection"}
-                                         for factor in (.5, 1, 2)] if period else [],
+                                         for factor in (.5, 1, 2)] if interpretation_period else [],
             "meter": {"status": "unknown", "time_signature": None}, "phrases": {"status": "not_estimated"},
             "performance": {"status": "not_graded", "expected_rhythm_reference": None}, "librosa": optional,
             "instrument_context": {"source": "operator_statement", "guitar_strings": 9, "lowest_fundamental_hz": 32,
                                    "style": "downtuned_deathcore_technical_guitar", "pitch_estimation": "not_performed",
                                    "analysis_rate_role": "transient_analysis_only_not_master_or_note_classifier"},
             "limitations": ["Transient candidates may contain clicks, pick attacks, handling noise or recording artifacts.",
-                            "BPM is periodicity, not confirmed intended tempo; half/double interpretations remain possible.",
+                            "Audio BPM is periodicity; operator-declared approximate tempo is recorded separately from fitted estimates.",
                             "Offsets measure uncalibrated recorded transients against a heuristic grid, not player errors.",
-                            "Meter, missed/extra notes and intentional syncopation require approved reference annotations."],
+                            "Automatic segmentation and subdivision suggestions need no predeclared intent; calling notes missed/extra requires an approved expected pattern.",
+                            "Sweeps, tapping and legato may contain continuous or weak attacks; onset gaps do not establish rests, skipped notes or incomplete phrases."],
             "events": sorted(events, key=lambda e: e["audio_relative_seconds"])}
 
 
@@ -326,7 +419,8 @@ def input_timeline(source: Path, input_hash: str, metadata: dict, run_dir: Path 
                                        "original_samples_per_analysis_sample": str(Fraction(rate, RATE)),
                                        "original_samples_per_analysis_frame": str(Fraction(rate * HOP, RATE)),
                                        "analysis_frame_midpoint_original_samples": str(Fraction(rate * HOP, 2 * RATE)),
-                                       "mapping": "original_audio_start + (analysis_frame + 0.5) * hop_samples / analysis_sample_rate",
+                                       "mapping": "original_audio_start + event.analysis_sample_position / analysis_sample_rate",
+                                       "stdlib_frame_origin": "frame_midpoint", "librosa_frame_origin": "center_compensated_frame_time",
                                        "filter_or_detector_delay": "uncalibrated; no physical alignment guarantee"})
         return start, lineage
     except (KeyError, TypeError, json.JSONDecodeError, ZeroDivisionError) as exc:
@@ -362,12 +456,15 @@ def main() -> int:
         result["timeline"]["provenance"] = lineage["status"]
         atomic_write(output / "analysis.json", json.dumps(result, indent=2, allow_nan=False) + "\n")
         stream = io.StringIO()
-        columns = ["kind", "analysis_frame", "audio_relative_seconds", "source_timeline_seconds", "beat_index", "grid_offset_ms", "confidence_label"]
+        columns = ["kind", "analysis_frame", "analysis_sample_position", "timestamp_convention", "audio_relative_seconds", "source_timeline_seconds", "beat_index", "grid_offset_ms", "confidence_label"]
         writer = csv.DictWriter(stream, fieldnames=columns, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(result["events"])
         atomic_write(output / "events.csv", stream.getvalue())
         print(json.dumps({"analysis_json": str(output / "analysis.json"), "events_csv": str(output / "events.csv"),
+                          "declared_tempo": result["declared_tempo"], "subdivisions": result["subdivisions"],
+                          "grid_fit_attempts": result["grid_fit_attempts"], "metrical_interpretations": result["metrical_interpretations"],
+                          "librosa_version": result["librosa"]["version"] if result["librosa"] else None,
                           "tempo_candidates": result["tempo_candidates"], "click_grid": {k: v for k, v in (result["click_grid"] or {}).items() if k != "observed_events"},
                           "event_count": len(result["events"])}))
         return 0

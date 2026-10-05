@@ -3,7 +3,7 @@
   "authority": "Operator approved plan / Implement the plan; R-HOOK-CONVERGENCE-20261004 / R-N13",
   "repository": "https://github.com/Jesssullivan/video-utils",
   "team_id": "a2c482c8-4d0d-4171-82d9-553265b6c706",
-  "updated_at": "2026-10-05T20:40:44.623018+00:00",
+  "updated_at": "2026-10-05T20:57:53.946181+00:00",
   "milestones": [
     {
       "id": "71bd7738-f346-48dd-8426-4095575a386a",
@@ -46,14 +46,14 @@
     {
       "id": "6b0a92b4-408c-4c38-bcab-bfef6f93092a",
       "identifier": "TIN-5489",
-      "title": "D4 \u2014 Mark reference-qualified rhythm and loop timing issues",
-      "url": "https://linear.app/tinyland/issue/TIN-5489/d4-mark-reference-qualified-rhythm-and-loop-timing-issues"
+      "title": "D4 \u2014 Automatic rhythm/loop review and optional reference grading",
+      "url": "https://linear.app/tinyland/issue/TIN-5489/d4-automatic-rhythmloop-review-and-optional-reference-grading"
     },
     {
       "id": "8e1db109-96e7-468b-b1f9-7f74c09916d7",
       "identifier": "TIN-5490",
-      "title": "D5 \u2014 Nine-string pitch, tonic and phrase recurrence candidates",
-      "url": "https://linear.app/tinyland/issue/TIN-5490/d5-nine-string-pitch-tonic-and-phrase-recurrence-candidates"
+      "title": "D5 \u2014 Automatic nine-string pitch, tonic and phrase discovery",
+      "url": "https://linear.app/tinyland/issue/TIN-5490/d5-automatic-nine-string-pitch-tonic-and-phrase-discovery"
     },
     {
       "id": "28d0291e-6556-4f49-b6e3-5d50a016c539",
@@ -78,9 +78,16 @@
       "identifier": "TIN-5494",
       "title": "Future \u2014 Final Cut and Resolve phrase-marker interoperability",
       "url": "https://linear.app/tinyland/issue/TIN-5494/future-final-cut-and-resolve-phrase-marker-interoperability"
+    },
+    {
+      "id": "1ceeca7a-a52f-4824-967b-74a919ab654a",
+      "identifier": "TIN-5495",
+      "title": "Ten-hour parallel guitar toolkit implementation goal",
+      "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal",
+      "kind": "ten_hour_goal"
     }
   ],
-  "evidence_state": "Actual demo completed all stages; 81 Python and 7 Rust tests pass; unreviewed listening; no AU/editor import proof",
+  "evidence_state": "108 Python and7 Rust tests passed; actual post-denoise librosa discovery47regions/10recurrences;177 review markers; listening pending; ten-hour goal active; no AU/editor import proof",
   "project": {
     "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
     "name": "video-utils \u2014 guitar restoration and performance analysis",

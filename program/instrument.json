@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "instrument": "nine-string electric guitar",
+  "string_count": 9,
+  "tuning_direction": "lowest_to_highest",
+  "pitch_class_evidence": "operator_stated",
+  "octave_evidence": "inferred",
+  "frequency_evidence": "computed_equal_temperament_not_measured",
+  "note_notation": "scientific_pitch_notation",
+  "reference_pitch": {
+    "note": "A4",
+    "midi": 69,
+    "frequency_hz": 440,
+    "temperament": "12-tone equal temperament",
+    "formula": "440 * 2 ** ((midi - 69) / 12)"
+  },
+  "octave_inference_basis": {
+    "lowest_frequency_hz_approximate": 32,
+    "highest_note_context": "F a semitone above standard guitar high E4",
+    "ordering": "ascending, preserving the operator's stated pitch classes"
+  },
+  "interval_policy": "Preserve the exact supplied tuning, including Eb2 to Bb2; do not normalize to all fourths.",
+  "strings": [
+    {
+      "string_number": 9,
+      "pitch_class": "C",
+      "note": "C1",
+      "midi": 24,
+      "frequency_hz": 32.703195663
+    },
+    {
+      "string_number": 8,
+      "pitch_class": "F",
+      "note": "F1",
+      "midi": 29,
+      "frequency_hz": 43.653528929
+    },
+    {
+      "string_number": 7,
+      "pitch_class": "Bb",
+      "note": "Bb1",
+      "midi": 34,
+      "frequency_hz": 58.27047019
+    },
+    {
+      "string_number": 6,
+      "pitch_class": "Eb",
+      "note": "Eb2",
+      "midi": 39,
+      "frequency_hz": 77.781745931
+    },
+    {
+      "string_number": 5,
+      "pitch_class": "Bb",
+      "note": "Bb2",
+      "midi": 46,
+      "frequency_hz": 116.54094038
+    },
+    {
+      "string_number": 4,
+      "pitch_class": "Eb",
+      "note": "Eb3",
+      "midi": 51,
+      "frequency_hz": 155.563491861
+    },
+    {
+      "string_number": 3,
+      "pitch_class": "Ab",
+      "note": "Ab3",
+      "midi": 56,
+      "frequency_hz": 207.65234879
+    },
+    {
+      "string_number": 2,
+      "pitch_class": "C",
+      "note": "C4",
+      "midi": 60,
+      "frequency_hz": 261.625565301
+    },
+    {
+      "string_number": 1,
+      "pitch_class": "F",
+      "note": "F4",
+      "midi": 65,
+      "frequency_hz": 349.228231433
+    }
+  ],
+  "limitations": [
+    "Open-string metadata is not a measurement of this recording's tuning or identified played notes.",
+    "Octaves are inferred from operator context; frequencies are theoretical A4=440 Hz values.",
+    "Intended-note correctness requires an intended-note reference and sufficiently qualified tuning."
+  ],
+  "references": {
+    "note_midi_frequency": "https://phys.unsw.edu.au/jw/notes.html",
+    "standard_guitar_tuning": "https://www.fender.com/articles/setup/standard-tuning-how-eadgbe-came-to-be"
+  }
+}

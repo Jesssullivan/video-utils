@@ -42,7 +42,15 @@ class ValidationError(ValueError):
 def strict_json(text):
     def reject_constant(value):
         raise ValueError(f'non-finite JSON number: {value}')
-    return json.loads(text, parse_constant=reject_constant)
+    def finite_float(value):
+        parsed = float(value)
+        if not math.isfinite(parsed):
+            raise ValueError('JSON exponent produces a non-finite number')
+        return parsed
+    try:
+        return json.loads(text, parse_constant=reject_constant, parse_float=finite_float)
+    except RecursionError as error:
+        raise ValueError('JSON nesting exceeds parser limits') from error
 
 
 def validate_schema(schema):
@@ -90,13 +98,22 @@ def descriptor(name):
     return match
 
 
+
+def finite_number(value):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
+
+
 def validate(value, schema, label='arguments'):
     kind = schema['type']
     checks = {'object': lambda x: isinstance(x, dict), 'string': lambda x: isinstance(x, str),
               'boolean': lambda x: isinstance(x, bool),
               'integer': lambda x: isinstance(x, int) and not isinstance(x, bool),
-              'number': lambda x: isinstance(x, (int, float)) and not isinstance(x, bool)
-                                    and math.isfinite(x)}
+              'number': finite_number}
     if not checks[kind](value):
         raise ValidationError(f'{label} must be {kind}')
     if 'enum' in schema and value not in schema['enum']:
@@ -136,7 +153,10 @@ def local_path(value, must_exist=False, directory=False):
 
 def worker_command(name, args):
     """Only fixed scripts and individual validated arguments, never a shell."""
-    head = [sys.executable]
+    interpreter = os.environ.get('VIDEO_UTILS_PYTHON', sys.executable)
+    if args.get('backend') == 'librosa':
+        interpreter = os.environ.get('VIDEO_UTILS_ANALYSIS_PYTHON', interpreter)
+    head = [interpreter]
     source = local_path(args['input'], must_exist=True) if 'input' in args else None
     if name == 'probe':
         return head + [str(ROOT / 'scripts/media.py'), 'probe', source]
@@ -162,7 +182,12 @@ def worker_command(name, args):
             command += ['--bpm', str(args['bpm'])]
         return command
     if name in {'noise', 'tone', 'notes', 'phrases'}:
-        return head + [str(ROOT / 'scripts/guitar_features.py'), name, source, '--run-dir', directory]
+        command = head + [str(ROOT / 'scripts/guitar_features.py'), name, source, '--run-dir', directory]
+        if name == 'phrases':
+            command += ['--backend', args.get('backend', 'stdlib')]
+            if 'bpm' in args:
+                command += ['--bpm', str(args['bpm'])]
+        return command
     raise ToolError('tool has no allowlisted worker')
 
 

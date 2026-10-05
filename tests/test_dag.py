@@ -93,14 +93,27 @@ class ReferenceTests(unittest.TestCase):
         result = dag.compare_reference([{"kind": "periodic_high_frequency_candidate", "audio_relative_seconds": 1.}], reference())
         self.assertEqual(len(result["matches"]), 0)
 
+    def test_spectral_backend_stream_is_selected_without_double_counting(self):
+        mixed = events([1.01, 2.01, 3.01, 4.01]) + [{"kind": "superflux_attack_candidate",
+            "audio_relative_seconds": time} for time in [1., 2., 3., 4.]]
+        result = dag.compare_reference(mixed, reference())
+        self.assertEqual(result["attack_detector"], "superflux_attack_candidate")
+        self.assertEqual(result["flags"], [])
+        self.assertEqual(len(result["matches"]), 4)
+
     def test_reference_source_binding_and_invalid_numbers(self):
         with self.assertRaises(ValueError):
             reference(source_sha256="b" * 64)
         for changes in ({"bpm": float("nan")}, {"expected_onsets_seconds": [1., 1.]},
-                        {"subdivision": True}, {"match_window_seconds": .01},
+                        {"subdivision": True}, {"match_window_seconds": .01, "tolerance_seconds": .03},
                         {"phrase_spans": [{"start_seconds": 2, "end_seconds": 1}]}):
             with self.subTest(changes=changes), self.assertRaises(ValueError):
                 reference(**changes)
+
+    def test_virtuoso_high_subdivision_defaults_remain_valid(self):
+        value = dag.validate_reference({"schema_version": 1, "approved": True, "bpm": 178,
+            "subdivision": 32, "expected_onsets_seconds": [1., 2.]}, SOURCE)
+        self.assertLessEqual(value["tolerance_seconds"], value["match_window_seconds"])
 
 
 class GraphTests(unittest.TestCase):
@@ -178,6 +191,72 @@ class GraphTests(unittest.TestCase):
             row = next(row for row in graph["stages"] if row["id"] == "report")
             self.assertEqual(row["artifact_sha256"], dag.sha256(directory / "report.html"))
             self.assertEqual(row["status"], "prior_report_snapshot_unreviewed")
+
+
+class AutomaticPhraseTests(unittest.TestCase):
+    def phrase(self, **changes):
+        return {"observations": {"segment_candidates": [{"start_seconds": 0., "end_seconds": 2.,
+            "kind": "breakdown_texture_candidate", "label": "breakdown?", "confidence": .8}],
+            "recurrence_candidates": [{"first_start_seconds": 0., "first_end_seconds": 2.,
+            "second_start_seconds": 3., "second_end_seconds": 5., "pulse_period_seconds": .5,
+            "similarity": .92, "first_onset_offsets_seconds": [.2, .7, 1.2, 1.7],
+            "second_onset_offsets_seconds": [.2, .7, 1.2, 1.7], **changes}]}}
+
+    def test_automatic_segments_and_recurrences_need_no_expected_intent(self):
+        flags = dag.automatic_phrase_flags(self.phrase(), 12.5)
+        kinds = {item["kind"] for item in flags}
+        self.assertIn("breakdown_texture_candidate", kinds)
+        self.assertIn("automatic_recurrence_review_candidate", kinds)
+        self.assertFalse(any("difference" in kind for kind in kinds))
+        for item in flags:
+            self.assertFalse(item["requires_expected_intent"])
+            self.assertFalse(item["performance_issue_confirmed"])
+
+    def test_relative_duration_difference_is_hypothesis_not_skipped_beat(self):
+        flags = dag.automatic_phrase_flags(self.phrase(second_end_seconds=5.3), 10.)
+        item = next(item for item in flags if item["kind"] == "recurrence_duration_difference_review")
+        self.assertAlmostEqual(item["evidence"]["duration_difference_pulses"], .6)
+        self.assertEqual(item["source_time_seconds"], 13.)
+        self.assertEqual(item["end_seconds"], 15.3)
+        self.assertFalse(item["performance_issue_confirmed"])
+
+    def test_motif_offset_comparison_unknown_absolute_latency(self):
+        flags = dag.automatic_phrase_flags(self.phrase(second_onset_offsets_seconds=[.3, .8, 1.3, 1.8]), 0.)
+        changed = [item for item in flags if item["kind"] == "recurrence_motif_timing_difference_review"]
+        self.assertEqual(len(changed), 4)
+        self.assertAlmostEqual(changed[0]["evidence"]["relative_difference_seconds"], .1)
+        self.assertIn("constant_offset_cancels", changed[0]["evidence"]["recording_latency"])
+
+    def test_legato_attack_density_difference_does_not_infer_missing_notes(self):
+        flags = dag.automatic_phrase_flags(self.phrase(second_onset_offsets_seconds=[.2, 1.2]), 0.)
+        item = next(item for item in flags if item["kind"] == "recurrence_attack_density_difference_review")
+        self.assertIn("legato", item["evidence"]["warning"].lower())
+        self.assertFalse(any("missing" in item["kind"] or "extra" in item["kind"] for item in flags))
+
+    def test_overlapping_spans_and_outside_motif_rejected(self):
+        for changes in ({"second_start_seconds": 1.}, {"second_onset_offsets_seconds": [3.]}):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                dag.automatic_phrase_flags(self.phrase(**changes), 0.)
+
+    def test_graph_automatic_review_status_and_persisted_settings(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            fixture(directory)
+            write(directory, "phrases.json", {**self.phrase(), "source": {"sha256": SOURCE}})
+            graph, flags = dag.build(directory)
+            self.assertEqual(flags["status"], "automatic_phrase_review_candidates")
+            self.assertEqual(flags["reference"]["status"], "not_supplied")
+            self.assertEqual(flags["performance_grade"], "not_graded_human_review_required")
+            row = next(row for row in graph["stages"] if row["id"] == "flags")
+            self.assertEqual(row["settings"]["automatic_review"], flags["automatic_review_settings"])
+
+    def test_bar_proxy_is_not_time_signature_or_downbeat_proof(self):
+        phrase = self.phrase()
+        phrase["observations"]["bar_proxy_candidates"] = [{"start_seconds": 0, "end_seconds": 2, "time_signature": "4/4"}]
+        flags = dag.automatic_phrase_flags(phrase, 0.)
+        bar = next(item for item in flags if item["kind"] == "four_pulse_group_review_candidate")
+        self.assertIsNone(bar["evidence"]["time_signature"])
+        self.assertEqual(bar["confidence"], "navigation_proxy_not_confirmed_bar")
 
 
 if __name__ == "__main__":

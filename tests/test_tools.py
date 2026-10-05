@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -37,6 +38,9 @@ class ToolsTests(unittest.TestCase):
             ('pipeline', {'run_dir': 'x', 'reference': 12}),
             ('pipeline', {'run_dir': 'x', 'execute_shell': 'anything'}),
             ('markers', {'run_dir': 'x', 'editor': 'final_cut_pro'}),
+            ('phrases', {'input': 'x', 'run_dir': 'x', 'backend': 'unknown'}),
+            ('phrases', {'input': 'x', 'run_dir': 'x', 'bpm': 401}),
+            ('notes', {'input': 'x', 'run_dir': 'x', 'backend': 'librosa'}),
             ('probe', {}), ('nonexistent', {})]:
             with self.subTest(name=name, arguments=arguments), self.assertRaises(tool_api.ValidationError):
                 tool_api.execute(name, arguments)
@@ -50,6 +54,20 @@ class ToolsTests(unittest.TestCase):
             self.assertEqual(command[2], 'probe')
             self.assertNotIn('shell', command)
 
+
+
+    def test_phrase_backend_and_tempo_are_forwarded_with_explicit_python(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source = root / 'take.wav'; source.write_bytes(b'fixture')
+            with patch.dict(os.environ, {'VIDEO_UTILS_ANALYSIS_PYTHON': '/explicit/analysis/python'}):
+                command = tool_api.worker_command('phrases', {'input': str(source), 'run_dir': str(root),
+                                                              'backend': 'librosa', 'bpm': 178})
+            self.assertEqual(command[0], '/explicit/analysis/python')
+            self.assertEqual(command[-4:], ['--backend', 'librosa', '--bpm', '178'])
+            command = tool_api.worker_command('phrases', {'input': str(source), 'run_dir': str(root)})
+            self.assertEqual(command[-2:], ['--backend', 'stdlib'])
+            self.assertNotIn('--bpm', command)
 
     def test_pipeline_reference_and_markers_dispatch_are_typed(self):
         with tempfile.TemporaryDirectory() as temporary:

@@ -61,7 +61,7 @@ unvalidated.
 | `tone` | Low-register and other band energy | `guitar-tone` | Experimental |
 | `notes` | Candidate periodicity; transcription unknown | `guitar-notes` | Experimental |
 | `rhythm` | Signed onset-to-grid offsets | `guitar-rhythm` | Experimental; no performance grade |
-| `phrases` | Envelope boundary proposals | `guitar-phrases` | Experimental; musical phrase unknown |
+| `phrases` | Automatic repeated-region/boundary proposals; optional librosa | `guitar-phrases` | Experimental; candidates need review |
 | `export` | WAV run and synchronized-video export | `media-export` | Available; acceptance pending |
 | `report` | Local audition/evidence HTML | `guitar-report` | Available |
 | `pipeline` | Existing-artifact provenance and reference review | `guitar-pipeline` | Experimental |
@@ -73,9 +73,11 @@ notch mains frequencies, or infer tone quality from less distortion. An agent
 reads the relevant skill, identifies the operator's intent, researches primary
 sources, compares at most three candidates by default while changing one knob
 at a time, and retains source/evidence and uncertainty. No inference becomes an
-intended note, missed/skipped beat or musical phrase mistake without an approved
-reference. Musical phrases and beat-grid phase are distinct from physical audio
-phase.
+intended note, missed/skipped beat or confirmed musical phrase mistake without
+an approved reference. Automatic phrase discovery and uncertain review markers
+do not require an intended-phrase reference. The operator's 178 BPM hint can
+seed this take's analysis without becoming a complete expected-rhythm reference.
+Musical phrases and beat-grid phase are distinct from physical audio phase.
 
 Invocation examples (replace private paths locally):
 
@@ -101,9 +103,14 @@ knobs. The registry loader rejects unsupported input-schema keywords rather than
 silently ignoring them. Dispatch always uses subprocess argument arrays and an
 allowlist of repository workers; paths containing shell syntax are literal
 paths. Denoise profiles are restricted to `bypass`, `conservative3`, and `mild6`.
-BPM/rhythm accept `backend` and an optional 20–400 BPM seed. Noise/tone/notes/
-phrases have fixed worker settings in this initial version; no extra knobs are
-invented. `pipeline` accepts `run_dir` and an optional existing local `reference`
+BPM/rhythm/phrases accept `backend: stdlib|librosa` and an optional 20–400 BPM
+seed. Noise/tone/notes retain fixed pilot settings; their results do not claim
+machine-learning transcription or tone recovery. For an installed analysis
+environment, launch the server with `.venv/bin/python scripts/mcp_server.py`, or
+set `VIDEO_UTILS_ANALYSIS_PYTHON` to an explicit Python executable for librosa
+calls. `VIDEO_UTILS_PYTHON` selects a general worker interpreter; otherwise the
+server's interpreter is used. No environment is installed or selected silently
+from the presence of a `.venv` directory. `pipeline` accepts `run_dir` and an optional existing local `reference`
 JSON; its worker validates approval and expected rhythm. `markers` accepts only
 `run_dir` besides the common deadline; no editor-compatibility option is implied.
 `FFMPEG`/`FFPROBE` overrides are host configuration supplied by the

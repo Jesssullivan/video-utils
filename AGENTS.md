@@ -54,6 +54,15 @@ technical and virtuoso playing, with intentional fundamentals near 32 Hz.
 Protect that low end; no blanket 80 Hz high-pass, mains notch or speech-denoiser
 default. Palm mutes, rests, tuplets, tapping and sweeps are musical context.
 
+The operator's constant tuning is lowest→highest C F Bb Eb Bb Eb Ab C F.
+`program/instrument.json` records strings 9→1 as C1 F1 Bb1 Eb2 Bb2 Eb3 Ab3 C4 F4
+with MIDI 24,29,34,39,46,51,56,60,65. Pitch classes are operator-stated;
+octaves are inferred from the approximately 32 Hz low string, high F above
+standard E4, and ascending order. A4=440 equal-temperament frequencies are
+theoretical, not measured. Preserve the supplied Eb2→Bb2 interval and the
+entire custom tuning. This context is not identified played notes or an
+intended-note reference; do not silently substitute a standard/all-fourths tuning.
+
 The operator means musical phrase mistakes. Analyze a hash-bound graph: denoise
 then click/BPM, pitch/tonic/mode evidence (nullable), phrase recurrence, and
 review flags carrying source timestamps or spans. Every tool has a typed MCP

@@ -75,6 +75,57 @@ class RhythmTests(unittest.TestCase):
         self.assertLess(result["click_grid"]["candidate_coverage"], 1)
         self.assertEqual(result["performance"]["status"], "not_graded")
 
+    def test_declared_178_kept_separate_from_audio_periodicity(self):
+        result = rhythm.analyze(clicks(bpm=178), bpm=178)
+        self.assertEqual(result["declared_tempo"]["bpm"], 178)
+        self.assertEqual(result["declared_tempo"]["precision"], "approximate")
+        self.assertEqual(result["click_grid"]["tempo_seed_bpm"], 178)
+        self.assertAlmostEqual(result["click_grid"]["bpm"], 178, delta=1)
+        self.assertEqual(result["performance"]["status"], "not_graded")
+
+    def test_failed_approximate_double_seed_falls_back_without_overwriting_declaration(self):
+        # A long 90 BPM train makes the approximate doubled 178 seed drift through
+        # different phase neighborhoods; its fit abstains, while the real 90 train fits.
+        result = rhythm.analyze(clicks(bpm=90, seconds=40), bpm=178)
+        self.assertEqual(result["declared_tempo"]["bpm"], 178)
+        self.assertEqual(result["grid_fit_attempts"][0]["status"], "no_stable_observed_fit")
+        self.assertEqual(result["grid_fit_attempts"][0]["seed_bpm"], 178)
+        self.assertEqual(result["grid_fit_attempts"][1]["status"], "observed_fit")
+        self.assertAlmostEqual(result["click_grid"]["bpm"], 90, delta=.5)
+        self.assertEqual(result["click_grid"]["selection"], "audio_periodicity_fallback_after_declared_seed_fit_abstention")
+        doubled = next(item for item in result["metrical_interpretations"] if item["pulse_multiplier"] == 2)
+        self.assertAlmostEqual(doubled["bpm"], 180, delta=1)
+        self.assertEqual(doubled["basis"], "observed_fitted_grid")
+        self.assertEqual(result["subdivisions"]["status"], "automatic_candidates")
+
+    def test_automatic_triplet_candidates_without_expected_pattern(self):
+        grid = {"phase_seconds_audio_relative": .1, "period_seconds": .6}
+        times = [.1 + i * .2 for i in range(60)]
+        result = rhythm.subdivision_candidates(times, grid)
+        self.assertEqual(result["status"], "automatic_candidates")
+        triple = next(c for c in result["candidates"] if c["subdivisions_per_declared_or_fitted_pulse"] == 3)
+        quarter = next(c for c in result["candidates"] if c["subdivisions_per_declared_or_fitted_pulse"] == 1)
+        self.assertGreater(triple["within_tolerance_fraction"], quarter["within_tolerance_fraction"])
+        self.assertEqual(triple["status"], "candidate_not_intended_rhythm")
+
+    def test_optional_onset_timestamps_have_correct_sample_axis(self):
+        optional = {"onsets": {"superflux": {"frames": [30], "audio_relative_seconds": [.15]}}, "features": {}}
+        with patch.object(rhythm, "librosa_analysis", return_value=optional):
+            result = rhythm.analyze(clicks(seconds=3), source_start=12.5, backend="librosa")
+        event = next(event for event in result["events"] if event["kind"] == "superflux_attack_candidate")
+        self.assertEqual(event["analysis_sample_position"], 2400)
+        self.assertEqual(event["source_timeline_seconds"], 12.65)
+        self.assertEqual(event["timestamp_convention"], "librosa_frame_time_center_compensated")
+
+    @unittest.skipUnless(importlib.util.find_spec("librosa"), "optional librosa dependency absent")
+    def test_actual_librosa_backend_has_two_onset_methods_and_features(self):
+        result = rhythm.librosa_analysis(clicks(seconds=3))
+        self.assertEqual(set(result["onsets"]), {"spectral_flux", "superflux"})
+        self.assertTrue(result["onsets"]["superflux"]["frames"])
+        self.assertEqual(len(result["features"]["mfcc"]), 13)
+        self.assertEqual(len(result["features"]["chroma"]), 12)
+        self.assertEqual(result["features"]["hop_samples"], 800)
+
 
 class TimelineLineageTests(unittest.TestCase):
     def setUp(self):

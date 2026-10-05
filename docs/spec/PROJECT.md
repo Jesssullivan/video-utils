@@ -9,6 +9,22 @@ fundamental around 32 Hz, used for deathcore and technical virtuoso playing.
 Default restoration must retain that fundamental. Do not introduce an 80 Hz
 high-pass or treat low-frequency hum-like content as noise without evidence.
 
+The operator confirms the constant low-to-high pitch classes **C F Bb Eb Bb Eb
+Ab C F**. Register them in `program/instrument.json`, numbered strings 9→1.
+The octave interpretation is **C1 F1 Bb1 Eb2 Bb2 Eb3 Ab3 C4 F4**, with MIDI
+**24, 29, 34, 39, 46, 51, 56, 60, 65**. These octaves are inferred from the
+approximately 32 Hz lowest string, the highest F being a semitone above standard
+high E4, and ascending order; they are not measured tuning or detected notes.
+Preserve every supplied interval, particularly Eb2→Bb2, rather than normalizing
+to a familiar all-fourths tuning.
+
+Theoretical frequencies use A4=440 Hz and
+`frequency_hz = 440 * 2 ** ((midi - 69) / 12)`, giving C1≈32.703 Hz and
+F4≈349.228 Hz. [UNSW documents the note/MIDI/frequency relationship](https://phys.unsw.edu.au/jw/notes.html);
+[Fender documents standard guitar tuning](https://www.fender.com/articles/setup/standard-tuning-how-eadgbe-came-to-be).
+Registered instrument context supplies analysis priors; it does not establish
+the notes played, tonic/mode, or note correctness in this recording.
+
 ## Deliverables and architecture
 
 By **6:00 p.m. America/New_York on October 5**, produce an auditionable iteration
@@ -59,6 +75,14 @@ are metrical candidates, not confirmed intended tempo. Meter, phrases, and
 metronome identity remain unverified. The quiet 4–5 s and 149–150 s windows
 are audition candidates, not proven noise-only samples.
 
+The operator subsequently stated that the metronome was approximately **178 BPM**.
+The later fitted grid at 88.8007 BPM gives approximately **177.6 BPM** under that
+double-time interpretation. Record the former as operator-stated context and
+the latter as measured periodicity, retaining alternate interpretations and
+limited heuristic confidence. Meter and bar/phrase length are not established
+by the tempo statement. The ending includes sweep/tapping legato and further
+note subdivisions; sparse pick attacks must not be interpreted as missing notes.
+
 The conservative profile uses a fixed 3 dB FFT denoising reduction with a
 −40 dB noise-floor heuristic and no adaptive noise tracking. The bypass and mild6 profiles provide comparisons. The fixed floor does not
 derive from a validated noise-only sample. Explicit user-annotated noise
@@ -86,13 +110,19 @@ its source/upstream artifact, parameters, tool version, evidence kind, and
 confidence. Agent feedback proposes bounded comparisons and reviewable settings;
 reruns retain prior provenance and never silently replace accepted results.
 
-Tonic/mode inference and repeated-riff boundaries can return low-confidence
-candidates or unknown. Distorted low notes, chords, rests, sweeps, and tapping
-must remain explicit failure cases. Repeated regions are compared for observed
-timing or structural differences. User-confirmed reference boundaries, expected
-rhythm, and loop counts qualify flags for starts/ends, skips, rushed passages,
-missing loops, and unclear riffs. Without that reference, output review candidates
-and abstentions, not correctness claims. Intended-pitch claims additionally need
+Discovery is automatic: unsupervised musical features, self-similarity, recurrence,
+onsets, and rhythmic structure propose phrases, bar groupings, repeated riffs,
+and breakdown boundaries without a predeclared intended arrangement. Tonic/mode,
+meter, and boundaries can return low-confidence candidates or unknown. Do not
+assume four-bar phrases or fixed subdivisions. Distorted low notes, chords,
+rests, syncopation, sweeps, tapping, and legato are explicit ambiguity cases.
+
+Internal self-consistency compares recurrent regions for observed timing,
+structure, or confidence differences and produces timestamp/span review flags
+for starts/ends, skips, rushing, possible missing loops, and unclear riffs. These
+flags are hypotheses for audition, not definite mistakes. A user-approved
+reference can qualify correctness grading; it is not a gate on automatic
+discovery or self-consistency review. Intended-pitch verdicts additionally need
 confirmed tuning and an intended-note reference.
 
 The initial graph/provenance and generic marker CSV are a foundation for visual
@@ -115,15 +145,16 @@ its stated acceptance evidence; unfinished research is labelled unknown.
 | Oct 6 | Ingestion, CLI, provenance, agent graph | Unicode/space paths, explicit tools, source hashing, isolated runs, versioned API/hooks and ordered graph provenance |
 | Oct 7 | Restoration profiles and export | Auditable parameters, post-render loudness/peak checks, preserved rate/channels/timeline, source unchanged |
 | Oct 8 | Metronome detection and optional attenuation | Timestamped click candidates, confidence, abstention on overlap, attack-preservation A/B examples |
-| Oct 9 | Onsets, calibrated offsets/drift, reference flags; tone/noise pilot | Known-grid tests, reference-qualified timing/span flags, preserved 32 Hz fundamental, auditable A/B settings |
-| Oct 10 | Tonic/mode, meter, phrase recurrence; note pilot | Candidates or unknown, confidence, retained corrections, reference-qualified recurrence/note experiments |
+| Oct 9 | Onsets, calibrated offsets/drift, self-consistency flags; tone/noise pilot | Known-grid tests, timestamp/span review without a reference, optional reference grading, preserved 32 Hz fundamentals |
+| Oct 10 | Automatic tonic/mode, meter, phrases/bars/breakdowns; note pilot | Features/recurrence discover candidates without intent, confidence/unknowns, sweep/tapping/legato fixtures, optional reference-qualified note verdicts |
 | Oct 11 | Annotations, benchmarks, Quarto | Small labelled corpus, measured comparisons, reproducible report, listening review fields |
 | Oct 12 | Hardening, agent/graph integration, handoff | Failure/timeout and MCP/DAG checks, marker-format spike results, reproducible demo and resumable tracker receipts |
 
 Beat This and librosa are comparative rhythm candidates. Default processing must
-remain usable without model weights. Performance grading needs a user-approved
-reference rhythm and calibrated alignment; onset density alone cannot establish
-missed or extra notes.
+remain usable without model weights. Automatic discovery and recurrence review
+must work without an expected-rhythm file. Definite correctness grading needs an
+approved reference and calibrated alignment; onset density alone cannot establish
+missed or extra notes, particularly in legato passages.
 These additions share the existing five-hour daily budgets; they do not add a
 second allocation to the 35-hour baseline. The marker spike may end with an
 unverified application import result, which must be recorded as such.

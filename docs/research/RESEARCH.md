@@ -60,6 +60,15 @@ makes that distinction unreliable. Attenuation is opt-in and needs a residue/A/B
 review. Beat estimates alone cannot establish intended meter, missing notes,
 extra notes, or the start of a musical phrase.
 
+Automatic phrase/bar/breakdown discovery instead combines musical features,
+self-similarity, recurrence, and rhythm into confidence-labelled candidates.
+No intended-song file is required. Comparing repeated regions can identify spans
+whose timing or structure deserves review; this internal self-consistency is
+distinct from a definite mistake verdict against an approved reference. Meter,
+tonic, and mode may be unknown, and fixed four-bar phrase lengths are not assumed.
+The operator's approximately 178 BPM statement selects an interpretation for
+review without proving that every note or legato event follows a fixed subdivision.
+
 Note/tone pilots must include sweeps, tapping, syncopation, rests, distorted
 chords, and palm mutes. Agent tuning exposes parameter proposals and comparative
 results through the versioned tool contract; intended-note correctness requires

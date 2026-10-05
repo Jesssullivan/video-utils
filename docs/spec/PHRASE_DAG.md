@@ -32,10 +32,37 @@ An existing report's hash is a prior snapshot in its stage row, rather than a
 validated graph input: the report consumes this graph and rewriting it must not
 invalidate its own inputs through a hash cycle.
 
-`flags.json` stores nullable tonal context and source-time review spans. Without
-an approved reference it exposes uncertain boundary/recurrence candidates and
-unresolved tempo context. Envelope resemblance is not a repeated riff. Current
-mixture pitch observations do not establish tonic, mode or intended notes.
+`flags.json` stores nullable tonal context and source-time review spans. Automatic
+phrase, bar-like region and breakdown texture proposals **do not require a score
+or predeclared intent**. With no supplied reference it ingests automatic segment
+and recurrence proposals, compares repeated regions for relative duration,
+attack-density and motif timing differences, and exposes review candidates.
+These self-consistency comparisons can identify a span to inspect; intended
+variation, legato, clicks, masked attacks and segmentation error remain possible.
+Texture/envelope resemblance is not proof of identical riffs. Current mixture
+pitch observations do not establish tonic, mode or intended notes.
+
+Automatic flags retain `requires_expected_intent:false`, `needs_review` and
+`performance_issue_confirmed:false`. Relative motif comparison removes a constant
+capture offset; it cannot remove unknown detector/phrase-boundary bias or prove
+that a phrase was rushed. Absolute missing/extra-note grading still needs an
+approved intended rhythm; confirmed musical mistakes always require listening
+and human judgment. A 178 BPM operator declaration can guide pulse-sized regions
+without establishing downbeats, 4/4 meter, tuplets or every intended attack.
+
+The automatic interface accepts `observations.segment_candidates` containing
+start/end audio-relative seconds, kind, label and heuristic confidence. It also
+accepts `recurrence_candidates` with first/second start/end seconds, similarity,
+optional pulse period, and optional first/second phrase-relative onset arrays.
+`bar_proxy_candidates` become four-pulse navigation markers with null time
+signature; they never establish a downbeat or actual musical bar.
+Recurrence spans must be ordered and nonoverlapping. Duration differences exceed
+one quarter pulse before flagging. Motif timing comparison requires at least three
+monotonic matches and flags differences above the greater of 30 ms or 15% pulse;
+the matching window is the lesser of 250 ms or 45% pulse. Attack-density differences
+above 25% with at least three detected attacks trigger review. These fixed pilot
+thresholds and their limitations are persisted in the flags/settings hashes;
+they are experiment controls, not validated probabilities or musician grades.
 
 ## Approved reference interface, version 1
 
@@ -65,16 +92,21 @@ integer 1–64, and expected onsets nonnegative and strictly increasing. Approve
 references need at least one onset; there are at most 20,000 onsets and 1,000
 phrase spans. A supplied source hash must match the original recording.
 
-Tolerance defaults to 30 ms. The match window defaults to the lesser of 200 ms
-and half the declared subdivision period; tolerance cannot exceed that window.
+Tolerance defaults to the lesser of 30 ms and the match window. The match window
+defaults to the lesser of 200 ms and half the declared subdivision period;
+explicit tolerance cannot exceed that window. Very fine subdivisions may exceed
+the detector's timestamp precision and need explicit uncertainty review.
 `onset_latency_seconds` is an explicit signed correction subtracted from observed
 times. Zero explicitly means no correction was requested; it is not evidence of
 a calibrated recorder/detector. When the field is absent/null, signed offsets
 remain uncalibrated and are not labeled early/late. Keep a real calibration receipt
 when making musician-facing timing claims.
 
-The comparator selects only broadband attack candidates, deduplicates identical
-timestamps, and maximizes monotonic one-to-one match count before minimizing total
+The comparator selects one attack detector stream: SuperFlux when present,
+otherwise spectral flux, otherwise broadband attacks. It never combines streams
+and double-counts the same musical attack. Detector identity is recorded; any
+latency calibration must concern that detector. It deduplicates identical
+timestamps and maximizes monotonic one-to-one match count before minimizing total
 absolute offset. Matches are bounded by the configured window and 200,000 candidate
 edges. An observed attack cannot satisfy two expected attacks. Unmatched attacks
 outside the explicitly annotated onset range are ignored; within it they remain
@@ -103,7 +135,8 @@ and graphical overlays need separate adapters and host validation. No successful
 native import is implied. Markers remain `needs_review`; exporting them does not
 confirm musical mistakes.
 
-Acceptance checks cover missing/early/late observed attacks, explicit capture offset,
+Acceptance checks cover automatic segments without a score, relative loop duration
+and motif differences, legato/detection ambiguity, missing/early/late observed attacks, explicit capture offset,
 uncalibrated abstention, unapproved references, source mismatch/tampering, chord
 deduplication, dense one-to-one matching, explicit phrase spans, original stream
 offsets and CSV quoting. The actual recording has no approved intended-rhythm

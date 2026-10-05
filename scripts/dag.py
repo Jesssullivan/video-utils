@@ -14,6 +14,10 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 MAX_JSON_BYTES = 20_000_000
 MAX_EVENTS = 20_000
+AUTOMATIC_REVIEW_SETTINGS = {"duration_difference_minimum_pulses": .25,
+    "motif_offset_minimum_seconds": .03, "motif_offset_minimum_pulse_fraction": .15,
+    "motif_match_window_maximum_seconds": .25, "motif_match_window_pulse_fraction": .45,
+    "minimum_matched_motif_attacks": 3, "attack_density_difference_fraction": .25}
 
 
 def sha256(path: Path) -> str:
@@ -78,8 +82,8 @@ def validate_reference(reference: dict, source_hash: str | None) -> dict:
     expected = [number(item, "expected onset", 0) for item in expected]
     if any(a >= b for a, b in zip(expected, expected[1:])):
         raise ValueError("Expected onsets must be strictly increasing; chords use one attack")
-    tolerance = number(reference.get("tolerance_seconds", .03), "tolerance_seconds", 0)
     window = number(reference.get("match_window_seconds", min(.2, 30 / bpm / subdivision)), "match_window_seconds", .000001)
+    tolerance = number(reference.get("tolerance_seconds", min(.03, window)), "tolerance_seconds", 0)
     if tolerance > window or window > 1:
         raise ValueError("Require tolerance_seconds <= match_window_seconds <= 1")
     calibration = reference.get("onset_latency_seconds")
@@ -157,8 +161,12 @@ def compare_reference(events: list[dict], reference: dict, source_start: float =
     if reference.get("approved") is not True:
         return {"status": "not_graded_reference_unapproved", "flags": [], "matches": []}
     attacks = []
+    # Compare one detector stream. Combining detectors would double-count attacks.
+    detected_kinds = {event.get("kind") for event in events}
+    attack_kind = next((kind for kind in ("superflux_attack_candidate", "spectral_flux_attack_candidate", "broadband_attack_candidate")
+                        if kind in detected_kinds), "broadband_attack_candidate")
     for event in events:
-        if event.get("kind") != "broadband_attack_candidate":
+        if event.get("kind") != attack_kind:
             continue
         time = number(event.get("audio_relative_seconds"), "observed onset", 0)
         attacks.append(time)
@@ -212,6 +220,7 @@ def compare_reference(events: list[dict], reference: dict, source_start: float =
                      warning="Last attack does not identify phrase release or sustain end.")
     return {"status": "reference_comparison_candidates" if calibrated else "reference_comparison_uncalibrated",
             "calibration": {"onset_latency_seconds": latency, "explicit": calibrated},
+            "attack_detector": attack_kind,
             "matching_method": "maximum_count_minimum_total_offset_monotonic_one_to_one", "matches": matches,
             "flags": sorted(flags, key=lambda item: (item["source_time_seconds"], item["kind"]))}
 
@@ -223,6 +232,98 @@ def lineage(payload: dict, original_hash: str | None, processed_hashes: dict[str
     if identity and identity == original_hash:
         return "preliminary_raw_source"
     return "rejected_source_mismatch"
+
+
+def automatic_phrase_flags(phrases: dict, source_start: float) -> list[dict]:
+    """Discover review spans and relative recurrence differences without a score.
+
+    Segmentation and self-consistency compare observable patterns, not intent.
+    The initial proposal remains hypothetical even with high similarity.
+    """
+    observations = phrases.get("observations", {})
+    result = []
+
+    def add(kind, start, end, evidence, confidence="unvalidated_automatic_phrase_candidate"):
+        start = number(start, "automatic phrase start", 0)
+        end = number(end, "automatic phrase end", 0)
+        if end < start:
+            raise ValueError("Automatic phrase end precedes start")
+        result.append({"kind": kind, "audio_relative_seconds": start,
+            "source_time_seconds": source_start + start, "end_seconds": source_start + end,
+            "confidence": confidence, "status": "needs_review", "evidence": evidence,
+            "performance_issue_confirmed": False, "requires_expected_intent": False})
+
+    segments = observations.get("segment_candidates", [])
+    recurrences = observations.get("recurrence_candidates", [])
+    bars = observations.get("bar_proxy_candidates", [])
+    if not all(isinstance(items, list) for items in (segments, recurrences, bars)) or len(segments) + len(recurrences) + len(bars) > 5000:
+        raise ValueError("Automatic phrase context must contain at most 5000 segment/recurrence candidates")
+    for span in observations.get("proposed_review_spans", []):
+        if span.get("kind") == "multifeature_recurrence_candidate" and recurrences:
+            continue  # The full recurrence below carries both motifs and lineage.
+        add(span.get("kind", "phrase_review_candidate"), span.get("start_seconds"), span.get("end_seconds"), span)
+    for segment in segments:
+        add(segment.get("kind", "automatic_segment_review_candidate"), segment.get("start_seconds"), segment.get("end_seconds"),
+            {**segment, "warning": "Unsupervised texture/rhythm boundary; bar identity, breakdown and musical intent remain review hypotheses."})
+    for bar in bars:
+        add("four_pulse_group_review_candidate", bar.get("start_seconds"), bar.get("end_seconds"),
+            {**bar, "time_signature": None, "warning": "Four-pulse grouping is a navigation proxy; downbeat phase and musical bar/meter are not identified."},
+            "navigation_proxy_not_confirmed_bar")
+    for recurrence in recurrences:
+        a = number(recurrence.get("first_start_seconds"), "recurrence first start", 0)
+        b = number(recurrence.get("first_end_seconds"), "recurrence first end", 0)
+        c = number(recurrence.get("second_start_seconds"), "recurrence second start", 0)
+        d = number(recurrence.get("second_end_seconds"), "recurrence second end", 0)
+        if not a < b <= c < d:
+            raise ValueError("Recurrence spans must be ordered and nonoverlapping")
+        evidence = {**recurrence, "comparison_basis": "within_take_pattern_self_consistency_not_expected_score",
+                    "warning": "Repeated texture is a hypothesis; intentional variation, legato and segmentation error remain possible."}
+        add("automatic_recurrence_review_candidate", c, d, evidence)
+        pulse = recurrence.get("pulse_period_seconds")
+        if pulse is None:
+            continue
+        pulse = number(pulse, "recurrence pulse period", .001)
+        duration_difference = (d - c) - (b - a)
+        if abs(duration_difference) / pulse > AUTOMATIC_REVIEW_SETTINGS["duration_difference_minimum_pulses"]:
+            add("recurrence_duration_difference_review", c, d, {**evidence,
+                "duration_difference_seconds": duration_difference, "duration_difference_pulses": duration_difference / pulse,
+                "warning": "Loop/phrase duration differs; this does not prove skipped beats or a rushed phrase."})
+        first = recurrence.get("first_onset_offsets_seconds")
+        second = recurrence.get("second_onset_offsets_seconds")
+        if first is None or second is None:
+            continue
+        if not isinstance(first, list) or not isinstance(second, list) or max(len(first), len(second)) > 2000:
+            raise ValueError("Recurrence onset motifs must be arrays with at most 2000 attacks")
+        first = sorted(set(number(time, "first motif onset", 0) for time in first))
+        second = sorted(set(number(time, "second motif onset", 0) for time in second))
+        if any(time > b - a for time in first) or any(time > d - c for time in second):
+            raise ValueError("Recurrence motif onset lies outside its phrase span")
+        window = min(AUTOMATIC_REVIEW_SETTINGS["motif_match_window_maximum_seconds"],
+                     pulse * AUTOMATIC_REVIEW_SETTINGS["motif_match_window_pulse_fraction"])
+        pairs, _, _ = match_onsets(first, second, window)
+        if len(pairs) >= AUTOMATIC_REVIEW_SETTINGS["minimum_matched_motif_attacks"]:
+            offsets = [second[j] - first[i] for i, j in pairs]
+            threshold = max(AUTOMATIC_REVIEW_SETTINGS["motif_offset_minimum_seconds"],
+                            pulse * AUTOMATIC_REVIEW_SETTINGS["motif_offset_minimum_pulse_fraction"])
+            for (i, j), offset in zip(pairs, offsets):
+                if abs(offset) > threshold:
+                    add("recurrence_motif_timing_difference_review", c + second[j], c + second[j],
+                        {"first_phrase_start_seconds": a, "second_phrase_start_seconds": c,
+                         "first_motif_attack_seconds": first[i], "second_motif_attack_seconds": second[j],
+                         "relative_difference_seconds": offset, "relative_difference_pulses": offset / pulse,
+                         "recording_latency": "constant_offset_cancels_in_relative_comparison_detector_and_boundary_bias_unknown",
+                         "warning": "Within-take attack alignment differs; intentional variation or detection error remains possible."},
+                        "unvalidated_relative_motif_difference")
+        if max(len(first), len(second)) >= 3 and abs(len(first) - len(second)) / max(len(first), len(second)) > AUTOMATIC_REVIEW_SETTINGS["attack_density_difference_fraction"]:
+            add("recurrence_attack_density_difference_review", c, d,
+                {**evidence, "first_detected_attack_count": len(first), "second_detected_attack_count": len(second),
+                 "warning": "Attack density differs; legato, masking, clicks or intended variation can explain it. No missing/extra note inference."})
+    # Older proposed spans can duplicate a new segmentation/recurrence marker.
+    unique = {}
+    for item in result:
+        key = (item["kind"], item["source_time_seconds"], item["end_seconds"])
+        unique[key] = item
+    return list(unique.values())
 
 
 def build(run_dir: Path, reference_path: Path | None = None) -> tuple[dict, dict]:
@@ -285,22 +386,20 @@ def build(run_dir: Path, reference_path: Path | None = None) -> tuple[dict, dict
                 "end_seconds": start, "confidence": "unknown", "status": "needs_review", "evidence": {"reason": "No accepted periodicity grid"},
                 "performance_issue_confirmed": False})
     phrases = payloads.get("phrases", {})
-    for span in phrases.get("observations", {}).get("proposed_review_spans", []):
-        a = number(span.get("start_seconds"), "review span start", 0)
-        b = number(span.get("end_seconds"), "review span end", 0)
-        if b < a:
-            raise ValueError("Phrase review span end precedes start")
-        performance["flags"].append({"kind": span.get("kind", "phrase_review_candidate"),
-            "source_time_seconds": start + a, "end_seconds": start + b,
-            "confidence": "unvalidated_heuristic_not_probability", "status": "needs_review",
-            "evidence": span, "performance_issue_confirmed": False})
+    automatic_flags = automatic_phrase_flags(phrases, start)
+    performance["flags"].extend(automatic_flags)
+    if automatic_flags and not (reference and reference.get("approved") is True):
+        performance["status"] = "automatic_phrase_review_candidates"
     notes = payloads.get("notes", {}).get("interpretation", {})
     flags = {"schema_version": 1, "source_sha256": original_hash, "analysis_lineage": analysis_state,
              "timeline": {"audio_start_seconds": start, "axis": "original_source_stream_timestamps_seconds"},
              "reference": reference_receipt, "musical_context": {"tonic": notes.get("tonic"), "mode": notes.get("mode"),
                  "status": "nullable_experimental_context_not_confirmed_intent"},
-             **performance, "limitations": ["Flags compare mixture transient candidates with an approved reference; they are not detected note mistakes.",
-                "Envelope recurrence does not establish repeated riffs or tonal identity.", "Raw-source analysis remains preliminary until post-denoise analysis is recorded.",
+             **performance, "automatic_review_settings": AUTOMATIC_REVIEW_SETTINGS,
+             "performance_grade": "not_graded_human_review_required",
+             "limitations": ["Automatic segmentation and self-consistency differences need no intended-score reference; they remain hypotheses.",
+                "Approved-score comparisons are mixture transient mismatches, not confirmed note mistakes.",
+                "Texture/envelope recurrence does not establish identical notes or tonal identity.", "Raw-source analysis remains preliminary until post-denoise analysis is recorded.",
                 "32 Hz fundamentals and intentional distortion are musical content, not automatic noise targets."]}
     flags["flags"].sort(key=lambda item: (item["source_time_seconds"], item["kind"]))
     encoded = json.dumps(flags, indent=2, allow_nan=False) + "\n"
@@ -309,7 +408,8 @@ def build(run_dir: Path, reference_path: Path | None = None) -> tuple[dict, dict
     for row in stage_rows:
         if row["id"] == "flags":
             row.update(status=performance["status"], artifact_sha256=flags_hash,
-                       settings={"reference_sha256": reference_receipt["sha256"], "analysis_lineage": analysis_state})
+                       settings={"reference_sha256": reference_receipt["sha256"], "analysis_lineage": analysis_state,
+                                 "automatic_review": AUTOMATIC_REVIEW_SETTINGS})
         row["settings_sha256"] = hashlib.sha256(json.dumps(row["settings"], sort_keys=True, allow_nan=False).encode()).hexdigest()
     by_id = {row["id"]: row for row in stage_rows}
     for row in stage_rows:
