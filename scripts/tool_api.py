@@ -15,6 +15,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / 'program' / 'tools.json'
 MAX_WORKER_OUTPUT = 2 * 1024 * 1024
+MAX_JSON_NESTING = 128
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
                          'minimum', 'maximum', 'minLength', 'maxLength', 'description', 'default'}
 OUTPUT_SCHEMA = {'type': 'object', 'properties': {
@@ -40,6 +41,27 @@ class ValidationError(ValueError):
 
 
 def strict_json(text):
+    # CPython JSON recursion behavior differs across releases. Enforce a portable
+    # nesting bound before parsing; punctuation inside quoted strings is data.
+    depth = 0
+    quoted = False
+    escaped = False
+    for character in text:
+        if quoted:
+            if escaped:
+                escaped = False
+            elif character == '\\':
+                escaped = True
+            elif character == '"':
+                quoted = False
+        elif character == '"':
+            quoted = True
+        elif character in '[{':
+            depth += 1
+            if depth > MAX_JSON_NESTING:
+                raise ValueError(f'JSON nesting exceeds {MAX_JSON_NESTING} levels')
+        elif character in ']}':
+            depth -= 1
     def reject_constant(value):
         raise ValueError(f'non-finite JSON number: {value}')
     def finite_float(value):

@@ -62,6 +62,18 @@ class ToolContractTests(unittest.TestCase):
         self.assertEqual(child.returncode, 0)
         self.assertEqual(json.loads(child.stdout)['error']['code'], -32700)
 
+
+    def test_json_nesting_limit_is_explicit_and_ignores_quoted_punctuation(self):
+        limit = tool_api.MAX_JSON_NESTING
+        accepted = '[' * limit + '0' + ']' * limit
+        rejected = '[' * (limit + 1) + '0' + ']' * (limit + 1)
+        self.assertIsInstance(tool_api.strict_json(accepted), list)
+        with self.assertRaisesRegex(ValueError, 'nesting'):
+            tool_api.strict_json(rejected)
+        value = {'note': '[{' * 10000 + 'quoted \" braces } ] and literal backslash \\',
+                 'nested': [{'quoted_key{': 'escaped \" quote and more [{ punctuation'}]}
+        self.assertEqual(tool_api.strict_json(json.dumps(value)), value)
+
     def test_timeout_cleans_only_recorded_descendants_and_returns_receipt(self):
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)

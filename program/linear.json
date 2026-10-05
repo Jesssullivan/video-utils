@@ -3,7 +3,7 @@
   "authority": "Operator approved plan / Implement the plan; R-HOOK-CONVERGENCE-20261004 / R-N13",
   "repository": "https://github.com/Jesssullivan/video-utils",
   "team_id": "a2c482c8-4d0d-4171-82d9-553265b6c706",
-  "updated_at": "2026-10-05T20:57:53.946181+00:00",
+  "updated_at": "2026-10-05T21:01:01.307770+00:00",
   "milestones": [
     {
       "id": "71bd7738-f346-48dd-8426-4095575a386a",
@@ -92,5 +92,23 @@
     "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
     "name": "video-utils \u2014 guitar restoration and performance analysis",
     "url": "https://linear.app/tinyland/project/video-utils-guitar-restoration-and-performance-analysis-243628f290ab"
+  },
+  "publication": {
+    "source_commit": "be085b4316c27ba59d66091a01480493ed9c996d",
+    "private": true,
+    "signature_verified": true,
+    "comments": [
+      {
+        "issue": "TIN-5485",
+        "id": "9d2e2ef7-6b74-49b3-972c-d75bd2884804",
+        "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-9d2e2ef7"
+      },
+      {
+        "issue": "TIN-5495",
+        "id": "353d44f7-02e8-4706-83d7-8b3e61232060",
+        "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-353d44f7"
+      }
+    ],
+    "published_at": "2026-10-05T21:01:01.307752+00:00"
   }
 }

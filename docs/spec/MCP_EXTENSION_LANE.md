@@ -17,9 +17,9 @@ signal only the invocation's recorded, inspected process group under R-N11.
 | Tool | Worker owner | Skill directory | Interface status |
 |---|---|---|---|
 | `clicks` | rhythm analysis lane | `guitar-clicks` | Draft CLI received; implementation pending |
-| `phrase_compare` | phrase DAG lane | `guitar-phrase-compare` | Draft CLI received; implementation pending |
-| `benchmark` | repository patterns lane | `guitar-benchmark` | Draft CLI received; implementation pending |
-| `review` | report/review lane | `guitar-review` | Draft local read/write CLI received; implementation pending |
+| `phrase_compare` | phrase DAG lane | `guitar-phrase-compare` | Worker ready locally; hook unpublished |
+| `benchmark` | repository patterns lane | `guitar-benchmark` | Worker ready locally; hook unpublished |
+| `review` | report/review lane | `guitar-review` | Worker ready locally; hook unpublished |
 
 Tool names and skill directories above are reserved proposals. Each row must be
 updated with the worker's actual command, accepted arguments, artifact schema,
@@ -54,7 +54,10 @@ schema publication waits for worker readiness and root's freeze release.
   2,000,000 per run. Requires same-source `manifest.json`, librosa analysis
   features, and recurrence candidates from `phrases.json`. Atomic
   `phrase-comparisons.json` records comparisons; existing DAG/markers are not
-  rewritten by this worker. Relative timing/rate hypotheses stay `needs_review`,
+  rewritten by this worker. Summary keys are `comparisons_json`, `comparison_count`, `status`, and
+  `review_flag_count`. Nineteen lane tests passed, and the actual take produced
+  ten aligned pairs with attack-edit abstention retained. Relative timing/rate
+  hypotheses stay `needs_review`,
   and legato or weak onset evidence must abstain from attack-edit claims.
 - **Benchmark:** `scripts/benchmark.py fixtures --output NEW`, or
   `run --output NEW --profile conservative3 [--phrase-backend stdlib|librosa]`.
@@ -63,7 +66,9 @@ schema publication waits for worker readiness and root's freeze release.
   600-second suite bounds, serialized execution. No operator media acquisition,
   package install, model download or network. `benchmark.json` records hashes,
   configuration, runtime, structural failures and separate quality alerts.
-  Exact stdout result keys await implementation.
+  Stdout summary keys are `status`, `output`, `case_count`, and `result`
+  (the fixture or benchmark JSON path). Three-case worker execution and six
+  lane tests passed; results remain synthetic measurements.
 - **Review:** `scripts/review_server.py annotations RUN_DIR` reads JSON;
   `annotate RUN_DIR --input REQUEST_JSON` writes one operator decision. Proposed
   MCP fields are `run_dir`, `operation: read|write` (default read), and existing
@@ -152,3 +157,10 @@ The same critical-fix exception adds finite-float parsing and maps parser
 recursion to a controlled parse error. Results: excessive nesting returns
 JSON-RPC -32700 while the stdio server exits cleanly on EOF; nonfinite worker
 numbers become tool failures. No tool capability or schema was added.
+
+Hosted Python 3.14.7 demonstrated that parser recursion is not a portable depth
+limit: 10,000 nested arrays could parse successfully. A deterministic pre-parser
+scanner now caps nesting at 128 levels while ignoring punctuation inside quoted
+strings and handling escapes. Tests cover the exact boundary and quoted braces,
+arrays, escaped quotes and backslashes. This replaces reliance on CPython's
+parser recursion behavior; finite-number checks are retained.
