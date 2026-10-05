@@ -291,3 +291,66 @@ Goal stays **active**, planned end **2026-10-06 06:49:34 UTC**. Root owns select
 publication and new facts; documentation freezes after this handoff. Any next
 checkpoint must distinguish published source from local verified work and
 explicitly assigned implementation from plan-only ownership.
+
+## Wave3 publication and code release checkpoint — 22:40:05 UTC
+
+Root verified published source **`45a1313ccbcb0ecc097f3a017979254e5719a3c6`**
+as PRIVATE with GitHub signature verified. Twenty tools and twenty skills are
+now published; local 291 tests/no skips and complete existing-run fifteen-stage /
+five-selected-artifact provenance / 197 ungraded-flag receipts remain unchanged.
+Hosted CI
+[37383660576](https://github.com/Jesssullivan/video-utils/actions/runs/37383660576)
+**completed SUCCESS at 22:38:45 UTC**, per root's exact readback. This resolves
+wave3's prior pending-publication/CI states; older 5f35a14 and 6f7d196 results remain
+separate historical revision receipts. No new media encoding or musician verdict
+is inferred from source publication.
+
+Root updated the Linear project and read back publication comments:
+D0 **`44694369-4105-4fad-814d-eea730c867c8`**; goal
+**`83ef0855-6b81-4b76-9a96-4911f58216ba`**. The writer read matching root-owned
+program/linear.json with source 45a1313/20 tools/291 tests/ 197 flags. Cached CI
+there preceded root's completed readback; observation times are distinct.
+D0 remains In Review for listening, goal remains active/In Progress, planned end
+**2026-10-06 06:49:34 UTC**.
+
+Root explicitly released calibration implementation ownership after publication:
+repo_patterns owns benchmark.py, optional benchmark_bank.py, their named tests
+and program/benchmarks.json; guitar_features owns new pitch_evaluate.py and
+its test; phrase_dag owns new phrase_evaluate.py and its test. Evaluators retain
+respective calibration specs/dated receipts. Bank source/index must precede
+actual evaluator pilots. tool_hooks owns registry/API/contracts; tool_skills
+owns three calibration skills under its existing skill ownership. Exact paths,
+dependencies and root's bank-pilot/integration lane are on the current board.
+
+Twenty-two tools are **planned after both evaluator hooks become live**, not
+claimed today from this release. Other workers are done/idle unless explicitly
+reassigned. Existing goal/week budgets apply; no duplicate hours. This is root's
+traceable release under operator authority and R-HOOK-CONVERGENCE-20261004/
+R-N11/R-N12/R-N13, not permission to mutate unassigned shared files.
+Documentation freezes after this handoff for selected receipt publication.
+
+## Additional named ownership checkpoint — 22:43:49 UTC
+
+Root explicitly activated `/root/media_latency` for new
+`scripts/calibration_pilot.py`, `tests/test_calibration_pilot.py` and
+`docs/spec/CALIBRATION_PILOT_LANE.md`, transferring that proposed worker's source
+implementation from root. Root retains operator recipes, actual pilot execution,
+integration and publication. The worker depends on agreed bank/evaluator
+contracts; assignment does not establish a completed pilot.
+
+`/root/audio_research` is active for an independent **read-only** source/spec
+contract audit, owning a new dated calibration-review note in docs/agent-notes/;
+it does not mutate workers/specs. `/root/au_architecture` is active **plan only**
+for new `docs/spec/AU_PARAMETER_STATE_INTEGRATION_LANE.md` before root assigns
+any native file. Existing native source remains frozen.
+
+Root explicitly assigned optional new `program/benchmarks-v2.json` to the bank
+owner; existing `program/benchmarks.json` bytes must be preserved. These releases
+extend the named ownership table, not general permission for shared mutations.
+Current published source/tools remain 45a1313/twenty. A twenty-two-tool total
+remains future until the evaluators are integrated/live and published. Root updated/read back cached
+Linear CI metadata/comments to **SUCCESS**. Goal remains active with unchanged
+planned end **2026-10-06 06:49:34 UTC** and no new weekly allocation.
+
+This documentation lane refreezes after the short follow-up. Root owns the
+selected three-document receipt publication; no shared source files were edited.

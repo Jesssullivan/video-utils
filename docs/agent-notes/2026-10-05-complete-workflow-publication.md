@@ -89,3 +89,19 @@ shared recipes, integration and publication. Independent calibration review and
 AU parameter/state integration planning own separate notes only. These are
 active assignments, not claims that planned calibration or AU integration is
 already implemented. The ten-hour goal remains active.
+
+### Calibration ownership and design correction, 22:43 UTC
+
+Root subsequently assigns the composite pilot implementation to
+`/root/media_latency`: new `scripts/calibration_pilot.py`,
+`tests/test_calibration_pilot.py` and `docs/spec/CALIBRATION_PILOT_LANE.md`.
+Root retains recipes, actual execution, integration and publication. The bank
+owner may add `program/benchmarks-v2.json` while preserving the v1 configuration.
+
+Independent review identifies that a global 178 BPM seed would condition the
+variable-tempo fixture. Root corrects the earlier proposed seed: generated
+mixture discovery is unseeded by default and no reference beat/phrase/attack
+labels enter its workers. Any later seeded comparison must declare its supplied
+reference grid and exclude variable-tempo tests. The four pitch jobs share
+30 seconds total, allocated 8 + 8 + 6 + 8. These are accepted implementation
+requirements, not completed calibration evidence.

@@ -1,6 +1,6 @@
 # video-utils parallel work board
 
-As-of prepublication checkpoint: **2026-10-05 22:31:49 UTC / 6:31:49 p.m. EDT**.
+As-of ownership checkpoint: **2026-10-05 22:43:49 UTC / 6:43:49 p.m. EDT**.
 Root's goal began 20:49:34 UTC and remains **active**, with planned end
 **2026-10-06 06:49:34 UTC / 2:49:34 a.m. EDT**. Objective/status does not enforce
 this wall-clock horizon. Root owns integration, factual Linear writes and signed
@@ -16,42 +16,42 @@ Checkpoints: [2026-10-05-goal-checkpoints.md](2026-10-05-goal-checkpoints.md).
 Tracker IDs: [linear.json](../../program/linear.json).
 Active goal: [TIN-5495](https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal).
 
-## Published baseline versus pending wave3
+## Published twenty-tool source
 
-Last published head: signed/private `5f35a147a80485ce1c43eafb93cd60f0da52423b`,
-which records the nineteen-tool source `6f7d1965b3c99a9b2ed261d58ea8949c0d6a1b26`.
-Hosted CI for 6f7d196
-[37378799943](https://github.com/Jesssullivan/video-utils/actions/runs/37378799943)
-passed Python/media, Rust and secret scan: 219 Python discovered/198 passed/
-21 optional skips; local analysis 219 had no skips. This is historical source
-qualification, not a hosted result for pending wave3.
+Signed/private/verified source **`45a1313ccbcb0ecc097f3a017979254e5719a3c6`**
+is published. It contains **twenty hooks and twenty skills**, including read-only
+corpus-metadata validation. Local integration passed **291 tests in 53.583 s,
+no skips**, plus 47 hook-focused checks. Hosted CI
+[37383660576](https://github.com/Jesssullivan/video-utils/actions/runs/37383660576)
+**completed successfully at 22:38:45 UTC** per root's exact readback. Earlier
+5f35a14/6f7d196 success belongs to their own revisions, not this result.
 
-Wave3 worktree has **twenty hooks and twenty skills**, including a read-only
-corpus-metadata validation interface. Full local suite **291 passed in 53.583 s,
-no skips**; hook-focused 47 checks passed. Selected source/audit/research and
-calibration plans are pending root publication. Do not call the remote a
-twenty-tool release until root's exact source/visibility/signature readback.
+## Released calibration code ownership
 
-## Current assignment and freeze
+Root released the next **five code/interface lanes** after 45a1313 publication.
+Their earlier plan-only freeze is lifted for the exact named files below. Later
+explicit assignments add a pilot executor, read-only audit and plan-only native
+lane. Other workers remain idle/done by default. The goal continues;
+assignment does not establish implementation, scores or publication.
 
-The previous six graph/report/hook/corpus/editor-research/native-state lanes
-completed their handoffs; their earlier assignment table is historical. Other
-workers are done/idle rather than active by default. Three next lanes own
-**plans only** during root's publication freeze. Their contracts are ready before
-code; root assigns implementation files **after publication**.
-
-| Stream | Owner | Exclusive current file | State / next dependency |
+| Stream | Owner | Exclusive assigned files | State / dependency |
 | --- | --- | --- | --- |
-| Generated calibration bank | `/root/repo_patterns` | `docs/spec/BENCHMARK_CALIBRATION_LANE.md` | Plan only: maximum 12 deterministic fixtures/120 source seconds, truth/component provenance, bounded independent metrics; benchmark source/configuration/tests frozen until root assigns code |
-| Pitch calibration | `/root/guitar_features` | `docs/spec/PITCH_CALIBRATION_LANE.md` | Plan only: four serial pitch jobs/30 source seconds, cents/voicing/octave/coverage and exclusions; depends on generated bank/index contract; no pilot claimed |
-| Phrase calibration | `/root/phrase_dag` | `docs/spec/PHRASE_CALIBRATION_LANE.md` | Plan only: independent boundary/span/recurrence/warp metrics without supplying labels to discovery; depends on generated truth/artifacts; evaluator code not assigned yet |
-| Integration/publication | `/root` | Shared integration, selected commits, Linear facts | Publish verified wave3 source/plans, then assign bounded code and record remote/hosted receipts |
-| Durable checkpoint | `/root/goal_plan` | This board and `2026-10-05-goal-checkpoints.md` | Updated on explicit follow-up; frozen after handoff for root's selected receipt publication |
+| Generated bank | `/root/repo_patterns` | `scripts/benchmark.py`, optional new `scripts/benchmark_bank.py`; `tests/test_benchmark.py`, optional new `tests/test_benchmark_bank.py`; optional new `program/benchmarks-v2.json`, BENCHMARK_CALIBRATION_LANE | Code released; ≤12 fixtures/120 source seconds; preserve existing benchmarks.json bytes and v1 hashes; generator-only truth/bank index precedes evaluators |
+| Pitch evaluator | `/root/guitar_features` | New `scripts/pitch_evaluate.py`, `tests/test_pitch_evaluate.py`; PITCH_CALIBRATION_LANE and owned dated evaluator receipts | Code released; four-job/30-source-second pilot; depends on generated bank/pilot index; retain coverage, octave/voicing and transition exclusions |
+| Phrase evaluator | `/root/phrase_dag` | New `scripts/phrase_evaluate.py`, `tests/test_phrase_evaluate.py`; PHRASE_CALIBRATION_LANE and owned dated evaluator receipts | Code released; independent boundary/span/recurrence/warp metrics; labels withheld from discovery; depends on generated truth/artifacts |
+| Tool contracts | `/root/tool_hooks` | `program/tools.json`, `scripts/tool_api.py`, `tests/test_tool_contracts.py` and existing owned contract docs/tests | Registry/API/schema ownership; agree evaluator inputs/results before integration; current published count remains 20 |
+| Calibration skills | `/root/tool_skills` | Three calibration skills under existing owned `.agents/skills/**`; owned extension guidance | Depends on actual contracts/knobs; match benchmark and both evaluator intents; validation before publication |
+| Calibration pilot worker | `/root/media_latency` | New `scripts/calibration_pilot.py`, `tests/test_calibration_pilot.py`, `docs/spec/CALIBRATION_PILOT_LANE.md` | Active explicit source assignment transferred from root; bounded orchestration depends on bank/evaluator contracts; root retains recipes, actual pilot run, integration/publication |
+| Independent contract audit | `/root/audio_research` | New dated calibration-contract review under `docs/agent-notes/`; worker source/specs read-only | Active independent audit; record findings/evidence in owned review note; no worker/spec mutation |
+| AU parameter-state integration | `/root/au_architecture` | New `docs/spec/AU_PARAMETER_STATE_INTEGRATION_LANE.md` only | Active PLAN ONLY before any native-file assignment; existing native code remains frozen |
+| Integration/publication | `/root` | Shared recipes/source integration, real bank pilot, tests, Linear and signed publication | Run bounded actual synthetic bank/pilot and integrate receipts; distinguish fixture quality from real performance |
+| Durable checkpoint | `/root/goal_plan` | This board, checkpoint log and TEN_HOUR_PLAN on explicit follow-up | Updated/frozen after handoff for root's selected doc receipt publication |
 
-All continuation work shares the existing ten-hour horizon and weekly allocation.
-No duplicate hours, phantom live workers or executable calibration-v2 claims.
-Process signals require actual owned/live-target checks and R-N11 receipts;
-hooks remain advisory under R-N12; facts and durability follow R-N13.
+**Twenty-two tools are planned once both evaluator tools are live; not current.**
+New source and skills require meaningful checks and root publication/readback.
+This continues the same ten-hour horizon and weekly budgets without duplicate
+hours or phantom workers. Authority: root's explicit release/assignment under the
+operator's goal and R-HOOK-CONVERGENCE-20261004/R-N11/R-N12/R-N13.
 
 ## Actual complete existing-run evidence
 
@@ -93,8 +93,10 @@ had no job steps; exact annotation: “job was not acquired by Runner of type ho
 even after multiple attempts”. The later 6f7d196 CI passed as recorded above;
 keep runner acquisition, source tests and current pending publication distinct.
 
-D0 TIN-5485 remains In Review for listening. Goal TIN-5495 remains In Progress;
-prior wave2 comments are `6b0c27ce-950d-4f6a-a492-2cd6e821e567` and
-`18776874-b339-416f-a144-69a746ffdc9e`. Root synchronizes any new publication
-comments in program/linear.json. Source publication or CI does not complete the
-goal or the separate listening/native/editor acceptance states.
+D0 TIN-5485 remains In Review for listening; current publication comment
+`44694369-4105-4fad-814d-eea730c867c8`. Goal TIN-5495 remains In Progress;
+comment `83ef0855-6b81-4b76-9a96-4911f58216ba`. Root updated/read back the project
+and comments and synchronized program/linear.json to 45a1313/20/291/197. Root also
+updated cached CI metadata/comments to the completed SUCCESS readback.
+Publication/CI do not complete listening/native/editor states
+or the goal. Planned end remains **2026-10-06 06:49:34 UTC**.

@@ -77,33 +77,52 @@ notes. A four-pulse grouping is a hypothesis, not confirmed meter.
    acceptance tests and prioritization. Native AU/Logic and Final Cut/Resolve
    imports are separate milestones requiring actual host/application proof.
 
-The current completed demo receipt is
-[2026-10-05-implementation.md](../agent-notes/2026-10-05-implementation.md).
-Its local run `artifacts/runs/20261005T203619Z-f94eb8eb2a1a` contains unreviewed
-media. The initial standard-library phrase pass abstained and is preserved under
-`analysis-revisions/stdlib-initial`. A later actual post-denoise librosa pass
-produced 47 candidate regions, 10 recurrence pairs, 112 four-pulse proxies and 57
-proposed review spans without predefined intent. These are discovery hypotheses,
-not semantic phrase/meter correctness or performance grades. The current declared
-178 BPM seed abstained; the verified audio-periodicity fallback fits 88.800719 BPM
-(approximately 177.6014 at double time), with the approximate operator declaration
-kept separate. The regenerated DAG/markers/report contains 177 source-time
-navigation/review flags, all hypotheses rather than confirmed mistakes. See the
-live board for counts and remaining test/publication evidence. Goal tracking is
-[TIN-5495](https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal).
+## Current delivered checkpoint and preserved history
 
-Later benchmark evidence found approximately 25 ms source-to-denoised click
-delay in three synthetic fixtures. Executable/profile-bound calibration and
-1102-sample compensation were then used in new run
-`20261005T211103Z-c6d0bac2fcd2`; three standard-library and three optional-backend
-synthetic cases now show zero candidate shift and click recall 1. This qualifies
-the tested processing chain, not a ground-truth alignment of the real performance.
-The new run completed all stages with 48 candidate regions, 14 recurrence pairs
-and 186 review/navigation flags. Its encoded AAC true peak measured −1.49 dBTP,
-failing the strict −1.50 target; bounded headroom retry repair is in progress.
-Root has not published the new bundle. `/root/media_latency` owns media/latency
-tests and `docs/spec/MEDIA_LATENCY.md`; definition-of-done item 1 remains open
-until final encoded acceptance and publication evidence are recorded.
+As of **2026-10-05 22:40 UTC**, signed/private/verified source
+**`45a1313ccbcb0ecc097f3a017979254e5719a3c6`** publishes **twenty tools and twenty
+skills**. Local suite passed **291 tests in 53.583 seconds without skips**, plus 47
+hook-focused checks. Hosted CI
+[37383660576](https://github.com/Jesssullivan/video-utils/actions/runs/37383660576)
+completed SUCCESS at 22:38:45 UTC. These source/hosted checks remain separate
+from user listening, native AU/Logic and editor-import acceptance.
+
+Current media run is `artifacts/runs/20261005T211103Z-c6d0bac2fcd2`; complete
+existing-run invocation `20261005T221943Z-9f2a37bcca5c` completed **fifteen stages**
+and verified selected click/pitch/meter/tonal/comparison artifacts by provenance.
+Original source/master/video hashes remained unchanged and **no encoder ran**.
+Current report/markers carry **197 ungraded hypotheses**, including eleven DTW
+comparison flags; discovery has 48 regions and 14 recurrence pairs. Meter and
+tonic/mode remain unknown; sparse pitch covered 20 seconds including the ending.
+Source-time provenance is not musical correctness or whole-take transcription.
+
+Final verified master is **−18.01 LUFS / −1.50 dBTP**; decoded AAC is
+**−18.07 LUFS / −1.56 dBTP** after −0.06 dB feed headroom. Executable/profile-bound
+1102-sample latency compensation is recorded. The earlier −1.49 AAC target failure
+was repaired by bounded retry and is retained as historical evidence; it is not
+an open repair claim. Synthetic post-fix zero shift/click recall 1 qualifies the
+tested chain, not ground-truth timing of this real performance. Listening remains
+pending despite numerical acceptance.
+
+Muted browser review loaded four players and passed filter/seek/mobile checks
+without actual-note writes. Prior analysis is preserved under full hash
+`c9166c0152bb8be0fca4ed1dd048025c4e98c9bd713994669cb203a9bc145867`, 14,181,050 bytes,
+explicitly `prior_artifact_snapshot_not_revalidated`. Historical snapshot retention
+does not qualify old evidence as a current selected artifact.
+
+Earlier run `20261005T203619Z-f94eb8eb2a1a` had a standard-library phrase pass
+that abstained, preserved under analysis-revisions/stdlib-initial; a later pass
+had 47 regions/10 recurrences/177 flags. Those historical counts are not the current
+197-flag checkpoint. The initial measured 88.800719/177.6014 tempo pair belongs to
+that run; current fallback is approximately 88.800907/177.6018. Operator-stated
+approximately 178 BPM stays separate; direct seed fitting abstained and metronome
+identity remains unverified.
+
+Durable receipts: [implementation](../agent-notes/2026-10-05-implementation.md),
+[goal checkpoints](../agent-notes/2026-10-05-goal-checkpoints.md),
+[current board](../agent-notes/WORKSTREAM_BOARD.md).
+Goal tracking: [TIN-5495](https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal).
+Goal remains active, unchanged planned end **2026-10-06 06:49:34 UTC**.
 
 ## Parallel lanes and ownership
 
@@ -112,9 +131,10 @@ shared entrypoints, publication, Linear writes, and integrated run receipts.
 The initial existing-file freeze **was released by root's first-publication
 broadcast** after signed commit `be085b4316c27ba59d66091a01480493ed9c996d` was
 pushed and verified. Named owners may resume their assigned files; root still
-coordinates shared interfaces and publication. These tables retain the assignment
-contract; the live board records current evidence and remaining acceptance.
-Publishing the first iteration does not complete the ten-hour goal.
+coordinates shared interfaces and publication. The following original-lane tables are historical ownership contracts, not a
+claim that every worker remains active. The current calibration release below
+and live board record active ownership/evidence. Publication does not complete
+the ten-hour goal.
 
 | Lane | Owned files | Deliverable and verification | Dependency / checkpoint |
 | --- | --- | --- | --- |
@@ -130,7 +150,8 @@ Publishing the first iteration does not complete the ten-hour goal.
 | `/root/goal_plan` | `docs/spec/TEN_HOUR_PLAN.md`, `docs/agent-notes/2026-10-05-user-prompts.md`, `docs/agent-notes/WORKSTREAM_BOARD.md` | Durable operator requests, horizon, named lanes and checkpoint/handoff contract | Root supplies exact goal start and newly assigned lane names |
 | Root integration | `AGENTS.md`, `scripts/run_demo.py`, other explicitly retained shared files, `program/linear.json`, final publication receipts | Integrate and test, rerun real media/analysis, commit/push, publish factual Linear updates | Root alone updates shared entrypoint/publication; no race with named owners |
 
-The root has assigned the following next work to existing named agents, using
+The root earlier assigned the following work to named agents (handoffs now
+completed; see the current calibration release below), using
 new files to avoid races with first-publication integration. References to
 "after first push" below describe a dependency now satisfied; new contracts/tests
 still require root integration before publication:
@@ -154,11 +175,33 @@ the idle pitch worker. Root explicitly started `/root/guitar_features`'s pitch
 follow-up around 21:20 UTC. Treat earlier pitch rows as assignments, not evidence
 that pitch implementation was running before that follow-up.
 
-Meter, tonal and AU automation assignments continue the existing ten-hour
-horizon. They do not create extra hours beyond the project's 35-hour core plus
+Those historical meter, tonal and AU automation assignments shared the ten-hour
+horizon. They created no extra hours beyond the project's 35-hour core plus
 optional 35-hour following-week allocation. Root prioritizes bounded evidence and
 unknowns; new workers/tools remain unpublished until their implementation,
 contracts and relevant tests are integrated and verified.
+
+### Current calibration code release after 45a1313
+
+The prior three plan-only lanes are now explicitly released to named code after
+publication. Only these five workers have continuation code/interface assignments;
+other earlier workers are done/idle unless root reassigns them.
+
+| Owner | Exact assigned scope | Dependency / acceptance |
+| --- | --- | --- |
+| `/root/repo_patterns` | `scripts/benchmark.py`; optional new `scripts/benchmark_bank.py`; `tests/test_benchmark.py`; optional new `tests/test_benchmark_bank.py`; `program/benchmarks.json`; BENCHMARK_CALIBRATION_LANE |≤12 deterministic fixtures/120 source seconds, retain v1 hashes, generator-only truth/index contract first; bounded actual bank pilot |
+| `/root/guitar_features` | New `scripts/pitch_evaluate.py`, `tests/test_pitch_evaluate.py`; PITCH_CALIBRATION_LANE and owned dated receipts | Four serial jobs/30 source seconds; depends on bank/index; independent cents/voicing/octave/coverage with transition exclusions |
+| `/root/phrase_dag` | New `scripts/phrase_evaluate.py`, `tests/test_phrase_evaluate.py`; PHRASE_CALIBRATION_LANE and owned dated receipts | Independent boundary/span/recurrence/warp metrics; truth labels withheld from discovery; depends on generated source/truth/artifacts |
+| `/root/tool_hooks` | `program/tools.json`, `scripts/tool_api.py`, `tests/test_tool_contracts.py` and existing owned contract docs/tests | Validate exact evaluator arguments/results and bounded schemas; no untested registry promise |
+| `/root/tool_skills` | Three calibration skills under existing owned `.agents/skills/**` and extension guidance | Depends on actual hook/worker contracts; supported intent/knobs and validation before publication |
+| Root integration | Shared recipes/source integration, real bank pilot, relevant checks, tracker and signed publication | Root tests/integrates and records exact remote/hosted/readback; synthetic metrics do not become musician ground truth |
+
+Current published count is **twenty**. **Twenty-two** tools are planned only once
+both evaluator hooks are implemented/live and root verifies their publication.
+This release continues the same horizon and 35-hour core/optional 35-hour following
+week budget; no new allocation or speculative results. Authority: root's explicit
+release/assignment under operator goal and R-HOOK-CONVERGENCE-20261004/
+R-N11/R-N12/R-N13. No unassigned shared-file mutations are authorized.
 
 Any additional lane remains unassigned until root records an exact owner and
 isolated files. An idle lane does not authorize another agent to overwrite its
