@@ -110,6 +110,36 @@ def probe(path: Path) -> dict:
     return {"format": fmt, "audio": audio, "video": video, "streams": streams}
 
 
+def audio_timeline_origin(path: Path, metadata: dict) -> dict:
+    """Retain stated origin, or measure first decoded PTS when metadata omits it."""
+    stated = number(metadata["audio"].get("start_time"))
+    if stated is not None:
+        return {"seconds": stated, "basis": "audio_stream_start_metadata"}
+    command = [executable("ffprobe"), "-v", "error", "-select_streams",
+               str(metadata["audio"]["index"]), "-read_intervals", "%+#1",
+               "-show_frames", "-show_entries", "frame=pts_time,best_effort_timestamp_time",
+               "-of", "json", str(path)]
+    COMMANDS.append(command)
+    result = run(command, timeout=60)
+    if len(result.stdout.encode("utf-8")) > 65536:
+        raise MediaError("first-frame timestamp receipt is oversized")
+    try:
+        frames = json.loads(result.stdout).get("frames", [])
+    except (ValueError, AttributeError) as exc:
+        raise MediaError("first-frame timestamp probe returned invalid JSON") from exc
+    if not isinstance(frames, list) or len(frames) > 64:
+        raise MediaError("first-frame timestamp receipt is invalid")
+    frame = frames[0] if frames and isinstance(frames[0], dict) else {}
+    timestamp = number(frame.get("pts_time"))
+    if timestamp is None:
+        timestamp = number(frame.get("best_effort_timestamp_time"))
+    return {"seconds": timestamp,
+            "basis": "first_decoded_frame_timestamp" if timestamp is not None else "unknown",
+            "source_stream_start_metadata": None, "first_frame": frame,
+            "command": command,
+            "scope": "decoded audio axis; not BWF time reference, acoustic latency or physical A/V sync"}
+
+
 def load_profile(value: str | Path) -> dict:
     path = Path(value).expanduser()
     if not path.is_file():
@@ -411,6 +441,7 @@ def clean(value: str | Path, profile_value: str | Path) -> dict:
     source_hash = sha256(source)
     metadata = probe(source)
     audio = metadata["audio"]
+    audio_origin = audio_timeline_origin(source, metadata)
     run_root = ROOT / "artifacts" / "runs"
     run_root.mkdir(parents=True, exist_ok=True)
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:12]
@@ -470,7 +501,8 @@ def clean(value: str | Path, profile_value: str | Path) -> dict:
                     "source": {"path": str(source), "sha256": source_hash, "probe": metadata},
                     "pcm": reference,
                     "timeline": {"format_start_seconds": metadata["format"]["start_time"],
-                                 "audio_start_seconds": audio["start_time"],
+                                 "audio_start_seconds": audio_origin["seconds"],
+                                 "audio_origin_receipt": audio_origin,
                                  "decoded_audio_origin": "first decoded source audio sample",
                                  "no_time_stretch": True},
                     "dsp_latency": {"denoise": latency,

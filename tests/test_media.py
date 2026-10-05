@@ -80,6 +80,27 @@ class MediaIntegrationTests(unittest.TestCase):
         samples.frombytes(result.stdout)
         return samples
 
+    def test_wav_without_stream_start_uses_measured_decoded_origin(self):
+        source = self.directory / "32 Hz recording.wav"
+        self.tone(source)
+        metadata = media.probe(source)
+        self.assertIsNone(metadata["audio"]["start_time"])
+        original_hash = media.sha256(source)
+        manifest = media.clean(source, self.profile("bypass"))
+        self.assertEqual(manifest["timeline"]["audio_start_seconds"], 0.0)
+        origin = manifest["timeline"]["audio_origin_receipt"]
+        self.assertEqual(origin["basis"], "first_decoded_frame_timestamp")
+        self.assertIsNone(manifest["source"]["probe"]["audio"]["start_time"])
+        self.assertEqual(media.sha256(source), original_hash)
+        import subprocess
+        run_dir = Path(manifest["run_dir"])
+        result = subprocess.run([__import__("sys").executable, str(REPO / "scripts" / "rhythm.py"),
+                                 str(run_dir / "denoised.wav"), "--run-dir", str(run_dir)],
+                                capture_output=True, text=True, timeout=60)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        analysis = json.loads((run_dir / "analysis.json").read_text())
+        self.assertEqual(analysis["source_lineage"]["original_audio_start_seconds"], 0.0)
+
     def test_compensated_attack_alignment_and_tail_at_44100_and_48000(self):
         for rate in (44100, 48000):
             with self.subTest(rate=rate):

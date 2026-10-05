@@ -24,8 +24,8 @@ No model download, automatic correction or polyphonic-transcription claim.
    Defaults to 20 seconds distributed across a long take, in at most five-second
    excerpts; `--max-analysis-seconds` accepts 1–30, and optional `--start-seconds`
    selects a contiguous excerpt. The isolated pYIN process times out at 180 seconds.
-   After first publication, root routes the notes tool to this new worker when
-   its optional backend is selected; the existing feature worker stays intact. Bound media to
+   The dedicated `pitch` MCP tool exposes this optional worker; `notes` retains
+   its existing standard-library diagnostic without a backend parameter. Bound media to
    300 seconds and numerical threads to two. Record library versions, source
    hashes, tuning registry hash, detector settings, frame-center timestamps,
    time-window extent and canonical derivative lineage. Benchmark warm/cold
@@ -73,7 +73,7 @@ No model download, automatic correction or polyphonic-transcription claim.
 
 ## Defaults and release decision
 
-Existing stdlib behavior remains available. New notes backend parameters and
+Existing stdlib behavior remains available. Dedicated pitch controls and
 runtime limits are fixed and recorded for the first candidate release; root
 exposes supported controls through the registry and skill only after successful
 benchmarking. If full pYIN exceeds the agreed runtime limit, use explicit

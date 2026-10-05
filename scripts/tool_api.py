@@ -16,6 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / 'program' / 'tools.json'
 MAX_WORKER_OUTPUT = 2 * 1024 * 1024
 MAX_JSON_NESTING = 128
+PIPELINE_SELECTORS = ('clicks_artifact', 'pitch_artifact', 'meter_artifact',
+                      'tonal_artifact', 'comparisons_artifact')
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
                          'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default'}
 OUTPUT_SCHEMA = {'type': 'object', 'properties': {
@@ -175,6 +177,55 @@ def local_path(value, must_exist=False, directory=False):
     return str(path)
 
 
+def validate_evidence_selector(value):
+    """An exact run-relative JSON identifier, never a URL or normalized path."""
+    parts = value.split('/')
+    if (value.startswith('/') or ':' in value or '\\' in value
+            or any(not part or part.startswith('.') or '.partial' in part for part in parts)
+            or not value.endswith('.json')):
+        raise ValidationError('pipeline selectors require exact run-relative JSON paths without traversal or staging components')
+
+
+def selected_evidence_path(directory, value):
+    """Check every original component before resolution could hide a symlink."""
+    path = Path(directory)
+    for part in value.split('/'):
+        path = path / part
+        if path.is_symlink():
+            raise ToolError('pipeline evidence selector cannot contain a symlink component')
+    if not path.is_file():
+        raise ToolError('pipeline selected evidence must be an existing run-local regular file')
+    # Forward the exact relative string. The worker independently validates paths,
+    # byte limits and provenance; no wrapper normalization may hide path identity.
+    return value
+
+
+def corpus_worker_paths(args):
+    """Preserve unsafe components beneath an explicitly chosen metadata root."""
+    original_root = Path(args.get('local_root', str(ROOT))).expanduser().absolute()
+    if original_root.is_symlink() or not original_root.is_dir():
+        raise ToolError('corpus local_root must be an existing directory, not a symlink')
+    root = original_root.resolve()
+    original_manifest = Path(args['manifest']).expanduser().absolute()
+    try:
+        relative = original_manifest.relative_to(original_root)
+    except ValueError:
+        try:
+            relative = original_manifest.relative_to(root)
+        except ValueError as error:
+            raise ToolError('corpus manifest must remain inside local_root') from error
+    path = root
+    for part in relative.parts:
+        if part == '..':
+            raise ValidationError('corpus manifest cannot contain traversal components')
+        path = path / part
+        if path.is_symlink():
+            raise ToolError('corpus manifest cannot contain a symlink component')
+    if not path.is_file():
+        raise ToolError('corpus manifest must be an existing regular metadata file')
+    return str(path), str(root)
+
+
 
 def validate_tool_arguments(name, args):
     """Cross-field rules that are known before a worker or file read starts."""
@@ -187,6 +238,12 @@ def validate_tool_arguments(name, args):
     if name == 'benchmark' and args.get('operation', 'run') == 'fixtures':
         if any(key in args for key in ('profile', 'phrase_backend')):
             raise ValidationError('benchmark profile/phrase_backend apply only to operation run')
+    if name == 'pipeline':
+        for field in PIPELINE_SELECTORS:
+            if field in args:
+                validate_evidence_selector(args[field])
+    if name == 'corpus' and any(part == '..' for part in args['manifest'].split('/')):
+        raise ValidationError('corpus manifest cannot contain traversal components')
     if name == 'clicks':
         supplied = ('template_start' in args, 'template_end' in args)
         if supplied[0] != supplied[1]:
@@ -209,6 +266,10 @@ def worker_command(name, args):
     source = local_path(args['input'], must_exist=True) if 'input' in args else None
     if name == 'probe':
         return head + [str(ROOT / 'scripts/media.py'), 'probe', source]
+    if name == 'corpus':
+        manifest, root = corpus_worker_paths(args)
+        return head + [str(ROOT / 'scripts/corpus.py'), 'validate', manifest,
+                       '--root', root, '--summary']
     if name == 'denoise':
         return head + [str(ROOT / 'scripts/media.py'), 'clean', source, args.get('profile', 'conservative3')]
     if name == 'benchmark':
@@ -269,6 +330,10 @@ def worker_command(name, args):
             command = head + [str(ROOT / 'scripts/dag.py'), directory]
             if 'reference' in args:
                 command += ['--reference', local_path(args['reference'], must_exist=True)]
+            for field in PIPELINE_SELECTORS:
+                if field in args:
+                    command += ['--' + field.replace('_', '-'),
+                                selected_evidence_path(directory, args[field])]
             return command
         if name == 'markers':
             return head + [str(ROOT / 'scripts/markers.py'), directory]

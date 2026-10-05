@@ -3,8 +3,8 @@ doctor:
     python3 scripts/doctor.py
 
 # Produce processed audio/video, rhythm measurements and a local comparison report.
-demo input bpm="" backend="stdlib":
-    if [[ -n {{quote(bpm)}} ]]; then python3 scripts/run_demo.py {{quote(input)}} --bpm {{quote(bpm)}} --backend {{quote(backend)}}; else python3 scripts/run_demo.py {{quote(input)}} --backend {{quote(backend)}}; fi
+demo input bpm="" backend="stdlib" features="base":
+    if [[ -n {{quote(bpm)}} ]]; then python3 scripts/run_demo.py {{quote(input)}} --bpm {{quote(bpm)}} --backend {{quote(backend)}} --features {{quote(features)}}; else python3 scripts/run_demo.py {{quote(input)}} --backend {{quote(backend)}} --features {{quote(features)}}; fi
 
 # Preserve the input and create a new private run directory.
 clean input profile="conservative3":
@@ -39,9 +39,18 @@ tool-info name:
 tool-run name arguments:
     python3 scripts/tool_api.py run {{quote(name)}} --arguments {{quote(arguments)}}
 
-# Evaluate phrase/rhythm evidence and optional approved reference in an existing run.
-dag run_dir reference="":
-    if [[ -n {{quote(reference)}} ]]; then python3 scripts/dag.py {{quote(run_dir)}} --reference {{quote(reference)}}; else python3 scripts/dag.py {{quote(run_dir)}}; fi
+# Evaluate provenance with an optional reference and explicit run-relative evidence.
+dag run_dir reference="" clicks="" pitch="" meter="" tonal="" comparisons="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    graph_args=({{quote(run_dir)}})
+    if [[ -n {{quote(reference)}} ]]; then graph_args+=(--reference {{quote(reference)}}); fi
+    if [[ -n {{quote(clicks)}} ]]; then graph_args+=(--clicks-artifact {{quote(clicks)}}); fi
+    if [[ -n {{quote(pitch)}} ]]; then graph_args+=(--pitch-artifact {{quote(pitch)}}); fi
+    if [[ -n {{quote(meter)}} ]]; then graph_args+=(--meter-artifact {{quote(meter)}}); fi
+    if [[ -n {{quote(tonal)}} ]]; then graph_args+=(--tonal-artifact {{quote(tonal)}}); fi
+    if [[ -n {{quote(comparisons)}} ]]; then graph_args+=(--comparisons-artifact {{quote(comparisons)}}); fi
+    python3 scripts/dag.py "${graph_args[@]}"
 
 # Generic source-time markers; editor-specific imports remain a separate milestone.
 markers run_dir:
@@ -98,3 +107,15 @@ tonal run_dir:
 # Isolated native sample-event/ramp checks; no AU installation or host operation.
 au-automation-check:
     python3 native/au-spike/automation/check.py
+
+# Isolated typed state/lifecycle experiment; no AU preset or Logic integration.
+au-state-check:
+    python3 native/au-spike/state/check.py
+
+# Extend a validated rendered run through all optional evidence stages.
+evaluate run_dir bpm="" backend="librosa" seconds="20":
+    if [[ -n {{quote(bpm)}} ]]; then python3 scripts/run_demo.py --existing-run {{quote(run_dir)}} --features extended --backend {{quote(backend)}} --pitch-seconds {{quote(seconds)}} --bpm {{quote(bpm)}}; else python3 scripts/run_demo.py --existing-run {{quote(run_dir)}} --features extended --backend {{quote(backend)}} --pitch-seconds {{quote(seconds)}}; fi
+
+# Validate source-bound sparse annotation metadata; no recording is read.
+corpus manifest local_root="":
+    if [[ -n {{quote(local_root)}} ]]; then python3 scripts/corpus.py validate {{quote(manifest)}} --root {{quote(local_root)}} --summary; else python3 scripts/corpus.py validate {{quote(manifest)}} --summary; fi

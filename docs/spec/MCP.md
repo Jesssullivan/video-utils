@@ -214,3 +214,19 @@ AU rendering and Logic acceptance remain separate future integration evidence.
 Tests exercise an actual stdio conversation, lifecycle/version negotiation,
 notification behavior, prompt loading, schema errors versus tool errors, literal
 paths, output limits, deadline cleanup and a real FFprobe call when available.
+
+## Complete evidence workflow and corpus metadata
+
+The `pipeline` evaluator accepts five explicit run-relative JSON selectors:
+`clicks_artifact`, `pitch_artifact`, `meter_artifact`, `tonal_artifact`, and
+`comparisons_artifact`. Each is optional, bounded and independently verified;
+no newest-file discovery occurs. Consult GRAPH_TOOL_CONTRACT.md for proof and
+rejection semantics. CLI `just evaluate` executes the extended workflow before
+evaluating these receipts; the MCP evaluator does not schedule processing.
+
+The twentieth operation, `corpus`, validates explicitly authored sparse review
+metadata using `manifest`, optional `local_root` and `timeout_seconds`. A compact
+summary follows complete validation, with no audio read, writes, network or
+models. Supplied labels, source origins and reviewer identities are assertions,
+not authenticated ground truth. See CORPUS_TOOL_CONTRACT.md and the paired
+`guitar-corpus` skill.

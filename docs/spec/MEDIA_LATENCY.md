@@ -116,3 +116,16 @@ measurements determine the result rather than assuming a fixed headroom succeeds
 After the delivery fix, **all ten media tests passed** with FFmpeg/ffprobe 8.1.2
 (19.388 seconds). The actual overshoot/retry fixture and bounded failure receipt
 checks passed alongside the existing latency, low-end and export protections.
+
+## WAV ingestion origin follow-up
+
+The extended-workflow WAV fixture exposed absent FFprobe stream-start metadata.
+Root now probes one decoded audio packet/frame for its timestamp when stream
+metadata omits the start. The source probe retains null, while the run timeline
+records the measured decoded origin and command. No blanket zero or container
+start substitution occurs. This is the decoded audio axis, not a BWF reference
+time, acoustic delay or physical A/V synchronization measurement.
+
+All eleven media tests passed locally in 15.369 seconds, including a 32 Hz WAV
+with null stream metadata whose decoded-frame origin is zero and whose actual
+rhythm worker inherits that origin successfully. Source bytes remain unchanged.

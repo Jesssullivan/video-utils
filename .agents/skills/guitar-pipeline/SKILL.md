@@ -1,6 +1,6 @@
 ---
 name: guitar-pipeline
-description: Evaluate an existing guitar run's provenance graph and experimental rhythm or phrase review flags, with an optional approved expected-rhythm reference.
+description: Evaluate an existing guitar run's provenance graph with explicit bounded evidence selectors and experimental rhythm or phrase review flags, with an optional approved expected-rhythm reference.
 ---
 
 # Evaluate a guitar run's evidence graph
@@ -12,6 +12,37 @@ description: Evaluate an existing guitar run's provenance graph and experimental
 ## Use and controls
 
 Use MCP `pipeline` with `run_dir`, optional `reference` path and optional bounded timeout. Fallback: `just dag "<run-dir>" "<reference-path>"`; omit the reference argument for a candidate-only review. The direct worker is `python3 scripts/dag.py "<run-dir>" [--reference "<path>"]`.
+
+Optional MCP selectors are `clicks_artifact`, `pitch_artifact`, `meter_artifact`,
+`tonal_artifact` and `comparisons_artifact`. Each selects at most one exact JSON
+path relative to `run_dir`, 1–1024 characters. The direct CLI flags use hyphens,
+for example `--pitch-artifact pitch.json` and
+`--meter-artifact meter/20261005T000000/meter.json`. Choose actual paths from the
+worker receipts, not these illustrative names. There is no implicit newest-file
+discovery. Absolute paths, colon, backslash, empty or dot-prefixed components,
+traversal, `.partial` staging components and symlinks are rejected before evidence
+can be used. Missing or nonregular files fail the invocation. Worker bounds are
+20 MB per selected JSON and 40 MB total.
+
+Read [the selector contract](../../../docs/spec/GRAPH_TOOL_CONTRACT.md). Inspect
+`dag.json.selected_evidence` for every selected slot: its status, exact selector,
+artifact hash, upstream and fixed external-context hashes, settings binding, analyzed-input hash, timing
+status and metadata. `not_selected` means no selection was requested; `verified`
+means provenance passed. `rejected_*` records source, stale-upstream or settings
+mismatch without promoting the artifact into usable evidence. Successful graph
+execution can contain rejected slots. Sparse pitch coverage, abstentions and null
+meter/tonic/mode must remain visible; verified provenance does not confirm the
+musical hypothesis. Run evidence tools independently before selecting their
+receipts; the pipeline hook never schedules or executes those tools.
+Only verified selections and validated upstream hashes become active graph
+inputs. Rejected selections retain an audit hash and status with null metadata;
+do not reopen them as usable evidence through a report or agent summary.
+
+Distinguish measured bulk DSP compensation from unresolved detector latency,
+acoustic travel and physical A/V sync. A legacy manifest can remain
+`dsp_delay_uncalibrated` even when rate, frame count and timestamps match. Inspect
+the worker's immutable run-local graph history before comparing reruns; archived
+report/marker bytes do not imply previous listening acceptance.
 
 Read [the implemented phrase DAG and reference interface](../../../docs/spec/PHRASE_DAG.md) before constructing a reference. The worker writes `dag.json` and `flags.json`. Inspect original/input hashes, settings/registry/reference hashes, dependency identities and each stage's raw-versus-post-denoise status. Reject modified or unrelated analysis artifacts; a raw-source diagnostic cannot stand in for a restored-input analysis.
 

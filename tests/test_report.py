@@ -215,6 +215,105 @@ class ReportTests(unittest.TestCase):
         self.assertIn("without an intended score", text)
         self.assertNotIn("confirmed verse", text.split("Automatic labels")[0])
 
+    def selected_graph(self, payloads):
+        self.manifest({"source": {"path": "/Users/jess/Documents/take.mov", "sha256": "a" * 64}, "timeline": {"audio_start_seconds": 10, "format_start_seconds": 9}})
+        upstream = self.root / "analysis.json"
+        upstream.write_text(json.dumps({"source": {"sha256": "a" * 64}}))
+        hashes = {"analysis.json": report.sha256(upstream), "manifest.json": report.sha256(self.root / "manifest.json")}
+        selections = {}
+        for name, payload in payloads.items():
+            path = self.root / "selected" / name / "result.json"
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps(payload))
+            local = path.relative_to(self.root).as_posix()
+            digest = report.sha256(path)
+            hashes[local] = digest
+            selections[name] = {"status": "verified", "selector": local, "artifact_sha256": digest, "upstream_hashes": {"analysis.json": hashes["analysis.json"]}, "payload_status": payload.get("status"), "timing_status": "bulk_dsp_delay_compensated_detector_and_physical_sync_unverified"}
+        graph = {"source_sha256": "a" * 64, "artifact_hashes": hashes, "selected_evidence": selections}
+        (self.root / "dag.json").write_text(json.dumps(graph))
+        return graph
+
+    def test_selected_features_retain_sparse_coverage_unknowns_and_abstention(self):
+        self.selected_graph({
+            "clicks": {"status": "candidate_analysis_only", "identity_status": "unverified", "summary": {"candidate_count": 7, "abstained_count": 5}, "events": [{"audio_relative_seconds": 2, "source_timeline_seconds": 12, "decision": "abstained", "reason": "overlap_<guitar>"}]},
+            "pitch": {"status": "experimental_candidate_analysis", "analysis": {"coverage_fraction": .132484, "coverage_seconds": 20, "sampling": "distributed_excerpts_including_ending", "coverage_spans_source_timeline": [{"start_seconds": 10, "end_seconds": 15}]}, "summary": {"abstained_frame_count": 120}, "observations": {"analyzed_excerpts": [{"branches": [{"frames": [{"frequency_hz": 32.70, "audio_relative_seconds": 1, "source_timeline_seconds": 11, "window_start_seconds_source_timeline": 10.872, "window_end_seconds_source_timeline": 11.128, "note_mapping": {"note": "C1"}}]}]}]}},
+            "meter": {"status": "unknown", "time_signature": None, "aliases": [{"pulse_bpm": 88.8, "status": "unknown", "selected": None, "reason": "uniform_or_continuous_energy"}]},
+            "tonal": {"status": "tonal_context_hypotheses", "tonic": None, "mode": None, "whole_take": {"status": "abstained", "normalized_pitch_class_entropy": .976, "abstention_reasons": ["near_uniform"], "profile_families": {"family_<a>": {"ranked_hypotheses": [{"tonic_candidate": "C", "mode_candidate": "minor", "profile_correlation": .334}], "top_hypothesis_screen": "ambiguous_or_weak_candidate"}}}, "regions": [{"status": "abstained"}]},
+            "comparisons": {"status": "within_take_comparison_hypotheses", "comparisons": [{"spans": {"first_start_seconds": 1, "first_end_seconds": 3, "second_start_seconds": 5, "second_end_seconds": 7}, "status": "aligned_hypothesis", "median_relative_offset_seconds": .05, "interior_rate_median": 1.08, "motif_comparison": {"status": "attack_edits_abstained"}}]}})
+        result = report.write_report(self.root)
+        text = (self.root / "report.html").read_text()
+        self.assertEqual(set(result["selected_evidence"].values()), {"verified"})
+        for fragment in ["13.25%", "20.00 seconds", "32.70 Hz · C1", "10.872–11.128s", "Notated time signature: <strong>unknown", "family_&lt;a&gt;", "Tonic: <strong>unknown", "Mode: <strong>unknown", "attack_edits_abstained", "overlap_&lt;guitar&gt;", 'data-time="3.000000"', 'href="selected/pitch/result.json"']:
+            self.assertIn(fragment, text)
+        self.assertNotIn("/Users/jess/Documents", text)
+        self.assertNotIn("autoplay", text)
+
+    def test_unselected_receipts_are_never_discovered(self):
+        self.manifest({"source": {"sha256": "a" * 64}})
+        (self.root / "pitch.json").write_text(json.dumps({"analysis": {"coverage_seconds": 999}}))
+        result = report.write_report(self.root)
+        self.assertEqual(result["selected_evidence"]["pitch"], "not_selected")
+        self.assertNotIn("999.00 seconds", (self.root / "report.html").read_text())
+
+    def test_changed_selected_or_upstream_receipt_excludes_evidence(self):
+        graph = self.selected_graph({"clicks": {"summary": {"candidate_count": 913}}})
+        report.write_report(self.root)
+        self.assertIn("Candidates: 913", (self.root / "report.html").read_text())
+        path = self.root / graph["selected_evidence"]["clicks"]["selector"]
+        path.write_text(json.dumps({"summary": {"candidate_count": 914}}))
+        result = report.write_report(self.root)
+        self.assertTrue(result["selected_evidence"]["clicks"].startswith("rejected"))
+        self.assertNotIn("Candidates: 914", (self.root / "report.html").read_text())
+        path.write_text(json.dumps({"summary": {"candidate_count": 913}}))
+        (self.root / "analysis.json").write_text(json.dumps({"source": {"sha256": "a" * 64}, "changed": True}))
+        self.assertTrue(report.write_report(self.root)["selected_evidence"]["clicks"].startswith("rejected"))
+        self.assertNotIn("Candidates: 913", (self.root / "report.html").read_text())
+
+    def test_selected_symlink_rejected_even_inside_run(self):
+        graph = self.selected_graph({"clicks": {"summary": {"candidate_count": 913}}})
+        path = self.root / graph["selected_evidence"]["clicks"]["selector"]
+        target = path.with_name("actual.json")
+        path.rename(target)
+        path.symlink_to(target.name)
+        result = report.write_report(self.root)
+        self.assertTrue(result["selected_evidence"]["clicks"].startswith("rejected"))
+        self.assertNotIn("Candidates: 913", (self.root / "report.html").read_text())
+
+    def test_external_tuning_change_rejects_selected_and_flags(self):
+        graph = self.selected_graph({"meter": {"time_signature": "bad_meter"}})
+        graph["external_context_hashes"] = {"program/instrument.json": "f" * 64}
+        (self.root / "dag.json").write_text(json.dumps(graph))
+        (self.root / "flags.json").write_text(json.dumps({"source_sha256": "a" * 64, "flags": [{"kind": "stale_tuning_flag", "source_time_seconds": 11}]}))
+        result = report.write_report(self.root)
+        text = (self.root / "report.html").read_text()
+        self.assertEqual(result["auxiliary_evidence"]["dag"], "rejected_stale_external_context")
+        self.assertNotIn("bad_meter", text)
+        self.assertNotIn("stale_tuning_flag", text)
+
+    def test_selected_output_strings_are_bounded_and_escaped(self):
+        self.selected_graph({"clicks": {"events": [{"reason": "<script>" + "x" * 100000, "decision": "<bad>"}]}})
+        report.write_report(self.root)
+        text = (self.root / "report.html").read_text()
+        self.assertIn("&lt;script&gt;", text)
+        self.assertNotIn("x" * 601, text)
+        self.assertLess(len(text), 50000)
+
+    def test_rejected_selection_does_not_open_malformed_receipt(self):
+        graph = self.selected_graph({"clicks": {"summary": {"candidate_count": 123}}})
+        receipt = self.root / graph["selected_evidence"]["clicks"]["selector"]
+        receipt.write_text("not JSON")
+        graph["selected_evidence"]["clicks"]["status"] = "rejected_settings_hash_mismatch"
+        graph["artifact_hashes"].pop(graph["selected_evidence"]["clicks"]["selector"])
+        (self.root / "dag.json").write_text(json.dumps(graph))
+        result = report.write_report(self.root)
+        self.assertEqual(result["selected_evidence"]["clicks"], "rejected_settings_hash_mismatch")
+        self.assertNotIn("Candidates: 123", (self.root / "report.html").read_text())
+
+    def test_selected_candidate_numeric_booleans_remain_unknown(self):
+        self.selected_graph({"pitch": {"analysis": {"coverage_fraction": True, "coverage_seconds": False}}})
+        report.write_report(self.root)
+        self.assertIn("Pitch excerpt coverage: unknown · unknown seconds", (self.root / "report.html").read_text())
+
 
 if __name__ == "__main__":
     unittest.main()

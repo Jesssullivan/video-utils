@@ -17,6 +17,20 @@ Read [the marker interface and timeline semantics](../../../docs/spec/PHRASE_DAG
 
 The worker writes `markers.json` and `markers.csv`. Fields are `source_time_seconds`, `end_seconds`, `name`, `confidence`, `status`, and `evidence`; CSV evidence is quoted JSON. Times add the original audio-stream start to audio-relative observations. Preserve negative starts and spans. Each file is atomically replaced, but the pair is not a transactional write.
 
+The exporter checks current nested run-local artifact hashes, selected evidence
+bindings and the fixed instrument registry before publishing generic markers.
+Stale selections, symlink/path escapes or mismatched flags fail. Verified selected
+comparison flags remain hypotheses and are exported once; raw click, pitch,
+meter or tonal candidates are not independently appended. Exact duplicate marker
+records are deduplicated. Regenerate the graph with explicit receipts when inputs
+change; do not relabel stale evidence as current.
+
+Source seconds and frame numbers are different coordinates. This take has variable
+picture cadence and a short audio tail after its final decoded video frame. The
+generic exporter leaves frame indices null. Future editor adapters require
+recorded source/clip/timecode origins and frame quantization; source marker CSV
+is not proof of native editor compatibility.
+
 ## Guitar-specific interpretation and acceptance
 
 Markers remain `needs_review`. An uncertain 32 Hz guitar event, possible sweep/legato attack, or phrase recurrence candidate must not become a confirmed mistake through export. Preserve candidate status, confidence and supporting evidence rather than strengthening wording in marker names.

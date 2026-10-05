@@ -1,6 +1,8 @@
 import hashlib
 import importlib.util
 import json
+import subprocess
+import sys
 from pathlib import Path
 import tempfile
 import unittest
@@ -257,6 +259,232 @@ class AutomaticPhraseTests(unittest.TestCase):
         bar = next(item for item in flags if item["kind"] == "four_pulse_group_review_candidate")
         self.assertIsNone(bar["evidence"]["time_signature"])
         self.assertEqual(bar["confidence"], "navigation_proxy_not_confirmed_bar")
+
+
+class SelectedEvidenceTests(unittest.TestCase):
+    def setup_evidence(self, directory, slot="pitch"):
+        fixture(directory)
+        manifest=dag.load(directory/"manifest.json")
+        manifest["timeline"]["no_time_stretch"]=True
+        write(directory,"manifest.json",manifest)
+        identity=dag.sha256(directory/"denoised.wav")
+        write(directory,"analysis.json",{"source":{"sha256":identity},"events":[],"click_grid":None})
+        parent={"status":"hash_bound_run_derivative","original_source_sha256":SOURCE,
+                "analyzed_input_sha256":identity,"manifest_sha256":dag.sha256(directory/"manifest.json"),
+                "original_audio_start_seconds":12.5}
+        payload={"schema_version":1,"tool":slot,"status":"unknown","source":{"sha256":identity},
+                 "source_lineage":parent,"settings":{"bounded":True},"confidence_kind":"heuristic_not_probability",
+                 "interpretation":{"tonic":None,"mode":None,"intended_notes":None},
+                 "analysis":{"coverage_seconds":15.,"coverage_fraction":.1,
+                    "coverage_spans_audio_relative":[{"start_seconds":4.,"end_seconds":19.}],"sampling":"sparse_excerpt"}}
+        if slot in ("tonal","comparisons","meter"):
+            payload.update(analysis_input_sha256=identity,source_sha256=SOURCE,
+                artifact_hashes={"manifest.json":dag.sha256(directory/"manifest.json"),"analysis.json":dag.sha256(directory/"analysis.json")})
+        if slot=="tonal":
+            payload.update(tonic=None,mode=None)
+        if slot=="meter":
+            payload["time_signature"]=None
+        if slot=="clicks":
+            payload.update(events=[],identity_status="unverified")
+        if slot=="comparisons":
+            payload.update(comparisons=[],flags=[{"kind":"recurrence_relative_rate_difference_review",
+                "audio_relative_seconds":1.,"source_time_seconds":13.5,"end_seconds":14.5,
+                "status":"needs_review","confidence":"unknown","performance_issue_confirmed":False}])
+        selector=f"experiments/locked/{slot}.json"
+        (directory/selector).parent.mkdir(parents=True,exist_ok=True)
+        write(directory,selector,payload)
+        return selector,payload
+
+    def test_omitted_selectors_never_discover_existing_artifacts(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary)
+            self.setup_evidence(directory)
+            graph,flags=dag.build(directory)
+            self.assertEqual(set(graph["selected_evidence"]),set(dag.EVIDENCE_SLOTS))
+            self.assertEqual({row["status"] for row in graph["selected_evidence"].values()},{"not_selected"})
+            self.assertEqual(flags["evidence_artifacts"],{})
+
+    def test_explicit_pitch_preserves_nulls_and_sparse_coverage(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary)
+            selector,_=self.setup_evidence(directory)
+            graph,flags=dag.build(directory,evidence_selectors={"pitch":selector})
+            row=graph["selected_evidence"]["pitch"]
+            self.assertEqual(row["status"],"verified")
+            self.assertEqual(row["metadata"]["coverage"]["coverage_fraction"],.1)
+            self.assertIsNone(row["metadata"]["interpretation"]["intended_notes"])
+            self.assertIsNone(row["metadata"]["tonic"])
+            self.assertEqual(row["timing_status"],"dsp_delay_uncalibrated")
+            self.assertEqual(graph["artifact_hashes"][selector],row["artifact_sha256"])
+            self.assertEqual(flags["evidence_artifacts"]["pitch"],{"selector":selector,"sha256":row["artifact_sha256"]})
+
+    def test_unknown_meter_and_tonal_are_verified_unknowns(self):
+        for slot in ("meter","tonal"):
+            with self.subTest(slot=slot),tempfile.TemporaryDirectory() as temporary:
+                directory=Path(temporary)
+                selector,_=self.setup_evidence(directory,slot)
+                graph,flags=dag.build(directory,evidence_selectors={slot:selector})
+                row=graph["selected_evidence"][slot]
+                self.assertEqual(row["status"],"verified")
+                self.assertEqual(row["payload_status"],"unknown")
+                for key in ("time_signature","tonic","mode"):
+                    self.assertIsNone(row["metadata"][key])
+                self.assertIn(slot,flags["evidence_artifacts"])
+
+    def test_selected_comparison_flags_are_bound_unconfirmed_candidates(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary)
+            selector,_=self.setup_evidence(directory,"comparisons")
+            graph,flags=dag.build(directory,evidence_selectors={"comparisons":selector})
+            row=graph["selected_evidence"]["comparisons"]
+            self.assertEqual(row["status"],"verified")
+            tagged=[item for item in flags["flags"] if item.get("selected_evidence_slot")]
+            self.assertEqual(len(tagged),1)
+            self.assertEqual(tagged[0]["selected_artifact_sha256"],row["artifact_sha256"])
+            self.assertFalse(tagged[0]["performance_issue_confirmed"])
+
+    def test_stale_upstream_rejected_without_discarding_base_graph(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary)
+            selector,_=self.setup_evidence(directory,"meter")
+            write(directory,"analysis.json",{"source":{"sha256":SOURCE},"events":[],"new_setting":True})
+            graph,flags=dag.build(directory,evidence_selectors={"meter":selector})
+            row=graph["selected_evidence"]["meter"]
+            self.assertEqual(row["status"],"rejected_stale_upstream")
+            self.assertIsNone(row["metadata"])
+            self.assertNotIn(selector,graph["artifact_hashes"])
+            self.assertNotIn("meter",flags["evidence_artifacts"])
+
+    def test_source_manifest_settings_and_media_mismatch_rejected(self):
+        for kind in ("source","manifest","settings","media","timeline"):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temporary:
+                directory=Path(temporary)
+                selector,payload=self.setup_evidence(directory)
+                if kind=="source":
+                    payload["source_lineage"]["original_source_sha256"]="b"*64
+                elif kind=="manifest":
+                    payload["source_lineage"]["manifest_sha256"]="b"*64
+                elif kind=="settings":
+                    payload["settings_sha256"]="b"*64
+                elif kind=="media":
+                    (directory/"denoised.wav").write_bytes(b"changed")
+                else:
+                    payload["source_lineage"]["original_audio_start_seconds"]=14.
+                write(directory,selector,payload)
+                graph,flags=dag.build(directory,evidence_selectors={"pitch":selector})
+                self.assertTrue(graph["selected_evidence"]["pitch"]["status"].startswith("rejected_"))
+                self.assertNotIn("pitch",flags["evidence_artifacts"])
+
+    def test_safe_paths_symlinks_and_slot_names(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary)
+            selector,_=self.setup_evidence(directory)
+            invalid=["/tmp/pitch.json","../pitch.json","experiments//locked/pitch.json","./pitch.json",
+                "experiments/.hidden/pitch.json","experiments/foo.partial/pitch.json","C:pitch.json","foo\\pitch.json","missing.json"]
+            for value in invalid:
+                with self.subTest(value=value),self.assertRaises(ValueError):
+                    dag.build(directory,evidence_selectors={"pitch":value})
+            (directory/"linked").symlink_to(directory/"experiments",target_is_directory=True)
+            with self.assertRaises(ValueError):
+                dag.build(directory,evidence_selectors={"pitch":"linked/locked/pitch.json"})
+            with self.assertRaises(ValueError):
+                dag.build(directory,evidence_selectors={"unrecognized":selector})
+
+    def test_calibrated_bulk_delay_still_retains_detector_and_physical_uncertainty(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary)
+            selector,payload=self.setup_evidence(directory)
+            manifest=dag.load(directory/"manifest.json")
+            manifest["dsp_latency"]={"denoise":{"status":"measured_and_compensated","remaining_bulk_delay_samples":0}}
+            write(directory,"manifest.json",manifest)
+            payload["source_lineage"]["manifest_sha256"]=dag.sha256(directory/"manifest.json")
+            write(directory,selector,payload)
+            graph,flags=dag.build(directory,evidence_selectors={"pitch":selector})
+            expected="bulk_dsp_delay_compensated_detector_and_physical_sync_unverified"
+            self.assertEqual(graph["selected_evidence"]["pitch"]["timing_status"],expected)
+            self.assertEqual(flags["timing_status"],expected)
+
+    def test_fixed_instrument_hash_verified_and_stale_registry_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary)
+            selector,payload=self.setup_evidence(directory)
+            registry="program/instrument.json"
+            payload["instrument_context"]={"tuning_metadata_sha256":dag.sha256(dag.ROOT/registry)}
+            write(directory,selector,payload)
+            graph,_=dag.build(directory,evidence_selectors={"pitch":selector})
+            self.assertEqual(graph["external_context_hashes"][registry],payload["instrument_context"]["tuning_metadata_sha256"])
+            payload["instrument_context"]["tuning_metadata_sha256"]="b"*64
+            write(directory,selector,payload)
+            graph,_=dag.build(directory,evidence_selectors={"pitch":selector})
+            self.assertEqual(graph["selected_evidence"]["pitch"]["status"],"rejected_stale_instrument_context")
+
+    def test_cli_preserves_existing_graph_report_and_immutable_history(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary)
+            selector,_=self.setup_evidence(directory)
+            old_graph=b'{"previous":"graph"}\n'
+            old_report=b'<html>prior playback report</html>'
+            (directory/"dag.json").write_bytes(old_graph)
+            (directory/"report.html").write_bytes(old_report)
+            worker=dag.ROOT/"scripts/dag.py"
+            result=subprocess.run([sys.executable,str(worker),str(directory),"--pitch-artifact",selector],capture_output=True,text=True,timeout=10)
+            self.assertEqual(result.returncode,0,result.stderr)
+            snapshot=directory/json.loads(result.stdout)["prior_snapshot"]
+            self.assertEqual((snapshot/"dag.json").read_bytes(),old_graph)
+            self.assertEqual((snapshot/"report.html").read_bytes(),old_report)
+            receipt=dag.load(snapshot/"receipt.json")
+            self.assertEqual(receipt["status"],"prior_derived_snapshot_not_revalidated")
+            self.assertEqual((directory/"report.html").read_bytes(),old_report)
+            self.assertEqual(dag.archive_current(directory),dag.archive_current(directory))
+
+    def test_published_canonical_pitch_binds_current_pcm_without_inventing_producer_receipts(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary)
+            selector,payload=self.setup_evidence(directory)
+            manifest=dag.load(directory/"manifest.json")
+            pcm={"sample_rate":44100,"channels":1,"sample_count":6_650_000}
+            manifest["pcm"]=pcm
+            write(directory,"manifest.json",manifest)
+            old=payload.pop("source_lineage")
+            payload["lineage"]={"status":"verified_canonical_derivative","input_sha256":old["analyzed_input_sha256"],
+                "original_source_sha256":SOURCE,"canonical_pcm":pcm,"original_audio_start_seconds":12.5}
+            write(directory,selector,payload)
+            graph,_=dag.build(directory,evidence_selectors={"pitch":selector})
+            row=graph["selected_evidence"]["pitch"]
+            self.assertEqual(row["status"],"verified")
+            self.assertEqual(row["manifest_binding_kind"],"derived_current_canonical_pcm_not_producer_manifest_hash")
+            self.assertEqual(row["settings_binding_kind"],"derived_from_selected_payload_not_producer_receipt")
+            self.assertIsNone(row["producer_worker_sha256"])
+            self.assertEqual(row["producer_worker_status"],"not_recorded")
+            payload["lineage"]["canonical_pcm"]={**pcm,"sample_count":1}
+            write(directory,selector,payload)
+            graph,_=dag.build(directory,evidence_selectors={"pitch":selector})
+            self.assertEqual(graph["selected_evidence"]["pitch"]["status"],"rejected_canonical_pcm_binding")
+
+    def test_malformed_shapes_and_confirmed_mistakes_are_rejected_context(self):
+        for kind in ("shape","confirmed"):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temporary:
+                directory=Path(temporary)
+                selector,payload=self.setup_evidence(directory,"comparisons")
+                if kind=="shape":
+                    payload["source"]=["invalid"]
+                else:
+                    payload["flags"][0]["performance_issue_confirmed"]=True
+                write(directory,selector,payload)
+                graph,flags=dag.build(directory,evidence_selectors={"comparisons":selector})
+                self.assertTrue(graph["selected_evidence"]["comparisons"]["status"].startswith("rejected_"))
+                self.assertNotIn("comparisons",flags["evidence_artifacts"])
+
+    def test_oversized_history_fails_before_replacing_existing_outputs(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary)
+            (directory/"dag.json").write_text("preserve this graph")
+            with (directory/"report.html").open("wb") as handle:
+                handle.truncate(64_000_001)
+            with self.assertRaisesRegex(ValueError,"snapshot exceeds"):
+                dag.archive_current(directory)
+            self.assertEqual((directory/"dag.json").read_text(),"preserve this graph")
+            self.assertFalse((directory/"graph-history").exists())
 
 
 if __name__ == "__main__":

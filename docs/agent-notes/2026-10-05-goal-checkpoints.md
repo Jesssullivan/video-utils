@@ -242,3 +242,52 @@ new evidence is not accepted until root tests, integrates and publishes it.
 Meter/tonal remain nullable, sparse pitch coverage remains visible, and no guessed
 musician ground truth may enter the report. This documentation lane freezes after
 handoff for root's selected doc-only receipt publication.
+
+## Wave3 prepublication checkpoint — 22:31:49 UTC
+
+Wave3 local integration passed **291 tests in 53.583 seconds, no skips** and
+**47 hook-focused checks**. Worktree has **twenty typed hooks and twenty skills**;
+new corpus metadata interface validates supplied assertions read-only and does
+not establish audio or musician ground truth. Root has not yet published this
+selected source/audit/research bundle. Last published head is signed/private
+`5f35a147a80485ce1c43eafb93cd60f0da52423b`, retaining nineteen tools; 6f7d196's
+hosted CI success qualifies that older source, not pending wave3.
+
+Actual complete **existing-run** invocation
+`20261005T221943Z-9f2a37bcca5c` belongs to media run
+`20261005T211103Z-c6d0bac2fcd2`; its durable ignored receipt is
+`demo-invocations/20261005T221943Z-9f2a37bcca5c/receipt.json` under that run.
+The checkpoint writer independently read **fifteen completed stages**, zero
+failed stages and five selected-evidence verdicts verified (clicks, pitch,
+meter, tonal, comparisons). Root verified unchanged source/master/video hashes;
+**no encoder ran**. Provenance verification is not musical correctness. Current
+report/markers carry **197 ungraded flags**, eleven from DTW comparison.
+
+Prior analysis snapshot
+`c9166c0152bb8be0fca4ed1dd048025c4e98c9bd713994669cb203a9bc145867` retains
+**14,181,050 bytes**, no copied media. Receipt status is explicitly
+`prior_artifact_snapshot_not_revalidated`; old state is preserved rather than
+silently treated as current verified evidence. Existing measured AAC/master
+acceptance remains, while listening and musical correctness remain open.
+
+Root's muted browser proof loaded all four media players, decoded 45 frames over
+0.624 seconds, filtered 197→11 DTW flags, sought source time and checked 390px
+mobile without overflow/exceptions. No actual notes were written. Root cleanly
+terminated its owned Chrome 37154 with R-N11 receipt. This validates review
+function, not sound quality or musician acceptance. Native AU state/root-release
+ASan checks passed; native installation/auval/Logic remain unverified.
+
+The earlier six graph-integration workers completed handoffs; other workers are
+idle/done, not active by default. Root next assigned **three plans only**, ready
+before implementation: repo_patterns' maximum 12-fixture/120-source-second bank,
+guitar_features' four-job/30-second pitch pilot, and phrase_dag's independent
+metrics. Their exclusive current files are BENCHMARK_CALIBRATION_LANE.md,
+PITCH_CALIBRATION_LANE.md and PHRASE_CALIBRATION_LANE.md in docs/spec/.
+Existing source/test/configuration files are frozen. Root assigns code **after
+publication**; no calibration-v2 executable, pilot result or metrics score is
+claimed here. These plans share the existing horizon and weekly budgets.
+
+Goal stays **active**, planned end **2026-10-06 06:49:34 UTC**. Root owns selected
+publication and new facts; documentation freezes after this handoff. Any next
+checkpoint must distinguish published source from local verified work and
+explicitly assigned implementation from plan-only ownership.

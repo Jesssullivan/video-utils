@@ -13,6 +13,19 @@ description: Produce a local evidence report comparing guitar restoration, low-f
 
 Use MCP `report` with a run directory; fallback: `just report "<run-dir>"`. Include original/matched-level comparison, processed audio, residue, video where available, measured levels, analysis events and provenance.
 
+For optional click, pitch, meter, tonal and recurrence-comparison panels, first
+select exact existing receipts with the `pipeline` tool's five bounded evidence
+selectors. Read [the graph contract](../../../docs/spec/GRAPH_FEATURES.md) and
+[the report contract](../../../docs/spec/REPORT_FEATURES.md). The renderer opens
+only graph-verified selections after current artifact/upstream and fixed tuning
+registry hashes match. It does not discover the newest experiment automatically.
+Rejected or not-selected slots remain visible as those states.
+
+Show sparse pitch excerpt coverage, analysis-window extent and voicing ambiguity;
+keep nullable meter/tonic/mode and comparison attack-edit abstention. A verified
+artifact is provenance evidence, not a confirmed musical interpretation. Preserve
+previous report bytes through the graph's history receipt before a graph rerun.
+
 Report existing run artifacts; do not fill missing measurements with invented defaults. Record versions, model/checkpoint identities if used, settings, hashes, interval annotations and unresolved limitations. Reports stay local and media remains ignored by Git.
 
 ## Guitar-specific interpretation

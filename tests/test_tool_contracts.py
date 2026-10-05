@@ -18,6 +18,192 @@ import mcp_server
 
 
 class ToolContractTests(unittest.TestCase):
+    def test_corpus_schema_errors_do_not_launch(self):
+        for arguments in ({}, {'manifest': True}, {'manifest': 'x', 'local_root': []},
+                          {'manifest': 'x', 'operation': 'train'}, {'manifest': 'x', 'decode_audio': True},
+                          {'manifest': '../corpus.json'}, {'manifest': 'a/../corpus.json'},
+                          {'manifest': 'x' * 4097}, {'manifest': 'x', 'timeout_seconds': 901}):
+            with self.subTest(arguments=arguments), patch.object(tool_api, 'run_worker') as worker:
+                with self.assertRaises(tool_api.ValidationError):
+                    tool_api.execute('corpus', arguments)
+                worker.assert_not_called()
+
+    def test_corpus_dispatch_is_read_only_summary_and_literal_paths(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            manifest = root / 'corpus $(literal); data.json'; manifest.write_text('{}')
+            command = tool_api.worker_command('corpus', {'manifest': str(manifest), 'local_root': str(root)})
+            self.assertEqual(command[1:], [str(ROOT / 'scripts/corpus.py'), 'validate', str(manifest),
+                                           '--root', str(root), '--summary'])
+            self.assertNotIn('--audio', command)
+
+    def test_corpus_unsafe_or_missing_manifest_never_launches(self):
+        with tempfile.TemporaryDirectory() as temporary, tempfile.TemporaryDirectory() as outside:
+            root = Path(temporary).resolve()
+            other = Path(outside).resolve()
+            external = other / 'corpus.json'; external.write_text('{}')
+            (root / 'linked.json').symlink_to(external)
+            (root / 'linked-dir').symlink_to(other, target_is_directory=True)
+            linked_root = other / 'linked-root'; linked_root.symlink_to(root, target_is_directory=True)
+            (root / 'folder.json').mkdir()
+            cases = [{'manifest': str(root / name), 'local_root': str(root)}
+                     for name in ('missing.json', 'linked.json', 'linked-dir/corpus.json', 'folder.json')]
+            cases += [{'manifest': str(external), 'local_root': str(root)},
+                      {'manifest': str(linked_root / 'corpus.json'), 'local_root': str(linked_root)}]
+            for arguments in cases:
+                with self.subTest(arguments=arguments), patch.object(tool_api, 'run_worker') as worker:
+                    with self.assertRaises(tool_api.ToolError):
+                        tool_api.execute('corpus', arguments)
+                    worker.assert_not_called()
+
+    def test_real_corpus_hook_summary_stale_receipts_and_unsafe_metadata(self):
+        from test_corpus import CorpusTests
+        from test_mcp import exchange, initialization, request
+        fixture = CorpusTests('test_sparse_ambiguous_nonzero_timeline_never_establishes_ground_truth')
+        fixture.setUp(); self.addCleanup(fixture.doCleanups)
+        fixture.write('corpus.json', fixture.data)
+        arguments = {'manifest': str(fixture.root / 'corpus.json'), 'local_root': str(fixture.root)}
+        conversation = [initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+            request(2, 'tools/call', {'name': 'corpus', 'arguments': arguments})]
+        before = {str(path.relative_to(fixture.root)): path.read_bytes()
+                  for path in fixture.root.rglob('*') if path.is_file()}
+        replies, stderr = exchange(conversation)
+        self.assertEqual(stderr, '')
+        self.assertFalse(replies[1]['result']['isError'])
+        envelope = replies[1]['result']['structuredContent']
+        result = envelope['result']
+        self.assertEqual(result['result_mode'], 'metadata_summary')
+        self.assertEqual(result['source_origin_counts'], {'real_recording': 0, 'synthetic_fixture': 1})
+        self.assertEqual(result['source_origin_label_counts'], {'real_recording': 0, 'synthetic_fixture': 1})
+        self.assertEqual(result['reviewer_count'], 1)
+        self.assertEqual(result['source_count'], 1)
+        self.assertEqual(result['label_count'], 1)
+        self.assertFalse(result['source_audio_read'])
+        self.assertFalse(result['ground_truth_established'])
+        self.assertEqual(result['unlabelled_intervals'], 'unknown_not_negative')
+        self.assertEqual(result['listening_acceptance'], 'not_established')
+        self.assertEqual(result['sources'][0]['source_bounds_seconds'], [1, 10])
+        self.assertNotIn('selected_labels', result['sources'][0])
+        self.assertNotIn('manifest', result['sources'][0])
+        self.assertNotIn('reviewers', result)
+        self.assertEqual(envelope['evidence_kind'], 'supplied_review_metadata_consistency')
+        self.assertEqual(before, {str(path.relative_to(fixture.root)): path.read_bytes()
+                                  for path in fixture.root.rglob('*') if path.is_file()})
+        fixture.store['revision'] = 2
+        fixture.refresh_store(); fixture.write('corpus.json', fixture.data)
+        stale_bytes = (fixture.run / 'review-annotations.json').read_bytes()
+        replies, _ = exchange(conversation)
+        self.assertTrue(replies[1]['result']['isError'])
+        self.assertIn('stale_annotation_revision', replies[1]['result']['content'][0]['text'])
+        self.assertEqual((fixture.run / 'review-annotations.json').read_bytes(), stale_bytes)
+        fixture.entry['manifest']['path'] = '../outside/manifest.json'
+        fixture.write('corpus.json', fixture.data)
+        replies, _ = exchange(conversation)
+        self.assertTrue(replies[1]['result']['isError'])
+        self.assertIn('unsafe_metadata_path', replies[1]['result']['content'][0]['text'])
+
+    def test_pipeline_selector_syntax_is_rejected_before_launch(self):
+        bad = ['', '/tmp/evidence.json', '../pitch.json', 'a/../pitch.json',
+               './pitch.json', 'a//pitch.json', 'a/pitch.json/', 'file:artifact.json',
+               'a\\pitch.json', '.hidden/pitch.json', 'a.partial/pitch.json',
+               'a/pitch.partial.json', 'pitch.wav', 'x' * 1025, True, ['pitch.json']]
+        for field in tool_api.PIPELINE_SELECTORS:
+            for value in bad:
+                with self.subTest(field=field, value=value), patch.object(tool_api, 'run_worker') as worker:
+                    with self.assertRaises(tool_api.ValidationError):
+                        tool_api.execute('pipeline', {'run_dir': '/unopened/run', field: value})
+                    worker.assert_not_called()
+
+    def test_pipeline_selector_dispatch_preserves_exact_relative_identity(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary).resolve()
+            arguments = {'run_dir': str(directory)}
+            for field in tool_api.PIPELINE_SELECTORS:
+                relative = 'evidence ' + field + '/take $(data);.json'
+                path = directory / relative
+                path.parent.mkdir()
+                path.write_text('{}')
+                arguments[field] = relative
+            command = tool_api.worker_command('pipeline', arguments)
+            self.assertEqual(command[1:3], [str(ROOT / 'scripts/dag.py'), str(directory)])
+            expected = [item for field in tool_api.PIPELINE_SELECTORS
+                        for item in ('--' + field.replace('_', '-'), arguments[field])]
+            self.assertEqual(command[3:], expected)
+            self.assertEqual(len(tool_api.descriptors()), 20)
+
+    def test_pipeline_missing_or_symlink_selector_does_not_launch(self):
+        with tempfile.TemporaryDirectory() as temporary, tempfile.TemporaryDirectory() as outside:
+            directory = Path(temporary)
+            external = Path(outside) / 'pitch.json'; external.write_text('{}')
+            (directory / 'linked.json').symlink_to(external)
+            (directory / 'linked-dir').symlink_to(Path(outside), target_is_directory=True)
+            (directory / 'broken.json').symlink_to(Path(outside) / 'absent.json')
+            (directory / 'folder.json').mkdir()
+            for relative in ('missing.json', 'linked.json', 'linked-dir/pitch.json', 'broken.json', 'folder.json'):
+                with self.subTest(relative=relative), patch.object(tool_api, 'run_worker') as worker:
+                    with self.assertRaises(tool_api.ToolError):
+                        tool_api.execute('pipeline', {'run_dir': temporary, 'pitch_artifact': relative})
+                    worker.assert_not_called()
+
+    def test_pipeline_selected_receipts_keep_rejections_nulls_and_sparse_coverage(self):
+        result = {'dag_json': 'dag.json', 'flags_json': 'flags.json', 'status': 'automatic_phrase_review_candidates',
+                  'selected_evidence': {'pitch': {'status': 'verified', 'selector': 'pitch.json',
+                     'metadata': {'coverage_fraction': .13248, 'intended_notes': None}},
+                    'tonal': {'status': 'rejected_stale_upstream', 'metadata': {'tonic': None, 'mode': None}}}}
+        with tempfile.TemporaryDirectory() as temporary, patch.object(tool_api, 'run_worker', return_value=result):
+            (Path(temporary) / 'pitch.json').write_text('{}')
+            envelope = tool_api.execute('pipeline', {'run_dir': temporary, 'pitch_artifact': 'pitch.json'})
+        self.assertEqual(envelope['result'], result)
+        self.assertEqual(envelope['status'], 'completed')
+        self.assertNotEqual(envelope['result']['selected_evidence']['tonal']['status'], 'verified')
+
+    def test_pipeline_prompt_exact_readback_and_twenty_tool_catalog(self):
+        from test_mcp import exchange, initialization, request
+        replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+            request(2, 'tools/list'), request(3, 'prompts/get', {'name': 'guitar-pipeline'})])
+        self.assertEqual(stderr, '')
+        self.assertEqual(len(replies[1]['result']['tools']), 20)
+        pipeline = next(tool for tool in replies[1]['result']['tools'] if tool['name'] == 'pipeline')
+        self.assertTrue(set(tool_api.PIPELINE_SELECTORS) <= set(pipeline['inputSchema']['properties']))
+        self.assertEqual(replies[2]['result']['messages'][0]['content']['text'],
+                         (ROOT / '.agents/skills/guitar-pipeline/SKILL.md').read_text())
+
+    def test_real_pipeline_selector_verifies_meter_and_retains_stale_rejection(self):
+        from test_meter import MeterTests
+        from test_mcp import exchange, initialization, request
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary).resolve()
+            source, analysis = MeterTests().make_run(temporary)
+            source_before = source.read_bytes()
+            meter = tool_api.execute('meter', {'run_dir': temporary})['result']
+            selected = Path(meter['output']).relative_to(directory).as_posix()
+            artifact_before = (directory / selected).read_bytes()
+            arguments = {'run_dir': temporary, 'meter_artifact': selected}
+            conversation = [initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+                request(2, 'tools/call', {'name': 'pipeline', 'arguments': arguments})]
+            replies, stderr = exchange(conversation)
+            self.assertEqual(stderr, '')
+            self.assertFalse(replies[1]['result']['isError'])
+            graph = json.loads((directory / 'dag.json').read_text())
+            receipt = graph['selected_evidence']['meter']
+            self.assertEqual(receipt['status'], 'verified')
+            self.assertEqual(receipt['selector'], selected)
+            self.assertIsNone(receipt['metadata']['time_signature'])
+            self.assertEqual(graph['artifact_hashes'][selected], hashlib.sha256(artifact_before).hexdigest())
+            self.assertEqual(graph['selected_evidence']['pitch']['status'], 'not_selected')
+            self.assertEqual(receipt['timing_status'], 'dsp_delay_uncalibrated')
+            original_graph = (directory / 'dag.json').read_bytes()
+            analysis['contract_test_changed'] = True
+            (directory / 'analysis.json').write_text(json.dumps(analysis))
+            replies, stderr = exchange(conversation)
+            self.assertEqual(stderr, '')
+            self.assertFalse(replies[1]['result']['isError'])
+            graph = json.loads((directory / 'dag.json').read_text())
+            self.assertTrue(graph['selected_evidence']['meter']['status'].startswith('rejected_'))
+            self.assertEqual((directory / selected).read_bytes(), artifact_before)
+            self.assertEqual(source.read_bytes(), source_before)
+            self.assertIn(original_graph, [path.read_bytes() for path in directory.rglob('dag.json')])
+
     def test_schema_errors_never_launch_a_worker(self):
         for descriptor in tool_api.descriptors():
             name = descriptor['name']

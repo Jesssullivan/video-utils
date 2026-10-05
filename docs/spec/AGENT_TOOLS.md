@@ -40,7 +40,7 @@ exposed controls. Media/model downloads and uploads are never implicit.
 
 ## Tool map and capability boundaries
 
-The nineteen entries below are available in the local stdio catalog. Local
+The twenty entries below are available in the local stdio catalog. Local
 registry/readback evidence is separate from root’s signed remote publication
 receipt. Consult `tools/list` for the current installed checkout.
 
@@ -64,6 +64,7 @@ receipt. Consult `tools/list` for the current installed checkout.
 | `review` | `guitar-review` | Source-bound annotation read/write with revision checks; no implicit HTTP server or master acceptance. |
 | `pitch` | `guitar-pitch` | Bounded dual-resolution pYIN candidates with explicit coverage and octave/string ambiguity; no full transcription or intended-note grades. |
 | `meter` | `guitar-meter` | Pulse-accent cycle/alias hypotheses with explicit unknowns; no confirmed time signature, downbeat or missed-beat grade. |
+| `corpus` | `guitar-corpus` | Read-only sparse annotation metadata validation with compact summary; supplied labels/reviewer identities are not authenticated ground truth. |
 | `tonal` | `guitar-tonal` | Automatic chroma/profile/collection hypotheses with null tonic/mode, no tuning prior or intended-note grades. |
 
 Each skill's worker fallback is documented in its `SKILL.md`. Experimental
@@ -80,7 +81,7 @@ profiles through MCP; a proposed custom noise-capture profile uses the direct
 recipe after interval confirmation and profile validation.
 
 Additional extension contracts and worker/registry readiness are tracked in
-[the skill extension lane](SKILL_EXTENSION_LANE.md). All nineteen local tools/prompts passed exact-content readback and bundled skill
+[the skill extension lane](SKILL_EXTENSION_LANE.md). All twenty local tools/prompts passed exact-content readback and bundled skill
 validation. Worker checks, local catalog evidence, signed remote publication and
 musical acceptance remain separate states.
 
@@ -205,3 +206,10 @@ harmonic octave confusion, deliberate tuplets/rests, missing tuning/reference,
 reference-relative phrase comparisons, and nonzero stream starts. Synthetic
 behavior checks and actual demo listening are separate evidence states. Neither
 MCP discovery nor a skill validator establishes AU or Logic compatibility.
+
+The optional extended `just demo` and existing-run `just evaluate` workflows run
+the evidence stages sequentially and select exact receipts. The `pipeline` hook
+is the graph evaluator; it does not schedule audio processing. Corpus metadata
+validation accepts `manifest`, optional `local_root` and bounded deadline; see
+[its contract](CORPUS_TOOL_CONTRACT.md). No recording bytes or models are opened
+by that operation.

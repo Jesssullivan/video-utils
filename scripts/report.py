@@ -30,6 +30,8 @@ def load_json(path):
 
 
 def finite(value):
+    if isinstance(value, bool):
+        return None
     try:
         number = float(value)
         return number if math.isfinite(number) else None
@@ -79,7 +81,7 @@ def analysis_lineage(root, manifest, analysis):
         for name, expected in hashes.items():
             if name not in {"source.wav", "denoised.wav", "cleaned.wav"} or expected != fingerprint:
                 continue
-            local = artifact(root, name)
+            local = strict_artifact(root, name)
             if local and sha256(root / local) == expected:
                 return "verified_run_derivative_hash_bound"
     return "rejected_unrelated_or_modified_source"
@@ -126,11 +128,18 @@ def auxiliary_evidence(root, manifest):
     hashes = graph.get("artifact_hashes", {})
     if isinstance(hashes, dict):
         for name, expected in hashes.items():
-            local = artifact(root, name)
+            local = strict_artifact(root, name)
             if not local or sha256(root / local) != expected:
                 statuses["dag"] = "rejected_stale_artifact_hash"
                 payloads.pop("dag", None)
                 break
+    external = graph.get("external_context_hashes", {})
+    registry = Path(__file__).resolve().parents[1] / "program" / "instrument.json"
+    if external and (not isinstance(external, dict) or set(external) != {"program/instrument.json"}
+                     or not registry.is_file() or registry.is_symlink()
+                     or sha256(registry) != external["program/instrument.json"]):
+        statuses["dag"] = "rejected_stale_external_context"
+        payloads.pop("dag", None)
     for name in ("dag", "markers"):
         expected = payloads.get(name, {}).get("flags_sha256")
         if expected and (not (root / "flags.json").is_file() or sha256(root / "flags.json") != expected):
@@ -191,6 +200,238 @@ def feature_evidence(root, manifest):
         if payload and not status.startswith("rejected"):
             payloads[name] = payload
     return payloads, statuses
+
+
+SELECTED_FEATURES = ("clicks", "pitch", "meter", "tonal", "comparisons")
+MAX_SELECTED_JSON_BYTES = 20 * 1024 * 1024
+
+
+def strict_artifact(root, value):
+    """Graph selectors cannot traverse symlinks, including run-local aliases."""
+    if not isinstance(value, str) or len(value) > 1024:
+        return None
+    local = artifact(root, value)
+    if not local or any((root / Path(*Path(local).parts[:index])).is_symlink()
+                        for index in range(1, len(Path(local).parts) + 1)):
+        return None
+    if any(part.startswith(".staging") for part in Path(local).parts):
+        return None
+    return local
+
+
+def selected_feature_evidence(root, manifest, auxiliary, auxiliary_status):
+    """Read only explicit verified graph selections; never infer a newest receipt."""
+    payloads, statuses, receipts = {}, {}, {}
+    graph = auxiliary.get("dag", {})
+    selected = graph.get("selected_evidence", {})
+    if not isinstance(selected, dict):
+        selected = {}
+    graph_valid = bool(graph) and auxiliary_status.get("dag") == "source_hash_bound"
+    hashes = graph.get("artifact_hashes", {})
+    if graph_valid:
+        graph_valid = isinstance(hashes, dict) and bool(hashes)
+        if graph_valid:
+            for path, expected in hashes.items():
+                local = strict_artifact(root, path)
+                if not local or sha256(root / local) != expected:
+                    graph_valid = False
+                    break
+        external = graph.get("external_context_hashes", {})
+        if not isinstance(external, dict):
+            graph_valid = False
+        elif external:
+            registry = Path(__file__).resolve().parents[1] / "program" / "instrument.json"
+            graph_valid = (graph_valid and set(external) == {"program/instrument.json"}
+                           and registry.is_file() and not registry.is_symlink()
+                           and sha256(registry) == external["program/instrument.json"])
+    for name in SELECTED_FEATURES:
+        row = selected.get(name, {})
+        if not isinstance(row, dict):
+            row = {}
+        state = row.get("status", "not_selected")
+        statuses[name] = state[:128] if isinstance(state, str) else "rejected_invalid_status"
+        if not graph and auxiliary_status.get("dag", "").startswith("rejected"):
+            statuses[name] = "rejected_stale_or_unavailable_graph"
+        if state != "verified":
+            continue
+        if not graph_valid:
+            statuses[name] = "rejected_stale_or_unavailable_graph"
+            continue
+        local = strict_artifact(root, row.get("selector"))
+        expected = row.get("artifact_sha256")
+        if not local or not expected or hashes.get(local) != expected:
+            statuses[name] = "rejected_selected_binding"
+            continue
+        path = root / local
+        if path.stat().st_size > MAX_SELECTED_JSON_BYTES:
+            statuses[name] = "rejected_selected_size_limit"
+            continue
+        raw = path.read_bytes()
+        if len(raw) > MAX_SELECTED_JSON_BYTES or hashlib.sha256(raw).hexdigest() != expected:
+            statuses[name] = "rejected_selected_hash"
+            continue
+        try:
+            payload = json.loads(raw)
+        except (ValueError, UnicodeError):
+            statuses[name] = "rejected_selected_json"
+            continue
+        if not isinstance(payload, dict):
+            statuses[name] = "rejected_selected_json"
+            continue
+        upstream = row.get("upstream_hashes", {})
+        if not isinstance(upstream, dict) or any(hashes.get(key) != value for key, value in upstream.items()):
+            statuses[name] = "rejected_selected_upstream_binding"
+            continue
+        payloads[name] = payload
+        receipts[name] = {"selector": local, "artifact_sha256": expected,
+                          "timing_status": row.get("timing_status", "unknown"),
+                          "payload_status": row.get("payload_status", payload.get("status", "unknown"))}
+    # Detect changed graph inputs before promoting any selected payload.
+    if payloads and any(not strict_artifact(root, path) or sha256(root / path) != expected
+                        for path, expected in hashes.items()):
+        for name in payloads:
+            statuses[name] = "rejected_changed_graph_inputs"
+        payloads, receipts = {}, {}
+    return payloads, statuses, receipts
+
+
+def objects(value, limit):
+    return [item for item in value[:limit] if isinstance(item, dict)] if isinstance(value, list) else []
+
+
+def feature_escape(value):
+    return escape(str(value)[:600])
+
+
+def shown(value, digits=3, suffix=""):
+    number = finite(value)
+    return f"{number:.{digits}f}{suffix}" if number is not None else "unknown"
+
+
+def selected_seek(manifest, audio=None, source=None):
+    timeline = manifest.get("timeline", {})
+    timeline = timeline if isinstance(timeline, dict) else {}
+    audio_origin = finite(timeline.get("audio_start_seconds")) or 0
+    video_origin = finite(timeline.get("format_start_seconds")) or 0
+    audio, source = finite(audio), finite(source)
+    if source is None and audio is not None:
+        source = audio_origin + audio
+    if audio is None and source is not None:
+        audio = source - audio_origin
+    if audio is None or source is None or audio < 0:
+        return ""
+    return f'<button data-media="audio" data-time="{audio:.6f}">Seek audio</button> <button data-media="video" data-time="{max(0, source-video_origin):.6f}">Seek video</button>'
+
+
+def evidence_table(headers, rows):
+    return '<table><thead><tr>' + ''.join(f'<th>{escape(value)}</th>' for value in headers) + '</tr></thead><tbody>' + ''.join(rows) + '</tbody></table>' if rows else '<p class="unavailable">No candidate rows available; this is not an absence-of-music finding.</p>'
+
+
+def selected_click_section(manifest, payload):
+    summary = payload.get("summary", {})
+    summary = summary if isinstance(summary, dict) else {}
+    counts = ' · '.join(f'{label}: {shown(summary.get(key), 0)}' for key, label in [("candidate_count", "Candidates"), ("accepted_fit_count", "Accepted template fits"), ("attenuated_count", "Attenuated"), ("abstained_count", "Abstained")])
+    rows = []
+    for event in objects(payload.get("events"), 20):
+        rows.append(f'<tr><th>{shown(event.get("source_timeline_seconds"))}s</th><td>{feature_escape(event.get("decision", "unknown"))}</td><td>{feature_escape(event.get("reason", "unknown"))}</td><td>{selected_seek(manifest, event.get("audio_relative_seconds"), event.get("source_timeline_seconds"))}</td></tr>')
+    return f'<p class="caption">{counts}. Click identity: {feature_escape(payload.get("identity_status", "unknown"))}. Showing at most 20 events.</p><p class="note">A template fit can overlap a guitar attack. Accepted fitting and experimental attenuation do not establish a recovered metronome stem or listening acceptance. The main audition remains the selected cleanup master.</p>' + evidence_table(["Source time", "Decision", "Overlap / fit evidence", "Navigate"], rows)
+
+
+def selected_pitch_section(manifest, payload):
+    analysis = payload.get("analysis", {})
+    analysis = analysis if isinstance(analysis, dict) else {}
+    fraction = finite(analysis.get("coverage_fraction"))
+    coverage = f'{fraction*100:.2f}%' if fraction is not None and 0 <= fraction <= 1 else "unknown"
+    spans = objects(analysis.get("coverage_spans_source_timeline"), 12)
+    span_rows = [f'<tr><th>{shown(span.get("start_seconds"))}–{shown(span.get("end_seconds"))}s</th><td>{selected_seek(manifest, source=span.get("start_seconds"))}</td></tr>' for span in spans]
+    rows = []
+    observations = payload.get("observations", {})
+    observations = observations if isinstance(observations, dict) else {}
+    for excerpt in objects(observations.get("analyzed_excerpts"), 12):
+        for branch in objects(excerpt.get("branches"), 4):
+            for frame in objects(branch.get("frames"), 400):
+                frequency = finite(frame.get("frequency_hz"))
+                if frequency is None:
+                    continue
+                mapping = frame.get("note_mapping", {})
+                mapping = mapping if isinstance(mapping, dict) else {}
+                label = feature_escape(mapping.get("note", "unknown"))
+                window_start = frame.get("window_start_seconds_source_timeline")
+                window_end = frame.get("window_end_seconds_source_timeline")
+                branch_name = feature_escape(branch.get("name", "branch unknown"))
+                probability = finite(frame.get("voicing_probability"))
+                voicing = f'{probability:.3f}' if probability is not None and 0 <= probability <= 1 else "unknown"
+                rows.append(f'<tr><th>{shown(frame.get("source_timeline_seconds"))}s<br>{branch_name}</th><td>{frequency:.2f} Hz · {label}</td><td>{shown(window_start)}–{shown(window_end)}s</td><td>{voicing}</td><td>{selected_seek(manifest, frame.get("audio_relative_seconds"), frame.get("source_timeline_seconds"))}</td></tr>')
+                # Show distributed excerpts and both resolution branches, rather
+                # than filling the display with adjacent low-branch frames.
+                break
+            if len(rows) >= 16:
+                break
+        if len(rows) >= 16:
+            break
+    summary = payload.get("summary", {})
+    summary = summary if isinstance(summary, dict) else {}
+    return f'<p class="caption">Pitch excerpt coverage: {coverage} · {shown(analysis.get("coverage_seconds"), 2)} seconds. Sampling: {feature_escape(analysis.get("sampling", "unknown"))}. Abstained branch frames: {shown(summary.get("abstained_frame_count"), 0)}.</p><p class="note">Unanalyzed spans remain unknown. Low/high branches and octave alternatives are overlapping mixture hypotheses, not unique notes or string identities. Long low-register windows blur fast changes; pYIN voicing is not note-correctness probability. Tuning is operator context with inferred octaves.</p><details><summary>Analyzed source spans · first 12</summary>{evidence_table(["Source span", "Navigate"], span_rows)}</details><details><summary>Periodic pitch examples · one per excerpt and branch, at most 16</summary>{evidence_table(["Source center / branch", "Conditional pitch mapping", "Analysis window", "Algorithm voicing", "Navigate"], rows)}</details>'
+
+
+def selected_meter_section(manifest, payload):
+    rows = []
+    for alias in objects(payload.get("aliases"), 3):
+        selected = alias.get("selected")
+        selected = selected if isinstance(selected, dict) else {}
+        rows.append(f'<tr><th>{shown(alias.get("pulse_bpm"), 2)} BPM</th><td>{feature_escape(alias.get("status", "unknown"))}</td><td>{shown(selected.get("cycle_pulses"), 0)} pulses</td><td>{feature_escape(alias.get("reason", "unknown"))}</td></tr>')
+    return f'<p>Notated time signature: <strong>{feature_escape(payload.get("time_signature") or "unknown")}</strong>.</p><p class="note">An energy accent cycle is not a verified downbeat or notated meter. Quarter/eighth pulse units and additive grouping remain unresolved; uniform clicks, compressed distortion and legato can conceal accents.</p>{evidence_table(["Pulse interpretation", "Accent evidence", "Selected cycle", "Boundary"], rows)}<p class="caption">Local windows: {len(objects(payload.get("local_windows"), 256))} · {feature_escape(payload.get("local_structure", "unknown"))}. {feature_escape(payload.get("reason", "unknown"))}.</p>'
+
+
+def selected_tonal_section(manifest, payload):
+    context = payload.get("whole_take", payload.get("global_context", {}))
+    context = context if isinstance(context, dict) else {}
+    # Worker context name is explicit; no pooling sparse pitch into note votes.
+    if not context:
+        context = payload.get("whole_recording", {})
+        context = context if isinstance(context, dict) else {}
+    reasons = context.get("abstention_reasons", [])
+    reason_text = ', '.join(str(value) for value in reasons[:12]) if isinstance(reasons, list) else "unknown"
+    rows = []
+    families = context.get("profile_families", {})
+    for family, record in list(families.items())[:4] if isinstance(families, dict) else []:
+        if not isinstance(record, dict):
+            continue
+        for candidate in objects(record.get("ranked_hypotheses"), 2):
+            rows.append(f'<tr><th>{feature_escape(family)}</th><td>{feature_escape(candidate.get("tonic_candidate", "unknown"))} {feature_escape(candidate.get("mode_candidate", "unknown"))}</td><td>{shown(candidate.get("profile_correlation"))}</td><td>{feature_escape(record.get("top_hypothesis_screen", "unknown"))}</td></tr>')
+    regions = objects(payload.get("regions"), 256)
+    abstained = sum(region.get("status") == "abstained" for region in regions)
+    return f'<p>Tonic: <strong>{feature_escape(payload.get("tonic") or "unknown")}</strong> · Mode: <strong>{feature_escape(payload.get("mode") or "unknown")}</strong>.</p><p class="caption">Whole-take context: {feature_escape(context.get("status", "unknown"))} · normalized pitch-class entropy: {shown(context.get("normalized_pitch_class_entropy"))}. {feature_escape(reason_text)}. Regions: {len(regions)}; abstained: {abstained}.</p><p class="note">Ranked tonal profiles can disagree. Distorted harmonics, chromatic material and unresolved low fundamentals can create plausible false keys. Profile correlation is not calibrated tonal confidence; sparse pitch branches are not independent note votes.</p>{evidence_table(["Profile family", "Ranked hypothesis", "Correlation", "Candidate screen"], rows)}'
+
+
+def selected_comparison_section(manifest, payload):
+    rows = []
+    for comparison in objects(payload.get("comparisons"), 24):
+        spans = comparison.get("spans", {})
+        spans = spans if isinstance(spans, dict) else {}
+        motif = comparison.get("motif_comparison", {})
+        motif = motif if isinstance(motif, dict) else {}
+        first = spans.get("first_start_seconds")
+        second = spans.get("second_start_seconds")
+        rows.append(f'<tr><th>{shown(first)}–{shown(spans.get("first_end_seconds"))}s / {shown(second)}–{shown(spans.get("second_end_seconds"))}s</th><td>{feature_escape(comparison.get("status", "unknown"))}<br>{feature_escape(motif.get("status", "attack edits unknown"))}</td><td>{shown(comparison.get("median_relative_offset_seconds"), 3, "s")} / {shown(comparison.get("interior_rate_median"))}</td><td>{selected_seek(manifest, audio=first)} {selected_seek(manifest, audio=second)}</td></tr>')
+    return '<p class="note">DTW compares feature motion within discovered recurrences. Relative shifts or rate changes can reflect boundary bias and deliberate variation. Omitted feature frames and unmatched attack detections do not prove omitted notes; unknown detector/boundary confidence abstains from attack-edit claims.</p><p class="caption">Spans below are decoded-audio time. Rate is elapsed second-phrase time per first-phrase time; no absolute rushed/late grade follows. Showing at most 24 comparisons.</p>' + evidence_table(["Compared audio spans", "Alignment / attack evidence", "Relative offset / rate", "Navigate"], rows)
+
+
+def selected_feature_section(manifest, payloads, statuses, receipts):
+    renderers = {"clicks": selected_click_section, "pitch": selected_pitch_section,
+                 "meter": selected_meter_section, "tonal": selected_tonal_section,
+                 "comparisons": selected_comparison_section}
+    labels = {"clicks": "Click fit and overlap", "pitch": "Sparse pitch evidence",
+              "meter": "Accent cycles and meter", "tonal": "Tonal context", "comparisons": "Within-take phrase alignment"}
+    sections = []
+    for name in SELECTED_FEATURES:
+        status = statuses.get(name, "not_selected")
+        receipt = receipts.get(name, {})
+        body = renderers[name](manifest, payloads[name]) if name in payloads else '<p class="unavailable">No graph-verified selection is displayed. Candidate absence is not established.</p>'
+        link = f'<a href="{escape(quote(receipt["selector"]))}">Selected evidence JSON</a>' if receipt else ''
+        caption = f'<p class="caption">Selection: {feature_escape(status)}. Payload: {feature_escape(receipt.get("payload_status", "unknown"))}. Timing: {feature_escape(receipt.get("timing_status", "unknown"))}. {link}</p>'
+        sections.append(f'<details><summary>{labels[name]} · {feature_escape(status)}</summary>{caption}{body}</details>')
+    return '<section><h2>Selected feature evidence</h2><p class="caption">Only explicit graph selections with current artifact and upstream hashes appear here. DSP timing verification does not establish physical capture delay, detector calibration, musical correctness or listening acceptance.</p>' + ''.join(sections) + '</section>'
 
 
 def feature_section(payloads, statuses):
@@ -526,7 +767,7 @@ def metric_rows(manifest, analysis, outcome=None):
     return ''.join(rows) or '<tr><td colspan="3">Measurements unavailable in this run manifest.</td></tr>'
 
 
-def render(root, manifest, analysis, events, outcome=None, identity_status="unavailable", export_status="unavailable", auxiliary=None, auxiliary_status=None, features=None, feature_status=None):
+def render(root, manifest, analysis, events, outcome=None, identity_status="unavailable", export_status="unavailable", auxiliary=None, auxiliary_status=None, features=None, feature_status=None, selected=None, selected_status=None, selected_receipts=None):
     paths = media_paths(root, manifest, outcome)
     source = manifest.get("source", manifest.get("input", {}))
     if isinstance(source, dict):
@@ -549,6 +790,7 @@ def render(root, manifest, analysis, events, outcome=None, identity_status="unav
     review = review_section(manifest, auxiliary or {}, auxiliary_status or {})
     feature_report = feature_section(features or {}, feature_status or {})
     phrase_report = phrase_section(manifest, features or {})
+    selected_report = selected_feature_section(manifest, selected or {}, selected_status or {}, selected_receipts or {})
     subdivisions = subdivision_section(analysis)
     fingerprint = source_identity(manifest)
     source_receipt = f'<p class="caption">Original source SHA-256: <code>{escape(fingerprint)}</code></p>' if isinstance(fingerprint, str) and len(fingerprint) == 64 and all(char in "0123456789abcdefABCDEF" for char in fingerprint) else ''
@@ -577,6 +819,7 @@ def render(root, manifest, analysis, events, outcome=None, identity_status="unav
 {review}
 {phrase_report}
 {feature_report}
+{selected_report}
 <section><h2>What remains uncertain</h2><p class="note">A mono room recording combines distorted guitar, metronome, room sound and recorder processing. Denoising can remove intended harmonics and low-string fundamentals; residuals are diagnostic estimates. Operator-declared tempo and fitted recording pulse are separate evidence. Automatic phrase, recurrence and bar proposals are available without an intended score, while meter and semantic section identity remain uncertain. Missed-note, extra-note and intended phrase-correctness judgments require stronger references. Acoustic travel time and detector bias affect onset offsets. Intended-note and tone-quality judgments remain unverified.</p><p class="caption">{'Source-bound analysis exports are available; review them before interpreting performance.' if analysis else 'Source-bound rhythm analysis is unavailable or rejected. Review any independently source-bound phrase proposals separately.'}</p></section>
 <footer>Static standard-library HTML report · no remote assets · not a Quarto-rendered report. Preserve the complete run directory when sharing.</footer>
 </main>{seek_script}</body></html>'''
@@ -597,7 +840,8 @@ def write_report(root):
     outcome, export_status = export_evidence(root, manifest)
     auxiliary, auxiliary_status = auxiliary_evidence(root, manifest)
     features, feature_status = feature_evidence(root, manifest)
-    document = render(root, manifest, analysis, events, outcome, identity_status, export_status, auxiliary, auxiliary_status, features, feature_status)
+    selected, selected_status, selected_receipts = selected_feature_evidence(root, manifest, auxiliary, auxiliary_status)
+    document = render(root, manifest, analysis, events, outcome, identity_status, export_status, auxiliary, auxiliary_status, features, feature_status, selected, selected_status, selected_receipts)
     temporary = None
     try:
         with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=root, prefix=".report-", suffix=".html", delete=False) as stream:
@@ -609,7 +853,7 @@ def write_report(root):
     finally:
         if temporary and temporary.exists():
             temporary.unlink()
-    return {"report": "report.html", "analysis_available": bool(analysis), "analysis_lineage": identity_status, "export_evidence": export_status, "auxiliary_evidence": auxiliary_status, "feature_evidence": feature_status, "event_count": len(events), "renderer": "python-stdlib-html", "listening_acceptance": "pending"}
+    return {"report": "report.html", "analysis_available": bool(analysis), "analysis_lineage": identity_status, "export_evidence": export_status, "auxiliary_evidence": auxiliary_status, "feature_evidence": feature_status, "selected_evidence": selected_status, "event_count": len(events), "renderer": "python-stdlib-html", "listening_acceptance": "pending"}
 
 
 def main():

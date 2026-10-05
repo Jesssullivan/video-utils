@@ -1,81 +1,100 @@
 # video-utils parallel work board
 
-As-of publication/assignment snapshot: **2026-10-05 21:54:58 UTC / 5:54:58 p.m. EDT**.
+As-of prepublication checkpoint: **2026-10-05 22:31:49 UTC / 6:31:49 p.m. EDT**.
 Root's goal began 20:49:34 UTC and remains **active**, with planned end
-**2026-10-06 06:49:34 UTC / 2:49:34 a.m. EDT**. The objective/status tool does
-not enforce a wall-clock deadline. This board does not replace the global Lab
-board. Root owns integration, factual tracker updates and publication.
+**2026-10-06 06:49:34 UTC / 2:49:34 a.m. EDT**. Objective/status does not enforce
+this wall-clock horizon. Root owns integration, factual Linear writes and signed
+publication. This repository-local board does not replace the global Lab board.
 
-Authority: operator parallel implementation/ten-hour goal; repository AGENTS.md;
+Authority: operator ten-hour parallel goal; repository AGENTS.md;
 R-HOOK-CONVERGENCE-20261004 / R-N11/R-N12/R-N13, TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`.
 
 Plan: [TEN_HOUR_PLAN.md](../spec/TEN_HOUR_PLAN.md).
 Prompts: [2026-10-05-user-prompts.md](2026-10-05-user-prompts.md).
 Checkpoints: [2026-10-05-goal-checkpoints.md](2026-10-05-goal-checkpoints.md).
-Current continuation contract: [GRAPH_INTEGRATION_LANE.md](../spec/GRAPH_INTEGRATION_LANE.md).
-Project IDs: [linear.json](../../program/linear.json).
+Tracker IDs: [linear.json](../../program/linear.json).
 Active goal: [TIN-5495](https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal).
 
-Published baseline: **signed/private/verified** source
-`6f7d1965b3c99a9b2ed261d58ea8949c0d6a1b26` at
-[Jesssullivan/video-utils](https://github.com/Jesssullivan/video-utils).
-Nineteen hooks and nineteen skills are published. Local integration passed
-**219/219 tests in 160.966 s**. Hosted CI
+## Published baseline versus pending wave3
+
+Last published head: signed/private `5f35a147a80485ce1c43eafb93cd60f0da52423b`,
+which records the nineteen-tool source `6f7d1965b3c99a9b2ed261d58ea8949c0d6a1b26`.
+Hosted CI for 6f7d196
 [37378799943](https://github.com/Jesssullivan/video-utils/actions/runs/37378799943)
-**succeeded at 21:54:10 UTC**, including Python/media, Rust and secret scan jobs.
-Hosted Python discovered 219 tests: 198 passed, 21 optional-backend skips in 18.903 s;
-seven Rust tests and secret scan passed. Local analysis ran all 219 without skips.
-These are source/hosted checks, not listening, AU hosting or editor-import proof.
+passed Python/media, Rust and secret scan: 219 Python discovered/198 passed/
+21 optional skips; local analysis 219 had no skips. This is historical source
+qualification, not a hosted result for pending wave3.
 
-## Six assigned continuation lanes
+Wave3 worktree has **twenty hooks and twenty skills**, including a read-only
+corpus-metadata validation interface. Full local suite **291 passed in 53.583 s,
+no skips**; hook-focused 47 checks passed. Selected source/audit/research and
+calibration plans are pending root publication. Do not call the remote a
+twenty-tool release until root's exact source/visibility/signature readback.
 
-Only these six workers have active continuation assignments at this snapshot.
-Earlier workers completed their handoffs and are not active by default. The
-root integration lane continues; this documentation lane freezes after handoff.
+## Current assignment and freeze
 
-| Stream | Owner | Exclusive files | State / evidence | Next / dependency |
-| --- | --- | --- | --- | --- |
-| Feature graph | `/root/phrase_dag` | `scripts/dag.py`, `tests/test_dag.py`, `docs/spec/GRAPH_FEATURES.md` | Assigned continuation; nineteen-tool baseline published | Publish bounded artifact selector contract first; verify source/upstream/settings hashes, staleness/symlinks, nulls and sparse coverage |
-| Evidence report | `/root/plan_review` | `scripts/report.py`, `tests/test_report.py`, `docs/spec/REPORT_FEATURES.md` | Assigned continuation; prior real browser/synthetic annotation checks qualified | Depends on graph selector; display only graph-verified evidence, unknowns/sparse coverage; no new processing or guessed ground truth |
-| Hook/skill graph interface | `/root/tool_hooks` | `program/tools.json`, `scripts/tool_api.py`, `tests/test_tool_contracts.py`, `docs/spec/GRAPH_TOOL_CONTRACT.md`, `.agents/skills/guitar-pipeline/SKILL.md` | Assigned continuation; nineteen published hooks/skills | Depends on graph selector; expose bounded optional evidence inputs through existing DAG tool, retain nineteen-tool count and exact skill readback |
-| Corpus annotation | `/root/repo_patterns` | `scripts/corpus.py`, `tests/test_corpus.py`, `docs/spec/CORPUS_LANE.md` | New bounded local-manifest assignment | Explicit labelled spans/reviewer provenance; distinguish fixture labels from musician truth; no downloads; no audio-tool claim before API/skill integration |
-| Editor-marker research | `/root/clip_baseline` | `docs/research/EDITOR_MARKERS.md`, `docs/spec/EDITOR_MARKER_SPIKE.md` | Assigned source-only format/design continuation | Current primary FCPXML/Resolve semantics, VFR/offsets/sample-frame rounding; fixtures do not establish application import compatibility |
-| Native parameter state | `/root/au_architecture` | `native/au-spike/state/**`, `docs/spec/AU_STATE.md` | Assigned isolated experiment; existing native/automation files frozen | Bounded state validation/serialization and restore-before-render; no registration, host configuration or device operation |
+The previous six graph/report/hook/corpus/editor-research/native-state lanes
+completed their handoffs; their earlier assignment table is historical. Other
+workers are done/idle rather than active by default. Three next lanes own
+**plans only** during root's publication freeze. Their contracts are ready before
+code; root assigns implementation files **after publication**.
 
-Root alone integrates, reruns relevant checks and the calibrated demo, publishes
-signed source and tracker facts. Assignment is not a completed implementation or
-verified result. New corpus/development utilities are not audio-processing tools
-until explicitly integrated with an API and skill. All continuation work shares
-the existing horizon and weekly budgets; no duplicate hours are added.
-
-## Delivered evidence and remaining acceptance
-
-| Stream | Owner / state | Evidence | Remaining boundary |
+| Stream | Owner | Exclusive current file | State / next dependency |
 | --- | --- | --- | --- |
-| Calibrated demo/export | Root; delivered numerically, listening pending | Run `20261005T211103Z-c6d0bac2fcd2`; master −18.01 LUFS/−1.50 dBTP; decoded AAC −18.07/−1.56 after −0.06 dB feed; bounded retry and 1102-sample compensation recorded | Listening and real-performance ground-truth alignment remain unmeasured; preserve earlier failed −1.49 export history |
-| Noise/tempo/click/pitch | Earlier owners handed off; no new assignment by default | Operator 178 separate from fallback 88.800907/double177.6018; sparse pitch sampled 20 seconds including ending | Metronome identity/intended notes unknown; sparse analysis is not whole-take transcription |
-| Meter/tonal | `/root/meter_inference`, `/root/tonal_inference`; handoffs done | Published nullable candidate workers and tests | Actual meter, tonic/mode remain unknown; no definitive correctness claim |
-| Phrase/markers | Published baseline; DAG continuation above | 48 regions, 14 recurrence pairs, 186 review/navigation flags | Hypotheses rather than confirmed mistakes or semantic phrase/meter truth; native editor import unverified |
-| Benchmark/browser review | Published baseline; owners reassigned above | Three stdlib+three optional synthetic cases: zero shift/click recall 1, optional phrase IoU 0.935; real muted browser playback/filter/decode and synthetic annotation edit/refresh passed | Synthetic scores do not establish real sound quality; no dummy real-take annotations; listening pending |
-| Native spike/automation | Published qualified source/audit; owner reassigned to state only | Compiled/ARC audit and native recipe checks passed | No plugin installation, auval or Logic proof; existing files frozen during isolated state work |
-| Independent review and tool skills | Prior handoffs done; no active default assignment | Earlier release review, validated skills/contracts | Additional review requires explicit assignment; root records new continuation acceptance |
+| Generated calibration bank | `/root/repo_patterns` | `docs/spec/BENCHMARK_CALIBRATION_LANE.md` | Plan only: maximum 12 deterministic fixtures/120 source seconds, truth/component provenance, bounded independent metrics; benchmark source/configuration/tests frozen until root assigns code |
+| Pitch calibration | `/root/guitar_features` | `docs/spec/PITCH_CALIBRATION_LANE.md` | Plan only: four serial pitch jobs/30 source seconds, cents/voicing/octave/coverage and exclusions; depends on generated bank/index contract; no pilot claimed |
+| Phrase calibration | `/root/phrase_dag` | `docs/spec/PHRASE_CALIBRATION_LANE.md` | Plan only: independent boundary/span/recurrence/warp metrics without supplying labels to discovery; depends on generated truth/artifacts; evaluator code not assigned yet |
+| Integration/publication | `/root` | Shared integration, selected commits, Linear facts | Publish verified wave3 source/plans, then assign bounded code and record remote/hosted receipts |
+| Durable checkpoint | `/root/goal_plan` | This board and `2026-10-05-goal-checkpoints.md` | Updated on explicit follow-up; frozen after handoff for root's selected receipt publication |
 
-Historical CI findings: run 37373112479 failed one excessive-nesting test.
-Parser repair 9883069 subsequently passed local tests. Its hosted run
-[37373960394](https://github.com/Jesssullivan/video-utils/actions/runs/37373960394)
-ended with overall failure and no job steps; exact annotation:
-“job was not acquired by Runner of type hosted even after multiple attempts”.
-That revision has no hosted test result. The later published 6f7d196 run succeeded
-as recorded above; do not reinterpret the runner failure as a source-test failure.
+All continuation work shares the existing ten-hour horizon and weekly allocation.
+No duplicate hours, phantom live workers or executable calibration-v2 claims.
+Process signals require actual owned/live-target checks and R-N11 receipts;
+hooks remain advisory under R-N12; facts and durability follow R-N13.
 
-Linear: D0 TIN-5485 remains **In Review**, listening pending; wave2 comment
-`6b0c27ce-950d-4f6a-a492-2cd6e821e567`. Goal TIN-5495 remains **In Progress**;
-comment `18776874-b339-416f-a144-69a746ffdc9e`. IDs are synchronized by root in
-program/linear.json. The goal is not completed by publication or hosted CI.
+## Actual complete existing-run evidence
 
-Root's initial publication freeze was released for named owners; current
-continuation ownership replaces generic activity assumptions. Dirty shared work
-and ignored media are preserved. Process signalling requires actual ownership/
-live-session checks and R-N11 receipts; hooks remain advisory under R-N12;
-durable facts and tracker receipts follow R-N13.
+Media run: `artifacts/runs/20261005T211103Z-c6d0bac2fcd2`.
+New complete invocation:
+`demo-invocations/20261005T221943Z-9f2a37bcca5c/receipt.json`.
+All **fifteen stages completed**; selected clicks/pitch/meter/tonal/comparison
+artifacts are **verified** for provenance. Original source, master and video
+hashes remain unchanged; **no encoder ran** in this invocation. Verification
+is artifact lineage, not musical correctness. Meter/tonic/mode remain unknown;
+sparse pitch coverage and metronome uncertainty remain visible.
+
+Current graph/report/markers have **197 ungraded review flags**, including
+**eleven DTW comparison flags**. Earlier 186 flags belong to the retained prior
+analysis. Prior source-history snapshot:
+`demo-history/c9166c0152bb8be0fca4ed1dd048025c4e98c9bd713994669cb203a9bc145867`,
+**14,181,050 bytes**, no media copied, explicitly
+`prior_artifact_snapshot_not_revalidated`. Historical snapshot retention does
+not promote prior artifacts into the current verified selection.
+
+Existing accepted numerical export remains master −18.01 LUFS/−1.50 dBTP and
+final decoded AAC −18.07/−1.56 after −0.06 dB feed, with 1102-sample calibrated
+processing-delay compensation. Listening is pending; no whole-take transcription,
+intended-note verdict or confirmed performance error is claimed.
+
+Muted browser proof: all four media players loaded; 0.624 seconds/45 decoded
+frames; filter 197→11, source-time seek, mobile 390px without overflow, no exceptions.
+No actual-take review notes were written. Root's exact owned Chrome process 37154
+was cleanly terminated with R-N11 receipt. Browser function is not listening
+acceptance. Corpus validation retains supplied reviewer assertions and does not
+establish musician truth. Native parameter-state/root-release ASan checks passed;
+no plugin installation, auval or Logic hosting occurred. Editor-marker work is
+source/fixture design without application-import acceptance.
+
+## Historical CI and tracker boundaries
+
+Run 37373112479 failed one parser-nesting test. Repair 9883069's run 37373960394
+had no job steps; exact annotation: “job was not acquired by Runner of type hosted
+even after multiple attempts”. The later 6f7d196 CI passed as recorded above;
+keep runner acquisition, source tests and current pending publication distinct.
+
+D0 TIN-5485 remains In Review for listening. Goal TIN-5495 remains In Progress;
+prior wave2 comments are `6b0c27ce-950d-4f6a-a492-2cd6e821e567` and
+`18776874-b339-416f-a144-69a746ffdc9e`. Root synchronizes any new publication
+comments in program/linear.json. Source publication or CI does not complete the
+goal or the separate listening/native/editor acceptance states.

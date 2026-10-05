@@ -658,8 +658,8 @@
     {
       "name": "pipeline",
       "title": "Pipeline",
-      "description": "Evaluate an existing restoration/analysis provenance DAG and reference-based musical review candidates. Evaluates existing artifacts and their source lineage; does not execute the full render pipeline. Tonic/mode remain nullable and flags are review hypotheses.",
-      "intent": "Evaluate an existing restoration/analysis provenance DAG and reference-based musical review candidates.",
+      "description": "Evaluate an existing restoration/analysis provenance DAG and musical review candidates, optionally selecting exact run-relative click, pitch, meter, tonal and phrase-comparison evidence. Does not execute the render pipeline. Unknowns and sparse pitch coverage remain visible; provenance-rejected artifacts cannot become accepted evidence.",
+      "intent": "Evaluate existing guitar artifacts and explicitly selected evidence with hash-bound provenance, retaining unknowns and candidate-only musical review.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -674,6 +674,36 @@
             "minLength": 1,
             "maxLength": 4096,
             "description": "Optional existing local approved-reference JSON; the worker validates approval, source binding, expected events, calibration and phrase spans."
+          },
+          "clicks_artifact": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Optional exact run-relative clicks JSON evidence path; no absolute path, traversal, colon, backslash, symlink or .partial staging component. No implicit newest-artifact selection. Worker verifies source, upstream and settings hashes; provenance mismatches remain rejected evidence."
+          },
+          "pitch_artifact": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Optional exact run-relative pitch JSON evidence path; no absolute path, traversal, colon, backslash, symlink or .partial staging component. No implicit newest-artifact selection. Worker verifies source, upstream and settings hashes; provenance mismatches remain rejected evidence."
+          },
+          "meter_artifact": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Optional exact run-relative meter JSON evidence path; no absolute path, traversal, colon, backslash, symlink or .partial staging component. No implicit newest-artifact selection. Worker verifies source, upstream and settings hashes; provenance mismatches remain rejected evidence."
+          },
+          "tonal_artifact": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Optional exact run-relative tonal JSON evidence path; no absolute path, traversal, colon, backslash, symlink or .partial staging component. No implicit newest-artifact selection. Worker verifies source, upstream and settings hashes; provenance mismatches remain rejected evidence."
+          },
+          "comparisons_artifact": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Optional exact run-relative comparisons JSON evidence path; no absolute path, traversal, colon, backslash, symlink or .partial staging component. No implicit newest-artifact selection. Worker verifies source, upstream and settings hashes; provenance mismatches remain rejected evidence."
           },
           "timeout_seconds": {
             "type": "integer",
@@ -692,7 +722,10 @@
       "implementation_status": "experimental",
       "evidence_kind": "artifact_provenance_and_reference_candidates",
       "limitations": [
-        "Evaluates existing artifacts and their source lineage; does not execute the full render pipeline. Tonic/mode remain nullable and flags are review hypotheses."
+        "Evaluates existing artifacts; does not execute or schedule the render pipeline. Selected JSON is bounded to 20 MB per artifact and 40 MB total.",
+        "No automatic newest-path discovery; exact selected paths must remain within run_dir without symlink or staging components.",
+        "Source/upstream/settings mismatches remain rejected evidence; verified provenance does not confirm click identity, pitch, meter, tonic, mode, intended notes or listening acceptance.",
+        "Sparse pitch coverage and nullable tonal/meter context remain visible; review flags are hypotheses."
       ],
       "annotations": {
         "readOnlyHint": false,
@@ -707,15 +740,20 @@
           "tone",
           "notes",
           "rhythm",
-          "phrases"
+          "phrases",
+          "clicks",
+          "pitch",
+          "meter",
+          "tonal",
+          "phrase_compare"
         ],
         "enforced": false,
         "note": "Worker validates existing artifact/source relationships; this descriptor is dependency discovery guidance."
       },
       "agent_workflow": {
-        "identify": "Read the skill prompt and inspect evidence; confirm operator intent and distinguish observations from inferences.",
+        "identify": "Inspect existing run ancestry and selected artifact hashes, statuses, sample coverage and unknowns; choose exact paths explicitly, never a newest-file heuristic.",
         "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
-        "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
+        "iterate": "Run evidence tools independently into appropriate run-local artifacts, select at most one exact JSON path per evidence slot, and compare provenance and candidate findings; the pipeline hook does not execute dependency tools.",
         "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
         "max_comparison_candidates_default": 3
       }
@@ -1293,6 +1331,69 @@
         "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
         "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
         "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "corpus",
+      "title": "Corpus metadata validation",
+      "description": "Validate explicitly authored local review corpus metadata, source-span and reviewer attribution receipts, and current metadata hashes. Returns a bounded summary after full validation; no audio reads or processing, annotation writes, models or network access. Source origins, identities and musical labels remain supplied assertions.",
+      "intent": "Check consistency and freshness of explicitly labelled sparse review metadata without establishing ground truth or listening acceptance.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "manifest": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local corpus manifest inside the selected root; unsafe or symlink components are rejected before normalization can hide them."
+          },
+          "local_root": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Optional existing local metadata boundary; defaults to this repository. Manifest and all referenced regular metadata must remain inside it. This does not grant audio or network access."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "manifest"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-corpus/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "supplied_review_metadata_consistency",
+      "limitations": [
+        "Metadata validation authenticates neither source origins, reviewers nor musical labels; no musician ground truth is established.",
+        "Summary follows full validation; no raw labels, reviewer identities or repeated paths are returned through MCP.",
+        "Unlabelled intervals remain unknown, never negative labels. Synthetic fixtures remain separate from declared real recordings.",
+        "Read-only JSON metadata: 1 MB per file, 16 MB aggregate, 100 sources/reviewers, 5000 selected labels, 200 stored annotations per source, 12 hours per source. Source audio is never opened or rehashed."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "review"
+        ],
+        "enforced": false,
+        "note": "Explicit existing authored corpus and review-store metadata are required; this tool does not create annotations or corpus labels."
+      },
+      "agent_workflow": {
+        "identify": "Inspect authored corpus scope, explicit origins, source units, sparse spans, reviewer attribution, revisions and receipt hashes; do not infer labels from audio or missing spans.",
+        "research": "Read the repository corpus schema and primary annotation/evaluation guidance; record uncertainty and separate assertions from checked metadata facts.",
+        "iterate": "Correct an explicitly authored metadata inconsistency only within operator scope, rerun bounded validation, and compare receipt hashes; never auto-label or silently refresh a stale annotation.",
+        "acceptance": "Metadata consistency and successful execution do not establish listening, reviewer authenticity, musical correctness, ground truth or real-take labels.",
         "max_comparison_candidates_default": 3
       }
     }

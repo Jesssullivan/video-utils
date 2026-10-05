@@ -14,6 +14,8 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 MAX_JSON_BYTES = 20_000_000
 MAX_EVENTS = 20_000
+EVIDENCE_SLOTS = ("clicks", "pitch", "meter", "tonal", "comparisons")
+MAX_SELECTED_BYTES = 40_000_000
 AUTOMATIC_REVIEW_SETTINGS = {"duration_difference_minimum_pulses": .25,
     "motif_offset_minimum_seconds": .03, "motif_offset_minimum_pulse_fraction": .15,
     "motif_match_window_maximum_seconds": .25, "motif_match_window_pulse_fraction": .45,
@@ -31,7 +33,11 @@ def sha256(path: Path) -> str:
 def load(path: Path) -> dict:
     if path.stat().st_size > MAX_JSON_BYTES:
         raise ValueError(f"Oversized JSON artifact: {path.name}")
-    value = json.loads(path.read_text(encoding="utf-8"))
+    with path.open("rb") as handle:
+        encoded = handle.read(MAX_JSON_BYTES + 1)
+    if len(encoded) > MAX_JSON_BYTES:
+        raise ValueError(f"Oversized JSON artifact: {path.name}")
+    value = json.loads(encoded)
     if not isinstance(value, dict):
         raise ValueError(f"Expected an object in {path.name}")
     return value
@@ -234,6 +240,270 @@ def lineage(payload: dict, original_hash: str | None, processed_hashes: dict[str
     return "rejected_source_mismatch"
 
 
+def safe_artifact(run_dir: Path, selector: str) -> Path:
+    """Reject aliases before resolving; selectors preserve explicit identities."""
+    if not isinstance(selector, str) or not 1 <= len(selector) <= 1024:
+        raise ValueError("Evidence selector must contain 1..1024 characters")
+    parts = selector.split("/")
+    if (Path(selector).is_absolute() or ":" in selector or "\\" in selector
+            or not selector.endswith(".json") or any(not p or p.startswith(".") or ".partial" in p for p in parts)):
+        raise ValueError("Evidence selector must be a safe run-relative JSON path")
+    candidate = run_dir
+    for part in parts:
+        candidate = candidate / part
+        if candidate.is_symlink():
+            raise ValueError("Evidence selector cannot contain a symbolic link")
+    if not candidate.is_file() or not candidate.resolve().is_relative_to(run_dir.resolve()):
+        raise ValueError("Evidence selector must name an existing run-local regular file")
+    return candidate
+
+
+def digest_value(value) -> bool:
+    return isinstance(value, str) and len(value) == 64 and all(c in "0123456789abcdef" for c in value)
+
+
+def timing_status(manifest: dict, identity: str | None) -> str:
+    outputs = manifest.get("output_sha256", {})
+    if identity == manifest.get("source", {}).get("sha256") or identity == outputs.get("source.wav"):
+        return "raw_recording_axis_detector_delay_unqualified"
+    denoise = (manifest.get("dsp_latency", {}).get("denoise") or {})
+    if (denoise.get("status") == "measured_and_compensated"
+            and denoise.get("remaining_bulk_delay_samples") == 0):
+        return "bulk_dsp_delay_compensated_detector_and_physical_sync_unverified"
+    return "dsp_delay_uncalibrated"
+
+
+def evidence_metadata(payload: dict) -> dict:
+    analysis = payload.get("analysis") or {}
+    coverage_keys = ("coverage_seconds", "coverage_fraction", "coverage_spans_audio_relative",
+                     "coverage_spans_source_timeline", "sampling", "frame_samples", "frame_seconds", "hop_seconds")
+    result = {key: payload.get(key) for key in ("status", "confidence_kind", "identity_status", "time_signature",
+        "tonic", "mode", "summary", "interpretation", "pitch_context", "feature_context", "requires_expected_intent", "performance_grade")}
+    result["coverage"] = {key: analysis.get(key) for key in coverage_keys}
+    result["comparison_count"] = len(payload["comparisons"]) if isinstance(payload.get("comparisons"), list) else None
+    result["flag_count"] = len(payload["flags"]) if isinstance(payload.get("flags"), list) else None
+    if len(json.dumps(result, allow_nan=False).encode()) > 64_000:
+        raise ValueError("metadata_limit")
+    return result
+
+
+def select_evidence(run_dir: Path, manifest: dict, selectors: dict | None) -> tuple[dict, dict, dict, dict]:
+    selectors = selectors or {}
+    if not isinstance(selectors, dict) or set(selectors) - set(EVIDENCE_SLOTS):
+        raise ValueError("Unknown evidence selector slot")
+    paths = {slot: safe_artifact(run_dir, value) for slot, value in selectors.items()}
+    if sum(path.stat().st_size for path in paths.values()) > MAX_SELECTED_BYTES:
+        raise ValueError("Selected evidence exceeds the 40 MB aggregate bound")
+    original = manifest["source"]["sha256"]
+    manifest_hash = sha256(run_dir / "manifest.json")
+    rows, verified, run_hashes, external_hashes = {}, {}, {}, {}
+    for slot in EVIDENCE_SLOTS:
+        row = {"status": "not_selected", "selector": selectors.get(slot), "artifact_sha256": None,
+               "payload_status": None, "analysis_input_sha256": None, "analysis_lineage": None,
+               "timing_status": None, "metadata": None, "upstream_hashes": {}, "external_context_hashes": {},
+               "settings_sha256": None, "settings_binding_kind": None, "manifest_binding_kind": None,
+               "producer_worker_sha256": None, "producer_worker_status": "not_recorded"}
+        rows[slot] = row
+        if slot not in paths:
+            continue
+        path = paths[slot]
+        try:
+            before = sha256(path)
+            row["artifact_sha256"] = before
+            if selectors[slot] in ("dag.json", "flags.json", "markers.json", "manifest.json", "analysis.json", "phrases.json"):
+                raise ValueError("incompatible_artifact_type")
+            payload = load(path)
+            if type(payload.get("schema_version")) is not int or payload["schema_version"] != 1:
+                raise ValueError("schema_version")
+            for key in ("source", "provenance", "source_lineage", "lineage", "analysis", "instrument_context", "settings", "artifact_hashes"):
+                if payload.get(key) is not None and not isinstance(payload[key], dict):
+                    raise ValueError("invalid_metadata_shape")
+            compatible = {"clicks": isinstance(payload.get("events"), list) and "identity_status" in payload,
+                "pitch": payload.get("tool") == "pitch", "meter": "time_signature" in payload,
+                "tonal": payload.get("tool") == "tonal",
+                "comparisons": isinstance(payload.get("comparisons"), list) and isinstance(payload.get("flags"), list)}
+            if not compatible[slot]:
+                raise ValueError("incompatible_artifact_type")
+            row["payload_status"] = payload.get("status")
+            source = payload.get("source") or {}
+            provenance = payload.get("provenance") or {}
+            canonical_parent = payload.get("lineage") or {}
+            parent = payload.get("source_lineage") or canonical_parent
+            inputs = {v for v in (source.get("sha256"), payload.get("analysis_input_sha256"),
+                      provenance.get("analyzed_input_sha256"), parent.get("analyzed_input_sha256"),
+                      canonical_parent.get("input_sha256")) if v is not None}
+            if len(inputs) != 1 or not all(digest_value(value) for value in inputs):
+                raise ValueError("analysis_input_identity")
+            identity = next(iter(inputs))
+            row["analysis_input_sha256"] = identity
+            originals = [value for value in (payload.get("source_sha256"), payload.get("original_source_sha256"),
+                         provenance.get("original_source_sha256"), parent.get("original_source_sha256")) if value is not None]
+            if any(value != original for value in originals) or (not originals and identity != original):
+                raise ValueError("original_source_identity")
+            upstream = dict(payload.get("artifact_hashes") or {})
+            for field, name in (("analysis_sha256", "analysis.json"), ("manifest_sha256", "manifest.json")):
+                if provenance.get(field) is not None:
+                    if name in upstream and upstream[name] != provenance[field]:
+                        raise ValueError("inconsistent_upstream_hashes")
+                    upstream[name] = provenance[field]
+            if parent.get("manifest_sha256") is not None:
+                if "manifest.json" in upstream and upstream["manifest.json"] != parent["manifest_sha256"]:
+                    raise ValueError("inconsistent_manifest_hashes")
+                upstream["manifest.json"] = parent["manifest_sha256"]
+            row["manifest_binding_kind"] = "producer_receipt_verified"
+            if "manifest.json" not in upstream and slot == "pitch" and canonical_parent.get("status") == "verified_canonical_derivative":
+                claimed_pcm = canonical_parent.get("canonical_pcm") or {}
+                current_pcm = manifest.get("pcm") or {}
+                pcm_keys = ("sample_rate", "channels", "sample_count")
+                if (not all(key in claimed_pcm and claimed_pcm[key] == current_pcm.get(key) for key in pcm_keys)
+                        or canonical_parent.get("input_sha256") != identity
+                        or canonical_parent.get("original_source_sha256") != original):
+                    raise ValueError("canonical_pcm_binding")
+                # This verifies current compatibility, not a missing producer receipt.
+                upstream["manifest.json"] = manifest_hash
+                row["manifest_binding_kind"] = "derived_current_canonical_pcm_not_producer_manifest_hash"
+            if upstream.get("manifest.json") != manifest_hash:
+                raise ValueError("missing_or_stale_manifest_binding")
+            row["upstream_hashes"] = upstream
+            for name, expected in upstream.items():
+                upstream_path = safe_artifact(run_dir, name)
+                if not digest_value(expected) or sha256(upstream_path) != expected:
+                    raise ValueError("stale_upstream")
+            matches = [name for name in ("source.wav", "denoised.wav", "cleaned.wav")
+                       if manifest.get("output_sha256", {}).get(name) == identity]
+            if identity != original and not matches:
+                raise ValueError("unrelated_analysis_input")
+            for name in matches:
+                media_path = run_dir / name
+                if media_path.is_symlink() or not media_path.is_file() or sha256(media_path) != identity:
+                    raise ValueError("modified_analysis_media")
+            if matches and manifest.get("timeline", {}).get("no_time_stretch") is not True:
+                raise ValueError("missing_source_time_mapping")
+            expected_start = manifest.get("timeline", {}).get("audio_start_seconds", 0)
+            claimed_starts = [value for value in (parent.get("original_audio_start_seconds"),
+                (payload.get("timeline") or {}).get("audio_stream_start_seconds"),
+                source.get("audio_stream_start_seconds"),
+                (provenance.get("timeline") or {}).get("audio_stream_start_seconds")) if value is not None]
+            if any(abs(number(value, "selected source timeline") - number(expected_start, "manifest source timeline")) > 1e-9 for value in claimed_starts):
+                raise ValueError("source_time_mapping")
+            row["analysis_lineage"] = "post_denoise" if any(name in ("denoised.wav", "cleaned.wav") for name in matches) else "preliminary_raw_source"
+            row["timing_status"] = timing_status(manifest, identity)
+            if slot in ("clicks", "pitch") and identity != original:
+                allowed = ("hash_bound_run_derivative", "verified_canonical_derivative") if slot == "pitch" else ("hash_bound_run_derivative",)
+                if parent.get("status") not in allowed or parent.get("original_source_sha256") != original:
+                    raise ValueError("missing_derivative_lineage")
+            if slot == "meter" and "analysis.json" not in upstream:
+                raise ValueError("missing_analysis_binding")
+            if slot in ("tonal", "comparisons") and "analysis.json" not in upstream:
+                raise ValueError("missing_analysis_binding")
+            settings = payload.get("settings")
+            if settings is None:
+                settings = payload.get("analysis", {"limits": payload.get("limits"), "thresholds": payload.get("thresholds")})
+            computed_settings = hashlib.sha256(json.dumps(settings, sort_keys=True, allow_nan=False).encode()).hexdigest()
+            if payload.get("settings_sha256") is not None and payload["settings_sha256"] != computed_settings:
+                raise ValueError("settings_hash")
+            row["settings_sha256"] = computed_settings
+            row["settings_binding_kind"] = "producer_receipt_verified" if payload.get("settings_sha256") else "derived_from_selected_payload_not_producer_receipt"
+            row["producer_worker_sha256"] = provenance.get("worker_sha256")
+            row["producer_worker_status"] = "reported_not_current_code_reverified" if provenance.get("worker_sha256") else "not_recorded"
+            tuning_hash = (payload.get("instrument_context") or {}).get("tuning_metadata_sha256")
+            if tuning_hash is not None:
+                registry = ROOT / "program/instrument.json"
+                if not digest_value(tuning_hash) or not registry.is_file() or sha256(registry) != tuning_hash:
+                    raise ValueError("stale_instrument_context")
+                row["external_context_hashes"] = {"program/instrument.json": tuning_hash}
+            row["metadata"] = evidence_metadata(payload)
+            if slot == "comparisons":
+                selected_comparison_flags(row, payload)
+            if sha256(path) != before:
+                raise ValueError("artifact_changed_during_read")
+            row["status"] = "verified"
+            verified[slot] = payload
+            run_hashes[selectors[slot]] = before
+            run_hashes.update(upstream)
+            # Include PCM identities as graph inputs, not silently trusted metadata.
+            run_hashes.update({name: identity for name in matches})
+            external_hashes.update(row["external_context_hashes"])
+        except (ValueError, TypeError, KeyError, OSError) as exc:
+            reason = str(exc)
+            known = {"incompatible_artifact_type", "schema_version", "analysis_input_identity", "original_source_identity",
+                "inconsistent_upstream_hashes", "inconsistent_manifest_hashes", "missing_or_stale_manifest_binding", "stale_upstream",
+                "unrelated_analysis_input", "modified_analysis_media", "missing_derivative_lineage", "missing_analysis_binding",
+                "settings_hash", "stale_instrument_context", "metadata_limit", "artifact_changed_during_read"}
+            known.update(("missing_source_time_mapping", "source_time_mapping"))
+            known.add("canonical_pcm_binding")
+            known.add("invalid_metadata_shape")
+            row["status"] = "rejected_" + (reason if reason in known else "invalid_payload_or_upstream")
+            row["metadata"] = None
+    return rows, verified, run_hashes, external_hashes
+
+
+def selected_comparison_flags(row: dict, payload: dict) -> list[dict]:
+    candidates = payload.get("flags", [])
+    if not isinstance(candidates, list) or len(candidates) > MAX_EVENTS:
+        raise ValueError("Selected comparison flags must contain at most 20000 candidates")
+    flags = []
+    for item in candidates:
+        if not isinstance(item, dict) or item.get("status") != "needs_review" or item.get("performance_issue_confirmed") is not False:
+            raise ValueError("Selected comparison flags must remain unconfirmed review candidates")
+        start = number(item.get("source_time_seconds"), "selected flag source start")
+        end = number(item.get("end_seconds", start), "selected flag source end")
+        if end < start:
+            raise ValueError("Selected comparison flag end precedes start")
+        flags.append({**item, "selected_evidence_slot": "comparisons", "selected_artifact": row["selector"],
+            "selected_artifact_sha256": row["artifact_sha256"], "timing_status": row["timing_status"]})
+    return flags
+
+
+def archive_current(run_dir: Path) -> str | None:
+    """Preserve prior derived presentation state before replacing DAG/flags."""
+    names = ("dag.json", "flags.json", "report.html", "markers.json", "markers.csv")
+    contents = {}
+    remaining = 64_000_000
+    for name in names:
+        path = run_dir / name
+        if path.is_symlink():
+            raise ValueError("Cannot archive a symlinked graph/report artifact")
+        if path.is_file():
+            if path.stat().st_size > remaining:
+                raise ValueError("Graph history snapshot exceeds 64 MB")
+            with path.open("rb") as handle:
+                content = handle.read(remaining + 1)
+            if len(content) > remaining:
+                raise ValueError("Graph history snapshot exceeds 64 MB")
+            contents[name] = content
+            remaining -= len(content)
+    if not contents:
+        return None
+    if sum(len(content) for content in contents.values()) > 64_000_000:
+        raise ValueError("Graph history snapshot exceeds 64 MB")
+    hashes = {name: hashlib.sha256(content).hexdigest() for name, content in contents.items()}
+    snapshot = hashlib.sha256(json.dumps(hashes, sort_keys=True).encode()).hexdigest()
+    folder = run_dir / "graph-history" / snapshot
+    if (run_dir / "graph-history").is_symlink() or folder.is_symlink():
+        raise ValueError("Graph history cannot contain symbolic links")
+    folder.mkdir(parents=True, exist_ok=True)
+    receipt = {"schema_version": 1, "status": "prior_derived_snapshot_not_revalidated", "artifact_hashes": hashes,
+               "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; operator-authorized graph rerun"}
+    contents["receipt.json"] = (json.dumps(receipt, indent=2, sort_keys=True) + "\n").encode()
+    for name, content in contents.items():
+        target = folder / name
+        if target.is_symlink():
+            raise ValueError("History artifact cannot be a symbolic link")
+        try:
+            with target.open("xb") as handle:
+                os.chmod(target, 0o600)
+                handle.write(content)
+                handle.flush()
+                os.fsync(handle.fileno())
+        except FileExistsError:
+            if target.read_bytes() != content:
+                raise ValueError("Existing graph history is inconsistent; preserve and inspect it")
+    if any(sha256(run_dir / name) != expected for name, expected in hashes.items()):
+        raise ValueError("Prior graph/report changed during archive; rerun against stable artifacts")
+    return folder.relative_to(run_dir).as_posix()
+
+
 def automatic_phrase_flags(phrases: dict, source_start: float) -> list[dict]:
     """Discover review spans and relative recurrence differences without a score.
 
@@ -326,7 +596,7 @@ def automatic_phrase_flags(phrases: dict, source_start: float) -> list[dict]:
     return list(unique.values())
 
 
-def build(run_dir: Path, reference_path: Path | None = None) -> tuple[dict, dict]:
+def build(run_dir: Path, reference_path: Path | None = None, evidence_selectors: dict | None = None) -> tuple[dict, dict]:
     manifest = load(run_dir / "manifest.json")
     original_hash = manifest.get("source", {}).get("sha256")
     if not isinstance(original_hash, str) or len(original_hash) != 64:
@@ -341,6 +611,7 @@ def build(run_dir: Path, reference_path: Path | None = None) -> tuple[dict, dict
         if fingerprint:
             processed_hashes[fingerprint] = bool(artifact_path.is_file() and sha256(artifact_path) == fingerprint)
     start = number(manifest.get("timeline", {}).get("audio_start_seconds", 0), "audio_start_seconds")
+    selected_rows, selected_payloads, selected_hashes, external_hashes = select_evidence(run_dir, manifest, evidence_selectors)
     registry_path = ROOT / "program/dags/guitar-take.json"
     registry = load(registry_path)
     payloads, stage_rows = {}, []
@@ -366,6 +637,7 @@ def build(run_dir: Path, reference_path: Path | None = None) -> tuple[dict, dict
                 row["settings"] = payload.get("analysis", payload.get("settings"))
                 row["status"] = lineage(payload, original_hash, processed_hashes)
                 row["analysis_input_sha256"] = payload.get("source", {}).get("sha256")
+                row["timing_status"] = timing_status(manifest, row["analysis_input_sha256"])
                 if not row["status"].startswith("rejected"):
                     payloads[stage["id"]] = payload
         stage_rows.append(row)
@@ -388,10 +660,15 @@ def build(run_dir: Path, reference_path: Path | None = None) -> tuple[dict, dict
     phrases = payloads.get("phrases", {})
     automatic_flags = automatic_phrase_flags(phrases, start)
     performance["flags"].extend(automatic_flags)
+    if "comparisons" in selected_payloads:
+        performance["flags"].extend(selected_comparison_flags(selected_rows["comparisons"], selected_payloads["comparisons"]))
     if automatic_flags and not (reference and reference.get("approved") is True):
         performance["status"] = "automatic_phrase_review_candidates"
     notes = payloads.get("notes", {}).get("interpretation", {})
     flags = {"schema_version": 1, "source_sha256": original_hash, "analysis_lineage": analysis_state,
+             "timing_status": timing_status(manifest, analysis.get("source", {}).get("sha256")),
+             "evidence_artifacts": {slot: {"selector": row["selector"], "sha256": row["artifact_sha256"]}
+                                    for slot, row in selected_rows.items() if row["status"] == "verified"},
              "timeline": {"audio_start_seconds": start, "axis": "original_source_stream_timestamps_seconds"},
              "reference": reference_receipt, "musical_context": {"tonic": notes.get("tonic"), "mode": notes.get("mode"),
                  "status": "nullable_experimental_context_not_confirmed_intent"},
@@ -404,6 +681,7 @@ def build(run_dir: Path, reference_path: Path | None = None) -> tuple[dict, dict
     flags["flags"].sort(key=lambda item: (item["source_time_seconds"], item["kind"]))
     encoded = json.dumps(flags, indent=2, allow_nan=False) + "\n"
     flags_hash = hashlib.sha256(encoded.encode()).hexdigest()
+    artifact_hashes.update(selected_hashes)
     artifact_hashes["flags.json"] = flags_hash
     for row in stage_rows:
         if row["id"] == "flags":
@@ -417,8 +695,16 @@ def build(run_dir: Path, reference_path: Path | None = None) -> tuple[dict, dict
     graph = {"schema_version": 1, "kind": "artifact_provenance_DAG_not_an_execution_engine", "source_sha256": original_hash,
              "registry_sha256": sha256(registry_path), "artifact_hashes": artifact_hashes,
              "reference": reference_receipt, "stages": stage_rows, "flags_sha256": flags_hash,
+             "selected_evidence": selected_rows, "external_context_hashes": external_hashes,
+             "timing_status": flags["timing_status"],
              "instrument_context": registry["instrument_context"], "listening_accepted": False,
              "report_binding": "report_stage_is_prior_snapshot_not_validated_input_to_avoid_summary_self_reference"}
+    for name, expected in artifact_hashes.items():
+        if name != "flags.json" and sha256(run_dir / name) != expected:
+            raise ValueError("Graph input changed during evaluation; rerun against stable artifacts")
+    for name, expected in external_hashes.items():
+        if sha256(ROOT / name) != expected:
+            raise ValueError("Instrument context changed during graph evaluation")
     return graph, flags
 
 
@@ -426,17 +712,22 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("run_dir", type=Path)
     parser.add_argument("--reference", type=Path)
+    for slot in EVIDENCE_SLOTS:
+        parser.add_argument(f"--{slot}-artifact")
     args = parser.parse_args()
     try:
         directory = args.run_dir.expanduser().resolve(strict=True)
         reference = args.reference.expanduser().resolve(strict=True) if args.reference else None
         if reference in {directory / "flags.json", directory / "dag.json"}:
             raise ValueError("Reference cannot be an output artifact")
-        graph, flags = build(directory, reference)
+        selectors = {slot: getattr(args, f"{slot}_artifact") for slot in EVIDENCE_SLOTS if getattr(args, f"{slot}_artifact") is not None}
+        graph, flags = build(directory, reference, selectors)
+        snapshot = archive_current(directory)
+        graph["prior_snapshot"] = snapshot
         atomic_write(directory / "flags.json", json.dumps(flags, indent=2, allow_nan=False) + "\n")
         atomic_write(directory / "dag.json", json.dumps(graph, indent=2, allow_nan=False) + "\n")
         print(json.dumps({"dag_json": str(directory / "dag.json"), "flags_json": str(directory / "flags.json"),
-                          "status": flags["status"], "flag_count": len(flags["flags"])}))
+                          "status": flags["status"], "flag_count": len(flags["flags"]), "prior_snapshot": snapshot}))
         return 0
     except (OSError, ValueError, TypeError, KeyError) as exc:
         print(f"dag: {exc}", file=sys.stderr)

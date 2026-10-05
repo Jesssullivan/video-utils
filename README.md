@@ -75,6 +75,9 @@ overwrite the input.
 | `just pitch INPUT RUN_DIR [SECONDS]` | Inspect bounded pitch candidates including the ending |
 | `just meter RUN_DIR` | Rank metrical hypotheses or retain unknown |
 | `just tonal RUN_DIR` | Inspect tonal collection hypotheses with abstention |
+| `just evaluate RUN_DIR [BPM] [BACKEND] [SECONDS]` | Extend an existing validated render through optional evidence tools |
+| `just corpus MANIFEST [LOCAL_ROOT]` | Validate sparse review metadata without reading audio |
+| `just au-state-check` | Check isolated native parameter-state behavior |
 | `just au-spike-check` | Check the compiled Darwin development scaffold |
 | `just au-automation-check` | Check isolated native event/ramp behavior |
 
@@ -94,7 +97,7 @@ milestone. Model inference is optional:
 the initial registry contains no downloaded, hash-qualified models.
 
 The repository includes a versioned tool contract, a local MCP stdio server,
-and nineteen per-tool skills for researching and tuning restoration, analysis, comparison, and review.
+and twenty per-tool skills for researching and tuning restoration, analysis, comparison, and review.
 Inspect `just tool-info NAME` or launch
 `just mcp` from the repository root. Local invocation is
 separate from connecting an external agent client; see
@@ -123,7 +126,7 @@ To reproduce the richer pass with an approximate 178 BPM operator seed:
 
 ```bash
 just analysis-setup
-VIDEO_UTILS_ANALYSIS_PYTHON="$PWD/.venv/bin/python" just demo INPUT 178 librosa
+VIDEO_UTILS_ANALYSIS_PYTHON="$PWD/.venv/bin/python" just demo INPUT 178 librosa extended
 ```
 
 Today's operator requests are preserved in [the prompt record](docs/agent-notes/2026-10-05-user-prompts.md).
@@ -132,3 +135,15 @@ The active [ten-hour work plan](docs/spec/TEN_HOUR_PLAN.md) and
 
 The actual local comparison report includes manual audio/video seeking to review
 spans. Native editor imports and video overlays remain a future milestone.
+
+For an already rendered take, run the optional evidence workflow without encoding
+media again:
+
+```bash
+VIDEO_UTILS_ANALYSIS_PYTHON="$PWD/.venv/bin/python" just evaluate RUN_DIR 178 librosa 20
+```
+
+It preserves a bounded snapshot before analysis changes, uses exact returned
+receipt paths for graph selections, and records failures without discarding the
+master. Dependency/model installation remains explicit. The `pipeline` MCP tool
+evaluates these receipts; the CLI workflow executes the tools.
