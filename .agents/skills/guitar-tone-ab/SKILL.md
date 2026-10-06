@@ -5,7 +5,7 @@ description: Attribute low-end and thin/nasal balance changes to restoration sta
 
 # Compare stage files at matched level before judging tone
 
-**Hook (draft):** MCP tool `tone_ab` and prompt `guitar-tone-ab` once root registers the descriptor; until then use the direct worker `python3 scripts/tone_ab.py run --run-dir <run> --common-region-start 5.0 --common-region-end <end> [--candidate-run-dir <run2>] [--timeout-seconds 1200]`. `python3 scripts/tone_ab.py describe` prints the typed descriptor draft. Read [the frozen contract and preregistration](../../../docs/spec/sprints/TONE_S2.md) before a run.
+**Hook:** Hook `tone_ab`, MCP tool `tone_ab` and prompt `guitar-tone-ab` (admitted in `program/tools.json`; `just tool-info tone_ab` prints the descriptor). Operators run `just tone-ab RUN_DIR START END [TIMEOUT]`; the direct worker is `python3 scripts/tone_ab.py run --run-dir <run> --common-region-start 5.0 --common-region-end <end> [--candidate-run-dir <run2>] [--timeout-seconds 1200]`, and `python3 scripts/tone_ab.py describe` prints the same descriptor. The typed hook has no output field; it always writes a fresh default directory. Read [the frozen contract and preregistration](../../../docs/spec/sprints/TONE_S2.md) before a run.
 
 **Capability:** experimental, measurement-only. Output is a fresh directory under `artifacts/s2/tone_ab/<run_id>-<UTC>/` with `tone-ab.json`, `attack-positions.json`, one `trial-lowshelf.wav` and six blind excerpt files. The worker refuses to write inside the run directory, a candidate run directory or any `artifacts/runs/*` path, and fails if any protected file's sha256, size or mtime changes.
 

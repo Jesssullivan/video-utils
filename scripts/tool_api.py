@@ -27,7 +27,8 @@ S2_EXACT_PATH_FIELDS = {'annotation_markers': ('run_dir', 'output_dir'),
                         'flags_triage': ('run_dir', 'output'),
                         'corpus_eval_s2': ('manifest', 'local_root', 'proposals', 'output'),
                         'marked_compact': ('run_dir', 'picture_preview', 'output'),
-                        'phrase_timing': ('analysis', 'phrases', 'output_root')}
+                        'phrase_timing': ('analysis', 'phrases', 'output_root'),
+                        'tone_ab': ('run_dir', 'candidate_run_dir')}
 PHRASE_TIMING_MAX_INPUT_BYTES = 64 * 1024 * 1024
 S2_DIGEST_FIELDS = {'annotation_markers': 'store_sha256', 'corpus_eval_s2': 'proposals_sha256'}
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
@@ -646,6 +647,8 @@ def validate_tool_arguments(name, args):
             value = args[field]
             if ('\x00' in value or ':' in value or '\\' in value or '..' in value.split('/')):
                 raise ValidationError('S2 paths require exact local paths without traversal/NUL/URL')
+    if name == 'tone_ab' and args['common_region_end'] - args['common_region_start'] < 45:
+        raise ValidationError('tone_ab common region must be at least 45 seconds long')
     if name in S2_DIGEST_FIELDS:
         digest = args[S2_DIGEST_FIELDS[name]]
         if len(digest) != 64 or any(character not in '0123456789abcdef' for character in digest):
@@ -725,6 +728,20 @@ def worker_command(name, args):
         directory = s2_input_directory(args['run_dir'], ('flags.json',))
         output = s2_fresh_output(args['output'], suffix='.json', outside=(directory,))
         return head + [str(ROOT / 'scripts/flags_triage.py'), str(directory), '--output', str(output)]
+    if name == 'tone_ab':
+        # No output field: the worker writes only a fresh ROOT/artifacts/s2/tone_ab/<run_id>-<UTC>/ and
+        # refuses any output inside a run directory or artifacts/runs/*; inputs are read only.
+        directory = s2_input_directory(args['run_dir'], ('manifest.json',))
+        command = head + [str(ROOT / 'scripts/tone_ab.py'), 'run', '--run-dir', str(directory),
+                          '--common-region-start', repr(float(args['common_region_start'])),
+                          '--common-region-end', repr(float(args['common_region_end'])),
+                          '--timeout-seconds', str(args.get('timeout_seconds', 1200))]
+        if 'candidate_run_dir' in args:
+            candidate = s2_input_directory(args['candidate_run_dir'], ('manifest.json',))
+            if candidate == directory:
+                raise ToolError('tone_ab candidate_run_dir must differ from run_dir')
+            command += ['--candidate-run-dir', str(candidate)]
+        return command
     if name == 'corpus_eval_s2':
         manifest, boundary = corpus_split_paths(args)
         proposals = s2_input_file(args['proposals'], 20_000_000)

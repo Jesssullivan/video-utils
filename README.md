@@ -128,7 +128,8 @@ overwrite the input.
 | `just markers RUN_DIR` | Export generic timestamp/span review markers |
 | `just marked-video RUN_DIR OUTPUT [SELECTION]` | Render a separate preview with phrase review callouts |
 | `just marked-compact RUN_DIR --picture-preview DIR --arrangement-markers SELECTOR` | Copy-only compact marked movie from a verified audio run and arrangement preview |
-| `just phrase-timing ANALYSIS PHRASES OUTPUT_ROOT [RUN_KIND]` | Experimental per-phrase offsets from the recorded click; descriptive, never a grade |
+| `just phrase-timing ANALYSIS PHRASES OUTPUT_ROOT [RUN_KIND]` | Experimental per-phrase offsets from the recorded click; measured offsets only (direction withheld on real takes), never a grade |
+| `just tone-ab RUN_DIR START END [TIMEOUT]` | Level-matched stage tone A/B and blind excerpt pairs; one unreviewed low-shelf trial, never adopts a master |
 | `just web-jobs-serve` / `just web-jobs-status` | Foreground loopback job control API / read-only job counts |
 | `just web-install` / `web-build` / `web-dev` / `web-serve` / `web-test` | Local loopback web fixture (prototype) |
 | `just au-auval-step` | Read-only AU discovery/auval step; never installs or registers |
@@ -207,7 +208,7 @@ spotify-basic-pitch-0.4.0-onnx`, then `just basic-pitch-runtime-setup /path/to/p
 and `just basic-pitch-runtime-check`. See [runtime qualification](docs/research/BASIC_PITCH_QUALIFICATION.md).
 
 The repository includes a versioned tool contract, a local MCP stdio server,
-and thirty-eight per-tool skills (38 typed tools) for researching and tuning restoration, analysis, comparison, and review.
+and thirty-nine per-tool skills (39 typed tools) for researching and tuning restoration, analysis, comparison, and review.
 Inspect `just tool-info NAME` or launch
 `just mcp` from the repository root. Local invocation is
 separate from connecting an external agent client; see

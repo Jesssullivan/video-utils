@@ -2920,6 +2920,86 @@
         "acceptance": "Offsets are descriptive measurements; they establish no rush/drag verdict, performance grade, missed or extra note, or listening acceptance without an operator spot-check.",
         "max_comparison_candidates_default": 3
       }
+    },
+    {
+      "name": "tone_ab",
+      "title": "Stage-attributed level-matched tone A/B",
+      "description": "Read an existing run's source, pure-denoise, tone/dynamics and delivery stage files (sha256- and native-extent-verified), static-gain match them over an explicit common region (>=5 s, >=45 s long), report six mixture-band energies and 20 ms attack energy/centroid at hash-bound analysis positions, render one reversible preregistered low-shelf trial and three blind 15 s excerpt pairs into a fresh artifacts/s2/tone_ab directory. Never writes a run directory or adopts a master.",
+      "intent": "Attribute low-end and thin/nasal balance changes to pipeline stages at matched presentation level, and hand the operator blind excerpt pairs, without claiming perception, room response, fan/music separation or note identity.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing run directory with manifest.json and hash-recorded source/denoised/cleaned (processed optional) WAV stage files; read-only."
+          },
+          "candidate_run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Optional second run of the same source sha256; its stage files become candidate_* arms, flagged confounded when its denoise basis differs."
+          },
+          "common_region_start": {
+            "type": "number",
+            "minimum": 5,
+            "maximum": 86400,
+            "description": "Native-source seconds; the 0-5 s setup interval is never measured."
+          },
+          "common_region_end": {
+            "type": "number",
+            "minimum": 50,
+            "maximum": 86400,
+            "description": "Exclusive end in native-source seconds; must be <= run duration and >= start + 45."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1800,
+            "default": 1200,
+            "description": "Overall monotonic deadline; measurement stops min(10 s, 5%) early for the failure record, and each FFmpeg child is bounded by min(120 s, remaining)."
+          }
+        },
+        "required": [
+          "run_dir",
+          "common_region_start",
+          "common_region_end"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-tone-ab/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "level_matched_mixture_band_and_attack_measurements_with_unreviewed_trial",
+      "limitations": [
+        "Band and attack values are mixture energy; fan and music are not separated, and a 20-45 Hz level is not a measured played C1 fundamental.",
+        "processed.wav combines EQ and compressor; the two cannot be attributed separately.",
+        "Attack positions are unverified detector hypotheses with +/-5 ms hop quantization and uncalibrated detector delay.",
+        "The low-shelf trial is a single preregistered, unreviewed arm (rejected_or_unreviewed_trial); it is never adopted or forwarded to a capture profile.",
+        "Excerpts are for operator listening; preference, fullness and nasal quality stay null until the operator responds. True peak is not measured."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "denoise",
+          "apply_capture_profile",
+          "bpm"
+        ],
+        "enforced": false,
+        "note": "Requires an existing run with manifest-recorded stage hashes; attack panels need an analysis.json bound to the run's denoised sha256 (run dir or capture-profile parent run), otherwise attack metrics are null with a reason."
+      },
+      "agent_workflow": {
+        "identify": "Confirm the run, its stage hashes, native extent and the musical common region after the 0-5 s setup interval; note whether processed.wav exists.",
+        "research": "Read docs/spec/sprints/TONE_S2.md and docs/spec/future/MASTERING_AND_CAPTURE_RESPONSE.md; keep measurements, inferences and listening claims separate.",
+        "iterate": "Run once per fixed region; do not tune the shelf, bands or region after seeing results. Compare candidates only against the same source sha256.",
+        "acceptance": "match_lu_delta <= 0.3 LU and verified extents are measurement checks only; listening acceptance, preference and any EQ floor change remain root/operator decisions.",
+        "max_comparison_candidates_default": 1
+      }
     }
   ]
 }

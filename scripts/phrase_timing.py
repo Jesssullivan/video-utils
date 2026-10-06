@@ -4,6 +4,11 @@
 Offsets describe detected broadband attack candidates relative to a fitted periodic
 high-frequency transient model. They are not performance grades, not note identities
 and not intended-rhythm comparisons; the click identity is unverified.
+
+On a real take only the measured signed offsets (median, IQR, count) are reported;
+the ahead/behind direction is withheld because physical capture latency and click
+identity are uncalibrated. A direction is emitted only for a generated known-offset
+fixture (run_kind synthetic_fixture). No operator calibration input exists yet.
 """
 from __future__ import annotations
 
@@ -18,7 +23,7 @@ import sys
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2  # 2: real-take direction withheld (tendency_label replaced by direction fields)
 MIN_CLICK_PROXIMAL_ONSETS = 4
 PROXIMAL_MAX_SECONDS = .060
 OBSERVED_CLICK_TOLERANCE_SECONDS = .025
@@ -31,6 +36,15 @@ FIXED_FIELDS = {"click_identity": "unverified", "physical_capture_latency": "unc
                 "listening_ab": "not_performed", "performance_grading": "not_performed",
                 "expected_rhythm_reference": None, "onset_detector_delay_compensated_in_source_events": False}
 ABSTAIN_REASONS = ("fewer_than_4_click_proximal_onsets", "no_click_grid", "span_outside_analysis")
+REAL_TAKE_DIRECTION_STATUS = "withheld_uncalibrated"
+SYNTHETIC_DIRECTION_STATUS = "synthetic_known_offset_fixture"
+DIRECTION_POLICY = {
+    "real_take": "withheld_until_operator_calibration; measured signed offsets only, no ahead/behind label",
+    "synthetic_fixture": "emitted against generated known offsets; validates the measurement only",
+    "operator_calibration": None,
+    "operator_calibration_input_supported": False,
+    "withheld_because": ["physical_capture_latency_uncalibrated", "click_identity_unverified",
+                         "detector_delay_from_synthetic_probes_only", "no_operator_spot_check"]}
 
 _spec = importlib.util.spec_from_file_location("phrase_timing_rhythm", Path(__file__).with_name("rhythm.py"))
 rhythm = importlib.util.module_from_spec(_spec)
@@ -140,6 +154,7 @@ def _summary_ms(values: list[float]) -> dict:
 
 
 def tendency(median_ms: float | None) -> str | None:
+    """Direction class of a median offset; only emitted for synthetic known-offset fixtures."""
     if median_ms is None:
         return None
     if abs(median_ms) <= WITHIN_MS:
@@ -148,7 +163,7 @@ def tendency(median_ms: float | None) -> str | None:
 
 
 def measure_phrase(phrase: dict, onsets: list[float], reference: ClickReference, delays: dict,
-                   observed: list[float], audio_start: float, duration: float) -> dict:
+                   observed: list[float], audio_start: float, duration: float, run_kind: str = "real_take") -> dict:
     start, end = phrase["span_source_seconds"]
     span = [start - audio_start, end - audio_start]
     entry = {"phrase_id": phrase["phrase_id"], "label": phrase.get("label"), "label_basis": phrase.get("label_basis"),
@@ -157,7 +172,8 @@ def measure_phrase(phrase: dict, onsets: list[float], reference: ClickReference,
              "additional_onsets_in_window_count": 0, "median_offset_ms": None, "iqr_ms": None, "iqr_width_ms": None,
              "median_offset_ms_delay_compensated": None, "iqr_ms_delay_compensated": None,
              "observed_click_basis_median_offset_ms": None, "observed_click_basis_count": 0,
-             "click_reference_extrapolated": None, "tendency_label": None, "tendency_basis": None,
+             "click_reference_extrapolated": None, "offset_summary_basis": None,
+             "direction": None, "direction_status": None, "direction_basis": None,
              "status": "abstained", "abstain_reason": None}
     for key in ("source_marker_name", "source_index"):
         if key in phrase:
@@ -206,8 +222,13 @@ def measure_phrase(phrase: dict, onsets: list[float], reference: ClickReference,
         entry["observed_click_basis_median_offset_ms"] = statistics.median(observed_offsets) * 1000
     entry["observed_click_basis_count"] = len(observed_offsets)
     primary = entry["median_offset_ms_delay_compensated"]
-    entry["tendency_basis"] = "median_offset_ms_delay_compensated" if primary is not None else "median_offset_ms"
-    entry["tendency_label"] = tendency(primary if primary is not None else entry["median_offset_ms"])
+    basis = "median_offset_ms_delay_compensated" if primary is not None else "median_offset_ms"
+    entry["offset_summary_basis"] = basis
+    if run_kind == "synthetic_fixture":
+        entry.update(direction=tendency(entry[basis]), direction_status=SYNTHETIC_DIRECTION_STATUS,
+                     direction_basis=basis)
+    else:
+        entry["direction_status"] = REAL_TAKE_DIRECTION_STATUS
     entry["status"] = "measured"
     return entry
 
@@ -222,7 +243,8 @@ def measure(analysis: dict, phrases: list[dict], *, phrase_basis: str, run_kind:
     duration = float((analysis.get("analysis") or {}).get("duration_seconds") or 0.0)
     onsets = sorted(event["audio_relative_seconds"] for event in analysis.get("events", []) if event.get("kind") == ONSET_KIND)
     observed = observed_click_times(analysis)
-    entries = [measure_phrase(phrase, onsets, reference, delays, observed, audio_start, duration) for phrase in phrases]
+    entries = [measure_phrase(phrase, onsets, reference, delays, observed, audio_start, duration, run_kind)
+               for phrase in phrases]
     reasons = {reason: sum(entry["abstain_reason"] == reason for entry in entries) for reason in ABSTAIN_REASONS}
     measured = [entry for entry in entries if entry["status"] == "measured"]
     drift = analysis.get("click_grid_drift") or {}
@@ -237,14 +259,21 @@ def measure(analysis: dict, phrases: list[dict], *, phrase_basis: str, run_kind:
                                   "drift_status": drift.get("status"), "drift_confidence_label": drift.get("confidence_label"),
                                   "identity": "periodic_high_frequency_transients_not_verified_metronome"},
               "detector_delay": delays,
-              "rules": {"offset": "onset - nearest predicted click; negative = ahead of click, positive = behind click",
+              "direction_policy": DIRECTION_POLICY,
+              "claims": {"measured": ["median_offset_ms", "iqr_ms", "iqr_width_ms", "click_proximal_onset_count",
+                                      "median_offset_ms_delay_compensated", "observed_click_basis_median_offset_ms"],
+                         "inferred": ["direction"] if run_kind == "synthetic_fixture" else [],
+                         "listening": []},
+              "rules": {"offset": ("onset - nearest predicted click in ms; sign convention only (negative = onset "
+                                   "candidate precedes the modelled click); uncalibrated on real takes"),
                         "click_proximal_window_seconds": f"min({PROXIMAL_MAX_SECONDS}, local_period/4)",
                         "multiple_onsets_per_click": "nearest counts; the rest are additional_onsets_in_window_count",
                         "off_click_onsets": "subdivisions or other attacks, not errors",
                         "minimum_click_proximal_onsets": MIN_CLICK_PROXIMAL_ONSETS,
                         "observed_click_tolerance_seconds": OBSERVED_CLICK_TOLERANCE_SECONDS,
-                        "tendency_threshold_ms": WITHIN_MS,
-                        "tendency_meaning": "descriptive sign of the median only; not a performance verdict"},
+                        "direction_threshold_ms": WITHIN_MS,
+                        "direction_meaning": ("synthetic_fixture only: sign class of the median against generated "
+                                              "known offsets; real takes withhold it; never a performance verdict")},
               "summary": {"phrase_count": len(entries), "measured_count": len(measured),
                           "abstained_count": len(entries) - len(measured), "abstain_reason_counts": reasons},
               "phrases": entries,
@@ -253,7 +282,8 @@ def measure(analysis: dict, phrases: list[dict], *, phrase_basis: str, run_kind:
                   "The click model is fitted to unverified periodic high-frequency transients; a guitar attack can displace or mask a click.",
                   "Detector delay compensation uses synthetic-probe medians; real attacks differ and physical capture latency is uncalibrated.",
                   "Phrase spans are review candidates or reference-conditioned alignments, not detected musical boundaries.",
-                  "No intended-rhythm reference is used; offsets are descriptive and do not identify note-level or performance faults."]}
+                  "No intended-rhythm reference is used; offsets are descriptive and do not identify note-level or performance faults.",
+                  "Real-take direction (ahead/behind) is withheld until an operator calibration exists; a signed offset is not a timing-performance verdict."]}
     return result
 
 
@@ -341,7 +371,9 @@ def main() -> int:
         result = json.loads(path.read_text(encoding="utf-8"))
         print(json.dumps({"phrase_timing_json": str(path), "summary": result["summary"],
                           "click_reference": result["click_reference"]["basis"],
-                          "real_take_status": result["real_take_status"]}))
+                          "real_take_status": result["real_take_status"],
+                          "direction_policy": result["direction_policy"]["real_take" if result["run_kind"] == "real_take"
+                                                                         else "synthetic_fixture"]}))
         return 0
     except (ValueError, OSError, json.JSONDecodeError, KeyError, TypeError) as exc:
         print(f"phrase_timing: {exc}", file=sys.stderr)

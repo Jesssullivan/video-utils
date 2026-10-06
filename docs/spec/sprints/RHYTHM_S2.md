@@ -190,7 +190,12 @@ Each phrase entry contains:
 - `observed_click_basis_median_offset_ms`, which uses observed click candidates
   within 25 ms of the prediction, else null.
 - `tendency_label` ∈ {`ahead_of_click`, `behind_click`, `within_5_ms`} (a
-  descriptive sign only).
+  descriptive sign only). **Amended 2026-10-06 (root_admission_d, schema 2):**
+  replaced by `direction`, `direction_status` and `direction_basis`. On
+  `real_take`, `direction` is null with `direction_status: withheld_uncalibrated`
+  and only the measured offsets are reported; the three labels are emitted only
+  for `synthetic_fixture` (generated known offsets). No operator calibration
+  input exists yet.
 - `status` ∈ {`measured`, `abstained`}, and `abstain_reason` ∈
   {`fewer_than_4_click_proximal_onsets`, `no_click_grid`, `span_outside_analysis`}.
 
@@ -430,7 +435,8 @@ seed211/seed307 parameters were rendered, before the eval receipt.
      and a non-boundary name. Exclusions are counted.
    - The observed-click set is the `periodic_high_frequency_candidate` events
      plus the drift `tracked_events`.
-   - Each phrase records `click_reference_extrapolated` and `tendency_basis`.
+   - Each phrase records `click_reference_extrapolated` and `tendency_basis`
+     (schema 2: `offset_summary_basis`; see the 2026-10-06 amendment above).
 7. **A/B layout.**
    - Each arm is its own 48 kHz render per seed: 44 clicks, with attacks on
      clicks 2, 4, …, 40 (isolated: +P/2; coincident: +Δ cycling

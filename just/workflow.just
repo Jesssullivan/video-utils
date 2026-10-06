@@ -267,6 +267,10 @@ artifact-id SELECTOR:
 phrase-timing analysis phrases output_root run_kind="real_take":
     python3 scripts/phrase_timing.py --analysis {{quote(analysis)}} --phrases {{quote(phrases)}} --output-root {{quote(output_root)}} --run-kind {{quote(run_kind)}}
 
+# Level-matched stage tone A/B with one unreviewed low-shelf trial; never adopts a master.
+tone-ab run_dir start end timeout="1200":
+    python3 scripts/tone_ab.py run --run-dir {{quote(run_dir)}} --common-region-start {{quote(start)}} --common-region-end {{quote(end)}} --timeout-seconds {{quote(timeout)}}
+
 # A running share_export worker keeps its own session and may outlive the server up to its own timeout (<= 900 s).
 # Private loopback job control API, foreground only (Ctrl-C stops the server, not a running job). Not a daemon.
 web-jobs-serve port="0" state_root="artifacts/web-jobs":
