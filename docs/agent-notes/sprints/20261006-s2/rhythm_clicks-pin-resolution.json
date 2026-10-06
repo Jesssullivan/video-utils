@@ -73,5 +73,61 @@
    "skip_reasons": "sealed A/B one-shot"
   },
   "lane_code_changed_by_repair": false
+ },
+ "post_merge_main_recheck": {
+  "date": "2026-10-06",
+  "kind": "phase4_repair_2_post_merge_main",
+  "audit_must_fix": "ROOT-OWNED, not a lane defect: merge 736f406 landed the lane's scripts/rhythm.py (cd719914...) without the paired root pin patch; main is broken for both S1 test modules.",
+  "lane_action": "No root-owned file edited (lane rules forbid it). Lane re-verified the same root patch against main 736f406 and records the post-merge measurement. Root must apply root_patch (step_1_vendor + step_2_unified_diff) or record an explicit decision to accept the S1 break.",
+  "main_commit": "736f406e7eb979c11fe1811ed555260544dae3ed",
+  "lane_commit_merged": "61e4a2f48b5a99179ac185c1c8816d2a0f429fd4",
+  "hashes_on_main": {
+   "scripts/rhythm.py": "cd719914d933b03faec6e1c92afbaee232797ec247427cc87038a1e67b15e8d3",
+   "S1 pin for scripts/rhythm.py": "264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9",
+   "scripts/frozen/ present": false,
+   "FROZEN map present": false,
+   "patched_files_blob_identical_lane_head_vs_main": true
+  },
+  "verification": {
+   "method": "git archive 736f406 into a scratch directory (not a worktree); FFMPEG/FFPROBE exported; PYTHONPATH=tests python3 -m unittest test_phrase_proposal_s1 test_phrase_localization_pilot",
+   "main_736f406_unpatched_lane_measured": {
+    "ran": 38,
+    "failures": 4,
+    "errors": 6,
+    "skipped": 7,
+    "pin_raises": {
+     "pinned_dependency_changed:scripts/rhythm.py": 11,
+     "pinned_source_changed:scripts/rhythm.py": 1
+    },
+    "same_counts_without_FFMPEG_FFPROBE_env": true
+   },
+   "main_736f406_unpatched_auditor_reported": {
+    "ran": 38,
+    "failures": 1,
+    "errors": 9,
+    "skipped": 7,
+    "note": "Auditor's export under /tmp; same 10 non-passing tests in total, split differently between FAIL and ERROR. Lane did not reproduce the 1/9 split; cause unknown."
+   },
+   "main_736f406_with_root_patch": {
+    "ran": 38,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 7,
+    "pin_raises": 0,
+    "frozen_copy_sha256": "264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9",
+    "git_apply_check": "passed",
+    "patched_sha256": {
+     "scripts/phrase_proposal_s1.py": "85a2ba1d68534ed4adde6363cb246c5db3fa50da1bcce9f461ee656652091e37",
+     "scripts/phrase_localization_pilot.py": "b379a8911b25f3cc51d4f25b0886e822876854c6400a22f937d991e85323e62c",
+     "tests/test_phrase_localization_pilot.py": "7c88b5215c7a88c86bdcae2375f3c71cfbe58882ef29475c3fb3d0ccb2771cc8"
+    }
+   },
+   "remaining_failure": "test_owned_exited_leader_live_inert_child_cleanup; also fails at merge-base 4b87484 in this sandbox; unrelated to rhythm.py",
+   "class": "measurement (unit-test counts); no media, listening or real-take claim"
+  },
+  "correction": "The earlier receipt said the patch 'must land in the same admin merge'. It did not land in 736f406, so main currently has the 'lane_head_unpatched' state. The merge-base and patched counts recorded earlier stay valid; they never described post-merge main.",
+  "unknowns": [
+   "Root's choice between vendoring now and recording acceptance of the S1 break."
+  ]
  }
 }
