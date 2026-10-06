@@ -15,7 +15,11 @@ const S2_BASIS = {
 };
 // Display names that keep generated text free of verdict wording.
 const S2_KEY_LABELS = {missed_or_extra_notes:"note-level comparison", "phrase_timing.real_take_status":"phrase timing real-take status"};
-const S2_TENDENCY = {within_5_ms:"within ±5 ms of modelled click", ahead_of_click:"ahead of modelled click", behind_click:"behind modelled click"};
+// phrase_timing schema 2: a direction class is shown only for a synthetic known-offset fixture row;
+// real-take direction is withheld until an operator calibration exists.
+const S2_DIRECTION = {within_5_ms:"within ±5 ms of modelled click", ahead_of_click:"ahead of modelled click", behind_click:"behind modelled click"};
+const S2_DIRECTION_SYNTHETIC = "synthetic_known_offset_fixture";
+const S2_DIRECTION_WITHHELD = "direction withheld (uncalibrated)";
 const S2_PROTOTYPES = [
   ["Compact overlay preview", "section label, BPM and issue badges; not rendered"],
   ["Operator preference capture", "not stored; preference stays not recorded"],
@@ -407,7 +411,12 @@ function s2RenderFlags() {
 }
 
 // ----- phrase timing -----------------------------------------------------------
-function s2TimingRow(row, delay) {
+function s2TimingDirection(row, runKind) {
+  if(runKind === "synthetic_fixture" && row.direction_status === S2_DIRECTION_SYNTHETIC && typeof row.direction === "string" && Object.prototype.hasOwnProperty.call(S2_DIRECTION, row.direction))
+    return S2_DIRECTION[row.direction] + " · synthetic known-offset fixture";
+  return S2_DIRECTION_WITHHELD;
+}
+function s2TimingRow(row, delay, runKind) {
   const tr = s2el("tr");
   const measured = row.status === "measured";
   const compensated = Number.isFinite(row.median_offset_ms_delay_compensated);
@@ -421,7 +430,7 @@ function s2TimingRow(row, delay) {
     tr.append(s2el("td", "median offset " + s2Signed(median, 1) + " ms" + (compensated ? " (delay-compensated: " + s2Human(delay || "detector delay") + ")" : " (not delay-compensated)")));
     tr.append(s2el("td", Array.isArray(iqr) ? "IQR " + s2Signed(iqr[0], 1) + " … " + s2Signed(iqr[1], 1) + " ms" : "IQR unknown"));
     tr.append(s2el("td", "click-proximal n " + row.click_proximal_onset_count));
-    tr.append(s2el("td", S2_TENDENCY[row.tendency_label] || "descriptive sign unknown"));
+    tr.append(s2el("td", s2TimingDirection(row, runKind)));
   } else {
     tr.append(s2el("td", "—"), s2el("td", "—"), s2el("td", "click-proximal n " + (Number.isFinite(row.click_proximal_onset_count) ? row.click_proximal_onset_count : "unknown")));
     tr.append(s2el("td", "abstained: " + s2Human(row.abstain_reason || "reason not recorded")));
@@ -441,12 +450,12 @@ function s2RenderTiming() {
     section.open = index === 0;
     const summary = doc.summary || {};
     section.append(s2el("summary", s2Human(doc.phrase_basis || "phrase basis unknown") + " · measured " + (summary.measured_count ?? rows.filter(row => row.status === "measured").length) + " of " + rows.length + " · " + file.file + " " + s2Short(file.sha256)));
-    section.append(s2el("p", "real-take status: " + s2Human(doc.real_take_status || "unknown") + " · detector delay: " + s2Human(delay.status || "uncalibrated") + " · physical capture latency: " + s2Human(doc.physical_capture_latency || "uncalibrated"), "muted"));
+    section.append(s2el("p", "run kind: " + s2Human(doc.run_kind || "unknown") + " · real-take status: " + s2Human(doc.real_take_status || "unknown") + " · direction: " + (doc.run_kind === "synthetic_fixture" ? "synthetic known-offset fixture only" : "withheld until operator calibration") + " · detector delay: " + s2Human(delay.status || "uncalibrated") + " · physical capture latency: " + s2Human(doc.physical_capture_latency || "uncalibrated"), "muted"));
     const wrap = s2el("div", undefined, "s2-table-wrap"), table = s2el("table", undefined, "s2-table"), head = s2el("tr");
-    for(const title of ["Phrase", "Label basis", "Span", "Status", "Median offset", "IQR", "Count", "Description"]) head.append(s2el("th", title));
+    for(const title of ["Phrase", "Label basis", "Span", "Status", "Median offset", "IQR", "Count", "Direction"]) head.append(s2el("th", title));
     const thead = s2el("thead"), tbody = s2el("tbody");
     thead.append(head);
-    for(const row of rows) tbody.append(s2TimingRow(row, delay.status));
+    for(const row of rows) tbody.append(s2TimingRow(row, delay.status, doc.run_kind));
     table.append(thead, tbody);
     wrap.append(table);
     section.append(wrap);

@@ -54,6 +54,14 @@ SPANS_COPY_KEYS = ("status", "claim_class", "default_adoption", "click_identity"
                    "performance_issue_confirmed", "uncertainty_summary", "limitations", "join_confidence_rules",
                    "arrangement_totals", "source_extent")
 TIMING_ROW_SAFE = ("phrase_id", "label", "label_basis", "span_source_seconds", "status", "abstain_reason")
+# phrase_timing schema 2 (main 84ee740): real-take direction is withheld; a direction class
+# is legitimate only on a synthetic known-offset fixture. Schema 1 carried tendency_label on
+# real takes and is refused as superseded.
+TIMING_SCHEMA_VERSION = 2
+TIMING_RUN_KINDS = ("real_take", "synthetic_fixture")
+DIRECTION_WITHHELD = "withheld_uncalibrated"
+DIRECTION_SYNTHETIC = "synthetic_known_offset_fixture"
+DIRECTION_CLASSES = ("within_5_ms", "ahead_of_click", "behind_click")
 
 
 class Refusal(Exception):
@@ -467,13 +475,41 @@ class Composer:
     def layer_timing(self, path, bound_inputs):
         path, value, digest = self.read_json(path, "phrase_timing")
         inputs = value.get("inputs") if isinstance(value.get("inputs"), dict) else {}
-        if value.get("tool") != "phrase_timing" or value.get("schema_version") != 1 or not isinstance(value.get("phrases"), list):
+        if value.get("tool") != "phrase_timing" or not isinstance(value.get("phrases"), list):
             raise LayerRefusal("layer_schema_unknown")
+        if value.get("schema_version") == 1:
+            raise LayerRefusal("layer_schema_superseded")
+        if value.get("schema_version") != TIMING_SCHEMA_VERSION or value.get("run_kind") not in TIMING_RUN_KINDS:
+            raise LayerRefusal("layer_schema_unknown")
+        self.check_timing_directions(value)
         analyzed = inputs.get("analyzed_input_sha256")
         if analyzed not in bound_inputs:
             raise LayerRefusal("layer_source_mismatch")
         return {"status": "available", "file": f"{path.parent.name}/{path.name}", "sha256": digest, "analyzed_input_sha256": analyzed,
                 "source_binding": bound_inputs[analyzed], "document": value}
+
+    @staticmethod
+    def check_timing_directions(value):
+        """Refuse a timing file whose direction fields break the schema-2 policy.
+
+        A measured row carries ``direction_status`` ``synthetic_known_offset_fixture`` (with a
+        direction class) only when ``run_kind`` is ``synthetic_fixture``; on a real take it must
+        be ``withheld_uncalibrated`` with a null direction. Abstained rows carry neither.
+        """
+        expected = DIRECTION_SYNTHETIC if value["run_kind"] == "synthetic_fixture" else DIRECTION_WITHHELD
+        for row in value["phrases"]:
+            if not isinstance(row, dict) or "tendency_label" in row or "tendency_basis" in row:
+                raise LayerRefusal("layer_schema_unknown")
+            status, direction = row.get("direction_status"), row.get("direction")
+            if row.get("status") == "measured":
+                if status != expected:
+                    raise LayerRefusal("layer_direction_policy_violation")
+                if status == DIRECTION_SYNTHETIC and direction not in DIRECTION_CLASSES:
+                    raise LayerRefusal("layer_direction_policy_violation")
+                if status == DIRECTION_WITHHELD and direction is not None:
+                    raise LayerRefusal("layer_direction_policy_violation")
+            elif status is not None or direction is not None:
+                raise LayerRefusal("layer_direction_policy_violation")
 
     # ----- compose ----------------------------------------------------------
     def compose(self, *, tone_ab=None, flags_triage=None, detector_phrases=None, phrase_spans=(),

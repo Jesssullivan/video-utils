@@ -286,5 +286,6 @@
   "outputs_gitignored": [
     "artifacts/s2/ui_core/real-take/",
     "artifacts/s2/ui_core/synthetic/"
-  ]
+  ],
+  "superseded_by": "docs/agent-notes/sprints/20261006-s2/ui_core-repair-phase4.json (phase 4 repair: phrase_timing schema 2; files{}, bundle and composer hashes superseded)"
 }

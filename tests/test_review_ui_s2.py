@@ -300,9 +300,35 @@ class PracticeS2PageTests(S2Base):
         self.assertEqual(rows[0][4], "median offset −14.2 ms (delay-compensated: synthetic probe medians applied)")
         self.assertEqual(rows[0][5], "IQR −18.2 … −11.2 ms")
         self.assertEqual(rows[0][6], "click-proximal n 6")
-        self.assertEqual([row[7] for row in rows[:3]], ["ahead of modelled click", "behind modelled click", "within ±5 ms of modelled click"])
+        self.assertEqual([row[7] for row in rows[:3]], ["ahead of modelled click · synthetic known-offset fixture",
+                                                        "behind modelled click · synthetic known-offset fixture",
+                                                        "within ±5 ms of modelled click · synthetic known-offset fixture"])
         self.assertEqual(rows[3][4:], ["—", "—", "click-proximal n 2", "abstained: fewer than 4 click proximal onsets"])
         self.assertNotIn("0.0 ms", " ".join(rows[3]))
+        self.assertIn("run kind: synthetic fixture", value["text"])
+        self.assertIn("direction: synthetic known-offset fixture only", value["text"])
+
+    def test_phrase_timing_real_take_direction_withheld(self):
+        payload = copy.deepcopy(self.payload)
+        doc = payload["layers"]["phrase_timing"]["files"][0]["document"]
+        doc["run_kind"] = "real_take"
+        for row in doc["phrases"]:
+            if row["status"] == "measured":
+                row.update(direction=None, direction_status="withheld_uncalibrated", direction_basis=None)
+        forged = copy.deepcopy(payload)
+        for row in forged["layers"]["phrase_timing"]["files"][0]["document"]["phrases"]:
+            if row["status"] == "measured":
+                row.update(direction="ahead_of_click", direction_status="synthetic_known_offset_fixture", tendency_label="ahead_of_click")
+        code = '''await boot();const rows=findAll(panel("s2-timing"),n=>n.tagName==="TR").slice(1).map(r=>r.children.map(c=>c.textContent));
+          emit({rows,text:text(panel("s2-timing"))});'''
+        for name, value in (("withheld", self.check_js(code, payload)), ("forged_real_take", self.check_js(code, forged))):
+            rows = value["rows"]
+            self.assertEqual([row[7] for row in rows[:3]], ["direction withheld (uncalibrated)"] * 3, name)
+            self.assertEqual(rows[0][4], "median offset −14.2 ms (delay-compensated: synthetic probe medians applied)", name)
+            self.assertEqual(rows[3][7], "abstained: fewer than 4 click proximal onsets", name)
+            for phrase in ("ahead of modelled click", "behind modelled click", "within ±5 ms"):
+                self.assertNotIn(phrase, value["text"], name)
+            self.assertIn("direction: withheld until operator calibration", value["text"], name)
 
     def test_generated_text_contains_no_verdict_words(self):
         value = self.check_js('''await boot();
@@ -467,6 +493,69 @@ class PracticeS2ComposerTests(S2Base):
         record["run"]["source_sha256"] = "b" * 64
         (layers2 / "tone_ab" / "tone-ab.json").write_text(json.dumps(record))
         self.assertEqual(self.compose("foreign-tone", tone_ab=layers2 / "tone_ab")["layers"]["tone_ab"]["reason"], "layer_source_mismatch")
+
+    def test_composer_timing_schema_2_direction_policy(self):
+        layers = self.layer_copy("timing-policy-layers")
+        original = json.loads((layers / "phrase-timing.json").read_text())
+
+        def variant(name, mutate):
+            value = copy.deepcopy(original)
+            mutate(value)
+            folder = layers / name
+            folder.mkdir()
+            (folder / "phrase-timing.json").write_text(json.dumps(value))
+            return folder / "phrase-timing.json"
+
+        def measured(value):
+            return [row for row in value["phrases"] if row["status"] == "measured"]
+
+        def schema_1(value):
+            value["schema_version"] = 1
+            for row in value["phrases"]:
+                row["tendency_label"] = row.pop("direction")
+
+        def real_withheld(value):
+            value["run_kind"] = "real_take"
+            for row in measured(value):
+                row.update(direction=None, direction_status="withheld_uncalibrated", direction_basis=None)
+
+        def real_with_direction(value):
+            value["run_kind"] = "real_take"
+            for row in measured(value):
+                row["direction_status"] = "withheld_uncalibrated"
+
+        def real_claims_synthetic(value):
+            value["run_kind"] = "real_take"
+
+        def synthetic_withheld(value):
+            for row in measured(value):
+                row.update(direction=None, direction_status="withheld_uncalibrated")
+
+        def abstained_direction(value):
+            value["phrases"][3]["direction"] = "within_5_ms"
+
+        def tendency_key(value):
+            value["phrases"][0]["tendency_label"] = "ahead_of_click"
+
+        def unknown_run_kind(value):
+            value["run_kind"] = "calibrated"
+        cases = {"schema1": (schema_1, "layer_schema_superseded"), "realok": (real_withheld, None),
+                 "realdir": (real_with_direction, "layer_direction_policy_violation"),
+                 "realsyn": (real_claims_synthetic, "layer_direction_policy_violation"),
+                 "synwithheld": (synthetic_withheld, "layer_direction_policy_violation"),
+                 "abstaindir": (abstained_direction, "layer_direction_policy_violation"),
+                 "tendency": (tendency_key, "layer_schema_unknown"), "runkind": (unknown_run_kind, "layer_schema_unknown")}
+        paths = [layers / "phrase-timing.json"] + [variant(name, mutate) for name, (mutate, _) in cases.items()]
+        result = self.compose("timing-policy", phrase_timing=paths)
+        timing = result["layers"]["phrase_timing"]
+        self.assertEqual(timing["status"], "available")
+        self.assertEqual([entry["file"] for entry in timing["files"]], ["timing-policy-layers/phrase-timing.json", "realok/phrase-timing.json"])
+        self.assertEqual({entry["file"]: entry["reason"] for entry in timing["refused"]},
+                         {f"{name}/phrase-timing.json": reason for name, (_, reason) in cases.items() if reason})
+        real = timing["files"][1]["document"]
+        self.assertEqual(real["run_kind"], "real_take")
+        self.assertTrue(all(row["direction"] is None for row in real["phrases"]))
+        self.assertEqual(bundle_s2.TIMING_SCHEMA_VERSION, 2)
 
     def test_composer_refuses_existing_or_runs_output(self):
         def refusal(output, run=None):

@@ -283,10 +283,24 @@ There is one table per timing file. Its header reads `MEASUREMENT · unvalidated
 until operator spot check · click identity unverified · capture latency
 uncalibrated`. Each row shows the phrase label and its `label_basis`, the span,
 the status, `median offset <±x.x> ms` (delay-compensated when available, with
-the basis named), the IQR, `click-proximal n` and the abstain reason. The
-`tendency_label` is shown only as its descriptive text: `within ±5 ms of
-modelled click`, `ahead of modelled click` or `behind modelled click`. The UI
-never shows the words "rushed", "dragged", "late", "early", "mistake", "error",
+the basis named), the IQR, `click-proximal n`, the direction column and the
+abstain reason. Each file line names its `run_kind` and the direction policy.
+
+The composer reads phrase_timing **schema 2** (main `84ee740`, root_admission_d,
+audit finding 9). Direction is shown only when the file's `run_kind` is
+`synthetic_fixture` and the row's `direction_status` is
+`synthetic_known_offset_fixture`; the class then reads `within ±5 ms of
+modelled click`, `ahead of modelled click` or `behind modelled click`, followed
+by `· synthetic known-offset fixture`. Every other measured row, including
+every real-take row (`direction: null`, `direction_status:
+withheld_uncalibrated`), reads `direction withheld (uncalibrated)`. The signed
+median and IQR remain visible as measurements. The composer refuses schema 1
+(`layer_schema_superseded`, since it carried real-take `tendency_label`s) and
+any schema-2 file whose direction fields break that policy
+(`layer_direction_policy_violation`): a real take with a non-null direction or
+a synthetic status, a synthetic measured row without a direction class, or an
+abstained row with direction fields. A row with `tendency_label` is
+`layer_schema_unknown`. The UI never shows the words "rushed", "dragged", "late", "early", "mistake", "error",
 "wrong", "missed", "sloppy" or "tight" in generated text. An abstained row shows
 `—` and its reason, never 0.
 
@@ -523,7 +537,7 @@ Python is stdlib-only, with no pip installs. FFmpeg and FFprobe come from the
 `FFMPEG`/`FFPROBE` environment variables. The lane commits with
 `--no-gpg-sign`, and root signs the merge.
 
-## 11. Phase 2 implementation notes (additive; sections 1–10 unchanged)
+## 11. Phase 2 implementation notes (additive; sections 1–10 unchanged except 5.6, amended by the Phase 4 repair)
 
 Implemented on `sprint/20261006-s2/ui_core`. These notes record choices made
 inside the frozen contract and the places where Phase 2 had to resolve
@@ -567,3 +581,11 @@ and `ui_core-handoff.json`.
   `0cdca01`). A patched copy was served once against the synthetic fixture,
   answering `/api/practice-s2` 200, `/media/s2/excerpt-1-X.wav` 206 with
   Range, an unknown name 404, and `/practice_s2.js` 200.
+- **Phase 4 repair: phrase_timing schema 2 (5.6).** Main `84ee740`/`ef31930`
+  withheld real-take direction. The Phase 2 page rendered `tendency_label` for
+  every measured row, so the real-take bundle showed 56 direction labels
+  (27 ahead_of_click, 27 within_5_ms, 2 behind_click). The repair renders
+  direction only for synthetic known-offset fixture rows, refuses schema 1, and
+  recomposes the real-take bundle from schema-2 timing files regenerated with
+  main's `scripts/phrase_timing.py` on the same analysis and phrase inputs
+  (identical offsets, 56 measured rows, 0 direction labels).

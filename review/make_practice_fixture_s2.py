@@ -184,22 +184,29 @@ def make_fixture(output, repo=None):
             "limitations": ["Synthetic fixture intent spans; not detected phrases."],
             "units": unit_rows, "boundaries": boundaries})
 
-    # Phrase timing: 3 measured rows and 1 abstained row.
-    def timing_row(index, label, start, end, median, tendency):
+    # Phrase timing (schema 2, main 84ee740): 3 measured rows and 1 abstained row. The fixture is a
+    # synthetic known-offset run, the only run kind whose rows may carry a direction class.
+    def timing_row(index, label, start, end, median, direction):
         measured = median is not None
         return {"phrase_id": f"span-{index}", "label": label, "label_basis": "automatic_review_span",
                 "span_source_seconds": [start, end], "click_proximal_onset_count": 6 if measured else 2,
                 "median_offset_ms": median, "iqr_ms": [median - 4, median + 3] if measured else None,
                 "median_offset_ms_delay_compensated": median - 2.2 if measured else None,
                 "iqr_ms_delay_compensated": [median - 6.2, median + 0.8] if measured else None,
-                "tendency_label": tendency, "tendency_basis": "median_offset_ms_delay_compensated" if measured else None,
+                "offset_summary_basis": "median_offset_ms_delay_compensated" if measured else None,
+                "direction": direction,
+                "direction_status": "synthetic_known_offset_fixture" if measured else None,
+                "direction_basis": "median_offset_ms_delay_compensated" if measured else None,
                 "status": "measured" if measured else "abstained",
                 "abstain_reason": None if measured else "fewer_than_4_click_proximal_onsets"}
     dump(layers / "phrase-timing.json", {
-        "schema_version": 1, "tool": "phrase_timing", "status": "experimental_unvalidated_measurement",
+        "schema_version": 2, "tool": "phrase_timing", "status": "experimental_unvalidated_measurement",
         "run_kind": "synthetic_fixture", "real_take_status": "unvalidated_until_operator_spot_check",
         "click_identity": "unverified", "physical_capture_latency": "uncalibrated", "phrase_basis": "automatic_review_span",
         "detector_delay": {"status": "synthetic_probe_medians_applied", "attack_delay_seconds": 0.0023, "click_delay_seconds": 0.0002},
+        "direction_policy": {"real_take": "withheld_until_operator_calibration; measured signed offsets only, no ahead/behind label",
+                             "synthetic_fixture": "emitted against generated known offsets; validates the measurement only",
+                             "operator_calibration": None, "operator_calibration_input_supported": False},
         "inputs": {"analyzed_input_sha256": analysis_input},
         "summary": {"phrase_count": 4, "measured_count": 3, "abstained_count": 1},
         "phrases": [timing_row(0, "riff_region_1", 2.5, 4.0, -12.0, "ahead_of_click"),
