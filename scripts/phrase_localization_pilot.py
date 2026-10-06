@@ -37,6 +37,8 @@ PINS = {
     'docs/agent-notes/2026-10-06-phrase-order-null-settings.json':'232f7503f58e9ebcb2b59b220b97755b7001683eccd80893634d8f6b777079a3',
     'program/instrument.json':'bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0',
 }
+# Byte-identical frozen copies; PINS keys stay the recorded logical names (sealed receipts compare PINS).
+FROZEN = {'scripts/rhythm.py':'scripts/frozen/rhythm_264b723c.py'}
 MEDIA = {
     'ffmpeg': {'path':'/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg',
                'sha256':'3a315207e67de78e48c3bbb6b3346663f6a27c02e034d65ac72a12fee74c534a',
@@ -151,7 +153,7 @@ def load_module(path,name):
 
 def verify_pins():
     for name,expected in PINS.items():
-        require(digest(ROOT/name)==expected,'pinned_dependency_changed:'+name)
+        require(digest(ROOT/FROZEN.get(name,name))==expected,'pinned_dependency_changed:'+name)
 
 
 def old_helper():
@@ -835,7 +837,7 @@ def runner(plan_path,plan_sha,release_path,release_sha,bank_path,bank_sha,output
     write(output/'run.json',receipt)
     try:
         sources=output/'sources';sources.mkdir();(output/'inputs').mkdir();(output/'discovery').mkdir()
-        for name in ('rhythm.py','guitar_features.py'):shutil.copyfile(ROOT/'scripts'/name,sources/name)
+        for name in ('rhythm.py','guitar_features.py'):shutil.copyfile(ROOT/FROZEN.get('scripts/'+name,'scripts/'+name),sources/name)
         shutil.copyfile(__file__,sources/'runner.frozen.py')
         shutil.copyfile(plan_path,sources/'preregistration.frozen.json')
         text=(sources/'guitar_features.py').read_text()
