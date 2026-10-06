@@ -460,3 +460,43 @@ seed211/seed307 parameters were rendered, before the eval receipt.
   - R2 reproduced the accepted run exactly.
   - R1 measured drift of +1.67 ± 0.41 ppm/s. The interval lengthens by about 0.16 ms across the take. A wind-down reading is an inference only, and nothing is adopted.
   - P4 per-phrase offsets are confounded by onset density and click/onset coincidence. See the diagnostics in that receipt.
+
+## 12. Phase-4 repair: S1 pin resolution (root-owned, not applied by the lane)
+
+The audit's must-fix item is that merging this lane breaks the S1 pins on
+`scripts/rhythm.py` (`264b723c…` on main and on merge-base 4b87484; `cd719914…`
+on this branch). The lane keeps its `rhythm.py` changes, because the sealed S2
+evaluation (§11) ran that code. It does not edit the S1 files.
+
+Instead, `docs/agent-notes/sprints/20261006-s2/rhythm_clicks-pin-resolution.json`
+holds a verified root patch, which must land in the same admin merge:
+
+1. Vendor the file with
+   `git show 4b87484:scripts/rhythm.py > scripts/frozen/rhythm_264b723c.py`.
+   Its sha256 equals the pinned `264b723c…`.
+2. Add a `FROZEN` map from logical name to vendored path in
+   `phrase_proposal_s1.py` and `phrase_localization_pilot.py`. Then apply it in
+   these places:
+   - `verify_pins()`
+   - the S1 rhythm load site
+   - the pilot's `sources/` copy loop
+   - `tests/test_phrase_localization_pilot.py:161`
+
+   `PINS` keys and values stay unchanged, so sealed receipts that compare
+   `dependency_sha256 == PINS` still match.
+
+These are unit-test measurements taken on a scratch export of this branch. The
+S1 test modules give the following results:
+
+| State | Run | Failures | Errors | Skipped |
+|---|---|---|---|---|
+| Unpatched | 38 | 4 | 6 | 7 |
+| Patched | 38 | 1 | 0 | 7 |
+| Merge-base | 38 | 1 | 0 | 7 |
+
+The one failure that remains is the unrelated
+`test_owned_exited_leader_live_inert_child_cleanup`.
+
+Trade-off: the patch changes the S1 controllers' own `worker_sha256`, so a
+sealed S1 run must be replayed at its recorded commit. Root may instead record
+an explicit decision to accept the break.
