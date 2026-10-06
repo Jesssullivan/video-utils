@@ -41,14 +41,15 @@
       "related_issues": [
         "TIN-5487"
       ],
-      "state": "running_in_workflow_at_pause",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5600",
         "uuid": "55989ddf-4476-44c6-adb5-b2a6a877b78e",
         "url": "https://linear.app/tinyland/issue/TIN-5600/s2-fuller-profile-commit-fuller-as-reproducible-default-profile-with",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
-      "agent": "workflow-A/fuller_profile"
+      "agent": "workflow-A/fuller_profile",
+      "merge_commit": "34629dc"
     },
     {
       "id": "tone_ab",
@@ -63,14 +64,15 @@
       "related_issues": [
         "TIN-5487"
       ],
-      "state": "running_in_workflow_at_pause",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5601",
         "uuid": "a8fc0379-9d0c-4617-991b-c6d8b640c845",
         "url": "https://linear.app/tinyland/issue/TIN-5601/s2-tone-ab-stage-attributed-low-endthin-balance-matched-ab-03-lu-with",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
-      "agent": "workflow-A/tone_ab"
+      "agent": "workflow-A/tone_ab",
+      "merge_commit": "94614c9"
     },
     {
       "id": "rhythm_clicks",
@@ -86,14 +88,15 @@
         "TIN-5488",
         "TIN-5489"
       ],
-      "state": "running_in_workflow_at_pause",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5602",
         "uuid": "6eac79a3-07c6-4aac-8253-715162fe27c6",
         "url": "https://linear.app/tinyland/issue/TIN-5602/s2-rhythm-clicks-click-grid-drift-model-detector-delay-attack",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
-      "agent": "workflow-A/rhythm_clicks"
+      "agent": "workflow-A/rhythm_clicks",
+      "merge_commit": "736f406"
     },
     {
       "id": "phrase_anchor_riff",
@@ -108,14 +111,15 @@
       "related_issues": [
         "TIN-5490"
       ],
-      "state": "running_in_workflow_at_pause",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5603",
         "uuid": "f1b708a3-c2a0-4ced-833e-be3788d48268",
         "url": "https://linear.app/tinyland/issue/TIN-5603/s2-phrase-anchor-riff-anchor-click-arrangement-phrase-spans-on-the",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
-      "agent": "workflow-A/phrase_anchor_riff"
+      "agent": "workflow-A/phrase_anchor_riff",
+      "merge_commit": "af3db44"
     },
     {
       "id": "annot_corpus",
@@ -248,7 +252,7 @@
       "related_issues": [
         "TIN-5492"
       ],
-      "state": "queued_wave2",
+      "state": "running",
       "linear": {
         "id": "TIN-5609",
         "uuid": "f25b6d04-f865-42bb-9fe7-6592d06b80df",
@@ -270,7 +274,7 @@
       "related_issues": [
         "TIN-5547"
       ],
-      "state": "queued_wave2",
+      "state": "running",
       "linear": {
         "id": "TIN-5610",
         "uuid": "167e3c0c-a95f-416d-a91b-b18e7ef2d83f",
@@ -292,7 +296,7 @@
       "related_issues": [
         "TIN-5491"
       ],
-      "state": "queued_wave2",
+      "state": "running",
       "linear": {
         "id": "TIN-5611",
         "uuid": "10886f0a-489d-4c4f-bcf2-189cd58797fb",
@@ -314,14 +318,15 @@
       "related_issues": [
         "TIN-5492"
       ],
-      "state": "running_in_workflow_at_pause",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5612",
         "uuid": "71f7925a-8b66-4939-b903-0f9f658e7bbb",
         "url": "https://linear.app/tinyland/issue/TIN-5612/s2-au-auval-au-auval-discovery-step-and-out-of-process-render-harness",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
-      "agent": "workflow-C/au_auval"
+      "agent": "workflow-C/au_auval",
+      "merge_commit": "076993d"
     },
     {
       "id": "web_stack",
@@ -336,14 +341,15 @@
       "related_issues": [
         "TIN-5551"
       ],
-      "state": "running_in_workflow_at_pause",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5613",
         "uuid": "067f7412-8642-4758-9be5-1bfa1b94ad5f",
         "url": "https://linear.app/tinyland/issue/TIN-5613/s2-web-stack-sveltekit-effect-v4-skeleton-v5-fixture-and-control-layer",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
-      "agent": "workflow-D/web_stack"
+      "agent": "workflow-D/web_stack",
+      "merge_commit": "1b72abe"
     },
     {
       "id": "web_jobs",
@@ -358,14 +364,15 @@
       "related_issues": [
         "TIN-5550"
       ],
-      "state": "running_in_workflow_at_pause",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5614",
         "uuid": "120026ca-a448-42e0-8074-ce68405d431b",
         "url": "https://linear.app/tinyland/issue/TIN-5614/s2-web-jobs-bounded-durable-local-job-service-over-artifact-ids-admit",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
-      "agent": "workflow-D/web_jobs"
+      "agent": "workflow-D/web_jobs",
+      "merge_commit": "885ca69"
     },
     {
       "id": "web_ui_binding",
@@ -381,7 +388,7 @@
         "TIN-5547",
         "TIN-5550"
       ],
-      "state": "queued_wave2",
+      "state": "running",
       "linear": {
         "id": "TIN-5615",
         "uuid": "d4e4e902-1773-4044-be09-523b1b732b1a",
@@ -419,13 +426,20 @@
     "desktop_export_sha256": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10",
     "s1_worktrees": "preserve all six .local/sprint1/*; review_ui intentionally dirty"
   },
-  "state": "paused_usage_limit_wave1B_merged",
-  "integration_head": "739427c9fb5825c695d77b021c581ae53e35eab6",
+  "state": "wave2_running",
+  "integration_head": "ef3193070c7606af3fd7c6bb3c81da43704da185",
   "hosted_ci": {
-    "run": 37475103398,
+    "run": 37522614603,
     "conclusion": "success",
-    "python": "1169 run OK, 64 skipped",
+    "python": "1375 OK, 97 skipped",
     "rust": "ok",
     "gitleaks": "no leaks"
-  }
+  },
+  "extra_merges": {
+    "share_export_fix": "7ad3548",
+    "root_admission_c": "ccf47b3",
+    "root_admission_d": "ef31930",
+    "web_stack_handoff_paths": "97ebce6"
+  },
+  "tool_count": 39
 }

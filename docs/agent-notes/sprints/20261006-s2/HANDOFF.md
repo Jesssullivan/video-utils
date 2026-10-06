@@ -24,3 +24,16 @@ web_jobs, web_stack and au_auval returned handoffs (15/15 agents done, 0 errors)
 `.local/sprint2/<lane>/docs/agent-notes/sprints/20261006-s2/<lane>-handoff.json`. web_jobs: 26 run / 24 pass / 2 opt-in skips,
 opus audit refuted=false. Its live demo found that `share_export` refuses accepted run 20261006T041633Z-990aa1bd6737 with
 "video packet count changed"; open a share_export follow-up before promoting the web_job adapter.
+
+## Signing blocked (2026-10-06 ~18:49Z)
+actor: /root video-utils-d6 | target: own `git commit -S` PID 4611 and child `gpg -bsau 0B01977B8DD5DA60` PID 4831 (started by this session for the share_export_fix admin merge) | reason: gpg stalled >3 min; YubiKey not enumerated and gpg-agent being reset by the operator (observed in other sessions' probes) | ruling: R-HOOK-CONVERGENCE-20261004 R-N11 own-task signal | prior_state: merge of sprint/20261006-s2/share_export_fix (d4a61d0) staged, MERGE_HEAD present | result: both processes stopped; merge remains staged uncommitted on local main; no unsigned admin merge made. Resume: once `gpg --card-status` shows the card, run the staged commit with -S, then merge root_admission_c, full suite, push, CI, Linear.
+
+## Integration 2 — main ef31930, hosted CI 37522614603 green (1375 OK / 97 skips, Rust ok, no leaks)
+Merged (signed): web_jobs, web_stack, au_auval, fuller_profile, rhythm_clicks, tone_ab, phrase_anchor_riff, share_export_fix,
+root_admission_c (frozen S1 rhythm, FULLER default with capture_interval_required, marked_compact + phrase_timing tools),
+root_admission_d (tone_ab tool #39, phrase_timing real-take direction withheld uncalibrated). Signing recovered at ~19:00Z.
+Linear Done: TIN-5600/5601/5602/5603/5612/5613/5614, D2 5487, D3 5488, D4 5489, D5 5490, STACK 5551. JOBS 5550 In Progress.
+Preserved lane artifacts into main ignored artifacts/s2/ (tone_ab excerpts, phrase_anchor_riff bank) before any worktree cleanup.
+Running: wave C (robustness, ui_core, report_d6) and web_ui_binding. Remaining: web_reliability, RELEASE closeout (TIN-5492),
+rerun of the real web job on the share_export fix before promoting share_export.adapters.web_job, operator labelling session.
+Deferred decisions: phrase_timing frozen descriptor wording; EQ floor below 160 Hz; V6 privacy wording; V2 licence line.
