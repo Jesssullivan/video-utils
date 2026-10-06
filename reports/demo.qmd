@@ -1,78 +1,153 @@
 ---
 title: "Guitar take: research report"
-subtitle: "Local offline evidence; listening acceptance is separate"
-format:
-  html:
-    embed-resources: false
-    toc: true
+subtitle: "Hash-bound metadata bundle; listening acceptance is separate"
 params:
-  run_dir: "../runs/demo"
+  run_dir: ""
 execute:
   echo: false
   warning: false
   message: false
 ---
 
-This optional Quarto report consumes the same run exports as the standard-library
-`report.html`. It does not establish listening quality, source recovery, intended
-meter or performance mistakes.
+This optional Quarto report reads a **metadata-only, hash-bound bundle** built by
+`scripts/report_bundle.py`. The `params$run_dir` value is that bundle's absolute
+path. The bundle is verified before any value is shown. The plain `report.html`
+written by `scripts/report.py` remains the primary report. This document does not
+establish listening quality, source recovery, intended meter or performance
+mistakes.
 
-## Run evidence
-
-```{r}
-run_dir <- normalizePath(params$run_dir, mustWork = FALSE)
-manifest_path <- file.path(run_dir, "manifest.json")
-lineage_code <- paste(
-  "import sys; from pathlib import Path;",
-  "sys.path.insert(0,str(Path(sys.argv[1]).resolve())); import report;",
-  "root=Path(sys.argv[2]).resolve();",
-  "print(report.analysis_lineage(root,report.load_json(root/'manifest.json'),report.load_json(root/sys.argv[3])))"
-)
-analysis_lineage <- suppressWarnings(system2(
-  "python3", c("-c", shQuote(lineage_code), shQuote("../scripts"), shQuote(run_dir), "analysis.json"),
-  stdout = TRUE, stderr = FALSE
-))
-analysis_bound <- length(analysis_lineage) == 1 && analysis_lineage %in%
-  c("original_source_hash_bound", "verified_run_derivative_hash_bound")
-if (!file.exists(manifest_path)) {
-  cat("Run manifest unavailable. Render with the intended run_dir parameter.")
-} else if (!requireNamespace("jsonlite", quietly = TRUE)) {
-  cat("Manifest exists; jsonlite is unavailable. The local static HTML report remains usable.")
-} else {
-  manifest <- jsonlite::fromJSON(manifest_path, simplifyVector = FALSE)
-  measurements <- manifest$measurements
-  if (is.null(measurements)) measurements <- manifest$metrics
-  if (is.null(measurements)) measurements <- manifest$loudness
-  if (is.null(measurements)) {
-    cat("Measurements unavailable in this manifest.")
+```{r setup}
+bundle_dir <- if (is.null(params$run_dir)) "" else as.character(params$run_dir)
+verifier <- normalizePath(file.path("..", "scripts", "report_bundle.py"), mustWork = FALSE)
+run_verifier <- function(extra) {
+  out <- tryCatch(
+    suppressWarnings(system2("python3", c(shQuote(verifier), "verify", "--bundle-dir", shQuote(bundle_dir), extra),
+                             stdout = TRUE, stderr = FALSE)),
+    error = function(e) character(0)
+  )
+  if (!length(out)) "refused:verifier_unavailable" else out
+}
+status <- if (nzchar(bundle_dir)) tail(run_verifier("--status-only"), 1) else "refused:run_dir_parameter_missing"
+verified <- identical(status, "verified")
+bundle_sha <- NA_character_
+if (verified) {
+  detail <- paste(run_verifier(character(0)), collapse = " ")
+  found <- regmatches(detail, regexpr("\"bundle_sha256\": \"[0-9a-f]{64}\"", detail))
+  if (length(found)) bundle_sha <- sub(".*\"([0-9a-f]{64})\"$", "\\1", found)
+}
+table_of <- function(name) {
+  path <- file.path(bundle_dir, "tables", name)
+  if (!verified || !file.exists(path)) return(NULL)
+  read.csv(path, stringsAsFactors = FALSE, check.names = FALSE, colClasses = "character", na.strings = character(0))
+}
+show_table <- function(frame, empty = "Not available in this bundle.") {
+  if (is.null(frame) || !nrow(frame)) {
+    cat(empty, "\n\n")
+  } else if (requireNamespace("knitr", quietly = TRUE)) {
+    print(knitr::kable(frame, row.names = FALSE))
+    cat("\n\n")
   } else {
-    print(measurements)
+    print(frame, row.names = FALSE)
   }
+}
+prefix <- function(x, n = 12) ifelse(nchar(x) > n, paste0(substr(x, 1, n), "..."), x)
+value_of <- function(frame, field) {
+  if (is.null(frame)) return(NA_character_)
+  hit <- frame$value[frame$field == field]
+  if (length(hit)) hit[1] else NA_character_
 }
 ```
 
-## Timing candidates
+```{r status}
+#| results: asis
+if (verified) {
+  cat("Bundle verification: **verified** (every member hash and the bundle hash were recomputed).\n\n")
+} else {
+  cat("Bundle verification: **", status, "**. No bundle values are shown. ",
+      "Rebuild the bundle with `scripts/report_bundle.py build`, or use the plain `report.html`.\n\n", sep = "")
+}
+```
+
+## 1. Bundle identity
+
+```{r identity}
+#| results: asis
+identity <- table_of("identity.csv")
+if (verified && !is.null(identity)) {
+  rows <- data.frame(
+    field = c("run_id", "manifest sha256", "source sha256", "bundle sha256", "duration (s)",
+              "analysis basis", "analysis run", "analysis lineage", "analysis status"),
+    value = c(value_of(identity, "run_id"), prefix(value_of(identity, "manifest_sha256")),
+              prefix(value_of(identity, "source_sha256")), prefix(bundle_sha),
+              value_of(identity, "duration_seconds"), value_of(identity, "analysis_basis"),
+              value_of(identity, "analysis_run_id"), value_of(identity, "analysis_lineage"),
+              value_of(identity, "analysis_status")),
+    stringsAsFactors = FALSE)
+  show_table(rows)
+} else {
+  cat("Unavailable: the bundle did not verify.\n\n")
+}
+```
+
+## 2. Stage-file hash verification
+
+Stage files are recorded by name and sha256 only; no audio enters the bundle.
+
+```{r stages}
+#| results: asis
+stages <- table_of("stage_files.csv")
+if (!is.null(stages)) stages$expected_sha256 <- prefix(stages$expected_sha256)
+show_table(stages)
+auxiliary <- table_of("auxiliary.csv")
+cat("Auxiliary payload binding (dag, flags, markers, phrases):\n\n")
+show_table(auxiliary)
+```
+
+## 3. S2 measured comparisons (quoted from receipts)
+
+Each figure is the named receipt's own measurement or label, quoted and not
+re-measured here. The binding class states how the receipt relates to this run;
+`source_bound_different_analyzed_input` means the same original take but a
+different analyzed derivative, and `synthetic_bank_not_take` means generated
+cases, never this recording.
+
+```{r receipts}
+#| results: asis
+receipts <- table_of("receipts.csv")
+if (!is.null(receipts)) {
+  receipts$sha256 <- prefix(receipts$sha256)
+  receipts$file <- NULL
+}
+show_table(receipts)
+figures <- table_of("receipt_figures.csv")
+if (!is.null(figures)) figures$pointer <- NULL
+show_table(figures)
+```
+
+## 4. Timing candidates
 
 Operator-declared tempo and the fitted recording pulse are separate evidence.
 Subdivision alignment remains uncertain, particularly for rests, syncopation,
 tuplets and merged attacks.
 
-```{r}
+```{r timing}
+#| results: asis
+if (verified) {
+  declared <- value_of(identity, "declared_tempo_bpm")
+  fitted <- value_of(identity, "fitted_pulse_bpm")
+  if (!is.na(declared) && nzchar(declared)) cat("Operator-declared approximate tempo:", declared, "BPM\n\n")
+  if (!is.na(fitted) && nzchar(fitted)) cat("Fitted recording pulse (candidate):", fitted, "BPM\n\n")
+}
+```
+
+```{r events-plot}
+#| fig-width: 9
+#| fig-height: 3.6
 source("plots.R")
-if (analysis_bound) {
-  if (requireNamespace("jsonlite", quietly = TRUE)) {
-    analysis <- jsonlite::fromJSON(file.path(run_dir, "analysis.json"), simplifyVector = FALSE)
-    if (!is.null(analysis$declared_tempo$bpm)) {
-      cat("Operator-declared approximate tempo:", analysis$declared_tempo$bpm, "BPM\n\n")
-    }
-    if (!is.null(analysis$click_grid$bpm)) {
-      cat("Fitted recording pulse:", round(analysis$click_grid$bpm, 2), "BPM\n\n")
-    }
-  }
-  plot_run_events(run_dir)
+if (verified) {
+  plot_bundle_events(bundle_dir)
 } else {
-  plot.new()
-  text(0.5, 0.5, "Source-bound rhythm analysis unavailable or rejected")
+  abstain_plot("Bundle not verified; no event values shown")
 }
 ```
 
@@ -81,47 +156,58 @@ may overlap; detector bias and room propagation delay affect timing. A tempo
 candidate is not an accepted beat grid. Missed or extra notes require an approved
 expected-rhythm reference.
 
-## Automatic phrase and section proposals
+## 5. Review flags (detector hypotheses)
 
-Phrase boundaries, repeated regions and possible bars can be proposed directly
-from the recording without a prior intended score. Self-consistency differences
-can flag passages for listening review. Riff or breakdown labels are hypotheses;
-grading intended correctness or missed notes requires stronger references.
+These are automatic review candidates, not confirmed performance issues. They are
+kept separate from user-reported annotations, which appear in section 6.
 
-```{r}
-phrase_lineage <- suppressWarnings(system2(
-  "python3", c("-c", shQuote(lineage_code), shQuote("../scripts"), shQuote(run_dir), "phrases.json"),
-  stdout = TRUE, stderr = FALSE
-))
-phrase_bound <- length(phrase_lineage) == 1 && phrase_lineage %in%
-  c("original_source_hash_bound", "verified_run_derivative_hash_bound")
-if (phrase_bound && requireNamespace("jsonlite", quietly = TRUE)) {
-  phrases <- jsonlite::fromJSON(file.path(run_dir, "phrases.json"), simplifyVector = FALSE)
-  spans <- phrases$observations$proposed_review_spans
-  if (length(spans)) {
-    rows <- lapply(spans, function(span) data.frame(
-      proposal = if (is.null(span$label)) span$kind else span$label,
-      source_start_seconds = span$source_start_seconds,
-      source_end_seconds = span$source_end_seconds,
-      stringsAsFactors = FALSE
-    ))
-    print(knitr::kable(do.call(rbind, rows)))
-  } else {
-    cat("No automatic phrase spans exported.")
-  }
+```{r flags}
+#| results: asis
+flags <- table_of("review_flags.csv")
+if (verified) {
+  cat("Review flags in bundle:", value_of(identity, "review_flags_rows"), "of",
+      value_of(identity, "review_flags_total"), "(row cap 200).\n\n")
+}
+if (!is.null(flags) && nrow(flags)) {
+  counts <- as.data.frame(table(kind = flags$kind), stringsAsFactors = FALSE)
+  names(counts) <- c("detector hypothesis kind", "rows")
+  show_table(counts)
 } else {
-  cat("Source-bound phrase proposals unavailable, rejected, or jsonlite absent.")
+  cat("No source-bound review flags in this bundle.\n\n")
 }
 ```
 
-The portable HTML report provides source-span navigation and recurrence
-comparisons. Four-pulse bar proxies do not establish meter or downbeat. Tonic,
-mode, exact tuning and intended notes may remain unknown.
+## 6. Corpus coverage: operator-labelled versus generated banks
 
-## Listening review
+The two pools are never summed. Absence of labels is not evidence of correctness.
 
-Open the run directory's `report.html` for manual original/processed/residual
-playback and processed video. Compare at matched playback loudness. Listen for
-preserved pick attacks, palm-mute articulation, sustained harmonics and natural
-tails; inspect the residual for removed musical detail. A mono-mixture residual
-is a diagnostic estimate, not a recovered original stem.
+```{r corpus}
+#| results: asis
+corpus <- table_of("corpus.csv")
+if (!is.null(corpus)) {
+  statement <- corpus$value[corpus$pool == "operator_labelled" & corpus$field == "statement"]
+  if (length(statement)) cat("**", statement[1], "**\n\n", sep = "")
+}
+show_table(corpus)
+annotations <- table_of("annotations.csv")
+cat("User-reported annotations (structured fields only; free text is never copied):\n\n")
+show_table(annotations, "No bound operator annotations.")
+```
+
+## 7. Unknowns
+
+```{r unknowns}
+#| results: asis
+show_table(table_of("unknowns.csv"))
+```
+
+## 8. Listening review
+
+Listening acceptance is not established. Record an operator review in a copy of
+the all-null template `docs/spec/examples/listening-review.json`, bound to this
+bundle's run and hashes. Compare at matched playback loudness. Listen for
+low-string weight near the 32.7 Hz C1 fundamental, preserved pick attacks,
+palm-mute articulation, saturated texture, sustain and natural tails. Inspect the
+residual for removed musical detail. A mono-mixture residual is a diagnostic
+estimate, not a recovered original stem. Open the run directory's plain
+`report.html` for playback.

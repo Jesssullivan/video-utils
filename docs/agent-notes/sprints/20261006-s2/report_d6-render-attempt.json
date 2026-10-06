@@ -1,0 +1,95 @@
+{
+ "schema_version": 1,
+ "lane": "report_d6",
+ "sprint": "20261006-s2",
+ "linear": "TIN-5611",
+ "ruling": "R-N13; R-HOOK-CONVERGENCE-20261004; TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43",
+ "receipt_kind": "phase3_single_render_attempt",
+ "spec": "docs/spec/sprints/REPORT_S2.md",
+ "operator_approval": "exactly one bounded attempt (operator-approved per S2 lane brief)",
+ "attempt_count": 1,
+ "command": "/usr/bin/time -p timeout 1800 nix develop .#report --command sh -c 'quarto --version; R --version | head -n 1; quarto render reports/demo.qmd -P run_dir=\"$1\"' sh \"$B\"",
+ "cwd": ".local/sprint2/report_d6",
+ "commit_at_attempt": "5ada0c8",
+ "host": {
+  "uname_m": "arm64",
+  "sw_vers_productVersion": "26.7.1",
+  "nix_version": "nix (Determinate Nix 3.23.0) 2.35.2",
+  "nix_on_path": "/Users/jess/.local/libexec/tinyland/local-build-guard/bin/nix",
+  "nix_is_local_build_guard_wrapper": true,
+  "nix_process_observed": "/nix/var/nix/profiles/default/bin/nix develop .#report (the guard wrapper execs the real binary)",
+  "uptime_before": "15:41  up  2:14, 18 users, load averages: 44.83 54.69 75.43",
+  "uptime_after": "16:01  up  2:33, 18 users, load averages: 23.41 31.98 44.41",
+  "R_or_quarto_on_host_path": false
+ },
+ "started_utc": "2026-10-06T19:41:35Z",
+ "finished_utc": "2026-10-06T20:01:07Z",
+ "seconds": 1172.14,
+ "exit_code": 1,
+ "timed_out": false,
+ "nix_fetch_evaluation": "succeeded",
+ "quarto_version": "1.10.18",
+ "r_version": "R version 4.6.1 (2026-06-24) -- \"Happy Hop\"",
+ "quarto_version_reason": null,
+ "r_version_reason": null,
+ "outcome": "render_blocked_on_host",
+ "blocking_error": "' from 'https://cache.nixos.org'...\ncopying path '/nix/store/00jy2n4rdkw799m21nwhkg5j63hkpava-r-class-7.3-23' from 'https://cache.nixos.org'...\ncopying path '/nix/store/3kjqbm7yx3jignlcsxq30mw4yqhn0220-r-Matrix-1.7-5' from 'https://cache.nixos.org'...\ncopying path '/nix/store/b14j0mj4bsz9qlvp0g99lys97ikqsbni-r-nlme-3.1-169' from 'https://cache.nixos.org'...\ncopying path '/nix/store/la2ldfhg4g7h1l4z2aqp5yrn0bfgckji-r-htmltools-0.5.9' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vwq2wh1njzwyxnr780ibk4ibjhvifsab-r-cachem-1.1.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/jk5fvbvdwjhg5s5wq9147ir8qdzpy1fc-r-tinytex-0.60' from 'https://cache.nixos.org'...\ncopying path '/nix/store/2jrrx94cs3ygh99q6b3kx4zp7yj6ik9l-r-highr-0.12' from 'https://cache.nixos.org'...\ncopying path '/nix/store/b0xr5b98pfjfaq6mg6w06k0pi9m4sanq-r-lifecycle-1.0.5' from 'https://cache.nixos.org'...\ncopying path '/nix/store/xgvciw72d5x4msl90z7lid75ic26ja0x-r-knitr-1.51' from 'https://cache.nixos.org'...\ncopying path '/nix/store/jyz6vlaj2rjhgihw60lxxxmppvjvfzw5-r-memoise-2.0.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/a78ss32majk3gi5dhhphs07zhxm35siz-r-fontawesome-0.5.3' from 'https://cache.nixos.org'...\ncopying path '/nix/store/9am7qmi21nsxg3y3cawp05q0wr85xdqy-r-jquerylib-0.1.4' from 'https://cache.nixos.org'...\ncopying path '/nix/store/vhp5vjv0ng345gg8wvmm4szs4ckyyi3z-r-sass-0.4.10' from 'https://cache.nixos.org'...\ncopying path '/nix/store/mm4bm4wcr3bvpnvmr0vpr7bl4dz4ghda-r-bslib-0.11.0' from 'https://cache.nixos.org'...\ncopying path '/nix/store/4mxy40kldkyn1075g9bpxqpf03qapxvw-r-mgcv-1.9-4' from 'https://cache.nixos.org'...\ncopying path '/nix/store/f888gyjp9asa49ybxwkfc9424mz4lyvq-r-survival-3.8-6' from 'https://cache.nixos.org'...\ncopying path '/nix/store/w8rv3cywx7hn0ki0wi0nf6m6qkszwgx2-r-rmarkdown-2.31' from 'https://cache.nixos.org'...\ncopying path '/nix/store/daj8zak0xir119qi1s7n4pzp030vxbgx-R-4.6.1-wrapper' from 'https://cache.nixos.org'...\ncopying path '/nix/store/skzd95zvkw7llz7fkmnsyn6svq86qs6y-quarto-1.10.18' from 'https://cache.nixos.org'...\ncopying path '/nix/store/yp7i3nn4j5m14rvv1ps7a4hfpc112jkf-clippy-1.97.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/sbrjwqjkbc07drlcni93y51jlcmll8kq-rustc-wrapper-1.97.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/xnf2hlnjmmi59r6c1nzy018759xlp5pk-cargo-1.97.1' from 'https://cache.nixos.org'...\ncopying path '/nix/store/qw3712dp9vc21dypc12jcmxppgjdrvl5-rustfmt-1.97.1' from 'https://cache.nixos.org'...\nbuilding '/nix/store/gmh88bp53ffsf3cpsk35ss04ap5b4b2p-nix-shell-env.drv'...\ncopying 1 paths...\ncopying path '/nix/store/0j5abqqd8l4d5fgw8j3az0fsda6bdysx-nix-shell-env' from 'ssh-ng://jsullivan2@petting-zoo-mini.local'...\nthis path will be fetched (0.0 KiB download, 107.4 KiB unpacked):\n  /nix/store/0pc79xapqy7z3zapwvrxckfxn5150zcc-bash-interactive-5.3p15-man\ncopying path '/nix/store/0pc79xapqy7z3zapwvrxckfxn5150zcc-bash-interactive-5.3p15-man' from 'https://edge.cache.flakehub.com'...\n1.10.18\nR version 4.6.1 (2026-06-24) -- \"Happy Hop\"\n\u001b[31m\n\nprocessing file: demo.qmd\n\u001b[39m1/21              \n2/21 [setup]      \n3/21              \n4/21 [status]     \n5/21              \n6/21 [identity]   \n7/21              \n8/21 [stages]     \n9/21              \n10/21 [receipts]   \n11/21              \n12/21 [timing]     \n13/21              \n14/21 [events-plot]\n15/21              \n16/21 [flags]      \n17/21              \n18/21 [corpus]     \n19/21              \n20/21 [unknowns]   \n21/21              \n\u001b[31moutput file: demo.knit.md\n\n\u001b[39m\u001b[1mpandoc \u001b[22m\n  to: html\n  output-file: demo.html\n  standalone: true\n  section-divs: true\n  html-math-method: mathjax\n  wrap: none\n  default-image-extension: png\n  \n\u001b[1mmetadata\u001b[22m\n  document-css: false\n  link-citations: true\n  date-format: long\n  lang: en\n  title: 'Guitar take: research report'\n  subtitle: Hash-bound metadata bundle; listening acceptance is separate\n  \nAeson exception:\nError in $: Unknown option \"syntax-highlighting\"\n\u001b[33mWARN: Error encountered when rendering files\u001b[39m\nreal 1172.14\nuser 12.43\nsys 8.43\n",
+ "html_sha256": null,
+ "html_bytes": null,
+ "html_copy": null,
+ "remote_reference_scan": null,
+ "log": "artifacts/s2/report_d6/render/attempt-1.log",
+ "log_sha256": "65d28f8059a3b9fe90d7ec13d97b1f3937197400c500d9a65ed0f05e61bde41e",
+ "log_bytes": 77323,
+ "bundle_dir": "artifacts/s2/report_d6/bundles/20261006T041633Z-990aa1bd6737-20261006T194041Z",
+ "bundle_sha256": "d3cfb5c729fe61612276821185997bd430cfbc89a1456893616d51d49426a333",
+ "verify_status": "verified",
+ "retries": 0,
+ "flake_edited": false,
+ "claims": {
+  "measurements": [
+   "exit code, wall seconds, versions printed, HTML sha256/bytes, URL counts"
+  ],
+  "inferences": [],
+  "listening": []
+ },
+ "note": "Rendering success is not listening acceptance or report-readability acceptance; a blocked render is a valid completion state.",
+ "blocking_error_line": "Aeson exception: Error in $: Unknown option \"syntax-highlighting\"",
+ "measurements_detail": {
+  "store_paths_copied": 667,
+  "nix_shell_env_built_on": "ssh-ng://jsullivan2@petting-zoo-mini.local (remote builder selected by the local-build guard)",
+  "knitr_chunks_executed": "21/21",
+  "knitr_output_written": true,
+  "pandoc_used_by_quarto": "/nix/store/vqa608112sfrd7436cgm72ysjlys5zk8-pandoc-cli-3.7.0.2/bin/pandoc (QUARTO_PANDOC default in the quarto-1.10.18 wrapper)",
+  "pandoc_version": "3.7.0.2",
+  "quarto_store_path": "/nix/store/skzd95zvkw7llz7fkmnsyn6svq86qs6y-quarto-1.10.18",
+  "r_packages_in_closure_observed": [
+   "r-rmarkdown-2.31",
+   "r-knitr"
+  ],
+  "nixpkgs_locked_rev": "2c423e03bbafcff28bfadc6781a4a8257f205cb5",
+  "pandoc_options_printed_html_math_method": "mathjax",
+  "flake_lock_changed": false,
+  "partial_products": {
+   "events_plot_png": "artifacts/s2/report_d6/render/partial-demo_files/figure-html/events-plot-1.png",
+   "sha256": "63758ddd1f350c40b1d17c0cdc05267533942d02ee00fa392c96ea0960ceb948",
+   "bytes": 78679
+  },
+  "in_tree_products_removed": [
+   "reports/demo_files/",
+   "reports/.quarto/"
+  ],
+  "log_capture": "stdout and stderr combined in attempt-1.log (the /usr/bin/time lines are included)"
+ },
+ "inferences": [
+  "Cause (I): Quarto 1.10.18 passes the pandoc option `syntax-highlighting`, which pandoc 3.7.0.2 rejects; the nixpkgs quarto wrapper at the locked rev pairs Quarto 1.10.18 with pandoc 3.7.0.2. The earlier-predicted knitr/rmarkdown gap did not occur: all 21 knitr chunks ran.",
+  "The printed pandoc options show html-math-method mathjax although reports/_quarto.yml sets plain; whether the project config was merged is unknown (the run stopped before output, so no _render directory was produced). This is irrelevant to the blocking error but should be checked on the next approved attempt.",
+  "Wall time (1172 s) is dominated by fetching 667 store paths under host load averages near 45-55; it does not measure render cost."
+ ],
+ "unknowns": {
+  "html_sha256": null,
+  "render_readability_acceptance": null,
+  "project_config_merged": null,
+  "listening_accepted": false
+ }
+}

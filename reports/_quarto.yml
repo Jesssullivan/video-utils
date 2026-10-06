@@ -1,0 +1,9 @@
+project:
+  type: default
+  output-dir: _render
+
+format:
+  html:
+    embed-resources: true
+    toc: true
+    html-math-method: plain

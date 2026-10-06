@@ -1,0 +1,203 @@
+{
+  "lane": "report_d6",
+  "branch": "sprint/20261006-s2/report_d6",
+  "head": "5c9115eb6ce5bcb4a8e6c12694665619c357c733",
+  "base_commit": "0cdca0192f56ec347a228ec77c711786dc3c28c4",
+  "worktree": ".local/sprint2/report_d6",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/report_d6-bundle-build.json",
+      "sha256": "abf0a841056509e753cbfe41b437dadde6fe8123a3af28028859f899a307f9ab",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/report_d6-handoff.json",
+      "sha256": "062ce14b864cea6369a8f50989917c7ec2a66e155a656c3f5d28014b7305bc20",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/report_d6-render-attempt.json",
+      "sha256": "6841586d4f8504f0a8f6e729c7dde9a023b95cb2360e1b0f6fe56367cbc3a99b",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/report_d6-tool-descriptor.json",
+      "sha256": "abb91372b6563ac0215f972b07c31ccd4ff46027247d083fca7b334226083528",
+      "kind": "skill_draft"
+    },
+    {
+      "path": "docs/spec/examples/listening-review.json",
+      "sha256": "ac9fb1c73c2fde8daf6d8c144ecd1b12fdc556672ec9cc8923e4e9591d1cc97a",
+      "kind": "spec"
+    },
+    {
+      "path": "docs/spec/sprints/REPORT_S2.md",
+      "sha256": "928b17f2c1e3a38b9d11f3c5e70c987fb557a90795e75322f9de9b12d966b3b9",
+      "kind": "spec"
+    },
+    {
+      "path": "reports/.gitignore",
+      "sha256": "0cb358957d1af376f7bc8326b4052e69ec43f8156cc36098412d4947308374c2",
+      "kind": "source"
+    },
+    {
+      "path": "reports/_quarto.yml",
+      "sha256": "72ec70acff997f65c3f891a96ac3447fb18ef59be3a0ec3ae330e1742eb7340d",
+      "kind": "source"
+    },
+    {
+      "path": "reports/demo.qmd",
+      "sha256": "26e3b955e651aa87dad7efa4f7e1ff67a35d61082ce512439abb4120219f251d",
+      "kind": "source"
+    },
+    {
+      "path": "reports/plots.R",
+      "sha256": "96669156be5f2b64abc93eb569c33e1b44576b77f802b15221319c707e9db62b",
+      "kind": "source"
+    },
+    {
+      "path": "scripts/report_bundle.py",
+      "sha256": "091a54f186e0d8e22a842223d4936609b81a62eb0c24f37f0f42b3973a96b937",
+      "kind": "source"
+    },
+    {
+      "path": "tests/test_report_bundle.py",
+      "sha256": "bb1bc079a013dd3290eaf94016447c621e943c50ae0af8e0417f003e6618a011",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "cd .local/sprint2/report_d6 && export FFMPEG=/nix/store/hh8mlmlvn48qvqy7sv7lhxp4ca06x67c-ffmpeg-headless-8.1.2/bin/ffmpeg FFPROBE=/nix/store/hh8mlmlvn48qvqy7sv7lhxp4ca06x67c-ffmpeg-headless-8.1.2/bin/ffprobe && PYTHONPATH=tests python3 -m unittest test_report_bundle test_report -v",
+    "discovered": 42,
+    "passed": 42,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 7.66
+  },
+  "metrics": [
+    {
+      "name": "bundle_size_bytes",
+      "numerator": 4864121,
+      "denominator": 1,
+      "unit": "bytes",
+      "claim_class": "measured"
+    },
+    {
+      "name": "bundle_member_count",
+      "numerator": 24,
+      "denominator": 1,
+      "unit": "files",
+      "claim_class": "measured"
+    },
+    {
+      "name": "total_bundle_files_with_json",
+      "numerator": 25,
+      "denominator": 1,
+      "unit": "files",
+      "claim_class": "measured"
+    },
+    {
+      "name": "test_pass_rate",
+      "numerator": 42,
+      "denominator": 42,
+      "unit": "%",
+      "claim_class": "measured"
+    },
+    {
+      "name": "analysis_events",
+      "numerator": 3699,
+      "denominator": 1,
+      "unit": "count",
+      "claim_class": "measured"
+    },
+    {
+      "name": "annotation_spans",
+      "numerator": 1,
+      "denominator": 1,
+      "unit": "count",
+      "claim_class": "measured"
+    },
+    {
+      "name": "manifest_pcm_duration_seconds",
+      "numerator": 150,
+      "denominator": 961111,
+      "unit": "seconds",
+      "claim_class": "measured"
+    },
+    {
+      "name": "render_attempt_seconds",
+      "numerator": 1172,
+      "denominator": 1,
+      "unit": "seconds",
+      "claim_class": "measured"
+    },
+    {
+      "name": "template_null_leaves",
+      "numerator": 29,
+      "denominator": 1,
+      "unit": "count",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "Render attempt blocked by pandoc/quarto version mismatch (render_blocked_on_host)",
+    "Quarto/pandoc compatibility needs root fix in flake.nix or via flake.lock bump",
+    "Report content is unbounded until render succeeds",
+    "Fundamental 32 Hz presence and tone_ab assessment require listening or render",
+    "Note correctness and missed_or_extra_notes remain null pending tuning reference and note tracking"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "flake.nix",
+      "change": "Fix the report devShell's quarto/pandoc mismatch. Measured: at nixpkgs rev 2c423e03, quarto-1.10.18's wrapper defaults QUARTO_PANDOC to pandoc-cli-3.7.0.2, which rejects Quarto's `syntax-highlighting` option. Choose one, then verify with ONE further operator-approved attempt. (A) If the locked or bumped nixpkgs has pandoc >= 3.8, replace `report = pkgs.mkShell { packages = core ++ [ pkgs.R pkgs.quarto ]; };` with `report = pkgs.mkShell { packages = core ++ [ pkgs.R pkgs.quarto ]; QUARTO_PANDOC = \"${pkgs.pandoc}/bin/pandoc\"; };`. This only helps if pkgs.pandoc is >= 3.8; only 3.7.0.2 is in the local store today. (B) Bump nixpkgs (a flake.lock change) to a rev whose quarto ships a matching pandoc. (C) Pin quarto to a release compatible with pandoc 3.7 via overrideAttrs. No knitr/rmarkdown change is needed: all 21 knitr chunks ran with pkgs.R.",
+      "why": "The single approved render attempt failed at pandoc with `Aeson exception: Error in $: Unknown option \"syntax-highlighting\"` (render_blocked_on_host, recorded in report_d6-render-attempt.json). The lane may not edit flake.nix or flake.lock, or retry."
+    },
+    {
+      "file": "just/workflow.just",
+      "change": "Insert after the existing `report run_dir:` recipe:\n# Metadata-only, hash-bound bundle for the optional Quarto report; never copies media.\nreport-bundle run_dir:\n    python3 scripts/report_bundle.py build --run-dir {{quote(run_dir)}}\n\nreport-bundle-verify bundle_dir:\n    python3 scripts/report_bundle.py verify --bundle-dir {{quote(bundle_dir)}} --check-origin\n\n# Optional Quarto view of a verified bundle (needs `nix develop .#report`).\nreport-quarto bundle_dir:\n    quarto render reports/demo.qmd -P run_dir={{quote(bundle_dir)}}",
+      "why": "Gives the operator a `just` entrypoint for the bundle builder, the verifier and the optional Quarto render."
+    },
+    {
+      "file": "program/tools.json",
+      "change": "If root admits the bundle as a primitive, append the tool object from docs/agent-notes/sprints/20261006-s2/report_d6-tool-descriptor.json (name report_bundle) to `tools` verbatim.",
+      "why": "AGENTS.md requires every processing primitive to have a typed MCP hook and a skill."
+    },
+    {
+      "file": "scripts/tool_api.py",
+      "change": "Route tool `report_bundle` to [python3, scripts/report_bundle.py, build, --run-dir, <run_dir>], adding --analysis-run-dir and --annotation-store when given. Use the descriptor's timeout_seconds (default 600, max 900) as a hard deadline. Parse the single JSON stdout line. Exit 2 means refused, with a stable reason code; exit 1 means an error, reported by class name only.",
+      "why": "Provides the typed MCP hook for the drafted descriptor; the lane may not edit tool_api.py."
+    },
+    {
+      "file": ".agents/skills/guitar-report-bundle/SKILL.md",
+      "change": "Create the file using the exact text from docs/agent-notes/sprints/20261006-s2/report_d6-handoff.json at root_owned_changes_requested[4].change, after the 'Create with exactly:' prefix. The skill is named guitar-report-bundle. It covers use, controls, how to interpret binding classes, synthetic banks versus operator coverage, and unknowns, and it forbids adopting defaults.",
+      "why": "This is the repository skill for the new tool. .agents/skills is outside the lane's owned paths."
+    }
+  ],
+  "receipts_written": [],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": false
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Scope holds. The diff from merge-base 0cdca01 to HEAD 5c9115e covers 12 files, all owned: reports/{.gitignore,_quarto.yml,demo.qmd,plots.R}, scripts/report_bundle.py, tests/test_report_bundle.py, docs/spec/sprints/REPORT_S2.md, docs/spec/examples/listening-review.json and docs/agent-notes/sprints/20261006-s2/report_d6-{bundle-build,handoff,render-attempt,tool-descriptor}.json. The lane did not touch flake.nix, program/tools.json, scripts/tool_api.py or just/*; it lists those as root_owned_changes_requested in the handoff. scripts/report.py is byte-identical to the baseline (sha256 a3f18765...; git diff has 0 lines), and the sentence 'not a Quarto-rendered report' is still at scripts/report.py:882. `git merge-tree --write-tree main sprint/20261006-s2/report_d6` merges cleanly. The worktree status is clean.",
+      "(4) Tests reproduced: I ran FFMPEG/FFPROBE=nix ffmpeg-headless-8.1.2, PYTHONPATH=tests, python3 -m unittest test_report_bundle test_report -v. Result: 'Ran 42 tests in 6.612s' then OK, so 19 + 23 match the claim. The tests check real behaviour: stage WAV byte-flip gives stage_hash_mismatch, a missing or invalid manifest is refused, tampered, extra or missing members and an edited bundle.json are refused by verify, check_origin catches changed or missing origins, a RIFF magic disguised as .json is refused as media, oversize bundles and receipts are refused, unbound analysis abstains, and stale dag analysis hashes exclude auxiliaries. That is more than the required 8 bundle tests.",
+      "(6) Numbers reproduced independently. 5/150.961111 = 0.0331214, which rounds to 0.033121 as claimed; the manifest pcm.duration_seconds is 150.961111. The member bytes sum to 4,864,121, and 24 members plus bundle.json make 25 files. The bundle sha256 d3cfb5c7... recomputes. `report_bundle.py verify --bundle-dir <bundle> --check-origin` returns verified with exit code 0. The parent run 2b5dc43fd009 analysis source.sha256 26c9f42c... equals the FULLER run 990aa1bd6737 output_sha256['denoised.wav'], and both manifests carry source sha a522115f..., so the lineage claim holds. The analysis has 3699 events. The annotation store has 1 noise annotation spanning 0–5 s, with the source and manifest sha matching the FULLER manifest (61c9b393...). The unknowns dict has 21 keys. The receipt binding classes match the claim. The template has 29 null leaves (6+7+12+3+1).",
+      "(3) The claim classes are honest. Operator coverage is labelled 'M on metadata' and the generated bank is labelled 'S', with real_take_accuracy 'unknown' and pools_summed false. note_correctness and missed_or_extra_notes are null with reasons, default_adopted is false, and listening_accepted is false. The render receipt keeps measurements and inferences apart, and the pandoc/quarto cause is marked as inference. I found no note-correctness verdict and no default or profile adoption.",
+      "(2) I found no writes to the accepted run dirs. Child mtimes in 20261006T041633Z-990aa1bd6737 and 20261005T232741Z-2b5dc43fd009 are from Oct 6 00:09–00:21, and none of the read inputs is newer than report_bundle.py. Bundle output and the render log are in the worktree's gitignored artifacts/s2/report_d6/. check_output_dir refuses artifacts/runs, run dirs and the protected home dirs. The artifacts/runs directory's own mtime is 15:48, which falls inside the render window, but no child changed. Nothing ties it to this lane, and other lanes were active then.",
+      "The single render attempt matches the brief: attempt_count 1, retries 0, timeout 1800, exit 1, 1172.14 s, quarto 1.10.18, R 4.6.1, nix fetch/eval succeeded, html_sha256 null, and the exact blocking line `Aeson exception: Error in $: Unknown option \"syntax-highlighting\"`. The sh -c version-probe wrapper is the form frozen in REPORT_S2.md:302. One caveat: the nix-shell-env derivation was built on the remote builder petting-zoo-mini, which the local-build guard selected. That counts as an existing approved builder, but it should be noted.",
+      "Minor: in verify, the bundle.json keys outside HASH_SCOPE (builder, claims, limits, created_utc, media_policy) are not hash-bound. The 'corpus' key is checked only if it is present (scripts/report_bundle.py around line 1003), so deleting the corpus key still verifies. tables/corpus.csv is a hashed member, so the rendered report is unaffected.",
+      "Minor: reports/demo.qmd:24 calls system2('python3', ... verify) with no timeout, then reads tables after verification, which leaves a small TOCTOU window. This is bounded in practice (about 5 MB of reads) but is not strictly a hard deadline.",
+      "Minor: the committed receipts contain absolute host paths (/Users/jess/...) and a builder identity (ssh-ng://jsullivan2@petting-zoo-mini.local) in report_d6-render-attempt.json:36,60 and in bundle-build/handoff. The web_stack S6 scan does not cover report_d6-*.json, and 30 of 67 S2 receipts on main already contain /Users/jess, so this is consistent with existing practice and not blocking.",
+      "Minor: AGENTS.md requires every processing primitive to have a typed MCP hook and a skill. report_bundle has neither yet. A descriptor draft and the SKILL.md text are handed to root, because the lane may not edit program/tools.json or scripts/tool_api.py. Root must decide on admission.",
+      "The rename of plots.R plot_run_events to plot_bundle_events has no other callers on main or HEAD; I checked with git grep.",
+      "(5) Doctrine: report_bundle.py and demo.qmd contain no high-pass, notch or 80 Hz logic. fundamental_32hz_presence is unknown with a reason. demo.qmd contains no remote URLs and does not use jsonlite."
+    ],
+    "must_fix": []
+  }
+}
