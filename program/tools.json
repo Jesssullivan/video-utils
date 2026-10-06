@@ -3000,6 +3000,78 @@
         "acceptance": "match_lu_delta <= 0.3 LU and verified extents are measurement checks only; listening acceptance, preference and any EQ floor change remain root/operator decisions.",
         "max_comparison_candidates_default": 1
       }
+    },
+    {
+      "name": "report_bundle",
+      "title": "Hash-bound report bundle",
+      "description": "Build a metadata-only, hash-bound bundle for one existing run: the run manifest, the bound analysis plus dag/flags/markers/phrases (accepted only via scripts/report.py lineage rules), the fixed S2 receipt registry with computed binding classes, a structured projection of the bound operator annotation store and small derived CSV tables for the optional Quarto report. Stage WAVs are stream-hashed and recorded by name and sha256 only; no audio or video bytes, media URLs or free-text notes are copied. Output goes to a fresh gitignored artifacts/s2/report_d6/bundles directory; run directories are never written.",
+      "intent": "Give the optional R/Quarto report (and agents) a verifiable, privacy-preserving evidence package whose every value is hash-bound to the take, while keeping measurements, quoted receipt figures, synthetic-bank results, operator labels and unknowns distinct.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing run directory with manifest.json (source.sha256 and output_sha256); read-only, no symlink components."
+          },
+          "analysis_run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Optional run holding analysis.json when run_dir has none; otherwise derived from capture_profile_application.authoring_dir. Must share the run's source sha256."
+          },
+          "annotation_store": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Optional review-annotations-v2.json; bound only when its source and manifest sha256 equal the run's. Only structured fields are projected."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker deadline; the build streams sha256 over stage files (about 140 MB for the demo run) and decodes nothing."
+          }
+        },
+        "required": [
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-report-bundle/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "hash_bound_metadata_bundle_with_quoted_receipt_figures",
+      "limitations": [
+        "Receipt figures are quoted from each receipt, not re-measured; a source_bound_different_analyzed_input receipt describes a different derivative of the same take.",
+        "Synthetic generated-bank results are never operator-labelled coverage or real-take accuracy.",
+        "Operator-labelled coverage reflects the bound annotation store only; absence of labels is not evidence of correctness.",
+        "The bundle establishes provenance, not listening acceptance, note correctness, meter, tonic, mode or the presence of the ~32.7 Hz fundamental.",
+        "verify --check-origin rehashes member origins but not the run's stage WAVs; rebuild to rehash them."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "rhythm",
+          "pipeline",
+          "report"
+        ],
+        "enforced": false,
+        "note": "Bundles whatever bound evidence exists; missing or rejected analysis and payloads stay visible as statuses and the report abstains."
+      },
+      "agent_workflow": {
+        "identify": "Confirm the run and its manifest-recorded stage hashes; note which analysis basis (run_local, explicit, parent_run_from_capture_profile_authoring_dir) applies.",
+        "research": "Read docs/spec/sprints/REPORT_S2.md; keep binding classes and claim classes visible when quoting receipt figures.",
+        "iterate": "Rebuild into a fresh output directory after any input change; never edit a bundle in place. Run verify --check-origin before relying on a bundle.",
+        "acceptance": "verified status and protected readback are provenance checks only; listening acceptance and any default adoption remain operator/root decisions.",
+        "max_comparison_candidates_default": 1
+      }
     }
   ]
 }
