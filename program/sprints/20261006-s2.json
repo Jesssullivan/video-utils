@@ -41,7 +41,7 @@
       "related_issues": [
         "TIN-5487"
       ],
-      "state": "created",
+      "state": "running_in_workflow_at_pause",
       "linear": {
         "id": "TIN-5600",
         "uuid": "55989ddf-4476-44c6-adb5-b2a6a877b78e",
@@ -63,7 +63,7 @@
       "related_issues": [
         "TIN-5487"
       ],
-      "state": "created",
+      "state": "running_in_workflow_at_pause",
       "linear": {
         "id": "TIN-5601",
         "uuid": "a8fc0379-9d0c-4617-991b-c6d8b640c845",
@@ -86,7 +86,7 @@
         "TIN-5488",
         "TIN-5489"
       ],
-      "state": "created",
+      "state": "running_in_workflow_at_pause",
       "linear": {
         "id": "TIN-5602",
         "uuid": "6eac79a3-07c6-4aac-8253-715162fe27c6",
@@ -108,7 +108,7 @@
       "related_issues": [
         "TIN-5490"
       ],
-      "state": "created",
+      "state": "running_in_workflow_at_pause",
       "linear": {
         "id": "TIN-5603",
         "uuid": "f1b708a3-c2a0-4ced-833e-be3788d48268",
@@ -131,14 +131,15 @@
         "TIN-5489",
         "TIN-5548"
       ],
-      "state": "created",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5604",
         "uuid": "ab71d45c-fbb4-4f69-8a4f-a2f83ac32f82",
         "url": "https://linear.app/tinyland/issue/TIN-5604/s2-annot-corpus-annotation-marker-projection-coverage-first-corpus",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
-      "agent": "workflow-B/annot_corpus"
+      "agent": "workflow-B/annot_corpus",
+      "merge_commit": "e0da4ca"
     },
     {
       "id": "cap_ids",
@@ -154,14 +155,15 @@
         "TIN-5493",
         "TIN-5549"
       ],
-      "state": "created",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5605",
         "uuid": "4f2cb3e2-6a90-4957-b663-061a4fad0ea2",
         "url": "https://linear.app/tinyland/issue/TIN-5605/s2-cap-ids-capability-metadata-pilot-and-hash-derived-artifact-id",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
-      "agent": "workflow-B/cap_ids"
+      "agent": "workflow-B/cap_ids",
+      "merge_commit": "abaf7b7"
     },
     {
       "id": "editor_export",
@@ -177,14 +179,15 @@
         "TIN-5494",
         "TIN-5492"
       ],
-      "state": "created",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5606",
         "uuid": "ba17e97b-522c-47d2-93b1-3c17d593f66e",
         "url": "https://linear.app/tinyland/issue/TIN-5606/s2-editor-export-fcpxml-110-and-resolve-marker-export-with-ndfdf",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
-      "agent": "workflow-B/editor_export"
+      "agent": "workflow-B/editor_export",
+      "merge_commit": "09d64c5"
     },
     {
       "id": "rust_core",
@@ -199,14 +202,15 @@
       "related_issues": [
         "TIN-5486"
       ],
-      "state": "created",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5607",
         "uuid": "5e52a296-c636-4885-a6d5-ea4c30517b92",
         "url": "https://linear.app/tinyland/issue/TIN-5607/s2-rust-core-minimum-credible-rust-move-streaming-sha-256-typed",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
-      "agent": "workflow-B/rust_core"
+      "agent": "workflow-B/rust_core",
+      "merge_commit": "f563807"
     },
     {
       "id": "lowreg_spec_v4",
@@ -221,14 +225,15 @@
       "related_issues": [
         "TIN-5546"
       ],
-      "state": "created",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5608",
         "uuid": "46996312-5178-4014-87d7-5ac26ff98e94",
         "url": "https://linear.app/tinyland/issue/TIN-5608/s2-lowreg-spec-v4-low-register-spectrogram-render-spec-with-golden",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
-      "agent": "workflow-B/lowreg_spec_v4"
+      "agent": "workflow-B/lowreg_spec_v4",
+      "merge_commit": "2a1adfe"
     },
     {
       "id": "robustness",
@@ -309,7 +314,7 @@
       "related_issues": [
         "TIN-5492"
       ],
-      "state": "queued_wave2",
+      "state": "running_in_workflow_at_pause",
       "linear": {
         "id": "TIN-5612",
         "uuid": "71f7925a-8b66-4939-b903-0f9f658e7bbb",
@@ -331,7 +336,7 @@
       "related_issues": [
         "TIN-5551"
       ],
-      "state": "queued_wave2",
+      "state": "running_in_workflow_at_pause",
       "linear": {
         "id": "TIN-5613",
         "uuid": "067f7412-8642-4758-9be5-1bfa1b94ad5f",
@@ -353,7 +358,7 @@
       "related_issues": [
         "TIN-5550"
       ],
-      "state": "queued_wave2",
+      "state": "running_in_workflow_at_pause",
       "linear": {
         "id": "TIN-5614",
         "uuid": "120026ca-a448-42e0-8074-ce68405d431b",
@@ -414,5 +419,13 @@
     "desktop_export_sha256": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10",
     "s1_worktrees": "preserve all six .local/sprint1/*; review_ui intentionally dirty"
   },
-  "state": "wave1_launching"
+  "state": "paused_usage_limit_wave1B_merged",
+  "integration_head": "739427c9fb5825c695d77b021c581ae53e35eab6",
+  "hosted_ci": {
+    "run": 37475103398,
+    "conclusion": "success",
+    "python": "1169 run OK, 64 skipped",
+    "rust": "ok",
+    "gitleaks": "no leaks"
+  }
 }

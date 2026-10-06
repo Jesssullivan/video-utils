@@ -6,8 +6,8 @@ Resume receipt: [2026-10-06-s2-resume.md](2026-10-06-s2-resume.md). Manifest: [2
 
 stream | owner | repo/branch | state/evidence | next
 --- | --- | --- | --- | ---
-wave1 A (fuller_profile, tone_ab, rhythm_clicks, phrase_anchor_riff) | workflow wf_0ec5a3e0-625 (Opus 5.5) | sprint/20261006-s2/* | running since 08:55Z | root merge gate per lane
-wave1 B (rust_core, cap_ids, editor_export, annot_corpus, lowreg_spec_v4) | workflow wf_4ca81d49-474 (Opus 5.5) | sprint/20261006-s2/* | running since 08:55Z | root merge gate per lane
+wave1 A (fuller_profile, tone_ab, rhythm_clicks, phrase_anchor_riff) | workflow wf_0ec5a3e0-625 (Opus 5.5) | sprint/20261006-s2/* | see HANDOFF
+wave1 B (rust_core, cap_ids, editor_export, annot_corpus, lowreg_spec_v4) | workflow wf_4ca81d49-474 (Opus 5.5) | sprint/20261006-s2/* | see HANDOFF
 wave2 C (robustness, ui_core, report_d6, au_auval) and D (WEB: web_stack, web_jobs, web_ui_binding, web_reliability) | root | queued | after wave1 merges | launch
 peer sting | root | TIN-5186 | V1–V5 sent 09:00Z (neo-86778-1791277229); llama asked; V6 held for operator approval | record replies
 operator | Jess | — | committed: mark ≥10 boundaries, second take by Oct 9, approve V6, one nix .#report fetch | after ui_core merges
