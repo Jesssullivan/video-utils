@@ -1,0 +1,151 @@
+{
+  "lane": "web_jobs",
+  "branch": "sprint/20261006-s2/web_jobs",
+  "head": "84b0703d4537a3470bc674bf0005f4095121a235",
+  "base_commit": "e0da4ca04930ee9a89a83eec402f060366c5d30d",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint2/web_jobs",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_jobs-contract-freeze.json",
+      "sha256": "5755af9f95e48e1d4b2596a24b323677a337e1044522ebd77a77cd15cdf9eb22",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_jobs-demo-receipt.json",
+      "sha256": "dec415e3345041cf7f204fecd3080c1ee07d3f84bf65941835cb03bdb574c7e7",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_jobs-latency.json",
+      "sha256": "94acb16a9a6917a71f4dc25008afbedbd2b9efc85d5c059c7d908ab58b17649d",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_jobs-tests.json",
+      "sha256": "6b516a87721ff8ac1cf17ce08a8e7069de8478f6a5691dd58d094b44248b63e2",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/sprints/WEB_JOBS_S2.md",
+      "sha256": "458bb3020755e63fbbc92e34a4f8bf66f2723662e3124545d1fb6a3bd8404618",
+      "kind": "spec"
+    },
+    {
+      "path": "scripts/web_api.py",
+      "sha256": "9caf92e15fa9c958084a605fc56b224290ad110653ce6ecec1e4816fe5ee690c",
+      "kind": "source"
+    },
+    {
+      "path": "scripts/web_jobs.py",
+      "sha256": "1df1f23a14cf141b320accf67cf7538dbb4a03be5f964052cfac44f3c45ce261",
+      "kind": "source"
+    },
+    {
+      "path": "tests/test_web_jobs.py",
+      "sha256": "3c3ce2b39c49f987be7628447e4054228c54b98d6a868e3fa527e48483f3bcde",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe; cd /Users/jess/git/video-utils/.local/sprint2/web_jobs && PYTHONPATH=tests python3 -m unittest test_web_jobs -v",
+    "discovered": 26,
+    "passed": 24,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 2,
+    "seconds": 39.45
+  },
+  "metrics": [
+    {
+      "name": "test_pass_rate",
+      "numerator": 24,
+      "denominator": 26,
+      "unit": "tests",
+      "claim_class": "measured"
+    },
+    {
+      "name": "demo_job_latency",
+      "numerator": 284.361,
+      "denominator": 1,
+      "unit": "seconds",
+      "claim_class": "measured"
+    },
+    {
+      "name": "shared_artifacts_published",
+      "numerator": 0,
+      "denominator": 1,
+      "unit": "artifacts",
+      "claim_class": "measured",
+      "note": "share_export rejected with 'video packet count changed'"
+    }
+  ],
+  "unknowns": [
+    "listening_acceptance",
+    "master_adopted",
+    "low_register_preservation",
+    "musical_review",
+    "source_duration_seconds",
+    "memory_bytes_peak",
+    "cpu_seconds",
+    "exactly_once",
+    "slo",
+    "worker_birth"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "just/workflow.just",
+      "change": "Add the recipe:\n# Private loopback job control API (foreground; Ctrl-C stops it). Not a daemon.\nweb-jobs-serve port=\"0\" state_root=\"artifacts/web-jobs\":\n    python3 scripts/web_api.py serve --port {{quote(port)}} --state-root {{quote(state_root)}}\n\n# Read-only job store counts (no lock, no reconciliation).\nweb-jobs-status state_root=\"artifacts/web-jobs\":\n    python3 scripts/web_jobs.py --state-root {{quote(state_root)}} status",
+      "why": "The contract (section 13) has the operator start the server only as a foreground dev process through a just recipe. The lane may not edit `just/*.just`."
+    },
+    {
+      "file": "program/capabilities.json",
+      "change": "None now. `share_export.adapters.web_job` stays `planned`. Promotion is a root admission decision. Recommend holding it until the actual demo source is exported: on this take `share_export` fails with 'video packet count changed'.",
+      "why": "Keeps capability adoption a root decision. The demo shows the worker cannot yet deliver the accepted take."
+    },
+    {
+      "file": "scripts/tool_api.py",
+      "change": "Optional, not required: a public `spawn_worker(command) -> subprocess.Popen` helper using `run_worker`'s launch settings (`cwd=ROOT`, stdin `/dev/null`, `start_new_session=True`, file-backed output), so supervisors need not repeat them. `web_jobs` currently repeats them and records PID/PGID itself.",
+      "why": "`tool_api.run_worker` blocks and does not expose the PID, so a job cannot be cancelled through it."
+    },
+    {
+      "file": "program/linear.json",
+      "change": "When publishing TIN-5614 evidence, reference the commits 159fe28 and 84b0703 on sprint/20261006-s2/web_jobs and the receipts web_jobs-tests.json, web_jobs-latency.json and web_jobs-demo-receipt.json. Open or route a share_export follow-up for the 'video packet count changed' refusal on accepted run 20261006T041633Z-990aa1bd6737.",
+      "why": "Tracker sync and Linear writes are root-owned. The demo surfaced a share_export domain finding that is outside this lane."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261006-s2/web_jobs-contract-freeze.json",
+    "docs/agent-notes/sprints/20261006-s2/web_jobs-demo-receipt.json",
+    "docs/agent-notes/sprints/20261006-s2/web_jobs-latency.json",
+    "docs/agent-notes/sprints/20261006-s2/web_jobs-tests.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Scope holds. `git diff --name-only e0da4ca...HEAD` lists 8 files, all owned: scripts/web_jobs.py, scripts/web_api.py, tests/test_web_jobs.py, docs/spec/sprints/WEB_JOBS_S2.md, and 4 files matching docs/agent-notes/sprints/20261006-s2/web_jobs-*.json. Commits are 490647b (contract freeze), 159fe28 (code) and 84b0703 (receipts plus spec section 15, appended after line 493, with sections 1-14 unchanged). The worktree is clean, the branch has no remote, and main's `git status` shows only the pre-existing untracked .serena/. Nothing touches program/tools.json, scripts/tool_api.py or just/workflow.just.",
+      "(4) Test claim reproduced. I ran the exact command with the qualified FFMPEG/FFPROBE: 'Ran 26 tests in 26.992s / OK (skipped=2)'. The two skips are the opt-in ActualDemoJob and LocalLatencyMeasurement. test_real_share_export_job_succeeds_and_publishes_atomically ran and passed through the real tool_api dispatcher. I also re-ran the affected reused modules (test_artifact_ids, test_share_export_tool): 28/28 OK, matching the claim in web_jobs-tests.json.",
+      "(4) The tests exercise the claimed behaviour, checked by reading them. #10 (tests/test_web_jobs.py:612) requires the stub and its child PID to be gone, a .sigterm marker, signal_target=owned_process_group and an empty job dir. #12 (:656) tree-hashes the job A dir and the attempt-1 staging before and after the retry. #13 (:703) checks that both unowned PIDs are still alive, that no .sigterm marker exists, and that retry returns 409 prior_worker_alive. #15 (:755) uses the fault seam after_publish_before_commit and asserts adoption with a single beat in total. #17 (:802) covers 9 hostile IDs plus a directory symlink, a leaf symlink, tamper and delete (13 cases). #1 (:353) runs every 6x6 transition pair against both tables.",
+      "(6) Arithmetic reproduced. Illegal pairs: 2 tables x 36 = 72 pairs, minus 9 legal job transitions and 7 legal attempt transitions = 56, which matches web_jobs-tests.json (in the test, at tests/test_web_jobs.py:399, the 56 is written as 72 - 9 - 7, not counted). Hostile download cases: 9 + 4 = 13, and rejected inputs: 14 + 1 = 15, both matching the receipt. Demo attempt: started_at 13:56:45.365926Z to ended_at 14:01:28.360073Z is 282.994 s, consistent with the reported submit-to-terminal 284.361 s (submission comes before the claim). The raw artifacts/s2/web_jobs/latency.json has sha256 dce6aec2...51c1aa, equal to output_sha256 in the receipt, and its summary values match the receipt exactly.",
+      "(6) Percentile method, minor. _percentiles.pick (tests/test_web_jobs.py:1020) computes int(round(0.95*n + 0.5)) - 1. For n=500, 0.95*n is exactly 475.0, so the index becomes round(475.5) - 1 = 475 because Python rounds half to even. That reports the 476th order statistic, not the nearest-rank 475th. For n=3, 10 and 50 the result matches nearest-rank, and for n=10 p95 equals max, as stated. The bias is upward (conservative), and no SLO is claimed.",
+      "(3) Claim classes are handled correctly. Latency is labelled measurement_this_host_only with slo not_claimed and comparison_verdict null, and every row has n/attempted. The demo receipt separates measured, inferred and not_claimed, and labels the packet-count root cause as an unverified inference. The projection reports low_register_preservation, musical_review, memory and CPU as null, each with a reason. There is no note-correctness or missed-note verdict, and the lane adopts no default, profile or detector; master_adopted and listening_accepted are false everywhere.",
+      "(3) Minor receipt gap: observed_stop_after_signal in web_jobs-latency.json has no 'failures' field. Spec section 9 asks for 'every denominator including failures'. n=10 equals attempted=10, so nothing is hidden.",
+      "Raw latency.json was generated before the one-line test edit in 84b0703, which changed the state label from 'warm_after_test_suite' to 'warm_process_not_cold_boot'. As a result the raw file's 'state' value no longer matches the committed code. The numbers are unaffected.",
+      "(5) Doctrine is respected. The lane adds no audio filter, high-pass or notch. The only audio processing is in share_export, which the lane does not own: a loudnorm measurement and an optional volume change. The lane records low-register preservation as unknown. Timeouts are bounded: timeout_seconds 30-900 is validated through tool_api against the descriptor schema, plus OUTER_HEADROOM_S=10, cancel grace up to 60 s, a 5 s ps probe, a 30 s reap and a 60 s close-join. Unknown request fields are refused by closed_object at every route, as is the empty-body retry/cancel {'x':1} case.",
+      "(2) An external modification was observed but cannot be attributed to this lane. The main checkout's artifacts/runs directory has mtime 2026-10-06T09:54:50 local (13:54:50Z), meaning an entry was added or removed directly in it. That is before the latency run's measured_at (13:55:08Z) and before the demo state root was created (13:56:39Z). No lane code writes there: the state root overlap is refused (web_jobs.py _prepare_state_root), every suite fixture uses a temp runs root, and ArtifactIndex writes only via dump(), which refuses artifacts/runs. The demo's tree-hash check covered only the single accepted run dir, not all of artifacts/runs. Most likely another S2 lane or root made the change. No new files under Documents or Desktop, and no artifacts/web-jobs in main.",
+      "Staging directories are kept with no cleanup. On deadline (web_jobs.py _run_attempt, the 'deadline' branch), on a worker failure or rejection in _complete, and on an interrupted attempt, the .staging-<n>-* directory is left inside the private job dir; only the cancel path and the success path clean up. Disk use under the state root grows without bound. This is gitignored and private, but it is not covered by any quota (the spec already marks quotas NE).",
+      "If the server is stopped (Ctrl-C/SIGTERM) or close() is called while a job is running, the worker stays in its own session (start_new_session=True) and keeps running after the foreground server exits, up to share_export's own timeout (at most 900 s). This matches spec section 7 ('stopping is not a cancel') and reconciliation handles it as alive_unowned. Still, a bounded orphan FFmpeg can outlive the foreground process, and the operator recipe text should say so.",
+      "Liveness edge case: when ps lstart was not captured at launch (worker_birth NULL) and the PID still exists, process_liveness returns 'unknown'. Retry then stays blocked (prior_worker_alive) for as long as that PID exists, including when an unrelated process reuses it. This is conservative because nothing is signalled, but it can block a job indefinitely.",
+      "The downloadable publication.json exposes the internal 'fence' token and the job's worker_checks. It contains no host paths: worker_checks is a path-free projection and settings are scalar knobs. This is harmless because the fence is not an authorization secret.",
+      "Demo deviation, documented: spec section 10 names the state root .../demo-state, but the test uses demo-state-<UTC stamp>. The real share_export rejected the accepted FULLER cleaned-video ('video packet count changed', failed_no_export_published). Per spec section 10 that is a valid recorded outcome, and it is correctly routed to root as a share_export follow-up before adapters.web_job is promoted. It is not a web_jobs defect."
+    ],
+    "must_fix": []
+  },
+  "dropped_scope": []
+}
