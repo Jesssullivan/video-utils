@@ -1,0 +1,65 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004; operatorS1; R-N11/R-N12/R-N13",
+  "base_commit": "51d09357b07864548e2e34cebf2ac2f395fdf296",
+  "branch": "sprint/20261006-s1/low_register",
+  "claimed_completion": "Experimental comparison and independent arithmetic; not a product tool/default change, not actual musical/fan separation or listening acceptance.",
+  "created_utc": "2026-10-06T06:23:48.350579+00:00",
+  "future_findings": [
+    "Unity protected low band preserves colliding fan as well as music.",
+    "NR8/NR10 noise-control175Hz saturated walking reduction only1.15/1.20dB.",
+    "Missing-F0 nonlinear counterfactual source-null response needs explicit future artifact gate; current0alert rows are not invention-free acceptance."
+  ],
+  "independent_audit_readbacks": {
+    "audit-low-register-harmonic-result.json": {
+      "path": "/Users/jess/git/video-utils/.local/sprint1/audit/docs/agent-notes/sprints/20261006-s1/audit-low-register-harmonic-result.json",
+      "sha256": "d580a08e649765c51e4caa48faabef0392d5ba7447258b52d061ea2253108fcb",
+      "status": "PASS"
+    },
+    "audit-low-register-numerical.json": {
+      "path": "/Users/jess/git/video-utils/.local/sprint1/audit/docs/agent-notes/sprints/20261006-s1/audit-low-register-numerical.json",
+      "sha256": "040884fd0e4eb07b2cc0967c58315b310aa6aab25a216a73161d277eaf188683",
+      "status": "PASS"
+    },
+    "audit-low-register-prerun.json": {
+      "path": "/Users/jess/git/video-utils/.local/sprint1/audit/docs/agent-notes/sprints/20261006-s1/audit-low-register-prerun.json",
+      "sha256": "c93286bd2025eb4b01a04d4a46e54e2e54e40fb772b624766483d0464bc8628a",
+      "status": "PASS source/protocol with corrected complete attenuation accounting; numeric readiness only"
+    }
+  },
+  "live_processes": [],
+  "numeric_run": {
+    "arms": 4,
+    "cases": 9,
+    "clipping_count": 0,
+    "pid": 7733,
+    "rows": 36,
+    "sample_value_denominator": 17558400,
+    "seconds": 45.32424449999962,
+    "session_id": 80869,
+    "source_seconds": 72,
+    "terminal_exit_code": 0
+  },
+  "owned_file_sha256": {
+    "docs/agent-notes/sprints/20261006-s1/low-register-preregistration-v2.json": "c1a39eeb80ed73e34b19f9d731c959fda414032a3332449fb658bc379b5ad079",
+    "docs/agent-notes/sprints/20261006-s1/low-register-preregistration.json": "963f105383c0ec6a58b8e453bd07c74e6a340de9889f8b4d4295af561b88ca8d",
+    "docs/agent-notes/sprints/20261006-s1/low-register-readout-v2.md": "0a4b49812dea1020a048305d859fbc0d9825f909406ddd0bf8bd81019ffca520",
+    "docs/agent-notes/sprints/20261006-s1/low-register-run-v2.json": "b24c9144031202c3e09f538e70e9d219381b7ee378ab9362cb3be1bd5317b9f1",
+    "docs/agent-notes/sprints/20261006-s1/low-register-runtime.json": "e4941abc6f2c216351a374c54a0f07e976b8c2a7dcd4cb98b8aaa5b4143f076e",
+    "docs/spec/sprints/LOW_REGISTER_S1.md": "b7ecdb87ab38440af84a34a9f027ca8f4e381400ef37ab3fca5cc9dd35a79ec5",
+    "scripts/low_register_s1.py": "0fe36986320083506ec6629328bf2ac20cd55bd20d2474bf550977b27a2ca94d",
+    "tests/test_low_register_s1.py": "350c4e9c5d08ce89a1f1e574983d4478a63e33ce4819044c30b6de05b34d8adc"
+  },
+  "owner_tests": {
+    "count": 8,
+    "passed": 8,
+    "qualified_python": "/Users/jess/git/video-utils/.venv/bin/python",
+    "seconds": 3.003
+  },
+  "root_only_actions_remaining": [
+    "review/integrate assigned files",
+    "record tracker facts",
+    "appropriate combined checks and signed publication"
+  ],
+  "state": "frozen_ready_root_integration",
+  "uncommitted": true
+}
