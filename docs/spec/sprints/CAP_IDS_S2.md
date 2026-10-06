@@ -405,3 +405,30 @@ returned in the lane's `root_owned_changes_requested`:
 - `changed_during_hash` detects cooperative concurrent changes only; a
   malicious non-cooperating writer is out of scope (same boundary as S1
   annotation store).
+
+## 13. Phase 2 outcome (2026-10-06, appended; sections 1–12 unchanged)
+
+Implementation commit `9fa06e383cac5220aad118affa72693e1868622e`. Receipts:
+`docs/agent-notes/sprints/20261006-s2/cap_ids-phase2-receipt.json` and
+`cap_ids-accepted-run-readback.json`. Published contract:
+[CAPABILITIES.md](../CAPABILITIES.md).
+
+- Tests: 33/33 pass (`test_capabilities` 14, `test_artifact_ids` 19) [M].
+- Validation 8/8 tools, 48/48 parameters, 8/8 nested fields, 8/8 timeouts,
+  35/35 invariants [M]; traversal 32/32 edges, 8/8 allowlisted (7 direct,
+  1 via adapter) [S]; provenance tokens 13/38 found, 25/38
+  `declared_unverified` [S/D]; memory/CPU/output bounds not qualified [D].
+- Accepted run `20261006T041633Z-990aa1bd6737` (read-only): 12/13 regular
+  files projected, 1 refused `unsafe_component` (hidden frame-count cache),
+  12/12 resolve `current`, manifest `output_sha256` 6/6 equal where recorded,
+  tree hash unchanged. Bytes hashed 607,516,852, larger than the section 9
+  estimate of ~180 MB [M]. This is not a quality claim.
+- Deviations: `dump` publishes via fsync + hard link (atomic, never clobbers)
+  rather than replace. Extra refusals: `MZ` magic, non-ASCII components, and a
+  leading `artifacts` component. A file that grows during hashing fails fast
+  with `changed_during_hash`. Both modules refuse duplicate JSON keys, which
+  `tool_api.strict_json` does not.
+- Correction to metadata: `apply_capture_profile.resources.source_bytes`
+  is `enforced` 3 GiB (worker uses `capture.MAX_SOURCE_BYTES`).
+- Root-owned wiring (optional, not made): section 11 items, returned with exact
+  text in the lane's `root_owned_changes_requested`.
