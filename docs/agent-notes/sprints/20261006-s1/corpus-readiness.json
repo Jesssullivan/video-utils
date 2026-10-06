@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "status": "read_only_saved_evidence_projection",
+  "authority": "R-HOOK-CONVERGENCE-20261004 / S1 / TIN-5566",
+  "source_receipts": [
+    {
+      "path": "docs/agent-notes/2026-10-06-learned-pitch-numerical.json",
+      "sha256": "ed7395ca49bf615506c9b1790794ecc6ecbd927a1f41cbf4ef18311e21c87fe5"
+    },
+    {
+      "path": "docs/agent-notes/2026-10-06-learned-pitch-numerical-audit.json",
+      "sha256": "a4f9095afe0cd1c065cc788c8d2249396d39e4d563fb2b6d7db8430ff16e3172"
+    }
+  ],
+  "scope": "four-case generated learned-pitch pilot, native full-input stable-monophonic rows only; not real performance truth",
+  "native_counts": {
+    "covered_frames": 2580,
+    "stable_true_voiced": 426,
+    "stable_true_unvoiced": 0,
+    "estimated_voiced_true_voiced": 426,
+    "estimated_voiced_true_unvoiced": 0,
+    "abstained_frames": 774,
+    "contexts": {
+      "input_padding": 1018,
+      "stable_monophonic": 426,
+      "transition_crossing": 1006,
+      "polyphonic": 130
+    }
+  },
+  "native_metrics": {
+    "raw_pitch_accuracy": {
+      "value": 0.07981220657276995,
+      "numerator": 34,
+      "denominator": 426,
+      "reason": null
+    },
+    "raw_chroma_accuracy": {
+      "value": 1.0,
+      "numerator": 426,
+      "denominator": 426,
+      "reason": null
+    },
+    "octave_error_fraction": {
+      "value": 0.92018779342723,
+      "numerator": 392,
+      "denominator": 426,
+      "reason": null
+    },
+    "voicing_false_alarm": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "reason": "no_applicable_frames"
+    }
+  },
+  "readiness_matrix": [
+    {
+      "capability": "metadata_split_validation",
+      "state": "implemented_local_and_independent_generated_tests_passed_root_admission_pending",
+      "boundary": "Metadata consistency only, declared identity and lineage unauthenticated."
+    },
+    {
+      "capability": "low_register_note_grading",
+      "state": "not_ready",
+      "boundary": "34/426 fundamental matches,392/426 octave substitutions; chroma matches do not close octave ambiguity."
+    },
+    {
+      "capability": "native_absence_false_voicing",
+      "state": "unknown",
+      "boundary": "Stable native absence denominator0; false-voicing value null, no negative examples inferred."
+    },
+    {
+      "capability": "real_demo_holdout_evaluation",
+      "state": "not_ready",
+      "boundary": "One original-only unreviewed unassigned draft,zero selected annotations; no disjoint take families or reviewer-verified ground truth."
+    },
+    {
+      "capability": "real_phrase_correctness",
+      "state": "unknown",
+      "boundary": "404 intended clicks/10–11-second approximate anchor are operator context, not extracted events."
+    }
+  ],
+  "new_inference_performed": false,
+  "audio_read": false,
+  "models_downloaded": false,
+  "real_musical_correctness_established": false,
+  "default_detector_adopted": false,
+  "independent_saved_audit_c1_native_counts": {
+    "abstentions": 97,
+    "monophonic_n": 426,
+    "voiced_reference": 426,
+    "raw_pitch_correct": 34,
+    "raw_chroma_correct": 426,
+    "octave_errors": 392
+  },
+  "independent_saved_audit_c1_native_top_midi_histogram": {
+    "24": 34,
+    "48": 392
+  },
+  "cross_readback_agreement": "Saved primary and independent reports agree on34/426pitch and392/426octave counts; S1 does not re-open raw activations or verify synthetic truth."
+}

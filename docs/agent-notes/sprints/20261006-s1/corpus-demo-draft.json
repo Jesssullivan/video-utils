@@ -1,0 +1,32 @@
+{
+  "schema_id": "video-utils.corpus-split.s1",
+  "schema_version": 1,
+  "corpus_id": "operator-demo-s1-draft",
+  "revision": 1,
+  "coverage": "sparse_or_unknown_no_negative_inference",
+  "approval_state": "unreviewed",
+  "records": [
+    {
+      "id": "october5-original",
+      "take_family_id": "october5-demo",
+      "split": "unassigned",
+      "origin": "real_recording",
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "artifact_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "parent_ids": [],
+      "augmentation_group_ids": [],
+      "manifest": null,
+      "annotation_refs": []
+    }
+  ],
+  "context_refs": [
+    {
+      "metadata": {
+        "path": "program/demo-arrangement.json",
+        "sha256": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a"
+      },
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "basis": "operator_context"
+    }
+  ]
+}
