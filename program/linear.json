@@ -87,7 +87,7 @@
       "kind": "ten_hour_goal"
     }
   ],
-  "evidence_state": "S1 scoped32tool delivery complete:6signedadminmerges, source48c46f0 private/valid signature, exact hostedCI37424756499 success. Local1013pass/1skip plus30independent; hosted981pass/57optional skips,7Rust and secret scan. All7S1issuesDone; futureTIN5546Backlog; accepted media unchanged. Final docs publication and goal transition follow.",
+  "evidence_state": "S1 scoped32tool delivery complete:6signedadminmerges, source48c46f0 private/valid signature, exact hostedCI37424756499 success. Local1013pass/1skip plus30independent; hosted981pass/57optional skips,7Rust and secret scan. All7S1issuesDone; futureTIN5546Backlog; accepted media unchanged. Scoped delivery complete; root validates final closeout publication before goal transition.",
   "project": {
     "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
     "name": "video-utils \u2014 guitar restoration and performance analysis",
