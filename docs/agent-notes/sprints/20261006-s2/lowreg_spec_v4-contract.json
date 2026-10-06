@@ -1,0 +1,15 @@
+{
+  "lane": "lowreg_spec_v4",
+  "sprint": "20261006-s2",
+  "linear": "TIN-5608",
+  "phase": "1_contract_freeze",
+  "recorded_utc": "2026-10-06T09:37:11Z",
+  "contract_path": "docs/spec/sprints/LOWREG_SPEC_S2.md",
+  "contract_sha256": "f1f6f002002f2dff794a89e341bfbcdbecc90295393fe9ac7a051cb22414af7f",
+  "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
+  "numerics_run": false,
+  "experiment_preregistered": false,
+  "sealed_before_numerics": ["fixture parameters and seed 20261006", "stored golden indices", "tolerance abs 1e-9 rel 1e-9", "C-gate predictions M7 >= 20 dB, M8 >= 10 dB"],
+  "root_owned_changes_requested": [],
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13"
+}
