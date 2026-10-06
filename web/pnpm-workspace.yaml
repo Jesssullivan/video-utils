@@ -1,0 +1,9 @@
+# pnpm 11 reads package-manager settings from this file (not .npmrc).
+# engineStrict is intentionally NOT set: this host's pnpm 11.25.0 runs on its own
+# bundled Node runtime, so engine checks would evaluate pnpm's runtime rather than the
+# `node` on PATH that runs svelte-check, vite and serve.js (see WEB_STACK_S2.md 3.1).
+strictPeerDependencies: true
+# Fail instead of silently running an (online) install when a script finds stale deps.
+verifyDepsBeforeRun: error
+minimumReleaseAgeExclude:
+  - vite@8.3.3

@@ -1,0 +1,53 @@
+@import 'tailwindcss';
+@import '@skeletonlabs/skeleton';
+@import '@skeletonlabs/skeleton-svelte';
+@import '@skeletonlabs/skeleton/themes/cerberus';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Dark neutral surface echoing review/style.css; source-time values are monospace. */
+:root {
+	color-scheme: dark;
+	--vu-bg: #161512;
+	--vu-panel: #211e19;
+	--vu-line: #3c352b;
+	--vu-text: #eee7da;
+	--vu-muted: #b1a594;
+	--vu-gold: #d6b474;
+	--vu-coral: #c98370;
+}
+
+body {
+	background: var(--vu-bg);
+	color: var(--vu-text);
+}
+
+.vu-panel {
+	background: var(--vu-panel);
+	border: 1px solid var(--vu-line);
+}
+
+.vu-muted {
+	color: var(--vu-muted);
+}
+
+.vu-eyebrow {
+	color: var(--vu-gold);
+	font-size: 11px;
+	letter-spacing: 0.17em;
+	text-transform: uppercase;
+}
+
+.vu-time {
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-variant-numeric: tabular-nums;
+}
+
+.vu-unknown {
+	color: var(--vu-muted);
+	font-style: italic;
+}
+
+.vu-error {
+	border-left: 3px solid var(--vu-coral);
+}
