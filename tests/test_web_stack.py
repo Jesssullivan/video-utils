@@ -1,4 +1,8 @@
-"""S2 web_stack lane tests (docs/spec/sprints/WEB_STACK_S2.md section 7).
+"""S2 web_stack lane tests (docs/spec/sprints/WEB_STACK_S2.md section 7), rescoped by web_ui_binding.
+
+WEB_UI_S2.md section 9.3: S1-S7, B1-B5 and N1-N13 keep their IDs; S8, S9, N1-N5 and N12 are
+rescoped to the bound UI and the real /api/v1 shapes (reasons in the web_ui_binding tests receipt);
+S10 and N14-N18 are new.
 
 Stdlib only. Static checks always run. Build and integration checks need `node` and
 `pnpm` on PATH and an already-populated pnpm store (offline frozen install); they skip
@@ -8,6 +12,7 @@ process this module starts is terminated in tearDown/tearDownClass.
 
 from __future__ import annotations
 
+import hashlib
 import http.client
 import json
 import os
@@ -35,7 +40,8 @@ REQUIRED_MAJORS = {
     "@skeletonlabs/skeleton": 5,
     "@skeletonlabs/skeleton-svelte": 5,
 }
-PROTOTYPE_ROUTES = ("upload", "compare", "review", "download")
+PROTOTYPE_ROUTES = ("compare", "review", "download")
+BOUND_ROUTES = ("upload", "sources/[id=artifactid]", "jobs/[id=jobid]")
 GENERATED_DIRS = ("node_modules", "build", ".svelte-kit")
 SECRET_OR_HOST_PATTERNS = (
     re.compile(r"/Users/"),
@@ -53,6 +59,17 @@ SECRET_OR_HOST_PATTERNS = (
 )
 UPSTREAM_MARKER = "UPSTREAM_TEXT_MARKER_7f3a"
 UPSTREAM_KEY_MARKER = "upstream_unexpected_field_ZQX"
+TOKEN = "integration-token-" + "Q" * 24  # synthetic; never a real control-API token
+TOKEN_ENV = "VIDEO_UTILS_CONTROL_API_TOKEN"
+URL_ENV = "VIDEO_UTILS_CONTROL_API_URL"
+JOB = {name: "job_" + "0" * 31 + digit for name, digit in (
+    ("queued", "1"), ("running", "2"), ("succeeded", "3"), ("failed", "4"), ("bad_unknown_key", "5"),
+    ("bad_enum", "6"), ("http_500", "7"), ("missing", "8"), ("slow", "9"), ("huge", "a"),
+    ("huge_stream", "b"), ("token_refused", "c"))}
+ART_OK = "art_" + "a" * 32
+ART_PRIVATE = "art_" + "b" * 32
+ART_BYTES = b"synthetic-share-mp4-bytes;" * 400
+ERROR_KEYS = {"status", "code", "message", "upstream_status", "upstream_code", "upstream_detail_code"}
 
 INSTALL_TIMEOUT_S = 300
 CHECK_TIMEOUT_S = 300
@@ -83,7 +100,7 @@ def _web_files_to_commit() -> list[Path]:
 
 
 def _receipt_files() -> list[Path]:
-    return sorted(RECEIPT_DIR.glob("web_stack-*.json"))
+    return sorted([*RECEIPT_DIR.glob("web_stack-*.json"), *RECEIPT_DIR.glob("web_ui_binding-*.json")])
 
 
 def _lock_importer_specifiers(lock_text: str) -> dict[str, str]:
@@ -120,7 +137,7 @@ def _lock_importer_specifiers(lock_text: str) -> dict[str, str]:
 
 def _clean_env(**overrides: str | None) -> dict[str, str]:
     env = dict(os.environ)
-    for key in ("HOST", "PORT", "SOCKET_PATH", "ORIGIN", "VIDEO_UTILS_CONTROL_API_URL"):
+    for key in ("HOST", "PORT", "SOCKET_PATH", "ORIGIN", "BODY_SIZE_LIMIT", URL_ENV, TOKEN_ENV):
         env.pop(key, None)
     for key, value in overrides.items():
         if value is None:
@@ -290,12 +307,14 @@ class WebStackStaticTests(unittest.TestCase):
         self.assertLess(serve.index("process.exit(REFUSAL_EXIT_CODE)"), serve.index("import('./build/index.js')"))
 
     def test_s8_prototype_routes_label_only(self) -> None:
+        """Rescoped (WEB_UI_S2 9.3): bound routes post only to /api/* BFF endpoints; client files never
+        name the control API URL, the token env or fetch('http://; remaining prototype routes keep the label."""
         for slug in PROTOTYPE_ROUTES:
             route = WEB / "src" / "routes" / slug / "+page.svelte"
             with self.subTest(route=slug):
                 text = route.read_text()
+                self.assertIn("PrototypeNotice", text)
                 self.assertIn("Prototype", text)
-                self.assertIn("Not implemented in S2", text)
                 self.assertNotIn("<form", text)
                 self.assertNotIn("<input", text)
                 self.assertFalse((route.parent / "+page.server.ts").exists())
@@ -304,15 +323,33 @@ class WebStackStaticTests(unittest.TestCase):
         self.assertIn("Not implemented in S2", notice)
         self.assertNotIn("<form", notice)
         self.assertNotIn("<input", notice)
+        client_files = [
+            path for path in (WEB / "src").rglob("*")
+            if path.is_file() and path.suffix in {".svelte", ".ts", ".js"}
+            and "server" not in path.relative_to(WEB / "src").parts
+            and not path.name.endswith((".server.ts", ".server.js")) and path.name != "+server.ts"
+        ]
+        self.assertGreater(len(client_files), 10)
+        fetches = 0
+        for path in client_files:
+            text = path.read_text()
+            with self.subTest(client_file=str(path.relative_to(REPO))):
+                for forbidden in (URL_ENV, TOKEN_ENV, "fetch('http://", 'fetch("http://', "fetch(`http://",
+                                  "$env/dynamic/private", "$env/static/private"):
+                    self.assertNotIn(forbidden, text)
+                for match in re.finditer(r"fetch\(\s*([`'\"])([^`'\"]*)", text):
+                    fetches += 1
+                    self.assertTrue(match.group(2).startswith("/api/"), match.group(0))
+        self.assertGreaterEqual(fetches, 6)
+        for slug in BOUND_ROUTES:
+            with self.subTest(bound=slug):
+                self.assertTrue((WEB / "src" / "routes" / slug / "+page.svelte").is_file())
 
     def test_s9_fixtures_parse_and_cover_cases(self) -> None:
+        """Rescoped (WEB_UI_S2 9.3): the real v1 fixture set generated from web_api responses."""
         required = {
-            "sources.json",
-            "job_running.json",
-            "job_progress.json",
-            "job_succeeded.json",
-            "job_bad_unknown_key.json",
-            "job_bad_enum.json",
+            "sources.json", "job_queued.json", "job_running.json", "job_succeeded.json", "job_failed.json",
+            "job_bad_unknown_key.json", "job_bad_enum.json",
         }
         present = {path.name for path in FIXTURES.glob("*.json")}
         self.assertTrue(required <= present, required - present)
@@ -322,14 +359,39 @@ class WebStackStaticTests(unittest.TestCase):
             for pattern in SECRET_OR_HOST_PATTERNS:
                 self.assertIsNone(pattern.search(text), f"{path.name}: {pattern.pattern}")
             self.assertNotRegex(text, r"(?i)\.(mov|mp4|wav|m4v)\b", path.name)
-        sources = json.loads((FIXTURES / "sources.json").read_text())["sources"]
-        nullable = ("source_sha256", "duration_seconds", "sample_rate_hz", "channels")
-        self.assertTrue(any(all(src[key] is None for key in nullable) for src in sources))
+        readme = json.loads((FIXTURES / "README.json").read_text())
+        self.assertEqual(readme["control_api_contract_source"], "web_jobs_s2_merged")
+        sources = json.loads((FIXTURES / "sources.json").read_text())
+        self.assertEqual(sources["schema_version"], 1)
+        self.assertTrue(any(s["source_id"] is None and s["duration_seconds"] is None for s in sources["sources"]))
+        for record in sources["sources"]:
+            self.assertTrue(record["duration_seconds_reason"] and record["source_id_reason"])
+        queued = json.loads((FIXTURES / "job_queued.json").read_text())
+        self.assertIsNone(queued["progress"])
+        self.assertIsNone(queued["eta_seconds"])
         running = json.loads((FIXTURES / "job_running.json").read_text())
-        self.assertIsNone(running["progress"])
-        self.assertIsNone(running["eta_seconds"])
-        progress = json.loads((FIXTURES / "job_progress.json").read_text())
-        self.assertGreaterEqual(progress["progress"]["denominator"], 1)
+        self.assertEqual(running["progress"]["denominator"], 6)
+        succeeded = json.loads((FIXTURES / "job_succeeded.json").read_text())
+        self.assertIn("share_mp4", {a["role"] for a in succeeded["artifacts"]})
+        for name, job_id in JOB.items():
+            path = FIXTURES / f"job_{name}.json"
+            if path.is_file():
+                self.assertEqual(json.loads(path.read_text())["job_id"], job_id, name)
+
+    def test_s10_client_bundle_has_no_token_or_control_url(self) -> None:
+        """New (WEB_UI_S2 9.3): the built client bundle never carries the token, its env name or a control URL."""
+        _ensure_build(self)
+        files = [path for path in (WEB / "build" / "client").rglob("*") if path.is_file()]
+        self.assertGreater(len(files), 0)
+        hits = []
+        for path in files:
+            text = path.read_bytes().decode("utf-8", errors="replace")
+            for needle in (TOKEN, TOKEN_ENV, URL_ENV):
+                if needle in text:
+                    hits.append(f"{path.name}: {needle}")
+            if re.search(r"127\.0\.0\.1:\d+", text):
+                hits.append(f"{path.name}: loopback url")
+        self.assertEqual(hits, [], f"scanned {len(files)} client files")
 
 
 # --------------------------------------------------------------------------------------
@@ -427,48 +489,89 @@ def _free_port() -> int:
 
 
 class _MockControlApi:
+    """Stdlib mock of the /api/v1 control API serving the real-shape fixtures. Records every request."""
+
     def __init__(self) -> None:
         self.requests: list[str] = []
+        self.authorizations: list[str | None] = []
         self.stop = threading.Event()
+        jobs = {}
+        for path in FIXTURES.glob("job_*.json"):
+            jobs[json.loads(path.read_text())["job_id"]] = path.read_bytes()
         mock = self
 
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, *args: object) -> None:  # quiet
                 return
 
-            def _send(self, status: int, body: bytes, content_type: str = "application/json") -> None:
+            def _send(self, status: int, body: bytes, content_type: str = "application/json", extra: dict | None = None) -> None:
                 self.send_response(status)
                 self.send_header("Content-Type", content_type)
                 self.send_header("Content-Length", str(len(body)))
+                for key, value in (extra or {}).items():
+                    self.send_header(key, value)
                 self.end_headers()
                 try:
                     self.wfile.write(body)
                 except (BrokenPipeError, ConnectionResetError):
                     pass
 
+            def _typed(self, status: int, code: str, detail: str | None = None) -> None:
+                body = {"status": "error", "code": code, "error": f"{UPSTREAM_MARKER} /Users/never/echoed"}
+                if detail:
+                    body["detail_code"] = detail
+                self._send(status, json.dumps(body).encode())
+
+            def _record(self) -> str:
+                mock.requests.append(f"{self.command} {self.path}")
+                mock.authorizations.append(self.headers.get("Authorization"))
+                return self.path.split("?", 1)[0]
+
+            def do_POST(self) -> None:  # noqa: N802
+                path = self._record()
+                length = int(self.headers.get("Content-Length") or 0)
+                if length <= 16 * 1024 * 1024:
+                    self.rfile.read(length)
+                if path == "/api/v1/uploads":
+                    self._typed(415, "upload_type_refused")
+                elif path == "/api/v1/sources":
+                    self._typed(422, "path_escape", "host_path_refused")
+                else:
+                    self._send(404, b'{"detail":"no route"}')
+
             def do_GET(self) -> None:  # noqa: N802
-                mock.requests.append(self.path)
-                if self.path == "/api/v1/sources":
+                path = self._record()
+                if path == "/api/v1/sources":
                     self._send(200, (FIXTURES / "sources.json").read_bytes())
                     return
+                if path == f"/api/v1/artifacts/{ART_OK}":
+                    self._send(200, ART_BYTES, "video/mp4", {
+                        "X-Artifact-Sha256": hashlib.sha256(ART_BYTES).hexdigest(),
+                        "Content-Disposition": f'attachment; filename="{ART_OK}"'})
+                    return
+                if path == f"/api/v1/artifacts/{ART_PRIVATE}":
+                    self._typed(403, "artifact_private")
+                    return
                 prefix = "/api/v1/jobs/"
-                if not self.path.startswith(prefix):
+                if not path.startswith(prefix):
                     self._send(404, b'{"detail":"no route"}')
                     return
-                job = self.path[len(prefix):]
-                if job == "job_http_500":
+                job = path[len(prefix):]
+                if job == JOB["http_500"]:
                     self._send(500, f"Traceback {UPSTREAM_MARKER}".encode(), "text/plain")
-                elif job == "job_missing":
+                elif job == JOB["missing"]:
                     self._send(404, f'{{"detail":"{UPSTREAM_MARKER}"}}'.encode())
-                elif job == "job_slow":
+                elif job == JOB["token_refused"]:
+                    self._typed(401, "token_required")
+                elif job == JOB["slow"]:
                     if mock.stop.wait(7.0):
                         return
                     self._send(200, (FIXTURES / "job_running.json").read_bytes())
-                elif job in ("job_huge", "job_huge_stream"):
+                elif job in (JOB["huge"], JOB["huge_stream"]):
                     snapshot = json.loads((FIXTURES / "job_running.json").read_text())
-                    snapshot["limitations"] = ["x" * 400] * 3000  # ~1.2 MB
+                    snapshot["tool_envelope"]["limitations"] = ["x" * 400] * 3000  # ~1.2 MB
                     body = json.dumps(snapshot).encode()
-                    if job == "job_huge":
+                    if job == JOB["huge"]:
                         self._send(200, body)
                         return
                     # No Content-Length: the BFF must count bytes while streaming.
@@ -481,10 +584,10 @@ class _MockControlApi:
                             self.wfile.write(body[offset : offset + 65536])
                     except (BrokenPipeError, ConnectionResetError):
                         pass
-                elif (FIXTURES / f"{job}.json").is_file() and job.startswith("job_"):
-                    self._send(200, (FIXTURES / f"{job}.json").read_bytes())
+                elif job in jobs:
+                    self._send(200, jobs[job])
                 else:
-                    self._send(404, b'{"detail":"unknown job"}')
+                    self._typed(404, "unknown_job")
 
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         self.server.daemon_threads = True
@@ -506,9 +609,10 @@ class _MockControlApi:
 class _App:
     """`node serve.js` on loopback with an ephemeral port, in its own process group."""
 
-    def __init__(self, control_api_url: str | None) -> None:
+    def __init__(self, control_api_url: str | None, token: str | None = TOKEN) -> None:
         self.port = _free_port()
-        env = _clean_env(HOST="127.0.0.1", PORT=str(self.port), VIDEO_UTILS_CONTROL_API_URL=control_api_url)
+        self.origin = f"http://127.0.0.1:{self.port}"
+        env = _clean_env(HOST="127.0.0.1", PORT=str(self.port), **{URL_ENV: control_api_url, TOKEN_ENV: token})
         self.proc = subprocess.Popen(
             ["node", "serve.js"],
             cwd=WEB,
@@ -529,23 +633,37 @@ class _App:
         self.close()
         raise RuntimeError("app did not start listening within 30 s")
 
-    def get(self, path: str, timeout: float = 15.0) -> tuple[int, str, float]:
+    def request(self, method: str, path: str, body: bytes | None = None, headers: dict | None = None,
+                timeout: float = 15.0) -> tuple[int, dict, bytes, float]:
         start = time.monotonic()
         conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=timeout)
         try:
-            conn.request("GET", path, headers={"accept": "application/json, text/html"})
+            conn.request(method, path, body=body, headers={"accept": "application/json, text/html", **(headers or {})})
             response = conn.getresponse()
-            body = response.read().decode("utf-8", errors="replace")
-            return response.status, body, time.monotonic() - start
+            payload = response.read()
+            return response.status, {k.lower(): v for k, v in response.getheaders()}, payload, time.monotonic() - start
         finally:
             conn.close()
+
+    def get(self, path: str, timeout: float = 15.0) -> tuple[int, str, float]:
+        status, _, payload, elapsed = self.request("GET", path, timeout=timeout)
+        return status, payload.decode("utf-8", errors="replace"), elapsed
+
+    def post_json(self, path: str, value: object, origin: str | None = "same") -> tuple[int, dict]:
+        headers = {"content-type": "application/json"}
+        if origin == "same":
+            headers["origin"] = self.origin
+        elif origin is not None:
+            headers["origin"] = origin
+        status, _, payload, _ = self.request("POST", path, json.dumps(value).encode(), headers)
+        return status, json.loads(payload)
 
     def close(self) -> None:
         if self.proc.poll() is None:
             try:
                 os.killpg(self.proc.pid, signal.SIGTERM)
-            except ProcessLookupError:
-                pass
+            except (ProcessLookupError, PermissionError):
+                pass  # Darwin killpg(2) gives EPERM for an own group whose members are all zombies
             try:
                 self.proc.wait(timeout=10)
             except subprocess.TimeoutExpired:
@@ -600,57 +718,78 @@ class WebStackIntegrationTests(unittest.TestCase):
         return status, json.loads(body), elapsed
 
     def test_n01_sources_page_renders_unknown(self) -> None:
+        sources = json.loads((FIXTURES / "sources.json").read_text())["sources"]
         status, body, _ = self.app.get("/")
         self.assertEqual(status, 200)
-        self.assertIn("Synthetic fixture take A (all facts reported)", body)
-        self.assertIn("Synthetic fixture take B (facts not yet reported)", body)
+        for source in sources:
+            self.assertIn(source["source_artifact_id"], body)
         self.assertIn('data-unknown="true"', body)
-        self.assertGreaterEqual(body.count(">Unknown<"), 4)
+        self.assertGreaterEqual(body.count(">Unknown<"), 2)
+        self.assertIn("admission does not probe", body)
         self.assertNotIn("NaN", body)
-        self.assertIn("Prototype — local loopback fixture; no processing is started from this page.", body)
+        self.assertIn("Local loopback pilot — private; not a hosted service.", body)
 
     def test_n02_running_job_preserves_null_progress(self) -> None:
-        status, body, _ = self._json("/api/jobs/job_running")
+        """Rescoped: a queued job with progress null keeps null (and eta null) through the BFF."""
+        status, body, _ = self._json(f"/api/jobs/{JOB['queued']}")
         self.assertEqual(status, 200)
-        self.assertEqual(body["state"], "running")
+        self.assertEqual(body["state"], "queued")
         self.assertIn("progress", body)
         self.assertIsNone(body["progress"])
         self.assertIsNone(body["eta_seconds"])
+        self.assertEqual(body["eta_seconds_reason"], "not estimated")
 
     def test_n03_progress_denominator_preserved(self) -> None:
-        status, body, _ = self._json("/api/jobs/job_progress")
+        """Rescoped: lifecycle progress (k / 6) is preserved with its reason."""
+        status, body, _ = self._json(f"/api/jobs/{JOB['running']}")
         self.assertEqual(status, 200)
-        self.assertEqual(body["progress"], {"completed": 3, "denominator": 9, "unit": "stages"})
+        self.assertEqual(body["progress"], {"completed": 4, "denominator": 6, "unit": "lifecycle_steps"})
+        self.assertIn("not an encode fraction", body["progress_reason"])
 
     def test_n04_job_page_ssr(self) -> None:
-        status, body, _ = self.app.get("/jobs/job_succeeded")
+        """Rescoped: SSR state, the unknowns block and the compare note (or Prototype label when absent)."""
+        succeeded = json.loads((FIXTURES / "job_succeeded.json").read_text())
+        status, body, _ = self.app.get(f"/jobs/{JOB['succeeded']}")
         self.assertEqual(status, 200)
         self.assertIn('data-job-state="succeeded"', body)
-        self.assertIn("2026-10-06T12:00:00Z", body)
-        self.assertIn("2026-10-06T12:01:30Z", body)
-        self.assertIn("9 / 9 stages", body)
-        status, body, _ = self.app.get("/jobs/job_running")
+        self.assertIn(succeeded["created_at"], body)
+        self.assertIn(succeeded["updated_at"], body)
+        self.assertIn("6 / 6 lifecycle steps", body)
+        self.assertIn('data-unknowns-block="true"', body)
+        self.assertIn('data-compare="bound"', body)
+        self.assertIn("Levels are not matched by this page.", body)
+        self.assertIn("~32 Hz low-string preservation not measured", body)
+        self.assertIn('data-level-matched="false"', body)
+        self.assertIn("private (contains host paths)", body)
+        share = next(a for a in succeeded["artifacts"] if a["role"] == "share_mp4")
+        self.assertIn(f'href="/api/artifacts/{share["artifact_id"]}"', body)
+        status, body, _ = self.app.get(f"/jobs/{JOB['queued']}")
         self.assertEqual(status, 200)
         self.assertIn('data-progress="unknown"', body)
+        self.assertIn('data-eta="unknown"', body)
+        status, body, _ = self.app.get(f"/jobs/{JOB['failed']}")
+        self.assertIn('data-compare="absent"', body)
+        self.assertIn("Comparison data absent", body)
         # invalid id via the param matcher: 404 without any upstream request
         before = len(self.mock.requests)
-        status, _, _ = self.app.get("/jobs/a%20b")
-        self.assertEqual(status, 404)
+        for path in ("/jobs/a%20b", "/jobs/job_running", "/sources/not-an-id"):
+            status, _, _ = self.app.get(path)
+            self.assertEqual(status, 404, path)
         self.assertEqual(len(self.mock.requests), before)
 
     def test_n05_decode_errors_do_not_echo_upstream(self) -> None:
-        for job in ("job_bad_unknown_key", "job_bad_enum"):
+        for job in (JOB["bad_unknown_key"], JOB["bad_enum"]):
             with self.subTest(job=job):
                 status, body, _ = self.app.get(f"/api/jobs/{job}")
                 self.assertEqual(status, 502)
                 parsed = json.loads(body)
                 self.assertEqual(parsed["code"], "control_api_decode_error")
-                self.assertEqual(set(parsed), {"status", "code", "message", "upstream_status"})
+                self.assertEqual(set(parsed), ERROR_KEYS)
                 self.assertNotIn(UPSTREAM_MARKER, body)
                 self.assertNotIn(UPSTREAM_KEY_MARKER, body)
 
     def test_n06_upstream_500(self) -> None:
-        status, body, _ = self.app.get("/api/jobs/job_http_500")
+        status, body, _ = self.app.get(f"/api/jobs/{JOB['http_500']}")
         self.assertEqual(status, 502)
         parsed = json.loads(body)
         self.assertEqual(parsed["code"], "control_api_http_error")
@@ -658,21 +797,21 @@ class WebStackIntegrationTests(unittest.TestCase):
         self.assertNotIn(UPSTREAM_MARKER, body)
 
     def test_n07_upstream_404(self) -> None:
-        status, body, _ = self._json("/api/jobs/job_missing")
+        status, body, _ = self._json(f"/api/jobs/{JOB['missing']}")
         self.assertEqual(status, 404)
         self.assertEqual(body["code"], "job_not_found")
-        status, page, _ = self.app.get("/jobs/job_missing")
+        status, page, _ = self.app.get(f"/jobs/{JOB['missing']}")
         self.assertEqual(status, 404)
         self.assertNotIn(UPSTREAM_MARKER, page)
 
     def test_n08_timeout(self) -> None:
-        status, body, elapsed = self._json("/api/jobs/job_slow")
+        status, body, elapsed = self._json(f"/api/jobs/{JOB['slow']}")
         self.assertEqual(status, 504)
         self.assertEqual(body["code"], "control_api_timeout")
         self.assertLess(elapsed, 6.5)
 
     def test_n09_too_large(self) -> None:
-        for job in ("job_huge", "job_huge_stream"):
+        for job in (JOB["huge"], JOB["huge_stream"]):
             with self.subTest(job=job):
                 status, body, _ = self._json(f"/api/jobs/{job}")
                 self.assertEqual(status, 502)
@@ -680,7 +819,7 @@ class WebStackIntegrationTests(unittest.TestCase):
 
     def test_n10_invalid_job_id_no_upstream_call(self) -> None:
         before = len(self.mock.requests)
-        for path in ("/api/jobs/..%2Fetc", "/api/jobs/a%20b"):
+        for path in ("/api/jobs/..%2Fetc", "/api/jobs/a%20b", "/api/jobs/job_running", "/api/jobs/JOB_" + "0" * 32):
             with self.subTest(path=path):
                 status, body, _ = self._json(path)
                 self.assertEqual(status, 400)
@@ -693,27 +832,26 @@ class WebStackIntegrationTests(unittest.TestCase):
             status, body, _ = app.get("/")
             self.assertEqual(status, 200)
             self.assertIn("control_api_unconfigured", body)
-            status, body, _ = app.get("/api/jobs/x")
+            status, body, _ = app.get(f"/api/jobs/{JOB['queued']}")
             self.assertEqual(status, 503)
             self.assertEqual(json.loads(body)["code"], "control_api_unconfigured")
         finally:
             app.close()
 
     def test_n12_refused_hosts(self) -> None:
+        """Rescoped: /upload is a bound page that renders the typed config refusal."""
         for url in ("http://192.0.2.1:9", "http://localhost:9"):
             with self.subTest(url=url):
                 app = _App(url)
                 try:
-                    status, body, elapsed = app.get("/api/jobs/job_running")
+                    status, body, elapsed = app.get(f"/api/jobs/{JOB['running']}")
                     self.assertEqual(status, 503)
                     self.assertEqual(json.loads(body)["code"], "control_api_refused_host")
                     self.assertLess(elapsed, 1.0)
                     status, body, _ = app.get("/upload")
                     self.assertEqual(status, 200)
-                    self.assertIn("Not implemented in S2", body)
-                    self.assertIn('data-prototype="true"', body)
-                    self.assertNotIn("<form", body)
-                    self.assertNotIn("<input", body)
+                    self.assertIn("control_api_refused_host", body)
+                    self.assertIn('data-upload-form="true"', body)
                 finally:
                     app.close()
 
@@ -727,6 +865,84 @@ class WebStackIntegrationTests(unittest.TestCase):
                 self.assertGreater(len(addresses), 0)
                 for address in addresses:
                     self.assertIn(address, {"127.0.0.1", "[::1]"})
+
+
+    def test_n14_upload_refusal_code_mapping(self) -> None:
+        before = len(self.mock.requests)
+        status, _, payload, _ = self.app.request("POST", "/api/uploads", b"notes", {
+            "content-type": "application/octet-stream", "origin": self.app.origin})
+        body = json.loads(payload)
+        self.assertEqual((status, body["code"]), (415, "bff_content_type_refused"))
+        self.assertEqual(len(self.mock.requests), before)
+        status, _, payload, _ = self.app.request("POST", "/api/uploads", b"\x00\x00\x00\x14ftypqt  " + b"\x00" * 64, {
+            "content-type": "video/quicktime", "origin": self.app.origin, "x-upload-label": "synthetic"})
+        body = json.loads(payload)
+        self.assertEqual(status, 415)
+        self.assertEqual(set(body), ERROR_KEYS)
+        self.assertEqual((body["code"], body["upstream_code"], body["upstream_status"]),
+                         ("control_api_refused", "upload_type_refused", 415))
+        self.assertNotIn(UPSTREAM_MARKER.encode(), payload)
+        self.assertNotIn(b"/Users/", payload)
+        status, body = self.app.post_json("/api/sources", {"selector": "/abs/take.mov"})
+        self.assertEqual((status, body["upstream_code"], body["upstream_detail_code"]),
+                         (422, "path_escape", "host_path_refused"))
+
+    def test_n15_cross_origin_post_refused_without_upstream_call(self) -> None:
+        before = len(self.mock.requests)
+        cases = [("/api/jobs", {"source_artifact_id": ART_OK, "parameters": {}, "idempotency_key": "ui-" + "0" * 32}),
+                 (f"/api/jobs/{JOB['running']}/cancel", {}), ("/api/sources", {"selector": "RUN/x.mov"}),
+                 (f"/api/sources/{ART_OK}/annotations", {})]
+        for path, value in cases:
+            for origin in ("http://evil.example", None):
+                with self.subTest(path=path, origin=origin):
+                    status, body = self.app.post_json(path, value, origin=origin)
+                    self.assertEqual((status, body["code"]), (403, "bff_cross_origin_refused"))
+        for method, path in (("GET", "/api/sources"), ("POST", "/api/jobs")):
+            with self.subTest(host_rebinding=path):
+                status, _, payload, _ = self.app.request(method, path, b"{}", {
+                    "host": f"rebind.example:{self.app.port}", "origin": f"http://rebind.example:{self.app.port}",
+                    "content-type": "application/json"})
+                self.assertEqual((status, json.loads(payload)["code"]), (421, "bff_host_refused"))
+        self.assertEqual(len(self.mock.requests), before)
+
+    def test_n16_invalid_artifact_id_no_upstream_call(self) -> None:
+        before = len(self.mock.requests)
+        for path, code in (("/api/artifacts/art_x", "invalid_artifact_id"),
+                           ("/api/artifacts/..%2Fjobs.sqlite3", "invalid_artifact_id"),
+                           ("/api/artifacts/ART_" + "a" * 32, "invalid_artifact_id"),
+                           ("/api/sources/x/media", "invalid_source_id"),
+                           ("/api/sources/x/jobs", "invalid_source_id")):
+            with self.subTest(path=path):
+                status, body, _ = self._json(path)
+                self.assertEqual((status, body["code"]), (400, code))
+        self.assertEqual(len(self.mock.requests), before)
+
+    def test_n17_download_pass_through_headers(self) -> None:
+        status, headers, payload, _ = self.app.request("GET", f"/api/artifacts/{ART_OK}")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload, ART_BYTES)
+        self.assertEqual(headers["content-type"], "video/mp4")
+        self.assertEqual(headers["content-length"], str(len(ART_BYTES)))
+        self.assertEqual(headers["x-artifact-sha256"], hashlib.sha256(ART_BYTES).hexdigest())
+        self.assertEqual(headers["content-disposition"], f'attachment; filename="{ART_OK}"')
+        self.assertEqual(headers["cache-control"], "no-store")
+        status, _, payload, _ = self.app.request("GET", f"/api/artifacts/{ART_PRIVATE}")
+        body = json.loads(payload)
+        self.assertEqual((status, body["code"], body["upstream_code"]), (403, "control_api_refused", "artifact_private"))
+        self.assertNotIn(UPSTREAM_MARKER.encode(), payload)
+
+    def test_n18_upstream_401_token_refused(self) -> None:
+        status, body, _ = self._json(f"/api/jobs/{JOB['token_refused']}")
+        self.assertEqual((status, body["code"], body["upstream_status"]), (502, "control_api_token_refused", 401))
+        self.assertNotIn(TOKEN, json.dumps(body))
+        seen = {value for value in self.mock.authorizations if value}
+        self.assertEqual(seen, {f"Bearer {TOKEN}"})
+        app = _App(f"http://127.0.0.1:{self.mock.port}", token=None)
+        try:
+            status, body, _ = app.get(f"/api/jobs/{JOB['queued']}")
+            self.assertEqual((status, json.loads(body)["code"]), (503, "control_api_unauthenticated"))
+        finally:
+            app.close()
 
 
 if __name__ == "__main__":

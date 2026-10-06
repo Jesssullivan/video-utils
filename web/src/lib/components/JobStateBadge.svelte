@@ -7,7 +7,7 @@
 	const tone = $derived(
 		state === 'succeeded'
 			? 'preset-filled-success-500'
-			: state === 'failed' || state === 'needs_reconciliation' || state === 'interrupted'
+			: state === 'failed' || state === 'interrupted'
 				? 'preset-filled-error-500'
 				: isTerminalState(state)
 					? 'preset-tonal-surface'

@@ -1,14 +1,92 @@
 {
-  "schema_version": 1,
-  "job_id": "job_bad_enum",
-  "tool": "synthetic_tool",
-  "state": "UPSTREAM_TEXT_MARKER_7f3a_state",
-  "phase": null,
-  "source_id": null,
-  "created_utc": "2026-10-06T12:00:00Z",
-  "updated_utc": "2026-10-06T12:00:01Z",
-  "progress": null,
+  "artifacts": [],
+  "attempts": [
+    {
+      "attempt": 1,
+      "cancel": null,
+      "ended_at": null,
+      "liveness": null,
+      "reason_code": null,
+      "reconciled_publication": false,
+      "started_at": "2026-10-06T19:21:00.626395Z",
+      "state": "running",
+      "worker_checks": null,
+      "worker_kind": "test_stub"
+    }
+  ],
+  "cancel_requested": false,
+  "capability_revision": "182521e65824eab30b4965712de14f155339a882fe95971a23aa4863ea9fe741",
+  "claim_class": "job_state_record",
+  "created_at": "2026-10-06T19:21:00.609620Z",
   "eta_seconds": null,
-  "error_class": null,
-  "limitations": []
+  "eta_seconds_reason": "not estimated",
+  "idempotency_key": "fixture-running-001",
+  "job_id": "job_00000000000000000000000000000006",
+  "parameters": {
+    "audio_kbps": 96,
+    "codec": "h264",
+    "crf": 30,
+    "height": 720,
+    "timeout_seconds": 900
+  },
+  "phase": "worker_started",
+  "phase_reason": "latest job event reason code, read from a separate read-only snapshot; it may lead or lag state by one event",
+  "progress": {
+    "completed": 4,
+    "denominator": 6,
+    "unit": "lifecycle_steps"
+  },
+  "progress_reason": "lifecycle step count from the job event log; not an encode fraction; share_export reports no incremental progress",
+  "reason_code": null,
+  "schema_version": 1,
+  "source_artifact_id": "art_ccd060b607499c92049cff7e71168634",
+  "source_binding": "bound",
+  "source_id": "src_5e473c1dc9bb15a6b3c337b127756527",
+  "state": "UPSTREAM_TEXT_MARKER_7f3a_state",
+  "tool": "share_export",
+  "tool_envelope": {
+    "evidence_kind": "lossy_sharing_derivative",
+    "implementation_status": "experimental",
+    "instrument_context": {
+      "automatic_high_pass": false,
+      "lowest_intentional_fundamental_hz": 32,
+      "preserve_distortion": true,
+      "strings": 9,
+      "styles": [
+        "deathcore",
+        "technical",
+        "virtuoso"
+      ]
+    },
+    "limitations": [
+      "Source/native master stays intact. Lossy sharing video and AAC are not a preservation master, recovered stem, listening acceptance or automatic adoption.",
+      "H.264 veryfast/CRF27/720p/AAC96 default; HEVC can be slow locally. CRF does not guarantee file-size reduction or an exact byte limit. Square-pixel video without side data is required; copy accepts H.264/HEVC within requested height.",
+      "Checks rational packet presentation timing/extent, source before-after hash, delivery decode, rate/channels and AAC priming/padding allowance. Reencoding is not source decoded-frame or exact PCM identity, nor proof of physical capture sync.",
+      "At most one video encode and two audio attempts, up to3dB audio attenuation to meet measured -1.5dBTP. Native8..192kHz/1..8 channels and duration<=300s; generated qualification covers mono/stereo; source/output<=3GiB. Two threads, owned logs4MiB per stream, compact16KiB and receipt64KiB.",
+      "Known domain failures remain tool errors with bounded staging/recovery receipts, including possible/committed publication. Inspect exact receipts before retrying; missing sidecar alone does not prove absence.",
+      "Worker cleanup covers its recorded owned children under the inner deadline; generic outer group fallback does not establish containment of distinct child sessions or unknown publication after a wedged worker."
+    ],
+    "schema_version": 1,
+    "skill": ".agents/skills/media-share-export/SKILL.md",
+    "tool": "share_export"
+  },
+  "unknowns": {
+    "cpu_seconds": null,
+    "cpu_seconds_reason": "not measured; no OS CPU quota is applied",
+    "exactly_once": "not_claimed",
+    "listening_acceptance": "not_established",
+    "low_register_preservation": null,
+    "low_register_preservation_reason": "lossy AAC sharing derivative; ~32 Hz content is not measured by this lane",
+    "master_adopted": false,
+    "memory_bytes_peak": null,
+    "memory_bytes_peak_reason": "not measured; no OS memory quota is applied",
+    "musical_review": null,
+    "musical_review_reason": "no note-correctness, missed-note or phrase verdicts are made by a job service",
+    "slo": "not_claimed",
+    "source_duration_seconds": null,
+    "source_duration_seconds_reason": "unknown until the worker reports it; admission does not probe",
+    "worker_birth": "recorded",
+    "worker_birth_reason": "ps lstart recorded for the latest attempt"
+  },
+  "updated_at": "2026-10-06T19:21:00.626395Z"
 }

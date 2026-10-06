@@ -1,0 +1,181 @@
+{
+  "purpose": "Frozen parity case table (WEB_UI_S2.md section 8). Expected verdicts are the frozen pre-implementation expectation; parity requires CLI, MCP and web verdicts to be equal to each other and to this column.",
+  "frozen_in": "docs/spec/sprints/WEB_UI_S2.md section 8 (commit 9db2ec8b18746c50d7fe037c371f2b67b99622ed)",
+  "claim_class": "synthetic_fixture",
+  "tool": "share_export",
+  "cases": [
+    {
+      "case_id": "defaults",
+      "parameters": {},
+      "expected_verdict": "accept"
+    },
+    {
+      "case_id": "height_min",
+      "parameters": {
+        "height": 240
+      },
+      "expected_verdict": "accept"
+    },
+    {
+      "case_id": "height_max",
+      "parameters": {
+        "height": 1080
+      },
+      "expected_verdict": "accept"
+    },
+    {
+      "case_id": "crf_min",
+      "parameters": {
+        "crf": 18
+      },
+      "expected_verdict": "accept"
+    },
+    {
+      "case_id": "crf_max",
+      "parameters": {
+        "crf": 32
+      },
+      "expected_verdict": "accept"
+    },
+    {
+      "case_id": "audio_kbps_min",
+      "parameters": {
+        "audio_kbps": 64
+      },
+      "expected_verdict": "accept"
+    },
+    {
+      "case_id": "audio_kbps_max",
+      "parameters": {
+        "audio_kbps": 192
+      },
+      "expected_verdict": "accept"
+    },
+    {
+      "case_id": "timeout_seconds_min",
+      "parameters": {
+        "timeout_seconds": 30
+      },
+      "expected_verdict": "accept"
+    },
+    {
+      "case_id": "timeout_seconds_max",
+      "parameters": {
+        "timeout_seconds": 900
+      },
+      "expected_verdict": "accept"
+    },
+    {
+      "case_id": "height_below_min",
+      "parameters": {
+        "height": 239
+      },
+      "expected_verdict": "refuse"
+    },
+    {
+      "case_id": "height_above_max",
+      "parameters": {
+        "height": 1081
+      },
+      "expected_verdict": "refuse"
+    },
+    {
+      "case_id": "crf_below_min",
+      "parameters": {
+        "crf": 17
+      },
+      "expected_verdict": "refuse"
+    },
+    {
+      "case_id": "crf_above_max",
+      "parameters": {
+        "crf": 33
+      },
+      "expected_verdict": "refuse"
+    },
+    {
+      "case_id": "audio_kbps_below_min",
+      "parameters": {
+        "audio_kbps": 63
+      },
+      "expected_verdict": "refuse"
+    },
+    {
+      "case_id": "audio_kbps_above_max",
+      "parameters": {
+        "audio_kbps": 193
+      },
+      "expected_verdict": "refuse"
+    },
+    {
+      "case_id": "timeout_seconds_below_min",
+      "parameters": {
+        "timeout_seconds": 29
+      },
+      "expected_verdict": "refuse"
+    },
+    {
+      "case_id": "timeout_seconds_above_max",
+      "parameters": {
+        "timeout_seconds": 901
+      },
+      "expected_verdict": "refuse"
+    },
+    {
+      "case_id": "height_odd",
+      "parameters": {
+        "height": 721
+      },
+      "expected_verdict": "refuse"
+    },
+    {
+      "case_id": "codec_av1",
+      "parameters": {
+        "codec": "av1"
+      },
+      "expected_verdict": "refuse"
+    },
+    {
+      "case_id": "unknown_knob_bitrate",
+      "parameters": {
+        "bitrate": 4000
+      },
+      "expected_verdict": "refuse"
+    },
+    {
+      "case_id": "crf_boolean_true",
+      "parameters": {
+        "crf": true
+      },
+      "expected_verdict": "refuse"
+    },
+    {
+      "case_id": "crf_float",
+      "parameters": {
+        "crf": 27.5
+      },
+      "expected_verdict": "refuse"
+    },
+    {
+      "case_id": "crf_string",
+      "parameters": {
+        "crf": "27"
+      },
+      "expected_verdict": "refuse"
+    },
+    {
+      "case_id": "codec_hevc",
+      "parameters": {
+        "codec": "hevc"
+      },
+      "expected_verdict": "accept"
+    },
+    {
+      "case_id": "codec_copy",
+      "parameters": {
+        "codec": "copy"
+      },
+      "expected_verdict": "accept"
+    }
+  ]
+}

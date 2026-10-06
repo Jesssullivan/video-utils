@@ -1,0 +1,79 @@
+{
+  "baseline": "736f406e7eb979c11fe1811ed555260544dae3ed",
+  "branch": "sprint/20261006-s2/web_ui_binding",
+  "claim_class": "local_build_check",
+  "client_bundle_scan": {
+    "hits": 0,
+    "needles": [
+      "token value",
+      "VIDEO_UTILS_CONTROL_API_TOKEN",
+      "VIDEO_UTILS_CONTROL_API_URL",
+      "127.0.0.1:<port>"
+    ],
+    "test": "S10"
+  },
+  "contract_commit": "9db2ec8b18746c50d7fe037c371f2b67b99622ed",
+  "daemon": false,
+  "date": "2026-10-06",
+  "host": {
+    "cpu": "Apple A18 Pro",
+    "ffmpeg": "ffmpeg version 8.1.2",
+    "node": "v22.23.2",
+    "pnpm": "11.25.0",
+    "python": "3.12.14",
+    "uname_sm": "Darwin arm64"
+  },
+  "implementation_commits": [
+    "74c89a7",
+    "55bafed",
+    "e73ee9f"
+  ],
+  "lane": "web_ui_binding",
+  "lockfile": {
+    "path": "web/pnpm-lock.yaml",
+    "sha256_after": "d1d2e584134f723d1c1af0924c174fdf70690fc23b2faf144385222599df5db5",
+    "sha256_before": "d1d2e584134f723d1c1af0924c174fdf70690fc23b2faf144385222599df5db5",
+    "unchanged": true
+  },
+  "network": "none: offline frozen install from the populated local pnpm store",
+  "new_dependencies": 0,
+  "not_claimed": [
+    "browser hydration",
+    "visual acceptance",
+    "accessibility conformance",
+    "hosted deployment"
+  ],
+  "package_json_changed": false,
+  "preregistered": false,
+  "preregistration_reason": "no experiment; frozen parity case table and deterministic synthetic fixtures; timings descriptive only",
+  "real_take_opened": false,
+  "receipt": "web_ui_binding-build",
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "spec": "docs/spec/sprints/WEB_UI_S2.md",
+  "sprint": "20261006-s2",
+  "steps": {
+    "build": {
+      "adapter": "@sveltejs/adapter-node",
+      "command": "pnpm run build",
+      "exit": 0,
+      "wall_seconds_observed": [
+        70,
+        76,
+        112
+      ]
+    },
+    "check": {
+      "command": "pnpm run check",
+      "errors": 0,
+      "exit": 0,
+      "files": 1225,
+      "warnings": 0
+    },
+    "install": {
+      "command": "pnpm install --frozen-lockfile --offline",
+      "exit": 0,
+      "note": "Already up to date; pnpm engine warning reflects its bundled runtime (WEB_STACK_S2 3.1)"
+    }
+  },
+  "tracker": "TIN-5615"
+}

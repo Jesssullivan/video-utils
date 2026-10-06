@@ -1,0 +1,56 @@
+{
+  "generated_from": "tool_api.descriptor('share_export').inputSchema.properties (program/tools.json); tests/test_web_parity.py asserts equality",
+  "tool": "share_export",
+  "evidence_kind": "lossy_sharing_derivative",
+  "implementation_status": "experimental",
+  "order": [
+    "height",
+    "crf",
+    "audio_kbps",
+    "codec",
+    "timeout_seconds"
+  ],
+  "even_keys": [
+    "height"
+  ],
+  "knobs": {
+    "height": {
+      "type": "integer",
+      "minimum": 240,
+      "maximum": 1080,
+      "default": 720,
+      "description": "Even maximum output height; aspect ratio retained within integer rounding, never upscale. Copy requires native height already within this bound."
+    },
+    "crf": {
+      "type": "integer",
+      "minimum": 18,
+      "maximum": 32,
+      "default": 27,
+      "description": "Fixed encoder CRF; no guaranteed byte-size target. Inactive for video copy."
+    },
+    "audio_kbps": {
+      "type": "integer",
+      "minimum": 64,
+      "maximum": 192,
+      "default": 96,
+      "description": "Lossy AAC audio bitrate, preserving source rate/channels within admitted1..8 channel bounds."
+    },
+    "codec": {
+      "type": "string",
+      "enum": [
+        "hevc",
+        "h264",
+        "copy"
+      ],
+      "default": "h264",
+      "description": "H.264 is the locally qualified default; HEVC is explicit opt-in. Copy accepts existing H.264/HEVC only, with no resize."
+    },
+    "timeout_seconds": {
+      "type": "integer",
+      "minimum": 30,
+      "maximum": 900,
+      "default": 900,
+      "description": "Total outer budget passed unchanged; worker operation D-10, shared cleanup<=5s plus5s reporting headroom. No hard realtime or kernel containment guarantee."
+    }
+  }
+}

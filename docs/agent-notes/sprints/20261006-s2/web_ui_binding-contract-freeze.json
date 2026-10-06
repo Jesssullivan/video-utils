@@ -1,0 +1,41 @@
+{
+  "admitted_job_types": [
+    "share_export"
+  ],
+  "baseline": "736f406e7eb979c11fe1811ed555260544dae3ed",
+  "branch": "sprint/20261006-s2/web_ui_binding",
+  "claims": {
+    "browser_playback_verified": null,
+    "level_matched": false,
+    "listening_acceptance": "not_established",
+    "low_register_preservation": null,
+    "musical_review": null,
+    "slo": "not_claimed"
+  },
+  "control_api_contract_source": "web_jobs_s2_merged",
+  "daemon": false,
+  "date": "2026-10-06",
+  "lane": "web_ui_binding",
+  "media_read": false,
+  "numerics_run": false,
+  "phase": "1_contract_freeze",
+  "preregistered": false,
+  "preregistration_reason": "no experiment; frozen parity case table and deterministic synthetic fixtures; timings descriptive only",
+  "receipt": "web_ui_binding-contract-freeze",
+  "related": [
+    "TIN-5547",
+    "TIN-5550",
+    "TIN-5613",
+    "TIN-5614"
+  ],
+  "root_owned_changes_requested": [
+    "just/workflow.just web-api-serve and web-ui-serve recipe text (spec section 13.1)",
+    "web/serve.js BODY_SIZE_LIMIT default (web_stack-owned, optional)",
+    "scripts/web_jobs.py public list/phase read methods and upload_root (web_jobs-owned, optional future)"
+  ],
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "spec": "docs/spec/sprints/WEB_UI_S2.md",
+  "spec_sha256": "0043a1fc09146a3bf6d5746c71f36cbf7b6ee16614ba16051f72c41a636283c2",
+  "sprint": "20261006-s2",
+  "tracker": "TIN-5615"
+}

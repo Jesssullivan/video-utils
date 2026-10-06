@@ -1,0 +1,68 @@
+{
+  "accepted_run": "20261006T041633Z-990aa1bd6737",
+  "accepted_run_tree": {
+    "after_sha256": "f641b36733e87c5d3979c1e8124fa37273fd4b08f7630b016be54ab23143fc37",
+    "before_sha256": "f641b36733e87c5d3979c1e8124fa37273fd4b08f7630b016be54ab23143fc37",
+    "entries": 14,
+    "unchanged": true
+  },
+  "claim_class": "structural_delivery_check",
+  "command": "WEB_UI_DEMO=1 PYTHONPATH=tests python3 -m unittest test_web_parity.DemoWalkthrough (FFMPEG/FFPROBE = qualified nix ffmpeg-headless 8.1.2; timeout 1500 s)",
+  "compare_view": "absent",
+  "date": "2026-10-06",
+  "experiment": false,
+  "host": {
+    "cpu": "Apple A18 Pro",
+    "ffmpeg": "ffmpeg version 8.1.2",
+    "node": "v22.23.2",
+    "pnpm": "11.25.0",
+    "python": "3.12.14",
+    "uname_sm": "Darwin arm64"
+  },
+  "job": {
+    "artifacts": 0,
+    "reason_code": "worker_failed",
+    "state": "failed",
+    "submit_to_terminal_seconds": 136.908,
+    "worker_checks": [
+      {
+        "code": "validation_failed",
+        "status": "failed_no_export_published"
+      }
+    ]
+  },
+  "lane": "web_ui_binding",
+  "not_claimed": [
+    "listening",
+    "low-register (~32 Hz) preservation",
+    "tone",
+    "musical correctness",
+    "derivative adoption"
+  ],
+  "outcome_classes": {
+    "inferred": [
+      "same known share_export rejection recorded by web_jobs (video packet count changed); root cause not investigated by this lane"
+    ],
+    "measured": [
+      "admitted the accepted run export by selector through the BFF (uploads disabled)",
+      "job reached failed/worker_failed (share_export validation_failed, failed_no_export_published) in 136.908 s submit-to-terminal",
+      "0 artifacts published; the job page compare region rendered the Prototype label (data-compare=\"absent\")",
+      "accepted run tree hash equal before/after (14 entries)"
+    ],
+    "not_claimed": [
+      "listening",
+      "low-register (~32 Hz) preservation",
+      "tone",
+      "musical correctness",
+      "derivative adoption"
+    ]
+  },
+  "real_take_opened": false,
+  "receipt": "web_ui_binding-demo",
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "selector_admitted_read_only": true,
+  "sprint": "20261006-s2",
+  "state_root": "lane-local, gitignored (artifacts/s2/web_ui_binding/demo-state-*)",
+  "tracker": "TIN-5615",
+  "uploads_enabled": false
+}

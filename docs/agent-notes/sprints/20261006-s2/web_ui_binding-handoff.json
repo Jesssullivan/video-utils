@@ -1,0 +1,468 @@
+{
+  "lane": "web_ui_binding",
+  "branch": "sprint/20261006-s2/web_ui_binding",
+  "head": "4334b757985498a41b4df62b1b61041b3356adbe",
+  "base_commit": "736f406e7eb979c11fe1811ed555260544dae3ed",
+  "worktree": ".local/sprint2/web_ui_binding",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_ui_binding-build.json",
+      "kind": "receipt",
+      "sha256": "9369e40b46a1522a02ca27b59d351cb2e5985a75534db8bb5139333433902064"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_ui_binding-contract-freeze.json",
+      "kind": "receipt",
+      "sha256": "1116f7a7ef5141e17f5409ba9085c85df758c4839719ca36922b3f71d8854ca5"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_ui_binding-demo.json",
+      "kind": "receipt",
+      "sha256": "db91651115f4311699650bd47c59ffd6242fc4218665bafd8dc1e32eee0f525d"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_ui_binding-handoff.json",
+      "kind": "receipt",
+      "sha256": "00c0ba498a364ce3b5367db2172d9672e48fa88401413ab82a28c415990980a1"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_ui_binding-parity.json",
+      "kind": "receipt",
+      "sha256": "d37ad013fbe3b15e7a352d405cfff9d6efa2399d2f9801a3852660fb63355ae7"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_ui_binding-repair.json",
+      "kind": "receipt",
+      "sha256": "5d41c45406d439b074ce8e853e1356baf42cc0d17191df590e3d1e4f4eebc3cd"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_ui_binding-tests.json",
+      "kind": "receipt",
+      "sha256": "0e195da71e33e84754a7a104963b4181d03a978703af7e3c135a775f01516a08"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_ui_binding-walkthrough.json",
+      "kind": "receipt",
+      "sha256": "ff7b45b7d32b95773c9cfd7897e4f8c15a49fcd54d32d51b69851594432748c7"
+    },
+    {
+      "path": "docs/spec/sprints/WEB_UI_S2.md",
+      "kind": "spec",
+      "sha256": "26efb95a0c8105a056a5b7cd64d00bf13be17052fef911aefcfb9deafa664a30"
+    },
+    {
+      "path": "scripts/web_api.py",
+      "kind": "source",
+      "sha256": "9fa5a187e8f97ab4ee24e15383abdf2fa17bec517cb0856d8219ed6c1723d532"
+    },
+    {
+      "path": "tests/test_web_jobs.py",
+      "kind": "test",
+      "sha256": "11f438e2d4bbcd10bb3318b82bd752d6d8ce65f3cfa7fcfe1a4295b264117f41"
+    },
+    {
+      "path": "tests/test_web_parity.py",
+      "kind": "test",
+      "sha256": "dc3a457a505fadd041dff19528d7130f253b432876eb55e7792bdaf0e9f4b5da"
+    },
+    {
+      "path": "tests/test_web_stack.py",
+      "kind": "test",
+      "sha256": "8448295cebb6ae80643c78cfc1213116702abefdc26a043dda22b6b653b7c05c"
+    },
+    {
+      "path": "web/fixtures/control-api/README.json",
+      "kind": "data",
+      "sha256": "7bbe3bac69b5441a683eb4f064e6400c3df6d8e4ae6d105741f3d187d1df9320"
+    },
+    {
+      "path": "web/fixtures/control-api/generate_fixtures.py",
+      "kind": "data",
+      "sha256": "ae289e1b969581d178cdd97730782c097311713dab6a284a64d665e578f5237b"
+    },
+    {
+      "path": "web/fixtures/control-api/job_bad_enum.json",
+      "kind": "data",
+      "sha256": "4842d363da306a3bccd3e21d60de8ceed406fc8b79d307b0dd091949eb4753bf"
+    },
+    {
+      "path": "web/fixtures/control-api/job_bad_unknown_key.json",
+      "kind": "data",
+      "sha256": "8efcd3e4d8fd8ca368ae9153c1dbcce326df384a87415c9c6d0241222dc59400"
+    },
+    {
+      "path": "web/fixtures/control-api/job_failed.json",
+      "kind": "data",
+      "sha256": "cf3bfa527d25576867c9fc735f48c0101567049d4bfb1b82883e07d3073acb9a"
+    },
+    {
+      "path": "web/fixtures/control-api/job_progress.json",
+      "kind": "data",
+      "sha256": "235b75c148b19a27eddb3def0ec4d866a6399f6e6b331ac36c2d4229afc6be8c"
+    },
+    {
+      "path": "web/fixtures/control-api/job_queued.json",
+      "kind": "data",
+      "sha256": "59fbbcb779e9b915cfbafbaf2ef25b92e83ed3f827978dd6b1ace9ff9557c6ae"
+    },
+    {
+      "path": "web/fixtures/control-api/job_running.json",
+      "kind": "data",
+      "sha256": "18a8f51be45c3faa731443e80690af48947053cfa203c05922bae6c0f109f6ae"
+    },
+    {
+      "path": "web/fixtures/control-api/job_succeeded.json",
+      "kind": "data",
+      "sha256": "5b06420b9b2b65c39ecce8b73169cfa2d07896bf814ee933e66665a4b99f11db"
+    },
+    {
+      "path": "web/fixtures/control-api/sources.json",
+      "kind": "data",
+      "sha256": "5b06420b9b2b65c39ecce8b73169cfa2d07896bf814ee933e66665a4b99f11db"
+    },
+    {
+      "path": "web/fixtures/parity/cases.json",
+      "kind": "data",
+      "sha256": "7894264577a46ff01d822f19ccc9f5ab854ffcdef7b3626861409d0140bec88f"
+    },
+    {
+      "path": "web/fixtures/parity/generate.mjs",
+      "kind": "data",
+      "sha256": "6eb21f45bddda77e6d0da0771921bc698bc77246c670696150fce847b6816506"
+    },
+    {
+      "path": "web/fixtures/parity/requests.json",
+      "kind": "data",
+      "sha256": "0730e645e1ab58b226a2ae3ab815fe18f8ddda042a12f0e70be84c9f4c2e1479"
+    },
+    {
+      "path": "web/src/hooks.server.ts",
+      "kind": "source",
+      "sha256": "176c449feb7880fe2cd248695eaef66937dddef435bd041f91c9e24dfcf441b5"
+    },
+    {
+      "path": "web/src/lib/components/AnnotationPanel.svelte",
+      "kind": "source",
+      "sha256": "a1ca20538774d11d58cb74af28a2c8aefdffaac5f5ef4fc92cd14fd9d4f0cbce"
+    },
+    {
+      "path": "web/src/lib/components/ArtifactTable.svelte",
+      "kind": "source",
+      "sha256": "6dd2b9c068f11f25aed9a7ad6a27d88b8a5d23c5ad5da17285592bc746a951ea"
+    },
+    {
+      "path": "web/src/lib/components/ComparePanel.svelte",
+      "kind": "source",
+      "sha256": "828b1909427b896169360b7aa1968943ac1789d70343cc42d7332ee5b4855386"
+    },
+    {
+      "path": "web/src/lib/components/ControlApiError.svelte",
+      "kind": "source",
+      "sha256": "8681310087cbb0bb3616dfefe155b5f4f640959dadcb8639b523158491355c90"
+    },
+    {
+      "path": "web/src/lib/components/JobStateBadge.svelte",
+      "kind": "source",
+      "sha256": "336565494aaca1d9a9f6b79a315aae3d22ff300d9e4b3f18583d22ca0dbf8fbf"
+    },
+    {
+      "path": "web/src/lib/components/ProcessForm.svelte",
+      "kind": "source",
+      "sha256": "cf4a3857c368a30a32524b3da23b75dc06569586e8e156a9ba5a897d4424bf9b"
+    },
+    {
+      "path": "web/src/lib/components/PrototypeNotice.svelte",
+      "kind": "source",
+      "sha256": "3845034a6fc428a70463babff9a8c84a5311b15bdb335ec2032fe35d653bf8f1"
+    },
+    {
+      "path": "web/src/lib/components/UnknownValue.svelte",
+      "kind": "source",
+      "sha256": "e98eda092646c74f8df00df740a85c3bb6798fb5c4a7a67a1b192c890e282716"
+    },
+    {
+      "path": "web/src/lib/components/UnknownsBlock.svelte",
+      "kind": "source",
+      "sha256": "8bc132d6d3358d02d75afb78c2acbd17acc30d91ea599bcb4e1d98d9b5d41bac"
+    },
+    {
+      "path": "web/src/lib/control-types.ts",
+      "kind": "source",
+      "sha256": "d301bfd786db63a2aa69d0ada51707f4550fe1222148c749468cfab90b2ee9ae"
+    },
+    {
+      "path": "web/src/lib/format.ts",
+      "kind": "source",
+      "sha256": "a055d057a594210f6bb9a2cdd9d6cd7c58d5774d03a29833e9a05ebe248d920c"
+    },
+    {
+      "path": "web/src/lib/idempotency.ts",
+      "kind": "source",
+      "sha256": "4acbeae8bb99deac7c3c41149956437b1e853e4cde770b73fc0918c61387515e"
+    },
+    {
+      "path": "web/src/lib/refusal-text.ts",
+      "kind": "source",
+      "sha256": "c541340b19acf2cb71e9f893cfccd9a975732e29afd0a1dbefd0f641fc11c59f"
+    },
+    {
+      "path": "web/src/lib/schema/control.ts",
+      "kind": "source",
+      "sha256": "ff819cd2fbf0c704f8cee8aeca8f770796f4bd0be598ccd11811f45d0c84c74a"
+    },
+    {
+      "path": "web/src/lib/server/config.ts",
+      "kind": "source",
+      "sha256": "05a48140d66bb5c5d3ed4b603d1e81e0bf70a47e698f0b6f956d38dd0b74d684"
+    },
+    {
+      "path": "web/src/lib/server/control-client.ts",
+      "kind": "source",
+      "sha256": "e8fc6d760da99af6a85b0a6ef6d6108427b5359018fdb6922e359dbd2c6f3dc1"
+    },
+    {
+      "path": "web/src/lib/server/http.ts",
+      "kind": "source",
+      "sha256": "d9621085a86dc089c30f5194ed1a37b00d867b5e76a489cd385f5af6f256a568"
+    },
+    {
+      "path": "web/src/lib/server/job-request.ts",
+      "kind": "source",
+      "sha256": "fbafcee852cfcbfbb3d22b70fbdf9f0155b2616c1dc17eb8d24dafa0277a0e0f"
+    },
+    {
+      "path": "web/src/lib/share-export-knobs.json",
+      "kind": "data",
+      "sha256": "0f23a27576471de0629792e79c767ac491ff4be4d68aff094eece61f31e40d31"
+    },
+    {
+      "path": "web/src/lib/upload-types.ts",
+      "kind": "source",
+      "sha256": "446d22a0941d10d9601091457280bfc4da28e0c411942040ec1079eb4dde83ae"
+    },
+    {
+      "path": "web/src/params/artifactid.ts",
+      "kind": "source",
+      "sha256": "4b7f51509441315b5aab89b071a44845c7d650c05a4e9dac947302109209250a"
+    },
+    {
+      "path": "web/src/params/jobid.ts",
+      "kind": "source",
+      "sha256": "1b776956c1a21b0692fed967e9cae474c693dfd9fea2223ab11c2e597065e26c"
+    },
+    {
+      "path": "web/src/routes/+layout.svelte",
+      "kind": "source",
+      "sha256": "c972012e88bcd16a3081af22659a7010f4af3def400012513089751ff673a950"
+    },
+    {
+      "path": "web/src/routes/+page.server.ts",
+      "kind": "source",
+      "sha256": "5f79c76e57fa42f0552f41d61fdec33c6e4f226ba1741fc348803cb876f9ccad"
+    },
+    {
+      "path": "web/src/routes/+page.svelte",
+      "kind": "source",
+      "sha256": "406a3a4ee399935173239e78e4584cf10ad3fa267adab4d779c50de75863d3c4"
+    },
+    {
+      "path": "web/src/routes/api/artifacts/[id]/+server.ts",
+      "kind": "source",
+      "sha256": "ab24364ab6e6ec4bb02b8359c9f0467f79396419fc2b4b3632d47114bcbf9dfb"
+    },
+    {
+      "path": "web/src/routes/api/jobs/+server.ts",
+      "kind": "source",
+      "sha256": "d3f80c2d9e983f2d37e0a51d09c133452cf0f703914b0b147df2ee4f9e315cf1"
+    },
+    {
+      "path": "web/src/routes/api/jobs/[id]/+server.ts",
+      "kind": "source",
+      "sha256": "6bce0fbef3a98a54d4f49c5dd933318b6037e14f9408d117e6b3d107d9662fc5"
+    },
+    {
+      "path": "web/src/routes/api/jobs/[id]/cancel/+server.ts",
+      "kind": "source",
+      "sha256": "42f7288b29383b808274aada15248dd328d24ce30751a5029f8265fc9062106d"
+    },
+    {
+      "path": "web/src/routes/api/jobs/[id]/retry/+server.ts",
+      "kind": "source",
+      "sha256": "fe7255be78611edbf8d51245c45aefb9d433c926d4d47c3e7a1b18f716cbe7c7"
+    },
+    {
+      "path": "web/src/routes/api/sources/+server.ts",
+      "kind": "source",
+      "sha256": "e54fa5546279baf99da5690f39c755a4f2669995a9a17b9923f0a2e9c49901ba"
+    },
+    {
+      "path": "web/src/routes/api/sources/[id]/annotations/+server.ts",
+      "kind": "source",
+      "sha256": "4a72bbd803ecf841a700f347380d51b68ece0c4f5fe94e44ba5d3a29776aefb0"
+    },
+    {
+      "path": "web/src/routes/api/sources/[id]/jobs/+server.ts",
+      "kind": "source",
+      "sha256": "08c7bbb53fa1a402ad3570e989e4b465b02f58e582e6bb9b5dcc734c4d53eb2c"
+    },
+    {
+      "path": "web/src/routes/api/sources/[id]/media/+server.ts",
+      "kind": "source",
+      "sha256": "01c676f6625c5ec15e5cccf6242244cd22cae60e78a7c9cc1e2456c38b7ec0ba"
+    },
+    {
+      "path": "web/src/routes/api/uploads/+server.ts",
+      "kind": "source",
+      "sha256": "b416e95fc32329e3502a28f6fd94c919baf14119e9a410bc2c04532fc1dfb0b9"
+    },
+    {
+      "path": "web/src/routes/compare/+page.svelte",
+      "kind": "source",
+      "sha256": "163246f2693e65c66f2b4d61aacfaf363b4a0b5790d3271652ad8af5ea39c239"
+    },
+    {
+      "path": "web/src/routes/download/+page.svelte",
+      "kind": "source",
+      "sha256": "1f49e4a93c5bd3f78bfe01dd6df13df6d9f647cca58e4afaf669a7e7a0b45058"
+    },
+    {
+      "path": "web/src/routes/jobs/[id=jobid]/+page.server.ts",
+      "kind": "source",
+      "sha256": "5641e45a4535416e8c1d32988cac69e960705c0f181e30ef3b63979e51b86bfb"
+    },
+    {
+      "path": "web/src/routes/jobs/[id=jobid]/+page.svelte",
+      "kind": "source",
+      "sha256": "f666b1b73f6f430946808bb099be6fc66c468e3d85fa16864a724382f1045c94"
+    },
+    {
+      "path": "web/src/routes/review/+page.svelte",
+      "kind": "source",
+      "sha256": "bbb14e0b282edb241f43db620b1b9edb4b37627c5e3b37c08dc012b8a5158fa5"
+    },
+    {
+      "path": "web/src/routes/sources/[id=artifactid]/+page.server.ts",
+      "kind": "source",
+      "sha256": "0b375d441f02d362ff29bb85f3e547e6758936a749b2d8e7fc4264bf904e133c"
+    },
+    {
+      "path": "web/src/routes/sources/[id=artifactid]/+page.svelte",
+      "kind": "source",
+      "sha256": "64bcdd55399ab873f35809163e87be4ad1b8e976ab355f2bd8ed405be54fd93e"
+    },
+    {
+      "path": "web/src/routes/upload/+page.server.ts",
+      "kind": "source",
+      "sha256": "0369942f7462b2705d2fc80fda8b4be97d6dd11dd0b2a607d1121101a868fc86"
+    },
+    {
+      "path": "web/src/routes/upload/+page.svelte",
+      "kind": "source",
+      "sha256": "d6d3c2405b4260f648bd1d5f3abc43cf4b1ec8342e868beaad605580ead94ce5"
+    }
+  ],
+  "tests": {
+    "command": "export FFMPEG=<ffmpeg-8.1.2>/ffmpeg FFPROBE=<ffmpeg-8.1.2>/ffprobe; cd .local/sprint2/web_ui_binding && PYTHONPATH=tests python3 -m unittest test_web_parity test_web_jobs test_web_stack -v",
+    "discovered": 77,
+    "passed": 73,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 3,
+    "seconds": 151.2
+  },
+  "metrics": [
+    {
+      "name": "API routes implemented",
+      "numerator": 12,
+      "denominator": 12,
+      "unit": "routes",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Test parity cases",
+      "numerator": 25,
+      "denominator": 25,
+      "unit": "cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Loopback matrix routes",
+      "numerator": 48,
+      "denominator": 48,
+      "unit": "requests",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Files changed from base",
+      "numerator": 69,
+      "denominator": 69,
+      "unit": "files",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Test coverage - passed",
+      "numerator": 73,
+      "denominator": 77,
+      "unit": "tests",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "unknown fields named in docs/spec/sprints/WEB_UI_S2.md section 9",
+    "upload staging directory placement (see spec section 13.3)",
+    "BODY_SIZE_LIMIT default value behavior"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "just/workflow.just",
+      "change": "Add the web-api-serve and web-ui-serve recipes from docs/spec/sprints/WEB_UI_S2.md section 13.1",
+      "why": "Gives operators a just entrypoint for the bound web UI and control API without a daemon"
+    },
+    {
+      "file": "web/serve.js",
+      "change": "Optional: default BODY_SIZE_LIMIT when unset (WEB_UI_S2 section 13.2)",
+      "why": "Uploads larger than 512 KiB would otherwise fail with 413"
+    },
+    {
+      "file": "scripts/web_jobs.py",
+      "change": "Optional future: add list_sources, list_jobs, latest_phase read methods and upload_root configuration",
+      "why": "web_api.py currently reads through separate SQLite connection and puts staging under runs_root"
+    },
+    {
+      "file": "docs/agent-notes/sprints/20261006-s2/web_stack-handoff.json",
+      "change": "Remove absolute /Users/ path or use repository-relative paths",
+      "why": "test_web_stack S6 fails on this branch only because base predates the fix"
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261006-s2/web_ui_binding-build.json",
+    "docs/agent-notes/sprints/20261006-s2/web_ui_binding-contract-freeze.json",
+    "docs/agent-notes/sprints/20261006-s2/web_ui_binding-demo.json",
+    "docs/agent-notes/sprints/20261006-s2/web_ui_binding-parity.json",
+    "docs/agent-notes/sprints/20261006-s2/web_ui_binding-repair.json",
+    "docs/agent-notes/sprints/20261006-s2/web_ui_binding-tests.json",
+    "docs/agent-notes/sprints/20261006-s2/web_ui_binding-walkthrough.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": true,
+    "findings": [
+      "Scope holds with all 69 files inside owned set",
+      "S6 test failure in web_stack-handoff.json resolved by main's 97ebce6",
+      "Parity verified: job request validates identically through tool_api",
+      "Loopback matrix 12 routes × 4 refusal classes = 48 requests confirmed",
+      "Timeouts bounded: BFF 5s request, 30s idle; web_api 10s socket",
+      "Annotations refuse any reported_by or basis other than browser/operator",
+      "Demo receipt: read-only admission of accepted run, real_take_opened=false",
+      "Test counts reproduced with exact command at HEAD"
+    ],
+    "must_fix": []
+  },
+  "dropped_scope": []
+}
