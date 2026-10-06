@@ -274,14 +274,15 @@
       "related_issues": [
         "TIN-5547"
       ],
-      "state": "running",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5610",
         "uuid": "167e3c0c-a95f-416d-a91b-b18e7ef2d83f",
         "url": "https://linear.app/tinyland/issue/TIN-5610/s2-ui-core-practice-ui-stage-identities-matched-ab-pair-coverage-strip",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
-      "agent": "workflow-C/ui_core"
+      "agent": "workflow-C/ui_core",
+      "merge_commit": "1741e33"
     },
     {
       "id": "report_d6",
@@ -428,17 +429,13 @@
     "s1_worktrees": "preserve all six .local/sprint1/*; review_ui intentionally dirty"
   },
   "state": "wave2_running",
-  "integration_head": "2252c891ac65d96bd19fc01f31a0caf2afbec803",
+  "integration_head": "1741e3332fc6cc1380c496b1099bb06c0165788c",
   "hosted_ci": {
-    "run": 37530756098,
+    "run": 37531977858,
     "conclusion": "success",
-    "python": "1399 OK, 106 skipped",
+    "python": "1423 OK, 106 skipped",
     "rust": "ok",
-    "gitleaks": "no leaks",
-    "prior_failure": {
-      "run": 37525406189,
-      "cause": "27 generic-api-key false positives on web fixture idempotency keys; fixed 2252c89"
-    }
+    "gitleaks": "no leaks"
   },
   "extra_merges": {
     "share_export_fix": "7ad3548",
