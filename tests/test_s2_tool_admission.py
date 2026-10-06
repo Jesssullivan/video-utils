@@ -775,7 +775,7 @@ class S2ToolAdmissionTests(unittest.TestCase):
                                                              'published': False}})
         error = tool_api.report_bundle_failure(1, b'{"error": "PermissionError", "status": "error"}\n')
         self.assertEqual(str(error), 'worker failed (1): report_bundle error PermissionError')
-        for code, data in ((2, b'{"status": "refused", "reason": "/Users/private/path"}'),
+        for code, data in ((2, b'{"status": "refused", "reason": "/srv/private/path"}'),
                            (1, b'Traceback: /private/take.mov'), (2, b''), (3, b'{"status": "refused", "reason": "x"}'),
                            (1, b'{"status": "error", "error": "a b"}')):
             with self.subTest(code=code, data=data):
