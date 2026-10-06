@@ -692,7 +692,7 @@ class S2ToolAdmissionTests(unittest.TestCase):
             {},
         ]
         for arguments in invalid:
-            with self.subTest(arguments=arguments), patch.object(tool_api, 'run_worker') as worker:
+            with self.subTest(arguments=arguments), patch.object(tool_api, 'run_report_bundle_worker') as worker:
                 with self.assertRaises(tool_api.ValidationError):
                     tool_api.execute('report_bundle', arguments)
                 worker.assert_not_called()
@@ -732,7 +732,7 @@ class S2ToolAdmissionTests(unittest.TestCase):
         ]
         for change, message in refusals:
             arguments = dict({'run_dir': str(run)}, **change)
-            with self.subTest(change=change), patch.object(tool_api, 'run_worker') as worker:
+            with self.subTest(change=change), patch.object(tool_api, 'run_report_bundle_worker') as worker:
                 with self.assertRaisesRegex(tool_api.ToolError, message):
                     tool_api.execute('report_bundle', arguments)
                 worker.assert_not_called()
@@ -748,14 +748,14 @@ class S2ToolAdmissionTests(unittest.TestCase):
         with patch.object(tool_api, 'REPORT_BUNDLE_OUTPUT_ROOT', boundary):
             for arguments, deadline in (({'run_dir': str(run)}, 600), ({'run_dir': str(run), 'timeout_seconds': 900}, 900),
                                         ({'run_dir': str(run), 'timeout_seconds': 1}, 1)):
-                with self.subTest(arguments=arguments), patch.object(tool_api, 'run_worker',
+                with self.subTest(arguments=arguments), patch.object(tool_api, 'run_report_bundle_worker',
                                                                      return_value=dict(good)) as worker:
                     result = tool_api.execute('report_bundle', arguments)
                     self.assertEqual(result['result'], good)
                     self.assertEqual(result['evidence_kind'], 'hash_bound_metadata_bundle_with_quoted_receipt_figures')
                     worker.assert_called_once()
                     self.assertEqual(worker.call_args.args[1], deadline)
-                    self.assertEqual(worker.call_args.kwargs, {'error_json_tool': 'report_bundle'})
+                    self.assertEqual(worker.call_args.kwargs, {})
             outside = self.base / 'outside-bundle'; outside.mkdir()
             nested = boundary / 'a' / 'b'; nested.mkdir(parents=True)
             linked = boundary / 'linked'; linked.symlink_to(outside, target_is_directory=True)
@@ -782,6 +782,29 @@ class S2ToolAdmissionTests(unittest.TestCase):
                 failure = tool_api.report_bundle_failure(code, data)
                 self.assertEqual(str(failure), f'worker failed ({code}): report_bundle returned no typed diagnostic')
                 self.assertIsNone(failure.receipt)
+
+    def test_admission_e_report_bundle_runner_deadline_and_stdout_codes(self):
+        script = self.base / 'fake worker.py'
+        cases = (('import time; time.sleep(30)', None),
+                 ('print(\'{"status": "refused", "reason": "bundle_too_large"}\'); raise SystemExit(2)',
+                  'worker refused (2): report_bundle bundle_too_large'),
+                 ('import sys; sys.stderr.write("/srv/private"); raise SystemExit(1)',
+                  'worker failed (1): report_bundle returned no typed diagnostic'),
+                 ('print(\'{"status": "built"}\')', None))
+        for index, (body, message) in enumerate(cases):
+            script.write_text(body)
+            with self.subTest(body=body):
+                if index == 0:
+                    with self.assertRaisesRegex(tool_api.ToolError, 'deadline exceeded \\(1s\\)') as caught:
+                        tool_api.run_report_bundle_worker([sys.executable, str(script)], 1)
+                    self.assertEqual(caught.exception.receipt['result']['signal_target'], 'owned_process_group')
+                elif message:
+                    with self.assertRaises(tool_api.ToolError) as caught:
+                        tool_api.run_report_bundle_worker([sys.executable, str(script)], 30)
+                    self.assertEqual(str(caught.exception), message)
+                else:
+                    self.assertEqual(tool_api.run_report_bundle_worker([sys.executable, str(script)], 30),
+                                     {'status': 'built'})
 
     def test_admission_e_report_bundle_real_worker_refusal_writes_nothing(self):
         # The exact dispatcher argv parses in the real worker, which refuses on manifest identity (exit 2)

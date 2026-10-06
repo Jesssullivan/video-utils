@@ -989,9 +989,6 @@ def run_worker(command, timeout, error_json_tool=None):
         stderr.seek(max(0, stderr_size - 2500))
         error_tail = stderr.read().decode('utf-8', errors='replace')
         if process.returncode:
-            if error_json_tool == 'report_bundle':
-                stdout.seek(0)
-                raise report_bundle_failure(process.returncode, stdout.read(4096))
             if error_json_tool == 'capture_profile':
                 stdout.seek(0)
                 try:
@@ -1033,6 +1030,56 @@ def report_bundle_failure(returncode, data):
         return ToolError(f'worker failed (1): report_bundle error {diagnostic["error"]}')
     # Never relay an unparsed tail: worker text may carry private paths.
     return ToolError(f'worker failed ({returncode}): report_bundle returned no typed diagnostic')
+
+
+def run_report_bundle_worker(command, timeout):
+    """Dedicated bounded runner (the generic run_worker is source-pinned): hard deadline on an owned
+    process group, typed exit-2 refusals and class-only exit-1 errors read from stdout, never a stderr tail."""
+    if not Path(command[1]).is_file():
+        raise ToolError('implementation worker is unavailable; no bundle was built')
+    with tempfile.TemporaryFile() as stdout:
+        try:
+            process = subprocess.Popen(command, cwd=ROOT, stdin=subprocess.DEVNULL, stdout=stdout,
+                                       stderr=subprocess.DEVNULL, start_new_session=True)
+        except OSError as error:
+            raise ToolError(f'worker could not start: {type(error).__name__}') from error
+        try:
+            process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired as error:
+            prior_group, signal_target = None, 'already_exited'
+            try:
+                prior_group = os.getpgid(process.pid)
+                if prior_group == process.pid:
+                    os.killpg(process.pid, signal.SIGKILL)
+                    signal_target = 'owned_process_group'
+                else:
+                    process.kill()
+                    signal_target = 'owned_worker_only'
+            except ProcessLookupError:
+                pass
+            process.wait()
+            receipt = {'actor': 'video-utils/tool_api',
+                       'target_ownership': {'pid': process.pid, 'observed_pgid': prior_group,
+                                            'created_by_invocation': True, 'new_session_requested': True},
+                       'reason': f'worker hard deadline exceeded ({timeout}s)',
+                       'ruling': 'R-N11; R-HOOK-CONVERGENCE-20261004; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43',
+                       'prior_state': 'owned worker wait timed out; live pgid checked before signal',
+                       'result': {'signal_target': signal_target, 'worker_returncode': process.returncode}}
+            raise ToolError(f'worker deadline exceeded ({timeout}s); owned process group stopped', receipt) from error
+        size = stdout.seek(0, os.SEEK_END)
+        if size > MAX_WORKER_OUTPUT:
+            raise ToolError('worker result exceeds 2 MiB result limit; inspect local artifacts')
+        stdout.seek(0)
+        data = stdout.read()
+    if process.returncode:
+        raise report_bundle_failure(process.returncode, data[:4096])
+    try:
+        result = strict_json(data.decode('utf-8'))
+    except (UnicodeError, ValueError) as error:
+        raise ToolError('worker did not return a single finite JSON object') from error
+    if not isinstance(result, dict):
+        raise ToolError('worker result must be a JSON object')
+    return result
 
 
 def classify_report_bundle_result(result):
@@ -1159,7 +1206,7 @@ def execute(name, arguments):
     elif name == 'capture_profile':
         result = run_worker(worker_command(name, arguments), timeout, error_json_tool=name)
     elif name == 'report_bundle':
-        result = classify_report_bundle_result(run_worker(worker_command(name, arguments), timeout, error_json_tool=name))
+        result = classify_report_bundle_result(run_report_bundle_worker(worker_command(name, arguments), timeout))
     elif name == 'share_export':
         result = classify_share_export_result(run_worker(worker_command(name, arguments), timeout), arguments)
     else:
