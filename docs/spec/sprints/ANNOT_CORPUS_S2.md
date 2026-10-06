@@ -365,3 +365,46 @@ arm and no tuning.
 - `marked_video` basis-aware badge for annotation markers (see limitation in §1).
 - MCP hooks/skills and `program/tools.json` entries for the three projections,
   if root admits them; until then they are experimental lane helpers.
+
+## Phase 2 implementation notes (additive; frozen text above unchanged)
+
+Recorded 2026-10-06 at implementation. These clarify choices the frozen text left
+open; none changes a frozen constant, tier, threshold, tolerance or window.
+
+- **Additive refusal codes.** `annotation_markers`: `invalid_expected_store_sha256`,
+  `invalid_run_directory`, `annotation_projection_input_missing`, `invalid_run_manifest`
+  (plus pass-through of `annotation_v2.read_bytes` codes). `flags_triage`:
+  `stale_phrase_spans` (a present `dag.json` does not bind the current
+  `phrases.json` bytes; refusing beats silently falling back to the grid),
+  `flags_timeline_axis_unknown`, `unsafe_or_missing_run_artifact` (a run-local
+  `manifest.json` is required for the source check), `triage_input_*`,
+  `invalid_flag_collection`, `output_inside_run_dir`. `corpus_eval_s2`:
+  `invalid_proposals_sha256`, `invalid_proposal_interval`, `invalid_proposals_*`,
+  `proposals_changed_during_evaluation`, `output_inside_proposal_run_dir` (output may
+  not be written beside the proposal run's files).
+- **Phrase-span basis fields.** A span qualifies only with finite
+  `source_start_seconds` < `source_end_seconds`; a flag joins the first span (in
+  start order) with `start <= t <= end`. Otherwise the grid basis is used and the
+  reason is kept in `window_basis.phrase_spans_status`.
+- **Window ids.** `grid_+NN` / `grid_-NN` (signed grid window index), `phrase-NNN`,
+  `unspanned`. `window_count` = grid windows spanning `corpus.source_bounds` of the
+  run manifest (or the phrase spans) plus any window used outside them.
+- **Navigation rule encoding.** `priority_rule.navigation_proxy_rule.upstream_tokens`
+  quotes the three upstream tokens; the no-verdict-wording check covers every
+  generated key and string except copied `flag` objects and those quoted tokens
+  (the upstream confidence token contains `not_confirmed`).
+- **Hash-bound selected slot.** True only when the flag's selector/sha equal
+  `flags.evidence_artifacts[slot]` and the selected file's current bytes hash to
+  that sha256; changed evidence bytes demote the flag (tested).
+- **Evaluator.** Coverage is computed even when `clock_alignment_status` is not
+  aligned (coverage depends only on annotations); every recall is then null with
+  `reason` = the clock status. `proposal_lineage_differs_from_annotation_manifest`
+  is `null` (unknown) when the proposal file has no sibling `manifest.json`.
+  v1 annotation references validate but are counted as `v1_annotations_not_evaluated`.
+  Recall is kind-agnostic interval overlap for the overall metric and every axis
+  (`detector_for_axis` says so); `rest` is computed from `rest_execution`; the
+  other five articulation axes are `unknown` / `no_subtype_in_v2_schema`. Each
+  axis carries `status` (`unknown` | `recall_measured_precision_unknown`).
+- **Tests.** 36 owner tests (13 markers, 9 triage, 14 evaluator); real-artifact
+  tests locate the gitignored main-checkout artifacts by walking up from the
+  repository root and skip when absent.

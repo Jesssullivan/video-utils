@@ -1,0 +1,47 @@
+{
+  "schema_id": "video-utils.corpus-split.s1",
+  "schema_version": 1,
+  "corpus_id": "operator-review-corpus-s2",
+  "revision": 1,
+  "coverage": "sparse_or_unknown_no_negative_inference",
+  "approval_state": "unreviewed",
+  "records": [
+    {
+      "id": "demo-oct5-2026-take",
+      "take_family_id": "demo-oct5-2026",
+      "split": "unassigned",
+      "origin": "real_recording",
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "artifact_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "parent_ids": [],
+      "augmentation_group_ids": [],
+      "manifest": {
+        "path": "artifacts/experiments/s1-demo-context-20261006T0627/manifest.json",
+        "sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f"
+      },
+      "annotation_refs": [
+        {
+          "store": {
+            "path": "artifacts/experiments/s1-demo-context-20261006T0627/review-annotations-v2.json",
+            "sha256": "17041cb31476f91409e3c48f6434fcde8874ecd175a221b0f3fe644614d40eca"
+          },
+          "schema_version": 2,
+          "revision": 1,
+          "selected_ids": [
+            "e2add83c-3d08-485b-a79f-2d9f0405f025"
+          ]
+        }
+      ]
+    }
+  ],
+  "context_refs": [
+    {
+      "metadata": {
+        "path": "program/demo-arrangement.json",
+        "sha256": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a"
+      },
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "basis": "operator_context"
+    }
+  ]
+}
