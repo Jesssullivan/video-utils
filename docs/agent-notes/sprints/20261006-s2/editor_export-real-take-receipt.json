@@ -1,0 +1,755 @@
+{
+  "schema_version": 1,
+  "format": "s2_editor_export_phase2_receipt",
+  "date": "2026-10-06",
+  "lane": "editor_export",
+  "sprint": "20261006-s2",
+  "linear": "TIN-5606",
+  "authority": "R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13; operator S2 resume prompt; repo AGENTS.md",
+  "contract": "docs/spec/sprints/EDITOR_EXPORT_S2.md@2579462b63b923c92dda7464e88ddc0d2719433a",
+  "branch": "sprint/20261006-s2/editor_export",
+  "claim_classes": {
+    "M": "measured",
+    "I": "metadata inference",
+    "U": "unverified, stated",
+    "L": "listening (never claimed)"
+  },
+  "worker_sha256": {
+    "editor_marker_export.py": "9e259beb2a5e84bd90a8809993d7f5f49149113755f19dd412a79300bce4b828",
+    "timecode.py": "1ac9cd87c0243521559e7a85ec79ed33dfc24f99f6013d3704bc102e836b4f37",
+    "editor_marker_plan.py": "0af933083cc5415eca6c2e3d367ec15ec68dfc7b7a511b4392725c120dff75be"
+  },
+  "tests": {
+    "test_timecode": {
+      "command": "PYTHONPATH=tests python3 -m unittest test_timecode -v",
+      "ran": 11,
+      "passed": 11,
+      "skipped": 0,
+      "wall_seconds": 1410.22,
+      "user_cpu_seconds": 85.696,
+      "host_load_average_range": "177-392 (6 cores, other S2 lanes)",
+      "timeout_note": "contract wrapper is timeout 600; under this host load wall time was 1410 s, so the lane ran it under timeout 2400. CPU time 85.7 s indicates ~100 s wall on an idle host (inference, not measured).",
+      "class": "M"
+    },
+    "test_editor_marker_export": {
+      "command": "PYTHONPATH=tests python3 -m unittest test_editor_marker_export -v",
+      "ran": 23,
+      "passed": 23,
+      "skipped": 0,
+      "labelled_skip_conditions": "xmllint-missing arm skips passed/failed DTD checks; /usr/bin/xmllint (libxml 20913) present, so not skipped",
+      "class": "M"
+    },
+    "test_editor_marker_plan_regression": {
+      "ran": 21,
+      "passed": 21,
+      "skipped": 0,
+      "class": "M"
+    },
+    "lane_total": {
+      "passed": 34,
+      "minimum_required": 24,
+      "dod_floor": 20
+    }
+  },
+  "metrics": {
+    "1_df_exhaustive_frames": {
+      "passed": 18125856,
+      "denominator": 18125856,
+      "class": "M",
+      "checks": "closed-form label == independent odometer label, timecode_to_frame(label) == frame, strictly increasing, unique (per-hour sorted+set)"
+    },
+    "2_ndf_exhaustive_frames": {
+      "passed": 4665600,
+      "denominator": 4665600,
+      "class": "M"
+    },
+    "2b_ndf_sampled": {
+      "rates": 10,
+      "per_rate": "1440 minute boundaries +-2 frames (<=7200) + 10000 seeded (20261006) random frames",
+      "class": "M"
+    },
+    "3_df_minutes": {
+      "per_rate": {
+        "skipped_k_labels": 1296,
+        "tens_minutes_no_skip": 144
+      },
+      "rates": 3,
+      "class": "M"
+    },
+    "4_non_df_rates_refused": {
+      "passed": 9,
+      "denominator": 9,
+      "class": "M"
+    },
+    "6_fcpxml_fixtures": "version 1.10, DOCTYPE, rational times, one-frame markers, 0 completed attributes, START/END pair per span: all fixture files written in tests (M structure; U application import)",
+    "7_resolve_ops": "int frameId/duration_frames, executable false, api_contract unverified, host_frame_id null on every emitted operation (M; U API)",
+    "9_abstention_arms_zero_files": {
+      "fixture_arms": "VFR, no-PTS, no-grid, period mismatch, origin misaligned, DF at 24, selection_required, nothing_exportable, rate unsupported, media missing/negative time, clip off-grid/outside extent: all files == {} or no directory",
+      "real_take_arms": "6/6 abstaining arms wrote zero files (plus 1 predeclared build arm refused with exit 1)",
+      "class": "M"
+    },
+    "11_inputs_unchanged": {
+      "real_take_readonly_inputs": 19,
+      "unchanged": true,
+      "class": "M"
+    },
+    "12_unknowns": {
+      "application_import": "not_performed",
+      "host_frame_id": null,
+      "class": "U (stated)"
+    }
+  },
+  "real_take": {
+    "schema_version": 1,
+    "format": "s2_editor_export_real_take_receipt",
+    "lane": "editor_export",
+    "sprint": "20261006-s2",
+    "linear": "TIN-5606",
+    "authority": "R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13",
+    "contract": "docs/spec/sprints/EDITOR_EXPORT_S2.md@2579462",
+    "take_path": "/Users/jess/Documents/Movie on 10-5-26 at 3.38 PM.mov",
+    "source_sha256_expected": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+    "source_sha256_measured": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+    "source_identity": "match",
+    "fuller_run": {
+      "path": "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737",
+      "manifest_sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "use": "source identity only; carries no markers.json"
+    },
+    "driver_sha256": "8959dc9ef0b4c43b9576d3cec2e8a61a44c951d436794d22193e73a5e7009a47",
+    "pts_scan": {
+      "command": "$FFPROBE -v error -threads 2 -select_streams v:0 -show_frames -show_entries frame=best_effort_timestamp,duration -of json=compact=1 <take>",
+      "timeout_seconds": 300,
+      "elapsed_seconds": 144.956,
+      "stream_probe_elapsed_seconds": 1.111,
+      "stream_metadata": {
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "108930/4549",
+        "time_base": "1/600",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration": "150.905000",
+        "nb_frames": "3631"
+      },
+      "ffprobe_version": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers",
+      "pts_json_sha256": "6cb065fc99760f1e201c26f88370745d19463ba4ca68c7952a627d0048c7d978",
+      "pts_json": "artifacts/s2/editor_export/real-take/pts.json",
+      "measured": {
+        "frame_count": 3621,
+        "steps": {
+          "24": 43,
+          "25": 3528,
+          "26": 49
+        },
+        "durations": {
+          "24": 43,
+          "25": 3529,
+          "26": 49
+        },
+        "extent_seconds": "30177/200",
+        "first_tick": 0,
+        "last_tick": 90506
+      },
+      "comparison_with_research": {
+        "frame_count": {
+          "expected": 3621,
+          "measured": 3621,
+          "match": true
+        },
+        "steps": {
+          "expected": {
+            "24": 43,
+            "25": 3528,
+            "26": 49
+          },
+          "measured": {
+            "24": 43,
+            "25": 3528,
+            "26": 49
+          },
+          "match": true
+        },
+        "extent_seconds": {
+          "expected": "90531/600",
+          "measured": "30177/200",
+          "match": false,
+          "value_equal": true,
+          "note": "string match false only because the research wrote unreduced 90531/600; reduced rationals are equal (150.885 s)"
+        },
+        "first_tick": {
+          "expected": 0,
+          "measured": 0,
+          "match": true
+        },
+        "last_tick": {
+          "expected": 90506,
+          "measured": 90506,
+          "match": true
+        }
+      },
+      "all_match": false,
+      "frames_missing_fields": 0,
+      "all_values_match_research": true,
+      "duration_histogram_note": "per-frame reported durations are 24x43, 25x3529, 26x49 (one more 25 than steps: the last frame's 25-tick duration); not in the research table, recorded as found"
+    },
+    "arms": {
+      "predeclared-build-fcpxml": {
+        "entrypoint": "build",
+        "format": "fcpxml",
+        "selection": "reference-marked-preview-compact/selection.json",
+        "with_pts": true,
+        "exit_status": 1,
+        "elapsed_seconds": 2.949,
+        "stderr": "editor-marker-export: Selection ID or marker content is stale\n",
+        "output_dir_exists_after": false,
+        "new_paths": [],
+        "result": null
+      },
+      "pure-fcpxml": {
+        "entrypoint": "pure_make_plan",
+        "format": "fcpxml",
+        "selection": "reference-marked-preview-compact/selection.json",
+        "with_pts": true,
+        "generic_markers": "arrangement-reference-20261006/arrangement-markers.json",
+        "output_dir_exists_after": false,
+        "payload_files": [],
+        "result": {
+          "native_export_status": "calibration_required",
+          "cadence": "variable",
+          "reasons": [
+            "cadence_variable"
+          ],
+          "plan_status": "fixture_only",
+          "application_import": "not_performed",
+          "host_frame_id": null,
+          "executable": false,
+          "api_contract": "unverified",
+          "native_contract_status": "native_contract_unverified",
+          "dtd_validation": "not_performed",
+          "files_written": 0,
+          "metadata_cadence_hint": {
+            "class": "metadata_inference",
+            "average_rational": "108930/4549",
+            "nominal_rational": "24/1",
+            "average_differs_from_nominal": true,
+            "inference": "average_differs_from_nominal_suggests_variable_cadence",
+            "used_for_decisions": false
+          },
+          "counts": {
+            "marker_count": 71,
+            "selected_count": 71,
+            "excluded_count": 0,
+            "action_count": 36,
+            "exported_marker_count": 0,
+            "disposition_counts": {
+              "native_contract_unverified": 28,
+              "outside_video_coverage": 43
+            },
+            "collision_counts": {
+              "none": 32,
+              "planned_same_frame_conflict": 4
+            }
+          },
+          "input_sha256": {
+            "arrangement-reference-20261006/arrangement-markers.json": "b82c447dd48dabf6ed6bcc27b9784de34f73c4bfc2316b71d6d59638df630557",
+            "editor-profile-pure-fcpxml.json": "b80a82848ac2a5c6c0f69f68fce7a63d6d044304a297e5a2e163519dcdd1323d",
+            "export-profile-pure-fcpxml.json": "4dc86078f360f10563e5818f91a31bfe61a68957e59392455b7ff4f55c6e9d6d",
+            "pts.json": "6cb065fc99760f1e201c26f88370745d19463ba4ca68c7952a627d0048c7d978",
+            "reference-marked-preview-compact/selection.json": "0a14edb7c7d24856d86b57d0e7566bc1c4d2d7a016f0050956f556778d6c0da0"
+          },
+          "worker_sha256": {
+            "editor_marker_export.py": "9e259beb2a5e84bd90a8809993d7f5f49149113755f19dd412a79300bce4b828",
+            "editor_marker_plan.py": "0af933083cc5415eca6c2e3d367ec15ec68dfc7b7a511b4392725c120dff75be",
+            "timecode.py": "1ac9cd87c0243521559e7a85ec79ed33dfc24f99f6013d3704bc102e836b4f37"
+          },
+          "listening_acceptance": "not_established",
+          "musical_verdict": "not_established"
+        },
+        "row_host_frame_id_all_null": true,
+        "row_count": 71,
+        "cadence_evidence": {
+          "class": "measured_source_pts_table",
+          "frame_count": 3621,
+          "time_base": "1/600",
+          "first_tick": 0,
+          "last_tick": 90506,
+          "last_duration_ticks": 25,
+          "coverage_start_seconds": "0/1",
+          "coverage_end_seconds": "30177/200",
+          "extent_seconds": "30177/200",
+          "step_histogram": {
+            "ticks": {
+              "24": 43,
+              "25": 3528,
+              "26": 49
+            },
+            "distinct_values": 3,
+            "truncated": false
+          },
+          "duration_histogram": {
+            "ticks": {
+              "24": 43,
+              "25": 3529,
+              "26": 49
+            },
+            "distinct_values": 3,
+            "truncated": false
+          },
+          "uniform_period_seconds": null
+        }
+      },
+      "pure-resolve_ops": {
+        "entrypoint": "pure_make_plan",
+        "format": "resolve_ops",
+        "selection": "reference-marked-preview-compact/selection.json",
+        "with_pts": true,
+        "generic_markers": "arrangement-reference-20261006/arrangement-markers.json",
+        "output_dir_exists_after": false,
+        "payload_files": [],
+        "result": {
+          "native_export_status": "calibration_required",
+          "cadence": "variable",
+          "reasons": [
+            "cadence_variable"
+          ],
+          "plan_status": "fixture_only",
+          "application_import": "not_performed",
+          "host_frame_id": null,
+          "executable": false,
+          "api_contract": "unverified",
+          "native_contract_status": "native_contract_unverified",
+          "dtd_validation": "not_performed",
+          "files_written": 0,
+          "metadata_cadence_hint": {
+            "class": "metadata_inference",
+            "average_rational": "108930/4549",
+            "nominal_rational": "24/1",
+            "average_differs_from_nominal": true,
+            "inference": "average_differs_from_nominal_suggests_variable_cadence",
+            "used_for_decisions": false
+          },
+          "counts": {
+            "marker_count": 71,
+            "selected_count": 71,
+            "excluded_count": 0,
+            "action_count": 28,
+            "exported_marker_count": 0,
+            "disposition_counts": {
+              "native_contract_unverified": 28,
+              "outside_video_coverage": 43
+            },
+            "collision_counts": {
+              "none": 26,
+              "planned_same_frame_conflict": 2
+            }
+          },
+          "input_sha256": {
+            "arrangement-reference-20261006/arrangement-markers.json": "b82c447dd48dabf6ed6bcc27b9784de34f73c4bfc2316b71d6d59638df630557",
+            "editor-profile-pure-resolve_ops.json": "189099b4a6b27d19ced807a13f68df8ce53f311cfd325b34c824965faa8af1e8",
+            "export-profile-pure-resolve_ops.json": "3e17dea0b3102ce8aecc02396c12a15c388a775eeb8ef081234f8df311b83ec7",
+            "pts.json": "6cb065fc99760f1e201c26f88370745d19463ba4ca68c7952a627d0048c7d978",
+            "reference-marked-preview-compact/selection.json": "0a14edb7c7d24856d86b57d0e7566bc1c4d2d7a016f0050956f556778d6c0da0"
+          },
+          "worker_sha256": {
+            "editor_marker_export.py": "9e259beb2a5e84bd90a8809993d7f5f49149113755f19dd412a79300bce4b828",
+            "editor_marker_plan.py": "0af933083cc5415eca6c2e3d367ec15ec68dfc7b7a511b4392725c120dff75be",
+            "timecode.py": "1ac9cd87c0243521559e7a85ec79ed33dfc24f99f6013d3704bc102e836b4f37"
+          },
+          "listening_acceptance": "not_established",
+          "musical_verdict": "not_established"
+        },
+        "row_host_frame_id_all_null": true,
+        "row_count": 71,
+        "cadence_evidence": {
+          "class": "measured_source_pts_table",
+          "frame_count": 3621,
+          "time_base": "1/600",
+          "first_tick": 0,
+          "last_tick": 90506,
+          "last_duration_ticks": 25,
+          "coverage_start_seconds": "0/1",
+          "coverage_end_seconds": "30177/200",
+          "extent_seconds": "30177/200",
+          "step_histogram": {
+            "ticks": {
+              "24": 43,
+              "25": 3528,
+              "26": 49
+            },
+            "distinct_values": 3,
+            "truncated": false
+          },
+          "duration_histogram": {
+            "ticks": {
+              "24": 43,
+              "25": 3529,
+              "26": 49
+            },
+            "distinct_values": 3,
+            "truncated": false
+          },
+          "uniform_period_seconds": null
+        }
+      },
+      "pure-fcpxml-no-pts": {
+        "entrypoint": "pure_make_plan",
+        "format": "fcpxml",
+        "selection": "reference-marked-preview-compact/selection.json",
+        "with_pts": false,
+        "generic_markers": "arrangement-reference-20261006/arrangement-markers.json",
+        "output_dir_exists_after": false,
+        "payload_files": [],
+        "result": {
+          "native_export_status": "calibration_required",
+          "cadence": "unknown",
+          "reasons": [
+            "cadence_unknown_no_pts"
+          ],
+          "plan_status": "fixture_only",
+          "application_import": "not_performed",
+          "host_frame_id": null,
+          "executable": false,
+          "api_contract": "unverified",
+          "native_contract_status": "native_contract_unverified",
+          "dtd_validation": "not_performed",
+          "files_written": 0,
+          "metadata_cadence_hint": {
+            "class": "metadata_inference",
+            "average_rational": "108930/4549",
+            "nominal_rational": "24/1",
+            "average_differs_from_nominal": true,
+            "inference": "average_differs_from_nominal_suggests_variable_cadence",
+            "used_for_decisions": false
+          },
+          "counts": {
+            "marker_count": 71,
+            "selected_count": 71,
+            "excluded_count": 0,
+            "action_count": 0,
+            "exported_marker_count": 0,
+            "disposition_counts": {
+              "video_coverage_unverified": 71
+            },
+            "collision_counts": {}
+          },
+          "input_sha256": {
+            "arrangement-reference-20261006/arrangement-markers.json": "b82c447dd48dabf6ed6bcc27b9784de34f73c4bfc2316b71d6d59638df630557",
+            "editor-profile-pure-fcpxml-no-pts.json": "05384f6037ab7141bc1a8fcdc34d17ddfd0d251cd381b2d16840304d00d0530d",
+            "export-profile-pure-fcpxml-no-pts.json": "ef5aebab82ac802093807c79ee81a003434ff21f5b183719eb2d22d2ff6596f2",
+            "reference-marked-preview-compact/selection.json": "0a14edb7c7d24856d86b57d0e7566bc1c4d2d7a016f0050956f556778d6c0da0"
+          },
+          "worker_sha256": {
+            "editor_marker_export.py": "9e259beb2a5e84bd90a8809993d7f5f49149113755f19dd412a79300bce4b828",
+            "editor_marker_plan.py": "0af933083cc5415eca6c2e3d367ec15ec68dfc7b7a511b4392725c120dff75be",
+            "timecode.py": "1ac9cd87c0243521559e7a85ec79ed33dfc24f99f6013d3704bc102e836b4f37"
+          },
+          "listening_acceptance": "not_established",
+          "musical_verdict": "not_established"
+        },
+        "row_host_frame_id_all_null": true,
+        "row_count": 71
+      },
+      "deviation-build-fcpxml": {
+        "entrypoint": "build",
+        "format": "fcpxml",
+        "selection": "selection-all-generic.json",
+        "with_pts": true,
+        "exit_status": 0,
+        "elapsed_seconds": 5.664,
+        "stderr": "",
+        "output_dir_exists_after": false,
+        "new_paths": [],
+        "result": {
+          "native_export_status": "calibration_required",
+          "cadence": "variable",
+          "reasons": [
+            "cadence_variable"
+          ],
+          "plan_status": "fixture_only",
+          "application_import": "not_performed",
+          "host_frame_id": null,
+          "executable": false,
+          "api_contract": "unverified",
+          "native_contract_status": "native_contract_unverified",
+          "dtd_validation": "not_performed",
+          "files_written": 0,
+          "metadata_cadence_hint": {
+            "class": "metadata_inference",
+            "average_rational": "108930/4549",
+            "nominal_rational": "24/1",
+            "average_differs_from_nominal": true,
+            "inference": "average_differs_from_nominal_suggests_variable_cadence",
+            "used_for_decisions": false
+          },
+          "counts": {
+            "marker_count": 171,
+            "selected_count": 171,
+            "excluded_count": 0,
+            "action_count": 170,
+            "exported_marker_count": 0,
+            "disposition_counts": {
+              "fixture_quantization_outside_clip": 3,
+              "fixture_quantization_outside_video_coverage": 6,
+              "native_contract_unverified": 86,
+              "outside_video_coverage": 76
+            },
+            "collision_counts": {
+              "none": 130,
+              "planned_same_frame_conflict": 40
+            }
+          },
+          "input_sha256": {
+            "editor-profile-deviation-build-fcpxml.json": "633597ab1070a974fbc23526fd2517baa63eea875edc4fae9c9a9e1074a107fa",
+            "export-profile-deviation-build-fcpxml.json": "d748e86b33d523df3849dd7b088c8708ecfa602f0608386adb4adfb9f114637c",
+            "manifest.json": "a6c371ab36e1f50b850f167a42b010ffa7b923b32aca14f4bfd70fb24036077c",
+            "markers.json": "a058763b2f632daf657a98193156ba7f96a9bd9eb3dc52e95aa5ae6c4499eb20",
+            "pts.json": "6cb065fc99760f1e201c26f88370745d19463ba4ca68c7952a627d0048c7d978",
+            "selection-all-generic.json": "ae64831517089c192430175d62ec06a456b8a0c4011ff20c90ec369e0889fc3c"
+          },
+          "worker_sha256": {
+            "editor_marker_export.py": "9e259beb2a5e84bd90a8809993d7f5f49149113755f19dd412a79300bce4b828",
+            "editor_marker_plan.py": "0af933083cc5415eca6c2e3d367ec15ec68dfc7b7a511b4392725c120dff75be",
+            "timecode.py": "1ac9cd87c0243521559e7a85ec79ed33dfc24f99f6013d3704bc102e836b4f37"
+          },
+          "listening_acceptance": "not_established",
+          "musical_verdict": "not_established"
+        },
+        "cadence_evidence": {
+          "class": "measured_source_pts_table",
+          "frame_count": 3621,
+          "time_base": "1/600",
+          "first_tick": 0,
+          "last_tick": 90506,
+          "last_duration_ticks": 25,
+          "coverage_start_seconds": "0/1",
+          "coverage_end_seconds": "30177/200",
+          "extent_seconds": "30177/200",
+          "step_histogram": {
+            "ticks": {
+              "24": 43,
+              "25": 3528,
+              "26": 49
+            },
+            "distinct_values": 3,
+            "truncated": false
+          },
+          "duration_histogram": {
+            "ticks": {
+              "24": 43,
+              "25": 3529,
+              "26": 49
+            },
+            "distinct_values": 3,
+            "truncated": false
+          },
+          "uniform_period_seconds": null
+        }
+      },
+      "deviation-build-resolve_ops": {
+        "entrypoint": "build",
+        "format": "resolve_ops",
+        "selection": "selection-all-generic.json",
+        "with_pts": true,
+        "exit_status": 0,
+        "elapsed_seconds": 2.99,
+        "stderr": "",
+        "output_dir_exists_after": false,
+        "new_paths": [],
+        "result": {
+          "native_export_status": "calibration_required",
+          "cadence": "variable",
+          "reasons": [
+            "cadence_variable"
+          ],
+          "plan_status": "fixture_only",
+          "application_import": "not_performed",
+          "host_frame_id": null,
+          "executable": false,
+          "api_contract": "unverified",
+          "native_contract_status": "native_contract_unverified",
+          "dtd_validation": "not_performed",
+          "files_written": 0,
+          "metadata_cadence_hint": {
+            "class": "metadata_inference",
+            "average_rational": "108930/4549",
+            "nominal_rational": "24/1",
+            "average_differs_from_nominal": true,
+            "inference": "average_differs_from_nominal_suggests_variable_cadence",
+            "used_for_decisions": false
+          },
+          "counts": {
+            "marker_count": 171,
+            "selected_count": 171,
+            "excluded_count": 0,
+            "action_count": 91,
+            "exported_marker_count": 0,
+            "disposition_counts": {
+              "fixture_quantization_outside_clip": 3,
+              "fixture_quantization_outside_video_coverage": 1,
+              "native_contract_unverified": 91,
+              "outside_video_coverage": 76
+            },
+            "collision_counts": {
+              "none": 68,
+              "planned_same_frame_conflict": 23
+            }
+          },
+          "input_sha256": {
+            "editor-profile-deviation-build-resolve_ops.json": "17e17bbebfbbfeca5d38cc1b2a0f55568dc02e1219ab6589c1da8263c16ddc4a",
+            "export-profile-deviation-build-resolve_ops.json": "9a49625409def3f2459bcbbca5982b0acd101e995c8e57ad3abc0d3e32bf8073",
+            "manifest.json": "a6c371ab36e1f50b850f167a42b010ffa7b923b32aca14f4bfd70fb24036077c",
+            "markers.json": "a058763b2f632daf657a98193156ba7f96a9bd9eb3dc52e95aa5ae6c4499eb20",
+            "pts.json": "6cb065fc99760f1e201c26f88370745d19463ba4ca68c7952a627d0048c7d978",
+            "selection-all-generic.json": "ae64831517089c192430175d62ec06a456b8a0c4011ff20c90ec369e0889fc3c"
+          },
+          "worker_sha256": {
+            "editor_marker_export.py": "9e259beb2a5e84bd90a8809993d7f5f49149113755f19dd412a79300bce4b828",
+            "editor_marker_plan.py": "0af933083cc5415eca6c2e3d367ec15ec68dfc7b7a511b4392725c120dff75be",
+            "timecode.py": "1ac9cd87c0243521559e7a85ec79ed33dfc24f99f6013d3704bc102e836b4f37"
+          },
+          "listening_acceptance": "not_established",
+          "musical_verdict": "not_established"
+        },
+        "cadence_evidence": {
+          "class": "measured_source_pts_table",
+          "frame_count": 3621,
+          "time_base": "1/600",
+          "first_tick": 0,
+          "last_tick": 90506,
+          "last_duration_ticks": 25,
+          "coverage_start_seconds": "0/1",
+          "coverage_end_seconds": "30177/200",
+          "extent_seconds": "30177/200",
+          "step_histogram": {
+            "ticks": {
+              "24": 43,
+              "25": 3528,
+              "26": 49
+            },
+            "distinct_values": 3,
+            "truncated": false
+          },
+          "duration_histogram": {
+            "ticks": {
+              "24": 43,
+              "25": 3529,
+              "26": 49
+            },
+            "distinct_values": 3,
+            "truncated": false
+          },
+          "uniform_period_seconds": null
+        }
+      },
+      "deviation-build-fcpxml-no-pts": {
+        "entrypoint": "build",
+        "format": "fcpxml",
+        "selection": "selection-all-generic.json",
+        "with_pts": false,
+        "exit_status": 0,
+        "elapsed_seconds": 2.99,
+        "stderr": "",
+        "output_dir_exists_after": false,
+        "new_paths": [],
+        "result": {
+          "native_export_status": "calibration_required",
+          "cadence": "unknown",
+          "reasons": [
+            "cadence_unknown_no_pts"
+          ],
+          "plan_status": "fixture_only",
+          "application_import": "not_performed",
+          "host_frame_id": null,
+          "executable": false,
+          "api_contract": "unverified",
+          "native_contract_status": "native_contract_unverified",
+          "dtd_validation": "not_performed",
+          "files_written": 0,
+          "metadata_cadence_hint": {
+            "class": "metadata_inference",
+            "average_rational": "108930/4549",
+            "nominal_rational": "24/1",
+            "average_differs_from_nominal": true,
+            "inference": "average_differs_from_nominal_suggests_variable_cadence",
+            "used_for_decisions": false
+          },
+          "counts": {
+            "marker_count": 171,
+            "selected_count": 171,
+            "excluded_count": 0,
+            "action_count": 0,
+            "exported_marker_count": 0,
+            "disposition_counts": {
+              "fixture_quantization_outside_clip": 3,
+              "video_coverage_unverified": 168
+            },
+            "collision_counts": {}
+          },
+          "input_sha256": {
+            "editor-profile-deviation-build-fcpxml-no-pts.json": "7e8e44e998e244751c9e68b3611da769ed3b889fc12b001671995c84a00a12e4",
+            "export-profile-deviation-build-fcpxml-no-pts.json": "b0e9cbad220fd3acc23c93497741097b823f36102d4ed5ede7fc5fcf62d08025",
+            "manifest.json": "a6c371ab36e1f50b850f167a42b010ffa7b923b32aca14f4bfd70fb24036077c",
+            "markers.json": "a058763b2f632daf657a98193156ba7f96a9bd9eb3dc52e95aa5ae6c4499eb20",
+            "selection-all-generic.json": "ae64831517089c192430175d62ec06a456b8a0c4011ff20c90ec369e0889fc3c"
+          },
+          "worker_sha256": {
+            "editor_marker_export.py": "9e259beb2a5e84bd90a8809993d7f5f49149113755f19dd412a79300bce4b828",
+            "editor_marker_plan.py": "0af933083cc5415eca6c2e3d367ec15ec68dfc7b7a511b4392725c120dff75be",
+            "timecode.py": "1ac9cd87c0243521559e7a85ec79ed33dfc24f99f6013d3704bc102e836b4f37"
+          },
+          "listening_acceptance": "not_established",
+          "musical_verdict": "not_established"
+        },
+        "cadence_evidence": null
+      }
+    },
+    "readonly_inputs": {
+      "count": 19,
+      "unchanged": true,
+      "sha256_before": {
+        "/Users/jess/Documents/Movie on 10-5-26 at 3.38 PM.mov": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/markers.json": "a058763b2f632daf657a98193156ba7f96a9bd9eb3dc52e95aa5ae6c4499eb20",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/manifest.json": "a6c371ab36e1f50b850f167a42b010ffa7b923b32aca14f4bfd70fb24036077c",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/flags.json": "95a0106c84a338ddc756f3c17879e5eccf8966b4344fe6326b71da7872e8a732",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/dag.json": "0811ee0bf39aa041ea03692b61be02bb1d994f5308db4a51ea60dfb2fcf1a638",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/selection.json": "0a14edb7c7d24856d86b57d0e7566bc1c4d2d7a016f0050956f556778d6c0da0",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/analysis.json": "7bd77aa65a776adeadd7b979a12d2743e99a6eb87c65144dbf31039df050c5a8",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/clicks/20261006T040944Z-a98ce2dc1f72/clicks.json": "cee9a506d70f3bebb95d054ae6a4bb5f8c880133d31327a8b7c0a19950497937",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/denoised.wav": "cb8a3fa559424810f206c94191a149156423770bbf91a13724a2ba28a44e879e",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/meter/20261006T041013715594Z/meter.json": "75f42284a77e4fc744af29cb3037bc885ded790bf0472b239759d3b2977d7a3f",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/notes.json": "17c788c7f082a6b53b8c82e629d8cbd63f9643c4345c15a7562881773bed4300",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/phrase-comparisons.json": "42526425f01b2605a58f5afa12a2dd21cbe92830a18792172194676af7535cad",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/phrases.json": "2822625bdec0b0742c4adf40306e05f5f4e8342ef13fcf13dbff6d07b3e59bff",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/pitch.json": "41b2971ba9a5e6f7d96abe75370aae9232ecfc4a142b3e5f9131d20951c76ce3",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/tonal/20261006T041015Z-e302b2a456e2/tonal.json": "1a6af6669c328d601a28cf72916a20a425930af9eba6680f6fa4cb331e2d449b",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/tone.json": "ddc8780446798e3cf2b7d9e83425f4bde09a72370dd40a6b890b3d72c096fe42",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/arrangement-reference-20261006/arrangement-markers.json": "b82c447dd48dabf6ed6bcc27b9784de34f73c4bfc2316b71d6d59638df630557",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/manifest.json": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+        "/Users/jess/git/video-utils/.local/sprint2/editor_export/program/instrument.json": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0"
+      },
+      "changed": []
+    },
+    "exports_directory_contents": []
+  },
+  "findings": [
+    "Predeclared selection reference-marked-preview-compact/selection.json binds 71/71 IDs to arrangement-reference-20261006/arrangement-markers.json, 0/71 to generic markers.json; the hash-verified build entrypoint therefore refuses (exit 1, 'Selection ID or marker content is stale'). Per contract step 2 the lane fell back to pure make_plan on read-only loaded JSON (entrypoint pure_make_plan) with the arrangement markers as the marker document.",
+    "Deviation (extra, labelled): the build entrypoint was additionally exercised on the hash-verified mirror with a lane-derived explicit all-generic selection (171 markers); all three arms abstained identically. This selection is not an operator selection.",
+    "Measured PTS histogram matches the research: 3621 frames, steps 24x43/25x3528/26x49, ticks 0..90506, extent 90531/600 s (= 30177/200). No threshold changed.",
+    "Real take result: native_export_status calibration_required; cadence variable (reason cadence_variable) with PTS, unknown (cadence_unknown_no_pts) without; metadata_cadence_hint 108930/4549 vs 24/1 recorded as inference with used_for_decisions false; zero files written in every arm."
+  ],
+  "not_claimed": [
+    "Final Cut Pro or DaVinci Resolve import or visible alignment",
+    "native frame IDs",
+    "FCPXML 1.10 DTD conformance (Apple DTD not supplied/fetched)",
+    "Resolve API contract",
+    "note correctness, missed/extra notes or mistakes",
+    "listening acceptance"
+  ],
+  "local_outputs_gitignored": [
+    "artifacts/s2/editor_export/real-take/ (pts.json, run/ mirror, stdout-*.json, driver-result.json)",
+    "artifacts/s2/editor_export/driver/real_take_check.py",
+    "artifacts/s2/editor_export/logs/"
+  ],
+  "driver_source_sha256": "8959dc9ef0b4c43b9576d3cec2e8a61a44c951d436794d22193e73a5e7009a47"
+}

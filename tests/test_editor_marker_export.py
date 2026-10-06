@@ -285,6 +285,8 @@ class EditorMarkerExportTests(unittest.TestCase):
                 self.assertEqual((hint["average_rational"], hint["nominal_rational"]), ("108930/4549", "24/1"))
                 self.assertIs(hint["used_for_decisions"], False)
                 self.assertEqual((value["application_import"], value["files_written"]), ("not_performed", 0))
+                self.assertTrue(all(row["display_timecode_start"] is None and row["exported"] is False
+                                    and row["host_frame_id"] is None for row in value["markers"]))
                 self.assertIsNone(value["host_frame_id"])
                 self.assertFalse(out.exists())
                 self.assertEqual(tree(temporary), parent_before)

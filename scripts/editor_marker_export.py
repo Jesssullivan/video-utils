@@ -326,8 +326,12 @@ def sidecar_rows(plan, generic, context, colliding, status):
             exclusion = f"native_export_{status}"
         else:
             exclusion = None
-        start_label, start_reason = display_label(context, positions.get("start_frame"))
-        end_label, end_reason = display_label(context, positions.get("end_frame"))
+        if status == "written_unverified":
+            start_label, start_reason = display_label(context, positions.get("start_frame"))
+            end_label, end_reason = display_label(context, positions.get("end_frame"))
+        else:  # no display labels on an unverified grid
+            start_label = end_label = None
+            start_reason, end_reason = "native_export_not_written", None
         start_value = item.get("source_time_seconds")
         end_value = item.get("end_seconds", start_value)
         rows.append({"marker_id": identity, "marker_index": row["marker_index"], "kind": row["kind"],

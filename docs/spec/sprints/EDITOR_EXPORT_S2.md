@@ -425,3 +425,27 @@ If time runs short, the order of what is kept is: timecode plus property tests,
 then abstention paths and the real-take `calibration_required` check, then the
 uniform FCPXML/Resolve writers. A writer still pending at close is reported as
 pending, not as done.
+
+## Phase 2 status (appended 2026-10-06; frozen sections above unchanged)
+
+- **Timecode:** `scripts/timecode.py` passed `tests/test_timecode.py` with
+  11/11 tests. The suite checked 18,125,856 DF frames and 4,665,600 NDF frames
+  exhaustively and covered 1,440 minutes × 3 DF rates for the skip property. On
+  a host with load average 177–392, the suite took 1,410 s of wall time and
+  85.7 s of user CPU, which exceeds the `timeout 600` wrapper's wall budget. It
+  was therefore run under `timeout 2400`.
+- **Exporter:** `scripts/editor_marker_export.py` passed 23/23 tests, with no
+  skips because xmllint was present. The planner regression passed 21/21. Three
+  additive conservative reasons are documented in `docs/spec/EDITOR_MARKER_EXPORT.md`:
+  `asset_mapping_unknown`, `clip_bounds_off_grid` and `clip_outside_asset_extent`.
+- **Real take:** the result matched the predeclared outcome, `calibration_required`
+  / `cadence: variable` (`unknown` without PTS), with zero files in every arm and
+  19/19 read-only inputs unchanged. The measured PTS histogram equals the
+  research table. A finding: the predeclared compact selection binds to the
+  arrangement markers, not to generic `markers.json`, so the build entrypoint
+  refuses it, and the contract fallback `pure_make_plan` was used. Details are
+  in `docs/agent-notes/sprints/20261006-s2/editor_export-real-take-receipt.json`.
+- **Drafts:** the tool descriptor is
+  `docs/agent-notes/sprints/20261006-s2/editor_export-tool-descriptor.json` and
+  the skill is `.agents/skills/editor-marker-export/SKILL.md`. Root insertion
+  text is listed in the lane result.

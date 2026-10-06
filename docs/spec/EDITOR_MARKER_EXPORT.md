@@ -179,7 +179,9 @@ origin_frame`, where `origin_frame` is parsed from `timecode.origin_label` in th
 selected DF/NDF mode. The basis is
 `asset_local_from_asset_start_plus_profile_origin_unverified_against_host`. A
 frame that is off the grid or outside 24 h is recorded as a null label with a
-status, never wrapped.
+status, never wrapped. Abstention rows on stdout carry null labels with
+`display_timecode_status: native_export_not_written`, because no label is
+computed on an unverified grid.
 
 ### DTD validation
 
