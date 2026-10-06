@@ -1,0 +1,185 @@
+{
+  "lane": "web_reliability",
+  "branch": "sprint/20261006-s2/web_reliability",
+  "head": "077470954660fcc92353b2b172f845022dd5653d",
+  "base_commit": "5436b2d008b55ce7cd4ba3b926c00bf44f9943b6",
+  "worktree": ".local/sprint2/web_reliability",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_reliability-contract-freeze.json",
+      "sha256": "ffc0966ed71588ccfd7bb26e6f4b3bac3eaa552ed5c44ad7d6fd0434ef6dbcef",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_reliability-handoff.json",
+      "sha256": "67115352b7b58de4d1fd9ace70aae739d5e53da5148f7aee33b717698c4dd820",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_reliability-real-web-job.json",
+      "sha256": "fa553c37b225f9cc04e39dd4a9f5e15bd6431a66dfa88a75441ccb96de5bc0ff",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/web_reliability-tests.json",
+      "sha256": "52e90c1edab21a63c7f36af45e0cc49ea40a1d62c3557a6cb1f9a2bbb3f9014d",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/sprints/WEB_RELIABILITY_S2.md",
+      "sha256": "8b9ec227955f33bab2df18494036d93a38efc90f14a32f30a5245e0291a9a3df",
+      "kind": "spec"
+    },
+    {
+      "path": "tests/test_web_reliability.py",
+      "sha256": "f7adb98fc66bc5d69908b462d7bf10b1035570b53179b870e02ed48e7fb14c2e",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_web_reliability test_web_jobs test_web_parity -v",
+    "discovered": 61,
+    "passed": 57,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 4,
+    "seconds": 63.78
+  },
+  "metrics": [
+    {
+      "name": "web_demo_api_steps_passed",
+      "numerator": 12,
+      "denominator": 12,
+      "unit": "steps",
+      "claim_class": "measured"
+    },
+    {
+      "name": "web_demo_bff_steps_passed",
+      "numerator": 13,
+      "denominator": 13,
+      "unit": "steps",
+      "claim_class": "measured"
+    },
+    {
+      "name": "failure_injection_executions",
+      "numerator": 16,
+      "denominator": 16,
+      "unit": "injections",
+      "claim_class": "measured",
+      "note": "FI-1:2 FI-2:2 FI-3:3 FI-4:1 FI-5:3 FI-7:1 FI-8:1 FI-9:1 FI-10:1 FI-11:1; FI-6 not_applicable"
+    },
+    {
+      "name": "frozen_status_classes_run",
+      "numerator": 10,
+      "denominator": 11,
+      "unit": "status_classes",
+      "claim_class": "measured",
+      "note": "7 exact + 2 adapted + 1 partial; 1 not_applicable"
+    },
+    {
+      "name": "real_take_output_frames_count",
+      "numerator": 3621,
+      "denominator": 3621,
+      "unit": "frames",
+      "claim_class": "measured"
+    },
+    {
+      "name": "real_take_source_frames_count",
+      "numerator": 3631,
+      "denominator": 3631,
+      "unit": "frames",
+      "claim_class": "measured"
+    },
+    {
+      "name": "decode_only_packets",
+      "numerator": 10,
+      "denominator": 3631,
+      "unit": "packets",
+      "claim_class": "measured"
+    },
+    {
+      "name": "byte_reduction_fraction",
+      "numerator": 0.902141550490823,
+      "denominator": 1,
+      "unit": "ratio",
+      "claim_class": "measured",
+      "note": "1 - 22555377/230489826"
+    },
+    {
+      "name": "memory_leak_checks",
+      "numerator": 283,
+      "denominator": 283,
+      "unit": "checks",
+      "claim_class": "measured"
+    },
+    {
+      "name": "final_job_attempt_rows",
+      "numerator": 4,
+      "denominator": 4,
+      "unit": "attempts",
+      "claim_class": "measured"
+    },
+    {
+      "name": "final_artifact_rows",
+      "numerator": 6,
+      "denominator": 6,
+      "unit": "artifacts",
+      "claim_class": "measured"
+    },
+    {
+      "name": "final_publications",
+      "numerator": 2,
+      "denominator": 2,
+      "unit": "publications",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [],
+  "root_owned_changes_requested": [
+    {
+      "file": "program/capabilities.json",
+      "change": "In the share_export capability entry, set adapters.web_job from \"planned\" to \"admitted\" (\"web_job\": \"planned\" -> \"web_job\": \"admitted\"), citing evidence docs/agent-notes/sprints/20261006-s2/web_reliability-real-web-job.json and docs/agent-notes/sprints/20261006-s2/web_reliability-tests.json.",
+      "why": "The real-take web job met all 7 frozen confirmation criteria. It succeeded with exported_unreviewed, worker kind tool_api_share_export. Output and source shown-frame counts are both 3,621, with 0 decode-only output frames and presented_packets_excluding_edit_list_discard scope. ffprobe decoded 3,621 frames, the downloaded hash matched the header and row, replay returned the same job with 1 publication, and the accepted run tree was unchanged. Promotion is root's decision."
+    },
+    {
+      "file": "scripts/web_jobs.py",
+      "change": "In WebJobs._worker_checks, extend the video_proof key allowlist tuple ('method', 'packet_count', 'maximum_pts_delta_seconds', 'tail_extent_delta_seconds', 'tolerance_seconds', 'source_start_seconds', 'source_end_seconds', 'source_full_frame_decode_verified', 'physical_capture_sync_verified') with 'comparison_scope', 'source_packet_count_total', 'output_packet_count_total', 'source_presented_packet_count', 'output_presented_packet_count', 'source_decode_only_packets', 'output_decode_only_packets'.",
+      "why": "Without these keys, the public job projection and publication.json cannot show the displayed-frame counts after the share_export fix. This lane had to read them from the job-private worker receipt locally."
+    },
+    {
+      "file": "just/workflow.just",
+      "change": "Optional foreground-only recipe:\n# S2 web reliability demo + failure injections (in-process loopback; no daemon)\nweb-reliability-test:\n    PYTHONPATH=tests python3 -m unittest test_web_reliability -v",
+      "why": "Operator entrypoint for the lane's test module (spec section 12 item 3); runs in the foreground only."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261006-s2/web_reliability-contract-freeze.json",
+    "docs/agent-notes/sprints/20261006-s2/web_reliability-real-web-job.json",
+    "docs/agent-notes/sprints/20261006-s2/web_reliability-tests.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Scope holds. Running `git diff --name-only 5436b2d...HEAD` (merge-base 5436b2d, HEAD 0774709) lists exactly 6 files, all owned: tests/test_web_reliability.py, docs/spec/sprints/WEB_RELIABILITY_S2.md (section 14 is appended; `git diff 665b5ee 0774709` adds only lines 468-503), and web_reliability-{contract-freeze,handoff,real-web-job,tests}.json. No root-owned or foreign file was edited. The working tree is clean. main has moved since the merge-base, but none of the moved files are web_jobs.py, web_api.py, test_web_jobs.py, test_web_stack.py, program/capabilities.json or the owned files.",
+      "(4) Test counts reproduce. I ran the stated command with the nix FFmpeg/FFprobe exported: 'Ran 61 tests in 80.224s / OK (skipped=4)', exit 0, so 57 passed. The 4 skips are all opt-in: RealTakeWebJob, test_web_jobs.ActualDemoJob, test_web_jobs.LocalLatencyMeasurement and test_web_parity.DemoWalkthrough. test_web_demo_end_to_end_bff ran and passed on this host, as did the API demo and FI-1 through FI-11. The log is at /tmp/wr_audit_run.log.",
+      "(4) The tests check the claimed behaviour substantively. The 12 API steps and 13 BFF steps assert typed codes, store counts and tree digests (tests/test_web_reliability.py:614-879). Cancel is checked by owned PIDs gone, an empty attempt/staging directory and a signal sent to the owned process group (:743-770). Restart and reconnect are checked by field-by-field projection equality and old-token refusal (:808-829). Replay and retry keep attempt-1 byte-identical (:845-875). The duplicate audit (:877-891) checks 3 jobs, 4 attempts, 6 rows and 2 publications. One caveat: cancel, interrupt and all failure injections use the test stub worker, not the real share_export worker. worker_kind is recorded per attempt, so this is disclosed.",
+      "(6) Arithmetic checks out. Injection executions add up to 16: FI-1 2, FI-2 2, FI-3 3, FI-4 1, FI-5 3, FI-7 1, FI-8 1, FI-9 1, FI-10 1, FI-11 1. The frozen statuses add up to 11 (7 exact + 2 adapted + 1 partial + 1 not applicable), so 10 of 11 classes ran. Source decode-only packets are 3631 - 3621 = 10. byte_reduction_fraction is 1 - 22555377/230489826 = 0.902141550490823, matching exactly. run2-metrics.json shows 283 leak checks with 0 leaks, 4 node apps, 13/13 BFF steps passed, final counts {jobs 3, attempts 4, artifacts 6} and 2 publications.",
+      "(2) No forbidden writes found. The accepted run directory artifacts/runs/20261006T041633Z-990aa1bd6737 recomputes with wj.tree_digest to f641b367...fc37 over 14 entries, the same value as the receipt's before and after digests. The source sha256 is 91b2f436...4a82, as claimed. The real-take state root is under the worktree's gitignored artifacts/web-jobs/. On disk, both share.mp4 and downloaded-share.mp4 hash to 2eba932a...27db, matching the receipt. The lane did not edit program/tools.json, scripts/tool_api.py, just/workflow.just or capabilities.json; the promotion is only a request in root_owned_changes_requested. No model is downloaded, and the static test rejects fork, setsid, daemon, nohup and launchctl.",
+      "Provenance hashes match. The sha256 values of run1/run2 metrics, the run logs, real-run.log and real-web-job.json all match the values in the receipt and handoff. The committed web_reliability-real-web-job.json is semantically identical to artifacts/s2/web_reliability/real-web-job.json. The committed receipts contain no /Users, /private or token values.",
+      "(3) Claim classes are correct. Receipts mark everything as measurement_this_host_only or structural_delivery_check, with no SLO, hosted-rollout or exactly-once claims. Listening, ~32 Hz, musical and note correctness are explicit nulls with reasons. Output equality with the prior sha is recorded as observed_equal for this one run and listed under 'inferred', not claimed as determinism. FI-3's not-run sub-cases and FI-6 not_applicable are listed with reasons. Nothing is presented as real-take accuracy, and no default, profile or detector was adopted.",
+      "Minor provenance inaccuracy: web_reliability-tests.json run2 'worktree_commit' says 'bc4b55c + metrics-only edit (uncommitted at run time; committed with receipts)'. However, 0774709 does not touch tests/. The commit times (bc4b55c at 17:06:25, run1 log at 17:03, run2 log at 17:15) and the matching traceback line 903 point to run2 having run on bc4b55c itself, with the edit already folded into that commit. The label should say run2 ran on bc4b55c.",
+      "Minor: the real-take test writes its public receipt to artifacts/s2/web_reliability/real-web-job.json (OUT_DIR, tests/test_web_reliability.py:44 and :1561-1562), outside the artifacts/web-jobs/ area named in the definition of done. It is gitignored and is a JSON receipt, not media, so this is a wording deviation.",
+      "Minor: BOUND_S=1100 limits only the job poll. After a timeout the test can add a 60 s cancel poll plus a 300 s ffprobe run (:1450-1482), so the test's total wall time is not strictly 1100 s or less. The actual run took 160 s.",
+      "Minor portability: the real-take runs_root defaults to ROOT.parents[2] (:1411), which resolves to the main checkout only from a .local/sprint2/<lane> worktree. From the main checkout it fails is_dir unless WEB_RELIABILITY_RUNS_ROOT is set. It is opt-in, so this does not block.",
+      "(5) Doctrine: the lane adds no DSP. The test has no high-pass, notch or lowcut. The synthetic 32.70 Hz sine is labelled 'content only'. Every subprocess, HTTP, sqlite and poll call has a bounded timeout. Every server bound 127.0.0.1, which the static test asserts."
+    ],
+    "must_fix": []
+  }
+}

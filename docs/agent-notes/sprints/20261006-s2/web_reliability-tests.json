@@ -1,0 +1,532 @@
+{
+ "baseline_commit": "5436b2d008b55ce7cd4ba3b926c00bf44f9943b6",
+ "branch": "sprint/20261006-s2/web_reliability",
+ "claim_class": "measurement_this_host_only",
+ "date": "2026-10-06",
+ "directly_affected": {
+  "command": "PYTHONPATH=tests timeout 900 python3 -m unittest test_web_jobs",
+  "module": "test_web_jobs",
+  "ran": 26,
+  "result": "OK (skipped=2: opt-in latency and demo)"
+ },
+ "experiment": false,
+ "lane": "web_reliability",
+ "metrics_files_gitignored": "artifacts/s2/web_reliability/run{1,2}-metrics.json, run{1,2}-test.log",
+ "named_counted_excluding_opt_in": 16,
+ "named_tests": 17,
+ "not_run_by_lane": [
+  "test_web_parity",
+  "test_web_stack (shared web/ build state; root runs the full suite)"
+ ],
+ "preregistered": false,
+ "receipt": "web_reliability-tests",
+ "reruns_note": "run1 and run2 are separate recorded runs (spec section 13); run2 is not a retry that hides run1. run1 BFF arm errored on build timeout under host load; run2 passed 13/13 BFF steps.",
+ "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+ "runs": [
+  {
+   "api_demo": {
+    "skipped": null,
+    "steps_completed": "12/12"
+   },
+   "bff_demo": {
+    "error": null,
+    "install_build_seconds_host": null,
+    "skipped": null,
+    "steps_completed": null
+   },
+   "bff_vs_api_differences": null,
+   "command": "WEB_RELIABILITY_METRICS=artifacts/s2/web_reliability/metrics.json PYTHONPATH=tests timeout 1500 python3 -m unittest test_web_reliability -v",
+   "env": "FFMPEG/FFPROBE = qualified nix ffmpeg-headless 8.1.2",
+   "error": 1,
+   "error_lines": [
+    "subprocess.TimeoutExpired: Command '['pnpm', 'run', 'build']' timed out after 300 seconds"
+   ],
+   "fail": 0,
+   "host_load": {
+    "end": [
+     114.55,
+     209.06,
+     180.15
+    ],
+    "note": "1-min load ~267 at start, ~237 at end on 6 logical CPUs, caused by other sessions; the BFF build exceeded test_web_stack 300 s build timeout",
+    "start": [
+     267.09,
+     193.74,
+     150.4
+    ]
+   },
+   "injection_summary": {
+    "classes_listed": 11,
+    "classes_run_all_executions_passed": [
+     "FI-1",
+     "FI-10",
+     "FI-11",
+     "FI-2",
+     "FI-3",
+     "FI-4",
+     "FI-5",
+     "FI-7",
+     "FI-8",
+     "FI-9"
+    ],
+    "classes_run_over_listed": "10/11",
+    "duplicate_publications": 0,
+    "executions_n": 16,
+    "executions_passed": 16,
+    "lost_job_records": 0,
+    "not_run": [
+     {
+      "id": "FI-6",
+      "reason": "share_export, the only admitted job type, uses no model; nothing is injected"
+     },
+     {
+      "id": "FI-3/disk",
+      "reason": "no disk quota exists"
+     },
+     {
+      "id": "FI-3/rss",
+      "reason": "no memory (RSS) quota exists"
+     },
+     {
+      "id": "FI-3/cpu",
+      "reason": "no CPU quota exists"
+     },
+     {
+      "id": "FI-3/per_operator_rate",
+      "reason": "no per-operator rate limit exists"
+     }
+    ],
+    "note": "measurement over these executions only; WEB_BACKEND 30-injection SLO row not met or claimed",
+    "status_counts_frozen": {
+     "not_applicable": 1,
+     "run_adapted": 2,
+     "run_exact": 7,
+     "run_partial": 1
+    }
+   },
+   "leak": {
+    "leaking_responses": 0,
+    "responses_checked": 226
+   },
+   "log_sha256": "aeb46a1f2f6c178b2a557da759aed6b06ebf7ffdc8f8a75769a43772cff56c4b",
+   "loopback_only": true,
+   "metrics_sha256": "23b42096dded9115c245e78fe1a2ee665fa1d4e41a1e21cd2393f9d95edffb55",
+   "named_counted": 16,
+   "node_apps_started": 0,
+   "pass": 15,
+   "ran": 17,
+   "run": "run1",
+   "runs_tree_unchanged_classes": [
+    "FailureInjectionTests"
+   ],
+   "servers_bound": 22,
+   "skipped": 1,
+   "tests": [
+    {
+     "class": "ContractStaticTests",
+     "result": "ok",
+     "test": "test_injection_table_frozen_with_denominator"
+    },
+    {
+     "class": "ContractStaticTests",
+     "result": "ok",
+     "test": "test_receipt_unknowns_shape"
+    },
+    {
+     "class": "ContractStaticTests",
+     "result": "ok",
+     "test": "test_servers_bind_loopback_only"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi01_expired_lease_adapted"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi02_duplicate_delivery"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi03_quota_exhaustion_partial"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi04_access_denial"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi05_hash_mismatch"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi06_model_absence_not_applicable"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi07_output_committed_before_transport_failure"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi08_crash_around_enqueue"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi09_crash_around_claim_adapted"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi10_crash_during_render"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi11_crash_around_publication"
+    },
+    {
+     "class": "RealTakeWebJob",
+     "result": "skipped",
+     "skip_reason": "opt-in real-take web job (WEB_RELIABILITY_REAL=1 and qualified FFmpeg); not part of the pass count",
+     "test": "test_real_take_web_job"
+    },
+    {
+     "class": "WebDemoApiTest",
+     "result": "ok",
+     "test": "test_web_demo_end_to_end_api"
+    },
+    {
+     "class": "WebDemoBffTest",
+     "result": "ERROR",
+     "test": "test_web_demo_end_to_end_bff"
+    }
+   ],
+   "unknowns": {
+    "bff_arm": null,
+    "bff_arm_reason": "BFF arm not executed",
+    "cpu_seconds": null,
+    "cpu_seconds_reason": "not measured; no OS quota",
+    "decoded_picture_identity": null,
+    "decoded_picture_identity_reason": "packet PTS and frame counts only, no per-picture comparison",
+    "exactly_once": "not_claimed",
+    "host_load": {
+     "end": [
+      114.55,
+      209.06,
+      180.15
+     ],
+     "start": [
+      267.09,
+      193.74,
+      150.4
+     ]
+    },
+    "hosted_rollout": "not_claimed",
+    "injection_classes_not_run": [
+     {
+      "id": "FI-6",
+      "reason": "share_export, the only admitted job type, uses no model; nothing is injected"
+     },
+     {
+      "id": "FI-3/disk",
+      "reason": "no disk quota exists"
+     },
+     {
+      "id": "FI-3/rss",
+      "reason": "no memory (RSS) quota exists"
+     },
+     {
+      "id": "FI-3/cpu",
+      "reason": "no CPU quota exists"
+     },
+     {
+      "id": "FI-3/per_operator_rate",
+      "reason": "no per-operator rate limit exists"
+     }
+    ],
+    "listening_acceptance": "not_established",
+    "low_register_preservation": null,
+    "low_register_preservation_reason": "the lossy AAC sharing derivative is not measured at ~32 Hz by this lane",
+    "master_adopted": false,
+    "memory_bytes_peak": null,
+    "memory_bytes_peak_reason": "not measured; no OS quota",
+    "musical_review": null,
+    "musical_review_reason": "no note-correctness, missed-note or phrase verdicts",
+    "output_determinism_vs_prior_run": "not_compared",
+    "physical_capture_sync": null,
+    "physical_capture_sync_reason": "not verified",
+    "slo": "not_claimed",
+    "ui_rendering": null,
+    "ui_rendering_reason": "no browser render or screenshot in this lane"
+   },
+   "wall_seconds_host": 361.784,
+   "worktree_commit": "bc4b55c (working tree; before the BFF build-error metrics record was added)"
+  },
+  {
+   "api_demo": {
+    "skipped": null,
+    "steps_completed": "12/12"
+   },
+   "bff_demo": {
+    "error": null,
+    "install_build_seconds_host": 76.5,
+    "skipped": null,
+    "steps_completed": "13/13"
+   },
+   "bff_vs_api_differences": [
+    {
+     "api": null,
+     "bff": [
+      502,
+      "control_api_unreachable"
+     ],
+     "step": "control_api_down"
+    }
+   ],
+   "command": "WEB_RELIABILITY_METRICS=artifacts/s2/web_reliability/metrics.json PYTHONPATH=tests timeout 1500 python3 -m unittest test_web_reliability -v",
+   "env": "FFMPEG/FFPROBE = qualified nix ffmpeg-headless 8.1.2",
+   "error": 0,
+   "error_lines": [],
+   "fail": 0,
+   "host_load": {
+    "end": [
+     148.18,
+     173.62,
+     180.87
+    ],
+    "note": "run after a bounded wait for 1-min load < 120",
+    "start": [
+     109.06,
+     175.07,
+     182.11
+    ]
+   },
+   "injection_summary": {
+    "classes_listed": 11,
+    "classes_run_all_executions_passed": [
+     "FI-1",
+     "FI-10",
+     "FI-11",
+     "FI-2",
+     "FI-3",
+     "FI-4",
+     "FI-5",
+     "FI-7",
+     "FI-8",
+     "FI-9"
+    ],
+    "classes_run_over_listed": "10/11",
+    "duplicate_publications": 0,
+    "executions_n": 16,
+    "executions_passed": 16,
+    "lost_job_records": 0,
+    "not_run": [
+     {
+      "id": "FI-6",
+      "reason": "share_export, the only admitted job type, uses no model; nothing is injected"
+     },
+     {
+      "id": "FI-3/disk",
+      "reason": "no disk quota exists"
+     },
+     {
+      "id": "FI-3/rss",
+      "reason": "no memory (RSS) quota exists"
+     },
+     {
+      "id": "FI-3/cpu",
+      "reason": "no CPU quota exists"
+     },
+     {
+      "id": "FI-3/per_operator_rate",
+      "reason": "no per-operator rate limit exists"
+     }
+    ],
+    "note": "measurement over these executions only; WEB_BACKEND 30-injection SLO row not met or claimed",
+    "status_counts_frozen": {
+     "not_applicable": 1,
+     "run_adapted": 2,
+     "run_exact": 7,
+     "run_partial": 1
+    }
+   },
+   "leak": {
+    "leaking_responses": 0,
+    "responses_checked": 283
+   },
+   "log_sha256": "908a05a7b5b5f06ee944cc1a4e4c8a794684f057d4c2cf933eb37751c28a5dfe",
+   "loopback_only": true,
+   "metrics_sha256": "d428673a9c4f76309021f92933297567f47199247602f7a39b0d508b64ebc25f",
+   "named_counted": 16,
+   "node_apps_started": 4,
+   "pass": 16,
+   "ran": 17,
+   "run": "run2",
+   "runs_tree_unchanged_classes": [
+    "FailureInjectionTests"
+   ],
+   "servers_bound": 25,
+   "skipped": 1,
+   "tests": [
+    {
+     "class": "ContractStaticTests",
+     "result": "ok",
+     "test": "test_injection_table_frozen_with_denominator"
+    },
+    {
+     "class": "ContractStaticTests",
+     "result": "ok",
+     "test": "test_receipt_unknowns_shape"
+    },
+    {
+     "class": "ContractStaticTests",
+     "result": "ok",
+     "test": "test_servers_bind_loopback_only"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi01_expired_lease_adapted"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi02_duplicate_delivery"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi03_quota_exhaustion_partial"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi04_access_denial"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi05_hash_mismatch"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi06_model_absence_not_applicable"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi07_output_committed_before_transport_failure"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi08_crash_around_enqueue"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi09_crash_around_claim_adapted"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi10_crash_during_render"
+    },
+    {
+     "class": "FailureInjectionTests",
+     "result": "ok",
+     "test": "test_fi11_crash_around_publication"
+    },
+    {
+     "class": "RealTakeWebJob",
+     "result": "skipped",
+     "skip_reason": "opt-in real-take web job (WEB_RELIABILITY_REAL=1 and qualified FFmpeg); not part of the pass count",
+     "test": "test_real_take_web_job"
+    },
+    {
+     "class": "WebDemoApiTest",
+     "result": "ok",
+     "test": "test_web_demo_end_to_end_api"
+    },
+    {
+     "class": "WebDemoBffTest",
+     "result": "ok",
+     "test": "test_web_demo_end_to_end_bff"
+    }
+   ],
+   "unknowns": {
+    "bff_arm": "run",
+    "bff_arm_reason": null,
+    "cpu_seconds": null,
+    "cpu_seconds_reason": "not measured; no OS quota",
+    "decoded_picture_identity": null,
+    "decoded_picture_identity_reason": "packet PTS and frame counts only, no per-picture comparison",
+    "exactly_once": "not_claimed",
+    "host_load": {
+     "end": [
+      148.18,
+      173.62,
+      180.87
+     ],
+     "start": [
+      109.06,
+      175.07,
+      182.11
+     ]
+    },
+    "hosted_rollout": "not_claimed",
+    "injection_classes_not_run": [
+     {
+      "id": "FI-6",
+      "reason": "share_export, the only admitted job type, uses no model; nothing is injected"
+     },
+     {
+      "id": "FI-3/disk",
+      "reason": "no disk quota exists"
+     },
+     {
+      "id": "FI-3/rss",
+      "reason": "no memory (RSS) quota exists"
+     },
+     {
+      "id": "FI-3/cpu",
+      "reason": "no CPU quota exists"
+     },
+     {
+      "id": "FI-3/per_operator_rate",
+      "reason": "no per-operator rate limit exists"
+     }
+    ],
+    "listening_acceptance": "not_established",
+    "low_register_preservation": null,
+    "low_register_preservation_reason": "the lossy AAC sharing derivative is not measured at ~32 Hz by this lane",
+    "master_adopted": false,
+    "memory_bytes_peak": null,
+    "memory_bytes_peak_reason": "not measured; no OS quota",
+    "musical_review": null,
+    "musical_review_reason": "no note-correctness, missed-note or phrase verdicts",
+    "output_determinism_vs_prior_run": "not_compared",
+    "physical_capture_sync": null,
+    "physical_capture_sync_reason": "not verified",
+    "slo": "not_claimed",
+    "ui_rendering": null,
+    "ui_rendering_reason": "no browser render or screenshot in this lane"
+   },
+   "wall_seconds_host": 130.115,
+   "worktree_commit": "bc4b55c + metrics-only edit (uncommitted at run time; committed with receipts)"
+  }
+ ],
+ "slo": "not_claimed",
+ "spec": "docs/spec/sprints/WEB_RELIABILITY_S2.md (frozen 665b5ee; section 14 appended)",
+ "sprint": "20261006-s2",
+ "tracker": "TIN-5616"
+}

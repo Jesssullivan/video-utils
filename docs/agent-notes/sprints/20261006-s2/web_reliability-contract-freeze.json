@@ -1,0 +1,36 @@
+{
+  "receipt": "web_reliability-contract-freeze",
+  "lane": "web_reliability",
+  "sprint": "20261006-s2",
+  "tracker": "TIN-5616",
+  "branch": "sprint/20261006-s2/web_reliability",
+  "baseline_commit": "5436b2d008b55ce7cd4ba3b926c00bf44f9943b6",
+  "date": "2026-10-06",
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "spec": "docs/spec/sprints/WEB_RELIABILITY_S2.md",
+  "phase": "1_contract_freeze",
+  "numerics_run": false,
+  "experiment": false,
+  "preregistered": false,
+  "preregistered_reason": "no arms, tuning or held-out truth; demo steps, injection table and real-take criteria are frozen expectations",
+  "owned_files": [
+    "tests/test_web_reliability.py",
+    "docs/spec/sprints/WEB_RELIABILITY_S2.md",
+    "docs/agent-notes/sprints/20261006-s2/web_reliability-*.json",
+    "docs/agent-notes/sprints/20261006-s2/web_reliability-*.md"
+  ],
+  "frozen": {
+    "api_demo_steps": 12,
+    "bff_demo_steps": 13,
+    "injection_classes_listed": 11,
+    "injection_classes_planned": {"run_exact": 6, "run_adapted": 2, "run_partial": 1, "not_applicable": 1, "not_run": 0},
+    "injection_ids": ["FI-1", "FI-2", "FI-3", "FI-4", "FI-5", "FI-6", "FI-7", "FI-8", "FI-9", "FI-10", "FI-11"],
+    "real_take_confirmation_criteria": 7,
+    "real_take_bound_seconds": 1100,
+    "real_take_worker_timeout_seconds": 900,
+    "share_export_worker_sha256_at_baseline": "1d831e7c86ef39a0df88ebc2148932bd6d04d66f01e4d1ea7f9aef2683e110f1",
+    "capabilities_share_export_web_job_at_baseline": "planned"
+  },
+  "not_claimed": ["SLO attainment", "hosted rollout", "exactly-once", "OS quotas", "WEB_BACKEND 30-injection target",
+                  "listening", "low-register (~32 Hz) preservation", "musical correctness", "derivative or master adoption"]
+}
