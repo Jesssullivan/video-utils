@@ -1,0 +1,58 @@
+{
+  "baseline": "736f406e7eb979c11fe1811ed555260544dae3ed",
+  "branch": "sprint/20261006-s2/web_ui_binding",
+  "contract_commit": "9db2ec8b18746c50d7fe037c371f2b67b99622ed",
+  "daemon": false,
+  "date": "2026-10-06",
+  "delivered": [
+    "scripts/web_api.py: /api/v1 routes (12 method/route pairs) + 6 byte-compatible aliases, listings, gated uploads with hash dedupe, source media, annotation_v2 store",
+    "web/src: Effect client + closed schemas for the real v1 shapes, 10 BFF endpoints, bound pages /upload, /sources/[id], /jobs/[id]; index pages keep Prototype labels; Host guard hook",
+    "web/fixtures: real-shape mock fixtures (generator), parity case table and job-request fixtures",
+    "tests/test_web_parity.py (17 named + opt-in demo), tests/test_web_stack.py rescoped (+S10, N14-N18)",
+    "docs/spec/sprints/WEB_UI_S2.md section 15 (appended)"
+  ],
+  "demo": "see web_ui_binding-demo.json when present (opt-in, read-only)",
+  "implementation_commits": [
+    "74c89a7",
+    "55bafed",
+    "e73ee9f"
+  ],
+  "inferred": [
+    "phase/progress read from a separate read-only snapshot may lead or lag state by one event (not observed as a failure)",
+    "Safari may refuse full-body video without Range support (not tested)"
+  ],
+  "lane": "web_ui_binding",
+  "measured": [
+    "parity verdicts 25/25 equal across CLI, MCP and web; 0 disagreements",
+    "tool envelope 7/7 keys equal; structural worker_checks equal on 1/1 real run; CLI and web output sha256 happened to be equal on that run (recorded only)",
+    "walkthrough 12/12 steps through the built BFF against the real dispatcher; 3 headless screenshots captured",
+    "test_web_jobs 24/24 unchanged; test_web_stack 32/33 (S6 baseline defect); affected modules 58/58",
+    "pnpm offline install/check/build exit 0, 0 errors; lock sha256 unchanged"
+  ],
+  "phase": "2_implementation",
+  "preregistered": false,
+  "preregistration_reason": "no experiment; frozen parity case table and deterministic synthetic fixtures; timings descriptive only",
+  "real_take_opened": false,
+  "receipt": "web_ui_binding-handoff",
+  "root_follow_ups": [
+    "S6 baseline defect: remove the absolute worktree path from web_stack-handoff.json line 6",
+    "just/workflow.just web-api-serve / web-ui-serve recipe text (spec section 13.1)",
+    "optional web/serve.js BODY_SIZE_LIMIT default (section 13.2)",
+    "optional web_jobs public list/phase readers and an upload_root outside artifacts/runs (section 13.3)",
+    "share_export adapters.web_job / web_ui promotion is a root admission decision"
+  ],
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "spec": "docs/spec/sprints/WEB_UI_S2.md",
+  "sprint": "20261006-s2",
+  "tracker": "TIN-5615",
+  "unknown_or_not_claimed": [
+    "browser playback and hydration (null)",
+    "level matching (false)",
+    "listening comparison (not_established)",
+    "~32 Hz low-register preservation of the lossy derivative (null)",
+    "musical correctness / missed notes (none made)",
+    "encode byte determinism (unknown)",
+    "memory/CPU peaks",
+    "SLO"
+  ]
+}

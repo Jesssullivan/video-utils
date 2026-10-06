@@ -1,0 +1,195 @@
+{
+  "baseline": "736f406e7eb979c11fe1811ed555260544dae3ed",
+  "branch": "sprint/20261006-s2/web_ui_binding",
+  "claim_class": "measurement_by_test",
+  "commands": {
+    "affected": "PYTHONPATH=tests python3 -m unittest test_artifact_ids test_share_export_tool test_annotation_v2",
+    "parity": "WEB_UI_METRICS=artifacts/s2/web_ui_binding/parity-metrics.json PYTHONPATH=tests python3 -m unittest test_web_parity -v",
+    "web_jobs": "PYTHONPATH=tests python3 -m unittest test_web_jobs",
+    "web_stack": "PYTHONPATH=tests python3 -m unittest test_web_stack -v"
+  },
+  "contract_commit": "9db2ec8b18746c50d7fe037c371f2b67b99622ed",
+  "daemon": false,
+  "date": "2026-10-06",
+  "fixtures": {
+    "stub_worker": "web_jobs stub + synthetic video_proof extent 0..2 s for annotation clocks (fixture value, not a measurement)",
+    "synthetic_clip": "testsrc2 320x240@24 2 s + sine 32.70 Hz 44.1 kHz, H.264/AAC MOV; no spectral claim"
+  },
+  "host": {
+    "cpu": "Apple A18 Pro",
+    "ffmpeg": "ffmpeg version 8.1.2",
+    "node": "v22.23.2",
+    "pnpm": "11.25.0",
+    "python": "3.12.14",
+    "uname_sm": "Darwin arm64"
+  },
+  "implementation_commits": [
+    "74c89a7",
+    "55bafed",
+    "e73ee9f"
+  ],
+  "lane": "web_ui_binding",
+  "metrics": {
+    "10_annotation_semantics": {
+      "authorship": {
+        "browser_refusals": 5,
+        "refused_before_store_io": true,
+        "tracks": {
+          "detector_review": 1,
+          "operator": 2
+        }
+      },
+      "clock_basis": "synthetic stub extent in this test (fixture, not measured)",
+      "clock_no_clobber": true,
+      "clock_unknown_refused": true,
+      "denominator": "6/6 semantics; USER REPORTED/INTENT vs REVIEW tracks distinct 2/2",
+      "out_of_bounds_refused": true,
+      "replayed": true,
+      "saved": true,
+      "stale_conflict": true
+    },
+    "11_download": {
+      "path_like_ids_refused_zero_upstream": "N16 5/5 + N10 4/4",
+      "private_receipt_refused": true,
+      "walkthrough_bytes_sha_equal_header_equal_projection": "1/1"
+    },
+    "14_leak_scan": {
+      "bff_responses_checked_walkthrough": 27,
+      "client_bundle": "S10 0 hits",
+      "control_api_responses_checked": 355,
+      "hits": 0
+    },
+    "15_confinement": {
+      "class_runs_trees_unchanged": [
+        "ControlApiV1Tests",
+        "ParityResultTests",
+        "ParityValidationTests"
+      ],
+      "real_artifacts_runs_writes": 0,
+      "upload_tests_preexisting_entries_hash_equal": true,
+      "walkthrough": {
+        "added_kind": "upload staging run (name prefix web-upload)",
+        "added_runs": 1,
+        "preexisting_runs_entries_hash_equal": true
+      }
+    },
+    "16_diff_confined_to_owned_files": "see handoff files_changed (0 outside section 2)",
+    "17_foreground_only": "S: no fork/daemonize/launchd strings (test_web_jobs #24 passes on the edited web_api.py); BFF/API children killed in tearDown",
+    "1_test_web_parity": "17/17 named pass; 1 opt-in skip reported separately",
+    "2_test_web_jobs_unchanged": "24/24 pass; 0 existing assertions edited",
+    "3_test_web_stack": "32/33 pass; S6 baseline defect (see results)",
+    "4_v1_route_coverage": {
+      "aliases_equal_status_and_code": "14/14 steps over 6 aliased routes",
+      "exercised": 12,
+      "v1_method_routes": 12
+    },
+    "5_loopback_host_origin_token": {
+      "accepted": 0,
+      "refusal_classes": 4,
+      "requests": 48,
+      "routes": 12
+    },
+    "8_upload_refusals": {
+      "cases": 6,
+      "partial_files_remaining": 0,
+      "staged_dirs_remaining": 0,
+      "typed": 6
+    },
+    "9_iterate_retention": {
+      "changed_knob_same_key": "idempotency_conflict",
+      "distinct_job_ids": true,
+      "earlier_artifacts_sha256_equal": "1/1"
+    },
+    "jobs_listing": {
+      "bounded": true,
+      "filtered_equal": true
+    },
+    "source_media": {
+      "range_supported": false,
+      "refusals": [
+        "source_stale",
+        "confinement_refused",
+        "source_missing",
+        "unknown_source",
+        "malformed_id"
+      ],
+      "rehash_equal": true
+    },
+    "sources_listing": {
+      "bad_queries_refused": 13,
+      "records": 3,
+      "selector_or_path_in_body": 0
+    }
+  },
+  "new_tests": {
+    "N14": "upload/admission typed refusal mapping",
+    "N15": "cross-origin and non-loopback Host POSTs refused with zero upstream calls",
+    "N16": "invalid artifact/source ids refused with zero upstream calls",
+    "N17": "download pass-through headers",
+    "N18": "upstream 401 -> control_api_token_refused; missing token -> control_api_unauthenticated",
+    "S10": "client bundle carries no token, token env, URL env or loopback URL"
+  },
+  "not_claimed": [
+    "browser playback",
+    "hydration",
+    "accessibility",
+    "level matching",
+    "listening acceptance",
+    "~32 Hz preservation in the lossy derivative",
+    "note-correctness / missed-note / phrase verdicts",
+    "SLO"
+  ],
+  "preregistered": false,
+  "preregistration_reason": "no experiment; frozen parity case table and deterministic synthetic fixtures; timings descriptive only",
+  "real_take_opened": false,
+  "receipt": "web_ui_binding-tests",
+  "rescoped_test_web_stack": {
+    "N1": "SourceRecord fields and the new pilot banner (fixture shape change)",
+    "N12": "/upload is a bound page rendering control_api_refused_host",
+    "N2": "queued job with progress null preserved through the BFF",
+    "N3": "lifecycle progress 4/6 with progress_reason preserved",
+    "N4": "SSR state, unknowns block, compare note, private receipt label; failed job shows the Prototype label",
+    "N5": "error body is the six-key BffError (upstream_code, upstream_detail_code added)",
+    "N6_N10_N18": "request paths use strict job_[0-9a-f]{32} fixture ids",
+    "S8": "bound routes post only to /api/* BFF endpoints; no client file names the control API URL env, token env, private env modules or fetch to http://; compare/review/download keep the Prototype label",
+    "S9": "real v1 fixture set generated from web_api responses (generate_fixtures.py); README control_api_contract_source web_jobs_s2_merged"
+  },
+  "results": {
+    "affected_modules": {
+      "modules": [
+        "test_artifact_ids",
+        "test_share_export_tool",
+        "test_annotation_v2"
+      ],
+      "passed": 58,
+      "ran": 58
+    },
+    "test_web_jobs": {
+      "existing_assertions_edited": 0,
+      "file_byte_unchanged_vs_baseline": true,
+      "passed": 24,
+      "ran": 26,
+      "skipped_opt_in": 2
+    },
+    "test_web_parity": {
+      "named_tests": 17,
+      "passed": 17,
+      "skip_reason": "DemoWalkthrough requires WEB_UI_DEMO=1 (opt-in; run separately, see demo receipt)",
+      "skipped_opt_in": 1,
+      "wall_seconds": 189.4
+    },
+    "test_web_stack": {
+      "failed": 1,
+      "failed_id": "S6",
+      "failure_cause": "pre-existing at baseline 736f406: docs/agent-notes/sprints/20261006-s2/web_stack-handoff.json line 6 records an absolute host path for the web_stack worktree; file unchanged since baseline and not owned by this lane; S6 not weakened; root request filed",
+      "failure_class": "baseline_defect_outside_lane",
+      "passed": 32,
+      "ran": 33
+    }
+  },
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "spec": "docs/spec/sprints/WEB_UI_S2.md",
+  "sprint": "20261006-s2",
+  "toolchain_env": "FFMPEG/FFPROBE = qualified nix ffmpeg-headless 8.1.2 (env; not on PATH)",
+  "tracker": "TIN-5615"
+}
