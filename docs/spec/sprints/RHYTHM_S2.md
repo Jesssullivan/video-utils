@@ -382,3 +382,66 @@ Fixture definitions (all generated in tests; no media files):
   0.5 strength cap.
 - The arrangement's 404 clicks and phrase lengths are intent, never a forced
   detection count. First-five-second setup sounds are not treated as pure noise.
+
+## 10. Phase-2 implementation amendments (before the evaluation commit)
+
+§3.1 allows implementation details to change until the evaluation commit. These
+changes were made on dev fixtures only. No sealed seed (§7) was run, and no
+seed211/seed307 parameters were rendered, before the eval receipt.
+
+1. **Tracker selection.** The nearest-peak tracker locked onto dense noise
+   peaks in 2 of 20 dev-namespace probes (`rhythm-s2-drift-devprobe`, which is
+   not a sealed namespace). In those probes, every anchor produced a full-count
+   track, so the noise track won the tie. The frozen tracker works as follows:
+   - Within ±12 % of the local period, it picks the peak with the largest
+     `strength × exp(−½·(dt / (0.03·local period))²)`.
+   - A beat is a miss when that support is below 10 % of the median accepted
+     strength.
+   - Anchors (the 24 strongest high-frequency peaks plus the middle constant-grid
+     event) are ranked by summed accepted strength.
+   - The local period is the least-squares slope of the last 8 accepted events,
+     bounded to [0.7, 1.3]× the seed period.
+
+   After this change, the dev probe passed 20/20 and D2 passed 9/9.
+2. **Divisor selection.** Choose the fastest divisor in {1, 2, 3} that meets
+   all of the following:
+   - retained coverage (after outlier rejection) ≥ 0.7
+   - divided period ≥ 0.25 s
+   - when the seed-level fit also qualifies, rms ≤ max(1.25×, +1.5 ms) of that fit
+
+   Every attempt is published in `divisor_attempts`.
+3. **Probe count field rename.** §3.2 named `missed_count`, but §4's token
+   scan forbids `missed`. The field is now `undetected_count`. It counts
+   synthetic calibration probes with no detector peak in the window, not notes.
+4. **Additive drift fields.** The drift object also carries:
+   - `model_parameters`: anchor t0, IOI intercept P0, r and the retained beat
+     range, which phrase timing uses to predict clicks.
+   - `tracked_events`: the beat index, time, retained flag and residual of each
+     tracked event.
+   - `divisor_attempts`, `high_frequency_peak_count`, `selection_rule`,
+     `drift_ppm_units` and `click_identity: "unverified"`.
+   - `attempted_fit_residual_ms_rms` when the status is
+     `fit_residual_exceeds_bound`.
+5. **Per-event delay fields.** Each event also carries `delay_compensation`:
+   `synthetic_probe_median_subtracted`, `uncalibrated_path` (librosa kinds) or
+   `calibration_probe_detection_insufficient`.
+6. **Phrase input rules.**
+   - Arrangement markers are used only when they have a positive numeric span
+     and a non-boundary name. Exclusions are counted.
+   - The observed-click set is the `periodic_high_frequency_candidate` events
+     plus the drift `tracked_events`.
+   - Each phrase records `click_reference_extrapolated` and `tendency_basis`.
+7. **A/B layout.**
+   - Each arm is its own 48 kHz render per seed: 44 clicks, with attacks on
+     clicks 2, 4, …, 40 (isolated: +P/2; coincident: +Δ cycling
+     {−5, 0, +2, +5, +10} ms).
+   - White noise is 0.001.
+   - Notes and articulation come from per-attack knobs.
+   - An additive `attack_proximal_clicks` split (clicks within 60 ms of an
+     attack onset) reports decisions on the overlapped clicks separately from
+     the all-click denominator.
+8. **Known dependency (§8).** In this worktree, `test_phrase_proposal_s1` and
+   `test_phrase_localization_pilot` now fail 6 errors and 1 failure with
+   `pinned_dependency_changed:scripts/rhythm.py`. A further failure,
+   `test_owned_exited_leader_live_inert_child_cleanup`, also fails at base
+   commit 2d9eaa5 in this sandbox and is unrelated.

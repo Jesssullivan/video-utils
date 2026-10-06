@@ -1,0 +1,362 @@
+{
+  "schema_version": 1,
+  "lane": "rhythm_clicks",
+  "sprint": "20261006-s2",
+  "linear": "TIN-5602",
+  "parent_linear": "TIN-5599",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N11/R-N12/R-N13)",
+  "date": "2026-10-06",
+  "branch": "sprint/20261006-s2/rhythm_clicks",
+  "contract": "docs/spec/sprints/RHYTHM_S2.md",
+  "contract_freeze_commit": "2d9eaa5ae85ab8eff7000bdc7dbe044596c91b79",
+  "kind": "implementation_receipt_dev_fixtures_only",
+  "deliverables": {
+    "scripts/rhythm.py": "additive click_grid_drift (top level and click_grid.drift), onset_detector_delay_calibration (cached synthetic probes through the analyze() paths), per-event delay_compensated_source_timeline_seconds; source_timeline_seconds unchanged",
+    "scripts/clicks.py": "no-template path passes through click_grid_drift and onset_detector_delay_calibration; attenuation logic unchanged",
+    "scripts/click_attack_ab.py": "new experimental helper (not a catalog tool)",
+    "scripts/phrase_timing.py": "new experimental helper (not a catalog tool)"
+  },
+  "dev_results": {
+    "claim_class": "M-syn (generated fixtures against generator truth)",
+    "D1_constant_grid": {
+      "denominator": 3,
+      "passed": 3,
+      "rows": [
+        {
+          "bpm": 90,
+          "seconds": 14,
+          "status": "fitted",
+          "drift_ppm": -1.122042274761484e-05,
+          "r": -7.47994181890472e-12,
+          "pulse_divisor": 1,
+          "residual_ms_rms": 1.3483997249262725,
+          "confidence_label": "no_material_drift_evidence"
+        },
+        {
+          "bpm": 178,
+          "seconds": 14,
+          "status": "fitted",
+          "drift_ppm": 6.719861049161596,
+          "r": 2.2651167133849342e-06,
+          "pulse_divisor": 2,
+          "residual_ms_rms": 1.441234539803321,
+          "confidence_label": "no_material_drift_evidence"
+        },
+        {
+          "bpm": 88.8,
+          "seconds": 60,
+          "status": "fitted",
+          "drift_ppm": -0.2677718879899256,
+          "r": -1.8092559388475058e-07,
+          "pulse_divisor": 1,
+          "residual_ms_rms": 1.4400452191856952,
+          "confidence_label": "no_material_drift_evidence"
+        }
+      ]
+    },
+    "D2_dev_drift_grid": {
+      "denominator": 9,
+      "within_10_percent": 9,
+      "max_abs_relative_error": 0.045,
+      "rows": [
+        {
+          "drift_fraction": 0.04,
+          "bpm": 150,
+          "pulse_divisor": 1,
+          "drift_ppm": 4048.9,
+          "truth_drift_ppm": 3921.7,
+          "relative_error": 0.032,
+          "residual_ms_rms": 1.13,
+          "constant_period_residual_ms_rms": 14.43,
+          "retained_event_count": 24,
+          "generated_click_count": 24,
+          "confidence_label": "strong_drift_evidence"
+        },
+        {
+          "drift_fraction": 0.04,
+          "bpm": 185,
+          "pulse_divisor": 1,
+          "drift_ppm": 4095.8,
+          "truth_drift_ppm": 3920.1,
+          "relative_error": 0.045,
+          "residual_ms_rms": 1.48,
+          "constant_period_residual_ms_rms": 15.06,
+          "retained_event_count": 30,
+          "generated_click_count": 30,
+          "confidence_label": "strong_drift_evidence"
+        },
+        {
+          "drift_fraction": 0.04,
+          "bpm": 220,
+          "pulse_divisor": 1,
+          "drift_ppm": 3917.5,
+          "truth_drift_ppm": 3921.1,
+          "relative_error": -0.001,
+          "residual_ms_rms": 1.37,
+          "constant_period_residual_ms_rms": 13.87,
+          "retained_event_count": 35,
+          "generated_click_count": 35,
+          "confidence_label": "strong_drift_evidence"
+        },
+        {
+          "drift_fraction": 0.08,
+          "bpm": 150,
+          "pulse_divisor": 1,
+          "drift_ppm": 7702.8,
+          "truth_drift_ppm": 7687.7,
+          "relative_error": 0.002,
+          "residual_ms_rms": 1.24,
+          "constant_period_residual_ms_rms": 28.44,
+          "retained_event_count": 24,
+          "generated_click_count": 24,
+          "confidence_label": "strong_drift_evidence"
+        },
+        {
+          "drift_fraction": 0.08,
+          "bpm": 185,
+          "pulse_divisor": 1,
+          "drift_ppm": 7869.4,
+          "truth_drift_ppm": 7691.4,
+          "relative_error": 0.023,
+          "residual_ms_rms": 1.41,
+          "constant_period_residual_ms_rms": 27.94,
+          "retained_event_count": 29,
+          "generated_click_count": 29,
+          "confidence_label": "strong_drift_evidence"
+        },
+        {
+          "drift_fraction": 0.08,
+          "bpm": 220,
+          "pulse_divisor": 1,
+          "drift_ppm": 7709.1,
+          "truth_drift_ppm": 7685.2,
+          "relative_error": 0.003,
+          "residual_ms_rms": 1.41,
+          "constant_period_residual_ms_rms": 28.26,
+          "retained_event_count": 35,
+          "generated_click_count": 35,
+          "confidence_label": "strong_drift_evidence"
+        },
+        {
+          "drift_fraction": 0.12,
+          "bpm": 150,
+          "pulse_divisor": 1,
+          "drift_ppm": 11512.5,
+          "truth_drift_ppm": 11327.5,
+          "relative_error": 0.016,
+          "residual_ms_rms": 0.97,
+          "constant_period_residual_ms_rms": 40.32,
+          "retained_event_count": 23,
+          "generated_click_count": 23,
+          "confidence_label": "strong_drift_evidence"
+        },
+        {
+          "drift_fraction": 0.12,
+          "bpm": 185,
+          "pulse_divisor": 1,
+          "drift_ppm": 11294.7,
+          "truth_drift_ppm": 11307.3,
+          "relative_error": -0.001,
+          "residual_ms_rms": 1.27,
+          "constant_period_residual_ms_rms": 41.6,
+          "retained_event_count": 29,
+          "generated_click_count": 29,
+          "confidence_label": "strong_drift_evidence"
+        },
+        {
+          "drift_fraction": 0.12,
+          "bpm": 220,
+          "pulse_divisor": 1,
+          "drift_ppm": 11339.8,
+          "truth_drift_ppm": 11312.8,
+          "relative_error": 0.002,
+          "residual_ms_rms": 1.4,
+          "constant_period_residual_ms_rms": 40.64,
+          "retained_event_count": 34,
+          "generated_click_count": 34,
+          "confidence_label": "strong_drift_evidence"
+        }
+      ]
+    },
+    "D2_extra_dev_probe": {
+      "namespace": "rhythm-s2-drift-devprobe (not sealed)",
+      "denominator": 20,
+      "within_10_percent_before_tracker_change": 18,
+      "within_10_percent_after_tracker_change": 20,
+      "note": "motivated the strength-weighted tracker (spec section 10.1)"
+    },
+    "D4_abstention": {
+      "denominator": 2,
+      "passed": 2,
+      "cases": [
+        "5-click 90 BPM with declared seed -> insufficient_events",
+        "3 s silence -> no_periodic_seed"
+      ],
+      "source": "tests/test_rhythm.py DriftModelTests.test_d4"
+    },
+    "C1_delay_calibration": {
+      "paths": 2,
+      "probes": 3,
+      "probes_per_cell": 16,
+      "deterministic_across_calls": true,
+      "all_cells_detected_16_of_16": true,
+      "results_ms": {
+        "high_frequency_novelty": {
+          "unit_impulse": {
+            "median_ms": 0.1562499999999689,
+            "q1_ms": -1.0156249999999645,
+            "q3_ms": 1.3281249999999856,
+            "min_ms": -2.187499999999787,
+            "max_ms": 2.500000000000002,
+            "detected": 16,
+            "undetected": 0
+          },
+          "click_3500hz_exp": {
+            "median_ms": 0.1562499999999689,
+            "q1_ms": -1.0156249999999645,
+            "q3_ms": 1.3281249999999856,
+            "min_ms": -2.187499999999787,
+            "max_ms": 2.500000000000002,
+            "detected": 16,
+            "undetected": 0
+          },
+          "distorted_c1_attack": {
+            "median_ms": 1.0937500000000044,
+            "q1_ms": -0.07812500000003997,
+            "q3_ms": 2.2656249999999654,
+            "min_ms": -1.2499999999997513,
+            "max_ms": 13.437500000000213,
+            "detected": 16,
+            "undetected": 0
+          }
+        },
+        "broadband_rms_novelty": {
+          "unit_impulse": {
+            "median_ms": 0.1562499999999689,
+            "q1_ms": -1.0156249999999645,
+            "q3_ms": 1.3281249999999856,
+            "min_ms": -2.187499999999787,
+            "max_ms": 2.500000000000002,
+            "detected": 16,
+            "undetected": 0
+          },
+          "click_3500hz_exp": {
+            "median_ms": 0.1562499999999689,
+            "q1_ms": -1.0156249999999645,
+            "q3_ms": 1.3281249999999856,
+            "min_ms": -2.187499999999787,
+            "max_ms": 2.500000000000002,
+            "detected": 16,
+            "undetected": 0
+          },
+          "distorted_c1_attack": {
+            "median_ms": 2.343749999999978,
+            "q1_ms": 1.171874999999989,
+            "q3_ms": 3.515625000000022,
+            "min_ms": 0.0,
+            "max_ms": 4.6874999999997335,
+            "detected": 16,
+            "undetected": 0
+          }
+        }
+      },
+      "compensation_values_ms": {
+        "periodic_high_frequency_candidate": 0.1562499999999689,
+        "broadband_attack_candidate": 2.343749999999978
+      },
+      "interpretation": "detector frame/novelty delay on synthetic probes; not physical A/V offset"
+    },
+    "C2_timestamp_invariance": {
+      "fixtures": 5,
+      "events": 340,
+      "matched": "5/5 digests of all pre-change event fields (computed at 2d9eaa5 before any edit)"
+    },
+    "C3_independent_compensation": {
+      "event_count": 21,
+      "median_abs_error_ms_compensated": 0.9687499999997407,
+      "median_abs_error_ms_raw": 0.8125000000003268,
+      "acceptance": "<= 2.5 ms",
+      "note": "raw error is already within half a hop on this fixture; compensation moves the median by +0.16 ms (HF probe median)"
+    },
+    "P1_phrase_timing_dev": {
+      "arms": [
+        "on_time",
+        "rushing",
+        "dragging"
+      ],
+      "phrases_per_arm": 4,
+      "acceptance": "per-arm median |est-truth| <= 5 ms (compensated)",
+      "result": "pass in tests/test_phrase_timing.py; prototype over 2 dev seeds x 3 arms: max per-phrase compensated error 6.2 ms, all per-arm medians <= 3.2 ms"
+    },
+    "P3_abstention": {
+      "cases": [
+        "3 click-proximal onsets -> fewer_than_4_click_proximal_onsets",
+        "no grid -> no_click_grid (2/2)",
+        "span beyond analysis -> span_outside_analysis"
+      ],
+      "passed": "3/3 case types"
+    },
+    "A_dev": {
+      "seeds": [
+        1,
+        2,
+        3
+      ],
+      "namespace": "rhythm-s2-click-ab-dev",
+      "isolated": {
+        "generated_click_count": 132,
+        "attenuated": 101,
+        "abstained": 31,
+        "analyze_only": 0,
+        "unmatched": 0,
+        "windows_over_0_5_db": "0/60"
+      },
+      "coincident": {
+        "generated_click_count": 132,
+        "attenuated": 40,
+        "abstained": 89,
+        "analyze_only": 0,
+        "unmatched": 3,
+        "windows_over_0_5_db": "0/60"
+      },
+      "frequency_preservation_seed1": {
+        "32_hz_complex_bin_relative_delta": 0.0,
+        "28_80_hz_max_complex_bin_relative_delta": "<2e-8"
+      },
+      "note": "run before the attack_proximal_clicks split was added; numbers are all-click denominators"
+    }
+  },
+  "tests": {
+    "commands": [
+      "PYTHONPATH=tests python3 -m unittest test_rhythm -v",
+      "PYTHONPATH=tests python3 -m unittest test_phrase_timing -v",
+      "PYTHONPATH=tests /Users/jess/git/video-utils/.venv/bin/python -m unittest test_clicks test_click_attack_ab -v",
+      "PYTHONPATH=tests python3 -m unittest test_demo test_dag test_clicks"
+    ],
+    "results": {
+      "test_rhythm": "29 run, OK, 2 skipped (librosa optional; sealed D3)",
+      "test_phrase_timing": "10 run, OK, 1 skipped (sealed P2)",
+      "test_clicks+test_click_attack_ab (.venv)": "18 run, OK, 1 skipped (sealed A/B)",
+      "test_demo+test_dag+test_clicks (stdlib)": "66 run, OK, 12 skipped (numpy-gated)"
+    },
+    "known_dependency_failures": {
+      "modules": [
+        "test_phrase_proposal_s1",
+        "test_phrase_localization_pilot"
+      ],
+      "new_errors": 6,
+      "new_failures": 1,
+      "cause": "pinned_dependency_changed:scripts/rhythm.py (S1 hash pin 264b723c...; contract section 8)",
+      "preexisting_unrelated": "test_owned_exited_leader_live_inert_child_cleanup fails at base 2d9eaa5 in this sandbox (process-group probe)"
+    }
+  },
+  "unknowns": {
+    "click_identity": "unverified",
+    "physical_capture_latency": "uncalibrated",
+    "listening_ab": "not_performed",
+    "performance_grading": "not_performed",
+    "expected_rhythm_reference": null,
+    "onset_detector_delay_compensated": false
+  },
+  "host_note": "host load average ~346 during runs; wall time far exceeded CPU time"
+}
