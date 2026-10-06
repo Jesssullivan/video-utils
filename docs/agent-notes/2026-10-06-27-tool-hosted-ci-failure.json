@@ -1,0 +1,110 @@
+{
+  "authority": "Operator implementation / R-HOOK-CONVERGENCE-20261004 R-N13",
+  "observed_at": "2026-10-06T02:10:49.676679+00:00",
+  "source_commit": "eaa824f61e86faef798d8de4de056f05813b2178",
+  "signature_verified": true,
+  "private_repository_verified": true,
+  "ci": {
+    "conclusion": "failure",
+    "headSha": "eaa824f61e86faef798d8de4de056f05813b2178",
+    "jobs": [
+      {
+        "completedAt": "2026-10-06T02:09:06Z",
+        "conclusion": "failure",
+        "databaseId": 112072815118,
+        "name": "offline",
+        "startedAt": "2026-10-06T02:07:14Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-06T02:07:15Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-06T02:07:14Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T02:07:17Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "number": 2,
+            "startedAt": "2026-10-06T02:07:15Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T02:07:22Z",
+            "conclusion": "success",
+            "name": "Run cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7",
+            "number": 3,
+            "startedAt": "2026-10-06T02:07:17Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T02:09:05Z",
+            "conclusion": "failure",
+            "name": "Python and synthetic media checks",
+            "number": 4,
+            "startedAt": "2026-10-06T02:07:22Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T02:09:05Z",
+            "conclusion": "skipped",
+            "name": "Rust checks on the supported hosted builder",
+            "number": 5,
+            "startedAt": "2026-10-06T02:09:05Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T02:09:05Z",
+            "conclusion": "skipped",
+            "name": "Secret scan",
+            "number": 6,
+            "startedAt": "2026-10-06T02:09:05Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T02:09:05Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "number": 12,
+            "startedAt": "2026-10-06T02:09:05Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T02:09:05Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 13,
+            "startedAt": "2026-10-06T02:09:05Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37402577907/job/112072815118"
+      }
+    ],
+    "status": "completed",
+    "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37402577907"
+  },
+  "test_summary": {
+    "discovered": 597,
+    "errors": 6,
+    "skips": 35,
+    "passed": 556,
+    "seconds": 61.197
+  },
+  "root_cause": "Six numeric OracleTests in test_low_register_fixtures omitted optional NumPy/SciPy preflight; minimal Nix CI intentionally has no numeric extras",
+  "qualified_local_summary": {
+    "discovered": 597,
+    "passed": 596,
+    "skips": 1,
+    "seconds": 570.424
+  },
+  "rust_and_secret_steps": "skipped downstream of Python failure",
+  "repair_owner": "/root/clip_baseline",
+  "repair_scope": "numeric-class dependency qualification only; no worker/default/dependency-install changes",
+  "failed_log_sha256": "ad7737ef6d791fb8b87e7754edd5918bc33583a53272bf818d81c9faa22a7c78",
+  "goal_status": "active",
+  "listening_accepted": false
+}

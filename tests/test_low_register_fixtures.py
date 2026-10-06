@@ -10,6 +10,8 @@ from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('low_register_fixture_test',ROOT/'scripts'/'low_register_fixtures.py')
 bank=importlib.util.module_from_spec(spec);spec.loader.exec_module(bank)
+NUMERIC_AVAILABLE=all(importlib.util.find_spec(name) is not None
+                      for name in ('numpy','scipy'))
 
 
 class MetadataTests(unittest.TestCase):
@@ -53,6 +55,7 @@ class MetadataTests(unittest.TestCase):
             self.assertEqual(json.loads(path.read_text()),{'value':1})
 
 
+@unittest.skipUnless(NUMERIC_AVAILABLE,'Optional NumPy/SciPy fixture-oracle environment required')
 class OracleTests(unittest.TestCase):
     def setUp(self):
         self.np,self.wavfile,_=bank.numeric()
