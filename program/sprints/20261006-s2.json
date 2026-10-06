@@ -1,0 +1,418 @@
+{
+  "sprint": "20261006-s2",
+  "start_utc": "2026-10-06T08:35:05+00:00",
+  "target_core_end_utc": "2026-10-09T23:59:59+00:00",
+  "target_extension_end_utc": "2026-10-11T23:59:59+00:00",
+  "target_closeout_utc": "2026-10-12T23:59:59+00:00",
+  "root_role": "administrator/integrator; root-only signed merges, pushes, hosted CI verification, Linear and publication; Claude session video-utils-d6",
+  "baseline": "4b87484d725007feca6f3a19d2c967c4ca56f513",
+  "product_source_baseline": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
+  "authority": "operator prompt 2026-10-06 (docs/agent-notes/2026-10-06-s2-resume.md); R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13",
+  "operator_decisions": {
+    "scope": "core D1-D7 + practice-loop CORE tickets + feasible extension + WEB 35h branch",
+    "d1": "minimum credible Rust move with explicit FFmpeg-orchestration deviation",
+    "profiles": "FULLER becomes default with required reviewed per-take capture interval",
+    "operator_commitments": [
+      "mark 10+ phrase boundaries/issues in local review UI this week",
+      "second take by 2026-10-09 (V1)",
+      "approve root-drafted V6 privacy wording",
+      "one bounded nix develop .#report fetch"
+    ]
+  },
+  "model_routing": "Opus 5.5 for contract/implement/test/audit phases; Haiku for mechanical handoff; fable root synthesis only (mythos-delegation)",
+  "capacity": "neo 6 cores/8 GB: <=4 agents per workflow, two workflows concurrently, <=2 heavy numeric jobs; honey for optional Beat This CPU runs; nothing placed on sting",
+  "goal_control": "operator_resume_2026-10-06; Codex goal row untouched (paused, Codex-owned)",
+  "linear_parent": {
+    "id": "TIN-5599",
+    "uuid": "8defe92c-0dc3-4447-b284-a71a928f25c9",
+    "url": "https://linear.app/tinyland/issue/TIN-5599/s2-operator-takeover-sprint-core-completion-extension-and-web-branch"
+  },
+  "lanes": [
+    {
+      "id": "fuller_profile",
+      "workflow": "A",
+      "wave": 1,
+      "title": "Commit FULLER as reproducible default profile with required capture interval; marked-compact recipe",
+      "branch": "sprint/20261006-s2/fuller_profile",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/fuller_profile",
+      "owned_files": "profiles/fuller.json; scripts/marked_compact.py; tests/test_fuller_profile.py; tests/test_marked_compact.py; docs/spec/sprints/FULLER_S2.md",
+      "completion_metric": "`just demo INPUT --profile fuller --capture-interval A B` reproduces the accepted chain on a fixture and refuses without a reviewed interval; accepted run 20261006T041633Z-990aa1bd6737 and Desktop 34247a4e… unchanged; root flips default in media.py/tool_api.py from the lane's exact diff",
+      "heavy_numeric": false,
+      "related_issues": [
+        "TIN-5487"
+      ],
+      "state": "created",
+      "linear": {
+        "id": "TIN-5600",
+        "uuid": "55989ddf-4476-44c6-adb5-b2a6a877b78e",
+        "url": "https://linear.app/tinyland/issue/TIN-5600/s2-fuller-profile-commit-fuller-as-reproducible-default-profile-with",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-A/fuller_profile"
+    },
+    {
+      "id": "tone_ab",
+      "workflow": "A",
+      "wave": 1,
+      "title": "Stage-attributed low-end/thin-balance matched A/B with one reversible low-shelf arm",
+      "branch": "sprint/20261006-s2/tone_ab",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/tone_ab",
+      "owned_files": "scripts/tone_ab.py; tests/test_tone_ab.py; docs/spec/sprints/TONE_S2.md; .agents/skills/guitar-tone-ab/SKILL.md (draft)",
+      "completion_metric": "tone-ab.json with per-stage hashes, match_lu_delta <= 0.3, band energies 20-45..2k-8k, attack metrics; operator_preference null; room_response_recovered false; tool descriptor + skill handed to root",
+      "heavy_numeric": true,
+      "related_issues": [
+        "TIN-5487"
+      ],
+      "state": "created",
+      "linear": {
+        "id": "TIN-5601",
+        "uuid": "a8fc0379-9d0c-4617-991b-c6d8b640c845",
+        "url": "https://linear.app/tinyland/issue/TIN-5601/s2-tone-ab-stage-attributed-low-endthin-balance-matched-ab-03-lu-with",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-A/tone_ab"
+    },
+    {
+      "id": "rhythm_clicks",
+      "workflow": "A",
+      "wave": 1,
+      "title": "Click-grid drift model, detector delay on synthetic impulses, attack-preservation A/B, per-phrase onset offset vs in-recording click",
+      "branch": "sprint/20261006-s2/rhythm_clicks",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/rhythm_clicks",
+      "owned_files": "scripts/rhythm.py; scripts/clicks.py; scripts/click_attack_ab.py; scripts/phrase_timing.py; tests/test_rhythm.py; tests/test_clicks.py; tests/test_click_attack_ab.py; tests/test_phrase_timing.py; docs/spec/sprints/RHYTHM_S2.md",
+      "completion_metric": "drift within 10% on 4-12% holdout drift and ~0 on constant grid; per-phrase offset within 5 ms on known-offset fixtures with abstention; additive JSON only; click_identity unverified; physical_capture_latency uncalibrated",
+      "heavy_numeric": false,
+      "related_issues": [
+        "TIN-5488",
+        "TIN-5489"
+      ],
+      "state": "created",
+      "linear": {
+        "id": "TIN-5602",
+        "uuid": "6eac79a3-07c6-4aac-8253-715162fe27c6",
+        "url": "https://linear.app/tinyland/issue/TIN-5602/s2-rhythm-clicks-click-grid-drift-model-detector-delay-attack",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-A/rhythm_clicks"
+    },
+    {
+      "id": "phrase_anchor_riff",
+      "workflow": "A",
+      "wave": 1,
+      "title": "Anchor-click arrangement phrase spans on the real take; preregistered continuous-riff benchmark; V2 holdout receipt",
+      "branch": "sprint/20261006-s2/phrase_anchor_riff",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/phrase_anchor_riff",
+      "owned_files": "scripts/phrase_anchor.py; scripts/phrase_riff_s2.py; tests/test_phrase_anchor.py; tests/test_phrase_riff_s2.py; docs/spec/sprints/PHRASES_S2.md; docs/agent-notes/peers/xoruby/V2-holdout-bank-receipt.json",
+      "completion_metric": "anchor spans with per-join confidence; benchmark preregistered and sealed before truth; pair IoU .5/.75 and endpoints 20/50/100 ms; real_take_phrase_correctness unknown until operator marks >=10 boundaries; no default adoption",
+      "heavy_numeric": true,
+      "related_issues": [
+        "TIN-5490"
+      ],
+      "state": "created",
+      "linear": {
+        "id": "TIN-5603",
+        "uuid": "f1b708a3-c2a0-4ced-833e-be3788d48268",
+        "url": "https://linear.app/tinyland/issue/TIN-5603/s2-phrase-anchor-riff-anchor-click-arrangement-phrase-spans-on-the",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-A/phrase_anchor_riff"
+    },
+    {
+      "id": "annot_corpus",
+      "workflow": "B",
+      "wave": 1,
+      "title": "Annotation marker projection, coverage-first corpus evaluator, flags triage, V3/V5 peer docs",
+      "branch": "sprint/20261006-s2/annot_corpus",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/annot_corpus",
+      "owned_files": "scripts/annotation_markers.py; scripts/corpus_eval_s2.py; scripts/flags_triage.py; tests/test_annotation_markers.py; tests/test_corpus_eval_s2.py; tests/test_flags_triage.py; docs/spec/ANNOTATION_V2_VOCABULARY.md; docs/spec/sprints/ANNOT_CORPUS_S2.md; docs/agent-notes/peers/xoruby/V3-corpus-split-receipt.json; docs/agent-notes/peers/xoruby/V5-vocabulary-mapping.md",
+      "completion_metric": "real-take default view <= ~30 items from 171 with navigation proxies hidden; evaluator returns null P/R with reason when uncovered; no automatic negatives",
+      "heavy_numeric": false,
+      "related_issues": [
+        "TIN-5489",
+        "TIN-5548"
+      ],
+      "state": "created",
+      "linear": {
+        "id": "TIN-5604",
+        "uuid": "ab71d45c-fbb4-4f69-8a4f-a2f83ac32f82",
+        "url": "https://linear.app/tinyland/issue/TIN-5604/s2-annot-corpus-annotation-marker-projection-coverage-first-corpus",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-B/annot_corpus"
+    },
+    {
+      "id": "cap_ids",
+      "workflow": "B",
+      "wave": 1,
+      "title": "Capability metadata pilot and hash-derived artifact-ID projection",
+      "branch": "sprint/20261006-s2/cap_ids",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/cap_ids",
+      "owned_files": "program/capabilities.json; scripts/capabilities.py; scripts/artifact_ids.py; tests/test_capabilities.py; tests/test_artifact_ids.py; docs/spec/CAPABILITIES.md",
+      "completion_metric": "traversal capability->worker->skill->test passes for 8 tools; artifact ids confined to artifacts/runs, stale on changed input, not_a_job_service true, au_realtime_available false",
+      "heavy_numeric": false,
+      "related_issues": [
+        "TIN-5493",
+        "TIN-5549"
+      ],
+      "state": "created",
+      "linear": {
+        "id": "TIN-5605",
+        "uuid": "4f2cb3e2-6a90-4957-b663-061a4fad0ea2",
+        "url": "https://linear.app/tinyland/issue/TIN-5605/s2-cap-ids-capability-metadata-pilot-and-hash-derived-artifact-id",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-B/cap_ids"
+    },
+    {
+      "id": "editor_export",
+      "workflow": "B",
+      "wave": 1,
+      "title": "FCPXML 1.10 and Resolve marker export with NDF/DF timecode property tests",
+      "branch": "sprint/20261006-s2/editor_export",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/editor_export",
+      "owned_files": "scripts/timecode.py; scripts/editor_marker_export.py; tests/test_timecode.py; tests/test_editor_marker_export.py; docs/spec/EDITOR_MARKER_EXPORT.md; .agents/skills/editor-marker-export/SKILL.md (draft)",
+      "completion_metric": "sidecar with quantization error and collisions; DF only at 29.97/59.94/119.88; real take stays calibration_required; application_import not_performed",
+      "heavy_numeric": false,
+      "related_issues": [
+        "TIN-5494",
+        "TIN-5492"
+      ],
+      "state": "created",
+      "linear": {
+        "id": "TIN-5606",
+        "uuid": "ba17e97b-522c-47d2-93b1-3c17d593f66e",
+        "url": "https://linear.app/tinyland/issue/TIN-5606/s2-editor-export-fcpxml-110-and-resolve-marker-export-with-ndfdf",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-B/editor_export"
+    },
+    {
+      "id": "rust_core",
+      "workflow": "B",
+      "wave": 1,
+      "title": "Minimum credible Rust move: streaming SHA-256, typed RunRecord verify-run, allocation-free biquad/gain DSP",
+      "branch": "sprint/20261006-s2/rust_core",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/rust_core",
+      "owned_files": "Cargo.toml; Cargo.lock; src/lib.rs; src/main.rs; src/hash.rs; src/run_record.rs; src/dsp.rs; tests/cli.rs; tests/dsp.rs; native/au-spike/Cargo.toml; native/au-spike/Cargo.lock; docs/spec/sprints/RUST_CORE_S2.md",
+      "completion_metric": "hash matches sha256sum on Unicode/space paths; verify-run passes on an S1 run dir and fails typed on tamper; biquad impulse vs closed form 1e-6 and 32.703 Hz tone within 0.05 dB with 300 Hz band; cargo test --locked green; D1 acceptance map with ffmpeg_orchestration_owner python",
+      "heavy_numeric": false,
+      "related_issues": [
+        "TIN-5486"
+      ],
+      "state": "created",
+      "linear": {
+        "id": "TIN-5607",
+        "uuid": "5e52a296-c636-4885-a6d5-ea4c30517b92",
+        "url": "https://linear.app/tinyland/issue/TIN-5607/s2-rust-core-minimum-credible-rust-move-streaming-sha-256-typed",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-B/rust_core"
+    },
+    {
+      "id": "lowreg_spec_v4",
+      "workflow": "B",
+      "wave": 1,
+      "title": "Low-register spectrogram render spec with golden JSON for the xoruby peer (V4)",
+      "branch": "sprint/20261006-s2/lowreg_spec_v4",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/lowreg_spec_v4",
+      "owned_files": "docs/spec/LOW_REGISTER_SPECTROGRAM_SPEC.md; program/spectrogram-lowreg-v1.json; scripts/lowreg_spectrogram.py; tests/test_lowreg_spectrogram.py; tests/fixtures/lowreg-golden-v1.json; docs/agent-notes/peers/xoruby/V4-render-spec.md",
+      "completion_metric": "golden regenerates within 1e-9 from a deterministic 32.7 Hz fixture; pitch_resolution_claim none",
+      "heavy_numeric": false,
+      "related_issues": [
+        "TIN-5546"
+      ],
+      "state": "created",
+      "linear": {
+        "id": "TIN-5608",
+        "uuid": "46996312-5178-4014-87d7-5ac26ff98e94",
+        "url": "https://linear.app/tinyland/issue/TIN-5608/s2-lowreg-spec-v4-low-register-spectrogram-render-spec-with-golden",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-B/lowreg_spec_v4"
+    },
+    {
+      "id": "robustness",
+      "workflow": "C",
+      "wave": 2,
+      "title": "run_demo --resume and synthetic phone/Photo Booth fixtures through the full pipeline",
+      "branch": "sprint/20261006-s2/robustness",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/robustness",
+      "owned_files": "scripts/run_demo.py; tests/test_demo.py; tests/support/phone_fixtures.py; tests/test_phone_fixtures.py; docs/spec/sprints/ROBUSTNESS_S2.md",
+      "completion_metric": "killed-worker resume passes; each fixture passes packet comparison and rebase; memory ceiling documented unknown",
+      "heavy_numeric": true,
+      "related_issues": [
+        "TIN-5492"
+      ],
+      "state": "queued_wave2",
+      "linear": {
+        "id": "TIN-5609",
+        "uuid": "f25b6d04-f865-42bb-9fe7-6592d06b80df",
+        "url": "https://linear.app/tinyland/issue/TIN-5609/s2-robustness-run-demo-resume-and-synthetic-phonephoto-booth-fixtures",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-C/robustness"
+    },
+    {
+      "id": "ui_core",
+      "workflow": "C",
+      "wave": 2,
+      "title": "Practice UI: stage identities, matched A/B pair, coverage strip, triaged flags, 390px walkthrough",
+      "branch": "sprint/20261006-s2/ui_core",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/ui_core",
+      "owned_files": "review/*; tests/test_review_ui_s2.py; docs/spec/sprints/REVIEW_UI_S2.md; review_server.py route diff for root",
+      "completion_metric": "walkthrough receipt at 375/390 px and 200% zoom; S1 readback/conflict proofs reused",
+      "heavy_numeric": false,
+      "related_issues": [
+        "TIN-5547"
+      ],
+      "state": "queued_wave2",
+      "linear": {
+        "id": "TIN-5610",
+        "uuid": "167e3c0c-a95f-416d-a91b-b18e7ef2d83f",
+        "url": "https://linear.app/tinyland/issue/TIN-5610/s2-ui-core-practice-ui-stage-identities-matched-ab-pair-coverage-strip",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-C/ui_core"
+    },
+    {
+      "id": "report_d6",
+      "workflow": "C",
+      "wave": 2,
+      "title": "Quarto bundle and one bounded render attempt via nix .#report; HTML fallback preserved",
+      "branch": "sprint/20261006-s2/report_d6",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/report_d6",
+      "owned_files": "reports/*; scripts/report_bundle.py; tests/test_report_bundle.py; docs/spec/sprints/REPORT_S2.md; docs/spec/examples/listening-review.json",
+      "completion_metric": "HTML hash + quarto/R versions in receipt, or render_blocked_on_host recorded",
+      "heavy_numeric": true,
+      "related_issues": [
+        "TIN-5491"
+      ],
+      "state": "queued_wave2",
+      "linear": {
+        "id": "TIN-5611",
+        "uuid": "10886f0a-489d-4c4f-bcf2-189cd58797fb",
+        "url": "https://linear.app/tinyland/issue/TIN-5611/s2-report-d6-quarto-bundle-and-one-bounded-render-attempt-via-nix",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-C/report_d6"
+    },
+    {
+      "id": "au_auval",
+      "workflow": "C",
+      "wave": 2,
+      "title": "AU auval discovery step and out-of-process render harness; installation remains out of scope",
+      "branch": "sprint/20261006-s2/au_auval",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/au_auval",
+      "owned_files": "native/au-spike/src/lib.rs; native/au-spike/include/*.h; native/au-spike/tests/abi_harness.c; native/au-spike/check.py; native/au-spike/host/*; docs/spec/AU_AUVAL_STEP.md",
+      "completion_metric": "au-spike-check and au-package-check green; stage_2_discovery blocked_not_installed unless operator installs; logic_host_acceptance not_performed",
+      "heavy_numeric": false,
+      "related_issues": [
+        "TIN-5492"
+      ],
+      "state": "queued_wave2",
+      "linear": {
+        "id": "TIN-5612",
+        "uuid": "71f7925a-8b66-4939-b903-0f9f658e7bbb",
+        "url": "https://linear.app/tinyland/issue/TIN-5612/s2-au-auval-au-auval-discovery-step-and-out-of-process-render-harness",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-C/au_auval"
+    },
+    {
+      "id": "web_stack",
+      "workflow": "D",
+      "wave": 2,
+      "title": "SvelteKit + Effect v4 + Skeleton v5 fixture and control-layer justification",
+      "branch": "sprint/20261006-s2/web_stack",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/web_stack",
+      "owned_files": "web/ (new tree); docs/spec/sprints/WEB_STACK_S2.md",
+      "completion_metric": "fixture builds offline from lock; decision note",
+      "heavy_numeric": false,
+      "related_issues": [
+        "TIN-5551"
+      ],
+      "state": "queued_wave2",
+      "linear": {
+        "id": "TIN-5613",
+        "uuid": "067f7412-8642-4758-9be5-1bfa1b94ad5f",
+        "url": "https://linear.app/tinyland/issue/TIN-5613/s2-web-stack-sveltekit-effect-v4-skeleton-v5-fixture-and-control-layer",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-D/web_stack"
+    },
+    {
+      "id": "web_jobs",
+      "workflow": "D",
+      "wave": 2,
+      "title": "Bounded durable local job service over artifact IDs",
+      "branch": "sprint/20261006-s2/web_jobs",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/web_jobs",
+      "owned_files": "web/server/* or scripts/web_jobs.py; tests/test_web_jobs.py; docs/spec/sprints/WEB_JOBS_S2.md",
+      "completion_metric": "rejected input and interrupted/replayed job proofs; earlier artifacts retained; no host daemon",
+      "heavy_numeric": false,
+      "related_issues": [
+        "TIN-5550"
+      ],
+      "state": "queued_wave2",
+      "linear": {
+        "id": "TIN-5614",
+        "uuid": "120026ca-a448-42e0-8074-ce68405d431b",
+        "url": "https://linear.app/tinyland/issue/TIN-5614/s2-web-jobs-bounded-durable-local-job-service-over-artifact-ids-admit",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-D/web_jobs"
+    },
+    {
+      "id": "web_ui_binding",
+      "workflow": "D",
+      "wave": 2,
+      "title": "Upload->process->compare->annotate->iterate->download binding with CLI/MCP parity tests",
+      "branch": "sprint/20261006-s2/web_ui_binding",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/web_ui_binding",
+      "owned_files": "web/src/*; tests/test_web_parity.py; docs/spec/sprints/WEB_UI_S2.md",
+      "completion_metric": "walkthrough recording receipt; parity green",
+      "heavy_numeric": false,
+      "related_issues": [
+        "TIN-5547",
+        "TIN-5550"
+      ],
+      "state": "queued_wave2",
+      "linear": {
+        "id": "TIN-5615",
+        "uuid": "d4e4e902-1773-4044-be09-523b1b732b1a",
+        "url": "https://linear.app/tinyland/issue/TIN-5615/s2-web-ui-binding-uploadprocesscompareannotateiteratedownload-binding",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-D/web_ui_binding"
+    },
+    {
+      "id": "web_reliability",
+      "workflow": "D",
+      "wave": 2,
+      "title": "WEB integration demo with rejected input, interrupted/replayed job and no duplicate publish",
+      "branch": "sprint/20261006-s2/web_reliability",
+      "worktree": "/Users/jess/git/video-utils/.local/sprint2/web_reliability",
+      "owned_files": "tests/test_web_reliability.py; docs/spec/sprints/WEB_RELIABILITY_S2.md",
+      "completion_metric": "WEB demo per MILESTONES.md executed locally; failure injections run with denominator; no hosted rollout claim",
+      "heavy_numeric": false,
+      "related_issues": [
+        "TIN-5550",
+        "TIN-5551"
+      ],
+      "state": "queued_wave2",
+      "linear": {
+        "id": "TIN-5616",
+        "uuid": "1b110c54-0fac-48f6-8578-0a3ac19d18b9",
+        "url": "https://linear.app/tinyland/issue/TIN-5616/s2-web-reliability-web-integration-demo-with-rejected-input",
+        "verified_state": "Todo"
+      },
+      "agent": "workflow-D/web_reliability"
+    }
+  ],
+  "protected": {
+    "accepted_audio_run": "artifacts/runs/20261006T041633Z-990aa1bd6737",
+    "desktop_export_sha256": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10",
+    "s1_worktrees": "preserve all six .local/sprint1/*; review_ui intentionally dirty"
+  },
+  "state": "wave1_launching"
+}
