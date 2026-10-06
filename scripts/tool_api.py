@@ -406,9 +406,38 @@ def arrangement_reference_paths(args):
     return str(reference),str(directory),str(output)
 
 
+def share_export_paths(args):
+    """Sharing candidates are fresh local MP4s; never normalize away symlinks."""
+    from capture_profile import safe_path, CaptureError
+    try:
+        source = Path(args['source']).expanduser()
+        source = safe_path(source if source.is_absolute() else ROOT / source)
+        if source.stat().st_size > 3 * 1024**3:
+            raise ToolError('share export source exceeds3GiB')
+        output = Path(args['output']).expanduser()
+        if not output.is_absolute(): output = ROOT / output
+        parent = safe_path(output.parent, directory=True)
+        output = parent / output.name
+        receipt = output.with_name(output.name + '.receipt.json')
+        if output.suffix.lower() != '.mp4':
+            raise ToolError('share export output must name a fresh MP4')
+        if output.exists() or output.is_symlink() or receipt.exists() or receipt.is_symlink():
+            raise ToolError('share export output and adjacent receipt must both be fresh')
+    except (CaptureError, OSError, ValueError, RuntimeError) as error:
+        raise ToolError('share export requires bounded regular local source and fresh output: ' + str(error)) from error
+    return str(source), str(output)
+
+
 
 def validate_tool_arguments(name, args):
     """Cross-field rules that are known before a worker or file read starts."""
+    if name == 'share_export':
+        if args.get('height', 720) % 2:
+            raise ValidationError('share export height must be even')
+        for field in ('source', 'output'):
+            value = args[field]
+            if ('\x00' in value or ':' in value or '\\' in value or '..' in value.split('/')):
+                raise ValidationError('share export paths must be exact local paths without traversal/NUL/URL')
     if name == 'apply_capture_profile':
         digest = args['receipt_sha256']
         if any(character not in '0123456789abcdef' for character in digest):
@@ -496,6 +525,14 @@ def worker_command(name, args):
         interpreter = os.environ.get('VIDEO_UTILS_ANALYSIS_PYTHON', interpreter)
     head = [interpreter]
     source = local_path(args['input'], must_exist=True) if 'input' in args and name != 'capture_profile' else None
+    if name == 'share_export':
+        original, output = share_export_paths(args)
+        command = head + [str(ROOT / 'scripts/share_export.py'), original, output]
+        for field, default in (('height', 720), ('crf', 27), ('audio_kbps', 96),
+                               ('codec', 'h264'), ('timeout_seconds', 900)):
+            command += ['--' + field.replace('_', '-'), str(args.get(field, default))]
+        # The worker derives D-10 internally. Pass public D once, unchanged.
+        return command + ['--tool-envelope']
     if name == 'capture_profile':
         original, directory, review = capture_profile_paths(args)
         command = head + [str(ROOT / 'scripts/capture_profile.py'), original, '--run-dir', directory, '--review', review]
@@ -710,6 +747,89 @@ def run_worker(command, timeout, error_json_tool=None):
         return result
 
 
+def classify_share_export_result(result, arguments):
+    """Transport success does not turn a sharing-domain failure into success."""
+    try:
+        size = len(json.dumps(result, allow_nan=False, separators=(',', ':')).encode('utf-8'))
+    except (TypeError, ValueError, OverflowError, RecursionError) as error:
+        raise ToolError('share export result must be bounded finite JSON') from error
+    if size > 16 * 1024:
+        raise ToolError('share export result exceeds16KiB; inspect explicit output/receipt')
+    def digest(value):
+        return isinstance(value, str) and len(value) == 64 and all(c in '0123456789abcdef' for c in value)
+    requested = Path(arguments['output']).expanduser()
+    if not requested.is_absolute(): requested = ROOT / requested
+    requested = str(requested.resolve())
+    status = result.get('status')
+    failures = {'rejected', 'failed_no_export_published',
+                'exported_unreviewed_reporting_interrupted', 'publication_outcome_unknown'}
+    if not isinstance(status, str) or status not in failures | {'exported_unreviewed'}:
+        raise ToolError('share export worker returned an unknown domain status')
+    if status in failures:
+        allowed = {'status', 'error', 'code', 'output', 'possible_output', 'staging_dir',
+                   'failure_receipt_path', 'failure_receipt_sha256', 'stage_progress',
+                   'master_adopted', 'listening_accepted', 'diagnostic_fields_omitted'}
+        if (set(result) - allowed or not isinstance(result.get('error'), str)
+                or len(result['error']) > 1000 or not isinstance(result.get('code'), str)
+                or len(result['code']) > 128):
+            raise ToolError('share export worker returned malformed domain failure')
+        if status != 'rejected':
+            omitted = result.get('diagnostic_fields_omitted', [])
+            if (not isinstance(omitted, list) or len(omitted) > 4 or any(not isinstance(field, str) for field in omitted)
+                    or len(omitted) != len(set(omitted)) or set(omitted) - {'stage_progress', 'output.receipt_path', 'possible_output.receipt_path', 'staging_dir'}):
+                raise ToolError('share export diagnostic omission fields are malformed')
+            required = allowed - {'status', 'error', 'code', 'diagnostic_fields_omitted'}
+            if 'staging_dir' in omitted: required.remove('staging_dir')
+            if not required <= set(result) or result['master_adopted'] is not False or result['listening_accepted'] is not False:
+                raise ToolError('share export failure lacks bounded recovery or acceptance state')
+            if (('staging_dir' in result and (not isinstance(result['staging_dir'], str) or len(result['staging_dir']) > 4096))
+                    or not isinstance(result['stage_progress'], list) or len(result['stage_progress']) > 128):
+                raise ToolError('share export failure has malformed recovery selectors')
+            if 'stage_progress' in omitted and result['stage_progress'] != []:
+                raise ToolError('share export omitted progress must remain explicitly empty')
+            path, pinned = result['failure_receipt_path'], result['failure_receipt_sha256']
+            if not ((path is None and pinned is None) or
+                    (isinstance(path, str) and 1 <= len(path) <= 4096 and digest(pinned))):
+                raise ToolError('share export failure receipt selector/hash is malformed')
+            for field in ('output', 'possible_output'):
+                recovery = result[field]
+                if recovery is None: continue
+                projected = field + '.receipt_path' in omitted
+                receipt_key = 'receipt_name' if projected else 'receipt_path'
+                expected = Path(requested + '.receipt.json').name if projected else requested + '.receipt.json'
+                if (not isinstance(recovery, dict) or set(recovery) != {'path', 'sha256', 'bytes', receipt_key, 'receipt_sha256'}
+                        or recovery['path'] != requested or recovery[receipt_key] != expected
+                        or not digest(recovery['sha256']) or not digest(recovery['receipt_sha256'])
+                        or type(recovery['bytes']) is not int or not 0 < recovery['bytes'] <= 3 * 1024**3):
+                    raise ToolError('share export candidate recovery is malformed or differs from request')
+            if ((status == 'failed_no_export_published' and (result['output'] is not None or result['possible_output'] is not None))
+                    or (status == 'exported_unreviewed_reporting_interrupted' and (not isinstance(result['output'], dict) or result['possible_output'] is not None))
+                    or (status == 'publication_outcome_unknown' and (result['output'] is not None or not isinstance(result['possible_output'], dict)))):
+                raise ToolError('share export failure publication state is inconsistent')
+        raise ToolError('share export ' + status + ': ' + result['error'],
+                        receipt={'share_export': result})
+    if result.get('master_adopted') is not False or result.get('listening_accepted') is not False:
+        raise ToolError('sharing export cannot adopt or accept a master')
+    for field in ('source', 'output'):
+        value = result.get(field)
+        if not isinstance(value, dict): raise ToolError('share export lacks source/output provenance')
+        pinned = value.get('sha256')
+        if not digest(pinned):
+            raise ToolError('share export provenance SHA256 is malformed')
+        if type(value.get('bytes')) is not int or not 0 < value['bytes'] <= 3 * 1024**3:
+            raise ToolError('share export provenance byte extent is malformed')
+    original = Path(arguments['source']).expanduser()
+    if not original.is_absolute(): original = ROOT / original
+    if result['source'].get('path') != str(original.resolve()):
+        raise ToolError('share export source selector differs from explicit request')
+    output = result['output']
+    if not digest(output.get('receipt_sha256')):
+        raise ToolError('share export lacks pinned output receipt')
+    if output.get('path') != requested or output.get('receipt_path') != requested + '.receipt.json':
+        raise ToolError('share export output selectors differ from explicit request')
+    return result
+
+
 def execute(name, arguments):
     info = descriptor(name)
     validate(arguments, info['inputSchema'])
@@ -730,6 +850,8 @@ def execute(name, arguments):
             raise ToolError(message, receipt=receipt) from error
     elif name == 'capture_profile':
         result = run_worker(worker_command(name, arguments), timeout, error_json_tool=name)
+    elif name == 'share_export':
+        result = classify_share_export_result(run_worker(worker_command(name, arguments), timeout), arguments)
     else:
         result = run_worker(worker_command(name, arguments), timeout)
     return {'schema_version': 1, 'tool': name, 'status': 'completed',

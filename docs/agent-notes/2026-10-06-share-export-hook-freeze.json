@@ -1,0 +1,40 @@
+{
+  "tool_count": 30,
+  "first29_descriptors_sha256": "5e92c39ff92759bf4f9c191d0b0d10e8494eff926a63415d8a60f3a8aee52b07",
+  "generic_runner_sha256": "acd72926a70c33cc92bd056f055fb83f348ad2e7c9a3576e7bfcd6d20e9bd3af",
+  "files": {
+    "program/tools.json": "db8dc65d3fd6ed0926a062c4bf20056a45d187d21613398ee9281cf8aafac2dd",
+    "scripts/tool_api.py": "5fd3e1971e6fb470ad70165f0538c5b107c025a7cdd7afb33faafd22923f8e3d",
+    "scripts/share_export.py": "6894315f90cb8cbfb5ecd1cf219ac0d70f65a5da45fc0282fc1e63d2d5175d8c",
+    "tests/test_share_export_tool.py": "6a53d18ab48ff83cfa501a7e5b439e4891bb07fcb4b4691419080ddcbb138f3f",
+    "tests/test_tool_contracts.py": "7853fddbce74a27c77059b71ccb43c90eedf66e923e0b0b95bc33757c6dd3ca3",
+    "tests/test_arrangement_reference_tool.py": "a5918deab98c6b8dfb780bb2efe83719beee9f364dd3092a9b56033ad1ec2a88"
+  },
+  "hook_tests": {
+    "count": 8,
+    "seconds": 5.309,
+    "status": "passed"
+  },
+  "compatibility_tests": {
+    "count": 2,
+    "seconds": 0.467,
+    "status": "passed"
+  },
+  "worker_tests": {
+    "count": 42,
+    "seconds": 13.665,
+    "status": "passed",
+    "owner": "/root/rhythm_analysis",
+    "scope": "owner28 and independent14; not an actual-take sharing export"
+  },
+  "skill_proof": {
+    "status": "all30_bundle_validations_links_and_exact_initialized_prompts_passed",
+    "owner": "/root/tool_skills",
+    "tool_calls": 0,
+    "stderr": "",
+    "interpreter": "Python3.14.6/file-backed I/O",
+    "skill_sha256": "01930c8aeb4227e6dde2d310fc17dcf4e3b1544916a56b78b5a2113956005ae1",
+    "aggregate_sha256": "44a2500cf7aad1e88702087563a065559c5a63141d82e035031f310f7e05ad60",
+    "receipt": "docs/agent-notes/2026-10-06-share-export-skill-validation.json"
+  }
+}

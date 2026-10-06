@@ -1,0 +1,27 @@
+{
+  "authority": "ExplicitoptimizedDesktopexport; root no newencode unlessfailure condition now met",
+  "automatic_retry_previous_invocation": false,
+  "differences": [
+    "Newfreshstage",
+    "x265medium to fast"
+  ],
+  "new_controller": "docs/agent-notes/2026-10-06-desktop-mvp-export-fast.py",
+  "new_controller_sha256": "8c38dd642bfd8517d83f251110ab29f45918355338d5a266a9f76fa541c3e5c3",
+  "previous_controller": "docs/agent-notes/2026-10-06-desktop-mvp-export.py",
+  "previous_controller_sha256": "b3016eec0169c2393c068c9ee99ea09c572ac9771885ff48c7f4910813c5d479",
+  "previous_failure": "artifacts/experiments/desktop-mvp-20261006T0447/failure.json",
+  "previous_failure_sha256": "be74be6be225d9cddbfe915c24d9243e49d08353cd8b2be672f22a78c2a17137",
+  "schema_version": 1,
+  "status": "source_ready_faster_derivative_after_retained_encode_timeout",
+  "unchanged": [
+    "CRF26",
+    "1080x720",
+    "hvc1/yuv420p",
+    "AACcopy",
+    "originalPTS/VFR",
+    "500encode600wholebudget",
+    "twoencodeframes/nopool",
+    "allverificationgates",
+    "nonoverwritingDesktoppublication"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "operation": "read-only typed classifier validation of actual CLI success, no worker rerun",
+  "outcome": "artifacts/experiments/share-export-tool30-20261006T0518/outcome.json",
+  "sha256": "415ca5852fd48ebfd4911f369c0c99df75e0142aaeee4a3c3e97faffd6303316",
+  "status": "exported_unreviewed",
+  "passed": true,
+  "classifier_source_sha256": "5fd3e1971e6fb470ad70165f0538c5b107c025a7cdd7afb33faafd22923f8e3d"
+}

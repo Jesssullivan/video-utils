@@ -20,6 +20,10 @@ report run_dir:
 export run_dir:
     python3 scripts/media.py export {{quote(run_dir)}}
 
+# Smaller sharing copy: preserve aspect/timing, compress AAC, retain the master.
+export-share input output height="720" audio_kbps="96" codec="h264" crf="27" timeout="900":
+    python3 scripts/share_export.py {{quote(input)}} {{quote(output)}} --height {{quote(height)}} --audio-kbps {{quote(audio_kbps)}} --codec {{quote(codec)}} --crf {{quote(crf)}} --timeout-seconds {{quote(timeout)}}
+
 # Meaningful synthetic media/rhythm/tooling cases; no compilation required.
 test:
     python3 -m unittest discover -s tests -p 'test_*.py' -v

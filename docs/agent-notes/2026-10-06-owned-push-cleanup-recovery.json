@@ -1,0 +1,11 @@
+{
+  "actor": "/root",
+  "target": 37993,
+  "ownership": "Descendant of root exec82493 git push37928; pre-push37955 cleanup trap",
+  "reason": "Own advisory temporary-file cleanup remains live in wrapper with no child/progress for over two minutes",
+  "ruling": "R-N11 owned recorded process after live inspection; R-N12 advisory diagnostics",
+  "prior_state": "37993 37955 37928 /nix/store/j0hldai2k6ch691p6dlh4v75c1ym73mq-bash-5.3p9/bin/bash /nix/store/bcsz4kna2kwa841s2szfrnl9b78lvjmk-tinyland-home-root-guard/bin/tinyland-home-root-guard rm -f /var/folders/z6/7m3zpx6j3x982j_fzwg1lppw0000gn/T/tmp.1UtAMag6tv",
+  "action": "SIGTERM only to own stalled cleanup child; no other sessions or host configuration touched",
+  "time_utc": "2026-10-06T04:51:53.652659+00:00",
+  "result": "Owned cleanup child terminated; git push completed exit0 publishing118a921; only the recorded owned refs temporary file removed with Python unlink after metadata check."
+}

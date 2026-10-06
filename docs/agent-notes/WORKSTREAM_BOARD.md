@@ -1,6 +1,6 @@
 # video-utils parallel work board
 
-As-of ownership checkpoint: **2026-10-06 04:44:24 UTC / October 6, 12:44:24 a.m. EDT**.
+As-of ownership checkpoint: **2026-10-06 05:28 UTC / October 6, 1:28 a.m. EDT**.
 Root's goal began 20:49:34 UTC and remains **active**, with planned end
 **2026-10-06 06:49:34 UTC / 2:49:34 a.m. EDT**. Objective/status does not enforce
 this wall-clock horizon. Root owns integration, factual Linear writes and signed
@@ -16,7 +16,29 @@ Checkpoints: [2026-10-05-goal-checkpoints.md](2026-10-05-goal-checkpoints.md).
 Tracker IDs: [linear.json](../../program/linear.json).
 Active goal: [TIN-5495](https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal).
 
-## Current closeout checkpoint
+## Current sharing-export checkpoint — October 6, 05:28 UTC
+
+Goal remains active to the original 06:49:34 UTC horizon; no reset. The operator
+accepted the final compact marked movie and the requested Desktop derivative is
+delivered: **21,596,491 bytes**, 1080×720 H.264, AAC96, 85.99% smaller. SHA256
+`34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10`.
+The accepted full quality source and previous compressed version are retained.
+New compressed audio has no separate operator listening acceptance.
+
+Published signed/private source `118a9216777ac237ffa78f0c886c376291cc6a84`
+passed hosted CI37415723885: 855 tests, 811 passed/44 optional skips, seven Rust
+checks and secret scan. New user-requested `just export-share` and typed tool30
+are locally implemented. Worker42, hook8 and all30 exact MCP skill prompt checks
+passed, with independent review clear. Root combined regressions/publication are
+active; implementation, skill and audit owners are complete. Final media export
+succeeded; there is no active encoding worker.
+
+D0 TIN-5485 is Done after operator QA; TIN-5495 remains In Progress for source30
+closeout. All future TIN-5546 scope/dependency/milestone readbacks are verified,
+including conditional WEB dependencies. Future work remains queued/Backlog.
+See `docs/agent-notes/2026-10-06-final-handoff.md` from the repository root.
+
+## Historical closeout checkpoint
 
 Goal remains **active**, with 2h05m10s remaining at this clock and no reset of
 the 06:49:34 UTC horizon or definition of done. Only root closeout and documentation
@@ -266,3 +288,11 @@ and comments and synchronized program/linear.json to 45a1313/20/291/197. Root al
 updated cached CI metadata/comments to the completed SUCCESS readback.
 Publication/CI do not complete listening/native/editor states
 or the goal. Planned end remains **2026-10-06 06:49:34 UTC**.
+
+### Root source30 integration — 05:29 UTC
+
+All **140 affected regression tests passed** in 92.016 seconds, no skips or
+failures. Frozen worker/API/catalog/test hashes remain unchanged. Actual CLI
+output also passes the typed result classifier without repeating an export.
+See `docs/agent-notes/2026-10-06-tools30-affected-regression.json` from repo root.
+Signed source30 publication and hosted checks are the remaining release work.

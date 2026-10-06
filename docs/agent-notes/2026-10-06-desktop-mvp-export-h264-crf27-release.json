@@ -1,0 +1,25 @@
+{
+  "AAC": "copy",
+  "CRF": 27,
+  "actor": "/root/media_latency",
+  "authority": "RootexplicitTHIRDencodereleaseH264veryfastCRF27aftertwoHEVCdeadlinefailures; operatorDesktopexport",
+  "codec": "libx264",
+  "controller": "docs/agent-notes/2026-10-06-desktop-mvp-export-h264-crf27.py",
+  "controller_sha256": "5bb6abd7cf517a8d4b7bc0eb749bba9456c27b5c78d303e88135d9b211108f01",
+  "created_utc": "2026-10-06T05:11:18.879176+00:00",
+  "dimensions": [
+    1080,
+    720
+  ],
+  "encode_timeout_seconds": 500,
+  "fourth_encode_authorized": false,
+  "preset": "veryfast",
+  "prior_medium_failure_sha256": "be74be6be225d9cddbfe915c24d9243e49d08353cd8b2be672f22a78c2a17137",
+  "prior_veryfast_failure_sha256": "eaf1c8615d39dc03ac647318182b9ee2edd4793357233f7b9c33929e209d6695",
+  "schema_version": 1,
+  "stage": "artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513",
+  "status": "source_frozen_authorized_execution",
+  "threads": 2,
+  "unexecuted_h264_crf25_sha256": "8462ef4adbd03f1391359fc82eea0b2ab01e91d971d81cbdfccd8b0489a699c7",
+  "whole_timeout_seconds": 600
+}

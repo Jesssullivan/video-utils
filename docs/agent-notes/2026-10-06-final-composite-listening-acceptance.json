@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "authority": "Explicit operator QuickTime QA in the active conversation; repository AGENTS.md; R-N13",
+  "operator_quote": "great!  that canidate QA is great.  please export a highly optimized / file size efficient version to desktop labeled video_util_mvp_demo_1 ]",
+  "candidate": {
+    "path": "artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov",
+    "sha256": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2"
+  },
+  "operator_candidate_qa_accepted": true,
+  "scope": "Operator acceptance of the final compact marked video and approved FULLER audio, after opening that exact candidate in QuickTime. Does not validate automatic musical mistake classification or native editor import.",
+  "requested_derivative": "/Users/jess/Desktop/video_util_mvp_demo_1.mp4",
+  "derivative_acceptance": "Technical export verification required separately; candidate approval does not imply review of a not-yet-rendered derivative.",
+  "accidental_repaste": {
+    "operator_clarification": "accudental repaste of earlier prompt",
+    "effect": "No new future-design scope or withdrawal of the just-approved candidate. A newly reattached read-only UI audit was cancelled without edits."
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "conclusion": "success",
+  "headSha": "118a9216777ac237ffa78f0c886c376291cc6a84",
+  "jobs": [
+    {
+      "completedAt": "2026-10-06T04:55:45Z",
+      "conclusion": "success",
+      "databaseId": 112113789878,
+      "name": "offline",
+      "startedAt": "2026-10-06T04:52:02Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-06T04:52:04Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-06T04:52:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-06T04:52:07Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "number": 2,
+          "startedAt": "2026-10-06T04:52:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-06T04:52:12Z",
+          "conclusion": "success",
+          "name": "Run cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7",
+          "number": 3,
+          "startedAt": "2026-10-06T04:52:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-06T04:55:31Z",
+          "conclusion": "success",
+          "name": "Python and synthetic media checks",
+          "number": 4,
+          "startedAt": "2026-10-06T04:52:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-06T04:55:36Z",
+          "conclusion": "success",
+          "name": "Rust checks on the supported hosted builder",
+          "number": 5,
+          "startedAt": "2026-10-06T04:55:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-06T04:55:43Z",
+          "conclusion": "success",
+          "name": "Secret scan",
+          "number": 6,
+          "startedAt": "2026-10-06T04:55:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-06T04:55:43Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "number": 12,
+          "startedAt": "2026-10-06T04:55:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-06T04:55:43Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 13,
+          "startedAt": "2026-10-06T04:55:43Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37415723885/job/112113789878"
+    }
+  ],
+  "status": "completed",
+  "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37415723885",
+  "log_sha256": "46f63256d4c4391be8da50c115e311679ef718890b90f888516ef9ba00ae06d8",
+  "log_path": "artifacts/qualification/20261006-29-tools/hosted-ci-37415723885.log",
+  "summary_lines": [
+    "offline\tPython and synthetic media checks\t2026-10-06T04:55:31.6340759Z Ran 855 tests in 154.161s",
+    "offline\tPython and synthetic media checks\t2026-10-06T04:55:31.6341272Z OK (skipped=44)",
+    "offline\tRust checks on the supported hosted builder\t2026-10-06T04:55:36.1580719Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "offline\tRust checks on the supported hosted builder\t2026-10-06T04:55:36.1591555Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "offline\tRust checks on the supported hosted builder\t2026-10-06T04:55:36.1669970Z test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+    "offline\tRust checks on the supported hosted builder\t2026-10-06T04:55:36.1955114Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "offline\tSecret scan\t2026-10-06T04:55:43.5583055Z ^[[90m4:55AM^[[0m ^[[32mINF^[[0m ^[[1mno leaks found^[[0m"
+  ]
+}

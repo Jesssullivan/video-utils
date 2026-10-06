@@ -1,0 +1,18 @@
+{
+  "actor": "/root",
+  "authority": "User optimizedDesktop+justexport recipe requests; R-N13",
+  "worker_sha256": "6894315f90cb8cbfb5ecd1cf219ac0d70f65a5da45fc0282fc1e63d2d5175d8c",
+  "source": "/Users/jess/git/video-utils/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/video_util_mvp_demo_1.mp4",
+  "source_sha256": "0774fd4ad6116d7770f05b3a3a3ef988bbc837cca56c48f5c10df3810f45c3e5",
+  "output": "/Users/jess/git/video-utils/artifacts/experiments/share-export-tool30-20261006T0518/video_util_mvp_demo_1.mp4",
+  "arguments": {
+    "height": 720,
+    "audio_kbps": 96,
+    "codec": "copy",
+    "crf": 27,
+    "timeout_seconds": 180
+  },
+  "observed_at": "2026-10-06T05:18:52.624607+00:00",
+  "recipe": "just export-share",
+  "intended_scope": "Actual recipe copy-picture/compress-AAC verification; no new picture encoding or master adoption. Desktop publication only after output checks and exact owned-old Desktop hash guard."
+}

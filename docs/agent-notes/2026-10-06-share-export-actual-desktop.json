@@ -1,0 +1,82 @@
+{
+  "actor": "/root",
+  "authority": "Operator optimizedDesktop+compressed-audio sharing recipe requests; R-N13",
+  "observed_at": "2026-10-06T05:22:54.239567+00:00",
+  "status": "desktop_sharing_export_verified",
+  "desktop": {
+    "path": "/Users/jess/Desktop/video_util_mvp_demo_1.mp4",
+    "sha256": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10",
+    "bytes": 21596491
+  },
+  "previous_owned_desktop_sha256": "0774fd4ad6116d7770f05b3a3a3ef988bbc837cca56c48f5c10df3810f45c3e5",
+  "previous_version_retained_at": "/Users/jess/git/video-utils/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/video_util_mvp_demo_1.mp4",
+  "recipe_outcome": "artifacts/experiments/share-export-tool30-20261006T0518/outcome.json",
+  "recipe_outcome_sha256": "415ca5852fd48ebfd4911f369c0c99df75e0142aaeee4a3c3e97faffd6303316",
+  "worker_receipt": "artifacts/experiments/share-export-tool30-20261006T0518/video_util_mvp_demo_1.mp4.receipt.json",
+  "worker_receipt_sha256": "b511263f48230226d3c2e9409f1663bd3f94ff9b32775db3dd52e2c3d0ce7d67",
+  "source_worker_sha256": "6894315f90cb8cbfb5ecd1cf219ac0d70f65a5da45fc0282fc1e63d2d5175d8c",
+  "settings": {
+    "attenuation_db_max": 3.0,
+    "audio_attempts_max": 2,
+    "audio_kbps": 96,
+    "cleanup_grace_seconds": 5,
+    "codec": "copy",
+    "crf": 27,
+    "height": 720,
+    "operation_seconds": 170,
+    "reporting_headroom_seconds": 5,
+    "target_true_peak_dbtp": -1.5,
+    "threads": 2,
+    "timeout_seconds": 180
+  },
+  "output_loudness": {
+    "integrated_lufs": -18.06,
+    "method": "ffmpeg_loudnorm_decoded_audio_measurement",
+    "silence": false,
+    "true_peak_dbtp": -1.81
+  },
+  "audio_proof": {
+    "audio_reencoded": true,
+    "channels": 1,
+    "exact_pcm_sample_identity": false,
+    "method": "decoded_audio_frame_timestamps_and_samples",
+    "output": {
+      "decoded_samples": 6658048,
+      "end_seconds": 150.97614512471657,
+      "frame_count": 6502,
+      "start_seconds": 0.0,
+      "time_base": "1/44100"
+    },
+    "priming_padding_allowance_seconds": 0.023242630385487528,
+    "sample_rate": 44100,
+    "source": {
+      "decoded_samples": 6658048,
+      "end_seconds": 150.97614512471657,
+      "frame_count": 6502,
+      "start_seconds": 0.0,
+      "time_base": "1/44100"
+    }
+  },
+  "video_proof": {
+    "copied_payload_verified": true,
+    "intermediate_packet_duration_delta_seconds": 0.0,
+    "intermediate_packet_duration_identity_required": true,
+    "maximum_pts_delta_rational": "0",
+    "maximum_pts_delta_seconds": 0.0,
+    "method": "sorted_packet_presentation_timestamps_rational",
+    "output_time_base": "1/19200",
+    "packet_count": 3621,
+    "physical_capture_sync_verified": false,
+    "source_end_seconds": 150.885,
+    "source_full_frame_decode_verified": false,
+    "source_start_seconds": 0.0,
+    "source_time_base": "1/19200",
+    "tail_extent_delta_rational": "0",
+    "tail_extent_delta_seconds": 0.0,
+    "tolerance_seconds": 5.208333333333334e-05
+  },
+  "reduction_from_accepted_154148244_byte_candidate": 0.8598979110005301,
+  "visual_scope": "Root inspected three H264-parent stills; exact copied video packet payload and clocks carry those images to finalAAC96 file. New audio compression has not had separate operator listening QA.",
+  "master_unchanged": true,
+  "desktop_replacement": "Only own previous derivative replaced after exact hash/inode/size/mtime checks; previous bytes remain in the protected stage."
+}

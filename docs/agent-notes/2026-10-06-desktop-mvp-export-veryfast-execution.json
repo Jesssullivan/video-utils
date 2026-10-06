@@ -1,0 +1,20 @@
+{
+  "actor": "/root/media_latency",
+  "authority": "Explicitroot successor release presetVERYFAST aftermediumtimeout underoperatorDesktop-exportrequest",
+  "automatic_third_encode": false,
+  "controller": "docs/agent-notes/2026-10-06-desktop-mvp-export-veryfast.py",
+  "controller_sha256": "094a6aa42f0a1bbd1a439f919090498f544b7b04cc19e03b6289ecb966823e70",
+  "created_utc": "2026-10-06T05:01:30.509675+00:00",
+  "encode_timeout_seconds": 500,
+  "exec_session_id": 51812,
+  "prepared_fast_controller_sha256": "8c38dd642bfd8517d83f251110ab29f45918355338d5a266a9f76fa541c3e5c3",
+  "prepared_fast_executed": false,
+  "preset": "veryfast",
+  "prior_failed_controller_sha256": "b3016eec0169c2393c068c9ee99ea09c572ac9771885ff48c7f4910813c5d479",
+  "prior_failure_sha256": "be74be6be225d9cddbfe915c24d9243e49d08353cd8b2be672f22a78c2a17137",
+  "schema_version": 1,
+  "stage": "artifacts/experiments/desktop-mvp-veryfast-20261006T0503",
+  "status": "owned_execution_started",
+  "threads": 2,
+  "timeout_seconds": 600
+}

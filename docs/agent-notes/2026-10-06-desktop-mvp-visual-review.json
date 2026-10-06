@@ -1,0 +1,24 @@
+{
+  "actor": "/root",
+  "observed_at": "2026-10-06T05:16:11.780562+00:00",
+  "desktop_sha256": "0774fd4ad6116d7770f05b3a3a3ef988bbc837cca56c48f5c10df3810f45c3e5",
+  "desktop_bytes": 23111818,
+  "samples": [
+    {
+      "path": "artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/widest-label.png",
+      "sha256": "594698e93f4e148750c83a72aec6133d3f408451a2fe1fd88269b2cb140cf677",
+      "observation": "Visible text fits inside the 1080x720 image and remains readable at inspected size; widest label retains pre-existing overlap with lower hand region."
+    },
+    {
+      "path": "artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/breakdown.png",
+      "sha256": "249150622de544ed92fb781d171eb2d9914724506cdbbc988cdcae894f1fcb48",
+      "observation": "Visible text fits inside the 1080x720 image and remains readable at inspected size; widest label retains pre-existing overlap with lower hand region."
+    },
+    {
+      "path": "artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/chorus.png",
+      "sha256": "e27679ce3c4319ecb8cf7d70edc3bdbef54f5c4240ebd40d1dba81f3701bb51b",
+      "observation": "Visible text fits inside the 1080x720 image and remains readable at inspected size; widest label retains pre-existing overlap with lower hand region."
+    }
+  ],
+  "scope": "Three compressed-video stills viewed by root; not continuous playback, a new listening pass, or phone-width legibility proof."
+}

@@ -20,7 +20,29 @@ The authoritative project scope and following week's allocations are in
 The current lane board is
 [WORKSTREAM_BOARD.md](../agent-notes/WORKSTREAM_BOARD.md).
 
-## Current closeout checkpoint — October 6, 04:44:24 UTC
+## Current sharing-export checkpoint — October 6, 05:28 UTC
+
+Goal remains active to the original 06:49:34 UTC horizon; no reset. The operator
+accepted the final compact marked movie and the requested Desktop derivative is
+delivered: **21,596,491 bytes**, 1080×720 H.264, AAC96, 85.99% smaller. SHA256
+`34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10`.
+The accepted full quality source and previous compressed version are retained.
+New compressed audio has no separate operator listening acceptance.
+
+Published signed/private source `118a9216777ac237ffa78f0c886c376291cc6a84`
+passed hosted CI37415723885: 855 tests, 811 passed/44 optional skips, seven Rust
+checks and secret scan. New user-requested `just export-share` and typed tool30
+are locally implemented. Worker42, hook8 and all30 exact MCP skill prompt checks
+passed, with independent review clear. Root combined regressions/publication are
+active; implementation, skill and audit owners are complete. Final media export
+succeeded; there is no active encoding worker.
+
+D0 TIN-5485 is Done after operator QA; TIN-5495 remains In Progress for source30
+closeout. All future TIN-5546 scope/dependency/milestone readbacks are verified,
+including conditional WEB dependencies. Future work remains queued/Backlog.
+See `docs/agent-notes/2026-10-06-final-handoff.md` from the repository root.
+
+## Historical closeout checkpoint — October 6, 04:44:24 UTC
 
 The goal remains **active** to the original **06:49:34 UTC** horizon
 (2h05m10s remaining at this documentation clock). The original definition of
@@ -500,3 +522,11 @@ editor marker import and optional report-runtime acceptance remain separate.
 Authority: operator's October 5 implementation, fanout and ten-hour goal requests;
 repository `AGENTS.md`; R-HOOK-CONVERGENCE-20261004, TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`; R-N11/R-N12/R-N13.
+
+### Root source30 integration — 05:29 UTC
+
+All **140 affected regression tests passed** in 92.016 seconds, no skips or
+failures. Frozen worker/API/catalog/test hashes remain unchanged. Actual CLI
+output also passes the typed result classifier without repeating an export.
+See `docs/agent-notes/2026-10-06-tools30-affected-regression.json` from repo root.
+Signed source30 publication and hosted checks are the remaining release work.

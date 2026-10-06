@@ -2220,6 +2220,103 @@
         "acceptance": "Reference-conditioned review candidates are not detected-click counts, note/performance grades, listening acceptance or native editor import.",
         "max_comparison_candidates_default": 3
       }
+    },
+    {
+      "name": "share_export",
+      "title": "Export a compressed sharing video",
+      "description": "Create a fresh bounded MP4 sharing derivative with fixed H.264/HEVC or compatible video-copy controls and AAC audio. Preserve measured delivery clocks, hashes and recovery state without modifying or adopting the master.",
+      "intent": "Reduce delivery resolution and typical file size for sharing while retaining verified presentation timing and explicit lossy quality limits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local regular video/audio source<=3GiB and<=300s; typed route rejects original symlink/traversal components."
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Fresh local .mp4 in an existing nonsymlink directory; adjacent .mp4.receipt.json must also be fresh."
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 240,
+            "maximum": 1080,
+            "default": 720,
+            "description": "Even maximum output height; aspect ratio retained within integer rounding, never upscale. Copy requires native height already within this bound."
+          },
+          "crf": {
+            "type": "integer",
+            "minimum": 18,
+            "maximum": 32,
+            "default": 27,
+            "description": "Fixed encoder CRF; no guaranteed byte-size target. Inactive for video copy."
+          },
+          "audio_kbps": {
+            "type": "integer",
+            "minimum": 64,
+            "maximum": 192,
+            "default": 96,
+            "description": "Lossy AAC audio bitrate, preserving source rate/channels within admitted1..8 channel bounds."
+          },
+          "codec": {
+            "type": "string",
+            "enum": [
+              "hevc",
+              "h264",
+              "copy"
+            ],
+            "default": "h264",
+            "description": "H.264 is the locally qualified default; HEVC is explicit opt-in. Copy accepts existing H.264/HEVC only, with no resize."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 30,
+            "maximum": 900,
+            "default": 900,
+            "description": "Total outer budget passed unchanged; worker operation D-10, shared cleanup<=5s plus5s reporting headroom. No hard realtime or kernel containment guarantee."
+          }
+        },
+        "required": [
+          "source",
+          "output"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/media-share-export/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "lossy_sharing_derivative",
+      "limitations": [
+        "Source/native master stays intact. Lossy sharing video and AAC are not a preservation master, recovered stem, listening acceptance or automatic adoption.",
+        "H.264 veryfast/CRF27/720p/AAC96 default; HEVC can be slow locally. CRF does not guarantee file-size reduction or an exact byte limit. Square-pixel video without side data is required; copy accepts H.264/HEVC within requested height.",
+        "Checks rational packet presentation timing/extent, source before-after hash, delivery decode, rate/channels and AAC priming/padding allowance. Reencoding is not source decoded-frame or exact PCM identity, nor proof of physical capture sync.",
+        "At most one video encode and two audio attempts, up to3dB audio attenuation to meet measured -1.5dBTP. Native8..192kHz/1..8 channels and duration<=300s; generated qualification covers mono/stereo; source/output<=3GiB. Two threads, owned logs4MiB per stream, compact16KiB and receipt64KiB.",
+        "Known domain failures remain tool errors with bounded staging/recovery receipts, including possible/committed publication. Inspect exact receipts before retrying; missing sidecar alone does not prove absence.",
+        "Worker cleanup covers its recorded owned children under the inner deadline; generic outer group fallback does not establish containment of distinct child sessions or unknown publication after a wedged worker."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "export"
+        ],
+        "enforced": false,
+        "note": "Select an explicit existing video/master delivery file; no automatic render, latest selection or model acquisition."
+      },
+      "agent_workflow": {
+        "identify": "Pin explicit source identity, dimensions/codecs/native clocks and intended sharing needs; retain unknown listening state.",
+        "research": "Inspect codec compatibility, HEVC local runtime evidence, delivery AAC/peak/padding limits and source-versus-output proof boundaries.",
+        "iterate": "Export one fresh candidate using bounded fixed knobs, compare actual bytes and matched listening quality, and inspect recovery receipts before any retry.",
+        "acceptance": "Verified delivery structure is separate from listening, visual quality, native master preservation and adoption.",
+        "max_comparison_candidates_default": 3
+      }
     }
   ]
 }

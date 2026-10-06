@@ -110,6 +110,7 @@ overwrite the input.
 | `just analyze INPUT` | Estimate rhythm with uncertainty |
 | `just report RUN_DIR` | Build a report from an existing run |
 | `just export RUN_DIR` | Export delivery artifacts from an existing run |
+| `just export-share INPUT OUTPUT [HEIGHT] [AUDIO_KBPS] [CODEC] [CRF] [TIMEOUT]` | Make a smaller fixed-resolution sharing copy with compressed audio |
 | `just test` / `just check` | Run behavior tests / source checks |
 | `just model-prefetch MODEL` | Fetch only a registered, hash-qualified model |
 | `just mcp` / `just tool-info NAME` | Serve agent hooks / inspect the schema |
@@ -151,6 +152,28 @@ sample rate, channel count, and timeline retained. Its fixed denoising heuristic
 is an audition candidate, not a measured noise-only profile. The `bypass` and `mild6` profiles provide listening comparisons. Plain HTML reporting is
 available without Quarto; Quarto/R reports are optional.
 
+For a small sharing copy of an approved video:
+
+```bash
+just export-share approved.mov "$HOME/Desktop/share.mp4"
+```
+
+The default profile uses H.264, a maximum height of 720 pixels, CRF 27,
+the veryfast preset and 96 kbps AAC. It retains aspect ratio without upscaling,
+native audio sample rate/channels and variable video timing. MP4 faststart
+supports progressive playback. This is a lossy delivery derivative; the approved
+master remains available separately. Choose a fresh output filename.
+
+For HEVC, use `just export-share approved.mov share.mp4 720 96 hevc 26`.
+HEVC is optional: two bounded HEVC attempts on this take exceeded their encoder
+deadlines with the installed build; H.264 is the sharing default.
+For an already suitably sized MP4, `just export-share small.mp4 smaller.mp4 720 96 copy`
+copies its picture stream and compresses only the audio. Resolution, audio bitrate,
+codec, CRF and the overall timeout are explicit knobs. The operation records
+settings, hashes, byte reduction, timing and encoded-audio measurements; it does
+not promise a minimum size or substitute numerical checks for listening and
+overlay readability. See [sharing-export contract](docs/spec/SHARE_EXPORT.md).
+
 BPM and click detections are estimates. The operator states the metronome was
 approximately **178 BPM**; the fitted periodic grid supports approximately
 **177.6 BPM** at that interpretation. Automatic phrase/bar/breakdown discovery
@@ -170,7 +193,7 @@ spotify-basic-pitch-0.4.0-onnx`, then `just basic-pitch-runtime-setup /path/to/p
 and `just basic-pitch-runtime-check`. See [runtime qualification](docs/research/BASIC_PITCH_QUALIFICATION.md).
 
 The repository includes a versioned tool contract, a local MCP stdio server,
-and twenty-nine per-tool skills for researching and tuning restoration, analysis, comparison, and review.
+and thirty per-tool skills for researching and tuning restoration, analysis, comparison, and review.
 Inspect `just tool-info NAME` or launch
 `just mcp` from the repository root. Local invocation is
 separate from connecting an external agent client; see

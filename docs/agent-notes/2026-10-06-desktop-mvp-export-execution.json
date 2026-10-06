@@ -1,0 +1,16 @@
+{
+  "actor": "/root/media_latency",
+  "authority": "Operator accepted finalcompact and requested optimized Desktop export; root assigned directFFmpeg derivative",
+  "automatic_retry": false,
+  "created_utc": "2026-10-06T04:52:36.781408+00:00",
+  "exec_session_id": 3831,
+  "metadata_tests_passed": 4,
+  "metadata_tests_scope": "Pure frame gate accepts precise nativeclock and refuses count/PTS/finalextent shifts beyond mux tick; no media in tests",
+  "original_and_master_preserved": true,
+  "schema_version": 1,
+  "source_controller_sha256": "b3016eec0169c2393c068c9ee99ea09c572ac9771885ff48c7f4910813c5d479",
+  "start_selector": "artifacts/experiments/desktop-mvp-20261006T0447/start.json",
+  "status": "owned_execution_started",
+  "threads": 2,
+  "timeout_seconds": 600
+}

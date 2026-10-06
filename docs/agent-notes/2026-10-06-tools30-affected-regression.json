@@ -1,0 +1,22 @@
+{
+  "observed_at": "2026-10-06T05:28:58.095457+00:00",
+  "tests": 140,
+  "passed": 140,
+  "skipped": 0,
+  "failures": 0,
+  "errors": 0,
+  "seconds": 92.016,
+  "log": "artifacts/share-export-combined-regression.log",
+  "log_sha256": "db18607765a0a5437fe0fe53b20798f91e34064fdd7156155caaf6b15fdfb1f4",
+  "command": "PYTHONPATH=tests .venv/bin/python -m unittest test_tools test_tool_contracts test_mcp test_arrangement_reference_tool test_share_export test_share_export_audit test_share_export_tool -v",
+  "environment": "qualified FFmpeg8.1.2/FFprobe and explicit .venv analysis interpreter",
+  "source_files_matched_prior_frozen_hashes": {
+    "program/tools.json": "db8dc65d3fd6ed0926a062c4bf20056a45d187d21613398ee9281cf8aafac2dd",
+    "scripts/tool_api.py": "5fd3e1971e6fb470ad70165f0538c5b107c025a7cdd7afb33faafd22923f8e3d",
+    "scripts/share_export.py": "6894315f90cb8cbfb5ecd1cf219ac0d70f65a5da45fc0282fc1e63d2d5175d8c",
+    "tests/test_share_export_tool.py": "6a53d18ab48ff83cfa501a7e5b439e4891bb07fcb4b4691419080ddcbb138f3f",
+    "tests/test_tool_contracts.py": "7853fddbce74a27c77059b71ccb43c90eedf66e923e0b0b95bc33757c6dd3ca3",
+    "tests/test_arrangement_reference_tool.py": "a5918deab98c6b8dfb780bb2efe83719beee9f364dd3092a9b56033ad1ec2a88"
+  },
+  "scope": "Affected tools/API/MCP/arrangement/sharing regression; published29 full855-test baseline remains separate."
+}

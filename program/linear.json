@@ -22,61 +22,61 @@
     {
       "id": "87f4c52a-8275-45db-8e5a-0e7dab9d3557",
       "identifier": "TIN-5485",
-      "title": "D0 — First cleaned guitar WAV/video and matched listening report",
+      "title": "D0 \u2014 First cleaned guitar WAV/video and matched listening report",
       "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report"
     },
     {
       "id": "dcce7716-5bbe-4180-9614-877e42e2e5c7",
       "identifier": "TIN-5486",
-      "title": "D1 — Reproducible ingestion and Rust CLI",
+      "title": "D1 \u2014 Reproducible ingestion and Rust CLI",
       "url": "https://linear.app/tinyland/issue/TIN-5486/d1-reproducible-ingestion-and-rust-cli"
     },
     {
       "id": "89fd64e3-2822-4d9d-92be-9c151102c9f0",
       "identifier": "TIN-5487",
-      "title": "D2 — Restoration profiles and measured media delivery",
+      "title": "D2 \u2014 Restoration profiles and measured media delivery",
       "url": "https://linear.app/tinyland/issue/TIN-5487/d2-restoration-profiles-and-measured-media-delivery"
     },
     {
       "id": "1a2854b8-667c-4c9c-8946-664923aab0d8",
       "identifier": "TIN-5488",
-      "title": "D3 — Metronome detection and bounded attenuation",
+      "title": "D3 \u2014 Metronome detection and bounded attenuation",
       "url": "https://linear.app/tinyland/issue/TIN-5488/d3-metronome-detection-and-bounded-attenuation"
     },
     {
       "id": "6b0a92b4-408c-4c38-bcab-bfef6f93092a",
       "identifier": "TIN-5489",
-      "title": "D4 — Automatic rhythm/loop review and optional reference grading",
+      "title": "D4 \u2014 Automatic rhythm/loop review and optional reference grading",
       "url": "https://linear.app/tinyland/issue/TIN-5489/d4-automatic-rhythmloop-review-and-optional-reference-grading"
     },
     {
       "id": "8e1db109-96e7-468b-b1f9-7f74c09916d7",
       "identifier": "TIN-5490",
-      "title": "D5 — Automatic nine-string pitch, tonic and phrase discovery",
+      "title": "D5 \u2014 Automatic nine-string pitch, tonic and phrase discovery",
       "url": "https://linear.app/tinyland/issue/TIN-5490/d5-automatic-nine-string-pitch-tonic-and-phrase-discovery"
     },
     {
       "id": "28d0291e-6556-4f49-b6e3-5d50a016c539",
       "identifier": "TIN-5491",
-      "title": "D6 — Annotated benchmark and R/Quarto listening report",
+      "title": "D6 \u2014 Annotated benchmark and R/Quarto listening report",
       "url": "https://linear.app/tinyland/issue/TIN-5491/d6-annotated-benchmark-and-rquarto-listening-report"
     },
     {
       "id": "3f6a3993-cde3-4ef1-9556-001c40b4d171",
       "identifier": "TIN-5492",
-      "title": "D7 — Hardening, agent tool contracts and release handoff",
+      "title": "D7 \u2014 Hardening, agent tool contracts and release handoff",
       "url": "https://linear.app/tinyland/issue/TIN-5492/d7-hardening-agent-tool-contracts-and-release-handoff"
     },
     {
       "id": "63027dfb-9ea9-4f5f-a03e-b39023a3af89",
       "identifier": "TIN-5493",
-      "title": "Cross-cutting — MCP hooks and skill per audio tool",
+      "title": "Cross-cutting \u2014 MCP hooks and skill per audio tool",
       "url": "https://linear.app/tinyland/issue/TIN-5493/cross-cutting-mcp-hooks-and-skill-per-audio-tool"
     },
     {
       "id": "99918a4a-9278-48a2-a9b8-34016a2a4279",
       "identifier": "TIN-5494",
-      "title": "Future — Final Cut and Resolve phrase-marker interoperability",
+      "title": "Future \u2014 Final Cut and Resolve phrase-marker interoperability",
       "url": "https://linear.app/tinyland/issue/TIN-5494/future-final-cut-and-resolve-phrase-marker-interoperability"
     },
     {
@@ -87,70 +87,41 @@
       "kind": "ten_hour_goal"
     }
   ],
-  "evidence_state": "Local29 tools/skills qualified; consolidated855 discovered854 passed1 optional skip; accepted FULLER audio and exact copied compact marked video delivered; signed29-tool publication pending; future queued scope independently read back; inference accuracy and native AU/editor acceptance remain separate.",
+  "evidence_state": "Published signed/private29 source118a921 hosted CI green; accepted FULLER and compact QA; final Desktop21.6MB1080x720H264AAC96 verified. Source30 share_export and all30 skills qualified locally; combined regression/publication pending. Future tracker readbacks verified.",
   "project": {
     "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
-    "name": "video-utils — guitar restoration and performance analysis",
+    "name": "video-utils \u2014 guitar restoration and performance analysis",
     "url": "https://linear.app/tinyland/project/video-utils-guitar-restoration-and-performance-analysis-243628f290ab"
   },
   "publication": {
-    "source_commit": "cfdb61915720032ae139d8dac07ef27b55223cdf",
+    "source_commit": "118a9216777ac237ffa78f0c886c376291cc6a84",
     "private": true,
     "signature_verified": true,
-    "typed_tool_count": 27,
-    "skill_count": 27,
-    "comments": [
-      {
-        "issue": "TIN-5485",
-        "id": "608c75e7-612c-424d-99cb-91b715dcbad7",
-        "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-608c75e7",
-        "createdAt": "2026-10-06T02:14:58.982Z",
-        "state_at_readback": "In Review",
-        "full_body_verified": true
-      },
-      {
-        "issue": "TIN-5495",
-        "id": "12ef5404-c914-4b9e-af9d-609bc1b348e7",
-        "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-12ef5404",
-        "createdAt": "2026-10-06T02:14:59.397Z",
-        "state_at_readback": "In Progress",
-        "full_body_verified": true
-      }
-    ],
+    "typed_tool_count": 29,
+    "skill_count": 29,
+    "publication_verified_at": "2026-10-06T04:56:47.659347+00:00",
     "hosted_ci": {
-      "id": 37402931338,
-      "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37402931338",
+      "id": 37415723885,
+      "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37415723885",
       "status_at_readback": "completed",
       "conclusion": "success",
-      "completed_at": "2026-10-06T02:13:36Z",
+      "receipt": "docs/agent-notes/2026-10-06-tools29-hosted-ci.json",
       "test_summary": {
-        "discovered": 597,
-        "passed": 556,
-        "optional_skips": 41,
-        "seconds": 57.032
+        "discovered": 855,
+        "passed": 811,
+        "optional_skips": 44,
+        "seconds": 154.161
       },
       "rust_tests_passed": 7,
       "secret_scan": "success"
     },
     "local_checks": {
-      "qualified_suite_source": "eaa824f61e86faef798d8de4de056f05813b2178",
-      "qualified_suite": {
-        "discovered": 597,
-        "passed": 596,
-        "optional_skips": 1,
-        "seconds": 570.424
-      },
-      "numeric_gate_repair": {
-        "stdlib_passed": 4,
-        "stdlib_skipped": 6,
-        "qualified_passed": 10
-      }
+      "discovered": 855,
+      "passed": 854,
+      "optional_skips": 1,
+      "receipt": "docs/agent-notes/2026-10-06-tools29-consolidated-test-result.json"
     },
-    "scope": "Published27 hooks/skills and audited research helper source; generated/actual diagnostics retain uncertainty; capture-application28 remains unadmitted prototype",
-    "actual_learned_mcp_receipt": "docs/agent-notes/2026-10-06-root-learned-actual-mcp.json",
-    "historical_mcp_worker": "1fb883026b842857f72a70c8bf2fb757330b9ac705be36914f7a4c50cb8f7374",
-    "current_relative_just_proof": "docs/agent-notes/2026-10-06-root-learned-just-equivalence.json",
-    "publication_verified_at": "2026-10-06T02:15:28.138604+00:00"
+    "scope": "Published29 typed tools/skills, actual capture/profile/restoration and reference-aware marking evidence; accepted FULLER audio and final compact QA. Generated classifiers retain failures; AU/native editor proof future."
   },
   "publication_history": [
     {
@@ -361,6 +332,65 @@
         "downstream_secret_scan": "skipped"
       },
       "receipt": "docs/agent-notes/2026-10-06-27-tool-hosted-ci-failure.json"
+    },
+    {
+      "source_commit": "cfdb61915720032ae139d8dac07ef27b55223cdf",
+      "private": true,
+      "signature_verified": true,
+      "typed_tool_count": 27,
+      "skill_count": 27,
+      "comments": [
+        {
+          "issue": "TIN-5485",
+          "id": "608c75e7-612c-424d-99cb-91b715dcbad7",
+          "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-608c75e7",
+          "createdAt": "2026-10-06T02:14:58.982Z",
+          "state_at_readback": "In Review",
+          "full_body_verified": true
+        },
+        {
+          "issue": "TIN-5495",
+          "id": "12ef5404-c914-4b9e-af9d-609bc1b348e7",
+          "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-12ef5404",
+          "createdAt": "2026-10-06T02:14:59.397Z",
+          "state_at_readback": "In Progress",
+          "full_body_verified": true
+        }
+      ],
+      "hosted_ci": {
+        "id": 37402931338,
+        "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37402931338",
+        "status_at_readback": "completed",
+        "conclusion": "success",
+        "completed_at": "2026-10-06T02:13:36Z",
+        "test_summary": {
+          "discovered": 597,
+          "passed": 556,
+          "optional_skips": 41,
+          "seconds": 57.032
+        },
+        "rust_tests_passed": 7,
+        "secret_scan": "success"
+      },
+      "local_checks": {
+        "qualified_suite_source": "eaa824f61e86faef798d8de4de056f05813b2178",
+        "qualified_suite": {
+          "discovered": 597,
+          "passed": 596,
+          "optional_skips": 1,
+          "seconds": 570.424
+        },
+        "numeric_gate_repair": {
+          "stdlib_passed": 4,
+          "stdlib_skipped": 6,
+          "qualified_passed": 10
+        }
+      },
+      "scope": "Published27 hooks/skills and audited research helper source; generated/actual diagnostics retain uncertainty; capture-application28 remains unadmitted prototype",
+      "actual_learned_mcp_receipt": "docs/agent-notes/2026-10-06-root-learned-actual-mcp.json",
+      "historical_mcp_worker": "1fb883026b842857f72a70c8bf2fb757330b9ac705be36914f7a4c50cb8f7374",
+      "current_relative_just_proof": "docs/agent-notes/2026-10-06-root-learned-just-equivalence.json",
+      "publication_verified_at": "2026-10-06T02:15:28.138604+00:00"
     }
   ],
   "restoration_comparison": {
@@ -407,22 +437,22 @@
       {
         "key": "CORE",
         "id": "40c9b2b5-bd72-4907-b8bf-5dbbc53eb454",
-        "name": "Future — Local tone and source-bound practice feedback"
+        "name": "Future \u2014 Local tone and source-bound practice feedback"
       },
       {
         "key": "WEB",
         "id": "84f6d9aa-a185-4bb0-bec5-59c280645bb1",
-        "name": "Future — Optional bounded web workflow proof"
+        "name": "Future \u2014 Optional bounded web workflow proof"
       },
       {
         "key": "LOCAL",
         "id": "e3339c26-2414-4186-aeb5-fc32695e67b8",
-        "name": "Future — Optional deeper tone and classified feedback"
+        "name": "Future \u2014 Optional deeper tone and classified feedback"
       },
       {
         "key": "LATER",
         "id": "6f8a9f24-4778-4fb1-b713-37de7a7b3455",
-        "name": "Future — Hosting, score overlays and additional model qualification"
+        "name": "Future \u2014 Hosting, score overlays and additional model qualification"
       }
     ],
     "new_issues": [
@@ -582,7 +612,29 @@
       "sha256": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2"
     },
     "assembly_receipt": "docs/agent-notes/2026-10-06-accepted-fuller-compact-assembly-result.json",
-    "final_composite_operator_review": "Opened in QuickTime at operator request; acceptance pending",
-    "marker_analysis_branch": "NR10 source-bound analysis, distinct from accepted FULLER delivery audio"
+    "final_composite_operator_review": "Accepted after operator QuickTime QA",
+    "marker_analysis_branch": "NR10 source-bound analysis, distinct from accepted FULLER delivery audio",
+    "final_composite_qa_receipt": "docs/agent-notes/2026-10-06-final-composite-listening-acceptance.json",
+    "desktop_export": {
+      "path": "/Users/jess/Desktop/video_util_mvp_demo_1.mp4",
+      "sha256": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10",
+      "bytes": 21596491,
+      "video": "1080x720 H264, copied CRF27 veryfast picture",
+      "audio": "AAC96 kbps,44100Hz mono; -18.06 LUFS/-1.81dBTP",
+      "receipt": "docs/agent-notes/2026-10-06-share-export-actual-desktop.json",
+      "visual_review": "docs/agent-notes/2026-10-06-desktop-mvp-visual-review.json",
+      "separate_compressed_audio_listening_acceptance": false
+    },
+    "desktop_export_history": [
+      {
+        "path": "/Users/jess/Desktop/video_util_mvp_demo_1.mp4",
+        "sha256": "0774fd4ad6116d7770f05b3a3a3ef988bbc837cca56c48f5c10df3810f45c3e5",
+        "bytes": 23111818,
+        "video": "1080x720 H264 CRF27 veryfast",
+        "audio": "copied accepted AAC",
+        "receipt": "docs/agent-notes/2026-10-06-desktop-mvp-export.json",
+        "visual_review": "docs/agent-notes/2026-10-06-desktop-mvp-visual-review.json"
+      }
+    ]
   }
 }
