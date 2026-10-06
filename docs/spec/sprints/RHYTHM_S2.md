@@ -500,3 +500,32 @@ The one failure that remains is the unrelated
 Trade-off: the patch changes the S1 controllers' own `worker_sha256`, so a
 sealed S1 run must be replayed at its recorded commit. Root may instead record
 an explicit decision to accept the break.
+
+### 12.1 Post-merge state of main (root-owned, still open)
+
+Admin merge `736f406` landed this lane's `scripts/rhythm.py` (`cd719914…`)
+without the root patch. As a result, main has no `scripts/frozen/` and no
+`FROZEN` map, and both S1 controllers still pin `264b723c…`. Main is now in
+the "Unpatched" state from the table above. The lane did not edit the S1 files,
+because they are root-owned. It re-checked the same patch against a scratch
+`git archive` of `736f406`, with FFmpeg exported:
+
+| State of main `736f406` | Run | Failures | Errors | Skipped |
+|---|---|---|---|---|
+| Unpatched (lane measurement) | 38 | 4 | 6 | 7 |
+| Unpatched (audit report) | 38 | 1 | 9 | 7 |
+| With root patch | 38 | 1 | 0 | 7 |
+
+The two unpatched rows contain the same 10 non-passing tests, split
+differently between failures and errors. The lane did not reproduce the audit's
+split. In the lane run, all 10 trace to `pinned_*_changed:scripts/rhythm.py`
+(12 raises). On main, `git apply --check` passes and the vendored copy hashes to
+`264b723c…`. The one remaining failure is the unrelated process-group test.
+
+Root must take one of two actions:
+
+- apply `root_patch` from `rhythm_clicks-pin-resolution.json`, or
+- record an explicit decision to accept the S1 break.
+
+The lane did neither. The `post_merge_main_recheck` field of that receipt has
+the hashes.
