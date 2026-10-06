@@ -1913,6 +1913,80 @@
         "acceptance": "Profile authoring is not DSP, noise-only proof, learned band shape, media render, ambient separation, listening or master acceptance. Custom application is a separate admission.",
         "max_comparison_candidates_default": 3
       }
+    },
+    {
+      "name": "editor_marker_plan",
+      "title": "Source-time editor review marker plan",
+      "description": "Validate an explicit source-bound marker selection and closed editor profile, then summarize a metadata-only dry-run plan. Preserve exact source clocks, exclusions, quantized-coverage uncertainty and collisions. No editor invocation, native import file, media decoding or executable operation; native host coordinates remain unverified even for complete fixture profiles.",
+      "intent": "Make source-timed review evidence and missing editor calibration inspectable without promoting hypothetical frame mappings into native actions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing verified run beneath repository artifacts/runs; original symlink/traversal components reject."
+          },
+          "selection": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Explicit run-relative selection JSON; source-bound stable marker IDs, no automatic latest/subset discovery."
+          },
+          "profile": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Explicit run-relative closed editor profile JSON with primary input digests and optional hypothetical grid/PTS data. No executable/editor API configuration."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 120,
+            "default": 120,
+            "description": "Hard owned-worker/process-group metadata planning deadline."
+          }
+        },
+        "required": [
+          "run_dir",
+          "selection",
+          "profile"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/editor-marker-plan/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "metadata_only_source_time_editor_dry_run",
+      "limitations": [
+        "Fixed --summary follows complete worker validation; compact stdout <=64KiB, stderr <=16KiB. Input JSON <=20MB each, aggregate <=64MB, markers/selection <=50000, hypothetical actions <=1000, PTS frames <=120000.",
+        "Native contract is always unverified; executable=false and host_frame_id remains null. A fixture action count never establishes a runnable native API or import file.",
+        "Original media is not rehashed or decoded; source identity is manifest/graph bound. Existing upstream bytes may be hashed for provenance; no audio processing, network or editor invocation.",
+        "Full PTS membership, source/asset origins and clip bounds must be explicit. Missing coverage abstains; nominal/average rates and a timing digest cannot recover native frame coordinates.",
+        "Exact source observations and all exclusions remain traceable, including preview-hidden selections. Quantization gaps/tails and collisions do not shift, clamp, suppress observations or overwrite user markers. No musical correctness, native import, listening or AU/Logic acceptance."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "pipeline",
+          "markers",
+          "marked_video"
+        ],
+        "enforced": false,
+        "note": "Current generic markers, manifest, flags/DAG/context and explicit selection/profile are required; prior tools are not invoked automatically. Full CLI plan remains available separately from this bounded summary."
+      },
+      "agent_workflow": {
+        "identify": "Inspect exact source/profile/input hashes, explicit selection, exclusions, native-clock unknowns and per-disposition summary counts before planning.",
+        "research": "Read coordinate and editor marker contracts; require installed-version/conform evidence before interpreting fixture frames as native host positions.",
+        "iterate": "Choose explicit source-bound selection/profile files, run bounded metadata planning, inspect omissions and collisions, and preserve exact source times. Obtain new calibrated evidence for missing clocks rather than guessing defaults.",
+        "acceptance": "A metadata plan and hypothetical fixture coordinates establish neither editor import, executable operations, aligned native markers, musical correctness nor listening acceptance.",
+        "max_comparison_candidates_default": 3
+      }
     }
   ]
 }

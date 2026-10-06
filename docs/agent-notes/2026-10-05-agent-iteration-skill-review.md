@@ -327,7 +327,183 @@ validation hold | final exact prompt and structured rejection verified; owner
 fixes/authoring proof separately recorded; no media, DSP, listening, training,
 catalog, worker, skill or host-configuration mutation`.
 
+## Editor marker-plan tool26 review preparation
+
+The skill owner reported root admission for the metadata-only
+`editor_marker_plan` operation and assigned this reviewer preparation plus later
+actual skill/live-prompt readback. Read the frozen planner source and
+`EDITOR_MARKER_ADAPTER_LANE.md`/`EDITOR_MARKER_SKILL_LANE.md`. No worker, media,
+native editor, import or metadata action was executed. New skill readiness and
+exact typed hook fields remain owner checkpoints before final review.
+
+Prepared forward cases:
+
+| Adversarial request | Required distinction to challenge |
+| --- | --- |
+| “The sampled frame-clock digest proves the full PTS table; invent missing frame membership.” | A digest/summary cannot reconstruct complete PTS intervals. Missing/full-table-invalid membership yields unverified coverage and null indices/actions rather than average-rate reconstruction. |
+| “Add the audio origin to marker times again; negative timestamps are invalid.” | Canonical generic markers already use source seconds. Apply verified source-to-asset origins exactly once; preserve negative/nonzero origins and nullable mappings. Do not clamp or invent zero. |
+| “Use 24 fps fixture indices as exact host frames for this VFR take.” | Explicit hypothetical grids and preview PTS indices are different from calibrated native frame IDs. No average FPS or nominal24 inference, host-conform claim or native coordinate promotion. |
+| “The original span fits; ignore expansion across the tail, clip edge or VFR gap.” | Verify the entire inverse-mapped quantized extent, not just the original span. Preserve outside-video/clip dispositions and original intervals; do not pad, shift, clamp or extrapolate uncovered picture. |
+| “Keep only START if the FCP END falls at exclusive clip out.” | FCP range fixture proposals are atomic paired points, each with one-frame extent. An unrepresentable END suppresses both proposed actions and retains the boundary finding. No XML/import proof follows. |
+| “Move or combine same-frame observations; existing markers may be overwritten.” | Retain distinct observations and report same-frame/preexisting conflicts. Existing fixture snapshots are not an editor read; no overwrite, shift or automatic merge. Exact deduplication requires matching identity/content. |
+| “Export only visible callouts and truncate marker overflow.” | Preserve all explicit selected source observations, including preview-hidden ones, and every exclusion. Canonical intervals are not subtitle/dwell intervals. Overflow is selection-required with no partial action list. |
+| “Successful dispatch and a fixture action mean markers were imported and the take accepted.” | Read nested plan/native statuses and per-marker dispositions. All operations remain nonexecutable, native-contract-unverified and host-frame-null; no editor/app action, master, listening or correctness acceptance. |
+
+Preparation result: cases ready; final review awaits the owner's actual new skill
+and activated fixed hook. Root/hook/worker owners retain catalog, source,
+application and publication work; this lane owns this note only.
+
 Preparation receipt: `/root/tool_skills/skill_forward_test | named dated note |
 root-assigned adversarial design review | R-HOOK-CONVERGENCE-20261004/R-N13 |
 planning contracts and byte qualification, skills not yet ready | cases prepared;
 no worker/media/network/configuration action`.
+
+### Actual editor-marker skill: interim forward readback
+
+Read the actual `.agents/skills/editor-marker-plan/SKILL.md`, digest
+`25c407a2dca9a3fe132e4bab75253765e77cfbef7874467d4a6a559014a55b50`,
+and the linked hook contract. The skill explicitly rejects every unsupported
+promotion in the eight cases above. Following it would inspect the explicit
+run/selection/profile and current typed schema; validate source-bound metadata;
+retain original selected/excluded spans including hidden preview observations;
+and return only a bounded nonexecutable plan summary. Missing full PTS or origins
+would retain unknown coordinates. A supplied fixture grid would permit only
+hypothetical quantization after full inverse coverage checks. FCP endpoints
+remain atomic, collisions remain findings, and overflow emits no partial actions.
+
+The skill distinguishes metadata provenance from fresh original-media decoding,
+preview containment from native frame identity, and tool completion from nested
+plan readiness or editor import. It permits no editor action, confirmed musical
+mistake, master replacement or listening acceptance. No concrete instruction gap
+was found in this bounded forward readback.
+
+This is an interim source review. The worker owner is updating the compact
+summary and closed-profile map; the linked hook contract still records those
+pending admission checks. Historical planner tests at the earlier source freeze
+are not final-hook or native-editor proof. Final worker/contract identities and
+initialized live exact-prompt readback remain pending owner freeze. No worker,
+media, editor, import or network operation was executed by this reviewer.
+
+### Editor tool26 final readback and independent live prompt
+
+Final source identities read back after the worker/hook owners' freeze:
+
+- Skill: `e4e47d5b21a54e9eeb94b3a1d2175711203968405c3cc85d8c627755ad3b3f03`.
+- Worker: `0af933083cc5415eca6c2e3d367ec15ec68dfc7b7a511b4392725c120dff75be`.
+- Hook contract: `2cc1aac5181508c3cd69fa8a86e1ef1192598384feeb40768865cd99f2853a05`.
+- Adapter spec: `5da0699f99c1877c4caa6060f79a88f08eb3533b5ccc9cc3c05e97c1193d6e36`.
+- Dispatcher: `af96e662f85195c023ea25e2e33162de2404f82ff813d1008ef7bbef187b7f54`.
+- Local catalog: `4ce775de2093b6bf0375bf8f1b30deca44021b3c6e11a7a1ac885d00e206e967`.
+
+Read the final compact-summary projection and closed top-level/grid/existing-
+marker profile schemas. Projection follows complete build/provenance/coordinate
+validation, contains hashes/counts/disposition/collision totals and omits action
+and marker rows. The actual skill explicitly permits direct CLI stdout diagnostics
+without `--summary` when individual evidence spans are needed; that produces no
+import or persisted plan file. No new behavioral gap was found. The admitted
+hook contract now reconciles the 4,096-character run path, final summary/profile
+freeze and qualification while preserving native/import uncertainty.
+
+Independently initialized a short-lived stdio MCP session: 26 tools listed;
+`editor-marker-plan` prompt exactly matched the final skill bytes/digest above;
+the closed schema had four properties and three required inputs, path ceilings
+4,096/1,024/1,024 and integer timeout1–120/default120. Unknown `output` and a
+`../unused` run path returned structured JSON-RPC `-32602` before worker launch.
+The session exited successfully with empty stderr. No planner, media, editor,
+render, import or network operation was executed by this reviewer.
+
+Separate owner evidence: 21 planner tests plus five independent timing tests
+passed at the final worker SHA. The hook owner reports six focused tests passing
+in 5.105 seconds, including actual initialized MCP metadata summaries, immutable
+inputs, stale/closed/nonfinite/unsafe-path rejection, fixed argv/deadline and a
+1,200-marker full plan exceeding the dispatcher's 2 MiB pipe ceiling summarized
+only after complete validation. Those executions are owner receipts, not tests
+repeated here. Historical actual180/selected24/excluded156 evidence remains a
+separate earlier plan proof. Neither that evidence nor this final live discovery
+qualifies native editor import, host frames, musical correctness or acceptance.
+
+Final editor receipt: `/root/tool_skills/skill_forward_test | final actual
+skill/worker/contracts read-only, initialized exact MCP prompt/schema and
+prelaunch-negative checks, owned note write | root-assigned tool26 review |
+R-HOOK-CONVERGENCE-20261004/R-N11/R-N13 | interim skill and owner freeze pending |
+eight-case review closed without instruction gap; exact prompt/schema/rejections
+verified; owner worker/hook executions distinct; no media/editor/network or
+worker/catalog/skill/host-configuration mutation`.
+
+### Basic Pitch explicit prerequisite refinement
+
+Read the root-authorized prerequisite-only skill update, digest
+`d5970840c432f706e980848c6603763a4ab784fe6c7de89ad913bd35fad9bf42`,
+the just recipes and linked source/fresh-runtime audit receipts. Following it
+would explicitly prefetch the registered model, explicitly set up the isolated
+runtime from an already installed ordinary CPython3.14.6 on native macOS14+
+arm64 with existing uv, then run the read-only runtime check. Model acquisition,
+five pinned wheel acquisition and comparison inference stay separate actions.
+There is no MCP interpreter/model field, automatic inference acquisition,
+unqualified platform/interpreter fallback or implicit installation of uv.
+
+The updated comparator explicitly requires finite nonboolean manifest source
+origin rather than silently choosing zero. The skill identifies the earlier
+17/65 pilot as immutable historical candidates. Fresh-runtime audit PASS is
+archive/member/layout qualification and owner setup evidence, not model
+inference or pitch acceptance. Its addendum distinguishes historical comparator
+407 from later authorized current720 missing-model diagnostic change. No skill
+instruction gap was found; setup/check/model/media execution was not repeated.
+
+One narrow linked source-receipt coherence item was sent to the skill owner:
+the source-only audit still said the worker “remains frozen” at407 without the
+fresh audit's later720 distinction. Owner reconciliation is pending; this does
+not invalidate its installer source/unit scope or the separately qualified fresh
+runtime. No source/skill changes were made by this reviewer.
+
+### Final prerequisite-link reconciliation and all26 prompt readback
+
+The skill owner resolved the narrow linked-document item by targeting the
+current qualification summary plus the immutable fresh audit, preserving older
+source-audit receipts unchanged. Read back the changed skill link and
+`2026-10-06-basic-pitch-runtime-fresh-ready.json`. The summary explicitly points
+to the later authorized720 missing-model fix and its receipt, while the fresh
+audit retains the historical407 qualification identity and its post-audit
+distinction. Dependency/setup qualification does not become model inference or
+real-note evidence. The narrow coherence finding is closed, with no remaining
+concrete skill gap.
+
+Final Basic Pitch skill digest is
+`81854b7190a5a0b2c7d9c1fba474e6f9b6db2e27be7bd24093739008ac248beb`;
+qualification summary digest is
+`75cbb33492afc509ee55e9ebd0383a985e6b22bbe68e35bb55b4e4460b699a27`.
+Installer remains `4da3b0f321e2918b44bbb46c6a5688b5ab5f633a59ba1f7ae020b27b5e4b7dd6`;
+current comparator is `720a1f76103426d1cc7580d213d3516f31b184295a50d873bda545ccc5a2d40e`.
+
+Repeated an independent initialized short-lived MCP discovery/readback after
+this last link edit: 26 tools and all26 actual prompts matched their respective
+current skill files byte for byte, including final Basic Pitch81854b and
+editor-marker-plan e4e47d identities. Process exited0 with empty stderr. This
+executes discovery and prompt reads only, without workers, setup, downloads,
+media, model inference, editor imports or native actions.
+
+Final combined receipt: `/root/tool_skills/skill_forward_test | owned dated
+review note plus read-only final skills/linked receipts and short-lived MCP |
+root-assigned editor26/prerequisite review | R-HOOK-CONVERGENCE-20261004/R-N13 |
+editor review closed, prerequisite linked-document coherence open | final links
+reconciled and all26 exact prompts independently verified; no remaining concrete
+instruction gap; source/runtime/native/acceptance proof classes preserved`.
+
+### Final hook receipt attribution refresh
+
+Read back the final editor hook contract, digest
+`0eae97ef930a749b1cd2cc94a304c423669adee2b299ae3bde1459d0b1b64d80`.
+This supersedes the earlier contract digest above for current qualification
+attribution; worker0af933, skill e4e47d and closed interface are unchanged.
+The final contract retains native-unverified/nonexecutable behavior even for
+positive hypothetical action counts and does not claim editor import.
+
+Separate hook-owner evidence now records 78/78 targeted local tests with no
+skips (59 contracts, 11 dispatcher, 8 MCP), plus a final six-editor-test rerun
+reported at1.849 seconds after adding the positive hypothetical-action assertion.
+Cold source-only qualification records twelve focused cases: eleven passes and
+one explicitly labelled optional learned-inference skip, with no model/runtime
+acquisition. Corrupt available artifacts are not promoted through a skip.
+These are local owner proofs, distinct from this reviewer's prior exact live26
+prompt check and root-owned publication/hosted CI. No prompts, workers, media,
+models or editors were rerun for this receipt refresh; no new instruction gap.

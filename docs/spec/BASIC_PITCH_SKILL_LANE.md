@@ -186,3 +186,71 @@ The Basic Pitch skill and local twenty-four-tool proof are complete and frozen
 for root publication; capture-profile design remains unadmitted. Capture design
 readback also preserves the distinction between authoring-only nonrunnable output
 and already-existing render authority without recurring confirmation.
+# Explicit runtime portability prerequisite update DoD
+
+Root authorizes a prerequisite-only skill update after independent fresh-setup
+audit and recipe admission. Preserve comparator controls, model/runtime
+uncertainty, sparse coverage and historical pilot/publication evidence. Add
+explicit model prefetch, runtime setup with an already installed qualified
+CPython 3.14.6 executable and read-only runtime checking; inference must never
+acquire runtime or weights implicitly. State native arm64 macOS 14+ ordinary
+CPython 3.14.6 qualification with no platform/ABI fallback, and the current
+explicit finite manifest audio-origin requirement. Root owns the two new
+recipes. Final skill validation and exact prompt readback join the twenty-six
+tool wave after both admissions; implementation/publication and musical
+accuracy remain separate evidence.
+
+## Admitted prerequisite update proof
+
+Root admits the independent fresh-runtime audit and explicit recipes. This
+lane reads and dry-runs `just basic-pitch-runtime-setup PYTHON` (required existing
+executable) and `just basic-pitch-runtime-check` (no arguments), without setup,
+download or inference. The prerequisite-only skill update records explicit
+model prefetch, native arm64/macOS 14+/ordinary CPython 3.14.6/existing uv,
+five locked dependency wheels, read-only checking and no implicit acquisition
+or new MCP executable field. Explicit finite nonboolean manifest audio origin
+is required; unknown origin cannot silently become zero.
+
+Setup source SHA256 is
+`4da3b0f321e2918b44bbb46c6a5688b5ab5f633a59ba1f7ae020b27b5e4b7dd6`,
+and committed runtime lock is
+`c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f`.
+The linked fresh audit's worker `407ff9fe…` snapshot is historical; current
+worker SHA256
+`720a1f76103426d1cc7580d213d3516f31b184295a50d873bda545ccc5a2d40e`
+adds the explicit missing-model prefetch diagnostic while preserving origin and
+musical uncertainty. The older actual 17/65 event pilot remains labeled as an
+earlier immutable pilot, not silently replaced or promoted.
+
+Updated skill SHA256 is
+`d5970840c432f706e980848c6603763a4ab784fe6c7de89ad913bd35fad9bf42`.
+All twenty-six bundle validations and initialized actual stdio exact skill
+prompt readbacks pass after the update. Schema readback confirms that inference
+has no setup/model/interpreter argument. Fresh runtime qualification, older
+model/adapter pilots, metadata interface proof and musician accuracy remain
+separate states. Independent final instruction review is its owner's final
+checkpoint; root owns publication.
+
+## Final prerequisite link and prompt checkpoint
+
+The final prerequisite link uses the existing fresh-runtime readiness summary,
+which explicitly separates the historical `407ff9fe…` source/fresh snapshots
+from the later `720a1f76…` missing-model diagnostic fix. The immutable source
+and fresh audits are not rewritten to look current. This resolves the reviewed
+linked-document ambiguity without changing inference controls, installation
+scope, preserved historical evidence or musical claims.
+
+Final skill SHA256 is
+`81854b7190a5a0b2c7d9c1fba474e6f9b6db2e27be7bd24093739008ac248beb`.
+All twenty-six bundles validate and every actual initialized stdio prompt
+matches its final skill text again. No setup, download, media inference or
+runtime mutation is performed by this lane. The editor-plan skill hash remains
+`e4e47d5b21a54e9eeb94b3a1d2175711203968405c3cc85d8c627755ad3b3f03`.
+
+Independent final review is closed with no remaining instruction gap. The
+reviewer independently renews all twenty-six actual initialized MCP prompts
+against final skill text, retaining separate historical/current source facts
+and explicit model/runtime acquisition. Its
+[dated receipt](../agent-notes/2026-10-05-agent-iteration-skill-review.md)
+records that no worker, setup, media inference or native application action was
+performed by the reviewer. This prerequisite-only lane is complete.

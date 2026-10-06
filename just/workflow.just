@@ -110,6 +110,18 @@ phrase-evaluate fixture_index pilot_index output:
 basic-pitch run_dir seconds="20":
     python3 scripts/basic_pitch_compare.py {{quote(run_dir)}} --max-analysis-seconds {{quote(seconds)}}
 
+# Explicit optional five-wheel setup using an existing qualified native interpreter.
+basic-pitch-runtime-setup python:
+    python3 scripts/basic_pitch_runtime_setup.py --python {{quote(python)}}
+
+# Verify the isolated runtime without downloads, installation or model inference.
+basic-pitch-runtime-check:
+    python3 scripts/basic_pitch_runtime_setup.py --check
+
+# Metadata planning only; no editor API, import file or native execution.
+editor-marker-plan run_dir selection profile:
+    python3 scripts/editor_marker_plan.py {{quote(run_dir)}} {{quote(selection)}} {{quote(profile)}} --summary
+
 # Author source-bound settings only; the review records existing scoped authority.
 capture-profile input run_dir review start end nr="8" nf="-40" ad="0" gs="0" lufs="-18" peak="-1.5":
     python3 scripts/capture_profile.py {{quote(input)}} --run-dir {{quote(run_dir)}} --review {{quote(review)}} --capture-start {{quote(start)}} --capture-end {{quote(end)}} --reduction-db {{quote(nr)}} --noise-floor-db {{quote(nf)}} --adaptivity {{quote(ad)}} --gain-smooth {{quote(gs)}} --integrated-lufs {{quote(lufs)}} --true-peak-dbtp {{quote(peak)}}

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-06T00:54:24.234332+00:00",
+  "authority": "Root explicit urgent CI37395852387 missing-model preflight release after freshsetup proof; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "owner": "/root/tonal_inference",
+  "status": "missing_model_preflight_fixed_stdlib_pass_no_acquisition_or_inference",
+  "ci_failure": {
+    "run": "37395852387",
+    "local_log": "artifacts/ci-37395852387-failed.log",
+    "observation": "Offline checkout missing selected model caused raw FileNotFoundError from stat(), not actionable ValueError.",
+    "failure_receipt_preserved": true
+  },
+  "worker_sha256": "720a1f76103426d1cc7580d213d3516f31b184295a50d873bda545ccc5a2d40e",
+  "tests_sha256": "d99a748f3ec7dc00d2232fc4f10f343797d6269f5e29a8f13f7963ed5586a6d3",
+  "change": "Require selected_model.is_file before stat/hash; ValueError directs explicit just model-prefetch ID. Wrong hash/extent rejection unchanged.",
+  "tests": {
+    "stdlib_pass": 18,
+    "optional_runtime_skipped": 1,
+    "total": 19,
+    "missing_model_regression": "TemporaryROOT+registry+manifest, absentLOCALMODEL, no qualified weights/environment required; subprocess/output not attempted.",
+    "tamper_regression": "TemporaryROOT isolates machine-local cache and registry qualification."
+  },
+  "historical_worker_archive": {
+    "path": "artifacts/model-comparison/qualified-worker-407ff9fe/basic_pitch_compare.py",
+    "sha256": "407ff9fe99edbc863b3822c98683026841a3e03d2f6b7705a746bf7c68025cf3"
+  },
+  "freshsetup_ordering": "Fresh isolated setup/prepost407source snapshots and readonlycheck completed before this separately-authorized720source hotfix. This is a later operator-authorized source mutation, not setup environment mutation.",
+  "not_performed": [
+    "downloads",
+    "model_inference",
+    "active_runtime_or_wheel_mutation",
+    "model_registry_mutation",
+    "main_uv_lock_or_pyproject_mutation",
+    "prior_actual_receipt_or_latest_rewrite"
+  ]
+}

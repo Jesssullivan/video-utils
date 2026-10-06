@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-06T00:46:57.670454+00:00",
+  "authority": "Root explicit source/unit/read-only check release; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "status": "final_installer_source_audit_and_readonly_check_pass_fresh_setup_pending",
+  "installer_sha256": "4da3b0f321e2918b44bbb46c6a5688b5ab5f633a59ba1f7ae020b27b5e4b7dd6",
+  "own_tests_sha256": "7ee71e012318c7a852e820c02e7759d36895011f97358a465907525daab6e98c",
+  "independent_tests_sha256": "9001c8db9158c7fc0669cfe33a22be1f23a6f029ab736ad97dd93d10d75d9a17",
+  "lock_sha256": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
+  "test_counts": {
+    "own": 20,
+    "independent": 4,
+    "combined": 24
+  },
+  "readonly_check": {
+    "status": "already_qualified",
+    "runtime_dir": "/Users/jess/git/video-utils/artifacts/model-runtime-env/onnx-1.30.0-cp314",
+    "wheel_lock_sha256": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
+    "python": "3.14.6",
+    "versions": {
+      "onnxruntime": "1.30.0",
+      "numpy": "2.5.3",
+      "flatbuffers": "25.12.19",
+      "packaging": "26.3",
+      "protobuf": "7.36.2"
+    },
+    "installed_member_count": 1349,
+    "disk_bytes": 155558142,
+    "model_acquired": false,
+    "inference_performed": false
+  },
+  "active_runtime_all1484file_snapshots_unchanged": true,
+  "runtime_snapshot_sha256": "1194383294f2b0895bcbf289c8f3b525aa0aebe7da1edb9648a591a749308ea8",
+  "source_fixes_receipt": "docs/agent-notes/2026-10-06-basic-pitch-runtime-setup-source-fixes.json",
+  "historical_check_receipt": "docs/agent-notes/2026-10-06-basic-pitch-runtime-setup-checkpoint.json",
+  "comparator_worker_sha256": "407ff9fe99edbc863b3822c98683026841a3e03d2f6b7705a746bf7c68025cf3",
+  "not_performed": [
+    "fresh_setup",
+    "downloads",
+    "model_acquisition",
+    "model_inference",
+    "active_runtime_mutation",
+    "current_comparator_worker_mutation"
+  ]
+}

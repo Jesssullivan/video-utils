@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-06T00:39:33.494438+00:00",
+  "authority": "Root explicit installer source/unit/read-only check release; fresh setup and new inference not released",
+  "status": "runtime_setup_source_and_unit_tests_pass_readonly_check_pass",
+  "unit_tests_pass": 17,
+  "readonly_check_returncode": 0,
+  "readonly_check_stdout": "{\"status\": \"already_qualified\", \"runtime_dir\": \"/Users/jess/git/video-utils/artifacts/model-runtime-env/onnx-1.30.0-cp314\", \"wheel_lock_sha256\": \"c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f\", \"python\": \"3.14.6\", \"versions\": {\"onnxruntime\": \"1.30.0\", \"numpy\": \"2.5.3\", \"flatbuffers\": \"25.12.19\", \"packaging\": \"26.3\", \"protobuf\": \"7.36.2\"}, \"installed_member_count\": 1349, \"disk_bytes\": 155558142, \"model_acquired\": false, \"inference_performed\": false}\n",
+  "readonly_check_stderr": "",
+  "runtime_all_file_snapshots_equal": true,
+  "runtime_file_count": 1484,
+  "runtime_snapshot_sha256": "1194383294f2b0895bcbf289c8f3b525aa0aebe7da1edb9648a591a749308ea8",
+  "installer_sha256": "e6746bed4d84ea088fb3039d5095a558693860ae254437818eea283df409aad0",
+  "tests_sha256": "62a9bb397b03a7876291c81a38df2892ddf015ee8ac042516a77785153b0c03e",
+  "committed_lock_sha256": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
+  "not_performed": [
+    "fresh_installation",
+    "downloads",
+    "model_acquisition",
+    "new_model_inference",
+    "current_runtime_mutation",
+    "current_comparator_worker_mutation"
+  ]
+}

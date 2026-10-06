@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-06T00:55:44.435808+00:00",
+  "authority": "Root explicit isolated optional runtime implementation/fresh qualification; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "status": "portable_explicit_runtime_setup_and_independent_fresh_audit_pass_root_recipe_admission_ready",
+  "setup_receipt": {
+    "path": "docs/agent-notes/2026-10-06-basic-pitch-runtime-fresh-setup.json",
+    "sha256": "c798ace0e3a90ff59843008d60e420048bef9d75a0c3fb390d5fd4438ad1f51c"
+  },
+  "independent_audit": {
+    "path": "docs/agent-notes/2026-10-06-basic-pitch-runtime-fresh-audit.json",
+    "sha256": "b3dbfef20c43dba2145677f60e10ffa1396e577ad4dcce372e832b27de05d633"
+  },
+  "installer_sha256": "4da3b0f321e2918b44bbb46c6a5688b5ab5f633a59ba1f7ae020b27b5e4b7dd6",
+  "path_free_lock_sha256": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
+  "source_tests": {
+    "own_pass": 20,
+    "independent_pass": 4,
+    "combined_pass": 24
+  },
+  "fresh_setup": {
+    "elapsed_seconds": 44.818019207999896,
+    "official_wheel_count": 5,
+    "official_wheel_bytes": 34171831,
+    "archive_entries": 1503,
+    "archive_uncompressed_bytes": 119178259,
+    "installed_verified_members": 1349,
+    "fresh_runtime_disk_bytes": 153654083,
+    "fresh_readonly_snapshot_match": true,
+    "active1484_snapshot_unchanged": true
+  },
+  "later_authorized_comparator_fix": {
+    "path": "docs/agent-notes/2026-10-06-basic-pitch-missing-model-ci-fix.json",
+    "sha256": "80cf4ca58e1e9f5e24d1135e96b51c006b590cd6dc145323edd3975acc2d3841",
+    "current_worker_sha256": "720a1f76103426d1cc7580d213d3516f31b184295a50d873bda545ccc5a2d40e",
+    "tests": "18stdlib pass +1optional inference skipped;19 total"
+  },
+  "proposed_operator_recipes": {
+    "basic-pitch-runtime-setup": "Required existing interpreter argument; python3 scripts/basic_pitch_runtime_setup.py --python PATH",
+    "basic-pitch-runtime-check": "No arguments; python3 scripts/basic_pitch_runtime_setup.py --check"
+  },
+  "constraints": [
+    "Native macOS>=14 arm64, already-installed ordinaryCPython3.14.6, existing uv required.",
+    "No automatic model acquisition/inference; explicit model-prefetch remains separate.",
+    "Experimental optional runtime evidence is dependency/import/setup proof, not fresh model inference or real-note accuracy."
+  ],
+  "scope": "Root owns just/readme/skill integration; audited setup/audit receipts retained unchanged."
+}

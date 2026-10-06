@@ -294,6 +294,8 @@ def build(directory: Path, config: dict, runtime_python: Path = RUNTIME) -> tupl
         raise ValueError('Qualified Basic Pitch model must be explicitly registered')
     cached_model=ROOT/'models'/f'{MODEL_ID}.bin'
     selected_model=cached_model if cached_model.exists() else LOCAL_MODEL
+    if not selected_model.is_file():
+        raise ValueError('Qualified Basic Pitch model missing; explicitly run just model-prefetch '+MODEL_ID+' before comparison; no automatic download')
     if selected_model.is_symlink() or selected_model.stat().st_size!=230444 or sha256(selected_model)!=MODEL_HASH:
         raise ValueError('Local prequalified model missing/changed; no implicit prefetch')
     interpreter=runtime_python.expanduser().absolute()

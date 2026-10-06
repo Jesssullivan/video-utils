@@ -204,6 +204,73 @@ class EditorMarkerPlanTests(unittest.TestCase):
             (directory / "pts.json").write_text('{}')
             with self.assertRaises(ValueError): planner.build(directory, "selection.json", "profile.json")
 
+    def test_summary_validates_full_plan_and_contains_metadata_only(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            self.disk_fixture(directory)
+            before = {p.name: p.read_bytes() for p in directory.iterdir()}
+            argv = ["planner", str(directory), "selection.json", "profile.json", "--summary"]
+            with patch.object(sys, "argv", argv), contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(planner.main(), 0)
+            summary = json.loads(output.getvalue())
+            self.assertLessEqual(len(output.getvalue().encode()), planner.MAX_SUMMARY_BYTES)
+            self.assertEqual(summary["format"], "editor_marker_dry_run_summary")
+            self.assertEqual((summary["marker_count"], summary["selected_count"], summary["excluded_count"]), (1, 1, 0))
+            self.assertFalse(summary["executable"])
+            self.assertEqual(summary["native_contract_status"], "native_contract_unverified")
+            self.assertNotIn("markers", summary)
+            self.assertNotIn("actions", summary)
+            self.assertEqual(set(summary["input_sha256"]), {"markers.json", "manifest.json", "selection.json", "profile.json", "pts.json"})
+            self.assertEqual(before, {p.name: p.read_bytes() for p in directory.iterdir()})
+            (directory / "pts.json").write_text('{}')
+            with patch.object(sys, "argv", argv), contextlib.redirect_stdout(io.StringIO()) as output, contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(planner.main(), 1)
+                self.assertEqual(output.getvalue(), "")
+
+    def test_closed_profiles_reject_unknown_nested_and_executable_fields(self):
+        for field in ("command", "executable", "grid_extra", "marker_extra", "boolean_version"):
+            generic, selection, profile, pts = self.inputs()
+            if field == "grid_extra": profile["fixture_grid"]["command"] = "never run"
+            elif field == "marker_extra": profile["existing_markers"] = [{"fixture_frame_id": 24, "command": "never run"}]
+            elif field == "boolean_version": profile["schema_version"] = True
+            else: profile[field] = "never run"
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                planner.make_plan(generic, selection, profile, pts)
+        generic, selection, profile, pts = self.inputs()
+        profile["schema_version"] = 1
+        self.assertFalse(planner.make_plan(generic, selection, profile, pts)["executable"])
+
+    def test_stderr_bounds_validation_and_parser_errors(self):
+        argv = ["planner", "run", "selection.json", "profile.json", "--summary"]
+        with patch.object(sys, "argv", argv), patch.object(planner, "build", side_effect=ValueError("♫" * 100_000)), contextlib.redirect_stderr(io.StringIO()) as errors:
+            self.assertEqual(planner.main(), 1)
+            self.assertLessEqual(len(errors.getvalue().encode()), planner.MAX_ERROR_BYTES)
+        with patch.object(sys, "argv", ["planner", "--invalid=" + "♫" * 100_000]), contextlib.redirect_stderr(io.StringIO()) as errors:
+            with self.assertRaises(SystemExit): planner.main()
+            self.assertLessEqual(len(errors.getvalue().encode()), planner.MAX_ERROR_BYTES)
+
+    def test_profile_digest_roles_and_path_bounds_are_explicit(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            profile = self.disk_fixture(directory)
+            profile["input_sha256"]["unread.json"] = "a" * 64
+            (directory / "profile.json").write_text(json.dumps(profile))
+            with self.assertRaises(ValueError): planner.build(directory, "selection.json", "profile.json")
+            for name in ("a" * 1025 + ".json", "selection.csv", "", "a/../selection.json"):
+                with self.subTest(name=name), self.assertRaises(ValueError):
+                    planner.build(directory, name, "profile.json")
+
+    def test_run_path_bound_matches_hook_without_widening_artifact_paths(self):
+        with patch.object(Path, "is_symlink", return_value=False), patch.object(Path, "resolve", side_effect=FileNotFoundError("filesystem stage")):
+            with self.assertRaisesRegex(FileNotFoundError, "filesystem stage"):
+                planner.build("x" * 2048, "selection.json", "profile.json")
+        with patch.object(Path, "is_symlink") as inspection:
+            with self.assertRaisesRegex(ValueError, "Run directory path exceeds bound"):
+                planner.build("x" * 4097, "selection.json", "profile.json")
+            inspection.assert_not_called()
+        with self.assertRaisesRegex(ValueError, "bounded run-relative JSON"):
+            planner.relative_json_name("x" * 1021 + ".json")
+
     def test_duplicate_nonfinite_json_and_symlink_escape_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)

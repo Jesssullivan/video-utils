@@ -116,9 +116,20 @@ class BoundTests(unittest.TestCase):
             path=Path(temp);(path/'denoised.wav').write_bytes(b'fixture')
             (path/'manifest.json').write_text(json.dumps({'source':{'sha256':'a'*64},'output_sha256':{'denoised.wav':bp.sha256(path/'denoised.wav')},'timeline':{'no_time_stretch':True,'audio_start_seconds':0.}}))
             model=path/'bad.onnx';model.write_bytes(b'wrong')
-            with patch.object(bp,'LOCAL_MODEL',model):
+            (path/'program').mkdir();(path/'program/models.json').write_text(json.dumps({'models':{bp.MODEL_ID:{'sha256':bp.MODEL_HASH,'max_bytes':230444}}}))
+            with patch.object(bp,'ROOT',path),patch.object(bp,'LOCAL_MODEL',model):
                 with self.assertRaisesRegex(ValueError,'prequalified model'):
                     bp.build(path,bp.settings())
+
+    def test_missing_model_has_actionable_prefetch_error_without_inference(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp);(path/'denoised.wav').write_bytes(b'fixture')
+            (path/'manifest.json').write_text(json.dumps({'source':{'sha256':'a'*64},'output_sha256':{'denoised.wav':bp.sha256(path/'denoised.wav')},'timeline':{'no_time_stretch':True,'audio_start_seconds':0.}}))
+            (path/'program').mkdir();(path/'program/models.json').write_text(json.dumps({'models':{bp.MODEL_ID:{'sha256':bp.MODEL_HASH,'max_bytes':230444}}}))
+            with patch.object(bp,'ROOT',path),patch.object(bp,'LOCAL_MODEL',path/'absent.onnx'),patch.object(bp.subprocess,'run') as media:
+                with self.assertRaisesRegex(ValueError,'explicitly run just model-prefetch '+bp.MODEL_ID):bp.build(path,bp.settings())
+                media.assert_not_called()
+            self.assertFalse((path/'learned-pitch').exists())
 
     def test_unknown_or_nonfinite_origin_fails_before_processing(self):
         for origin in ('absent',None,True,float('nan'),float('inf')):

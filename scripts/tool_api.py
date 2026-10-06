@@ -349,6 +349,21 @@ def capture_profile_paths(args):
     return paths['input'], str(directory), paths['review']
 
 
+def editor_marker_inputs(args):
+    """Three explicit bounded metadata inputs; profile semantics belong to worker."""
+    try:
+        directory = Path(marked_video_directory(args['run_dir']))
+    except ToolError as error:
+        raise ToolError('editor marker run_dir: ' + str(error)) from error
+    for value in (args['selection'], args['profile']):
+        selected_evidence_path(directory, value)
+    for name in ('manifest.json', 'flags.json', 'markers.json', args['selection'], args['profile']):
+        path = directory / name
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > 20_000_000:
+            raise ToolError('editor marker inputs must be bounded regular run-local JSON files')
+    return str(directory)
+
+
 
 def validate_tool_arguments(name, args):
     """Cross-field rules that are known before a worker or file read starts."""
@@ -372,6 +387,17 @@ def validate_tool_arguments(name, args):
         for field in PIPELINE_SELECTORS:
             if field in args:
                 validate_evidence_selector(args[field])
+    if name == 'editor_marker_plan':
+        for field in ('selection', 'profile'):
+            try:
+                validate_evidence_selector(args[field])
+            except ValidationError as error:
+                raise ValidationError('editor marker selection/profile requires an exact safe run-relative JSON path') from error
+        if (args['selection'] == args['profile'] or args['selection'] in {'markers.json', 'manifest.json'}
+                or args['profile'] in {'markers.json', 'manifest.json'}):
+            raise ValidationError('editor marker selection/profile input roles must be distinct')
+        if '\\' in args['run_dir'] or '..' in args['run_dir'].split('/'):
+            raise ValidationError('editor marker run_dir cannot contain traversal components')
     if name == 'corpus' and any(part == '..' for part in args['manifest'].split('/')):
         raise ValidationError('corpus manifest cannot contain traversal components')
     if name in {'marked_video', 'basic_pitch_compare'}:
@@ -443,6 +469,9 @@ def worker_command(name, args):
         # The worker owns its pinned isolated ONNX launcher. Neither an MCP
         # argument nor the analysis-interpreter environment selects that child.
         return command
+    if name == 'editor_marker_plan':
+        return head + [str(ROOT / 'scripts/editor_marker_plan.py'), editor_marker_inputs(args),
+                       args['selection'], args['profile'], '--summary']
     if name in CALIBRATION_TOOLS:
         return head + [str(ROOT / ('scripts/' + name + '.py')),
                        '--fixture-index', calibration_path(args['fixture_index'], max_bytes=CALIBRATION_TOOLS[name]),

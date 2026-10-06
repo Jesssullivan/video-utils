@@ -237,3 +237,35 @@ accepted the final freeze: **21 combined tests pass**, including five independen
 regressions for quantized tails, VFR gaps, inverse origins and atomic FCP pairs.
 It independently reproduced the actual metadata-plan counts and retained all six
 preview-hidden observations. App import/calibration remains pending.
+
+### Tool 26 admission closure
+
+Root subsequently authorized metadata-only hook admission. The hook owner
+forwards the three required CLI arguments with fixed `--summary`; no caller
+command, arbitrary flags or executable profile is accepted. Run directory text
+is bounded to 1-4096 characters; selection/profile paths are run-relative `.json`
+names of 1-1024 characters. Full-plan stdout remains available when `--summary`
+is omitted. Summary follows complete graph/profile/context validation and is
+bounded to 64 KiB; validation and parser stderr are bounded to 16 KiB. This
+worker still creates no plan/import files and invokes no editor.
+
+The current profile is closed to `schema_version`, `source_sha256`, `target`,
+`mapping_kind`, `target_sha256`, `source_origin`, `asset_origin`, `clip_in`,
+`clip_out`, `parent_offset`, `fixture_grid`, `existing_markers`, `pts_artifact`,
+and `input_sha256`. Optional schema version is integer 1, never boolean.
+`fixture_grid` requires exactly `frame_duration`, `origin`, and `frame_id_origin`.
+Existing-marker fixtures allow integer `fixture_frame_id` and optional `name`
+text up to 256 characters; they remain unverified data. Digest-map roles are
+exactly markers, manifest, selection, and optional PTS. Future SDK/calibration
+fields need a separately admitted schema; unknown current fields, including
+commands or executable flags, reject.
+
+Summary `format=editor_marker_dry_run_summary` retains source/target/status,
+`native_contract_unverified`, `executable=false`, source-identity scope,
+marker/selected/excluded/action counts, disposition/collision counts, at most five
+primary input hashes, complete context-digest checksum/count, and profile/worker
+hashes. It contains no marker/evidence/action arrays and does not infer musical
+acceptance from counts. Final admission closure passes 26 combined tests
+(21 owner plus five independent timing regressions), including full validation
+before summary, output/stderr bounds, closed nested/profile fields, exact digest
+roles, and joint hook path limits. Hook/skill registration is owned separately.

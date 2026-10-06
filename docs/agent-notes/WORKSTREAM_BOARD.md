@@ -1,6 +1,6 @@
 # video-utils parallel work board
 
-As-of ownership checkpoint: **2026-10-06 00:39:05 UTC / October 5, 8:39:05 p.m. EDT**.
+As-of ownership checkpoint: **2026-10-06 00:51:34 UTC / October 5, 8:51:34 p.m. EDT**.
 Root's goal began 20:49:34 UTC and remains **active**, with planned end
 **2026-10-06 06:49:34 UTC / 2:49:34 a.m. EDT**. Objective/status does not enforce
 this wall-clock horizon. Root owns integration, factual Linear writes and signed
@@ -19,12 +19,21 @@ Active goal: [TIN-5495](https://linear.app/tinyland/issue/TIN-5495/ten-hour-para
 ## Current published source and delivery
 
 Root verified private/signature-valid published HEAD
-`c59d7024a9967b920747e07134c6c166c3ddb38d` and hosted
-[CI 37392676183](https://github.com/Jesssullivan/video-utils/actions/runs/37392676183)
-**SUCCESS**. The published catalog remains **23 hooks/skills**. The prior
-`eb378bd` local suite passed 387/387 in 130.097 s with no skips; its hosted run
-37389573784 passed 366 with 21 optional-backend skips. Those exact test counts
-belong to that prior receipt; this board does not invent new c59d CI timing/counts.
+`1845bb0f1a86421a201fc3cb784cf84a4e8d25ec` with **25 hooks/skills**. Root's local
+joint suite discovered477/passed476/one optional model-runtime-pilot skip in
+208.533 s, with71 focused hook checks/all25 exact skills. Separately21 audited
+CLI-only editor planning tests passed in0.220 s; staged883,285+56,177-byte secret
+scans passed. These local checks do not imply hosted acceptance.
+
+This tracking lane independently read exact
+[CI37395852387](https://github.com/Jesssullivan/video-utils/actions/runs/37395852387)
+at 00:51:34 UTC: **completed FAILURE**, updated 00:49:32UTC, exact 1845bb0 head.
+Offline job 112051496851 failed Python/synthetic media step; subsequent hosted
+Rust and secret steps were skipped. Failure annotation gives exit 1; causal test
+logs are not yet established by this lane. `gh run --log-failed` encountered a
+local cache ZIP read error, which is not evidence of a source cause. Root owns
+repair/verification. Prior c59d CI37392676183 SUCCESS belongs to that prior source.
+The root publication receipt's earlier in-progress readback remains historical.
 
 Enhanced cleaned and marked media are complete on
 `artifacts/runs/20261005T232741Z-2b5dc43fd009`; the writer independently read
@@ -40,11 +49,12 @@ continuous-playback readability proof, listening acceptance nor confirmed mistak
 Physical capture synchronization, native editor import and Logic hosting remain
 unverified. The 180 flags remain ungraded hypotheses/navigation data.
 
-Root's new factual Linear comments: D0
-`06d5da6d-bf79-42fd-8dae-8e885edc4406`; active goal
-`a90d7ebf-9dbe-478f-8216-0986103c4162`; D4
-`9bac1230-0744-47a8-b5aa-104c6be8e928`. Root owns tracker readback and the five-character
-Project Markdown normalization check; this lane performs no external mutations.
+Root read back new publication comments: D0
+`9ecac959-04bf-46f4-a950-99821d3605dd`; active goal
+`b028a3f1-4f17-4d41-ae63-db00f606ebf3`. Project 25-tool content updated; root
+owns subsequent failed-CI tracker reconciliation. Prior D4 comment
+`9bac1230-0744-47a8-b5aa-104c6be8e928` remains historical. No external mutations
+are performed by this tracking lane.
 
 ## Reattached named lanes
 
@@ -59,20 +69,20 @@ and receipts; a ready/frozen delivery does not imply a worker is still running.
 | --- | --- | --- | --- |
 | Held-out generated bank | `/root/repo_patterns` | New `scripts/benchmark_holdout.py`, `tests/test_benchmark_holdout.py`, HOLDOUT_BANK_LANE and dated admission/generation receipts | Seeds 211/307; 12 cases/120 seconds structurally verified after explicit root release; frozen index for inference, not detector accuracy; published v1/v2 dependencies preserved |
 | Guarded phrase comparison | `/root/phrase_dag` | PHRASE_WINDOW_ABLATION_LANE, dated isolated ablation/guarded-arm/heldout harness receipts; canonical workers frozen | Heldout independent audit passed; guarded D has 4 TP/87 FP, all arms zero matches at IoU0.75; weak performance/no adoption; fixed settings retained |
-| Pitch comparator acceptance | `/root/guitar_features` | PITCH_COMPARATOR_ACCEPTANCE_LANE and independent read-only metric receipt | ACTIVE new pure learned-pitch evaluator `scripts/learned_pitch_evaluate.py`, `tests/test_learned_pitch_evaluate.py`, with independent audit; CLI prototype excluded from root qualified25 joint suite; musical correctness remains unknown |
-| Learned pitch worker | `/root/tonal_inference` | New `scripts/basic_pitch_compare.py`, `tests/test_basic_pitch_compare.py`, BASIC_PITCH_COMPARATOR_LANE; isolated qualified runtime/model receipts | Local tool24 source-origin repair407…; fresh actual20-source-second result18/67 hypotheses raw verification PASS; old8bc… worker receipt retained; ACTIVE separate portable-runtime setup new scripts/basic_pitch_runtime_setup.py and test_basic_pitch_runtime_setup.py; not published/whole-take transcription |
+| Pitch comparator acceptance | `/root/guitar_features` | PITCH_COMPARATOR_ACCEPTANCE_LANE and independent read-only metric receipt | New pure learned evaluator19tests PASS; MIR closed1fb8…; scripts/learned_pitch_evaluate.py and tests/test_learned_pitch_evaluate.py with independent audit; CLI prototype excluded from published25 joint suite; no musical correctness claim |
+| Learned pitch worker | `/root/tonal_inference` | New `scripts/basic_pitch_compare.py`, `tests/test_basic_pitch_compare.py`, BASIC_PITCH_COMPARATOR_LANE; isolated qualified runtime/model receipts | Local tool24 source-origin repair407…; fresh actual20-source-second result18/67 hypotheses raw verification PASS; old8bc… worker receipt retained; ACTIVE separate portable-runtime setup 4da… new scripts/basic_pitch_runtime_setup.py and test_basic_pitch_runtime_setup.py; fresh source-checkout 45-second setup PASS/five wheels/no weights or inference, independent fresh-installed readback pending; learned comparator now published25 baseline, not whole-take transcription |
 | Runtime audit | `/root/tonal_inference/tonal_audit` | Dated BASIC_PITCH runtime audit receipt only | Independent model/runtime/windowing/clock review; source/inference evidence distinct from pitch correctness |
-| Capture profile authoring | `/root/rhythm_analysis` | New `scripts/capture_profile.py`, `tests/test_capture_profile.py`, CAPTURE_PROFILE_WORKFLOW_LANE; existing media/profiles frozen | Local repaired worker7d282…45 tests; root actual typed tool25 authoring PASS on232741: profileff8b4…, receipt804036…, native sample interval[180810,218295]; no DSP/core/latest changes; application route separate |
-| Typed hooks | `/root/tool_hooks` | `program/tools.json`, `scripts/tool_api.py`, `tests/test_tool_contracts.py`, named new contract docs | All25 local hooks71 targeted PASS; published count remains23; root qualified25 joint28-module suite RUNNING with no pass claim yet; new CLI prototypes excluded |
-| Agent skills | `/root/tool_skills` | BASIC_PITCH_SKILL_LANE, CAPTURE_PROFILE_SKILL_LANE and explicitly assigned skills | All25 local skills/live contracts validated; published23 remains baseline; authoring/runtime/application boundaries retained |
+| Capture profile authoring | `/root/rhythm_analysis` | New `scripts/capture_profile.py`, `tests/test_capture_profile.py`, CAPTURE_PROFILE_WORKFLOW_LANE; existing media/profiles frozen | Published authoring worker; local repaired7d282…45 tests; root actual typed tool25 authoring PASS on232741: profileff8b4…, receipt804036…, native sample interval[180810,218295]; no DSP/core/latest changes; application route separate |
+| Typed hooks | `/root/tool_hooks` | `program/tools.json`, `scripts/tool_api.py`, `tests/test_tool_contracts.py`, named new contract docs | Published25 hooks;71 focused local PASS; ACTIVE editor hook26 final tests with --summary closed profile/source bounds; new CLI prototypes excluded from published joint suite |
+| Agent skills | `/root/tool_skills` | BASIC_PITCH_SKILL_LANE, CAPTURE_PROFILE_SKILL_LANE and explicitly assigned skills | Published25 exact skills; ACTIVE editor26 hook/skill final qualification; authoring/runtime/application boundaries retained |
 | Spectrogram/PCEN ablation | `/root/xod_spectrogram` | PCEN_FRONTEND_ABLATION_LANE and dated isolated evidence | Mixed results; new actual12-second characterization completed without clean reference; earlier defaults weakened onset metrics; no package/frontend adoption |
 | Meter/pulse ablation | `/root/meter_inference` | METER_PULSE_ABLATION_LANE and dated isolated harness/receipt | Joint pulse ablation12 variants all unknown; published worker frozen; energy-cycle evidence does not determine notation/downbeats |
-| Low-register STFT probe | `/root/audio_research` | LOW_REGISTER_NOISE_SEPARABILITY_LANE; new scripts/low_register_denoise_probe.py and tests/test_low_register_denoise_probe.py | ACTIVE future isolated prototype:32 masks/64 source seconds; independent clip_baseline oracle audit; excluded from qualified25 release suite; no real mixture stem or accepted quality claim |
+| Low-register STFT probe | `/root/audio_research` | LOW_REGISTER_NOISE_SEPARABILITY_LANE; new scripts/low_register_denoise_probe.py and tests/test_low_register_denoise_probe.py | Isolated prototype32 masks/64 source seconds/65seconds structural PASS, two quality alerts; independent clip_baseline audit pending; excluded from published25 release suite; no real mixture stem or accepted quality claim |
 | Fan/capture research | `/root/clip_baseline` | BOX_FAN_CAPTURE research and dated characterization receipt | ACTIVE independent oracle audit of new low-register probe; prior fan/tuning overlap and unverified-noise-only capture evidence preserved |
 | Review and marker delivery | `/root/plan_review` and `/root/media_latency` | Owned report/browser and marked visual/audit receipts; existing media frozen | Enhanced existing delivery/latest unchanged; media_latency ACTIVE quantized coverage bug fix under separate source/tests assignment; prior sampled visual proof is scoped historical evidence, no new render/listening acceptance |
 | AU packaging | `/root/au_architecture` | Explicitly assigned native packaging/spec/receipt files | Published unsigned prototype/source checks are separate from installation/auval/Logic hosting; no host acceptance |
 | Editor adapter design | `/root/resolve_marker_sources` | EDITOR_MARKER_ADAPTER_LANE and dated bounded inventory | ACTIVE new bounded scripts/editor_marker_plan.py/tests planner prototype; dry-run coordinates only, no editor import/marker write/application proof |
-| Root integration | `/root` | Shared recipes/admission, actual inference/render, `program/linear.json`, signed publication | Published c59d/23-tool baseline/CI green; actual25 authoring and new20sec pitch evidence verified; qualified25 joint28-module suite running, excludes new CLI prototypes; release pending |
+| Root integration | `/root` | Shared recipes/admission, actual inference/render, `program/linear.json`, signed publication | Published1845bb0/25-tool baseline; local476/477 joint suite qualified, hosted CI nowFAILED/Python step; root investigates repair; actual capture/pitch evidence and media unchanged; future26/prototypes separate |
 | Durable tracking | `/root/goal_plan` | This board, checkpoint log and append-only user-prompt archive | Current follow-up only; freeze after handoff; no source/registry/Linear mutations |
 
 The original twelve-case calibration completed 275.72 s and four pitch jobs/30

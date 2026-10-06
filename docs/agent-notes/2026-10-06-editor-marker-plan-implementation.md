@@ -18,8 +18,8 @@ Frozen implementation SHA-256:
 
 | Owned file | SHA-256 |
 | --- | --- |
-| `scripts/editor_marker_plan.py` | `738e6cd3ee84b0c41ec93bb19987c1b2b7f5ab59e06eea4fedadda5bac4b8e3d` |
-| `tests/test_editor_marker_plan.py` | `87fed25463a7d8261de3fe415319e5dd3b908ce5f6aa76a3bce131f675dfe825` |
+| `scripts/editor_marker_plan.py` | `0af933083cc5415eca6c2e3d367ec15ec68dfc7b7a511b4392725c120dff75be` |
+| `tests/test_editor_marker_plan.py` | `9c749b03e27b1e2bdfdd282806abe8da8bc6e57f1b8337912eb47b08315bde30` |
 
 Validation command:
 
@@ -94,3 +94,28 @@ listening and confirmed musical intent remain separate pending states.
 | source-time markers/preview exist; native editor contracts unavailable
 | worker and 16 fixtures pass; actual 24-row plan honestly abstains from frame
 mapping; independent 21-test timing audit passes; root integration pending`
+
+## Root-authorized tool 26 metadata closure
+
+After the 25-tool publication, root authorized hook/skill admission of the
+source-only planner as tool 26. This owner added fixed `--summary` support
+after full build validation, with at most 64 KiB metadata stdout and 16 KiB
+stderr including parser errors. Omitting the flag retains full plan stdout;
+no implicit input defaults were added. Summary reports primary input hashes,
+complete input-manifest checksum/count, status, source-identity scope, counts,
+and profile/worker hashes. It omits evidence/marker/action arrays.
+
+Profile top/nested maps are closed; optional schema_version is integer 1, not
+boolean; command/executable/unknown keys reject. Run-directory cap 4096 and
+selection/profile cap 1024 match the jointly locked hook contract. The metadata
+fixture helper is `EditorMarkerPlanTests().disk_fixture(run)`; it creates only
+temporary JSON graph/selection/profile/PTS data, with no media.
+
+Current frozen hashes are in the table above. All 26 combined tests pass:
+21 owner tests and five independent timing regressions. Five new admission
+tests cover full summary validation/no writes, closed nested/profile maps,
+bounded parser/validation errors, exact profile digest roles/relative paths and
+distinct run-directory/artifact path bounds. Timing logic is unchanged from
+the separately audited `738e6cd3` freeze. Hook and skill owners received current
+hashes, exact fields and counts; their live readback/advertisement and root
+publication remain separate acceptance owned by those lanes.

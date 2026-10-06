@@ -7,7 +7,9 @@ repository `AGENTS.md`, R-HOOK-CONVERGENCE-20261004 and R-N13. Root owns
 integration/publication; the comparator lane owns its adapter/runtime and the
 hook lane owns this interface. Source implementation, local runtime proof,
 publication, generated quality and real-note/listening acceptance remain
-separate. Capture-profile authoring is a different pending admission.
+separate. Capture-profile authoring is admitted as tool twenty-five in the
+[final authoring contract](CAPTURE_PROFILE_TOOL_CONTRACT.md); later custom-profile
+application remains separate.
 
 The definition of done was recorded before integration: use the worker's fixed
 CLI, bind exact local model/source/runtime identities, document every typed knob

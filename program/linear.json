@@ -3,7 +3,7 @@
   "authority": "Operator approved plan / Implement the plan; R-HOOK-CONVERGENCE-20261004 / R-N13",
   "repository": "https://github.com/Jesssullivan/video-utils",
   "team_id": "a2c482c8-4d0d-4171-82d9-553265b6c706",
-  "updated_at": "2026-10-06T00:19:20.729552+00:00",
+  "updated_at": "2026-10-06T00:56:47.020909+00:00",
   "milestones": [
     {
       "id": "71bd7738-f346-48dd-8426-4095575a386a",
@@ -22,61 +22,61 @@
     {
       "id": "87f4c52a-8275-45db-8e5a-0e7dab9d3557",
       "identifier": "TIN-5485",
-      "title": "D0 \u2014 First cleaned guitar WAV/video and matched listening report",
+      "title": "D0 — First cleaned guitar WAV/video and matched listening report",
       "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report"
     },
     {
       "id": "dcce7716-5bbe-4180-9614-877e42e2e5c7",
       "identifier": "TIN-5486",
-      "title": "D1 \u2014 Reproducible ingestion and Rust CLI",
+      "title": "D1 — Reproducible ingestion and Rust CLI",
       "url": "https://linear.app/tinyland/issue/TIN-5486/d1-reproducible-ingestion-and-rust-cli"
     },
     {
       "id": "89fd64e3-2822-4d9d-92be-9c151102c9f0",
       "identifier": "TIN-5487",
-      "title": "D2 \u2014 Restoration profiles and measured media delivery",
+      "title": "D2 — Restoration profiles and measured media delivery",
       "url": "https://linear.app/tinyland/issue/TIN-5487/d2-restoration-profiles-and-measured-media-delivery"
     },
     {
       "id": "1a2854b8-667c-4c9c-8946-664923aab0d8",
       "identifier": "TIN-5488",
-      "title": "D3 \u2014 Metronome detection and bounded attenuation",
+      "title": "D3 — Metronome detection and bounded attenuation",
       "url": "https://linear.app/tinyland/issue/TIN-5488/d3-metronome-detection-and-bounded-attenuation"
     },
     {
       "id": "6b0a92b4-408c-4c38-bcab-bfef6f93092a",
       "identifier": "TIN-5489",
-      "title": "D4 \u2014 Automatic rhythm/loop review and optional reference grading",
+      "title": "D4 — Automatic rhythm/loop review and optional reference grading",
       "url": "https://linear.app/tinyland/issue/TIN-5489/d4-automatic-rhythmloop-review-and-optional-reference-grading"
     },
     {
       "id": "8e1db109-96e7-468b-b1f9-7f74c09916d7",
       "identifier": "TIN-5490",
-      "title": "D5 \u2014 Automatic nine-string pitch, tonic and phrase discovery",
+      "title": "D5 — Automatic nine-string pitch, tonic and phrase discovery",
       "url": "https://linear.app/tinyland/issue/TIN-5490/d5-automatic-nine-string-pitch-tonic-and-phrase-discovery"
     },
     {
       "id": "28d0291e-6556-4f49-b6e3-5d50a016c539",
       "identifier": "TIN-5491",
-      "title": "D6 \u2014 Annotated benchmark and R/Quarto listening report",
+      "title": "D6 — Annotated benchmark and R/Quarto listening report",
       "url": "https://linear.app/tinyland/issue/TIN-5491/d6-annotated-benchmark-and-rquarto-listening-report"
     },
     {
       "id": "3f6a3993-cde3-4ef1-9556-001c40b4d171",
       "identifier": "TIN-5492",
-      "title": "D7 \u2014 Hardening, agent tool contracts and release handoff",
+      "title": "D7 — Hardening, agent tool contracts and release handoff",
       "url": "https://linear.app/tinyland/issue/TIN-5492/d7-hardening-agent-tool-contracts-and-release-handoff"
     },
     {
       "id": "63027dfb-9ea9-4f5f-a03e-b39023a3af89",
       "identifier": "TIN-5493",
-      "title": "Cross-cutting \u2014 MCP hooks and skill per audio tool",
+      "title": "Cross-cutting — MCP hooks and skill per audio tool",
       "url": "https://linear.app/tinyland/issue/TIN-5493/cross-cutting-mcp-hooks-and-skill-per-audio-tool"
     },
     {
       "id": "99918a4a-9278-48a2-a9b8-34016a2a4279",
       "identifier": "TIN-5494",
-      "title": "Future \u2014 Final Cut and Resolve phrase-marker interoperability",
+      "title": "Future — Final Cut and Resolve phrase-marker interoperability",
       "url": "https://linear.app/tinyland/issue/TIN-5494/future-final-cut-and-resolve-phrase-marker-interoperability"
     },
     {
@@ -90,31 +90,61 @@
   "evidence_state": "Published23tools/skills; local387pass/no skips, hosted387discovered366pass21optional skips; enhanced8clarity video and24-marker preview complete; VFR/AAC identity and canonical390px browser proof; listening pending; active parallel goal; no Logic/native-editor acceptance",
   "project": {
     "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
-    "name": "video-utils \u2014 guitar restoration and performance analysis",
+    "name": "video-utils — guitar restoration and performance analysis",
     "url": "https://linear.app/tinyland/project/video-utils-guitar-restoration-and-performance-analysis-243628f290ab"
   },
   "publication": {
-    "source_commit": "c59d7024a9967b920747e07134c6c166c3ddb38d",
+    "source_commit": "1845bb0f1a86421a201fc3cb784cf84a4e8d25ec",
     "private": true,
     "signature_verified": true,
+    "published_at": "2026-10-06T00:50:03.481314+00:00",
+    "typed_tool_count": 25,
+    "skill_count": 25,
     "comments": [
       {
         "issue": "TIN-5485",
-        "id": "06d5da6d-bf79-42fd-8dae-8e885edc4406",
-        "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-06d5da6d"
+        "id": "9ecac959-04bf-46f4-a950-99821d3605dd",
+        "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-9ecac959"
       },
       {
         "issue": "TIN-5495",
-        "id": "a90d7ebf-9dbe-478f-8216-0986103c4162",
-        "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-a90d7ebf"
+        "id": "b028a3f1-4f17-4d41-ae63-db00f606ebf3",
+        "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-b028a3f1"
       }
     ],
-    "published_at": "2026-10-06T00:19:20.729552+00:00",
     "hosted_ci": {
-      "id": 37392676183,
+      "id": 37395852387,
+      "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37395852387",
       "status_at_readback": "completed",
-      "conclusion": "success",
-      "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37392676183"
+      "conclusion": "failure",
+      "test_summary": {
+        "discovered": 498,
+        "failures": 1,
+        "errors": 1,
+        "optional_skips": 22,
+        "seconds": 50.15
+      },
+      "downstream_rust": "skipped",
+      "downstream_secret_scan": "skipped"
+    },
+    "local_checks": {
+      "qualified_release": {
+        "discovered": 477,
+        "passed": 476,
+        "optional_skips": 1,
+        "seconds": 208.533
+      },
+      "editor_planner_research": {
+        "tests": 21,
+        "seconds": 0.22
+      },
+      "targeted_hooks": 71,
+      "exact_skill_prompts": 25
+    },
+    "scope": "published25tool source; later26hooks/runtime setup/evaluator/preservationprototype remain local lanes",
+    "ci_failure_receipt": {
+      "id": "31345d39-771f-4506-8862-eef5b1893c06",
+      "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-31345d39"
     }
   },
   "publication_history": [
@@ -177,6 +207,30 @@
         "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37389573784"
       },
       "evidence_scope": "intermediate23-tool source checkpoint; root independently read exact CI logs"
+    },
+    {
+      "source_commit": "c59d7024a9967b920747e07134c6c166c3ddb38d",
+      "private": true,
+      "signature_verified": true,
+      "comments": [
+        {
+          "issue": "TIN-5485",
+          "id": "06d5da6d-bf79-42fd-8dae-8e885edc4406",
+          "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-06d5da6d"
+        },
+        {
+          "issue": "TIN-5495",
+          "id": "a90d7ebf-9dbe-478f-8216-0986103c4162",
+          "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-a90d7ebf"
+        }
+      ],
+      "published_at": "2026-10-06T00:19:20.729552+00:00",
+      "hosted_ci": {
+        "id": 37392676183,
+        "status_at_readback": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37392676183"
+      }
     }
   ],
   "restoration_comparison": {

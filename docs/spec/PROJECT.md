@@ -66,7 +66,7 @@ rhythm analysis, and reporting. Local artifacts are isolated per run under
 `artifacts/runs/`; provenance records source identity, commands, tool versions,
 profile parameters, analysis resampling, and output measurements.
 
-The current versioned tool/API contract, local MCP stdio adapter, and twenty-five
+The current versioned tool/API contract, local MCP stdio adapter, and twenty-six
 per-tool skills expose the same bounded operations. Agent guidance connects research evidence
 to explicit, auditable parameter suggestions for noise, tone, and note analysis.
 Suggestions require comparative evaluation; agents cannot silently change the

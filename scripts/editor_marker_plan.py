@@ -19,7 +19,14 @@ MAX_TOTAL_BYTES = 64_000_000
 MAX_MARKERS = 50_000
 MAX_ACTIONS = 1000
 MAX_FRAMES = 120_000
+MAX_PATH = 1024
+MAX_RUN_DIR_PATH = 4096
+MAX_SUMMARY_BYTES = 64 * 1024
+MAX_ERROR_BYTES = 16 * 1024
 HASH = re.compile(r"[0-9a-f]{64}")
+PROFILE_FIELDS = {"schema_version", "source_sha256", "target", "mapping_kind", "target_sha256",
+                  "source_origin", "asset_origin", "clip_in", "clip_out", "parent_offset",
+                  "fixture_grid", "existing_markers", "pts_artifact", "input_sha256"}
 
 
 class SourceDecimal(float):
@@ -88,6 +95,42 @@ def marker_id(index, item):
     return f"marker-{index:04d}-{digest[:12]}"
 
 
+def relative_json_name(value):
+    require(isinstance(value, str) and 1 <= len(value) <= MAX_PATH
+            and value.endswith(".json") and not Path(value).is_absolute()
+            and not any(part in ("", ".", "..") for part in value.split("/"))
+            and not any(char in value for char in ("\\", ":", "\0")),
+            "Expected bounded run-relative JSON path")
+    return value
+
+
+def validate_profile(profile):
+    require(isinstance(profile, dict) and not set(profile) - PROFILE_FIELDS, "Unknown editor profile fields")
+    if "schema_version" in profile:
+        require(type(profile["schema_version"]) is int and profile["schema_version"] == 1,
+                "Editor profile schema_version must be integer 1")
+    if profile.get("pts_artifact") is not None:
+        relative_json_name(profile["pts_artifact"])
+    grid = profile.get("fixture_grid")
+    if grid is not None:
+        require(isinstance(grid, dict) and set(grid) == {"frame_duration", "origin", "frame_id_origin"},
+                "Fixture grid requires exactly frame_duration, origin, frame_id_origin")
+    existing = profile.get("existing_markers", [])
+    require(isinstance(existing, list) and len(existing) <= MAX_ACTIONS, "Existing-marker snapshot exceeds bound")
+    for row in existing:
+        require(isinstance(row, dict) and not set(row) - {"fixture_frame_id", "name"}
+                and type(row.get("fixture_frame_id")) is int, "Invalid closed existing-marker fixture")
+        if "name" in row:
+            require(isinstance(row["name"], str) and len(row["name"]) <= 256,
+                    "Existing-marker fixture name must be bounded text")
+    if "input_sha256" in profile:
+        hashes = profile["input_sha256"]
+        require(isinstance(hashes, dict) and len(hashes) <= 4, "Profile input digests exceed supported roles")
+        for name, digest in hashes.items():
+            relative_json_name(name)
+            require(isinstance(digest, str) and HASH.fullmatch(digest), "Invalid profile input digest")
+
+
 def pts_table(payload, source_hash):
     require(payload.get("source_sha256") == source_hash, "PTS source identity differs")
     require(payload.get("clock") == "original_source_stream_timestamps_seconds",
@@ -141,6 +184,7 @@ def grid_point(value):
 
 def make_plan(generic, selection, profile, pts=None, input_hashes=None):
     """Pure coordinate planning. Host contracts remain unverified for every profile."""
+    validate_profile(profile)
     source_hash = generic.get("source_sha256")
     require(isinstance(source_hash, str) and HASH.fullmatch(source_hash), "Invalid source hash")
     require(selection.get("source_sha256") == profile.get("source_sha256") == source_hash,
@@ -294,6 +338,9 @@ def make_plan(generic, selection, profile, pts=None, input_hashes=None):
 
 
 def build(run_dir, selection_name, profile_name):
+    require(1 <= len(str(run_dir)) <= MAX_RUN_DIR_PATH, "Run directory path exceeds bound")
+    relative_json_name(selection_name)
+    relative_json_name(profile_name)
     require(not Path(run_dir).is_symlink(), "Run directory symlink rejected")
     directory = Path(run_dir).resolve(strict=True)
     paths, documents, digests, total = {}, {}, {}, 0
@@ -311,6 +358,7 @@ def build(run_dir, selection_name, profile_name):
 
     generic, manifest = acquire("markers.json"), acquire("manifest.json")
     selection, profile = acquire(selection_name), acquire(profile_name)
+    validate_profile(profile)
     require(selection_name != profile_name and selection_name not in ("markers.json", "manifest.json")
             and profile_name not in ("markers.json", "manifest.json"), "Input roles must be distinct")
     require(manifest.get("source", {}).get("sha256") == generic.get("source_sha256"), "Manifest source mismatch")
@@ -336,6 +384,7 @@ def build(run_dir, selection_name, profile_name):
     needed = {"markers.json", "manifest.json", selection_name}
     if pts_name is not None:
         needed.add(pts_name)
+    require(set(expected_hashes) == needed, "Profile input digests must match exact input roles")
     for name in needed:
         digest = expected_hashes.get(name)
         require(isinstance(digest, str) and HASH.fullmatch(digest) and digest == digests[name],
@@ -344,23 +393,67 @@ def build(run_dir, selection_name, profile_name):
     result["source_identity_verification"] = "manifest_and_graph_bound_source_hash_original_media_not_rehashed"
     result["profile_sha256"] = digests[profile_name]
     result["worker_sha256"] = markers.sha256(Path(__file__))
+    result["primary_input_sha256"] = {name: digests[name] for name in sorted(needed | {profile_name})}
     for name, path in paths.items():
         require(markers.local_artifact(directory, name) == path and markers.sha256(path) == digests[name],
                 "Input changed during planning")
     return result
 
 
+def make_summary(plan):
+    """Compact metadata only; invoked strictly after complete plan validation."""
+    dispositions, collisions = {}, {}
+    for row in plan["markers"]:
+        key = row["disposition"]
+        dispositions[key] = dispositions.get(key, 0) + 1
+    for action in plan["actions"]:
+        key = action["collision"]
+        collisions[key] = collisions.get(key, 0) + 1
+    digest_manifest = json.dumps(plan["input_sha256"], sort_keys=True, allow_nan=False).encode()
+    result = {"schema_version": 1, "format": "editor_marker_dry_run_summary",
+        "scope": "source_metadata_only_no_editor_invocation", "source_sha256": plan["source_sha256"],
+        "target": plan["target"], "plan_status": plan["plan_status"],
+        "native_contract_status": "native_contract_unverified", "executable": False,
+        "source_identity_verification": plan["source_identity_verification"],
+        "marker_count": plan["marker_count"], "selected_count": plan["selected_count"],
+        "excluded_count": len(plan["excluded_ids"]), "action_count": len(plan["actions"]),
+        "disposition_counts": dispositions, "collision_counts": collisions,
+        "input_sha256": plan["primary_input_sha256"],
+        "input_artifact_count": len(plan["input_sha256"]),
+        "input_manifest_sha256": hashlib.sha256(digest_manifest).hexdigest(),
+        "profile_sha256": plan["profile_sha256"], "worker_sha256": plan["worker_sha256"]}
+    require(len(json.dumps(result, ensure_ascii=False, allow_nan=False).encode()) <= MAX_SUMMARY_BYTES,
+            "Metadata summary exceeds byte bound")
+    return result
+
+
+def emit_error(message):
+    encoded = ("editor-marker-plan: " + str(message)).encode("utf-8")[:MAX_ERROR_BYTES - 1]
+    sys.stderr.write(encoded.decode("utf-8", errors="ignore") + "\n")
+
+
+class BoundedParser(argparse.ArgumentParser):
+    def error(self, message):
+        emit_error(message)
+        raise SystemExit(2)
+
+
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("run_dir", type=Path)
+    parser = BoundedParser(description=__doc__)
+    parser.add_argument("run_dir")
     parser.add_argument("selection", help="Run-relative selection JSON")
     parser.add_argument("profile", help="Run-relative editor profile JSON")
+    parser.add_argument("--summary", action="store_true", help="Compact metadata after full plan validation")
     args = parser.parse_args()
     try:
-        print(json.dumps(build(args.run_dir, args.selection, args.profile), ensure_ascii=False, allow_nan=False, indent=2))
+        plan = build(args.run_dir, args.selection, args.profile)
+        if args.summary:
+            print(json.dumps(make_summary(plan), ensure_ascii=False, allow_nan=False, separators=(",", ":")))
+        else:
+            print(json.dumps(plan, ensure_ascii=False, allow_nan=False, indent=2))
         return 0
     except (OSError, ValueError, TypeError, KeyError, RecursionError) as exc:
-        print(f"editor-marker-plan: {exc}", file=sys.stderr)
+        emit_error(exc)
         return 1
 
 

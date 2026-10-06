@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-05T23:46:51.481815+00:00",
+  "python": "3.14.6",
+  "platform": "macos-arm64",
+  "packages": [
+    {
+      "name": "onnxruntime",
+      "version": "1.30.0",
+      "metadata_url": "https://pypi.org/pypi/onnxruntime/1.30.0/json",
+      "filename": "onnxruntime-1.30.0-cp314-cp314-macosx_14_0_arm64.whl",
+      "url": "https://files.pythonhosted.org/packages/6a/03/05c9a9234688757d2876ddecf80bba908561ee11debf125bc1a427ae6f48/onnxruntime-1.30.0-cp314-cp314-macosx_14_0_arm64.whl",
+      "sha256": "8b6169c16a48429890d2f4a0c774ebf54dfe9066a998514aad0518a16d398547",
+      "bytes": 21545313,
+      "requires_dist": [
+        "flatbuffers",
+        "numpy>=1.21.6",
+        "packaging",
+        "protobuf>=4.25.8",
+        "sympy; extra == \"symbolic\"",
+        "ml_dtypes; extra == \"quantization\""
+      ]
+    },
+    {
+      "name": "numpy",
+      "version": "2.5.3",
+      "metadata_url": "https://pypi.org/pypi/numpy/2.5.3/json",
+      "filename": "numpy-2.5.3-cp314-cp314-macosx_11_0_arm64.whl",
+      "url": "https://files.pythonhosted.org/packages/9e/59/abcc2d8def4fd60eec7d87f92d27c13448ffd9ab14339bcc63a0d7a2fdea/numpy-2.5.3-cp314-cp314-macosx_11_0_arm64.whl",
+      "sha256": "012e66aca395d795496446e52aeeb5866312a5d4d3f27da270e5a0b43f70dc5c",
+      "bytes": 12013862,
+      "requires_dist": null
+    },
+    {
+      "name": "flatbuffers",
+      "version": "25.12.19",
+      "metadata_url": "https://pypi.org/pypi/flatbuffers/json",
+      "filename": "flatbuffers-25.12.19-py2.py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/e8/2d/d2a548598be01649e2d46231d151a6c56d10b964d94043a335ae56ea2d92/flatbuffers-25.12.19-py2.py3-none-any.whl",
+      "sha256": "7634f50c427838bb021c2d66a3d1168e9d199b0607e6329399f04846d42e20b4",
+      "bytes": 26661,
+      "requires_dist": null
+    },
+    {
+      "name": "packaging",
+      "version": "26.3",
+      "metadata_url": "https://pypi.org/pypi/packaging/json",
+      "filename": "packaging-26.3-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
+      "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+      "bytes": 129956,
+      "requires_dist": null
+    },
+    {
+      "name": "protobuf",
+      "version": "7.36.2",
+      "metadata_url": "https://pypi.org/pypi/protobuf/json",
+      "filename": "protobuf-7.36.2-cp310-abi3-macosx_10_9_universal2.whl",
+      "url": "https://files.pythonhosted.org/packages/32/72/98342feb672507c8f3a69e34b4fa8961f608edba5c1a48a6f47156d92cb5/protobuf-7.36.2-cp310-abi3-macosx_10_9_universal2.whl",
+      "sha256": "cbc70b17ee27e28894c7fee8bb04be1abead49e936bc70eb60052531eee2079e",
+      "bytes": 456039,
+      "requires_dist": null
+    }
+  ]
+}

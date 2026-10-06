@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-06 00:53:42 UTC",
+  "authority": "Root explicit independent read-only fresh-runtime qualification audit; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "auditor": "/root/tonal_inference/tonal_audit",
+  "scope": "Local-only fresh optional runtime archive, installed-member, environment-layout and frozen-active-state audit",
+  "fresh_checkout_root": "artifacts/runtime-repro/checkout-20261006T004817Z",
+  "owner_receipt": "docs/agent-notes/2026-10-06-basic-pitch-runtime-fresh-setup.json",
+  "status": "PASS",
+  "owner_receipt_sha256": "c798ace0e3a90ff59843008d60e420048bef9d75a0c3fb390d5fd4438ad1f51c",
+  "archive_inventory": [
+    {
+      "package": "onnxruntime",
+      "members": 352,
+      "expanded_bytes": 78214556,
+      "archive_bytes": 21545313,
+      "sha256": "8b6169c16a48429890d2f4a0c774ebf54dfe9066a998514aad0518a16d398547"
+    },
+    {
+      "package": "numpy",
+      "members": 1045,
+      "expanded_bytes": 38714574,
+      "archive_bytes": 12013862,
+      "sha256": "012e66aca395d795496446e52aeeb5866312a5d4d3f27da270e5a0b43f70dc5c"
+    },
+    {
+      "package": "flatbuffers",
+      "members": 14,
+      "expanded_bytes": 87988,
+      "archive_bytes": 26661,
+      "sha256": "7634f50c427838bb021c2d66a3d1168e9d199b0607e6329399f04846d42e20b4"
+    },
+    {
+      "package": "packaging",
+      "members": 29,
+      "expanded_bytes": 499179,
+      "archive_bytes": 129956,
+      "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"
+    },
+    {
+      "package": "protobuf",
+      "members": 63,
+      "expanded_bytes": 1661962,
+      "archive_bytes": 456039,
+      "sha256": "cbc70b17ee27e28894c7fee8bb04be1abead49e936bc70eb60052531eee2079e"
+    }
+  ],
+  "total_archive_members": 1503,
+  "total_archive_bytes": 34171831,
+  "total_expanded_bytes": 119178259,
+  "verified_installed_members": 1349,
+  "fresh_file_symlink_count": 1402,
+  "fresh_disk_bytes": 153654083,
+  "fresh_snapshot_sha256": "9231bd1b244d15d2dea30b01fa883f34914649e9ab90da621c153ad1f9679b25",
+  "active_file_symlink_count": 1484,
+  "active_snapshot_sha256": "1194383294f2b0895bcbf289c8f3b525aa0aebe7da1edb9648a591a749308ea8",
+  "fixed_sources_verified": {
+    "pyproject.toml": "6b9d4059495b851065c17f21e1d6f062a33e01985637ed1c3e2dcf79fa7bfb48",
+    "uv.lock": "7c139ccf48935462a375d97f8df3486118ad1a4d571b82928f3865280e4cede5",
+    "program/models.json": "ff3d4251a089ca81e6c6a2e7bcbe67023fa52be4f687f619aa1b94be151a5533",
+    "scripts/basic_pitch_compare.py": "407ff9fe99edbc863b3822c98683026841a3e03d2f6b7705a746bf7c68025cf3",
+    "scripts/basic_pitch_runtime_setup.py": "4da3b0f321e2918b44bbb46c6a5688b5ab5f633a59ba1f7ae020b27b5e4b7dd6",
+    "program/basic-pitch-runtime.json": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
+    ".venv/pyvenv.cfg": "9f268a99d4078cab104f56d60621ca77a3ac84652ee3aafc865e033ec9d522cc"
+  },
+  "copied_sources_verified": [
+    "tests/test_basic_pitch_runtime_setup.py",
+    "tests/test_basic_pitch_runtime_setup_audit.py",
+    "scripts/basic_pitch_runtime_setup.py",
+    "program/basic-pitch-runtime.json"
+  ],
+  "fresh_and_active_unchanged_during_audit": true,
+  "setup_elapsed_owner_reported_seconds": 44.818019207999896,
+  "same_external_base_interpreter_distinct_lexical_venvs": true,
+  "model_download_inference_performed_by_auditor": false,
+  "checks": [
+    "Five exact official-host wheel extents and SHA256 values match immutable c0e lock; wheel METADATA names, versions and Requires-Dist match.",
+    "1503 archive entries are unique and confined, with permitted types and no symlinks, encryption, traversal or .data relocation; 119178259 expanded bytes remain within 150 MiB budget.",
+    "1349 non-directory archive members excluding five installer-rewritten RECORD files match both installed-member manifest and actual confined site-packages bytes. All runtime files, including rewritten RECORD and installer-generated files, enter the full snapshot.",
+    "Copied installer, lock and two test files are byte-identical to current audited source; main pyproject, uv.lock, model registry, comparator407 and .venv config retain pre-setup hashes.",
+    "Setup receipt hash and nested result agree; recorded venv creation and offline uv installation target the final stable fresh path and lexical python/bin/python launcher.",
+    "Fresh pyvenv.cfg specifies CPython3.14.6 with system packages excluded and final stable path. Fresh and active venv launchers share the same existing external base interpreter, while their lexical environments and site-packages remain separate.",
+    "1402 fresh files/symlinks and all1484 active files/symlinks are unchanged across this audit. Canonical full snapshot hashes reproduce owner readback and active pre-setup evidence.",
+    "Fresh checkout has no Basic Pitch package, nmp.onnx or project model directory; wheel-bundled runtime sample graphs are not Basic Pitch model acquisition."
+  ],
+  "claim_boundaries": [
+    "44.818019207999896-second successful fresh setup, child return codes and imported runtime versions are owner execution evidence, read back from immutable setup receipt; this audit did not repeat execution.",
+    "This PASS qualifies reproducible optional dependency setup on the stated native macOS arm64 CPython3.14.6 platform. It does not qualify model acquisition, model inference, pitch correctness, audio acceptance, or AU/Logic acceptance."
+  ],
+  "not_performed": [
+    "Network access/downloads",
+    "Installs or interpreter execution inside fresh/active optional runtime",
+    "Model inference or imports of model/runtime libraries",
+    "Parent source/test/lock changes",
+    "Environment cleanup, relocation or host changes"
+  ],
+  "post_audit_source_readback": {
+    "later_change_receipt": "docs/agent-notes/2026-10-06-basic-pitch-missing-model-ci-fix.json",
+    "later_change_receipt_sha256_verified": "80cf4ca58e1e9f5e24d1135e96b51c006b590cd6dc145323edd3975acc2d3841",
+    "status": "Six frozen source hashes remain identical; comparator changed after initial independent snapshot readback",
+    "changed_path": "scripts/basic_pitch_compare.py",
+    "qualification_and_initial_audit_sha256": "407ff9fe99edbc863b3822c98683026841a3e03d2f6b7705a746bf7c68025cf3",
+    "later_current_sha256": "720a1f76103426d1cc7580d213d3516f31b184295a50d873bda545ccc5a2d40e",
+    "authorization": "Root and parent confirm later root-authorized missing-model error hotfix following CI run37395852387, after fresh setup/prepost snapshots. Model-prefetch ValueError replaces raw FileNotFoundError. No new download/inference.",
+    "interpretation": "Fresh runtime/archive/member qualification PASS remains valid. Current comparator source is a subsequent authorized change, and original407 comparison evidence stays historical. This note does not audit720a hotfix behavior."
+  }
+}

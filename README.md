@@ -117,7 +117,9 @@ overwrite the input.
 | `just pitch-evaluate FIXTURES PILOT OUTPUT` | Score existing synthetic pitch receipts |
 | `just phrase-evaluate FIXTURES PILOT OUTPUT` | Score existing synthetic phrase receipts |
 | `just basic-pitch RUN_DIR [SECONDS]` | Compare sparse learned pitch hypotheses with a qualified local CPU runtime |
+| `just basic-pitch-runtime-setup PYTHON` / `just basic-pitch-runtime-check` | Explicitly install or verify the isolated five-wheel CPU environment |
 | `just capture-profile INPUT RUN_DIR REVIEW START END` | Author fresh source-bound settings without rendering audio |
+| `just editor-marker-plan RUN_DIR SELECTION PROFILE` | Plan source-timed editor metadata; native import remains unverified |
 | `just holdout-plan OUTPUT` / `just holdout-validate PLAN` | Declare or verify the fixed generated holdout design |
 | `just holdout-generate PLAN OUTPUT [TIMEOUT]` | Generate the declared component bank without inference |
 | `just review RUN_DIR [PORT]` | Open a local video/audio review and annotation screen |
@@ -149,10 +151,14 @@ official Basic Pitch ONNX artifact; downloading it through `model-prefetch` is
 explicit. Its isolated CPU runtime is separately qualified and required for
 `basic-pitch`; the baseline demo never installs it. Runtime success does not
 establish accurate distorted C1 notes, and the generated missing-fundamental
-pilot failed C1 identification. See [runtime qualification](docs/research/BASIC_PITCH_QUALIFICATION.md).
+pilot failed C1 identification. Explicit setup requires an existing CPython 3.14.6
+on native macOS arm64, macOS 14 or newer, and downloads only the five pinned wheels;
+it leaves the main analysis environment intact. Run `just model-prefetch
+spotify-basic-pitch-0.4.0-onnx`, then `just basic-pitch-runtime-setup /path/to/python3.14`
+and `just basic-pitch-runtime-check`. See [runtime qualification](docs/research/BASIC_PITCH_QUALIFICATION.md).
 
 The repository includes a versioned tool contract, a local MCP stdio server,
-and twenty-five per-tool skills for researching and tuning restoration, analysis, comparison, and review.
+and twenty-six per-tool skills for researching and tuning restoration, analysis, comparison, and review.
 Inspect `just tool-info NAME` or launch
 `just mcp` from the repository root. Local invocation is
 separate from connecting an external agent client; see

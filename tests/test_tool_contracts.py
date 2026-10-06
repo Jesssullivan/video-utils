@@ -17,7 +17,145 @@ import tool_api
 import mcp_server
 
 
+def basic_pitch_missing_test_artifacts():
+    """Availability only; present but corrupt qualified artifacts must fail inference."""
+    import basic_pitch_compare as comparator
+    cached = comparator.ROOT / 'models' / (comparator.MODEL_ID + '.bin')
+    selected = cached if cached.exists() else comparator.LOCAL_MODEL
+    return [label for label, path in (('local model', selected), ('isolated runtime', comparator.RUNTIME),
+                                     ('runtime wheel manifest', comparator.WHEEL_MANIFEST)) if not path.is_file()]
+
+
 class ToolContractTests(unittest.TestCase):
+    def editor_marker_fixture(self):
+        from test_editor_marker_plan import EditorMarkerPlanTests
+        run = ROOT / 'artifacts/runs' / ('contract-editor-plan-' + uuid.uuid4().hex)
+        run.mkdir(parents=True); self.addCleanup(shutil.rmtree, run, ignore_errors=True)
+        EditorMarkerPlanTests().disk_fixture(run)
+        return run, {'run_dir': str(run), 'selection': 'selection.json', 'profile': 'profile.json'}
+
+    def test_editor_marker_schema_paths_and_no_host_controls(self):
+        args = {'run_dir': 'artifacts/runs/existing', 'selection': 'selection.json', 'profile': 'profile.json'}
+        invalid = [dict(args, selection='../selection.json'), dict(args, profile='/absolute/profile.json'),
+                   dict(args, profile='https://editor.invalid/profile.json'), dict(args, selection='hidden/.partial.json'),
+                   dict(args, profile='profile.py'), dict(args, profile='a//profile.json'),
+                   dict(args, selection='profile.json'), dict(args, profile='manifest.json'),
+                   dict(args, selection='x' * 1025), dict(args, timeout_seconds=True), dict(args, timeout_seconds=121),
+                   dict(args, run_dir='x' * 4097), dict(args, output='import.fcpxml'), dict(args, editor_api='AddMarker'),
+                   dict(args, apply=True), dict(args, profile_json={'target': 'davinci_resolve'}),
+                   {'run_dir': args['run_dir'], 'profile': args['profile']}]
+        for arguments in invalid:
+            with self.subTest(arguments=arguments), patch.object(tool_api, 'run_worker') as worker:
+                with self.assertRaises(tool_api.ValidationError):
+                    tool_api.execute('editor_marker_plan', arguments)
+                worker.assert_not_called()
+
+    def test_editor_marker_dispatch_fixed_summary_and_bounded_metadata(self):
+        run, args = self.editor_marker_fixture()
+        command = tool_api.worker_command('editor_marker_plan', args)
+        self.assertEqual(command[1:], [str(ROOT / 'scripts/editor_marker_plan.py'), str(run),
+            'selection.json', 'profile.json', '--summary'])
+        with patch.object(tool_api, 'run_worker', return_value={'executable': False}) as worker:
+            tool_api.execute('editor_marker_plan', args)
+            self.assertEqual(worker.call_args.args[1], 120)
+            self.assertEqual(worker.call_args.kwargs, {})
+        (run / 'linked.json').symlink_to(run / 'profile.json')
+        with self.assertRaisesRegex(tool_api.ToolError, 'symlink'):
+            tool_api.worker_command('editor_marker_plan', dict(args, profile='linked.json'))
+        with (run / 'oversized.json').open('wb') as handle: handle.truncate(20000001)
+        with self.assertRaisesRegex(tool_api.ToolError, 'bounded'):
+            tool_api.worker_command('editor_marker_plan', dict(args, profile='oversized.json'))
+        with self.assertRaises(tool_api.ToolError):
+            tool_api.worker_command('editor_marker_plan', dict(args, profile='missing.json'))
+
+    def test_real_editor_marker_mcp_metadata_summary_is_readonly_and_unverified(self):
+        from test_mcp import exchange, initialization, request
+        run, args = self.editor_marker_fixture()
+        profile_path = run / 'profile.json'; profile = json.loads(profile_path.read_text())
+        complete, complete_stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+            request(2, 'tools/call', {'name': 'editor_marker_plan', 'arguments': args})], timeout=15)
+        self.assertEqual(complete_stderr, '')
+        self.assertFalse(complete[1]['result']['isError'], complete[1])
+        fixture_summary = complete[1]['result']['structuredContent']['result']
+        self.assertGreater(fixture_summary['action_count'], 0)
+        self.assertFalse(fixture_summary['executable'])
+        self.assertEqual(fixture_summary['native_contract_status'], 'native_contract_unverified')
+        profile.pop('pts_artifact'); profile['input_sha256'].pop('pts.json'); profile.pop('fixture_grid')
+        profile_path.write_text(json.dumps(profile))
+        before = {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in run.iterdir()}
+        with patch.dict(os.environ, {'FFMPEG': '/nonexistent/ffmpeg', 'FFPROBE': '/nonexistent/ffprobe'}):
+            replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+                request(2, 'tools/call', {'name': 'editor_marker_plan', 'arguments': args})], timeout=15)
+        self.assertEqual(stderr, '')
+        response = replies[1]['result']; self.assertFalse(response['isError'], response)
+        result = response['structuredContent']['result']
+        self.assertEqual(result['format'], 'editor_marker_dry_run_summary')
+        self.assertEqual(result['native_contract_status'], 'native_contract_unverified')
+        self.assertFalse(result['executable']); self.assertEqual(result['action_count'], 0)
+        self.assertEqual((result['marker_count'], result['selected_count'], result['excluded_count']), (1, 1, 0))
+        self.assertEqual(result['plan_status'], 'calibration_required')
+        self.assertEqual(result['disposition_counts'], {'video_coverage_unverified': 1})
+        self.assertNotIn('markers', result); self.assertNotIn('actions', result)
+        self.assertEqual(result['scope'], 'source_metadata_only_no_editor_invocation')
+        self.assertEqual(set(before), set(run.iterdir()))
+        for path, digest in before.items():
+            self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), digest)
+
+    def test_real_editor_marker_mcp_rejects_closed_profile_stale_and_nonfinite_data(self):
+        from test_mcp import exchange, initialization, request
+        run, args = self.editor_marker_fixture()
+        path = run / 'profile.json'; good = json.loads(path.read_text())
+        for profile in (dict(good, executable=True), dict(good, schema_version=True),
+                        dict(good, fixture_grid=dict(good['fixture_grid'], script='AddMarker')),
+                        dict(good, existing_markers=[{'fixture_frame_id': 1, 'command': 'AddMarker'}]),
+                        dict(good, input_sha256=dict(good['input_sha256'], **{'manifest.json': 'b' * 64})),
+                        dict(good, source_origin=float('nan'))):
+            path.write_text(json.dumps(profile))
+            replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+                request(2, 'tools/call', {'name': 'editor_marker_plan', 'arguments': args})], timeout=15)
+            self.assertEqual(stderr, '')
+            self.assertTrue(replies[1]['result']['isError'])
+            self.assertIn('editor-marker-plan:', json.loads(replies[1]['result']['content'][0]['text'])['error'])
+        self.assertEqual(set(p.name for p in run.iterdir()), {'manifest.json', 'flags.json', 'markers.json',
+                                                               'selection.json', 'profile.json', 'pts.json'})
+
+    def test_real_editor_marker_mcp_summary_fits_pipe_after_large_full_plan(self):
+        import editor_marker_plan as planner
+        from test_mcp import exchange, initialization, request
+        run, args = self.editor_marker_fixture()
+        flags = {'source_sha256': 'a' * 64, 'flags': [{'source_time_seconds': 1 + index / 10000,
+            'end_seconds': 1 + index / 10000, 'kind': 'review_candidate', 'status': 'needs_review',
+            'evidence': {'detail': 'x' * 2000}} for index in range(1200)]}
+        (run / 'flags.json').write_text(json.dumps(flags))
+        generic, _ = planner.markers.build(run)
+        (run / 'markers.json').write_text(json.dumps(generic))
+        selection = {'source_sha256': 'a' * 64, 'selected_markers': [
+            {'marker_index': index, 'marker_id': planner.marker_id(index, row)}
+            for index, row in enumerate(generic['markers'])]}
+        (run / 'selection.json').write_text(json.dumps(selection))
+        profile = {'target': 'davinci_resolve', 'source_sha256': 'a' * 64,
+                   'input_sha256': {name: hashlib.sha256((run / name).read_bytes()).hexdigest()
+                                    for name in ('markers.json', 'manifest.json', 'selection.json')}}
+        (run / 'profile.json').write_text(json.dumps(profile))
+        full = planner.build(run, 'selection.json', 'profile.json')
+        self.assertGreater(len(json.dumps(full).encode()), tool_api.MAX_WORKER_OUTPUT)
+        replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+            request(2, 'tools/call', {'name': 'editor_marker_plan', 'arguments': args})], timeout=30)
+        self.assertEqual(stderr, '')
+        response = replies[1]['result']; self.assertFalse(response['isError'], response)
+        summary = response['structuredContent']['result']
+        self.assertEqual((summary['marker_count'], summary['selected_count'], summary['excluded_count']), (1200, 1200, 0))
+        self.assertEqual(summary['action_count'], 0); self.assertFalse(summary['executable'])
+        self.assertLess(len(json.dumps(summary).encode()), 65536)
+
+    def test_editor_marker_prompt_exact_readback(self):
+        from test_mcp import exchange, initialization, request
+        replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+            request(2, 'prompts/get', {'name': 'editor-marker-plan'})])
+        self.assertEqual(stderr, '')
+        self.assertEqual(replies[1]['result']['messages'][0]['content']['text'],
+                         (ROOT / '.agents/skills/editor-marker-plan/SKILL.md').read_text())
+
     def capture_profile_fixture(self):
         import math, struct, wave
         temp = tempfile.TemporaryDirectory(); self.addCleanup(temp.cleanup)
@@ -269,17 +407,46 @@ class ToolContractTests(unittest.TestCase):
                     comparator.build(run, comparator.settings(2))
                 decoder.assert_not_called()
                 model.unlink()
-                with self.assertRaises(FileNotFoundError):
+                with self.assertRaisesRegex(ValueError, 'Qualified Basic Pitch model missing'):
                     comparator.build(run, comparator.settings(2))
                 decoder.assert_not_called()
             absent = root / 'absent-runtime'
-            with patch.object(comparator, 'RUNTIME', absent), patch.object(comparator.subprocess, 'run') as decoder:
+            # A deliberately mocked model preflight isolates launcher rejection;
+            # this fixture is not qualified weights and requires no download.
+            model.write_bytes(b'\0' * 230444)
+            original_sha = comparator.sha256
+            def fixture_sha(path):
+                return comparator.MODEL_HASH if Path(path) == model else original_sha(path)
+            with patch.object(comparator, 'ROOT', root), patch.object(comparator, 'LOCAL_MODEL', model), \
+                    patch.object(comparator, 'RUNTIME', absent), patch.object(comparator, 'sha256', side_effect=fixture_sha), \
+                    patch.object(comparator.subprocess, 'run') as decoder:
                 with self.assertRaisesRegex(ValueError, 'qualified isolated venv launcher'):
                     comparator.build(run, comparator.settings(2), runtime_python=absent)
                 decoder.assert_not_called()
             self.assertFalse((run / 'learned-pitch').exists())
 
+    def test_basic_pitch_runtime_gate_reports_missing_offline_artifacts_without_acquisition(self):
+        import basic_pitch_compare as comparator
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            paths = {'LOCAL_MODEL': root / 'missing.onnx', 'RUNTIME': root / 'missing-python',
+                     'WHEEL_MANIFEST': root / 'missing-runtime.json'}
+            with patch.object(comparator, 'ROOT', root), patch.multiple(comparator, **paths), \
+                    patch.object(comparator.subprocess, 'run') as process:
+                self.assertEqual(basic_pitch_missing_test_artifacts(),
+                                 ['local model', 'isolated runtime', 'runtime wheel manifest'])
+                for path in paths.values():
+                    path.write_bytes(b'intentionally unqualified fixture')
+                # Availability does not bless bad bytes: the real worker remains
+                # responsible for rejecting present corrupted artifacts.
+                self.assertEqual(basic_pitch_missing_test_artifacts(), [])
+                process.assert_not_called()
+
     def test_real_basic_pitch_mcp_qualified_two_second_comparison_and_stale_input(self):
+        missing = basic_pitch_missing_test_artifacts()
+        if missing:
+            self.skipTest('Optional qualified Basic Pitch inference unavailable: ' + ', '.join(missing)
+                          + '; no model/runtime acquisition in tests')
         from test_mcp import exchange, initialization, request
         root = ROOT / 'artifacts/runs' / ('contract-basic-pitch-' + uuid.uuid4().hex)
         self.addCleanup(shutil.rmtree, root, ignore_errors=True)
@@ -815,7 +982,7 @@ class ToolContractTests(unittest.TestCase):
             expected = [item for field in tool_api.PIPELINE_SELECTORS
                         for item in ('--' + field.replace('_', '-'), arguments[field])]
             self.assertEqual(command[3:], expected)
-            self.assertEqual(len(tool_api.descriptors()), 25)
+            self.assertEqual(len(tool_api.descriptors()), 26)
 
     def test_pipeline_missing_or_symlink_selector_does_not_launch(self):
         with tempfile.TemporaryDirectory() as temporary, tempfile.TemporaryDirectory() as outside:
@@ -843,12 +1010,12 @@ class ToolContractTests(unittest.TestCase):
         self.assertEqual(envelope['status'], 'completed')
         self.assertNotEqual(envelope['result']['selected_evidence']['tonal']['status'], 'verified')
 
-    def test_pipeline_prompt_exact_readback_and_twenty_five_tool_catalog(self):
+    def test_pipeline_prompt_exact_readback_and_twenty_six_tool_catalog(self):
         from test_mcp import exchange, initialization, request
         replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
             request(2, 'tools/list'), request(3, 'prompts/get', {'name': 'guitar-pipeline'})])
         self.assertEqual(stderr, '')
-        self.assertEqual(len(replies[1]['result']['tools']), 25)
+        self.assertEqual(len(replies[1]['result']['tools']), 26)
         pipeline = next(tool for tool in replies[1]['result']['tools'] if tool['name'] == 'pipeline')
         self.assertTrue(set(tool_api.PIPELINE_SELECTORS) <= set(pipeline['inputSchema']['properties']))
         self.assertEqual(replies[2]['result']['messages'][0]['content']['text'],

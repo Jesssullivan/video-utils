@@ -628,3 +628,38 @@ AU/Logic runtime qualification. Existing media and rejected/weak experiments sta
 Only the three owned tracking docs change here; root metadata/external systems
 are untouched. Goal remains active, planned end 2026-10-06 06:49:34 UTC. Tracking
 refreezes for root publication after diff-check/handoff.
+
+
+## Published25 tools and exact hosted failure readback — October 6, 00:51:34 UTC
+
+Root verified private/signature-valid published 1845bb0f1a86421a201fc3cb784cf84a4e8d25ec,
+25 tools/skills. Local root suite477 discovered/476 passed/one optional runtime-pilot
+skip in 208.533 seconds, separate 21 audited CLI editor-planner tests in 0.220 seconds,
+71 hook checks/all 25 skills, staged scans 883,285+56,177 bytes PASS. Source checks,
+optional runtime coverage, editor coordinates and actual media remain distinct.
+Root's initial publication CI readback was in_progress; that is historical evidence.
+
+This tracking lane independently read run 37395852387 via gh at 00:51:34 UTC:
+completed FAILURE, exact 1845bb0 head, updated2026-10-06T00:49:32Z. The offline
+job 112051496851 failed Python/synthetic-media checks; hosted Rust/secrets skipped.
+Annotation states exit 1; causal test details remain unknown in this lane.
+The attempted log-failed read hit a local cache ZIP error, not a source diagnosis.
+Root was immediately notified for investigation. Prior c59d hosted SUCCESS cannot
+qualify the newly published source. Local 476 passed/secret scans stay valid within
+their own scope. No root publication/tracker metadata was modified here.
+
+Root read back D0 comment 9ecac959-04bf-46f4-a950-99821d3605dd and active-goal
+comment b028a3f1-4f17-4d41-ae63-db00f606ebf3; Project 25-tool content updated.
+Subsequent failed-CI tracker reconciliation remains root-owned.
+Media/latest/report remain the complete enhanced 232741 delivery; no new render,
+listening acceptance, note correctness, native editor import or Logic host proof.
+
+Active future work stays isolated: editor hook/skill 26 final closed --summary,
+profile/source-bounds checks; portable runtime setup 4da… fresh checkout 45-second
+setup passed for five wheels with no weights/inference, fresh-installed independent
+readback pending; pure learned evaluator 19 tests/MIR closed 1fb8…; low-register probe
+32 masks/64 source seconds completed 65 seconds structural PASS with two quality alerts,
+independent clip oracle audit pending. These prototypes were excluded from the
+published 25 joint suite and are not promoted by local passes. Existing receipts and
+owner source remain preserved. The goal is active through unchanged
+2026-10-06 06:49:34 UTC. Three tracking docs refreeze for root handoff/publication.

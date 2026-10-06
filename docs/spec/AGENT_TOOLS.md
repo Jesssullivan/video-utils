@@ -40,7 +40,7 @@ exposed controls. Media/model downloads and uploads are never implicit.
 
 ## Tool map and capability boundaries
 
-The twenty-five entries below are present in the current local registry.
+The twenty-six entries below are present in the current local registry.
 The dated reconciliation checkpoint at October 5, 2026, 23:25 UTC found twenty
 tools in committed `HEAD` and `origin/main` (`04f64844c2c15d69adda2fc0b1e89a4e2702b82f`),
 and twenty-three in the working tree. `pitch_evaluate`, `phrase_evaluate` and
@@ -78,6 +78,7 @@ launches.
 | `marked_video` | `guitar-marked-video` | Source-verified local separate burned review preview with generated VFR preservation checks; uncertain callouts, no master overwrite or real-take listening claim. |
 | `basic_pitch_compare` | `guitar-basic-pitch` | Optional hash-qualified CPU comparison with retained raw heads, sparse coverage, three clocks and experimental event hypotheses; no intended-note grading. |
 | `capture_profile` | `guitar-capture-profile` | Fresh source-bound settings and review receipts; distinguishes authoring-only proposals, authorized unrendered profiles and rejected captures; no DSP or listening acceptance. |
+| `editor_marker_plan` | `editor-marker-plan` | Bounded source-time metadata planning with closed calibration profiles and compact summaries; unknown VFR/host mapping abstains, with no native import or executable editor actions. |
 
 Each skill's worker fallback is documented in its `SKILL.md`. Experimental
 feature tools use `scripts/guitar_features.py TOOL INPUT --run-dir DIR`; discover
@@ -267,7 +268,7 @@ denoising before gain; it does not measure removal or alteration caused by EQ,
 compression or normalization. Analysis on `denoised.wav` therefore describes a
 different processing stage from a tone/dynamics-enhanced delivery. Source-level
 stage support and new profile controls require their own real-run and registry
-receipts; they are not implied by the twenty-five-tool catalog.
+receipts; they are not implied by the twenty-six-tool catalog.
 
 The published enhanced report shows the restoration chain and captured-noise
 interval beside the clean player, labels the residue's stage scope and displays

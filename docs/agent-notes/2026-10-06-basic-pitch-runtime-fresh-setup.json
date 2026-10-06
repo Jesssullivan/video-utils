@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-06T00:49:56.634305+00:00",
+  "authority": "Root explicit fresh isolated source-only checkout qualification release; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "status": "fresh_isolated_optional_runtime_setup_pass_independent_audit_pending",
+  "fresh_checkout_root": "artifacts/runtime-repro/checkout-20261006T004817Z",
+  "copied_source_files": [
+    "tests/test_basic_pitch_runtime_setup.py",
+    "tests/test_basic_pitch_runtime_setup_audit.py",
+    "scripts/basic_pitch_runtime_setup.py",
+    "program/basic-pitch-runtime.json"
+  ],
+  "installer_sha256": "4da3b0f321e2918b44bbb46c6a5688b5ab5f633a59ba1f7ae020b27b5e4b7dd6",
+  "lock_sha256": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
+  "explicit_existing_python": "/Users/jess/git/video-utils/.venv/bin/python",
+  "setup_receipt": {
+    "path": "artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/setup-receipt.json",
+    "sha256": "c8df9c4439c6021b3f7e82aafe20048a46b3b528b6d2d394ac4c447370a06f9e",
+    "result": {
+      "recorded_utc": "2026-10-06T00:48:34.967342+00:00",
+      "authority": "explicit operator runtime setup; R-HOOK-CONVERGENCE-20261004/R-N13",
+      "status": "runtime_dependencies_qualified",
+      "wheel_lock_sha256": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
+      "uv_version": "uv 0.11.21 (aarch64-apple-darwin)",
+      "jobs": [
+        {
+          "actor_pid": 68221,
+          "target_pid": 68858,
+          "ownership": "Popen direct child checked by PPID",
+          "ruling": "R-N11",
+          "argv": [
+            "/Users/jess/git/video-utils/.venv/bin/python",
+            "-I",
+            "-B",
+            "-m",
+            "venv",
+            "--without-pip",
+            "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/python"
+          ],
+          "returncode": 0,
+          "stop_reason": null,
+          "observed_peak_rss_bytes": 24018944
+        },
+        {
+          "actor_pid": 68221,
+          "target_pid": 68864,
+          "ownership": "Popen direct child checked by PPID",
+          "ruling": "R-N11",
+          "argv": [
+            "/Users/jess/.nix-profile/bin/uv",
+            "--no-config",
+            "--no-cache",
+            "pip",
+            "install",
+            "--python",
+            "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/python/bin/python",
+            "--offline",
+            "--no-index",
+            "--no-deps",
+            "--no-build",
+            "--no-python-downloads",
+            "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/onnxruntime-1.30.0-cp314-cp314-macosx_14_0_arm64.whl",
+            "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/numpy-2.5.3-cp314-cp314-macosx_11_0_arm64.whl",
+            "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/flatbuffers-25.12.19-py2.py3-none-any.whl",
+            "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/packaging-26.3-py3-none-any.whl",
+            "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/protobuf-7.36.2-cp310-abi3-macosx_10_9_universal2.whl"
+          ],
+          "returncode": 0,
+          "stop_reason": null,
+          "observed_peak_rss_bytes": 33652736
+        }
+      ],
+      "limits": {
+        "wheel_bytes": 33554432,
+        "all_wheel_bytes": 67108864,
+        "uncompressed_bytes": 157286400,
+        "members": 4000,
+        "disk_bytes": 268435456,
+        "rss_bytes": 1073741824,
+        "deadline_seconds": 600,
+        "log_bytes": 2097152
+      },
+      "runtime_dir": "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314",
+      "python": "3.14.6",
+      "versions": {
+        "onnxruntime": "1.30.0",
+        "numpy": "2.5.3",
+        "flatbuffers": "25.12.19",
+        "packaging": "26.3",
+        "protobuf": "7.36.2"
+      },
+      "installed_member_count": 1349,
+      "disk_bytes": 153375782,
+      "model_acquired": false,
+      "inference_performed": false,
+      "elapsed_seconds": 44.818019207999896
+    }
+  },
+  "installed_member_manifest": {
+    "path": "artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/installed-wheel-members.json",
+    "sha256": "fb397f6c897a43a56dd5177feefab70eeb02b4fd2b442e6fa159988ac5669a3b",
+    "member_count": 1349
+  },
+  "readonly_check": {
+    "status": "already_qualified",
+    "runtime_dir": "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314",
+    "wheel_lock_sha256": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
+    "python": "3.14.6",
+    "versions": {
+      "onnxruntime": "1.30.0",
+      "numpy": "2.5.3",
+      "flatbuffers": "25.12.19",
+      "packaging": "26.3",
+      "protobuf": "7.36.2"
+    },
+    "installed_member_count": 1349,
+    "disk_bytes": 153654083,
+    "model_acquired": false,
+    "inference_performed": false
+  },
+  "fresh_runtime_readonly_check_snapshots_match": true,
+  "fresh_runtime_snapshot_sha256": "9231bd1b244d15d2dea30b01fa883f34914649e9ab90da621c153ad1f9679b25",
+  "active_runtime_1484_snapshots_match": true,
+  "active_runtime_snapshot_sha256": "1194383294f2b0895bcbf289c8f3b525aa0aebe7da1edb9648a591a749308ea8",
+  "fixed_source_snapshots_unchanged": {
+    "pyproject.toml": "6b9d4059495b851065c17f21e1d6f062a33e01985637ed1c3e2dcf79fa7bfb48",
+    "uv.lock": "7c139ccf48935462a375d97f8df3486118ad1a4d571b82928f3865280e4cede5",
+    "program/models.json": "ff3d4251a089ca81e6c6a2e7bcbe67023fa52be4f687f619aa1b94be151a5533",
+    "scripts/basic_pitch_compare.py": "407ff9fe99edbc863b3822c98683026841a3e03d2f6b7705a746bf7c68025cf3",
+    "scripts/basic_pitch_runtime_setup.py": "4da3b0f321e2918b44bbb46c6a5688b5ab5f633a59ba1f7ae020b27b5e4b7dd6",
+    "program/basic-pitch-runtime.json": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
+    ".venv/pyvenv.cfg": "9f268a99d4078cab104f56d60621ca77a3ac84652ee3aafc865e033ec9d522cc"
+  },
+  "no_models_in_fresh_checkout": true,
+  "not_performed": [
+    "weight_download",
+    "model_inference",
+    "active_runtime_or_venv_move",
+    "active_runtime_mutation",
+    "comparator_worker_mutation",
+    "main_uv_lock_or_pyproject_mutation",
+    "source_media_latest_or_sibling_change"
+  ]
+}
