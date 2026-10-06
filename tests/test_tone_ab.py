@@ -450,7 +450,8 @@ class FFmpegRunTests(FixtureBase):
         cls.run_dir = cls.template
         cls.before = tone_ab.snapshot(cls.run_dir)
         cls.out = cls.base / "s2" / "tone_ab" / "fixture-run"
-        cls.record = tone_ab.run(args(cls.run_dir), cls.out)
+        # Maximum deadline: shared hosts can be heavily contended (receipt load ~90-390 on 6 cores).
+        cls.record = tone_ab.run(args(cls.run_dir, timeout_seconds=1800), cls.out)
         cls.saved = json.loads((cls.out / "tone-ab.json").read_text())
 
     def test_no_master_overwrite_and_protected_readback(self):

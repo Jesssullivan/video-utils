@@ -1,0 +1,1055 @@
+{
+  "absent_arms": [],
+  "arms": [
+    {
+      "file": "source.wav",
+      "flags": [],
+      "hash_verified": true,
+      "label": "source",
+      "manifest_sha256": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a",
+      "native_extent": {
+        "ffprobe_status": "cross_checked",
+        "riff": {
+          "bits_per_sample": 32,
+          "channels": 1,
+          "format_tag": 3,
+          "frames": 6657385,
+          "sample_rate": 44100
+        },
+        "verified": true
+      },
+      "sha256": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a"
+    },
+    {
+      "file": "denoised.wav",
+      "flags": [],
+      "hash_verified": true,
+      "label": "pure_denoise",
+      "manifest_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+      "native_extent": {
+        "ffprobe_status": "cross_checked",
+        "riff": {
+          "bits_per_sample": 32,
+          "channels": 1,
+          "format_tag": 3,
+          "frames": 6657385,
+          "sample_rate": 44100
+        },
+        "verified": true
+      },
+      "sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd"
+    },
+    {
+      "file": "processed.wav",
+      "flags": [],
+      "hash_verified": true,
+      "label": "tone_dynamics_pre_gain",
+      "manifest_sha256": "bd41286de40e20d4a4f0ccb1881b333168622ec71ba5f3967e276625e9c4b5d1",
+      "native_extent": {
+        "ffprobe_status": "cross_checked",
+        "riff": {
+          "bits_per_sample": 32,
+          "channels": 1,
+          "format_tag": 3,
+          "frames": 6657385,
+          "sample_rate": 44100
+        },
+        "verified": true
+      },
+      "sha256": "bd41286de40e20d4a4f0ccb1881b333168622ec71ba5f3967e276625e9c4b5d1"
+    },
+    {
+      "file": "cleaned.wav",
+      "flags": [],
+      "hash_verified": true,
+      "label": "delivery_master",
+      "manifest_sha256": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009",
+      "native_extent": {
+        "ffprobe_status": "cross_checked",
+        "riff": {
+          "bits_per_sample": 24,
+          "channels": 1,
+          "format_tag": 1,
+          "frames": 6657385,
+          "sample_rate": 44100
+        },
+        "verified": true
+      },
+      "sha256": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009"
+    },
+    {
+      "file": "trial-lowshelf.wav",
+      "flags": [
+        "experiment_arm"
+      ],
+      "hash_verified": true,
+      "label": "trial_lowshelf",
+      "manifest_sha256": null,
+      "native_extent": {
+        "ffprobe_status": "not_applicable_rendered_trial",
+        "riff": {
+          "bits_per_sample": 32,
+          "channels": 1,
+          "format_tag": 3,
+          "frames": 6657385,
+          "sample_rate": 44100
+        },
+        "verified": true
+      },
+      "sha256": "7d8637a0925b81eea2dd69a93dcad04f83b81f1b7dad6ec0445d30eac4d09aaa"
+    }
+  ],
+  "attacks": {
+    "analysis": {
+      "basis": "parent_run_from_capture_profile_authoring_dir",
+      "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/analysis.json",
+      "sha256": "4d32f962c5c59920943217cfb72fbe3c9e3eb9fefa3c6d9b79ee648187cadd0a"
+    },
+    "attack_identity": "unverified",
+    "panels": {
+      "primary": {
+        "denominators": {
+          "events_in_analysis": 219,
+          "in_region": 215,
+          "invalid_timestamps": 0,
+          "used": 215
+        },
+        "per_arm": {
+          "delivery_master": {
+            "energy_iqr_db": 4.237,
+            "median_centroid_hz": 2554.8,
+            "median_energy_dbfs_matched": -21.91,
+            "median_energy_dbfs_raw": -18.54,
+            "paired_median_deltas": {
+              "vs_pure_denoise": {
+                "centroid_hz": -173.102,
+                "centroid_pairs": 215,
+                "energy_db_matched": -0.482,
+                "energy_db_raw": 2.888,
+                "pairs": 215
+              },
+              "vs_source": {
+                "centroid_hz": -132.959,
+                "centroid_pairs": 215,
+                "energy_db_matched": -0.512,
+                "energy_db_raw": 2.688,
+                "pairs": 215
+              }
+            }
+          },
+          "pure_denoise": {
+            "energy_iqr_db": 3.257,
+            "median_centroid_hz": 2747.0,
+            "median_energy_dbfs_matched": -22.252,
+            "median_energy_dbfs_raw": -22.252,
+            "paired_median_deltas": {
+              "vs_source": {
+                "centroid_hz": 35.805,
+                "centroid_pairs": 215,
+                "energy_db_matched": -0.124,
+                "energy_db_raw": -0.294,
+                "pairs": 215
+              }
+            }
+          },
+          "source": {
+            "energy_iqr_db": 3.041,
+            "median_centroid_hz": 2690.4,
+            "median_energy_dbfs_matched": -22.054,
+            "median_energy_dbfs_raw": -21.884,
+            "paired_median_deltas": {
+              "vs_pure_denoise": {
+                "centroid_hz": -35.805,
+                "centroid_pairs": 215,
+                "energy_db_matched": 0.124,
+                "energy_db_raw": 0.294,
+                "pairs": 215
+              }
+            }
+          },
+          "tone_dynamics_pre_gain": {
+            "energy_iqr_db": 3.66,
+            "median_centroid_hz": 2554.7,
+            "median_energy_dbfs_matched": -22.282,
+            "median_energy_dbfs_raw": -21.032,
+            "paired_median_deltas": {
+              "vs_pure_denoise": {
+                "centroid_hz": -173.112,
+                "centroid_pairs": 215,
+                "energy_db_matched": -0.012,
+                "energy_db_raw": 1.238,
+                "pairs": 215
+              },
+              "vs_source": {
+                "centroid_hz": -132.958,
+                "centroid_pairs": 215,
+                "energy_db_matched": -0.142,
+                "energy_db_raw": 0.938,
+                "pairs": 215
+              }
+            }
+          },
+          "trial_lowshelf": {
+            "energy_iqr_db": 4.303,
+            "median_centroid_hz": 2531.4,
+            "median_energy_dbfs_matched": -21.9,
+            "median_energy_dbfs_raw": -18.38,
+            "paired_median_deltas": {
+              "vs_delivery_master": {
+                "centroid_hz": -19.023,
+                "centroid_pairs": 215,
+                "energy_db_matched": 0.005,
+                "energy_db_raw": 0.155,
+                "pairs": 215
+              },
+              "vs_pure_denoise": {
+                "centroid_hz": -191.123,
+                "centroid_pairs": 215,
+                "energy_db_matched": -0.425,
+                "energy_db_raw": 3.095,
+                "pairs": 215
+              },
+              "vs_source": {
+                "centroid_hz": -156.927,
+                "centroid_pairs": 215,
+                "energy_db_matched": -0.446,
+                "energy_db_raw": 2.904,
+                "pairs": 215
+              }
+            }
+          }
+        }
+      },
+      "secondary": {
+        "denominators": {
+          "events_in_analysis": 495,
+          "in_region": 482,
+          "invalid_timestamps": 0,
+          "used": 482
+        },
+        "per_arm": {
+          "delivery_master": {
+            "energy_iqr_db": 4.52,
+            "median_centroid_hz": 2012.4,
+            "median_energy_dbfs_matched": -22.112,
+            "median_energy_dbfs_raw": -18.742,
+            "paired_median_deltas": {
+              "vs_pure_denoise": {
+                "centroid_hz": -163.993,
+                "centroid_pairs": 482,
+                "energy_db_matched": -0.28,
+                "energy_db_raw": 3.09,
+                "pairs": 482
+              },
+              "vs_source": {
+                "centroid_hz": -168.922,
+                "centroid_pairs": 482,
+                "energy_db_matched": -0.305,
+                "energy_db_raw": 2.895,
+                "pairs": 482
+              }
+            }
+          },
+          "pure_denoise": {
+            "energy_iqr_db": 4.369,
+            "median_centroid_hz": 2165.8,
+            "median_energy_dbfs_matched": -22.454,
+            "median_energy_dbfs_raw": -22.454,
+            "paired_median_deltas": {
+              "vs_source": {
+                "centroid_hz": 5.107,
+                "centroid_pairs": 482,
+                "energy_db_matched": -0.103,
+                "energy_db_raw": -0.273,
+                "pairs": 482
+              }
+            }
+          },
+          "source": {
+            "energy_iqr_db": 4.053,
+            "median_centroid_hz": 2151.8,
+            "median_energy_dbfs_matched": -22.331,
+            "median_energy_dbfs_raw": -22.161,
+            "paired_median_deltas": {
+              "vs_pure_denoise": {
+                "centroid_hz": -5.107,
+                "centroid_pairs": 482,
+                "energy_db_matched": 0.103,
+                "energy_db_raw": 0.273,
+                "pairs": 482
+              }
+            }
+          },
+          "tone_dynamics_pre_gain": {
+            "energy_iqr_db": 4.693,
+            "median_centroid_hz": 2012.3,
+            "median_energy_dbfs_matched": -22.209,
+            "median_energy_dbfs_raw": -20.959,
+            "paired_median_deltas": {
+              "vs_pure_denoise": {
+                "centroid_hz": -164.003,
+                "centroid_pairs": 482,
+                "energy_db_matched": 0.237,
+                "energy_db_raw": 1.487,
+                "pairs": 482
+              },
+              "vs_source": {
+                "centroid_hz": -168.935,
+                "centroid_pairs": 482,
+                "energy_db_matched": 0.152,
+                "energy_db_raw": 1.232,
+                "pairs": 482
+              }
+            }
+          },
+          "trial_lowshelf": {
+            "energy_iqr_db": 4.473,
+            "median_centroid_hz": 1990.8,
+            "median_energy_dbfs_matched": -22.053,
+            "median_energy_dbfs_raw": -18.533,
+            "paired_median_deltas": {
+              "vs_delivery_master": {
+                "centroid_hz": -17.216,
+                "centroid_pairs": 482,
+                "energy_db_matched": 0.013,
+                "energy_db_raw": 0.163,
+                "pairs": 482
+              },
+              "vs_pure_denoise": {
+                "centroid_hz": -183.698,
+                "centroid_pairs": 482,
+                "energy_db_matched": -0.236,
+                "energy_db_raw": 3.284,
+                "pairs": 482
+              },
+              "vs_source": {
+                "centroid_hz": -189.821,
+                "centroid_pairs": 482,
+                "energy_db_matched": -0.243,
+                "energy_db_raw": 3.107,
+                "pairs": 482
+              }
+            }
+          }
+        }
+      }
+    },
+    "status": "hash_bound",
+    "timestamp_uncertainty": {
+      "analysis_hop_seconds": 0.005,
+      "frame_timestamp": "frame_midpoint",
+      "note": "+/-5 ms analysis hop quantization and uncalibrated detector delay; a 20 ms window may start before or after the physical transient",
+      "onset_detector_delay_seconds": null,
+      "onset_detector_delay_status": "uncalibrated"
+    }
+  },
+  "bands_dbfs": {
+    "delivery_master": {
+      "160-400": {
+        "bins": 89,
+        "frames": 390,
+        "matched": -23.239,
+        "raw": -19.869,
+        "share_db": -2.356
+      },
+      "20-45": {
+        "bins": 9,
+        "frames": 390,
+        "matched": -60.724,
+        "raw": -57.354,
+        "share_db": -39.842
+      },
+      "2000-8000": {
+        "bins": 2229,
+        "frames": 390,
+        "matched": -31.744,
+        "raw": -28.374,
+        "share_db": -10.861
+      },
+      "400-2000": {
+        "bins": 595,
+        "frames": 390,
+        "matched": -33.383,
+        "raw": -30.013,
+        "share_db": -12.5
+      },
+      "45-90": {
+        "bins": 17,
+        "frames": 390,
+        "matched": -39.52,
+        "raw": -36.15,
+        "share_db": -18.637
+      },
+      "90-160": {
+        "bins": 26,
+        "frames": 390,
+        "matched": -26.622,
+        "raw": -23.252,
+        "share_db": -5.74
+      }
+    },
+    "pure_denoise": {
+      "160-400": {
+        "bins": 89,
+        "frames": 390,
+        "matched": -23.85,
+        "raw": -23.85,
+        "share_db": -2.748
+      },
+      "20-45": {
+        "bins": 9,
+        "frames": 390,
+        "matched": -59.386,
+        "raw": -59.386,
+        "share_db": -38.284
+      },
+      "2000-8000": {
+        "bins": 2229,
+        "frames": 390,
+        "matched": -30.417,
+        "raw": -30.417,
+        "share_db": -9.315
+      },
+      "400-2000": {
+        "bins": 595,
+        "frames": 390,
+        "matched": -32.67,
+        "raw": -32.67,
+        "share_db": -11.568
+      },
+      "45-90": {
+        "bins": 17,
+        "frames": 390,
+        "matched": -38.957,
+        "raw": -38.957,
+        "share_db": -17.854
+      },
+      "90-160": {
+        "bins": 26,
+        "frames": 390,
+        "matched": -26.861,
+        "raw": -26.861,
+        "share_db": -5.759
+      }
+    },
+    "source": {
+      "160-400": {
+        "bins": 89,
+        "frames": 390,
+        "matched": -23.88,
+        "raw": -23.71,
+        "share_db": -2.789
+      },
+      "20-45": {
+        "bins": 9,
+        "frames": 390,
+        "matched": -57.321,
+        "raw": -57.151,
+        "share_db": -36.229
+      },
+      "2000-8000": {
+        "bins": 2229,
+        "frames": 390,
+        "matched": -30.483,
+        "raw": -30.313,
+        "share_db": -9.391
+      },
+      "400-2000": {
+        "bins": 595,
+        "frames": 390,
+        "matched": -31.957,
+        "raw": -31.787,
+        "share_db": -10.865
+      },
+      "45-90": {
+        "bins": 17,
+        "frames": 390,
+        "matched": -38.798,
+        "raw": -38.628,
+        "share_db": -17.706
+      },
+      "90-160": {
+        "bins": 26,
+        "frames": 390,
+        "matched": -26.947,
+        "raw": -26.777,
+        "share_db": -5.856
+      }
+    },
+    "tone_dynamics_pre_gain": {
+      "160-400": {
+        "bins": 89,
+        "frames": 390,
+        "matched": -23.234,
+        "raw": -21.984,
+        "share_db": -2.372
+      },
+      "20-45": {
+        "bins": 9,
+        "frames": 390,
+        "matched": -60.664,
+        "raw": -59.414,
+        "share_db": -39.802
+      },
+      "2000-8000": {
+        "bins": 2229,
+        "frames": 390,
+        "matched": -31.816,
+        "raw": -30.566,
+        "share_db": -10.954
+      },
+      "400-2000": {
+        "bins": 595,
+        "frames": 390,
+        "matched": -33.499,
+        "raw": -32.249,
+        "share_db": -12.637
+      },
+      "45-90": {
+        "bins": 17,
+        "frames": 390,
+        "matched": -39.496,
+        "raw": -38.246,
+        "share_db": -18.634
+      },
+      "90-160": {
+        "bins": 26,
+        "frames": 390,
+        "matched": -26.512,
+        "raw": -25.262,
+        "share_db": -5.65
+      }
+    },
+    "trial_lowshelf": {
+      "160-400": {
+        "bins": 89,
+        "frames": 390,
+        "matched": -23.309,
+        "raw": -19.789,
+        "share_db": -2.467
+      },
+      "20-45": {
+        "bins": 9,
+        "frames": 390,
+        "matched": -59.417,
+        "raw": -55.897,
+        "share_db": -38.576
+      },
+      "2000-8000": {
+        "bins": 2229,
+        "frames": 390,
+        "matched": -31.894,
+        "raw": -28.374,
+        "share_db": -11.052
+      },
+      "400-2000": {
+        "bins": 595,
+        "frames": 390,
+        "matched": -33.531,
+        "raw": -30.011,
+        "share_db": -12.689
+      },
+      "45-90": {
+        "bins": 17,
+        "frames": 390,
+        "matched": -38.59,
+        "raw": -35.07,
+        "share_db": -17.749
+      },
+      "90-160": {
+        "bins": 26,
+        "frames": 390,
+        "matched": -26.306,
+        "raw": -22.786,
+        "share_db": -5.464
+      }
+    }
+  },
+  "claims": {
+    "inferences": [
+      "Stage deltas are mixture-energy changes attributed to the stage between two files; they do not separate fan from music.",
+      "tone_dynamics_pre_gain - pure_denoise combines EQ and compressor effects.",
+      "Filter theory (inference, not measurement): about +1.3 to +1.5 dB raw at 20-45 Hz, smaller after the loudness match."
+    ],
+    "listening": [],
+    "measurements": [
+      "Integrated LUFS (FFmpeg loudnorm input_i, BS.1770 gating) over native samples [220500, 6615000) for 5 arms; match_lu_delta=0.010 LU (matched).",
+      "Welch band energies for 30/30 arm-band cells, raw and gain-matched.",
+      "Trial minus delivery_master 20-45 Hz: raw 1.457 dB, matched 1.307 dB.",
+      "3 excerpt pairs rendered at exactly 661500 frames each."
+    ]
+  },
+  "eq_floor_change_proposed": {
+    "adopted": false,
+    "current_schema_min_hz": 160,
+    "decision": "root_and_operator_review_required",
+    "measured_delta_20_45_db": {
+      "matched": 1.307276112725802,
+      "raw": 1.4572761127258005
+    },
+    "note": "A measured increase is not evidence of fuller perceived tone, a recovered fundamental or room response.",
+    "trial_shelf_hz": 100.0
+  },
+  "excerpts": {
+    "blind_key": "withheld from this receipt; stored in tone-ab.json excerpts.blind_key (listen first)",
+    "pairs": [
+      {
+        "files": {
+          "X": {
+            "excerpt_lufs_informational": -19.88,
+            "file": "excerpt-1-X.wav",
+            "frames": 661500,
+            "sample_peak_dbfs": -6.584,
+            "sha256": "47d158cbb95a80b981a317b80f5a4c9dcf0095546d490f6668608d6ea21f413d"
+          },
+          "Y": {
+            "excerpt_lufs_informational": -20.88,
+            "file": "excerpt-1-Y.wav",
+            "frames": 661500,
+            "sample_peak_dbfs": -7.424,
+            "sha256": "9eefdfd3393369e5dd52be9e7668ac2f0a05224dc11eb79386f15fdc2c186a12"
+          }
+        },
+        "pair": 1,
+        "start_seconds": 21.6667
+      },
+      {
+        "files": {
+          "X": {
+            "excerpt_lufs_informational": -21.42,
+            "file": "excerpt-2-X.wav",
+            "frames": 661500,
+            "sample_peak_dbfs": -6.318,
+            "sha256": "f5ad024c56e1e67ae7648b12ab7fb05357d76bcfa2bb3c1ab9311ff90aa9483c"
+          },
+          "Y": {
+            "excerpt_lufs_informational": -20.98,
+            "file": "excerpt-2-Y.wav",
+            "frames": 661500,
+            "sample_peak_dbfs": -5.97,
+            "sha256": "c3ba70d30152a6e7b9f48aab05ccbdcfd8e4dc7665760209ac5df1c9d60988f4"
+          }
+        },
+        "pair": 2,
+        "start_seconds": 70.0
+      },
+      {
+        "files": {
+          "X": {
+            "excerpt_lufs_informational": -21.73,
+            "file": "excerpt-3-X.wav",
+            "frames": 661500,
+            "sample_peak_dbfs": -5.421,
+            "sha256": "1715ba03a8106345003033088a7132373d787b1d5c55fb293f11cac36770959b"
+          },
+          "Y": {
+            "excerpt_lufs_informational": -20.94,
+            "file": "excerpt-3-Y.wav",
+            "frames": 661500,
+            "sample_peak_dbfs": -4.527,
+            "sha256": "9f6b12784a404c164c0574b48b9842bc58c0ae714f1e65a1ddd98a6f97e6f55f"
+          }
+        },
+        "pair": 3,
+        "start_seconds": 118.3333
+      }
+    ],
+    "rule": "center_i = S + (E - S) * (2i + 1) / 6, window [center - 7.5, center + 7.5] s"
+  },
+  "experiment": {
+    "adopted": false,
+    "arm": "trial_lowshelf",
+    "count": 1,
+    "delta_20_45_db": {
+      "matched": 1.307276112725802,
+      "raw": 1.4572761127258005
+    },
+    "expectation_inference": "Filter theory (inference, not measurement): about +1.3 to +1.5 dB raw at 20-45 Hz, smaller after the loudness match.",
+    "extent_verified": true,
+    "file": "trial-lowshelf.wav",
+    "filter": "lowshelf=f=100:t=q:w=0.7:g=1.5:r=f64",
+    "forwarded_to_profile": false,
+    "sha256": "7d8637a0925b81eea2dd69a93dcad04f83b81f1b7dad6ec0445d30eac4d09aaa",
+    "status": "rejected_or_unreviewed_trial"
+  },
+  "ffmpeg_child_count": 32,
+  "inputs": {
+    "candidate_run_dir": null,
+    "common_region_end": 150.0,
+    "common_region_start": 5.0,
+    "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737",
+    "timeout_seconds": 1800
+  },
+  "lane": "tone_ab",
+  "linear": "TIN-5601",
+  "loudness_match": {
+    "match_lu_delta": 0.01,
+    "match_status": "matched",
+    "per_arm": {
+      "delivery_master": {
+        "corrections": 0,
+        "gain_db": -3.37,
+        "lufs_after": -21.34,
+        "lufs_before": -17.96
+      },
+      "pure_denoise": {
+        "corrections": 0,
+        "gain_db": 0.0,
+        "lufs_after": -21.33,
+        "lufs_before": -21.33
+      },
+      "source": {
+        "corrections": 0,
+        "gain_db": -0.17,
+        "lufs_after": -21.33,
+        "lufs_before": -21.16
+      },
+      "tone_dynamics_pre_gain": {
+        "corrections": 0,
+        "gain_db": -1.25,
+        "lufs_after": -21.32,
+        "lufs_before": -20.08
+      },
+      "trial_lowshelf": {
+        "corrections": 0,
+        "gain_db": -3.52,
+        "lufs_after": -21.33,
+        "lufs_before": -17.81
+      }
+    },
+    "reason": null,
+    "target_lufs": -21.33
+  },
+  "metrics": {
+    "1_stage_files_verified": {
+      "class": "M",
+      "denominator": 4,
+      "numerator": 4,
+      "trial_extent_equal": "1/1"
+    },
+    "2_loudness_match": {
+      "arms_measured": 5,
+      "class": "M",
+      "match_lu_delta": 0.010000000000001563,
+      "match_status": "matched"
+    },
+    "3_band_cells": {
+      "class": "M",
+      "denominator": 30,
+      "numerator": 30
+    },
+    "4_attack_positions": {
+      "primary": {
+        "events_in_analysis": 219,
+        "in_region": 215,
+        "invalid_timestamps": 0,
+        "used": 215
+      },
+      "secondary": {
+        "events_in_analysis": 495,
+        "in_region": 482,
+        "invalid_timestamps": 0,
+        "used": 482
+      }
+    },
+    "5_excerpt_pairs": {
+      "class": "M",
+      "denominator": 3,
+      "files": 6,
+      "numerator": 3,
+      "preference": "L pending"
+    },
+    "6_experiment_arm": {
+      "class": "M + I",
+      "denominator": 1,
+      "numerator": 1,
+      "status": "rejected_or_unreviewed_trial"
+    },
+    "7_run_dir_unchanged": {
+      "class": "M",
+      "denominator": 13,
+      "numerator": 13
+    },
+    "8_unknown_fields": {
+      "class": "contract",
+      "denominator": 15,
+      "numerator": 15
+    },
+    "stage_arms_present": {
+      "denominator": 4,
+      "numerator": 4
+    }
+  },
+  "output_dir": "/Users/jess/git/video-utils/.local/sprint2/tone_ab/artifacts/s2/tone_ab/20261006T041633Z-990aa1bd6737-20261006T120702Z",
+  "output_dir_gitignored": true,
+  "protected_readback": {
+    "analysis_file": {
+      "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/analysis.json",
+      "sha256_after": "4d32f962c5c59920943217cfb72fbe3c9e3eb9fefa3c6d9b79ee648187cadd0a",
+      "sha256_before": "4d32f962c5c59920943217cfb72fbe3c9e3eb9fefa3c6d9b79ee648187cadd0a"
+    },
+    "directories": {
+      "run_dir": {
+        "changed": [],
+        "fields": [
+          "sha256",
+          "size",
+          "mtime_ns"
+        ],
+        "files_checked": 13,
+        "path": "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737"
+      }
+    },
+    "status": "unchanged"
+  },
+  "receipt_kind": "phase2_actual_run",
+  "region": {
+    "end_sample_exclusive": 6615000,
+    "end_seconds": 150.0,
+    "excluded_setup_interval_seconds": [
+      0.0,
+      5.0
+    ],
+    "frames": 6394500,
+    "rounding": "round(seconds * native_rate); end exclusive",
+    "sample_rate": 44100,
+    "start_sample": 220500,
+    "start_seconds": 5.0
+  },
+  "ruling": "R-N13; R-HOOK-CONVERGENCE-20261004; TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43",
+  "run": {
+    "manifest_sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+    "pcm": {
+      "channels": 1,
+      "sample_count": 6657385,
+      "sample_rate": 44100
+    },
+    "run_id": "20261006T041633Z-990aa1bd6737",
+    "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+    "status": "rendered_unreviewed"
+  },
+  "schema_version": 1,
+  "script_commit": "b8b3007 (script sha256 ab900835...; b8b64b5 adds only run-dir symlink/traversal refusal)",
+  "script_sha256": "ab900835c6e17253f6e6a3985bbae1d2e92b1352c7f47a695cbdcc6e1b3e6fa5",
+  "spec": "docs/spec/sprints/TONE_S2.md",
+  "spec_commit": "9bc259d6cf964cab8498e4e90ae6ae27f85be3fc",
+  "sprint": "20261006-s2",
+  "stage_deltas_db": {
+    "delivery_normalization": {
+      "160-400": {
+        "matched_db": -0.005,
+        "raw_db": 2.115,
+        "share_db": 0.016
+      },
+      "20-45": {
+        "matched_db": -0.06,
+        "raw_db": 2.06,
+        "share_db": -0.039
+      },
+      "2000-8000": {
+        "matched_db": 0.073,
+        "raw_db": 2.193,
+        "share_db": 0.093
+      },
+      "400-2000": {
+        "matched_db": 0.116,
+        "raw_db": 2.236,
+        "share_db": 0.137
+      },
+      "45-90": {
+        "matched_db": -0.024,
+        "raw_db": 2.096,
+        "share_db": -0.003
+      },
+      "90-160": {
+        "matched_db": -0.11,
+        "raw_db": 2.01,
+        "share_db": -0.09
+      }
+    },
+    "denoise_stage": {
+      "160-400": {
+        "matched_db": 0.03,
+        "raw_db": -0.14,
+        "share_db": 0.041
+      },
+      "20-45": {
+        "matched_db": -2.066,
+        "raw_db": -2.236,
+        "share_db": -2.055
+      },
+      "2000-8000": {
+        "matched_db": 0.065,
+        "raw_db": -0.105,
+        "share_db": 0.076
+      },
+      "400-2000": {
+        "matched_db": -0.713,
+        "raw_db": -0.883,
+        "share_db": -0.703
+      },
+      "45-90": {
+        "matched_db": -0.159,
+        "raw_db": -0.329,
+        "share_db": -0.148
+      },
+      "90-160": {
+        "matched_db": 0.086,
+        "raw_db": -0.084,
+        "share_db": 0.097
+      }
+    },
+    "end_to_end": {
+      "160-400": {
+        "matched_db": 0.642,
+        "raw_db": 3.842,
+        "share_db": 0.433
+      },
+      "20-45": {
+        "matched_db": -3.404,
+        "raw_db": -0.204,
+        "share_db": -3.613
+      },
+      "2000-8000": {
+        "matched_db": -1.261,
+        "raw_db": 1.939,
+        "share_db": -1.47
+      },
+      "400-2000": {
+        "matched_db": -1.426,
+        "raw_db": 1.774,
+        "share_db": -1.635
+      },
+      "45-90": {
+        "matched_db": -0.722,
+        "raw_db": 2.478,
+        "share_db": -0.931
+      },
+      "90-160": {
+        "matched_db": 0.325,
+        "raw_db": 3.525,
+        "share_db": 0.116
+      }
+    },
+    "tone_dynamics_stage_combined": {
+      "160-400": {
+        "matched_db": 0.616,
+        "raw_db": 1.866,
+        "share_db": 0.376
+      },
+      "20-45": {
+        "matched_db": -1.278,
+        "raw_db": -0.028,
+        "share_db": -1.518
+      },
+      "2000-8000": {
+        "matched_db": -1.399,
+        "raw_db": -0.149,
+        "share_db": -1.639
+      },
+      "400-2000": {
+        "matched_db": -0.829,
+        "raw_db": 0.421,
+        "share_db": -1.07
+      },
+      "45-90": {
+        "matched_db": -0.539,
+        "raw_db": 0.711,
+        "share_db": -0.78
+      },
+      "90-160": {
+        "matched_db": 0.349,
+        "raw_db": 1.599,
+        "share_db": 0.109
+      }
+    },
+    "trial": {
+      "160-400": {
+        "matched_db": -0.07,
+        "raw_db": 0.08,
+        "share_db": -0.111
+      },
+      "20-45": {
+        "matched_db": 1.307,
+        "raw_db": 1.457,
+        "share_db": 1.266
+      },
+      "2000-8000": {
+        "matched_db": -0.15,
+        "raw_db": 0.0,
+        "share_db": -0.191
+      },
+      "400-2000": {
+        "matched_db": -0.148,
+        "raw_db": 0.002,
+        "share_db": -0.189
+      },
+      "45-90": {
+        "matched_db": 0.93,
+        "raw_db": 1.08,
+        "share_db": 0.888
+      },
+      "90-160": {
+        "matched_db": 0.316,
+        "raw_db": 0.466,
+        "share_db": 0.275
+      }
+    }
+  },
+  "tests": {
+    "ffmpeg": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg (8.1.2)",
+    "module": "tests/test_tone_ab.py",
+    "passed": 26,
+    "prior_attempt": "full module at fixture timeout_seconds 600: 20/20 non-FFmpeg OK, FFmpegRunTests setUpClass deadline_exceeded under host load ~325 (deadline enforcement worked; test deadline raised to 1800)",
+    "runs": [
+      "SchemaTests+LogicTests+GateTests 20/20 OK (40.5 s)",
+      "FFmpegRunTests 6/6 OK (545.9 s, fixture timeout_seconds 1800)"
+    ],
+    "script_sha256_under_test": "d7de5596ff34f580a40554d731c8f9d5fd93e2859b5bd9732d3bee61983fe100",
+    "skipped": 0,
+    "skipped_without_ffmpeg": 6,
+    "test_file_sha256": "0fd576ea382fd615b2b4c7dbfdb23d67abc2586a8223a7fa30855db2077f3347",
+    "total": 26
+  },
+  "timing": {
+    "finished_utc": "2026-10-06T12:25:28.272496+00:00",
+    "remaining_seconds_at_finish": 694.26,
+    "started_utc": "2026-10-06T12:07:02.526348+00:00",
+    "timeout_seconds": 1800
+  },
+  "tone_ab_json_sha256": "2736e3d39b218577a7c2753eff23a227032dc9544a57ad273d176125059ca8d4",
+  "unknown_field_reasons": {
+    "attack_identity": "Attack positions are detector hypotheses (periodic high-frequency transients and superflux candidates); they may be clicks, picks or noise and are not verified notes or a metronome.",
+    "capture_chain_response": "Phone/Photo Booth microphone, AGC and codec response were not measured.",
+    "default_adopted": "This lane never adopts a default detector, profile or master.",
+    "fan_only_gain": "Band levels are mixture energy; fan and music are not separated.",
+    "fundamental_32hz_presence": "A 20-45 Hz band level is mixture energy, not a measured played C1 fundamental.",
+    "listening_accepted": "No listening review exists for these renders; numbers alone never close the thin/nasal feedback.",
+    "master_changed": "The accepted master is read-only; protected readback verifies it.",
+    "monitoring_device": "The operator's playback device and level are unknown.",
+    "music_only_gain": "Band levels are mixture energy; fan and music are not separated.",
+    "nasal_quality": "Nasal quality is a listening judgement; mid-band share is not perception.",
+    "operator_preference": "The operator has not listened to the blind excerpt pairs; preference is operator-owned listening evidence (class L).",
+    "perceived_fullness": "Perceived fullness is a listening judgement; band energy is not perception.",
+    "room_response_recovered": "No capture-chain, microphone or room measurement exists; EQ cannot recreate uncaptured room or amp response.",
+    "stage_separation_eq_vs_compressor": "processed.wav contains EQ and compressor together; no intermediate file isolates either.",
+    "true_peak_dbtp": "True peak was not measured; only sample peak is reported."
+  },
+  "unknowns": {
+    "attack_identity": "unverified",
+    "capture_chain_response": null,
+    "default_adopted": false,
+    "fan_only_gain": null,
+    "fundamental_32hz_presence": null,
+    "listening_accepted": false,
+    "master_changed": false,
+    "monitoring_device": null,
+    "music_only_gain": null,
+    "nasal_quality": null,
+    "operator_preference": null,
+    "perceived_fullness": null,
+    "room_response_recovered": false,
+    "stage_separation_eq_vs_compressor": "not_separable_combined_stage",
+    "true_peak_dbtp": null
+  }
+}
