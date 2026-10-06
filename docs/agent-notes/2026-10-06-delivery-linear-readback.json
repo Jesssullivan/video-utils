@@ -1,0 +1,36 @@
+{
+  "observed_at": "2026-10-06T05:31:23.303Z",
+  "issue": "TIN-5485",
+  "comments": [
+    {
+      "id": "43d5eb27-4078-447a-b54d-faef8a0de9ae",
+      "body": "Optimized sharing delivery completed after accepted final compact QA. Desktop: /Users/jess/Desktop/video_util_mvp_demo_1.mp4,21,596,491 bytes (85.99% smaller than154,148,244-byte accepted candidate),1080x720H264/AAC96,44100Hz mono; SHA25634247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10. Measured decoded audio -18.06LUFS/-1.81dBTP; final copy preserves3621 coded video packets/payload/PTS/DTS/durations and audio frame extent; full output decode passes. Root reviewed three picture stills; new AAC96 compression has no separate listening acceptance. Accepted master, original and previous23.1MB export retained. Receipt docs/agent-notes/2026-10-06-share-export-actual-desktop.json. User-requested just export-share INPUT OUTPUT now implemented and actually used on this take; typed share_export is tool30 with its own media-share-export skill. Worker42/hook8/all30 initialized exact prompt checks and independent review passed; root combined regression/publication in progress, distinct from verified29-tool signed private source118a921/greenCI37415723885.",
+      "attachments": [],
+      "createdAt": "2026-10-06T05:28:37.453Z",
+      "updatedAt": "2026-10-06T05:28:37.432Z",
+      "parentId": null,
+      "resolvedAt": null,
+      "quotedText": null,
+      "author": {
+        "id": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+        "name": "Jess Sullivan"
+      },
+      "onBehalfOf": null
+    },
+    {
+      "id": "b075bfb7-131f-4ac4-b6fd-9a771fa91613",
+      "body": "The final compact marked candidate passed operator QuickTime QA: “great!  that canidate QA is great.” This follows acceptance of FULLER-v1 audio (“sounds excellent!  great work!”).\n\nApproved video: artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov, SHA256 4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2. Approved PCM24 master remains 44.1 kHz mono, 6,657,385 samples. Assembly preserves exact copied AAC/picture clocks and audio content; decoded delivery is −18.01 LUFS / −1.76 dBTP by identity with the measured accepted parent. Markers retain NR10 analysis provenance and remain review hypotheses.\n\nSigned source 118a9216777ac237ffa78f0c886c376291cc6a84 is published to the verified private repository. Exact hosted CI37415723885 passed: 855 discovered / 811 passed / 44 optional skips, seven Rust tests and secret scan. Qualified local suite separately passed 854/855 with one optional skip. Durable proof: docs/agent-notes/2026-10-06-tools29-hosted-ci.json and final-composite-listening-acceptance.json.\n\nThe operator additionally requested a small Desktop MP4. That derivative remains in progress; the first slower HEVC attempt timed out without copying a partial file to Desktop. The approved full-quality artifact remains intact. This does not reopen the accepted D0 WAV/video/listening deliverable. Native editor/AU acceptance and musical-error accuracy remain separate future work.",
+      "attachments": [],
+      "createdAt": "2026-10-06T05:01:39.660Z",
+      "updatedAt": "2026-10-06T05:01:39.635Z",
+      "parentId": null,
+      "resolvedAt": null,
+      "quotedText": null,
+      "author": {
+        "id": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+        "name": "Jess Sullivan"
+      },
+      "onBehalfOf": null
+    }
+  ]
+}

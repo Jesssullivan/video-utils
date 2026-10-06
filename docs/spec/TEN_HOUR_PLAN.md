@@ -20,7 +20,24 @@ The authoritative project scope and following week's allocations are in
 The current lane board is
 [WORKSTREAM_BOARD.md](../agent-notes/WORKSTREAM_BOARD.md).
 
-## Current sharing-export checkpoint — October 6, 05:28 UTC
+## Final delivery checkpoint — October 6, 05:34 UTC
+
+Original scoped work and the added compressed-sharing recipe are fulfilled.
+Signed private implementation `9d18aadd8eb8781b510c5efd9c711abe1510e4cb` passed
+exact hosted CI37418798796: **902 discovered/857 passed/45 optional skips**,
+seven Rust tests and secret scan. Local affected140/140 and all30 skills/prompts
+pass. Hosted skips include the four exact-macOS-FFmpeg sharing fixture cases
+(represented by one class skip); all four passed locally.
+
+Accepted FULLER audio and compact QA remain preserved. Desktop delivery is
+**21,596,491 bytes**, 1080×720H264/AAC96, 85.99% smaller; no separate new AAC96
+listening acceptance is implied. Full evidence and remaining accuracy/host/UI
+limitations are in `docs/agent-notes/2026-10-06-final-handoff.md` from repo root.
+TIN-5485 and TIN-5495 are independently read-back **Done**; future TIN-5546 remains
+Backlog. All named subagents are complete. Root publishes final documentation,
+then closes active goal state. The original 06:49:34 UTC horizon is unchanged.
+
+## Historical sharing-export checkpoint — October 6, 05:28 UTC
 
 Goal remains active to the original 06:49:34 UTC horizon; no reset. The operator
 accepted the final compact marked movie and the requested Desktop derivative is

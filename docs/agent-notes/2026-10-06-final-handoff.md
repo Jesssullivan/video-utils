@@ -42,29 +42,30 @@ Size depends on content; the recipe does not guarantee a globally smallest file.
 
 ## Source and verification
 
-Signed source `118a9216777ac237ffa78f0c886c376291cc6a84` is published on private
-`Jesssullivan/video-utils/main`; exact remote SHA and GitHub signature verification
-were read back. [Hosted CI37415723885](https://github.com/Jesssullivan/video-utils/actions/runs/37415723885)
-passed on that exact source: 855 discovered, 811 passed and 44 optional skips
-in 154.161 seconds; seven Rust tests and the secret scan passed. The
-[CI receipt](2026-10-06-tools29-hosted-ci.json) retains exact output. Local tests
-are a separate evidence class.
+Final implementation source `9d18aadd8eb8781b510c5efd9c711abe1510e4cb` is signed
+and published on private `Jesssullivan/video-utils/main`; remote identity,
+GitHub signature and privacy were read back. [Hosted CI37418798796](https://github.com/Jesssullivan/video-utils/actions/runs/37418798796)
+passed on that exact source: **902 discovered, 857 passed, 45 optional skips**
+in 162.671 seconds; seven Rust tests and the secret scan passed. One skipped
+class covers four sharing media fixtures requiring the exact macOS-qualified
+FFmpeg binary. All four passed locally; the remaining 44 hosted skips are the
+baseline optional-backend scope. See [publication proof](2026-10-06-tools30-publication.json).
 
-The [consolidated local suite](2026-10-06-tools29-consolidated-test-result.json)
-discovered 855 tests: 854 passed, one explicitly optional qualified Basic Pitch
-integration skipped, no failures/errors. All 94 guarded source/test files matched
-both the working tree and staged source before commit. The final staged secret
-scan found no leaks. The sole whitespace finding is intentional trailing space
-inside the verbatim operator prompt; it was preserved rather than rewriting it.
+The [local affected suite](2026-10-06-tools30-affected-regression.json) passed
+**140/140**, no skips, in 92.016 seconds, with frozen worker/API/catalog/test hashes
+unchanged. All 30 skill bundles and exact initialized MCP prompt texts passed.
+Independent worker/hook/source review closed without a remaining reproduced issue.
+The actual demo used the reusable recipe; its saved success also passed the typed
+result classifier without a duplicate encode. The staged secret scan passed after
+a source-code hash field was renamed to avoid a false generic-key match; no
+credential or scanner allowlist was changed.
 
-The locally qualified catalog has 30 typed tools and 30 exact MCP skill prompts.
-New sharing-export worker and hook checks, all30 exact initialized prompts and
-independent source review passed; combined regression and source30 publication
-are tracked separately from the published29 baseline above. Capture authoring,
-fresh application, source-bound expected-arrangement comparison, compact marking,
-automatic discovery and local review remain separate operations with explicit
-provenance and bounded controls. Source checks, generated native/MCP proof,
-actual media, numerical accuracy and operator acceptance have separate receipts.
+The prior published29 suite remains separately recorded: local 855 discovered,
+854 passed/one optional skip, and hosted 855 discovered/811 passed/44 skips.
+Its claims do not substitute for source30 qualification. Source/runtime proof,
+actual media, numerical accuracy and operator listening have separate receipts.
+The final catalog contains **30 typed tools and 30 skills**, including reversible
+capture/restoration, analysis, source-bound arrangement review and sharing export.
 
 ## Musical evidence and limits
 
@@ -119,16 +120,13 @@ R/Quarto sources remain optional; plain HTML reporting is the proven fallback.
 ## Completion checkpoint
 
 The [independent requirement audit](2026-10-06-completion-independent-audit.md)
-finds core implementation/media evidence complete, with publication/tracker/handoff
-remaining at its snapshot. Signed source and its hosted CI are now verified.
-Root owns final source30 regression, tracker and handoff publication. The optimized
-Desktop derivative is complete; the goal remains active until this last closeout
-is verified. No future goal or unassigned implementation lane is activated.
+found the original implementation/media/research/week-plan scope complete, with
+root publication/tracker/handoff remaining at its earlier snapshot. Those release
+requirements and the subsequent optimized Desktop/recipe request are now fulfilled.
+D0 TIN-5485 and goal TIN-5495 are Done; [goal readback](2026-10-06-goal-completion-linear-readback.json)
+records the latter at 05:34 UTC. Original planned end remains 06:49:34 UTC; it was
+not reset or extended. All named subagents have completed their bounded work.
+Root publishes this final documentation and then completes the active goal state.
 
-### Root source30 integration — 05:29 UTC
-
-All **140 affected regression tests passed** in 92.016 seconds, no skips or
-failures. Frozen worker/API/catalog/test hashes remain unchanged. Actual CLI
-output also passes the typed result classifier without repeating an export.
-See `docs/agent-notes/2026-10-06-tools30-affected-regression.json` from repo root.
-Signed source30 publication and hosted checks are the remaining release work.
+The substantial next-week accuracy/product work above remains queued. No future
+goal, service, plugin installation or unassigned implementation lane is activated.

@@ -1,7 +1,7 @@
 # video-utils parallel work board
 
-As-of ownership checkpoint: **2026-10-06 05:28 UTC / October 6, 1:28 a.m. EDT**.
-Root's goal began 20:49:34 UTC and remains **active**, with planned end
+As-of delivery checkpoint: **2026-10-06 05:34 UTC / October 6, 1:34 a.m. EDT**.
+Root's goal began 20:49:34 UTC; scoped delivery is complete, with original planned end
 **2026-10-06 06:49:34 UTC / 2:49:34 a.m. EDT**. Objective/status does not enforce
 this wall-clock horizon. Root owns integration, factual Linear writes and signed
 publication. This repository-local board does not replace the global Lab board.
@@ -16,7 +16,24 @@ Checkpoints: [2026-10-05-goal-checkpoints.md](2026-10-05-goal-checkpoints.md).
 Tracker IDs: [linear.json](../../program/linear.json).
 Active goal: [TIN-5495](https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal).
 
-## Current sharing-export checkpoint — October 6, 05:28 UTC
+## Final delivery checkpoint — October 6, 05:34 UTC
+
+Original scoped work and the added compressed-sharing recipe are fulfilled.
+Signed private implementation `9d18aadd8eb8781b510c5efd9c711abe1510e4cb` passed
+exact hosted CI37418798796: **902 discovered/857 passed/45 optional skips**,
+seven Rust tests and secret scan. Local affected140/140 and all30 skills/prompts
+pass. Hosted skips include the four exact-macOS-FFmpeg sharing fixture cases
+(represented by one class skip); all four passed locally.
+
+Accepted FULLER audio and compact QA remain preserved. Desktop delivery is
+**21,596,491 bytes**, 1080×720H264/AAC96, 85.99% smaller; no separate new AAC96
+listening acceptance is implied. Full evidence and remaining accuracy/host/UI
+limitations are in `docs/agent-notes/2026-10-06-final-handoff.md` from repo root.
+TIN-5485 and TIN-5495 are independently read-back **Done**; future TIN-5546 remains
+Backlog. All named subagents are complete. Root publishes final documentation,
+then closes active goal state. The original 06:49:34 UTC horizon is unchanged.
+
+## Historical sharing-export checkpoint — October 6, 05:28 UTC
 
 Goal remains active to the original 06:49:34 UTC horizon; no reset. The operator
 accepted the final compact marked movie and the requested Desktop derivative is

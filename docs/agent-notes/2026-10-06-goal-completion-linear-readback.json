@@ -1,0 +1,62 @@
+{
+  "observed_at": "2026-10-06T05:34:48.250Z",
+  "issue": {
+    "id": "TIN-5495",
+    "uuid": "1ceeca7a-a52f-4824-967b-74a919ab654a",
+    "title": "Ten-hour parallel guitar toolkit implementation goal",
+    "description": "Operator requested an active /goal and many parallel subagents. Actual goal start2026-10-05T20:49:34Z; planned ten-hour horizon ends2026-10-06T06:49:34Z (2:49amEastern). Repo-native plan docs/spec/TEN_HOUR_PLAN.md and prompts docs/agent-notes/2026-10-05-user-prompts.md; ownership/checkpoints docs/agent-notes/WORKSTREAM_BOARD.md. Lanes: clicks, tuning-aware pitch, bounded phrase alignment, benchmarks, graphical local review, isolated AU scaffold, MCP contracts, per-tool skills, root integration. Operator accepted FULLER audio and final compact marked video in QuickTime. Optimized Desktop delivery is verified: video_util_mvp_demo_1.mp4,21,596,491bytes,1080x720H264/AAC96; SHA34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10. Lossy AAC96 export has no separate listening acceptance. Final signed private30-tool source9d18aadd8eb8781b510c5efd9c711abe1510e4cb and exact hostedCI37418798796 passed:902 tests,857 passed/45 optional skips,7 Rust tests and secret scan. Local affected suite140/140 and all30 skills/exact initialized prompts pass. Reusable just export-share recipe completed actual demo delivery. Original scoped implementation, accepted take, research, next-week plan, Linear facts and durable handoff are complete; following-week accuracy/product/AU/editor work remains queued. Preserve source/other sessions; no plugin installation or host configuration changes. Source/tests, actual artifacts, user listening, AU validation and Logic host proof remain distinct. This sprint advances the already authorized weekly plan; it does not add a second35h allocation.",
+    "priority": {
+      "value": 0,
+      "name": "No priority"
+    },
+    "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal",
+    "gitBranchName": "jess/tin-5495-ten-hour-parallel-guitar-toolkit-implementation-goal",
+    "createdAt": "2026-10-05T20:54:12.005Z",
+    "updatedAt": "2026-10-06T05:34:01.566Z",
+    "archivedAt": null,
+    "completedAt": "2026-10-06T05:34:01.542Z",
+    "startedAt": "2026-10-05T20:54:12.088Z",
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "Done",
+    "statusType": "completed",
+    "labels": [],
+    "attachments": [],
+    "documents": [],
+    "stateHistory": [
+      {
+        "state": {
+          "id": "713c7762-4d32-44f5-93b7-ed64111df243",
+          "name": "In Progress",
+          "type": "started"
+        },
+        "startedAt": "2026-10-05T20:54:12.005Z",
+        "endedAt": "2026-10-06T05:34:01.566Z"
+      },
+      {
+        "state": {
+          "id": "a3707b51-7f24-4bef-8054-02fea1021b19",
+          "name": "Done",
+          "type": "completed"
+        },
+        "startedAt": "2026-10-06T05:34:01.566Z",
+        "endedAt": null
+      }
+    ],
+    "createdBy": "Jess Sullivan",
+    "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+    "assignee": "Jess Sullivan",
+    "assigneeId": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+    "delegate": "Codex",
+    "delegateId": "7bee2e9a-39d5-4016-b42b-b6d03e1bd715",
+    "project": "video-utils — guitar restoration and performance analysis",
+    "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+    "team": "Tinyland",
+    "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+    "cycleId": "9dba8262-b9bf-4cc2-9fb7-67ac6da67dff"
+  }
+}
