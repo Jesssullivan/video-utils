@@ -1,0 +1,33 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13",
+  "actor": "/root",
+  "observed_at": "2026-10-06T06:42:16.605037+00:00",
+  "state": "PASS current source+approved master+Desktop+instrument+arrangement bytes preserved",
+  "protected": {
+    "/Users/jess/Desktop/video_util_mvp_demo_1.mp4": {
+      "sha256": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10",
+      "bytes": 21596491
+    },
+    "artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov": {
+      "sha256": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2",
+      "bytes": 154148244
+    },
+    "artifacts/runs/20261006T041633Z-990aa1bd6737/cleaned.wav": {
+      "sha256": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009",
+      "bytes": 19972258
+    },
+    "program/demo-arrangement.json": {
+      "sha256": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a",
+      "bytes": 4033
+    },
+    "program/instrument.json": {
+      "sha256": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0",
+      "bytes": 2656
+    }
+  },
+  "original_source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "saved_pitch_report_hashes_current": true,
+  "new_inference": false,
+  "root_visual_review": "Exact hash-bound final desktop/mobile UI screenshots inspected; source-timed user/detector labels legible; no overflow shown; producer browser interaction evidence separately verified",
+  "frozen_implementation_and_browser_artifact_hashes": "34 current owned source/metadata files and5 browser artifacts verified against frozen lane receipts"
+}

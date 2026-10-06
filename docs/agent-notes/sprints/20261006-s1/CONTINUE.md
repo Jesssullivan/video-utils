@@ -1,6 +1,11 @@
 # S1 release continuation
 
-Five-hour goal remains active. All six lanes have signed root administrative
+Historical publication checkpoint; superseded by HANDOFF.md and
+root-completion-audit.json. HostedCI37424756499 subsequently passed and all seven
+S1 issues independently read backDone. Final documentation publication and goal
+transition close the delivery. Retain the original checkpoint below for chronology.
+
+At this checkpoint the five-hour goal remained active. All six lanes had signed root administrative
 merges. Product source48c46f090f6c7fe7a07660367ac6c098bed7f81c is privately
 published, independently matches remote, and has a valid GitHub signature.
 

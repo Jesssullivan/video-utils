@@ -15,11 +15,12 @@
       "worktree": "/Users/jess/git/video-utils/.local/sprint1/annotations",
       "owned_files": "scripts/annotation_v2.py; scripts/review_server.py; tests/test_annotation_v2.py; docs/spec/sprints/ANNOTATIONS_S1.md; scripts/report.py two bounded-provider injection seams root-authorized",
       "completion_metric": "Version2 kind/basis/revision/idempotency, source-bound writes and backward-compatible read route; every refusal preserves existing store.",
-      "state": "source_admin_merged_published_ci_pending",
+      "state": "completed_scoped_delivery",
       "linear": {
         "id": "TIN-5567",
         "uuid": "48624470-a56e-42c8-af68-059b5182ce20",
-        "url": "https://linear.app/tinyland/issue/TIN-5567/s1-structured-user-issue-annotations-with-source-and-replay-safeguards"
+        "url": "https://linear.app/tinyland/issue/TIN-5567/s1-structured-user-issue-annotations-with-source-and-replay-safeguards",
+        "verified_state": "Done"
       },
       "agent": "/root/s1_annotations"
     },
@@ -30,11 +31,12 @@
       "worktree": "/Users/jess/git/video-utils/.local/sprint1/review_ui",
       "owned_files": "review/*; tests/test_review_ui_s1.py; docs/spec/sprints/REVIEW_UI_S1.md",
       "completion_metric": "Save/read a user-reported timestamp, loop selected span, keyboard use; 390px and desktop walkthrough without overflow; detector/user claims visibly different.",
-      "state": "source_admin_merged_published_ci_pending",
+      "state": "completed_scoped_delivery",
       "linear": {
         "id": "TIN-5568",
         "uuid": "4a0c492f-dcaa-4d77-9467-b05dae00ad58",
-        "url": "https://linear.app/tinyland/issue/TIN-5568/s1-local-timestamp-seek-and-loop-practice-walkthrough"
+        "url": "https://linear.app/tinyland/issue/TIN-5568/s1-local-timestamp-seek-and-loop-practice-walkthrough",
+        "verified_state": "Done"
       },
       "agent": "/root/s1_review_ui"
     },
@@ -45,11 +47,12 @@
       "worktree": "/Users/jess/git/video-utils/.local/sprint1/phrases",
       "owned_files": "scripts/phrase_proposal_s1.py; tests/test_phrase_proposal_s1.py; docs/spec/sprints/PHRASES_S1.md",
       "completion_metric": "Freeze one baseline plus at most2candidate arms; score heldout positives/negatives with pairIoU and boundary errors; retain non-improvement/no default adoption.",
-      "state": "source_admin_merged_published_ci_pending",
+      "state": "completed_scoped_delivery",
       "linear": {
         "id": "TIN-5565",
         "uuid": "3824cd08-0911-4302-b1e1-3b449c87a809",
-        "url": "https://linear.app/tinyland/issue/TIN-5565/s1-frozen-heldout-phrase-proposal-experiment"
+        "url": "https://linear.app/tinyland/issue/TIN-5565/s1-frozen-heldout-phrase-proposal-experiment",
+        "verified_state": "Done"
       },
       "agent": "/root/s1_phrases"
     },
@@ -60,11 +63,12 @@
       "worktree": "/Users/jess/git/video-utils/.local/sprint1/low_register",
       "owned_files": "scripts/low_register_s1.py; tests/test_low_register_s1.py; docs/spec/sprints/LOW_REGISTER_S1.md",
       "completion_metric": "Known components atC1/32Hz and collisions; report guitar retention, attack/tail, residualnoise, clipping with denominators; preserve accepted real media.",
-      "state": "source_admin_merged_published_ci_pending",
+      "state": "completed_scoped_delivery",
       "linear": {
         "id": "TIN-5564",
         "uuid": "a78c0b2b-7f45-41d9-bd06-6521289bbbf3",
-        "url": "https://linear.app/tinyland/issue/TIN-5564/s1-known-component-c1-preservation-and-fan-collision-comparisons"
+        "url": "https://linear.app/tinyland/issue/TIN-5564/s1-known-component-c1-preservation-and-fan-collision-comparisons",
+        "verified_state": "Done"
       },
       "agent": "/root/s1_low_register"
     },
@@ -75,11 +79,12 @@
       "worktree": "/Users/jess/git/video-utils/.local/sprint1/corpus",
       "owned_files": "scripts/corpus_split_s1.py; tests/test_corpus_split_s1.py; docs/spec/sprints/CORPUS_S1.md",
       "completion_metric": "Group all derivatives by take family; refuse cross-split leakage; preserve unknown/absence/coverage; carry existing sparse pitch failure evidence without new truth claims.",
-      "state": "source_admin_merged_published_ci_pending",
+      "state": "completed_scoped_delivery",
       "linear": {
         "id": "TIN-5566",
         "uuid": "6661b08f-fc5b-4a8c-9ecb-fe097169c65e",
-        "url": "https://linear.app/tinyland/issue/TIN-5566/s1-source-family-split-validation-and-sparsepitch-readiness"
+        "url": "https://linear.app/tinyland/issue/TIN-5566/s1-source-family-split-validation-and-sparsepitch-readiness",
+        "verified_state": "Done"
       },
       "agent": "/root/s1_corpus"
     },
@@ -90,11 +95,12 @@
       "worktree": "/Users/jess/git/video-utils/.local/sprint1/audit",
       "owned_files": "tests/test_sprint1_audit.py; docs/agent-notes/sprints/20261006-s1/audit-*",
       "completion_metric": "Independently verify interfaces/refusals/source protection and metrics; close all reproduced defects or document scoped experimental failures.",
-      "state": "source_admin_merged_published_ci_pending",
+      "state": "completed_scoped_delivery",
       "linear": {
         "id": "TIN-5569",
         "uuid": "2e9fa9cf-709a-4308-bac0-0056967015ab",
-        "url": "https://linear.app/tinyland/issue/TIN-5569/s1-independent-s1-refusal-metrics-and-release-review"
+        "url": "https://linear.app/tinyland/issue/TIN-5569/s1-independent-s1-refusal-metrics-and-release-review",
+        "verified_state": "Done"
       },
       "agent": "/root/s1_audit"
     }
@@ -104,18 +110,92 @@
     "uuid": "d75d5438-111c-470d-9e44-f6fddeb388bf",
     "url": "https://linear.app/tinyland/issue/TIN-5563/s1-five-hour-parallel-core-sprint-annotations-practice-review-and"
   },
-  "checkpoint_utc": "2026-10-06T06:38:33.996566+00:00",
+  "checkpoint_utc": "2026-10-06T06:47:45.675051+00:00",
   "integration_head": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
-  "publication": "published_signed_private_source_hosted_ci_pending",
-  "hosted_ci": [
-    {
-      "conclusion": "",
-      "databaseId": 37424756499,
-      "headSha": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
-      "status": "in_progress",
-      "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37424756499"
-    }
-  ],
+  "publication": "signed_private_source_exact_hosted_ci_success",
+  "hosted_ci": {
+    "conclusion": "success",
+    "headSha": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
+    "jobs": [
+      {
+        "completedAt": "2026-10-06T06:41:05Z",
+        "conclusion": "success",
+        "databaseId": 112141780888,
+        "name": "offline",
+        "startedAt": "2026-10-06T06:37:20Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-06T06:37:21Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-06T06:37:20Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T06:37:23Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "number": 2,
+            "startedAt": "2026-10-06T06:37:21Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T06:37:28Z",
+            "conclusion": "success",
+            "name": "Run cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7",
+            "number": 3,
+            "startedAt": "2026-10-06T06:37:23Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T06:40:46Z",
+            "conclusion": "success",
+            "name": "Python and synthetic media checks",
+            "number": 4,
+            "startedAt": "2026-10-06T06:37:28Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T06:40:51Z",
+            "conclusion": "success",
+            "name": "Rust checks on the supported hosted builder",
+            "number": 5,
+            "startedAt": "2026-10-06T06:40:46Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T06:41:03Z",
+            "conclusion": "success",
+            "name": "Secret scan",
+            "number": 6,
+            "startedAt": "2026-10-06T06:40:51Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T06:41:03Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "number": 12,
+            "startedAt": "2026-10-06T06:41:03Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T06:41:03Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 13,
+            "startedAt": "2026-10-06T06:41:03Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37424756499/job/112141780888"
+      }
+    ],
+    "status": "completed",
+    "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37424756499"
+  },
   "completion_metrics": {
     "named_lanes": 6,
     "signed_admin_merges": 6,
@@ -135,6 +215,20 @@
     "phrase_endpoints_20ms": "0/16; target not achieved, experimental outcome explicit",
     "low_register": "36rows;0clipped of17,558,400values;fan/music collisions not separated",
     "protected_media": "unchanged independently hash-verified",
-    "remaining": "exact hostedCI terminal success, final tracker/readback/handoff/goal completion"
-  }
+    "remaining": "Final docs publication/readback and goal transition",
+    "hosted_ci": {
+      "discovered": 1038,
+      "seconds": 170.129,
+      "skipped": 57,
+      "passed": 981,
+      "failures": 0,
+      "errors": 0
+    },
+    "rust_tests": 7,
+    "secret_scan": "PASS"
+  },
+  "state": "delivery_complete_final_documentation_publication_pending",
+  "completed_deliverables_at": "2026-10-06T06:47:45.675051+00:00",
+  "unused_wall_clock_seconds_at_audit": 15006.324949,
+  "completion_audit": "docs/agent-notes/sprints/20261006-s1/root-completion-audit.json"
 }

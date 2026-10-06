@@ -13,35 +13,30 @@ Exact owners/metrics: [sprint manifest](../../program/sprints/20261006-s1.json).
 Active tracker: [TIN-5563](https://linear.app/tinyland/issue/TIN-5563/s1-five-hour-parallel-core-sprint-annotations-practice-review-and).
 Tracker IDs: [linear.json](../../program/linear.json).
 
-## Current S1 sprint — October 6, 06:29 UTC
+## S1 scoped delivery — October6 ~06:48UTC
 
-New active five-hour goal: **05:57:52→10:57:52UTC (01:57→06:57EDT)**. Prior ten-hour
-delivery remains complete. Six isolated workers run annotations, localreview UI,
-phrase proposals, low-register validation, corpus splits and independent audit.
-Root alone owns administrative signed commits/merges, shared typedtool/skill
-admission, recipes, Linear and release evidence. Active parent TIN-5563 and six
-children TIN-5564–5569 have independent readbacks. The broader hostedfuture stays
-queued. Source/mainbaseline51d0935 was clean before isolation.
-
-Plan: [S1](../spec/sprints/20261006-S1.md); exact branches/owners/metrics:
-[manifest](../../program/sprints/20261006-s1.json). CheckpointsT+1/+2/+3;
-featurefreezeT+4; finalhour combinedchecks/CI/handoff. Research non-improvement
-is a valid evaluated result, never an automaticdefault/master change.
+Six worker lanes completed before the planned five-hour horizon. Root signed
+six administrative merges and privately published product source48c46f0 with a
+valid signature. Exact hostedCI37424756499 passed1038 discovered/981passed/
+57optional skips,7Rust tests and secret scan. Local qualified1014discovered/
+1013passed/1skip plus30independent postmerge checks passed. All32typed tools,
+exact skill prompts and recipes qualify; original30descriptors remain unchanged.
 
 | Stream | Owner | Branch | State/evidence | Next |
 |---|---|---|---|---|
-| annotations | s1_annotations | sprint/20261006-s1/annotations | Signed root merge;65 owner/legacy passes; explicit clock/FIFO fixes audited | Combined release |
-| review UI | s1_review_ui | sprint/20261006-s1/review_ui | Signed root merge;25 checks; actual Chrome1440/390 and copied demo decode | Combined release |
-| phrases | s1_phrases | sprint/20261006-s1/phrases | Signed root merge;12 synthetic cases, pair4/4,20ms endpoints0/16; research only | Preserve limits; continuous riffs future |
-| low register | s1_low_register | sprint/20261006-s1/low_register | Signed root merge;36 rows independently recomputed; low-band fan collision retained | Preserve experimental exclusions |
-| corpus | s1_corpus | sprint/20261006-s1/corpus | Signed root merge; leakage refusal; actual-demo context-only unassigned metadata validates | Combined typed admission |
-| audit | s1_audit | sprint/20261006-s1/audit | Independent fixes/numeric closure;32-tool and final matrix passed | Root merge final audit |
-| integration | root | main | 32 hooks/skills qualified;full1014(1013pass/1skip) plus30 audit pass;source48c46f0 privately published | Exact hostedCI37424756499 running; final readback |
+| annotations | s1_annotations | sprint/20261006-s1/annotations | Completed;65owner/legacy checks; sourceclock/replay/refusal/v1 proof | Sparse user context, future review |
+| review UI | s1_review_ui | sprint/20261006-s1/review_ui | Completed;25checks; Chrome1440/390; copied demo260frames | Real operator annotations |
+| phrases | s1_phrases | sprint/20261006-s1/phrases | Evaluated; pair4/4 on separated motifs;20ms endpoints0/16 | Queued continuous-riff benchmark |
+| low register | s1_low_register | sprint/20261006-s1/low_register | Evaluated;36rows/24harmonic fits; collidingfan retained | Queued source-null artifact gate |
+| corpus | s1_corpus | sprint/20261006-s1/corpus | Completed; leakage refusal; sourcebound context validates; pitch octave failure retained | Sparse labelled families |
+| audit | s1_audit | sprint/20261006-s1/audit | Completed;30independent checks,32interfaces, eight boundary defects closed | No active audit work |
+| integration | root | main |6signed merges; private source48c46f0; exactCI37424756499success;7issuesDone | Final docs publication/goal transition |
 
-Accepted master and Desktop remain unchanged. New actual-demo annotation is
-operator context0–5s, not a detected mistake or pure-noise assertion. Signed source48c46f0 is privately published; hosted
-CI is pending; native AU/editor and future hosted work remain queued.
-
+[Handoff](sprints/20261006-s1/HANDOFF.md); [completion audit](sprints/20261006-s1/root-completion-audit.json);
+[exact manifest](../../program/sprints/20261006-s1.json).
+All seven scoped S1issuesDone independently; broader futureTIN5546Backlog.
+Approved master/Desktop/instrument/arrangement hashes remain unchanged.
+No master/default adoption, real musical verdict or AU/editor/hosted activation.
 
 ## Final delivery checkpoint — October 6, 05:34 UTC
 

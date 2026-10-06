@@ -3,7 +3,7 @@
   "authority": "Operator approved plan / Implement the plan; R-HOOK-CONVERGENCE-20261004 / R-N13",
   "repository": "https://github.com/Jesssullivan/video-utils",
   "team_id": "a2c482c8-4d0d-4171-82d9-553265b6c706",
-  "updated_at": "2026-10-06T06:38:33.996566+00:00",
+  "updated_at": "2026-10-06T06:47:45.675051+00:00",
   "milestones": [
     {
       "id": "71bd7738-f346-48dd-8426-4095575a386a",
@@ -87,126 +87,131 @@
       "kind": "ten_hour_goal"
     }
   ],
-  "evidence_state": "Completed scoped delivery: signed private30-tool source9d18aad and hostedCI37418798796 success, local140/140, all30 skills/prompts. Accepted FULLER+compactQA and Desktop21.6MB1080x720H264AAC96 delivered. TIN-5485/TIN-5495 Done; future TIN-5546 queued; root final goal-state transition follows documentation publication.",
+  "evidence_state": "S1 scoped32tool delivery complete:6signedadminmerges, source48c46f0 private/valid signature, exact hostedCI37424756499 success. Local1013pass/1skip plus30independent; hosted981pass/57optional skips,7Rust and secret scan. All7S1issuesDone; futureTIN5546Backlog; accepted media unchanged. Final docs publication and goal transition follow.",
   "project": {
     "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
     "name": "video-utils \u2014 guitar restoration and performance analysis",
     "url": "https://linear.app/tinyland/project/video-utils-guitar-restoration-and-performance-analysis-243628f290ab"
   },
   "publication": {
-    "observed_at": "2026-10-06T05:33:51.482457+00:00",
-    "source_commit": "9d18aadd8eb8781b510c5efd9c711abe1510e4cb",
+    "authority": "R-HOOK-CONVERGENCE-20261004/R-N13",
+    "actor": "/root",
+    "observed_at": "2026-10-06T06:47:45.675051+00:00",
+    "source_commit": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
     "private": true,
     "signature_verified": true,
     "signature_reason": "valid",
-    "exact_remote_head": "9d18aadd8eb8781b510c5efd9c711abe1510e4cb",
-    "typed_tools": 30,
-    "skills": 30,
-    "affected_regression": {
-      "tests": 140,
-      "passed": 140,
-      "skips": 0,
-      "seconds": 92.016,
-      "receipt": "docs/agent-notes/2026-10-06-tools30-affected-regression.json"
+    "exact_remote_head": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
+    "typed_tools": 32,
+    "skills": 32,
+    "admin_merges": 6,
+    "local_full_suite": {
+      "discovered": 1014,
+      "passed": 1013,
+      "skipped": 1,
+      "seconds": 248.5
+    },
+    "postmerge_independent_suite": {
+      "passed": 30,
+      "seconds": 2.355
     },
     "hosted_ci": {
       "conclusion": "success",
-      "headSha": "9d18aadd8eb8781b510c5efd9c711abe1510e4cb",
+      "headSha": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
       "jobs": [
         {
-          "completedAt": "2026-10-06T05:33:15Z",
+          "completedAt": "2026-10-06T06:41:05Z",
           "conclusion": "success",
-          "databaseId": 112123305133,
+          "databaseId": 112141780888,
           "name": "offline",
-          "startedAt": "2026-10-06T05:29:40Z",
+          "startedAt": "2026-10-06T06:37:20Z",
           "status": "completed",
           "steps": [
             {
-              "completedAt": "2026-10-06T05:29:42Z",
+              "completedAt": "2026-10-06T06:37:21Z",
               "conclusion": "success",
               "name": "Set up job",
               "number": 1,
-              "startedAt": "2026-10-06T05:29:41Z",
+              "startedAt": "2026-10-06T06:37:20Z",
               "status": "completed"
             },
             {
-              "completedAt": "2026-10-06T05:29:44Z",
+              "completedAt": "2026-10-06T06:37:23Z",
               "conclusion": "success",
               "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
               "number": 2,
-              "startedAt": "2026-10-06T05:29:42Z",
+              "startedAt": "2026-10-06T06:37:21Z",
               "status": "completed"
             },
             {
-              "completedAt": "2026-10-06T05:29:48Z",
+              "completedAt": "2026-10-06T06:37:28Z",
               "conclusion": "success",
               "name": "Run cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7",
               "number": 3,
-              "startedAt": "2026-10-06T05:29:44Z",
+              "startedAt": "2026-10-06T06:37:23Z",
               "status": "completed"
             },
             {
-              "completedAt": "2026-10-06T05:32:58Z",
+              "completedAt": "2026-10-06T06:40:46Z",
               "conclusion": "success",
               "name": "Python and synthetic media checks",
               "number": 4,
-              "startedAt": "2026-10-06T05:29:48Z",
+              "startedAt": "2026-10-06T06:37:28Z",
               "status": "completed"
             },
             {
-              "completedAt": "2026-10-06T05:33:03Z",
+              "completedAt": "2026-10-06T06:40:51Z",
               "conclusion": "success",
               "name": "Rust checks on the supported hosted builder",
               "number": 5,
-              "startedAt": "2026-10-06T05:32:58Z",
+              "startedAt": "2026-10-06T06:40:46Z",
               "status": "completed"
             },
             {
-              "completedAt": "2026-10-06T05:33:13Z",
+              "completedAt": "2026-10-06T06:41:03Z",
               "conclusion": "success",
               "name": "Secret scan",
               "number": 6,
-              "startedAt": "2026-10-06T05:33:03Z",
+              "startedAt": "2026-10-06T06:40:51Z",
               "status": "completed"
             },
             {
-              "completedAt": "2026-10-06T05:33:14Z",
+              "completedAt": "2026-10-06T06:41:03Z",
               "conclusion": "success",
               "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
               "number": 12,
-              "startedAt": "2026-10-06T05:33:13Z",
+              "startedAt": "2026-10-06T06:41:03Z",
               "status": "completed"
             },
             {
-              "completedAt": "2026-10-06T05:33:14Z",
+              "completedAt": "2026-10-06T06:41:03Z",
               "conclusion": "success",
               "name": "Complete job",
               "number": 13,
-              "startedAt": "2026-10-06T05:33:14Z",
+              "startedAt": "2026-10-06T06:41:03Z",
               "status": "completed"
             }
           ],
-          "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37418798796/job/112123305133"
+          "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37424756499/job/112141780888"
         }
       ],
       "status": "completed",
-      "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37418798796",
-      "id": 37418798796,
-      "test_summary": {
-        "discovered": 902,
-        "passed": 857,
-        "optional_skips": 45,
-        "seconds": 162.671
-      },
-      "rust_tests_passed": 7,
-      "secret_scan": "success",
-      "log": "artifacts/share-export-hosted-ci-37418798796.log",
-      "log_sha256": "230768ff0b9ef1ef22bb1ca1f0147a539087621bc9db7c73ec0725045f20120c",
-      "optional_skip_scope": "Includes one setUpClass skip replacing four macOS-qualified share-export synthetic cases: exact qualified ffmpeg binary unavailable on hosted Linux; those four passed in local140 suite. Other44 optional skips retained from baseline."
+      "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37424756499"
     },
-    "staged_secret_scan": "passed after renaming a source-code hash field that triggered generic-api-key; no secret value or allowlist change",
-    "scope": "Signed private source30 and exact hosted success verified; actual Desktop delivery and listening acceptance retain separate receipts.",
-    "receipt": "docs/agent-notes/2026-10-06-tools30-publication.json"
+    "state": "signed_private_source_exact_hosted_ci_success",
+    "master_or_desktop_changes": false,
+    "performance_truth": "not_established",
+    "note": "No AU/editor/hosted service activation; code source identity is separate from later documentation-only receipts.",
+    "hosted_ci_python": {
+      "discovered": 1038,
+      "seconds": 170.129,
+      "skipped": 57,
+      "passed": 981,
+      "failures": 0,
+      "errors": 0
+    },
+    "rust_tests": 7,
+    "secret_scan": "PASS"
   },
   "publication_history": [
     {
@@ -506,6 +511,121 @@
         "receipt": "docs/agent-notes/2026-10-06-tools29-consolidated-test-result.json"
       },
       "scope": "Published29 typed tools/skills, actual capture/profile/restoration and reference-aware marking evidence; accepted FULLER audio and final compact QA. Generated classifiers retain failures; AU/native editor proof future."
+    },
+    {
+      "observed_at": "2026-10-06T05:33:51.482457+00:00",
+      "source_commit": "9d18aadd8eb8781b510c5efd9c711abe1510e4cb",
+      "private": true,
+      "signature_verified": true,
+      "signature_reason": "valid",
+      "exact_remote_head": "9d18aadd8eb8781b510c5efd9c711abe1510e4cb",
+      "typed_tools": 30,
+      "skills": 30,
+      "affected_regression": {
+        "tests": 140,
+        "passed": 140,
+        "skips": 0,
+        "seconds": 92.016,
+        "receipt": "docs/agent-notes/2026-10-06-tools30-affected-regression.json"
+      },
+      "hosted_ci": {
+        "conclusion": "success",
+        "headSha": "9d18aadd8eb8781b510c5efd9c711abe1510e4cb",
+        "jobs": [
+          {
+            "completedAt": "2026-10-06T05:33:15Z",
+            "conclusion": "success",
+            "databaseId": 112123305133,
+            "name": "offline",
+            "startedAt": "2026-10-06T05:29:40Z",
+            "status": "completed",
+            "steps": [
+              {
+                "completedAt": "2026-10-06T05:29:42Z",
+                "conclusion": "success",
+                "name": "Set up job",
+                "number": 1,
+                "startedAt": "2026-10-06T05:29:41Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-10-06T05:29:44Z",
+                "conclusion": "success",
+                "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+                "number": 2,
+                "startedAt": "2026-10-06T05:29:42Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-10-06T05:29:48Z",
+                "conclusion": "success",
+                "name": "Run cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7",
+                "number": 3,
+                "startedAt": "2026-10-06T05:29:44Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-10-06T05:32:58Z",
+                "conclusion": "success",
+                "name": "Python and synthetic media checks",
+                "number": 4,
+                "startedAt": "2026-10-06T05:29:48Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-10-06T05:33:03Z",
+                "conclusion": "success",
+                "name": "Rust checks on the supported hosted builder",
+                "number": 5,
+                "startedAt": "2026-10-06T05:32:58Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-10-06T05:33:13Z",
+                "conclusion": "success",
+                "name": "Secret scan",
+                "number": 6,
+                "startedAt": "2026-10-06T05:33:03Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-10-06T05:33:14Z",
+                "conclusion": "success",
+                "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+                "number": 12,
+                "startedAt": "2026-10-06T05:33:13Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-10-06T05:33:14Z",
+                "conclusion": "success",
+                "name": "Complete job",
+                "number": 13,
+                "startedAt": "2026-10-06T05:33:14Z",
+                "status": "completed"
+              }
+            ],
+            "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37418798796/job/112123305133"
+          }
+        ],
+        "status": "completed",
+        "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37418798796",
+        "id": 37418798796,
+        "test_summary": {
+          "discovered": 902,
+          "passed": 857,
+          "optional_skips": 45,
+          "seconds": 162.671
+        },
+        "rust_tests_passed": 7,
+        "secret_scan": "success",
+        "log": "artifacts/share-export-hosted-ci-37418798796.log",
+        "log_sha256": "230768ff0b9ef1ef22bb1ca1f0147a539087621bc9db7c73ec0725045f20120c",
+        "optional_skip_scope": "Includes one setUpClass skip replacing four macOS-qualified share-export synthetic cases: exact qualified ffmpeg binary unavailable on hosted Linux; those four passed in local140 suite. Other44 optional skips retained from baseline."
+      },
+      "staged_secret_scan": "passed after renaming a source-code hash field that triggered generic-api-key; no secret value or allowlist change",
+      "scope": "Signed private source30 and exact hosted success verified; actual Desktop delivery and listening acceptance retain separate receipts.",
+      "receipt": "docs/agent-notes/2026-10-06-tools30-publication.json"
     }
   ],
   "restoration_comparison": {
@@ -768,15 +888,17 @@
     "start_utc": "2026-10-06T05:57:52+00:00",
     "end_utc": "2026-10-06T10:57:52+00:00",
     "worker_count": 6,
-    "checkpoint": "six lanes signed/admin merged and published; exact hostedCI37424756499 running",
+    "checkpoint": "all7issues independentlyDone; exact hostedCI successful",
     "integration_receipt": "docs/agent-notes/sprints/20261006-s1/root-integration-checkpoint.json",
     "demo_context_receipt": "docs/agent-notes/sprints/20261006-s1/root-actual-demo-context.json",
-    "hosted_ci": "37424756499 source48c46f090f6c7fe7a07660367ac6c098bed7f81c in_progress"
+    "hosted_ci": "37424756499 source48c46f090f6c7fe7a07660367ac6c098bed7f81c success",
+    "state": "scoped_delivery_complete",
+    "final_audit": "docs/agent-notes/sprints/20261006-s1/root-completion-audit.json"
   },
   "sprint_publication": {
     "authority": "R-HOOK-CONVERGENCE-20261004/R-N13",
     "actor": "/root",
-    "observed_at": "2026-10-06T06:38:33.996566+00:00",
+    "observed_at": "2026-10-06T06:47:45.675051+00:00",
     "source_commit": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
     "private": true,
     "signature_verified": true,
@@ -795,18 +917,102 @@
       "passed": 30,
       "seconds": 2.355
     },
-    "hosted_ci": [
-      {
-        "conclusion": "",
-        "databaseId": 37424756499,
-        "headSha": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
-        "status": "in_progress",
-        "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37424756499"
-      }
-    ],
-    "state": "published_signed_private_source_hosted_ci_pending",
+    "hosted_ci": {
+      "conclusion": "success",
+      "headSha": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
+      "jobs": [
+        {
+          "completedAt": "2026-10-06T06:41:05Z",
+          "conclusion": "success",
+          "databaseId": 112141780888,
+          "name": "offline",
+          "startedAt": "2026-10-06T06:37:20Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-10-06T06:37:21Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-10-06T06:37:20Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T06:37:23Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "number": 2,
+              "startedAt": "2026-10-06T06:37:21Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T06:37:28Z",
+              "conclusion": "success",
+              "name": "Run cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7",
+              "number": 3,
+              "startedAt": "2026-10-06T06:37:23Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T06:40:46Z",
+              "conclusion": "success",
+              "name": "Python and synthetic media checks",
+              "number": 4,
+              "startedAt": "2026-10-06T06:37:28Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T06:40:51Z",
+              "conclusion": "success",
+              "name": "Rust checks on the supported hosted builder",
+              "number": 5,
+              "startedAt": "2026-10-06T06:40:46Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T06:41:03Z",
+              "conclusion": "success",
+              "name": "Secret scan",
+              "number": 6,
+              "startedAt": "2026-10-06T06:40:51Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T06:41:03Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "number": 12,
+              "startedAt": "2026-10-06T06:41:03Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T06:41:03Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 13,
+              "startedAt": "2026-10-06T06:41:03Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37424756499/job/112141780888"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37424756499"
+    },
+    "state": "signed_private_source_exact_hosted_ci_success",
     "master_or_desktop_changes": false,
     "performance_truth": "not_established",
-    "note": "No AU/editor/hosted service activation; code source identity is separate from later documentation-only receipts."
+    "note": "No AU/editor/hosted service activation; code source identity is separate from later documentation-only receipts.",
+    "hosted_ci_python": {
+      "discovered": 1038,
+      "seconds": 170.129,
+      "skipped": 57,
+      "passed": 981,
+      "failures": 0,
+      "errors": 0
+    },
+    "rust_tests": 7,
+    "secret_scan": "PASS"
   }
 }

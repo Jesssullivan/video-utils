@@ -1,0 +1,149 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13",
+  "actor": "/root",
+  "audited_at": "2026-10-06T06:47:45.675051+00:00",
+  "objective_fidelity": "Original finite six-lane S1 scope retained. Experimental failures are measured outcomes, not detector improvements or default adoption.",
+  "requirements": [
+    {
+      "id": "R1",
+      "requirement": "Six isolated workers and root-only signed administration",
+      "state": "proven scoped completion",
+      "evidence": [
+        "kickoff.md",
+        "root-integration-checkpoint.json",
+        "audit-final-freeze.json"
+      ],
+      "limits": "Six signed merges; source/evaluated outcome of each lane recorded."
+    },
+    {
+      "id": "R2",
+      "requirement": "Source/manifest annotation binding, explicit clock, replay/refusal and v1 preservation",
+      "state": "proven scoped completion",
+      "evidence": [
+        "annotations-final-freeze.json",
+        "audit-annotation-ui-final-tests.json",
+        "root-actual-demo-context.json"
+      ],
+      "limits": "65owner/legacy checks,100clock cases plus independent and actual metadata proof. Authorship declared, no musical verdict."
+    },
+    {
+      "id": "R3",
+      "requirement": "Manual issues, seek/loop/keyboard and graphical badges at desktop/390px",
+      "state": "proven scoped completion",
+      "evidence": [
+        "review-ui-final-dependency-result.json",
+        "review-ui-demo-isolation.json",
+        "root-final-protection-and-visual.json"
+      ],
+      "limits": "Actual Chrome interactions and inspected hash-bound paints; copied demo260decodedframes. Muted browser proof, no new burned video or listening acceptance."
+    },
+    {
+      "id": "R4",
+      "requirement": "Heldout phrase pair/boundary/negative measurements",
+      "state": "proven scoped completion",
+      "evidence": [
+        "phrases-handoff.json",
+        "phrases-evaluation-1301-1423.json",
+        "audit-phrase-numerical.json"
+      ],
+      "limits": "12same-recipe new-seed cases;4pairs/8negatives; global seal before scoring.20ms target0/16; quality outcome experimental, continuous riffs unqualified; default unchanged."
+    },
+    {
+      "id": "R5",
+      "requirement": "Known C1/32Hz preservation/noise/attack/tail/collision measurements",
+      "state": "proven scoped completion",
+      "evidence": [
+        "low-register-handoff.json",
+        "low-register-readout-v2.md",
+        "audit-low-register-numerical.json",
+        "audit-low-register-harmonic-result.json"
+      ],
+      "limits": "36rows;0clipped/17,558,400values. Fan collision retention and nonlinear source-null content explicit; counterfactual changes not separated stems; no adoption."
+    },
+    {
+      "id": "R6",
+      "requirement": "Corpus family/derivative leakage refusal and sparse pitch/octave readiness",
+      "state": "proven scoped completion",
+      "evidence": [
+        "corpus-readiness.json",
+        "corpus-handoff.md",
+        "audit-corpus-source-tests.json",
+        "audit-actual-demo-context-readback.json"
+      ],
+      "limits": "Unknown labels and absence0 preserved; prior34/426 fundamental matches and392/426 octave failures retained, no new inference/training."
+    },
+    {
+      "id": "R7",
+      "requirement": "Bounded closed MCP schemas, skills, recipes and existing30 compatibility",
+      "state": "proven scoped completion",
+      "evidence": [
+        "root-admission-freeze.json",
+        "audit-main-tool-skill-recipe-closure.json",
+        "root-combined-checks.json"
+      ],
+      "limits": "32exact schemas/prompts/allgeneric plus3specific recipes; original30 and generic runner unchanged. Bundled quickvalidator unavailable withoutPyYAML; independent frontmatter/link/protocol checks used."
+    },
+    {
+      "id": "R8",
+      "requirement": "Independent defect closure and appropriate combined tests/secrets",
+      "state": "proven scoped completion",
+      "evidence": [
+        "audit-final-handoff.md",
+        "audit-main-final-tests.json",
+        "root-hosted-ci-final.json"
+      ],
+      "limits": "Eight reproduced boundary defects closed. Local1014/1013pass/1skip+30independent; hosted1038/981pass/57optional skips,7Rust and secret scan pass."
+    },
+    {
+      "id": "R9",
+      "requirement": "Fixed tuning/arrangement/source/master/Desktop and no unrequested adoption/activation",
+      "state": "proven scoped completion",
+      "evidence": [
+        "protected-baseline.json",
+        "root-final-protection-and-visual.json",
+        "root-advisory-push-cleanup.json"
+      ],
+      "limits": "Fresh protected hashes match. No model download, foreign session/service/plugin configuration change. Owned advisory process signals narrowly scoped and receipted."
+    },
+    {
+      "id": "R10",
+      "requirement": "Private signed publication, tracker facts and durable handoff",
+      "state": "source/CI/tracker proven; final signed documentation publication/readback is root final gate",
+      "evidence": [
+        "root-publication-checkpoint.json",
+        "root-hosted-ci-final.json",
+        "root-linear-final-all-readbacks.json"
+      ],
+      "limits": "Source48c46f0 private/valid signature/exact successfulCI; seven issuesDone, futureBacklog. Final documentation publication/readback and goal transition follow."
+    }
+  ],
+  "signed_admin_merges": [
+    "48c46f090f6c7fe7a07660367ac6c098bed7f81c G Admin merge independently verified S1 audit evidence",
+    "3266b1d2123baabd0734da5004746ad229c4e9f0 G Admin merge independently verified low-register comparisons",
+    "bdc8ae777077f9b6559c65082abcf91a4e165e30 G Admin merge browser-checked S1 practice review UI",
+    "8b79334b567758ef30a0bd4d085ba823fa779d3c G Admin merge independently checked S1 annotation store",
+    "3c62129dbdc3ab2c4eb8edf5a2ea6f467ca4f838 G Admin merge independently measured S1 phrase experiment",
+    "b80fa6ab506176a58c7eb943071fe028e54d6ea9 G merge: integrate audited S1 corpus split lane"
+  ],
+  "original30_descriptors_equal": true,
+  "generic_runner_equal": true,
+  "tracker_readbacks": {
+    "TIN-5563": "Done",
+    "TIN-5564": "Done",
+    "TIN-5565": "Done",
+    "TIN-5566": "Done",
+    "TIN-5567": "Done",
+    "TIN-5568": "Done",
+    "TIN-5569": "Done",
+    "TIN-5546": "Backlog"
+  },
+  "timebox": {
+    "start": "2026-10-06T05:57:52+00:00",
+    "planned_end": "2026-10-06T10:57:52+00:00",
+    "audit_elapsed_seconds": 2993.675051,
+    "unused_wall_clock_seconds": 15006.324949,
+    "early_delivery": "Finite deliverables finished before horizon; unused wall clock is not musician development/person-hours or activated new work."
+  },
+  "remaining_root_action": "Final signed docs publication/readback, then goal complete; no product implementation remains.",
+  "final_documentation_closure": "Recorded by signed Git remote and final TIN-5563 closeout comment after this receipt is published; no recursive self-commit hash claim."
+}

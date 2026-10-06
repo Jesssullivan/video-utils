@@ -1,0 +1,167 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13",
+  "actor": "/root",
+  "observed_at": "2026-10-06T06:42:18.655243+00:00",
+  "run": {
+    "conclusion": "success",
+    "headSha": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
+    "jobs": [
+      {
+        "completedAt": "2026-10-06T06:41:05Z",
+        "conclusion": "success",
+        "databaseId": 112141780888,
+        "name": "offline",
+        "startedAt": "2026-10-06T06:37:20Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-06T06:37:21Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-06T06:37:20Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T06:37:23Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "number": 2,
+            "startedAt": "2026-10-06T06:37:21Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T06:37:28Z",
+            "conclusion": "success",
+            "name": "Run cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7",
+            "number": 3,
+            "startedAt": "2026-10-06T06:37:23Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T06:40:46Z",
+            "conclusion": "success",
+            "name": "Python and synthetic media checks",
+            "number": 4,
+            "startedAt": "2026-10-06T06:37:28Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T06:40:51Z",
+            "conclusion": "success",
+            "name": "Rust checks on the supported hosted builder",
+            "number": 5,
+            "startedAt": "2026-10-06T06:40:46Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T06:41:03Z",
+            "conclusion": "success",
+            "name": "Secret scan",
+            "number": 6,
+            "startedAt": "2026-10-06T06:40:51Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T06:41:03Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "number": 12,
+            "startedAt": "2026-10-06T06:41:03Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T06:41:03Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 13,
+            "startedAt": "2026-10-06T06:41:03Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37424756499/job/112141780888"
+      }
+    ],
+    "status": "completed",
+    "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37424756499"
+  },
+  "log": "artifacts/sprint1/hosted-ci.log",
+  "log_sha256": "fc4b36fa56beb7f543ecf82f1c63d3a634014538dada5d1c917a7ea8284e6e8a",
+  "python": {
+    "discovered": 1038,
+    "seconds": 170.129,
+    "skipped": 57,
+    "passed": 981,
+    "failures": 0,
+    "errors": 0
+  },
+  "skip_lines": [
+    "2026-10-06T06:38:22.1425307Z test_generated_low_missing_f0_sweep_tapping (test_basic_pitch_compare.QualifiedRuntimeTests.test_generated_low_missing_f0_sweep_tapping) ... skipped 'optional qualified runtime integration; no implicit install'",
+    "2026-10-06T06:39:18.4628415Z test_cli_detection_artifacts_are_immutable_and_emit_no_wav (test_clicks.ClickExperimentTests.test_cli_detection_artifacts_are_immutable_and_emit_no_wav) ... skipped 'optional locked analysis dependencies absent'",
+    "2026-10-06T06:39:18.4631583Z test_cli_optin_wav_outputs_verify_samples_extent_and_hashes (test_clicks.ClickExperimentTests.test_cli_optin_wav_outputs_verify_samples_extent_and_hashes) ... skipped 'optional locked analysis dependencies absent'",
+    "2026-10-06T06:39:18.4634310Z test_coincident_independent_guitar_attack_abstains (test_clicks.ClickExperimentTests.test_coincident_independent_guitar_attack_abstains) ... skipped 'optional locked analysis dependencies absent'",
+    "2026-10-06T06:39:18.4637169Z test_isolated_clicks_are_candidates_and_default_has_no_audio (test_clicks.ClickExperimentTests.test_isolated_clicks_are_candidates_and_default_has_no_audio) ... skipped 'optional locked analysis dependencies absent'",
+    "2026-10-06T06:39:18.4639720Z test_native_stereo_extent_and_nonzero_media_axis (test_clicks.ClickExperimentTests.test_native_stereo_extent_and_nonzero_media_axis) ... skipped 'optional locked analysis dependencies absent'",
+    "2026-10-06T06:39:18.4642249Z test_no_click_or_low_register_template_is_not_removed (test_clicks.ClickExperimentTests.test_no_click_or_low_register_template_is_not_removed) ... skipped 'optional locked analysis dependencies absent'",
+    "2026-10-06T06:39:18.4645227Z test_noise_template_does_not_create_recurring_click_identity (test_clicks.ClickExperimentTests.test_noise_template_does_not_create_recurring_click_identity) ... skipped 'optional locked analysis dependencies absent'",
+    "2026-10-06T06:39:18.4648113Z test_nonoverlap_pick_attack_preserved_in_known_fixture (test_clicks.ClickExperimentTests.test_nonoverlap_pick_attack_preserved_in_known_fixture) ... skipped 'optional locked analysis dependencies absent'",
+    "2026-10-06T06:39:18.4651025Z test_opt_in_reduces_known_click_component_and_preserves_32_hz (test_clicks.ClickExperimentTests.test_opt_in_reduces_known_click_component_and_preserves_32_hz) ... skipped 'optional locked analysis dependencies absent'",
+    "2026-10-06T06:39:18.4652392Z test_unconfirmed_or_missing_template_cannot_attenuate (test_clicks.ClickExperimentTests.test_unconfirmed_or_missing_template_cannot_attenuate) ... skipped 'optional locked analysis dependencies absent'",
+    "2026-10-06T06:39:18.4653714Z test_zero_strength_is_a_bypass_not_a_claimed_attenuation (test_clicks.ClickExperimentTests.test_zero_strength_is_a_bypass_not_a_claimed_attenuation) ... skipped 'optional locked analysis dependencies absent'",
+    "2026-10-06T06:39:22.2041390Z test_automatic_recurrence_uses_notes_without_intent_or_pause (test_guitar_features.GuitarFeatureTests.test_automatic_recurrence_uses_notes_without_intent_or_pause) ... skipped 'optional locked analysis environment'",
+    "2026-10-06T06:39:22.2044787Z test_automatic_silence_or_constant_features_abstain (test_guitar_features.GuitarFeatureTests.test_automatic_silence_or_constant_features_abstain) ... skipped 'optional locked analysis environment'",
+    "2026-10-06T06:39:33.8971262Z test_adaptive_increment_is_not_conditional_music_component (test_low_register_denoise_probe.LowRegisterProbeTests.test_adaptive_increment_is_not_conditional_music_component) ... skipped 'Optional locked NumPy/SciPy analysis environment required'",
+    "2026-10-06T06:39:33.8974272Z test_attack_oracle_catches_shift_and_tail_loss (test_low_register_denoise_probe.LowRegisterProbeTests.test_attack_oracle_catches_shift_and_tail_loss) ... skipped 'Optional locked NumPy/SciPy analysis environment required'",
+    "2026-10-06T06:39:33.8978008Z test_capture_rejects_partial_support_bad_hash_and_indices (test_low_register_denoise_probe.LowRegisterProbeTests.test_capture_rejects_partial_support_bad_hash_and_indices) ... skipped 'Optional locked NumPy/SciPy analysis environment required'",
+    "2026-10-06T06:39:33.8981226Z test_density_has_units_and_channel_specific_native_capture_support (test_low_register_denoise_probe.LowRegisterProbeTests.test_density_has_units_and_channel_specific_native_capture_support) ... skipped 'Optional locked NumPy/SciPy analysis environment required'",
+    "2026-10-06T06:39:33.8984599Z test_four_settings_enforce_continuous_low_floor_without_frame_exceptions (test_low_register_denoise_probe.LowRegisterProbeTests.test_four_settings_enforce_continuous_low_floor_without_frame_exceptions) ... skipped 'Optional locked NumPy/SciPy analysis environment required'",
+    "2026-10-06T06:39:33.8988214Z test_harmonic_fit_measures_damage_without_loudness_or_delay_fitting (test_low_register_denoise_probe.LowRegisterProbeTests.test_harmonic_fit_measures_damage_without_loudness_or_delay_fitting) ... skipped 'Optional locked NumPy/SciPy analysis environment required'",
+    "2026-10-06T06:39:33.8991651Z test_native_bypass_preserves_low_fundamental_edges_and_irregular_extent (test_low_register_denoise_probe.LowRegisterProbeTests.test_native_bypass_preserves_low_fundamental_edges_and_irregular_extent) ... skipped 'Optional locked NumPy/SciPy analysis environment required'",
+    "2026-10-06T06:39:33.8994977Z test_rejects_frame_clock_channel_extent_and_nonfinite_changes (test_low_register_denoise_probe.LowRegisterProbeTests.test_rejects_frame_clock_channel_extent_and_nonfinite_changes) ... skipped 'Optional locked NumPy/SciPy analysis environment required'",
+    "2026-10-06T06:39:33.8998571Z test_same_frozen_mask_linear_accounting_even_for_exact_collision (test_low_register_denoise_probe.LowRegisterProbeTests.test_same_frozen_mask_linear_accounting_even_for_exact_collision) ... skipped 'Optional locked NumPy/SciPy analysis environment required'",
+    "2026-10-06T06:39:33.9001807Z test_zero_capture_is_exact_gain_one_not_noise_reduction_credit (test_low_register_denoise_probe.LowRegisterProbeTests.test_zero_capture_is_exact_gain_one_not_noise_reduction_credit) ... skipped 'Optional locked NumPy/SciPy analysis environment required'",
+    "2026-10-06T06:39:33.9032829Z test_collision_has_distinct_components_with_exactly_same_mixture (test_low_register_fixtures.OracleTests.test_collision_has_distinct_components_with_exactly_same_mixture) ... skipped 'Optional NumPy/SciPy fixture-oracle environment required'",
+    "2026-10-06T06:39:33.9036593Z test_gain_envelope_and_pure_controls_have_correct_component_scope (test_low_register_fixtures.OracleTests.test_gain_envelope_and_pure_controls_have_correct_component_scope) ... skipped 'Optional NumPy/SciPy fixture-oracle environment required'",
+    "2026-10-06T06:39:33.9039455Z test_independent_rendered_additivity_and_capture_for_all_eight_cases (test_low_register_fixtures.OracleTests.test_independent_rendered_additivity_and_capture_for_all_eight_cases) ... skipped 'Optional NumPy/SciPy fixture-oracle environment required'",
+    "2026-10-06T06:39:33.9042811Z test_missing_f0_joint_fit_is_absent_but_deliberate_injection_fails (test_low_register_fixtures.OracleTests.test_missing_f0_joint_fit_is_absent_but_deliberate_injection_fails) ... skipped 'Optional NumPy/SciPy fixture-oracle environment required'",
+    "2026-10-06T06:39:33.9048778Z test_same_frozen_mask_additivity_and_broken_reference_negative_control (test_low_register_fixtures.OracleTests.test_same_frozen_mask_additivity_and_broken_reference_negative_control) ... skipped 'Optional NumPy/SciPy fixture-oracle environment required'",
+    "2026-10-06T06:39:33.9063309Z test_waveform_changes_extent_clipping_and_nonfinite_fail (test_low_register_fixtures.OracleTests.test_waveform_changes_extent_clipping_and_nonfinite_fail) ... skipped 'Optional NumPy/SciPy fixture-oracle environment required'",
+    "2026-10-06T06:39:33.9068417Z Mock DSP only: intercept the first oracle access and inspect disk seal. ... skipped 'Optional locked NumPy/SciPy environment required'",
+    "2026-10-06T06:39:33.9070808Z test_density_does_not_double_dc_or_nyquist (test_low_register_probe_audit.LowRegisterProbeAuditTests.test_density_does_not_double_dc_or_nyquist) ... skipped 'Optional locked NumPy/SciPy environment required'",
+    "2026-10-06T06:39:33.9073621Z test_bypass_additive_native_metrics_and_clipping_denominator (test_low_register_s1.NumericalTests.test_bypass_additive_native_metrics_and_clipping_denominator) ... skipped 'Optional locked NumPy/SciPy environment required'",
+    "2026-10-06T06:39:33.9076791Z test_complete_attenuation_remains_in_denominator_and_fails_gates (test_low_register_s1.NumericalTests.test_complete_attenuation_remains_in_denominator_and_fails_gates) ... skipped 'Optional locked NumPy/SciPy environment required'",
+    "2026-10-06T06:39:33.9079545Z test_missing_f0_and_collision_gate_exclusions (test_low_register_s1.NumericalTests.test_missing_f0_and_collision_gate_exclusions) ... skipped 'Optional locked NumPy/SciPy environment required'",
+    "2026-10-06T06:39:33.9082161Z test_non_linear_interaction_not_mislabeled_as_residual_stem (test_low_register_s1.NumericalTests.test_non_linear_interaction_not_mislabeled_as_residual_stem) ... skipped 'Optional locked NumPy/SciPy environment required'",
+    "2026-10-06T06:39:53.0130138Z test_coherence_one_can_coexist_with_six_db_low_band_loss (test_nr8_nr10_comparison.NumericOracles.test_coherence_one_can_coexist_with_six_db_low_band_loss) ... skipped 'locked NumPy/SciPy optional; no implicit installation'",
+    "2026-10-06T06:39:53.0133071Z test_short_windows_keep_native_index_and_do_not_fit_gain (test_nr8_nr10_comparison.NumericOracles.test_short_windows_keep_native_index_and_do_not_fit_gain) ... skipped 'locked NumPy/SciPy optional; no implicit installation'",
+    "2026-10-06T06:39:53.0136147Z test_zero_power_has_null_coherence_and_no_nan_json (test_nr8_nr10_comparison.NumericOracles.test_zero_power_has_null_coherence_and_no_nan_json) ... skipped 'locked NumPy/SciPy optional; no implicit installation'",
+    "2026-10-06T06:39:55.9810463Z test_constant_low_sustain_and_missing_f0_not_riff_identity (test_phrase_proposal_s1.FeatureContractTests.test_constant_low_sustain_and_missing_f0_not_riff_identity) ... skipped 'locked numerical environment is optional in baseline CI'",
+    "2026-10-06T06:39:55.9813310Z test_frame_and_dimension_budgets (test_phrase_proposal_s1.FeatureContractTests.test_frame_and_dimension_budgets) ... skipped 'locked numerical environment is optional in baseline CI'",
+    "2026-10-06T06:39:55.9816284Z test_multiscale_duplicates_do_not_multiply_identical_pair (test_phrase_proposal_s1.FeatureContractTests.test_multiscale_duplicates_do_not_multiply_identical_pair) ... skipped 'locked numerical environment is optional in baseline CI'",
+    "2026-10-06T06:39:55.9819521Z test_ordered_high_frequency_click_pattern_rejected_by_support_guard (test_phrase_proposal_s1.FeatureContractTests.test_ordered_high_frequency_click_pattern_rejected_by_support_guard) ... skipped 'locked numerical environment is optional in baseline CI'",
+    "2026-10-06T06:39:55.9822312Z test_quiet_constant_features_abstain (test_phrase_proposal_s1.FeatureContractTests.test_quiet_constant_features_abstain) ... skipped 'locked numerical environment is optional in baseline CI'",
+    "2026-10-06T06:39:55.9824705Z test_shape_and_clock_refusals (test_phrase_proposal_s1.FeatureContractTests.test_shape_and_clock_refusals) ... skipped 'locked numerical environment is optional in baseline CI'",
+    "2026-10-06T06:39:55.9827909Z test_spectral_sequence_recurrence_without_reference_input (test_phrase_proposal_s1.FeatureContractTests.test_spectral_sequence_recurrence_without_reference_input) ... skipped 'locked numerical environment is optional in baseline CI'",
+    "2026-10-06T06:39:55.9830714Z test_distorted_low_c1_is_recovered_with_octave_ambiguity (test_pitch.PitchAnalysisTests.test_distorted_low_c1_is_recovered_with_octave_ambiguity) ... skipped 'optional locked analysis environment'",
+    "2026-10-06T06:39:55.9833363Z test_legato_glide_has_pitch_candidates_without_attack_reference (test_pitch.PitchAnalysisTests.test_legato_glide_has_pitch_candidates_without_attack_reference) ... skipped 'optional locked analysis environment'",
+    "2026-10-06T06:39:55.9836278Z test_missing_low_fundamental_keeps_periodicity_and_source_ambiguity (test_pitch.PitchAnalysisTests.test_missing_low_fundamental_keeps_periodicity_and_source_ambiguity) ... skipped 'optional locked analysis environment'",
+    "2026-10-06T06:39:55.9838561Z test_silence_abstains (test_pitch.PitchAnalysisTests.test_silence_abstains) ... skipped 'optional locked analysis environment'",
+    "2026-10-06T06:39:55.9840902Z test_stepwise_sweep_retains_high_register_note_changes (test_pitch.PitchAnalysisTests.test_stepwise_sweep_retains_high_register_note_changes) ... skipped 'optional locked analysis environment'",
+    "2026-10-06T06:40:00.2063117Z test_actual_librosa_backend_has_two_onset_methods_and_features (test_rhythm.RhythmTests.test_actual_librosa_backend_has_two_onset_methods_and_features) ... skipped 'optional librosa dependency absent'",
+    "2026-10-06T06:40:02.7073023Z setUpClass (test_share_export.ShareExportSyntheticIntegration) ... skipped 'qualified ffmpeg binary unavailable or changed'",
+    "2026-10-06T06:40:05.8212957Z setUpClass (test_sprint1_audit.LowRegisterAccountingAudit) ... skipped 'Optional qualified numerical environment required'",
+    "2026-10-06T06:40:05.9868990Z test_missing_c1_fundamental_is_not_a_confirmed_triad_or_key (test_tonal.TonalHarmonicFixtureTests.test_missing_c1_fundamental_is_not_a_confirmed_triad_or_key) ... skipped 'Explicit optional analysis environment required'",
+    "2026-10-06T06:40:10.0307331Z test_pitch_real_c1_mcp_summary_and_sparse_coverage (test_tool_contracts.ToolContractTests.test_pitch_real_c1_mcp_summary_and_sparse_coverage) ... skipped 'explicit installed librosa analysis environment is required'",
+    "2026-10-06T06:40:10.0310745Z test_real_basic_pitch_mcp_qualified_two_second_comparison_and_stale_input (test_tool_contracts.ToolContractTests.test_real_basic_pitch_mcp_qualified_two_second_comparison_and_stale_input) ... skipped 'Optional qualified Basic Pitch inference unavailable: local model, isolated runtime, runtime wheel manifest; no model/runtime acquisition in tests'"
+  ],
+  "rust_result_lines": [
+    "2026-10-06T06:40:51.8886878Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "2026-10-06T06:40:51.8889001Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "2026-10-06T06:40:51.8987074Z test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+    "2026-10-06T06:40:51.9329240Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+  ],
+  "secret_scan": [
+    "2026-10-06T06:41:03.2008421Z ^[[90m6:41AM^[[0m ^[[32mINF^[[0m ^[[1mno leaks found^[[0m"
+  ],
+  "protected_media": "CI obtains no private media; current local hash check separate"
+}
