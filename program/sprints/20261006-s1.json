@@ -230,5 +230,7 @@
   "state": "completed_scoped_delivery",
   "completed_deliverables_at": "2026-10-06T06:47:45.675051+00:00",
   "unused_wall_clock_seconds_at_audit": 15006.324949,
-  "completion_audit": "docs/agent-notes/sprints/20261006-s1/root-completion-audit.json"
+  "completion_audit": "docs/agent-notes/sprints/20261006-s1/root-completion-audit.json",
+  "goal_control": "operator_overnight_pause",
+  "night_handoff": "docs/agent-notes/sprints/20261006-s1/NIGHT_HANDOFF.md"
 }

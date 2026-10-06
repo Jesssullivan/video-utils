@@ -893,7 +893,9 @@
     "demo_context_receipt": "docs/agent-notes/sprints/20261006-s1/root-actual-demo-context.json",
     "hosted_ci": "37424756499 source48c46f090f6c7fe7a07660367ac6c098bed7f81c success",
     "state": "scoped_delivery_complete",
-    "final_audit": "docs/agent-notes/sprints/20261006-s1/root-completion-audit.json"
+    "final_audit": "docs/agent-notes/sprints/20261006-s1/root-completion-audit.json",
+    "goal_control": "operator_overnight_pause",
+    "night_handoff": "docs/agent-notes/sprints/20261006-s1/NIGHT_HANDOFF.md"
   },
   "sprint_publication": {
     "authority": "R-HOOK-CONVERGENCE-20261004/R-N13",

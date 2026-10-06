@@ -1,0 +1,65 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; explicit operator overnight pause",
+  "operator_request": "please complete your lane adn subagents to pase work for the  nite, setting agent ahandoff and context save in the next 10 munutes",
+  "saved_at": "2026-10-06T06:53:04.772428+00:00",
+  "root_head_before_night_handoff": "18d17ca7ab6ab606ef5b8eefdf1faecd42573d1f",
+  "delivery_source": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
+  "hosted_ci": {
+    "run": 37424756499,
+    "state": "completed_success"
+  },
+  "six_agents": "all completed in authoritative collaboration.list_agents; operator pause notice delivered without triggering new turns",
+  "owned_live_jobs": "none found in scoped process inspection; root closeout tools only",
+  "goal_control": "operator_requested_pause; root calls update_goal(paused) after night-handoff publication/readback",
+  "worktrees": [
+    {
+      "lane": "annotations",
+      "path": "/Users/jess/git/video-utils/.local/sprint1/annotations",
+      "branch": "sprint/20261006-s1/annotations",
+      "head": "dad10a4207b2099eb73b7a73bab0bd8947623dde",
+      "status": "",
+      "preserve": true
+    },
+    {
+      "lane": "review_ui",
+      "path": "/Users/jess/git/video-utils/.local/sprint1/review_ui",
+      "branch": "sprint/20261006-s1/review_ui",
+      "head": "ea910543361f6b667e919cce588a5511b536034d",
+      "status": " M scripts/report.py\n M scripts/review_server.py\n?? scripts/annotation_v2.py\n",
+      "preserve": true
+    },
+    {
+      "lane": "phrases",
+      "path": "/Users/jess/git/video-utils/.local/sprint1/phrases",
+      "branch": "sprint/20261006-s1/phrases",
+      "head": "6dbd756625afab3d9b0380a8817436f0f20d8d27",
+      "status": "",
+      "preserve": true
+    },
+    {
+      "lane": "low_register",
+      "path": "/Users/jess/git/video-utils/.local/sprint1/low_register",
+      "branch": "sprint/20261006-s1/low_register",
+      "head": "44048b7488b396565bae3829beaff54bb27d5efd",
+      "status": "",
+      "preserve": true
+    },
+    {
+      "lane": "corpus",
+      "path": "/Users/jess/git/video-utils/.local/sprint1/corpus",
+      "branch": "sprint/20261006-s1/corpus",
+      "head": "5667333694446732cce45b681970b2c1a3431b08",
+      "status": "",
+      "preserve": true
+    },
+    {
+      "lane": "audit",
+      "path": "/Users/jess/git/video-utils/.local/sprint1/audit",
+      "branch": "sprint/20261006-s1/audit",
+      "head": "e243749169bf97b7f8ffa92309fd7eccad819e13",
+      "status": "",
+      "preserve": true
+    }
+  ],
+  "do_not_resume": "Explicit operator resume required; do not restart completed lanes or activate queued future work."
+}

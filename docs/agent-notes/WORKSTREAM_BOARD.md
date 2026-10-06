@@ -1,6 +1,9 @@
 # video-utils parallel work board
 
-Current sprint: **S1, October6 05:57:52→10:57:52UTC (01:57→06:57EDT)**.
+Overnight hold requested by operator; no worker activity. S1 scoped delivery complete.
+Night handoff: [NIGHT_HANDOFF.md](sprints/20261006-s1/NIGHT_HANDOFF.md).
+
+Sprint horizon: **S1, October6 05:57:52→10:57:52UTC (01:57→06:57EDT)**.
 Root owns administrative merges, signed publication and tracker writes. Prior
 ten-hour delivery is complete and retained below as historical evidence.
 
@@ -8,9 +11,9 @@ Authority: operator five-hour six-agent sprint; repository AGENTS.md;
 R-HOOK-CONVERGENCE-20261004 / R-N11/R-N12/R-N13, TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`.
 
-Active plan: [S1](../spec/sprints/20261006-S1.md).
+Saved plan: [S1](../spec/sprints/20261006-S1.md).
 Exact owners/metrics: [sprint manifest](../../program/sprints/20261006-s1.json).
-Active tracker: [TIN-5563](https://linear.app/tinyland/issue/TIN-5563/s1-five-hour-parallel-core-sprint-annotations-practice-review-and).
+Completed delivery tracker: [TIN-5563](https://linear.app/tinyland/issue/TIN-5563/s1-five-hour-parallel-core-sprint-annotations-practice-review-and).
 Tracker IDs: [linear.json](../../program/linear.json).
 
 ## S1 scoped delivery — October6 ~06:48UTC
