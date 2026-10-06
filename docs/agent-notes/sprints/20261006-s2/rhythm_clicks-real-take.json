@@ -1,0 +1,261 @@
+{
+  "schema_version": 1,
+  "lane": "rhythm_clicks",
+  "sprint": "20261006-s2",
+  "linear": "TIN-5602",
+  "ruling": "R-HOOK-CONVERGENCE-20261004",
+  "date": "2026-10-06",
+  "kind": "real_take_receipt_unvalidated",
+  "claim_class": "M-real (no truth; unvalidated until operator spot check) unless marked I",
+  "source": {
+    "original_take": "/Users/jess/Documents/Movie on 10-5-26 at 3.38 PM.mov (not opened by this lane)",
+    "analyzed_input": "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/denoised.wav",
+    "analyzed_input_sha256": "cb8a3fa559424810f206c94191a149156423770bbf91a13724a2ba28a44e879e",
+    "sha256_before_and_after_all_runs": "unchanged (3 checks)",
+    "accepted_run_writes": "none; outputs only under the gitignored artifacts/s2/rhythm_clicks/ in the lane worktree"
+  },
+  "producer": {
+    "commit": "10d17cf (code identical to 9f062c8)",
+    "rhythm_sha256": "cd719914d933b03faec6e1c92afbaee232797ec247427cc87038a1e67b15e8d3",
+    "phrase_timing_sha256": "e39628ed8e6fb4fe5973ec8f9c33962b2ada86a55198969ab7732ff6af324dfe",
+    "click_attack_ab_sha256": "35daea9750fd516cddf508083de7e199f48f39a2111294d168720954c115ce82"
+  },
+  "commands": [
+    "FFMPEG=... FFPROBE=... timeout 600 /Users/jess/git/video-utils/.venv/bin/python scripts/rhythm.py <denoised.wav> --output artifacts/s2/rhythm_clicks/real-take/analysis --backend librosa --bpm 178",
+    "timeout 300 python3 scripts/phrase_timing.py --analysis artifacts/s2/rhythm_clicks/real-take/analysis/analysis.json --phrases <run>/arrangement-reference-20261006/arrangement-markers.json --output-root artifacts/s2/rhythm_clicks/phrase-timing",
+    "timeout 300 python3 scripts/phrase_timing.py --analysis artifacts/s2/rhythm_clicks/real-take/analysis/analysis.json --phrases <run>/phrases.json --output-root artifacts/s2/rhythm_clicks/phrase-timing",
+    "FFMPEG=... timeout 600 .venv/bin/python scripts/click_attack_ab.py --skip-synthetic --real-input <denoised.wav> --real-analysis artifacts/s2/rhythm_clicks/real-take/analysis/analysis.json --output-root artifacts/s2/rhythm_clicks/click-ab"
+  ],
+  "analysis_artifact": {
+    "path": "artifacts/s2/rhythm_clicks/real-take/analysis/analysis.json",
+    "sha256": "120dd7830066874e828fc395d899ede7cc2f644d9da104efa76b04b83d3cf617"
+  },
+  "R2_regression": {
+    "result": "exact match",
+    "click_grid_scalars": {
+      "bpm": {
+        "accepted": 88.80144093319346,
+        "rerun": 88.80144093319346,
+        "equal": true
+      },
+      "period_seconds": {
+        "accepted": 0.6756647118501019,
+        "rerun": 0.6756647118501019,
+        "equal": true
+      },
+      "phase_seconds_audio_relative": {
+        "accepted": 0.5101634393158463,
+        "rerun": 0.5101634393158463,
+        "equal": true
+      },
+      "candidate_coverage": {
+        "accepted": 0.9909502262443439,
+        "rerun": 0.9909502262443439,
+        "equal": true
+      },
+      "median_absolute_residual_ms": {
+        "accepted": 5.518358624676978,
+        "rerun": 5.518358624676978,
+        "equal": true
+      }
+    },
+    "event_count": {
+      "accepted": 3684,
+      "rerun": 3684
+    },
+    "kind_counts": {
+      "accepted": {
+        "broadband_attack_candidate": 2399,
+        "spectral_flux_attack_candidate": 573,
+        "superflux_attack_candidate": 493,
+        "periodic_high_frequency_candidate": 219
+      },
+      "rerun": {
+        "broadband_attack_candidate": 2399,
+        "spectral_flux_attack_candidate": 573,
+        "superflux_attack_candidate": 493,
+        "periodic_high_frequency_candidate": 219
+      }
+    },
+    "pre_change_event_fields_identical": true,
+    "librosa_version": {
+      "accepted": "0.11.0",
+      "rerun": "0.11.0"
+    },
+    "note": "accepted run median residual is 5.518 ms (the brief's 5.3 ms figure does not match the accepted artifact)"
+  },
+  "R1_drift": {
+    "status": "fitted",
+    "confidence_label": "strong_drift_evidence",
+    "confidence_kind": "heuristic_not_probability",
+    "drift_ppm": 1.670633457730474,
+    "drift_ppm_standard_error": 0.40685192200586434,
+    "period_change_per_second": 1.1287931785375643e-06,
+    "period_at_first_event_seconds": 0.675589962513617,
+    "period_at_last_event_seconds": 0.6757455722972443,
+    "total_period_change_fraction": 0.00023033169860651792,
+    "residual_ms_rms": 4.042453703857955,
+    "constant_period_residual_ms_rms": 4.214455979091503,
+    "retained_event_count": 197,
+    "candidate_event_count": 216,
+    "coverage": 0.9609756097560975,
+    "beat_span": 204,
+    "pulse_divisor": 1,
+    "divisor_attempts": [
+      {
+        "pulse_divisor": 1,
+        "period_seconds": 0.6756647118501019,
+        "tracked_event_count": 216,
+        "retained_event_count": 197,
+        "tracked_coverage": 0.9908256880733946,
+        "retained_coverage": 0.9609756097560975,
+        "residual_ms_rms": 4.042453703857955,
+        "selected": true
+      },
+      {
+        "pulse_divisor": 2,
+        "period_seconds": 0.33783235592505095,
+        "tracked_event_count": 382,
+        "retained_event_count": 382,
+        "tracked_coverage": 0.9526184538653366,
+        "retained_coverage": 0.9526184538653366,
+        "residual_ms_rms": 117.45039669579006,
+        "selected": false
+      }
+    ],
+    "cross_path_check": {
+      "clicks.experiment resample_poly path": {
+        "drift_ppm": 1.7346092490433167,
+        "se": 0.3957366404341053,
+        "residual_ms_rms": 3.9319972273896604
+      }
+    },
+    "reading": "M-real: the fitted inter-click interval lengthens by about 0.16 ms (0.023 %) across about 138 s of retained clicks; the linear model lowers rms residual from 4.21 to 4.04 ms. The label is statistical detectability (|drift_ppm| > 3 SE), not musical materiality.",
+    "inference": "I only: a lengthening period is consistent with mechanical-metronome wind-down, but the fit cannot separate wind-down, device clock or detector bias.",
+    "adoption": "none; the constant grid remains the existing default"
+  },
+  "detector_delay": {
+    "onset_detector_delay_seconds": 0.002343749999999978,
+    "onset_detector_delay_status": "measured_on_synthetic_impulses_not_physical_av_offset",
+    "onset_detector_delay_compensated": false,
+    "physical_capture_latency": "uncalibrated"
+  },
+  "P4_phrase_timing": {
+    "reference_conditioned_alignment_candidate": {
+      "artifact": "artifacts/s2/rhythm_clicks/phrase-timing/20261006T122429Z-173f5f0a0e04/phrase-timing.json",
+      "artifact_sha256": "d75baa00a219e9bbd8bb539cb40e8bcb908d97ff7518c8a01f265982eb20a66f",
+      "summary": {
+        "phrase_count": 43,
+        "measured_count": 38,
+        "abstained_count": 5,
+        "abstain_reason_counts": {
+          "fewer_than_4_click_proximal_onsets": 5,
+          "no_click_grid": 0,
+          "span_outside_analysis": 0
+        }
+      },
+      "phrase_input": {
+        "format": "arrangement_reference_review_markers_seconds",
+        "excluded_marker_count": 28,
+        "exclusion_rule": "zero-width, non-numeric or boundary markers"
+      },
+      "click_reference": "linear_period_drift_model",
+      "tendency_label_counts_over_measured": {
+        "ahead_of_click": 20,
+        "within_5_ms": 16,
+        "behind_click": 2
+      },
+      "median_of_phrase_medians_ms": {
+        "delay_compensated": -5.5011626598633345,
+        "raw": -3.3136626598633256,
+        "observed_click_basis": 0.0
+      },
+      "phrase_median_range_ms_delay_compensated": [
+        -19.768336605979762,
+        16.93176438340216
+      ],
+      "median_iqr_width_ms": 13.883250859755059,
+      "extrapolated_reference_count": 2,
+      "real_take_status": "unvalidated_until_operator_spot_check"
+    },
+    "automatic_review_span": {
+      "artifact": "artifacts/s2/rhythm_clicks/phrase-timing/20261006T122430Z-72058cbed827/phrase-timing.json",
+      "artifact_sha256": "b68524368aa83c9521b7fe3367d4a2db06e93248783dde9096a0957b565f88a2",
+      "summary": {
+        "phrase_count": 54,
+        "measured_count": 18,
+        "abstained_count": 36,
+        "abstain_reason_counts": {
+          "fewer_than_4_click_proximal_onsets": 36,
+          "no_click_grid": 0,
+          "span_outside_analysis": 0
+        }
+      },
+      "phrase_input": {
+        "format": "phrases.json proposed_review_spans",
+        "excluded_marker_count": 0
+      },
+      "click_reference": "linear_period_drift_model",
+      "tendency_label_counts_over_measured": {
+        "ahead_of_click": 7,
+        "within_5_ms": 11
+      },
+      "median_of_phrase_medians_ms": {
+        "delay_compensated": -3.358295750528706,
+        "raw": -1.170795750528697,
+        "observed_click_basis": 0.0
+      },
+      "phrase_median_range_ms_delay_compensated": [
+        -25.433436577154687,
+        4.3331832963759975
+      ],
+      "median_iqr_width_ms": 17.814321866814975,
+      "extrapolated_reference_count": 3,
+      "real_take_status": "unvalidated_until_operator_spot_check"
+    }
+  },
+  "P4_diagnostics": {
+    "broadband_onsets": 2399,
+    "onset_rate_per_second": 15.89150849266657,
+    "click_period_seconds": 0.6756647118501019,
+    "click_windows_with_any_onset": 216,
+    "modelled_clicks_in_take": 223,
+    "chance_fraction_of_onsets_in_pm60ms_windows_if_uniform_phase": 0.1776028818663869,
+    "observed_fraction_of_onsets_in_windows": 0.18591079616506878,
+    "click_proximal_onsets_within_2_5ms_of_an_observed_hf_click_candidate": 74,
+    "denominator_click_proximal": 216,
+    "take_wide_click_proximal_offset_ms": {
+      "median": -1.539382762317132,
+      "q1": -14.178310767135827,
+      "q3": 5.343204907791943
+    },
+    "uniform_chance_median_abs_offset_ms_within_window": 30.0,
+    "inferences": [
+      "I: with 15.9 broadband onsets per second, 216 of about 223 modelled click windows contain an onset; occupancy of +/-60 ms windows (18.6 %) is close to the uniform-phase chance value (17.8 %), so window occupancy alone is not evidence of click-locked playing.",
+      "I: 74 of 216 click-proximal onsets lie within 2.5 ms of an observed high-frequency click candidate, so some click-proximal broadband candidates may be the click itself (or a guitar attack detected as a click). This explains the observed-click-basis medians of 0.0 ms and confounds the per-phrase offsets.",
+      "I: per-phrase medians (-19.8 to +16.9 ms on arrangement spans) lie within the spread expected from dense onsets near a click; tendency labels are descriptive signs only and are not validated against any reference."
+    ],
+    "recommended_follow_up": "operator spot check of a few phrases; a click-excluding onset path (for example, drop broadband candidates within one frame of a click candidate) needs its own preregistration because it changes the scored estimator"
+  },
+  "A4_detection_only": {
+    "status": "detection_only",
+    "attenuation_claim": "none_detection_only",
+    "audio_written": false,
+    "declared_bpm_seed": 178.0,
+    "candidate_count": 219,
+    "coincident_candidate_count": 161,
+    "isolated_candidate_count": 58,
+    "coincident_fraction": 0.7351598173515982,
+    "coincidence_rule": "candidate within 20 ms of a broadband attack candidate"
+  },
+  "unknowns": {
+    "click_identity": "unverified",
+    "physical_capture_latency": "uncalibrated",
+    "listening_ab": "not_performed",
+    "performance_grading": "not_performed",
+    "expected_rhythm_reference": null,
+    "onset_detector_delay_compensated": false,
+    "real_take_status": "unvalidated_until_operator_spot_check"
+  },
+  "no_claims": "no note-level, intended-rhythm or performance-quality claims; the arrangement's 404 clicks and phrase lengths were not used as a detection count"
+}

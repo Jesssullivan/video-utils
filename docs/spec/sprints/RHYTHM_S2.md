@@ -445,3 +445,18 @@ seed211/seed307 parameters were rendered, before the eval receipt.
    `pinned_dependency_changed:scripts/rhythm.py`. A further failure,
    `test_owned_exited_leader_live_inert_child_cleanup`, also fails at base
    commit 2d9eaa5 in this sandbox and is unrelated.
+
+## 11. Results pointers (post-evaluation; the contract text above is unchanged)
+
+- Implementation and dev results: `docs/agent-notes/sprints/20261006-s2/rhythm_clicks-implementation.json`.
+- Sealed preregistration: `rhythm_clicks-eval.json`, committed at 9b01dd9 before any sealed run.
+- Sealed results: `rhythm_clicks-eval-results.json`. Each sealed run executed once.
+  - D3: 10/10 within 10 % (maximum relative error 2.75 %).
+  - P2: per-arm median |error| was 0.78, 1.69 and 1.37 ms (on-time, rushing, dragging).
+  - A1: 0/80 isolated attack windows exceeded 0.5 dB.
+  - A2: the attenuated fraction was 0.347 for coincident clicks versus 0.830 for isolated clicks. Attack-proximal coincident clicks were 0/80 attenuated.
+  - A3: the maximum 32 Hz bin relative delta was 5.1e-9.
+- Real take (M-real, unvalidated): `rhythm_clicks-real-take.json`.
+  - R2 reproduced the accepted run exactly.
+  - R1 measured drift of +1.67 ± 0.41 ppm/s. The interval lengthens by about 0.16 ms across the take. A wind-down reading is an inference only, and nothing is adopted.
+  - P4 per-phrase offsets are confounded by onset density and click/onset coincidence. See the diagnostics in that receipt.
