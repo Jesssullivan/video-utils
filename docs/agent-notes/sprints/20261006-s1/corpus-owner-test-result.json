@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "authority": "R-HOOK-CONVERGENCE-20261004 / S1 / TIN-5566",
+  "state": "own_source_frozen_independent_generated_audit_cleared_root_admission_pending",
+  "command": [
+    "/Users/jess/.nix-profile/bin/python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_corpus*.py",
+    "-v"
+  ],
+  "python": "3.12.14 (main, Aug 12 2026, 13:57:54) [Clang 21.1.8 ]",
+  "annotation_dependency_path": "/Users/jess/git/video-utils/.local/sprint1/annotations/scripts",
+  "return_code": 0,
+  "elapsed_seconds": 2.8975969579987577,
+  "test_log": "docs/agent-notes/sprints/20261006-s1/corpus-owner-tests.log",
+  "test_log_sha256": "a3cbb79539e70f440fbf6b96ccd20aa855cc0604514563d197583f297121bb2a",
+  "source_hashes_before": {
+    "scripts/corpus_split_s1.py": "308300de48b0395ecf8e572a54f07abd36d2f8b6764106efc63b222c1ed60a0d",
+    "tests/test_corpus_split_s1.py": "f0b023e82f05cf3ebdc21f7ac511a7f3a0875a50187fcb50333a672bec506664",
+    "docs/spec/sprints/CORPUS_S1.md": "300ae5139d9bf104b37db412e19559efed3950a4e4ea21a30d9f217103a766af",
+    "scripts/corpus.py": "399afa9fbe8e7ab0511d4b3413d051b48df6fc66d9d6fb588ac1a4e572421cff",
+    "tests/test_corpus.py": "e850096f490362dcc95417b8acfae53104e1f67b625c932be6b91168686d9d0c",
+    "program/demo-arrangement.json": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a",
+    "/Users/jess/git/video-utils/.local/sprint1/annotations/scripts/annotation_v2.py": "237d6b53ac1a73f0e981d1bcaa3fa73e3b5f9ab417bc7bf051575b3d6cf0cab6",
+    "/Users/jess/git/video-utils/.local/sprint1/annotations/scripts/review_server.py": "05bc9cc753a312c96ab822afaceb91f5a4d44bf288d281c201c8bc918b221ef0"
+  },
+  "source_hashes_after": {
+    "scripts/corpus_split_s1.py": "308300de48b0395ecf8e572a54f07abd36d2f8b6764106efc63b222c1ed60a0d",
+    "tests/test_corpus_split_s1.py": "f0b023e82f05cf3ebdc21f7ac511a7f3a0875a50187fcb50333a672bec506664",
+    "docs/spec/sprints/CORPUS_S1.md": "300ae5139d9bf104b37db412e19559efed3950a4e4ea21a30d9f217103a766af",
+    "scripts/corpus.py": "399afa9fbe8e7ab0511d4b3413d051b48df6fc66d9d6fb588ac1a4e572421cff",
+    "tests/test_corpus.py": "e850096f490362dcc95417b8acfae53104e1f67b625c932be6b91168686d9d0c",
+    "program/demo-arrangement.json": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a",
+    "/Users/jess/git/video-utils/.local/sprint1/annotations/scripts/annotation_v2.py": "237d6b53ac1a73f0e981d1bcaa3fa73e3b5f9ab417bc7bf051575b3d6cf0cab6",
+    "/Users/jess/git/video-utils/.local/sprint1/annotations/scripts/review_server.py": "05bc9cc753a312c96ab822afaceb91f5a4d44bf288d281c201c8bc918b221ef0"
+  },
+  "source_hashes_unchanged": true,
+  "property_trials": 240,
+  "property_seeds": [
+    712,
+    941,
+    1381,
+    2718
+  ],
+  "actual_media_read": false,
+  "actual_annotation_write": false,
+  "model_or_audio_inference": false,
+  "git_mutation": false,
+  "tracker_mutation": false,
+  "owner_tests": 37,
+  "unchanged_legacy_tests": 16,
+  "total_discovered": 53,
+  "passed": 53,
+  "skipped": 0,
+  "failures": 0,
+  "errors": 0,
+  "independent_audit": {
+    "receipt": "docs/agent-notes/sprints/20261006-s1/audit-corpus-source-tests.json",
+    "owned_by": "s1_audit",
+    "tests": 5,
+    "passed": 5,
+    "scope": "generatedmetadataonly",
+    "exact_worker_sha256": "308300de48b0395ecf8e572a54f07abd36d2f8b6764106efc63b222c1ed60a0d"
+  }
+}
