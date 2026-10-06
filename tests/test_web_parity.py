@@ -7,6 +7,7 @@ No randomness is asserted: IDs, tokens and idempotency keys are never compared b
 """
 from __future__ import annotations
 
+import contextlib
 import datetime
 import hashlib
 import http.client
@@ -125,23 +126,24 @@ def cli_verdict(parameters):
 
 
 def host_facts():
-    def version(command):
+    """Descriptive host facts for receipts (no paths)."""
+    def last_line(command):
         try:
             done = subprocess.run(command, capture_output=True, text=True, timeout=30, check=False)
         except (OSError, subprocess.SubprocessError):
             return None
-        lines = (done.stdout or done.stderr).strip().splitlines()
-        return lines[-1][:120] if lines else None
-    cpu = None
-    if platform.system() == 'Darwin':
-        cpu = version(['sysctl', '-n', 'machdep.cpu.brand_string'])
-    return {'uname_sm': f'{platform.system()} {platform.machine()}', 'cpu': cpu,
+        lines = [line for line in (done.stdout or done.stderr).splitlines() if line.strip()]
+        return lines[-1].strip()[:120] if lines else None
+    ffmpeg = None
+    if wj.HAVE_FFMPEG:
+        first = subprocess.run([wj.FFMPEG, '-version'], capture_output=True, text=True, timeout=30).stdout.splitlines()
+        ffmpeg = ' '.join(first[0].split()[:3]) if first else None
+    return {'uname_sm': f'{platform.system()} {platform.machine()}',
+            'cpu': last_line(['sysctl', '-n', 'machdep.cpu.brand_string']) if platform.system() == 'Darwin' else None,
             'python': platform.python_version(),
-            'node': version(['node', '--version']) if shutil.which('node') else None,
-            'pnpm': version(['pnpm', '--version']) if shutil.which('pnpm') else None,
-            'ffmpeg': (version([wj.FFMPEG, '-version']) and subprocess.run(
-                [wj.FFMPEG, '-version'], capture_output=True, text=True, timeout=30).stdout.splitlines()[0][:60])
-            if wj.HAVE_FFMPEG else None}
+            'node': last_line(['node', '--version']) if shutil.which('node') else None,
+            'pnpm': last_line(['pnpm', '--version']) if shutil.which('pnpm') else None,
+            'ffmpeg': ffmpeg}
 
 
 class Env:
@@ -940,6 +942,462 @@ class ControlApiV1Tests(ParityBase):
         self.assertEqual(env.client.get('/api/v1/jobs?limit=201').code, 'bad_query')
         self.assertEqual(env.client.get('/api/v1/jobs?state=queued').code, 'bad_query')
         METRICS['jobs_listing'] = {'filtered_equal': True, 'bounded': True}
+
+
+# --------------------------------------------------------------------------- 17 end-to-end walkthrough
+
+def _headless_browser():
+    cache = Path.home() / 'Library' / 'Caches' / 'ms-playwright'
+    for candidate in sorted(cache.glob('chromium_headless_shell-*/chrome-headless-shell-*/chrome-headless-shell'),
+                            reverse=True):
+        if os.access(candidate, os.X_OK):
+            return candidate, 'playwright chromium headless shell'
+    chrome = Path('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
+    if os.access(chrome, os.X_OK):
+        return chrome, 'google chrome --headless=new'
+    return None, None
+
+
+class EndToEndWalkthrough(unittest.TestCase):
+    """Upload -> process -> compare -> annotate -> iterate -> download through the built BFF (section 10).
+
+    web_api runs in-process (real share_export dispatcher, uploads enabled, 8 MiB bound) over a synthetic
+    runs root; the built BFF is a test-owned `node serve.js` process group killed in tearDownClass.
+    """
+
+    POLL_S = 2.0  # WEB_STACK 5.2 base policy
+    POLL_BOUND_S = 300
+
+    @classmethod
+    def setUpClass(cls):
+        cls.skip_reason = None
+        if not wj.HAVE_FFMPEG:
+            cls.skip_reason = wj.FFMPEG_SKIP
+        elif shutil.which('node') is None or shutil.which('pnpm') is None:
+            cls.skip_reason = 'node or pnpm not on PATH; BFF walkthrough skipped (not a pass)'
+        cls.app = None
+        cls.server = None
+        cls.jobs = None
+        cls._tmp = None
+        if cls.skip_reason:
+            return
+        cls._tmp = tempfile.TemporaryDirectory(prefix='web-ui-e2e-')
+        cls.base = Path(cls._tmp.name).resolve()
+        cls.R = cls.base / 'R'
+        run = wj.make_runs_root(cls.R)
+        wj.make_clip(run / 'export' / 'clip.mov')
+        cls.clip = (run / 'export' / 'clip.mov').read_bytes()
+        cls.runs_before = {entry.name: wj.tree_digest(entry) for entry in (cls.R / 'artifacts' / 'runs').iterdir()}
+        cls.wire = []
+        cls.jobs = WebJobs(cls.R, cls.base / 'T' / 'state')
+        original_submit = cls.jobs.submit
+
+        def recording_submit(body):  # the recording control API: exact bodies the BFF sent
+            cls.wire.append(json.loads(json.dumps(body)))
+            return original_submit(body)
+
+        cls.jobs.submit = recording_submit
+        cls.jobs.start()
+        cls.server = web_api.WebAPIServer(cls.jobs, 0, allow_uploads=True, max_upload_bytes=MAX_UPLOAD)
+        cls.thread = threading.Thread(target=cls.server.serve_forever, kwargs={'poll_interval': 0.05}, daemon=True)
+        cls.thread.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            if cls.app is not None:
+                cls.app.close()
+        finally:
+            if cls.server is not None:
+                cls.server.stop()
+                cls.thread.join(timeout=10)
+            if cls.jobs is not None:
+                cls.jobs.close()
+            if cls._tmp is not None:
+                cls._tmp.cleanup()
+
+    # ----------------------------------------------------------------- helpers
+
+    def bff(self, method, path, body=None, *, content_type='application/json', headers=None):
+        conn = http.client.HTTPConnection('127.0.0.1', self.app.port, timeout=60)
+        sent = {'accept': 'application/json, text/html', **(headers or {})}
+        if method == 'POST':
+            sent['origin'] = self.app.origin
+            sent['content-type'] = content_type
+        data = body if isinstance(body, (bytes, type(None))) else json.dumps(body).encode()
+        try:
+            conn.request(method, path, body=data, headers=sent)
+            response = conn.getresponse()
+            payload = response.read()
+            headers_out = {k.lower(): v for k, v in response.getheaders()}
+        finally:
+            conn.close()
+        kind = headers_out.get('content-type', '')
+        if kind.startswith(('application/json', 'text/html')):
+            for needle in self.forbidden:
+                self.assertNotIn(needle.encode(), payload, f'{path} leaked a host path, selector or token')
+            self.leak_checked += 1
+        parsed = json.loads(payload) if kind.startswith('application/json') else None
+        return response.status, headers_out, payload, parsed
+
+    def step(self, name, method, path, fn):
+        started = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds')
+        clock = time.perf_counter()
+        status, code, assertions, extra = fn()
+        wall_ms = round((time.perf_counter() - clock) * 1000, 1)
+        record = {'step': len(self.steps) + 1, 'name': name, 'request': f'{method} {path}', 'http_status': status,
+                  'code': code, 'started_at': started, 'wall_ms': wall_ms, 'assertions': assertions, **extra}
+        self.steps.append(record)
+        failed = [key for key, ok in assertions.items() if not ok]
+        self.assertEqual(failed, [], f'step {record["step"]} {name}: {failed}')
+        return record
+
+    def poll(self, job_id):
+        observed, end = [], time.monotonic() + self.POLL_BOUND_S
+        while True:
+            status, _, _, job = self.bff('GET', f'/api/jobs/{job_id}')
+            self.assertEqual(status, 200, job)
+            seen = {'state': job['state'], 'phase': job['phase'],
+                    'progress': None if job['progress'] is None else job['progress']['completed']}
+            if not observed or observed[-1] != seen:
+                observed.append(seen)
+            if job['state'] in web_jobs.TERMINAL:
+                return job, observed
+            self.assertLess(time.monotonic(), end, f'job {job_id} not terminal within {self.POLL_BOUND_S} s')
+            time.sleep(self.POLL_S)
+
+    # 17
+    def test_walkthrough_upload_process_compare_annotate_iterate_download(self):
+        if self.skip_reason:
+            METRICS['walkthrough'] = {'skipped': self.skip_reason}
+            self.skipTest(self.skip_reason)
+        import test_web_stack as ws  # build helpers only (offline frozen install + build)
+        build_clock = time.perf_counter()
+        ws._ensure_build(self)
+        build_s = round(time.perf_counter() - build_clock, 1)
+        token = self.server.token
+        api_port = self.server.server_address[1]
+        type(self).app = ws._App(f'http://127.0.0.1:{api_port}', token=token)
+        self.forbidden = sorted({str(self.base), str(self.R), str(ROOT), wj.SENTINEL, token, 'RUN-A/',
+                                 '/upload/source', 'web-upload-', f'127.0.0.1:{api_port}'}, key=len)
+        self.leak_checked = 0
+        self.steps = []
+        clip_sha = sha_bytes(self.clip)
+        ids = {}
+
+        def s1():
+            status, _, payload, _ = self.bff('GET', '/')
+            return status, None, {'status_200': status == 200, 'empty_list_rendered': b'data-empty="true"' in payload,
+                                  'pilot_banner': 'Local loopback pilot'.encode() in payload}, {}
+        self.step('sources_empty', 'GET', '/', s1)
+
+        def s2():
+            status, _, _, body = self.bff('POST', '/api/uploads', self.clip, content_type='video/quicktime',
+                                          headers={'x-upload-label': 'synthetic e2e clip'})
+            ids['source'] = body['source']['source_artifact_id']
+            return status, None, {'status_201': status == 201, 'sha_matches_clip': body['upload']['sha256'] == clip_sha,
+                                  'admission_sha_equal': body['source']['sha256'] == clip_sha,
+                                  'bytes_equal': body['upload']['bytes'] == len(self.clip)}, {
+                'source_artifact_id': ids['source'], 'bytes': len(self.clip), 'sha256': clip_sha}
+        self.step('upload_admit', 'POST', '/api/uploads', s2)
+
+        def s3():
+            refused_status, _, _, refused = self.bff('POST', '/api/sources', {'selector': '/abs/take.mov'})
+            status, _, _, body = self.bff('POST', '/api/sources', {'selector': 'RUN-A/export/clip.mov'})
+            ids['run_source'] = body['source_artifact_id']
+            return status, refused['upstream_code'], {
+                'absolute_path_refused_422': refused_status == 422,
+                'path_escape_typed': refused['upstream_code'] == 'path_escape',
+                'detail_code_host_path_refused': refused['upstream_detail_code'] == 'host_path_refused',
+                'selector_admitted_201': status == 201, 'same_bytes_as_upload': body['sha256'] == clip_sha}, {
+                'refusal': {'http_status': refused_status, 'upstream_code': refused['upstream_code'],
+                            'upstream_detail_code': refused['upstream_detail_code']}}
+        self.step('selector_refusal_then_admit', 'POST', '/api/sources', s3)
+
+        key_a = 'ui-' + os.urandom(16).hex()
+
+        def s4():
+            status, _, _, job = self.bff('POST', '/api/jobs', {'source_artifact_id': ids['source'], 'parameters': {},
+                                                               'idempotency_key': key_a})
+            ids['A'] = job['job_id']
+            replay_status, _, _, replay = self.bff('POST', '/api/jobs', {
+                'source_artifact_id': ids['source'], 'parameters': {}, 'idempotency_key': key_a})
+            return status, None, {'status_202': status == 202, 'state_queued_or_running': job['state'] in ('queued', 'running'),
+                                  'double_submit_replays_same_job': replay_status == 200 and replay['job_id'] == job['job_id'],
+                                  'v1_envelope_present': job['tool_envelope']['tool'] == 'share_export'}, {
+                'job_id': job['job_id'], 'state_at_submit': job['state']}
+        self.step('submit_defaults', 'POST', '/api/jobs', s4)
+
+        def s5():
+            job, observed = self.poll(ids['A'])
+            ids['A_job'] = job
+            return 200, job['reason_code'], {'terminal': job['state'] in web_jobs.TERMINAL,
+                                             'succeeded': job['state'] == 'succeeded',
+                                             'eta_unknown': job['eta_seconds'] is None}, {
+                'observed_sequence': observed, 'terminal_state': job['state'],
+                'poll_policy_s': self.POLL_S}
+        self.step('poll_to_terminal', 'GET', f'/api/jobs/{ids["A"]}', s5)
+
+        def s6():
+            status, _, payload, _ = self.bff('GET', f'/jobs/{ids["A"]}')
+            return status, None, {'status_200': status == 200, 'compare_bound': b'data-compare="bound"' in payload,
+                                  'source_player': b'data-player="source"' in payload,
+                                  'processed_player': b'data-player="processed"' in payload,
+                                  'fixed_note': b'Levels are not matched by this page.' in payload,
+                                  'low_register_note': b'~32 Hz low-string preservation not measured' in payload,
+                                  'unknowns_block': b'data-unknowns-block="true"' in payload}, {}
+        self.step('compare_ssr', 'GET', f'/jobs/{ids["A"]}', s6)
+
+        def s7():
+            status, headers, payload, _ = self.bff('GET', f'/api/sources/{ids["source"]}/media')
+            return status, None, {'status_200': status == 200, 'rehash_equal_admission': sha_bytes(payload) == clip_sha,
+                                  'header_sha_equal': headers.get('x-artifact-sha256') == clip_sha,
+                                  'inline': headers.get('content-disposition', '').startswith('inline'),
+                                  'no_ranges': headers.get('accept-ranges') == 'none'}, {'bytes': len(payload)}
+        self.step('source_media', 'GET', f'/api/sources/{ids["source"]}/media', s7)
+
+        def s8():
+            status, _, _, read = self.bff('GET', f'/api/sources/{ids["source"]}/annotations')
+            store, clock = read['store'], read['clock']
+            player_time = 1.0
+            start = round(player_time + clock['source_start_seconds'], 6)
+            request = {'schema_version': 2, 'expected_revision': store['revision'],
+                       'idempotency_key': 'ui-ann-' + os.urandom(16).hex(), 'source_sha256': store['source_sha256'],
+                       'manifest_sha256': store['manifest_sha256'],
+                       'annotation': {'kind': 'rhythm_timing', 'basis': 'operator_assertion', 'status': 'needs_review',
+                                      'source_span': {'start_seconds': start, 'end_seconds': start, 'extent_known': False},
+                                      'reported_by': {'actor': 'operator', 'via': 'browser'},
+                                      'operator_certainty': 'uncertain',
+                                      'operator_quote': 'synthetic walkthrough note', 'note': 'e2e fixture note'}}
+            saved_status, _, _, saved = self.bff('POST', f'/api/sources/{ids["source"]}/annotations', request)
+            replay_status, _, _, replay = self.bff('POST', f'/api/sources/{ids["source"]}/annotations', request)
+            stale = dict(request, idempotency_key='ui-ann-' + os.urandom(16).hex())
+            stale_status, _, _, stale_body = self.bff('POST', f'/api/sources/{ids["source"]}/annotations', stale)
+            record = saved['store']['annotations'][0]
+            return saved_status, stale_body['upstream_code'], {
+                'clock_known_200': status == 200, 'saved': saved['mutation']['outcome'] == 'saved',
+                'user_reported_label': record['claim_label'] == 'USER REPORTED',
+                'verdict_not_established': record['musical_verdict'] == 'not_established',
+                'replayed': replay_status == 200 and replay['mutation']['outcome'] == 'replayed',
+                'stale_409': stale_status == 409 and stale_body['upstream_code'] == 'stale_annotation_revision',
+                'player_clock_unverified': clock['player_clock_offset_verified'] is False}, {
+                'clock': {k: clock[k] for k in ('source_start_seconds', 'source_end_seconds', 'duration_seconds',
+                                                'clock_basis', 'player_clock_offset_verified')},
+                'note_source_seconds': start}
+        self.step('annotate', 'POST', f'/api/sources/{ids["source"]}/annotations', s8)
+
+        a_artifacts_before = ids['A_job']['artifacts']
+
+        def s9():
+            status, _, _, job = self.bff('POST', '/api/jobs', {'source_artifact_id': ids['source'], 'parameters': {'crf': 30},
+                                                               'idempotency_key': 'ui-' + os.urandom(16).hex()})
+            ids['B'] = job['job_id']
+            final, observed = self.poll(ids['B'])
+            ids['B_job'] = final
+            return status, final['reason_code'], {'status_202': status == 202, 'new_job': ids['B'] != ids['A'],
+                                                  'crf_30': final['parameters']['crf'] == 30,
+                                                  'terminal': final['state'] in web_jobs.TERMINAL}, {
+                'job_id': ids['B'], 'terminal_state': final['state'], 'observed_sequence': observed}
+        self.step('iterate_changed_knob', 'POST', '/api/jobs', s9)
+
+        def s10():
+            status, _, _, listing = self.bff('GET', f'/api/sources/{ids["source"]}/jobs')
+            _, _, _, again = self.bff('GET', f'/api/jobs/{ids["A"]}')
+            listed = [j['job_id'] for j in listing['jobs']]
+            return status, None, {'status_200': status == 200, 'a_and_b_listed': listed[:2] == [ids['B'], ids['A']],
+                                  'a_artifacts_unchanged': again['artifacts'] == a_artifacts_before}, {'listed': listed}
+        self.step('jobs_by_source', 'GET', f'/api/sources/{ids["source"]}/jobs', s10)
+
+        def s11():
+            roles = {a['role']: a for a in ids['A_job']['artifacts']}
+            share = roles['share_mp4']
+            status, headers, payload, _ = self.bff('GET', f'/api/artifacts/{share["artifact_id"]}')
+            p_status, _, _, private = self.bff('GET', f'/api/artifacts/{roles["share_receipt"]["artifact_id"]}')
+            ids['A_share_sha'] = share['sha256']
+            return status, private['upstream_code'], {
+                'status_200': status == 200, 'bytes_sha_equal_header': sha_bytes(payload) == headers.get('x-artifact-sha256'),
+                'header_equal_projection': headers.get('x-artifact-sha256') == share['sha256'],
+                'size_equal_projection': len(payload) == share['size_bytes'],
+                'receipt_private_403': p_status == 403 and private['upstream_code'] == 'artifact_private'}, {
+                'share_mp4': {'artifact_id': share['artifact_id'], 'sha256': share['sha256'], 'bytes': share['size_bytes']}}
+        self.step('download', 'GET', '/api/artifacts/{share_mp4}', s11)
+
+        def s12():
+            status, _, _, job = self.bff('POST', '/api/jobs', {'source_artifact_id': ids['source'], 'parameters': {'crf': 31},
+                                                               'idempotency_key': 'ui-' + os.urandom(16).hex()})
+            ids['C'] = job['job_id']
+            c_status, _, _, cancel = self.bff('POST', f'/api/jobs/{ids["C"]}/cancel', {})
+            final, observed = self.poll(ids['C'])
+            return c_status, final['reason_code'], {
+                'submitted_202': status == 202, 'cancel_accepted': c_status in (200, 202),
+                'cancelled': final['state'] == 'cancelled', 'no_artifacts': final['artifacts'] == []}, {
+                'job_id': ids['C'], 'state_at_cancel': cancel['state'], 'cancel_http_status': c_status,
+                'observed_sequence': observed}
+        self.step('cancel', 'POST', '/api/jobs/{C}/cancel', s12)
+
+        screenshots, skipped = [], None
+        browser, browser_kind = _headless_browser()
+        if browser is None:
+            skipped = 'no headless Chromium (Playwright cache) or Google Chrome found on this host'
+        else:
+            screens = OUT_DIR / 'screens'
+            screens.mkdir(parents=True, exist_ok=True)
+            for name, path in (('sources', '/'), ('source', f'/sources/{ids["source"]}'), ('job', f'/jobs/{ids["A"]}')):
+                target = screens / f'{name}.png'
+                with contextlib.suppress(FileNotFoundError):
+                    target.unlink()
+                profile = tempfile.mkdtemp(prefix='web-ui-shot-', dir=self.base)
+                clock = time.perf_counter()
+                proc = subprocess.Popen([str(browser), '--headless=new', '--disable-gpu', '--no-first-run',
+                                         '--no-default-browser-check', f'--user-data-dir={profile}',
+                                         '--window-size=1280,900', f'--screenshot={target}',
+                                         f'{self.app.origin}{path}'],
+                                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+                try:
+                    proc.wait(timeout=60)
+                except subprocess.TimeoutExpired:
+                    pass
+                finally:
+                    with contextlib.suppress(ProcessLookupError):
+                        os.killpg(proc.pid, signal.SIGKILL)
+                    proc.wait(timeout=10)
+                if target.is_file() and target.stat().st_size > 0:
+                    screenshots.append({'name': f'{name}.png', 'route': path.split('/')[1] or 'index',
+                                        'bytes': target.stat().st_size, 'sha256': wj.sha_file(target),
+                                        'wall_ms': round((time.perf_counter() - clock) * 1000, 1)})
+            if not screenshots:
+                skipped = f'{browser_kind} produced no screenshot'
+        self.steps.append({'step': 13, 'name': 'screenshots_optional', 'request': 'headless browser GET / , /sources/{id}, /jobs/{A}',
+                           'http_status': None, 'code': None, 'started_at': None, 'wall_ms': None,
+                           'assertions': {}, 'captured': len(screenshots)})
+
+        # Wire parity: the exact bodies the BFF sent validate like the CLI/MCP call.
+        wire_ok = []
+        for body in self.wire:
+            closed = set(body) == {'tool', 'source_artifact_id', 'parameters', 'idempotency_key'}
+            keyed = re.fullmatch(r'ui-[0-9a-f]{32}', body['idempotency_key']) is not None
+            wire_ok.append(closed and keyed and cli_verdict(body['parameters']) == 'accept')
+        self.assertTrue(wire_ok and all(wire_ok), self.wire)
+        runs_after = {entry.name: wj.tree_digest(entry) for entry in (self.R / 'artifacts' / 'runs').iterdir()}
+        added = sorted(set(runs_after) - set(self.runs_before))
+        preexisting_equal = all(runs_after.get(name) == digest for name, digest in self.runs_before.items())
+        self.assertTrue(preexisting_equal)
+        self.assertEqual(len(added), 1)
+        self.assertTrue(added[0].startswith('web-upload-'))
+        facts = host_facts()
+        receipt = {
+            'receipt': 'web_ui_binding-walkthrough', 'lane': 'web_ui_binding', 'sprint': '20261006-s2', 'tracker': 'TIN-5615',
+            'spec': 'docs/spec/sprints/WEB_UI_S2.md section 10', 'claim_class': 'measurement_this_host_only',
+            'slo': 'not_claimed', 'daemon': False, 'real_take_used': False,
+            'fixture': 'synthetic 2 s testsrc2 320x240@24 + sine 32.70 Hz 44.1 kHz, H.264/AAC MOV (C1 content; no spectral claim)',
+            'control_api': 'scripts/web_api.py in-process, real share_export dispatcher, uploads enabled, 8 MiB bound',
+            'bff': 'built web/ via node serve.js (HOST=127.0.0.1, ephemeral PORT, URL + token env), test-owned process group',
+            'build_seconds_this_run': build_s,
+            'steps_completed': f'{sum(1 for s in self.steps if s["step"] <= 12)}/12',
+            'steps': self.steps,
+            'wire_bodies': {'captured': len(self.wire), 'closed_shape_and_cli_valid': sum(wire_ok)},
+            'leak_scan': {'responses_scanned': self.leak_checked, 'hits': 0},
+            'confinement': {'preexisting_runs_entries_hash_equal': preexisting_equal, 'added_runs': len(added),
+                            'added_kind': 'upload staging run (name prefix web-upload)'},
+            'screenshots': screenshots,
+            **({'screenshots_skipped_reason': skipped} if skipped else {}),
+            'screenshot_note': 'headless captures after load; they do not prove hydration, playback or accessibility',
+            'browser_playback_verified': None,
+            'browser_playback_verified_reason': 'no media playback was observed in a browser; Range requests unsupported in S2',
+            'hydration_verified': None,
+            'hydration_verified_reason': 'no client-side assertion ran in a browser; screenshots are visual captures only',
+            'level_matched': False, 'listening_comparison': 'not_established', 'low_register_preservation': None,
+            'musical_verdicts': 'none made',
+            'host': facts,
+        }
+        OUT_DIR.mkdir(parents=True, exist_ok=True)
+        (OUT_DIR / 'walkthrough.json').write_text(json.dumps(receipt, indent=2, sort_keys=True) + '\n')
+        public = json.dumps(receipt, indent=2, sort_keys=True)
+        for needle in self.forbidden + [str(Path.home()), str(OUT_DIR)]:
+            self.assertNotIn(needle, public)
+        self.assertIsNone(re.search(r'127\.0\.0\.1:\d+', public))
+        (OUT_DIR / 'walkthrough-public.json').write_text(public + '\n')
+        METRICS['walkthrough'] = {'steps_completed': receipt['steps_completed'], 'screenshots': len(screenshots)}
+
+
+@unittest.skipUnless(os.environ.get('WEB_UI_DEMO') == '1' and wj.HAVE_FFMPEG and shutil.which('node')
+                     and shutil.which('pnpm'), 'opt-in read-only demo walkthrough (WEB_UI_DEMO=1, FFmpeg, node, pnpm)')
+class DemoWalkthrough(unittest.TestCase):
+    """Optional: admit the accepted FULLER run's export by selector into a lane-local state root (uploads off).
+
+    Read-only on the accepted run (tree hash before == after). The real take is never opened. A share_export
+    rejection is a valid recorded outcome; the compare view must then show the Prototype label.
+    """
+
+    RUN = '20261006T041633Z-990aa1bd6737'
+    SELECTOR = f'{RUN}/export/cleaned-video.mov'
+
+    def test_demo_walkthrough_read_only(self):
+        import test_web_stack as ws
+        runs_root = Path(os.environ.get('WEB_UI_DEMO_RUNS_ROOT', str(ROOT.parents[2]))).resolve()
+        run_dir = runs_root / 'artifacts' / 'runs' / self.RUN
+        if not (run_dir / 'export' / 'cleaned-video.mov').is_file():
+            self.skipTest('accepted demo run export not present on this host')
+        before = wj.tree_digest(run_dir)
+        stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+        state = OUT_DIR / f'demo-state-{stamp}'
+        jobs = WebJobs(runs_root, state)
+        jobs.start()
+        server = web_api.WebAPIServer(jobs, 0, allow_uploads=False)
+        thread = threading.Thread(target=server.serve_forever, kwargs={'poll_interval': 0.1}, daemon=True)
+        thread.start()
+        app = None
+        try:
+            ws._ensure_build(self)
+            app = ws._App(f'http://127.0.0.1:{server.server_address[1]}', token=server.token)
+            headers = {'content-type': 'application/json', 'origin': app.origin}
+            status, _, payload, _ = app.request('POST', '/api/sources', json.dumps({'selector': self.SELECTOR}).encode(), headers)
+            self.assertIn(status, (200, 201), payload[:300])
+            source = json.loads(payload)['source_artifact_id']
+            start = time.perf_counter()
+            status, _, payload, _ = app.request('POST', '/api/jobs', json.dumps({
+                'source_artifact_id': source, 'parameters': {}, 'idempotency_key': 'ui-' + os.urandom(16).hex()}).encode(), headers)
+            self.assertEqual(status, 202, payload[:300])
+            job_id = json.loads(payload)['job_id']
+            end = time.monotonic() + 1100
+            while True:
+                _, _, payload, _ = app.request('GET', f'/api/jobs/{job_id}')
+                job = json.loads(payload)
+                if job['state'] in web_jobs.TERMINAL:
+                    break
+                self.assertLess(time.monotonic(), end)
+                time.sleep(5)
+            wall = round(time.perf_counter() - start, 3)
+            _, _, page, _ = app.request('GET', f'/jobs/{job_id}')
+            compare = 'bound' if b'data-compare="bound"' in page else 'absent' if b'data-compare="absent"' in page else 'missing'
+            if job['state'] != 'succeeded':
+                self.assertEqual(compare, 'absent')
+                self.assertIn(b'Comparison data absent', page)
+            for needle in (str(runs_root), str(ROOT), server.token, self.SELECTOR):
+                self.assertNotIn(needle.encode(), page)
+                self.assertNotIn(needle.encode(), payload)
+        finally:
+            if app is not None:
+                app.close()
+            server.stop()
+            thread.join(timeout=10)
+            jobs.close()
+        after = wj.tree_digest(run_dir)
+        self.assertEqual(after, before)
+        receipt = {'receipt': 'web_ui_binding-demo-walkthrough', 'claim_class': 'structural_delivery_check',
+                   'experiment': False, 'real_take_opened': False, 'uploads_enabled': False,
+                   'accepted_run': self.RUN, 'selector_admitted_read_only': True,
+                   'accepted_run_tree': {'before_sha256': before[0], 'after_sha256': after[0], 'entries': before[1],
+                                         'unchanged': before == after},
+                   'job': {'state': job['state'], 'reason_code': job['reason_code'],
+                           'worker_checks': [a['worker_checks'] for a in job['attempts']],
+                           'artifacts': len(job['artifacts']), 'submit_to_terminal_seconds': wall},
+                   'compare_view': compare, 'host': host_facts(),
+                   'not_claimed': ['listening', 'low-register (~32 Hz) preservation', 'tone', 'musical correctness',
+                                   'derivative adoption']}
+        OUT_DIR.mkdir(parents=True, exist_ok=True)
+        (OUT_DIR / 'demo-walkthrough.json').write_text(json.dumps(receipt, indent=2, sort_keys=True) + '\n')
+        METRICS['demo_walkthrough'] = {'state': job['state'], 'compare_view': compare}
 
 
 def tearDownModule():

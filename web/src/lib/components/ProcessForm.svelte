@@ -27,6 +27,15 @@
 	let pending = $state(false);
 	let error = $state<BffError | null>(null);
 
+	const bounds = (key: KnobKey) =>
+		[
+			spec[key].minimum !== undefined ? `${spec[key].minimum}..${spec[key].maximum}${key === 'height' ? ', even' : ''}` : null,
+			spec[key].enum ? spec[key].enum?.join(' / ') : null,
+			`default ${spec[key].default}`
+		]
+			.filter((part) => part !== null)
+			.join('; ');
+
 	function parameters(): Record<string, string | number> {
 		const out: Record<string, string | number> = {};
 		for (const key of order) {
@@ -91,9 +100,7 @@
 						bind:value={values[key]}
 					/>
 				{/if}
-				<span class="vu-muted block text-xs">
-					{#if spec[key].minimum !== undefined}{spec[key].minimum}..{spec[key].maximum}{key === 'height' ? ', even' : ''}; {/if}default {spec[key].default}
-				</span>
+				<span class="vu-muted block text-xs">{bounds(key)}</span>
 			</label>
 		{/each}
 	</div>

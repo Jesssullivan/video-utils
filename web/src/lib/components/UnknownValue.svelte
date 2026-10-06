@@ -10,4 +10,4 @@
 	const known = $derived(value !== null && value !== undefined && !(typeof value === 'number' && !Number.isFinite(value)));
 </script>
 
-{#if known}<span class:vu-time={mono}>{value}{suffix}</span>{:else}<span class="vu-unknown" data-unknown="true" title={reason ?? undefined}>Unknown</span>{#if reason}<span class="vu-muted text-xs" data-unknown-reason="true"> — {reason}</span>{/if}{/if}
+{#if known}<span class:vu-time={mono}>{value}{suffix}</span>{:else}<span class="vu-unknown" data-unknown="true" title={reason ?? undefined}>Unknown</span>{#if reason}<span class="vu-muted text-xs" data-unknown-reason="true">{` — ${reason}`}</span>{/if}{/if}

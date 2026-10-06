@@ -24,7 +24,7 @@
 		<dt class="vu-muted">{label}</dt>
 		<dd>
 			<UnknownValue {value} />
-			{#if reason}<span class="vu-muted text-xs" data-unknown-reason="true"> — {reason}</span>{/if}
+			{#if reason}<span class="vu-muted text-xs" data-unknown-reason="true">{` — ${reason}`}</span>{/if}
 		</dd>
 	{/each}
 </dl>
