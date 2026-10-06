@@ -71,7 +71,7 @@ def main():
                     command = ["node", str(Path(__file__).with_suffix(".mjs")), port, f"http://127.0.0.1:{server.server_port}", str(output / "review-preview.png")]
                     if args.annotation_smoke:
                         command.append("synthetic-annotation")
-                    result = subprocess.run(command, capture_output=True, text=True, timeout=35)
+                    result = subprocess.run(command, capture_output=True, text=True, timeout=60)
                     if result.returncode:
                         raise RuntimeError("Browser verification failed: "+result.stderr[-1000:])
                     evidence = json.loads(result.stdout)

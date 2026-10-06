@@ -1,0 +1,12 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004 / R-N11/R-N12/R-N13",
+  "state": "browser integration running against root read-only bridge",
+  "source": {
+    "scripts/annotation_v2.py": "237d6b53ac1a73f0e981d1bcaa3fa73e3b5f9ab417bc7bf051575b3d6cf0cab6",
+    "scripts/review_server.py": "05bc9cc753a312c96ab822afaceb91f5a4d44bf288d281c201c8bc918b221ef0",
+    "review/app.js": "4211639bc4f1fc3bb7064ffe469dab8ca42b7285e78d431990ad506c9c08c9a7",
+    "review/practice.js": "13d8e08478aa70552bfbd5b0c85f9484a4e35f50d19a93ae70ff33c2452ff57e",
+    "review/index.html": "69418ec04f7a0045257f8e821fe0f450a310e143285e69d18c52ffb2485b2c5a",
+    "review/style.css": "ab28a0125f8d2a944eff72bb990bed76b04ed4e0864be905ade06c152ba02fce"
+  }
+}
