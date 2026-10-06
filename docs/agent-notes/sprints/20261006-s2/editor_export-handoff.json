@@ -1,7 +1,7 @@
 {
   "lane": "editor_export",
   "branch": "sprint/20261006-s2/editor_export",
-  "head": "eb236637d90ed30957ad692e35014c86c6f42ff3",
+  "head": "5413266d17385b85a2756212066d3917322b6944",
   "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
   "worktree": "/Users/jess/git/video-utils/.local/sprint2/editor_export",
   "state": "implemented_tested_audit_findings",
