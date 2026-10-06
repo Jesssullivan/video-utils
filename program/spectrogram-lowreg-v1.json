@@ -1,0 +1,171 @@
+{
+  "version": "lowreg-spectrogram-v1",
+  "title": "Low-register spectrogram render spec v1 (xoruby V4)",
+  "status": "frozen_reference_experimental_feature_branch",
+  "sprint": "20261006-s2",
+  "lane": "lowreg_spec_v4",
+  "linear": "TIN-5608",
+  "normative_prose": "docs/spec/LOW_REGISTER_SPECTROGRAM_SPEC.md",
+  "contract": "docs/spec/sprints/LOWREG_SPEC_S2.md",
+  "reference_implementation": "scripts/lowreg_spectrogram.py",
+  "golden": {
+    "path": "tests/fixtures/lowreg-golden-v1.json",
+    "schema": "lowreg-golden-v1",
+    "tolerance": {
+      "abs": 1e-09,
+      "rel": 1e-09,
+      "rule": "math.isclose(a, b, rel_tol=1e-9, abs_tol=1e-9)"
+    },
+    "stored_frames": [
+      0,
+      17,
+      94
+    ],
+    "stored_bins": [
+      0,
+      17,
+      28,
+      41,
+      150
+    ],
+    "max_bytes": 50000,
+    "hash_note": "the golden records this spec's spec_sha256; this spec does not record the golden hash (no circular hash)"
+  },
+  "spec_sha256_rule": "sha256 of canonical JSON (sort_keys, separators (',',':'), ensure_ascii, no NaN) of this object without the spec_sha256 key",
+  "parameters": {
+    "arithmetic": "ieee754_float64",
+    "analysis_rate_hz": 8000,
+    "channels_policy": "arithmetic_mean_of_channels_float64",
+    "input_decode": "pcm16_wav_int16_divided_by_32768.0",
+    "preprocessing": "none: no DC removal, pre-emphasis, high-pass, notch or dither",
+    "other_rates": "refused_exit_2; explicit external resample is a recorded caller pre-stage",
+    "window": "periodic_hann: w[n] = 0.5 - 0.5*cos(2*pi*n/4096)",
+    "window_length": 4096,
+    "window_sum": 2048.0,
+    "n_fft": 4096,
+    "n_fft_bins": 2049,
+    "fft_bin_spacing_hz": 1.953125,
+    "hop_samples": 160,
+    "hop_seconds": 0.02,
+    "temporal_support_seconds": 0.512,
+    "centre_padding": false,
+    "frame_rule": "frame t uses samples [160t, 160t+4096); n_frames = 1 + floor((N-4096)/160); N < 4096 refused",
+    "frame_centre_formula": "(160t + 2048)/8000 seconds from the first analysed sample",
+    "first_frame_centre_seconds": 0.256,
+    "spectrum_policy": "power",
+    "power_formula": "P[t,j] = (Re X[t,j]^2 + Im X[t,j]^2) / 2048.0^2",
+    "one_sided_doubling": false,
+    "magnitude_filterbank": "not_part_of_v1; sqrt of band power is not a magnitude filterbank",
+    "fmin_hz": 20.0,
+    "fmax_hz": 2000.0,
+    "bins_per_octave": 24,
+    "n_bands": 160,
+    "band_centre_formula": "f_k = 20 * 2^(k/24), k = 0..159",
+    "filter_shape": "triangle in Hz at f_j = 1.953125 j; left half-width L_k = max(f_k - f_k*2^(-1/24), 1.953125), right R_k = max(f_k*2^(1/24) - f_k, 1.953125); weight max(0, 1 - |f_j - f_k|/(L_k if f_j <= f_k else R_k))",
+    "filter_normalization": "unit_sum_per_filter",
+    "band_energy_formula": "E[t,k] = sum_j W[k,j] * P[t,j], ascending j",
+    "log_formula": "D[t,k] = 10*log10(max(E[t,k], 1e-10))",
+    "log_floor": 1e-10,
+    "log_floor_policy": "absolute_not_max_relative",
+    "pcen": {
+      "status": "experimental_fixed_knobs_not_tuned",
+      "input_formula": "Z = E * 2^31",
+      "input_scale": 2147483648.0,
+      "gain": 0.98,
+      "bias": 2.0,
+      "power": 0.5,
+      "time_constant_seconds": 0.4,
+      "eps": 1e-06,
+      "smoother_frames_T": 20.0,
+      "smoother_coefficient_formula": "b = (sqrt(1 + 4 T^2) - 1) / (2 T^2)",
+      "smoother_coefficient": 0.04876562255935639,
+      "smoother_recursion": "M[0] = Z[0]; M[t] = (1 - b) M[t-1] + b Z[t]",
+      "output_formula": "PCEN = (Z / (eps + M)^gain + bias)^power - bias^power",
+      "state": "causal; smoother row M carried across frames and streamed blocks; block equals batch exactly",
+      "reset_on_block_boundary": false
+    },
+    "output_layout": "row_major_frames_by_bands_float64_little_endian"
+  },
+  "derived": {
+    "interpolated_below_hz": {
+      "left": 68.60759318148556,
+      "right": 66.65446818148547
+    },
+    "last_band_centre_hz": 1974.0298565221642,
+    "hann_main_lobe_half_width_hz": 3.90625,
+    "c1_semitone_width_hz_approx": 1.94
+  },
+  "pitch_resolution_claim": "none",
+  "caveats": [
+    "Below ~66.65 Hz (right side) / ~68.61 Hz (left side) a filter half-width is clamped to one 1.953125 Hz FFT bin; low bands are linear interpolation between adjacent FFT bins and are not independent measurements.",
+    "The Hann main lobe spans +/-3.9 Hz while a semitone at C1 is ~1.94 Hz: pitch_resolution_claim none; energy near 32.7 Hz is not C1 identification and a dominant peak is not a played note.",
+    "A 512 ms support contains ~16.7 C1 cycles but blurs a 178 BPM sixteenth (~84.27 ms) across ~6 subdivisions; the 20 ms hop samples a 512 ms-smoothed trajectory and is not 20 ms time resolution. The short-window attack branch stays separate and remains the source of onset/timing evidence.",
+    "Log-power D is the baseline of this branch and log-mel remains video-utils' baseline frontend; PCEN is experimental with fixed, untuned knobs fixed for reproducibility, not recommendation.",
+    "Values are window-normalized power samples on an uncalibrated digital scale, not dBFS or SPL; microphone response unknown.",
+    "Feature transform only: restores no audio, separates no stem, identifies no note; no 400 Hz or 80 Hz floor, no high-pass, no mains notch."
+  ],
+  "required_output_fields": [
+    "spec_version",
+    "spec_sha256",
+    "input.sha256",
+    "input.sample_rate",
+    "input.channels",
+    "input.downmix",
+    "pitch_resolution_claim",
+    "note_identity",
+    "intended_note_reference",
+    "tonic",
+    "mode",
+    "onset_timing",
+    "temporal_support_seconds",
+    "hop_seconds",
+    "interpolated_below_hz",
+    "coverage",
+    "resampler",
+    "resampler_group_delay_samples",
+    "calibration",
+    "denoise_or_profile_applied",
+    "pcen_status",
+    "baseline",
+    "listening_acceptance",
+    "adoption"
+  ],
+  "fixture": {
+    "generator": "python_stdlib_integers_and_math_sin_no_numpy",
+    "sample_rate_hz": 8000,
+    "channels": 1,
+    "n_samples": 19200,
+    "broadband": {
+      "formula": "b[n] = 0.02 * (2 u_n - 1); u_n = (z_n >> 11) * 2^-53",
+      "prng": "splitmix64",
+      "seed": 20261006,
+      "amplitude": 0.02,
+      "draws_per_sample": 1
+    },
+    "harmonic": {
+      "f0_formula": "440 * 2^((24 - 69)/12)",
+      "f0_hz": 32.70319566257483,
+      "f0_evidence": "equal_temperament_theory_not_measured (C1 per program/instrument.json)",
+      "amplitudes": [
+        0.3,
+        0.15,
+        0.1,
+        0.06,
+        0.04,
+        0.03
+      ],
+      "phase": "zero",
+      "formula": "h[n] = e[n] * sum_{m=1..6} a_m sin(2 pi m f0 n / 8000)"
+    },
+    "envelope": {
+      "silent_before_sample": 4800,
+      "attack_samples": 80,
+      "formula": "e = 0 for n < 4800; (n - 4800)/80 for 4800 <= n < 4880; 1 afterwards"
+    },
+    "mix": "x = h + b",
+    "encode": "pcm16: clamp(round(x * 32768), -32768, 32767), Python round half-even",
+    "container": "RIFF WAVE PCM16 mono via stdlib wave, 44-byte header"
+  },
+  "adoption": "none",
+  "spec_sha256": "880451c07c20f743323bf4303e95784a9dc0c84be5888daae215abdf4e0d260a"
+}
