@@ -3,6 +3,10 @@
 
 use std::fmt;
 
+pub mod dsp;
+pub mod hash;
+pub mod run_record;
+
 /// Maximum interleaved or planar sample count accepted by one gain operation.
 pub const MAX_BLOCK_SAMPLES: usize = 65_536;
 /// Maximum supported linear gain (approximately 24 dB).
