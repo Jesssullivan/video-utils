@@ -298,3 +298,19 @@ Root-owned registration (the `program/tools.json` descriptor from
 `python3 scripts/tone_ab.py describe`, the `scripts/tool_api.py` worker branch,
 a `just` recipe, and the S1 admission tool-count test) is requested through
 `root_owned_changes_requested`, not edited here.
+
+### Phase 2 integration hardening (additive; numerics unchanged)
+
+- **Finalization reserve.** FFmpeg work stops `min(10 s, 5% of timeout_seconds)`
+  before the overall deadline (`finalize_reserve`). That leaves time for the
+  protected readback, `tone-ab.failed.json` and the rename before an outer
+  supervisor can act. tool_api's process-group kill fires at exactly
+  `timeout_seconds`. Total wall time stays ≤ `timeout_seconds`.
+  `timing.finalize_reserve_seconds` records the value.
+- **Descriptor draft file.** `docs/agent-notes/sprints/20261006-s2/tone_ab-tool-descriptor.json`
+  is the exact `describe` output that root should append to `program/tools.json`.
+  `test_descriptor_draft_closed_schema` asserts that the file equals
+  `DESCRIPTOR_DRAFT`.
+- The actual-run receipt (20261006T120702Z, script sha256 `ab900835…`) predates
+  this change. The reserve does not touch any measurement path, and that run
+  finished with 694 s of its deadline left, so its numbers stand.

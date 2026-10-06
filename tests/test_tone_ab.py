@@ -219,6 +219,15 @@ class SchemaTests(unittest.TestCase):
         with contextlib.redirect_stdout(buffer):
             self.assertEqual(tone_ab.main(["describe"]), 0)
         self.assertEqual(json.loads(buffer.getvalue()), tone_ab.DESCRIPTOR_DRAFT)
+        # The committed draft handed to root must equal what the script describes.
+        draft = ROOT / "docs/agent-notes/sprints/20261006-s2/tone_ab-tool-descriptor.json"
+        self.assertEqual(json.loads(draft.read_text(encoding="utf-8")), tone_ab.DESCRIPTOR_DRAFT)
+
+    def test_finalize_reserve_bounds(self):
+        self.assertAlmostEqual(tone_ab.finalize_reserve(1), 0.05)
+        self.assertAlmostEqual(tone_ab.finalize_reserve(100), 5.0)
+        self.assertEqual(tone_ab.finalize_reserve(1200), 10.0)
+        self.assertEqual(tone_ab.finalize_reserve(1800), 10.0)
 
 
 class LogicTests(unittest.TestCase):
@@ -432,6 +441,28 @@ class GateTests(FixtureBase):
         record = json.loads((failed / "tone-ab.failed.json").read_text())
         self.assertEqual((record["status"], record["code"], record["master_changed"]), ("failed", "ffmpeg_failed", False))
         self.assertEqual(tone_ab.snapshot(self.template), before)
+
+    def test_deadline_reserve_leaves_time_for_failure_record(self):
+        out = self.base / "out-deadline"
+        seen = {}
+
+        def overrun(params, runner, *rest):
+            seen["deadline"] = runner.deadline
+            raise tone_ab.ToneABError("deadline_exceeded", "simulated overrun")
+
+        started = tone_ab.time.monotonic()
+        with patch.object(tone_ab, "_measure_and_render", side_effect=overrun):
+            with self.assertRaises(tone_ab.ToneABError) as caught:
+                tone_ab.run(args(self.template, timeout_seconds=600), out)
+        finished = tone_ab.time.monotonic()
+        self.assertEqual(caught.exception.code, "deadline_exceeded")
+        # Work deadline sits 10 s (min(10, 5%)) before the overall 600 s deadline.
+        self.assertGreaterEqual(seen["deadline"], started + 590.0)
+        self.assertLessEqual(seen["deadline"], finished + 590.0)
+        self.assertFalse(out.exists())
+        failed = self.base / "out-deadline.failed"
+        self.assertEqual([p.name for p in failed.iterdir()], ["tone-ab.failed.json"])
+        self.assertEqual(json.loads((failed / "tone-ab.failed.json").read_text())["code"], "deadline_exceeded")
 
     def test_cli_refusal_exit_code(self):
         buffer = io.StringIO()

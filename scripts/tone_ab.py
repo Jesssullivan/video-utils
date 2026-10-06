@@ -56,6 +56,11 @@ TIMEOUT_MIN = 1
 TIMEOUT_MAX = 1800
 SUBPROCESS_CAP_SECONDS = 120.0
 FFPROBE_CAP_SECONDS = 60.0
+# Measurement/render work stops this many seconds before timeout_seconds, so a
+# deadline overrun still writes tone-ab.failed.json before an outer supervisor
+# (tool_api process-group kill at timeout_seconds) can terminate the worker.
+FINALIZE_RESERVE_MAX_SECONDS = 10.0
+FINALIZE_RESERVE_FRACTION = 0.05
 MATCH_TOLERANCE_LU = 0.3
 MAX_MATCH_CORRECTIONS = 3
 BANDS = ((20, 45), (45, 90), (90, 160), (160, 400), (400, 2000), (2000, 8000))
@@ -865,8 +870,9 @@ DESCRIPTOR_DRAFT = {
                                                  "duration and >= start + 45."},
             "timeout_seconds": {"type": "integer", "minimum": TIMEOUT_MIN, "maximum": TIMEOUT_MAX,
                                 "default": TIMEOUT_DEFAULT,
-                                "description": "Overall monotonic deadline; each FFmpeg child is "
-                                               "bounded by min(120 s, remaining)."},
+                                "description": "Overall monotonic deadline; measurement stops "
+                                               "min(10 s, 5%) early for the failure record, and each "
+                                               "FFmpeg child is bounded by min(120 s, remaining)."},
         },
         "required": list(REQUIRED_FIELDS),
         "additionalProperties": False,
@@ -944,13 +950,18 @@ def _delta(a, b):
     return (a - b) if (a is not None and b is not None) else None
 
 
+def finalize_reserve(timeout_seconds: int) -> float:
+    """Seconds of the overall deadline held back for readback, failure record and rename."""
+    return min(FINALIZE_RESERVE_MAX_SECONDS, FINALIZE_RESERVE_FRACTION * timeout_seconds)
+
+
 def run(arguments: dict, output_dir: str | Path | None = None, *, _trial_gain_db: float | None = None) -> dict:
     """Validate, gate identities, measure, render and publish. Returns the tone-ab.json record."""
     started_wall = datetime.now(timezone.utc).isoformat()
     script_sha256 = _script_sha256()  # bind the code that actually runs
     params = validate_arguments(arguments)
     deadline = time.monotonic() + params["timeout_seconds"]
-    runner = Runner(deadline)
+    runner = Runner(deadline - finalize_reserve(params["timeout_seconds"]))
 
     run_dir = exact_directory(params["run_dir"], "run_dir")
     if not (run_dir / "manifest.json").is_file():
@@ -1046,6 +1057,7 @@ def run(arguments: dict, output_dir: str | Path | None = None, *, _trial_gain_db
         record["timing"] = {"started_utc": started_wall,
                             "finished_utc": datetime.now(timezone.utc).isoformat(),
                             "timeout_seconds": params["timeout_seconds"],
+                            "finalize_reserve_seconds": finalize_reserve(params["timeout_seconds"]),
                             "remaining_seconds_at_finish": round(deadline - time.monotonic(), 3)}
         record["output_dir"] = str(output)
         record["status"] = "completed"
