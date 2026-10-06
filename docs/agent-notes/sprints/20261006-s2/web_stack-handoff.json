@@ -1,46 +1,188 @@
 {
-  "authority": "R-HOOK-CONVERGENCE-20261004 R-N13; operator S2 sprint 20261006-s2; Linear TIN-5613",
-  "actor": "workflow-D/web_stack",
-  "time": "2026-10-06T14:10:54Z",
-  "phase": "phase4_handoff",
+  "lane": "web_stack",
   "branch": "sprint/20261006-s2/web_stack",
-  "implementation_commit": "8be35e1887c7b20deea6f5acd171da02b398e72d",
-  "build_receipt": "docs/agent-notes/sprints/20261006-s2/web_stack-build-receipt.json",
-  "decision": "SvelteKit BFF (adapter-node, stable load + +server.ts endpoints, Effect Schema decoding) + stdlib Python control API now; FastAPI later on recorded triggers; remote functions not adopted (experimental in Kit 2)",
-  "root_owned_requests": [
+  "head": "52da0e4e657e355a59fb99a9a52c359d39265aad",
+  "base_commit": "e0da4ca04930ee9a89a83eec402f060366c5d30d",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint2/web_stack",
+  "state": "implemented_tested_audited",
+  "files": [
+    {"path": "docs/agent-notes/sprints/20261006-s2/web_stack-build-receipt.json", "sha256": "e54181ddd73c4fa0a8b67d0f5bcda55bb659d1be7ae10a7a5a081057ad7a28ee", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261006-s2/web_stack-contract-freeze.json", "sha256": "e7622eb3c63e1a499ae1bf521b58f32db37521b4ed48901c8b93f26abfd96366", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261006-s2/web_stack-handoff.json", "sha256": "eb3868d98a18181aee4c6b4b2448e21de6aa4809bd516cfe25199086c16bf726", "kind": "receipt"},
+    {"path": "docs/spec/sprints/WEB_STACK_S2.md", "sha256": "7a8e4fd7afd5543d8831bf35340144a0ae0e20b778f5816e7f17b1b967667a87", "kind": "spec"},
+    {"path": "tests/test_web_stack.py", "sha256": "92d170183a091cbf2e4aaa1c9f06108e19e96fbd7a7c9f0511b1e127a9e4b758", "kind": "test"},
+    {"path": "web/.gitignore", "sha256": "6a816b561e35f4085862117d56b5aa5b42da7301027630004deeed12f7dbc3bc", "kind": "source"},
+    {"path": "web/.npmrc", "sha256": "ec1799586f770d234b78f35d1356c15c02d0c31192476cf54ad4f2d937d31406", "kind": "source"},
+    {"path": "web/fixtures/control-api/README.json", "sha256": "131291c1e5defef8d4b5b411d6e2320401374b779198102c5a4450aac05d5800", "kind": "data"},
+    {"path": "web/fixtures/control-api/job_bad_enum.json", "sha256": "e3ef7cede97c9c04fd33be1eb45857c8bd400a5027450bb99af0408a43248cdd", "kind": "data"},
+    {"path": "web/fixtures/control-api/job_bad_unknown_key.json", "sha256": "899450d2ad7048fad7b677ce803785a943ae4517b04b867e936a1c0cab197b5f", "kind": "data"},
+    {"path": "web/fixtures/control-api/job_progress.json", "sha256": "0b2fe1f5a6d1c2ec24461ed032aff98d60a010f4274cd62f24716f0966ff0336", "kind": "data"},
+    {"path": "web/fixtures/control-api/job_running.json", "sha256": "db46b7777792699dee60c7ea46cf34299599fd5f4d3d8dd3eb2e8113740c044c", "kind": "data"},
+    {"path": "web/fixtures/control-api/job_succeeded.json", "sha256": "ebf0e7ce079f7a072b7598bcf83cdaa9eca0008f2379c88afbecc4cc6320fa4e", "kind": "data"},
+    {"path": "web/fixtures/control-api/sources.json", "sha256": "ad74b4003a086da52b70e065ad1de554a2c62146bd61ee9720647f75ea9e3b0c", "kind": "data"},
+    {"path": "web/package.json", "sha256": "fb4555de281222fa984f519e4628420037f445ac39d1eeca0c101210adf0e1a2", "kind": "data"},
+    {"path": "web/pnpm-lock.yaml", "sha256": "d1d2e584134f723d1c1af0924c174fdf70690fc23b2faf144385222599df5db5", "kind": "source"},
+    {"path": "web/pnpm-workspace.yaml", "sha256": "f0ec0d0cf98478fb365a558f8a350e1aa75df5e02f40defb16c99081eb6078aa", "kind": "source"},
+    {"path": "web/serve.js", "sha256": "90745174e0e93ce9f136542eecf0fb7cf8d353f49819866c1430ff3280bec324", "kind": "source"},
+    {"path": "web/src/app.css", "sha256": "b0f1546de8e11cc888ad83489adc4d9f8907943dc4915e442fd52f5fbae25b03", "kind": "source"},
+    {"path": "web/src/app.d.ts", "sha256": "47c532eb0c821ba911dac3a9d3e0ef3d1127304a454d57ffaf363fb8fff6812f", "kind": "source"},
+    {"path": "web/src/app.html", "sha256": "335b9c9ea431caecd3841e0930b776bc3ffa976912e95f8de128d7f2b4ce8aed", "kind": "source"},
+    {"path": "web/src/lib/components/ControlApiError.svelte", "sha256": "c5b2ca36ca09630f77cc00c38d6bad119ca6049f4905278883b989a59c8131a4", "kind": "source"},
+    {"path": "web/src/lib/components/JobStateBadge.svelte", "sha256": "7efe601befd98191d02d56b6086362fde4a6bb7607100eae3ec6a6c7f51d80d0", "kind": "source"},
+    {"path": "web/src/lib/components/PrototypeNotice.svelte", "sha256": "9405fcb3241c4b10ea514f886fd8ebcb025b71eb449de8a29de14f2a086d219c", "kind": "source"},
+    {"path": "web/src/lib/components/UnknownValue.svelte", "sha256": "827f88da3ce3341f80a90dfca0464218e5c54b2feb2dfebeffc80ef889dea973", "kind": "source"},
+    {"path": "web/src/lib/control-types.ts", "sha256": "edbd381f7dd6edb0737ff0173f43ce569ce10ad20b661ab4d4f785daaee3c7f3", "kind": "source"},
+    {"path": "web/src/lib/polling.js", "sha256": "f6eae159668088251cbdf838361da21bd1ea7462eef47007756bba7f4147b120", "kind": "source"},
+    {"path": "web/src/lib/schema/control.ts", "sha256": "9b22b9b4a4385a76b8a01d4c5eb3cd05d3a680c6cbdfc3e880f2f24abd4cda08", "kind": "source"},
+    {"path": "web/src/lib/server/config.ts", "sha256": "0c4740ecac1a60169bc4b9f7edb62479de29b0cfb59551571055ab8d8c545098", "kind": "source"},
+    {"path": "web/src/lib/server/control-client.ts", "sha256": "70d573ad255b4bafe8ed7755b23775c240ef9e17f9e452fc50e1751faf6075b3", "kind": "source"},
+    {"path": "web/src/params/jobid.ts", "sha256": "635f6c69bfadd998de82f64e795731a9a026b66e65ca119bb39e4c54518b0471", "kind": "source"},
+    {"path": "web/src/routes/+layout.svelte", "sha256": "1f80d1e6087cbe1c8e8b7da533d1937fef92287d6bcb074ea7509ccd64923c90", "kind": "source"},
+    {"path": "web/src/routes/+page.server.ts", "sha256": "f153658e46bdeb369eea42b20bb68232b57f47ff5c30942ba7d18dc35d37e843", "kind": "source"},
+    {"path": "web/src/routes/+page.svelte", "sha256": "5b92890017d4f79c251fbe006fea394fd74c98361f253f60ee57307053647a3d", "kind": "source"},
+    {"path": "web/src/routes/api/jobs/[id]/+server.ts", "sha256": "784532a39e8643479da8dd9fdb79153400aa0acc5e15750b67e64aa286c3ee93", "kind": "source"},
+    {"path": "web/src/routes/api/sources/+server.ts", "sha256": "478629df5dde188306810b370b9a92b7815c8b2b611db3afe5b542cb1ecec158", "kind": "source"},
+    {"path": "web/src/routes/compare/+page.svelte", "sha256": "88d5e9ad7a615b0a4bb769f5dd2db5b4e2d7769e5e238b58f9a6b10451c9441f", "kind": "source"},
+    {"path": "web/src/routes/download/+page.svelte", "sha256": "e063cf5d488afe8c981e09510309e3af70b534d4356d1641cb322849edb98140", "kind": "source"},
+    {"path": "web/src/routes/jobs/[id=jobid]/+page.server.ts", "sha256": "fb401b89c86c2212da1e94e56f265e785878891b285a2a2a5f8046c6e291ac41", "kind": "source"},
+    {"path": "web/src/routes/jobs/[id=jobid]/+page.svelte", "sha256": "1d54fa945381abd325dc63aa4100785aa5edaf247d39665a18d3aaf8822e35e0", "kind": "source"},
+    {"path": "web/src/routes/review/+page.svelte", "sha256": "9bf70026b8633fe3e85ab1de3b69b8c1856df531dba63a3efd860563747b60c1", "kind": "source"},
+    {"path": "web/src/routes/upload/+page.svelte", "sha256": "45a827fba75bcae6e121b38ec42d212f212f07577de121250463079e19486a47", "kind": "source"},
+    {"path": "web/svelte.config.js", "sha256": "978ea497269e6a02af5a141e9f9fbbd89afd3a48cd5dbf093bc6d82c09e1898e", "kind": "source"},
+    {"path": "web/tsconfig.json", "sha256": "7c46e5fc665b2429eb8d4e66f493141a8a210d2fbf42e42a94f96771d6b7141e", "kind": "source"},
+    {"path": "web/vite.config.ts", "sha256": "c63f0f3077256c31522ae773a126c82cc5c084faa9b871cdb7544dfcc9f2dc1d", "kind": "source"}
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_web_stack -v",
+    "discovered": 27,
+    "passed": 27,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 177.6
+  },
+  "metrics": [
     {
-      "file": "just/workflow.just",
-      "change": "append recipes web-install, web-dev, web-build, web-serve, web-test (exact text below)",
-      "text": "# Local web fixture (prototype). Loopback only; no hosted deployment.\nweb-install:\n    cd web && pnpm install --frozen-lockfile\n\nweb-dev port=\"5173\":\n    cd web && pnpm exec vite dev --host 127.0.0.1 --port {{quote(port)}} --strictPort\n\nweb-build:\n    cd web && pnpm install --frozen-lockfile --offline && pnpm run check && pnpm run build\n\nweb-serve port=\"3000\" control_api=\"\":\n    cd web && HOST=127.0.0.1 PORT={{quote(port)}} VIDEO_UTILS_CONTROL_API_URL={{quote(control_api)}} node serve.js\n\nweb-test:\n    PYTHONPATH=tests python3 -m unittest test_web_stack -v\n"
+      "name": "pnpm_lock_pins",
+      "numerator": 13,
+      "denominator": 13,
+      "unit": "pins",
+      "claim_class": "static_repository_check"
     },
     {
-      "target": "web_jobs lane / root",
-      "change": "align control API with the assumed subset: GET /api/v1/sources -> {schema_version:1, sources: SourceSummary[]}; GET /api/v1/jobs/{job_id} -> JobSnapshot (closed objects; nullable progress with explicit denominator; nullable eta_seconds); 404 for unknown job",
-      "why": "BFF schemas are an assumption (control_api_contract_source: assumed_s2_subset_pending_web_jobs) until a merged web_jobs contract exists"
+      "name": "package_json_declarative_pins",
+      "numerator": 13,
+      "denominator": 13,
+      "unit": "packages",
+      "claim_class": "static_repository_check"
+    },
+    {
+      "name": "contract_freeze_stable",
+      "numerator": 1,
+      "denominator": 1,
+      "unit": "freezes",
+      "claim_class": "static_repository_check"
+    },
+    {
+      "name": "spec_sections_documented",
+      "numerator": 1,
+      "denominator": 1,
+      "unit": "specs",
+      "claim_class": "static_repository_check"
+    },
+    {
+      "name": "control_api_bounds_enforced",
+      "numerator": 3,
+      "denominator": 3,
+      "unit": "bounds",
+      "claim_class": "static_repository_check",
+      "note": "5000ms timeout, 1 MiB body cap, no redirects"
+    },
+    {
+      "name": "static_code_analysis_hits",
+      "numerator": 0,
+      "denominator": 43,
+      "unit": "issues",
+      "claim_class": "static_repository_check",
+      "note": "scanned files"
+    },
+    {
+      "name": "localhost_enforcement_tests",
+      "numerator": 9,
+      "denominator": 9,
+      "unit": "checks",
+      "claim_class": "synthetic_mock_integration"
+    },
+    {
+      "name": "build_offline_paths",
+      "numerator": 5,
+      "denominator": 5,
+      "unit": "sequences",
+      "claim_class": "local_build_check",
+      "note": "install, dev, check, build, serve"
+    },
+    {
+      "name": "integration_test_cases",
+      "numerator": 12,
+      "denominator": 12,
+      "unit": "tests",
+      "claim_class": "synthetic_mock_integration",
+      "note": "N04-N12 plus B4-B5, S2-S3 coverage"
+    },
+    {
+      "name": "non_loopback_address_rejections",
+      "numerator": 0,
+      "denominator": 2,
+      "unit": "violations",
+      "claim_class": "synthetic_mock_integration",
+      "note": "192.0.2.1 and 0.0.0.0 both refused"
     }
   ],
-  "operator_notes": [
-    "A fresh host needs one online `pnpm install --frozen-lockfile` before `web-build` (offline) succeeds.",
-    "Start only via `node serve.js` (or `just web-serve`); it refuses any HOST other than 127.0.0.1/::1 with exit 2.",
-    "VIDEO_UTILS_CONTROL_API_URL accepts only http://127.0.0.1:<port> or http://[::1]:<port>."
+  "unknowns": [
+    "browser hydration behavior with real web_jobs API",
+    "accessibility audit results",
+    "visual regression detection",
+    "listening feedback on audio/DSP integration points",
+    "real web_jobs_lane API compatibility",
+    "hosted deployment performance"
   ],
-  "follow_ups": [
-    "Kit 3 migration (kit3_migration: deferred)",
-    "Browser hydration/polling check, accessibility and visual acceptance (not performed)",
-    "Re-point schemas at the merged web_jobs contract and record its sha256"
+  "root_owned_changes_requested": [
+    {
+      "file": "just/workflow.just",
+      "change": "Append: web-install, web-dev, web-build (offline), web-serve, web-test recipes",
+      "why": "Definition of done hands recipe text to root; just is the operator entrypoint"
+    },
+    {
+      "file": "web_jobs control API (owned by web_jobs lane)",
+      "change": "Provide GET /api/v1/sources and GET /api/v1/jobs/{job_id} with frozen schema from WEB_STACK_S2.md section 4",
+      "why": "BFF schemas are assumed subset pending web_jobs contract alignment and sha256 recording"
+    }
   ],
-  "control_api_contract_source": "assumed_s2_subset_pending_web_jobs",
-  "web_jobs_contract_sha256": null,
-  "remote_functions_qualified": false,
-  "browser_hydration_checked": false,
-  "accessibility_checked": false,
-  "visual_acceptance": "not_performed",
-  "hosted_deployment": false,
-  "listen_address_verified": true,
-  "offline_install_verified": true,
-  "skeleton_components_used": ["Progress"],
-  "kit3_migration": "deferred",
-  "pnpm_store_location": "not_recorded_host_specific",
-  "lock_sha256": "d1d2e584134f723d1c1af0924c174fdf70690fc23b2faf144385222599df5db5",
-  "build_seconds": {"median": 40.32, "min": 23.19, "max": 65.22, "n": 3}
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261006-s2/web_stack-build-receipt.json",
+    "docs/agent-notes/sprints/20261006-s2/web_stack-contract-freeze.json",
+    "docs/agent-notes/sprints/20261006-s2/web_stack-handoff.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "Scope holds. All 45 files are under web/, tests/test_web_stack.py, docs/spec/sprints/WEB_STACK_S2.md or docs/agent-notes/sprints/. No root-owned or foreign file edited. Spec freeze sha256 a931b651... matches git show 8addd01:docs/spec/sprints/WEB_STACK_S2.md.",
+      "No forbidden writes. Diff avoids program/tools.json, scripts/tool_api.py, just/workflow.just, artifacts/runs/*, ~/Documents, ~/Desktop. Tests tear down via killpg on their own session; no daemon started.",
+      "Rerun reproduced. Fresh clone of 52da0e4 with empty node_modules: Ran 27 tests in 131.664s, OK, 0 failures, 0 errors, 0 skipped. Offline frozen install succeeds from seeded pnpm store.",
+      "Test claim note inconsistency (advisory). Orchestrator's N13 'listen_address_verified: null, since lsof was not available' contradicts skipped=0. In test_web_stack.py:724-726, missing lsof calls skipTest inside subTest (counts as skipped=2). Host has /usr/sbin/lsof; my rerun executed N13 with no skip. Committed web_stack-build-receipt.json (M11, listen_address_verified: true) is internally consistent.",
+      "Tests exercise claimed behaviour. N05 checks decode errors reveal no upstream key/value. N08 checks timeout <=5s against 7s mock (elapsed <6.5s). N09 checks cap both via Content-Length and streamed body. N10, N04 check invalid id makes no upstream request. N11 covers unconfigured case. N12 checks localhost/192.0.2.1 refused <1s. B4 checks serve.js exits 2 for non-loopback. B5 checks pure polling policy. S2, S3 check exact pins and lock specifiers equal package.json.",
+      "Doctrine checks pass. No audio/DSP code, so 32Hz high-pass item N/A. Nullable fields explicit (NullOr in control.ts). Bounds enforced: 5000ms timeout, 1 MiB cap, redirect manual, polling backoff capped 30s. No blanket 80Hz high-pass or speech denoiser.",
+      "Arithmetic verified. shasum -a 256 web/pnpm-lock.yaml matches claim d1d2e584134f723d1c1af0924c174fdf70690fc23b2faf144385222599df5db5. Median of [65.22, 40.32, 23.19] is 40.32. 13 pins = 1 dependency + 12 devDependencies. 43 scanned files = 40 tracked under web/ + 3 receipts.",
+      "Spec edited post-freeze (advisory). 8be35e1 added sections 3.1 and 13 (+59/-1); current file no longer matches freeze sha. Additions labelled post-freeze records, do not relax frozen constants.",
+      "Minor hardening (advisory). serve.js refuses non-loopback HOST/SOCKET_PATH but does not clear systemd socket-activation env (LISTEN_PID/LISTEN_FDS). Also, pnpm run dev -- --host 0.0.0.0 could override vite.config.ts loopback host. Neither is a default path.",
+      "Durations vary between runs: receipt 127s, orchestrator 177.6s, rerun 132s. Single runs on one host; described as descriptive measurements, not contradiction."
+    ],
+    "must_fix": []
+  }
 }
