@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "name": "fuller",
+  "denoise": true,
+  "reduction_db": 8.0,
+  "noise_floor_db": -40.0,
+  "adaptivity": 0.0,
+  "gain_smooth": 0,
+  "preserve_low_fundamental_hz": 32,
+  "integrated_lufs": -18.0,
+  "true_peak_dbtp": -1.75,
+  "noise_capture_required": true,
+  "peaking_eq": [
+    {"frequency_hz": 160.0, "gain_db": 2.0, "q": 0.7},
+    {"frequency_hz": 300.0, "gain_db": 1.0, "q": 0.8}
+  ],
+  "compressor": {
+    "threshold_db": -18.0,
+    "ratio": 2.0,
+    "attack_ms": 15.0,
+    "release_ms": 100.0,
+    "knee_db": 3.0
+  },
+  "description": "FULLER-v1 template: controls copied verbatim from the operator-accepted run 20261006T041633Z-990aa1bd6737 applied-profile (captured-band afftdn 8 dB, -40 dB floor, ad 0, gs 0; peaking EQ 160 Hz +2 dB q 0.7 and 300 Hz +1 dB q 0.8; 25 percent wet RMS compression; two-pass loudnorm -18 LUFS / -1.75 dBTP). No high-pass, low cut, hum notch or 2.2 kHz boost; preserve_low_fundamental_hz 32. A reviewed per-take capture interval is required input and is never baked in; noise_capture_required fails closed until the media worker supports per-take binding. Operator listening acceptance covers only the identical chain on source a522115f4e72 with capture samples [180810, 218295); every other take or interval is not_performed. The 4.10-4.95 s capture is not verified noise-only. No claim of 32 Hz restoration, isolated fan removal, analysis accuracy or tone suitability on other takes."
+}
