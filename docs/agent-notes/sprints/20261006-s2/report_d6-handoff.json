@@ -1,0 +1,115 @@
+{
+ "schema_version": 1,
+ "lane": "report_d6",
+ "sprint": "20261006-s2",
+ "linear": "TIN-5611",
+ "ruling": "R-N13; R-HOOK-CONVERGENCE-20261004; TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43",
+ "receipt_kind": "phase4_handoff",
+ "branch": "sprint/20261006-s2/report_d6",
+ "spec_commit": "75f28f72443807ccb5b72954f3e648f6e9e54459",
+ "file_sha256": {
+  "scripts/report_bundle.py": "091a54f186e0d8e22a842223d4936609b81a62eb0c24f37f0f42b3973a96b937",
+  "tests/test_report_bundle.py": "bb1bc079a013dd3290eaf94016447c621e943c50ae0af8e0417f003e6618a011",
+  "reports/demo.qmd": "26e3b955e651aa87dad7efa4f7e1ff67a35d61082ce512439abb4120219f251d",
+  "reports/plots.R": "96669156be5f2b64abc93eb569c33e1b44576b77f802b15221319c707e9db62b",
+  "reports/_quarto.yml": "72ec70acff997f65c3f891a96ac3447fb18ef59be3a0ec3ae330e1742eb7340d",
+  "reports/.gitignore": "0cb358957d1af376f7bc8326b4052e69ec43f8156cc36098412d4947308374c2",
+  "docs/spec/sprints/REPORT_S2.md": "928b17f2c1e3a38b9d11f3c5e70c987fb557a90795e75322f9de9b12d966b3b9",
+  "docs/spec/examples/listening-review.json": "ac9fb1c73c2fde8daf6d8c144ecd1b12fdc556672ec9cc8923e4e9591d1cc97a",
+  "docs/agent-notes/sprints/20261006-s2/report_d6-bundle-build.json": "abf0a841056509e753cbfe41b437dadde6fe8123a3af28028859f899a307f9ab",
+  "docs/agent-notes/sprints/20261006-s2/report_d6-render-attempt.json": "6841586d4f8504f0a8f6e729c7dde9a023b95cb2360e1b0f6fe56367cbc3a99b",
+  "docs/agent-notes/sprints/20261006-s2/report_d6-tool-descriptor.json": "abb91372b6563ac0215f972b07c31ccd4ff46027247d083fca7b334226083528"
+ },
+ "tests": {
+  "command": "PYTHONPATH=tests python3 -m unittest test_report_bundle -v",
+  "ran": 19,
+  "passed": 19,
+  "directly_affected": {
+   "command": "PYTHONPATH=tests python3 -m unittest test_report -v",
+   "ran": 23,
+   "passed": 23
+  },
+  "full_suite": "not_run_by_lane_root_owns_it"
+ },
+ "metrics": {
+  "1_members_hash_bound": {
+   "class": "M",
+   "copies_origin_equals_bundle": "12/12",
+   "derived_with_recorded_derivation": "12/12",
+   "verify_check_origin": "verified",
+   "denominator_members": 24
+  },
+  "2_stage_files_rehashed": "6/6 (M)",
+  "3_analysis_binding": "1/1 verified_run_derivative_hash_bound via parent_run_from_capture_profile_authoring_dir (M)",
+  "4_auxiliary": "4/4 statuses; 4/4 bound and copied (M)",
+  "5_s2_receipts": "5/5 hashed; classes run_bound, source_bound_different_analyzed_input x2, synthetic_bank_not_take, metadata_bound (5/5 equal contract expectation)",
+  "6_media_members": "0/25 files; 4864121 of 16777216 bytes (M)",
+  "7_protected_readback": "29/29 unchanged (M)",
+  "8_corpus": "operator 5.0/150.961111 s (0.033121), 0 phrase labels, 0 note labels (M on metadata); generated bank 16 cases, origin synthetic_generated_bank, real_take_accuracy unknown (S); never summed",
+  "9_unknown_fields": "21/21 with reasons (contract)",
+  "10_tests": "19/19 test_report_bundle; 23/23 test_report (M)",
+  "11_render_attempts": "1/1; outcome render_blocked_on_host; exit 1; 1172.14 s; nix fetch/evaluation succeeded; quarto 1.10.18; R version 4.6.1 (2026-06-24) -- \"Happy Hop\"; html_sha256 null",
+  "12_html_fallback": "scripts/report.py sha256 a3f18765... identical to baseline 0cdca01; footer sentence present 1/1 (M)",
+  "13_listening_template": "all 29 non-schema leaves null (contract; test-verified)"
+ },
+ "bundle": {
+  "path": "/Users/jess/git/video-utils/.local/sprint2/report_d6/artifacts/s2/report_d6/bundles/20261006T041633Z-990aa1bd6737-20261006T194041Z",
+  "bundle_sha256": "d3cfb5c729fe61612276821185997bd430cfbc89a1456893616d51d49426a333",
+  "verify": "verified (check-origin)"
+ },
+ "render": {
+  "outcome": "render_blocked_on_host",
+  "blocking_error_line": "Aeson exception: Error in $: Unknown option \"syntax-highlighting\"",
+  "receipt": "docs/agent-notes/sprints/20261006-s2/report_d6-render-attempt.json"
+ },
+ "claims": {
+  "measurements": [
+   "Hashes, sizes, readback and metadata counts in report_d6-bundle-build.json",
+   "Render exit code, versions, wall seconds and the exact pandoc error in report_d6-render-attempt.json"
+  ],
+  "inferences": [
+   "Render blocker cause is the quarto 1.10.18 / pandoc 3.7.0.2 option mismatch",
+   "rhythm_clicks binding via analyzed-input run manifest chain describes a different denoised derivative (cb8a3f...) than the bundle analysis (26c9f4...)"
+  ],
+  "listening": []
+ },
+ "unknowns": {
+  "listening_accepted": false,
+  "quarto_render_status": "render_blocked_on_host",
+  "html_sha256": null,
+  "note_correctness": null,
+  "operator_preference": null
+ },
+ "default_adoption": false,
+ "master_changed": false,
+ "accepted_run_directories_written": false,
+ "models_downloaded": false,
+ "linear_written": false,
+ "root_owned_changes_requested": [
+  {
+   "file": "flake.nix",
+   "change": "Fix the report devShell pandoc/quarto mismatch. Measured: nixpkgs rev 2c423e03 pairs quarto-1.10.18 with pandoc-cli-3.7.0.2 (QUARTO_PANDOC default in the wrapper), and pandoc rejects Quarto's `syntax-highlighting` option. Choose one and verify with ONE further operator-approved attempt: (A) if the locked or bumped nixpkgs provides pandoc >= 3.8, replace `report = pkgs.mkShell { packages = core ++ [ pkgs.R pkgs.quarto ]; };` with `report = pkgs.mkShell { packages = core ++ [ pkgs.R pkgs.quarto ]; QUARTO_PANDOC = \"${pkgs.pandoc}/bin/pandoc\"; };` (only valid when `nix eval .#devShells.aarch64-darwin.report.QUARTO_PANDOC` points at pandoc >= 3.8; only 3.7.0.2 is in the local store today); or (B) bump nixpkgs to a rev whose quarto wrapper ships a matching pandoc (flake.lock change); or (C) pin quarto to a release compatible with pandoc 3.7 via overrideAttrs. knitr/rmarkdown are NOT needed: all 21 knitr chunks ran with pkgs.R.",
+   "why": "The single approved render attempt reached pandoc and failed with `Aeson exception: Error in $: Unknown option \"syntax-highlighting\"` (render_blocked_on_host, report_d6-render-attempt.json). The lane may not edit flake.nix/flake.lock or retry."
+  },
+  {
+   "file": "just/workflow.just",
+   "change": "Insert after the existing `report run_dir:` recipe:\n# Metadata-only, hash-bound bundle for the optional Quarto report; never copies media.\nreport-bundle run_dir:\n    python3 scripts/report_bundle.py build --run-dir {{quote(run_dir)}}\n\nreport-bundle-verify bundle_dir:\n    python3 scripts/report_bundle.py verify --bundle-dir {{quote(bundle_dir)}} --check-origin\n\n# Optional Quarto view of a verified bundle (needs `nix develop .#report`).\nreport-quarto bundle_dir:\n    quarto render reports/demo.qmd -P run_dir={{quote(bundle_dir)}}\n",
+   "why": "Operator entrypoint for the new bundle builder/verifier and the optional Quarto render."
+  },
+  {
+   "file": "program/tools.json",
+   "change": "Append the tool object from docs/agent-notes/sprints/20261006-s2/report_d6-tool-descriptor.json (name report_bundle) to `tools`, if root admits the bundle as a primitive.",
+   "why": "AGENTS.md requires every processing primitive to have a typed MCP hook and skill."
+  },
+  {
+   "file": "scripts/tool_api.py",
+   "change": "Route tool `report_bundle` to `[python3, scripts/report_bundle.py, build, --run-dir, run_dir] (+ --analysis-run-dir / --annotation-store when given)` with the descriptor's timeout_seconds as a hard deadline; parse the single JSON stdout line; exit 2 = refused (reason code), exit 1 = error class only.",
+   "why": "Typed MCP hook for the descriptor; lane may not edit tool_api.py."
+  },
+  {
+   "file": ".agents/skills/guitar-report-bundle/SKILL.md",
+   "change": "Create with exactly:\n---\nname: guitar-report-bundle\ndescription: Build and verify a metadata-only, hash-bound evidence bundle for one run so the optional R/Quarto report (and agents) read only verified values, with receipt figures, synthetic banks, operator labels and unknowns kept distinct.\n---\n\n# Package a run's bound evidence for the optional Quarto report without copying media.\n\n**Hook:** MCP tool `report_bundle` (once admitted by root). Fallback: `just report-bundle \"<run-dir>\"`, then `just report-bundle-verify \"<bundle-dir>\"`.\n\n**Capability:** Experimental. The plain `report.html` from `scripts/report.py` remains the primary report; the Quarto view is optional and separately verified.\n\n## Use and controls\n\nGive an existing run directory. The builder stream-hashes the manifest-listed stage WAVs (names and sha256 only), binds `analysis.json` through `scripts/report.py` lineage rules (run-local, explicit `--analysis-run-dir`, or the capture-profile parent run), accepts dag/flags/markers only when `report.auxiliary_evidence` binds them and the dag names the bound analysis hash, copies the fixed S2 receipt registry with computed binding classes, and projects only structured fields of a bound annotation store. Output is a fresh directory under `artifacts/s2/report_d6/bundles/`; run directories are never written. Refusals are stable codes (`stage_hash_mismatch`, `receipt_missing`, `media_member_refused`, `input_changed_during_build`, ...). Rebuild instead of editing a bundle. Run `verify --check-origin` before relying on one; render with `quarto render reports/demo.qmd -P run_dir=<bundle>` inside `nix develop .#report`.\n\nRead [the bundle contract](../../../docs/spec/sprints/REPORT_S2.md).\n\n## Guitar-specific interpretation\n\nReceipt figures are quoted, not re-measured; show their binding class (`run_bound`, `source_bound_different_analyzed_input`, `metadata_bound`, `synthetic_bank_not_take`, `unbound_context_only`). Generated-bank results are never operator-labelled coverage or real-take accuracy. Operator coverage of this take is small (one INTENT noise annotation over 0-5 s, no phrase or note labels); absence of labels is not evidence of correctness. Keep listening acceptance, note correctness, meter, tonic, mode and 32.7 Hz fundamental presence as unknowns. Detector review flags stay separate from user-reported annotations.\n\n## Agent iteration\n\nChange one input at a time and rebuild into a fresh directory; compare bundles by `bundle_sha256` and member hashes. Never adopt a detector, profile or master default from a bundle. Record the bundle sha256 and verify status in receipts.\n",
+   "why": "Repository skill for the new tool; .agents/skills is outside the lane's owned paths."
+  }
+ ]
+}
