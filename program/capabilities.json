@@ -1,0 +1,1111 @@
+{
+  "schema_version": 1,
+  "capability_contract_version": 1,
+  "registry": "program/tools.json",
+  "status": "pilot",
+  "au_realtime_available": false,
+  "not_a_job_service": true,
+  "agent_may_change_defaults": false,
+  "pilot_tools": [
+    "denoise",
+    "clicks",
+    "capture_profile",
+    "apply_capture_profile",
+    "annotation_v2",
+    "corpus_split",
+    "editor_marker_plan",
+    "share_export"
+  ],
+  "capabilities": [
+    {
+      "tool": "denoise",
+      "domain": "restoration",
+      "stage": "render_candidate",
+      "implementation_status": "available",
+      "evidence_kind": "rendered_unreviewed",
+      "worker": {
+        "script": "scripts/media.py",
+        "entry": "clean",
+        "via": null
+      },
+      "skill": ".agents/skills/guitar-denoise/SKILL.md",
+      "tests": [
+        "tests/test_media.py"
+      ],
+      "parameters": {
+        "input": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "profile": {
+          "unit": "enum_token",
+          "clock": null,
+          "default_owner": "operator",
+          "default_policy": "schema_default"
+        },
+        "timeout_seconds": {
+          "unit": "s",
+          "clock": null,
+          "default_owner": "root",
+          "default_policy": "schema_default"
+        }
+      },
+      "effects": {
+        "reads": [
+          "original_source"
+        ],
+        "writes": [
+          "run_audio",
+          "run_json_evidence"
+        ],
+        "renders_audio": true,
+        "renders_video": false,
+        "overwrites_input": false,
+        "network": false,
+        "model_acquisition": false,
+        "output_root_policy": "artifacts_runs_child"
+      },
+      "resources": {
+        "resource_class": "media_render_ffmpeg",
+        "heavy_numeric": true,
+        "timeout_seconds": {
+          "min": 1,
+          "max": 900,
+          "default": 600,
+          "status": "enforced"
+        },
+        "source_bytes": {
+          "max": null,
+          "status": "unknown"
+        },
+        "memory_bytes": {
+          "max": null,
+          "status": "not_qualified"
+        }
+      },
+      "provenance_emitted": [
+        "original_source_sha256",
+        "settings",
+        "output_sha256",
+        "capture_interval"
+      ],
+      "dependencies": {
+        "advisory_prior_tools": [
+          "probe",
+          "noise"
+        ],
+        "enforced": false,
+        "required_artifacts": [
+          "local_recording"
+        ],
+        "external_runtime": [
+          "python_stdlib",
+          "ffmpeg",
+          "ffprobe"
+        ]
+      },
+      "adapters": {
+        "local_cli": "available",
+        "mcp_stdio": "available",
+        "web_job": "planned",
+        "au_render_parameter": "unsupported"
+      },
+      "unknowns": {
+        "memory_bytes": null,
+        "memory_bytes_reason": "No measured peak-RSS bound; not qualified in this pilot.",
+        "cpu_threads": null,
+        "cpu_threads_reason": "Thread use is not declared or measured per tool in this pilot.",
+        "output_bytes": null,
+        "output_bytes_reason": "Output size depends on source duration/settings and is not bounded by this metadata.",
+        "musical_acceptance": null,
+        "musical_acceptance_reason": "not_established",
+        "listening_acceptance": null,
+        "listening_acceptance_reason": "not_established",
+        "web_admission": null,
+        "web_admission_reason": "not_qualified",
+        "au_realtime": null,
+        "au_realtime_reason": "unsupported"
+      }
+    },
+    {
+      "tool": "clicks",
+      "domain": "analysis",
+      "stage": "event_analysis",
+      "implementation_status": "experimental",
+      "evidence_kind": "inferred_and_optional_rendered_unreviewed",
+      "worker": {
+        "script": "scripts/clicks.py",
+        "entry": null,
+        "via": null
+      },
+      "skill": ".agents/skills/guitar-clicks/SKILL.md",
+      "tests": [
+        "tests/test_clicks.py"
+      ],
+      "parameters": {
+        "input": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "run_dir": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "bpm": {
+          "unit": "bpm",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "omitted_means_worker_default"
+        },
+        "template_start": {
+          "unit": "s",
+          "clock": "input_audio_relative",
+          "default_owner": "none",
+          "default_policy": "omitted_means_none"
+        },
+        "template_end": {
+          "unit": "s",
+          "clock": "input_audio_relative",
+          "default_owner": "none",
+          "default_policy": "omitted_means_none"
+        },
+        "attenuate": {
+          "unit": "boolean",
+          "clock": null,
+          "default_owner": "operator",
+          "default_policy": "schema_default"
+        },
+        "template_click_only": {
+          "unit": "boolean",
+          "clock": null,
+          "default_owner": "operator",
+          "default_policy": "schema_default"
+        },
+        "strength": {
+          "unit": "fraction_0_1",
+          "clock": null,
+          "default_owner": "operator",
+          "default_policy": "schema_default"
+        },
+        "timeout_seconds": {
+          "unit": "s",
+          "clock": null,
+          "default_owner": "root",
+          "default_policy": "schema_default"
+        }
+      },
+      "effects": {
+        "reads": [
+          "original_source"
+        ],
+        "writes": [
+          "run_json_evidence",
+          "run_audio"
+        ],
+        "renders_audio": true,
+        "renders_video": false,
+        "overwrites_input": false,
+        "network": false,
+        "model_acquisition": false,
+        "output_root_policy": "run_dir"
+      },
+      "resources": {
+        "resource_class": "analysis_cpu",
+        "heavy_numeric": true,
+        "timeout_seconds": {
+          "min": 1,
+          "max": 900,
+          "default": 600,
+          "status": "enforced"
+        },
+        "source_bytes": {
+          "max": null,
+          "status": "unknown"
+        },
+        "memory_bytes": {
+          "max": null,
+          "status": "not_qualified"
+        }
+      },
+      "provenance_emitted": [
+        "analyzed_input_sha256",
+        "settings",
+        "output_sha256",
+        "native_clock"
+      ],
+      "dependencies": {
+        "advisory_prior_tools": [
+          "probe",
+          "denoise"
+        ],
+        "enforced": false,
+        "required_artifacts": [
+          "local_recording_or_denoised_audio"
+        ],
+        "external_runtime": [
+          "analysis_python",
+          "ffmpeg"
+        ]
+      },
+      "adapters": {
+        "local_cli": "available",
+        "mcp_stdio": "available",
+        "web_job": "planned",
+        "au_render_parameter": "unsupported"
+      },
+      "unknowns": {
+        "memory_bytes": null,
+        "memory_bytes_reason": "No measured peak-RSS bound; not qualified in this pilot.",
+        "cpu_threads": null,
+        "cpu_threads_reason": "Thread use is not declared or measured per tool in this pilot.",
+        "output_bytes": null,
+        "output_bytes_reason": "Output size depends on source duration/settings and is not bounded by this metadata.",
+        "musical_acceptance": null,
+        "musical_acceptance_reason": "not_established",
+        "listening_acceptance": null,
+        "listening_acceptance_reason": "not_established",
+        "web_admission": null,
+        "web_admission_reason": "not_qualified",
+        "au_realtime": null,
+        "au_realtime_reason": "unsupported"
+      }
+    },
+    {
+      "tool": "capture_profile",
+      "domain": "restoration",
+      "stage": "profile_authoring",
+      "implementation_status": "experimental",
+      "evidence_kind": "source_bound_profile_authoring",
+      "worker": {
+        "script": "scripts/capture_profile.py",
+        "entry": null,
+        "via": null
+      },
+      "skill": ".agents/skills/guitar-capture-profile/SKILL.md",
+      "tests": [
+        "tests/test_capture_profile.py",
+        "tests/test_capture_profile_audit.py"
+      ],
+      "parameters": {
+        "input": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "run_dir": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "review": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "capture_start_seconds": {
+          "unit": "s",
+          "clock": "decoded_source_audio_samples",
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "capture_end_seconds": {
+          "unit": "s",
+          "clock": "decoded_source_audio_samples",
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "reduction_db": {
+          "unit": "dB",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "noise_floor_db": {
+          "unit": "dB",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "adaptivity": {
+          "unit": "fraction_0_1",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "gain_smooth": {
+          "unit": "count",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "integrated_lufs": {
+          "unit": "LUFS",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "true_peak_dbtp": {
+          "unit": "dBTP",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "timeout_seconds": {
+          "unit": "s",
+          "clock": null,
+          "default_owner": "root",
+          "default_policy": "schema_default"
+        },
+        "peaking_eq": {
+          "unit": "json_array",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "omitted_means_off",
+          "fields": {
+            "frequency_hz": {
+              "unit": "Hz",
+              "clock": null
+            },
+            "gain_db": {
+              "unit": "dB",
+              "clock": null
+            },
+            "q": {
+              "unit": "Q",
+              "clock": null
+            }
+          }
+        },
+        "compressor": {
+          "unit": "json_object",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "omitted_means_off",
+          "fields": {
+            "threshold_db": {
+              "unit": "dB",
+              "clock": null
+            },
+            "ratio": {
+              "unit": "ratio",
+              "clock": null
+            },
+            "attack_ms": {
+              "unit": "ms",
+              "clock": null
+            },
+            "release_ms": {
+              "unit": "ms",
+              "clock": null
+            },
+            "knee_db": {
+              "unit": "dB",
+              "clock": null
+            }
+          }
+        }
+      },
+      "effects": {
+        "reads": [
+          "original_source",
+          "run_manifest",
+          "run_pcm",
+          "capture_review"
+        ],
+        "writes": [
+          "capture_profile_metadata",
+          "run_json_evidence"
+        ],
+        "renders_audio": false,
+        "renders_video": false,
+        "overwrites_input": false,
+        "network": false,
+        "model_acquisition": false,
+        "output_root_policy": "run_dir"
+      },
+      "resources": {
+        "resource_class": "analysis_cpu",
+        "heavy_numeric": false,
+        "timeout_seconds": {
+          "min": 1,
+          "max": 60,
+          "default": 60,
+          "status": "enforced"
+        },
+        "source_bytes": {
+          "max": 3221225472,
+          "status": "enforced"
+        },
+        "memory_bytes": {
+          "max": null,
+          "status": "not_qualified"
+        }
+      },
+      "provenance_emitted": [
+        "original_source_sha256",
+        "run_manifest_sha256",
+        "settings",
+        "output_sha256",
+        "capture_interval",
+        "profile_receipt_sha256"
+      ],
+      "dependencies": {
+        "advisory_prior_tools": [
+          "probe",
+          "noise",
+          "denoise"
+        ],
+        "enforced": false,
+        "required_artifacts": [
+          "verified_native_source_run",
+          "reviewed_capture_sidecar"
+        ],
+        "external_runtime": [
+          "python_stdlib"
+        ]
+      },
+      "adapters": {
+        "local_cli": "available",
+        "mcp_stdio": "available",
+        "web_job": "planned",
+        "au_render_parameter": "unsupported"
+      },
+      "unknowns": {
+        "memory_bytes": null,
+        "memory_bytes_reason": "No measured peak-RSS bound; not qualified in this pilot.",
+        "cpu_threads": null,
+        "cpu_threads_reason": "Thread use is not declared or measured per tool in this pilot.",
+        "output_bytes": null,
+        "output_bytes_reason": "Output size depends on source duration/settings and is not bounded by this metadata.",
+        "musical_acceptance": null,
+        "musical_acceptance_reason": "not_established",
+        "listening_acceptance": null,
+        "listening_acceptance_reason": "not_established",
+        "web_admission": null,
+        "web_admission_reason": "not_qualified",
+        "au_realtime": null,
+        "au_realtime_reason": "unsupported"
+      }
+    },
+    {
+      "tool": "apply_capture_profile",
+      "domain": "restoration",
+      "stage": "profile_application",
+      "implementation_status": "experimental",
+      "evidence_kind": "source_bound_capture_profile_application",
+      "worker": {
+        "script": "scripts/apply_capture_profile.py",
+        "entry": null,
+        "via": "scripts/capture_application_adapter.py"
+      },
+      "skill": ".agents/skills/guitar-apply-capture-profile/SKILL.md",
+      "tests": [
+        "tests/test_apply_capture_profile.py",
+        "tests/test_capture_application_adapter.py",
+        "tests/test_capture_application_tool.py"
+      ],
+      "parameters": {
+        "input": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "authoring_dir": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "receipt_sha256": {
+          "unit": "sha256_hex",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "timeout_seconds": {
+          "unit": "s",
+          "clock": null,
+          "default_owner": "root",
+          "default_policy": "schema_default"
+        }
+      },
+      "effects": {
+        "reads": [
+          "original_source",
+          "run_manifest",
+          "run_pcm",
+          "profile_receipt"
+        ],
+        "writes": [
+          "applied_run",
+          "run_audio",
+          "run_json_evidence",
+          "delivery_media"
+        ],
+        "renders_audio": true,
+        "renders_video": true,
+        "overwrites_input": false,
+        "network": false,
+        "model_acquisition": false,
+        "output_root_policy": "artifacts_runs_child"
+      },
+      "resources": {
+        "resource_class": "media_render_ffmpeg",
+        "heavy_numeric": true,
+        "timeout_seconds": {
+          "min": 12,
+          "max": 600,
+          "default": 600,
+          "status": "enforced"
+        },
+        "source_bytes": {
+          "max": 3221225472,
+          "status": "enforced"
+        },
+        "memory_bytes": {
+          "max": null,
+          "status": "not_qualified"
+        }
+      },
+      "provenance_emitted": [
+        "original_source_sha256",
+        "run_manifest_sha256",
+        "settings",
+        "output_sha256",
+        "capture_interval",
+        "profile_receipt_sha256",
+        "producer_script"
+      ],
+      "dependencies": {
+        "advisory_prior_tools": [
+          "capture_profile"
+        ],
+        "enforced": true,
+        "required_artifacts": [
+          "capture_profile_authoring_dir",
+          "profile_receipt"
+        ],
+        "external_runtime": [
+          "python_stdlib",
+          "ffmpeg",
+          "ffprobe"
+        ]
+      },
+      "adapters": {
+        "local_cli": "available",
+        "mcp_stdio": "available",
+        "web_job": "planned",
+        "au_render_parameter": "unsupported"
+      },
+      "unknowns": {
+        "memory_bytes": null,
+        "memory_bytes_reason": "No measured peak-RSS bound; not qualified in this pilot.",
+        "cpu_threads": null,
+        "cpu_threads_reason": "Thread use is not declared or measured per tool in this pilot.",
+        "output_bytes": null,
+        "output_bytes_reason": "Output size depends on source duration/settings and is not bounded by this metadata.",
+        "musical_acceptance": null,
+        "musical_acceptance_reason": "not_established",
+        "listening_acceptance": null,
+        "listening_acceptance_reason": "not_established",
+        "web_admission": null,
+        "web_admission_reason": "not_qualified",
+        "au_realtime": null,
+        "au_realtime_reason": "unsupported"
+      }
+    },
+    {
+      "tool": "annotation_v2",
+      "domain": "review",
+      "stage": "annotation_store",
+      "implementation_status": "experimental",
+      "evidence_kind": "structured_supplied_annotation",
+      "worker": {
+        "script": "scripts/annotation_v2.py",
+        "entry": null,
+        "via": null
+      },
+      "skill": ".agents/skills/guitar-annotation-v2/SKILL.md",
+      "tests": [
+        "tests/test_annotation_v2.py"
+      ],
+      "parameters": {
+        "run_dir": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "operation": {
+          "unit": "enum_token",
+          "clock": null,
+          "default_owner": "root",
+          "default_policy": "schema_default"
+        },
+        "input": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "omitted_means_none"
+        },
+        "timeout_seconds": {
+          "unit": "s",
+          "clock": null,
+          "default_owner": "root",
+          "default_policy": "schema_default"
+        }
+      },
+      "effects": {
+        "reads": [
+          "run_manifest",
+          "run_json_evidence",
+          "annotation_request"
+        ],
+        "writes": [
+          "annotation_store"
+        ],
+        "renders_audio": false,
+        "renders_video": false,
+        "overwrites_input": false,
+        "network": false,
+        "model_acquisition": false,
+        "output_root_policy": "run_dir"
+      },
+      "resources": {
+        "resource_class": "metadata_light",
+        "heavy_numeric": false,
+        "timeout_seconds": {
+          "min": 1,
+          "max": 900,
+          "default": 60,
+          "status": "enforced"
+        },
+        "source_bytes": {
+          "max": 20000,
+          "status": "enforced"
+        },
+        "memory_bytes": {
+          "max": null,
+          "status": "not_qualified"
+        }
+      },
+      "provenance_emitted": [
+        "original_source_sha256",
+        "run_manifest_sha256",
+        "annotation_revision",
+        "idempotency_key",
+        "native_clock"
+      ],
+      "dependencies": {
+        "advisory_prior_tools": [
+          "review",
+          "pipeline"
+        ],
+        "enforced": false,
+        "required_artifacts": [
+          "current_run_manifest"
+        ],
+        "external_runtime": [
+          "python_stdlib"
+        ]
+      },
+      "adapters": {
+        "local_cli": "available",
+        "mcp_stdio": "available",
+        "web_job": "planned",
+        "au_render_parameter": "unsupported"
+      },
+      "unknowns": {
+        "memory_bytes": null,
+        "memory_bytes_reason": "No measured peak-RSS bound; not qualified in this pilot.",
+        "cpu_threads": null,
+        "cpu_threads_reason": "Thread use is not declared or measured per tool in this pilot.",
+        "output_bytes": null,
+        "output_bytes_reason": "Output size depends on source duration/settings and is not bounded by this metadata.",
+        "musical_acceptance": null,
+        "musical_acceptance_reason": "not_established",
+        "listening_acceptance": null,
+        "listening_acceptance_reason": "not_established",
+        "web_admission": null,
+        "web_admission_reason": "not_qualified",
+        "au_realtime": null,
+        "au_realtime_reason": "unsupported"
+      }
+    },
+    {
+      "tool": "corpus_split",
+      "domain": "corpus",
+      "stage": "split_validation",
+      "implementation_status": "experimental",
+      "evidence_kind": "supplied_family_split_metadata_consistency",
+      "worker": {
+        "script": "scripts/corpus_split_s1.py",
+        "entry": null,
+        "via": null
+      },
+      "skill": ".agents/skills/guitar-corpus-split/SKILL.md",
+      "tests": [
+        "tests/test_corpus_split_s1.py"
+      ],
+      "parameters": {
+        "manifest": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "local_root": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "omitted_means_worker_default"
+        },
+        "timeout_seconds": {
+          "unit": "s",
+          "clock": null,
+          "default_owner": "root",
+          "default_policy": "schema_default"
+        }
+      },
+      "effects": {
+        "reads": [
+          "corpus_metadata"
+        ],
+        "writes": [],
+        "renders_audio": false,
+        "renders_video": false,
+        "overwrites_input": false,
+        "network": false,
+        "model_acquisition": false,
+        "output_root_policy": "none"
+      },
+      "resources": {
+        "resource_class": "metadata_light",
+        "heavy_numeric": false,
+        "timeout_seconds": {
+          "min": 1,
+          "max": 900,
+          "default": 600,
+          "status": "enforced"
+        },
+        "source_bytes": {
+          "max": null,
+          "status": "unknown"
+        },
+        "memory_bytes": {
+          "max": null,
+          "status": "not_qualified"
+        }
+      },
+      "provenance_emitted": [
+        "original_source_sha256",
+        "annotation_revision",
+        "split_assignment"
+      ],
+      "dependencies": {
+        "advisory_prior_tools": [
+          "corpus",
+          "annotation_v2"
+        ],
+        "enforced": false,
+        "required_artifacts": [
+          "authored_corpus_manifest",
+          "annotation_store"
+        ],
+        "external_runtime": [
+          "python_stdlib"
+        ]
+      },
+      "adapters": {
+        "local_cli": "available",
+        "mcp_stdio": "available",
+        "web_job": "planned",
+        "au_render_parameter": "unsupported"
+      },
+      "unknowns": {
+        "memory_bytes": null,
+        "memory_bytes_reason": "No measured peak-RSS bound; not qualified in this pilot.",
+        "cpu_threads": null,
+        "cpu_threads_reason": "Thread use is not declared or measured per tool in this pilot.",
+        "output_bytes": null,
+        "output_bytes_reason": "Output size depends on source duration/settings and is not bounded by this metadata.",
+        "musical_acceptance": null,
+        "musical_acceptance_reason": "not_established",
+        "listening_acceptance": null,
+        "listening_acceptance_reason": "not_established",
+        "web_admission": null,
+        "web_admission_reason": "not_qualified",
+        "au_realtime": null,
+        "au_realtime_reason": "unsupported"
+      }
+    },
+    {
+      "tool": "editor_marker_plan",
+      "domain": "review",
+      "stage": "editor_plan",
+      "implementation_status": "experimental",
+      "evidence_kind": "metadata_only_source_time_editor_dry_run",
+      "worker": {
+        "script": "scripts/editor_marker_plan.py",
+        "entry": null,
+        "via": null
+      },
+      "skill": ".agents/skills/editor-marker-plan/SKILL.md",
+      "tests": [
+        "tests/test_editor_marker_plan.py",
+        "tests/test_editor_marker_timing_audit.py"
+      ],
+      "parameters": {
+        "run_dir": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "selection": {
+          "unit": "run_relative_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "profile": {
+          "unit": "run_relative_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "timeout_seconds": {
+          "unit": "s",
+          "clock": null,
+          "default_owner": "root",
+          "default_policy": "schema_default"
+        }
+      },
+      "effects": {
+        "reads": [
+          "run_manifest",
+          "run_json_evidence"
+        ],
+        "writes": [],
+        "renders_audio": false,
+        "renders_video": false,
+        "overwrites_input": false,
+        "network": false,
+        "model_acquisition": false,
+        "output_root_policy": "none"
+      },
+      "resources": {
+        "resource_class": "metadata_light",
+        "heavy_numeric": false,
+        "timeout_seconds": {
+          "min": 1,
+          "max": 120,
+          "default": 120,
+          "status": "enforced"
+        },
+        "source_bytes": {
+          "max": 20000000,
+          "status": "enforced"
+        },
+        "memory_bytes": {
+          "max": null,
+          "status": "not_qualified"
+        }
+      },
+      "provenance_emitted": [
+        "original_source_sha256",
+        "selection_sha256",
+        "editor_profile_sha256",
+        "native_clock"
+      ],
+      "dependencies": {
+        "advisory_prior_tools": [
+          "pipeline",
+          "markers",
+          "marked_video"
+        ],
+        "enforced": false,
+        "required_artifacts": [
+          "manifest.json",
+          "flags.json",
+          "markers.json",
+          "selection_json",
+          "editor_profile_json"
+        ],
+        "external_runtime": [
+          "python_stdlib"
+        ]
+      },
+      "adapters": {
+        "local_cli": "available",
+        "mcp_stdio": "available",
+        "web_job": "planned",
+        "au_render_parameter": "unsupported"
+      },
+      "unknowns": {
+        "memory_bytes": null,
+        "memory_bytes_reason": "No measured peak-RSS bound; not qualified in this pilot.",
+        "cpu_threads": null,
+        "cpu_threads_reason": "Thread use is not declared or measured per tool in this pilot.",
+        "output_bytes": null,
+        "output_bytes_reason": "Output size depends on source duration/settings and is not bounded by this metadata.",
+        "musical_acceptance": null,
+        "musical_acceptance_reason": "not_established",
+        "listening_acceptance": null,
+        "listening_acceptance_reason": "not_established",
+        "web_admission": null,
+        "web_admission_reason": "not_qualified",
+        "au_realtime": null,
+        "au_realtime_reason": "unsupported"
+      }
+    },
+    {
+      "tool": "share_export",
+      "domain": "delivery",
+      "stage": "share_derivative",
+      "implementation_status": "experimental",
+      "evidence_kind": "lossy_sharing_derivative",
+      "worker": {
+        "script": "scripts/share_export.py",
+        "entry": null,
+        "via": null
+      },
+      "skill": ".agents/skills/media-share-export/SKILL.md",
+      "tests": [
+        "tests/test_share_export.py",
+        "tests/test_share_export_tool.py",
+        "tests/test_share_export_audit.py"
+      ],
+      "parameters": {
+        "source": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "output": {
+          "unit": "local_path",
+          "clock": null,
+          "default_owner": "none",
+          "default_policy": "explicit_required"
+        },
+        "height": {
+          "unit": "px",
+          "clock": null,
+          "default_owner": "root",
+          "default_policy": "schema_default"
+        },
+        "crf": {
+          "unit": "crf",
+          "clock": null,
+          "default_owner": "root",
+          "default_policy": "schema_default"
+        },
+        "audio_kbps": {
+          "unit": "kbps",
+          "clock": null,
+          "default_owner": "root",
+          "default_policy": "schema_default"
+        },
+        "codec": {
+          "unit": "enum_token",
+          "clock": null,
+          "default_owner": "root",
+          "default_policy": "schema_default"
+        },
+        "timeout_seconds": {
+          "unit": "s",
+          "clock": null,
+          "default_owner": "root",
+          "default_policy": "schema_default"
+        }
+      },
+      "effects": {
+        "reads": [
+          "delivery_media"
+        ],
+        "writes": [
+          "delivery_media",
+          "delivery_receipt"
+        ],
+        "renders_audio": true,
+        "renders_video": true,
+        "overwrites_input": false,
+        "network": false,
+        "model_acquisition": false,
+        "output_root_policy": "explicit_fresh_file"
+      },
+      "resources": {
+        "resource_class": "media_render_ffmpeg",
+        "heavy_numeric": true,
+        "timeout_seconds": {
+          "min": 30,
+          "max": 900,
+          "default": 900,
+          "status": "enforced"
+        },
+        "source_bytes": {
+          "max": 3221225472,
+          "status": "enforced"
+        },
+        "memory_bytes": {
+          "max": null,
+          "status": "not_qualified"
+        }
+      },
+      "provenance_emitted": [
+        "original_source_sha256",
+        "settings",
+        "output_sha256",
+        "delivery_receipt",
+        "native_clock"
+      ],
+      "dependencies": {
+        "advisory_prior_tools": [
+          "export"
+        ],
+        "enforced": false,
+        "required_artifacts": [
+          "existing_delivery_video"
+        ],
+        "external_runtime": [
+          "python_stdlib",
+          "ffmpeg",
+          "ffprobe"
+        ]
+      },
+      "adapters": {
+        "local_cli": "available",
+        "mcp_stdio": "available",
+        "web_job": "planned",
+        "au_render_parameter": "unsupported"
+      },
+      "unknowns": {
+        "memory_bytes": null,
+        "memory_bytes_reason": "No measured peak-RSS bound; not qualified in this pilot.",
+        "cpu_threads": null,
+        "cpu_threads_reason": "Thread use is not declared or measured per tool in this pilot.",
+        "output_bytes": null,
+        "output_bytes_reason": "Output size depends on source duration/settings and is not bounded by this metadata.",
+        "musical_acceptance": null,
+        "musical_acceptance_reason": "not_established",
+        "listening_acceptance": null,
+        "listening_acceptance_reason": "not_established",
+        "web_admission": null,
+        "web_admission_reason": "not_qualified",
+        "au_realtime": null,
+        "au_realtime_reason": "unsupported"
+      }
+    }
+  ]
+}
