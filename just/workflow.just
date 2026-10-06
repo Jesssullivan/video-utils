@@ -287,6 +287,10 @@ web-jobs-serve port="0" state_root="artifacts/web-jobs":
 web-jobs-status state_root="artifacts/web-jobs":
     python3 scripts/web_jobs.py --state-root {{quote(state_root)}} status
 
+# S2 web reliability demo + failure injections (in-process loopback; foreground; no daemon)
+web-reliability-test:
+    PYTHONPATH=tests python3 -m unittest test_web_reliability -v
+
 # Local web fixture (prototype): frozen-lockfile install. Loopback only; no hosted deployment.
 web-install:
     cd web && pnpm install --frozen-lockfile

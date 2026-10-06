@@ -1159,7 +1159,10 @@ class WebJobs:
             'video_proof': {key: video.get(key) for key in (
                 'method', 'packet_count', 'maximum_pts_delta_seconds', 'tail_extent_delta_seconds',
                 'tolerance_seconds', 'source_start_seconds', 'source_end_seconds',
-                'source_full_frame_decode_verified', 'physical_capture_sync_verified') if key in video} or None,
+                'source_full_frame_decode_verified', 'physical_capture_sync_verified',
+                'comparison_scope', 'source_packet_count_total', 'output_packet_count_total',
+                'source_presented_packet_count', 'output_presented_packet_count',
+                'source_decode_only_packets', 'output_decode_only_packets') if key in video} or None,
             'audio_proof': {key: audio.get(key) for key in (
                 'method', 'sample_rate', 'channels', 'priming_padding_allowance_seconds',
                 'exact_pcm_sample_identity', 'audio_reencoded') if key in audio} or None,

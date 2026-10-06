@@ -412,3 +412,19 @@ class CapabilityTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class WebJobAdmissionTests(__import__('unittest').TestCase):
+    def test_share_export_web_job_admitted_with_existing_evidence(self):
+        import json, importlib.util
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[1]
+        spec = importlib.util.spec_from_file_location('caps_adm', root / 'scripts/capabilities.py')
+        caps = importlib.util.module_from_spec(spec); spec.loader.exec_module(caps)
+        self.assertEqual(set(caps.WEB_JOB_ADMISSIONS), {'share_export'})
+        self.assertTrue((root / caps.WEB_JOB_ADMISSIONS['share_export']).is_file())
+        data = json.loads((root / 'program/capabilities.json').read_text())
+        entries = data['tools'] if isinstance(data, dict) and 'tools' in data else data.get('capabilities', data)
+        states = {e['tool']: e['adapters']['web_job'] for e in entries}
+        self.assertEqual(states['share_export'], 'admitted')
+        self.assertTrue(all(v in ('planned', 'unsupported') for k, v in states.items() if k != 'share_export'))

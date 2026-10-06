@@ -23,6 +23,11 @@ if str(SCRIPTS) not in sys.path:
 from tool_api import strict_json, validate_schema  # noqa: E402  (read-only library import)
 
 ROOT = SCRIPTS.parent
+
+# Root-admitted web_job adapters (S2 root decision, 2026-10-06): tool -> evidence receipt.
+WEB_JOB_ADMISSIONS = {
+    'share_export': 'docs/agent-notes/sprints/20261006-s2/web_reliability-real-web-job.json',
+}
 CAPABILITIES = ROOT / 'program' / 'capabilities.json'
 REGISTRY = ROOT / 'program' / 'tools.json'
 MAX_CAPABILITY_BYTES = 1024 * 1024
@@ -468,7 +473,13 @@ def _validate_adapters(tool, adapters):
     _closed(adapters, ('local_cli', 'mcp_stdio', 'web_job', 'au_render_parameter'), where)
     _const(adapters['local_cli'], 'available', f'{where}.local_cli')
     _const(adapters['mcp_stdio'], 'available', f'{where}.mcp_stdio')
-    _enum(adapters['web_job'], ('planned', 'unsupported'), f'{where}.web_job')
+    _enum(adapters['web_job'], ('planned', 'unsupported', 'admitted'), f'{where}.web_job')
+    if adapters['web_job'] == 'admitted':
+        evidence = WEB_JOB_ADMISSIONS.get(tool)
+        if evidence is None:
+            _fail('bad_enum', f'{where}.web_job admitted without a root admission record')
+        if not (ROOT / evidence).is_file():
+            _fail('missing_evidence', f'{where}.web_job admission evidence missing: {evidence}')
     _const(adapters['au_render_parameter'], 'unsupported', f'{where}.au_render_parameter')
 
 
