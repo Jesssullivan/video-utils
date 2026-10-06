@@ -1,0 +1,189 @@
+{
+ "schema_version": 1,
+ "lane": "root_admission_e",
+ "sprint": "20261006-s2",
+ "linear": "TIN-5599",
+ "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43); R-N13 receipt",
+ "date": "2026-10-06",
+ "worktree": ".local/sprint2/root_admission_e",
+ "branch": "sprint/20261006-s2/root_admission_e",
+ "base": "ebaf72d",
+ "commits_before_receipt": [
+  "4a350f6808bce9241efe3d00f971eef647d6d73f Add demo-resume and report-bundle recipes and document demo crash recovery",
+  "1fa2d2c385b8ecee4fce8963ee555aa17011b17e Admit report_bundle as typed MCP tool 40 with skill and tests",
+  "38156c8863d59571ba16e5480170c5e2eb561db3 Keep synthetic refusal path free of host-style prefixes",
+  "55ce0317531f663af9cffe550c600bd68a130abc Give report_bundle a dedicated bounded runner and keep run_worker source-pinned"
+ ],
+ "tasks": {
+  "1_robustness_root_requests": {
+   "just_recipe": "demo-resume invocation_id appended verbatim to just/workflow.just (robustness-handoff.json root_owned_changes_requested[0])",
+   "skill_section": "'Crash recovery of a demo invocation (`run_demo.py --resume`)' inserted verbatim before '## Agent iteration' in .agents/skills/guitar-pipeline/SKILL.md (asserted equal to root_owned_changes_requested[1] text before writing)",
+   "run_demo_mcp_admission": "not admitted (as instructed); root_owned_changes_requested[2] is conditional and not applied"
+  },
+  "2_report_bundle_admission": {
+   "descriptor": "docs/agent-notes/sprints/20261006-s2/report_d6-tool-descriptor.json appended verbatim as tools[39]; asserted equal in test_s2_tool_admission",
+   "tool_api": "S2_EXACT_PATH_FIELDS['report_bundle'] = ('run_dir', 'analysis_run_dir', 'annotation_store') (traversal/NUL/URL/backslash refused as ValidationError before any worker); worker_command argv = [python, scripts/report_bundle.py, build, --run-dir, <run_dir>] + optional --analysis-run-dir (existing non-symlink dir with regular manifest.json) + optional --annotation-store (existing bounded regular non-symlink .json, <= 64 MiB); no --output-dir passthrough",
+   "runner": "dedicated run_report_bundle_worker: hard deadline = timeout_seconds (schema default 600, max 900) on an owned new-session process group (SIGKILL group, R-N11 receipt); exit 2 -> ToolError 'worker refused (2): report_bundle <reason>' with receipt {status: refused, reason, published: false}; exit 1 -> 'worker failed (1): report_bundle error <ExceptionClass>'; reason/class must be [A-Za-z0-9_]{1,64}; stdout/stderr tails are never relayed (stderr discarded)",
+   "runner_rationale": "tests/test_share_export_tool.py pins the sha256 of the generic run_worker source (acd72926...); the first wiring modified run_worker and failed that pin, so run_worker was restored byte-identical and report_bundle got its own runner",
+   "outputs": "classify_report_bundle_result requires status built, lowercase-hex bundle_sha256, an absolute bundle_dir that is a direct, non-symlink child directory of ROOT/artifacts/s2/report_d6/bundles, and no symlink or media-suffix file inside; otherwise ToolError",
+   "skill": ".agents/skills/guitar-report-bundle/SKILL.md created byte-exact from report_d6-handoff.json root_owned_changes_requested[4].change after the 'Create with exactly:\\n' prefix, as recorded at lane commit 5c9115e; the merged handoff (56532e6) rewrote that entry into a self-reference without the text, so the 5c9115e text is the only exact source",
+   "just_recipes": "report-bundle run_dir and report-bundle-verify bundle_dir inserted after `report run_dir:` in just/workflow.just, verbatim from report_d6-handoff root_owned_changes_requested[1]"
+  },
+  "3_tests": {
+   "count_pins_39_to_40": [
+    "tests/test_s2_tool_admission.py (3 sites)",
+    "tests/test_s1_tool_admission.py",
+    "tests/test_tool_contracts.py",
+    "tests/test_share_export_tool.py"
+   ],
+   "freeze": "tools[:39] added as fourth freeze in test_s2_tool_admission (same two serializers); tools[:32]/[:36]/[:38] freezes unchanged",
+   "new_tests": [
+    "test_admission_e_report_bundle_descriptor_equals_lane_draft_and_skill_exists",
+    "test_admission_e_report_bundle_invalid_arguments_refuse_before_worker",
+    "test_admission_e_report_bundle_fixed_argv_and_path_refusals",
+    "test_admission_e_report_bundle_deadline_and_result_confinement",
+    "test_admission_e_report_bundle_failure_codes_never_relay_tails",
+    "test_admission_e_report_bundle_runner_deadline_and_stdout_codes",
+    "test_admission_e_report_bundle_real_worker_refusal_writes_nothing"
+   ],
+   "mcp_readback": "test_real_mcp_lists_tools_and_reads_back_each_new_skill_prompt covers guitar-report-bundle; tools/list and prompts/list both 40"
+  },
+  "4_docs": "README.md and docs/spec/PROJECT.md: thirty-nine -> forty per-tool skills (40 typed tools)"
+ },
+ "tool_count": 40,
+ "skill_dir_count": 40,
+ "tool_names_tail": [
+  "phrase_timing",
+  "tone_ab",
+  "report_bundle"
+ ],
+ "freeze_hashes": {
+  "tools[:39]": {
+   "ensure_ascii_false": "eada780f79f40516db8583bd13c0f9a8b9bf7386f1f94a3ff1147a165165436f",
+   "ensure_ascii_true": "aa60371ab37c791ed3b27cd9d940948a555bdbb5a5a9b4560c4ac48b75737259",
+   "matches_root_admission_d_receipt": true
+  },
+  "tools[:40]": {
+   "ensure_ascii_false": "b77d5243ed0ee3b797a5c2869a012120a29e6377b343666751dfe27863ed89b4",
+   "ensure_ascii_true": "38dfb867168d41cec9536bab2b44956c3110a26ba4124eceeee13ea8eec86245",
+   "frozen_in_tests": false
+  }
+ },
+ "report_bundle_skill_sha256": "33045f113109c0d4cdaa73908ee49871677eb4b3c7c47df1fbb112c78c919ea9",
+ "verification": {
+  "command": "FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe PYTHONPATH=tests python3 -m unittest test_tools test_mcp test_tool_contracts test_sprint1_audit test_s1_tool_admission test_s2_tool_admission test_share_export_tool test_report_bundle test_report test_demo -v",
+  "first_run": {
+   "ran_line_verbatim": "Ran 217 tests in 65.532s",
+   "result_line_verbatim": "FAILED (failures=1, errors=5, skipped=3)",
+   "failure": "test_share_export_tool.ShareExportToolTests.test_prior29_descriptors_and_generic_runner_preserved (run_worker source pin) -> fixed by dedicated runner"
+  },
+  "final_run": {
+   "head": "55ce0317531f663af9cffe550c600bd68a130abc",
+   "ran_line_verbatim": "Ran 218 tests in 48.478s",
+   "result_line_verbatim": "FAILED (errors=5, skipped=3)",
+   "passed": 210
+  },
+  "known_errors": {
+   "count": 5,
+   "cause": "worktree path contains '.local'; calibration path validation refuses dot-prefixed components, so the evaluator MCP call returns an error without 'result' (KeyError: 'result'); same five as root_admission_d",
+   "tests": [
+    "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_mcp_preserves_octave_failure_and_inputs",
+    "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_stale_raw_retains_structural_receipt",
+    "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_unsupported_claim_keeps_metrics_and_fails",
+    "test_tool_contracts.ToolContractTests.test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate",
+    "test_tool_contracts.ToolContractTests.test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure"
+   ]
+  },
+  "skipped": [
+   "test_pitch_real_c1_mcp_summary_and_sparse_coverage (librosa env)",
+   "test_real_basic_pitch_mcp_qualified_two_second_comparison_and_stale_input (Basic Pitch runtime)",
+   "setUpClass (qualified numerical environment)"
+  ],
+  "just_list": "`just --list` exit 0; 77 recipes; demo-resume, report-bundle, report-bundle-verify listed",
+  "just_tool_info": "`just tool-info report_bundle` exit 0; stdout sha256 abb91372b6563ac0215f972b07c31ccd4ff46027247d083fca7b334226083528 (equals report_d6-tool-descriptor.json file sha256)",
+  "secret_scan": "git archive HEAD | tar -x into a fresh mktemp dir; /opt/homebrew/bin/gitleaks dir --redact --no-banner <dir> -> 'no leaks found', exit 0 (runs at 1fa2d2c-era head and at 55ce031); export removed",
+  "host_paths": "no '/Users/' string in any file changed since ebaf72d (grep)"
+ },
+ "deferred": [
+  {
+   "id": "flake.nix report devShell quarto/pandoc",
+   "reason": "Not applied (needs a separate operator-approved render attempt). Measured cause from report_d6-render-attempt.json: at nixpkgs rev 2c423e03 quarto-1.10.18's wrapper defaults QUARTO_PANDOC to pandoc-cli-3.7.0.2, which fails with `Aeson exception: Error in $: Unknown option \"syntax-highlighting\"`; single attempt exit 1 after 1172.14 s, html_sha256 null. Options A/B/C stay in report_d6-handoff.json."
+  },
+  {
+   "id": "report-quarto recipe",
+   "reason": "Not added: requested set was report-bundle and report-bundle-verify; the Quarto render recipe is non-functional until the flake.nix fix above is approved and verified."
+  },
+  {
+   "id": "guitar-report-bundle skill wording",
+   "reason": "Exact handoff text keeps 'MCP tool `report_bundle` (once admitted by root)'; the tool is now admitted. Promoting the wording changes the pinned skill sha256 and is a root/lane text decision."
+  },
+  {
+   "id": "report_d6-handoff.json entry [4]",
+   "reason": "Merged handoff is self-referential (points at its own entry for text it no longer contains); historical receipt not rewritten; exact text sourced from lane commit 5c9115e."
+  },
+  {
+   "id": "run_demo MCP admission",
+   "reason": "Not admitted as instructed; resume schema/enum request remains conditional in robustness-handoff.json."
+  },
+  {
+   "id": "report_bundle successful end-to-end via MCP",
+   "reason": "Worker hard-codes its output under the repository artifacts/; tests exercise the real worker only on a pre-output refusal and verify success confinement with synthetic results, to avoid writing repository artifacts."
+  },
+  {
+   "id": "signing",
+   "reason": "Commits use --no-gpg-sign per root instruction; signing/push/merge remain with root."
+  }
+ ],
+ "protected": {
+  "artifacts/runs": "not read or written",
+  "Desktop/Documents": "untouched",
+  "main checkout/other worktrees/Linear/~/.codex": "untouched",
+  "pushed_or_merged": false
+ },
+ "files": [
+  {
+   "path": ".agents/skills/guitar-pipeline/SKILL.md",
+   "sha256": "05876920735cb2b4d93c45ecd18b1a4300c64560a5bde59f7eedefbe23de25e8"
+  },
+  {
+   "path": ".agents/skills/guitar-report-bundle/SKILL.md",
+   "sha256": "33045f113109c0d4cdaa73908ee49871677eb4b3c7c47df1fbb112c78c919ea9"
+  },
+  {
+   "path": "README.md",
+   "sha256": "9e0723059e13c426be88adfa002b83ff622878c5c6944bd09759b69125eac183"
+  },
+  {
+   "path": "docs/spec/PROJECT.md",
+   "sha256": "85dc91428783361cba905c40da33ffd5f94b8942afe340a36d752a749592cc96"
+  },
+  {
+   "path": "just/workflow.just",
+   "sha256": "dcbd78f6592bc3703059056ec138250318a3cf27dba84a26162ceddd859f988d"
+  },
+  {
+   "path": "program/tools.json",
+   "sha256": "79ea4ab3e2f2e9c343a287c9106c1d936ca510eba789fda0c859bbdcab1cf772"
+  },
+  {
+   "path": "scripts/tool_api.py",
+   "sha256": "78821c67d9b230a96e2716c21c1c251ebfa1df8260515511fe75ce6dcbbf3c19"
+  },
+  {
+   "path": "tests/test_s1_tool_admission.py",
+   "sha256": "1224d9668a67c28ee21daeecac756a22a1a5bbe86c544756084f8fe964c5d8ce"
+  },
+  {
+   "path": "tests/test_s2_tool_admission.py",
+   "sha256": "11fff53d6e596b3d5598cfff01682ce622e186b9436a45b668c3768ad592e0c2"
+  },
+  {
+   "path": "tests/test_share_export_tool.py",
+   "sha256": "b3cbb723276a98c0762c3ce7336223f20c2c9d3a5ba158e5632a1323918b6c30"
+  },
+  {
+   "path": "tests/test_tool_contracts.py",
+   "sha256": "80e62597dec9d474dfa4218bcab53d2a6047703560c239983da96524afaf2519"
+  }
+ ]
+}
