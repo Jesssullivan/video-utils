@@ -1,7 +1,7 @@
 {
   "lane": "fuller_profile",
   "branch": "sprint/20261006-s2/fuller_profile",
-  "head": "94440e725d9e99af051e1dd488bf95166b1dfa6b",
+  "head": "412a793bdcbca12858762ac8f118a6d1a04f2743",
   "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
   "worktree": "/Users/jess/git/video-utils/.local/sprint2/fuller_profile",
   "state": "implemented_tested_audited",
@@ -64,7 +64,7 @@
     "failed": 0,
     "errors": 0,
     "skipped": 3,
-    "seconds": 317.4
+    "seconds": 118.9
   },
   "metrics": [
     {
@@ -173,34 +173,44 @@
     "capture_noise_only_verified",
     "capture_music_status",
     "capture_click_status",
-    "composite_listening_review",
-    "tone_suitability_other_takes"
+    "physical_audio_video_sync_verified",
+    "note_correctness_assessed",
+    "performance_issue_confirmed",
+    "fundamental_32hz_restoration_claimed",
+    "tone_suitability_other_takes",
+    "master_adopted",
+    "default_profile_changed_by_lane"
   ],
   "root_owned_changes_requested": [
     {
       "file": "scripts/media.py",
-      "change": "RQ-M1: Add typed capture refusals and per-take --capture-interval binding (see fuller_profile-root-requests.json for full unified diff)",
-      "why": "Enables typed per-take capture binding for the fuller template"
+      "change": "RQ-M1: Apply full unified_diff from fuller_profile-root-requests.json. Adds MediaError(code); allows noise_capture_required; adds check_capture_request, bind_capture with typed reasons (capture_interval_required, capture_review_required, capture_interval_invalid, capture_interval_conflict, capture_source_mismatch, capture_interval_outside_source); adds --capture-interval START END and --capture-review TEXT to clean and demo.",
+      "why": "Enables typed capture refusals for fuller profile; required for FullerTypedRefusalTests to pass"
     },
     {
       "file": "scripts/run_demo.py",
-      "change": "RQ-J1a: Add --capture-interval and --capture-review arguments, pass through to media.py clean",
-      "why": "Passthrough for per-take capture interval to demo command"
+      "change": "RQ-J1a: Apply unified_diff from fuller_profile-root-requests.json. Adds --capture-interval and --capture-review passthrough to media.py clean.",
+      "why": "Per-take interval passthrough for demo command"
     },
     {
       "file": "just/workflow.just",
-      "change": "RQ-J1b: Update clean/demo recipes and add marked-compact recipe",
-      "why": "Adds marked-compact CLI recipe and capture interval passthrough"
+      "change": "RQ-J1b: Apply unified_diff from fuller_profile-root-requests.json. Adds marked-compact recipe and updates clean/demo recipes for capture interval passthrough.",
+      "why": "Operator entrypoint for marked_compact and per-take capture interval"
     },
     {
       "file": "program/tools.json + scripts/tool_api.py + .agents/skills/guitar-marked-compact/SKILL.md",
-      "change": "RQ-T1: Add marked_compact tool descriptor and MCP passthrough",
-      "why": "Repository contract requires typed MCP hook and skill for each primitive"
+      "change": "RQ-T1: Append marked_compact tool descriptor to tools.json (index 36, total 37 tools); apply unified_diff to tool_api.py; write SKILL.md; update test pins in test_s2_tool_admission.py and test_tool_contracts.py.",
+      "why": "Repository contract requires typed MCP hook and skill for each processing primitive"
     },
     {
       "file": "program/tools.json + scripts/tool_api.py",
-      "change": "RQ-M1b: Extend denoise inputSchema with capture_interval and capture_review (optional, breaks test_sprint1_audit pin)",
+      "change": "RQ-M1b (optional): Apply unified_diff to add fuller and capture_interval/capture_review to denoise descriptor inputSchema. Breaks test_sprint1_audit and test_s2_tool_admission pin; root must re-pin if applied.",
       "why": "MCP passthrough for per-take interval; optional root decision"
+    },
+    {
+      "file": "scripts/media.py, scripts/tool_api.py",
+      "change": "RQ-M2 (optional): Flip default profile from conservative3 to fuller in media.py clean/demo and tool_api denoise. Apply after RQ-M1 and together with RQ-M1b.",
+      "why": "Makes fuller the default while conservative3 remains available; makes plain clean/demo refuse with capture_interval_required"
     }
   ],
   "receipts_written": [],
@@ -213,13 +223,15 @@
     "model": "opus",
     "refuted": false,
     "findings": [
-      "(1) Ownership holds. Command: git diff --name-only $(merge-base main HEAD = 4b87484)...HEAD. It lists exactly 10 files: profiles/fuller.json, scripts/marked_compact.py, tests/test_fuller_profile.py, tests/test_marked_compact.py, docs/spec/sprints/FULLER_S2.md and five docs/agent-notes/sprints/20261006-s2/fuller_profile-*.json files (phase1-freeze, A1, A2, phase2-completion, root-requests). No root-owned or foreign file appears. The worktree is clean (git status shows nothing), and HEAD is 94440e7.",
-      "(2) No protected writes found. I re-hashed all 21 entries in fuller_profile-phase1-freeze.json protected_before_sha256: 0 changed, 0 missing. They cover 13 files in accepted run 20261006T041633Z-990aa1bd6737, the compact parent, the marker file, the accepted compact and /Users/jess/Desktop/video_util_mvp_demo_1.mp4. The accepted run directory mtimes (00:21 local) and main artifacts/runs (02:31 local) predate the lane's work (around 11:52Z). Main's scripts/media.py sha256 is 91443154..., which equals the RQ-M1 base_sha256, so it is unmodified. The A1 and A2 outputs live only under the lane's gitignored artifacts/s2/fuller_profile/ (.gitignore:3 /artifacts/). I found no model downloads and no daemons; every subprocess goes through apply_capture_profile.run_owned with a Deadline of at most 600 s.",
-      "(4) Test counts reproduced. Command: FFMPEG/FFPROBE set to the nix 8.1.2 binaries, then PYTHONPATH=tests python3 -m unittest test_fuller_profile test_marked_compact -v, run with PYTHONDONTWRITEBYTECODE=1 and TMPDIR in the scratchpad. Result: \"Ran 30 tests in 214.051s\", \"OK (skipped=3)\", exit 0. The 3 skips are all FullerTypedRefusalTests, skipped as 'requires root RQ-M1': test_cli_binding_renders_the_same_capture_graph_as_materialized_profile, test_eight_cli_refusals_carry_typed_reason_and_leave_no_run and test_invalid_and_conflicting_intervals_refuse_before_decode. test_actual_accepted_manifest_is_identical_when_present ran rather than skipped; it only reads the run and checks the manifest hash before and after.",
-      "(4) The RQ-M1 claim reproduced. I applied the RQ-M1 unified_diff from fuller_profile-root-requests.json to a git-archive copy of lane HEAD in the scratchpad (patch --dry-run was clean). test_fuller_profile then gave 'Ran 13 tests' OK with 0 skips, including the 8/8 typed CLI refusals.",
-      "(4) The tests are substantive, not vacuous. Each test below backs a lane claim.",
-      "(3)/(5) Claim hygiene and doctrine pass.",
-      "Merge condition, not a blocker: the definition of done is only partly met before root acts. The DoD asks that clean and demo refuse with a typed reason when the interval is absent or outside the source. In the lane tree, the current media.py rejects fuller.json with an untyped 'profile contains unsupported fields', and its CLI error JSON has no 'reason' key. Typed refusals exist only once root applies RQ-M1, so the fuller profile is unusable (it fails closed) until then.",
+      "(1) Scope: the literal check `git diff --name-only $(git merge-base main HEAD)...HEAD` comes back empty. That is because HEAD 412a793 is already an ancestor of main: it was merged as 34629dc 'Admin merge independently verified S2 FULLER profile...'. Against the lane's stated base 4b87484, the diff touches exactly 11 files, all lane-owned: profiles/fuller.json, scripts/marked_compact.py, tests/test_fuller_profile.py, tests/test_marked_compact.py, docs/spec/sprints/FULLER_S2.md and 6 files at docs/agent-notes/sprints/20261006-s2/fuller_profile-*.json. No root-owned or foreign file is edited. The lane files on main are byte-identical to the lane tree: fuller.json 33da74c7, marked_compact.py 30ceb424, test_fuller_profile.py dceb2664, test_marked_compact.py ed5799fd, FULLER_S2.md 6872de7e.",
+      "(2) Protection, measured: I recomputed SHA-256 for all 21 files in fuller_profile-phase1-freeze.json protected_before_sha256 and got 21/21 unchanged. That covers the accepted run 20261006T041633Z-990aa1bd6737 (including export/), the compact parent, the accepted compact and /Users/jess/Desktop/video_util_mvp_demo_1.mp4. A grep of marked_compact.py and both test files finds no network or download, no daemon or Popen, no Desktop or Documents path, and no tools.json, tool_api or workflow.just reference. The tests use TemporaryDirectory and patch ROOT. My test rerun left `git status --porcelain` empty. The lane's A1/A2 outputs sit in the gitignored lane path .local/sprint2/fuller_profile/artifacts/s2/fuller_profile/, not in artifacts/runs of the main checkout.",
+      "(4) Tests, measured: Reran `FFMPEG=... FFPROBE=... PYTHONPATH=tests python3 -B -m unittest test_fuller_profile test_marked_compact -v` in the worktree. Result: 'Ran 30 tests in 67.974s', 'OK (skipped=3)', i.e. 27 passed, 0 failed, 0 errors. The counts match the claim; wall time was 68 s. All 3 skips are FullerTypedRefusalTests, with reason 'requires root RQ-M1'.",
+      "(4) The handoff JSON (fuller_profile-handoff.json) recorded head 94440e7 and tests.seconds 317.4, but the lane summary says HEAD 412a793 and 118.9 s. This is expected, because the handoff was committed in 412a793, but the receipt does not match the summary.",
+      "(6) Arithmetic, reproduced: (a) capture template: 218295-180810=37485 training samples; guard ceil(44100/10)=4410; trim start 37485+4410+1102=42997; trim end 42997+6657385=6700382; sn stop 37485/44100=0.85. Capture times 180810/44100=4.10 s and 218295/44100=4.95 s. All match ACCEPTED['C'] (marked_compact.py:75-79). (b) Compressor: 10^(-18/20)=0.125892541179 and 10^(3/20)=1.41253754462 match P (line 81). (c) Synthetic C1: I re-rendered the fixture through media.clean in a tempdir and got denoised.wav C1=0.21899, the claimed value. The bound is 0.9*0.22=0.198. source.wav also reads 0.21899, so the test shows no attenuation of the synthetic 32.7 Hz component. It is a synthetic measurement only and is correctly labelled that way.",
+      "(6) A1 and A2, reproduced: I re-hashed the 6 A1 WAVs (source, denoised, baseline, cleaned, residue, processed) against the accepted run: 6/6 SAME. The A2 marked-compact.mov hash is 4538573a..., identical to the protected accepted compact. Its receipt shows 3621/3621 video packets and 6503/6503 AAC packets, and the output packet tables have 3621 and 6503 rows.",
+      "(3) Claim classes: the A1/A2/handoff receipts carry explicit unknown and false fields: capture_noise_only_verified false, capture_music_status and capture_click_status unknown, physical_audio_video_sync_verified false, note_correctness_assessed false, performance_issue_confirmed false, fundamental_32hz_restoration_claimed false, tone_suitability_other_takes unknown, master_adopted false and default_profile_changed_by_lane false. The accepted label appears only on A1/A2, where the chain and audio bytes are identical. The other-binding fixture records not_performed (test_fuller_profile.py, test_bound_template...). There is no missed-note or correctness verdict.",
+      "(3)/(5) Default and doctrine: conservative3 stays the default. I confirmed media.py:826 and :831 and tool_api.py:646 at the lane base, and they are unchanged on main (826 and 831 identical). fuller.json has no highpass, notch, lowshelf or 2.2 kHz stage, sets preserve_low_fundamental_hz 32 and uses positive-gain peaking EQ only. Controls compared directly against the accepted applied-profile.json: every non-binding control is equal by value and type. The only differences are name and the binding fields: noise_capture_* removed, noise_capture_required added. Timeouts are bounded: marked_compact enforces 1-600 s with a SIGALRM deadline, and subprocess timeouts are clamped to the remaining deadline.",
+      "Root dependency: the DoD's typed refusal for a missing or out-of-source interval works only after root applies RQ-M1. Main's scripts/media.py is still 91443154 with no bind_capture. On the current tree, `media.py clean INPUT profiles/fuller.json` fails closed with an untyped 'profile contains unsupported fields' error, so the fuller profile cannot be used yet. The RQ-J1b `marked-compact` just recipe is also not on main. The lane correctly left both to root.",
       "RQ-M1 design widening for root to decide. check_capture_request and bind_capture accept --capture-interval for ANY profile with denoise:true, for example conservative3 or mild6, not only templates that set noise_capture_required. The CLI binding surface is therefore broader than the fuller template.",
       "Consequences root should weigh. RQ-C1: any edit to media.py changes validator_sha256, so existing capture receipts can no longer be re-applied through apply_capture_profile. RQ-M2: once the default is flipped, a plain 'clean INPUT' or 'demo INPUT' with no interval refuses with capture_interval_required. RQ-M1b: it breaks the test_sprint1_audit tools.json pin c13b2f89... (the new hash is 4ef00efb...)."
     ],
