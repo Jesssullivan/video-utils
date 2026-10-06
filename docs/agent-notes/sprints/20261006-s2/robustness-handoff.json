@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "lane": "robustness",
+  "sprint": "20261006-s2",
+  "linear": "TIN-5609",
+  "parent": "TIN-5599",
+  "phase": "4_handoff",
+  "created_at": "2026-10-06",
+  "authority": "R-HOOK-CONVERGENCE-20261004; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43 (R-N11/R-N12/R-N13)",
+  "branch": "sprint/20261006-s2/robustness",
+  "commits": {
+    "contract_freeze": "79b56ba015e77d4bb52273b4f1ae5819bf0df302",
+    "resume_implementation": "a4720f6",
+    "fixtures_and_receipts": "f539285",
+    "handoff": "this commit (see git log)"
+  },
+  "files_changed": [
+    "scripts/run_demo.py",
+    "tests/test_demo.py",
+    "tests/support/phone_fixtures.py",
+    "tests/test_phone_fixtures.py",
+    "docs/agent-notes/sprints/20261006-s2/robustness-implementation.json",
+    "docs/agent-notes/sprints/20261006-s2/robustness-fixture-run.json",
+    "docs/agent-notes/sprints/20261006-s2/robustness-handoff.json"
+  ],
+  "validation": {
+    "test_demo": "29 tests OK (17 existing + 12 new)",
+    "test_phone_fixtures": "11 tests OK in 1327.2 s, qualified ffmpeg-headless 8.1.2",
+    "full_suite": "not run by lane (root runs it)",
+    "command": "PYTHONPATH=tests python3 -m unittest test_demo test_phone_fixtures -v"
+  },
+  "metrics_ref": "robustness-fixture-run.json metrics",
+  "metrics_summary": {
+    "resume_scenarios": "9/9",
+    "typed_refusals_write_nothing": "14/14",
+    "killed_worker_recovery": "2/2",
+    "fixture_properties": "4/4",
+    "pipeline_runs_P1_P8": "7/7 (each check 7/7)",
+    "timeout_constants": "10/10",
+    "memory_ceiling": "unknown_not_measured",
+    "lane_new_tests": 23,
+    "expected_failures": 0
+  },
+  "unknowns": {
+    "memory_ceiling_bytes": null,
+    "real_take_equivalence": "not_established",
+    "device_capture_equivalence": "unknown",
+    "real_take_audio_tail_reconciled": false,
+    "physical_audio_video_sync_verified": false,
+    "listening_accepted": false
+  },
+  "not_done_by_lane": [
+    "no default profile/detector/master adoption",
+    "no tool/MCP/skill/recipe admission (requested below)",
+    "no non-owned worker modified",
+    "real take never opened",
+    "no Linear writes"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "just/workflow.just",
+      "change": "append recipe (exact text):\n# Crash-recover one recorded demo invocation in place (same run_dir and ID); replays recorded settings.\n# Typed refusals (exit 1) write nothing; see docs/spec/sprints/ROBUSTNESS_S2.md section 3.6.\ndemo-resume invocation_id:\n    python3 scripts/run_demo.py --resume {{quote(invocation_id)}}\n",
+      "why": "Operator entrypoint for run_demo --resume (ROBUSTNESS_S2 section 9); lane cannot edit root-owned recipes."
+    },
+    {
+      "file": ".agents/skills/guitar-pipeline/SKILL.md",
+      "change": "insert before '## Agent iteration' (exact text):\n## Crash recovery of a demo invocation (`run_demo.py --resume`)\n\n`python3 scripts/run_demo.py --resume INVOCATION_ID [--no-latest]` (fallback `just demo-resume ID`) continues one recorded invocation inside the same run directory under the same ID. It replays the receipt's `resume_arguments` and accepts no other settings. A stage is skipped only when its status is success-terminal, every recorded artifact hash matches, its worker file hash is unchanged and every dependency was also skipped; everything downstream of a rerun stage reruns. Outputs of rerun stages are moved, never deleted, into `demo-invocations/<id>/resume-<n>/displaced/` with their hashes. Any hash drift is a typed refusal that writes nothing: `invalid_invocation_id`, `receipt_not_found`, `receipt_invalid`, `receipt_lacks_resume_arguments`, `invocation_already_terminal`, `orchestrator_may_be_alive`, `prior_worker_group_alive`, `resume_lock_held`, `source_hash_drift`, `media_hash_drift`, `stage_artifact_hash_drift`, `worker_hash_drift`, `snapshot_hash_drift`, `media_outcome_unrecorded_run_dir_exists`. Liveness checks use signal 0 only and never signal another process. Resume is crash recovery, not re-analysis, a settings change or a default-adoption path. The memory ceiling remains unknown.\n",
+      "why": "Document --resume, its skip/dependency rule and the 14 typed refusal codes for agents (ROBUSTNESS_S2 section 9)."
+    },
+    {
+      "file": "program/tools.json; scripts/tool_api.py; scripts/mcp_server.py",
+      "change": "No change required unless root admits run_demo as a typed MCP tool. If admitted: add input property resume.invocation_id {type: string, pattern: '^[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12}$'}, mutually exclusive with input/existing_run and all setting knobs, plus a closed error enum of the 14 section-3.6 reason codes.",
+      "why": "Keeps the typed MCP surface consistent if run_demo is ever admitted; the lane does not admit tools."
+    }
+  ]
+}
