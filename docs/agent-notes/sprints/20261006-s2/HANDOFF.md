@@ -18,3 +18,9 @@ Local full suite on merged group B: 1164 run, 3 failures, all load/sandbox: 2 pr
 
 ## Resume
 Read each lane's `docs/agent-notes/sprints/20261006-s2/<lane>-handoff.json` in its worktree, apply the merge gate (diff ⊆ owned files, owned tests, full suite, signed merge, push, CI, Linear with curl -g and variable-built payloads, since bash 3.2 brace-expands `$(...)` function arguments). Keep all six `.local/sprint1/*` worktrees.
+
+## Update: WEB/AU workflow wf_557130be-b30 completed after the pause
+web_jobs, web_stack and au_auval returned handoffs (15/15 agents done, 0 errors); not yet merged. Read
+`.local/sprint2/<lane>/docs/agent-notes/sprints/20261006-s2/<lane>-handoff.json`. web_jobs: 26 run / 24 pass / 2 opt-in skips,
+opus audit refuted=false. Its live demo found that `share_export` refuses accepted run 20261006T041633Z-990aa1bd6737 with
+"video packet count changed"; open a share_export follow-up before promoting the web_job adapter.
