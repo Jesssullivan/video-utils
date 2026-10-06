@@ -3,13 +3,13 @@ name: editor-marker-export
 description: Export source-timed guitar review markers as a local, non-executed FCPXML 1.10 bundle or DaVinci Resolve operations preview only when the editor grid is verified uniform against the complete source PTS table; abstain with calibration_required for VFR or unknown cadence.
 ---
 
-# Export editor review markers (draft, S2 lane editor_export)
+# Export editor review markers
 
-**Hook (proposed, pending root admission):** MCP tool `editor_marker_export`, prompt `editor-marker-export`. The worker is `scripts/editor_marker_export.py`. It runs the existing planner (`editor_marker_plan`) unchanged and then applies a uniform-grid gate. Only a fully verified plan becomes `review.fcpxmld/Info.fcpxml` or `resolve-operations.json`, written with `editor-marker-export.sidecar.json`. Nothing launches, connects to, writes to or imports into Final Cut Pro or DaVinci Resolve. `application_import` is always `not_performed`, `executable` is `false`, `api_contract` is `unverified`, `final_cut_version` and `resolve_version` are null, and `host_frame_id` is null on every row and operation.
+**Hook (admitted, experimental):** MCP tool `editor_marker_export`, prompt `editor-marker-export`. The worker is `scripts/editor_marker_export.py`. It runs the existing planner (`editor_marker_plan`) unchanged and then applies a uniform-grid gate. Only a fully verified plan becomes `review.fcpxmld/Info.fcpxml` or `resolve-operations.json`, written with `editor-marker-export.sidecar.json`. Nothing launches, connects to, writes to or imports into Final Cut Pro or DaVinci Resolve. `application_import` is always `not_performed`, `executable` is `false`, `api_contract` is `unverified`, `final_cut_version` and `resolve_version` are null, and `host_frame_id` is null on every row and operation.
 
 ## Inputs and controls
 
-The required inputs are `run_dir` (1–4,096 characters, beneath `artifacts/runs/`), `selection` and `profile` (exact run-relative JSON, 1–1,024 characters each) and `format` (`fcpxml` or `resolve_ops`). The optional `timeout_seconds` is an integer from 1 to 120 and defaults to 120. The MCP hook passes no output path, DTD, argv or inline profile. The dispatcher chooses a fresh `<run_dir>/editor-export-<format>-<export_profile_sha256[:12]>`, and an existing path rejects.
+The required inputs are `run_dir` (1–4,096 characters, beneath `artifacts/runs/`), `selection` and `profile` (exact run-relative JSON, 1–1,024 characters each) and `format` (`fcpxml` or `resolve_ops`). The optional `timeout_seconds` is an integer from 1 to 120 and defaults to 120. The MCP hook passes no output path, DTD, argv or inline profile, so `dtd_validation` is always `not_performed` through MCP. The dispatcher validates `run_dir`, `selection` and `profile` exactly as `editor_marker_plan` does, then chooses a fresh `<run_dir>/editor-export-<format>-<export_profile_sha256[:12]>`, where the digest is the SHA-256 of the export profile file bytes. An existing path rejects before the worker starts. Operators can run `just editor-marker-export RUN SELECTION PROFILE FORMAT OUTPUT_DIR`.
 
 The direct CLI is `python3 scripts/editor_marker_export.py RUN SELECTION EXPORT_PROFILE --format {fcpxml,resolve_ops} --output-dir DIR [--dtd PATH] [--summary]`.
 

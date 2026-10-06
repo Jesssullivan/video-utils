@@ -1,0 +1,223 @@
+{
+  "schema": "video-utils.sprint-receipt",
+  "schema_version": 1,
+  "sprint": "20261006-s2",
+  "lane": "root_admission_b",
+  "date": "2026-10-06",
+  "branch": "sprint/20261006-s2/root_admission_b",
+  "base_commit": "e0da4ca",
+  "tracker": {
+    "parent": "TIN-5599",
+    "linear_written": false
+  },
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43); R-N11 no foreign targets signalled; R-N12 hooks advisory; R-N13 receipt",
+  "scope": "Root admission of four lane-requested typed MCP hooks with skills, dispatcher wiring, just recipes, au-spike clippy fix and PROJECT.md D1 deviation sentence.",
+  "admitted_tools": {
+    "editor_marker_export": {
+      "descriptor": "verbatim from docs/agent-notes/sprints/20261006-s2/editor_export-tool-descriptor.json",
+      "skill": ".agents/skills/editor-marker-export/SKILL.md (lane draft; header changed from proposed to admitted, dispatcher path/DTD sentence added)",
+      "dispatch": "validate_evidence_selector on selection/profile plus editor_marker_plan distinct-role and run_dir checks; editor_marker_inputs (beneath artifacts/runs, no symlink components, bounded regular JSON); fixed argv RUN SELECTION PROFILE --format F --output-dir <run_dir>/editor-export-<format>-<sha256(export profile bytes)[:12]> --summary; existing output rejects before launch; no --dtd so dtd_validation is not_performed via MCP",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "output_path_decision": "Chose <run_dir>/editor-export-<format>-<export_profile_sha256[:12]> (descriptor, skill and docs/spec/EDITOR_MARKER_EXPORT.md agree) over the earlier draft <run_dir>/editor-export/<format>-<plan_sha12>/ noted in editor_export-handoff unknowns."
+    },
+    "annotation_markers": {
+      "skill": ".agents/skills/guitar-annotation-markers/SKILL.md",
+      "dispatch": "run_dir exact components, no symlink ancestors, regular manifest.json + review-annotations-v2.json; store_sha256 64 lowercase hex; output_dir fresh beneath repository artifacts/ with existing parent and outside run_dir; fixed argv RUN --store-sha256 H --output-dir D [--include-text only when include_text is true]",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    "flags_triage": {
+      "skill": ".agents/skills/guitar-flags-triage/SKILL.md",
+      "dispatch": "run_dir exact components, no symlink ancestors, regular flags.json; output fresh .json beneath repository artifacts/, existing parent, outside run_dir; fixed argv RUN --output PATH",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    "corpus_eval_s2": {
+      "skill": ".agents/skills/guitar-corpus-eval/SKILL.md",
+      "dispatch": "manifest/local_root via existing corpus_split_paths; proposals exact regular file <=20MB with no symlink ancestors; proposals_sha256 64 lowercase hex; output fresh .json beneath repository artifacts/, not equal to or beside proposals; fixed argv evaluate MANIFEST --root ROOT --proposals P --proposals-sha256 H --output O",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  },
+  "deviations_from_handoff_text": [
+    "annot_corpus handoff specified JSON-schema `pattern ^[a-f0-9]{64}$` for store_sha256/proposals_sha256. tool_api.validate_schema fails closed on unsupported keywords and has no pattern support, so the registry uses minLength=maxLength=64 and the dispatcher enforces lowercase hex in validate_tool_arguments (the existing apply_capture_profile receipt_sha256 pattern).",
+    "Hard timeouts for the three annot_corpus tools are integer 1..900 default 120 as requested; editor_marker_export keeps 1..120 default 120.",
+    "Outputs of the three annot_corpus hooks are confined beneath repository artifacts/ (module constant S2_OUTPUT_ROOT), must be fresh and must have an existing parent so the worker's mkdir(parents=True) cannot create arbitrary trees. Relative run_dir/proposals/output values anchor at the repository root; manifest/local_root keep corpus_split semantics. The direct CLIs and just recipes are unchanged and still accept any path the worker allows.",
+    "readOnlyHint/idempotentHint true for annotation_markers, flags_triage and corpus_eval_s2 as stated in the handoff: inputs and runs are never written; the only write is the fresh explicit output, and a repeat call with the same output refuses instead of overwriting.",
+    "just artifact-id uses {{quote(SELECTOR)}} instead of the unquoted {{SELECTOR}} in the cap_ids handoff text, matching the other recipes; hash/verify-run recipe text is verbatim from rust_core handoff.",
+    "README.md 'thirty-two per-tool skills' also corrected to thirty-six (operator-facing count) alongside PROJECT.md 'thirty' -> 'thirty-six'."
+  ],
+  "registry": {
+    "tool_count_before": 32,
+    "tool_count_after": 36,
+    "append_only": true,
+    "appended_order": [
+      "editor_marker_export",
+      "annotation_markers",
+      "flags_triage",
+      "corpus_eval_s2"
+    ],
+    "serializer_of_file": "json.dumps(registry, indent=2) + newline (unchanged)",
+    "first_32_freeze": {
+      "names_unchanged": true,
+      "sha256_sort_keys_compact_ensure_ascii_false": "932d3e2683c5175fc08f0a8b27169a351b6269ba3db4467811d37bbd698e8863",
+      "sha256_sort_keys_compact_ensure_ascii_true": "358ce0aeba9214076d64fcc69ee9554cdd048d2001304dc897bf7f38b4d313bb",
+      "computed_from": "git show e0da4ca:program/tools.json tools[:32], equal to working tools[:32]"
+    },
+    "first_30_existing_pins": "unchanged and passing (test_s1_tool_admission 85fa376c..., test_sprint1_audit OLD_DESCRIPTOR_SHA256)",
+    "skills_count": 36,
+    "prompts_derived_from_skill_path": true,
+    "mcp_server_changed": false
+  },
+  "count_pins_updated": {
+    "tests/test_tool_contracts.py:1100": "32 -> 36",
+    "tests/test_s1_tool_admission.py:27": "32 -> 36",
+    "tests/test_share_export_tool.py:73": "32 -> 36"
+  },
+  "other_changes": {
+    "native/au-spike/src/lib.rs:50": "(samples as usize) % align_of::<f32>() != 0  ->  !(samples as usize).is_multiple_of(align_of::<f32>()); behaviour unchanged, no allocation",
+    "docs/spec/PROJECT.md": "D1 deviation sentence inserted after 'The Rust CLI exposes ...' sentence (rust_core handoff text verbatim); 'thirty per-tool skills' -> 'thirty-six'",
+    "just/workflow.just": "added editor-marker-export (after editor-marker-plan), annotation-markers, flags-triage, corpus-eval-s2, hash +FILES, verify-run RUN_DIR, capabilities-check, artifact-id SELECTOR"
+  },
+  "verification": {
+    "environment": {
+      "FFMPEG": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+      "FFPROBE": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe",
+      "python": "python3 (system)",
+      "rustc": "1.95.0",
+      "clippy": "0.1.95"
+    },
+    "commands": [
+      {
+        "command": "PYTHONPATH=tests python3 -m unittest test_tools test_mcp test_tool_contracts test_sprint1_audit test_s1_tool_admission test_s2_tool_admission test_share_export_tool test_editor_marker_export test_annotation_markers test_flags_triage test_corpus_eval_s2 -v",
+        "verbatim": [
+          "Ran 191 tests in 382.434s",
+          "FAILED (errors=5, skipped=3)"
+        ],
+        "errors": [
+          "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_mcp_preserves_octave_failure_and_inputs",
+          "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_stale_raw_retains_structural_receipt",
+          "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_unsupported_claim_keeps_metrics_and_fails",
+          "test_tool_contracts.ToolContractTests.test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate",
+          "test_tool_contracts.ToolContractTests.test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure"
+        ],
+        "error_cause": "Environmental and pre-existing, not caused by this change: the worktree path /Users/jess/git/video-utils/.local/sprint2/root_admission_b contains the dot-component '.local', which the unchanged calibration-path check in validate_tool_arguments refuses (-32602 'calibration paths require exact JSON indices and a fresh safe local output path'). Reproduced with the base e0da4ca tool_api.py: it refuses the .local worktree path and accepts the same path under /Users/jess/git/video-utils/artifacts/benchmarks. Expected to pass from the main checkout path.",
+        "skipped": [
+          "test_tool_contracts.test_pitch_real_c1_mcp_summary_and_sparse_coverage (librosa env)",
+          "test_tool_contracts.test_real_basic_pitch_mcp_qualified_two_second_comparison_and_stale_input (Basic Pitch runtime)",
+          "test_sprint1_audit.LowRegisterAccountingAudit setUpClass (numerical env)"
+        ]
+      },
+      {
+        "command": "PYTHONPATH=tests python3 -m unittest test_s2_tool_admission -v",
+        "verbatim": [
+          "Ran 8 tests",
+          "OK"
+        ]
+      },
+      {
+        "command": "PYTHONPATH=tests python3 -m unittest test_capabilities test_s2_tool_admission",
+        "verbatim": [
+          "Ran 22 tests in 26.646s",
+          "OK"
+        ]
+      },
+      {
+        "command": "just --list",
+        "exit": 0
+      },
+      {
+        "command": "just tool-info editor_marker_export | annotation_markers | flags_triage | corpus_eval_s2",
+        "exit": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "command": "just capabilities-check",
+        "exit": 0,
+        "traversal_edges": "32/32"
+      },
+      {
+        "command": "cd native/au-spike && CARGO_BUILD_JOBS=1 cargo clippy --all-targets -j 1 -- -D warnings",
+        "exit": 0,
+        "note": "build output native/au-spike/target removed afterwards"
+      }
+    ],
+    "not_run": [
+      "full test suite (instructed not to)",
+      "just hash / just verify-run execution (recipes parse only)",
+      "MCP clients other than the in-repo stdio exchange harness"
+    ]
+  },
+  "deferred": [
+    {
+      "item": "scripts/marked_video.py basis badge for annotation-marker rows (annot_corpus root_owned_changes_requested)",
+      "owner": "ui/marked lane",
+      "reason": "explicitly out of scope for this admission"
+    },
+    {
+      "item": "Optional .github/workflows/ci.yml cargo step (rust_core handoff)",
+      "reason": "optional; not requested in this task"
+    },
+    {
+      "item": "Optional MCP admission of verify-run/hash (rust_core handoff)",
+      "reason": "optional root decision; not requested"
+    },
+    {
+      "item": "Optional tool_api describe attaching program/capabilities.json entry (cap_ids handoff)",
+      "reason": "not proposed for S2 core"
+    },
+    {
+      "item": "Linear updates and program/linear.json sync for this admission",
+      "reason": "task forbids touching Linear; root to post"
+    },
+    {
+      "item": "Re-run the 5 calibration-evaluator MCP tests from a checkout path without dot components",
+      "reason": "environmental refusal in .local worktree"
+    }
+  ],
+  "unknown_or_not_established": [
+    "editor import, host alignment and DTD conformance",
+    "listening acceptance",
+    "musical correctness or verdicts",
+    "real-take execution of the three annot_corpus hooks through MCP (synthetic fixtures only)"
+  ],
+  "writes_under_artifacts_runs": false,
+  "files": {
+    ".agents/skills/editor-marker-export/SKILL.md": "3113bfb9a32354c3b1f52b7b94268470134e4ec4f32d9be0a7f17593ae771e65",
+    ".agents/skills/guitar-annotation-markers/SKILL.md": "1912ae84d2537a7e22ac2d8d69dc6520ea3bbeb0c8c5dc405690967d4f194dca",
+    ".agents/skills/guitar-corpus-eval/SKILL.md": "d6e6994b03fce0118ea4f4df7266203bddf324ddd4bfdbe67093e3745a2a1a6a",
+    ".agents/skills/guitar-flags-triage/SKILL.md": "9d45c83b03a4cc7daeb74bd949a3f4ccea090d40aac3e7476a6ff68f378295cd",
+    "README.md": "257a219805f077f7fd1641fdcd1104519a34631afde0a1d6e6d78472dabcfad9",
+    "docs/spec/PROJECT.md": "044c3bd76cd8df078fa63dcb229c5f75b970e2cde54c1642c8702a9e087f75d3",
+    "just/workflow.just": "ba27e68dab4ca8e89dd43415958399c30f830a2546a5cf3589d91203ed12631c",
+    "native/au-spike/src/lib.rs": "c0d4a2e4b76db5517bd3d20ae129147ab1e72c5fec6ef5e431b732f5e9f50723",
+    "program/tools.json": "0d9d56fb344869f691d809752e24e13d809c1af0d388a3cde92a50a7c48ad783",
+    "scripts/tool_api.py": "a395a6a17855f7f45faa464a0274080a7aa277c741c8619a6a2593b8ddc6b3d6",
+    "tests/test_s1_tool_admission.py": "170c4e4747ebad81bbf9ed10bb1ce2469fbb71b491a0a6c8bcd97b8cf5fa5dcb",
+    "tests/test_s2_tool_admission.py": "9ae8f3b94f7fcf84adb03c510f6ddb51ec9051b2056764f0d8eace10e3990133",
+    "tests/test_share_export_tool.py": "c05b21609acb911587a2e895f7a9ed4cedd5639322bd489c784d08fa57ff4467",
+    "tests/test_tool_contracts.py": "260d113024802695e62ee8b5370ad224a7b6da55df2494dcd6252d1cf13dcc8a"
+  },
+  "files_note": "sha256 of working-tree bytes at commit time; this receipt file itself is excluded"
+}

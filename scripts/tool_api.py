@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -20,6 +21,12 @@ PIPELINE_SELECTORS = ('clicks_artifact', 'pitch_artifact', 'meter_artifact',
                       'tonal_artifact', 'comparisons_artifact')
 CALIBRATION_TOOLS = {'pitch_evaluate': 5_000_000, 'phrase_evaluate': 20_000_000}
 LEARNED_EVALUATION_FIELDS = ('fixture_index', 'pyin_pilot_index', 'learned_pilot_index', 'output')
+# S2 metadata projections write only fresh outputs beneath this repository boundary.
+S2_OUTPUT_ROOT = ROOT / 'artifacts'
+S2_EXACT_PATH_FIELDS = {'annotation_markers': ('run_dir', 'output_dir'),
+                        'flags_triage': ('run_dir', 'output'),
+                        'corpus_eval_s2': ('manifest', 'local_root', 'proposals', 'output')}
+S2_DIGEST_FIELDS = {'annotation_markers': 'store_sha256', 'corpus_eval_s2': 'proposals_sha256'}
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
                          'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default',
                          'items', 'minItems', 'maxItems'}
@@ -469,6 +476,81 @@ def share_export_paths(args):
     return str(source), str(output)
 
 
+def s2_original_path(value):
+    """Absolute original path (relative values anchor at ROOT) without resolving symlinks."""
+    try:
+        path = Path(value).expanduser()
+    except (RuntimeError, OSError) as error:
+        raise ToolError('S2 path cannot be expanded to a local path') from error
+    return (path if path.is_absolute() else ROOT / path).absolute()
+
+
+def s2_reject_symlink_components(path):
+    current = Path(path.anchor)
+    for part in path.parts[1:]:
+        current = current / part
+        if current.is_symlink():
+            raise ToolError('S2 paths cannot contain symlink components')
+
+
+def s2_input_directory(value, required):
+    """Existing run directory whose named metadata files are regular, non-symlink files."""
+    directory = s2_original_path(value)
+    s2_reject_symlink_components(directory)
+    if not directory.is_dir():
+        raise ToolError('S2 run_dir must be an existing directory')
+    for name in required:
+        path = directory / name
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > 20_000_000:
+            raise ToolError('S2 run_dir requires bounded regular ' + name)
+    return directory
+
+
+def s2_input_file(value, max_bytes):
+    path = s2_original_path(value)
+    s2_reject_symlink_components(path)
+    if not path.is_file() or path.stat().st_size > max_bytes:
+        raise ToolError('S2 input must be an existing bounded regular file')
+    return path
+
+
+def s2_fresh_output(value, *, suffix=None, outside=()):
+    """Fresh path beneath repository artifacts/, existing parent, never inside an input."""
+    path = s2_original_path(value)
+    boundary = Path(S2_OUTPUT_ROOT)
+    try:
+        relative = path.relative_to(boundary)
+    except ValueError as error:
+        raise ToolError('S2 outputs must remain beneath repository artifacts/') from error
+    if not relative.parts:
+        raise ToolError('S2 output must name a child of repository artifacts/')
+    s2_reject_symlink_components(path)
+    if not path.parent.is_dir():
+        raise ToolError('S2 output parent must be an existing directory')
+    if os.path.lexists(path):
+        raise ToolError('S2 output must be fresh; nothing is overwritten')
+    if suffix is not None and path.suffix != suffix:
+        raise ToolError('S2 output must name a fresh ' + suffix + ' file')
+    for other in outside:
+        other = Path(other)
+        if path == other or path.is_relative_to(other) or path.resolve() == other.resolve() \
+                or path.resolve().is_relative_to(other.resolve()):
+            raise ToolError('S2 output must remain outside its inputs')
+    return path
+
+
+def editor_marker_export_output(directory, args):
+    """Run-local exclusive output named by the exact export-profile digest."""
+    profile = Path(directory) / args['profile']
+    try:
+        digest = hashlib.sha256(profile.read_bytes()).hexdigest()
+    except OSError as error:
+        raise ToolError('editor marker export profile became unavailable before launch') from error
+    output = Path(directory) / ('editor-export-' + args['format'] + '-' + digest[:12])
+    if os.path.lexists(output):
+        raise ToolError('editor marker export output already exists; nothing is overwritten')
+    return str(output)
+
 
 def validate_tool_arguments(name, args):
     """Cross-field rules that are known before a worker or file read starts."""
@@ -515,7 +597,18 @@ def validate_tool_arguments(name, args):
         for field in PIPELINE_SELECTORS:
             if field in args:
                 validate_evidence_selector(args[field])
-    if name == 'editor_marker_plan':
+    if name in S2_EXACT_PATH_FIELDS:
+        for field in S2_EXACT_PATH_FIELDS[name]:
+            if field not in args:
+                continue
+            value = args[field]
+            if ('\x00' in value or ':' in value or '\\' in value or '..' in value.split('/')):
+                raise ValidationError('S2 paths require exact local paths without traversal/NUL/URL')
+    if name in S2_DIGEST_FIELDS:
+        digest = args[S2_DIGEST_FIELDS[name]]
+        if len(digest) != 64 or any(character not in '0123456789abcdef' for character in digest):
+            raise ValidationError('S2 pins require an exact lowercase hexadecimal SHA-256')
+    if name in {'editor_marker_plan', 'editor_marker_export'}:
         for field in ('selection', 'profile'):
             try:
                 validate_evidence_selector(args[field])
@@ -575,6 +668,30 @@ def worker_command(name, args):
     if name == 'corpus_split':
         manifest, boundary = corpus_split_paths(args)
         return head + [str(ROOT / 'scripts/corpus_split_s1.py'), 'validate', manifest, '--root', boundary, '--summary']
+    if name == 'annotation_markers':
+        directory = s2_input_directory(args['run_dir'], ('manifest.json', 'review-annotations-v2.json'))
+        output = s2_fresh_output(args['output_dir'], outside=(directory,))
+        command = head + [str(ROOT / 'scripts/annotation_markers.py'), str(directory),
+                          '--store-sha256', args['store_sha256'], '--output-dir', str(output)]
+        return command + (['--include-text'] if args.get('include_text') is True else [])
+    if name == 'flags_triage':
+        directory = s2_input_directory(args['run_dir'], ('flags.json',))
+        output = s2_fresh_output(args['output'], suffix='.json', outside=(directory,))
+        return head + [str(ROOT / 'scripts/flags_triage.py'), str(directory), '--output', str(output)]
+    if name == 'corpus_eval_s2':
+        manifest, boundary = corpus_split_paths(args)
+        proposals = s2_input_file(args['proposals'], 20_000_000)
+        output = s2_fresh_output(args['output'], suffix='.json', outside=(proposals, proposals.parent))
+        return head + [str(ROOT / 'scripts/corpus_eval_s2.py'), 'evaluate', manifest, '--root', boundary,
+                       '--proposals', str(proposals), '--proposals-sha256', args['proposals_sha256'],
+                       '--output', str(output)]
+    if name == 'editor_marker_export':
+        directory = editor_marker_inputs(args)
+        # No DTD, output path or argv passthrough: MCP exports always record
+        # dtd_validation not_performed and write only the digest-named child.
+        return head + [str(ROOT / 'scripts/editor_marker_export.py'), directory, args['selection'],
+                       args['profile'], '--format', args['format'],
+                       '--output-dir', editor_marker_export_output(directory, args), '--summary']
     if name == 'share_export':
         original, output = share_export_paths(args)
         command = head + [str(ROOT / 'scripts/share_export.py'), original, output]

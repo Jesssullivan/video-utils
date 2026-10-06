@@ -2451,6 +2451,315 @@
         "acceptance": "Metadata consistency and successful execution do not establish listening, reviewer authenticity, musical correctness, ground truth or real-take labels.",
         "max_comparison_candidates_default": 3
       }
+    },
+    {
+      "name": "editor_marker_export",
+      "title": "Verified-uniform editor marker export preview",
+      "description": "Gate an explicit editor_marker_plan profile on a complete, uniform, hash-bound source PTS table and, only when the editor grid is verified, write a local non-executed FCPXML 1.10 bundle (review.fcpxmld/Info.fcpxml) or Resolve marker-operations preview plus an exact-time sidecar into a fresh run-local directory. Variable or unknown cadence, period/origin mismatch, unsupported timecode rate or missing media reference abstain with calibration_required and write nothing. No editor launch, connection, import or API execution; application_import stays not_performed and host_frame_id null.",
+      "intent": "Turn source-timed review markers into inspectable editor payloads only where the frame grid is measured uniform, while keeping VFR takes, host interpretation and musical claims explicitly unverified.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing verified run beneath repository artifacts/runs; original symlink/traversal components reject."
+          },
+          "selection": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Explicit run-relative selection JSON with source-bound stable marker IDs; no latest/subset discovery."
+          },
+          "profile": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Explicit run-relative closed editor_marker_export_profile JSON binding the planner profile by SHA-256, the DF/NDF timecode mode/origin and, for fcpxml, an explicit percent-encoded file:/// media URL. No executable/editor API configuration."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "fcpxml",
+              "resolve_ops"
+            ],
+            "description": "fcpxml requires a final_cut_pro planner profile; resolve_ops requires davinci_resolve."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 120,
+            "default": 120,
+            "description": "Hard owned-worker/process-group deadline."
+          }
+        },
+        "required": [
+          "run_dir",
+          "selection",
+          "profile",
+          "format"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/editor-marker-export/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "uniform_grid_gated_native_marker_preview_unverified_import",
+      "limitations": [
+        "Writes only to a fresh exclusive <run_dir>/editor-export-<format>-<export_profile_sha256[:12]> directory chosen by the dispatcher; an existing path rejects and nothing is overwritten. Abstention creates no file or directory. Summary stdout <=64KiB, stderr <=16KiB, Info.fcpxml <=4MiB, sidecar <=16MiB; planner bounds are inherited (<=1000 actions or selection_required with no truncation).",
+        "Cadence is measured only from the complete PTS table; average/nominal frame rate, header frame counts and file names never satisfy a check. The October 5, 2026 take is VFR and abstains with calibration_required / cadence variable.",
+        "Valid XML is not an import: application_import is not_performed, final_cut_version/resolve_version are null, api_contract is unverified, executable is false and host_frame_id is null. The MCP hook exposes no DTD input, so dtd_validation is always not_performed here.",
+        "Display timecode labels (NDF everywhere; DF only at 30000/1001, 60000/1001, 120000/1001) are sidecar identifiers with an unverified host basis; they never change media time or samples.",
+        "Markers remain needs_review hypotheses. No note-correctness, missed/extra-note or mistake verdict, no listening, mastering or AU/Logic acceptance; listening_acceptance and musical_verdict stay not_established."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "markers",
+          "marked_video",
+          "editor_marker_plan"
+        ],
+        "enforced": false,
+        "note": "Requires current generic markers, manifest, flags/DAG context, an explicit selection, a hash-bound planner profile with a complete PTS artifact and the closed export profile. Prior tools are not invoked automatically; the exporter calls the planner worker unchanged."
+      },
+      "agent_workflow": {
+        "identify": "Run editor_marker_plan first; inspect plan_status, dispositions, collisions and whether a complete PTS artifact is bound before requesting export.",
+        "research": "Read docs/spec/EDITOR_MARKER_EXPORT.md and docs/research/EDITOR_MARKERS.md; a uniform fixture grid is a repository policy, not a host editor rule.",
+        "iterate": "Change one explicit planner/export profile file at a time with updated digests; compare reasons, cadence evidence, exported/excluded rows and quantization errors. Treat calibration_required as a valid result and obtain host calibration evidence instead of forcing a grid.",
+        "acceptance": "A written_unverified bundle establishes structure only. Final Cut or Resolve import, visible alignment, native frame IDs, musical correctness and listening acceptance are separate future evidence.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "annotation_markers",
+      "title": "Annotation v2 marker projection",
+      "description": "Project a sha256-pinned run-local review-annotations-v2.json into generic marker JSON/CSV (markers.COLUMNS + basis_label) with visible/suppressed counts and reasons; refuses stale store hashes; note/quote text omitted unless include_text.",
+      "intent": "Make structured user-reported and reference-review annotations shareable as source-timed markers while keeping each row's assertion basis visible and distinct from detector hypotheses.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local run holding regular manifest.json and review-annotations-v2.json; traversal, URL and symlink components reject. Relative paths resolve from the repository root."
+          },
+          "store_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "description": "Exact lowercase hexadecimal SHA-256 of the current review-annotations-v2.json bytes; a stale or changed store refuses."
+          },
+          "output_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Fresh directory beneath repository artifacts/ with an existing parent, outside run_dir; receives annotation-markers.json and annotation-markers.csv. An existing path rejects."
+          },
+          "include_text": {
+            "type": "boolean",
+            "default": false,
+            "description": "Copy note/operator_quote text verbatim into the marker evidence. Default false keeps the shareable interchange free of free text."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 120,
+            "description": "Hard owned-worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "run_dir",
+          "store_sha256",
+          "output_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-annotation-markers/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "human_annotation_projection_not_verdict",
+      "limitations": [
+        "Reads only run-local manifest.json and review-annotations-v2.json (store <=1MB); never opens audio, never writes the run and never edits the annotation store. Output is a fresh directory beneath repository artifacts/; nothing is overwritten.",
+        "Basis labels USER REPORTED / INTENT / REVIEW / REFERENCE REVIEW are assertion provenance, not verdicts; musical_verdict stays not_established and performance_issue_confirmed false. Points keep end == start; no duration is invented.",
+        "At most two simultaneously visible callouts by the frozen basis-priority rule; suppressed rows remain in suppressed_markers with a reason. editor_import is not_validated, picture_coverage not_evaluated and listening_acceptance not_established.",
+        "The existing marked_video renderer does not yet draw the basis badge; annotation-marker rows rendered there cannot be told apart from detector rows until that root-owned change lands."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "annotation_v2"
+        ],
+        "enforced": false,
+        "note": "Requires an existing v2 store and its current SHA-256 (read it with annotation_v2 first); this tool does not create or change annotations."
+      },
+      "agent_workflow": {
+        "identify": "Read the current v2 store with annotation_v2, note its revision and SHA-256, and decide whether free text may leave the run before choosing include_text.",
+        "research": "Read docs/spec/sprints/ANNOT_CORPUS_S2.md section 1 and docs/spec/ANNOTATION_V2_VOCABULARY.md; the basis label states who asserted a row, not whether it is correct.",
+        "iterate": "Re-project into a fresh output after a store revision changes; compare visible/suppressed counts and suppression reasons rather than editing rows to change visibility.",
+        "acceptance": "A projection establishes marker interchange structure only; it establishes no mistake, intended note, editor import, rendered badge or listening acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "flags_triage",
+      "title": "Default review ordering of run flags",
+      "description": "Order an existing run's flags.json into flags-triage.json: at most one shown flag per phrase span or 16-period click-grid navigation window by rule flags-triage-priority-v1; navigation proxies hidden but retained; denominators total/hidden/suppressed/shown; no new kinds, no numeric confidence use, no verdict.",
+      "intent": "Give a musician a compact default review order over existing hypotheses without dropping, re-scoring or reclassifying any flag.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local run holding a regular flags.json (plus phrases.json/dag.json or the bound click grid); traversal, URL and symlink components reject. Relative paths resolve from the repository root."
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Fresh .json file beneath repository artifacts/ with an existing parent directory, outside run_dir. An existing path rejects."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 120,
+            "description": "Hard owned-worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "run_dir",
+          "output"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-flags-triage/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "review_ordering_of_existing_hypotheses",
+      "limitations": [
+        "Frozen rule flags-triage-priority-v1 with no knobs: tier by existing kind, hash-bound evidence slot, then source time, kind and index. Numeric confidence/similarity values are uncalibrated and never used.",
+        "Windows come from hash-bound semantic phrase spans or 16 consecutive click-grid periods; grid windows are navigation aids, not bars or downbeats. Without either basis the tool refuses rather than inventing windows.",
+        "Navigation proxies are hidden but retained verbatim in hidden_navigation; suppressed flags keep their winner. shown + suppressed_lower_priority + navigation_hidden == total_flags.",
+        "Reads run metadata only and writes one fresh file beneath repository artifacts/; the run is never written. No new flag kinds, no verdict, performance_grade not_assigned and musical_verdict not_established."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "phrases",
+          "clicks"
+        ],
+        "enforced": false,
+        "note": "Requires an existing flags.json and either hash-bound semantic phrase spans or a bound click grid; prior tools are not invoked automatically."
+      },
+      "agent_workflow": {
+        "identify": "Confirm the run's flags.json is current for the source and which window basis (phrase spans or click grid) is available.",
+        "research": "Read docs/spec/sprints/ANNOT_CORPUS_S2.md section 2; tiers reorder existing hypotheses and never establish an error type.",
+        "iterate": "There are no knobs. Rerun into a fresh output after upstream flags, phrases or clicks change, and compare denominators and the shown set.",
+        "acceptance": "A triage view is ordering only; it establishes no mistake, missed/extra note, bar line, musical correctness or listening acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "corpus_eval_s2",
+      "title": "Coverage-first sparse corpus evaluation",
+      "description": "Validate a corpus split, then evaluate sha256-pinned untouched detector proposals against selected v2 annotations: coverage first, clock alignment status, recall only above 0.5 coverage with literal accepted operator assertions, precision always null (no reviewed-absence label), separate error and articulation axes, never inferring negatives; no audio read.",
+      "intent": "Measure how much of a take reviewers attended and, only where coverage is sufficient, how many literal operator-asserted issues untouched detector proposals overlap, without inferring negatives.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "manifest": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local corpus split manifest inside the selected root; unsafe or symlink components are rejected before normalization can hide them."
+          },
+          "local_root": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Optional existing local metadata boundary; defaults to this repository. Manifest and referenced metadata must remain inside it. Grants no audio or network access."
+          },
+          "proposals": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing regular local flags JSON (<=20MB) holding untouched detector proposals; traversal, URL and symlink components reject. Relative paths resolve from the repository root."
+          },
+          "proposals_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "description": "Exact lowercase hexadecimal SHA-256 of the proposals bytes; a changed file refuses."
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Fresh .json file beneath repository artifacts/ with an existing parent directory, not beside the proposals file. An existing path rejects."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 120,
+            "description": "Hard owned-worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "manifest",
+          "proposals",
+          "proposals_sha256",
+          "output"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-corpus-eval/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "sparse_coverage_first_recall_no_negatives",
+      "limitations": [
+        "Fixed coverage_threshold 0.5 and match tolerance 0.25 s. Below threshold, or without literal accepted operator assertions, recall is null; a null result is valid.",
+        "Precision is always null: the v2 schema has no reviewed-absence label, unlabelled time is unknown_not_negative and negatives/true_negatives/false_positives are null.",
+        "Proposals are read once, hash-pinned and never filtered, re-thresholded or re-ranked beyond excluding navigation proxies. Error and articulation axes stay separate; v2 articulation has no subtype and is not spread across technique axes.",
+        "Metadata only: no audio is read, no model runs and nothing is trained. Writes one fresh file beneath repository artifacts/. Detector latency and physical sync are uncalibrated; ground_truth_established stays false and listening_acceptance not_established."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "corpus_split",
+          "annotation_v2"
+        ],
+        "enforced": false,
+        "note": "Requires a valid authored split manifest, selected v2 annotation stores and an explicit proposals file with its SHA-256; prior tools are not invoked automatically."
+      },
+      "agent_workflow": {
+        "identify": "Validate the split with corpus_split, pin the exact proposals file by SHA-256 and check that proposals and annotations share the source and clock axis.",
+        "research": "Read docs/spec/sprints/ANNOT_CORPUS_S2.md section 3 and the corpus split contract; coverage is reviewer-attended time, never reviewed absence.",
+        "iterate": "Compare untouched proposal sets one at a time into fresh outputs; report coverage, clock status and denominators before any recall, and keep null results.",
+        "acceptance": "Recall over sparse operator assertions establishes neither precision, ground truth, note correctness, missed/extra notes nor listening acceptance.",
+        "max_comparison_candidates_default": 3
+      }
     }
   ]
 }

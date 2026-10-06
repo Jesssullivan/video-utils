@@ -130,6 +130,10 @@ basic-pitch-runtime-check:
 editor-marker-plan run_dir selection profile:
     python3 scripts/editor_marker_plan.py {{quote(run_dir)}} {{quote(selection)}} {{quote(profile)}} --summary
 
+# Uniform-grid-gated local marker preview; abstains for VFR/unknown cadence; never imports.
+editor-marker-export run_dir selection profile format output_dir:
+    python3 scripts/editor_marker_export.py {{quote(run_dir)}} {{quote(selection)}} {{quote(profile)}} --format {{quote(format)}} --output-dir {{quote(output_dir)}} --summary
+
 # Author source-bound settings only; the review records existing scoped authority.
 capture-profile input run_dir review start end nr="8" nf="-40" ad="0" gs="0" lufs="-18" peak="-1.5":
     python3 scripts/capture_profile.py {{quote(input)}} --run-dir {{quote(run_dir)}} --review {{quote(review)}} --capture-start {{quote(start)}} --capture-end {{quote(end)}} --reduction-db {{quote(nr)}} --noise-floor-db {{quote(nf)}} --adaptivity {{quote(ad)}} --gain-smooth {{quote(gs)}} --integrated-lufs {{quote(lufs)}} --true-peak-dbtp {{quote(peak)}}
@@ -218,3 +222,31 @@ annotate-v2 run_dir request:
 # Read-only authored take-family split validation; no automatic data assignment.
 corpus-split manifest local_root=".":
     python3 scripts/corpus_split_s1.py validate {{quote(manifest)}} --root {{quote(local_root)}} --summary
+
+# Sha256-pinned v2 annotations as generic markers; basis labels are not verdicts.
+annotation-markers run_dir store_sha256 output_dir:
+    python3 scripts/annotation_markers.py {{quote(run_dir)}} --store-sha256 {{quote(store_sha256)}} --output-dir {{quote(output_dir)}}
+
+# Default review ordering of existing flags by frozen rule v1; no new kinds or verdict.
+flags-triage run_dir output:
+    python3 scripts/flags_triage.py {{quote(run_dir)}} --output {{quote(output)}}
+
+# Coverage-first sparse evaluation of untouched proposals; precision null, no negatives.
+corpus-eval-s2 manifest proposals proposals_sha256 output local_root=".":
+    python3 scripts/corpus_eval_s2.py evaluate {{quote(manifest)}} --root {{quote(local_root)}} --proposals {{quote(proposals)}} --proposals-sha256 {{quote(proposals_sha256)}} --output {{quote(output)}}
+
+# Stream SHA-256 of one or more files (shasum -a 256 compatible lines)
+hash +FILES:
+    CARGO_BUILD_JOBS=1 cargo run --locked -j 1 --quiet -- hash {{FILES}}
+
+# Metadata-only, read-only hash/typed-field verification of a run directory
+verify-run RUN_DIR:
+    CARGO_BUILD_JOBS=1 cargo run --locked -j 1 --quiet -- verify-run "{{RUN_DIR}}"
+
+# Closed-schema capability metadata check and static worker/skill/test traversal.
+capabilities-check:
+    python3 scripts/capabilities.py validate && python3 scripts/capabilities.py traverse
+
+# Project stable artifact IDs for explicit run selectors; read-only.
+artifact-id SELECTOR:
+    python3 scripts/artifact_ids.py project {{quote(SELECTOR)}}
