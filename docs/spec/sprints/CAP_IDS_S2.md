@@ -233,7 +233,10 @@ API:
 - `dump(path)` / `load(path)` — deterministic sorted-key JSON index (closed
   schema v1). `dump` refuses any target under `RUNS` (`write_inside_runs`) and
   any existing target (`target_exists`); it writes via temp file + atomic
-  replace. Loading re-validates every selector; it never trusts stored paths.
+  replace. Containment is by filesystem identity, not lexical prefix: the
+  resolved target directory and each ancestor is compared to `RUNS` by
+  `(st_dev, st_ino)`, so case-variant paths on case-insensitive APFS
+  (`artifacts/RUNS/...`) are refused too; an unstat-able ancestor is refused. Loading re-validates every selector; it never trusts stored paths.
 - CLI: `python3 scripts/artifact_ids.py project SELECTOR... | source RUN_ID |
   resolve --index FILE ID [--root DIR] [--write-index FILE]`.
 

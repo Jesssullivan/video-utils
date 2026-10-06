@@ -1,0 +1,23 @@
+{
+  "schema": "video-utils/lane-repair-receipt",
+  "schema_version": 1,
+  "sprint": "20261006-s2",
+  "lane": "cap_ids",
+  "phase": 4,
+  "date": "2026-10-06",
+  "ruling": "R-HOOK-CONVERGENCE-20261004",
+  "base_commit": "9cd4fc1",
+  "audit_must_fix": "ArtifactIndex.dump() lexical is_relative_to check bypassed by case-variant paths on case-insensitive APFS (also via CLI --write-index)",
+  "change": {
+    "scripts/artifact_ids.py": "dump() now refuses when the resolved target directory or any ancestor matches artifacts/runs by (st_dev, st_ino); an ancestor that cannot be stat'ed is refused",
+    "tests/test_artifact_ids.py": "added test_dump_refuses_case_variant_runs_paths_by_filesystem_identity (API + CLI, 4 case variants, sibling-outside-runs still writable); skips only on a case-sensitive filesystem",
+    "docs/spec/sprints/CAP_IDS_S2.md": "dump contract states filesystem-identity containment"
+  },
+  "verification": [
+    {"kind": "measurement", "metric": "new case-variant test against pre-fix code", "value": "failed (ArtifactIdError not raised)"},
+    {"kind": "measurement", "metric": "PYTHONPATH=tests python3 -m unittest test_capabilities test_artifact_ids", "value": "34 run, 34 passed, 0 skipped (14 + 20)"},
+    {"kind": "measurement", "metric": "cargo test --locked -j 1", "value": "7 passed, 0 failed (no Rust changes in lane)"},
+    {"kind": "measurement", "metric": "writes under artifacts/runs during case-variant test", "value": "tree_state unchanged"}
+  ],
+  "not_claimed": ["no accepted run directory was read or written by this repair", "no listening, detector or default adoption claims"]
+}

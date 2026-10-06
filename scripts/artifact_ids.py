@@ -478,6 +478,24 @@ class ArtifactIndex:
                               for key in sorted(self._artifacts)],
                 'sources': [dict(self._sources[key]) for key in sorted(self._sources)]}
 
+    def _inside_runs(self, directory):
+        """Filesystem-identity containment: is ``directory`` the runs root or below it?
+
+        Lexical comparison is not enough on case-insensitive APFS (realpath
+        keeps the caller's casing), so every ancestor of the resolved directory
+        is compared to the runs root by ``(st_dev, st_ino)``.
+        """
+        runs_stat = os.stat(self.runs)
+        runs_key = (runs_stat.st_dev, runs_stat.st_ino)
+        for candidate in (directory, *directory.parents):
+            try:
+                info = os.stat(candidate)
+            except OSError:
+                return True  # unverifiable ancestry is refused, never assumed safe
+            if (info.st_dev, info.st_ino) == runs_key:
+                return True
+        return False
+
     def dump(self, target):
         """Write a deterministic index; refuses runs-root targets and existing files."""
         target = Path(target)
@@ -488,7 +506,7 @@ class ArtifactIndex:
         except OSError:
             _fail('bad_index', 'index target directory does not exist')
         resolved = parent / target.name
-        if resolved.is_relative_to(self.runs.resolve()) or resolved.is_relative_to(self.runs):
+        if self._inside_runs(parent):
             _fail('write_inside_runs', 'index may not be written under artifacts/runs')
         if os.path.lexists(resolved):
             _fail('target_exists', 'index target already exists')

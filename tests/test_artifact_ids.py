@@ -399,6 +399,35 @@ class ArtifactIdTests(unittest.TestCase):
         self.refused('bad_index', ids.ArtifactIndex.load, dup, self.fx.root)
         self.assertEqual(doc['not_a_job_service'], True)
 
+    # 16b
+    def test_dump_refuses_case_variant_runs_paths_by_filesystem_identity(self):
+        upper = self.fx.root / 'ARTIFACTS' / 'RUNS'
+        if not upper.exists() or not os.path.samefile(upper, self.fx.runs):
+            self.skipTest('case-sensitive filesystem: case variants are distinct directories')
+        index = self.fx.index()
+        index.project('RUN-A/result.json')
+        before = tree_state(self.fx.runs)
+        variants = (self.fx.root / 'artifacts' / 'RUNS' / 'RUN-A' / 'index.json',
+                    self.fx.root / 'Artifacts' / 'runs' / 'idx2.json',
+                    self.fx.root / 'ARTIFACTS' / 'RUNS' / 'idx3.json',
+                    self.fx.root / 'artifacts' / 'runs' / 'run-a' / 'export' / 'idx4.json')
+        for target in variants:
+            self.refused('write_inside_runs', index.dump, target)
+        self.assertEqual(tree_state(self.fx.runs), before)
+        script = str(ROOT / 'scripts' / 'artifact_ids.py')
+        for target in variants[:2]:
+            cli = subprocess.run([sys.executable, script, '--root', str(self.fx.root), '--write-index',
+                                  str(target), 'project', 'RUN-A/audio.wav'],
+                                 capture_output=True, text=True, timeout=60, check=False)
+            self.assertEqual(cli.returncode, 1)
+            self.assertEqual(json.loads(cli.stderr)['code'], 'write_inside_runs')
+        self.assertEqual(tree_state(self.fx.runs), before)
+        # A sibling outside the runs root is still writable under any casing.
+        (self.fx.root / 'artifacts' / 'indexes').mkdir()
+        written = index.dump(self.fx.root / 'ARTIFACTS' / 'Indexes' / 'index.json')
+        self.assertEqual(written['artifacts'], 1)
+        self.assertEqual(tree_state(self.fx.runs), before)
+
     # 17
     def test_malformed_unknown_and_colliding_ids_refused(self):
         index = self.fx.index()
