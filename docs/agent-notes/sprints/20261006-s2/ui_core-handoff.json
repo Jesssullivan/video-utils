@@ -1,0 +1,233 @@
+{
+  "schema_version": 1,
+  "lane": "ui_core",
+  "sprint": "20261006-s2",
+  "linear": "TIN-5610",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43; R-N11/R-N12/R-N13)",
+  "date": "2026-10-06",
+  "branch": "sprint/20261006-s2/ui_core",
+  "head": "3b03696ebcffe8e389e442541f844b54338c81de",
+  "base_commit": "0cdca0192f56ec347a228ec77c711786dc3c28c4",
+  "worktree": ".local/sprint2/ui_core",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/ui_core-contract-freeze.json",
+      "sha256": "0e7c74d820f699461b668af7ac716e9a7f039adfad3eb49227c18df5b5971bea",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/ui_core-repair-phase4.json",
+      "sha256": "bf62aeb1f1eeb41c2479e1de3cfb122bf1bbd521e2ae9931fc67f5ebbe2f1458",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/ui_core-walkthrough.json",
+      "sha256": "694b12a0e794c37ceac3ab6fdaec130808e00201dd53b5550be4ac190029dd04",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/sprints/REVIEW_UI_S2.md",
+      "sha256": "83f9a9d23765cfd0813fafcc199b8250e9f738d6be8a2ad87650491e13e00b05",
+      "kind": "spec"
+    },
+    {
+      "path": "review/browser_smoke_s2.mjs",
+      "sha256": "84dc2580c0948b4950a4e53689839c52f3979e06e902de80049d73b2cc27923a",
+      "kind": "source"
+    },
+    {
+      "path": "review/browser_smoke_s2.py",
+      "sha256": "4debaaf18cbd4646ec8c522c03cb33d8cea055ab6917f2d78c3ada5b24723c12",
+      "kind": "source"
+    },
+    {
+      "path": "review/index.html",
+      "sha256": "e482b8bac67c754272e1d3a672eaa1ca186ff1d3ae25b90c7bb1269cda2f6ea5",
+      "kind": "source"
+    },
+    {
+      "path": "review/make_practice_fixture_s2.py",
+      "sha256": "63bbc05d93d2e6e358e997858dd6902a1382c1b1b1004d106a049fc8254a528f",
+      "kind": "source"
+    },
+    {
+      "path": "review/practice_s2.js",
+      "sha256": "d1b877143ec506451d9da6a2369e77a9aa1d5ccb6b911f2d2c446d699ff1cf3d",
+      "kind": "source"
+    },
+    {
+      "path": "review/practice_s2_bundle.py",
+      "sha256": "ceb461324acbaaeb0f028481f09c51e6f637c452a4d17fe24656743db2653636",
+      "kind": "source"
+    },
+    {
+      "path": "review/practice_s2_review_server.diff",
+      "sha256": "c461868e9b08b5d162d61c7ea9b3c63eb58bea33775dd9194eb4d642c12eefad",
+      "kind": "source"
+    },
+    {
+      "path": "review/practice_s2_routes.py",
+      "sha256": "649afd89db8b9eae9fb60b1609c6fa32250c3e0290bcefb0c3be15b1d2506037",
+      "kind": "source"
+    },
+    {
+      "path": "review/style.css",
+      "sha256": "8d49c303e06c49cbd0a0b53d80eb8925b2fdba84e3a48dea8ba1bd530bb900c3",
+      "kind": "source"
+    },
+    {
+      "path": "tests/test_review_ui_s2.py",
+      "sha256": "02930edc442bbe6b9846ce22db5d941a9e76629c9875ffa875c190c7f5f42de6",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_review_ui_s2 test_review_ui_s1 -v",
+    "discovered": 35,
+    "passed": 35,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 24.4,
+    "commit": "8e8f957329bcdd0f23443d694587a623dd0a15fb",
+    "notes": "Ran in .local/sprint2/ui_core with FFMPEG/FFPROBE exported. Runner: 'Ran 35 tests in 23.425s / OK'. Wall time was 24.4 s. Nothing needed fixing, so there is no new commit and HEAD is still the lane commit."
+  },
+  "metrics": [
+    {
+      "name": "Lane tests passed",
+      "numerator": 35,
+      "denominator": 35,
+      "unit": "tests",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Viewport configs without horizontal overflow",
+      "numerator": 8,
+      "denominator": 8,
+      "unit": "configs",
+      "claim_class": "measured",
+      "note": "synthetic 4/4; real take 4/4 (375, 390, 1440, 200%)"
+    },
+    {
+      "name": "Players paused after load and key actions",
+      "numerator": 104,
+      "denominator": 104,
+      "unit": "checks",
+      "claim_class": "measured",
+      "note": "synthetic 48/48 + real 56/56; 0 play() call sites; 0 autoplay attributes"
+    },
+    {
+      "name": "Synthetic quick marks saved and read back",
+      "numerator": 12,
+      "denominator": 12,
+      "unit": "marks",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Saved marks accepted by phrase_anchor",
+      "numerator": 12,
+      "denominator": 12,
+      "unit": "marks",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Real-take triage display fidelity",
+      "numerator": 171,
+      "denominator": 171,
+      "unit": "flags",
+      "claim_class": "measured",
+      "note": "rendered shown/navigation/suppressed 15/112/44 of 171 in 4/4 configs"
+    },
+    {
+      "name": "Real-take S2 layers available",
+      "numerator": 5,
+      "denominator": 5,
+      "unit": "layers",
+      "claim_class": "measured",
+      "note": "stages, A/B incl. trial, coverage, triage, timing"
+    },
+    {
+      "name": "Verdict words in generated S2 text",
+      "numerator": 0,
+      "denominator": 0,
+      "unit": "instances",
+      "claim_class": "measured",
+      "note": "fixtures and real take, 8 configs; 117 upstream verbatim nodes excluded"
+    },
+    {
+      "name": "Required unknown/claim-boundary keys present",
+      "numerator": 21,
+      "denominator": 21,
+      "unit": "keys",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Accepted inputs unchanged",
+      "numerator": 5,
+      "denominator": 5,
+      "unit": "hashes",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Real-take timing rows with direction withheld",
+      "numerator": 56,
+      "denominator": 56,
+      "unit": "measured rows",
+      "claim_class": "measured",
+      "note": "after schema 2 repair: 97 total (56 measured, 41 abstained); direction_status withheld_uncalibrated"
+    },
+    {
+      "name": "Operator labelling session on the real take",
+      "numerator": 0,
+      "denominator": 1,
+      "unit": "session",
+      "claim_class": "unknown",
+      "note": "not performed by lane; operator-owned"
+    }
+  ],
+  "unknowns": [
+    "operator_preference",
+    "listening_acceptance",
+    "perceived_fullness",
+    "nasal_quality",
+    "fundamental_32hz_presence",
+    "real_take_phrase_correctness",
+    "missed_or_extra_notes",
+    "phrase_timing real-take validity",
+    "walkthrough_listening (muted)",
+    "browser output level and monitoring device"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "scripts/review_server.py",
+      "change": "Apply review/practice_s2_review_server.diff unchanged (routes: GET /api/practice-s2, GET /media/s2/<name>, asset /practice_s2.js, serve --practice-s2 BUNDLE_DIR). scripts/review_server.py is identical between 0cdca01 and main, so the diff's earlier git apply --check result still holds.",
+      "why": "Carried forward from Phase 2: the S2 practice page needs these routes to serve the bundle and its media. The schema 2 repair needed no change to this file."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261006-s2/ui_core-contract-freeze.json",
+    "docs/agent-notes/sprints/20261006-s2/ui_core-walkthrough.json",
+    "docs/agent-notes/sprints/20261006-s2/ui_core-repair-phase4.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": true,
+    "findings": [
+      "(1) Scope holds. Running git diff --name-only 0cdca01...3b03696 lists 14 files, all inside the owned set: review/* (index.html, style.css, practice_s2.js, practice_s2_bundle.py, practice_s2_routes.py, make_practice_fixture_s2.py, browser_smoke_s2.py/.mjs, practice_s2_review_server.diff), tests/test_review_ui_s2.py, docs/spec/sprints/REVIEW_UI_S2.md and docs/agent-notes/sprints/20261006-s2/ui_core-*.json. No root-owned or foreign file is touched. None of the 14 files overlaps the 16 files main changed in 0cdca01..ef31930.",
+      "(4) Reran tests in the worktree with nix FFMPEG/FFPROBE: 'Ran 35 tests in 24.4s / OK', 35 'ok', 0 skipped, 0 failures. Matches the claimed 35/35 (22 S2 + 13 S1). The tests are substantive. A Node vm harness runs the shipped practice_s2.js against a fake DOM and checks: no .play() call sites, preload=none, a blind mapping that stays hidden until reveal with only a GET request, uncertain joins with aria 'uncertain join' and '?' glyphs, toggles that default to unchecked, an abstained row showing '—' and never 0.0 ms, and no verdict words. Quick-marks tests round-trip 12 marks through the real annotation_v2 store and phrase_anchor. Composer tests cover refusals for hash/source/extent mismatch.",
+      "(2) No writes to protected locations were found. The 5 protected hashes in the handoff match today: manifest 61c9b393…, cleaned 9ed50aec…, denoised 26c9f42c…, source d68e4968…, flags 95a0106c…. A find over artifacts/runs for files newer than the lane composer returned nothing. Lane outputs live in artifacts/s2/ui_core/ and test-tmp, which .gitignore:3 /artifacts/ covers. practice_s2_bundle.py:151-162 refuses output_inside_runs and output_outside_artifacts after resolve(). The composer makes no downloads and starts no daemon. browser_smoke_s2.py terminates and then kills the Chrome it owns.",
+      "(5) Doctrine holds. No highpass, notch, bandreject or 80 Hz appears in any S2 file. The only FFmpeg filter is atrim plus volume, with SUBPROCESS_TIMEOUT 120 s. The bundle carries 21 unknown fields. Adoption block is all false.",
+      "(6) Repair verified: phrase_timing schema 2 now accepted (direction, direction_status, direction_basis); schema 1 refused as layer_schema_superseded; measured rows on real takes have withheld_uncalibrated with null direction; synthetic fixtures have synthetic_known_offset_fixture with valid direction; abstained rows have no direction fields. Real-take rendering updated: 56 measured rows now show 'direction withheld (uncalibrated)' instead of timing labels. Tests added for schema 2 direction policy (8 cases). Loudness, triage, media, protected hashes verified unchanged.",
+      "(3) Claim classes correct. Metrics are labelled by source: measured (direct, copied from prior runs), inferred (timeline equivalence, no-stretch flags), unknown (operator-labelled). No note-correctness or missed-note verdict appears. adoption fields all false.",
+      "Not independently verified: the headless-Chrome walkthrough counts (viewport 4/4, real 56/56 checks, 117 nodes). I did not rerun browser_smoke_s2. These rest on ui_core-walkthrough.json and repair-phase4.json.",
+      "The lane commits 33867e6 and 8e8f957 are unsigned, and the repair commit 3b03696 is unsigned (--no-gpg-sign). Root must sign the merge."
+    ],
+    "must_fix": []
+  }
+}

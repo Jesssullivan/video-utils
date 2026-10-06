@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "lane": "ui_core",
+  "sprint": "20261006-s2",
+  "linear": "TIN-5610",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43; R-N11/R-N12/R-N13)",
+  "date": "2026-10-06",
+  "phase": "4_repair",
+  "branch": "sprint/20261006-s2/ui_core",
+  "baseline_commit": "0cdca01",
+  "audit_must_fix": [
+    "Real-take phrase-timing direction labels rendered against doctrine (main 84ee740/ef31930, root_admission_d, audit finding 9).",
+    "Composer refused phrase_timing schema 2 (schema_version != 1 -> layer_schema_unknown)."
+  ],
+  "supersedes": {
+    "handoff": "docs/agent-notes/sprints/20261006-s2/ui_core-handoff.json files{}, real_take_composition.bundle_json_sha256 and composer_sha256",
+    "previous_real_take_bundle_sha256": "a926129e88aecc4d2aab4ae7f80453ad2e1fa14a6a512d7a124ede2ff86fff17",
+    "previous_bundle_kept_at": "artifacts/s2/ui_core/real-take/bundle-phase2-schema1 (gitignored)",
+    "previous_walk_kept_at": "artifacts/s2/ui_core/real-take/walk-phase2-schema1 (gitignored)"
+  },
+  "changes": {
+    "review/practice_s2_bundle.py": "Accepts phrase_timing schema 2 only; schema 1 refused as layer_schema_superseded; run_kind must be real_take or synthetic_fixture; measured rows must carry direction_status synthetic_known_offset_fixture (with a direction class) on synthetic_fixture runs and withheld_uncalibrated with null direction on real takes, else layer_direction_policy_violation; abstained rows carry no direction fields; any tendency_label/tendency_basis key is layer_schema_unknown.",
+    "review/practice_s2.js": "S2_TENDENCY/tendency_label replaced by s2TimingDirection: a direction class renders only when doc.run_kind == synthetic_fixture and row.direction_status == synthetic_known_offset_fixture (suffix '· synthetic known-offset fixture'); every other measured row reads 'direction withheld (uncalibrated)'. File line names run kind and direction policy; column renamed Direction.",
+    "review/make_practice_fixture_s2.py": "Synthetic fixture timing moved to schema 2 (direction, direction_status, direction_basis, offset_summary_basis, direction_policy).",
+    "tests/test_review_ui_s2.py": "Updated synthetic direction expectations; added test_phrase_timing_real_take_direction_withheld (withheld rows and a forged real-take row both render withheld) and test_composer_timing_schema_2_direction_policy (8 refusal/acceptance cases).",
+    "docs/spec/sprints/REVIEW_UI_S2.md": "Section 5.6 amended to the schema-2 direction policy; section 11 repair note; section 11 heading notes 5.6 amendment."
+  },
+  "real_take_recomposition": {
+    "phrase_timing_regeneration": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 timeout 300 python3 scripts/phrase_timing.py --analysis <rhythm_clicks real-take analysis.json> --phrases <P> --output-root artifacts/s2/ui_core/real-take/phrase-timing-v2 --run-kind real_take (P = arrangement-markers.json, then phrases.json)",
+      "script": "main checkout scripts/phrase_timing.py, byte-identical to main ef31930 (sha256 0d3c248bdb82…); rhythm.py cd719914d933… unchanged from 0cdca01",
+      "offsets_identical_to_schema1_runs": "97/97 rows (median, IQR, delay-compensated median, status, abstain reason, click-proximal count, span)",
+      "files": [
+        {
+          "file": "20261006T200552Z-b5df572ec469/phrase-timing.json",
+          "sha256": "03f0ddec7e1990d0bbf36e8e6bbac98b28c4c52c61a4ced6ea8d943965576465",
+          "schema_version": 2,
+          "run_kind": "real_take",
+          "phrase_basis": "reference_conditioned_alignment_candidate",
+          "summary": {
+            "phrase_count": 43,
+            "measured_count": 38,
+            "abstained_count": 5
+          },
+          "direction_status_counts": {
+            "withheld_uncalibrated": 38,
+            "null_abstained": 5
+          },
+          "producer": {
+            "phrase_timing_sha256": "0d3c248bdb82262b7baeee080b2c2d505f736f6f01234fc1ff89fdc85fa70b5b",
+            "rhythm_sha256": "cd719914d933b03faec6e1c92afbaee232797ec247427cc87038a1e67b15e8d3"
+          },
+          "inputs": {
+            "analysis_file_sha256": "120dd7830066874e828fc395d899ede7cc2f644d9da104efa76b04b83d3cf617",
+            "phrases_path": "artifacts/runs/20261006T034521Z-a0def0c43eac/arrangement-reference-20261006/arrangement-markers.json",
+            "phrases_file_sha256": "b82c447dd48dabf6ed6bcc27b9784de34f73c4bfc2316b71d6d59638df630557",
+            "analyzed_input_sha256": "cb8a3fa559424810f206c94191a149156423770bbf91a13724a2ba28a44e879e"
+          }
+        },
+        {
+          "file": "20261006T200553Z-fd1ea558aeb2/phrase-timing.json",
+          "sha256": "47ddad55e56b47a518f53c835244cb5f2e1225614a5545c233fd9c6e49b2eeda",
+          "schema_version": 2,
+          "run_kind": "real_take",
+          "phrase_basis": "automatic_review_span",
+          "summary": {
+            "phrase_count": 54,
+            "measured_count": 18,
+            "abstained_count": 36
+          },
+          "direction_status_counts": {
+            "withheld_uncalibrated": 18,
+            "null_abstained": 36
+          },
+          "producer": {
+            "phrase_timing_sha256": "0d3c248bdb82262b7baeee080b2c2d505f736f6f01234fc1ff89fdc85fa70b5b",
+            "rhythm_sha256": "cd719914d933b03faec6e1c92afbaee232797ec247427cc87038a1e67b15e8d3"
+          },
+          "inputs": {
+            "analysis_file_sha256": "120dd7830066874e828fc395d899ede7cc2f644d9da104efa76b04b83d3cf617",
+            "phrases_path": "artifacts/runs/20261006T034521Z-a0def0c43eac/phrases.json",
+            "phrases_file_sha256": "2822625bdec0b0742c4adf40306e05f5f4e8342ef13fcf13dbff6d07b3e59bff",
+            "analyzed_input_sha256": "cb8a3fa559424810f206c94191a149156423770bbf91a13724a2ba28a44e879e"
+          }
+        }
+      ]
+    },
+    "compose_command": "timeout 900 python3 review/practice_s2_bundle.py compose --session-run artifacts/runs/20261006T041633Z-990aa1bd6737 --output artifacts/s2/ui_core/real-take/bundle --tone-ab <tone_ab run> --flags-triage artifacts/s2/ui_core/real-take/flags-triage.json --detector-phrases artifacts/runs/20261006T034521Z-a0def0c43eac/phrases.json --phrase-spans <spans-k29/k30/k31> --phrase-timing <2 schema-2 files> --trial-excerpts --timeout-seconds 600",
+    "bundle_json_sha256": "41d35254c4901ff3df01211656610badd24096f5ab3646082c098a04d0791fe9",
+    "composer_sha256": "ceb461324acbaaeb0f028481f09c51e6f637c452a4d17fe24656743db2653636",
+    "layers": {
+      "tone_ab": "available",
+      "coverage": "available",
+      "flags_triage": "available",
+      "phrase_timing": "available"
+    },
+    "trial": "available",
+    "media_identical_to_phase2": "9/9",
+    "flags_triage_identical": true,
+    "inputs_unchanged_during_compose": "18/18",
+    "schema1_refusal_check": {
+      "output": "artifacts/s2/ui_core/real-take/schema1-refusal-check",
+      "phrase_timing": "unavailable; both rhythm_clicks schema-1 files refused layer_schema_superseded (2/2)"
+    },
+    "protected_hashes_equal_before_and_after": "5/5 (compose and walkthrough)"
+  },
+  "metrics": [
+    {
+      "metric": "Real-take timing rows",
+      "class": "M",
+      "value": "97 rows in 2 files: 56 measured, 41 abstained"
+    },
+    {
+      "metric": "Real-take direction labels in bundle data",
+      "class": "M",
+      "before": "56/56 measured (27 ahead_of_click, 27 within_5_ms, 2 behind_click)",
+      "after": "0/56; 56 withheld_uncalibrated"
+    },
+    {
+      "metric": "Real-take direction labels rendered (shipped JS under Node harness)",
+      "class": "M",
+      "before": "56",
+      "after": "0; 56 'direction withheld (uncalibrated)', 41 abstained rows"
+    },
+    {
+      "metric": "Verdict words in generated timing text (real take)",
+      "class": "M",
+      "value": "0"
+    },
+    {
+      "metric": "Real-take walkthrough",
+      "class": "M",
+      "value": "4/4 configs no horizontal overflow; 56 players paused; 0 exceptions; 0 verdict hits; triage 15/112/44 of 171 in 4/4"
+    },
+    {
+      "metric": "Lane tests",
+      "class": "M",
+      "value": "test_review_ui_s2 24/24 (22 prior + 2 new), test_review_ui_s1 13/13"
+    },
+    {
+      "metric": "Rust",
+      "class": "M",
+      "value": "cargo test --locked -j 1: 27 passed, 1 ignored, 0 failed"
+    }
+  ],
+  "claims": {
+    "measured": [
+      "Offsets and counts are copied from phrase_timing outputs; this lane computed no new offsets beyond rerunning main's unchanged measurement on the same inputs."
+    ],
+    "inferred": [],
+    "unknown_or_not_established": [
+      "phrase_timing real-take validity",
+      "real-take timing direction (withheld until operator calibration)",
+      "listening_acceptance",
+      "operator_preference"
+    ]
+  },
+  "adoption": {
+    "default_adopted": false,
+    "anchor_adopted": false,
+    "master_changed": false,
+    "profile_changed": false,
+    "detectors_rerun": false
+  },
+  "files": {
+    "review/practice_s2.js": "d1b877143ec506451d9da6a2369e77a9aa1d5ccb6b911f2d2c446d699ff1cf3d",
+    "review/practice_s2_bundle.py": "ceb461324acbaaeb0f028481f09c51e6f637c452a4d17fe24656743db2653636",
+    "review/make_practice_fixture_s2.py": "63bbc05d93d2e6e358e997858dd6902a1382c1b1b1004d106a049fc8254a528f",
+    "tests/test_review_ui_s2.py": "02930edc442bbe6b9846ce22db5d941a9e76629c9875ffa875c190c7f5f42de6",
+    "docs/spec/sprints/REVIEW_UI_S2.md": "83f9a9d23765cfd0813fafcc199b8250e9f738d6be8a2ad87650491e13e00b05",
+    "review/practice_s2_review_server.diff": "c461868e9b08b5d162d61c7ea9b3c63eb58bea33775dd9194eb4d642c12eefad"
+  },
+  "root_owned_changes_requested": [
+    {
+      "file": "scripts/review_server.py",
+      "change": "apply review/practice_s2_review_server.diff (unchanged; scripts/review_server.py identical between 0cdca01 and main)"
+    }
+  ]
+}
