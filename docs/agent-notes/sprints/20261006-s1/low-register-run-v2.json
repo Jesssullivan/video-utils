@@ -1,0 +1,5605 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004; operatorS1; R-N11/R-N12/R-N13",
+  "created_utc": "2026-10-06T06:08:58.481802+00:00",
+  "pid": 7733,
+  "result": {
+    "actual_audio_processed": false,
+    "arm_count": 4,
+    "audio_artifact_bytes": 793862454,
+    "calibrations": [
+      {
+        "delay_samples": 1102,
+        "measured_impulse_offsets": [
+          1102,
+          1102
+        ],
+        "nr": 8,
+        "sample_rate": 44100
+      },
+      {
+        "delay_samples": 1102,
+        "measured_impulse_offsets": [
+          1102,
+          1102
+        ],
+        "nr": 10,
+        "sample_rate": 44100
+      },
+      {
+        "delay_samples": 1200,
+        "measured_impulse_offsets": [
+          1200,
+          1200
+        ],
+        "nr": 8,
+        "sample_rate": 48000
+      },
+      {
+        "delay_samples": 1200,
+        "measured_impulse_offsets": [
+          1200,
+          1200
+        ],
+        "nr": 10,
+        "sample_rate": 48000
+      }
+    ],
+    "case_count": 9,
+    "deadline_seconds": 180,
+    "default_adoption": false,
+    "elapsed_seconds": 45.32424449999962,
+    "ffmpeg_sha256": "3a315207e67de78e48c3bbb6b3346663f6a27c02e034d65ac72a12fee74c534a",
+    "ffmpeg_version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "gates": {
+      "attack_centroid_ms": 2.0,
+      "attack_tail_legato_db": [
+        -1.0,
+        0.5
+      ],
+      "conditional_additivity_max_abs": 4e-07,
+      "fundamental_db": [
+        -0.5,
+        0.1
+      ],
+      "noise_broadband_attenuation_db": 3.0
+    },
+    "helper_sha256": "0fe36986320083506ec6629328bf2ac20cd55bd20d2474bf550977b27a2ca94d",
+    "listening_acceptance": false,
+    "master_changed": false,
+    "plan_sha256": "d1a85f0248be3d224ed3b301c91016c2f61081b0589789c6faf556a561e52cf8",
+    "results": [
+      {
+        "active_sample_frame_denominator": 246960,
+        "alias": "lr01",
+        "arm": "bypass",
+        "broadband_noise_gate_eligible": false,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 0.0,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 2,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.12000000000253178,
+            "source_amplitude": 0.12000000000253178,
+            "status": "measured",
+            "value_db": 0.0
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.12000000000230884,
+            "source_amplitude": 0.12000000000230884,
+            "status": "measured",
+            "value_db": 0.0
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_relative_error": {
+          "status": "complete_attenuation",
+          "value_db": null
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4142135623730963,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.12000000000253178,
+                "source_amplitude": 0.12000000000253178,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.029999999969302714,
+                "source_amplitude": 0.029999999969302714,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.017999999971761556,
+                "source_amplitude": 0.017999999971761556,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.011999999987589893,
+                "source_amplitude": 0.011999999987589893,
+                "status": "measured",
+                "value_db": 0.0
+              }
+            ],
+            "sample_count": 88200,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.41851878332717,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.12000000000230884,
+                "source_amplitude": 0.12000000000230884,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.0299999999945575,
+                "source_amplitude": 0.0299999999945575,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.01799999999291019,
+                "source_amplitude": 0.01799999999291019,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.012000000001902105,
+                "source_amplitude": 0.012000000001902105,
+                "status": "measured",
+                "value_db": 0.0
+              }
+            ],
+            "sample_count": 141120,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "complete_attenuation",
+          "value_db": null
+        },
+        "kind": "clean-sentinels",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "zero_reference",
+            "value_db": null
+          },
+          "20-45": {
+            "status": "zero_reference",
+            "value_db": null
+          },
+          "45-120": {
+            "status": "zero_reference",
+            "value_db": null
+          }
+        },
+        "noise_control_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "complete_attenuation",
+          "value_db": null
+        },
+        "processed_peak_abs": 0.12758350372314453,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 352800
+      },
+      {
+        "active_sample_frame_denominator": 246960,
+        "alias": "lr01",
+        "arm": "captured_nr8",
+        "broadband_noise_gate_eligible": false,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 2,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.11999999606849217,
+            "source_amplitude": 0.12000000000253178,
+            "status": "measured",
+            "value_db": -2.8475528733111224e-07
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.11999999635722082,
+            "source_amplitude": 0.12000000000230884,
+            "status": "measured",
+            "value_db": -2.638402727251508e-07
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -1.7223845779551195e-06
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -1.6574496065891404e-06
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": -2.998471827660863e-07
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -72.73782074895963
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4142135623730963,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.11999999606849217,
+                "source_amplitude": 0.12000000000253178,
+                "status": "measured",
+                "value_db": -2.8475528733111224e-07
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.030000000210559787,
+                "source_amplitude": 0.029999999969302714,
+                "status": "measured",
+                "value_db": 6.985107711681397e-08
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.018000000689693065,
+                "source_amplitude": 0.017999999971761556,
+                "status": "measured",
+                "value_db": 3.4643743007142353e-07
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.011999998622974167,
+                "source_amplitude": 0.011999999987589893,
+                "status": "measured",
+                "value_db": -9.87741856480389e-07
+              }
+            ],
+            "sample_count": 88200,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.41851878332717,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.11999999635722082,
+                "source_amplitude": 0.12000000000230884,
+                "status": "measured",
+                "value_db": -2.638402727251508e-07
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.02999999786466091,
+                "source_amplitude": 0.0299999999945575,
+                "status": "measured",
+                "value_db": -6.166682456705754e-07
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.017999999277586103,
+                "source_amplitude": 0.01799999999291019,
+                "status": "measured",
+                "value_db": -3.451792337197218e-07
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.012000000895951633,
+                "source_amplitude": 0.012000000001902105,
+                "status": "measured",
+                "value_db": 6.471346033054975e-07
+              }
+            ],
+            "sample_count": 141120,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "complete_attenuation",
+          "value_db": null
+        },
+        "kind": "clean-sentinels",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "zero_reference",
+            "value_db": null
+          },
+          "20-45": {
+            "status": "zero_reference",
+            "value_db": null
+          },
+          "45-120": {
+            "status": "zero_reference",
+            "value_db": null
+          }
+        },
+        "noise_control_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -72.73782074895963
+        },
+        "processed_peak_abs": 0.1276053637266159,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 352800
+      },
+      {
+        "active_sample_frame_denominator": 246960,
+        "alias": "lr01",
+        "arm": "captured_nr10",
+        "broadband_noise_gate_eligible": false,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 2,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.11999999606890285,
+            "source_amplitude": 0.12000000000253178,
+            "status": "measured",
+            "value_db": -2.847255600073263e-07
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.11999999639753176,
+            "source_amplitude": 0.12000000000230884,
+            "status": "measured",
+            "value_db": -2.609224703770165e-07
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -1.7720880138955582e-06
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -1.698282064098863e-06
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": -3.00604649989334e-07
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -72.10818273655116
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4142135623730963,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.11999999606890285,
+                "source_amplitude": 0.12000000000253178,
+                "status": "measured",
+                "value_db": -2.847255600073263e-07
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.030000000298684385,
+                "source_amplitude": 0.029999999969302714,
+                "status": "measured",
+                "value_db": 9.536576022046715e-08
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.018000000725887335,
+                "source_amplitude": 0.017999999971761556,
+                "status": "measured",
+                "value_db": 3.6390295427240595e-07
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.011999998466492249,
+                "source_amplitude": 0.011999999987589893,
+                "status": "measured",
+                "value_db": -1.1010072593393516e-06
+              }
+            ],
+            "sample_count": 88200,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.41851878332717,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.11999999639753176,
+                "source_amplitude": 0.12000000000230884,
+                "status": "measured",
+                "value_db": -2.609224703770165e-07
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.029999997779530437,
+                "source_amplitude": 0.0299999999945575,
+                "status": "measured",
+                "value_db": -6.413160438040742e-07
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.017999999252189754,
+                "source_amplitude": 0.01799999999291019,
+                "status": "measured",
+                "value_db": -3.5743422781706145e-07
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.012000001038001216,
+                "source_amplitude": 0.012000000001902105,
+                "status": "measured",
+                "value_db": 7.499535116209578e-07
+              }
+            ],
+            "sample_count": 141120,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "complete_attenuation",
+          "value_db": null
+        },
+        "kind": "clean-sentinels",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "zero_reference",
+            "value_db": null
+          },
+          "20-45": {
+            "status": "zero_reference",
+            "value_db": null
+          },
+          "45-120": {
+            "status": "zero_reference",
+            "value_db": null
+          }
+        },
+        "noise_control_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -72.10818273655116
+        },
+        "processed_peak_abs": 0.12761084735393524,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 352800
+      },
+      {
+        "active_sample_frame_denominator": 246960,
+        "alias": "lr01",
+        "arm": "protected_mask",
+        "broadband_noise_gate_eligible": false,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 0.0,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 2,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.12000000000253178,
+            "source_amplitude": 0.12000000000253178,
+            "status": "measured",
+            "value_db": 0.0
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.12000000000230884,
+            "source_amplitude": 0.12000000000230884,
+            "status": "measured",
+            "value_db": 0.0
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": 9.64327466553287e-16
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 9.64327466553287e-16
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -313.0581102303499
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4142135623730963,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.12000000000253178,
+                "source_amplitude": 0.12000000000253178,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.029999999969302714,
+                "source_amplitude": 0.029999999969302714,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.017999999971761556,
+                "source_amplitude": 0.017999999971761556,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.011999999987589894,
+                "source_amplitude": 0.011999999987589893,
+                "status": "measured",
+                "value_db": 1.928654933106574e-15
+              }
+            ],
+            "sample_count": 88200,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.41851878332717,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.12000000000230884,
+                "source_amplitude": 0.12000000000230884,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.02999999999455752,
+                "source_amplitude": 0.0299999999945575,
+                "status": "measured",
+                "value_db": 5.785964799319721e-15
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.0179999999929102,
+                "source_amplitude": 0.01799999999291019,
+                "status": "measured",
+                "value_db": 5.785964799319721e-15
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.012000000001902092,
+                "source_amplitude": 0.012000000001902105,
+                "status": "measured",
+                "value_db": -9.643274665532877e-15
+              }
+            ],
+            "sample_count": 141120,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "complete_attenuation",
+          "value_db": null
+        },
+        "kind": "clean-sentinels",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "zero_reference",
+            "value_db": null
+          },
+          "20-45": {
+            "status": "zero_reference",
+            "value_db": null
+          },
+          "45-120": {
+            "status": "zero_reference",
+            "value_db": null
+          }
+        },
+        "noise_control_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -313.0581102303499
+        },
+        "processed_peak_abs": 0.12758350372314456,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 352800
+      },
+      {
+        "active_sample_frame_denominator": 0,
+        "alias": "lr02",
+        "arm": "bypass",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 0.0,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "missing_f0_or_no_guitar",
+        "fundamental_gain_rows": [],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "guitar_response_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "guitar_response_low_band": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "guitar_response_relative_error": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "harmonic_fits": [],
+        "interaction_relative_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "kind": "fan-only",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": 0.0
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "processed_peak_abs": 0.05395147576928139,
+        "quality_alerts": [
+          "noise_control_broadband"
+        ],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 384000
+      },
+      {
+        "active_sample_frame_denominator": 0,
+        "alias": "lr02",
+        "arm": "captured_nr8",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "missing_f0_or_no_guitar",
+        "fundamental_gain_rows": [],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "guitar_response_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "guitar_response_low_band": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "guitar_response_relative_error": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "harmonic_fits": [],
+        "interaction_relative_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "kind": "fan-only",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -6.162306025039786
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -3.1416082907029192
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -5.610583034289204
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -3.387135514200587
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "processed_peak_abs": 0.031211592257022858,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 384000
+      },
+      {
+        "active_sample_frame_denominator": 0,
+        "alias": "lr02",
+        "arm": "captured_nr10",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "missing_f0_or_no_guitar",
+        "fundamental_gain_rows": [],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "guitar_response_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "guitar_response_low_band": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "guitar_response_relative_error": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "harmonic_fits": [],
+        "interaction_relative_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "kind": "fan-only",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -7.241086956340944
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -3.410581783639145
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -6.50800561173368
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -3.698920244147625
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "processed_peak_abs": 0.028816459700465202,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 384000
+      },
+      {
+        "active_sample_frame_denominator": 0,
+        "alias": "lr02",
+        "arm": "protected_mask",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 0.0,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "missing_f0_or_no_guitar",
+        "fundamental_gain_rows": [],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "guitar_response_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "guitar_response_low_band": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "guitar_response_relative_error": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "harmonic_fits": [],
+        "interaction_relative_energy": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "kind": "fan-only",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -5.164846649227242
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -5.235150735652676e-07
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -0.7562997926574055
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -0.294008895938376
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "zero_reference",
+          "value_db": null
+        },
+        "processed_peak_abs": 0.041540315905527904,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 384000
+      },
+      {
+        "active_sample_frame_denominator": 312000,
+        "alias": "lr03",
+        "arm": "bypass",
+        "broadband_noise_gate_eligible": false,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 7.450580596923828e-09,
+        "exact_collision": true,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "collision_not_identifiable",
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.12000000001560218,
+            "source_amplitude": 0.12000000001560218,
+            "status": "measured",
+            "value_db": 0.0
+          },
+          {
+            "channel": 1,
+            "harmonic": 1,
+            "output_amplitude": 0.12000000001560218,
+            "source_amplitude": 0.12000000001560218,
+            "status": "measured",
+            "value_db": 0.0
+          }
+        ],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_relative_error": {
+          "status": "complete_attenuation",
+          "value_db": null
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091747373,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.12000000001560218,
+                "source_amplitude": 0.12000000001560218,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 1,
+                "harmonic": 1,
+                "output_amplitude": 0.12000000001560218,
+                "source_amplitude": 0.12000000001560218,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.030000000018896217,
+                "source_amplitude": 0.030000000018896217,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 1,
+                "harmonic": 2,
+                "output_amplitude": 0.030000000018896217,
+                "source_amplitude": 0.030000000018896217,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.01800000000080842,
+                "source_amplitude": 0.01800000000080842,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 1,
+                "harmonic": 3,
+                "output_amplitude": 0.01800000000080842,
+                "source_amplitude": 0.01800000000080842,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 1.0828612009548272e-11,
+                "source_amplitude": 1.0828612009548272e-11,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              },
+              {
+                "channel": 1,
+                "harmonic": 4,
+                "output_amplitude": 1.0828612009548272e-11,
+                "source_amplitude": 1.0828612009548272e-11,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 302400,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -149.64592619919324
+        },
+        "kind": "exact-collision",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": 0.0
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -8.94922290070168
+        },
+        "processed_peak_abs": 0.1645774394273758,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 768000
+      },
+      {
+        "active_sample_frame_denominator": 312000,
+        "alias": "lr03",
+        "arm": "captured_nr8",
+        "broadband_noise_gate_eligible": false,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": true,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "collision_not_identifiable",
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.12590960701873763,
+            "source_amplitude": 0.12000000001560218,
+            "status": "measured",
+            "value_db": 0.4175524467230928
+          },
+          {
+            "channel": 1,
+            "harmonic": 1,
+            "output_amplitude": 0.12012156201043128,
+            "source_amplitude": 0.12000000001560218,
+            "status": "measured",
+            "value_db": 0.008794496858701787
+          }
+        ],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": 0.14462859619005675
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": 0.14463778996370139
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.21794631489367197
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -23.678516151422304
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091747373,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.12590960701873763,
+                "source_amplitude": 0.12000000001560218,
+                "status": "measured",
+                "value_db": 0.4175524467230928
+              },
+              {
+                "channel": 1,
+                "harmonic": 1,
+                "output_amplitude": 0.12012156201043128,
+                "source_amplitude": 0.12000000001560218,
+                "status": "measured",
+                "value_db": 0.008794496858701787
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.029237836590987713,
+                "source_amplitude": 0.030000000018896217,
+                "status": "measured",
+                "value_db": -0.22352040949377494
+              },
+              {
+                "channel": 1,
+                "harmonic": 2,
+                "output_amplitude": 0.029241357289244797,
+                "source_amplitude": 0.030000000018896217,
+                "status": "measured",
+                "value_db": -0.22247455388196416
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.01270862273789424,
+                "source_amplitude": 0.01800000000080842,
+                "status": "measured",
+                "value_db": -3.023480349821759
+              },
+              {
+                "channel": 1,
+                "harmonic": 3,
+                "output_amplitude": 0.012381600509313818,
+                "source_amplitude": 0.01800000000080842,
+                "status": "measured",
+                "value_db": -3.2499143534661896
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.0002948392797146554,
+                "source_amplitude": 1.0828612009548272e-11,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              },
+              {
+                "channel": 1,
+                "harmonic": 4,
+                "output_amplitude": 0.00023503587364648496,
+                "source_amplitude": 1.0828612009548272e-11,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 302400,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -26.33504073014899
+        },
+        "kind": "exact-collision",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": 81.63097028637743
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -1.395525192600378
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": 72.06401761537475
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -1.3971697615789358
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -9.11709177389045
+        },
+        "processed_peak_abs": 0.16462206840515137,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 768000
+      },
+      {
+        "active_sample_frame_denominator": 312000,
+        "alias": "lr03",
+        "arm": "captured_nr10",
+        "broadband_noise_gate_eligible": false,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": true,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "collision_not_identifiable",
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.12614188872236287,
+            "source_amplitude": 0.12000000001560218,
+            "status": "measured",
+            "value_db": 0.4335616658539762
+          },
+          {
+            "channel": 1,
+            "harmonic": 1,
+            "output_amplitude": 0.12013255781334622,
+            "source_amplitude": 0.12000000001560218,
+            "status": "measured",
+            "value_db": 0.009589557777848295
+          }
+        ],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": 0.15162211525921904
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": 0.15163302803656034
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.22670294254984177
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -23.35116781729492
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091747373,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.12614188872236287,
+                "source_amplitude": 0.12000000001560218,
+                "status": "measured",
+                "value_db": 0.4335616658539762
+              },
+              {
+                "channel": 1,
+                "harmonic": 1,
+                "output_amplitude": 0.12013255781334622,
+                "source_amplitude": 0.12000000001560218,
+                "status": "measured",
+                "value_db": 0.009589557777848295
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.02923783710520148,
+                "source_amplitude": 0.030000000018896217,
+                "status": "measured",
+                "value_db": -0.2235202567326785
+              },
+              {
+                "channel": 1,
+                "harmonic": 2,
+                "output_amplitude": 0.029223402544917378,
+                "source_amplitude": 0.030000000018896217,
+                "status": "measured",
+                "value_db": -0.22780949181903234
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.01271624600498253,
+                "source_amplitude": 0.01800000000080842,
+                "status": "measured",
+                "value_db": -3.018271681154535
+              },
+              {
+                "channel": 1,
+                "harmonic": 3,
+                "output_amplitude": 0.01202269653668941,
+                "source_amplitude": 0.01800000000080842,
+                "status": "measured",
+                "value_db": -3.505412396934969
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.00030349916527527766,
+                "source_amplitude": 1.0828612009548272e-11,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              },
+              {
+                "channel": 1,
+                "harmonic": 4,
+                "output_amplitude": 0.0003508207338129255,
+                "source_amplitude": 1.0828612009548272e-11,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 302400,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -25.95349292625883
+        },
+        "kind": "exact-collision",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": 83.00245173322615
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -1.4549448070233748
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": 72.43850790692727
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -1.4563241837023018
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -9.120252549543807
+        },
+        "processed_peak_abs": 0.16462208330631256,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 768000
+      },
+      {
+        "active_sample_frame_denominator": 312000,
+        "alias": "lr03",
+        "arm": "protected_mask",
+        "broadband_noise_gate_eligible": false,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 8.319182086269361e-09,
+        "exact_collision": true,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "collision_not_identifiable",
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.11999999996614356,
+            "source_amplitude": 0.12000000001560218,
+            "status": "measured",
+            "value_db": -3.5799345717813714e-09
+          },
+          {
+            "channel": 1,
+            "harmonic": 1,
+            "output_amplitude": 0.1199999999237996,
+            "source_amplitude": 0.12000000001560218,
+            "status": "measured",
+            "value_db": -6.6448922406479445e-09
+          }
+        ],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -2.8319774585306776e-07
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -2.831947217219355e-07
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": -4.736711908352578e-09
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -114.67539417630368
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091747373,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.11999999996614356,
+                "source_amplitude": 0.12000000001560218,
+                "status": "measured",
+                "value_db": -3.5799345717813714e-09
+              },
+              {
+                "channel": 1,
+                "harmonic": 1,
+                "output_amplitude": 0.1199999999237996,
+                "source_amplitude": 0.12000000001560218,
+                "status": "measured",
+                "value_db": -6.6448922406479445e-09
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.02999999794817933,
+                "source_amplitude": 0.030000000018896217,
+                "status": "measured",
+                "value_db": -5.99533965076278e-07
+              },
+              {
+                "channel": 1,
+                "harmonic": 2,
+                "output_amplitude": 0.029999997872708236,
+                "source_amplitude": 0.030000000018896217,
+                "status": "measured",
+                "value_db": -6.213850869807293e-07
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.017999976865406185,
+                "source_amplitude": 0.01800000000080842,
+                "status": "measured",
+                "value_db": -1.1163982205308455e-05
+              },
+              {
+                "channel": 1,
+                "harmonic": 3,
+                "output_amplitude": 0.01799997649011377,
+                "source_amplitude": 0.01800000000080842,
+                "status": "measured",
+                "value_db": -1.1345079578846861e-05
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 2.8272291296408883e-08,
+                "source_amplitude": 1.0828612009548272e-11,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              },
+              {
+                "channel": 1,
+                "harmonic": 4,
+                "output_amplitude": 7.354148408014432e-09,
+                "source_amplitude": 1.0828612009548272e-11,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 302400,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -150.4385217507064
+        },
+        "kind": "exact-collision",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": 34.80233282285702
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -9.642452587071994e-09
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": 0.8176552930779585
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -1.6710062420382092e-07
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -8.949223069102372
+        },
+        "processed_peak_abs": 0.16457777312734614,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 768000
+      },
+      {
+        "active_sample_frame_denominator": 286650,
+        "alias": "lr04",
+        "arm": "bypass",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 7.450580596923828e-09,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 1,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.12000000000510506,
+            "source_amplitude": 0.12000000000510506,
+            "status": "measured",
+            "value_db": 0.0
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_relative_error": {
+          "status": "complete_attenuation",
+          "value_db": null
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091749795,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.12000000000510506,
+                "source_amplitude": 0.12000000000510506,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.02999999999663739,
+                "source_amplitude": 0.02999999999663739,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.017999999996338722,
+                "source_amplitude": 0.017999999996338722,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 1.880532824989726e-12,
+                "source_amplitude": 1.880532824989726e-12,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 277830,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -150.7834668376986
+        },
+        "kind": "separated-line",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": 0.0
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -8.735604849226235
+        },
+        "processed_peak_abs": 0.19061167538166046,
+        "quality_alerts": [
+          "noise_control_broadband"
+        ],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 352800
+      },
+      {
+        "active_sample_frame_denominator": 286650,
+        "alias": "lr04",
+        "arm": "captured_nr8",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 1,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.1200294739618467,
+            "source_amplitude": 0.12000000000510506,
+            "status": "measured",
+            "value_db": 0.0021331341731556366
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.009243066543002372
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.009240352917019995
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.0009707778772890376
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -34.89615075746845
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091749795,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.1200294739618467,
+                "source_amplitude": 0.12000000000510506,
+                "status": "measured",
+                "value_db": 0.0021331341731556366
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.029576049532410557,
+                "source_amplitude": 0.02999999999663739,
+                "status": "measured",
+                "value_db": -0.12362179543583704
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.017525892666807562,
+                "source_amplitude": 0.017999999996338722,
+                "status": "measured",
+                "value_db": -0.23184714767329628
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 2.826808132047773e-05,
+                "source_amplitude": 1.880532824989726e-12,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 277830,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -30.36428617758571
+        },
+        "kind": "separated-line",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -5.677310177783948
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -7.936664791887821
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -0.9010459056013852
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -1.0184133114205114
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -9.544151184257775
+        },
+        "processed_peak_abs": 0.18150296807289124,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 352800
+      },
+      {
+        "active_sample_frame_denominator": 286650,
+        "alias": "lr04",
+        "arm": "captured_nr10",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 1,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.12003348864696237,
+            "source_amplitude": 0.12000000000510506,
+            "status": "measured",
+            "value_db": 0.0024236505566124483
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.008768077914719674
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.008764801593819715
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.0011524145425268761
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -34.04724823919179
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091749795,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.12003348864696237,
+                "source_amplitude": 0.12000000000510506,
+                "status": "measured",
+                "value_db": 0.0024236505566124483
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.029574101317949075,
+                "source_amplitude": 0.02999999999663739,
+                "status": "measured",
+                "value_db": -0.12419396560164643
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.017525772538925042,
+                "source_amplitude": 0.017999999996338722,
+                "status": "measured",
+                "value_db": -0.23190668364820138
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 2.913063086660545e-05,
+                "source_amplitude": 1.880532824989726e-12,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 277830,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -30.03468801468136
+        },
+        "kind": "separated-line",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -6.486512936845395
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -9.891734418157235
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -0.933869667618362
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -1.06112420989624
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -9.557657610576168
+        },
+        "processed_peak_abs": 0.18107984960079193,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 352800
+      },
+      {
+        "active_sample_frame_denominator": 286650,
+        "alias": "lr04",
+        "arm": "protected_mask",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 4.142804524778776e-09,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 1,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.11999999174419106,
+            "source_amplitude": 0.12000000000510506,
+            "status": "measured",
+            "value_db": -5.979449153088755e-07
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.0006908655083207775
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.0006873266471954544
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": -2.3127812794393658e-09
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -55.983889737544686
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091749795,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.11999999174419106,
+                "source_amplitude": 0.12000000000510506,
+                "status": "measured",
+                "value_db": -5.979449153088755e-07
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.029999966753949753,
+                "source_amplitude": 0.02999999999663739,
+                "status": "measured",
+                "value_db": -9.62474920375245e-06
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.017937199182352724,
+                "source_amplitude": 0.017999999996338722,
+                "status": "measured",
+                "value_db": -0.030357485123806566
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 4.161216887279604e-07,
+                "source_amplitude": 1.880532824989726e-12,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 277830,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -157.64347496111446
+        },
+        "kind": "separated-line",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -5.415652680648384
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -1.4552409771543667e-07
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -3.69026587456836
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -3.726653564069809
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -12.464733998745698
+        },
+        "processed_peak_abs": 0.16815226567169,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 352800
+      },
+      {
+        "active_sample_frame_denominator": 230400,
+        "alias": "lr05",
+        "arm": "bypass",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 7.450580596923828e-09,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 4,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.13629221214516807,
+            "source_amplitude": 0.13629221214516807,
+            "status": "measured",
+            "value_db": 0.0
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.13629507559776394,
+            "source_amplitude": 0.13629507559776394,
+            "status": "measured",
+            "value_db": 0.0
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.13630545377099465,
+            "source_amplitude": 0.13630545377099465,
+            "status": "measured",
+            "value_db": 0.0
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.1363008986822303,
+            "source_amplitude": 0.1363008986822303,
+            "status": "measured",
+            "value_db": 0.0
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_relative_error": {
+          "status": "complete_attenuation",
+          "value_db": null
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.428427012585193,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.13629221214516807,
+                "source_amplitude": 0.13629221214516807,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.004160434841763675,
+                "source_amplitude": 0.004160434841763675,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.03879794948239191,
+                "source_amplitude": 0.03879794948239191,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.004732416237394697,
+                "source_amplitude": 0.004732416237394697,
+                "status": "measured",
+                "value_db": 0.0
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.4246741174993023,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.13629507559776394,
+                "source_amplitude": 0.13629507559776394,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.00412445371291632,
+                "source_amplitude": 0.00412445371291632,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.03877383267271313,
+                "source_amplitude": 0.03877383267271313,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.004843976102326896,
+                "source_amplitude": 0.004843976102326896,
+                "status": "measured",
+                "value_db": 0.0
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.4175433257213497,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.13630545377099465,
+                "source_amplitude": 0.13630545377099465,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.004145853184124351,
+                "source_amplitude": 0.004145853184124351,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.0388048171008989,
+                "source_amplitude": 0.0388048171008989,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.0048787047228690105,
+                "source_amplitude": 0.0048787047228690105,
+                "status": "measured",
+                "value_db": 0.0
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.4195127783841743,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.1363008986822303,
+                "source_amplitude": 0.1363008986822303,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.0041521002633029625,
+                "source_amplitude": 0.0041521002633029625,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.03872315248132638,
+                "source_amplitude": 0.03872315248132638,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.004832124737155584,
+                "source_amplitude": 0.004832124737155584,
+                "status": "measured",
+                "value_db": 0.0
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -151.36283040932486
+        },
+        "kind": "walking-saturated",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": 0.0
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -12.39711538273848
+        },
+        "processed_peak_abs": 0.1549522876739502,
+        "quality_alerts": [
+          "noise_control_broadband"
+        ],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 384000
+      },
+      {
+        "active_sample_frame_denominator": 230400,
+        "alias": "lr05",
+        "arm": "captured_nr8",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 4,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.13630064401373004,
+            "source_amplitude": 0.13629221214516807,
+            "status": "measured",
+            "value_db": 0.0005373455550333095
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.13623530645850201,
+            "source_amplitude": 0.13629507559776394,
+            "status": "measured",
+            "value_db": -0.0038098369201807875
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.13629952569217263,
+            "source_amplitude": 0.13630545377099465,
+            "status": "measured",
+            "value_db": -0.00037776740926254897
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.1362881164383744,
+            "source_amplitude": 0.1363008986822303,
+            "status": "measured",
+            "value_db": -0.0008145974590456107
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.014400250139533808
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.014379173680286319
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.0006024992577774602
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -28.7576085161907
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.428427012585193,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.13630064401373004,
+                "source_amplitude": 0.13629221214516807,
+                "status": "measured",
+                "value_db": 0.0005373455550333095
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.004275199540674584,
+                "source_amplitude": 0.004160434841763675,
+                "status": "measured",
+                "value_db": 0.23635330119112724
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.03876946824565442,
+                "source_amplitude": 0.03879794948239191,
+                "status": "measured",
+                "value_db": -0.006378577434209267
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.004788439622177848,
+                "source_amplitude": 0.004732416237394697,
+                "status": "measured",
+                "value_db": 0.10222159876294656
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.4246741174993023,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.13623530645850201,
+                "source_amplitude": 0.13629507559776394,
+                "status": "measured",
+                "value_db": -0.0038098369201807875
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.004046405540796799,
+                "source_amplitude": 0.00412445371291632,
+                "status": "measured",
+                "value_db": -0.16594054738337782
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.038751693263824695,
+                "source_amplitude": 0.03877383267271313,
+                "status": "measured",
+                "value_db": -0.004960958733564438
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.005191182625060855,
+                "source_amplitude": 0.004843976102326896,
+                "status": "measured",
+                "value_db": 0.6012863134665289
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.4175433257213497,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.13629952569217263,
+                "source_amplitude": 0.13630545377099465,
+                "status": "measured",
+                "value_db": -0.00037776740926254897
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.004245157612742241,
+                "source_amplitude": 0.004145853184124351,
+                "status": "measured",
+                "value_db": 0.20559801453384463
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.04077912338515714,
+                "source_amplitude": 0.0388048171008989,
+                "status": "measured",
+                "value_db": 0.43104489699837156
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.004598073687538784,
+                "source_amplitude": 0.0048787047228690105,
+                "status": "measured",
+                "value_db": -0.5145721386064951
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.4195127783841743,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.1362881164383744,
+                "source_amplitude": 0.1363008986822303,
+                "status": "measured",
+                "value_db": -0.0008145974590456107
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.004176305389852396,
+                "source_amplitude": 0.0041521002633029625,
+                "status": "measured",
+                "value_db": 0.05048833080453781
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.038205115748069146,
+                "source_amplitude": 0.03872315248132638,
+                "status": "measured",
+                "value_db": -0.11698373078339197
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.0035447336676979763,
+                "source_amplitude": 0.004832124737155584,
+                "status": "measured",
+                "value_db": -2.691090530274718
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -32.25935440402967
+        },
+        "kind": "walking-saturated",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -1.1459283514889473
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -4.854507565301689
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -4.925157906759504
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -1.1897580196368103
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -12.924023949786047
+        },
+        "processed_peak_abs": 0.15213079750537872,
+        "quality_alerts": [
+          "noise_control_broadband"
+        ],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 384000
+      },
+      {
+        "active_sample_frame_denominator": 230400,
+        "alias": "lr05",
+        "arm": "captured_nr10",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 4,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.1363044466048922,
+            "source_amplitude": 0.13629221214516807,
+            "status": "measured",
+            "value_db": 0.0007796659541140849
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.13622738219349775,
+            "source_amplitude": 0.13629507559776394,
+            "status": "measured",
+            "value_db": -0.004315075209134847
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.13630232083529192,
+            "source_amplitude": 0.13630545377099465,
+            "status": "measured",
+            "value_db": -0.00019964459045609877
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.13628454535296267,
+            "source_amplitude": 0.1363008986822303,
+            "status": "measured",
+            "value_db": -0.001042192211743123
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.014155376438697074
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.01412985377594175
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.0006564816512570782
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -28.239857673226986
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.428427012585193,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.1363044466048922,
+                "source_amplitude": 0.13629221214516807,
+                "status": "measured",
+                "value_db": 0.0007796659541140849
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.004283920542218616,
+                "source_amplitude": 0.004160434841763675,
+                "status": "measured",
+                "value_db": 0.2540536447837619
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.03877138704228186,
+                "source_amplitude": 0.03879794948239191,
+                "status": "measured",
+                "value_db": -0.00594870196571358
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.004788288852235157,
+                "source_amplitude": 0.004732416237394697,
+                "status": "measured",
+                "value_db": 0.10194810848146885
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.4246741174993023,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.13622738219349775,
+                "source_amplitude": 0.13629507559776394,
+                "status": "measured",
+                "value_db": -0.004315075209134847
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.004039837526300101,
+                "source_amplitude": 0.00412445371291632,
+                "status": "measured",
+                "value_db": -0.1800506999306273
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.03875413932227456,
+                "source_amplitude": 0.03877383267271313,
+                "status": "measured",
+                "value_db": -0.004412711123238203
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.005207945666258615,
+                "source_amplitude": 0.004843976102326896,
+                "status": "measured",
+                "value_db": 0.6292890552109821
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.4175433257213497,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.13630232083529192,
+                "source_amplitude": 0.13630545377099465,
+                "status": "measured",
+                "value_db": -0.00019964459045609877
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.0042452348665924415,
+                "source_amplitude": 0.004145853184124351,
+                "status": "measured",
+                "value_db": 0.20575607988090713
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.04084379947906932,
+                "source_amplitude": 0.0388048171008989,
+                "status": "measured",
+                "value_db": 0.44480989123774206
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.004590490497346063,
+                "source_amplitude": 0.0048787047228690105,
+                "status": "measured",
+                "value_db": -0.5289088220636685
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.4195127783841743,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.13628454535296267,
+                "source_amplitude": 0.1363008986822303,
+                "status": "measured",
+                "value_db": -0.001042192211743123
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.004178962992454909,
+                "source_amplitude": 0.0041521002633029625,
+                "status": "measured",
+                "value_db": 0.05601386095617612
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.03819355008991017,
+                "source_amplitude": 0.03872315248132638,
+                "status": "measured",
+                "value_db": -0.11961356809863838
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.0035282907174247285,
+                "source_amplitude": 0.004832124737155584,
+                "status": "measured",
+                "value_db": -2.73147549175974
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -31.547502478489193
+        },
+        "kind": "walking-saturated",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -1.1981554129552527
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -5.522176270068211
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -5.270070457576802
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -1.2442530062142108
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -12.944702970553557
+        },
+        "processed_peak_abs": 0.1517179161310196,
+        "quality_alerts": [
+          "noise_control_broadband"
+        ],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 384000
+      },
+      {
+        "active_sample_frame_denominator": 230400,
+        "alias": "lr05",
+        "arm": "protected_mask",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 4.372136203426025e-09,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 4,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.13629384281820597,
+            "source_amplitude": 0.13629221214516807,
+            "status": "measured",
+            "value_db": 0.00010392201497630801
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.1362951756720731,
+            "source_amplitude": 0.13629507559776394,
+            "status": "measured",
+            "value_db": 6.377589815868192e-06
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.13630524247852877,
+            "source_amplitude": 0.13630545377099465,
+            "status": "measured",
+            "value_db": -1.3464350924166735e-05
+          },
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.1362951990030065,
+            "source_amplitude": 0.1363008986822303,
+            "status": "measured",
+            "value_db": -0.0003632244565345403
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.03500770324499517
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.03494203694854631
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": -6.934223760927655e-07
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -30.849816131583438
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.428427012585193,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.13629384281820597,
+                "source_amplitude": 0.13629221214516807,
+                "status": "measured",
+                "value_db": 0.00010392201497630801
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.004157539537649327,
+                "source_amplitude": 0.004160434841763675,
+                "status": "measured",
+                "value_db": -0.006046734907898759
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.03876122306108134,
+                "source_amplitude": 0.03879794948239191,
+                "status": "measured",
+                "value_db": -0.008226020358043004
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.004511877888482376,
+                "source_amplitude": 0.004732416237394697,
+                "status": "measured",
+                "value_db": -0.414511972148979
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.4246741174993023,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.1362951756720731,
+                "source_amplitude": 0.13629507559776394,
+                "status": "measured",
+                "value_db": 6.377589815868192e-06
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.004016999196982997,
+                "source_amplitude": 0.00412445371291632,
+                "status": "measured",
+                "value_db": -0.22929378281857235
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.038726820787997954,
+                "source_amplitude": 0.03877383267271313,
+                "status": "measured",
+                "value_db": -0.01053771998465031
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.001964194393547285,
+                "source_amplitude": 0.004843976102326896,
+                "status": "measured",
+                "value_db": -7.840350496038601
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.4175433257213497,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.13630524247852877,
+                "source_amplitude": 0.13630545377099465,
+                "status": "measured",
+                "value_db": -1.3464350924166735e-05
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.003945565863452809,
+                "source_amplitude": 0.004145853184124351,
+                "status": "measured",
+                "value_db": -0.4300924203594457
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.03222407216477872,
+                "source_amplitude": 0.0388048171008989,
+                "status": "measured",
+                "value_db": -1.6141043869932776
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.004634060630412075,
+                "source_amplitude": 0.0048787047228690105,
+                "status": "measured",
+                "value_db": -0.4468564432723571
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          },
+          {
+            "condition_number": 1.4195127783841743,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.1362951990030065,
+                "source_amplitude": 0.1363008986822303,
+                "status": "measured",
+                "value_db": -0.0003632244565345403
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.0038095467818824833,
+                "source_amplitude": 0.0041521002633029625,
+                "status": "measured",
+                "value_db": -0.7478904197889176
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.03868221766215559,
+                "source_amplitude": 0.03872315248132638,
+                "status": "measured",
+                "value_db": -0.009186839470139941
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.004608669219984735,
+                "source_amplitude": 0.004832124737155584,
+                "status": "measured",
+                "value_db": -0.411251965210121
+              }
+            ],
+            "sample_count": 48000,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -158.07805928240273
+        },
+        "kind": "walking-saturated",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -4.747938598503271
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": 9.017564607300527e-06
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -0.4868449971952996
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -5.958956075330665
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -18.89752924968197
+        },
+        "processed_peak_abs": 0.14022034788607132,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 384000
+      },
+      {
+        "active_sample_frame_denominator": 209475,
+        "alias": "lr06",
+        "arm": "bypass",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 7.450580596923828e-09,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_relative_error": {
+          "status": "complete_attenuation",
+          "value_db": null
+        },
+        "harmonic_fits": [],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -150.9924087555953
+        },
+        "kind": "palm-legato-saturated",
+        "legato_event_denominator": 1,
+        "legato_sustain": [
+          {
+            "end_sample": 319725,
+            "start_sample": 231525,
+            "status": "measured",
+            "value_db": 0.0
+          }
+        ],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": 0.0
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": 0.0
+            },
+            "centroid_shift_ms": 0.0,
+            "end_sample": 61740,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "complete_attenuation",
+              "value_db": null
+            },
+            "start_sample": 44100,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": 0.0
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": 0.0
+            },
+            "centroid_shift_ms": 0.0,
+            "end_sample": 83790,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "complete_attenuation",
+              "value_db": null
+            },
+            "start_sample": 66150,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": 0.0
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": 0.0
+            },
+            "centroid_shift_ms": 0.0,
+            "end_sample": 105840,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "complete_attenuation",
+              "value_db": null
+            },
+            "start_sample": 88200,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": 0.0
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": 0.0
+            },
+            "centroid_shift_ms": 0.0,
+            "end_sample": 138915,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "complete_attenuation",
+              "value_db": null
+            },
+            "start_sample": 121275,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": 0.0
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": 0.0
+            },
+            "centroid_shift_ms": 0.0,
+            "end_sample": 171990,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "complete_attenuation",
+              "value_db": null
+            },
+            "start_sample": 154350,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": 0.0
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": 0.0
+            },
+            "centroid_shift_ms": 0.0,
+            "end_sample": 194040,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "complete_attenuation",
+              "value_db": null
+            },
+            "start_sample": 176400,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": 0.0
+            }
+          }
+        ],
+        "palm_event_denominator": 6,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -8.36824588783545
+        },
+        "processed_peak_abs": 0.1376761794090271,
+        "quality_alerts": [
+          "noise_control_broadband"
+        ],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 705600
+      },
+      {
+        "active_sample_frame_denominator": 209475,
+        "alias": "lr06",
+        "arm": "captured_nr8",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": 0.043808064799424624
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": 0.043988014449699964
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.2594089690779119
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -22.69471717356339
+        },
+        "harmonic_fits": [],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -22.529345256206874
+        },
+        "kind": "palm-legato-saturated",
+        "legato_event_denominator": 1,
+        "legato_sustain": [
+          {
+            "end_sample": 319725,
+            "start_sample": 231525,
+            "status": "measured",
+            "value_db": -0.1263367049070609
+          }
+        ],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -6.932273906077496
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -2.673060866535442
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -6.027081703538794
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -3.1538707079653046
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": 0.23599543656320043
+            },
+            "centroid_shift_ms": 0.09958140224761679,
+            "end_sample": 61740,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -36.52016886976518
+            },
+            "start_sample": 44100,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": 0.42950058113818235
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": -0.40561519766174736
+            },
+            "centroid_shift_ms": 0.0688679071450659,
+            "end_sample": 83790,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -44.61045444260721
+            },
+            "start_sample": 66150,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": -0.007885868266200198
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": 0.2335166696569357
+            },
+            "centroid_shift_ms": -0.08200204725005919,
+            "end_sample": 105840,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -41.40320527444385
+            },
+            "start_sample": 88200,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": 0.42539153192898366
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": -0.21691321651754067
+            },
+            "centroid_shift_ms": -0.009141904706612414,
+            "end_sample": 138915,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -42.54718554841897
+            },
+            "start_sample": 121275,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": -0.07477439893599913
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": 0.2475357988526294
+            },
+            "centroid_shift_ms": -0.035642185669048504,
+            "end_sample": 171990,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -40.9552147833115
+            },
+            "start_sample": 154350,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": 0.41951657450078506
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": -0.054550049553368896
+            },
+            "centroid_shift_ms": 0.2634013773362542,
+            "end_sample": 194040,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -40.183903349219605
+            },
+            "start_sample": 176400,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": -0.0884646330507941
+            }
+          }
+        ],
+        "palm_event_denominator": 6,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -10.019420440386027
+        },
+        "processed_peak_abs": 0.1325821578502655,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 705600
+      },
+      {
+        "active_sample_frame_denominator": 209475,
+        "alias": "lr06",
+        "arm": "captured_nr10",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": 0.05481504860465839
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": 0.055032587627215426
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.2821484977050448
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -22.04166780737762
+        },
+        "harmonic_fits": [],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -21.82598677902626
+        },
+        "kind": "palm-legato-saturated",
+        "legato_event_denominator": 1,
+        "legato_sustain": [
+          {
+            "end_sample": 319725,
+            "start_sample": 231525,
+            "status": "measured",
+            "value_db": -0.12321100968787733
+          }
+        ],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -8.34163112041111
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -2.8856983030712993
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -7.106355581802455
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -3.4399681018836126
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": 0.2536196075511708
+            },
+            "centroid_shift_ms": 0.09630192047107092,
+            "end_sample": 61740,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -35.83097466584412
+            },
+            "start_sample": 44100,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": 0.4627044815588276
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": -0.43184305185134936
+            },
+            "centroid_shift_ms": 0.07100857556330796,
+            "end_sample": 83790,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -43.35801908444978
+            },
+            "start_sample": 66150,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": 1.0565311336181592e-05
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": 0.2509062143633791
+            },
+            "centroid_shift_ms": -0.09075266813512485,
+            "end_sample": 105840,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -40.422332766690616
+            },
+            "start_sample": 88200,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": 0.457702039506361
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": -0.22755954465705344
+            },
+            "centroid_shift_ms": -0.017926858717865618,
+            "end_sample": 138915,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -41.50834502262011
+            },
+            "start_sample": 121275,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": -0.07162361144186082
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": 0.263915325949601
+            },
+            "centroid_shift_ms": -0.03654039645951783,
+            "end_sample": 171990,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -40.095850393856026
+            },
+            "start_sample": 154350,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": 0.4501936649600604
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": -0.05236599971447795
+            },
+            "centroid_shift_ms": 0.27960477106066944,
+            "end_sample": 194040,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -39.33294104676142
+            },
+            "start_sample": 176400,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": -0.08822598177380844
+            }
+          }
+        ],
+        "palm_event_denominator": 6,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -10.133762530099325
+        },
+        "processed_peak_abs": 0.13221561908721924,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 705600
+      },
+      {
+        "active_sample_frame_denominator": 209475,
+        "alias": "lr06",
+        "arm": "protected_mask",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 3.796847034692741e-09,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.010521429410755418
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.010417176838774952
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": -5.427170064825945e-07
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -36.28944962837827
+        },
+        "harmonic_fits": [],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -157.78765070682158
+        },
+        "kind": "palm-legato-saturated",
+        "legato_event_denominator": 1,
+        "legato_sustain": [
+          {
+            "end_sample": 319725,
+            "start_sample": 231525,
+            "status": "measured",
+            "value_db": -0.006262935258625445
+          }
+        ],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -5.064015351484038
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": 3.183838595410356e-08
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -0.5915041730340405
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -0.515351557194107
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": -0.03567176168612338
+            },
+            "centroid_shift_ms": 0.012838592020053899,
+            "end_sample": 61740,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -47.19475700186831
+            },
+            "start_sample": 44100,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": -0.0034766863254279954
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": -0.037367775050061836
+            },
+            "centroid_shift_ms": 0.0034611291440458936,
+            "end_sample": 83790,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -44.64190849790779
+            },
+            "start_sample": 66150,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": -0.007659760531058122
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": -0.06223603452768564
+            },
+            "centroid_shift_ms": -0.058417996903536995,
+            "end_sample": 105840,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -44.40343689889288
+            },
+            "start_sample": 88200,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": -0.002897748081381511
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": -0.07224211837280299
+            },
+            "centroid_shift_ms": 0.04646124986400213,
+            "end_sample": 138915,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -39.513501564331705
+            },
+            "start_sample": 121275,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": -0.006669852066814917
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": -0.04048443839394353
+            },
+            "centroid_shift_ms": -0.03924863655878179,
+            "end_sample": 171990,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -49.294958876256736
+            },
+            "start_sample": 154350,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": -0.003726881330700499
+            }
+          },
+          {
+            "attack_energy": {
+              "status": "measured",
+              "value_db": -0.0756184376527696
+            },
+            "centroid_shift_ms": 0.10570377770095785,
+            "end_sample": 194040,
+            "kind": "palm_mute",
+            "preattack_relative_rms": {
+              "status": "measured",
+              "value_db": -38.88494563189302
+            },
+            "start_sample": 176400,
+            "tail_energy": {
+              "status": "measured",
+              "value_db": -0.00851345831275927
+            }
+          }
+        ],
+        "palm_event_denominator": 6,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -8.87096030364726
+        },
+        "processed_peak_abs": 0.13224125129740807,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 705600
+      },
+      {
+        "active_sample_frame_denominator": 312000,
+        "alias": "lr07",
+        "arm": "bypass",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 7.450580596923828e-09,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "missing_f0_or_no_guitar",
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 8.97118912532125e-12,
+            "source_amplitude": 8.97118912532125e-12,
+            "status": "source_harmonic_below_fit_threshold",
+            "value_db": null
+          }
+        ],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_relative_error": {
+          "status": "complete_attenuation",
+          "value_db": null
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.414317163457808,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 8.97118912532125e-12,
+                "source_amplitude": 8.97118912532125e-12,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.09999999999763716,
+                "source_amplitude": 0.09999999999763716,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.06499999999651843,
+                "source_amplitude": 0.06499999999651843,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.03499999999631477,
+                "source_amplitude": 0.03499999999631477,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 5,
+                "output_amplitude": 0.019999999996069755,
+                "source_amplitude": 0.019999999996069755,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 7,
+                "output_amplitude": 0.012000000000296327,
+                "source_amplitude": 0.012000000000296327,
+                "status": "measured",
+                "value_db": 0.0
+              }
+            ],
+            "sample_count": 302400,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -151.90867805825224
+        },
+        "kind": "missing-f0",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": 0.0
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -10.116553230718186
+        },
+        "processed_peak_abs": 0.22734448313713074,
+        "quality_alerts": [
+          "noise_control_broadband"
+        ],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 384000
+      },
+      {
+        "active_sample_frame_denominator": 312000,
+        "alias": "lr07",
+        "arm": "captured_nr8",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "missing_f0_or_no_guitar",
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.006014183771778096,
+            "source_amplitude": 8.97118912532125e-12,
+            "status": "source_harmonic_below_fit_threshold",
+            "value_db": null
+          }
+        ],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.046441715700874665
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.046435608772697305
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 27.277666712992307
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -25.79741100780073
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.414317163457808,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.006014183771778096,
+                "source_amplitude": 8.97118912532125e-12,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.0990883636246033,
+                "source_amplitude": 0.09999999999763716,
+                "status": "measured",
+                "value_db": -0.07954687181406045
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.06472071088696328,
+                "source_amplitude": 0.06499999999651843,
+                "status": "measured",
+                "value_db": -0.03740155468646366
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.035113921463080254,
+                "source_amplitude": 0.03499999999631477,
+                "status": "measured",
+                "value_db": 0.02822578278042672
+              },
+              {
+                "channel": 0,
+                "harmonic": 5,
+                "output_amplitude": 0.019987010719923395,
+                "source_amplitude": 0.019999999996069755,
+                "status": "measured",
+                "value_db": -0.00564300361711556
+              },
+              {
+                "channel": 0,
+                "harmonic": 7,
+                "output_amplitude": 0.012009110313769215,
+                "source_amplitude": 0.012000000000296327,
+                "status": "measured",
+                "value_db": 0.006591762889706544
+              }
+            ],
+            "sample_count": 302400,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -26.790178911237028
+        },
+        "kind": "missing-f0",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -7.406733995850569
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -1.7566528312632896
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -5.189331626684968
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -1.8375456349814978
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -10.542593504244138
+        },
+        "processed_peak_abs": 0.22388775646686554,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 384000
+      },
+      {
+        "active_sample_frame_denominator": 312000,
+        "alias": "lr07",
+        "arm": "captured_nr10",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "missing_f0_or_no_guitar",
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.006325766364906683,
+            "source_amplitude": 8.97118912532125e-12,
+            "status": "source_harmonic_below_fit_threshold",
+            "value_db": null
+          }
+        ],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.04493552506164859
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.044927832645602545
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 27.715432767812956
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -25.32172862351215
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.414317163457808,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.006325766364906683,
+                "source_amplitude": 8.97118912532125e-12,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.09909076911281621,
+                "source_amplitude": 0.09999999999763716,
+                "status": "measured",
+                "value_db": -0.0793360140425544
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.06471932549516095,
+                "source_amplitude": 0.06499999999651843,
+                "status": "measured",
+                "value_db": -0.03758748418150061
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.03511589086792145,
+                "source_amplitude": 0.03499999999631477,
+                "status": "measured",
+                "value_db": 0.028712927271917887
+              },
+              {
+                "channel": 0,
+                "harmonic": 5,
+                "output_amplitude": 0.019985794162961916,
+                "source_amplitude": 0.019999999996069755,
+                "status": "measured",
+                "value_db": -0.0061717070463620845
+              },
+              {
+                "channel": 0,
+                "harmonic": 7,
+                "output_amplitude": 0.012009175410883016,
+                "source_amplitude": 0.012000000000296327,
+                "status": "measured",
+                "value_db": 0.0066388458791175504
+              }
+            ],
+            "sample_count": 302400,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -26.251876066352192
+        },
+        "kind": "missing-f0",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -8.876289837611367
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -1.8517949406326055
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -5.984043367526878
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -1.9407470736064685
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -10.55982432404016
+        },
+        "processed_peak_abs": 0.2238362729549408,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 384000
+      },
+      {
+        "active_sample_frame_denominator": 312000,
+        "alias": "lr07",
+        "arm": "protected_mask",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 4.251972135493887e-09,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "missing_f0_or_no_guitar",
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 2.821893896476699e-07,
+            "source_amplitude": 8.97118912532125e-12,
+            "status": "source_harmonic_below_fit_threshold",
+            "value_db": null
+          }
+        ],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.001748797471322302
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.0017478315698460077
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": -2.3200606268158263e-06
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -57.63762798310736
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.414317163457808,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 2.821893896476699e-07,
+                "source_amplitude": 8.97118912532125e-12,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.09999998517208436,
+                "source_amplitude": 0.09999999999763716,
+                "status": "measured",
+                "value_db": -1.2877312495960286e-06
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.06498482368124392,
+                "source_amplitude": 0.06499999999651843,
+                "status": "measured",
+                "value_db": -0.0020282337038457074
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.034973267000613144,
+                "source_amplitude": 0.03499999999631477,
+                "status": "measured",
+                "value_db": -0.006636816362071513
+              },
+              {
+                "channel": 0,
+                "harmonic": 5,
+                "output_amplitude": 0.019969100271842927,
+                "source_amplitude": 0.019999999996069755,
+                "status": "measured",
+                "value_db": -0.013429956949323795
+              },
+              {
+                "channel": 0,
+                "harmonic": 7,
+                "output_amplitude": 0.011953107671493822,
+                "source_amplitude": 0.012000000000296327,
+                "status": "measured",
+                "value_db": -0.03400828975994186
+              }
+            ],
+            "sample_count": 302400,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -158.69062442692064
+        },
+        "kind": "missing-f0",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -4.8304412382882775
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": 6.511423578389939e-08
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -0.23601564009030737
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -0.06732736890705046
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -10.183339880127424
+        },
+        "processed_peak_abs": 0.22226156915044423,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 384000
+      },
+      {
+        "active_sample_frame_denominator": 286650,
+        "alias": "lr08",
+        "arm": "bypass",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 7.450580596923828e-09,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 2,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.10820366209001157,
+            "source_amplitude": 0.10820366209001157,
+            "status": "measured",
+            "value_db": 0.0
+          },
+          {
+            "channel": 1,
+            "harmonic": 1,
+            "output_amplitude": 0.10820366209001157,
+            "source_amplitude": 0.10820366209001157,
+            "status": "measured",
+            "value_db": 0.0
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_relative_error": {
+          "status": "complete_attenuation",
+          "value_db": null
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091749795,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.10820366209001157,
+                "source_amplitude": 0.10820366209001157,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 1,
+                "harmonic": 1,
+                "output_amplitude": 0.10820366209001157,
+                "source_amplitude": 0.10820366209001157,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.0270505257101645,
+                "source_amplitude": 0.0270505257101645,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 1,
+                "harmonic": 2,
+                "output_amplitude": 0.0270505257101645,
+                "source_amplitude": 0.0270505257101645,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.01623058564430467,
+                "source_amplitude": 0.01623058564430467,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 1,
+                "harmonic": 3,
+                "output_amplitude": 0.01623058564430467,
+                "source_amplitude": 0.01623058564430467,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 4.098510451766218e-06,
+                "source_amplitude": 4.098510451766218e-06,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              },
+              {
+                "channel": 1,
+                "harmonic": 4,
+                "output_amplitude": 4.098510451766218e-06,
+                "source_amplitude": 4.098510451766218e-06,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 277830,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -151.23567848298714
+        },
+        "kind": "varying-fan-shared-gain",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": 0.0
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -10.820098866584395
+        },
+        "processed_peak_abs": 0.22652947902679443,
+        "quality_alerts": [
+          "noise_control_broadband"
+        ],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 705600
+      },
+      {
+        "active_sample_frame_denominator": 286650,
+        "alias": "lr08",
+        "arm": "captured_nr8",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 2,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.10734422538831954,
+            "source_amplitude": 0.10820366209001157,
+            "status": "measured",
+            "value_db": -0.06926546104145818
+          },
+          {
+            "channel": 1,
+            "harmonic": 1,
+            "output_amplitude": 0.10742396714992676,
+            "source_amplitude": 0.10820366209001157,
+            "status": "measured",
+            "value_db": -0.06281545404081754
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.07103237362474837
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.07102428273001515
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": -0.10930406799572288
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -24.66594465323631
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091749795,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.10734422538831954,
+                "source_amplitude": 0.10820366209001157,
+                "status": "measured",
+                "value_db": -0.06926546104145818
+              },
+              {
+                "channel": 1,
+                "harmonic": 1,
+                "output_amplitude": 0.10742396714992676,
+                "source_amplitude": 0.10820366209001157,
+                "status": "measured",
+                "value_db": -0.06281545404081754
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.026347848907585927,
+                "source_amplitude": 0.0270505257101645,
+                "status": "measured",
+                "value_db": -0.22861090928604444
+              },
+              {
+                "channel": 1,
+                "harmonic": 2,
+                "output_amplitude": 0.026369609848195433,
+                "source_amplitude": 0.0270505257101645,
+                "status": "measured",
+                "value_db": -0.22144011070238467
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.013653961582502587,
+                "source_amplitude": 0.01623058564430467,
+                "status": "measured",
+                "value_db": -1.5015102817625698
+              },
+              {
+                "channel": 1,
+                "harmonic": 3,
+                "output_amplitude": 0.013649778320481993,
+                "source_amplitude": 0.01623058564430467,
+                "status": "measured",
+                "value_db": -1.5041718477349544
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.0001141001621520705,
+                "source_amplitude": 4.098510451766218e-06,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              },
+              {
+                "channel": 1,
+                "harmonic": 4,
+                "output_amplitude": 0.00011471243646928667,
+                "source_amplitude": 4.098510451766218e-06,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 277830,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -25.591788794027593
+        },
+        "kind": "varying-fan-shared-gain",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -4.275422283908041
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -6.01087976651153
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -2.3914073447572872
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -2.2185939590256085
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -11.636942006336108
+        },
+        "processed_peak_abs": 0.2208041250705719,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 705600
+      },
+      {
+        "active_sample_frame_denominator": 286650,
+        "alias": "lr08",
+        "arm": "captured_nr10",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 2,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.10734271146359431,
+            "source_amplitude": 0.10820366209001157,
+            "status": "measured",
+            "value_db": -0.0693879629810425
+          },
+          {
+            "channel": 1,
+            "harmonic": 1,
+            "output_amplitude": 0.10743026655448921,
+            "source_amplitude": 0.10820366209001157,
+            "status": "measured",
+            "value_db": -0.06230612330167182
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.06923564698264373
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.06922536328318615
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": -0.10880085051330977
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -23.96333586743077
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091749795,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.10734271146359431,
+                "source_amplitude": 0.10820366209001157,
+                "status": "measured",
+                "value_db": -0.0693879629810425
+              },
+              {
+                "channel": 1,
+                "harmonic": 1,
+                "output_amplitude": 0.10743026655448921,
+                "source_amplitude": 0.10820366209001157,
+                "status": "measured",
+                "value_db": -0.06230612330167182
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.026326159344790923,
+                "source_amplitude": 0.0270505257101645,
+                "status": "measured",
+                "value_db": -0.2357640827631886
+              },
+              {
+                "channel": 1,
+                "harmonic": 2,
+                "output_amplitude": 0.026348709236692705,
+                "source_amplitude": 0.0270505257101645,
+                "status": "measured",
+                "value_db": -0.2283272959367963
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.013579416594935353,
+                "source_amplitude": 0.01623058564430467,
+                "status": "measured",
+                "value_db": -1.549061573269637
+              },
+              {
+                "channel": 1,
+                "harmonic": 3,
+                "output_amplitude": 0.013574230319878236,
+                "source_amplitude": 0.01623058564430467,
+                "status": "measured",
+                "value_db": -1.5523795374066727
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.0001229742437272109,
+                "source_amplitude": 4.098510451766218e-06,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              },
+              {
+                "channel": 1,
+                "harmonic": 4,
+                "output_amplitude": 0.00012284899622796758,
+                "source_amplitude": 4.098510451766218e-06,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 277830,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -24.78559717631817
+        },
+        "kind": "varying-fan-shared-gain",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -4.732286213712167
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -7.048694493578128
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -2.5830994307070467
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -2.3836829800788606
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -11.670606162580148
+        },
+        "processed_peak_abs": 0.22053442895412445,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 705600
+      },
+      {
+        "active_sample_frame_denominator": 286650,
+        "alias": "lr08",
+        "arm": "protected_mask",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 6.374474864623281e-09,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 2,
+        "fundamental_exclusion": null,
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.10820367280382165,
+            "source_amplitude": 0.10820366209001157,
+            "status": "measured",
+            "value_db": 8.600352850333399e-07
+          },
+          {
+            "channel": 1,
+            "harmonic": 1,
+            "output_amplitude": 0.10820366037138063,
+            "source_amplitude": 0.10820366209001157,
+            "status": "measured",
+            "value_db": -1.3796056987880052e-07
+          }
+        ],
+        "fundamental_gate_eligible": true,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.0010167857722468482
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.0010155598724762088
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": -3.1360252273336756e-09
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -57.21307431604822
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091749795,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.10820367280382165,
+                "source_amplitude": 0.10820366209001157,
+                "status": "measured",
+                "value_db": 8.600352850333399e-07
+              },
+              {
+                "channel": 1,
+                "harmonic": 1,
+                "output_amplitude": 0.10820366037138063,
+                "source_amplitude": 0.10820366209001157,
+                "status": "measured",
+                "value_db": -1.3796056987880052e-07
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.027050549395258118,
+                "source_amplitude": 0.0270505257101645,
+                "status": "measured",
+                "value_db": 7.605250314198198e-06
+              },
+              {
+                "channel": 1,
+                "harmonic": 2,
+                "output_amplitude": 0.02705051258916181,
+                "source_amplitude": 0.0270505257101645,
+                "status": "measured",
+                "value_db": -4.213138412592405e-06
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.016136261685716836,
+                "source_amplitude": 0.01623058564430467,
+                "status": "measured",
+                "value_db": -0.05062524659784355
+              },
+              {
+                "channel": 1,
+                "harmonic": 3,
+                "output_amplitude": 0.0161402143501028,
+                "source_amplitude": 0.01623058564430467,
+                "status": "measured",
+                "value_db": -0.04849785160179025
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 4.188977833024624e-06,
+                "source_amplitude": 4.098510451766218e-06,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              },
+              {
+                "channel": 1,
+                "harmonic": 4,
+                "output_amplitude": 4.276131191619371e-06,
+                "source_amplitude": 4.098510451766218e-06,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 277830,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -156.6509712007408
+        },
+        "kind": "varying-fan-shared-gain",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": false,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -3.61443706375935
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -7.997292892903715e-06
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -0.006054383766348644
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -0.2203856651275008
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -11.040098719527712
+        },
+        "processed_peak_abs": 0.22223197823955362,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 705600
+      },
+      {
+        "active_sample_frame_denominator": 286650,
+        "alias": "lr09",
+        "arm": "bypass",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 7.450580596923828e-09,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "collision_not_identifiable",
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.12000000000510506,
+            "source_amplitude": 0.12000000000510506,
+            "status": "measured",
+            "value_db": 0.0
+          }
+        ],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "guitar_response_relative_error": {
+          "status": "complete_attenuation",
+          "value_db": null
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091749795,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.12000000000510506,
+                "source_amplitude": 0.12000000000510506,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.02999999999663739,
+                "source_amplitude": 0.02999999999663739,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.017999999996338722,
+                "source_amplitude": 0.017999999996338722,
+                "status": "measured",
+                "value_db": 0.0
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 1.880532824989726e-12,
+                "source_amplitude": 1.880532824989726e-12,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 277830,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -150.7463677297427
+        },
+        "kind": "separated-line",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": true,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": 0.0
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": 0.0
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": 0.0
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -8.742369518880214
+        },
+        "processed_peak_abs": 0.188121497631073,
+        "quality_alerts": [
+          "noise_control_broadband"
+        ],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 352800
+      },
+      {
+        "active_sample_frame_denominator": 286650,
+        "alias": "lr09",
+        "arm": "captured_nr8",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "collision_not_identifiable",
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.11938089890504064,
+            "source_amplitude": 0.12000000000510506,
+            "status": "measured",
+            "value_db": -0.04492802762402507
+          }
+        ],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.04603475739837225
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.04602891602130782
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": -0.02966764564009943
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -23.981521235716365
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091749795,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.11938089890504064,
+                "source_amplitude": 0.12000000000510506,
+                "status": "measured",
+                "value_db": -0.04492802762402507
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.029177824224835554,
+                "source_amplitude": 0.02999999999663739,
+                "status": "measured",
+                "value_db": -0.241367020391831
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.017167646886989334,
+                "source_amplitude": 0.017999999996338722,
+                "status": "measured",
+                "value_db": -0.41123466187997415
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.00011480594385471288,
+                "source_amplitude": 1.880532824989726e-12,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 277830,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -24.10904040128033
+        },
+        "kind": "separated-line",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": true,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -6.44295189855964
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -1.6027723478530806
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -3.973669447393555
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -1.7230086221706125
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -9.004585997948379
+        },
+        "processed_peak_abs": 0.1813153773546219,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 352800
+      },
+      {
+        "active_sample_frame_denominator": 286650,
+        "alias": "lr09",
+        "arm": "captured_nr10",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": null,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "collision_not_identifiable",
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.1193835833893158,
+            "source_amplitude": 0.12000000000510506,
+            "status": "measured",
+            "value_db": -0.044732712693377086
+          }
+        ],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.0439899491609235
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.04398264706169461
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": -0.02811237796095292
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -23.564990578910496
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091749795,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.1193835833893158,
+                "source_amplitude": 0.12000000000510506,
+                "status": "measured",
+                "value_db": -0.044732712693377086
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.02918026937496589,
+                "source_amplitude": 0.02999999999663739,
+                "status": "measured",
+                "value_db": -0.24063915891168597
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.017169806207934877,
+                "source_amplitude": 0.017999999996338722,
+                "status": "measured",
+                "value_db": -0.4101422323745584
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 0.00011115562257377643,
+                "source_amplitude": 1.880532824989726e-12,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 277830,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -23.679637317758306
+        },
+        "kind": "separated-line",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "paired_counterfactual_not_stems",
+        "missing_f0_recovered": false,
+        "near_collision": true,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -7.51446856383934
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": -1.6893587601083113
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -4.2709328290308815
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -1.8216369946214228
+        },
+        "noise_control_is_mixture_residual": false,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -9.022753726001794
+        },
+        "processed_peak_abs": 0.1808774769306183,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 352800
+      },
+      {
+        "active_sample_frame_denominator": 286650,
+        "alias": "lr09",
+        "arm": "protected_mask",
+        "broadband_noise_gate_eligible": true,
+        "clipped_sample_values": 0,
+        "conditional_additivity_max_abs": 4.4409500590814055e-09,
+        "exact_collision": false,
+        "fundamental_eligible_channel_event_denominator": 0,
+        "fundamental_exclusion": "collision_not_identifiable",
+        "fundamental_gain_rows": [
+          {
+            "channel": 0,
+            "harmonic": 1,
+            "output_amplitude": 0.11999999227753817,
+            "source_amplitude": 0.12000000000510506,
+            "status": "measured",
+            "value_db": -5.593399613743856e-07
+          }
+        ],
+        "fundamental_gate_eligible": false,
+        "guitar_response_active_energy": {
+          "status": "measured",
+          "value_db": -0.0007768268405006523
+        },
+        "guitar_response_energy": {
+          "status": "measured",
+          "value_db": -0.0007752378997434052
+        },
+        "guitar_response_low_band": {
+          "status": "measured",
+          "value_db": -4.301514779554095e-09
+        },
+        "guitar_response_relative_error": {
+          "status": "measured",
+          "value_db": -57.548850120331366
+        },
+        "harmonic_fits": [
+          {
+            "condition_number": 1.4143171091749795,
+            "rows": [
+              {
+                "channel": 0,
+                "harmonic": 1,
+                "output_amplitude": 0.11999999227753817,
+                "source_amplitude": 0.12000000000510506,
+                "status": "measured",
+                "value_db": -5.593399613743856e-07
+              },
+              {
+                "channel": 0,
+                "harmonic": 2,
+                "output_amplitude": 0.02999997199822803,
+                "source_amplitude": 0.02999999999663739,
+                "status": "measured",
+                "value_db": -8.106373575414094e-06
+              },
+              {
+                "channel": 0,
+                "harmonic": 3,
+                "output_amplitude": 0.01792699548544556,
+                "source_amplitude": 0.017999999996338722,
+                "status": "measured",
+                "value_db": -0.03529991801255189
+              },
+              {
+                "channel": 0,
+                "harmonic": 4,
+                "output_amplitude": 2.3024471484559434e-07,
+                "source_amplitude": 1.880532824989726e-12,
+                "status": "source_harmonic_below_fit_threshold",
+                "value_db": null
+              }
+            ],
+            "sample_count": 277830,
+            "status": "measured"
+          }
+        ],
+        "interaction_relative_energy": {
+          "status": "measured",
+          "value_db": -157.56496450225063
+        },
+        "kind": "separated-line",
+        "legato_event_denominator": 0,
+        "legato_sustain": [],
+        "metric_scope": "conditional_known_components",
+        "missing_f0_recovered": false,
+        "near_collision": true,
+        "noise_control_band_power_change": {
+          "140-8000": {
+            "status": "measured",
+            "value_db": -5.2942952794912195
+          },
+          "20-45": {
+            "status": "measured",
+            "value_db": 5.8104639819018885e-08
+          },
+          "45-120": {
+            "status": "measured",
+            "value_db": -0.5325149340339009
+          }
+        },
+        "noise_control_energy": {
+          "status": "measured",
+          "value_db": -0.11866557130514643
+        },
+        "noise_control_is_mixture_residual": true,
+        "palm_attack_tail": [],
+        "palm_event_denominator": 0,
+        "processed_mixture_relative_error": {
+          "status": "measured",
+          "value_db": -8.860958459415798
+        },
+        "processed_peak_abs": 0.18129621515386268,
+        "quality_alerts": [],
+        "real_stem_recovered": false,
+        "sample_value_denominator": 352800
+      }
+    ],
+    "row_count": 36,
+    "schema_version": 1,
+    "sealed_mixtures_sha256": "f8b87e5ff4534da80cffe5c353c9e4f7d7be506ff2ce4230ffa50a659d45a5f7",
+    "status": "synthetic_comparison_complete",
+    "summary": {
+      "bypass": {
+        "alert_rows": 7,
+        "broadband_noise_case_denominator": 7,
+        "clipped_sample_values": 0,
+        "collision_case_count": 2,
+        "fundamental_eligible_channel_event_denominator": 9,
+        "legato_event_denominator": 1,
+        "palm_event_denominator": 6,
+        "rows": 9,
+        "sample_value_denominator": 4389600
+      },
+      "captured_nr10": {
+        "alert_rows": 1,
+        "broadband_noise_case_denominator": 7,
+        "clipped_sample_values": 0,
+        "collision_case_count": 2,
+        "fundamental_eligible_channel_event_denominator": 9,
+        "legato_event_denominator": 1,
+        "palm_event_denominator": 6,
+        "rows": 9,
+        "sample_value_denominator": 4389600
+      },
+      "captured_nr8": {
+        "alert_rows": 1,
+        "broadband_noise_case_denominator": 7,
+        "clipped_sample_values": 0,
+        "collision_case_count": 2,
+        "fundamental_eligible_channel_event_denominator": 9,
+        "legato_event_denominator": 1,
+        "palm_event_denominator": 6,
+        "rows": 9,
+        "sample_value_denominator": 4389600
+      },
+      "protected_mask": {
+        "alert_rows": 0,
+        "broadband_noise_case_denominator": 7,
+        "clipped_sample_values": 0,
+        "collision_case_count": 2,
+        "fundamental_eligible_channel_event_denominator": 9,
+        "legato_event_denominator": 1,
+        "palm_event_denominator": 6,
+        "rows": 9,
+        "sample_value_denominator": 4389600
+      }
+    },
+    "truth_scope": "generated_only; afftdn paired counterfactual, mask conditional",
+    "unique_source_seconds": 72
+  },
+  "results_path": "/Users/jess/git/video-utils/.local/sprint1/low_register/artifacts/benchmarks/s1-low-register-run-v2/results.json",
+  "results_sha256": "56a8440a1d812fbab25f36d8a6c88a905365828402ac07b1c43101d126fa1e33",
+  "scope": "No actual take processing, master/Desktop change, default adoption, listening acceptance or recovered real stem.",
+  "session_id": 80869,
+  "state": "owner_run_complete_independent_arithmetic_pending",
+  "terminal_exit_code": 0
+}

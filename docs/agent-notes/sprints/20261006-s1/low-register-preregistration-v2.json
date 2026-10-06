@@ -1,0 +1,365 @@
+{
+  "audit_correction": "Complete attenuation retains preservation denominator and fails gates; active interval-union guitar energy added. Previous plan remains historical, unexecuted.",
+  "authority": "R-HOOK-CONVERGENCE-20261004; operator S1; R-N11/R-N12/R-N13",
+  "created_utc": "2026-10-06T06:05:48.552257+00:00",
+  "plan": {
+    "afftdn": {
+      "adaptivity": 0,
+      "capture_seconds": [
+        0,
+        0.8
+      ],
+      "gain_smooth": 0,
+      "noise_floor_db": -40,
+      "track_noise": 0
+    },
+    "arms": [
+      "bypass",
+      "captured_nr8",
+      "captured_nr10",
+      "protected_mask"
+    ],
+    "cases": [
+      {
+        "alias": "lr01",
+        "capture_samples": [
+          0,
+          35280
+        ],
+        "channels": 1,
+        "duration_seconds": 8,
+        "kind": "clean-sentinels",
+        "parameters": {
+          "fundamental_hz": 32.70319566257483,
+          "gain": 0.12,
+          "harmonics": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              0.25
+            ],
+            [
+              3,
+              0.15
+            ],
+            [
+              4,
+              0.1
+            ]
+          ],
+          "sentinel_hz": 32.0,
+          "spans": [
+            [
+              1,
+              3.2
+            ],
+            [
+              4,
+              7.4
+            ]
+          ]
+        },
+        "sample_frames": 352800,
+        "sample_rate": 44100,
+        "seed": 2026100600
+      },
+      {
+        "alias": "lr02",
+        "capture_samples": [
+          0,
+          38400
+        ],
+        "channels": 1,
+        "duration_seconds": 8,
+        "kind": "fan-only",
+        "parameters": {
+          "fan_line_gain": 0.025,
+          "fan_line_hz": 32.70319566257483,
+          "noise_rms": 0.006
+        },
+        "sample_frames": 384000,
+        "sample_rate": 48000,
+        "seed": 2026100601
+      },
+      {
+        "alias": "lr03",
+        "capture_samples": [
+          0,
+          38400
+        ],
+        "channels": 2,
+        "duration_seconds": 8,
+        "kind": "exact-collision",
+        "parameters": {
+          "alternative_transfer_gain": 0.02,
+          "fan_line_gain": 0.04,
+          "fan_line_hz": 32.70319566257483,
+          "fan_phases_radians": [
+            0,
+            1.5707963267948966
+          ],
+          "fundamental_hz": 32.70319566257483,
+          "guitar_gain": 0.12,
+          "noise_rms": 0.0
+        },
+        "sample_frames": 384000,
+        "sample_rate": 48000,
+        "seed": 2026100602
+      },
+      {
+        "alias": "lr04",
+        "capture_samples": [
+          0,
+          35280
+        ],
+        "channels": 1,
+        "duration_seconds": 8,
+        "kind": "separated-line",
+        "parameters": {
+          "fan_line_gain": 0.04,
+          "fan_line_hz": 113.0,
+          "fundamental_hz": 32.70319566257483,
+          "guitar_gain": 0.12,
+          "noise_rms": 0.006
+        },
+        "sample_frames": 352800,
+        "sample_rate": 44100,
+        "seed": 2026100603
+      },
+      {
+        "alias": "lr05",
+        "capture_samples": [
+          0,
+          38400
+        ],
+        "channels": 1,
+        "duration_seconds": 8,
+        "kind": "walking-saturated",
+        "parameters": {
+          "drive": 3.8,
+          "fan_line_gain": 0.025,
+          "fan_line_hz": 175.0,
+          "guitar_gain": 0.11,
+          "midi": [
+            24,
+            29,
+            34,
+            39
+          ],
+          "noise_rms": 0.006,
+          "note_seconds": 1.2,
+          "starts_seconds": [
+            1,
+            2.5,
+            4,
+            5.5
+          ]
+        },
+        "sample_frames": 384000,
+        "sample_rate": 48000,
+        "seed": 2026100604
+      },
+      {
+        "alias": "lr06",
+        "capture_samples": [
+          0,
+          35280
+        ],
+        "channels": 2,
+        "duration_seconds": 8,
+        "kind": "palm-legato-saturated",
+        "parameters": {
+          "decay_seconds": 0.09,
+          "drive": 3.8,
+          "fan_line_gain": 0.018,
+          "fan_line_hz": 32.70319566257483,
+          "guitar_gain": 0.1,
+          "legato_midi": [
+            24,
+            29,
+            34,
+            39
+          ],
+          "legato_span_seconds": [
+            5,
+            7.35
+          ],
+          "midi": [
+            24,
+            29,
+            24,
+            34,
+            24,
+            39
+          ],
+          "noise_rms": 0.006,
+          "note_seconds": 0.4,
+          "quiet_legato_gain": 0.2,
+          "starts_seconds": [
+            1,
+            1.5,
+            2,
+            2.75,
+            3.5,
+            4
+          ]
+        },
+        "sample_frames": 352800,
+        "sample_rate": 44100,
+        "seed": 2026100605
+      },
+      {
+        "alias": "lr07",
+        "capture_samples": [
+          0,
+          38400
+        ],
+        "channels": 1,
+        "duration_seconds": 8,
+        "kind": "missing-f0",
+        "parameters": {
+          "fan_line_gain": 0.035,
+          "fan_line_hz": 32.70319566257483,
+          "fit_span_seconds": [
+            2,
+            6
+          ],
+          "fundamental_hz": 32.70319566257483,
+          "harmonics": [
+            [
+              2,
+              0.1
+            ],
+            [
+              3,
+              0.065
+            ],
+            [
+              4,
+              0.035
+            ],
+            [
+              5,
+              0.02
+            ],
+            [
+              7,
+              0.012
+            ]
+          ],
+          "noise_rms": 0.004,
+          "span_seconds": [
+            1,
+            7.5
+          ]
+        },
+        "sample_frames": 384000,
+        "sample_rate": 48000,
+        "seed": 2026100606
+      },
+      {
+        "alias": "lr08",
+        "capture_samples": [
+          0,
+          35280
+        ],
+        "channels": 2,
+        "duration_seconds": 8,
+        "kind": "varying-fan-shared-gain",
+        "parameters": {
+          "breakpoints_seconds": [
+            0,
+            2,
+            4,
+            6,
+            8
+          ],
+          "fan_levels": [
+            1,
+            1.75,
+            0.45,
+            1.25,
+            1
+          ],
+          "fan_line_gain": 0.025,
+          "fan_line_hz": 77.78174593052023,
+          "fundamental_hz": 32.70319566257483,
+          "guitar_gain": 0.12,
+          "noise_rms": 0.006,
+          "shared_gain": [
+            0.7,
+            1.2,
+            0.6,
+            1,
+            0.8
+          ]
+        },
+        "sample_frames": 352800,
+        "sample_rate": 44100,
+        "seed": 2026100607
+      },
+      {
+        "alias": "lr09",
+        "capture_samples": [
+          0,
+          35280
+        ],
+        "channels": 1,
+        "duration_seconds": 8,
+        "kind": "separated-line",
+        "parameters": {
+          "fan_line_gain": 0.04,
+          "fan_line_hz": 33.45319566257483,
+          "fundamental_hz": 32.70319566257483,
+          "guitar_gain": 0.12,
+          "noise_rms": 0.006
+        },
+        "s1_collision_scope": "near_collision_not_unique_separation",
+        "sample_frames": 352800,
+        "sample_rate": 44100,
+        "seed": 2026100608
+      }
+    ],
+    "deadline_seconds": 180,
+    "experimental_mask": {
+      "broadband_ceiling_db": 8,
+      "low_ceiling_db": 0,
+      "noise_density_scale": 1
+    },
+    "gates": {
+      "attack_centroid_ms": 2.0,
+      "attack_tail_legato_db": [
+        -1.0,
+        0.5
+      ],
+      "conditional_additivity_max_abs": 4e-07,
+      "fundamental_db": [
+        -0.5,
+        0.1
+      ],
+      "noise_broadband_attenuation_db": 3.0
+    },
+    "hashes": {
+      "program/instrument.json": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0",
+      "scripts/low_register_denoise_probe.py": "384a99bca9e72212b5d9631e9b425424ea7b08fc41ce6eb4dde4d647b3ba3bc6",
+      "scripts/low_register_fixtures.py": "06d08ad703bb17d7bc53863e5dfa53b117172d9498ec780f6338f6a5f60d3e7c",
+      "scripts/low_register_s1.py": "0fe36986320083506ec6629328bf2ac20cd55bd20d2474bf550977b27a2ca94d"
+    },
+    "kind": "s1_low_register_frozen_plan",
+    "max_audio_bytes": 805306368,
+    "schema_version": 1,
+    "source_seconds": 72,
+    "threads": 2,
+    "truth_scope": "generated_only; afftdn paired counterfactual, mask conditional"
+  },
+  "plan_sha256": "d1a85f0248be3d224ed3b301c91016c2f61081b0589789c6faf556a561e52cf8",
+  "state": "preregistered_v2_not_executed",
+  "tests": {
+    "count": 8,
+    "passed": 8,
+    "seconds": 3.003
+  }
+}
