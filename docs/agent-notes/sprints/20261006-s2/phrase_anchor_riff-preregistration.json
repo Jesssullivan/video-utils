@@ -1,0 +1,5778 @@
+{
+  "analysis_python": {
+    "env": "VIDEO_UTILS_ANALYSIS_PYTHON",
+    "librosa": "0.11.0",
+    "numpy": "2.5.3",
+    "path": "/Users/jess/git/video-utils/.venv/bin/python"
+  },
+  "arms": {
+    "Araw": "phrase_proposal_s1.discover_source Araw, unchanged frozen S1 baseline",
+    "R1_lag": "contiguous lag-matrix recurrence on S1 log-band powers",
+    "S1_support": "phrase_proposal_s1.discover_source S1_support, settings unchanged"
+  },
+  "audio_seconds": 128,
+  "budgets": {
+    "analysis_rate": 16000,
+    "case_seconds": 120,
+    "dev_run_seconds": 300,
+    "dev_runs_maximum": 3,
+    "ffmpeg_seconds": 20,
+    "json_bytes": 2000000,
+    "native_rate": 48000,
+    "native_seconds": 8,
+    "overall_seconds": 900,
+    "threads": 2,
+    "v2_external_seconds": 660,
+    "v2_internal_seconds": 600,
+    "wav_bytes": 1000000
+  },
+  "canonical_defaults_activated": false,
+  "case_count": 16,
+  "channels": 1,
+  "cohorts": [
+    "b2b-picked",
+    "syncopated-palm-mute",
+    "legato-transition",
+    "tapping-run",
+    "sweep-arpeggio",
+    "aba-transition",
+    "through-composed",
+    "sustain32-fan-click"
+  ],
+  "components": [
+    "clean",
+    "fan",
+    "noise",
+    "click",
+    "mix"
+  ],
+  "consumed_seeds_excluded": [
+    211,
+    307,
+    617,
+    719,
+    1301,
+    1423
+  ],
+  "continuous_riff_accuracy_scope": "generated_only",
+  "default_adoption": false,
+  "dependency_sha256": {
+    "docs/agent-notes/2026-10-05-phrase-guarded-arms.py": "78ca89de9cea327cc4ec1096a83522781a08bc161819699b69797ca273e2fb6c",
+    "program/instrument.json": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0",
+    "scripts/guitar_features.py": "2ed031e8000cbcda92b504db10c98de03f456c90573cbff815cbb940c9ac86fe",
+    "scripts/phrase_evaluate.py": "3e503de277b2fd233fe802595a09a655c89669b0eb820f228e677c1b94b828a5",
+    "scripts/phrase_proposal_s1.py": "38b736543a83d5c706a8803014f4e308685eee2c84275e9e6768c431b6b8d0e3",
+    "scripts/rhythm.py": "264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9"
+  },
+  "dev_calibration": {
+    "receipt": "docs/agent-notes/sprints/20261006-s2/phrase_anchor_riff-dev-calibration.json",
+    "receipt_sha256": "10d9bd69df2a965f788b3c3d31fac449f748589e53b01a980e0dac899084e33e",
+    "reported_as_heldout": false,
+    "rule": "maximize dev TP@IoU0.5 minus dev negative false candidates; ties -> larger theta",
+    "seed": 1009
+  },
+  "dev_seed": 1009,
+  "discarded_before_sealing": [
+    "S2_multiscale"
+  ],
+  "discovery_truth_input": false,
+  "ffmpeg": {
+    "path": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+    "sha256": "3a315207e67de78e48c3bbb6b3346663f6a27c02e034d65ac72a12fee74c534a"
+  },
+  "generator_geometry": {
+    "1511": {
+      "aba-transition": {
+        "checks": {
+          "b_distinct": true,
+          "fill_distinct": true,
+          "gap_bound": true
+        },
+        "cohort": "aba-transition",
+        "gap_samples": [
+          2171,
+          2259
+        ],
+        "motif_samples": 65395,
+        "notes": [
+          [
+            24000,
+            31,
+            "picked",
+            null
+          ],
+          [
+            44436,
+            27,
+            "picked",
+            null
+          ],
+          [
+            46737,
+            24,
+            "picked",
+            null
+          ],
+          [
+            50824,
+            38,
+            "picked",
+            null
+          ],
+          [
+            71260,
+            28,
+            "picked",
+            null
+          ],
+          [
+            83522,
+            45,
+            "picked",
+            null
+          ],
+          [
+            87609,
+            26,
+            "picked",
+            null
+          ],
+          [
+            99870,
+            41,
+            "picked",
+            null
+          ],
+          [
+            112132,
+            37,
+            "picked",
+            null
+          ],
+          [
+            114303,
+            26,
+            "picked",
+            null
+          ],
+          [
+            141071,
+            28,
+            "picked",
+            null
+          ],
+          [
+            146425,
+            24,
+            "picked",
+            null
+          ],
+          [
+            162486,
+            37,
+            "picked",
+            null
+          ],
+          [
+            167840,
+            29,
+            "picked",
+            null
+          ],
+          [
+            173193,
+            32,
+            "picked",
+            null
+          ],
+          [
+            178547,
+            46,
+            "picked",
+            null
+          ],
+          [
+            180806,
+            24,
+            "picked",
+            null
+          ],
+          [
+            184893,
+            38,
+            "picked",
+            null
+          ],
+          [
+            205329,
+            28,
+            "picked",
+            null
+          ],
+          [
+            217591,
+            45,
+            "picked",
+            null
+          ],
+          [
+            221678,
+            26,
+            "picked",
+            null
+          ],
+          [
+            233939,
+            41,
+            "picked",
+            null
+          ],
+          [
+            246201,
+            28,
+            "picked",
+            null
+          ],
+          [
+            258463,
+            36,
+            "picked",
+            null
+          ],
+          [
+            278899,
+            45,
+            "picked",
+            null
+          ],
+          [
+            291161,
+            45,
+            "picked",
+            null
+          ],
+          [
+            295248,
+            43,
+            "picked",
+            null
+          ],
+          [
+            299335,
+            44,
+            "picked",
+            null
+          ],
+          [
+            303422,
+            32,
+            "picked",
+            null
+          ],
+          [
+            315684,
+            29,
+            "picked",
+            null
+          ],
+          [
+            327946,
+            35,
+            "picked",
+            null
+          ],
+          [
+            340208,
+            32,
+            "picked",
+            null
+          ],
+          [
+            344295,
+            35,
+            "picked",
+            null
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "positive_one_recurrence_pair",
+        "seed": 1511,
+        "segments": [
+          {
+            "end_sample": 46737,
+            "role": "fill_x",
+            "start_sample": 24000
+          },
+          {
+            "end_sample": 112132,
+            "role": "motif_a1",
+            "start_sample": 46737
+          },
+          {
+            "end_sample": 114303,
+            "role": "link1",
+            "start_sample": 112132
+          },
+          {
+            "end_sample": 178547,
+            "role": "motif_b",
+            "start_sample": 114303
+          },
+          {
+            "end_sample": 180806,
+            "role": "link2",
+            "start_sample": 178547
+          },
+          {
+            "end_sample": 246201,
+            "role": "motif_a2",
+            "start_sample": 180806
+          },
+          {
+            "end_sample": 360000,
+            "role": "fill_y",
+            "start_sample": 246201
+          }
+        ],
+        "start_samples": 46737,
+        "truth_pairs": [
+          {
+            "first_span_samples": [
+              46737,
+              112132
+            ],
+            "first_span_seconds": [
+              0.9736875,
+              2.3360833333333333
+            ],
+            "id": "seed1511-aba-transition",
+            "second_span_samples": [
+              180806,
+              246201
+            ],
+            "second_span_seconds": [
+              3.7667916666666668,
+              5.1291875
+            ]
+          }
+        ]
+      },
+      "b2b-picked": {
+        "checks": {
+          "fill_distinct": true,
+          "gap_bound": true
+        },
+        "cohort": "b2b-picked",
+        "gap_samples": [
+          3814
+        ],
+        "motif_samples": 86494,
+        "notes": [
+          [
+            24000,
+            45,
+            "picked",
+            null
+          ],
+          [
+            29406,
+            30,
+            "picked",
+            null
+          ],
+          [
+            61841,
+            41,
+            "picked",
+            null
+          ],
+          [
+            67247,
+            40,
+            "picked",
+            null
+          ],
+          [
+            72653,
+            43,
+            "picked",
+            null
+          ],
+          [
+            72937,
+            39,
+            "picked",
+            null
+          ],
+          [
+            78343,
+            36,
+            "picked",
+            null
+          ],
+          [
+            94561,
+            36,
+            "picked",
+            null
+          ],
+          [
+            99966,
+            46,
+            "picked",
+            null
+          ],
+          [
+            105372,
+            36,
+            "picked",
+            null
+          ],
+          [
+            110778,
+            28,
+            "picked",
+            null
+          ],
+          [
+            116184,
+            40,
+            "picked",
+            null
+          ],
+          [
+            121590,
+            29,
+            "picked",
+            null
+          ],
+          [
+            126996,
+            39,
+            "picked",
+            null
+          ],
+          [
+            159431,
+            27,
+            "picked",
+            null
+          ],
+          [
+            163245,
+            39,
+            "picked",
+            null
+          ],
+          [
+            168651,
+            36,
+            "picked",
+            null
+          ],
+          [
+            184869,
+            36,
+            "picked",
+            null
+          ],
+          [
+            190274,
+            46,
+            "picked",
+            null
+          ],
+          [
+            195680,
+            36,
+            "picked",
+            null
+          ],
+          [
+            201086,
+            28,
+            "picked",
+            null
+          ],
+          [
+            206492,
+            40,
+            "picked",
+            null
+          ],
+          [
+            211898,
+            29,
+            "picked",
+            null
+          ],
+          [
+            217304,
+            39,
+            "picked",
+            null
+          ],
+          [
+            249739,
+            36,
+            "picked",
+            null
+          ],
+          [
+            255145,
+            42,
+            "picked",
+            null
+          ],
+          [
+            260551,
+            32,
+            "picked",
+            null
+          ],
+          [
+            276769,
+            27,
+            "picked",
+            null
+          ],
+          [
+            282175,
+            30,
+            "picked",
+            null
+          ],
+          [
+            287581,
+            24,
+            "picked",
+            null
+          ],
+          [
+            292986,
+            26,
+            "picked",
+            null
+          ],
+          [
+            325421,
+            26,
+            "picked",
+            null
+          ],
+          [
+            330827,
+            35,
+            "picked",
+            null
+          ],
+          [
+            336232,
+            31,
+            "picked",
+            null
+          ],
+          [
+            341638,
+            27,
+            "picked",
+            null
+          ],
+          [
+            347044,
+            33,
+            "picked",
+            null
+          ],
+          [
+            352450,
+            43,
+            "picked",
+            null
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "positive_one_recurrence_pair",
+        "seed": 1511,
+        "segments": [
+          {
+            "end_sample": 72937,
+            "role": "fill_x",
+            "start_sample": 24000
+          },
+          {
+            "end_sample": 159431,
+            "role": "motif_a1",
+            "start_sample": 72937
+          },
+          {
+            "end_sample": 163245,
+            "role": "link1",
+            "start_sample": 159431
+          },
+          {
+            "end_sample": 249739,
+            "role": "motif_a2",
+            "start_sample": 163245
+          },
+          {
+            "end_sample": 360000,
+            "role": "fill_y",
+            "start_sample": 249739
+          }
+        ],
+        "start_samples": 72937,
+        "truth_pairs": [
+          {
+            "first_span_samples": [
+              72937,
+              159431
+            ],
+            "first_span_seconds": [
+              1.5195208333333334,
+              3.3214791666666668
+            ],
+            "id": "seed1511-b2b-picked",
+            "second_span_samples": [
+              163245,
+              249739
+            ],
+            "second_span_seconds": [
+              3.4009375,
+              5.202895833333334
+            ]
+          }
+        ]
+      },
+      "legato-transition": {
+        "checks": {
+          "fill_distinct": true,
+          "gap_bound": true
+        },
+        "cohort": "legato-transition",
+        "gap_samples": [
+          1325
+        ],
+        "motif_samples": 81711,
+        "notes": [
+          [
+            24000,
+            53,
+            "legato",
+            null
+          ],
+          [
+            32171,
+            56,
+            "legato",
+            null
+          ],
+          [
+            40342,
+            58,
+            "legato",
+            null
+          ],
+          [
+            48513,
+            58,
+            "legato",
+            null
+          ],
+          [
+            56684,
+            58,
+            "legato",
+            null
+          ],
+          [
+            64856,
+            58,
+            "legato",
+            null
+          ],
+          [
+            73027,
+            55,
+            "legato",
+            null
+          ],
+          [
+            81198,
+            54,
+            "legato",
+            null
+          ],
+          [
+            89369,
+            56,
+            "legato",
+            null
+          ],
+          [
+            89770,
+            44,
+            "legato",
+            null
+          ],
+          [
+            97941,
+            41,
+            "legato",
+            null
+          ],
+          [
+            106112,
+            38,
+            "legato",
+            null
+          ],
+          [
+            114283,
+            37,
+            "legato",
+            null
+          ],
+          [
+            122454,
+            39,
+            "legato",
+            null
+          ],
+          [
+            130626,
+            40,
+            "legato",
+            null
+          ],
+          [
+            138797,
+            42,
+            "legato",
+            null
+          ],
+          [
+            146968,
+            39,
+            "legato",
+            null
+          ],
+          [
+            155139,
+            41,
+            "legato",
+            null
+          ],
+          [
+            163310,
+            42,
+            "legato",
+            null
+          ],
+          [
+            171481,
+            48,
+            "legato",
+            null
+          ],
+          [
+            172806,
+            44,
+            "legato",
+            null
+          ],
+          [
+            180977,
+            41,
+            "legato",
+            null
+          ],
+          [
+            189148,
+            38,
+            "legato",
+            null
+          ],
+          [
+            197319,
+            37,
+            "legato",
+            null
+          ],
+          [
+            205490,
+            39,
+            "legato",
+            null
+          ],
+          [
+            213662,
+            40,
+            "legato",
+            null
+          ],
+          [
+            221833,
+            42,
+            "legato",
+            null
+          ],
+          [
+            230004,
+            39,
+            "legato",
+            null
+          ],
+          [
+            238175,
+            41,
+            "legato",
+            null
+          ],
+          [
+            246346,
+            42,
+            "legato",
+            null
+          ],
+          [
+            254517,
+            42,
+            "legato",
+            null
+          ],
+          [
+            262688,
+            44,
+            "legato",
+            null
+          ],
+          [
+            270860,
+            47,
+            "legato",
+            null
+          ],
+          [
+            279031,
+            45,
+            "legato",
+            null
+          ],
+          [
+            287202,
+            42,
+            "legato",
+            null
+          ],
+          [
+            295373,
+            44,
+            "legato",
+            null
+          ],
+          [
+            303544,
+            43,
+            "legato",
+            null
+          ],
+          [
+            311716,
+            40,
+            "legato",
+            null
+          ],
+          [
+            319887,
+            41,
+            "legato",
+            null
+          ],
+          [
+            328058,
+            40,
+            "legato",
+            null
+          ],
+          [
+            336230,
+            43,
+            "legato",
+            null
+          ],
+          [
+            344402,
+            41,
+            "legato",
+            null
+          ],
+          [
+            352573,
+            43,
+            "legato",
+            null
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "positive_one_recurrence_pair",
+        "seed": 1511,
+        "segments": [
+          {
+            "end_sample": 89770,
+            "role": "fill_x",
+            "start_sample": 24000
+          },
+          {
+            "end_sample": 171481,
+            "role": "motif_a1",
+            "start_sample": 89770
+          },
+          {
+            "end_sample": 172806,
+            "role": "link1",
+            "start_sample": 171481
+          },
+          {
+            "end_sample": 254517,
+            "role": "motif_a2",
+            "start_sample": 172806
+          },
+          {
+            "end_sample": 360000,
+            "role": "fill_y",
+            "start_sample": 254517
+          }
+        ],
+        "start_samples": 89770,
+        "truth_pairs": [
+          {
+            "first_span_samples": [
+              89770,
+              171481
+            ],
+            "first_span_seconds": [
+              1.8702083333333333,
+              3.5725208333333334
+            ],
+            "id": "seed1511-legato-transition",
+            "second_span_samples": [
+              172806,
+              254517
+            ],
+            "second_span_seconds": [
+              3.600125,
+              5.3024375
+            ]
+          }
+        ]
+      },
+      "sustain32-fan-click": {
+        "checks": {
+          "fill_distinct": null,
+          "gap_bound": null
+        },
+        "cohort": "sustain32-fan-click",
+        "gap_samples": [],
+        "notes": [
+          [
+            24000,
+            24,
+            "sustain",
+            null
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "negative_no_generated_recurrence_reference",
+        "seed": 1511,
+        "segments": [
+          {
+            "end_sample": 360000,
+            "role": "sustain_c1",
+            "start_sample": 24000
+          }
+        ],
+        "truth_pairs": []
+      },
+      "sweep-arpeggio": {
+        "checks": {
+          "fill_distinct": true,
+          "gap_bound": true
+        },
+        "cohort": "sweep-arpeggio",
+        "gap_samples": [
+          2804
+        ],
+        "motif_samples": 76276,
+        "notes": [
+          [
+            24000,
+            71,
+            "sweep",
+            null
+          ],
+          [
+            25564,
+            67,
+            "sweep",
+            null
+          ],
+          [
+            27602,
+            64,
+            "sweep",
+            null
+          ],
+          [
+            29040,
+            59,
+            "sweep",
+            null
+          ],
+          [
+            30893,
+            55,
+            "sweep",
+            null
+          ],
+          [
+            32604,
+            52,
+            "sweep",
+            null
+          ],
+          [
+            34006,
+            47,
+            "sweep",
+            null
+          ],
+          [
+            36099,
+            43,
+            "sweep",
+            null
+          ],
+          [
+            37375,
+            40,
+            "sweep",
+            null
+          ],
+          [
+            50504,
+            37,
+            "sweep",
+            null
+          ],
+          [
+            52472,
+            41,
+            "sweep",
+            null
+          ],
+          [
+            54407,
+            44,
+            "sweep",
+            null
+          ],
+          [
+            56445,
+            49,
+            "sweep",
+            null
+          ],
+          [
+            57723,
+            53,
+            "sweep",
+            null
+          ],
+          [
+            59503,
+            56,
+            "sweep",
+            null
+          ],
+          [
+            61525,
+            61,
+            "sweep",
+            null
+          ],
+          [
+            75088,
+            70,
+            "sweep",
+            null
+          ],
+          [
+            77086,
+            66,
+            "sweep",
+            null
+          ],
+          [
+            78568,
+            63,
+            "sweep",
+            null
+          ],
+          [
+            79843,
+            58,
+            "sweep",
+            null
+          ],
+          [
+            81141,
+            54,
+            "sweep",
+            null
+          ],
+          [
+            83266,
+            51,
+            "sweep",
+            null
+          ],
+          [
+            85266,
+            46,
+            "sweep",
+            null
+          ],
+          [
+            87142,
+            42,
+            "sweep",
+            null
+          ],
+          [
+            88703,
+            39,
+            "sweep",
+            null
+          ],
+          [
+            99587,
+            69,
+            "sweep",
+            null
+          ],
+          [
+            101434,
+            66,
+            "sweep",
+            null
+          ],
+          [
+            102913,
+            62,
+            "sweep",
+            null
+          ],
+          [
+            104989,
+            57,
+            "sweep",
+            null
+          ],
+          [
+            106784,
+            54,
+            "sweep",
+            null
+          ],
+          [
+            107350,
+            53,
+            "sweep",
+            null
+          ],
+          [
+            109490,
+            50,
+            "sweep",
+            null
+          ],
+          [
+            110711,
+            46,
+            "sweep",
+            null
+          ],
+          [
+            112125,
+            41,
+            "sweep",
+            null
+          ],
+          [
+            113559,
+            38,
+            "sweep",
+            null
+          ],
+          [
+            115040,
+            34,
+            "sweep",
+            null
+          ],
+          [
+            126864,
+            39,
+            "sweep",
+            null
+          ],
+          [
+            128203,
+            43,
+            "sweep",
+            null
+          ],
+          [
+            129615,
+            46,
+            "sweep",
+            null
+          ],
+          [
+            131476,
+            51,
+            "sweep",
+            null
+          ],
+          [
+            132959,
+            55,
+            "sweep",
+            null
+          ],
+          [
+            134566,
+            58,
+            "sweep",
+            null
+          ],
+          [
+            136369,
+            63,
+            "sweep",
+            null
+          ],
+          [
+            148261,
+            37,
+            "sweep",
+            null
+          ],
+          [
+            149702,
+            41,
+            "sweep",
+            null
+          ],
+          [
+            151555,
+            44,
+            "sweep",
+            null
+          ],
+          [
+            153064,
+            49,
+            "sweep",
+            null
+          ],
+          [
+            155027,
+            53,
+            "sweep",
+            null
+          ],
+          [
+            156871,
+            56,
+            "sweep",
+            null
+          ],
+          [
+            158453,
+            61,
+            "sweep",
+            null
+          ],
+          [
+            159929,
+            65,
+            "sweep",
+            null
+          ],
+          [
+            175407,
+            71,
+            "sweep",
+            null
+          ],
+          [
+            176938,
+            67,
+            "sweep",
+            null
+          ],
+          [
+            178926,
+            64,
+            "sweep",
+            null
+          ],
+          [
+            180617,
+            59,
+            "sweep",
+            null
+          ],
+          [
+            182310,
+            55,
+            "sweep",
+            null
+          ],
+          [
+            183626,
+            40,
+            "sweep",
+            null
+          ],
+          [
+            186430,
+            53,
+            "sweep",
+            null
+          ],
+          [
+            188570,
+            50,
+            "sweep",
+            null
+          ],
+          [
+            189791,
+            46,
+            "sweep",
+            null
+          ],
+          [
+            191205,
+            41,
+            "sweep",
+            null
+          ],
+          [
+            192639,
+            38,
+            "sweep",
+            null
+          ],
+          [
+            194120,
+            34,
+            "sweep",
+            null
+          ],
+          [
+            205944,
+            39,
+            "sweep",
+            null
+          ],
+          [
+            207283,
+            43,
+            "sweep",
+            null
+          ],
+          [
+            208695,
+            46,
+            "sweep",
+            null
+          ],
+          [
+            210556,
+            51,
+            "sweep",
+            null
+          ],
+          [
+            212039,
+            55,
+            "sweep",
+            null
+          ],
+          [
+            213646,
+            58,
+            "sweep",
+            null
+          ],
+          [
+            215449,
+            63,
+            "sweep",
+            null
+          ],
+          [
+            227341,
+            37,
+            "sweep",
+            null
+          ],
+          [
+            228782,
+            41,
+            "sweep",
+            null
+          ],
+          [
+            230635,
+            44,
+            "sweep",
+            null
+          ],
+          [
+            232144,
+            49,
+            "sweep",
+            null
+          ],
+          [
+            234107,
+            53,
+            "sweep",
+            null
+          ],
+          [
+            235951,
+            56,
+            "sweep",
+            null
+          ],
+          [
+            237533,
+            61,
+            "sweep",
+            null
+          ],
+          [
+            239009,
+            65,
+            "sweep",
+            null
+          ],
+          [
+            254487,
+            71,
+            "sweep",
+            null
+          ],
+          [
+            256018,
+            67,
+            "sweep",
+            null
+          ],
+          [
+            258006,
+            64,
+            "sweep",
+            null
+          ],
+          [
+            259697,
+            59,
+            "sweep",
+            null
+          ],
+          [
+            261390,
+            55,
+            "sweep",
+            null
+          ],
+          [
+            262706,
+            38,
+            "sweep",
+            null
+          ],
+          [
+            264526,
+            41,
+            "sweep",
+            null
+          ],
+          [
+            266002,
+            45,
+            "sweep",
+            null
+          ],
+          [
+            267909,
+            50,
+            "sweep",
+            null
+          ],
+          [
+            269512,
+            53,
+            "sweep",
+            null
+          ],
+          [
+            270802,
+            57,
+            "sweep",
+            null
+          ],
+          [
+            272150,
+            62,
+            "sweep",
+            null
+          ],
+          [
+            273544,
+            65,
+            "sweep",
+            null
+          ],
+          [
+            282729,
+            35,
+            "sweep",
+            null
+          ],
+          [
+            283981,
+            39,
+            "sweep",
+            null
+          ],
+          [
+            285381,
+            42,
+            "sweep",
+            null
+          ],
+          [
+            287227,
+            47,
+            "sweep",
+            null
+          ],
+          [
+            288548,
+            51,
+            "sweep",
+            null
+          ],
+          [
+            289938,
+            54,
+            "sweep",
+            null
+          ],
+          [
+            291236,
+            59,
+            "sweep",
+            null
+          ],
+          [
+            292446,
+            63,
+            "sweep",
+            null
+          ],
+          [
+            293674,
+            66,
+            "sweep",
+            null
+          ],
+          [
+            306257,
+            38,
+            "sweep",
+            null
+          ],
+          [
+            307721,
+            41,
+            "sweep",
+            null
+          ],
+          [
+            309629,
+            45,
+            "sweep",
+            null
+          ],
+          [
+            311190,
+            50,
+            "sweep",
+            null
+          ],
+          [
+            312862,
+            53,
+            "sweep",
+            null
+          ],
+          [
+            314842,
+            57,
+            "sweep",
+            null
+          ],
+          [
+            316202,
+            62,
+            "sweep",
+            null
+          ],
+          [
+            328919,
+            40,
+            "sweep",
+            null
+          ],
+          [
+            330527,
+            44,
+            "sweep",
+            null
+          ],
+          [
+            332146,
+            47,
+            "sweep",
+            null
+          ],
+          [
+            334039,
+            52,
+            "sweep",
+            null
+          ],
+          [
+            335622,
+            56,
+            "sweep",
+            null
+          ],
+          [
+            337323,
+            59,
+            "sweep",
+            null
+          ],
+          [
+            346529,
+            38,
+            "sweep",
+            null
+          ],
+          [
+            348462,
+            42,
+            "sweep",
+            null
+          ],
+          [
+            350409,
+            45,
+            "sweep",
+            null
+          ],
+          [
+            352383,
+            50,
+            "sweep",
+            null
+          ],
+          [
+            353862,
+            54,
+            "sweep",
+            null
+          ],
+          [
+            355900,
+            57,
+            "sweep",
+            null
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "positive_one_recurrence_pair",
+        "seed": 1511,
+        "segments": [
+          {
+            "end_sample": 107350,
+            "role": "fill_x",
+            "start_sample": 24000
+          },
+          {
+            "end_sample": 183626,
+            "role": "motif_a1",
+            "start_sample": 107350
+          },
+          {
+            "end_sample": 186430,
+            "role": "link1",
+            "start_sample": 183626
+          },
+          {
+            "end_sample": 262706,
+            "role": "motif_a2",
+            "start_sample": 186430
+          },
+          {
+            "end_sample": 360000,
+            "role": "fill_y",
+            "start_sample": 262706
+          }
+        ],
+        "start_samples": 107350,
+        "truth_pairs": [
+          {
+            "first_span_samples": [
+              107350,
+              183626
+            ],
+            "first_span_seconds": [
+              2.236458333333333,
+              3.8255416666666666
+            ],
+            "id": "seed1511-sweep-arpeggio",
+            "second_span_samples": [
+              186430,
+              262706
+            ],
+            "second_span_seconds": [
+              3.883958333333333,
+              5.473041666666667
+            ]
+          }
+        ]
+      },
+      "syncopated-palm-mute": {
+        "checks": {
+          "fill_distinct": true,
+          "gap_bound": true,
+          "palm_fill_ioi_below_motif_rest": true
+        },
+        "cohort": "syncopated-palm-mute",
+        "gap_samples": [
+          268
+        ],
+        "motif_samples": 73551,
+        "notes": [
+          [
+            24000,
+            30,
+            "palm",
+            null
+          ],
+          [
+            28903,
+            29,
+            "palm",
+            null
+          ],
+          [
+            33807,
+            32,
+            "palm",
+            null
+          ],
+          [
+            43614,
+            30,
+            "palm",
+            null
+          ],
+          [
+            48518,
+            29,
+            "palm",
+            null
+          ],
+          [
+            53422,
+            26,
+            "palm",
+            null
+          ],
+          [
+            58325,
+            31,
+            "palm",
+            null
+          ],
+          [
+            66258,
+            34,
+            "palm",
+            null
+          ],
+          [
+            76065,
+            36,
+            "palm",
+            null
+          ],
+          [
+            80968,
+            26,
+            "palm",
+            null
+          ],
+          [
+            85872,
+            27,
+            "palm",
+            null
+          ],
+          [
+            90775,
+            31,
+            "palm",
+            null
+          ],
+          [
+            100582,
+            27,
+            "palm",
+            null
+          ],
+          [
+            110389,
+            34,
+            "palm",
+            null
+          ],
+          [
+            130002,
+            27,
+            "palm",
+            null
+          ],
+          [
+            139809,
+            36,
+            "palm",
+            null
+          ],
+          [
+            140077,
+            34,
+            "palm",
+            null
+          ],
+          [
+            149884,
+            36,
+            "palm",
+            null
+          ],
+          [
+            154787,
+            26,
+            "palm",
+            null
+          ],
+          [
+            159691,
+            27,
+            "palm",
+            null
+          ],
+          [
+            164594,
+            31,
+            "palm",
+            null
+          ],
+          [
+            174401,
+            27,
+            "palm",
+            null
+          ],
+          [
+            184208,
+            34,
+            "palm",
+            null
+          ],
+          [
+            203821,
+            27,
+            "palm",
+            null
+          ],
+          [
+            213628,
+            26,
+            "palm",
+            null
+          ],
+          [
+            223435,
+            33,
+            "palm",
+            null
+          ],
+          [
+            233242,
+            35,
+            "palm",
+            null
+          ],
+          [
+            243049,
+            30,
+            "palm",
+            null
+          ],
+          [
+            252856,
+            31,
+            "palm",
+            null
+          ],
+          [
+            262663,
+            34,
+            "palm",
+            null
+          ],
+          [
+            272470,
+            35,
+            "palm",
+            null
+          ],
+          [
+            282277,
+            25,
+            "palm",
+            null
+          ],
+          [
+            287180,
+            35,
+            "palm",
+            null
+          ],
+          [
+            296987,
+            28,
+            "palm",
+            null
+          ],
+          [
+            306794,
+            32,
+            "palm",
+            null
+          ],
+          [
+            316601,
+            29,
+            "palm",
+            null
+          ],
+          [
+            326408,
+            35,
+            "palm",
+            null
+          ],
+          [
+            336215,
+            27,
+            "palm",
+            null
+          ],
+          [
+            346022,
+            35,
+            "palm",
+            null
+          ],
+          [
+            350925,
+            34,
+            "palm",
+            null
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "positive_one_recurrence_pair",
+        "seed": 1511,
+        "segments": [
+          {
+            "end_sample": 66258,
+            "role": "fill_x",
+            "start_sample": 24000
+          },
+          {
+            "end_sample": 139809,
+            "role": "motif_a1",
+            "start_sample": 66258
+          },
+          {
+            "end_sample": 140077,
+            "role": "link1",
+            "start_sample": 139809
+          },
+          {
+            "end_sample": 213628,
+            "role": "motif_a2",
+            "start_sample": 140077
+          },
+          {
+            "end_sample": 360000,
+            "role": "fill_y",
+            "start_sample": 213628
+          }
+        ],
+        "start_samples": 66258,
+        "truth_pairs": [
+          {
+            "first_span_samples": [
+              66258,
+              139809
+            ],
+            "first_span_seconds": [
+              1.380375,
+              2.9126875
+            ],
+            "id": "seed1511-syncopated-palm-mute",
+            "second_span_samples": [
+              140077,
+              213628
+            ],
+            "second_span_seconds": [
+              2.918270833333333,
+              4.450583333333333
+            ]
+          }
+        ]
+      },
+      "tapping-run": {
+        "checks": {
+          "fill_distinct": true,
+          "gap_bound": true
+        },
+        "cohort": "tapping-run",
+        "gap_samples": [
+          4757
+        ],
+        "motif_samples": 90628,
+        "notes": [
+          [
+            24000,
+            64,
+            "tap",
+            0.003712
+          ],
+          [
+            28316,
+            63,
+            "tap",
+            0.002733
+          ],
+          [
+            32632,
+            69,
+            "tap",
+            0.003188
+          ],
+          [
+            36948,
+            74,
+            "tap",
+            0.002725
+          ],
+          [
+            41264,
+            64,
+            "tap",
+            0.003025
+          ],
+          [
+            45580,
+            63,
+            "tap",
+            0.002873
+          ],
+          [
+            49895,
+            63,
+            "tap",
+            0.003397
+          ],
+          [
+            54210,
+            73,
+            "tap",
+            0.00315
+          ],
+          [
+            58526,
+            51,
+            "tap",
+            0.002986
+          ],
+          [
+            62842,
+            75,
+            "tap",
+            0.003341
+          ],
+          [
+            67157,
+            59,
+            "tap",
+            0.002131
+          ],
+          [
+            71473,
+            55,
+            "tap",
+            0.002942
+          ],
+          [
+            75789,
+            77,
+            "tap",
+            0.002821
+          ],
+          [
+            80105,
+            68,
+            "tap",
+            0.003731
+          ],
+          [
+            84420,
+            51,
+            "tap",
+            0.00292
+          ],
+          [
+            88735,
+            54,
+            "tap",
+            0.002502
+          ],
+          [
+            93050,
+            71,
+            "tap",
+            0.002882
+          ],
+          [
+            93267,
+            63,
+            "tap",
+            0.002646
+          ],
+          [
+            97583,
+            66,
+            "tap",
+            0.003743
+          ],
+          [
+            101898,
+            65,
+            "tap",
+            0.002909
+          ],
+          [
+            106214,
+            66,
+            "tap",
+            0.00317
+          ],
+          [
+            110529,
+            63,
+            "tap",
+            0.003985
+          ],
+          [
+            114845,
+            58,
+            "tap",
+            0.002911
+          ],
+          [
+            119161,
+            66,
+            "tap",
+            0.003821
+          ],
+          [
+            123476,
+            65,
+            "tap",
+            0.003819
+          ],
+          [
+            127792,
+            58,
+            "tap",
+            0.002459
+          ],
+          [
+            132108,
+            65,
+            "tap",
+            0.002887
+          ],
+          [
+            136423,
+            58,
+            "tap",
+            0.002984
+          ],
+          [
+            140739,
+            58,
+            "tap",
+            0.002678
+          ],
+          [
+            145054,
+            66,
+            "tap",
+            0.002284
+          ],
+          [
+            149370,
+            66,
+            "tap",
+            0.003446
+          ],
+          [
+            153686,
+            66,
+            "tap",
+            0.002188
+          ],
+          [
+            158001,
+            65,
+            "tap",
+            0.003689
+          ],
+          [
+            162317,
+            65,
+            "tap",
+            0.003742
+          ],
+          [
+            166633,
+            66,
+            "tap",
+            0.003901
+          ],
+          [
+            170948,
+            66,
+            "tap",
+            0.003503
+          ],
+          [
+            175264,
+            66,
+            "tap",
+            0.00314
+          ],
+          [
+            179579,
+            65,
+            "tap",
+            0.003586
+          ],
+          [
+            183895,
+            64,
+            "tap",
+            0.003
+          ],
+          [
+            188652,
+            63,
+            "tap",
+            0.002646
+          ],
+          [
+            192968,
+            66,
+            "tap",
+            0.003743
+          ],
+          [
+            197283,
+            65,
+            "tap",
+            0.002909
+          ],
+          [
+            201599,
+            66,
+            "tap",
+            0.00317
+          ],
+          [
+            205914,
+            63,
+            "tap",
+            0.003985
+          ],
+          [
+            210230,
+            58,
+            "tap",
+            0.002911
+          ],
+          [
+            214546,
+            66,
+            "tap",
+            0.003821
+          ],
+          [
+            218861,
+            65,
+            "tap",
+            0.003819
+          ],
+          [
+            223177,
+            58,
+            "tap",
+            0.002459
+          ],
+          [
+            227493,
+            65,
+            "tap",
+            0.002887
+          ],
+          [
+            231808,
+            58,
+            "tap",
+            0.002984
+          ],
+          [
+            236124,
+            58,
+            "tap",
+            0.002678
+          ],
+          [
+            240439,
+            66,
+            "tap",
+            0.002284
+          ],
+          [
+            244755,
+            66,
+            "tap",
+            0.003446
+          ],
+          [
+            249071,
+            66,
+            "tap",
+            0.002188
+          ],
+          [
+            253386,
+            65,
+            "tap",
+            0.003689
+          ],
+          [
+            257702,
+            65,
+            "tap",
+            0.003742
+          ],
+          [
+            262018,
+            66,
+            "tap",
+            0.003901
+          ],
+          [
+            266333,
+            66,
+            "tap",
+            0.003503
+          ],
+          [
+            270649,
+            66,
+            "tap",
+            0.00314
+          ],
+          [
+            274964,
+            65,
+            "tap",
+            0.003586
+          ],
+          [
+            279280,
+            71,
+            "tap",
+            0.002208
+          ],
+          [
+            283596,
+            66,
+            "tap",
+            0.003354
+          ],
+          [
+            287912,
+            57,
+            "tap",
+            0.003164
+          ],
+          [
+            292228,
+            65,
+            "tap",
+            0.003401
+          ],
+          [
+            296544,
+            64,
+            "tap",
+            0.002057
+          ],
+          [
+            300859,
+            54,
+            "tap",
+            0.003268
+          ],
+          [
+            305174,
+            77,
+            "tap",
+            0.003143
+          ],
+          [
+            309489,
+            54,
+            "tap",
+            0.003777
+          ],
+          [
+            313804,
+            76,
+            "tap",
+            0.003374
+          ],
+          [
+            318120,
+            57,
+            "tap",
+            0.003733
+          ],
+          [
+            322436,
+            66,
+            "tap",
+            0.002713
+          ],
+          [
+            326752,
+            52,
+            "tap",
+            0.003186
+          ],
+          [
+            331068,
+            76,
+            "tap",
+            0.002995
+          ],
+          [
+            335383,
+            56,
+            "tap",
+            0.00299
+          ],
+          [
+            339699,
+            70,
+            "tap",
+            0.002676
+          ],
+          [
+            344015,
+            77,
+            "tap",
+            0.00273
+          ],
+          [
+            348331,
+            63,
+            "tap",
+            0.002283
+          ],
+          [
+            352647,
+            75,
+            "tap",
+            0.002658
+          ],
+          [
+            356963,
+            60,
+            "tap",
+            0.003186
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "positive_one_recurrence_pair",
+        "seed": 1511,
+        "segments": [
+          {
+            "end_sample": 93267,
+            "role": "fill_x",
+            "start_sample": 24000
+          },
+          {
+            "end_sample": 183895,
+            "role": "motif_a1",
+            "start_sample": 93267
+          },
+          {
+            "end_sample": 188652,
+            "role": "link1",
+            "start_sample": 183895
+          },
+          {
+            "end_sample": 279280,
+            "role": "motif_a2",
+            "start_sample": 188652
+          },
+          {
+            "end_sample": 360000,
+            "role": "fill_y",
+            "start_sample": 279280
+          }
+        ],
+        "start_samples": 93267,
+        "truth_pairs": [
+          {
+            "first_span_samples": [
+              93267,
+              183895
+            ],
+            "first_span_seconds": [
+              1.9430625,
+              3.8311458333333333
+            ],
+            "id": "seed1511-tapping-run",
+            "second_span_samples": [
+              188652,
+              279280
+            ],
+            "second_span_seconds": [
+              3.93025,
+              5.818333333333333
+            ]
+          }
+        ]
+      },
+      "through-composed": {
+        "checks": {
+          "fill_distinct": null,
+          "gap_bound": null
+        },
+        "cohort": "through-composed",
+        "gap_samples": [],
+        "notes": [
+          [
+            24000,
+            38,
+            "picked",
+            null
+          ],
+          [
+            41432,
+            48,
+            "picked",
+            null
+          ],
+          [
+            58864,
+            46,
+            "picked",
+            null
+          ],
+          [
+            67580,
+            33,
+            "picked",
+            null
+          ],
+          [
+            93728,
+            57,
+            "picked",
+            null
+          ],
+          [
+            102444,
+            25,
+            "picked",
+            null
+          ],
+          [
+            111160,
+            58,
+            "picked",
+            null
+          ],
+          [
+            119876,
+            35,
+            "picked",
+            null
+          ],
+          [
+            128592,
+            58,
+            "picked",
+            null
+          ],
+          [
+            146024,
+            32,
+            "picked",
+            null
+          ],
+          [
+            154740,
+            58,
+            "picked",
+            null
+          ],
+          [
+            163456,
+            46,
+            "picked",
+            null
+          ],
+          [
+            180888,
+            34,
+            "picked",
+            null
+          ],
+          [
+            207036,
+            31,
+            "picked",
+            null
+          ],
+          [
+            215752,
+            42,
+            "picked",
+            null
+          ],
+          [
+            224468,
+            29,
+            "picked",
+            null
+          ],
+          [
+            233184,
+            32,
+            "picked",
+            null
+          ],
+          [
+            241900,
+            32,
+            "picked",
+            null
+          ],
+          [
+            268048,
+            45,
+            "picked",
+            null
+          ],
+          [
+            294196,
+            39,
+            "picked",
+            null
+          ],
+          [
+            302912,
+            52,
+            "picked",
+            null
+          ],
+          [
+            320344,
+            40,
+            "picked",
+            null
+          ],
+          [
+            329060,
+            47,
+            "picked",
+            null
+          ],
+          [
+            337776,
+            42,
+            "picked",
+            null
+          ],
+          [
+            346492,
+            39,
+            "picked",
+            null
+          ],
+          [
+            355208,
+            53,
+            "picked",
+            null
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "negative_no_generated_recurrence_reference",
+        "seed": 1511,
+        "segments": [
+          {
+            "end_sample": 360000,
+            "role": "through_composed",
+            "start_sample": 24000
+          }
+        ],
+        "truth_pairs": []
+      }
+    },
+    "1613": {
+      "aba-transition": {
+        "checks": {
+          "b_distinct": true,
+          "fill_distinct": true,
+          "gap_bound": true
+        },
+        "cohort": "aba-transition",
+        "gap_samples": [
+          1933,
+          1285
+        ],
+        "motif_samples": 65726,
+        "notes": [
+          [
+            24000,
+            28,
+            "picked",
+            null
+          ],
+          [
+            29477,
+            28,
+            "picked",
+            null
+          ],
+          [
+            34954,
+            35,
+            "picked",
+            null
+          ],
+          [
+            40431,
+            42,
+            "picked",
+            null
+          ],
+          [
+            45090,
+            29,
+            "picked",
+            null
+          ],
+          [
+            50567,
+            33,
+            "picked",
+            null
+          ],
+          [
+            61522,
+            31,
+            "picked",
+            null
+          ],
+          [
+            66999,
+            38,
+            "picked",
+            null
+          ],
+          [
+            77953,
+            44,
+            "picked",
+            null
+          ],
+          [
+            83430,
+            39,
+            "picked",
+            null
+          ],
+          [
+            88907,
+            26,
+            "picked",
+            null
+          ],
+          [
+            99862,
+            25,
+            "picked",
+            null
+          ],
+          [
+            110816,
+            32,
+            "picked",
+            null
+          ],
+          [
+            112749,
+            30,
+            "picked",
+            null
+          ],
+          [
+            116678,
+            30,
+            "picked",
+            null
+          ],
+          [
+            120608,
+            26,
+            "picked",
+            null
+          ],
+          [
+            124537,
+            38,
+            "picked",
+            null
+          ],
+          [
+            132396,
+            46,
+            "picked",
+            null
+          ],
+          [
+            140255,
+            35,
+            "picked",
+            null
+          ],
+          [
+            152043,
+            27,
+            "picked",
+            null
+          ],
+          [
+            159901,
+            25,
+            "picked",
+            null
+          ],
+          [
+            167760,
+            37,
+            "picked",
+            null
+          ],
+          [
+            169045,
+            29,
+            "picked",
+            null
+          ],
+          [
+            174522,
+            33,
+            "picked",
+            null
+          ],
+          [
+            185477,
+            31,
+            "picked",
+            null
+          ],
+          [
+            190954,
+            38,
+            "picked",
+            null
+          ],
+          [
+            201908,
+            44,
+            "picked",
+            null
+          ],
+          [
+            207385,
+            39,
+            "picked",
+            null
+          ],
+          [
+            212862,
+            26,
+            "picked",
+            null
+          ],
+          [
+            223817,
+            25,
+            "picked",
+            null
+          ],
+          [
+            234771,
+            34,
+            "picked",
+            null
+          ],
+          [
+            240248,
+            43,
+            "picked",
+            null
+          ],
+          [
+            251202,
+            28,
+            "picked",
+            null
+          ],
+          [
+            256679,
+            28,
+            "picked",
+            null
+          ],
+          [
+            267634,
+            36,
+            "picked",
+            null
+          ],
+          [
+            278589,
+            30,
+            "picked",
+            null
+          ],
+          [
+            284066,
+            31,
+            "picked",
+            null
+          ],
+          [
+            289543,
+            30,
+            "picked",
+            null
+          ],
+          [
+            300497,
+            46,
+            "picked",
+            null
+          ],
+          [
+            305974,
+            46,
+            "picked",
+            null
+          ],
+          [
+            311451,
+            27,
+            "picked",
+            null
+          ],
+          [
+            316928,
+            43,
+            "picked",
+            null
+          ],
+          [
+            327882,
+            33,
+            "picked",
+            null
+          ],
+          [
+            338836,
+            43,
+            "picked",
+            null
+          ],
+          [
+            344313,
+            27,
+            "picked",
+            null
+          ],
+          [
+            355267,
+            42,
+            "picked",
+            null
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "positive_one_recurrence_pair",
+        "seed": 1613,
+        "segments": [
+          {
+            "end_sample": 45090,
+            "role": "fill_x",
+            "start_sample": 24000
+          },
+          {
+            "end_sample": 110816,
+            "role": "motif_a1",
+            "start_sample": 45090
+          },
+          {
+            "end_sample": 112749,
+            "role": "link1",
+            "start_sample": 110816
+          },
+          {
+            "end_sample": 167760,
+            "role": "motif_b",
+            "start_sample": 112749
+          },
+          {
+            "end_sample": 169045,
+            "role": "link2",
+            "start_sample": 167760
+          },
+          {
+            "end_sample": 234771,
+            "role": "motif_a2",
+            "start_sample": 169045
+          },
+          {
+            "end_sample": 360000,
+            "role": "fill_y",
+            "start_sample": 234771
+          }
+        ],
+        "start_samples": 45090,
+        "truth_pairs": [
+          {
+            "first_span_samples": [
+              45090,
+              110816
+            ],
+            "first_span_seconds": [
+              0.939375,
+              2.308666666666667
+            ],
+            "id": "seed1613-aba-transition",
+            "second_span_samples": [
+              169045,
+              234771
+            ],
+            "second_span_seconds": [
+              3.5217708333333335,
+              4.8910625
+            ]
+          }
+        ]
+      },
+      "b2b-picked": {
+        "checks": {
+          "fill_distinct": true,
+          "gap_bound": true
+        },
+        "cohort": "b2b-picked",
+        "gap_samples": [
+          642
+        ],
+        "motif_samples": 72592,
+        "notes": [
+          [
+            24000,
+            42,
+            "picked",
+            null
+          ],
+          [
+            29185,
+            46,
+            "picked",
+            null
+          ],
+          [
+            34370,
+            32,
+            "picked",
+            null
+          ],
+          [
+            43971,
+            43,
+            "picked",
+            null
+          ],
+          [
+            49156,
+            33,
+            "picked",
+            null
+          ],
+          [
+            54341,
+            37,
+            "picked",
+            null
+          ],
+          [
+            64712,
+            40,
+            "picked",
+            null
+          ],
+          [
+            85452,
+            25,
+            "picked",
+            null
+          ],
+          [
+            90637,
+            25,
+            "picked",
+            null
+          ],
+          [
+            101008,
+            41,
+            "picked",
+            null
+          ],
+          [
+            106193,
+            33,
+            "picked",
+            null
+          ],
+          [
+            111378,
+            33,
+            "picked",
+            null
+          ],
+          [
+            116563,
+            25,
+            "picked",
+            null
+          ],
+          [
+            117205,
+            43,
+            "picked",
+            null
+          ],
+          [
+            122390,
+            33,
+            "picked",
+            null
+          ],
+          [
+            127575,
+            37,
+            "picked",
+            null
+          ],
+          [
+            137946,
+            40,
+            "picked",
+            null
+          ],
+          [
+            158686,
+            25,
+            "picked",
+            null
+          ],
+          [
+            163871,
+            25,
+            "picked",
+            null
+          ],
+          [
+            174242,
+            41,
+            "picked",
+            null
+          ],
+          [
+            179427,
+            33,
+            "picked",
+            null
+          ],
+          [
+            184612,
+            33,
+            "picked",
+            null
+          ],
+          [
+            189797,
+            30,
+            "picked",
+            null
+          ],
+          [
+            210537,
+            29,
+            "picked",
+            null
+          ],
+          [
+            215722,
+            32,
+            "picked",
+            null
+          ],
+          [
+            226093,
+            34,
+            "picked",
+            null
+          ],
+          [
+            231278,
+            41,
+            "picked",
+            null
+          ],
+          [
+            236463,
+            37,
+            "picked",
+            null
+          ],
+          [
+            241648,
+            26,
+            "picked",
+            null
+          ],
+          [
+            246833,
+            35,
+            "picked",
+            null
+          ],
+          [
+            252018,
+            30,
+            "picked",
+            null
+          ],
+          [
+            257203,
+            32,
+            "picked",
+            null
+          ],
+          [
+            262388,
+            40,
+            "picked",
+            null
+          ],
+          [
+            283128,
+            31,
+            "picked",
+            null
+          ],
+          [
+            303868,
+            42,
+            "picked",
+            null
+          ],
+          [
+            314239,
+            36,
+            "picked",
+            null
+          ],
+          [
+            334979,
+            45,
+            "picked",
+            null
+          ],
+          [
+            340164,
+            37,
+            "picked",
+            null
+          ],
+          [
+            345349,
+            41,
+            "picked",
+            null
+          ],
+          [
+            350534,
+            39,
+            "picked",
+            null
+          ],
+          [
+            355719,
+            28,
+            "picked",
+            null
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "positive_one_recurrence_pair",
+        "seed": 1613,
+        "segments": [
+          {
+            "end_sample": 43971,
+            "role": "fill_x",
+            "start_sample": 24000
+          },
+          {
+            "end_sample": 116563,
+            "role": "motif_a1",
+            "start_sample": 43971
+          },
+          {
+            "end_sample": 117205,
+            "role": "link1",
+            "start_sample": 116563
+          },
+          {
+            "end_sample": 189797,
+            "role": "motif_a2",
+            "start_sample": 117205
+          },
+          {
+            "end_sample": 360000,
+            "role": "fill_y",
+            "start_sample": 189797
+          }
+        ],
+        "start_samples": 43971,
+        "truth_pairs": [
+          {
+            "first_span_samples": [
+              43971,
+              116563
+            ],
+            "first_span_seconds": [
+              0.9160625,
+              2.4283958333333335
+            ],
+            "id": "seed1613-b2b-picked",
+            "second_span_samples": [
+              117205,
+              189797
+            ],
+            "second_span_seconds": [
+              2.4417708333333334,
+              3.9541041666666668
+            ]
+          }
+        ]
+      },
+      "legato-transition": {
+        "checks": {
+          "fill_distinct": true,
+          "gap_bound": true
+        },
+        "cohort": "legato-transition",
+        "gap_samples": [
+          4305
+        ],
+        "motif_samples": 88232,
+        "notes": [
+          [
+            24000,
+            38,
+            "legato",
+            null
+          ],
+          [
+            31353,
+            35,
+            "legato",
+            null
+          ],
+          [
+            46058,
+            34,
+            "legato",
+            null
+          ],
+          [
+            60763,
+            36,
+            "legato",
+            null
+          ],
+          [
+            68116,
+            38,
+            "legato",
+            null
+          ],
+          [
+            75469,
+            39,
+            "legato",
+            null
+          ],
+          [
+            76489,
+            42,
+            "legato",
+            null
+          ],
+          [
+            83842,
+            45,
+            "legato",
+            null
+          ],
+          [
+            91194,
+            44,
+            "legato",
+            null
+          ],
+          [
+            98547,
+            47,
+            "legato",
+            null
+          ],
+          [
+            105900,
+            50,
+            "legato",
+            null
+          ],
+          [
+            113252,
+            51,
+            "legato",
+            null
+          ],
+          [
+            120605,
+            52,
+            "legato",
+            null
+          ],
+          [
+            127958,
+            50,
+            "legato",
+            null
+          ],
+          [
+            142663,
+            48,
+            "legato",
+            null
+          ],
+          [
+            150016,
+            51,
+            "legato",
+            null
+          ],
+          [
+            164721,
+            57,
+            "legato",
+            null
+          ],
+          [
+            169026,
+            42,
+            "legato",
+            null
+          ],
+          [
+            176379,
+            45,
+            "legato",
+            null
+          ],
+          [
+            183731,
+            44,
+            "legato",
+            null
+          ],
+          [
+            191084,
+            47,
+            "legato",
+            null
+          ],
+          [
+            198437,
+            50,
+            "legato",
+            null
+          ],
+          [
+            205789,
+            51,
+            "legato",
+            null
+          ],
+          [
+            213142,
+            52,
+            "legato",
+            null
+          ],
+          [
+            220495,
+            50,
+            "legato",
+            null
+          ],
+          [
+            235200,
+            48,
+            "legato",
+            null
+          ],
+          [
+            242553,
+            51,
+            "legato",
+            null
+          ],
+          [
+            257258,
+            41,
+            "legato",
+            null
+          ],
+          [
+            264611,
+            43,
+            "legato",
+            null
+          ],
+          [
+            271964,
+            41,
+            "legato",
+            null
+          ],
+          [
+            279317,
+            40,
+            "legato",
+            null
+          ],
+          [
+            286670,
+            41,
+            "legato",
+            null
+          ],
+          [
+            294023,
+            39,
+            "legato",
+            null
+          ],
+          [
+            301375,
+            36,
+            "legato",
+            null
+          ],
+          [
+            308727,
+            35,
+            "legato",
+            null
+          ],
+          [
+            316080,
+            34,
+            "legato",
+            null
+          ],
+          [
+            330785,
+            34,
+            "legato",
+            null
+          ],
+          [
+            345490,
+            34,
+            "legato",
+            null
+          ],
+          [
+            352843,
+            37,
+            "legato",
+            null
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "positive_one_recurrence_pair",
+        "seed": 1613,
+        "segments": [
+          {
+            "end_sample": 76489,
+            "role": "fill_x",
+            "start_sample": 24000
+          },
+          {
+            "end_sample": 164721,
+            "role": "motif_a1",
+            "start_sample": 76489
+          },
+          {
+            "end_sample": 169026,
+            "role": "link1",
+            "start_sample": 164721
+          },
+          {
+            "end_sample": 257258,
+            "role": "motif_a2",
+            "start_sample": 169026
+          },
+          {
+            "end_sample": 360000,
+            "role": "fill_y",
+            "start_sample": 257258
+          }
+        ],
+        "start_samples": 76489,
+        "truth_pairs": [
+          {
+            "first_span_samples": [
+              76489,
+              164721
+            ],
+            "first_span_seconds": [
+              1.5935208333333333,
+              3.4316875
+            ],
+            "id": "seed1613-legato-transition",
+            "second_span_samples": [
+              169026,
+              257258
+            ],
+            "second_span_seconds": [
+              3.521375,
+              5.359541666666667
+            ]
+          }
+        ]
+      },
+      "sustain32-fan-click": {
+        "checks": {
+          "fill_distinct": null,
+          "gap_bound": null
+        },
+        "cohort": "sustain32-fan-click",
+        "gap_samples": [],
+        "notes": [
+          [
+            24000,
+            24,
+            "sustain",
+            null
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "negative_no_generated_recurrence_reference",
+        "seed": 1613,
+        "segments": [
+          {
+            "end_sample": 360000,
+            "role": "sustain_c1",
+            "start_sample": 24000
+          }
+        ],
+        "truth_pairs": []
+      },
+      "sweep-arpeggio": {
+        "checks": {
+          "fill_distinct": true,
+          "gap_bound": true
+        },
+        "cohort": "sweep-arpeggio",
+        "gap_samples": [
+          697
+        ],
+        "motif_samples": 87042,
+        "notes": [
+          [
+            24000,
+            35,
+            "sweep",
+            null
+          ],
+          [
+            25289,
+            38,
+            "sweep",
+            null
+          ],
+          [
+            27177,
+            42,
+            "sweep",
+            null
+          ],
+          [
+            28999,
+            47,
+            "sweep",
+            null
+          ],
+          [
+            30961,
+            50,
+            "sweep",
+            null
+          ],
+          [
+            32171,
+            54,
+            "sweep",
+            null
+          ],
+          [
+            33815,
+            59,
+            "sweep",
+            null
+          ],
+          [
+            43324,
+            63,
+            "sweep",
+            null
+          ],
+          [
+            45251,
+            58,
+            "sweep",
+            null
+          ],
+          [
+            46658,
+            55,
+            "sweep",
+            null
+          ],
+          [
+            48045,
+            51,
+            "sweep",
+            null
+          ],
+          [
+            49246,
+            46,
+            "sweep",
+            null
+          ],
+          [
+            50586,
+            43,
+            "sweep",
+            null
+          ],
+          [
+            52488,
+            39,
+            "sweep",
+            null
+          ],
+          [
+            61274,
+            34,
+            "sweep",
+            null
+          ],
+          [
+            63330,
+            38,
+            "sweep",
+            null
+          ],
+          [
+            65204,
+            41,
+            "sweep",
+            null
+          ],
+          [
+            67111,
+            46,
+            "sweep",
+            null
+          ],
+          [
+            69221,
+            50,
+            "sweep",
+            null
+          ],
+          [
+            71312,
+            53,
+            "sweep",
+            null
+          ],
+          [
+            73279,
+            58,
+            "sweep",
+            null
+          ],
+          [
+            74741,
+            62,
+            "sweep",
+            null
+          ],
+          [
+            76786,
+            65,
+            "sweep",
+            null
+          ],
+          [
+            89378,
+            38,
+            "sweep",
+            null
+          ],
+          [
+            90658,
+            42,
+            "sweep",
+            null
+          ],
+          [
+            92512,
+            45,
+            "sweep",
+            null
+          ],
+          [
+            94564,
+            50,
+            "sweep",
+            null
+          ],
+          [
+            96678,
+            54,
+            "sweep",
+            null
+          ],
+          [
+            98543,
+            57,
+            "sweep",
+            null
+          ],
+          [
+            100067,
+            62,
+            "sweep",
+            null
+          ],
+          [
+            101896,
+            66,
+            "sweep",
+            null
+          ],
+          [
+            118661,
+            54,
+            "sweep",
+            null
+          ],
+          [
+            120256,
+            50,
+            "sweep",
+            null
+          ],
+          [
+            121821,
+            47,
+            "sweep",
+            null
+          ],
+          [
+            123182,
+            42,
+            "sweep",
+            null
+          ],
+          [
+            124673,
+            38,
+            "sweep",
+            null
+          ],
+          [
+            126119,
+            35,
+            "sweep",
+            null
+          ],
+          [
+            130366,
+            68,
+            "sweep",
+            null
+          ],
+          [
+            131063,
+            63,
+            "sweep",
+            null
+          ],
+          [
+            132990,
+            58,
+            "sweep",
+            null
+          ],
+          [
+            134397,
+            55,
+            "sweep",
+            null
+          ],
+          [
+            135784,
+            51,
+            "sweep",
+            null
+          ],
+          [
+            136985,
+            46,
+            "sweep",
+            null
+          ],
+          [
+            138325,
+            43,
+            "sweep",
+            null
+          ],
+          [
+            140227,
+            39,
+            "sweep",
+            null
+          ],
+          [
+            149013,
+            34,
+            "sweep",
+            null
+          ],
+          [
+            151069,
+            38,
+            "sweep",
+            null
+          ],
+          [
+            152943,
+            41,
+            "sweep",
+            null
+          ],
+          [
+            154850,
+            46,
+            "sweep",
+            null
+          ],
+          [
+            156960,
+            50,
+            "sweep",
+            null
+          ],
+          [
+            159051,
+            53,
+            "sweep",
+            null
+          ],
+          [
+            161018,
+            58,
+            "sweep",
+            null
+          ],
+          [
+            162480,
+            62,
+            "sweep",
+            null
+          ],
+          [
+            164525,
+            65,
+            "sweep",
+            null
+          ],
+          [
+            177117,
+            38,
+            "sweep",
+            null
+          ],
+          [
+            178397,
+            42,
+            "sweep",
+            null
+          ],
+          [
+            180251,
+            45,
+            "sweep",
+            null
+          ],
+          [
+            182303,
+            50,
+            "sweep",
+            null
+          ],
+          [
+            184417,
+            54,
+            "sweep",
+            null
+          ],
+          [
+            186282,
+            57,
+            "sweep",
+            null
+          ],
+          [
+            187806,
+            62,
+            "sweep",
+            null
+          ],
+          [
+            189635,
+            66,
+            "sweep",
+            null
+          ],
+          [
+            206400,
+            54,
+            "sweep",
+            null
+          ],
+          [
+            207995,
+            50,
+            "sweep",
+            null
+          ],
+          [
+            209560,
+            47,
+            "sweep",
+            null
+          ],
+          [
+            210921,
+            42,
+            "sweep",
+            null
+          ],
+          [
+            212412,
+            38,
+            "sweep",
+            null
+          ],
+          [
+            213858,
+            35,
+            "sweep",
+            null
+          ],
+          [
+            218105,
+            36,
+            "sweep",
+            null
+          ],
+          [
+            219440,
+            40,
+            "sweep",
+            null
+          ],
+          [
+            221214,
+            43,
+            "sweep",
+            null
+          ],
+          [
+            223242,
+            48,
+            "sweep",
+            null
+          ],
+          [
+            225127,
+            52,
+            "sweep",
+            null
+          ],
+          [
+            226958,
+            55,
+            "sweep",
+            null
+          ],
+          [
+            238580,
+            57,
+            "sweep",
+            null
+          ],
+          [
+            240091,
+            53,
+            "sweep",
+            null
+          ],
+          [
+            241815,
+            50,
+            "sweep",
+            null
+          ],
+          [
+            243030,
+            45,
+            "sweep",
+            null
+          ],
+          [
+            244829,
+            41,
+            "sweep",
+            null
+          ],
+          [
+            246910,
+            38,
+            "sweep",
+            null
+          ],
+          [
+            261887,
+            64,
+            "sweep",
+            null
+          ],
+          [
+            263909,
+            59,
+            "sweep",
+            null
+          ],
+          [
+            265958,
+            56,
+            "sweep",
+            null
+          ],
+          [
+            268104,
+            52,
+            "sweep",
+            null
+          ],
+          [
+            269958,
+            47,
+            "sweep",
+            null
+          ],
+          [
+            272014,
+            44,
+            "sweep",
+            null
+          ],
+          [
+            273820,
+            40,
+            "sweep",
+            null
+          ],
+          [
+            290008,
+            70,
+            "sweep",
+            null
+          ],
+          [
+            291603,
+            66,
+            "sweep",
+            null
+          ],
+          [
+            293371,
+            63,
+            "sweep",
+            null
+          ],
+          [
+            295414,
+            58,
+            "sweep",
+            null
+          ],
+          [
+            297333,
+            54,
+            "sweep",
+            null
+          ],
+          [
+            299466,
+            51,
+            "sweep",
+            null
+          ],
+          [
+            301357,
+            46,
+            "sweep",
+            null
+          ],
+          [
+            302867,
+            42,
+            "sweep",
+            null
+          ],
+          [
+            304070,
+            39,
+            "sweep",
+            null
+          ],
+          [
+            316922,
+            67,
+            "sweep",
+            null
+          ],
+          [
+            318328,
+            63,
+            "sweep",
+            null
+          ],
+          [
+            320241,
+            58,
+            "sweep",
+            null
+          ],
+          [
+            322336,
+            55,
+            "sweep",
+            null
+          ],
+          [
+            324168,
+            51,
+            "sweep",
+            null
+          ],
+          [
+            325762,
+            46,
+            "sweep",
+            null
+          ],
+          [
+            327656,
+            43,
+            "sweep",
+            null
+          ],
+          [
+            329212,
+            39,
+            "sweep",
+            null
+          ],
+          [
+            345865,
+            71,
+            "sweep",
+            null
+          ],
+          [
+            347395,
+            68,
+            "sweep",
+            null
+          ],
+          [
+            348603,
+            64,
+            "sweep",
+            null
+          ],
+          [
+            350343,
+            59,
+            "sweep",
+            null
+          ],
+          [
+            352367,
+            56,
+            "sweep",
+            null
+          ],
+          [
+            354392,
+            52,
+            "sweep",
+            null
+          ],
+          [
+            356373,
+            47,
+            "sweep",
+            null
+          ],
+          [
+            357951,
+            44,
+            "sweep",
+            null
+          ],
+          [
+            359692,
+            40,
+            "sweep",
+            null
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "positive_one_recurrence_pair",
+        "seed": 1613,
+        "segments": [
+          {
+            "end_sample": 43324,
+            "role": "fill_x",
+            "start_sample": 24000
+          },
+          {
+            "end_sample": 130366,
+            "role": "motif_a1",
+            "start_sample": 43324
+          },
+          {
+            "end_sample": 131063,
+            "role": "link1",
+            "start_sample": 130366
+          },
+          {
+            "end_sample": 218105,
+            "role": "motif_a2",
+            "start_sample": 131063
+          },
+          {
+            "end_sample": 360000,
+            "role": "fill_y",
+            "start_sample": 218105
+          }
+        ],
+        "start_samples": 43324,
+        "truth_pairs": [
+          {
+            "first_span_samples": [
+              43324,
+              130366
+            ],
+            "first_span_seconds": [
+              0.9025833333333333,
+              2.7159583333333335
+            ],
+            "id": "seed1613-sweep-arpeggio",
+            "second_span_samples": [
+              131063,
+              218105
+            ],
+            "second_span_seconds": [
+              2.7304791666666666,
+              4.543854166666667
+            ]
+          }
+        ]
+      },
+      "syncopated-palm-mute": {
+        "checks": {
+          "fill_distinct": true,
+          "gap_bound": true,
+          "palm_fill_ioi_below_motif_rest": true
+        },
+        "cohort": "syncopated-palm-mute",
+        "gap_samples": [
+          1400
+        ],
+        "motif_samples": 86889,
+        "notes": [
+          [
+            24000,
+            31,
+            "palm",
+            null
+          ],
+          [
+            38481,
+            36,
+            "palm",
+            null
+          ],
+          [
+            45722,
+            34,
+            "palm",
+            null
+          ],
+          [
+            52963,
+            26,
+            "palm",
+            null
+          ],
+          [
+            60203,
+            36,
+            "palm",
+            null
+          ],
+          [
+            67444,
+            24,
+            "palm",
+            null
+          ],
+          [
+            74685,
+            33,
+            "palm",
+            null
+          ],
+          [
+            81925,
+            33,
+            "palm",
+            null
+          ],
+          [
+            84581,
+            27,
+            "palm",
+            null
+          ],
+          [
+            91822,
+            33,
+            "palm",
+            null
+          ],
+          [
+            99063,
+            34,
+            "palm",
+            null
+          ],
+          [
+            113544,
+            32,
+            "palm",
+            null
+          ],
+          [
+            120785,
+            32,
+            "palm",
+            null
+          ],
+          [
+            128025,
+            26,
+            "palm",
+            null
+          ],
+          [
+            156989,
+            27,
+            "palm",
+            null
+          ],
+          [
+            164229,
+            24,
+            "palm",
+            null
+          ],
+          [
+            171470,
+            36,
+            "palm",
+            null
+          ],
+          [
+            172870,
+            27,
+            "palm",
+            null
+          ],
+          [
+            180111,
+            33,
+            "palm",
+            null
+          ],
+          [
+            187352,
+            34,
+            "palm",
+            null
+          ],
+          [
+            201833,
+            32,
+            "palm",
+            null
+          ],
+          [
+            209074,
+            32,
+            "palm",
+            null
+          ],
+          [
+            216314,
+            26,
+            "palm",
+            null
+          ],
+          [
+            245278,
+            27,
+            "palm",
+            null
+          ],
+          [
+            252518,
+            24,
+            "palm",
+            null
+          ],
+          [
+            259759,
+            28,
+            "palm",
+            null
+          ],
+          [
+            266999,
+            34,
+            "palm",
+            null
+          ],
+          [
+            274239,
+            24,
+            "palm",
+            null
+          ],
+          [
+            281479,
+            24,
+            "palm",
+            null
+          ],
+          [
+            288720,
+            31,
+            "palm",
+            null
+          ],
+          [
+            295961,
+            30,
+            "palm",
+            null
+          ],
+          [
+            310442,
+            24,
+            "palm",
+            null
+          ],
+          [
+            317683,
+            36,
+            "palm",
+            null
+          ],
+          [
+            324923,
+            30,
+            "palm",
+            null
+          ],
+          [
+            332164,
+            31,
+            "palm",
+            null
+          ],
+          [
+            339405,
+            34,
+            "palm",
+            null
+          ],
+          [
+            346646,
+            27,
+            "palm",
+            null
+          ],
+          [
+            353886,
+            36,
+            "palm",
+            null
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "positive_one_recurrence_pair",
+        "seed": 1613,
+        "segments": [
+          {
+            "end_sample": 84581,
+            "role": "fill_x",
+            "start_sample": 24000
+          },
+          {
+            "end_sample": 171470,
+            "role": "motif_a1",
+            "start_sample": 84581
+          },
+          {
+            "end_sample": 172870,
+            "role": "link1",
+            "start_sample": 171470
+          },
+          {
+            "end_sample": 259759,
+            "role": "motif_a2",
+            "start_sample": 172870
+          },
+          {
+            "end_sample": 360000,
+            "role": "fill_y",
+            "start_sample": 259759
+          }
+        ],
+        "start_samples": 84581,
+        "truth_pairs": [
+          {
+            "first_span_samples": [
+              84581,
+              171470
+            ],
+            "first_span_seconds": [
+              1.7621041666666666,
+              3.5722916666666666
+            ],
+            "id": "seed1613-syncopated-palm-mute",
+            "second_span_samples": [
+              172870,
+              259759
+            ],
+            "second_span_seconds": [
+              3.6014583333333334,
+              5.411645833333333
+            ]
+          }
+        ]
+      },
+      "tapping-run": {
+        "checks": {
+          "fill_distinct": true,
+          "gap_bound": true
+        },
+        "cohort": "tapping-run",
+        "gap_samples": [
+          3893
+        ],
+        "motif_samples": 70658,
+        "notes": [
+          [
+            24000,
+            56,
+            "tap",
+            0.003737
+          ],
+          [
+            28711,
+            69,
+            "tap",
+            0.002959
+          ],
+          [
+            33422,
+            61,
+            "tap",
+            0.002335
+          ],
+          [
+            38133,
+            58,
+            "tap",
+            0.003286
+          ],
+          [
+            42843,
+            55,
+            "tap",
+            0.00342
+          ],
+          [
+            47553,
+            73,
+            "tap",
+            0.002947
+          ],
+          [
+            52263,
+            71,
+            "tap",
+            0.003155
+          ],
+          [
+            56974,
+            62,
+            "tap",
+            0.00229
+          ],
+          [
+            61684,
+            72,
+            "tap",
+            0.003885
+          ],
+          [
+            66394,
+            57,
+            "tap",
+            0.003012
+          ],
+          [
+            71104,
+            62,
+            "tap",
+            0.002631
+          ],
+          [
+            75815,
+            53,
+            "tap",
+            0.003018
+          ],
+          [
+            80526,
+            64,
+            "tap",
+            0.003736
+          ],
+          [
+            83350,
+            59,
+            "tap",
+            0.00346
+          ],
+          [
+            88061,
+            54,
+            "tap",
+            0.00222
+          ],
+          [
+            92771,
+            54,
+            "tap",
+            0.0022
+          ],
+          [
+            97482,
+            54,
+            "tap",
+            0.00266
+          ],
+          [
+            102192,
+            54,
+            "tap",
+            0.002687
+          ],
+          [
+            106903,
+            59,
+            "tap",
+            0.003869
+          ],
+          [
+            111613,
+            59,
+            "tap",
+            0.002776
+          ],
+          [
+            116324,
+            54,
+            "tap",
+            0.003397
+          ],
+          [
+            121034,
+            62,
+            "tap",
+            0.002058
+          ],
+          [
+            125745,
+            54,
+            "tap",
+            0.002398
+          ],
+          [
+            130455,
+            54,
+            "tap",
+            0.003972
+          ],
+          [
+            135166,
+            54,
+            "tap",
+            0.002095
+          ],
+          [
+            139876,
+            54,
+            "tap",
+            0.00343
+          ],
+          [
+            144587,
+            62,
+            "tap",
+            0.002313
+          ],
+          [
+            149297,
+            59,
+            "tap",
+            0.003007
+          ],
+          [
+            154008,
+            66,
+            "tap",
+            0.003
+          ],
+          [
+            157901,
+            59,
+            "tap",
+            0.00346
+          ],
+          [
+            162612,
+            54,
+            "tap",
+            0.00222
+          ],
+          [
+            167322,
+            54,
+            "tap",
+            0.0022
+          ],
+          [
+            172033,
+            54,
+            "tap",
+            0.00266
+          ],
+          [
+            176743,
+            54,
+            "tap",
+            0.002687
+          ],
+          [
+            181454,
+            59,
+            "tap",
+            0.003869
+          ],
+          [
+            186164,
+            59,
+            "tap",
+            0.002776
+          ],
+          [
+            190875,
+            54,
+            "tap",
+            0.003397
+          ],
+          [
+            195585,
+            62,
+            "tap",
+            0.002058
+          ],
+          [
+            200296,
+            54,
+            "tap",
+            0.002398
+          ],
+          [
+            205006,
+            54,
+            "tap",
+            0.003972
+          ],
+          [
+            209717,
+            54,
+            "tap",
+            0.002095
+          ],
+          [
+            214427,
+            54,
+            "tap",
+            0.00343
+          ],
+          [
+            219138,
+            62,
+            "tap",
+            0.002313
+          ],
+          [
+            223848,
+            59,
+            "tap",
+            0.003007
+          ],
+          [
+            228559,
+            52,
+            "tap",
+            0.003139
+          ],
+          [
+            233269,
+            60,
+            "tap",
+            0.002352
+          ],
+          [
+            237979,
+            74,
+            "tap",
+            0.002008
+          ],
+          [
+            242689,
+            66,
+            "tap",
+            0.003814
+          ],
+          [
+            247400,
+            55,
+            "tap",
+            0.002533
+          ],
+          [
+            252111,
+            73,
+            "tap",
+            0.002993
+          ],
+          [
+            256821,
+            65,
+            "tap",
+            0.002581
+          ],
+          [
+            261531,
+            59,
+            "tap",
+            0.002849
+          ],
+          [
+            266241,
+            67,
+            "tap",
+            0.00234
+          ],
+          [
+            270952,
+            73,
+            "tap",
+            0.002962
+          ],
+          [
+            275663,
+            62,
+            "tap",
+            0.00348
+          ],
+          [
+            280373,
+            61,
+            "tap",
+            0.003926
+          ],
+          [
+            285084,
+            62,
+            "tap",
+            0.003242
+          ],
+          [
+            289794,
+            57,
+            "tap",
+            0.002193
+          ],
+          [
+            294505,
+            70,
+            "tap",
+            0.002904
+          ],
+          [
+            299216,
+            63,
+            "tap",
+            0.002943
+          ],
+          [
+            303926,
+            51,
+            "tap",
+            0.002599
+          ],
+          [
+            308637,
+            76,
+            "tap",
+            0.003213
+          ],
+          [
+            313347,
+            66,
+            "tap",
+            0.002681
+          ],
+          [
+            318057,
+            76,
+            "tap",
+            0.003474
+          ],
+          [
+            322768,
+            75,
+            "tap",
+            0.002236
+          ],
+          [
+            327478,
+            59,
+            "tap",
+            0.002831
+          ],
+          [
+            332189,
+            74,
+            "tap",
+            0.003711
+          ],
+          [
+            336899,
+            64,
+            "tap",
+            0.002662
+          ],
+          [
+            341609,
+            77,
+            "tap",
+            0.00338
+          ],
+          [
+            346320,
+            75,
+            "tap",
+            0.003483
+          ],
+          [
+            351030,
+            76,
+            "tap",
+            0.002801
+          ],
+          [
+            355740,
+            68,
+            "tap",
+            0.003465
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "positive_one_recurrence_pair",
+        "seed": 1613,
+        "segments": [
+          {
+            "end_sample": 83350,
+            "role": "fill_x",
+            "start_sample": 24000
+          },
+          {
+            "end_sample": 154008,
+            "role": "motif_a1",
+            "start_sample": 83350
+          },
+          {
+            "end_sample": 157901,
+            "role": "link1",
+            "start_sample": 154008
+          },
+          {
+            "end_sample": 228559,
+            "role": "motif_a2",
+            "start_sample": 157901
+          },
+          {
+            "end_sample": 360000,
+            "role": "fill_y",
+            "start_sample": 228559
+          }
+        ],
+        "start_samples": 83350,
+        "truth_pairs": [
+          {
+            "first_span_samples": [
+              83350,
+              154008
+            ],
+            "first_span_seconds": [
+              1.7364583333333334,
+              3.2085
+            ],
+            "id": "seed1613-tapping-run",
+            "second_span_samples": [
+              157901,
+              228559
+            ],
+            "second_span_seconds": [
+              3.289604166666667,
+              4.761645833333334
+            ]
+          }
+        ]
+      },
+      "through-composed": {
+        "checks": {
+          "fill_distinct": null,
+          "gap_bound": null
+        },
+        "cohort": "through-composed",
+        "gap_samples": [],
+        "notes": [
+          [
+            24000,
+            46,
+            "picked",
+            null
+          ],
+          [
+            30934,
+            37,
+            "picked",
+            null
+          ],
+          [
+            44802,
+            29,
+            "picked",
+            null
+          ],
+          [
+            51736,
+            32,
+            "picked",
+            null
+          ],
+          [
+            58670,
+            57,
+            "picked",
+            null
+          ],
+          [
+            65604,
+            50,
+            "picked",
+            null
+          ],
+          [
+            72538,
+            54,
+            "picked",
+            null
+          ],
+          [
+            86406,
+            37,
+            "picked",
+            null
+          ],
+          [
+            93340,
+            44,
+            "picked",
+            null
+          ],
+          [
+            100274,
+            53,
+            "picked",
+            null
+          ],
+          [
+            107208,
+            28,
+            "picked",
+            null
+          ],
+          [
+            114142,
+            35,
+            "picked",
+            null
+          ],
+          [
+            121076,
+            55,
+            "picked",
+            null
+          ],
+          [
+            128010,
+            40,
+            "picked",
+            null
+          ],
+          [
+            134944,
+            45,
+            "picked",
+            null
+          ],
+          [
+            141878,
+            52,
+            "picked",
+            null
+          ],
+          [
+            148812,
+            32,
+            "picked",
+            null
+          ],
+          [
+            155746,
+            36,
+            "picked",
+            null
+          ],
+          [
+            169614,
+            57,
+            "picked",
+            null
+          ],
+          [
+            183482,
+            41,
+            "picked",
+            null
+          ],
+          [
+            190416,
+            46,
+            "picked",
+            null
+          ],
+          [
+            204284,
+            28,
+            "picked",
+            null
+          ],
+          [
+            211218,
+            27,
+            "picked",
+            null
+          ],
+          [
+            218152,
+            41,
+            "picked",
+            null
+          ],
+          [
+            232020,
+            26,
+            "picked",
+            null
+          ],
+          [
+            238954,
+            37,
+            "picked",
+            null
+          ],
+          [
+            252822,
+            44,
+            "picked",
+            null
+          ],
+          [
+            266690,
+            26,
+            "picked",
+            null
+          ],
+          [
+            273624,
+            39,
+            "picked",
+            null
+          ],
+          [
+            287492,
+            32,
+            "picked",
+            null
+          ],
+          [
+            294426,
+            55,
+            "picked",
+            null
+          ],
+          [
+            301360,
+            54,
+            "picked",
+            null
+          ],
+          [
+            308294,
+            41,
+            "picked",
+            null
+          ],
+          [
+            315228,
+            44,
+            "picked",
+            null
+          ],
+          [
+            322162,
+            28,
+            "picked",
+            null
+          ],
+          [
+            342964,
+            28,
+            "picked",
+            null
+          ],
+          [
+            349898,
+            36,
+            "picked",
+            null
+          ],
+          [
+            356832,
+            28,
+            "picked",
+            null
+          ]
+        ],
+        "occupancy_samples": [
+          24000,
+          360000
+        ],
+        "role": "negative_no_generated_recurrence_reference",
+        "seed": 1613,
+        "segments": [
+          {
+            "end_sample": 360000,
+            "role": "through_composed",
+            "start_sample": 24000
+          }
+        ],
+        "truth_pairs": []
+      }
+    }
+  },
+  "geometry_bounds": {
+    "aba_b_seconds": [
+      1.0,
+      1.4
+    ],
+    "aba_motif_seconds": [
+      1.3,
+      1.7
+    ],
+    "aba_start_seconds": [
+      0.7,
+      1.3
+    ],
+    "fret_offsets": [
+      0,
+      12
+    ],
+    "gap_seconds": [
+      0.0,
+      0.1
+    ],
+    "midi_range": [
+      24,
+      77
+    ],
+    "motif_seconds": [
+      1.4,
+      1.9
+    ],
+    "occupancy_seconds": [
+      0.5,
+      7.5
+    ],
+    "start_seconds": [
+      0.9,
+      2.4
+    ]
+  },
+  "listening_accepted": false,
+  "musical_performance_graded": false,
+  "musical_phrase_identity": "unknown",
+  "native_rate": 48000,
+  "negative_cohorts": [
+    "through-composed",
+    "sustain32-fan-click"
+  ],
+  "physical_articulation_accepted": false,
+  "positive_cohorts": [
+    "b2b-picked",
+    "syncopated-palm-mute",
+    "legato-transition",
+    "tapping-run",
+    "sweep-arpeggio",
+    "aba-transition"
+  ],
+  "predictions_global_seal_before_truth_read": true,
+  "r1_settings": {
+    "band_maximum_hz": 1800.0,
+    "duplicate_both_span_iou": 0.75,
+    "features": "phrase_proposal_s1.extract log-band powers, bands <= 1800 Hz, per-band z-score over clip, frame cosine",
+    "frame_hop_seconds": 0.016,
+    "lag_seconds": [
+      0.8,
+      4.5
+    ],
+    "length_not_above_lag": true,
+    "length_seconds": [
+      0.8,
+      2.4
+    ],
+    "log_floor": 1e-10,
+    "maximal_extension": "per (t, lag): largest window length with mean diagonal similarity >= theta",
+    "proposal_cap": 10,
+    "quiet_gap_grouping": false,
+    "ranking": "excess = sum over window of (similarity - theta) descending; ties: longer, earlier t, shorter lag",
+    "span_seconds": [
+      0.5,
+      4.0
+    ],
+    "theta": 0.75,
+    "theta_candidates": [
+      0.55,
+      0.65,
+      0.75
+    ],
+    "zscore_std_floor": 1e-06
+  },
+  "real_take_accuracy": "unknown",
+  "retune_after_heldout": false,
+  "s1_settings": {
+    "band_count": 32,
+    "duplicate_both_span_iou": 0.75,
+    "fft_samples": 4096,
+    "guitar_support_maximum_hz": 1800.0,
+    "hop_samples": 256,
+    "maximum_dimensions": 64,
+    "maximum_duration_ratio": 1.3,
+    "maximum_frames": 1024,
+    "maximum_hz": 6000.0,
+    "maximum_span_seconds": 4.0,
+    "minimum_active_frames": 6,
+    "minimum_cosine": 0.8,
+    "minimum_floor_ratio": 3.0,
+    "minimum_hz": 25.0,
+    "minimum_low_band_fraction": 0.6,
+    "minimum_shape_variation": 0.03,
+    "minimum_span_seconds": 0.5,
+    "multiscale_gap_seconds": [
+      0.12,
+      0.24,
+      0.4
+    ],
+    "noise_floor_quantile": 0.2,
+    "proposal_cap": 10,
+    "segment_cap": 60,
+    "sequence_samples": 32,
+    "single_gap_seconds": 0.24
+  },
+  "sample_format": "pcm16",
+  "schema_version": 1,
+  "scoring": {
+    "aggregation": "sums, never averages of rates; abstentions stay in denominators",
+    "common_reference_mae": "references matched by all three arms at IoU 0.5; denominator 4 x common; null with reason if empty",
+    "matched_endpoint_mae": "all four endpoints of matched pairs; denominator 4 x matched pairs; null if none",
+    "matching": "phrase_proposal_s1.score_rows: maximum cardinality then maximum mean two-span IoU",
+    "negative_false_candidates": "candidate count per negative cohort over 2 cases",
+    "pair_iou_thresholds": [
+      0.5,
+      0.75
+    ],
+    "per_positive_cohort_tp": "over 2 references each",
+    "reference_totals": {
+      "negative_cases": 4,
+      "positive_pairs": 12,
+      "typed_endpoints": 48
+    },
+    "typed_endpoint_tolerances_seconds": [
+      0.02,
+      0.05,
+      0.1
+    ]
+  },
+  "seeds": [
+    1511,
+    1613
+  ],
+  "settings_retuned": false,
+  "silence_cue_rule": {
+    "component": "clean_pcm16",
+    "endpoint_window_seconds": 0.25,
+    "frame_seconds": 0.02,
+    "rule": "longest sub-threshold run within +-0.25 s of every truth endpoint <= longest run inside motif interiors",
+    "threshold_dbfs": -40.0
+  },
+  "suite": "s2-riff-1511-1613-v1"
+}
