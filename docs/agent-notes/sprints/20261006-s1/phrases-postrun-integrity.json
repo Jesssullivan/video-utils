@@ -1,0 +1,731 @@
+{
+  "actor": "/root/s1_phrases",
+  "audio_assets": [
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case00/clean.wav",
+      "pcm_sha256": "d23073c4979f6b25dfc86c7b862cce7fff3db6cde2fc3ef9b98c7552af69ced9",
+      "sha256": "245407ff625b969c19fa9813618e35cd3608856b65894596a2c7a5d3b0d2e3ff"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case00/click.wav",
+      "pcm_sha256": "75a62062d97e6475c26296f54a9ce745cbdbbf25e5492f2ac6572999e296600f",
+      "sha256": "d95cecae0a33e90fc6009403b09d232dbb456c9eeeeb9c83fa992b1f3bcd61c7"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case00/fan.wav",
+      "pcm_sha256": "99e44e483bf68b1ba14f3ac0075b87cbc88c2b7746a8a2eb4dab9945902512b7",
+      "sha256": "82e00c5f99b1cc6c6297ffb0ecea94190d0659a4c871741283252a1e9a0ca81b"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case00/mix.wav",
+      "pcm_sha256": "8201c84ba39fb4af893e81a2630c8a854e026c466d1201c38c1b866fec0d127b",
+      "sha256": "e008111d158addaf49f878c1958b8af8af457d74d04e9c2e8a003954dbafb975"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case00/noise.wav",
+      "pcm_sha256": "fdbd8d48d5bde5e6135496195f704cd1ae1e83eed74199f87dc3506fac924baf",
+      "sha256": "9f01c5389f953bf76d17cbf0bea92e090b3e7276194e61e8c009efd8b18aa54a"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case01/clean.wav",
+      "pcm_sha256": "8f58054b78be71ff0507f4321bf23f9b3af2d9b75a8c387b8dfa9dac8c4e41cd",
+      "sha256": "4c887664525190c83ab6df76fa82bbed346f910a3047f3b6ac5fd07753b4dcc9"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case01/click.wav",
+      "pcm_sha256": "75a62062d97e6475c26296f54a9ce745cbdbbf25e5492f2ac6572999e296600f",
+      "sha256": "d95cecae0a33e90fc6009403b09d232dbb456c9eeeeb9c83fa992b1f3bcd61c7"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case01/fan.wav",
+      "pcm_sha256": "99e44e483bf68b1ba14f3ac0075b87cbc88c2b7746a8a2eb4dab9945902512b7",
+      "sha256": "82e00c5f99b1cc6c6297ffb0ecea94190d0659a4c871741283252a1e9a0ca81b"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case01/mix.wav",
+      "pcm_sha256": "b064994261b862c5183729661fc074443a02958b1a7b3c7f61d80d7388afe1e6",
+      "sha256": "b1d33f5a9dbcb34cd4cd7f1b00fee86b7e743f4b2b369ba688a4616beb46d120"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case01/noise.wav",
+      "pcm_sha256": "fdbd8d48d5bde5e6135496195f704cd1ae1e83eed74199f87dc3506fac924baf",
+      "sha256": "9f01c5389f953bf76d17cbf0bea92e090b3e7276194e61e8c009efd8b18aa54a"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case02/clean.wav",
+      "pcm_sha256": "351a8054b23144894668c6a51d5dbba82f56523ef43cc45b6f4d7060a969c31a",
+      "sha256": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case02/click.wav",
+      "pcm_sha256": "75a62062d97e6475c26296f54a9ce745cbdbbf25e5492f2ac6572999e296600f",
+      "sha256": "d95cecae0a33e90fc6009403b09d232dbb456c9eeeeb9c83fa992b1f3bcd61c7"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case02/fan.wav",
+      "pcm_sha256": "99e44e483bf68b1ba14f3ac0075b87cbc88c2b7746a8a2eb4dab9945902512b7",
+      "sha256": "82e00c5f99b1cc6c6297ffb0ecea94190d0659a4c871741283252a1e9a0ca81b"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case02/mix.wav",
+      "pcm_sha256": "b243622cd43954300e6ffca85d1df5c5be6f8d6c9b99b61b077f82cdd8989479",
+      "sha256": "1029a8c4f5fcec4bffe4d1bc2616630611dc60929acdd918f352e7499ea5a98b"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case02/noise.wav",
+      "pcm_sha256": "fdbd8d48d5bde5e6135496195f704cd1ae1e83eed74199f87dc3506fac924baf",
+      "sha256": "9f01c5389f953bf76d17cbf0bea92e090b3e7276194e61e8c009efd8b18aa54a"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case03/clean.wav",
+      "pcm_sha256": "351a8054b23144894668c6a51d5dbba82f56523ef43cc45b6f4d7060a969c31a",
+      "sha256": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case03/click.wav",
+      "pcm_sha256": "351a8054b23144894668c6a51d5dbba82f56523ef43cc45b6f4d7060a969c31a",
+      "sha256": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case03/fan.wav",
+      "pcm_sha256": "99e44e483bf68b1ba14f3ac0075b87cbc88c2b7746a8a2eb4dab9945902512b7",
+      "sha256": "82e00c5f99b1cc6c6297ffb0ecea94190d0659a4c871741283252a1e9a0ca81b"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case03/mix.wav",
+      "pcm_sha256": "12924f32b4d26262a6c8a4c6d03ea37be9884f3c1d7902e7c7b07a5427e91f5a",
+      "sha256": "ad6700881adb82fcaee828406ac0c6133717a7334f69554f9528b2ac60ae5311"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case03/noise.wav",
+      "pcm_sha256": "fdbd8d48d5bde5e6135496195f704cd1ae1e83eed74199f87dc3506fac924baf",
+      "sha256": "9f01c5389f953bf76d17cbf0bea92e090b3e7276194e61e8c009efd8b18aa54a"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case04/clean.wav",
+      "pcm_sha256": "056c754de6ce20c5a2f65602d0eaa7630643aab0a8e7062b65dc1c771ffc478b",
+      "sha256": "a9132c75aef7c56ffb00302783d601f6fbb00ad48c540e6ebc0b7d0a8243b1d2"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case04/click.wav",
+      "pcm_sha256": "75a62062d97e6475c26296f54a9ce745cbdbbf25e5492f2ac6572999e296600f",
+      "sha256": "d95cecae0a33e90fc6009403b09d232dbb456c9eeeeb9c83fa992b1f3bcd61c7"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case04/fan.wav",
+      "pcm_sha256": "99e44e483bf68b1ba14f3ac0075b87cbc88c2b7746a8a2eb4dab9945902512b7",
+      "sha256": "82e00c5f99b1cc6c6297ffb0ecea94190d0659a4c871741283252a1e9a0ca81b"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case04/mix.wav",
+      "pcm_sha256": "3b6abbca529b945fbedcc899b3fce3fea39d046bdb71a5a3030e2982af5fcd02",
+      "sha256": "185f6837c12b1f70991b6c93d2ac3066669ea9c5cc56314fc2ce94d1254df9ce"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case04/noise.wav",
+      "pcm_sha256": "fdbd8d48d5bde5e6135496195f704cd1ae1e83eed74199f87dc3506fac924baf",
+      "sha256": "9f01c5389f953bf76d17cbf0bea92e090b3e7276194e61e8c009efd8b18aa54a"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case05/clean.wav",
+      "pcm_sha256": "a6f5dba9bb87ff2a490b0a9afc0b09d25331fa1399eb79034aeea655368cfd88",
+      "sha256": "e980cc8223e4f95bd0969f9841c55ed8a2017da0286c569395e0e62ec6e4f079"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case05/click.wav",
+      "pcm_sha256": "75a62062d97e6475c26296f54a9ce745cbdbbf25e5492f2ac6572999e296600f",
+      "sha256": "d95cecae0a33e90fc6009403b09d232dbb456c9eeeeb9c83fa992b1f3bcd61c7"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case05/fan.wav",
+      "pcm_sha256": "99e44e483bf68b1ba14f3ac0075b87cbc88c2b7746a8a2eb4dab9945902512b7",
+      "sha256": "82e00c5f99b1cc6c6297ffb0ecea94190d0659a4c871741283252a1e9a0ca81b"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case05/mix.wav",
+      "pcm_sha256": "b8d4453783e26805db90be84a0197f4a89d8fd68b95deab7f10423a9d2bac14b",
+      "sha256": "6b7cbf6a901221fe6d33ea8b742c23329cbd1c1d6fde7165a2c3ce555cc98afc"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case05/noise.wav",
+      "pcm_sha256": "fdbd8d48d5bde5e6135496195f704cd1ae1e83eed74199f87dc3506fac924baf",
+      "sha256": "9f01c5389f953bf76d17cbf0bea92e090b3e7276194e61e8c009efd8b18aa54a"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case06/clean.wav",
+      "pcm_sha256": "d23073c4979f6b25dfc86c7b862cce7fff3db6cde2fc3ef9b98c7552af69ced9",
+      "sha256": "245407ff625b969c19fa9813618e35cd3608856b65894596a2c7a5d3b0d2e3ff"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case06/click.wav",
+      "pcm_sha256": "dbc336b007d3f03a899c670b062d2587dffc247b750e5610f405bcbd3af49be6",
+      "sha256": "b36a84c7341080e0e1e513a230326656209b058f514524c8949c2e9a9a3e265a"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case06/fan.wav",
+      "pcm_sha256": "bf153b8a20894aed33d0eda6e4199f056b153242d9838641f5029da1414648ff",
+      "sha256": "9291c4cafff425bbc0905a3afc1ea23198fae0e79b6c9947678d0f0b898d3763"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case06/mix.wav",
+      "pcm_sha256": "dd7d2fabe59383c95817d07d7b25ffd448d2433056ecf7f9d574733aff10d545",
+      "sha256": "24311a8562e2594e63cdbb3dc123c58306f886a2b8fb7445328adca34868eaa6"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case06/noise.wav",
+      "pcm_sha256": "d57a426a6dac63d4ef9d126764ce60957c5f6dbef613b7e41656c4e9e161e34c",
+      "sha256": "c2e5de7edf5dee25129bda9b4f37acf36424e80d59c22c9f21a193e29428b26f"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case07/clean.wav",
+      "pcm_sha256": "8f58054b78be71ff0507f4321bf23f9b3af2d9b75a8c387b8dfa9dac8c4e41cd",
+      "sha256": "4c887664525190c83ab6df76fa82bbed346f910a3047f3b6ac5fd07753b4dcc9"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case07/click.wav",
+      "pcm_sha256": "dbc336b007d3f03a899c670b062d2587dffc247b750e5610f405bcbd3af49be6",
+      "sha256": "b36a84c7341080e0e1e513a230326656209b058f514524c8949c2e9a9a3e265a"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case07/fan.wav",
+      "pcm_sha256": "bf153b8a20894aed33d0eda6e4199f056b153242d9838641f5029da1414648ff",
+      "sha256": "9291c4cafff425bbc0905a3afc1ea23198fae0e79b6c9947678d0f0b898d3763"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case07/mix.wav",
+      "pcm_sha256": "f7a98794633cceadd2de2322e2202f02bac7c931e6ceec8e39d94fe2e9cf1159",
+      "sha256": "9f68cfa01bec297624bad3ce4510ebf656ead51a5cf30ad46deb51ea02ca1e91"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case07/noise.wav",
+      "pcm_sha256": "d57a426a6dac63d4ef9d126764ce60957c5f6dbef613b7e41656c4e9e161e34c",
+      "sha256": "c2e5de7edf5dee25129bda9b4f37acf36424e80d59c22c9f21a193e29428b26f"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case08/clean.wav",
+      "pcm_sha256": "351a8054b23144894668c6a51d5dbba82f56523ef43cc45b6f4d7060a969c31a",
+      "sha256": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case08/click.wav",
+      "pcm_sha256": "dbc336b007d3f03a899c670b062d2587dffc247b750e5610f405bcbd3af49be6",
+      "sha256": "b36a84c7341080e0e1e513a230326656209b058f514524c8949c2e9a9a3e265a"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case08/fan.wav",
+      "pcm_sha256": "bf153b8a20894aed33d0eda6e4199f056b153242d9838641f5029da1414648ff",
+      "sha256": "9291c4cafff425bbc0905a3afc1ea23198fae0e79b6c9947678d0f0b898d3763"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case08/mix.wav",
+      "pcm_sha256": "38d2cb772c93e5ebc56b21f085046fe1ccc20ece556598b40d2cde7081d72d1a",
+      "sha256": "6c66efec7d5c4d74f6c34002807711b943c56d6270f9ff84eed93a78504f067c"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case08/noise.wav",
+      "pcm_sha256": "d57a426a6dac63d4ef9d126764ce60957c5f6dbef613b7e41656c4e9e161e34c",
+      "sha256": "c2e5de7edf5dee25129bda9b4f37acf36424e80d59c22c9f21a193e29428b26f"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case09/clean.wav",
+      "pcm_sha256": "351a8054b23144894668c6a51d5dbba82f56523ef43cc45b6f4d7060a969c31a",
+      "sha256": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case09/click.wav",
+      "pcm_sha256": "351a8054b23144894668c6a51d5dbba82f56523ef43cc45b6f4d7060a969c31a",
+      "sha256": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case09/fan.wav",
+      "pcm_sha256": "bf153b8a20894aed33d0eda6e4199f056b153242d9838641f5029da1414648ff",
+      "sha256": "9291c4cafff425bbc0905a3afc1ea23198fae0e79b6c9947678d0f0b898d3763"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case09/mix.wav",
+      "pcm_sha256": "98760b29137e9c38e06636e51339ca0132a4e92ab10021fc4722eba45c2f7276",
+      "sha256": "6c4d0aa378932ef88349bfa2cb39dfdb4c8b7d8c9300f597814458a786e74e7f"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case09/noise.wav",
+      "pcm_sha256": "d57a426a6dac63d4ef9d126764ce60957c5f6dbef613b7e41656c4e9e161e34c",
+      "sha256": "c2e5de7edf5dee25129bda9b4f37acf36424e80d59c22c9f21a193e29428b26f"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case10/clean.wav",
+      "pcm_sha256": "3f089e85491be57b3ad36ed7dc960e57d3dbb6ca8046806442f8c12000975d66",
+      "sha256": "9ec310f8ec1f1634c473fc812a25076077d2f635f7e2e62663341ccf167a5d94"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case10/click.wav",
+      "pcm_sha256": "dbc336b007d3f03a899c670b062d2587dffc247b750e5610f405bcbd3af49be6",
+      "sha256": "b36a84c7341080e0e1e513a230326656209b058f514524c8949c2e9a9a3e265a"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case10/fan.wav",
+      "pcm_sha256": "bf153b8a20894aed33d0eda6e4199f056b153242d9838641f5029da1414648ff",
+      "sha256": "9291c4cafff425bbc0905a3afc1ea23198fae0e79b6c9947678d0f0b898d3763"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case10/mix.wav",
+      "pcm_sha256": "5efd3027e8f7c6bfadfef63ed996dc8d4a15c7696cbc4d3cec9c56c5c6835c04",
+      "sha256": "68829bc0bfe1e1689014efc7231540b28b3198c1026ad292a8c667cb9d9d0cd5"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case10/noise.wav",
+      "pcm_sha256": "d57a426a6dac63d4ef9d126764ce60957c5f6dbef613b7e41656c4e9e161e34c",
+      "sha256": "c2e5de7edf5dee25129bda9b4f37acf36424e80d59c22c9f21a193e29428b26f"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case11/clean.wav",
+      "pcm_sha256": "1ae041b1813ef565fc2ad09c76bdc3da8239b06515058d3f6352c6e2e3c60e72",
+      "sha256": "9a40adec3a520dbaad2233cb0795ae922d509e417347665b4b88a9b4908a1b7a"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case11/click.wav",
+      "pcm_sha256": "dbc336b007d3f03a899c670b062d2587dffc247b750e5610f405bcbd3af49be6",
+      "sha256": "b36a84c7341080e0e1e513a230326656209b058f514524c8949c2e9a9a3e265a"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case11/fan.wav",
+      "pcm_sha256": "bf153b8a20894aed33d0eda6e4199f056b153242d9838641f5029da1414648ff",
+      "sha256": "9291c4cafff425bbc0905a3afc1ea23198fae0e79b6c9947678d0f0b898d3763"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case11/mix.wav",
+      "pcm_sha256": "94137b1ca879d8f70b187d98606a1e581fc616464a0122dd1cf82e013e84ca4b",
+      "sha256": "a77821ce55c17360f502f92b6d047a8f835cd83020c00642e26f68f02131ad38"
+    },
+    {
+      "bytes": 768044,
+      "header": [
+        48000,
+        1,
+        2,
+        384000
+      ],
+      "path": "artifacts/experiments/s1-phrases/bank-1301-1423/case11/noise.wav",
+      "pcm_sha256": "d57a426a6dac63d4ef9d126764ce60957c5f6dbef613b7e41656c4e9e161e34c",
+      "sha256": "c2e5de7edf5dee25129bda9b4f37acf36424e80d59c22c9f21a193e29428b26f"
+    }
+  ],
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13",
+  "interpretation": "Identity/header proof, not physical articulation or real-song acceptance.",
+  "prediction_count": 12,
+  "root_release_sha256": "6289ebf4276a46d69497cad0868f9adb3630fc972de638d9a3d9d6cd69c9196d",
+  "state": "postrun_all60audioassets_and12predictions_hash_verified",
+  "worker_sha256": "38b736543a83d5c706a8803014f4e308685eee2c84275e9e6768c431b6b8d0e3"
+}

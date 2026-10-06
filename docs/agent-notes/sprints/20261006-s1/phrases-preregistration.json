@@ -1,0 +1,183 @@
+{
+  "arms": [
+    "Araw",
+    "S1_support",
+    "S2_multiscale"
+  ],
+  "audio_seconds": 96,
+  "baseline": "frozen existing raw2/4/8/16-pulse search; exact guarded load_search and canonical features; same-source unseeded librosa rhythm",
+  "budgets": {
+    "analysis_rate": 16000,
+    "case_seconds": 120,
+    "json_bytes": 2000000,
+    "native_rate": 48000,
+    "native_seconds": 8,
+    "overall_seconds": 900,
+    "threads": 2,
+    "wav_bytes": 1000000
+  },
+  "canonical_defaults_activated": false,
+  "case_count": 12,
+  "cohorts": [
+    "low32-sustain",
+    "missing-f0-sustain",
+    "ordered-click-only",
+    "fan-only",
+    "palm-recurrence",
+    "legato-recurrence"
+  ],
+  "dependency_sha256": {
+    "docs/agent-notes/2026-10-05-phrase-guarded-arms.py": "78ca89de9cea327cc4ec1096a83522781a08bc161819699b69797ca273e2fb6c",
+    "program/instrument.json": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0",
+    "scripts/guitar_features.py": "2ed031e8000cbcda92b504db10c98de03f456c90573cbff815cbb940c9ac86fe",
+    "scripts/phrase_evaluate.py": "3e503de277b2fd233fe802595a09a655c89669b0eb820f228e677c1b94b828a5",
+    "scripts/rhythm.py": "264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9"
+  },
+  "discovery_truth_input": false,
+  "ffmpeg": {
+    "path": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+    "sha256": "3a315207e67de78e48c3bbb6b3346663f6a27c02e034d65ac72a12fee74c534a"
+  },
+  "generator_geometry": {
+    "1301": {
+      "first_start_sample": 48072,
+      "internal_rest_fractions": [
+        [
+          0.305,
+          0.351
+        ],
+        [
+          0.657,
+          0.703
+        ]
+      ],
+      "length_samples": 81696,
+      "midi": [
+        24,
+        29,
+        34,
+        29,
+        24,
+        39,
+        46,
+        34,
+        24,
+        51,
+        39,
+        29
+      ],
+      "note_position_fractions": [
+        0.0,
+        0.083,
+        0.167,
+        0.253,
+        0.365,
+        0.443,
+        0.527,
+        0.611,
+        0.717,
+        0.803,
+        0.889,
+        0.961
+      ],
+      "second_start_sample": 210610
+    },
+    "1423": {
+      "first_start_sample": 52481,
+      "internal_rest_fractions": [
+        [
+          0.305,
+          0.351
+        ],
+        [
+          0.657,
+          0.703
+        ]
+      ],
+      "length_samples": 89055,
+      "midi": [
+        24,
+        29,
+        34,
+        29,
+        24,
+        39,
+        46,
+        34,
+        24,
+        51,
+        39,
+        29
+      ],
+      "note_position_fractions": [
+        0.0,
+        0.083,
+        0.167,
+        0.253,
+        0.365,
+        0.443,
+        0.527,
+        0.611,
+        0.717,
+        0.803,
+        0.889,
+        0.961
+      ],
+      "second_start_sample": 205531
+    }
+  },
+  "musical_performance_graded": false,
+  "physical_articulation_accepted": false,
+  "predictions_global_seal_before_truth_read": true,
+  "retune_after_heldout": false,
+  "schema_version": 1,
+  "scope": "new heldout synthetic seeds; motif recipe family repeats prior pilot and is not a new real-world distribution",
+  "scoring": {
+    "matching": "maximum cardinality then maximum mean two-span IoU",
+    "negative_fp": "candidate counts by negative cohort",
+    "pair_iou_thresholds": [
+      0.5,
+      0.75
+    ],
+    "pair_matched_endpoint_mae": "all four endpoints of matched pairs; denominators explicit; no common-zero improvement claim",
+    "typed_endpoint_tolerances_seconds": [
+      0.02,
+      0.05,
+      0.1
+    ]
+  },
+  "seeds": [
+    1301,
+    1423
+  ],
+  "settings": {
+    "band_count": 32,
+    "duplicate_both_span_iou": 0.75,
+    "fft_samples": 4096,
+    "guitar_support_maximum_hz": 1800.0,
+    "hop_samples": 256,
+    "maximum_dimensions": 64,
+    "maximum_duration_ratio": 1.3,
+    "maximum_frames": 1024,
+    "maximum_hz": 6000.0,
+    "maximum_span_seconds": 4.0,
+    "minimum_active_frames": 6,
+    "minimum_cosine": 0.8,
+    "minimum_floor_ratio": 3.0,
+    "minimum_hz": 25.0,
+    "minimum_low_band_fraction": 0.6,
+    "minimum_shape_variation": 0.03,
+    "minimum_span_seconds": 0.5,
+    "multiscale_gap_seconds": [
+      0.12,
+      0.24,
+      0.4
+    ],
+    "noise_floor_quantile": 0.2,
+    "proposal_cap": 10,
+    "segment_cap": 60,
+    "sequence_samples": 32,
+    "single_gap_seconds": 0.24
+  },
+  "suite": "s1-proposal-1301-1423-v1"
+}

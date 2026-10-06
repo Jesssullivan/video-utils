@@ -1,0 +1,72 @@
+{
+  "active_owned_processes": [],
+  "actor": "/root/s1_phrases",
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; operator S1 request",
+  "baseline_commit": "51d09357b07864548e2e34cebf2ac2f395fdf296",
+  "branch": "sprint/20261006-s1/phrases",
+  "files_sha256": {
+    "docs/agent-notes/sprints/20261006-s1/phrases-evaluation-1301-1423.json": "12aa258d24511621cd63a2b2d9779de510c93d17538d5964b3cb4cbadf531749",
+    "docs/agent-notes/sprints/20261006-s1/phrases-frozen-evidence.json": "3c137c7fe5c1fc28be77923041ee34270acfcfb9fdbae9f004cb136cd6986d65",
+    "docs/agent-notes/sprints/20261006-s1/phrases-numerical-end.json": "fd814267a5ced00614e73aeec8d16173d4227920ddea450dfafc5bc8d82af5aa",
+    "docs/agent-notes/sprints/20261006-s1/phrases-numerical-start.json": "77296f4ffa5e4de4f92f543adcc748757c7c1d41cec4164cfadc84148893cd0f",
+    "docs/agent-notes/sprints/20261006-s1/phrases-postrun-integrity.json": "793d95362bfe0c64bd988f81a07e5bfcae76fd7020baeafcc08c7eb4af59effa",
+    "docs/agent-notes/sprints/20261006-s1/phrases-preregistration.json": "dd4c43532f47273948e23a3a35e93e61fa8a576ec0f32662036b39fe6b432a6c",
+    "docs/agent-notes/sprints/20261006-s1/phrases-results.md": "aac5ef066fea80f9fa872a92257ee5b4926fcbb5e51f0fa94d828de49cb51c28",
+    "docs/agent-notes/sprints/20261006-s1/phrases-source-freeze.json": "6b47cc5087f87268b1b18ce8d3817c220ab7eab46eded817401dc344453fb47e",
+    "docs/agent-notes/sprints/20261006-s1/phrases-source-refreeze.json": "4993446c737189210499e89c9cc47873f63f5aa65271c3d52eecb2b307e50244",
+    "docs/spec/sprints/PHRASES_S1.md": "f147abca2e1ae39b71d26bbd7d77bedd5a7426b8b80535f677178b51b85936ce",
+    "scripts/phrase_proposal_s1.py": "38b736543a83d5c706a8803014f4e308685eee2c84275e9e6768c431b6b8d0e3",
+    "tests/test_phrase_proposal_s1.py": "97843d1adb54cc471730f795fa81ffc13ee3662153e2a360ee14600abc3abc68"
+  },
+  "independent_audit": {
+    "owner": "/root/s1_audit",
+    "receipt": "audit-worktree/docs/agent-notes/sprints/20261006-s1/audit-phrase-numerical.json",
+    "state": "PASS saved-evidence exhaustive matching / PCM component checks; no inference rerun"
+  },
+  "lane": "TIN-5565",
+  "limitations": [
+    "Two seeds within known synthetic recipe family; no population confidence calibration.",
+    "Requires quiet delimiters; continuous back-to-back riffs and high musical occupancy remain untested.",
+    "20ms endpoint target failed;16ms hop does not overcome256ms FFT support.",
+    "No real-demo inference, musical correctness, listening acceptance or typed product admission."
+  ],
+  "numeric": {
+    "baseline_negative_false_candidates": 2,
+    "baseline_pair_tp_iou_05": 1,
+    "baseline_pair_tp_iou_075": 0,
+    "case_count": 12,
+    "multiscale_measured_benefit": false,
+    "negative_case_count": 8,
+    "positive_pair_references": 4,
+    "source_seconds": 96,
+    "treatment_matched_endpoint_mae_seconds": 0.073671875,
+    "treatment_negative_false_candidates": 0,
+    "treatment_pair_tp_iou_05": 4,
+    "treatment_pair_tp_iou_075": 4,
+    "treatment_typed_endpoint_tp_100ms": 16,
+    "treatment_typed_endpoint_tp_20ms": 0,
+    "treatment_typed_endpoint_tp_50ms": 4,
+    "typed_reference_endpoints": 16,
+    "whole_seconds": 69.95135645799746
+  },
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "existing_frozen_source_pins_unchanged": true,
+    "heldout_retuning": false,
+    "model_or_host_changes": false,
+    "product_catalog_unchanged": true
+  },
+  "root_actions": [
+    "Review exact owned file diff and integrate signed lane commit.",
+    "Read independent audit artifact and synchronize factual TIN-5565 status.",
+    "Preserve ignored generated audio while committing only source/spec/metadata receipts."
+  ],
+  "state": "implemented_evaluated_independently_verified_research_only_ready_for_root_admin_merge",
+  "tests": {
+    "errors": 0,
+    "failures": 0,
+    "passed": 16,
+    "skipped": 0
+  }
+}

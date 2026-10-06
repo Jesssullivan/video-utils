@@ -1,0 +1,24 @@
+{
+  "actor": "/root/s1_phrases",
+  "arms_settings_or_preregistration_changed": false,
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; S1 root coordination",
+  "fix": "O_NONBLOCK regular-file refusal plus complete bounded read extent; FIFO regression",
+  "heldout_audio_generated": false,
+  "prior_worker_sha256": "8f40df4b4d803db807c7110a91f49bb23af60a312722d45989df0dad99a50335",
+  "reproduced_defect": "FIFO JSON metadata could block before fstat; independent audit identified this pre-run",
+  "sha256": {
+    "docs/agent-notes/sprints/20261006-s1/phrases-preregistration.json": "dd4c43532f47273948e23a3a35e93e61fa8a576ec0f32662036b39fe6b432a6c",
+    "docs/spec/sprints/PHRASES_S1.md": "f147abca2e1ae39b71d26bbd7d77bedd5a7426b8b80535f677178b51b85936ce",
+    "scripts/phrase_proposal_s1.py": "38b736543a83d5c706a8803014f4e308685eee2c84275e9e6768c431b6b8d0e3",
+    "tests/test_phrase_proposal_s1.py": "97843d1adb54cc471730f795fa81ffc13ee3662153e2a360ee14600abc3abc68"
+  },
+  "state": "bounded_metadata_repair_before_heldout_audio",
+  "tests": {
+    "count": 16,
+    "errors": 0,
+    "failures": 0,
+    "passed": 16,
+    "seconds": 0.037,
+    "skipped": 0
+  }
+}
