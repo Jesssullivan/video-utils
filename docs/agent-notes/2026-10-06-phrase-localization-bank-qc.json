@@ -1,0 +1,397 @@
+{
+  "schema_version": 1,
+  "status": "verified_generated_bank_construction_only",
+  "actor": "phrase_dag",
+  "authority": "root_BANKQC/R-HOOK-CONVERGENCE-20261004/R-N13",
+  "time_utc": "2026-10-06T03:39:25.194091+00:00",
+  "bank_index": "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/fixtures.json",
+  "bank_index_sha256": "9b62a3498f8ed5c508cca68c904f4d868c3861280c2f707f1972f098d4f39e67",
+  "generation_sha256": "98b373e301b91e5d3ed29c34a03b9282b5749375e57904293067b041fc2c8230",
+  "worker_sha256_before": "8eae0110995619d128a022e8f0882a522b6213c5899cfd41216128b9847abd6c",
+  "worker_sha256_after": "8eae0110995619d128a022e8f0882a522b6213c5899cfd41216128b9847abd6c",
+  "plan_sha256": "8b0e7969f702d0685e2d7176c4ee96c19b1325b2e9b3d848685e093405c4c000",
+  "auditor_sha256": "e0c7f2418f9eee60157730ee9a6fd7a7091f37d676369d875755d6241b68aca0",
+  "wav_headers_verified": 60,
+  "positive_cases": 4,
+  "negative_cases": 8,
+  "native_seconds": 96,
+  "sample_rate": 48000,
+  "channels": 1,
+  "samples_per_case": 384000,
+  "maximum_sum_error_lsb": 2,
+  "shared_component_sha256": {
+    "617:click": "bba0f4a230b5109cdaa422b12732b21bfbfa05505c19ffc6c53ada83758eff1a",
+    "617:fan": "8463376b55289faa8c376b92a0d2b6ce4a7eaa792773a782e95437a976181edf",
+    "617:noise": "41057dc7210cf259a428ecbdce3234bc48ae4cf940b8e2f39c6d489b269cfccc",
+    "719:click": "c1437a3312beaffd03a2fead0c1e1dbe0cb97ac7fbd2b06f067cd8c109537c08",
+    "719:fan": "a45b4125b07d2c45d5e5641d773ac61778f056263c1a580eb605f362da0db7be",
+    "719:noise": "9726a1fb574a25bee5df946d3e56a25adab8b006d9e44b29e91050cb6cbfd483"
+  },
+  "cases": [
+    {
+      "id": "seed617-low32-sustain",
+      "seed": 617,
+      "cohort": "low32-sustain",
+      "headers_verified": 5,
+      "maximum_component_sum_error_lsb": 2,
+      "component_peaks": {
+        "clean": 0.170013427734375,
+        "click": 0.086517333984375,
+        "fan": 0.01495361328125,
+        "mix": 0.235565185546875,
+        "noise": 0.006011962890625
+      },
+      "low_register_measurement": {
+        "kind": "32hz_joint_dc_sine_cosine",
+        "amplitude": 0.16999962015122208,
+        "expected_amplitude": 0.17,
+        "tolerance": 5e-05
+      }
+    },
+    {
+      "id": "seed617-missing-f0-sustain",
+      "seed": 617,
+      "cohort": "missing-f0-sustain",
+      "headers_verified": 5,
+      "maximum_component_sum_error_lsb": 2,
+      "component_peaks": {
+        "clean": 0.19134521484375,
+        "click": 0.086517333984375,
+        "fan": 0.01495361328125,
+        "mix": 0.23016357421875,
+        "noise": 0.006011962890625
+      },
+      "low_register_measurement": {
+        "kind": "missing_f0_joint_dc_sine_cosine",
+        "f0_hz": 32.70319566257483,
+        "fundamental_amplitude": 1.118936550544833e-07,
+        "harmonics": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7
+        ],
+        "amplitudes": [
+          1.118936550544833e-07,
+          0.10000017701231648,
+          0.0649996917541264,
+          0.03499978137542446,
+          0.01999979025955162,
+          0.01199983523480713
+        ],
+        "harmonic_expected_amplitudes": [
+          0.1,
+          0.065,
+          0.035,
+          0.02,
+          0.012
+        ],
+        "tolerance": 5e-05
+      }
+    },
+    {
+      "id": "seed617-ordered-click-noise-only",
+      "seed": 617,
+      "cohort": "ordered-click-noise-only",
+      "headers_verified": 5,
+      "maximum_component_sum_error_lsb": 1,
+      "component_peaks": {
+        "clean": 0.0,
+        "click": 0.086517333984375,
+        "fan": 0.01495361328125,
+        "mix": 0.096893310546875,
+        "noise": 0.006011962890625
+      },
+      "low_register_measurement": null
+    },
+    {
+      "id": "seed617-fan-envelope-only",
+      "seed": 617,
+      "cohort": "fan-envelope-only",
+      "headers_verified": 5,
+      "maximum_component_sum_error_lsb": 1,
+      "component_peaks": {
+        "clean": 0.0,
+        "click": 0.0,
+        "fan": 0.01495361328125,
+        "mix": 0.020751953125,
+        "noise": 0.006011962890625
+      },
+      "low_register_measurement": null
+    },
+    {
+      "id": "seed617-palm-recurrence",
+      "seed": 617,
+      "cohort": "palm-recurrence",
+      "headers_verified": 5,
+      "maximum_component_sum_error_lsb": 2,
+      "component_peaks": {
+        "clean": 0.146484375,
+        "click": 0.086517333984375,
+        "fan": 0.01495361328125,
+        "mix": 0.167449951171875,
+        "noise": 0.006011962890625
+      },
+      "low_register_measurement": null,
+      "saved_motif_copies_equal": true
+    },
+    {
+      "id": "seed617-legato-recurrence",
+      "seed": 617,
+      "cohort": "legato-recurrence",
+      "headers_verified": 5,
+      "maximum_component_sum_error_lsb": 2,
+      "component_peaks": {
+        "clean": 0.1593017578125,
+        "click": 0.086517333984375,
+        "fan": 0.01495361328125,
+        "mix": 0.240264892578125,
+        "noise": 0.006011962890625
+      },
+      "low_register_measurement": null,
+      "saved_motif_copies_equal": true
+    },
+    {
+      "id": "seed719-low32-sustain",
+      "seed": 719,
+      "cohort": "low32-sustain",
+      "headers_verified": 5,
+      "maximum_component_sum_error_lsb": 2,
+      "component_peaks": {
+        "clean": 0.170013427734375,
+        "click": 0.0914306640625,
+        "fan": 0.014984130859375,
+        "mix": 0.258026123046875,
+        "noise": 0.006011962890625
+      },
+      "low_register_measurement": {
+        "kind": "32hz_joint_dc_sine_cosine",
+        "amplitude": 0.16999962015122208,
+        "expected_amplitude": 0.17,
+        "tolerance": 5e-05
+      }
+    },
+    {
+      "id": "seed719-missing-f0-sustain",
+      "seed": 719,
+      "cohort": "missing-f0-sustain",
+      "headers_verified": 5,
+      "maximum_component_sum_error_lsb": 2,
+      "component_peaks": {
+        "clean": 0.19134521484375,
+        "click": 0.0914306640625,
+        "fan": 0.014984130859375,
+        "mix": 0.27069091796875,
+        "noise": 0.006011962890625
+      },
+      "low_register_measurement": {
+        "kind": "missing_f0_joint_dc_sine_cosine",
+        "f0_hz": 32.70319566257483,
+        "fundamental_amplitude": 1.118936550544833e-07,
+        "harmonics": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7
+        ],
+        "amplitudes": [
+          1.118936550544833e-07,
+          0.10000017701231648,
+          0.0649996917541264,
+          0.03499978137542446,
+          0.01999979025955162,
+          0.01199983523480713
+        ],
+        "harmonic_expected_amplitudes": [
+          0.1,
+          0.065,
+          0.035,
+          0.02,
+          0.012
+        ],
+        "tolerance": 5e-05
+      }
+    },
+    {
+      "id": "seed719-ordered-click-noise-only",
+      "seed": 719,
+      "cohort": "ordered-click-noise-only",
+      "headers_verified": 5,
+      "maximum_component_sum_error_lsb": 1,
+      "component_peaks": {
+        "clean": 0.0,
+        "click": 0.0914306640625,
+        "fan": 0.014984130859375,
+        "mix": 0.095306396484375,
+        "noise": 0.006011962890625
+      },
+      "low_register_measurement": null
+    },
+    {
+      "id": "seed719-fan-envelope-only",
+      "seed": 719,
+      "cohort": "fan-envelope-only",
+      "headers_verified": 5,
+      "maximum_component_sum_error_lsb": 1,
+      "component_peaks": {
+        "clean": 0.0,
+        "click": 0.0,
+        "fan": 0.014984130859375,
+        "mix": 0.020904541015625,
+        "noise": 0.006011962890625
+      },
+      "low_register_measurement": null
+    },
+    {
+      "id": "seed719-palm-recurrence",
+      "seed": 719,
+      "cohort": "palm-recurrence",
+      "headers_verified": 5,
+      "maximum_component_sum_error_lsb": 2,
+      "component_peaks": {
+        "clean": 0.146484375,
+        "click": 0.0914306640625,
+        "fan": 0.014984130859375,
+        "mix": 0.1993408203125,
+        "noise": 0.006011962890625
+      },
+      "low_register_measurement": null,
+      "saved_motif_copies_equal": true
+    },
+    {
+      "id": "seed719-legato-recurrence",
+      "seed": 719,
+      "cohort": "legato-recurrence",
+      "headers_verified": 5,
+      "maximum_component_sum_error_lsb": 2,
+      "component_peaks": {
+        "clean": 0.1593017578125,
+        "click": 0.0914306640625,
+        "fan": 0.014984130859375,
+        "mix": 0.24737548828125,
+        "noise": 0.006011962890625
+      },
+      "low_register_measurement": null,
+      "saved_motif_copies_equal": true
+    }
+  ],
+  "verified_file_sha256": {
+    "docs/agent-notes/2026-10-06-phrase-localization-fresh-preregistration.json": "8b0e7969f702d0685e2d7176c4ee96c19b1325b2e9b3d848685e093405c4c000",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/fixtures.json": "9b62a3498f8ed5c508cca68c904f4d868c3861280c2f707f1972f098d4f39e67",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/generation.json": "98b373e301b91e5d3ed29c34a03b9282b5749375e57904293067b041fc2c8230",
+    "docs/agent-notes/2026-10-05-phrase-guarded-arms.py": "78ca89de9cea327cc4ec1096a83522781a08bc161819699b69797ca273e2fb6c",
+    "docs/agent-notes/2026-10-06-phrase-order-null-settings.json": "232f7503f58e9ebcb2b59b220b97755b7001683eccd80893634d8f6b777079a3",
+    "docs/agent-notes/2026-10-06-phrase-order-null.py": "5582a5cf2b415b07a434b59f407da8c6e63fa9101001267dbba03f0cabe9f066",
+    "docs/spec/PHRASE_LOCALIZATION_LANE.md": "71ab8f5b6641c33ac0bdf4bae4f4ba521c7fb22938d6547e4bc18a8c2639332b",
+    "program/instrument.json": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0",
+    "scripts/benchmark_bank.py": "087a67c009bb48abeac78259fc2719c02886e81b956ef8a9c62a22e6ee3913d5",
+    "scripts/guitar_features.py": "2ed031e8000cbcda92b504db10c98de03f456c90573cbff815cbb940c9ac86fe",
+    "scripts/phrase_evaluate.py": "3e503de277b2fd233fe802595a09a655c89669b0eb820f228e677c1b94b828a5",
+    "scripts/phrase_localize.py": "a64ff3acc5f18931e9975e96d1c6e80a1d454272fbf9dd4925b8b835b8c509de",
+    "scripts/pitch_evaluate.py": "a91ce8e9386cc7c63c5a5d53b8233f2c46a1f42fdd06ab1ae0eea3dc83405805",
+    "scripts/rhythm.py": "264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9",
+    "scripts/phrase_localization_pilot.py": "8eae0110995619d128a022e8f0882a522b6213c5899cfd41216128b9847abd6c",
+    "docs/agent-notes/2026-10-06-root-phrase-localization-GENERATION.json": "179b9af8fc6a342057fc790e99f055522be6bdbc5ed7ccdea5fe934829e942a3",
+    "docs/agent-notes/2026-10-06-phrase-localization-experiment-source-audit.md": "8f0f5f27746faa16766d2f4aaf88c501fa1d7d19f300ef599da5e1f5ba5646a8",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-low32-sustain/truth.json": "e9b4552859c0f5dec53ab6035e0b77b6607c640051810db4444f3f263360e303",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-low32-sustain/clean.wav": "245407ff625b969c19fa9813618e35cd3608856b65894596a2c7a5d3b0d2e3ff",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-low32-sustain/click.wav": "bba0f4a230b5109cdaa422b12732b21bfbfa05505c19ffc6c53ada83758eff1a",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-low32-sustain/fan.wav": "8463376b55289faa8c376b92a0d2b6ce4a7eaa792773a782e95437a976181edf",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-low32-sustain/mix.wav": "fd25ba96b1abd2cc7829e37587887887700e05a2c0a930b0d08b44af5efe4207",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-low32-sustain/noise.wav": "41057dc7210cf259a428ecbdce3234bc48ae4cf940b8e2f39c6d489b269cfccc",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-missing-f0-sustain/truth.json": "30cc37b117533ef5cab7e85012b0fb6916be95ccd7214efa070289a73a3f6f31",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-missing-f0-sustain/clean.wav": "4c887664525190c83ab6df76fa82bbed346f910a3047f3b6ac5fd07753b4dcc9",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-missing-f0-sustain/click.wav": "bba0f4a230b5109cdaa422b12732b21bfbfa05505c19ffc6c53ada83758eff1a",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-missing-f0-sustain/fan.wav": "8463376b55289faa8c376b92a0d2b6ce4a7eaa792773a782e95437a976181edf",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-missing-f0-sustain/mix.wav": "8dd8de6f6d52f9614faeb1275dadad9bada9062dbcd5ed3dc67c93689e06f5c2",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-missing-f0-sustain/noise.wav": "41057dc7210cf259a428ecbdce3234bc48ae4cf940b8e2f39c6d489b269cfccc",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-ordered-click-noise-only/truth.json": "dbd7ae1c6be790086cef9e07a7d3ea9338ebe0a092a51ad409393aaf30f61f10",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-ordered-click-noise-only/clean.wav": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-ordered-click-noise-only/click.wav": "bba0f4a230b5109cdaa422b12732b21bfbfa05505c19ffc6c53ada83758eff1a",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-ordered-click-noise-only/fan.wav": "8463376b55289faa8c376b92a0d2b6ce4a7eaa792773a782e95437a976181edf",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-ordered-click-noise-only/mix.wav": "71e5ce2d80832977d5a76c72924b325852a1f7f499d140166ba85b66ea893566",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-ordered-click-noise-only/noise.wav": "41057dc7210cf259a428ecbdce3234bc48ae4cf940b8e2f39c6d489b269cfccc",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-fan-envelope-only/truth.json": "fed98115054142b6a251ed17cd66caced9e15b357b7a3add01382c69d4ea046c",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-fan-envelope-only/clean.wav": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-fan-envelope-only/click.wav": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-fan-envelope-only/fan.wav": "8463376b55289faa8c376b92a0d2b6ce4a7eaa792773a782e95437a976181edf",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-fan-envelope-only/mix.wav": "06669d7b87e3d748f69667e221b7d37c0057bce76c69ad951c0ad520b6110992",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-fan-envelope-only/noise.wav": "41057dc7210cf259a428ecbdce3234bc48ae4cf940b8e2f39c6d489b269cfccc",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-palm-recurrence/truth.json": "57040513cfd0f0db4db549a9d3adc05dd8d1c13f74c4eaceccc5f9f29473931e",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-palm-recurrence/clean.wav": "63b2802617f0752dc580b5915b538a8cbd691e073449d6febdbc03bdaba33571",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-palm-recurrence/click.wav": "bba0f4a230b5109cdaa422b12732b21bfbfa05505c19ffc6c53ada83758eff1a",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-palm-recurrence/fan.wav": "8463376b55289faa8c376b92a0d2b6ce4a7eaa792773a782e95437a976181edf",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-palm-recurrence/mix.wav": "97920309584bfa0d34ac7816770f2315798756ad3d6c4992d9babd0990fa5cac",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-palm-recurrence/noise.wav": "41057dc7210cf259a428ecbdce3234bc48ae4cf940b8e2f39c6d489b269cfccc",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-legato-recurrence/truth.json": "f65082b20c287e1241d7b00393b6a0bdbe7deaa94b0efb7437b5c4834f94d881",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-legato-recurrence/clean.wav": "7cd6b7d09498d0b4466aa70b0829ae4feaec179875e7da01331b2261a73d512d",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-legato-recurrence/click.wav": "bba0f4a230b5109cdaa422b12732b21bfbfa05505c19ffc6c53ada83758eff1a",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-legato-recurrence/fan.wav": "8463376b55289faa8c376b92a0d2b6ce4a7eaa792773a782e95437a976181edf",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-legato-recurrence/mix.wav": "4af8dddc59c9db9c61ee42031ce709a0e5cc46e97e3714a997d7cfeed612da30",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed617-legato-recurrence/noise.wav": "41057dc7210cf259a428ecbdce3234bc48ae4cf940b8e2f39c6d489b269cfccc",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-low32-sustain/truth.json": "86f603350727883c32a66491b94c6256023fe3370671666ffbce15add6eba672",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-low32-sustain/clean.wav": "245407ff625b969c19fa9813618e35cd3608856b65894596a2c7a5d3b0d2e3ff",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-low32-sustain/click.wav": "c1437a3312beaffd03a2fead0c1e1dbe0cb97ac7fbd2b06f067cd8c109537c08",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-low32-sustain/fan.wav": "a45b4125b07d2c45d5e5641d773ac61778f056263c1a580eb605f362da0db7be",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-low32-sustain/mix.wav": "8b7b92f56c4ed5dba4d235fe42573a23a4016985940af684894825e50e76984b",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-low32-sustain/noise.wav": "9726a1fb574a25bee5df946d3e56a25adab8b006d9e44b29e91050cb6cbfd483",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-missing-f0-sustain/truth.json": "554d493d78f8e57ef05e3fd3ee57af2d819225c34a91ae946c59771462e96911",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-missing-f0-sustain/clean.wav": "4c887664525190c83ab6df76fa82bbed346f910a3047f3b6ac5fd07753b4dcc9",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-missing-f0-sustain/click.wav": "c1437a3312beaffd03a2fead0c1e1dbe0cb97ac7fbd2b06f067cd8c109537c08",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-missing-f0-sustain/fan.wav": "a45b4125b07d2c45d5e5641d773ac61778f056263c1a580eb605f362da0db7be",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-missing-f0-sustain/mix.wav": "08c5a33267c6b54bcb96c52065015c5fb67a7189b4eb9414942729c719060f69",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-missing-f0-sustain/noise.wav": "9726a1fb574a25bee5df946d3e56a25adab8b006d9e44b29e91050cb6cbfd483",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-ordered-click-noise-only/truth.json": "5095b9938fb5b80e7f07a996959fe2211528321671a6fea2bd3f5480556d190d",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-ordered-click-noise-only/clean.wav": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-ordered-click-noise-only/click.wav": "c1437a3312beaffd03a2fead0c1e1dbe0cb97ac7fbd2b06f067cd8c109537c08",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-ordered-click-noise-only/fan.wav": "a45b4125b07d2c45d5e5641d773ac61778f056263c1a580eb605f362da0db7be",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-ordered-click-noise-only/mix.wav": "a5f768aca2dcc0f5b605faaa573dff32f0c64487c407272811bc97988732f4f3",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-ordered-click-noise-only/noise.wav": "9726a1fb574a25bee5df946d3e56a25adab8b006d9e44b29e91050cb6cbfd483",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-fan-envelope-only/truth.json": "aadfcefd3d93827997267307103c87b8c54fb3ff6180b3b323b51d1958c4d13e",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-fan-envelope-only/clean.wav": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-fan-envelope-only/click.wav": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-fan-envelope-only/fan.wav": "a45b4125b07d2c45d5e5641d773ac61778f056263c1a580eb605f362da0db7be",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-fan-envelope-only/mix.wav": "46826026da79afd140c6c89da447b7d5da0e7e077be92cc914ddc968ed364a80",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-fan-envelope-only/noise.wav": "9726a1fb574a25bee5df946d3e56a25adab8b006d9e44b29e91050cb6cbfd483",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-palm-recurrence/truth.json": "4b6a2522c436ad432c9ef9ef3a4ea28fdf27d0e62a06f7f90711597242c754ec",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-palm-recurrence/clean.wav": "35616fb241a59a99aaabb97fdd91d40a7d55bc8cf6e7c90f869e3fb3e7d89888",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-palm-recurrence/click.wav": "c1437a3312beaffd03a2fead0c1e1dbe0cb97ac7fbd2b06f067cd8c109537c08",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-palm-recurrence/fan.wav": "a45b4125b07d2c45d5e5641d773ac61778f056263c1a580eb605f362da0db7be",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-palm-recurrence/mix.wav": "fd064d39ee1903cadc249555a0fb6dcbab51ae0040a614ba764e4722298c7abc",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-palm-recurrence/noise.wav": "9726a1fb574a25bee5df946d3e56a25adab8b006d9e44b29e91050cb6cbfd483",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-legato-recurrence/truth.json": "58c2d6fe0e0e1c668fb9641d73e9d9b093e7f033622c4ecd29d477f504b1bdaa",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-legato-recurrence/clean.wav": "5a44a6a7d7b802c15f404230e87e637d558bd84b3c8fe478fc136702c31969af",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-legato-recurrence/click.wav": "c1437a3312beaffd03a2fead0c1e1dbe0cb97ac7fbd2b06f067cd8c109537c08",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-legato-recurrence/fan.wav": "a45b4125b07d2c45d5e5641d773ac61778f056263c1a580eb605f362da0db7be",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-legato-recurrence/mix.wav": "1f063493a8cc894fdd6f37a2473aeedc0f50d8c12f30bbe8084be999bb4692dd",
+    "artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/seed719-legato-recurrence/noise.wav": "9726a1fb574a25bee5df946d3e56a25adab8b006d9e44b29e91050cb6cbfd483"
+  },
+  "verified_files_count": 89,
+  "all_hashes_rechecked_unchanged": true,
+  "source_audio_bytes_read": true,
+  "native_pcm_unpacked": true,
+  "truth_construction_metadata_read": true,
+  "waveform_regenerated": false,
+  "feature_discovery_invoked": false,
+  "model_inference_invoked": false,
+  "phrase_accuracy_scored": false,
+  "settings_retuned": false,
+  "musical_performance_accepted": false,
+  "canonical_defaults_activated": false,
+  "numerical_threads": 1,
+  "elapsed_seconds": 25.402549834005185,
+  "measurement_protocol": {
+    "interval_seconds": [
+      2,
+      6
+    ],
+    "stride_native_samples": 24,
+    "effective_measurement_rate": 2000,
+    "method": "independent_joint_dc_sine_cosine_pivoted_least_squares",
+    "no_frontend_or_fft": true
+  }
+}

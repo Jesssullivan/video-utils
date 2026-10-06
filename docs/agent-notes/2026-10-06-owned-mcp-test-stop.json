@@ -1,0 +1,66 @@
+{
+  "actor": "/root/tool_hooks",
+  "task": "test_mcp.py suite",
+  "tool_session": 87653,
+  "ruling": "R-N11/R-N13; R-HOOK-CONVERGENCE-20261004",
+  "reason": "owned MCP client/server remained sleeping beyond client30s bound and tool transport wait failed",
+  "prior_state": {
+    "pid": 76930,
+    "ppid": 2735,
+    "pgid": 76930,
+    "sid": 76930,
+    "birth": [
+      "darwin_start_microseconds",
+      1791258247,
+      846022
+    ],
+    "state": "?"
+  },
+  "result": "SIGTERM_sent_to_verified_owned_test_group",
+  "target_ownership": [
+    {
+      "pid": 76930,
+      "ppid": 2735,
+      "pgid": 76930,
+      "sid": 76930,
+      "birth": [
+        "darwin_start_microseconds",
+        1791258247,
+        846022
+      ],
+      "state": "?",
+      "first_observed": 34296.803461208,
+      "last_observed": 34296.818257458,
+      "ancestry": []
+    },
+    {
+      "pid": 76931,
+      "ppid": 76930,
+      "pgid": 76930,
+      "sid": 76930,
+      "birth": [
+        "darwin_start_microseconds",
+        1791258248,
+        127311
+      ],
+      "state": "?",
+      "first_observed": 34296.818182416,
+      "last_observed": 34296.818182833,
+      "ancestry_parent": 76930,
+      "ancestry": [
+        {
+          "pid": 76930,
+          "birth": [
+            "darwin_start_microseconds",
+            1791258247,
+            846022
+          ]
+        }
+      ]
+    }
+  ],
+  "after": [
+    null,
+    null
+  ]
+}

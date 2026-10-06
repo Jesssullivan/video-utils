@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "actor": "/root",
+  "created_utc": "2026-10-06T02:54:10.465086+00:00",
+  "authority": "operator active ten-hour goal; AGENTS.md; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "status": "capture_application_source_qualified_native_execution_pending",
+  "source_sha256": {
+    "scripts/apply_capture_profile.py": "00a03ef9fad8543be4335cb5cbcd3c9d9580a6b40b8faeb826811b105fd5daa6",
+    "scripts/capture_profile.py": "7d2820878826c87aabf2ab60b73c997b9d406b7f3ff8943d6012ed967444c355",
+    "scripts/media.py": "91443154251888c9e74670790766b289a2618f85f3be806d60ca26882faa9d94",
+    "tests/test_apply_capture_profile.py": "d21e6671bffec00d5d410ff5321786abe9cd185e70b50ab08118d5ba5aea7c13",
+    "tests/test_apply_capture_profile_audit.py": "f7e58891a9f2250737d48b02b67830199ab5d077c3d1d8e0c86b24d9c3903fa3",
+    "artifacts/apply-capture-profile-final-fixtures.log": "23dd2fedd709f11677d67fef9da527fb93e98517dc0559fdf77eec8079e47933"
+  },
+  "owner_suite": {
+    "command": ".venv/bin/python -m unittest discover -s tests -p test_apply_capture_profile*.py -v",
+    "discovered": 46,
+    "passed": 46,
+    "elapsed_seconds": 26.087,
+    "evidence": "saved complete log independently read and hashed by root"
+  },
+  "independent_suite": {
+    "passed": 9,
+    "elapsed_seconds": 1.571,
+    "evidence": "release_review independently reported exact00a03 verification; durable postcommit audit"
+  },
+  "historical_source_sha256": "31eafcc8a76a36981945a1f680b21ab986f5a7464c9f8060559ce4b127198621",
+  "historical_source_archive_available": false,
+  "numerical_generated_trial_executed": false,
+  "actual_recording_processed": false,
+  "tool_catalog_count": 27,
+  "tool_28_admitted": false,
+  "listening_accepted": false,
+  "master_adopted": false,
+  "goal_status": "active",
+  "goal_horizon_end_utc": "2026-10-06T06:49:34Z",
+  "next": "Refresh exact harness source pin and preregistration; independent identity readback; one root-released8s generated native qualification."
+}

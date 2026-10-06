@@ -1,0 +1,160 @@
+{
+  "aac_headroom_attempts": 1,
+  "actor": "/root/media_latency",
+  "actual_recording_processed": false,
+  "attempt": 1,
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N11/R-N13; exact root numerical release",
+  "automatic_retry_performed": false,
+  "candidate_source_samples_equal_parent": true,
+  "created_utc": "2026-10-06T02:57:50.703067+00:00",
+  "decoded_aac_origin": {
+    "existing_AAC_tolerance_seconds": "5561/220500",
+    "first_decoded_seconds": "5248/11025",
+    "last_raw_decoded_extent_seconds": "93824/11025",
+    "physical_sync_verified": false,
+    "relative_decoded_audio_video_seconds": "5248/11025",
+    "relative_offset_error_seconds": "-529/22050",
+    "time_base": "1/44100"
+  },
+  "dsp_performed": true,
+  "elapsed_seconds": 45.70738283399987,
+  "exec_session": 23980,
+  "export_verification": {
+    "aac_timing_tolerance_seconds": 0.025219954648526076,
+    "audio_duration_delta_seconds": 0.02322000000000024,
+    "dsp_latency_compensation_recorded": true,
+    "export_decoded_video_frames": 175,
+    "export_video_packets": 175,
+    "final_true_peak_target_dbtp": -1.5,
+    "final_true_peak_within_target": true,
+    "physical_audio_video_sync_verified": false,
+    "relative_audio_video_start_delta_seconds": -0.023990999999999985,
+    "relative_audio_video_start_verified": true,
+    "source_decoded_video_frames": 175,
+    "source_hash_verified": true,
+    "source_video_packets": 175,
+    "video_duration_delta_seconds": 0.0,
+    "video_frame_count_preserved": true,
+    "video_frame_count_verification_method": "ffprobe decoded frame counts; private cache keyed by exact media SHA256 and stream index",
+    "video_header_duration_diagnostic_only": true,
+    "video_packet_clock_tolerance_seconds": 4.1666666666666665e-05,
+    "video_packet_expected_translation_seconds": -1.0,
+    "video_packet_max_dts_delta_seconds": 0.0,
+    "video_packet_max_duration_delta_seconds": 0.0,
+    "video_packet_max_pts_delta_seconds": 0.0,
+    "video_packet_payload_hashes_preserved": true,
+    "video_packet_timeline_preserved": true,
+    "video_packet_verification_method": "ordered ffprobe packet PTS/DTS/durations in rational stream clocks and SHA256 encoded payloads"
+  },
+  "facts": {
+    "audio_origin_seconds": "3/2",
+    "audio_seconds": 8.0,
+    "capture_media_span_seconds": [
+      1.75,
+      2.5
+    ],
+    "capture_preroll_samples": 37485,
+    "capture_samples": [
+      11025,
+      44100
+    ],
+    "capture_seconds": [
+      0.25,
+      1.0
+    ],
+    "channels": 2,
+    "denoise_delay_samples": 1102,
+    "picture_decoded_frames": 175,
+    "picture_end_seconds": "19/2",
+    "picture_nominal_frames": 204,
+    "picture_origin_seconds": "1/1",
+    "picture_rate": "24/1",
+    "picture_seconds": 8.5,
+    "relative_audio_video_seconds": "1/2",
+    "sample_count": 352800,
+    "sample_rate": 44100,
+    "seed": 20261006
+  },
+  "final_decoded_aac_integrated_lufs": -18.02,
+  "final_decoded_aac_true_peak_dbtp": -6.27,
+  "generated_parent_identities_verified_unchanged": 11,
+  "harness_sha256": "c0268e80fdfb3ee17791534d078c0707f077c3ab0efac490fe2ee7bcc27142ee",
+  "latest_promoted": false,
+  "listening_accepted": false,
+  "master_adopted": false,
+  "musical_quality_accepted": false,
+  "native_checks": {
+    "first_boundary_error": 0.0,
+    "last_boundary_error": 5.820766091346741e-11,
+    "native": {
+      "channels": 2,
+      "sample_count": 352800,
+      "sample_rate": 44100
+    },
+    "quality_accepted": false,
+    "residue_max_abs_error": 4.656612873077393e-10,
+    "tail_denoised_rms": 0.012489753733629098,
+    "tail_source_rms": 0.013068620607041108
+  },
+  "native_host_import_verified": false,
+  "outer_owned_process_events": 27,
+  "physical_audio_video_sync_verified": false,
+  "preregistration_sha256": "0eca36a73660f797c18d122bbad6d29cfa0b9815c291557d5329089e0c70320c",
+  "protected_actual_identities_verified_unchanged": 10,
+  "root_release_sha256": "56e49d0789fa84e8a0d75f03d222f4bda291995a519810c63d8f297d94e98b3c",
+  "schema_version": 1,
+  "selectors": {
+    "artifacts/experiments/capture-application-native-qualification/native-20261006T0255/application-summary.json": {
+      "bytes": 1536,
+      "sha256": "9ea1045ba08500479c3b1d5b7877558068f6d100576317420e114f7ee8d9d0dc"
+    },
+    "artifacts/experiments/capture-application-native-qualification/native-20261006T0255/authoring-summary.json": {
+      "bytes": 1140,
+      "sha256": "4114480bf3d272216896307ce4e86fbae44548c6ee29cc1526b267d0ee2e543c"
+    },
+    "artifacts/experiments/capture-application-native-qualification/native-20261006T0255/delivery-audio-timing.json": {
+      "bytes": 33095,
+      "sha256": "ad9d99567a209f6d15d9f1b26f6300692b2916b01c7fa255ba29529076901c4e"
+    },
+    "artifacts/experiments/capture-application-native-qualification/native-20261006T0255/original.mov": {
+      "bytes": 1872771,
+      "sha256": "9304f783e0b4b82973c98fff2cda457013abe1a3716bf57285647f2d62bb283e"
+    },
+    "artifacts/experiments/capture-application-native-qualification/native-20261006T0255/receipt.json": {
+      "bytes": 15965,
+      "sha256": "04a6806591c83e449c9a15242226c1d106d03c1b229a996cd0ba6aeb21a0c668"
+    },
+    "artifacts/experiments/capture-application-native-qualification/native-20261006T0255/reference.wav": {
+      "bytes": 1411244,
+      "sha256": "10db1a752ed0dcbc2f22e8bce9272b68ef951ff4a21fec7b65b65bb70cb5019d"
+    },
+    "artifacts/experiments/capture-application-native-qualification/native-20261006T0255/source-picture.json": {
+      "bytes": 8682,
+      "sha256": "4d793df226bf45b9a4d09a6700c5ec5c8324b91e097385d86ef0a0204cf4aa23"
+    },
+    "artifacts/runs/20261006T025631Z-d29c3f02709c/application-receipt.json": {
+      "bytes": 23354,
+      "sha256": "84c8639f1e88e24c58b5465ce8fdd8e5c34070d3340cd44970af49f61ad5425a"
+    },
+    "artifacts/runs/20261006T025631Z-d29c3f02709c/export/cleaned-video.mov": {
+      "bytes": 658593,
+      "sha256": "df149ef0c811bdb9ea9cd8506fa2199622e51b9186a1e8143bc5708d1dca6bb0"
+    },
+    "artifacts/runs/20261006T025631Z-d29c3f02709c/export/outcome.json": {
+      "bytes": 13920,
+      "sha256": "06404a57f07b0412ccf1de5c67cd650cee30136e579c928e0d90989abbbeefe5"
+    },
+    "artifacts/runs/20261006T025631Z-d29c3f02709c/manifest.json": {
+      "bytes": 25810,
+      "sha256": "69badf686a1ac5e17a2ba645fc624227c6ddf537ca2a9d8e48225b12ded68e73"
+    }
+  },
+  "source_reference_transport_exact": true,
+  "status": "generated_native_integration_passed_independent_readback_pending",
+  "terminal_exit_code": 0,
+  "worker_sha256": {
+    "application": "00a03ef9fad8543be4335cb5cbcd3c9d9580a6b40b8faeb826811b105fd5daa6",
+    "author": "7d2820878826c87aabf2ab60b73c997b9d406b7f3ff8943d6012ed967444c355",
+    "media": "91443154251888c9e74670790766b289a2618f85f3be806d60ca26882faa9d94"
+  }
+}

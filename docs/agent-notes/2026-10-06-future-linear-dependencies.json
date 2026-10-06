@@ -1,0 +1,154 @@
+{
+  "authority": "Operator future planning request; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "goal": {
+    "id": "TIN-5546",
+    "uuid": "ce6c9487-d0c8-47d8-a6b6-66a45a3ce04d",
+    "url": "https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable",
+    "status": "Backlog"
+  },
+  "milestones": [
+    {
+      "key": "CORE",
+      "id": "40c9b2b5-bd72-4907-b8bf-5dbbc53eb454",
+      "name": "Future — Local tone and source-bound practice feedback"
+    },
+    {
+      "key": "WEB",
+      "id": "84f6d9aa-a185-4bb0-bec5-59c280645bb1",
+      "name": "Future — Optional bounded web workflow proof"
+    },
+    {
+      "key": "LOCAL",
+      "id": "e3339c26-2414-4186-aeb5-fc32695e67b8",
+      "name": "Future — Optional deeper tone and classified feedback"
+    },
+    {
+      "key": "LATER",
+      "id": "6f8a9f24-4778-4fb1-b713-37de7a7b3455",
+      "name": "Future — Hosting, score overlays and additional model qualification"
+    }
+  ],
+  "issues": [
+    {
+      "key": "UI",
+      "id": "TIN-5547",
+      "uuid": "81514d2e-b780-4369-8cf5-95818c5dfea3",
+      "url": "https://linear.app/tinyland/issue/TIN-5547/future-make-tone-and-arrangement-review-legible-then-bind-one-web",
+      "status": "Backlog",
+      "dependencies_written": [
+        "TONE",
+        "ANNOT",
+        "CAP"
+      ]
+    },
+    {
+      "key": "CORPUS",
+      "id": "TIN-5548",
+      "uuid": "fb90b32a-81a9-48c6-8a92-41139620a378",
+      "url": "https://linear.app/tinyland/issue/TIN-5548/future-define-heldout-guitar-labels-and-evaluate-retrieval-only-when",
+      "status": "Backlog",
+      "dependencies_written": [
+        "ANNOT"
+      ]
+    },
+    {
+      "key": "IDS",
+      "id": "TIN-5549",
+      "uuid": "5665c51d-8e29-4e73-88dd-f184c5753688",
+      "url": "https://linear.app/tinyland/issue/TIN-5549/future-project-closed-local-capabilities-to-web-safe-source-and",
+      "status": "Backlog",
+      "dependencies_written": [
+        "CAP"
+      ]
+    },
+    {
+      "key": "JOBS",
+      "id": "TIN-5550",
+      "uuid": "599f5821-356f-4551-84fa-936f94371ff9",
+      "url": "https://linear.app/tinyland/issue/TIN-5550/future-build-one-bounded-durable-preview-job-pilot-after-artifact",
+      "status": "Backlog",
+      "dependencies_written": [
+        "IDS",
+        "CAP",
+        "STACK"
+      ]
+    },
+    {
+      "key": "STACK",
+      "id": "TIN-5551",
+      "uuid": "8ddaba4a-89d1-40ef-9b8b-da8a3aa32aec",
+      "url": "https://linear.app/tinyland/issue/TIN-5551/future-qualify-the-ui-stack-and-justify-one-versus-two-server-control",
+      "status": "Backlog",
+      "dependencies_written": [
+        "CAP"
+      ]
+    },
+    {
+      "key": "HOST",
+      "id": "TIN-5552",
+      "uuid": "6898758b-e2db-45c2-8e4c-be57d0484833",
+      "url": "https://linear.app/tinyland/issue/TIN-5552/future-qualify-a-private-hosted-processing-service-after-local-job",
+      "status": "Backlog",
+      "dependencies_written": [
+        "JOBS",
+        "UI",
+        "RELEASE"
+      ]
+    },
+    {
+      "key": "STAFF",
+      "id": "TIN-5553",
+      "uuid": "d91ec2dd-2f57-4696-841e-96bb7304347c",
+      "url": "https://linear.app/tinyland/issue/TIN-5553/future-design-optional-source-mapped-staff-and-score-overlays-from",
+      "status": "Backlog"
+    },
+    {
+      "key": "MODEL",
+      "id": "TIN-5554",
+      "uuid": "52a8e0d2-acde-49ad-9a7f-7945d06fb063",
+      "url": "https://linear.app/tinyland/issue/TIN-5554/future-qualify-one-optional-guitar-classification-comparator-with",
+      "status": "Backlog"
+    }
+  ],
+  "existing_updates": [
+    {
+      "key": "TONE",
+      "id": "TIN-5487",
+      "uuid": "89fd64e3-2822-4d9d-92be-9c151102c9f0",
+      "url": "https://linear.app/tinyland/issue/TIN-5487/d2-restoration-profiles-and-measured-media-delivery",
+      "status": "Todo"
+    },
+    {
+      "key": "ANNOT",
+      "id": "TIN-5489",
+      "uuid": "6b0a92b4-408c-4c38-bcab-bfef6f93092a",
+      "url": "https://linear.app/tinyland/issue/TIN-5489/d4-automatic-rhythmloop-review-and-optional-reference-grading",
+      "status": "Todo"
+    },
+    {
+      "key": "CAP",
+      "id": "TIN-5493",
+      "uuid": "63027dfb-9ea9-4f5f-a03e-b39023a3af89",
+      "url": "https://linear.app/tinyland/issue/TIN-5493/cross-cutting-mcp-hooks-and-skill-per-audio-tool",
+      "status": "Todo"
+    },
+    {
+      "key": "RELEASE",
+      "id": "TIN-5492",
+      "uuid": "3f6a3993-cde3-4ef1-9556-001c40b4d171",
+      "url": "https://linear.app/tinyland/issue/TIN-5492/d7-hardening-agent-tool-contracts-and-release-handoff",
+      "status": "Todo"
+    }
+  ],
+  "pending_creation": [],
+  "pending_dependencies": [
+    "STAFF",
+    "MODEL"
+  ],
+  "readback_pending": true,
+  "limitation": "All 12 planned scope writes returned; eight new child issues and four existing updates. Six dependency writes returned; HTTP429 rate limit interrupted last two relations and independent full readback.",
+  "historical_receipts": [
+    "2026-10-06-future-linear-publication.json",
+    "2026-10-06-future-linear-completion.json"
+  ]
+}

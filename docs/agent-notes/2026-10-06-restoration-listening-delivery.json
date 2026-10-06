@@ -1,0 +1,32 @@
+{
+  "recorded_utc": "2026-10-06T04:30:40.417617+00:00",
+  "status": "fuller_accepted_listening_page_browser_qa_pending",
+  "authority": "root-authorized user audio iteration; R-HOOK-CONVERGENCE-20261004 R-N13",
+  "files": [
+    {
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/restoration-audition-20261006T0438/index.html",
+      "sha256": "3e4acad986239fca1224c7b7c7805e76ab38b34bd2ea644c4a7e7f7b9832f10b"
+    },
+    {
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/restoration-audition-20261006T0438/audition.json",
+      "sha256": "da0514e6884a576cb752d4fb1dfe1b803dc624613b052c3ac35b36bc75b14b03"
+    },
+    {
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/restoration-audition-20261006T0438/listening-acceptance.json",
+      "sha256": "0f8d3dbff43e8f8c2bdaed94856d697b94f3de9cf78cf5f72a0e6ee982578e92"
+    }
+  ],
+  "matched_nr8_nr10": {
+    "path": "/Users/jess/git/video-utils/artifacts/experiments/nr8-nr10-comparison/compare300-20261006T041932Z/results.json",
+    "sha256": "e77e5a6072a6476e712467d0a212750d25ac8b80aa98138a243bb01beb041f70"
+  },
+  "fuller_readback": {
+    "path": "/Users/jess/git/video-utils/artifacts/experiments/fuller-v1-20261006T041415Z/tone-readback-complete.json",
+    "sha256": "483cd65a2ac4b140e6849aafcbe582f79765e884958165d9de60db0fc3c8cc83"
+  },
+  "browser_qa_pending": true,
+  "fuller_listening_accepted": true,
+  "all_candidates_accepted": false,
+  "master_adopted": false,
+  "dsp_after_acceptance": false
+}

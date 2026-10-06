@@ -1,0 +1,85 @@
+{
+  "AAC_tolerance_seconds": "5561/220500",
+  "DSP_or_generation_repeated": false,
+  "actor": "/root/release_review",
+  "actual_recording_processed": false,
+  "application_receipt_sha256": "84c8639f1e88e24c58b5465ce8fdd8e5c34070d3340cd44970af49f61ad5425a",
+  "auditor_source_sha256": "5141d569db28a94ffe33f1301bfdc4bcecf334a5c589896a6e31edce413a653a",
+  "authority": "Root explicit generated-only metadata probe release; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "candidate_run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T025631Z-d29c3f02709c",
+  "decoded_AAC_origin_seconds": "5248/11025",
+  "export_last_picture_extent_seconds": "17/2",
+  "final_AAC_true_peak_dbtp": -6.27,
+  "first_boundary_error": 0.0,
+  "generated_reference_values_exact": true,
+  "harness_sha256": "c0268e80fdfb3ee17791534d078c0707f077c3ab0efac490fe2ee7bcc27142ee",
+  "last_boundary_error": 5.820766091346741e-11,
+  "listening_accepted": false,
+  "master_adopted": false,
+  "native_headers": {
+    "baseline.wav": {
+      "bits": 24,
+      "channels": 2,
+      "code": 1,
+      "sample_count": 352800,
+      "sample_rate": 44100
+    },
+    "cleaned.wav": {
+      "bits": 24,
+      "channels": 2,
+      "code": 1,
+      "sample_count": 352800,
+      "sample_rate": 44100
+    },
+    "denoised.wav": {
+      "bits": 32,
+      "channels": 2,
+      "code": 3,
+      "sample_count": 352800,
+      "sample_rate": 44100
+    },
+    "residue.wav": {
+      "bits": 32,
+      "channels": 2,
+      "code": 3,
+      "sample_count": 352800,
+      "sample_rate": 44100
+    },
+    "source.wav": {
+      "bits": 32,
+      "channels": 2,
+      "code": 3,
+      "sample_count": 352800,
+      "sample_rate": 44100
+    }
+  },
+  "native_master_sample_count": 352800,
+  "parent_files_hash_verified": 11,
+  "physical_audio_video_sync_verified": false,
+  "preregistration_sha256": "0eca36a73660f797c18d122bbad6d29cfa0b9815c291557d5329089e0c70320c",
+  "protected_files_hash_verified": 10,
+  "raw_AAC_decoded_sample_count": 354304,
+  "reference_header": {
+    "bits": 16,
+    "channels": 2,
+    "code": 1,
+    "sample_count": 352800,
+    "sample_rate": 44100
+  },
+  "relative_AAC_video_origin_error_seconds": "-529/22050",
+  "release_sha256": "56e49d0789fa84e8a0d75f03d222f4bda291995a519810c63d8f297d94e98b3c",
+  "residue_max_abs_error": 4.656612873077393e-10,
+  "saved_table_sha256": {
+    "export-frames.json": "3195d7ad6fbc55e7b9f93a218acd479325afe0bee0134f1e55efef6ed9c34ce0",
+    "export-packets.json": "e08abbf549e3d67a915d7c42c7b86daa76da6d7f67953f199f687361bc339166",
+    "source-frames.json": "03e8e8cd1db493b5d27c2bc7ac47ac5eba17b514d868bc75598e90770bf8dbdc",
+    "source-packets.json": "bf79f088649d32d896d4b1e79e05fda5cae5612dd531fd5ed5d65c8e5576c628"
+  },
+  "schema_version": 1,
+  "status": "independent_generated_native_artifact_audit_passed",
+  "trial_receipt_sha256": "04a6806591c83e449c9a15242226c1d106d03c1b229a996cd0ba6aeb21a0c668",
+  "video_clock_translation_seconds": -1,
+  "video_packet_payloads_equal": true,
+  "video_packets_and_frames": 175,
+  "worker_sha256": "00a03ef9fad8543be4335cb5cbcd3c9d9580a6b40b8faeb826811b105fd5daa6"
+}

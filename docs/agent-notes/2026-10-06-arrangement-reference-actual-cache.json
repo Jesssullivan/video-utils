@@ -1,0 +1,288 @@
+{
+  "schema_version": 1,
+  "actor": "/root/rhythm_analysis",
+  "authority": "Root cached NR8 then fresh NR10 assessment release; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "worker_sha256": "c6bdc8991b6e378f2ab54873e94e23b1cff63073056e4f32b05ab5f7b58f89ae",
+  "reference_sha256": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a",
+  "assessment_runs": [
+    {
+      "run": "20261005T232741Z-2b5dc43fd009",
+      "output": "artifacts/runs/20261005T232741Z-2b5dc43fd009/arrangement-reference-20261006",
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "analyzed_input_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+      "timeline": {
+        "source_start_seconds": 0.0,
+        "duration_seconds": 150.9611111111111,
+        "boundary_latency_status": "uncalibrated",
+        "native_pcm": {
+          "sample_rate": 44100,
+          "sample_count": 6657385,
+          "channels": 1
+        }
+      },
+      "input_hashes": {
+        "manifest.json": "4a75b4e352075114a7b6026c74acab3ab6c64eedddd52fc2b8514adfed80549c",
+        "analysis.json": "4d32f962c5c59920943217cfb72fbe3c9e3eb9fefa3c6d9b79ee648187cadd0a",
+        "phrases.json": "267fc503fc2e55def3fe61d50d89d18ee5155e0ecc981e86cacfc9e6a4f01e51",
+        "denoised.wav": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd"
+      },
+      "artifacts": {
+        "assessment.json": "51586415025ff1803e5955cab5b0b17b5a3a616094ee5a46e358a71e6861a01c",
+        "review-candidates.json": "9160106ca1bcb900dfd56b49c583823a36db8800dbb046620bbac74494be8b48",
+        "receipt.json": "647019c6bbe0645703ab62953c0091b1ffdfb9cf94bfddcfe7d91dbfd1205c7d"
+      },
+      "boundary_status_counts": {
+        "matched_boundary_candidate": 19,
+        "unobserved_boundary": 9
+      },
+      "unit_status_counts": {
+        "boundary_support_unavailable": 12,
+        "duration_review_candidate": 15
+      },
+      "observed_boundary_count": 48,
+      "review_candidate_count": 55,
+      "breakdowns": [
+        {
+          "expected": {
+            "id": "breakdown1:1",
+            "section_id": "breakdown1",
+            "label": "First breakdown: two four-click bars, separate falling pinch harmonics",
+            "kind": "breakdown",
+            "section_unit_index": 1,
+            "start_click_index": 96,
+            "end_click_index": 104,
+            "click_count": 8,
+            "section_provenance": "operator_supplied",
+            "assumption": null,
+            "duration_seconds": 2.696629213483146
+          },
+          "observed": {
+            "start_seconds": 43.146067415730336,
+            "end_seconds": 46.17977528089887,
+            "duration_seconds": 3.0337078651685374,
+            "duration_seconds_range": [
+              3.0337078651685374,
+              3.0337078651685374
+            ],
+            "duration_value_basis": "nominal_boundary_centers_with_uncertainty_range",
+            "reference_equivalent_clicks_range": [
+              8.999999999999995,
+              8.999999999999995
+            ],
+            "reference_equivalent_clicks": 8.999999999999995,
+            "observed_click_count": null,
+            "click_count_basis": "duration_divided_by_supplied_approximate_period_not_detected_clicks"
+          },
+          "deviation": {
+            "reference_equivalent_clicks_delta": 0.9999999999999947,
+            "reference_equivalent_clicks_delta_range": [
+              0.9999999999999947,
+              0.9999999999999947
+            ],
+            "duration_seconds_delta_range": [
+              0.3370786516853914,
+              0.3370786516853914
+            ],
+            "duration_seconds_delta": 0.3370786516853914
+          },
+          "status": "duration_review_candidate",
+          "confidence": "conditional_duration_comparison_not_performance_grade",
+          "performance_issue_confirmed": false
+        },
+        {
+          "expected": {
+            "id": "breakdown2:1",
+            "section_id": "breakdown2",
+            "label": "Second breakdown: two bars, eight clicks",
+            "kind": "breakdown",
+            "section_unit_index": 1,
+            "start_click_index": 232,
+            "end_click_index": 240,
+            "click_count": 8,
+            "section_provenance": "operator_supplied",
+            "assumption": null,
+            "duration_seconds": 2.696629213483146
+          },
+          "observed": {
+            "start_seconds": 88.98876404494382,
+            "end_seconds": 92.02247191011236,
+            "duration_seconds": 3.0337078651685374,
+            "duration_seconds_range": [
+              3.0337078651685374,
+              3.0337078651685374
+            ],
+            "duration_value_basis": "nominal_boundary_centers_with_uncertainty_range",
+            "reference_equivalent_clicks_range": [
+              8.999999999999995,
+              8.999999999999995
+            ],
+            "reference_equivalent_clicks": 8.999999999999995,
+            "observed_click_count": null,
+            "click_count_basis": "duration_divided_by_supplied_approximate_period_not_detected_clicks"
+          },
+          "deviation": {
+            "reference_equivalent_clicks_delta": 0.9999999999999947,
+            "reference_equivalent_clicks_delta_range": [
+              0.9999999999999947,
+              0.9999999999999947
+            ],
+            "duration_seconds_delta_range": [
+              0.3370786516853914,
+              0.3370786516853914
+            ],
+            "duration_seconds_delta": 0.3370786516853914
+          },
+          "status": "duration_review_candidate",
+          "confidence": "conditional_duration_comparison_not_performance_grade",
+          "performance_issue_confirmed": false
+        }
+      ]
+    },
+    {
+      "run": "20261006T034521Z-a0def0c43eac",
+      "output": "artifacts/runs/20261006T034521Z-a0def0c43eac/arrangement-reference-20261006",
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "analyzed_input_sha256": "cb8a3fa559424810f206c94191a149156423770bbf91a13724a2ba28a44e879e",
+      "timeline": {
+        "source_start_seconds": 0.0,
+        "duration_seconds": 150.9611111111111,
+        "boundary_latency_status": "uncalibrated",
+        "native_pcm": {
+          "sample_rate": 44100,
+          "sample_count": 6657385,
+          "channels": 1
+        }
+      },
+      "input_hashes": {
+        "manifest.json": "a6c371ab36e1f50b850f167a42b010ffa7b923b32aca14f4bfd70fb24036077c",
+        "analysis.json": "7bd77aa65a776adeadd7b979a12d2743e99a6eb87c65144dbf31039df050c5a8",
+        "phrases.json": "2822625bdec0b0742c4adf40306e05f5f4e8342ef13fcf13dbff6d07b3e59bff",
+        "denoised.wav": "cb8a3fa559424810f206c94191a149156423770bbf91a13724a2ba28a44e879e"
+      },
+      "artifacts": {
+        "assessment.json": "834e9420ef10310c2e1df42f243af01f645de06a498e544f06ec1593cdd07028",
+        "review-candidates.json": "853486277236a64a55a70bf6d2df6b04bf62c63ef08b7f7e7180a85eb3033f5f",
+        "receipt.json": "d51189d12841f997e41821acc9cd97285d1a9dd303af2b394c375327631f81f8"
+      },
+      "boundary_status_counts": {
+        "matched_boundary_candidate": 20,
+        "unobserved_boundary": 8
+      },
+      "unit_status_counts": {
+        "duration_review_candidate": 16,
+        "boundary_support_unavailable": 11
+      },
+      "observed_boundary_count": 49,
+      "review_candidate_count": 55,
+      "breakdowns": [
+        {
+          "expected": {
+            "id": "breakdown1:1",
+            "section_id": "breakdown1",
+            "label": "First breakdown: two four-click bars, separate falling pinch harmonics",
+            "kind": "breakdown",
+            "section_unit_index": 1,
+            "start_click_index": 96,
+            "end_click_index": 104,
+            "click_count": 8,
+            "section_provenance": "operator_supplied",
+            "assumption": null,
+            "duration_seconds": 2.696629213483146
+          },
+          "observed": {
+            "start_seconds": 43.146067415730336,
+            "end_seconds": 46.17977528089887,
+            "duration_seconds": 3.0337078651685374,
+            "duration_seconds_range": [
+              3.0337078651685374,
+              3.0337078651685374
+            ],
+            "duration_value_basis": "nominal_boundary_centers_with_uncertainty_range",
+            "reference_equivalent_clicks_range": [
+              8.999999999999995,
+              8.999999999999995
+            ],
+            "reference_equivalent_clicks": 8.999999999999995,
+            "observed_click_count": null,
+            "click_count_basis": "duration_divided_by_supplied_approximate_period_not_detected_clicks"
+          },
+          "deviation": {
+            "reference_equivalent_clicks_delta": 0.9999999999999947,
+            "reference_equivalent_clicks_delta_range": [
+              0.9999999999999947,
+              0.9999999999999947
+            ],
+            "duration_seconds_delta_range": [
+              0.3370786516853914,
+              0.3370786516853914
+            ],
+            "duration_seconds_delta": 0.3370786516853914
+          },
+          "status": "duration_review_candidate",
+          "confidence": "conditional_duration_comparison_not_performance_grade",
+          "performance_issue_confirmed": false
+        },
+        {
+          "expected": {
+            "id": "breakdown2:1",
+            "section_id": "breakdown2",
+            "label": "Second breakdown: two bars, eight clicks",
+            "kind": "breakdown",
+            "section_unit_index": 1,
+            "start_click_index": 232,
+            "end_click_index": 240,
+            "click_count": 8,
+            "section_provenance": "operator_supplied",
+            "assumption": null,
+            "duration_seconds": 2.696629213483146
+          },
+          "observed": {
+            "start_seconds": 88.98876404494382,
+            "end_seconds": 92.02247191011236,
+            "duration_seconds": 3.0337078651685374,
+            "duration_seconds_range": [
+              3.0337078651685374,
+              3.0337078651685374
+            ],
+            "duration_value_basis": "nominal_boundary_centers_with_uncertainty_range",
+            "reference_equivalent_clicks_range": [
+              8.999999999999995,
+              8.999999999999995
+            ],
+            "reference_equivalent_clicks": 8.999999999999995,
+            "observed_click_count": null,
+            "click_count_basis": "duration_divided_by_supplied_approximate_period_not_detected_clicks"
+          },
+          "deviation": {
+            "reference_equivalent_clicks_delta": 0.9999999999999947,
+            "reference_equivalent_clicks_delta_range": [
+              0.9999999999999947,
+              0.9999999999999947
+            ],
+            "duration_seconds_delta_range": [
+              0.3370786516853914,
+              0.3370786516853914
+            ],
+            "duration_seconds_delta": 0.3370786516853914
+          },
+          "status": "duration_review_candidate",
+          "confidence": "conditional_duration_comparison_not_performance_grade",
+          "performance_issue_confirmed": false
+        }
+      ]
+    }
+  ],
+  "audio_decoded": false,
+  "dsp_performed": false,
+  "existing_inputs_rehashed_before_after": true,
+  "prior_artifacts_modified": false,
+  "master_adopted": false,
+  "latest_promoted": false,
+  "performance_issue_confirmed": false,
+  "limitations": [
+    "404 is intended count; observed click count remains null.",
+    "Reference-equivalent duration is not counted metronome events.",
+    "Uncalibrated beat-quantized segmentation can shift intended breakdown boundaries; no musical mistake grade.",
+    "Actual cached evidence does not establish end-to-end detector ground truth."
+  ]
+}

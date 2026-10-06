@@ -1,0 +1,103 @@
+{
+  "adoption": false,
+  "application_seconds_max": 600,
+  "application_worker_sha256": "790ac58f1924db2607087c6ab1cdae5d813ba24eda610af1f396d77e93d06584",
+  "authoring_command": [
+    "/Users/jess/git/video-utils/.venv/bin/python",
+    "scripts/capture_profile.py",
+    "/Users/jess/Documents/Movie on 10-5-26 at 3.38\u202fPM.mov",
+    "--run-dir",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009",
+    "--review",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profile-review-root.json",
+    "--capture-start",
+    "4.1",
+    "--capture-end",
+    "4.95",
+    "--reduction-db",
+    "8",
+    "--noise-floor-db",
+    "-40",
+    "--adaptivity",
+    "0",
+    "--gain-smooth",
+    "0",
+    "--integrated-lufs",
+    "-18",
+    "--true-peak-dbtp",
+    "-1.75",
+    "--eq",
+    "160",
+    "2",
+    ".7",
+    "--eq",
+    "300",
+    "1",
+    ".8",
+    "--compressor-threshold-db",
+    "-18",
+    "--compressor-ratio",
+    "2",
+    "--compressor-attack-ms",
+    "15",
+    "--compressor-release-ms",
+    "100",
+    "--compressor-knee-db",
+    "3",
+    "--timeout-seconds",
+    "60"
+  ],
+  "authority": "Root explicitly authorizes FULLER_NR8 independent of paired-comparison retry, operator thin/nasal/lowweight QA and active remastering goal; R-HOOK-CONVERGENCE-20261004/R-N11/R-N12/R-N13",
+  "capture_context": "minor guitar/amp activity and mechanical wind-up before5s operator-reported; selectedcapture contaminationunknown, notnoiseonly",
+  "capture_samples": [
+    180810,
+    218295
+  ],
+  "capture_seconds": [
+    4.1,
+    4.95
+  ],
+  "created_utc": "2026-10-06T04:14:15.877009+00:00",
+  "expected_denoised_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+  "expected_residue_sha256": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc",
+  "fixed_denoise_control_run": "/Users/jess/git/video-utils/artifacts/runs/20261006T030345Z-af60acfd29dd",
+  "hypothesis": "more body/balance from tonepackage160+2/300+1 and omitted2200boost; cannotprove32Hzrestoration orisolatedfan/musicgain",
+  "input": "/Users/jess/Documents/Movie on 10-5-26 at 3.38\u202fPM.mov",
+  "listening_accepted": false,
+  "owner": "audio_research",
+  "parent_run": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009",
+  "review": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profile-review-root.json",
+  "review_sha256": "953d8d84fb12c358d14bf6d32e8ea93bb6f6491e5597b5dc2035bc5577d24cf4",
+  "schema_version": 1,
+  "settings": {
+    "adaptivity": 0,
+    "compressor": {
+      "attack_ms": 15,
+      "knee_db": 3,
+      "ratio": 2,
+      "release_ms": 100,
+      "threshold_db": -18
+    },
+    "gain_smooth": 0,
+    "integrated_lufs": -18,
+    "noise_floor_db": -40,
+    "peaking_eq": [
+      {
+        "frequency_hz": 160,
+        "gain_db": 2,
+        "q": 0.7
+      },
+      {
+        "frequency_hz": 300,
+        "gain_db": 1,
+        "q": 0.8
+      }
+    ],
+    "reduction_db": 8,
+    "true_peak_dbtp": -1.75
+  },
+  "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "status": "planned_before_authoring_and_render",
+  "threads": 2,
+  "work_dir": "/Users/jess/git/video-utils/artifacts/experiments/fuller-v1-20261006T041415Z"
+}

@@ -1,0 +1,14 @@
+{
+  "authority": "Operator active goal; repository AGENTS.md; R-N13",
+  "result_path": "artifacts/qualification/20261006-29-tools/result.json",
+  "result_sha256": "a7e9e704a0da5b95e95c4159869c27115db4ee45bf9ea0b1cda2111b79be786b",
+  "returncode": 0,
+  "elapsed_seconds": 602.6198975000007,
+  "source_unchanged": true,
+  "tests_run": 855,
+  "skipped": 1,
+  "failures": 0,
+  "errors": 0,
+  "log_sha256": "772fabbd47a44a0628bfb7767595533622440b33e46bd807236b3916e1ea8b82",
+  "claim": "Local consolidated Python suite only; hosted CI and source publication remain separate."
+}

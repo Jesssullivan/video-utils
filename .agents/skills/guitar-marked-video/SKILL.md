@@ -11,13 +11,21 @@ description: Render a separate source-timed guitar review video with uncertain p
 
 Required `run_dir` and `output` are paths of 1–4,096 characters beneath the repository's `artifacts/runs/`. The run must exist; output must be a new directory. `selection` is `phrase-review` (default), `recurrences` or `all-review`. Shared `timeout_seconds` is integer 1–900, default 600. No profile, BPM, FPS, sync offset, custom label or encoding knob is exposed.
 
+Optional `arrangement_markers` is an exact same-run-relative marker JSON selector, 1–1,024 characters, and requires explicit `selection:"all-review"`. It selects the arrangement marker set for this preview; it does not merge it into canonical markers or create an assessment. Reject traversal/symlink components and stale assessment/reference/current-artifact hashes. Omission keeps the existing marker workflow and selections.
+
 Direct worker: `python3 scripts/marked_video.py --run-dir "<verified-run>" --selection phrase-review --output "<new-directory>"`. Recipe: `just tool-run marked_video '{"run_dir":"<verified-run>","output":"<new-directory>","selection":"phrase-review"}'`. Read [the renderer contract](../../../docs/spec/MARKED_VIDEO_LANE.md).
+
+For an existing verified arrangement marker file, pass `--arrangement-markers "<same-run-relative.json>" --selection all-review` to the direct worker, or the corresponding two typed fields. This is a supported selection within the existing authorized preview workflow, not a new approval stage.
 
 Default selection includes comparison review hypotheses, possible repeated phrases and possible low-register riffs, excluding four-pulse navigation proxies. `recurrences` keeps recurrence/comparison candidates; `all-review` also includes other review markers and explicitly labelled navigation proxies. Broader selection does not establish meter or correctness. Default/recurrence selections are bounded to 128 markers; all-review is bounded to 5,000. Empty selected picture coverage fails rather than implying no issues.
 
 ## Inspect evidence and timing
 
 Require current source/master/export, DAG, flags and generic markers. The renderer recomputes marker evidence and validates current upstream hashes, external context and export checks; stale markers need the owning graph/marker workflow, not silent rebinding. Only unconfirmed `needs_review` flags are accepted. No latest pointer or source, master, existing export/report is replaced.
+
+Arrangement mode additionally revalidates its selected assessment and supplied-reference lineage. Preserve `label_basis`, intended versus observed intervals, approximate reference counts, null/ambiguous boundary support and uncertainty in selection receipts. Reference-equivalent duration is not detected clicks, and an intended-boundary callout is not a newly detected phrase. Arrangement labels remain review prompts without confirmed mistake or performance grades; the same source/frame-clock, picture and copied-audio checks apply.
+
+The current arrangement overlay validator accepts only `program/demo-arrangement.json` and an assessment bound to the run's current pure `denoised.wav`. Custom-reference or other canonical-PCM assessments supported by `arrangement_reference` are not yet accepted by this overlay route.
 
 The separate `marked-video.mov` burns restrained `REVIEW - uncertain` callouts into H.264 picture. Existing delivery AAC is packet copied, not renormalized; this is the delivery track, not a claim of bit-identical native WAV encoding. `callouts.ass`, `selection.json` and `outcome.json` record labels, selected/excluded spans, hashes and checks. FFmpeg/ffprobe and its ASS filter must already be available; no implicit installation occurs.
 

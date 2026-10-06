@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "actor": "guitar_features",
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; exact root numerical generation release",
+  "status": "authorized_generation_starting",
+  "started_utc": "2026-10-06T03:33:51.824025+00:00",
+  "output": "/Users/jess/git/video-utils/artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332",
+  "release_path": "docs/agent-notes/2026-10-06-root-phrase-localization-GENERATION.json",
+  "release_sha256": "179b9af8fc6a342057fc790e99f055522be6bdbc5ed7ccdea5fe934829e942a3",
+  "preregistration_sha256": "8b0e7969f702d0685e2d7176c4ee96c19b1325b2e9b3d848685e093405c4c000",
+  "worker_sha256": "8eae0110995619d128a022e8f0882a522b6213c5899cfd41216128b9847abd6c",
+  "qualified_python": "/Users/jess/git/video-utils/.venv/bin/python",
+  "numerical_threads": 2,
+  "case_count": 12,
+  "total_audio_seconds": 96,
+  "overall_deadline_seconds": 600,
+  "case_deadline_seconds": 120,
+  "discovery_authorized": false,
+  "discovery_invoked": false,
+  "model_inference_invoked": false,
+  "owned_exec_session_id": 43246,
+  "process_readback": {
+    "status": "bounded_ps_readback_timeout",
+    "timeout_seconds": 2,
+    "signals_sent": false,
+    "owned_exec_handle_verified": true
+  }
+}

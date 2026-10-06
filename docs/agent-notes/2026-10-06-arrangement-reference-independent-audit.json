@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "actor": "phrase_dag",
+  "authority": "root arrangement independent-audit assignment; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "status": "independent_source_fixture_audit_passed_not_actual_performance_acceptance",
+  "time_utc": "2026-10-06T04:09:59.305956+00:00",
+  "bindings": {
+    "scripts/arrangement_reference.py": "c6bdc8991b6e378f2ab54873e94e23b1cff63073056e4f32b05ab5f7b58f89ae",
+    "tests/test_arrangement_reference_audit.py": "8ab795a97bd1afbe9cc3d42e5c0a1bd05cc6305c89458f0f5fc7be6a0db67942",
+    "tests/test_arrangement_reference.py": "5c0c537772c35f14d5e87c88b85e92db4a00e1fd9ccd0ace34fba9a5ab82577b",
+    "program/demo-arrangement.json": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a",
+    "docs/spec/ARRANGEMENT_REFERENCE_LANE.md": "7920f5bf561e5464317ceb159b363cd6c696507bf468890db2967b216c5b90ec"
+  },
+  "source_before_sha256": "c6bdc8991b6e378f2ab54873e94e23b1cff63073056e4f32b05ab5f7b58f89ae",
+  "source_after_sha256": "c6bdc8991b6e378f2ab54873e94e23b1cff63073056e4f32b05ab5f7b58f89ae",
+  "python": "3.12.14",
+  "site_packages_loaded": false,
+  "independent_tests": 31,
+  "tests_passed": 31,
+  "test_runner_seconds": 0.5,
+  "total_import_and_test_seconds": 1.2717486249966896,
+  "deterministic_property_seeds": [
+    46021,
+    98410
+  ],
+  "demo_intended_click_count": 404,
+  "demo_musical_phrase_count": 24,
+  "demo_breakdown_group_count": 2,
+  "demo_rest_click_count": 4,
+  "demo_original_source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "independent_findings_corrected": [
+    "canonical endpoint overrun bounded to one resampled analysis sample, original retained",
+    "nonfinite overflow exponent and nested optional metadata validated",
+    "nominal unit center durations retain propagated uncertainty ranges",
+    "cached reversed segments and fractional native counts rejected"
+  ],
+  "actual_audio_decoded": false,
+  "model_inference_invoked": false,
+  "new_feature_extraction_invoked": false,
+  "actual_performance_graded": false,
+  "unsupervised_baseline_changed": false,
+  "canonical_defaults_activated": false,
+  "observed_click_count": null,
+  "meter": null,
+  "claim_scope": "Checker source plus constructed metadata fixtures; cached take schema inspection only. Actual arrangement boundaries need separate source-bound review."
+}

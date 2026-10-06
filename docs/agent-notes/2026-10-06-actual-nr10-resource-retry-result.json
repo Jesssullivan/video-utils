@@ -1,0 +1,251 @@
+{
+  "actor": "/root/media_latency",
+  "actual_recording_processed": true,
+  "additional_nr8_render_performed": false,
+  "application_sha256": "790ac58f1924db2607087c6ab1cdae5d813ba24eda610af1f396d77e93d06584",
+  "attempt_in_this_release": 1,
+  "author_sha256": "7d2820878826c87aabf2ab60b73c997b9d406b7f3ff8943d6012ed967444c355",
+  "authoring_profile_sha256": "3b5eccabb4121fb74bb1eb27cfcda1d5c207bb84bc1b713106d8005a0266c0cd",
+  "authoring_receipt_sha256": "8b3efebe248d3895f5a7872992d953311e06f67a95618e4275d3c4a3fdfab474",
+  "authority": "Exact root24ba singleNR10 resource-retry release; R-HOOK-CONVERGENCE-20261004/R-N11/R-N13",
+  "automatic_retry_performed": false,
+  "controller_sha256": "46ca7e3faa4c67cb61e9ff7a856bc7da1b2598da84cdc404748e778298d64344",
+  "created_utc": "2026-10-06T03:55:24.322590+00:00",
+  "decoded_delivery_integrated_lufs": -18.01,
+  "decoded_delivery_true_peak_dbtp": -1.75,
+  "delivery_feed_gain_db": 0.0,
+  "delivery_headroom_attempts": 1,
+  "dsp_latency": {
+    "analysis_derivative_sample_mapping": "denoised sample zero maps to decoded source sample zero after calibrated filter-delay compensation",
+    "denoise": {
+      "actual_recording_waveform_alignment_measured": false,
+      "compensation": "pad input tail before filtering, discard filter leading delay, trim to original extent, reset sample timestamps",
+      "delay_samples": 1102,
+      "delay_seconds": 0.024988662131519273,
+      "filter": "afftdn",
+      "measured_impulse_offsets_samples": [
+        1102,
+        1102
+      ],
+      "method": "two isolated impulses in each native-rate channel; exact output peak displacement",
+      "remaining_bulk_delay_samples": 0,
+      "sample_advance": 551,
+      "source_model": "FFmpeg 8.1 af_afftdn.c: window_length=3*(sample_rate/80); insertion offset=2*(sample_rate/80)",
+      "status": "measured_and_compensated"
+    },
+    "normalization": {
+      "actual_recording_waveform_alignment_measured": false,
+      "policy": "FFmpeg loudnorm native compensated timestamps; no additional trimming",
+      "validation": "separate 44.1/48 kHz dynamic-mode impulse regression; not a listening or complete physical A/V synchronization claim"
+    },
+    "physical_audio_video_sync_verified": false,
+    "post_denoise": {
+      "complete_acoustic_alignment_verified": false,
+      "sample_count_preserved": true,
+      "stages": [
+        {
+          "acoustic_alignment_verified": false,
+          "frequency_dependent_phase": true,
+          "sample_axis_policy": "causal forward IIR; no block delay or time stretch"
+        },
+        {
+          "acoustic_alignment_verified": false,
+          "frequency_dependent_phase": true,
+          "sample_axis_policy": "causal forward IIR; no block delay or time stretch"
+        },
+        {
+          "acoustic_alignment_verified": false,
+          "attack_release_change_amplitude": true,
+          "sample_axis_policy": "causal gain envelope; no lookahead or sample-axis trimming"
+        }
+      ]
+    }
+  },
+  "elapsed_seconds": 512.842747374998,
+  "exec_session": 33666,
+  "export_verification": {
+    "aac_timing_tolerance_seconds": 0.025219954648526076,
+    "audio_duration_delta_seconds": -0.000113111111119224,
+    "dsp_latency_compensation_recorded": true,
+    "export_decoded_video_frames": 3621,
+    "export_video_packets": 3631,
+    "final_true_peak_target_dbtp": -1.75,
+    "final_true_peak_within_target": true,
+    "physical_audio_video_sync_verified": false,
+    "relative_audio_video_start_delta_seconds": 0.0,
+    "relative_audio_video_start_verified": true,
+    "source_decoded_video_frames": 3621,
+    "source_hash_verified": true,
+    "source_video_packets": 3631,
+    "video_duration_delta_seconds": -0.020000000000010232,
+    "video_frame_count_preserved": true,
+    "video_frame_count_verification_method": "ffprobe decoded frame counts; private cache keyed by exact media SHA256 and stream index",
+    "video_header_duration_diagnostic_only": true,
+    "video_packet_clock_tolerance_seconds": 0.0016666666666666668,
+    "video_packet_expected_translation_seconds": 0.0,
+    "video_packet_max_dts_delta_seconds": 0.0,
+    "video_packet_max_duration_delta_seconds": 0.0,
+    "video_packet_max_pts_delta_seconds": 0.0,
+    "video_packet_payload_hashes_preserved": true,
+    "video_packet_timeline_preserved": true,
+    "video_packet_verification_method": "ordered ffprobe packet PTS/DTS/durations in rational stream clocks and SHA256 encoded payloads"
+  },
+  "fresh_run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac",
+  "inspection_retry_evidence": [],
+  "latest_promoted": false,
+  "listening_accepted": false,
+  "marker_burn_performed": false,
+  "master_adopted": false,
+  "media_sha256": "91443154251888c9e74670790766b289a2618f85f3be806d60ca26882faa9d94",
+  "musical_quality_accepted": false,
+  "native": {
+    "channels": 1,
+    "codec": "pcm_f32le",
+    "duration_seconds": 150.961111,
+    "sample_count": 6657385,
+    "sample_rate": 44100
+  },
+  "next": "Independent savedcandidate readback then root-owned comparison/listening presentation; candidate remains unreviewed",
+  "noise_capture": {
+    "absolute_floor_basis": "explicit candidate control; captured band shape is centered, not an independently measured absolute floor",
+    "absolute_noise_floor_db": -40.0,
+    "actual_selected_seconds": [
+      4.1,
+      4.95
+    ],
+    "applies_to_original_start": true,
+    "authorization": "authorized_source_bound_noise_interval",
+    "capture_stop_filter_seconds": 0.85,
+    "captured_band_shape_db_per_channel": [
+      [
+        12.926349,
+        18.11836,
+        19.727773,
+        18.818182,
+        16.266441,
+        12.762665,
+        8.810227,
+        4.725761,
+        0.639162,
+        -3.506416,
+        -7.95456,
+        -13.135596,
+        -19.666589,
+        -24.0,
+        -24.0
+      ]
+    ],
+    "command_boundary_scope": "FFmpeg commands applied at audio-frame boundaries; silence guard separates stop from original body",
+    "filter_delay_samples_removed": 1102,
+    "guard_samples": 4410,
+    "interval_time_axis": "relative to first decoded original audio sample",
+    "method": "selected source interval copied into internal afftdn sampling preroll",
+    "noise_only_verified_by_worker": false,
+    "preroll_samples_removed": 41895,
+    "profile_update_status": "observed_ffmpeg_afftdn_band_profile_update",
+    "review": "Selected by root source-time visual and measurement review; reviewed by root bounded inspection; no listening acceptance; scope experimental_capture_render; supplied assertions, not authenticated listening. Music unknown; clicks unknown. Use the existing4.10\u20134.95s root-selected candidate, not an operator-exact or verified noise-only interval. Header/hash authoring only; no new audible render or best-master acceptance.",
+    "selected_samples": [
+      180810,
+      218295
+    ],
+    "selected_seconds": [
+      4.1,
+      4.95
+    ],
+    "source_axis_sample_count_preserved": true,
+    "source_media_span_seconds": [
+      4.1,
+      4.95
+    ],
+    "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6"
+  },
+  "outer_process_events": [
+    {
+      "actor": "apply_capture_profile",
+      "cleanup_seconds_max": 5.0,
+      "inspection_retries": [],
+      "leader_pid": 78105,
+      "pgid": 78105,
+      "prior_state": {
+        "leader_returncode": 0,
+        "live_members": []
+      },
+      "reason": "stage_finished",
+      "result": "leader_reaped_no_runnable_same_session_group_members",
+      "ruling": "R-N11/R-N12",
+      "session_id": 78105,
+      "signals": [],
+      "verification_method": "empty_group_after_leader_terminated_and_direct_wait"
+    }
+  ],
+  "owned_application_events": 29,
+  "physical_audio_video_sync_verified": false,
+  "prior_failed_attempt_retained": true,
+  "prior_failure_sha256": "72e88ebd934d20578ec0f56d8aa0f579330c11712d91f7549c985e500f077be7",
+  "protected_identity_count": 22,
+  "protected_unchanged": true,
+  "root_release_sha256": "24ba4717093779c7afbb7d8ade6cba493353ed6d93a0b447f48f3336023392f9",
+  "schema_version": 1,
+  "selectors": {
+    "artifacts/application-failures/20261006T031637Z-29f06c8dda9040888e70756b9d9987eb/receipt.json": {
+      "bytes": 13057,
+      "sha256": "72e88ebd934d20578ec0f56d8aa0f579330c11712d91f7549c985e500f077be7"
+    },
+    "artifacts/experiments/actual-nr10-resource-retry-20261006T0345/NR10-start.json": {
+      "bytes": 862,
+      "sha256": "d0b1173d93856c5de6465e57e1f08b33e7223da94af16d04c2c38ca7acc75766"
+    },
+    "artifacts/experiments/actual-nr10-resource-retry-20261006T0345/NR10-stdout.json": {
+      "bytes": 1591,
+      "sha256": "02ee0be1f3a2c5379f903595bd457fcce58ae20ec773d5c2bc1340aea5d5ec7f"
+    },
+    "artifacts/experiments/actual-nr10-resource-retry-20261006T0345/NR10-summary.json": {
+      "bytes": 2091,
+      "sha256": "20830f9ce01a3bb25fc4479996318b0b633f81dea6fa1476961363a05186ceb6"
+    },
+    "artifacts/experiments/actual-nr10-resource-retry-20261006T0345/NR10-verified-summary.json": {
+      "bytes": 5194,
+      "sha256": "c842e5f321554b2fca73240a1db6e9eab1d461fb095bace7bf09cc52d4de5340"
+    },
+    "artifacts/experiments/actual-nr10-resource-retry-20261006T0345/receipt.json": {
+      "bytes": 11031,
+      "sha256": "12761e959b55bd192e7e48c4e37c9bdd1dd6fdaf54fb2dc111c62c0ccfc29963"
+    },
+    "artifacts/experiments/actual-nr10-resource-retry-20261006T0345/start.json": {
+      "bytes": 4619,
+      "sha256": "7937d046e30cfafd7a5d153a42cdebdd8f9345647bbd0ff2549270e813ab3568"
+    },
+    "artifacts/runs/20261006T034521Z-a0def0c43eac/application-receipt.json": {
+      "bytes": 27798,
+      "sha256": "71a3a33e221f02d1b5141cdaaaf023d498decf2a615ed0763de5bfd70a5abfc7"
+    },
+    "artifacts/runs/20261006T034521Z-a0def0c43eac/cleaned.wav": {
+      "bytes": 19972258,
+      "sha256": "9a9106e1e4d5323ca750e8b6e7c7c3f2109f1d6d6430684c1f10f1093413c5b0"
+    },
+    "artifacts/runs/20261006T034521Z-a0def0c43eac/export/cleaned-video.mov": {
+      "bytes": 230618544,
+      "sha256": "059ce92ea4b2533ad2ea521cc3337d952a2c6766178d74c239938a7122893bf2"
+    },
+    "artifacts/runs/20261006T034521Z-a0def0c43eac/export/outcome.json": {
+      "bytes": 15025,
+      "sha256": "198a117bcee7b39b31410c99a865ec024a4221749e2032eee7ebaaa9fc29d9aa"
+    },
+    "artifacts/runs/20261006T034521Z-a0def0c43eac/manifest.json": {
+      "bytes": 30067,
+      "sha256": "a6c371ab36e1f50b850f167a42b010ffa7b923b32aca14f4bfd70fb24036077c"
+    }
+  },
+  "status": "single_nr10_resource_retry_rendered_unreviewed_independent_readback_pending",
+  "terminal_exit_code": 0,
+  "timeline": {
+    "audio_origin_receipt": {
+      "basis": "audio_stream_start_metadata",
+      "seconds": 0.0
+    },
+    "audio_start_seconds": 0.0,
+    "decoded_audio_origin": "first decoded source audio sample",
+    "format_start_seconds": 0.0,
+    "no_time_stretch": true
+  }
+}

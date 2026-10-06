@@ -1,0 +1,21 @@
+{
+  "actor": "/root/media_latency",
+  "actual_take_authorized_by_this_release": false,
+  "application_sha256": "790ac58f1924db2607087c6ab1cdae5d813ba24eda610af1f396d77e93d06584",
+  "attempt": 1,
+  "authority": "R-N11/R-N13; conditionalroot656628 release satisfied by independent finalidentityPASS",
+  "automatic_retry": false,
+  "created_utc": "2026-10-06T03:34:52.251540+00:00",
+  "exec_session": 86028,
+  "harness_sha256": "7148945f6ec1dba19f388412f2cfca991cecd7b548d9592df5a5228d33c1324b",
+  "listening_accepted": false,
+  "master_adopted": false,
+  "ownership": "This agent launched this exactexec; application owns inspected fresh subprocess sessions/groups",
+  "preregistration_sha256": "f6bec7567bc3e676d13f39c1f3f79671e307d4f75483ff1204a67bb33891d5c0",
+  "root_release_sha256": "65662826f918c156b450f219ae8a60ed47256e3257d0a21d74919a0d606b07bc",
+  "schema_version": 1,
+  "status": "started_single_root_released_resource_generated_trial",
+  "threads": 2,
+  "timeout_seconds": 600,
+  "trial": "artifacts/experiments/capture-application-native-qualification/native-resource-20261006T0340"
+}

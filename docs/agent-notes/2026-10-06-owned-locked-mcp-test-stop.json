@@ -1,0 +1,80 @@
+{
+  "actor": "/root/tool_hooks",
+  "tool_session": 60515,
+  "task": "locked test_mcp.py pipe-based suite",
+  "reason": "owned all-prompts pipe client stalled past30s client bound; file-backed stdio replacement preserves deadline",
+  "ruling": "R-N11/R-N13; R-HOOK-CONVERGENCE-20261004",
+  "prior_state": {
+    "root": {
+      "pid": 90627,
+      "ppid": 2735,
+      "pgid": 90627,
+      "sid": 90627,
+      "birth": [
+        "darwin_start_microseconds",
+        1791259649,
+        301640
+      ],
+      "state": "?"
+    },
+    "child": {
+      "pid": 90633,
+      "ppid": 90627,
+      "pgid": 90627,
+      "sid": 90627,
+      "birth": [
+        "darwin_start_microseconds",
+        1791259649,
+        575408
+      ],
+      "state": "?"
+    }
+  },
+  "result": "SIGTERM_verified_owned_group",
+  "target_ownership": [
+    {
+      "pid": 90627,
+      "ppid": 2735,
+      "pgid": 90627,
+      "sid": 90627,
+      "birth": [
+        "darwin_start_microseconds",
+        1791259649,
+        301640
+      ],
+      "state": "?",
+      "first_observed": 35603.162919583,
+      "last_observed": 35603.394309541,
+      "ancestry": []
+    },
+    {
+      "pid": 90633,
+      "ppid": 90627,
+      "pgid": 90627,
+      "sid": 90627,
+      "birth": [
+        "darwin_start_microseconds",
+        1791259649,
+        575408
+      ],
+      "state": "?",
+      "first_observed": 35603.3942325,
+      "last_observed": 35603.394233375,
+      "ancestry_parent": 90627,
+      "ancestry": [
+        {
+          "pid": 90627,
+          "birth": [
+            "darwin_start_microseconds",
+            1791259649,
+            301640
+          ]
+        }
+      ]
+    }
+  ],
+  "after": [
+    null,
+    null
+  ]
+}

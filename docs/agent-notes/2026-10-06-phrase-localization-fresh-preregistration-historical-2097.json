@@ -1,0 +1,784 @@
+{
+  "analysis_pcm": {
+    "sample_count_per_case": 128000,
+    "sample_rate": 16000,
+    "source_audio_start_seconds": 0
+  },
+  "budgets": {
+    "audio_bytes_per_file": 1000000,
+    "cache_expansion_bytes": 1000000,
+    "case_deadline_seconds": 120,
+    "frames_per_case": 512,
+    "generation_case_deadline_seconds": 120,
+    "generation_overall_deadline_seconds": 600,
+    "json_bytes": 20000000,
+    "localization_cells_per_case": 2000000,
+    "numerical_threads": 2,
+    "overall_deadline_seconds": 600,
+    "roi_tile_cells": 65536
+  },
+  "canonical_defaults_activated": false,
+  "case_count": 12,
+  "case_duration_seconds": 8,
+  "cohorts": [
+    "low32-sustain",
+    "missing-f0-sustain",
+    "ordered-click-noise-only",
+    "fan-envelope-only",
+    "palm-recurrence",
+    "legato-recurrence"
+  ],
+  "discovery": {
+    "BPM": "same-source unseeded rhythm analysis; absent pulse => no cache and all arms empty",
+    "Bcontrol_retained_as_context": true,
+    "Border_cap": 10,
+    "L1_raw_candidate_ids_endpoints_unchanged": true,
+    "arms": [
+      "Araw",
+      "Border",
+      "L1"
+    ],
+    "proposal_cap": 60,
+    "truth_supplied": false
+  },
+  "feature_clock": {
+    "centered": true,
+    "expected_frames": 501,
+    "fft_samples": 4096,
+    "hop_samples": 256
+  },
+  "media_executables": {
+    "ffmpeg": {
+      "path": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+      "sha256": "3a315207e67de78e48c3bbb6b3346663f6a27c02e034d65ac72a12fee74c534a",
+      "version_prefix": "ffmpeg version 8.1.2"
+    },
+    "ffprobe": {
+      "path": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe",
+      "sha256": "5fb21f955aad27bc59615906801ce4b5b9f1466e99450b714b6d989f836c8850",
+      "version_prefix": "ffprobe version 8.1.2"
+    }
+  },
+  "musical_performance_graded": false,
+  "native_pcm": {
+    "channels": 1,
+    "sample_count_per_case": 384000,
+    "sample_rate": 48000,
+    "sample_width_bytes": 2
+  },
+  "parameter_recipe": "SHA256 suite:seed:knob, first8bytes unsigned big-endian / 2^64; nearest native sample for motif geometry",
+  "parameters": [
+    {
+      "motif": {
+        "duration": {
+          "native_sample": 85330,
+          "requested_seconds": 1.7777068208739621,
+          "seconds": 1.7777083333333332
+        },
+        "first_start": {
+          "native_sample": 51260,
+          "requested_seconds": 1.0679122295157282,
+          "seconds": 1.0679166666666666
+        },
+        "internal_rest_fraction_spans": [
+          [
+            0.305,
+            0.351
+          ],
+          [
+            0.657,
+            0.703
+          ]
+        ],
+        "midi": [
+          24,
+          29,
+          34,
+          29,
+          24,
+          39,
+          46,
+          34,
+          24,
+          51,
+          39,
+          29
+        ],
+        "position_fractions": [
+          0.0,
+          0.083,
+          0.167,
+          0.253,
+          0.365,
+          0.443,
+          0.527,
+          0.611,
+          0.717,
+          0.803,
+          0.889,
+          0.961
+        ],
+        "second_start": {
+          "native_sample": 213400,
+          "requested_seconds": 4.445836711412255,
+          "seconds": 4.445833333333334
+        }
+      },
+      "nuisance": {
+        "clicks": [
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 0.15144669342238384,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.058,
+            "hz": 2200.0,
+            "seconds": 0.41249480084650414,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 0.5440773187668353,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.083,
+            "hz": 5100.0,
+            "seconds": 0.5854948008465042,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.047,
+            "hz": 1600.0,
+            "seconds": 0.7794948008465041,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 0.9367079441112868,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.071,
+            "hz": 3700.0,
+            "seconds": 0.9934948008465041,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.061,
+            "hz": 5100.0,
+            "seconds": 1.221494800846504,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 1.3293385694557385,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.089,
+            "hz": 2200.0,
+            "seconds": 1.425494800846504,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.053,
+            "hz": 3700.0,
+            "seconds": 1.6394948008465042,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 1.7219691948001898,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.076,
+            "hz": 1600.0,
+            "seconds": 1.8634948008465042,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 2.114599820144641,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 2.507230445489093,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 2.8998610708335444,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 3.2924916961779958,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 3.685122321522447,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 4.077752946866898,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 4.470383572211349,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.058,
+            "hz": 2200.0,
+            "seconds": 4.639860009510093,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.083,
+            "hz": 5100.0,
+            "seconds": 4.812860009510093,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 4.863014197555802,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.047,
+            "hz": 1600.0,
+            "seconds": 5.006860009510093,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.071,
+            "hz": 3700.0,
+            "seconds": 5.220860009510092,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 5.255644822900253,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.061,
+            "hz": 5100.0,
+            "seconds": 5.448860009510093,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 5.648275448244704,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.089,
+            "hz": 2200.0,
+            "seconds": 5.652860009510093,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.053,
+            "hz": 3700.0,
+            "seconds": 5.866860009510093,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 6.040906073589156,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.076,
+            "hz": 1600.0,
+            "seconds": 6.090860009510093,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 6.433536698933607,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 6.8261673242780585,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 7.21879794962251,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 7.611428574966961,
+            "type": "regular_pulse"
+          }
+        ],
+        "fan_phase": 4.756891774264326,
+        "noise_phase": 0.9154718022262266,
+        "noise_rng_seed": 8851495855012719618,
+        "ordered_starts_seconds": [
+          0.41249480084650414,
+          4.639860009510093
+        ],
+        "pulse_period_seconds": 0.3926306253444515,
+        "pulse_phase_seconds": 0.15144669342238384
+      },
+      "seed": 617
+    },
+    {
+      "motif": {
+        "duration": {
+          "native_sample": 89859,
+          "requested_seconds": 1.872069302579291,
+          "seconds": 1.8720625
+        },
+        "first_start": {
+          "native_sample": 47061,
+          "requested_seconds": 0.9804454189771955,
+          "seconds": 0.9804375
+        },
+        "internal_rest_fraction_spans": [
+          [
+            0.305,
+            0.351
+          ],
+          [
+            0.657,
+            0.703
+          ]
+        ],
+        "midi": [
+          24,
+          29,
+          34,
+          29,
+          24,
+          39,
+          46,
+          34,
+          24,
+          51,
+          39,
+          29
+        ],
+        "position_fractions": [
+          0.0,
+          0.083,
+          0.167,
+          0.253,
+          0.365,
+          0.443,
+          0.527,
+          0.611,
+          0.717,
+          0.803,
+          0.889,
+          0.961
+        ],
+        "second_start": {
+          "native_sample": 211661,
+          "requested_seconds": 4.409612142882873,
+          "seconds": 4.409604166666667
+        }
+      },
+      "nuisance": {
+        "clicks": [
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 0.1551555357221435,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.058,
+            "hz": 2200.0,
+            "seconds": 0.32977539939676503,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.083,
+            "hz": 5100.0,
+            "seconds": 0.502775399396765,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 0.5326868434617122,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.047,
+            "hz": 1600.0,
+            "seconds": 0.696775399396765,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 0.9102181512012809,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.071,
+            "hz": 3700.0,
+            "seconds": 0.910775399396765,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.061,
+            "hz": 5100.0,
+            "seconds": 1.138775399396765,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 1.2877494589408496,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.089,
+            "hz": 2200.0,
+            "seconds": 1.342775399396765,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.053,
+            "hz": 3700.0,
+            "seconds": 1.556775399396765,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 1.6652807666804184,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.076,
+            "hz": 1600.0,
+            "seconds": 1.7807753993967652,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 2.042812074419987,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 2.420343382159556,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 2.7978746898991247,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 3.1754059976386935,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 3.5529373053782622,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 3.930468613117831,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 4.3079999208574,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 4.685531228596968,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.058,
+            "hz": 2200.0,
+            "seconds": 4.791494234401946,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.083,
+            "hz": 5100.0,
+            "seconds": 4.964494234401946,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 5.063062536336537,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.047,
+            "hz": 1600.0,
+            "seconds": 5.158494234401946,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.071,
+            "hz": 3700.0,
+            "seconds": 5.372494234401946,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 5.440593844076106,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.061,
+            "hz": 5100.0,
+            "seconds": 5.600494234401946,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.089,
+            "hz": 2200.0,
+            "seconds": 5.804494234401946,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 5.818125151815675,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.053,
+            "hz": 3700.0,
+            "seconds": 6.018494234401946,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 6.195656459555243,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.076,
+            "hz": 1600.0,
+            "seconds": 6.242494234401946,
+            "type": "ordered_texture"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 6.573187767294812,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 6.950719075034381,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 7.328250382773949,
+            "type": "regular_pulse"
+          },
+          {
+            "amplitude": 0.033,
+            "hz": 3500.0,
+            "seconds": 7.705781690513518,
+            "type": "regular_pulse"
+          }
+        ],
+        "fan_phase": 4.565550358945228,
+        "noise_phase": 1.124354061169932,
+        "noise_rng_seed": 3622448246386554579,
+        "ordered_starts_seconds": [
+          0.32977539939676503,
+          4.791494234401946
+        ],
+        "pulse_period_seconds": 0.3775313077395687,
+        "pulse_phase_seconds": 0.1551555357221435
+      },
+      "seed": 719
+    }
+  ],
+  "pins": {
+    "docs/agent-notes/2026-10-05-phrase-guarded-arms.py": "78ca89de9cea327cc4ec1096a83522781a08bc161819699b69797ca273e2fb6c",
+    "docs/agent-notes/2026-10-06-phrase-order-null-settings.json": "232f7503f58e9ebcb2b59b220b97755b7001683eccd80893634d8f6b777079a3",
+    "docs/agent-notes/2026-10-06-phrase-order-null.py": "5582a5cf2b415b07a434b59f407da8c6e63fa9101001267dbba03f0cabe9f066",
+    "docs/spec/PHRASE_LOCALIZATION_LANE.md": "71ab8f5b6641c33ac0bdf4bae4f4ba521c7fb22938d6547e4bc18a8c2639332b",
+    "program/instrument.json": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0",
+    "scripts/benchmark_bank.py": "087a67c009bb48abeac78259fc2719c02886e81b956ef8a9c62a22e6ee3913d5",
+    "scripts/guitar_features.py": "2ed031e8000cbcda92b504db10c98de03f456c90573cbff815cbb940c9ac86fe",
+    "scripts/phrase_evaluate.py": "3e503de277b2fd233fe802595a09a655c89669b0eb820f228e677c1b94b828a5",
+    "scripts/phrase_localize.py": "a64ff3acc5f18931e9975e96d1c6e80a1d454272fbf9dd4925b8b835b8c509de",
+    "scripts/pitch_evaluate.py": "a91ce8e9386cc7c63c5a5d53b8233f2c46a1f42fdd06ab1ae0eea3dc83405805",
+    "scripts/rhythm.py": "264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9"
+  },
+  "schema_version": 1,
+  "scoring": {
+    "abstention_in_full_reference_denominator": true,
+    "aggregation": "sum TP FP FN and endpoint sums/counts; no averaging per-case rates",
+    "boundary_matching": "maximum-cardinality one-to-one all four endpoints within tolerance",
+    "boundary_tolerances_seconds": [
+      0.02,
+      0.05,
+      0.1
+    ],
+    "common_endpoints_per_iou_threshold": true,
+    "full_same_reference_sets": true,
+    "iou_thresholds": [
+      0.5,
+      0.75
+    ],
+    "raw_fallback_credited_L1": false
+  },
+  "seeds": [
+    617,
+    719
+  ],
+  "settings_retuned": false,
+  "sharing": {
+    "click": "byte-identical across five cohorts; fan-envelope-only intentionally click-free",
+    "fan_noise": "byte-identical across all six cohorts within each seed",
+    "motif_nuisance_independent_knob_namespaces": true,
+    "source_gain": "fixed common gain1; no per-case normalization or guitar-dependent nuisance"
+  },
+  "signal": {
+    "c1_frequency_hz": 32.70319566257483,
+    "click_decay_seconds": 0.0024,
+    "click_support_seconds": 0.012,
+    "common_gain": 1.0,
+    "component_sum_pcm_error_bound": 0.000152587890625,
+    "fan_amplitudes": [
+      0.009,
+      0.006
+    ],
+    "fan_envelope_depth": 0.45,
+    "fan_envelope_hz": 0.61,
+    "fan_hz": [
+      47.0,
+      71.0
+    ],
+    "guitar_drive": 2.2,
+    "guitar_gain": 0.16,
+    "guitar_harmonic_coefficients": [
+      1.0,
+      0.5,
+      0.25
+    ],
+    "legato_attack_seconds": 0.008,
+    "legato_glide_seconds": 0.024,
+    "legato_release_seconds": 0.008,
+    "low32_amplitude": 0.17,
+    "low32_frequency_hz": 32.0,
+    "missing_f0_fit_amplitude_bound": 5e-05,
+    "missing_f0_fit_seconds": [
+      2.0,
+      6.0
+    ],
+    "missing_f0_harmonics": [
+      [
+        2,
+        0.1
+      ],
+      [
+        3,
+        0.065
+      ],
+      [
+        4,
+        0.035
+      ],
+      [
+        5,
+        0.02
+      ],
+      [
+        7,
+        0.012
+      ]
+    ],
+    "missing_f0_nonlinearity_after_synthesis": false,
+    "noise_amplitude": 0.006,
+    "noise_color": "uniform white; fixed RNG reseeded once per component per seed",
+    "noise_envelope_depth": 0.4,
+    "noise_envelope_hz": 0.43,
+    "palm_attack_seconds": 0.0015,
+    "palm_decay_seconds": 0.018,
+    "palm_support_seconds": 0.055,
+    "safety_peak_upper_bound": 0.5,
+    "sustain_attack_seconds": 0.02,
+    "sustain_release_seconds": 0.02,
+    "sustain_span_seconds": [
+      0.5,
+      7.5
+    ]
+  },
+  "suite": "phrase-localization-fresh-617-719-v1",
+  "total_audio_seconds": 96,
+  "truth": {
+    "negative_cohorts": [
+      "low32-sustain",
+      "missing-f0-sustain",
+      "ordered-click-noise-only",
+      "fan-envelope-only"
+    ],
+    "physical_articulation_accepted": false,
+    "positive_cohorts": [
+      "palm-recurrence",
+      "legato-recurrence"
+    ],
+    "reference_definition": "full generated identical motif spans including internal rests; no acoustic-repetition claim for negative sustain",
+    "reference_pairs_per_positive": 1,
+    "scope": "generator_only_not_musician",
+    "string_identity_inferred": false
+  }
+}

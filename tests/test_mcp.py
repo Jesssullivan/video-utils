@@ -26,11 +26,21 @@ def initialization(version='2025-11-25'):
 
 def exchange(messages, timeout=30):
     raw = ''.join((json.dumps(message) if isinstance(message, dict) else message) + '\n' for message in messages)
-    process = subprocess.run([sys.executable, str(ROOT / 'scripts/mcp_server.py')], input=raw,
-                             capture_output=True, text=True, timeout=timeout)
-    if process.returncode:
-        raise AssertionError(process.stderr)
-    return [json.loads(line) for line in process.stdout.splitlines()], process.stderr
+    # File-backed streams avoid the observed macOS large-prompt pipe stall while
+    # retaining real stdio, EOF shutdown, the client deadline and bounded reads.
+    with tempfile.TemporaryFile(mode='w+', encoding='utf-8') as stdin, \
+         tempfile.TemporaryFile(mode='w+', encoding='utf-8') as stdout, \
+         tempfile.TemporaryFile(mode='w+', encoding='utf-8') as stderr:
+        stdin.write(raw); stdin.seek(0)
+        process = subprocess.run([sys.executable, str(ROOT / 'scripts/mcp_server.py')],
+                                 stdin=stdin, stdout=stdout, stderr=stderr, timeout=timeout)
+        stdout.seek(0, os.SEEK_END); stderr.seek(0, os.SEEK_END)
+        if stdout.tell() > 8*1024**2 or stderr.tell() > 64*1024:
+            raise AssertionError('bounded stdio test output exceeded')
+        stdout.seek(0); stderr.seek(0); output=stdout.read(); errors=stderr.read()
+        if process.returncode:
+            raise AssertionError(errors)
+        return [json.loads(line) for line in output.splitlines()], errors
 
 
 class MCPTests(unittest.TestCase):

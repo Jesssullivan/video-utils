@@ -1,0 +1,979 @@
+{
+  "observed_at": "2026-10-06T04:45:37.011Z",
+  "authority": "Operator future-goal/Linear scope; R-N13",
+  "issues": [
+    {
+      "id": "TIN-5546",
+      "uuid": "ce6c9487-d0c8-47d8-a6b6-66a45a3ce04d",
+      "title": "Future goal — private guitar practice studio, mastering and explainable feedback",
+      "description": "Queued future goal requested by the operator on October 6. The active ten-hour delivery goal TIN-5495 continues unchanged.\n\nDeliver a private clip → processing → matched comparison → source-timed annotation → iteration → download workflow over shared CLI/MCP/web capabilities. Improve perceived low-end fullness and thin/nasal balance through separately versioned tone, dynamics and delivery stages. Default shareable overlays are compact section/phrase labels, BPM and brief issue badges; user assertions remain distinct from detector hypotheses.\n\nPlanning envelope: proposed 35-hour core reallocation, then choose ONE optional 35-hour extension: web workflow OR deeper local tone/classification. Existing next-week commitments are not silently replaced. No activation date, hosting promise, model-accuracy SLA or AU acceptance is implied.\n\nDesigns: docs/spec/future/GOAL_WEB_PRACTICE_STUDIO.md, MILESTONES.md and README.md in Jesssullivan/video-utils. Six additional GPT-6.1 Sol design lanes plus planning and independent review contributed. Architecture spike will compare SvelteKit control + workers with SvelteKit BFF + FastAPI before choosing a second server layer.\n\nAcceptance: real source-bound local walkthrough; typed controls with discoverable units/defaults/bounds; meaningful property tests and heldout labels; audible comparison accepted by the operator; explicit measured SLO denominators; durable job/recovery proof before hosted claims. Native editor import, staff transcription and Logic remain separate milestones.",
+      "priority": {
+        "value": 3,
+        "name": "Medium"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable",
+      "gitBranchName": "jess/tin-5546-future-goal-private-guitar-practice-studio-mastering-and",
+      "createdAt": "2026-10-06T04:17:24.897Z",
+      "updatedAt": "2026-10-06T04:27:20.224Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": null,
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Backlog",
+      "statusType": "backlog",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "605109a1-37c3-4090-9566-da0c8529c158",
+            "name": "Backlog",
+            "type": "backlog"
+          },
+          "startedAt": "2026-10-06T04:17:24.897Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [],
+        "blockedBy": [],
+        "relatedTo": [
+          {
+            "id": "TIN-5492",
+            "title": "D7 — Hardening, agent tool contracts and release handoff"
+          },
+          {
+            "id": "TIN-5493",
+            "title": "Cross-cutting — MCP hooks and skill per audio tool"
+          },
+          {
+            "id": "TIN-5489",
+            "title": "D4 — Automatic rhythm/loop review and optional reference grading"
+          },
+          {
+            "id": "TIN-5487",
+            "title": "D2 — Restoration profiles and measured media delivery"
+          }
+        ],
+        "duplicateOf": null
+      }
+    },
+    {
+      "id": "TIN-5547",
+      "uuid": "81514d2e-b780-4369-8cf5-95818c5dfea3",
+      "title": "Future — Make tone and arrangement review legible, then bind one web preview flow",
+      "description": "Improve existing local source/stage identities, keyboard notes, intended/observed coverage and matched A/B; WEB extension binds one preview workflow after stack/jobs.\n\nAcceptance: Actual local demo at375/390px and200%zoom; no autoplay; readback/conflict proof; staged upload/job screens labelled prototype. WEB proof requires executed submit/poll/review/download.\n\nDependencies: TONE, ANNOT, CAP\n\nPlanning allocation: CORE 4h; optional WEB 6h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nQueued parent goal: [TIN-5546](https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable)\nDesign package: docs/spec/future/README.md; planning key UI. Milestone branches: CORE, WEB.",
+      "projectMilestone": {
+        "id": "40c9b2b5-bd72-4907-b8bf-5dbbc53eb454",
+        "name": "Future — Local tone and source-bound practice feedback"
+      },
+      "priority": {
+        "value": 3,
+        "name": "Medium"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5547/future-make-tone-and-arrangement-review-legible-then-bind-one-web",
+      "gitBranchName": "jess/tin-5547-future-make-tone-and-arrangement-review-legible-then-bind",
+      "createdAt": "2026-10-06T04:17:57.462Z",
+      "updatedAt": "2026-10-06T04:30:16.988Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": null,
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Backlog",
+      "statusType": "backlog",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "605109a1-37c3-4090-9566-da0c8529c158",
+            "name": "Backlog",
+            "type": "backlog"
+          },
+          "startedAt": "2026-10-06T04:17:57.462Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "parentId": "TIN-5546",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [
+          {
+            "id": "TIN-5552",
+            "title": "Future — Qualify a private hosted processing service after local job proof"
+          }
+        ],
+        "blockedBy": [
+          {
+            "id": "TIN-5493",
+            "title": "Cross-cutting — MCP hooks and skill per audio tool"
+          },
+          {
+            "id": "TIN-5487",
+            "title": "D2 — Restoration profiles and measured media delivery"
+          },
+          {
+            "id": "TIN-5489",
+            "title": "D4 — Automatic rhythm/loop review and optional reference grading"
+          }
+        ],
+        "relatedTo": [],
+        "duplicateOf": null
+      }
+    },
+    {
+      "id": "TIN-5548",
+      "uuid": "fb90b32a-81a9-48c6-8a92-41139620a378",
+      "title": "Future — Define heldout guitar labels and evaluate retrieval only when evidence exists",
+      "description": "Define take-family grouping, separate articulation/error axes, coverage/absence exclusions and fixed baseline evaluator; LOCAL adds bounded retrieval if reviewed labels exist.\n\nAcceptance: Zero family leakage; complete source/label provenance; missing-F0/partial/polyphonic exclusions explicit; no accuracy SLA. If labels absent, reallocate retrieval slice within same cap rather than fabricate labels.\n\nDependencies: ANNOT\n\nPlanning allocation: CORE 4h; optional WEB 0h OR LOCAL 10h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nQueued parent goal: [TIN-5546](https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable)\nDesign package: docs/spec/future/README.md; planning key CORPUS. Milestone branches: CORE, LOCAL.",
+      "projectMilestone": {
+        "id": "40c9b2b5-bd72-4907-b8bf-5dbbc53eb454",
+        "name": "Future — Local tone and source-bound practice feedback"
+      },
+      "priority": {
+        "value": 3,
+        "name": "Medium"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5548/future-define-heldout-guitar-labels-and-evaluate-retrieval-only-when",
+      "gitBranchName": "jess/tin-5548-future-define-heldout-guitar-labels-and-evaluate-retrieval",
+      "createdAt": "2026-10-06T04:18:00.902Z",
+      "updatedAt": "2026-10-06T04:30:23.497Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": null,
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Backlog",
+      "statusType": "backlog",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "605109a1-37c3-4090-9566-da0c8529c158",
+            "name": "Backlog",
+            "type": "backlog"
+          },
+          "startedAt": "2026-10-06T04:18:00.902Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "parentId": "TIN-5546",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [
+          {
+            "id": "TIN-5554",
+            "title": "Future — Qualify one optional guitar classification comparator with heldout evidence"
+          },
+          {
+            "id": "TIN-5553",
+            "title": "Future — Design optional source-mapped staff and score overlays from qualified note events"
+          }
+        ],
+        "blockedBy": [
+          {
+            "id": "TIN-5489",
+            "title": "D4 — Automatic rhythm/loop review and optional reference grading"
+          }
+        ],
+        "relatedTo": [],
+        "duplicateOf": null
+      }
+    },
+    {
+      "id": "TIN-5549",
+      "uuid": "5665c51d-8e29-4e73-88dd-f184c5753688",
+      "title": "Future — Project closed local capabilities to web-safe source and artifact IDs",
+      "description": "Implement WEB1 artifact-ID metadata boundary and output confinement for a few admitted operations, preserving CLI/MCP contracts.\n\nAcceptance: No arbitrary host path/executable/filter accepted; source ownership/hash and returned artifact selectors checked; changed input/idempotent reads tested; not a running durable job service.\n\nDependencies: CAP\n\nPlanning allocation: CORE 4h; optional WEB 0h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nQueued parent goal: [TIN-5546](https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable)\nDesign package: docs/spec/future/README.md; planning key IDS. Milestone branches: CORE.",
+      "projectMilestone": {
+        "id": "40c9b2b5-bd72-4907-b8bf-5dbbc53eb454",
+        "name": "Future — Local tone and source-bound practice feedback"
+      },
+      "priority": {
+        "value": 3,
+        "name": "Medium"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5549/future-project-closed-local-capabilities-to-web-safe-source-and",
+      "gitBranchName": "jess/tin-5549-future-project-closed-local-capabilities-to-web-safe-source",
+      "createdAt": "2026-10-06T04:18:02.463Z",
+      "updatedAt": "2026-10-06T04:30:26.657Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": null,
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Backlog",
+      "statusType": "backlog",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "605109a1-37c3-4090-9566-da0c8529c158",
+            "name": "Backlog",
+            "type": "backlog"
+          },
+          "startedAt": "2026-10-06T04:18:02.463Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "parentId": "TIN-5546",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [
+          {
+            "id": "TIN-5550",
+            "title": "Future — Build one bounded durable preview-job pilot after artifact projection"
+          }
+        ],
+        "blockedBy": [
+          {
+            "id": "TIN-5493",
+            "title": "Cross-cutting — MCP hooks and skill per audio tool"
+          }
+        ],
+        "relatedTo": [],
+        "duplicateOf": null
+      }
+    },
+    {
+      "id": "TIN-5550",
+      "uuid": "599f5821-356f-4551-84fa-936f94371ff9",
+      "title": "Future — Build one bounded durable preview-job pilot after artifact projection",
+      "description": "WEB remaining WEB2/3: accepted/queued/running/failed/cancelled/completed states, bounded existing workers, restart accounting and one preview path; core WEB1 already charged.\n\nAcceptance: One source/one admitted preview job; replay/cancel/reconnect/changed-source refusal; committed result+artifact hashes; failures retained. No multiuser deployment or processing-latency guarantee.\n\nDependencies: IDS, CAP, STACK\n\nPlanning allocation: CORE 0h; optional WEB 8h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nQueued parent goal: [TIN-5546](https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable)\nDesign package: docs/spec/future/README.md; planning key JOBS. Milestone branches: WEB.",
+      "projectMilestone": {
+        "id": "84f6d9aa-a185-4bb0-bec5-59c280645bb1",
+        "name": "Future — Optional bounded web workflow proof"
+      },
+      "priority": {
+        "value": 4,
+        "name": "Low"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5550/future-build-one-bounded-durable-preview-job-pilot-after-artifact",
+      "gitBranchName": "jess/tin-5550-future-build-one-bounded-durable-preview-job-pilot-after",
+      "createdAt": "2026-10-06T04:18:08.057Z",
+      "updatedAt": "2026-10-06T04:30:28.883Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": null,
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Backlog",
+      "statusType": "backlog",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "605109a1-37c3-4090-9566-da0c8529c158",
+            "name": "Backlog",
+            "type": "backlog"
+          },
+          "startedAt": "2026-10-06T04:18:08.057Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "parentId": "TIN-5546",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [
+          {
+            "id": "TIN-5552",
+            "title": "Future — Qualify a private hosted processing service after local job proof"
+          }
+        ],
+        "blockedBy": [
+          {
+            "id": "TIN-5549",
+            "title": "Future — Project closed local capabilities to web-safe source and artifact IDs"
+          },
+          {
+            "id": "TIN-5551",
+            "title": "Future — Qualify the UI stack and justify one versus two server control layers"
+          },
+          {
+            "id": "TIN-5493",
+            "title": "Cross-cutting — MCP hooks and skill per audio tool"
+          }
+        ],
+        "relatedTo": [],
+        "duplicateOf": null
+      }
+    },
+    {
+      "id": "TIN-5551",
+      "uuid": "8ddaba4a-89d1-40ef-9b8b-da8a3aa32aec",
+      "title": "Future — Qualify the UI stack and justify one versus two server control layers",
+      "description": "Compare SvelteKit control+existing workers against BFF+FastAPI; qualify locked Svelte/Effect4/Skeleton5 fixture, schema/runes/SSR/a11y and remote-function fallback.\n\nAcceptance: Written architecture decision tied to isolation/cancellation/typed results; isolated integration build; experimental remote functions have stable action/HTTP fallback; no processing migrated to JS by assumption.\n\nDependencies: CAP\n\nPlanning allocation: CORE 0h; optional WEB 6h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nQueued parent goal: [TIN-5546](https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable)\nDesign package: docs/spec/future/README.md; planning key STACK. Milestone branches: WEB.",
+      "projectMilestone": {
+        "id": "84f6d9aa-a185-4bb0-bec5-59c280645bb1",
+        "name": "Future — Optional bounded web workflow proof"
+      },
+      "priority": {
+        "value": 4,
+        "name": "Low"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5551/future-qualify-the-ui-stack-and-justify-one-versus-two-server-control",
+      "gitBranchName": "jess/tin-5551-future-qualify-the-ui-stack-and-justify-one-versus-two",
+      "createdAt": "2026-10-06T04:18:09.767Z",
+      "updatedAt": "2026-10-06T04:30:33.410Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": null,
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Backlog",
+      "statusType": "backlog",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "605109a1-37c3-4090-9566-da0c8529c158",
+            "name": "Backlog",
+            "type": "backlog"
+          },
+          "startedAt": "2026-10-06T04:18:09.767Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "parentId": "TIN-5546",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [
+          {
+            "id": "TIN-5550",
+            "title": "Future — Build one bounded durable preview-job pilot after artifact projection"
+          }
+        ],
+        "blockedBy": [
+          {
+            "id": "TIN-5493",
+            "title": "Cross-cutting — MCP hooks and skill per audio tool"
+          }
+        ],
+        "relatedTo": [],
+        "duplicateOf": null
+      }
+    },
+    {
+      "id": "TIN-5552",
+      "uuid": "6898758b-e2db-45c2-8e4c-be57d0484833",
+      "title": "Future — Qualify a private hosted processing service after local job proof",
+      "description": "Later6–10h planning estimate: host/access/retention/resource policy and measured workload/SLO pilot; no fixed date.\n\nAcceptance: Actual host/access tests, job/resource monitoring and retention proof; operational owner/support/incident definitions before any SLA. Local prototype does not count as production activation.\n\nDependencies: JOBS, UI, RELEASE\n\nPlanning allocation: CORE 0h; optional WEB 0h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nQueued parent goal: [TIN-5546](https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable)\nDesign package: docs/spec/future/README.md; planning key HOST. Milestone branches: LATER.",
+      "projectMilestone": {
+        "id": "6f8a9f24-4778-4fb1-b713-37de7a7b3455",
+        "name": "Future — Hosting, score overlays and additional model qualification"
+      },
+      "priority": {
+        "value": 4,
+        "name": "Low"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5552/future-qualify-a-private-hosted-processing-service-after-local-job",
+      "gitBranchName": "jess/tin-5552-future-qualify-a-private-hosted-processing-service-after",
+      "createdAt": "2026-10-06T04:18:13.602Z",
+      "updatedAt": "2026-10-06T04:30:36.576Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": null,
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Backlog",
+      "statusType": "backlog",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "605109a1-37c3-4090-9566-da0c8529c158",
+            "name": "Backlog",
+            "type": "backlog"
+          },
+          "startedAt": "2026-10-06T04:18:13.602Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "parentId": "TIN-5546",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [],
+        "blockedBy": [
+          {
+            "id": "TIN-5547",
+            "title": "Future — Make tone and arrangement review legible, then bind one web preview flow"
+          },
+          {
+            "id": "TIN-5550",
+            "title": "Future — Build one bounded durable preview-job pilot after artifact projection"
+          },
+          {
+            "id": "TIN-5492",
+            "title": "D7 — Hardening, agent tool contracts and release handoff"
+          }
+        ],
+        "relatedTo": [],
+        "duplicateOf": null
+      }
+    },
+    {
+      "id": "TIN-5553",
+      "uuid": "d91ec2dd-2f57-4696-841e-96bb7304347c",
+      "title": "Future — Design optional source-mapped staff and score overlays from qualified note events",
+      "description": "Later8–16h bounded design/render spike: manual/reference note events, low-register/octave ambiguity and actual video clocks; no promised full transcription.\n\nAcceptance: One qualified score fixture maps to source/frame spans; uncertain/unknown pitch retains clear labels; licenses/assets and visibility ledger verified; separate native editor proof.\n\nDependencies: ANNOT, CORPUS\n\nPlanning allocation: CORE 0h; optional WEB 0h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nQueued parent: [TIN-5546](https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable)\nDesign: docs/spec/future/README.md; planning key STAFF.",
+      "projectMilestone": {
+        "id": "6f8a9f24-4778-4fb1-b713-37de7a7b3455",
+        "name": "Future — Hosting, score overlays and additional model qualification"
+      },
+      "priority": {
+        "value": 4,
+        "name": "Low"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5553/future-design-optional-source-mapped-staff-and-score-overlays-from",
+      "gitBranchName": "jess/tin-5553-future-design-optional-source-mapped-staff-and-score",
+      "createdAt": "2026-10-06T04:27:20.224Z",
+      "updatedAt": "2026-10-06T04:34:43.606Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": null,
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Backlog",
+      "statusType": "backlog",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "605109a1-37c3-4090-9566-da0c8529c158",
+            "name": "Backlog",
+            "type": "backlog"
+          },
+          "startedAt": "2026-10-06T04:27:20.224Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "parentId": "TIN-5546",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [],
+        "blockedBy": [
+          {
+            "id": "TIN-5489",
+            "title": "D4 — Automatic rhythm/loop review and optional reference grading"
+          },
+          {
+            "id": "TIN-5548",
+            "title": "Future — Define heldout guitar labels and evaluate retrieval only when evidence exists"
+          }
+        ],
+        "relatedTo": [],
+        "duplicateOf": null
+      }
+    },
+    {
+      "id": "TIN-5554",
+      "uuid": "52a8e0d2-acde-49ad-9a7f-7945d06fb063",
+      "title": "Future — Qualify one optional guitar classification comparator with heldout evidence",
+      "description": "Later8–12h qualification planning/spike: consider existing PCEN/mel/Runes/Sting/Blahaj work, model/license/hash/runtime/resource identity and frozen comparator; no implicit download or full classifier promise.\n\nAcceptance: Independent low-register/negative/partial labels and fixed split before scoring; reported per-class coverage/errors/abstention; source compatibility proof distinct from actual audio-classification accuracy.\n\nDependencies: CORPUS, CAP\n\nPlanning allocation: CORE 0h; optional WEB 0h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nQueued parent: [TIN-5546](https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable)\nDesign: docs/spec/future/README.md; planning key MODEL.",
+      "projectMilestone": {
+        "id": "6f8a9f24-4778-4fb1-b713-37de7a7b3455",
+        "name": "Future — Hosting, score overlays and additional model qualification"
+      },
+      "priority": {
+        "value": 4,
+        "name": "Low"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5554/future-qualify-one-optional-guitar-classification-comparator-with",
+      "gitBranchName": "jess/tin-5554-future-qualify-one-optional-guitar-classification-comparator",
+      "createdAt": "2026-10-06T04:27:21.778Z",
+      "updatedAt": "2026-10-06T04:44:46.987Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": null,
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Backlog",
+      "statusType": "backlog",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "605109a1-37c3-4090-9566-da0c8529c158",
+            "name": "Backlog",
+            "type": "backlog"
+          },
+          "startedAt": "2026-10-06T04:27:21.778Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "parentId": "TIN-5546",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [],
+        "blockedBy": [
+          {
+            "id": "TIN-5493",
+            "title": "Cross-cutting — MCP hooks and skill per audio tool"
+          },
+          {
+            "id": "TIN-5548",
+            "title": "Future — Define heldout guitar labels and evaluate retrieval only when evidence exists"
+          }
+        ],
+        "relatedTo": [],
+        "duplicateOf": null
+      }
+    },
+    {
+      "id": "TIN-5487",
+      "uuid": "89fd64e3-2822-4d9d-92be-9c151102c9f0",
+      "title": "D2 — Restoration profiles and measured media delivery",
+      "description": "Budget 5h. Preserve 32 Hz fundamentals for nine-string guitar. Bypass/mild/conservative profiles; reviewed noise capture only. Residue and matched listening comparisons; two-pass loudness, source-rate WAV, final encoded peak and timeline verification. Durable spec: docs/spec/PROJECT.md. Authority: operator approved implementation; R-HOOK-CONVERGENCE-20261004/R-N13.\n\n### Queued future scope — Bind thin-tone feedback and validate a fuller mastering comparison\n\nBind exact source/pure-denoise/tone/delivery stages, compare one bounded fuller candidate at matched level and preserve low-register/attack/tail panels plus operator choice.\n\nAcceptance: Exact hashes/controls/native extent; defined common-region match<=0.3LU; retained rejected trial; no room-response recovery or master acceptance without listening.\n\nDependencies: existing validated local tools/source receipts\n\nPlanning allocation: CORE 5h; optional WEB 0h OR LOCAL 8h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nQueued parent goal: [TIN-5546](https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable)\nDesign package: docs/spec/future/README.md; planning key TONE. Milestone branches: CORE, LOCAL.",
+      "projectMilestone": {
+        "id": "909f11f9-0de6-4889-b172-ebab6540d624",
+        "name": "35h core toolkit"
+      },
+      "priority": {
+        "value": 0,
+        "name": "No priority"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5487/d2-restoration-profiles-and-measured-media-delivery",
+      "gitBranchName": "jess/tin-5487-d2-restoration-profiles-and-measured-media-delivery",
+      "createdAt": "2026-10-05T20:23:16.098Z",
+      "updatedAt": "2026-10-06T04:17:53.794Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": "2026-10-07",
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Todo",
+      "statusType": "unstarted",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "c6ad8379-2b98-4ad2-ab79-3817014cfca2",
+            "name": "Todo",
+            "type": "unstarted"
+          },
+          "startedAt": "2026-10-05T20:23:16.098Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [
+          {
+            "id": "TIN-5547",
+            "title": "Future — Make tone and arrangement review legible, then bind one web preview flow"
+          }
+        ],
+        "blockedBy": [],
+        "relatedTo": [
+          {
+            "id": "TIN-5546",
+            "title": "Future goal — private guitar practice studio, mastering and explainable feedback"
+          }
+        ],
+        "duplicateOf": null
+      }
+    },
+    {
+      "id": "TIN-5489",
+      "uuid": "6b0a92b4-408c-4c38-bcab-bfef6f93092a",
+      "title": "D4 — Automatic rhythm/loop review and optional reference grading",
+      "description": "Implement source-timed self-consistency review flags for automatically discovered repeated riffs/phrases without predeclared intent. Compare durations, attack motifs and drift as hypotheses; preserve detector/boundary uncertainty and 32 Hz fundamentals. An approved reference and calibrated alignment qualify definitive missed/extra note verdicts only. Five-hour core day October 9, with optional depth from the separate extension. Evidence: synthetic rushed/missing motif examples, legato abstention, actual take marker spans; no confirmed performance errors without stronger evidence.\n\n### Queued future scope — Preserve source-timed human musical-issue assertions and qualified overlay scope\n\nStore operator/agent timestamp assertions independently from detector hypotheses; retain source identity, semantic kind, certainty/basis, revision and candidate links.\n\nAcceptance: Known melodic/rhythmic timestamp persists and seeks; conflicts/replays preserve records; unknowns remain null; extension renderer accounts visible/suppressed spans without confirming automatic mistakes.\n\nDependencies: existing validated local tools/source receipts\n\nPlanning allocation: CORE 4h; optional WEB 0h OR LOCAL 6h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nQueued parent goal: [TIN-5546](https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable)\nDesign package: docs/spec/future/README.md; planning key ANNOT. Milestone branches: CORE, LOCAL.",
+      "projectMilestone": {
+        "id": "909f11f9-0de6-4889-b172-ebab6540d624",
+        "name": "35h core toolkit"
+      },
+      "priority": {
+        "value": 0,
+        "name": "No priority"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5489/d4-automatic-rhythmloop-review-and-optional-reference-grading",
+      "gitBranchName": "jess/tin-5489-d4-automatic-rhythmloop-review-and-optional-reference",
+      "createdAt": "2026-10-05T20:27:46.097Z",
+      "updatedAt": "2026-10-06T04:17:56.196Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": "2026-10-09",
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Todo",
+      "statusType": "unstarted",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "c6ad8379-2b98-4ad2-ab79-3817014cfca2",
+            "name": "Todo",
+            "type": "unstarted"
+          },
+          "startedAt": "2026-10-05T20:27:46.097Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [
+          {
+            "id": "TIN-5553",
+            "title": "Future — Design optional source-mapped staff and score overlays from qualified note events"
+          },
+          {
+            "id": "TIN-5548",
+            "title": "Future — Define heldout guitar labels and evaluate retrieval only when evidence exists"
+          },
+          {
+            "id": "TIN-5547",
+            "title": "Future — Make tone and arrangement review legible, then bind one web preview flow"
+          }
+        ],
+        "blockedBy": [],
+        "relatedTo": [
+          {
+            "id": "TIN-5546",
+            "title": "Future goal — private guitar practice studio, mastering and explainable feedback"
+          }
+        ],
+        "duplicateOf": null
+      }
+    },
+    {
+      "id": "TIN-5493",
+      "uuid": "63027dfb-9ea9-4f5f-a03e-b39023a3af89",
+      "title": "Cross-cutting — MCP hooks and skill per audio tool",
+      "description": "Included in D1/D7 budgets, noextra35hcore allocation. Typedtoolregistry and MCPtools/list/call; prompt pertool from repositorySKILL.md. Probe denoise BPM backgroundnoise tone notes rhythm phrases export report. Each intent+knobs+limits+verification; agent inspect->research->candidateparams->run->residue/A/B->record. No arbitraryshell or silentmodelsdownload.\n\nAuthority: operator implementation and October5 nine-string/agentDAG clarification; R-HOOK-CONVERGENCE-20261004/R-N13. Spec: [https://github.com/Jesssullivan/video-utils/blob/main/docs/spec/PROJECT.md](<https://github.com/Jesssullivan/video-utils/blob/main/docs/spec/PROJECT.md>) . Source/tests/render/listening/AU evidence separate.\n\n### Queued future scope — Document shared capability contracts and qualify adapter parity\n\nInventory units/default owner/effects/resources/provenance for selected existing tools; extension adds typed results/generated docs/parity, LOCAL may extract one domain with shims.\n\nAcceptance: Current names/args preserved; traversal finds worker/skill/tests; changed hashes/clock misuse reject; AU realtime availability explicitly separate; no all-tool web admission.\n\nDependencies: existing validated local tools/source receipts\n\nPlanning allocation: CORE 2h; optional WEB 3h OR LOCAL 6h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nQueued parent goal: [TIN-5546](https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable)\nDesign package: docs/spec/future/README.md; planning key CAP. Milestone branches: CORE, WEB, LOCAL.",
+      "projectMilestone": {
+        "id": "909f11f9-0de6-4889-b172-ebab6540d624",
+        "name": "35h core toolkit"
+      },
+      "priority": {
+        "value": 0,
+        "name": "No priority"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5493/cross-cutting-mcp-hooks-and-skill-per-audio-tool",
+      "gitBranchName": "jess/tin-5493-cross-cutting-mcp-hooks-and-skill-per-audio-tool",
+      "createdAt": "2026-10-05T20:27:50.308Z",
+      "updatedAt": "2026-10-06T04:17:59.437Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": "2026-10-12",
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Todo",
+      "statusType": "unstarted",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "c6ad8379-2b98-4ad2-ab79-3817014cfca2",
+            "name": "Todo",
+            "type": "unstarted"
+          },
+          "startedAt": "2026-10-05T20:27:50.308Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [
+          {
+            "id": "TIN-5554",
+            "title": "Future — Qualify one optional guitar classification comparator with heldout evidence"
+          },
+          {
+            "id": "TIN-5551",
+            "title": "Future — Qualify the UI stack and justify one versus two server control layers"
+          },
+          {
+            "id": "TIN-5550",
+            "title": "Future — Build one bounded durable preview-job pilot after artifact projection"
+          },
+          {
+            "id": "TIN-5549",
+            "title": "Future — Project closed local capabilities to web-safe source and artifact IDs"
+          },
+          {
+            "id": "TIN-5547",
+            "title": "Future — Make tone and arrangement review legible, then bind one web preview flow"
+          }
+        ],
+        "blockedBy": [],
+        "relatedTo": [
+          {
+            "id": "TIN-5546",
+            "title": "Future goal — private guitar practice studio, mastering and explainable feedback"
+          }
+        ],
+        "duplicateOf": null
+      }
+    },
+    {
+      "id": "TIN-5492",
+      "uuid": "3f6a3993-cde3-4ef1-9556-001c40b4d171",
+      "title": "D7 — Hardening, agent tool contracts and release handoff",
+      "description": "Budget5h. Reproduciblejustdemo/freshenvchecks/boundedworkers/privateartifactexclusions. Validate everytool MCPstdio hook + purpose/knobs/research/iterate/evidence skill. Keep DAG lineage versioned. Nextphase FinalCut/Resolve markerimport formatcompatibility spike; genericCSV not proof of importedmarkers. AU remainsoptional10hprototype, notshipping.\n\nAuthority: operator implementation and October5 nine-string/agentDAG clarification; R-HOOK-CONVERGENCE-20261004/R-N13. Spec: [https://github.com/Jesssullivan/video-utils/blob/main/docs/spec/PROJECT.md](<https://github.com/Jesssullivan/video-utils/blob/main/docs/spec/PROJECT.md>) . Source/tests/render/listening/AU evidence separate.\n\n### Queued future scope — Integrate practice-loop PBT, runtime demos and factual handoff\n\nIntegrate cross-source/reference/state/refusal tests and real local walkthrough; WEB adds bounded crash/cancel/replay measurements; preserve source/runtime/listening states.\n\nAcceptance: Meaningful failure receipts and actual denominators; immutable originals/versions; no duplicate publish on exercised failures; exact source/CI/artifact/unknowns handoff. Partial tests do not claim all hosted SLO trials.\n\nDependencies: TONE, ANNOT, UI, CAP, CORPUS, IDS\n\nPlanning allocation: CORE 8h; optional WEB 8h OR LOCAL 5h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nQueued parent goal: [TIN-5546](https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable)\nDesign package: docs/spec/future/README.md; planning key RELEASE. Milestone branches: CORE, WEB, LOCAL.",
+      "projectMilestone": {
+        "id": "909f11f9-0de6-4889-b172-ebab6540d624",
+        "name": "35h core toolkit"
+      },
+      "priority": {
+        "value": 0,
+        "name": "No priority"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5492/d7-hardening-agent-tool-contracts-and-release-handoff",
+      "gitBranchName": "jess/tin-5492-d7-hardening-agent-tool-contracts-and-release-handoff",
+      "createdAt": "2026-10-05T20:27:49.250Z",
+      "updatedAt": "2026-10-06T04:18:05.242Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": "2026-10-12",
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Todo",
+      "statusType": "unstarted",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "c6ad8379-2b98-4ad2-ab79-3817014cfca2",
+            "name": "Todo",
+            "type": "unstarted"
+          },
+          "startedAt": "2026-10-05T20:27:49.250Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [
+          {
+            "id": "TIN-5552",
+            "title": "Future — Qualify a private hosted processing service after local job proof"
+          }
+        ],
+        "blockedBy": [],
+        "relatedTo": [
+          {
+            "id": "TIN-5546",
+            "title": "Future goal — private guitar practice studio, mastering and explainable feedback"
+          }
+        ],
+        "duplicateOf": null
+      }
+    }
+  ],
+  "milestones": {
+    "milestones": [
+      {
+        "id": "71bd7738-f346-48dd-8426-4095575a386a",
+        "name": "First processed take",
+        "description": "Conservative WAV/video, matched listening previews, actual run evidence. Deadline18:00ET; listening approval separate.",
+        "progress": 25,
+        "sortOrder": -47,
+        "targetDate": "2026-10-05"
+      },
+      {
+        "id": "909f11f9-0de6-4889-b172-ebab6540d624",
+        "name": "35h core toolkit",
+        "description": "Seven5h work packages: ingestion,cleanup,clicks,timing,meter/phrases,benchmark/report,hardening.",
+        "progress": 0,
+        "sortOrder": 968,
+        "targetDate": "2026-10-12"
+      },
+      {
+        "id": "cabe4152-556b-444b-a02a-391ad1f2b096",
+        "name": "Optional 35h extension",
+        "description": "8h separation+8h rhythm+9h robustness+10h narrow AU feasibility; uncommitted extension, shipping AU deferred.",
+        "progress": 0,
+        "sortOrder": 1928,
+        "targetDate": "2026-10-12"
+      },
+      {
+        "id": "40c9b2b5-bd72-4907-b8bf-5dbbc53eb454",
+        "name": "Future — Local tone and source-bound practice feedback",
+        "description": "Queued planning milestone under TIN-5546. Proposed 35-hour core selection; no automatic replacement of current commitments. No target date or runtime activation committed. Design: docs/spec/future/MILESTONES.md.",
+        "progress": 0,
+        "sortOrder": 3004
+      },
+      {
+        "id": "84f6d9aa-a185-4bb0-bec5-59c280645bb1",
+        "name": "Future — Optional bounded web workflow proof",
+        "description": "Queued planning milestone under TIN-5546. Choose WEB or LOCAL as one optional 35-hour extension, not both within the 70-hour week. No target date or runtime activation committed. Design: docs/spec/future/MILESTONES.md.",
+        "progress": 0,
+        "sortOrder": 3931
+      },
+      {
+        "id": "e3339c26-2414-4186-aeb5-fc32695e67b8",
+        "name": "Future — Optional deeper tone and classified feedback",
+        "description": "Queued planning milestone under TIN-5546. Choose WEB or LOCAL as one optional 35-hour extension, not both within the 70-hour week. No target date or runtime activation committed. Design: docs/spec/future/MILESTONES.md.",
+        "progress": 0,
+        "sortOrder": 4990
+      },
+      {
+        "id": "6f8a9f24-4778-4fb1-b713-37de7a7b3455",
+        "name": "Future — Hosting, score overlays and additional model qualification",
+        "description": "Queued planning milestone under TIN-5546. Someday work after local proof; outside the 35–70-hour envelope. No target date or runtime activation committed. Design: docs/spec/future/MILESTONES.md.",
+        "progress": 0,
+        "sortOrder": 6069
+      }
+    ]
+  },
+  "accepted_audio_comment_readback": {
+    "id": "0effc89f-80f3-4392-8a70-647141d478d3",
+    "body": "Operator listening QA accepted FULLER-v1 in QuickTime: “sounds excellent!  great work!” Exact accepted candidate: artifacts/runs/20261006T041633Z-990aa1bd6737; durable acceptance docs/agent-notes/2026-10-06-fuller-listening-acceptance.json. This acceptance applies to that audio, not the alternative denoisers or musical classifiers.\n\nIndependent saved-artifact audit passed: 44.1 kHz mono, 6,657,385 native samples; pure denoise/residue exactly match NR8; changed EQ is isolated; source picture clocks/payload and protected hashes are preserved. AAC measures −18.01 LUFS / −1.76 dBTP. Measured normalization tradeoffs remain documented alongside the listening decision.\n\nThe compact arrangement preview is rendering. Final presentation assembly will stream-copy the approved FULLER audio with the compact marked picture, explicitly retaining the NR10 analysis/marker branch and common original-source identity. No final assembled-video completion is claimed yet. All 29 local tool skills and exact MCP prompts passed readback; consolidated source checks are running. Original deadline and current In Review status remain unchanged.",
+    "attachments": [],
+    "createdAt": "2026-10-06T04:34:21.152Z",
+    "updatedAt": "2026-10-06T04:34:21.134Z",
+    "parentId": null,
+    "resolvedAt": null,
+    "quotedText": null,
+    "author": {
+      "id": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "name": "Jess Sullivan"
+    },
+    "onBehalfOf": null
+  },
+  "scope": "Independent readback of all 13 goal/scope issues, 7 milestones and accepted-audio comment; no future work activated."
+}

@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "scope": "Finished compact movie transport readback and three sampled frames; no continuous watching/listening or performance acceptance",
+  "files": {
+    "marked-video.mov": "857285fd307ee95e3fedc84462f186ff1ed3deaf1cb96b2226167928e3ae89b3",
+    "outcome.json": "3a8eacb79586a5946a1f013d1dc922ae10b9a875edd2b065514d228077d1821f",
+    "selection.json": "0a14edb7c7d24856d86b57d0e7566bc1c4d2d7a016f0050956f556778d6c0da0",
+    "callouts.ass": "90c3de715bf89e269f0b971eaa453dcc22ad424890f93f0fef6692dbf06bfa6b"
+  },
+  "frames": [
+    {
+      "file": "overlap-36.65.png",
+      "seek_seconds": 36.65,
+      "decoded_showinfo_first_frame": [
+        [
+          "703680",
+          "36.65"
+        ]
+      ],
+      "sha256": "2a33b02d8e487f1e02aa65b14da7a7d6c2951b32a718ddfb8fb7323789b3caaf",
+      "elapsed_seconds": 1.522496499994304,
+      "command": [
+        "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-loglevel",
+        "info",
+        "-threads",
+        "2",
+        "-copyts",
+        "-ss",
+        "36.65",
+        "-i",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/marked-video.mov",
+        "-map",
+        "0:v:0",
+        "-an",
+        "-vf",
+        "showinfo",
+        "-frames:v",
+        "1",
+        "-threads",
+        "2",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/visual-proof/overlap-36.65.png"
+      ]
+    },
+    {
+      "file": "breakdown-44.2.png",
+      "seek_seconds": 44.2,
+      "decoded_showinfo_first_frame": [
+        [
+          "849184",
+          "44.228333"
+        ]
+      ],
+      "sha256": "ab8c133159dade773151fcbd2a7a6cbf984c8aecef2703de6030b834780f796c",
+      "elapsed_seconds": 0.9378665830008686,
+      "command": [
+        "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-loglevel",
+        "info",
+        "-threads",
+        "2",
+        "-copyts",
+        "-ss",
+        "44.2",
+        "-i",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/marked-video.mov",
+        "-map",
+        "0:v:0",
+        "-an",
+        "-vf",
+        "showinfo",
+        "-frames:v",
+        "1",
+        "-threads",
+        "2",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/visual-proof/breakdown-44.2.png"
+      ]
+    },
+    {
+      "file": "chorus-96.8.png",
+      "seek_seconds": 96.8,
+      "decoded_showinfo_first_frame": [
+        [
+          "1859104",
+          "96.828333"
+        ]
+      ],
+      "sha256": "ccce5f01b386134ce0a2bc497d19f87c0444c5964fb516832859398dddde55cd",
+      "elapsed_seconds": 1.086536625000008,
+      "command": [
+        "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-loglevel",
+        "info",
+        "-threads",
+        "2",
+        "-copyts",
+        "-ss",
+        "96.8",
+        "-i",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/marked-video.mov",
+        "-map",
+        "0:v:0",
+        "-an",
+        "-vf",
+        "showinfo",
+        "-frames:v",
+        "1",
+        "-threads",
+        "2",
+        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/visual-proof/chorus-96.8.png"
+      ]
+    }
+  ],
+  "verification": {
+    "decoded_video_frame_count": 3621,
+    "decoded_video_frame_pts_preserved": true,
+    "decoded_video_last_extent_preserved": true,
+    "aac_packet_payloads_timing_and_padding_preserved": true,
+    "decoded_video_first_pts_seconds": 0.0,
+    "decoded_video_last_extent_seconds": 150.885,
+    "picture_geometry_preserved": true,
+    "decoded_video_variable_frame_intervals_observed": true,
+    "decoded_video_frame_pts_sha256": "94cb5ba5067bb8bce27a62a15202629f1db70dc09dac65b49a79df9bb5ea0e70",
+    "decoded_audio_pcm_sha256_preserved": true,
+    "decoded_audio_pcm_hash": "SHA256=174a2876cec6d4c238fa3593c86b7a92a1a370482d9ebdc1da75a35e7e2b3d4f",
+    "audio_sample_rate": 44100,
+    "audio_channels": 1,
+    "picture_reencoded": true,
+    "physical_audio_video_sync_verified": false
+  },
+  "status": "marked_review_preview_verified_unreviewed",
+  "media_elapsed_seconds": 680.6078330810124,
+  "bound_input_hashes_verified": true,
+  "bound_input_hash_count": 30,
+  "worker_sha256": "821b064809356481972ecbe5115568d15de15a2eeffd2f49b29f0ccf63350458",
+  "assessment_sha256": "834e9420ef10310c2e1df42f243af01f645de06a498e544f06ec1593cdd07028",
+  "reference_sha256": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a",
+  "display_only_metadata_checks": {
+    "selected_nondisplay_exact": true,
+    "callout_nondisplay_exact": true,
+    "visibility_exact": true,
+    "exclusions_exact": true,
+    "full_labels_retained": true
+  },
+  "visual_observation": "Three finished-movie frames inspected: text and dark backing fit picture bounds with good contrast; short chorus label is compact and breakdown user attribution is legible. The brief widest two-distinct-phrase comparison overlaps part of the lower guitar/picking-hand region; no continuous visual or musical acceptance is claimed.",
+  "visual_sampled_frame_review_completed": true
+}

@@ -1,0 +1,658 @@
+{
+  "actor": "guitar_features",
+  "analysis_cache_generated": false,
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; exact root generation release179b9af8",
+  "bank_index_sha256": "9b62a3498f8ed5c508cca68c904f4d868c3861280c2f707f1972f098d4f39e67",
+  "case_count": 12,
+  "case_proofs": [
+    {
+      "cohort": "low32-sustain",
+      "component_sum": {
+        "absolute_bound_lsb": 2,
+        "components": [
+          "clean",
+          "fan",
+          "noise",
+          "click"
+        ],
+        "maximum_integer_sample_residual": 2,
+        "method": "independently quantized PCM16 components vs independently quantized float sum",
+        "normalization_or_clip_performed": false
+      },
+      "id": "seed617-low32-sustain",
+      "rendered_low32_verification": {
+        "absolute_tolerance": 5e-05,
+        "expected_amplitude": 0.17,
+        "frequency_hz": 32.0,
+        "measured_amplitude": 0.1700007846397079,
+        "method": "orthogonal sine/cosine projection over128 complete periods",
+        "scope": "rendered_generated_clean_component_only",
+        "status": "verified_rendered_pcm16_32hz_coefficient",
+        "steady_interval_seconds": [
+          2.0,
+          6.0
+        ]
+      },
+      "seed": 617,
+      "source_sha256": "fd25ba96b1abd2cc7829e37587887887700e05a2c0a930b0d08b44af5efe4207",
+      "truth_sha256": "e9b4552859c0f5dec53ab6035e0b77b6607c640051810db4444f3f263360e303"
+    },
+    {
+      "cohort": "missing-f0-sustain",
+      "component_sum": {
+        "absolute_bound_lsb": 2,
+        "components": [
+          "clean",
+          "fan",
+          "noise",
+          "click"
+        ],
+        "maximum_integer_sample_residual": 2,
+        "method": "independently quantized PCM16 components vs independently quantized float sum",
+        "normalization_or_clip_performed": false
+      },
+      "id": "seed617-missing-f0-sustain",
+      "rendered_missing_fundamental_verification": {
+        "absolute_tolerance": 5e-05,
+        "fundamental_present": false,
+        "harmonic_indices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7
+        ],
+        "measured_amplitudes": [
+          1.1187467185113097e-07,
+          0.10000017706084972,
+          0.06499969178217993,
+          0.034999781346348964,
+          0.01999979026052757,
+          0.011999835249532466
+        ],
+        "method": "joint_sine_cosine_fit_including_f0",
+        "native_stride": 24,
+        "scope": "rendered_generated_clean_component_only",
+        "status": "verified_rendered_pcm16_harmonic_coefficients",
+        "steady_interval_seconds": [
+          2.0,
+          6.0
+        ]
+      },
+      "seed": 617,
+      "source_sha256": "8dd8de6f6d52f9614faeb1275dadad9bada9062dbcd5ed3dc67c93689e06f5c2",
+      "truth_sha256": "30cc37b117533ef5cab7e85012b0fb6916be95ccd7214efa070289a73a3f6f31"
+    },
+    {
+      "cohort": "ordered-click-noise-only",
+      "component_sum": {
+        "absolute_bound_lsb": 2,
+        "components": [
+          "clean",
+          "fan",
+          "noise",
+          "click"
+        ],
+        "maximum_integer_sample_residual": 1,
+        "method": "independently quantized PCM16 components vs independently quantized float sum",
+        "normalization_or_clip_performed": false
+      },
+      "id": "seed617-ordered-click-noise-only",
+      "seed": 617,
+      "source_sha256": "71e5ce2d80832977d5a76c72924b325852a1f7f499d140166ba85b66ea893566",
+      "truth_sha256": "dbd7ae1c6be790086cef9e07a7d3ea9338ebe0a092a51ad409393aaf30f61f10"
+    },
+    {
+      "cohort": "fan-envelope-only",
+      "component_sum": {
+        "absolute_bound_lsb": 2,
+        "components": [
+          "clean",
+          "fan",
+          "noise",
+          "click"
+        ],
+        "maximum_integer_sample_residual": 1,
+        "method": "independently quantized PCM16 components vs independently quantized float sum",
+        "normalization_or_clip_performed": false
+      },
+      "id": "seed617-fan-envelope-only",
+      "seed": 617,
+      "source_sha256": "06669d7b87e3d748f69667e221b7d37c0057bce76c69ad951c0ad520b6110992",
+      "truth_sha256": "fed98115054142b6a251ed17cd66caced9e15b357b7a3add01382c69d4ea046c"
+    },
+    {
+      "cohort": "palm-recurrence",
+      "component_sum": {
+        "absolute_bound_lsb": 2,
+        "components": [
+          "clean",
+          "fan",
+          "noise",
+          "click"
+        ],
+        "maximum_integer_sample_residual": 2,
+        "method": "independently quantized PCM16 components vs independently quantized float sum",
+        "normalization_or_clip_performed": false
+      },
+      "id": "seed617-palm-recurrence",
+      "seed": 617,
+      "source_sha256": "97920309584bfa0d34ac7816770f2315798756ad3d6c4992d9babd0990fa5cac",
+      "truth_sha256": "57040513cfd0f0db4db549a9d3adc05dd8d1c13f74c4eaceccc5f9f29473931e"
+    },
+    {
+      "cohort": "legato-recurrence",
+      "component_sum": {
+        "absolute_bound_lsb": 2,
+        "components": [
+          "clean",
+          "fan",
+          "noise",
+          "click"
+        ],
+        "maximum_integer_sample_residual": 2,
+        "method": "independently quantized PCM16 components vs independently quantized float sum",
+        "normalization_or_clip_performed": false
+      },
+      "id": "seed617-legato-recurrence",
+      "seed": 617,
+      "source_sha256": "4af8dddc59c9db9c61ee42031ce709a0e5cc46e97e3714a997d7cfeed612da30",
+      "truth_sha256": "f65082b20c287e1241d7b00393b6a0bdbe7deaa94b0efb7437b5c4834f94d881"
+    },
+    {
+      "cohort": "low32-sustain",
+      "component_sum": {
+        "absolute_bound_lsb": 2,
+        "components": [
+          "clean",
+          "fan",
+          "noise",
+          "click"
+        ],
+        "maximum_integer_sample_residual": 2,
+        "method": "independently quantized PCM16 components vs independently quantized float sum",
+        "normalization_or_clip_performed": false
+      },
+      "id": "seed719-low32-sustain",
+      "rendered_low32_verification": {
+        "absolute_tolerance": 5e-05,
+        "expected_amplitude": 0.17,
+        "frequency_hz": 32.0,
+        "measured_amplitude": 0.1700007846397079,
+        "method": "orthogonal sine/cosine projection over128 complete periods",
+        "scope": "rendered_generated_clean_component_only",
+        "status": "verified_rendered_pcm16_32hz_coefficient",
+        "steady_interval_seconds": [
+          2.0,
+          6.0
+        ]
+      },
+      "seed": 719,
+      "source_sha256": "8b7b92f56c4ed5dba4d235fe42573a23a4016985940af684894825e50e76984b",
+      "truth_sha256": "86f603350727883c32a66491b94c6256023fe3370671666ffbce15add6eba672"
+    },
+    {
+      "cohort": "missing-f0-sustain",
+      "component_sum": {
+        "absolute_bound_lsb": 2,
+        "components": [
+          "clean",
+          "fan",
+          "noise",
+          "click"
+        ],
+        "maximum_integer_sample_residual": 2,
+        "method": "independently quantized PCM16 components vs independently quantized float sum",
+        "normalization_or_clip_performed": false
+      },
+      "id": "seed719-missing-f0-sustain",
+      "rendered_missing_fundamental_verification": {
+        "absolute_tolerance": 5e-05,
+        "fundamental_present": false,
+        "harmonic_indices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7
+        ],
+        "measured_amplitudes": [
+          1.1187467185113097e-07,
+          0.10000017706084972,
+          0.06499969178217993,
+          0.034999781346348964,
+          0.01999979026052757,
+          0.011999835249532466
+        ],
+        "method": "joint_sine_cosine_fit_including_f0",
+        "native_stride": 24,
+        "scope": "rendered_generated_clean_component_only",
+        "status": "verified_rendered_pcm16_harmonic_coefficients",
+        "steady_interval_seconds": [
+          2.0,
+          6.0
+        ]
+      },
+      "seed": 719,
+      "source_sha256": "08c5a33267c6b54bcb96c52065015c5fb67a7189b4eb9414942729c719060f69",
+      "truth_sha256": "554d493d78f8e57ef05e3fd3ee57af2d819225c34a91ae946c59771462e96911"
+    },
+    {
+      "cohort": "ordered-click-noise-only",
+      "component_sum": {
+        "absolute_bound_lsb": 2,
+        "components": [
+          "clean",
+          "fan",
+          "noise",
+          "click"
+        ],
+        "maximum_integer_sample_residual": 1,
+        "method": "independently quantized PCM16 components vs independently quantized float sum",
+        "normalization_or_clip_performed": false
+      },
+      "id": "seed719-ordered-click-noise-only",
+      "seed": 719,
+      "source_sha256": "a5f768aca2dcc0f5b605faaa573dff32f0c64487c407272811bc97988732f4f3",
+      "truth_sha256": "5095b9938fb5b80e7f07a996959fe2211528321671a6fea2bd3f5480556d190d"
+    },
+    {
+      "cohort": "fan-envelope-only",
+      "component_sum": {
+        "absolute_bound_lsb": 2,
+        "components": [
+          "clean",
+          "fan",
+          "noise",
+          "click"
+        ],
+        "maximum_integer_sample_residual": 1,
+        "method": "independently quantized PCM16 components vs independently quantized float sum",
+        "normalization_or_clip_performed": false
+      },
+      "id": "seed719-fan-envelope-only",
+      "seed": 719,
+      "source_sha256": "46826026da79afd140c6c89da447b7d5da0e7e077be92cc914ddc968ed364a80",
+      "truth_sha256": "aadfcefd3d93827997267307103c87b8c54fb3ff6180b3b323b51d1958c4d13e"
+    },
+    {
+      "cohort": "palm-recurrence",
+      "component_sum": {
+        "absolute_bound_lsb": 2,
+        "components": [
+          "clean",
+          "fan",
+          "noise",
+          "click"
+        ],
+        "maximum_integer_sample_residual": 2,
+        "method": "independently quantized PCM16 components vs independently quantized float sum",
+        "normalization_or_clip_performed": false
+      },
+      "id": "seed719-palm-recurrence",
+      "seed": 719,
+      "source_sha256": "fd064d39ee1903cadc249555a0fb6dcbab51ae0040a614ba764e4722298c7abc",
+      "truth_sha256": "4b6a2522c436ad432c9ef9ef3a4ea28fdf27d0e62a06f7f90711597242c754ec"
+    },
+    {
+      "cohort": "legato-recurrence",
+      "component_sum": {
+        "absolute_bound_lsb": 2,
+        "components": [
+          "clean",
+          "fan",
+          "noise",
+          "click"
+        ],
+        "maximum_integer_sample_residual": 2,
+        "method": "independently quantized PCM16 components vs independently quantized float sum",
+        "normalization_or_clip_performed": false
+      },
+      "id": "seed719-legato-recurrence",
+      "seed": 719,
+      "source_sha256": "1f063493a8cc894fdd6f37a2473aeedc0f50d8c12f30bbe8084be999bb4692dd",
+      "truth_sha256": "58c2d6fe0e0e1c668fb9641d73e9d9b093e7f033622c4ecd29d477f504b1bdaa"
+    }
+  ],
+  "click_free_exception": "fan-envelope-only",
+  "discovery_invoked": false,
+  "elapsed_seconds": 120.87913699999626,
+  "exec_exit_code": 0,
+  "finished_utc": "2026-10-06T03:36:16.680579+00:00",
+  "generation_receipt_sha256": "98b373e301b91e5d3ed29c34a03b9282b5749375e57904293067b041fc2c8230",
+  "ground_truth_scope": "generator_only_not_musician",
+  "guarded_artifacts": [
+    {
+      "bytes": 768044,
+      "path": "seed617-low32-sustain/clean.wav",
+      "sha256": "245407ff625b969c19fa9813618e35cd3608856b65894596a2c7a5d3b0d2e3ff"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-low32-sustain/click.wav",
+      "sha256": "bba0f4a230b5109cdaa422b12732b21bfbfa05505c19ffc6c53ada83758eff1a"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-low32-sustain/fan.wav",
+      "sha256": "8463376b55289faa8c376b92a0d2b6ce4a7eaa792773a782e95437a976181edf"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-low32-sustain/mix.wav",
+      "sha256": "fd25ba96b1abd2cc7829e37587887887700e05a2c0a930b0d08b44af5efe4207"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-low32-sustain/noise.wav",
+      "sha256": "41057dc7210cf259a428ecbdce3234bc48ae4cf940b8e2f39c6d489b269cfccc"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-missing-f0-sustain/clean.wav",
+      "sha256": "4c887664525190c83ab6df76fa82bbed346f910a3047f3b6ac5fd07753b4dcc9"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-missing-f0-sustain/click.wav",
+      "sha256": "bba0f4a230b5109cdaa422b12732b21bfbfa05505c19ffc6c53ada83758eff1a"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-missing-f0-sustain/fan.wav",
+      "sha256": "8463376b55289faa8c376b92a0d2b6ce4a7eaa792773a782e95437a976181edf"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-missing-f0-sustain/mix.wav",
+      "sha256": "8dd8de6f6d52f9614faeb1275dadad9bada9062dbcd5ed3dc67c93689e06f5c2"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-missing-f0-sustain/noise.wav",
+      "sha256": "41057dc7210cf259a428ecbdce3234bc48ae4cf940b8e2f39c6d489b269cfccc"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-ordered-click-noise-only/clean.wav",
+      "sha256": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-ordered-click-noise-only/click.wav",
+      "sha256": "bba0f4a230b5109cdaa422b12732b21bfbfa05505c19ffc6c53ada83758eff1a"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-ordered-click-noise-only/fan.wav",
+      "sha256": "8463376b55289faa8c376b92a0d2b6ce4a7eaa792773a782e95437a976181edf"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-ordered-click-noise-only/mix.wav",
+      "sha256": "71e5ce2d80832977d5a76c72924b325852a1f7f499d140166ba85b66ea893566"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-ordered-click-noise-only/noise.wav",
+      "sha256": "41057dc7210cf259a428ecbdce3234bc48ae4cf940b8e2f39c6d489b269cfccc"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-fan-envelope-only/clean.wav",
+      "sha256": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-fan-envelope-only/click.wav",
+      "sha256": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-fan-envelope-only/fan.wav",
+      "sha256": "8463376b55289faa8c376b92a0d2b6ce4a7eaa792773a782e95437a976181edf"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-fan-envelope-only/mix.wav",
+      "sha256": "06669d7b87e3d748f69667e221b7d37c0057bce76c69ad951c0ad520b6110992"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-fan-envelope-only/noise.wav",
+      "sha256": "41057dc7210cf259a428ecbdce3234bc48ae4cf940b8e2f39c6d489b269cfccc"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-palm-recurrence/clean.wav",
+      "sha256": "63b2802617f0752dc580b5915b538a8cbd691e073449d6febdbc03bdaba33571"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-palm-recurrence/click.wav",
+      "sha256": "bba0f4a230b5109cdaa422b12732b21bfbfa05505c19ffc6c53ada83758eff1a"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-palm-recurrence/fan.wav",
+      "sha256": "8463376b55289faa8c376b92a0d2b6ce4a7eaa792773a782e95437a976181edf"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-palm-recurrence/mix.wav",
+      "sha256": "97920309584bfa0d34ac7816770f2315798756ad3d6c4992d9babd0990fa5cac"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-palm-recurrence/noise.wav",
+      "sha256": "41057dc7210cf259a428ecbdce3234bc48ae4cf940b8e2f39c6d489b269cfccc"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-legato-recurrence/clean.wav",
+      "sha256": "7cd6b7d09498d0b4466aa70b0829ae4feaec179875e7da01331b2261a73d512d"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-legato-recurrence/click.wav",
+      "sha256": "bba0f4a230b5109cdaa422b12732b21bfbfa05505c19ffc6c53ada83758eff1a"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-legato-recurrence/fan.wav",
+      "sha256": "8463376b55289faa8c376b92a0d2b6ce4a7eaa792773a782e95437a976181edf"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-legato-recurrence/mix.wav",
+      "sha256": "4af8dddc59c9db9c61ee42031ce709a0e5cc46e97e3714a997d7cfeed612da30"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed617-legato-recurrence/noise.wav",
+      "sha256": "41057dc7210cf259a428ecbdce3234bc48ae4cf940b8e2f39c6d489b269cfccc"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-low32-sustain/clean.wav",
+      "sha256": "245407ff625b969c19fa9813618e35cd3608856b65894596a2c7a5d3b0d2e3ff"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-low32-sustain/click.wav",
+      "sha256": "c1437a3312beaffd03a2fead0c1e1dbe0cb97ac7fbd2b06f067cd8c109537c08"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-low32-sustain/fan.wav",
+      "sha256": "a45b4125b07d2c45d5e5641d773ac61778f056263c1a580eb605f362da0db7be"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-low32-sustain/mix.wav",
+      "sha256": "8b7b92f56c4ed5dba4d235fe42573a23a4016985940af684894825e50e76984b"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-low32-sustain/noise.wav",
+      "sha256": "9726a1fb574a25bee5df946d3e56a25adab8b006d9e44b29e91050cb6cbfd483"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-missing-f0-sustain/clean.wav",
+      "sha256": "4c887664525190c83ab6df76fa82bbed346f910a3047f3b6ac5fd07753b4dcc9"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-missing-f0-sustain/click.wav",
+      "sha256": "c1437a3312beaffd03a2fead0c1e1dbe0cb97ac7fbd2b06f067cd8c109537c08"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-missing-f0-sustain/fan.wav",
+      "sha256": "a45b4125b07d2c45d5e5641d773ac61778f056263c1a580eb605f362da0db7be"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-missing-f0-sustain/mix.wav",
+      "sha256": "08c5a33267c6b54bcb96c52065015c5fb67a7189b4eb9414942729c719060f69"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-missing-f0-sustain/noise.wav",
+      "sha256": "9726a1fb574a25bee5df946d3e56a25adab8b006d9e44b29e91050cb6cbfd483"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-ordered-click-noise-only/clean.wav",
+      "sha256": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-ordered-click-noise-only/click.wav",
+      "sha256": "c1437a3312beaffd03a2fead0c1e1dbe0cb97ac7fbd2b06f067cd8c109537c08"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-ordered-click-noise-only/fan.wav",
+      "sha256": "a45b4125b07d2c45d5e5641d773ac61778f056263c1a580eb605f362da0db7be"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-ordered-click-noise-only/mix.wav",
+      "sha256": "a5f768aca2dcc0f5b605faaa573dff32f0c64487c407272811bc97988732f4f3"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-ordered-click-noise-only/noise.wav",
+      "sha256": "9726a1fb574a25bee5df946d3e56a25adab8b006d9e44b29e91050cb6cbfd483"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-fan-envelope-only/clean.wav",
+      "sha256": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-fan-envelope-only/click.wav",
+      "sha256": "636a56f23ec00f9e6923e29d2ada9f2e39e7696da33e6a03bfaa47b8ccb00f33"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-fan-envelope-only/fan.wav",
+      "sha256": "a45b4125b07d2c45d5e5641d773ac61778f056263c1a580eb605f362da0db7be"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-fan-envelope-only/mix.wav",
+      "sha256": "46826026da79afd140c6c89da447b7d5da0e7e077be92cc914ddc968ed364a80"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-fan-envelope-only/noise.wav",
+      "sha256": "9726a1fb574a25bee5df946d3e56a25adab8b006d9e44b29e91050cb6cbfd483"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-palm-recurrence/clean.wav",
+      "sha256": "35616fb241a59a99aaabb97fdd91d40a7d55bc8cf6e7c90f869e3fb3e7d89888"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-palm-recurrence/click.wav",
+      "sha256": "c1437a3312beaffd03a2fead0c1e1dbe0cb97ac7fbd2b06f067cd8c109537c08"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-palm-recurrence/fan.wav",
+      "sha256": "a45b4125b07d2c45d5e5641d773ac61778f056263c1a580eb605f362da0db7be"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-palm-recurrence/mix.wav",
+      "sha256": "fd064d39ee1903cadc249555a0fb6dcbab51ae0040a614ba764e4722298c7abc"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-palm-recurrence/noise.wav",
+      "sha256": "9726a1fb574a25bee5df946d3e56a25adab8b006d9e44b29e91050cb6cbfd483"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-legato-recurrence/clean.wav",
+      "sha256": "5a44a6a7d7b802c15f404230e87e637d558bd84b3c8fe478fc136702c31969af"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-legato-recurrence/click.wav",
+      "sha256": "c1437a3312beaffd03a2fead0c1e1dbe0cb97ac7fbd2b06f067cd8c109537c08"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-legato-recurrence/fan.wav",
+      "sha256": "a45b4125b07d2c45d5e5641d773ac61778f056263c1a580eb605f362da0db7be"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-legato-recurrence/mix.wav",
+      "sha256": "1f063493a8cc894fdd6f37a2473aeedc0f50d8c12f30bbe8084be999bb4692dd"
+    },
+    {
+      "bytes": 768044,
+      "path": "seed719-legato-recurrence/noise.wav",
+      "sha256": "9726a1fb574a25bee5df946d3e56a25adab8b006d9e44b29e91050cb6cbfd483"
+    }
+  ],
+  "max_case_seconds": 14.800174625001091,
+  "model_inference_invoked": false,
+  "native_audio_decoded_for_dsp_after_generation": false,
+  "native_header_hash_checks": 60,
+  "operational_observations": [
+    {
+      "generation_changed": false,
+      "signals_to_generation_sent": false,
+      "status": "read_only_ps_timeout",
+      "timeout_seconds": 2
+    }
+  ],
+  "output": "/Users/jess/git/video-utils/artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332",
+  "owned_exec_session_id": 43246,
+  "plan_sha256": "8b0e7969f702d0685e2d7176c4ee96c19b1325b2e9b3d848685e093405c4c000",
+  "quality_acceptance_claimed": false,
+  "release_sha256": "179b9af8fc6a342057fc790e99f055522be6bdbc5ed7ccdea5fe934829e942a3",
+  "schema_version": 1,
+  "shared_component_sha256": {
+    "617:click": "bba0f4a230b5109cdaa422b12732b21bfbfa05505c19ffc6c53ada83758eff1a",
+    "617:fan": "8463376b55289faa8c376b92a0d2b6ce4a7eaa792773a782e95437a976181edf",
+    "617:noise": "41057dc7210cf259a428ecbdce3234bc48ae4cf940b8e2f39c6d489b269cfccc",
+    "719:click": "c1437a3312beaffd03a2fead0c1e1dbe0cb97ac7fbd2b06f067cd8c109537c08",
+    "719:fan": "a45b4125b07d2c45d5e5641d773ac61778f056263c1a580eb605f362da0db7be",
+    "719:noise": "9726a1fb574a25bee5df946d3e56a25adab8b006d9e44b29e91050cb6cbfd483"
+  },
+  "source_dependency_hashes_verified": true,
+  "status": "generated_native_bank_sealed_no_discovery",
+  "total_audio_seconds": 96,
+  "worker_sha256": "8eae0110995619d128a022e8f0882a522b6213c5899cfd41216128b9847abd6c"
+}

@@ -66,7 +66,7 @@ rhythm analysis, and reporting. Local artifacts are isolated per run under
 `artifacts/runs/`; provenance records source identity, commands, tool versions,
 profile parameters, analysis resampling, and output measurements.
 
-The current versioned tool/API contract, local MCP stdio adapter, and twenty-seven
+The current versioned tool/API contract, local MCP stdio adapter, and twenty-nine
 per-tool skills expose the same bounded operations. Agent guidance connects research evidence
 to explicit, auditable parameter suggestions for noise, tone, and note analysis.
 Suggestions require comparative evaluation; agents cannot silently change the
@@ -220,9 +220,12 @@ unverified application import result, which must be recorded as such.
 
 Stem outputs from a mono mixture are estimates, never recovered original tracks.
 Models require an explicit registry entry containing an exact artifact, license,
-and expected hash before download. The initial model registry is empty.
+and expected hash before download. The registry initially was empty; it now
+contains the explicitly qualified Basic Pitch ONNX artifact. Its sparse and
+generated comparison results remain separate from musical accuracy.
 
-The AU spike is future work, not a current plugin. Its render path must not
+The AU spike is a compiled development scaffold; host validation and a usable
+practice plugin remain future work. Its render path must not
 allocate, block, perform I/O, invoke subprocesses, download models, or unwind
 across a native ABI. Offline ML stays outside that path. Installing or repairing
 existing plugins, changing host configuration, editing sibling repositories,

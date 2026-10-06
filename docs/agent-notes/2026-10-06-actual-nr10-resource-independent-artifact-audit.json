@@ -1,0 +1,108 @@
+{
+  "actor": "/root/release_review",
+  "actual_media_probes_repeated": false,
+  "application_receipt_sha256": "71a3a33e221f02d1b5141cdaaaf023d498decf2a615ed0763de5bfd70a5abfc7",
+  "audio_origin_seconds": 0,
+  "auditor_source_sha256": "7139058e83748d42d088036053ceb1ce181f3f057f0e8d66df991bce884196ac",
+  "authority": "Root explicit saved-actual-artifact audit; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "calibrated_delay_samples": 1102,
+  "candidate_run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac",
+  "complete_acoustic_alignment_verified": false,
+  "export_clock_proof_scope": "Readback of hash-bound executed exporter proof; no independent actual-video packet/frame reprobe",
+  "export_outcome_sha256": "198a117bcee7b39b31410c99a865ec024a4221749e2032eee7ebaaa9fc29d9aa",
+  "final_AAC_integrated_lufs": -18.01,
+  "final_AAC_true_peak_dbtp": -1.75,
+  "first_boundary_error": 9.313225746154785e-10,
+  "generation_DSP_analysis_repeated": false,
+  "label": "NR10",
+  "last_boundary_error": 9.313225746154785e-10,
+  "listening_accepted": false,
+  "manifest_sha256": "a6c371ab36e1f50b850f167a42b010ffa7b923b32aca14f4bfd70fb24036077c",
+  "master_adopted": false,
+  "native_array_operations": "Read existing PCM and check source-minus-pure-denoised-minus-residue only; no output audio, spectral inference or restoration",
+  "native_capture_samples": [
+    180810,
+    218295
+  ],
+  "native_headers": {
+    "baseline.wav": {
+      "bits": 24,
+      "channels": 1,
+      "code": 1,
+      "sample_count": 6657385,
+      "sample_rate": 44100
+    },
+    "cleaned.wav": {
+      "bits": 24,
+      "channels": 1,
+      "code": 1,
+      "sample_count": 6657385,
+      "sample_rate": 44100
+    },
+    "denoised.wav": {
+      "bits": 32,
+      "channels": 1,
+      "code": 3,
+      "sample_count": 6657385,
+      "sample_rate": 44100
+    },
+    "processed.wav": {
+      "bits": 32,
+      "channels": 1,
+      "code": 3,
+      "sample_count": 6657385,
+      "sample_rate": 44100
+    },
+    "residue.wav": {
+      "bits": 32,
+      "channels": 1,
+      "code": 3,
+      "sample_count": 6657385,
+      "sample_rate": 44100
+    },
+    "source.wav": {
+      "bits": 32,
+      "channels": 1,
+      "code": 3,
+      "sample_count": 6657385,
+      "sample_rate": 44100
+    }
+  },
+  "noise_only_verified": false,
+  "original_decode_bytes_equal_parent": true,
+  "physical_audio_video_sync_verified": false,
+  "protected_files_hash_verified": 17,
+  "remaining_bulk_delay_samples": 0,
+  "residue_max_abs_error": 1.862645149230957e-09,
+  "root_release_sha256": "24ba4717093779c7afbb7d8ade6cba493353ed6d93a0b447f48f3336023392f9",
+  "saved_export_verification": {
+    "aac_timing_tolerance_seconds": 0.025219954648526076,
+    "audio_duration_delta_seconds": -0.000113111111119224,
+    "dsp_latency_compensation_recorded": true,
+    "export_decoded_video_frames": 3621,
+    "export_video_packets": 3631,
+    "final_true_peak_target_dbtp": -1.75,
+    "final_true_peak_within_target": true,
+    "physical_audio_video_sync_verified": false,
+    "relative_audio_video_start_delta_seconds": 0.0,
+    "relative_audio_video_start_verified": true,
+    "source_decoded_video_frames": 3621,
+    "source_hash_verified": true,
+    "source_video_packets": 3631,
+    "video_duration_delta_seconds": -0.020000000000010232,
+    "video_frame_count_preserved": true,
+    "video_frame_count_verification_method": "ffprobe decoded frame counts; private cache keyed by exact media SHA256 and stream index",
+    "video_header_duration_diagnostic_only": true,
+    "video_packet_clock_tolerance_seconds": 0.0016666666666666668,
+    "video_packet_expected_translation_seconds": 0.0,
+    "video_packet_max_dts_delta_seconds": 0.0,
+    "video_packet_max_duration_delta_seconds": 0.0,
+    "video_packet_max_pts_delta_seconds": 0.0,
+    "video_packet_payload_hashes_preserved": true,
+    "video_packet_timeline_preserved": true,
+    "video_packet_verification_method": "ordered ffprobe packet PTS/DTS/durations in rational stream clocks and SHA256 encoded payloads"
+  },
+  "schema_version": 1,
+  "status": "independent_actual_candidate_artifact_audit_passed",
+  "verified_summary_sha256": "c842e5f321554b2fca73240a1db6e9eab1d461fb095bace7bf09cc52d4de5340"
+}

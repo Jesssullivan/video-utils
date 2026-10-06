@@ -22,61 +22,61 @@
     {
       "id": "87f4c52a-8275-45db-8e5a-0e7dab9d3557",
       "identifier": "TIN-5485",
-      "title": "D0 \u2014 First cleaned guitar WAV/video and matched listening report",
+      "title": "D0 — First cleaned guitar WAV/video and matched listening report",
       "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report"
     },
     {
       "id": "dcce7716-5bbe-4180-9614-877e42e2e5c7",
       "identifier": "TIN-5486",
-      "title": "D1 \u2014 Reproducible ingestion and Rust CLI",
+      "title": "D1 — Reproducible ingestion and Rust CLI",
       "url": "https://linear.app/tinyland/issue/TIN-5486/d1-reproducible-ingestion-and-rust-cli"
     },
     {
       "id": "89fd64e3-2822-4d9d-92be-9c151102c9f0",
       "identifier": "TIN-5487",
-      "title": "D2 \u2014 Restoration profiles and measured media delivery",
+      "title": "D2 — Restoration profiles and measured media delivery",
       "url": "https://linear.app/tinyland/issue/TIN-5487/d2-restoration-profiles-and-measured-media-delivery"
     },
     {
       "id": "1a2854b8-667c-4c9c-8946-664923aab0d8",
       "identifier": "TIN-5488",
-      "title": "D3 \u2014 Metronome detection and bounded attenuation",
+      "title": "D3 — Metronome detection and bounded attenuation",
       "url": "https://linear.app/tinyland/issue/TIN-5488/d3-metronome-detection-and-bounded-attenuation"
     },
     {
       "id": "6b0a92b4-408c-4c38-bcab-bfef6f93092a",
       "identifier": "TIN-5489",
-      "title": "D4 \u2014 Automatic rhythm/loop review and optional reference grading",
+      "title": "D4 — Automatic rhythm/loop review and optional reference grading",
       "url": "https://linear.app/tinyland/issue/TIN-5489/d4-automatic-rhythmloop-review-and-optional-reference-grading"
     },
     {
       "id": "8e1db109-96e7-468b-b1f9-7f74c09916d7",
       "identifier": "TIN-5490",
-      "title": "D5 \u2014 Automatic nine-string pitch, tonic and phrase discovery",
+      "title": "D5 — Automatic nine-string pitch, tonic and phrase discovery",
       "url": "https://linear.app/tinyland/issue/TIN-5490/d5-automatic-nine-string-pitch-tonic-and-phrase-discovery"
     },
     {
       "id": "28d0291e-6556-4f49-b6e3-5d50a016c539",
       "identifier": "TIN-5491",
-      "title": "D6 \u2014 Annotated benchmark and R/Quarto listening report",
+      "title": "D6 — Annotated benchmark and R/Quarto listening report",
       "url": "https://linear.app/tinyland/issue/TIN-5491/d6-annotated-benchmark-and-rquarto-listening-report"
     },
     {
       "id": "3f6a3993-cde3-4ef1-9556-001c40b4d171",
       "identifier": "TIN-5492",
-      "title": "D7 \u2014 Hardening, agent tool contracts and release handoff",
+      "title": "D7 — Hardening, agent tool contracts and release handoff",
       "url": "https://linear.app/tinyland/issue/TIN-5492/d7-hardening-agent-tool-contracts-and-release-handoff"
     },
     {
       "id": "63027dfb-9ea9-4f5f-a03e-b39023a3af89",
       "identifier": "TIN-5493",
-      "title": "Cross-cutting \u2014 MCP hooks and skill per audio tool",
+      "title": "Cross-cutting — MCP hooks and skill per audio tool",
       "url": "https://linear.app/tinyland/issue/TIN-5493/cross-cutting-mcp-hooks-and-skill-per-audio-tool"
     },
     {
       "id": "99918a4a-9278-48a2-a9b8-34016a2a4279",
       "identifier": "TIN-5494",
-      "title": "Future \u2014 Final Cut and Resolve phrase-marker interoperability",
+      "title": "Future — Final Cut and Resolve phrase-marker interoperability",
       "url": "https://linear.app/tinyland/issue/TIN-5494/future-final-cut-and-resolve-phrase-marker-interoperability"
     },
     {
@@ -87,10 +87,10 @@
       "kind": "ten_hour_goal"
     }
   ],
-  "evidence_state": "Published27tools/skills; exactsourcecfdb hosted597discovered556pass41optional skips/7Rust/secretPASS; qualified596pass distinct; marked video and nine-player audition complete; listening pending; weak generated pitch/phrase retained; active goal; proposed28 source/native qualification separate; no Logic/native-editor acceptance",
+  "evidence_state": "Local29 tools/skills qualified; consolidated855 discovered854 passed1 optional skip; accepted FULLER audio and exact copied compact marked video delivered; signed29-tool publication pending; future queued scope independently read back; inference accuracy and native AU/editor acceptance remain separate.",
   "project": {
     "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
-    "name": "video-utils \u2014 guitar restoration and performance analysis",
+    "name": "video-utils — guitar restoration and performance analysis",
     "url": "https://linear.app/tinyland/project/video-utils-guitar-restoration-and-performance-analysis-243628f290ab"
   },
   "publication": {
@@ -395,5 +395,194 @@
       "url": "https://linear.app/tinyland/issue/TIN-5489/d4-automatic-rhythmloop-review-and-optional-reference-grading#comment-9bac1230"
     },
     "observed_at": "2026-10-06T00:19:20.729552+00:00"
+  },
+  "future_practice_studio": {
+    "goal": {
+      "id": "TIN-5546",
+      "uuid": "ce6c9487-d0c8-47d8-a6b6-66a45a3ce04d",
+      "url": "https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable",
+      "status": "Backlog"
+    },
+    "milestones": [
+      {
+        "key": "CORE",
+        "id": "40c9b2b5-bd72-4907-b8bf-5dbbc53eb454",
+        "name": "Future — Local tone and source-bound practice feedback"
+      },
+      {
+        "key": "WEB",
+        "id": "84f6d9aa-a185-4bb0-bec5-59c280645bb1",
+        "name": "Future — Optional bounded web workflow proof"
+      },
+      {
+        "key": "LOCAL",
+        "id": "e3339c26-2414-4186-aeb5-fc32695e67b8",
+        "name": "Future — Optional deeper tone and classified feedback"
+      },
+      {
+        "key": "LATER",
+        "id": "6f8a9f24-4778-4fb1-b713-37de7a7b3455",
+        "name": "Future — Hosting, score overlays and additional model qualification"
+      }
+    ],
+    "new_issues": [
+      {
+        "key": "UI",
+        "id": "TIN-5547",
+        "uuid": "81514d2e-b780-4369-8cf5-95818c5dfea3",
+        "url": "https://linear.app/tinyland/issue/TIN-5547/future-make-tone-and-arrangement-review-legible-then-bind-one-web",
+        "status": "Backlog",
+        "dependencies_written": [
+          "TONE",
+          "ANNOT",
+          "CAP"
+        ],
+        "independent_readback_verified": true
+      },
+      {
+        "key": "CORPUS",
+        "id": "TIN-5548",
+        "uuid": "fb90b32a-81a9-48c6-8a92-41139620a378",
+        "url": "https://linear.app/tinyland/issue/TIN-5548/future-define-heldout-guitar-labels-and-evaluate-retrieval-only-when",
+        "status": "Backlog",
+        "dependencies_written": [
+          "ANNOT"
+        ],
+        "independent_readback_verified": true
+      },
+      {
+        "key": "IDS",
+        "id": "TIN-5549",
+        "uuid": "5665c51d-8e29-4e73-88dd-f184c5753688",
+        "url": "https://linear.app/tinyland/issue/TIN-5549/future-project-closed-local-capabilities-to-web-safe-source-and",
+        "status": "Backlog",
+        "dependencies_written": [
+          "CAP"
+        ],
+        "independent_readback_verified": true
+      },
+      {
+        "key": "JOBS",
+        "id": "TIN-5550",
+        "uuid": "599f5821-356f-4551-84fa-936f94371ff9",
+        "url": "https://linear.app/tinyland/issue/TIN-5550/future-build-one-bounded-durable-preview-job-pilot-after-artifact",
+        "status": "Backlog",
+        "dependencies_written": [
+          "IDS",
+          "CAP",
+          "STACK"
+        ],
+        "independent_readback_verified": true
+      },
+      {
+        "key": "STACK",
+        "id": "TIN-5551",
+        "uuid": "8ddaba4a-89d1-40ef-9b8b-da8a3aa32aec",
+        "url": "https://linear.app/tinyland/issue/TIN-5551/future-qualify-the-ui-stack-and-justify-one-versus-two-server-control",
+        "status": "Backlog",
+        "dependencies_written": [
+          "CAP"
+        ],
+        "independent_readback_verified": true
+      },
+      {
+        "key": "HOST",
+        "id": "TIN-5552",
+        "uuid": "6898758b-e2db-45c2-8e4c-be57d0484833",
+        "url": "https://linear.app/tinyland/issue/TIN-5552/future-qualify-a-private-hosted-processing-service-after-local-job",
+        "status": "Backlog",
+        "dependencies_written": [
+          "JOBS",
+          "UI",
+          "RELEASE"
+        ],
+        "independent_readback_verified": true
+      },
+      {
+        "key": "STAFF",
+        "id": "TIN-5553",
+        "uuid": "d91ec2dd-2f57-4696-841e-96bb7304347c",
+        "url": "https://linear.app/tinyland/issue/TIN-5553/future-design-optional-source-mapped-staff-and-score-overlays-from",
+        "status": "Backlog",
+        "dependencies_written": [
+          "ANNOT",
+          "CORPUS"
+        ],
+        "independent_readback_verified": true
+      },
+      {
+        "key": "MODEL",
+        "id": "TIN-5554",
+        "uuid": "52a8e0d2-acde-49ad-9a7f-7945d06fb063",
+        "url": "https://linear.app/tinyland/issue/TIN-5554/future-qualify-one-optional-guitar-classification-comparator-with",
+        "status": "Backlog",
+        "dependencies_written": [
+          "CORPUS",
+          "CAP"
+        ],
+        "independent_readback_verified": true
+      }
+    ],
+    "existing_scope_updates": [
+      {
+        "key": "TONE",
+        "id": "TIN-5487",
+        "uuid": "89fd64e3-2822-4d9d-92be-9c151102c9f0",
+        "url": "https://linear.app/tinyland/issue/TIN-5487/d2-restoration-profiles-and-measured-media-delivery",
+        "status": "Todo"
+      },
+      {
+        "key": "ANNOT",
+        "id": "TIN-5489",
+        "uuid": "6b0a92b4-408c-4c38-bcab-bfef6f93092a",
+        "url": "https://linear.app/tinyland/issue/TIN-5489/d4-automatic-rhythmloop-review-and-optional-reference-grading",
+        "status": "Todo"
+      },
+      {
+        "key": "CAP",
+        "id": "TIN-5493",
+        "uuid": "63027dfb-9ea9-4f5f-a03e-b39023a3af89",
+        "url": "https://linear.app/tinyland/issue/TIN-5493/cross-cutting-mcp-hooks-and-skill-per-audio-tool",
+        "status": "Todo"
+      },
+      {
+        "key": "RELEASE",
+        "id": "TIN-5492",
+        "uuid": "3f6a3993-cde3-4ef1-9556-001c40b4d171",
+        "url": "https://linear.app/tinyland/issue/TIN-5492/d7-hardening-agent-tool-contracts-and-release-handoff",
+        "status": "Todo"
+      }
+    ],
+    "pending_keys": [],
+    "tracker_readback_pending": false,
+    "status": "All eight queued children, four existing future-scope appendices, parent, milestones and new-child dependency relations independently read back. UI/RELEASE WEB-only dependency text separately verified.",
+    "manifest": "docs/spec/future/linear-ready-tickets.json",
+    "observed_at": "2026-10-06T04:46:34.629425+00:00",
+    "pending_dependency_keys": [],
+    "readback_receipt": "docs/agent-notes/2026-10-06-future-linear-final-readback.json",
+    "conditional_dependency_readback_receipt": "docs/agent-notes/2026-10-06-future-linear-conditional-readback.json"
+  },
+  "accepted_fuller_audio": {
+    "run_dir": "artifacts/runs/20261006T041633Z-990aa1bd6737",
+    "acceptance_receipt": "docs/agent-notes/2026-10-06-fuller-listening-acceptance.json",
+    "operator_quote": "sounds excellent!  great work!",
+    "listening_accepted": true,
+    "final_marked_assembly_pending": false,
+    "linear_comment": {
+      "issue": "TIN-5485",
+      "id": "0effc89f-80f3-4392-8a70-647141d478d3",
+      "created_at": "2026-10-06T04:34:21.152Z",
+      "write_body_returned": true,
+      "independent_readback_pending": false,
+      "full_body_verified": true
+    },
+    "final_marked_video": {
+      "bytes": 154148244,
+      "path": "artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov",
+      "sha256": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2"
+    },
+    "assembly_receipt": "docs/agent-notes/2026-10-06-accepted-fuller-compact-assembly-result.json",
+    "final_composite_operator_review": "Opened in QuickTime at operator request; acceptance pending",
+    "marker_analysis_branch": "NR10 source-bound analysis, distinct from accepted FULLER delivery audio"
   }
 }

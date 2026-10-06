@@ -1,0 +1,145 @@
+{
+  "observed_at": "2026-10-06T04:47:06.718Z",
+  "scope": "Independent readback after WEB-only dependency clarification; statuses preserved",
+  "issues": [
+    {
+      "id": "TIN-5547",
+      "uuid": "81514d2e-b780-4369-8cf5-95818c5dfea3",
+      "title": "Future — Make tone and arrangement review legible, then bind one web preview flow",
+      "description": "Improve existing local source/stage identities, keyboard notes, intended/observed coverage and matched A/B; WEB extension binds one preview workflow after stack/jobs.\n\nAcceptance: Actual local demo at375/390px and200%zoom; no autoplay; readback/conflict proof; staged upload/job screens labelled prototype. WEB proof requires executed submit/poll/review/download.\n\nDependencies: TONE, ANNOT, CAP\n\nPlanning allocation: CORE 4h; optional WEB 6h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nQueued parent goal: [TIN-5546](https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable)\nDesign package: docs/spec/future/README.md; planning key UI. Milestone branches: CORE, WEB.\n\nWEB-only additional dependencies: JOBS (TIN-5550), STACK (TIN-5551). These apply only to the optional web branch; core local work does not wait on them.\n\nRoadmap status: proposed future reallocation only. Existing PROJECT.md commitments and the current ten-hour definition of done remain authoritative; this appendix does not activate or complete future work.",
+      "projectMilestone": {
+        "id": "40c9b2b5-bd72-4907-b8bf-5dbbc53eb454",
+        "name": "Future — Local tone and source-bound practice feedback"
+      },
+      "priority": {
+        "value": 3,
+        "name": "Medium"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5547/future-make-tone-and-arrangement-review-legible-then-bind-one-web",
+      "gitBranchName": "jess/tin-5547-future-make-tone-and-arrangement-review-legible-then-bind",
+      "createdAt": "2026-10-06T04:17:57.462Z",
+      "updatedAt": "2026-10-06T04:46:23.924Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": null,
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Backlog",
+      "statusType": "backlog",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "605109a1-37c3-4090-9566-da0c8529c158",
+            "name": "Backlog",
+            "type": "backlog"
+          },
+          "startedAt": "2026-10-06T04:17:57.462Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "parentId": "TIN-5546",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [
+          {
+            "id": "TIN-5552",
+            "title": "Future — Qualify a private hosted processing service after local job proof"
+          }
+        ],
+        "blockedBy": [
+          {
+            "id": "TIN-5493",
+            "title": "Cross-cutting — MCP hooks and skill per audio tool"
+          },
+          {
+            "id": "TIN-5487",
+            "title": "D2 — Restoration profiles and measured media delivery"
+          },
+          {
+            "id": "TIN-5489",
+            "title": "D4 — Automatic rhythm/loop review and optional reference grading"
+          }
+        ],
+        "relatedTo": [],
+        "duplicateOf": null
+      }
+    },
+    {
+      "id": "TIN-5492",
+      "uuid": "3f6a3993-cde3-4ef1-9556-001c40b4d171",
+      "title": "D7 — Hardening, agent tool contracts and release handoff",
+      "description": "Budget5h. Reproduciblejustdemo/freshenvchecks/boundedworkers/privateartifactexclusions. Validate everytool MCPstdio hook + purpose/knobs/research/iterate/evidence skill. Keep DAG lineage versioned. Nextphase FinalCut/Resolve markerimport formatcompatibility spike; genericCSV not proof of importedmarkers. AU remainsoptional10hprototype, notshipping.\n\nAuthority: operator implementation and October5 nine-string/agentDAG clarification; R-HOOK-CONVERGENCE-20261004/R-N13. Spec: [https://github.com/Jesssullivan/video-utils/blob/main/docs/spec/PROJECT.md](<https://github.com/Jesssullivan/video-utils/blob/main/docs/spec/PROJECT.md>) . Source/tests/render/listening/AU evidence separate.\n\n### Queued future scope — Integrate practice-loop PBT, runtime demos and factual handoff\n\nIntegrate cross-source/reference/state/refusal tests and real local walkthrough; WEB adds bounded crash/cancel/replay measurements; preserve source/runtime/listening states.\n\nAcceptance: Meaningful failure receipts and actual denominators; immutable originals/versions; no duplicate publish on exercised failures; exact source/CI/artifact/unknowns handoff. Partial tests do not claim all hosted SLO trials.\n\nDependencies: TONE, ANNOT, UI, CAP, CORPUS, IDS\n\nPlanning allocation: CORE 8h; optional WEB 8h OR LOCAL 5h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nQueued parent goal: [TIN-5546](https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable)\nDesign package: docs/spec/future/README.md; planning key RELEASE. Milestone branches: CORE, WEB, LOCAL.\n\nWEB-only additional dependencies: JOBS (TIN-5550), STACK (TIN-5551). These apply only to the optional web branch; core local work does not wait on them.\n\nRoadmap status: proposed future reallocation only. Existing PROJECT.md commitments and the current ten-hour definition of done remain authoritative; this appendix does not activate or complete future work.",
+      "projectMilestone": {
+        "id": "909f11f9-0de6-4889-b172-ebab6540d624",
+        "name": "35h core toolkit"
+      },
+      "priority": {
+        "value": 0,
+        "name": "No priority"
+      },
+      "url": "https://linear.app/tinyland/issue/TIN-5492/d7-hardening-agent-tool-contracts-and-release-handoff",
+      "gitBranchName": "jess/tin-5492-d7-hardening-agent-tool-contracts-and-release-handoff",
+      "createdAt": "2026-10-05T20:27:49.250Z",
+      "updatedAt": "2026-10-06T04:46:33.880Z",
+      "archivedAt": null,
+      "completedAt": null,
+      "startedAt": null,
+      "canceledAt": null,
+      "dueDate": "2026-10-12",
+      "slaStartedAt": null,
+      "slaMediumRiskAt": null,
+      "slaHighRiskAt": null,
+      "slaBreachesAt": null,
+      "status": "Todo",
+      "statusType": "unstarted",
+      "labels": [],
+      "attachments": [],
+      "documents": [],
+      "stateHistory": [
+        {
+          "state": {
+            "id": "c6ad8379-2b98-4ad2-ab79-3817014cfca2",
+            "name": "Todo",
+            "type": "unstarted"
+          },
+          "startedAt": "2026-10-05T20:27:49.250Z",
+          "endedAt": null
+        }
+      ],
+      "createdBy": "Jess Sullivan",
+      "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+      "project": "video-utils — guitar restoration and performance analysis",
+      "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "team": "Tinyland",
+      "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706",
+      "relations": {
+        "blocks": [
+          {
+            "id": "TIN-5552",
+            "title": "Future — Qualify a private hosted processing service after local job proof"
+          }
+        ],
+        "blockedBy": [],
+        "relatedTo": [
+          {
+            "id": "TIN-5546",
+            "title": "Future goal — private guitar practice studio, mastering and explainable feedback"
+          }
+        ],
+        "duplicateOf": null
+      }
+    }
+  ]
+}

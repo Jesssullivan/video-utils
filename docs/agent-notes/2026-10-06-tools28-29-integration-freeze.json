@@ -1,0 +1,38 @@
+{
+  "tool_count": 29,
+  "files": {
+    "program/tools.json": "8d6aeca094ac66ac0819e08f5bd1fdca35f89672653254e1f92898b1901b0aa3",
+    "scripts/tool_api.py": "b8e7c2fa96b581325c45ad91d671c74832999392c82cfb906437e82060de19c9",
+    "scripts/capture_application_adapter.py": "ea2d27400b98a2c7285f068501100c222fbb969a56d53d497a3b141b1c70f5a8",
+    "tests/test_capture_application_adapter.py": "049cb92ae4688044fd4596826081966917ab4f4ef8c375d99b815dbbbbf0dc87",
+    "tests/test_capture_application_tool.py": "7aff06f3b0e83243e5c0efe3ae233b7544aeaba8e67afa2a8081d7d222ef2bab",
+    "tests/test_arrangement_reference_tool.py": "b495402b48376194f4152000892a9cf16ae090a6c7095254e637e006434cb057",
+    "tests/test_mcp.py": "461502359d3ae1d270e67a8ce552e17830266f9385693fcc77fc8eabd965a17c",
+    "tests/test_tool_contracts.py": "fc84a2936f2eae951674e221da5f1116c1140869c6ae5259192f39a1bb50d8fe",
+    "just/workflow.just": "29a82915d06063bf24fe36317a36f6cfa57a98713dacdbf925df8c7738f87744",
+    "docs/spec/APPLY_CAPTURE_PROFILE_TOOL_CONTRACT.md": "1cae703aefd610473d61c0cf82e6be32c70df1364548e0c1b12aecabe792731b",
+    "docs/spec/ARRANGEMENT_REFERENCE_TOOL_CONTRACT.md": "6f69685b5e2e058877395e9f3b5493de5ee1fdf80b2c3feec85816bf2b86bc21"
+  },
+  "generic_runner_sha256": "acd72926a70c33cc92bd056f055fb83f348ad2e7c9a3576e7bfcd6d20e9bd3af",
+  "skill_proof": {
+    "count": 29,
+    "status": "all_bundled_validations_and_exact_initialized_prompts_passed",
+    "owner": "/root/tool_skills",
+    "tool_calls": 0,
+    "aggregate_sha256": "d9271208fe7ffa3e2abd703df4f7429110fe2ca92d2ad581f1a29117bd9a45f1",
+    "marked_skill_sha256": "eb51008e3f0bf860ea9e0ea9f8c5e07ef9492741a2301fafa805c9cb22ab0ce2",
+    "arrangement_skill_sha256": "e85880cc2f87501a5120471ea5ada390f4d59b3478e2cd92d3cfecfe4a09629f",
+    "scope_clarification": "arrangement overlay requires demo reference and current pure-denoised assessment; broader evaluation is not overlayable"
+  },
+  "historical_skill_proofs": [
+    {
+      "count": 29,
+      "status": "all_bundled_validations_and_exact_initialized_prompts_passed",
+      "owner": "/root/tool_skills",
+      "tool_calls": 0,
+      "aggregate_sha256": "030403c0f6148ebd385af5cc3576de62ee7e6014ca1fd66745c2603d61679f4f",
+      "checkpoint": "before_demo_reference_pure_denoised_overlay_scope_clarification",
+      "marked_skill_sha256": "149fc96e4e6a2b56b9dd818dff14ddd1f36db130ba3d69f3ab01eef68c5d5648"
+    }
+  ]
+}

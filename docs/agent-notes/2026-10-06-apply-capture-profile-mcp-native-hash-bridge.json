@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "status": "all_five_native_stage_hashes_equal_qualified_resource_trial",
+  "mcp_result": "/Users/jess/git/video-utils/docs/agent-notes/2026-10-06-apply-capture-profile-mcp-result.json",
+  "qualified_standalone_run": "/Users/jess/git/video-utils/artifacts/runs/20261006T033510Z-17722861c5be",
+  "mcp_candidate_run": "/Users/jess/git/video-utils/artifacts/runs/20261006T035515Z-75c5fae6be12",
+  "native_stage_sha256_equal": {
+    "source.wav": true,
+    "denoised.wav": true,
+    "baseline.wav": true,
+    "cleaned.wav": true,
+    "residue.wav": true
+  },
+  "operator_recording_processed": false,
+  "listening_accepted": false,
+  "master_adopted": false
+}

@@ -1,0 +1,104 @@
+{
+  "accepted_audio_branch": {
+    "acceptance_authority": "Root reports explicit operator acceptance in active session",
+    "acceptance_quote": "sounds excellent!  great work!",
+    "export_sha256": "fe1b1009d7d56b54fedd8589aced49270a8bb6c37957df52b1e38d688b35f13d",
+    "listening_accepted": true,
+    "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737",
+    "video_sha256": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82"
+  },
+  "actor": "/root/media_latency",
+  "authority": "Root explicit accepted FULLER audio + qualified compact picture composition authorization; R-HOOK-CONVERGENCE-20261004/R-N11/R-N13",
+  "claims": {
+    "confirmed_performance_mistakes": false,
+    "latest_promoted": false,
+    "markers_are_analysis_of_FULLER": false,
+    "master_adopted": false,
+    "native_editor_import_verified": false,
+    "new_audio_DSP": false,
+    "new_picture_encoding": false,
+    "physical_audio_video_sync_verified": false,
+    "user_audio_listening_accepted": true
+  },
+  "compact_visual_qualification": {
+    "path": "docs/agent-notes/2026-10-06-arrangement-markers-preview.json",
+    "scope": "Three compact-parent frames reviewed by clip owner; exact copied picture carries visual appearance transitively. Composite not separately visually reviewed.",
+    "sha256": "0b7ef19fa70ab405cc769de1f6379339904c0c4ba5ed9d61e570cb33f8bdb07a"
+  },
+  "controller": {
+    "path": "docs/agent-notes/2026-10-06-accepted-fuller-compact-assembly.py",
+    "sha256": "095fa1e694fb97cc9a53f1d12e04c86cac7fbd637a7d574c6295102ecd44a533"
+  },
+  "created_utc": "2026-10-06T04:42:32.638292+00:00",
+  "elapsed_seconds": 9.283318792004138,
+  "exec_session_id": 48725,
+  "exit_code": 0,
+  "limits": {
+    "automatic_retry": false,
+    "owned_command_count": 10,
+    "threads": 2,
+    "timeout_seconds": 600
+  },
+  "output": {
+    "bytes": 154148244,
+    "path": "artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov",
+    "sha256": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2"
+  },
+  "picture_marker_branch": {
+    "arrangement_bindings": {
+      "analyzed_input_sha256": "cb8a3fa559424810f206c94191a149156423770bbf91a13724a2ba28a44e879e",
+      "assessment": {
+        "selector": "arrangement-reference-20261006/assessment.json",
+        "sha256": "834e9420ef10310c2e1df42f243af01f645de06a498e544f06ec1593cdd07028"
+      },
+      "manifest_sha256": "a6c371ab36e1f50b850f167a42b010ffa7b923b32aca14f4bfd70fb24036077c",
+      "producer_sha256": "cc1c513937605120fa743ef00c38c2f88ebb254b93df30879f1e572c8e5ca8be",
+      "reference": {
+        "selector": "program/demo-arrangement.json",
+        "sha256": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a"
+      },
+      "reference_validator_sha256": "c6bdc8991b6e378f2ab54873e94e23b1cff63073056e4f32b05ab5f7b58f89ae",
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "tempo": {
+        "basis": "operator_supplied_reference_not_measured_tempo",
+        "bpm": 178,
+        "precision": "approximate"
+      }
+    },
+    "compact_outcome_sha256": "3a8eacb79586a5946a1f013d1dc922ae10b9a875edd2b065514d228077d1821f",
+    "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac",
+    "selection_sha256": "0a14edb7c7d24856d86b57d0e7566bc1c4d2d7a016f0050956f556778d6c0da0"
+  },
+  "receipt": {
+    "path": "artifacts/experiments/accepted-fuller-compact-20261006T0441/receipt.json",
+    "sha256": "4809e1ce39c412dbe223801e2b74435c12ac6e9f1eb971752f4fe132d30bb236"
+  },
+  "schema_version": 1,
+  "status": "accepted_audio_compact_marked_composition_verified",
+  "verification": {
+    "AAC_packets": 6503,
+    "accepted_parent_measured_delivery_LUFS": -18.01,
+    "accepted_parent_measured_delivery_true_peak_dBTP": -1.76,
+    "clock_overlap": {
+      "AAC_padding_is_separate_from_native_PCM_extent": true,
+      "accepted_AAC_stream_end_seconds": "75480499/500000",
+      "accepted_AAC_stream_start_seconds": "0",
+      "complete_picture_clock_covered": true,
+      "decoded_picture_end_seconds": "30177/200",
+      "decoded_picture_start_seconds": "0",
+      "native_PCM_extent_samples": 6657385
+    },
+    "common_original_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+    "decoded_AAC_pcm_sha256": "SHA256=94363b4ffba93acf6ec7cb1cbc2933112caa50d3e80ec0e4bc8e3099a44e2478",
+    "decoder_configuration_identity": true,
+    "exact_AAC_packet_payload_rational_PTS_DTS_duration_padding_identity": true,
+    "exact_video_packet_payload_rational_PTS_DTS_duration_identity": true,
+    "frame_proof_scope": "Transitive: parent verified decoded VFR frame table + exact coded packet/clock/geometry identity; no new HD frame decode",
+    "inherited_decoded_VFR_frame_count": 3621,
+    "inherited_decoded_picture_last_extent_seconds": 150.885,
+    "loudness_scope": "Accepted parent measurement transferred by exact AAC packet and decoded PCM identity; no fresh normalization",
+    "protected_input_count": 41,
+    "protected_inputs_unchanged": true,
+    "video_packets": 3621
+  }
+}

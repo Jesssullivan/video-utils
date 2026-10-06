@@ -1,0 +1,5108 @@
+{
+  "actor": "guitar_features",
+  "aggregate": {
+    "all": {
+      "Araw": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 36,
+            "f1": 0.0,
+            "fn": 16,
+            "fp": 36,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 16,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 36,
+            "f1": 0.0,
+            "fn": 16,
+            "fp": 36,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 16,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 36,
+            "f1": 0.0,
+            "fn": 16,
+            "fp": 36,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 16,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 9,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 9,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 4,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 9,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 9,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 4,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 1,
+          "low32-sustain": 2,
+          "missing-f0-sustain": 4,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "Border": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 28,
+            "f1": 0.0,
+            "fn": 16,
+            "fp": 28,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 16,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 28,
+            "f1": 0.0,
+            "fn": 16,
+            "fp": 28,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 16,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 28,
+            "f1": 0.0,
+            "fn": 16,
+            "fp": 28,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 16,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 7,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 4,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 7,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 4,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 1,
+          "low32-sustain": 2,
+          "missing-f0-sustain": 2,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "L1": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 16,
+            "f1": 0.0,
+            "fn": 16,
+            "fp": 16,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 16,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 16,
+            "f1": 0.0,
+            "fn": 16,
+            "fp": 16,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 16,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 16,
+            "f1": 0.0,
+            "fn": 16,
+            "fp": 16,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 16,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 4,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 4,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 1,
+          "missing-f0-sustain": 1,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "common_reference_endpoints": [
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.5,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 4
+        },
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.75,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 4
+        }
+      ]
+    },
+    "fan-envelope-only": {
+      "Araw": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 1,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "Border": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 1,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "L1": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "common_reference_endpoints": [
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.5,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 0
+        },
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.75,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 0
+        }
+      ]
+    },
+    "legato-recurrence": {
+      "Araw": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "Border": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "L1": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "common_reference_endpoints": [
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.5,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 2
+        },
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.75,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 2
+        }
+      ]
+    },
+    "low32-sustain": {
+      "Araw": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 2,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 2,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 2,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "Border": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 2,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 2,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 2,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "L1": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 1,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "common_reference_endpoints": [
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.5,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 0
+        },
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.75,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 0
+        }
+      ]
+    },
+    "missing-f0-sustain": {
+      "Araw": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 16,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 16,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 16,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 16,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 16,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 16,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 4,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "Border": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 2,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 2,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 2,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "L1": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 1,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "common_reference_endpoints": [
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.5,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 0
+        },
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.75,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 0
+        }
+      ]
+    },
+    "ordered-click-noise-only": {
+      "Araw": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "Border": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "L1": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "common_reference_endpoints": [
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.5,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 0
+        },
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.75,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 0
+        }
+      ]
+    },
+    "palm-recurrence": {
+      "Araw": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "Border": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "L1": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "common_reference_endpoints": [
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.5,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 2
+        },
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.75,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 2
+        }
+      ]
+    },
+    "seed617": {
+      "Araw": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 24,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 24,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 24,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 6,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 6,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 6,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 6,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 1,
+          "low32-sustain": 1,
+          "missing-f0-sustain": 2,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "Border": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 16,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 16,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 16,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 16,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 16,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 16,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 4,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 4,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 1,
+          "low32-sustain": 1,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "L1": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 0,
+          "missing-f0-sustain": 0,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "common_reference_endpoints": [
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.5,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 2
+        },
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.75,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 2
+        }
+      ]
+    },
+    "seed719": {
+      "Araw": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 12,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 12,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 12,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 12,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 12,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 12,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 3,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 3,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 3,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 3,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 1,
+          "missing-f0-sustain": 2,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "Border": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 12,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 12,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 12,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 12,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 12,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 12,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 3,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 3,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 3,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 3,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 1,
+          "missing-f0-sustain": 2,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "L1": {
+        "boundary": [
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 8,
+            "fp": 8,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 8,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "iou": [
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 2,
+            "fp": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 2,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "negative_false_candidates_by_cohort": {
+          "fan-envelope-only": 0,
+          "low32-sustain": 1,
+          "missing-f0-sustain": 1,
+          "ordered-click-noise-only": 0
+        }
+      },
+      "common_reference_endpoints": [
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.5,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 2
+        },
+        {
+          "endpoint_count": 0,
+          "gained_reference_ids": [],
+          "iou_threshold": 0.75,
+          "lost_reference_ids": [],
+          "mean_absolute_error_seconds": {
+            "Border": null,
+            "L1": null
+          },
+          "reference_pair_count": 2
+        }
+      ]
+    }
+  },
+  "all_predictions_frozen_before_truth_read": true,
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; root exact repaired run release",
+  "bank_generator_sha256": "8eae0110995619d128a022e8f0882a522b6213c5899cfd41216128b9847abd6c",
+  "bank_index_sha256": "9b62a3498f8ed5c508cca68c904f4d868c3861280c2f707f1972f098d4f39e67",
+  "case_count": 12,
+  "cases": [
+    {
+      "arm_counts": {
+        "Araw": 1,
+        "Border": 1,
+        "L1": 0
+      },
+      "boundary": {
+        "Araw": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ]
+      },
+      "cohort": "low32-sustain",
+      "failure_taxonomy": {
+        "Border_cap_excluded_count": 0,
+        "contrast_excluded_count": 0,
+        "initial_cap_saturated_not_proof_of_extra_opportunity": false,
+        "initial_proposal_count": 1,
+        "localization_abstained_count": 1,
+        "no_initial_proposals": false,
+        "order_margin_excluded_count": 0,
+        "upstream_pulse_unavailable": false
+      },
+      "id": "seed617-low32-sustain",
+      "localization_coverage": {
+        "abstained_count": 1,
+        "failures": [
+          {
+            "candidate_id": 0,
+            "reason": "stationary_or_insufficient_internal_change"
+          }
+        ],
+        "localized_count": 0,
+        "retained_count": 1,
+        "status": "completed_experimental_cache_only"
+      },
+      "primary_iou": {
+        "Araw": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ]
+      },
+      "reference_pair_count": 0,
+      "roi_geometry": {
+        "geometry_used_in_discovery": false,
+        "no_retained_candidate_is_not_a_localization_recovery": true,
+        "reference_pair_count": 0,
+        "retained_pair_count": 1,
+        "rows": []
+      },
+      "seed": 617
+    },
+    {
+      "arm_counts": {
+        "Araw": 2,
+        "Border": 0,
+        "L1": 0
+      },
+      "boundary": {
+        "Araw": [
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ]
+      },
+      "cohort": "missing-f0-sustain",
+      "failure_taxonomy": {
+        "Border_cap_excluded_count": 0,
+        "contrast_excluded_count": 0,
+        "initial_cap_saturated_not_proof_of_extra_opportunity": false,
+        "initial_proposal_count": 2,
+        "localization_abstained_count": 0,
+        "no_initial_proposals": false,
+        "order_margin_excluded_count": 2,
+        "upstream_pulse_unavailable": false
+      },
+      "id": "seed617-missing-f0-sustain",
+      "localization_coverage": {
+        "abstained_count": 0,
+        "failures": [],
+        "localized_count": 0,
+        "retained_count": 0,
+        "status": "completed_experimental_cache_only"
+      },
+      "primary_iou": {
+        "Araw": [
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 2,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 2,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ]
+      },
+      "reference_pair_count": 0,
+      "roi_geometry": {
+        "geometry_used_in_discovery": false,
+        "no_retained_candidate_is_not_a_localization_recovery": true,
+        "reference_pair_count": 0,
+        "retained_pair_count": 0,
+        "rows": []
+      },
+      "seed": 617
+    },
+    {
+      "arm_counts": {
+        "Araw": 0,
+        "Border": 0,
+        "L1": 0
+      },
+      "boundary": {
+        "Araw": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ]
+      },
+      "cohort": "ordered-click-noise-only",
+      "failure_taxonomy": {
+        "Border_cap_excluded_count": 0,
+        "contrast_excluded_count": 0,
+        "initial_cap_saturated_not_proof_of_extra_opportunity": false,
+        "initial_proposal_count": 0,
+        "localization_abstained_count": 0,
+        "no_initial_proposals": true,
+        "order_margin_excluded_count": 0,
+        "upstream_pulse_unavailable": false
+      },
+      "id": "seed617-ordered-click-noise-only",
+      "localization_coverage": {
+        "abstained_count": 0,
+        "failures": [],
+        "localized_count": 0,
+        "retained_count": 0,
+        "status": "completed_experimental_cache_only"
+      },
+      "primary_iou": {
+        "Araw": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ]
+      },
+      "reference_pair_count": 0,
+      "roi_geometry": {
+        "geometry_used_in_discovery": false,
+        "no_retained_candidate_is_not_a_localization_recovery": true,
+        "reference_pair_count": 0,
+        "retained_pair_count": 0,
+        "rows": []
+      },
+      "seed": 617
+    },
+    {
+      "arm_counts": {
+        "Araw": 1,
+        "Border": 1,
+        "L1": 0
+      },
+      "boundary": {
+        "Araw": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ]
+      },
+      "cohort": "fan-envelope-only",
+      "failure_taxonomy": {
+        "Border_cap_excluded_count": 0,
+        "contrast_excluded_count": 0,
+        "initial_cap_saturated_not_proof_of_extra_opportunity": false,
+        "initial_proposal_count": 1,
+        "localization_abstained_count": 1,
+        "no_initial_proposals": false,
+        "order_margin_excluded_count": 0,
+        "upstream_pulse_unavailable": false
+      },
+      "id": "seed617-fan-envelope-only",
+      "localization_coverage": {
+        "abstained_count": 1,
+        "failures": [
+          {
+            "candidate_id": 0,
+            "reason": "no_ordered_support_of_minimum_duration"
+          }
+        ],
+        "localized_count": 0,
+        "retained_count": 1,
+        "status": "completed_experimental_cache_only"
+      },
+      "primary_iou": {
+        "Araw": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ]
+      },
+      "reference_pair_count": 0,
+      "roi_geometry": {
+        "geometry_used_in_discovery": false,
+        "no_retained_candidate_is_not_a_localization_recovery": true,
+        "reference_pair_count": 0,
+        "retained_pair_count": 1,
+        "rows": []
+      },
+      "seed": 617
+    },
+    {
+      "arm_counts": {
+        "Araw": 1,
+        "Border": 1,
+        "L1": 1
+      },
+      "boundary": {
+        "Araw": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ]
+      },
+      "cohort": "palm-recurrence",
+      "failure_taxonomy": {
+        "Border_cap_excluded_count": 0,
+        "contrast_excluded_count": 0,
+        "initial_cap_saturated_not_proof_of_extra_opportunity": false,
+        "initial_proposal_count": 1,
+        "localization_abstained_count": 0,
+        "no_initial_proposals": false,
+        "order_margin_excluded_count": 0,
+        "upstream_pulse_unavailable": false
+      },
+      "id": "seed617-palm-recurrence",
+      "localization_coverage": {
+        "abstained_count": 0,
+        "failures": [],
+        "localized_count": 1,
+        "retained_count": 1,
+        "status": "completed_experimental_cache_only"
+      },
+      "primary_iou": {
+        "Araw": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ]
+      },
+      "reference_pair_count": 1,
+      "roi_geometry": {
+        "geometry_used_in_discovery": false,
+        "no_retained_candidate_is_not_a_localization_recovery": true,
+        "reference_pair_count": 1,
+        "retained_pair_count": 1,
+        "rows": [
+          {
+            "both_endpoints_geometrically_reachable": [
+              false,
+              false
+            ],
+            "candidate_id": 0,
+            "primary_pair_iou_upper_bound": 0.0,
+            "qualification": "fixed regular centered grid geometric bound only; no feature/path/internal-change feasibility or discovered repair",
+            "reference_index": 0,
+            "span_iou_upper_bounds": [
+              0.0,
+              0.09424586897925703
+            ]
+          }
+        ]
+      },
+      "seed": 617
+    },
+    {
+      "arm_counts": {
+        "Araw": 1,
+        "Border": 1,
+        "L1": 1
+      },
+      "boundary": {
+        "Araw": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ]
+      },
+      "cohort": "legato-recurrence",
+      "failure_taxonomy": {
+        "Border_cap_excluded_count": 0,
+        "contrast_excluded_count": 0,
+        "initial_cap_saturated_not_proof_of_extra_opportunity": false,
+        "initial_proposal_count": 1,
+        "localization_abstained_count": 0,
+        "no_initial_proposals": false,
+        "order_margin_excluded_count": 0,
+        "upstream_pulse_unavailable": false
+      },
+      "id": "seed617-legato-recurrence",
+      "localization_coverage": {
+        "abstained_count": 0,
+        "failures": [],
+        "localized_count": 1,
+        "retained_count": 1,
+        "status": "completed_experimental_cache_only"
+      },
+      "primary_iou": {
+        "Araw": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ]
+      },
+      "reference_pair_count": 1,
+      "roi_geometry": {
+        "geometry_used_in_discovery": false,
+        "no_retained_candidate_is_not_a_localization_recovery": true,
+        "reference_pair_count": 1,
+        "retained_pair_count": 1,
+        "rows": [
+          {
+            "both_endpoints_geometrically_reachable": [
+              false,
+              false
+            ],
+            "candidate_id": 0,
+            "primary_pair_iou_upper_bound": 0.0,
+            "qualification": "fixed regular centered grid geometric bound only; no feature/path/internal-change feasibility or discovered repair",
+            "reference_index": 0,
+            "span_iou_upper_bounds": [
+              0.0,
+              0.09424586897925703
+            ]
+          }
+        ]
+      },
+      "seed": 617
+    },
+    {
+      "arm_counts": {
+        "Araw": 1,
+        "Border": 1,
+        "L1": 1
+      },
+      "boundary": {
+        "Araw": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ]
+      },
+      "cohort": "low32-sustain",
+      "failure_taxonomy": {
+        "Border_cap_excluded_count": 0,
+        "contrast_excluded_count": 0,
+        "initial_cap_saturated_not_proof_of_extra_opportunity": false,
+        "initial_proposal_count": 1,
+        "localization_abstained_count": 0,
+        "no_initial_proposals": false,
+        "order_margin_excluded_count": 0,
+        "upstream_pulse_unavailable": false
+      },
+      "id": "seed719-low32-sustain",
+      "localization_coverage": {
+        "abstained_count": 0,
+        "failures": [],
+        "localized_count": 1,
+        "retained_count": 1,
+        "status": "completed_experimental_cache_only"
+      },
+      "primary_iou": {
+        "Araw": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ]
+      },
+      "reference_pair_count": 0,
+      "roi_geometry": {
+        "geometry_used_in_discovery": false,
+        "no_retained_candidate_is_not_a_localization_recovery": true,
+        "reference_pair_count": 0,
+        "retained_pair_count": 1,
+        "rows": []
+      },
+      "seed": 719
+    },
+    {
+      "arm_counts": {
+        "Araw": 2,
+        "Border": 2,
+        "L1": 1
+      },
+      "boundary": {
+        "Araw": [
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 8,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 8,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 4,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 4,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ]
+      },
+      "cohort": "missing-f0-sustain",
+      "failure_taxonomy": {
+        "Border_cap_excluded_count": 0,
+        "contrast_excluded_count": 0,
+        "initial_cap_saturated_not_proof_of_extra_opportunity": false,
+        "initial_proposal_count": 2,
+        "localization_abstained_count": 1,
+        "no_initial_proposals": false,
+        "order_margin_excluded_count": 0,
+        "upstream_pulse_unavailable": false
+      },
+      "id": "seed719-missing-f0-sustain",
+      "localization_coverage": {
+        "abstained_count": 1,
+        "failures": [
+          {
+            "candidate_id": 1,
+            "reason": "stationary_or_insufficient_internal_change"
+          }
+        ],
+        "localized_count": 1,
+        "retained_count": 2,
+        "status": "completed_experimental_cache_only"
+      },
+      "primary_iou": {
+        "Araw": [
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 2,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 2,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 2,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 2,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 2,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 1,
+            "f1": 0.0,
+            "fn": 0,
+            "fp": 1,
+            "kind": "iou",
+            "matches": [],
+            "precision": 0.0,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ]
+      },
+      "reference_pair_count": 0,
+      "roi_geometry": {
+        "geometry_used_in_discovery": false,
+        "no_retained_candidate_is_not_a_localization_recovery": true,
+        "reference_pair_count": 0,
+        "retained_pair_count": 2,
+        "rows": []
+      },
+      "seed": 719
+    },
+    {
+      "arm_counts": {
+        "Araw": 0,
+        "Border": 0,
+        "L1": 0
+      },
+      "boundary": {
+        "Araw": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ]
+      },
+      "cohort": "ordered-click-noise-only",
+      "failure_taxonomy": {
+        "Border_cap_excluded_count": 0,
+        "contrast_excluded_count": 0,
+        "initial_cap_saturated_not_proof_of_extra_opportunity": false,
+        "initial_proposal_count": 0,
+        "localization_abstained_count": 0,
+        "no_initial_proposals": true,
+        "order_margin_excluded_count": 0,
+        "upstream_pulse_unavailable": false
+      },
+      "id": "seed719-ordered-click-noise-only",
+      "localization_coverage": {
+        "abstained_count": 0,
+        "failures": [],
+        "localized_count": 0,
+        "retained_count": 0,
+        "status": "completed_experimental_cache_only"
+      },
+      "primary_iou": {
+        "Araw": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ]
+      },
+      "reference_pair_count": 0,
+      "roi_geometry": {
+        "geometry_used_in_discovery": false,
+        "no_retained_candidate_is_not_a_localization_recovery": true,
+        "reference_pair_count": 0,
+        "retained_pair_count": 0,
+        "rows": []
+      },
+      "seed": 719
+    },
+    {
+      "arm_counts": {
+        "Araw": 0,
+        "Border": 0,
+        "L1": 0
+      },
+      "boundary": {
+        "Araw": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_endpoint_count": 0,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ]
+      },
+      "cohort": "fan-envelope-only",
+      "failure_taxonomy": {
+        "Border_cap_excluded_count": 0,
+        "contrast_excluded_count": 0,
+        "initial_cap_saturated_not_proof_of_extra_opportunity": false,
+        "initial_proposal_count": 0,
+        "localization_abstained_count": 0,
+        "no_initial_proposals": true,
+        "order_margin_excluded_count": 0,
+        "upstream_pulse_unavailable": false
+      },
+      "id": "seed719-fan-envelope-only",
+      "localization_coverage": {
+        "abstained_count": 0,
+        "failures": [],
+        "localized_count": 0,
+        "retained_count": 0,
+        "status": "completed_experimental_cache_only"
+      },
+      "primary_iou": {
+        "Araw": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": null,
+            "fn": 0,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "reference_pair_count": 0,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ]
+      },
+      "reference_pair_count": 0,
+      "roi_geometry": {
+        "geometry_used_in_discovery": false,
+        "no_retained_candidate_is_not_a_localization_recovery": true,
+        "reference_pair_count": 0,
+        "retained_pair_count": 0,
+        "rows": []
+      },
+      "seed": 719
+    },
+    {
+      "arm_counts": {
+        "Araw": 0,
+        "Border": 0,
+        "L1": 0
+      },
+      "boundary": {
+        "Araw": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ]
+      },
+      "cohort": "palm-recurrence",
+      "failure_taxonomy": {
+        "Border_cap_excluded_count": 0,
+        "contrast_excluded_count": 0,
+        "initial_cap_saturated_not_proof_of_extra_opportunity": false,
+        "initial_proposal_count": 0,
+        "localization_abstained_count": 0,
+        "no_initial_proposals": true,
+        "order_margin_excluded_count": 0,
+        "upstream_pulse_unavailable": false
+      },
+      "id": "seed719-palm-recurrence",
+      "localization_coverage": {
+        "abstained_count": 0,
+        "failures": [],
+        "localized_count": 0,
+        "retained_count": 0,
+        "status": "completed_experimental_cache_only"
+      },
+      "primary_iou": {
+        "Araw": [
+          {
+            "estimate_pair_count": 0,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_pair_count": 0,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_pair_count": 0,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ]
+      },
+      "reference_pair_count": 1,
+      "roi_geometry": {
+        "geometry_used_in_discovery": false,
+        "no_retained_candidate_is_not_a_localization_recovery": true,
+        "reference_pair_count": 1,
+        "retained_pair_count": 0,
+        "rows": []
+      },
+      "seed": 719
+    },
+    {
+      "arm_counts": {
+        "Araw": 0,
+        "Border": 0,
+        "L1": 0
+      },
+      "boundary": {
+        "Araw": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.02,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.05,
+            "tp": 0
+          },
+          {
+            "estimate_endpoint_count": 0,
+            "f1": 0.0,
+            "fn": 4,
+            "fp": 0,
+            "kind": "typed_boundary",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_endpoint_count": 4,
+            "threshold": 0.1,
+            "tp": 0
+          }
+        ]
+      },
+      "cohort": "legato-recurrence",
+      "failure_taxonomy": {
+        "Border_cap_excluded_count": 0,
+        "contrast_excluded_count": 0,
+        "initial_cap_saturated_not_proof_of_extra_opportunity": false,
+        "initial_proposal_count": 0,
+        "localization_abstained_count": 0,
+        "no_initial_proposals": true,
+        "order_margin_excluded_count": 0,
+        "upstream_pulse_unavailable": false
+      },
+      "id": "seed719-legato-recurrence",
+      "localization_coverage": {
+        "abstained_count": 0,
+        "failures": [],
+        "localized_count": 0,
+        "retained_count": 0,
+        "status": "completed_experimental_cache_only"
+      },
+      "primary_iou": {
+        "Araw": [
+          {
+            "estimate_pair_count": 0,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "Border": [
+          {
+            "estimate_pair_count": 0,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ],
+        "L1": [
+          {
+            "estimate_pair_count": 0,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.5,
+            "tp": 0
+          },
+          {
+            "estimate_pair_count": 0,
+            "f1": 0.0,
+            "fn": 1,
+            "fp": 0,
+            "kind": "iou",
+            "matches": [],
+            "precision": null,
+            "recall": 0.0,
+            "reference_pair_count": 1,
+            "threshold": 0.75,
+            "tp": 0
+          }
+        ]
+      },
+      "reference_pair_count": 1,
+      "roi_geometry": {
+        "geometry_used_in_discovery": false,
+        "no_retained_candidate_is_not_a_localization_recovery": true,
+        "reference_pair_count": 1,
+        "retained_pair_count": 0,
+        "rows": []
+      },
+      "seed": 719
+    }
+  ],
+  "elapsed_seconds": 419.20065566600533,
+  "evaluation_sha256": "5fafd1d3db2a2f74db3c439f9b40eebce04935e364b58b01cd6c6f27842f3003",
+  "exec_exit_code": 0,
+  "finished_utc": "2026-10-06T04:15:55.883005+00:00",
+  "ground_truth_scope": "generator_only_not_musician",
+  "listening_accepted": false,
+  "max_case_seconds": 79.5047980829986,
+  "media_preflight": {
+    "ffmpeg": {
+      "exit_code": 0,
+      "path": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+      "sha256": "3a315207e67de78e48c3bbb6b3346663f6a27c02e034d65ac72a12fee74c534a",
+      "version_first_line": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+      "version_prefix": "ffmpeg version 8.1.2",
+      "version_stdout_sha256": "4ae5c85892275098d32f71509e916376bed183df891e5ec3a1c91893b26b8751"
+    },
+    "ffprobe": {
+      "exit_code": 0,
+      "path": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe",
+      "sha256": "5fb21f955aad27bc59615906801ce4b5b9f1466e99450b714b6d989f836c8850",
+      "version_first_line": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers",
+      "version_prefix": "ffprobe version 8.1.2",
+      "version_stdout_sha256": "70646d2c2c75f55db2d97addad204a1f2ccb57042c859cb3adf771bb0144ec5f"
+    }
+  },
+  "model_inference_invoked": false,
+  "musical_performance_graded": false,
+  "numerical_threads": 2,
+  "output": "/Users/jess/git/video-utils/artifacts/experiments/phrase-localization/fresh-run-schema-repair-617-719-20261006T0408",
+  "owned_exec_session_id": 10625,
+  "prediction_seal_sha256": "2e7a9792d4277c72a06405508f27eb82a74cdc259f6bb79b856b9d0fb153b575",
+  "preregistration_sha256": "8b0e7969f702d0685e2d7176c4ee96c19b1325b2e9b3d848685e093405c4c000",
+  "quality_qualification": "No arm recovered any full pair or typed endpoint; relative nonregression on zero recall is not navigation acceptance.",
+  "relative_research_criteria": {
+    "seed617": {
+      "all_reference_recall_not_lower": true,
+      "negative_false_candidates_not_higher": true,
+      "qualification": "relative_generated_experiment_only; absolute navigation and musician acceptance remain unknown"
+    },
+    "seed719": {
+      "all_reference_recall_not_lower": true,
+      "negative_false_candidates_not_higher": true,
+      "qualification": "relative_generated_experiment_only; absolute navigation and musician acceptance remain unknown"
+    }
+  },
+  "release_sha256": "53775bdfbb129604632bfd8748adbf3b24ba29203948b0f3d16bfb509f235cf9",
+  "run_receipt_sha256": "3187e03a542eb6458b307edbff414a71c26fc871a405c00a3d3f919dc0ddb13a",
+  "schema_version": 1,
+  "sealed_artifact_count": 126,
+  "sealed_artifacts_reverified": true,
+  "settings_retuned": false,
+  "signal_receipts": [],
+  "source_defaults_adopted": false,
+  "status": "completed_fresh_generated_phrase_localization_measurements",
+  "total_audio_seconds": 96,
+  "worker_sha256": "524c673f5732a5c524a3575b526672c13373b20ce0cf7b73c1fbbf40c67e9563"
+}

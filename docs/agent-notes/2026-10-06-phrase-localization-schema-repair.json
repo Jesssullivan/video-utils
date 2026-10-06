@@ -1,0 +1,44 @@
+{
+  "L1_worker_changed": false,
+  "actor": "guitar_features",
+  "algorithm_thresholds_changed": false,
+  "audio_decoded_in_repair": false,
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; root bounded schema integration repair",
+  "bank_bytes_changed": false,
+  "bank_original_producer_sha256": "8eae0110995619d128a022e8f0882a522b6213c5899cfd41216128b9847abd6c",
+  "bank_sha256": "9b62a3498f8ed5c508cca68c904f4d868c3861280c2f707f1972f098d4f39e67",
+  "combined_source_tests": {
+    "count": 47,
+    "elapsed_seconds": 2.22,
+    "result": "PASS",
+    "site_packages_enabled": false
+  },
+  "discovery_retry_invoked": false,
+  "failed_child_analysis_sha256": "3e83811abad4b161d7220e4b1bec09d44e258dedce31747d9d44e7a09db40937",
+  "failed_run_path": "artifacts/experiments/phrase-localization/fresh-run-617-719-20261006T0348/run.json",
+  "failed_run_sha256": "b52dda14b41a1df7aba322c2d547b1398ecb1b67bab74a2723526d25c55f478e",
+  "failed_run_status": "partial_worker_failed_truth_unopened",
+  "failed_run_truth_opened": false,
+  "fixed_preregistration_changed": false,
+  "metric_eligibility_or_assignment_changed": false,
+  "predecessor_worker_sha256": "8eae0110995619d128a022e8f0882a522b6213c5899cfd41216128b9847abd6c",
+  "preserved_source_snapshot": "artifacts/experiments/phrase-localization/source-snapshot-8eae-20261006T0400/phrase_localization_pilot.py",
+  "repair": [
+    "read pinned rhythm click_grid and selected_periodicity top-level",
+    "read measured phase_seconds_audio_relative key",
+    "validate bank generator identity separately from successor runner identity via exact root release field"
+  ],
+  "required_successor_release_field": {
+    "bank_generator_sha256": "8eae0110995619d128a022e8f0882a522b6213c5899cfd41216128b9847abd6c"
+  },
+  "schema_version": 1,
+  "status": "successor_schema_source_and_metadata_checks_passed",
+  "successor_worker_sha256": "524c673f5732a5c524a3575b526672c13373b20ce0cf7b73c1fbbf40c67e9563",
+  "tests": [
+    "real unseeded stdlib rhythm return shape and measured phase routing",
+    "null pulse, fallback, invalid schema/nonfinite/boolean phase",
+    "default successor-as-bank-producer rejected before asset access",
+    "explicit original producer permits unchanged hash/header metadata validation12sources60components"
+  ],
+  "truth_opened_in_repair": false
+}

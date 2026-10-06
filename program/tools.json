@@ -1597,6 +1597,12 @@
             "maximum": 900,
             "default": 600,
             "description": "Hard owned-worker/process-group deadline in seconds, including renderer children."
+          },
+          "arrangement_markers": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Optional exact same-run-relative source-bound arrangement marker JSON; requires explicit selection all-review. Renderer revalidates assessment/reference/current artifact hashes; no confirmed-mistake labels."
           }
         },
         "required": [
@@ -2066,6 +2072,152 @@
         "research": "Read evaluator metric policy and comparator acceptance contract; distinguish generated reference agreement, padding/context exclusions and physical timing unknowns.",
         "iterate": "Evaluate unchanged existing receipts into fresh outputs, inspect octave/voicing/event errors and labelled clock sensitivity; preserve null denominators and failed gates. Do not tune discovery to truth.",
         "acceptance": "Metadata scoring is not learned-model qualification, real note correctness, performance grading, listening acceptance or automatic adoption in the main DAG.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "apply_capture_profile",
+      "title": "Apply source-bound capture profile",
+      "description": "Render one fresh full-take restoration candidate from an explicit hash-pinned authored capture profile. Preserve original/latest, native extent, pure denoise/residue and separate tone/presentation stages; no automatic master or listening acceptance.",
+      "intent": "Apply already authorized source-bound settings and retain native/export evidence and capture uncertainty for comparison.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Exact existing original bound to the authoring parent; at most3GiB, local regular non-symlink."
+          },
+          "authoring_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Explicit existing artifacts/runs/RUN/capture-profiles/ID with authored_unrendered profile and receipt."
+          },
+          "receipt_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "description": "Exact lowercase hexadecimal SHA256 returned by capture_profile; no latest selection."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 12,
+            "maximum": 600,
+            "default": 600,
+            "description": "Outer supervision budget; fixed worker operation budget outer\u221210, fallback begins outer\u22125 with one shared remaining cleanup/reporting end. Scheduling is not hard real time."
+          }
+        },
+        "required": [
+          "input",
+          "authoring_dir",
+          "receipt_sha256"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-apply-capture-profile/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "source_bound_capture_profile_application",
+      "limitations": [
+        "Requires a current authored_unrendered source/profile/receipt/review/parent/context/producer binding and supplied existing experimental_capture_render scope; asserted identities are not authentication.",
+        "No DSP/filter/runtime/model/argv overrides; author separately to compare settings. Source<=300s,8\u2013192kHz,mono/stereo; fixed two media threads. New immutable candidate only.",
+        "Noise-capture contamination, EQ phase and compression attack/sustain effects remain uncertain. Measurements and export integrity do not establish listening or musical correctness.",
+        "Supervision checks only observed owned sessions with native birth/ancestry/live membership; sampling gaps, escaped sessions, identity refusal and OS scheduling retain uncertainty, not kernel containment.",
+        "Precommit failure, retained committed-unreviewed reporting failure and unknown publication attempts remain distinct. Timeout does not prove absence; recover from exact pinned local receipts, never newest-run discovery.",
+        "Pure denoise/residue, optional separate EQ/compression, normalization and delivery export are separately retained. Listening_accepted=false and master_adopted=false; original/latest unchanged."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "capture_profile"
+        ],
+        "enforced": true,
+        "note": "Requires existing source-bound authoring output; authoring is not invoked automatically."
+      },
+      "agent_workflow": {
+        "identify": "Pin the authored profile receipt/current source parent and existing scoped authority; retain contamination and native interval uncertainty.",
+        "research": "Use the capture application, media profile and supervisor contracts; distinguish native/export checks from listening and phase/attack quality.",
+        "iterate": "Render unchanged pinned settings into a fresh candidate; audition matched levels and pure-denoise residue. For knob changes author a new profile. Inspect exact recovery receipts before retrying interrupted calls.",
+        "acceptance": "Rendering and observed process cleanup are not listening acceptance, correctness, automatic latest adoption or global session containment.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "arrangement_reference",
+      "title": "Assess supplied guitar arrangement",
+      "description": "Compare a source-bound supplied arrangement with existing independent phrase evidence. Preserve approximate intent, uncertain or missing boundaries, pulse aliases and reference-conditioned review candidates; no discovery, detected-click count or performance grade.",
+      "intent": "Locate conditional phrase-duration and boundary review spans while separating expected structure from cached observations.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing verified source run beneath artifacts/runs with current manifest/analysis/phrases/canonical PCM."
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Fresh output directory strictly inside the selected run; no parent or existing artifact overwrite."
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "default": "program/demo-arrangement.json",
+            "description": "Existing local source-bound operator arrangement JSON<=64KiB. Default binds only the demo original."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 120,
+            "default": 120,
+            "description": "Whole owned metadata-worker/process-group deadline, separate from fixed30s matching budget; no DSP or inference."
+          }
+        },
+        "required": [
+          "run_dir",
+          "output"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-arrangement-reference/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "reference_conditioned_review_candidates",
+      "limitations": [
+        "Original encoded recording is not rehashed/decoded. Cached JSON/current canonical PCM hashes and native source mapping are verified; source metadata assertions do not authenticate original media.",
+        "Supplied approximate tempo/anchor/404demo intended clicks remain reference claims; observed click count is null. Reference-equivalent duration ratios are not detected mechanical events.",
+        "Feature boundaries and detector latency are uncalibrated; repeated joins can lack support, alternatives abstain and censored endpoints remain unknown. All flags need review; no confirmed missed/rushed beat, note correctness or listening acceptance.",
+        "Bounded metadata-only worker: reference64KiB/manifest1MiB/analysis16MiB/phrases4MiB/PCM1GiB,<=300s/128expectedunits/2048observations,30s fixed matching budget. Outputs<=2MiB each plus64KiB receipt.",
+        "Fresh assessment leaves unsupervised graph/artifacts unchanged. Native editor conversion/import and master adoption are independent."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "phrases",
+          "rhythm"
+        ],
+        "enforced": true,
+        "note": "Requires existing exact run-derived evidence and explicit source-bound reference; no prior analysis is invoked."
+      },
+      "agent_workflow": {
+        "identify": "Verify original/analyzed hashes, current cached observations, native clock and supplied reference provenance before interpreting deviations.",
+        "research": "Inspect arrangement matching limits, approximate anchor and half/double pulse uncertainty; keep label counts separate from event detection.",
+        "iterate": "Select an explicit fresh assessment, review null/ambiguous/censored support and signed ranges, and preserve intended-versus-observed navigation coordinates.",
+        "acceptance": "Reference-conditioned review candidates are not detected-click counts, note/performance grades, listening acceptance or native editor import.",
         "max_comparison_candidates_default": 3
       }
     }

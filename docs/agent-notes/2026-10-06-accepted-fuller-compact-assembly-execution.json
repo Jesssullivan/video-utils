@@ -1,0 +1,18 @@
+{
+  "actor": "/root/media_latency",
+  "authority": "Root explicit accepted FULLER composition authorization; R-N11/R-N13",
+  "automatic_retry": false,
+  "compact_outcome_sha256": "3a8eacb79586a5946a1f013d1dc922ae10b9a875edd2b065514d228077d1821f",
+  "controller_path": "docs/agent-notes/2026-10-06-accepted-fuller-compact-assembly.py",
+  "controller_sha256": "095fa1e694fb97cc9a53f1d12e04c86cac7fbd637a7d574c6295102ecd44a533",
+  "created_utc": "2026-10-06T04:41:41.634831+00:00",
+  "exec_session_id": 48725,
+  "latest_promoted": false,
+  "master_adopted": false,
+  "output_directory": "artifacts/experiments/accepted-fuller-compact-20261006T0441",
+  "owner_qualification_sha256": "0b7ef19fa70ab405cc769de1f6379339904c0c4ba5ed9d61e570cb33f8bdb07a",
+  "schema_version": 1,
+  "status": "owned_execution_running",
+  "threads": 2,
+  "timeout_seconds": 600
+}

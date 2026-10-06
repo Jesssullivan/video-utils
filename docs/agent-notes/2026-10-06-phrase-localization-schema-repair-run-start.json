@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "actor": "guitar_features",
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; root exact schema repair retry release",
+  "status": "authorized_schema_repair_run_starting",
+  "started_utc": "2026-10-06T04:07:30.798306+00:00",
+  "release_path": "docs/agent-notes/2026-10-06-root-phrase-localization-RUN-SCHEMA-REPAIR.json",
+  "release_sha256": "53775bdfbb129604632bfd8748adbf3b24ba29203948b0f3d16bfb509f235cf9",
+  "worker_sha256": "524c673f5732a5c524a3575b526672c13373b20ce0cf7b73c1fbbf40c67e9563",
+  "bank_generator_sha256": "8eae0110995619d128a022e8f0882a522b6213c5899cfd41216128b9847abd6c",
+  "bank_sha256": "9b62a3498f8ed5c508cca68c904f4d868c3861280c2f707f1972f098d4f39e67",
+  "output": "/Users/jess/git/video-utils/artifacts/experiments/phrase-localization/fresh-run-schema-repair-617-719-20261006T0408",
+  "numerical_threads": 2,
+  "overall_deadline_seconds": 600,
+  "case_deadline_seconds": 120,
+  "predictions_frozen_before_truth_required": true,
+  "retuning_authorized": false,
+  "model_inference_invoked": false,
+  "owned_exec_session_id": 10625
+}

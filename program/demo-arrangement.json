@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "provenance": {
+    "status": "operator_supplied_expected_arrangement",
+    "authority_reference": "docs/agent-notes/2026-10-06-operator-arrangement-prompt.md",
+    "assumptions": [
+      "Expected arrangement is operator intent, not detected events or verified performance.",
+      "Chorus length explicitly confirmed by operator answer: 16 clicks per phrase.",
+      "Second chorus four-phrase count presumed inherited from chorus again, not separately observed.",
+      "First phrase starts about 10–11 seconds; mechanical metronome begins about five seconds with preceding faint windup.",
+      "Pre-five-second setup contains fan plus minor guitar/amp sounds, not verified pure noise.",
+      "First breakdown may have been rushed or skipped; eight clicks remains intended length.",
+      "Approximately 178 BPM is earlier operator context, distinct from measured tempo/subdivision counts.",
+      "Nonphrase phrase_count is expansion grouping only: breakdown/rest groups are not musical phrases.",
+      "Computed intended extent is 404 clicks: 24 sixteen-click musical phrases plus sixteen breakdown clicks and four rest clicks. Never force detected count to this total.",
+      "Expected zero-based click indices start at first intended phrase with end-exclusive spans; actual boundaries, downbeats, time signature, errors and partial-tail coverage remain measured or unknown."
+    ]
+  },
+  "tempo": {
+    "bpm": 178,
+    "precision": "approximate"
+  },
+  "anchors": {
+    "first_phrase_source_seconds": [
+      10,
+      11
+    ],
+    "click_start_approx_seconds": 5
+  },
+  "sections": [
+    {
+      "id": "verse1",
+      "label": "First verse: four phrases",
+      "kind": "phrase",
+      "phrase_count": 4,
+      "clicks_per_phrase": 16
+    },
+    {
+      "id": "verse1_palm_muted",
+      "label": "First verse: same riff, two palm-muted phrases",
+      "kind": "phrase",
+      "phrase_count": 2,
+      "clicks_per_phrase": 16
+    },
+    {
+      "id": "breakdown1",
+      "label": "First breakdown: two four-click bars, separate falling pinch harmonics",
+      "kind": "breakdown",
+      "phrase_count": 1,
+      "clicks_per_phrase": 8
+    },
+    {
+      "id": "chorus1",
+      "label": "First chorus: four low syncopated chugging phrases",
+      "kind": "phrase",
+      "phrase_count": 4,
+      "clicks_per_phrase": 16
+    },
+    {
+      "id": "verse2_open",
+      "label": "Second verse: two open-string phrases",
+      "kind": "phrase",
+      "phrase_count": 2,
+      "clicks_per_phrase": 16
+    },
+    {
+      "id": "verse2_palm_muted",
+      "label": "Second verse: two palm-muted phrases",
+      "kind": "phrase",
+      "phrase_count": 2,
+      "clicks_per_phrase": 16
+    },
+    {
+      "id": "breakdown2",
+      "label": "Second breakdown: two bars, eight clicks",
+      "kind": "breakdown",
+      "phrase_count": 1,
+      "clicks_per_phrase": 8
+    },
+    {
+      "id": "chorus2",
+      "label": "Second chorus, presumed repeat of first chorus",
+      "kind": "phrase",
+      "phrase_count": 4,
+      "clicks_per_phrase": 16,
+      "section_provenance": "presumed_repeat",
+      "assumption": "Four phrases inherited from chorus again; length inherits confirmed sixteen-click chorus length."
+    },
+    {
+      "id": "chorus_rest",
+      "label": "Post-chorus rest: one bar, four clicks",
+      "kind": "rest",
+      "phrase_count": 1,
+      "clicks_per_phrase": 4
+    },
+    {
+      "id": "outro_tapping",
+      "label": "Outro: two tapping phrases",
+      "kind": "phrase",
+      "phrase_count": 2,
+      "clicks_per_phrase": 16
+    },
+    {
+      "id": "outro_two_hand_tapping",
+      "label": "Outro: two two-hand tapping phrases",
+      "kind": "phrase",
+      "phrase_count": 2,
+      "clicks_per_phrase": 16
+    },
+    {
+      "id": "outro_sweep",
+      "label": "Outro: two sweep-picking phrases",
+      "kind": "phrase",
+      "phrase_count": 2,
+      "clicks_per_phrase": 16
+    }
+  ]
+}

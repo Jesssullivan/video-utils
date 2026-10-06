@@ -187,3 +187,19 @@ evaluate run_dir bpm="" backend="librosa" seconds="20":
 # Validate source-bound sparse annotation metadata; no recording is read.
 corpus manifest local_root="":
     if [[ -n {{quote(local_root)}} ]]; then python3 scripts/corpus.py validate {{quote(manifest)}} --root {{quote(local_root)}} --summary; else python3 scripts/corpus.py validate {{quote(manifest)}} --summary; fi
+
+# Source-bound full-take candidate through the application-specific supervisor.
+apply-capture-profile input authoring_dir receipt_sha256 timeout="600":
+    @python3 -c 'import json,sys;sys.path.insert(0,"scripts");from tool_api import execute;print(json.dumps(execute("apply_capture_profile",{"input":sys.argv[1],"authoring_dir":sys.argv[2],"receipt_sha256":sys.argv[3],"timeout_seconds":int(sys.argv[4])}),allow_nan=False))' {{quote(input)}} {{quote(authoring_dir)}} {{quote(receipt_sha256)}} {{quote(timeout)}}
+
+# Fresh reference-conditioned metadata assessment; no audio decoding or inference.
+arrangement-reference run_dir output reference="program/demo-arrangement.json":
+    python3 scripts/arrangement_reference.py {{quote(reference)}} --run-dir {{quote(run_dir)}} --output {{quote(output)}}
+
+# Existing renderer with an explicit validated same-run-relative marker selector.
+marked-arrangement run_dir output arrangement_markers:
+    python3 scripts/marked_video.py --run-dir {{quote(run_dir)}} --selection all-review --output {{quote(output)}} --arrangement-markers {{quote(arrangement_markers)}}
+
+# Convert a source-bound assessment into a fresh same-run marker JSON.
+arrangement-markers run_dir assessment output:
+    python3 scripts/arrangement_markers.py {{quote(run_dir)}} --assessment {{quote(assessment)}} --output {{quote(output)}}

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "action": "execute_capture_application_native_qualification",
+  "root_explicit_release": true,
+  "preregistration_sha256": "0eca36a73660f797c18d122bbad6d29cfa0b9815c291557d5329089e0c70320c",
+  "harness_sha256": "c0268e80fdfb3ee17791534d078c0707f077c3ab0efac490fe2ee7bcc27142ee",
+  "plan_sha256": "f2aa237b4d7c0a34e93e5065e7436639a20311c7a81945de196c39c985ecd683",
+  "worker_sha256": {
+    "application": "00a03ef9fad8543be4335cb5cbcd3c9d9580a6b40b8faeb826811b105fd5daa6",
+    "author": "7d2820878826c87aabf2ab60b73c997b9d406b7f3ff8943d6012ed967444c355",
+    "media": "91443154251888c9e74670790766b289a2618f85f3be806d60ca26882faa9d94"
+  },
+  "output": "/Users/jess/git/video-utils/artifacts/experiments/capture-application-native-qualification/native-20261006T0255",
+  "authorization_reference": "Operator active ten-hour implementation goal and proceed in full force; AGENTS.md; R-HOOK-CONVERGENCE-20261004/R-N13; root exact00a03 source freeze46PASS and14 inert harness tests. One fixed generated8s qualification, no adoption or automatic retry."
+}

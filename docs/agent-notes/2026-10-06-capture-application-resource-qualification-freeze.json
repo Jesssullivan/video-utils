@@ -1,0 +1,54 @@
+{
+  "actor": "/root/media_latency",
+  "actual_recording_processed": false,
+  "all_fixture_controls_identical_to_original": true,
+  "application_qualification": {
+    "combined_passed": 51,
+    "elapsed_seconds": 36.149,
+    "independent_elapsed_seconds": 2.651,
+    "independent_passed": 9,
+    "only_change_class": "Owned process inspection retry/cap/reuse metadata; media/author/DSP unchanged",
+    "source_sha256": "790ac58f1924db2607087c6ab1cdae5d813ba24eda610af1f396d77e93d06584"
+  },
+  "authority": "Root explicit new resource qualification pin/inert/preregistration source-only release; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "controller_difference": "Only application PIN replaced; exact text equivalence checked by inert test",
+  "created_utc": "2026-10-06T03:33:01.734123+00:00",
+  "dsp_performed": false,
+  "ffmpeg_executed": false,
+  "files": {
+    "artifacts/apply-capture-profile-inspection-final-fixtures.log": "ce6ad0e0e082cda991a5a231b90e0fef4d102c8a7ae20144aad54d628db8cee5",
+    "docs/agent-notes/2026-10-06-apply-capture-profile-inspection-repair.md": "10eb25a5186f108c2381e857397b44cdce9db50e7eb42d22fc72357d4491e785",
+    "docs/agent-notes/2026-10-06-capture-application-native-qualification-plan.md": "f2aa237b4d7c0a34e93e5065e7436639a20311c7a81945de196c39c985ecd683",
+    "docs/agent-notes/2026-10-06-capture-application-native-qualification-preregistration.json": "0eca36a73660f797c18d122bbad6d29cfa0b9815c291557d5329089e0c70320c",
+    "docs/agent-notes/2026-10-06-capture-application-native-qualification-tests.py": "6e2b8248b857806def5573e45a0bb46cd83eccf740d3be18e7d6e268f952d9bb",
+    "docs/agent-notes/2026-10-06-capture-application-native-qualification.py": "c0268e80fdfb3ee17791534d078c0707f077c3ab0efac490fe2ee7bcc27142ee",
+    "docs/agent-notes/2026-10-06-capture-application-resource-qualification-plan.md": "8bda451dfc2920c55c30ff741b593625ba865a3b4ba609695f8f7bea5818fe2d",
+    "docs/agent-notes/2026-10-06-capture-application-resource-qualification-preregistration.json": "f6bec7567bc3e676d13f39c1f3f79671e307d4f75483ff1204a67bb33891d5c0",
+    "docs/agent-notes/2026-10-06-capture-application-resource-qualification-tests.py": "554f916e40fb6c9e5f058654537a581319f34301d76a55f53480269a99aed672",
+    "docs/agent-notes/2026-10-06-capture-application-resource-qualification.py": "7148945f6ec1dba19f388412f2cfca991cecd7b548d9592df5a5228d33c1324b"
+  },
+  "harness_tests": {
+    "additional_identity_defs": 2,
+    "command": "python3 docs/agent-notes/2026-10-06-capture-application-resource-qualification-tests.py -v",
+    "elapsed_seconds": 0.22,
+    "passed": 16,
+    "proof_class": "inert_no_media",
+    "reused_original_defs": 14
+  },
+  "historical_controller_sha256": "c0268e80fdfb3ee17791534d078c0707f077c3ab0efac490fe2ee7bcc27142ee",
+  "listening_accepted": false,
+  "master_adopted": false,
+  "media_generated": false,
+  "next": "Independent metadata identity readback followed by root exact new closed release for one8s trial; separate NR10retry only after qualification",
+  "numerical_execution_released": false,
+  "original_plan_sha256": "f2aa237b4d7c0a34e93e5065e7436639a20311c7a81945de196c39c985ecd683",
+  "output_absent_at_freeze": true,
+  "preregistered_output": "/Users/jess/git/video-utils/artifacts/experiments/capture-application-native-qualification/native-resource-20261006T0340",
+  "schema_version": 1,
+  "status": "resource_revision_frozen_inert_qualified_preregistered_numerical_held",
+  "worker_sha256": {
+    "application": "790ac58f1924db2607087c6ab1cdae5d813ba24eda610af1f396d77e93d06584",
+    "author": "7d2820878826c87aabf2ab60b73c997b9d406b7f3ff8943d6012ed967444c355",
+    "media": "91443154251888c9e74670790766b289a2618f85f3be806d60ca26882faa9d94"
+  }
+}

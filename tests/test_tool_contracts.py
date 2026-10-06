@@ -138,7 +138,7 @@ class ToolContractTests(unittest.TestCase):
         from test_mcp import exchange, initialization, request
         replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
             request(2, 'tools/list'), request(3, 'prompts/get', {'name': 'guitar-learned-pitch-evaluate'})])
-        self.assertEqual(stderr, ''); self.assertEqual(len(replies[1]['result']['tools']), 27)
+        self.assertEqual(stderr, ''); self.assertEqual(len(replies[1]['result']['tools']), len(tool_api.descriptors()))
         self.assertEqual(replies[2]['result']['messages'][0]['content']['text'],
                          (ROOT / '.agents/skills/guitar-learned-pitch-evaluate/SKILL.md').read_text())
 
@@ -1097,7 +1097,7 @@ class ToolContractTests(unittest.TestCase):
             expected = [item for field in tool_api.PIPELINE_SELECTORS
                         for item in ('--' + field.replace('_', '-'), arguments[field])]
             self.assertEqual(command[3:], expected)
-            self.assertEqual(len(tool_api.descriptors()), 27)
+            self.assertEqual(len(tool_api.descriptors()), 29)
 
     def test_pipeline_missing_or_symlink_selector_does_not_launch(self):
         with tempfile.TemporaryDirectory() as temporary, tempfile.TemporaryDirectory() as outside:
@@ -1130,7 +1130,7 @@ class ToolContractTests(unittest.TestCase):
         replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
             request(2, 'tools/list'), request(3, 'prompts/get', {'name': 'guitar-pipeline'})])
         self.assertEqual(stderr, '')
-        self.assertEqual(len(replies[1]['result']['tools']), 27)
+        self.assertEqual(len(replies[1]['result']['tools']), len(tool_api.descriptors()))
         pipeline = next(tool for tool in replies[1]['result']['tools'] if tool['name'] == 'pipeline')
         self.assertTrue(set(tool_api.PIPELINE_SELECTORS) <= set(pipeline['inputSchema']['properties']))
         self.assertEqual(replies[2]['result']['messages'][0]['content']['text'],

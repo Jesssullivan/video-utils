@@ -98,6 +98,16 @@ a reference; note correctness cannot follow from a dominant spectral peak.
 Generic markers are an interchange pilot; Final Cut/Resolve import requires
 actual application proof in a future milestone.
 
+For the demo's reference-aware branch, use `program/demo-arrangement.json` and
+its verbatim operator prompt in `docs/agent-notes/`. Expected phrase lengths and
+the 404-click total are intent, not observed counts. Keep the automatic baseline
+available; bind comparisons to the exact source and analyzed input. Preserve the
+approximate first-phrase anchor, second-chorus inheritance and uncertain breakdown
+execution. Property tests must exercise timing changes, missing/extra boundaries,
+ambiguity and partial coverage without forcing detections to match the reference.
+The first five seconds include setup guitar/amp sounds and possible mechanical
+windup; they are not blanket authorization for a pure-noise training interval.
+
 ## Constant recording and tone context
 
 `program/capture-context.json` records the operator's large-box-fan background
@@ -114,3 +124,13 @@ Do not assume mains/blade lines or apply a notch that overlaps musical notes.
 Compare stronger denoising, controlled compression and bounded EQ reversibly,
 with matched presentation level and explicit residue/artifact review. Keep pure
 denoising separate from tone/dynamics processing and reanalyze changed inputs.
+
+Treat tonal balance, dynamics and delivery mastering as explicit graph stages.
+The operator's current audition feedback is insufficient low-end fullness and
+thin/nasal balance; cleanup measurements alone do not close that feedback.
+Capture-response references need their own provenance and level matching.
+Do not claim that EQ recreates an uncaptured fundamental or the in-room amp tone.
+Every analysis declares the signal version it consumed; invalidate downstream
+results when that input changes. Shareable overlays default to compact section/
+phrase labels, BPM and brief issue badges. User-reported issues retain their
+authorship and must remain distinguishable from detector hypotheses.

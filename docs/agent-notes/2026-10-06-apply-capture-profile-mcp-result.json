@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "status": "typed_generated_native_passed",
+  "elapsed_seconds": 42.86082075000013,
+  "exit_code": 0,
+  "stderr_empty": true,
+  "actual_recording_processed": false,
+  "listening_accepted": false,
+  "master_adopted": false,
+  "worker_pins": {
+    "application": "790ac58f1924db2607087c6ab1cdae5d813ba24eda610af1f396d77e93d06584",
+    "supervisor": "ea2d27400b98a2c7285f068501100c222fbb969a56d53d497a3b141b1c70f5a8"
+  },
+  "proof_dir": "/Users/jess/git/video-utils/artifacts/experiments/application-mcp-qualification/20261006T035513113466Z",
+  "summary": {
+    "authoring_receipt_sha256": "8696be0633e1cfdab3c8c44756917f5130dd4b89a7f2ffa3dad126f0ba201f6a",
+    "capture": {
+      "native_samples": [
+        11025,
+        44100
+      ],
+      "profile_seconds": [
+        0.25,
+        1.0
+      ],
+      "requested_seconds": [
+        0.25,
+        1.0
+      ],
+      "source_media_span_seconds": [
+        1.75,
+        2.5
+      ]
+    },
+    "dsp_performed": true,
+    "evidence_kind": "source_bound_capture_profile_application",
+    "export": {
+      "audio_master": "/Users/jess/git/video-utils/artifacts/runs/20261006T035515Z-75c5fae6be12/cleaned.wav",
+      "outcome_path": "/Users/jess/git/video-utils/artifacts/runs/20261006T035515Z-75c5fae6be12/export/outcome.json",
+      "outcome_sha256": "9d472744eca0b85a88d1824aa9ca9fe4108226b40fd7720ee4dff6957a5bedf1",
+      "status": "exported_unreviewed",
+      "video": "/Users/jess/git/video-utils/artifacts/runs/20261006T035515Z-75c5fae6be12/export/cleaned-video.mov"
+    },
+    "listening_accepted": false,
+    "manifest_path": "/Users/jess/git/video-utils/artifacts/runs/20261006T035515Z-75c5fae6be12/manifest.json",
+    "manifest_sha256": "868de4c7f8a6080d0326523950ec01d04565194de642bfc697dd5f593e776d37",
+    "master_adopted": false,
+    "profile_sha256": "1be4aa13ffc158e299b0e7dc6760afc2844dd6cecadd6dc06614eb857f687595",
+    "receipt_path": "/Users/jess/git/video-utils/artifacts/runs/20261006T035515Z-75c5fae6be12/application-receipt.json",
+    "receipt_sha256": "414bc9c9c401c89eb6464cce76b7284a503f91bf3e25f14eb181b0dafb891a26",
+    "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T035515Z-75c5fae6be12",
+    "schema_version": 1,
+    "source_sha256": "9304f783e0b4b82973c98fff2cda457013abe1a3716bf57285647f2d62bb283e",
+    "status": "rendered_unreviewed",
+    "tool": "apply_capture_profile",
+    "supervision": {
+      "receipt": {
+        "path": "/Users/jess/git/video-utils/artifacts/application-supervision/e38119f0d7674882a2798a75a5ce0536/receipt.json",
+        "sha256": "f11f9f23597772e914b1634c39e58bb521e28d143c5ac794950f8d21eaebb9ee"
+      },
+      "descendant_cleanup": "no_runnable_recorded_members",
+      "containment_scope": "observed_owned_sessions_only"
+    }
+  },
+  "protected_after": {
+    "artifacts/experiments/capture-application-native-qualification/native-resource-20261006T0340/original.mov": "9304f783e0b4b82973c98fff2cda457013abe1a3716bf57285647f2d62bb283e",
+    "artifacts/runs/20261006T033453Z-b409896e14ce/capture-profiles/20261006T033509Z-52e19ebd95bf4cb986c7bd9cfd9ea694/receipt.json": "8696be0633e1cfdab3c8c44756917f5130dd4b89a7f2ffa3dad126f0ba201f6a",
+    "artifacts/runs/20261006T033453Z-b409896e14ce/capture-profiles/20261006T033509Z-52e19ebd95bf4cb986c7bd9cfd9ea694/profile.json": "1be4aa13ffc158e299b0e7dc6760afc2844dd6cecadd6dc06614eb857f687595",
+    "artifacts/runs/20261006T033453Z-b409896e14ce/manifest.json": "d8916e1041be87de41e53ef95e364905ee9a075c109fad6d49d8675939ce3aed",
+    "artifacts/runs/20261006T033453Z-b409896e14ce/source.wav": "a5a400a130d1d982de962ac65f606920f8e5f764e91829f064e6d244810a2b6f"
+  },
+  "native": {
+    "channels": 2,
+    "codec": "pcm_f32le",
+    "duration_seconds": 8.0,
+    "sample_count": 352800,
+    "sample_rate": 44100
+  },
+  "supervision_status": "worker_completed"
+}

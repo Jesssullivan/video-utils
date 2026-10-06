@@ -81,6 +81,14 @@ comparisons live in [research](docs/research/RESEARCH.md); tracker receipts live
 
 ## Quickstart
 
+The latest demo delivery is the [compact marked video with approved FULLER audio](artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov).
+Media links resolve in this local checkout; recordings and renders are excluded
+from Git. The [delivery receipt](docs/agent-notes/2026-10-06-accepted-fuller-compact-assembly-result.md)
+records exact audio/picture preservation and separate analysis provenance.
+The operator approved the FULLER audio; compact labels remain review candidates.
+Use the [listening comparison](artifacts/experiments/restoration-audition-20261006T0438/index.html)
+to revisit the restoration alternatives.
+
 ```bash
 nix develop
 just doctor
@@ -109,6 +117,9 @@ overwrite the input.
 | `just dag RUN_DIR [REFERENCE]` | Verify ancestry, review self-consistency, optionally compare a reference |
 | `just markers RUN_DIR` | Export generic timestamp/span review markers |
 | `just marked-video RUN_DIR OUTPUT [SELECTION]` | Render a separate preview with phrase review callouts |
+| `just arrangement-reference RUN_DIR OUTPUT [REFERENCE]` | Compare supplied phrase intent with source-bound detected boundary candidates |
+| `just marked-arrangement RUN_DIR OUTPUT MARKERS` | Render compact reference-aware labels from validated same-run markers |
+| `just apply-capture-profile INPUT AUTHORING_DIR RECEIPT_SHA [TIMEOUT]` | Render a fresh restoration candidate from a source-bound capture profile |
 | `just clicks INPUT RUN_DIR [BPM]` | Detect click candidates without modifying audio |
 | `just phrase-compare RUN_DIR` | Compare discovered recurring regions |
 | `just benchmark OUTPUT [BACKEND] [SUITE]` | Evaluate generated technical-guitar fixtures |
@@ -159,7 +170,7 @@ spotify-basic-pitch-0.4.0-onnx`, then `just basic-pitch-runtime-setup /path/to/p
 and `just basic-pitch-runtime-check`. See [runtime qualification](docs/research/BASIC_PITCH_QUALIFICATION.md).
 
 The repository includes a versioned tool contract, a local MCP stdio server,
-and twenty-seven per-tool skills for researching and tuning restoration, analysis, comparison, and review.
+and twenty-nine per-tool skills for researching and tuning restoration, analysis, comparison, and review.
 Inspect `just tool-info NAME` or launch
 `just mcp` from the repository root. Local invocation is
 separate from connecting an external agent client; see
@@ -172,6 +183,18 @@ candidate boundaries, repeated riffs, bar groupings, and breakdowns automaticall
 internal self-consistency can flag timestamped spans for review. A confirmed
 reference is needed for definite error verdicts, not for discovery or review
 flags. Tonic/mode and meter may remain unknown; four-bar phrases are not assumed.
+
+The demo now has an [operator-supplied arrangement](program/demo-arrangement.json)
+and a [verbatim prompt record](docs/agent-notes/2026-10-06-operator-arrangement-prompt.md).
+It describes 24 sixteen-click phrases, two eight-click breakdowns and a four-click
+rest: 404 intended clicks. The second chorus inherits the first chorus's phrase
+count. First-phrase onset is approximately 10–11 seconds; the mechanical metronome
+starts around five seconds, preceded by a faint windup. The opening also contains
+minor guitar/amp setup sounds, so it is not a verified noise-only capture.
+Reference-aware analysis compares this intent with independently detected
+boundaries and preserves uncertain, missing and partial observations. The suspected
+rushed breakdown is a review question. See the
+[alignment and property-testing contract](docs/spec/ARRANGEMENT_REFERENCE_LANE.md).
 
 Local graphical review is available through `just review RUN_DIR`, with manual playback,
 marker filtering and source-bound annotations. Final Cut/DaVinci Resolve marker compatibility is the
@@ -194,6 +217,10 @@ VIDEO_UTILS_ANALYSIS_PYTHON="$PWD/.venv/bin/python" just demo INPUT 178 librosa 
 Today's operator requests are preserved in [the prompt record](docs/agent-notes/2026-10-05-user-prompts.md).
 The active [ten-hour work plan](docs/spec/TEN_HOUR_PLAN.md) and
 [parallel lane board](docs/agent-notes/WORKSTREAM_BOARD.md) define ownership and checkpoints.
+The [future practice studio designs](docs/spec/future/README.md) cover upload-to-
+download workflows, queued processing, typed controls, compact issue overlays,
+capture-aware mastering and semi-supervised classification. These are proposed
+milestones, separate from the current local playback and annotation interface.
 
 The actual local comparison report includes manual audio/video seeking to review
 spans. `just marked-video` renders separate synchronized previews with uncertain

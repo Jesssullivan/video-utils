@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "actor": "/root",
+  "action": "render_two_source_bound_matched_actual_take_candidates",
+  "created_utc": "2026-10-06T03:01:44.184839+00:00",
+  "authority": "Operator full-force ten-hour implementation and strongerdenoising request; AGENTS.md; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "source_qualification": "00a03 final46PASS26.087s and14 harnesschecks; single generatednative trial04a680 passed45.707s; independent release_review actualartifact auditPASS inclnative PCM/175 VFR/payload/AAC clocks andprotectedhashes",
+  "application_sha256": "00a03ef9fad8543be4335cb5cbcd3c9d9580a6b40b8faeb826811b105fd5daa6",
+  "author_sha256": "7d2820878826c87aabf2ab60b73c997b9d406b7f3ff8943d6012ed967444c355",
+  "media_sha256": "91443154251888c9e74670790766b289a2618f85f3be806d60ca26882faa9d94",
+  "authoring_receipt_sha256": "98108ca07705bfed300dfc8a5b6a40de72215f7cb838d05e87bca8aaa8206a8b",
+  "threads": 2,
+  "execution": "existing standalone apply_capture_profile.py fixedCLI; sequentialoneattempt perlabel; owned sessions and boundedlogs; retainfailed outcomes no automaticrerun",
+  "candidates": [
+    {
+      "label": "NR8",
+      "input": "/Users/jess/Documents/Movie on 10-5-26 at 3.38\u202fPM.mov",
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "authoring_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profiles/20261006T025918Z-1b49c650299b4e56866639e473e766c5",
+      "profile_sha256": "b2506d04cdaabefd42bab547c8cc5b52fac07612baa4aa8a834178997ba083b0",
+      "authoring_receipt_sha256": "b96778eb8fbbe396d4bbf9a0d1ae52fb7a169b02ff904413d6caa1291ed1893b",
+      "timeout_seconds": 600,
+      "attempts": 1
+    },
+    {
+      "label": "NR10",
+      "input": "/Users/jess/Documents/Movie on 10-5-26 at 3.38\u202fPM.mov",
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "authoring_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profiles/20261006T025918Z-d18e86f1102c4e02834dc03e57ba370d",
+      "profile_sha256": "3b5eccabb4121fb74bb1eb27cfcda1d5c207bb84bc1b713106d8005a0266c0cd",
+      "authoring_receipt_sha256": "8b3efebe248d3895f5a7872992d953311e06f67a95618e4275d3c4a3fdfab474",
+      "timeout_seconds": 600,
+      "attempts": 1
+    }
+  ],
+  "protected_sha256": {
+    "/Users/jess/Documents/Movie on 10-5-26 at 3.38\u202fPM.mov": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+    "/Users/jess/git/video-utils/artifacts/latest.json": "8ed66efb8f81f06db6c1abb0a5962c38218d6c8bd1fb3c2d46432dc1693fa5ee",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profile-review-root.json": "953d8d84fb12c358d14bf6d32e8ea93bb6f6491e5597b5dc2035bc5577d24cf4",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profiles/20261006T003323Z-18de99aa2ca74832b92a95956838de97/profile.json": "ff8b4f078a95c24cfd3a5088d7729550f82241d0f628efaf684ddf1390d76dac",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profiles/20261006T003323Z-18de99aa2ca74832b92a95956838de97/receipt.json": "8040361edebc0fe32d28a19ad9bb403fc3fa2dc219715a3a165ff5aff8adad81",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/cleaned.wav": "99d56a25d05e434b4bb8f4149488c7b143558872c826ecc55df344012f4fbafd",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/export/cleaned-video.mov": "9e7bc23aed07b73012765ff6abf7f0e0fe5913cbc4ee47bb60aa4e95f205f6fe",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/manifest.json": "4a75b4e352075114a7b6026c74acab3ab6c64eedddd52fc2b8514adfed80549c",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/marked-preview/marked-video.mov": "13b9d18b80be37de954530f3c1220c256a061136921ffaf3c68f7e677b55dc90",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/report.html": "a47ae9cf342e4bf2c81a7f64dcd6c662984d09a81106399166109b190bcd3cc2",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/source.wav": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a"
+  },
+  "expected_native_pcm": {
+    "sample_rate": 44100,
+    "channels": 1,
+    "sample_count": 6657385
+  },
+  "matched_controls": "OnlyNR8vsNR10 changes; both NF-40/ad0/gs0/capture4.10\u20134.95/EQ300:-1.5:Q.8+2200:+1:Q.8/compthreshold-18 ratio2 attack15 release100 knee3 fixed25percentwet/target-18LUFS:-1.75dBTP",
+  "capture_music_status": "unknown",
+  "capture_click_status": "unknown",
+  "noise_only_verified": false,
+  "listening_accepted": false,
+  "master_adopted": false,
+  "latest_promotion_authorized": false,
+  "new_marked_render_authorized": false
+}

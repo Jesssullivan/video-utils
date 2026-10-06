@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "authority": "Explicit operator listening feedback relayed by root within active authorized iteration; R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_utc": "2026-10-06T04:29:46.633817+00:00",
+  "feedback_exact": "sounds excellent!  great work!",
+  "listening_context": "User listened FULLER in QuickTime; root relayed exact feedback. This agent did not perform audible listening.",
+  "accepted_candidate": "fuller",
+  "run_id": "20261006T041633Z-990aa1bd6737",
+  "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "cleaned_wav_sha256": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009",
+  "export_video_sha256": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82",
+  "manifest_sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+  "application_receipt_sha256": "ab1f31dfaefff2d781f4d8b20ebeb9a8a3575f77b2b42926d98a96f9c5ae7e48",
+  "listening_accepted": true,
+  "master_adopted": false,
+  "other_candidates_accepted": false,
+  "performance_or_model_accuracy_accepted": false,
+  "audio_regenerated": false,
+  "historical_receipts_modified": false,
+  "scope": "Exact FULLER audio and operator subjective tone acceptance; physical sync, analysis accuracy and master adoption are separate."
+}

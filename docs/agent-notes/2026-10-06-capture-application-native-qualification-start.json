@@ -1,0 +1,20 @@
+{
+  "actor": "/root/media_latency",
+  "actual_take_authorized_by_this_release": false,
+  "attempt": 1,
+  "authority": "R-N11/R-N13 plus docs/agent-notes/2026-10-06-root-capture-application-native-release.json",
+  "automatic_retry": false,
+  "created_utc": "2026-10-06T02:56:25.505463+00:00",
+  "exec_session": 23980,
+  "harness_sha256": "c0268e80fdfb3ee17791534d078c0707f077c3ab0efac490fe2ee7bcc27142ee",
+  "listening_accepted": false,
+  "master_adopted": false,
+  "ownership": "This agent launched this exact exec process; application owns inspected fresh subprocess sessions/groups",
+  "preregistration_sha256": "0eca36a73660f797c18d122bbad6d29cfa0b9815c291557d5329089e0c70320c",
+  "root_release_sha256": "56e49d0789fa84e8a0d75f03d222f4bda291995a519810c63d8f297d94e98b3c",
+  "schema_version": 1,
+  "status": "started_single_root_released_generated_trial",
+  "threads": 2,
+  "timeout_seconds": 600,
+  "trial": "artifacts/experiments/capture-application-native-qualification/native-20261006T0255"
+}

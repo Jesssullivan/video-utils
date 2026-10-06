@@ -1,6 +1,6 @@
 # video-utils parallel work board
 
-As-of ownership checkpoint: **2026-10-06 02:14:22 UTC / October 5, 10:14:22 p.m. EDT**.
+As-of ownership checkpoint: **2026-10-06 04:44:24 UTC / October 6, 12:44:24 a.m. EDT**.
 Root's goal began 20:49:34 UTC and remains **active**, with planned end
 **2026-10-06 06:49:34 UTC / 2:49:34 a.m. EDT**. Objective/status does not enforce
 this wall-clock horizon. Root owns integration, factual Linear writes and signed
@@ -16,7 +16,77 @@ Checkpoints: [2026-10-05-goal-checkpoints.md](2026-10-05-goal-checkpoints.md).
 Tracker IDs: [linear.json](../../program/linear.json).
 Active goal: [TIN-5495](https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal).
 
-## Current published source and delivery
+## Current closeout checkpoint
+
+Goal remains **active**, with 2h05m10s remaining at this clock and no reset of
+the 06:49:34 UTC horizon or definition of done. Only root closeout and documentation
+audits remain active; completed implementation lanes are not ongoing workers.
+Local catalog qualifies **29 tools/29 skills**:
+[855-test result](2026-10-06-tools29-consolidated-test-result.json) records 854 passed,
+one optional skip, zero failures/errors, 602.620s and unchanged source. Published
+HEAD remains `6d021e515823e5397e090ba31213b049370dda2a`; root publication is pending,
+so new hosted CI and remote 29-tool admission are not claimed.
+
+Operator accepted exact FULLER audio: **“sounds excellent!  great work!”**
+([receipt](2026-10-06-fuller-listening-acceptance.json)). Final compact accepted-audio
+video [assembly verification](2026-10-06-accepted-fuller-compact-assembly-result.json)
+passed 9.283s, copying qualified picture and accepted AAC with exact packet/clock
+and decoded-audio identity, 3621 inherited VFR frames and 41 protected inputs
+unchanged. File: `artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov`;
+SHA256 `4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2`.
+Audio acceptance does not imply latest/master adoption, physical sync, confirmed
+mistakes, native import or separate composite visual review. Markers keep NR10
+analysis lineage; accepted parent delivery is −18.01 LUFS/−1.76 dBTP.
+
+| Current owner | State / remaining bounded work |
+| --- | --- |
+| `/root` | Active source publication/receipt/tracker closeout; shared metadata and integration owner |
+| `/root/goal_plan` and named closeout reviewers | Active scoped documentation/evidence audits; preserve prior states and no new implementation |
+| Completed implementation/research lanes | Completed bounded checkpoints; no active worker inferred from historical rows |
+
+Future parent TIN-5546 remains queued/Backlog. All eight scope writes
+TIN-5547–5554 and four existing appendices returned; six dependency writes
+returned. STAFF/MODEL relation writes and full independent readback remain
+pending after 429, per [dependency receipt](2026-10-06-future-linear-dependencies.json).
+Future work is unactivated and does not replace this goal or budgets.
+Latest [beat-unit interpretation](2026-10-06-click-rate-and-beat-unit.md) is
+quarter-note approximately 178/provisional 4/4 using operator context, not an
+independent meter finding. Canonical reference unchanged; pulse/beat-unit/
+subdivision evidence remains separate.
+
+## Historical operator-reference/PBT checkpoint — October 6, 03:54:13 UTC
+
+The following ownership and pending states describe that earlier checkpoint.
+
+Operator resumed the goal and explicitly continues all named subagents. Preserve
+completed checkpoints/dirty owner work; resumed reference-aware work does not
+reset the original 06:49:34 UTC deadline. Exact new prompt and chorus 16 answer were
+FIRST archived in [operator arrangement prompt](2026-10-06-operator-arrangement-prompt.md).
+The locked [reference fixture](../../program/demo-arrangement.json) expects 404
+clicks,24 sixteen-click phrases,16 breakdown clicks and4 rest clicks. It binds the
+original source and operator intent, not observed correct performance. First-verse
+articulation is unknown; second chorus four-phrase repeat is explicitly presumed.
+About 5s click start/10–11s first phrase are approximate; setup includes fan plus
+minor guitar/amp, not pure noise. Mechanical windup and reference/observed branch
+separation remain explicit. Root alone integrates/records live publication facts.
+
+| Current named lane | Owner / files | State and dependency |
+| --- | --- | --- |
+| Operator reference durability | `/root/goal_plan`: arrangement archive, `program/demo-arrangement.json`, TEN_HOUR_PLAN, this board | Verbatim prompt first saved; corrected initial verse1 articulation; closed schema agreed with rhythm; fixture frozen pending parser/audit validation |
+| Reference comparison/PBT | `/root/rhythm_analysis`: new `scripts/arrangement_reference.py` and assigned tests | Active expected-unit expansion and independent observed alignment; no forced404 or guitar-attack-score import; source-time confidence/abstention required |
+| Independent arrangement audit | `/root/phrase_dag`: assigned audit/spec/tests | Active source/hash/count/assumption/partial-tail/mutation review; owns no fixture edit |
+| AU integration boundary | `/root/au_architecture`: owned AU host spec addendum | Completed documentation clarification: offline companion DAG, not gain-preset/render payload; no build/host operation |
+| Root integration | `/root`: shared graph/recipes/MCP admission/actual comparisons and publication | Existing validated media/source history remains; resumed lanes are not all running by implication; exact new results/readback remain root-owned |
+
+Property coverage is reference schema refusal and arithmetic, contiguous expected
+click spans, varying phrase counts, observation permutations/missing/extra/jitter/
+drift, pulse ambiguity and partial endings, with labels withheld from detection.
+Rest and setup contamination do not establish wrong notes or noise-only samples.
+Expected totals cannot be promoted to detected events or accepted musician truth.
+The earlier source/CI/media and original-lane tables below are dated history;
+no old RUNNING/pending row asserts a current process or new publication.
+
+## Historical published source/delivery checkpoint — October 6, 02:14 UTC
 
 Root verified private/signature-valid published HEAD
 `cfdb61915720032ae139d8dac07ef27b55223cdf`: **27 tools/skills**. The qualified
@@ -77,7 +147,7 @@ Root owns new 27-tool successful-CI/comment reconciliation and full tracker IDs.
 `9bac1230-0744-47a8-b5aa-104c6be8e928` remains historical. No external mutations
 are performed by this tracking lane.
 
-## Reattached named lanes
+## Earlier reattached named lanes — historical checkpoint
 
 The operator's exact **“reattach all subagents”** request is preserved in prompt
 archive section 18, following **“proceed in full force”**. Root reports all 23 earlier agents individually reattached, including nested reviewers, plus root;

@@ -1,0 +1,131 @@
+{
+  "actor": "/root/release_review",
+  "audio_origin_seconds": 0,
+  "auditor_source_sha256": "609b4a74e191085fc17e8c14bee9baad4d89dd606789c7def144c7f62cbb441c",
+  "authority": "Root explicit saved FULLER_NR8 artifact audit; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "calibrated_delay_samples": 1102,
+  "candidate_run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737",
+  "complete_acoustic_alignment_verified": false,
+  "compressor": {
+    "attack_ms": 15.0,
+    "knee_db": 3.0,
+    "ratio": 2.0,
+    "release_ms": 100.0,
+    "threshold_db": -18.0
+  },
+  "export_proof_scope": "Readback of saved exporter hashes/clocks only; no independent actual video probe",
+  "final_AAC_integrated_lufs": -18.01,
+  "final_AAC_true_peak_dbtp": -1.76,
+  "first_boundary_error": 4.656612873077393e-10,
+  "fixed_parallel_wet_fraction": 0.25,
+  "last_boundary_error": 9.313225746154785e-10,
+  "listening_accepted": false,
+  "master_adopted": false,
+  "media_probes_decode_DSP_inference_repeated": false,
+  "metadata_sha256": {
+    "application-receipt.json": "ab1f31dfaefff2d781f4d8b20ebeb9a8a3575f77b2b42926d98a96f9c5ae7e48",
+    "export/outcome.json": "fe1b1009d7d56b54fedd8589aced49270a8bb6c37957df52b1e38d688b35f13d",
+    "manifest.json": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f"
+  },
+  "native_capture_samples": [
+    180810,
+    218295
+  ],
+  "native_headers": {
+    "baseline.wav": {
+      "bits": 24,
+      "channels": 1,
+      "code": 1,
+      "sample_count": 6657385,
+      "sample_rate": 44100
+    },
+    "cleaned.wav": {
+      "bits": 24,
+      "channels": 1,
+      "code": 1,
+      "sample_count": 6657385,
+      "sample_rate": 44100
+    },
+    "denoised.wav": {
+      "bits": 32,
+      "channels": 1,
+      "code": 3,
+      "sample_count": 6657385,
+      "sample_rate": 44100
+    },
+    "processed.wav": {
+      "bits": 32,
+      "channels": 1,
+      "code": 3,
+      "sample_count": 6657385,
+      "sample_rate": 44100
+    },
+    "residue.wav": {
+      "bits": 32,
+      "channels": 1,
+      "code": 3,
+      "sample_count": 6657385,
+      "sample_rate": 44100
+    },
+    "source.wav": {
+      "bits": 32,
+      "channels": 1,
+      "code": 3,
+      "sample_count": 6657385,
+      "sample_rate": 44100
+    }
+  },
+  "noise_only_verified": false,
+  "peaking_eq": [
+    {
+      "frequency_hz": 160.0,
+      "gain_db": 2.0,
+      "q": 0.7
+    },
+    {
+      "frequency_hz": 300.0,
+      "gain_db": 1.0,
+      "q": 0.8
+    }
+  ],
+  "physical_audio_video_sync_verified": false,
+  "plan_sha256": "f62cce0d5bf9e83ba045bfb9bd22a20d341ccc8ff690413fbfcd85bc447be599",
+  "profile_differing_fields_from_nr8": [
+    "name",
+    "peaking_eq"
+  ],
+  "protected_before_sha256": "153a6c36b97de5cb60b484e56a225e0bbb4009532b960b7e10092f203b98f8fd",
+  "protected_files_hash_verified": 7,
+  "pure_nr8_denoised_and_residue_bytes_equal": true,
+  "remaining_bulk_delay_samples": 0,
+  "residue_max_abs_error": 9.313225746154785e-10,
+  "saved_export_verification": {
+    "aac_timing_tolerance_seconds": 0.025219954648526076,
+    "audio_duration_delta_seconds": -0.000113111111119224,
+    "dsp_latency_compensation_recorded": true,
+    "export_decoded_video_frames": 3621,
+    "export_video_packets": 3631,
+    "final_true_peak_target_dbtp": -1.75,
+    "final_true_peak_within_target": true,
+    "physical_audio_video_sync_verified": false,
+    "relative_audio_video_start_delta_seconds": 0.0,
+    "relative_audio_video_start_verified": true,
+    "source_decoded_video_frames": 3621,
+    "source_hash_verified": true,
+    "source_video_packets": 3631,
+    "video_duration_delta_seconds": -0.020000000000010232,
+    "video_frame_count_preserved": true,
+    "video_frame_count_verification_method": "ffprobe decoded frame counts; private cache keyed by exact media SHA256 and stream index",
+    "video_header_duration_diagnostic_only": true,
+    "video_packet_clock_tolerance_seconds": 0.0016666666666666668,
+    "video_packet_expected_translation_seconds": 0.0,
+    "video_packet_max_dts_delta_seconds": 0.0,
+    "video_packet_max_duration_delta_seconds": 0.0,
+    "video_packet_max_pts_delta_seconds": 0.0,
+    "video_packet_payload_hashes_preserved": true,
+    "video_packet_timeline_preserved": true,
+    "video_packet_verification_method": "ordered ffprobe packet PTS/DTS/durations in rational stream clocks and SHA256 encoded payloads"
+  },
+  "schema_version": 1,
+  "status": "independent_fuller_nr8_artifact_audit_passed"
+}

@@ -88,7 +88,7 @@ def unchanged(identities):
                 'Preview input changed: ' + str(path))
 
 
-def prepare(run_dir):
+def prepare(run_dir, arrangement_markers=None):
     paths = {name: marker_tool.local_artifact(run_dir, name) for name in
              ('manifest.json', 'export/outcome.json', 'dag.json', 'flags.json', 'markers.json')}
     payloads = {name: read_json(path) for name, path in paths.items()}
@@ -154,8 +154,23 @@ def prepare(run_dir):
         key=json.dumps(marker,sort_keys=True,allow_nan=False)
         flag_id=f'flag-{index:04d}-'+hashlib.sha256(json.dumps(flag,sort_keys=True,allow_nan=False).encode()).hexdigest()[:12]
         flag_links.setdefault(key,[]).append({'flag_id':flag_id,'flag_index':index})
-    return {'video': video, 'manifest': manifest, 'export': export, 'markers': expected_markers['markers'],
-            'flags': flags, 'flag_links':flag_links, 'identities': identities, 'source_container_start_seconds': origin}
+    context = {'video': video, 'manifest': manifest, 'export': export, 'markers': expected_markers['markers'],
+               'flags': flags, 'flag_links':flag_links, 'identities': identities, 'source_container_start_seconds': origin}
+    if arrangement_markers is not None:
+        import arrangement_markers as arrangement_tool
+        alternate, alternate_identities = arrangement_tool.load_validated(run_dir, arrangement_markers)
+        for path, identity in alternate_identities.items():
+            require(path not in identities or identities[path] == identity, 'Arrangement/canonical input identity conflict')
+            identities[path] = identity
+        context['markers'] = alternate['markers']
+        context['arrangement_markers'] = alternate
+        context['arrangement_marker_selector'] = arrangement_markers
+        context['flag_links'] = {}
+        for index, marker in enumerate(alternate['markers']):
+            key = json.dumps(marker, sort_keys=True, allow_nan=False)
+            context['flag_links'][key] = [{'flag_id': 'arrangement-' + hashlib.sha256(key.encode()).hexdigest()[:16],
+                                          'flag_index': index, 'flag_origin': 'hash_bound_arrangement_assessment'}]
+    return context
 
 
 def timestamp(value):
@@ -172,7 +187,21 @@ def safe_text(value):
     return str(value).replace('\\', '/').replace('{', '(').replace('}', ')').replace('\n', ' ').replace('\r', ' ')[:200]
 
 
-def select_markers(markers, selection, origin, frame_start, frame_end):
+def arrangement_display(marker):
+    # Display-only reduction; validated full wording/evidence remain in metadata.
+    full = safe_text(marker['display_label'])
+    phrase = full.split(': ', 1)[-1].replace(' (presumed repeat)', '').replace(' phrase ', ' · phrase ')
+    user_length = '[USER: length?]' in phrase
+    phrase = phrase.replace(' [USER: length?]', '')
+    kind = marker['name']
+    badge = ('Expected' if kind == 'arrangement_intended_unit' else
+             'Expected boundary' if full.startswith('EXPECTED boundary window:') else 'Timing review')
+    badges = [badge] + (['Check breakdown length (user)'] if user_length else [])
+    return {'arrangement_phrase_label': phrase, 'arrangement_badges': badges,
+            'full_display_label': full, 'label': phrase + ' | ' + ' · '.join(badges)}
+
+
+def select_markers(markers, selection, origin, frame_start, frame_end, *, arrangement_labels=False):
     require(selection in SELECTIONS, 'Unknown marker selection')
     selected, excluded = [], []
     for index, marker in enumerate(markers):
@@ -195,15 +224,16 @@ def select_markers(markers, selection, origin, frame_start, frame_end):
         selected.append({'marker_id': marker_id, 'marker_index': index, 'name': name,
                          'source_start_seconds': start, 'source_end_seconds': end,
                          'video_start_seconds': round(low*100)/100, 'video_end_seconds': round(high*100)/100,
-                         'label': LABELS.get(name, 'Review candidate'), 'status': 'needs_review',
+                         'label': safe_text(marker['display_label']) if arrangement_labels else LABELS.get(name, 'Review candidate'), 'status': 'needs_review',
                          'evidence': marker.get('evidence', {}), 'confidence': marker.get('confidence', 'unknown'),
-                         'presentation_dwell_extended': start == end})
+                         'presentation_dwell_extended': start == end,
+                         **({'label_basis': marker['label_basis'], **arrangement_display(marker)} if arrangement_labels else {})})
     limit = MAX_MARKERS if selection == 'all-review' else 128
     require(len(selected) <= limit, 'Selected marker count exceeds explicit preview bound')
     return selected, excluded
 
 
-def compose_callouts(selected, origin):
+def compose_callouts(selected, origin, *, arrangement_labels=False):
     edges = sorted({row[key] for row in selected for key in ('video_start_seconds', 'video_end_seconds')})
     callouts = []
     coverage = {row['marker_id']: {'visible_seconds': 0., 'suppressed_seconds': 0.} for row in selected}
@@ -219,11 +249,20 @@ def compose_callouts(selected, origin):
             coverage[row['marker_id']]['visible_seconds'] += high-low
         for row in suppressed:
             coverage[row['marker_id']]['suppressed_seconds'] += high-low
+        labels = list(dict.fromkeys(row['label'] for row in visible))
+        if arrangement_labels:
+            grouped = {}
+            for row in visible:
+                badges = grouped.setdefault(row['arrangement_phrase_label'], [])
+                for badge in row['arrangement_badges']:
+                    if badge not in badges:
+                        badges.append(badge)
+            labels = [phrase + ' | ' + ' · '.join(badges) for phrase, badges in grouped.items()]
         callout = {'video_start_seconds': low, 'video_end_seconds': high,
                    'source_start_seconds': low+origin, 'source_end_seconds': high+origin,
                    'visible_marker_ids': [row['marker_id'] for row in visible],
                    'suppressed_marker_ids': [row['marker_id'] for row in suppressed],
-                   'labels': list(dict.fromkeys(row['label'] for row in visible))}
+                   'labels': labels}
         if (callouts and callouts[-1]['video_end_seconds'] == low and all(callouts[-1][key] == callout[key]
                 for key in ('visible_marker_ids', 'suppressed_marker_ids', 'labels'))):
             callouts[-1]['video_end_seconds'] = high
@@ -234,7 +273,7 @@ def compose_callouts(selected, origin):
     return callouts, coverage
 
 
-def subtitles(callouts, width, height, font_family='Helvetica'):
+def subtitles(callouts, width, height, font_family='Helvetica', reference_bpm=None):
     size = max(14, round(height*.025))
     header = f'''[Script Info]
 ScriptType: v4.00+
@@ -258,7 +297,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         source_range = f"{timestamp(row['source_start_seconds'])} - {timestamp(row['source_end_seconds'])}"
         details = safe_text(' / '.join(row['labels']))
         fade = '{\\fad(60,60)}' if high-low >= .3 else ''
-        text = fade + safe_text('REVIEW - uncertain | SOURCE ' + source_range) + '\\N' + details
+        heading = ('REVIEW - uncertain | SOURCE ' + source_range if reference_bpm is None else
+                   f'~{reference_bpm:g} BPM · expected arrangement')
+        text = fade + safe_text(heading) + '\\N' + details
         rows.append(f'Dialogue: 0,{timestamp(low)},{timestamp(high)},Review,,0,0,0,,{text}')
     return header + '\n'.join(rows) + '\n'
 
@@ -355,7 +396,7 @@ def inspect_media(path, ffmpeg, ffprobe, executions):
     duration=float(probe['format']['duration'])
     require(math.isfinite(duration) and 0 < duration <= MAX_DURATION,'Preview input duration exceeds 600 seconds')
     frames=workflow.strict_json(command_run(base+['-select_streams','v:0','-show_frames','-show_entries',
-           'frame=best_effort_timestamp,duration','-of','json=compact=1',str(path)],executions))['frames']
+           'frame=best_effort_timestamp,duration','-of','json=compact=1',str(path)],executions,240))['frames']
     require(0 < len(frames) <= MAX_FRAMES,'Decoded frame count outside bounds')
     tick=Fraction(video['time_base'])
     pts=[int(row['best_effort_timestamp'])*tick for row in frames]
@@ -399,11 +440,12 @@ def verify_render(before,after):
             'picture_reencoded':True,'physical_audio_video_sync_verified':False}
 
 
-def render(run_dir, output, selection='phrase-review'):
+def render(run_dir, output, selection='phrase-review', arrangement_markers=None):
     run_dir=local_directory(run_dir)
     output=local_directory(output,fresh=True)
     require(not run_dir.is_relative_to(output),'Output cannot contain the input run')
-    context=prepare(run_dir)
+    require(arrangement_markers is None or selection == 'all-review', 'Arrangement markers require explicit all-review selection')
+    context=prepare(run_dir, arrangement_markers)
     ffmpeg,ffprobe=executable('ffmpeg'),executable('ffprobe')
     output.mkdir(parents=True,mode=0o700)
     outcome={'schema_version':1,'status':'running','run_dir':str(run_dir),'selection':selection,
@@ -414,6 +456,12 @@ def render(run_dir, output, selection='phrase-review'):
                             'Picture is reencoded; original and cleaned delivery remain separate.',
                             'Generic source timestamp spans are not validated Final Cut/Resolve import.',
                             'Physical capture A/V synchronization and Logic acceptance remain unverified.']}
+    if arrangement_markers is not None:
+        outcome['marker_mode'] = 'arrangement_reference_review'
+        outcome['arrangement_marker_selector'] = arrangement_markers
+        outcome['arrangement_marker_bindings'] = {key: context['arrangement_markers'][key]
+            for key in ('source_sha256', 'analyzed_input_sha256', 'manifest_sha256', 'assessment', 'reference',
+                        'producer_sha256', 'reference_validator_sha256', 'tempo')}
     workflow.atomic_json(output/'outcome.json',outcome)
     try:
         filters=command_run([ffmpeg,'-hide_banner','-filters'],outcome['executions'],30)
@@ -421,12 +469,14 @@ def render(run_dir, output, selection='phrase-review'):
         outcome['ffmpeg_version']=command_run([ffmpeg,'-version'],outcome['executions'],30).splitlines()[0]
         outcome['font']=installed_font(output)
         before=inspect_media(context['video'],ffmpeg,ffprobe,outcome['executions'])
-        selected,excluded=select_markers(context['markers'],selection,context['source_container_start_seconds'],before['frame_start'],before['frame_end'])
+        selected,excluded=select_markers(context['markers'],selection,context['source_container_start_seconds'],before['frame_start'],before['frame_end'],
+                                         arrangement_labels=arrangement_markers is not None)
         for row in selected:
             key=json.dumps(context['markers'][row['marker_index']],sort_keys=True,allow_nan=False)
             row['flags']=context['flag_links'].get(key,[])
             require(row['flags'],'Selected marker has no exact current flag binding')
-        callouts,coverage=compose_callouts(selected,context['source_container_start_seconds'])
+        callouts,coverage=compose_callouts(selected,context['source_container_start_seconds'],
+                                          arrangement_labels=arrangement_markers is not None)
         require(callouts,'No selected evidence intersects decoded picture coverage')
         selection_payload={'schema_version':1,'selection':selection,'source_sha256':outcome['source_sha256'],
             'source_container_start_seconds':context['source_container_start_seconds'],
@@ -434,8 +484,12 @@ def render(run_dir, output, selection='phrase-review'):
             'subtitle_time_quantization_seconds':.01,'selected_markers':selected,'excluded_markers':excluded,
             'callouts':callouts,'marker_visibility':coverage,'visible_lines_maximum':2,
             'performance_issue_confirmed':False,'listening_accepted':False}
+        if arrangement_markers is not None:
+            selection_payload['marker_mode'] = 'arrangement_reference_review'
+            selection_payload['arrangement_marker_bindings'] = outcome['arrangement_marker_bindings']
         workflow.atomic_json(output/'selection.json',selection_payload)
-        (output/'callouts.ass').write_text(subtitles(callouts,before['video']['width'],before['video']['height'],outcome['font']['family']))
+        (output/'callouts.ass').write_text(subtitles(callouts,before['video']['width'],before['video']['height'],outcome['font']['family'],
+            context['arrangement_markers']['tempo']['bpm'] if arrangement_markers is not None else None))
         unchanged(context['identities'])
         destination=output/'marked-video.mov'
         tick=Fraction(before['video']['time_base'])
@@ -474,9 +528,10 @@ def main(argv=None):
     parser.add_argument('--run-dir',required=True,type=Path)
     parser.add_argument('--output',required=True,type=Path)
     parser.add_argument('--selection',choices=SELECTIONS,default='phrase-review')
+    parser.add_argument('--arrangement-markers', help='Validated same-run-relative arrangement marker JSON; requires all-review')
     args=parser.parse_args(argv)
     try:
-        print(json.dumps(render(args.run_dir,args.output,args.selection),allow_nan=False))
+        print(json.dumps(render(args.run_dir,args.output,args.selection,args.arrangement_markers),allow_nan=False))
         return 0
     except (OSError,ValueError,KeyError,subprocess.TimeoutExpired) as exc:
         print(json.dumps({'status':'error','error':str(exc)}),file=sys.stderr)

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "action": "execute_capture_application_native_qualification",
+  "root_explicit_release": true,
+  "preregistration_sha256": "f6bec7567bc3e676d13f39c1f3f79671e307d4f75483ff1204a67bb33891d5c0",
+  "harness_sha256": "7148945f6ec1dba19f388412f2cfca991cecd7b548d9592df5a5228d33c1324b",
+  "plan_sha256": "f2aa237b4d7c0a34e93e5065e7436639a20311c7a81945de196c39c985ecd683",
+  "worker_sha256": {
+    "application": "790ac58f1924db2607087c6ab1cdae5d813ba24eda610af1f396d77e93d06584",
+    "author": "7d2820878826c87aabf2ab60b73c997b9d406b7f3ff8943d6012ed967444c355",
+    "media": "91443154251888c9e74670790766b289a2618f85f3be806d60ca26882faa9d94"
+  },
+  "output": "/Users/jess/git/video-utils/artifacts/experiments/capture-application-native-qualification/native-resource-20261006T0340",
+  "authorization_reference": "Operator active ten-hour implementation/fanout goal; AGENTS.md; R-HOOK-CONVERGENCE-20261004/R-N13. Resource-only790 revision51PASS+independent9;16 inert newharness tests. One generated8s qualification, historical000 native/NR8 preserved, no adoption or automaticretry."
+}

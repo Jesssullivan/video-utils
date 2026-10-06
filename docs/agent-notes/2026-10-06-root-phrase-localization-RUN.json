@@ -1,0 +1,42 @@
+{
+  "actor": "root",
+  "scope": "phrase-localization-fresh-617-719-v1",
+  "authorized_phases": [
+    "run"
+  ],
+  "plan_sha256": "8b0e7969f702d0685e2d7176c4ee96c19b1325b2e9b3d848685e093405c4c000",
+  "worker_sha256": "8eae0110995619d128a022e8f0882a522b6213c5899cfd41216128b9847abd6c",
+  "dependency_sha256": {
+    "docs/spec/PHRASE_LOCALIZATION_LANE.md": "71ab8f5b6641c33ac0bdf4bae4f4ba521c7fb22938d6547e4bc18a8c2639332b",
+    "scripts/phrase_localize.py": "a64ff3acc5f18931e9975e96d1c6e80a1d454272fbf9dd4925b8b835b8c509de",
+    "scripts/pitch_evaluate.py": "a91ce8e9386cc7c63c5a5d53b8233f2c46a1f42fdd06ab1ae0eea3dc83405805",
+    "scripts/phrase_evaluate.py": "3e503de277b2fd233fe802595a09a655c89669b0eb820f228e677c1b94b828a5",
+    "scripts/rhythm.py": "264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9",
+    "scripts/guitar_features.py": "2ed031e8000cbcda92b504db10c98de03f456c90573cbff815cbb940c9ac86fe",
+    "scripts/benchmark_bank.py": "087a67c009bb48abeac78259fc2719c02886e81b956ef8a9c62a22e6ee3913d5",
+    "docs/agent-notes/2026-10-06-phrase-order-null.py": "5582a5cf2b415b07a434b59f407da8c6e63fa9101001267dbba03f0cabe9f066",
+    "docs/agent-notes/2026-10-05-phrase-guarded-arms.py": "78ca89de9cea327cc4ec1096a83522781a08bc161819699b69797ca273e2fb6c",
+    "docs/agent-notes/2026-10-06-phrase-order-null-settings.json": "232f7503f58e9ebcb2b59b220b97755b7001683eccd80893634d8f6b777079a3",
+    "program/instrument.json": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0"
+  },
+  "budgets": {
+    "audio_bytes_per_file": 1000000,
+    "cache_expansion_bytes": 1000000,
+    "case_deadline_seconds": 120,
+    "frames_per_case": 512,
+    "generation_case_deadline_seconds": 120,
+    "generation_overall_deadline_seconds": 600,
+    "json_bytes": 20000000,
+    "localization_cells_per_case": 2000000,
+    "numerical_threads": 2,
+    "overall_deadline_seconds": 600,
+    "roi_tile_cells": 65536
+  },
+  "source_audit_path": "docs/agent-notes/2026-10-06-phrase-localization-experiment-source-audit.md",
+  "source_audit_sha256": "8f0f5f27746faa16766d2f4aaf88c501fa1d7d19f300ef599da5e1f5ba5646a8",
+  "created_utc": "2026-10-06T03:46:32.828060+00:00",
+  "output": "/Users/jess/git/video-utils/artifacts/experiments/phrase-localization/fresh-run-617-719-20261006T0348",
+  "authorization_reference": "User resumed active goal and full parallel continuation. Existing source qualification and independent native bank QC passed. One bounded run of sealed bank; no retuning or default adoption.",
+  "bank_sha256": "9b62a3498f8ed5c508cca68c904f4d868c3861280c2f707f1972f098d4f39e67",
+  "bank_path": "/Users/jess/git/video-utils/artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332/fixtures.json"
+}

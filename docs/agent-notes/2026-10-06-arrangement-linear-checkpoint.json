@@ -1,0 +1,10 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004 / R-N13; operator active goal and full parallel continuation",
+  "issue": "TIN-5495",
+  "comment_id": "4d15935e-87cb-44ee-981a-89eca2514988",
+  "created_at": "2026-10-06T03:53:34.705Z",
+  "full_body_readback_verified": true,
+  "prompt": "docs/agent-notes/2026-10-06-operator-arrangement-prompt.md",
+  "reference": "program/demo-arrangement.json",
+  "state": "active implementation; no publication or arrangement accuracy claim"
+}

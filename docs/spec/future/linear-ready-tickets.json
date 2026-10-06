@@ -1,0 +1,378 @@
+{
+  "schema_version": 1,
+  "status": "proposed_queued_not_activated",
+  "project_id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+  "authority_reference": "docs/agent-notes/2026-10-06-future-practice-studio-prompt.md",
+  "active_goal_deadline_utc": "2026-10-06T06:49:34Z",
+  "future_due_date": null,
+  "budgets": {
+    "core_ticket_hours": 31,
+    "core_reserve_hours": 4,
+    "core_total_hours": 35,
+    "web_ticket_hours": 31,
+    "web_reserve_hours": 4,
+    "web_total_hours": 35,
+    "local_ticket_hours": 35,
+    "local_total_hours": 35,
+    "extension_choice": "WEB or LOCAL, never both within70h",
+    "core_plus_one_extension_hours": 70
+  },
+  "milestones": [
+    {
+      "key": "CORE",
+      "name": "Local tone and source-bound practice feedback",
+      "target_date": null
+    },
+    {
+      "key": "WEB",
+      "name": "Optional bounded web workflow proof",
+      "exclusive_with": "LOCAL",
+      "depends_on": [
+        "CORE"
+      ],
+      "target_date": null
+    },
+    {
+      "key": "LOCAL",
+      "name": "Optional deeper tone and classified feedback",
+      "exclusive_with": "WEB",
+      "depends_on": [
+        "CORE"
+      ],
+      "target_date": null
+    },
+    {
+      "key": "LATER",
+      "name": "Hosting, score overlays and additional model qualification",
+      "depends_on": [
+        "CORE"
+      ],
+      "target_date": null
+    }
+  ],
+  "tickets": [
+    {
+      "key": "TONE",
+      "title": "Bind thin-tone feedback and validate a fuller mastering comparison",
+      "upsert_action": "append_future_scope_existing",
+      "existing_identifier": "TIN-5487",
+      "milestone_keys": [
+        "CORE",
+        "LOCAL"
+      ],
+      "estimates_hours": {
+        "core": 5,
+        "web": 0,
+        "local": 8
+      },
+      "later_estimate_hours_range": null,
+      "depends_on": [],
+      "priority": "P0",
+      "proposed_state": "Backlog",
+      "due_date": null,
+      "body": "Bind exact source/pure-denoise/tone/delivery stages, compare one bounded fuller candidate at matched level and preserve low-register/attack/tail panels plus operator choice.\n\nAcceptance: Exact hashes/controls/native extent; defined common-region match<=0.3LU; retained rejected trial; no room-response recovery or master acceptance without listening.\n\nDependencies: existing validated local tools/source receipts\n\nPlanning allocation: CORE 5h; optional WEB 0h OR LOCAL 8h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nRoadmap status: proposed future reallocation only. Existing ingestion/click/rhythm deliverables and current definition of done remain authoritative until root/user reconciliation; no existing ticket acceptance is inferred.",
+      "primary_milestone_key": "CORE",
+      "conditional_dependencies_by_milestone": {}
+    },
+    {
+      "key": "ANNOT",
+      "title": "Preserve source-timed human musical-issue assertions and qualified overlay scope",
+      "upsert_action": "append_future_scope_existing",
+      "existing_identifier": "TIN-5489",
+      "milestone_keys": [
+        "CORE",
+        "LOCAL"
+      ],
+      "estimates_hours": {
+        "core": 4,
+        "web": 0,
+        "local": 6
+      },
+      "later_estimate_hours_range": null,
+      "depends_on": [],
+      "priority": "P0",
+      "proposed_state": "Backlog",
+      "due_date": null,
+      "body": "Store operator/agent timestamp assertions independently from detector hypotheses; retain source identity, semantic kind, certainty/basis, revision and candidate links.\n\nAcceptance: Known melodic/rhythmic timestamp persists and seeks; conflicts/replays preserve records; unknowns remain null; extension renderer accounts visible/suppressed spans without confirming automatic mistakes.\n\nDependencies: existing validated local tools/source receipts\n\nPlanning allocation: CORE 4h; optional WEB 0h OR LOCAL 6h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nRoadmap status: proposed future reallocation only. Existing ingestion/click/rhythm deliverables and current definition of done remain authoritative until root/user reconciliation; no existing ticket acceptance is inferred.",
+      "primary_milestone_key": "CORE",
+      "conditional_dependencies_by_milestone": {}
+    },
+    {
+      "key": "UI",
+      "title": "Make tone and arrangement review legible, then bind one web preview flow",
+      "upsert_action": "create_queued",
+      "existing_identifier": null,
+      "milestone_keys": [
+        "CORE",
+        "WEB"
+      ],
+      "estimates_hours": {
+        "core": 4,
+        "web": 6,
+        "local": 0
+      },
+      "later_estimate_hours_range": null,
+      "depends_on": [
+        "TONE",
+        "ANNOT",
+        "CAP"
+      ],
+      "priority": "P1",
+      "proposed_state": "Backlog",
+      "due_date": null,
+      "body": "Improve existing local source/stage identities, keyboard notes, intended/observed coverage and matched A/B; WEB extension binds one preview workflow after stack/jobs.\n\nAcceptance: Actual local demo at375/390px and200%zoom; no autoplay; readback/conflict proof; staged upload/job screens labelled prototype. WEB proof requires executed submit/poll/review/download.\n\nDependencies: TONE, ANNOT, CAP\n\nPlanning allocation: CORE 4h; optional WEB 6h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nRoadmap status: proposed future reallocation only. Existing ingestion/click/rhythm deliverables and current definition of done remain authoritative until root/user reconciliation; no existing ticket acceptance is inferred.\n\nWEB-only additional dependencies: JOBS, STACK.",
+      "primary_milestone_key": "CORE",
+      "conditional_dependencies_by_milestone": {
+        "WEB": [
+          "JOBS",
+          "STACK"
+        ]
+      }
+    },
+    {
+      "key": "CAP",
+      "title": "Document shared capability contracts and qualify adapter parity",
+      "upsert_action": "append_future_scope_existing",
+      "existing_identifier": "TIN-5493",
+      "milestone_keys": [
+        "CORE",
+        "WEB",
+        "LOCAL"
+      ],
+      "estimates_hours": {
+        "core": 2,
+        "web": 3,
+        "local": 6
+      },
+      "later_estimate_hours_range": null,
+      "depends_on": [],
+      "priority": "P1",
+      "proposed_state": "Backlog",
+      "due_date": null,
+      "body": "Inventory units/default owner/effects/resources/provenance for selected existing tools; extension adds typed results/generated docs/parity, LOCAL may extract one domain with shims.\n\nAcceptance: Current names/args preserved; traversal finds worker/skill/tests; changed hashes/clock misuse reject; AU realtime availability explicitly separate; no all-tool web admission.\n\nDependencies: existing validated local tools/source receipts\n\nPlanning allocation: CORE 2h; optional WEB 3h OR LOCAL 6h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nRoadmap status: proposed future reallocation only. Existing ingestion/click/rhythm deliverables and current definition of done remain authoritative until root/user reconciliation; no existing ticket acceptance is inferred.",
+      "primary_milestone_key": "CORE",
+      "conditional_dependencies_by_milestone": {}
+    },
+    {
+      "key": "CORPUS",
+      "title": "Define heldout guitar labels and evaluate retrieval only when evidence exists",
+      "upsert_action": "create_queued",
+      "existing_identifier": null,
+      "milestone_keys": [
+        "CORE",
+        "LOCAL"
+      ],
+      "estimates_hours": {
+        "core": 4,
+        "web": 0,
+        "local": 10
+      },
+      "later_estimate_hours_range": null,
+      "depends_on": [
+        "ANNOT"
+      ],
+      "priority": "P1",
+      "proposed_state": "Backlog",
+      "due_date": null,
+      "body": "Define take-family grouping, separate articulation/error axes, coverage/absence exclusions and fixed baseline evaluator; LOCAL adds bounded retrieval if reviewed labels exist.\n\nAcceptance: Zero family leakage; complete source/label provenance; missing-F0/partial/polyphonic exclusions explicit; no accuracy SLA. If labels absent, reallocate retrieval slice within same cap rather than fabricate labels.\n\nDependencies: ANNOT\n\nPlanning allocation: CORE 4h; optional WEB 0h OR LOCAL 10h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nRoadmap status: proposed future reallocation only. Existing ingestion/click/rhythm deliverables and current definition of done remain authoritative until root/user reconciliation; no existing ticket acceptance is inferred.",
+      "primary_milestone_key": "CORE",
+      "conditional_dependencies_by_milestone": {}
+    },
+    {
+      "key": "IDS",
+      "title": "Project closed local capabilities to web-safe source and artifact IDs",
+      "upsert_action": "create_queued",
+      "existing_identifier": null,
+      "milestone_keys": [
+        "CORE"
+      ],
+      "estimates_hours": {
+        "core": 4,
+        "web": 0,
+        "local": 0
+      },
+      "later_estimate_hours_range": null,
+      "depends_on": [
+        "CAP"
+      ],
+      "priority": "P1",
+      "proposed_state": "Backlog",
+      "due_date": null,
+      "body": "Implement WEB1 artifact-ID metadata boundary and output confinement for a few admitted operations, preserving CLI/MCP contracts.\n\nAcceptance: No arbitrary host path/executable/filter accepted; source ownership/hash and returned artifact selectors checked; changed input/idempotent reads tested; not a running durable job service.\n\nDependencies: CAP\n\nPlanning allocation: CORE 4h; optional WEB 0h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nRoadmap status: proposed future reallocation only. Existing ingestion/click/rhythm deliverables and current definition of done remain authoritative until root/user reconciliation; no existing ticket acceptance is inferred.",
+      "primary_milestone_key": "CORE",
+      "conditional_dependencies_by_milestone": {}
+    },
+    {
+      "key": "RELEASE",
+      "title": "Integrate practice-loop PBT, runtime demos and factual handoff",
+      "upsert_action": "append_future_scope_existing",
+      "existing_identifier": "TIN-5492",
+      "milestone_keys": [
+        "CORE",
+        "WEB",
+        "LOCAL"
+      ],
+      "estimates_hours": {
+        "core": 8,
+        "web": 8,
+        "local": 5
+      },
+      "later_estimate_hours_range": null,
+      "depends_on": [
+        "TONE",
+        "ANNOT",
+        "UI",
+        "CAP",
+        "CORPUS",
+        "IDS"
+      ],
+      "priority": "P1",
+      "proposed_state": "Backlog",
+      "due_date": null,
+      "body": "Integrate cross-source/reference/state/refusal tests and real local walkthrough; WEB adds bounded crash/cancel/replay measurements; preserve source/runtime/listening states.\n\nAcceptance: Meaningful failure receipts and actual denominators; immutable originals/versions; no duplicate publish on exercised failures; exact source/CI/artifact/unknowns handoff. Partial tests do not claim all hosted SLO trials.\n\nDependencies: TONE, ANNOT, UI, CAP, CORPUS, IDS\n\nPlanning allocation: CORE 8h; optional WEB 8h OR LOCAL 5h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nRoadmap status: proposed future reallocation only. Existing ingestion/click/rhythm deliverables and current definition of done remain authoritative until root/user reconciliation; no existing ticket acceptance is inferred.\n\nWEB-only additional dependencies: JOBS, STACK.",
+      "primary_milestone_key": "CORE",
+      "conditional_dependencies_by_milestone": {
+        "WEB": [
+          "JOBS",
+          "STACK"
+        ]
+      }
+    },
+    {
+      "key": "JOBS",
+      "title": "Build one bounded durable preview-job pilot after artifact projection",
+      "upsert_action": "create_queued",
+      "existing_identifier": null,
+      "milestone_keys": [
+        "WEB"
+      ],
+      "estimates_hours": {
+        "core": 0,
+        "web": 8,
+        "local": 0
+      },
+      "later_estimate_hours_range": null,
+      "depends_on": [
+        "IDS",
+        "CAP",
+        "STACK"
+      ],
+      "priority": "P2",
+      "proposed_state": "Backlog",
+      "due_date": null,
+      "body": "WEB remaining WEB2/3: accepted/queued/running/failed/cancelled/completed states, bounded existing workers, restart accounting and one preview path; core WEB1 already charged.\n\nAcceptance: One source/one admitted preview job; replay/cancel/reconnect/changed-source refusal; committed result+artifact hashes; failures retained. No multiuser deployment or processing-latency guarantee.\n\nDependencies: IDS, CAP, STACK\n\nPlanning allocation: CORE 0h; optional WEB 8h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nRoadmap status: proposed future reallocation only. Existing ingestion/click/rhythm deliverables and current definition of done remain authoritative until root/user reconciliation; no existing ticket acceptance is inferred.",
+      "primary_milestone_key": "WEB",
+      "conditional_dependencies_by_milestone": {}
+    },
+    {
+      "key": "STACK",
+      "title": "Qualify the UI stack and justify one versus two server control layers",
+      "upsert_action": "create_queued",
+      "existing_identifier": null,
+      "milestone_keys": [
+        "WEB"
+      ],
+      "estimates_hours": {
+        "core": 0,
+        "web": 6,
+        "local": 0
+      },
+      "later_estimate_hours_range": null,
+      "depends_on": [
+        "CAP"
+      ],
+      "priority": "P2",
+      "proposed_state": "Backlog",
+      "due_date": null,
+      "body": "Compare SvelteKit control+existing workers against BFF+FastAPI; qualify locked Svelte/Effect4/Skeleton5 fixture, schema/runes/SSR/a11y and remote-function fallback.\n\nAcceptance: Written architecture decision tied to isolation/cancellation/typed results; isolated integration build; experimental remote functions have stable action/HTTP fallback; no processing migrated to JS by assumption.\n\nDependencies: CAP\n\nPlanning allocation: CORE 0h; optional WEB 6h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nRoadmap status: proposed future reallocation only. Existing ingestion/click/rhythm deliverables and current definition of done remain authoritative until root/user reconciliation; no existing ticket acceptance is inferred.",
+      "primary_milestone_key": "WEB",
+      "conditional_dependencies_by_milestone": {}
+    },
+    {
+      "key": "HOST",
+      "title": "Qualify a private hosted processing service after local job proof",
+      "upsert_action": "create_queued",
+      "existing_identifier": null,
+      "milestone_keys": [
+        "LATER"
+      ],
+      "estimates_hours": {
+        "core": 0,
+        "web": 0,
+        "local": 0
+      },
+      "later_estimate_hours_range": [
+        6,
+        10
+      ],
+      "depends_on": [
+        "JOBS",
+        "UI",
+        "RELEASE"
+      ],
+      "priority": "P2",
+      "proposed_state": "Backlog",
+      "due_date": null,
+      "body": "Later6–10h planning estimate: host/access/retention/resource policy and measured workload/SLO pilot; no fixed date.\n\nAcceptance: Actual host/access tests, job/resource monitoring and retention proof; operational owner/support/incident definitions before any SLA. Local prototype does not count as production activation.\n\nDependencies: JOBS, UI, RELEASE\n\nPlanning allocation: CORE 0h; optional WEB 0h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nRoadmap status: proposed future reallocation only. Existing ingestion/click/rhythm deliverables and current definition of done remain authoritative until root/user reconciliation; no existing ticket acceptance is inferred.",
+      "primary_milestone_key": "LATER",
+      "conditional_dependencies_by_milestone": {}
+    },
+    {
+      "key": "STAFF",
+      "title": "Design optional source-mapped staff and score overlays from qualified note events",
+      "upsert_action": "create_queued",
+      "existing_identifier": null,
+      "milestone_keys": [
+        "LATER"
+      ],
+      "estimates_hours": {
+        "core": 0,
+        "web": 0,
+        "local": 0
+      },
+      "later_estimate_hours_range": [
+        8,
+        16
+      ],
+      "depends_on": [
+        "ANNOT",
+        "CORPUS"
+      ],
+      "priority": "P2",
+      "proposed_state": "Backlog",
+      "due_date": null,
+      "body": "Later8–16h bounded design/render spike: manual/reference note events, low-register/octave ambiguity and actual video clocks; no promised full transcription.\n\nAcceptance: One qualified score fixture maps to source/frame spans; uncertain/unknown pitch retains clear labels; licenses/assets and visibility ledger verified; separate native editor proof.\n\nDependencies: ANNOT, CORPUS\n\nPlanning allocation: CORE 0h; optional WEB 0h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nRoadmap status: proposed future reallocation only. Existing ingestion/click/rhythm deliverables and current definition of done remain authoritative until root/user reconciliation; no existing ticket acceptance is inferred.",
+      "primary_milestone_key": "LATER",
+      "conditional_dependencies_by_milestone": {}
+    },
+    {
+      "key": "MODEL",
+      "title": "Qualify one optional guitar classification comparator with heldout evidence",
+      "upsert_action": "create_queued",
+      "existing_identifier": null,
+      "milestone_keys": [
+        "LATER"
+      ],
+      "estimates_hours": {
+        "core": 0,
+        "web": 0,
+        "local": 0
+      },
+      "later_estimate_hours_range": [
+        8,
+        12
+      ],
+      "depends_on": [
+        "CORPUS",
+        "CAP"
+      ],
+      "priority": "P2",
+      "proposed_state": "Backlog",
+      "due_date": null,
+      "body": "Later8–12h qualification planning/spike: consider existing PCEN/mel/Runes/Sting/Blahaj work, model/license/hash/runtime/resource identity and frozen comparator; no implicit download or full classifier promise.\n\nAcceptance: Independent low-register/negative/partial labels and fixed split before scoring; reported per-class coverage/errors/abstention; source compatibility proof distinct from actual audio-classification accuracy.\n\nDependencies: CORPUS, CAP\n\nPlanning allocation: CORE 0h; optional WEB 0h OR LOCAL 0h. These are substitutions within35h+one35h, never additive branches. No future deadline or activation is committed. Preserve existing source/runtime/listening evidence.\n\nRoadmap status: proposed future reallocation only. Existing ingestion/click/rhythm deliverables and current definition of done remain authoritative until root/user reconciliation; no existing ticket acceptance is inferred.",
+      "primary_milestone_key": "LATER",
+      "conditional_dependencies_by_milestone": {}
+    }
+  ],
+  "roadmap_change_status": "proposed_reallocation_only; existing PROJECT core/current DoD unchanged pending root/user reconciliation"
+}

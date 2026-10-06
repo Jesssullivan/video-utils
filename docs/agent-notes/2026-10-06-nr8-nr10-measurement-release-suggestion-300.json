@@ -1,0 +1,78 @@
+{
+  "approved_application_producers": {
+    "nr10": "790ac58f1924db2607087c6ab1cdae5d813ba24eda610af1f396d77e93d06584",
+    "nr8": "00a03ef9fad8543be4335cb5cbcd3c9d9580a6b40b8faeb826811b105fd5daa6"
+  },
+  "authority": "PROPOSAL_NOT_EXECUTABLE",
+  "candidates": [
+    {
+      "application_receipt": {
+        "path": "/Users/jess/git/video-utils/artifacts/runs/20261006T030345Z-af60acfd29dd/application-receipt.json",
+        "sha256": "38a5e54d91ceb39048169b86ee54e2c29bc334b36399bf50aa08346534f74d59"
+      },
+      "export_outcome": {
+        "path": "/Users/jess/git/video-utils/artifacts/runs/20261006T030345Z-af60acfd29dd/export/outcome.json",
+        "sha256": "9470c097c8e62d7aafdc2515443ee720078517c58aad107f322cc687ef584477"
+      },
+      "label": "nr8",
+      "manifest": {
+        "path": "/Users/jess/git/video-utils/artifacts/runs/20261006T030345Z-af60acfd29dd/manifest.json",
+        "sha256": "036c469d4907468b8087d215162163035f5a7ff08933be1bed7018022c35eb65"
+      }
+    },
+    {
+      "application_receipt": {
+        "path": "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/application-receipt.json",
+        "sha256": "71a3a33e221f02d1b5141cdaaaf023d498decf2a615ed0763de5bfd70a5abfc7"
+      },
+      "export_outcome": {
+        "path": "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/export/outcome.json",
+        "sha256": "198a117bcee7b39b31410c99a865ec024a4221749e2032eee7ebaaa9fc29d9aa"
+      },
+      "label": "nr10",
+      "manifest": {
+        "path": "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/restoration-manifest.json",
+        "sha256": "a6c371ab36e1f50b850f167a42b010ffa7b923b32aca14f4bfd70fb24036077c"
+      }
+    }
+  ],
+  "driver_sha256": "dbcb63463e3c820510d01aa836b1814a1c4333f598be0f620bf56c783fd11cc3",
+  "ffmpeg": {
+    "path": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+    "sha256": "3a315207e67de78e48c3bbb6b3346663f6a27c02e034d65ac72a12fee74c534a"
+  },
+  "method_sha256": "9c06f5094966f4b24d832e4b2034810fe9e77300e21ae364c4b9bb41f58d2d0a",
+  "output_dir": "/Users/jess/git/video-utils/artifacts/experiments/nr8-nr10-comparison/compare300-20261006T041932Z",
+  "protected": [
+    {
+      "path": "/Users/jess/Documents/Movie on 10-5-26 at 3.38\u202fPM.mov",
+      "sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6"
+    },
+    {
+      "path": "/Users/jess/git/video-utils/artifacts/latest.json",
+      "sha256": "8ed66efb8f81f06db6c1abb0a5962c38218d6c8bd1fb3c2d46432dc1693fa5ee"
+    },
+    {
+      "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232627Z-eb7bead2ae74/source.wav",
+      "sha256": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a"
+    },
+    {
+      "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/cleaned.wav",
+      "sha256": "99d56a25d05e434b4bb8f4149488c7b143558872c826ecc55df344012f4fbafd"
+    },
+    {
+      "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/denoised.wav",
+      "sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd"
+    },
+    {
+      "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/residue.wav",
+      "sha256": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc"
+    },
+    {
+      "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/export/outcome.json",
+      "sha256": "711f8adf495293286fe229cbd6fba4cceb7bd7bb33f0e91905c36acb649207be"
+    }
+  ],
+  "schema_version": 1,
+  "whole_job_seconds_max": 300
+}

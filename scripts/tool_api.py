@@ -365,9 +365,66 @@ def editor_marker_inputs(args):
     return str(directory)
 
 
+def capture_application_paths(args):
+    """Explicit authoring artifact identity; semantic provenance stays in worker."""
+    from capture_profile import safe_path, CaptureError
+    try:
+        source_path = Path(args['input']).expanduser()
+        author_path = Path(args['authoring_dir']).expanduser()
+        original = safe_path(source_path if source_path.is_absolute() else ROOT / source_path)
+        authored = safe_path(author_path if author_path.is_absolute() else ROOT / author_path, directory=True)
+        if original.stat().st_size > 3 * 1024**3:
+            raise ToolError('capture application original exceeds3GiB')
+        boundary = ROOT / 'artifacts/runs'
+        if (not authored.is_relative_to(boundary) or authored.parent.name != 'capture-profiles'
+                or authored.parent.parent == boundary):
+            raise ToolError('capture application authoring_dir must name an explicit run/capture-profiles/ID')
+        for name, bound in (('receipt.json',64*1024), ('profile.json',16*1024)):
+            selected = safe_path(authored / name)
+            if selected.stat().st_size > bound: raise ToolError('capture application authoring metadata exceeds byte bound')
+    except (CaptureError, OSError, ValueError, RuntimeError) as error:
+        raise ToolError('capture application requires bounded regular source/authoring artifacts: '+str(error)) from error
+    return dict(args, input=str(original), authoring_dir=str(authored))
+
+
+def arrangement_reference_paths(args):
+    """Public assessment stays inside its explicit verified source run."""
+    from capture_profile import safe_path
+    directory = Path(marked_video_directory(args['run_dir']))
+    try:
+        reference = Path(args.get('reference','program/demo-arrangement.json')).expanduser()
+        reference = safe_path(reference if reference.is_absolute() else ROOT / reference)
+    except (ValueError,OSError,RuntimeError) as error: raise ToolError('bounded local arrangement reference required') from error
+    if reference.stat().st_size > 64*1024: raise ToolError('arrangement reference exceeds64KiB')
+    output = Path(marked_video_directory(args['output'],output=True))
+    if not output.is_relative_to(directory) or output == directory:
+        raise ToolError('arrangement output must be a fresh child inside the selected run')
+    for name,bound in (('manifest.json',1024**2),('analysis.json',16*1024**2),('phrases.json',4*1024**2)):
+        try: path = safe_path(directory / name)
+        except (ValueError,OSError,RuntimeError) as error: raise ToolError('bounded current arrangement run metadata required') from error
+        if path.stat().st_size > bound: raise ToolError('arrangement cached metadata exceeds byte bound')
+    return str(reference),str(directory),str(output)
+
+
 
 def validate_tool_arguments(name, args):
     """Cross-field rules that are known before a worker or file read starts."""
+    if name == 'apply_capture_profile':
+        digest = args['receipt_sha256']
+        if any(character not in '0123456789abcdef' for character in digest):
+            raise ValidationError('capture application requires exact lowercase hexadecimal receipt_sha256')
+        for field in ('input','authoring_dir'):
+            value = args[field]
+            if ('\x00' in value or '\\' in value or ':' in value
+                    or any(part.startswith('.') or '.partial' in part for part in value.split('/') if part)):
+                raise ValidationError('capture application requires exact local paths without traversal/NUL/URL')
+    if name == 'arrangement_reference':
+        for field in ('run_dir','output','reference'):
+            if field not in args: continue
+            value=args[field]
+            if ('\x00' in value or '\\' in value or ':' in value
+                    or any(part.startswith('.') or '.partial' in part for part in value.split('/') if part)):
+                raise ValidationError('arrangement inputs require exact safe local paths')
     if name == 'review':
         operation = args.get('operation', 'read')
         if operation == 'read' and 'input' in args:
@@ -405,6 +462,10 @@ def validate_tool_arguments(name, args):
         for field in (('run_dir', 'output') if name == 'marked_video' else ('run_dir',)):
             if '\\' in args[field] or '..' in args[field].split('/'):
                 raise ValidationError('marked video directories cannot contain traversal or backslash components')
+        if name == 'marked_video' and 'arrangement_markers' in args:
+            validate_evidence_selector(args['arrangement_markers'])
+            if args.get('selection') != 'all-review':
+                raise ValidationError('arrangement markers require explicit selection all-review')
     if name in CALIBRATION_TOOLS or name == 'learned_pitch_evaluate':
         fields = LEARNED_EVALUATION_FIELDS if name == 'learned_pitch_evaluate' else ('fixture_index', 'pilot_index', 'output')
         for field in fields:
@@ -456,10 +517,19 @@ def worker_command(name, args):
         return head + [str(ROOT / 'scripts/corpus.py'), 'validate', manifest,
                        '--root', root, '--summary']
     if name == 'marked_video':
-        return head + [str(ROOT / 'scripts/marked_video.py'),
-                       '--run-dir', marked_video_directory(args['run_dir']),
+        directory = marked_video_directory(args['run_dir'])
+        command = head + [str(ROOT / 'scripts/marked_video.py'),
+                       '--run-dir', directory,
                        '--selection', args.get('selection', 'phrase-review'),
                        '--output', marked_video_directory(args['output'], output=True)]
+        if 'arrangement_markers' in args:
+            relative = selected_evidence_path(directory,args['arrangement_markers'])
+            if (Path(directory)/relative).stat().st_size > 4*1024**2: raise ToolError('arrangement marker JSON exceeds4MiB')
+            command += ['--arrangement-markers',relative]
+        return command
+    if name == 'arrangement_reference':
+        reference,directory,output = arrangement_reference_paths(args)
+        return head + [str(ROOT/'scripts/arrangement_reference.py'),reference,'--run-dir',directory,'--output',output]
     if name == 'basic_pitch_compare':
         command = head + [str(ROOT / 'scripts/basic_pitch_compare.py'),
                           basic_pitch_directory(args['run_dir']),
@@ -646,7 +716,19 @@ def execute(name, arguments):
     validate_tool_arguments(name, arguments)
     timeout = arguments.get('timeout_seconds',
                             info['inputSchema']['properties'].get('timeout_seconds', {}).get('default', 600))
-    if name == 'capture_profile':
+    if name == 'apply_capture_profile':
+        from capture_application_adapter import ApplicationAdapter, AdapterError
+        try:
+            result = ApplicationAdapter(ROOT).run(capture_application_paths(arguments))
+        except AdapterError as error:
+            receipt = {'application_supervision':error.receipt, 'worker_diagnostic':error.diagnostic,
+                       'worker_diagnostic_omitted':False,
+                       'publication_outcome':'inspect_exact_durable_receipts'}
+            message = str(error)[:1000]
+            if len(json.dumps({'error':message,'receipt':receipt},allow_nan=False).encode()) > 16*1024:
+                receipt['worker_diagnostic'] = None; receipt['worker_diagnostic_omitted'] = True
+            raise ToolError(message, receipt=receipt) from error
+    elif name == 'capture_profile':
         result = run_worker(worker_command(name, arguments), timeout, error_json_tool=name)
     else:
         result = run_worker(worker_command(name, arguments), timeout)

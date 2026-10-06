@@ -1,0 +1,260 @@
+{
+  "schema_version": 1,
+  "created_utc": "2026-10-06T03:53:57.795968+00:00",
+  "authority": "operator arrangement + root bounded read-only lane; AGENTS.md/R-N13",
+  "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "analyzed_input_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+  "status": "cached_anchor_candidates_require_review",
+  "audio_decoded": false,
+  "automatic_mistake_declaration": false,
+  "operator_context": {
+    "metronome_start_approx_seconds": 5,
+    "first_phrase_source_bracket_seconds": [
+      10,
+      11
+    ],
+    "metronome_type": "mechanical",
+    "preceding_windup": "operator_statement_not_detected",
+    "bpm_approx": 178,
+    "chorus_clicks_per_phrase": 16,
+    "expected_arrangement_clicks": 404,
+    "click_index_origin": "first_intended_phrase_not_metronome_start",
+    "count_forced_to_detected_events": false
+  },
+  "startup_candidates": [
+    {
+      "source_seconds": 5.0025,
+      "proxy": "broadband_attack_candidate",
+      "identity": "unknown_possible_first_click_or_startup_sound"
+    },
+    {
+      "source_seconds": 5.04,
+      "proxy": "spectral_flux_and_superflux",
+      "identity": "unknown_delayed_attack_candidate"
+    },
+    {
+      "source_seconds": 5.56,
+      "proxy": "spectral_flux",
+      "identity": "next_attack_after_0.52s_not_verified_second_click"
+    }
+  ],
+  "local_scan": [
+    {
+      "proxy": "spectral_flux_attack_candidate",
+      "cached_early_events_4.7_to_11.5_seconds": [
+        4.71,
+        4.875,
+        5.04,
+        5.56,
+        5.91,
+        6.245,
+        6.59,
+        6.925,
+        7.27,
+        7.605,
+        7.945,
+        8.28,
+        8.625,
+        8.96,
+        9.305,
+        9.425,
+        9.64,
+        9.985,
+        10.21,
+        10.315,
+        10.655,
+        10.99,
+        11.345
+      ],
+      "local_fit": {
+        "window_seconds": [
+          6,
+          10
+        ],
+        "seed_period_seconds": 0.34249999999999936,
+        "greedy_tolerance_seconds": 0.075,
+        "selected_events": [
+          6.245,
+          6.59,
+          6.925,
+          7.27,
+          7.605,
+          7.945,
+          8.28,
+          8.625,
+          8.96,
+          9.305,
+          9.64,
+          9.985
+        ],
+        "period_seconds": 0.339493006993007,
+        "equivalent_bpm": 176.73412637107987,
+        "first_selected_event_seconds": 6.247371794871795,
+        "median_absolute_residual_ms": 2.3368298368300344,
+        "physical_delay_calibrated": false
+      },
+      "projected_phrase_bracket_events": [
+        10.321287878787878,
+        10.660780885780886
+      ],
+      "observed_phrase_bracket_events": [
+        10.21,
+        10.315,
+        10.655,
+        10.99
+      ]
+    },
+    {
+      "proxy": "superflux_attack_candidate",
+      "cached_early_events_4.7_to_11.5_seconds": [
+        4.715,
+        4.88,
+        5.04,
+        5.565,
+        5.91,
+        6.245,
+        6.59,
+        6.925,
+        7.27,
+        7.605,
+        7.95,
+        8.285,
+        8.63,
+        8.965,
+        9.305,
+        9.43,
+        9.645,
+        9.99,
+        10.32,
+        10.66,
+        10.995,
+        11.35
+      ],
+      "local_fit": {
+        "window_seconds": [
+          6,
+          10
+        ],
+        "seed_period_seconds": 0.3424999999999998,
+        "greedy_tolerance_seconds": 0.075,
+        "selected_events": [
+          6.245,
+          6.59,
+          6.925,
+          7.27,
+          7.605,
+          7.95,
+          8.285,
+          8.63,
+          8.965,
+          9.305,
+          9.645,
+          9.99
+        ],
+        "period_seconds": 0.33998251748251745,
+        "equivalent_bpm": 176.47966267290587,
+        "first_selected_event_seconds": 6.247179487179487,
+        "median_absolute_residual_ms": 2.1620046620043354,
+        "physical_delay_calibrated": false
+      },
+      "projected_phrase_bracket_events": [
+        10.326969696969696,
+        10.666952214452213
+      ],
+      "observed_phrase_bracket_events": [
+        10.32,
+        10.66,
+        10.995
+      ]
+    }
+  ],
+  "first_phrase_candidates": [
+    {
+      "candidate_source_seconds": 10.2775,
+      "spectral_correspondence_seconds": 10.315,
+      "superflux_correspondence_seconds": 10.32,
+      "status": "review_candidate_not_confirmed_downbeat",
+      "native_sample_approx": 453238,
+      "basis": "operator_10_to_11_bracket_plus_cached_broadband_and_spectral_attacks",
+      "uncertainty_seconds": null,
+      "reason": "Detector delay and onset identity are uncalibrated; no calibrated error bound."
+    },
+    {
+      "candidate_source_seconds": 10.6275,
+      "spectral_correspondence_seconds": 10.655,
+      "superflux_correspondence_seconds": 10.66,
+      "status": "review_candidate_not_confirmed_downbeat",
+      "native_sample_approx": 468673,
+      "basis": "operator_10_to_11_bracket_plus_cached_broadband_and_spectral_attacks",
+      "uncertainty_seconds": null,
+      "reason": "Detector delay and onset identity are uncalibrated; no calibrated error bound."
+    },
+    {
+      "candidate_source_seconds": 10.9775,
+      "spectral_correspondence_seconds": 10.99,
+      "superflux_correspondence_seconds": 10.995,
+      "status": "review_candidate_not_confirmed_downbeat",
+      "native_sample_approx": 484108,
+      "basis": "operator_10_to_11_bracket_plus_cached_broadband_and_spectral_attacks",
+      "uncertainty_seconds": null,
+      "reason": "Detector delay and onset identity are uncalibrated; no calibrated error bound."
+    }
+  ],
+  "cached_counts": {
+    "cached_click_tool_total": 219,
+    "cached_click_tool_before_5_seconds": 3,
+    "cached_click_tool_5_to_10_seconds": 8,
+    "cached_click_tool_at_or_after_10_seconds": 208,
+    "cached_spectral_total": 581,
+    "cached_superflux_total": 495
+  },
+  "extent_hypotheses": [
+    {
+      "basis": "operator_approximate_constant_bpm_hypothesis",
+      "period_seconds": 0.33707865168539325,
+      "404_click_end_exclusive_extent_seconds": 136.17977528089887,
+      "possible_end_exclusive_source_bracket_seconds": [
+        146.17977528089887,
+        147.17977528089887
+      ],
+      "last_expected_click_relative_to_phrase_origin_seconds": 135.8426966292135,
+      "actual_count_verified": false
+    },
+    {
+      "basis": "observed_global_double_alias_constant_period_hypothesis",
+      "period_seconds": 0.33783235592505095,
+      "404_click_end_exclusive_extent_seconds": 136.48427179372058,
+      "possible_end_exclusive_source_bracket_seconds": [
+        146.48427179372058,
+        147.48427179372058
+      ],
+      "last_expected_click_relative_to_phrase_origin_seconds": 136.14643943779552,
+      "actual_count_verified": false
+    }
+  ],
+  "limitations": [
+    "Events before operator-reported metronome start are unverified mixture transients, not detected metronome truth.",
+    "Global half-time grid must not treat every interpolated faster beat as an observed click.",
+    "Local early period differs from global period; mechanical startup/nonuniform clock remains plausible but unproven.",
+    "First phrase onset and metronome click need separate reviewed anchors.",
+    "Expected 404 musical clicks excludes pre-phrase count-in and cannot grade candidate count alone.",
+    "Operator concern about rushed breakdown is a hypothesis, not an automatically identified error."
+  ],
+  "inputs_before_sha256": {
+    "artifacts/runs/20261005T232741Z-2b5dc43fd009/analysis.json": "4d32f962c5c59920943217cfb72fbe3c9e3eb9fefa3c6d9b79ee648187cadd0a",
+    "artifacts/runs/20261005T232741Z-2b5dc43fd009/clicks/20261005T232934Z-6250dfe0f17d/clicks.json": "f9c881d650dd938dc8a5e05b3a9a7504ebed72d00b50b2c385a196985a8db4d6",
+    "program/demo-arrangement.json": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a",
+    "artifacts/runs/20261005T232741Z-2b5dc43fd009/manifest.json": "4a75b4e352075114a7b6026c74acab3ab6c64eedddd52fc2b8514adfed80549c",
+    "docs/agent-notes/2026-10-06-operator-arrangement-prompt.md": "d16c491d0386c426388f2b717da055eeed701898be63699eb8839afb220fe6bc",
+    "artifacts/runs/20261005T232741Z-2b5dc43fd009/denoised.wav": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd"
+  },
+  "inputs_after_sha256": {
+    "artifacts/runs/20261005T232741Z-2b5dc43fd009/analysis.json": "4d32f962c5c59920943217cfb72fbe3c9e3eb9fefa3c6d9b79ee648187cadd0a",
+    "artifacts/runs/20261005T232741Z-2b5dc43fd009/clicks/20261005T232934Z-6250dfe0f17d/clicks.json": "f9c881d650dd938dc8a5e05b3a9a7504ebed72d00b50b2c385a196985a8db4d6",
+    "program/demo-arrangement.json": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a",
+    "artifacts/runs/20261005T232741Z-2b5dc43fd009/manifest.json": "4a75b4e352075114a7b6026c74acab3ab6c64eedddd52fc2b8514adfed80549c",
+    "docs/agent-notes/2026-10-06-operator-arrangement-prompt.md": "d16c491d0386c426388f2b717da055eeed701898be63699eb8839afb220fe6bc",
+    "artifacts/runs/20261005T232741Z-2b5dc43fd009/denoised.wav": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd"
+  },
+  "all_inputs_unchanged": true
+}

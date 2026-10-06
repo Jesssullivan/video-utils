@@ -1,0 +1,271 @@
+{
+  "actor": "/root/media_latency",
+  "audio_decoded": false,
+  "authority": "Root explicit metadata-only NR8/NR10 matched actualtake profile authoring; R-HOOK-CONVERGENCE-20261004/R-N11/R-N13",
+  "created_utc": "2026-10-06T02:59:19.682200+00:00",
+  "dsp_performed": false,
+  "latest_changed": false,
+  "listening_accepted": false,
+  "master_adopted": false,
+  "old_profile_and_receipt_unchanged": true,
+  "owned_process_events": [
+    {
+      "actor": "apply_capture_profile",
+      "cleanup_seconds_max": 5.0,
+      "leader_pid": 36239,
+      "pgid": 36239,
+      "prior_state": {
+        "leader_returncode": 0,
+        "live_members": []
+      },
+      "reason": "stage_finished",
+      "result": "leader_reaped_no_runnable_same_session_group_members",
+      "ruling": "R-N11/R-N12",
+      "session_id": 36239,
+      "signals": []
+    },
+    {
+      "actor": "apply_capture_profile",
+      "cleanup_seconds_max": 5.0,
+      "leader_pid": 36243,
+      "pgid": 36243,
+      "prior_state": {
+        "leader_returncode": 0,
+        "live_members": []
+      },
+      "reason": "stage_finished",
+      "result": "leader_reaped_no_runnable_same_session_group_members",
+      "ruling": "R-N11/R-N12",
+      "session_id": 36243,
+      "signals": []
+    }
+  ],
+  "protected_sha256": {
+    "/Users/jess/Documents/Movie on 10-5-26 at 3.38\u202fPM.mov": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+    "/Users/jess/git/video-utils/artifacts/latest.json": "8ed66efb8f81f06db6c1abb0a5962c38218d6c8bd1fb3c2d46432dc1693fa5ee",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profile-review-root.json": "953d8d84fb12c358d14bf6d32e8ea93bb6f6491e5597b5dc2035bc5577d24cf4",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profiles/20261006T003323Z-18de99aa2ca74832b92a95956838de97/profile.json": "ff8b4f078a95c24cfd3a5088d7729550f82241d0f628efaf684ddf1390d76dac",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profiles/20261006T003323Z-18de99aa2ca74832b92a95956838de97/receipt.json": "8040361edebc0fe32d28a19ad9bb403fc3fa2dc219715a3a165ff5aff8adad81",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/cleaned.wav": "99d56a25d05e434b4bb8f4149488c7b143558872c826ecc55df344012f4fbafd",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/export/cleaned-video.mov": "9e7bc23aed07b73012765ff6abf7f0e0fe5913cbc4ee47bb60aa4e95f205f6fe",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/manifest.json": "4a75b4e352075114a7b6026c74acab3ab6c64eedddd52fc2b8514adfed80549c",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/marked-preview/marked-video.mov": "13b9d18b80be37de954530f3c1220c256a061136921ffaf3c68f7e677b55dc90",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/report.html": "a47ae9cf342e4bf2c81a7f64dcd6c662984d09a81106399166109b190bcd3cc2",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/source.wav": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a"
+  },
+  "protected_unchanged": true,
+  "render_authorized_by_this_action": false,
+  "results": [
+    {
+      "arguments": {
+        "adaptivity": 0,
+        "capture_end_seconds": 4.95,
+        "capture_start_seconds": 4.1,
+        "compressor": {
+          "attack_ms": 15,
+          "knee_db": 3,
+          "ratio": 2,
+          "release_ms": 100,
+          "threshold_db": -18
+        },
+        "gain_smooth": 0,
+        "input": "/Users/jess/Documents/Movie on 10-5-26 at 3.38\u202fPM.mov",
+        "integrated_lufs": -18,
+        "noise_floor_db": -40,
+        "peaking_eq": [
+          {
+            "frequency_hz": 300,
+            "gain_db": -1.5,
+            "q": 0.8
+          },
+          {
+            "frequency_hz": 2200,
+            "gain_db": 1,
+            "q": 0.8
+          }
+        ],
+        "reduction_db": 8,
+        "review": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profile-review-root.json",
+        "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009",
+        "timeout_seconds": 60,
+        "true_peak_dbtp": -1.75
+      },
+      "command": [
+        "/Users/jess/.nix-profile/bin/python3",
+        "/Users/jess/git/video-utils/scripts/tool_api.py",
+        "run",
+        "capture_profile",
+        "--arguments",
+        "{\"input\": \"/Users/jess/Documents/Movie on 10-5-26 at 3.38\\u202fPM.mov\", \"run_dir\": \"/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009\", \"review\": \"/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profile-review-root.json\", \"capture_start_seconds\": 4.1, \"capture_end_seconds\": 4.95, \"reduction_db\": 8, \"noise_floor_db\": -40, \"adaptivity\": 0, \"gain_smooth\": 0, \"integrated_lufs\": -18, \"true_peak_dbtp\": -1.75, \"peaking_eq\": [{\"frequency_hz\": 300, \"gain_db\": -1.5, \"q\": 0.8}, {\"frequency_hz\": 2200, \"gain_db\": 1, \"q\": 0.8}], \"compressor\": {\"threshold_db\": -18, \"ratio\": 2, \"attack_ms\": 15, \"release_ms\": 100, \"knee_db\": 3}, \"timeout_seconds\": 60}"
+      ],
+      "mcp_result": {
+        "evidence_kind": "source_bound_profile_authoring",
+        "implementation_status": "experimental",
+        "instrument_context": {
+          "automatic_high_pass": false,
+          "lowest_intentional_fundamental_hz": 32,
+          "preserve_distortion": true,
+          "strings": 9,
+          "styles": [
+            "deathcore",
+            "technical",
+            "virtuoso"
+          ]
+        },
+        "limitations": [
+          "Supplied review identities and authorization assertions are not authenticated. Quiet/fan diagnostics do not establish a noise-only capture or isolated guitar stem. Unknown/suspected content remains explicit.",
+          "Authoring-only scope cannot emit a runnable authorized profile. Render scope emits authored_unrendered metadata only; rejected/present music or clicks produce needs_reselection. Ambient music is not automatically separated.",
+          "Source<=3GiB, nativePCM<=1GiB, native8..192kHz/mono-stereo/<=600s, capture0.1..10s; manifest1MiB, context64KiB, review/profile16KiB, receipt64KiB, compactresult16KiB; wholeworkerdeadline<=60s.",
+          "All finite numeric controls are explicit; bounded<=3typedEQbands and exactcompressorobject only. Source/context/review/worker/validator hashes rechecked before immutable publication.",
+          "No audio decoding, DSP, measured learned band shape, media overwrite, model/runtime acquisition, arbitraryargv/filter/JSON controls or custom-profile denoise application. Listening and AU/Logic acceptance remain unestablished."
+        ],
+        "result": {
+          "capture": {
+            "native_samples": [
+              180810,
+              218295
+            ],
+            "requested_seconds": [
+              4.1,
+              4.95
+            ],
+            "source_media_span_seconds": [
+              4.1,
+              4.95
+            ]
+          },
+          "dsp_performed": false,
+          "evidence_kind": "source_bound_profile_authoring",
+          "listening_accepted": false,
+          "output_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profiles/20261006T025918Z-1b49c650299b4e56866639e473e766c5",
+          "profile_path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profiles/20261006T025918Z-1b49c650299b4e56866639e473e766c5/profile.json",
+          "profile_sha256": "b2506d04cdaabefd42bab547c8cc5b52fac07612baa4aa8a834178997ba083b0",
+          "proposal_path": null,
+          "receipt_path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profiles/20261006T025918Z-1b49c650299b4e56866639e473e766c5/receipt.json",
+          "receipt_sha256": "b96778eb8fbbe396d4bbf9a0d1ae52fb7a169b02ff904413d6caa1291ed1893b",
+          "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009",
+          "schema_version": 1,
+          "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+          "status": "authored_unrendered",
+          "tool": "capture_profile"
+        },
+        "schema_version": 1,
+        "skill": ".agents/skills/guitar-capture-profile/SKILL.md",
+        "status": "completed",
+        "tool": "capture_profile"
+      },
+      "reduction_db": 8
+    },
+    {
+      "arguments": {
+        "adaptivity": 0,
+        "capture_end_seconds": 4.95,
+        "capture_start_seconds": 4.1,
+        "compressor": {
+          "attack_ms": 15,
+          "knee_db": 3,
+          "ratio": 2,
+          "release_ms": 100,
+          "threshold_db": -18
+        },
+        "gain_smooth": 0,
+        "input": "/Users/jess/Documents/Movie on 10-5-26 at 3.38\u202fPM.mov",
+        "integrated_lufs": -18,
+        "noise_floor_db": -40,
+        "peaking_eq": [
+          {
+            "frequency_hz": 300,
+            "gain_db": -1.5,
+            "q": 0.8
+          },
+          {
+            "frequency_hz": 2200,
+            "gain_db": 1,
+            "q": 0.8
+          }
+        ],
+        "reduction_db": 10,
+        "review": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profile-review-root.json",
+        "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009",
+        "timeout_seconds": 60,
+        "true_peak_dbtp": -1.75
+      },
+      "command": [
+        "/Users/jess/.nix-profile/bin/python3",
+        "/Users/jess/git/video-utils/scripts/tool_api.py",
+        "run",
+        "capture_profile",
+        "--arguments",
+        "{\"input\": \"/Users/jess/Documents/Movie on 10-5-26 at 3.38\\u202fPM.mov\", \"run_dir\": \"/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009\", \"review\": \"/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profile-review-root.json\", \"capture_start_seconds\": 4.1, \"capture_end_seconds\": 4.95, \"reduction_db\": 10, \"noise_floor_db\": -40, \"adaptivity\": 0, \"gain_smooth\": 0, \"integrated_lufs\": -18, \"true_peak_dbtp\": -1.75, \"peaking_eq\": [{\"frequency_hz\": 300, \"gain_db\": -1.5, \"q\": 0.8}, {\"frequency_hz\": 2200, \"gain_db\": 1, \"q\": 0.8}], \"compressor\": {\"threshold_db\": -18, \"ratio\": 2, \"attack_ms\": 15, \"release_ms\": 100, \"knee_db\": 3}, \"timeout_seconds\": 60}"
+      ],
+      "mcp_result": {
+        "evidence_kind": "source_bound_profile_authoring",
+        "implementation_status": "experimental",
+        "instrument_context": {
+          "automatic_high_pass": false,
+          "lowest_intentional_fundamental_hz": 32,
+          "preserve_distortion": true,
+          "strings": 9,
+          "styles": [
+            "deathcore",
+            "technical",
+            "virtuoso"
+          ]
+        },
+        "limitations": [
+          "Supplied review identities and authorization assertions are not authenticated. Quiet/fan diagnostics do not establish a noise-only capture or isolated guitar stem. Unknown/suspected content remains explicit.",
+          "Authoring-only scope cannot emit a runnable authorized profile. Render scope emits authored_unrendered metadata only; rejected/present music or clicks produce needs_reselection. Ambient music is not automatically separated.",
+          "Source<=3GiB, nativePCM<=1GiB, native8..192kHz/mono-stereo/<=600s, capture0.1..10s; manifest1MiB, context64KiB, review/profile16KiB, receipt64KiB, compactresult16KiB; wholeworkerdeadline<=60s.",
+          "All finite numeric controls are explicit; bounded<=3typedEQbands and exactcompressorobject only. Source/context/review/worker/validator hashes rechecked before immutable publication.",
+          "No audio decoding, DSP, measured learned band shape, media overwrite, model/runtime acquisition, arbitraryargv/filter/JSON controls or custom-profile denoise application. Listening and AU/Logic acceptance remain unestablished."
+        ],
+        "result": {
+          "capture": {
+            "native_samples": [
+              180810,
+              218295
+            ],
+            "requested_seconds": [
+              4.1,
+              4.95
+            ],
+            "source_media_span_seconds": [
+              4.1,
+              4.95
+            ]
+          },
+          "dsp_performed": false,
+          "evidence_kind": "source_bound_profile_authoring",
+          "listening_accepted": false,
+          "output_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profiles/20261006T025918Z-d18e86f1102c4e02834dc03e57ba370d",
+          "profile_path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profiles/20261006T025918Z-d18e86f1102c4e02834dc03e57ba370d/profile.json",
+          "profile_sha256": "3b5eccabb4121fb74bb1eb27cfcda1d5c207bb84bc1b713106d8005a0266c0cd",
+          "proposal_path": null,
+          "receipt_path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profiles/20261006T025918Z-d18e86f1102c4e02834dc03e57ba370d/receipt.json",
+          "receipt_sha256": "8b3efebe248d3895f5a7872992d953311e06f67a95618e4275d3c4a3fdfab474",
+          "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009",
+          "schema_version": 1,
+          "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+          "status": "authored_unrendered",
+          "tool": "capture_profile"
+        },
+        "schema_version": 1,
+        "skill": ".agents/skills/guitar-capture-profile/SKILL.md",
+        "status": "completed",
+        "tool": "capture_profile"
+      },
+      "reduction_db": 10
+    }
+  ],
+  "schema_version": 1,
+  "source_identity_sha256": {
+    ".agents/skills/guitar-capture-profile/SKILL.md": "33cd07d572c653222233e17d935bc589a11dbd32cd76def6d46128c7d65b268e",
+    "program/instrument.json": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0",
+    "program/tools.json": "a4feec5463051a5dcea165c14e8bbcf4b2f3fa59b946b0148a8952db78dd2d6a",
+    "scripts/apply_capture_profile.py": "00a03ef9fad8543be4335cb5cbcd3c9d9580a6b40b8faeb826811b105fd5daa6",
+    "scripts/capture_profile.py": "7d2820878826c87aabf2ab60b73c997b9d406b7f3ff8943d6012ed967444c355",
+    "scripts/media.py": "91443154251888c9e74670790766b289a2618f85f3be806d60ca26882faa9d94",
+    "scripts/tool_api.py": "e99933b5eb68743a85d497c23427b94f4bf7650ddd8543dca5fd323ba622015d"
+  },
+  "status": "two_matched_profiles_authored_unrendered"
+}

@@ -1,0 +1,47 @@
+{
+  "actor": "/root/media_latency",
+  "actual_recording_processed": false,
+  "application_qualification": {
+    "elapsed_seconds": 26.087,
+    "root_receipt": "docs/agent-notes/2026-10-06-root-capture-application-source-freeze.json",
+    "root_receipt_sha256": "ccfe05317bbb9217efacd06168502d3b9b83c9a1880b4a2f8ecb236d8f26d228",
+    "saved_log_sha256": "23dd2fedd709f11677d67fef9da527fb93e98517dc0559fdf77eec8079e47933",
+    "tests_passed": 46
+  },
+  "authority": "Root explicit metadata-only pin/test/preregistration release; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "created_utc": "2026-10-06T02:55:07.477852+00:00",
+  "current_workers": {
+    "application": "00a03ef9fad8543be4335cb5cbcd3c9d9580a6b40b8faeb826811b105fd5daa6",
+    "author": "7d2820878826c87aabf2ab60b73c997b9d406b7f3ff8943d6012ed967444c355",
+    "media": "91443154251888c9e74670790766b289a2618f85f3be806d60ca26882faa9d94"
+  },
+  "dsp_performed": false,
+  "ffmpeg_executed": false,
+  "files": {
+    "docs/agent-notes/2026-10-06-capture-application-native-qualification-harness.md": "a87b5255bfee1de337cf7a5e14c31151f87e499851f8150607cdf98627b786b0",
+    "docs/agent-notes/2026-10-06-capture-application-native-qualification-plan.md": "f2aa237b4d7c0a34e93e5065e7436639a20311c7a81945de196c39c985ecd683",
+    "docs/agent-notes/2026-10-06-capture-application-native-qualification-preregistration.json": "0eca36a73660f797c18d122bbad6d29cfa0b9815c291557d5329089e0c70320c",
+    "docs/agent-notes/2026-10-06-capture-application-native-qualification-tests.py": "6e2b8248b857806def5573e45a0bb46cd83eccf740d3be18e7d6e268f952d9bb",
+    "docs/agent-notes/2026-10-06-capture-application-native-qualification.py": "c0268e80fdfb3ee17791534d078c0707f077c3ab0efac490fe2ee7bcc27142ee"
+  },
+  "harness_tests": {
+    "command": "python3 docs/agent-notes/2026-10-06-capture-application-native-qualification-tests.py -v",
+    "elapsed_seconds": 0.245,
+    "passed": 14,
+    "proof_class": "inert_metadata_and_mocked_cleanup_no_media"
+  },
+  "historical_application": {
+    "reopened": "Publication interruption reporting gaps; superseded without rewriting original plan",
+    "sha256": "31eafcc8a76a36981945a1f680b21ab986f5a7464c9f8060559ce4b127198621",
+    "tests_passed": 36
+  },
+  "listening_accepted": false,
+  "master_adopted": false,
+  "media_generated": false,
+  "next": "Independent identity readback and exact root closed release before one generated trial",
+  "numerical_execution_released": false,
+  "output_absent_at_freeze": true,
+  "preregistered_output": "/Users/jess/git/video-utils/artifacts/experiments/capture-application-native-qualification/native-20261006T0255",
+  "schema_version": 1,
+  "status": "source_frozen_inert_qualified_preregistered_numerical_held"
+}
