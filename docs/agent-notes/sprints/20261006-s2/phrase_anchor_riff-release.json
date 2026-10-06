@@ -1,0 +1,37 @@
+{
+  "actor": "root_workflow",
+  "authorization_quote": "Workflow-A phase-2 task for lane phrase_anchor_riff (S2 sprint 20261006-s2, Linear TIN-5603), verbatim excerpt: \"scripts/phrase_riff_s2.py preregisters (hash, committed BEFORE generation) a continuous-riff generated benchmark with fresh seeds (e.g. 1511/1613) and cohorts: back-to-back motifs with gap <= 0.1 s, syncopated palm-mute, legato transition, tapping run, sweep arpeggio, A-B-A transition, two negatives; generates with bounded time (<= 900 s total, run inside the heavy slot), seals predictions before truth, scores pair IoU at 0.5/0.75, endpoint hits at 20/50/100 ms, negatives, MAE with the matched denominator, under the S1 frozen baseline plus at most two arms; records continuous_riff_accuracy_scope:'generated_only' and no default adoption\". Bounds applied: one heavy job at a time, external timeout 900 s, 120 s per source, 2 numeric threads; no default/profile/master/catalog change.\n",
+  "authorized_phases": [
+    "generate",
+    "discover",
+    "score"
+  ],
+  "budgets": {
+    "analysis_rate": 16000,
+    "case_seconds": 120,
+    "dev_run_seconds": 300,
+    "dev_runs_maximum": 3,
+    "ffmpeg_seconds": 20,
+    "json_bytes": 2000000,
+    "native_rate": 48000,
+    "native_seconds": 8,
+    "overall_seconds": 900,
+    "threads": 2,
+    "v2_external_seconds": 660,
+    "v2_internal_seconds": 600,
+    "wav_bytes": 1000000
+  },
+  "dependency_sha256": {
+    "docs/agent-notes/2026-10-05-phrase-guarded-arms.py": "78ca89de9cea327cc4ec1096a83522781a08bc161819699b69797ca273e2fb6c",
+    "program/instrument.json": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0",
+    "scripts/guitar_features.py": "2ed031e8000cbcda92b504db10c98de03f456c90573cbff815cbb940c9ac86fe",
+    "scripts/phrase_evaluate.py": "3e503de277b2fd233fe802595a09a655c89669b0eb820f228e677c1b94b828a5",
+    "scripts/phrase_proposal_s1.py": "38b736543a83d5c706a8803014f4e308685eee2c84275e9e6768c431b6b8d0e3",
+    "scripts/rhythm.py": "264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9"
+  },
+  "observed_at_unix": 1791296345.448382,
+  "plan_sha256": "5922debe780dccd6aae2c6ea48d9cd93917e172cd3406e79a2ecfb8332fc2680",
+  "prereg_commit": "9c4ef5f16b35b6c08e83bc865cba34dadf39d302",
+  "suite": "s2-riff-1511-1613-v1",
+  "worker_sha256": "67cedecacd88190ceb63efcfa60061010d5761a4c32d931ba6c0b2575971e194"
+}
