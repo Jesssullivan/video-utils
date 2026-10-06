@@ -1,0 +1,253 @@
+{
+  "audio_committed": false,
+  "audio_transfer": "transfer of audio to XORuby is a separate root action; audio is never committed",
+  "bank_relative_path": "artifacts/s2/phrase_anchor_riff/v2-bank-20261006T1338Z/bank",
+  "case_count": 12,
+  "cases": [
+    {
+      "cohort": "low32-sustain",
+      "component_sha256": {
+        "clean": "58dec39e31e494c5438f97981ceefa2535e420a9811677e5d1e14558537c4286",
+        "click": "0bee1d744b08010a86384152a3e19f7ccb9a65004011506665ee88a2fb228bf1",
+        "mix": "21596ffdc0402840d7a396a4537ec52c888f0ac383e245e5e354ab09419bc539",
+        "noise": "38535748e9f8284c48d8219ce11ee2d02f7d512d9b969640b37c2f4129d4deff"
+      },
+      "id": "seed211-low32-sustain",
+      "mix_sha256": "21596ffdc0402840d7a396a4537ec52c888f0ac383e245e5e354ab09419bc539",
+      "seed": 211,
+      "truth_json": {
+        "path": "seed211-low32-sustain/truth.json",
+        "sha256": "8d17e5192982a8aab8dfe80cf6430a341e3d976b6e14eaa1b1b6d577274a15fc"
+      }
+    },
+    {
+      "cohort": "palm-muted-recurrence",
+      "component_sha256": {
+        "clean": "74d13b25399e247436100b9db733022c03e67265d2ee6a394ec544971d29ee90",
+        "click": "76b8e72ca3c57d42f6a5db6774ee3ba7f25617e0dc7a5307a10c5a7ac8c9edcf",
+        "mix": "c796487ac297dc7ac53fe1232247103ecb494a6c6d6b86e1e0b349535dce48ec",
+        "noise": "be3f1cc771147fcc998492ecaac2a4a4ab06b8ba5fc97bb2d36744992ddb49a4"
+      },
+      "id": "seed211-palm-muted-recurrence",
+      "mix_sha256": "c796487ac297dc7ac53fe1232247103ecb494a6c6d6b86e1e0b349535dce48ec",
+      "seed": 211,
+      "truth_json": {
+        "path": "seed211-palm-muted-recurrence/truth.json",
+        "sha256": "f3fd1e733ce6ca810eeb68cb9dbcde35a55ccf5360d33a7195190f18d5739d1e"
+      }
+    },
+    {
+      "cohort": "legato-recurrence",
+      "component_sha256": {
+        "clean": "3ef4811e696929174e9d98014cdf43445e7f9de80a0bd486037867a764720157",
+        "click": "5852cca675e0a2314287ea011f84b4b37b0e81d3e76ae7f5e5e7b3c8d1246784",
+        "mix": "108572d754066ad94648ebbd3c4da6bbd94ac19f4fc296c285e0427d903570f1",
+        "noise": "876bd54e12a5bd2c67611dd5d51e3ffcef750837cd797988205e97ba0887fc9c"
+      },
+      "id": "seed211-legato-recurrence",
+      "mix_sha256": "108572d754066ad94648ebbd3c4da6bbd94ac19f4fc296c285e0427d903570f1",
+      "seed": 211,
+      "truth_json": {
+        "path": "seed211-legato-recurrence/truth.json",
+        "sha256": "3f57ad93e290a64a8abc3feb52a92d2a489738bbc5583b6bae9d3f5673385c4a"
+      }
+    },
+    {
+      "cohort": "c1-missing-fundamental",
+      "component_sha256": {
+        "clean": "2e54876e56ea33b6af85ee763351384763db8b5aeca02b61bf4aed25cb0f1ceb",
+        "click": "e37b1238c291b1799551a88f944b4f9892cc982bf93db15eef00b90da5847c0a",
+        "mix": "7c1ac25e83bed5be2d0b9e88b21360d52e2840852fc72b8bf3be6dec0433c9ec",
+        "noise": "5bf4e1594e31d7b4b413aed8973580a26f5b5d37c96bb145225397687c6843cc"
+      },
+      "id": "seed211-c1-missing-fundamental",
+      "mix_sha256": "7c1ac25e83bed5be2d0b9e88b21360d52e2840852fc72b8bf3be6dec0433c9ec",
+      "seed": 211,
+      "truth_json": {
+        "path": "seed211-c1-missing-fundamental/truth.json",
+        "sha256": "11658941a1fe7e2abe6957ab1c5cb881fcbc78cc18a0b93017233d8b0d589ac1"
+      }
+    },
+    {
+      "cohort": "timing-reference",
+      "component_sha256": {
+        "clean": "e49d828c8c7d0b67c384c042334940a37048a56832d2ec5cdfb69ffb62cf5600",
+        "click": "696b6592031d4e508dae25589a6ef53cd1ad66cab900d9d1e3457ca9c8ff419c",
+        "mix": "f289bddd7f767cc95c7c951a31f5f95c529811139df761a00fa3c89d077ef7c3",
+        "noise": "66599d4ee1266cf8e626ee2d6f21f04f872589e3d7a4755762cae6fee06832ce"
+      },
+      "id": "seed211-timing-reference",
+      "mix_sha256": "f289bddd7f767cc95c7c951a31f5f95c529811139df761a00fa3c89d077ef7c3",
+      "seed": 211,
+      "truth_json": {
+        "path": "seed211-timing-reference/truth.json",
+        "sha256": "7a92db093b8f4c6f7f0852fd3c027fbb29a64d12738da12e68820d1ec0fcb3c1"
+      }
+    },
+    {
+      "cohort": "timing-errors",
+      "component_sha256": {
+        "clean": "79ef5326d15a532e571834b50aa1bb87c469400752e305c9f42226a439ee9e07",
+        "click": "696b6592031d4e508dae25589a6ef53cd1ad66cab900d9d1e3457ca9c8ff419c",
+        "mix": "23c5113da4955e38e0bca99f3d173069a2c289531458c3c51724785ca4483ed3",
+        "noise": "66599d4ee1266cf8e626ee2d6f21f04f872589e3d7a4755762cae6fee06832ce"
+      },
+      "id": "seed211-timing-errors",
+      "mix_sha256": "23c5113da4955e38e0bca99f3d173069a2c289531458c3c51724785ca4483ed3",
+      "seed": 211,
+      "truth_json": {
+        "path": "seed211-timing-errors/truth.json",
+        "sha256": "48e876743771d4a05f7cd8a6ba1c98da51d02773718f94d74e71e1164cd1ed3d"
+      }
+    },
+    {
+      "cohort": "low32-sustain",
+      "component_sha256": {
+        "clean": "29dac81fbbc67918ca3cd4c87a07fe202a41b8f72d3e6b398f926c0c5861e21e",
+        "click": "cf1e12306463ee9e5fc7a7dc5e0dfd018ebe530d4a299f91f7c7ccea942abfbe",
+        "mix": "fcf50bf19a0d9b69f9e1bf0da9576a82c1e0c31bc5800e970c61551468326e66",
+        "noise": "d2087a835881f1ff571fb1037513e98c196dfdbb44a73a86ad5345d2f888857f"
+      },
+      "id": "seed307-low32-sustain",
+      "mix_sha256": "fcf50bf19a0d9b69f9e1bf0da9576a82c1e0c31bc5800e970c61551468326e66",
+      "seed": 307,
+      "truth_json": {
+        "path": "seed307-low32-sustain/truth.json",
+        "sha256": "cf06de4994652a6cc920a38b1f66876fd691f4d8fd739368393f1cf314e264fc"
+      }
+    },
+    {
+      "cohort": "palm-muted-recurrence",
+      "component_sha256": {
+        "clean": "f2e1486039d5e7ab4893daba38c7476907fb980f251db3862b55ac6dc7d799fc",
+        "click": "b0769a04dec10ea3fd8a56283ef46c29f37328ef80c3614b4f6ec68922e0c7dd",
+        "mix": "c35c075cf6f4b07605fa0e71d6428e45cb7d19cd8ff22713ac5c49b7454133f9",
+        "noise": "5af510beb5d99cb7517c0cd42136cd8f45f80737386108cef08b3d15f36dd990"
+      },
+      "id": "seed307-palm-muted-recurrence",
+      "mix_sha256": "c35c075cf6f4b07605fa0e71d6428e45cb7d19cd8ff22713ac5c49b7454133f9",
+      "seed": 307,
+      "truth_json": {
+        "path": "seed307-palm-muted-recurrence/truth.json",
+        "sha256": "27d06dbbd84b5ca6131759a8da3bf01862bd15175deb551f5acd21652cee2675"
+      }
+    },
+    {
+      "cohort": "legato-recurrence",
+      "component_sha256": {
+        "clean": "996df2c630314c1e190fd57c1142495420010cabb15dfb8733ad59299beaa1e0",
+        "click": "ea7f66d9c3a032b46fe2451a2b0d3d5fab288b6d71303558812d2b58ae2f861f",
+        "mix": "9e104799d283983a9d818707f696f48cd5162187ce479f864cb5e99de9f43917",
+        "noise": "c2075fd38bb01fd8a60f35368f3d69e132a968b3a887e8337aea3ad0bd19ac9f"
+      },
+      "id": "seed307-legato-recurrence",
+      "mix_sha256": "9e104799d283983a9d818707f696f48cd5162187ce479f864cb5e99de9f43917",
+      "seed": 307,
+      "truth_json": {
+        "path": "seed307-legato-recurrence/truth.json",
+        "sha256": "b0e8123b2d3179d440444927dcafa1034cc4f0de38cbf3bb9d1f6daeb13ae970"
+      }
+    },
+    {
+      "cohort": "c1-missing-fundamental",
+      "component_sha256": {
+        "clean": "c826de6fc7486ff345588d68946582c606c63b1c67d602c80f9be891b868c714",
+        "click": "ad498a68d4963abb64bacabba8dba85a4e8a61baa3a91dda33fc8238d6ba2a9a",
+        "mix": "d64516d76a407a6bad00b3382e7ddb8cd6ce08d5243057841d18634ea7c6a09f",
+        "noise": "cced1c3a9e6c1db90012aab8e45146ce1a00e37dce765e7469b7b2daf0a56b9d"
+      },
+      "id": "seed307-c1-missing-fundamental",
+      "mix_sha256": "d64516d76a407a6bad00b3382e7ddb8cd6ce08d5243057841d18634ea7c6a09f",
+      "seed": 307,
+      "truth_json": {
+        "path": "seed307-c1-missing-fundamental/truth.json",
+        "sha256": "dc9fef48f1c87fe462f6c75fd3e9353b3a1835b2d3231e93c5caf66318753870"
+      }
+    },
+    {
+      "cohort": "timing-reference",
+      "component_sha256": {
+        "clean": "7c2db05dd32a3a83579827df048959d319bda7e4d15818f482405d40cebbca0b",
+        "click": "2e27ea46052a10ac1fad0d207a8b6099fa0d13b5fc16c917111c74ff7f147d8d",
+        "mix": "2c2c9754a7d9d0499b9d80ae131bfb3c3074a20736ed5bd7fd3571ecace6fc02",
+        "noise": "3dde6bde02596801e2d0b1893b6f22f11839a6522ad99090e9864cec8cb3ebbc"
+      },
+      "id": "seed307-timing-reference",
+      "mix_sha256": "2c2c9754a7d9d0499b9d80ae131bfb3c3074a20736ed5bd7fd3571ecace6fc02",
+      "seed": 307,
+      "truth_json": {
+        "path": "seed307-timing-reference/truth.json",
+        "sha256": "164085874a0e241bc2155d2790c51d7be5b2de94fd716f1f26a4a9d598e2c178"
+      }
+    },
+    {
+      "cohort": "timing-errors",
+      "component_sha256": {
+        "clean": "125cdd6a6b81e77feaa2c3c81259a5f91e3932e5f6210eaefb2d4c06068776bd",
+        "click": "2e27ea46052a10ac1fad0d207a8b6099fa0d13b5fc16c917111c74ff7f147d8d",
+        "mix": "46b727aa1d0339cbe5945fe8738c7aa0600ecccd052c5e1c86b76b2dae189350",
+        "noise": "3dde6bde02596801e2d0b1893b6f22f11839a6522ad99090e9864cec8cb3ebbc"
+      },
+      "id": "seed307-timing-errors",
+      "mix_sha256": "46b727aa1d0339cbe5945fe8738c7aa0600ecccd052c5e1c86b76b2dae189350",
+      "seed": 307,
+      "truth_json": {
+        "path": "seed307-timing-errors/truth.json",
+        "sha256": "c90fc9b8a5682438156d579bac76b4989a1a0ca298965695c2e46f1ee2ea03ae"
+      }
+    }
+  ],
+  "component_count": 48,
+  "external_timeout_seconds": 660,
+  "fixtures": {
+    "path": "artifacts/s2/phrase_anchor_riff/v2-bank-20261006T1338Z/bank/fixtures.json",
+    "sha256": "3a1e3b2f4e58d49bbb68170c4b297899881602086c84df1e6fe8254b01c17710"
+  },
+  "generator_commit": "f180572b8b51bd408debd55d661e670269d23b8f",
+  "generator_commit_observed": "f180572b8b51bd408debd55d661e670269d23b8f",
+  "generator_elapsed_seconds": 161.53555458299525,
+  "generator_output_root_rebinding": {
+    "admitted_value": "artifacts/benchmarks",
+    "attribute": "ARTIFACTS",
+    "generator_bytes_unchanged": true,
+    "rebound_to": "artifacts/s2/phrase_anchor_riff"
+  },
+  "generator_sha256": "051d8689364564513c34a1ab00a2c23560407e474da12c2bf25e7513dbc81709",
+  "ground_truth_scope": "generator_only_not_musician",
+  "inference_executed": false,
+  "internal_timeout_seconds": 600,
+  "kind": "v2_holdout_bank_receipt",
+  "licence": "pending operator confirmation (repository MIT; proposed CC BY 4.0 for cross-repo use)",
+  "listening_accepted": false,
+  "operations": [
+    "holdout-plan (make_plan + write_new)",
+    "holdout-validate (validate_plan)",
+    "holdout-generate (generate, internal timeout 600 s, external child timeout 660 s)"
+  ],
+  "peer": "xoruby",
+  "plan_sha256": "495ad2f3f553b0bd7030ac797b6e8589f37748df657219c075d0fc4ce7491e74",
+  "prior_use_disclosure": "seeds 211/307 were already used once by video-utils for the frozen A/B/C/D phrase-window evaluation",
+  "quality_metrics": "not_evaluated",
+  "real_recording_labels": false,
+  "recipe_sha256": "0f8223e9adc4deb113c87a5b231b76bec33f573feabb03ec32bd8f565a5a3c63",
+  "reproduction": {
+    "basis": "byte sha256 equality per component WAV and per truth JSON",
+    "component_denominator": 48,
+    "identical_components": 48,
+    "identical_truths": 12,
+    "reference_fixtures_path": "/Users/jess/git/video-utils/artifacts/benchmarks/heldout-211-307-20261006T0020/fixtures.json",
+    "reference_fixtures_sha256": "3828ef756c3b2d36890e5b2f444c9323960ec9c0b358d02fe02a8c13ba89936b",
+    "truth_denominator": 12
+  },
+  "reserved_seed_range": {
+    "first": 2101,
+    "last": 2199,
+    "use": "future evaluation-only V2 extensions; requires a new admitted plan because the generator is fixed to seeds 211/307"
+  },
+  "schema_version": 1,
+  "suite": "technical-holdout-v1",
+  "total_duration_seconds": 120,
+  "training_use_statement": "training use of this bank voids video-utils held-out evaluation on it",
+  "truth_json_relative_paths": "bank-relative: <case-id>/truth.json (listed per case)",
+  "wrapper_elapsed_seconds": 164.09446300000127
+}

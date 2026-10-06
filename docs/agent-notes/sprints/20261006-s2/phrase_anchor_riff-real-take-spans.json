@@ -1,0 +1,1639 @@
+{
+  "anchors_none_adopted": [
+    {
+      "anchor": {
+        "adopted": false,
+        "anchor_lattice_seconds": 10.30777792006026,
+        "evidence_analyzed_input_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+        "evidence_sha256": "22700f59b1f4cafbf992838c30ebb0fb8e855a37971418805605c617a10748d3",
+        "input_value": 10.2775,
+        "k0": 29,
+        "matched_evidence_candidate": {
+          "candidate_source_seconds": 10.2775,
+          "candidate_status": "review_candidate_not_confirmed_downbeat",
+          "lattice_minus_candidate_seconds": 0.030277920060260755
+        },
+        "method": "source_seconds_snapped_to_lattice",
+        "snap_residual_seconds": -0.030277920060260755,
+        "source_label": "cached_first_phrase_candidate_10.2775s_from_docs/agent-notes/2026-10-06-operator-arrangement-click-anchor.json",
+        "status": "review_candidate_not_confirmed_downbeat"
+      },
+      "boundaries": [
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 0,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:0",
+          "join_confidence": "supported",
+          "lattice_index": 29,
+          "median_abs_grid_offset_ms": 17.778,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 10.307778,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 16,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:1",
+          "join_confidence": "supported",
+          "lattice_index": 45,
+          "median_abs_grid_offset_ms": 5.242,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 15.713073,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 32,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:2",
+          "join_confidence": "supported",
+          "lattice_index": 61,
+          "median_abs_grid_offset_ms": 7.293,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 21.118369,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 48,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_weak",
+          "id": "boundary:3",
+          "join_confidence": "weak",
+          "lattice_index": 77,
+          "median_abs_grid_offset_ms": 40.502,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 26.523664,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 64,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:4",
+          "join_confidence": "supported",
+          "lattice_index": 93,
+          "median_abs_grid_offset_ms": 1.702,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 31.928959,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 80,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:5",
+          "join_confidence": "supported",
+          "lattice_index": 109,
+          "median_abs_grid_offset_ms": 6.407,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 37.334255,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 96,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:6",
+          "join_confidence": "uncertain",
+          "lattice_index": 125,
+          "median_abs_grid_offset_ms": 5.45,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 42.73955,
+          "structural_status": [
+            "breakdown_execution_uncertain"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 104,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:7",
+          "join_confidence": "uncertain",
+          "lattice_index": 133,
+          "median_abs_grid_offset_ms": 3.464,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 45.442198,
+          "structural_status": [
+            "breakdown_execution_uncertain",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 120,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:8",
+          "join_confidence": "uncertain",
+          "lattice_index": 149,
+          "median_abs_grid_offset_ms": 6.845,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 50.847493,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 136,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:9",
+          "join_confidence": "uncertain",
+          "lattice_index": 165,
+          "median_abs_grid_offset_ms": 4.338,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 56.252789,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 152,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_weak",
+          "id": "boundary:10",
+          "join_confidence": "uncertain",
+          "lattice_index": 181,
+          "median_abs_grid_offset_ms": 39.669,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 61.658084,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 168,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:11",
+          "join_confidence": "uncertain",
+          "lattice_index": 197,
+          "median_abs_grid_offset_ms": 4.121,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 67.063379,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 184,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:12",
+          "join_confidence": "uncertain",
+          "lattice_index": 213,
+          "median_abs_grid_offset_ms": 6.987,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 72.468675,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 200,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:13",
+          "join_confidence": "uncertain",
+          "lattice_index": 229,
+          "median_abs_grid_offset_ms": 6.692,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 77.87397,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 216,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:14",
+          "join_confidence": "uncertain",
+          "lattice_index": 245,
+          "median_abs_grid_offset_ms": 1.396,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 83.279266,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 232,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:15",
+          "join_confidence": "uncertain",
+          "lattice_index": 261,
+          "median_abs_grid_offset_ms": 10.662,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 88.684561,
+          "structural_status": [
+            "breakdown_execution_uncertain",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 240,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:16",
+          "join_confidence": "uncertain",
+          "lattice_index": 269,
+          "median_abs_grid_offset_ms": 1.838,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 91.387209,
+          "structural_status": [
+            "breakdown_execution_uncertain",
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 256,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:17",
+          "join_confidence": "uncertain",
+          "lattice_index": 285,
+          "median_abs_grid_offset_ms": 2.504,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 96.792504,
+          "structural_status": [
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 272,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:18",
+          "join_confidence": "uncertain",
+          "lattice_index": 301,
+          "median_abs_grid_offset_ms": 22.138,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 102.197799,
+          "structural_status": [
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 288,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:19",
+          "join_confidence": "uncertain",
+          "lattice_index": 317,
+          "median_abs_grid_offset_ms": 2.169,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 107.603095,
+          "structural_status": [
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 304,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:20",
+          "join_confidence": "uncertain",
+          "lattice_index": 333,
+          "median_abs_grid_offset_ms": 9.669,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 113.00839,
+          "structural_status": [
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 308,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:21",
+          "join_confidence": "uncertain",
+          "lattice_index": 337,
+          "median_abs_grid_offset_ms": 0.662,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 114.359714,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 324,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:22",
+          "join_confidence": "uncertain",
+          "lattice_index": 353,
+          "median_abs_grid_offset_ms": 5.652,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 119.765009,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 340,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:23",
+          "join_confidence": "uncertain",
+          "lattice_index": 369,
+          "median_abs_grid_offset_ms": 2.195,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 125.170305,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 356,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:24",
+          "join_confidence": "uncertain",
+          "lattice_index": 385,
+          "median_abs_grid_offset_ms": 4.4,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 130.5756,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 372,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:25",
+          "join_confidence": "uncertain",
+          "lattice_index": 401,
+          "median_abs_grid_offset_ms": 14.669,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 135.980896,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 388,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:26",
+          "join_confidence": "uncertain",
+          "lattice_index": 417,
+          "median_abs_grid_offset_ms": 6.309,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 141.386191,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 404,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:27",
+          "join_confidence": "uncertain",
+          "lattice_index": 433,
+          "median_abs_grid_offset_ms": 22.169,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 146.791486,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        }
+      ],
+      "output_path": "artifacts/s2/phrase_anchor_riff/real-take/spans-k29.json",
+      "output_sha256": "40bf02fb33720705e36ff449382b8d7d791731e84c8f4c396b53b06ad56a87dc",
+      "uncertainty_summary": {
+        "boundary_count": 28,
+        "grid_label": {
+          "grid_supported": 26,
+          "grid_weak": 2
+        },
+        "interpolated_half_period_boundaries": 28,
+        "join_confidence": {
+          "supported": 5,
+          "uncertain": 22,
+          "weak": 1
+        },
+        "outside_source_boundaries": 0,
+        "structural_status": {
+          "breakdown_execution_uncertain": 4,
+          "nominal": 6,
+          "presumed_repeat_section": 5,
+          "uncertain_upstream_breakdown": 21
+        }
+      },
+      "units_first_last": [
+        {
+          "coverage": "within_source",
+          "end_source_seconds": 15.713073,
+          "id": "verse1:1",
+          "start_source_seconds": 10.307778
+        },
+        {
+          "coverage": "within_source",
+          "end_source_seconds": 146.791486,
+          "id": "outro_sweep:2",
+          "start_source_seconds": 141.386191
+        }
+      ]
+    },
+    {
+      "anchor": {
+        "adopted": false,
+        "anchor_lattice_seconds": 10.645608881683545,
+        "evidence_analyzed_input_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+        "evidence_sha256": "22700f59b1f4cafbf992838c30ebb0fb8e855a37971418805605c617a10748d3",
+        "input_value": 10.6275,
+        "k0": 30,
+        "matched_evidence_candidate": {
+          "candidate_source_seconds": 10.6275,
+          "candidate_status": "review_candidate_not_confirmed_downbeat",
+          "lattice_minus_candidate_seconds": 0.01810888168354552
+        },
+        "method": "source_seconds_snapped_to_lattice",
+        "snap_residual_seconds": -0.01810888168354552,
+        "source_label": "cached_first_phrase_candidate_10.6275s_from_docs/agent-notes/2026-10-06-operator-arrangement-click-anchor.json",
+        "status": "review_candidate_not_confirmed_downbeat"
+      },
+      "boundaries": [
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 0,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:0",
+          "join_confidence": "supported",
+          "lattice_index": 30,
+          "median_abs_grid_offset_ms": 17.447,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 10.645609,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 16,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:1",
+          "join_confidence": "supported",
+          "lattice_index": 46,
+          "median_abs_grid_offset_ms": 3.404,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 16.050904,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 32,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:2",
+          "join_confidence": "supported",
+          "lattice_index": 62,
+          "median_abs_grid_offset_ms": 6.962,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 21.4562,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 48,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:3",
+          "join_confidence": "supported",
+          "lattice_index": 78,
+          "median_abs_grid_offset_ms": 23.333,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 26.861495,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 64,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:4",
+          "join_confidence": "supported",
+          "lattice_index": 94,
+          "median_abs_grid_offset_ms": 2.033,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 32.26679,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 80,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:5",
+          "join_confidence": "supported",
+          "lattice_index": 110,
+          "median_abs_grid_offset_ms": 6.076,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 37.672086,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 96,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:6",
+          "join_confidence": "uncertain",
+          "lattice_index": 126,
+          "median_abs_grid_offset_ms": 5.119,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 43.077381,
+          "structural_status": [
+            "breakdown_execution_uncertain"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 104,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:7",
+          "join_confidence": "uncertain",
+          "lattice_index": 134,
+          "median_abs_grid_offset_ms": 3.133,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 45.780029,
+          "structural_status": [
+            "breakdown_execution_uncertain",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 120,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:8",
+          "join_confidence": "uncertain",
+          "lattice_index": 150,
+          "median_abs_grid_offset_ms": 6.514,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 51.185324,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 136,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:9",
+          "join_confidence": "uncertain",
+          "lattice_index": 166,
+          "median_abs_grid_offset_ms": 6.796,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 56.59062,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 152,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_weak",
+          "id": "boundary:10",
+          "join_confidence": "uncertain",
+          "lattice_index": 182,
+          "median_abs_grid_offset_ms": 37.091,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 61.995915,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 168,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:11",
+          "join_confidence": "uncertain",
+          "lattice_index": 198,
+          "median_abs_grid_offset_ms": 4.966,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 67.40121,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 184,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:12",
+          "join_confidence": "uncertain",
+          "lattice_index": 214,
+          "median_abs_grid_offset_ms": 6.656,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 72.806506,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 200,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:13",
+          "join_confidence": "uncertain",
+          "lattice_index": 230,
+          "median_abs_grid_offset_ms": 12.023,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 78.211801,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 216,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:14",
+          "join_confidence": "uncertain",
+          "lattice_index": 246,
+          "median_abs_grid_offset_ms": 1.727,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 83.617097,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 232,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:15",
+          "join_confidence": "uncertain",
+          "lattice_index": 262,
+          "median_abs_grid_offset_ms": 1.216,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 89.022392,
+          "structural_status": [
+            "breakdown_execution_uncertain",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 240,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:16",
+          "join_confidence": "uncertain",
+          "lattice_index": 270,
+          "median_abs_grid_offset_ms": 1.878,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 91.72504,
+          "structural_status": [
+            "breakdown_execution_uncertain",
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 256,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:17",
+          "join_confidence": "uncertain",
+          "lattice_index": 286,
+          "median_abs_grid_offset_ms": 2.173,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 97.130335,
+          "structural_status": [
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 272,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:18",
+          "join_confidence": "uncertain",
+          "lattice_index": 302,
+          "median_abs_grid_offset_ms": 1.807,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 102.53563,
+          "structural_status": [
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 288,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:19",
+          "join_confidence": "uncertain",
+          "lattice_index": 318,
+          "median_abs_grid_offset_ms": 2.102,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 107.940926,
+          "structural_status": [
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 304,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:20",
+          "join_confidence": "uncertain",
+          "lattice_index": 334,
+          "median_abs_grid_offset_ms": 2.397,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 113.346221,
+          "structural_status": [
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 308,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:21",
+          "join_confidence": "uncertain",
+          "lattice_index": 338,
+          "median_abs_grid_offset_ms": 0.707,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 114.697545,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 324,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:22",
+          "join_confidence": "uncertain",
+          "lattice_index": 354,
+          "median_abs_grid_offset_ms": 5.983,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 120.10284,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 340,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:23",
+          "join_confidence": "uncertain",
+          "lattice_index": 370,
+          "median_abs_grid_offset_ms": 3.04,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 125.508136,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 356,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:24",
+          "join_confidence": "uncertain",
+          "lattice_index": 386,
+          "median_abs_grid_offset_ms": 4.731,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 130.913431,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 372,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:25",
+          "join_confidence": "uncertain",
+          "lattice_index": 402,
+          "median_abs_grid_offset_ms": 8.773,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 136.318727,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 388,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:26",
+          "join_confidence": "uncertain",
+          "lattice_index": 418,
+          "median_abs_grid_offset_ms": 7.154,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 141.724022,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 404,
+          "expected_grid_beats": 5,
+          "grid_label": "grid_supported",
+          "id": "boundary:27",
+          "join_confidence": "uncertain",
+          "lattice_index": 434,
+          "median_abs_grid_offset_ms": 8.845,
+          "observed_grid_beats": 5,
+          "on_interpolated_half_period": false,
+          "source_seconds": 147.129317,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        }
+      ],
+      "output_path": "artifacts/s2/phrase_anchor_riff/real-take/spans-k30.json",
+      "output_sha256": "798e68d3473b0031125729c18440585953a01243566599be8d1120ae2b8c872a",
+      "uncertainty_summary": {
+        "boundary_count": 28,
+        "grid_label": {
+          "grid_supported": 27,
+          "grid_weak": 1
+        },
+        "interpolated_half_period_boundaries": 0,
+        "join_confidence": {
+          "supported": 6,
+          "uncertain": 22
+        },
+        "outside_source_boundaries": 0,
+        "structural_status": {
+          "breakdown_execution_uncertain": 4,
+          "nominal": 6,
+          "presumed_repeat_section": 5,
+          "uncertain_upstream_breakdown": 21
+        }
+      },
+      "units_first_last": [
+        {
+          "coverage": "within_source",
+          "end_source_seconds": 16.050904,
+          "id": "verse1:1",
+          "start_source_seconds": 10.645609
+        },
+        {
+          "coverage": "within_source",
+          "end_source_seconds": 147.129317,
+          "id": "outro_sweep:2",
+          "start_source_seconds": 141.724022
+        }
+      ]
+    },
+    {
+      "anchor": {
+        "adopted": false,
+        "anchor_lattice_seconds": 10.98343984330683,
+        "evidence_analyzed_input_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+        "evidence_sha256": "22700f59b1f4cafbf992838c30ebb0fb8e855a37971418805605c617a10748d3",
+        "input_value": 10.9775,
+        "k0": 31,
+        "matched_evidence_candidate": {
+          "candidate_source_seconds": 10.9775,
+          "candidate_status": "review_candidate_not_confirmed_downbeat",
+          "lattice_minus_candidate_seconds": 0.005939843306830284
+        },
+        "method": "source_seconds_snapped_to_lattice",
+        "snap_residual_seconds": -0.005939843306830284,
+        "source_label": "cached_first_phrase_candidate_10.9775s_from_docs/agent-notes/2026-10-06-operator-arrangement-click-anchor.json",
+        "status": "review_candidate_not_confirmed_downbeat"
+      },
+      "boundaries": [
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 0,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:0",
+          "join_confidence": "supported",
+          "lattice_index": 31,
+          "median_abs_grid_offset_ms": 15.94,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 10.98344,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 16,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:1",
+          "join_confidence": "supported",
+          "lattice_index": 47,
+          "median_abs_grid_offset_ms": 3.073,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 16.388735,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 32,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:2",
+          "join_confidence": "supported",
+          "lattice_index": 63,
+          "median_abs_grid_offset_ms": 6.631,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 21.794031,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 48,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:3",
+          "join_confidence": "supported",
+          "lattice_index": 79,
+          "median_abs_grid_offset_ms": 14.338,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 27.199326,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 64,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:4",
+          "join_confidence": "supported",
+          "lattice_index": 95,
+          "median_abs_grid_offset_ms": 2.879,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 32.604621,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 80,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:5",
+          "join_confidence": "supported",
+          "lattice_index": 111,
+          "median_abs_grid_offset_ms": 5.745,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 38.009917,
+          "structural_status": [
+            "nominal"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 96,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:6",
+          "join_confidence": "uncertain",
+          "lattice_index": 127,
+          "median_abs_grid_offset_ms": 4.788,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 43.415212,
+          "structural_status": [
+            "breakdown_execution_uncertain"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 104,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:7",
+          "join_confidence": "uncertain",
+          "lattice_index": 135,
+          "median_abs_grid_offset_ms": 2.802,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 46.11786,
+          "structural_status": [
+            "breakdown_execution_uncertain",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 120,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:8",
+          "join_confidence": "uncertain",
+          "lattice_index": 151,
+          "median_abs_grid_offset_ms": 6.183,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 51.523155,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 136,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:9",
+          "join_confidence": "uncertain",
+          "lattice_index": 167,
+          "median_abs_grid_offset_ms": 9.669,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 56.928451,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 152,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:10",
+          "join_confidence": "uncertain",
+          "lattice_index": 183,
+          "median_abs_grid_offset_ms": 23.754,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 62.333746,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 168,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:11",
+          "join_confidence": "uncertain",
+          "lattice_index": 199,
+          "median_abs_grid_offset_ms": 5.297,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 67.739041,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 184,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:12",
+          "join_confidence": "uncertain",
+          "lattice_index": 215,
+          "median_abs_grid_offset_ms": 5.663,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 73.144337,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 200,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:13",
+          "join_confidence": "uncertain",
+          "lattice_index": 231,
+          "median_abs_grid_offset_ms": 13.493,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 78.549632,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 216,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:14",
+          "join_confidence": "uncertain",
+          "lattice_index": 247,
+          "median_abs_grid_offset_ms": 2.572,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 83.954928,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 232,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:15",
+          "join_confidence": "uncertain",
+          "lattice_index": 263,
+          "median_abs_grid_offset_ms": 0.885,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 89.360223,
+          "structural_status": [
+            "breakdown_execution_uncertain",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 240,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_weak",
+          "id": "boundary:16",
+          "join_confidence": "uncertain",
+          "lattice_index": 271,
+          "median_abs_grid_offset_ms": 34.709,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 92.062871,
+          "structural_status": [
+            "breakdown_execution_uncertain",
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 256,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:17",
+          "join_confidence": "uncertain",
+          "lattice_index": 287,
+          "median_abs_grid_offset_ms": 2.504,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 97.468166,
+          "structural_status": [
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 272,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:18",
+          "join_confidence": "uncertain",
+          "lattice_index": 303,
+          "median_abs_grid_offset_ms": 21.838,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 102.873461,
+          "structural_status": [
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 288,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:19",
+          "join_confidence": "uncertain",
+          "lattice_index": 319,
+          "median_abs_grid_offset_ms": 1.574,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 108.278757,
+          "structural_status": [
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 304,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:20",
+          "join_confidence": "uncertain",
+          "lattice_index": 335,
+          "median_abs_grid_offset_ms": 8.779,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 113.684052,
+          "structural_status": [
+            "presumed_repeat_section",
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 308,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:21",
+          "join_confidence": "uncertain",
+          "lattice_index": 339,
+          "median_abs_grid_offset_ms": 0.662,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 115.035376,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 324,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:22",
+          "join_confidence": "uncertain",
+          "lattice_index": 355,
+          "median_abs_grid_offset_ms": 20.331,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 120.440671,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "matched_boundary_candidate",
+          "click_index": 340,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:23",
+          "join_confidence": "uncertain",
+          "lattice_index": 371,
+          "median_abs_grid_offset_ms": 3.371,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 125.845967,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 356,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:24",
+          "join_confidence": "uncertain",
+          "lattice_index": 387,
+          "median_abs_grid_offset_ms": 6.238,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 131.251262,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 372,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:25",
+          "join_confidence": "uncertain",
+          "lattice_index": 403,
+          "median_abs_grid_offset_ms": 8.442,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 136.656558,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 388,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:26",
+          "join_confidence": "uncertain",
+          "lattice_index": 419,
+          "median_abs_grid_offset_ms": 7.485,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 142.061853,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        },
+        {
+          "checker_status": "unobserved_boundary",
+          "click_index": 404,
+          "expected_grid_beats": 4,
+          "grid_label": "grid_supported",
+          "id": "boundary:27",
+          "join_confidence": "uncertain",
+          "lattice_index": 435,
+          "median_abs_grid_offset_ms": 8.183,
+          "observed_grid_beats": 4,
+          "on_interpolated_half_period": true,
+          "source_seconds": 147.467148,
+          "structural_status": [
+            "uncertain_upstream_breakdown"
+          ]
+        }
+      ],
+      "output_path": "artifacts/s2/phrase_anchor_riff/real-take/spans-k31.json",
+      "output_sha256": "e5e2049e14e27fc04765b6ac034ee1a31ba1a55b61f6d5c53b595d5109177c0c",
+      "uncertainty_summary": {
+        "boundary_count": 28,
+        "grid_label": {
+          "grid_supported": 27,
+          "grid_weak": 1
+        },
+        "interpolated_half_period_boundaries": 28,
+        "join_confidence": {
+          "supported": 6,
+          "uncertain": 22
+        },
+        "outside_source_boundaries": 0,
+        "structural_status": {
+          "breakdown_execution_uncertain": 4,
+          "nominal": 6,
+          "presumed_repeat_section": 5,
+          "uncertain_upstream_breakdown": 21
+        }
+      },
+      "units_first_last": [
+        {
+          "coverage": "within_source",
+          "end_source_seconds": 16.388735,
+          "id": "verse1:1",
+          "start_source_seconds": 10.98344
+        },
+        {
+          "coverage": "within_source",
+          "end_source_seconds": 147.467148,
+          "id": "outro_sweep:2",
+          "start_source_seconds": 142.061853
+        }
+      ]
+    }
+  ],
+  "arrangement_totals": {
+    "boundary_count": 28,
+    "breakdown_group_count": 2,
+    "intended_click_count": 404,
+    "musical_phrase_count": 24,
+    "rest_click_count": 4,
+    "unit_count": 27
+  },
+  "audio_decoded": false,
+  "authority": "workflow-A phase-2 task under PHRASES_S2 (d8875ad); R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13",
+  "breakdown1_execution": "unknown_operator_reported_possible_rush_or_skip",
+  "chorus2_count_provenance": "presumed_repeat",
+  "claim_class": "inference_intent_projection_not_detection",
+  "click_identity": "unverified",
+  "clicks_per_grid_period": {
+    "mapping_basis": "operator_supplied_not_inferred",
+    "value": 2
+  },
+  "default_adoption": false,
+  "detector_delay": "uncalibrated",
+  "detector_rerun": false,
+  "downbeat_confirmed": false,
+  "inputs": {
+    "arrangement_sha256": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a",
+    "checker_assessment": {
+      "analyzed_input_sha256": "cb8a3fa559424810f206c94191a149156423770bbf91a13724a2ba28a44e879e",
+      "path": "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/arrangement-reference-20261006/assessment.json",
+      "role": "cross_reference_only",
+      "sha256": "834e9420ef10310c2e1df42f243af01f645de06a498e544f06ec1593cdd07028"
+    },
+    "grid_analyzed_input_sha256": "cb8a3fa559424810f206c94191a149156423770bbf91a13724a2ba28a44e879e",
+    "grid_path": "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/clicks/20261006T040944Z-a98ce2dc1f72/clicks.json",
+    "grid_sha256": "cee9a506d70f3bebb95d054ae6a4bb5f8c880133d31327a8b7c0a19950497937",
+    "original_source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+    "timeline_no_stretch_verified": true
+  },
+  "join_confidence_rules": {
+    "confidence_kind": "heuristic_not_probability",
+    "grid_supported": "support_fraction >= 0.75 and median_abs_grid_offset_ms <= 30.0",
+    "grid_unsupported": "otherwise or no expected beats",
+    "grid_weak": "support_fraction >= 0.25",
+    "join_confidence": "ordinal minimum of grid label and every structural status",
+    "ordinal": "supported > weak > uncertain > unsupported",
+    "threshold_basis": "engineering_choice_frozen_in_PHRASES_S2_not_calibrated",
+    "window_operator_clicks": 4
+  },
+  "kind": "real_take_anchor_spans_receipt",
+  "lane": "phrase_anchor_riff",
+  "lattice": {
+    "audio_stream_start_seconds": 0.0,
+    "clicks_per_grid_period": 2,
+    "formula": "t(k) = s0 + phi + k * P / r",
+    "grid_period_seconds": 0.6756619232465692,
+    "interpolated_half_periods": "odd lattice indices when r=2 are interpolated, never observed clicks",
+    "operator_click_equivalent_bpm": 177.60361487206143,
+    "operator_click_period_seconds": 0.3378309616232846,
+    "phase_seconds_audio_relative": 0.5106800329850074
+  },
+  "limitations": [
+    "Spans are operator intent projected on a constant-period global grid fit; they are not detected phrases.",
+    "clicks_per_grid_period is an operator-supplied mapping, never inferred; odd lattice indices under r=2 are interpolated half-periods, not observed clicks.",
+    "The anchor is a review candidate unless an operator-authored mark supports it; a one-click anchor error shifts every span by one operator click.",
+    "join_confidence is an ordinal heuristic with engineering thresholds, not a probability or calibrated error bound.",
+    "Every boundary after breakdown 1 starts inherits its unknown execution; breakdown shift hypotheses are never adopted.",
+    "Local clock drift appears only as measured grid offsets near each join; detector and capture latency are uncalibrated."
+  ],
+  "linear": "TIN-5603",
+  "listening_acceptance": "not_performed",
+  "meter": "unknown",
+  "missed_or_extra_notes": "not_assessed_no_approved_reference",
+  "observed_click_count": null,
+  "performance_issue_confirmed": false,
+  "physical_capture_latency": "uncalibrated",
+  "real_take_phrase_correctness": "unknown_until_operator_marks_boundaries",
+  "schema_version": 1,
+  "scorer_check": {
+    "accepted_mark_count": 0,
+    "excluded_mark_counts": {
+      "kind_not_phrase_duration": 1
+    },
+    "marks_path": "/Users/jess/git/video-utils/artifacts/experiments/s1-demo-context-20261006T0627/review-annotations-v2.json",
+    "marks_sha256": "17041cb31476f91409e3c48f6434fcde8874ecd175a221b0f3fe644614d40eca",
+    "output_path": "artifacts/s2/phrase_anchor_riff/real-take/score-k30-s1-demo-context-store.json",
+    "output_sha256": "e451bceee43f065701471cbdd088b343910ea81256f244e2f1332ca98bf85791",
+    "reason": "insufficient_operator_boundaries",
+    "required": 10,
+    "result": null,
+    "source_binding": "original_source_sha256"
+  },
+  "source_extent": {
+    "basis": "grid_pcm_duration",
+    "duration_seconds": 150.9611111111111,
+    "end_seconds": 150.9611111111111,
+    "start_seconds": 0.0
+  },
+  "sprint": "20261006-s2",
+  "worker": "scripts/phrase_anchor.py",
+  "worker_sha256": "483cc3d946f242ddcc5c906a327d33f7a26c5680c68a6dac469d0a5a80699e03"
+}
