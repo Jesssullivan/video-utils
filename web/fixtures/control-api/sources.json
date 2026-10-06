@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "source_id": "src_synthetic_known",
+      "label": "Synthetic fixture take A (all facts reported)",
+      "validation_state": "valid",
+      "source_sha256": "0000000000000000000000000000000000000000000000000000000000000001",
+      "duration_seconds": 12.5,
+      "sample_rate_hz": 48000,
+      "channels": 2
+    },
+    {
+      "source_id": "src_synthetic_unknowns",
+      "label": "Synthetic fixture take B (facts not yet reported)",
+      "validation_state": "pending",
+      "source_sha256": null,
+      "duration_seconds": null,
+      "sample_rate_hz": null,
+      "channels": null
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 # S2 web_stack lane contract: SvelteKit + Effect v4 + Skeleton v5 fixture and control-layer decision
 
-Status: **Phase 1 contract freeze**, 2026-10-06. Lane `web_stack`, workflow D,
+Status: **Phase 1 contract freeze**, 2026-10-06; **Phase 2 implemented** 2026-10-06
+(record in section 13, receipt `web_stack-build-receipt.json`). Lane `web_stack`, workflow D,
 wave 2, branch `sprint/20261006-s2/web_stack`, worktree `.local/sprint2/web_stack`.
 Tracker: Linear TIN-5613 (related TIN-5551; sibling lane `web_jobs` TIN-5614).
 Baseline: `e0da4ca04930ee9a89a83eec402f060366c5d30d`.
@@ -98,6 +99,33 @@ Runtime: node `v22.23.2` (`engines.node: ">=22.12 <23"`), `packageManager:
 "pnpm@11.25.0"`. Phase 2 may change a pin **only** when `pnpm install` reports
 an actual peer/engine conflict; the receipt records the old pin, new pin and the
 verbatim conflict line. No pin changes for preference or to chase newer releases.
+
+### 3.1 Phase 2 toolchain observations (no pin changed)
+
+All twelve frozen pins installed without a peer/engine conflict; `@types/node`
+resolved to `22.20.5` (latest 22.x on 2026-10-06). Observed on the lane host:
+
+1. pnpm 11.25.0 reads package-manager settings from `web/pnpm-workspace.yaml`,
+   not `.npmrc`; `.npmrc` keeps only `save-exact=true` and comments (no
+   credentials). `pnpm-workspace.yaml` sets `strictPeerDependencies: true` and
+   `verifyDepsBeforeRun: error` (a script fails instead of silently running an
+   online install when dependencies are stale).
+2. pnpm added `minimumReleaseAgeExclude: [vite@8.3.3]` itself during the first
+   install (vite 8.3.3 is younger than pnpm 11's default minimum release age).
+   It is committed so frozen installs are reproducible; it is a recorded supply-
+   chain exception, not a preference.
+3. `engine-strict` is **not** enforced. This host's pnpm runs on its own bundled
+   Node runtime (v24.19.0), so pnpm's engine check evaluates that runtime, not the
+   `node` on PATH (v22.23.2) that runs svelte-check, vite, the tests and
+   `serve.js`. With `engineStrict` on, `pnpm run check` failed with
+   `ERR_PNPM_UNSUPPORTED_ENGINE ... Got: v24.19.0`. The `engines` field stays
+   declarative and pnpm prints an advisory warning.
+4. A first `pnpm install --offline` after the resolving install failed the
+   supply-chain policy check with `ERR_PNPM_NO_OFFLINE_META` (package metadata
+   not cached). One online `pnpm install --frozen-lockfile` populated the
+   metadata cache; afterwards offline frozen installs from an empty
+   `node_modules` succeeded. A fresh host therefore needs one online frozen
+   install before `--offline` works.
 
 ## 4. Control-API boundary (assumed S2 subset, mocked in tests)
 
@@ -391,3 +419,33 @@ To `web_jobs` / root: add `GET /api/v1/sources` (list) to the control API, or
 confirm an alternative; align `JobSnapshot` and `SourceSummary` (section 4),
 in particular nullable `progress` with an explicit denominator and nullable
 `eta_seconds`. Until aligned, the BFF schema is an assumption, not a contract.
+
+## 13. Phase 2 implementation record
+
+Implemented exactly as sections 1-7 with these recorded additions (none relaxes
+a frozen rule):
+
+- `web/pnpm-workspace.yaml` (section 3.1) is an additional owned file.
+- `web/src/lib/control-types.ts` holds the client-safe `BffError` type so
+  components never import `$lib/server/*`.
+- `serve.js` also refuses `SOCKET_PATH` (exit 2); S2 serves only a loopback TCP
+  port. B4 checks `HOST` values the wildcard address, `localhost` and
+  `192.0.2.1`.
+- Control-URL validation is a strict pattern: `http://127.0.0.1:<port>` or
+  `http://[::1]:<port>` with an optional trailing `/` and port 1..65535.
+- Decode-error messages list Schema issue paths whose segments are schema field
+  names or indexes; any other key is rendered `<unexpected_key>` so neither
+  upstream values nor upstream key names are echoed.
+- N9 has two subcases: declared `Content-Length` over the cap, and a streamed
+  body without `Content-Length` (counted while reading).
+- N13 is the optional M11 listener check (`lsof`), for the app and the mock;
+  it skips with `listen_address_verified: null` when `lsof` is absent.
+- The build/integration skip rule also skips when this host's pnpm storage gate
+  exits 75 (EX_TEMPFAIL, storage unavailable); any other failure fails.
+- Skeleton Svelte components used: `Progress` only (shown only when
+  `progress.denominator` is reported).
+
+Measured results, unknowns and denominators are in
+`docs/agent-notes/sprints/20261006-s2/web_stack-build-receipt.json`; handoff and
+root-owned requests in `web_stack-handoff.json`.
+

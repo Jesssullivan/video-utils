@@ -1,0 +1,20 @@
+{
+  "purpose": "Synthetic mock control-API responses for tests/test_web_stack.py (assumed S2 subset, WEB_STACK_S2.md section 4).",
+  "claim_class": "synthetic_fixture",
+  "control_api_contract_source": "assumed_s2_subset_pending_web_jobs",
+  "contains_real_media_facts": false,
+  "cases": {
+    "sources.json": "N1 valid list; second source has every nullable field null",
+    "job_running.json": "N2 running with progress null and eta null",
+    "job_progress.json": "N3 progress with explicit denominator",
+    "job_succeeded.json": "N4 terminal state with source-time fields",
+    "job_bad_unknown_key.json": "N5 closed-schema violation (unknown key)",
+    "job_bad_enum.json": "N5 closed-schema violation (bad state enum)"
+  },
+  "generated_by_mock": {
+    "job_http_500": "N6 upstream 500",
+    "job_missing": "N7 upstream 404",
+    "job_slow": "N8 upstream delay 7 s",
+    "job_huge": "N9 body larger than 1 MiB"
+  }
+}
