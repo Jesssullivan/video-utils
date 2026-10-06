@@ -1,0 +1,99 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004 R-N13; operator S2 sprint 20261006-s2; Linear TIN-5604",
+  "actor": "workflow-B/annot_corpus",
+  "time": "2026-10-06T11:51:26Z",
+  "phase": "phase2_implementation",
+  "branch": "sprint/20261006-s2/annot_corpus",
+  "contract": {"path": "docs/spec/sprints/ANNOT_CORPUS_S2.md", "frozen_commit": "9ce8c4fab21a04b1d2328c6c50907788ca7c2e49", "frozen_sha256": "b83336b7a2da50beb6fcc81071d7c055bc19f8d300a85ef1986daacbcb857377", "phase2_sha256": "47f78755d2654e95e5a38a13a2e68b1623c7d4570e4bcc5703a21312949bc3c7", "phase2_change": "additive implementation-notes section appended; frozen text unchanged"},
+  "implementation_commit": "c7dfbe6f70d3758377b771a3f4de9beb9a0fdf36",
+  "script_sha256": {
+    "scripts/annotation_markers.py": "a8a82af834918f6b9355b75289e6fef80b58d5da4883700bbf00f2160b273323",
+    "scripts/flags_triage.py": "7a3b290d3ca62c70aa38742071c90c90ff011398612cbaf33492e05ffe3824a5",
+    "scripts/corpus_eval_s2.py": "5b1b6d71c1141a48835232e074c60e6e9d01f6c4d1475153c3c5df8c3f892c2a"
+  },
+  "media_opened": false,
+  "source_audio_read": false,
+  "ffmpeg_invoked": false,
+  "models_downloaded": false,
+  "accepted_run_directories_written": false,
+  "marked_video_py_sha256_unchanged": {"before": "821b064809356481972ecbe5115568d15de15a2eeffd2f49b29f0ccf63350458", "after": "821b064809356481972ecbe5115568d15de15a2eeffd2f49b29f0ccf63350458"},
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_annotation_markers test_flags_triage test_corpus_eval_s2 -v",
+    "ran": 36, "passed": 36, "failed": 0, "skipped": 0,
+    "by_module": {"test_annotation_markers": 13, "test_flags_triage": 9, "test_corpus_eval_s2": 14},
+    "property_loops": {"seed": 20261006, "cases": 200, "modules": ["test_annotation_markers.visibility", "test_flags_triage.one_per_window_and_confidence_permutation"]},
+    "directly_affected_modules": {"command": "PYTHONPATH=tests python3 -m unittest test_annotation_v2 test_corpus_split_s1 test_markers", "ran": 82, "failed": 0},
+    "full_suite": "not_run_by_lane_root_owns_it"
+  },
+  "measurements": {
+    "claim_class_legend": {"M": "measurement on existing JSON metadata", "S": "synthetic fixture behavior", "I": "inference"},
+    "metric_2_real_s1_store_projection": {
+      "claim_class": "M",
+      "inputs_sha256": {"store": "17041cb31476f91409e3c48f6434fcde8874ecd175a221b0f3fe644614d40eca", "manifest": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f"},
+      "record_count": 1, "visible_count": 1, "suppressed_count": 0,
+      "visible_row": {"basis_label": "INTENT", "kind": "noise", "review_state": "needs_review", "source_time_seconds": 0.0, "end_seconds": 5.0, "extent_known": true},
+      "text_included": false,
+      "output_sha256": {"annotation-markers.json": "8371cd40f9b5fdf99ab75e31d8af1cedef5655678dc66e0d88603c226dd0f2b6", "annotation-markers.csv": "6d1c77fd7b15a6eb23be3e4af560d0d8526b1a68a3c0b0ac8102cd7864b0d05d"}
+    },
+    "metric_4_real_take_triage": {
+      "claim_class": "M",
+      "input_flags_sha256": "95a0106c84a338ddc756f3c17879e5eccf8966b4344fe6326b71da7872e8a732",
+      "window_basis": "click_grid_16_period_navigation_windows",
+      "window_basis_reason": "phrases.json interpretation.semantic_phrases is a string, not a list of spans",
+      "grid": {"period_seconds": 0.6756619232465692, "phase_seconds_source": 0.5106800329850074, "window_seconds": 10.810590771945107, "bar_or_downbeat_identified": false},
+      "denominators": {"total_flags": 171, "navigation_hidden": 112, "suppressed_lower_priority": 44, "shown": 15, "window_count": 15, "windows_with_shown": 15},
+      "fractions": {"shown_of_total": "15/171", "navigation_hidden_of_total": "112/171", "suppressed_of_total": "44/171"},
+      "shown_by_tier": {"T1": 2, "T2": 2, "T3": 1, "T4": 10, "T5": 0},
+      "acceptance_shown_at_most_30": "met",
+      "preregistered_expectation": "shown <= 15 (I); measured 15",
+      "output_sha256": "b4c5961fc02e9164844f1556547d36822614aabb4db86e73a8c340ee0a76f469",
+      "input_unchanged_after": true
+    },
+    "metric_6_real_corpus_evaluation": {
+      "claim_class": "M",
+      "split_manifest": {"path": "docs/spec/examples/corpus-split/operator-review-corpus.json", "sha256": "4193d2545ed20e1f0f7951f0ce88740858cf93eecd54f27dcb4e81e4ae5becad"},
+      "proposals_sha256": "95a0106c84a338ddc756f3c17879e5eccf8966b4344fe6326b71da7872e8a732",
+      "proposal_count": 171, "navigation_excluded": 112, "eligible_proposals": 59,
+      "eligible_proposals_overlapping_covered_region": 5,
+      "clock_alignment_status": "same_source_original_clock_declared",
+      "detector_latency": "uncalibrated",
+      "proposal_lineage_differs_from_annotation_manifest": true,
+      "proposal_manifest_sha256": "a6c371ab36e1f50b850f167a42b010ffa7b923b32aca14f4bfd70fb24036077c",
+      "covered_seconds": 5.0, "total_seconds": 150.961111, "coverage_fraction": 0.03312111289377037, "coverage_threshold": 0.5,
+      "precision": null, "precision_reason": "false_positive_requires_reviewed_absence_label",
+      "recall": null, "recall_reason": "coverage_below_threshold",
+      "labelled_positive_count_every_axis": 0,
+      "negatives_inferred": 0,
+      "interpretation": "expected null result preregistered at freeze; not a detector failure",
+      "output_sha256": "96b6affe4e5ea68dee72233a026d56d17a5fe6362aaf69eedb244b02a94aa15b"
+    },
+    "metric_7_v3_receipt": {
+      "claim_class": "M",
+      "receipt": {"path": "docs/agent-notes/peers/xoruby/V3-corpus-split-receipt.json", "sha256": "62638102a192177918ca490f03010a8f75ddff515bb27fcea0ca004cb1fae128"},
+      "producer": "corpus_split_s1.validate_split(summary=True), verbatim, indent=2",
+      "staging_root": ".local/sprint2/annot_corpus/artifacts/s2/annot_corpus/v3-root (gitignored)",
+      "staged_files_sha256_before_and_after": {
+        "artifacts/experiments/s1-demo-context-20261006T0627/manifest.json": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+        "artifacts/experiments/s1-demo-context-20261006T0627/review-annotations-v2.json": "17041cb31476f91409e3c48f6434fcde8874ecd175a221b0f3fe644614d40eca",
+        "program/demo-arrangement.json": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a",
+        "docs/spec/examples/corpus-split/operator-review-corpus.json": "4193d2545ed20e1f0f7951f0ce88740858cf93eecd54f27dcb4e81e4ae5becad"
+      },
+      "staged_copies_byte_identical_to_main_checkout": true,
+      "audio_copied_or_opened": false,
+      "reproduce_after_merge": "python3 scripts/corpus_split_s1.py validate docs/spec/examples/corpus-split/operator-review-corpus.json --root . --summary"
+    }
+  },
+  "inferences": [
+    "Triage shown count equals the 15 grid windows because every window holds at least one non-navigation flag on this take (I).",
+    "T4 spectral texture regions win 10/15 windows only because no higher-tier flag falls in those windows; tier order is a review ordering, not salience (I)."
+  ],
+  "unknown_or_abstained": {
+    "musical_verdict": "not_established", "performance_grade": "not_assigned", "listening_acceptance": "not_established",
+    "ground_truth_established": false, "picture_coverage": "not_evaluated", "editor_import": "not_validated",
+    "bar_or_downbeat_identified": false, "unlabelled_intervals": "unknown_not_negative",
+    "articulation_axes_palm_mute_legato_tapping_sweep_chord": "unknown_no_subtype_in_v2_schema",
+    "xoruby_noul_token_spelling": "to_be_confirmed_by_peer"
+  },
+  "listening_claims": [],
+  "result": "implemented_with_tests; real-take triage acceptance met (15/171 shown); corpus evaluation null as preregistered"
+}
