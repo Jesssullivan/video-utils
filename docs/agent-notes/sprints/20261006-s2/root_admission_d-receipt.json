@@ -1,0 +1,229 @@
+{
+ "schema_version": 1,
+ "lane": "root_admission_d",
+ "sprint": "20261006-s2",
+ "linear": "TIN-5599",
+ "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43); R-N13 receipt",
+ "date": "2026-10-06",
+ "worktree": "/Users/jess/git/video-utils/.local/sprint2/root_admission_d",
+ "branch": "sprint/20261006-s2/root_admission_d",
+ "base": "0cdca01",
+ "commits_before_receipt": [
+  "84ee740db7557e911ef7e69e98c944d9ecf62773 Withhold uncalibrated real-take phrase_timing direction",
+  "ddf48c2d072f6d58896f039921def8c53907e2ec Admit tone_ab as typed MCP tool 39 with skill, recipe and tests"
+ ],
+ "tasks": {
+  "1_tone_ab_admission": {
+   "descriptor": "docs/agent-notes/sprints/20261006-s2/tone_ab-tool-descriptor.json appended verbatim as tools[38]; equals `python3 scripts/tone_ab.py describe` (asserted in test_s2_tool_admission)",
+   "tool_api": "S2_EXACT_PATH_FIELDS['tone_ab'] = ('run_dir', 'candidate_run_dir'); worker_command branch per tone_ab-root-handoff.md (s2_input_directory with manifest.json, repr(float) region, timeout default 1200, optional --candidate-run-dir); added: candidate == run_dir refusal and region < 45 s ValidationError before any file read",
+   "outputs": "no output field in schema; worker writes only fresh ROOT/artifacts/s2/tone_ab/<run_id>-<UTC>/ and refuses run dirs / artifacts/runs (casefold + inode check, lane must_fix already fixed in merged scripts/tone_ab.py is_protected_location)",
+   "timeout": "integer 1..1800, default 1200; tool_api run_worker hard deadline = timeout_seconds; worker reserves min(10 s, 5%) for its failure record",
+   "skill": ".agents/skills/guitar-tone-ab/SKILL.md promoted from draft hook wording to admitted (Hook `tone_ab`, just tone-ab)",
+   "just_recipe": "tone-ab run_dir start end timeout=\"1200\" in just/workflow.just",
+   "count_pins_38_to_39": [
+    "tests/test_s2_tool_admission.py (3 sites)",
+    "tests/test_s1_tool_admission.py",
+    "tests/test_tool_contracts.py",
+    "tests/test_share_export_tool.py"
+   ],
+   "new_tests": [
+    "test_admission_d_tone_ab_descriptor_equals_lane_draft_and_skill_admitted",
+    "test_admission_d_tone_ab_invalid_arguments_refuse_before_worker",
+    "test_admission_d_tone_ab_fixed_argv_and_path_refusals",
+    "test_admission_d_tone_ab_real_worker_refuses_without_writes",
+    "test_real_mcp_lists_tools_and_reads_back_each_new_skill_prompt (extended with NEW_D)"
+   ],
+   "docs": "README.md and docs/spec/PROJECT.md: thirty-nine per-tool skills / 39 typed tools; README recipe row for just tone-ab",
+   "not_changed": "program/models.json, program/linear.json, program/capabilities.json, accepted runs, tone_ab trial/EQ-floor adoption (none)"
+  },
+  "2_phrase_timing_doctrine": {
+   "finding": "root_admission_c deferred item \"phrase_timing tendency_label on real takes\" (rhythm_clicks audit finding 9)",
+   "change": "scripts/phrase_timing.py schema_version 1 -> 2: tendency_label/tendency_basis replaced by direction, direction_status, direction_basis, offset_summary_basis. real_take: direction null, direction_status withheld_uncalibrated, claims.inferred []. synthetic_fixture: direction in {ahead_of_click, behind_click, within_5_ms}, direction_status synthetic_known_offset_fixture. Top-level direction_policy (operator_calibration null, operator_calibration_input_supported false) and claims {measured, inferred, listening: []}. Measured median_offset_ms / iqr_ms / click_proximal_onset_count and delay-compensated values unchanged.",
+   "descriptor": "phrase_timing descriptor (tools[37]) unchanged; tools[:38] frozen",
+   "skill": ".agents/skills/guitar-phrase-timing/SKILL.md description/intent/evidence/limits reworded (no rush/drag evidence claim)",
+   "spec": "docs/spec/sprints/RHYTHM_S2.md dated amendment beside tendency_label and tendency_basis",
+   "tests": "tests/test_phrase_timing.py: direction assertions for synthetic fixtures (P1 dev arms and sign rule unchanged), real-take withholding, new test_real_take_withholds_direction_but_keeps_measured_offsets (identical measured values real vs synthetic; no ahead/behind/within/rushing/dragging/tendency_label tokens in real-take output)"
+  }
+ },
+ "tool_count": 39,
+ "skill_dir_count": 39,
+ "tool_names_tail": [
+  "marked_compact",
+  "phrase_timing",
+  "tone_ab"
+ ],
+ "freeze_hashes": {
+  "tools[:30]": {
+   "ensure_ascii_false": "85fa376c6d6a64e8d2c7c332deb27cf14b4b490fb6f7f1c9ed51efb5ee3a06c7",
+   "ensure_ascii_true": "c13b2f89011e9fe862728d0e105b18945652d2fac3de36286971ecf686ca64aa"
+  },
+  "tools[:32]": {
+   "ensure_ascii_false": "932d3e2683c5175fc08f0a8b27169a351b6269ba3db4467811d37bbd698e8863",
+   "ensure_ascii_true": "358ce0aeba9214076d64fcc69ee9554cdd048d2001304dc897bf7f38b4d313bb"
+  },
+  "tools[:36]": {
+   "ensure_ascii_false": "82bdb7478deb8dc5859c33e7c2ca017c582cc54fc4dfaf85d858a6b5a77073ba",
+   "ensure_ascii_true": "51dd154f28079f178979a6add85bf9d2d8fcf4cc2f8d0fefec7061ab16749d31"
+  },
+  "tools[:38]": {
+   "ensure_ascii_false": "4005da2b6960de2b973078b272b678e9b995a8bb755888960944cfc8e2e187c5",
+   "ensure_ascii_true": "f079cffc30d6c2b19a6dab746fe76915642fef8a77bf3d9add4899a78f3eac54"
+  },
+  "tools[:39]": {
+   "ensure_ascii_false": "eada780f79f40516db8583bd13c0f9a8b9bf7386f1f94a3ff1147a165165436f",
+   "ensure_ascii_true": "aa60371ab37c791ed3b27cd9d940948a555bdbb5a5a9b4560c4ac48b75737259"
+  }
+ },
+ "verification": {
+  "command": "FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe PYTHONPATH=tests python3 -m unittest test_tools test_mcp test_tool_contracts test_sprint1_audit test_s1_tool_admission test_s2_tool_admission test_share_export_tool test_tone_ab test_phrase_timing test_rhythm -v",
+  "interpreter": "python3 (nix profile)",
+  "ran_line_verbatim": [
+   "Ran 209 tests in 696.489s"
+  ],
+  "result_line_verbatim": [
+   "FAILED (failures=1, errors=5, skipped=6)"
+  ],
+  "failures_and_errors": [
+   {
+    "kind": "ERROR",
+    "test": "test_real_learned_evaluator_mcp_preserves_octave_failure_and_inputs",
+    "case": "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_mcp_preserves_octave_failure_and_inputs"
+   },
+   {
+    "kind": "ERROR",
+    "test": "test_real_learned_evaluator_stale_raw_retains_structural_receipt",
+    "case": "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_stale_raw_retains_structural_receipt"
+   },
+   {
+    "kind": "ERROR",
+    "test": "test_real_learned_evaluator_unsupported_claim_keeps_metrics_and_fails",
+    "case": "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_unsupported_claim_keeps_metrics_and_fails"
+   },
+   {
+    "kind": "ERROR",
+    "test": "test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate",
+    "case": "test_tool_contracts.ToolContractTests.test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate"
+   },
+   {
+    "kind": "ERROR",
+    "test": "test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure",
+    "case": "test_tool_contracts.ToolContractTests.test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure"
+   },
+   {
+    "kind": "FAIL",
+    "test": "test_real_benchmark_v2_hook_generates_bounded_synthetic_bank",
+    "case": "test_tool_contracts.ToolContractTests.test_real_benchmark_v2_hook_generates_bounded_synthetic_bank"
+   }
+  ],
+  "known_environmental": "test_tool_contracts real calibration-evaluator cases error because ROOT is this worktree whose path contains the dot component .local; validate_tool_arguments calibration-path check refuses it (same as root_admission_b/c receipts); code not changed here",
+  "host_load_failure": {
+   "test": "test_tool_contracts.ToolContractTests.test_real_benchmark_v2_hook_generates_bounded_synthetic_bank",
+   "cause": "worker hard deadline 90 s exceeded under host contention (load averages 33.06 59.31 80.14 on 6 cores); code untouched by this lane",
+   "reproduction": "tool_api run benchmark fixtures technical-v2 timeout_seconds 90: worker deadline exceeded (90s), real 1m30.4s, user 11.6s; same call with timeout_seconds 400: completed fixtures_created case_count 12, real 1m41.3s, user 15.8s (load 52.50 53.43 72.79)",
+   "expected": "passes on an unloaded host; not fixed here"
+  },
+  "not_observed": "the known macOS entitlement failure lives in test_phrase_localization_pilot, which is not in this module list",
+  "extra": {
+   "just tool-info tone_ab": "exit 0; name tone_ab, 5 properties, additionalProperties false",
+   "just --list": "exit 0",
+   "python3 scripts/capabilities.py validate && traverse": "exit 0",
+   "PYTHONPATH=tests python3 -m unittest test_s2_tool_admission (pre-commit)": "Ran 16 tests, OK",
+   "PYTHONPATH=tests python3 -m unittest test_phrase_timing (pre-commit)": "Ran 11 tests, OK (skipped=1 sealed P2)"
+  },
+  "class": "measurement (unit-test counts on synthetic fixtures); no listening, real-take or accepted-run claim"
+ },
+ "deferred": [
+  {
+   "id": "phrase_timing descriptor intent wording",
+   "reason": "tools[37].intent still reads \"Show a musician whether each phrase tends ahead of or behind the recorded click\"; changing it rebases the tools[:38] freeze. Code/skill now withhold real-take direction; descriptor text change needs a root decision."
+  },
+  {
+   "id": "phrase_timing operator calibration input",
+   "reason": "No calibration input exists; direction_policy.operator_calibration null. Adding one needs a schema/descriptor change and an operator-measured capture-latency procedure."
+  },
+  {
+   "id": "historical receipts",
+   "reason": "docs/agent-notes/sprints/20261006-s2/rhythm_clicks-real-take.json keeps its schema-1 tendency_label_counts_over_measured (20/16/2, 7/11); receipts are not rewritten. Treat those counts as uncalibrated."
+  },
+  {
+   "id": "tone_ab excerpt durability",
+   "reason": "Lane audit: operator-listening excerpts live only in the tone_ab worktree artifacts; hashes in tone_ab-20261006T120702Z-actual-run.json. Not relocated here."
+  },
+  {
+   "id": "tone_ab finalize reserve gap",
+   "reason": "Lane audit: post-run snapshot re-hash is not bounded by the reserve; tool_api kill could leave only a .partial-* staging dir. Lane code change, not done here."
+  },
+  {
+   "id": "tone_ab listening/eq_floor",
+   "reason": "attack_identity unverified; eq_floor decision root_and_operator_review_required; excerpt pair loudness differs up to 1.00 LU. No adoption."
+  },
+  {
+   "id": "signing",
+   "reason": "Commits are --no-gpg-sign per instruction; root re-signs during integration."
+  }
+ ],
+ "protected": {
+  "artifacts/runs": "not read or written",
+  "Desktop/Documents": "untouched",
+  "main checkout/other worktrees/Linear": "untouched",
+  "pushed_or_merged": false
+ },
+ "files": [
+  {
+   "path": ".agents/skills/guitar-phrase-timing/SKILL.md",
+   "sha256": "691650c18db7a404c926ceb6b0c6ac48c7f674d0b3e3b3b8c6ff656c361b676a"
+  },
+  {
+   "path": ".agents/skills/guitar-tone-ab/SKILL.md",
+   "sha256": "8ce431c1e21f44e835ec4e62406ea74e17679603856e8adf269f7da8ab64cd20"
+  },
+  {
+   "path": "README.md",
+   "sha256": "be5376606865c13fad7190bc7db2abf38c4140d8970f6647ba56ad8899af09da"
+  },
+  {
+   "path": "docs/spec/PROJECT.md",
+   "sha256": "424b8dc66721a2c3d93e8edcdf5266224f919df76c5b005082c31322cb68b0e8"
+  },
+  {
+   "path": "docs/spec/sprints/RHYTHM_S2.md",
+   "sha256": "02f30f2e7019b4b5bdf730e0684f9f4da16f82a9ec2e8028789c42495b79588e"
+  },
+  {
+   "path": "just/workflow.just",
+   "sha256": "e60d46e8acd10cd6ce25c155187378b2d843af006426a612b0dfc72d6f249fce"
+  },
+  {
+   "path": "program/tools.json",
+   "sha256": "c9784dde1899bb8c589d00e88b0710bdc7e75eb08d08981313041d7daecd8b5a"
+  },
+  {
+   "path": "scripts/phrase_timing.py",
+   "sha256": "0d3c248bdb82262b7baeee080b2c2d505f736f6f01234fc1ff89fdc85fa70b5b"
+  },
+  {
+   "path": "scripts/tool_api.py",
+   "sha256": "c96dd762989b07e88a643c01a12fb7e7b5da6d3fb18b57c3d8667e7b21b69cfb"
+  },
+  {
+   "path": "tests/test_phrase_timing.py",
+   "sha256": "556f34a46411c092bb14a9cc5bf0b7fa5a1e8641d9d5a3a99405e91d2db7adb2"
+  },
+  {
+   "path": "tests/test_s1_tool_admission.py",
+   "sha256": "646902452b963bb8ca03cb9eb9dc22dc17da1070095e7c7062b7cf1bef07cf01"
+  },
+  {
+   "path": "tests/test_s2_tool_admission.py",
+   "sha256": "d54231b09ccf6df5a8f0ffe918ad24448e95696009ec966474cdbde9ad61c832"
+  },
+  {
+   "path": "tests/test_share_export_tool.py",
+   "sha256": "d24f9413f77ac1ca3b3d9ef053dde4a206899054fde3285aa910257f402972de"
+  },
+  {
+   "path": "tests/test_tool_contracts.py",
+   "sha256": "2f960400c0e63afb54716ddb9170a68192e1bcaf87630995df7ba2f5f424197c"
+  }
+ ]
+}
