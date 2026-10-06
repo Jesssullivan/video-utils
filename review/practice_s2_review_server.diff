@@ -1,0 +1,87 @@
+diff --git a/scripts/review_server.py b/scripts/review_server.py
+index 7b9d751..77543ba 100644
+--- a/scripts/review_server.py
++++ b/scripts/review_server.py
+@@ -7,6 +7,7 @@ from contextlib import contextmanager
+ from datetime import datetime, timezone
+ import fcntl
+ import hashlib
++import importlib.util
+ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+ import json
+ import math
+@@ -31,6 +32,9 @@ CATEGORIES = {"rhythm", "phrase", "tone", "noise", "other"}
+ STATES = {"needs_review", "accepted_observation", "dismissed_candidate"}
+ ASSETS = Path(__file__).resolve().parents[1] / "review"
+ SHA = re.compile(r"[a-fA-F0-9]{64}\Z")
++_PRACTICE_S2_SPEC = importlib.util.spec_from_file_location("practice_s2_routes", ASSETS / "practice_s2_routes.py")
++practice_s2_routes = importlib.util.module_from_spec(_PRACTICE_S2_SPEC)
++_PRACTICE_S2_SPEC.loader.exec_module(practice_s2_routes)
+ 
+ 
+ class ReviewError(Exception):
+@@ -378,8 +382,9 @@ class ReviewHTTPServer(ThreadingHTTPServer):
+     daemon_threads = True
+     request_queue_size = 8
+ 
+-    def __init__(self, session, port=8765):
++    def __init__(self, session, port=8765, practice_s2=None):
+         self.session = session
++        self.practice_s2 = practice_s2
+         self.workers = threading.BoundedSemaphore(16)
+         super().__init__(("127.0.0.1", port), Handler)
+ 
+@@ -454,7 +459,15 @@ class Handler(BaseHTTPRequestHandler):
+                 self.json_response(self.server.session.read_annotations())
+             elif path == "/api/annotations-v2":
+                 self.json_response(self.server.session.read_annotations_v2())
+-            elif path in {"/", "/index.html", "/app.js", "/practice.js", "/style.css"}:
++            elif path == practice_s2_routes.API_PATH:
++                status, value = practice_s2_routes.api_response(self.server.practice_s2)
++                self.json_response(value, status)
++            elif path.startswith(practice_s2_routes.MEDIA_PREFIX):
++                media = practice_s2_routes.media_for(self.server.practice_s2, path[len(practice_s2_routes.MEDIA_PREFIX):])
++                if media is None:
++                    raise ReviewError("route_not_found", 404)
++                self.send_media(media)
++            elif path in {"/", "/index.html", "/app.js", "/practice.js", "/practice_s2.js", "/style.css"}:
+                 name = "index.html" if path in {"/", "/index.html"} else path[1:]
+                 body = (ASSETS / name).read_bytes()
+                 kind = "text/html; charset=utf-8" if name.endswith("html") else "text/javascript; charset=utf-8" if name.endswith("js") else "text/css; charset=utf-8"
+@@ -543,6 +556,7 @@ def main():
+     serve = subparsers.add_parser("serve", help="Serve the private local review screen")
+     serve.add_argument("run_dir", type=Path)
+     serve.add_argument("--port", type=int, default=8765)
++    serve.add_argument("--practice-s2", type=Path, help="Read-only S2 practice bundle directory (review/practice_s2_bundle.py)")
+     read = subparsers.add_parser("annotations", help="Read source-bound saved annotations")
+     read.add_argument("run_dir", type=Path)
+     annotate = subparsers.add_parser("annotate", help="Save one source-bound annotation without a server")
+@@ -551,14 +565,18 @@ def main():
+     arguments = parser.parse_args()
+     session = None
+     server = None
++    practice_s2 = None
+     try:
+         session = Session(arguments.run_dir, open_media=arguments.command == "serve")
+         if arguments.command == "serve":
+             if not 0 <= arguments.port <= 65535:
+                 raise ReviewError("invalid_port")
+-            server = ReviewHTTPServer(session, arguments.port)
++            if arguments.practice_s2 is not None:
++                practice_s2 = practice_s2_routes.load(arguments.practice_s2, session, Media)
++            server = ReviewHTTPServer(session, arguments.port, practice_s2)
+             print(json.dumps({"url": f"http://127.0.0.1:{server.server_port}", "source_sha256": session.source_hash,
+-                              "status": "local_review_ready", "listening_acceptance": "not_established"}), flush=True)
++                              "status": "local_review_ready", "listening_acceptance": "not_established",
++                              "practice_s2": None if practice_s2 is None else (practice_s2.status, practice_s2.reason)}), flush=True)
+             server.serve_forever(poll_interval=.25)
+         else:
+             if arguments.command == "annotate":
+@@ -577,6 +595,7 @@ def main():
+     finally:
+         if server:
+             server.server_close()
++        practice_s2_routes.close(practice_s2)
+         if session:
+             session.close()
+     return 0

@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/style.css">
   <script src="/app.js" defer></script>
   <script src="/practice.js" defer></script>
+  <script src="/practice_s2.js" defer></script>
 </head>
 <body>
 <main>
@@ -18,6 +19,10 @@
     <p class="boundary">Automatic proposals are listening prompts. Your notes remain separate from confirmed performance errors and master acceptance.</p>
   </header>
   <p id="notice" role="status" aria-live="polite"></p>
+  <section id="s2-stages" class="s2-panel s2-stage-panel" aria-labelledby="s2-stages-title">
+    <div class="section-heading"><h2 id="s2-stages-title">Signal versions in this page</h2><span class="badge">stage identities</span></div>
+    <div id="s2-stages-body" class="s2-body"><p class="muted">Loading S2 evidence…</p></div>
+  </section>
   <div class="workspace">
     <section class="listening-panel" aria-labelledby="listen-title">
       <div class="section-heading"><h2 id="listen-title">Listen to the take</h2><span id="source-position" class="clock">00:00.000</span></div>
@@ -31,12 +36,43 @@
       <div class="transport" id="source-transport" tabindex="0" aria-label="Source seek and loop controls" aria-describedby="keyboard-help"><button id="span-start" type="button">Use position as start</button><button id="span-end" type="button">Use position as end</button><label class="checkbox"><input id="loop-span" type="checkbox">Loop marked span</label></div>
       <p class="muted" id="keyboard-help">Focus these controls: ← / → seek one second (Shift: five); [ / ] capture start / end; L toggles looping. Selecting a proposal or moving the position does not start playback.</p>
       <p id="loop-status" class="muted" role="status" aria-live="polite">Loop off.</p>
+      <div class="s2-session-toggle"><label class="checkbox"><input id="s2-session" type="checkbox">Labelling session (quick marks)</label><span id="s2-queue-count" class="badge">0 queued</span></div>
+      <div id="s2-quickmark" class="s2-quickmark" tabindex="0" hidden aria-label="Quick-mark bar" aria-describedby="s2-quickmark-help">
+        <label for="s2-template">Template text, saved verbatim as your words<input id="s2-template" type="text" maxlength="4000" autocomplete="off" placeholder="for example: phrase boundary"></label>
+        <div class="form-row"><label for="s2-kind">Kind for key I<select id="s2-kind"></select></label><label for="s2-certainty">Your certainty<select id="s2-certainty"><option value="uncertain">Uncertain</option><option value="confirmed">User reports certainty</option></select></label></div>
+        <div class="transport"><button id="s2-save" type="button">Save queued marks</button><button id="s2-retry" type="button" hidden>Retry same mark</button><button id="s2-undo" type="button">Remove last unsaved mark (U)</button></div>
+        <p id="s2-quickmark-help" class="muted">With focus here or on the source controls: B queues a phrase-boundary point mark at the current source time; I queues the selected kind; N / P seek the next / previous intent boundary; Shift+N / Shift+P seek the next / previous shown flag; U removes the last unsaved mark. Keys never act while you type in a field or hold Ctrl, Alt or Cmd, and nothing plays.</p>
+        <p id="s2-queue-status" role="status" aria-live="polite"></p>
+        <ol id="s2-queue" class="s2-queue" aria-label="Unsaved quick marks"></ol>
+      </div>
     </section>
     <section class="candidate-panel" aria-labelledby="candidate-title">
       <div class="section-heading"><h2 id="candidate-title">Detector hypotheses</h2><span id="candidate-count" class="badge">0</span></div>
       <div class="filters"><label>Kind<select id="kind-filter"><option value="">All kinds</option></select></label><label>Confidence<select id="confidence-filter"><option value="">All evidence levels</option></select></label></div>
       <p class="muted">Confidence labels are heuristic evidence, not probabilities. Meter and musical section identity can remain uncertain.</p>
       <div id="candidates" class="candidate-list"></div>
+    </section>
+  </div>
+  <div class="s2-workspace">
+    <section id="s2-ab" class="s2-panel" aria-labelledby="s2-ab-title">
+      <div class="section-heading"><h2 id="s2-ab-title">Matched A/B: source vs FULLER</h2><span class="badge">blind pairs</span></div>
+      <div id="s2-ab-body" class="s2-body"><p class="muted">Loading…</p></div>
+    </section>
+    <section id="s2-flags" class="s2-panel" aria-labelledby="s2-flags-title">
+      <div class="section-heading"><h2 id="s2-flags-title">Triaged review flags</h2><span class="badge">default view</span></div>
+      <div id="s2-flags-body" class="s2-body"><p class="muted">Loading…</p></div>
+    </section>
+    <section id="s2-coverage" class="s2-panel s2-wide" aria-labelledby="s2-coverage-title">
+      <div class="section-heading"><h2 id="s2-coverage-title">Intended vs observed coverage</h2><span class="badge">source seconds</span></div>
+      <div id="s2-coverage-body" class="s2-body"><p class="muted">Loading…</p></div>
+    </section>
+    <section id="s2-timing" class="s2-panel s2-wide" aria-labelledby="s2-timing-title">
+      <div class="section-heading"><h2 id="s2-timing-title">Per-phrase timing offsets</h2><span class="badge">measurement</span></div>
+      <div id="s2-timing-body" class="s2-body"><p class="muted">Loading…</p></div>
+    </section>
+    <section id="s2-prototypes" class="s2-panel s2-wide" aria-labelledby="s2-prototypes-title">
+      <div class="section-heading"><h2 id="s2-prototypes-title">Not implemented yet</h2><span class="badge">prototype labels</span></div>
+      <div id="s2-prototypes-body" class="s2-body"></div>
     </section>
   </div>
   <div class="notes-workspace">
