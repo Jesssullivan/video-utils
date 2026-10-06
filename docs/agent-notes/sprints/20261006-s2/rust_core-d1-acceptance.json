@@ -15,8 +15,41 @@
     "ffmpeg_orchestration_owner": "python",
     "rust_native_commands": ["hash", "verify-run"],
     "rust_dispatched_commands": ["probe", "clean", "demo", "export", "analyze", "pipeline", "markers", "mcp", "report"],
-    "project_md_sentence_requested_from_root": true
+    "project_md_sentence_requested_from_root": true,
+    "project_md_sentence_ref": "root_owned_changes_requested[file=docs/spec/PROJECT.md]"
   },
+  "root_owned_changes_requested": [
+    {
+      "file": "just/workflow.just",
+      "required_for_d1": true,
+      "change": "Add two recipes (paths quoted so space and Unicode paths reach the binary intact):\n# Stream SHA-256 of one or more files (shasum -a 256 compatible lines)\nhash +FILES:\n    CARGO_BUILD_JOBS=1 cargo run --locked -j 1 --quiet -- hash {{FILES}}\n\n# Metadata-only, read-only hash/typed-field verification of a run directory\nverify-run RUN_DIR:\n    CARGO_BUILD_JOBS=1 cargo run --locked -j 1 --quiet -- verify-run \"{{RUN_DIR}}\"",
+      "why": "Operator entrypoint is just (AGENTS.md); exposes the D1 Rust-native commands as `just hash FILE` and `just verify-run RUN_DIR`. just/workflow.just is root-owned."
+    },
+    {
+      "file": "docs/spec/PROJECT.md",
+      "required_for_d1": true,
+      "change": "Insert after the sentence beginning \"The Rust CLI exposes `probe`, `clean`, ...\": \"The Rust CLI natively implements streaming SHA-256 (`hash`) and typed, metadata-only run-manifest verification (`verify-run`); FFmpeg/ffprobe orchestration remains owned by the Python workers that the CLI dispatches, a declared D1 deviation recorded in `docs/agent-notes/sprints/20261006-s2/rust_core-d1-acceptance.json`.\"",
+      "why": "Records the declared D1 deviation (Rust owns hash/verify-run; Python keeps FFmpeg orchestration) in the project specification. PROJECT.md is root-owned."
+    },
+    {
+      "file": "native/au-spike/src/lib.rs",
+      "required_for_d1": false,
+      "change": "Line 50 in vu_gain_process: replace `if samples.is_null() || (samples as usize) % std::mem::align_of::<f32>() != 0 {` with `if samples.is_null() || !(samples as usize).is_multiple_of(std::mem::align_of::<f32>()) {`",
+      "why": "Pre-existing clippy::manual_is_multiple_of finding (file unchanged since baseline 4b87484, not lane-owned) makes `cargo clippy --locked -j 1 --all-targets -- -D warnings` in native/au-spike exit 101; usize::is_multiple_of is stable on the pinned 1.95.0 toolchain. Behaviour is unchanged (alignment check, no allocation in the render path)."
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "required_for_d1": false,
+      "change": "Optional: add a cargo step running `cargo test --locked -j 1` at the repository root and in `native/au-spike` (the workflow currently has no cargo step).",
+      "why": "Keeps the Rust hash/verify-run/DSP tests and the dependency-free AU staticlib build under CI; the workflow file is outside lane ownership."
+    },
+    {
+      "file": "program/tools.json; scripts/mcp_server.py; .agents/skills/",
+      "required_for_d1": false,
+      "change": "Optional and deferred for root decision: admit `verify-run` (and optionally `hash`) as a typed MCP tool with a repository skill stating intent, knobs, dependencies and evidence.",
+      "why": "AGENTS.md requires every processing primitive to have a typed MCP hook and skill; admission is root-owned and not required for this lane's D1 acceptance (see phrases['explicit tools'].gap)."
+    }
+  ],
   "dependency_decision": {
     "decision": "no external crates and no cargo features; minimal strict RFC 8259 JSON reader in src/run_record.rs",
     "basis": "offline Cargo registry cache had serde/serde_derive but lacked serde_json, itoa and ryu (metadata inspection recorded in the frozen contract); network crate fetching is out of lane scope",
