@@ -469,3 +469,75 @@ completion state.
 - `au_auval-handoff.json`: commit, test counts against the denominators above,
   the `au-spike-check` and `au-package-check` receipt hashes, the live
   discovery receipt summary (matching lines only) and every unknown field.
+
+## Phase 2 amendments (recorded after the freeze)
+
+No fixture, seed, tolerance or denominator changed. The following
+implementation clarifications are recorded as amendments:
+
+- **A1, module cache.** Both swiftc invocations add `-module-cache-path
+  <out>/swift-module-cache`, so compiler module-cache writes stay inside the
+  out dir instead of a per-user default location. The frozen argv is
+  otherwise unchanged.
+- **A2, swiftc resolution.** "`xcrun swiftc` resolves" is checked without an
+  extra command. `/usr/bin/xcrun` must exist, and an `unable to find utility`
+  failure from the typecheck itself is recorded as `skipped`, with a reason.
+- **A3, parser chunking.** The parser makes three adjustments to chunking:
+  - Text before the first rule is a preamble.
+  - The chunk that carries `AU VALIDATION SUCCEEDED/FAILED` is the summary and
+    is not a section.
+  - A title-only chunk, such as `VALIDATING AUDIO UNIT: …`, becomes the title
+    of the next chunk.
+
+  This preserves the frozen expectations: 6/6 for `pass.txt` and fail_count 1
+  for `fail_param.txt`. `FATAL ERROR` lines also make a section `fail`.
+- **A4, additive receipt fields.** The receipt adds these fields:
+  `stage_0_receipt_sha256`, `packaging_artifact_freshness`,
+  `os_managed_side_effects: "unknown"`, `claim_classes`,
+  `contract_amendments`, `next_required_decision`, `artifact_binding_note`,
+  `discovery.error` and `unsupported_reason`. `stage_5_auval.artifact_binding`
+  is `null` when discovery did not pass.
+- **A5, `validated` rule.** The top-level `validated` status requires stage 5
+  `passed`, `artifact_binding == "matched"` and stage 3 `passed`. Any other
+  registered outcome is `validation_failed`.
+- **A6, observed instantiation mode.** The harness reports
+  `observed_instantiation_mode` from `AUAudioUnit.isLoadedInProcess`, which is
+  the API-reported mode. The value stays `unknown` when the harness does not
+  run. The harness also imports Foundation, for RunLoop, NSLock and
+  JSONSerialization.
+- **A7, fixture generation.** LCG noise is computed in f64 and then cast to
+  f32. Irregular partition sizes are `1 + ((lcg >> 8) % 997)`, clamped to the
+  remaining length. The overflow refusal case uses peaking 1000 Hz, Q 1 and
+  +24 dB.
+- **A8, supplementary audit.** `check.py` adds a forbidden-token audit of the
+  direct `video_utils` callee (`Biquad::process`). The metric 4 denominator
+  remains the direct body only.
+- **A9, extra tests.** `tests/test_au_auval.py` has 21 tests: the frozen names
+  plus `test_unsupported_platform_exit_2`, `test_nonzero_listing_exit_is_error`,
+  `test_binding_unknowns`, `test_pluginkit_match_is_exact` and
+  `test_unknown_is_never_upgraded`.
+
+## Phase 2 results (2026-10-06, host arm64, macOS 26.7.1 (25G313), Rust 1.95.0)
+
+| # | Metric | Result | Class |
+| --- | --- | --- | --- |
+| 1 | FFI vs Rust bit parity | 150/150 | M |
+| 2 | Refusal atomicity | 20/20, plus the count-0 positive case | M |
+| 3 | Render-call allocations | 0 in 2048 calls | M |
+| 4 | `_vu_biquad_process` direct-body audit | 0 forbidden references (single callee `Biquad::process`, which also has 0) | M |
+| 5 | C harness | 39/39 (9 status assertions, 30 parity cases) | M |
+| 6 | Unwind panic path | 1/1 | M |
+| 6b | `panic = "abort"` in the release profile | present | C |
+| 7 | Parser fixtures | 5/5 | M |
+| 8 | Decision scenarios | 7/7 | M |
+| 9 | Static no-install guard | 0 hits | M |
+| 10 | Live discovery | `blocked_not_installed` (pluginkit: 0 matches, exit 0; `auval -a`: 0 target rows out of 58), 0 copies, 0 registry writes | H |
+| 11 | swiftc typecheck | passed | M |
+| 12 | `au-spike-check` / `au-package-check` | 2/2 exit 0 | M |
+| 13 | `test_au_auval` | 21/21 | M |
+| — | Stage 3 and stage 5 | `not_performed`, blocked by stage 2 | NP |
+| — | Logic, state recall, bypass, installation, listening | not performed / out of scope | NP |
+| — | Realtime deadline, observed instantiation mode, packaging freshness | unknown / `stale_unknown` | U |
+
+Hashes and receipts are recorded in
+`docs/agent-notes/sprints/20261006-s2/au_auval-handoff.json`.

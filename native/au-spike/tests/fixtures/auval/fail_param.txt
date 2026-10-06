@@ -1,0 +1,54 @@
+    AU Validation Tool
+    Version: SYNTHETIC
+    provenance: synthetic_format_model (not a recorded run of this unit)
+
+--------------------------------------------------
+VALIDATING AUDIO UNIT: 'aufx' - 'vuGn' - 'Jess'
+--------------------------------------------------
+Manufacturer String: Jess
+AudioUnit Name: video-utils: Guitar Gain Prototype
+Component Version: 0.1.0 (0x10000)
+
+* * PASS
+--------------------------------------------------
+TESTING OPEN TIMES:
+COLD:
+Time to open AudioUnit:         12.000 ms
+WARM:
+Time to open AudioUnit:         1.000 ms
+
+* * PASS
+--------------------------------------------------
+VERIFYING DEFAULT SCOPE FORMATS:
+Input Scope Bus Configuration:
+ Default Bus Count:1
+    Default Format: AudioStreamBasicDescription:  2 ch,  44100 Hz, Float32, deinterleaved
+
+* * PASS
+--------------------------------------------------
+VERIFYING REQUIRED PROPERTIES:
+  VERIFYING PROPERTY: Sample Rate
+    PASS
+  VERIFYING PROPERTY: Stream Format
+    PASS
+
+* * PASS
+--------------------------------------------------
+VERIFYING PARAMETERS:
+Parameter ID:0
+Name: Gain
+Min Value: 0.000000, Max Value: 16.000000, Default Value: 1.000000
+ERROR: Parameter did not retain default value when set
+ERROR: Parameter value out of range after set
+
+* * FAIL
+--------------------------------------------------
+RENDER TESTS:
+Input/Output Channel Handling:
+1-1   2-2
+
+* * PASS
+--------------------------------------------------
+ERROR: AU failed 1 test
+AU VALIDATION FAILED.
+--------------------------------------------------

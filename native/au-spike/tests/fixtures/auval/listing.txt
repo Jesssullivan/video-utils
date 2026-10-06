@@ -1,0 +1,13 @@
+    AU Validation Tool
+    Version: SYNTHETIC
+    provenance: synthetic_format_model (not a recorded run of this host)
+
+aufx bpas appl  -  Apple: AUBandpass
+aufx dcmp appl  -  Apple: AUDynamicsProcessor
+aufx vuGn Jess  -  video-utils: Guitar Gain Prototype
+aufx vuGn Jesz  -  near miss: manufacturer differs
+aumf vuGn Jess  -  near miss: type differs
+aufx vuGx Jess  -  near miss: subtype differs
+aumu dls  appl  -  Apple: DLSMusicDevice
+# aufx vuGn Jess  -  comment line, not a row
+aufx vuGn JessX -  near miss: manufacturer has an extra character
