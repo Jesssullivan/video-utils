@@ -22,6 +22,7 @@ from urllib.parse import unquote, urlsplit
 import uuid
 
 import report
+import annotation_v2
 
 MAX_BODY = 20000
 MAX_ANNOTATIONS = 200
@@ -117,18 +118,21 @@ class Media:
 
 
 class Session:
-    def __init__(self, root, open_media=True):
+    def __init__(self, root, open_media=True, bounded_metadata=False):
         self.root = Path(root).resolve(strict=True)
+        self.metadata_access = annotation_v2.MetadataAccess(self.root) if bounded_metadata else None
+        load_json = self.metadata_access.load_json if self.metadata_access else report.load_json
+        metadata_hash = self.metadata_access.sha256 if self.metadata_access else report.sha256
         self.manifest_path = self.root / "manifest.json"
         for relative in ("manifest.json", "analysis.json", "dag.json", "flags.json", "markers.json", "export/outcome.json"):
             metadata = self.root / relative
             if metadata.is_symlink() or (metadata.exists() and not metadata.resolve().is_relative_to(self.root)):
                 raise ReviewError("metadata_outside_run_rejected")
-        self.manifest = report.load_json(self.manifest_path)
+        self.manifest = load_json(self.manifest_path)
         self.source_hash = report.source_identity(self.manifest)
         if not isinstance(self.source_hash, str) or not SHA.fullmatch(self.source_hash):
             raise ReviewError("manifest_source_hash_required")
-        self.manifest_hash = report.sha256(self.manifest_path)
+        self.manifest_hash = metadata_hash(self.manifest_path)
         self.token = secrets.token_urlsafe(32)
         self.lock = threading.Lock()
         self.media = {}
@@ -176,15 +180,17 @@ class Session:
                         self.media_status[role] = "hash_verified"
                     except (OSError, ReviewError):
                         self.media_status[role] = "modified_or_unavailable_omitted"
-            self.auxiliary, self.auxiliary_status = report.auxiliary_evidence(self.root, self.manifest)
+            self.auxiliary, self.auxiliary_status = report.auxiliary_evidence(self.root, self.manifest,
+                **({"load_json": load_json, "sha256": metadata_hash} if self.metadata_access else {}))
             candidate_name = "markers" if "markers" in self.auxiliary else "flags" if "flags" in self.auxiliary else None
             payload = self.auxiliary.get(candidate_name, {})
-            self.candidate_hash = report.sha256(self.root / f"{candidate_name}.json") if candidate_name else None
-            self.provenance_hashes = {self.root / f"{name}.json": report.sha256(self.root / f"{name}.json") for name in self.auxiliary}
+            self.candidate_hash = metadata_hash(self.root / f"{candidate_name}.json") if candidate_name else None
+            self.provenance_hashes = {self.root / f"{name}.json": metadata_hash(self.root / f"{name}.json") for name in self.auxiliary}
             self.markers = self.marker_items(payload.get("markers", payload.get("flags", [])))
             self.marker_ids = {item["id"] for item in self.markers}
-            self.analysis = report.load_json(self.root / "analysis.json")
-            self.analysis_status = report.analysis_lineage(self.root, self.manifest, self.analysis)
+            self.analysis = load_json(self.root / "analysis.json")
+            self.analysis_status = report.analysis_lineage(self.root, self.manifest, self.analysis,
+                **({"sha256": metadata_hash} if self.metadata_access else {}))
             if self.analysis_status.startswith("rejected"):
                 self.analysis = {}
             self.read_annotations()
@@ -228,7 +234,7 @@ class Session:
             return self.empty_store()
         if path.stat().st_size > MAX_STORE_BYTES:
             raise ReviewError("oversized_annotation_store")
-        value = report.load_json(path)
+        value = self.metadata_access.load_json(path, max_bytes=MAX_STORE_BYTES) if self.metadata_access else report.load_json(path)
         if value.get("source_sha256") != self.source_hash:
             raise ReviewError("annotation_source_mismatch", 409)
         revision = value.get("revision")
@@ -310,6 +316,18 @@ class Session:
                 raise ReviewError("annotation_store_size_limit", 413)
             atomic_json(self.annotations_path, store)
             return store
+
+    def read_annotations_v2(self):
+        try:
+            return annotation_v2.AnnotationStore(self).read()
+        except annotation_v2.AnnotationError as error:
+            raise ReviewError(error.code, error.status) from error
+
+    def annotate_v2(self, request):
+        try:
+            return annotation_v2.AnnotationStore(self).write(request)
+        except annotation_v2.AnnotationError as error:
+            raise ReviewError(error.code, error.status) from error
 
     def data(self):
         source = self.manifest.get("source", {})
@@ -434,7 +452,9 @@ class Handler(BaseHTTPRequestHandler):
                 self.json_response(self.server.session.data())
             elif path == "/api/annotations":
                 self.json_response(self.server.session.read_annotations())
-            elif path in {"/", "/index.html", "/app.js", "/style.css"}:
+            elif path == "/api/annotations-v2":
+                self.json_response(self.server.session.read_annotations_v2())
+            elif path in {"/", "/index.html", "/app.js", "/practice.js", "/style.css"}:
                 name = "index.html" if path in {"/", "/index.html"} else path[1:]
                 body = (ASSETS / name).read_bytes()
                 kind = "text/html; charset=utf-8" if name.endswith("html") else "text/javascript; charset=utf-8" if name.endswith("js") else "text/css; charset=utf-8"
@@ -482,7 +502,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
             self.trusted_request(mutation=True)
-            if urlsplit(self.path).path != "/api/annotations":
+            path = urlsplit(self.path).path
+            if path not in {"/api/annotations", "/api/annotations-v2"}:
                 raise ReviewError("route_not_found", 404)
             if self.headers.get("Transfer-Encoding"):
                 raise ReviewError("transfer_encoding_unsupported", 400)
@@ -495,11 +516,20 @@ class Handler(BaseHTTPRequestHandler):
             if self.headers.get("Content-Type", "").split(";", 1)[0].strip() != "application/json":
                 raise ReviewError("json_content_type_required", 415)
             self.connection.settimeout(10)
-            payload = json.loads(self.rfile.read(length))
-            self.json_response(self.server.session.annotate(payload))
+            body = self.rfile.read(length)
+            if path == "/api/annotations-v2":
+                try:
+                    payload = json.loads(body, object_pairs_hook=annotation_v2.no_duplicate_keys,
+                                         parse_constant=lambda _: (_ for _ in ()).throw(annotation_v2.AnnotationError("nonfinite_json_number")))
+                except annotation_v2.AnnotationError as error:
+                    raise ReviewError(error.code, error.status) from error
+                self.json_response(self.server.session.annotate_v2(payload))
+            else:
+                payload = json.loads(body)
+                self.json_response(self.server.session.annotate(payload))
         except ReviewError as error:
             self.json_response({"error": error.code}, error.status)
-        except (ValueError, UnicodeDecodeError, TimeoutError):
+        except (ValueError, UnicodeDecodeError, TimeoutError, RecursionError):
             self.json_response({"error": "invalid_json_request"}, 400)
         except (BrokenPipeError, ConnectionResetError):
             pass
