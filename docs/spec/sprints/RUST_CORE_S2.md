@@ -389,3 +389,51 @@ value is the C1 low string from `program/instrument.json`.
   change `media.py` or any profile.
 - Experimental non-improvement is valid completion. No default
   detector/profile/master adoption follows from any result.
+
+## Phase 2 results (added after implementation; frozen text above unchanged)
+
+Implementation commit `e40733861cbe48e7f73e4a9b032944c3796a039f`. Run receipt:
+`docs/agent-notes/sprints/20261006-s2/rust_core-s2-run.json`. D1 map:
+`docs/agent-notes/sprints/20261006-s2/rust_core-d1-acceptance.json`. No
+threshold, grid or mutation table was changed after results were observed.
+
+| ID | Result | Class |
+| --- | --- | --- |
+| M1 | 5/5 FIPS vectors; 170/170 split points (57 + 113); 5/5 chunk sizes | measured |
+| M2 | 2/2 FIPS digests; 2/2 byte-identical with `/usr/bin/shasum -a 256` | measured |
+| M3 | 6/6 S1 WAV lines byte-identical to `shasum -a 256` (release binary) | measured |
+| M4 | exit 0; outputs 6/6; source 1/1 `verified` (228,291,885 bytes) | measured |
+| M5 | exit 0; 3/3 outputs; source `verified`; unknown fields present | measured |
+| M6 | 11/11 exact typed reasons; 11/11 fixtures byte-identical | measured |
+| M7 | 10/10; max abs error 1.776e-9 to 3.976e-8 | measured |
+| M8 | 2/2; +0.018396/+0.018397 dB (analytic +0.018695/+0.018696; diff −0.000299 dB). 160 Hz +2 dB Q 0.7 disclosure: +0.169815/+0.169817 dB | measured |
+| M9 | 37/37 (6 process, 28 parameter, 3 meter) typed and bitwise unchanged | measured |
+| M10 | 4/4 zero allocations | measured |
+| M11 | 300 Hz +1 dB Q 0.8, 44.1 kHz, 4096 samples: max abs diff 0 (bit-identical f32) vs FFmpeg 8.1.2. Other bands, rates and `lowshelf` parity: unknown | measured (one configuration) |
+| M12 | root `cargo test --locked -j 1` green (15 unit, 7 cli, 5 dsp + 1 ignored run separately); root clippy clean; au-spike build/release/test green (3/3); au-spike clippy **fails** on a pre-existing finding; 0 external packages in both locks | measured |
+| M13 | 6/6 phrases mapped; `ffmpeg_orchestration_owner: "python"` | inference (mapping) |
+
+Deviations and findings, stated as they occurred:
+
+- The first M7 run compared two Q 0.5 shelf cases against a NaN reference.
+  RBJ Q 0.5 shelves have an exactly repeated real pole, the two-real-pole
+  residues divide by zero, and `f64::max` ignores NaN, so those cases passed
+  vacuously. This was caught before any receipt. The test now uses the exact
+  repeated-pole limit form, `h[n] = (b2/a2)δ[n] + n0(n+1)pⁿ + n1·n·pⁿ⁻¹`, and
+  asserts a finite, non-degenerate reference. Both cases then measured
+  1.9e-8 and 1.5e-8 against the unchanged 1e-6 gate.
+- A non-preregistered unit test expected a 0 dB peaking filter to be bitwise
+  identity. It now uses a 1e-12 tolerance, because the f64 recursion leaves
+  3.6e-16 rounding residue.
+- M4 with the contract command (`cargo run` debug, 300 s timeout) timed out
+  (exit 124). The host load average was 186–393 on 6 cores. The debug build
+  spends about 2.1 s of CPU per 20 MB, and wall time is dominated by
+  contention. M4 was measured with the release binary instead: exit 0, 47.9 s
+  wall, 2.54 s user. A debug retry with a 1500 s timeout
+  then exited 0 in 866 s and produced a receipt identical to the release one.
+- au-spike clippy `-D warnings` reports `clippy::manual_is_multiple_of` at
+  `native/au-spike/src/lib.rs:50`. That file is not lane-owned and is
+  unchanged since baseline `4b87484`. The fix is requested from root.
+- `video-utils hash -` hashes a file literally named `-`. Unlike `shasum`, it
+  does not read stdin. verify-run refuses a symlinked source with
+  `source_not_regular`, which is stricter than following the link.

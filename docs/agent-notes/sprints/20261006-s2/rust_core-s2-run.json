@@ -1,0 +1,282 @@
+{
+  "schema_version": 1,
+  "kind": "lane_run_receipt",
+  "sprint": "20261006-s2",
+  "lane": "rust_core",
+  "linear": {
+    "issue": "TIN-5607",
+    "parent": "TIN-5599"
+  },
+  "authority": "R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13; frozen contract docs/spec/sprints/RUST_CORE_S2.md @ a9d44e7",
+  "branch": "sprint/20261006-s2/rust_core",
+  "baseline": "4b87484",
+  "implementation_commit": "e40733861cbe48e7f73e4a9b032944c3796a039f",
+  "recorded_at": "2026-10-06T12:20:00Z",
+  "toolchain": {
+    "rustc": "1.95.0 (59807616e 2026-04-14)",
+    "cargo": "1.95.0 (f2d3ce0bd 2026-03-21)",
+    "clippy": "0.1.95",
+    "rustfmt": "1.9.0",
+    "ffmpeg": "8.1.2 (nix ffmpeg-headless, $FFMPEG)",
+    "shasum": "/usr/bin/shasum"
+  },
+  "host_conditions": {
+    "cpus": 6,
+    "load_average_observed": "177-393 during runs (other lanes)",
+    "note": "wall times are contention-dominated; CPU times reported where measured"
+  },
+  "claim_classes": {
+    "measured": "executed test or command",
+    "inference": "read from source/spec",
+    "unknown": "not established",
+    "listening": "none made"
+  },
+  "metrics": {
+    "M1": {
+      "result": "pass",
+      "vectors": "5/5",
+      "split_points": "170/170 (57 for 448-bit, 113 for 896-bit)",
+      "chunk_sizes": "5/5 {1,63,64,65,1MiB+1}",
+      "class": "measured",
+      "test": "src/hash.rs::tests"
+    },
+    "M2": {
+      "result": "pass",
+      "fips_digests": "2/2",
+      "external_agreement": "2/2 byte-identical stdout vs /usr/bin/shasum -a 256",
+      "skips": 0,
+      "path_features": [
+        "space",
+        "U+202F",
+        "$(x);"
+      ],
+      "class": "measured",
+      "test": "tests/cli.rs::hash_matches_fips_digest_and_shasum_for_unicode_space_paths"
+    },
+    "M3": {
+      "result": "pass",
+      "matched": "6/6",
+      "cmp_exit": 0,
+      "binary": "target/release/video-utils",
+      "evidence": "artifacts/s2/rust_core/hash-parity.txt (gitignored)",
+      "class": "measured",
+      "digests": {
+        "baseline.wav": "2c600e9c50457a75f99c2a15ba2dcd1ab7554c5974ad25778db6e210267eccb9",
+        "cleaned.wav": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009",
+        "denoised.wav": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+        "processed.wav": "bd41286de40e20d4a4f0ccb1881b333168622ec71ba5f3967e276625e9c4b5d1",
+        "residue.wav": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc",
+        "source.wav": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a"
+      }
+    },
+    "M4": {
+      "result": "pass",
+      "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737",
+      "exit": 0,
+      "outputs": "6/6",
+      "source": "1/1 verified (228291885 bytes)",
+      "bytes_hashed": 374815033,
+      "manifest_sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+      "manifest_sha256_shasum_crosscheck": "equal",
+      "attempts": [
+        {
+          "command": "cargo run --locked -j 1 -- verify-run RUN (debug)",
+          "timeout_s": 300,
+          "exit": 124,
+          "note": "timed out under host load"
+        },
+        {
+          "command": "target/release/video-utils verify-run RUN",
+          "timeout_s": 300,
+          "exit": 0,
+          "wall_s": 47.9,
+          "user_s": 2.54
+        },
+        {
+          "command": "cargo run --locked -j 1 --quiet -- verify-run RUN (debug)",
+          "timeout_s": 1500,
+          "exit": 0,
+          "wall_s": 866,
+          "receipt_identical_to_release": true
+        }
+      ],
+      "receipt_unknowns": {
+        "pcm_extent_verified": false,
+        "pcm_extent_basis": "metadata_only_no_decode",
+        "export_receipt_verified": "not_checked",
+        "listening_accepted": null,
+        "physical_audio_video_sync_verified": false
+      },
+      "evidence": "artifacts/s2/rust_core/verify-run-s1.json (gitignored; sha256 47b4cd03fa31a77eeefa852c2570aa5be97c174a87615e916dd76488374ff929)",
+      "class": "measured",
+      "scope": "byte identity of listed files and typed field validity only; not media quality, decoded PCM extent, timing accuracy, export integrity or listening acceptance"
+    },
+    "M5": {
+      "result": "pass",
+      "exit": 0,
+      "outputs": "3/3",
+      "source": "verified",
+      "also": "absent source -> absent_unverified exit 0; --require-source -> source_missing exit 1; no RUN_DIR -> exit 2",
+      "class": "measured",
+      "test": "tests/cli.rs::verify_run_accepts_matching_temp_run_dir"
+    },
+    "M6": {
+      "result": "pass",
+      "typed_refusals": "11/11",
+      "byte_identical": "11/11",
+      "reasons": [
+        "output_hash_mismatch",
+        "time_stretch_not_excluded",
+        "time_stretch_not_excluded",
+        "schema_version_unsupported",
+        "source_hash_mismatch",
+        "output_not_regular",
+        "unsafe_output_name",
+        "manifest_invalid_json",
+        "manifest_invalid_json",
+        "manifest_too_large",
+        "run_dir_mismatch"
+      ],
+      "class": "measured",
+      "test": "tests/cli.rs::verify_run_refuses_tamper_with_typed_reasons"
+    },
+    "M7": {
+      "result": "pass",
+      "cases": "10/10",
+      "gate": "max abs error <= 1e-6 over 4096 samples",
+      "max_abs_error_range": [
+        1.776e-09,
+        3.976e-08
+      ],
+      "coefficient_diff_vs_independent_cookbook": 0.0,
+      "forms": {
+        "complex_conjugate_poles": 8,
+        "repeated_real_pole": 2
+      },
+      "class": "measured",
+      "test": "tests/dsp.rs::impulse_matches_closed_form_rbj",
+      "harness_defect_fixed": "first run compared the two Q 0.5 shelf cases to a NaN reference (exactly repeated pole; f64::max ignores NaN) and passed vacuously; replaced by exact repeated-pole limit form plus finite/non-degenerate guards before any receipt; gate unchanged; values now 1.901e-8 (44.1k) and 1.531e-8 (48k)"
+    },
+    "M8": {
+      "result": "pass",
+      "rates": "2/2",
+      "tone_hz": 32.703,
+      "band": "peaking 300 Hz +1 dB Q 0.8",
+      "measured_gain_db": {
+        "44100": 0.018396,
+        "48000": 0.018397
+      },
+      "analytic_gain_db": {
+        "44100": 0.018695,
+        "48000": 0.018696
+      },
+      "diff_db": {
+        "44100": -0.000299,
+        "48000": -0.000299
+      },
+      "disclosure_not_gated": {
+        "band": "peaking 160 Hz +2 dB Q 0.7 (accepted profile band)",
+        "measured_gain_db": {
+          "44100": 0.169815,
+          "48000": 0.169817
+        },
+        "analytic_gain_db": {
+          "44100": 0.171058,
+          "48000": 0.17106
+        }
+      },
+      "class": "measured",
+      "note": "synthetic sine through the Rust filter; not a claim about the real take or the in-room tone"
+    },
+    "landmarks": {
+      "result": "pass",
+      "peaking_center_within_0.01dB": "6/6",
+      "shelf_dc_within_0.01dB": "4/4",
+      "shelf_0.45fs_within_0.1dB": "4/4",
+      "shelf_processed_step_dc": "4/4",
+      "class": "measured",
+      "test": "tests/dsp.rs::peaking_center_and_shelf_asymptotes"
+    },
+    "M9": {
+      "result": "pass",
+      "cases": "37/37",
+      "breakdown": {
+        "biquad_process": 6,
+        "parameter_constructor_and_setter": 28,
+        "meter": 3
+      },
+      "class": "measured",
+      "test": "tests/dsp.rs::bounds_and_atomic_refusal"
+    },
+    "M10": {
+      "result": "pass",
+      "zero_allocation": "4/4",
+      "paths": [
+        "Biquad peaking process",
+        "Biquad low_shelf process",
+        "PeakRms process",
+        "apply_gain"
+      ],
+      "block": 4096,
+      "class": "measured",
+      "test": "tests/dsp.rs::process_paths_do_not_allocate"
+    },
+    "M11": {
+      "result": "pass",
+      "configuration": "equalizer=f=300:t=q:w=0.8:g=1:b=0:r=f64 @ 44100 Hz, aevalsrc unit impulse, 4096 samples",
+      "max_abs_diff": 0.0,
+      "ffmpeg_h0": 1.003000736,
+      "ffmpeg_nonzero": 3909,
+      "class": "measured (one configuration)",
+      "unknown": "other bands/rates, FFmpeg lowshelf parity, multichannel",
+      "test": "tests/dsp.rs::ffmpeg_parity (--ignored)",
+      "deadline_s": 30
+    },
+    "M12": {
+      "result": "partial",
+      "root_cargo_test": "exit 0 (lib 15/15, cli 7/7 incl. 4 unchanged existing, dsp 5/5 + 1 ignored run separately)",
+      "root_clippy": "exit 0 (-D warnings, --all-targets)",
+      "rustfmt": "cargo fmt --check clean",
+      "au_spike_build": "exit 0 (debug and --release; staticlib .cache/au-spike/rust/release/libvideo_utils_gain_ffi.a)",
+      "au_spike_test": "exit 0 (3/3)",
+      "au_spike_clippy": "exit 101: pre-existing clippy::manual_is_multiple_of at native/au-spike/src/lib.rs:50 (file unchanged since 4b87484; not lane-owned; fix requested from root)",
+      "external_packages_in_locks": {
+        "Cargo.lock": 0,
+        "native/au-spike/Cargo.lock": 0
+      },
+      "au_spike_target_dir": ".cache/au-spike/rust (matches native/au-spike/check.py)",
+      "class": "measured"
+    },
+    "M13": {
+      "result": "pass",
+      "mapped": "6/6",
+      "ffmpeg_orchestration_owner": "python",
+      "evidence": "docs/agent-notes/sprints/20261006-s2/rust_core-d1-acceptance.json",
+      "class": "inference (mapping)"
+    }
+  },
+  "doctrine": {
+    "high_pass_or_notch_added": false,
+    "default_profile_detector_master_changed": false,
+    "filters_adopted_in_render_path": false,
+    "python_files_edited": 0,
+    "listening_claims": "none",
+    "low_string_protection": "no blanket high-pass/notch; 32.703 Hz measured through 300 Hz band within 0.05 dB"
+  },
+  "files_read_only": [
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/*",
+    "/Users/jess/Documents/Movie on 10-5-26 at 3.38 PM.mov (hashed only)"
+  ],
+  "known_divergences": [
+    "video-utils hash '-' hashes a file named '-' (shasum reads stdin)",
+    "verify-run refuses a symlinked source (source_not_regular)",
+    "JSON reader rejects duplicate keys (Python keeps last)"
+  ],
+  "unknowns": [
+    "Python cited tests in the D1 map until root full suite",
+    "decoded PCM extent",
+    "export/outcome.json integrity",
+    "listening acceptance",
+    "FFmpeg parity beyond one configuration"
+  ]
+}

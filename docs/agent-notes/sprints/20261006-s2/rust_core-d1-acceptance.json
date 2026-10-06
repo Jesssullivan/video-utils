@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "kind": "d1_acceptance_map",
+  "sprint": "20261006-s2",
+  "lane": "rust_core",
+  "linear": {"issue": "TIN-5607", "parent": "TIN-5599", "roadmap_d1": "TIN-5486"},
+  "authority": "operator S2 decision 'd1: minimum credible Rust move with explicit FFmpeg-orchestration deviation' (program/sprints/20261006-s2.json); R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43)",
+  "contract": {"path": "docs/spec/sprints/RUST_CORE_S2.md", "frozen_commit": "a9d44e7"},
+  "branch": "sprint/20261006-s2/rust_core",
+  "implementation_commit": "e40733861cbe48e7f73e4a9b032944c3796a039f",
+  "d1_acceptance_source": "docs/spec/PROJECT.md Oct 6 row: 'Unicode/space paths, explicit tools, source hashing, isolated runs, versioned API/hooks and ordered graph provenance'",
+  "ffmpeg_orchestration_owner": "python",
+  "declared_deviation": {
+    "statement": "PROJECT.md says Rust owns the CLI. For D1 the Rust binary natively implements streaming SHA-256 (hash) and typed, metadata-only run-manifest verification (verify-run); FFmpeg/ffprobe orchestration remains owned by the Python workers that the Rust CLI dispatches (probe/clean/demo/export/analyze/report).",
+    "ffmpeg_orchestration_owner": "python",
+    "rust_native_commands": ["hash", "verify-run"],
+    "rust_dispatched_commands": ["probe", "clean", "demo", "export", "analyze", "pipeline", "markers", "mcp", "report"],
+    "project_md_sentence_requested_from_root": true
+  },
+  "dependency_decision": {
+    "decision": "no external crates and no cargo features; minimal strict RFC 8259 JSON reader in src/run_record.rs",
+    "basis": "offline Cargo registry cache had serde/serde_derive but lacked serde_json, itoa and ryu (metadata inspection recorded in the frozen contract); network crate fetching is out of lane scope",
+    "consequences": [
+      "Cargo.lock and native/au-spike/Cargo.lock list only workspace-local packages (video-utils; video-utils-gain-ffi)",
+      "native/au-spike/Cargo.toml unchanged: there is no default feature to disable",
+      "AU staticlib builds dependency-free: cargo build --locked -j 1 and --release in native/au-spike exit 0; cargo tree shows only video-utils"
+    ]
+  },
+  "claim_class_note": "The mapping itself is an inference (agent reading of tests/files). Cited Rust tests were executed by this lane (measured). Cited Python tests were not run by this lane (it edits no .py file); their pass state is measured only by root's full suite.",
+  "phrases": [
+    {
+      "phrase": "Unicode/space paths",
+      "evidence": [
+        {"kind": "test", "ref": "tests/cli.rs::filenames_and_arguments_are_forwarded_without_shell_interpretation", "status": "measured_pass_by_lane"},
+        {"kind": "test", "ref": "tests/cli.rs::hash_matches_fips_digest_and_shasum_for_unicode_space_paths", "status": "measured_pass_by_lane", "detail": "space, U+202F and '$(x);' in path; 2/2 FIPS digests; 2/2 byte-identical with /usr/bin/shasum -a 256"},
+        {"kind": "test", "ref": "tests/cli.rs::verify_run_accepts_matching_temp_run_dir", "status": "measured_pass_by_lane", "detail": "run dir basename and source name contain space and U+202F"},
+        {"kind": "run", "ref": "artifacts/s2/rust_core/verify-run-s1.json (gitignored)", "status": "measured_by_lane", "detail": "real source path '/Users/jess/Documents/Movie on 10-5-26 at 3.38 PM.mov' hashed and verified"},
+        {"kind": "test", "ref": "tests/test_media.py::test_32hz_preservation_native_pcm_and_source_immutability", "status": "not_run_by_lane"}
+      ]
+    },
+    {
+      "phrase": "explicit tools",
+      "evidence": [
+        {"kind": "file", "ref": "program/tools.json"},
+        {"kind": "test", "ref": "tests/test_tools.py::test_catalog_has_intent_and_strict_schemas", "status": "not_run_by_lane"},
+        {"kind": "test", "ref": "tests/test_tools.py::test_source_shell_characters_are_passed_literally", "status": "not_run_by_lane"},
+        {"kind": "test", "ref": "tests/test_tool_contracts.py::test_learned_evaluator_fixed_command_deadline_and_preflight", "status": "not_run_by_lane"},
+        {"kind": "file", "ref": "src/main.rs HELP lists hash and verify-run as explicit native commands", "status": "measured_pass_by_lane"}
+      ],
+      "gap": "verify-run/hash are not admitted as MCP tools or skills; admission is root-owned and deferred (requested, optional)."
+    },
+    {
+      "phrase": "source hashing",
+      "evidence": [
+        {"kind": "file", "ref": "src/hash.rs (FIPS 180-4 streaming SHA-256, no dependencies)"},
+        {"kind": "test", "ref": "src/hash.rs::tests::fips_180_4_vectors", "status": "measured_pass_by_lane"},
+        {"kind": "test", "ref": "src/hash.rs::tests::every_split_point_matches_one_shot", "status": "measured_pass_by_lane"},
+        {"kind": "test", "ref": "src/hash.rs::tests::chunked_million_a_matches_for_all_chunk_sizes", "status": "measured_pass_by_lane"},
+        {"kind": "test", "ref": "tests/cli.rs::verify_run_refuses_tamper_with_typed_reasons (source changed -> source_hash_mismatch)", "status": "measured_pass_by_lane"},
+        {"kind": "run", "ref": "artifacts/s2/rust_core/hash-parity.txt (gitignored)", "status": "measured_by_lane", "detail": "6/6 S1 WAV digests byte-identical to shasum -a 256"},
+        {"kind": "file", "ref": "scripts/run_demo.py validate_existing"},
+        {"kind": "test", "ref": "tests/test_demo.py::test_tampered_existing_media_rejected_before_worker_and_prior_receipt_preserved", "status": "not_run_by_lane"},
+        {"kind": "test", "ref": "tests/test_demo.py::test_existing_delivery_is_hash_verified_and_returned_without_encoding", "status": "not_run_by_lane"}
+      ]
+    },
+    {
+      "phrase": "isolated runs",
+      "evidence": [
+        {"kind": "file", "ref": "artifacts/runs/<run_id>/ per-run directories (docs/spec/PROJECT.md)"},
+        {"kind": "file", "ref": "src/run_record.rs verify_run: run_id == RUN_DIR basename; canonical manifest run_dir == canonical RUN_DIR; outputs are plain basenames, regular non-symlink files inside RUN_DIR"},
+        {"kind": "test", "ref": "tests/cli.rs::verify_run_refuses_tamper_with_typed_reasons (wrong run_dir -> run_dir_mismatch; '../x' -> unsafe_output_name; symlink -> output_not_regular)", "status": "measured_pass_by_lane"},
+        {"kind": "test", "ref": "tests/test_demo.py::test_snapshot_cap_and_symlink_fail_without_mutating_existing_run", "status": "not_run_by_lane"}
+      ]
+    },
+    {
+      "phrase": "versioned API/hooks",
+      "evidence": [
+        {"kind": "file", "ref": "scripts/mcp_server.py protocolVersion negotiation"},
+        {"kind": "test", "ref": "tests/test_mcp.py::test_version_negotiation_supports_known_and_offers_latest", "status": "not_run_by_lane"},
+        {"kind": "file", "ref": "native/au-spike/src/lib.rs vu_gain_abi_version() == 1", "status": "au-spike cargo test measured_pass_by_lane (3/3)"},
+        {"kind": "file", "ref": "src/run_record.rs: manifest schema_version must be 1 (schema_version_unsupported otherwise); receipt schema_version 1 and verifier 'video-utils 0.1.0 verify-run'"},
+        {"kind": "test", "ref": "tests/cli.rs::verify_run_refuses_tamper_with_typed_reasons (schema_version 2 -> schema_version_unsupported)", "status": "measured_pass_by_lane"}
+      ]
+    },
+    {
+      "phrase": "ordered graph provenance",
+      "evidence": [
+        {"kind": "file", "ref": "scripts/dag.py"},
+        {"kind": "file", "ref": "docs/spec/PHRASE_DAG.md"},
+        {"kind": "test", "ref": "tests/test_dag.py::test_raw_and_processed_lineage_are_distinct", "status": "not_run_by_lane"},
+        {"kind": "test", "ref": "tests/test_dag.py::test_stale_upstream_rejected_without_discarding_base_graph", "status": "not_run_by_lane"},
+        {"kind": "test", "ref": "tests/test_dag.py::test_cli_preserves_existing_graph_report_and_immutable_history", "status": "not_run_by_lane"}
+      ],
+      "gap": "Rust does not implement graph ordering; it verifies only the manifest subset (output hashes, timeline, pcm, latency echo) that downstream graph stages consume."
+    }
+  ],
+  "mapped": "6/6",
+  "explicit_unknowns": {
+    "pcm_extent_verified": false,
+    "export_receipt_verified": "not_checked",
+    "listening_accepted": null,
+    "physical_audio_video_sync_verified": "echoed from manifest (S1 run: false)",
+    "python_cited_tests_pass_state": "unknown until root full suite"
+  }
+}
