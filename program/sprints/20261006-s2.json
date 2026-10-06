@@ -388,14 +388,15 @@
         "TIN-5547",
         "TIN-5550"
       ],
-      "state": "running",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5615",
         "uuid": "d4e4e902-1773-4044-be09-523b1b732b1a",
         "url": "https://linear.app/tinyland/issue/TIN-5615/s2-web-ui-binding-uploadprocesscompareannotateiteratedownload-binding",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
-      "agent": "workflow-D/web_ui_binding"
+      "agent": "workflow-D/web_ui_binding",
+      "merge_commit": "d6247e6"
     },
     {
       "id": "web_reliability",
@@ -427,19 +428,24 @@
     "s1_worktrees": "preserve all six .local/sprint1/*; review_ui intentionally dirty"
   },
   "state": "wave2_running",
-  "integration_head": "ef3193070c7606af3fd7c6bb3c81da43704da185",
+  "integration_head": "2252c891ac65d96bd19fc01f31a0caf2afbec803",
   "hosted_ci": {
-    "run": 37522614603,
+    "run": 37530756098,
     "conclusion": "success",
-    "python": "1375 OK, 97 skipped",
+    "python": "1399 OK, 106 skipped",
     "rust": "ok",
-    "gitleaks": "no leaks"
+    "gitleaks": "no leaks",
+    "prior_failure": {
+      "run": 37525406189,
+      "cause": "27 generic-api-key false positives on web fixture idempotency keys; fixed 2252c89"
+    }
   },
   "extra_merges": {
     "share_export_fix": "7ad3548",
     "root_admission_c": "ccf47b3",
     "root_admission_d": "ef31930",
-    "web_stack_handoff_paths": "97ebce6"
+    "web_stack_handoff_paths": "97ebce6",
+    "gitleaks_fixture_fix": "2252c89"
   },
   "tool_count": 39
 }
