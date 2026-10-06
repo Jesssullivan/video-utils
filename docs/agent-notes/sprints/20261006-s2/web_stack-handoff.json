@@ -1,0 +1,46 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004 R-N13; operator S2 sprint 20261006-s2; Linear TIN-5613",
+  "actor": "workflow-D/web_stack",
+  "time": "2026-10-06T14:10:54Z",
+  "phase": "phase4_handoff",
+  "branch": "sprint/20261006-s2/web_stack",
+  "implementation_commit": "8be35e1887c7b20deea6f5acd171da02b398e72d",
+  "build_receipt": "docs/agent-notes/sprints/20261006-s2/web_stack-build-receipt.json",
+  "decision": "SvelteKit BFF (adapter-node, stable load + +server.ts endpoints, Effect Schema decoding) + stdlib Python control API now; FastAPI later on recorded triggers; remote functions not adopted (experimental in Kit 2)",
+  "root_owned_requests": [
+    {
+      "file": "just/workflow.just",
+      "change": "append recipes web-install, web-dev, web-build, web-serve, web-test (exact text below)",
+      "text": "# Local web fixture (prototype). Loopback only; no hosted deployment.\nweb-install:\n    cd web && pnpm install --frozen-lockfile\n\nweb-dev port=\"5173\":\n    cd web && pnpm exec vite dev --host 127.0.0.1 --port {{quote(port)}} --strictPort\n\nweb-build:\n    cd web && pnpm install --frozen-lockfile --offline && pnpm run check && pnpm run build\n\nweb-serve port=\"3000\" control_api=\"\":\n    cd web && HOST=127.0.0.1 PORT={{quote(port)}} VIDEO_UTILS_CONTROL_API_URL={{quote(control_api)}} node serve.js\n\nweb-test:\n    PYTHONPATH=tests python3 -m unittest test_web_stack -v\n"
+    },
+    {
+      "target": "web_jobs lane / root",
+      "change": "align control API with the assumed subset: GET /api/v1/sources -> {schema_version:1, sources: SourceSummary[]}; GET /api/v1/jobs/{job_id} -> JobSnapshot (closed objects; nullable progress with explicit denominator; nullable eta_seconds); 404 for unknown job",
+      "why": "BFF schemas are an assumption (control_api_contract_source: assumed_s2_subset_pending_web_jobs) until a merged web_jobs contract exists"
+    }
+  ],
+  "operator_notes": [
+    "A fresh host needs one online `pnpm install --frozen-lockfile` before `web-build` (offline) succeeds.",
+    "Start only via `node serve.js` (or `just web-serve`); it refuses any HOST other than 127.0.0.1/::1 with exit 2.",
+    "VIDEO_UTILS_CONTROL_API_URL accepts only http://127.0.0.1:<port> or http://[::1]:<port>."
+  ],
+  "follow_ups": [
+    "Kit 3 migration (kit3_migration: deferred)",
+    "Browser hydration/polling check, accessibility and visual acceptance (not performed)",
+    "Re-point schemas at the merged web_jobs contract and record its sha256"
+  ],
+  "control_api_contract_source": "assumed_s2_subset_pending_web_jobs",
+  "web_jobs_contract_sha256": null,
+  "remote_functions_qualified": false,
+  "browser_hydration_checked": false,
+  "accessibility_checked": false,
+  "visual_acceptance": "not_performed",
+  "hosted_deployment": false,
+  "listen_address_verified": true,
+  "offline_install_verified": true,
+  "skeleton_components_used": ["Progress"],
+  "kit3_migration": "deferred",
+  "pnpm_store_location": "not_recorded_host_specific",
+  "lock_sha256": "d1d2e584134f723d1c1af0924c174fdf70690fc23b2faf144385222599df5db5",
+  "build_seconds": {"median": 40.32, "min": 23.19, "max": 65.22, "n": 3}
+}
