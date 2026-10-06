@@ -1,0 +1,16 @@
+{
+  "generated_metadata_only": true,
+  "symlink_is_ancestor_not_root_leaf": true,
+  "outcome": {
+    "accepted_argv": [
+      "/Users/jess/.nix-profile/bin/python3",
+      "/Users/jess/git/video-utils/scripts/corpus_split_s1.py",
+      "validate",
+      "/private/var/folders/z6/7m3zpx6j3x982j_fzwg1lppw0000gn/T/tmp2nnuf3ge/actual/sub/split.json",
+      "--root",
+      "/private/var/folders/z6/7m3zpx6j3x982j_fzwg1lppw0000gn/T/tmp2nnuf3ge/actual/sub",
+      "--summary"
+    ]
+  },
+  "tool_source_sha256": "0dcc659294ca0c8e4fc135c0b95b008e0c1b304ab38e84b3b0a9fc4437af773a"
+}

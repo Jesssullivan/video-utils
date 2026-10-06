@@ -1,0 +1,132 @@
+{
+  "worker_sha256": "0fe36986320083506ec6629328bf2ac20cd55bd20d2474bf550977b27a2ca94d",
+  "plan_sha256": "d1a85f0248be3d224ed3b301c91016c2f61081b0589789c6faf556a561e52cf8",
+  "zero_response_probe": {
+    "arm": "protected_mask",
+    "alias": "independent-zero-response",
+    "kind": "synthetic_audit",
+    "metric_scope": "conditional_known_components",
+    "guitar_response_energy": {
+      "value_db": null,
+      "status": "complete_attenuation"
+    },
+    "guitar_response_active_energy": {
+      "value_db": null,
+      "status": "complete_attenuation"
+    },
+    "active_sample_frame_denominator": 2736,
+    "guitar_response_low_band": {
+      "value_db": null,
+      "status": "complete_attenuation"
+    },
+    "guitar_response_relative_error": {
+      "value_db": 0.0,
+      "status": "measured"
+    },
+    "processed_mixture_relative_error": {
+      "value_db": 0.0,
+      "status": "measured"
+    },
+    "interaction_relative_energy": {
+      "value_db": null,
+      "status": "complete_attenuation"
+    },
+    "conditional_additivity_max_abs": 0.0,
+    "noise_control_energy": {
+      "value_db": null,
+      "status": "zero_reference"
+    },
+    "noise_control_band_power_change": {
+      "20-45": {
+        "value_db": null,
+        "status": "zero_reference"
+      },
+      "45-120": {
+        "value_db": null,
+        "status": "zero_reference"
+      },
+      "140-8000": {
+        "value_db": null,
+        "status": "zero_reference"
+      }
+    },
+    "noise_control_is_mixture_residual": true,
+    "harmonic_fits": [
+      {
+        "status": "measured",
+        "sample_count": 1332,
+        "condition_number": 1.4151062405381192,
+        "rows": [
+          {
+            "harmonic": 1,
+            "channel": 0,
+            "source_amplitude": 0.09999999999999998,
+            "output_amplitude": 0.0,
+            "value_db": null,
+            "status": "complete_attenuation"
+          }
+        ]
+      }
+    ],
+    "fundamental_gain_rows": [
+      {
+        "harmonic": 1,
+        "channel": 0,
+        "source_amplitude": 0.09999999999999998,
+        "output_amplitude": 0.0,
+        "value_db": null,
+        "status": "complete_attenuation"
+      }
+    ],
+    "palm_attack_tail": [
+      {
+        "start_sample": 1500,
+        "end_sample": 1800,
+        "attack_energy": {
+          "value_db": null,
+          "status": "complete_attenuation"
+        },
+        "centroid_shift_ms": null,
+        "tail_energy": {
+          "value_db": null,
+          "status": "complete_attenuation"
+        },
+        "preattack_relative_rms": {
+          "value_db": null,
+          "status": "complete_attenuation"
+        },
+        "kind": "palm_mute"
+      }
+    ],
+    "legato_sustain": [
+      {
+        "start_sample": 3056,
+        "end_sample": 3898,
+        "value_db": null,
+        "status": "complete_attenuation"
+      }
+    ],
+    "processed_peak_abs": 0.0,
+    "clipped_sample_values": 0,
+    "sample_value_denominator": 4096,
+    "fundamental_gate_eligible": true,
+    "fundamental_eligible_channel_event_denominator": 1,
+    "fundamental_exclusion": null,
+    "palm_event_denominator": 1,
+    "legato_event_denominator": 1,
+    "broadband_noise_gate_eligible": false,
+    "quality_alerts": [
+      "attack_energy",
+      "fundamental_preservation",
+      "legato_energy",
+      "tail_energy"
+    ],
+    "exact_collision": false,
+    "near_collision": false,
+    "missing_f0_recovered": false,
+    "real_stem_recovered": false
+  },
+  "pre_run_verdict": "PASS source/protocol with corrected complete attenuation accounting; numeric readiness only",
+  "inference_run": false,
+  "real_media_touched": false
+}

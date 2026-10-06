@@ -1,0 +1,39 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; operator S1 sprint",
+  "actor": "/root/s1_audit",
+  "time": "2026-10-06T06:30:24.419132+00:00",
+  "result": "PASS",
+  "source_sha256": {
+    "/Users/jess/git/video-utils/artifacts/experiments/s1-demo-context-20261006T0627/request.json": "f822f7187c8d024426dcef370fa7e21604e95ec7659b0dfaa419290e7ce8b2f5",
+    "/Users/jess/git/video-utils/artifacts/experiments/s1-demo-context-20261006T0627/corpus.json": "7bffb3a969c9c7c42215ce5230d30db676b611ad897f44ed3238ac102abdb636",
+    "/Users/jess/git/video-utils/artifacts/experiments/s1-demo-context-20261006T0627/review-annotations-v2.json": "17041cb31476f91409e3c48f6434fcde8874ecd175a221b0f3fe644614d40eca",
+    "/Users/jess/git/video-utils/artifacts/experiments/s1-demo-context-20261006T0627/manifest.json": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/manifest.json": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+    "/Users/jess/git/video-utils/docs/agent-notes/sprints/20261006-s1/root-actual-demo-context.json": "8294fbb8e13272a561bfaf6daf2148e46dfa48f85daf53c7570ece4a678dbfdd",
+    "/Users/jess/git/video-utils/scripts/annotation_v2.py": "f328173a5d083a9bfd31fdaa8ee07a05526e498f0dd4aa348866ddad2f1d6ce6",
+    "/Users/jess/git/video-utils/scripts/corpus_split_s1.py": "308300de48b0395ecf8e572a54f07abd36d2f8b6764106efc63b222c1ed60a0d",
+    "/Users/jess/git/video-utils/scripts/tool_api.py": "9fffb67c4050e0f2d9e60292bd25d68f3d1c297e2b7715ffb03250f433e97bbf",
+    "/Users/jess/git/video-utils/scripts/mcp_server.py": "61075e365209df90677ca88882839c67edf24e49a38606b99c31190ef3b87e94"
+  },
+  "unchanged": true,
+  "initialized_mcp_readback": true,
+  "accepted_manifest_exact": true,
+  "source_sha256_identity": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "annotation_id": "e2add83c-3d08-485b-a79f-2d9f0405f025",
+  "annotation_basis": "operator_context",
+  "revision": 1,
+  "span": {
+    "start_seconds": 0,
+    "end_seconds": 5,
+    "extent_known": true
+  },
+  "setup_contamination_retained": true,
+  "musical_verdict": "not_established",
+  "corpus_split": "unassigned",
+  "corpus_approval": "unreviewed",
+  "absence_denominator": 0,
+  "negative_examples_inferred": 0,
+  "audio_processing": false,
+  "accepted_run_mutation": false,
+  "root_creation_replay_scope": "Root owner receipt documents create/replay; independent audit only read-back and corpus validation without mutation."
+}

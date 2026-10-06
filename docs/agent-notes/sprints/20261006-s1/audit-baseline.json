@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "registered_at": "2026-10-06T06:01:43.917605+00:00",
+  "purpose": "read-only S1 audit protection baseline",
+  "records": [
+    {
+      "path": "/Users/jess/git/video-utils/scripts/review_server.py",
+      "sha256": "0cd79d6fdfaf8815ce4e95ba288ccedf731562e98cc3951332e7e32b9d08aff3",
+      "bytes": 27718
+    },
+    {
+      "path": "/Users/jess/git/video-utils/scripts/corpus.py",
+      "sha256": "399afa9fbe8e7ab0511d4b3413d051b48df6fc66d9d6fb588ac1a4e572421cff",
+      "bytes": 20076
+    },
+    {
+      "path": "/Users/jess/git/video-utils/program/tools.json",
+      "sha256": "db8dc65d3fd6ed0926a062c4bf20056a45d187d21613398ee9281cf8aafac2dd",
+      "bytes": 118641
+    },
+    {
+      "path": "/Users/jess/git/video-utils/scripts/tool_api.py",
+      "sha256": "5fd3e1971e6fb470ad70165f0538c5b107c025a7cdd7afb33faafd22923f8e3d",
+      "bytes": 49508
+    },
+    {
+      "path": "/Users/jess/git/video-utils/program/demo-arrangement.json",
+      "sha256": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a",
+      "bytes": 4033
+    },
+    {
+      "path": "/Users/jess/git/video-utils/docs/agent-notes/2026-10-06-final-composite-listening-acceptance.json",
+      "sha256": "077119580f086e1006eb91562b1d16f03951eacc0dd839632b4fc8f0049f2a25",
+      "bytes": 1258
+    },
+    {
+      "path": "/Users/jess/git/video-utils/docs/agent-notes/2026-10-06-share-export-actual-desktop.json",
+      "sha256": "0474c67d066f643fe1cfd076dc82434307c652b94eb1664064093372f4982afb",
+      "bytes": 3442
+    },
+    {
+      "path": "/Users/jess/Desktop/video_util_mvp_demo_1.mp4",
+      "sha256": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10",
+      "bytes": 21596491
+    },
+    {
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov",
+      "sha256": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2",
+      "bytes": 154148244
+    }
+  ],
+  "authority": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13"
+}

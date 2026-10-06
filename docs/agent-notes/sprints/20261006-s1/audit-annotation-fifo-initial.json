@@ -1,0 +1,10 @@
+{
+  "source_sha256": "6c7e9ea30da711063180356b87890b0b089316bd0bde462584cddb7d9ce03ce8",
+  "generated_fifo_only": true,
+  "actual_media_touched": false,
+  "result": {
+    "outcome": "owned_child_exceeded_1_second_timeout_and_was_reaped",
+    "reason": "read_json os.open FIFO O_RDONLY blocks before regular-file check"
+  },
+  "authority": "R-N11 owned subprocess.run timeout cleanup; R-N12/R-N13"
+}

@@ -1,0 +1,9 @@
+{
+  "worker_sha256": "60c0e9f19afcebf2db91a030b0929d3a2fc5b3302af53606cff571309c20e92b",
+  "sourceclock_origins_declared": false,
+  "returned": 0,
+  "store_created": true,
+  "stdout": "{\"schema_version\": 2, \"source_sha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"manifest_sha256\": \"3bbef24d6a9d4a3e9d00ae3ba4e2bfc8d096d6676337ee60fac3d33550afefb6\", \"revision\": 1, \"annotations\": [{\"kind\": \"rhythm_timing\", \"basis\": \"operator_assertion\", \"status\": \"needs_review\", \"source_span\": {\"start_seconds\": 0, \"end_seconds\": 0, \"extent_known\": false}, \"reported_by\": {\"actor\": \"operator\", \"via\": \"cli\"}, \"operator_certainty\": \"uncertain\", \"operator_quote\": \"Fixture only\", \"note\": \"No actual review\", \"id\": \"b86f4ee3-4e3e-4746-8f22-9400f9efcee3\", \"candidate_id\": null, \"reference_sha256\": null, \"created_at\": \"2026-10-06T06:16:40.633948+00:00\", \"updated_at\": \"2026-10-06T06:16:40.633948+00:00\", \"created_with\": {\"manifest_sha256\": \"3bbef24d6a9d4a3e9d00ae3ba4e2bfc8d096d6676337ee60fac3d33550afefb6\", \"candidate_artifact_sha256\": null}, \"updated_with\": {\"manifest_sha256\": \"3bbef24d6a9d4a3e9d00ae3ba4e2bfc8d096d6676337ee60fac3d33550afefb6\", \"candidate_artifact_sha256\": null}, \"claim_label\": \"USER REPORTED\", \"musical_verdict\": \"not_established\"}], \"listening_acceptance\": \"not_established\", \"mutation\": {\"outcome\": \"saved\", \"annotation_id\": \"b86f4ee3-4e3e-4746-8f22-9400f9efcee3\", \"committed_revision\": 1}, \"count\": 1, \"status\": \"annotations_v2_saved\"}\n",
+  "stderr": "",
+  "fixture_only": true
+}

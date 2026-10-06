@@ -1,0 +1,292 @@
+{
+  "status": "PASS",
+  "auditor_sha256": "22420031865f1706c6e3bf5118df236a7ccac5ea272fa83c38e9f606d846ec25",
+  "bank_sha256": "41060b177358523628fa9d32ddf5573b422d1e73f86f2a38c167c1a646c56786",
+  "seal_sha256": "eb9dfd588cd3b4c632c18ebd6c0397086459710d92a4b6e65d6ed741a1c47955",
+  "results_sha256": "12aa258d24511621cd63a2b2d9779de510c93d17538d5964b3cb4cbadf531749",
+  "all_checked_inputs_unchanged": true,
+  "source_files_checked": 91,
+  "cases": 12,
+  "positive_cases": 4,
+  "negative_cases": 8,
+  "reference_pairs": 4,
+  "reference_endpoints": 16,
+  "native_component_qc": [
+    {
+      "case": "case00",
+      "cohort": "low32-sustain",
+      "seed": 1301,
+      "sum_maximum_lsb": 2,
+      "reference_pairs": 0,
+      "native_samples": 384000
+    },
+    {
+      "case": "case01",
+      "cohort": "missing-f0-sustain",
+      "seed": 1301,
+      "sum_maximum_lsb": 2,
+      "reference_pairs": 0,
+      "native_samples": 384000
+    },
+    {
+      "case": "case02",
+      "cohort": "ordered-click-only",
+      "seed": 1301,
+      "sum_maximum_lsb": 1,
+      "reference_pairs": 0,
+      "native_samples": 384000
+    },
+    {
+      "case": "case03",
+      "cohort": "fan-only",
+      "seed": 1301,
+      "sum_maximum_lsb": 1,
+      "reference_pairs": 0,
+      "native_samples": 384000
+    },
+    {
+      "case": "case04",
+      "cohort": "palm-recurrence",
+      "seed": 1301,
+      "sum_maximum_lsb": 2,
+      "reference_pairs": 1,
+      "native_samples": 384000
+    },
+    {
+      "case": "case05",
+      "cohort": "legato-recurrence",
+      "seed": 1301,
+      "sum_maximum_lsb": 2,
+      "reference_pairs": 1,
+      "native_samples": 384000
+    },
+    {
+      "case": "case06",
+      "cohort": "low32-sustain",
+      "seed": 1423,
+      "sum_maximum_lsb": 2,
+      "reference_pairs": 0,
+      "native_samples": 384000
+    },
+    {
+      "case": "case07",
+      "cohort": "missing-f0-sustain",
+      "seed": 1423,
+      "sum_maximum_lsb": 2,
+      "reference_pairs": 0,
+      "native_samples": 384000
+    },
+    {
+      "case": "case08",
+      "cohort": "ordered-click-only",
+      "seed": 1423,
+      "sum_maximum_lsb": 1,
+      "reference_pairs": 0,
+      "native_samples": 384000
+    },
+    {
+      "case": "case09",
+      "cohort": "fan-only",
+      "seed": 1423,
+      "sum_maximum_lsb": 1,
+      "reference_pairs": 0,
+      "native_samples": 384000
+    },
+    {
+      "case": "case10",
+      "cohort": "palm-recurrence",
+      "seed": 1423,
+      "sum_maximum_lsb": 2,
+      "reference_pairs": 1,
+      "native_samples": 384000
+    },
+    {
+      "case": "case11",
+      "cohort": "legato-recurrence",
+      "seed": 1423,
+      "sum_maximum_lsb": 2,
+      "reference_pairs": 1,
+      "native_samples": 384000
+    }
+  ],
+  "recomputed": {
+    "Araw": {
+      "pair_iou": [
+        {
+          "tp": 1,
+          "fp": 5,
+          "fn": 3,
+          "reference_count": 4,
+          "estimate_count": 6,
+          "endpoint_count": 4,
+          "threshold": 0.5,
+          "recall": 0.25,
+          "matched_endpoint_mae_seconds": 0.28896909916201113
+        },
+        {
+          "tp": 0,
+          "fp": 6,
+          "fn": 4,
+          "reference_count": 4,
+          "estimate_count": 6,
+          "endpoint_count": 0,
+          "threshold": 0.75,
+          "recall": 0.0,
+          "matched_endpoint_mae_seconds": null
+        }
+      ],
+      "typed_endpoints": [
+        {
+          "tp": 0,
+          "fp": 24,
+          "fn": 16,
+          "reference_count": 16,
+          "estimate_count": 24,
+          "threshold": 0.02
+        },
+        {
+          "tp": 0,
+          "fp": 24,
+          "fn": 16,
+          "reference_count": 16,
+          "estimate_count": 24,
+          "threshold": 0.05
+        },
+        {
+          "tp": 0,
+          "fp": 24,
+          "fn": 16,
+          "reference_count": 16,
+          "estimate_count": 24,
+          "threshold": 0.1
+        }
+      ],
+      "negative_false_candidates": {
+        "low32-sustain": 1,
+        "missing-f0-sustain": 1,
+        "ordered-click-only": 0,
+        "fan-only": 0
+      }
+    },
+    "S1_support": {
+      "pair_iou": [
+        {
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "reference_count": 4,
+          "estimate_count": 4,
+          "endpoint_count": 16,
+          "threshold": 0.5,
+          "recall": 1.0,
+          "matched_endpoint_mae_seconds": 0.07367187499999998
+        },
+        {
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "reference_count": 4,
+          "estimate_count": 4,
+          "endpoint_count": 16,
+          "threshold": 0.75,
+          "recall": 1.0,
+          "matched_endpoint_mae_seconds": 0.07367187499999998
+        }
+      ],
+      "typed_endpoints": [
+        {
+          "tp": 0,
+          "fp": 16,
+          "fn": 16,
+          "reference_count": 16,
+          "estimate_count": 16,
+          "threshold": 0.02
+        },
+        {
+          "tp": 4,
+          "fp": 12,
+          "fn": 12,
+          "reference_count": 16,
+          "estimate_count": 16,
+          "threshold": 0.05
+        },
+        {
+          "tp": 16,
+          "fp": 0,
+          "fn": 0,
+          "reference_count": 16,
+          "estimate_count": 16,
+          "threshold": 0.1
+        }
+      ],
+      "negative_false_candidates": {
+        "low32-sustain": 0,
+        "missing-f0-sustain": 0,
+        "ordered-click-only": 0,
+        "fan-only": 0
+      }
+    },
+    "S2_multiscale": {
+      "pair_iou": [
+        {
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "reference_count": 4,
+          "estimate_count": 4,
+          "endpoint_count": 16,
+          "threshold": 0.5,
+          "recall": 1.0,
+          "matched_endpoint_mae_seconds": 0.07367187499999998
+        },
+        {
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "reference_count": 4,
+          "estimate_count": 4,
+          "endpoint_count": 16,
+          "threshold": 0.75,
+          "recall": 1.0,
+          "matched_endpoint_mae_seconds": 0.07367187499999998
+        }
+      ],
+      "typed_endpoints": [
+        {
+          "tp": 0,
+          "fp": 16,
+          "fn": 16,
+          "reference_count": 16,
+          "estimate_count": 16,
+          "threshold": 0.02
+        },
+        {
+          "tp": 4,
+          "fp": 12,
+          "fn": 12,
+          "reference_count": 16,
+          "estimate_count": 16,
+          "threshold": 0.05
+        },
+        {
+          "tp": 16,
+          "fp": 0,
+          "fn": 0,
+          "reference_count": 16,
+          "estimate_count": 16,
+          "threshold": 0.1
+        }
+      ],
+      "negative_false_candidates": {
+        "low32-sustain": 0,
+        "missing-f0-sustain": 0,
+        "ordered-click-only": 0,
+        "fan-only": 0
+      }
+    }
+  },
+  "discovery_or_inference_rerun": false,
+  "actual_recording_read": false,
+  "default_adoption": false,
+  "scope": "New-seed same-recipe generated accounting; no real phrasing or musical correctness proof."
+}
