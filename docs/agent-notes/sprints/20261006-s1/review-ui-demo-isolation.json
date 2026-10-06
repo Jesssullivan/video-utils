@@ -1,0 +1,16 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004 / R-N11/R-N12/R-N13",
+  "purpose": "readonly real-video muted browser QA in isolated media copy",
+  "source_run": "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737",
+  "copied_run": "/Users/jess/git/video-utils/.local/sprint1/review_ui/artifacts/sprint1-review/copied-approved-demo",
+  "protected_before": {
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/manifest.json": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/baseline.wav": "2c600e9c50457a75f99c2a15ba2dcd1ab7554c5974ad25778db6e210267eccb9",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/cleaned.wav": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/residue.wav": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc",
+    "/Users/jess/Desktop/video_util_mvp_demo_1.mp4": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10"
+  },
+  "annotations": "not copied or edited",
+  "source_equal_after": true,
+  "master_adoption": "none"
+}

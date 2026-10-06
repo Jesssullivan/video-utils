@@ -1,0 +1,162 @@
+{
+  "timestamp_utc": "2026-10-06T06:22:01.411179+00:00",
+  "authority": "root explicit finalbridge request / R-HOOK-CONVERGENCE-20261004 / R-N11/R-N12/R-N13",
+  "state": "final_dependency_integration_passed",
+  "frozen_ui_sha256": {
+    "review/index.html": "69418ec04f7a0045257f8e821fe0f450a310e143285e69d18c52ffb2485b2c5a",
+    "review/app.js": "914450274f52801c42c4b758d611b63c84eb6ce0b02fab8242165a97e71bfbd1",
+    "review/practice.js": "18175c7a255ad53204f4607893ab145b016269aa0a5226ea79c40bef61791e1e",
+    "review/style.css": "ab28a0125f8d2a944eff72bb990bed76b04ed4e0864be905ade06c152ba02fce",
+    "review/browser_smoke.py": "4654554db5dc3f9b2d03e27eda0edba6466648fbd03d6ce66d8ed374f16cc7de",
+    "review/browser_smoke.mjs": "6e6e87c50137ad7eec41f5d5cede2d0087cb14abb41507a4e922e6a37749b095",
+    "review/make_practice_fixture_s1.py": "f92ffa2a5d34c75db87f9bb523bbe98e06b0f86585c4db30558479125c60d18d",
+    "tests/test_review_ui_s1.py": "7fda67d84ea6f6e38f6c5ac60ab2d7db62c21de74b43db5a0bb78c63391671a9",
+    "docs/spec/sprints/REVIEW_UI_S1.md": "c2c4d090e32326c5e85d3c46a764b7626475d1103b7eb53c22d47456af01ace0"
+  },
+  "frozen_ui_unchanged": true,
+  "annotation_dependencies_sha256": {
+    "scripts/annotation_v2.py": "f328173a5d083a9bfd31fdaa8ee07a05526e498f0dd4aa348866ddad2f1d6ce6",
+    "scripts/review_server.py": "bf09698ac23330385bb07287b9d2aee62bb64c8ebf795b60650dfcad36e3415c",
+    "scripts/report.py": "a3f18765f7579448526e36fceca56a40b882814a3df2786c60f65fb82f0ee866"
+  },
+  "annotation_dependencies_unchanged": true,
+  "tests": {
+    "passed": 25,
+    "failures": 0,
+    "errors": 0,
+    "log": "artifacts/sprint1-review/final-dependency-tests.log",
+    "log_sha256": "b75246dcd9a6794788ef8711c50b4c21e286c23ab18dc17a4778991df4e41b38"
+  },
+  "actual_browser": {
+    "initial": {
+      "ready": "Ready for manual listening. Nothing plays automatically.",
+      "markers": 2,
+      "media": [
+        "original",
+        "clean",
+        "residual"
+      ],
+      "sourcePathExposed": false,
+      "horizontalOverflow": false
+    },
+    "filter": {
+      "available": true,
+      "shown": 1,
+      "total": 2
+    },
+    "navigation": {
+      "sourceStart": 4,
+      "sourceEnd": 4.8,
+      "selected": "Selected proposal: phrase recurrence review"
+    },
+    "metadata": [
+      {
+        "type": "audio",
+        "duration": 10,
+        "readyState": 4,
+        "error": null
+      },
+      {
+        "type": "audio",
+        "duration": 10,
+        "readyState": 4,
+        "error": null
+      },
+      {
+        "type": "audio",
+        "duration": 10,
+        "readyState": 4,
+        "error": null
+      }
+    ],
+    "playback": {
+      "available": true,
+      "muted": true,
+      "advancedSeconds": 0.6607050000000001,
+      "decodedVideoFrames": null
+    },
+    "annotations": {
+      "state": "synthetic_fixture_only",
+      "saved": true,
+      "updated": true,
+      "reloadedNote": "Automated synthetic UI check updated; no listening acceptance.",
+      "acceptance": "not_established"
+    },
+    "practice": {
+      "state": "synthetic_fixture_only",
+      "pointBadge": "USER REPORTED \u00b7 rhythm timingPoint @ 00:04.500 \u00b7 display cue onlySynthetic operator report: may have rushed <literal> here.DETECTOR HYPOTHESIS \u00b7 phrase recurrence review00:04.000 \u2192 00:04.800Review candidate; musical verdict unknown.",
+      "pointSaved": {
+        "start_seconds": 4.5,
+        "end_seconds": 4.5,
+        "extent_known": false
+      },
+      "editedSpan": {
+        "start_seconds": 4,
+        "end_seconds": 4.8,
+        "extent_known": true
+      },
+      "sameId": true,
+      "revision": 2,
+      "basis": "operator_assertion",
+      "quote": "Synthetic operator span: revisit this repeat.",
+      "claimLabel": "USER REPORTED",
+      "verdict": "not_established",
+      "sourceStart": 4.1,
+      "relativePlayerTime": 2.099999,
+      "playerRole": "original",
+      "playerStart": 2,
+      "loop": {
+        "armed": true,
+        "position": 4.154725,
+        "start": 4,
+        "end": 4.8
+      },
+      "acceptance": "not_established",
+      "keyboard": {
+        "before": 4.1547540000000005,
+        "after": 5.1547540000000005,
+        "focused": "source-transport",
+        "loopDisabled": true
+      },
+      "coverageRefusal": {
+        "enabled": false,
+        "armed": false,
+        "message": "Loop span exceeds this player's source coverage: 00:02.000 \u2192 00:12.000. Choose a covered span or another player."
+      },
+      "desktopBadge": "USER REPORTED \u00b7 rhythm timing00:04.000 \u2192 00:04.800Synthetic operator span: revisit this repeat.DETECTOR HYPOTHESIS \u00b7 phrase recurrence review00:04.000 \u2192 00:04.800Review candidate; musical verdict unknown."
+    },
+    "mobile": {
+      "width": 390,
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "badge": "USER REPORTED \u00b7 rhythm timing00:04.000 \u2192 00:04.800Synthetic operator span: revisit this repeat.DETECTOR HYPOTHESIS \u00b7 phrase recurrence review00:04.000 \u2192 00:04.800Review candidate; musical verdict unknown."
+    },
+    "runtimeExceptions": [],
+    "screenshot": "review-preview.png",
+    "evidenceKind": "muted_browser_decode_and_navigation_not_listening_acceptance"
+  },
+  "browser_artifact_sha256": {
+    "artifacts/sprint1-review/browser-final-dependency/review-preview-mobile.png": "ac9d44c5481cf04bca6c89f40832ce1712daa8e5dc7301bd55093961dfac49ba",
+    "artifacts/sprint1-review/browser-final-dependency/review-preview.png": "729e06fb37ca2ba55ca4ca539c5201a889a479e240a2e9b1b8af675adef88dbf",
+    "artifacts/sprint1-review/browser-final-dependency/review-preview-mobile-issues.png": "dd446193ae7a0b06ce4abf1b6526cc952d812511b09f72ce24262fb6828893ac",
+    "artifacts/sprint1-review/browser-final-dependency/browser-evidence.json": "de3888d4fd6791abbe78fc5a2a1a0c7406410f8dc48f2455470211ec70c550b1",
+    "artifacts/sprint1-review/browser-final-dependency/cleanup-receipt.json": "0eea51ee0fca7b8ea53c9933f7892eec0f253176f6cc38d9c83462c3ca9c3b6f"
+  },
+  "source_clock": {
+    "format_start_seconds": 1,
+    "audio_start_seconds": 2,
+    "source_min_seconds": 1,
+    "source_max_seconds": 12,
+    "seek_source_seconds": 4.1,
+    "relative_audio_seconds": 2.099999
+  },
+  "protected_actual_demo_files_unchanged": true,
+  "borrowed_scripts_excluded_from_ui_staging": [
+    "scripts/annotation_v2.py",
+    "scripts/review_server.py",
+    "scripts/report.py"
+  ],
+  "accepted_media_writes": false,
+  "browser_evidence": "muted synthetic decode/write/readback; no actual listening acceptance",
+  "native_editor_import": "unverified"
+}

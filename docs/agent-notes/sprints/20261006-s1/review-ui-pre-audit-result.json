@@ -1,0 +1,226 @@
+{
+  "timestamp_utc": "2026-10-06T06:11:40.255265+00:00",
+  "authority": "operatorS1; R-HOOK-CONVERGENCE-20261004 / R-N11/R-N12/R-N13",
+  "owner": "/root/s1_review_ui",
+  "state": "implemented_and_browser_verified_pending_independent_audit",
+  "owned_source_sha256": {
+    "review/index.html": "69418ec04f7a0045257f8e821fe0f450a310e143285e69d18c52ffb2485b2c5a",
+    "review/app.js": "4211639bc4f1fc3bb7064ffe469dab8ca42b7285e78d431990ad506c9c08c9a7",
+    "review/practice.js": "13d8e08478aa70552bfbd5b0c85f9484a4e35f50d19a93ae70ff33c2452ff57e",
+    "review/style.css": "ab28a0125f8d2a944eff72bb990bed76b04ed4e0864be905ade06c152ba02fce",
+    "review/browser_smoke.py": "4654554db5dc3f9b2d03e27eda0edba6466648fbd03d6ce66d8ed374f16cc7de",
+    "review/browser_smoke.mjs": "8ceb708b760e7594db09074852b4f74b8b6a7fcd7c95fe53258f2ddc329a19fb",
+    "review/make_practice_fixture_s1.py": "f92ffa2a5d34c75db87f9bb523bbe98e06b0f86585c4db30558479125c60d18d",
+    "tests/test_review_ui_s1.py": "163a08f44d8434c1ac88ce21a3ee05b9f71d8ea7ed56cb07b2c1ea3babe58bdc",
+    "docs/spec/sprints/REVIEW_UI_S1.md": "614fbee0f6415818d595dfe7b1ca78bae818bc1c9d3d23ba073ebfae6f6dfc45"
+  },
+  "bridged_annotation_source_sha256": {
+    "scripts/annotation_v2.py": "237d6b53ac1a73f0e981d1bcaa3fa73e3b5f9ab417bc7bf051575b3d6cf0cab6",
+    "scripts/review_server.py": "05bc9cc753a312c96ab822afaceb91f5a4d44bf288d281c201c8bc918b221ef0"
+  },
+  "tests": {
+    "combined_review": {
+      "discovered": 23,
+      "passed": 23,
+      "failures": 0,
+      "errors": 0,
+      "log": "artifacts/sprint1-review/combined-ui-tests.log",
+      "log_sha256": "db89b1345688acb2ccc01edd429e8dae06853c6bb539e7c8b17ae115030fd0c2"
+    }
+  },
+  "synthetic_browser": {
+    "initial": {
+      "ready": "Ready for manual listening. Nothing plays automatically.",
+      "markers": 2,
+      "media": [
+        "original",
+        "clean",
+        "residual"
+      ],
+      "sourcePathExposed": false,
+      "horizontalOverflow": false
+    },
+    "filter": {
+      "available": true,
+      "shown": 1,
+      "total": 2
+    },
+    "navigation": {
+      "sourceStart": 4,
+      "sourceEnd": 4.8,
+      "selected": "Selected proposal: phrase recurrence review"
+    },
+    "metadata": [
+      {
+        "type": "audio",
+        "duration": 10,
+        "readyState": 4,
+        "error": null
+      },
+      {
+        "type": "audio",
+        "duration": 10,
+        "readyState": 4,
+        "error": null
+      },
+      {
+        "type": "audio",
+        "duration": 10,
+        "readyState": 3,
+        "error": null
+      }
+    ],
+    "playback": {
+      "available": true,
+      "muted": true,
+      "advancedSeconds": 0.6612600000000004,
+      "decodedVideoFrames": null
+    },
+    "annotations": {
+      "state": "synthetic_fixture_only",
+      "saved": true,
+      "updated": true,
+      "reloadedNote": "Automated synthetic UI check updated; no listening acceptance.",
+      "acceptance": "not_established"
+    },
+    "practice": {
+      "state": "synthetic_fixture_only",
+      "pointBadge": "USER REPORTED \u00b7 rhythm timingPoint @ 00:04.500 \u00b7 display cue onlySynthetic operator report: may have rushed <literal> here.DETECTOR HYPOTHESIS \u00b7 phrase recurrence review00:04.000 \u2192 00:04.800Review candidate; musical verdict unknown.",
+      "pointSaved": {
+        "start_seconds": 4.5,
+        "end_seconds": 4.5,
+        "extent_known": false
+      },
+      "editedSpan": {
+        "start_seconds": 4,
+        "end_seconds": 4.8,
+        "extent_known": true
+      },
+      "sameId": true,
+      "revision": 2,
+      "basis": "operator_assertion",
+      "quote": "Synthetic operator span: revisit this repeat.",
+      "claimLabel": "USER REPORTED",
+      "verdict": "not_established",
+      "sourceStart": 4.1,
+      "relativePlayerTime": 2.099999,
+      "playerRole": "original",
+      "playerStart": 2,
+      "loop": {
+        "armed": true,
+        "position": 4.151034,
+        "start": 4,
+        "end": 4.8
+      },
+      "acceptance": "not_established",
+      "keyboard": {
+        "before": 4.151046,
+        "after": 5.151046,
+        "focused": "source-transport",
+        "loopDisabled": true
+      },
+      "desktopBadge": "USER REPORTED \u00b7 rhythm timing00:04.000 \u2192 00:04.800Synthetic operator span: revisit this repeat.DETECTOR HYPOTHESIS \u00b7 phrase recurrence review00:04.000 \u2192 00:04.800Review candidate; musical verdict unknown."
+    },
+    "mobile": {
+      "width": 390,
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "badge": "USER REPORTED \u00b7 rhythm timing00:04.000 \u2192 00:04.800Synthetic operator span: revisit this repeat.DETECTOR HYPOTHESIS \u00b7 phrase recurrence review00:04.000 \u2192 00:04.800Review candidate; musical verdict unknown."
+    },
+    "runtimeExceptions": [],
+    "screenshot": "review-preview.png",
+    "evidenceKind": "muted_browser_decode_and_navigation_not_listening_acceptance"
+  },
+  "real_demo_browser_readonly": {
+    "initial": {
+      "ready": "Ready for manual listening. Nothing plays automatically.",
+      "markers": 0,
+      "media": [
+        "original",
+        "clean",
+        "residual",
+        "video"
+      ],
+      "sourcePathExposed": false,
+      "horizontalOverflow": false
+    },
+    "filter": {
+      "available": false
+    },
+    "navigation": {
+      "sourceStart": 0,
+      "sourceEnd": 0,
+      "selected": "Select a proposal or capture your own span."
+    },
+    "metadata": [
+      {
+        "type": "video",
+        "duration": 150.976145,
+        "readyState": 4,
+        "error": null
+      },
+      {
+        "type": "audio",
+        "duration": 150.961111,
+        "readyState": 4,
+        "error": null
+      },
+      {
+        "type": "audio",
+        "duration": 150.961111,
+        "readyState": 4,
+        "error": null
+      },
+      {
+        "type": "audio",
+        "duration": 150.961111,
+        "readyState": 4,
+        "error": null
+      }
+    ],
+    "playback": {
+      "available": true,
+      "muted": true,
+      "advancedSeconds": 0.45904200000000017,
+      "decodedVideoFrames": 258
+    },
+    "annotations": {
+      "state": "not_written_during_actual_take_check"
+    },
+    "practice": {
+      "state": "not_written_during_actual_take_check"
+    },
+    "mobile": {
+      "width": 390,
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "badge": "No review badge at this source position."
+    },
+    "runtimeExceptions": [],
+    "screenshot": "review-preview.png",
+    "evidenceKind": "muted_browser_decode_and_navigation_not_listening_acceptance"
+  },
+  "browser_logs_and_images_sha256": {
+    "artifacts/sprint1-review/browser-final/review-preview-mobile.png": "ac9d44c5481cf04bca6c89f40832ce1712daa8e5dc7301bd55093961dfac49ba",
+    "artifacts/sprint1-review/browser-final/review-preview.png": "cdaa03ba007258d08092c33126190e21180110af5651888faa15628608550a16",
+    "artifacts/sprint1-review/browser-final/review-preview-mobile-issues.png": "dd446193ae7a0b06ce4abf1b6526cc952d812511b09f72ce24262fb6828893ac",
+    "artifacts/sprint1-review/browser-final/browser-evidence.json": "78738142f09a175891eb0912079e2c6621355e464308e6b95698c1b3bce0d0d7",
+    "artifacts/sprint1-review/browser-final/cleanup-receipt.json": "66940016ac1e43a20f82922c9d1a909d5189148af17ccf24ebeaf1642961236e",
+    "artifacts/sprint1-review/browser-demo/review-preview-mobile.png": "600fbd77d1731aff0c7d9e24393b17841c9926ebcbc6588c03288750b79b7da1",
+    "artifacts/sprint1-review/browser-demo/review-preview.png": "3db6c52e836138242725e1c595f5779a66654d97d5d4565e7939f8b0397a6216",
+    "artifacts/sprint1-review/browser-demo/review-preview-mobile-issues.png": "f8694d3918aeff78fe5d18f7efb11174386b4c5ae5de8ce217ce7df84b5b55ed",
+    "artifacts/sprint1-review/browser-demo/browser-evidence.json": "8e83fd077b966433a1a4704ebe7d9fdb07b197c890b0606cdde1becfba8bbc27",
+    "artifacts/sprint1-review/browser-demo/cleanup-receipt.json": "0629da0f5e548b1ffb13827472408f163c96f7de94d08411094a257c98d12b32"
+  },
+  "protected_media_unchanged_after": true,
+  "copied_demo_annotation_files": [],
+  "listening_acceptance": "not_established_by_this_lane",
+  "native_editor_import": "unverified",
+  "burned_video": "unchanged",
+  "limitations": [
+    "Browser transport is not sample-accurate/gapless; a stopped/ended player remains stopped.",
+    "Point display dwell0.75s is not inferred annotation duration.",
+    "Real demo check is muted decode/navigation; issue writes performed only in generated fixtures.",
+    "Cross-browser and physical mobile touch interactions unverified."
+  ]
+}

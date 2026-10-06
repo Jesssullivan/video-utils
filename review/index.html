@@ -6,6 +6,7 @@
   <title>Guitar take · listening review</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/app.js" defer></script>
+  <script src="/practice.js" defer></script>
 </head>
 <body>
 <main>
@@ -22,15 +23,17 @@
       <div class="section-heading"><h2 id="listen-title">Listen to the take</h2><span id="source-position" class="clock">00:00.000</span></div>
       <div id="player-tabs" class="tabs" aria-label="Listening source"></div>
       <div id="players"></div>
+      <div id="review-callouts" class="review-callouts" aria-label="Source-timed review badges" role="status" aria-live="polite"></div>
       <p class="muted">Compare original and clean at their matched audition levels. The removed signal is a separate diagnostic. Preserve the intended low register and distorted tone.</p>
       <label for="position">Source position</label>
       <input id="position" type="range" step="0.01" aria-label="Source timeline position">
       <div id="marker-track" aria-label="Candidate spans on the source timeline"></div>
-      <div class="transport"><button id="span-start" type="button">Use position as start</button><button id="span-end" type="button">Use position as end</button><label class="checkbox"><input id="loop-span" type="checkbox">Loop marked span</label></div>
-      <p class="muted">Selecting a proposal or moving the position does not start playback.</p>
+      <div class="transport" id="source-transport" tabindex="0" aria-label="Source seek and loop controls" aria-describedby="keyboard-help"><button id="span-start" type="button">Use position as start</button><button id="span-end" type="button">Use position as end</button><label class="checkbox"><input id="loop-span" type="checkbox">Loop marked span</label></div>
+      <p class="muted" id="keyboard-help">Focus these controls: ← / → seek one second (Shift: five); [ / ] capture start / end; L toggles looping. Selecting a proposal or moving the position does not start playback.</p>
+      <p id="loop-status" class="muted" role="status" aria-live="polite">Loop off.</p>
     </section>
     <section class="candidate-panel" aria-labelledby="candidate-title">
-      <div class="section-heading"><h2 id="candidate-title">Review proposals</h2><span id="candidate-count" class="badge">0</span></div>
+      <div class="section-heading"><h2 id="candidate-title">Detector hypotheses</h2><span id="candidate-count" class="badge">0</span></div>
       <div class="filters"><label>Kind<select id="kind-filter"><option value="">All kinds</option></select></label><label>Confidence<select id="confidence-filter"><option value="">All evidence levels</option></select></label></div>
       <p class="muted">Confidence labels are heuristic evidence, not probabilities. Meter and musical section identity can remain uncertain.</p>
       <div id="candidates" class="candidate-list"></div>
@@ -52,6 +55,28 @@
       <div class="section-heading"><h2 id="saved-title">Saved listening notes</h2><div><button id="refresh-notes" type="button" class="quiet">Refresh</button><button id="download-notes" type="button" class="quiet">Download JSON</button></div></div>
       <div id="saved-notes"></div>
       <details class="receipt"><summary>Recording identity</summary><p id="identity"></p></details>
+    </section>
+  </div>
+  <div class="notes-workspace issue-workspace">
+    <section class="editor-panel" aria-labelledby="issue-title">
+      <div class="section-heading"><h2 id="issue-title">Report a practice issue</h2><span class="badge user-label">USER REPORTED</span></div>
+      <p class="muted">Use original recording seconds. Your exact description and certainty stay attached to this source; saving does not confirm a musical error.</p>
+      <form id="issue-form">
+        <div class="form-row"><label for="issue-start">Original source start, seconds<input id="issue-start" type="number" step="0.001" required></label><label for="issue-end">Original source end, seconds<input id="issue-end" type="number" step="0.001" required disabled></label></div>
+        <label class="checkbox"><input id="issue-span" type="checkbox">Known span (otherwise a point timestamp)</label>
+        <div class="transport"><button id="issue-capture" type="button">Use listening span</button><button id="issue-now" type="button">Use current timestamp</button><button id="issue-new" type="button">New issue</button></div>
+        <div class="form-row"><label for="issue-kind">Issue kind<select id="issue-kind"><option value="rhythm_timing">Timing / rushed or late</option><option value="rhythm_pattern">Rhythm pattern</option><option value="phrase_omission">Phrase omission</option><option value="phrase_duration">Phrase duration</option><option value="melodic_pitch">Melodic / pitch</option><option value="articulation">Articulation</option><option value="rest_execution">Rest execution</option><option value="meter_mismatch">Meter mismatch</option><option value="tone">Tone</option><option value="noise">Noise</option><option value="other">Other</option></select></label><label for="issue-certainty">Your certainty<select id="issue-certainty"><option value="uncertain">Uncertain</option><option value="confirmed">User reports certainty</option></select></label></div>
+        <label for="issue-status">Review state<select id="issue-status"><option value="needs_review">Needs another listen</option><option value="accepted_observation">Observation recorded</option><option value="dismissed_candidate">Candidate dismissed</option></select></label>
+        <label for="issue-quote">Your exact description<textarea id="issue-quote" rows="3" maxlength="4000" required placeholder="For example: I may have rushed the breakdown at this timestamp."></textarea></label>
+        <label for="issue-note">Listening context<textarea id="issue-note" rows="2" maxlength="4000" required placeholder="What to compare or revisit; this remains your observation."></textarea></label>
+        <button class="primary" type="submit" id="issue-save" disabled>Save user-reported issue</button>
+        <p id="issue-notice" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+    <section class="saved-panel" aria-labelledby="issues-title">
+      <div class="section-heading"><h2 id="issues-title">Saved reports & review evidence</h2><button id="refresh-issues" type="button" class="quiet">Refresh issues</button></div>
+      <div id="saved-issues"></div>
+      <p class="muted">Detector hypotheses above and your reports here have separate authorship. Musical verdict and master acceptance remain unestablished.</p>
     </section>
   </div>
   <footer>Private local review · source timestamps retained · generic markers; native editor import unverified.</footer>

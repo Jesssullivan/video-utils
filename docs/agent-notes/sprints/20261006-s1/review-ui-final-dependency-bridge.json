@@ -1,0 +1,17 @@
+{
+  "authority": "explicit root final bridge request / R-HOOK-CONVERGENCE-20261004",
+  "timestamp_utc": "2026-10-06T06:21:03.983443+00:00",
+  "actor": "/root/s1_review_ui",
+  "ownership": "annotation owner source, UI readonly integration bridge; excluded from UI staging",
+  "before_sha256": {
+    "scripts/annotation_v2.py": "237d6b53ac1a73f0e981d1bcaa3fa73e3b5f9ab417bc7bf051575b3d6cf0cab6",
+    "scripts/review_server.py": "05bc9cc753a312c96ab822afaceb91f5a4d44bf288d281c201c8bc918b221ef0",
+    "scripts/report.py": "3beb1b502dfd98c64e015e1f93d81e8c0f3ee81d912b9b3b9f3dc25426950b73"
+  },
+  "bridge_source_sha256": {
+    "scripts/annotation_v2.py": "f328173a5d083a9bfd31fdaa8ee07a05526e498f0dd4aa348866ddad2f1d6ce6",
+    "scripts/review_server.py": "bf09698ac23330385bb07287b9d2aee62bb64c8ebf795b60650dfcad36e3415c",
+    "scripts/report.py": "a3f18765f7579448526e36fceca56a40b882814a3df2786c60f65fb82f0ee866"
+  },
+  "owner_source_unchanged": true
+}
