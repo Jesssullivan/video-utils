@@ -3,7 +3,7 @@
   "branch": "sprint/20261006-s2/web_stack",
   "head": "52da0e4e657e355a59fb99a9a52c359d39265aad",
   "base_commit": "e0da4ca04930ee9a89a83eec402f060366c5d30d",
-  "worktree": "/Users/jess/git/video-utils/.local/sprint2/web_stack",
+  "worktree": ".local/sprint2/web_stack",
   "state": "implemented_tested_audited",
   "files": [
     {"path": "docs/agent-notes/sprints/20261006-s2/web_stack-build-receipt.json", "sha256": "e54181ddd73c4fa0a8b67d0f5bcda55bb659d1be7ae10a7a5a081057ad7a28ee", "kind": "receipt"},
