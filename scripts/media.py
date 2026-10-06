@@ -28,8 +28,15 @@ THREADS = "2"
 COMMANDS: list[list[str]] = []
 
 
+# Operator decision 2026-10-06 (TIN-5599): FULLER is the default and always needs a
+# reviewed per-take capture interval; conservative3 stays selectable explicitly.
+DEFAULT_PROFILE = "fuller"
+
+
 class MediaError(RuntimeError):
-    pass
+    def __init__(self, message="", code="media_error"):
+        super().__init__(message)
+        self.code = code
 
 
 def executable(name: str) -> str:
@@ -148,17 +155,25 @@ def load_profile(value: str | Path) -> dict:
         profile = json.loads(path.read_text())
     except (OSError, json.JSONDecodeError) as exc:
         raise MediaError(f"cannot read profile: {value}") from exc
+    return validate_profile(profile)
+
+
+def validate_profile(profile: dict) -> dict:
     if not isinstance(profile, dict) or profile.get("schema_version") != 1:
         raise MediaError("profile requires schema_version: 1")
     allowed = {"schema_version", "name", "description", "denoise", "reduction_db",
                "noise_floor_db", "gain_smooth", "preserve_low_fundamental_hz",
                "integrated_lufs", "true_peak_dbtp", "noise_capture_seconds",
                "noise_capture_authorized", "noise_capture_source_sha256",
-               "noise_capture_review", "adaptivity", "peaking_eq", "compressor"}
+               "noise_capture_review", "adaptivity", "peaking_eq", "compressor",
+               "noise_capture_required"}
     if set(profile) - allowed:
         raise MediaError("profile contains unsupported fields")
     if not isinstance(profile.get("denoise"), bool):
         raise MediaError("profile denoise must be a boolean")
+    if "noise_capture_required" in profile and (not isinstance(profile["noise_capture_required"], bool)
+                                                or (profile["noise_capture_required"] and not profile["denoise"])):
+        raise MediaError("noise_capture_required must be a boolean and requires denoise")
     limits = {"integrated_lufs": (-70, -5), "true_peak_dbtp": (-9, 0),
               "reduction_db": (0.01, 12), "noise_floor_db": (-80, -20),
               "gain_smooth": (0, 50)}
@@ -198,6 +213,32 @@ def load_profile(value: str | Path) -> dict:
         raise MediaError("noise capture metadata requires an interval")
     validate_post_controls(profile)
     return profile
+
+
+def check_capture_request(profile: dict, interval, review) -> None:
+    """Typed refusals for a per-take capture binding; runs before hashing or decode."""
+    if profile.get("noise_capture_seconds") is not None:
+        raise MediaError("profile already binds a noise capture interval; omit --capture-interval",
+                         "capture_interval_conflict")
+    if not isinstance(review, str) or not review.strip() or len(review) > 2000:
+        raise MediaError("--capture-interval requires non-empty --capture-review text of at most 2000 characters",
+                         "capture_review_required")
+    if (not profile["denoise"] or not isinstance(interval, (list, tuple)) or len(interval) != 2
+            or any(isinstance(x, bool) or not isinstance(x, (int, float)) or not math.isfinite(x)
+                   for x in interval)
+            or interval[0] < 0 or not 0.1 <= interval[1] - interval[0] <= 10):
+        raise MediaError("capture interval needs finite START >= 0, a 0.1-10 second duration and a denoise profile",
+                         "capture_interval_invalid")
+
+
+def bind_capture(profile: dict, interval, review, source_sha256: str) -> dict:
+    """Bind a reviewed per-take interval to a template, then rerun profile validation."""
+    check_capture_request(profile, interval, review)
+    bound = {key: value for key, value in profile.items() if key != "noise_capture_required"}
+    bound.update(noise_capture_seconds=[float(interval[0]), float(interval[1])],
+                 noise_capture_authorized=True, noise_capture_review=review,
+                 noise_capture_source_sha256=source_sha256)
+    return validate_profile(bound)
 
 
 def numeric_control(value, low: float, high: float, name: str) -> float:
@@ -527,15 +568,29 @@ def verify_video_export(video: Path, manifest: dict, final_path: Path) -> dict:
                                                                True if measurement.get("input_tp") == "-inf" else None)}}
 
 
-def clean(value: str | Path, profile_value: str | Path) -> dict:
+def clean(value: str | Path, profile_value: str | Path, capture_interval=None,
+          capture_review=None) -> dict:
     command_origin = len(COMMANDS)
     source = source_path(value)
     profile = load_profile(profile_value)
+    if capture_interval is None:
+        if capture_review is not None:
+            raise MediaError("--capture-review requires --capture-interval START END",
+                             "capture_interval_required")
+        if profile.get("noise_capture_required") is True and profile.get("noise_capture_seconds") is None:
+            raise MediaError(f"profile {profile.get('name', profile_value)} requires a reviewed per-take capture "
+                             "interval: pass --capture-interval START END --capture-review TEXT for this take, "
+                             "or select profile conservative3 explicitly (no capture binding)",
+                             "capture_interval_required")
+    else:
+        check_capture_request(profile, capture_interval, capture_review)
     source_stat = source.stat()
     source_hash = sha256(source)
+    if capture_interval is not None:
+        profile = bind_capture(profile, capture_interval, capture_review, source_hash)
     if (profile.get("noise_capture_seconds") is not None
             and profile["noise_capture_source_sha256"] != source_hash):
-        raise MediaError("noise capture source SHA-256 differs from this recording")
+        raise MediaError("noise capture source SHA-256 differs from this recording", "capture_source_mismatch")
     metadata = probe(source)
     audio = metadata["audio"]
     audio_origin = audio_timeline_origin(source, metadata)
@@ -558,7 +613,8 @@ def clean(value: str | Path, profile_value: str | Path) -> dict:
         interval = profile.get("noise_capture_seconds")
         capture = None
         if interval is not None and interval[1] > reference["sample_count"] / reference["sample_rate"]:
-            raise MediaError("noise capture interval extends beyond decoded audio")
+            raise MediaError("noise capture interval extends beyond decoded audio",
+                             "capture_interval_outside_source")
         if profile["denoise"]:
             audio_filter = (f"afftdn=nr={profile['reduction_db']}:nf={profile['noise_floor_db']}:"
                             f"tn=0:gs={profile['gain_smooth']}")
@@ -570,7 +626,8 @@ def clean(value: str | Path, profile_value: str | Path) -> dict:
                 rate = reference["sample_rate"]
                 start, end = round(interval[0] * rate), round(interval[1] * rate)
                 if not 0 <= start < end <= reference["sample_count"]:
-                    raise MediaError("noise capture sample interval is outside decoded audio")
+                    raise MediaError("noise capture sample interval is outside decoded audio",
+                                     "capture_interval_outside_source")
                 training_samples = end - start
                 guard = math.ceil(rate / 10)
                 prefix = training_samples + guard
@@ -823,28 +880,37 @@ def main(argv=None) -> int:
     inspect.add_argument("input")
     restore = sub.add_parser("clean")
     restore.add_argument("input")
-    restore.add_argument("profile", nargs="?", default="conservative3")
+    restore.add_argument("profile", nargs="?", default=DEFAULT_PROFILE,
+                         help="Profile name or path; default fuller requires --capture-interval")
+    restore.add_argument("--capture-interval", nargs=2, type=float, metavar=("START", "END"),
+                         help="Reviewed per-take noise capture interval in decoded-source seconds")
+    restore.add_argument("--capture-review", help="Non-empty review text for --capture-interval")
     deliver = sub.add_parser("export")
     deliver.add_argument("run_dir")
     demo = sub.add_parser("demo")
     demo.add_argument("input")
-    demo.add_argument("--profile", default="conservative3")
+    demo.add_argument("--profile", default=DEFAULT_PROFILE,
+                      help="Profile name or path; default fuller requires --capture-interval")
+    demo.add_argument("--capture-interval", nargs=2, type=float, metavar=("START", "END"),
+                      help="Reviewed per-take noise capture interval in decoded-source seconds")
+    demo.add_argument("--capture-review", help="Non-empty review text for --capture-interval")
     args = parser.parse_args(argv)
     try:
         if args.command == "probe":
             path = source_path(args.input)
             result = {"path": str(path), "sha256": sha256(path), "probe": probe(path)}
         elif args.command == "clean":
-            result = clean(args.input, args.profile)
+            result = clean(args.input, args.profile, args.capture_interval, args.capture_review)
         elif args.command == "export":
             result = export(args.run_dir)
         else:
-            manifest = clean(args.input, args.profile)
+            manifest = clean(args.input, args.profile, args.capture_interval, args.capture_review)
             result = dict(manifest, export=export(manifest["run_dir"]))
         print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
         return 0
     except (MediaError, OSError, ValueError, KeyError) as exc:
-        print(json.dumps({"status": "error", "error": str(exc)}), file=sys.stderr)
+        reason = exc.code if isinstance(exc, MediaError) else type(exc).__name__
+        print(json.dumps({"status": "error", "error": str(exc), "reason": reason}), file=sys.stderr)
         return 1
 
 

@@ -26,6 +26,7 @@ python3 scripts/tool_api.py list
 python3 scripts/tool_api.py describe denoise
 just tool-run denoise '{"input":"/path/take.mov","profile":"conservative3"}'
 just clean "/path/take.mov" conservative3
+just clean "/path/take.mov" fuller --capture-interval 4.10 4.95 --capture-review "reviewed interval"
 just analyze "/path/take.mov" "/path/run"
 just dag "/path/run" "/path/approved-rhythm.json"
 just markers "/path/run"

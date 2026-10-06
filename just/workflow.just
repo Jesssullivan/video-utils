@@ -2,13 +2,19 @@
 doctor:
     python3 scripts/doctor.py
 
-# Produce processed audio/video, rhythm measurements and a local comparison report.
-demo input bpm="" backend="stdlib" features="base":
-    if [[ -n {{quote(bpm)}} ]]; then python3 scripts/run_demo.py {{quote(input)}} --bpm {{quote(bpm)}} --backend {{quote(backend)}} --features {{quote(features)}}; else python3 scripts/run_demo.py {{quote(input)}} --backend {{quote(backend)}} --features {{quote(features)}}; fi
+# Extra ARGS pass through to run_demo.py, e.g.
+#   just demo IN "" stdlib base fuller --capture-interval START END --capture-review TEXT
+# Without an interval the default refuses (capture_interval_required); pass profile conservative3 instead.
+# Produce processed audio/video and analysis; default fuller needs a reviewed --capture-interval.
+[positional-arguments]
+demo input bpm="" backend="stdlib" features="base" profile="fuller" *ARGS:
+    options=(--backend "$3" --features "$4" --profile "$5" "${@:6}"); if [[ -n "$2" ]]; then options+=(--bpm "$2"); fi; python3 scripts/run_demo.py "$1" "${options[@]}"
 
-# Preserve the input and create a new private run directory.
-clean input profile="conservative3":
-    python3 scripts/media.py clean {{quote(input)}} {{quote(profile)}}
+# Default fuller otherwise refuses (capture_interval_required); pass profile conservative3 for no capture binding.
+# Preserve the input and create a new private run; default fuller needs --capture-interval START END --capture-review TEXT.
+[positional-arguments]
+clean input profile="fuller" *ARGS:
+    python3 scripts/media.py clean "$@"
 
 # Keep analysis copies separate from the full-quality audio master.
 analyze input run_dir="":
@@ -63,6 +69,12 @@ markers run_dir:
 # Burn selected review hypotheses into a separate synchronized video preview.
 marked-video run_dir output selection="phrase-review":
     python3 scripts/marked_video.py --run-dir {{quote(run_dir)}} --output {{quote(output)}} --selection {{quote(selection)}}
+
+# Copy-only compact marked movie: RUN_DIR audio + verified arrangement preview picture.
+# Pass --picture-preview DIR --arrangement-markers SELECTOR [--output DIR] [--timeout-seconds N].
+[positional-arguments]
+marked-compact run_dir *ARGS:
+    python3 scripts/marked_compact.py "$@"
 
 # Local stdio MCP; stdout is reserved exclusively for JSON-RPC messages.
 mcp:

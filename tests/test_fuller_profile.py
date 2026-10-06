@@ -137,18 +137,28 @@ class FullerProfileContractTests(unittest.TestCase):
         self.assertEqual(compact.ACCEPTED["N"], self.freeze["filters"]["N_prefix"])
         self.assertNotEqual(compact.capture_template(180810, 218296, 6657385, 44100, 1102), built)
 
-    def test_conservative3_unchanged_loadable_and_still_default(self):
+    def test_conservative3_unchanged_loadable_and_fuller_is_default(self):
         path = REPO / "profiles" / "conservative3.json"
         self.assertEqual(media.sha256(path), CONSERVATIVE3_SHA256)
         self.assertEqual(media.load_profile(path)["name"], "conservative3")
         with patch.object(media, "clean", return_value={"status": "mock"}) as clean, \
                 contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(media.main(["clean", "unused-input.wav"]), 0)
-        self.assertEqual(clean.call_args.args[1], "conservative3")
+        self.assertEqual(clean.call_args.args[1], "fuller")
         with patch.object(media, "clean", return_value={"run_dir": "unused"}) as clean, \
                 patch.object(media, "export", return_value={"status": "mock"}), \
                 contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(media.main(["demo", "unused-input.wav"]), 0)
+        self.assertEqual(clean.call_args.args[1], "fuller")
+        # conservative3 remains available when selected explicitly.
+        with patch.object(media, "clean", return_value={"status": "mock"}) as clean, \
+                contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(media.main(["clean", "unused-input.wav", "conservative3"]), 0)
+        self.assertEqual(clean.call_args.args[1:], ("conservative3", None, None))
+        with patch.object(media, "clean", return_value={"run_dir": "unused"}) as clean, \
+                patch.object(media, "export", return_value={"status": "mock"}), \
+                contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(media.main(["demo", "unused-input.wav", "--profile", "conservative3"]), 0)
         self.assertEqual(clean.call_args.args[1], "conservative3")
 
     def test_raw_template_fails_closed_or_requires_interval(self):
@@ -329,6 +339,20 @@ class FullerTypedRefusalTests(FixtureMixin, unittest.TestCase):
                     self.assertEqual(self.runs(), [])
                     observed += 1
         self.assertEqual(observed, 8)
+        self.assertEqual(media.sha256(self.source), self.source_sha)
+
+    def test_default_profile_refuses_without_interval_with_actionable_reason(self):
+        profiles = self.directory / "profiles"
+        profiles.mkdir(exist_ok=True)
+        (profiles / "fuller.json").write_bytes(PROFILE.read_bytes())
+        for argv in (["clean", str(self.source)], ["demo", str(self.source)]):
+            with self.subTest(command=argv[0]):
+                code, out, err = self.cli(argv)
+                payload = json.loads(err)
+                self.assertEqual((code, out, payload["reason"]), (1, "", "capture_interval_required"))
+                self.assertIn("--capture-interval START END", payload["error"])
+                self.assertIn("conservative3", payload["error"])
+                self.assertEqual(self.runs(), [])
         self.assertEqual(media.sha256(self.source), self.source_sha)
 
     def test_invalid_and_conflicting_intervals_refuse_before_decode(self):

@@ -92,8 +92,17 @@ to revisit the restoration alternatives.
 ```bash
 nix develop
 just doctor
-just demo "$HOME/Documents/Movie on 10-5-26 at 3.38 PM.mov"
+just demo "$HOME/Documents/Movie on 10-5-26 at 3.38 PM.mov" "" stdlib base fuller \
+  --capture-interval 4.10 4.95 --capture-review "Reviewed opening fan interval for this take"
 ```
+
+The default restoration profile is `fuller` (operator decision 2026-10-06). It
+always needs a reviewed per-take capture interval: `--capture-interval START END`
+with `--capture-review TEXT`, in decoded-source seconds. Without one, `just demo`
+and `just clean` refuse with `capture_interval_required` and never fall back.
+Select `conservative3` explicitly for a run without a capture binding, for example
+`just clean INPUT conservative3`. The MCP `denoise` tool keeps its frozen
+`conservative3` default.
 
 `FFMPEG` and `FFPROBE` may name explicit executables; otherwise tools are found
 on `PATH`. `just doctor` checks the available toolchain. Keep recordings outside
@@ -105,8 +114,8 @@ overwrite the input.
 | Recipe | Purpose |
 | --- | --- |
 | `just doctor` | Inspect tools and optional capabilities |
-| `just demo INPUT` | Clean/export the take, analyze rhythm, and build its report |
-| `just clean INPUT PROFILE` | Render a named restoration profile |
+| `just demo INPUT [BPM] [BACKEND] [FEATURES] [PROFILE] [ARGS]` | Clean/export the take, analyze rhythm, and build its report; default `fuller` needs `--capture-interval START END --capture-review TEXT` |
+| `just clean INPUT [PROFILE] [ARGS]` | Render a named restoration profile; default `fuller` needs a reviewed capture interval |
 | `just analyze INPUT` | Estimate rhythm with uncertainty |
 | `just report RUN_DIR` | Build a report from an existing run |
 | `just export RUN_DIR` | Export delivery artifacts from an existing run |
