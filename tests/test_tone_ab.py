@@ -406,6 +406,32 @@ class GateTests(FixtureBase):
         self.assertFalse((self.template / "tone-ab").exists())
         self.assertFalse((self.base / "artifacts").exists())
 
+    def test_case_variant_output_inside_protected_dirs_refused(self):
+        # APFS (default) is case-insensitive and Path.resolve keeps the caller's
+        # spelling, so a case-variant output must still be refused.
+        with tempfile.TemporaryDirectory(prefix="tone-ab-case-") as temp:
+            scratch = Path(temp).resolve()
+            accepted = scratch / "artifacts" / "runs" / "AcceptedRun"
+            shutil.copytree(self.template, accepted)
+            plain = scratch / "PlainRun"
+            shutil.copytree(self.template, plain)
+            case_insensitive = (scratch / "plainrun").exists()
+            targets = [(accepted, scratch / "Artifacts" / "runs" / "acceptedrun" / "probe-out"),
+                       (accepted, scratch / "ARTIFACTS" / "RUNS" / "other-out")]
+            if case_insensitive:
+                targets.append((plain, scratch / "plainrun" / "probe-out"))
+                targets.append((plain, scratch / "PLAINRUN"))
+            for run_dir, target in targets:
+                self.assertTrue(tone_ab.is_protected_location(target.resolve(), [run_dir]), target)
+                with self.subTest(target=target), self.assertRaises(tone_ab.ToneABError) as caught:
+                    tone_ab.run(args(run_dir), target)
+                self.assertIn(caught.exception.code, {"output_dir_protected", "output_dir_exists"})
+            self.assertFalse(tone_ab.is_protected_location(scratch / "elsewhere" / "out", [plain]))
+            for run_dir in (accepted, plain):
+                self.assertEqual(sorted(p.name for p in run_dir.iterdir()),
+                                 sorted(p.name for p in self.template.iterdir()))
+            self.assertEqual(sorted(p.name for p in scratch.iterdir()), ["PlainRun", "artifacts"])
+
     def test_run_dir_symlink_and_traversal_refused(self):
         alias = self.base / "alias-run"
         alias.symlink_to(self.template, target_is_directory=True)

@@ -344,12 +344,35 @@ def compare_snapshots(before: dict, after: dict) -> list[str]:
     return sorted(name for name in set(before) | set(after) if before.get(name) != after.get(name))
 
 
+def _same_directory(a: Path, b: Path) -> bool:
+    try:
+        return os.path.samefile(a, b)
+    except OSError:
+        return False
+
+
 def is_protected_location(path: Path, protected: list[Path]) -> bool:
+    """True when ``path`` (or any ancestor) is a protected dir or under artifacts/runs.
+
+    Case-insensitive filesystems (APFS default) accept case-variant spellings
+    that ``Path.resolve`` does not canonicalize, so existing ancestors are
+    compared by identity (st_dev, st_ino) and names are compared casefolded.
+    """
     for directory in protected:
         if path == directory or path.is_relative_to(directory):
             return True
-    parts = path.parts
-    return any(parts[i] == "artifacts" and parts[i + 1] == "runs" for i in range(len(parts) - 1))
+    parts = [part.casefold() for part in path.parts]
+    if any(parts[i] == "artifacts" and parts[i + 1] == "runs" for i in range(len(parts) - 1)):
+        return True
+    runs_root = ROOT / "artifacts" / "runs"
+    for ancestor in (path, *path.parents):
+        if not ancestor.exists():
+            continue
+        if any(_same_directory(ancestor, directory) for directory in protected):
+            return True
+        if _same_directory(ancestor, runs_root):
+            return True
+    return False
 
 
 # ---------------------------------------------------------------------------
