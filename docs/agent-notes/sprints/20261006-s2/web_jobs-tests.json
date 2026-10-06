@@ -1,0 +1,116 @@
+{
+  "affected_modules": {
+    "test_artifact_ids test_share_export_tool": "28/28 OK (read-only reuse; no edits)"
+  },
+  "branch": "sprint/20261006-s2/web_jobs",
+  "claim_class": "measurement_by_test",
+  "command": "PYTHONPATH=tests python3 -m unittest test_web_jobs -v (FFMPEG/FFPROBE = qualified nix ffmpeg-headless 8.1.2)",
+  "daemon": false,
+  "date": "2026-10-06",
+  "fixtures": {
+    "stub_worker": "python one-liner, worker_kind test_stub, used for cancel/interrupt/idempotency/latency cases",
+    "synthetic_clip": "testsrc2 320x240@24 2 s + sine 32.70 Hz 44.1 kHz 2 s, H.264/AAC MOV; no spectral claim is made"
+  },
+  "implementation_commit": "159fe28",
+  "lane": "web_jobs",
+  "metrics": {
+    "10_confinement": {
+      "hostile_download_cases": 13,
+      "hostile_download_cases_refused": 13,
+      "responses_checked_for_path_strings": 2115,
+      "responses_containing_path_strings": 0,
+      "runs_tree_hash_equal": true
+    },
+    "11_real_dispatcher_synthetic": {
+      "checks": {
+        "codecs": {
+          "audio": "aac",
+          "video": "h264"
+        },
+        "dimensions": {
+          "height": 240,
+          "width": 320
+        },
+        "output_bytes": 71261,
+        "video_encode_count": 1
+      },
+      "submitted": 1,
+      "succeeded": 1,
+      "wall_seconds": 5.618
+    },
+    "15_foreground_only": "static check: no fork/setsid/launch-agent strings in server code; serve blocks in the foreground (class S)",
+    "16_quotas_exactly_once_slo": "not_measured / not_claimed (NE)",
+    "17_listening_low_register_musical": "not_claimed (NE)",
+    "1_named_tests": "24/24 (>=18 named, >=15 required); skips reported separately",
+    "2_rejected_inputs": {
+      "cases": 15,
+      "refused_with_expected_reason": 15
+    },
+    "3_illegal_transitions": {
+      "illegal_accepted": 0,
+      "illegal_pairs": 56,
+      "legal_refused": 0,
+      "pairs_checked": 72
+    },
+    "4_idempotent_replay": {
+      "artifacts": 3,
+      "attempts": 1,
+      "jobs": 1,
+      "replays": 3,
+      "replays_same_job": 3
+    },
+    "5_interrupted_replay_retry": {
+      "earlier_artifacts_byte_identical": true,
+      "scenarios": 1,
+      "scenarios_passed": 1
+    },
+    "6_crash_after_publish": {
+      "adopted": 1,
+      "publications": 1,
+      "scenarios": 1
+    },
+    "7_cancel_during_run": {
+      "artifacts_published": 0,
+      "owned_pids": 2,
+      "owned_pids_terminated": 2
+    },
+    "8_reconnect_after_restart": {
+      "checked": 1,
+      "projection_equal": 1,
+      "queued_job_ran_after_restart": true
+    },
+    "9_unowned_live_worker": {
+      "observed_liveness": "alive_unowned",
+      "retry_refused": true,
+      "signals_sent_by_new_instance": 0
+    }
+  },
+  "preregistered": false,
+  "preregistration_reason": "no experiment; deterministic fixtures and descriptive local measurements only",
+  "receipt": "web_jobs-tests",
+  "related": [
+    "TIN-5550"
+  ],
+  "results": {
+    "named_tests": 24,
+    "named_tests_passed": 24,
+    "note": "with FFmpeg env: 24/24 pass, 2 opt-in skips; without FFmpeg env the real-dispatcher case skips (reported, not counted as a pass)",
+    "repeat_runs": 4,
+    "repeat_runs_ok": 4,
+    "skipped_opt_in": 2,
+    "skipped_without_ffmpeg_env": 3
+  },
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "spec": "docs/spec/sprints/WEB_JOBS_S2.md",
+  "sprint": "20261006-s2",
+  "tracker": "TIN-5614",
+  "unknowns": {
+    "cpu_seconds": null,
+    "exactly_once": "not_claimed",
+    "listening_acceptance": "not_established",
+    "low_register_preservation": null,
+    "memory_bytes_peak": null,
+    "musical_review": null,
+    "slo": "not_claimed"
+  }
+}

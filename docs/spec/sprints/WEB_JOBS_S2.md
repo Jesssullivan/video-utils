@@ -491,3 +491,121 @@ recorded deliberately.
 - The web_stack / web_ui_binding / web_reliability lanes consume this route
   contract; changes after freeze are appended as a dated section, not edited
   in place.
+
+## 15. Phase 2 implementation notes (appended 2026-10-06; sections 1-14 unchanged)
+
+Implemented in `scripts/web_jobs.py`, `scripts/web_api.py` and
+`tests/test_web_jobs.py`. Where implementation needed a detail that the frozen
+text left open, the choice is recorded here. Each choice adds to the contract
+and keeps existing fields, routes and codes.
+
+Store and schema (still `user_version = 1`):
+
+- `attempts.result_json` (nullable) is an added column. It holds a bounded,
+  path-free projection of the worker's structural checks: status, code,
+  hashes, byte counts, codecs, dimensions, packet and audio proofs, loudness,
+  `master_adopted` and `listening_accepted`. `attempts.worker_kind` is
+  nullable and is set when the attempt is claimed, not when it is queued, so
+  a queued attempt that is picked up by a restarted instance records the
+  worker that actually runs it.
+- `S/.lock` holds an exclusive non-blocking `flock`. A second `WebJobs` on the
+  same state root is refused with `state_root_locked`. Without the lock,
+  startup reconciliation could interrupt attempts that a live instance still
+  owns. `web_jobs.py status` opens the database read-only, takes no lock and
+  does not reconcile.
+- The state root is refused (`state_root_unsafe`) if it overlaps
+  `artifacts/runs` in either direction. This check runs before any directory
+  is created. Tests cover a nested path, a not-yet-existing path and an
+  ancestor path.
+- `capability_revision = sha256_hex(ascii(sha256_hex(canonical descriptor JSON)
+  + sha256_hex(scripts/share_export.py bytes)))`.
+- The event log records these reasons: `submitted`, `claimed`, `validating`,
+  `worker_started`, `cancel_requested`, `finalizing`, `published`,
+  `reconciled_publication`, `explicit_retry` and `supervisor_restarted`.
+  Phases are stored as `running -> running` rows.
+
+Routes, projection and codes (all added; none removed):
+
+- The `share_receipt` role is listed with its hash and size, but
+  `GET /artifacts/{id}` returns `403 artifact_private` for it. The worker
+  sidecar records host paths (source, output and staging), and no response may
+  carry a host path. Each artifact row adds `downloadable`.
+- Each `attempts[]` entry adds `worker_checks`. Its `cancel` object also adds
+  `reason`, `requested_at`, `signal_at`, `signals_sent` and
+  `group_empty_observed`. `requested_at` is when the API recorded the cancel
+  event. `ack_at` is when the supervisor observed the flag. `observed_stop_at`
+  comes after the owned group is observed empty, or after a typed timeout. A
+  deadline termination stores the same receipt shape with
+  `reason: outer deadline exceeded`.
+- Cancel responses add `late_cancel`. GET responses never include `replayed`;
+  submit responses always do.
+- Added refusal codes: `invalid_idempotency_key` (400), `malformed_id` (400) on
+  `POST /jobs` for a malformed source ID, `length_required` (411),
+  `artifact_private` (403), `route_not_found` (404), `admission_refused` (422,
+  an unmapped `artifact_ids` code carried as `detail_code`), and the
+  service-construction codes `state_root_locked`, `state_root_unsafe`,
+  `runs_root_invalid` and `schema_version_mismatch`. Added attempt and job
+  reasons: `source_changed`, `source_missing`, `launch_refused`,
+  `launch_failed`, `supervisor_restarted` and `internal_error`.
+- `unknowns.source_duration_seconds` is filled after a successful attempt from
+  the worker's video packet presentation extent (`source_end - source_start`).
+  This is an inference from packet timestamps, not a container probe, and
+  `source_duration_seconds_reason` says so. `unknowns.worker_birth` is
+  `"recorded"` or `null`. Every `null` unknown has a `*_reason` string.
+- Transport uses HTTP/1.0 with one request per connection. Before an early
+  refusal, an unread request body of up to 1 MiB is read and discarded so the
+  typed response is not lost to a TCP reset. Larger bodies are not drained.
+
+Supervisor and publication:
+
+- `share_export` creates `.share-export-*` intermediates beside its output. On
+  success they are removed from the job-private staging directory before the
+  rename to `attempt-<n>/`, so the published directory holds exactly
+  `share.mp4`, `share.mp4.receipt.json` and `publication.json`. The worker
+  sidecar's recorded staging path therefore names a directory that no longer
+  exists. `publication.json` records `name` (relative to the attempt
+  directory), not a host path, and carries `worker_checks`, so an adopted
+  attempt keeps its structural evidence.
+- Liveness checks send no signal. A zombie counts as `dead`. In-process
+  restarts used by tests reap their own exited child with
+  `waitpid(WNOHANG)`. A `pid` that was never recorded counts as `dead`. When
+  `ps` evidence is missing for a live PID, the result is `unknown`. Retry
+  probes liveness again and moves from `alive_unowned`/`unknown` to `dead`
+  only when the process is observed gone.
+- When the leader has been reaped but members of the owned group remain, they
+  are sent `SIGKILL` (recorded as `SIGKILL_group_remainder`) after the grace
+  period. Members that started their own session are outside the group and
+  are not covered. That limitation is restated in every receipt.
+
+Admission limitation (measured by test only, not on real takes): the media
+check needs `ftyp` at byte offset 4 for `.mov/.mp4/.m4v`. A legacy QuickTime
+file whose first atom is `wide`, `moov` or `mdat` would be refused as
+`not_media`. That is a conservative false refusal, never a false admission.
+The accepted demo source begins with `ftypqt`.
+
+FastAPI remains a later drop-in (section 4.6). `web_api.WebAPIServer` and
+`web_api.Handler` hold no state beyond the token and the `WebJobs` reference.
+
+Test inventory: 24 named tests in `WebJobsTests`, all 20 from section 8 plus
+`test_state_root_lock_refuses_second_instance`,
+`test_worker_rejection_and_malformed_result_fail_with_typed_reasons`,
+`test_cli_status_is_read_only_and_reconcile_respects_lock` and
+`test_server_code_is_foreground_only`. There are 2 opt-in classes:
+`LocalLatencyMeasurement` (`WEB_JOBS_MEASURE=1`) and `ActualDemoJob`
+(`WEB_JOBS_DEMO=1`). `WEB_JOBS_METRICS=<path>` writes the per-test denominators
+as JSON.
+
+Run outcomes (2026-10-06; receipts are in `docs/agent-notes/sprints/20261006-s2/`):
+
+- Tests (`web_jobs-tests.json`): 24/24 named tests pass with the qualified
+  FFmpeg env and 2 opt-in classes skip. Without the env, 3 skips are reported
+  and are not counted as passes.
+- Latency (`web_jobs-latency.json`): measured on this host only. No SLO is
+  claimed and no comparison verdict is made.
+- Actual demo (`web_jobs-demo-receipt.json`): the real dispatcher reached
+  `failed` / `worker_failed`. The worker reported `failed_no_export_published`
+  with code `validation_failed` and the error "video packet count changed".
+  Nothing was published. Replay returned the same job 1/1, and the accepted run
+  tree hash was unchanged. Per section 10 this worker rejection is a valid
+  recorded outcome. It is a `share_export` domain finding for root and is not
+  fixed by this lane.

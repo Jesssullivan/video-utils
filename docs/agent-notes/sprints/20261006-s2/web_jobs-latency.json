@@ -1,0 +1,102 @@
+{
+  "branch": "sprint/20261006-s2/web_jobs",
+  "claim_class": "measurement_this_host_only",
+  "command": "WEB_JOBS_MEASURE=1 PYTHONPATH=tests python3 -m unittest test_web_jobs (timeout 600 s)",
+  "comparison_verdict": null,
+  "daemon": false,
+  "date": "2026-10-06",
+  "host": {
+    "cpu": "Apple A18 Pro",
+    "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "python": "3.12.14",
+    "uname": "Darwin macbook-neo 25.6.0 Darwin Kernel Version 25.6.0: Thu Sep 17 21:31:29 PDT 2026; root:xnu-12377.161.15.701.19~1/RELEASE_ARM64_T8140 arm64"
+  },
+  "implementation_commit": "159fe28",
+  "lane": "web_jobs",
+  "measured_at": "2026-10-06T13:55:08.218149+00:00",
+  "measurements": {
+    "cancel_ack_http": {
+      "attempted": 10,
+      "failures": 0,
+      "max_ms": 55.182,
+      "n": 10,
+      "p50_ms": 24.661,
+      "p95_ms": 55.182,
+      "worker": "test_stub"
+    },
+    "get_job_10_concurrent": {
+      "attempted": 500,
+      "failures": 0,
+      "max_ms": 118.619,
+      "n": 500,
+      "p50_ms": 23.706,
+      "p95_ms": 69.173
+    },
+    "get_job_sequential": {
+      "attempted": 500,
+      "failures": 0,
+      "max_ms": 118.241,
+      "n": 500,
+      "p50_ms": 4.878,
+      "p95_ms": 34.361
+    },
+    "observed_stop_after_signal": {
+      "attempted": 10,
+      "max_ms": 42.423,
+      "n": 10,
+      "p50_ms": 21.852,
+      "p95_ms": 42.423,
+      "worker": "test_stub"
+    },
+    "post_jobs_new": {
+      "attempted": 50,
+      "failures": 0,
+      "max_ms": 104.911,
+      "n": 50,
+      "p50_ms": 13.75,
+      "p95_ms": 64.137,
+      "worker": "test_stub"
+    },
+    "post_jobs_replay": {
+      "attempted": 50,
+      "failures": 0,
+      "max_ms": 109.22,
+      "n": 50,
+      "p50_ms": 14.77,
+      "p95_ms": 87.667
+    },
+    "real_share_export_2s_clip": {
+      "attempted": 3,
+      "failures": 0,
+      "max_ms": 9749.352,
+      "n": 3,
+      "p50_ms": 9683.542,
+      "p95_ms": 9749.352,
+      "worker": "tool_api_share_export"
+    },
+    "restart_to_reconciled": {
+      "attempted": 10,
+      "failures": 0,
+      "includes": "WebJobs construction: lock, schema check, descriptor load, reconcile",
+      "max_ms": 236.477,
+      "n": 10,
+      "p50_ms": 60.35,
+      "p95_ms": 236.477
+    }
+  },
+  "note": "Descriptive local numbers on one idle-ish laptop host; WEB_BACKEND targets remain unmeasured engineering targets. With n=10 the p95 equals the max. HTTP/1.0 one connection per request; includes connection setup and a fresh SQLite connection per call.",
+  "output": "artifacts/s2/web_jobs/latency.json (gitignored)",
+  "output_sha256": "dce6aec24dd4322830abfb875f51fc1d59177287fe3a1779443d5de2ed51c1aa",
+  "preregistered": false,
+  "preregistration_reason": "no experiment; deterministic fixtures and descriptive local measurements only",
+  "process_state": "warm process (Python and FFmpeg already loaded during this session); not a cold-boot measurement",
+  "receipt": "web_jobs-latency",
+  "related": [
+    "TIN-5550"
+  ],
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "slo": "not_claimed",
+  "spec": "docs/spec/sprints/WEB_JOBS_S2.md",
+  "sprint": "20261006-s2",
+  "tracker": "TIN-5614"
+}

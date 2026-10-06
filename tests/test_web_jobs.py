@@ -1040,7 +1040,7 @@ class LocalLatencyMeasurement(WebJobsTestBase):
 
     def test_measure_local_latencies(self):
         out = {'claim_class': 'measurement_this_host_only', 'slo': 'not_claimed', 'host': _host_facts(),
-               'measured_at': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'state': 'warm_after_test_suite',
+               'measured_at': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'state': 'warm_process_not_cold_boot',
                'one_heavy_job_at_a_time': True}
         env = Env(self, self.state('latency'), queue_limit=4)
         source = self.admit(env.client)
