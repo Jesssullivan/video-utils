@@ -42,8 +42,8 @@ OPEN_STRINGS_MIDI = (24, 29, 34, 39, 46, 51, 56, 60, 65)
 PREREG_RECEIPT = "docs/agent-notes/sprints/20261006-s2/phrase_anchor_riff-preregistration.json"
 DEV_RECEIPT = "docs/agent-notes/sprints/20261006-s2/phrase_anchor_riff-dev-calibration.json"
 # Set once from the committed development receipt (seed 1009 only); None refuses preregistration.
-R1_THETA = None
-DEV_RECEIPT_SHA256 = None
+R1_THETA = .75
+DEV_RECEIPT_SHA256 = "10d9bd69df2a965f788b3c3d31fac449f748589e53b01a980e0dac899084e33e"
 S1_WORKER = "scripts/phrase_proposal_s1.py"
 S1_WORKER_SHA256 = "38b736543a83d5c706a8803014f4e308685eee2c84275e9e6768c431b6b8d0e3"
 PINS = {

@@ -50,8 +50,10 @@ def pair(first, second):
 
 class PreregistrationTests(unittest.TestCase):
     def test_13_deterministic_metadata_seeds_geometry_and_gaps(self):
-        with self.assertRaisesRegex(ValueError, "theta_not_calibrated"):
+        with mock.patch.object(rs, "R1_THETA", None), self.assertRaisesRegex(ValueError, "theta_not_calibrated"):
             rs.metadata()
+        self.assertEqual(rs.R1_THETA, .75)  # chosen on dev seed 1009 only
+        self.assertEqual(rs.DEV_RECEIPT_SHA256, hashlib.sha256((ROOT / rs.DEV_RECEIPT).read_bytes()).hexdigest())
         with calibrated():
             first, second = rs.metadata(), rs.metadata()
             self.assertEqual(first, second)
