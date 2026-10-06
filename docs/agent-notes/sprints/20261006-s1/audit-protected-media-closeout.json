@@ -1,0 +1,32 @@
+{
+  "observed_at": "2026-10-06T06:25:19.947854+00:00",
+  "state": "PASS protected bytes match sprintbaseline and prior accepted manifest",
+  "records": [
+    {
+      "path": "/Users/jess/Desktop/video_util_mvp_demo_1.mp4",
+      "sha256": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10",
+      "bytes": 21596491,
+      "matches_prior_evidence": true
+    },
+    {
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov",
+      "sha256": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2",
+      "bytes": 154148244,
+      "matches_prior_evidence": true
+    },
+    {
+      "path": "/Users/jess/Documents/Movie on 10-5-26 at 3.38\u202fPM.mov",
+      "sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "bytes": 228291885,
+      "matches_prior_evidence": true
+    },
+    {
+      "path": "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/cleaned.wav",
+      "sha256": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009",
+      "bytes": 19972258,
+      "matches_prior_evidence": true
+    }
+  ],
+  "media_decoded_or_modified": false,
+  "new_listening_acceptance": false
+}

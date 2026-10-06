@@ -1,0 +1,20 @@
+{
+  "observed_at": "2026-10-06T06:22:47.666411+00:00",
+  "tests": 14,
+  "returncode": 0,
+  "exact_sources_unchanged": true,
+  "source_sha256": {
+    "/Users/jess/git/video-utils/.local/sprint1/annotations/scripts/annotation_v2.py": "f328173a5d083a9bfd31fdaa8ee07a05526e498f0dd4aa348866ddad2f1d6ce6",
+    "/Users/jess/git/video-utils/.local/sprint1/annotations/scripts/review_server.py": "bf09698ac23330385bb07287b9d2aee62bb64c8ebf795b60650dfcad36e3415c",
+    "/Users/jess/git/video-utils/.local/sprint1/annotations/scripts/report.py": "a3f18765f7579448526e36fceca56a40b882814a3df2786c60f65fb82f0ee866",
+    "/Users/jess/git/video-utils/.local/sprint1/review_ui/review/app.js": "914450274f52801c42c4b758d611b63c84eb6ce0b02fab8242165a97e71bfbd1",
+    "/Users/jess/git/video-utils/.local/sprint1/review_ui/review/practice.js": "18175c7a255ad53204f4607893ab145b016269aa0a5226ea79c40bef61791e1e",
+    "/Users/jess/git/video-utils/.local/sprint1/review_ui/review/index.html": "69418ec04f7a0045257f8e821fe0f450a310e143285e69d18c52ffb2485b2c5a",
+    "/Users/jess/git/video-utils/.local/sprint1/review_ui/review/style.css": "ab28a0125f8d2a944eff72bb990bed76b04ed4e0864be905ade06c152ba02fce",
+    "/Users/jess/git/video-utils/.local/sprint1/audit/tests/test_sprint1_audit.py": "6879e9db44871d57fe0f6caeee4c96fa003a148ae055adfce6041a8c3fff652f"
+  },
+  "stdout": "",
+  "stderr": "test_changed_manifest_and_candidates_refuse_without_rewrite (test_sprint1_audit.AnnotationRefusalAudit.test_changed_manifest_and_candidates_refuse_without_rewrite) ... ok\ntest_cli_metadata_is_bounded_before_session_loading (test_sprint1_audit.AnnotationRefusalAudit.test_cli_metadata_is_bounded_before_session_loading) ... ok\ntest_cli_unknown_source_clock_cannot_author_annotations (test_sprint1_audit.AnnotationRefusalAudit.test_cli_unknown_source_clock_cannot_author_annotations) ... ok\ntest_detector_cannot_acquire_operator_certainty_or_musical_verdict (test_sprint1_audit.AnnotationRefusalAudit.test_detector_cannot_acquire_operator_certainty_or_musical_verdict) ... ok\ntest_fifo_read_is_bounded_and_refused (test_sprint1_audit.AnnotationRefusalAudit.test_fifo_read_is_bounded_and_refused) ... ok\ntest_invalid_first_write_does_not_create_store (test_sprint1_audit.AnnotationRefusalAudit.test_invalid_first_write_does_not_create_store) ... ok\ntest_refusal_matrix_preserves_populated_store (test_sprint1_audit.AnnotationRefusalAudit.test_refusal_matrix_preserves_populated_store) ... ok\ntest_replay_after_later_mutation_is_inert_and_conflicts_refuse (test_sprint1_audit.AnnotationRefusalAudit.test_replay_after_later_mutation_is_inert_and_conflicts_refuse) ... ok\ntest_source_clock_literal_claim_and_v1_bytes_preserved (test_sprint1_audit.AnnotationRefusalAudit.test_source_clock_literal_claim_and_v1_bytes_preserved) ... ok\ntest_claim_labels_remain_four_distinct_evidence_bases (test_sprint1_audit.PracticeSourceClockAudit.test_claim_labels_remain_four_distinct_evidence_bases) ... ok\ntest_point_display_dwell_does_not_invent_extent_or_late_endpoint (test_sprint1_audit.PracticeSourceClockAudit.test_point_display_dwell_does_not_invent_extent_or_late_endpoint) ... ok\ntest_role_switch_rechecks_loop_and_unknown_duration_abstains (test_sprint1_audit.PracticeSourceClockAudit.test_role_switch_rechecks_loop_and_unknown_duration_abstains) ... ok\ntest_source_seek_uses_audio_origin_and_never_autoplays (test_sprint1_audit.PracticeSourceClockAudit.test_source_seek_uses_audio_origin_and_never_autoplays) ... ok\ntest_unreachable_audio_loop_is_refused_without_rewriting_span (test_sprint1_audit.PracticeSourceClockAudit.test_unreachable_audio_loop_is_refused_without_rewriting_span) ... ok\n\n----------------------------------------------------------------------\nRan 14 tests in 4.484s\n\nOK\n",
+  "annotation_verdict": "PASS bounded pre-session metadata, explicit sourceclock, authorship, replay/conflict and refusal preserves store",
+  "ui_verdict": "PASS unreachable loop/refuse, role-switch/unknown-duration, audiooriginseek, pointdisplay-only and four labels; separate provided browser receipts inspected"
+}

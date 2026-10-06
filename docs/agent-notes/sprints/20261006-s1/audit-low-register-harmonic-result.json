@@ -1,0 +1,321 @@
+{
+  "status": "PASS",
+  "auditor_sha256": "6735de01652d316e7a3cfd09aecd25087a8e706b43a93909cbd878a4388f346a",
+  "results_sha256": "56a8440a1d812fbab25f36d8a6c88a905365828402ac07b1c43101d126fa1e33",
+  "files_checked": 25,
+  "all_checked_inputs_unchanged": true,
+  "joint_fit_cases": [
+    "lr01",
+    "lr03",
+    "lr07",
+    "lr09"
+  ],
+  "fundamental_channel_event_rows_recomputed": 24,
+  "amplitudes": [
+    {
+      "alias": "lr01",
+      "arm": "bypass",
+      "channel": 0,
+      "frequency_hz": 32.0,
+      "source_amplitude": 0.12000000000253747,
+      "output_amplitude": 0.12000000000253747,
+      "eligible": true,
+      "status": "measured"
+    },
+    {
+      "alias": "lr01",
+      "arm": "bypass",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.1200000000023066,
+      "output_amplitude": 0.1200000000023066,
+      "eligible": true,
+      "status": "measured"
+    },
+    {
+      "alias": "lr01",
+      "arm": "captured_nr8",
+      "channel": 0,
+      "frequency_hz": 32.0,
+      "source_amplitude": 0.12000000000253747,
+      "output_amplitude": 0.11999999606849328,
+      "eligible": true,
+      "status": "measured"
+    },
+    {
+      "alias": "lr01",
+      "arm": "captured_nr8",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.1200000000023066,
+      "output_amplitude": 0.11999999635722211,
+      "eligible": true,
+      "status": "measured"
+    },
+    {
+      "alias": "lr01",
+      "arm": "captured_nr10",
+      "channel": 0,
+      "frequency_hz": 32.0,
+      "source_amplitude": 0.12000000000253747,
+      "output_amplitude": 0.11999999606890462,
+      "eligible": true,
+      "status": "measured"
+    },
+    {
+      "alias": "lr01",
+      "arm": "captured_nr10",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.1200000000023066,
+      "output_amplitude": 0.11999999639753207,
+      "eligible": true,
+      "status": "measured"
+    },
+    {
+      "alias": "lr01",
+      "arm": "protected_mask",
+      "channel": 0,
+      "frequency_hz": 32.0,
+      "source_amplitude": 0.12000000000253747,
+      "output_amplitude": 0.12000000000253747,
+      "eligible": true,
+      "status": "measured"
+    },
+    {
+      "alias": "lr01",
+      "arm": "protected_mask",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.1200000000023066,
+      "output_amplitude": 0.1200000000023066,
+      "eligible": true,
+      "status": "measured"
+    },
+    {
+      "alias": "lr03",
+      "arm": "bypass",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.12000000001560353,
+      "output_amplitude": 0.12000000001560353,
+      "eligible": false,
+      "status": "measured"
+    },
+    {
+      "alias": "lr03",
+      "arm": "bypass",
+      "channel": 1,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.12000000001560353,
+      "output_amplitude": 0.12000000001560353,
+      "eligible": false,
+      "status": "measured"
+    },
+    {
+      "alias": "lr03",
+      "arm": "captured_nr8",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.12000000001560353,
+      "output_amplitude": 0.12590960701873768,
+      "eligible": false,
+      "status": "measured"
+    },
+    {
+      "alias": "lr03",
+      "arm": "captured_nr8",
+      "channel": 1,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.12000000001560353,
+      "output_amplitude": 0.12012156201043303,
+      "eligible": false,
+      "status": "measured"
+    },
+    {
+      "alias": "lr03",
+      "arm": "captured_nr10",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.12000000001560353,
+      "output_amplitude": 0.12614188872236978,
+      "eligible": false,
+      "status": "measured"
+    },
+    {
+      "alias": "lr03",
+      "arm": "captured_nr10",
+      "channel": 1,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.12000000001560353,
+      "output_amplitude": 0.12013255781334539,
+      "eligible": false,
+      "status": "measured"
+    },
+    {
+      "alias": "lr03",
+      "arm": "protected_mask",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.12000000001560353,
+      "output_amplitude": 0.11999999996614552,
+      "eligible": false,
+      "status": "measured"
+    },
+    {
+      "alias": "lr03",
+      "arm": "protected_mask",
+      "channel": 1,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.12000000001560353,
+      "output_amplitude": 0.1199999999238025,
+      "eligible": false,
+      "status": "measured"
+    },
+    {
+      "alias": "lr07",
+      "arm": "bypass",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 8.971192700956301e-12,
+      "output_amplitude": 8.971192700956301e-12,
+      "eligible": false,
+      "status": "source_harmonic_below_fit_threshold"
+    },
+    {
+      "alias": "lr07",
+      "arm": "captured_nr8",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 8.971192700956301e-12,
+      "output_amplitude": 0.006014183771778173,
+      "eligible": false,
+      "status": "source_harmonic_below_fit_threshold"
+    },
+    {
+      "alias": "lr07",
+      "arm": "captured_nr10",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 8.971192700956301e-12,
+      "output_amplitude": 0.006325766364906807,
+      "eligible": false,
+      "status": "source_harmonic_below_fit_threshold"
+    },
+    {
+      "alias": "lr07",
+      "arm": "protected_mask",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 8.971192700956301e-12,
+      "output_amplitude": 2.8218938960277265e-07,
+      "eligible": false,
+      "status": "source_harmonic_below_fit_threshold"
+    },
+    {
+      "alias": "lr09",
+      "arm": "bypass",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.12000000000510995,
+      "output_amplitude": 0.12000000000510995,
+      "eligible": false,
+      "status": "measured"
+    },
+    {
+      "alias": "lr09",
+      "arm": "captured_nr8",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.12000000000510995,
+      "output_amplitude": 0.11938089890504225,
+      "eligible": false,
+      "status": "measured"
+    },
+    {
+      "alias": "lr09",
+      "arm": "captured_nr10",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.12000000000510995,
+      "output_amplitude": 0.11938358338931686,
+      "eligible": false,
+      "status": "measured"
+    },
+    {
+      "alias": "lr09",
+      "arm": "protected_mask",
+      "channel": 0,
+      "frequency_hz": 32.70319566257483,
+      "source_amplitude": 0.12000000000510995,
+      "output_amplitude": 0.11999999227753844,
+      "eligible": false,
+      "status": "measured"
+    }
+  ],
+  "exclusions": [
+    {
+      "alias": "lr03",
+      "arm": "bypass",
+      "reason": "collision_not_identifiable"
+    },
+    {
+      "alias": "lr03",
+      "arm": "captured_nr8",
+      "reason": "collision_not_identifiable"
+    },
+    {
+      "alias": "lr03",
+      "arm": "captured_nr10",
+      "reason": "collision_not_identifiable"
+    },
+    {
+      "alias": "lr03",
+      "arm": "protected_mask",
+      "reason": "collision_not_identifiable"
+    },
+    {
+      "alias": "lr07",
+      "arm": "bypass",
+      "reason": "missing_f0_or_no_guitar"
+    },
+    {
+      "alias": "lr07",
+      "arm": "captured_nr8",
+      "reason": "missing_f0_or_no_guitar"
+    },
+    {
+      "alias": "lr07",
+      "arm": "captured_nr10",
+      "reason": "missing_f0_or_no_guitar"
+    },
+    {
+      "alias": "lr07",
+      "arm": "protected_mask",
+      "reason": "missing_f0_or_no_guitar"
+    },
+    {
+      "alias": "lr09",
+      "arm": "bypass",
+      "reason": "collision_not_identifiable"
+    },
+    {
+      "alias": "lr09",
+      "arm": "captured_nr8",
+      "reason": "collision_not_identifiable"
+    },
+    {
+      "alias": "lr09",
+      "arm": "captured_nr10",
+      "reason": "collision_not_identifiable"
+    },
+    {
+      "alias": "lr09",
+      "arm": "protected_mask",
+      "reason": "collision_not_identifiable"
+    }
+  ],
+  "actual_recording_read": false,
+  "denoising_or_inference_run": false,
+  "scope": "Generated conditional/counterfactual fit arithmetic; no real fundamental or stem recovery."
+}

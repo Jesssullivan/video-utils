@@ -1,0 +1,59 @@
+{
+  "status": "PASS",
+  "input_results_sha256": "56a8440a1d812fbab25f36d8a6c88a905365828402ac07b1c43101d126fa1e33",
+  "sealed_mixtures_sha256": "f8b87e5ff4534da80cffe5c353c9e4f7d7be506ff2ce4230ffa50a659d45a5f7",
+  "auditor_sha256": "ba7befd2a56e73565d08362bb8c6ce81c0bfb0ece289a0ac4d56dde8de0db660",
+  "source_files_checked": 348,
+  "all_checked_inputs_unchanged": true,
+  "rows_recomputed": 36,
+  "summary": {
+    "bypass": {
+      "rows": 9,
+      "clipped_sample_values": 0,
+      "sample_value_denominator": 4389600,
+      "fundamental_eligible_channel_event_denominator": 9,
+      "palm_event_denominator": 6,
+      "legato_event_denominator": 1,
+      "broadband_noise_case_denominator": 7,
+      "collision_case_count": 2
+    },
+    "captured_nr8": {
+      "rows": 9,
+      "clipped_sample_values": 0,
+      "sample_value_denominator": 4389600,
+      "fundamental_eligible_channel_event_denominator": 9,
+      "palm_event_denominator": 6,
+      "legato_event_denominator": 1,
+      "broadband_noise_case_denominator": 7,
+      "collision_case_count": 2
+    },
+    "captured_nr10": {
+      "rows": 9,
+      "clipped_sample_values": 0,
+      "sample_value_denominator": 4389600,
+      "fundamental_eligible_channel_event_denominator": 9,
+      "palm_event_denominator": 6,
+      "legato_event_denominator": 1,
+      "broadband_noise_case_denominator": 7,
+      "collision_case_count": 2
+    },
+    "protected_mask": {
+      "rows": 9,
+      "clipped_sample_values": 0,
+      "sample_value_denominator": 4389600,
+      "fundamental_eligible_channel_event_denominator": 9,
+      "palm_event_denominator": 6,
+      "legato_event_denominator": 1,
+      "broadband_noise_case_denominator": 7,
+      "collision_case_count": 2
+    }
+  },
+  "actual_audio_read": false,
+  "inference_run": false,
+  "scope": "Sealed generated array arithmetic; harmonic fit amplitudes and listening are not qualified by this receipt.",
+  "limitations": [
+    "Afftdn noise controls are not mixture residual stems.",
+    "Near/exact collisions remain nonidentifiable.",
+    "Missing-F0 low-band ratios against tiny leakage are descriptive, never recovered fundamental."
+  ]
+}

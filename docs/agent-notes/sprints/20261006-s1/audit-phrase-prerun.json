@@ -1,0 +1,9 @@
+{
+  "worker_sha256": "38b736543a83d5c706a8803014f4e308685eee2c84275e9e6768c431b6b8d0e3",
+  "plan_sha256": "dd4c43532f47273948e23a3a35e93e61fa8a576ec0f32662036b39fe6b432a6c",
+  "fifo_refusal": "PASS within2second bound; own child exited and reaped",
+  "protocol_verdict": "PASS source-only proposal, baseline+2 arms, global seal-before-truth, declared negative/full-pair/typed-endpoint denominators",
+  "numeric_run_performed": false,
+  "actual_media_touched": false,
+  "readiness": "root may release bounded experimental capacity slot"
+}

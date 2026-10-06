@@ -1,0 +1,15 @@
+{
+  "observed_at": "2026-10-06T06:10:59.424657+00:00",
+  "tests": 5,
+  "returncode": 0,
+  "exact_sources_unchanged": true,
+  "source_sha256": {
+    "/Users/jess/git/video-utils/.local/sprint1/corpus/scripts/corpus_split_s1.py": "308300de48b0395ecf8e572a54f07abd36d2f8b6764106efc63b222c1ed60a0d",
+    "/Users/jess/git/video-utils/.local/sprint1/corpus/tests/test_corpus_split_s1.py": "f0b023e82f05cf3ebdc21f7ac511a7f3a0875a50187fcb50333a672bec506664",
+    "/Users/jess/git/video-utils/.local/sprint1/annotations/scripts/annotation_v2.py": "237d6b53ac1a73f0e981d1bcaa3fa73e3b5f9ab417bc7bf051575b3d6cf0cab6",
+    "/Users/jess/git/video-utils/.local/sprint1/audit/tests/test_sprint1_audit.py": "b0bcc8d110d9562d397b923d5ff3e783534d662164009aa6221c5bf8b5683558"
+  },
+  "stdout": "",
+  "stderr": "test_group_keys_are_order_and_partition_independent (test_sprint1_audit.CorpusLeakageAudit.test_group_keys_are_order_and_partition_independent) ... ok\ntest_source_alias_artifact_and_transitive_augmentation_leaks_refuse (test_sprint1_audit.CorpusLeakageAudit.test_source_alias_artifact_and_transitive_augmentation_leaks_refuse) ... ok\ntest_unknown_coverage_stays_zero_negative_denominator (test_sprint1_audit.CorpusLeakageAudit.test_unknown_coverage_stays_zero_negative_denominator) ... ok\ntest_v2_assertion_semantics_survive_without_promotion (test_sprint1_audit.CorpusLeakageAudit.test_v2_assertion_semantics_survive_without_promotion) ... ok\ntest_v2_stale_candidate_receipt_refuses (test_sprint1_audit.CorpusLeakageAudit.test_v2_stale_candidate_receipt_refuses) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.030s\n\nOK\n",
+  "claim": "PASS generated leakage/sourceclock/V2candidate-staleness/unknown-denominator fixtures only; declared lineage is not authenticated and no audio read"
+}
