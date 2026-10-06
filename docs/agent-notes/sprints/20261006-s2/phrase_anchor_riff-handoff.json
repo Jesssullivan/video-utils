@@ -1,0 +1,298 @@
+{
+  "lane": "phrase_anchor_riff",
+  "branch": "sprint/20261006-s2/phrase_anchor_riff",
+  "head": "0e924640f9a6c0cb410d9650fb374d715f7661e0",
+  "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint2/phrase_anchor_riff",
+  "files": [
+    {
+      "path": "docs/agent-notes/peers/xoruby/V2-holdout-bank-receipt.json",
+      "sha256": "6639a389429d444d968391946cdf595ecd4466103b6aa77172d08e415d6f828c",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/phrase_anchor_riff-dev-calibration.json",
+      "sha256": "10d9bd69df2a965f788b3c3d31fac449f748589e53b01a980e0dac899084e33e",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/phrase_anchor_riff-evaluation.json",
+      "sha256": "d2aefa32efe4cb58c21941e66a14b6d481a68ab247cf01d204b25e1927ffd5ff",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/phrase_anchor_riff-heldout-score.json",
+      "sha256": "71759466b5c1910f983e40eb6d21826801f46e3b1e7417a64bee70c3fa7ce61b",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/phrase_anchor_riff-phase4-repair.md",
+      "sha256": "407cf046037c7e34d94b2e1fed8f1f3485257af0013061272a29bdc985ec4143",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/phrase_anchor_riff-preregistration.json",
+      "sha256": "5922debe780dccd6aae2c6ea48d9cd93917e172cd3406e79a2ecfb8332fc2680",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/phrase_anchor_riff-real-take-spans.json",
+      "sha256": "5b13963e1e67373b2c58dd39282df7f455e042aa48ad7379933d08c00e2e8ac3",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/phrase_anchor_riff-release.json",
+      "sha256": "5ceeaaf80f1b2d673e8a77ea2e247d7ff51ba0ee8c7fad28543ee92f07c8177b",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/phrase_anchor_riff-results.md",
+      "sha256": "0127b19065fa9fe42a682c8567148a519238245a78bd3e8c4b1b57f2558c8584",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/sprints/PHRASES_S2.md",
+      "sha256": "d06a2202f9093b5997ce27beafae2d40641e9fab4be9f37085941defdcee93c4",
+      "kind": "spec"
+    },
+    {
+      "path": "scripts/phrase_anchor.py",
+      "sha256": "483cc3d946f242ddcc5c906a327d33f7a26c5680c68a6dac469d0a5a80699e03",
+      "kind": "source"
+    },
+    {
+      "path": "scripts/phrase_riff_s2.py",
+      "sha256": "6e2628a6c7888c50fbf095a52c2eb37869afe43f880c42932514d454406cbb20",
+      "kind": "source"
+    },
+    {
+      "path": "tests/test_phrase_anchor.py",
+      "sha256": "a9d54c0c080679ba22025539e7b62a788e03406c8e0d8367387e9c456266cc7b",
+      "kind": "test"
+    },
+    {
+      "path": "tests/test_phrase_riff_s2.py",
+      "sha256": "83db1f15c71d9636ce26c6a879793806955e964aea5f6dbd195f7b1679e6129a",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_phrase_anchor test_phrase_riff_s2 -v",
+    "discovered": 24,
+    "passed": 22,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 2,
+    "seconds": 2.52
+  },
+  "metrics": [
+    {
+      "name": "arrangement_units",
+      "numerator": 27,
+      "denominator": 1,
+      "unit": "units",
+      "claim_class": "measured"
+    },
+    {
+      "name": "boundary_count",
+      "numerator": 28,
+      "denominator": 1,
+      "unit": "boundaries",
+      "claim_class": "measured"
+    },
+    {
+      "name": "total_clicks",
+      "numerator": 404,
+      "denominator": 1,
+      "unit": "clicks",
+      "claim_class": "measured"
+    },
+    {
+      "name": "period_seconds",
+      "numerator": 0.675662,
+      "denominator": 1,
+      "unit": "s",
+      "claim_class": "measured",
+      "note": "Real-take grid P"
+    },
+    {
+      "name": "phase_offset_seconds",
+      "numerator": 0.510680,
+      "denominator": 1,
+      "unit": "s",
+      "claim_class": "measured",
+      "note": "Real-take grid phi"
+    },
+    {
+      "name": "anchor_candidates",
+      "numerator": 3,
+      "denominator": 1,
+      "unit": "candidates",
+      "claim_class": "measured"
+    },
+    {
+      "name": "grid_supported_joins",
+      "numerator": 26,
+      "denominator": 28,
+      "unit": "joins",
+      "claim_class": "measured",
+      "note": "Minimum across three candidates"
+    },
+    {
+      "name": "uncertain_joins",
+      "numerator": 22,
+      "denominator": 28,
+      "unit": "joins",
+      "claim_class": "inferred",
+      "note": "Breakdown-derived flags"
+    },
+    {
+      "name": "heldout_clips",
+      "numerator": 16,
+      "denominator": 1,
+      "unit": "clips",
+      "claim_class": "measured"
+    },
+    {
+      "name": "heldout_reference_pairs",
+      "numerator": 12,
+      "denominator": 1,
+      "unit": "pairs",
+      "claim_class": "measured"
+    },
+    {
+      "name": "heldout_endpoints",
+      "numerator": 48,
+      "denominator": 1,
+      "unit": "endpoints",
+      "claim_class": "measured"
+    },
+    {
+      "name": "heldout_negative_cases",
+      "numerator": 4,
+      "denominator": 1,
+      "unit": "cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "araw_tp_iou_0_5",
+      "numerator": 3,
+      "denominator": 12,
+      "unit": "pairs",
+      "claim_class": "measured",
+      "note": "Frozen S1 baseline, held-out"
+    },
+    {
+      "name": "araw_tp_iou_0_75",
+      "numerator": 0,
+      "denominator": 12,
+      "unit": "pairs",
+      "claim_class": "measured",
+      "note": "Frozen S1 baseline, held-out"
+    },
+    {
+      "name": "r1_lag_tp_iou_0_5",
+      "numerator": 12,
+      "denominator": 12,
+      "unit": "pairs",
+      "claim_class": "measured",
+      "note": "theta=0.75, held-out"
+    },
+    {
+      "name": "r1_lag_tp_iou_0_75",
+      "numerator": 12,
+      "denominator": 12,
+      "unit": "pairs",
+      "claim_class": "measured",
+      "note": "theta=0.75, held-out"
+    },
+    {
+      "name": "r1_lag_fp",
+      "numerator": 79,
+      "denominator": 1,
+      "unit": "false_positives",
+      "claim_class": "measured",
+      "note": "theta=0.75, held-out"
+    },
+    {
+      "name": "r1_lag_endpoint_hits_20ms",
+      "numerator": 13,
+      "denominator": 48,
+      "unit": "endpoints",
+      "claim_class": "measured",
+      "note": "theta=0.75, held-out"
+    },
+    {
+      "name": "r1_lag_endpoint_hits_50ms",
+      "numerator": 29,
+      "denominator": 48,
+      "unit": "endpoints",
+      "claim_class": "measured",
+      "note": "theta=0.75, held-out"
+    },
+    {
+      "name": "r1_lag_endpoint_hits_100ms",
+      "numerator": 43,
+      "denominator": 48,
+      "unit": "endpoints",
+      "claim_class": "measured",
+      "note": "theta=0.75, held-out"
+    },
+    {
+      "name": "r1_lag_mae_seconds",
+      "numerator": 0.0767,
+      "denominator": 48,
+      "unit": "s",
+      "claim_class": "measured",
+      "note": "Matched endpoints, theta=0.75"
+    },
+    {
+      "name": "generation_duration",
+      "numerator": 115,
+      "denominator": 900,
+      "unit": "s",
+      "claim_class": "measured",
+      "note": "Held-out run time / budget"
+    }
+  ],
+  "unknowns": [
+    "real_take_phrase_correctness (unknown_until_operator_marks_boundaries)",
+    "observed_click_count (null, not measured separately)",
+    "meter (unknown, not specified)",
+    "downbeat_confirmed (false)",
+    "missed_or_extra_notes (not_assessed_no_approved_reference)",
+    "anchor_identity (unknown, not externally verified)",
+    "breakdown_execution (uncertain)"
+  ],
+  "root_owned_changes_requested": [],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261006-s2/phrase_anchor_riff-handoff.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "state": "implemented_tested_audited",
+  "audit": {
+    "model": "opus",
+    "refuted": true,
+    "findings": [
+      "(1) Scope OK. `git diff --name-only 4b87484...HEAD` lists 13 files, and every one is an owned path: scripts/phrase_anchor.py, scripts/phrase_riff_s2.py, tests/test_phrase_anchor.py, tests/test_phrase_riff_s2.py, docs/spec/sprints/PHRASES_S2.md, docs/agent-notes/peers/xoruby/V2-holdout-bank-receipt.json and seven phrase_anchor_riff-*.json/.md receipts. No root-owned or foreign file was edited. The worktree is clean and nothing under artifacts/ is tracked (the /artifacts/ rule is at .gitignore:3).",
+      "(2) Write confinement OK. phrase_anchor.output_path (scripts/phrase_anchor.py:162-171) and phrase_riff_s2.artifact_path (scripts/phrase_riff_s2.py:109-124) restrict writes to artifacts/s2/phrase_anchor_riff with O_EXCL and refuse symlinks. The real-take clicks.json under artifacts/runs/20261006T034521Z-a0def0c43eac is only read; its mtime is 00:09, before the lane started. No writes to tools.json, tool_api.py or workflow.just, no downloads, no daemons. Subprocesses are bounded: git 20 s, per-source child min(120 s, remaining of 900 s), V2 child 660 s external with the generator's own 600 s internal deadline.",
+      "(4) Branch-base test counts reproduce. With stdlib python3 the two modules ran 24 tests in 2.29 s: OK, 2 skipped. With VIDEO_UTILS_ANALYSIS_PYTHON=.venv/bin/python all 24 pass with no skips. The tests do exercise the claimed behaviour: 27/28/404 expansion (test_01), half-period parity (test_04), uncertain joins kept rather than forced (test_05), null below 10 marks with detector-authored and dismissed marks excluded (test_09), refusal when unreleased, uncommitted or mismatched against a real temp git repo (test_14/14b), the scorer refusing without a global seal and opening truth only after all predictions (test_15 checks file-open ordering), and V2 literals plus generator/plan hash refusals (test_18).",
+      "(6) Real-take numbers reproduced independently. Running phrase_anchor.project() in memory on clicks.json cee9a506… and arrangement 170a33eb… gave: k0=29/30/31 for anchors 10.2775/10.6275/10.9775 s; boundary 0 to 27 at 10.308→146.791, 10.646→147.129 and 10.983→147.467 s; join_confidence {5 supported, 1 weak, 22 uncertain} and {6 supported, 22 uncertain} twice; grid_supported 26/27/27 of 28; interpolated half-periods 28/0/28; 0 outside the source. Hand arithmetic (phi + k·P/2, s0=0) agrees to 1e-4 s.",
+      "(6) Held-out numbers reproduced. Recomputing from the per-case rows of phrase_anchor_riff-heldout-score.json (sha256 prefix 71759466): Araw TP 3/0 of 12, FP 2/5, endpoint hits 1/2/3 of 48, MAE 0.3016 s with denominator 12; S1_support 0 everywhere; R1_lag TP 12/12, FP 79/79, endpoint hits 13/29/43 of 48, MAE 0.07668 s with denominator 48, 1 sustain32 negative false candidate. Common-set MAE is null with denominator 0. The seal is 846c268c, truth_read_after_global_seal is true, and there are 16 cases over seeds 1511/1613.",
+      "Preregistration ordering verified. The committed blob of the preregistration at 9c4ef5f hashes to 5922debe…, which equals the release plan_sha256 and the hash of metadata() at HEAD. Commit times: dev receipt fde3da6 at 14:18:49Z, preregistration 9c4ef5f at 14:18:56Z, release 8df5f7c at 14:19:05Z, generation start 14:19:21Z. The worker sha 67cedeca… equals the release worker_sha256. One weakness: the gap between the preregistration commit and the claimed generation start is only 25 s, and the generation start time is the lane's own claim, not separately evidenced.",
+      "Wording error in the lane summary (claim class: measured). It says 'all ±4-click windows contain 4/4 fitted beats', and phrase_anchor_riff-results.md:33-34 says the same. That holds only for k0=29 and k0=31. For k0=30 every one of the 28 windows has expected=5 and observed=5, which I reproduced. Support fraction is 1.0 in all cases, so no conclusion changes, but the text is wrong.",
+      "Self-release. The release for held-out execution is written by the lane itself (actor root_workflow, quoting the workflow task text). This was made legal by the lane's own additive spec amendment, PHRASES_S2.md §12 'Release actor', committed in 81544d6 before generation. Frozen §5.4 says only 'root/workflow-authorized'. This is acceptable only if root accepts lane-authored root_workflow releases; root should acknowledge it at merge.",
+      "Doctrine OK. No high-pass or notch anywhere. Synthesis keeps the C1 (~32.7 Hz) sustain, asserted with an amplitude above 0.05 in the numpy test, and the R1 1800 Hz band cap is analysis-only. UNKNOWNS include real_take_phrase_correctness='unknown_until_operator_marks_boundaries', observed_click_count=null, meter unknown, downbeat_confirmed false, and missed_or_extra_notes='not_assessed_no_approved_reference'. Every artifact has default_adoption false and continuous_riff_accuracy_scope 'generated_only'. No profile, detector or default is adopted. join_confidence is labelled heuristic_not_probability.",
+      "Claim classes OK. The receipts separate measured (generated-only), inferred (projections, r=2 mapping) and unknown (real-take accuracy, anchor identity, breakdown execution). No synthetic result is presented as real-take accuracy and there is no note-correctness verdict. Denominators are present: 12 pairs, 48 endpoints, 4 negatives, MAE as 4 × matched pairs. Unmatched scorer boundaries are 'not_reviewed', not false positives.",
+      "Portability (minor). scripts/phrase_riff_s2.py:59 hardcodes ANALYSIS_PYTHON_DEFAULT='/Users/jess/git/video-utils/.venv/bin/python', though it is used only as a recorded metadata string; the runtime uses VIDEO_UTILS_ANALYSIS_PYTHON or sys.executable. tests/test_phrase_anchor.py:28 hardcodes a real-grid path under artifacts/runs, and that test skips when the file is absent.",
+      "V2 receipt contents verified: plan 495ad2f3…, generator 051d8689… at commit f180572b… (observed by git log), 12 cases and 48 components, reproduction 48/48 components and 12/12 truths against heldout-211-307-20261006T0020, licence line and training statement verbatim, reserved seeds 2101–2199, generator time 161.5 s. Seeds 211/307 are disclosed as already used once.",
+      "Context for root. On current main, test_phrase_proposal_s1 already errors (16 tests: errors=1, skipped=7) because the rhythm_clicks merge changed scripts/rhythm.py without applying the vendored-copy patch in rhythm_clicks-pin-resolution.json. The S1 pin break predates this lane."
+    ],
+    "must_fix": []
+  },
+  "dropped_scope": []
+}
