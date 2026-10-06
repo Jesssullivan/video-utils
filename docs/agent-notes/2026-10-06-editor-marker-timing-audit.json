@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "actor": "media_latency",
+  "authority": "R-HOOK-CONVERGENCE-20261004; root independent timing-audit assignment; R-N13",
+  "status": "passed_source_fixture_audit_native_unverified",
+  "worker_sha256": "738e6cd3ee84b0c41ec93bb19987c1b2b7f5ab59e06eea4fedadda5bac4b8e3d",
+  "owner_tests_sha256": "87fed25463a7d8261de3fe415319e5dd3b908ce5f6aa76a3bce131f675dfe825",
+  "independent_tests_sha256": "e6f0afd97a9e31e7be5c3e292bde82eb02ae10fc2b503bf1a605ff3290e3544f",
+  "validation": {
+    "command": "python3 -m unittest discover -s tests -p 'test_editor_marker*.py' -v",
+    "passed": 21,
+    "seconds": 0.061
+  },
+  "actual_metadata": {
+    "run_dir": "artifacts/runs/20261005T232741Z-2b5dc43fd009",
+    "markers_sha256": "b2d2cf4aa6ed18b489815c7f9a6ccc75e5ecd82b372a561bf3627fa7b3b13a84",
+    "selection_sha256": "915990d487466e9f9adcd571ad960df94ba94af0e07c6c5b4b99fd3b1eaef462",
+    "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+    "profile": {
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "target": "davinci_resolve",
+      "source_origin": 0,
+      "asset_origin": 0,
+      "clip_in": 0,
+      "clip_out": "150.885",
+      "parent_offset": 0
+    },
+    "marker_count": 180,
+    "selected_count": 24,
+    "excluded_count": 156,
+    "fully_suppressed_selected_ids": [
+      "marker-0002-7b2b29456c75",
+      "marker-0011-3896be0621c6",
+      "marker-0014-f4c819aef1a2",
+      "marker-0018-fdb2bfbf6b29",
+      "marker-0019-8d2468650d7c",
+      "marker-0022-35a887d3b5e1"
+    ],
+    "plan_status": "calibration_required",
+    "action_count": 0,
+    "dispositions": {
+      "video_coverage_unverified": 23,
+      "outside_clip": 1
+    },
+    "ending_source_end": "1207689/8000",
+    "ending_disposition": "outside_clip",
+    "preview_frame_ids_all_null": true,
+    "host_frame_ids_all_null": true
+  },
+  "claim_boundaries": {
+    "media_decoded": false,
+    "media_probed": false,
+    "actual_run_mutated": false,
+    "editor_invoked": false,
+    "native_import_verified": false,
+    "executable": false,
+    "source_graph_reverified_in_this_metadata_check": false
+  },
+  "corrected_defect": "quantized source coverage checked after inverse source/asset mapping; one-frame endpoints and complete spans abstain when not covered"
+}

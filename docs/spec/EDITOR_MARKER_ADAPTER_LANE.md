@@ -231,4 +231,9 @@ array is unavailable. The ending recurrence keeps original source interval
 `150.885`-second clip bound. The independently audited frame-clock digest cannot
 reconstruct full PTS membership. See the
 [implementation receipt](../agent-notes/2026-10-06-editor-marker-plan-implementation.md)
-for hashes, test command and outstanding reviewer/app acceptance.
+for hashes, test command and separate application acceptance. The
+[independent timing audit](../agent-notes/2026-10-06-editor-marker-timing-audit.md)
+accepted the final freeze: **21 combined tests pass**, including five independent
+regressions for quantized tails, VFR gaps, inverse origins and atomic FCP pairs.
+It independently reproduced the actual metadata-plan counts and retained all six
+preview-hidden observations. App import/calibration remains pending.
