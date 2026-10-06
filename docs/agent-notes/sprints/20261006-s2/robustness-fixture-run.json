@@ -1,0 +1,1013 @@
+{
+  "schema_version": 1,
+  "lane": "robustness",
+  "sprint": "20261006-s2",
+  "linear": "TIN-5609",
+  "phase": "3_fixture_run",
+  "created_at": "2026-10-06",
+  "authority": "R-HOOK-CONVERGENCE-20261004; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43 (R-N11/R-N12/R-N13)",
+  "contract_sha256": "7e2fa6791469cb83e9813d61781f29b19410c4b86a44b3c33375067d6cbe0b91",
+  "command": "FFMPEG=<qualified> FFPROBE=<qualified> PYTHONPATH=tests python3 -m unittest test_demo test_phone_fixtures -v (test_phone_fixtures run once: 11 tests, 1327.2 s, OK; test_demo: 29 tests, OK)",
+  "claim_classes": {
+    "M": "measurement on synthetic fixtures",
+    "P": "process-level test assertion",
+    "I": "inference",
+    "U": "unknown / not measured"
+  },
+  "metrics": {
+    "resume_scenarios_P": "9/9 (tests 1-3, 5-8, 11-12)",
+    "typed_refusal_coverage_P": "14/14 codes asserted to exit 1 with byte-identical receipt and identical file tree (tests 4-7)",
+    "run_directory_invariant_P": "all resume-scenario invocations ended with exactly 1 published run directory",
+    "killed_worker_recovery_P": "2/2 resumed to completed_unreviewed with identical invocation_id and run_dir (worker SIGKILL -> returncode -9; orchestrator SIGKILL by stub worker after ownership check)",
+    "fixture_properties_M": "4/4 kinds matched section 4 (HEVC run, libx265 present)",
+    "pipeline_matrix_M": "7/7 runs completed P1-P8 (6 required + 1 optional HEVC)",
+    "pipeline_per_check_M": {
+      "P1_input_immutability": "7/7",
+      "P2_native_pcm": "7/7",
+      "P3_timeline": "7/7",
+      "P4_export_packets": "7/7",
+      "P5_rhythm_rebase": "7/7",
+      "P6_editor_tail": "7/7",
+      "P7_report": "7/7",
+      "P8_unknowns_preserved": "7/7"
+    },
+    "input_immutability_M": "7/7 fixture hashes/size/mtime unchanged; real take opened 0 times",
+    "resource_limits_P_U": "10/10 timeout constants asserted (stage media/export 1200, analysis 600, optional 300, dag/markers/report 180, MAX_OUTPUT_BYTES 2 MiB, media.TIMEOUT 600, probe 60, rhythm.run 180, share_export 30-900); memory ceiling unknown (not measured, no RSS limit)",
+    "lane_new_tests_P": "23 (12 in test_demo, 11 in test_phone_fixtures); existing 17 test_demo tests still pass",
+    "expected_failures": []
+  },
+  "measurements_M": {
+    "fixtures": {
+      "phone": {
+        "measured": {
+          "video_codec": "h264",
+          "video_codec_tag": "avc1",
+          "width": 360,
+          "height": 640,
+          "video_time_base": "1/30000",
+          "avg_frame_rate": "60000/2327",
+          "rotation": 90,
+          "presented_frames": 154,
+          "frame_duration_ticks": [
+            1001,
+            2002
+          ],
+          "first_presented_frame_seconds": 0.0,
+          "presented_video_end_seconds": 6.006,
+          "coded_video_packets": 154,
+          "decode_only_packets": 0,
+          "audio_codec": "aac",
+          "sample_rate": 48000,
+          "channels": 2,
+          "audio_start_seconds": 0.228,
+          "audio_duration_seconds": 6.021333,
+          "audio_end_seconds": 6.249333,
+          "decoded_audio_samples": 289792,
+          "audio_stream_duration_ts": 289024,
+          "audio_stream_time_base": "1/48000",
+          "audio_end_minus_video_end_seconds": 0.2433329999999998,
+          "format_start_seconds": 0.0
+        },
+        "expected": {
+          "video_codec": "h264",
+          "width": 360,
+          "height": 640,
+          "rotation_requested_degrees_counter_clockwise": 90,
+          "sample_rate": 48000,
+          "channels": 2,
+          "audio_start_seconds": 0.25,
+          "nominal_frame_rate": "30000/1001",
+          "video_time_base": "1/30000",
+          "min_distinct_frame_durations": 2,
+          "audio_extends_past_video_end": true,
+          "stereo_gain": {
+            "left": 1.0,
+            "right": 0.7
+          }
+        },
+        "unknown": {
+          "real_take_equivalence": "not_established",
+          "device_capture_equivalence": "unknown",
+          "rotation_applied_to_pixels": false,
+          "real_take_audio_tail_reconciled": false,
+          "capture_interval_noise_only": "by_construction_synthetic",
+          "physical_audio_video_sync_verified": false,
+          "listening_accepted": false,
+          "hevc": "not_applicable"
+        }
+      },
+      "photo_booth": {
+        "measured": {
+          "video_codec": "h264",
+          "video_codec_tag": "avc1",
+          "width": 1280,
+          "height": 720,
+          "video_time_base": "1/600",
+          "avg_frame_rate": "86400/3599",
+          "rotation": null,
+          "presented_frames": 144,
+          "frame_duration_ticks": [
+            24,
+            25,
+            26
+          ],
+          "first_presented_frame_seconds": 0.0,
+          "presented_video_end_seconds": 5.998333333333333,
+          "coded_video_packets": 144,
+          "decode_only_packets": 0,
+          "audio_codec": "aac",
+          "sample_rate": 44100,
+          "channels": 1,
+          "audio_start_seconds": 0.0,
+          "audio_duration_seconds": 6.067007,
+          "audio_end_seconds": 6.067007,
+          "decoded_audio_samples": 268288,
+          "audio_stream_duration_ts": 267555,
+          "audio_stream_time_base": "1/44100",
+          "audio_end_minus_video_end_seconds": 0.06867366666666719,
+          "format_start_seconds": 0.0
+        },
+        "expected": {
+          "video_codec": "h264",
+          "width": 1280,
+          "height": 720,
+          "sample_rate": 44100,
+          "channels": 1,
+          "video_time_base": "1/600",
+          "frame_duration_ticks": [
+            24,
+            25,
+            26
+          ],
+          "presented_frames": 144,
+          "gop": 48,
+          "audio_end_minus_video_end_seconds": 0.069,
+          "video_presented_end_seconds_measured_before_mux": 5.998333333333333
+        },
+        "unknown": {
+          "real_take_equivalence": "not_established",
+          "device_capture_equivalence": "unknown",
+          "rotation_applied_to_pixels": false,
+          "real_take_audio_tail_reconciled": false,
+          "capture_interval_noise_only": "by_construction_synthetic",
+          "physical_audio_video_sync_verified": false,
+          "listening_accepted": false,
+          "hevc": "not_applicable"
+        }
+      },
+      "photo_booth_preroll": {
+        "measured": {
+          "video_codec": "h264",
+          "video_codec_tag": "avc1",
+          "width": 1280,
+          "height": 720,
+          "video_time_base": "1/600",
+          "avg_frame_rate": "86400/3599",
+          "rotation": null,
+          "presented_frames": 112,
+          "frame_duration_ticks": [
+            24,
+            25,
+            26
+          ],
+          "first_presented_frame_seconds": 0.0,
+          "presented_video_end_seconds": 4.666666666666667,
+          "coded_video_packets": 144,
+          "decode_only_packets": 32,
+          "audio_codec": "aac",
+          "sample_rate": 44100,
+          "channels": 1,
+          "audio_start_seconds": 0.0,
+          "audio_duration_seconds": 4.768005,
+          "audio_end_seconds": 4.768005,
+          "decoded_audio_samples": 210958,
+          "audio_stream_duration_ts": 210269,
+          "audio_stream_time_base": "1/44100",
+          "audio_end_minus_video_end_seconds": 0.10133833333333264,
+          "format_start_seconds": 0.0
+        },
+        "expected": {
+          "video_codec": "h264",
+          "width": 1280,
+          "height": 720,
+          "sample_rate": 44100,
+          "channels": 1,
+          "video_time_base": "1/600",
+          "cut_seconds": 1.3,
+          "min_decode_only_packets": 1,
+          "source_fixture_sha256": "0263d7565c62846a4ec05c891d79e870bd897ee60b6708fb47ce0921997deb99"
+        },
+        "unknown": {
+          "real_take_equivalence": "not_established",
+          "device_capture_equivalence": "unknown",
+          "rotation_applied_to_pixels": false,
+          "real_take_audio_tail_reconciled": false,
+          "capture_interval_noise_only": "by_construction_synthetic",
+          "physical_audio_video_sync_verified": false,
+          "listening_accepted": false,
+          "hevc": "not_applicable"
+        }
+      },
+      "phone_hevc": {
+        "measured": {
+          "video_codec": "hevc",
+          "video_codec_tag": "hvc1",
+          "width": 360,
+          "height": 640,
+          "video_time_base": "1/30000",
+          "avg_frame_rate": "60000/2327",
+          "rotation": 90,
+          "presented_frames": 154,
+          "frame_duration_ticks": [
+            1001,
+            2002
+          ],
+          "first_presented_frame_seconds": 0.0,
+          "presented_video_end_seconds": 6.006,
+          "coded_video_packets": 154,
+          "decode_only_packets": 0,
+          "audio_codec": "aac",
+          "sample_rate": 48000,
+          "channels": 2,
+          "audio_start_seconds": 0.228,
+          "audio_duration_seconds": 6.021333,
+          "audio_end_seconds": 6.249333,
+          "decoded_audio_samples": 289792,
+          "audio_stream_duration_ts": 289024,
+          "audio_stream_time_base": "1/48000",
+          "audio_end_minus_video_end_seconds": 0.2433329999999998,
+          "format_start_seconds": 0.0
+        },
+        "expected": {
+          "video_codec": "hevc",
+          "width": 360,
+          "height": 640,
+          "rotation_requested_degrees_counter_clockwise": 90,
+          "sample_rate": 48000,
+          "channels": 2,
+          "audio_start_seconds": 0.25,
+          "nominal_frame_rate": "30000/1001",
+          "video_time_base": "1/30000",
+          "min_distinct_frame_durations": 2,
+          "audio_extends_past_video_end": true,
+          "stereo_gain": {
+            "left": 1.0,
+            "right": 0.7
+          }
+        },
+        "unknown": {
+          "real_take_equivalence": "not_established",
+          "device_capture_equivalence": "unknown",
+          "rotation_applied_to_pixels": false,
+          "real_take_audio_tail_reconciled": false,
+          "capture_interval_noise_only": "by_construction_synthetic",
+          "physical_audio_video_sync_verified": false,
+          "listening_accepted": false,
+          "hevc": "run"
+        }
+      }
+    },
+    "fixture_build_seconds": {
+      "phone": 11.4,
+      "photo_booth": 20.2,
+      "photo_booth_preroll": 4.3,
+      "phone_hevc": 16.4
+    },
+    "pipeline_runs": [
+      {
+        "kind": "phone_hevc",
+        "profile": "conservative3",
+        "returncode": 0,
+        "analysis_status": "completed_unreviewed",
+        "wall_clock_seconds": 107.2,
+        "stage_status": {
+          "media": "completed",
+          "export": "completed",
+          "rhythm": "measured_candidates",
+          "noise": "measured_candidates",
+          "tone": "measured_candidates",
+          "notes": "measured_candidates",
+          "phrases": "measured_candidates",
+          "dag": "completed",
+          "markers": "completed",
+          "report": "completed"
+        },
+        "checks_passed": {
+          "P1_input_immutability": true,
+          "P2_native_pcm": true,
+          "P3_timeline": true,
+          "P4_export_packets": true,
+          "P5_rhythm_rebase": true,
+          "P6_editor_tail": true,
+          "P7_report": true,
+          "P8_unknowns_preserved": true
+        },
+        "noise_capture": null,
+        "P2": {
+          "manifest_pcm": {
+            "channels": 2,
+            "codec": "pcm_f32le",
+            "duration_seconds": 6.037333,
+            "sample_count": 289792,
+            "sample_rate": 48000
+          },
+          "ffprobe_decoded_audio_samples": 289792,
+          "container_audio_duration_ts": 289024,
+          "denoised_and_cleaned_extent": "ensure_pcm_matches passed"
+        },
+        "P3": {
+          "manifest_audio_start_seconds": 0.228,
+          "fixture_probed_audio_start_seconds": 0.228
+        },
+        "P4": {
+          "video_packet_timeline_preserved": true,
+          "video_packet_payload_hashes_preserved": true,
+          "video_frame_count_preserved": true,
+          "relative_audio_video_start_verified": true,
+          "relative_audio_video_start_delta_seconds": -0.02200000000000002,
+          "aac_timing_tolerance_seconds": 0.02333333333333333,
+          "source_video_packets": 154,
+          "export_video_packets": 154,
+          "source_decoded_video_frames": 154,
+          "export_decoded_video_frames": 154,
+          "physical_audio_video_sync_verified": false,
+          "exported_rotation": 90,
+          "source_rotation": 90,
+          "rotation_applied_to_pixels": false,
+          "source_decode_only_packets": 0,
+          "export_decode_only_packets": 0,
+          "export_sample_rate": 48000,
+          "export_channels": 2
+        },
+        "P5": {
+          "status": "hash_bound_run_derivative",
+          "timeline_rebased": true,
+          "original_audio_start_seconds": 0.228,
+          "filter_or_detector_delay": "uncalibrated; no physical alignment guarantee"
+        },
+        "P6": {
+          "video_end_seconds": 6.006,
+          "audio_end_seconds": 6.249333,
+          "tail_point_seconds": 6.1276665,
+          "control_point_seconds": 0.5,
+          "tail_disposition": "outside_video_coverage",
+          "control_disposition": "clip_origin_or_bounds_unverified",
+          "all_rows_needs_review": true,
+          "native_contract_status": "native_contract_unverified",
+          "run_generic_markers": 1,
+          "full_build": {
+            "status": "exercised",
+            "plan_status": "calibration_required",
+            "native_contract_status": "native_contract_unverified",
+            "dispositions": [
+              "outside_video_coverage"
+            ],
+            "all_rows_needs_review": true
+          },
+          "run_marker_dispositions": [
+            "outside_video_coverage"
+          ]
+        },
+        "P7": {
+          "report_bytes": 44397,
+          "affirmative_note_or_performance_verdicts": []
+        }
+      },
+      {
+        "kind": "phone",
+        "profile": "conservative3",
+        "returncode": 0,
+        "analysis_status": "completed_unreviewed",
+        "wall_clock_seconds": 152.2,
+        "stage_status": {
+          "media": "completed",
+          "export": "completed",
+          "rhythm": "measured_candidates",
+          "noise": "measured_candidates",
+          "tone": "measured_candidates",
+          "notes": "measured_candidates",
+          "phrases": "measured_candidates",
+          "dag": "completed",
+          "markers": "completed",
+          "report": "completed"
+        },
+        "checks_passed": {
+          "P1_input_immutability": true,
+          "P2_native_pcm": true,
+          "P3_timeline": true,
+          "P4_export_packets": true,
+          "P5_rhythm_rebase": true,
+          "P6_editor_tail": true,
+          "P7_report": true,
+          "P8_unknowns_preserved": true
+        },
+        "noise_capture": null,
+        "P2": {
+          "manifest_pcm": {
+            "channels": 2,
+            "codec": "pcm_f32le",
+            "duration_seconds": 6.037333,
+            "sample_count": 289792,
+            "sample_rate": 48000
+          },
+          "ffprobe_decoded_audio_samples": 289792,
+          "container_audio_duration_ts": 289024,
+          "denoised_and_cleaned_extent": "ensure_pcm_matches passed"
+        },
+        "P3": {
+          "manifest_audio_start_seconds": 0.228,
+          "fixture_probed_audio_start_seconds": 0.228
+        },
+        "P4": {
+          "video_packet_timeline_preserved": true,
+          "video_packet_payload_hashes_preserved": true,
+          "video_frame_count_preserved": true,
+          "relative_audio_video_start_verified": true,
+          "relative_audio_video_start_delta_seconds": -0.02200000000000002,
+          "aac_timing_tolerance_seconds": 0.02333333333333333,
+          "source_video_packets": 154,
+          "export_video_packets": 154,
+          "source_decoded_video_frames": 154,
+          "export_decoded_video_frames": 154,
+          "physical_audio_video_sync_verified": false,
+          "exported_rotation": 90,
+          "source_rotation": 90,
+          "rotation_applied_to_pixels": false,
+          "source_decode_only_packets": 0,
+          "export_decode_only_packets": 0,
+          "export_sample_rate": 48000,
+          "export_channels": 2
+        },
+        "P5": {
+          "status": "hash_bound_run_derivative",
+          "timeline_rebased": true,
+          "original_audio_start_seconds": 0.228,
+          "filter_or_detector_delay": "uncalibrated; no physical alignment guarantee"
+        },
+        "P6": {
+          "video_end_seconds": 6.006,
+          "audio_end_seconds": 6.249333,
+          "tail_point_seconds": 6.1276665,
+          "control_point_seconds": 0.5,
+          "tail_disposition": "outside_video_coverage",
+          "control_disposition": "clip_origin_or_bounds_unverified",
+          "all_rows_needs_review": true,
+          "native_contract_status": "native_contract_unverified",
+          "run_generic_markers": 1,
+          "full_build": {
+            "status": "exercised",
+            "plan_status": "calibration_required",
+            "native_contract_status": "native_contract_unverified",
+            "dispositions": [
+              "outside_video_coverage"
+            ],
+            "all_rows_needs_review": true
+          },
+          "run_marker_dispositions": [
+            "outside_video_coverage"
+          ]
+        },
+        "P7": {
+          "report_bytes": 44392,
+          "affirmative_note_or_performance_verdicts": []
+        }
+      },
+      {
+        "kind": "phone",
+        "profile": "fuller",
+        "returncode": 0,
+        "analysis_status": "completed_unreviewed",
+        "wall_clock_seconds": 197.7,
+        "stage_status": {
+          "media": "completed",
+          "export": "completed",
+          "rhythm": "measured_candidates",
+          "noise": "measured_candidates",
+          "tone": "measured_candidates",
+          "notes": "measured_candidates",
+          "phrases": "measured_candidates",
+          "dag": "completed",
+          "markers": "completed",
+          "report": "completed"
+        },
+        "checks_passed": {
+          "P1_input_immutability": true,
+          "P2_native_pcm": true,
+          "P3_timeline": true,
+          "P4_export_packets": true,
+          "P5_rhythm_rebase": true,
+          "P6_editor_tail": true,
+          "P7_report": true,
+          "P8_unknowns_preserved": true
+        },
+        "noise_capture": {
+          "selected_seconds": [
+            0.2,
+            0.9
+          ],
+          "selected_samples": [
+            9600,
+            43200
+          ],
+          "noise_only_verified_by_worker": false,
+          "profile_update_status": "observed_ffmpeg_afftdn_band_profile_update"
+        },
+        "P2": {
+          "manifest_pcm": {
+            "channels": 2,
+            "codec": "pcm_f32le",
+            "duration_seconds": 6.037333,
+            "sample_count": 289792,
+            "sample_rate": 48000
+          },
+          "ffprobe_decoded_audio_samples": 289792,
+          "container_audio_duration_ts": 289024,
+          "denoised_and_cleaned_extent": "ensure_pcm_matches passed"
+        },
+        "P3": {
+          "manifest_audio_start_seconds": 0.228,
+          "fixture_probed_audio_start_seconds": 0.228
+        },
+        "P4": {
+          "video_packet_timeline_preserved": true,
+          "video_packet_payload_hashes_preserved": true,
+          "video_frame_count_preserved": true,
+          "relative_audio_video_start_verified": true,
+          "relative_audio_video_start_delta_seconds": -0.02200000000000002,
+          "aac_timing_tolerance_seconds": 0.02333333333333333,
+          "source_video_packets": 154,
+          "export_video_packets": 154,
+          "source_decoded_video_frames": 154,
+          "export_decoded_video_frames": 154,
+          "physical_audio_video_sync_verified": false,
+          "exported_rotation": 90,
+          "source_rotation": 90,
+          "rotation_applied_to_pixels": false,
+          "source_decode_only_packets": 0,
+          "export_decode_only_packets": 0,
+          "export_sample_rate": 48000,
+          "export_channels": 2
+        },
+        "P5": {
+          "status": "hash_bound_run_derivative",
+          "timeline_rebased": true,
+          "original_audio_start_seconds": 0.228,
+          "filter_or_detector_delay": "uncalibrated; no physical alignment guarantee"
+        },
+        "P6": {
+          "video_end_seconds": 6.006,
+          "audio_end_seconds": 6.249333,
+          "tail_point_seconds": 6.1276665,
+          "control_point_seconds": 0.5,
+          "tail_disposition": "outside_video_coverage",
+          "control_disposition": "clip_origin_or_bounds_unverified",
+          "all_rows_needs_review": true,
+          "native_contract_status": "native_contract_unverified",
+          "run_generic_markers": 1,
+          "full_build": {
+            "status": "exercised",
+            "plan_status": "calibration_required",
+            "native_contract_status": "native_contract_unverified",
+            "dispositions": [
+              "outside_video_coverage"
+            ],
+            "all_rows_needs_review": true
+          },
+          "run_marker_dispositions": [
+            "outside_video_coverage"
+          ]
+        },
+        "P7": {
+          "report_bytes": 44857,
+          "affirmative_note_or_performance_verdicts": []
+        }
+      },
+      {
+        "kind": "photo_booth",
+        "profile": "conservative3",
+        "returncode": 0,
+        "analysis_status": "completed_unreviewed",
+        "wall_clock_seconds": 175.3,
+        "stage_status": {
+          "media": "completed",
+          "export": "completed",
+          "rhythm": "measured_candidates",
+          "noise": "measured_candidates",
+          "tone": "measured_candidates",
+          "notes": "measured_candidates",
+          "phrases": "measured_candidates",
+          "dag": "completed",
+          "markers": "completed",
+          "report": "completed"
+        },
+        "checks_passed": {
+          "P1_input_immutability": true,
+          "P2_native_pcm": true,
+          "P3_timeline": true,
+          "P4_export_packets": true,
+          "P5_rhythm_rebase": true,
+          "P6_editor_tail": true,
+          "P7_report": true,
+          "P8_unknowns_preserved": true
+        },
+        "noise_capture": null,
+        "P2": {
+          "manifest_pcm": {
+            "channels": 1,
+            "codec": "pcm_f32le",
+            "duration_seconds": 6.083628,
+            "sample_count": 268288,
+            "sample_rate": 44100
+          },
+          "ffprobe_decoded_audio_samples": 268288,
+          "container_audio_duration_ts": 267555,
+          "denoised_and_cleaned_extent": "ensure_pcm_matches passed"
+        },
+        "P3": {
+          "manifest_audio_start_seconds": 0.0,
+          "fixture_probed_audio_start_seconds": 0.0
+        },
+        "P4": {
+          "video_packet_timeline_preserved": true,
+          "video_packet_payload_hashes_preserved": true,
+          "video_frame_count_preserved": true,
+          "relative_audio_video_start_verified": true,
+          "relative_audio_video_start_delta_seconds": 0.0,
+          "aac_timing_tolerance_seconds": 0.025219954648526076,
+          "source_video_packets": 144,
+          "export_video_packets": 144,
+          "source_decoded_video_frames": 144,
+          "export_decoded_video_frames": 144,
+          "physical_audio_video_sync_verified": false,
+          "exported_rotation": null,
+          "source_rotation": null,
+          "rotation_applied_to_pixels": false,
+          "source_decode_only_packets": 0,
+          "export_decode_only_packets": 0,
+          "export_sample_rate": 44100,
+          "export_channels": 1
+        },
+        "P5": {
+          "status": "hash_bound_run_derivative",
+          "timeline_rebased": true,
+          "original_audio_start_seconds": 0.0,
+          "filter_or_detector_delay": "uncalibrated; no physical alignment guarantee"
+        },
+        "P6": {
+          "video_end_seconds": 5.998333333333333,
+          "audio_end_seconds": 6.067007,
+          "tail_point_seconds": 6.032670166666667,
+          "control_point_seconds": 0.5,
+          "tail_disposition": "outside_video_coverage",
+          "control_disposition": "clip_origin_or_bounds_unverified",
+          "all_rows_needs_review": true,
+          "native_contract_status": "native_contract_unverified",
+          "run_generic_markers": 1,
+          "full_build": {
+            "status": "exercised",
+            "plan_status": "calibration_required",
+            "native_contract_status": "native_contract_unverified",
+            "dispositions": [
+              "clip_origin_or_bounds_unverified"
+            ],
+            "all_rows_needs_review": true
+          },
+          "run_marker_dispositions": [
+            "clip_origin_or_bounds_unverified"
+          ]
+        },
+        "P7": {
+          "report_bytes": 44768,
+          "affirmative_note_or_performance_verdicts": []
+        }
+      },
+      {
+        "kind": "photo_booth",
+        "profile": "fuller",
+        "returncode": 0,
+        "analysis_status": "completed_unreviewed",
+        "wall_clock_seconds": 221.3,
+        "stage_status": {
+          "media": "completed",
+          "export": "completed",
+          "rhythm": "measured_candidates",
+          "noise": "measured_candidates",
+          "tone": "measured_candidates",
+          "notes": "measured_candidates",
+          "phrases": "measured_candidates",
+          "dag": "completed",
+          "markers": "completed",
+          "report": "completed"
+        },
+        "checks_passed": {
+          "P1_input_immutability": true,
+          "P2_native_pcm": true,
+          "P3_timeline": true,
+          "P4_export_packets": true,
+          "P5_rhythm_rebase": true,
+          "P6_editor_tail": true,
+          "P7_report": true,
+          "P8_unknowns_preserved": true
+        },
+        "noise_capture": {
+          "selected_seconds": [
+            0.2,
+            0.9
+          ],
+          "selected_samples": [
+            8820,
+            39690
+          ],
+          "noise_only_verified_by_worker": false,
+          "profile_update_status": "observed_ffmpeg_afftdn_band_profile_update"
+        },
+        "P2": {
+          "manifest_pcm": {
+            "channels": 1,
+            "codec": "pcm_f32le",
+            "duration_seconds": 6.083628,
+            "sample_count": 268288,
+            "sample_rate": 44100
+          },
+          "ffprobe_decoded_audio_samples": 268288,
+          "container_audio_duration_ts": 267555,
+          "denoised_and_cleaned_extent": "ensure_pcm_matches passed"
+        },
+        "P3": {
+          "manifest_audio_start_seconds": 0.0,
+          "fixture_probed_audio_start_seconds": 0.0
+        },
+        "P4": {
+          "video_packet_timeline_preserved": true,
+          "video_packet_payload_hashes_preserved": true,
+          "video_frame_count_preserved": true,
+          "relative_audio_video_start_verified": true,
+          "relative_audio_video_start_delta_seconds": 0.0,
+          "aac_timing_tolerance_seconds": 0.025219954648526076,
+          "source_video_packets": 144,
+          "export_video_packets": 144,
+          "source_decoded_video_frames": 144,
+          "export_decoded_video_frames": 144,
+          "physical_audio_video_sync_verified": false,
+          "exported_rotation": null,
+          "source_rotation": null,
+          "rotation_applied_to_pixels": false,
+          "source_decode_only_packets": 0,
+          "export_decode_only_packets": 0,
+          "export_sample_rate": 44100,
+          "export_channels": 1
+        },
+        "P5": {
+          "status": "hash_bound_run_derivative",
+          "timeline_rebased": true,
+          "original_audio_start_seconds": 0.0,
+          "filter_or_detector_delay": "uncalibrated; no physical alignment guarantee"
+        },
+        "P6": {
+          "video_end_seconds": 5.998333333333333,
+          "audio_end_seconds": 6.067007,
+          "tail_point_seconds": 6.032670166666667,
+          "control_point_seconds": 0.5,
+          "tail_disposition": "outside_video_coverage",
+          "control_disposition": "clip_origin_or_bounds_unverified",
+          "all_rows_needs_review": true,
+          "native_contract_status": "native_contract_unverified",
+          "run_generic_markers": 1,
+          "full_build": {
+            "status": "exercised",
+            "plan_status": "calibration_required",
+            "native_contract_status": "native_contract_unverified",
+            "dispositions": [
+              "clip_origin_or_bounds_unverified"
+            ],
+            "all_rows_needs_review": true
+          },
+          "run_marker_dispositions": [
+            "clip_origin_or_bounds_unverified"
+          ]
+        },
+        "P7": {
+          "report_bytes": 45233,
+          "affirmative_note_or_performance_verdicts": []
+        }
+      },
+      {
+        "kind": "photo_booth_preroll",
+        "profile": "conservative3",
+        "returncode": 0,
+        "analysis_status": "completed_unreviewed",
+        "wall_clock_seconds": 170.0,
+        "stage_status": {
+          "media": "completed",
+          "export": "completed",
+          "rhythm": "measured_candidates",
+          "noise": "measured_candidates",
+          "tone": "measured_candidates",
+          "notes": "measured_candidates",
+          "phrases": "measured_candidates",
+          "dag": "completed",
+          "markers": "completed",
+          "report": "completed"
+        },
+        "checks_passed": {
+          "P1_input_immutability": true,
+          "P2_native_pcm": true,
+          "P3_timeline": true,
+          "P4_export_packets": true,
+          "P5_rhythm_rebase": true,
+          "P6_editor_tail": true,
+          "P7_report": true,
+          "P8_unknowns_preserved": true
+        },
+        "noise_capture": null,
+        "P2": {
+          "manifest_pcm": {
+            "channels": 1,
+            "codec": "pcm_f32le",
+            "duration_seconds": 4.783628,
+            "sample_count": 210958,
+            "sample_rate": 44100
+          },
+          "ffprobe_decoded_audio_samples": 210958,
+          "container_audio_duration_ts": 210269,
+          "denoised_and_cleaned_extent": "ensure_pcm_matches passed"
+        },
+        "P3": {
+          "manifest_audio_start_seconds": 0.0,
+          "fixture_probed_audio_start_seconds": 0.0
+        },
+        "P4": {
+          "video_packet_timeline_preserved": true,
+          "video_packet_payload_hashes_preserved": true,
+          "video_frame_count_preserved": true,
+          "relative_audio_video_start_verified": true,
+          "relative_audio_video_start_delta_seconds": 0.0,
+          "aac_timing_tolerance_seconds": 0.025219954648526076,
+          "source_video_packets": 144,
+          "export_video_packets": 144,
+          "source_decoded_video_frames": 112,
+          "export_decoded_video_frames": 112,
+          "physical_audio_video_sync_verified": false,
+          "exported_rotation": null,
+          "source_rotation": null,
+          "rotation_applied_to_pixels": false,
+          "source_decode_only_packets": 32,
+          "export_decode_only_packets": 32,
+          "export_sample_rate": 44100,
+          "export_channels": 1
+        },
+        "P5": {
+          "status": "hash_bound_run_derivative",
+          "timeline_rebased": true,
+          "original_audio_start_seconds": 0.0,
+          "filter_or_detector_delay": "uncalibrated; no physical alignment guarantee"
+        },
+        "P6": {
+          "video_end_seconds": 4.666666666666667,
+          "audio_end_seconds": 4.768005,
+          "tail_point_seconds": 4.717335833333333,
+          "control_point_seconds": 0.5,
+          "tail_disposition": "outside_video_coverage",
+          "control_disposition": "clip_origin_or_bounds_unverified",
+          "all_rows_needs_review": true,
+          "native_contract_status": "native_contract_unverified",
+          "run_generic_markers": 0,
+          "full_build": {
+            "status": "abstained_no_generic_markers"
+          },
+          "run_marker_dispositions": []
+        },
+        "P7": {
+          "report_bytes": 42643,
+          "affirmative_note_or_performance_verdicts": []
+        }
+      },
+      {
+        "kind": "photo_booth_preroll",
+        "profile": "fuller",
+        "returncode": 0,
+        "analysis_status": "completed_unreviewed",
+        "wall_clock_seconds": 94.7,
+        "stage_status": {
+          "media": "completed",
+          "export": "completed",
+          "rhythm": "measured_candidates",
+          "noise": "measured_candidates",
+          "tone": "measured_candidates",
+          "notes": "measured_candidates",
+          "phrases": "measured_candidates",
+          "dag": "completed",
+          "markers": "completed",
+          "report": "completed"
+        },
+        "checks_passed": {
+          "P1_input_immutability": true,
+          "P2_native_pcm": true,
+          "P3_timeline": true,
+          "P4_export_packets": true,
+          "P5_rhythm_rebase": true,
+          "P6_editor_tail": true,
+          "P7_report": true,
+          "P8_unknowns_preserved": true
+        },
+        "noise_capture": {
+          "selected_seconds": [
+            0.2,
+            0.9
+          ],
+          "selected_samples": [
+            8820,
+            39690
+          ],
+          "noise_only_verified_by_worker": false,
+          "profile_update_status": "observed_ffmpeg_afftdn_band_profile_update"
+        },
+        "P2": {
+          "manifest_pcm": {
+            "channels": 1,
+            "codec": "pcm_f32le",
+            "duration_seconds": 4.783628,
+            "sample_count": 210958,
+            "sample_rate": 44100
+          },
+          "ffprobe_decoded_audio_samples": 210958,
+          "container_audio_duration_ts": 210269,
+          "denoised_and_cleaned_extent": "ensure_pcm_matches passed"
+        },
+        "P3": {
+          "manifest_audio_start_seconds": 0.0,
+          "fixture_probed_audio_start_seconds": 0.0
+        },
+        "P4": {
+          "video_packet_timeline_preserved": true,
+          "video_packet_payload_hashes_preserved": true,
+          "video_frame_count_preserved": true,
+          "relative_audio_video_start_verified": true,
+          "relative_audio_video_start_delta_seconds": 0.0,
+          "aac_timing_tolerance_seconds": 0.025219954648526076,
+          "source_video_packets": 144,
+          "export_video_packets": 144,
+          "source_decoded_video_frames": 112,
+          "export_decoded_video_frames": 112,
+          "physical_audio_video_sync_verified": false,
+          "exported_rotation": null,
+          "source_rotation": null,
+          "rotation_applied_to_pixels": false,
+          "source_decode_only_packets": 32,
+          "export_decode_only_packets": 32,
+          "export_sample_rate": 44100,
+          "export_channels": 1
+        },
+        "P5": {
+          "status": "hash_bound_run_derivative",
+          "timeline_rebased": true,
+          "original_audio_start_seconds": 0.0,
+          "filter_or_detector_delay": "uncalibrated; no physical alignment guarantee"
+        },
+        "P6": {
+          "video_end_seconds": 4.666666666666667,
+          "audio_end_seconds": 4.768005,
+          "tail_point_seconds": 4.717335833333333,
+          "control_point_seconds": 0.5,
+          "tail_disposition": "outside_video_coverage",
+          "control_disposition": "clip_origin_or_bounds_unverified",
+          "all_rows_needs_review": true,
+          "native_contract_status": "native_contract_unverified",
+          "run_generic_markers": 0,
+          "full_build": {
+            "status": "abstained_no_generic_markers"
+          },
+          "run_marker_dispositions": []
+        },
+        "P7": {
+          "report_bytes": 43109,
+          "affirmative_note_or_performance_verdicts": []
+        }
+      }
+    ],
+    "notable": [
+      "Phone: ffprobe audio start_time 0.228 s for a requested -itsoffset 0.25 (difference 0.022 s, inside 1024/48000+0.002 = 0.0233 s); consistent with AAC priming (1024/48000 = 0.0213 s) and MOV millisecond edit granularity (inference). Export relative A/V start delta -0.022 s, within the 0.0233 s AAC tolerance.",
+      "Photo Booth: presented frame durations exactly {24,25,26} ticks at 1/600; last frame 25 ticks (video end 5.998333 s); container audio end - video end 0.068674 s vs 0.069 target.",
+      "Decoded AAC sample counts exceed container edit-list duration_ts (phone 289792 vs 289024; photo_booth 268288 vs 267555; preroll 210958 vs 210269): FFmpeg decode trims start priming but not end padding. manifest.pcm.sample_count equals the ffprobe decoded count in every run.",
+      "Preroll: 32 decode-only packets of 144 coded; media.py export stream copy preserved all 144 packets, 32 decode-only, payload hashes and 112 presented frames.",
+      "Display-matrix rotation 90 (as ffprobe reports) survived export for phone and phone_hevc; pixels were not rotated.",
+      "Preroll fixture produced 0 generic markers, so the full editor_marker_plan.build sub-check is recorded abstained_no_generic_markers there; phone and photo_booth runs exercised it."
+    ]
+  },
+  "inferences_I": [
+    "Fixture pass results indicate the pipeline handles these container/timeline shapes; they do not establish behaviour on the real Photo Booth or phone captures (real_take_equivalence not_established)."
+  ],
+  "unknowns_U": {
+    "memory_ceiling_bytes": null,
+    "memory_ceiling_status": "unknown_not_measured",
+    "real_take_equivalence": "not_established",
+    "device_capture_equivalence": "unknown",
+    "real_take_audio_tail_reconciled": false,
+    "capture_interval_noise_only": "by_construction_synthetic",
+    "physical_audio_video_sync_verified": false,
+    "listening_accepted": false,
+    "music_preservation_listening_verified": false
+  },
+  "wall_clock_scope": "measurement, not a bound; pipeline runs were sequential on the operator host",
+  "real_take_opened": false
+}

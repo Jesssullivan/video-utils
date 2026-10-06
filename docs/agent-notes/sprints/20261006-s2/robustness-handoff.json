@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "lane": "robustness",
+  "sprint": "20261006-s2",
+  "linear": "TIN-5609",
+  "parent": "TIN-5599",
+  "phase": "4_handoff",
+  "created_at": "2026-10-06",
+  "authority": "R-HOOK-CONVERGENCE-20261004; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43 (R-N11/R-N12/R-N13)",
+  "base_commit": "0cdca0192f56ec347a228ec77c711786dc3c28c4",
+  "head": "07b1b5075c056805ddd9688dae3c80fe9167e100",
+  "files": [
+    {
+      "path": "docs/spec/sprints/ROBUSTNESS_S2.md",
+      "sha256": "7e2fa6791469cb83e9813d61781f29b19410c4b86a44b3c33375067d6cbe0b91",
+      "kind": "spec"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/robustness-contract-freeze.json",
+      "sha256": "74b27cda923fe5a6cfaf38005c176784507eefab886b66f74479b8a5b4a86816",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/robustness-implementation.json",
+      "sha256": "ea4bedcc730b497ab1572175264ee2a30406f126991cd25a6d1b75ddf292adb6",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/robustness-fixture-run.json",
+      "sha256": "4b2322ae82998c17cb4b4eaeb2e51fe7601c4a440a7ebb756994c0917cb112c5",
+      "kind": "receipt"
+    },
+    {
+      "path": "scripts/run_demo.py",
+      "sha256": "8403968548f89dcfe4463ffd3128aeb27585172613571a0f31f8f85d452729f0",
+      "kind": "source"
+    },
+    {
+      "path": "tests/support/phone_fixtures.py",
+      "sha256": "5cf334f01e9b92cd429b10a5352784e877ffc06521a6e9e51f416897e7caf614",
+      "kind": "test"
+    },
+    {
+      "path": "tests/test_demo.py",
+      "sha256": "2a0e00e968b0588864a930abac146c7ff04b95a57dc8830bcad4dfb5b2ca45a3",
+      "kind": "test"
+    },
+    {
+      "path": "tests/test_phone_fixtures.py",
+      "sha256": "4c036daece9bc6760b86c4d83a42eab975d98b0a0d00e3d02e43ac871455e4b6",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "cd .local/sprint2/robustness && export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe && PYTHONPATH=tests timeout 900 python3 -m unittest test_demo test_phone_fixtures -v",
+    "discovered": 40,
+    "passed": 40,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 612.27
+  },
+  "metrics": [
+    {
+      "name": "resume_scenarios_P",
+      "numerator": 9,
+      "denominator": 9,
+      "unit": "tests",
+      "claim_class": "process-level"
+    },
+    {
+      "name": "typed_refusal_coverage_P",
+      "numerator": 14,
+      "denominator": 14,
+      "unit": "codes",
+      "claim_class": "process-level"
+    },
+    {
+      "name": "run_directory_invariant_P",
+      "numerator": 9,
+      "denominator": 9,
+      "unit": "resume-scenario_invocations",
+      "claim_class": "process-level"
+    },
+    {
+      "name": "killed_worker_recovery_P",
+      "numerator": 2,
+      "denominator": 2,
+      "unit": "scenarios",
+      "claim_class": "process-level"
+    },
+    {
+      "name": "fixture_properties_M",
+      "numerator": 4,
+      "denominator": 4,
+      "unit": "fixture_kinds",
+      "claim_class": "measured"
+    },
+    {
+      "name": "pipeline_matrix_M",
+      "numerator": 7,
+      "denominator": 7,
+      "unit": "runs",
+      "claim_class": "measured"
+    },
+    {
+      "name": "P1_input_immutability",
+      "numerator": 7,
+      "denominator": 7,
+      "unit": "runs",
+      "claim_class": "measured"
+    },
+    {
+      "name": "P2_native_pcm",
+      "numerator": 7,
+      "denominator": 7,
+      "unit": "runs",
+      "claim_class": "measured"
+    },
+    {
+      "name": "P3_timeline",
+      "numerator": 7,
+      "denominator": 7,
+      "unit": "runs",
+      "claim_class": "measured"
+    },
+    {
+      "name": "P4_export_packets",
+      "numerator": 7,
+      "denominator": 7,
+      "unit": "runs",
+      "claim_class": "measured"
+    },
+    {
+      "name": "P5_rhythm_rebase",
+      "numerator": 7,
+      "denominator": 7,
+      "unit": "runs",
+      "claim_class": "measured"
+    },
+    {
+      "name": "P6_editor_tail",
+      "numerator": 7,
+      "denominator": 7,
+      "unit": "runs",
+      "claim_class": "measured"
+    },
+    {
+      "name": "P7_report",
+      "numerator": 7,
+      "denominator": 7,
+      "unit": "runs",
+      "claim_class": "measured"
+    },
+    {
+      "name": "P8_unknowns_preserved",
+      "numerator": 7,
+      "denominator": 7,
+      "unit": "runs",
+      "claim_class": "measured"
+    },
+    {
+      "name": "input_immutability_M",
+      "numerator": 7,
+      "denominator": 7,
+      "unit": "fixture_runs",
+      "claim_class": "measured"
+    },
+    {
+      "name": "resource_limits_P",
+      "numerator": 10,
+      "denominator": 10,
+      "unit": "timeouts_and_limits",
+      "claim_class": "process-level"
+    },
+    {
+      "name": "lane_new_tests_P",
+      "numerator": 23,
+      "denominator": 23,
+      "unit": "tests",
+      "claim_class": "process-level"
+    },
+    {
+      "name": "memory_ceiling_status",
+      "numerator": 0,
+      "denominator": 0,
+      "unit": "bytes",
+      "claim_class": "unknown"
+    }
+  ],
+  "unknowns": [
+    "memory_ceiling_bytes: null (not measured, no RSS limit enforced)",
+    "memory_ceiling_status: unknown_not_measured",
+    "real_take_equivalence: not_established",
+    "device_capture_equivalence: unknown",
+    "rotation_applied_to_pixels: false (display matrix preserved, pixels not rotated)",
+    "real_take_audio_tail_reconciled: false",
+    "capture_interval_noise_only: by_construction_synthetic",
+    "physical_audio_video_sync_verified: false",
+    "listening_accepted: false",
+    "music_preservation_listening_verified: false"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "just/workflow.just",
+      "change": "Append recipe (exact text):\n# Crash-recover one recorded demo invocation in place (same run_dir and ID); replays recorded settings.\n# Typed refusals (exit 1) write nothing; see docs/spec/sprints/ROBUSTNESS_S2.md section 3.6.\ndemo-resume invocation_id:\n    python3 scripts/run_demo.py --resume {{quote(invocation_id)}}\n",
+      "why": "Operator entrypoint for run_demo --resume (ROBUSTNESS_S2 section 9); lane cannot edit root-owned recipes."
+    },
+    {
+      "file": ".agents/skills/guitar-pipeline/SKILL.md",
+      "change": "Insert before '## Agent iteration' (exact text):\n## Crash recovery of a demo invocation (`run_demo.py --resume`)\n\n`python3 scripts/run_demo.py --resume INVOCATION_ID [--no-latest]` (fallback `just demo-resume ID`) continues one recorded invocation inside the same run directory under the same ID. It replays the receipt's `resume_arguments` and accepts no other settings. A stage is skipped only when its status is success-terminal, every recorded artifact hash matches, its worker file hash is unchanged and every dependency was also skipped; everything downstream of a rerun stage reruns. Outputs of rerun stages are moved, never deleted, into `demo-invocations/<id>/resume-<n>/displaced/` with their hashes. Any hash drift is a typed refusal that writes nothing: `invalid_invocation_id`, `receipt_not_found`, `receipt_invalid`, `receipt_lacks_resume_arguments`, `invocation_already_terminal`, `orchestrator_may_be_alive`, `prior_worker_group_alive`, `resume_lock_held`, `source_hash_drift`, `media_hash_drift`, `stage_artifact_hash_drift`, `worker_hash_drift`, `snapshot_hash_drift`, `media_outcome_unrecorded_run_dir_exists`. Liveness checks use signal 0 only and never signal another process. Resume is crash recovery, not re-analysis, a settings change or a default-adoption path. The memory ceiling remains unknown.\n",
+      "why": "Document --resume, its skip/dependency rule and the 14 typed refusal codes for agents (ROBUSTNESS_S2 section 9)."
+    },
+    {
+      "file": "program/tools.json; scripts/tool_api.py; scripts/mcp_server.py",
+      "change": "No change required unless root admits run_demo as a typed MCP tool. If admitted: add input property resume.invocation_id {type: string, pattern: '^[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12}$'}, mutually exclusive with input/existing_run and all setting knobs (profile, capture_interval, capture_review, bpm, backend, features, analysis_python, pitch_seconds), plus a closed error enum of the 14 section-3.6 reason codes.",
+      "why": "Keeps the typed MCP surface consistent if run_demo is ever admitted; the lane does not admit tools."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261006-s2/robustness-contract-freeze.json",
+    "docs/agent-notes/sprints/20261006-s2/robustness-implementation.json",
+    "docs/agent-notes/sprints/20261006-s2/robustness-fixture-run.json",
+    "docs/agent-notes/sprints/20261006-s2/robustness-handoff.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Scope holds. `git diff --name-only 0cdca01...HEAD` (merge-base 0cdca019) lists exactly 9 files, all owned: scripts/run_demo.py, tests/test_demo.py, tests/support/phone_fixtures.py, tests/test_phone_fixtures.py, docs/spec/sprints/ROBUSTNESS_S2.md and 4 docs/agent-notes/sprints/20261006-s2/robustness-*.json. No root-owned or foreign file is edited. The contract is untouched after freeze: `git diff 79b56ba..HEAD` does not include ROBUSTNESS_S2.md, and its sha256 7e2fa679...0b91 matches the receipts. The only removed line in tests/test_demo.py is the fake_invoke signature, which gained an `on_started=None` parameter.",
+      "(2) No forbidden writes. Every test runs under an isolated ROOT: patched `demo.ROOT`, or copies of scripts/, profiles/ and program/ under the gitignored artifacts/s2/robustness/mkdtemp. Phone fixture runs pass --no-latest. REAL_TAKE (tests/test_phone_fixtures.py:35) is only used in an assertNotEqual. REAL_TAKE_REFERENCE (tests/support/phone_fixtures.py:37) holds constants read at freeze. Nothing writes to program/tools.json, scripts/tool_api.py or just/workflow.just; those are listed only as root_owned_changes_requested in robustness-handoff.json. I found no model download and no daemon.",
+      "(4) Reproduced: 40/40. I ran `git archive HEAD` into /tmp/rob-audit so the worktree stayed untouched (git status is still clean). Command: `FFMPEG/FFPROBE=<qualified nix 8.1.2> PYTHONPATH=tests python3 -m unittest test_demo test_phone_fixtures -v`. Result: 'Ran 40 tests in 253.249s OK', 0 skipped. That is 29 in test_demo (17 existing on base plus 12 new: 10 DemoResumeTests and 2 DemoResumeProcessTests) and 11 in test_phone_fixtures. The HEVC run happened. All 7 pipeline runs exited 0 with P1-P8 passing (7/7 per check). Wall time differs between reports (my 253 s, the lane's 612 s for the combined run, the receipt's 1327 s for fixtures alone). I read this as host load. Wall time is labelled a measurement, not a bound.",
+      "(4) The tests exercise the claimed behaviour. All 14 typed refusal codes are asserted (exit 1, typed reason, no worker call, byte-identical receipt, identical rglob tree with mtimes): 10 in test_resume_refusals_write_nothing, plus orchestrator_may_be_alive and prior_worker_group_alive (sleeper child asserted still alive), resume_lock_held, and media_outcome_unrecorded_run_dir_exists. A real worker that SIGKILLs itself ends with returncode -9 and then resumes. A real orchestrator SIGKILLed after an ownership check resumes with the same invocation_id and run_dir and exactly one published run.",
+      "(5) Doctrine holds. P8 asserts high_pass_applied=False, hum_notches_applied=False, physical_audio_video_sync_verified=False and music_preservation_listening_verified=False, plus memory_ceiling_status 'unknown_not_measured' with memory_ceiling_bytes null. The fixture signal includes a 32.70 Hz C1 tanh burst. Default constants are unchanged: parser defaults moved to None but are filled to the same DEFAULT_PROFILE/stdlib/base/20 before validation (run_demo.py:238-241). STAGE_TIMEOUTS equal the previous literals (1200/600/300/180). Fixture subprocess timeouts are capped at 60 s, and each pipeline subprocess at 600 s.",
+      "(6) Arithmetic reproduced. Photo Booth: 144 frames on a 75-ticks-per-3-frames cadence, last pts 3574 + 25 = 3599 ticks, 3599/600 = 5.998333 s. Plus 0.069 s gives 6.067333 s, matching the lavfi duration in the recorded command. Measured tail: 6.067007 - 5.998333 = 0.068674 s, within 0.069 ± (1024/44100 + 0.002) = ±0.02522. Decoded samples 268288 = 262 × 1024, and duration_ts 267555 / 44100 = 6.067007. Phone: audio start 0.228 vs 0.25 - 1024/48000 = 0.22867 (AAC priming), within tolerance 0.02333. Real-take header difference: 150.954059 - 150.905 = 49.059 ms, carried honestly as real_take_audio_tail_reconciled=false.",
+      "(3) Claim classes are correct, and every metric has a denominator (9/9, 14/14, 2/2, 4/4, 7/7 per check, 10/10). Fixture results are labelled M (synthetic) and resume results P. The single inference explicitly disclaims real-take equivalence. No verdict keys for notes or missed notes are emitted (P7 scans every run JSON). No profile, detector or default is adopted.",
+      "Minor: stale-lock takeover in acquire_lock (run_demo.py) uses a staging-file `replace` without O_EXCL. Two concurrent resumes that both see a dead-PID lock can both report stale_taken_over and run against the same run_dir. The window is narrow (only after an orchestrator crash plus two simultaneous operator resumes). Re-reading the lock after replace, or a link-based acquire, would close it.",
+      "Minor: a non-ResumeRefusal exception during prepare_resume (for example a PermissionError while hashing an unreadable source) escapes as a traceback instead of a typed refusal. It still writes nothing, because it is raised before the lock is taken.",
+      "Minor: dependency_skip entries and inline skipped stages lack started_at and completed_at, even though §3.2 says every stage records them.",
+      "Minor: the phone fixture's effective rate is about 25.7 fps (avg_frame_rate 60000/2327) because every 7th frame is dropped. §4 says '~29.97 fps VFR'; that holds for the nominal 30000/1001 rate, and the VFR requirement (2 distinct durations, 1001 and 2002) is met.",
+      "Minor: two documented deviations from the frozen §4 text. The fixture builder adds a lower bound of seconds >= 1.5, and ffprobe calls cannot take -nostdin/-n. Both are recorded in robustness-implementation.json rather than hidden.",
+      "Minor: committed host-path text, /Users/jess/Documents/... in tests/test_phone_fixtures.py:35 and the spec. This is consistent with existing main notes, and the repo is private, but recent main commits did scrub host paths from a handoff.",
+      "Note: CI (ubuntu, nix develop) will skip test_phone_fixtures because QUALIFIED_BIN is a darwin nix-store path checked by sha256. Fixture coverage is therefore local-only. The test_demo resume tests are portable."
+    ],
+    "must_fix": []
+  }
+}
