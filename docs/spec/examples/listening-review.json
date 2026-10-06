@@ -1,0 +1,43 @@
+{
+  "schema_id": "video-utils.listening-review",
+  "schema_version": 1,
+  "binding": {
+    "run_id": null,
+    "run_manifest_sha256": null,
+    "source_sha256": null,
+    "report_bundle_sha256": null,
+    "tone_ab_receipt_sha256": null,
+    "excerpt_blind_key_opened_after_listening": null
+  },
+  "review": {
+    "reviewer": null,
+    "reviewed_at_utc": null,
+    "monitoring_device": null,
+    "playback_level_matched": null,
+    "matched_loudness_lufs": null,
+    "excerpts_heard": null,
+    "blind": null
+  },
+  "judgements": {
+    "operator_preference": null,
+    "preferred_arm": null,
+    "perceived_fullness": null,
+    "low_string_weight_preserved": null,
+    "nasal_quality": null,
+    "pick_attack_preserved": null,
+    "palm_mute_articulation_preserved": null,
+    "sustain_and_tails_preserved": null,
+    "saturated_texture_preserved": null,
+    "fan_noise_residue_audible": null,
+    "processing_artifacts_audible": null,
+    "residual_contains_musical_detail": null
+  },
+  "decisions": {
+    "listening_accepted": null,
+    "adopt_as_default": null,
+    "master_change_requested": null
+  },
+  "notes": {
+    "operator_words": null
+  }
+}

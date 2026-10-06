@@ -1,0 +1,5 @@
+# In-tree Quarto render products; durable copies go to gitignored artifacts/.
+.quarto/
+_render/
+*_files/
+*.html
