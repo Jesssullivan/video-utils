@@ -174,3 +174,19 @@ No exact user-message timestamp was supplied. Appended verbatim:
 This authorizes a named parallel research/adoption-ablation lane examining the
 operator's existing spectrogram work. Reuse remains evidence-dependent; stronger
 audio restoration and the marked-video iteration retain delivery priority.
+
+## 17. Continue execution
+
+No exact user-message timestamp was supplied. Appended verbatim:
+
+> proceed in full force
+
+## 18. Reattach the existing agent team
+
+No exact user-message timestamp was supplied. Appended verbatim:
+
+> reattach all subagents
+
+These continue the authorized work and reactivate the existing named team.
+They do not discard saved tasks/dirty work, reset the goal clock, establish
+listening acceptance, or transfer unrelated file ownership implicitly.

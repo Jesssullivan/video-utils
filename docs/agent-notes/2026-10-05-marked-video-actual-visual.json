@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "actor": "media_latency",
+  "created_at": "2026-10-05T23:45:43.056536+00:00",
+  "authority": "Operator active ten-hour parallel goal; R-HOOK-CONVERGENCE-20261004; R-N11/R-N13",
+  "status": "sampled_actual_callout_visual_review_passed_with_scope_limits",
+  "skill": ".agents/skills/guitar-marked-video/SKILL.md",
+  "run_dir": "artifacts/runs/20261005T232741Z-2b5dc43fd009",
+  "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "marked_video_sha256": "13b9d18b80be37de954530f3c1220c256a061136921ffaf3c68f7e677b55dc90",
+  "marked_video_bytes": 155215112,
+  "render_outcome_sha256": "48c4d60759a0b328ec7975c2d4eff455934cd2ddf5a8ed6efcabcd909a91bac2",
+  "selection_sha256": "915990d487466e9f9adcd571ad960df94ba94af0e07c6c5b4b99fd3b1eaef462",
+  "root_frame_index_sha256": "7bc60effe5a06df580998f0de4c47216b10be66aa654142c7980b880c28d2d0a",
+  "independent_clock_audit": "artifacts/runs/20261005T232741Z-2b5dc43fd009/marked-preview/visual-proof/audit.json",
+  "independent_clock_audit_sha256": "349eae9552eb61ade679e0e838d73c3fc90851b1a761efab400518ea76b6f44b",
+  "decoded_timeline_verification": {
+    "decoded_video_frame_count": 3621,
+    "decoded_video_frame_pts_preserved": true,
+    "decoded_video_last_extent_preserved": true,
+    "aac_packet_payloads_timing_and_padding_preserved": true,
+    "decoded_video_first_pts_seconds": 0.0,
+    "decoded_video_last_extent_seconds": 150.885,
+    "picture_geometry_preserved": true,
+    "decoded_video_variable_frame_intervals_observed": true,
+    "decoded_video_frame_pts_sha256": "94cb5ba5067bb8bce27a62a15202629f1db70dc09dac65b49a79df9bb5ea0e70",
+    "decoded_audio_pcm_sha256_preserved": true,
+    "decoded_audio_pcm_hash": "SHA256=a5316f9d41cbffdae85bca2ac57d8866c91354eb8d376abb979f9739c139b37e",
+    "audio_sample_rate": 44100,
+    "audio_channels": 1,
+    "picture_reencoded": true,
+    "physical_audio_video_sync_verified": false
+  },
+  "current_input_hashes_unchanged": true,
+  "source_axis_verified": "original source seconds = preserved exported frame PTS + recorded container start 0 seconds",
+  "subtitle_quantization_seconds": 0.01,
+  "selected_marker_count": 24,
+  "composed_callout_count": 25,
+  "excluded_count": 156,
+  "coverage": {
+    "all_selected_spans_accounted_for": true,
+    "all_current_flag_ids_bound": true,
+    "partially_suppressed_markers": 13,
+    "entirely_suppressed_markers": 6,
+    "visible_marker_seconds": 22.529999999999994,
+    "suppressed_marker_seconds": 14.719999999999999
+  },
+  "entirely_suppressed_flags": [
+    {
+      "marker_id": "marker-0002-7b2b29456c75",
+      "name": "automatic_recurrence_review_candidate",
+      "flags": [
+        {
+          "flag_id": "flag-0002-c84836da8815",
+          "flag_index": 2
+        }
+      ],
+      "source_span": [
+        1.348314606741573,
+        2.696629213483146
+      ]
+    },
+    {
+      "marker_id": "marker-0011-3896be0621c6",
+      "name": "automatic_recurrence_review_candidate",
+      "flags": [
+        {
+          "flag_id": "flag-0011-6c925c95f99b",
+          "flag_index": 11
+        }
+      ],
+      "source_span": [
+        6.067415730337078,
+        7.415730337078651
+      ]
+    },
+    {
+      "marker_id": "marker-0014-f4c819aef1a2",
+      "name": "recurrence_motif_timing_difference_review",
+      "flags": [
+        {
+          "flag_id": "flag-0014-006026a65bd2",
+          "flag_index": 14
+        }
+      ],
+      "source_span": [
+        6.224,
+        6.224
+      ]
+    },
+    {
+      "marker_id": "marker-0018-fdb2bfbf6b29",
+      "name": "automatic_recurrence_review_candidate",
+      "flags": [
+        {
+          "flag_id": "flag-0018-fbff5d609098",
+          "flag_index": 18
+        }
+      ],
+      "source_span": [
+        7.415730337078651,
+        8.764044943820224
+      ]
+    },
+    {
+      "marker_id": "marker-0019-8d2468650d7c",
+      "name": "automatic_recurrence_review_candidate",
+      "flags": [
+        {
+          "flag_id": "flag-0019-d2716f842c2c",
+          "flag_index": 19
+        }
+      ],
+      "source_span": [
+        7.752808988764045,
+        9.101123595505618
+      ]
+    },
+    {
+      "marker_id": "marker-0022-35a887d3b5e1",
+      "name": "automatic_recurrence_review_candidate",
+      "flags": [
+        {
+          "flag_id": "flag-0022-a4976ebdd14c",
+          "flag_index": 22
+        }
+      ],
+      "source_span": [
+        8.089887640449438,
+        9.438202247191011
+      ]
+    }
+  ],
+  "frames_viewed_with_view_image": [
+    {
+      "requested_seconds": 0.6,
+      "path": "artifacts/marked-actual-visual-proof/0.6.jpg",
+      "image_sha256": "2dc3be42bf7951791c74021624e8776259a97fa2deb3686eaff69195fe9a3f24",
+      "displayed_source_span": [
+        0,
+        1.35
+      ],
+      "labels": [
+        "REVIEW - uncertain",
+        "Possible low-register riff"
+      ],
+      "observation": "Amber text and dark backing are legible, with two lines; face and main fretboard remain clear."
+    },
+    {
+      "requested_seconds": 8.51,
+      "path": "artifacts/marked-actual-visual-proof/8.51.jpg",
+      "image_sha256": "b7b1832e8262641ea7bcf582d23cf26c986ed08c858e4ee0a9f77cece4e4b343",
+      "displayed_source_span": [
+        8.26,
+        8.76
+      ],
+      "labels": [
+        "REVIEW - uncertain",
+        "Attack pattern differs / Loop rate differs"
+      ],
+      "observation": "Two comparison labels fit one detail line beneath the source range; no third line or label collision. Main fretting hand remains visible."
+    },
+    {
+      "requested_seconds": 149.9,
+      "path": "artifacts/marked-actual-visual-proof/149.9.jpg",
+      "image_sha256": "10b1b81aa7c64533b7dc001e6be03a4d2467c34bad4ead94cb62e6d10d5d9496",
+      "displayed_source_span": [
+        149.66,
+        150.88
+      ],
+      "labels": [
+        "REVIEW - uncertain",
+        "Possible repeated phrase"
+      ],
+      "observation": "Ending callout and source range remain legible inside picture bounds; the musician is lowering the instrument, so this still does not establish a played repeated phrase."
+    }
+  ],
+  "visual_acceptance": "Amber uncertain labels legible in these three full-resolution stills; two lines and scene context verified",
+  "listening_accepted": false,
+  "performance_issues_confirmed": false,
+  "physical_capture_sync_verified": false,
+  "limitations": [
+    "Only three sampled stills were visually reviewed; continuous playback and every callout were not inspected.",
+    "Some short callouts may require paused/scrubbed review; temporal readability is not established by still images.",
+    "Lower-center backing can obscure a small part of the instrument body or lower picking-hand region; main fretboard and fretting hand stay visible in sampled frames.",
+    "Six selected flags are entirely suppressed by the two-label overlap priority; selection.json retains them. Nominal visibility accounting includes presentation spans, not measured human readability or alpha-fade visibility.",
+    "The ending possible-recurrence label is an algorithmic hypothesis visible during instrument-lowering; visual inspection does not confirm the musical phrase.",
+    "Callouts remain unvalidated review hypotheses, not confirmed mistakes, note intent, listening acceptance, native NLE import or Logic validation."
+  ]
+}

@@ -354,3 +354,184 @@ planned end **2026-10-06 06:49:34 UTC** and no new weekly allocation.
 
 This documentation lane refreezes after the short follow-up. Root owns the
 selected three-document receipt publication; no shared source files were edited.
+
+## Evening delivery steering and live calibration — 23:01:17 UTC
+
+Root relayed a new operator status request for a complete evening video with
+phrase/possible-issue markers. This is paraphrased steering, not a fabricated
+verbatim user transcript. **No pause was requested.** Full cleaned video is
+already complete; 197 review markers are in the report and generic JSON/CSV,
+not yet burned into picture. At the 7 p.m. update root estimated 45–90 minutes for
+an annotated preview; estimate is not completion or a promised quality verdict.
+
+Current remote receipt head is **`2ff896751e283090de0612384ce2aa65284322d1`**,
+retaining twenty-tool/291-test source with hosted success recorded earlier.
+Twenty-two-tool evaluator source checks are ready locally but unpublished.
+Root's actual calibration pilot is **LIVE**, owned exec session 61928, covering
+all twelve unseeded fixtures/120 source seconds and four pitch jobs/30 seconds.
+Controller is frozen during that execution. No completed pilot score is claimed.
+
+Root assigned `/root/media_latency` NEW `scripts/marked_video.py`,
+`tests/test_marked_video.py`, `docs/spec/MARKED_VIDEO_LANE.md`, owned dated receipt.
+This separate review render validates source/graph/flag/marker hashes, labels
+hypotheses REVIEW/uncertain, reencodes picture and packet-copies delivery AAC.
+Root owns full-take execution and visual acceptance. tool_skills owns the new
+marked-video skill and tool_hooks the future contract; primitive twenty-three is
+future until worker/API/skill checks and publication. Existing video/report and
+actual annotations are preserved; no definite MISTAKE label is authorized.
+
+Root released `/root/au_architecture`'s exact native implementation table in
+AU_PARAMETER_STATE_INTEGRATION_LANE.md. The board records those Apple kernel/AU,
+new ingress/harness, regression-test and check.py files. Automation/state/Rust/
+ABI/locks remain frozen; no plugin registration, device operation or host proof.
+`/root/tonal_inference` owns BASIC_PITCH_COMPARATOR_LANE and
+BASIC_PITCH_QUALIFICATION as **plan/research only** for model/dependency/license
+pins. No model download, installation, registry admission or inference occurred.
+
+Root completed separate bypass/mild6 level-matched restores and reports:
+`20261005T224706Z-2a72efe386ab`, `20261005T224733Z-0e920a701cf8`. At two unverified
+quiet windows mild6 added about 0.12/0.17 dB RMS reduction over conservative3;
+this does not establish better tone or SNR. Existing full-take conservative media
+and main report remain unchanged. Durable restoration-comparison receipt exists;
+new Linear D0/goal comments have prefixes 5d7d5b17/0c101757, with receipt publication
+pending root. Source/runtime/preview and listening acceptance remain distinct.
+
+Goal remains **active**, unchanged planned end **2026-10-06 06:49:34 UTC**.
+This documentation lane freezes after the explicit ownership/status handoff;
+root owns selective receipt publication and subsequent actual preview/pilot facts.
+
+Subsequent root readback: calibration pilot 61928 has completed ten of twelve
+unseeded cases; four pitch jobs are next. Documentation/restoration-comparison
+commit 04f6484 is being pushed, not yet treated here as a verified new head.
+Root narrowly released the official Basic Pitch **known-hash wheel archive only**
+for acquisition/inspection qualification; no environment install, model registry,
+comparator worker or inference. Existing analysis venv stays preserved.
+The exact new user status prompt was appended to the prompt archive, with root's
+approximately 22:59 UTC observation distinguished from an unavailable message clock.
+
+## User restoration/product steering and completed calibration — 23:14:58 UTC
+
+Four exact new user prompts were appended to the archive without rewriting old
+blocks. No timestamps were supplied. User says existing cleaned video needs
+stronger denoising, identifies opening noise capture/large box-fan context,
+requests normalization/compression/clarity and named guitar-tone references,
+and asks for practice/product axioms in README/AGENTS. Reference/capture context
+is operator-stated; the claimed market gap remains a research hypothesis.
+Root owns program/capture-context.json and README/AGENTS/PROJECT updates;
+instrument registry is unchanged. User has not paused workstreams or the goal.
+
+Root transferred media.py/test_media.py and new captured8/captured12/
+captured8-clarity profiles plus RESTORATION_REFINEMENT_LANE to rhythm_analysis.
+Old bypass/conservative3/mild6 profiles are frozen. Root selects source-bound
+opening interval and renders; supplied capture does not prove guitar/click absence.
+New EQ/compression must preserve low register, stage identity, support/timing
+limitations and comparative artifacts. Root prioritizes AUDIO FIRST, then marked
+full-take render. clip_baseline owns primary GUITAR_TONE_REFERENCES/dated receipt;
+plan_review owns read-only PRACTICE_LANDSCAPE/market-comparison receipt.
+
+Actual calibration completed **275.72 s**, **12/12 cases + 4/4 pitch jobs/30 source
+seconds**; independent structural audit passed. Measurements remain weak:
+phrase F1 approximately 0.143, zero recurrence matches, two false-voicing alerts.
+These are retained failure/quality baselines, not real-take phrase/note accuracy.
+Twenty-two-tool source publication is still pending; source/schema/codec/runtime
+and accuracy claims remain distinct. Remote 04f6484 documentation verification is
+pending root's exact readback at this checkpoint.
+
+Marked-video worker reports twelve-test/tiny-VFR smoke readiness; actual source
+validation selects 40 flags composed into 33 uncertain callouts. **No full-take
+marked render yet.** Native/direct-object checks passed, but native source is now
+frozen and generic fullState setter remains **unqualified (-100)**; no actual host.
+Official Basic Pitch wheel/ONNX bytes qualification completed without environment
+installation, model registration or inference. Further admission remains root's
+decision. Existing analysis venv and source/main report remain preserved.
+
+Goal remains active, unchanged planned end **2026-10-06 06:49:34 UTC**.
+This tracking lane freezes after handoff; root owns selective publication and
+subsequent actual audio/marked-render/pilot accuracy receipts.
+
+## Spectrogram / PCEN lane assignment — 23:24:40 UTC
+
+The exact new user prompt about their xod-spectrogram mel/PCEN work was appended
+verbatim to the prompt archive. No user-message timestamp was supplied; this is
+the documentation checkpoint clock, not an invented message time.
+Root assigned the named `/root/xod_spectrogram` lane for research and bounded
+adoption ablation of the existing GitHub/package work. Establish source/license/
+dependency identity and compare mel/PCEN behavior against supported analysis
+before claiming reuse or improvement. Implementation-file ownership follows
+root's isolated lane assignment; other shared/sibling source remains untouched.
+
+This independent investigation retains stronger AUDIO FIRST and the full marked
+video as delivery priorities. No package adoption, DSP improvement, new hook or
+actual ablation result is claimed by assignment. Goal remains active to the same
+**2026-10-06 06:49:34 UTC** horizon with no added weekly hours. Tracking refreezes
+after handoff for root publication.
+
+## Frozen twenty-three-tool source and stronger actual renders — 23:36:26 UTC
+
+Locked local Python integration passed **387/387 tests in 130.097 seconds, no
+skips**, independently confirmed from artifacts/root-23-tool-tests.log. Root also
+reports **60 targeted hook checks (58+2)** and 23 skill/live-prompt checks. This
+current twenty-three-tool source is frozen and **not yet published**; private
+04f6484 documentation head retains the twenty-tool published source. Historical
+291-test/hosted receipts do not qualify the new unpublished revision.
+
+Root's native rerun receipt artifacts/root-au-integration-check.json at
+**23:26:01 UTC** has status `native_checks_passed_not_au_host_qualified`, independently
+read. This is native/direct-object evidence without native-host acceptance.
+Xod/PCEN research is frozen: golden checks passed, but defaults weakened the
+measured metric; no package reuse/adoption is claimed.
+
+Three stronger actual runs completed: captured8 `20261005T232627Z-eb7bead2ae74`,
+captured12 `20261005T232714Z-04afdec97f2b`, captured8-clarity
+`20261005T232741Z-2b5dc43fd009`. Main clarity WAV measured **−18.00 LUFS/−1.75 dBTP**;
+validated cleaned-video audio **−18.01 LUFS/−1.76 dBTP**. Source picture is preserved:
+3631 packet/3621 decoded-frame evidence. Fresh five selected graph artifacts are
+verified by provenance; fourteen media/analysis stages and separately validated
+export appear in aggregate completed-unreviewed demo 15 receipt, zero failures.
+The checkpoint writer independently read aggregate stage count/status and 180 flags.
+Low 20–45 Hz active-material power changed about 2–3 dB. This may include guitar;
+listen for noise reduction, palm-mute weight and clarity before accepting a master.
+No accepted master/listening or error-correctness claim is made.
+
+Root's **full marked render is RUNNING**, owned exec 80948, on new clarity run's
+marked-preview child. The writer read actual selection.json: **24 selected markers,
+156 excluded, 25 composed callouts**, performance_issue_confirmed false and
+listening_accepted false. These counts are verified selection, not completion or
+visual acceptance. Old latest/main pointer remains preserved by no-latest while
+the marked guard is live. Root owns final render verification/publication.
+
+Goal remains active to unchanged **2026-10-06 06:49:34 UTC**. Tracking refreezes
+for root's selected publication; other source/codec/schema/native/runtime and
+listening states remain explicit.
+
+## Published 23 source, completed marked render and team reattachment — 23:44:06 UTC
+
+Exact user prompts “proceed in full force” and “reattach all subagents” were
+appended verbatim; no message timestamps supplied. Root resumes saved bounded
+team tasks after the usage error, preserving existing work. This is not a pause,
+reset horizon, accepted master or implicit cross-lane source ownership transfer.
+
+Root verified **PRIVATE/signature-valid** source
+**`eb378bd33e6c1ab408245e58f93430a495efbf6b`** published with 23 hooks/skills.
+Hosted CI
+[37389573784](https://github.com/Jesssullivan/video-utils/actions/runs/37389573784)
+**SUCCESS**: 387 Python discovered/366 passed/21 optional skips in 61.537 seconds,
+seven Rust tests and secret scan passed. Local 387/387 no-skips 130.097-second
+receipt remains separate optional-runtime evidence. Historical 20-tool/291-test
+source and CI do not substitute for this new exact revision.
+
+Root marked-render exec 80948 completed **exit 0** on captured8-clarity run
+`20261005T232741Z-2b5dc43fd009`. Output marked-preview/marked-video.mov is
+**155,215,112 bytes**, SHA256
+**`13b9d18b80be37de954530f3c1220c256a061136921ffaf3c68f7e677b55dc90`**.
+The writer independently read outcome status `marked_review_preview_verified_unreviewed`,
+24 selected markers/25 composed callouts and the full output hash. 3621 VFR frame
+PTS and AAC packet/decoded PCM identity were preserved. This resolves pending
+render execution, **not visual or listening acceptance**. The old latest pointer
+remains preserved pending root update. Labels remain uncertain review hypotheses.
+
+All existing agents are being reattached to bounded next tasks by root; exact
+file ownership/dependencies follow those assignments, not assumptions that every
+old task is active. Goal remains active with unchanged end
+**2026-10-06 06:49:34 UTC**, same weekly allocation. Tracking refreezes after this
+handoff for root's selected publication and subsequent visual/listening receipts.

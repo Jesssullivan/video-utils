@@ -114,6 +114,18 @@ review run_dir port="8765":
 au-spike-check:
     python3 native/au-spike/check.py
 
+# Inspect a native AUv3 bundle plan; no launch, installation or registration.
+au-package-plan:
+    python3 native/au-spike/packaging/build.py --dry-run
+
+# Metadata/signature contract checks; independent from Logic acceptance.
+au-package-check:
+    python3 native/au-spike/packaging/tests.py
+
+# Explicit development bundle build; no host activation.
+au-package-build:
+    python3 native/au-spike/packaging/build.py --build
+
 # Optional analysis interpreter is explicit; sampled notes are hypotheses.
 pitch input run_dir seconds="20":
     "${VIDEO_UTILS_ANALYSIS_PYTHON:-python3}" scripts/pitch.py {{quote(input)}} --run-dir {{quote(run_dir)}} --max-analysis-seconds {{quote(seconds)}}

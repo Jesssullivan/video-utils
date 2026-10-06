@@ -124,6 +124,8 @@ overwrite the input.
 | `just corpus MANIFEST [LOCAL_ROOT]` | Validate sparse review metadata without reading audio |
 | `just au-state-check` | Check isolated native parameter-state behavior |
 | `just au-spike-check` | Check the compiled Darwin development scaffold |
+| `just au-package-plan` / `just au-package-check` | Inspect the AUv3 development bundle plan and contracts |
+| `just au-package-build` | Build a development bundle without installation or host activation |
 | `just au-automation-check` | Check isolated native event/ramp behavior |
 
 The conservative demo target is **−18 LUFS integrated / −1.5 dBTP**, with source
