@@ -4,7 +4,7 @@
   "head": "dd39657ff60fd2a3d7edb2ace23e3063692de440",
   "base_commit": "61e4a2f48b5a99179ac185c1c8816d2a0f429fd4",
   "worktree": "/Users/jess/git/video-utils/.local/sprint2/rhythm_clicks",
-  "state": "implemented_tested_audited",
+  "state": "implemented_tested_audited_receipt_corrected",
   "files": [
     {
       "path": "docs/agent-notes/sprints/20261006-s2/rhythm_clicks-pin-resolution.json",
@@ -24,7 +24,10 @@
     "failed": 0,
     "errors": 0,
     "skipped": 21,
-    "seconds": 118.8
+    "seconds": 50.7,
+    "run": 57,
+    "rerun_at": "2026-10-06",
+    "rerun_reason": "phase4 repair: owned modules rerun after receipt correction (receipt-only change)"
   },
   "metrics": [
     {
@@ -99,10 +102,35 @@
     },
     {
       "name": "P4_real_take_phrases",
-      "numerator": 26,
-      "denominator": 26,
+      "claim_class": "M-real",
+      "status": "unvalidated_until_operator_spot_check",
       "unit": "phrases",
-      "claim_class": "measured"
+      "arms": [
+        {
+          "arm": "reference_conditioned_alignment_candidate (arrangement spans)",
+          "phrase_count": 43,
+          "measured": 38,
+          "abstained": 5,
+          "abstain_reasons": {
+            "fewer_than_4_click_proximal_onsets": 5
+          },
+          "artifact": "artifacts/s2/rhythm_clicks/phrase-timing/20261006T122429Z-173f5f0a0e04/phrase-timing.json",
+          "artifact_sha256": "d75baa00a219e9bbd8bb539cb40e8bcb908d97ff7518c8a01f265982eb20a66f"
+        },
+        {
+          "arm": "automatic_review_span (phrases.json proposed_review_spans)",
+          "phrase_count": 54,
+          "measured": 18,
+          "abstained": 36,
+          "abstain_reasons": {
+            "fewer_than_4_click_proximal_onsets": 36
+          },
+          "artifact": "artifacts/s2/rhythm_clicks/phrase-timing/20261006T122430Z-72058cbed827/phrase-timing.json",
+          "artifact_sha256": "b68524368aa83c9521b7fe3367d4a2db06e93248783dde9096a0957b565f88a2"
+        }
+      ],
+      "source_receipt": "docs/agent-notes/sprints/20261006-s2/rhythm_clicks-real-take.json#P4_phrase_timing",
+      "note": "Coverage counts only (measured = timing computed; abstained = explicit abstention). Not a pass rate, not performance grading, no expected-rhythm reference. Supersedes the erroneous 26/26 'measured' entry at 1e68e54, which matched no receipt or artifact."
     },
     {
       "name": "A1_isolated_arm",
@@ -141,10 +169,45 @@
     },
     {
       "name": "G1_existing_tests",
-      "numerator": 123,
-      "denominator": 123,
-      "unit": "tests",
-      "claim_class": "measured"
+      "claim_class": "measured",
+      "unit": "test executions",
+      "run": 123,
+      "passed": 107,
+      "skipped": 16,
+      "failed": 0,
+      "errors": 0,
+      "breakdown": [
+        {
+          "modules": "test_rhythm",
+          "run": 29,
+          "passed": 27,
+          "skipped": 2,
+          "skip_reason": "librosa optional; sealed D3"
+        },
+        {
+          "modules": "test_phrase_timing",
+          "run": 10,
+          "passed": 9,
+          "skipped": 1,
+          "skip_reason": "sealed P2"
+        },
+        {
+          "modules": "test_clicks+test_click_attack_ab (.venv)",
+          "run": 18,
+          "passed": 17,
+          "skipped": 1,
+          "skip_reason": "sealed A/B"
+        },
+        {
+          "modules": "test_demo+test_dag+test_clicks (stdlib)",
+          "run": 66,
+          "passed": 54,
+          "skipped": 12,
+          "skip_reason": "numpy-gated"
+        }
+      ],
+      "source_receipt": "docs/agent-notes/sprints/20261006-s2/rhythm_clicks-implementation.json",
+      "note": "Skipped tests are not passes. test_clicks executes in two of the four runs, so 123 counts executions, not unique tests. test_demo/test_dag were not rerun in this repair; their 12 numpy-gated skips stay unexercised under stdlib python3. Supersedes the 123/123 entry at 1e68e54."
     }
   ],
   "unknowns": [
@@ -160,7 +223,7 @@
     {
       "file": "scripts/frozen/rhythm_264b723c.py (new)",
       "change": "mkdir -p scripts/frozen && git show 4b87484:scripts/rhythm.py > scripts/frozen/rhythm_264b723c.py ; verify sha256 == 264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9",
-      "why": "Main now carries the lane's rhythm.py (cd719914…) while the S1 pins still expect 264b723c…. A byte-identical frozen copy restores S1 pin verification without editing the PINS values."
+      "why": "Main now carries the lane's rhythm.py (cd719914\u2026) while the S1 pins still expect 264b723c\u2026. A byte-identical frozen copy restores S1 pin verification without editing the PINS values."
     },
     {
       "file": "scripts/phrase_proposal_s1.py",
@@ -194,8 +257,19 @@
       "(2) No forbidden writes: CONFIRMED. I grepped the lane diff of scripts/ for Documents/Desktop/tools.json/tool_api/workflow.just/subprocess/urlopen/download/highpass/notch/daemon/Popen and found no additions. Default outputs go to artifacts/s2/rhythm_clicks/..., which is gitignored by .gitignore:3 /artifacts/.",
       "(4) Tests reproduced. With stdlib python3, the 4 owned modules ran 57 tests in 128.2 s: OK, skipped=21, 36 passed. That matches the claim. The 21 skips are 18 'optional locked analysis dependencies absent', 1 librosa and 2 sealed (D3, P2).",
       "(6) Independent arithmetic on the real-take analysis.json: drift_ppm = 1e6*r/P_ref = 1.6706336, exactly as reported. The period change is 0.1556 ms over 137.85 s, matching the 0.16 ms / 138 s claim. ppm/SE = 4.11 > 3, which matches the strong_drift_evidence rule.",
-      "(Root-owned state on main): Main 736f406 already contains this lane's scripts/rhythm.py (sha cd719914…, identical to the worktree) and has no scripts/frozen. That supports the lane's report that the S1 hash pins are broken on main. RHYTHM_S2.md §12.1 and rhythm_clicks-pin-resolution.json document this. Root must apply root_patch or record a decision to accept the break. Merging the remaining docs-only commit dd39657 neither causes nor fixes it."
+      "(Root-owned state on main): Main 736f406 already contains this lane's scripts/rhythm.py (sha cd719914\u2026, identical to the worktree) and has no scripts/frozen. That supports the lane's report that the S1 hash pins are broken on main. RHYTHM_S2.md \u00a712.1 and rhythm_clicks-pin-resolution.json document this. Root must apply root_patch or record a decision to accept the break. Merging the remaining docs-only commit dd39657 neither causes nor fixes it."
     ],
     "must_fix": []
-  }
+  },
+  "corrections": [
+    {
+      "date": "2026-10-06",
+      "phase": "phase4_repair",
+      "items": [
+        "P4 restated from real-take receipt and artifact summaries (43:38/5 and 54:18/36), labelled M-real and unvalidated_until_operator_spot_check",
+        "G1 split into run/passed/skipped (123/107/16); skips no longer counted as passes",
+        "tests block refreshed from owned-module rerun: 57 run, 36 passed, 21 skipped, 0 failed"
+      ]
+    }
+  ]
 }
