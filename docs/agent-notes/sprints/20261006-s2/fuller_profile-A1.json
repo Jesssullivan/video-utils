@@ -1,0 +1,188 @@
+{
+  "accepted_audio_identity": "byte_identical",
+  "authority": "S2 lane contract; R-HOOK-CONVERGENCE-20261004 / R-N11 / R-N13",
+  "bound_profile_review_text_source": "accepted run manifest profile.noise_capture_review (verbatim)",
+  "bound_profile_sha256": "5881819fe728ee9236a62845e0c06f3bedaa2e0c5f11889a20b1e905a4f1ff06",
+  "capture_click_status": "unknown",
+  "capture_music_status": "unknown",
+  "capture_noise_only_verified": false,
+  "chain_identity": {
+    "acceptance_receipt": "docs/agent-notes/2026-10-06-fuller-listening-acceptance.json",
+    "acceptance_scope": "Operator QuickTime feedback on the exact accepted FULLER audio only; no sync, analysis accuracy, master adoption or other-take claim.",
+    "accepted_audio_identity": "byte_identical",
+    "accepted_export_identity": "not_compared",
+    "chain_class": "identical_accepted_fuller_v1",
+    "checks": {
+      "C_equal": true,
+      "C_matches_template_at_binding": true,
+      "L_equal": true,
+      "N_command_count_equal": true,
+      "N_prefix_equal": true,
+      "P_equal": true,
+      "capture_samples_equal": true,
+      "ffmpeg_version_equal": true,
+      "native_pcm_equal": true,
+      "source_equal": true
+    },
+    "listening_acceptance": "accepted_fuller_v1_by_operator_2026-10-06",
+    "listening_acceptance_reason": "identical_chain_and_byte_identical_audio",
+    "observed": {
+      "capture_samples": [
+        180810,
+        218295
+      ],
+      "cleaned_sha256": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009",
+      "delay_samples": 1102,
+      "export_video_sha256": null,
+      "ffmpeg_version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+      "loudnorm_command_count": 6,
+      "native_pcm": {
+        "channels": 1,
+        "sample_count": 6657385,
+        "sample_rate": 44100
+      },
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6"
+    }
+  },
+  "composite_listening_review": "not_performed",
+  "composite_visual_review_performed": false,
+  "default_profile_changed_by_lane": false,
+  "driver_sha256": "12e767ca4964087bee361373b351c30d41a18aeb292186f77d1542330feedc02",
+  "driver_source": "\"\"\"A1 preregistered reproduction (FULLER_S2.md section 9). One arm, no free parameters.\"\"\"\nimport array, hashlib, importlib.util, json, math, signal, subprocess, sys, time\nfrom datetime import datetime, timezone\nfrom pathlib import Path\n\nLANE = Path('/Users/jess/git/video-utils/.local/sprint2/fuller_profile')\nMAIN = Path('/Users/jess/git/video-utils')\nACCEPTED_RUN = MAIN / 'artifacts/runs/20261006T041633Z-990aa1bd6737'\nOUT = LANE / 'artifacts/s2/fuller_profile/repro-A1'\nRECEIPT = LANE / 'docs/agent-notes/sprints/20261006-s2/fuller_profile-A1.json'\nFREEZE = json.loads((LANE / 'docs/agent-notes/sprints/20261006-s2/fuller_profile-phase1-freeze.json').read_text())\nTRUTH = FREEZE['accepted_truth']\nsys.path.insert(0, str(LANE / 'scripts'))\nspec = importlib.util.spec_from_file_location('a1_media', LANE / 'scripts/media.py')\nmedia = importlib.util.module_from_spec(spec); spec.loader.exec_module(media)\nimport marked_compact as compact\n\n\ndef sha(path):\n    h = hashlib.sha256()\n    with open(path, 'rb') as f:\n        for b in iter(lambda: f.read(1 << 20), b''):\n            h.update(b)\n    return h.hexdigest()\n\n\ndef protected():\n    return {name: (sha(name) if Path(name).is_file() else None) for name in FREEZE['protected_before_sha256']}\n\n\ndef samples(path):\n    out = subprocess.run([media.executable('ffmpeg'), '-v', 'error', '-nostdin', '-threads', '2', '-i', str(path),\n                          '-map', '0:a:0', '-c:a', 'pcm_f32le', '-f', 'f32le', '-'], capture_output=True,\n                         check=True, timeout=120).stdout\n    values = array.array('f'); values.frombytes(out)\n    return values\n\n\nstarted = time.monotonic()\nsignal.signal(signal.SIGALRM, lambda *a: (_ for _ in ()).throw(TimeoutError('A1 600 s bound exceeded')))\nsignal.alarm(600)\nreceipt = {'schema_version': 1, 'lane': 'fuller_profile', 'sprint': '20261006-s2', 'linear': 'TIN-5600',\n           'experiment': 'A1', 'authority': 'S2 lane contract; R-HOOK-CONVERGENCE-20261004 / R-N11 / R-N13',\n           'preregistration': 'docs/spec/sprints/FULLER_S2.md section 9 (sealed in b4e0196)',\n           'sealed_predictions': {k: v for k, v in FREEZE['sealed_predictions'].items() if k.startswith('A1')},\n           'started_utc': datetime.now(timezone.utc).isoformat(), 'driver_source': Path(__file__).read_text(),\n           'driver_sha256': sha(__file__), 'media_sha256': sha(LANE / 'scripts/media.py'),\n           'profile_sha256': sha(LANE / 'profiles/fuller.json'), 'threads': 2, 'timeout_seconds': 600,\n           'protected_before_sha256': protected()}\nreceipt['protected_before_matches_freeze'] = receipt['protected_before_sha256'] == FREEZE['protected_before_sha256']\naccepted_manifest = json.loads((ACCEPTED_RUN / 'manifest.json').read_text())\nsource = Path(accepted_manifest['source']['path'])\ntemplate = json.loads((LANE / 'profiles/fuller.json').read_text())\nbound = {k: v for k, v in template.items() if k != 'noise_capture_required'}\nbound.update(noise_capture_seconds=[4.1, 4.95], noise_capture_authorized=True,\n             noise_capture_review=accepted_manifest['profile']['noise_capture_review'],\n             noise_capture_source_sha256=TRUTH['source_sha256'])\nOUT.mkdir(parents=True, exist_ok=False)\nprofile_path = OUT / 'bound-fuller-A1.json'\nprofile_path.write_text(json.dumps(bound, indent=2) + '\\n')\nreceipt['bound_profile_sha256'] = sha(profile_path)\nreceipt['bound_profile_review_text_source'] = 'accepted run manifest profile.noise_capture_review (verbatim)'\nmedia.ROOT = OUT\ntry:\n    manifest = media.clean(source, profile_path)\nexcept BaseException as exc:\n    signal.alarm(0)\n    receipt.update(status='A1_render_failed', error=str(exc)[:2000], elapsed_seconds=time.monotonic() - started,\n                   protected_after_sha256=protected())\n    RECEIPT.write_text(json.dumps(receipt, indent=2, sort_keys=True) + '\\n')\n    raise\nchain = compact.extract_chain(manifest)\nfilters = TRUTH['filters']\nprimary = {'C_equal': chain['C'] == filters['C_capture'], 'L_equal': chain['L'] == filters['L_latency'],\n           'P_equal': chain['P'] == filters['P_post'], 'N_prefix_equal': chain['N_prefixes'] == [filters['N_prefix']],\n           'N_command_count': chain['N_count'],\n           'capture_samples': manifest['noise_capture']['selected_samples'],\n           'delay_samples': manifest['noise_capture']['filter_delay_samples_removed']}\nprimary['pass'] = (primary['C_equal'] and primary['L_equal'] and primary['P_equal'] and primary['N_prefix_equal']\n                   and primary['capture_samples'] == TRUTH['capture_samples'] and primary['delay_samples'] == 1102)\nrun = Path(manifest['run_dir'])\nstages = {}\nfor name, expected in TRUTH['output_sha256'].items():\n    actual = manifest['output_sha256'][name]\n    row = {'expected_sha256': expected, 'observed_sha256': actual, 'byte_identical': actual == expected}\n    if not row['byte_identical']:\n        a, b = samples(run / name), samples(ACCEPTED_RUN / name)\n        row['sample_count_equal'] = len(a) == len(b)\n        n = min(len(a), len(b))\n        diff = [a[i] - b[i] for i in range(n)]\n        row['max_abs_difference'] = max(abs(x) for x in diff) if diff else None\n        rms = math.sqrt(sum(x * x for x in diff) / n) if n else None\n        row['rms_difference_dbfs'] = (20 * math.log10(rms) if rms else None)\n    stages[name] = row\nidentical = sum(row['byte_identical'] for row in stages.values())\nidentity = compact.chain_identity(manifest, manifest['output_sha256']['cleaned.wav'])\nsignal.alarm(0)\nafter = protected()\nreceipt.update(\n    status='A1_completed', finished_utc=datetime.now(timezone.utc).isoformat(),\n    elapsed_seconds=time.monotonic() - started, run_dir=str(run), manifest_sha256=sha(run / 'manifest.json'),\n    ffmpeg_version=manifest['tools']['ffmpeg'], source_sha256=manifest['source']['sha256'],\n    primary=primary, secondary={'byte_identical': f'{identical}/{len(stages)}', 'stages': stages},\n    measured_loudness_cleaned={k: manifest['loudness']['cleaned']['output'].get(k) for k in ('input_i', 'input_tp')},\n    chain_identity=identity,\n    accepted_audio_identity='byte_identical' if stages['cleaned.wav']['byte_identical'] else 'differs',\n    listening_acceptance=identity['listening_acceptance'],\n    listening_scope='No listening occurred in A1. The accepted label is carried only by the exact chain and byte-identical audio rule; this is a reproduction measurement, not a new listening claim.',\n    protected_after_sha256=after, protected_unchanged=after == receipt['protected_before_sha256'],\n    capture_noise_only_verified=False, capture_music_status='unknown', capture_click_status='unknown',\n    physical_audio_video_sync_verified=False, fundamental_32hz_restoration_claimed=False,\n    per_passage_level_matched=False, composite_visual_review_performed=False, composite_listening_review='not_performed',\n    markers_are_analysis_of_audio_branch=None,\n    markers_are_analysis_of_audio_branch_reason='A1 renders audio only; no markers involved',\n    performance_issue_confirmed=False, note_correctness_assessed=False, master_adopted=False, latest_promoted=False,\n    default_profile_changed_by_lane=False, native_editor_import_verified=False, tone_suitability_other_takes='unknown',\n    output_location='gitignored lane artifacts/s2/fuller_profile/repro-A1 (not artifacts/runs of the main checkout)')\nRECEIPT.write_text(json.dumps(receipt, indent=2, sort_keys=True) + '\\n')\nprint(json.dumps({'status': receipt['status'], 'primary_pass': primary['pass'],\n                  'secondary': receipt['secondary']['byte_identical'], 'listening_acceptance': receipt['listening_acceptance'],\n                  'protected_unchanged': receipt['protected_unchanged'], 'elapsed': receipt['elapsed_seconds']}))\n",
+  "elapsed_seconds": 462.45012612499704,
+  "experiment": "A1",
+  "ffmpeg_version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "finished_utc": "2026-10-06T11:59:39.529466+00:00",
+  "fundamental_32hz_restoration_claimed": false,
+  "lane": "fuller_profile",
+  "latest_promoted": false,
+  "linear": "TIN-5600",
+  "listening_acceptance": "accepted_fuller_v1_by_operator_2026-10-06",
+  "listening_scope": "No listening occurred in A1. The accepted label is carried only by the exact chain and byte-identical audio rule; this is a reproduction measurement, not a new listening claim.",
+  "manifest_sha256": "1b60b97b2f5ab63fdba5d727974074d06703642daaaed5779fc7c2825008312c",
+  "markers_are_analysis_of_audio_branch": null,
+  "markers_are_analysis_of_audio_branch_reason": "A1 renders audio only; no markers involved",
+  "master_adopted": false,
+  "measured_loudness_cleaned": {
+    "input_i": "-18.01",
+    "input_tp": "-1.75"
+  },
+  "media_sha256": "91443154251888c9e74670790766b289a2618f85f3be806d60ca26882faa9d94",
+  "native_editor_import_verified": false,
+  "note_correctness_assessed": false,
+  "output_location": "gitignored lane artifacts/s2/fuller_profile/repro-A1 (not artifacts/runs of the main checkout)",
+  "per_passage_level_matched": false,
+  "performance_issue_confirmed": false,
+  "physical_audio_video_sync_verified": false,
+  "preregistration": "docs/spec/sprints/FULLER_S2.md section 9 (sealed in b4e0196)",
+  "primary": {
+    "C_equal": true,
+    "L_equal": true,
+    "N_command_count": 6,
+    "N_prefix_equal": true,
+    "P_equal": true,
+    "capture_samples": [
+      180810,
+      218295
+    ],
+    "delay_samples": 1102,
+    "pass": true
+  },
+  "profile_sha256": "33da74c7d1bda246b6349252e4374d3674e76356dd85d72a83b1389988d04a5c",
+  "protected_after_sha256": {
+    "/Users/jess/Desktop/video_util_mvp_demo_1.mp4": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10",
+    "/Users/jess/git/video-utils/artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2",
+    "/Users/jess/git/video-utils/artifacts/experiments/accepted-fuller-compact-20261006T0441/receipt.json": "4809e1ce39c412dbe223801e2b74435c12ac6e9f1eb971752f4fe132d30bb236",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/arrangement-reference-20261006/arrangement-markers.json": "b82c447dd48dabf6ed6bcc27b9784de34f73c4bfc2316b71d6d59638df630557",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/callouts.ass": "90c3de715bf89e269f0b971eaa453dcc22ad424890f93f0fef6692dbf06bfa6b",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/marked-video.mov": "857285fd307ee95e3fedc84462f186ff1ed3deaf1cb96b2226167928e3ae89b3",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/outcome.json": "3a8eacb79586a5946a1f013d1dc922ae10b9a875edd2b065514d228077d1821f",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/selection.json": "0a14edb7c7d24856d86b57d0e7566bc1c4d2d7a016f0050956f556778d6c0da0",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/.video-frame-count-cache.json": "41a50baac8ffe3e986725f0c17f19a79b7cc1b872ebd4efaf17b27e6bc7f0ae5",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/application-receipt.json": "ab1f31dfaefff2d781f4d8b20ebeb9a8a3575f77b2b42926d98a96f9c5ae7e48",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/applied-profile.json": "a1229c84f1c9c1731c4d6733b4d3516301b39947bf9e325d7e663f9437c4b826",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/baseline.wav": "2c600e9c50457a75f99c2a15ba2dcd1ab7554c5974ad25778db6e210267eccb9",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/cleaned.wav": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/denoised.wav": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/export/cleaned-video.mov": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/export/outcome.json": "fe1b1009d7d56b54fedd8589aced49270a8bb6c37957df52b1e38d688b35f13d",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/export/photoboof_demo_lega.mov": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/manifest.json": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/processed.wav": "bd41286de40e20d4a4f0ccb1881b333168622ec71ba5f3967e276625e9c4b5d1",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/residue.wav": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/source.wav": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a"
+  },
+  "protected_before_matches_freeze": true,
+  "protected_before_sha256": {
+    "/Users/jess/Desktop/video_util_mvp_demo_1.mp4": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10",
+    "/Users/jess/git/video-utils/artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2",
+    "/Users/jess/git/video-utils/artifacts/experiments/accepted-fuller-compact-20261006T0441/receipt.json": "4809e1ce39c412dbe223801e2b74435c12ac6e9f1eb971752f4fe132d30bb236",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/arrangement-reference-20261006/arrangement-markers.json": "b82c447dd48dabf6ed6bcc27b9784de34f73c4bfc2316b71d6d59638df630557",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/callouts.ass": "90c3de715bf89e269f0b971eaa453dcc22ad424890f93f0fef6692dbf06bfa6b",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/marked-video.mov": "857285fd307ee95e3fedc84462f186ff1ed3deaf1cb96b2226167928e3ae89b3",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/outcome.json": "3a8eacb79586a5946a1f013d1dc922ae10b9a875edd2b065514d228077d1821f",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/selection.json": "0a14edb7c7d24856d86b57d0e7566bc1c4d2d7a016f0050956f556778d6c0da0",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/.video-frame-count-cache.json": "41a50baac8ffe3e986725f0c17f19a79b7cc1b872ebd4efaf17b27e6bc7f0ae5",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/application-receipt.json": "ab1f31dfaefff2d781f4d8b20ebeb9a8a3575f77b2b42926d98a96f9c5ae7e48",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/applied-profile.json": "a1229c84f1c9c1731c4d6733b4d3516301b39947bf9e325d7e663f9437c4b826",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/baseline.wav": "2c600e9c50457a75f99c2a15ba2dcd1ab7554c5974ad25778db6e210267eccb9",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/cleaned.wav": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/denoised.wav": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/export/cleaned-video.mov": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/export/outcome.json": "fe1b1009d7d56b54fedd8589aced49270a8bb6c37957df52b1e38d688b35f13d",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/export/photoboof_demo_lega.mov": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/manifest.json": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/processed.wav": "bd41286de40e20d4a4f0ccb1881b333168622ec71ba5f3967e276625e9c4b5d1",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/residue.wav": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/source.wav": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a"
+  },
+  "protected_unchanged": true,
+  "run_dir": "/Users/jess/git/video-utils/.local/sprint2/fuller_profile/artifacts/s2/fuller_profile/repro-A1/artifacts/runs/20261006T115208Z-8e61cf4e71d5",
+  "schema_version": 1,
+  "sealed_predictions": {
+    "A1_primary": "C,L,P,N byte-equal; capture samples [180810,218295); delay 1102",
+    "A1_secondary": "6/6 WAV byte-identical (unknown until run)"
+  },
+  "secondary": {
+    "byte_identical": "6/6",
+    "stages": {
+      "baseline.wav": {
+        "byte_identical": true,
+        "expected_sha256": "2c600e9c50457a75f99c2a15ba2dcd1ab7554c5974ad25778db6e210267eccb9",
+        "observed_sha256": "2c600e9c50457a75f99c2a15ba2dcd1ab7554c5974ad25778db6e210267eccb9"
+      },
+      "cleaned.wav": {
+        "byte_identical": true,
+        "expected_sha256": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009",
+        "observed_sha256": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009"
+      },
+      "denoised.wav": {
+        "byte_identical": true,
+        "expected_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+        "observed_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd"
+      },
+      "processed.wav": {
+        "byte_identical": true,
+        "expected_sha256": "bd41286de40e20d4a4f0ccb1881b333168622ec71ba5f3967e276625e9c4b5d1",
+        "observed_sha256": "bd41286de40e20d4a4f0ccb1881b333168622ec71ba5f3967e276625e9c4b5d1"
+      },
+      "residue.wav": {
+        "byte_identical": true,
+        "expected_sha256": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc",
+        "observed_sha256": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc"
+      },
+      "source.wav": {
+        "byte_identical": true,
+        "expected_sha256": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a",
+        "observed_sha256": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a"
+      }
+    }
+  },
+  "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "sprint": "20261006-s2",
+  "started_utc": "2026-10-06T11:51:57.080724+00:00",
+  "status": "A1_completed",
+  "threads": 2,
+  "timeout_seconds": 600,
+  "tone_suitability_other_takes": "unknown"
+}

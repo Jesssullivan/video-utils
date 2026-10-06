@@ -1,0 +1,228 @@
+{
+  "lane": "fuller_profile",
+  "branch": "sprint/20261006-s2/fuller_profile",
+  "head": "94440e725d9e99af051e1dd488bf95166b1dfa6b",
+  "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint2/fuller_profile",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/fuller_profile-A1.json",
+      "sha256": "081bbf5e0d8431723eca78023e556cd4d29e179dc87dddd1e6229fc2e9941299",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/fuller_profile-A2.json",
+      "sha256": "a01ba463eccad042db36c271e092cc25c22b9848fce7ecaa833e73d86ca74d5d",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/fuller_profile-phase1-freeze.json",
+      "sha256": "f18567e47f3bf47a7d4f571ef4fb6488b3bd7539beeb808514eadc4c49e1d46f",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/fuller_profile-phase2-completion.json",
+      "sha256": "b559f0d1cec8db21e5eae324d246a272ef55441c7ac15f2529afe828690fea7f",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/fuller_profile-root-requests.json",
+      "sha256": "9db5c64483084f670d7d1640bea11677d2c5553907c30075b8755482a32dfcc5",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/sprints/FULLER_S2.md",
+      "sha256": "6872de7e8372b2e089f7f283bf20ef6da30f40c7603321e4f00342845c445f35",
+      "kind": "spec"
+    },
+    {
+      "path": "profiles/fuller.json",
+      "sha256": "33da74c7d1bda246b6349252e4374d3674e76356dd85d72a83b1389988d04a5c",
+      "kind": "data"
+    },
+    {
+      "path": "scripts/marked_compact.py",
+      "sha256": "30ceb424108663d3ee3a0b017e8ee5b04fc211b7e883f440dd73f8030bf9acd1",
+      "kind": "source"
+    },
+    {
+      "path": "tests/test_fuller_profile.py",
+      "sha256": "dceb2664e43358c0aa42bba5c19b38de7db6cbdf72cef8c4bffe7d9df0dc19bc",
+      "kind": "test"
+    },
+    {
+      "path": "tests/test_marked_compact.py",
+      "sha256": "ed5799fd921dcab57701b8f9bb41ebe55e19021ab7cd72712ff33f1b4176440a",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_fuller_profile test_marked_compact -v",
+    "discovered": 30,
+    "passed": 27,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 3,
+    "seconds": 317.4
+  },
+  "metrics": [
+    {
+      "name": "M1_control_fidelity",
+      "numerator": 19,
+      "denominator": 19,
+      "unit": "controls",
+      "claim_class": "measured"
+    },
+    {
+      "name": "M2_filter_text_identity_L_P_N",
+      "numerator": 3,
+      "denominator": 3,
+      "unit": "filter_strings",
+      "claim_class": "measured"
+    },
+    {
+      "name": "M2_template_at_accepted_equals_C",
+      "numerator": 1,
+      "denominator": 1,
+      "unit": "capture_graph",
+      "claim_class": "measured"
+    },
+    {
+      "name": "M2_fixture_C_matches_template",
+      "numerator": 1,
+      "denominator": 1,
+      "unit": "fixture",
+      "claim_class": "measured"
+    },
+    {
+      "name": "M3a_pre_merge_refusal_classes",
+      "numerator": 4,
+      "denominator": 4,
+      "unit": "classes",
+      "claim_class": "measured"
+    },
+    {
+      "name": "M3b_typed_cli_refusals",
+      "numerator": 8,
+      "denominator": 8,
+      "unit": "cases",
+      "claim_class": "measured",
+      "note": "lane tree pre-merge with RQ-M1 diff applied; 3 skipped without it"
+    },
+    {
+      "name": "M4_fixture_c1_protection",
+      "numerator": 0.21898844137892826,
+      "denominator": 0.198,
+      "unit": "dB_margin",
+      "claim_class": "measured",
+      "note": "synthetic measurement only; not a real-take or 32 Hz restoration claim"
+    },
+    {
+      "name": "M5_marked_compact_chain_identity",
+      "numerator": 4,
+      "denominator": 4,
+      "unit": "cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "M5_marked_compact_refusal_reasons_typed",
+      "numerator": 8,
+      "denominator": 8,
+      "unit": "reason_codes",
+      "claim_class": "measured"
+    },
+    {
+      "name": "M6_A1_wav_byte_identity",
+      "numerator": 6,
+      "denominator": 6,
+      "unit": "stream_pairs",
+      "claim_class": "measured"
+    },
+    {
+      "name": "M6_A1_elapsed_seconds",
+      "numerator": 462.45012612499704,
+      "denominator": 600,
+      "unit": "seconds",
+      "claim_class": "measured",
+      "note": "timeout_seconds 600"
+    },
+    {
+      "name": "M7_A2_marked_compact_byte_identical",
+      "numerator": 1,
+      "denominator": 1,
+      "unit": "output",
+      "claim_class": "measured"
+    },
+    {
+      "name": "M7_A2_aac_packets",
+      "numerator": 6503,
+      "denominator": 6503,
+      "unit": "packets",
+      "claim_class": "measured"
+    },
+    {
+      "name": "M8_protected_files_unchanged",
+      "numerator": 21,
+      "denominator": 21,
+      "unit": "files",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "capture_noise_only_verified",
+    "capture_music_status",
+    "capture_click_status",
+    "composite_listening_review",
+    "tone_suitability_other_takes"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "scripts/media.py",
+      "change": "RQ-M1: Add typed capture refusals and per-take --capture-interval binding (see fuller_profile-root-requests.json for full unified diff)",
+      "why": "Enables typed per-take capture binding for the fuller template"
+    },
+    {
+      "file": "scripts/run_demo.py",
+      "change": "RQ-J1a: Add --capture-interval and --capture-review arguments, pass through to media.py clean",
+      "why": "Passthrough for per-take capture interval to demo command"
+    },
+    {
+      "file": "just/workflow.just",
+      "change": "RQ-J1b: Update clean/demo recipes and add marked-compact recipe",
+      "why": "Adds marked-compact CLI recipe and capture interval passthrough"
+    },
+    {
+      "file": "program/tools.json + scripts/tool_api.py + .agents/skills/guitar-marked-compact/SKILL.md",
+      "change": "RQ-T1: Add marked_compact tool descriptor and MCP passthrough",
+      "why": "Repository contract requires typed MCP hook and skill for each primitive"
+    },
+    {
+      "file": "program/tools.json + scripts/tool_api.py",
+      "change": "RQ-M1b: Extend denoise inputSchema with capture_interval and capture_review (optional, breaks test_sprint1_audit pin)",
+      "why": "MCP passthrough for per-take interval; optional root decision"
+    }
+  ],
+  "receipts_written": [],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Ownership holds. Command: git diff --name-only $(merge-base main HEAD = 4b87484)...HEAD. It lists exactly 10 files: profiles/fuller.json, scripts/marked_compact.py, tests/test_fuller_profile.py, tests/test_marked_compact.py, docs/spec/sprints/FULLER_S2.md and five docs/agent-notes/sprints/20261006-s2/fuller_profile-*.json files (phase1-freeze, A1, A2, phase2-completion, root-requests). No root-owned or foreign file appears. The worktree is clean (git status shows nothing), and HEAD is 94440e7.",
+      "(2) No protected writes found. I re-hashed all 21 entries in fuller_profile-phase1-freeze.json protected_before_sha256: 0 changed, 0 missing. They cover 13 files in accepted run 20261006T041633Z-990aa1bd6737, the compact parent, the marker file, the accepted compact and /Users/jess/Desktop/video_util_mvp_demo_1.mp4. The accepted run directory mtimes (00:21 local) and main artifacts/runs (02:31 local) predate the lane's work (around 11:52Z). Main's scripts/media.py sha256 is 91443154..., which equals the RQ-M1 base_sha256, so it is unmodified. The A1 and A2 outputs live only under the lane's gitignored artifacts/s2/fuller_profile/ (.gitignore:3 /artifacts/). I found no model downloads and no daemons; every subprocess goes through apply_capture_profile.run_owned with a Deadline of at most 600 s.",
+      "(4) Test counts reproduced. Command: FFMPEG/FFPROBE set to the nix 8.1.2 binaries, then PYTHONPATH=tests python3 -m unittest test_fuller_profile test_marked_compact -v, run with PYTHONDONTWRITEBYTECODE=1 and TMPDIR in the scratchpad. Result: \"Ran 30 tests in 214.051s\", \"OK (skipped=3)\", exit 0. The 3 skips are all FullerTypedRefusalTests, skipped as 'requires root RQ-M1': test_cli_binding_renders_the_same_capture_graph_as_materialized_profile, test_eight_cli_refusals_carry_typed_reason_and_leave_no_run and test_invalid_and_conflicting_intervals_refuse_before_decode. test_actual_accepted_manifest_is_identical_when_present ran rather than skipped; it only reads the run and checks the manifest hash before and after.",
+      "(4) The RQ-M1 claim reproduced. I applied the RQ-M1 unified_diff from fuller_profile-root-requests.json to a git-archive copy of lane HEAD in the scratchpad (patch --dry-run was clean). test_fuller_profile then gave 'Ran 13 tests' OK with 0 skips, including the 8/8 typed CLI refusals.",
+      "(4) The tests are substantive, not vacuous. Each test below backs a lane claim.",
+      "(3)/(5) Claim hygiene and doctrine pass.",
+      "Merge condition, not a blocker: the definition of done is only partly met before root acts. The DoD asks that clean and demo refuse with a typed reason when the interval is absent or outside the source. In the lane tree, the current media.py rejects fuller.json with an untyped 'profile contains unsupported fields', and its CLI error JSON has no 'reason' key. Typed refusals exist only once root applies RQ-M1, so the fuller profile is unusable (it fails closed) until then.",
+      "RQ-M1 design widening for root to decide. check_capture_request and bind_capture accept --capture-interval for ANY profile with denoise:true, for example conservative3 or mild6, not only templates that set noise_capture_required. The CLI binding surface is therefore broader than the fuller template.",
+      "Consequences root should weigh. RQ-C1: any edit to media.py changes validator_sha256, so existing capture receipts can no longer be re-applied through apply_capture_profile. RQ-M2: once the default is flipped, a plain 'clean INPUT' or 'demo INPUT' with no interval refuses with capture_interval_required. RQ-M1b: it breaks the test_sprint1_audit tools.json pin c13b2f89... (the new hash is 4ef00efb...)."
+    ],
+    "must_fix": []
+  }
+}
