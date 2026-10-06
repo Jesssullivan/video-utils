@@ -1,0 +1,165 @@
+{
+  "lane": "tone_ab",
+  "branch": "sprint/20261006-s2/tone_ab",
+  "head": "b4261e15cc6ea201041c23ff994ddf0e2d967957",
+  "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint2/tone_ab",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": ".agents/skills/guitar-tone-ab/SKILL.md",
+      "sha256": "59da6f0c2de5090afd233bdb503c2cc39c22218cd0d501869613541ee8ff0f7b",
+      "kind": "skill_draft"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/tone_ab-20261006T120702Z-actual-run.json",
+      "sha256": "328717ea2ccc3d52ac6543a34452b78c64f6ab528dffb8241694d9e3e8ce9ef6",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/tone_ab-20261006T120702Z-actual-run.md",
+      "sha256": "77936fc5bda9a3891daadad076481ffb12ba7c1a2b8753dad63885f18fcf5f55",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/tone_ab-root-handoff.md",
+      "sha256": "85b61e5b9692e66f915fc1999893cc5be77a30a1d3a5701b6928f19dbdec4468",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/tone_ab-tool-descriptor.json",
+      "sha256": "51e50f3eed723d262b40dd5784017cfa40595772eb0c0d5923fee81c1bcf946c",
+      "kind": "data"
+    },
+    {
+      "path": "docs/spec/sprints/TONE_S2.md",
+      "sha256": "0cf296c80b61e81b7ca23563553da383bf28f44e9f8428cb5a0d6fdd9e913a9a",
+      "kind": "spec"
+    },
+    {
+      "path": "scripts/tone_ab.py",
+      "sha256": "52ca741aaa5e389ded8db010595105c944ee8ee18761c7bb0562937f48a1535d",
+      "kind": "source"
+    },
+    {
+      "path": "tests/test_tone_ab.py",
+      "sha256": "42aceb6b34067f363f36b803e05a6e36e80ef92afa3d5c37b667a94c6d6c0c52",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_tone_ab -v (in /Users/jess/git/video-utils/.local/sprint2/tone_ab, FFMPEG/FFPROBE exported)",
+    "discovered": 28,
+    "passed": 28,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 176.98
+  },
+  "metrics": [
+    {
+      "name": "stage_files_verified",
+      "numerator": 4,
+      "denominator": 4,
+      "unit": "files",
+      "claim_class": "measured"
+    },
+    {
+      "name": "match_lu_delta",
+      "numerator": 0.010,
+      "denominator": 5,
+      "unit": "LU (arms)",
+      "claim_class": "measured"
+    },
+    {
+      "name": "band_cells_analyzed",
+      "numerator": 30,
+      "denominator": 30,
+      "unit": "bands",
+      "claim_class": "measured"
+    },
+    {
+      "name": "share_db_coverage",
+      "numerator": 5,
+      "denominator": 5,
+      "unit": "stages",
+      "claim_class": "measured"
+    },
+    {
+      "name": "region_extent_samples",
+      "numerator": 6615000,
+      "denominator": 6615000,
+      "unit": "samples",
+      "claim_class": "measured"
+    },
+    {
+      "name": "excerpt_pairs_generated",
+      "numerator": 3,
+      "denominator": 3,
+      "unit": "pairs",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "attack_identity remains unverified; adoption pending operator review",
+    "eq_floor decision requires root and operator review",
+    "listening bias risk noted in audit; excerpt loudness pairs differ up to 1.00 LU"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "program/tools.json",
+      "change": "Append the exact object in docs/agent-notes/sprints/20261006-s2/tone_ab-tool-descriptor.json (equal to `python3 scripts/tone_ab.py describe`) as the next entry after corpus_eval_s2, keeping json.dumps(..., indent=2) + \"\\n\" formatting. Closed input schema: run_dir, candidate_run_dir, common_region_start, common_region_end, timeout_seconds (1-1800, default 1200), additionalProperties false.",
+      "why": "Admit tone_ab as a typed MCP tool; tools.json is root-owned."
+    },
+    {
+      "file": "scripts/tool_api.py",
+      "change": "Add 'tone_ab': ('run_dir', 'candidate_run_dir') to S2_EXACT_PATH_FIELDS and add a worker_command branch: if name == 'tone_ab': directory = s2_input_directory(args['run_dir'], ('manifest.json',)); command = head + [str(ROOT / 'scripts/tone_ab.py'), 'run', '--run-dir', str(directory), '--common-region-start', repr(float(args['common_region_start'])), '--common-region-end', repr(float(args['common_region_end'])), '--timeout-seconds', str(args.get('timeout_seconds', 1200))]; if 'candidate_run_dir' in args: candidate = s2_input_directory(args['candidate_run_dir'], ('manifest.json',)); command += ['--candidate-run-dir', str(candidate)]; return command. No output field; worker writes only ROOT/artifacts/s2/tone_ab/<run_id>-<UTC>/.",
+      "why": "Route the typed tool to the lane worker with exact-path input validation; tool_api.py is root-owned."
+    },
+    {
+      "file": "just/workflow.just",
+      "change": "Add recipe:\n# Level-matched stage tone A/B with one unreviewed low-shelf trial; never adopts a master.\ntone-ab run_dir start end timeout=\"1200\":\n    python3 scripts/tone_ab.py run --run-dir {{quote(run_dir)}} --common-region-start {{quote(start)}} --common-region-end {{quote(end)}} --timeout-seconds {{quote(timeout)}}",
+      "why": "just is the operator entrypoint; workflow.just is root-owned."
+    },
+    {
+      "file": "tests/test_s2_tool_admission.py, tests/test_s1_tool_admission.py, tests/test_share_export_tool.py",
+      "change": "Tool-count assertions 36 -> 37 (test_s2_tool_admission.py lines 58 and 343; test_s1_tool_admission.py:27; test_share_export_tool.py:73). Either add 'tone_ab': ('guitar-tone-ab', False, False, {'run_dir', 'common_region_start', 'common_region_end'}, 1800) to NEW, or admit tone_ab in a separate S2 group-C admission test and slice tools[32:36].",
+      "why": "Admitting tone_ab changes the registered tool count; these tests are outside the lane's owned files."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261006-s2/tone_ab-20261006T120702Z-actual-run.json",
+    "docs/agent-notes/sprints/20261006-s2/tone_ab-20261006T120702Z-actual-run.md",
+    "docs/agent-notes/sprints/20261006-s2/tone_ab-root-handoff.md",
+    "docs/agent-notes/sprints/20261006-s2/tone_ab-tool-descriptor.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": false
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": true,
+    "findings": [
+      "(1) Scope: PASS. `git diff --name-only 4b87484...HEAD` (merge-base 4b87484, HEAD f247eff) lists 8 files, all owned: scripts/tone_ab.py, tests/test_tone_ab.py, docs/spec/sprints/TONE_S2.md, .agents/skills/guitar-tone-ab/SKILL.md, and 4 files under docs/agent-notes/sprints/20261006-s2/tone_ab-*.{json,md}. No root-owned or foreign file was touched. The worktree is clean.",
+      "(2) Protected writes: no changes found in program/tools.json, scripts/tool_api.py or just/workflow.just. There is no network, model-download or daemon code in scripts/tone_ab.py. The accepted run dir artifacts/runs/20261006T041633Z-990aa1bd6737 still has its 00:16-00:28 mtimes. The tone-ab.json protected_readback shows 13/13 files unchanged. Main-repo artifacts/s2 does not exist. The case-variant path bypass is a separate problem, listed under must_fix.",
+      "(4) Tests: I reran FFMPEG/FFPROBE=nix ffmpeg-headless-8.1.2 PYTHONPATH=tests python3 -m unittest test_tone_ab -v. Result: Ran 28 tests in 112.8 s, OK, 28 ok, 0 skipped, 0 failures. This matches the claimed 28/28. The tests do exercise the claimed behaviour: schema/bounds refusal, hash and extent refusal, candidate source mismatch, a fresh/protected output dir, symlink and '..' refusal, a failure leaving only tone-ab.failed.json, the deadline reserve, a two-tone FFmpeg match <= 0.3 LU, excerpt extent, no-overwrite readback, the trial fields, and descriptor JSON == `describe` output.",
+      "(6) Numbers reproduced independently with numpy over native samples [220500, 6615000) of the accepted run. Welch N=16384 periodic Hann with 390 frames gives source 20-45 = -57.151, denoised -59.386, processed -59.414 and cleaned -57.354 dB. All six bands for all four stage files match tone-ab.json to 3 decimals.",
+      "(6) Arithmetic checks: end-to-end matched 20-45 = -0.204 + (-3.37) - (-0.17) = -3.404. The stage sum -2.066 - 1.278 - 0.060 = -3.404. Trial matched = 1.457 + (-3.52 + 3.37) = 1.307. All match.",
+      "(6) Region frames 145 x 44100 = 6,394,500, and 6,394,500 // 16384 = 390. Excerpt length 15 x 44100 = 661,500. FFmpeg ebur128 over the region reads source -21.1, denoised -21.3 and cleaned -17.9 LUFS, consistent with the loudnorm input_i values -21.16, -21.33 and -17.96.",
+      "The actual-run tone-ab.json (sha256 2736e3d3...) was produced by script ab900835 (commit b8b3007), not HEAD. I diffed b8b3007..HEAD scripts/tone_ab.py: the only changes are exact_directory, the finalize reserve and the descriptor text. There are no numeric changes, so the measured values still stand.",
+      "The actual-run receipt JSON's `tests` block is stale: it records 26 tests and script_sha256_under_test d7de5596 (b8b64b5), while HEAD has 28 tests. The lane summary also gives two different test durations, 176.98 s and 400 s. Neither affects correctness.",
+      "Listening bias risk not called out in the receipt. The excerpt pairs use only the region-wide static gains, which matches the frozen spec ('excerpt LUFS informational; not re-matched'). Even so, per-excerpt informational LUFS differ X vs Y by 1.00 LU (pair 1: -19.88 vs -20.88), 0.44 LU (pair 2) and 0.79 LU (pair 3). A louder arm can be heard as 'fuller'. The receipt .md should tell the operator before blind listening.",
+      "Wording in the receipt's inference section (tone_ab-20261006T120702Z-actual-run.md): it says 'the 20-45 Hz mixture share falls 3.40 dB'. The -3.40 value is the matched-level delta; the share_db delta is -3.61. The lane summary also leaves out the -0.06 dB delivery-normalization term when splitting -3.40 into -2.07 and -1.28.",
+      "Durability: the six operator-listening excerpts and the trial render live only in the gitignored worktree directory .local/sprint2/tone_ab/artifacts/s2/tone_ab/20261006T041633Z-990aa1bd6737-20261006T120702Z/. Removing the worktree after merge will lose them. Root should relocate them or record their sha256 before cleanup. The receipt JSON does record the hashes.",
+      "The finalize reserve has a gap. The success path runs snapshot(run_dir) again after the work deadline, re-hashing every run-dir file including the two 230 MB .mov files in export/ (about 650 MB in total), and nothing bounds that step. If measurement ends close to the work deadline on a contended host, the re-hash plus write can take longer than the 10 s reserve. tool_api would then kill the process, leaving only a .partial-* staging dir and no failure record. The claim holds for FFmpeg overruns only. The pre-run snapshot is also unbounded by the deadline.",
+      "(3) Claim classes are acceptable. Measured values come with denominators (4/4, 5/5 arms, 30/30 bands, 215/215/219 and 482/482/495, 3/3, 1/1, 13/13, 15/15). Stage attribution and the NR8 comparison are labelled class I. Listening is empty (class L pending). attack_identity is 'unverified'. There are no note-correctness or missed-note claims. The trial is rejected_or_unreviewed_trial with adopted false and forwarded_to_profile false. eq_floor decision is root_and_operator_review_required. No default, profile or detector is adopted. The receipt withholds blind_key.",
+      "(5) Doctrine: there is no high-pass or notch anywhere. The only filter is the preregistered lowshelf f=100 g=1.5 trial on a separate f32 file. All 15 unknown fields are present with reasons. timeout_seconds is an integer 1..1800, each child runs under min(120 s, remaining) with ffprobe capped at 60 s, and the setup region 0-5 s is refused (start must be >= 5.0)."
+    ],
+    "must_fix": [
+      "The protected-output check is case-sensitive, but APFS on this host is case-insensitive, so the 'never writes into accepted run dirs / artifacts/runs/*' invariant can be bypassed. The check is scripts/tone_ab.py:347-352 (is_protected_location, which uses `path.is_relative_to(directory)` and the literal match parts[i]=='artifacts' and parts[i+1]=='runs'), applied at lines 994-999. Reproduction on a synthetic fixture in the scratchpad: run_dir=<S>/artifacts/runs/AcceptedRun, output_dir=<S>/Artifacts/runs/acceptedrun/probe-out. The check passed. The tool then created `.probe-out.partial-*` (trial WAV, excerpts, attack-positions.json) inside the run dir, the post-run readback failed with protected_input_changed, and `probe-out.failed/` was left permanently inside the 'accepted' run dir. On the real host, a read-only probe confirmed that is_protected_location(Path('/Users/jess/git/video-utils/Artifacts/runs/20261006t041633z-990aa1bd6737/x').resolve(), [run_dir]) returns False, while that path's parent exists. Exposure is CLI --output-dir only; the descriptor has no output field. Fix: compare by inode, i.e. walk output's existing ancestors with os.path.samefile / (st_dev, st_ino) against each protected dir and against the artifacts/runs dir, or casefold the comparison. Add a regression test with a case-variant output path."
+    ]
+  },
+  "dropped_scope": []
+}
