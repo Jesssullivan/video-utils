@@ -1,0 +1,3108 @@
+{
+  "aggregate": {
+    "Araw": {
+      "negative_false_candidates": {
+        "fan-only": 0,
+        "low32-sustain": 1,
+        "missing-f0-sustain": 1,
+        "ordered-click-only": 0
+      },
+      "pair_iou": [
+        {
+          "endpoint_count": 4,
+          "estimate_count": 6,
+          "fn": 3,
+          "fp": 5,
+          "matched_endpoint_mae_seconds": 0.28896909916201113,
+          "recall": 0.25,
+          "reference_count": 4,
+          "threshold": 0.5,
+          "tp": 1
+        },
+        {
+          "endpoint_count": 0,
+          "estimate_count": 6,
+          "fn": 4,
+          "fp": 6,
+          "matched_endpoint_mae_seconds": null,
+          "recall": 0.0,
+          "reference_count": 4,
+          "threshold": 0.75,
+          "tp": 0
+        }
+      ],
+      "typed_endpoints": [
+        {
+          "estimate_count": 24,
+          "fn": 16,
+          "fp": 24,
+          "reference_count": 16,
+          "threshold": 0.02,
+          "tp": 0
+        },
+        {
+          "estimate_count": 24,
+          "fn": 16,
+          "fp": 24,
+          "reference_count": 16,
+          "threshold": 0.05,
+          "tp": 0
+        },
+        {
+          "estimate_count": 24,
+          "fn": 16,
+          "fp": 24,
+          "reference_count": 16,
+          "threshold": 0.1,
+          "tp": 0
+        }
+      ]
+    },
+    "S1_support": {
+      "negative_false_candidates": {
+        "fan-only": 0,
+        "low32-sustain": 0,
+        "missing-f0-sustain": 0,
+        "ordered-click-only": 0
+      },
+      "pair_iou": [
+        {
+          "endpoint_count": 16,
+          "estimate_count": 4,
+          "fn": 0,
+          "fp": 0,
+          "matched_endpoint_mae_seconds": 0.07367187499999998,
+          "recall": 1.0,
+          "reference_count": 4,
+          "threshold": 0.5,
+          "tp": 4
+        },
+        {
+          "endpoint_count": 16,
+          "estimate_count": 4,
+          "fn": 0,
+          "fp": 0,
+          "matched_endpoint_mae_seconds": 0.07367187499999998,
+          "recall": 1.0,
+          "reference_count": 4,
+          "threshold": 0.75,
+          "tp": 4
+        }
+      ],
+      "typed_endpoints": [
+        {
+          "estimate_count": 16,
+          "fn": 16,
+          "fp": 16,
+          "reference_count": 16,
+          "threshold": 0.02,
+          "tp": 0
+        },
+        {
+          "estimate_count": 16,
+          "fn": 12,
+          "fp": 12,
+          "reference_count": 16,
+          "threshold": 0.05,
+          "tp": 4
+        },
+        {
+          "estimate_count": 16,
+          "fn": 0,
+          "fp": 0,
+          "reference_count": 16,
+          "threshold": 0.1,
+          "tp": 16
+        }
+      ]
+    },
+    "S2_multiscale": {
+      "negative_false_candidates": {
+        "fan-only": 0,
+        "low32-sustain": 0,
+        "missing-f0-sustain": 0,
+        "ordered-click-only": 0
+      },
+      "pair_iou": [
+        {
+          "endpoint_count": 16,
+          "estimate_count": 4,
+          "fn": 0,
+          "fp": 0,
+          "matched_endpoint_mae_seconds": 0.07367187499999998,
+          "recall": 1.0,
+          "reference_count": 4,
+          "threshold": 0.5,
+          "tp": 4
+        },
+        {
+          "endpoint_count": 16,
+          "estimate_count": 4,
+          "fn": 0,
+          "fp": 0,
+          "matched_endpoint_mae_seconds": 0.07367187499999998,
+          "recall": 1.0,
+          "reference_count": 4,
+          "threshold": 0.75,
+          "tp": 4
+        }
+      ],
+      "typed_endpoints": [
+        {
+          "estimate_count": 16,
+          "fn": 16,
+          "fp": 16,
+          "reference_count": 16,
+          "threshold": 0.02,
+          "tp": 0
+        },
+        {
+          "estimate_count": 16,
+          "fn": 12,
+          "fp": 12,
+          "reference_count": 16,
+          "threshold": 0.05,
+          "tp": 4
+        },
+        {
+          "estimate_count": 16,
+          "fn": 0,
+          "fp": 0,
+          "reference_count": 16,
+          "threshold": 0.1,
+          "tp": 16
+        }
+      ]
+    }
+  },
+  "authorization": {
+    "plan_path": "/Users/jess/git/video-utils/.local/sprint1/phrases/docs/agent-notes/sprints/20261006-s1/phrases-preregistration.json",
+    "plan_sha256": "dd4c43532f47273948e23a3a35e93e61fa8a576ec0f32662036b39fe6b432a6c",
+    "release_path": "/Users/jess/git/video-utils/docs/agent-notes/sprints/20261006-s1/phrases-root-release.json",
+    "release_sha256": "6289ebf4276a46d69497cad0868f9adb3630fc972de638d9a3d9d6cd69c9196d",
+    "worker_sha256": "38b736543a83d5c706a8803014f4e308685eee2c84275e9e6768c431b6b8d0e3"
+  },
+  "bank_sha256": "41060b177358523628fa9d32ddf5573b422d1e73f86f2a38c167c1a646c56786",
+  "canonical_defaults_activated": false,
+  "cases": [
+    {
+      "cohort": "low32-sustain",
+      "id": "case00",
+      "reference_pair_count": 0,
+      "scores": {
+        "Araw": {
+          "candidate_count": 1,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 1,
+              "f1": 0.0,
+              "fn": 0,
+              "fp": 1,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": 0.0,
+              "recall": 0.0,
+              "reference_count": 0,
+              "status": "empty_reference_false_positives_visible",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 1,
+              "f1": 0.0,
+              "fn": 0,
+              "fp": 1,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": 0.0,
+              "recall": 0.0,
+              "reference_count": 0,
+              "status": "empty_reference_false_positives_visible",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 4,
+              "fn": 0,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 0,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 0,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S1_support": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S2_multiscale": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        }
+      },
+      "seed": 1301
+    },
+    {
+      "cohort": "missing-f0-sustain",
+      "id": "case01",
+      "reference_pair_count": 0,
+      "scores": {
+        "Araw": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S1_support": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S2_multiscale": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        }
+      },
+      "seed": 1301
+    },
+    {
+      "cohort": "ordered-click-only",
+      "id": "case02",
+      "reference_pair_count": 0,
+      "scores": {
+        "Araw": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S1_support": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S2_multiscale": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        }
+      },
+      "seed": 1301
+    },
+    {
+      "cohort": "fan-only",
+      "id": "case03",
+      "reference_pair_count": 0,
+      "scores": {
+        "Araw": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S1_support": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S2_multiscale": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        }
+      },
+      "seed": 1301
+    },
+    {
+      "cohort": "palm-recurrence",
+      "id": "case04",
+      "reference_pair_count": 1,
+      "scores": {
+        "Araw": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": 0.0,
+              "fn": 1,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": 0.0,
+              "recall": 0.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": 0.0,
+              "fn": 1,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": 0.0,
+              "recall": 0.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 4,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 4,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 4,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S1_support": {
+          "candidate_count": 1,
+          "pair_iou": [
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.08150000000000002,
+                0.0405000000000002,
+                -0.07570833333333304,
+                0.030291666666666828
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": 0.05700000000000002,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9372428582518242,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            },
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.08150000000000002,
+                0.0405000000000002,
+                -0.07570833333333304,
+                0.030291666666666828
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": 0.05700000000000002,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9372428582518242,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 2,
+              "fp": 2,
+              "matches": [
+                {
+                  "endpoint": "first_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.0405000000000002,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.030291666666666828,
+                  "reference_index": 0
+                }
+              ],
+              "reference_count": 4,
+              "threshold": 0.05,
+              "tp": 2
+            },
+            {
+              "estimate_count": 4,
+              "fn": 0,
+              "fp": 0,
+              "matches": [
+                {
+                  "endpoint": "first_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.08150000000000002,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "first_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.0405000000000002,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.07570833333333304,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.030291666666666828,
+                  "reference_index": 0
+                }
+              ],
+              "reference_count": 4,
+              "threshold": 0.1,
+              "tp": 4
+            }
+          ]
+        },
+        "S2_multiscale": {
+          "candidate_count": 1,
+          "pair_iou": [
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.08150000000000002,
+                0.0405000000000002,
+                -0.07570833333333304,
+                0.030291666666666828
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": 0.05700000000000002,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9372428582518242,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            },
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.08150000000000002,
+                0.0405000000000002,
+                -0.07570833333333304,
+                0.030291666666666828
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": 0.05700000000000002,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9372428582518242,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 2,
+              "fp": 2,
+              "matches": [
+                {
+                  "endpoint": "first_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.0405000000000002,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.030291666666666828,
+                  "reference_index": 0
+                }
+              ],
+              "reference_count": 4,
+              "threshold": 0.05,
+              "tp": 2
+            },
+            {
+              "estimate_count": 4,
+              "fn": 0,
+              "fp": 0,
+              "matches": [
+                {
+                  "endpoint": "first_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.08150000000000002,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "first_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.0405000000000002,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.07570833333333304,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.030291666666666828,
+                  "reference_index": 0
+                }
+              ],
+              "reference_count": 4,
+              "threshold": 0.1,
+              "tp": 4
+            }
+          ]
+        }
+      },
+      "seed": 1301
+    },
+    {
+      "cohort": "legato-recurrence",
+      "id": "case05",
+      "reference_pair_count": 1,
+      "scores": {
+        "Araw": {
+          "candidate_count": 1,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 1,
+              "f1": 0.0,
+              "fn": 1,
+              "fp": 1,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": 0.0,
+              "recall": 0.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 1,
+              "f1": 0.0,
+              "fn": 1,
+              "fp": 1,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": 0.0,
+              "recall": 0.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S1_support": {
+          "candidate_count": 1,
+          "pair_iou": [
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.08150000000000002,
+                0.0884999999999998,
+                -0.07570833333333304,
+                0.07829166666666687
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": 0.08099999999999993,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9131069481284999,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            },
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.08150000000000002,
+                0.0884999999999998,
+                -0.07570833333333304,
+                0.07829166666666687
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": 0.08099999999999993,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9131069481284999,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 0,
+              "fp": 0,
+              "matches": [
+                {
+                  "endpoint": "first_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.08150000000000002,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "first_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.0884999999999998,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.07570833333333304,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.07829166666666687,
+                  "reference_index": 0
+                }
+              ],
+              "reference_count": 4,
+              "threshold": 0.1,
+              "tp": 4
+            }
+          ]
+        },
+        "S2_multiscale": {
+          "candidate_count": 1,
+          "pair_iou": [
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.08150000000000002,
+                0.0884999999999998,
+                -0.07570833333333304,
+                0.07829166666666687
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": 0.08099999999999993,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9131069481284999,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            },
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.08150000000000002,
+                0.0884999999999998,
+                -0.07570833333333304,
+                0.07829166666666687
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": 0.08099999999999993,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9131069481284999,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 0,
+              "fp": 0,
+              "matches": [
+                {
+                  "endpoint": "first_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.08150000000000002,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "first_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.0884999999999998,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.07570833333333304,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.07829166666666687,
+                  "reference_index": 0
+                }
+              ],
+              "reference_count": 4,
+              "threshold": 0.1,
+              "tp": 4
+            }
+          ]
+        }
+      },
+      "seed": 1301
+    },
+    {
+      "cohort": "low32-sustain",
+      "id": "case06",
+      "reference_pair_count": 0,
+      "scores": {
+        "Araw": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S1_support": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S2_multiscale": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        }
+      },
+      "seed": 1423
+    },
+    {
+      "cohort": "missing-f0-sustain",
+      "id": "case07",
+      "reference_pair_count": 0,
+      "scores": {
+        "Araw": {
+          "candidate_count": 1,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 1,
+              "f1": 0.0,
+              "fn": 0,
+              "fp": 1,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": 0.0,
+              "recall": 0.0,
+              "reference_count": 0,
+              "status": "empty_reference_false_positives_visible",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 1,
+              "f1": 0.0,
+              "fn": 0,
+              "fp": 1,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": 0.0,
+              "recall": 0.0,
+              "reference_count": 0,
+              "status": "empty_reference_false_positives_visible",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 4,
+              "fn": 0,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 0,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 0,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S1_support": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S2_multiscale": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        }
+      },
+      "seed": 1423
+    },
+    {
+      "cohort": "ordered-click-only",
+      "id": "case08",
+      "reference_pair_count": 0,
+      "scores": {
+        "Araw": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S1_support": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S2_multiscale": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        }
+      },
+      "seed": 1423
+    },
+    {
+      "cohort": "fan-only",
+      "id": "case09",
+      "reference_pair_count": 0,
+      "scores": {
+        "Araw": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S1_support": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S2_multiscale": {
+          "candidate_count": 0,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 0,
+              "f1": null,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": null,
+              "recall": null,
+              "reference_count": 0,
+              "status": "not_applicable_empty_reference_and_estimate",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 0,
+              "fn": 0,
+              "fp": 0,
+              "matches": [],
+              "reference_count": 0,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        }
+      },
+      "seed": 1423
+    },
+    {
+      "cohort": "palm-recurrence",
+      "id": "case10",
+      "reference_pair_count": 1,
+      "scores": {
+        "Araw": {
+          "candidate_count": 1,
+          "pair_iou": [
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 1,
+              "f1": 0.0,
+              "fn": 1,
+              "fp": 1,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": 0.0,
+              "recall": 0.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 0
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 1,
+              "f1": 0.0,
+              "fn": 1,
+              "fp": 1,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": 0.0,
+              "recall": 0.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S1_support": {
+          "candidate_count": 1,
+          "pair_iou": [
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.09335416666666663,
+                0.03533333333333344,
+                -0.0978958333333333,
+                0.046791666666666565
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": 0.06834374999999998,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9313967993951613,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            },
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.09335416666666663,
+                0.03533333333333344,
+                -0.0978958333333333,
+                0.046791666666666565
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": 0.06834374999999998,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9313967993951613,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 2,
+              "fp": 2,
+              "matches": [
+                {
+                  "endpoint": "first_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.03533333333333344,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.046791666666666565,
+                  "reference_index": 0
+                }
+              ],
+              "reference_count": 4,
+              "threshold": 0.05,
+              "tp": 2
+            },
+            {
+              "estimate_count": 4,
+              "fn": 0,
+              "fp": 0,
+              "matches": [
+                {
+                  "endpoint": "first_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.09335416666666663,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "first_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.03533333333333344,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.0978958333333333,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.046791666666666565,
+                  "reference_index": 0
+                }
+              ],
+              "reference_count": 4,
+              "threshold": 0.1,
+              "tp": 4
+            }
+          ]
+        },
+        "S2_multiscale": {
+          "candidate_count": 1,
+          "pair_iou": [
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.09335416666666663,
+                0.03533333333333344,
+                -0.0978958333333333,
+                0.046791666666666565
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": 0.06834374999999998,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9313967993951613,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            },
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.09335416666666663,
+                0.03533333333333344,
+                -0.0978958333333333,
+                0.046791666666666565
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": 0.06834374999999998,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9313967993951613,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 2,
+              "fp": 2,
+              "matches": [
+                {
+                  "endpoint": "first_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.03533333333333344,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.046791666666666565,
+                  "reference_index": 0
+                }
+              ],
+              "reference_count": 4,
+              "threshold": 0.05,
+              "tp": 2
+            },
+            {
+              "estimate_count": 4,
+              "fn": 0,
+              "fp": 0,
+              "matches": [
+                {
+                  "endpoint": "first_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.09335416666666663,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "first_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.03533333333333344,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.0978958333333333,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.046791666666666565,
+                  "reference_index": 0
+                }
+              ],
+              "reference_count": 4,
+              "threshold": 0.1,
+              "tp": 4
+            }
+          ]
+        }
+      },
+      "seed": 1423
+    },
+    {
+      "cohort": "legato-recurrence",
+      "id": "case11",
+      "reference_pair_count": 1,
+      "scores": {
+        "Araw": {
+          "candidate_count": 2,
+          "pair_iou": [
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                0.13531901769087518,
+                -0.44261918063314676,
+                0.1402131052141531,
+                -0.4377250931098695
+              ],
+              "estimate_count": 2,
+              "f1": 0.6666666666666666,
+              "fn": 0,
+              "fp": 1,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": 0.28896909916201113,
+              "matches": [
+                {
+                  "estimate_index": 1,
+                  "mean_iou": 0.6884954969451118,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 0.5,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            },
+            {
+              "endpoint_count": 0,
+              "endpoint_offset_seconds": [],
+              "estimate_count": 2,
+              "f1": 0.0,
+              "fn": 1,
+              "fp": 2,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": null,
+              "matches": [],
+              "precision": 0.0,
+              "recall": 0.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 0
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 8,
+              "fn": 4,
+              "fp": 8,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 8,
+              "fn": 4,
+              "fp": 8,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 8,
+              "fn": 4,
+              "fp": 8,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.1,
+              "tp": 0
+            }
+          ]
+        },
+        "S1_support": {
+          "candidate_count": 1,
+          "pair_iou": [
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.09335416666666663,
+                0.08333333333333348,
+                -0.08189583333333328,
+                0.09479166666666661
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": 0.08834375,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9130474901574803,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            },
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.09335416666666663,
+                0.08333333333333348,
+                -0.08189583333333328,
+                0.09479166666666661
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": 0.08834375,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9130474901574803,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 0,
+              "fp": 0,
+              "matches": [
+                {
+                  "endpoint": "first_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.09335416666666663,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "first_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.08333333333333348,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.08189583333333328,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.09479166666666661,
+                  "reference_index": 0
+                }
+              ],
+              "reference_count": 4,
+              "threshold": 0.1,
+              "tp": 4
+            }
+          ]
+        },
+        "S2_multiscale": {
+          "candidate_count": 1,
+          "pair_iou": [
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.09335416666666663,
+                0.08333333333333348,
+                -0.08189583333333328,
+                0.09479166666666661
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.5,
+              "matched_endpoint_mae_seconds": 0.08834375,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9130474901574803,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            },
+            {
+              "endpoint_count": 4,
+              "endpoint_offset_seconds": [
+                -0.09335416666666663,
+                0.08333333333333348,
+                -0.08189583333333328,
+                0.09479166666666661
+              ],
+              "estimate_count": 1,
+              "f1": 1.0,
+              "fn": 0,
+              "fp": 0,
+              "iou_threshold": 0.75,
+              "matched_endpoint_mae_seconds": 0.08834375,
+              "matches": [
+                {
+                  "estimate_index": 0,
+                  "mean_iou": 0.9130474901574803,
+                  "reference_index": 0
+                }
+              ],
+              "precision": 1.0,
+              "recall": 1.0,
+              "reference_count": 1,
+              "status": "evaluated",
+              "tp": 1
+            }
+          ],
+          "typed_endpoints": [
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.02,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 4,
+              "fp": 4,
+              "matches": [],
+              "reference_count": 4,
+              "threshold": 0.05,
+              "tp": 0
+            },
+            {
+              "estimate_count": 4,
+              "fn": 0,
+              "fp": 0,
+              "matches": [
+                {
+                  "endpoint": "first_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.09335416666666663,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "first_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.08333333333333348,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_start",
+                  "estimate_index": 0,
+                  "offset_seconds": -0.08189583333333328,
+                  "reference_index": 0
+                },
+                {
+                  "endpoint": "second_end",
+                  "estimate_index": 0,
+                  "offset_seconds": 0.09479166666666661,
+                  "reference_index": 0
+                }
+              ],
+              "reference_count": 4,
+              "threshold": 0.1,
+              "tp": 4
+            }
+          ]
+        }
+      },
+      "seed": 1423
+    }
+  ],
+  "listening_accepted": false,
+  "musical_performance_graded": false,
+  "schema_version": 1,
+  "seal_sha256": "eb9dfd588cd3b4c632c18ebd6c0397086459710d92a4b6e65d6ed741a1c47955",
+  "settings_retuned": false,
+  "status": "generated_research_scored",
+  "suite": "s1-proposal-1301-1423-v1",
+  "truth_read_after_global_seal": true
+}

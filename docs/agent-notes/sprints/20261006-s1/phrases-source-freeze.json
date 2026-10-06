@@ -1,0 +1,40 @@
+{
+  "actor": "/root/s1_phrases",
+  "authority": "R-HOOK-CONVERGENCE-20261004 / operator S1 sprint request",
+  "budgets": {
+    "analysis_rate": 16000,
+    "case_seconds": 120,
+    "json_bytes": 2000000,
+    "native_rate": 48000,
+    "native_seconds": 8,
+    "overall_seconds": 900,
+    "threads": 2,
+    "wav_bytes": 1000000
+  },
+  "dependency_sha256": {
+    "docs/agent-notes/2026-10-05-phrase-guarded-arms.py": "78ca89de9cea327cc4ec1096a83522781a08bc161819699b69797ca273e2fb6c",
+    "program/instrument.json": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0",
+    "scripts/guitar_features.py": "2ed031e8000cbcda92b504db10c98de03f456c90573cbff815cbb940c9ac86fe",
+    "scripts/phrase_evaluate.py": "3e503de277b2fd233fe802595a09a655c89669b0eb820f228e677c1b94b828a5",
+    "scripts/rhythm.py": "264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9"
+  },
+  "root_release_pending": true,
+  "sha256": {
+    "docs/agent-notes/sprints/20261006-s1/phrases-preregistration.json": "dd4c43532f47273948e23a3a35e93e61fa8a576ec0f32662036b39fe6b432a6c",
+    "docs/spec/sprints/PHRASES_S1.md": "f147abca2e1ae39b71d26bbd7d77bedd5a7426b8b80535f677178b51b85936ce",
+    "scripts/phrase_proposal_s1.py": "8f40df4b4d803db807c7110a91f49bb23af60a312722d45989df0dad99a50335",
+    "tests/test_phrase_proposal_s1.py": "28fbebea2d32f50588920ba89c0431f37a11fdc83d390c2db6d8b11f15c70051"
+  },
+  "source_defaults_changed": false,
+  "state": "source_and_protocol_frozen_before_heldout_audio",
+  "suite": "s1-proposal-1301-1423-v1",
+  "tests": {
+    "discovered": 15,
+    "errors": 0,
+    "failures": 0,
+    "passed": 15,
+    "scope": "source-only finite-feature and evidence contracts; no heldout audio generated",
+    "seconds": 0.321,
+    "skipped": 0
+  }
+}

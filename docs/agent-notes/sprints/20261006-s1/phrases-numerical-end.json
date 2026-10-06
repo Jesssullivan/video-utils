@@ -1,0 +1,27 @@
+{
+  "actor": "/root/s1_phrases",
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N11/R-N13; root bound S1 numerical release",
+  "elapsed_seconds": 69.95135645799746,
+  "exit_code": 0,
+  "log_sha256": "aa7123313f23c4a24c04b5ada79c785776fd6b2b4e24f5e52a677ad7cc0da060",
+  "owned_argv": [
+    "/Users/jess/git/video-utils/.venv/bin/python",
+    "/Users/jess/git/video-utils/.local/sprint1/phrases/artifacts/experiments/s1-phrases/runner.py",
+    "/Users/jess/git/video-utils/docs/agent-notes/sprints/20261006-s1/phrases-root-release.json",
+    "6289ebf4276a46d69497cad0868f9adb3630fc972de638d9a3d9d6cd69c9196d",
+    "_pipeline"
+  ],
+  "pgid": 11602,
+  "pid": 11602,
+  "plan_sha256": "dd4c43532f47273948e23a3a35e93e61fa8a576ec0f32662036b39fe6b432a6c",
+  "plan_unchanged": true,
+  "release_path": "/Users/jess/git/video-utils/docs/agent-notes/sprints/20261006-s1/phrases-root-release.json",
+  "release_sha256": "6289ebf4276a46d69497cad0868f9adb3630fc972de638d9a3d9d6cd69c9196d",
+  "runner_sha256": "6e49c8d2e8ae5558f58797ba7f1914ebe6ba14d8ddd093c5f9e3c6a905e8b2d2",
+  "signals": [],
+  "status": "completed",
+  "timeout_seconds": 900,
+  "uid": 501,
+  "worker_sha256": "38b736543a83d5c706a8803014f4e308685eee2c84275e9e6768c431b6b8d0e3",
+  "worker_unchanged": true
+}
