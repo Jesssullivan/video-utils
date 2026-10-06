@@ -106,7 +106,7 @@
   "created_at": "2026-10-06T19:20:47.407026Z",
   "eta_seconds": null,
   "eta_seconds_reason": "not estimated",
-  "idempotency_key": "fixture-succeeded-01",
+  "idempotency_key": "fixture-succeeded-000000",
   "job_id": "job_00000000000000000000000000000003",
   "parameters": {
     "audio_kbps": 96,

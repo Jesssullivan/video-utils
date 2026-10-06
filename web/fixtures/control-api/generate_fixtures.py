@@ -78,7 +78,7 @@ def main():
         try:
             source = client.post('/api/v1/sources', {'selector': selector}).json['source_artifact_id']
             job = client.post('/api/v1/jobs', {'tool': 'share_export', 'source_artifact_id': source,
-                                               'idempotency_key': 'fixture-succeeded-01'}).json['job_id']
+                                               'idempotency_key': 'fixture-succeeded-000000'}).json['job_id']
             succeeded = rename(wait(client, job, ('succeeded',)), 'succeeded')
             unbound_dir = base / 'R' / 'artifacts' / 'runs' / 'RUN-B' / 'export'
             unbound_dir.mkdir(parents=True)
@@ -93,10 +93,10 @@ def main():
         try:
             source = client.post('/api/v1/sources', {'selector': 'RUN-A/export/fake.mov'}).json['source_artifact_id']
             failed_id = client.post('/api/v1/jobs', {'tool': 'share_export', 'source_artifact_id': source,
-                                                     'idempotency_key': 'fixture-failed-0001'}).json['job_id']
+                                                     'idempotency_key': 'fixture-failed-000000'}).json['job_id']
             failed = rename(wait(client, failed_id, ('failed',)), 'failed')
             running_id = client.post('/api/v1/jobs', {'tool': 'share_export', 'source_artifact_id': source,
-                                                      'idempotency_key': 'fixture-running-001',
+                                                      'idempotency_key': 'fixture-running-000000',
                                                       'parameters': {'crf': 30}}).json['job_id']
             end = time.monotonic() + 30
             while True:
@@ -106,7 +106,7 @@ def main():
                 time.sleep(0.05)
             running = rename(running, 'running')
             queued = rename(client.post('/api/v1/jobs', {'tool': 'share_export', 'source_artifact_id': source,
-                                                         'idempotency_key': 'fixture-queued-0001'}).json, 'queued')
+                                                         'idempotency_key': 'fixture-queued-000000'}).json, 'queued')
             client.post(f'/api/v1/jobs/{running_id}/cancel', {})
             wait(client, running_id, ('cancelled',), timeout=60)
         finally:
