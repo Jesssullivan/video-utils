@@ -150,7 +150,7 @@ class FixtureBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.temp = tempfile.TemporaryDirectory(prefix="tone-ab-test-")
-        cls.base = Path(cls.temp.name)
+        cls.base = Path(cls.temp.name).resolve()
         cls.template = cls.base / "template-run"
         make_run(cls.template)
 
@@ -396,6 +396,18 @@ class GateTests(FixtureBase):
             self.assertIn(caught.exception.code, {"output_dir_protected", "output_dir_exists"})
         self.assertFalse((self.template / "tone-ab").exists())
         self.assertFalse((self.base / "artifacts").exists())
+
+    def test_run_dir_symlink_and_traversal_refused(self):
+        alias = self.base / "alias-run"
+        alias.symlink_to(self.template, target_is_directory=True)
+        for value in (str(alias), str(self.template / ".." / self.template.name)):
+            with self.subTest(value=value), self.assertRaises(tone_ab.ToneABError) as caught:
+                tone_ab.run(args(value), self.base / "out-alias")
+            self.assertEqual(caught.exception.code, "invalid_arguments")
+        with self.assertRaises(tone_ab.ToneABError) as caught:
+            tone_ab.run(args(self.base / "missing-run"), self.base / "out-missing")
+        self.assertEqual(caught.exception.code, "run_dir_missing")
+        self.assertFalse((self.base / "out-alias").exists())
 
     def test_candidate_source_mismatch_refusal(self):
         candidate = self.base / "candidate-other-source"

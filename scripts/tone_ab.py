@@ -194,6 +194,21 @@ def validate_arguments(arguments) -> dict:
     return result
 
 
+def exact_directory(value: str, name: str) -> Path:
+    """Exact local directory: no '..' and no symlink component (tool_api convention)."""
+    original = Path(value).expanduser().absolute()
+    if ".." in original.parts:
+        raise ToneABError("invalid_arguments", f"{name} cannot contain '..' components")
+    current = Path(original.anchor)
+    for part in original.parts[1:]:
+        current = current / part
+        if current.is_symlink():
+            raise ToneABError("invalid_arguments", f"{name} cannot contain a symlink component: {current}")
+    if not original.is_dir():
+        raise ToneABError("run_dir_missing", f"{name} is not an existing directory: {original}")
+    return original
+
+
 def region_samples(start: float, end: float, pcm: dict) -> dict:
     rate, count = pcm["sample_rate"], pcm["sample_count"]
     duration = count / rate
@@ -937,9 +952,7 @@ def run(arguments: dict, output_dir: str | Path | None = None, *, _trial_gain_db
     deadline = time.monotonic() + params["timeout_seconds"]
     runner = Runner(deadline)
 
-    run_dir = Path(params["run_dir"]).expanduser().resolve()
-    if not run_dir.is_dir():
-        raise ToneABError("run_dir_missing", f"run_dir is not an existing directory: {run_dir}")
+    run_dir = exact_directory(params["run_dir"], "run_dir")
     if not (run_dir / "manifest.json").is_file():
         raise ToneABError("manifest_missing", f"run_dir has no manifest.json: {run_dir}")
     manifest = load_json_file(run_dir / "manifest.json", "manifest_missing")
@@ -949,9 +962,7 @@ def run(arguments: dict, output_dir: str | Path | None = None, *, _trial_gain_db
     candidate_dir = None
     candidate_manifest = None
     if params["candidate_run_dir"] is not None:
-        candidate_dir = Path(params["candidate_run_dir"]).expanduser().resolve()
-        if not candidate_dir.is_dir():
-            raise ToneABError("run_dir_missing", f"candidate_run_dir is not a directory: {candidate_dir}")
+        candidate_dir = exact_directory(params["candidate_run_dir"], "candidate_run_dir")
         if candidate_dir == run_dir:
             raise ToneABError("invalid_arguments", "candidate_run_dir must differ from run_dir")
         if not (candidate_dir / "manifest.json").is_file():

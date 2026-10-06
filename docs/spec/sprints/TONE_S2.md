@@ -252,3 +252,49 @@ denominators above, and the ruling citation.
 Receipt: `tone_ab | spec only, no numerics | Phase 1 contract freeze and
 preregistration | R-N13 (R-HOOK-CONVERGENCE-20261004) | accepted run
 20261006T041633Z-990aa1bd6737 read-only | no default/profile/master adoption`.
+
+## Phase 2 implementation notes (additive; preregistration above unchanged)
+
+Implemented in `scripts/tone_ab.py` (first commit b8b3007). None of the sealed
+parameters (shelf, bands, Welch/attack parameters, region 5.0–150.0 s, excerpt
+rule, seed 20261006, 0.3 LU tolerance) changed. The following choices were left
+open by the contract and are now fixed in code:
+
+- **Paths.** `run_dir`/`candidate_run_dir` must be exact local directories, with
+  no `..` and no symlink component. This matches the tool_api convention.
+  Refusals before staging (schema, region, paths, `stage_hash_mismatch`,
+  `native_extent_mismatch`, `candidate_source_mismatch`, `output_dir_exists`,
+  `output_dir_protected`) write nothing. Failures after staging rename the
+  staging directory to `<output>.failed/`, which holds only `tone-ab.failed.json`.
+  `<output>` is never published on failure.
+- **Gate order.** Cheap manifest checks (candidate source sha256, pcm) run
+  before hashing. Stage sha256 values come from the protected-readback snapshot
+  (streamed `media.sha256`), so each file is hashed once before measurement and
+  once after.
+- **CLI-only `--output-dir`.** It is not part of the tool schema. The same
+  freshness and protection refusals apply. The default is
+  `artifacts/s2/tone_ab/<run_id>-<UTCstamp>/`.
+- **Levels.** All levels are dB re 1.0 mean square, so a full-scale sine reads
+  −3.01 dBFS. With multiple channels, power is averaged across channels.
+- **Attack centroid.** Periodic Hann over the 20 ms window, zero-padded to the
+  next power of two. It is weighted by magnitude (librosa convention) over bins
+  20 Hz..min(20 kHz, Nyquist).
+- **Positions.** Attack positions use `audio_relative_seconds`, because the
+  run's PCM sample 0 is the first decoded audio sample (`manifest.timeline`).
+  Per-position rows are written to `attack-positions.json` (hash recorded in
+  `tone-ab.json`).
+- **Iteration.** `match_gains` re-measures every arm with
+  `volume=<g>dB:precision=double`, including the 0 dB target arm. A correction
+  that would make a gain positive is clamped to 0 and flagged.
+- **FFT.** A stdlib recursive radix-2 FFT with a real-input packing step, with
+  no numpy. Unit tests check it against a direct DFT.
+- **Script hash.** `script_sha256` is captured at the start of a run, so it
+  binds the code that actually executed.
+- **Wall time.** On 2026-10-06 the host load average was about 200–390 on 6
+  cores, because other lanes were running. Wall time in receipts reflects that
+  contention, not the helper's intrinsic cost.
+
+Root-owned registration (the `program/tools.json` descriptor from
+`python3 scripts/tone_ab.py describe`, the `scripts/tool_api.py` worker branch,
+a `just` recipe, and the S1 admission tool-count test) is requested through
+`root_owned_changes_requested`, not edited here.
