@@ -431,7 +431,7 @@
     },
     {
       "file": "docs/agent-notes/sprints/20261006-s2/web_stack-handoff.json",
-      "change": "Remove absolute /Users/ path or use repository-relative paths",
+      "change": "Remove the absolute home-directory path or use repository-relative paths",
       "why": "test_web_stack S6 fails on this branch only because base predates the fix"
     }
   ],
