@@ -1,0 +1,194 @@
+{
+  "lane": "editor_export",
+  "branch": "sprint/20261006-s2/editor_export",
+  "head": "eb236637d90ed30957ad692e35014c86c6f42ff3",
+  "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint2/editor_export",
+  "state": "implemented_tested_audit_findings",
+  "files": [
+    {
+      "path": ".agents/skills/editor-marker-export/SKILL.md",
+      "sha256": "ad44a2553eef55b09f91ccb2c969f8135593aed01ca29e85875b95a5b7cf2da2",
+      "kind": "skill_draft"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/editor_export-real-take-driver.json",
+      "sha256": "4e97780e7c16f8e0767d3dd2ca1b82e48407e57de7846f29173aacc3432b1f75",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/editor_export-real-take-receipt.json",
+      "sha256": "fb92adc0b13a1841a689d1c12cd8efbd10a6b23ceb883e329050051f44f0787a",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/editor_export-tool-descriptor.json",
+      "sha256": "577d0244dcedbc30cf3923f249f515cc3535a7d195a1fed4d8e136bdc9d01071",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/EDITOR_MARKER_EXPORT.md",
+      "sha256": "6c884e7b31ea202a6a49390ef9cd4c0149fab5e610012c0e6d7b795a7c9feb26",
+      "kind": "spec"
+    },
+    {
+      "path": "docs/spec/sprints/EDITOR_EXPORT_S2.md",
+      "sha256": "7072a83f731cf4964f32e24eaa590db494376ea01aac6dd0bc2ffe27e2931d2d",
+      "kind": "spec"
+    },
+    {
+      "path": "scripts/editor_marker_export.py",
+      "sha256": "9e259beb2a5e84bd90a8809993d7f5f49149113755f19dd412a79300bce4b828",
+      "kind": "source"
+    },
+    {
+      "path": "scripts/timecode.py",
+      "sha256": "1ac9cd87c0243521559e7a85ec79ed33dfc24f99f6013d3704bc102e836b4f37",
+      "kind": "source"
+    },
+    {
+      "path": "tests/test_editor_marker_export.py",
+      "sha256": "4d582eb0c788806b1ec9febe9e82d48ba4c9db596045dc7286b940aa5cd51d67",
+      "kind": "test"
+    },
+    {
+      "path": "tests/test_timecode.py",
+      "sha256": "fff6bc3dfd6491778bf3f0a2e05ba1503d8bc29dc10d932a6ede90d64948a08d",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "cd /Users/jess/git/video-utils/.local/sprint2/editor_export && export FFMPEG=... FFPROBE=... && PYTHONPATH=tests python3 -m unittest test_timecode test_editor_marker_export -v",
+    "discovered": 34,
+    "passed": 34,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 1048.7,
+    "commit": "eb236637d90ed30957ad692e35014c86c6f42ff3"
+  },
+  "metrics": [
+    {
+      "name": "test_timecode_drop_frame_frames",
+      "numerator": 18125856,
+      "denominator": 1,
+      "unit": "frames",
+      "claim_class": "measured",
+      "note": "Full 24h sweep: 29.97 fps (5,388,000), 59.94 fps (10,776,000), 119.88 fps (2,961,856)"
+    },
+    {
+      "name": "test_timecode_non_drop_frame_frames",
+      "numerator": 4665600,
+      "denominator": 1,
+      "unit": "frames",
+      "claim_class": "measured",
+      "note": "Full 24h sweep: 24 fps (2,073,600), 29.97 fps (2,592,000)"
+    },
+    {
+      "name": "test_timecode_skip_rule_minutes",
+      "numerator": 1440,
+      "denominator": 1440,
+      "unit": "minutes",
+      "claim_class": "measured",
+      "note": "Drop-frame skip rule verified across all 1,440 minutes per rate"
+    },
+    {
+      "name": "test_timecode_boundary_cases",
+      "numerator": 9,
+      "denominator": 9,
+      "unit": "boundary conditions",
+      "claim_class": "measured",
+      "note": "Apple TN2310 boundary cases pass; drop-frame correctly refused at 9 non-standard rates"
+    },
+    {
+      "name": "test_editor_marker_export_fixtures",
+      "numerator": 23,
+      "denominator": 23,
+      "unit": "test cases",
+      "claim_class": "measured",
+      "note": "All 23 exporter tests pass including VFR arms and DTD validation"
+    },
+    {
+      "name": "editor_export_contract_items_fcpxml",
+      "numerator": 18,
+      "denominator": 18,
+      "unit": "items",
+      "claim_class": "measured",
+      "note": "Final Cut Pro XML 1.10 bundle: marker rows, sidecar JSON, abstention logic"
+    },
+    {
+      "name": "editor_export_contract_items_resolve",
+      "numerator": 18,
+      "denominator": 18,
+      "unit": "items",
+      "claim_class": "measured",
+      "note": "Resolve operations preview: command construction, marker mapping, output structure"
+    }
+  ],
+  "unknowns": [
+    "application_import (not_performed)",
+    "host_frame_id (null on every row and operation)",
+    "executable (false)",
+    "api_contract (unverified)",
+    "resolve_version (null)",
+    "final_cut_version (null)",
+    "listening_acceptance (not_established)",
+    "musical_verdict (not_established)",
+    "dtd_validation (not_performed when routed through MCP)"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "program/tools.json",
+      "change": "Append to the \"tools\" array the exact JSON object in docs/agent-notes/sprints/20261006-s2/editor_export-tool-descriptor.json (name editor_marker_export; inputSchema properties run_dir 1-4096, selection 1-1024, profile 1-1024, format enum [\"fcpxml\",\"resolve_ops\"], timeout_seconds integer 1-120 default 120; required run_dir/selection/profile/format; additionalProperties false; skill .agents/skills/editor-marker-export/SKILL.md; annotations readOnlyHint false, destructiveHint false, idempotentHint false, openWorldHint false). Validated locally with tool_api.validate_schema and tool_api.validate (extra key 'dtd' rejected).",
+      "why": "Admit the editor_marker_export MCP hook. Root owns the registry."
+    },
+    {
+      "file": "scripts/tool_api.py",
+      "change": "Add `import hashlib` to imports. In validate_tool_arguments add: if name == 'editor_marker_export': for field in ('selection', 'profile'): validate_evidence_selector(args[field]). In command builder add conditional for editor_marker_export wrapping with directory selection and digest-based output path.",
+      "why": "Wire up the dispatcher with fixed argv and an exclusive run-local output path. No DTD, output path or argv passthrough; MCP calls always record dtd_validation not_performed."
+    },
+    {
+      "file": "scripts/mcp_server.py",
+      "change": "No code change expected. Prompts are derived from each descriptor's `skill` path, so the prompt `editor-marker-export` appears automatically once program/tools.json has the descriptor.",
+      "why": "The contract listed a prompt entry, and this records that none is needed."
+    },
+    {
+      "file": "just/workflow.just",
+      "change": "Add editor-marker-export recipe after editor-marker-plan: uniform-grid-gated local marker preview; abstains for VFR/unknown cadence; never imports.",
+      "why": "Optional operator recipe from the contract."
+    },
+    {
+      "file": "tests/test_share_export_tool.py, tests/test_s1_tool_admission.py",
+      "change": "Change tool-count assertions from 32 to 33 when descriptor is admitted.",
+      "why": "Both tests pin registry at 32 tools and would fail after admission. They are outside lane's owned files."
+    }
+  ],
+  "receipts_written": [],
+  "dropped_scope": [],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Scope check passed. Command: `git diff --name-only 4b87484...HEAD` lists exactly 10 files, all lane-owned. `git diff 4b87484 HEAD -- program/ scripts/tool_api.py scripts/mcp_server.py just/` is empty. scripts/editor_marker_plan.py is unchanged. Commits 2579462, 0728685 and eb23663 are all unsigned with no Co-Authored-By line. Worktree status is clean at eb236637.",
+      "(2) No forbidden writes found. The driver source embedded in editor_export-real-take-driver.json matches receipt hash 8959dc9e…. Write sites are lines 53-54, 63, 125-128, 147, 162 and 203, all under OUT. artifacts/ is gitignored. Find over run directories returned nothing newer than contract freeze (05:28). Receipt records 19/19 read-only inputs unchanged. No model download, no daemon, all subprocess timeouts present: xmllint 30s, ffprobe 300s, exporter CLI 120s.",
+      "(4) Tests rerun independently with FFMPEG/FFPROBE, PYTHONPATH=tests, PYTHONDONTWRITEBYTECODE=1 and TMPDIR in scratchpad: Ran 34 tests in 255.166s / OK (rc=0). 34/34 matches lane's claim (23 exporter + 11 timecode). test_timecode.py exercises drop-frame/non-drop-frame boundaries, Apple TN2310 cases, skip rules, parse round-trips and uniqueness. test_editor_marker_export covers all 18 contract items including VFR arms with zero files and DTD passed/failed/unavailable.",
+      "(6) Numbers reproduced with independent arithmetic. DF frames per day sum to 18,125,856. NDF sum to 4,665,600. Skipped minutes: 1296. Real-take steps arithmetic verified. Extent: 90531 ticks / 600 = 150.885s. 200,000 seeded random frames plus frames 0-4,999 at all three DF rates against Heidelberger formula: 0 mismatches.",
+      "MEDIUM, accuracy claim partly refuted: gate never checks that PTS table is 'complete', though spec, skill and docstrings say so (scripts/editor_marker_export.py:5 and :151, docs/spec/EDITOR_MARKER_EXPORT.md:88 and :233, SKILL.md gate item 2). measure_cadence and planner.pts_table accept any non-empty monotonic subset. Reproduction: uniform 1/24 table of 48 frames starting at tick 48, davinci_resolve target, grid origin 0 gives native_export_status=written_unverified, reasons=[], frameIds [60,72]. resolve_ops unprotected.",
+      "LOW: Resolve frameId uses fixture_grid.origin; display label uses asset_start (first PTS). Result: frameId 60 next to label 00:00:00:12 for same marker. Both labelled unverified, but two bases should be documented or made same.",
+      "Test-time contract breach disclosed by lane: frozen protocol wraps in `timeout 600`. Lane reports 1,410s wall on load 177-392 (6 cores). Rerun at load 50-120 took 255.7s wall, 74.5s user CPU for both modules (~75-86s). CI has timeout-minutes 25 for full suite. Root should decide whether exhaustive sweeps become opt-in.",
+      "LOW, unsupported metric: lane says 118 us/frame. No denominator supports it: 1044.7s / 22.79M frames = 46us; 1410s / 22.79M = 62us. Drop or derive.",
+      "LOW, missing denominators in receipt: metrics 6_fcpxml_fixtures and 7_resolve_ops are prose. Contract requires denominators. Item 9 lacks n/n count.",
+      "LOW, real-take metadata not cross-referenced: receipt records nb_frames=3631, avg_frame_rate 108930/4549 (≈23.946), but decoded scan found 3,621 frames over 150.885s (≈23.998 fps). 10-frame gap stored without comment. Correct use of measured PTS only (metadata_cadence_hint used_for_decisions=false).",
+      "Real-take note: predeclared operator selection binds to arrangement markers; hash-verified build/CLI refuses with exit 1, 'Selection ID or marker content is stale'. calibration_required shown through contract's pure_make_plan fallback. Build run on 171-marker all-generic selection (labelled deviation). MCP hook cannot consume operator's compact selection.",
+      "Inconsistency between drafts: frozen contract proposes output dir `<run_dir>/editor-export/<format>-<plan_sha12>/`. Descriptor/skill say `<run_dir>/editor-export-<format>-<export_profile_sha256[:12]>`. Root must pick one.",
+      "FCPXML structure note: asset has hasVideo=\"1\" but no hasAudio or audio attributes, though source .mov has audio. Only matters at import (not_performed/unverified).",
+      "(3)/(5) Doctrine checks passed. No high-pass, notch or DSP default. No note-correctness or missed/extra-note labels. Markers keep status needs_review. Unknown fields always emitted: application_import not_performed, host_frame_id null, executable false, api_contract unverified, resolve_version/final_cut_version null, listening_acceptance/musical_verdict not_established."
+    ],
+    "must_fix": []
+  }
+}
