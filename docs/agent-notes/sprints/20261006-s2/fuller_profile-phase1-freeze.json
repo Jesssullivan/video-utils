@@ -1,0 +1,129 @@
+{
+  "accepted_truth": {
+    "accepted_compact_marked_video_sha256": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2",
+    "capture_samples": [
+      180810,
+      218295
+    ],
+    "ffmpeg_version": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "filters": {
+      "C_capture": "[0:a]asplit=2[noise][body];[noise]atrim=start_sample=180810:end_sample=218295,asetpts=N/SR/TB,apad=pad_len=4410[training];[body]asetpts=N/SR/TB[take];[training][take]concat=n=2:v=0:a=1,apad=pad_len=1102,asendcmd=c='0 afftdn sn start;0.85 afftdn sn stop',afftdn=nr=8.0:nf=-40.0:tn=0:gs=0:ad=0,atrim=start_sample=42997:end_sample=6700382,asetpts=N/SR/TB[out]",
+      "L_latency": "afftdn=nr=8.0:nf=-40.0:tn=0:gs=0:ad=0",
+      "N_prefix": "loudnorm=I=-18.0:TP=-1.75:LRA=50",
+      "P_post": "equalizer=f=160:t=q:w=0.7:g=2:b=0:r=f64,equalizer=f=300:t=q:w=0.8:g=1:b=0:r=f64,acompressor=threshold=0.125892541179:ratio=2:attack=15:release=100:knee=1.41253754462:makeup=1:level_in=1:mode=downward:link=maximum:detection=rms:mix=0.25"
+    },
+    "listening_acceptance_receipt": "docs/agent-notes/2026-10-06-fuller-listening-acceptance.json",
+    "output_sha256": {
+      "baseline.wav": "2c600e9c50457a75f99c2a15ba2dcd1ab7554c5974ad25778db6e210267eccb9",
+      "cleaned.wav": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009",
+      "denoised.wav": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+      "processed.wav": "bd41286de40e20d4a4f0ccb1881b333168622ec71ba5f3967e276625e9c4b5d1",
+      "residue.wav": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc",
+      "source.wav": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a"
+    },
+    "pcm": {
+      "channels": 1,
+      "codec": "pcm_f32le",
+      "duration_seconds": 150.961111,
+      "sample_count": 6657385,
+      "sample_rate": 44100
+    },
+    "profile_controls": {
+      "adaptivity": 0.0,
+      "compressor": {
+        "attack_ms": 15.0,
+        "knee_db": 3.0,
+        "ratio": 2.0,
+        "release_ms": 100.0,
+        "threshold_db": -18.0
+      },
+      "denoise": true,
+      "gain_smooth": 0,
+      "integrated_lufs": -18.0,
+      "noise_floor_db": -40.0,
+      "peaking_eq": [
+        {
+          "frequency_hz": 160.0,
+          "gain_db": 2.0,
+          "q": 0.7
+        },
+        {
+          "frequency_hz": 300.0,
+          "gain_db": 1.0,
+          "q": 0.8
+        }
+      ],
+      "preserve_low_fundamental_hz": 32,
+      "reduction_db": 8.0,
+      "true_peak_dbtp": -1.75
+    },
+    "run_id": "20261006T041633Z-990aa1bd6737",
+    "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6"
+  },
+  "agent": "workflow-A/fuller_profile (claude-opus-5-5)",
+  "authority": "S2 lane contract relayed by root; R-HOOK-CONVERGENCE-20261004 / R-N11 / R-N12 / R-N13",
+  "code_identity_sha256": {
+    "docs/agent-notes/2026-10-06-accepted-fuller-compact-assembly.py": "095fa1e694fb97cc9a53f1d12e04c86cac7fbd637a7d574c6295102ecd44a533",
+    "docs/agent-notes/2026-10-06-fuller-listening-acceptance.json": "0f8d3dbff43e8f8c2bdaed94856d697b94f3de9cf78cf5f72a0e6ee982578e92",
+    "docs/agent-notes/2026-10-06-fuller-v1-plan.json": "f62cce0d5bf9e83ba045bfb9bd22a20d341ccc8ff690413fbfcd85bc447be599",
+    "profiles/conservative3.json": "28bd2cf6aa9307776003d01b750860555659934261bcdaa9013eeb130d70fbbd",
+    "scripts/apply_capture_profile.py": "790ac58f1924db2607087c6ab1cdae5d813ba24eda610af1f396d77e93d06584",
+    "scripts/arrangement_markers.py": "cc1c513937605120fa743ef00c38c2f88ebb254b93df30879f1e572c8e5ca8be",
+    "scripts/marked_video.py": "821b064809356481972ecbe5115568d15de15a2eeffd2f49b29f0ccf63350458",
+    "scripts/media.py": "91443154251888c9e74670790766b289a2618f85f3be806d60ca26882faa9d94",
+    "scripts/run_demo.py": "3c03bd68b9bdb77f13e3721db44430aff51c1315e8cfaa09b68a0baea278f23c",
+    "scripts/tool_api.py": "9fffb67c4050e0f2d9e60292bd25d68f3d1c297e2b7715ffb03250f433e97bbf"
+  },
+  "lane": "fuller_profile",
+  "linear": "TIN-5600",
+  "media_rendered": false,
+  "numerics_run": false,
+  "observations": [
+    "Accepted export/ contains photoboof_demo_lega.mov byte-identical to cleaned-video.mov; not listed in export outcome output_sha256; treated as protected and read-only.",
+    "Worktree media.py and apply_capture_profile.py SHA equal the frozen render-time identities."
+  ],
+  "phase": "1_contract_freeze",
+  "protected_before_sha256": {
+    "/Users/jess/Desktop/video_util_mvp_demo_1.mp4": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10",
+    "/Users/jess/git/video-utils/artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2",
+    "/Users/jess/git/video-utils/artifacts/experiments/accepted-fuller-compact-20261006T0441/receipt.json": "4809e1ce39c412dbe223801e2b74435c12ac6e9f1eb971752f4fe132d30bb236",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/arrangement-reference-20261006/arrangement-markers.json": "b82c447dd48dabf6ed6bcc27b9784de34f73c4bfc2316b71d6d59638df630557",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/callouts.ass": "90c3de715bf89e269f0b971eaa453dcc22ad424890f93f0fef6692dbf06bfa6b",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/marked-video.mov": "857285fd307ee95e3fedc84462f186ff1ed3deaf1cb96b2226167928e3ae89b3",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/outcome.json": "3a8eacb79586a5946a1f013d1dc922ae10b9a875edd2b065514d228077d1821f",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/selection.json": "0a14edb7c7d24856d86b57d0e7566bc1c4d2d7a016f0050956f556778d6c0da0",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/.video-frame-count-cache.json": "41a50baac8ffe3e986725f0c17f19a79b7cc1b872ebd4efaf17b27e6bc7f0ae5",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/application-receipt.json": "ab1f31dfaefff2d781f4d8b20ebeb9a8a3575f77b2b42926d98a96f9c5ae7e48",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/applied-profile.json": "a1229c84f1c9c1731c4d6733b4d3516301b39947bf9e325d7e663f9437c4b826",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/baseline.wav": "2c600e9c50457a75f99c2a15ba2dcd1ab7554c5974ad25778db6e210267eccb9",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/cleaned.wav": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/denoised.wav": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/export/cleaned-video.mov": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/export/outcome.json": "fe1b1009d7d56b54fedd8589aced49270a8bb6c37957df52b1e38d688b35f13d",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/export/photoboof_demo_lega.mov": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/manifest.json": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/processed.wav": "bd41286de40e20d4a4f0ccb1881b333168622ec71ba5f3967e276625e9c4b5d1",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/residue.wav": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc",
+    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/source.wav": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a"
+  },
+  "recorded_utc": "2026-10-06T09:31:34.718119+00:00",
+  "schema_version": 1,
+  "sealed_predictions": {
+    "A1_primary": "C,L,P,N byte-equal; capture samples [180810,218295); delay 1102",
+    "A1_secondary": "6/6 WAV byte-identical (unknown until run)",
+    "A2_primary": "all identity checks pass; 3621 video / 6503 AAC packets; audio-branch listening_acceptance accepted label; markers_are_analysis_of_audio_branch false",
+    "A2_secondary": "output byte-identical to 4538573a... (unknown until run)"
+  },
+  "spec": "docs/spec/sprints/FULLER_S2.md",
+  "spec_sha256": "5ac715f054ee6a5f53ebc2943936d3e11e890ad2280db1c3d717a112955ca57c",
+  "sprint": "20261006-s2",
+  "unknowns": {
+    "capture_click_status": "unknown",
+    "capture_music_status": "unknown",
+    "capture_noise_only_verified": false,
+    "fundamental_32hz_restoration_claimed": false,
+    "physical_audio_video_sync_verified": false,
+    "tone_suitability_other_takes": "unknown"
+  },
+  "writes_outside_owned_paths": false
+}
