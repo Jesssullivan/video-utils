@@ -1,0 +1,42 @@
+{
+  "lane": "lowreg_spec_v4",
+  "sprint": "20261006-s2",
+  "linear": "TIN-5608",
+  "phase": "2_implement_and_3_test_protocol",
+  "recorded_utc": "2026-10-06",
+  "host": "macbook-neo",
+  "contract_commit": "54b85b4f4c2944e6f7e006adf06c261b11f4b2e7",
+  "implementation_commit": "d930953421b37cf2b35de315001f543682b2ae11",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "claim_classes": {"M": "measurement on generated/deterministic data", "C": "construction-truth sanity on the generated fixture, not real-guitar evidence", "I": "inference (none made)", "L": "listening (none made)"},
+  "hashes": {
+    "program/spectrogram-lowreg-v1.json": {"spec_sha256_self": "880451c07c20f743323bf4303e95784a9dc0c84be5888daae215abdf4e0d260a", "file_sha256": "ed6ce97a37c749490002c0ce7cdc3a3e562386d0cb3100d6899464b66a15d2e5"},
+    "tests/fixtures/lowreg-golden-v1.json": {"file_sha256": "e090de4dacfec805945f0b737ce29f3ece0c73318393d5a5b47213211bef57e4", "bytes": 42035},
+    "scripts/lowreg_spectrogram.py": {"file_sha256": "868995461be81b44f2cfdbf8f028662a7b38cef15a461b356dd6ff3d7b59a969", "role": "golden generator provenance, not a test gate"},
+    "fixture": {"wav_sha256": "c812073a79715ec62e430f9d3268ac2bd1d9fb03e90f3c3f44633ca0d5631c61", "pcm_sha256": "d1937ead464902c9763698f79486596f74a69e245de299c4ca0e3497d57d36d0", "n_samples": 19200, "clipped_samples": 0}
+  },
+  "runs": [
+    {"command": "PYTHONPATH=tests python3 -m unittest test_lowreg_spectrogram -v", "interpreter": "system python3 3.12.14 (no numpy)", "exit_code": 0, "tests_run": 19, "skipped": 1, "skip_reasons": ["NumpyParityTests: numpy not importable"], "failures": 0, "errors": 0, "unittest_seconds": 44.246, "wall_seconds": 46, "timeout_seconds": 300},
+    {"command": "PYTHONPATH=tests /Users/jess/git/video-utils/.venv/bin/python -m unittest test_lowreg_spectrogram -v", "interpreter": "locked .venv python 3.14.6, numpy 2.5.3 (read-only, nothing installed)", "exit_code": 0, "tests_run": 19, "skipped": 0, "failures": 0, "errors": 0, "unittest_seconds": 40.028, "wall_seconds": 43, "timeout_seconds": 300},
+    {"command": "PYTHONPATH=tests python3 -m unittest test_guitar_features -v", "interpreter": "system python3 3.12.14", "reason": "directly affected module (reused radix-2 fft)", "exit_code": 0, "tests_run": 16, "skipped": 2, "skip_reasons": ["optional locked analysis environment (x2)"], "failures": 0, "errors": 0, "unittest_seconds": 7.734, "wall_seconds": 10, "timeout_seconds": 300}
+  ],
+  "not_run": {"full_suite": "root runs it", "ffmpeg_or_real_media": "not needed; no real take rendered", "optional_stretch_fuller_render": "not_run (optional, not part of done)"},
+  "metrics": {
+    "M1": {"class": "M", "result": "pass", "values": "1910/1910", "aggregates": "6/6", "shape": "2/2", "reduction": null, "max_abs_difference_vs_golden": {"stdlib_python3.12": 0.0, "stdlib_python3.14_venv": 1.8474111129762605e-13, "numpy_2.5.3": 2.8137492336099967e-12}, "note": "stdlib backend is bit-identical on the generating interpreter but not across interpreters (3.14 differs by <= 1.85e-13); all within tolerance abs 1e-9 rel 1e-9"},
+    "M2": {"class": "M", "result": "pass", "matched": "2/2"},
+    "M3": {"class": "M", "result": "pass", "matched": "2/2", "detail": "recomputed spec hash equals machine spec and golden"},
+    "M4": {"class": "M", "result": "pass_on_venv_numpy_2.5.3", "cells": "30400/30400", "max_abs_difference": 4.746425474877469e-12, "system_python3.12": "not_run (numpy not importable; not counted as pass)"},
+    "M5": {"class": "M", "result": "pass", "exact_equal_cells": {"block_1": "15200/15200", "block_7": "15200/15200", "block_95": "15200/15200"}, "negative_control": "per-block reset differs from batch"},
+    "M6": {"class": "M", "result": "pass", "non_empty_filters": "160/160", "unit_sum_within_1e-12": "160/160", "centre_formula": "160/160", "frames": 95, "first_centre_seconds": 0.256, "low_filters_at_most_two_taps": true},
+    "M7": {"class": "C", "prediction": ">= 20 dB (sealed before numerics)", "measured_db": 58.50390084415085, "result": "pass", "meaning": "D[94,17] - D[0,17]; no 400/80 Hz floor on the generated fixture; not guitar evidence"},
+    "M8": {"class": "C", "prediction": ">= 10 dB (sealed before numerics)", "measured_db": 55.08941212046598, "result": "pass", "meaning": "D[94,17] - D[94,28]; steady-tone separation on the generated fixture; explicitly not a pitch or note claim"},
+    "M9": {"class": "M", "result": "pass", "refused": "7/7", "cases": ["wrong rate 16000 Hz", "non-PCM16 (8-bit, 24-bit, IEEE float format 3)", "4095 samples", "existing output", "symlinked input (and symlinked output dir)", "non-finite array via API (nan, inf; PCEN nan)", "spec-hash mismatch (and rehashed parameter mismatch)"], "inputs_unchanged": true},
+    "M10": {"class": "M", "result": "pass", "golden_bytes": 42035, "limit": 50000},
+    "M11": {"class": "M", "result": "pass", "unchanged": "1/1"},
+    "M12": {"class": "M", "result": "recorded_within_budget", "stdlib_module_wall_seconds": 46, "budget_seconds": 120, "note": "one shared stdlib fixture render (~25-40 s, pure-Python 4096-point radix-2 FFT x 95 frames; varies with host load)"},
+    "M13": {"class": "doc", "result": "6/6", "path": "docs/agent-notes/peers/xoruby/V4-render-spec.md", "statements": ["spec path + sha256", "golden path + sha256", "log-mel baseline", "PCEN experimental", "separate attack branch", "pitch_resolution_claim none"]}
+  },
+  "unknown": {"real_take_behaviour": "not_run", "listening_acceptance": "not_assessed", "calibration": "uncalibrated_digital_scale; microphone response unknown", "pcen_suitability_for_guitar_onsets": "unknown; experimental", "resampler_group_delay": "null (unmeasured; v1 reference only accepts native 8000 Hz)"},
+  "adoption": "none",
+  "root_owned_changes_requested": []
+}
