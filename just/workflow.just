@@ -262,3 +262,40 @@ capabilities-check:
 # Project stable artifact IDs for explicit run selectors; read-only.
 artifact-id SELECTOR:
     python3 scripts/artifact_ids.py project {{quote(SELECTOR)}}
+
+# Experimental per-phrase onset offsets from the recorded click; descriptive, never a grade or verdict.
+phrase-timing analysis phrases output_root run_kind="real_take":
+    python3 scripts/phrase_timing.py --analysis {{quote(analysis)}} --phrases {{quote(phrases)}} --output-root {{quote(output_root)}} --run-kind {{quote(run_kind)}}
+
+# A running share_export worker keeps its own session and may outlive the server up to its own timeout (<= 900 s).
+# Private loopback job control API, foreground only (Ctrl-C stops the server, not a running job). Not a daemon.
+web-jobs-serve port="0" state_root="artifacts/web-jobs":
+    python3 scripts/web_api.py serve --port {{quote(port)}} --state-root {{quote(state_root)}}
+
+# Read-only job store counts (no lock, no reconciliation).
+web-jobs-status state_root="artifacts/web-jobs":
+    python3 scripts/web_jobs.py --state-root {{quote(state_root)}} status
+
+# Local web fixture (prototype): frozen-lockfile install. Loopback only; no hosted deployment.
+web-install:
+    cd web && pnpm install --frozen-lockfile
+
+# Local web fixture dev server bound to 127.0.0.1 (prototype).
+web-dev port="5173":
+    cd web && pnpm exec vite dev --host 127.0.0.1 --port {{quote(port)}} --strictPort
+
+# Offline frozen install, type check and build of the local web fixture.
+web-build:
+    cd web && pnpm install --frozen-lockfile --offline && pnpm run check && pnpm run build
+
+# Serve the built web fixture on loopback; optional control API URL from web-jobs-serve.
+web-serve port="3000" control_api="":
+    cd web && HOST=127.0.0.1 PORT={{quote(port)}} VIDEO_UTILS_CONTROL_API_URL={{quote(control_api)}} node serve.js
+
+# Web fixture behaviour tests (loopback enforcement, BFF limits, pins).
+web-test:
+    PYTHONPATH=tests python3 -m unittest test_web_stack -v
+
+# Read-only AU discovery/auval step; never installs, registers or repairs.
+au-auval-step:
+    python3 native/au-spike/host/auval_step.py

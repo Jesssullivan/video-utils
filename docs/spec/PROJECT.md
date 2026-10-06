@@ -70,7 +70,7 @@ proceeds through source inspection, clean/export, rhythm analysis, and reporting
 `artifacts/runs/`; provenance records source identity, commands, tool versions,
 profile parameters, analysis resampling, and output measurements.
 
-The current versioned tool/API contract, local MCP stdio adapter, and thirty-six
+The current versioned tool/API contract, local MCP stdio adapter, and thirty-eight
 per-tool skills expose the same bounded operations. Agent guidance connects research evidence
 to explicit, auditable parameter suggestions for noise, tone, and note analysis.
 Suggestions require comparative evaluation; agents cannot silently change the

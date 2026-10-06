@@ -1,4 +1,4 @@
-"""S2 admission: freeze the first 32 descriptors and exercise four new typed hooks.
+"""S2 admission: freeze the first 32 and 36 descriptors and exercise six new typed hooks.
 
 Synthetic metadata only. Outputs go beneath a patched temporary artifacts/
 boundary; no recording, accepted run or repository artifact is read or written.
@@ -29,6 +29,9 @@ FROZEN_NAMES = (
 # (tests/test_sprint1_audit.py canonical()), both taken from base commit e0da4ca.
 FROZEN_SHA256 = '932d3e2683c5175fc08f0a8b27169a351b6269ba3db4467811d37bbd698e8863'
 FROZEN_ASCII_SHA256 = '358ce0aeba9214076d64fcc69ee9554cdd048d2001304dc897bf7f38b4d313bb'
+# Second freeze (root_admission_c): tools[:36] as merged at main 736f406, same two serializers.
+FROZEN_36_SHA256 = '82bdb7478deb8dc5859c33e7c2ca017c582cc54fc4dfaf85d858a6b5a77073ba'
+FROZEN_36_ASCII_SHA256 = '51dd154f28079f178979a6add85bf9d2d8fcf4cc2f8d0fefec7061ab16749d31'
 NEW = {
     'editor_marker_export': ('editor-marker-export', False, False,
                              {'run_dir', 'selection', 'profile', 'format'}, 120),
@@ -37,6 +40,13 @@ NEW = {
     'flags_triage': ('guitar-flags-triage', True, True, {'run_dir', 'output'}, 900),
     'corpus_eval_s2': ('guitar-corpus-eval', True, True,
                        {'manifest', 'proposals', 'proposals_sha256', 'output'}, 900),
+}
+# Admitted by root_admission_c: (prompt, readOnlyHint, idempotentHint, required, timeout ceiling, hook text).
+NEW_C = {
+    'marked_compact': ('guitar-marked-compact', False, False, {'run_dir', 'picture_preview', 'arrangement_markers'},
+                       600, 'MCP tool `marked_compact`'),
+    'phrase_timing': ('guitar-phrase-timing', True, False, {'analysis', 'phrases', 'output_root'}, 300,
+                      'Hook `phrase_timing`'),
 }
 SHA = 'a' * 64
 
@@ -55,12 +65,14 @@ class S2ToolAdmissionTests(unittest.TestCase):
     # ----- registry freeze and descriptors ---------------------------------
     def test_first_32_descriptors_frozen_and_four_appended(self):
         tools = tool_api.descriptors()
-        self.assertEqual(len(tools), 36)
+        self.assertEqual(len(tools), 38)
         self.assertEqual(tuple(tool['name'] for tool in tools[:32]), FROZEN_NAMES)
-        for ascii_only, expected in ((False, FROZEN_SHA256), (True, FROZEN_ASCII_SHA256)):
-            data = json.dumps(tools[:32], sort_keys=True, separators=(',', ':'), ensure_ascii=ascii_only)
+        for count, ascii_only, expected in ((32, False, FROZEN_SHA256), (32, True, FROZEN_ASCII_SHA256),
+                                            (36, False, FROZEN_36_SHA256), (36, True, FROZEN_36_ASCII_SHA256)):
+            data = json.dumps(tools[:count], sort_keys=True, separators=(',', ':'), ensure_ascii=ascii_only)
             self.assertEqual(hashlib.sha256(data.encode()).hexdigest(), expected)
-        self.assertEqual([tool['name'] for tool in tools[32:]], list(NEW))
+        self.assertEqual([tool['name'] for tool in tools[32:36]], list(NEW))
+        self.assertEqual([tool['name'] for tool in tools[36:]], list(NEW_C))
         raw = (ROOT / 'program/tools.json').read_text(encoding='utf-8')
         self.assertEqual(json.dumps(json.loads(raw), indent=2) + '\n', raw)
 
@@ -331,18 +343,170 @@ class S2ToolAdmissionTests(unittest.TestCase):
         self.assertEqual((evaluation['negatives_inferred'], evaluation['source_audio_read']), (0, False))
         self.assertIsNone(evaluation['records'][0]['metrics']['precision'])
 
+    # ----- root_admission_c: marked_compact and phrase_timing ---------------
+    def test_admission_c_descriptors_closed_bounded_and_skills_exist(self):
+        for name, (prompt, read_only, idempotent, required, ceiling, hook) in NEW_C.items():
+            with self.subTest(name=name):
+                info = tool_api.descriptor(name)
+                schema = info['inputSchema']
+                tool_api.validate_schema(schema)
+                self.assertIs(schema['additionalProperties'], False)
+                self.assertEqual(set(schema['required']), required)
+                timeout = schema['properties']['timeout_seconds']
+                self.assertEqual((timeout['type'], timeout['minimum'], timeout['maximum']), ('integer', 1, ceiling))
+                self.assertEqual(info['implementation_status'], 'experimental')
+                self.assertEqual(info['annotations'], {'readOnlyHint': read_only, 'destructiveHint': False,
+                                                       'idempotentHint': idempotent, 'openWorldHint': False})
+                self.assertEqual(info['skill'], f'.agents/skills/{prompt}/SKILL.md')
+                text = (ROOT / info['skill']).read_text(encoding='utf-8')
+                self.assertTrue(text.startswith(f'---\nname: {prompt}\ndescription: '))
+                self.assertIn(hook, text)
+                for key in ('identify', 'research', 'iterate', 'acceptance'):
+                    self.assertTrue(info['agent_workflow'][key])
+                with self.assertRaises(tool_api.ValidationError):
+                    tool_api.validate({'unknown': True}, schema)
+        self.assertEqual(tool_api.descriptor('phrase_timing')['inputSchema']['properties']['run_kind']['enum'],
+                         ['real_take', 'synthetic_fixture'])
+
+    def test_admission_c_invalid_arguments_refuse_before_worker(self):
+        compact = {'run_dir': 'artifacts/runs/audio', 'picture_preview': 'artifacts/runs/preview',
+                   'arrangement_markers': 'arrangement/markers.json'}
+        timing = {'analysis': '/unopened/analysis.json', 'phrases': '/unopened/markers.json',
+                  'output_root': 'artifacts/phrase-timing'}
+        invalid = [
+            ('marked_compact', dict(compact, arrangement_markers='../markers.json')),
+            ('marked_compact', dict(compact, arrangement_markers='/abs/markers.json')),
+            ('marked_compact', dict(compact, arrangement_markers='markers.txt')),
+            ('marked_compact', dict(compact, run_dir='artifacts/runs/../audio')),
+            ('marked_compact', dict(compact, picture_preview='C:\\preview')),
+            ('marked_compact', dict(compact, output='artifacts/../escape')),
+            ('marked_compact', dict(compact, output='file:///tmp/out')),
+            ('marked_compact', dict(compact, timeout_seconds=601)),
+            ('marked_compact', dict(compact, codec='h264')),
+            ('marked_compact', {k: v for k, v in compact.items() if k != 'arrangement_markers'}),
+            ('phrase_timing', dict(timing, run_kind='graded')),
+            ('phrase_timing', dict(timing, tendency_threshold_ms=2)),
+            ('phrase_timing', dict(timing, analysis='/unopened/../analysis.json')),
+            ('phrase_timing', dict(timing, phrases='https://host.invalid/m.json')),
+            ('phrase_timing', dict(timing, output_root='artifacts/../out')),
+            ('phrase_timing', dict(timing, analysis='/unopened/a\x00.json')),
+            ('phrase_timing', dict(timing, timeout_seconds=301)),
+            ('phrase_timing', {k: v for k, v in timing.items() if k != 'output_root'}),
+        ]
+        for name, arguments in invalid:
+            with self.subTest(name=name, arguments=arguments), patch.object(tool_api, 'run_worker') as worker:
+                with self.assertRaises(tool_api.ValidationError):
+                    tool_api.execute(name, arguments)
+                worker.assert_not_called()
+
+    def phrase_timing_inputs(self, bound=None):
+        from test_phrase_timing import SOURCE_SHA, logic_analysis
+        inputs = self.base / 'timing inputs $(literal)'
+        inputs.mkdir()
+        clicks = [1.0 + 0.5 * k for k in range(40)]
+        onsets = [t + 0.012 for t in clicks[2:10]]
+        analysis = inputs / 'analysis.json'
+        analysis.write_text(json.dumps(logic_analysis(onsets=onsets, clicks=clicks, duration=30.0)))
+        markers = inputs / 'markers.json'
+        markers.write_text(json.dumps({'format': 'video-utils-arrangement-markers-v1',
+                                       'analyzed_input_sha256': bound or SOURCE_SHA,
+                                       'markers': [{'name': 'arrangement_aligned_unit_review',
+                                                    'source_time_seconds': 1.75, 'end_seconds': 5.75,
+                                                    'display_label': 'ALIGNMENT CANDIDATE: phrase 1',
+                                                    'label_basis': 'estimated'}]}))
+        return analysis, markers
+
+    def test_admission_c_worker_commands_fixed_argv_and_confined_outputs(self):
+        analysis, markers = self.phrase_timing_inputs()
+        root = self.artifacts / 'phrase timing'
+        command = tool_api.worker_command('phrase_timing', {'analysis': str(analysis), 'phrases': str(markers),
+                                                            'output_root': str(root)})
+        self.assertEqual(command[1:], [str(ROOT / 'scripts/phrase_timing.py'), '--analysis', str(analysis),
+                                       '--phrases', str(markers), '--output-root', str(root),
+                                       '--run-kind', 'real_take'])
+        self.assertEqual(tool_api.worker_command('phrase_timing', {
+            'analysis': str(analysis), 'phrases': str(markers), 'output_root': str(root),
+            'run_kind': 'synthetic_fixture'})[-1], 'synthetic_fixture')
+        outside = self.base / 'not-artifacts'; outside.mkdir()
+        alias = self.base / 'analysis-alias.json'; alias.symlink_to(analysis)
+        text = self.base / 'analysis.txt'; text.write_text('{}')
+        blocker = self.artifacts / 'a-file'; blocker.write_text('x')
+        refusals = [
+            {'output_root': str(outside / 'pt')}, {'output_root': str(self.artifacts)},
+            {'output_root': str(self.artifacts / 'runs' / 'pt')}, {'output_root': str(blocker)},
+            {'output_root': str(self.artifacts / 'missing' / 'pt')},
+            {'analysis': str(alias)}, {'analysis': str(text)}, {'analysis': str(self.base / 'absent.json')}]
+        for change in refusals:
+            arguments = dict({'analysis': str(analysis), 'phrases': str(markers), 'output_root': str(root)}, **change)
+            with self.subTest(change=change), patch.object(tool_api, 'run_worker') as worker:
+                with self.assertRaises(tool_api.ToolError):
+                    tool_api.execute('phrase_timing', arguments)
+                worker.assert_not_called()
+        # marked_compact: parents beneath artifacts/runs, fresh output beneath artifacts/ but not runs.
+        runs = self.artifacts / 'runs'
+        (runs / 'audio').mkdir(parents=True); (runs / 'preview').mkdir()
+        args = {'run_dir': str(runs / 'audio'), 'picture_preview': str(runs / 'preview'),
+                'arrangement_markers': 'arrangement/markers.json'}
+        with patch.object(tool_api, 'ROOT', self.base):
+            command = tool_api.worker_command('marked_compact', dict(args, output=str(self.artifacts / 'compact')))
+            self.assertEqual(command[1:], [str(self.base / 'scripts/marked_compact.py'), str(runs / 'audio'),
+                                           '--picture-preview', str(runs / 'preview'),
+                                           '--arrangement-markers', 'arrangement/markers.json',
+                                           '--timeout-seconds', '600', '--output', str(self.artifacts / 'compact')])
+            self.assertNotIn('--output', tool_api.worker_command('marked_compact', dict(args, timeout_seconds=30)))
+            for output, message in ((str(runs / 'compact'), 'artifacts/runs'), (str(outside / 'c'), 'artifacts/'),
+                                    (str(blocker), 'fresh')):
+                with self.subTest(output=output), patch.object(tool_api, 'run_worker') as worker:
+                    with self.assertRaisesRegex(tool_api.ToolError, message):
+                        tool_api.execute('marked_compact', dict(args, output=output))
+                    worker.assert_not_called()
+            with self.assertRaisesRegex(tool_api.ToolError, 'artifacts/runs'):
+                tool_api.worker_command('marked_compact', dict(args, run_dir=str(outside)))
+        # The exact dispatcher argv parses in the real worker, which refuses the unverified parents with a
+        # typed reason and creates no output.
+        completed = subprocess.run([sys.executable, str(ROOT / 'scripts/marked_compact.py')] + command[2:],
+                                   cwd=ROOT, capture_output=True, text=True, timeout=120, check=False)
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        self.assertEqual(json.loads(completed.stderr)['status'], 'error')
+        self.assertTrue(json.loads(completed.stderr)['reason'])
+        self.assertFalse(os.path.lexists(self.artifacts / 'compact'))
+
+    def test_admission_c_phrase_timing_executes_without_touching_inputs(self):
+        analysis, markers = self.phrase_timing_inputs()
+        before = {path: path.read_bytes() for path in (analysis, markers)}
+        root = self.artifacts / 'timing'
+        result = tool_api.execute('phrase_timing', {'analysis': str(analysis), 'phrases': str(markers),
+                                                    'output_root': str(root), 'run_kind': 'synthetic_fixture'})
+        self.assertEqual(result['evidence_kind'], 'descriptive_click_relative_timing_unvalidated')
+        written = pathlib.Path(result['result']['phrase_timing_json'])
+        self.assertEqual(written.parent.parent, root)
+        receipt = json.loads(written.read_text())
+        self.assertEqual((receipt['click_identity'], receipt['performance_grading'], receipt['expected_rhythm_reference']),
+                         ('unverified', 'not_performed', None))
+        self.assertEqual((receipt['summary']['phrase_count'], receipt['summary']['measured_count']), (1, 1))
+        self.assertEqual(receipt['phrases'][0]['status'], 'measured')
+        self.assertEqual({path: path.read_bytes() for path in (analysis, markers)}, before)
+        stale = self.base / 'stale.json'
+        stale.write_text(markers.read_text().replace(json.loads(markers.read_text())['analyzed_input_sha256'], '0' * 64))
+        with self.assertRaises(tool_api.ToolError):
+            tool_api.execute('phrase_timing', {'analysis': str(analysis), 'phrases': str(stale),
+                                               'output_root': str(self.artifacts / 'stale-out')})
+        self.assertFalse((self.artifacts / 'stale-out').exists())
+
     # ----- MCP prompt readback ------------------------------------------------
     def test_real_mcp_lists_tools_and_reads_back_each_new_skill_prompt(self):
         messages = [initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
                     request(2, 'tools/list'), request(3, 'prompts/list')]
+        admitted = list(NEW.items()) + list(NEW_C.items())
         messages += [request(10 + index, 'prompts/get', {'name': prompt})
-                     for index, (prompt, *_rest) in enumerate(NEW.values())]
+                     for index, (_name, (prompt, *_rest)) in enumerate(admitted)]
         replies, stderr = exchange(messages, timeout=30)
         self.assertEqual(stderr, '')
         tools = {row['name']: row for row in replies[1]['result']['tools']}
-        self.assertEqual(len(tools), 36)
+        self.assertEqual(len(tools), 38)
         prompts = {row['name'] for row in replies[2]['result']['prompts']}
-        for offset, (name, (prompt, *_rest)) in enumerate(NEW.items()):
+        self.assertEqual(len(prompts), 38)
+        for offset, (name, (prompt, *_rest)) in enumerate(admitted):
             with self.subTest(name=name):
                 self.assertIs(tools[name]['inputSchema']['additionalProperties'], False)
                 self.assertIn(prompt, prompts)
