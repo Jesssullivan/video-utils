@@ -1,0 +1,97 @@
+{
+ "schema_version": 1,
+ "lane": "gitleaks_fixture_fix",
+ "sprint": "20261006-s2",
+ "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43); R-N13 receipt",
+ "date": "2026-10-06",
+ "worktree": ".local/sprint2/gitleaks_fixture_fix",
+ "branch": "sprint/20261006-s2/gitleaks_fixture_fix",
+ "base": "5436b2d",
+ "trigger": "hosted CI run 37525406189 on 5436b2d: all tests passed; secret scan `gitleaks dir --redact .` (gitleaks 8.30.1) reported 27 generic-api-key findings on idempotency_key values in synthetic test fixtures",
+ "classification": "false positives: synthetic idempotency keys (random `ui-` + 32 hex in parity requests; `fixture-succeeded-01` in control-api fixtures), not credentials",
+ "precedent": "docs/agent-notes/2026-10-06-final-handoff.md: false generic-key match resolved by changing the data, no credential or scanner allowlist changed",
+ "scanner": {
+  "tool": "gitleaks 8.30.1 (local Homebrew build, same version as CI)",
+  "command": "gitleaks dir --redact -v --no-banner <clean git-archive export of HEAD>",
+  "findings_before": {
+   "total": 27,
+   "by_rule": {
+    "generic-api-key": 27
+   },
+   "by_file": {
+    "web/fixtures/parity/requests.json": 25,
+    "web/fixtures/control-api/job_succeeded.json": 1,
+    "web/fixtures/control-api/generate_fixtures.py": 1
+   },
+   "files_with_findings": 3,
+   "tree": "git archive 5436b2d"
+  },
+  "findings_after": {
+   "total": 0,
+   "by_rule": {},
+   "by_file": {},
+   "files_with_findings": 0,
+   "tree": "git archive of the fix commit (fixture changes only); re-scanned after the receipt commit",
+   "output": "no leaks found"
+  }
+ },
+ "fix": {
+  "parity": "web/fixtures/parity/generate.mjs now assigns deterministic keys `ui-` + (case index + 1) as 32 zero-padded hex digits instead of randomBytes(16); requests.json regenerated with `node fixtures/parity/generate.mjs` (25 cases); the diff touches only the 25 idempotency_key values. Keys stay distinct and match UI_KEY_PATTERN ^ui-[0-9a-f]{32}$ and web_jobs IDEMPOTENCY_KEY [A-Za-z0-9._-]{8,128}; Shannon entropy about 0.74 to 0.92 bits/char",
+  "control_api": "generate_fixtures.py keys changed to fixture-succeeded-000000, fixture-failed-000000, fixture-running-000000, fixture-queued-000000 (entropy 3.11 to 3.27, below the generic-api-key 3.5 threshold; the previous fixture-failed-0001 at 3.58 and fixture-running-001 at 3.47 were near or above it). The key is echoed verbatim and is not part of the job fingerprint, so the six job_*.json fixtures were updated in place by literal replacement rather than a full regeneration, which would also have changed timestamps and source ids",
+  "validation_unchanged": "no validator, key pattern or runtime key generation changed; web/src/lib/idempotency.ts (newFormKey uses crypto.getRandomValues) and web/src/lib/server/job-request.ts are untouched",
+  "historical_receipts": "docs/agent-notes/sprints/20261006-s2/web_ui_binding-handoff.json pins the pre-fix fixture sha256 values as historical evidence for 5436b2d; it was intentionally left unchanged"
+ },
+ "files_changed": [
+  {
+   "path": "web/fixtures/control-api/generate_fixtures.py",
+   "sha256": "c78b1b67e76c34d5f7ed1b36ec9a15462e144e57abbe47a29f7a0dc1b80758bd"
+  },
+  {
+   "path": "web/fixtures/control-api/job_bad_enum.json",
+   "sha256": "d7f545ec90f23a60bf4571212c37db0427e8f28bdace7fdc52438020f942aa8c"
+  },
+  {
+   "path": "web/fixtures/control-api/job_bad_unknown_key.json",
+   "sha256": "a942000c584f26314a0d90546f35b3c6913057378ca7fed676b13933bcd1c65a"
+  },
+  {
+   "path": "web/fixtures/control-api/job_failed.json",
+   "sha256": "f5f02c43ffaa0b58802a06cca7a18f70c7a9b45a3c62c7bee3878975f82d10b4"
+  },
+  {
+   "path": "web/fixtures/control-api/job_queued.json",
+   "sha256": "cafdbe9c2974559a0b08a5a064011da0c7b29ef6658eb381191cf35622af178a"
+  },
+  {
+   "path": "web/fixtures/control-api/job_running.json",
+   "sha256": "8fb55d0bbfcbc5a32c3728cfb3067b42c945e892a8c7e71b8af8a36f69076a89"
+  },
+  {
+   "path": "web/fixtures/control-api/job_succeeded.json",
+   "sha256": "b5edb69e4bae26ecb221483292bbcdf3233b6f1c21e081bb878b44c665930d4a"
+  },
+  {
+   "path": "web/fixtures/parity/generate.mjs",
+   "sha256": "f15bcb71907fb0fa9b2566f9900af8fd132c46ee258eff70fdeca856480677df"
+  },
+  {
+   "path": "web/fixtures/parity/requests.json",
+   "sha256": "e4e919a6c35689dd28d97c24b1427f91b8c19a4dd11d5480fb1f6ea0abd5ca82"
+  }
+ ],
+ "tests": {
+  "command": "FFMPEG/FFPROBE=nix ffmpeg-headless 8.1.2 PYTHONPATH=tests python3 -m unittest test_web_parity test_web_jobs test_web_stack -v",
+  "full_run": "Ran 77 tests in 1199.464s; FAILED (errors=1, skipped=3): 73 ok, 3 opt-in skips (DemoWalkthrough, ActualDemoJob, LocalLatencyMeasurement), 1 error",
+  "error": "test_web_stack.WebStackBuildTests.test_b2_check: subprocess.TimeoutExpired, `pnpm run check` timed out after 300 s while the host load average was about 244 on 6 CPUs from parallel lanes. It is not a fixture assertion",
+  "b2_check_isolated_rerun": "Ran 1 test in 248.468s; OK",
+  "fixture_relevant_tests_ok": [
+   "test_web_parity.ParityValidationTests.test_bff_parity_fixtures_match_job_request_module_shape (key regex, distinct keys, node regeneration equality)",
+   "test_web_parity.ParityValidationTests.test_cli_and_web_validation_verdicts_agree (all 25 bodies posted to one job service)",
+   "test_web_stack.WebStackStaticTests.test_s6_no_secrets_or_host_paths (host-path/secret patterns over web files and web_stack/web_ui_binding receipts)"
+  ],
+  "note": "this receipt contains no absolute host paths; its file name is outside the test_s6 receipt glob"
+ },
+ "scanner_config_changed": false,
+ "statement": "No .gitleaksignore, gitleaks config, allowlist, inline gitleaks:allow comment or credential-check setting was added or changed. The fix changes only synthetic fixture data and the fixture generators.",
+ "not_done": "not pushed or merged; hosted CI rerun is pending integration by root"
+}
