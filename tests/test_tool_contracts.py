@@ -27,6 +27,121 @@ def basic_pitch_missing_test_artifacts():
 
 
 class ToolContractTests(unittest.TestCase):
+    def learned_evaluator_fixture(self):
+        from test_learned_pitch_evaluate import create_fixture
+        root = ROOT / 'artifacts/benchmarks' / ('contract-learned-evaluate-' + uuid.uuid4().hex)
+        root.mkdir(parents=True); self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        bank, pyin, learned = create_fixture(root / 'bank')
+        return root, {'fixture_index': str(bank), 'pyin_pilot_index': str(pyin),
+                      'learned_pilot_index': str(learned), 'output': str(root / 'result')}
+
+    def learned_evaluator_call(self, arguments):
+        from test_mcp import exchange, initialization, request
+        with patch.dict(os.environ, {'FFMPEG': '/nonexistent/ffmpeg', 'FFPROBE': '/nonexistent/ffprobe',
+                                     'VIDEO_UTILS_ANALYSIS_PYTHON': '/nonexistent/analysis-python'}):
+            replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+                request(2, 'tools/call', {'name': 'learned_pitch_evaluate', 'arguments': arguments})], timeout=120)
+        self.assertEqual(stderr, '')
+        return replies[1]['result']
+
+    def test_learned_evaluator_schema_rejects_runtime_truth_and_unsafe_paths(self):
+        valid = {'fixture_index': 'artifacts/benchmarks/bank.json', 'pyin_pilot_index': 'artifacts/benchmarks/pyin.json',
+                 'learned_pilot_index': 'artifacts/benchmarks/learned.json', 'output': 'artifacts/benchmarks/new'}
+        invalid = [dict(valid, timeout_seconds=True), dict(valid, timeout_seconds=121), dict(valid, timeout_seconds=0),
+                   dict(valid, timeout_seconds=float('inf')), dict(valid, runtime_python='/bin/python'),
+                   dict(valid, model_path='weights.onnx'), dict(valid, install_model=True), dict(valid, threshold=.2),
+                   dict(valid, clock='best_by_truth'), dict(valid, learned_pilot_index='x' * 4097),
+                   dict(valid, pyin_pilot_index=['index.json']), dict(valid, fixture_index='source.wav')]
+        for field in tool_api.LEARNED_EVALUATION_FIELDS:
+            invalid.extend(dict(valid, **{field: path}) for path in ('../bad.json', 'https://host/index.json',
+                          'artifacts//benchmarks/index.json', 'artifacts/benchmarks/.stage/index.json',
+                          'artifacts/benchmarks/run.partial/index.json', 'bad\\index.json'))
+        for arguments in invalid:
+            with self.subTest(arguments=arguments), patch.object(tool_api, 'run_worker') as worker:
+                with self.assertRaises(tool_api.ValidationError): tool_api.execute('learned_pitch_evaluate', arguments)
+                worker.assert_not_called()
+
+    def test_learned_evaluator_fixed_command_deadline_and_preflight(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve(); bank = root / 'artifacts/benchmarks'; bank.mkdir(parents=True)
+            args = {'output': str(bank / 'new')}
+            for field in tool_api.LEARNED_EVALUATION_FIELDS[:-1]:
+                path = bank / (field + ' $(literal);.json'); path.write_text('{}'); args[field] = str(path)
+            with patch.object(tool_api, 'ROOT', root):
+                command = tool_api.worker_command('learned_pitch_evaluate', args)
+                expected = [str(root / 'scripts/learned_pitch_evaluate.py')]
+                for field in tool_api.LEARNED_EVALUATION_FIELDS:
+                    expected += ['--' + field.replace('_', '-'), args[field]]
+                self.assertEqual(command[1:], expected + ['--summary'])
+                with patch.object(tool_api, 'run_worker', return_value={'status': 'test'}) as worker:
+                    tool_api.execute('learned_pitch_evaluate', args); self.assertEqual(worker.call_args.args[1], 120)
+                    tool_api.execute('learned_pitch_evaluate', dict(args, timeout_seconds=7))
+                    self.assertEqual(worker.call_args.args[1], 7); self.assertEqual(worker.call_args.kwargs, {})
+                linked = bank / 'linked.json'; linked.symlink_to(Path(args['fixture_index']))
+                oversized = bank / 'large.json'
+                with oversized.open('wb') as handle: handle.truncate(5_000_001)
+                for changes in ({'fixture_index': str(linked)}, {'learned_pilot_index': str(oversized)},
+                                {'pyin_pilot_index': str(bank / 'missing.json')}, {'output': str(bank)},
+                                {'output': str(root / 'outside')}, {'output': args['fixture_index']}):
+                    with self.subTest(changes=changes), patch.object(tool_api, 'run_worker') as worker:
+                        with self.assertRaises(tool_api.ToolError): tool_api.execute('learned_pitch_evaluate', dict(args, **changes))
+                        worker.assert_not_called()
+
+    def test_real_learned_evaluator_mcp_preserves_octave_failure_and_inputs(self):
+        root, args = self.learned_evaluator_fixture()
+        before = {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in (root / 'bank').rglob('*') if path.is_file()}
+        response = self.learned_evaluator_call(args); self.assertFalse(response['isError'], response)
+        result = response['structuredContent']['result']
+        self.assertEqual((result['case_count'], result['coverage_seconds'], result['model_windows']), (4, 30, 19))
+        self.assertTrue(result['hard_gates_passed']); self.assertTrue(result['quality_alerts'])
+        self.assertTrue(result['source_audio_bytes_read']); self.assertTrue(result['raw_array_bytes_read'])
+        self.assertFalse(result['source_audio_decoded']); self.assertFalse(result['inference_invoked'])
+        self.assertFalse(result['real_performance_grading']); self.assertFalse(result['listening_accepted'])
+        self.assertEqual(result['ground_truth_scope'], 'generator_only_not_musician')
+        self.assertNotIn('cases', result); self.assertLess(len(json.dumps(result)), 20_000)
+        evidence = json.loads(Path(result['evaluation_json']).read_text())
+        metrics = evidence['cases'][0]['native_model_input_context']['stable_monophonic_metrics']
+        self.assertEqual(metrics['raw_pitch_accuracy']['value'], 0.)
+        self.assertEqual(metrics['raw_chroma_accuracy']['value'], 1.)
+        self.assertEqual(metrics['octave_error_fraction']['value'], 1.)
+        self.assertTrue(Path(result['frame_errors_csv']).is_file()); self.assertTrue(Path(result['event_errors_csv']).is_file())
+        for path, digest in before.items(): self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), digest)
+        reused = self.learned_evaluator_call(args); self.assertTrue(reused['isError'])
+        self.assertIn('new directory', reused['content'][0]['text'])
+
+    def test_real_learned_evaluator_stale_raw_retains_structural_receipt(self):
+        root, args = self.learned_evaluator_fixture()
+        index = json.loads(Path(args['learned_pilot_index']).read_text())
+        Path(index['jobs'][0]['activations_path']).write_bytes(b'changed archive')
+        response = self.learned_evaluator_call(args); self.assertTrue(response['isError'])
+        diagnostic = response['content'][0]['text']; self.assertIn('sha256_mismatch', diagnostic)
+        self.assertIn('retained', diagnostic)
+        evidence = json.loads((Path(args['output']) / 'learned-pitch-calibration.json').read_text())
+        self.assertEqual(evidence['status'], 'failed_structural'); self.assertFalse(evidence['hard_gates_passed'])
+        self.assertNotIn('cases', evidence); self.assertFalse(evidence['inference_invoked'])
+
+    def test_real_learned_evaluator_unsupported_claim_keeps_metrics_and_fails(self):
+        from test_pitch_evaluate import put_json
+        root, args = self.learned_evaluator_fixture()
+        index_path = Path(args['learned_pilot_index']); index = json.loads(index_path.read_text())
+        job = index['jobs'][0]; receipt_path = Path(job['comparison_path']); receipt = json.loads(receipt_path.read_text())
+        receipt['extra'] = {'note_correctness_confirmed': True}
+        job['comparison_sha256'] = put_json(receipt_path, receipt); put_json(index_path, index)
+        response = self.learned_evaluator_call(args); self.assertTrue(response['isError'])
+        self.assertIn('unsupported_confirmed_claims', response['content'][0]['text'])
+        evidence = json.loads((Path(args['output']) / 'learned-pitch-calibration.json').read_text())
+        self.assertFalse(evidence['hard_gates_passed']); self.assertEqual(evidence['unsupported_claim_count'], 1)
+        self.assertEqual(evidence['case_count'], 4); self.assertTrue(evidence['cases'])
+        self.assertFalse(evidence['real_performance_grading']); self.assertFalse(evidence['listening_accepted'])
+
+    def test_learned_evaluator_prompt_exact_readback(self):
+        from test_mcp import exchange, initialization, request
+        replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+            request(2, 'tools/list'), request(3, 'prompts/get', {'name': 'guitar-learned-pitch-evaluate'})])
+        self.assertEqual(stderr, ''); self.assertEqual(len(replies[1]['result']['tools']), 27)
+        self.assertEqual(replies[2]['result']['messages'][0]['content']['text'],
+                         (ROOT / '.agents/skills/guitar-learned-pitch-evaluate/SKILL.md').read_text())
+
     def editor_marker_fixture(self):
         from test_editor_marker_plan import EditorMarkerPlanTests
         run = ROOT / 'artifacts/runs' / ('contract-editor-plan-' + uuid.uuid4().hex)
@@ -982,7 +1097,7 @@ class ToolContractTests(unittest.TestCase):
             expected = [item for field in tool_api.PIPELINE_SELECTORS
                         for item in ('--' + field.replace('_', '-'), arguments[field])]
             self.assertEqual(command[3:], expected)
-            self.assertEqual(len(tool_api.descriptors()), 26)
+            self.assertEqual(len(tool_api.descriptors()), 27)
 
     def test_pipeline_missing_or_symlink_selector_does_not_launch(self):
         with tempfile.TemporaryDirectory() as temporary, tempfile.TemporaryDirectory() as outside:
@@ -1010,12 +1125,12 @@ class ToolContractTests(unittest.TestCase):
         self.assertEqual(envelope['status'], 'completed')
         self.assertNotEqual(envelope['result']['selected_evidence']['tonal']['status'], 'verified')
 
-    def test_pipeline_prompt_exact_readback_and_twenty_six_tool_catalog(self):
+    def test_pipeline_prompt_exact_readback_and_twenty_seven_tool_catalog(self):
         from test_mcp import exchange, initialization, request
         replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
             request(2, 'tools/list'), request(3, 'prompts/get', {'name': 'guitar-pipeline'})])
         self.assertEqual(stderr, '')
-        self.assertEqual(len(replies[1]['result']['tools']), 26)
+        self.assertEqual(len(replies[1]['result']['tools']), 27)
         pipeline = next(tool for tool in replies[1]['result']['tools'] if tool['name'] == 'pipeline')
         self.assertTrue(set(tool_api.PIPELINE_SELECTORS) <= set(pipeline['inputSchema']['properties']))
         self.assertEqual(replies[2]['result']['messages'][0]['content']['text'],

@@ -1,0 +1,54 @@
+{
+  "actor": "/root",
+  "target": "user-configured GPG agent and subordinate pinentry/scdaemon",
+  "ownership": "shared Jess session; explicit current user authorization to restart overrides cross-session default",
+  "reason": "user reports pinentry wedged; pending source-signing process waiting",
+  "authority": "R-HOOK-CONVERGENCE-20261004 / TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43; R-N11 explicit cross-session authorization / R-N13 durable receipt",
+  "observed_at": "2026-10-06T02:03:09.048344+00:00",
+  "prior_state": [
+    "3343     1 07:39:21 gpg-agent",
+    "55839  3343 01:23:11 scdaemon",
+    "66485  3343    01:27 /nix/store/zc0nh344a6xyrypmc6r437jkb1dbfvxj-pinentry-mac-1.1.1.1/Applications/pinentry-mac.app/Contents/MacOS/pinentry-mac"
+  ],
+  "agent_socket": "/Users/jess/.gnupg/S.gpg-agent",
+  "kill_exit": 0,
+  "launch_exit": 0,
+  "result": [
+    "3343     1 07:39:22 gpg-agent",
+    "55839  3343 01:23:12 scdaemon",
+    "66485  3343    01:28 /nix/store/zc0nh344a6xyrypmc6r437jkb1dbfvxj-pinentry-mac-1.1.1.1/Applications/pinentry-mac.app/Contents/MacOS/pinentry-mac"
+  ],
+  "graceful_shutdown_result": "gpgconf returned0 but exact old agent/scdaemon/pinentry remained live and pending signer stalled",
+  "authorized_fallback": [
+    {
+      "pid": 66485,
+      "live_identity": "501 66485 /nix/store/zc0nh344a6xyrypmc6r437jkb1dbfvxj-pinentry-mac-1.1.1.1/Applications/pinentry-mac.app/Contents/MacOS/pinentry-mac",
+      "signal": "TERM"
+    },
+    {
+      "pid": 55839,
+      "live_identity": "501 55839 scdaemon",
+      "signal": "TERM"
+    },
+    {
+      "pid": 3343,
+      "live_identity": "501  3343 gpg-agent",
+      "signal": "TERM"
+    },
+    {
+      "pid": 55839,
+      "live_identity": "501 55839 scdaemon",
+      "signal": "KILL after graceful shutdown failed"
+    },
+    {
+      "pid": 3343,
+      "live_identity": "501  3343 gpg-agent",
+      "signal": "KILL after graceful shutdown failed"
+    }
+  ],
+  "relaunch_exit": 0,
+  "final_observed_at": "2026-10-06T02:03:38.986910+00:00",
+  "final_state": [
+    "501 69061     1    00:00 gpg-agent"
+  ]
+}

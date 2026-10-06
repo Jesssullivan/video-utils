@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "authority": "Operator goal; AGENTS.md; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "observed_at": "2026-10-06T01:39:20.659591+00:00",
+  "tool_count": 27,
+  "worker_sha256": "1fb883026b842857f72a70c8bf2fb757330b9ac705be36914f7a4c50cb8f7374",
+  "arguments": {
+    "fixture_index": "/Users/jess/git/video-utils/artifacts/benchmarks/root-calibration-bank-20261005T2255/fixtures.json",
+    "pyin_pilot_index": "/Users/jess/git/video-utils/artifacts/benchmarks/root-calibration-pilot-20261005T2300/pitch-pilot-index.json",
+    "learned_pilot_index": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/learned-pilot-index.json",
+    "output": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-actual-mcp-20261006T013857Z-3eeb99e7"
+  },
+  "summary": {
+    "evaluation_json": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-actual-mcp-20261006T013857Z-3eeb99e7/learned-pitch-calibration.json",
+    "frame_errors_csv": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-actual-mcp-20261006T013857Z-3eeb99e7/learned-pitch-frame-errors.csv",
+    "event_errors_csv": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-actual-mcp-20261006T013857Z-3eeb99e7/learned-pitch-event-errors.csv",
+    "status": "completed_with_regression_alerts",
+    "hard_gates_passed": true,
+    "unsupported_claim_count": 0,
+    "ground_truth_scope": "generator_only_not_musician",
+    "case_count": 4,
+    "coverage_seconds": 30,
+    "model_windows": 19,
+    "event_count_by_preset": {
+      "127.7": 43,
+      "25.0": 73
+    },
+    "source_audio_bytes_read": true,
+    "source_audio_decoded": false,
+    "raw_array_bytes_read": true,
+    "inference_invoked": false,
+    "real_performance_grading": false,
+    "listening_accepted": false,
+    "quality_alerts": [
+      {
+        "case_id": "c1-missing-fundamental",
+        "view": "native_model_input_context",
+        "kind": "low_raw_pitch_accuracy",
+        "value": 0.07981220657276995,
+        "n": 426
+      },
+      {
+        "case_id": "c1-missing-fundamental",
+        "view": "model_clock_pointwise",
+        "kind": "low_raw_pitch_accuracy",
+        "value": 0.10743801652892562,
+        "n": 605
+      },
+      {
+        "case_id": "tuning-ladder",
+        "view": "model_clock_pointwise",
+        "kind": "low_raw_pitch_accuracy",
+        "value": 0.869098712446352,
+        "n": 466
+      },
+      {
+        "case_id": "tuning-ladder",
+        "view": "model_clock_pointwise",
+        "kind": "guitar_absence_false_voicing",
+        "count": 46
+      },
+      {
+        "case_id": "legato-transition",
+        "view": "model_clock_pointwise",
+        "kind": "low_raw_pitch_accuracy",
+        "value": 0.8439716312056738,
+        "n": 423
+      },
+      {
+        "case_id": "legato-transition",
+        "view": "model_clock_pointwise",
+        "kind": "guitar_absence_false_voicing",
+        "count": 2
+      },
+      {
+        "case_id": "sweep-and-polyphony",
+        "view": "model_clock_pointwise",
+        "kind": "low_raw_pitch_accuracy",
+        "value": 0.8552188552188552,
+        "n": 297
+      },
+      {
+        "case_id": "sweep-and-polyphony",
+        "view": "model_clock_pointwise",
+        "kind": "guitar_absence_false_voicing",
+        "count": 23
+      }
+    ],
+    "error": null
+  },
+  "elapsed_seconds": 22.754330416999437,
+  "stdio_stderr_empty": true,
+  "input_hashes_preserved": true,
+  "before": {
+    "/Users/jess/git/video-utils/artifacts/benchmarks/root-calibration-bank-20261005T2255/fixtures.json": "3a6d117a50b32ad4f9e1b60921ee1b8a1d4376cc821ebcb31f14f4b8d80fdc73",
+    "/Users/jess/git/video-utils/artifacts/benchmarks/root-calibration-pilot-20261005T2300/pitch-pilot-index.json": "5c183df75f67dfa4b6d4a7b3c13b7d79d9fcbfa0408ce90d58a80017948ed343",
+    "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/learned-pilot-index.json": "e565bb13847bb7f29c64a571f17d200f12dc21853154a39400516e52657bcf5f",
+    "/Users/jess/git/video-utils/scripts/learned_pitch_evaluate.py": "1fb883026b842857f72a70c8bf2fb757330b9ac705be36914f7a4c50cb8f7374",
+    "/Users/jess/git/video-utils/program/tools.json": "a4feec5463051a5dcea165c14e8bbcf4b2f3fa59b946b0148a8952db78dd2d6a",
+    "/Users/jess/git/video-utils/scripts/tool_api.py": "e99933b5eb68743a85d497c23427b94f4bf7650ddd8543dca5fd323ba622015d",
+    "/Users/jess/git/video-utils/artifacts/latest.json": "8ed66efb8f81f06db6c1abb0a5962c38218d6c8bd1fb3c2d46432dc1693fa5ee"
+  },
+  "after": {
+    "/Users/jess/git/video-utils/artifacts/benchmarks/root-calibration-bank-20261005T2255/fixtures.json": "3a6d117a50b32ad4f9e1b60921ee1b8a1d4376cc821ebcb31f14f4b8d80fdc73",
+    "/Users/jess/git/video-utils/artifacts/benchmarks/root-calibration-pilot-20261005T2300/pitch-pilot-index.json": "5c183df75f67dfa4b6d4a7b3c13b7d79d9fcbfa0408ce90d58a80017948ed343",
+    "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/learned-pilot-index.json": "e565bb13847bb7f29c64a571f17d200f12dc21853154a39400516e52657bcf5f",
+    "/Users/jess/git/video-utils/scripts/learned_pitch_evaluate.py": "1fb883026b842857f72a70c8bf2fb757330b9ac705be36914f7a4c50cb8f7374",
+    "/Users/jess/git/video-utils/program/tools.json": "a4feec5463051a5dcea165c14e8bbcf4b2f3fa59b946b0148a8952db78dd2d6a",
+    "/Users/jess/git/video-utils/scripts/tool_api.py": "e99933b5eb68743a85d497c23427b94f4bf7650ddd8543dca5fd323ba622015d",
+    "/Users/jess/git/video-utils/artifacts/latest.json": "8ed66efb8f81f06db6c1abb0a5962c38218d6c8bd1fb3c2d46432dc1693fa5ee"
+  },
+  "evaluation_sha256": "802d07bff9559d6fe82226fb646ada212d6bccf738cf9fd18285fbc7be54987f",
+  "real_performance_grading": false,
+  "listening_accepted": false,
+  "collector_correction": "Earlier collector read wrapper fields as worker fields; pure evaluator completed. This proof retains wire bytes first."
+}

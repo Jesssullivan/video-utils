@@ -382,6 +382,11 @@ def paired_rows(native_rows,pyin_branches):
 
 
 def evaluate(fixture_index,pyin_index,learned_index):
+    # Resolve repository-relative indices before using their parent directories
+    # as the base for artifact references. Keep every existing path guard.
+    fixture_index=base.safe_path(fixture_index)
+    pyin_index=base.safe_path(pyin_index)
+    learned_index=base.safe_path(learned_index)
     # Full published pYIN validator independently enforces bank/source/grid/truth contracts.
     pyin_result,_,_=base.evaluate(fixture_index,pyin_index)
     bank,bank_hash=base.read_json(base.safe_path(fixture_index))

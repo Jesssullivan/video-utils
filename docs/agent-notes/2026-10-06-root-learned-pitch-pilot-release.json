@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "authority": "Operator active parallel implementation goal; repository AGENTS.md; R-HOOK-CONVERGENCE-20261004/R-N11/R-N13",
+  "actor": "/root",
+  "issued_at": "2026-10-06T01:29:07.499337+00:00",
+  "inference_authorized": true,
+  "preregistration_sha256": "0314cb209d9a2113ecb63f5bef48df541337d247d7992f88fc13f677105e4599",
+  "controller_sha256": "df7ca74708fa8b9ca09f5db9b06426ed215c409630a4cc8ba13fa9c52650ce38",
+  "independent_source_audit_path": "/Users/jess/git/video-utils/docs/agent-notes/2026-10-06-learned-pitch-pilot-acceptance-review.md",
+  "independent_source_audit_sha256": "818798b52adde13d7485585edee65d03fb7ffa04fdae9d457f5ffa8717c41ee9",
+  "evaluator_sha256": "1fb883026b842857f72a70c8bf2fb757330b9ac705be36914f7a4c50cb8f7374",
+  "scope": "Four serial fixed generated cases8/8/6/8seconds; nineteen model windows; predictions freeze before separate pure evaluator; no downloads/defaults/master/original/pyin edits",
+  "bounds": {
+    "input_seconds": 30,
+    "threads": 2,
+    "controller_deadline_seconds": 900,
+    "worker_deadline_seconds": 600,
+    "peak_rss_bytes": 1073741824,
+    "model_windows_max": 24,
+    "raw_numeric_bytes_max": 20971520,
+    "events_max_each_decoder": 5000
+  },
+  "evaluation_authorized_after_complete_prediction_freeze": true,
+  "native_absence_N": 0,
+  "native_absence_false_alarm_rate_must_be_null": true,
+  "real_performance_grading": false,
+  "listening_accepted": false,
+  "default_adoption": false
+}

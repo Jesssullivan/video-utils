@@ -66,7 +66,7 @@ rhythm analysis, and reporting. Local artifacts are isolated per run under
 `artifacts/runs/`; provenance records source identity, commands, tool versions,
 profile parameters, analysis resampling, and output measurements.
 
-The current versioned tool/API contract, local MCP stdio adapter, and twenty-six
+The current versioned tool/API contract, local MCP stdio adapter, and twenty-seven
 per-tool skills expose the same bounded operations. Agent guidance connects research evidence
 to explicit, auditable parameter suggestions for noise, tone, and note analysis.
 Suggestions require comparative evaluation; agents cannot silently change the
@@ -93,6 +93,10 @@ risks directing the allocations:
   and short event-duration settings do not establish C1, missing-fundamental,
   distorted-polyphony or legato accuracy. Retain octave, silence and coverage
   failures, and compare fixed decoding choices without intended-note grading.
+  The frozen generated learned pilot identified C1 correctly in 34/426 eligible
+  whole-input frames, with 392 octave errors. A shorter decoder increased sweep
+  recall and false positives. The pure evaluator preserves these results and
+  the native absence denominator of zero; it supplies no automatic winner.
 - Finish portable capture profiles and bounded agent iteration using a fresh
   source/review binding for each take. Keep denoise, tone/dynamics, analysis and
   delivery provenance separate. Every admitted primitive needs a typed hook,

@@ -19,6 +19,7 @@ MAX_JSON_NESTING = 128
 PIPELINE_SELECTORS = ('clicks_artifact', 'pitch_artifact', 'meter_artifact',
                       'tonal_artifact', 'comparisons_artifact')
 CALIBRATION_TOOLS = {'pitch_evaluate': 5_000_000, 'phrase_evaluate': 20_000_000}
+LEARNED_EVALUATION_FIELDS = ('fixture_index', 'pyin_pilot_index', 'learned_pilot_index', 'output')
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
                          'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default',
                          'items', 'minItems', 'maxItems'}
@@ -404,8 +405,9 @@ def validate_tool_arguments(name, args):
         for field in (('run_dir', 'output') if name == 'marked_video' else ('run_dir',)):
             if '\\' in args[field] or '..' in args[field].split('/'):
                 raise ValidationError('marked video directories cannot contain traversal or backslash components')
-    if name in CALIBRATION_TOOLS:
-        for field in ('fixture_index', 'pilot_index', 'output'):
+    if name in CALIBRATION_TOOLS or name == 'learned_pitch_evaluate':
+        fields = LEARNED_EVALUATION_FIELDS if name == 'learned_pitch_evaluate' else ('fixture_index', 'pilot_index', 'output')
+        for field in fields:
             value = args[field]
             parts = value.split('/')
             if value.startswith('/'):
@@ -472,6 +474,12 @@ def worker_command(name, args):
     if name == 'editor_marker_plan':
         return head + [str(ROOT / 'scripts/editor_marker_plan.py'), editor_marker_inputs(args),
                        args['selection'], args['profile'], '--summary']
+    if name == 'learned_pitch_evaluate':
+        command = head + [str(ROOT / 'scripts/learned_pitch_evaluate.py')]
+        for field in LEARNED_EVALUATION_FIELDS:
+            command += ['--' + field.replace('_', '-'),
+                        calibration_path(args[field], output=field == 'output', max_bytes=5_000_000)]
+        return command + ['--summary']
     if name in CALIBRATION_TOOLS:
         return head + [str(ROOT / ('scripts/' + name + '.py')),
                        '--fixture-index', calibration_path(args['fixture_index'], max_bytes=CALIBRATION_TOOLS[name]),

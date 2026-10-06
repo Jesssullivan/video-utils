@@ -1,0 +1,599 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-10-06T01:38:35.835658+00:00",
+  "status": "independent_saved_array_checks_passed",
+  "numpy_version": "2.5.3",
+  "audit_source_sha256": "6f642659d1bc7de2956109c513da8339a4f34ec8e4740bf34c242e4b09d5f0fa",
+  "evaluated_source_sha256": "1fb883026b842857f72a70c8bf2fb757330b9ac705be36914f7a4c50cb8f7374",
+  "input_hashes_unchanged": {
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/learned-pilot-index.json": "e565bb13847bb7f29c64a571f17d200f12dc21853154a39400516e52657bcf5f",
+    "artifacts/benchmarks/learned-numerical-evaluation-20261006T0133/learned-pitch-calibration.json": "655819f1dbe5150b0de6f6e8f05cdbd11d95c6dab9f062b65c77dcd45d8790c7",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/predictions-frozen.json": "3149bf5f6bc0b716b2d969ae5f99faf53c574ccf4f36bd46a7451e9044d7551e",
+    "docs/agent-notes/2026-10-06-learned-pitch-bank-preregistration.json": "0314cb209d9a2113ecb63f5bef48df541337d247d7992f88fc13f677105e4599",
+    "artifacts/benchmarks/root-calibration-bank-20261005T2255/fixtures.json": "3a6d117a50b32ad4f9e1b60921ee1b8a1d4376cc821ebcb31f14f4b8d80fdc73",
+    "artifacts/benchmarks/root-calibration-pilot-20261005T2300/pitch-pilot-index.json": "5c183df75f67dfa4b6d4a7b3c13b7d79d9fcbfa0408ce90d58a80017948ed343",
+    "program/instrument.json": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0",
+    "scripts/basic_pitch_compare.py": "720a1f76103426d1cc7580d213d3516f31b184295a50d873bda545ccc5a2d40e",
+    "artifacts/model-runtime-env/onnx-1.30.0-cp314/wheel-manifest-before-install.json": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-01/denoised.wav": "74b9407c7601d567b47786aaededdbea69ae80b7e7e0433e90427056f07a9e35",
+    "artifacts/benchmarks/root-calibration-bank-20261005T2255/c1-missing-fundamental/clean.wav": "74b9407c7601d567b47786aaededdbea69ae80b7e7e0433e90427056f07a9e35",
+    "artifacts/benchmarks/root-calibration-bank-20261005T2255/c1-missing-fundamental/truth.json": "b7782fa2c7445af42949d892858fcc45080e3637d9895beb84217edbd51e3a8e",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-01/learned-pitch/20261006T013055Z-3d8948f35eb4/comparison.json": "9b00b2e7062139e827b97f8cea1f17232680ce4e1dff781c15e2526235452220",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-01/learned-pitch/20261006T013055Z-3d8948f35eb4/activations.npz": "eeac77a506002a282bb18a92e5b93095bcd7337d86697e904c543fed2d3fd1c2",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-02/denoised.wav": "dc0f8f13403e62168c638bffd1d142d3efa2049fe8ede8e27d2182d302214775",
+    "artifacts/benchmarks/root-calibration-bank-20261005T2255/tuning-ladder/clean.wav": "dc0f8f13403e62168c638bffd1d142d3efa2049fe8ede8e27d2182d302214775",
+    "artifacts/benchmarks/root-calibration-bank-20261005T2255/tuning-ladder/truth.json": "a31e016cfef84703792df697961c4b5bb5aea2d1ee1874b8fbcc3bc94a90031b",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-02/learned-pitch/20261006T013106Z-05d5ac7138d4/comparison.json": "71028fd1ab61a433d1aef5b6e73e88cb32eac983ce933ddd140676d1f95e1f6e",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-02/learned-pitch/20261006T013106Z-05d5ac7138d4/activations.npz": "5f0f84696a6553bb568d364b4ee20344a729bbf27b7f878d80065bdb11da200c",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-03/denoised.wav": "75840f14e4fe5ea8f62ffca4610cc53f15365b2cd0bf8da6fa466f4865976e42",
+    "artifacts/benchmarks/root-calibration-bank-20261005T2255/legato-transition/mix.wav": "75840f14e4fe5ea8f62ffca4610cc53f15365b2cd0bf8da6fa466f4865976e42",
+    "artifacts/benchmarks/root-calibration-bank-20261005T2255/legato-transition/truth.json": "599e55ba32dd1c7829b80df9169560aa6bbe5d4b0e62f10bc826621bd90646a1",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-03/learned-pitch/20261006T013115Z-37ab70d64171/comparison.json": "008ad3a6ed9cf83bd2b7efcb6ba31aed82bab378e8ee262ad366ea611531df6f",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-03/learned-pitch/20261006T013115Z-37ab70d64171/activations.npz": "fc11408ce5dcbcca7735ae4d83a8667e027ec4062ce1d5273f7da35e231632b8",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-04/denoised.wav": "a5d32272abc208e19051f548c10cd04a8b494bacaf563d776cfed59ec1916c30",
+    "artifacts/benchmarks/root-calibration-bank-20261005T2255/sweep-and-polyphony/mix.wav": "a5d32272abc208e19051f548c10cd04a8b494bacaf563d776cfed59ec1916c30",
+    "artifacts/benchmarks/root-calibration-bank-20261005T2255/sweep-and-polyphony/truth.json": "62159b768eff5cd3844b81c785646d3e1c38a9b310e20120578fccca9122c725",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-04/learned-pitch/20261006T013124Z-f128ce250f73/comparison.json": "a1dc9f83f62a2bf5f3f3af49fb513607661656859dad497fe0b2e60704cf9823",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-04/learned-pitch/20261006T013124Z-f128ce250f73/activations.npz": "5c2f20fb351440f283f9bddca69811e0fd496fcbe1a8055ad86331f6c76aa639"
+  },
+  "raw_numeric_bytes": 4623360,
+  "model_windows": 19,
+  "event_counts": {
+    "127.7": 43,
+    "25.0": 73
+  },
+  "cases": [
+    {
+      "case_id": "c1-missing-fundamental",
+      "native": {
+        "contexts": {
+          "input_padding": 262,
+          "stable_monophonic": 426
+        },
+        "counts": {
+          "abstentions": 97,
+          "monophonic_n": 426,
+          "voiced_reference": 426,
+          "raw_pitch_correct": 34,
+          "raw_chroma_correct": 426,
+          "octave_errors": 392
+        },
+        "eligible_top_midi_histogram": {
+          "24": 34,
+          "48": 392
+        },
+        "maximum_activation_mean_all_rows": 0.38164636492729187,
+        "maximum_activation_min_max_all_rows": [
+          0.10947355628013611,
+          0.5881943702697754
+        ]
+      },
+      "pointwise": {
+        "contexts": {
+          "stable_unvoiced": 83,
+          "stable_monophonic": 605
+        },
+        "counts": {
+          "abstentions": 97,
+          "absence_n": 83,
+          "false_voiced_absence": 0,
+          "monophonic_n": 605,
+          "voiced_reference": 591,
+          "raw_pitch_correct": 65,
+          "raw_chroma_correct": 591,
+          "octave_errors": 526
+        },
+        "eligible_top_midi_histogram": {
+          "24": 65,
+          "48": 526
+        },
+        "maximum_activation_mean_all_rows": 0.38164636492729187,
+        "maximum_activation_min_max_all_rows": [
+          0.10947355628013611,
+          0.5881943702697754
+        ]
+      },
+      "clock_sensitivity": {
+        "nominal_times_seconds": {
+          "contexts": {
+            "stable_unvoiced": 86,
+            "stable_monophonic": 602
+          },
+          "counts": {
+            "abstentions": 97,
+            "absence_n": 86,
+            "false_voiced_absence": 0,
+            "monophonic_n": 602,
+            "voiced_reference": 591,
+            "raw_pitch_correct": 65,
+            "raw_chroma_correct": 591,
+            "octave_errors": 526
+          },
+          "eligible_top_midi_histogram": {
+            "24": 65,
+            "48": 526
+          },
+          "maximum_activation_mean_all_rows": 0.38164636492729187,
+          "maximum_activation_min_max_all_rows": [
+            0.10947355628013611,
+            0.5881943702697754
+          ]
+        },
+        "input_window_projection_seconds": {
+          "contexts": {
+            "stable_unvoiced": 83,
+            "stable_monophonic": 605
+          },
+          "counts": {
+            "abstentions": 97,
+            "absence_n": 83,
+            "false_voiced_absence": 0,
+            "monophonic_n": 605,
+            "voiced_reference": 591,
+            "raw_pitch_correct": 65,
+            "raw_chroma_correct": 591,
+            "octave_errors": 526
+          },
+          "eligible_top_midi_histogram": {
+            "24": 65,
+            "48": 526
+          },
+          "maximum_activation_mean_all_rows": 0.38164636492729187,
+          "maximum_activation_min_max_all_rows": [
+            0.10947355628013611,
+            0.5881943702697754
+          ]
+        }
+      },
+      "clock_max_abs_residual_seconds": {
+        "model_times_seconds": 0.0,
+        "nominal_times_seconds": 0.0,
+        "input_window_projection_seconds": 0.0
+      },
+      "events": [
+        {
+          "floor_ms": 127.7,
+          "event_count": 9,
+          "tp": 0,
+          "fp": 9,
+          "fn": 1,
+          "reference_n": 1
+        },
+        {
+          "floor_ms": 25.0,
+          "event_count": 12,
+          "tp": 0,
+          "fp": 12,
+          "fn": 1,
+          "reference_n": 1
+        }
+      ],
+      "c1_bin_activation_mean_all_rows": 0.22945064141653304
+    },
+    {
+      "case_id": "tuning-ladder",
+      "native": {
+        "contexts": {
+          "input_padding": 262,
+          "transition_crossing": 426
+        },
+        "counts": {
+          "abstentions": 237
+        },
+        "eligible_top_midi_histogram": {},
+        "maximum_activation_mean_all_rows": 0.4790370762348175,
+        "maximum_activation_min_max_all_rows": [
+          0.11090007424354553,
+          0.9310628175735474
+        ]
+      },
+      "pointwise": {
+        "contexts": {
+          "stable_unvoiced": 222,
+          "stable_monophonic": 466
+        },
+        "counts": {
+          "abstentions": 237,
+          "absence_n": 222,
+          "false_voiced_absence": 46,
+          "monophonic_n": 466,
+          "voiced_reference": 405,
+          "raw_pitch_correct": 405,
+          "raw_chroma_correct": 405,
+          "octave_errors": 0
+        },
+        "eligible_top_midi_histogram": {
+          "24": 20,
+          "29": 52,
+          "34": 26,
+          "39": 52,
+          "46": 47,
+          "51": 52,
+          "56": 52,
+          "60": 52,
+          "65": 52
+        },
+        "maximum_activation_mean_all_rows": 0.4790370762348175,
+        "maximum_activation_min_max_all_rows": [
+          0.11090007424354553,
+          0.9310628175735474
+        ]
+      },
+      "clock_sensitivity": {
+        "nominal_times_seconds": {
+          "contexts": {
+            "stable_unvoiced": 224,
+            "stable_monophonic": 464
+          },
+          "counts": {
+            "abstentions": 237,
+            "absence_n": 224,
+            "false_voiced_absence": 51,
+            "monophonic_n": 464,
+            "voiced_reference": 400,
+            "raw_pitch_correct": 400,
+            "raw_chroma_correct": 400,
+            "octave_errors": 0
+          },
+          "eligible_top_midi_histogram": {
+            "24": 20,
+            "29": 52,
+            "34": 25,
+            "39": 52,
+            "46": 46,
+            "51": 51,
+            "56": 52,
+            "60": 51,
+            "65": 51
+          },
+          "maximum_activation_mean_all_rows": 0.4790370762348175,
+          "maximum_activation_min_max_all_rows": [
+            0.11090007424354553,
+            0.9310628175735474
+          ]
+        },
+        "input_window_projection_seconds": {
+          "contexts": {
+            "stable_unvoiced": 219,
+            "stable_monophonic": 469
+          },
+          "counts": {
+            "abstentions": 237,
+            "absence_n": 219,
+            "false_voiced_absence": 44,
+            "monophonic_n": 469,
+            "voiced_reference": 407,
+            "raw_pitch_correct": 407,
+            "raw_chroma_correct": 407,
+            "octave_errors": 0
+          },
+          "eligible_top_midi_histogram": {
+            "24": 20,
+            "29": 53,
+            "34": 26,
+            "39": 53,
+            "46": 47,
+            "51": 52,
+            "56": 52,
+            "60": 52,
+            "65": 52
+          },
+          "maximum_activation_mean_all_rows": 0.4790370762348175,
+          "maximum_activation_min_max_all_rows": [
+            0.11090007424354553,
+            0.9310628175735474
+          ]
+        }
+      },
+      "clock_max_abs_residual_seconds": {
+        "model_times_seconds": 0.0,
+        "nominal_times_seconds": 0.0,
+        "input_window_projection_seconds": 0.0
+      },
+      "events": [
+        {
+          "floor_ms": 127.7,
+          "event_count": 16,
+          "tp": 7,
+          "fp": 9,
+          "fn": 2,
+          "reference_n": 9
+        },
+        {
+          "floor_ms": 25.0,
+          "event_count": 19,
+          "tp": 7,
+          "fp": 12,
+          "fn": 2,
+          "reference_n": 9
+        }
+      ],
+      "c1_bin_activation_mean_all_rows": 0.12055824307161708
+    },
+    {
+      "case_id": "legato-transition",
+      "native": {
+        "contexts": {
+          "input_padding": 232,
+          "transition_crossing": 284
+        },
+        "counts": {
+          "abstentions": 148
+        },
+        "eligible_top_midi_histogram": {},
+        "maximum_activation_mean_all_rows": 0.5319861173629761,
+        "maximum_activation_min_max_all_rows": [
+          0.1128568947315216,
+          0.8622417449951172
+        ]
+      },
+      "pointwise": {
+        "contexts": {
+          "stable_unvoiced": 93,
+          "stable_monophonic": 423
+        },
+        "counts": {
+          "abstentions": 148,
+          "absence_n": 93,
+          "false_voiced_absence": 2,
+          "monophonic_n": 423,
+          "voiced_reference": 366,
+          "raw_pitch_correct": 357,
+          "raw_chroma_correct": 357,
+          "octave_errors": 0
+        },
+        "eligible_top_midi_histogram": {
+          "24": 70,
+          "29": 69,
+          "34": 71,
+          "60": 73,
+          "61": 3,
+          "62": 4,
+          "64": 4,
+          "65": 72
+        },
+        "maximum_activation_mean_all_rows": 0.5319861173629761,
+        "maximum_activation_min_max_all_rows": [
+          0.1128568947315216,
+          0.8622417449951172
+        ]
+      },
+      "clock_sensitivity": {
+        "nominal_times_seconds": {
+          "contexts": {
+            "stable_unvoiced": 94,
+            "stable_monophonic": 422
+          },
+          "counts": {
+            "abstentions": 148,
+            "absence_n": 94,
+            "false_voiced_absence": 3,
+            "monophonic_n": 422,
+            "voiced_reference": 365,
+            "raw_pitch_correct": 361,
+            "raw_chroma_correct": 361,
+            "octave_errors": 0
+          },
+          "eligible_top_midi_histogram": {
+            "24": 70,
+            "29": 69,
+            "34": 71,
+            "60": 73,
+            "61": 3,
+            "62": 4,
+            "64": 4,
+            "65": 71
+          },
+          "maximum_activation_mean_all_rows": 0.5319861173629761,
+          "maximum_activation_min_max_all_rows": [
+            0.1128568947315216,
+            0.8622417449951172
+          ]
+        },
+        "input_window_projection_seconds": {
+          "contexts": {
+            "stable_unvoiced": 92,
+            "stable_monophonic": 424
+          },
+          "counts": {
+            "abstentions": 148,
+            "absence_n": 92,
+            "false_voiced_absence": 1,
+            "monophonic_n": 424,
+            "voiced_reference": 367,
+            "raw_pitch_correct": 359,
+            "raw_chroma_correct": 359,
+            "octave_errors": 0
+          },
+          "eligible_top_midi_histogram": {
+            "24": 70,
+            "29": 69,
+            "34": 71,
+            "60": 73,
+            "61": 3,
+            "62": 4,
+            "64": 4,
+            "65": 73
+          },
+          "maximum_activation_mean_all_rows": 0.5319861173629761,
+          "maximum_activation_min_max_all_rows": [
+            0.1128568947315216,
+            0.8622417449951172
+          ]
+        }
+      },
+      "clock_max_abs_residual_seconds": {
+        "model_times_seconds": 0.0,
+        "nominal_times_seconds": 0.0,
+        "input_window_projection_seconds": 0.0
+      },
+      "events": [
+        {
+          "floor_ms": 127.7,
+          "event_count": 5,
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "reference_n": 5
+        },
+        {
+          "floor_ms": 25.0,
+          "event_count": 9,
+          "tp": 5,
+          "fp": 4,
+          "fn": 0,
+          "reference_n": 5
+        }
+      ],
+      "c1_bin_activation_mean_all_rows": 0.17006107321543287
+    },
+    {
+      "case_id": "sweep-and-polyphony",
+      "native": {
+        "contexts": {
+          "input_padding": 262,
+          "transition_crossing": 296,
+          "polyphonic": 130
+        },
+        "counts": {
+          "abstentions": 292
+        },
+        "eligible_top_midi_histogram": {},
+        "maximum_activation_mean_all_rows": 0.4305317997932434,
+        "maximum_activation_min_max_all_rows": [
+          0.11538037657737732,
+          0.8733949661254883
+        ]
+      },
+      "pointwise": {
+        "contexts": {
+          "stable_unvoiced": 261,
+          "stable_monophonic": 297,
+          "polyphonic": 130
+        },
+        "counts": {
+          "abstentions": 292,
+          "absence_n": 261,
+          "false_voiced_absence": 23,
+          "monophonic_n": 297,
+          "voiced_reference": 283,
+          "raw_pitch_correct": 254,
+          "raw_chroma_correct": 254,
+          "octave_errors": 0
+        },
+        "eligible_top_midi_histogram": {
+          "29": 17,
+          "34": 6,
+          "39": 14,
+          "46": 19,
+          "51": 14,
+          "56": 12,
+          "60": 103,
+          "65": 98
+        },
+        "maximum_activation_mean_all_rows": 0.4305317997932434,
+        "maximum_activation_min_max_all_rows": [
+          0.11538037657737732,
+          0.8733949661254883
+        ]
+      },
+      "clock_sensitivity": {
+        "nominal_times_seconds": {
+          "contexts": {
+            "stable_unvoiced": 263,
+            "stable_monophonic": 296,
+            "polyphonic": 129
+          },
+          "counts": {
+            "abstentions": 292,
+            "absence_n": 263,
+            "false_voiced_absence": 23,
+            "monophonic_n": 296,
+            "voiced_reference": 283,
+            "raw_pitch_correct": 257,
+            "raw_chroma_correct": 257,
+            "octave_errors": 0
+          },
+          "eligible_top_midi_histogram": {
+            "29": 17,
+            "34": 6,
+            "39": 14,
+            "46": 19,
+            "51": 14,
+            "56": 12,
+            "60": 102,
+            "65": 99
+          },
+          "maximum_activation_mean_all_rows": 0.4305317997932434,
+          "maximum_activation_min_max_all_rows": [
+            0.11538037657737732,
+            0.8733949661254883
+          ]
+        },
+        "input_window_projection_seconds": {
+          "contexts": {
+            "stable_unvoiced": 260,
+            "stable_monophonic": 298,
+            "polyphonic": 130
+          },
+          "counts": {
+            "abstentions": 292,
+            "absence_n": 260,
+            "false_voiced_absence": 22,
+            "monophonic_n": 298,
+            "voiced_reference": 284,
+            "raw_pitch_correct": 256,
+            "raw_chroma_correct": 256,
+            "octave_errors": 0
+          },
+          "eligible_top_midi_histogram": {
+            "29": 17,
+            "34": 6,
+            "39": 14,
+            "46": 19,
+            "51": 14,
+            "56": 12,
+            "60": 103,
+            "65": 99
+          },
+          "maximum_activation_mean_all_rows": 0.4305317997932434,
+          "maximum_activation_min_max_all_rows": [
+            0.11538037657737732,
+            0.8733949661254883
+          ]
+        }
+      },
+      "clock_max_abs_residual_seconds": {
+        "model_times_seconds": 0.0,
+        "nominal_times_seconds": 0.0,
+        "input_window_projection_seconds": 0.0
+      },
+      "events": [
+        {
+          "floor_ms": 127.7,
+          "event_count": 13,
+          "tp": 7,
+          "fp": 6,
+          "fn": 11,
+          "reference_n": 18
+        },
+        {
+          "floor_ms": 25.0,
+          "event_count": 33,
+          "tp": 15,
+          "fp": 18,
+          "fn": 3,
+          "reference_n": 18
+        }
+      ],
+      "c1_bin_activation_mean_all_rows": 0.11237893036978189
+    }
+  ],
+  "inference_invoked": false,
+  "evaluator_invoked": false,
+  "pcm_decoded": false,
+  "model_or_runtime_changed": false,
+  "onnxruntime_imported": false,
+  "ground_truth_scope": "generator_only_not_musician",
+  "real_note_correctness": null
+}

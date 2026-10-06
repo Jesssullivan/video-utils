@@ -1,0 +1,11 @@
+# Retain the full default ruleset. Provenance receipts serialize SHA256 by source path.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "Exact tool_api.py source SHA256 serialization, not a credential"
+regexTarget = "match"
+regexes = ['''tool_api\.py": "[0-9a-f]{64}"''']

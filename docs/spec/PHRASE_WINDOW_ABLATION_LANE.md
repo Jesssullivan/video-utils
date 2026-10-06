@@ -283,3 +283,27 @@ Proposed bounds are two threads, sequential10cases/80seconds, cached frontend
 reuse, maximum256 aggregation frames,60 initial proposals and10 retained pairs,
 no model/pitch jobs, and the existing preemptive case/run deadlines. This section
 does not start that experiment.
+
+## Order-null implementation checkpoint, October6
+
+Root separately admitted implementation and source tests for the fresh419/523
+proposal. The [new isolated generator/runner](../agent-notes/2026-10-06-phrase-order-null.py)
+and [closed settings](../agent-notes/2026-10-06-phrase-order-null-settings.json)
+implement the fixed construction and equal-cap comparison. The
+[preregistration receipt](../agent-notes/2026-10-06-phrase-order-null-prereg.md)
+records exact source/settings/metadata-plan hashes, formulas, ten passing
+source tests, primitive/label separation, time/memory limits and retained-failure
+semantics. Numerical generation/inference remain held until root releases their
+exact frozen inputs. No canonical default or consumed211/307 result was changed.
+
+## Order-null numerical checkpoint, October6
+
+Root subsequently admitted exact-bank generation and numerical execution.
+[Results](../agent-notes/2026-10-06-phrase-order-null-results.md) preserve the
+single244-second run: primary pair recall1/4 unchanged, false candidates51→16,
+negative-case false candidates31→8, and strict-IoU.75 true positives zero in both
+arms. No cap exclusion occurred, so filtering and truncation are separated. The
+one common reference pair/four endpoints has unchanged .522-second mean error;
+other common-reference errors remain null. The relative research criterion
+passes while absolute accuracy stays poor. No canonical adoption or transfer to
+the real recording is supported. Both419/523 are now consumed confirmation data.

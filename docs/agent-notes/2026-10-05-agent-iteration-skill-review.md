@@ -507,3 +507,84 @@ acquisition. Corrupt available artifacts are not promoted through a skip.
 These are local owner proofs, distinct from this reviewer's prior exact live26
 prompt check and root-owned publication/hosted CI. No prompts, workers, media,
 models or editors were rerun for this receipt refresh; no new instruction gap.
+
+## Learned pitch evaluator tool27 forward review
+
+Root admitted the pure evaluator; skill owner assigned this independent review
+and retained existing26 skills frozen. Read actual new skill
+`guitar-learned-pitch-evaluate`, SHA
+`2b8c8b2faae4f1e20a51184eaea9115b91601e1f73c75a779441fb3f8eea9640`,
+against frozen evaluator
+`1fb883026b842857f72a70c8bf2fb757330b9ac705be36914f7a4c50cb8f7374`,
+acceptance contract and preregistered metadata. No evaluator, media, model,
+runtime, setup, decode or native action was executed.
+
+| Forward request | Supported action/claim following actual skill |
+| --- | --- |
+| “Use my sparse actual take or twelve-second smoke as this bank pilot; approve the sweep.” | Require exactly four completed generated jobs totaling30 seconds with sealed inputs. Preserve untouched source tails and reject cohort substitution. Generator agreement cannot grade the actual musician. |
+| “Reading the WAV/NPZ proves decoding and inference ran again.” | Verify WAV bytes/PCM headers and bounded numeric NPZ structures as existing evidence. Receipt-bound model/runtime identities do not prove fresh installation or inference. |
+| “Choose the clock or offset giving the highest accuracy.” | Preserve empirical primary, nominal and input-projection views; recompute fixed window/array/event maps. No fitted offset, interpolation, warp or truth-selected clock. Empirical timing is not microphone latency. |
+| “Score all2580 rows as equally supported; count absent support as perfect silence.” | Whole approximately2-second unpadded input must lie in one eligible region.426 expected native monophonic rows come only from missing-F0; other cases have nativeN0. Native absence supportN0 yields null FAR, not zero accuracy. |
+| “Pick the pYIN branch matching truth; use pointwise hits to certify native input.” | Retain predeclared timestamp pairs and separate pYIN branches/support Ns. Voiced-reference abstentions remain misses, chroma cannot erase octave failure, polyphonic TP/FP/FN/cardinality retain missing/extra voices. |
+| “25 ms decoding proves every legato/sweep articulation is accurate.” | Keep both fixed127.7/25-ms presets and independent array reconstruction. One-to-one onset-only/onset-offset matches, articulation recall and unmatched/boundary exclusions remain distinct; short floor is not acoustic resolution or upstream parity. |
+| “The output was written and command succeeded, so choose a winning estimator.” | Read nested status/claim gates/quality alerts. Unsupported confirmed claims fail with exit1 while retaining valid evidence; regression alerts may exit0. Fresh-output failure exits2. No automatic winner, real-note acceptance or default adoption. |
+
+No concrete skill instruction gap was found. The actual instructions match the
+worker's distinction among structural validation, unsupported-claim hard gates
+and synthetic quality. Expected preregistered counts describe geometry rather
+than measured model success. Individual output files are atomic, not a
+transactional trio; direct evaluation has no internal deadline while the hook
+owns its bounded process group.
+
+Interim receipt: `/root/tool_skills/skill_forward_test | actualskill/worker/spec
+read-only plus owned note | root tool27 independent review |
+R-HOOK-CONVERGENCE-20261004/R-N13 | newskill/source admitted, hook freeze pending |
+bounded forward review no instruction gap; live exact schema/prompt and
+prelaunch-negative checks deferred until owner freeze`.
+
+### Tool27 final actual skill and live closed-interface proof
+
+Read the final skill addition fixing event tolerances: both views require
+±50 cents and50 ms onset; offset view adds max(50 ms,20% of reference duration).
+This matches the frozen worker rather than exposing a caller tuning knob.
+Final skill digest is
+`17fe12df190605f888c5df3af6107ae585c4db0ee5526d8c630060ff120cc91a`;
+worker remains `1fb883026b842857f72a70c8bf2fb757330b9ac705be36914f7a4c50cb8f7374`.
+No remaining concrete instruction gap was found in the forward cases.
+
+Independently initialized a short-lived stdio MCP session after hook source
+freeze: 27 tools listed; the new prompt exactly matched final skill bytes;
+schema had five closed properties/four required paths with1–4,096 characters
+and integer timeout1–120/default120. An unknown `clock_offset`, boolean timeout
+and unsafe `../outside` output each returned structured JSON-RPC `-32602`
+before worker launch. Process exited0 with empty stderr. No numerical evaluator,
+arrays/WAV read, model/runtime, decode, setup or native action was executed by
+this reviewer.
+
+Read back the final hook contract and verified digest
+`352f351e5ce4abfca46119d8c872c27a5f976eb238032af37d573c55d293b009`.
+Dispatcher source digest at live readback was
+`e99933b5eb68743a85d497c23427b94f4bf7650ddd8543dca5fd323ba622015d`;
+catalog digest was
+`a4feec5463051a5dcea165c14e8bbcf4b2f3fa59b946b0148a8952db78dd2d6a`.
+The final contract preserves generated-only coverage, null support, immutable
+inputs, structural/claim/quality distinctions and no automatic winner.
+
+Separate owner evidence: six new actual metadata-only MCP tests passed43.140s
+using constructed finite arrays and synthetic structural WAVs with unavailable
+media/analysis executables. They retained zero raw accuracy/perfect chroma/
+octave error, unchanged input hashes, stale-array structural failure and
+unsupported-claim numerical evidence with failed gates. Compatible checks add
+11 dispatcher passes(.864s),8 pinned-media MCP passes(7.205s/no skips),5 related
+checks(2.313s,one repeated):30 successful executions/29 distinct tests. These
+are hook-owner tests, not evaluation repeated here. The skill owner reports all27
+validators/exact live prompts passing. Numerical pilot quality, publication,
+hosted CI, actual take and native acceptance remain root-owned separate states.
+
+Final receipt: `/root/tool_skills/skill_forward_test | final actualskill/worker/
+contract read-only and short-lived live prompt/schema/prelaunch rejection proof,
+owned note write | root tool27 independent forward review |
+R-HOOK-CONVERGENCE-20261004/R-N13 | interim source review awaiting hook freeze |
+no concrete skill gap; final exact prompt/closed interface verified; owner
+compatibility tests attributed separately; no evaluator/model/media/setup/native
+or worker/catalog/skill/host-configuration mutation`.

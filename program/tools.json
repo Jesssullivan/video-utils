@@ -1987,6 +1987,87 @@
         "acceptance": "A metadata plan and hypothetical fixture coordinates establish neither editor import, executable operations, aligned native markers, musical correctness nor listening acceptance.",
         "max_comparison_candidates_default": 3
       }
+    },
+    {
+      "name": "learned_pitch_evaluate",
+      "title": "Generated learned pitch artifact evaluation",
+      "description": "Validate an existing hash-bound generated bank, pYIN pilot and learned activation pilot, then calculate bounded frame/event comparisons and claim gates. Fixed summary follows full validation; no model inference, source decoding, automatic winner or real-note grading.",
+      "intent": "Measure generated-reference agreement and estimator differences while retaining octave failures, padding/context exclusions, clock sensitivity and unsupported claims.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "fixture_index": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing hash-bound generated bank JSON beneath artifacts/benchmarks."
+          },
+          "pyin_pilot_index": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing fixed four-case pYIN pilot JSON beneath artifacts/benchmarks."
+          },
+          "learned_pilot_index": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing matching four-case learned comparison/activation index JSON beneath artifacts/benchmarks."
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Fresh output directory beneath artifacts/benchmarks; never overwrite existing receipts."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 120,
+            "default": 120,
+            "description": "Hard owned-worker/process-group deadline; no inference or setup."
+          }
+        },
+        "required": [
+          "fixture_index",
+          "pyin_pilot_index",
+          "learned_pilot_index",
+          "output"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-learned-pitch-evaluate/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "hash_bound_generated_learned_pitch_calibration",
+      "limitations": [
+        "Exactly four fixed cases and 30 seconds; no actual-take grades or automatic estimator selection. Generated labels are supplied generator evidence, not measured musician ground truth.",
+        "Waveform bytes are hashed/header checked and finite NPZ arrays read; source_audio_decoded=false and inference_invoked=false. Model/runtime identifiers bind supplied receipts, not current installation or weight qualification.",
+        "NPZ uncompressed arrays <=20MiB, model windows <=24, events <=5000 per preset; indices <=5MB, pitch/comparison JSON <=64MB, waveform <=3MB. Strict finite JSON depth <=128 and no object/pickle arrays.",
+        "Fixed decoder/thresholds and 127.7/25ms presets; audited clocks stay separately labelled. No clock or branch selection by truth; physical model latency remains unqualified.",
+        "Fresh output contains evaluation JSON and frame/event CSVs. Structural and unsupported-claim failures retain diagnostics and exit nonzero; low numerical quality remains visible regression evidence, not a tool failure or listening acceptance."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "benchmark",
+          "pitch",
+          "basic_pitch_compare"
+        ],
+        "enforced": false,
+        "note": "Requires existing bound bank and two pilot indices; no prior tool, model setup or inference is invoked automatically."
+      },
+      "agent_workflow": {
+        "identify": "Verify fixed generated-origin cohort, all three index identities, bounded array/window clocks and coverage before interpreting metrics.",
+        "research": "Read evaluator metric policy and comparator acceptance contract; distinguish generated reference agreement, padding/context exclusions and physical timing unknowns.",
+        "iterate": "Evaluate unchanged existing receipts into fresh outputs, inspect octave/voicing/event errors and labelled clock sensitivity; preserve null denominators and failed gates. Do not tune discovery to truth.",
+        "acceptance": "Metadata scoring is not learned-model qualification, real note correctness, performance grading, listening acceptance or automatic adoption in the main DAG.",
+        "max_comparison_candidates_default": 3
+      }
     }
   ]
 }

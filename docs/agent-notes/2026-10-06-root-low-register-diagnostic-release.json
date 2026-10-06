@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "authority": "Operator full-force restoration goal; repository AGENTS.md; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "actor": "/root",
+  "issued_at": "2026-10-06T01:17:23.066479+00:00",
+  "action": "execute_actual_low_register_diagnostic",
+  "root_explicit_release": true,
+  "plan_sha256": "ed664a3898ec1e25103fa9062567078cbc2326d4fa01346d9b45565ebda46b75",
+  "harness_sha256": "2b84f9f7f7b49b691cec68b83546fbf378fa172296e6339aa03c5552fc42c284",
+  "worker_sha256": "384a99bca9e72212b5d9631e9b425424ea7b08fc41ce6eb4dde4d647b3ba3bc6",
+  "audit_verdict": "positive_independent_mask_metric_audit",
+  "audit_path": "/Users/jess/git/video-utils/docs/agent-notes/2026-10-06-low-register-probe-audit.md",
+  "audit_sha256": "48a47efe16a291c6afa497d55a0653b0f0f7c8ff80e2aa109b030dd0e6dea7cb",
+  "budget": {
+    "diagnostic_seconds": 10,
+    "separate_previously_decoded_reviewed_capture_seconds": 0.85,
+    "total_selected_numeric_pcm_seconds": 10.85,
+    "new_media_decoding_seconds": 0,
+    "worker_deadline_seconds": 120,
+    "numeric_threads": 2
+  },
+  "source_timing_audit": "/root/media_latency independently reported no source-grid/support must-fix; durable receipt pending",
+  "scope": "Four fixed variants on20\u201330source seconds only; no default/master/latest/mediaexport changes; mixture descriptors not isolated musical preservation/noise truth",
+  "quality_alerts_retained": "2/24 synthetic broadband-applicable variants fail3dB reduction; no whole-bank quality pass"
+}

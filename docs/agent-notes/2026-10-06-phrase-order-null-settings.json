@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "suite": "phrase-order-null-v1",
+  "seeds": [
+    419,
+    523
+  ],
+  "cohorts": [
+    "low32-sustain",
+    "missing-f0-sustain",
+    "click-noise-only",
+    "palm-recurrence",
+    "legato-recurrence"
+  ],
+  "case_seconds": 8,
+  "case_count": 10,
+  "total_seconds": 80,
+  "sample_rate": 48000,
+  "channels": 1,
+  "sample_format": "pcm16",
+  "parameter_recipe": "sha256:phrase-order-null-v1:seed:knob:first8bytes/2^64",
+  "ranges": {
+    "first_start_seconds": [
+      0.85,
+      1.05
+    ],
+    "motif_duration_seconds": [
+      1.1,
+      1.7
+    ],
+    "second_start_seconds": [
+      4.1,
+      4.5
+    ],
+    "guitar_gain": [
+      0.12,
+      0.16
+    ],
+    "drive": [
+      2.6,
+      4.2
+    ],
+    "noise_amplitude": [
+      0.007,
+      0.012
+    ],
+    "noise_lowpass_coefficient": [
+      0.65,
+      0.85
+    ],
+    "fan_hz": [
+      35,
+      43
+    ],
+    "fan_gain": [
+      0.009,
+      0.017
+    ],
+    "click_bpm": [
+      150,
+      205
+    ],
+    "click_phase_seconds": [
+      0.15,
+      0.4
+    ],
+    "click_gain": [
+      0.055,
+      0.1
+    ],
+    "click_drift": [
+      0.03,
+      0.08
+    ]
+  },
+  "nuisance_shared": "all_five_cohorts_per_seed",
+  "noise_envelope_times_seconds": [
+    0,
+    1.5,
+    3.5,
+    5.5,
+    8
+  ],
+  "noise_envelope_levels": [
+    1.3,
+    0.55,
+    1.1,
+    0.7,
+    1.2
+  ],
+  "guitar_fundamental_hz": 32.70319566257483,
+  "missing_f0_harmonics": [
+    [
+      2,
+      0.1
+    ],
+    [
+      3,
+      0.065
+    ],
+    [
+      4,
+      0.035
+    ],
+    [
+      5,
+      0.02
+    ],
+    [
+      7,
+      0.012
+    ]
+  ],
+  "missing_f0_nonlinearity": "none_linear_sum_before_additive_mixing",
+  "missing_f0_fit_seconds": [
+    2,
+    6
+  ],
+  "missing_f0_fit_amplitude_bound": 5e-05,
+  "motif_midi": [
+    24,
+    29,
+    34,
+    29,
+    24,
+    39
+  ],
+  "motif_position_fractions": [
+    0,
+    0.12,
+    0.34,
+    0.55,
+    0.72,
+    0.89
+  ],
+  "sustain_span_seconds": [
+    0.5,
+    7.5
+  ],
+  "guitar_attack_seconds": 0.0015,
+  "legato_attack_seconds": 0.008,
+  "guitar_release_seconds": 0.006,
+  "palm_support_seconds": 0.04,
+  "palm_decay_seconds": 0.023,
+  "click_template_hz": 3500,
+  "click_support_seconds": 0.009,
+  "click_decay_seconds": 0.0018,
+  "noise_color": "seeded_uniform_one_pole_half_white_half_colored_plus_linear_fan",
+  "proposal_pulses": [
+    2,
+    4,
+    8,
+    16
+  ],
+  "minimum_cosine": 0.8,
+  "contrast_minimum": 0.1,
+  "order_margin_minimum": 0.1,
+  "order_null": "first_fixed_second_cyclic_offsets_1_through_L_minus_1_median_cosine",
+  "ranking": "descending_competitor_contrast_then_cosine_then_first_start_then_second_start_then_pulse_count_then_original_index",
+  "ranking_uses_order_margin": false,
+  "pair_cap_each_arm": 10,
+  "initial_proposal_cap": 60,
+  "max_aggregation_frames": 256,
+  "max_native_feature_frames": 1000,
+  "max_npz_uncompressed_bytes": 1000000,
+  "max_json_bytes": 20000000,
+  "max_audio_bytes": 1000000,
+  "numerical_threads": 2,
+  "case_deadline_seconds": 120,
+  "overall_deadline_seconds": 600,
+  "generation_deadline_seconds": 120,
+  "iou_thresholds": [
+    0.5,
+    0.75
+  ],
+  "source_seeded_bpm": false,
+  "discovery_reference_labels_supplied": false,
+  "canonical_defaults_activated": false,
+  "media_executables": {
+    "ffmpeg": {
+      "path": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+      "sha256": "3a315207e67de78e48c3bbb6b3346663f6a27c02e034d65ac72a12fee74c534a",
+      "version_prefix": "ffmpeg version 8.1.2"
+    },
+    "ffprobe": {
+      "path": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe",
+      "sha256": "5fb21f955aad27bc59615906801ce4b5b9f1466e99450b714b6d989f836c8850",
+      "version_prefix": "ffprobe version 8.1.2"
+    }
+  },
+  "preflight_seconds": 5,
+  "preflight_output_bytes": 65536
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "authority": "Operator active parallel goal; repository AGENTS.md; R-HOOK-CONVERGENCE-20261004/R-N11/R-N13",
+  "actor": "/root",
+  "issued_at": "2026-10-06T01:49:31.560063+00:00",
+  "action": "execute_phrase_order_null_discovery_and_evaluation",
+  "inference_authorized": true,
+  "evaluation_authorized": true,
+  "bank_index_path": "/Users/jess/git/video-utils/artifacts/experiments/phrase-window-ablation/order-null-bank-20261006T0145/fixtures.json",
+  "bank_index_sha256": "42ff7501ea734378c22010c4765b58e66ed766627bbaedf81babddd4e69c8fa8",
+  "construction_readback_sha256": "6e7c73553af7489650d48e22af70a599b4424aa84a326f02a8db7696b83fca80",
+  "root_readback": {
+    "verified_artifact_hashes": 51,
+    "verified_native_wave_headers": 40,
+    "native_seconds": 80,
+    "negative_cases": 6,
+    "positive_cases": 4,
+    "jointfit_claim_scope": "Owner rendered-component fit readback; root verified bound files/metadata/headers, not a new numerical fit"
+  },
+  "runner_sha256": "5582a5cf2b415b07a434b59f407da8c6e63fa9101001267dbba03f0cabe9f066",
+  "settings_sha256": "232f7503f58e9ebcb2b59b220b97755b7001683eccd80893634d8f6b777079a3",
+  "seeds": [
+    419,
+    523
+  ],
+  "bounds": {
+    "case_count": 10,
+    "case_seconds": 8,
+    "case_deadline_seconds": 120,
+    "overall_deadline_seconds": 600,
+    "numeric_threads": 2,
+    "arms": [
+      "Bcontrol",
+      "Border"
+    ],
+    "cap_each_arm": 10
+  },
+  "predictions_before_truth_required": true,
+  "truth_guided_retry_allowed": false,
+  "default_adoption": false,
+  "current_recording_or_master_changes_authorized": false,
+  "real_performance_grading": false
+}

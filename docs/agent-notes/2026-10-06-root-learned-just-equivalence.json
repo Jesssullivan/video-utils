@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "authority": "Operator goal; AGENTS.md; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "old_evaluator_sha256": "1fb883026b842857f72a70c8bf2fb757330b9ac705be36914f7a4c50cb8f7374",
+  "current_evaluator_sha256": "26e2b1be69bca6de58ee0debbe0b598ee81826a394efa10e62f77b532755cdf9",
+  "old_evaluation_sha256": "655819f1dbe5150b0de6f6e8f05cdbd11d95c6dab9f062b65c77dcd45d8790c7",
+  "current_evaluation_sha256": "d0f10903542e7d36e8b407ceceb62d37479668e5e6da0dd0cbfee39d52c65d9b",
+  "differences_except_elapsed": [
+    {
+      "path": "/created_at",
+      "old": "2026-10-06T01:32:54.273340+00:00",
+      "new": "2026-10-06T01:44:17.486355+00:00"
+    },
+    {
+      "path": "/evaluator_sha256",
+      "old": "1fb883026b842857f72a70c8bf2fb757330b9ac705be36914f7a4c50cb8f7374",
+      "new": "26e2b1be69bca6de58ee0debbe0b598ee81826a394efa10e62f77b532755cdf9"
+    }
+  ],
+  "frame_csv_identical": true,
+  "event_csv_identical": true,
+  "current_recipe_used_relative_indices": true,
+  "inference_invoked": false,
+  "master_or_latest_changed": false,
+  "current_master_sha256_matches_published_mvp": "99d56a25d05e434b4bb8f4149488c7b143558872c826ecc55df344012f4fbafd",
+  "current_latest_sha256_matches_before_actual_mcp": "8ed66efb8f81f06db6c1abb0a5962c38218d6c8bd1fb3c2d46432dc1693fa5ee",
+  "current_state_verified_at": "2026-10-06T01:48:30.846586+00:00"
+}

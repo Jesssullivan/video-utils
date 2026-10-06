@@ -103,6 +103,10 @@ calibrate fixture_index output backend="librosa" timeout="900":
 pitch-evaluate fixture_index pilot_index output:
     python3 scripts/pitch_evaluate.py --fixture-index {{quote(fixture_index)}} --pilot-index {{quote(pilot_index)}} --output {{quote(output)}} --summary
 
+# Pure comparison of existing generated receipts; no inference or model setup.
+learned-pitch-evaluate fixture_index pyin_pilot_index learned_pilot_index output:
+    python3 scripts/learned_pitch_evaluate.py --fixture-index {{quote(fixture_index)}} --pyin-pilot-index {{quote(pyin_pilot_index)}} --learned-pilot-index {{quote(learned_pilot_index)}} --output {{quote(output)}} --summary
+
 phrase-evaluate fixture_index pilot_index output:
     python3 scripts/phrase_evaluate.py --fixture-index {{quote(fixture_index)}} --pilot-index {{quote(pilot_index)}} --output {{quote(output)}} --summary
 

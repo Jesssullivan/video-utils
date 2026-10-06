@@ -1,0 +1,4444 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-10-06T01:34:36.122049+00:00",
+  "authority": "root exact numerical release; AGENTS.md; R-HOOK-CONVERGENCE-20261004/R-N11/R-N13",
+  "status": "completed_with_regression_alerts",
+  "evidence_class": "actual_generated_bank_inference_then_pure_artifact_evaluation",
+  "cli_proof_only": true,
+  "mcp_dispatch_verified": false,
+  "bank_scope": "generator_only_not_musician",
+  "inference_seconds": 30,
+  "model_windows": 19,
+  "retained_frames": 2580,
+  "aggregate_raw_numeric_bytes": 4623360,
+  "maximum_worker_rss_bytes": 167477248,
+  "inference_worker_elapsed_seconds_sum": 39.81685962499614,
+  "evaluation_elapsed_seconds": 15.852537917002337,
+  "hard_gates_passed": true,
+  "unsupported_claim_count": 0,
+  "identities_after_execution": {
+    "scripts/learned_pitch_pilot.py": "df7ca74708fa8b9ca09f5db9b06426ed215c409630a4cc8ba13fa9c52650ce38",
+    "scripts/learned_pitch_evaluate.py": "1fb883026b842857f72a70c8bf2fb757330b9ac705be36914f7a4c50cb8f7374",
+    "scripts/basic_pitch_compare.py": "720a1f76103426d1cc7580d213d3516f31b184295a50d873bda545ccc5a2d40e",
+    "scripts/pitch_evaluate.py": "a91ce8e9386cc7c63c5a5d53b8233f2c46a1f42fdd06ab1ae0eea3dc83405805",
+    "program/models.json": "ff3d4251a089ca81e6c6a2e7bcbe67023fa52be4f687f619aa1b94be151a5533",
+    "program/instrument.json": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0",
+    "docs/agent-notes/2026-10-06-root-learned-pitch-pilot-release.json": "1d599a67bb3bd176c50607983818cfa39e43c37ebc69686e893c3d8194d34f23",
+    "docs/agent-notes/2026-10-06-learned-pitch-bank-preregistration.json": "0314cb209d9a2113ecb63f5bef48df541337d247d7992f88fc13f677105e4599",
+    "docs/agent-notes/2026-10-06-learned-pitch-pilot-acceptance-review.md": "818798b52adde13d7485585edee65d03fb7ffa04fdae9d457f5ffa8717c41ee9",
+    "artifacts/model-runtime-env/onnx-1.30.0-cp314/wheel-manifest-before-install.json": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
+    "artifacts/benchmarks/root-calibration-bank-20261005T2255/fixtures.json": "3a6d117a50b32ad4f9e1b60921ee1b8a1d4376cc821ebcb31f14f4b8d80fdc73",
+    "artifacts/benchmarks/root-calibration-pilot-20261005T2300/pitch-pilot-index.json": "5c183df75f67dfa4b6d4a7b3c13b7d79d9fcbfa0408ce90d58a80017948ed343",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/predictions-frozen.json": "3149bf5f6bc0b716b2d969ae5f99faf53c574ccf4f36bd46a7451e9044d7551e",
+    "artifacts/benchmarks/learned-numerical-pilot-20261006T0131/learned-pilot-index.json": "e565bb13847bb7f29c64a571f17d200f12dc21853154a39400516e52657bcf5f",
+    "artifacts/benchmarks/learned-numerical-evaluation-20261006T0133/learned-pitch-calibration.json": "655819f1dbe5150b0de6f6e8f05cdbd11d95c6dab9f062b65c77dcd45d8790c7",
+    "artifacts/benchmarks/learned-numerical-evaluation-20261006T0133/learned-pitch-frame-errors.csv": "8ea6a5654213f34d295941522b78792bb8d9ef02ce78fc49c0297bd991c5e52e",
+    "artifacts/benchmarks/learned-numerical-evaluation-20261006T0133/learned-pitch-event-errors.csv": "3bfb08d4bd64ce67fe0414d9609b8b24816dcb93f031f501404ef8ff86e5198d",
+    "artifacts/benchmarks/learned-numerical-evaluation-20261006T0133/scalar-metrics.csv": "a19175a9b169aa2d140859b1f743e3228f1352d9a91d54af345f57feb6f462ce"
+  },
+  "before_bindings": "release/preregistration/worker runtime guards independently bind and compare same IDs before and after inference; source component hashes in prediction index",
+  "environment": {
+    "FFMPEG": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
+    "FFPROBE": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe",
+    "versions": "FFmpeg/FFprobe8.1.2 executable readback before fixed environment retry; no downloads",
+    "threads": 2
+  },
+  "operational_failures_retained": [
+    {
+      "path": "artifacts/benchmarks/learned-numerical-pilot-20261006T0129/controller-failure.json",
+      "reason": "missing ffprobe in PATH; before decode/inference; owned child20395 exited; fixed only environment and used NEWoutput"
+    },
+    {
+      "path": "artifacts/benchmarks/learned-numerical-evaluation-20261006T0132/learned-pitch-calibration.json",
+      "reason": "relative index parent lookup path_outside_benchmark_root; structural diagnostic without metrics; same frozen predictions re-evaluated with absolute paths; evaluator unchanged"
+    }
+  ],
+  "resources": [
+    {
+      "comparison_path": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-01/learned-pitch/20261006T013055Z-3d8948f35eb4/comparison.json",
+      "comparison_sha256": "9b00b2e7062139e827b97f8cea1f17232680ce4e1dff781c15e2526235452220",
+      "activations_path": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-01/learned-pitch/20261006T013055Z-3d8948f35eb4/activations.npz",
+      "activations_sha256": "eeac77a506002a282bb18a92e5b93095bcd7337d86697e904c543fed2d3fd1c2",
+      "case_id": "c1-missing-fundamental",
+      "component": "clean",
+      "status": "completed_measurements",
+      "input_path": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-01/denoised.wav",
+      "input_sha256": "74b9407c7601d567b47786aaededdbea69ae80b7e7e0433e90427056f07a9e35",
+      "truth_path": "/Users/jess/git/video-utils/artifacts/benchmarks/root-calibration-bank-20261005T2255/c1-missing-fundamental/truth.json",
+      "truth_sha256": "b7782fa2c7445af42949d892858fcc45080e3637d9895beb84217edbd51e3a8e",
+      "peak_rss_bytes": 166461440,
+      "elapsed_seconds": 9.289899999999761,
+      "raw_numeric_bytes": 1232896,
+      "model_windows": 5,
+      "event_count_by_preset": {
+        "127.7": 9,
+        "25.0": 12
+      },
+      "providers": [
+        "CPUExecutionProvider"
+      ],
+      "runtime_versions": {
+        "onnxruntime": "1.30.0",
+        "numpy": "2.5.3",
+        "flatbuffers": "25.12.19",
+        "packaging": "26.3",
+        "protobuf": "7.36.2"
+      }
+    },
+    {
+      "comparison_path": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-02/learned-pitch/20261006T013106Z-05d5ac7138d4/comparison.json",
+      "comparison_sha256": "71028fd1ab61a433d1aef5b6e73e88cb32eac983ce933ddd140676d1f95e1f6e",
+      "activations_path": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-02/learned-pitch/20261006T013106Z-05d5ac7138d4/activations.npz",
+      "activations_sha256": "5f0f84696a6553bb568d364b4ee20344a729bbf27b7f878d80065bdb11da200c",
+      "case_id": "tuning-ladder",
+      "component": "clean",
+      "status": "completed_measurements",
+      "input_path": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-02/denoised.wav",
+      "input_sha256": "dc0f8f13403e62168c638bffd1d142d3efa2049fe8ede8e27d2182d302214775",
+      "truth_path": "/Users/jess/git/video-utils/artifacts/benchmarks/root-calibration-bank-20261005T2255/tuning-ladder/truth.json",
+      "truth_sha256": "a31e016cfef84703792df697961c4b5bb5aea2d1ee1874b8fbcc3bc94a90031b",
+      "peak_rss_bytes": 167477248,
+      "elapsed_seconds": 8.642318791000434,
+      "raw_numeric_bytes": 1232896,
+      "model_windows": 5,
+      "event_count_by_preset": {
+        "127.7": 16,
+        "25.0": 19
+      },
+      "providers": [
+        "CPUExecutionProvider"
+      ],
+      "runtime_versions": {
+        "onnxruntime": "1.30.0",
+        "numpy": "2.5.3",
+        "flatbuffers": "25.12.19",
+        "packaging": "26.3",
+        "protobuf": "7.36.2"
+      }
+    },
+    {
+      "comparison_path": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-03/learned-pitch/20261006T013115Z-37ab70d64171/comparison.json",
+      "comparison_sha256": "008ad3a6ed9cf83bd2b7efcb6ba31aed82bab378e8ee262ad366ea611531df6f",
+      "activations_path": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-03/learned-pitch/20261006T013115Z-37ab70d64171/activations.npz",
+      "activations_sha256": "fc11408ce5dcbcca7735ae4d83a8667e027ec4062ce1d5273f7da35e231632b8",
+      "case_id": "legato-transition",
+      "component": "mix",
+      "status": "completed_measurements",
+      "input_path": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-03/denoised.wav",
+      "input_sha256": "75840f14e4fe5ea8f62ffca4610cc53f15365b2cd0bf8da6fa466f4865976e42",
+      "truth_path": "/Users/jess/git/video-utils/artifacts/benchmarks/root-calibration-bank-20261005T2255/legato-transition/truth.json",
+      "truth_sha256": "599e55ba32dd1c7829b80df9169560aa6bbe5d4b0e62f10bc826621bd90646a1",
+      "peak_rss_bytes": 147013632,
+      "elapsed_seconds": 9.395476291996602,
+      "raw_numeric_bytes": 924672,
+      "model_windows": 4,
+      "event_count_by_preset": {
+        "127.7": 5,
+        "25.0": 9
+      },
+      "providers": [
+        "CPUExecutionProvider"
+      ],
+      "runtime_versions": {
+        "onnxruntime": "1.30.0",
+        "numpy": "2.5.3",
+        "flatbuffers": "25.12.19",
+        "packaging": "26.3",
+        "protobuf": "7.36.2"
+      }
+    },
+    {
+      "comparison_path": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-04/learned-pitch/20261006T013124Z-f128ce250f73/comparison.json",
+      "comparison_sha256": "a1dc9f83f62a2bf5f3f3af49fb513607661656859dad497fe0b2e60704cf9823",
+      "activations_path": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-04/learned-pitch/20261006T013124Z-f128ce250f73/activations.npz",
+      "activations_sha256": "5c2f20fb351440f283f9bddca69811e0fd496fcbe1a8055ad86331f6c76aa639",
+      "case_id": "sweep-and-polyphony",
+      "component": "mix",
+      "status": "completed_measurements",
+      "input_path": "/Users/jess/git/video-utils/artifacts/benchmarks/learned-numerical-pilot-20261006T0131/discovery/job-04/denoised.wav",
+      "input_sha256": "a5d32272abc208e19051f548c10cd04a8b494bacaf563d776cfed59ec1916c30",
+      "truth_path": "/Users/jess/git/video-utils/artifacts/benchmarks/root-calibration-bank-20261005T2255/sweep-and-polyphony/truth.json",
+      "truth_sha256": "62159b768eff5cd3844b81c785646d3e1c38a9b310e20120578fccca9122c725",
+      "peak_rss_bytes": 136642560,
+      "elapsed_seconds": 12.489164541999344,
+      "raw_numeric_bytes": 1232896,
+      "model_windows": 5,
+      "event_count_by_preset": {
+        "127.7": 13,
+        "25.0": 33
+      },
+      "providers": [
+        "CPUExecutionProvider"
+      ],
+      "runtime_versions": {
+        "onnxruntime": "1.30.0",
+        "numpy": "2.5.3",
+        "flatbuffers": "25.12.19",
+        "packaging": "26.3",
+        "protobuf": "7.36.2"
+      }
+    }
+  ],
+  "aggregate_views": {
+    "native": {
+      "counts": {
+        "covered_frames": 2580,
+        "stable_true_voiced": 426,
+        "stable_true_unvoiced": 0,
+        "estimated_voiced_true_voiced": 426,
+        "estimated_voiced_true_unvoiced": 0,
+        "abstained_frames": 774,
+        "contexts": {
+          "input_padding": 1018,
+          "stable_monophonic": 426,
+          "transition_crossing": 1006,
+          "polyphonic": 130
+        }
+      },
+      "stable_monophonic_metrics": {
+        "raw_pitch_accuracy": {
+          "value": 0.07981220657276995,
+          "numerator": 34,
+          "denominator": 426,
+          "reason": null
+        },
+        "raw_chroma_accuracy": {
+          "value": 1.0,
+          "numerator": 426,
+          "denominator": 426,
+          "reason": null
+        },
+        "voicing_recall": {
+          "value": 1.0,
+          "numerator": 426,
+          "denominator": 426,
+          "reason": null
+        },
+        "voicing_false_alarm": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "reason": "no_applicable_frames"
+        },
+        "voicing_precision": {
+          "value": 1.0,
+          "numerator": 426,
+          "denominator": 426,
+          "reason": null
+        },
+        "octave_error_fraction": {
+          "value": 0.92018779342723,
+          "numerator": 392,
+          "denominator": 426,
+          "reason": null
+        },
+        "non_octave_pitch_error_fraction": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 426,
+          "reason": null
+        },
+        "cents_error": {
+          "n": 426,
+          "median_signed": 2399.9999999774923,
+          "median_absolute": 2399.9999999774923,
+          "absolute_p95": 2399.9999999774923,
+          "p95_reason": null
+        },
+        "signed_semitone_error_histogram": {}
+      },
+      "context_diagnostics": {
+        "abstention": {
+          "value": 0.3,
+          "numerator": 774,
+          "denominator": 2580,
+          "reason": null
+        },
+        "per_context_abstention": {
+          "input_padding": {
+            "value": 0.47838899803536344,
+            "numerator": 487,
+            "denominator": 1018,
+            "reason": null
+          },
+          "stable_monophonic": {
+            "value": 0.0,
+            "numerator": 0,
+            "denominator": 426,
+            "reason": null
+          },
+          "transition_crossing": {
+            "value": 0.24552683896620278,
+            "numerator": 247,
+            "denominator": 1006,
+            "reason": null
+          },
+          "polyphonic": {
+            "value": 0.3076923076923077,
+            "numerator": 40,
+            "denominator": 130,
+            "reason": null
+          }
+        },
+        "algorithm_voicing_probability_histogram": {},
+        "probability_bins": [
+          [
+            0,
+            0.2
+          ],
+          [
+            0.2,
+            0.4
+          ],
+          [
+            0.4,
+            0.6
+          ],
+          [
+            0.6,
+            0.8
+          ],
+          [
+            0.8,
+            1
+          ]
+        ],
+        "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+      }
+    },
+    "model_clock_pointwise": {
+      "counts": {
+        "covered_frames": 2580,
+        "stable_true_voiced": 1791,
+        "stable_true_unvoiced": 659,
+        "estimated_voiced_true_voiced": 1645,
+        "estimated_voiced_true_unvoiced": 71,
+        "abstained_frames": 774,
+        "contexts": {
+          "stable_unvoiced": 659,
+          "stable_monophonic": 1791,
+          "polyphonic": 130
+        }
+      },
+      "stable_monophonic_metrics": {
+        "raw_pitch_accuracy": {
+          "value": 0.6035734226689,
+          "numerator": 1081,
+          "denominator": 1791,
+          "reason": null
+        },
+        "raw_chroma_accuracy": {
+          "value": 0.8972640982691233,
+          "numerator": 1607,
+          "denominator": 1791,
+          "reason": null
+        },
+        "voicing_recall": {
+          "value": 0.9184812953657174,
+          "numerator": 1645,
+          "denominator": 1791,
+          "reason": null
+        },
+        "voicing_false_alarm": {
+          "value": 0.10773899848254932,
+          "numerator": 71,
+          "denominator": 659,
+          "reason": null
+        },
+        "voicing_precision": {
+          "value": 0.9586247086247086,
+          "numerator": 1645,
+          "denominator": 1716,
+          "reason": null
+        },
+        "octave_error_fraction": {
+          "value": 0.2936906756002233,
+          "numerator": 526,
+          "denominator": 1791,
+          "reason": null
+        },
+        "non_octave_pitch_error_fraction": {
+          "value": 0.02121719709659408,
+          "numerator": 38,
+          "denominator": 1791,
+          "reason": null
+        },
+        "cents_error": {
+          "n": 1645,
+          "median_signed": 0.0,
+          "median_absolute": 0.0,
+          "absolute_p95": 2399.9999999774923,
+          "p95_reason": null
+        },
+        "signed_semitone_error_histogram": {
+          "1": 8,
+          "3": 1,
+          "5": 12,
+          "7": 4,
+          "4": 2,
+          "-5": 10,
+          "-4": 1
+        }
+      },
+      "context_diagnostics": {
+        "abstention": {
+          "value": 0.3,
+          "numerator": 774,
+          "denominator": 2580,
+          "reason": null
+        },
+        "per_context_abstention": {
+          "stable_unvoiced": {
+            "value": 0.8922610015174507,
+            "numerator": 588,
+            "denominator": 659,
+            "reason": null
+          },
+          "stable_monophonic": {
+            "value": 0.08151870463428253,
+            "numerator": 146,
+            "denominator": 1791,
+            "reason": null
+          },
+          "polyphonic": {
+            "value": 0.3076923076923077,
+            "numerator": 40,
+            "denominator": 130,
+            "reason": null
+          }
+        },
+        "algorithm_voicing_probability_histogram": {},
+        "probability_bins": [
+          [
+            0,
+            0.2
+          ],
+          [
+            0.2,
+            0.4
+          ],
+          [
+            0.4,
+            0.6
+          ],
+          [
+            0.6,
+            0.8
+          ],
+          [
+            0.8,
+            1
+          ]
+        ],
+        "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+      }
+    }
+  },
+  "case_summaries": [
+    {
+      "case_id": "c1-missing-fundamental",
+      "native": {
+        "counts": {
+          "covered_frames": 688,
+          "stable_true_voiced": 426,
+          "stable_true_unvoiced": 0,
+          "estimated_voiced_true_voiced": 426,
+          "estimated_voiced_true_unvoiced": 0,
+          "abstained_frames": 97,
+          "contexts": {
+            "input_padding": 262,
+            "stable_monophonic": 426
+          }
+        },
+        "stable_monophonic_metrics": {
+          "raw_pitch_accuracy": {
+            "value": 0.07981220657276995,
+            "numerator": 34,
+            "denominator": 426,
+            "reason": null
+          },
+          "raw_chroma_accuracy": {
+            "value": 1.0,
+            "numerator": 426,
+            "denominator": 426,
+            "reason": null
+          },
+          "voicing_recall": {
+            "value": 1.0,
+            "numerator": 426,
+            "denominator": 426,
+            "reason": null
+          },
+          "voicing_false_alarm": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "voicing_precision": {
+            "value": 1.0,
+            "numerator": 426,
+            "denominator": 426,
+            "reason": null
+          },
+          "octave_error_fraction": {
+            "value": 0.92018779342723,
+            "numerator": 392,
+            "denominator": 426,
+            "reason": null
+          },
+          "non_octave_pitch_error_fraction": {
+            "value": 0.0,
+            "numerator": 0,
+            "denominator": 426,
+            "reason": null
+          },
+          "cents_error": {
+            "n": 426,
+            "median_signed": 2399.9999999774923,
+            "median_absolute": 2399.9999999774923,
+            "absolute_p95": 2399.9999999774923,
+            "p95_reason": null
+          },
+          "signed_semitone_error_histogram": {}
+        },
+        "context_diagnostics": {
+          "abstention": {
+            "value": 0.14098837209302326,
+            "numerator": 97,
+            "denominator": 688,
+            "reason": null
+          },
+          "per_context_abstention": {
+            "input_padding": {
+              "value": 0.3702290076335878,
+              "numerator": 97,
+              "denominator": 262,
+              "reason": null
+            },
+            "stable_monophonic": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 426,
+              "reason": null
+            }
+          },
+          "algorithm_voicing_probability_histogram": {},
+          "probability_bins": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.2,
+              0.4
+            ],
+            [
+              0.4,
+              0.6
+            ],
+            [
+              0.6,
+              0.8
+            ],
+            [
+              0.8,
+              1
+            ]
+          ],
+          "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+        }
+      },
+      "model_clock_pointwise": {
+        "counts": {
+          "covered_frames": 688,
+          "stable_true_voiced": 605,
+          "stable_true_unvoiced": 83,
+          "estimated_voiced_true_voiced": 591,
+          "estimated_voiced_true_unvoiced": 0,
+          "abstained_frames": 97,
+          "contexts": {
+            "stable_unvoiced": 83,
+            "stable_monophonic": 605
+          }
+        },
+        "stable_monophonic_metrics": {
+          "raw_pitch_accuracy": {
+            "value": 0.10743801652892562,
+            "numerator": 65,
+            "denominator": 605,
+            "reason": null
+          },
+          "raw_chroma_accuracy": {
+            "value": 0.9768595041322314,
+            "numerator": 591,
+            "denominator": 605,
+            "reason": null
+          },
+          "voicing_recall": {
+            "value": 0.9768595041322314,
+            "numerator": 591,
+            "denominator": 605,
+            "reason": null
+          },
+          "voicing_false_alarm": {
+            "value": 0.0,
+            "numerator": 0,
+            "denominator": 83,
+            "reason": null
+          },
+          "voicing_precision": {
+            "value": 1.0,
+            "numerator": 591,
+            "denominator": 591,
+            "reason": null
+          },
+          "octave_error_fraction": {
+            "value": 0.8694214876033057,
+            "numerator": 526,
+            "denominator": 605,
+            "reason": null
+          },
+          "non_octave_pitch_error_fraction": {
+            "value": 0.0,
+            "numerator": 0,
+            "denominator": 605,
+            "reason": null
+          },
+          "cents_error": {
+            "n": 591,
+            "median_signed": 2399.9999999774923,
+            "median_absolute": 2399.9999999774923,
+            "absolute_p95": 2399.9999999774923,
+            "p95_reason": null
+          },
+          "signed_semitone_error_histogram": {}
+        },
+        "context_diagnostics": {
+          "abstention": {
+            "value": 0.14098837209302326,
+            "numerator": 97,
+            "denominator": 688,
+            "reason": null
+          },
+          "per_context_abstention": {
+            "stable_unvoiced": {
+              "value": 1.0,
+              "numerator": 83,
+              "denominator": 83,
+              "reason": null
+            },
+            "stable_monophonic": {
+              "value": 0.023140495867768594,
+              "numerator": 14,
+              "denominator": 605,
+              "reason": null
+            }
+          },
+          "algorithm_voicing_probability_histogram": {},
+          "probability_bins": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.2,
+              0.4
+            ],
+            [
+              0.4,
+              0.6
+            ],
+            [
+              0.6,
+              0.8
+            ],
+            [
+              0.8,
+              1
+            ]
+          ],
+          "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+        }
+      },
+      "clock_sensitivity_pointwise": {
+        "nominal_times_seconds": {
+          "counts": {
+            "covered_frames": 688,
+            "stable_true_voiced": 602,
+            "stable_true_unvoiced": 86,
+            "estimated_voiced_true_voiced": 591,
+            "estimated_voiced_true_unvoiced": 0,
+            "abstained_frames": 97,
+            "contexts": {
+              "stable_unvoiced": 86,
+              "stable_monophonic": 602
+            }
+          },
+          "stable_monophonic_metrics": {
+            "raw_pitch_accuracy": {
+              "value": 0.1079734219269103,
+              "numerator": 65,
+              "denominator": 602,
+              "reason": null
+            },
+            "raw_chroma_accuracy": {
+              "value": 0.9817275747508306,
+              "numerator": 591,
+              "denominator": 602,
+              "reason": null
+            },
+            "voicing_recall": {
+              "value": 0.9817275747508306,
+              "numerator": 591,
+              "denominator": 602,
+              "reason": null
+            },
+            "voicing_false_alarm": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 86,
+              "reason": null
+            },
+            "voicing_precision": {
+              "value": 1.0,
+              "numerator": 591,
+              "denominator": 591,
+              "reason": null
+            },
+            "octave_error_fraction": {
+              "value": 0.8737541528239202,
+              "numerator": 526,
+              "denominator": 602,
+              "reason": null
+            },
+            "non_octave_pitch_error_fraction": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 602,
+              "reason": null
+            },
+            "cents_error": {
+              "n": 591,
+              "median_signed": 2399.9999999774923,
+              "median_absolute": 2399.9999999774923,
+              "absolute_p95": 2399.9999999774923,
+              "p95_reason": null
+            },
+            "signed_semitone_error_histogram": {}
+          },
+          "context_diagnostics": {
+            "abstention": {
+              "value": 0.14098837209302326,
+              "numerator": 97,
+              "denominator": 688,
+              "reason": null
+            },
+            "per_context_abstention": {
+              "stable_unvoiced": {
+                "value": 1.0,
+                "numerator": 86,
+                "denominator": 86,
+                "reason": null
+              },
+              "stable_monophonic": {
+                "value": 0.018272425249169437,
+                "numerator": 11,
+                "denominator": 602,
+                "reason": null
+              }
+            },
+            "algorithm_voicing_probability_histogram": {},
+            "probability_bins": [
+              [
+                0,
+                0.2
+              ],
+              [
+                0.2,
+                0.4
+              ],
+              [
+                0.4,
+                0.6
+              ],
+              [
+                0.6,
+                0.8
+              ],
+              [
+                0.8,
+                1
+              ]
+            ],
+            "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+          }
+        },
+        "input_window_projection_seconds": {
+          "counts": {
+            "covered_frames": 688,
+            "stable_true_voiced": 605,
+            "stable_true_unvoiced": 83,
+            "estimated_voiced_true_voiced": 591,
+            "estimated_voiced_true_unvoiced": 0,
+            "abstained_frames": 97,
+            "contexts": {
+              "stable_unvoiced": 83,
+              "stable_monophonic": 605
+            }
+          },
+          "stable_monophonic_metrics": {
+            "raw_pitch_accuracy": {
+              "value": 0.10743801652892562,
+              "numerator": 65,
+              "denominator": 605,
+              "reason": null
+            },
+            "raw_chroma_accuracy": {
+              "value": 0.9768595041322314,
+              "numerator": 591,
+              "denominator": 605,
+              "reason": null
+            },
+            "voicing_recall": {
+              "value": 0.9768595041322314,
+              "numerator": 591,
+              "denominator": 605,
+              "reason": null
+            },
+            "voicing_false_alarm": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 83,
+              "reason": null
+            },
+            "voicing_precision": {
+              "value": 1.0,
+              "numerator": 591,
+              "denominator": 591,
+              "reason": null
+            },
+            "octave_error_fraction": {
+              "value": 0.8694214876033057,
+              "numerator": 526,
+              "denominator": 605,
+              "reason": null
+            },
+            "non_octave_pitch_error_fraction": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 605,
+              "reason": null
+            },
+            "cents_error": {
+              "n": 591,
+              "median_signed": 2399.9999999774923,
+              "median_absolute": 2399.9999999774923,
+              "absolute_p95": 2399.9999999774923,
+              "p95_reason": null
+            },
+            "signed_semitone_error_histogram": {}
+          },
+          "context_diagnostics": {
+            "abstention": {
+              "value": 0.14098837209302326,
+              "numerator": 97,
+              "denominator": 688,
+              "reason": null
+            },
+            "per_context_abstention": {
+              "stable_unvoiced": {
+                "value": 1.0,
+                "numerator": 83,
+                "denominator": 83,
+                "reason": null
+              },
+              "stable_monophonic": {
+                "value": 0.023140495867768594,
+                "numerator": 14,
+                "denominator": 605,
+                "reason": null
+              }
+            },
+            "algorithm_voicing_probability_histogram": {},
+            "probability_bins": [
+              [
+                0,
+                0.2
+              ],
+              [
+                0.2,
+                0.4
+              ],
+              [
+                0.4,
+                0.6
+              ],
+              [
+                0.6,
+                0.8
+              ],
+              [
+                0.8,
+                1
+              ]
+            ],
+            "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+          }
+        }
+      },
+      "polyphonic_set_pointwise_counts": {
+        "guitar_absent_frames": 83,
+        "guitar_absent_tp": 0,
+        "guitar_absent_fp": 0,
+        "guitar_absent_fn": 0,
+        "guitar_absent_absolute_cardinality_error": 0,
+        "monophonic_frames": 605,
+        "monophonic_tp": 254,
+        "monophonic_fp": 642,
+        "monophonic_fn": 351,
+        "monophonic_absolute_cardinality_error": 319
+      },
+      "event_presets": [
+        {
+          "minimum_note_length_ms": 127.7,
+          "onset_only": {
+            "tp": 0,
+            "fp": 9,
+            "fn": 1,
+            "precision": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 9,
+              "reason": null
+            },
+            "recall": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 1,
+              "reason": null
+            },
+            "f1": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 10,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 0,
+              "median_signed": null,
+              "median_absolute": null,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 0,
+              "median_signed": null,
+              "median_absolute": null,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [],
+            "matches": [],
+            "unmatched_reference_ids": [
+              "missing-f0-attack/voice-0"
+            ],
+            "unmatched_estimated_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ]
+          },
+          "onset_and_offset": {
+            "tp": 0,
+            "fp": 9,
+            "fn": 1,
+            "precision": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 9,
+              "reason": null
+            },
+            "recall": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 1,
+              "reason": null
+            },
+            "f1": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 10,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 0,
+              "median_signed": null,
+              "median_absolute": null,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 0,
+              "median_signed": null,
+              "median_absolute": null,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [],
+            "matches": [],
+            "unmatched_reference_ids": [
+              "missing-f0-attack/voice-0"
+            ],
+            "unmatched_estimated_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ]
+          },
+          "by_articulation_recall": {
+            "picked_attack": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 1,
+              "reason": null
+            }
+          },
+          "event_count": 9
+        },
+        {
+          "minimum_note_length_ms": 25.0,
+          "onset_only": {
+            "tp": 0,
+            "fp": 12,
+            "fn": 1,
+            "precision": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 12,
+              "reason": null
+            },
+            "recall": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 1,
+              "reason": null
+            },
+            "f1": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 13,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 0,
+              "median_signed": null,
+              "median_absolute": null,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 0,
+              "median_signed": null,
+              "median_absolute": null,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [],
+            "matches": [],
+            "unmatched_reference_ids": [
+              "missing-f0-attack/voice-0"
+            ],
+            "unmatched_estimated_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ]
+          },
+          "onset_and_offset": {
+            "tp": 0,
+            "fp": 12,
+            "fn": 1,
+            "precision": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 12,
+              "reason": null
+            },
+            "recall": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 1,
+              "reason": null
+            },
+            "f1": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 13,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 0,
+              "median_signed": null,
+              "median_absolute": null,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 0,
+              "median_signed": null,
+              "median_absolute": null,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [],
+            "matches": [],
+            "unmatched_reference_ids": [
+              "missing-f0-attack/voice-0"
+            ],
+            "unmatched_estimated_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ]
+          },
+          "by_articulation_recall": {
+            "picked_attack": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 1,
+              "reason": null
+            }
+          },
+          "event_count": 12
+        }
+      ]
+    },
+    {
+      "case_id": "tuning-ladder",
+      "native": {
+        "counts": {
+          "covered_frames": 688,
+          "stable_true_voiced": 0,
+          "stable_true_unvoiced": 0,
+          "estimated_voiced_true_voiced": 0,
+          "estimated_voiced_true_unvoiced": 0,
+          "abstained_frames": 237,
+          "contexts": {
+            "input_padding": 262,
+            "transition_crossing": 426
+          }
+        },
+        "stable_monophonic_metrics": {
+          "raw_pitch_accuracy": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "raw_chroma_accuracy": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "voicing_recall": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "voicing_false_alarm": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "voicing_precision": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "octave_error_fraction": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "non_octave_pitch_error_fraction": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "cents_error": {
+            "n": 0,
+            "median_signed": null,
+            "median_absolute": null,
+            "absolute_p95": null,
+            "p95_reason": "insufficient_samples"
+          },
+          "signed_semitone_error_histogram": {}
+        },
+        "context_diagnostics": {
+          "abstention": {
+            "value": 0.3444767441860465,
+            "numerator": 237,
+            "denominator": 688,
+            "reason": null
+          },
+          "per_context_abstention": {
+            "input_padding": {
+              "value": 0.5954198473282443,
+              "numerator": 156,
+              "denominator": 262,
+              "reason": null
+            },
+            "transition_crossing": {
+              "value": 0.19014084507042253,
+              "numerator": 81,
+              "denominator": 426,
+              "reason": null
+            }
+          },
+          "algorithm_voicing_probability_histogram": {},
+          "probability_bins": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.2,
+              0.4
+            ],
+            [
+              0.4,
+              0.6
+            ],
+            [
+              0.6,
+              0.8
+            ],
+            [
+              0.8,
+              1
+            ]
+          ],
+          "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+        }
+      },
+      "model_clock_pointwise": {
+        "counts": {
+          "covered_frames": 688,
+          "stable_true_voiced": 466,
+          "stable_true_unvoiced": 222,
+          "estimated_voiced_true_voiced": 405,
+          "estimated_voiced_true_unvoiced": 46,
+          "abstained_frames": 237,
+          "contexts": {
+            "stable_unvoiced": 222,
+            "stable_monophonic": 466
+          }
+        },
+        "stable_monophonic_metrics": {
+          "raw_pitch_accuracy": {
+            "value": 0.869098712446352,
+            "numerator": 405,
+            "denominator": 466,
+            "reason": null
+          },
+          "raw_chroma_accuracy": {
+            "value": 0.869098712446352,
+            "numerator": 405,
+            "denominator": 466,
+            "reason": null
+          },
+          "voicing_recall": {
+            "value": 0.869098712446352,
+            "numerator": 405,
+            "denominator": 466,
+            "reason": null
+          },
+          "voicing_false_alarm": {
+            "value": 0.2072072072072072,
+            "numerator": 46,
+            "denominator": 222,
+            "reason": null
+          },
+          "voicing_precision": {
+            "value": 0.8980044345898004,
+            "numerator": 405,
+            "denominator": 451,
+            "reason": null
+          },
+          "octave_error_fraction": {
+            "value": 0.0,
+            "numerator": 0,
+            "denominator": 466,
+            "reason": null
+          },
+          "non_octave_pitch_error_fraction": {
+            "value": 0.0,
+            "numerator": 0,
+            "denominator": 466,
+            "reason": null
+          },
+          "cents_error": {
+            "n": 405,
+            "median_signed": 0.0,
+            "median_absolute": 0.0,
+            "absolute_p95": 0.0,
+            "p95_reason": null
+          },
+          "signed_semitone_error_histogram": {}
+        },
+        "context_diagnostics": {
+          "abstention": {
+            "value": 0.3444767441860465,
+            "numerator": 237,
+            "denominator": 688,
+            "reason": null
+          },
+          "per_context_abstention": {
+            "stable_unvoiced": {
+              "value": 0.7927927927927928,
+              "numerator": 176,
+              "denominator": 222,
+              "reason": null
+            },
+            "stable_monophonic": {
+              "value": 0.13090128755364808,
+              "numerator": 61,
+              "denominator": 466,
+              "reason": null
+            }
+          },
+          "algorithm_voicing_probability_histogram": {},
+          "probability_bins": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.2,
+              0.4
+            ],
+            [
+              0.4,
+              0.6
+            ],
+            [
+              0.6,
+              0.8
+            ],
+            [
+              0.8,
+              1
+            ]
+          ],
+          "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+        }
+      },
+      "clock_sensitivity_pointwise": {
+        "nominal_times_seconds": {
+          "counts": {
+            "covered_frames": 688,
+            "stable_true_voiced": 464,
+            "stable_true_unvoiced": 224,
+            "estimated_voiced_true_voiced": 400,
+            "estimated_voiced_true_unvoiced": 51,
+            "abstained_frames": 237,
+            "contexts": {
+              "stable_unvoiced": 224,
+              "stable_monophonic": 464
+            }
+          },
+          "stable_monophonic_metrics": {
+            "raw_pitch_accuracy": {
+              "value": 0.8620689655172413,
+              "numerator": 400,
+              "denominator": 464,
+              "reason": null
+            },
+            "raw_chroma_accuracy": {
+              "value": 0.8620689655172413,
+              "numerator": 400,
+              "denominator": 464,
+              "reason": null
+            },
+            "voicing_recall": {
+              "value": 0.8620689655172413,
+              "numerator": 400,
+              "denominator": 464,
+              "reason": null
+            },
+            "voicing_false_alarm": {
+              "value": 0.22767857142857142,
+              "numerator": 51,
+              "denominator": 224,
+              "reason": null
+            },
+            "voicing_precision": {
+              "value": 0.8869179600886918,
+              "numerator": 400,
+              "denominator": 451,
+              "reason": null
+            },
+            "octave_error_fraction": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 464,
+              "reason": null
+            },
+            "non_octave_pitch_error_fraction": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 464,
+              "reason": null
+            },
+            "cents_error": {
+              "n": 400,
+              "median_signed": 0.0,
+              "median_absolute": 0.0,
+              "absolute_p95": 0.0,
+              "p95_reason": null
+            },
+            "signed_semitone_error_histogram": {}
+          },
+          "context_diagnostics": {
+            "abstention": {
+              "value": 0.3444767441860465,
+              "numerator": 237,
+              "denominator": 688,
+              "reason": null
+            },
+            "per_context_abstention": {
+              "stable_unvoiced": {
+                "value": 0.7723214285714286,
+                "numerator": 173,
+                "denominator": 224,
+                "reason": null
+              },
+              "stable_monophonic": {
+                "value": 0.13793103448275862,
+                "numerator": 64,
+                "denominator": 464,
+                "reason": null
+              }
+            },
+            "algorithm_voicing_probability_histogram": {},
+            "probability_bins": [
+              [
+                0,
+                0.2
+              ],
+              [
+                0.2,
+                0.4
+              ],
+              [
+                0.4,
+                0.6
+              ],
+              [
+                0.6,
+                0.8
+              ],
+              [
+                0.8,
+                1
+              ]
+            ],
+            "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+          }
+        },
+        "input_window_projection_seconds": {
+          "counts": {
+            "covered_frames": 688,
+            "stable_true_voiced": 469,
+            "stable_true_unvoiced": 219,
+            "estimated_voiced_true_voiced": 407,
+            "estimated_voiced_true_unvoiced": 44,
+            "abstained_frames": 237,
+            "contexts": {
+              "stable_unvoiced": 219,
+              "stable_monophonic": 469
+            }
+          },
+          "stable_monophonic_metrics": {
+            "raw_pitch_accuracy": {
+              "value": 0.8678038379530917,
+              "numerator": 407,
+              "denominator": 469,
+              "reason": null
+            },
+            "raw_chroma_accuracy": {
+              "value": 0.8678038379530917,
+              "numerator": 407,
+              "denominator": 469,
+              "reason": null
+            },
+            "voicing_recall": {
+              "value": 0.8678038379530917,
+              "numerator": 407,
+              "denominator": 469,
+              "reason": null
+            },
+            "voicing_false_alarm": {
+              "value": 0.2009132420091324,
+              "numerator": 44,
+              "denominator": 219,
+              "reason": null
+            },
+            "voicing_precision": {
+              "value": 0.9024390243902439,
+              "numerator": 407,
+              "denominator": 451,
+              "reason": null
+            },
+            "octave_error_fraction": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 469,
+              "reason": null
+            },
+            "non_octave_pitch_error_fraction": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 469,
+              "reason": null
+            },
+            "cents_error": {
+              "n": 407,
+              "median_signed": 0.0,
+              "median_absolute": 0.0,
+              "absolute_p95": 0.0,
+              "p95_reason": null
+            },
+            "signed_semitone_error_histogram": {}
+          },
+          "context_diagnostics": {
+            "abstention": {
+              "value": 0.3444767441860465,
+              "numerator": 237,
+              "denominator": 688,
+              "reason": null
+            },
+            "per_context_abstention": {
+              "stable_unvoiced": {
+                "value": 0.7990867579908676,
+                "numerator": 175,
+                "denominator": 219,
+                "reason": null
+              },
+              "stable_monophonic": {
+                "value": 0.13219616204690832,
+                "numerator": 62,
+                "denominator": 469,
+                "reason": null
+              }
+            },
+            "algorithm_voicing_probability_histogram": {},
+            "probability_bins": [
+              [
+                0,
+                0.2
+              ],
+              [
+                0.2,
+                0.4
+              ],
+              [
+                0.4,
+                0.6
+              ],
+              [
+                0.6,
+                0.8
+              ],
+              [
+                0.8,
+                1
+              ]
+            ],
+            "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+          }
+        }
+      },
+      "polyphonic_set_pointwise_counts": {
+        "guitar_absent_frames": 222,
+        "guitar_absent_tp": 0,
+        "guitar_absent_fp": 46,
+        "guitar_absent_fn": 0,
+        "guitar_absent_absolute_cardinality_error": 46,
+        "monophonic_frames": 466,
+        "monophonic_tp": 405,
+        "monophonic_fp": 0,
+        "monophonic_fn": 61,
+        "monophonic_absolute_cardinality_error": 61
+      },
+      "event_presets": [
+        {
+          "minimum_note_length_ms": 127.7,
+          "onset_only": {
+            "tp": 7,
+            "fp": 9,
+            "fn": 2,
+            "precision": {
+              "value": 0.4375,
+              "numerator": 7,
+              "denominator": 16,
+              "reason": null
+            },
+            "recall": {
+              "value": 0.7777777777777778,
+              "numerator": 7,
+              "denominator": 9,
+              "reason": null
+            },
+            "f1": {
+              "value": 0.56,
+              "numerator": 14,
+              "denominator": 25,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 7,
+              "median_signed": 0.001819501133786261,
+              "median_absolute": 0.008761451247165652,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 7,
+              "median_signed": -0.3079310657596368,
+              "median_absolute": 0.3079310657596368,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [
+              "ladder-1/voice-0",
+              "ladder-3/voice-0",
+              "ladder-4/voice-0",
+              "ladder-5/voice-0",
+              "ladder-6/voice-0",
+              "ladder-7/voice-0",
+              "ladder-8/voice-0"
+            ],
+            "matches": [
+              {
+                "reference_id": "ladder-1/voice-0",
+                "estimated_event_index": 1,
+                "reference_start_seconds": 1.25,
+                "reference_end_seconds": 1.85,
+                "estimated_start_seconds": 1.230657596371882,
+                "estimated_end_seconds": 1.509297052154195,
+                "onset_residual_seconds": -0.01934240362811801,
+                "offset_residual_seconds": -0.340702947845805,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "ladder-3/voice-0",
+                "estimated_event_index": 4,
+                "reference_start_seconds": 2.75,
+                "reference_end_seconds": 3.35,
+                "estimated_start_seconds": 2.7412385487528343,
+                "estimated_end_seconds": 3.0430979591836733,
+                "onset_residual_seconds": -0.008761451247165652,
+                "offset_residual_seconds": -0.30690204081632677,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "ladder-4/voice-0",
+                "estimated_event_index": 6,
+                "reference_start_seconds": 3.5,
+                "reference_end_seconds": 4.1,
+                "estimated_start_seconds": 3.530717006802721,
+                "estimated_end_seconds": 3.7396965986394557,
+                "onset_residual_seconds": 0.03071700680272116,
+                "offset_residual_seconds": -0.36030340136054395,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "ladder-5/voice-0",
+                "estimated_event_index": 8,
+                "reference_start_seconds": 4.25,
+                "reference_end_seconds": 4.85,
+                "estimated_start_seconds": 4.251819501133786,
+                "estimated_end_seconds": 4.542068934240363,
+                "onset_residual_seconds": 0.001819501133786261,
+                "offset_residual_seconds": -0.3079310657596368,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "ladder-6/voice-0",
+                "estimated_event_index": 10,
+                "reference_start_seconds": 5.0,
+                "reference_end_seconds": 5.6,
+                "estimated_start_seconds": 5.006468027210884,
+                "estimated_end_seconds": 5.308327437641723,
+                "onset_residual_seconds": 0.006468027210884131,
+                "offset_residual_seconds": -0.29167256235827654,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "ladder-7/voice-0",
+                "estimated_event_index": 12,
+                "reference_start_seconds": 5.75,
+                "reference_end_seconds": 6.35,
+                "estimated_start_seconds": 5.761116553287982,
+                "estimated_end_seconds": 6.041039909297052,
+                "onset_residual_seconds": 0.011116553287982,
+                "offset_residual_seconds": -0.3089600907029473,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "ladder-8/voice-0",
+                "estimated_event_index": 14,
+                "reference_start_seconds": 6.5,
+                "reference_end_seconds": 7.1,
+                "estimated_start_seconds": 6.49382902494331,
+                "estimated_end_seconds": 6.79568843537415,
+                "onset_residual_seconds": -0.00617097505668962,
+                "offset_residual_seconds": -0.3043115646258494,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              }
+            ],
+            "unmatched_reference_ids": [
+              "ladder-0/voice-0",
+              "ladder-2/voice-0"
+            ],
+            "unmatched_estimated_indices": [
+              0,
+              2,
+              3,
+              5,
+              7,
+              9,
+              11,
+              13,
+              15
+            ]
+          },
+          "onset_and_offset": {
+            "tp": 0,
+            "fp": 16,
+            "fn": 9,
+            "precision": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 16,
+              "reason": null
+            },
+            "recall": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 9,
+              "reason": null
+            },
+            "f1": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 25,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 0,
+              "median_signed": null,
+              "median_absolute": null,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 0,
+              "median_signed": null,
+              "median_absolute": null,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [],
+            "matches": [],
+            "unmatched_reference_ids": [
+              "ladder-0/voice-0",
+              "ladder-1/voice-0",
+              "ladder-2/voice-0",
+              "ladder-3/voice-0",
+              "ladder-4/voice-0",
+              "ladder-5/voice-0",
+              "ladder-6/voice-0",
+              "ladder-7/voice-0",
+              "ladder-8/voice-0"
+            ],
+            "unmatched_estimated_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          },
+          "by_articulation_recall": {
+            "picked_attack": {
+              "value": 0.7777777777777778,
+              "numerator": 7,
+              "denominator": 9,
+              "reason": null
+            }
+          },
+          "event_count": 16
+        },
+        {
+          "minimum_note_length_ms": 25.0,
+          "onset_only": {
+            "tp": 7,
+            "fp": 12,
+            "fn": 2,
+            "precision": {
+              "value": 0.3684210526315789,
+              "numerator": 7,
+              "denominator": 19,
+              "reason": null
+            },
+            "recall": {
+              "value": 0.7777777777777778,
+              "numerator": 7,
+              "denominator": 9,
+              "reason": null
+            },
+            "f1": {
+              "value": 0.5,
+              "numerator": 14,
+              "denominator": 28,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 7,
+              "median_signed": 0.001819501133786261,
+              "median_absolute": 0.008761451247165652,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 7,
+              "median_signed": -0.3079310657596368,
+              "median_absolute": 0.3079310657596368,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [
+              "ladder-1/voice-0",
+              "ladder-3/voice-0",
+              "ladder-4/voice-0",
+              "ladder-5/voice-0",
+              "ladder-6/voice-0",
+              "ladder-7/voice-0",
+              "ladder-8/voice-0"
+            ],
+            "matches": [
+              {
+                "reference_id": "ladder-1/voice-0",
+                "estimated_event_index": 1,
+                "reference_start_seconds": 1.25,
+                "reference_end_seconds": 1.85,
+                "estimated_start_seconds": 1.230657596371882,
+                "estimated_end_seconds": 1.509297052154195,
+                "onset_residual_seconds": -0.01934240362811801,
+                "offset_residual_seconds": -0.340702947845805,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "ladder-3/voice-0",
+                "estimated_event_index": 5,
+                "reference_start_seconds": 2.75,
+                "reference_end_seconds": 3.35,
+                "estimated_start_seconds": 2.7412385487528343,
+                "estimated_end_seconds": 3.0430979591836733,
+                "onset_residual_seconds": -0.008761451247165652,
+                "offset_residual_seconds": -0.30690204081632677,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "ladder-4/voice-0",
+                "estimated_event_index": 7,
+                "reference_start_seconds": 3.5,
+                "reference_end_seconds": 4.1,
+                "estimated_start_seconds": 3.530717006802721,
+                "estimated_end_seconds": 3.7396965986394557,
+                "onset_residual_seconds": 0.03071700680272116,
+                "offset_residual_seconds": -0.36030340136054395,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "ladder-5/voice-0",
+                "estimated_event_index": 11,
+                "reference_start_seconds": 4.25,
+                "reference_end_seconds": 4.85,
+                "estimated_start_seconds": 4.251819501133786,
+                "estimated_end_seconds": 4.542068934240363,
+                "onset_residual_seconds": 0.001819501133786261,
+                "offset_residual_seconds": -0.3079310657596368,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "ladder-6/voice-0",
+                "estimated_event_index": 13,
+                "reference_start_seconds": 5.0,
+                "reference_end_seconds": 5.6,
+                "estimated_start_seconds": 5.006468027210884,
+                "estimated_end_seconds": 5.308327437641723,
+                "onset_residual_seconds": 0.006468027210884131,
+                "offset_residual_seconds": -0.29167256235827654,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "ladder-7/voice-0",
+                "estimated_event_index": 15,
+                "reference_start_seconds": 5.75,
+                "reference_end_seconds": 6.35,
+                "estimated_start_seconds": 5.761116553287982,
+                "estimated_end_seconds": 6.041039909297052,
+                "onset_residual_seconds": 0.011116553287982,
+                "offset_residual_seconds": -0.3089600907029473,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "ladder-8/voice-0",
+                "estimated_event_index": 17,
+                "reference_start_seconds": 6.5,
+                "reference_end_seconds": 7.1,
+                "estimated_start_seconds": 6.49382902494331,
+                "estimated_end_seconds": 6.79568843537415,
+                "onset_residual_seconds": -0.00617097505668962,
+                "offset_residual_seconds": -0.3043115646258494,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              }
+            ],
+            "unmatched_reference_ids": [
+              "ladder-0/voice-0",
+              "ladder-2/voice-0"
+            ],
+            "unmatched_estimated_indices": [
+              0,
+              2,
+              3,
+              4,
+              6,
+              8,
+              9,
+              10,
+              12,
+              14,
+              16,
+              18
+            ]
+          },
+          "onset_and_offset": {
+            "tp": 0,
+            "fp": 19,
+            "fn": 9,
+            "precision": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 19,
+              "reason": null
+            },
+            "recall": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 9,
+              "reason": null
+            },
+            "f1": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 28,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 0,
+              "median_signed": null,
+              "median_absolute": null,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 0,
+              "median_signed": null,
+              "median_absolute": null,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [],
+            "matches": [],
+            "unmatched_reference_ids": [
+              "ladder-0/voice-0",
+              "ladder-1/voice-0",
+              "ladder-2/voice-0",
+              "ladder-3/voice-0",
+              "ladder-4/voice-0",
+              "ladder-5/voice-0",
+              "ladder-6/voice-0",
+              "ladder-7/voice-0",
+              "ladder-8/voice-0"
+            ],
+            "unmatched_estimated_indices": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18
+            ]
+          },
+          "by_articulation_recall": {
+            "picked_attack": {
+              "value": 0.7777777777777778,
+              "numerator": 7,
+              "denominator": 9,
+              "reason": null
+            }
+          },
+          "event_count": 19
+        }
+      ]
+    },
+    {
+      "case_id": "legato-transition",
+      "native": {
+        "counts": {
+          "covered_frames": 516,
+          "stable_true_voiced": 0,
+          "stable_true_unvoiced": 0,
+          "estimated_voiced_true_voiced": 0,
+          "estimated_voiced_true_unvoiced": 0,
+          "abstained_frames": 148,
+          "contexts": {
+            "input_padding": 232,
+            "transition_crossing": 284
+          }
+        },
+        "stable_monophonic_metrics": {
+          "raw_pitch_accuracy": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "raw_chroma_accuracy": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "voicing_recall": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "voicing_false_alarm": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "voicing_precision": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "octave_error_fraction": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "non_octave_pitch_error_fraction": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "cents_error": {
+            "n": 0,
+            "median_signed": null,
+            "median_absolute": null,
+            "absolute_p95": null,
+            "p95_reason": "insufficient_samples"
+          },
+          "signed_semitone_error_histogram": {}
+        },
+        "context_diagnostics": {
+          "abstention": {
+            "value": 0.2868217054263566,
+            "numerator": 148,
+            "denominator": 516,
+            "reason": null
+          },
+          "per_context_abstention": {
+            "input_padding": {
+              "value": 0.5,
+              "numerator": 116,
+              "denominator": 232,
+              "reason": null
+            },
+            "transition_crossing": {
+              "value": 0.11267605633802817,
+              "numerator": 32,
+              "denominator": 284,
+              "reason": null
+            }
+          },
+          "algorithm_voicing_probability_histogram": {},
+          "probability_bins": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.2,
+              0.4
+            ],
+            [
+              0.4,
+              0.6
+            ],
+            [
+              0.6,
+              0.8
+            ],
+            [
+              0.8,
+              1
+            ]
+          ],
+          "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+        }
+      },
+      "model_clock_pointwise": {
+        "counts": {
+          "covered_frames": 516,
+          "stable_true_voiced": 423,
+          "stable_true_unvoiced": 93,
+          "estimated_voiced_true_voiced": 366,
+          "estimated_voiced_true_unvoiced": 2,
+          "abstained_frames": 148,
+          "contexts": {
+            "stable_unvoiced": 93,
+            "stable_monophonic": 423
+          }
+        },
+        "stable_monophonic_metrics": {
+          "raw_pitch_accuracy": {
+            "value": 0.8439716312056738,
+            "numerator": 357,
+            "denominator": 423,
+            "reason": null
+          },
+          "raw_chroma_accuracy": {
+            "value": 0.8439716312056738,
+            "numerator": 357,
+            "denominator": 423,
+            "reason": null
+          },
+          "voicing_recall": {
+            "value": 0.8652482269503546,
+            "numerator": 366,
+            "denominator": 423,
+            "reason": null
+          },
+          "voicing_false_alarm": {
+            "value": 0.021505376344086023,
+            "numerator": 2,
+            "denominator": 93,
+            "reason": null
+          },
+          "voicing_precision": {
+            "value": 0.9945652173913043,
+            "numerator": 366,
+            "denominator": 368,
+            "reason": null
+          },
+          "octave_error_fraction": {
+            "value": 0.0,
+            "numerator": 0,
+            "denominator": 423,
+            "reason": null
+          },
+          "non_octave_pitch_error_fraction": {
+            "value": 0.02127659574468085,
+            "numerator": 9,
+            "denominator": 423,
+            "reason": null
+          },
+          "cents_error": {
+            "n": 366,
+            "median_signed": 0.0,
+            "median_absolute": 0.0,
+            "absolute_p95": 6.041666666666993,
+            "p95_reason": null
+          },
+          "signed_semitone_error_histogram": {
+            "1": 8,
+            "3": 1
+          }
+        },
+        "context_diagnostics": {
+          "abstention": {
+            "value": 0.2868217054263566,
+            "numerator": 148,
+            "denominator": 516,
+            "reason": null
+          },
+          "per_context_abstention": {
+            "stable_unvoiced": {
+              "value": 0.978494623655914,
+              "numerator": 91,
+              "denominator": 93,
+              "reason": null
+            },
+            "stable_monophonic": {
+              "value": 0.1347517730496454,
+              "numerator": 57,
+              "denominator": 423,
+              "reason": null
+            }
+          },
+          "algorithm_voicing_probability_histogram": {},
+          "probability_bins": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.2,
+              0.4
+            ],
+            [
+              0.4,
+              0.6
+            ],
+            [
+              0.6,
+              0.8
+            ],
+            [
+              0.8,
+              1
+            ]
+          ],
+          "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+        }
+      },
+      "clock_sensitivity_pointwise": {
+        "nominal_times_seconds": {
+          "counts": {
+            "covered_frames": 516,
+            "stable_true_voiced": 422,
+            "stable_true_unvoiced": 94,
+            "estimated_voiced_true_voiced": 365,
+            "estimated_voiced_true_unvoiced": 3,
+            "abstained_frames": 148,
+            "contexts": {
+              "stable_unvoiced": 94,
+              "stable_monophonic": 422
+            }
+          },
+          "stable_monophonic_metrics": {
+            "raw_pitch_accuracy": {
+              "value": 0.8554502369668247,
+              "numerator": 361,
+              "denominator": 422,
+              "reason": null
+            },
+            "raw_chroma_accuracy": {
+              "value": 0.8554502369668247,
+              "numerator": 361,
+              "denominator": 422,
+              "reason": null
+            },
+            "voicing_recall": {
+              "value": 0.8649289099526066,
+              "numerator": 365,
+              "denominator": 422,
+              "reason": null
+            },
+            "voicing_false_alarm": {
+              "value": 0.031914893617021274,
+              "numerator": 3,
+              "denominator": 94,
+              "reason": null
+            },
+            "voicing_precision": {
+              "value": 0.9918478260869565,
+              "numerator": 365,
+              "denominator": 368,
+              "reason": null
+            },
+            "octave_error_fraction": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 422,
+              "reason": null
+            },
+            "non_octave_pitch_error_fraction": {
+              "value": 0.009478672985781991,
+              "numerator": 4,
+              "denominator": 422,
+              "reason": null
+            },
+            "cents_error": {
+              "n": 365,
+              "median_signed": 0.0,
+              "median_absolute": 0.0,
+              "absolute_p95": 6.145833333333354,
+              "p95_reason": null
+            },
+            "signed_semitone_error_histogram": {
+              "2": 1,
+              "-1": 2,
+              "1": 1
+            }
+          },
+          "context_diagnostics": {
+            "abstention": {
+              "value": 0.2868217054263566,
+              "numerator": 148,
+              "denominator": 516,
+              "reason": null
+            },
+            "per_context_abstention": {
+              "stable_unvoiced": {
+                "value": 0.9680851063829787,
+                "numerator": 91,
+                "denominator": 94,
+                "reason": null
+              },
+              "stable_monophonic": {
+                "value": 0.13507109004739337,
+                "numerator": 57,
+                "denominator": 422,
+                "reason": null
+              }
+            },
+            "algorithm_voicing_probability_histogram": {},
+            "probability_bins": [
+              [
+                0,
+                0.2
+              ],
+              [
+                0.2,
+                0.4
+              ],
+              [
+                0.4,
+                0.6
+              ],
+              [
+                0.6,
+                0.8
+              ],
+              [
+                0.8,
+                1
+              ]
+            ],
+            "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+          }
+        },
+        "input_window_projection_seconds": {
+          "counts": {
+            "covered_frames": 516,
+            "stable_true_voiced": 424,
+            "stable_true_unvoiced": 92,
+            "estimated_voiced_true_voiced": 367,
+            "estimated_voiced_true_unvoiced": 1,
+            "abstained_frames": 148,
+            "contexts": {
+              "stable_unvoiced": 92,
+              "stable_monophonic": 424
+            }
+          },
+          "stable_monophonic_metrics": {
+            "raw_pitch_accuracy": {
+              "value": 0.8466981132075472,
+              "numerator": 359,
+              "denominator": 424,
+              "reason": null
+            },
+            "raw_chroma_accuracy": {
+              "value": 0.8466981132075472,
+              "numerator": 359,
+              "denominator": 424,
+              "reason": null
+            },
+            "voicing_recall": {
+              "value": 0.8655660377358491,
+              "numerator": 367,
+              "denominator": 424,
+              "reason": null
+            },
+            "voicing_false_alarm": {
+              "value": 0.010869565217391304,
+              "numerator": 1,
+              "denominator": 92,
+              "reason": null
+            },
+            "voicing_precision": {
+              "value": 0.9972826086956522,
+              "numerator": 367,
+              "denominator": 368,
+              "reason": null
+            },
+            "octave_error_fraction": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 424,
+              "reason": null
+            },
+            "non_octave_pitch_error_fraction": {
+              "value": 0.018867924528301886,
+              "numerator": 8,
+              "denominator": 424,
+              "reason": null
+            },
+            "cents_error": {
+              "n": 367,
+              "median_signed": 0.0,
+              "median_absolute": 0.0,
+              "absolute_p95": 6.8229166666669085,
+              "p95_reason": null
+            },
+            "signed_semitone_error_histogram": {
+              "4": 1,
+              "2": 1,
+              "1": 6
+            }
+          },
+          "context_diagnostics": {
+            "abstention": {
+              "value": 0.2868217054263566,
+              "numerator": 148,
+              "denominator": 516,
+              "reason": null
+            },
+            "per_context_abstention": {
+              "stable_unvoiced": {
+                "value": 0.9891304347826086,
+                "numerator": 91,
+                "denominator": 92,
+                "reason": null
+              },
+              "stable_monophonic": {
+                "value": 0.13443396226415094,
+                "numerator": 57,
+                "denominator": 424,
+                "reason": null
+              }
+            },
+            "algorithm_voicing_probability_histogram": {},
+            "probability_bins": [
+              [
+                0,
+                0.2
+              ],
+              [
+                0.2,
+                0.4
+              ],
+              [
+                0.4,
+                0.6
+              ],
+              [
+                0.6,
+                0.8
+              ],
+              [
+                0.8,
+                1
+              ]
+            ],
+            "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+          }
+        }
+      },
+      "polyphonic_set_pointwise_counts": {
+        "guitar_absent_frames": 93,
+        "guitar_absent_tp": 0,
+        "guitar_absent_fp": 2,
+        "guitar_absent_fn": 0,
+        "guitar_absent_absolute_cardinality_error": 2,
+        "monophonic_frames": 423,
+        "monophonic_tp": 358,
+        "monophonic_fp": 13,
+        "monophonic_fn": 65,
+        "monophonic_absolute_cardinality_error": 62
+      },
+      "event_presets": [
+        {
+          "minimum_note_length_ms": 127.7,
+          "onset_only": {
+            "tp": 5,
+            "fp": 0,
+            "fn": 0,
+            "precision": {
+              "value": 1.0,
+              "numerator": 5,
+              "denominator": 5,
+              "reason": null
+            },
+            "recall": {
+              "value": 1.0,
+              "numerator": 5,
+              "denominator": 5,
+              "reason": null
+            },
+            "f1": {
+              "value": 1.0,
+              "numerator": 10,
+              "denominator": 10,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 5,
+              "median_signed": 0.001918820861677606,
+              "median_absolute": 0.001918820861677606,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 5,
+              "median_signed": 0.004549206349206081,
+              "median_absolute": 0.024427210884353734,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [
+              "legato-0/voice-0",
+              "legato-1/voice-0",
+              "legato-2/voice-0",
+              "legato-3/voice-0",
+              "legato-4/voice-0"
+            ],
+            "matches": [
+              {
+                "reference_id": "legato-0/voice-0",
+                "estimated_event_index": 0,
+                "reference_start_seconds": 0.5,
+                "reference_end_seconds": 1.4,
+                "estimated_start_seconds": 0.5108390022675737,
+                "estimated_end_seconds": 1.3235374149659864,
+                "onset_residual_seconds": 0.010839002267573727,
+                "offset_residual_seconds": -0.07646258503401349,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-1/voice-0",
+                "estimated_event_index": 1,
+                "reference_start_seconds": 1.6,
+                "reference_end_seconds": 2.4000000000000004,
+                "estimated_start_seconds": 1.6137868480725623,
+                "estimated_end_seconds": 2.4045492063492064,
+                "onset_residual_seconds": 0.013786848072562252,
+                "offset_residual_seconds": 0.004549206349206081,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-2/voice-0",
+                "estimated_event_index": 2,
+                "reference_start_seconds": 2.6,
+                "reference_end_seconds": 3.4000000000000004,
+                "estimated_start_seconds": 2.6019188208616777,
+                "estimated_end_seconds": 3.403007256235828,
+                "onset_residual_seconds": 0.001918820861677606,
+                "offset_residual_seconds": 0.003007256235827427,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-3/voice-0",
+                "estimated_event_index": 3,
+                "reference_start_seconds": 3.6,
+                "reference_end_seconds": 4.4,
+                "estimated_start_seconds": 3.600376870748299,
+                "estimated_end_seconds": 4.425969160997732,
+                "onset_residual_seconds": 0.00037687074829895195,
+                "offset_residual_seconds": 0.0259691609977315,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-4/voice-0",
+                "estimated_event_index": 4,
+                "reference_start_seconds": 4.6,
+                "reference_end_seconds": 5.3999999999999995,
+                "estimated_start_seconds": 4.6001188208616774,
+                "estimated_end_seconds": 5.424427210884353,
+                "onset_residual_seconds": 0.00011882086167780415,
+                "offset_residual_seconds": 0.024427210884353734,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              }
+            ],
+            "unmatched_reference_ids": [],
+            "unmatched_estimated_indices": []
+          },
+          "onset_and_offset": {
+            "tp": 5,
+            "fp": 0,
+            "fn": 0,
+            "precision": {
+              "value": 1.0,
+              "numerator": 5,
+              "denominator": 5,
+              "reason": null
+            },
+            "recall": {
+              "value": 1.0,
+              "numerator": 5,
+              "denominator": 5,
+              "reason": null
+            },
+            "f1": {
+              "value": 1.0,
+              "numerator": 10,
+              "denominator": 10,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 5,
+              "median_signed": 0.001918820861677606,
+              "median_absolute": 0.001918820861677606,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 5,
+              "median_signed": 0.004549206349206081,
+              "median_absolute": 0.024427210884353734,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [
+              "legato-0/voice-0",
+              "legato-1/voice-0",
+              "legato-2/voice-0",
+              "legato-3/voice-0",
+              "legato-4/voice-0"
+            ],
+            "matches": [
+              {
+                "reference_id": "legato-0/voice-0",
+                "estimated_event_index": 0,
+                "reference_start_seconds": 0.5,
+                "reference_end_seconds": 1.4,
+                "estimated_start_seconds": 0.5108390022675737,
+                "estimated_end_seconds": 1.3235374149659864,
+                "onset_residual_seconds": 0.010839002267573727,
+                "offset_residual_seconds": -0.07646258503401349,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-1/voice-0",
+                "estimated_event_index": 1,
+                "reference_start_seconds": 1.6,
+                "reference_end_seconds": 2.4000000000000004,
+                "estimated_start_seconds": 1.6137868480725623,
+                "estimated_end_seconds": 2.4045492063492064,
+                "onset_residual_seconds": 0.013786848072562252,
+                "offset_residual_seconds": 0.004549206349206081,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-2/voice-0",
+                "estimated_event_index": 2,
+                "reference_start_seconds": 2.6,
+                "reference_end_seconds": 3.4000000000000004,
+                "estimated_start_seconds": 2.6019188208616777,
+                "estimated_end_seconds": 3.403007256235828,
+                "onset_residual_seconds": 0.001918820861677606,
+                "offset_residual_seconds": 0.003007256235827427,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-3/voice-0",
+                "estimated_event_index": 3,
+                "reference_start_seconds": 3.6,
+                "reference_end_seconds": 4.4,
+                "estimated_start_seconds": 3.600376870748299,
+                "estimated_end_seconds": 4.425969160997732,
+                "onset_residual_seconds": 0.00037687074829895195,
+                "offset_residual_seconds": 0.0259691609977315,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-4/voice-0",
+                "estimated_event_index": 4,
+                "reference_start_seconds": 4.6,
+                "reference_end_seconds": 5.3999999999999995,
+                "estimated_start_seconds": 4.6001188208616774,
+                "estimated_end_seconds": 5.424427210884353,
+                "onset_residual_seconds": 0.00011882086167780415,
+                "offset_residual_seconds": 0.024427210884353734,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              }
+            ],
+            "unmatched_reference_ids": [],
+            "unmatched_estimated_indices": []
+          },
+          "by_articulation_recall": {
+            "picked_attack": {
+              "value": 1.0,
+              "numerator": 1,
+              "denominator": 1,
+              "reason": null
+            },
+            "pitch_transition": {
+              "value": 1.0,
+              "numerator": 4,
+              "denominator": 4,
+              "reason": null
+            }
+          },
+          "event_count": 5
+        },
+        {
+          "minimum_note_length_ms": 25.0,
+          "onset_only": {
+            "tp": 5,
+            "fp": 4,
+            "fn": 0,
+            "precision": {
+              "value": 0.5555555555555556,
+              "numerator": 5,
+              "denominator": 9,
+              "reason": null
+            },
+            "recall": {
+              "value": 1.0,
+              "numerator": 5,
+              "denominator": 5,
+              "reason": null
+            },
+            "f1": {
+              "value": 0.7142857142857143,
+              "numerator": 10,
+              "denominator": 14,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 5,
+              "median_signed": 0.001918820861677606,
+              "median_absolute": 0.001918820861677606,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 5,
+              "median_signed": 0.004549206349206081,
+              "median_absolute": 0.024427210884353734,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [
+              "legato-0/voice-0",
+              "legato-1/voice-0",
+              "legato-2/voice-0",
+              "legato-3/voice-0",
+              "legato-4/voice-0"
+            ],
+            "matches": [
+              {
+                "reference_id": "legato-0/voice-0",
+                "estimated_event_index": 0,
+                "reference_start_seconds": 0.5,
+                "reference_end_seconds": 1.4,
+                "estimated_start_seconds": 0.5108390022675737,
+                "estimated_end_seconds": 1.3235374149659864,
+                "onset_residual_seconds": 0.010839002267573727,
+                "offset_residual_seconds": -0.07646258503401349,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-1/voice-0",
+                "estimated_event_index": 1,
+                "reference_start_seconds": 1.6,
+                "reference_end_seconds": 2.4000000000000004,
+                "estimated_start_seconds": 1.6137868480725623,
+                "estimated_end_seconds": 2.4045492063492064,
+                "onset_residual_seconds": 0.013786848072562252,
+                "offset_residual_seconds": 0.004549206349206081,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-2/voice-0",
+                "estimated_event_index": 2,
+                "reference_start_seconds": 2.6,
+                "reference_end_seconds": 3.4000000000000004,
+                "estimated_start_seconds": 2.6019188208616777,
+                "estimated_end_seconds": 3.403007256235828,
+                "onset_residual_seconds": 0.001918820861677606,
+                "offset_residual_seconds": 0.003007256235827427,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-3/voice-0",
+                "estimated_event_index": 3,
+                "reference_start_seconds": 3.6,
+                "reference_end_seconds": 4.4,
+                "estimated_start_seconds": 3.600376870748299,
+                "estimated_end_seconds": 4.425969160997732,
+                "onset_residual_seconds": 0.00037687074829895195,
+                "offset_residual_seconds": 0.0259691609977315,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-4/voice-0",
+                "estimated_event_index": 8,
+                "reference_start_seconds": 4.6,
+                "reference_end_seconds": 5.3999999999999995,
+                "estimated_start_seconds": 4.6001188208616774,
+                "estimated_end_seconds": 5.424427210884353,
+                "onset_residual_seconds": 0.00011882086167780415,
+                "offset_residual_seconds": 0.024427210884353734,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              }
+            ],
+            "unmatched_reference_ids": [],
+            "unmatched_estimated_indices": [
+              4,
+              5,
+              6,
+              7
+            ]
+          },
+          "onset_and_offset": {
+            "tp": 5,
+            "fp": 4,
+            "fn": 0,
+            "precision": {
+              "value": 0.5555555555555556,
+              "numerator": 5,
+              "denominator": 9,
+              "reason": null
+            },
+            "recall": {
+              "value": 1.0,
+              "numerator": 5,
+              "denominator": 5,
+              "reason": null
+            },
+            "f1": {
+              "value": 0.7142857142857143,
+              "numerator": 10,
+              "denominator": 14,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 5,
+              "median_signed": 0.001918820861677606,
+              "median_absolute": 0.001918820861677606,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 5,
+              "median_signed": 0.004549206349206081,
+              "median_absolute": 0.024427210884353734,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [
+              "legato-0/voice-0",
+              "legato-1/voice-0",
+              "legato-2/voice-0",
+              "legato-3/voice-0",
+              "legato-4/voice-0"
+            ],
+            "matches": [
+              {
+                "reference_id": "legato-0/voice-0",
+                "estimated_event_index": 0,
+                "reference_start_seconds": 0.5,
+                "reference_end_seconds": 1.4,
+                "estimated_start_seconds": 0.5108390022675737,
+                "estimated_end_seconds": 1.3235374149659864,
+                "onset_residual_seconds": 0.010839002267573727,
+                "offset_residual_seconds": -0.07646258503401349,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-1/voice-0",
+                "estimated_event_index": 1,
+                "reference_start_seconds": 1.6,
+                "reference_end_seconds": 2.4000000000000004,
+                "estimated_start_seconds": 1.6137868480725623,
+                "estimated_end_seconds": 2.4045492063492064,
+                "onset_residual_seconds": 0.013786848072562252,
+                "offset_residual_seconds": 0.004549206349206081,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-2/voice-0",
+                "estimated_event_index": 2,
+                "reference_start_seconds": 2.6,
+                "reference_end_seconds": 3.4000000000000004,
+                "estimated_start_seconds": 2.6019188208616777,
+                "estimated_end_seconds": 3.403007256235828,
+                "onset_residual_seconds": 0.001918820861677606,
+                "offset_residual_seconds": 0.003007256235827427,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-3/voice-0",
+                "estimated_event_index": 3,
+                "reference_start_seconds": 3.6,
+                "reference_end_seconds": 4.4,
+                "estimated_start_seconds": 3.600376870748299,
+                "estimated_end_seconds": 4.425969160997732,
+                "onset_residual_seconds": 0.00037687074829895195,
+                "offset_residual_seconds": 0.0259691609977315,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "legato-4/voice-0",
+                "estimated_event_index": 8,
+                "reference_start_seconds": 4.6,
+                "reference_end_seconds": 5.3999999999999995,
+                "estimated_start_seconds": 4.6001188208616774,
+                "estimated_end_seconds": 5.424427210884353,
+                "onset_residual_seconds": 0.00011882086167780415,
+                "offset_residual_seconds": 0.024427210884353734,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              }
+            ],
+            "unmatched_reference_ids": [],
+            "unmatched_estimated_indices": [
+              4,
+              5,
+              6,
+              7
+            ]
+          },
+          "by_articulation_recall": {
+            "picked_attack": {
+              "value": 1.0,
+              "numerator": 1,
+              "denominator": 1,
+              "reason": null
+            },
+            "pitch_transition": {
+              "value": 1.0,
+              "numerator": 4,
+              "denominator": 4,
+              "reason": null
+            }
+          },
+          "event_count": 9
+        }
+      ]
+    },
+    {
+      "case_id": "sweep-and-polyphony",
+      "native": {
+        "counts": {
+          "covered_frames": 688,
+          "stable_true_voiced": 0,
+          "stable_true_unvoiced": 0,
+          "estimated_voiced_true_voiced": 0,
+          "estimated_voiced_true_unvoiced": 0,
+          "abstained_frames": 292,
+          "contexts": {
+            "input_padding": 262,
+            "transition_crossing": 296,
+            "polyphonic": 130
+          }
+        },
+        "stable_monophonic_metrics": {
+          "raw_pitch_accuracy": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "raw_chroma_accuracy": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "voicing_recall": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "voicing_false_alarm": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "voicing_precision": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "octave_error_fraction": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "non_octave_pitch_error_fraction": {
+            "value": null,
+            "numerator": 0,
+            "denominator": 0,
+            "reason": "no_applicable_frames"
+          },
+          "cents_error": {
+            "n": 0,
+            "median_signed": null,
+            "median_absolute": null,
+            "absolute_p95": null,
+            "p95_reason": "insufficient_samples"
+          },
+          "signed_semitone_error_histogram": {}
+        },
+        "context_diagnostics": {
+          "abstention": {
+            "value": 0.42441860465116277,
+            "numerator": 292,
+            "denominator": 688,
+            "reason": null
+          },
+          "per_context_abstention": {
+            "input_padding": {
+              "value": 0.45038167938931295,
+              "numerator": 118,
+              "denominator": 262,
+              "reason": null
+            },
+            "transition_crossing": {
+              "value": 0.4527027027027027,
+              "numerator": 134,
+              "denominator": 296,
+              "reason": null
+            },
+            "polyphonic": {
+              "value": 0.3076923076923077,
+              "numerator": 40,
+              "denominator": 130,
+              "reason": null
+            }
+          },
+          "algorithm_voicing_probability_histogram": {},
+          "probability_bins": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.2,
+              0.4
+            ],
+            [
+              0.4,
+              0.6
+            ],
+            [
+              0.6,
+              0.8
+            ],
+            [
+              0.8,
+              1
+            ]
+          ],
+          "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+        }
+      },
+      "model_clock_pointwise": {
+        "counts": {
+          "covered_frames": 688,
+          "stable_true_voiced": 297,
+          "stable_true_unvoiced": 261,
+          "estimated_voiced_true_voiced": 283,
+          "estimated_voiced_true_unvoiced": 23,
+          "abstained_frames": 292,
+          "contexts": {
+            "stable_unvoiced": 261,
+            "stable_monophonic": 297,
+            "polyphonic": 130
+          }
+        },
+        "stable_monophonic_metrics": {
+          "raw_pitch_accuracy": {
+            "value": 0.8552188552188552,
+            "numerator": 254,
+            "denominator": 297,
+            "reason": null
+          },
+          "raw_chroma_accuracy": {
+            "value": 0.8552188552188552,
+            "numerator": 254,
+            "denominator": 297,
+            "reason": null
+          },
+          "voicing_recall": {
+            "value": 0.9528619528619529,
+            "numerator": 283,
+            "denominator": 297,
+            "reason": null
+          },
+          "voicing_false_alarm": {
+            "value": 0.08812260536398467,
+            "numerator": 23,
+            "denominator": 261,
+            "reason": null
+          },
+          "voicing_precision": {
+            "value": 0.9248366013071896,
+            "numerator": 283,
+            "denominator": 306,
+            "reason": null
+          },
+          "octave_error_fraction": {
+            "value": 0.0,
+            "numerator": 0,
+            "denominator": 297,
+            "reason": null
+          },
+          "non_octave_pitch_error_fraction": {
+            "value": 0.09764309764309764,
+            "numerator": 29,
+            "denominator": 297,
+            "reason": null
+          },
+          "cents_error": {
+            "n": 283,
+            "median_signed": 0.0,
+            "median_absolute": 0.0,
+            "absolute_p95": 500.0,
+            "p95_reason": null
+          },
+          "signed_semitone_error_histogram": {
+            "5": 12,
+            "7": 4,
+            "4": 2,
+            "-5": 10,
+            "-4": 1
+          }
+        },
+        "context_diagnostics": {
+          "abstention": {
+            "value": 0.42441860465116277,
+            "numerator": 292,
+            "denominator": 688,
+            "reason": null
+          },
+          "per_context_abstention": {
+            "stable_unvoiced": {
+              "value": 0.9118773946360154,
+              "numerator": 238,
+              "denominator": 261,
+              "reason": null
+            },
+            "stable_monophonic": {
+              "value": 0.04713804713804714,
+              "numerator": 14,
+              "denominator": 297,
+              "reason": null
+            },
+            "polyphonic": {
+              "value": 0.3076923076923077,
+              "numerator": 40,
+              "denominator": 130,
+              "reason": null
+            }
+          },
+          "algorithm_voicing_probability_histogram": {},
+          "probability_bins": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.2,
+              0.4
+            ],
+            [
+              0.4,
+              0.6
+            ],
+            [
+              0.6,
+              0.8
+            ],
+            [
+              0.8,
+              1
+            ]
+          ],
+          "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+        }
+      },
+      "clock_sensitivity_pointwise": {
+        "nominal_times_seconds": {
+          "counts": {
+            "covered_frames": 688,
+            "stable_true_voiced": 296,
+            "stable_true_unvoiced": 263,
+            "estimated_voiced_true_voiced": 283,
+            "estimated_voiced_true_unvoiced": 23,
+            "abstained_frames": 292,
+            "contexts": {
+              "stable_unvoiced": 263,
+              "stable_monophonic": 296,
+              "polyphonic": 129
+            }
+          },
+          "stable_monophonic_metrics": {
+            "raw_pitch_accuracy": {
+              "value": 0.8682432432432432,
+              "numerator": 257,
+              "denominator": 296,
+              "reason": null
+            },
+            "raw_chroma_accuracy": {
+              "value": 0.8682432432432432,
+              "numerator": 257,
+              "denominator": 296,
+              "reason": null
+            },
+            "voicing_recall": {
+              "value": 0.956081081081081,
+              "numerator": 283,
+              "denominator": 296,
+              "reason": null
+            },
+            "voicing_false_alarm": {
+              "value": 0.08745247148288973,
+              "numerator": 23,
+              "denominator": 263,
+              "reason": null
+            },
+            "voicing_precision": {
+              "value": 0.9248366013071896,
+              "numerator": 283,
+              "denominator": 306,
+              "reason": null
+            },
+            "octave_error_fraction": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 296,
+              "reason": null
+            },
+            "non_octave_pitch_error_fraction": {
+              "value": 0.08783783783783784,
+              "numerator": 26,
+              "denominator": 296,
+              "reason": null
+            },
+            "cents_error": {
+              "n": 283,
+              "median_signed": 0.0,
+              "median_absolute": 0.0,
+              "absolute_p95": 500.0,
+              "p95_reason": null
+            },
+            "signed_semitone_error_histogram": {
+              "5": 13,
+              "7": 5,
+              "4": 2,
+              "-5": 5,
+              "-4": 1
+            }
+          },
+          "context_diagnostics": {
+            "abstention": {
+              "value": 0.42441860465116277,
+              "numerator": 292,
+              "denominator": 688,
+              "reason": null
+            },
+            "per_context_abstention": {
+              "stable_unvoiced": {
+                "value": 0.9125475285171103,
+                "numerator": 240,
+                "denominator": 263,
+                "reason": null
+              },
+              "stable_monophonic": {
+                "value": 0.04391891891891892,
+                "numerator": 13,
+                "denominator": 296,
+                "reason": null
+              },
+              "polyphonic": {
+                "value": 0.3023255813953488,
+                "numerator": 39,
+                "denominator": 129,
+                "reason": null
+              }
+            },
+            "algorithm_voicing_probability_histogram": {},
+            "probability_bins": [
+              [
+                0,
+                0.2
+              ],
+              [
+                0.2,
+                0.4
+              ],
+              [
+                0.4,
+                0.6
+              ],
+              [
+                0.6,
+                0.8
+              ],
+              [
+                0.8,
+                1
+              ]
+            ],
+            "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+          }
+        },
+        "input_window_projection_seconds": {
+          "counts": {
+            "covered_frames": 688,
+            "stable_true_voiced": 298,
+            "stable_true_unvoiced": 260,
+            "estimated_voiced_true_voiced": 284,
+            "estimated_voiced_true_unvoiced": 22,
+            "abstained_frames": 292,
+            "contexts": {
+              "stable_unvoiced": 260,
+              "stable_monophonic": 298,
+              "polyphonic": 130
+            }
+          },
+          "stable_monophonic_metrics": {
+            "raw_pitch_accuracy": {
+              "value": 0.8590604026845637,
+              "numerator": 256,
+              "denominator": 298,
+              "reason": null
+            },
+            "raw_chroma_accuracy": {
+              "value": 0.8590604026845637,
+              "numerator": 256,
+              "denominator": 298,
+              "reason": null
+            },
+            "voicing_recall": {
+              "value": 0.9530201342281879,
+              "numerator": 284,
+              "denominator": 298,
+              "reason": null
+            },
+            "voicing_false_alarm": {
+              "value": 0.08461538461538462,
+              "numerator": 22,
+              "denominator": 260,
+              "reason": null
+            },
+            "voicing_precision": {
+              "value": 0.9281045751633987,
+              "numerator": 284,
+              "denominator": 306,
+              "reason": null
+            },
+            "octave_error_fraction": {
+              "value": 0.0,
+              "numerator": 0,
+              "denominator": 298,
+              "reason": null
+            },
+            "non_octave_pitch_error_fraction": {
+              "value": 0.09395973154362416,
+              "numerator": 28,
+              "denominator": 298,
+              "reason": null
+            },
+            "cents_error": {
+              "n": 284,
+              "median_signed": 0.0,
+              "median_absolute": 0.0,
+              "absolute_p95": 500.0,
+              "p95_reason": null
+            },
+            "signed_semitone_error_histogram": {
+              "5": 12,
+              "7": 4,
+              "4": 2,
+              "-5": 9,
+              "-4": 1
+            }
+          },
+          "context_diagnostics": {
+            "abstention": {
+              "value": 0.42441860465116277,
+              "numerator": 292,
+              "denominator": 688,
+              "reason": null
+            },
+            "per_context_abstention": {
+              "stable_unvoiced": {
+                "value": 0.9153846153846154,
+                "numerator": 238,
+                "denominator": 260,
+                "reason": null
+              },
+              "stable_monophonic": {
+                "value": 0.04697986577181208,
+                "numerator": 14,
+                "denominator": 298,
+                "reason": null
+              },
+              "polyphonic": {
+                "value": 0.3076923076923077,
+                "numerator": 40,
+                "denominator": 130,
+                "reason": null
+              }
+            },
+            "algorithm_voicing_probability_histogram": {},
+            "probability_bins": [
+              [
+                0,
+                0.2
+              ],
+              [
+                0.2,
+                0.4
+              ],
+              [
+                0.4,
+                0.6
+              ],
+              [
+                0.6,
+                0.8
+              ],
+              [
+                0.8,
+                1
+              ]
+            ],
+            "probability_meaning": "voicing_algorithm_output_not_note_correctness_confidence"
+          }
+        }
+      },
+      "polyphonic_set_pointwise_counts": {
+        "guitar_absent_frames": 261,
+        "guitar_absent_tp": 0,
+        "guitar_absent_fp": 23,
+        "guitar_absent_fn": 0,
+        "guitar_absent_absolute_cardinality_error": 23,
+        "monophonic_frames": 297,
+        "monophonic_tp": 272,
+        "monophonic_fp": 88,
+        "monophonic_fn": 25,
+        "monophonic_absolute_cardinality_error": 91,
+        "polyphonic_frames": 130,
+        "polyphonic_tp": 144,
+        "polyphonic_fp": 0,
+        "polyphonic_fn": 246,
+        "polyphonic_absolute_cardinality_error": 246
+      },
+      "event_presets": [
+        {
+          "minimum_note_length_ms": 127.7,
+          "onset_only": {
+            "tp": 7,
+            "fp": 6,
+            "fn": 11,
+            "precision": {
+              "value": 0.5384615384615384,
+              "numerator": 7,
+              "denominator": 13,
+              "reason": null
+            },
+            "recall": {
+              "value": 0.3888888888888889,
+              "numerator": 7,
+              "denominator": 18,
+              "reason": null
+            },
+            "f1": {
+              "value": 0.45161290322580644,
+              "numerator": 14,
+              "denominator": 31,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 7,
+              "median_signed": -0.00833061224489784,
+              "median_absolute": 0.00833061224489784,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 7,
+              "median_signed": 0.04294784580498856,
+              "median_absolute": 0.04294784580498856,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [
+              "sweep-0-4/voice-0",
+              "sweep-0-5/voice-0",
+              "sweep-0-6/voice-0",
+              "sweep-1-1/voice-0",
+              "sweep-1-2/voice-0",
+              "sweep-1-4/voice-0",
+              "sweep-1-7/voice-0"
+            ],
+            "matches": [
+              {
+                "reference_id": "sweep-0-4/voice-0",
+                "estimated_event_index": 0,
+                "reference_start_seconds": 0.82,
+                "reference_end_seconds": 0.8999999999999999,
+                "estimated_start_seconds": 0.8126984126984127,
+                "estimated_end_seconds": 0.9520181405895691,
+                "onset_residual_seconds": -0.0073015873015872534,
+                "offset_residual_seconds": 0.05201814058956922,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-0-5/voice-0",
+                "estimated_event_index": 1,
+                "reference_start_seconds": 0.9,
+                "reference_end_seconds": 0.98,
+                "estimated_start_seconds": 0.893968253968254,
+                "estimated_end_seconds": 1.0448979591836736,
+                "onset_residual_seconds": -0.006031746031746055,
+                "offset_residual_seconds": 0.06489795918367358,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-0-6/voice-0",
+                "estimated_event_index": 2,
+                "reference_start_seconds": 0.98,
+                "reference_end_seconds": 1.06,
+                "estimated_start_seconds": 0.9752380952380952,
+                "estimated_end_seconds": 1.1029478458049886,
+                "onset_residual_seconds": -0.004761904761904745,
+                "offset_residual_seconds": 0.04294784580498856,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-1/voice-0",
+                "estimated_event_index": 3,
+                "reference_start_seconds": 2.08,
+                "reference_end_seconds": 2.16,
+                "estimated_start_seconds": 2.067859863945578,
+                "estimated_end_seconds": 2.1955696145124715,
+                "onset_residual_seconds": -0.01214013605442199,
+                "offset_residual_seconds": 0.035569614512471315,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-2/voice-0",
+                "estimated_event_index": 4,
+                "reference_start_seconds": 2.16,
+                "reference_end_seconds": 2.24,
+                "estimated_start_seconds": 2.1491297052154192,
+                "estimated_end_seconds": 2.2768394557823126,
+                "onset_residual_seconds": -0.010870294784580903,
+                "offset_residual_seconds": 0.0368394557823124,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-4/voice-0",
+                "estimated_event_index": 5,
+                "reference_start_seconds": 2.32,
+                "reference_end_seconds": 2.4,
+                "estimated_start_seconds": 2.311669387755102,
+                "estimated_end_seconds": 2.4393791383219954,
+                "onset_residual_seconds": -0.00833061224489784,
+                "offset_residual_seconds": 0.039379138321995466,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-7/voice-0",
+                "estimated_event_index": 6,
+                "reference_start_seconds": 2.56,
+                "reference_end_seconds": 2.64,
+                "estimated_start_seconds": 2.5438689342403626,
+                "estimated_end_seconds": 2.694798639455782,
+                "onset_residual_seconds": -0.01613106575963741,
+                "offset_residual_seconds": 0.054798639455782006,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              }
+            ],
+            "unmatched_reference_ids": [
+              "sweep-0-0/voice-0",
+              "sweep-0-1/voice-0",
+              "sweep-0-2/voice-0",
+              "sweep-0-3/voice-0",
+              "sweep-0-7/voice-0",
+              "sweep-0-8/voice-0",
+              "sweep-1-0/voice-0",
+              "sweep-1-3/voice-0",
+              "sweep-1-5/voice-0",
+              "sweep-1-6/voice-0",
+              "sweep-1-8/voice-0"
+            ],
+            "unmatched_estimated_indices": [
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ]
+          },
+          "onset_and_offset": {
+            "tp": 4,
+            "fp": 9,
+            "fn": 14,
+            "precision": {
+              "value": 0.3076923076923077,
+              "numerator": 4,
+              "denominator": 13,
+              "reason": null
+            },
+            "recall": {
+              "value": 0.2222222222222222,
+              "numerator": 4,
+              "denominator": 18,
+              "reason": null
+            },
+            "f1": {
+              "value": 0.25806451612903225,
+              "numerator": 8,
+              "denominator": 31,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 4,
+              "median_signed": -0.009600453514739371,
+              "median_absolute": 0.009600453514739371,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 4,
+              "median_signed": 0.038109297052153934,
+              "median_absolute": 0.038109297052153934,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [
+              "sweep-0-6/voice-0",
+              "sweep-1-1/voice-0",
+              "sweep-1-2/voice-0",
+              "sweep-1-4/voice-0"
+            ],
+            "matches": [
+              {
+                "reference_id": "sweep-0-6/voice-0",
+                "estimated_event_index": 2,
+                "reference_start_seconds": 0.98,
+                "reference_end_seconds": 1.06,
+                "estimated_start_seconds": 0.9752380952380952,
+                "estimated_end_seconds": 1.1029478458049886,
+                "onset_residual_seconds": -0.004761904761904745,
+                "offset_residual_seconds": 0.04294784580498856,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-1/voice-0",
+                "estimated_event_index": 3,
+                "reference_start_seconds": 2.08,
+                "reference_end_seconds": 2.16,
+                "estimated_start_seconds": 2.067859863945578,
+                "estimated_end_seconds": 2.1955696145124715,
+                "onset_residual_seconds": -0.01214013605442199,
+                "offset_residual_seconds": 0.035569614512471315,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-2/voice-0",
+                "estimated_event_index": 4,
+                "reference_start_seconds": 2.16,
+                "reference_end_seconds": 2.24,
+                "estimated_start_seconds": 2.1491297052154192,
+                "estimated_end_seconds": 2.2768394557823126,
+                "onset_residual_seconds": -0.010870294784580903,
+                "offset_residual_seconds": 0.0368394557823124,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-4/voice-0",
+                "estimated_event_index": 5,
+                "reference_start_seconds": 2.32,
+                "reference_end_seconds": 2.4,
+                "estimated_start_seconds": 2.311669387755102,
+                "estimated_end_seconds": 2.4393791383219954,
+                "onset_residual_seconds": -0.00833061224489784,
+                "offset_residual_seconds": 0.039379138321995466,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              }
+            ],
+            "unmatched_reference_ids": [
+              "sweep-0-0/voice-0",
+              "sweep-0-1/voice-0",
+              "sweep-0-2/voice-0",
+              "sweep-0-3/voice-0",
+              "sweep-0-4/voice-0",
+              "sweep-0-5/voice-0",
+              "sweep-0-7/voice-0",
+              "sweep-0-8/voice-0",
+              "sweep-1-0/voice-0",
+              "sweep-1-3/voice-0",
+              "sweep-1-5/voice-0",
+              "sweep-1-6/voice-0",
+              "sweep-1-7/voice-0",
+              "sweep-1-8/voice-0"
+            ],
+            "unmatched_estimated_indices": [
+              0,
+              1,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ]
+          },
+          "by_articulation_recall": {
+            "sweep_pitch_transition": {
+              "value": 0.3888888888888889,
+              "numerator": 7,
+              "denominator": 18,
+              "reason": null
+            }
+          },
+          "event_count": 13
+        },
+        {
+          "minimum_note_length_ms": 25.0,
+          "onset_only": {
+            "tp": 15,
+            "fp": 18,
+            "fn": 3,
+            "precision": {
+              "value": 0.45454545454545453,
+              "numerator": 15,
+              "denominator": 33,
+              "reason": null
+            },
+            "recall": {
+              "value": 0.8333333333333334,
+              "numerator": 15,
+              "denominator": 18,
+              "reason": null
+            },
+            "f1": {
+              "value": 0.5882352941176471,
+              "numerator": 30,
+              "denominator": 51,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 15,
+              "median_signed": -0.006031746031746055,
+              "median_absolute": 0.0073015873015872534,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 15,
+              "median_signed": 0.035569614512471315,
+              "median_absolute": 0.035569614512471315,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [
+              "sweep-0-1/voice-0",
+              "sweep-0-3/voice-0",
+              "sweep-0-4/voice-0",
+              "sweep-0-5/voice-0",
+              "sweep-0-6/voice-0",
+              "sweep-0-7/voice-0",
+              "sweep-0-8/voice-0",
+              "sweep-1-0/voice-0",
+              "sweep-1-1/voice-0",
+              "sweep-1-2/voice-0",
+              "sweep-1-3/voice-0",
+              "sweep-1-4/voice-0",
+              "sweep-1-5/voice-0",
+              "sweep-1-6/voice-0",
+              "sweep-1-7/voice-0"
+            ],
+            "matches": [
+              {
+                "reference_id": "sweep-0-1/voice-0",
+                "estimated_event_index": 0,
+                "reference_start_seconds": 0.58,
+                "reference_end_seconds": 0.6599999999999999,
+                "estimated_start_seconds": 0.615328798185941,
+                "estimated_end_seconds": 0.6617687074829932,
+                "onset_residual_seconds": 0.035328798185941035,
+                "offset_residual_seconds": 0.0017687074829932925,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-0-3/voice-0",
+                "estimated_event_index": 2,
+                "reference_start_seconds": 0.74,
+                "reference_end_seconds": 0.82,
+                "estimated_start_seconds": 0.7430385487528345,
+                "estimated_end_seconds": 0.8359183673469388,
+                "onset_residual_seconds": 0.0030385487528344912,
+                "offset_residual_seconds": 0.015918367346938855,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-0-4/voice-0",
+                "estimated_event_index": 4,
+                "reference_start_seconds": 0.82,
+                "reference_end_seconds": 0.8999999999999999,
+                "estimated_start_seconds": 0.8126984126984127,
+                "estimated_end_seconds": 0.9520181405895691,
+                "onset_residual_seconds": -0.0073015873015872534,
+                "offset_residual_seconds": 0.05201814058956922,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-0-5/voice-0",
+                "estimated_event_index": 6,
+                "reference_start_seconds": 0.9,
+                "reference_end_seconds": 0.98,
+                "estimated_start_seconds": 0.893968253968254,
+                "estimated_end_seconds": 1.0448979591836736,
+                "onset_residual_seconds": -0.006031746031746055,
+                "offset_residual_seconds": 0.06489795918367358,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-0-6/voice-0",
+                "estimated_event_index": 8,
+                "reference_start_seconds": 0.98,
+                "reference_end_seconds": 1.06,
+                "estimated_start_seconds": 0.9752380952380952,
+                "estimated_end_seconds": 1.1029478458049886,
+                "onset_residual_seconds": -0.004761904761904745,
+                "offset_residual_seconds": 0.04294784580498856,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-0-7/voice-0",
+                "estimated_event_index": 10,
+                "reference_start_seconds": 1.06,
+                "reference_end_seconds": 1.1400000000000001,
+                "estimated_start_seconds": 1.0565079365079366,
+                "estimated_end_seconds": 1.172607709750567,
+                "onset_residual_seconds": -0.0034920634920634352,
+                "offset_residual_seconds": 0.032607709750566816,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-0-8/voice-0",
+                "estimated_event_index": 11,
+                "reference_start_seconds": 1.14,
+                "reference_end_seconds": 1.22,
+                "estimated_start_seconds": 1.1377777777777778,
+                "estimated_end_seconds": 1.253877551020408,
+                "onset_residual_seconds": -0.0022222222222221255,
+                "offset_residual_seconds": 0.033877551020408125,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-0/voice-0",
+                "estimated_event_index": 12,
+                "reference_start_seconds": 2.0,
+                "reference_end_seconds": 2.08,
+                "estimated_start_seconds": 1.986590022675737,
+                "estimated_end_seconds": 2.1026897959183675,
+                "onset_residual_seconds": -0.013409977324263078,
+                "offset_residual_seconds": 0.022689795918367395,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-1/voice-0",
+                "estimated_event_index": 14,
+                "reference_start_seconds": 2.08,
+                "reference_end_seconds": 2.16,
+                "estimated_start_seconds": 2.067859863945578,
+                "estimated_end_seconds": 2.1955696145124715,
+                "onset_residual_seconds": -0.01214013605442199,
+                "offset_residual_seconds": 0.035569614512471315,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-2/voice-0",
+                "estimated_event_index": 16,
+                "reference_start_seconds": 2.16,
+                "reference_end_seconds": 2.24,
+                "estimated_start_seconds": 2.1491297052154192,
+                "estimated_end_seconds": 2.2768394557823126,
+                "onset_residual_seconds": -0.010870294784580903,
+                "offset_residual_seconds": 0.0368394557823124,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-3/voice-0",
+                "estimated_event_index": 18,
+                "reference_start_seconds": 2.24,
+                "reference_end_seconds": 2.3200000000000003,
+                "estimated_start_seconds": 2.230399546485261,
+                "estimated_end_seconds": 2.346499319727891,
+                "onset_residual_seconds": -0.009600453514739371,
+                "offset_residual_seconds": 0.026499319727890658,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-4/voice-0",
+                "estimated_event_index": 20,
+                "reference_start_seconds": 2.32,
+                "reference_end_seconds": 2.4,
+                "estimated_start_seconds": 2.311669387755102,
+                "estimated_end_seconds": 2.4393791383219954,
+                "onset_residual_seconds": -0.00833061224489784,
+                "offset_residual_seconds": 0.039379138321995466,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-5/voice-0",
+                "estimated_event_index": 21,
+                "reference_start_seconds": 2.4,
+                "reference_end_seconds": 2.48,
+                "estimated_start_seconds": 2.4045492063492064,
+                "estimated_end_seconds": 2.5206489795918365,
+                "onset_residual_seconds": 0.004549206349206525,
+                "offset_residual_seconds": 0.040648979591836554,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-6/voice-0",
+                "estimated_event_index": 22,
+                "reference_start_seconds": 2.48,
+                "reference_end_seconds": 2.56,
+                "estimated_start_seconds": 2.4742090702947843,
+                "estimated_end_seconds": 2.5438689342403626,
+                "onset_residual_seconds": -0.005790929705215664,
+                "offset_residual_seconds": -0.01613106575963741,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-7/voice-0",
+                "estimated_event_index": 23,
+                "reference_start_seconds": 2.56,
+                "reference_end_seconds": 2.64,
+                "estimated_start_seconds": 2.5438689342403626,
+                "estimated_end_seconds": 2.694798639455782,
+                "onset_residual_seconds": -0.01613106575963741,
+                "offset_residual_seconds": 0.054798639455782006,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              }
+            ],
+            "unmatched_reference_ids": [
+              "sweep-0-0/voice-0",
+              "sweep-0-2/voice-0",
+              "sweep-1-8/voice-0"
+            ],
+            "unmatched_estimated_indices": [
+              1,
+              3,
+              5,
+              7,
+              9,
+              13,
+              15,
+              17,
+              19,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32
+            ]
+          },
+          "onset_and_offset": {
+            "tp": 12,
+            "fp": 21,
+            "fn": 6,
+            "precision": {
+              "value": 0.36363636363636365,
+              "numerator": 12,
+              "denominator": 33,
+              "reason": null
+            },
+            "recall": {
+              "value": 0.6666666666666666,
+              "numerator": 12,
+              "denominator": 18,
+              "reason": null
+            },
+            "f1": {
+              "value": 0.47058823529411764,
+              "numerator": 24,
+              "denominator": 51,
+              "reason": null
+            },
+            "onset_residual_seconds": {
+              "n": 12,
+              "median_signed": -0.005276417233560204,
+              "median_absolute": 0.0070607709750567516,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "offset_residual_seconds": {
+              "n": 12,
+              "median_signed": 0.03324263038548747,
+              "median_absolute": 0.03324263038548747,
+              "absolute_p95": null,
+              "p95_reason": "insufficient_samples"
+            },
+            "boundary_truncated_reference_count": 0,
+            "offset_excluded_reference_count": 0,
+            "offset_excluded_estimate_count": 0,
+            "matched_reference_ids": [
+              "sweep-0-1/voice-0",
+              "sweep-0-3/voice-0",
+              "sweep-0-6/voice-0",
+              "sweep-0-7/voice-0",
+              "sweep-0-8/voice-0",
+              "sweep-1-0/voice-0",
+              "sweep-1-1/voice-0",
+              "sweep-1-2/voice-0",
+              "sweep-1-3/voice-0",
+              "sweep-1-4/voice-0",
+              "sweep-1-5/voice-0",
+              "sweep-1-6/voice-0"
+            ],
+            "matches": [
+              {
+                "reference_id": "sweep-0-1/voice-0",
+                "estimated_event_index": 0,
+                "reference_start_seconds": 0.58,
+                "reference_end_seconds": 0.6599999999999999,
+                "estimated_start_seconds": 0.615328798185941,
+                "estimated_end_seconds": 0.6617687074829932,
+                "onset_residual_seconds": 0.035328798185941035,
+                "offset_residual_seconds": 0.0017687074829932925,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-0-3/voice-0",
+                "estimated_event_index": 2,
+                "reference_start_seconds": 0.74,
+                "reference_end_seconds": 0.82,
+                "estimated_start_seconds": 0.7430385487528345,
+                "estimated_end_seconds": 0.8359183673469388,
+                "onset_residual_seconds": 0.0030385487528344912,
+                "offset_residual_seconds": 0.015918367346938855,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-0-6/voice-0",
+                "estimated_event_index": 8,
+                "reference_start_seconds": 0.98,
+                "reference_end_seconds": 1.06,
+                "estimated_start_seconds": 0.9752380952380952,
+                "estimated_end_seconds": 1.1029478458049886,
+                "onset_residual_seconds": -0.004761904761904745,
+                "offset_residual_seconds": 0.04294784580498856,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-0-7/voice-0",
+                "estimated_event_index": 10,
+                "reference_start_seconds": 1.06,
+                "reference_end_seconds": 1.1400000000000001,
+                "estimated_start_seconds": 1.0565079365079366,
+                "estimated_end_seconds": 1.172607709750567,
+                "onset_residual_seconds": -0.0034920634920634352,
+                "offset_residual_seconds": 0.032607709750566816,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-0-8/voice-0",
+                "estimated_event_index": 11,
+                "reference_start_seconds": 1.14,
+                "reference_end_seconds": 1.22,
+                "estimated_start_seconds": 1.1377777777777778,
+                "estimated_end_seconds": 1.253877551020408,
+                "onset_residual_seconds": -0.0022222222222221255,
+                "offset_residual_seconds": 0.033877551020408125,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-0/voice-0",
+                "estimated_event_index": 12,
+                "reference_start_seconds": 2.0,
+                "reference_end_seconds": 2.08,
+                "estimated_start_seconds": 1.986590022675737,
+                "estimated_end_seconds": 2.1026897959183675,
+                "onset_residual_seconds": -0.013409977324263078,
+                "offset_residual_seconds": 0.022689795918367395,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-1/voice-0",
+                "estimated_event_index": 14,
+                "reference_start_seconds": 2.08,
+                "reference_end_seconds": 2.16,
+                "estimated_start_seconds": 2.067859863945578,
+                "estimated_end_seconds": 2.1955696145124715,
+                "onset_residual_seconds": -0.01214013605442199,
+                "offset_residual_seconds": 0.035569614512471315,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-2/voice-0",
+                "estimated_event_index": 16,
+                "reference_start_seconds": 2.16,
+                "reference_end_seconds": 2.24,
+                "estimated_start_seconds": 2.1491297052154192,
+                "estimated_end_seconds": 2.2768394557823126,
+                "onset_residual_seconds": -0.010870294784580903,
+                "offset_residual_seconds": 0.0368394557823124,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-3/voice-0",
+                "estimated_event_index": 18,
+                "reference_start_seconds": 2.24,
+                "reference_end_seconds": 2.3200000000000003,
+                "estimated_start_seconds": 2.230399546485261,
+                "estimated_end_seconds": 2.346499319727891,
+                "onset_residual_seconds": -0.009600453514739371,
+                "offset_residual_seconds": 0.026499319727890658,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-4/voice-0",
+                "estimated_event_index": 20,
+                "reference_start_seconds": 2.32,
+                "reference_end_seconds": 2.4,
+                "estimated_start_seconds": 2.311669387755102,
+                "estimated_end_seconds": 2.4393791383219954,
+                "onset_residual_seconds": -0.00833061224489784,
+                "offset_residual_seconds": 0.039379138321995466,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-5/voice-0",
+                "estimated_event_index": 21,
+                "reference_start_seconds": 2.4,
+                "reference_end_seconds": 2.48,
+                "estimated_start_seconds": 2.4045492063492064,
+                "estimated_end_seconds": 2.5206489795918365,
+                "onset_residual_seconds": 0.004549206349206525,
+                "offset_residual_seconds": 0.040648979591836554,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              },
+              {
+                "reference_id": "sweep-1-6/voice-0",
+                "estimated_event_index": 22,
+                "reference_start_seconds": 2.48,
+                "reference_end_seconds": 2.56,
+                "estimated_start_seconds": 2.4742090702947843,
+                "estimated_end_seconds": 2.5438689342403626,
+                "onset_residual_seconds": -0.005790929705215664,
+                "offset_residual_seconds": -0.01613106575963741,
+                "boundary_truncated": false,
+                "estimated_touches_excerpt_boundary": false
+              }
+            ],
+            "unmatched_reference_ids": [
+              "sweep-0-0/voice-0",
+              "sweep-0-2/voice-0",
+              "sweep-0-4/voice-0",
+              "sweep-0-5/voice-0",
+              "sweep-1-7/voice-0",
+              "sweep-1-8/voice-0"
+            ],
+            "unmatched_estimated_indices": [
+              1,
+              3,
+              4,
+              5,
+              6,
+              7,
+              9,
+              13,
+              15,
+              17,
+              19,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32
+            ]
+          },
+          "by_articulation_recall": {
+            "sweep_pitch_transition": {
+              "value": 0.8333333333333334,
+              "numerator": 15,
+              "denominator": 18,
+              "reason": null
+            }
+          },
+          "event_count": 33
+        }
+      ]
+    }
+  ],
+  "quality_alerts": [
+    {
+      "case_id": "c1-missing-fundamental",
+      "view": "native_model_input_context",
+      "kind": "low_raw_pitch_accuracy",
+      "value": 0.07981220657276995,
+      "n": 426
+    },
+    {
+      "case_id": "c1-missing-fundamental",
+      "view": "model_clock_pointwise",
+      "kind": "low_raw_pitch_accuracy",
+      "value": 0.10743801652892562,
+      "n": 605
+    },
+    {
+      "case_id": "tuning-ladder",
+      "view": "model_clock_pointwise",
+      "kind": "low_raw_pitch_accuracy",
+      "value": 0.869098712446352,
+      "n": 466
+    },
+    {
+      "case_id": "tuning-ladder",
+      "view": "model_clock_pointwise",
+      "kind": "guitar_absence_false_voicing",
+      "count": 46
+    },
+    {
+      "case_id": "legato-transition",
+      "view": "model_clock_pointwise",
+      "kind": "low_raw_pitch_accuracy",
+      "value": 0.8439716312056738,
+      "n": 423
+    },
+    {
+      "case_id": "legato-transition",
+      "view": "model_clock_pointwise",
+      "kind": "guitar_absence_false_voicing",
+      "count": 2
+    },
+    {
+      "case_id": "sweep-and-polyphony",
+      "view": "model_clock_pointwise",
+      "kind": "low_raw_pitch_accuracy",
+      "value": 0.8552188552188552,
+      "n": 297
+    },
+    {
+      "case_id": "sweep-and-polyphony",
+      "view": "model_clock_pointwise",
+      "kind": "guitar_absence_false_voicing",
+      "count": 23
+    }
+  ],
+  "real_performance_grading": false,
+  "listening_accepted": false,
+  "default_adoption": false,
+  "truth_guided_retry": false,
+  "physical_capture_latency_calibrated": false,
+  "models_downloaded": false
+}

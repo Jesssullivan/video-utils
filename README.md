@@ -115,6 +115,7 @@ overwrite the input.
 | `just benchmark-fixtures OUTPUT [SUITE]` | Generate a component-labelled fixture bank |
 | `just calibrate FIXTURES OUTPUT [BACKEND] [TIMEOUT]` | Run unseeded discovery, then evaluate generated truth |
 | `just pitch-evaluate FIXTURES PILOT OUTPUT` | Score existing synthetic pitch receipts |
+| `just learned-pitch-evaluate FIXTURES PYIN_PILOT LEARNED_PILOT OUTPUT` | Evaluate frozen learned activations against generated references, retaining octave and coverage failures |
 | `just phrase-evaluate FIXTURES PILOT OUTPUT` | Score existing synthetic phrase receipts |
 | `just basic-pitch RUN_DIR [SECONDS]` | Compare sparse learned pitch hypotheses with a qualified local CPU runtime |
 | `just basic-pitch-runtime-setup PYTHON` / `just basic-pitch-runtime-check` | Explicitly install or verify the isolated five-wheel CPU environment |
@@ -158,7 +159,7 @@ spotify-basic-pitch-0.4.0-onnx`, then `just basic-pitch-runtime-setup /path/to/p
 and `just basic-pitch-runtime-check`. See [runtime qualification](docs/research/BASIC_PITCH_QUALIFICATION.md).
 
 The repository includes a versioned tool contract, a local MCP stdio server,
-and twenty-six per-tool skills for researching and tuning restoration, analysis, comparison, and review.
+and twenty-seven per-tool skills for researching and tuning restoration, analysis, comparison, and review.
 Inspect `just tool-info NAME` or launch
 `just mcp` from the repository root. Local invocation is
 separate from connecting an external agent client; see
