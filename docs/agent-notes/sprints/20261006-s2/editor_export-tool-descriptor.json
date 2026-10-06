@@ -1,0 +1,71 @@
+{
+  "name": "editor_marker_export",
+  "title": "Verified-uniform editor marker export preview",
+  "description": "Gate an explicit editor_marker_plan profile on a complete, uniform, hash-bound source PTS table and, only when the editor grid is verified, write a local non-executed FCPXML 1.10 bundle (review.fcpxmld/Info.fcpxml) or Resolve marker-operations preview plus an exact-time sidecar into a fresh run-local directory. Variable or unknown cadence, period/origin mismatch, unsupported timecode rate or missing media reference abstain with calibration_required and write nothing. No editor launch, connection, import or API execution; application_import stays not_performed and host_frame_id null.",
+  "intent": "Turn source-timed review markers into inspectable editor payloads only where the frame grid is measured uniform, while keeping VFR takes, host interpretation and musical claims explicitly unverified.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "run_dir": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4096,
+        "description": "Existing verified run beneath repository artifacts/runs; original symlink/traversal components reject."
+      },
+      "selection": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1024,
+        "description": "Explicit run-relative selection JSON with source-bound stable marker IDs; no latest/subset discovery."
+      },
+      "profile": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1024,
+        "description": "Explicit run-relative closed editor_marker_export_profile JSON binding the planner profile by SHA-256, the DF/NDF timecode mode/origin and, for fcpxml, an explicit percent-encoded file:/// media URL. No executable/editor API configuration."
+      },
+      "format": {
+        "type": "string",
+        "enum": ["fcpxml", "resolve_ops"],
+        "description": "fcpxml requires a final_cut_pro planner profile; resolve_ops requires davinci_resolve."
+      },
+      "timeout_seconds": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 120,
+        "default": 120,
+        "description": "Hard owned-worker/process-group deadline."
+      }
+    },
+    "required": ["run_dir", "selection", "profile", "format"],
+    "additionalProperties": false
+  },
+  "skill": ".agents/skills/editor-marker-export/SKILL.md",
+  "implementation_status": "experimental",
+  "evidence_kind": "uniform_grid_gated_native_marker_preview_unverified_import",
+  "limitations": [
+    "Writes only to a fresh exclusive <run_dir>/editor-export-<format>-<export_profile_sha256[:12]> directory chosen by the dispatcher; an existing path rejects and nothing is overwritten. Abstention creates no file or directory. Summary stdout <=64KiB, stderr <=16KiB, Info.fcpxml <=4MiB, sidecar <=16MiB; planner bounds are inherited (<=1000 actions or selection_required with no truncation).",
+    "Cadence is measured only from the complete PTS table; average/nominal frame rate, header frame counts and file names never satisfy a check. The October 5, 2026 take is VFR and abstains with calibration_required / cadence variable.",
+    "Valid XML is not an import: application_import is not_performed, final_cut_version/resolve_version are null, api_contract is unverified, executable is false and host_frame_id is null. The MCP hook exposes no DTD input, so dtd_validation is always not_performed here.",
+    "Display timecode labels (NDF everywhere; DF only at 30000/1001, 60000/1001, 120000/1001) are sidecar identifiers with an unverified host basis; they never change media time or samples.",
+    "Markers remain needs_review hypotheses. No note-correctness, missed/extra-note or mistake verdict, no listening, mastering or AU/Logic acceptance; listening_acceptance and musical_verdict stay not_established."
+  ],
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  },
+  "dependencies": {
+    "recommended_prior_tools": ["markers", "marked_video", "editor_marker_plan"],
+    "enforced": false,
+    "note": "Requires current generic markers, manifest, flags/DAG context, an explicit selection, a hash-bound planner profile with a complete PTS artifact and the closed export profile. Prior tools are not invoked automatically; the exporter calls the planner worker unchanged."
+  },
+  "agent_workflow": {
+    "identify": "Run editor_marker_plan first; inspect plan_status, dispositions, collisions and whether a complete PTS artifact is bound before requesting export.",
+    "research": "Read docs/spec/EDITOR_MARKER_EXPORT.md and docs/research/EDITOR_MARKERS.md; a uniform fixture grid is a repository policy, not a host editor rule.",
+    "iterate": "Change one explicit planner/export profile file at a time with updated digests; compare reasons, cadence evidence, exported/excluded rows and quantization errors. Treat calibration_required as a valid result and obtain host calibration evidence instead of forcing a grid.",
+    "acceptance": "A written_unverified bundle establishes structure only. Final Cut or Resolve import, visible alignment, native frame IDs, musical correctness and listening acceptance are separate future evidence.",
+    "max_comparison_candidates_default": 3
+  }
+}
