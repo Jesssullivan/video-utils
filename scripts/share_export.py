@@ -162,14 +162,49 @@ def probe(path,state):
 
 def packets(path,stream,state):
     r=run([executable('ffprobe'),'-v','error','-select_streams',str(stream),'-show_packets',
-           '-show_entries','packet=pts,dts,duration,data_hash','-show_data_hash','sha256','-of','json',str(path)],state)
+           '-show_entries','packet=pts,dts,duration,flags,data_hash','-show_data_hash','sha256','-of','json',str(path)],state)
     p=json.loads(r.stdout).get('packets',[])
     require(0<len(p)<=MAX_PACKETS,'packet count unavailable or above limit')
     return p
 
+DISCARD_FLAG='D'  # ffprobe AV_PKT_FLAG_DISCARD: decode-only, outside the edit list
+
+def presentation_split(ps,name):
+    """Split packets into presented and decode-only (edit-list discarded) rows.
+
+    MOV/MP4 edit lists can start the presentation after a keyframe; the
+    demuxer then flags the pre-roll packets 'D'. A decoder still consumes them
+    but never presents them, so a re-encode correctly emits no frame for them.
+    Absent flags (older probes, unit records) mean presented: strict default.
+    """
+    require(isinstance(ps,list) and all(isinstance(p,dict) for p in ps),f'{name} video packets must be arrays of records')
+    require(all(p.get('flags') is None or (type(p['flags']) is str and len(p['flags'])<=16) for p in ps),f'{name} video packet flags must be short strings')
+    shown=[p for p in ps if DISCARD_FLAG not in (p.get('flags') or '')]
+    return shown,len(ps)-len(shown)
+
+def count_refusal(kind,src_shown,src_discard,out_shown,out_discard):
+    return ShareError(f'video packet count changed ({kind}): source {src_shown} presented + {src_discard} decode-only '
+                      f'edit-list packets, output {out_shown} presented + {out_discard} decode-only. A picture was '
+                      'dropped, duplicated or lost, so the export was refused to avoid a desynchronized file. '
+                      'Edit-list pre-roll alone is accepted and is not this case; inspect the retained staging '
+                      'media and source, and do not bypass this check.','validation_failed')
+
 def verify_packets(source_packets, output_packets, source_timebase, output_timebase, copy=False):
     require(isinstance(source_packets,list) and isinstance(output_packets,list),'video packets must be arrays')
-    require(0<len(source_packets)==len(output_packets)<=MAX_PACKETS,'video packet count changed')
+    require(0<len(source_packets)<=MAX_PACKETS and 0<len(output_packets)<=MAX_PACKETS,'video packet count unavailable or above limit')
+    src_shown,src_discard=presentation_split(source_packets,'source')
+    out_shown,out_discard=presentation_split(output_packets,'output')
+    if copy:
+        # Stream copy must keep every coded packet, including decode-only
+        # pre-roll, with identical presentation/discard state.
+        if len(source_packets)!=len(output_packets) or src_discard!=out_discard:
+            raise count_refusal('coded copy',len(src_shown),src_discard,len(out_shown),out_discard)
+        compare_source,compare_output=source_packets,output_packets
+    else:
+        # A decoder never presents discarded packets; compare presented frames.
+        if not (0<len(src_shown)==len(out_shown)):
+            raise count_refusal('presented re-encode',len(src_shown),src_discard,len(out_shown),out_discard)
+        compare_source,compare_output=src_shown,out_shown
     require(type(source_timebase) in (str,Fraction) and type(output_timebase) in (str,Fraction),'video time bases must be rational strings or Fractions')
     try:
         st,ot=Fraction(source_timebase),Fraction(output_timebase)
@@ -177,7 +212,7 @@ def verify_packets(source_packets, output_packets, source_timebase, output_timeb
         def rows(ps,tick):
             require(isinstance(ps,list) and all(isinstance(p,dict) and type(p.get('pts')) is int and type(p.get('duration')) is int and p['duration']>0 for p in ps),'video packet timestamps/durations must be positive-duration integer records')
             return sorted([(p['pts']*tick,p['duration']*tick,p) for p in ps],key=lambda r:r[0])
-        a,b=rows(source_packets,st),rows(output_packets,ot)
+        a,b=rows(compare_source,st),rows(compare_output,ot)
     except (ValueError,KeyError,TypeError,ZeroDivisionError) as exc:
         raise ShareError('video packet timestamps/durations unavailable') from exc
     tol=max(st,ot)
@@ -189,11 +224,18 @@ def verify_packets(source_packets, output_packets, source_timebase, output_timeb
     duration_delta=max(abs(x[1]-y[1]) for x,y in zip(a,b))
     payload=False
     if copy:
+        require(all((DISCARD_FLAG in (x[2].get('flags') or ''))==(DISCARD_FLAG in (y[2].get('flags') or '')) for x,y in zip(a,b)),'copied video decode-only (edit-list) state changed')
         require(duration_delta<=tol,'copied video packet duration changed')
         require(all(x[2].get('data_hash') and x[2]['data_hash']==y[2].get('data_hash') for x,y in zip(a,b)), 'copied video payload changed')
         require(all(type(x.get('dts')) is int and type(y.get('dts')) is int and abs(x['dts']*st-y['dts']*ot)<=tol for x,y in zip(source_packets,output_packets)), 'copied video decode timestamp changed')
         payload=True
+    shown_a=[r for r in a if DISCARD_FLAG not in (r[2].get('flags') or '')] if copy else a
+    require(shown_a,'source has no presented video packets')
     return dict(method='sorted_packet_presentation_timestamps_rational',packet_count=len(a),
+                comparison_scope='all_coded_packets' if copy else 'presented_packets_excluding_edit_list_discard',
+                source_packet_count_total=len(source_packets),output_packet_count_total=len(output_packets),
+                source_presented_packet_count=len(src_shown),output_presented_packet_count=len(out_shown),
+                source_decode_only_packets=src_discard,output_decode_only_packets=out_discard,
                 maximum_pts_delta_seconds=float(pts),maximum_pts_delta_rational=str(pts),
                 tail_extent_delta_seconds=float(extent),tail_extent_delta_rational=str(extent),
                 source_time_base=str(st),output_time_base=str(ot),
@@ -201,7 +243,7 @@ def verify_packets(source_packets, output_packets, source_timebase, output_timeb
                 intermediate_packet_duration_identity_required=copy,
                 tolerance_seconds=float(tol),copied_payload_verified=payload,
                 source_full_frame_decode_verified=False,physical_capture_sync_verified=False,
-                source_start_seconds=float(a[0][0]),source_end_seconds=float(a[-1][0]+a[-1][1]))
+                source_start_seconds=float(shown_a[0][0]),source_end_seconds=float(shown_a[-1][0]+shown_a[-1][1]))
 
 def audio_frames(path,stream,rate,state):
     r=run([executable('ffprobe'),'-v','error','-select_streams',str(stream),'-show_frames',

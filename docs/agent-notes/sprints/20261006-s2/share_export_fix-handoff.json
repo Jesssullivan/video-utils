@@ -1,0 +1,73 @@
+{
+  "lane": "share_export_fix",
+  "sprint": "20261006-s2",
+  "branch": "sprint/20261006-s2/share_export_fix",
+  "base_commit": "736f406",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint2/share_export_fix",
+  "date": "2026-10-06",
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "tracker": "TIN-5614 (web_jobs follow-up for the share_export refusal)",
+  "state": "fixed_committed_unpushed",
+  "files": [
+    "scripts/share_export.py",
+    "tests/test_share_export_preroll.py",
+    "docs/spec/SHARE_EXPORT.md",
+    "docs/agent-notes/sprints/20261006-s2/share_export_fix-handoff.json"
+  ],
+  "root_cause": {
+    "summary": "The check was too strict for a valid input. The web job passed the run-dir export artifacts/runs/20261006T041633Z-990aa1bd6737/export/cleaned-video.mov (sha256 91b2f436...). That MOV has an edit list (video media_time 15200/19200 s). Its first 10 of 3,631 video packets are decode-only pre-roll: ffprobe flag D, PTS -14368..-800 in a 1/19200 time base, about -0.748 s to 0 s. A decoder consumes these packets but never presents them. The H.264 re-encode with -fps_mode passthrough therefore correctly writes 3,621 frames. verify_packets compared the raw total packet count (3,631 vs 3,621) and refused with 'video packet count changed'. No frame was dropped or duplicated.",
+    "input_passed_by_web_job": "run-dir export/cleaned-video.mov (role 'accepted FULLER audio run, export/cleaned-video'), not the accepted marked movie",
+    "why_desktop_export_passed": "The Desktop file was not an H.264 share_export of the marked movie. root/media_latency encoded accepted-marked-video.mov to a 720p H.264 parent with an ad-hoc controller (artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/encode-plan.json). share_export then ran in codec=copy on that parent (share-export-tool30-20261006T0518/recipe.log). The parent has 3,621 packets starting at PTS 0 and no pre-roll, so the total and presented counts were equal.",
+    "check_correctness": "Comparing total packets is wrong for re-encodes because edit-list decode-only packets are not pictures. The integrity intent (no dropped, duplicated or shifted presented picture; identical tail) is kept by comparing presented packets. For copy, all coded packets must still match, including decode-only state."
+  },
+  "evidence": {
+    "measured": [
+      "ffprobe of cleaned-video.mov: 3,631 video packets; 10 flagged D, all with PTS<0; 3,621 presented, PTS 0..2896192 at 1/19200 (end 150.885 s); elst video media_time 15200, audio media_time 1024. Dumps: artifacts/s2/share_export_fix/run-export-video-packets*.json (gitignored)",
+      "existing pipeline cache artifacts/runs/20261006T041633Z-990aa1bd6737/.video-frame-count-cache.json records 3,621 decoded frames for sha 91b2f436... (written by an earlier stage and read here, not re-decoded)",
+      "Synthetic reproduction: a 3 s 320x240 VFR H.264 MOV cut with -ss 0.6 -c copy has 62 packets, 13 of them D. The pre-fix worker refused it at the CLI with validation_failed / 'video packet count changed'. Its staged export.mp4 had 49 packets with no D, and the presented PTS and tail (19/8 s) were identical to the source.",
+      "Pre-fix worker (git show 736f406:scripts/share_export.py) against the new test module: Ran 9, FAILED (failures=3, errors=5)",
+      "Real take after the fix (one bounded run; worker sha256 7fff268d721f168ba88963549d1ae3c5f0d162ca29f536219c71b3e7719894cd; --codec h264 --height 720 --crf 27 --audio-kbps 96 --timeout-seconds 880 under outer timeout 900): exported_unreviewed in 427.65 s wall (user 130.19 s, sys 27.68 s) on a loaded host (load avg about 106 at start)",
+      "Real-take video_proof: comparison_scope presented_packets_excluding_edit_list_discard; source 3,631 total / 3,621 presented / 10 decode-only; output 3,621 / 3,621 / 0; maximum_pts_delta 0; tail_extent_delta 0; start 0.0 s, end 150.885 s",
+      "Independent check: the sorted presented source PTS list equals the output PTS list exactly; ffprobe -count_frames on the output = 3,621 decoded frames",
+      "Real-take audio_proof: 6,658,048 decoded samples in and out, 44.1 kHz mono, end 150.976 s both; loudness -18.06 LUFS, true peak -1.81 dBTP",
+      "Real-take output: 1080x720 H.264, 22,555,377 bytes (byte_reduction_fraction 0.902), sha256 2eba932afe629d06ad45eaaccb8bdddf0e73aff828808a3c5b78f50e690e27db, receipt sha256 73cb6dd6bd1b30a6eb164d7fef8d58f1876e716ef2f424b8b0e1a9a68284f029. Gitignored under artifacts/s2/share_export_fix/real-take/",
+      "Source run tree read only; source sha re-hashed by the worker before and after (unchanged)"
+    ],
+    "inferred": [
+      "The web_jobs failure (job_7e9c78fe..., 284 s) is the same total-count refusal on the same source sha. The job's private failure receipt was not read by this lane.",
+      "-fps_mode passthrough with -enc_time_base demux does not drop or duplicate frames at 720p CRF27 for this source. This rests on the identical presented PTS lists and the 3,621 frame counts above, not on a full decoded-picture comparison."
+    ]
+  },
+  "change": {
+    "worker": "packets() also probes the ffprobe packet flags. verify_packets splits presented from decode-only (D) packets. Re-encodes compare presented packets on both sides, and dropped, duplicated, shifted and tail-changed pictures are still refused. Copy still requires every coded packet to match, plus identical per-packet decode-only state, payload hashes and DTS. Absent flags count as presented (the prior strict behavior). Malformed flags and sources with no presented packets are refused. The count refusal stays code validation_failed but names the scope and the presented/decode-only counts on both sides, and says not to bypass the check. The proof adds comparison_scope, source/output total, presented and decode-only counts; source_start/end use presented packets.",
+    "tests": "New tests/test_share_export_preroll.py: 6 unit tests (pre-roll exclusion; dropped/duplicated refused with counts; shift refused; output decode-only not counted; copy keeps pre-roll and decode-only state; malformed flags / all-decode-only refused) and 3 FFmpeg integration tests on a synthetic VFR edit-list pre-roll fixture (condition reproduced; H.264 keeps every presented picture; copy keeps coded pre-roll)",
+    "spec": "docs/spec/SHARE_EXPORT.md: edit-list pre-roll section and a measured vs not-run list of valid inputs",
+    "not_changed": "Settings, encode arguments, audio checks, tool descriptor and the capabilities.json adapter state are unchanged"
+  },
+  "tests": {
+    "requested_command": "PYTHONPATH=tests python3 -m unittest test_share_export test_share_export_tool test_share_export_preroll -v (FFMPEG/FFPROBE = qualified nix ffmpeg-headless-8.1.2)",
+    "requested_result_post_reboot": "Ran 45 tests in 99.371s; OK (test_share_export 28, test_share_export_tool 8, test_share_export_preroll 9; 0 skipped)",
+    "requested_log": "artifacts/s2/share_export_fix/unittest-postreboot.log sha256 0a745499af115431cf644dc232b251985d1a80a835d27d4225ff162dd8b43ebb (gitignored)",
+    "additional_pre_reboot": "the same three modules plus test_share_export_audit: Ran 59 tests in 95.806s; OK (audit 14). Log artifacts/s2/share_export_fix/unittest.log sha256 2dfc409f09a63b73977486cf95d051e0aae36bd85f0e81db89d9b652fb1b2429",
+    "additional_post_reboot": "test_share_export_audit test_capabilities: Ran 28 tests in 13.763s; OK",
+    "pre_fix_regression_demonstration": "new module against the 736f406 worker: Ran 9; FAILED (failures=3, errors=5)"
+  },
+  "unknowns": {
+    "listening_acceptance": "not_established; lossy AAC/H.264 sharing derivative",
+    "low_register_preservation": null,
+    "low_register_preservation_reason": "~32 Hz content not measured by this lane",
+    "decoded_picture_identity": "not verified; packet PTS and frame counts only",
+    "physical_capture_sync": "not verified",
+    "marked_movie_direct_h264": "not run by this lane",
+    "multi_edit_or_interior_discard_inputs": "handled by presented comparison; no actual-take qualification",
+    "web_job_rerun": "not performed; the web_jobs lane or root must rerun the tool_api job against this worker",
+    "host_reboot": "the host rebooted after all runs had finished; no evidence lost; requested tests rerun after the reboot"
+  },
+  "capability_promotion": {
+    "target": "program/capabilities.json share_export.adapters.web_job (currently 'planned')",
+    "recommendation": "eligible_after_root_rerun",
+    "reason": "The blocking refusal was a share_export defect and is fixed. The real-take H.264 export of the same source sha now succeeds within 900 s (427.65 s). Promotion is still root's admission decision and needs a web_jobs rerun of ActualDemoJob on the merged worker. Under heavier load the 900 s job budget is not guaranteed.",
+    "changed_by_this_lane": false
+  },
+  "protected": "No push or merge. Main checkout, other worktrees, artifacts/runs/*, ~/Documents and ~/Desktop were read only. Outputs are only in gitignored artifacts/s2/share_export_fix/ plus the transient artifacts/experiments/share-preroll-test-* temp dirs that the tests remove."
+}

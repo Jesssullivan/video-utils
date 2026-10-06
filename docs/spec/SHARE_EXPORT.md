@@ -52,6 +52,34 @@ timestamps. Intermediate coded packet durations can differ after encoding:
 the generated 41-packet VFR fixture retained every PTS and exact two-second tail
 while eight intermediate durations changed; adjacent presentation timestamps
 define display intervals independently of coded packet reordering. Changed encoder DTS are not expected to match.
+
+Edit-list pre-roll (S2 share_export_fix, 2026-10-06): MOV/MP4 sources cut by
+stream copy can begin with decode-only packets outside the edit list; FFmpeg's
+demuxer flags them `D` (ffprobe `flags`) and the decoder never presents them.
+The accepted run export `artifacts/runs/20261006T041633Z-990aa1bd6737/export/cleaned-video.mov`
+has 3,631 video packets, of which 10 leading packets (one keyframe GOP head,
+PTS −0.748 to 0 s) are decode-only, and 3,621 are presented from 0 to 150.885 s.
+A re-encode correctly emits no frame for those 10, so the former total-count
+comparison refused this valid input with "video packet count changed". Packet
+probes now include `flags`. Re-encodes compare presented packets on both sides
+(`comparison_scope=presented_packets_excluding_edit_list_discard`) and still
+refuse any dropped, duplicated, shifted or tail-changed presented picture; copy
+compares every coded packet (`all_coded_packets`), including identical
+decode-only state, payload hashes and DTS. Receipts record total, presented and
+decode-only counts. A count refusal remains `validation_failed` and names the
+scope and both presented/decode-only counts; it is never a reason to retry with
+copy or different settings. Absent flags are treated as presented (strict).
+
+Valid inputs (measured vs not): the run-directory `export/cleaned-video.mov`
+above exported with default H.264 720p CRF27 on 2026-10-06 (3,621/3,621
+presented PTS identical, tail delta 0, 3,621 decoded output frames, 427.65 s
+wall, 22,555,377 bytes, SHA256 `2eba932a…`; evidence in
+`docs/agent-notes/sprints/20261006-s2/share_export_fix-handoff.json`). The Desktop
+export used `copy` on an already-encoded 720p H.264 parent without pre-roll.
+Direct H.264 export of the accepted marked movie (its recorded parent: 3,621 packets from PTS 0)
+is expected to pass the same comparison but was not run by this lane. Inputs
+with multiple edits or interior decode-only packets are compared on presented
+packets too, without actual-take qualification.
 This packet evidence does not prove source decoded-frame identity or physical
 capture synchronization. The bounded delivery output is fully decoded with
 error checking. Audio decoded-frame clocks, samples, native rate/channels and
