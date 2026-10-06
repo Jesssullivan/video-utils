@@ -1,0 +1,161 @@
+{
+  "au_realtime_available": false,
+  "baseline": "4b87484d725007feca6f3a19d2c967c4ca56f513",
+  "branch": "sprint/20261006-s2/cap_ids",
+  "contract_commit": "2be1857373cafac79dbceae8546df05fcad8449d",
+  "corrections_found_during_implementation": [
+    "tool_api.strict_json keeps the last duplicate key; both modules now refuse duplicate keys explicitly.",
+    "apply_capture_profile source_bytes corrected from unknown to enforced 3 GiB (worker hashes source under capture.MAX_SOURCE_BYTES).",
+    "Hash loop now fails changed_during_hash as soon as a file grows beyond its pre-open size (an appending writer previously kept the read going until max_bytes).",
+    "Index document serialization bug (wrong comprehension key) caught by the dump/load round-trip test before commit."
+  ],
+  "date": "2026-10-06",
+  "declared_not_verified": [
+    "Resource classes, heavy_numeric, effects reads/writes, provenance fields marked declared_unverified.",
+    "source_bytes enforced values are read from worker constants (capture_profile/apply_capture_profile/share_export 3 GiB, editor_marker_plan 20000000 per JSON, annotation_v2 20000 request); not exercised by tests here."
+  ],
+  "deviations_from_frozen_contract": [
+    "dump uses fsync + hard-link (atomic, no-clobber) instead of temp + replace, so a concurrently created target is never overwritten.",
+    "Additional refusals beyond the contract minimum: PE \"MZ\" magic (executable_refused), non-ASCII components (unsafe_component), selectors whose first component is \"artifacts\" (outside_runs_root).",
+    "resolve: an exec bit gained after projection raises executable_refused; a directory or FIFO now at the selector resolves missing.",
+    "Accepted run bytes were ~608 MB, not the ~180 MB estimate; one 300 s bounded job completed in about 20 s."
+  ],
+  "implementation_commit": "9fa06e383cac5220aad118affa72693e1868622e",
+  "lane": "cap_ids",
+  "measured": [
+    "Closed-schema validation of program/capabilities.json against program/tools.json (8 tools, 48 parameters).",
+    "Refusal codes, stale/missing/current states and idempotency on synthetic fixtures.",
+    "SHA-256 projection of the accepted FULLER run (607516852 bytes, 12 files) with unchanged tree hash."
+  ],
+  "metrics": [
+    {
+      "class": "M",
+      "metric": "pilot tools valid under closed schema",
+      "n": 1,
+      "value": "8/8, 0 unknown keys"
+    },
+    {
+      "class": "S",
+      "metric": "traversal edges capability->worker->skill->tests",
+      "n": 2,
+      "value": "32/32"
+    },
+    {
+      "class": "S",
+      "metric": "worker literally allowlisted in tool_api.py",
+      "n": 3,
+      "value": "8/8 (7 direct, 1 via capture_application_adapter)"
+    },
+    {
+      "class": "M",
+      "metric": "parameter metadata key-equal to inputSchema with unit + default_owner",
+      "n": 4,
+      "value": "48/48 top-level; 2/2 nested groups = 8/8 nested fields"
+    },
+    {
+      "class": "M",
+      "metric": "timeout min/max/default equal registry",
+      "n": 5,
+      "value": "8/8"
+    },
+    {
+      "class": "M",
+      "metric": "invariants (au false, job service true, agent defaults false, au_render unsupported, network/model/overwrite false)",
+      "n": 6,
+      "value": "35/35"
+    },
+    {
+      "class": "M",
+      "metric": "schema/drift refusal cases refused with expected code",
+      "n": 7,
+      "value": "82 cases, 0 accepted"
+    },
+    {
+      "class": "M",
+      "metric": "artifact-ID hostile cases refused with expected code",
+      "n": 8,
+      "value": "62 selector/root cases + 11 malformed-ID + 6 tampered-index + 1 duplicate-key index, 0 resolved to a path"
+    },
+    {
+      "class": "M",
+      "metric": "stale/missing detection",
+      "n": 9,
+      "value": "same-size change, size change, delete, manifest change 4/4; touch-only current 1/1; dir/FIFO-in-place missing; cooperative concurrent writer changed_during_hash 2/2"
+    },
+    {
+      "class": "M",
+      "metric": "idempotency",
+      "n": 10,
+      "value": "3 repetitions identical records; synthetic run-root tree hash unchanged; 0 index growth; order-independent index document"
+    },
+    {
+      "class": "M",
+      "metric": "tests passing locally",
+      "n": 11,
+      "value": "33/33"
+    },
+    {
+      "class": "M",
+      "metric": "accepted run read-only projection",
+      "n": 12,
+      "receipt": "docs/agent-notes/sprints/20261006-s2/cap_ids-accepted-run-readback.json",
+      "value": "12/13 regular files projected, 1 refused unsafe_component (hidden frame-count cache), 12/12 resolve current, manifest output_sha256 6/6 equal where recorded, tree hash before == after"
+    },
+    {
+      "class": "M",
+      "metric": "diff confined to owned files vs baseline",
+      "n": 13,
+      "value": "0 files outside owned list (8/8 changed paths owned)"
+    },
+    {
+      "class": "S/D",
+      "metric": "provenance fields with worker/adapter token found",
+      "n": 14,
+      "value": "13/38 token_found_in_worker; 25/38 declared_unverified"
+    },
+    {
+      "class": "D",
+      "metric": "resource memory/CPU/output bounds",
+      "n": 15,
+      "value": "memory not_qualified 8/8; cpu_threads, output_bytes null 8/8"
+    },
+    {
+      "class": "NE",
+      "metric": "web admission, durable jobs, AU realtime, listening/musical acceptance",
+      "n": 16,
+      "value": "not claimed"
+    }
+  ],
+  "no_default_adopted": true,
+  "not_a_job_service": true,
+  "phase": "phase2_implement",
+  "preregistered": false,
+  "preregistration_reason": "No experiment, numerics, arms or held-out truth; deterministic fixtures only (contract section 10).",
+  "root_owned_changes_requested": "optional only; see lane StructuredOutput and docs/spec/sprints/CAP_IDS_S2.md section 13",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N11/R-N12/R-N13)",
+  "schema": "video-utils/lane-receipt",
+  "schema_version": 1,
+  "sprint": "20261006-s2",
+  "static_only": [
+    "Worker/skill/test existence, allowlist linkage, test mentions worker 8/8, provenance token presence."
+  ],
+  "test_command": "PYTHONPATH=tests python3 -m unittest test_capabilities test_artifact_ids -v",
+  "tests": {
+    "class": "M",
+    "failed": 0,
+    "passed": 33,
+    "test_artifact_ids": 19,
+    "test_capabilities": 14,
+    "total": 33
+  },
+  "tracker": "TIN-5605",
+  "unknown_or_not_established": [
+    "memory_bytes, cpu_threads, output_bytes per tool",
+    "musical_acceptance",
+    "listening_acceptance",
+    "web_admission",
+    "au_realtime (unsupported)",
+    "restoration quality of the projected run"
+  ],
+  "writes_under_artifacts_runs": 0
+}

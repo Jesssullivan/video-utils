@@ -1,0 +1,218 @@
+{
+  "lane": "cap_ids",
+  "branch": "sprint/20261006-s2/cap_ids",
+  "head": "eb46cd66edc2241b0bbc1183e0afb818897f65c8",
+  "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint2/cap_ids",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/cap_ids-accepted-run-readback.json",
+      "sha256": "b013dfa8f514b590f0fd9b93725b5bbe9a49655bef059394f5936d9acfe8397f",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/cap_ids-phase2-receipt.json",
+      "sha256": "3b858678ec792494003868837b78ec9f7b2681351838031600d4cebbf3f6a98e",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/cap_ids-phase4-repair-receipt.json",
+      "sha256": "b09dafd4fcc3df760d0eb4e836e2e6857e7bcd9c406368ad938634fa06010c5b",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/CAPABILITIES.md",
+      "sha256": "d1f1f25d0f8cf127cf77adaff1359ab70eab39a38128b1a9018463dc1c0b3ea4",
+      "kind": "spec"
+    },
+    {
+      "path": "docs/spec/sprints/CAP_IDS_S2.md",
+      "sha256": "0194e38bace9a680535690396e9f2d5327f40dcf8f8b249b3199fbecd73957f8",
+      "kind": "spec"
+    },
+    {
+      "path": "program/capabilities.json",
+      "sha256": "0ac118b1c19654b866ac653814e9b6cb543472fb226e7ab5ca94186be07089bf",
+      "kind": "data"
+    },
+    {
+      "path": "scripts/artifact_ids.py",
+      "sha256": "2cf66e5024d775ff14fa418d72d98d1b22b4f159690d7a63075a927971904baf",
+      "kind": "source"
+    },
+    {
+      "path": "scripts/capabilities.py",
+      "sha256": "c25142267607415ccf1c6ff13f280065f2255e26495247f07dda29fc28c5501b",
+      "kind": "source"
+    },
+    {
+      "path": "tests/test_artifact_ids.py",
+      "sha256": "dbec8253d5b398b7c93b8c749fa89e51231af422bb11bc78b3c842f0a4901212",
+      "kind": "test"
+    },
+    {
+      "path": "tests/test_capabilities.py",
+      "sha256": "a2827a0e5c2d5794787601e8bf85fedd14b538f99fe6fc0019f99bd03e183f23",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_capabilities test_artifact_ids -v",
+    "discovered": 34,
+    "passed": 34,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 13.903
+  },
+  "metrics": [
+    {
+      "name": "Pilot tools described and valid under closed schema",
+      "numerator": 8,
+      "denominator": 8,
+      "unit": "tools",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Traversal edges capability→worker→skill→tests",
+      "numerator": 32,
+      "denominator": 32,
+      "unit": "edges",
+      "claim_class": "unverified_listening"
+    },
+    {
+      "name": "Worker path literally allowlisted in tool_api.py",
+      "numerator": 8,
+      "denominator": 8,
+      "unit": "workers",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Parameter metadata key-equal to inputSchema with unit + default_owner",
+      "numerator": 56,
+      "denominator": 56,
+      "unit": "parameters",
+      "claim_class": "measured",
+      "note": "48/48 top-level + 8/8 nested"
+    },
+    {
+      "name": "Timeout min/max/default equal registry",
+      "numerator": 8,
+      "denominator": 8,
+      "unit": "tools",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Invariants validation (au_realtime_available, not_a_job_service, agent_may_change_defaults, etc.)",
+      "numerator": 35,
+      "denominator": 35,
+      "unit": "invariants",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Schema and registry-drift refusal cases",
+      "numerator": 82,
+      "denominator": 82,
+      "unit": "mutations",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Artifact-ID hostile selector cases refused",
+      "numerator": 62,
+      "denominator": 62,
+      "unit": "selectors",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Malformed, tampered, and collision cases refused",
+      "numerator": 18,
+      "denominator": 18,
+      "unit": "cases",
+      "claim_class": "measured",
+      "note": "11 malformed IDs, 6 tampered indexes, 1 duplicate-key index"
+    },
+    {
+      "name": "Stale/missing source detection",
+      "numerator": 4,
+      "denominator": 4,
+      "unit": "scenarios",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Idempotency (repetitions and tree hash unchanged)",
+      "numerator": 3,
+      "denominator": 3,
+      "unit": "repetitions",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Actual accepted run read-only projection",
+      "numerator": 6,
+      "denominator": 6,
+      "unit": "files",
+      "claim_class": "measured",
+      "note": "output_sha256 checksums all matched"
+    },
+    {
+      "name": "Provenance fields with worker token found",
+      "numerator": 13,
+      "denominator": 38,
+      "unit": "fields",
+      "claim_class": "inferred"
+    }
+  ],
+  "unknowns": [
+    "musical_acceptance: not_established",
+    "listening_acceptance: not_established",
+    "web_admission: not_qualified",
+    "au_realtime: unsupported",
+    "memory_bytes: null",
+    "cpu_threads: null",
+    "output_bytes: null"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "just/workflow.just",
+      "change": "Optional recipes: `capabilities-check:` -> `python3 scripts/capabilities.py validate && python3 scripts/capabilities.py traverse`; `artifact-id SELECTOR:` -> `python3 scripts/artifact_ids.py project {{SELECTOR}}`.",
+      "why": "Operator just entrypoint for the capability metadata check and the artifact-ID projection (CAP_IDS_S2.md section 11 item 1). Optional, not required for S2 core."
+    },
+    {
+      "file": "scripts/tool_api.py",
+      "change": "None required. Optional future: `describe NAME` could attach the matching program/capabilities.json entry, read-only.",
+      "why": "Shows capability metadata next to tool descriptors (section 11 item 2). Not proposed for S2 core."
+    },
+    {
+      "file": "root CI / test suite",
+      "change": "Include test_capabilities and test_artifact_ids in the root unittest run. Unittest discovery picks them up automatically if the suite uses it.",
+      "why": "Keeps the runs-root write refusal, including the new filesystem-identity case-variant test, under root CI (section 11 item 3)."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261006-s2/cap_ids-accepted-run-readback.json",
+    "docs/agent-notes/sprints/20261006-s2/cap_ids-phase2-receipt.json",
+    "docs/agent-notes/sprints/20261006-s2/cap_ids-phase4-repair-receipt.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": true,
+    "findings": [
+      "(1) Scope holds. `git diff --name-only 4b87484...HEAD` in /Users/jess/git/video-utils/.local/sprint2/cap_ids lists 9 paths, all lane-owned: the 2 cap_ids-*.json receipts, docs/spec/CAPABILITIES.md, docs/spec/sprints/CAP_IDS_S2.md, program/capabilities.json, scripts/artifact_ids.py, scripts/capabilities.py, tests/test_artifact_ids.py and tests/test_capabilities.py. program/tools.json, scripts/tool_api.py and just/workflow.just are untouched. Since the merge-base, main has changed only 4 docs/program sprint files, so there is no textual conflict. No other S2 lane branch edits tools.json or tool_api.py.",
+      "(2) No writes to accepted runs or the main checkout. `find artifacts -newer docs/spec/sprints/CAP_IDS_S2.md` in the main checkout finds nothing. The full lane outputs are in the gitignored worktree path .local/sprint2/cap_ids/artifacts/s2/cap_ids/ (accepted-run-index.json, accepted-run-projection.json), not under artifacts/runs. Neither module calls a subprocess, starts a network connection or downloads a model.",
+      "(4) I reran the tests with the given FFMPEG/FFPROBE and PYTHONPATH=tests: `Ran 34 tests in 13.903s / OK`. That is 14 test_capabilities plus 20 test_artifact_ids, matching the claimed 34/34; the repair added one case-variant test to artifact_ids (19→20).",
+      "(4) Refusal counts: wrapping CapabilityTests.refused counted 77 refusals through the helper. There are 5 more direct assertRaises calls (tests/test_capabilities.py:103, 247, 362, 367, 372), giving 82 and matching the claim of 82 mutations with 0 accepted.",
+      "(6) Parameter and timeout arithmetic reproduced from program/tools.json: top-level parameters 3+9+14+4+4+3+4+7=48/48 equal inputSchema properties; nested fields 8/8 (peaking_eq 3, compressor 5); timeout min/max/default equal the registry for 8/8 tools. `capabilities.py validate` gives rc=0 with parameters 48. `traverse` gives 32/32 edges, worker_allowlisted 8/8, test_mentions_worker 8/8.",
+      "(6) Accepted FULLER run reproduced independently with hashlib on artifacts/runs/20261006T041633Z-990aa1bd6737: 12 non-hidden regular files totalling 607516852 bytes. All 6 files recorded in manifest output_sha256 match (baseline, cleaned, denoised, processed, residue, source wav). Manifest sha is 61c9b393…, giving art_f9b9ad0b70e06d058b115a419cf89d03. Source sha a522115f… gives src_c42341b6988ebe324a82cd77283597ba. All four values match the readback receipt. The two export .mov files have the same sha but different inodes with nlink 1, so they are copies, not hard links.",
+      "(3) Claim classes are honest. The provenance declarations are 13/38 token_found_in_worker and 25/38 declared_unverified, and both the receipt and CAPABILITIES.md:77-79 report this. Every unknowns field is null with a reason. There are no musical, listening, note-correctness or missed-note claims. The receipt sets no_default_adopted: true. FULLER appears only as a read-only hash projection, and the denoise.profile default change is left to root (CAP_IDS_S2.md:396).",
+      "(5) Doctrine holds. capabilities.json has no high-pass, notch or lowcut parameters or defaults. peaking_eq and compressor are omitted_means_off with default_owner none. The capture_profile DSP knobs are explicit_required. Timeouts are bounded and enforced against the registry. au_realtime_available is false, not_a_job_service is true and agent_may_change_defaults is false.",
+      "Repair verification: The must_fix item (ArtifactIndex.dump() case-variant bypass) was fixed. New test test_dump_refuses_case_variant_runs_paths_by_filesystem_identity added and passes. Test count increased from 33 to 34. All 34 tests pass in 13.903s."
+    ],
+    "must_fix": []
+  },
+  "dropped_scope": []
+}

@@ -1,0 +1,188 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "art_201986b354bdf8df7fcddfcf34ffd90d",
+      "kind": "wav",
+      "sha256": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009",
+      "size_bytes": 19972258,
+      "source_binding": "bound",
+      "source_id": "src_c42341b6988ebe324a82cd77283597ba",
+      "state_on_resolve": "current"
+    },
+    {
+      "artifact_id": "art_2bf2aefdfe09c214f99fec1e05b6d71c",
+      "kind": "json",
+      "sha256": "ab1f31dfaefff2d781f4d8b20ebeb9a8a3575f77b2b42926d98a96f9c5ae7e48",
+      "size_bytes": 27677,
+      "source_binding": "bound",
+      "source_id": "src_c42341b6988ebe324a82cd77283597ba",
+      "state_on_resolve": "current"
+    },
+    {
+      "artifact_id": "art_2d20e189cd7ee03cd35fd5bc31b51930",
+      "kind": "json",
+      "sha256": "a1229c84f1c9c1731c4d6733b4d3516301b39947bf9e325d7e663f9437c4b826",
+      "size_bytes": 1402,
+      "source_binding": "bound",
+      "source_id": "src_c42341b6988ebe324a82cd77283597ba",
+      "state_on_resolve": "current"
+    },
+    {
+      "artifact_id": "art_566a7a52123fbe0cb380e28a229bf7f2",
+      "kind": "wav",
+      "sha256": "bd41286de40e20d4a4f0ccb1881b333168622ec71ba5f3967e276625e9c4b5d1",
+      "size_bytes": 26629632,
+      "source_binding": "bound",
+      "source_id": "src_c42341b6988ebe324a82cd77283597ba",
+      "state_on_resolve": "current"
+    },
+    {
+      "artifact_id": "art_5b1a1bcd1ab518676acbc9e3f795f84b",
+      "kind": "json",
+      "sha256": "fe1b1009d7d56b54fedd8589aced49270a8bb6c37957df52b1e38d688b35f13d",
+      "size_bytes": 15025,
+      "source_binding": "bound",
+      "source_id": "src_c42341b6988ebe324a82cd77283597ba",
+      "state_on_resolve": "current"
+    },
+    {
+      "artifact_id": "art_76df69c5b770ab7e3697e39ec596445e",
+      "kind": "wav",
+      "sha256": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a",
+      "size_bytes": 26629632,
+      "source_binding": "bound",
+      "source_id": "src_c42341b6988ebe324a82cd77283597ba",
+      "state_on_resolve": "current"
+    },
+    {
+      "artifact_id": "art_851e22f06722822d43d65d0bacc407e6",
+      "kind": "video",
+      "sha256": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82",
+      "size_bytes": 230489826,
+      "source_binding": "bound",
+      "source_id": "src_c42341b6988ebe324a82cd77283597ba",
+      "state_on_resolve": "current"
+    },
+    {
+      "artifact_id": "art_d067867bd7362cbd5504e4a00366fc93",
+      "kind": "video",
+      "sha256": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82",
+      "size_bytes": 230489826,
+      "source_binding": "bound",
+      "source_id": "src_c42341b6988ebe324a82cd77283597ba",
+      "state_on_resolve": "current"
+    },
+    {
+      "artifact_id": "art_d9b7b6cdc56aba983e744a23b99f6850",
+      "kind": "wav",
+      "sha256": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc",
+      "size_bytes": 26629632,
+      "source_binding": "bound",
+      "source_id": "src_c42341b6988ebe324a82cd77283597ba",
+      "state_on_resolve": "current"
+    },
+    {
+      "artifact_id": "art_efa9cac2618c0077efb44bf1f89cdd1e",
+      "kind": "wav",
+      "sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+      "size_bytes": 26629632,
+      "source_binding": "bound",
+      "source_id": "src_c42341b6988ebe324a82cd77283597ba",
+      "state_on_resolve": "current"
+    },
+    {
+      "artifact_id": "art_f924f3d3cfd4d5f4125b6d9238b6ba54",
+      "kind": "wav",
+      "sha256": "2c600e9c50457a75f99c2a15ba2dcd1ab7554c5974ad25778db6e210267eccb9",
+      "size_bytes": 19972258,
+      "source_binding": "bound",
+      "source_id": "src_c42341b6988ebe324a82cd77283597ba",
+      "state_on_resolve": "current"
+    },
+    {
+      "artifact_id": "art_f9b9ad0b70e06d058b115a419cf89d03",
+      "kind": "json",
+      "sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+      "size_bytes": 30052,
+      "source_binding": "bound",
+      "source_id": "src_c42341b6988ebe324a82cd77283597ba",
+      "state_on_resolve": "current"
+    }
+  ],
+  "claim_class": "hash_measurement",
+  "command_bounds": {
+    "decoding": false,
+    "ffmpeg": false,
+    "jobs": 1,
+    "timeout_seconds": 300,
+    "writes_under_runs": 0
+  },
+  "contract": "docs/spec/sprints/CAP_IDS_S2.md section 9",
+  "counts": {
+    "directories": 1,
+    "entries_enumerated": 14,
+    "kinds": {
+      "json": 4,
+      "video": 2,
+      "wav": 6
+    },
+    "projected": 12,
+    "projected_bytes": 607516852,
+    "refused": 1,
+    "regular_files": 13,
+    "resolve_states": {
+      "current": 12
+    }
+  },
+  "date": "2026-10-06",
+  "elapsed_seconds": 20.211,
+  "expected_refusal": {
+    "code": "unsafe_component",
+    "observed": true,
+    "reason": "hidden .video-frame-count-cache.json"
+  },
+  "gitignored_full_output": ".local/sprint2/cap_ids/artifacts/s2/cap_ids/accepted-run-projection.json",
+  "host_path_in_outputs": false,
+  "lane": "cap_ids",
+  "manifest_output_sha256_crosscheck": {
+    "compared": 6,
+    "differs": 0,
+    "equal": 6,
+    "meaning": "projected sha256 compared with the run manifest output_sha256 map where the file is recorded there; not_recorded files have no manifest hash to compare",
+    "not_recorded": 6
+  },
+  "not_established": [
+    "restoration quality",
+    "listening acceptance",
+    "musical acceptance",
+    "web admission",
+    "durable jobs"
+  ],
+  "observations": [
+    "Two export video files have identical bytes (one sha256, 2 files) and therefore distinct artifact_ids: IDs bind selector + content by design.",
+    "Projected bytes were 607516852, larger than the contract estimate of ~180 MB; bound and timeout were still met."
+  ],
+  "refusals_by_code": {
+    "unsafe_component": 1
+  },
+  "root": "main checkout, read-only (host path intentionally omitted)",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N11/R-N12/R-N13)",
+  "run_id": "20261006T041633Z-990aa1bd6737",
+  "schema": "video-utils/cap-ids-readback",
+  "schema_version": 1,
+  "source": {
+    "manifest_artifact_id": "art_f9b9ad0b70e06d058b115a419cf89d03",
+    "source_binding": "bound",
+    "source_id": "src_c42341b6988ebe324a82cd77283597ba",
+    "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6"
+  },
+  "sprint": "20261006-s2",
+  "statement": "Read-only SHA-256 projection of the accepted FULLER run; says nothing about restoration, musical or listening quality.",
+  "tracker": "TIN-5605",
+  "tree_hash": {
+    "after": "91b0e02a4bf19a78bba0fb7db46a0dd7648cba2998278f3b6eb662f47bd6288d",
+    "before": "91b0e02a4bf19a78bba0fb7db46a0dd7648cba2998278f3b6eb662f47bd6288d",
+    "fields": "relative path, sha256, size, mtime_ns, file type",
+    "unchanged": true
+  }
+}
