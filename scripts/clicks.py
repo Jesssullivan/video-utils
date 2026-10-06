@@ -145,7 +145,9 @@ def experiment(pcm, rate: int, *, template_window=None, attenuate=False,
                                          "confidence_label": event["confidence_label"], "decision": "analyze_only",
                                          "reason": "no_waveform_template_identity_unverified"})
             result.update(tempo_candidates=measured["tempo_candidates"], declared_tempo=measured["declared_tempo"],
-                          grid_fit_attempts=measured["grid_fit_attempts"], click_grid=measured["click_grid"])
+                          grid_fit_attempts=measured["grid_fit_attempts"], click_grid=measured["click_grid"],
+                          click_grid_drift=measured["click_grid_drift"],
+                          onset_detector_delay_calibration=measured["analysis"]["onset_detector_delay_calibration"])
             result["timeline"]["event_timestamp"] = "high_frequency_envelope_frame_midpoint_mapped_to_native_sample"
             result["summary"] = {"candidate_count": len(result["events"]), "accepted_fit_count": 0, "attenuated_count": 0,
                                  "abstained_count": 0}

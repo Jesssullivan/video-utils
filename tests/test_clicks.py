@@ -133,6 +133,23 @@ class ClickExperimentTests(unittest.TestCase):
         for event in result["events"]:
             self.assertAlmostEqual(event["source_timeline_seconds"], event["native_sample"] / 48000 + 9.75)
 
+    def test_no_template_path_passes_through_drift_and_delay_calibration(self):
+        pcm, _, _, _, _ = fixture()
+        result, processed, estimate = clicks.experiment(pcm, 16000, bpm=120)
+        self.assertIsNone(processed)
+        self.assertIsNone(estimate)
+        drift = result["click_grid_drift"]
+        self.assertEqual(drift["model"], "linear_period")
+        self.assertIn(drift["status"], ("fitted", "insufficient_events", "no_periodic_seed", "fit_residual_exceeds_bound"))
+        if drift["status"] == "fitted":
+            self.assertLessEqual(abs(drift["period_change_per_second"]), 2e-4)
+        calibration = result["onset_detector_delay_calibration"]
+        self.assertEqual(calibration["status"], "measured_on_synthetic_impulses_not_physical_av_offset")
+        self.assertIsNone(calibration["compensation_table"]["superflux_attack_candidate"])
+        self.assertEqual(result["summary"]["attenuated_count"], 0)
+        for event in result["events"]:
+            self.assertEqual(event["decision"], "analyze_only")
+
     def test_cli_detection_artifacts_are_immutable_and_emit_no_wav(self):
         pcm, _, _, _, _ = fixture()
         metadata = {"audio": {"start_time": "0", "duration": "6", "sample_rate": "16000", "channels": 1}, "format": {}}

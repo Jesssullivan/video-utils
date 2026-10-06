@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "lane": "rhythm_clicks",
+  "sprint": "20261006-s2",
+  "linear": "TIN-5602",
+  "ruling": "R-HOOK-CONVERGENCE-20261004",
+  "kind": "sealed_evaluation_preregistration_receipt",
+  "date": "2026-10-06",
+  "implementation_commit": "9f062c8d77427cb8f03f07fc676ebe65926807d3",
+  "sha256": {
+    "scripts/rhythm.py": "cd719914d933b03faec6e1c92afbaee232797ec247427cc87038a1e67b15e8d3",
+    "scripts/phrase_timing.py": "e39628ed8e6fb4fe5973ec8f9c33962b2ada86a55198969ab7732ff6af324dfe",
+    "scripts/click_attack_ab.py": "35daea9750fd516cddf508083de7e199f48f39a2111294d168720954c115ce82",
+    "scripts/clicks.py": "0b90f3a7653be729028f5daf6fd1351e5854d0d6ecb2f6bdd8a314ebb3a5c3b1",
+    "tests/test_rhythm.py": "6535c84f95ab5e730015d0de876035f176ae421884711711790163d14a6b402a",
+    "tests/test_phrase_timing.py": "1ae04d7cb4afcd400b2da3f9e06185808fab1e7b2b8b868617ae0b18fdbb19c9",
+    "tests/test_click_attack_ab.py": "51087a7f87e622199bb92f69e975d64fb27e156aad53daa834179b371372786f",
+    "scripts/benchmark_holdout.py": "051d8689364564513c34a1ab00a2c23560407e474da12c2bf25e7513dbc81709"
+  },
+  "sealing_rule": "Each sealed run executes once after this receipt is committed. A post-eval code change cannot be rescored on these seeds; any rerun needs newly preregistered seeds and both results are reported. No thresholds or arms are tuned on held-out seeds.",
+  "evaluations": {
+    "D3": {
+      "cases": [
+        "holdout seed211 timing-reference (timing-pair click parameters)",
+        "holdout seed307 timing-reference (timing-pair click parameters)",
+        "generated seed 9101 (namespace rhythm-s2-drift-eval)",
+        "generated seed 9102 (namespace rhythm-s2-drift-eval)",
+        "generated seed 9103 (namespace rhythm-s2-drift-eval)",
+        "generated seed 9104 (namespace rhythm-s2-drift-eval)",
+        "generated seed 9105 (namespace rhythm-s2-drift-eval)",
+        "generated seed 9106 (namespace rhythm-s2-drift-eval)",
+        "generated seed 9107 (namespace rhythm-s2-drift-eval)",
+        "generated seed 9108 (namespace rhythm-s2-drift-eval)"
+      ],
+      "denominator": 10,
+      "arm": "frozen linear_period estimator",
+      "score": "relative error of drift_ppm vs truth at the fit's reference time",
+      "pass": "<=10 % in 10/10; abstention or non-fitted counts as failure",
+      "command": "RHYTHM_S2_SEALED_EVAL=1 PYTHONPATH=tests python3 -m unittest test_rhythm.DriftModelTests.test_d3_sealed_holdout_drift_eval -v",
+      "decimation": "48 kHz -> 16 kHz: centered 3-sample boxcar mean then every third sample (gain about 0.94 at 3.5 kHz)"
+    },
+    "P2": {
+      "seeds": [
+        7301,
+        7302,
+        7303,
+        7304
+      ],
+      "namespace": "rhythm-s2-phrase-eval:{seed}:{arm}:{phrase}:{knob}",
+      "arms": {
+        "on_time": "delta 0",
+        "rushing": "delta U[-30,-6] ms",
+        "dragging": "delta U[+6,+30] ms"
+      },
+      "phrases": 48,
+      "jitter_sigma_ms": 3,
+      "click_period": "uniform over {0.6757, 60/150, 60/185} via knob {seed}:{arm}:all:period",
+      "primary": "median_offset_ms_delay_compensated",
+      "secondary": "median_offset_ms",
+      "score": "per arm median over 16 phrases of |est - truth|; abstentions are failures (infinite error)",
+      "pass": "rushing and dragging per-arm median <= 5 ms; fraction within 5 ms and sign-correct counts reported over 16 per arm",
+      "command": "PHRASE_TIMING_S2_SEALED_EVAL=1 PYTHONPATH=tests python3 -m unittest test_phrase_timing.PhraseTimingFixtureTests.test_p2_sealed_phrase_timing_eval -v"
+    },
+    "A_eval": {
+      "seeds": [
+        8101,
+        8102,
+        8103,
+        8104
+      ],
+      "namespace": "rhythm-s2-click-ab-eval",
+      "attacks_per_arm_per_seed": 20,
+      "arms": [
+        "isolated",
+        "coincident"
+      ],
+      "scores": [
+        "A1 isolated windows with |attack_energy_delta_db| > 0.5 dB over attack windows",
+        "A2 attenuated/abstained/analyze_only/unmatched over generated clicks per arm; attenuated fraction coincident vs isolated; attack_proximal_clicks split",
+        "A3 32 Hz and 28-80 Hz complex-bin deltas per arm"
+      ],
+      "predictions_recorded_before_run": {
+        "A1": "0 isolated windows over 0.5 dB",
+        "A2": "coincident attenuated fraction < isolated attenuated fraction; 0 attenuated attack-proximal coincident clicks",
+        "A3": "32 Hz bin relative delta < 1e-5 in every seed and arm"
+      },
+      "commands": [
+        "CLICK_AB_S2_SEALED_EVAL=1 PYTHONPATH=tests /Users/jess/git/video-utils/.venv/bin/python -m unittest test_click_attack_ab.ClickAttackFixtureTests.test_sealed_ab_eval -v"
+      ]
+    }
+  },
+  "sealed_outputs_directory": "artifacts/s2/rhythm_clicks/sealed/ (gitignored); results transcribed to rhythm_clicks-eval-results.json",
+  "pre_eval_exposure": "No sealed seed and no seed211/seed307 parameter set has been rendered or scored by this lane before this receipt."
+}

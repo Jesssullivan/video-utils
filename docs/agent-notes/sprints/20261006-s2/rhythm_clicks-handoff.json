@@ -1,0 +1,210 @@
+{
+  "lane": "rhythm_clicks",
+  "branch": "sprint/20261006-s2/rhythm_clicks",
+  "head": "de40cd5153bccae2c1ead9516b1268f4bb405931",
+  "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint2/rhythm_clicks",
+  "state": "implemented_tested_audit_findings",
+  "files": [
+    {
+      "path": "docs/spec/sprints/RHYTHM_S2.md",
+      "sha256": "0019a0c1741ec59f6dd6a64be57ef167df18957d5f84dcbc901c863e982db7c2",
+      "kind": "spec"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/rhythm_clicks-eval-results.json",
+      "sha256": "b82b411106317c4213f24d97f12d7c0f61b57e2ace0881852392326bd04e2ee5",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/rhythm_clicks-eval.json",
+      "sha256": "7bd17658f0c16a1e015d35d3777f6fae0815c91f86d2a34c680c6db17ebb93e3",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/rhythm_clicks-implementation.json",
+      "sha256": "a0664e5dc3e0567ab8a4cd223a71c0b82b8aaa58a8dca7e75f7d94ce30ec110d",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/rhythm_clicks-pin-resolution.json",
+      "sha256": "45e71cf843af6c34b1aa4f9152f016a5f1cd14cdf05dcaa4eb93c8e7630e16db",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/rhythm_clicks-real-take.json",
+      "sha256": "c651a93b729f4d73f95adeed09a5b395003095f5a991c785ff11dd86cade437c",
+      "kind": "receipt"
+    },
+    {
+      "path": "scripts/click_attack_ab.py",
+      "sha256": "35daea9750fd516cddf508083de7e199f48f39a2111294d168720954c115ce82",
+      "kind": "source"
+    },
+    {
+      "path": "scripts/clicks.py",
+      "sha256": "0b90f3a7653be729028f5daf6fd1351e5854d0d6ecb2f6bdd8a314ebb3a5c3b1",
+      "kind": "source"
+    },
+    {
+      "path": "scripts/phrase_timing.py",
+      "sha256": "e39628ed8e6fb4fe5973ec8f9c33962b2ada86a55198969ab7732ff6af324dfe",
+      "kind": "source"
+    },
+    {
+      "path": "scripts/rhythm.py",
+      "sha256": "cd719914d933b03faec6e1c92afbaee232797ec247427cc87038a1e67b15e8d3",
+      "kind": "source"
+    },
+    {
+      "path": "tests/test_click_attack_ab.py",
+      "sha256": "51087a7f87e622199bb92f69e975d64fb27e156aad53daa834179b371372786f",
+      "kind": "test"
+    },
+    {
+      "path": "tests/test_clicks.py",
+      "sha256": "280546d2ae0f62b89fd584d51b1f4b3ca1acb1a811f658ace526fe7616c57579",
+      "kind": "test"
+    },
+    {
+      "path": "tests/test_phrase_timing.py",
+      "sha256": "1ae04d7cb4afcd400b2da3f9e06185808fab1e7b2b8b868617ae0b18fdbb19c9",
+      "kind": "test"
+    },
+    {
+      "path": "tests/test_rhythm.py",
+      "sha256": "6535c84f95ab5e730015d0de876035f176ae421884711711790163d14a6b402a",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_rhythm test_clicks test_click_attack_ab test_phrase_timing -v",
+    "discovered": 57,
+    "passed": 36,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 21,
+    "seconds": 37.1
+  },
+  "metrics": [
+    {
+      "name": "Drift model constant-grid validation (D1)",
+      "numerator": 3,
+      "denominator": 3,
+      "unit": "test cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Drift model dev-drift recovery accuracy (D2)",
+      "numerator": 9,
+      "denominator": 9,
+      "unit": "within 10% relative error",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Detector delay calibration probe paths",
+      "numerator": 2,
+      "denominator": 2,
+      "unit": "paths deterministic across calls",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Detector delay calibration detection rate",
+      "numerator": 16,
+      "denominator": 16,
+      "unit": "cells detected per path",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Timestamp invariance (C2)",
+      "numerator": 5,
+      "denominator": 5,
+      "unit": "fixtures with matched SHA-256 digests",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Phrase timing per-arm error threshold",
+      "numerator": 12,
+      "denominator": 12,
+      "unit": "phrases within 5 ms acceptance",
+      "claim_class": "measured"
+    },
+    {
+      "name": "A/B click isolation attenuation rate (dev)",
+      "numerator": 101,
+      "denominator": 132,
+      "unit": "isolated clicks attenuated",
+      "claim_class": "measured"
+    },
+    {
+      "name": "32 Hz content preservation",
+      "numerator": 1,
+      "denominator": 1,
+      "unit": "within predicted bound 5.1e-9",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "click_identity: unverified",
+    "physical_capture_latency: uncalibrated",
+    "listening_ab: not_performed",
+    "performance_grading: not_performed",
+    "expected_rhythm_reference: null",
+    "onset_detector_delay_compensated: false"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "scripts/frozen/rhythm_264b723c.py (new)",
+      "change": "mkdir -p scripts/frozen && git show 4b87484:scripts/rhythm.py > scripts/frozen/rhythm_264b723c.py ; sha256 must equal 264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9",
+      "why": "Byte-identical frozen copy of the S1-pinned rhythm.py, so S1 pins still hold after the lane's additive rhythm.py changes merge (audit must-fix)."
+    },
+    {
+      "file": "scripts/phrase_proposal_s1.py",
+      "change": "After PINS closing brace add: FROZEN = {\"scripts/rhythm.py\": \"scripts/frozen/rhythm_264b723c.py\"}. Update verify_pins() to use digest(ROOT / FROZEN.get(path, path)). Update the load site to load_module(ROOT/FROZEN[\"scripts/rhythm.py\"], ...).",
+      "why": "Repoint S1 pin verification and its rhythm load site to the frozen copy while keeping PINS unchanged, so sealed dependency_sha256 == PINS comparisons still hold."
+    },
+    {
+      "file": "scripts/phrase_localization_pilot.py",
+      "change": "After PINS closing brace add: FROZEN = {'scripts/rhythm.py':'scripts/frozen/rhythm_264b723c.py'}. Update verify_pins() to use digest(ROOT/FROZEN.get(name,name)). Update sources copy to use FROZEN.get().",
+      "why": "Same pin resolution for the phrase-localization pilot to maintain S1 test parity."
+    },
+    {
+      "file": "tests/test_phrase_localization_pilot.py",
+      "change": "Update test_real_pinned_rhythm_return_shape_and_measured_grid_phase to load from ROOT/p.FROZEN['scripts/rhythm.py'].",
+      "why": "Makes the 'real pinned rhythm' test exercise the pinned bytes rather than the live S2 rhythm.py."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261006-s2/rhythm_clicks-implementation.json",
+    "docs/agent-notes/sprints/20261006-s2/rhythm_clicks-eval.json",
+    "docs/agent-notes/sprints/20261006-s2/rhythm_clicks-eval-results.json",
+    "docs/agent-notes/sprints/20261006-s2/rhythm_clicks-real-take.json",
+    "docs/agent-notes/sprints/20261006-s2/rhythm_clicks-pin-resolution.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Scope holds. `git diff --name-only 4b87484...HEAD` in the worktree lists 13 files, all on the owned list: scripts/{rhythm,clicks,click_attack_ab,phrase_timing}.py, tests/test_{rhythm,clicks,click_attack_ab,phrase_timing}.py, docs/spec/sprints/RHYTHM_S2.md and docs/agent-notes/sprints/20261006-s2/rhythm_clicks-{implementation,eval,eval-results,real-take}.json. No root-owned or foreign file is edited. The worktree status is clean.",
+      "(2) No forbidden writes. Nothing in /Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac is newer than 2026-10-06 05:34. denoised.wav still hashes to cb8a3fa5…e879e, matching the receipt. The diff adds no subprocess, network, download or daemon code. Lane outputs sit under the gitignored artifacts/s2/rhythm_clicks/. Both CLIs refuse an artifacts/runs output root.",
+      "(3) Sealing order and code identity verified. sha256 of rhythm.py, phrase_timing.py, click_attack_ab.py, clicks.py, the three test files and benchmark_holdout.py match preregistered values. The preregistration was committed at 12:17:34Z. Sealed runs started after it.",
+      "(4) Test counts reproduced with .venv python on all modules: 'Ran 111 tests in 243s, OK (skipped=3)'. The three skips are only the sealed D3/P2/A-B gates. The lane summary should state dependency-gated skips rather than only the sealed P2 skip.",
+      "(5) Tests exercise real behaviour. D1 checks constant grids give |drift_ppm| ≤ 250. D2 covers 9 dev drift cases and recovers each within 10%. D4 checks abstention under 6 events and on silence. C2 compares SHA-256 digests. P1 and P2 run real analyze() and phrase_timing.measure() on generated audio.",
+      "(6) Numbers reproduced independently. A numpy quadratic fit of 197 retained real-take tracked events gives drift 1.6707 ppm/s (receipt 1.6706), rms 4.0425 ms (4.0425), constant-period rms 4.2145 ms (4.2145) and OLS SE 0.4069 ppm (0.4069).",
+      "(7) Claim classes are mostly sound. Every synthetic result is labelled M-syn and every real-take block M-real unvalidated, with inferences marked 'I:'. All unknowns are documented.",
+      "(8) Robustness concern on the real-take label. drift_ppm 1.67 ± 0.41 is labelled 'strong_drift_evidence' but AR(1) autocorrelation 0.32 may inflate SE to 0.57 ppm. Consider renaming or adding autocorrelation-aware SE before operator-facing use.",
+      "(9) Doctrine tension. On real takes, phrase_timing publishes tendency_label 'ahead_of_click' / 'behind_click' without calibration. Suggest nulling tendency_label when run_kind == real_take or when physical latency is uncalibrated.",
+      "(10) 32 Hz and bounds. The diff adds no high-pass or notch. The probes keep 32.70 Hz content. FFmpeg calls go through existing bounded paths with timeouts.",
+      "(11) All five branch commits are unsigned, while main's history is signed. Root must re-sign during integration per custody practices.",
+      "(12) Minor drift-seed behaviour documented: fallback to operator's --bpm when neither grid nor periodicity is available, labelled as 'operator_declared_approximate_bpm'."
+    ],
+    "must_fix": [
+      "Merging this branch breaks S1 hash pins on main. scripts/phrase_proposal_s1.py:27 and scripts/phrase_localization_pilot.py:32 pin scripts/rhythm.py to sha256 264b723c…, but the lane's rhythm.py hashes to cd719914…. This causes test_phrase_proposal_s1 and test_phrase_localization_pilot to fail. An admin merge must land the frozen-copy resolution alongside this lane (details in root_owned_changes_requested)."
+    ]
+  }
+}
