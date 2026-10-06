@@ -1,6 +1,9 @@
-<!-- Prototype: Not implemented in S2. Label only; no form, input or mutating endpoint. -->
+<!-- Index: source-timed operator notes are bound per source (/sources/{id}); overlays are a Prototype label. -->
 <script lang="ts">
 	import PrototypeNotice from '$lib/components/PrototypeNotice.svelte';
 </script>
 
-<PrototypeNotice step="Review / annotate" purpose="Inspect phrase, rhythm and detector hypotheses on the source timeline; user-reported issues stay separate." />
+<section class="space-y-4">
+	<p class="text-sm">Bound in S2: open a source from <a class="anchor" href="/">Sources</a> to add USER REPORTED or INTENT notes at the player time. Detector hypotheses (REVIEW) stay in a separate track.</p>
+	<PrototypeNotice step="Review overlays" purpose="Phrase, rhythm and detector-hypothesis overlays on the source timeline; marked video." />
+</section>

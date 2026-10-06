@@ -7,7 +7,5 @@ export const load: PageServerLoad = async ({ params, request }) => {
 	if (!result.ok && result.error.code === 'job_not_found') {
 		error(404, { message: result.error.message, code: result.error.code });
 	}
-	return result.ok
-		? { jobId: params.id, job: result.data, error: null }
-		: { jobId: params.id, job: null, error: result.error };
+	return result.ok ? { jobId: params.id, job: result.data, error: null } : { jobId: params.id, job: null, error: result.error };
 };

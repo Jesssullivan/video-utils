@@ -4,32 +4,35 @@
     {
       "attempt": 1,
       "cancel": null,
-      "ended_at": null,
+      "ended_at": "2026-10-06T19:21:00.530666Z",
       "liveness": null,
-      "reason_code": null,
+      "reason_code": "worker_rejected",
       "reconciled_publication": false,
-      "started_at": "2026-10-06T19:21:00.626395Z",
-      "state": "running",
-      "worker_checks": null,
+      "started_at": "2026-10-06T19:21:00.267799Z",
+      "state": "failed",
+      "worker_checks": {
+        "code": "stub_rejected",
+        "status": "rejected"
+      },
       "worker_kind": "test_stub"
     }
   ],
   "cancel_requested": false,
   "capability_revision": "182521e65824eab30b4965712de14f155339a882fe95971a23aa4863ea9fe741",
   "claim_class": "job_state_record",
-  "created_at": "2026-10-06T19:21:00.609620Z",
+  "created_at": "2026-10-06T19:21:00.258422Z",
   "eta_seconds": null,
   "eta_seconds_reason": "not estimated",
-  "idempotency_key": "fixture-running-001",
-  "job_id": "job_00000000000000000000000000000006",
+  "idempotency_key": "fixture-failed-0001",
+  "job_id": "job_00000000000000000000000000000004",
   "parameters": {
     "audio_kbps": 96,
     "codec": "h264",
-    "crf": 30,
+    "crf": 27,
     "height": 720,
     "timeout_seconds": 900
   },
-  "phase": "worker_started",
+  "phase": "worker_rejected",
   "phase_reason": "latest job event reason code, read from a separate read-only snapshot; it may lead or lag state by one event",
   "progress": {
     "completed": 4,
@@ -37,12 +40,12 @@
     "unit": "lifecycle_steps"
   },
   "progress_reason": "lifecycle step count from the job event log; not an encode fraction; share_export reports no incremental progress",
-  "reason_code": null,
+  "reason_code": "worker_rejected",
   "schema_version": 1,
   "source_artifact_id": "art_ccd060b607499c92049cff7e71168634",
   "source_binding": "bound",
   "source_id": "src_5e473c1dc9bb15a6b3c337b127756527",
-  "state": "UPSTREAM_TEXT_MARKER_7f3a_state",
+  "state": "failed",
   "tool": "share_export",
   "tool_envelope": {
     "evidence_kind": "lossy_sharing_derivative",
@@ -88,5 +91,5 @@
     "worker_birth": "recorded",
     "worker_birth_reason": "ps lstart recorded for the latest attempt"
   },
-  "updated_at": "2026-10-06T19:21:00.626395Z"
+  "updated_at": "2026-10-06T19:21:00.530666Z"
 }

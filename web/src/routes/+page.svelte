@@ -1,55 +1,47 @@
 <script lang="ts">
 	import ControlApiError from '$lib/components/ControlApiError.svelte';
 	import UnknownValue from '$lib/components/UnknownValue.svelte';
+	import { bytes, seconds, shortHash } from '$lib/format';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
-	const shortHash = (hash: string | null) => (hash === null ? null : `${hash.slice(0, 12)}…`);
-	const seconds = (value: number | null) => (value === null ? null : value.toFixed(3));
 </script>
 
 <section class="space-y-4">
 	<div>
 		<p class="vu-eyebrow">Sources</p>
-		<h1 class="h2">Registered sources</h1>
+		<h1 class="h2">Admitted sources</h1>
 		<p class="vu-muted text-sm">
-			Listed by the control API. Validation state and media facts are reported by the control
-			API, not measured by this page.
+			Listed by the control API without re-hashing (submit and media re-verify). Media facts are reported by the
+			control API, not measured by this page. <a class="anchor" href="/upload">Upload or admit a source</a>.
 		</p>
 	</div>
 
 	{#if data.error}
 		<ControlApiError error={data.error} />
 	{:else if data.sources && data.sources.length === 0}
-		<p class="vu-muted" data-empty="true">The control API reports no sources.</p>
+		<p class="vu-muted" data-empty="true">No sources are admitted yet. Start with <a class="anchor" href="/upload">Upload / admit</a>.</p>
 	{:else if data.sources}
 		<div class="table-wrap vu-panel card overflow-x-auto">
 			<table class="table">
 				<thead>
-					<tr>
-						<th>Label</th>
-						<th>Source id</th>
-						<th>Validation</th>
-						<th>SHA-256</th>
-						<th>Duration (s)</th>
-						<th>Sample rate (Hz)</th>
-						<th>Channels</th>
-					</tr>
+					<tr><th>Source</th><th>Origin</th><th>Original source id</th><th>SHA-256</th><th>Size</th><th>Duration (s)</th><th>Admitted (UTC)</th></tr>
 				</thead>
 				<tbody>
-					{#each data.sources as source (source.source_id)}
-						<tr data-source-id={source.source_id}>
-							<td>{source.label}</td>
-							<td><code>{source.source_id}</code></td>
-							<td>{source.validation_state}</td>
-							<td title={source.source_sha256 ?? 'Unknown'}><UnknownValue value={shortHash(source.source_sha256)} mono /></td>
-							<td><UnknownValue value={seconds(source.duration_seconds)} mono /></td>
-							<td><UnknownValue value={source.sample_rate_hz} mono /></td>
-							<td><UnknownValue value={source.channels} mono /></td>
+					{#each data.sources as source (source.source_artifact_id)}
+						<tr data-source-artifact-id={source.source_artifact_id}>
+							<td><a class="anchor" href={`/sources/${source.source_artifact_id}`}><code>{source.source_artifact_id}</code></a></td>
+							<td>{source.origin}</td>
+							<td><UnknownValue value={source.source_id} mono reason={source.source_id === null ? source.source_id_reason : null} /></td>
+							<td class="vu-time" title={source.sha256}>{shortHash(source.sha256)}</td>
+							<td class="vu-time">{bytes(source.size_bytes)}</td>
+							<td><UnknownValue value={seconds(source.duration_seconds)} mono reason={source.duration_seconds === null ? source.duration_seconds_reason : null} /></td>
+							<td class="vu-time">{source.admitted_at}</td>
 						</tr>
 					{/each}
 				</tbody>
 			</table>
 		</div>
+		{#if data.truncated}<p class="vu-muted text-xs">Listing truncated at 500 sources.</p>{/if}
 	{/if}
 </section>

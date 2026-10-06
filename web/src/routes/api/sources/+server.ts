@@ -1,12 +1,19 @@
-import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { listSources, runControl } from '$lib/server/control-client';
+import { admitSource, listSources, runControl } from '$lib/server/control-client';
+import { crossOriginRefusal, invalidRequest, readJsonObject, resultResponse } from '$lib/server/http';
 
-const NO_STORE = { 'cache-control': 'no-store' };
+export const GET: RequestHandler = async ({ request }) => resultResponse(await runControl(listSources, request.signal));
 
-export const GET: RequestHandler = async ({ request }) => {
-	const result = await runControl(listSources, request.signal);
-	return result.ok
-		? json(result.data, { headers: NO_STORE })
-		: json(result.error, { status: result.httpStatus, headers: NO_STORE });
+// Admission by run-relative selector (RUN/.../file.mov). The browser never names a host path; absolute
+// paths, `..`, symlinks and URLs are refused upstream by artifact_ids with typed codes.
+export const POST: RequestHandler = async ({ request, url }) => {
+	const refused = crossOriginRefusal(request, url);
+	if (refused) return refused;
+	const body = await readJsonObject(request);
+	if (!body.ok) return body.response;
+	const { selector, ...rest } = body.value;
+	if (Object.keys(rest).length > 0 || typeof selector !== 'string' || selector.length < 1 || selector.length > 1024) {
+		return invalidRequest('Body must be {"selector": "<run-relative selector>"} (1..1024 characters).');
+	}
+	return resultResponse(await runControl(admitSource(selector), request.signal));
 };

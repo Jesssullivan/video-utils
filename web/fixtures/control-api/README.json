@@ -1,20 +1,26 @@
 {
-  "purpose": "Synthetic mock control-API responses for tests/test_web_stack.py (assumed S2 subset, WEB_STACK_S2.md section 4).",
+  "purpose": "Mock control-API responses for tests/test_web_stack.py in the real scripts/web_api.py /api/v1 shapes (WEB_UI_S2.md section 4).",
   "claim_class": "synthetic_fixture",
-  "control_api_contract_source": "assumed_s2_subset_pending_web_jobs",
+  "control_api_contract_source": "web_jobs_s2_merged",
   "contains_real_media_facts": false,
+  "generated_by": "web/fixtures/control-api/generate_fixtures.py (real web_api responses over a synthetic 2 s testsrc2 + 32.70 Hz sine clip and the web_jobs stub worker; job ids rewritten to fixed synthetic values)",
+  "measurement_note": "job_succeeded.json worker_checks are the worker's measurements of a synthetic clip's share derivative, not of any recorded take; no listening or low-register claim.",
   "cases": {
-    "sources.json": "N1 valid list; second source has every nullable field null",
-    "job_running.json": "N2 running with progress null and eta null",
-    "job_progress.json": "N3 progress with explicit denominator",
-    "job_succeeded.json": "N4 terminal state with source-time fields",
+    "sources.json": "N1 listing; one source with source_id and duration_seconds null (+ reasons), one bound with a worker extent",
+    "job_queued.json": "N2 queued; phase and progress null (synthetic no-event edge; schema-legal)",
+    "job_running.json": "N3 running with lifecycle progress 4/6 (phase worker_started)",
+    "job_succeeded.json": "N4 succeeded with artifacts, worker_checks and the compare note",
+    "job_failed.json": "N4 failed worker_rejected; compare shows the Prototype label",
     "job_bad_unknown_key.json": "N5 closed-schema violation (unknown key)",
     "job_bad_enum.json": "N5 closed-schema violation (bad state enum)"
   },
   "generated_by_mock": {
-    "job_http_500": "N6 upstream 500",
-    "job_missing": "N7 upstream 404",
-    "job_slow": "N8 upstream delay 7 s",
-    "job_huge": "N9 body larger than 1 MiB"
+    "job http 500": "N6 upstream 500",
+    "job missing": "N7 upstream 404",
+    "job slow": "N8 upstream delay 7 s",
+    "job huge / huge_stream": "N9 body larger than 1 MiB",
+    "uploads": "N14 typed upload refusal mapping",
+    "artifact bytes": "N17 download pass-through headers",
+    "job token refused": "N18 upstream 401"
   }
 }
