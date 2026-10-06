@@ -1,0 +1,8 @@
+    AU Validation Tool
+    Version: SYNTHETIC
+    provenance: synthetic_format_model (not a recorded run of this unit)
+
+--------------------------------------------------
+VALIDATING AUDIO UNIT: 'aufx' - 'vuGn' - 'Jess'
+--------------------------------------------------
+FATAL ERROR: didn't find the component

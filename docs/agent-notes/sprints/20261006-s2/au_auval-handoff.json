@@ -1,0 +1,185 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13; operator S2 sprint 20261006-s2; Linear TIN-5612",
+  "actor": "workflow/au_auval",
+  "time": "2026-10-06T14:05:00Z",
+  "phase": "phase2_implementation_handoff",
+  "branch": "sprint/20261006-s2/au_auval",
+  "baseline_commit": "e0da4ca",
+  "contract_freeze_commit": "470e59210f3cca41412d5bd9c26c441bdc169076",
+  "source_commit": "5beabfc7686c7bb267ad3e0d69a6bec1103e2a94",
+  "spec": "docs/spec/sprints/AU_AUVAL_S2.md (amendments A1-A9 and results appended)",
+  "operator_doc": "docs/spec/AU_AUVAL_STEP.md",
+  "media_opened": false,
+  "ffmpeg_used": false,
+  "models_downloaded": false,
+  "linear_written": false,
+  "installation": "out_of_scope",
+  "files_copied": [],
+  "registry_writes": [],
+  "metrics": {
+    "1_ffi_vs_rust_bit_parity": {
+      "passed": 150,
+      "total": 150,
+      "class": "M",
+      "test": "native/au-spike/tests/biquad_ffi.rs::ffi_matches_rust_biquad_bit_for_bit"
+    },
+    "2_refusal_atomicity": {
+      "passed": 20,
+      "total": 20,
+      "class": "M",
+      "plus": "count0 NULL positive case passed (outside denominator)"
+    },
+    "3_render_call_allocations": {
+      "allocations": 0,
+      "calls": 2048,
+      "class": "M",
+      "scope": "Rust global allocator on the test thread; not raw malloc from foreign code"
+    },
+    "4_direct_body_audit": {
+      "forbidden_references": 0,
+      "symbol": "_vu_biquad_process",
+      "direct_callees": [
+        "__ZN11video_utils3dsp6Biquad7process17ha4fad9429c42fe67E"
+      ],
+      "supplementary_callee_forbidden_references": 0,
+      "class": "M",
+      "scope": "direct body; not every callee"
+    },
+    "5_c_harness": {
+      "passed": 39,
+      "total": 39,
+      "status_assertions": {
+        "passed": 9,
+        "total": 9
+      },
+      "parity_cases": {
+        "passed": 30,
+        "total": 30
+      },
+      "class": "M",
+      "compiler": "xcrun clang -std=c11 -Wall -Wextra -Werror -ffp-contract=off"
+    },
+    "6_unwind_panic_path": {
+      "passed": 1,
+      "total": 1,
+      "class": "M",
+      "test": "src/lib.rs tests::caught_panic_returns_internal_panic_and_leaves_slot_unchanged"
+    },
+    "6b_release_panic_abort": {
+      "value": "panic = \"abort\" present in native/au-spike/Cargo.toml [profile.release]; Rust 1.95 aborts on unwind out of extern \"C\"",
+      "class": "C"
+    },
+    "7_auval_parser_fixtures": {
+      "passed": 5,
+      "total": 5,
+      "class": "M",
+      "fixture_provenance": "synthetic_format_model"
+    },
+    "8_decision_scenarios": {
+      "passed": 7,
+      "total": 7,
+      "class": "M",
+      "scenarios": [
+        "blocked",
+        "passed",
+        "ambiguous_partial",
+        "ambiguous_duplicates",
+        "pluginkit_timeout",
+        "auval_v_timeout",
+        "artifact_mismatch"
+      ]
+    },
+    "9_static_no_install_guard": {
+      "hits": 0,
+      "class": "M"
+    },
+    "10_live_discovery": {
+      "stage_2_discovery": "blocked_not_installed",
+      "status": "blocked_not_installed",
+      "pluginkit_match_lines": [],
+      "pluginkit_exit_code": 0,
+      "auval_list_target_lines": [],
+      "auval_list_total_rows": 58,
+      "auval_list_exit_code": 0,
+      "files_copied": 0,
+      "registry_writes": 0,
+      "writes_outside_out_dir": 0,
+      "host": {
+        "architecture": "arm64",
+        "os_version": "26.7.1 (25G313)"
+      },
+      "receipt_created_at": "2026-10-06T13:57:57.762093+00:00",
+      "receipt_sha256": "09304ae6d5d04ca53825154d85c02553252f0e22714ab7b89265b7d802da666b",
+      "receipt_path": "artifacts/s2/au_auval/receipt.json (gitignored worktree artifact)",
+      "class": "H",
+      "note": "matched the phase-1 inference blocked_not_installed; run once"
+    },
+    "11_swiftc_typecheck": {
+      "status": "passed",
+      "seconds": 4.718,
+      "class": "M",
+      "toolchain": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)"
+    },
+    "12_recipes": {
+      "au_spike_check": {
+        "exit_code": 0,
+        "status": "native_checks_passed_not_au_host_qualified",
+        "receipt_sha256": "416e2cf9d23f9b43bac6d376c8500ef933fd8cbadb6e33d8299dba2c5162d356",
+        "created_at": "2026-10-06T13:59:18.144263+00:00"
+      },
+      "au_package_check": {
+        "exit_code": 0,
+        "tests": "5/5 (native/au-spike/packaging/tests.py)"
+      },
+      "class": "M"
+    },
+    "13_test_au_auval": {
+      "passed": 21,
+      "total": 21,
+      "class": "M",
+      "command": "PYTHONPATH=tests python3 -m unittest test_au_auval -v"
+    }
+  },
+  "stage_0_binding_note": "The live step ran before a rustfmt-only reformat of src/lib.rs and tests/biquad_ffi.rs; its stage_0_receipt_sha256 (125e0656...) refers to the pre-format au-spike-check receipt. au-spike-check was rerun on the committed sources (receipt 416e2cf9...); auval_step.py, RegisteredRender.swift and targets.json hashes are identical in both.",
+  "source_sha256": {
+    "native/au-spike/src/lib.rs": "4ef96e99556d72ac81d38ea01c28e5b5f0ef1bae9da765ac6e282f77f794cf01",
+    "native/au-spike/include/video_utils_biquad.h": "1f974eef2f62d945b282dd94a33a6c31371df81c0e9eca0f35038571d001e5b6",
+    "native/au-spike/include/video_utils_gain.h": "3985d8bc042b811ca51ad934333fbb1426553e78fdd8f346a7cc9e0f97b90a26",
+    "native/au-spike/tests/biquad_ffi.rs": "562539248cc4bed46d467d4ad6683a72954a3cf3c158f1448eb14a5fb613e30b",
+    "native/au-spike/tests/biquad_abi_harness.c": "92cf772f1ebcee998600aad907cf72456017a9c86a0b58270cf0c9272124bcb7",
+    "native/au-spike/check.py": "c9205dda4a861c8ee0d0c26a11c5fcdbb37e216f74af88244705c4436019c822",
+    "native/au-spike/host/auval_step.py": "ee6fa9a9d55e24c11fd513c220245708b37f6bb553c59a2fd7caed44924ce143",
+    "native/au-spike/host/RegisteredRender.swift": "590d3993867eeab5ae48fb5343858b2c7caf248a35e585b85f199d857701a764",
+    "tests/test_au_auval.py": "05db42856c16cdeaba42df64bf377eceaac7199a61b63c3625c11edc3576965f"
+  },
+  "unchanged_files_verified": [
+    "native/au-spike/include/video_utils_gain.h",
+    "native/au-spike/tests/abi_harness.c",
+    "native/au-spike/tests/kernel_harness.mm",
+    "native/au-spike/tests/main.swift"
+  ],
+  "not_performed": {
+    "stage_3_registered_render": "not_performed (blocked_by stage_2_discovery)",
+    "stage_5_auval": "not_performed (blocked_by stage_2_discovery)",
+    "stage_4_parameters_state": "not_performed",
+    "logic_host_acceptance": "not_performed",
+    "bypass": "not_performed",
+    "state_recall": "not_performed",
+    "listening": "not_performed",
+    "registered_render_harness_execution": "compiled once for link verification during development (binary deleted, never executed)"
+  },
+  "explicit_unknowns": {
+    "realtime_deadline": "unknown",
+    "observed_instantiation_mode": "unknown",
+    "packaging_artifact_freshness": "stale_unknown",
+    "os_managed_side_effects_of_readonly_queries": "unknown",
+    "linked_au_binary_bit_identity_after_lib_rs_change": "unknown until au-package-build is rerun"
+  },
+  "doctrine": {
+    "high_pass_or_notch_kind": false,
+    "default_adoption": false,
+    "c1_32_703_hz_fixture": "+3 dB peaking boost, not a cut",
+    "listening_or_musical_claims": "none"
+  },
+  "next_required_decision": "operator-approved stage-1 installation (AU_HOST_ACCEPTANCE_LANE.md); not requested by this lane"
+}

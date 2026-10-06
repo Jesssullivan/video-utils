@@ -1,0 +1,11 @@
+    AU Validation Tool
+    Version: SYNTHETIC
+    provenance: synthetic_format_model (not a recorded run of this unit)
+
+--------------------------------------------------
+VALIDATING AUDIO UNIT: 'aufx' - 'vuGn' - 'Jess'
+--------------------------------------------------
+Manufacturer String: Jess
+AudioUnit Name: video-utils: Guitar Gain Prototype
+WARNING: Component Version mismatch between Info.plist and AudioUnit
+WARNING: Unit reports no factory presets

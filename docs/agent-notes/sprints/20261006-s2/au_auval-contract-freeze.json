@@ -1,0 +1,19 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13; operator S2 sprint 20261006-s2; Linear TIN-5612",
+  "actor": "workflow/au_auval",
+  "time": "2026-10-06T13:28:45Z",
+  "phase": "phase1_contract_freeze",
+  "baseline_commit": "e0da4ca",
+  "spec": {"path": "docs/spec/sprints/AU_AUVAL_S2.md", "sha256": "3e427bba31c284bffc0fb2bf4bec2403b7bc378d543ad4e8c7379164ed46f28c"},
+  "numerics_run": false,
+  "media_opened": false,
+  "host_queries_run": false,
+  "builds_run": false,
+  "preregistered": false,
+  "preregistration_note": "No experiment; deterministic verification fixtures, seeds, tolerances and denominators frozen in the spec.",
+  "metadata_inputs_sha256": {
+    "artifacts/runs/20261006T041633Z-990aa1bd6737/applied-profile.json": "a1229c84f1c9c1731c4d6733b4d3516301b39947bf9e325d7e663f9437c4b826"
+  },
+  "frozen_constants": {"lcg_seed_signal": 20261006, "lcg_seed_partition": 20261007, "parity_cases": 150, "refusal_cases": 20, "allocation_calls": 2048, "c_harness_cases": 39, "auval_fixtures": 5, "decision_scenarios": 7, "pluginkit_timeout_s": 30, "auval_list_timeout_s": 60, "auval_validate_timeout_s": 120, "auval_validate_attempts": 1, "swiftc_timeout_s": 180},
+  "explicit_unknowns": {"logic_host_acceptance": "not_performed", "realtime_deadline": "unknown", "installation": "out_of_scope", "observed_instantiation_mode": "unknown", "packaging_artifact_freshness": "stale_unknown", "listening": "not_performed"}
+}

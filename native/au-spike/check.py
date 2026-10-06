@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bounded local ABI/kernel/Swift checks; no plugin installation or registration."""
+"""Bounded local ABI/kernel/Swift checks (gain and biquad C ABIs); no plugin installation or registration."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -98,6 +98,55 @@ def inspect_support_object(path, tokens):
             "scope": "named direct native helpers; atomics not qualified wait-free; not arbitrary hosts/all callees"}
 
 
+BIQUAD_FORBIDDEN = ("_malloc", "_calloc", "_realloc", "__rust_alloc", "__rust_dealloc",
+                    "pthread_mutex", "dispatch_", "_printf", "_write", "_objc_")
+BIQUAD_FFI_TESTS = ("ffi_matches_rust_biquad_bit_for_bit", "refusals_are_atomic",
+                    "render_calls_do_not_allocate", "set_keeps_delay_line_and_reset_zeroes_it",
+                    "zero_count_with_null_samples_is_ok_and_keeps_state")
+
+
+def disassemble_symbol(library, symbol):
+    """Direct body of one symbol in the release staticlib, with relocations."""
+    text = run(["xcrun", "llvm-objdump", "--disassemble", "--reloc",
+                "--disassemble-symbols=" + symbol, str(library)])
+    lines, inside = [], False
+    for line in text.splitlines():
+        if line.rstrip().endswith("<" + symbol + ">:"):
+            inside = True
+            continue
+        if inside and (not line.strip() or "file format" in line):
+            break
+        if inside:
+            lines.append(line.strip())
+    if not lines:
+        raise RuntimeError("biquad audit could not locate " + symbol)
+    return lines
+
+
+def inspect_biquad_process(library):
+    """Forbidden-reference audit of the compiled `_vu_biquad_process` body.
+
+    Scope is the direct body plus, as a supplementary record, the direct
+    `video_utils` callees it branches to; it is not an audit of every callee.
+    """
+    body = disassemble_symbol(library, "_vu_biquad_process")
+    hits = [line for line in body if any(token in line for token in BIQUAD_FORBIDDEN)]
+    callees = sorted({line.split()[-1] for line in body if "ARM64_RELOC_BRANCH26" in line})
+    callee_hits = {}
+    for callee in callees:
+        if callee.startswith("__ZN11video_utils"):
+            callee_body = disassemble_symbol(library, callee)
+            callee_hits[callee] = [line for line in callee_body
+                                   if any(token in line for token in BIQUAD_FORBIDDEN)]
+    if hits:
+        raise RuntimeError("Forbidden runtime enters vu_biquad_process: " + "; ".join(hits))
+    return {"status": "passed", "symbol": "_vu_biquad_process", "body_lines_with_relocations": len(body),
+            "forbidden_tokens": list(BIQUAD_FORBIDDEN), "forbidden_direct_references": hits,
+            "direct_callees": callees,
+            "supplementary_video_utils_callee_forbidden_references": callee_hits,
+            "scope": "direct body of the release staticlib symbol; supplementary direct video_utils callees; not every callee"}
+
+
 def main():
     if platform.system() != "Darwin":
         print(json.dumps({"status": "unsupported", "reason": "Apple SDK required; no tools installed"}))
@@ -131,6 +180,19 @@ def main():
         run(["xcrun", "clang", "-std=c11", "-Wall", "-Wextra", "-Werror",
              *includes, str(LANE / "tests/abi_harness.c"), str(library), "-o", str(BUILD / "abi-harness")])
         receipt["c_abi"] = json.loads(run([str(BUILD / "abi-harness")]))
+        missing = [name for name in BIQUAD_FFI_TESTS if f"test {name} ... ok" not in test]
+        if missing:
+            raise RuntimeError("biquad FFI tests missing or failed: " + ", ".join(missing))
+        receipt["biquad_ffi_tests"] = {"status": "passed", "tests": list(BIQUAD_FFI_TESTS),
+                                       "denominators": {"parity_cases": 150, "refusal_cases": 20,
+                                                        "allocation_calls": 2048}}
+        run(["xcrun", "clang", "-std=c11", "-Wall", "-Wextra", "-Werror", "-ffp-contract=off",
+             *includes, str(LANE / "tests/biquad_abi_harness.c"), str(library),
+             "-o", str(BUILD / "biquad-abi-harness")])
+        receipt["c_biquad_abi"] = json.loads(run([str(BUILD / "biquad-abi-harness")]))
+        if receipt["c_biquad_abi"].get("c_biquad_abi") != "passed":
+            raise RuntimeError("biquad C harness did not pass")
+        receipt["biquad_process_runtime_audit"] = inspect_biquad_process(library)
         native = ["xcrun", "clang++", "-std=c++17", "-fobjc-arc", "-fblocks",
                   "-Wall", "-Wextra", "-isysroot", sdk, *includes]
         kernel = BUILD / "GainKernel.o"
