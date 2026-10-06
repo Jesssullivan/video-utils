@@ -1,0 +1,319 @@
+{
+ "schema_version": 1,
+ "lane": "report_d6",
+ "sprint": "20261006-s2",
+ "linear": "TIN-5611",
+ "ruling": "R-N13; R-HOOK-CONVERGENCE-20261004; TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43",
+ "receipt_kind": "phase2_bundle_build",
+ "spec": "docs/spec/sprints/REPORT_S2.md",
+ "spec_commit": "75f28f72443807ccb5b72954f3e648f6e9e54459",
+ "implementation_commit": "5ada0c8a5eb056dc2855fa237400fd627918b903",
+ "script_sha256": {
+  "scripts/report_bundle.py": "091a54f186e0d8e22a842223d4936609b81a62eb0c24f37f0f42b3973a96b937",
+  "scripts/report.py": "a3f18765f7579448526e36fceca56a40b882814a3df2786c60f65fb82f0ee866"
+ },
+ "report_py_baseline_sha256_0cdca01": "a3f18765f7579448526e36fceca56a40b882814a3df2786c60f65fb82f0ee866",
+ "report_py_byte_identical_to_baseline": true,
+ "command": "timeout 600 python3 scripts/report_bundle.py build --run-dir /Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737",
+ "wall_seconds": 3.83,
+ "exit_code": 0,
+ "media_decoded": false,
+ "ffmpeg_invoked": false,
+ "accepted_run_directories_written": false,
+ "models_downloaded": false,
+ "bundle": {
+  "path": "/Users/jess/git/video-utils/.local/sprint2/report_d6/artifacts/s2/report_d6/bundles/20261006T041633Z-990aa1bd6737-20261006T194041Z",
+  "gitignored": true,
+  "bundle_sha256": "d3cfb5c729fe61612276821185997bd430cfbc89a1456893616d51d49426a333",
+  "bundle_json_sha256": "e8ad8276f38c8405ede12c5bd1165b9d40e43ed45bf406faf4835fd211de5023",
+  "member_count": 24,
+  "total_member_bytes": 4864121,
+  "members_by_role": {
+   "bound_payload": 5,
+   "derived_projection": 1,
+   "run_manifest": 1,
+   "s2_receipt": 5,
+   "binding_evidence": 1,
+   "derived_table": 11
+  }
+ },
+ "verify": {
+  "command": "python3 scripts/report_bundle.py verify --bundle-dir <bundle> --check-origin",
+  "status": "verified",
+  "bundle_sha256": "d3cfb5c729fe61612276821185997bd430cfbc89a1456893616d51d49426a333",
+  "member_count": 24,
+  "total_member_bytes": 4864121,
+  "origin_checked": true
+ },
+ "run": {
+  "run_id": "20261006T041633Z-990aa1bd6737",
+  "manifest_sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+  "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "duration_seconds": 150.961111
+ },
+ "analysis": {
+  "analysis_run_id": "20261005T232741Z-2b5dc43fd009",
+  "analysis_run_manifest_sha256": "4a75b4e352075114a7b6026c74acab3ab6c64eedddd52fc2b8514adfed80549c",
+  "analyzed_input_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+  "basis": "parent_run_from_capture_profile_authoring_dir",
+  "event_count": 3699,
+  "lineage": "verified_run_derivative_hash_bound",
+  "sha256": "4d32f962c5c59920943217cfb72fbe3c9e3eb9fefa3c6d9b79ee648187cadd0a",
+  "status": "bound"
+ },
+ "auxiliary": {
+  "dag": {
+   "copied": true,
+   "status": "source_hash_bound"
+  },
+  "flags": {
+   "copied": true,
+   "status": "source_hash_bound"
+  },
+  "markers": {
+   "copied": true,
+   "status": "source_hash_bound"
+  },
+  "phrases": {
+   "copied": true,
+   "status": "verified_run_derivative_hash_bound"
+  }
+ },
+ "review_flags": {
+  "authorship": "detector_hypothesis",
+  "row_cap": 200,
+  "rows": 180,
+  "total": 180
+ },
+ "receipts": [
+  {
+   "key": "tone_ab",
+   "file": "tone_ab-20261006T120702Z-actual-run.json",
+   "sha256": "328717ea2ccc3d52ac6543a34452b78c64f6ab528dffb8241694d9e3e8ce9ef6",
+   "binding_class": "run_bound",
+   "binding_basis": "run_manifest_sha256_equal",
+   "claim_class": "M x4; I x3; L x0"
+  },
+  {
+   "key": "rhythm_clicks",
+   "file": "rhythm_clicks-real-take.json",
+   "sha256": "c651a93b729f4d73f95adeed09a5b395003095f5a991c785ff11dd86cade437c",
+   "binding_class": "source_bound_different_analyzed_input",
+   "binding_basis": "analyzed_input_run_manifest_chain",
+   "claim_class": "M-real (no truth; unvalidated until operator spot check) unless marked I"
+  },
+  {
+   "key": "phrase_anchor_riff_spans",
+   "file": "phrase_anchor_riff-real-take-spans.json",
+   "sha256": "5b13963e1e67373b2c58dd39282df7f455e042aa48ad7379933d08c00e2e8ac3",
+   "binding_class": "source_bound_different_analyzed_input",
+   "binding_basis": "original_source_sha256_equal",
+   "claim_class": "inference_intent_projection_not_detection"
+  },
+  {
+   "key": "phrase_anchor_riff_bench",
+   "file": "phrase_anchor_riff-heldout-score.json",
+   "sha256": "71759466b5c1910f983e40eb6d21826801f46e3b1e7417a64bee70c3fa7ce61b",
+   "binding_class": "synthetic_bank_not_take",
+   "binding_basis": "generated_bank_identity",
+   "claim_class": "S (generated_research_scored)"
+  },
+  {
+   "key": "annot_corpus",
+   "file": "annot_corpus-implementation.json",
+   "sha256": "33c2023eca2a17a3afed98e556df934b769a61ae2fa1dc952288cc1180587fc2",
+   "binding_class": "metadata_bound",
+   "binding_basis": "run_manifest_sha256_referenced",
+   "claim_class": "M on metadata (per-metric claim_class)"
+  }
+ ],
+ "corpus": {
+  "annotation_store_sha256": "17041cb31476f91409e3c48f6434fcde8874ecd175a221b0f3fe644614d40eca",
+  "generated_banks": [
+   {
+    "accuracy_scope": "generated_only",
+    "bank_sha256": "89a16aca5fece3f31139bcad6fe95ddedec98aa86cf9f20a324c7af8387c8389",
+    "case_count": 16,
+    "claim_class": "S",
+    "cohorts": [
+     "aba-transition",
+     "b2b-picked",
+     "legato-transition",
+     "sustain32-fan-click",
+     "sweep-arpeggio",
+     "syncopated-palm-mute",
+     "tapping-run",
+     "through-composed"
+    ],
+    "note": "Generated-bank cases are never operator-labelled coverage of the take.",
+    "origin": "synthetic_generated_bank",
+    "real_take_accuracy": "unknown",
+    "receipt_key": "phrase_anchor_riff_bench",
+    "reference_totals": {
+     "negative_cases": 4,
+     "positive_pairs": 12,
+     "typed_endpoints": 48
+    },
+    "suite": "s2-riff-1511-1613-v1"
+   }
+  ],
+  "operator_labelled": {
+   "absence_note": "Absence of labels is not evidence of correctness.",
+   "annotation_count": 1,
+   "approved_expected_rhythm_reference": false,
+   "by_basis": {
+    "operator_context": 1
+   },
+   "by_claim_label": {
+    "INTENT": 1
+   },
+   "by_kind": {
+    "noise": 1
+   },
+   "by_reported_actor": {
+    "operator": 1
+   },
+   "by_review_state": {
+    "needs_review": 1
+   },
+   "claim_class": "M on metadata",
+   "coverage_fraction": 0.033121,
+   "covered_seconds": 5.0,
+   "duration_seconds": 150.961111,
+   "musical_phrase_labels": 0,
+   "note_label_kinds": [
+    "melodic_pitch"
+   ],
+   "note_labels": 0,
+   "origin": "operator_labelled",
+   "phrase_label_kinds": [
+    "phrase_duration",
+    "phrase_omission"
+   ],
+   "reason": null,
+   "statement": "small labelled corpus: 1 operator annotation covering 5.0 of 150.96 s; 0 musical phrase or note labels",
+   "store_bound": true,
+   "store_status": "bound"
+  },
+  "pools_summed": false
+ },
+ "unknowns": {
+  "click_identity": "unverified",
+  "default_adopted": false,
+  "editor_import_proven": false,
+  "expected_rhythm_reference_approved": null,
+  "fundamental_32hz_presence": null,
+  "listening_acceptance": "not_established",
+  "listening_accepted": false,
+  "master_changed": false,
+  "meter": null,
+  "missed_or_extra_notes": null,
+  "mode": null,
+  "nasal_quality": null,
+  "note_correctness": null,
+  "operator_preference": null,
+  "perceived_fullness": null,
+  "performance_grade": "not_performed",
+  "physical_capture_latency": "uncalibrated",
+  "quarto_render_status": "not_attempted",
+  "room_response_recovered": false,
+  "stems": "not_produced",
+  "tonic": null
+ },
+ "readback": {
+  "status": "unchanged",
+  "files_checked": 29,
+  "changed": [],
+  "fields": [
+   "sha256",
+   "size",
+   "mtime_ns"
+  ]
+ },
+ "metrics": {
+  "1_members_hash_bound": {
+   "class": "M",
+   "copies_origin_equals_bundle": "12/12",
+   "derived_with_recorded_derivation": "12/12",
+   "verify_check_origin": "verified",
+   "denominator_members": 24
+  },
+  "2_stage_files_rehashed": {
+   "class": "M",
+   "numerator": 6,
+   "denominator": 6,
+   "names": [
+    "baseline.wav",
+    "cleaned.wav",
+    "denoised.wav",
+    "processed.wav",
+    "residue.wav",
+    "source.wav"
+   ]
+  },
+  "3_analysis_binding": {
+   "class": "M",
+   "value": "1/1",
+   "lineage": "verified_run_derivative_hash_bound",
+   "basis": "parent_run_from_capture_profile_authoring_dir"
+  },
+  "4_auxiliary_statuses": {
+   "class": "M",
+   "statuses_recorded": "4/4",
+   "bound_copied": "4/4"
+  },
+  "5_s2_receipts": {
+   "class": "M (hash) + contract (class)",
+   "value": "5/5",
+   "classes_equal_contract_expectation": "5/5"
+  },
+  "6_media_members": {
+   "class": "M",
+   "media_members": "0/25 files",
+   "total_member_bytes": 4864121,
+   "cap_bytes": 16777216
+  },
+  "7_protected_readback": {
+   "class": "M",
+   "unchanged": "29/29"
+  },
+  "8_corpus": {
+   "class": "M on metadata; S for banks",
+   "operator_covered_seconds": 5.0,
+   "duration_seconds": 150.961111,
+   "phrase_labels": 0,
+   "note_labels": 0,
+   "generated_bank_cases": 16,
+   "generated_origin": "synthetic_generated_bank",
+   "pools_summed": false
+  },
+  "9_unknown_fields": {
+   "class": "contract",
+   "value": "21/21",
+   "with_reasons": 21
+  },
+  "12_html_fallback_intact": {
+   "class": "M",
+   "report_py_sha256_equal_baseline": true,
+   "footer_sentence_present": true
+  }
+ },
+ "measurements": [
+  "Stream sha256 of 6/6 manifest-listed stage WAVs equal to manifest.output_sha256 (names and hashes only).",
+  "Analysis lineage verified_run_derivative_hash_bound via the capture-profile parent run; dag artifact hash for analysis.json equals the bound analysis sha256.",
+  "29/29 opened inputs unchanged (sha256, size, mtime_ns) after staging.",
+  "Operator annotation store bound (source and manifest sha256 equal); 1 annotation, union coverage 5.0 of 150.961111 s, 0 phrase and 0 note labels."
+ ],
+ "inferences": [
+  "rhythm_clicks binds to this take only through the analyzed-input run manifest chain (run 20261006T034521Z-a0def0c43eac: output denoised.wav sha256 cb8a3f... and source sha256 equal); its figures describe a different denoised derivative than the bundle's analysis (26c9f4...).",
+  "phrase_anchor_riff_spans figures are operator-intent projections onto a fitted grid, not detections."
+ ],
+ "listening_claims": [],
+ "deviations": [
+  "The contract's expected corpus 'basis INTENT' is the store's claim_label; the store basis field is operator_context. Both are recorded (by_basis, by_claim_label).",
+  "rhythm_clicks carries no original-source hash, so binding uses the additive analyzed_input_run_manifest_chain basis documented in REPORT_S2.md Phase 2 notes; the chain manifest is a hash-bound bundle member (receipts/rhythm_clicks.chain-manifest.json)."
+ ],
+ "default_adoption": false,
+ "master_changed": false,
+ "listening_accepted": false
+}

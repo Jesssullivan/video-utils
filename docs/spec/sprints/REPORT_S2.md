@@ -428,3 +428,48 @@ outcomes.
 Receipt: `report_d6 | spec only, no numerics/no nix/no render | Phase 1
 contract freeze | R-N13 (R-HOOK-CONVERGENCE-20261004) | accepted run
 20261006T041633Z-990aa1bd6737 read-only | no default/profile/master adoption`.
+
+## Phase 2 implementation notes (additive; frozen text above unchanged)
+
+These notes record how the implementation resolves points the frozen text left
+open. They change no rule, cap, registry entry or unknown field.
+
+- **Chain binding for receipts without an original-source hash.** The
+  `rhythm_clicks` receipt records `source.analyzed_input_sha256` (cb8a3f...)
+  and `source.analyzed_input` but no original-source sha256. The builder uses
+  the recorded path only as a locator, and only inside
+  `<data_root>/artifacts/runs/`. It reads that run's `manifest.json` and
+  accepts the binding only if two hashes match: `output_sha256[<file name>]`
+  must equal the receipt's analyzed-input sha256, and `source.sha256` must
+  equal this run's source sha256. The class is still decided by hash equality.
+  It is recorded with `binding_basis: analyzed_input_run_manifest_chain`. The
+  chain manifest is copied as the hash-bound member
+  `receipts/<key>.chain-manifest.json` (role `binding_evidence`), so
+  `verify --check-origin` covers it. A receipt with no in-receipt identity and
+  no valid chain stays `unbound_context_only`.
+- **Class order.** The order is `run_bound`, then explicit original-source
+  equality (a differing original source gives `unbound_context_only`), then
+  the analyzed-input chain, then a manifest sha referenced anywhere under a
+  `manifest`/`manifest_sha256` key (`metadata_bound`), then a generated-bank
+  identity (`bank_sha256` with `generated_only` scope or `generated*` status),
+  then `unbound_context_only`. "Same analyzed input" compares against the bound
+  analysis's input sha256, or against the run's `denoised.wav` hash when no
+  analysis is bound.
+- **Corpus basis.** In the v2 store, `basis` is `operator_context`. `INTENT` is
+  its `claim_label`. Both `by_basis` and `by_claim_label` are recorded. Phrase
+  labels count kinds `phrase_omission` and `phrase_duration`. Note labels count
+  `melodic_pitch`. Annotation `status` is projected as `review_state`.
+- **Hash scope.** `bundle_sha256` covers exactly `{run, members, receipts,
+  unknowns}`. `run.corpus_sha256` binds `bundle.json.corpus`, and `verify`
+  recomputes it. `run.readback` (the protected readback record) sits inside
+  `run`. Fields outside that scope (`created_utc`, `builder`, `limits`) are
+  informational.
+- **Bundle sha in the Quarto document.** `identity.csv` cannot hold the bundle
+  sha256 without a cycle. The document first runs `verify --status-only`. Only
+  after `verified` does it run plain `verify`, and it extracts `bundle_sha256`
+  from that output with a base-R regular expression (no jsonlite).
+- **Additive tables.** Besides the contract tables, the bundle carries
+  `identity.csv`, `stage_files.csv`, `auxiliary.csv`, `receipt_figures.csv` and
+  `annotations.csv`. `members.csv` lists every member except itself.
+- **Test count.** There are 19 tests: the 18 planned tests plus a CLI
+  exit-code and `describe` test.
