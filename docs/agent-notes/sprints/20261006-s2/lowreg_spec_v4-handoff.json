@@ -1,0 +1,145 @@
+{
+  "lane": "lowreg_spec_v4",
+  "branch": "sprint/20261006-s2/lowreg_spec_v4",
+  "head": "a245bcaff198831bc4b99105004ada71ada24d52",
+  "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint2/lowreg_spec_v4",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": "docs/agent-notes/peers/xoruby/V4-render-spec.md",
+      "sha256": "a682ec69b14e22257a7b9d38f913843f39a1f3f15fce1a431bd38ff9e3e7d436",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/lowreg_spec_v4-contract.json",
+      "sha256": "a6586d768b528a6b6f510aebdc343fcf646c32ab8dc1566405a4b2320f1890fd",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/lowreg_spec_v4-tests.json",
+      "sha256": "b644098424562a1281a43c3fa090e356cf7b8ef1feeeb38ffde2a52c252ab4d0",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/LOW_REGISTER_SPECTROGRAM_SPEC.md",
+      "sha256": "b6f4ec493ececc891d6009f86b0346afdd75a77bc247ff08aa31ae5658a90b49",
+      "kind": "spec"
+    },
+    {
+      "path": "docs/spec/sprints/LOWREG_SPEC_S2.md",
+      "sha256": "f1f6f002002f2dff794a89e341bfbcdbecc90295393fe9ac7a051cb22414af7f",
+      "kind": "receipt"
+    },
+    {
+      "path": "program/spectrogram-lowreg-v1.json",
+      "sha256": "ed6ce97a37c749490002c0ce7cdc3a3e562386d0cb3100d6899464b66a15d2e5",
+      "kind": "data"
+    },
+    {
+      "path": "scripts/lowreg_spectrogram.py",
+      "sha256": "868995461be81b44f2cfdbf8f028662a7b38cef15a461b356dd6ff3d7b59a969",
+      "kind": "source"
+    },
+    {
+      "path": "tests/fixtures/lowreg-golden-v1.json",
+      "sha256": "e090de4dacfec805945f0b737ce29f3ece0c73318393d5a5b47213211bef57e4",
+      "kind": "data"
+    },
+    {
+      "path": "tests/test_lowreg_spectrogram.py",
+      "sha256": "82c867df53a5865f151b20148cdb16ff7c2302235415811ea0af3ccb6bc1e3c6",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_lowreg_spectrogram -v",
+    "discovered": 19,
+    "passed": 19,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 1,
+    "seconds": 26.7
+  },
+  "metrics": [
+    {
+      "name": "M7_construction_sanity_hann_sinusoid",
+      "numerator": 58.504,
+      "denominator": 1,
+      "unit": "dB",
+      "claim_class": "inferred"
+    },
+    {
+      "name": "M8_construction_sanity_noise_floor",
+      "numerator": 55.089,
+      "denominator": 1,
+      "unit": "dB",
+      "claim_class": "inferred"
+    },
+    {
+      "name": "M12_runtime_wall",
+      "numerator": 26.7,
+      "denominator": 120,
+      "unit": "seconds",
+      "claim_class": "measured"
+    },
+    {
+      "name": "golden_sample_coverage",
+      "numerator": 1910,
+      "denominator": 1910,
+      "unit": "frames",
+      "claim_class": "measured"
+    },
+    {
+      "name": "golden_aggregate_checks",
+      "numerator": 6,
+      "denominator": 6,
+      "unit": "stats",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "note_identity",
+    "intended_note_reference",
+    "tonic",
+    "mode",
+    "onset_timing",
+    "resampler_group_delay_samples",
+    "real_take_behaviour",
+    "listening_validation",
+    "calibration_against_artist_references"
+  ],
+  "root_owned_changes_requested": [],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261006-s2/lowreg_spec_v4-contract.json",
+    "docs/agent-notes/sprints/20261006-s2/lowreg_spec_v4-tests.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Ownership: I ran `git diff --name-only 4b87484...HEAD` in /Users/jess/git/video-utils/.local/sprint2/lowreg_spec_v4. It lists 9 files, all on the owned list: LOW_REGISTER_SPECTROGRAM_SPEC.md, LOWREG_SPEC_S2.md, spectrogram-lowreg-v1.json, lowreg_spectrogram.py, test_lowreg_spectrogram.py, lowreg-golden-v1.json, V4-render-spec.md and the two lowreg_spec_v4-*.json receipts. No root-owned or foreign files are touched. program/tools.json, scripts/tool_api.py and just/workflow.just have an empty diff.",
+      "Frozen contract unchanged: `git diff 54b85b4..HEAD --stat` does not list LOWREG_SPEC_S2.md or the contract receipt. The current sha256 of LOWREG_SPEC_S2.md is f1f6f002…af7f, which equals contract_sha256 in lowreg_spec_v4-contract.json.",
+      "Hash claims confirmed with shasum: program/spectrogram-lowreg-v1.json = ed6ce97a…2e5, the golden = e090de4d…57e4 at 42,035 bytes, and scripts/lowreg_spectrogram.py = 868995…a969, all as receipted. The spec self-hash 880451c0… is checked by test_m3 and passes.",
+      "(2) No protected writes: `find artifacts/runs -newer LOWREG_SPEC_S2.md` in the main checkout returns nothing. The lane's scratch output exists only in the gitignored worktree artifacts/s2/lowreg_spec_v4/ (trial-golden.json and t-*.log). A grep of scripts/lowreg_spectrogram.py finds no subprocess, network or download code. There is no daemon.",
+      "(4) Rerun with system python3 3.12 (`PYTHONPATH=tests python3 -m unittest test_lowreg_spectrogram -v`): Ran 19, OK, skipped=1 (NumpyParityTests: 'numpy not importable'), exit 0, 26.7 s wall. This matches the receipt's 19 run / 1 skip. I also ran NumpyParityTests alone under /Users/jess/git/video-utils/.venv/bin/python: 1 test, OK (M4 30400/30400 path).",
+      "The tests exercise the claimed behaviour. Golden regeneration goes through a real render() of a written WAV and checks 1910/1910 values, 6/6 aggregates and both hash identities (tests/test_lowreg_spectrogram.py:182-193). Streamed PCEN is checked for exact equality at block sizes 1, 7 and 95, with a negative control showing a per-block reset differs (:229-247). The 7 refusal classes each assert exit 2 and an unchanged input (:268-325). Geometry, unit-sum and two-tap low filters are checked at :90-118.",
+      "(6) Independent arithmetic. I modelled six windowed Hann sinusoids (A/2 * sinc(d)/(1-d^2)), applied the band-17 clamped-triangle weights (0.2687 on bin 16, 0.7313 on bin 17, fk 32.678 Hz) and summed harmonic powers. This predicts D[94,17] = -17.448 dB; the golden stores -17.4445 dB. The 0.004 dB gap fits the tone x noise cross-term, about ±0.014 dB at a -73.1 dB noise floor. The predicted broadband floor (0.02^2/3 * 1536/2048^2) is -73.1 dB; the golden's pre-onset D[0,17] is -75.95 dB, within the spread of a single-frame two-bin noise estimate. From the golden rows: M7 = -17.4445 - (-75.9484) = 58.504 dB and M8 = -17.4445 - (-72.5339) = 55.089 dB, matching the receipt.",
+      "Derived constants confirmed by hand: smoothing b = (sqrt(1601) - 1)/800 = 0.0487656; 24*log2(100) = 159.45, giving K = 160; last centre 20*2^(159/24) = 1974.03 Hz; interpolation thresholds 1.953125/(1-2^(-1/24)) = 68.61 Hz and 1.953125/(2^(1/24)-1) = 66.65 Hz; C1 semitone 1.943 Hz; sixteenth at 178 BPM = 84.27 ms, about 6.08 per 512 ms; 16.74 C1 cycles per window; tail coverage 2.136 s and 64 unanalysed samples. I also checked band 42 (67.29 Hz), which sits between the two thresholds: it still has only 2 taps, so the 'at most two taps' caveat holds there.",
+      "(3)/(5) Claim classes are correct. M7 and M8 are labelled C (construction sanity on generated data, 'not guitar evidence'), and the remaining metrics are M with denominators. There are no I or L claims. Real-take behaviour, listening and calibration are 'not_run', 'not_assessed' and 'unknown'. There are no note-correctness or missed-note verdicts. Adoption is 'none' in the spec, the golden, render.json and the peer note. The fixture-only nature is stated in the receipt and in V4-render-spec.md.",
+      "Doctrine: preprocessing is explicitly 'none: no DC removal, pre-emphasis, high-pass, notch or dither' (scripts/lowreg_spectrogram.py:75). fmin is 20 Hz, test_m6 asserts there is no 80/400 Hz floor, and a tampered fmin of 80 is refused. The explicit unknown/null fields are present with reasons: note_identity, intended_note_reference, tonic, mode, onset_timing and resampler_group_delay_samples (:144-150, :468-505). Test runs were bounded by `timeout 300`.",
+      "Minor: render() checks only whether out_dir itself is a symlink (scripts/lowreg_spectrogram.py:539-556). A symlinked parent component is not rejected, so 'symlinked output escape' (contract) is only partly covered. This does not block merge.",
+      "Minor: there is a small window between the pre-read hash and the read (scripts/lowreg_spectrogram.py:547-553). It is mitigated because the file is re-hashed after rendering and outputs are refused on a mismatch.",
+      "Minor: the `spec --sha` subcommand (scripts/lowreg_spectrogram.py:741-745) checks only the self-hash, not version or parameter equality. render and golden do enforce the full check through load_spec.",
+      "Note: the orchestrator summary lists the lane's claim as 'tests null', but the committed receipt docs/agent-notes/sprints/20261006-s2/lowreg_spec_v4-tests.json records full counts (19 run / 1 skip on system python; 19 / 0 on the venv), and I reproduced them. The summary's missing test field is a reporting gap, not a lane defect.",
+      "Commits 54b85b4, d930953 and 530b51d are unsigned (%G? = N) and unpushed, as stated. Signing belongs to root at merge, and the commit messages carry no AI attribution.",
+      "M12 runtime: the receipt says 46 s and my run took 26.7 s, both within the 120 s budget. Running the tests regenerated gitignored __pycache__ directories in the worktree, which were already present and ignored."
+    ],
+    "must_fix": []
+  }
+}
