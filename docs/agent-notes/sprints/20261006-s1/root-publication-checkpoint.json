@@ -1,0 +1,36 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13",
+  "actor": "/root",
+  "observed_at": "2026-10-06T06:38:33.996566+00:00",
+  "source_commit": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
+  "private": true,
+  "signature_verified": true,
+  "signature_reason": "valid",
+  "exact_remote_head": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
+  "typed_tools": 32,
+  "skills": 32,
+  "admin_merges": 6,
+  "local_full_suite": {
+    "discovered": 1014,
+    "passed": 1013,
+    "skipped": 1,
+    "seconds": 248.5
+  },
+  "postmerge_independent_suite": {
+    "passed": 30,
+    "seconds": 2.355
+  },
+  "hosted_ci": [
+    {
+      "conclusion": "",
+      "databaseId": 37424756499,
+      "headSha": "48c46f090f6c7fe7a07660367ac6c098bed7f81c",
+      "status": "in_progress",
+      "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37424756499"
+    }
+  ],
+  "state": "published_signed_private_source_hosted_ci_pending",
+  "master_or_desktop_changes": false,
+  "performance_truth": "not_established",
+  "note": "No AU/editor/hosted service activation; code source identity is separate from later documentation-only receipts."
+}

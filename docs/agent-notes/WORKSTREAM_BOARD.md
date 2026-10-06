@@ -35,12 +35,12 @@ is a valid evaluated result, never an automaticdefault/master change.
 | phrases | s1_phrases | sprint/20261006-s1/phrases | Signed root merge;12 synthetic cases, pair4/4,20ms endpoints0/16; research only | Preserve limits; continuous riffs future |
 | low register | s1_low_register | sprint/20261006-s1/low_register | Signed root merge;36 rows independently recomputed; low-band fan collision retained | Preserve experimental exclusions |
 | corpus | s1_corpus | sprint/20261006-s1/corpus | Signed root merge; leakage refusal; actual-demo context-only unassigned metadata validates | Combined typed admission |
-| audit | s1_audit | sprint/20261006-s1/audit | Independent fixes/numeric closure;32-tool and final matrix running | Root merge final audit |
-| integration | root | main | New hook5/5 real MCP checks;147 combined checks pass(2 optional skips); full qualified suite running | Sign/publish; exact hosted CI/readback |
+| audit | s1_audit | sprint/20261006-s1/audit | Independent fixes/numeric closure;32-tool and final matrix passed | Root merge final audit |
+| integration | root | main | 32 hooks/skills qualified;full1014(1013pass/1skip) plus30 audit pass;source48c46f0 privately published | Exact hostedCI37424756499 running; final readback |
 
 Accepted master and Desktop remain unchanged. New actual-demo annotation is
-operator context0–5s, not a detected mistake or pure-noise assertion. Source
-publication and CI are pending; native AU/editor and future hosted work remain queued.
+operator context0–5s, not a detected mistake or pure-noise assertion. Signed source48c46f0 is privately published; hosted
+CI is pending; native AU/editor and future hosted work remain queued.
 
 
 ## Final delivery checkpoint — October 6, 05:34 UTC
