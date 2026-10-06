@@ -1,0 +1,76 @@
+{
+  "receipt": "web_reliability-handoff",
+  "lane": "web_reliability",
+  "sprint": "20261006-s2",
+  "tracker": "TIN-5616 (related TIN-5550 JOBS / WEB-2, TIN-5551 STACK)",
+  "branch": "sprint/20261006-s2/web_reliability",
+  "baseline_commit": "5436b2d008b55ce7cd4ba3b926c00bf44f9943b6",
+  "contract_commit": "665b5ee5a1cc06aa7e1e22a90d27ab88c8e38e53",
+  "date": "2026-10-06",
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "state": "implemented_tested_committed_unpushed",
+  "files": [
+    "tests/test_web_reliability.py",
+    "docs/spec/sprints/WEB_RELIABILITY_S2.md (section 14 appended; sections 1-13 unchanged)",
+    "docs/agent-notes/sprints/20261006-s2/web_reliability-tests.json",
+    "docs/agent-notes/sprints/20261006-s2/web_reliability-real-web-job.json",
+    "docs/agent-notes/sprints/20261006-s2/web_reliability-handoff.json"
+  ],
+  "measured": {
+    "named_tests": "17 named; run2: 16/16 counted pass, 0 fail, 0 error, 1 skipped (opt-in real take, run separately); run1: 15 pass, 1 error (BFF install/build exceeded test_web_stack's 300 s build timeout at 1-min load ~237-267 on 6 logical CPUs from other sessions)",
+    "api_demo_steps": "12/12 (run1 and run2)",
+    "bff_demo_steps": "13/13 in run2 (12 + control_api_down); run1 errored before step 1 (build timeout)",
+    "rejected_input": "1/1 typed refusal 422 not_media; store counts and source listing unchanged (both arms)",
+    "cancel_mid_run": "owned PIDs gone 2/2 (stub leader + same-group child), SIGTERM to owned group, 0 artifacts, no attempt-*/.staging-* dir, ack_at <= observed_stop_at",
+    "reconnect_after_restart": "job A projection equal on every key 1/1 on I3 (new token); job C interrupted/dead/supervisor_restarted; old tokens refused (API 401 token_required; BFF 502 control_api_token_refused, upstream_status 401)",
+    "private_download_hash": "body = X-Artifact-Sha256 header = row sha256 at demo step 5 (each arm) and the real take; demo step 11 re-download body = row sha256 (each arm)",
+    "interrupt_replay_retry": "demo 1/1 + FI-9 1/1 + FI-1a/FI-10 retries; attempt-1 staging byte-identical with attempt-2 set aside; job A tree and rows unchanged",
+    "no_duplicate_publish": "3 jobs, 4 attempts, 6 artifact rows, 2 publication dirs; replays of 3 keys returned the same 3 job ids and changed no count",
+    "injection_classes": "10/11 run, all executions passed (7 run_exact, 2 run_adapted, 1 run_partial); FI-6 not_applicable; FI-3 sub-cases not run: disk, rss, cpu, per_operator_rate (no such quotas exist)",
+    "injection_executions": "n=16; lost job records 0/16; duplicate publications 0/16",
+    "path_token_leak": "0 leaking responses over 283 checked (run2)",
+    "loopback_only": "every WebAPIServer bound 127.0.0.1; 4 test-owned node serve.js groups on loopback (I1, I2, I3, old-token probe), all closed",
+    "read_only_inputs": "synthetic artifacts/runs digest equal per class; accepted run tree digest equal before/after the real take (14 entries)",
+    "real_take_web_job": "succeeded, worker_kind tool_api_share_export, exported_unreviewed; source 3631 total / 3621 presented / 10 decode-only; output 3621 / 3621 / 0; comparison_scope presented_packets_excluding_edit_list_discard; max PTS delta 0, tail delta 0, extent 0.0-150.885 s; ffprobe -count_frames 3621 on downloaded bytes; download sha256 2eba932a... = header = row; replay same job, 1 attempt, 1 publication; confirmation criteria 7/7",
+    "host_timings": "real take submit-to-terminal 126.374 s at 1-min load 134 -> 38; synthetic demo preview 4.0 s and retry 7.5 s (run2 API arm); BFF install+build 76.5 s (run2). Host measurements only; no SLO comparison"
+  },
+  "inferred": [
+    "The merged share_export fix (worker sha256 1d831e7c...) is exercised on the web path for this source: the web job no longer refuses the edit-list pre-roll source that failed earlier with a total-packet-count refusal.",
+    "The real-take output sha256 equals the share_export_fix CLI real-take sha256 2eba932a... (observed equal for this one run at the same default settings; determinism is not claimed)."
+  ],
+  "unknown_not_claimed": [
+    "SLO attainment, hosted rollout, exactly-once, OS memory/disk/CPU quotas, WEB_BACKEND 30-injection target",
+    "listening acceptance, low-register (~32 Hz) preservation of the lossy AAC derivative, musical/note/phrase correctness",
+    "decoded picture identity (packet PTS and frame counts only), physical capture sync",
+    "UI rendering / hydration / browser playback (no browser in this lane)",
+    "master or derivative adoption; no detector, profile or master default changed"
+  ],
+  "deviations_recorded": "spec section 14: injection summary miscount (table rows give 10 run, not 9); BFF ui- key mapping; BFF old-token probe semantics; 4 node groups; real-take timeout cancel order; BFF build timeout under load (run1)",
+  "evidence_files_gitignored": {
+    "artifacts/s2/web_reliability/run1-test.log": "aeb46a1f2f6c178b2a557da759aed6b06ebf7ffdc8f8a75769a43772cff56c4b",
+    "artifacts/s2/web_reliability/run2-test.log": "908a05a7b5b5f06ee944cc1a4e4c8a794684f057d4c2cf933eb37751c28a5dfe",
+    "artifacts/s2/web_reliability/run2-metrics.json": "d428673a9c4f76309021f92933297567f47199247602f7a39b0d508b64ebc25f",
+    "artifacts/s2/web_reliability/real-run.log": "e5564290a5962e89eb26f1545d882823b6de43f390e4c8430d79f859f74a573a",
+    "artifacts/s2/web_reliability/real-web-job.json": "fa553c37b225f9cc04e39dd4a9f5e15bd6431a66dfa88a75441ccb96de5bc0ff",
+    "artifacts/web-jobs/s2-web_reliability-real-20261006T211547Z/": "real-take job state root (private publication + downloaded copy)"
+  },
+  "root_owned_changes_requested": [
+    {
+      "file": "program/capabilities.json",
+      "change": "share_export.adapters.web_job: \"planned\" -> \"admitted\"",
+      "evidence": "docs/agent-notes/sprints/20261006-s2/web_reliability-real-web-job.json (7/7 criteria) + web_reliability-tests.json",
+      "decision": "root"
+    },
+    {
+      "file": "scripts/web_jobs.py",
+      "change": "_worker_checks video_proof allowlist add comparison_scope, source_packet_count_total, output_packet_count_total, source_presented_packet_count, output_presented_packet_count, source_decode_only_packets, output_decode_only_packets",
+      "decision": "root / web_jobs owner"
+    },
+    {
+      "file": "just/workflow.just",
+      "change": "optional foreground recipe web-reliability-test",
+      "decision": "root"
+    }
+  ],
+  "no_actions": ["no push", "no merge", "no Linear write", "no model download", "no daemon", "no non-loopback listener", "no edit outside owned files"]
+}

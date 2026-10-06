@@ -1,0 +1,328 @@
+{
+  "accepted_run_tree": {
+    "after_sha256": "f641b36733e87c5d3979c1e8124fa37273fd4b08f7630b016be54ab23143fc37",
+    "before_sha256": "f641b36733e87c5d3979c1e8124fa37273fd4b08f7630b016be54ab23143fc37",
+    "entries": 14,
+    "method": "relative paths + type + size + mtime_ns + sha256",
+    "unchanged": true
+  },
+  "agreement_with_share_export_fix_receipt": {
+    "fix_receipt": {
+      "source_decode_only": 10,
+      "source_presented": 3621,
+      "source_total": 3631
+    },
+    "note": "reported as agreement, not a criterion",
+    "this_run": {
+      "source_decode_only": 10,
+      "source_presented": 3621,
+      "source_total": 3631
+    }
+  },
+  "artifacts": [
+    {
+      "artifact_id": "art_66042e590676e7f4be479353dbed3b03",
+      "attempt": 1,
+      "content_type": "application/json",
+      "downloadable": true,
+      "role": "publication",
+      "sha256": "25b3292e3a284552ac7d3918c9150b59e758b19c75d420be8a76542214bfcc91",
+      "size_bytes": 2409
+    },
+    {
+      "artifact_id": "art_49b6d4aac49a8dd87e74d79e8d82131f",
+      "attempt": 1,
+      "content_type": "video/mp4",
+      "downloadable": true,
+      "role": "share_mp4",
+      "sha256": "2eba932afe629d06ad45eaaccb8bdddf0e73aff828808a3c5b78f50e690e27db",
+      "size_bytes": 22555377
+    },
+    {
+      "artifact_id": "art_ed514415439d2843f800a6a1b9eaeb30",
+      "attempt": 1,
+      "content_type": "application/json",
+      "downloadable": false,
+      "role": "share_receipt",
+      "sha256": "56438c29cebbc5eed7d0179633c4db3350693b1b352a8632fc7d8822bc8ea0dd",
+      "size_bytes": 11668
+    }
+  ],
+  "bound_seconds": 1100,
+  "capability_revision": "7f14832b6c3d235c2d51e813f8e03e29e4e8285847cff4fad830af8349577d13",
+  "claim_class": "structural_delivery_check",
+  "confirmation_criteria": {
+    "accepted_run_tree_unchanged": true,
+    "download_sha_eq_row": true,
+    "ffprobe_decoded_eq_output_presented": true,
+    "output_decode_only_zero_and_presented_scope": true,
+    "output_presented_eq_source_presented": true,
+    "replay_same_job_one_publication": true,
+    "succeeded_exported_unreviewed": true
+  },
+  "confirmation_criteria_met": "7/7",
+  "displayed_frames": {
+    "comparison_scope": "presented_packets_excluding_edit_list_discard",
+    "maximum_pts_delta_seconds": 0.0,
+    "output_decode_only_packets": 0,
+    "output_packet_count_total": 3621,
+    "output_presented_packet_count": 3621,
+    "packet_count": 3621,
+    "read_from": "job-private share.mp4.receipt.json (403 artifact_private over HTTP), allowlisted keys",
+    "source_decode_only_packets": 10,
+    "source_end_seconds": 150.885,
+    "source_packet_count_total": 3631,
+    "source_presented_packet_count": 3621,
+    "source_start_seconds": 0.0,
+    "tail_extent_delta_seconds": 0.0,
+    "tolerance_seconds": 5.208333333333334e-05,
+    "worker_checks_video_proof_packet_count": 3621
+  },
+  "download": {
+    "bytes": 22555377,
+    "download_seconds_host": 0.201,
+    "equal": true,
+    "header_sha256": "2eba932afe629d06ad45eaaccb8bdddf0e73aff828808a3c5b78f50e690e27db",
+    "http_status": 200,
+    "row_sha256": "2eba932afe629d06ad45eaaccb8bdddf0e73aff828808a3c5b78f50e690e27db",
+    "sha256": "2eba932afe629d06ad45eaaccb8bdddf0e73aff828808a3c5b78f50e690e27db"
+  },
+  "experiment": false,
+  "ffprobe_count_frames": {
+    "decoded_video_frames": 3621,
+    "method": "ffprobe -count_frames nb_read_frames on downloaded bytes",
+    "returncode": 0
+  },
+  "hashes": {
+    "download_sha256": "2eba932afe629d06ad45eaaccb8bdddf0e73aff828808a3c5b78f50e690e27db",
+    "publication_bytes": 2409,
+    "publication_sha256": "25b3292e3a284552ac7d3918c9150b59e758b19c75d420be8a76542214bfcc91",
+    "receipt_bytes": 11668,
+    "receipt_sha256": "56438c29cebbc5eed7d0179633c4db3350693b1b352a8632fc7d8822bc8ea0dd",
+    "source_sha256": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82"
+  },
+  "host": {
+    "cpu": "Apple A18 Pro",
+    "ffmpeg": "ffmpeg version 8.1.2",
+    "logical_cpus": 6,
+    "node": "v22.23.2",
+    "pnpm": "11.25.0",
+    "python": "3.12.14",
+    "system_machine": "Darwin arm64"
+  },
+  "host_load": {
+    "end": [
+      38.21,
+      113.01,
+      154.35
+    ],
+    "start": [
+      134.04,
+      169.77,
+      179.42
+    ]
+  },
+  "job_id": "job_58dd860c85668d7d4a8a8524b11c8dc2",
+  "lane": "web_reliability",
+  "observed_state_phase_sequence": [
+    [
+      "running",
+      "claimed"
+    ],
+    [
+      "running",
+      "worker_started"
+    ],
+    [
+      "succeeded",
+      "published"
+    ]
+  ],
+  "outcome": "succeeded",
+  "output_determinism_vs_prior_run": "observed_equal",
+  "parameters": {
+    "audio_kbps": 96,
+    "codec": "h264",
+    "crf": 27,
+    "height": 720,
+    "timeout_seconds": 900
+  },
+  "prior_run_comparison_note": "share_export_fix real-take sha256 2eba932a...; equality is neither required nor claimed",
+  "promotion_recommended": true,
+  "reason_code": null,
+  "receipt": "web_reliability-real-web-job",
+  "replay": {
+    "attempts": 1,
+    "http_status": 200,
+    "replayed": true,
+    "same_job": true
+  },
+  "role": "accepted FULLER audio run, export video (run-dir export, read-only)",
+  "run_id": "20261006T041633Z-990aa1bd6737",
+  "server": {
+    "bind": "127.0.0.1",
+    "daemon": false,
+    "dispatcher": "default (tool_api share_export worker)",
+    "uploads": false
+  },
+  "share_export_fix_confirmed_on_web_path": true,
+  "source": {
+    "sha256": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82",
+    "sha256_prefix_matches_handoff": true,
+    "size_bytes": 230489826,
+    "source_artifact_id": "art_d067867bd7362cbd5504e4a00366fc93",
+    "source_binding": "bound",
+    "source_id": "src_c42341b6988ebe324a82cd77283597ba"
+  },
+  "spec": "docs/spec/sprints/WEB_RELIABILITY_S2.md section 7",
+  "sprint": "20261006-s2",
+  "state": "succeeded",
+  "state_root_relative": "artifacts/web-jobs/s2-web_reliability-real-20261006T211547Z",
+  "store": {
+    "counts": {
+      "artifacts": 3,
+      "attempts": 1,
+      "jobs": 1,
+      "sources": 1
+    },
+    "publication_dirs": 1
+  },
+  "submit_to_terminal_seconds_host": 126.374,
+  "tracker": "TIN-5616",
+  "unknowns": {
+    "bff_arm": null,
+    "bff_arm_reason": "the real-take rerun is API-level only",
+    "cpu_seconds": null,
+    "cpu_seconds_reason": "not measured; no OS quota",
+    "decoded_picture_identity": null,
+    "decoded_picture_identity_reason": "packet PTS and frame counts only, no per-picture comparison",
+    "exactly_once": "not_claimed",
+    "host_load": {
+      "end": [
+        38.21,
+        113.01,
+        154.35
+      ],
+      "start": [
+        134.04,
+        169.77,
+        179.42
+      ]
+    },
+    "hosted_rollout": "not_claimed",
+    "injection_classes_not_run": [
+      {
+        "id": "FI-6",
+        "reason": "share_export, the only admitted job type, uses no model; nothing is injected"
+      },
+      {
+        "id": "FI-3/disk",
+        "reason": "no disk quota exists"
+      },
+      {
+        "id": "FI-3/rss",
+        "reason": "no memory (RSS) quota exists"
+      },
+      {
+        "id": "FI-3/cpu",
+        "reason": "no CPU quota exists"
+      },
+      {
+        "id": "FI-3/per_operator_rate",
+        "reason": "no per-operator rate limit exists"
+      }
+    ],
+    "listening_acceptance": "not_established",
+    "low_register_preservation": null,
+    "low_register_preservation_reason": "the lossy AAC sharing derivative is not measured at ~32 Hz by this lane",
+    "master_adopted": false,
+    "memory_bytes_peak": null,
+    "memory_bytes_peak_reason": "not measured; no OS quota",
+    "musical_review": null,
+    "musical_review_reason": "no note-correctness, missed-note or phrase verdicts",
+    "output_determinism_vs_prior_run": "observed_equal",
+    "physical_capture_sync": null,
+    "physical_capture_sync_reason": "not verified",
+    "slo": "not_claimed",
+    "ui_rendering": null,
+    "ui_rendering_reason": "no browser render or screenshot in this lane"
+  },
+  "unknowns_projection": {
+    "cpu_seconds": null,
+    "cpu_seconds_reason": "not measured; no OS CPU quota is applied",
+    "exactly_once": "not_claimed",
+    "listening_acceptance": "not_established",
+    "low_register_preservation": null,
+    "low_register_preservation_reason": "lossy AAC sharing derivative; ~32 Hz content is not measured by this lane",
+    "master_adopted": false,
+    "memory_bytes_peak": null,
+    "memory_bytes_peak_reason": "not measured; no OS memory quota is applied",
+    "musical_review": null,
+    "musical_review_reason": "no note-correctness, missed-note or phrase verdicts are made by a job service",
+    "slo": "not_claimed",
+    "source_duration_seconds": 150.885,
+    "source_duration_seconds_reason": "worker video packet presentation extent (source_end - source_start); not a container probe",
+    "worker_birth": "recorded",
+    "worker_birth_reason": "ps lstart recorded for the latest attempt"
+  },
+  "worker_checks": {
+    "audio_proof": {
+      "audio_reencoded": true,
+      "channels": 1,
+      "exact_pcm_sample_identity": false,
+      "method": "decoded_audio_frame_timestamps_and_samples",
+      "priming_padding_allowance_seconds": 0.023242630385487528,
+      "sample_rate": 44100
+    },
+    "byte_reduction_fraction": 0.902141550490823,
+    "codecs": {
+      "audio": "aac",
+      "video": "h264"
+    },
+    "dimensions": {
+      "height": 720,
+      "width": 1080
+    },
+    "listening_accepted": false,
+    "loudness": {
+      "integrated_lufs": -18.06,
+      "method": "ffmpeg_loudnorm_decoded_audio_measurement",
+      "silence": false,
+      "true_peak_dbtp": -1.81
+    },
+    "master_adopted": false,
+    "output_bytes": 22555377,
+    "output_decode_errors_checked": true,
+    "output_sha256": "2eba932afe629d06ad45eaaccb8bdddf0e73aff828808a3c5b78f50e690e27db",
+    "settings": {
+      "attenuation_db_max": 3.0,
+      "audio_attempts_max": 2,
+      "audio_kbps": 96,
+      "cleanup_grace_seconds": 5,
+      "codec": "h264",
+      "crf": 27,
+      "height": 720,
+      "operation_seconds": 890,
+      "reporting_headroom_seconds": 5,
+      "target_true_peak_dbtp": -1.5,
+      "threads": 2,
+      "timeout_seconds": 900
+    },
+    "source_bytes": 230489826,
+    "source_sha256": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82",
+    "status": "exported_unreviewed",
+    "video_encode_count": 1,
+    "video_proof": {
+      "maximum_pts_delta_seconds": 0.0,
+      "method": "sorted_packet_presentation_timestamps_rational",
+      "packet_count": 3621,
+      "physical_capture_sync_verified": false,
+      "source_end_seconds": 150.885,
+      "source_full_frame_decode_verified": false,
+      "source_start_seconds": 0.0,
+      "tail_extent_delta_seconds": 0.0,
+      "tolerance_seconds": 5.208333333333334e-05
+    }
+  },
+  "worker_kind": "tool_api_share_export"
+}

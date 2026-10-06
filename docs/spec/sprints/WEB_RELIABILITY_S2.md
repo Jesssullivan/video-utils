@@ -465,3 +465,39 @@ are appended as a dated section. `preregistered: false` is recorded on purpose.
   skip with a reason.
 - The demo intentionally mixes `test_stub` and `tool_api_share_export` attempts
   in one store. Every receipt reports `worker_kind` per attempt.
+
+## 14. Phase 2 implementation notes (appended 2026-10-06; frozen sections above unchanged)
+
+Implementation: `tests/test_web_reliability.py` (17 named tests: 3 static, 1 API
+demo, 1 BFF demo, 11 injections, 1 opt-in real take). The following differences
+between the frozen text and what runs are recorded here as outcomes, not as
+edited expectations.
+
+1. **Injection summary miscount.** Section 6's summary sentence says "9 run
+   (6 exact, 2 adapted, 1 partial), 1 not applicable", which sums to 10 and not
+   11. The frozen 11-row table has 7 `run_exact` rows (FI-2, FI-4, FI-5, FI-7,
+   FI-8, FI-10, FI-11). The rows are authoritative, so the planned denominator
+   is 10 run / 11 listed (7 exact, 2 adapted, 1 partial) and 1 not applicable.
+   `test_injection_table_frozen_with_denominator` checks the module table
+   against the spec rows, and the metrics record the discrepancy.
+2. **BFF idempotency keys.** The BFF accepts only `^ui-[0-9a-f]{32}$`
+   (`web/src/lib/server/job-request.ts`), so the frozen `bff-<key>` names
+   cannot pass through it. The arm sends `"ui-" + sha256("bff-" + key)[:32]`
+   (a deterministic mapping) and records that mapping.
+3. **Old token through the BFF (step 9).** The browser path cannot carry a
+   bearer token. The BFF arm starts one extra test-owned BFF configured with
+   I2's token against I3. The observed refusal is `502
+   control_api_token_refused` with `upstream_status 401`, compared with
+   `401 token_required` at the API level. The difference is recorded per step.
+4. **Node processes.** The BFF arm starts one `node serve.js` group per
+   control-API instance (I1, I2, I3) plus the step-9 old-token probe. That is 4
+   test-owned groups, each in its own session, closed before replacement or in
+   `tearDownClass`/`tearDownModule`. No other process is signalled.
+5. **Real-take timeout order.** Section 7 says "closes the store ..., cancels via
+   the API". A closed store makes the API refuse with `503 shutting_down`, so the
+   implementation cancels through the API first, waits at most 60 s, then stops
+   the server and closes the store. The test still fails in that case.
+6. **BFF build under host load.** `_ensure_build` uses `test_web_stack`'s
+   300 s build timeout, which is not owned and not changed here. A build timeout
+   is recorded as an error with host load, never as a skip (section 5). Reruns
+   are separate recorded runs (section 13).
