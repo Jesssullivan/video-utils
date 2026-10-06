@@ -50,8 +50,11 @@ video export with preserved picture/timeline, rhythm estimates, and an evidence
 report. The audio target is −18 LUFS integrated and −1.5 dBTP. Retain the original
 sample rate and channel count. Do not overwrite or commit original media.
 
-Rust owns orchestration, typed run records, and reusable DSP. FFmpeg owns
-decode/filter/encode and loudness measurement. Bounded Python provides offline
+Rust owns the CLI entrypoint, streaming source hashing, typed run-record
+verification and reusable allocation-free biquad/gain DSP. FFmpeg owns
+decode/filter/encode and loudness measurement; FFmpeg/ffprobe orchestration
+stays in the Python workers that the Rust CLI dispatches (the declared D1
+deviation below; S2 correction of the earlier "Rust owns orchestration" text). Bounded Python provides offline
 analysis, initially without mandatory model downloads. R/Quarto supplies
 reproducible research reports with a plain HTML fallback. Nix and committed
 dependency locks define the development environment. `just` is the operator
@@ -140,7 +143,12 @@ note subdivisions; sparse pick attacks must not be interpreted as missing notes.
 The conservative profile uses a fixed 3 dB FFT denoising reduction with a
 −40 dB noise-floor heuristic and no adaptive noise tracking. The bypass and mild6 profiles provide comparisons. The fixed floor does not
 derive from a validated noise-only sample. Explicit user-annotated noise
-capture is supported when an approved interval is supplied in a profile. Re-measure loudness after all restoration, then normalize and
+capture is supported when an approved interval is supplied in a profile.
+Since S2 (operator decision of October 6, applied in `e697f36`), **FULLER is the
+default `clean`/`demo` profile** and refuses with `capture_interval_required`
+unless a reviewed per-take `--capture-interval START END --capture-review TEXT`
+is supplied; `conservative3` stays explicitly selectable and remains the frozen
+default of the MCP `denoise` descriptor. Re-measure loudness after all restoration, then normalize and
 verify the rendered output. Speech denoisers, automatic de-clipping of intentional
 distortion, and speculative note grading are excluded from the demo default.
 
@@ -234,3 +242,55 @@ allocate, block, perform I/O, invoke subprocesses, download models, or unwind
 across a native ABI. Offline ML stays outside that path. Installing or repairing
 existing plugins, changing host configuration, editing sibling repositories,
 and starting host daemons are outside this release.
+
+## S2 status — October 6, 2026
+
+Dated closeout of sprint S2 (Linear parent TIN-5599; release TIN-5492) against
+the rows above. Status words are product states, not tracker states: **done**
+means the row's acceptance evidence exists for its stated scope, **partial**
+means some acceptance evidence exists and named parts remain, **unknown** means
+the claim is unmeasured, and **deferred** means no S2 work was done. Linear
+"Done" on a lane child does not upgrade a row. Measurements below come from
+the cited receipts; inferences and listening are labelled. The release record is
+[RELEASE.md](../agent-notes/sprints/20261006-s2/RELEASE.md), and queued work is in
+[S2_FOLLOWUPS.md](sprints/S2_FOLLOWUPS.md).
+
+Integration state: every S2 lane is merged on local `main` at `e3ef39b`. The
+last hosted CI run is 37531977858, which succeeded on `1741e33` (1423 Python OK,
+106 optional skips, Rust OK, no gitleaks findings). The later merges `4be2812`,
+`ebaf72d`, `3e397ad`, `46aee65` and `e3ef39b` had not been pushed and had no
+hosted CI run when this was written. The registry has **40 typed tools and 40
+skills** ([root_admission_e](../agent-notes/sprints/20261006-s2/root_admission_e-receipt.json)).
+
+### Core days
+
+| Day | Status | Evidence | Remaining limits |
+| --- | --- | --- | --- |
+| D1 Oct 6 ingestion/CLI/provenance | done, with a declared deviation | [D1 acceptance](../agent-notes/sprints/20261006-s2/rust_core-d1-acceptance.json), [rust_core handoff](../agent-notes/sprints/20261006-s2/rust_core-handoff.json) | Rust implements `hash` and metadata-only `verify-run` (`pcm_extent_verified: false`) plus biquad/gain DSP. FFmpeg orchestration owner is `python`. |
+| D2 Oct 7 profiles/export | partial | [FULLER A1](../agent-notes/sprints/20261006-s2/fuller_profile-A1.json)/[A2](../agent-notes/sprints/20261006-s2/fuller_profile-A2.json), [root_admission_c](../agent-notes/sprints/20261006-s2/root_admission_c-receipt.json), [share_export fix](../agent-notes/sprints/20261006-s2/share_export_fix-handoff.json), [tone A/B run](../agent-notes/sprints/20261006-s2/tone_ab-20261006T120702Z-actual-run.md) | FULLER is the default and reproduces byte-identically (6/6 WAV stream pairs). The tone A/B is level-matched (0.010 LU), but **the operator's listening preference is not recorded**, so the low-end fullness and thin/nasal feedback stays open. The low-shelf trial was not adopted, and the EQ floor below 160 Hz needs a decision. Noise-only content of the capture interval is unverified. |
+| D3 Oct 8 metronome | partial | [rhythm_clicks handoff](../agent-notes/sprints/20261006-s2/rhythm_clicks-handoff.json), [eval results](../agent-notes/sprints/20261006-s2/rhythm_clicks-eval-results.json) | Drift was measured on a sealed synthetic holdout (10/10), and detector delay on 96/96 cells. On the real take: detection only (`attenuation_claim: none_detection_only`), click identity unverified, **capture latency uncalibrated**, no listening A/B. |
+| D4 Oct 9 onsets/offsets/flags; tone pilot | partial | [rhythm_clicks real take](../agent-notes/sprints/20261006-s2/rhythm_clicks-real-take.json), [root_admission_d](../agent-notes/sprints/20261006-s2/root_admission_d-receipt.json), [annot_corpus handoff](../agent-notes/sprints/20261006-s2/annot_corpus-handoff.json) | Synthetic phrase timing was within 5 ms on 48/48 sealed phrases. **Per-phrase timing direction on the real take is withheld until calibration** (`withheld_uncalibrated`). Flags triage shows 15 of 171 by default, with 112 navigation proxies. Schema-1 tendency counts in older receipts are uncalibrated. |
+| D5 Oct 10 tonic/mode/phrases; note pilot | partial | [phrase results](../agent-notes/sprints/20261006-s2/phrase_anchor_riff-results.md), [real-take spans](../agent-notes/sprints/20261006-s2/phrase_anchor_riff-real-take-spans.json) | Anchor spans give 3 candidate anchors, none adopted. Generated continuous riffs: R1_lag found 12/12 pairs at IoU 0.5 with 79 false positives. **Real-take phrase correctness is unknown until the operator marks at least 10 boundaries.** Meter and tonic/mode stay nullable. **The C1 pitch result of 34/426 stands. No note verdicts are made.** |
+| D6 Oct 11 annotations/benchmarks/Quarto | partial | [report bundle build](../agent-notes/sprints/20261006-s2/report_d6-bundle-build.json), [render attempt](../agent-notes/sprints/20261006-s2/report_d6-render-attempt.json), [annot_corpus handoff](../agent-notes/sprints/20261006-s2/annot_corpus-handoff.json) | The hash-bound bundle is verified and the HTML fallback is kept. **The Quarto render is blocked on the host**: Quarto 1.10.18 sends `syntax-highlighting` to pandoc 3.7.0.2, which rejects it. The one approved attempt exited 1 after 1172 s. A retry needs a flake fix plus operator approval. Corpus coverage is 5 of 150.96 s, so P/R is null. The listening-review template is all-null. |
+| D7 Oct 12 hardening/integration/handoff | partial | [robustness handoff](../agent-notes/sprints/20261006-s2/robustness-handoff.json), [editor real take](../agent-notes/sprints/20261006-s2/editor_export-real-take-receipt.json), [RELEASE.md](../agent-notes/sprints/20261006-s2/RELEASE.md) | Resume and fixtures pass, and there are 40 tools. **FCPXML/Resolve export exists, but application import is unverified** (`not_performed`; a read-only closeout `ls` found neither Final Cut Pro nor DaVinci Resolve in `/Applications`). The real take stays `calibration_required` (VFR). Hosted CI on the final head is still pending. |
+
+### 35-hour extension and the WEB branch
+
+| Lane | Status | Evidence | Remaining limits |
+| --- | --- | --- | --- |
+| Stem experiments | deferred | [FOSS audio matrix row 11](../research/FOSS_AUDIO_MATRIX.md) | Demucs code is MIT, but the pretrained weights carry no licence grant, so admission is on hold. No S2 lane ran. Stems from a mono mixture would be estimates. |
+| Rhythm depth | partial | [RHYTHM_S2](sprints/RHYTHM_S2.md), [PHRASES_S2](sprints/PHRASES_S2.md) | Drift, ambiguity handling and reference-conditioned anchor spans are in place. **The Beat This comparator was not run.** Intended-note alignment needs a reference that does not exist. Meter is unknown. |
+| Robustness | done for its scope | [robustness handoff](../agent-notes/sprints/20261006-s2/robustness-handoff.json), [fixture run](../agent-notes/sprints/20261006-s2/robustness-fixture-run.json) | Resume scenarios 9/9, typed refusals 14/14, fixture pipeline 7/7 runs on P1–P8. The **memory ceiling is unknown** (not measured, no RSS limit). Equivalence with the real take is not established. |
+| Native AU spike | partial | [au_auval handoff](../agent-notes/sprints/20261006-s2/au_auval-handoff.json), [AU_AUVAL_S2](sprints/AU_AUVAL_S2.md) | FFI bit parity 150/150, and 0 allocations in 2048 render calls (Rust allocator scope). **The auval discovery stage is `blocked_not_installed`.** Registered render, parameters/state and auval were not performed. **The Logic host check was not performed.** Installation is out of scope. |
+| WEB branch | done locally; hosted LATER | [web_reliability handoff](../agent-notes/sprints/20261006-s2/web_reliability-handoff.json), [real web job](../agent-notes/sprints/20261006-s2/web_reliability-real-web-job.json), [web_jobs handoff](../agent-notes/sprints/20261006-s2/web_jobs-handoff.json) | The WEB demo ran: 12/12 API and 13/13 BFF steps, plus 16 failure-injection executions. In the real-take web job, 3621/3621 displayed frames were present, with 0 decode-only output packets and one publication on replay. The `share_export` web_job adapter is admitted (`e3ef39b`). Not done: a hosted or multi-user service, an SLO, and an accessibility audit. Exported clips remain `exported_unreviewed`. |
+
+### Standing evidence boundaries after S2
+
+- No listening acceptance is recorded for any S2 output. Measured loudness
+  match, band deltas and packet identity are not listening evidence.
+- No missed/extra-note or musical-mistake verdict exists. Phrase and timing
+  outputs are review hypotheses with their source timestamps.
+- The accepted FULLER run `20261006T041633Z-990aa1bd6737` and the Desktop export
+  (`34247a4e…0f10`) were unchanged at release (see RELEASE.md).
+- Protected low-register intent still holds: no blanket high-pass, no mains
+  notch, and no speech-denoiser default was introduced.
