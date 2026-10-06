@@ -746,16 +746,6 @@ def r1_lag(powers, centers, times, theta):
             "musical_phrase_identity": "unknown", "truth_supplied": False}
 
 
-def decode_analysis_pcm(source):
-    import numpy as np
-    decoded = subprocess.run([FFMPEG_PIN["path"], "-hide_banner", "-loglevel", "error", "-nostdin",
-                              "-threads", "1", "-i", str(source), "-map", "0:a:0", "-vn", "-t", "8",
-                              "-ac", "1", "-ar", "16000", "-filter_threads", "1", "-threads", "1", "-f", "f32le", "pipe:1"],
-                             capture_output=True, timeout=BUDGETS["ffmpeg_seconds"], check=True)
-    require(len(decoded.stdout) == 128000 * 4, "decoded_pcm_byte_extent")
-    return np.frombuffer(decoded.stdout, dtype="<f4")
-
-
 def source_child(source, source_sha256, output, worker_sha256, mode):
     """Opaque per-source discovery. Accepts no truth, cohort, reference, BPM or geometry."""
     import numpy as np
@@ -766,11 +756,24 @@ def source_child(source, source_sha256, output, worker_sha256, mode):
     started = time.monotonic()
     s1 = s1_module()
     source = artifact_path(source, existing=True)
-    base = s1.discover_source(source, source_sha256)
-    samples = decode_analysis_pcm(source)
+    captured = []
+    frozen_extract = s1.extract
+
+    def capturing_extract(samples):
+        # Reuse S1's own decoded PCM and log-band powers; S1 behaviour is unchanged.
+        result = frozen_extract(samples)
+        captured.append((np.array(samples, dtype="<f4", copy=True), result))
+        return result
+
+    s1.extract = capturing_extract
+    try:
+        base = s1.discover_source(source, source_sha256)
+    finally:
+        s1.extract = frozen_extract
+    require(len(captured) == 1, "r1_feature_capture_failed")
+    samples, (cache, powers, centers) = captured[0]
     pcm_hash = hashlib.sha256(np.asarray(samples, dtype="<f4").tobytes()).hexdigest()
     require(pcm_hash == base["analysis_pcm_sha256"], "r1_analysis_pcm_differs_from_s1")
-    cache, powers, centers = s1.extract(samples)
     thetas = [R1_THETA] if mode == "heldout" else list(R1_SETTINGS["theta_candidates"])
     require(all(theta is not None for theta in thetas), "theta_not_calibrated")
     arms = {"Araw": base["arms"]["Araw"], "S1_support": base["arms"]["S1_support"]}
@@ -785,7 +788,8 @@ def source_child(source, source_sha256, output, worker_sha256, mode):
             "discarded_before_sealing": list(DISCARDED_S1_ARMS), "diagnostics": diagnostics,
             "baseline_pulse": base["baseline_pulse"], "feature_clock": base["feature_clock"],
             "environment": base["environment"], "analysis_pcm_sha256": base["analysis_pcm_sha256"],
-            "r1_analysis_pcm_sha256": pcm_hash, "elapsed_seconds": time.monotonic() - started,
+            "r1_analysis_pcm_sha256": pcm_hash, "r1_feature_source": "captured_phrase_proposal_s1_extract_call",
+            "elapsed_seconds": time.monotonic() - started,
             "discovery_truth_input": False, "performance_issue_confirmed": False,
             "listening_accepted": False, "canonical_defaults_activated": False}
 

@@ -401,3 +401,54 @@ breakdown 1 inherits its unknown execution. Generated riffs are a synthetic reci
 family: they cannot establish real-take proposal accuracy, physical tapping/sweep
 fidelity, or calibrated confidence; 12 positive pairs cannot estimate a population
 rate. Activity/timbre gates and lag thresholds are uncalibrated heuristics.
+
+## 12. Phase-2 implementation notes (additive; frozen sections 1–11 unchanged)
+
+These record choices the freeze left open. None of them changes a frozen
+value, seed, threshold, metric or claim boundary.
+
+* **Anchor structural flags are derived generically** from the arrangement:
+  every `kind: breakdown` unit flags its two touching boundaries
+  `breakdown_execution_uncertain` and every later boundary
+  `uncertain_upstream_breakdown`. Every `section_provenance: presumed_repeat` unit
+  flags its touching boundaries `presumed_repeat_section`. On
+  `program/demo-arrangement.json` this yields exactly the frozen sets: 6/7/15/16,
+  7..27 (21/28) and 16..20. Boundaries after chorus 2 also list
+  `upstream_presumed_repeat_units` (additive field).
+* **Grid window:** the window contains the fitted beats `s0 + phi + j*P` within
+  ±4 operator clicks that also fall inside the grid PCM extent. If one beat has
+  several observed events, the smallest |offset| is kept. With no expected beats
+  the label is `grid_unsupported` and `support_fraction` is null.
+* **Operator-anchor evidence:** the status becomes
+  `operator_marked_anchor_downbeat_unconfirmed` only when the evidence is a
+  `phrase-boundaries-v1` file holding an `author: operator` mark within p/4 of
+  the anchor. `downbeat_confirmed` stays false in every case. If evidence carries
+  `source_sha256`, it must equal the grid's original source.
+* **Scorer adapter:** `phrase-boundaries-v1` uses
+  `schema_version: "phrase-boundaries-v1"`. The annotation store is checked with
+  `annotation_v2.validate_store`, using the store's own source/manifest hashes and
+  wide extent bounds (±86400 s). Source binding is then checked separately
+  against the spans provenance. A run-derivative binding needs
+  `timeline_no_stretch_verified: true` from the grid lineage. ±1 click means a
+  tolerance of `p` seconds. Signed offset = predicted − mark.
+* **Continuous-riff construction:** fill and B pitch sequences must differ from
+  A in ≥ half of compared positions, both start-aligned and end-aligned. Every
+  gap is occupied by one link note in the cohort's register (picked for ABA),
+  so occupancy stays continuous. Palm-mute motifs contain a forced ≥4-step rest,
+  and their fills draw inter-onset intervals ≤ 3 steps from A's own pool. This
+  keeps the frozen no-silence-cue rule satisfied by construction, and it is
+  still verified on the rendered clean PCM16. Pitches are integer MIDI 24–77,
+  all reachable as an operator-tuning open string plus a 0–12 fret offset.
+* **R1 ranking (frozen in the preregistration):** each `(t, lag)` keeps its
+  maximal window with mean diagonal similarity ≥ θ. Candidates are ranked by
+  excess `Σ(similarity − θ)` descending (ties: longer, earlier t, shorter lag),
+  then S1-deduplicated (both-span IoU 0.75) and capped at 10. R1 has no
+  activity/timbre gate, by design.
+* **Release actor:** a release is either `actor: root` or
+  `actor: root_workflow`. A `root_workflow` release is written by the lane at
+  the start of a workflow-authorized execution phase and quotes that workflow
+  task verbatim in `authorization_quote`. It binds plan, worker, pins, budgets
+  and an ancestor `prereg_commit` whose preregistration blob has the plan hash.
+* **V2 wrapper:** generation runs in a child process (`_v2_generate`) under the
+  660 s external timeout. The admitted generator keeps its 600 s internal
+  deadline. Only the module attribute `ARTIFACTS` is rebound.
