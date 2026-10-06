@@ -3,7 +3,7 @@
   "authority": "Operator approved plan / Implement the plan; R-HOOK-CONVERGENCE-20261004 / R-N13",
   "repository": "https://github.com/Jesssullivan/video-utils",
   "team_id": "a2c482c8-4d0d-4171-82d9-553265b6c706",
-  "updated_at": "2026-10-06T06:47:45.675051+00:00",
+  "updated_at": "2026-10-07T01:50:00+00:00",
   "milestones": [
     {
       "id": "71bd7738-f346-48dd-8426-4095575a386a",
@@ -22,61 +22,61 @@
     {
       "id": "87f4c52a-8275-45db-8e5a-0e7dab9d3557",
       "identifier": "TIN-5485",
-      "title": "D0 \u2014 First cleaned guitar WAV/video and matched listening report",
+      "title": "D0 — First cleaned guitar WAV/video and matched listening report",
       "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report"
     },
     {
       "id": "dcce7716-5bbe-4180-9614-877e42e2e5c7",
       "identifier": "TIN-5486",
-      "title": "D1 \u2014 Reproducible ingestion and Rust CLI",
+      "title": "D1 — Reproducible ingestion and Rust CLI",
       "url": "https://linear.app/tinyland/issue/TIN-5486/d1-reproducible-ingestion-and-rust-cli"
     },
     {
       "id": "89fd64e3-2822-4d9d-92be-9c151102c9f0",
       "identifier": "TIN-5487",
-      "title": "D2 \u2014 Restoration profiles and measured media delivery",
+      "title": "D2 — Restoration profiles and measured media delivery",
       "url": "https://linear.app/tinyland/issue/TIN-5487/d2-restoration-profiles-and-measured-media-delivery"
     },
     {
       "id": "1a2854b8-667c-4c9c-8946-664923aab0d8",
       "identifier": "TIN-5488",
-      "title": "D3 \u2014 Metronome detection and bounded attenuation",
+      "title": "D3 — Metronome detection and bounded attenuation",
       "url": "https://linear.app/tinyland/issue/TIN-5488/d3-metronome-detection-and-bounded-attenuation"
     },
     {
       "id": "6b0a92b4-408c-4c38-bcab-bfef6f93092a",
       "identifier": "TIN-5489",
-      "title": "D4 \u2014 Automatic rhythm/loop review and optional reference grading",
+      "title": "D4 — Automatic rhythm/loop review and optional reference grading",
       "url": "https://linear.app/tinyland/issue/TIN-5489/d4-automatic-rhythmloop-review-and-optional-reference-grading"
     },
     {
       "id": "8e1db109-96e7-468b-b1f9-7f74c09916d7",
       "identifier": "TIN-5490",
-      "title": "D5 \u2014 Automatic nine-string pitch, tonic and phrase discovery",
+      "title": "D5 — Automatic nine-string pitch, tonic and phrase discovery",
       "url": "https://linear.app/tinyland/issue/TIN-5490/d5-automatic-nine-string-pitch-tonic-and-phrase-discovery"
     },
     {
       "id": "28d0291e-6556-4f49-b6e3-5d50a016c539",
       "identifier": "TIN-5491",
-      "title": "D6 \u2014 Annotated benchmark and R/Quarto listening report",
+      "title": "D6 — Annotated benchmark and R/Quarto listening report",
       "url": "https://linear.app/tinyland/issue/TIN-5491/d6-annotated-benchmark-and-rquarto-listening-report"
     },
     {
       "id": "3f6a3993-cde3-4ef1-9556-001c40b4d171",
       "identifier": "TIN-5492",
-      "title": "D7 \u2014 Hardening, agent tool contracts and release handoff",
+      "title": "D7 — Hardening, agent tool contracts and release handoff",
       "url": "https://linear.app/tinyland/issue/TIN-5492/d7-hardening-agent-tool-contracts-and-release-handoff"
     },
     {
       "id": "63027dfb-9ea9-4f5f-a03e-b39023a3af89",
       "identifier": "TIN-5493",
-      "title": "Cross-cutting \u2014 MCP hooks and skill per audio tool",
+      "title": "Cross-cutting — MCP hooks and skill per audio tool",
       "url": "https://linear.app/tinyland/issue/TIN-5493/cross-cutting-mcp-hooks-and-skill-per-audio-tool"
     },
     {
       "id": "99918a4a-9278-48a2-a9b8-34016a2a4279",
       "identifier": "TIN-5494",
-      "title": "Future \u2014 Final Cut and Resolve phrase-marker interoperability",
+      "title": "Future — Final Cut and Resolve phrase-marker interoperability",
       "url": "https://linear.app/tinyland/issue/TIN-5494/future-final-cut-and-resolve-phrase-marker-interoperability"
     },
     {
@@ -87,10 +87,10 @@
       "kind": "ten_hour_goal"
     }
   ],
-  "evidence_state": "S1 scoped32tool delivery complete:6signedadminmerges, source48c46f0 private/valid signature, exact hostedCI37424756499 success. Local1013pass/1skip plus30independent; hosted981pass/57optional skips,7Rust and secret scan. All7S1issuesDone; futureTIN5546Backlog; accepted media unchanged. Scoped delivery complete; root validates final closeout publication before goal transition.",
+  "evidence_state": "S2 complete: 17 lanes + 5 root integrations admin-merged (signed); 40 typed tools/skills; final source d1e74fe hosted CI 37535277896 success (1479 OK/110 optional skips, Rust, no leaks). D6 and TIN-5494 In Progress with stated reasons; operator follow-ups in docs/spec/sprints/S2_FOLLOWUPS.md.",
   "project": {
     "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
-    "name": "video-utils \u2014 guitar restoration and performance analysis",
+    "name": "video-utils — guitar restoration and performance analysis",
     "url": "https://linear.app/tinyland/project/video-utils-guitar-restoration-and-performance-analysis-243628f290ab"
   },
   "publication": {
@@ -672,22 +672,22 @@
       {
         "key": "CORE",
         "id": "40c9b2b5-bd72-4907-b8bf-5dbbc53eb454",
-        "name": "Future \u2014 Local tone and source-bound practice feedback"
+        "name": "Future — Local tone and source-bound practice feedback"
       },
       {
         "key": "WEB",
         "id": "84f6d9aa-a185-4bb0-bec5-59c280645bb1",
-        "name": "Future \u2014 Optional bounded web workflow proof"
+        "name": "Future — Optional bounded web workflow proof"
       },
       {
         "key": "LOCAL",
         "id": "e3339c26-2414-4186-aeb5-fc32695e67b8",
-        "name": "Future \u2014 Optional deeper tone and classified feedback"
+        "name": "Future — Optional deeper tone and classified feedback"
       },
       {
         "key": "LATER",
         "id": "6f8a9f24-4778-4fb1-b713-37de7a7b3455",
-        "name": "Future \u2014 Hosting, score overlays and additional model qualification"
+        "name": "Future — Hosting, score overlays and additional model qualification"
       }
     ],
     "new_issues": [
@@ -1016,5 +1016,150 @@
     },
     "rust_tests": 7,
     "secret_scan": "PASS"
+  },
+  "sprints": {
+    "20261006-s2": {
+      "parent": {
+        "identifier": "TIN-5599",
+        "id": "8defe92c-0dc3-4447-b284-a71a928f25c9",
+        "state": "Done"
+      },
+      "children": [
+        {
+          "lane": "fuller_profile",
+          "identifier": "TIN-5600",
+          "id": "55989ddf-4476-44c6-adb5-b2a6a877b78e",
+          "url": "https://linear.app/tinyland/issue/TIN-5600/s2-fuller-profile-commit-fuller-as-reproducible-default-profile-with"
+        },
+        {
+          "lane": "tone_ab",
+          "identifier": "TIN-5601",
+          "id": "a8fc0379-9d0c-4617-991b-c6d8b640c845",
+          "url": "https://linear.app/tinyland/issue/TIN-5601/s2-tone-ab-stage-attributed-low-endthin-balance-matched-ab-03-lu-with"
+        },
+        {
+          "lane": "rhythm_clicks",
+          "identifier": "TIN-5602",
+          "id": "6eac79a3-07c6-4aac-8253-715162fe27c6",
+          "url": "https://linear.app/tinyland/issue/TIN-5602/s2-rhythm-clicks-click-grid-drift-model-detector-delay-attack"
+        },
+        {
+          "lane": "phrase_anchor_riff",
+          "identifier": "TIN-5603",
+          "id": "f1b708a3-c2a0-4ced-833e-be3788d48268",
+          "url": "https://linear.app/tinyland/issue/TIN-5603/s2-phrase-anchor-riff-anchor-click-arrangement-phrase-spans-on-the"
+        },
+        {
+          "lane": "annot_corpus",
+          "identifier": "TIN-5604",
+          "id": "ab71d45c-fbb4-4f69-8a4f-a2f83ac32f82",
+          "url": "https://linear.app/tinyland/issue/TIN-5604/s2-annot-corpus-annotation-marker-projection-coverage-first-corpus"
+        },
+        {
+          "lane": "cap_ids",
+          "identifier": "TIN-5605",
+          "id": "4f2cb3e2-6a90-4957-b663-061a4fad0ea2",
+          "url": "https://linear.app/tinyland/issue/TIN-5605/s2-cap-ids-capability-metadata-pilot-and-hash-derived-artifact-id"
+        },
+        {
+          "lane": "editor_export",
+          "identifier": "TIN-5606",
+          "id": "ba17e97b-522c-47d2-93b1-3c17d593f66e",
+          "url": "https://linear.app/tinyland/issue/TIN-5606/s2-editor-export-fcpxml-110-and-resolve-marker-export-with-ndfdf"
+        },
+        {
+          "lane": "rust_core",
+          "identifier": "TIN-5607",
+          "id": "5e52a296-c636-4885-a6d5-ea4c30517b92",
+          "url": "https://linear.app/tinyland/issue/TIN-5607/s2-rust-core-minimum-credible-rust-move-streaming-sha-256-typed"
+        },
+        {
+          "lane": "lowreg_spec_v4",
+          "identifier": "TIN-5608",
+          "id": "46996312-5178-4014-87d7-5ac26ff98e94",
+          "url": "https://linear.app/tinyland/issue/TIN-5608/s2-lowreg-spec-v4-low-register-spectrogram-render-spec-with-golden"
+        },
+        {
+          "lane": "robustness",
+          "identifier": "TIN-5609",
+          "id": "f25b6d04-f865-42bb-9fe7-6592d06b80df",
+          "url": "https://linear.app/tinyland/issue/TIN-5609/s2-robustness-run-demo-resume-and-synthetic-phonephoto-booth-fixtures"
+        },
+        {
+          "lane": "ui_core",
+          "identifier": "TIN-5610",
+          "id": "167e3c0c-a95f-416d-a91b-b18e7ef2d83f",
+          "url": "https://linear.app/tinyland/issue/TIN-5610/s2-ui-core-practice-ui-stage-identities-matched-ab-pair-coverage-strip"
+        },
+        {
+          "lane": "report_d6",
+          "identifier": "TIN-5611",
+          "id": "10886f0a-489d-4c4f-bcf2-189cd58797fb",
+          "url": "https://linear.app/tinyland/issue/TIN-5611/s2-report-d6-quarto-bundle-and-one-bounded-render-attempt-via-nix"
+        },
+        {
+          "lane": "au_auval",
+          "identifier": "TIN-5612",
+          "id": "71f7925a-8b66-4939-b903-0f9f658e7bbb",
+          "url": "https://linear.app/tinyland/issue/TIN-5612/s2-au-auval-au-auval-discovery-step-and-out-of-process-render-harness"
+        },
+        {
+          "lane": "web_stack",
+          "identifier": "TIN-5613",
+          "id": "067f7412-8642-4758-9be5-1bfa1b94ad5f",
+          "url": "https://linear.app/tinyland/issue/TIN-5613/s2-web-stack-sveltekit-effect-v4-skeleton-v5-fixture-and-control-layer"
+        },
+        {
+          "lane": "web_jobs",
+          "identifier": "TIN-5614",
+          "id": "120026ca-a448-42e0-8074-ce68405d431b",
+          "url": "https://linear.app/tinyland/issue/TIN-5614/s2-web-jobs-bounded-durable-local-job-service-over-artifact-ids-admit"
+        },
+        {
+          "lane": "web_ui_binding",
+          "identifier": "TIN-5615",
+          "id": "d4e4e902-1773-4044-be09-523b1b732b1a",
+          "url": "https://linear.app/tinyland/issue/TIN-5615/s2-web-ui-binding-uploadprocesscompareannotateiteratedownload-binding"
+        },
+        {
+          "lane": "web_reliability",
+          "identifier": "TIN-5616",
+          "id": "1b110c54-0fac-48f6-8578-0a3ac19d18b9",
+          "url": "https://linear.app/tinyland/issue/TIN-5616/s2-web-reliability-web-integration-demo-with-rejected-input"
+        }
+      ],
+      "peer_issue": {
+        "identifier": "TIN-5619",
+        "note": "guitar_noul read-only gateway contract slot (Backlog, project Inference: models.xoxd.ai on Honey)"
+      },
+      "final_source": "d1e74febf3fb0866205936f023b2767142941007",
+      "hosted_ci": {
+        "run": 37535277896,
+        "conclusion": "success",
+        "python": "1479 OK, 110 skipped",
+        "rust": "ok",
+        "gitleaks": "no leaks"
+      },
+      "roadmap_states": {
+        "TIN-5486": "Done",
+        "TIN-5487": "Done",
+        "TIN-5488": "Done",
+        "TIN-5489": "Done",
+        "TIN-5490": "Done",
+        "TIN-5491": "In Progress",
+        "TIN-5492": "Done",
+        "TIN-5493": "Done",
+        "TIN-5494": "In Progress",
+        "TIN-5546": "In Progress",
+        "TIN-5547": "Done",
+        "TIN-5548": "Done",
+        "TIN-5549": "Done",
+        "TIN-5550": "Done",
+        "TIN-5551": "Done",
+        "TIN-5552": "Backlog",
+        "TIN-5553": "Backlog",
+        "TIN-5554": "Backlog"
+      }
+    }
   }
 }

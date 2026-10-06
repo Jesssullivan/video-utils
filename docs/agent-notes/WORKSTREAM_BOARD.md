@@ -1,16 +1,16 @@
 # video-utils parallel work board
 
-## S2 — operator takeover, October 6 (current)
+## S2 — operator takeover, October 6 (complete)
 
 Resume receipt: [2026-10-06-s2-resume.md](2026-10-06-s2-resume.md). Manifest: [20261006-s2.json](../../program/sprints/20261006-s2.json). Linear parent [TIN-5599](https://linear.app/tinyland/issue/TIN-5599/s2-operator-takeover-sprint-core-completion-extension-and-web-branch); children TIN-5600..5616. Root (Claude `video-utils-d6`) owns signed admin merges, pushes, CI verification and tracker writes.
 
 stream | owner | repo/branch | state/evidence | next
 --- | --- | --- | --- | ---
-wave1 A (fuller_profile, tone_ab, rhythm_clicks, phrase_anchor_riff) | workflow wf_0ec5a3e0-625 (Opus 5.5) | sprint/20261006-s2/* | see HANDOFF
-wave1 B (rust_core, cap_ids, editor_export, annot_corpus, lowreg_spec_v4) | workflow wf_4ca81d49-474 (Opus 5.5) | sprint/20261006-s2/* | see HANDOFF
-wave2 C (robustness, ui_core, report_d6, au_auval) and D (WEB: web_stack, web_jobs, web_ui_binding, web_reliability) | root | queued | after wave1 merges | launch
-peer sting | root | TIN-5186 | V1–V5 sent 09:00Z (neo-86778-1791277229); llama asked; V6 held for operator approval | record replies
-operator | Jess | — | committed: mark ≥10 boundaries, second take by Oct 9, approve V6, one nix .#report fetch | after ui_core merges
+S2 (17 lanes + 5 root integrations) | root video-utils-d6 | main d1e74fe | complete; hosted CI 37535277896 green (1479 OK/110 skips, Rust, no leaks); TIN-5599 Done | operator follow-ups
+D6 report | root | TIN-5491 | In Progress: Quarto render blocked on host; labels absent | flake fix + approved render; labelling session
+editor import | root | TIN-5494 | In Progress: FCPXML/Resolve export exists; import unverified (apps absent) | application import receipt
+peer sting | root | TIN-5186 / TIN-5619 | V2–V5 delivered; xoruby eval-only; guitar_noul slot Backlog | V6 + V2 licence after operator approval
+operator | Jess | — | labelling session, V6, V2 licence, EQ floor, quarto approval, phrase_timing wording, second take | see S2_FOLLOWUPS.md
 
 ## Earlier (S1 and before; historical)
 

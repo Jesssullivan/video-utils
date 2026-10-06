@@ -252,12 +252,12 @@
       "related_issues": [
         "TIN-5492"
       ],
-      "state": "merged_pending_hosted_ci",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5609",
         "uuid": "f25b6d04-f865-42bb-9fe7-6592d06b80df",
         "url": "https://linear.app/tinyland/issue/TIN-5609/s2-robustness-run-demo-resume-and-synthetic-phonephoto-booth-fixtures",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
       "agent": "workflow-C/robustness",
       "merge_commit": "4be2812"
@@ -298,12 +298,12 @@
       "related_issues": [
         "TIN-5491"
       ],
-      "state": "merged_pending_hosted_ci",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5611",
         "uuid": "10886f0a-489d-4c4f-bcf2-189cd58797fb",
         "url": "https://linear.app/tinyland/issue/TIN-5611/s2-report-d6-quarto-bundle-and-one-bounded-render-attempt-via-nix",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
       "agent": "workflow-C/report_d6",
       "merge_commit": "ebaf72d"
@@ -415,12 +415,12 @@
         "TIN-5550",
         "TIN-5551"
       ],
-      "state": "merged_pending_hosted_ci",
+      "state": "merged_ci_green",
       "linear": {
         "id": "TIN-5616",
         "uuid": "1b110c54-0fac-48f6-8578-0a3ac19d18b9",
         "url": "https://linear.app/tinyland/issue/TIN-5616/s2-web-reliability-web-integration-demo-with-rejected-input",
-        "verified_state": "Todo"
+        "verified_state": "Done"
       },
       "agent": "workflow-D/web_reliability",
       "merge_commit": "3e397ad"
@@ -431,12 +431,12 @@
     "desktop_export_sha256": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10",
     "s1_worktrees": "preserve all six .local/sprint1/*; review_ui intentionally dirty"
   },
-  "state": "all_lanes_merged_release_closeout",
-  "integration_head": "1741e3332fc6cc1380c496b1099bb06c0165788c",
+  "state": "complete",
+  "integration_head": "d1e74febf3fb0866205936f023b2767142941007",
   "hosted_ci": {
-    "run": 37531977858,
+    "run": 37535277896,
     "conclusion": "success",
-    "python": "1423 OK, 106 skipped",
+    "python": "1479 OK, 110 skipped",
     "rust": "ok",
     "gitleaks": "no leaks"
   },
@@ -448,7 +448,7 @@
     "gitleaks_fixture_fix": "2252c89",
     "root_admission_e": "46aee65",
     "web_job_admission": "e3ef39b",
-    "release_closeout": "pending"
+    "release_closeout": "d1e74fe"
   },
   "tool_count": 40,
   "local_full_suite": {
@@ -457,5 +457,6 @@
     "failures": 2,
     "failure_cause": "pre-existing macOS process-inspection entitlement (also fail at a16d02d)",
     "skipped": 71
-  }
+  },
+  "end_utc": "2026-10-07T01:50:00+00:00"
 }
