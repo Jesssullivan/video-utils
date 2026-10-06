@@ -3,7 +3,7 @@
   "authority": "Operator approved plan / Implement the plan; R-HOOK-CONVERGENCE-20261004 / R-N13",
   "repository": "https://github.com/Jesssullivan/video-utils",
   "team_id": "a2c482c8-4d0d-4171-82d9-553265b6c706",
-  "updated_at": "2026-10-06T01:16:24.818909+00:00",
+  "updated_at": "2026-10-06T02:14:59.605860+00:00",
   "milestones": [
     {
       "id": "71bd7738-f346-48dd-8426-4095575a386a",
@@ -87,59 +87,70 @@
       "kind": "ten_hour_goal"
     }
   ],
-  "evidence_state": "Published26tools/skills; exactsource5513 hosted535discovered512pass23optional skips/7Rust/secret PASS; enhanced8clarity video and24-marker preview complete; actualtypedtool26 metadata proof; listening pending; active parallel goal; no Logic/native-editor acceptance",
+  "evidence_state": "Published27tools/skills; exactsourcecfdb hosted597discovered556pass41optional skips/7Rust/secretPASS; qualified596pass distinct; marked video and nine-player audition complete; listening pending; weak generated pitch/phrase retained; active goal; proposed28 source/native qualification separate; no Logic/native-editor acceptance",
   "project": {
     "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
     "name": "video-utils \u2014 guitar restoration and performance analysis",
     "url": "https://linear.app/tinyland/project/video-utils-guitar-restoration-and-performance-analysis-243628f290ab"
   },
   "publication": {
-    "source_commit": "5513c385bf289ce495a44aab12f82aa8edc57e6f",
+    "source_commit": "cfdb61915720032ae139d8dac07ef27b55223cdf",
     "private": true,
     "signature_verified": true,
-    "published_at": "2026-10-06T01:06:42Z",
-    "typed_tool_count": 26,
-    "skill_count": 26,
+    "typed_tool_count": 27,
+    "skill_count": 27,
     "comments": [
       {
         "issue": "TIN-5485",
-        "id": "12dde8fe-70fc-4916-8820-0d72c04a030d",
-        "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-12dde8fe"
+        "id": "608c75e7-612c-424d-99cb-91b715dcbad7",
+        "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-608c75e7",
+        "createdAt": "2026-10-06T02:14:58.982Z",
+        "state_at_readback": "In Review",
+        "full_body_verified": true
       },
       {
         "issue": "TIN-5495",
-        "id": "9b12ae82-665b-44dd-bf8d-0f657416185e",
-        "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-9b12ae82"
+        "id": "12ef5404-c914-4b9e-af9d-609bc1b348e7",
+        "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-12ef5404",
+        "createdAt": "2026-10-06T02:14:59.397Z",
+        "state_at_readback": "In Progress",
+        "full_body_verified": true
       }
     ],
     "hosted_ci": {
-      "id": 37397487944,
-      "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37397487944",
+      "id": 37402931338,
+      "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37402931338",
       "status_at_readback": "completed",
       "conclusion": "success",
-      "completed_at": "2026-10-06T01:08:47Z",
+      "completed_at": "2026-10-06T02:13:36Z",
       "test_summary": {
-        "discovered": 535,
-        "passed": 512,
-        "optional_skips": 23,
-        "seconds": 72.385
+        "discovered": 597,
+        "passed": 556,
+        "optional_skips": 41,
+        "seconds": 57.032
       },
       "rust_tests_passed": 7,
       "secret_scan": "success"
     },
     "local_checks": {
-      "affected_basic_pitch_runtime": {
-        "discovered": 43,
-        "passed": 42,
-        "optional_skips": 1
+      "qualified_suite_source": "eaa824f61e86faef798d8de4de056f05813b2178",
+      "qualified_suite": {
+        "discovered": 597,
+        "passed": 596,
+        "optional_skips": 1,
+        "seconds": 570.424
       },
-      "editor_planner": 26,
-      "targeted_hooks": 78,
-      "exact_skill_prompts": 26,
-      "fresh_runtime_setup": "independent PASS/1349installedmembers/44.818seconds"
+      "numeric_gate_repair": {
+        "stdlib_passed": 4,
+        "stdlib_skipped": 6,
+        "qualified_passed": 10
+      }
     },
-    "scope": "published26tool source plus explicit portable setup; learned evaluator and protected-low-mask research remain unpublished prototypes",
-    "actual_editor_mcp_receipt": "docs/agent-notes/2026-10-06-editor-marker-plan-actual-mcp.json"
+    "scope": "Published27 hooks/skills and audited research helper source; generated/actual diagnostics retain uncertainty; capture-application28 remains unadmitted prototype",
+    "actual_learned_mcp_receipt": "docs/agent-notes/2026-10-06-root-learned-actual-mcp.json",
+    "historical_mcp_worker": "1fb883026b842857f72a70c8bf2fb757330b9ac705be36914f7a4c50cb8f7374",
+    "current_relative_just_proof": "docs/agent-notes/2026-10-06-root-learned-just-equivalence.json",
+    "publication_verified_at": "2026-10-06T02:15:28.138604+00:00"
   },
   "publication_history": [
     {
@@ -279,6 +290,77 @@
         "id": "31345d39-771f-4506-8862-eef5b1893c06",
         "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-31345d39"
       }
+    },
+    {
+      "source_commit": "5513c385bf289ce495a44aab12f82aa8edc57e6f",
+      "private": true,
+      "signature_verified": true,
+      "published_at": "2026-10-06T01:06:42Z",
+      "typed_tool_count": 26,
+      "skill_count": 26,
+      "comments": [
+        {
+          "issue": "TIN-5485",
+          "id": "12dde8fe-70fc-4916-8820-0d72c04a030d",
+          "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-12dde8fe"
+        },
+        {
+          "issue": "TIN-5495",
+          "id": "9b12ae82-665b-44dd-bf8d-0f657416185e",
+          "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-9b12ae82"
+        }
+      ],
+      "hosted_ci": {
+        "id": 37397487944,
+        "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37397487944",
+        "status_at_readback": "completed",
+        "conclusion": "success",
+        "completed_at": "2026-10-06T01:08:47Z",
+        "test_summary": {
+          "discovered": 535,
+          "passed": 512,
+          "optional_skips": 23,
+          "seconds": 72.385
+        },
+        "rust_tests_passed": 7,
+        "secret_scan": "success"
+      },
+      "local_checks": {
+        "affected_basic_pitch_runtime": {
+          "discovered": 43,
+          "passed": 42,
+          "optional_skips": 1
+        },
+        "editor_planner": 26,
+        "targeted_hooks": 78,
+        "exact_skill_prompts": 26,
+        "fresh_runtime_setup": "independent PASS/1349installedmembers/44.818seconds"
+      },
+      "scope": "published26tool source plus explicit portable setup; learned evaluator and protected-low-mask research remain unpublished prototypes",
+      "actual_editor_mcp_receipt": "docs/agent-notes/2026-10-06-editor-marker-plan-actual-mcp.json"
+    },
+    {
+      "source_commit": "eaa824f61e86faef798d8de4de056f05813b2178",
+      "private": true,
+      "signature_verified": true,
+      "typed_tool_count": 27,
+      "skill_count": 27,
+      "hosted_ci": {
+        "id": 37402577907,
+        "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37402577907",
+        "status_at_readback": "completed",
+        "conclusion": "failure",
+        "test_summary": {
+          "discovered": 597,
+          "errors": 6,
+          "skips": 35,
+          "passed": 556,
+          "seconds": 61.197
+        },
+        "downstream_rust": "skipped",
+        "downstream_secret_scan": "skipped"
+      },
+      "receipt": "docs/agent-notes/2026-10-06-27-tool-hosted-ci-failure.json"
     }
   ],
   "restoration_comparison": {

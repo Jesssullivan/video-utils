@@ -1,0 +1,99 @@
+{
+  "authority": "Operator implementation / R-HOOK-CONVERGENCE-20261004/R-N13",
+  "observed_at": "2026-10-06T02:14:09.535486+00:00",
+  "source_commit": "cfdb61915720032ae139d8dac07ef27b55223cdf",
+  "ci": {
+    "conclusion": "success",
+    "headSha": "cfdb61915720032ae139d8dac07ef27b55223cdf",
+    "jobs": [
+      {
+        "completedAt": "2026-10-06T02:13:36Z",
+        "conclusion": "success",
+        "databaseId": 112073949550,
+        "name": "offline",
+        "startedAt": "2026-10-06T02:11:40Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-06T02:11:42Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-06T02:11:41Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T02:11:43Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "number": 2,
+            "startedAt": "2026-10-06T02:11:42Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T02:11:48Z",
+            "conclusion": "success",
+            "name": "Run cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7",
+            "number": 3,
+            "startedAt": "2026-10-06T02:11:43Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T02:13:28Z",
+            "conclusion": "success",
+            "name": "Python and synthetic media checks",
+            "number": 4,
+            "startedAt": "2026-10-06T02:11:48Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T02:13:31Z",
+            "conclusion": "success",
+            "name": "Rust checks on the supported hosted builder",
+            "number": 5,
+            "startedAt": "2026-10-06T02:13:28Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T02:13:34Z",
+            "conclusion": "success",
+            "name": "Secret scan",
+            "number": 6,
+            "startedAt": "2026-10-06T02:13:31Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T02:13:34Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "number": 12,
+            "startedAt": "2026-10-06T02:13:34Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T02:13:34Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 13,
+            "startedAt": "2026-10-06T02:13:34Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37402931338/job/112073949550"
+      }
+    ],
+    "status": "completed",
+    "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37402931338"
+  },
+  "test_summary": {
+    "discovered": 597,
+    "passed": 556,
+    "optional_skips": 41,
+    "seconds": 57.032
+  },
+  "rust_tests_passed": 7,
+  "secret_scan": "success",
+  "superseded_failed_ci": 37402577907,
+  "superseded_source": "eaa824f61e86faef798d8de4de056f05813b2178",
+  "scope": "minimal offline source CI; qualified numeric596 proof separate; no listening, native editor or Logic acceptance"
+}

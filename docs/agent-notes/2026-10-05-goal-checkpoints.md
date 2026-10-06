@@ -724,3 +724,95 @@ AU/Logic host acceptance, note correctness or musician listening acceptance.
 Only this lane's three tracking documents updated/refrozen. Root owns factual
 Linear/program evidence reconciliation. Goal remains active through unchanged
 2026-10-06 06:49:34 UTC; no pause, new horizon or completed-worker activity inferred.
+
+
+## Published27 qualified source and continuing application prototype — October 6, 02:07:57 UTC
+
+Root verified private/signature-valid eaa824f61e86faef798d8de4de056f05813b2178
+published 27 tools/skills. Qualified joint suite 597 discovered/596 pass/one optional
+skip 570.424s exit0; independent 27 sourceaudit PASS/no mustfix. Signed historical
+archive 87cc3ce precedes current evaluator 26e… in published history; no intermediate
+push. Exact CI37402577907 IN_PROGRESS at root publication readback, no green claim.
+Prior 5513c3 CI37397487944 and 93f5088 docs CI37398549741 remain independently
+successful historical revisions; failed 1845 CI retained, not rewritten.
+Root owns exact CI outcome and subsequent factual Linear/program updates.
+
+Published phrase equal-cap order-null run completed ten cases/80 seconds in 244.069s
+with independent numerical review: B at IoU0.5 1 TP/51 FP/3 FN→order1 TP/16 FP/3 FN;
+negative31→8 on both seeds; strict IoU0.75 both0TP; commonpair .522s unchanged.
+False positives remain substantial and no default adoption follows. Learned
+controller/preregistered fixed numerical scope and evaluator historical/current
+source remain separately bound; no generator label enters discovery or actual
+musical correctness claim.
+
+A/B nine players mobile+desktop verified. Actual protected-low four-fixed-variant
+10-second diagnostic completed 8.541s with no original/master/latest mutation,
+fan-isolated evidence or listening acceptance. Existing enhanced 232741 cleaned/
+marked/report and uncertain flag coverage remain unchanged. User-authorized GPG
+restart completed new PID69061/signing works; root's durable receipt is published.
+This is a specifically authorized owned service action, not blanket signaling.
+
+Future application28 owns new apply_capture_profile.py/tests/spec and independent
+audit/draft contract/skill lane. Owned-group child cleanup must-fix is in progress.
+It remains explicitly UNADMITTED/UNPUBLISHED source/fixture work: no actual-take
+DSP, arbitrary controls, default adoption, host import, master replacement or
+acceptance inferred. Root integrates only after qualification/admission.
+
+All prior 23 agents were individually reattached, with completed tasks remaining
+complete; named active tasks retain exact file boundaries. Goal remains active
+through 2026-10-06 06:49:34 UTC, approximately4h40 remaining at this checkpoint.
+Only three tracking documents updated/refrozen; no sibling/root metadata/external
+writes. Root receives exact frozen document hashes for selected publication.
+
+
+## Exact27-tool CI failure and targeted optional test qualification — October 6, 02:10:26 UTC
+
+Root exact CI37402577907 readback is now FAILED: 597 tests in 61.197 seconds, six
+errors/35 optional skips; hosted Rust/secret steps skipped. All six errors belong
+to NumericOracleTests in test_low_register_fixtures: minimal CI has no NumPy.
+The earlier pending readback remains historical, not a green claim. Published
+27-source eaa824f and qualified local 596 passed/one optional skip 570.424s proof
+remain unchanged within their evidence scope.
+
+Root assigns clip_baseline the precise optional numeric-class qualification:
+four stdlib checks stay active; six explicit skips when NumPy is unavailable;
+qualified environment ten PASS. No worker, dependency, production default or
+automatic install is changed. Repair source/publication/new exactCI remain
+pending; root will send verified readback. New27 Linear comments are not yet
+posted, allowing actual failure and verified resolution to be recorded together
+later. This tracking lane performs no external/program/source mutations.
+
+Existing video/latest, weak phrase results and unadmitted application28 boundaries
+remain unchanged. Goal active to 06:49:34 UTC. Three tracking docs refreeze after
+this corrected factual handoff; prior 1845 failure history is retained separately.
+
+
+## Repaired27 source and exact greenCI — October 6, 02:14:22 UTC
+
+Root verified private/main GitHub-signature-valid cfdb61915720032ae139d8dac07ef27b55223cdf,
+27tools/skills. Exact CI37402931338 SUCCESS completed 02:13:36 UTC:597 discovered/
+556 passed/41 optional skips 57.032s; seven Rust and secret step PASS. Qualified
+local 596 PASS/one optional skip 570.424s proof remains distinct. Targeted numeric
+qualification 4 stdlib PASS/6 explicit missing-NumPy skips, qualified 10 PASS; no worker,
+dependency, default, audio or automatic install change.
+
+Historical eaa824f/374025 failed 597/six errors/35 skips/61.197s remains in history,
+including skipped hosted Rust/secrets. Earlier1845 failure remains separate.
+Root new 27 publication comments are being written/read back; no unknown comment
+IDs are claimed. Only root updates Linear/program evidence after readback.
+
+Future application28 source audit has no must-fix after owned-group cleanup fix:
+independent 6 PASS and owner 30 source fixtures; combined 36 freeze still pending.
+Still UNADMITTED/UNPUBLISHED, no actual DSP. Media_latency prepares ≤10-second actual
+native fixture plan, not execution/admission proof. No current mainmaster/latest,
+production defaults, native-editor import or listening acceptance changes.
+Goal active until same 2026-10-06 06:49:34 UTC, approximately 4h35 remaining.
+Only three assigned tracking docs update/refreeze for root publication.
+
+
+Root subsequently verified27 publication comment full bodies: D0 InReview
+`608c75e7-612c-424d-99cb-91b715dcbad7`; goal InProgress
+`12ef5404-c914-4b9e-af9d-609bc1b348e7`. Project27 full content verified with
+update02:08:23UTC; initial pendingCI readback retained as historical. Root's
+program/linear.json now records current cfdb source/CI37402931338 SUCCESS.
+This lane read the root receipt and did not mutate tracker/program metadata.

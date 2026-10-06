@@ -1,6 +1,6 @@
 # video-utils parallel work board
 
-As-of ownership checkpoint: **2026-10-06 01:14:10 UTC / October 5, 9:14:10 p.m. EDT**.
+As-of ownership checkpoint: **2026-10-06 02:14:22 UTC / October 5, 10:14:22 p.m. EDT**.
 Root's goal began 20:49:34 UTC and remains **active**, with planned end
 **2026-10-06 06:49:34 UTC / 2:49:34 a.m. EDT**. Objective/status does not enforce
 this wall-clock horizon. Root owns integration, factual Linear writes and signed
@@ -19,21 +19,28 @@ Active goal: [TIN-5495](https://linear.app/tinyland/issue/TIN-5495/ten-hour-para
 ## Current published source and delivery
 
 Root verified private/signature-valid published HEAD
-`5513c385bf289ce495a44aab12f82aa8edc57e6f`: **26 tools/skills**, including
-metadata-only editor planning and explicit optional runtime setup/check.
-Root verified exact
-[CI37397487944](https://github.com/Jesssullivan/video-utils/actions/runs/37397487944)
-completed **SUCCESS at 01:08:47 UTC** on 5513c3:535 Python tests in 72.385 s,
-512 passed/23 optional skips, seven Rust passed and secret step succeeded.
-This supersedes the writer's historical 01:08:08 in-progress readback; it does not
-rewrite the failed 1845 run or imply listening/native-host acceptance.
+`cfdb61915720032ae139d8dac07ef27b55223cdf`: **27 tools/skills**. The qualified
+joint suite discovered 597/passed 596/one optional skip in 570.424 s, exit0;
+independent 27-tool source audit passed without a must-fix. Signed historical
+archive 87cc3ce precedes current evaluator 26e… in the published history; no
+intermediate revision was pushed. Root owns exact archive/current provenance.
 
-Root affected Basic Pitch/installer checks discovered43:42 passed/one optional
-skip in0.888 s; editor26 checks passed in0.240 s. Owner focused hooks78/all26
-exact prompts passed. Fresh five-wheel setup completed44.818 s, and independent
-installed readback audited1349 archive members; no weights/inference or main
-media replacement. Local installed-runtime and hosted optional-skip scopes remain distinct despite
-the newly successful hosted source checks.
+Root verified exact [CI37402931338](https://github.com/Jesssullivan/video-utils/actions/runs/37402931338)
+**SUCCESS, completed 02:13:36 UTC**:597 discovered/556 passed/41 optional skips
+in57.032s; seven Rust and secret step passed. Qualified local596-pass/one-skip
+570.424s proof remains distinct from optional hosted skips. Targeted numeric
+repair passed four stdlib checks/six explicit skips without NumPy, ten with NumPy.
+No worker/dependency/default or audio change; no automatic installation.
+
+Historical eaa824f CI37402577907 stays **FAILED**:597 tests/61.197s, six errors/
+35 optional skips, subsequent hosted Rust/secrets skipped. The six numeric-class
+NumPy assumptions were repaired by precise test qualification, not hidden or
+relabelled. Earlier5513c3/93f5088 successful receipts remain historical revisions.
+Root verified full-body readback: D0 InReview comment
+`608c75e7-612c-424d-99cb-91b715dcbad7`; goal InProgress comment
+`12ef5404-c914-4b9e-af9d-609bc1b348e7`. Project27 full content verified,
+updated02:08:23UTC; historical pending-CI readback preserved. Current27 cfdb/green
+CI37402931338 is recorded by root in program/linear.json; only root writes it.
 
 Failed published1845bb0's exact CI37395852387 remains in history: root read498
 tests/50.150 s, one error/one failure/22 optional skips. Two Basic Pitch tests
@@ -57,12 +64,16 @@ layout checks passed. Six selected markers are fully suppressed by overlap
 priority and remain in metadata. This is neither an exhaustive visible inventory,
 continuous-playback readability proof, listening acceptance nor confirmed mistakes.
 Physical capture synchronization, native editor import and Logic hosting remain
-unverified. The 180 flags remain ungraded hypotheses/navigation data.
+unverified. A/B report playback/seek comparison verified nine players on mobile
+and desktop, without listening acceptance. Root's user-authorized GPG restart
+completed with newpid69061, signing works; durable authority/ownership receipt
+is published. No other-process signaling or goal pause is inferred. The 180 flags remain ungraded hypotheses/navigation data.
 
 Root read back new publication comments: D0
 `9ecac959-04bf-46f4-a950-99821d3605dd`; active goal
-`b028a3f1-4f17-4d41-ae63-db00f606ebf3`. These25-tool comments are historical; root owns26-tool/pending-CI tracker
-reconciliation and exact incident readback. Prior D4 comment
+`b028a3f1-4f17-4d41-ae63-db00f606ebf3`. These25-tool comments are historical. Later26-tool D0 comment prefix12dde8fe
+and goal9b12ae82 were read back InReview/InProgress with Project wording normalized.
+Root owns new 27-tool successful-CI/comment reconciliation and full tracker IDs. Prior D4 comment
 `9bac1230-0744-47a8-b5aa-104c6be8e928` remains historical. No external mutations
 are performed by this tracking lane.
 
@@ -78,21 +89,22 @@ and receipts; a ready/frozen delivery does not imply a worker is still running.
 | Stream | Owner | Named files / dependencies | Current state / next |
 | --- | --- | --- | --- |
 | Held-out generated bank | `/root/repo_patterns` | New `scripts/benchmark_holdout.py`, `tests/test_benchmark_holdout.py`, HOLDOUT_BANK_LANE and dated admission/generation receipts | Seeds 211/307; 12 cases/120 seconds structurally verified after explicit root release; frozen index for inference, not detector accuracy; published v1/v2 dependencies preserved |
-| Guarded phrase comparison | `/root/phrase_dag` | PHRASE_WINDOW_ABLATION_LANE, dated isolated ablation/guarded-arm/heldout harness receipts; canonical workers frozen | Heldout independent audit passed; guarded D has 4 TP/87 FP, all arms zero matches at IoU0.75; weak performance/no adoption; fixed settings retained |
-| Pitch comparator acceptance | `/root/guitar_features` | PITCH_COMPARATOR_ACCEPTANCE_LANE and independent read-only metric receipt | New pure learned evaluator 19 tests PASS; MIR closed 1fb8…; scripts/learned_pitch_evaluate.py and tests/test_learned_pitch_evaluate.py with independent audit; ACTIVE learned numerical preregistration before evaluation; CLI prototype still unpublished; no musical correctness claim |
+| Guarded phrase comparison | `/root/phrase_dag` | PHRASE_WINDOW_ABLATION_LANE, dated isolated ablation/guarded-arm/heldout harness receipts; canonical workers frozen | Equal-cap order-null ten-case/80-second run completed244.069s and independent numerical review published: B at IoU0.5 1TP51FP3FN→1TP16FP3FN; negative31→8 both seeds; strict IoU0.75 both0TP; commonpair.522s unchanged; noadoption |
+| Pitch comparator acceptance | `/root/guitar_features` | PITCH_COMPARATOR_ACCEPTANCE_LANE and independent read-only metric receipt | Published tool27 pure learned evaluator/current26e…; historical1fb archive preserved;19 initial tests/source numerical audit separate; learned_pitch_pilot.py/controller and fixed numerical preregistration retain explicit root inference release; no musical correctness acceptance |
 | Learned pitch worker | `/root/tonal_inference` | New `scripts/basic_pitch_compare.py`, `tests/test_basic_pitch_compare.py`, BASIC_PITCH_COMPARATOR_LANE; isolated qualified runtime/model receipts | Local tool24 source-origin repair407…; fresh actual20-source-second result18/67 hypotheses raw verification PASS; old8bc… worker receipt retained; ACTIVE separate portable-runtime setup 4da… new scripts/basic_pitch_runtime_setup.py and test_basic_pitch_runtime_setup.py; fresh setup44.818seconds/five wheels1349-member independent audit PASS/no weights or inference; worker/runtime now published26 baseline, not whole-take transcription |
 | Runtime audit | `/root/tonal_inference/tonal_audit` | Dated BASIC_PITCH runtime audit receipt only | Independent model/runtime/windowing/clock review; source/inference evidence distinct from pitch correctness |
 | Capture profile authoring | `/root/rhythm_analysis` | New `scripts/capture_profile.py`, `tests/test_capture_profile.py`, CAPTURE_PROFILE_WORKFLOW_LANE; existing media/profiles frozen | Published authoring worker; local repaired7d282…45 tests; root actual typed tool25 authoring PASS on232741: profileff8b4…, receipt804036…, native sample interval[180810,218295]; no DSP/core/latest changes; application route separate |
-| Typed hooks | `/root/tool_hooks` | `program/tools.json`, `scripts/tool_api.py`, `tests/test_tool_contracts.py`, named new contract docs | Published26 hooks;78 owner focused checks PASS; typed editor --summary and closed profile/source bounds qualified; actual compact proof/actions0/calibration required; future CLI prototypes separate |
-| Agent skills | `/root/tool_skills` | BASIC_PITCH_SKILL_LANE, CAPTURE_PROFILE_SKILL_LANE and explicitly assigned skills | Published26 exact skills/prompts qualified; authoring/runtime/application boundaries retained; no tool publication implies default adoption |
+| Typed hooks | `/root/tool_hooks` | `program/tools.json`, `scripts/tool_api.py`, `tests/test_tool_contracts.py`, named new contract docs | Published27 hooks with independent source audit; application28 draft contract not admitted; actual editor compact proof/actions0/calibration required remains separate |
+| Agent skills | `/root/tool_skills` | BASIC_PITCH_SKILL_LANE, CAPTURE_PROFILE_SKILL_LANE and explicitly assigned skills | Published27 exact skills; application28 draft skill separate/unadmitted; authoring/runtime/application boundaries retained; no default adoption |
 | Spectrogram/PCEN ablation | `/root/xod_spectrogram` | PCEN_FRONTEND_ABLATION_LANE and dated isolated evidence | Mixed results; new actual12-second characterization completed without clean reference; earlier defaults weakened onset metrics; no package/frontend adoption |
 | Meter/pulse ablation | `/root/meter_inference` | METER_PULSE_ABLATION_LANE and dated isolated harness/receipt | Joint pulse ablation12 variants all unknown; published worker frozen; energy-cycle evidence does not determine notation/downbeats |
-| Low-register STFT probe | `/root/audio_research` | LOW_REGISTER_NOISE_SEPARABILITY_LANE; new scripts/low_register_denoise_probe.py and tests/test_low_register_denoise_probe.py | Isolated prototype 32 masks/64 source seconds/65 seconds structural PASS, two quality alerts; ACTIVE independent clip_baseline audit and root actual diagnostic preparation; still unpublished; no real mixture stem or accepted quality claim |
-| Fan/capture research | `/root/clip_baseline` | BOX_FAN_CAPTURE research and dated characterization receipt | ACTIVE independent oracle audit/actual diagnostic preparation of new low-register probe; prior fan/tuning overlap and unverified-noise-only capture evidence preserved |
-| Review and marker delivery | `/root/plan_review` and `/root/media_latency` | Owned report/browser and marked visual/audit receipts; existing media frozen | Enhanced existing delivery/latest unchanged; media_latency quantized-coverage source fix qualified for metadata planning; existing marked render unchanged; prior sampled visual proof is scoped historical evidence, no new render/listening acceptance |
+| Low-register STFT probe | `/root/audio_research` | LOW_REGISTER_NOISE_SEPARABILITY_LANE; new scripts/low_register_denoise_probe.py and tests/test_low_register_denoise_probe.py | Four-fixed-variant10-second actual protected-low diagnostic complete8.541s; no source/master/latest changes, no fan-isolated/listening claim; synthetic32masks/64seconds/twoalerts retained separately |
+| Fan/capture research | `/root/clip_baseline` | BOX_FAN_CAPTURE research and dated characterization receipt | Completed precise optional NumericOracleTests qualification repair; four stdlib checks/six explicit missing-NumPy skips; qualified ten PASS; actual diagnostic ten-second measurements have no clean reference/fan stem, prior unverified capture status and low-end uncertainty preserved |
+| Review and marker delivery | `/root/plan_review` and `/root/media_latency` | Owned report/browser and marked visual/audit receipts; existing media frozen | Enhanced existing delivery/latest unchanged; media_latency quantized-coverage source fix qualified for metadata planning; existing marked render unchanged; A/B nine players verified at mobile+desktop; actual ten-second four-fixed diagnostic remains unaccepted and source/latest unchanged; prior sampled marked-visual proof scoped |
 | AU packaging | `/root/au_architecture` | Explicitly assigned native packaging/spec/receipt files | Published unsigned prototype/source checks are separate from installation/auval/Logic hosting; no host acceptance |
 | Editor adapter design | `/root/resolve_marker_sources` | EDITOR_MARKER_ADAPTER_LANE and dated bounded inventory | Published typed metadata-only planner; root actualMCP1361-byte summary180/24/156/actions0,24 coverage unknown without PTS/grid/origins;59 protected original/core/latest hashes unchanged and all6 hidden IDs retained; no editor import |
-| Root integration | `/root` | Shared recipes/admission, actual inference/render, `program/linear.json`, signed publication | Published 5513c3/26-tool baseline; replacement exact CI SUCCESS: 535 discovered/512 pass/23 optional skips, seven Rust/secrets passed; failed 1845 history retained; actual capture/pitch/media unchanged; future evaluator/lowprobe separate |
+| Capture profile application28 | Root-named restoration worker; `/root/release_review` audit; hooks/skills draft owners | New `scripts/apply_capture_profile.py`, `tests/test_apply_capture_profile.py`, independent audit tests, APPLY_CAPTURE_PROFILE_LANE, draft contract/skill | Source audit no must-fix after owned-group cleanup repair: independent 6 PASS/owner 30 fixtures, combined 36 freeze pending; STILL unadmitted/unpublished/no actual DSP; media_latency preparing ≤10-second actual native fixture plan only |
+| Root integration | `/root` | Shared recipes/admission, actual inference/render, `program/linear.json`, signed publication | Published cfdb619/27-tool baseline; exactCI37402931338 SUCCESS597/556pass41skips 57.032s/seven Rust/secrets; prior eaa/1845 failures preserved; qualified local596 proof distinct;28 unadmitted; mainmedia unchanged |
 | Durable tracking | `/root/goal_plan` | This board, checkpoint log and append-only user-prompt archive | Current follow-up only; freeze after handoff; no source/registry/Linear mutations |
 
 The original twelve-case calibration completed 275.72 s and four pitch jobs/30
@@ -175,7 +187,7 @@ source/fixture design without application-import acceptance.
 Run 37373112479 failed one parser-nesting test. Repair 9883069's run 37373960394
 had no job steps; exact annotation: “job was not acquired by Runner of type hosted
 even after multiple attempts”. The later 6f7d196 CI passed as recorded above;
-keep runner acquisition, source tests and current pending publication distinct.
+keep runner acquisition, source tests and current publication/readback distinct.
 
 D0 TIN-5485 remains In Review for listening; current publication comment
 `44694369-4105-4fad-814d-eea730c867c8`. Goal TIN-5495 remains In Progress;

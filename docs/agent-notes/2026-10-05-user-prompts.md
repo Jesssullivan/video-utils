@@ -238,3 +238,32 @@ The exact prompts in sections17/18 remain the user authority; this is later
 implementation context, not a new prompt. Low-register audit/diagnostic preparation
 and learned numerical preregistration continue toward the same06:49:34UTC horizon;
 source success remains separate from listening and musical acceptance.
+
+
+### Published27 continuing-context checkpoint — October6,02:07:57UTC
+
+The exact implementation/full-force/reattachment prompts remain the authority for
+continued named bounded work. Root reports a separate explicit user authorization
+for its owned GPG restart, with published receipt; exact additional user wording
+was not supplied to this archive and is not invented here. Publication27 and
+pending exactCI remain distinct from application28 source/fixtures, completed
+video and pending listening acceptance. No pause/horizon reset: planned end stays
+2026-10-06 06:49:34UTC.
+
+
+### Exact27-CI repair context — October6,02:10:26UTC
+
+The pending27 CI subsequently failed six optional numeric tests in minimal CI.
+Root assigned a targeted optional-class qualification within the existing
+implementation/reattachment authority. This is implementation context, not a
+new user message; no worker/default change, automatic install, pause or goal
+reset is inferred. Exact replacement outcome will be recorded when verified.
+
+
+### Repaired27-source context — October6,02:14:22UTC
+
+The existing full-force/reattachment requests continue to authorize bounded work.
+Root verified replacement27 CI success; prior failures remain recorded. The
+application28 source repair/audit remains separate from admission and actualDSP.
+No new user prompt, pause or goal reset is inferred; planned06:49:34UTC end and
+pending musician acceptance remain unchanged.

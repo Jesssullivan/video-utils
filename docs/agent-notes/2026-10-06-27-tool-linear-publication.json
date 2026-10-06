@@ -1,0 +1,25 @@
+{
+  "authority": "Operator Linear project specification / implementation; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "observed_at": "2026-10-06T02:14:59.605860+00:00",
+  "source_commit": "cfdb61915720032ae139d8dac07ef27b55223cdf",
+  "comments": [
+    {
+      "issue": "TIN-5485",
+      "id": "608c75e7-612c-424d-99cb-91b715dcbad7",
+      "url": "https://linear.app/tinyland/issue/TIN-5485/d0-first-cleaned-guitar-wavvideo-and-matched-listening-report#comment-608c75e7",
+      "createdAt": "2026-10-06T02:14:58.982Z",
+      "state_at_readback": "In Review",
+      "full_body_verified": true
+    },
+    {
+      "issue": "TIN-5495",
+      "id": "12ef5404-c914-4b9e-af9d-609bc1b348e7",
+      "url": "https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal#comment-12ef5404",
+      "createdAt": "2026-10-06T02:14:59.397Z",
+      "state_at_readback": "In Progress",
+      "full_body_verified": true
+    }
+  ],
+  "body": "27-tool publication checkpoint: signed private source `cfdb61915720032ae139d8dac07ef27b55223cdf`; [exact hosted CI](https://github.com/Jesssullivan/video-utils/actions/runs/37402931338) passed 597 Python checks (556 passed, 41 explicit optional skips; 57.032s), seven Rust tests and secret scan. Qualified local analysis suite separately passed 596/597 with one skip in570.424s. The initial27 CI37402577907 failed six numeric fixture tests because minimal CI lacks optional NumPy; the precise class qualification repair passed stdlib4+six skips and qualified10. That failure remains recorded, not relabeled.\n\nThe new typed learned-pitch evaluator and matching skill evaluate saved predictions without installation/inference. Historical numerical source1fb is preserved in commit87cc3ce; current26e fixes relative index paths and produces identical scores/CSVs. Generated C1 accuracy34/426 with392 octave errors remains a failure; no real-note correctness or model winner is claimed.\n\nThe full enhanced master and marked video remain unchanged:24 selected uncertain review markers/25 callouts, source-timed generic metadata and verified native picture/AAC timing. Local low-register audition page has nine unity-level players and passed mobile/desktop checks; four10-second mixture diagnostics do not establish isolated fan removal or guitar preservation. Listening acceptance remains pending. Order-null phrase filtering reduced false candidates51\u219216 with1TP/3FN unchanged; strictIoU.75 has zero matches and shared endpoint error.522s unchanged. Independent audit passes; no default adoption.\n\nNext active lane is a separate source-bound restoration-profile application prototype and native fixture qualification; tool28 is not admitted. Ten-hour goal remains active through2026-10-06 06:49:34UTC; D0 remains InReview and goal InProgress. Native editor import and Logic/AU acceptance remain future evidence. Authority: operator-approved implementation/parallel goal; R-HOOK-CONVERGENCE-20261004/R-N13.",
+  "readback": "full comment bodies and issue states verified"
+}

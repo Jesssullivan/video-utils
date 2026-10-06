@@ -1,0 +1,33 @@
+{
+  "authority": "Operator requested Linear spec / Implement the plan; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "observed_at": "2026-10-06T02:08:52.621847+00:00",
+  "project": {
+    "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+    "updatedAt": "2026-10-06T02:08:23.025Z",
+    "full_content_verified": true,
+    "normalizations": [
+      "whitespace",
+      "bold span splitting",
+      "list bullet character",
+      "angle-wrapped link URLs",
+      "table separator widths"
+    ]
+  },
+  "d0": {
+    "id": "87f4c52a-8275-45db-8e5a-0e7dab9d3557",
+    "identifier": "TIN-5485",
+    "state": {
+      "name": "In Review"
+    }
+  },
+  "goal": {
+    "id": "1ceeca7a-a52f-4824-967b-74a919ab654a",
+    "identifier": "TIN-5495",
+    "state": {
+      "name": "In Progress"
+    }
+  },
+  "source_commit": "eaa824f61e86faef798d8de4de056f05813b2178",
+  "typed_tools": 27,
+  "hosted_ci": "37402577907 in progress at initial readback"
+}
