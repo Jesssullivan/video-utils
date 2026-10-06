@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "snapshots": [
+    {
+      "excerpt_id": "time20",
+      "fft_samples": 1024,
+      "frames": 801,
+      "path": "artifacts/experiments/pcen-actual-transfer/features/time20-1024.npz",
+      "sha256": "ad7fd70a3af76de5e73916efd31850286a0a9aed9ea7abba6fceab5148d1f28e",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_any_cross_policy_comparison"
+    },
+    {
+      "excerpt_id": "time20",
+      "fft_samples": 4096,
+      "frames": 801,
+      "path": "artifacts/experiments/pcen-actual-transfer/features/time20-4096.npz",
+      "sha256": "9157455f7ee7e81f51d232f1bea2d10b6875f6368023985af57da7c26f033ecf",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_any_cross_policy_comparison"
+    },
+    {
+      "excerpt_id": "time90",
+      "fft_samples": 1024,
+      "frames": 801,
+      "path": "artifacts/experiments/pcen-actual-transfer/features/time90-1024.npz",
+      "sha256": "83b9372e51ff18de317b5addd0963094ab1e18aa7aeadae9a2bc93c154e04659",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_any_cross_policy_comparison"
+    },
+    {
+      "excerpt_id": "time90",
+      "fft_samples": 4096,
+      "frames": 801,
+      "path": "artifacts/experiments/pcen-actual-transfer/features/time90-4096.npz",
+      "sha256": "232392e5b2b8019fe7d1f80fd0710efe311dc387ca09eb3423e113b6e8c7da63",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_any_cross_policy_comparison"
+    },
+    {
+      "excerpt_id": "time130",
+      "fft_samples": 1024,
+      "frames": 801,
+      "path": "artifacts/experiments/pcen-actual-transfer/features/time130-1024.npz",
+      "sha256": "6760c549a434de144ff7b60ea04cdebe2ca1a018b5ac4faa095200d54e74538f",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_any_cross_policy_comparison"
+    },
+    {
+      "excerpt_id": "time130",
+      "fft_samples": 4096,
+      "frames": 801,
+      "path": "artifacts/experiments/pcen-actual-transfer/features/time130-4096.npz",
+      "sha256": "c791983c84dd5e4f4ebd5f17452eeae92bc420658768737d8c0430f249d0c5bd",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_any_cross_policy_comparison"
+    }
+  ]
+}

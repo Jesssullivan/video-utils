@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-06 00:29:58 UTC",
+  "actor": "/root/tonal_inference/tonal_audit",
+  "authority": "Root enhanced-main-only independent readback release; operator ten-hour parallel goal; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "status": "independent_bounded_enhanced_main_readback_pass",
+  "run_dir": "artifacts/runs/20261005T232741Z-2b5dc43fd009",
+  "owner_receipt": "docs/agent-notes/2026-10-06-basic-pitch-enhanced-main.json",
+  "comparison_path": "artifacts/runs/20261005T232741Z-2b5dc43fd009/learned-pitch/20261006T002621Z-767170c14c06/comparison.json",
+  "comparison_sha256": "023a1300c37d1f02c117a49d4fd18823d7856baa483d236c3c6ff17e3ff2d890",
+  "analysis_input_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+  "analysis_basis": "Pure denoised.wav from captured8-clarity run; EQ/compression processed.wav and normalized cleaned.wav are excluded from model analysis.",
+  "native_probe": {
+    "codec_name": "pcm_f32le",
+    "sample_rate": "44100",
+    "channels": 1,
+    "time_base": "1/44100",
+    "duration_ts": 6657385
+  },
+  "original_source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "manifest_sha256": "4a75b4e352075114a7b6026c74acab3ab6c64eedddd52fc2b8514adfed80549c",
+  "worker_sha256": "8bc17166c48ff6dccf33fd0eb17d3257535d6d91c83df0afed51b9c59dc75ee1",
+  "raw_activations_sha256": "be0ec2347565d2c60abb8a15a5652a3b9e32d0f53b35ce3d850a698c9d0992c6",
+  "checks": {
+    "current_source_manifest_registry_tuning_runtime_worker_hashes": true,
+    "finite_numeric_arrays": 32,
+    "note_onset_shape_per_excerpt": [
+      430,
+      88
+    ],
+    "contour_shape_per_excerpt": [
+      430,
+      264
+    ],
+    "raw_array_bytes": 3082240,
+    "three_clock_formulas_and_window_indices": true,
+    "leading_trailing_padding_and_cropping": true,
+    "source_event_extents_bounded_by_excerpt": true,
+    "all_intended_note_string_performance_fields_null": true,
+    "old_comparison_sha256_unchanged": "ef86dbcaa1743d44ff24e2aa635deddaadce6a25653b35b537329e2a22b50e37",
+    "independent_core_original_latest_files_checked": 24,
+    "changed_files": [],
+    "processed_master_matches_manifest_and_owner_pre_post": true
+  },
+  "metrics": {
+    "coverage_seconds": 20,
+    "coverage_fraction": 0.13248445157508149,
+    "excerpts": 4,
+    "model_windows": 16,
+    "events_by_project_floor_ms": {
+      "127.7": 18,
+      "25.0": 67
+    },
+    "owner_elapsed_seconds": 8.520885459001875,
+    "owner_peak_rss_bytes": 179191808,
+    "maximum_model_vs_window_projection_clock_discrepancy_ms": 8.526077097505746
+  },
+  "unchanged_before_after_hashes": {
+    "manifest.json": "4a75b4e352075114a7b6026c74acab3ab6c64eedddd52fc2b8514adfed80549c",
+    "source.wav": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a",
+    "denoised.wav": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+    "cleaned.wav": "99d56a25d05e434b4bb8f4149488c7b143558872c826ecc55df344012f4fbafd",
+    "baseline.wav": "0dd6f502323fd27d9abc7a54fb89e11c3a1a0c297f68164e1a8a9f38b9e398e8",
+    "residue.wav": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc",
+    "analysis.json": "4d32f962c5c59920943217cfb72fbe3c9e3eb9fefa3c6d9b79ee648187cadd0a",
+    "pitch.json": "7a366f1b3d68e41451f1d50e44c5bd2126eb3509e53c9749c9439853d0d2b5c5",
+    "phrases.json": "267fc503fc2e55def3fe61d50d89d18ee5155e0ecc981e86cacfc9e6a4f01e51",
+    "notes.json": "37e91afde3fe6dce66a6f7e1dfda1f2973605005f631de0d3cc8f43e6a08c9e2",
+    "noise.json": "5334e6a6638e4de2a6299869c276b7d0cc08a68dbb77cf8d1d1d549626d855eb",
+    "tone.json": "ee0e2bd0807036b4e444783e29a3085871d899d7653c9db428e50fe85ee5ca5b",
+    "events.csv": "ab640f6370f5eef2ff0f548f94826b3db631a140d058db1578397d3b48a025f1",
+    "phrase-comparisons.json": "0dc9c70b28ddb7c0bdd4afce1fb23938a5b9b5c770a51e4d57ae75d8f2db5f15",
+    "dag.json": "0993050ccfb4ac136a2369de8e5fd954c1a2c8998388252e91e4704ad20c076a",
+    "flags.json": "3d6b403fc2eeba90f9ea078d039e46bab427287b1c048a54933da66622e5ef0e",
+    "markers.json": "b2d2cf4aa6ed18b489815c7f9a6ccc75e5ecd82b372a561bf3627fa7b3b13a84",
+    "markers.csv": "02b6dfb7d1124e4a8d4fdf60e04dc62eae7a475fa59bfc9327b7a334100e2517",
+    "report.html": "a47ae9cf342e4bf2c81a7f64dcd6c662984d09a81106399166109b190bcd3cc2",
+    "demo.json": "00967fb47c15c8229b8a88297c9bde8b9a30bb9cda184407e2da5fe760cfdd7e",
+    "export/outcome.json": "711f8adf495293286fe229cbd6fba4cceb7bd7bb33f0e91905c36acb649207be",
+    "export/cleaned-video.mov": "9e7bc23aed07b73012765ff6abf7f0e0fe5913cbc4ee47bb60aa4e95f205f6fe",
+    "operator_original_recording": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+    "artifacts/latest.json": "8ed66efb8f81f06db6c1abb0a5962c38218d6c8bd1fb3c2d46432dc1693fa5ee"
+  },
+  "processed_master_sha256": "a721053fb61234547bd5c9efdddf626ceea1dc02b114cf3435604c1a650f66a8",
+  "scope_limits": [
+    "No model inference repeated; no source, runtime, registry, latest pointer or core artifact edits by this audit.",
+    "Old conservative run remains separate:17/65 hypotheses. Enhanced pure-denoise run yields18/67; counts are not accuracy or improvement metrics.",
+    "Three clocks and approximately two-second padded contexts are not physical capture-latency calibration.",
+    "No upstream decoder parity, actual-note correctness, musical performance grade, listening acceptance, AU or Logic acceptance."
+  ]
+}

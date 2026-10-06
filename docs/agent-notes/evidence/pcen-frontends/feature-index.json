@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "call_index": 0,
+      "fft_samples": 1024,
+      "frames": 801,
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/pcen-frontends/features/opaque-call-00-features.npz",
+      "sha256": "695a3edb209547279bb1f26688f76c68777704e918b99d6a46f3a352ea5f0d2a",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_component_pair_comparison"
+    },
+    {
+      "call_index": 1,
+      "fft_samples": 1024,
+      "frames": 801,
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/pcen-frontends/features/opaque-call-01-features.npz",
+      "sha256": "0cf5333cd2f1ccb28286e3c03aa312d520ac0bc37e300ee7f3273e2877f8c783",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_component_pair_comparison"
+    },
+    {
+      "call_index": 2,
+      "fft_samples": 4096,
+      "frames": 801,
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/pcen-frontends/features/opaque-call-02-features.npz",
+      "sha256": "54a07869d1eb334a95b6a91893a396250a931e1562449462385b7a76b3314b85",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_component_pair_comparison"
+    },
+    {
+      "call_index": 3,
+      "fft_samples": 4096,
+      "frames": 801,
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/pcen-frontends/features/opaque-call-03-features.npz",
+      "sha256": "6ae8a4aa88bfae3d02443a5f53d76078197f100ab2bba1ec499197241f4a4b5e",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_component_pair_comparison"
+    },
+    {
+      "call_index": 4,
+      "fft_samples": 1024,
+      "frames": 801,
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/pcen-frontends/features/opaque-call-04-features.npz",
+      "sha256": "ad224ea7bf32efd3d7bc89cf0b9abd9e9fdc0281a6e410a8e0f0a5249a60766d",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_component_pair_comparison"
+    },
+    {
+      "call_index": 5,
+      "fft_samples": 1024,
+      "frames": 801,
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/pcen-frontends/features/opaque-call-05-features.npz",
+      "sha256": "dafd6c83a74e79a63e9be778245405d23a180eb37999b64bb59871b7e4d59103",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_component_pair_comparison"
+    },
+    {
+      "call_index": 6,
+      "fft_samples": 4096,
+      "frames": 801,
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/pcen-frontends/features/opaque-call-06-features.npz",
+      "sha256": "885264d5cd2a1af4b3f7d6151421c5fa822ceccbb60ca18436296f9be6fcd0b3",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_component_pair_comparison"
+    },
+    {
+      "call_index": 7,
+      "fft_samples": 4096,
+      "frames": 801,
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/pcen-frontends/features/opaque-call-07-features.npz",
+      "sha256": "a2c2db6301967fcb64056037a65f6be35025d06b3f870761f10e13c1942e8800",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_component_pair_comparison"
+    },
+    {
+      "call_index": 8,
+      "fft_samples": 1024,
+      "frames": 801,
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/pcen-frontends/features/opaque-call-08-features.npz",
+      "sha256": "6adb54c5a34b47d134ed4ab625869fbebb0c21e3f261748bc252d89903f0141c",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_component_pair_comparison"
+    },
+    {
+      "call_index": 9,
+      "fft_samples": 1024,
+      "frames": 801,
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/pcen-frontends/features/opaque-call-09-features.npz",
+      "sha256": "f5e5c11047efa0a25484c2226deb60fb364568c0616f45e08da32ec80900ad60",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_component_pair_comparison"
+    },
+    {
+      "call_index": 10,
+      "fft_samples": 4096,
+      "frames": 801,
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/pcen-frontends/features/opaque-call-10-features.npz",
+      "sha256": "7ff03641dc8630d266fbb3e0550edc8609677d264e29062f35f47bda064da7a3",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_component_pair_comparison"
+    },
+    {
+      "call_index": 11,
+      "fft_samples": 4096,
+      "frames": 801,
+      "path": "/Users/jess/git/video-utils/artifacts/experiments/pcen-frontends/features/opaque-call-11-features.npz",
+      "sha256": "cde619faf7b7b008d87797e82c193e712695d5be8250cdddad1f5a72cdbbe99d",
+      "policies": [
+        "magnitude-log",
+        "magnitude-default",
+        "magnitude-unit-gain05",
+        "magnitude-unit-gain05-slow",
+        "power-log",
+        "power-default"
+      ],
+      "status": "saved_before_component_pair_comparison"
+    }
+  ]
+}

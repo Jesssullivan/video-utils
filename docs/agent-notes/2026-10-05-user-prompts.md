@@ -190,3 +190,23 @@ No exact user-message timestamp was supplied. Appended verbatim:
 These continue the authorized work and reactivate the existing named team.
 They do not discard saved tasks/dirty work, reset the goal clock, establish
 listening acceptance, or transfer unrelated file ownership implicitly.
+
+
+### Reattachment durability checkpoint — October 6, 00:24:53 UTC
+
+The exact request in section 18 remains the authority for the continued named
+team. Root reattached this tracking task and current bounded follow-ups while
+preserving existing work. This paragraph records later implementation context;
+it is not a second user prompt and supplies no invented message timestamp.
+The goal still ends at the planned **2026-10-06 06:49:34 UTC** horizon. Published
+source, locally admitted next tools, completed video, sampled visual proof and
+pending listening acceptance remain separate states in the work board/checkpoints.
+
+
+### Continued named-team checkpoint — October 6, 00:39:05 UTC
+
+Root reports the existing team and nested reviewers reattached, with completed
+lanes finishing normally and bounded future prototype assignments continuing.
+The user authority remains the exact sections 17/18 prompts; this is implementation
+context, not another user message. No pause or extra development hours were
+requested; the planned 06:49:34 UTC goal end is unchanged.

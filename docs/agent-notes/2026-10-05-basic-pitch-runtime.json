@@ -1,0 +1,362 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-06T00:11:59.433814+00:00",
+  "authority": "operator ten-hour parallel goal; root explicit isolated runtime/adapter release; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "status": "runtime_and_bounded_adapter_pass_independent_readback_pass_root_admission_pending",
+  "qualified_model_receipt": "docs/agent-notes/2026-10-05-basic-pitch-qualified-model.json",
+  "runtime_wheel_manifest": {
+    "schema_version": 1,
+    "recorded_utc": "2026-10-05T23:46:51.481815+00:00",
+    "python": "3.14.6",
+    "platform": "macos-arm64",
+    "packages": [
+      {
+        "name": "onnxruntime",
+        "version": "1.30.0",
+        "metadata_url": "https://pypi.org/pypi/onnxruntime/1.30.0/json",
+        "filename": "onnxruntime-1.30.0-cp314-cp314-macosx_14_0_arm64.whl",
+        "url": "https://files.pythonhosted.org/packages/6a/03/05c9a9234688757d2876ddecf80bba908561ee11debf125bc1a427ae6f48/onnxruntime-1.30.0-cp314-cp314-macosx_14_0_arm64.whl",
+        "sha256": "8b6169c16a48429890d2f4a0c774ebf54dfe9066a998514aad0518a16d398547",
+        "bytes": 21545313,
+        "requires_dist": [
+          "flatbuffers",
+          "numpy>=1.21.6",
+          "packaging",
+          "protobuf>=4.25.8",
+          "sympy; extra == \"symbolic\"",
+          "ml_dtypes; extra == \"quantization\""
+        ]
+      },
+      {
+        "name": "numpy",
+        "version": "2.5.3",
+        "metadata_url": "https://pypi.org/pypi/numpy/2.5.3/json",
+        "filename": "numpy-2.5.3-cp314-cp314-macosx_11_0_arm64.whl",
+        "url": "https://files.pythonhosted.org/packages/9e/59/abcc2d8def4fd60eec7d87f92d27c13448ffd9ab14339bcc63a0d7a2fdea/numpy-2.5.3-cp314-cp314-macosx_11_0_arm64.whl",
+        "sha256": "012e66aca395d795496446e52aeeb5866312a5d4d3f27da270e5a0b43f70dc5c",
+        "bytes": 12013862,
+        "requires_dist": null
+      },
+      {
+        "name": "flatbuffers",
+        "version": "25.12.19",
+        "metadata_url": "https://pypi.org/pypi/flatbuffers/json",
+        "filename": "flatbuffers-25.12.19-py2.py3-none-any.whl",
+        "url": "https://files.pythonhosted.org/packages/e8/2d/d2a548598be01649e2d46231d151a6c56d10b964d94043a335ae56ea2d92/flatbuffers-25.12.19-py2.py3-none-any.whl",
+        "sha256": "7634f50c427838bb021c2d66a3d1168e9d199b0607e6329399f04846d42e20b4",
+        "bytes": 26661,
+        "requires_dist": null
+      },
+      {
+        "name": "packaging",
+        "version": "26.3",
+        "metadata_url": "https://pypi.org/pypi/packaging/json",
+        "filename": "packaging-26.3-py3-none-any.whl",
+        "url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
+        "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+        "bytes": 129956,
+        "requires_dist": null
+      },
+      {
+        "name": "protobuf",
+        "version": "7.36.2",
+        "metadata_url": "https://pypi.org/pypi/protobuf/json",
+        "filename": "protobuf-7.36.2-cp310-abi3-macosx_10_9_universal2.whl",
+        "url": "https://files.pythonhosted.org/packages/32/72/98342feb672507c8f3a69e34b4fa8961f608edba5c1a48a6f47156d92cb5/protobuf-7.36.2-cp310-abi3-macosx_10_9_universal2.whl",
+        "sha256": "cbc70b17ee27e28894c7fee8bb04be1abead49e936bc70eb60052531eee2079e",
+        "bytes": 456039,
+        "requires_dist": null
+      }
+    ]
+  },
+  "runtime_wheel_manifest_sha256": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
+  "runtime_smoke": {
+    "schema_version": 1,
+    "status": "single_zero_window_runtime_smoke_pass_not_audio_accuracy",
+    "model_sha256": "2c3c1d144bfa61ad236e92e169c13535c880469a12a047d4e73451f2c059a0ec",
+    "runtime_versions": {
+      "onnxruntime": "1.30.0",
+      "numpy": "2.5.3",
+      "flatbuffers": "25.12.19",
+      "packaging": "26.3",
+      "protobuf": "7.36.2"
+    },
+    "python": "3.14.6",
+    "providers": [
+      "CPUExecutionProvider"
+    ],
+    "options": {
+      "intra_op_threads": 2,
+      "inter_op_threads": 1,
+      "execution_mode": "sequential"
+    },
+    "model_io": {
+      "inputs": [
+        {
+          "name": "serving_default_input_2:0",
+          "shape": [
+            "unk__749",
+            43844,
+            1
+          ],
+          "type": "tensor(float)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "StatefulPartitionedCall:2",
+          "shape": [
+            "unk__750",
+            172,
+            88
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "StatefulPartitionedCall:1",
+          "shape": [
+            "unk__751",
+            172,
+            88
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "StatefulPartitionedCall:0",
+          "shape": [
+            "unk__752",
+            172,
+            264
+          ],
+          "type": "tensor(float)"
+        }
+      ]
+    },
+    "output_shapes": [
+      [
+        1,
+        172,
+        88
+      ],
+      [
+        1,
+        172,
+        88
+      ],
+      [
+        1,
+        172,
+        264
+      ]
+    ],
+    "outputs_finite": [
+      true,
+      true,
+      true
+    ],
+    "activation_ranges": [
+      [
+        0.09361386299133301,
+        0.16070741415023804
+      ],
+      [
+        0.021488577127456665,
+        0.16868069767951965
+      ],
+      [
+        0.0807046890258789,
+        0.21474918723106384
+      ]
+    ],
+    "elapsed_seconds": 0.17167600000175298,
+    "peak_rss_bytes": 65159168
+  },
+  "worker_path": "scripts/basic_pitch_compare.py",
+  "worker_sha256": "8bc17166c48ff6dccf33fd0eb17d3257535d6d91c83df0afed51b9c59dc75ee1",
+  "tests_path": "tests/test_basic_pitch_compare.py",
+  "tests_sha256": "c71400db31f0e5032897cf6a20836f297d4fa72863a188c395fa147c10be66e6",
+  "tests": {
+    "stdlib_pass": 16,
+    "optional_runtime_pass": 1,
+    "total_pass": 17,
+    "command": "BASIC_PITCH_RUNTIME_TEST=1 BASIC_PITCH_PILOT_OUTPUT=FRESH_OUTPUT python3 -m unittest discover -s tests -p test_basic_pitch_compare.py -v",
+    "scope": "resource cleanup, bounds, decoder semantics, clocks and actual generated model inference; no real-note correctness gate"
+  },
+  "generated_pilot": {
+    "path": "artifacts/model-comparison/20261006-basic-pitch-generated-12s-final",
+    "inference_sha256": "67cd53bcebc357c9469e208455e02fb1c6e9a719a4d66cde273d16ea8f85f8dc",
+    "raw_activations_sha256": "fa35adc5d24b8081e5f523e03aa055d3d012c3e21094d4959949e05f68576590",
+    "truth_sha256": "2dd786184e8cbfc96128b005c140321b1a987f099d019c83b9bacb3d5ce5c531",
+    "diagnostics_sha256": "747b498b53f5714ffe0963c1c03cc3cb10c5078c517dfd68070653c435058f24",
+    "diagnostics": {
+      "schema_version": 1,
+      "cases": [
+        {
+          "case_id": "low_c1",
+          "frames": 258,
+          "threshold_active_top_one_frames": 255,
+          "truth_membership_hits_all_frames": 255,
+          "all_frame_truth_membership_fraction": 0.9883720930232558,
+          "active_top_one_midi_histogram": {
+            "24": 255
+          },
+          "event_counts_by_floor_ms": {
+            "127.7": 1,
+            "25.0": 2
+          }
+        },
+        {
+          "case_id": "missing_fundamental",
+          "frames": 258,
+          "threshold_active_top_one_frames": 257,
+          "truth_membership_hits_all_frames": 0,
+          "all_frame_truth_membership_fraction": 0.0,
+          "active_top_one_midi_histogram": {
+            "36": 133,
+            "60": 95,
+            "48": 29
+          },
+          "event_counts_by_floor_ms": {
+            "127.7": 8,
+            "25.0": 13
+          }
+        },
+        {
+          "case_id": "legato_sweep",
+          "frames": 258,
+          "threshold_active_top_one_frames": 258,
+          "truth_membership_hits_all_frames": 235,
+          "all_frame_truth_membership_fraction": 0.9108527131782945,
+          "active_top_one_midi_histogram": {
+            "60": 31,
+            "63": 33,
+            "67": 48,
+            "72": 49,
+            "75": 33,
+            "79": 48,
+            "84": 16
+          },
+          "event_counts_by_floor_ms": {
+            "127.7": 20,
+            "25.0": 31
+          }
+        },
+        {
+          "case_id": "polyphonic_tapping",
+          "frames": 258,
+          "threshold_active_top_one_frames": 258,
+          "truth_membership_hits_all_frames": 244,
+          "all_frame_truth_membership_fraction": 0.9457364341085271,
+          "active_top_one_midi_histogram": {
+            "60": 18,
+            "48": 166,
+            "63": 28,
+            "72": 30,
+            "75": 11,
+            "84": 5
+          },
+          "event_counts_by_floor_ms": {
+            "127.7": 31,
+            "25.0": 43
+          }
+        }
+      ],
+      "coverage_seconds": 12,
+      "model_windows": 8,
+      "peak_rss_bytes": 166330368,
+      "top_one_rule": "highest note activation, lowest MIDI tie, threshold0.3; labels consulted after raw arrays persist",
+      "acceptance": "descriptive all-frame diagnostics, not native-context eligible musical accuracy",
+      "limitations": [
+        "Stepped phase-discontinuous harmonic proxies do not validate physical guitar articulation.",
+        "Missing-F0 input excludes fundamental and nonlinear distortion to avoid regenerating C1.",
+        "Full model support approximately2seconds; no pYIN eligibility reuse."
+      ]
+    },
+    "reproduction": "Optional runtime unittest itself writes diagnostics.json using persisted arrays and evaluation-only labels.",
+    "supersedes_diagnostic_only_pilots": [
+      "artifacts/model-comparison/20261005-basic-pitch-generated-12s",
+      "artifacts/model-comparison/20261006-basic-pitch-generated-12s-linear-missing-f0"
+    ],
+    "correction": "Initial missing-F0 tanh proxy could regenerate C1; final linear harmonic ladder excludes this nonlinear step. Actual recording run unchanged."
+  },
+  "actual_pilot": {
+    "comparison_path": "artifacts/runs/20261005T211103Z-c6d0bac2fcd2/learned-pitch/20261006T000817Z-3e321db594cc/comparison.json",
+    "comparison_sha256": "ef86dbcaa1743d44ff24e2aa635deddaadce6a25653b35b537329e2a22b50e37",
+    "raw_activations_sha256": "61c6bbbe235a5ae9386854cd9d855294b08b8abbdbb71b63961113483d6429ff",
+    "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+    "analysis_input_sha256": "dbd8b40eaf9928eb2f80791cfbdc9c3562ed10b57bcf859ad96d8a202fc93b12",
+    "manifest_sha256": "0438657188d136c36073789e5496ccf27d3a19aa9604eaca0f3941a36ec9162d",
+    "model_sha256": "2c3c1d144bfa61ad236e92e169c13535c880469a12a047d4e73451f2c059a0ec",
+    "coverage_seconds": 20.0,
+    "coverage_fraction": 0.13248445157508149,
+    "excerpts": [
+      {
+        "start_seconds": 0.0,
+        "end_seconds": 5.0,
+        "sample_count": 110250,
+        "retained_frames": 430
+      },
+      {
+        "start_seconds": 48.653703666666665,
+        "end_seconds": 53.653703666666665,
+        "sample_count": 110250,
+        "retained_frames": 430
+      },
+      {
+        "start_seconds": 97.30740733333333,
+        "end_seconds": 102.30740733333333,
+        "sample_count": 110250,
+        "retained_frames": 430
+      },
+      {
+        "start_seconds": 145.961111,
+        "end_seconds": 150.961111,
+        "sample_count": 110250,
+        "retained_frames": 430
+      }
+    ],
+    "model_windows": 16,
+    "elapsed_seconds": 6.329133709001326,
+    "peak_rss_bytes": 170917888,
+    "raw_array_bytes": 3082240,
+    "event_counts_by_floor_ms": {
+      "127.7": 17,
+      "25.0": 65
+    },
+    "performance_grade": "not_graded"
+  },
+  "admission_claims": {
+    "runtime_cpu_inference": true,
+    "bounded_adapter_actual_demo": true,
+    "upstream_postprocessing_parity": false,
+    "independent_generated_bank_acceptance": false,
+    "real_note_correctness": false,
+    "mcp_or_skill_published": false,
+    "au_or_logic_acceptance": false
+  },
+  "not_performed": [
+    "current_venv_mutation",
+    "main_pyproject_or_uv_lock_mutation",
+    "source_overwrite",
+    "latest_pointer_change",
+    "implicit_model_download",
+    "gpu_use",
+    "host_changes"
+  ],
+  "upstream_attribution": {
+    "project": "Basic Pitch",
+    "copyright": "Copyright2022 Spotify AB",
+    "source_commit": "9991303bba609a3b93089d13ec80d1d495083596",
+    "adaptation_scope": "Project worker follows documented upstream input-window and empirical model-clock conventions; postprocessing intentionally differs.",
+    "license_text": "Copyright 2022 Spotify AB\n\n                                 Apache License\n                           Version 2.0, January 2004\n                        http://www.apache.org/licenses/\n\n   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n   1. Definitions.\n\n      \"License\" shall mean the terms and conditions for use, reproduction,\n      and distribution as defined by Sections 1 through 9 of this document.\n\n      \"Licensor\" shall mean the copyright owner or entity authorized by\n      the copyright owner that is granting the License.\n\n      \"Legal Entity\" shall mean the union of the acting entity and all\n      other entities that control, are controlled by, or are under common\n      control with that entity. For the purposes of this definition,\n      \"control\" means (i) the power, direct or indirect, to cause the\n      direction or management of such entity, whether by contract or\n      otherwise, or (ii) ownership of fifty percent (50%) or more of the\n      outstanding shares, or (iii) beneficial ownership of such entity.\n\n      \"You\" (or \"Your\") shall mean an individual or Legal Entity\n      exercising permissions granted by this License.\n\n      \"Source\" form shall mean the preferred form for making modifications,\n      including but not limited to software source code, documentation\n      source, and configuration files.\n\n      \"Object\" form shall mean any form resulting from mechanical\n      transformation or translation of a Source form, including but\n      not limited to compiled object code, generated documentation,\n      and conversions to other media types.\n\n      \"Work\" shall mean the work of authorship, whether in Source or\n      Object form, made available under the License, as indicated by a\n      copyright notice that is included in or attached to the work\n      (an example is provided in the Appendix below).\n\n      \"Derivative Works\" shall mean any work, whether in Source or Object\n      form, that is based on (or derived from) the Work and for which the\n      editorial revisions, annotations, elaborations, or other modifications\n      represent, as a whole, an original work of authorship. For the purposes\n      of this License, Derivative Works shall not include works that remain\n      separable from, or merely link (or bind by name) to the interfaces of,\n      the Work and Derivative Works thereof.\n\n      \"Contribution\" shall mean any work of authorship, including\n      the original version of the Work and any modifications or additions\n      to that Work or Derivative Works thereof, that is intentionally\n      submitted to Licensor for inclusion in the Work by the copyright owner\n      or by an individual or Legal Entity authorized to submit on behalf of\n      the copyright owner. For the purposes of this definition, \"submitted\"\n      means any form of electronic, verbal, or written communication sent\n      to the Licensor or its representatives, including but not limited to\n      communication on electronic mailing lists, source code control systems,\n      and issue tracking systems that are managed by, or on behalf of, the\n      Licensor for the purpose of discussing and improving the Work, but\n      excluding communication that is conspicuously marked or otherwise\n      designated in writing by the copyright owner as \"Not a Contribution.\"\n\n      \"Contributor\" shall mean Licensor and any individual or Legal Entity\n      on behalf of whom a Contribution has been received by Licensor and\n      subsequently incorporated within the Work.\n\n   2. Grant of Copyright License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      copyright license to reproduce, prepare Derivative Works of,\n      publicly display, publicly perform, sublicense, and distribute the\n      Work and such Derivative Works in Source or Object form.\n\n   3. Grant of Patent License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      (except as stated in this section) patent license to make, have made,\n      use, offer to sell, sell, import, and otherwise transfer the Work,\n      where such license applies only to those patent claims licensable\n      by such Contributor that are necessarily infringed by their\n      Contribution(s) alone or by combination of their Contribution(s)\n      with the Work to which such Contribution(s) was submitted. If You\n      institute patent litigation against any entity (including a\n      cross-claim or counterclaim in a lawsuit) alleging that the Work\n      or a Contribution incorporated within the Work constitutes direct\n      or contributory patent infringement, then any patent licenses\n      granted to You under this License for that Work shall terminate\n      as of the date such litigation is filed.\n\n   4. Redistribution. You may reproduce and distribute copies of the\n      Work or Derivative Works thereof in any medium, with or without\n      modifications, and in Source or Object form, provided that You\n      meet the following conditions:\n\n      (a) You must give any other recipients of the Work or\n          Derivative Works a copy of this License; and\n\n      (b) You must cause any modified files to carry prominent notices\n          stating that You changed the files; and\n\n      (c) You must retain, in the Source form of any Derivative Works\n          that You distribute, all copyright, patent, trademark, and\n          attribution notices from the Source form of the Work,\n          excluding those notices that do not pertain to any part of\n          the Derivative Works; and\n\n      (d) If the Work includes a \"NOTICE\" text file as part of its\n          distribution, then any Derivative Works that You distribute must\n          include a readable copy of the attribution notices contained\n          within such NOTICE file, excluding those notices that do not\n          pertain to any part of the Derivative Works, in at least one\n          of the following places: within a NOTICE text file distributed\n          as part of the Derivative Works; within the Source form or\n          documentation, if provided along with the Derivative Works; or,\n          within a display generated by the Derivative Works, if and\n          wherever such third-party notices normally appear. The contents\n          of the NOTICE file are for informational purposes only and\n          do not modify the License. You may add Your own attribution\n          notices within Derivative Works that You distribute, alongside\n          or as an addendum to the NOTICE text from the Work, provided\n          that such additional attribution notices cannot be construed\n          as modifying the License.\n\n      You may add Your own copyright statement to Your modifications and\n      may provide additional or different license terms and conditions\n      for use, reproduction, or distribution of Your modifications, or\n      for any such Derivative Works as a whole, provided Your use,\n      reproduction, and distribution of the Work otherwise complies with\n      the conditions stated in this License.\n\n   5. Submission of Contributions. Unless You explicitly state otherwise,\n      any Contribution intentionally submitted for inclusion in the Work\n      by You to the Licensor shall be under the terms and conditions of\n      this License, without any additional terms or conditions.\n      Notwithstanding the above, nothing herein shall supersede or modify\n      the terms of any separate license agreement you may have executed\n      with Licensor regarding such Contributions.\n\n   6. Trademarks. This License does not grant permission to use the trade\n      names, trademarks, service marks, or product names of the Licensor,\n      except as required for reasonable and customary use in describing the\n      origin of the Work and reproducing the content of the NOTICE file.\n\n   7. Disclaimer of Warranty. Unless required by applicable law or\n      agreed to in writing, Licensor provides the Work (and each\n      Contributor provides its Contributions) on an \"AS IS\" BASIS,\n      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or\n      implied, including, without limitation, any warranties or conditions\n      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A\n      PARTICULAR PURPOSE. You are solely responsible for determining the\n      appropriateness of using or redistributing the Work and assume any\n      risks associated with Your exercise of permissions under this License.\n\n   8. Limitation of Liability. In no event and under no legal theory,\n      whether in tort (including negligence), contract, or otherwise,\n      unless required by applicable law (such as deliberate and grossly\n      negligent acts) or agreed to in writing, shall any Contributor be\n      liable to You for damages, including any direct, indirect, special,\n      incidental, or consequential damages of any character arising as a\n      result of this License or out of the use or inability to use the\n      Work (including but not limited to damages for loss of goodwill,\n      work stoppage, computer failure or malfunction, or any and all\n      other commercial damages or losses), even if such Contributor\n      has been advised of the possibility of such damages.\n\n   9. Accepting Warranty or Additional Liability. While redistributing\n      the Work or Derivative Works thereof, You may choose to offer,\n      and charge a fee for, acceptance of support, warranty, indemnity,\n      or other liability obligations and/or rights consistent with this\n      License. However, in accepting such obligations, You may act only\n      on Your own behalf and on Your sole responsibility, not on behalf\n      of any other Contributor, and only if You agree to indemnify,\n      defend, and hold each Contributor harmless for any liability\n      incurred by, or claims asserted against, such Contributor by reason\n      of your accepting any such warranty or additional liability.\n\n   END OF TERMS AND CONDITIONS\n\n   APPENDIX: How to apply the Apache License to your work.\n\n      To apply the Apache License to your work, attach the following\n      boilerplate notice, with the fields enclosed by brackets \"[]\"\n      replaced with your own identifying information. (Don't include\n      the brackets!)  The text should be enclosed in the appropriate\n      comment syntax for the file format. We also recommend that a\n      file or class name and description of purpose be included on the\n      same \"printed page\" as the copyright notice for easier\n      identification within third-party archives.\n\n   Copyright [yyyy] [name of copyright owner]\n\n   Licensed under the Apache License, Version 2.0 (the \"License\");\n   you may not use this file except in compliance with the License.\n   You may obtain a copy of the License at\n\n       http://www.apache.org/licenses/LICENSE-2.0\n\n   Unless required by applicable law or agreed to in writing, software\n   distributed under the License is distributed on an \"AS IS\" BASIS,\n   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n   See the License for the specific language governing permissions and\n   limitations under the License.\n",
+    "notice_text": "Basic Pitch\nCopyright 2022 Spotify AB\n\nThis product includes software developed at\nSpotify AB (http://www.spotify.com/).\n\nThis product includes software from Librosa (ISC).\n* Copyright (C) 2013--2017, librosa development team.\n\nThis product includes software from mir_eval (MIT)\n* Copyright (C) 2014 Colin Raffel\n\nThis product includes software from numpy (BSD)\n* Copyright (C) 2005-2022, NumPy Developers.\n\nThis product includes software from pretty-midi (MIT)\n* Copyright (C) 2014 Colin Raffel\n\nThis product includes software from resampy (ISC)\n* Copyright (C) 2016, Brian McFee\n\nThis product includes software from scipy (BSD)\n* Copyright (C) 2001-2002 Enthought, Inc. 2003-2022, SciPy Developers\n\nThis product includes software from tensorflow (Apache 2.0)\n* Copyright (C) 2019 Google, LLC <packages@tensorflow.org>\n\nThe tests for `basic-pitch` include audio files from the\nVocadito dataset liscened under Creative Commons\nAttribution 4.0 International. The dataset can be found at:\nhttps://zenodo.org/record/5578807#.YnRm5vPMKDU\n",
+    "scope": "Preserved official distribution texts; bundled-weight license applicability remains repository-scope inference."
+  },
+  "updated_utc": "2026-10-06T00:13:27.148148+00:00",
+  "independent_audit": {
+    "reviewer": "/root/tonal_inference/tonal_audit",
+    "receipt": "docs/agent-notes/2026-10-05-basic-pitch-runtime-audit.md",
+    "status": "source_spec_runtime_generated_actual_readback_pass_no_remaining_implementation_mustfix",
+    "scope": "Readback/hash/numeric-array/contract checks and lightweight bounds/cleanup tests; no duplicate model inference or musical correctness acceptance."
+  }
+}

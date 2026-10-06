@@ -1,0 +1,749 @@
+{
+  "schema_version": 1,
+  "kind": "preregistered_feature_only_holdout_probe",
+  "input_selection_sha256": "90da2263562d3316dc785fc3b50c6407d3e0333b4294b307c46825d83e5d734e",
+  "plan_sha256": "1a71efe081ba6867a82fb2e2e9975148f5178af3ea630ad21bc4b4824670f3e3",
+  "admitted_index_sha256": "3828ef756c3b2d36890e5b2f444c9323960ec9c0b358d02fe02a8c13ba89936b",
+  "inputs": [
+    {
+      "pair_index": 0,
+      "condition": "clean",
+      "path": "/Users/jess/git/video-utils/artifacts/benchmarks/heldout-211-307-20261006T0020/seed211-low32-sustain/clean.wav",
+      "sha256": "58dec39e31e494c5438f97981ceefa2535e420a9811677e5d1e14558537c4286",
+      "native_excerpt_samples": [
+        0,
+        192000
+      ],
+      "excerpt_pcm16_sha256": "58314c61f5dbacca348b28267353392e73f46cf31805e89f48cfe16ffe1121ef"
+    },
+    {
+      "pair_index": 0,
+      "condition": "mix",
+      "path": "/Users/jess/git/video-utils/artifacts/benchmarks/heldout-211-307-20261006T0020/seed211-low32-sustain/mix.wav",
+      "sha256": "21596ffdc0402840d7a396a4537ec52c888f0ac383e245e5e354ab09419bc539",
+      "native_excerpt_samples": [
+        0,
+        192000
+      ],
+      "excerpt_pcm16_sha256": "73d4113a7eab8f900a29d13fe36d45f3ceff0c6d5bc80328a5f57c4c915cfd51"
+    },
+    {
+      "pair_index": 1,
+      "condition": "clean",
+      "path": "/Users/jess/git/video-utils/artifacts/benchmarks/heldout-211-307-20261006T0020/seed211-palm-muted-recurrence/clean.wav",
+      "sha256": "74d13b25399e247436100b9db733022c03e67265d2ee6a394ec544971d29ee90",
+      "native_excerpt_samples": [
+        0,
+        192000
+      ],
+      "excerpt_pcm16_sha256": "1a6189b71a2779a718f828ca39712c375221da64e33731c1e092fe38f80e840f"
+    },
+    {
+      "pair_index": 1,
+      "condition": "mix",
+      "path": "/Users/jess/git/video-utils/artifacts/benchmarks/heldout-211-307-20261006T0020/seed211-palm-muted-recurrence/mix.wav",
+      "sha256": "c796487ac297dc7ac53fe1232247103ecb494a6c6d6b86e1e0b349535dce48ec",
+      "native_excerpt_samples": [
+        0,
+        192000
+      ],
+      "excerpt_pcm16_sha256": "a286973bc84a2d7bb640519b9feb6500655e0e25ce1218e0f0eaa9fbe756a4e9"
+    },
+    {
+      "pair_index": 2,
+      "condition": "clean",
+      "path": "/Users/jess/git/video-utils/artifacts/benchmarks/heldout-211-307-20261006T0020/seed307-legato-recurrence/clean.wav",
+      "sha256": "996df2c630314c1e190fd57c1142495420010cabb15dfb8733ad59299beaa1e0",
+      "native_excerpt_samples": [
+        0,
+        192000
+      ],
+      "excerpt_pcm16_sha256": "968762dc503a4c85b3e2235203a68dd0e0220196f7f8984ebb875701614c2adf"
+    },
+    {
+      "pair_index": 2,
+      "condition": "mix",
+      "path": "/Users/jess/git/video-utils/artifacts/benchmarks/heldout-211-307-20261006T0020/seed307-legato-recurrence/mix.wav",
+      "sha256": "9e104799d283983a9d818707f696f48cd5162187ce479f864cb5e99de9f43917",
+      "native_excerpt_samples": [
+        0,
+        192000
+      ],
+      "excerpt_pcm16_sha256": "89df7e91ac0f81ec33355655326fe2b58290d311a80511777400b5e736a7e762"
+    }
+  ],
+  "settings": [
+    {
+      "id": "power-default",
+      "spectral_exponent": 2,
+      "scale": 2147483648,
+      "gain": 0.98,
+      "time_constant_seconds": 0.4,
+      "smoothing_coefficient": 0.012422119138240862
+    },
+    {
+      "id": "magnitude-default",
+      "spectral_exponent": 1,
+      "scale": 2147483648,
+      "gain": 0.98,
+      "time_constant_seconds": 0.4,
+      "smoothing_coefficient": 0.012422119138240862
+    },
+    {
+      "id": "magnitude-unit-gain05",
+      "spectral_exponent": 1,
+      "scale": 1,
+      "gain": 0.5,
+      "time_constant_seconds": 0.4,
+      "smoothing_coefficient": 0.012422119138240862
+    },
+    {
+      "id": "magnitude-unit-gain05-slow",
+      "spectral_exponent": 1,
+      "scale": 1,
+      "gain": 0.5,
+      "time_constant_seconds": 1.0,
+      "smoothing_coefficient": 0.004987515624975586
+    }
+  ],
+  "common": {
+    "sr": 16000,
+    "hop_samples": 80,
+    "n_mels": 128,
+    "fmin": 20,
+    "fmax": 8000,
+    "center": true,
+    "window": "periodic Hann",
+    "filter_bank": "librosa Slaney area norm",
+    "bias": 2,
+    "compression_power": 0.5,
+    "epsilon": 1e-06,
+    "startup": "explicit zi=(1-b)*conditioned_first_frame; M0=E0",
+    "warmup_seconds": 1,
+    "max_size": 1
+  },
+  "results": [
+    {
+      "pair_index": 0,
+      "fft_samples": 1024,
+      "window_ms": 64.0,
+      "fft_bin_spacing_hz": 15.625,
+      "C1_cycles_per_window": 2.093004522432,
+      "frame_count": 801,
+      "centered_frame_time_extent_seconds": [
+        0,
+        4.0
+      ],
+      "complete_support_center_seconds": [
+        0.032,
+        3.968
+      ],
+      "low_band_centers_hz": [
+        43.227721174121434,
+        66.45544234824285,
+        89.6831635223643
+      ],
+      "metric_padding_scope": "Both cosine metrics retain centered padding at final excerpt edge; whole metric also retains initial edge.",
+      "rows": [
+        {
+          "policy": "power-log",
+          "whole_excerpt_flux_cosine": 0.17498993873596191,
+          "after_one_second_flux_cosine": 0.5000196099281311
+        },
+        {
+          "policy": "magnitude-log",
+          "whole_excerpt_flux_cosine": 0.17869022488594055,
+          "after_one_second_flux_cosine": 0.5136768817901611
+        },
+        {
+          "policy": "power-default",
+          "whole_excerpt_flux_cosine": 0.030100409447520966,
+          "after_one_second_flux_cosine": 0.27869082226662434,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 8.892181259878823
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0007022712606983047,
+              "maximum": 8.522398215344118
+            }
+          }
+        },
+        {
+          "policy": "magnitude-default",
+          "whole_excerpt_flux_cosine": 0.050789792087549974,
+          "after_one_second_flux_cosine": 0.44996909569155674,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 8.484909513826349
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.035031362348446025,
+              "maximum": 5.651566961907223
+            }
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05",
+          "whole_excerpt_flux_cosine": 0.15070477227184073,
+          "after_one_second_flux_cosine": 0.39642916355090735,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 1.4074554699084287
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0019089869027671938,
+              "maximum": 1.3766515429095603
+            }
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05-slow",
+          "whole_excerpt_flux_cosine": 0.1562916821067071,
+          "after_one_second_flux_cosine": 0.39212640548102784,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 1.9555231319905706
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.001896163060274531,
+              "maximum": 1.8664463415834263
+            }
+          }
+        }
+      ]
+    },
+    {
+      "pair_index": 0,
+      "fft_samples": 4096,
+      "window_ms": 256.0,
+      "fft_bin_spacing_hz": 3.90625,
+      "C1_cycles_per_window": 8.372018089728,
+      "frame_count": 801,
+      "centered_frame_time_extent_seconds": [
+        0,
+        4.0
+      ],
+      "complete_support_center_seconds": [
+        0.128,
+        3.872
+      ],
+      "low_band_centers_hz": [
+        43.227721174121434,
+        66.45544234824285,
+        89.6831635223643
+      ],
+      "metric_padding_scope": "Both cosine metrics retain centered padding at final excerpt edge; whole metric also retains initial edge.",
+      "rows": [
+        {
+          "policy": "power-log",
+          "whole_excerpt_flux_cosine": 0.20480911433696747,
+          "after_one_second_flux_cosine": 0.3191162347793579
+        },
+        {
+          "policy": "magnitude-log",
+          "whole_excerpt_flux_cosine": 0.2034062296152115,
+          "after_one_second_flux_cosine": 0.3451234698295593
+        },
+        {
+          "policy": "power-default",
+          "whole_excerpt_flux_cosine": 0.055355457405552214,
+          "after_one_second_flux_cosine": 0.2681419637494086,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 8.299617378925477
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.002315072660616851,
+              "maximum": 6.6010922521477085
+            }
+          }
+        },
+        {
+          "policy": "magnitude-default",
+          "whole_excerpt_flux_cosine": 0.0543848565039269,
+          "after_one_second_flux_cosine": 0.3274600391143458,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 8.301131659831912
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.04777621741911242,
+              "maximum": 3.8117475481540803
+            }
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05",
+          "whole_excerpt_flux_cosine": 0.28659935601463105,
+          "after_one_second_flux_cosine": 0.3909010161897681,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 1.8161628848444658
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.013683509212420439,
+              "maximum": 1.796363930415219
+            }
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05-slow",
+          "whole_excerpt_flux_cosine": 0.26882714049983353,
+          "after_one_second_flux_cosine": 0.3850552913763935,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 2.466645872013766
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.01361447654048623,
+              "maximum": 2.4060981802908965
+            }
+          }
+        }
+      ]
+    },
+    {
+      "pair_index": 1,
+      "fft_samples": 1024,
+      "window_ms": 64.0,
+      "fft_bin_spacing_hz": 15.625,
+      "C1_cycles_per_window": 2.093004522432,
+      "frame_count": 801,
+      "centered_frame_time_extent_seconds": [
+        0,
+        4.0
+      ],
+      "complete_support_center_seconds": [
+        0.032,
+        3.968
+      ],
+      "low_band_centers_hz": [
+        43.227721174121434,
+        66.45544234824285,
+        89.6831635223643
+      ],
+      "metric_padding_scope": "Both cosine metrics retain centered padding at final excerpt edge; whole metric also retains initial edge.",
+      "rows": [
+        {
+          "policy": "power-log",
+          "whole_excerpt_flux_cosine": 0.437873899936676,
+          "after_one_second_flux_cosine": 0.4622710049152374
+        },
+        {
+          "policy": "magnitude-log",
+          "whole_excerpt_flux_cosine": 0.4167645275592804,
+          "after_one_second_flux_cosine": 0.4399959444999695
+        },
+        {
+          "policy": "power-default",
+          "whole_excerpt_flux_cosine": 0.2720914031618042,
+          "after_one_second_flux_cosine": 0.581915511654109,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 8.985457386791623
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 1.796311746298217e-05,
+              "maximum": 8.40963092698921
+            }
+          }
+        },
+        {
+          "policy": "magnitude-default",
+          "whole_excerpt_flux_cosine": 0.1721737210877675,
+          "after_one_second_flux_cosine": 0.5006247275021821,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 8.890209558726418
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.006077758055869962,
+              "maximum": 5.256802915089639
+            }
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05",
+          "whole_excerpt_flux_cosine": 0.6985233649343237,
+          "after_one_second_flux_cosine": 0.7776394997698023,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 1.2463485616335652
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0017395897404851805,
+              "maximum": 1.177902279913203
+            }
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05-slow",
+          "whole_excerpt_flux_cosine": 0.696973796024876,
+          "after_one_second_flux_cosine": 0.8059121723756101,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 1.7447643866761569
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0017791808999987166,
+              "maximum": 1.5885953693546127
+            }
+          }
+        }
+      ]
+    },
+    {
+      "pair_index": 1,
+      "fft_samples": 4096,
+      "window_ms": 256.0,
+      "fft_bin_spacing_hz": 3.90625,
+      "C1_cycles_per_window": 8.372018089728,
+      "frame_count": 801,
+      "centered_frame_time_extent_seconds": [
+        0,
+        4.0
+      ],
+      "complete_support_center_seconds": [
+        0.128,
+        3.872
+      ],
+      "low_band_centers_hz": [
+        43.227721174121434,
+        66.45544234824285,
+        89.6831635223643
+      ],
+      "metric_padding_scope": "Both cosine metrics retain centered padding at final excerpt edge; whole metric also retains initial edge.",
+      "rows": [
+        {
+          "policy": "power-log",
+          "whole_excerpt_flux_cosine": 0.539932906627655,
+          "after_one_second_flux_cosine": 0.5937934517860413
+        },
+        {
+          "policy": "magnitude-log",
+          "whole_excerpt_flux_cosine": 0.5327837467193604,
+          "after_one_second_flux_cosine": 0.5811383128166199
+        },
+        {
+          "policy": "power-default",
+          "whole_excerpt_flux_cosine": 0.0829437454966605,
+          "after_one_second_flux_cosine": 0.6649998331231746,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 8.561779971685976
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.00011537919474468419,
+              "maximum": 5.866096068110005
+            }
+          }
+        },
+        {
+          "policy": "magnitude-default",
+          "whole_excerpt_flux_cosine": 0.054437752478769134,
+          "after_one_second_flux_cosine": 0.6371191180063224,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 8.729511186195477
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.011303393821443186,
+              "maximum": 3.243157943731479
+            }
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05",
+          "whole_excerpt_flux_cosine": 0.6681712106302724,
+          "after_one_second_flux_cosine": 0.8457270178123584,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 1.4782506018063282
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.009756537076289314,
+              "maximum": 1.4284726930003386
+            }
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05-slow",
+          "whole_excerpt_flux_cosine": 0.6360081756999092,
+          "after_one_second_flux_cosine": 0.870095598302014,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 2.0329230441495505
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.010204237591575932,
+              "maximum": 1.8975201425077775
+            }
+          }
+        }
+      ]
+    },
+    {
+      "pair_index": 2,
+      "fft_samples": 1024,
+      "window_ms": 64.0,
+      "fft_bin_spacing_hz": 15.625,
+      "C1_cycles_per_window": 2.093004522432,
+      "frame_count": 801,
+      "centered_frame_time_extent_seconds": [
+        0,
+        4.0
+      ],
+      "complete_support_center_seconds": [
+        0.032,
+        3.968
+      ],
+      "low_band_centers_hz": [
+        43.227721174121434,
+        66.45544234824285,
+        89.6831635223643
+      ],
+      "metric_padding_scope": "Both cosine metrics retain centered padding at final excerpt edge; whole metric also retains initial edge.",
+      "rows": [
+        {
+          "policy": "power-log",
+          "whole_excerpt_flux_cosine": 0.2721511423587799,
+          "after_one_second_flux_cosine": 0.278114378452301
+        },
+        {
+          "policy": "magnitude-log",
+          "whole_excerpt_flux_cosine": 0.29174014925956726,
+          "after_one_second_flux_cosine": 0.30389055609703064
+        },
+        {
+          "policy": "power-default",
+          "whole_excerpt_flux_cosine": 0.06606572778326561,
+          "after_one_second_flux_cosine": 0.16652895675758533,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 8.87390136290662
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 5.851811642361534e-07,
+              "maximum": 8.445871608252903
+            }
+          }
+        },
+        {
+          "policy": "magnitude-default",
+          "whole_excerpt_flux_cosine": 0.06479209277780999,
+          "after_one_second_flux_cosine": 0.20894008894413907,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 8.701917825126136
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0006944510821489028,
+              "maximum": 5.684226226751962
+            }
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05",
+          "whole_excerpt_flux_cosine": 0.4195551931455042,
+          "after_one_second_flux_cosine": 0.418513327336861,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 1.3850424788990525
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.00026393330397232837,
+              "maximum": 1.3527318690819312
+            }
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05-slow",
+          "whole_excerpt_flux_cosine": 0.4511044045378014,
+          "after_one_second_flux_cosine": 0.4572977028772652,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 1.9268306872473973
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.00015231983292671853,
+              "maximum": 1.8328833126010293
+            }
+          }
+        }
+      ]
+    },
+    {
+      "pair_index": 2,
+      "fft_samples": 4096,
+      "window_ms": 256.0,
+      "fft_bin_spacing_hz": 3.90625,
+      "C1_cycles_per_window": 8.372018089728,
+      "frame_count": 801,
+      "centered_frame_time_extent_seconds": [
+        0,
+        4.0
+      ],
+      "complete_support_center_seconds": [
+        0.128,
+        3.872
+      ],
+      "low_band_centers_hz": [
+        43.227721174121434,
+        66.45544234824285,
+        89.6831635223643
+      ],
+      "metric_padding_scope": "Both cosine metrics retain centered padding at final excerpt edge; whole metric also retains initial edge.",
+      "rows": [
+        {
+          "policy": "power-log",
+          "whole_excerpt_flux_cosine": 0.4094599783420563,
+          "after_one_second_flux_cosine": 0.4399101734161377
+        },
+        {
+          "policy": "magnitude-log",
+          "whole_excerpt_flux_cosine": 0.41040074825286865,
+          "after_one_second_flux_cosine": 0.4370518922805786
+        },
+        {
+          "policy": "power-default",
+          "whole_excerpt_flux_cosine": 0.09574805356115837,
+          "after_one_second_flux_cosine": 0.3299273292502826,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 8.45849132743077
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 1.9378051707483848e-06,
+              "maximum": 6.622147627414082
+            }
+          }
+        },
+        {
+          "policy": "magnitude-default",
+          "whole_excerpt_flux_cosine": 0.06914194805844315,
+          "after_one_second_flux_cosine": 0.3532499200219317,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 8.558851257321146
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0016661353109046631,
+              "maximum": 3.841162201452465
+            }
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05",
+          "whole_excerpt_flux_cosine": 0.616497782953619,
+          "after_one_second_flux_cosine": 0.6728207577639752,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 1.7859903745140666
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.002508673515862927,
+              "maximum": 1.7698913592772636
+            }
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05-slow",
+          "whole_excerpt_flux_cosine": 0.6326059486990045,
+          "after_one_second_flux_cosine": 0.7134189204192434,
+          "pcen_checks": {
+            "clean": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0,
+              "maximum": 2.428592316639218
+            },
+            "mix": {
+              "block_batch_max_absolute_difference": 0.0,
+              "minimum": 0.0023249884575306918,
+              "maximum": 2.374823049143389
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "versions": {
+    "librosa": "0.11.0",
+    "numpy": "2.5.3"
+  },
+  "numeric_threads": 2,
+  "elapsed_seconds": 4.58699429200351,
+  "worker_sha256": "a87586af40aab7aa22e983efbd5a35acdd9f149197cd9861ff33ee57e1e67117",
+  "labels_used": false,
+  "input_hashes_unchanged": true,
+  "scope": "24 aggregate cropped audio-seconds; generated feature invariance only; no onset or phrase grading; no production changes"
+}

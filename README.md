@@ -116,6 +116,10 @@ overwrite the input.
 | `just calibrate FIXTURES OUTPUT [BACKEND] [TIMEOUT]` | Run unseeded discovery, then evaluate generated truth |
 | `just pitch-evaluate FIXTURES PILOT OUTPUT` | Score existing synthetic pitch receipts |
 | `just phrase-evaluate FIXTURES PILOT OUTPUT` | Score existing synthetic phrase receipts |
+| `just basic-pitch RUN_DIR [SECONDS]` | Compare sparse learned pitch hypotheses with a qualified local CPU runtime |
+| `just capture-profile INPUT RUN_DIR REVIEW START END` | Author fresh source-bound settings without rendering audio |
+| `just holdout-plan OUTPUT` / `just holdout-validate PLAN` | Declare or verify the fixed generated holdout design |
+| `just holdout-generate PLAN OUTPUT [TIMEOUT]` | Generate the declared component bank without inference |
 | `just review RUN_DIR [PORT]` | Open a local video/audio review and annotation screen |
 | `just pitch INPUT RUN_DIR [SECONDS]` | Inspect bounded pitch candidates including the ending |
 | `just meter RUN_DIR` | Rank metrical hypotheses or retain unknown |
@@ -140,11 +144,15 @@ does not require a predeclared song or intended arrangement. Missing or extra
 notes become definite mistakes only against an approved reference. Improved guitar tone requires user listening
 acceptance; measurements alone do not establish it. The native AU development scaffold
 has compiled ABI and lifecycle checks; Logic hosting remains a separate validation
-milestone. Model inference is optional:
-the initial registry contains no downloaded, hash-qualified models.
+milestone. Model inference is optional. The registry now includes a hash-qualified
+official Basic Pitch ONNX artifact; downloading it through `model-prefetch` is
+explicit. Its isolated CPU runtime is separately qualified and required for
+`basic-pitch`; the baseline demo never installs it. Runtime success does not
+establish accurate distorted C1 notes, and the generated missing-fundamental
+pilot failed C1 identification. See [runtime qualification](docs/research/BASIC_PITCH_QUALIFICATION.md).
 
 The repository includes a versioned tool contract, a local MCP stdio server,
-and twenty-three per-tool skills for researching and tuning restoration, analysis, comparison, and review.
+and twenty-five per-tool skills for researching and tuning restoration, analysis, comparison, and review.
 Inspect `just tool-info NAME` or launch
 `just mcp` from the repository root. Local invocation is
 separate from connecting an external agent client; see
@@ -181,7 +189,8 @@ The active [ten-hour work plan](docs/spec/TEN_HOUR_PLAN.md) and
 [parallel lane board](docs/agent-notes/WORKSTREAM_BOARD.md) define ownership and checkpoints.
 
 The actual local comparison report includes manual audio/video seeking to review
-spans. Native editor imports and video overlays remain a future milestone.
+spans. `just marked-video` renders separate synchronized previews with uncertain
+review callouts. Native editor imports remain a future milestone.
 
 For an already rendered take, run the optional evidence workflow without encoding
 media again:

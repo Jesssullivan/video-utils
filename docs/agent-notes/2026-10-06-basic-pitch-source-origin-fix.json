@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-06T00:33:43.247853+00:00",
+  "authority": "Root explicit missing-source-origin fix release; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "status": "source_origin_preflight_fixed_stdlib_tests_pass_no_new_inference",
+  "finding": "Absent audio_start_seconds was defaulted to zero in task source span conversion.",
+  "change": "Require explicit finite nonboolean manifest timeline.audio_start_seconds before source/media processing; no zero fallback.",
+  "worker_sha256": "407ff9fe99edbc863b3822c98683026841a3e03d2f6b7705a746bf7c68025cf3",
+  "tests_sha256": "c7fcf306edec4c966fb43b40f09e40b5e9a58f6220c21d74c1a9c60d27510fcd",
+  "checks": {
+    "stdlib_pass": 17,
+    "optional_runtime_skipped": 1,
+    "invalid_origin_subcases": [
+      "missing",
+      "null",
+      "boolean",
+      "NaN",
+      "infinity"
+    ],
+    "before_processing_assertions": [
+      "no subprocess media call",
+      "no learned-pitch output created"
+    ]
+  },
+  "historical_worker_archive": {
+    "path": "artifacts/model-comparison/qualified-worker-8bc17166/basic_pitch_compare.py",
+    "sha256": "8bc17166c48ff6dccf33fd0eb17d3257535d6d91c83df0afed51b9c59dc75ee1"
+  },
+  "historical_tests_archive": {
+    "path": "artifacts/model-comparison/qualified-worker-8bc17166/test_basic_pitch_compare.py",
+    "sha256": "c71400db31f0e5032897cf6a20836f297d4fa72863a188c395fa147c10be66e6"
+  },
+  "historical_runtime_receipt": "docs/agent-notes/2026-10-05-basic-pitch-runtime.json",
+  "historical_enhanced_main_receipt": "docs/agent-notes/2026-10-06-basic-pitch-enhanced-main.json",
+  "not_performed": [
+    "new_model_inference",
+    "model_registry_change",
+    "runtime_or_wheel_mutation",
+    "prior_receipt_or_output_rewrite",
+    "latest_pointer_change"
+  ]
+}

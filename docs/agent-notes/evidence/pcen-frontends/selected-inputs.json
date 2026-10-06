@@ -1,0 +1,36 @@
+{
+  "plan_sha256": "1a71efe081ba6867a82fb2e2e9975148f5178af3ea630ad21bc4b4824670f3e3",
+  "admitted_index_sha256": "3828ef756c3b2d36890e5b2f444c9323960ec9c0b358d02fe02a8c13ba89936b",
+  "pairs": [
+    {
+      "clean": {
+        "path": "/Users/jess/git/video-utils/artifacts/benchmarks/heldout-211-307-20261006T0020/seed211-low32-sustain/clean.wav",
+        "sha256": "58dec39e31e494c5438f97981ceefa2535e420a9811677e5d1e14558537c4286"
+      },
+      "mix": {
+        "path": "/Users/jess/git/video-utils/artifacts/benchmarks/heldout-211-307-20261006T0020/seed211-low32-sustain/mix.wav",
+        "sha256": "21596ffdc0402840d7a396a4537ec52c888f0ac383e245e5e354ab09419bc539"
+      }
+    },
+    {
+      "clean": {
+        "path": "/Users/jess/git/video-utils/artifacts/benchmarks/heldout-211-307-20261006T0020/seed211-palm-muted-recurrence/clean.wav",
+        "sha256": "74d13b25399e247436100b9db733022c03e67265d2ee6a394ec544971d29ee90"
+      },
+      "mix": {
+        "path": "/Users/jess/git/video-utils/artifacts/benchmarks/heldout-211-307-20261006T0020/seed211-palm-muted-recurrence/mix.wav",
+        "sha256": "c796487ac297dc7ac53fe1232247103ecb494a6c6d6b86e1e0b349535dce48ec"
+      }
+    },
+    {
+      "clean": {
+        "path": "/Users/jess/git/video-utils/artifacts/benchmarks/heldout-211-307-20261006T0020/seed307-legato-recurrence/clean.wav",
+        "sha256": "996df2c630314c1e190fd57c1142495420010cabb15dfb8733ad59299beaa1e0"
+      },
+      "mix": {
+        "path": "/Users/jess/git/video-utils/artifacts/benchmarks/heldout-211-307-20261006T0020/seed307-legato-recurrence/mix.wav",
+        "sha256": "9e104799d283983a9d818707f696f48cd5162187ce479f864cb5e99de9f43917"
+      }
+    }
+  ]
+}

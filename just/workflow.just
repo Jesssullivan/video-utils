@@ -106,6 +106,24 @@ pitch-evaluate fixture_index pilot_index output:
 phrase-evaluate fixture_index pilot_index output:
     python3 scripts/phrase_evaluate.py --fixture-index {{quote(fixture_index)}} --pilot-index {{quote(pilot_index)}} --output {{quote(output)}} --summary
 
+# Optional qualified CPU comparator; no model or runtime installation is implicit.
+basic-pitch run_dir seconds="20":
+    python3 scripts/basic_pitch_compare.py {{quote(run_dir)}} --max-analysis-seconds {{quote(seconds)}}
+
+# Author source-bound settings only; the review records existing scoped authority.
+capture-profile input run_dir review start end nr="8" nf="-40" ad="0" gs="0" lufs="-18" peak="-1.5":
+    python3 scripts/capture_profile.py {{quote(input)}} --run-dir {{quote(run_dir)}} --review {{quote(review)}} --capture-start {{quote(start)}} --capture-end {{quote(end)}} --reduction-db {{quote(nr)}} --noise-floor-db {{quote(nf)}} --adaptivity {{quote(ad)}} --gain-smooth {{quote(gs)}} --integrated-lufs {{quote(lufs)}} --true-peak-dbtp {{quote(peak)}}
+
+# Frozen generated holdout metadata; no inference or musical grading.
+holdout-plan output:
+    python3 scripts/benchmark_holdout.py plan --output {{quote(output)}}
+
+holdout-validate plan:
+    python3 scripts/benchmark_holdout.py validate {{quote(plan)}}
+
+holdout-generate plan output timeout="600":
+    python3 scripts/benchmark_holdout.py generate --plan {{quote(plan)}} --output {{quote(output)}} --timeout-seconds {{quote(timeout)}}
+
 # Manual local video/audio review with source-bound annotations.
 review run_dir port="8765":
     python3 scripts/review_server.py serve {{quote(run_dir)}} --port {{quote(port)}}

@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-06T00:27:28.614067+00:00",
+  "authority": "Root explicit enhanced-main-only comparison release under operator10hourgoal; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "status": "bounded_enhanced_main_actual_comparison_pass_independent_readback_pass",
+  "skill": ".agents/skills/guitar-basic-pitch/SKILL.md",
+  "qualified_runtime_receipt": "docs/agent-notes/2026-10-05-basic-pitch-runtime.json",
+  "run_dir": "artifacts/runs/20261005T232741Z-2b5dc43fd009",
+  "comparison_path": "artifacts/runs/20261005T232741Z-2b5dc43fd009/learned-pitch/20261006T002621Z-767170c14c06/comparison.json",
+  "comparison_sha256": "023a1300c37d1f02c117a49d4fd18823d7856baa483d236c3c6ff17e3ff2d890",
+  "activations_path": "artifacts/runs/20261005T232741Z-2b5dc43fd009/learned-pitch/20261006T002621Z-767170c14c06/activations.npz",
+  "activations_sha256": "be0ec2347565d2c60abb8a15a5652a3b9e32d0f53b35ce3d850a698c9d0992c6",
+  "settings": {
+    "max_analysis_seconds": 20.0,
+    "start_seconds": null,
+    "onset_threshold": 0.5,
+    "frame_threshold": 0.3,
+    "minimum_note_length_ms_presets": [
+      127.7,
+      25.0
+    ],
+    "decoder": "project_threshold_active_runs_with_local_model_onset_splits",
+    "upstream_decoder_parity": false,
+    "limits": {
+      "audio_seconds": 30,
+      "model_windows": 24,
+      "rss_bytes": 1073741824,
+      "deadline_seconds": 600,
+      "raw_array_bytes": 20971520,
+      "events_per_preset": 5000,
+      "maximum_input_seconds": 300
+    }
+  },
+  "coverage_seconds": 20.0,
+  "coverage_fraction": 0.13248445157508149,
+  "model_windows": 16,
+  "elapsed_seconds": 8.520885459001875,
+  "peak_rss_bytes": 179191808,
+  "raw_array_bytes": 3082240,
+  "events_by_floor_ms": {
+    "127.7": 18,
+    "25.0": 67
+  },
+  "excerpts": [
+    {
+      "start_seconds": 0.0,
+      "end_seconds": 5.0,
+      "sample_count": 110250,
+      "retained_frames": 430
+    },
+    {
+      "start_seconds": 48.653703666666665,
+      "end_seconds": 53.653703666666665,
+      "sample_count": 110250,
+      "retained_frames": 430
+    },
+    {
+      "start_seconds": 97.30740733333333,
+      "end_seconds": 102.30740733333333,
+      "sample_count": 110250,
+      "retained_frames": 430
+    },
+    {
+      "start_seconds": 145.961111,
+      "end_seconds": 150.961111,
+      "sample_count": 110250,
+      "retained_frames": 430
+    }
+  ],
+  "performance_grade": "not_graded",
+  "upstream_decoder_parity": false,
+  "before": {
+    "core": {
+      "artifacts/runs/20261005T232741Z-2b5dc43fd009/manifest.json": "4a75b4e352075114a7b6026c74acab3ab6c64eedddd52fc2b8514adfed80549c",
+      "artifacts/runs/20261005T232741Z-2b5dc43fd009/denoised.wav": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+      "artifacts/runs/20261005T232741Z-2b5dc43fd009/source.wav": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a",
+      "artifacts/runs/20261005T232741Z-2b5dc43fd009/processed.wav": "a721053fb61234547bd5c9efdddf626ceea1dc02b114cf3435604c1a650f66a8",
+      "artifacts/runs/20261005T232741Z-2b5dc43fd009/cleaned.wav": "99d56a25d05e434b4bb8f4149488c7b143558872c826ecc55df344012f4fbafd"
+    },
+    "qualified": {
+      "scripts/basic_pitch_compare.py": "8bc17166c48ff6dccf33fd0eb17d3257535d6d91c83df0afed51b9c59dc75ee1",
+      "tests/test_basic_pitch_compare.py": "c71400db31f0e5032897cf6a20836f297d4fa72863a188c395fa147c10be66e6",
+      "program/models.json": "ff3d4251a089ca81e6c6a2e7bcbe67023fa52be4f687f619aa1b94be151a5533",
+      "artifacts/model-runtime-env/onnx-1.30.0-cp314/wheel-manifest-before-install.json": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f"
+    },
+    "latest": {
+      "artifacts/latest": {
+        "kind": "absent"
+      },
+      "artifacts/runs/latest": {
+        "kind": "absent"
+      },
+      "artifacts/latest.json": {
+        "kind": "file",
+        "sha256": "8ed66efb8f81f06db6c1abb0a5962c38218d6c8bd1fb3c2d46432dc1693fa5ee"
+      }
+    },
+    "original_media_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6"
+  },
+  "after": {
+    "core": {
+      "artifacts/runs/20261005T232741Z-2b5dc43fd009/manifest.json": "4a75b4e352075114a7b6026c74acab3ab6c64eedddd52fc2b8514adfed80549c",
+      "artifacts/runs/20261005T232741Z-2b5dc43fd009/denoised.wav": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+      "artifacts/runs/20261005T232741Z-2b5dc43fd009/source.wav": "d68e49688293b1fb8c7c2566e2ecd6e31df9972af013dd23454e15864654bd2a",
+      "artifacts/runs/20261005T232741Z-2b5dc43fd009/processed.wav": "a721053fb61234547bd5c9efdddf626ceea1dc02b114cf3435604c1a650f66a8",
+      "artifacts/runs/20261005T232741Z-2b5dc43fd009/cleaned.wav": "99d56a25d05e434b4bb8f4149488c7b143558872c826ecc55df344012f4fbafd"
+    },
+    "qualified": {
+      "scripts/basic_pitch_compare.py": "8bc17166c48ff6dccf33fd0eb17d3257535d6d91c83df0afed51b9c59dc75ee1",
+      "tests/test_basic_pitch_compare.py": "c71400db31f0e5032897cf6a20836f297d4fa72863a188c395fa147c10be66e6",
+      "program/models.json": "ff3d4251a089ca81e6c6a2e7bcbe67023fa52be4f687f619aa1b94be151a5533",
+      "artifacts/model-runtime-env/onnx-1.30.0-cp314/wheel-manifest-before-install.json": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f"
+    },
+    "latest": {
+      "artifacts/latest": {
+        "kind": "absent"
+      },
+      "artifacts/runs/latest": {
+        "kind": "absent"
+      },
+      "artifacts/latest.json": {
+        "kind": "file",
+        "sha256": "8ed66efb8f81f06db6c1abb0a5962c38218d6c8bd1fb3c2d46432dc1693fa5ee"
+      }
+    },
+    "original_media_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6"
+  },
+  "snapshots_match": true,
+  "analysis_input": "manifest verified denoised.wav only; processed.wav/cleaned.wav excluded",
+  "original_media_validation": "Fresh pre/post original media hash compared to manifest lineage; this adds receipt evidence outside frozen worker original-lineage checks.",
+  "prior_comparison_preserved": "artifacts/runs/20261005T211103Z-c6d0bac2fcd2/learned-pitch/20261006T000817Z-3e321db594cc/comparison.json",
+  "limitations": [
+    "18/67 are sparse decoder hypotheses, not verified played notes or correctness.",
+    "No intended-note truth, tuning correction, upstream postprocessing parity, listening, physical AV calibration or AU/Logic acceptance.",
+    "Approximately2second model contexts include excerpt padding; unpadded rows are a separate eligibility view."
+  ],
+  "updated_utc": "2026-10-06T00:30:16.996772+00:00",
+  "independent_audit": {
+    "path": "docs/agent-notes/2026-10-06-basic-pitch-enhanced-main-audit.json",
+    "sha256": "68f98a1e1159ac058543199e9c20668178be7df3299b6c4ce21fedcb7074cdc8",
+    "reviewer": "/root/tonal_inference/tonal_audit",
+    "status": "readback_pass_no_mustfix",
+    "scope": "32 finite named arrays, three clocks, indices/padding/cropping, native PCM extent, source spans and unchanged24-file core/original/latest checkpoint; no repeated inference or musical accuracy claim."
+  }
+}

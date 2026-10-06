@@ -1,175 +1,174 @@
 # Optional learned pitch comparator lane
 
-**Plan plus model-byte qualification**, October 5, 2026; owner `/root/tonal_inference`.
-Authority: operator's ten-hour parallel goal, ending 06:49:34 UTC October 6,
-and R-HOOK-CONVERGENCE-20261004 / R-N13. Current ownership is limited to this
-file, [qualification research](../research/BASIC_PITCH_QUALIFICATION.md), a dated
-qualified-model receipt and a fresh ignored qualification directory. The root
-release acquired the official wheel and verified its extracted ONNX bytes.
-No comparator worker, dependencies, model entry, MCP hook, skill or inference
-claim is created. Root must release explicit implementation ownership and an
-exact artifact/dependency manifest before runtime or adapter work.
+Implemented bounded worker checkpoint, October 5–6, 2026; owner
+`/root/tonal_inference`. Authority: operator's ten-hour parallel goal and root's
+explicit isolated-runtime/adapter release; R-HOOK-CONVERGENCE-20261004 / R-N13.
+Root owns publication, just/MCP routing and skill admission. A worker pass is
+separate from independent musical acceptance or AU/Logic host acceptance.
 
-## Outcome and architecture
+The adapter uses the exact official Spotify Basic Pitch 0.4.0 ONNX model and
+**project decoding**, preserving note/onset/contour activations, polyphonic note
+hypotheses and sparse source timestamps. It does not require an expected score.
+Generated labels belong only to evaluation; the tuning registry, chroma and
+agreement between estimators cannot establish intended-note correctness.
 
-Compare the exact official Spotify Basic Pitch 0.4.0 ONNX model with the
-existing bounded dual-resolution pYIN and generated pitch bank. Retain neural
-note/onset/contour activations and note-event hypotheses with sparse coverage,
-source timestamps and limitations. Automatic discovery needs no expected score;
-real-note correctness and performance grading remain unknown without separately
-qualified annotations. Do not substitute chroma, open-string tuning or agreement
-between two estimators for independent played-note evidence.
+## Qualified artifacts and runtime
 
-Prefer an offline CPU-only adapter in an isolated optional environment. The
-official model is 230,444 bytes and a matching ONNX Runtime cp314/arm64 wheel
-exists, but ordinary Basic Pitch packaging demands incompatible legacy
-TensorFlow on Python>3.11 macOS. Use the selected ONNX file, explicit tensor
-names, and reviewed upstream windowing/decoding logic with Apache-2.0/NOTICE
-attribution. Label the adapter as the **official model with project decoding**
-until upstream parity is actually tested; importing the full upstream package
-with unrecorded dependency suppression is not an acceptable compatibility claim.
+Source commit: `9991303bba609a3b93089d13ec80d1d495083596`; model SHA256:
+`2c3c1d144bfa61ad236e92e169c13535c880469a12a047d4e73451f2c059a0ec`,
+230,444 bytes, explicit registry ID `spotify-basic-pitch-0.4.0-onnx`.
+[Byte qualification](../agent-notes/2026-10-05-basic-pitch-qualified-model.json)
+remains an immutable historical checkpoint. Repository-wide Apache-2.0 and
+bundled-artifact evidence imply weight applicability; no independently stated
+weight license was found. Retain upstream LICENSE/NOTICE attribution and the
+[primary research](../research/BASIC_PITCH_QUALIFICATION.md).
 
-The fixed model accepts mono 22,050 Hz waveform windows of 43,844 samples,
-not the existing MIR chroma features. Output note bins cover MIDI21..108, so
-C1 is represented but accuracy is unqualified. Source masters remain at their
-native rates/channels; resampling is a separate analysis derivative. No model
-inference, resampling, decoder or agent action runs in an AU render callback.
+The isolated optional environment is
+`artifacts/model-runtime-env/onnx-1.30.0-cp314/python/bin/python`.
+It runs existing Python3.14.6 with pinned wheel-only ONNX Runtime1.30.0,
+NumPy2.5.3, flatbuffers25.12.19, packaging26.3 and protobuf7.36.2. Exact official
+PyPI URLs, sizes and hashes were recorded before installation in the
+[runtime receipt](../agent-notes/2026-10-05-basic-pitch-runtime.json).
+The existing `.venv`, uv.lock and main pyproject are unchanged. No source
+compilation, alternate interpreter download, GPU or host change was performed.
+The initial CPU graph smoke used approximately62.1MiB peakRSS. It establishes
+inference feasibility, not musical performance.
 
-## Qualification and admission sequence
+The worker checks installed package versions and installed wheel-member bytes
+against verified local wheel archives before inference. It accepts only the
+fixed isolated venv launcher; resolving its symlink would incorrectly bypass
+that environment. Missing or changed runtime, archives or model yield failure;
+no runtime installation or model download happens implicitly. An explicitly
+prefetched `models/spotify-basic-pitch-0.4.0-onnx.bin` is preferred if present;
+otherwise the exact already-qualified local model is used. Every selected
+artifact must satisfy the fixed model hash and byte count.
 
-1. Preserve official commit `9991303bba609a3b93089d13ec80d1d495083596`,
-   the exact source paths, repository LICENSE/NOTICE, distribution metadata and
-   model-term inference from the research receipt. Record any contradictory
-   weight terms if subsequent inspection finds them.
-2. Root selects an explicitly acquired official artifact/container. Verify the
-   published archive SHA256 when using the PyPI wheel; inspect actual archive
-   contents and extract only allowlisted non-symlink paths with total-size
-   bounds. Verify ONNX size and Git blob ID against the pinned source; compute
-   and record its SHA256. Git SHA-1, an archive digest and a model-file SHA256
-   are distinct identities. **Completed at the 23:04 UTC byte checkpoint:** ONNX
-   SHA256 is `2c3c1d144bfa61ad236e92e169c13535c880469a12a047d4e73451f2c059a0ec`;
-   actual size and pinned Git blob identity match. See the
-   [durable manifest](../agent-notes/2026-10-05-basic-pitch-qualified-model.json).
-3. Root owns registration of that exact file in the model manifest. Mark model
-   terms with their actual evidence scope: repository-wide license plus bundled
-   artifact inference, not an independently discovered weight license. Explicit
-   model prefetch remains separate from running the comparator; refuse missing,
-   unregistered or wrong-hash checkpoints rather than downloading silently.
-4. Create an isolated optional environment with a complete wheel-only lock.
-   Candidate runtime is ONNX Runtime 1.30.0; its cp314 macOS14 arm64 wheel
-   SHA256 is
-   `8b6169c16a48429890d2f4a0c774ebf54dfe9066a998514aad0518a16d398547`.
-   Lock every selected flatbuffers/NumPy/packaging/protobuf wheel. Reuse current
-   NumPy only if exact ABI/import/session smoke passes. Do not upgrade the
-   existing analysis environment or download a replacement interpreter.
-5. Inspect actual graph tensor names, dtypes, ranks, output dimensions and
-   operators using the qualified file. Use explicit `CPUExecutionProvider`,
-   sequential execution, at most two intra-op threads and one inter-op thread.
-   Record runtime/provider/model identities; a successful import alone does not
-   qualify inference or demonstrate expected operator support.
+## Implemented CLI and controls
 
-Steps 1–2 have byte/provenance receipts. Model registration, isolated dependency
-installation and all graph/inference work remain future steps owned by root.
+```sh
+python3 scripts/basic_pitch_compare.py RUN_DIR \
+  --max-analysis-seconds 20 --onset-threshold 0.5 --frame-threshold 0.3
+```
 
-## Proposed typed controls and bounds
-
-All controls below are proposals; no callable tool currently implements them.
-
-| Proposed control | Type / bounds / default | Purpose |
+| Control | Bounds/default | Meaning |
 |---|---|---|
-| `run_dir` | Required local path | Hash-bound restored input, source timeline and existing pitch bank/annotations. |
-| `model_id` | One registered official ONNX ID | Select an already-qualified local artifact; no arbitrary URL or automatic runtime fallback. |
-| `max_analysis_seconds` | Finite number 1..30; default 20 | Sparse distributed coverage, including ending, or explicit bounded excerpt. |
-| `start_seconds` | Optional finite audio-relative time inside input | Target a passage; exact span and source-time conversion recorded. |
-| `onset_threshold` | Finite 0.05..0.95; default 0.5 | Experimental onset activation threshold, not probability of a correct note. |
-| `frame_threshold` | Finite 0.05..0.95; default 0.3 | Experimental sustain activation threshold. |
-| `minimum_note_length_ms` | Finite 10..250; default 127.70 | Explicit decoding floor; retained beside raw arrays. |
-| `melodia_trick` | Boolean; default true | Upstream-style recovery of remaining activations, with harmonic hallucination caveat. |
-| `infer_onsets` | Boolean; default true | Upstream-style inferred changes; record that these are not measured pick attacks. |
+| `run_dir` | Required existing local run | Verified denoised.wav and native PCM/source manifest. |
+| `max_analysis_seconds` | Finite1..30; default20 | Total distributed coverage including ending; at most six excerpts. |
+| `start_seconds` | Optional finite value≥0, inside input | One explicit passage, clipped to input end. |
+| `onset_threshold` | Finite0.05..0.95; default0.5 | Local onset-activation peaks splitting an active pitch-bin run. |
+| `frame_threshold` | Finite0.05..0.95; default0.3 | Sustain activation gate, not calibrated correctness confidence. |
+| `runtime_python` | Operator CLI only; fixed qualified path | No arbitrary executable or caller-selected MCP interpreter. |
 
-Keep frequency bounds fixed to the full trained MIDI range for the first pilot;
-do not silently suppress low octaves to match standard guitar. Pitch bend/MIDI
-exports are later additions. The 178 BPM declaration never changes note-event
-times or imposes a note grid. MIDI tempo metadata is not tempo detection.
+Model, full MIDI21..108 range and two decoding floors (127.7ms and25ms) are
+fixed. C1/MIDI24 is represented; reliable C1/distorted-guitar identification is
+unqualified. There is no `melodia_trick`, inferred-onset, model-selection,
+intended-note or frequency-suppression control in this worker.
 
-Initial resource ceilings: **30 seconds total**, six independently processed
-excerpts, **24 model windows**, one worker/session at a time, two numerical
-threads, 180-second worker wall deadline, proposed 1 GiB RSS ceiling, 20 MiB
-raw array allowance, 5,000 decoded events and 100 MiB result/temporary-audio
-allowance. Separately cap new dependency-wheel cache/environment storage at
-512 MiB during the feasibility smoke; existing shared caches are not reclaimed.
-Budget exceedance yields a partial/failure receipt rather than dropping evidence
-silently. These are fail-fast design bounds, not measured performance promises;
-RSS monitoring on this host must be tested before claiming enforcement. Preserve
-owned-process identity before signalling a timed-out worker under R-N11.
+Bounds: input≤300seconds, total analysis≤30seconds,≤6 independent excerpts,
+≤24 model windows, one sequential CPU session, intra-op2/inter-op1 threads,
+600seconds overall deadline,1GiB observed/inference-process RSS ceiling,
+20MiB raw numeric arrays,5,000 events per preset over the whole run,10MiB worker
+logs. A directly owned subprocess is monitored by PPID and RSS; exceptions,
+deadlines and RSS violations reap that subprocess with an R-N11 receipt.
+Failures preserve a separate receipt and never silently drop events. RSS is
+sampled, supplemented with the macOS process peak measurement; transient
+between-poll allocations are not a hard OS memory reservation.
 
-Reuse inference arrays for at most two fixed decoder presets. The upstream
-127.70 ms floor may reject sixteenths, thirty-seconds and eighth-note triplets
-at 178 BPM. The first technical comparison proposes **25 ms**, not acceptance
-of shorter outputs: rounding and the decoder's strict duration inequality can
-make the effective minimum longer than the requested value. Verify this with
-boundary tests. Lowering the floor can add noise or distortion partials.
+## Model preprocessing, clocks and decoding
 
-## Timeline, provenance and output
+FFmpeg produces separate mono22050Hz float32 analysis excerpts. The original
+and masters keep native rate/channels/sample extent. Input, manifest, tuning,
+model registry, runtime manifest, model and worker hashes are bound before/after
+processing. Denoised input must match its declared SHA and native PCM extent
+with `no_time_stretch=true`. Source origin requires explicit finite nonboolean manifest audio_start_seconds;
+unknown origins fail before media processing and never default to zero.
 
-Use the verified `denoised.wav` derivative by default. Validate its manifest hash,
-sample extent and source lineage, plus current tuning/model/dependency identities.
-Process excerpts separately; never concatenate gaps into apparently continuous
-notes. Retain actual coverage and uncovered intervals. Match the four existing
-pYIN five-second spans for the first actual comparison when their upstream
-hashes remain current; add no more than ten seconds only for a declared case.
+Authors' preprocessing:43,844 input samples (~1.98839seconds), prepend3,840
+zeros, stride36,164 samples,172 output frames, crop15 each edge, retain142,
+concatenate within each excerpt and truncate floor(samples×86/22050).
+Explicit graph names map note/onset [1,172,88] and contour [1,172,264].
 
-Record resampled count, leading/trailing padding, overlap removal and the exact
-upstream decoder clock adjustment. Test events at the start, end and every
-window seam; its empirical window-index correction is not capture-latency
-calibration. Convert excerpt-relative times through decoded audio origin to
-original source time without time stretching. Boundary-straddling notes carry
-truncated-context uncertainty instead of invented full extents.
+Three clocks remain separate: nominal frame×256/22050; authors' empirical
+`model_frames_to_time` correction subtracting10.326077ms per floor(frame/172);
+and actual input-window projection from cropped rows/36,164-sample stride.
+The empirical correction repeats at172 indices rather than142-row window
+seams. None establishes physical capture latency. JSON records every window's
+leading/trailing padding and real context; NPZ preserves all three clocks,
+window_index and window_frame_index. Event raw frame/model end values remain
+unclipped; delivered audio/source ends are clipped at excerpt boundaries.
 
-Save independent immutable `learned-pitch/<run-id>/` artifacts: finite named
-numeric NPZ arrays (never object/pickle arrays), JSON note hypotheses, settings,
-coverage, model/runtime/tuning/source hashes and a comparison receipt. The main
-`pitch.json`, media master, source and current DAG stay intact. Every activation
-has `confidence_kind: uncalibrated_model_activation`; notes retain octave,
-chord/partial and articulation ambiguity. No identified string, stem, intended
-note, tonic/mode or performance-issue verdict follows from this operation.
+Project decoder identity:
+`project_threshold_active_runs_with_local_model_onset_splits`. Each independent
+MIDI bin starts/stops at frame_threshold; strict local model-onset maxima at
+onset_threshold split active runs. No sustain-gap tolerance, inferred onsets,
+neighbor suppression, Melodia recovery or pitch-bend decoding. It is **not**
+upstream note-creation parity. Polyphonic bins and octave ambiguity remain;
+identified_string, intended_note and performance_issue are null.
 
-## Meaningful evaluation and work allocation
+A run qualifies when corrected model end−start≥the requested floor. Away from
+clock corrections127.7ms admits11 nominal hops (~127.710ms), while the original
+upstream rounded-frame strict inequality would require12 (~139.320ms).
+25ms needs3 hops (~34.830ms); a3-hop span crossing correction index172 can fall
+below25ms and be rejected. Tests lock this behavior. Thresholds and floors do
+not impose the declared178BPM grid or measured pick attacks.
 
-Use the same generated label timelines as the current bank when compatible;
-new fixtures must describe generated events independently of detector outputs.
-Report event precision/recall, octave-error counts, voiced/unknown coverage,
-pitch-active frame overlap, start/end residual distributions, runtime/peak RSS
-and default-versus-short-floor differences. Match overlapping pitches without
-forcing one note per frame; report ambiguous labels and excluded spans. Synthetic
-agreement never establishes the actual recording's note correctness.
+## Output and evidence
 
-- **C1 and missing fundamental:** clean 32.703 Hz, harmonics-only 2/3/5, weak
-  fundamental plus dominant octave, and tuning detuning/bend controls. Preserve
-  low-octave alternatives; report hallucinated independent harmonic notes.
-- **Distorted ladder and power chords:** fixed amplitude-normalized harmonic
-  ladders, clipping levels, C1/G1 or custom-tuning chord stacks, pedal-tone
-  repetitions and silence/noise/click overlap. Measure false polyphony separately
-  from correct overlapping-note detection.
-- **Legato and sweep:** continuous pitch slides, attack-softened hammer/pull
-  envelopes and labeled 40–170 ms sequences across low/high register, including
-  window seams. Report merged/split hypotheses and frame/onset uncertainty;
-  absence of a model event is not a missed musical note.
-- **Actual take:** the matched sparse pYIN excerpts and ending. Compare two
-  estimators and expose disagreeing spans for listening. Ground-truth metrics
-  are unavailable unless separately supplied source-bound annotations qualify.
+Every success creates a fresh private
+`RUN_DIR/learned-pitch/UTC_TIMESTAMP-NONCE/` containing comparison.json,
+activations.npz (numeric arrays only), analysis PCM excerpts, task.json,
+inference.json and resource/log receipts. No latest link or parent run output
+is modified. Failed attempts retain failure.json. Stdout is one JSON object:
+comparison_json, status, coverage_seconds, model_windows, excerpt_count,
+event_counts_by_minimum_ms and performance_grade=`not_graded`. Errors print a
+bounded diagnostic to stderr and exit1.
 
-Proposed **4–6 development hours** after root admission: 1 hour for acquisition,
-manifest/lock and bounded session smoke; 1.5–2 hours for audited adapter and
-provenance/timing; 1–1.5 hours for bank/event metrics; 0.5–1 hour for actual
-comparison, hook/skill contracts and handoff. If wheel/ABI/model qualification
-fails, retain the successful classical pitch tooling and record the exact gap.
-There is no implicit TensorFlow build, GPU migration, replacement model or host
-repair fallback. This estimate fits within the current horizon only if root
-prioritizes and releases the lane; it is not a completed-work claim.
+NPZ per-excerpt prefixes are `excerpt_N_`: note(T,88), onset(T,88),
+contour(T,264), model_times_seconds, nominal_times_seconds,
+input_window_projection_seconds, window_index and window_frame_index.
+JSON retains both floor variants, all event bins and raw frame indices,
+source/audio/model/nominal/window clocks, uncalibrated activation evidence and
+window context/padding. Model contexts are approximately2seconds; never reuse
+pYIN64/256ms eligibility or count short model notes as independently validated.
 
-Done for this research lane: pinned source and artifact inventory, explicit
-weight-term evidence scope, wheel compatibility analysis, practical bounded
-interface and a testable plan. Future runtime acceptance additionally requires
-qualified bytes, installed locked wheels, measured bounded inference, synthetic
-metrics and actual-take comparison before any MCP/skill is advertised as ready.
+Initial worker8bc17166 verification: all17 tests passed with optional qualified-runtime
+integration. The later source-origin-only fix added five invalid-origin subcases:
+17 stdlib tests pass and the18th optional inference test is skipped by default.
+No model inference was repeated for that fix; the original worker and tests
+were archived before editing. See the [source-origin fix receipt](../agent-notes/2026-10-06-basic-pitch-source-origin-fix.json). A12second generated pilot covered lowC1, missing fundamental,
+stepped sweep and polyphonic tapping proxies (8windows). These phase-discontinuous
+harmonic signals do not validate physical articulation. The missing-F0 case
+contains a linear harmonic ladder, avoiding nonlinear intermodulation that
+could regenerate the omitted fundamental. In the corrected linear missing-F0 fixture, raw top-one had0/258
+C1 truth-membership hits, returning C2/C3/C4 partials. This is a failure case
+for missing-fundamental identification, preserved without octave correction
+using truth. All-frame synthetic
+diagnostics are descriptive, not musical acceptance; full-context eligibility
+and event metrics belong to the independent acceptance lane.
+
+The actual source-bound pilot covered four5second spans including ending:
+20seconds (13.2484% coverage),16windows,17 events at127.7ms and65 at25ms,
+6.329seconds elapsed,170,917,888byte peakRSS. These are sparse model hypotheses;
+there are no intended notes, note-mistake claims or listening acceptance.
+Exact immutable paths/hashes and fixture results are in the runtime receipt.
+
+A separate enhanced-main pilot uses denoised26c9f42c input from run232741,
+with the same20seconds/16windows:18 and67 hypotheses,8.521seconds and
+179,191,808byte peakRSS. Independent hashes, arrays, source spans and three
+clocks passed readback;24 checked core/original/latest files stayed unchanged.
+It does not replace the older pilot or imply improved note accuracy. See the
+[additional receipt](../agent-notes/2026-10-06-basic-pitch-enhanced-main.json).
+
+Fresh-checkout optional runtime setup remains under a separate design release,
+with no implicit environment acquisition from this inference worker. The
+[portability plan](../agent-notes/2026-10-06-basic-pitch-runtime-portability-plan.md)
+proposes a committed path-free wheel lock and explicit native-wheel-only setup;
+it is not an installed setup tool until root releases implementation.
+
+## Remaining admission
+
+Root integrates a fixed just/MCP hook and skill only after independent audit
+and contract readback. The separate pitch comparator acceptance spec defines
+same-horizon generated-bank evaluation, conservative whole-model context and
+truth-blind selection. Real annotated truth, full-song transcription,
+AU render integration and Logic host acceptance remain future work.

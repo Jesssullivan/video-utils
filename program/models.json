@@ -1,4 +1,13 @@
 {
   "schema_version": 1,
-  "models": {}
+  "models": {
+    "spotify-basic-pitch-0.4.0-onnx": {
+      "url": "https://raw.githubusercontent.com/spotify/basic-pitch/9991303bba609a3b93089d13ec80d1d495083596/basic_pitch/saved_models/icassp_2022/nmp.onnx",
+      "sha256": "2c3c1d144bfa61ad236e92e169c13535c880469a12a047d4e73451f2c059a0ec",
+      "max_bytes": 230444,
+      "format": "onnx",
+      "license": "Apache-2.0 repository-wide; bundled-weight applicability inferred",
+      "source_commit": "9991303bba609a3b93089d13ec80d1d495083596"
+    }
+  }
 }

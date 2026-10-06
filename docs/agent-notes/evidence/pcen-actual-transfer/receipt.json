@@ -1,0 +1,619 @@
+{
+  "schema_version": 1,
+  "kind": "fixed_actual_feature_characterization_not_acceptance",
+  "plan_sha256": "a5c95ac0b418828e6290b6d6df1952f04b4ece847e75d4f83a2b5d263fb9a6b3",
+  "worker_sha256": "5d5dc5eeeda871f7641c25791ea3f206044e5c32227dffda8c153f61e21ab57a",
+  "frozen_frontend_worker_sha256": "a87586af40aab7aa22e983efbd5a35acdd9f149197cd9861ff33ee57e1e67117",
+  "input_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+  "manifest_sha256": "4a75b4e352075114a7b6026c74acab3ab6c64eedddd52fc2b8514adfed80549c",
+  "original_source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "latest_sha256_before_and_after": "8ed66efb8f81f06db6c1abb0a5962c38218d6c8bd1fb3c2d46432dc1693fa5ee",
+  "feature_index_sha256": "d10d18d5ffc5cf2804b30d346d5f0b951d7d7a2813dd0fec5aaa303225a62194",
+  "excerpts": [
+    {
+      "id": "time20",
+      "native_samples": [
+        882000,
+        1058400
+      ],
+      "native_f32le_sha256": "d8813abbe28dca75e419832af18027400e3d744cd359ab7a4008ea0a95f1159d",
+      "analysis_sample_count": 64000,
+      "analysis_f32le_sha256": "4235af6d457a3e75e7914e8949d2158d9f918d5f99e0a043abc8e121e1e44ef4"
+    },
+    {
+      "id": "time90",
+      "native_samples": [
+        3969000,
+        4145400
+      ],
+      "native_f32le_sha256": "e3a594134fd579885b78fb1995361f44fd6d9c0ea6d0466d5a4b72e56ec9327d",
+      "analysis_sample_count": 64000,
+      "analysis_f32le_sha256": "86577673a476af414ebbb7ef1263854f2c97a2e424776933f4ba3db0199c048b"
+    },
+    {
+      "id": "time130",
+      "native_samples": [
+        5733000,
+        5909400
+      ],
+      "native_f32le_sha256": "54a0e944b82c352569b39d22dcb7daa90c27a024201ba2e033814e50be6a8e25",
+      "analysis_sample_count": 64000,
+      "analysis_f32le_sha256": "2c759af1caf511a8e032728438faeaa905a4547793edee64c13f548c8fd02592"
+    }
+  ],
+  "results": [
+    {
+      "excerpt_id": "time20",
+      "fft_samples": 1024,
+      "frame_count": 801,
+      "rows": [
+        {
+          "policy": "magnitude-log",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 1.0,
+          "paired_log_after_one_second_flux_cosine": 1.0,
+          "envelope_quantiles_native_feature_units": [
+            0.5034312605857849,
+            1.0592111349105835,
+            1.7423043251037598
+          ]
+        },
+        {
+          "policy": "magnitude-default",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9739486952353494,
+          "paired_log_after_one_second_flux_cosine": 0.9748432594082558,
+          "envelope_quantiles_native_feature_units": [
+            0.018634725597426696,
+            0.05410509397326514,
+            0.0947630015444373
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.013694137671134322,
+            "maximum": 2.948366392508613
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9772164030826106,
+          "paired_log_after_one_second_flux_cosine": 0.9778085928234089,
+          "envelope_quantiles_native_feature_units": [
+            0.00373952165962285,
+            0.008625679581548095,
+            0.015311994473461306
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.0007006510233688374,
+            "maximum": 0.8571908760515983
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05-slow",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9747915791243265,
+          "paired_log_after_one_second_flux_cosine": 0.975620770957823,
+          "envelope_quantiles_native_feature_units": [
+            0.003788485758622045,
+            0.009028897988828624,
+            0.015345184906769721
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.00072453201775015,
+            "maximum": 0.8606344933647689
+          }
+        },
+        {
+          "policy": "power-log",
+          "paired_log_reference": "power-log",
+          "paired_log_whole_flux_cosine": 1.0,
+          "paired_log_after_one_second_flux_cosine": 1.0,
+          "envelope_quantiles_native_feature_units": [
+            0.44870051741600037,
+            0.984350323677063,
+            1.6224675178527832
+          ]
+        },
+        {
+          "policy": "power-default",
+          "paired_log_reference": "power-log",
+          "paired_log_whole_flux_cosine": 0.917174386756667,
+          "paired_log_after_one_second_flux_cosine": 0.9215511109347907,
+          "envelope_quantiles_native_feature_units": [
+            0.02641553195196989,
+            0.1032334956303239,
+            0.19925745481738938
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.0003926536490437799,
+            "maximum": 6.1228950515435425
+          }
+        }
+      ]
+    },
+    {
+      "excerpt_id": "time20",
+      "fft_samples": 4096,
+      "frame_count": 801,
+      "rows": [
+        {
+          "policy": "magnitude-log",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 1.0,
+          "paired_log_after_one_second_flux_cosine": 0.9999999403953552,
+          "envelope_quantiles_native_feature_units": [
+            0.0835125669836998,
+            0.2773544192314148,
+            0.48361295461654663
+          ]
+        },
+        {
+          "policy": "magnitude-default",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9920106752259094,
+          "paired_log_after_one_second_flux_cosine": 0.9930538732911367,
+          "envelope_quantiles_native_feature_units": [
+            0.003397901433775854,
+            0.012721719551660772,
+            0.022429515039000685
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.07851899813494856,
+            "maximum": 1.4816171721711648
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9814254751944587,
+          "paired_log_after_one_second_flux_cosine": 0.9765185575168627,
+          "envelope_quantiles_native_feature_units": [
+            0.001769174737087959,
+            0.004722911550408131,
+            0.008082288857777224
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.009311893725966556,
+            "maximum": 1.3000363532989145
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05-slow",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9777048373065234,
+          "paired_log_after_one_second_flux_cosine": 0.9732997551889007,
+          "envelope_quantiles_native_feature_units": [
+            0.0017992375393108009,
+            0.004839711562804093,
+            0.008114450288517877
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.009617470464557302,
+            "maximum": 1.3398386234053765
+          }
+        },
+        {
+          "policy": "power-log",
+          "paired_log_reference": "power-log",
+          "paired_log_whole_flux_cosine": 1.0000001192092896,
+          "paired_log_after_one_second_flux_cosine": 0.9999998807907104,
+          "envelope_quantiles_native_feature_units": [
+            0.0830128863453865,
+            0.2594263255596161,
+            0.5094157457351685
+          ]
+        },
+        {
+          "policy": "power-default",
+          "paired_log_reference": "power-log",
+          "paired_log_whole_flux_cosine": 0.9583710243862466,
+          "paired_log_after_one_second_flux_cosine": 0.9662114985045807,
+          "envelope_quantiles_native_feature_units": [
+            0.0060914895314152055,
+            0.02372197553328866,
+            0.05484996536855285
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.00719986899005445,
+            "maximum": 2.6647805645761258
+          }
+        }
+      ]
+    },
+    {
+      "excerpt_id": "time90",
+      "fft_samples": 1024,
+      "frame_count": 801,
+      "rows": [
+        {
+          "policy": "magnitude-log",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 1.0,
+          "paired_log_after_one_second_flux_cosine": 0.9999998807907104,
+          "envelope_quantiles_native_feature_units": [
+            0.4981028735637665,
+            1.370741605758667,
+            2.760568380355835
+          ]
+        },
+        {
+          "policy": "magnitude-default",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9515353643987996,
+          "paired_log_after_one_second_flux_cosine": 0.9609295624340491,
+          "envelope_quantiles_native_feature_units": [
+            0.018334936819408836,
+            0.07886992574037863,
+            0.18803799255381515
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.0028055658224525755,
+            "maximum": 2.8846412692423593
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9449259279201593,
+          "paired_log_after_one_second_flux_cosine": 0.9505351845585417,
+          "envelope_quantiles_native_feature_units": [
+            0.0033055225603057436,
+            0.01162458848778788,
+            0.02047987741656716
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 8.426735621156065e-05,
+            "maximum": 0.8747786595189514
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05-slow",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9355753581031775,
+          "paired_log_after_one_second_flux_cosine": 0.9414944111425919,
+          "envelope_quantiles_native_feature_units": [
+            0.003475319196802888,
+            0.01254287272349802,
+            0.02135828418628925
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 8.655297973032926e-05,
+            "maximum": 1.1117445810971158
+          }
+        },
+        {
+          "policy": "power-log",
+          "paired_log_reference": "power-log",
+          "paired_log_whole_flux_cosine": 1.0000001192092896,
+          "paired_log_after_one_second_flux_cosine": 1.0000001192092896,
+          "envelope_quantiles_native_feature_units": [
+            0.44623351097106934,
+            1.2869354486465454,
+            2.5851974487304688
+          ]
+        },
+        {
+          "policy": "power-default",
+          "paired_log_reference": "power-log",
+          "paired_log_whole_flux_cosine": 0.8627921416073523,
+          "paired_log_after_one_second_flux_cosine": 0.891273960750777,
+          "envelope_quantiles_native_feature_units": [
+            0.02438884900936471,
+            0.14609576554944484,
+            0.5466165338237897
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 2.2309945546958787e-05,
+            "maximum": 5.938370998354614
+          }
+        }
+      ]
+    },
+    {
+      "excerpt_id": "time90",
+      "fft_samples": 4096,
+      "frame_count": 801,
+      "rows": [
+        {
+          "policy": "magnitude-log",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9999999403953552,
+          "paired_log_after_one_second_flux_cosine": 1.0000001192092896,
+          "envelope_quantiles_native_feature_units": [
+            0.06962703913450241,
+            0.4126119315624237,
+            0.5462235808372498
+          ]
+        },
+        {
+          "policy": "magnitude-default",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9836222686969385,
+          "paired_log_after_one_second_flux_cosine": 0.9861052209091986,
+          "envelope_quantiles_native_feature_units": [
+            0.002774541070460849,
+            0.018162542800600614,
+            0.026293853150692832
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.024772692542527723,
+            "maximum": 1.7012183846205589
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9556143231014725,
+          "paired_log_after_one_second_flux_cosine": 0.9614532784787371,
+          "envelope_quantiles_native_feature_units": [
+            0.0013387391940447339,
+            0.005732885870837315,
+            0.009318559593787579
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.002248995771801855,
+            "maximum": 1.4936397881309658
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05-slow",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9369118464729713,
+          "paired_log_after_one_second_flux_cosine": 0.9441793303073232,
+          "envelope_quantiles_native_feature_units": [
+            0.0013918061004155422,
+            0.005720516143928044,
+            0.009612457559204639
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.0021004086551085354,
+            "maximum": 1.8415474719781093
+          }
+        },
+        {
+          "policy": "power-log",
+          "paired_log_reference": "power-log",
+          "paired_log_whole_flux_cosine": 0.9999999403953552,
+          "paired_log_after_one_second_flux_cosine": 0.9999998807907104,
+          "envelope_quantiles_native_feature_units": [
+            0.07040439546108246,
+            0.3815747797489166,
+            0.5164787173271179
+          ]
+        },
+        {
+          "policy": "power-default",
+          "paired_log_reference": "power-log",
+          "paired_log_whole_flux_cosine": 0.9400486564385716,
+          "paired_log_after_one_second_flux_cosine": 0.9435592532601057,
+          "envelope_quantiles_native_feature_units": [
+            0.004797348392915883,
+            0.0333541417345713,
+            0.05307549905369976
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.002036184888167401,
+            "maximum": 3.09654421802302
+          }
+        }
+      ]
+    },
+    {
+      "excerpt_id": "time130",
+      "fft_samples": 1024,
+      "frame_count": 801,
+      "rows": [
+        {
+          "policy": "magnitude-log",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 1.0000001192092896,
+          "paired_log_after_one_second_flux_cosine": 1.0,
+          "envelope_quantiles_native_feature_units": [
+            0.49333932995796204,
+            1.0881850719451904,
+            1.8377740383148193
+          ]
+        },
+        {
+          "policy": "magnitude-default",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9722585379302939,
+          "paired_log_after_one_second_flux_cosine": 0.9709626185232212,
+          "envelope_quantiles_native_feature_units": [
+            0.01774832669326412,
+            0.05594406593334306,
+            0.10459327676868511
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.0038445868462693928,
+            "maximum": 2.5235880537269613
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9762809435927257,
+          "paired_log_after_one_second_flux_cosine": 0.975687204259909,
+          "envelope_quantiles_native_feature_units": [
+            0.0036762266258504573,
+            0.00948229919486995,
+            0.015752217754685893
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.00015809570551107116,
+            "maximum": 0.8878458794922599
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05-slow",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9738737706805363,
+          "paired_log_after_one_second_flux_cosine": 0.9738318687628571,
+          "envelope_quantiles_native_feature_units": [
+            0.003670883698839179,
+            0.009617484887097724,
+            0.015712731164007156
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.00015175535885336684,
+            "maximum": 1.0101687310449035
+          }
+        },
+        {
+          "policy": "power-log",
+          "paired_log_reference": "power-log",
+          "paired_log_whole_flux_cosine": 1.0,
+          "paired_log_after_one_second_flux_cosine": 1.0,
+          "envelope_quantiles_native_feature_units": [
+            0.4400407373905182,
+            1.0421350002288818,
+            1.7315618991851807
+          ]
+        },
+        {
+          "policy": "power-default",
+          "paired_log_reference": "power-log",
+          "paired_log_whole_flux_cosine": 0.915848210770134,
+          "paired_log_after_one_second_flux_cosine": 0.9121888750779835,
+          "envelope_quantiles_native_feature_units": [
+            0.025215688443702585,
+            0.10804168184048021,
+            0.21443252954254047
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 1.298956437398133e-05,
+            "maximum": 4.4956416356489814
+          }
+        }
+      ]
+    },
+    {
+      "excerpt_id": "time130",
+      "fft_samples": 4096,
+      "frame_count": 801,
+      "rows": [
+        {
+          "policy": "magnitude-log",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 1.0,
+          "paired_log_after_one_second_flux_cosine": 1.0,
+          "envelope_quantiles_native_feature_units": [
+            0.07932721078395844,
+            0.2727101147174835,
+            0.31886914372444153
+          ]
+        },
+        {
+          "policy": "magnitude-default",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9932051372825473,
+          "paired_log_after_one_second_flux_cosine": 0.993679613962651,
+          "envelope_quantiles_native_feature_units": [
+            0.003244069469687358,
+            0.012862155419983076,
+            0.015552578539172053
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.0699584829209425,
+            "maximum": 1.3802981408444113
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9736647291030903,
+          "paired_log_after_one_second_flux_cosine": 0.9749051831039535,
+          "envelope_quantiles_native_feature_units": [
+            0.0016339383725302687,
+            0.004653537315029929,
+            0.006448454172041542
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.011692705017492097,
+            "maximum": 1.4265549198469591
+          }
+        },
+        {
+          "policy": "magnitude-unit-gain05-slow",
+          "paired_log_reference": "magnitude-log",
+          "paired_log_whole_flux_cosine": 0.9692816265511554,
+          "paired_log_after_one_second_flux_cosine": 0.9718475237278775,
+          "envelope_quantiles_native_feature_units": [
+            0.0016333012000910284,
+            0.004841878881434342,
+            0.006473779700185521
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.01172154157243527,
+            "maximum": 1.531359390886592
+          }
+        },
+        {
+          "policy": "power-log",
+          "paired_log_reference": "power-log",
+          "paired_log_whole_flux_cosine": 1.0000001192092896,
+          "paired_log_after_one_second_flux_cosine": 1.0,
+          "envelope_quantiles_native_feature_units": [
+            0.07606486976146698,
+            0.2553909420967102,
+            0.3348251283168793
+          ]
+        },
+        {
+          "policy": "power-default",
+          "paired_log_reference": "power-log",
+          "paired_log_whole_flux_cosine": 0.9662676638751345,
+          "paired_log_after_one_second_flux_cosine": 0.9689153509769249,
+          "envelope_quantiles_native_feature_units": [
+            0.005536447795448487,
+            0.024133526251620113,
+            0.033396614433965306
+          ],
+          "pcen_checks": {
+            "block_batch_max_absolute_difference": 0.0,
+            "minimum": 0.003803150655632809,
+            "maximum": 2.5009289228241225
+          }
+        }
+      ]
+    }
+  ],
+  "elapsed_seconds": 7.224858292000135,
+  "numeric_threads": 2,
+  "versions": {
+    "numpy": "2.5.3",
+    "librosa": "0.11.0"
+  },
+  "input_and_source_and_latest_unchanged": true,
+  "features_saved_before_comparisons": true,
+  "interpretation": [
+    "No clean reference, articulation labels, intended score, onset grading, pitch/phrase accuracy or audible preservation acceptance.",
+    "Cross-policy cosine describes agreement with a log feature transform, not better musical detection.",
+    "Both cosine metrics retain centered final-edge padding; whole metric also retains initial padding.",
+    "Four policies and first-frame M0=E0 state unchanged from frozen generated probe;64/256ms supports remain separate.",
+    "Feature quantiles have policy-dependent units; absolute levels cannot be ranked as noise reduction."
+  ]
+}

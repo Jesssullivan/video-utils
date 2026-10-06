@@ -1,0 +1,9 @@
+# Actual-take capture-profile authoring
+
+Authority: operator October5 opening-fan capture, stronger denoising and full-force implementation requests; repository contract and R-N13. Root used the admitted `guitar-capture-profile` skill and typed `capture_profile` hook. Existing authorization was recorded without a renewed prompt.
+
+Original SHA256 `a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6`; run `20261005T232741Z-2b5dc43fd009`. The existing root-selected candidate is 4.10–4.95 seconds, native44100Hz samples[180810,218295). Review SHA256 `953d8d84fb12c358d14bf6d32e8ea93bb6f6491e5597b5dc2035bc5577d24cf4` keeps music/click contamination unknown; it does not assert a noise-only capture or operator-exact interval. Review identities and authorization are supplied assertions, not authenticated facts.
+
+Actual typed invocation exited0 with `authored_unrendered`. Profile SHA256 `ff8b4f078a95c24cfd3a5088d7729550f82241d0f628efaf684ddf1390d76dac`; receipt SHA256 `8040361edebc0fe32d28a19ad9bb403fc3fa2dc219715a3a165ff5aff8adad81`. Settings NR8/nf−40/ad0/gs0, target−18LUFS/−1.5dBTP, optional300Hz−1.5dB/2200Hz+1dB Q.8 EQ and2:1/−18dB/15ms/100ms/3dB compressor withfixed25%wet are structural candidates. Fresh immutable output is `capture-profiles/20261006T003323Z-18de99aa2ca74832b92a95956838de97` beneath this run. The profile passes frozen `media.load_profile`.
+
+This operation hashed original/native PCM and inspected headers but did not decode samples, learn noise shape, render/process audio, grade performance or accept listening quality. Original plus10 core runfiles and latest pointer remained byte-identical. Existing audible renders and their historical receipts remain unchanged. Typed custom-profile application is a separate unadmitted route; authoring alone does not extend the fixed denoise enum.

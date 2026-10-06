@@ -1,0 +1,18 @@
+{
+  "schema_version": "${SCHEMA_VERSION_INTEGER_1}",
+  "source_sha256": "${CURRENT_ORIGINAL_FILE_SHA256_LOWERCASE_HEX}",
+  "source_run_manifest_sha256": "${CURRENT_RUN_MANIFEST_BYTES_SHA256_LOWERCASE_HEX}",
+  "source_pcm_sha256": "${CURRENT_RUN_SOURCE_WAV_BYTES_SHA256_LOWERCASE_HEX}",
+  "start_seconds": "${REVIEWED_CAPTURE_START_FINITE_NUMBER}",
+  "end_seconds": "${REVIEWED_CAPTURE_END_FINITE_NUMBER}",
+  "time_axis": "${TIME_AXIS_LITERAL_DECODED_SOURCE_AUDIO_SAMPLES}",
+  "selected_by": "${SUPPLIED_SELECTOR_ASSERTION}",
+  "reviewed_by": "${SUPPLIED_REVIEWER_ASSERTION}",
+  "review_status": "${SUPPORTED_REVIEW_STATUS}",
+  "authorization_scope": "${EXISTING_AUTHORIZATION_SCOPE}",
+  "authorization_reference": "${EXISTING_SESSION_OR_DELEGATION_REFERENCE}",
+  "music_status": "${SUPPORTED_MUSIC_REVIEW_STATUS}",
+  "click_status": "${SUPPORTED_CLICK_REVIEW_STATUS}",
+  "ambient_music_status": "${SUPPORTED_AMBIENT_MUSIC_REVIEW_STATUS}",
+  "note": "${MEANINGFUL_CAPTURE_REVIEW_NOTE_WITH_UNCERTAINTY}"
+}

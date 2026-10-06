@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "worker_sha256": "a87586af40aab7aa22e983efbd5a35acdd9f149197cd9861ff33ee57e1e67117",
+  "evidence_wrapper_sha256": "c1d14d5c5369721d3d922ca9cedd562bc74f95b645c71920d214d8dc46bc5d0a",
+  "feature_index_sha256": "0ac5212c06c010a864aee32ee9d9b9174a8dcc9f6199d70e7722b7369604e221",
+  "receipt_sha256": "8359ee9f50ce7a1cd74e7412814654dbb200acd31514096049756414eef2b5e2",
+  "feature_calls": 12,
+  "settings_changed": false,
+  "labels_read": false
+}

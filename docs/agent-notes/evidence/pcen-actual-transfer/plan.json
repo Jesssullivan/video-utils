@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "preregistered_at": "2026-10-06T00:28:45.097339+00:00",
+  "kind": "fixed_pcen_actual_characterization_not_accuracy",
+  "input": "artifacts/runs/20261005T232741Z-2b5dc43fd009/denoised.wav",
+  "input_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+  "producer_manifest_sha256": "4a75b4e352075114a7b6026c74acab3ab6c64eedddd52fc2b8514adfed80549c",
+  "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "excerpts": [
+    {
+      "id": "time20",
+      "seconds": [
+        20,
+        24
+      ]
+    },
+    {
+      "id": "time90",
+      "seconds": [
+        90,
+        94
+      ]
+    },
+    {
+      "id": "time130",
+      "seconds": [
+        130,
+        134
+      ]
+    }
+  ],
+  "frozen_frontend_worker": "artifacts/experiments/pcen-frontends/feature_proof.py",
+  "frozen_frontend_worker_sha256": "a87586af40aab7aa22e983efbd5a35acdd9f149197cd9861ff33ee57e1e67117",
+  "fft_samples": [
+    1024,
+    4096
+  ],
+  "numeric_threads": 2,
+  "aggregate_seconds": 12,
+  "reference_audio": null,
+  "scope": [
+    "neutral_time_names_not_articulation_labels",
+    "four_policies_unchanged",
+    "snapshot_before_cross_policy_comparison",
+    "no_pitch_phrase_or_performance_grading"
+  ]
+}

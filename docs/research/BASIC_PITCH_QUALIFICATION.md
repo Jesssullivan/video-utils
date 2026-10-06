@@ -206,3 +206,24 @@ with reviewed, attributed upstream windowing/decoding logic. An isolated
 environment may reuse compatible already-pinned wheels, but must not mutate
 the main analysis lock silently. No CoreML/GPU/ANE execution, performance or
 real-time AU suitability is qualified by this research.
+
+
+## Subsequent bounded runtime checkpoint, 00:08–00:20 UTC October 6
+
+Root released isolated wheel installation and adapter ownership after the
+model-byte qualification. The optional CPU runtime and bounded model adapter
+passed graph inference,17 tests including generated12seconds, and20seconds of
+the actual source-bound take. The existing Python analysis environment was not
+changed. These results supersede the earlier runtime-unverified statement only
+for this exact optional runtime; full upstream package compatibility, musical
+accuracy, AU and Logic acceptance remain unqualified. See the
+[runtime lock and receipt](../agent-notes/2026-10-05-basic-pitch-runtime.json) and
+[implemented worker contract](../spec/BASIC_PITCH_COMPARATOR_LANE.md).
+
+The corrected missing-fundamental fixture uses a linear harmonic ladder, because
+nonlinear tanh can regenerate the omitted fundamental through intermodulation.
+Its raw threshold-active top-one returned C2/C3/C4 and had0/258 C1 truth hits.
+This exposes a limitation rather than supporting reliable missing-F0 inference.
+The sweep/tapping fixtures are phase-discontinuous stepped harmonic proxies,
+not physical articulation validation. Raw activations and polyphonic/octave
+ambiguity remain in immutable output, without truth-guided output correction.

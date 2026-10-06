@@ -18,6 +18,319 @@ import mcp_server
 
 
 class ToolContractTests(unittest.TestCase):
+    def capture_profile_fixture(self):
+        import math, struct, wave
+        temp = tempfile.TemporaryDirectory(); self.addCleanup(temp.cleanup)
+        source = Path(temp.name).resolve() / 'original $(literal); source.wav'
+        with wave.open(str(source), 'wb') as audio:
+            audio.setnchannels(1); audio.setsampwidth(2); audio.setframerate(16000)
+            audio.writeframes(b''.join(struct.pack('<h', round(1500 * math.sin(2 * math.pi * 32 * i / 16000)
+                + 200 * math.sin(2 * math.pi * 103 * i / 16000))) for i in range(32000)))
+        run = ROOT / 'artifacts/runs' / ('contract-capture-' + uuid.uuid4().hex)
+        run.mkdir(parents=True); self.addCleanup(shutil.rmtree, run, ignore_errors=True)
+        pcm = run / 'source.wav'; shutil.copyfile(source, pcm)
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
+        manifest = {'schema_version': 1, 'source': {'path': str(source), 'sha256': digest},
+                    'pcm': {'sample_rate': 16000, 'channels': 1, 'sample_count': 32000},
+                    'outputs': {'source': 'source.wav'}, 'output_sha256': {'source.wav': digest},
+                    'timeline': {'audio_start_seconds': 7.125, 'no_time_stretch': True}}
+        manifest_path = run / 'manifest.json'; manifest_path.write_text(json.dumps(manifest))
+        review = {'schema_version': 1, 'source_sha256': digest,
+                  'source_run_manifest_sha256': hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
+                  'source_pcm_sha256': digest, 'start_seconds': .125, 'end_seconds': .625,
+                  'time_axis': 'decoded_source_audio_samples', 'selected_by': 'fixture selector',
+                  'reviewed_by': 'fixture reviewer', 'review_status': 'reviewed_possible_contamination',
+                  'authorization_scope': 'experimental_capture_render',
+                  'authorization_reference': 'Fixture supplied assertion for metadata test, no audio rendering.',
+                  'music_status': 'suspected', 'click_status': 'unknown', 'ambient_music_status': 'not_reported',
+                  'note': 'Generated 32 Hz musical content is present; this interval is not a clean-noise truth.'}
+        review_path = run / 'review.json'; review_path.write_text(json.dumps(review))
+        arguments = {'input': str(source), 'run_dir': str(run), 'review': str(review_path),
+                     'capture_start_seconds': .125, 'capture_end_seconds': .625, 'reduction_db': 8,
+                     'noise_floor_db': -40, 'adaptivity': 0, 'gain_smooth': 0,
+                     'integrated_lufs': -18, 'true_peak_dbtp': -1.5}
+        return source, run, review_path, review, arguments
+
+    def test_capture_profile_schema_extension_is_bounded_and_closed(self):
+        args = {'input': 'source.wav', 'run_dir': 'artifacts/runs/existing', 'review': 'review.json',
+                'capture_start_seconds': .125, 'capture_end_seconds': .625, 'reduction_db': 8,
+                'noise_floor_db': -40, 'adaptivity': 0, 'gain_smooth': 0, 'integrated_lufs': -18,
+                'true_peak_dbtp': -1.5}
+        band = {'frequency_hz': 300, 'gain_db': -1.5, 'q': .8}
+        bad = [dict(args, peaking_eq=[band] * 4), dict(args, peaking_eq={'frequency_hz': 300}),
+               dict(args, peaking_eq=[dict(band, filter='arbitrary')]), dict(args, peaking_eq=[{'frequency_hz': 300}]),
+               dict(args, peaking_eq=[dict(band, gain_db=True)]), dict(args, peaking_eq=[dict(band, q=float('nan'))]),
+               dict(args, compressor={'ratio': 2}), dict(args, capture_end_seconds=.15),
+               dict(args, capture_end_seconds=11), dict(args, reduction_db=10 ** 1000),
+               dict(args, gain_smooth=.5), dict(args, timeout_seconds=61), dict(args, input='../source.wav'),
+               dict(args, review='https://example.invalid/review.json'), dict(args, model='noise-model'),
+               dict(args, filter='afftdn'), dict(args, profile_authorized=True)]
+        for arguments in bad:
+            with self.subTest(arguments=arguments), patch.object(tool_api, 'run_worker') as worker:
+                with self.assertRaises(tool_api.ValidationError):
+                    tool_api.execute('capture_profile', arguments)
+                worker.assert_not_called()
+        for schema in ({'type': 'array', 'items': {'type': 'number'}},
+                       {'type': 'number', 'maxItems': 3},
+                       {'type': 'array', 'items': {'type': 'number'}, 'maxItems': True},
+                       {'type': 'array', 'items': {'type': 'number'}, 'maxItems': 129},
+                       {'type': 'array', 'items': {'type': 'number'}, 'maxItems': 3, 'contains': {}}):
+            with self.assertRaises(ValueError): tool_api.validate_schema(schema)
+        schema = tool_api.descriptor('capture_profile')['inputSchema']
+        tool_api.validate(dict(args, peaking_eq=[]), schema)
+        tool_api.validate(dict(args, peaking_eq=[band]), schema)
+
+    def test_capture_profile_paths_fixed_argv_and_deadline(self):
+        source, run, review_path, review, args = self.capture_profile_fixture()
+        args['peaking_eq'] = [{'frequency_hz': 300, 'gain_db': -1.5, 'q': .8}]
+        args['compressor'] = {'threshold_db': -18, 'ratio': 2, 'attack_ms': 15, 'release_ms': 100, 'knee_db': 3}
+        command = tool_api.worker_command('capture_profile', args)
+        self.assertEqual(command[1:7], [str(ROOT / 'scripts/capture_profile.py'), str(source),
+            '--run-dir', str(run), '--review', str(review_path)])
+        self.assertEqual(command[command.index('--eq'):command.index('--eq') + 4], ['--eq', '300', '-1.5', '0.8'])
+        self.assertEqual(command[command.index('--timeout-seconds') + 1], '60')
+        self.assertEqual(command[command.index('--compressor-threshold-db') + 1], '-18')
+        with patch.object(tool_api, 'run_worker', return_value={'status': 'fixture'}) as worker:
+            tool_api.execute('capture_profile', args)
+            self.assertEqual(worker.call_args.args[1], 60)
+            self.assertEqual(worker.call_args.kwargs, {'error_json_tool': 'capture_profile'})
+        other = source.parent / 'outside-review.json'; other.write_bytes(review_path.read_bytes())
+        with self.assertRaisesRegex(tool_api.ToolError, 'beneath'):
+            tool_api.worker_command('capture_profile', dict(args, review=str(other)))
+        alias = run / 'alias.json'; alias.symlink_to(review_path)
+        with self.assertRaisesRegex(tool_api.ToolError, 'symlink'):
+            tool_api.worker_command('capture_profile', dict(args, review=str(alias)))
+        oversized = run / 'oversized.json'; oversized.write_bytes(b'x' * (16384 + 1))
+        with self.assertRaisesRegex(tool_api.ToolError, 'byte bound'):
+            tool_api.worker_command('capture_profile', dict(args, review=str(oversized)))
+
+    def test_real_capture_profile_mcp_statuses_preserve_scope_and_native_source(self):
+        from test_mcp import exchange, initialization, request
+        source, run, review_path, review, args = self.capture_profile_fixture()
+        args['peaking_eq'] = [{'frequency_hz': 300, 'gain_db': -1.5, 'q': .8}]
+        args['compressor'] = {'threshold_db': -18, 'ratio': 2, 'attack_ms': 15, 'release_ms': 100, 'knee_db': 3}
+        before = {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in (source, run / 'source.wav', run / 'manifest.json')}
+        def invoke():
+            replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+                request(2, 'tools/call', {'name': 'capture_profile', 'arguments': args})], timeout=10)
+            self.assertEqual(stderr, '')
+            self.assertFalse(replies[1]['result']['isError'], replies[1])
+            return replies[1]['result']['structuredContent']['result']
+        with patch.dict(os.environ, {'FFMPEG': '/nonexistent/ffmpeg', 'FFPROBE': '/nonexistent/ffprobe'}):
+            first = invoke()
+            self.assertEqual(first['status'], 'authored_unrendered')
+            self.assertFalse(first['dsp_performed']); self.assertFalse(first['listening_accepted'])
+            self.assertEqual(first['capture']['native_samples'], [2000, 10000])
+            self.assertEqual(first['capture']['source_media_span_seconds'], [7.25, 7.75])
+            profile = json.loads(Path(first['profile_path']).read_text())
+            self.assertTrue(profile['noise_capture_authorized'])
+            self.assertEqual(profile['noise_capture_source_sha256'], before[source])
+            self.assertEqual(profile['peaking_eq'], args['peaking_eq'])
+            self.assertEqual(profile['compressor'], args['compressor'])
+            receipt = json.loads(Path(first['receipt_path']).read_text())
+            self.assertFalse(receipt['review']['identity_authenticated'])
+            self.assertFalse(receipt['learned_band_shape']); self.assertFalse(receipt['audio_decoded'])
+            review['authorization_scope'] = 'profile_authoring'; review_path.write_text(json.dumps(review))
+            draft = invoke(); self.assertEqual(draft['status'], 'draft_authorization_incomplete')
+            self.assertIsNone(draft['profile_path']); self.assertIsNone(draft['profile_sha256'])
+            self.assertFalse(json.loads(Path(draft['proposal_path']).read_text())['noise_capture_authorized'])
+            review['music_status'] = 'reviewed_present'; review_path.write_text(json.dumps(review))
+            rejected = invoke(); self.assertEqual(rejected['status'], 'needs_reselection')
+            self.assertIsNone(rejected['profile_path']); self.assertIsNone(rejected['proposal_path'])
+        self.assertEqual(len({first['output_dir'], draft['output_dir'], rejected['output_dir']}), 3)
+        self.assertEqual(hashlib.sha256(Path(first['profile_path']).read_bytes()).hexdigest(), first['profile_sha256'])
+        for path, digest in before.items():
+            self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), digest)
+        self.assertEqual(list(run.rglob('*.wav')), [run / 'source.wav'])
+
+    def test_real_capture_profile_mcp_bad_review_and_hash_errors_retain_diagnostics(self):
+        from test_mcp import exchange, initialization, request
+        source, run, review_path, review, args = self.capture_profile_fixture()
+        def invoke():
+            replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+                request(2, 'tools/call', {'name': 'capture_profile', 'arguments': args})], timeout=10)
+            self.assertEqual(stderr, '')
+            result = replies[1]['result']; self.assertTrue(result['isError'])
+            error_text = json.loads(result['content'][0]['text'])['error']
+            self.assertIn('"dsp_performed": false', error_text)
+            return error_text
+        review_path.write_text('{bad json')
+        self.assertIn('valid bounded JSON', invoke())
+        review['authorization_scope'] = 'invented_unscoped'; review_path.write_text(json.dumps(review))
+        self.assertIn('authorization_scope', invoke())
+        review['authorization_scope'] = 'experimental_capture_render'; review['source_sha256'] = 'a' * 64
+        review_path.write_text(json.dumps(review)); self.assertIn('source_sha256', invoke())
+        review['source_sha256'] = hashlib.sha256(source.read_bytes()).hexdigest()
+        review_path.write_text(json.dumps(review))
+        with source.open('ab') as handle: handle.write(b'changed original')
+        self.assertIn('does not bind this original source and PCM', invoke())
+        self.assertFalse((run / 'capture-profiles').exists())
+
+    def test_capture_profile_skill_prompt_exact_readback(self):
+        from test_mcp import exchange, initialization, request
+        replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+            request(2, 'prompts/get', {'name': 'guitar-capture-profile'})])
+        self.assertEqual(stderr, '')
+        self.assertEqual(replies[1]['result']['messages'][0]['content']['text'],
+                         (ROOT / '.agents/skills/guitar-capture-profile/SKILL.md').read_text())
+
+    def test_real_capture_profile_decimal_minimum_interval_retains_native_bounds(self):
+        import media
+        from test_mcp import exchange, initialization, request
+        source, run, review_path, review, args = self.capture_profile_fixture()
+        args.update(capture_start_seconds=.2, capture_end_seconds=.3, reduction_db=.01)
+        review.update(start_seconds=.2, end_seconds=.3)
+        review_path.write_text(json.dumps(review))
+        replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+            request(2, 'tools/call', {'name': 'capture_profile', 'arguments': args})], timeout=10)
+        self.assertEqual(stderr, '')
+        self.assertFalse(replies[1]['result']['isError'], replies[1])
+        result = replies[1]['result']['structuredContent']['result']
+        self.assertEqual(result['status'], 'authored_unrendered')
+        self.assertEqual(result['capture']['native_samples'], [3200, 4800])
+        profile = media.load_profile(result['profile_path'])
+        self.assertEqual(profile['reduction_db'], .01)
+        self.assertEqual([round(value * 16000) for value in profile['noise_capture_seconds']], [3200, 4800])
+        self.assertFalse(result['dsp_performed'])
+
+    def basic_pitch_fixture(self, run):
+        import math, struct, wave
+        run.mkdir(parents=True)
+        source = run / 'denoised.wav'
+        rate = 44100; count = rate * 2
+        with wave.open(str(source), 'wb') as audio:
+            audio.setnchannels(1); audio.setsampwidth(2); audio.setframerate(rate)
+            audio.writeframes(b''.join(struct.pack('<h', round(8000 * math.sin(2 * math.pi * 440 * index / rate)))
+                                       for index in range(count)))
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
+        manifest = {'source': {'sha256': digest}, 'output_sha256': {'denoised.wav': digest},
+                    'timeline': {'no_time_stretch': True, 'audio_start_seconds': 3.},
+                    'pcm': {'sample_rate': rate, 'channels': 1, 'sample_count': count}}
+        (run / 'manifest.json').write_text(json.dumps(manifest))
+        return source
+
+    def test_basic_pitch_schema_rejects_unqualified_knobs_and_resource_requests(self):
+        valid = {'run_dir': 'artifacts/runs/existing'}
+        bad = [dict(valid, max_analysis_seconds=value) for value in (0, 31, True, float('inf'))]
+        bad += [dict(valid, onset_threshold=.01), dict(valid, frame_threshold=.96),
+                dict(valid, start_seconds=-1), dict(valid, start_seconds=float('nan')),
+                dict(valid, timeout_seconds=901), dict(valid, run_dir='../existing'),
+                dict(valid, model_id='other'), dict(valid, model_path='evil.onnx'),
+                dict(valid, runtime_python='/bin/python'), dict(valid, decoder={'melodia': True}),
+                dict(valid, minimum_note_length_ms=1), dict(valid, install_runtime=True)]
+        for arguments in bad:
+            with self.subTest(arguments=arguments), patch.object(tool_api, 'run_worker') as worker:
+                with self.assertRaises(tool_api.ValidationError):
+                    tool_api.execute('basic_pitch_compare', arguments)
+                worker.assert_not_called()
+
+    def test_basic_pitch_dispatch_preserves_fixed_runtime_and_artifact_byte_bounds(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve(); run = root / 'artifacts/runs/test'
+            run.mkdir(parents=True)
+            (run / 'manifest.json').write_text('{}'); (run / 'denoised.wav').write_bytes(b'fixture')
+            with patch.object(tool_api, 'ROOT', root), patch.dict(os.environ, {'VIDEO_UTILS_ANALYSIS_PYTHON': '/unqualified/analysis'}):
+                args = {'run_dir': str(run), 'max_analysis_seconds': 2, 'start_seconds': .25,
+                        'onset_threshold': .6, 'frame_threshold': .4}
+                command = tool_api.worker_command('basic_pitch_compare', args)
+                self.assertNotEqual(command[0], '/unqualified/analysis')
+                self.assertEqual(command[1:], [str(root / 'scripts/basic_pitch_compare.py'), str(run),
+                    '--max-analysis-seconds', '2', '--onset-threshold', '0.6', '--frame-threshold', '0.4',
+                    '--start-seconds', '0.25'])
+                self.assertNotIn('--runtime-python', command)
+                with patch.object(tool_api, 'run_worker', return_value={'status': 'fixture'}) as worker:
+                    tool_api.execute('basic_pitch_compare', args)
+                    self.assertEqual(worker.call_args.args[1], 600)
+                for name, ceiling in (('manifest.json', 1048576), ('denoised.wav', 1073741824)):
+                    path = run / name; before = path.read_bytes()
+                    with path.open('wb') as handle: handle.truncate(ceiling + 1)
+                    with self.assertRaisesRegex(tool_api.ToolError, 'byte bound'):
+                        tool_api.basic_pitch_directory(str(run))
+                    path.write_bytes(before)
+                target = run / 'real.wav'; (run / 'denoised.wav').rename(target)
+                (run / 'denoised.wav').symlink_to(target)
+                with self.assertRaisesRegex(tool_api.ToolError, 'non-symlink'):
+                    tool_api.basic_pitch_directory(str(run))
+                alias = run.parent / 'alias'; alias.symlink_to(run, target_is_directory=True)
+                with self.assertRaises(tool_api.ToolError):
+                    tool_api.basic_pitch_directory(str(alias))
+
+    def test_basic_pitch_absent_or_changed_qualification_fails_before_decode(self):
+        import basic_pitch_compare as comparator
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve(); run = root / 'artifacts/runs/test'
+            self.basic_pitch_fixture(run)
+            (root / 'program').mkdir()
+            shutil.copyfile(ROOT / 'program/models.json', root / 'program/models.json')
+            model = root / 'wrong.onnx'; model.write_bytes(b'wrong model bytes')
+            with patch.object(comparator, 'ROOT', root), patch.object(comparator, 'LOCAL_MODEL', model), \
+                    patch.object(comparator.subprocess, 'run') as decoder:
+                with self.assertRaisesRegex(ValueError, 'prequalified model'):
+                    comparator.build(run, comparator.settings(2))
+                decoder.assert_not_called()
+                model.unlink()
+                with self.assertRaises(FileNotFoundError):
+                    comparator.build(run, comparator.settings(2))
+                decoder.assert_not_called()
+            absent = root / 'absent-runtime'
+            with patch.object(comparator, 'RUNTIME', absent), patch.object(comparator.subprocess, 'run') as decoder:
+                with self.assertRaisesRegex(ValueError, 'qualified isolated venv launcher'):
+                    comparator.build(run, comparator.settings(2), runtime_python=absent)
+                decoder.assert_not_called()
+            self.assertFalse((run / 'learned-pitch').exists())
+
+    def test_real_basic_pitch_mcp_qualified_two_second_comparison_and_stale_input(self):
+        from test_mcp import exchange, initialization, request
+        root = ROOT / 'artifacts/runs' / ('contract-basic-pitch-' + uuid.uuid4().hex)
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        run = root / 'run'; source = self.basic_pitch_fixture(run)
+        before = {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in (source, run / 'manifest.json')}
+        def invoke(arguments):
+            replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+                request(2, 'tools/call', {'name': 'basic_pitch_compare', 'arguments': arguments})], timeout=120)
+            self.assertEqual(stderr, '')
+            return replies[1]['result']
+        args = {'run_dir': str(run), 'max_analysis_seconds': 2, 'timeout_seconds': 90}
+        reply = invoke(args)
+        self.assertFalse(reply['isError'], reply)
+        summary = reply['structuredContent']['result']
+        self.assertEqual(summary['status'], 'experimental_official_model_project_decoder')
+        self.assertEqual(summary['coverage_seconds'], 2.)
+        self.assertEqual(summary['model_windows'], 2)
+        self.assertEqual(summary['performance_grade'], 'not_graded')
+        path = Path(summary['comparison_json'])
+        self.assertTrue(path.is_relative_to(run / 'learned-pitch'))
+        result = json.loads(path.read_text())
+        self.assertEqual(result['providers'], ['CPUExecutionProvider'])
+        self.assertFalse(result['upstream_decoder_parity'])
+        self.assertEqual(result['analysis_input_sha256'], before[source])
+        self.assertEqual(result['model_sha256'], '2c3c1d144bfa61ad236e92e169c13535c880469a12a047d4e73451f2c059a0ec')
+        self.assertLessEqual(result['peak_rss_bytes'], 1024 ** 3)
+        self.assertLessEqual(result['raw_array_bytes'], 20 * 1024 ** 2)
+        self.assertEqual(set(summary['event_counts_by_minimum_ms']), {'127.7', '25.0'})
+        for excerpt in result['excerpts']:
+            for variant in excerpt['variants']:
+                for event in variant['events']:
+                    self.assertIsNone(event['identified_string'])
+                    self.assertIsNone(event['intended_note'])
+                    self.assertIsNone(event['performance_issue'])
+                    self.assertEqual(event['confidence_kind'], 'uncalibrated_model_activation')
+        for original, digest in before.items():
+            self.assertEqual(hashlib.sha256(original.read_bytes()).hexdigest(), digest)
+        self.assertTrue(invoke(dict(args, start_seconds=2))['isError'])
+        with source.open('ab') as handle: handle.write(b'changed source')
+        stale = invoke(args)
+        self.assertTrue(stale['isError'])
+        self.assertIn('verified denoised derivative', stale['content'][0]['text'])
+
+    def test_basic_pitch_skill_prompt_exact_readback(self):
+        from test_mcp import exchange, initialization, request
+        replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
+            request(2, 'prompts/get', {'name': 'guitar-basic-pitch'})])
+        self.assertEqual(stderr, '')
+        self.assertEqual(replies[1]['result']['messages'][0]['content']['text'],
+                         (ROOT / '.agents/skills/guitar-basic-pitch/SKILL.md').read_text())
+
     def test_captured_profile_enum_is_denoise_only_and_literal(self):
         captured = ('captured8', 'captured12', 'captured8-clarity')
         denoise = tool_api.descriptor('denoise')['inputSchema']
@@ -502,7 +815,7 @@ class ToolContractTests(unittest.TestCase):
             expected = [item for field in tool_api.PIPELINE_SELECTORS
                         for item in ('--' + field.replace('_', '-'), arguments[field])]
             self.assertEqual(command[3:], expected)
-            self.assertEqual(len(tool_api.descriptors()), 23)
+            self.assertEqual(len(tool_api.descriptors()), 25)
 
     def test_pipeline_missing_or_symlink_selector_does_not_launch(self):
         with tempfile.TemporaryDirectory() as temporary, tempfile.TemporaryDirectory() as outside:
@@ -530,12 +843,12 @@ class ToolContractTests(unittest.TestCase):
         self.assertEqual(envelope['status'], 'completed')
         self.assertNotEqual(envelope['result']['selected_evidence']['tonal']['status'], 'verified')
 
-    def test_pipeline_prompt_exact_readback_and_twenty_three_tool_catalog(self):
+    def test_pipeline_prompt_exact_readback_and_twenty_five_tool_catalog(self):
         from test_mcp import exchange, initialization, request
         replies, stderr = exchange([initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
             request(2, 'tools/list'), request(3, 'prompts/get', {'name': 'guitar-pipeline'})])
         self.assertEqual(stderr, '')
-        self.assertEqual(len(replies[1]['result']['tools']), 23)
+        self.assertEqual(len(replies[1]['result']['tools']), 25)
         pipeline = next(tool for tool in replies[1]['result']['tools'] if tool['name'] == 'pipeline')
         self.assertTrue(set(tool_api.PIPELINE_SELECTORS) <= set(pipeline['inputSchema']['properties']))
         self.assertEqual(replies[2]['result']['messages'][0]['content']['text'],

@@ -151,3 +151,73 @@ app-sandbox entitlement, Swift `-application-extension`, Objective-C++
 No build was invoked by this actor. The completed note contains eight direct
 Apple primary-source links, checked structurally; executable behavior remains
 the AU owner's and independent auditor's separate evidence lane.
+
+## Appendix: staged host acceptance requirements
+
+Root reattached this reviewer for a **documentation-only** host-acceptance
+review. The packaging owner's dated receipt now records compilation, ad-hoc
+signing and static inspection of the concrete bundle, while explicitly leaving
+activation unperformed. This appendix reads that receipt and the frozen Swift
+wrapper; it neither reproduces compilation nor upgrades the owner's artifact
+checks to runtime evidence. The following checklist is a proposed acceptance
+contract for an independently authorized future host session.
+
+| Stage | Required evidence and claim boundary |
+| --- | --- |
+| Approval and artifact identity | Bind the reviewed app/extension hashes, identifiers, signature receipt and actual proposed installation/discovery action before user approval. Rebuilds require fresh identities. Preserve current SDK 27/deployment 26/arm64 limits. |
+| Registered discovery | Query exactly `aufx` / `vuGn` / `Jess`, with zero component flags/mask unless deliberately testing flags. Record matching component count, name, version and origin metadata if available; no match or multiple matches is a diagnostic requiring review. Files existing in `.cache` do not establish registration. |
+| Factory and extension load | Asynchronously instantiate the discovered component without blocking the main thread. Record success/error and lifecycle evidence from the extension-backed path. A direct `GuitarGainAudioUnit` constructor or process-local `registerSubclass` harness does not exercise app-extension discovery/factory/entry. |
+| Process placement | macOS AUv3 defaults to out-of-process. Record actual placement if observable; do not silently infer it from requested options. Apple reserves in-process loading for appropriately packaged plugins. The current executable-only extension has no separately qualified in-process framework path. |
+| No-UI controls | Confirm the host exposes a generic gain control, stable address 0, range [0,16], default 1 and meaningful read/write values. No custom editor is promised. A missing custom view is consistent with this no-UI design; generic-control availability remains actual host evidence. |
+| Rendering and lifecycle | Exercise the published mono/stereo planar Float32 contract, supported block sizes through 4096, resource allocation/deallocation and restart. Compare gain output against known source samples and record actual rate/channels, errors, dropout observations and latency. Host realtime deadlines require host observations, not standalone timing extrapolation. |
+| Automation | Qualify ordinary control edits and scheduled host playback separately. Test frame-local steps, cross-block ramps, interruption, same-frame ordering and host parameter readback. Then record/replay a bounded Logic automation gesture as its own host result; GUI slider movement alone is not sample-accurate automation proof. |
+| Bypass | Distinguish host insert bypass from AU `shouldBypassEffect`. The latter promises unprocessed input-to-output routing. The inspected Swift wrapper has no explicit bypass override; establish actual behavior with a known signal rather than inferring either mode from gain=1 or from host UI state. |
+| State and reload | Standard `fullState` / `fullStateForDocument` setters remain unqualified and reject non-nil input with project status -100. Their current getters or private stopped-state helper do not establish normal host preset/project restore. Treat preset recall, project reopen and independent-instance restore as expected limitations until separately fixed and qualified. |
+| Acceptance receipt | Record component validator result, extension load, measured gain/automation, generic UI, bypass, state limitations and actual Logic result as separate states, including host/OS/version/architecture. No restoration, nine-string tone preservation or listening acceptance follows from this gain-only package. |
+
+Apple's current host sample searches **registered** components through
+`AVAudioUnitComponentManager.components(matching:)`, asynchronously creates
+the selected AU, and explains default macOS AUv3 process placement. This is
+the discovery/load basis; it does not grant this lane permission to register
+the package. [Hosting sample](https://developer.apple.com/documentation/audiotoolbox/incorporating-audio-effects-and-instruments),
+[asynchronous AU creation](https://developer.apple.com/documentation/audiotoolbox/auaudiounit/instantiate(with:options:completionhandler:)).
+
+Apple's factory API explicitly places generic controls with the host when an
+AU supplies no custom interface. Externally generated parameter changes reach
+`implementorValueObserver`; `implementorValueProvider` returns the current
+value when the parameter tree needs refreshing. The wrapper connects both
+callbacks to the kernel, but this source wiring is not host readback proof.
+[Factory/no-UI contract](https://developer.apple.com/documentation/audiotoolbox/auaudiounitfactory),
+[value-change callback](https://developer.apple.com/documentation/audiotoolbox/auparameternode/implementorvalueobserver),
+[value-refresh callback](https://developer.apple.com/documentation/audiotoolbox/auparameternode/implementorvalueprovider).
+
+Apple supplies `scheduleParameterBlock` in the base AU class and directs
+subclasses not to override it. SDK `AUAudioUnit.h:160–179,495–509` specifies
+parameter addresses, rampability, sample times and event targets; the host
+caches the scheduling block before rendering. SDK
+`AUAudioUnitImplementation.h:190–203` specifies time-ordered render events and
+requires continuation of ramps beyond their starting render cycle. The
+qualified standalone planner's endpoint and bounded event policies still need
+the actual host path to verify them.
+[Scheduling API](https://developer.apple.com/documentation/audiotoolbox/auaudiounit/scheduleparameterblock),
+[render-event representation](https://developer.apple.com/documentation/audiotoolbox/aurenderevent),
+[bypass property](https://developer.apple.com/documentation/audiotoolbox/auaudiounit/shouldbypasseffect).
+
+Apple distinguishes preset state from document state. `fullState` captures
+parameter/custom-property state but excludes transient stream formats;
+`fullStateForDocument` covers document-specific state and falls back to
+`fullState` when not implemented. The current wrapper's
+`fullStateSetterQualified = false` and setters at lines 52–72 are a concrete
+reason to leave conventional DAW restore acceptance open. A host that appears
+to reload successfully may instead be replaying parameter edits or retaining a
+live instance; a fresh-instance round trip is required to resolve that
+ambiguity after implementation.
+[Preset snapshot](https://developer.apple.com/documentation/audiotoolbox/auaudiounit/fullstate),
+[document snapshot](https://developer.apple.com/documentation/audiotoolbox/auaudiounit/fullstatefordocument).
+
+All new current API pages were read from the official Apple `.md`
+representations in memory because the browser reader returned JavaScript
+shells. SDK declarations provide the ramp/lifecycle details. No marketplace,
+installation workaround, broad rescan, cache deletion, Gatekeeper change,
+host launch, discovery query or registry action occurred. Findings were sent
+to the AU owner for the new host-acceptance plan; only this appendix was added.

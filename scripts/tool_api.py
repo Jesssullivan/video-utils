@@ -20,7 +20,8 @@ PIPELINE_SELECTORS = ('clicks_artifact', 'pitch_artifact', 'meter_artifact',
                       'tonal_artifact', 'comparisons_artifact')
 CALIBRATION_TOOLS = {'pitch_evaluate': 5_000_000, 'phrase_evaluate': 20_000_000}
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
-                         'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default'}
+                         'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default',
+                         'items', 'minItems', 'maxItems'}
 OUTPUT_SCHEMA = {'type': 'object', 'properties': {
     'schema_version': {'type': 'integer', 'enum': [1]},
     'tool': {'type': 'string'}, 'status': {'type': 'string', 'enum': ['completed']},
@@ -84,8 +85,10 @@ def validate_schema(schema):
     if unknown:
         raise ValueError(f'unsupported input schema keys: {sorted(unknown)}')
     kind = schema.get('type')
-    if kind not in {'object', 'string', 'number', 'integer', 'boolean'}:
+    if kind not in {'object', 'string', 'number', 'integer', 'boolean', 'array'}:
         raise ValueError(f'unsupported input schema type: {kind}')
+    if kind != 'array' and set(schema) & {'items', 'minItems', 'maxItems'}:
+        raise ValueError('array validation keywords require array type')
     if kind == 'object':
         if schema.get('additionalProperties') is not False:
             raise ValueError('input object schemas must reject additionalProperties')
@@ -94,6 +97,12 @@ def validate_schema(schema):
             raise ValueError('invalid object schema properties/required')
         for child in props.values():
             validate_schema(child)
+    elif kind == 'array':
+        low, high = schema.get('minItems', 0), schema.get('maxItems')
+        if (isinstance(low, bool) or isinstance(high, bool) or not isinstance(low, int)
+                or not isinstance(high, int) or not 0 <= low <= high <= 128 or 'items' not in schema):
+            raise ValueError('input arrays require bounded items and maxItems <=128')
+        validate_schema(schema['items'])
 
 
 def load_registry():
@@ -136,6 +145,7 @@ def finite_number(value):
 def validate(value, schema, label='arguments'):
     kind = schema['type']
     checks = {'object': lambda x: isinstance(x, dict), 'string': lambda x: isinstance(x, str),
+              'array': lambda x: isinstance(x, list),
               'boolean': lambda x: isinstance(x, bool),
               'integer': lambda x: isinstance(x, int) and not isinstance(x, bool),
               'number': finite_number}
@@ -153,6 +163,11 @@ def validate(value, schema, label='arguments'):
             raise ValidationError(f'{label} requires: {sorted(missing)}')
         for key, child in value.items():
             validate(child, props[key], f'{label}.{key}')
+    elif kind == 'array':
+        if not schema.get('minItems', 0) <= len(value) <= schema['maxItems']:
+            raise ValidationError(f'{label} violates bounded array length')
+        for index, child in enumerate(value):
+            validate(child, schema['items'], f'{label}[{index}]')
     elif kind == 'string':
         if '\0' in value:
             raise ValidationError(f'{label} contains NUL')
@@ -294,6 +309,46 @@ def marked_video_directory(value, *, output=False):
     return str(path)
 
 
+def basic_pitch_directory(value):
+    """Bound the current run before model work; the worker verifies hashes."""
+    directory = Path(marked_video_directory(value))
+    for name, ceiling in (('manifest.json', 1_048_576), ('denoised.wav', 1_073_741_824)):
+        path = directory / name
+        if path.is_symlink() or not path.is_file():
+            raise ToolError('Basic Pitch requires regular non-symlink manifest.json and denoised.wav')
+        if path.stat().st_size > ceiling:
+            raise ToolError('Basic Pitch input artifact exceeds preflight byte bound')
+    return str(directory)
+
+
+def capture_profile_paths(args):
+    """Keep the selected original and review component identity until checked."""
+    directory = Path(marked_video_directory(args['run_dir']))
+    paths = {}
+    for field, ceiling in (('input', 3 * 1024**3), ('review', 16 * 1024)):
+        try:
+            path = Path(args[field]).expanduser()
+        except (OSError, RuntimeError) as error:
+            raise ToolError('capture profile path cannot be expanded') from error
+        if not path.is_absolute():
+            path = ROOT / path
+        cursor = Path(path.anchor)
+        for part in path.parts[1:]:
+            cursor /= part
+            if cursor.is_symlink():
+                raise ToolError('capture profile paths cannot contain symlink components')
+        if not path.is_file() or path.stat().st_size > ceiling:
+            raise ToolError('capture profile input/review is missing or exceeds its byte bound')
+        if field == 'review' and not path.is_relative_to(directory):
+            raise ToolError('capture profile review must remain beneath the verified run')
+        paths[field] = str(path)
+    for name, ceiling in (('manifest.json', 1024**2), ('source.wav', 1024**3)):
+        path = directory / name
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > ceiling:
+            raise ToolError('capture profile requires bounded regular manifest.json and source.wav')
+    return paths['input'], str(directory), paths['review']
+
+
 
 def validate_tool_arguments(name, args):
     """Cross-field rules that are known before a worker or file read starts."""
@@ -306,14 +361,21 @@ def validate_tool_arguments(name, args):
     if name == 'benchmark' and args.get('operation', 'run') == 'fixtures':
         if any(key in args for key in ('profile', 'phrase_backend')):
             raise ValidationError('benchmark profile/phrase_backend apply only to operation run')
+    if name == 'capture_profile':
+        for field in ('input', 'run_dir', 'review'):
+            if '..' in args[field].split('/') or '\\' in args[field] or '://' in args[field]:
+                raise ValidationError('capture profile paths must be exact local paths without traversal')
+        duration = args['capture_end_seconds'] - args['capture_start_seconds']
+        if not .1 - 1e-10 <= duration <= 10 + 1e-10:
+            raise ValidationError('capture profile interval must be 0.1–10 seconds')
     if name == 'pipeline':
         for field in PIPELINE_SELECTORS:
             if field in args:
                 validate_evidence_selector(args[field])
     if name == 'corpus' and any(part == '..' for part in args['manifest'].split('/')):
         raise ValidationError('corpus manifest cannot contain traversal components')
-    if name == 'marked_video':
-        for field in ('run_dir', 'output'):
+    if name in {'marked_video', 'basic_pitch_compare'}:
+        for field in (('run_dir', 'output') if name == 'marked_video' else ('run_dir',)):
             if '\\' in args[field] or '..' in args[field].split('/'):
                 raise ValidationError('marked video directories cannot contain traversal or backslash components')
     if name in CALIBRATION_TOOLS:
@@ -344,7 +406,21 @@ def worker_command(name, args):
             or args.get('phrase_backend') == 'librosa'):
         interpreter = os.environ.get('VIDEO_UTILS_ANALYSIS_PYTHON', interpreter)
     head = [interpreter]
-    source = local_path(args['input'], must_exist=True) if 'input' in args else None
+    source = local_path(args['input'], must_exist=True) if 'input' in args and name != 'capture_profile' else None
+    if name == 'capture_profile':
+        original, directory, review = capture_profile_paths(args)
+        command = head + [str(ROOT / 'scripts/capture_profile.py'), original, '--run-dir', directory, '--review', review]
+        for field, flag in (('capture_start_seconds', 'capture-start'), ('capture_end_seconds', 'capture-end'),
+                            ('reduction_db', 'reduction-db'), ('noise_floor_db', 'noise-floor-db'),
+                            ('adaptivity', 'adaptivity'), ('gain_smooth', 'gain-smooth'),
+                            ('integrated_lufs', 'integrated-lufs'), ('true_peak_dbtp', 'true-peak-dbtp')):
+            command += ['--' + flag, str(args[field])]
+        command += ['--timeout-seconds', str(args.get('timeout_seconds', 60))]
+        for band in args.get('peaking_eq', []):
+            command += ['--eq', str(band['frequency_hz']), str(band['gain_db']), str(band['q'])]
+        for field, value in args.get('compressor', {}).items():
+            command += ['--compressor-' + field.replace('_', '-'), str(value)]
+        return command
     if name == 'probe':
         return head + [str(ROOT / 'scripts/media.py'), 'probe', source]
     if name == 'corpus':
@@ -356,6 +432,17 @@ def worker_command(name, args):
                        '--run-dir', marked_video_directory(args['run_dir']),
                        '--selection', args.get('selection', 'phrase-review'),
                        '--output', marked_video_directory(args['output'], output=True)]
+    if name == 'basic_pitch_compare':
+        command = head + [str(ROOT / 'scripts/basic_pitch_compare.py'),
+                          basic_pitch_directory(args['run_dir']),
+                          '--max-analysis-seconds', str(args.get('max_analysis_seconds', 20)),
+                          '--onset-threshold', str(args.get('onset_threshold', .5)),
+                          '--frame-threshold', str(args.get('frame_threshold', .3))]
+        if 'start_seconds' in args:
+            command += ['--start-seconds', str(args['start_seconds'])]
+        # The worker owns its pinned isolated ONNX launcher. Neither an MCP
+        # argument nor the analysis-interpreter environment selects that child.
+        return command
     if name in CALIBRATION_TOOLS:
         return head + [str(ROOT / ('scripts/' + name + '.py')),
                        '--fixture-index', calibration_path(args['fixture_index'], max_bytes=CALIBRATION_TOOLS[name]),
@@ -448,7 +535,7 @@ def worker_command(name, args):
     raise ToolError('tool has no allowlisted worker')
 
 
-def run_worker(command, timeout):
+def run_worker(command, timeout, error_json_tool=None):
     if not Path(command[1]).is_file():
         raise ToolError('implementation worker is unavailable; no analysis was performed')
     # File-backed output avoids allocating all worker logs in memory. Workers are fixed,
@@ -494,6 +581,17 @@ def run_worker(command, timeout):
         stderr.seek(max(0, stderr_size - 2500))
         error_tail = stderr.read().decode('utf-8', errors='replace')
         if process.returncode:
+            if error_json_tool == 'capture_profile':
+                stdout.seek(0)
+                try:
+                    diagnostic = strict_json(stdout.read().decode('utf-8'))
+                except (UnicodeError, ValueError):
+                    diagnostic = None
+                if (isinstance(diagnostic, dict) and diagnostic.get('tool') == error_json_tool
+                        and diagnostic.get('status') == 'error' and isinstance(diagnostic.get('error'), dict)):
+                    message = json.dumps(diagnostic, allow_nan=False)
+                    if len(message.encode('utf-8')) <= 16 * 1024:
+                        raise ToolError(f'worker failed ({process.returncode}): {message}')
             raise ToolError(f'worker failed ({process.returncode}): {error_tail}')
         stdout.seek(0)
         try:
@@ -511,7 +609,10 @@ def execute(name, arguments):
     validate_tool_arguments(name, arguments)
     timeout = arguments.get('timeout_seconds',
                             info['inputSchema']['properties'].get('timeout_seconds', {}).get('default', 600))
-    result = run_worker(worker_command(name, arguments), timeout)
+    if name == 'capture_profile':
+        result = run_worker(worker_command(name, arguments), timeout, error_json_tool=name)
+    else:
+        result = run_worker(worker_command(name, arguments), timeout)
     return {'schema_version': 1, 'tool': name, 'status': 'completed',
             'evidence_kind': info['evidence_kind'], 'implementation_status': info['implementation_status'],
             'instrument_context': load_registry()['instrument_context'], 'result': result,

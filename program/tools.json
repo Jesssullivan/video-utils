@@ -1637,6 +1637,282 @@
         "acceptance": "Transport and media-identity verification do not establish musical correctness, listening acceptance, physical capture sync or native editor/AU host compatibility.",
         "max_comparison_candidates_default": 3
       }
+    },
+    {
+      "name": "basic_pitch_compare",
+      "title": "Optional learned guitar pitch comparison",
+      "description": "Compare qualified official Basic Pitch ONNX activations through two fixed project decoders on bounded excerpts of a current hash-bound denoised run. Uses the prequalified isolated CPU runtime and local model only; never downloads or installs. Writes an immutable comparison and raw arrays, reports sparse coverage, and leaves note correctness and performance ungraded.",
+      "intent": "Expose a second independent estimator for uncertain pitch/event listening review in distorted nine-string guitar without inventing intended-note or upstream decoder parity.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing run beneath repository artifacts/runs with current regular manifest.json and denoised.wav. Original symlink/traversal components are rejected."
+          },
+          "max_analysis_seconds": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 30,
+            "default": 20,
+            "description": "Total sparse excerpt budget; default distributed excerpts include ending."
+          },
+          "start_seconds": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Optional audio-relative contiguous excerpt start inside native input."
+          },
+          "onset_threshold": {
+            "type": "number",
+            "minimum": 0.05,
+            "maximum": 0.95,
+            "default": 0.5,
+            "description": "Uncalibrated onset activation threshold."
+          },
+          "frame_threshold": {
+            "type": "number",
+            "minimum": 0.05,
+            "maximum": 0.95,
+            "default": 0.3,
+            "description": "Uncalibrated note activation threshold."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Outer owned-process-group deadline; worker internal overall deadline600s."
+          }
+        },
+        "required": [
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-basic-pitch/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "uncalibrated_learned_pitch_event_hypotheses",
+      "limitations": [
+        "Qualified official Basic Pitch 0.4.0 ONNX model with project threshold-run/onset-split decoding; upstream Melodia/postprocessing parity is false. Fixed duration presets127.7/25ms reuse identical raw arrays.",
+        "Input <=300 seconds, total analyzed <=30 seconds, <=24 model windows, CPU2threads, measured RSS <=1GiB, raw arrays<=20MiB, <=5000 events per preset, internal600sdeadline. Wrapper manifest<=1MiB and derivative<=1GiB preflight bounds.",
+        "Model/source/native extent/registry/tuning/runtime-wheel/worker identities are verified; missing or changed qualified artifacts reject without prefetch, installation, runtime fallback or network. No arbitrary model/interpreter/decoder JSON inputs.",
+        "Sparse excerpts and approximately2second model context do not provide whole-take transcription or latency calibration. Activations are uncalibrated; no inferred string, stem, intended note, note correctness or performance grade.",
+        "Qualification retained a linear missing-fundamental C1 failure (0/258 raw top-one frames); comparator disagreement remains listening evidence rather than correctness or voicing confidence. Listening and AU/Logic acceptance remain unestablished."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "denoise",
+          "pitch"
+        ],
+        "enforced": false,
+        "note": "A current verified denoised run, explicitly qualified local model and isolated runtime are required. Prior tools are not invoked automatically; optional runtime stays separate from existing analysis environment."
+      },
+      "agent_workflow": {
+        "identify": "Inspect sparse coverage, exact model/runtime/source hashes, activation scale, decoder differences and nullable note interpretations.",
+        "research": "Read model-byte/runtime qualification and clock/decoder contracts; preserve missing-F0 failure and nine-string distortion limitations.",
+        "iterate": "Change one supported threshold or excerpt budget at a time, compare the fixed two decoder outputs and classical pitch evidence, preserve raw arrays and review disagreements by listening.",
+        "acceptance": "Successful inference and estimator agreement do not establish note correctness, full transcription, voicing confidence, musician intent, listening or native AU/Logic acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "capture_profile",
+      "title": "Source-bound noise capture authoring",
+      "description": "Author immutable candidate restoration settings from an existing native source run and exact supplied review/authorization metadata. Validate live source/run/PCM hashes and native sample interval; no DSP, decoding, noise-band learning, separation or media render. Render-scoped review emits authored_unrendered profile; authoring-only emits a draft; contaminated capture yields needs_reselection.",
+      "intent": "Make fresh per-source capture settings and their authorization/uncertainty reproducible without reusing another take's noise identity or silently rendering.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Explicit current local original recording; may be outside repo. Regular nonsymlink file<=3GiB."
+          },
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Current verified run beneath repository artifacts/runs with bound native source.wav and manifest.json."
+          },
+          "review": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing exact source/run/PCM-bound review JSON beneath this run, <=16KiB; identities and authorization are supplied assertions."
+          },
+          "capture_start_seconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "capture_end_seconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "reduction_db": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 12
+          },
+          "noise_floor_db": {
+            "type": "number",
+            "minimum": -80,
+            "maximum": -20
+          },
+          "adaptivity": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "gain_smooth": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "integrated_lufs": {
+            "type": "number",
+            "minimum": -70,
+            "maximum": -5
+          },
+          "true_peak_dbtp": {
+            "type": "number",
+            "minimum": -9,
+            "maximum": 0
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 60,
+            "default": 60,
+            "description": "Whole-worker deadline, also forwarded to standalone owned SIGALRM authoring worker."
+          },
+          "peaking_eq": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "frequency_hz": {
+                  "type": "number",
+                  "minimum": 160,
+                  "maximum": 6000
+                },
+                "gain_db": {
+                  "type": "number",
+                  "minimum": -3,
+                  "maximum": 3
+                },
+                "q": {
+                  "type": "number",
+                  "minimum": 0.5,
+                  "maximum": 2
+                }
+              },
+              "required": [
+                "frequency_hz",
+                "gain_db",
+                "q"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 0,
+            "maxItems": 3,
+            "description": "Optional bounded fixed EQ bands; frequency must also be strictly below native Nyquist. Omitted means none."
+          },
+          "compressor": {
+            "type": "object",
+            "properties": {
+              "threshold_db": {
+                "type": "number",
+                "minimum": -36,
+                "maximum": -6
+              },
+              "ratio": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 3
+              },
+              "attack_ms": {
+                "type": "number",
+                "minimum": 8,
+                "maximum": 20
+              },
+              "release_ms": {
+                "type": "number",
+                "minimum": 60,
+                "maximum": 200
+              },
+              "knee_db": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 6
+              }
+            },
+            "required": [
+              "threshold_db",
+              "ratio",
+              "attack_ms",
+              "release_ms",
+              "knee_db"
+            ],
+            "additionalProperties": false,
+            "description": "Optional exact all-or-none fixed compressor controls; omitted means off."
+          }
+        },
+        "required": [
+          "input",
+          "run_dir",
+          "review",
+          "capture_start_seconds",
+          "capture_end_seconds",
+          "reduction_db",
+          "noise_floor_db",
+          "adaptivity",
+          "gain_smooth",
+          "integrated_lufs",
+          "true_peak_dbtp"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-capture-profile/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "source_bound_profile_authoring",
+      "limitations": [
+        "Supplied review identities and authorization assertions are not authenticated. Quiet/fan diagnostics do not establish a noise-only capture or isolated guitar stem. Unknown/suspected content remains explicit.",
+        "Authoring-only scope cannot emit a runnable authorized profile. Render scope emits authored_unrendered metadata only; rejected/present music or clicks produce needs_reselection. Ambient music is not automatically separated.",
+        "Source<=3GiB, nativePCM<=1GiB, native8..192kHz/mono-stereo/<=600s, capture0.1..10s; manifest1MiB, context64KiB, review/profile16KiB, receipt64KiB, compactresult16KiB; wholeworkerdeadline<=60s.",
+        "All finite numeric controls are explicit; bounded<=3typedEQbands and exactcompressorobject only. Source/context/review/worker/validator hashes rechecked before immutable publication.",
+        "No audio decoding, DSP, measured learned band shape, media overwrite, model/runtime acquisition, arbitraryargv/filter/JSON controls or custom-profile denoise application. Listening and AU/Logic acceptance remain unestablished."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "probe",
+          "noise",
+          "denoise"
+        ],
+        "enforced": false,
+        "note": "Existing current verified native source run and exact reviewed sidecar are required; no prerequisite tool or later render is invoked automatically."
+      },
+      "agent_workflow": {
+        "identify": "Verify the current three source/run/PCM hashes, native capture interval, review uncertainty and exact authorization scope before authoring.",
+        "research": "Inspect capture workflow and nine-string/fan context; distinguish sampling controls, musical contamination and supplied assertions from measured noise or listening truth.",
+        "iterate": "Choose explicit finite settings and bounded optional EQ/compression, author fresh metadata, compare receipts and retain scope/unknowns. Request reselection when contaminated; preserve authoring-only draft as nonrunnable.",
+        "acceptance": "Profile authoring is not DSP, noise-only proof, learned band shape, media render, ambient separation, listening or master acceptance. Custom application is a separate admission.",
+        "max_comparison_candidates_default": 3
+      }
     }
   ]
 }

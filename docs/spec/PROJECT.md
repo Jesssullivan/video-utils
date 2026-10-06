@@ -66,11 +66,40 @@ rhythm analysis, and reporting. Local artifacts are isolated per run under
 `artifacts/runs/`; provenance records source identity, commands, tool versions,
 profile parameters, analysis resampling, and output measurements.
 
-The current versioned tool/API contract, local MCP stdio adapter, and twenty-three
+The current versioned tool/API contract, local MCP stdio adapter, and twenty-five
 per-tool skills expose the same bounded operations. Agent guidance connects research evidence
 to explicit, auditable parameter suggestions for noise, tone, and note analysis.
 Suggestions require comparative evaluation; agents cannot silently change the
 accepted profile or manufacture intended-note references.
+
+## Evidence-guided priorities for the following week
+
+The enhanced October 5 take now has stronger captured-noise comparisons, mild
+EQ/compression, a synchronized marked preview and mobile playback evidence.
+These are audition and review artifacts; they do not close musical-quality work.
+Retain the 35-hour core and optional 35-hour extension below, with these concrete
+risks directing the allocations:
+
+- Prioritize phrase precision and boundary accuracy before adding more flags.
+  The generated baseline has no matched recurrence pairs; short windows improve
+  recall but increase false positives. Compare frozen controls on held-out
+  seeds, retaining half/double-time and short-motif alternatives without labels
+  in discovery. Do not promote a feature similarity score into error confidence.
+- Qualify low-register denoising separately from quiet-window reduction.
+  Captured cleanup improves quiet windows, while active 20–45 Hz mixture energy
+  also falls. Test known guitar/fan components, exact frequency collisions,
+  attacks and sustain; audition source, pure residue and final masters.
+- Keep pitch comparators sparse and experimental. Model range, runtime success
+  and short event-duration settings do not establish C1, missing-fundamental,
+  distorted-polyphony or legato accuracy. Retain octave, silence and coverage
+  failures, and compare fixed decoding choices without intended-note grading.
+- Finish portable capture profiles and bounded agent iteration using a fresh
+  source/review binding for each take. Keep denoise, tone/dynamics, analysis and
+  delivery provenance separate. Every admitted primitive needs a typed hook,
+  matching skill and meaningful failure cases.
+- The development AUv3 bundle is statically qualified; installation, host
+  state, automation, latency and actual Logic playback remain later acceptance.
+  Generic editor markers and burned previews do not establish native import.
 
 ## Demo decisions and evidence
 

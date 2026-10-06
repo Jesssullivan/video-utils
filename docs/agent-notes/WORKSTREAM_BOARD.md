@@ -1,6 +1,6 @@
 # video-utils parallel work board
 
-As-of ownership checkpoint: **2026-10-05 23:44:06 UTC / 7:44:06 p.m. EDT**.
+As-of ownership checkpoint: **2026-10-06 00:39:05 UTC / October 5, 8:39:05 p.m. EDT**.
 Root's goal began 20:49:34 UTC and remains **active**, with planned end
 **2026-10-06 06:49:34 UTC / 2:49:34 a.m. EDT**. Objective/status does not enforce
 this wall-clock horizon. Root owns integration, factual Linear writes and signed
@@ -16,76 +16,71 @@ Checkpoints: [2026-10-05-goal-checkpoints.md](2026-10-05-goal-checkpoints.md).
 Tracker IDs: [linear.json](../../program/linear.json).
 Active goal: [TIN-5495](https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal).
 
-## Published twenty-three-tool source
+## Current published source and delivery
 
-Root verified **PRIVATE/signature-valid** main source
-**`eb378bd33e6c1ab408245e58f93430a495efbf6b`**. Twenty-three hooks/skills are
-published. Locked local Python passed **387/387 in 130.097 s, no skips**;
-60 targeted hooks and 23 skills/live prompts passed. Hosted CI
-[37389573784](https://github.com/Jesssullivan/video-utils/actions/runs/37389573784)
-**SUCCESS**: 387 Python discovered, 366 passed, 21 optional-backend skips in 61.537 s;
-seven Rust tests and secret scan passed. Local optional-backend execution and
-hosted optional skips are distinct. Earlier twenty-tool/291-test receipts qualify
-their own revisions. No source check implies visual/listening/native-host acceptance.
+Root verified private/signature-valid published HEAD
+`c59d7024a9967b920747e07134c6c166c3ddb38d` and hosted
+[CI 37392676183](https://github.com/Jesssullivan/video-utils/actions/runs/37392676183)
+**SUCCESS**. The published catalog remains **23 hooks/skills**. The prior
+`eb378bd` local suite passed 387/387 in 130.097 s with no skips; its hosted run
+37389573784 passed 366 with 21 optional-backend skips. Those exact test counts
+belong to that prior receipt; this board does not invent new c59d CI timing/counts.
 
-## Evening delivery and current ownership
+Enhanced cleaned and marked media are complete on
+`artifacts/runs/20261005T232741Z-2b5dc43fd009`; the writer independently read
+`artifacts/latest.json` pointing to that run, cleaned video, marked video and report,
+with `listening_accepted:false`. Current report SHA256 is
+`a47ae9cf342e4bf2c81a7f64dcd6c662984d09a81106399166109b190bcd3cc2`.
+The marked preview retains 24 selected markers/25 composed callouts, exact 3621
+VFR frame PTS and delivery AAC/PCM identity. Three sampled early/dense/ending
+stills passed scoped visual review; muted browser playback/filter/seek and 390px
+layout checks passed. Six selected markers are fully suppressed by overlap
+priority and remain in metadata. This is neither an exhaustive visible inventory,
+continuous-playback readability proof, listening acceptance nor confirmed mistakes.
+Physical capture synchronization, native editor import and Logic hosting remain
+unverified. The 180 flags remain ungraded hypotheses/navigation data.
 
-Root relayed new operator status steering: a complete video with phrase/possible
-issue markers is desired this evening; no pause was requested. The stronger captured8-clarity full cleaned video is complete, with separately
-validated export. Its new graph has 180 ungraded flags. Full marked phrase-review render completed, root exec 80948 exit 0: 24 markers/
-25 composed callouts, encoded/identity verification passed. Visual and listening
-acceptance are not yet claimed; root has not yet updated the old latest pointer. Root estimated 45–90 minutes for an annotated
-preview at the 7 p.m. update; that is an estimate, not completion evidence.
+Root's new factual Linear comments: D0
+`06d5da6d-bf79-42fd-8dae-8e885edc4406`; active goal
+`a90d7ebf-9dbe-478f-8216-0986103c4162`; D4
+`9bac1230-0744-47a8-b5aa-104c6be8e928`. Root owns tracker readback and the five-character
+Project Markdown normalization check; this lane performs no external mutations.
 
-User listening feedback requests stronger denoising from the opening fan/noise
-capture opportunity, normalization/compression and guitar clarity/frequency
-response. Large box fan and listed reference-tone context are operator-stated
-constants. Root owns new program/capture-context.json and README/AGENTS/PROJECT
-axioms; instrument registry stays unchanged. Product/market differentiation is a
-hypothesis being researched, not established absence of competitors.
+## Reattached named lanes
 
-The actual calibration pilot completed **275.72 seconds: twelve/twelve cases
-and four/four pitch jobs, 30 source seconds**. Independent audit passed structural
-contracts. Accuracy remains weak: phrase boundary F1 approximately 0.143, zero
-recurrence matches and two false-voicing alerts. Synthetic completion is not
-qualified real-performance accuracy. These accuracy findings remain open despite the subsequent published
- twenty-three-tool source.
+The operator's exact **“reattach all subagents”** request is preserved in prompt
+archive section 18, following **“proceed in full force”**. Root reports all 23 existing agents/nested reviewers reattached, plus root;
+many have since finished normally. Named bounded tasks preserve source/media
+and dirty parallel-owner work. This is no
+pause, horizon reset or blanket ownership transfer. Rows record current assignments
+and receipts; a ready/frozen delivery does not imply a worker is still running.
 
-Root finished the first stronger audio comparisons, then started full marked
-render as requested. Published source remains the tested baseline while root reattaches the existing
-team to bounded next tasks. Independent local locked
-Python suite **387/387 passed in 130.097 seconds/no skips**;
-**60 hook-targeted checks (58+2)** and 23 skills/live prompts passed. Root's native
-rerun at 23:26:01 UTC reports `native_checks_passed_not_au_host_qualified`.
-No musician listening/master or native-host acceptance follows from these checks.
-
-| Stream | Owner | Exclusive assigned files | State / dependency |
+| Stream | Owner | Named files / dependencies | Current state / next |
 | --- | --- | --- | --- |
-| Generated bank | `/root/repo_patterns` | `scripts/benchmark.py`, optional new `scripts/benchmark_bank.py`; `tests/test_benchmark.py`, optional new `tests/test_benchmark_bank.py`; optional new `program/benchmarks-v2.json`, BENCHMARK_CALIBRATION_LANE | Code released; ≤12 fixtures/120 source seconds; preserve existing benchmarks.json bytes and v1 hashes; generator-only truth/bank index precedes evaluators |
-| Pitch evaluator | `/root/guitar_features` | New `scripts/pitch_evaluate.py`, `tests/test_pitch_evaluate.py`; PITCH_CALIBRATION_LANE and owned dated evaluator receipts | Code released; four-job/30-source-second pilot; depends on generated bank/pilot index; retain coverage, octave/voicing and transition exclusions |
-| Phrase evaluator | `/root/phrase_dag` | New `scripts/phrase_evaluate.py`, `tests/test_phrase_evaluate.py`; PHRASE_CALIBRATION_LANE and owned dated evaluator receipts | Code released; independent boundary/span/recurrence/warp metrics; labels withheld from discovery; depends on generated truth/artifacts |
-| Tool contracts | `/root/tool_hooks` | `program/tools.json`, `scripts/tool_api.py`, `tests/test_tool_contracts.py` and existing owned contract docs/tests | Registry/API/schema ownership; agree evaluator inputs/results before integration; current published count is 23; next bounded contract tasks await root reattachment assignment |
-| Calibration skills | `/root/tool_skills` | Three calibration skills under existing owned `.agents/skills/**`; owned extension guidance | Depends on actual contracts/knobs; match benchmark and both evaluator intents; validation before publication |
-| Calibration pilot/controller | Root execution / prior named owners | `scripts/calibration_pilot.py` and delivered evaluators/tests | Actual twelve-case/four-pitch pilot completed 275.72 s; weak metrics/false voicing retained; included in published 23-source; publication is not an accuracy pass |
-| Stronger source-bound restoration | `/root/rhythm_analysis` / root runs | Media/test/new captured profiles and RESTORATION_REFINEMENT source frozen | Three actual stronger runs complete; new captured8-clarity master −18.00/−1.75, decoded video −18.01/−1.76; no accepted master/listening verdict |
-| Marked review video | `/root/media_latency` / root execution | Marked worker/tests/spec source frozen; root exec 80948 | Full phrase-review render completed, exec 80948 exit 0: 24 selected markers/25 callouts; VFR PTS/AAC PCM preservation verified; visual/listening review still pending |
-| Marked-video skill/contract | `/root/tool_skills` and `/root/tool_hooks` | Published named skill/API/registry | Twenty-three hooks/skills now published/hosted checked; visual/listening acceptance separate; next exact tasks assigned by root |
-| Guitar tone/fan research | `/root/clip_baseline` | New `docs/research/GUITAR_TONE_REFERENCES.md`, owned dated receipt | Delivered primary-source tone/fan research; next bounded task assigned by root on reattachment; reference artists describe intended content, not recovered settings or claimed mastered equivalence |
-| Practice market research | `/root/plan_review` | New read-only PRACTICE_LANDSCAPE research and owned receipt | Delivered source-only comparison; next bounded task assigned by root on reattachment; product gap stays a hypothesis; no code/source mutation |
-| Spectrogram / PCEN reuse | `/root/xod_spectrogram` | Research/ablation source now frozen | PCEN golden/reference checks passed; default settings weakened measured metric; no package reuse/adoption; retain bounded ablation evidence |
-| Independent contract audit | `/root/audio_research` | New dated calibration-contract review under `docs/agent-notes/`; worker source/specs read-only | Delivered independent audit; next bounded task assigned by root on reattachment; record findings/evidence in owned review note; no worker/spec mutation |
-| AU parameter-state integration | `/root/au_architecture` | Native source NOW FROZEN after native/direct-object checks | Qualified source/direct-object checks passed; generic fullState setter remains unqualified (-100); no host/device/install/auval/Logic proof |
-| Learned pitch comparator | `/root/tonal_inference` | BASIC_PITCH comparator/qualification docs and bounded artifact receipt | Exact official wheel+ONNX byte qualification COMPLETE; no environment/install/model registration/inference; next action remains root decision |
-| Integration/publication | `/root` | Shared recipes/source integration, real bank pilot, tests, Linear and signed publication | Run bounded actual synthetic bank/pilot and integrate receipts; distinguish fixture quality from real performance |
-| Durable checkpoint | `/root/goal_plan` | This board, checkpoint log and append-only user-prompt archive; TEN_HOUR_PLAN only on explicit follow-up | Updated/frozen after handoff for root's selected doc receipt publication |
+| Held-out generated bank | `/root/repo_patterns` | New `scripts/benchmark_holdout.py`, `tests/test_benchmark_holdout.py`, HOLDOUT_BANK_LANE and dated admission/generation receipts | Seeds 211/307; 12 cases/120 seconds structurally verified after explicit root release; frozen index for inference, not detector accuracy; published v1/v2 dependencies preserved |
+| Guarded phrase comparison | `/root/phrase_dag` | PHRASE_WINDOW_ABLATION_LANE, dated isolated ablation/guarded-arm/heldout harness receipts; canonical workers frozen | Heldout independent audit passed; guarded D has 4 TP/87 FP, all arms zero matches at IoU0.75; weak performance/no adoption; fixed settings retained |
+| Pitch comparator acceptance | `/root/guitar_features` | PITCH_COMPARATOR_ACCEPTANCE_LANE and independent read-only metric receipt | ACTIVE new pure learned-pitch evaluator `scripts/learned_pitch_evaluate.py`, `tests/test_learned_pitch_evaluate.py`, with independent audit; CLI prototype excluded from root qualified25 joint suite; musical correctness remains unknown |
+| Learned pitch worker | `/root/tonal_inference` | New `scripts/basic_pitch_compare.py`, `tests/test_basic_pitch_compare.py`, BASIC_PITCH_COMPARATOR_LANE; isolated qualified runtime/model receipts | Local tool24 source-origin repair407…; fresh actual20-source-second result18/67 hypotheses raw verification PASS; old8bc… worker receipt retained; ACTIVE separate portable-runtime setup new scripts/basic_pitch_runtime_setup.py and test_basic_pitch_runtime_setup.py; not published/whole-take transcription |
+| Runtime audit | `/root/tonal_inference/tonal_audit` | Dated BASIC_PITCH runtime audit receipt only | Independent model/runtime/windowing/clock review; source/inference evidence distinct from pitch correctness |
+| Capture profile authoring | `/root/rhythm_analysis` | New `scripts/capture_profile.py`, `tests/test_capture_profile.py`, CAPTURE_PROFILE_WORKFLOW_LANE; existing media/profiles frozen | Local repaired worker7d282…45 tests; root actual typed tool25 authoring PASS on232741: profileff8b4…, receipt804036…, native sample interval[180810,218295]; no DSP/core/latest changes; application route separate |
+| Typed hooks | `/root/tool_hooks` | `program/tools.json`, `scripts/tool_api.py`, `tests/test_tool_contracts.py`, named new contract docs | All25 local hooks71 targeted PASS; published count remains23; root qualified25 joint28-module suite RUNNING with no pass claim yet; new CLI prototypes excluded |
+| Agent skills | `/root/tool_skills` | BASIC_PITCH_SKILL_LANE, CAPTURE_PROFILE_SKILL_LANE and explicitly assigned skills | All25 local skills/live contracts validated; published23 remains baseline; authoring/runtime/application boundaries retained |
+| Spectrogram/PCEN ablation | `/root/xod_spectrogram` | PCEN_FRONTEND_ABLATION_LANE and dated isolated evidence | Mixed results; new actual12-second characterization completed without clean reference; earlier defaults weakened onset metrics; no package/frontend adoption |
+| Meter/pulse ablation | `/root/meter_inference` | METER_PULSE_ABLATION_LANE and dated isolated harness/receipt | Joint pulse ablation12 variants all unknown; published worker frozen; energy-cycle evidence does not determine notation/downbeats |
+| Low-register STFT probe | `/root/audio_research` | LOW_REGISTER_NOISE_SEPARABILITY_LANE; new scripts/low_register_denoise_probe.py and tests/test_low_register_denoise_probe.py | ACTIVE future isolated prototype:32 masks/64 source seconds; independent clip_baseline oracle audit; excluded from qualified25 release suite; no real mixture stem or accepted quality claim |
+| Fan/capture research | `/root/clip_baseline` | BOX_FAN_CAPTURE research and dated characterization receipt | ACTIVE independent oracle audit of new low-register probe; prior fan/tuning overlap and unverified-noise-only capture evidence preserved |
+| Review and marker delivery | `/root/plan_review` and `/root/media_latency` | Owned report/browser and marked visual/audit receipts; existing media frozen | Enhanced existing delivery/latest unchanged; media_latency ACTIVE quantized coverage bug fix under separate source/tests assignment; prior sampled visual proof is scoped historical evidence, no new render/listening acceptance |
+| AU packaging | `/root/au_architecture` | Explicitly assigned native packaging/spec/receipt files | Published unsigned prototype/source checks are separate from installation/auval/Logic hosting; no host acceptance |
+| Editor adapter design | `/root/resolve_marker_sources` | EDITOR_MARKER_ADAPTER_LANE and dated bounded inventory | ACTIVE new bounded scripts/editor_marker_plan.py/tests planner prototype; dry-run coordinates only, no editor import/marker write/application proof |
+| Root integration | `/root` | Shared recipes/admission, actual inference/render, `program/linear.json`, signed publication | Published c59d/23-tool baseline/CI green; actual25 authoring and new20sec pitch evidence verified; qualified25 joint28-module suite running, excludes new CLI prototypes; release pending |
+| Durable tracking | `/root/goal_plan` | This board, checkpoint log and append-only user-prompt archive | Current follow-up only; freeze after handoff; no source/registry/Linear mutations |
 
-**Operator explicitly said “proceed in full force”, then “reattach all subagents”.**
-Root is reattaching the existing team to bounded follow-up tasks while preserving
-saved work. This is authorization to continue, not a pause or a new horizon.
-Each lane's next exact files/dependencies are assigned by root; old ownership is
-not a blanket shared-source unfreeze. Rows above retain prior owners/evidence and
-do not claim every next task is executing before reattachment confirmation.
-Goal remains active, same weekly budget/end; no phantom worker/result claims.
+The original twelve-case calibration completed 275.72 s and four pitch jobs/30
+source seconds, with weak phrase F1 approximately 0.143, zero recurrence matches
+and two false-voicing alerts. Controlled shorter-window development ablation had
+75% selected-pair recall but only 21% precision and more negative false positives.
+Neither structural completion nor short-window recall establishes musical accuracy;
+heldout arms stay fixed and production defaults remain unchanged.
 
 Historical exact released AU files (now refrozen after handoff): `native/au-spike/apple/GainKernel.h`, `GainKernel.mm`,
 `GuitarGainAudioUnit.swift`; new `native/au-spike/integration/ControlIngress.hpp`,
@@ -102,10 +97,10 @@ reports. At two unverified quiet windows, mild6 adds approximately 0.12/0.17 dB
 RMS reduction over conservative3. This is measurement, not better-tone/SNR
 acceptance. Conservative full video/main report remains unchanged. Durable
 receipt: [2026-10-05-restoration-comparison.md](2026-10-05-restoration-comparison.md).
-Root's new D0/goal comments have prefixes 5d7d5b17/0c101757; new receipt publication
-is pending. Root synchronizes full IDs and evidence in program/linear.json.
+Historical restoration-comparison D0/goal comments had prefixes 5d7d5b17/0c101757;
+current c59d publication comments are recorded above. Root synchronizes full IDs and evidence in program/linear.json.
 Historical documentation/restoration-comparison head 04f6484 was superseded by
-published 23-source eb378bd; its separate hosted result is recorded above.
+published 23-source eb378bd, then c59d; each hosted result belongs to its own revision.
 
 Actual stronger source runs: captured8 `20261005T232627Z-eb7bead2ae74`, captured12
 `20261005T232714Z-04afdec97f2b`, captured8-clarity
@@ -116,8 +111,8 @@ validated export (aggregate demo 15 stages, zero failures). New video decoded
 3621 decoded frames preserved. Low 20–45 Hz power changed about 2–3 dB in active
 material; that can include guitar, so audition loss/noise balance before accepting
 any master. Quiet-window reduction and normalization do not prove better clarity.
-Old latest/main pointer remains preserved until root explicitly updates it after
-marked-output review. New selection has 24 selected/156 excluded markers and 25
+Root subsequently updated latest/main to this clarity run after scoped marked-output
+review; the previous pointer/media remain historical evidence. New selection has 24 selected/156 excluded markers and 25
 composed callouts; no confirmed error labels.
 
 

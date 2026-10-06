@@ -535,3 +535,96 @@ file ownership/dependencies follow those assignments, not assumptions that every
 old task is active. Goal remains active with unchanged end
 **2026-10-06 06:49:34 UTC**, same weekly allocation. Tracking refreezes after this
 handoff for root's selected publication and subsequent visual/listening receipts.
+
+
+## Current publication, completed delivery and bounded reattachment — October 6, 00:24:53 UTC
+
+This documentation clock is October 5, 8:24:53 p.m. EDT; it is not a newly
+inferred user-message time. The exact existing “reattach all subagents” request
+remains in prompt archive section 18. Root reattached this tracking lane and
+named source/research follow-ups without discarding dirty owner work or resetting
+the active planned end **2026-10-06 06:49:34 UTC**.
+
+Root reports private/signature-verified published HEAD
+`c59d7024a9967b920747e07134c6c166c3ddb38d` and hosted
+[CI 37392676183](https://github.com/Jesssullivan/video-utils/actions/runs/37392676183)
+SUCCESS. This writer independently read local HEAD and root-owned publication
+metadata matching that revision/status. The published catalog remains 23 tools;
+prior eb378bd 387-test local/hosted counts are not relabelled as new c59d timings.
+Root added D0 comment `06d5da6d-bf79-42fd-8dae-8e885edc4406`, active-goal comment
+`a90d7ebf-9dbe-478f-8216-0986103c4162`, and D4 comment
+`9bac1230-0744-47a8-b5aa-104c6be8e928`. Project Markdown normalization readback
+remains root's work; this lane did not mutate Linear or program/linear.json.
+
+Enhanced cleaned/marked media remain complete on
+`20261005T232741Z-2b5dc43fd009`. Independently read latest.json now selects that
+run, report/cleaned video/marked video with `listening_accepted:false`.
+Current report SHA256 is
+`a47ae9cf342e4bf2c81a7f64dcd6c662984d09a81106399166109b190bcd3cc2`.
+Prior 155,215,112-byte marked SHA13b9d18b80be37de954530f3c1220c256a061136921ffaf3c68f7e677b55dc90,
+24 selected/25 composed callouts, 3621 VFR PTS and exact delivery AAC/PCM remain
+bound. The independent visual receipt records legible early/dense/ending sampled
+stills; six selected markers are fully suppressed by overlap priority and retained
+in metadata. Muted browser/filter/seek/mobile checks are delivery-function proof,
+not continuous readability, confirmed phrase mistakes or musician acceptance.
+No actual listening/master, physical capture-sync, native-editor import or Logic
+host acceptance is asserted.
+
+Bounded follow-ups: repo_patterns verified heldout seeds211/307 twelve-case/
+120-second bank after explicit root release; phrase_dag's frozen guarded arms
+await/consume that index under unchanged formulas, with weak development results
+and no canonical adoption. Xod/PCEN results are mixed and no package/frontend is
+adopted. Tonal_inference's qualified optional Basic Pitch adapter is locally
+admitted as tool24 with worker/tests frozen; independent runtime and acceptance
+lanes keep event clocks, coverage, raw arrays and correctness distinct. New
+rhythm_analysis capture_profile.py/test_capture_profile.py has 33 local fixtures,
+metadata authoring only, proposed tool25 hook pending. Tool_hooks and tool_skills
+own exact contract/skill admission; published23 does not imply publication of24/25.
+Audio_research low-register separability is plan/research; meter ablation,
+clip_baseline fan evidence, editor dry-run design and AU unsigned packaging retain
+their existing isolated ownership and claim limits. Current board links named
+files/dependencies; root integrates actual inference, full tests and publication.
+
+Authority: operator active parallel goal/reattachment; repository AGENTS.md;
+R-HOOK-CONVERGENCE-20261004, R-N11/R-N12/R-N13. Only the three assigned tracking
+documents changed. They refreeze after handoff for root's selected publication.
+
+
+## Typed capture/pitch checkpoint and active future prototypes — October 6, 00:39:05 UTC
+
+Root's latest follow-up reports all 23 existing agents/nested reviewers reattached
+plus root, with many finished normally. This records that receipt without claiming
+finished lanes remain running. Exact prior user reattachment prompt is retained;
+no new user wording/time, pause or horizon reset is invented.
+Published remote is still private/signature-verified c59d7024a9967b920747e07134c6c166c3ddb38d
+with CI37392676183 green; published catalog 23 remains distinct from local 25.
+
+Root actual typed capture authoring on 232741 PASSED: new profile prefix ff8b4…,
+receipt 804036…, native interval [180810,218295]. This is source-bound metadata,
+not DSP: core media/latest unchanged. Repaired worker prefix 7d282… has 45 local
+tests. All 25 local hooks 71 targeted checks passed and all 25 skills validated.
+Root's qualified 25 joint suite of 28 modules is RUNNING, with no completed pass
+claim yet, and explicitly excludes the new CLI prototypes below.
+
+Basic Pitch source-origin repair prefix 407… has new actual 20-source-second
+18/67-hypothesis evidence with raw verification PASS. The old 8bc… worker receipt
+remains historical. Sparse arrays/source clocks are not note correctness or
+complete transcription. Heldout independent audit passed structural/result
+contracts; guarded arm D has 4 TP/87 FP and every arm has zero matches at IoU 0.75.
+No adoption follows. PCEN actual 12-second characterization completed without a
+clean reference; mixed evidence remains. Joint pulse 12 variants all unknown.
+
+Root explicitly released isolated future prototypes: audio_research new
+low_register_denoise_probe.py/test_low_register_denoise_probe.py, 32 masks and
+64 source seconds, with independent clip_baseline oracle audit; tonal_inference
+new basic_pitch_runtime_setup.py/test_basic_pitch_runtime_setup.py for portable
+setup; guitar_features new learned_pitch_evaluate.py/test_learned_pitch_evaluate.py
+pure evaluator with independent audit. Resolve-marker planner is a bounded new
+editor_marker_plan.py/tests lane, while media_latency repairs quantized coverage
+under its assigned source/test ownership. These assignments are not published
+tools, actual editor import, accepted separated stems, a new marked render or
+AU/Logic runtime qualification. Existing media and rejected/weak experiments stay.
+
+Only the three owned tracking docs change here; root metadata/external systems
+are untouched. Goal remains active, planned end 2026-10-06 06:49:34 UTC. Tracking
+refreezes for root publication after diff-check/handoff.

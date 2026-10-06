@@ -40,7 +40,7 @@ exposed controls. Media/model downloads and uploads are never implicit.
 
 ## Tool map and capability boundaries
 
-The twenty-three entries below are present in the current local registry.
+The twenty-five entries below are present in the current local registry.
 The dated reconciliation checkpoint at October 5, 2026, 23:25 UTC found twenty
 tools in committed `HEAD` and `origin/main` (`04f64844c2c15d69adda2fc0b1e89a4e2702b82f`),
 and twenty-three in the working tree. `pitch_evaluate`, `phrase_evaluate` and
@@ -76,6 +76,8 @@ launches.
 | `pitch_evaluate` | `guitar-pitch-evaluate` | Source-verified local generated-reference evaluator; validates an existing four-job/30-second pitch pilot without decoding or inference; real-note accuracy unestablished. |
 | `phrase_evaluate` | `guitar-phrase-evaluate` | Source-verified local generated-reference boundary/recurrence/alignment evaluator; keeps abstentions, sparse coverage and pre-warp differences; real phrase correctness unestablished. |
 | `marked_video` | `guitar-marked-video` | Source-verified local separate burned review preview with generated VFR preservation checks; uncertain callouts, no master overwrite or real-take listening claim. |
+| `basic_pitch_compare` | `guitar-basic-pitch` | Optional hash-qualified CPU comparison with retained raw heads, sparse coverage, three clocks and experimental event hypotheses; no intended-note grading. |
+| `capture_profile` | `guitar-capture-profile` | Fresh source-bound settings and review receipts; distinguishes authoring-only proposals, authorized unrendered profiles and rejected captures; no DSP or listening acceptance. |
 
 Each skill's worker fallback is documented in its `SKILL.md`. Experimental
 feature tools use `scripts/guitar_features.py TOOL INPUT --run-dir DIR`; discover
@@ -87,8 +89,9 @@ for the MCP server or `VIDEO_UTILS_ANALYSIS_PYTHON` when configured; dependency
 installation is never implicit. Proposed controls
 must be implemented and validated before an agent promises their effect. The BPM/rhythm
 worker supports backend selection and a manual BPM seed. Denoise accepts registered
-profiles through MCP; a proposed custom noise-capture profile uses the direct
-recipe after interval confirmation and profile validation.
+profiles through MCP. Capture authoring records the existing scoped interval
+review and authorization; direct custom-profile application still requires
+source/profile validation, while its typed application route remains separate.
 
 Additional extension contracts and worker/registry readiness are tracked in
 [the skill extension lane](SKILL_EXTENSION_LANE.md),
@@ -257,21 +260,20 @@ by that operation.
 
 ### Restoration and report integration boundary
 
-The in-progress restoration lane retains `denoised.wav` as pure denoising and
+The restoration worker retains `denoised.wav` as pure denoising and
 optionally writes `processed.wav` for subsequent peaking EQ/compression before
 normalizing the delivery `cleaned.wav`. `residue.wav` is source minus pure
 denoising before gain; it does not measure removal or alteration caused by EQ,
 compression or normalization. Analysis on `denoised.wav` therefore describes a
 different processing stage from a tone/dynamics-enhanced delivery. Source-level
 stage support and new profile controls require their own real-run and registry
-receipts; they are not implied by the twenty-three-tool catalog.
+receipts; they are not implied by the twenty-five-tool catalog.
 
-Read-only report review at the reconciliation checkpoint recommends three small
-integration changes: show the actual restoration chain and captured-noise
-interval beside the clean player; label residue with its precise stage scope;
-and display the selected receipt's manifest/settings/producer binding fields,
-including legacy pitch's derived bindings and unrecorded producer identity.
-Those report changes were not made by this documentation lane. The report's
+The published enhanced report shows the restoration chain and captured-noise
+interval beside the clean player, labels the residue's stage scope and displays
+selected manifest/settings/producer bindings, including legacy pitch's derived
+bindings and unrecorded producer identity. Actual mobile playback and visual
+checks are documented separately from listening acceptance. The report's
 analysis-input allowlist currently excludes `processed.wav`; extending it alone
 would not extend upstream feature/DAG lineage support. Keep delivery and analyzed
 stage labels separate until that coordinated contract is verified.
