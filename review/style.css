@@ -23,3 +23,4 @@ section,.form-row>*{min-width:0}.transport:focus-visible{outline:2px solid var(-
 @media(max-width:900px){.s2-workspace{grid-template-columns:minmax(0,1fr)}.s2-stage-row{grid-template-columns:minmax(0,1fr) auto}.s2-stage-role,.s2-stage-status{grid-column:1/-1}}
 @media(max-width:550px){.s2-players{grid-template-columns:minmax(0,1fr)}.s2-lane{grid-template-columns:minmax(0,1fr);gap:4px}.s2-quickmark .form-row{grid-template-columns:minmax(0,1fr)}}
 .s2-track-intent{height:52px}.s2-track-intent .s2-unit{top:19px}.s2-track-intent .s2-glyph{top:2px}.s2-track-intent .s2-tick.s2-join-supported,.s2-track-intent .s2-tick.s2-join-weak{top:14px}
+.s2-table td:nth-child(3),.s2-table td:nth-child(4){white-space:nowrap}

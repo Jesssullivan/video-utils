@@ -3,7 +3,7 @@
 // triaged flags, phrase timing measurements and a quick-mark labelling session.
 // Evidence display only: text via textContent; nothing starts playback automatically or from code.
 let s2Bundle = null, s2Ready = false, s2Initialized = false, s2PairBox = null, s2CoverageBox = null;
-const s2State = {pair:0, reveal:new Set(), anchor:0, session:false, queue:[], frozen:null, busy:false, uncertain:false, lastFlag:null, wired:false};
+const s2State = {pair:0, reveal:new Set(), anchor:null, session:false, queue:[], frozen:null, busy:false, uncertain:false, lastFlag:null, wired:false};
 const s2Players = [];
 const S2_PANELS = ["s2-stages", "s2-ab", "s2-coverage", "s2-flags", "s2-timing"];
 const S2_KINDS = ["phrase_duration", "phrase_omission", "rhythm_timing", "rhythm_pattern", "melodic_pitch", "articulation", "rest_execution", "meter_mismatch", "tone", "noise", "other"];
@@ -218,6 +218,8 @@ function s2RenderPair(layer, pair, index) {
 function s2Intent() {
   if(!s2Ready || !s2Bundle || !s2Bundle.layers) return null;
   const coverage = s2Bundle.layers.coverage || {}, files = coverage.intent && Array.isArray(coverage.intent.files) ? coverage.intent.files : [];
+  // Default view: the middle anchor candidate, so ±1 click alternatives sit on either side. Nothing is adopted.
+  if(s2State.anchor === null) s2State.anchor = Math.floor(Math.max(0, files.length - 1) / 2);
   return files[Math.min(s2State.anchor, Math.max(0, files.length - 1))] || null;
 }
 function s2Boundaries() {
@@ -263,6 +265,7 @@ function s2RenderCoverage() {
     const select = s2el("select");
     select.id = "s2-anchor";
     files.forEach((file, index) => { const option = s2el("option", "k" + file.k0 + " · anchor review candidate"); option.value = String(index); select.append(option); });
+    s2Intent();
     select.value = String(Math.min(s2State.anchor, files.length - 1));
     select.addEventListener("change", () => { s2State.anchor = Number(select.value) || 0; s2RenderCoverage(); });
     label.append(select);

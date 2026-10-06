@@ -522,3 +522,48 @@ or the headless Chrome walkthrough. Every subprocess has an explicit timeout.
 Python is stdlib-only, with no pip installs. FFmpeg and FFprobe come from the
 `FFMPEG`/`FFPROBE` environment variables. The lane commits with
 `--no-gpg-sign`, and root signs the merge.
+
+## 11. Phase 2 implementation notes (additive; sections 1–10 unchanged)
+
+Implemented on `sprint/20261006-s2/ui_core`. These notes record choices made
+inside the frozen contract and the places where Phase 2 had to resolve
+ambiguity. Receipts: `docs/agent-notes/sprints/20261006-s2/ui_core-walkthrough.json`
+and `ui_core-handoff.json`.
+
+- **Per-file level lines (5.2).** Each pair's per-file static gain, excerpt
+  LUFS and sample peak are rendered in a collapsed `<details>` ("gains can
+  hint at the mapping"). The static gains differ by arm (−3.37 dB FULLER,
+  −0.17 dB source on the real take), so showing them inline would reveal the
+  blind mapping before listening. The region match line,
+  `operator_preference: not recorded` and `listening acceptance: not
+  established` are always visible.
+- **Phrase timing binding (3, 4).** `phrase-timing.json` carries an analyzed
+  input hash but no original source hash. The composer accepts a timing file
+  only when its `inputs.analyzed_input_sha256` is bound to the original source
+  by the session manifest outputs, the supplied detector `phrases.json`
+  lineage, or a supplied phrase_anchor `grid_analyzed_input_sha256`. Otherwise
+  the file is refused with `layer_source_mismatch`. Timing files are labelled
+  `<run id>/phrase-timing.json` because both real files share a basename.
+- **Bundle key.** `tone-ab.json`'s own `status` is copied as
+  `layers.tone_ab.tone_ab_status`; `layers.tone_ab.status` is the layer
+  availability. `layers.flags_triage.document` and
+  `layers.phrase_timing.files[].document` hold the verbatim documents.
+- **Anchor default (5.3).** The selector opens on the middle candidate (k30 of
+  k29/k30/k31) so the ±1 click alternatives sit on either side. It is a view
+  choice only; every row still reads `anchor review candidate · not adopted`.
+- **Labelling session without a bundle.** Quick marks write only to the
+  session's own v2 store, so the labelling session still works when the S2
+  bundle is absent or refused. N/P and Shift+N/P then do nothing.
+- **Upstream text.** Verbatim upstream strings (timing row labels, retained
+  flag records, tone_ab limitations, the operator's quote) carry the class
+  `s2-upstream` and are excluded from the generated-text verdict-word scan.
+  The scan counts them separately.
+- **Walkthrough mark positions (8.3).** The fixture's playable source span is
+  2–12 s, so 1 s arrow steps reach at most 11 distinct positions. The
+  walkthrough queues 11 marks at the start and after each `→`, and the twelfth
+  after `P` (intent boundary 8.5 s). There are 12 `B` presses and 1 shared save.
+- **Root diff file.** The exact `scripts/review_server.py` change is stored as
+  `review/practice_s2_review_server.diff` (`git apply --check` clean at
+  `0cdca01`). A patched copy was served once against the synthetic fixture,
+  answering `/api/practice-s2` 200, `/media/s2/excerpt-1-X.wav` 206 with
+  Range, an unknown name 404, and `/practice_s2.js` 200.

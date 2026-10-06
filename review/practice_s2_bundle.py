@@ -472,7 +472,7 @@ class Composer:
         analyzed = inputs.get("analyzed_input_sha256")
         if analyzed not in bound_inputs:
             raise LayerRefusal("layer_source_mismatch")
-        return {"status": "available", "file": path.name, "sha256": digest, "analyzed_input_sha256": analyzed,
+        return {"status": "available", "file": f"{path.parent.name}/{path.name}", "sha256": digest, "analyzed_input_sha256": analyzed,
                 "source_binding": bound_inputs[analyzed], "document": value}
 
     # ----- compose ----------------------------------------------------------
@@ -551,7 +551,7 @@ class Composer:
         for path in phrase_timing:
             entry = self.guarded("phrase_timing", self.layer_timing, path, bound_inputs)
             if entry.get("status") == "unavailable":
-                timing_refusals.append({"file": Path(path).name, "reason": entry["reason"]})
+                timing_refusals.append({"file": f"{Path(path).parent.name}/{Path(path).name}", "reason": entry["reason"]})
             else:
                 timing_files.append(entry)
         timing = {"status": "available" if timing_files else "unavailable", "files": timing_files, "refused": timing_refusals}

@@ -1,0 +1,531 @@
+{
+  "schema_version": 1,
+  "lane": "ui_core",
+  "sprint": "20261006-s2",
+  "linear": "TIN-5610",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N11/R-N12/R-N13)",
+  "date": "2026-10-06",
+  "phase": "2_walkthrough",
+  "spec": "docs/spec/sprints/REVIEW_UI_S2.md section 8.3",
+  "harness": {
+    "python": "review/browser_smoke_s2.py",
+    "cdp": "review/browser_smoke_s2.mjs",
+    "chrome": "/Applications/Google Chrome.app (headless=new, --mute-audio, unique temporary profile)",
+    "server": "in-process ReviewHTTPServer subclass wiring practice_s2_routes as review/practice_s2_review_server.diff does; ephemeral loopback port"
+  },
+  "claim_class": "M (measured browser state); M-syn for synthetic labelling; no listening (walkthrough_listening: not_performed, playback muted)",
+  "runs": [
+    {
+      "mode": "synthetic",
+      "source_name": "synthetic-practice-s2.wav",
+      "source_sha256": "7b6f2a1b2db402fd494e0b41d622c82d51a68075ad91588825c98c90e03407cf",
+      "summary": {
+        "noOverflow": 4,
+        "configs": 4,
+        "playersChecked": 48,
+        "allPaused": true,
+        "verdictHits": 0,
+        "exceptions": 0
+      },
+      "configs": [
+        {
+          "name": "desktop-1440",
+          "width": 1440,
+          "height": 1000,
+          "device_scale_factor": 1,
+          "mobile": false,
+          "scroll_width_after_load": 1440,
+          "scroll_width_after_keys": 1440,
+          "inner_width": 1440,
+          "horizontal_overflow": false,
+          "panels": {
+            "s2-stages": "visible",
+            "s2-ab": "visible",
+            "s2-coverage": "visible",
+            "s2-flags": "visible",
+            "s2-timing": "visible",
+            "s2-prototypes": "visible"
+          },
+          "players": 6,
+          "all_players_paused_after_load_and_keys": true,
+          "preload_values": [
+            "none"
+          ],
+          "autoplay_true": 0,
+          "key_actions": [
+            "N",
+            "N",
+            "P",
+            "Shift+N",
+            "Shift+P",
+            "ArrowRight"
+          ],
+          "exception_count": 0,
+          "verdict_hits_generated_text": 0,
+          "upstream_nodes_excluded": 7,
+          "triage_rendered": {
+            "shown": 2,
+            "navigation": 3,
+            "suppressed": 1
+          },
+          "triage_matches_denominators": true,
+          "screenshots": [
+            "artifacts/s2/ui_core/synthetic/walk/desktop-1440-top.png",
+            "artifacts/s2/ui_core/synthetic/walk/desktop-1440-ab.png",
+            "artifacts/s2/ui_core/synthetic/walk/desktop-1440-coverage.png",
+            "artifacts/s2/ui_core/synthetic/walk/desktop-1440-flags.png",
+            "artifacts/s2/ui_core/synthetic/walk/desktop-1440-coverage-after-marks.png"
+          ]
+        },
+        {
+          "name": "mobile-375",
+          "width": 375,
+          "height": 812,
+          "device_scale_factor": 3,
+          "mobile": true,
+          "scroll_width_after_load": 375,
+          "scroll_width_after_keys": 375,
+          "inner_width": 375,
+          "horizontal_overflow": false,
+          "panels": {
+            "s2-stages": "visible",
+            "s2-ab": "visible",
+            "s2-coverage": "visible",
+            "s2-flags": "visible",
+            "s2-timing": "visible",
+            "s2-prototypes": "visible"
+          },
+          "players": 6,
+          "all_players_paused_after_load_and_keys": true,
+          "preload_values": [
+            "none"
+          ],
+          "autoplay_true": 0,
+          "key_actions": [
+            "N",
+            "N",
+            "P",
+            "Shift+N",
+            "Shift+P",
+            "ArrowRight"
+          ],
+          "exception_count": 0,
+          "verdict_hits_generated_text": 0,
+          "upstream_nodes_excluded": 7,
+          "triage_rendered": {
+            "shown": 2,
+            "navigation": 3,
+            "suppressed": 1
+          },
+          "triage_matches_denominators": true,
+          "screenshots": [
+            "artifacts/s2/ui_core/synthetic/walk/mobile-375-top.png",
+            "artifacts/s2/ui_core/synthetic/walk/mobile-375-ab.png",
+            "artifacts/s2/ui_core/synthetic/walk/mobile-375-coverage.png",
+            "artifacts/s2/ui_core/synthetic/walk/mobile-375-flags.png"
+          ]
+        },
+        {
+          "name": "mobile-390",
+          "width": 390,
+          "height": 844,
+          "device_scale_factor": 3,
+          "mobile": true,
+          "scroll_width_after_load": 390,
+          "scroll_width_after_keys": 390,
+          "inner_width": 390,
+          "horizontal_overflow": false,
+          "panels": {
+            "s2-stages": "visible",
+            "s2-ab": "visible",
+            "s2-coverage": "visible",
+            "s2-flags": "visible",
+            "s2-timing": "visible",
+            "s2-prototypes": "visible"
+          },
+          "players": 6,
+          "all_players_paused_after_load_and_keys": true,
+          "preload_values": [
+            "none"
+          ],
+          "autoplay_true": 0,
+          "key_actions": [
+            "N",
+            "N",
+            "P",
+            "Shift+N",
+            "Shift+P",
+            "ArrowRight"
+          ],
+          "exception_count": 0,
+          "verdict_hits_generated_text": 0,
+          "upstream_nodes_excluded": 7,
+          "triage_rendered": {
+            "shown": 2,
+            "navigation": 3,
+            "suppressed": 1
+          },
+          "triage_matches_denominators": true,
+          "screenshots": [
+            "artifacts/s2/ui_core/synthetic/walk/mobile-390-top.png",
+            "artifacts/s2/ui_core/synthetic/walk/mobile-390-ab.png",
+            "artifacts/s2/ui_core/synthetic/walk/mobile-390-coverage.png",
+            "artifacts/s2/ui_core/synthetic/walk/mobile-390-flags.png"
+          ]
+        },
+        {
+          "name": "zoom-200",
+          "width": 720,
+          "height": 1000,
+          "device_scale_factor": 2,
+          "mobile": false,
+          "scroll_width_after_load": 720,
+          "scroll_width_after_keys": 720,
+          "inner_width": 720,
+          "horizontal_overflow": false,
+          "panels": {
+            "s2-stages": "visible",
+            "s2-ab": "visible",
+            "s2-coverage": "visible",
+            "s2-flags": "visible",
+            "s2-timing": "visible",
+            "s2-prototypes": "visible"
+          },
+          "players": 6,
+          "all_players_paused_after_load_and_keys": true,
+          "preload_values": [
+            "none"
+          ],
+          "autoplay_true": 0,
+          "key_actions": [
+            "N",
+            "N",
+            "P",
+            "Shift+N",
+            "Shift+P",
+            "ArrowRight"
+          ],
+          "exception_count": 0,
+          "verdict_hits_generated_text": 0,
+          "upstream_nodes_excluded": 7,
+          "triage_rendered": {
+            "shown": 2,
+            "navigation": 3,
+            "suppressed": 1
+          },
+          "triage_matches_denominators": true,
+          "screenshots": [
+            "artifacts/s2/ui_core/synthetic/walk/zoom-200-top.png",
+            "artifacts/s2/ui_core/synthetic/walk/zoom-200-ab.png",
+            "artifacts/s2/ui_core/synthetic/walk/zoom-200-coverage.png",
+            "artifacts/s2/ui_core/synthetic/walk/zoom-200-flags.png"
+          ]
+        }
+      ],
+      "reveal_mapping_persisted_after_reload": false,
+      "practice_s2_route": {
+        "status": "available",
+        "media_hash_verified": 9,
+        "media_total": 9
+      },
+      "protected_files": {
+        "count": 0,
+        "unchanged": 0
+      },
+      "owned_chrome": {
+        "target_pid": 73591,
+        "ownership": "spawned_by_this_check_unique_temporary_profile",
+        "live_unique_profile_verified": true,
+        "result": "owned_browser_terminated",
+        "exit_code": 0,
+        "walkthrough_seconds": 16.63
+      },
+      "evidence_kind": "muted_browser_render_and_navigation_not_listening_acceptance",
+      "labelling_session": {
+        "queued": 12,
+        "queue_keystrokes": 12,
+        "shared_save_actions": 1,
+        "navigation_keystrokes": [
+          "ArrowRight",
+          "ArrowRight",
+          "ArrowRight",
+          "ArrowRight",
+          "ArrowRight",
+          "ArrowRight",
+          "ArrowRight",
+          "ArrowRight",
+          "ArrowRight",
+          "ArrowRight",
+          "P"
+        ],
+        "mark_times_source_seconds": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          8.5
+        ],
+        "distinct_queued_times": 12,
+        "read_back_after_reload": {
+          "revision": 12,
+          "count": 12,
+          "distinctTimes": 12,
+          "claimLabels": [
+            "USER REPORTED"
+          ],
+          "bases": [
+            "operator_assertion"
+          ],
+          "verdicts": [
+            "not_established"
+          ],
+          "userLaneMarks": 12
+        },
+        "wall_seconds_automated": 0.483,
+        "note": "wall time of an automated run; no operator-speed claim",
+        "phrase_anchor_marks_from_annotation_store": {
+          "accepted": 12,
+          "excluded": {},
+          "store_revision": 12
+        }
+      }
+    },
+    {
+      "mode": "real-take",
+      "source_name": "Movie on 10-5-26 at 3.38 PM.mov",
+      "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+      "summary": {
+        "noOverflow": 4,
+        "configs": 4,
+        "playersChecked": 56,
+        "allPaused": true,
+        "verdictHits": 0,
+        "exceptions": 0
+      },
+      "configs": [
+        {
+          "name": "desktop-1440",
+          "width": 1440,
+          "height": 1000,
+          "device_scale_factor": 1,
+          "mobile": false,
+          "scroll_width_after_load": 1440,
+          "scroll_width_after_keys": 1440,
+          "inner_width": 1440,
+          "horizontal_overflow": false,
+          "panels": {
+            "s2-stages": "visible",
+            "s2-ab": "visible",
+            "s2-coverage": "visible",
+            "s2-flags": "visible",
+            "s2-timing": "visible",
+            "s2-prototypes": "visible"
+          },
+          "players": 7,
+          "all_players_paused_after_load_and_keys": true,
+          "preload_values": [
+            "none"
+          ],
+          "autoplay_true": 0,
+          "key_actions": [
+            "N",
+            "N",
+            "P",
+            "Shift+N",
+            "Shift+P",
+            "ArrowRight"
+          ],
+          "exception_count": 0,
+          "verdict_hits_generated_text": 0,
+          "upstream_nodes_excluded": 117,
+          "triage_rendered": {
+            "shown": 15,
+            "navigation": 112,
+            "suppressed": 44
+          },
+          "triage_matches_denominators": true,
+          "screenshots": [
+            "artifacts/s2/ui_core/real-take/walk/desktop-1440-top.png",
+            "artifacts/s2/ui_core/real-take/walk/desktop-1440-ab.png",
+            "artifacts/s2/ui_core/real-take/walk/desktop-1440-coverage.png",
+            "artifacts/s2/ui_core/real-take/walk/desktop-1440-flags.png"
+          ]
+        },
+        {
+          "name": "mobile-375",
+          "width": 375,
+          "height": 812,
+          "device_scale_factor": 3,
+          "mobile": true,
+          "scroll_width_after_load": 375,
+          "scroll_width_after_keys": 375,
+          "inner_width": 375,
+          "horizontal_overflow": false,
+          "panels": {
+            "s2-stages": "visible",
+            "s2-ab": "visible",
+            "s2-coverage": "visible",
+            "s2-flags": "visible",
+            "s2-timing": "visible",
+            "s2-prototypes": "visible"
+          },
+          "players": 7,
+          "all_players_paused_after_load_and_keys": true,
+          "preload_values": [
+            "none"
+          ],
+          "autoplay_true": 0,
+          "key_actions": [
+            "N",
+            "N",
+            "P",
+            "Shift+N",
+            "Shift+P",
+            "ArrowRight"
+          ],
+          "exception_count": 0,
+          "verdict_hits_generated_text": 0,
+          "upstream_nodes_excluded": 117,
+          "triage_rendered": {
+            "shown": 15,
+            "navigation": 112,
+            "suppressed": 44
+          },
+          "triage_matches_denominators": true,
+          "screenshots": [
+            "artifacts/s2/ui_core/real-take/walk/mobile-375-top.png",
+            "artifacts/s2/ui_core/real-take/walk/mobile-375-ab.png",
+            "artifacts/s2/ui_core/real-take/walk/mobile-375-coverage.png",
+            "artifacts/s2/ui_core/real-take/walk/mobile-375-flags.png"
+          ]
+        },
+        {
+          "name": "mobile-390",
+          "width": 390,
+          "height": 844,
+          "device_scale_factor": 3,
+          "mobile": true,
+          "scroll_width_after_load": 390,
+          "scroll_width_after_keys": 390,
+          "inner_width": 390,
+          "horizontal_overflow": false,
+          "panels": {
+            "s2-stages": "visible",
+            "s2-ab": "visible",
+            "s2-coverage": "visible",
+            "s2-flags": "visible",
+            "s2-timing": "visible",
+            "s2-prototypes": "visible"
+          },
+          "players": 7,
+          "all_players_paused_after_load_and_keys": true,
+          "preload_values": [
+            "none"
+          ],
+          "autoplay_true": 0,
+          "key_actions": [
+            "N",
+            "N",
+            "P",
+            "Shift+N",
+            "Shift+P",
+            "ArrowRight"
+          ],
+          "exception_count": 0,
+          "verdict_hits_generated_text": 0,
+          "upstream_nodes_excluded": 117,
+          "triage_rendered": {
+            "shown": 15,
+            "navigation": 112,
+            "suppressed": 44
+          },
+          "triage_matches_denominators": true,
+          "screenshots": [
+            "artifacts/s2/ui_core/real-take/walk/mobile-390-top.png",
+            "artifacts/s2/ui_core/real-take/walk/mobile-390-ab.png",
+            "artifacts/s2/ui_core/real-take/walk/mobile-390-coverage.png",
+            "artifacts/s2/ui_core/real-take/walk/mobile-390-flags.png"
+          ]
+        },
+        {
+          "name": "zoom-200",
+          "width": 720,
+          "height": 1000,
+          "device_scale_factor": 2,
+          "mobile": false,
+          "scroll_width_after_load": 720,
+          "scroll_width_after_keys": 720,
+          "inner_width": 720,
+          "horizontal_overflow": false,
+          "panels": {
+            "s2-stages": "visible",
+            "s2-ab": "visible",
+            "s2-coverage": "visible",
+            "s2-flags": "visible",
+            "s2-timing": "visible",
+            "s2-prototypes": "visible"
+          },
+          "players": 7,
+          "all_players_paused_after_load_and_keys": true,
+          "preload_values": [
+            "none"
+          ],
+          "autoplay_true": 0,
+          "key_actions": [
+            "N",
+            "N",
+            "P",
+            "Shift+N",
+            "Shift+P",
+            "ArrowRight"
+          ],
+          "exception_count": 0,
+          "verdict_hits_generated_text": 0,
+          "upstream_nodes_excluded": 117,
+          "triage_rendered": {
+            "shown": 15,
+            "navigation": 112,
+            "suppressed": 44
+          },
+          "triage_matches_denominators": true,
+          "screenshots": [
+            "artifacts/s2/ui_core/real-take/walk/zoom-200-top.png",
+            "artifacts/s2/ui_core/real-take/walk/zoom-200-ab.png",
+            "artifacts/s2/ui_core/real-take/walk/zoom-200-coverage.png",
+            "artifacts/s2/ui_core/real-take/walk/zoom-200-flags.png"
+          ]
+        }
+      ],
+      "reveal_mapping_persisted_after_reload": false,
+      "practice_s2_route": {
+        "status": "available",
+        "media_hash_verified": 9,
+        "media_total": 9
+      },
+      "protected_files": {
+        "count": 5,
+        "unchanged": 5
+      },
+      "owned_chrome": {
+        "target_pid": 74867,
+        "ownership": "spawned_by_this_check_unique_temporary_profile",
+        "live_unique_profile_verified": true,
+        "result": "owned_browser_terminated",
+        "exit_code": 0,
+        "walkthrough_seconds": 13.74
+      },
+      "evidence_kind": "muted_browser_render_and_navigation_not_listening_acceptance",
+      "labelling_session": {
+        "state": "not_written_during_real_take_check",
+        "reason": "real-take browser checks are read-only; harness refuses saves unless source_name starts with synthetic-"
+      }
+    }
+  ]
+}
