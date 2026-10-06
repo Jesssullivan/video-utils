@@ -758,5 +758,15 @@
     "readback": "docs/agent-notes/2026-10-06-goal-completion-linear-readback.json",
     "final_handoff": "docs/agent-notes/2026-10-06-final-handoff.md",
     "future_goal_activated": false
+  },
+  "active_sprint": {
+    "id": "TIN-5563",
+    "url": "https://linear.app/tinyland/issue/TIN-5563/s1-five-hour-parallel-core-sprint-annotations-practice-review-and",
+    "plan": "docs/spec/sprints/20261006-S1.md",
+    "manifest": "program/sprints/20261006-s1.json",
+    "status": "In Progress",
+    "start_utc": "2026-10-06T05:57:52+00:00",
+    "end_utc": "2026-10-06T10:57:52+00:00",
+    "worker_count": 6
   }
 }

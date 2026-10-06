@@ -1,0 +1,127 @@
+{
+  "observed_at": "2026-10-06T06:01:39.644Z",
+  "parent": {
+    "id": "TIN-5563",
+    "uuid": "d75d5438-111c-470d-9e44-f6fddeb388bf",
+    "title": "S1 — Five-hour parallel core sprint: annotations, practice review and validation",
+    "description": "Operator explicitly requested a new five-hour sprint with six agents, clear goals, administrative merges and completion metrics. Exact start2026-10-06T05:57:52Z; planned end2026-10-06T10:57:52Z (01:57–06:57EDT). Baseline signed private51d0935; prior source30/CI37418798796 accepted. Durable plan docs/spec/sprints/20261006-S1.md; manifest program/sprints/20261006-s1.json.\n\nSix isolated worker branches: annotations, local review UI, phrase proposals, low-register validation, corpus splits, independent audit. Root exclusively administers commits/merges, typed MCP+skill admission, shared recipes/metadata, Linear and signed private publication. CheckpointsT+1/T+2/T+3h, feature freezeT+4h, finalhour tests/CI/readbacks/handoff.\n\nCompletion: source-bound structured annotations with replay/conflict/refusal behavior; local timestamp/seek/loop walkthrough at390px+desktop; frozen heldout phrase pair/boundary/negative metrics; known-componentC1/32Hz preservation/noise/attack/tail/collision results; take-family split leakage refusal and sparsepitch readiness; independent defect closure, compatible existing30interfaces and newtool skills, root release proof. Rigorous non-improvement is valid experimental completion; no implicit detector/default/master adoption. Preserve original/master/Desktop artifacts. No new host service/model/plugin/WEB framework activation.\n\nThis is a bounded core roadmap slice, not another35-hour commitment. Existing week issue links remain; scoped children completion does not certify full D1–D7/AU/accuracy requirements.",
+    "priority": {
+      "value": 2,
+      "name": "High"
+    },
+    "url": "https://linear.app/tinyland/issue/TIN-5563/s1-five-hour-parallel-core-sprint-annotations-practice-review-and",
+    "gitBranchName": "jess/tin-5563-s1-five-hour-parallel-core-sprint-annotations-practice",
+    "createdAt": "2026-10-06T06:00:50.067Z",
+    "updatedAt": "2026-10-06T06:00:50.067Z",
+    "archivedAt": null,
+    "completedAt": null,
+    "startedAt": "2026-10-06T06:00:50.143Z",
+    "canceledAt": null,
+    "dueDate": null,
+    "slaStartedAt": null,
+    "slaMediumRiskAt": null,
+    "slaHighRiskAt": null,
+    "slaBreachesAt": null,
+    "status": "In Progress",
+    "statusType": "started",
+    "labels": [],
+    "attachments": [],
+    "documents": [],
+    "createdBy": "Jess Sullivan",
+    "createdById": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+    "assignee": "Jess Sullivan",
+    "assigneeId": "5402ff97-3cab-4490-9922-b4d20eb0650f",
+    "delegate": "Codex",
+    "delegateId": "7bee2e9a-39d5-4016-b42b-b6d03e1bd715",
+    "project": "video-utils — guitar restoration and performance analysis",
+    "projectId": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+    "team": "Tinyland",
+    "teamId": "a2c482c8-4d0d-4171-82d9-553265b6c706"
+  },
+  "children": [
+    {
+      "lane": "annotations",
+      "result": {
+        "status": "fulfilled",
+        "value": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"id\":\"TIN-5567\",\"uuid\":\"48624470-a56e-42c8-af68-059b5182ce20\",\"title\":\"S1 — Structured user issue annotations with source and replay safeguards\",\"description\":\"Worker /root/s1_annotations; branch sprint/20261006-s1/annotations; worktree /Users/jess/git/video-utils/.local/sprint1/annotations. Durable plan docs/spec/sprints/20261006-S1.md and lane receipt. Horizon05:57:52→10:57:52UTC; checkpoints+1,+2,+3h; freeze+4h. Root-only signed commit/merge/publication/Linear. Scoped slice completion does not certify full related roadmap issue.\\n\\nVersion2 separate store/route; source+manifest binding, revision/idempotency conflict/replay, explicit issuekind/basis. Invalidwrites leave stores unchanged. Existing v1 compatibility. Root typed hook+skill before admission.\",\"priority\":{\"value\":2,\"name\":\"High\"},\"url\":\"https://linear.app/tinyland/issue/TIN-5567/s1-structured-user-issue-annotations-with-source-and-replay-safeguards\",\"gitBranchName\":\"jess/tin-5567-s1-structured-user-issue-annotations-with-source-and-replay\",\"createdAt\":\"2026-10-06T06:01:29.486Z\",\"updatedAt\":\"2026-10-06T06:01:29.486Z\",\"archivedAt\":null,\"completedAt\":null,\"startedAt\":\"2026-10-06T06:01:29.559Z\",\"canceledAt\":null,\"dueDate\":null,\"slaStartedAt\":null,\"slaMediumRiskAt\":null,\"slaHighRiskAt\":null,\"slaBreachesAt\":null,\"status\":\"In Progress\",\"statusType\":\"started\",\"labels\":[],\"attachments\":[],\"documents\":[],\"createdBy\":\"Jess Sullivan\",\"createdById\":\"5402ff97-3cab-4490-9922-b4d20eb0650f\",\"assignee\":\"Jess Sullivan\",\"assigneeId\":\"5402ff97-3cab-4490-9922-b4d20eb0650f\",\"delegate\":\"Codex\",\"delegateId\":\"7bee2e9a-39d5-4016-b42b-b6d03e1bd715\",\"project\":\"video-utils — guitar restoration and performance analysis\",\"projectId\":\"64d654ea-6569-44bb-ad30-f6e11b75c3fe\",\"parentId\":\"TIN-5563\",\"team\":\"Tinyland\",\"teamId\":\"a2c482c8-4d0d-4171-82d9-553265b6c706\",\"cycleId\":\"9dba8262-b9bf-4cc2-9fb7-67ac6da67dff\"}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "lane": "review_ui",
+      "result": {
+        "status": "fulfilled",
+        "value": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"id\":\"TIN-5568\",\"uuid\":\"4a0c492f-dcaa-4d77-9467-b05dae00ad58\",\"title\":\"S1 — Local timestamp, seek and loop practice walkthrough\",\"description\":\"Worker /root/s1_review_ui; branch sprint/20261006-s1/review_ui; worktree /Users/jess/git/video-utils/.local/sprint1/review_ui. Durable plan docs/spec/sprints/20261006-S1.md and lane receipt. Horizon05:57:52→10:57:52UTC; checkpoints+1,+2,+3h; freeze+4h. Root-only signed commit/merge/publication/Linear. Scoped slice completion does not certify full related roadmap issue.\\n\\nUser-reported timestamp save/read, source-clock seek/loop and keyboard UI. Desktop390px walkthrough/no overflow, existing players preserved. Current localUI only; futureframework/webjobs unactivated.\",\"priority\":{\"value\":2,\"name\":\"High\"},\"url\":\"https://linear.app/tinyland/issue/TIN-5568/s1-local-timestamp-seek-and-loop-practice-walkthrough\",\"gitBranchName\":\"jess/tin-5568-s1-local-timestamp-seek-and-loop-practice-walkthrough\",\"createdAt\":\"2026-10-06T06:01:35.119Z\",\"updatedAt\":\"2026-10-06T06:01:35.119Z\",\"archivedAt\":null,\"completedAt\":null,\"startedAt\":\"2026-10-06T06:01:35.264Z\",\"canceledAt\":null,\"dueDate\":null,\"slaStartedAt\":null,\"slaMediumRiskAt\":null,\"slaHighRiskAt\":null,\"slaBreachesAt\":null,\"status\":\"In Progress\",\"statusType\":\"started\",\"labels\":[],\"attachments\":[],\"documents\":[],\"createdBy\":\"Jess Sullivan\",\"createdById\":\"5402ff97-3cab-4490-9922-b4d20eb0650f\",\"assignee\":\"Jess Sullivan\",\"assigneeId\":\"5402ff97-3cab-4490-9922-b4d20eb0650f\",\"delegate\":\"Codex\",\"delegateId\":\"7bee2e9a-39d5-4016-b42b-b6d03e1bd715\",\"project\":\"video-utils — guitar restoration and performance analysis\",\"projectId\":\"64d654ea-6569-44bb-ad30-f6e11b75c3fe\",\"parentId\":\"TIN-5563\",\"team\":\"Tinyland\",\"teamId\":\"a2c482c8-4d0d-4171-82d9-553265b6c706\",\"cycleId\":\"9dba8262-b9bf-4cc2-9fb7-67ac6da67dff\"}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "lane": "phrases",
+      "result": {
+        "status": "fulfilled",
+        "value": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"id\":\"TIN-5565\",\"uuid\":\"3824cd08-0911-4302-b1e1-3b449c87a809\",\"title\":\"S1 — Frozen heldout phrase proposal experiment\",\"description\":\"Worker /root/s1_phrases; branch sprint/20261006-s1/phrases; worktree /Users/jess/git/video-utils/.local/sprint1/phrases. Durable plan docs/spec/sprints/20261006-S1.md and lane receipt. Horizon05:57:52→10:57:52UTC; checkpoints+1,+2,+3h; freeze+4h. Root-only signed commit/merge/publication/Linear. Scoped slice completion does not certify full related roadmap issue.\\n\\nBaseline plus at most2arms; freshheldout positives/negatives, seal predictions before scoring, pairIoU.5/.75 and boundary/FP denominators. Non-improvement valid; no default adoption or confirmed mistakes.\",\"priority\":{\"value\":2,\"name\":\"High\"},\"url\":\"https://linear.app/tinyland/issue/TIN-5565/s1-frozen-heldout-phrase-proposal-experiment\",\"gitBranchName\":\"jess/tin-5565-s1-frozen-heldout-phrase-proposal-experiment\",\"createdAt\":\"2026-10-06T06:01:19.843Z\",\"updatedAt\":\"2026-10-06T06:01:19.843Z\",\"archivedAt\":null,\"completedAt\":null,\"startedAt\":\"2026-10-06T06:01:19.968Z\",\"canceledAt\":null,\"dueDate\":null,\"slaStartedAt\":null,\"slaMediumRiskAt\":null,\"slaHighRiskAt\":null,\"slaBreachesAt\":null,\"status\":\"In Progress\",\"statusType\":\"started\",\"labels\":[],\"attachments\":[],\"documents\":[],\"createdBy\":\"Jess Sullivan\",\"createdById\":\"5402ff97-3cab-4490-9922-b4d20eb0650f\",\"assignee\":\"Jess Sullivan\",\"assigneeId\":\"5402ff97-3cab-4490-9922-b4d20eb0650f\",\"delegate\":\"Codex\",\"delegateId\":\"7bee2e9a-39d5-4016-b42b-b6d03e1bd715\",\"project\":\"video-utils — guitar restoration and performance analysis\",\"projectId\":\"64d654ea-6569-44bb-ad30-f6e11b75c3fe\",\"parentId\":\"TIN-5563\",\"team\":\"Tinyland\",\"teamId\":\"a2c482c8-4d0d-4171-82d9-553265b6c706\",\"cycleId\":\"9dba8262-b9bf-4cc2-9fb7-67ac6da67dff\"}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "lane": "low_register",
+      "result": {
+        "status": "fulfilled",
+        "value": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"id\":\"TIN-5564\",\"uuid\":\"a78c0b2b-7f45-41d9-bd06-6521289bbbf3\",\"title\":\"S1 — Known-component C1 preservation and fan collision comparisons\",\"description\":\"Worker /root/s1_low_register; branch sprint/20261006-s1/low_register; worktree /Users/jess/git/video-utils/.local/sprint1/low_register. Durable plan docs/spec/sprints/20261006-S1.md and lane receipt. Horizon05:57:52→10:57:52UTC; checkpoints+1,+2,+3h; freeze+4h. Root-only signed commit/merge/publication/Linear. Scoped slice completion does not certify full related roadmap issue.\\n\\nBypass/capturedNR8/NR10/oneexperimental arm; C1/missingF0/exactnear fan collisions/attacktail metrics. Distinguish nonlinear counterfactual response from isolatedgroundtruth. Noacceptedmedia mutation.\",\"priority\":{\"value\":2,\"name\":\"High\"},\"url\":\"https://linear.app/tinyland/issue/TIN-5564/s1-known-component-c1-preservation-and-fan-collision-comparisons\",\"gitBranchName\":\"jess/tin-5564-s1-known-component-c1-preservation-and-fan-collision\",\"createdAt\":\"2026-10-06T06:01:16.537Z\",\"updatedAt\":\"2026-10-06T06:01:16.537Z\",\"archivedAt\":null,\"completedAt\":null,\"startedAt\":\"2026-10-06T06:01:16.942Z\",\"canceledAt\":null,\"dueDate\":null,\"slaStartedAt\":null,\"slaMediumRiskAt\":null,\"slaHighRiskAt\":null,\"slaBreachesAt\":null,\"status\":\"In Progress\",\"statusType\":\"started\",\"labels\":[],\"attachments\":[],\"documents\":[],\"createdBy\":\"Jess Sullivan\",\"createdById\":\"5402ff97-3cab-4490-9922-b4d20eb0650f\",\"assignee\":\"Jess Sullivan\",\"assigneeId\":\"5402ff97-3cab-4490-9922-b4d20eb0650f\",\"delegate\":\"Codex\",\"delegateId\":\"7bee2e9a-39d5-4016-b42b-b6d03e1bd715\",\"project\":\"video-utils — guitar restoration and performance analysis\",\"projectId\":\"64d654ea-6569-44bb-ad30-f6e11b75c3fe\",\"parentId\":\"TIN-5563\",\"team\":\"Tinyland\",\"teamId\":\"a2c482c8-4d0d-4171-82d9-553265b6c706\",\"cycleId\":\"9dba8262-b9bf-4cc2-9fb7-67ac6da67dff\"}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "lane": "corpus",
+      "result": {
+        "status": "fulfilled",
+        "value": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"id\":\"TIN-5566\",\"uuid\":\"6661b08f-fc5b-4a8c-9ecb-fe097169c65e\",\"title\":\"S1 — Source-family split validation and sparsepitch readiness\",\"description\":\"Worker /root/s1_corpus; branch sprint/20261006-s1/corpus; worktree /Users/jess/git/video-utils/.local/sprint1/corpus. Durable plan docs/spec/sprints/20261006-S1.md and lane receipt. Horizon05:57:52→10:57:52UTC; checkpoints+1,+2,+3h; freeze+4h. Root-only signed commit/merge/publication/Linear. Scoped slice completion does not certify full related roadmap issue.\\n\\nClosed read-only corpus metadata; refuse sharedsource/derivative/parent/augmentation cross-split leakage. Unknowncoverage/absence preserved. Operator arrangement intent not detectortruth. Existing pitch failure matrix, no inference.\",\"priority\":{\"value\":2,\"name\":\"High\"},\"url\":\"https://linear.app/tinyland/issue/TIN-5566/s1-source-family-split-validation-and-sparsepitch-readiness\",\"gitBranchName\":\"jess/tin-5566-s1-source-family-split-validation-and-sparsepitch-readiness\",\"createdAt\":\"2026-10-06T06:01:25.530Z\",\"updatedAt\":\"2026-10-06T06:01:25.530Z\",\"archivedAt\":null,\"completedAt\":null,\"startedAt\":\"2026-10-06T06:01:25.619Z\",\"canceledAt\":null,\"dueDate\":null,\"slaStartedAt\":null,\"slaMediumRiskAt\":null,\"slaHighRiskAt\":null,\"slaBreachesAt\":null,\"status\":\"In Progress\",\"statusType\":\"started\",\"labels\":[],\"attachments\":[],\"documents\":[],\"createdBy\":\"Jess Sullivan\",\"createdById\":\"5402ff97-3cab-4490-9922-b4d20eb0650f\",\"assignee\":\"Jess Sullivan\",\"assigneeId\":\"5402ff97-3cab-4490-9922-b4d20eb0650f\",\"delegate\":\"Codex\",\"delegateId\":\"7bee2e9a-39d5-4016-b42b-b6d03e1bd715\",\"project\":\"video-utils — guitar restoration and performance analysis\",\"projectId\":\"64d654ea-6569-44bb-ad30-f6e11b75c3fe\",\"parentId\":\"TIN-5563\",\"team\":\"Tinyland\",\"teamId\":\"a2c482c8-4d0d-4171-82d9-553265b6c706\",\"cycleId\":\"9dba8262-b9bf-4cc2-9fb7-67ac6da67dff\"}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "lane": "audit",
+      "result": {
+        "status": "fulfilled",
+        "value": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"id\":\"TIN-5569\",\"uuid\":\"2e9fa9cf-709a-4308-bac0-0056967015ab\",\"title\":\"S1 — Independent S1 refusal, metrics and release review\",\"description\":\"Worker /root/s1_audit; branch sprint/20261006-s1/audit; worktree /Users/jess/git/video-utils/.local/sprint1/audit. Durable plan docs/spec/sprints/20261006-S1.md and lane receipt. Horizon05:57:52→10:57:52UTC; checkpoints+1,+2,+3h; freeze+4h. Root-only signed commit/merge/publication/Linear. Scoped slice completion does not certify full related roadmap issue.\\n\\nRead-only independent source/refusal/sourceclock/v1compat/leakage/denominator checks. Report exacthashes actual PASS/FAIL/unknown. Audit new typed tools/skills and root final release; no ownership conflation.\",\"priority\":{\"value\":2,\"name\":\"High\"},\"url\":\"https://linear.app/tinyland/issue/TIN-5569/s1-independent-s1-refusal-metrics-and-release-review\",\"gitBranchName\":\"jess/tin-5569-s1-independent-s1-refusal-metrics-and-release-review\",\"createdAt\":\"2026-10-06T06:01:38.672Z\",\"updatedAt\":\"2026-10-06T06:01:38.672Z\",\"archivedAt\":null,\"completedAt\":null,\"startedAt\":\"2026-10-06T06:01:38.736Z\",\"canceledAt\":null,\"dueDate\":null,\"slaStartedAt\":null,\"slaMediumRiskAt\":null,\"slaHighRiskAt\":null,\"slaBreachesAt\":null,\"status\":\"In Progress\",\"statusType\":\"started\",\"labels\":[],\"attachments\":[],\"documents\":[],\"createdBy\":\"Jess Sullivan\",\"createdById\":\"5402ff97-3cab-4490-9922-b4d20eb0650f\",\"assignee\":\"Jess Sullivan\",\"assigneeId\":\"5402ff97-3cab-4490-9922-b4d20eb0650f\",\"delegate\":\"Codex\",\"delegateId\":\"7bee2e9a-39d5-4016-b42b-b6d03e1bd715\",\"project\":\"video-utils — guitar restoration and performance analysis\",\"projectId\":\"64d654ea-6569-44bb-ad30-f6e11b75c3fe\",\"parentId\":\"TIN-5563\",\"team\":\"Tinyland\",\"teamId\":\"a2c482c8-4d0d-4171-82d9-553265b6c706\",\"cycleId\":\"9dba8262-b9bf-4cc2-9fb7-67ac6da67dff\"}"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

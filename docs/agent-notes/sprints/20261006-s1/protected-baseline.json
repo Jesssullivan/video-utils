@@ -1,0 +1,27 @@
+{
+  "observed_at": "2026-10-06T06:02:09.292443+00:00",
+  "actor": "/root",
+  "scope": "S1 kickoff protection baseline",
+  "files": {
+    "/Users/jess/Desktop/video_util_mvp_demo_1.mp4": {
+      "sha256": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10",
+      "bytes": 21596491
+    },
+    "artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov": {
+      "sha256": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2",
+      "bytes": 154148244
+    },
+    "artifacts/runs/20261006T041633Z-990aa1bd6737/cleaned.wav": {
+      "sha256": "9ed50aeca1345204959f1f72acc368a42045b568542150971a68119056cb2009",
+      "bytes": 19972258
+    },
+    "program/demo-arrangement.json": {
+      "sha256": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a",
+      "bytes": 4033
+    },
+    "program/instrument.json": {
+      "sha256": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0",
+      "bytes": 2656
+    }
+  }
+}
