@@ -142,7 +142,8 @@ class PhraseTimingRuleTests(unittest.TestCase):
         self.assertAlmostEqual(entry["median_offset_ms"], -10.5, places=6)
         self.assertAlmostEqual(entry["median_offset_ms_delay_compensated"], -10.5 - 2.3 + .2, places=6)
         self.assertAlmostEqual(entry["observed_click_basis_median_offset_ms"], -10.5, places=6)
-        self.assertEqual(entry["tendency_label"], "ahead_of_click")
+        self.assertEqual((entry["direction"], entry["direction_status"], entry["direction_basis"]),
+                         ("ahead_of_click", "synthetic_known_offset_fixture", "median_offset_ms_delay_compensated"))
         self.assertEqual(entry["iqr_ms"][0] <= entry["median_offset_ms"] <= entry["iqr_ms"][1], True)
 
     def test_p3_three_click_proximal_onsets_abstain(self):
@@ -154,7 +155,7 @@ class PhraseTimingRuleTests(unittest.TestCase):
         self.assertEqual(entry["abstain_reason"], "fewer_than_4_click_proximal_onsets")
         self.assertEqual(entry["click_proximal_onset_count"], 3)
         self.assertIsNone(entry["median_offset_ms"])
-        self.assertIsNone(entry["tendency_label"])
+        self.assertEqual((entry["direction"], entry["direction_status"]), (None, None))
         self.assertEqual(result["summary"]["abstain_reason_counts"]["fewer_than_4_click_proximal_onsets"], 1)
 
     def test_p3_no_grid_and_outside_span_abstain(self):
@@ -182,8 +183,39 @@ class PhraseTimingRuleTests(unittest.TestCase):
         self.assertEqual(result["click_reference"]["basis"], "linear_period_drift_model")
         self.assertAlmostEqual(entry["median_offset_ms"], 15, places=6)
         self.assertFalse(entry["click_reference_extrapolated"])
-        self.assertEqual(entry["tendency_label"], "behind_click")
+        # Real take: the measured +15 ms offset is reported, but no ahead/behind direction is inferred.
+        self.assertIsNone(entry["direction"])
+        self.assertEqual(entry["direction_status"], "withheld_uncalibrated")
+        self.assertEqual(entry["offset_summary_basis"], "median_offset_ms_delay_compensated")
         self.assertEqual(result["real_take_status"], "unvalidated_until_operator_spot_check")
+
+    def test_real_take_withholds_direction_but_keeps_measured_offsets(self):
+        onsets = [2.0 + .012, 2.5 + .015, 3.0 + .009, 3.5 + .014, 4.0 + .011]
+        phrase = {"phrase_id": "p", "label": None, "label_basis": "test", "span_source_seconds": [1.75, 4.2]}
+        early = dict(phrase, phrase_id="q", span_source_seconds=[5.75, 8.2])
+        onsets += [6.0 - .02, 6.5 - .018, 7.0 - .022, 7.5 - .019, 8.0 - .021]
+        analysis = logic_analysis(onsets=onsets)
+        real = phrase_timing.measure(analysis, [phrase, early], phrase_basis="test", run_kind="real_take")
+        synthetic = phrase_timing.measure(analysis, [phrase, early], phrase_basis="test", run_kind="synthetic_fixture")
+        measured = ("median_offset_ms", "iqr_ms", "iqr_width_ms", "click_proximal_onset_count",
+                    "median_offset_ms_delay_compensated", "observed_click_basis_median_offset_ms", "status")
+        for real_entry, synthetic_entry in zip(real["phrases"], synthetic["phrases"]):
+            self.assertEqual({key: real_entry[key] for key in measured}, {key: synthetic_entry[key] for key in measured})
+            self.assertEqual(real_entry["status"], "measured")
+            self.assertEqual(real_entry["click_proximal_onset_count"], 5)
+            self.assertEqual((real_entry["direction"], real_entry["direction_status"], real_entry["direction_basis"]),
+                             (None, "withheld_uncalibrated", None))
+            self.assertNotIn("tendency_label", real_entry)
+        self.assertAlmostEqual(real["phrases"][0]["median_offset_ms"], 12.0, places=6)
+        self.assertAlmostEqual(real["phrases"][1]["median_offset_ms"], -20.0, places=6)
+        self.assertEqual([entry["direction"] for entry in synthetic["phrases"]], ["behind_click", "ahead_of_click"])
+        self.assertEqual((real["direction_policy"]["operator_calibration"],
+                          real["direction_policy"]["operator_calibration_input_supported"]), (None, False))
+        self.assertEqual(real["claims"], {"measured": list(real["claims"]["measured"]), "inferred": [], "listening": []})
+        self.assertEqual(synthetic["claims"]["inferred"], ["direction"])
+        text = json.dumps(real).lower()
+        for token in ("ahead_of_click", "behind_click", "within_5_ms", "rushing", "dragging", "tendency_label"):
+            self.assertNotIn(token, text)
 
     def test_fixed_unknown_fields_and_no_verdict_tokens(self):
         result = phrase_timing.measure(logic_analysis(onsets=[2.0, 2.5, 3.0, 3.5]),
@@ -239,6 +271,9 @@ class PhraseTimingFileTests(unittest.TestCase):
             self.assertEqual(result["phrase_basis"], basis)
             self.assertEqual(result["summary"]["phrase_count"], count)
             self.assertEqual(result["real_take_status"], "unvalidated_until_operator_spot_check")
+            self.assertEqual(result["schema_version"], 2)
+            self.assertEqual({entry["direction"] for entry in result["phrases"]}, {None})
+            self.assertEqual(result["claims"]["inferred"], [])
             self.assertEqual(result["inputs"]["analysis_file_sha256"], rhythm.file_hash(self.analysis))
             self.assertEqual(result["inputs"]["phrase_binding_sha256"], SOURCE_SHA)
             self.assertEqual(scan_tokens(result), [])
@@ -259,7 +294,7 @@ class PhraseTimingFixtureTests(unittest.TestCase):
                 self.assertEqual(scan_tokens(result), [])
                 if arm != "on_time":
                     expected = "ahead_of_click" if arm == "rushing" else "behind_click"
-                    self.assertGreaterEqual(sum(entry["tendency_label"] == expected for entry in result["phrases"]), 3)
+                    self.assertGreaterEqual(sum(entry["direction"] == expected for entry in result["phrases"]), 3)
 
     @unittest.skipUnless(os.environ.get("PHRASE_TIMING_S2_SEALED_EVAL") == "1", "sealed P2 evaluation runs once after the eval receipt")
     def test_p2_sealed_phrase_timing_eval(self):
