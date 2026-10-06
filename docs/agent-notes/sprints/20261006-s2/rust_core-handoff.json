@@ -1,0 +1,208 @@
+{
+  "lane": "rust_core",
+  "branch": "sprint/20261006-s2/rust_core",
+  "head": "e176f8234d41af3f7e764a7db818c0927c063f24",
+  "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint2/rust_core",
+  "files": [
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/rust_core-d1-acceptance.json",
+      "sha256": "b018a03ae38a381c1580506a81a1c08848b0af5eb148e1cd7d78221924c91190",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/rust_core-s2-run.json",
+      "sha256": "3d8ff56c57c90deb59399183c81608ac5e70a64b2cae271222fa0616627063ec",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/sprints/RUST_CORE_S2.md",
+      "sha256": "7a80d32c673937fd5e4253a3230802aaa6fca16ffdb58e05473d44ca79dacf01",
+      "kind": "spec"
+    },
+    {
+      "path": "src/dsp.rs",
+      "sha256": "913ae8154ce377090c015b548648b6399d0a8dd36c492e8e8ab54b9bda3d5198",
+      "kind": "source"
+    },
+    {
+      "path": "src/hash.rs",
+      "sha256": "1bc56323d41f1abbae38a3337eb732e9c2b428b973c3d8583534afa30689d6bc",
+      "kind": "source"
+    },
+    {
+      "path": "src/lib.rs",
+      "sha256": "9672033c3334c0701210b0279dfff55b8b762d1cced0e954b6a7cdaa57329e4f",
+      "kind": "source"
+    },
+    {
+      "path": "src/main.rs",
+      "sha256": "ab8fe386caa61791d81884eb6fd280e4cb432d5f4e8c81cdba456a163ad3cb85",
+      "kind": "source"
+    },
+    {
+      "path": "src/run_record.rs",
+      "sha256": "275397befd2b903d9892462747da5fe620fdb5bcf61f9bc921ebda38d4b26c36",
+      "kind": "source"
+    },
+    {
+      "path": "tests/cli.rs",
+      "sha256": "cf3264645e5bf0bf47b1e8b041ef55fe95c11f1f13e01d88f0986034b6da607d",
+      "kind": "test"
+    },
+    {
+      "path": "tests/dsp.rs",
+      "sha256": "4985ecdaf50ed45184f8c79a4a047180c8e28e4171e2ded36eff8ea7a95c0eeb",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "cargo test --locked -j 1",
+    "discovered": 31,
+    "passed": 30,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 1,
+    "seconds": 215
+  },
+  "metrics": [
+    {
+      "name": "FIPS_180-4_test_vectors",
+      "numerator": 5,
+      "denominator": 5,
+      "unit": "vectors",
+      "claim_class": "measured"
+    },
+    {
+      "name": "hash_split_points",
+      "numerator": 170,
+      "denominator": 170,
+      "unit": "points",
+      "claim_class": "measured"
+    },
+    {
+      "name": "hash_chunk_sizes",
+      "numerator": 5,
+      "denominator": 5,
+      "unit": "sizes",
+      "claim_class": "measured"
+    },
+    {
+      "name": "verify_run_manifest_fields",
+      "numerator": 6,
+      "denominator": 6,
+      "unit": "fields",
+      "claim_class": "measured"
+    },
+    {
+      "name": "dsp_peaking_filter_cases",
+      "numerator": 10,
+      "denominator": 10,
+      "unit": "cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "dsp_low_shelf_magnitude_db",
+      "numerator": 0.018395,
+      "denominator": 1,
+      "unit": "dB",
+      "claim_class": "measured",
+      "note": "160 Hz +2 dB Q 0.7 at 44.1/48 kHz"
+    },
+    {
+      "name": "dsp_peaking_filter_test_cases",
+      "numerator": 37,
+      "denominator": 37,
+      "unit": "cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "dsp_peak_rms_meter_allocations",
+      "numerator": 0,
+      "denominator": 4,
+      "unit": "allocations",
+      "claim_class": "measured"
+    },
+    {
+      "name": "dsp_impulse_response_samples",
+      "numerator": 3909,
+      "denominator": 3909,
+      "unit": "samples",
+      "claim_class": "measured"
+    },
+    {
+      "name": "test_exclusions_coverage",
+      "numerator": 11,
+      "denominator": 11,
+      "unit": "test_paths",
+      "claim_class": "inferred",
+      "note": "Mutation tests for 11 fixture cases in M6"
+    }
+  ],
+  "unknowns": [
+    "pcm_extent_verified: false",
+    "export_receipt_verified: not_checked",
+    "listening_accepted: null",
+    "physical_audio_video_sync_verified: null",
+    "media_decoded: false",
+    "subprocesses_launched: 0"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "just/workflow.just",
+      "change": "Add recipes:\n# Stream SHA-256 of one or more files (shasum -a 256 compatible lines)\nhash +FILES:\n    CARGO_BUILD_JOBS=1 cargo run --locked -j 1 --quiet -- hash {{FILES}}\n\n# Metadata-only, read-only hash/typed-field verification of a run directory\nverify-run RUN_DIR:\n    CARGO_BUILD_JOBS=1 cargo run --locked -j 1 --quiet -- verify-run \"{{RUN_DIR}}\"",
+      "why": "D1 operator entrypoint for the Rust-native hash/verify-run commands; just is the operator entrypoint and this file is root-owned."
+    },
+    {
+      "file": "docs/spec/PROJECT.md",
+      "change": "After the sentence beginning \"The Rust CLI exposes `probe`, `clean`, ...\" insert: \"The Rust CLI natively implements streaming SHA-256 (`hash`) and typed, metadata-only run-manifest verification (`verify-run`); FFmpeg/ffprobe orchestration remains owned by the Python workers that the CLI dispatches, a declared D1 deviation recorded in `docs/agent-notes/sprints/20261006-s2/rust_core-d1-acceptance.json`.\"",
+      "why": "Records the declared D1 deviation (Python keeps FFmpeg orchestration) in the project spec; root-owned file."
+    },
+    {
+      "file": "native/au-spike/src/lib.rs",
+      "change": "Line 50: replace `if samples.is_null() || (samples as usize) % std::mem::align_of::<f32>() != 0 {` with `if samples.is_null() || !(samples as usize).is_multiple_of(std::mem::align_of::<f32>()) {`",
+      "why": "Fixes a pre-existing clippy::manual_is_multiple_of finding that makes au-spike `cargo clippy --all-targets -- -D warnings` exit 101. Behavior does not change, and the render path still does not allocate. Not lane-owned."
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "change": "Optional: add a cargo step running `cargo test --locked -j 1` at repo root and in native/au-spike.",
+      "why": "CI has no cargo step; keeps Rust hash/verify-run/DSP tests and dependency-free AU staticlib under CI. Outside lane ownership."
+    },
+    {
+      "file": "program/tools.json; scripts/mcp_server.py; .agents/skills/",
+      "change": "Optional, deferred for root decision: admit verify-run (and optionally hash) as a typed MCP tool plus a repository skill.",
+      "why": "AGENTS.md requires a typed MCP hook and skill per primitive. This is not required for the lane's D1 acceptance."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261006-s2/rust_core-d1-acceptance.json",
+    "docs/agent-notes/sprints/20261006-s2/rust_core-s2-run.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "state": "implemented_tested_audited",
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Ownership holds. `git diff --name-only 4b87484...HEAD` lists 10 files, all owned: src/{lib,main,hash,run_record,dsp}.rs, tests/{cli,dsp}.rs, docs/spec/sprints/RUST_CORE_S2.md and docs/agent-notes/sprints/20261006-s2/rust_core-{d1-acceptance,s2-run}.json. Cargo.toml, both Cargo.lock files and native/au-spike/* are unchanged. Both locks list only workspace packages. Commits a9d44e7 (contract), e407338 (code) and d9488e8 (receipts) carry no AI attribution. The worktree is clean.",
+      "Spec immutability holds. `git diff a9d44e7 HEAD -- docs/spec/sprints/RUST_CORE_S2.md` is 48 insertions and 0 deletions, all appended under 'Phase 2 results'. The frozen text is unchanged.",
+      "(2) No forbidden writes were found. Every file in artifacts/runs/20261006T041633Z-990aa1bd6737 has an mtime between 00:16 and 00:21 on Oct 6, before the lane started (~05:22). The source '/Users/jess/Documents/Movie on 10-5-26 at 3.38 PM.mov' has an mtime of Oct 5 15:50. The main checkout's git status shows only `?? .serena/`. program/tools.json, scripts/tool_api.py and just/workflow.just are untouched. Lane outputs sit under the gitignored worktree directory artifacts/s2/rust_core/ (.gitignore:3 `/artifacts/`). src/{hash,run_record,dsp}.rs contain no Command or subprocess calls, no model downloads and no daemons. The only subprocess is the #[ignore]d ffmpeg_parity test, which has a 30 s deadline.",
+      "(4) I reran the tests myself with CARGO_TARGET_DIR and TMPDIR in the scratchpad. Root `cargo test --locked -j 1` exited 0: lib 15/15, cli 7/7 (the 4 existing tests are unchanged and pass), dsp 5/5 plus 1 ignored. au-spike `cargo test --locked -j 1` exited 0 with 3/3. These counts match the receipt exactly. Running `--test dsp -- --include-ignored` with FFMPEG set to the nix 8.1.2 path gave 6/6. The output matched the receipt: M7 10/10 with max error 1.776e-9 to 3.976e-8, 8 complex-pole and 2 repeated-pole cases. M8 gave +0.018396/+0.018397 dB. M9 was 37/37 (6+28+3). M10 was 4/4 with 0 allocations. M11 max_abs_diff was 0, h0 1.003000736 and 3909 nonzero samples.",
+      "Root `cargo clippy --locked -j 1 --all-targets -- -D warnings` exited 0, and `cargo fmt --check` exited 0. au-spike clippy exits 101 on clippy::manual_is_multiple_of at native/au-spike/src/lib.rs:50. That file has no diff since 4b87484, so M12 'partial' is reported accurately and the failure is not caused by this lane. Root still needs to fix it before the DoD clippy-clean condition can be met.",
+      "The tests exercise what they claim. M6 runs 11 mutations, each on a fresh fixture. Each case asserts exit 1, the exact reason in both the receipt and stderr, and a byte-identical recursive snapshot (symlinks compared by target). A mutation that silently failed to apply would exit 0 and fail the test, so no case can pass vacuously. M5 asserts all of the declared unknown fields (pcm_extent_verified=false, export_receipt_verified='not_checked', listening_accepted=null, physical_audio_video_sync_verified=null, media_decoded=false, subprocesses_launched=0). It also covers the absent-source, --require-source and usage-exit-2 paths. M7 rebuilds the cookbook coefficients independently and guards against a NaN or degenerate reference (h[0]==b0, finite).",
+      "(6) I reproduced the numbers independently. In Python, the analytic |H| at 32.703 Hz for peaking 300 Hz +1 dB Q 0.8 is 0.0186952 dB at 44.1 kHz and 0.0186960 dB at 48 kHz, which matches the receipt's 0.018695/0.018696. The 160 Hz +2 dB Q 0.7 analytic values, 0.171058/0.171060, also match. The split-point count is 57 + 113 = 170, and 4096/44100 s = 0.0928798185941043 s matches the aevalsrc duration. bytes_hashed = 2×19,972,258 + 4×26,629,632 + 228,291,885 + 2×30,052 = 374,815,033, which matches exactly.",
+      "I ran verify-run on the real S1 run dir with my own debug build. It exited 0 in 215 s wall at load 37-120. My receipt is byte-identical to the lane's: sha256 47b4cd03fa31a77eeefa852c2570aa5be97c174a87615e916dd76488374ff929, 6/6 outputs, source verified at 228,291,885 bytes. `shasum -a 256 manifest.json` gives 61c9b393…, and the manifest's output_sha256 values equal the M3 digests. `video-utils hash` on baseline.wav is byte-identical to /usr/bin/shasum. A name containing a backslash also produced the same leading-'\\\\\\\\' escape as shasum.",
+      "(3) Claim classes are handled correctly. Every metric has a denominator. M13 is labelled as an inference. The Python tests cited in the D1 map are marked not_run_by_lane, and all 11 cited test names exist in tests/*.py. M8 says it is a synthetic sine and makes no claim about the real take. There are no listening, note-correctness or missed-note claims, and no default, profile or detector adoption. dsp.rs has no high-pass or notch and is not wired into the render path.",
+      "The M4 contract command (debug build, 300 s timeout) timed out with exit 124 in the lane's run. The lane disclosed this and measured M4 with the release binary instead, then confirmed with a 1500 s debug run. My debug run completed in 215 s under lower load. So the contract's 300 s bound depends on host load, not on the code. Root may want to change the `just verify-run` recipe to use a release build.",
+      "Minor test-strength gap. The spec says the 1,000,000 × 'a' CLI fixture crosses buffer boundaries. 1,000,000 bytes is smaller than the 1 MiB READ_BUFFER_BYTES, so it crosses only 64-byte block boundaries, not read-buffer boundaries. The '1 MiB+1' chunk case on a 1 MB message is also a single update. Streaming across multiple reads is exercised only by the real-media M3/M4 runs (20-228 MB files that match shasum), not by a deterministic unit test.",
+      "The lane disclosed several deliberate behaviour differences. `hash -` hashes a file literally named '-' instead of reading stdin. A symlinked source is refused with source_not_regular. Duplicate JSON keys are rejected. `schema_version: 1.0` is rejected, even though Python's `1.0 == 1` would accept it (tested in record_reason_codes). S1 manifests are produced by json.dumps, so none of these affect them.",
+      "MCP tool and skill admission for verify-run and hash is missing. AGENTS.md says every processing primitive should have a typed MCP hook and skill. The lane correctly treats this as root-owned and lists it as an optional deferred gap. It is not a lane merge blocker, but root should track it."
+    ],
+    "must_fix": []
+  },
+  "dropped_scope": []
+}
