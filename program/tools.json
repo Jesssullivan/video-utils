@@ -2760,6 +2760,166 @@
         "acceptance": "Recall over sparse operator assertions establishes neither precision, ground truth, note correctness, missed/extra notes nor listening acceptance.",
         "max_comparison_candidates_default": 3
       }
+    },
+    {
+      "name": "marked_compact",
+      "title": "Compact marked review movie (copy only)",
+      "description": "Compose a fresh MOV from a verified run's delivery AAC and a verified arrangement-marker preview picture by stream copy only. Verifies exact video/AAC packet payloads, rational clocks, AAC priming/padding, decoded PCM and decoder configuration, and rechecks every parent hash. No DSP, normalization, picture encode or new analysis; listening acceptance is never inferred.",
+      "intent": "Share a compact arrangement-labelled review clip that carries a chosen restored audio branch without altering either parent.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "description": "Verified restoration run (audio branch) beneath repository artifacts/runs; read only.",
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "picture_preview": {
+            "description": "Verified arrangement-reference marked_video output beneath artifacts/runs; read only.",
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "arrangement_markers": {
+            "description": "Exact preview-run-relative arrangement marker JSON selector recorded by the preview; revalidated.",
+            "maxLength": 1024,
+            "minLength": 1,
+            "type": "string"
+          },
+          "output": {
+            "description": "Optional fresh directory beneath repository artifacts/ but not artifacts/runs and not inside either parent; existing paths reject. Default artifacts/experiments/marked-compact-<UTC>-<hex12>.",
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "timeout_seconds": {
+            "default": 600,
+            "description": "Hard owned-process deadline in seconds.",
+            "maximum": 600,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "run_dir",
+          "picture_preview",
+          "arrangement_markers"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-marked-compact/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "verified_copy_only_composition",
+      "limitations": [
+        "Both branches must share the original SHA-256, native PCM and origin 0 with no time stretch; other origins refuse in v1.",
+        "Accepted FULLER listening label only for the identical chain with byte-identical audio; otherwise not_performed. The composite has no visual or listening review.",
+        "Markers may analyze a different signal version of the same take; markers_are_analysis_of_audio_branch records this.",
+        "Physical capture A/V synchronization, native editor import and per-passage level matching remain unverified."
+      ],
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "dependencies": {
+        "enforced": false,
+        "note": "Current verified export and arrangement preview are required; prior tools are not invoked automatically.",
+        "recommended_prior_tools": [
+          "export",
+          "marked_video"
+        ]
+      },
+      "agent_workflow": {
+        "acceptance": "Exact copy identity does not establish listening, visual, musical or sync acceptance.",
+        "identify": "Confirm which audio branch and which verified arrangement preview the operator wants combined; read chain_identity and markers_are_analysis_of_audio_branch.",
+        "iterate": "Use a fresh output per attempt; rebuild stale markers or previews with their owning tools instead of editing them.",
+        "max_comparison_candidates_default": 3,
+        "research": "Inspect both parent receipts and the lane contract; investigate any refusal reason before rerunning."
+      }
+    },
+    {
+      "name": "phrase_timing",
+      "title": "Per-phrase timing against the recorded click (experimental)",
+      "description": "Measure, per phrase span, signed offsets of broadband attack candidates from the nearest modelled in-recording click (fitted drift model, else constant grid) from an existing rhythm analysis.json and hash-bound arrangement markers or phrases.json review spans. Writes one fresh phrase-timing.json and abstains below 4 click-proximal onsets. Click identity unverified and capture latency uncalibrated; never a performance grade or missed-note verdict.",
+      "intent": "Show a musician whether each phrase tends ahead of or behind the recorded click, with abstention and uncertainty, without an intended-rhythm reference.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "analysis": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing rhythm analysis.json (bounded regular .json, at most 64 MiB) with attack candidates, click grid or drift model and analyzed-input SHA-256; traversal, URL and symlink components reject. Read only."
+          },
+          "phrases": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Arrangement-marker JSON or phrases.json with proposed_review_spans, bound to the same analyzed-input SHA-256 (else the worker refuses). Bounded regular .json; read only."
+          },
+          "output_root": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Directory beneath repository artifacts/ (never artifacts/runs): existing, or with an existing parent. Each call writes a fresh <UTC>-<hex12>/phrase-timing.json child; nothing is overwritten."
+          },
+          "run_kind": {
+            "type": "string",
+            "enum": [
+              "real_take",
+              "synthetic_fixture"
+            ],
+            "default": "real_take",
+            "description": "Labels the receipt; real_take stays unvalidated until an operator spot-check."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 300,
+            "default": 120,
+            "description": "Hard owned-worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "analysis",
+          "phrases",
+          "output_root"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-phrase-timing/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "descriptive_click_relative_timing_unvalidated",
+      "limitations": [
+        "Offsets use broadband attack candidates, which can include click energy, handling noise or several merged attacks; they are not note identities.",
+        "The click reference is fitted to unverified periodic high-frequency transients; a guitar attack can displace or mask a click. Physical capture latency is uncalibrated and detector-delay compensation uses synthetic-probe medians.",
+        "Phrase spans are review candidates or reference-conditioned alignments, not detected musical boundaries. Phrases with fewer than 4 click-proximal onsets, no click grid or spans outside the analysis abstain.",
+        "Ahead/behind tendency labels on real takes are descriptive and uncalibrated. No intended-rhythm reference is used: no performance grade, missed/extra note or mistake verdict. Inputs are read only; one fresh output child is written beneath artifacts/."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "rhythm",
+          "phrases",
+          "arrangement_reference"
+        ],
+        "enforced": false,
+        "note": "Requires an existing rhythm analysis.json with a click grid or drift model and a phrase source bound to the same analyzed input; prior tools are not invoked automatically."
+      },
+      "agent_workflow": {
+        "identify": "Confirm the analysis and phrase source describe the same current signal version and that rhythm produced a click grid or fitted drift.",
+        "research": "Read docs/spec/sprints/RHYTHM_S2.md; inspect click_reference basis, drift confidence and detector-delay table before interpreting offsets.",
+        "iterate": "There are no knobs. After the input, rhythm analysis or phrase spans change, rerun into a fresh output and compare per-phrase medians, spreads and abstentions.",
+        "acceptance": "Offsets are descriptive measurements; they establish no rush/drag verdict, performance grade, missed or extra note, or listening acceptance without an operator spot-check.",
+        "max_comparison_candidates_default": 3
+      }
     }
   ]
 }

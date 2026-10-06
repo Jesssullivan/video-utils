@@ -158,7 +158,7 @@ class SourceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'case_deadline'):p.guard_deadline(0,'case_seal',0)
 
     def test_real_pinned_rhythm_return_shape_and_measured_grid_phase(self):
-        rhythm=p.load_module(ROOT/'scripts/rhythm.py','source_test_real_rhythm')
+        rhythm=p.load_module(ROOT/p.FROZEN['scripts/rhythm.py'],'source_test_real_rhythm')
         samples=array('f',[0.])*80000
         for start in range(2000,80000,8000):
             for k in range(24):samples[start+k]=.3 if k%2 else -.3

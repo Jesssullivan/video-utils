@@ -2,13 +2,19 @@
 doctor:
     python3 scripts/doctor.py
 
-# Produce processed audio/video, rhythm measurements and a local comparison report.
-demo input bpm="" backend="stdlib" features="base":
-    if [[ -n {{quote(bpm)}} ]]; then python3 scripts/run_demo.py {{quote(input)}} --bpm {{quote(bpm)}} --backend {{quote(backend)}} --features {{quote(features)}}; else python3 scripts/run_demo.py {{quote(input)}} --backend {{quote(backend)}} --features {{quote(features)}}; fi
+# Extra ARGS pass through to run_demo.py, e.g.
+#   just demo IN "" stdlib base fuller --capture-interval START END --capture-review TEXT
+# Without an interval the default refuses (capture_interval_required); pass profile conservative3 instead.
+# Produce processed audio/video and analysis; default fuller needs a reviewed --capture-interval.
+[positional-arguments]
+demo input bpm="" backend="stdlib" features="base" profile="fuller" *ARGS:
+    options=(--backend "$3" --features "$4" --profile "$5" "${@:6}"); if [[ -n "$2" ]]; then options+=(--bpm "$2"); fi; python3 scripts/run_demo.py "$1" "${options[@]}"
 
-# Preserve the input and create a new private run directory.
-clean input profile="conservative3":
-    python3 scripts/media.py clean {{quote(input)}} {{quote(profile)}}
+# Default fuller otherwise refuses (capture_interval_required); pass profile conservative3 for no capture binding.
+# Preserve the input and create a new private run; default fuller needs --capture-interval START END --capture-review TEXT.
+[positional-arguments]
+clean input profile="fuller" *ARGS:
+    python3 scripts/media.py clean "$@"
 
 # Keep analysis copies separate from the full-quality audio master.
 analyze input run_dir="":
@@ -63,6 +69,12 @@ markers run_dir:
 # Burn selected review hypotheses into a separate synchronized video preview.
 marked-video run_dir output selection="phrase-review":
     python3 scripts/marked_video.py --run-dir {{quote(run_dir)}} --output {{quote(output)}} --selection {{quote(selection)}}
+
+# Copy-only compact marked movie: RUN_DIR audio + verified arrangement preview picture.
+# Pass --picture-preview DIR --arrangement-markers SELECTOR [--output DIR] [--timeout-seconds N].
+[positional-arguments]
+marked-compact run_dir *ARGS:
+    python3 scripts/marked_compact.py "$@"
 
 # Local stdio MCP; stdout is reserved exclusively for JSON-RPC messages.
 mcp:
@@ -250,3 +262,40 @@ capabilities-check:
 # Project stable artifact IDs for explicit run selectors; read-only.
 artifact-id SELECTOR:
     python3 scripts/artifact_ids.py project {{quote(SELECTOR)}}
+
+# Experimental per-phrase onset offsets from the recorded click; descriptive, never a grade or verdict.
+phrase-timing analysis phrases output_root run_kind="real_take":
+    python3 scripts/phrase_timing.py --analysis {{quote(analysis)}} --phrases {{quote(phrases)}} --output-root {{quote(output_root)}} --run-kind {{quote(run_kind)}}
+
+# A running share_export worker keeps its own session and may outlive the server up to its own timeout (<= 900 s).
+# Private loopback job control API, foreground only (Ctrl-C stops the server, not a running job). Not a daemon.
+web-jobs-serve port="0" state_root="artifacts/web-jobs":
+    python3 scripts/web_api.py serve --port {{quote(port)}} --state-root {{quote(state_root)}}
+
+# Read-only job store counts (no lock, no reconciliation).
+web-jobs-status state_root="artifacts/web-jobs":
+    python3 scripts/web_jobs.py --state-root {{quote(state_root)}} status
+
+# Local web fixture (prototype): frozen-lockfile install. Loopback only; no hosted deployment.
+web-install:
+    cd web && pnpm install --frozen-lockfile
+
+# Local web fixture dev server bound to 127.0.0.1 (prototype).
+web-dev port="5173":
+    cd web && pnpm exec vite dev --host 127.0.0.1 --port {{quote(port)}} --strictPort
+
+# Offline frozen install, type check and build of the local web fixture.
+web-build:
+    cd web && pnpm install --frozen-lockfile --offline && pnpm run check && pnpm run build
+
+# Serve the built web fixture on loopback; optional control API URL from web-jobs-serve.
+web-serve port="3000" control_api="":
+    cd web && HOST=127.0.0.1 PORT={{quote(port)}} VIDEO_UTILS_CONTROL_API_URL={{quote(control_api)}} node serve.js
+
+# Web fixture behaviour tests (loopback enforcement, BFF limits, pins).
+web-test:
+    PYTHONPATH=tests python3 -m unittest test_web_stack -v
+
+# Read-only AU discovery/auval step; never installs, registers or repairs.
+au-auval-step:
+    python3 native/au-spike/host/auval_step.py

@@ -94,10 +94,12 @@ class DemoWorkflowTests(unittest.TestCase):
 
     def test_default_input_mode_remains_base_and_preserves_failed_analysis_receipt(self):
         self.fail.add('notes')
-        status, result, _ = self.run_workflow([str(self.source)])
+        # Explicit conservative3: the default fuller profile requires a reviewed capture interval.
+        status, result, _ = self.run_workflow([str(self.source), '--profile', 'conservative3'])
         self.assertEqual(status, 0)  # Existing default behavior: optional candidate failure is retained.
         self.assertEqual([row[0] for row in self.calls],
                          ['media', 'export', 'rhythm', 'noise', 'tone', 'notes', 'phrases', 'dag', 'markers', 'report'])
+        self.assertEqual(self.calls[0][1], ['clean', str(self.source), 'conservative3'])
         receipt = json.loads(Path(result['demo_receipt']).read_text())
         self.assertEqual(receipt['analysis_settings']['features'], 'base')
         self.assertEqual(receipt['stages']['notes']['status'], 'failed')
@@ -105,6 +107,31 @@ class DemoWorkflowTests(unittest.TestCase):
         self.assertEqual(receipt['selected_evidence'], {})
         self.assertFalse(receipt['listening_accepted'])
         self.assertEqual(demo.sha256(self.directory / 'cleaned.wav'), self.manifest['output_sha256']['cleaned.wav'])
+
+    def install_fuller_profile(self):
+        (self.root / 'profiles').mkdir(exist_ok=True)
+        shutil.copyfile(REPO / 'profiles/fuller.json', self.root / 'profiles/fuller.json')
+
+    def test_default_fuller_without_interval_refuses_typed_before_any_stage_or_receipt(self):
+        self.install_fuller_profile()
+        self.assertEqual(demo.DEFAULT_PROFILE, 'fuller')
+        before = sorted(path.relative_to(self.root) for path in self.root.rglob('*'))
+        status, result, error = self.run_workflow([str(self.source)])
+        self.assertEqual((status, result), (1, None))
+        payload = json.loads(error)
+        self.assertEqual((payload['status'], payload['reason']), ('error', 'capture_interval_required'))
+        self.assertIn('--capture-interval START END', payload['message'])
+        self.assertIn('--profile conservative3', payload['message'])
+        self.assertEqual(self.calls, [])
+        self.assertEqual(sorted(path.relative_to(self.root) for path in self.root.rglob('*')), before)
+
+    def test_default_fuller_with_reviewed_interval_passes_binding_to_media(self):
+        self.install_fuller_profile()
+        status, _, _ = self.run_workflow([str(self.source), '--capture-interval', '4.1', '4.95',
+                                          '--capture-review', 'operator reviewed opening interval'])
+        self.assertEqual(status, 0)
+        self.assertEqual(self.calls[0][1], ['clean', str(self.source), 'fuller', '--capture-interval', '4.1', '4.95',
+                                            '--capture-review', 'operator reviewed opening interval'])
 
     def test_extended_existing_order_exact_receipts_and_explicit_interpreter(self):
         # Newer-looking artifacts must not be discovered or substituted.

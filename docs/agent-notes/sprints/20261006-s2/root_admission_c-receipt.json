@@ -1,0 +1,269 @@
+{
+ "schema_version": 1,
+ "lane": "root_admission_c",
+ "sprint": "20261006-s2",
+ "linear": "TIN-5599",
+ "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43); R-N13 receipt",
+ "date": "2026-10-06",
+ "worktree": "/Users/jess/git/video-utils/.local/sprint2/root_admission_c",
+ "branch": "sprint/20261006-s2/root_admission_c",
+ "base": "736f406",
+ "commits": [
+  "3e6161a2a65b8af8e8bc089eb0390dea0bcfbba7 Admit marked_compact and phrase_timing typed tools, skills and S2 recipes",
+  "e697f36f0a4fae0ba4b7bd0b9f0a9c4909e2eaaf Make FULLER the default profile with a required reviewed capture interval",
+  "8483cc85767f5aa8c1d65c13f2c8c6c914291778 Vendor frozen S1 rhythm.py and route S1 pin sites to it"
+ ],
+ "tasks": {
+  "1_s1_reproducibility": {
+   "commit": "8483cc8",
+   "frozen_copy": "scripts/frozen/rhythm_264b723c.py",
+   "frozen_copy_sha256": "264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9",
+   "pin": "264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9",
+   "source": "git show 4b87484:scripts/rhythm.py",
+   "live_rhythm_sha256": "cd719914d933b03faec6e1c92afbaee232797ec247427cc87038a1e67b15e8d3",
+   "applied": "rhythm_clicks-pin-resolution.json root_patch verbatim (FROZEN maps in phrase_proposal_s1 and phrase_localization_pilot; verify_pins/load/copy sites; test_phrase_localization_pilot loader)"
+  },
+  "2_fuller_default": {
+   "commit": "e697f36",
+   "applied": [
+    "RQ-M1",
+    "RQ-J1a",
+    "RQ-J1b",
+    "RQ-M2 (media.py, run_demo.py, just clean/demo default flip; lane test update)"
+   ],
+   "behaviour": "Default profile fuller (media.py clean/demo, run_demo.py --profile, just clean/demo). Without --capture-interval it refuses with reason capture_interval_required and a message suggesting --capture-interval START END --capture-review TEXT or conservative3; run_demo refuses before any stage, receipt or run directory. conservative3 stays selectable explicitly. No silent fallback.",
+   "probe": "just demo /nonexistent/take.mov and just clean <tiny wav> both exited 1 with capture_interval_required; no artifacts/runs created.",
+   "mcp_denoise": "unchanged: frozen descriptor default conservative3; tool_api passes the profile explicitly"
+  },
+  "3_admission": {
+   "commit": "3e6161a",
+   "tools_added": [
+    "marked_compact",
+    "phrase_timing"
+   ],
+   "skills_added": [
+    ".agents/skills/guitar-marked-compact/SKILL.md",
+    ".agents/skills/guitar-phrase-timing/SKILL.md"
+   ],
+   "rhythm_clicks_tool_request": "none in handoff; phrase_timing admitted as experimental readOnly typed tool; click_attack_ab stays a research helper (not admitted)",
+   "recipes_added": [
+    "marked-compact (RQ-J1b)",
+    "phrase-timing",
+    "web-jobs-serve",
+    "web-jobs-status",
+    "web-install",
+    "web-dev",
+    "web-build",
+    "web-serve",
+    "web-test",
+    "au-auval-step"
+   ],
+   "count_pins_updated": [
+    "tests/test_tool_contracts.py",
+    "tests/test_s1_tool_admission.py",
+    "tests/test_share_export_tool.py",
+    "tests/test_s2_tool_admission.py"
+   ],
+   "docs": "README.md and docs/spec/PROJECT.md now state thirty-eight per-tool skills / 38 typed tools"
+  },
+  "4_untouched": {
+   "scripts/share_export.py": "unchanged vs 736f406",
+   "program/capabilities.json": "unchanged; share_export.adapters.web_job not promoted"
+  }
+ },
+ "tool_count": 38,
+ "skill_dir_count": 38,
+ "freeze_hashes": {
+  "tools[:30]": {
+   "ensure_ascii_false": "85fa376c6d6a64e8d2c7c332deb27cf14b4b490fb6f7f1c9ed51efb5ee3a06c7",
+   "ensure_ascii_true": "c13b2f89011e9fe862728d0e105b18945652d2fac3de36286971ecf686ca64aa"
+  },
+  "tools[:32]": {
+   "ensure_ascii_false": "932d3e2683c5175fc08f0a8b27169a351b6269ba3db4467811d37bbd698e8863",
+   "ensure_ascii_true": "358ce0aeba9214076d64fcc69ee9554cdd048d2001304dc897bf7f38b4d313bb"
+  },
+  "tools[:36]": {
+   "ensure_ascii_false": "82bdb7478deb8dc5859c33e7c2ca017c582cc54fc4dfaf85d858a6b5a77073ba",
+   "ensure_ascii_true": "51dd154f28079f178979a6add85bf9d2d8fcf4cc2f8d0fefec7061ab16749d31"
+  }
+ },
+ "verification": {
+  "command": "FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe PYTHONPATH=tests python3 -m unittest test_tools test_mcp test_tool_contracts test_sprint1_audit test_s1_tool_admission test_s2_tool_admission test_share_export_tool test_fuller_profile test_marked_compact test_phrase_timing test_rhythm test_clicks test_demo test_dag test_media test_phrase_proposal_s1 test_phrase_localization_pilot -v",
+  "interpreter": "python3 (nix profile; numpy absent, so numpy/librosa-gated cases skip)",
+  "ran_line_verbatim": [
+   "Ran 330 tests in 413.898s"
+  ],
+  "result_line_verbatim": [
+   "FAILED (failures=1, errors=5, skipped=25)"
+  ],
+  "failures_and_errors": [
+   {
+    "kind": "ERROR",
+    "test": "test_real_learned_evaluator_mcp_preserves_octave_failure_and_inputs",
+    "case": "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_mcp_preserves_octave_failure_and_inputs"
+   },
+   {
+    "kind": "ERROR",
+    "test": "test_real_learned_evaluator_stale_raw_retains_structural_receipt",
+    "case": "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_stale_raw_retains_structural_receipt"
+   },
+   {
+    "kind": "ERROR",
+    "test": "test_real_learned_evaluator_unsupported_claim_keeps_metrics_and_fails",
+    "case": "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_unsupported_claim_keeps_metrics_and_fails"
+   },
+   {
+    "kind": "ERROR",
+    "test": "test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate",
+    "case": "test_tool_contracts.ToolContractTests.test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate"
+   },
+   {
+    "kind": "ERROR",
+    "test": "test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure",
+    "case": "test_tool_contracts.ToolContractTests.test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure"
+   },
+   {
+    "kind": "FAIL",
+    "test": "test_owned_exited_leader_live_inert_child_cleanup",
+    "case": "test_phrase_localization_pilot.InertOrchestrationTests.test_owned_exited_leader_live_inert_child_cleanup"
+   }
+  ],
+  "pre_existing_entitlement_failures": "test_owned_exited_leader_live_inert_child_cleanup (test_phrase_localization_pilot) fails identically at baseline (a16d02d / merge-base 4b87484) on this Mac: macOS process-inspection entitlement for process-group probes; recorded, not fixed.",
+  "environmental_worktree_path_errors": {
+   "tests": [
+    "test_real_learned_evaluator_mcp_preserves_octave_failure_and_inputs",
+    "test_real_learned_evaluator_stale_raw_retains_structural_receipt",
+    "test_real_learned_evaluator_unsupported_claim_keeps_metrics_and_fails",
+    "test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate",
+    "test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure"
+   ],
+   "module": "test_tool_contracts",
+   "cause": "Fixtures are written under ROOT/artifacts/benchmarks and ROOT is this worktree, whose path contains the dot component '.local'; the unchanged calibration-path check in validate_tool_arguments refuses it (-32602 'calibration paths require exact JSON indices and a fresh safe local output path'), so the MCP reply has no 'result' (KeyError).",
+   "reproduction": "Base 736f406 scripts/tool_api.py validate_tool_arguments(pitch_evaluate) refuses /Users/jess/git/video-utils/.local/sprint2/root_admission_c/artifacts/benchmarks/x and accepts /Users/jess/git/video-utils/artifacts/benchmarks/x. Same finding recorded in root_admission_b-receipt.json. Expected to pass from the main checkout path.",
+   "code_changed_here": false
+  },
+  "extra": {
+   "test_capabilities": "Ran 14 tests, OK",
+   "just --list": "exit 0",
+   "just tool-info marked_compact": "exit 0"
+  },
+  "class": "measurement (unit-test counts on synthetic fixtures); no listening, real-take or accepted-run claim"
+ },
+ "deferred": [
+  {
+   "id": "RQ-M1b",
+   "reason": "MCP denoise cannot take fuller/capture_interval without changing its frozen descriptor (tests/test_sprint1_audit.py and test_s2_tool_admission freeze tools[:32]); MCP keeps conservative3 default. Needs an explicit operator/root decision to rebase the freeze or add a separate typed tool."
+  },
+  {
+   "id": "profiles/fuller.json description",
+   "reason": "Text still says noise_capture_required fails closed until the media worker supports per-take binding; left unchanged because the file bytes are pinned by the fuller_profile lane receipts/tests. Binding is now supported via --capture-interval."
+  },
+  {
+   "id": "RQ-C1",
+   "reason": "Awareness only: media.py validator_sha256 changed, so previously authored capture receipts cannot be re-applied through apply_capture_profile; re-author if needed."
+  },
+  {
+   "id": "phrase_timing tendency_label on real takes",
+   "reason": "rhythm_clicks audit finding (9): lane code still publishes ahead/behind labels uncalibrated; descriptor and skill state they are descriptive and uncalibrated. Nulling them is a lane code change, not done here."
+  },
+  {
+   "id": "web_jobs spawn_worker helper / web_stack control API sources route",
+   "reason": "Optional or cross-lane requests; not part of this admission."
+  },
+  {
+   "id": "signing",
+   "reason": "Commits are --no-gpg-sign per instruction; root re-signs during integration."
+  }
+ ],
+ "protected": {
+  "artifacts/runs/20261006T041633Z-990aa1bd6737": "not read or written by this lane",
+  "Desktop/Documents": "untouched",
+  "pushed_or_merged": false
+ },
+ "files": [
+  {
+   "path": ".agents/skills/guitar-denoise/SKILL.md",
+   "sha256": "1a83c20d44b4c164a851e40922a66519df69da239752f2be663486092ec87c68"
+  },
+  {
+   "path": ".agents/skills/guitar-marked-compact/SKILL.md",
+   "sha256": "56987f6da187378909d6ff9018ae5711bfde80ba787cc6c637f601eb7aa0e857"
+  },
+  {
+   "path": ".agents/skills/guitar-phrase-timing/SKILL.md",
+   "sha256": "17de4052387bac0c0357b6933ed35da1c1b1d81219147a2a840169e68831d7c8"
+  },
+  {
+   "path": "README.md",
+   "sha256": "b0c1db6d2fda605c8bbfcf42bf0bee65b3430ea8b5f7040de9c64ccef9a57b1f"
+  },
+  {
+   "path": "docs/spec/AGENT_TOOLS.md",
+   "sha256": "07de8423498daeffe7b2af83c2a2258849d74152ac75fd2db04e4c04f89f0d57"
+  },
+  {
+   "path": "docs/spec/PROJECT.md",
+   "sha256": "26edf0e1e5d45b3dc7930fb24d904eba6bc9d0b9d6107baa10af2dac75a266bc"
+  },
+  {
+   "path": "just/workflow.just",
+   "sha256": "5870dabe018bacaf717696f71e6a2f0b9e22bd66f620d92c2bfca5ea567158f8"
+  },
+  {
+   "path": "program/tools.json",
+   "sha256": "1dad232377899ab0d2be8283c2b7fb88c4fa006cfd855bd0af95f1e3dd18edcd"
+  },
+  {
+   "path": "scripts/frozen/rhythm_264b723c.py",
+   "sha256": "264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9"
+  },
+  {
+   "path": "scripts/media.py",
+   "sha256": "4a6289adc90e8bc97490db7e906f9d01f0b5e270d3a77698ccea345a4f466bc2"
+  },
+  {
+   "path": "scripts/phrase_localization_pilot.py",
+   "sha256": "b379a8911b25f3cc51d4f25b0886e822876854c6400a22f937d991e85323e62c"
+  },
+  {
+   "path": "scripts/phrase_proposal_s1.py",
+   "sha256": "85a2ba1d68534ed4adde6363cb246c5db3fa50da1bcce9f461ee656652091e37"
+  },
+  {
+   "path": "scripts/run_demo.py",
+   "sha256": "125a109985219e1e273670830266bf93343058d16e9063dce9296c77fcdb530d"
+  },
+  {
+   "path": "scripts/tool_api.py",
+   "sha256": "9ef52e9f62f44d3204f3cf41bcbc16a231d4c907e473ffc7cfd78c66eafa294b"
+  },
+  {
+   "path": "tests/test_demo.py",
+   "sha256": "d83029659f61ebb1a959c62752aa0037d5d67d51379e53bd6e155adf22d7ecd3"
+  },
+  {
+   "path": "tests/test_fuller_profile.py",
+   "sha256": "52058a426bebdfb247e9dd25510a3c8970cd1e13b8a5c67d335fab7b6e91b89c"
+  },
+  {
+   "path": "tests/test_phrase_localization_pilot.py",
+   "sha256": "7c88b5215c7a88c86bdcae2375f3c71cfbe58882ef29475c3fb3d0ccb2771cc8"
+  },
+  {
+   "path": "tests/test_s1_tool_admission.py",
+   "sha256": "5e9d1090747f74011d19761d740b58905482aee0a8b1589c18d91f5da153c49e"
+  },
+  {
+   "path": "tests/test_s2_tool_admission.py",
+   "sha256": "736e8152156da5d0324d9b68f32f4e384b35b5fb33f8ccf7f06fdef65851fb43"
+  },
+  {
+   "path": "tests/test_share_export_tool.py",
+   "sha256": "f4c95902f181754d73ddb3b6eca3708b2ccdf5dd74669a6751311e86a820ce4a"
+  },
+  {
+   "path": "tests/test_tool_contracts.py",
+   "sha256": "d9cb21fe29e041c683631574409643bd2bedf93c9fe6c01ace1e30817863ac6b"
+  }
+ ]
+}

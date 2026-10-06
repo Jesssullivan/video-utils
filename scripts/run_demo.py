@@ -29,6 +29,8 @@ HISTORY_ARTIFACTS = ('manifest.json', 'analysis.json', 'events.csv', 'noise.json
                      'notes.json', 'phrases.json', 'pitch.json', 'tonal/tonal.json',
                      'phrase-comparisons.json', 'dag.json', 'flags.json', 'markers.json',
                      'markers.csv', 'report.html', 'demo.json', 'export/outcome.json')
+# Operator decision 2026-10-06 (TIN-5599): FULLER default with a required reviewed capture interval.
+DEFAULT_PROFILE = 'fuller'
 AUTHORITY = 'R-HOOK-CONVERGENCE-20261004; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43'
 OPTIONAL_OUTPUTS = {'clicks': ('clicks_json', 'clicks'), 'pitch': ('pitch_json', 'pitch'),
                     'meter': ('output', 'meter'), 'tonal': ('tonal_json', 'tonal'),
@@ -345,11 +347,32 @@ def snapshot_existing(directory: Path, manifest: dict) -> dict:
             'status': 'prior_artifact_snapshot_not_revalidated'}
 
 
+def profile_requires_capture(value: str) -> bool:
+    """Mirror media.load_profile resolution; True only for a readable capture-required template.
+
+    Unreadable or invalid profiles fall through to media.py, which owns validation."""
+    path = Path(value).expanduser()
+    if not path.is_file():
+        path = ROOT / 'profiles' / f'{value}.json'
+    try:
+        if path.stat().st_size > MAX_MANIFEST_BYTES:
+            return False
+        profile = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return False
+    return (isinstance(profile, dict) and profile.get('noise_capture_required') is True
+            and profile.get('noise_capture_seconds') is None)
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('input', nargs='?')
     parser.add_argument('--existing-run', type=Path, help='Extend validated media without rerendering')
-    parser.add_argument('--profile', default='conservative3')
+    parser.add_argument('--profile', default=DEFAULT_PROFILE,
+                        help='Profile name or path; default fuller requires --capture-interval START END')
+    parser.add_argument('--capture-interval', nargs=2, type=float, metavar=('START', 'END'),
+                        help='Reviewed per-take noise capture interval passed to media.py clean')
+    parser.add_argument('--capture-review', help='Non-empty review text for --capture-interval')
     parser.add_argument('--bpm', type=float, help='Approximate operator pulse; not an intended score')
     parser.add_argument('--backend', choices=('stdlib', 'librosa'), default='stdlib')
     parser.add_argument('--features', choices=('base', 'extended'), default='base')
@@ -359,6 +382,14 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     if bool(args.input) == bool(args.existing_run):
         parser.error('Supply either INPUT or --existing-run RUN_DIR')
+    if args.existing_run and (args.capture_interval is not None or args.capture_review is not None):
+        parser.error('--capture-interval/--capture-review apply only to a new INPUT render')
+    if args.input and args.capture_interval is None and profile_requires_capture(args.profile):
+        print(json.dumps({'status': 'error', 'reason': 'capture_interval_required',
+                          'message': f'profile {args.profile} requires a reviewed per-take capture interval: pass '
+                                     '--capture-interval START END --capture-review TEXT for this take, or select '
+                                     '--profile conservative3 explicitly (no capture binding)'}), file=sys.stderr)
+        return 1
     if args.bpm is not None and (not math.isfinite(args.bpm) or not 20 <= args.bpm <= 400):
         parser.error('--bpm must be finite and between 20 and 400')
     if not math.isfinite(args.pitch_seconds) or not 1 <= args.pitch_seconds <= 30:
@@ -459,7 +490,10 @@ def main(argv=None) -> int:
         else:
             # Separate clean/export retains a known run and its completed master
             # even when lossy delivery validation fails.
-            manifest = stage('media', 'media.py', ['clean', args.input, args.profile], 1200)
+            capture = ((['--capture-interval', *(repr(value) for value in args.capture_interval)]
+                        if args.capture_interval is not None else [])
+                       + (['--capture-review', args.capture_review] if args.capture_review is not None else []))
+            manifest = stage('media', 'media.py', ['clean', args.input, args.profile, *capture], 1200)
             if manifest is None:
                 raise StageError('Media restoration failed; inspect invocation receipt')
             directory = Path(manifest['run_dir']).resolve(strict=True)

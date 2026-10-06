@@ -92,8 +92,17 @@ to revisit the restoration alternatives.
 ```bash
 nix develop
 just doctor
-just demo "$HOME/Documents/Movie on 10-5-26 at 3.38 PM.mov"
+just demo "$HOME/Documents/Movie on 10-5-26 at 3.38 PM.mov" "" stdlib base fuller \
+  --capture-interval 4.10 4.95 --capture-review "Reviewed opening fan interval for this take"
 ```
+
+The default restoration profile is `fuller` (operator decision 2026-10-06). It
+always needs a reviewed per-take capture interval: `--capture-interval START END`
+with `--capture-review TEXT`, in decoded-source seconds. Without one, `just demo`
+and `just clean` refuse with `capture_interval_required` and never fall back.
+Select `conservative3` explicitly for a run without a capture binding, for example
+`just clean INPUT conservative3`. The MCP `denoise` tool keeps its frozen
+`conservative3` default.
 
 `FFMPEG` and `FFPROBE` may name explicit executables; otherwise tools are found
 on `PATH`. `just doctor` checks the available toolchain. Keep recordings outside
@@ -105,8 +114,8 @@ overwrite the input.
 | Recipe | Purpose |
 | --- | --- |
 | `just doctor` | Inspect tools and optional capabilities |
-| `just demo INPUT` | Clean/export the take, analyze rhythm, and build its report |
-| `just clean INPUT PROFILE` | Render a named restoration profile |
+| `just demo INPUT [BPM] [BACKEND] [FEATURES] [PROFILE] [ARGS]` | Clean/export the take, analyze rhythm, and build its report; default `fuller` needs `--capture-interval START END --capture-review TEXT` |
+| `just clean INPUT [PROFILE] [ARGS]` | Render a named restoration profile; default `fuller` needs a reviewed capture interval |
 | `just analyze INPUT` | Estimate rhythm with uncertainty |
 | `just report RUN_DIR` | Build a report from an existing run |
 | `just export RUN_DIR` | Export delivery artifacts from an existing run |
@@ -118,6 +127,11 @@ overwrite the input.
 | `just dag RUN_DIR [REFERENCE]` | Verify ancestry, review self-consistency, optionally compare a reference |
 | `just markers RUN_DIR` | Export generic timestamp/span review markers |
 | `just marked-video RUN_DIR OUTPUT [SELECTION]` | Render a separate preview with phrase review callouts |
+| `just marked-compact RUN_DIR --picture-preview DIR --arrangement-markers SELECTOR` | Copy-only compact marked movie from a verified audio run and arrangement preview |
+| `just phrase-timing ANALYSIS PHRASES OUTPUT_ROOT [RUN_KIND]` | Experimental per-phrase offsets from the recorded click; descriptive, never a grade |
+| `just web-jobs-serve` / `just web-jobs-status` | Foreground loopback job control API / read-only job counts |
+| `just web-install` / `web-build` / `web-dev` / `web-serve` / `web-test` | Local loopback web fixture (prototype) |
+| `just au-auval-step` | Read-only AU discovery/auval step; never installs or registers |
 | `just arrangement-reference RUN_DIR OUTPUT [REFERENCE]` | Compare supplied phrase intent with source-bound detected boundary candidates |
 | `just marked-arrangement RUN_DIR OUTPUT MARKERS` | Render compact reference-aware labels from validated same-run markers |
 | `just apply-capture-profile INPUT AUTHORING_DIR RECEIPT_SHA [TIMEOUT]` | Render a fresh restoration candidate from a source-bound capture profile |
@@ -193,7 +207,7 @@ spotify-basic-pitch-0.4.0-onnx`, then `just basic-pitch-runtime-setup /path/to/p
 and `just basic-pitch-runtime-check`. See [runtime qualification](docs/research/BASIC_PITCH_QUALIFICATION.md).
 
 The repository includes a versioned tool contract, a local MCP stdio server,
-and thirty-six per-tool skills for researching and tuning restoration, analysis, comparison, and review.
+and thirty-eight per-tool skills (38 typed tools) for researching and tuning restoration, analysis, comparison, and review.
 Inspect `just tool-info NAME` or launch
 `just mcp` from the repository root. Local invocation is
 separate from connecting an external agent client; see

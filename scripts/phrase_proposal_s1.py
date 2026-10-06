@@ -29,6 +29,8 @@ PINS = {
     "docs/agent-notes/2026-10-05-phrase-guarded-arms.py": "78ca89de9cea327cc4ec1096a83522781a08bc161819699b69797ca273e2fb6c",
     "program/instrument.json": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0",
 }
+# Byte-identical frozen copies; PINS keys stay the recorded logical names (sealed receipts compare PINS).
+FROZEN = {"scripts/rhythm.py": "scripts/frozen/rhythm_264b723c.py"}
 SETTINGS = {
     "minimum_hz": 25., "maximum_hz": 6000., "band_count": 32,
     "guitar_support_maximum_hz": 1800., "minimum_low_band_fraction": .60,
@@ -131,7 +133,7 @@ def load_module(path, name):
 
 def verify_pins():
     for path, expected in PINS.items():
-        require(digest(ROOT / path) == expected, "pinned_source_changed:" + path)
+        require(digest(ROOT / FROZEN.get(path, path)) == expected, "pinned_source_changed:" + path)
 
 
 def unit(seed, knob):
@@ -448,7 +450,7 @@ def discover_source(source, expected_sha):
     require(digest(source) == expected_sha and source.stat().st_size <= BUDGETS["wav_bytes"], "source_identity_bound")
     with wave.open(str(source), "rb") as handle:
         require((handle.getframerate(), handle.getnchannels(), handle.getsampwidth(), handle.getnframes()) == (48000, 1, 2, 384000), "native_pcm_header")
-    rhythm = load_module(ROOT/"scripts/rhythm.py", "s1_frozen_rhythm")
+    rhythm = load_module(ROOT/FROZEN["scripts/rhythm.py"], "s1_frozen_rhythm")
     decoded = subprocess.run([FFMPEG_PIN["path"], "-hide_banner", "-loglevel", "error", "-nostdin",
                               "-threads", "1", "-i", str(source), "-map", "0:a:0", "-vn", "-t", "8",
                               "-ac", "1", "-ar", "16000", "-filter_threads", "1", "-threads", "1", "-f", "f32le", "pipe:1"],

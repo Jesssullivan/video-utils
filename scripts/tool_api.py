@@ -25,7 +25,10 @@ LEARNED_EVALUATION_FIELDS = ('fixture_index', 'pyin_pilot_index', 'learned_pilot
 S2_OUTPUT_ROOT = ROOT / 'artifacts'
 S2_EXACT_PATH_FIELDS = {'annotation_markers': ('run_dir', 'output_dir'),
                         'flags_triage': ('run_dir', 'output'),
-                        'corpus_eval_s2': ('manifest', 'local_root', 'proposals', 'output')}
+                        'corpus_eval_s2': ('manifest', 'local_root', 'proposals', 'output'),
+                        'marked_compact': ('run_dir', 'picture_preview', 'output'),
+                        'phrase_timing': ('analysis', 'phrases', 'output_root')}
+PHRASE_TIMING_MAX_INPUT_BYTES = 64 * 1024 * 1024
 S2_DIGEST_FIELDS = {'annotation_markers': 'store_sha256', 'corpus_eval_s2': 'proposals_sha256'}
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
                          'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default',
@@ -539,6 +542,45 @@ def s2_fresh_output(value, *, suffix=None, outside=()):
     return path
 
 
+def s2_output_relative(value):
+    """Original path beneath repository artifacts/ but never artifacts/runs; symlink components reject."""
+    path = s2_original_path(value)
+    try:
+        relative = path.relative_to(Path(S2_OUTPUT_ROOT))
+    except ValueError as error:
+        raise ToolError('S2 outputs must remain beneath repository artifacts/') from error
+    if not relative.parts:
+        raise ToolError('S2 output must name a child of repository artifacts/')
+    if relative.parts[0] == 'runs':
+        raise ToolError('S2 outputs must not be written beneath artifacts/runs')
+    s2_reject_symlink_components(path)
+    return path
+
+
+def marked_compact_output(value):
+    """Fresh directory; the worker re-validates and also refuses a parent-branch overlap."""
+    path = s2_output_relative(value)
+    if os.path.lexists(path):
+        raise ToolError('marked compact output must be fresh; nothing is overwritten')
+    return path
+
+
+def phrase_timing_paths(args):
+    """Bounded regular JSON inputs and an output root that receives a fresh run-id child."""
+    inputs = []
+    for field in ('analysis', 'phrases'):
+        path = s2_input_file(args[field], PHRASE_TIMING_MAX_INPUT_BYTES)
+        if path.suffix != '.json':
+            raise ToolError('phrase timing ' + field + ' must be an existing .json file')
+        inputs.append(path)
+    root = s2_output_relative(args['output_root'])
+    if os.path.lexists(root) and not root.is_dir():
+        raise ToolError('phrase timing output_root must be a directory')
+    if not root.exists() and not root.parent.is_dir():
+        raise ToolError('phrase timing output_root parent must be an existing directory')
+    return inputs[0], inputs[1], root
+
+
 def editor_marker_export_output(directory, args):
     """Run-local exclusive output named by the exact export-profile digest."""
     profile = Path(directory) / args['profile']
@@ -629,6 +671,11 @@ def validate_tool_arguments(name, args):
             validate_evidence_selector(args['arrangement_markers'])
             if args.get('selection') != 'all-review':
                 raise ValidationError('arrangement markers require explicit selection all-review')
+    if name == 'marked_compact':
+        validate_evidence_selector(args['arrangement_markers'])
+        for field in ('run_dir', 'picture_preview', 'output'):
+            if field in args and ('\\' in args[field] or '..' in args[field].split('/')):
+                raise ValidationError('marked compact paths cannot contain traversal or backslash components')
     if name in CALIBRATION_TOOLS or name == 'learned_pitch_evaluate':
         fields = LEARNED_EVALUATION_FIELDS if name == 'learned_pitch_evaluate' else ('fixture_index', 'pilot_index', 'output')
         for field in fields:
@@ -731,6 +778,18 @@ def worker_command(name, args):
             if (Path(directory)/relative).stat().st_size > 4*1024**2: raise ToolError('arrangement marker JSON exceeds4MiB')
             command += ['--arrangement-markers',relative]
         return command
+    if name == 'marked_compact':
+        command = head + [str(ROOT / 'scripts/marked_compact.py'), marked_video_directory(args['run_dir']),
+                          '--picture-preview', marked_video_directory(args['picture_preview']),
+                          '--arrangement-markers', args['arrangement_markers'],
+                          '--timeout-seconds', str(args.get('timeout_seconds', 600))]
+        if 'output' in args:
+            command += ['--output', str(marked_compact_output(args['output']))]
+        return command
+    if name == 'phrase_timing':
+        analysis, phrases, output_root = phrase_timing_paths(args)
+        return head + [str(ROOT / 'scripts/phrase_timing.py'), '--analysis', str(analysis), '--phrases', str(phrases),
+                       '--output-root', str(output_root), '--run-kind', args.get('run_kind', 'real_take')]
     if name == 'arrangement_reference':
         reference,directory,output = arrangement_reference_paths(args)
         return head + [str(ROOT/'scripts/arrangement_reference.py'),reference,'--run-dir',directory,'--output',output]

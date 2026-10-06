@@ -11,7 +11,7 @@ description: Conservatively reduce background noise in distorted nine-string gui
 
 ## Use and controls
 
-Use MCP `denoise` with `input` and registered `profile`, default `conservative3`; shared `timeout_seconds` is integer 1–900/default 600. Registered profiles are `bypass`, `conservative3`, `mild6`, `captured8`, `captured12` and `captured8-clarity`; inspect the live schema before calling. Fallback: `just clean "<input>" conservative3`. Include bypass and compare the generated matched-level baseline, denoised signal, optional processed signal, final master and residue.
+Use MCP `denoise` with `input` and registered `profile`, default `conservative3`; shared `timeout_seconds` is integer 1–900/default 600. Registered profiles are `bypass`, `conservative3`, `mild6`, `captured8`, `captured12` and `captured8-clarity`; inspect the live schema before calling. Fallback: `just clean "<input>" conservative3`. The CLI/recipe default is `fuller` (operator decision 2026-10-06), which needs `--capture-interval START END --capture-review TEXT` reviewed for this take and otherwise refuses with `capture_interval_required`; the MCP `denoise` descriptor is frozen and does not yet accept that interval or the `fuller` profile. Include bypass and compare the generated matched-level baseline, denoised signal, optional processed signal, final master and residue.
 
 Profile files specify reduction, floor, smoothing and final loudness/peak targets; these are preset controls, not arbitrary MCP arguments. The initial three bypass/3 dB/6 dB comparisons left stronger cleanup unresolved; neither they nor the new stronger candidates have an accepted best tone. Reduction settings are not measured output SNR or a guarantee of transparent removal.
 
