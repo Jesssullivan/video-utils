@@ -1,0 +1,197 @@
+{
+  "lane": "annot_corpus",
+  "branch": "sprint/20261006-s2/annot_corpus",
+  "head": "486252b0eb2c2cad4f809c819adacbc4d916c895",
+  "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint2/annot_corpus",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": "docs/agent-notes/peers/xoruby/V3-corpus-split-receipt.json",
+      "sha256": "62638102a192177918ca490f03010a8f75ddff515bb27fcea0ca004cb1fae128",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/peers/xoruby/V5-vocabulary-mapping.md",
+      "sha256": "35e322e843a35ed163dd5f74ac7132ab128fd5a38c1859978e0d5b0deb5da060",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/annot_corpus-contract-freeze.json",
+      "sha256": "4357a85d502fe1acd96c499f6ea47e0572fca7b0cfa9478b0fcccf9b0f2a2412",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261006-s2/annot_corpus-implementation.json",
+      "sha256": "33c2023eca2a17a3afed98e556df934b769a61ae2fa1dc952288cc1180587fc2",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/ANNOTATION_V2_VOCABULARY.md",
+      "sha256": "eeb360e4ba8a1913688a48edb8eed54b802c7a7324b6d62b0b4c1c82919db30a",
+      "kind": "spec"
+    },
+    {
+      "path": "docs/spec/examples/corpus-split/operator-review-corpus.json",
+      "sha256": "4193d2545ed20e1f0f7951f0ce88740858cf93eecd54f27dcb4e81e4ae5becad",
+      "kind": "spec"
+    },
+    {
+      "path": "docs/spec/sprints/ANNOT_CORPUS_S2.md",
+      "sha256": "47f78755d2654e95e5a38a13a2e68b1623c7d4570e4bcc5703a21312949bc3c7",
+      "kind": "spec"
+    },
+    {
+      "path": "scripts/annotation_markers.py",
+      "sha256": "a8a82af834918f6b9355b75289e6fef80b58d5da4883700bbf00f2160b273323",
+      "kind": "source"
+    },
+    {
+      "path": "scripts/corpus_eval_s2.py",
+      "sha256": "5b1b6d71c1141a48835232e074c60e6e9d01f6c4d1475153c3c5df8c3f892c2a",
+      "kind": "source"
+    },
+    {
+      "path": "scripts/flags_triage.py",
+      "sha256": "7a3b290d3ca62c70aa38742071c90c90ff011398612cbaf33492e05ffe3824a5",
+      "kind": "source"
+    },
+    {
+      "path": "tests/test_annotation_markers.py",
+      "sha256": "fc8b02be9777f21b96cdc723ff33f0df545a6288dc6e1541aba37e335b1feae5",
+      "kind": "test"
+    },
+    {
+      "path": "tests/test_corpus_eval_s2.py",
+      "sha256": "978595bf471b6ff47a224f4c8962f1db5c1447821d52f694b6bbb28a7b7032dd",
+      "kind": "test"
+    },
+    {
+      "path": "tests/test_flags_triage.py",
+      "sha256": "ae43e7abdc5dddbafe373822ad65ded286da30790950d1ca1ac421bd3767cf09",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_annotation_markers test_corpus_eval_s2 test_flags_triage -v",
+    "discovered": 36,
+    "passed": 36,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 23.1
+  },
+  "metrics": [
+    {
+      "name": "lane_tests_passed",
+      "numerator": 36,
+      "denominator": 36,
+      "unit": "tests",
+      "claim_class": "measured"
+    },
+    {
+      "name": "related_module_tests_passed",
+      "numerator": 82,
+      "denominator": 82,
+      "unit": "tests",
+      "claim_class": "measured"
+    },
+    {
+      "name": "corpus_coverage_ratio",
+      "numerator": 5,
+      "denominator": 150.961111,
+      "unit": "seconds",
+      "claim_class": "measured"
+    },
+    {
+      "name": "eligible_proposals_with_coverage_overlap",
+      "numerator": 5,
+      "denominator": 59,
+      "unit": "proposals",
+      "claim_class": "measured"
+    },
+    {
+      "name": "real_take_flags_total",
+      "numerator": 171,
+      "denominator": 171,
+      "unit": "flags",
+      "claim_class": "measured"
+    },
+    {
+      "name": "navigation_proxies",
+      "numerator": 112,
+      "denominator": 171,
+      "unit": "flags",
+      "claim_class": "measured"
+    },
+    {
+      "name": "eligible_non_navigation_flags",
+      "numerator": 59,
+      "denominator": 171,
+      "unit": "flags",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "musical_verdict",
+    "performance_grade",
+    "listening_acceptance",
+    "editor_import",
+    "picture_coverage"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "just/workflow.just",
+      "change": "Append after the existing corpus-split recipe:\n\nannotation-markers run_dir store_sha256 output_dir:\n    python3 scripts/annotation_markers.py {{quote(run_dir)}} --store-sha256 {{quote(store_sha256)}} --output-dir {{quote(output_dir)}}\n\nflags-triage run_dir output:\n    python3 scripts/flags_triage.py {{quote(run_dir)}} --output {{quote(output)}}\n\ncorpus-eval-s2 manifest proposals proposals_sha256 output local_root=\".\":\n    python3 scripts/corpus_eval_s2.py evaluate {{quote(manifest)}} --root {{quote(local_root)}} --proposals {{quote(proposals)}} --proposals-sha256 {{quote(proposals_sha256)}} --output {{quote(output)}}",
+      "why": "just is the operator entrypoint; the three lane helpers need recipes to be reachable without ad hoc commands."
+    },
+    {
+      "file": "program/tools.json",
+      "change": "Add three entries to tools[] following the corpus_split descriptor shape (implementation_status experimental; annotations readOnlyHint true, destructiveHint false, idempotentHint true, openWorldHint false):\n(1) name \"annotation_markers\", title \"Annotation v2 marker projection\", description \"Project a sha256-pinned run-local review-annotations-v2.json into generic marker JSON/CSV (markers.COLUMNS + basis_label) with visible/suppressed counts and reasons; refuses stale store hashes; note/quote text omitted unless include_text.\", inputSchema {run_dir: string 1..4096, store_sha256: string pattern ^[a-f0-9]{64}$, output_dir: string 1..4096 (must be outside run_dir), include_text: boolean default false, timeout_seconds: integer 1..900 default 120}, required [run_dir, store_sha256, output_dir], skill \".agents/skills/guitar-annotation-markers/SKILL.md\", evidence_kind \"human_annotation_projection_not_verdict\", dependencies.recommended_prior_tools [\"annotation_v2\"].\n(2) name \"flags_triage\", title \"Default review ordering of run flags\", description \"Order an existing run's flags.json into flags-triage.json: at most one shown flag per phrase span or 16-period click-grid navigation window by rule flags-triage-priority-v1; navigation proxies hidden but retained; denominators total/hidden/suppressed/shown; no new kinds, no numeric confidence use, no verdict.\", inputSchema {run_dir: string, output: string (outside run_dir), timeout_seconds: integer 1..900 default 120}, required [run_dir, output], skill \".agents/skills/guitar-flags-triage/SKILL.md\", evidence_kind \"review_ordering_of_existing_hypotheses\", dependencies.recommended_prior_tools [\"phrases\", \"clicks\"].\n(3) name \"corpus_eval_s2\", title \"Coverage-first sparse corpus evaluation\", description \"Validate a corpus split, then evaluate sha256-pinned untouched detector proposals against selected v2 annotations: coverage first, clock alignment status, recall only above 0.5 coverage with literal accepted operator assertions, precision always null (no reviewed-absence label), separate error and articulation axes, never inferring negatives; no audio read.\", inputSchema {manifest: string, local_root: string optional, proposals: string, proposals_sha256: string pattern ^[a-f0-9]{64}$, output: string (not beside proposals), timeout_seconds: integer 1..900 default 120}, required [manifest, proposals, proposals_sha256, output], skill \".agents/skills/guitar-corpus-eval/SKILL.md\", evidence_kind \"sparse_coverage_first_recall_no_negatives\", dependencies.recommended_prior_tools [\"corpus_split\", \"annotation_v2\"].",
+      "why": "AGENTS.md requires every processing primitive to have a typed MCP hook; tools.json is root-owned."
+    },
+    {
+      "file": "scripts/tool_api.py and scripts/mcp_server.py",
+      "change": "Register the three descriptors above as bounded subprocess hooks that invoke the CLIs exactly as the just recipes do, with a hard process-group timeout of timeout_seconds. Return the CLI's single-line stdout JSON on success and the stderr {status: rejected, error} code on failure. Do not return note/quote text unless include_text is explicitly true.",
+      "why": "MCP hook admission is root-owned; the lane helpers are experimental until root admits them."
+    },
+    {
+      "file": ".agents/skills/guitar-annotation-markers/SKILL.md, .agents/skills/guitar-flags-triage/SKILL.md, .agents/skills/guitar-corpus-eval/SKILL.md",
+      "change": "Create three skills, each stating intent, knobs, dependencies, research, iteration and evidence, taken from docs/spec/sprints/ANNOT_CORPUS_S2.md sections 1-3:\n- Markers: the --include-text knob, the store sha pin, and that basis labels USER REPORTED / INTENT / REVIEW / REFERENCE REVIEW are not verdicts.\n- Triage: no knobs; frozen rule v1. Navigation proxies are retained in hidden_navigation. Grid windows are not bars.\n- Corpus eval: fixed coverage_threshold 0.5 and match tolerance 0.25 s. Precision null by design. A null result at low coverage is a valid outcome. Never infer negatives.",
+      "why": "Skills live under .agents/skills/, which is outside this lane's owned paths."
+    },
+    {
+      "file": "scripts/marked_video.py",
+      "change": "In select_markers/arrangement_display, when a marker carries label_basis in annotation_v2.BASES, use its basis_label (USER REPORTED / INTENT / REVIEW / REFERENCE REVIEW) as the badge. Today arrangement mode shows 'Timing review' and default mode shows 'Review candidate'.",
+      "why": "Recorded limitation in the frozen contract section 1: annotation-marker rows can be rendered today, but without their basis badge, so user-reported rows cannot be told apart from detector hypotheses in the overlay."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261006-s2/annot_corpus-handoff.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": false
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Scope holds. git diff --name-only 4b87484...HEAD lists 13 files, all on the owned list, and every one is newly added (--diff-filter=M is empty). There are 3 commits: 9ce8c4f (contract freeze, 2 files), c7dfbe6 (code, tests and docs, 11 files) and 486252b (receipt, 1 file). The diff does not touch scripts/marked_video.py, program/, just/ or scripts/tool_api.py.",
+      "(2) No forbidden writes found. Nothing under /Users/jess/git/video-utils/artifacts/runs/* has an mtime after 2026-10-06 05:30, and the lane started at 05:31 -04:00. The real-take flags.json still hashes to 95a0106c…a732. The newest file in artifacts/experiments/s1-demo-context-20261006T0627 is from 02:27, so that folder was not written either. The lane's own outputs are in the gitignored worktree folder .local/sprint2/annot_corpus/artifacts/s2/annot_corpus. The three scripts have no subprocess, network or download code, and the tests stage real metadata into tempdirs.",
+      "(4) The test claim reproduces with the exact command and env: 36 ran, OK, 0 skipped (15.9 s). The two real-metadata tests (test_real_take_triage_invariants and test_real_take_null_result) did run rather than skip, and so did test_v3_receipt_equals_fresh_summary. The worktree stayed clean (git status identical before and after). Adjacent modules test_annotation_v2, test_corpus_split_s1, test_markers and test_marked_video: 95 tests, all OK.",
+      "(6) I recomputed the real-take triage independently from flags.json and the clicks.json it binds. Period is 0.6756619 s, so the window is 16 × period = 10.81059 s; phase is 0.51068 s. Totals: 171 flags; 112 navigation proxies (all of kind four_pulse_group_review_candidate); 59 eligible; 15 windows in use; 44 suppressed. Winning tiers: T1 2, T2 2, T3 1, T4 10. All of this matches the receipt and the lane's flags-triage.json. Corpus evaluation: coverage 5/150.961111 = 0.0331211 (receipt matches), and 5 of the 59 eligible proposals overlap the covered 0–5 s region (receipt matches).",
+      "(3) Claim classes are handled properly. The receipt (docs/agent-notes/sprints/20261006-s2/annot_corpus-implementation.json) marks real-JSON results M, synthetic S and inferences I, and gives each fraction with its denominator (15/171, 112/171, 44/171). Precision is always null, with reason false_positive_requires_reviewed_absence_label. Recall on the real take is null (coverage_below_threshold). negatives_inferred is 0 and listening_claims is empty. The pitch axis carries note_correctness not_established. Nothing adopts a default, profile or detector.",
+      "(5) Doctrine is respected. These are pure JSON tools with no DSP, so there is no high-pass or notch default to check. The unknown fields are present: musical_verdict, performance_grade, listening_acceptance, editor_import and picture_coverage. Inputs are read with byte limits (20 MB JSON, MAX_FLAGS 50,000). No path runs a subprocess, so no timeout is needed.",
+      "Metric-validity risk (not a blocker): scripts/corpus_eval_s2.py:108-123,247-262 computes per-axis 'recall' with any eligible proposal by kind-agnostic interval overlap. That includes long spectral_texture_region flags, and the rest axis labelled detector_for_axis 'none'. Once there are labelled positives and coverage reaches 0.5, these axes will print numeric recall that is mostly chance overlap, not detection of that error type. It is disclosed in limitations and the detector_for_axis labels, but a consumer could misread it. Consider making recall null when detector_for_axis is 'none', or adding a chance baseline.",
+      "Minor inconsistency: in scripts/corpus_eval_s2.py:215, overall metrics use every annotation_v2.KINDS value, including noise, tone, meter_mismatch and other. A quoted, accepted operator_assertion of kind noise or tone would therefore count as a labelled positive in overall recall, even though NOT_SCORED_KINDS says those kinds are 'not a performance axis'.",
+      "By frozen design (contract line 90-94), annotation_markers.BASIS_PRIORITY puts operator_context below detector_hypothesis. User-provided INTENT/context rows can therefore be suppressed by detector rows under the 2-callout limit. They stay in suppressed_markers with a reason, and operator_assertion rows are protected. This is worth stating explicitly in AGENTS-facing docs, since AGENTS says user-reported items must stay distinguishable from detector hypotheses.",
+      "Non-atomic pair: annotation_markers.write_outputs (scripts/annotation_markers.py:214-216) writes the JSON and then the CSV as two separate atomic writes. If the CSV write fails, a JSON is left without its CSV. Refusals before writing are handled correctly.",
+      "The output guards in flags_triage.py:343 and corpus_eval_s2.py:312 only stop output into the input run directory (or the proposals' parent). A different accepted artifacts/runs/* directory is not blocked. This is low risk because the operator supplies the path.",
+      "Real-take test thresholds: test_flags_triage.py:248-251 asserts total_flags == 171 and shown <= 30. These are an input-identity pin plus the acceptance bound, not a tuned magic number, and the structural invariants are checked separately. OK.",
+      "All three commits are unsigned (%G? = N), which the lane disclosed. The receipt's 'time' 2026-10-06T11:51:26Z matches the commit time of 07:51 -04:00."
+    ],
+    "must_fix": []
+  }
+}
