@@ -7,7 +7,7 @@
   "date": "2026-10-06",
   "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
   "tracker": "TIN-5614 (web_jobs follow-up for the share_export refusal)",
-  "state": "fixed_committed_unpushed",
+  "state": "fixed_audited_hardened_committed_unpushed",
   "files": [
     "scripts/share_export.py",
     "tests/test_share_export_preroll.py",
@@ -15,7 +15,7 @@
     "docs/agent-notes/sprints/20261006-s2/share_export_fix-handoff.json"
   ],
   "root_cause": {
-    "summary": "The check was too strict for a valid input. The web job passed the run-dir export artifacts/runs/20261006T041633Z-990aa1bd6737/export/cleaned-video.mov (sha256 91b2f436...). That MOV has an edit list (video media_time 15200/19200 s). Its first 10 of 3,631 video packets are decode-only pre-roll: ffprobe flag D, PTS -14368..-800 in a 1/19200 time base, about -0.748 s to 0 s. A decoder consumes these packets but never presents them. The H.264 re-encode with -fps_mode passthrough therefore correctly writes 3,621 frames. verify_packets compared the raw total packet count (3,631 vs 3,621) and refused with 'video packet count changed'. No frame was dropped or duplicated.",
+    "summary": "The check was too strict for a valid input. The web job passed the run-dir export artifacts/runs/20261006T041633Z-990aa1bd6737/export/cleaned-video.mov (sha256 91b2f436...). That MOV has an edit list (video media_time 15200/19200 s). Its first 10 of 3,631 video packets are decode-only pre-roll: ffprobe flag D, PTS -14368..-800 in a 1/19200 time base, first PTS -14368 = -0.7483 s, last PTS -800 ~= -0.0417 s, and that packet's 800-tick duration ends at 0. A decoder consumes these packets but never presents them. The H.264 re-encode with -fps_mode passthrough therefore correctly writes 3,621 frames. verify_packets compared the raw total packet count (3,631 vs 3,621) and refused with 'video packet count changed'. No frame was dropped or duplicated.",
     "input_passed_by_web_job": "run-dir export/cleaned-video.mov (role 'accepted FULLER audio run, export/cleaned-video'), not the accepted marked movie",
     "why_desktop_export_passed": "The Desktop file was not an H.264 share_export of the marked movie. root/media_latency encoded accepted-marked-video.mov to a 720p H.264 parent with an ad-hoc controller (artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/encode-plan.json). share_export then ran in codec=copy on that parent (share-export-tool30-20261006T0518/recipe.log). The parent has 3,621 packets starting at PTS 0 and no pre-roll, so the total and presented counts were equal.",
     "check_correctness": "Comparing total packets is wrong for re-encodes because edit-list decode-only packets are not pictures. The integrity intent (no dropped, duplicated or shifted presented picture; identical tail) is kept by comparing presented packets. For copy, all coded packets must still match, including decode-only state."
@@ -50,7 +50,10 @@
     "requested_log": "artifacts/s2/share_export_fix/unittest-postreboot.log sha256 0a745499af115431cf644dc232b251985d1a80a835d27d4225ff162dd8b43ebb (gitignored)",
     "additional_pre_reboot": "the same three modules plus test_share_export_audit: Ran 59 tests in 95.806s; OK (audit 14). Log artifacts/s2/share_export_fix/unittest.log sha256 2dfc409f09a63b73977486cf95d051e0aae36bd85f0e81db89d9b652fb1b2429",
     "additional_post_reboot": "test_share_export_audit test_capabilities: Ran 28 tests in 13.763s; OK",
-    "pre_fix_regression_demonstration": "new module against the 736f406 worker: Ran 9; FAILED (failures=3, errors=5)"
+    "pre_fix_regression_demonstration": "new module against the 736f406 worker: Ran 9; FAILED (failures=3, errors=5)",
+    "audit_hardening_result": "PYTHONPATH=tests python3 -m unittest test_share_export test_share_export_tool test_share_export_preroll -v run in the foreground: Ran 45 tests in 55.862s; OK (test_share_export 28, test_share_export_tool 8, test_share_export_preroll 9; 0 skipped). Log artifacts/s2/share_export_fix/unittest-audit-hardening-rerun.log sha256 11b2a98c2295524c4580dd72df7cd90adea50ecdc4015529597d17d0d9f6c950",
+    "audit_hardening_additional": "test_share_export_audit test_capabilities: Ran 28 tests in 10.346s; OK",
+    "load_induced_failed_attempt": "An earlier background run of the same code at load average ~392-403: Ran 45 in 168.893s, FAILED (errors=1). The error was in the H.264 preroll integration test, raised by apply_capture_profile.run_owned: 'owned process cleanup budget exhausted' / 'descendant absence unverified'. test_share_export_audit also had 1 load-related error (inert-child metadata empty). Both passed unchanged in the foreground rerun at load ~56-86. Inference: host contention, not this change. The retained fixture is gitignored at artifacts/experiments/share-preroll-test-570whn1j. Log artifacts/s2/share_export_fix/unittest-audit-hardening.log sha256 8f5ee90db660aec2e79fc2c873559a1ba2077d2a1ad499a2408c696943fab048"
   },
   "unknowns": {
     "listening_acceptance": "not_established; lossy AAC/H.264 sharing derivative",
@@ -61,7 +64,8 @@
     "marked_movie_direct_h264": "not run by this lane",
     "multi_edit_or_interior_discard_inputs": "handled by presented comparison; no actual-take qualification",
     "web_job_rerun": "not performed; the web_jobs lane or root must rerun the tool_api job against this worker",
-    "host_reboot": "the host rebooted after all runs had finished; no evidence lost; requested tests rerun after the reboot"
+    "host_reboot": "the host rebooted after all runs had finished; no evidence lost; requested tests rerun after the reboot",
+    "owned_runner_under_extreme_load": "the qualified owned-process cleanup budget can be exhausted at load ~400; not owned by this lane"
   },
   "capability_promotion": {
     "target": "program/capabilities.json share_export.adapters.web_job (currently 'planned')",
@@ -69,5 +73,17 @@
     "reason": "The blocking refusal was a share_export defect and is fixed. The real-take H.264 export of the same source sha now succeeds within 900 s (427.65 s). Promotion is still root's admission decision and needs a web_jobs rerun of ActualDemoJob on the merged worker. Under heavier load the 900 s job budget is not guaranteed.",
     "changed_by_this_lane": false
   },
-  "protected": "No push or merge. Main checkout, other worktrees, artifacts/runs/*, ~/Documents and ~/Desktop were read only. Outputs are only in gitignored artifacts/s2/share_export_fix/ plus the transient artifacts/experiments/share-preroll-test-* temp dirs that the tests remove."
+  "protected": "No push or merge. Main checkout, other worktrees, artifacts/runs/*, ~/Documents and ~/Desktop were read only. Outputs are only in gitignored artifacts/s2/share_export_fix/ plus the transient artifacts/experiments/share-preroll-test-* temp dirs that the tests remove.",
+  "audit": {
+    "independent_audit_of": "a0c9f70",
+    "result": "refuted=false; no must_fix (as relayed by the coordinator)",
+    "hardening_applied": [
+      "verify_packets refuses re-encode output that contains any decode-only (D) video packet; the H.264/HEVC path never legitimately writes one (real take: 0)",
+      "The count refusal now says a picture 'may have been dropped, duplicated or lost, or pre-roll was not flagged consistently' instead of asserting the cause",
+      "docs/spec/SHARE_EXPORT.md gives the exact pre-roll values: time base 1/19200, first PTS -14368 (-0.7483 s), last PTS -800 (~-0.0417 s) ending at 0"
+    ],
+    "regression_test": "test_share_export_preroll.PresentedPacketComparison.test_reencode_output_with_any_decode_only_packet_is_refused replaces test_output_decode_only_packets_are_not_counted_as_presented_pictures (the old test accepted an extra D packet in the output)",
+    "worker_sha256": "1d831e7c86ef39a0df88ebc2148932bd6d04d66f01e4d1ea7f9aef2683e110f1",
+    "real_take_compatibility": "The real-take export ran with a0c9f70-equivalent code (sha256 7fff268d...) and reported output_decode_only_packets 0. Inference: it would also pass the hardened check. It was not rerun."
+  }
 }

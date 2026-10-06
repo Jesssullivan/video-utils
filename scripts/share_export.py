@@ -184,8 +184,9 @@ def presentation_split(ps,name):
 
 def count_refusal(kind,src_shown,src_discard,out_shown,out_discard):
     return ShareError(f'video packet count changed ({kind}): source {src_shown} presented + {src_discard} decode-only '
-                      f'edit-list packets, output {out_shown} presented + {out_discard} decode-only. A picture was '
-                      'dropped, duplicated or lost, so the export was refused to avoid a desynchronized file. '
+                      f'edit-list packets, output {out_shown} presented + {out_discard} decode-only. A picture may have been '
+                      'dropped, duplicated or lost, or pre-roll was not flagged consistently, so the export was '
+                      'refused to avoid a desynchronized file. '
                       'Edit-list pre-roll alone is accepted and is not this case; inspect the retained staging '
                       'media and source, and do not bypass this check.','validation_failed')
 
@@ -202,7 +203,8 @@ def verify_packets(source_packets, output_packets, source_timebase, output_timeb
         compare_source,compare_output=source_packets,output_packets
     else:
         # A decoder never presents discarded packets; compare presented frames.
-        if not (0<len(src_shown)==len(out_shown)):
+        # The re-encode path never legitimately writes decode-only packets.
+        if out_discard or not (0<len(src_shown)==len(out_shown)):
             raise count_refusal('presented re-encode',len(src_shown),src_discard,len(out_shown),out_discard)
         compare_source,compare_output=src_shown,out_shown
     require(type(source_timebase) in (str,Fraction) and type(output_timebase) in (str,Fraction),'video time bases must be rational strings or Fractions')

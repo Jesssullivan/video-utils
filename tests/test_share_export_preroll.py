@@ -74,13 +74,16 @@ class PresentedPacketComparison(unittest.TestCase):
         with self.assertRaisesRegex(worker.ShareError, "timestamp or tail extent changed"):
             worker.verify_packets(preroll_source(), output, "1/1000", "1/1000", copy=False)
 
-    def test_output_decode_only_packets_are_not_counted_as_presented_pictures(self):
-        output = [record(-40, 40, "KD_", "encoded")] + reencoded_output()
-        proof = worker.verify_packets(preroll_source(), output, "1/1000", "1/1000", copy=False)
-        self.assertEqual((proof["packet_count"], proof["output_decode_only_packets"]), (4, 1))
-        output = [dict(row, flags="_D_") for row in reencoded_output()]
+    def test_reencode_output_with_any_decode_only_packet_is_refused(self):
+        # Re-encodes never legitimately write decode-only packets (real take: 0).
+        extra = [record(-40, 40, "KD_", "encoded")] + reencoded_output()
+        with self.assertRaisesRegex(worker.ShareError, r"output 4 presented \+ 1 decode-only") as caught:
+            worker.verify_packets(preroll_source(), extra, "1/1000", "1/1000", copy=False)
+        self.assertEqual(caught.exception.code, "validation_failed")
+        self.assertIn("pre-roll was not flagged consistently", str(caught.exception))
+        hidden = [dict(row, flags="_D_") for row in reencoded_output()]
         with self.assertRaisesRegex(worker.ShareError, "output 0 presented"):
-            worker.verify_packets(preroll_source(), output, "1/1000", "1/1000", copy=False)
+            worker.verify_packets(preroll_source(), hidden, "1/1000", "1/1000", copy=False)
 
     def test_copy_requires_every_coded_packet_and_identical_decode_only_state(self):
         source = preroll_source()

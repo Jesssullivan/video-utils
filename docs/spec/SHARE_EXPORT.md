@@ -57,13 +57,16 @@ Edit-list pre-roll (S2 share_export_fix, 2026-10-06): MOV/MP4 sources cut by
 stream copy can begin with decode-only packets outside the edit list; FFmpeg's
 demuxer flags them `D` (ffprobe `flags`) and the decoder never presents them.
 The accepted run export `artifacts/runs/20261006T041633Z-990aa1bd6737/export/cleaned-video.mov`
-has 3,631 video packets, of which 10 leading packets (one keyframe GOP head,
-PTS −0.748 to 0 s) are decode-only, and 3,621 are presented from 0 to 150.885 s.
+has 3,631 video packets, of which 10 leading packets (one keyframe GOP head;
+time base 1/19200; first PTS −14368 = −0.7483 s, last PTS −800 ≈ −0.0417 s,
+whose 800-tick duration ends at 0) are decode-only, and 3,621 are presented
+from PTS 0 to 150.885 s.
 A re-encode correctly emits no frame for those 10, so the former total-count
 comparison refused this valid input with "video packet count changed". Packet
 probes now include `flags`. Re-encodes compare presented packets on both sides
-(`comparison_scope=presented_packets_excluding_edit_list_discard`) and still
-refuse any dropped, duplicated, shifted or tail-changed presented picture; copy
+(`comparison_scope=presented_packets_excluding_edit_list_discard`), refuse any
+decode-only packet in the re-encoded output, and still refuse any dropped,
+duplicated, shifted or tail-changed presented picture; copy
 compares every coded packet (`all_coded_packets`), including identical
 decode-only state, payload hashes and DTS. Receipts record total, presented and
 decode-only counts. A count refusal remains `validation_failed` and names the
