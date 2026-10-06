@@ -54,6 +54,25 @@ PINS = {
     "program/instrument.json": "bd381207d6615814ebee694148357c00719739ec900aa69c96d71b20779707b0",
     S1_WORKER: S1_WORKER_SHA256,
 }
+# Root-vendored byte-identical frozen copies (main 8483cc8). PINS keys stay the recorded
+# logical names so sealed release bindings (dependency_sha256 == PINS) still compare equal;
+# the frozen copy is used when present, and either file must hash to the pinned value.
+FROZEN = {"scripts/rhythm.py": "scripts/frozen/rhythm_264b723c.py"}
+# Root routing patch 8483cc8 to the S1 worker (TIN-5599). Only these exact (pinned, routed)
+# substitutions are accepted: reversing each once must reproduce S1_WORKER_SHA256 bytes.
+S1_ROUTING_PATCH = {
+    "commit": "8483cc85767f5aa8c1d65c13f2c8c6c914291778",
+    "sha256": "85a2ba1d68534ed4adde6363cb246c5db3fa50da1bcce9f461ee656652091e37",
+    "substitutions": (
+        ("}\nSETTINGS = {\n",
+         "}\n# Byte-identical frozen copies; PINS keys stay the recorded logical names (sealed receipts compare PINS).\n"
+         'FROZEN = {"scripts/rhythm.py": "scripts/frozen/rhythm_264b723c.py"}\nSETTINGS = {\n'),
+        ("require(digest(ROOT / path) == expected, ",
+         "require(digest(ROOT / FROZEN.get(path, path)) == expected, "),
+        ('load_module(ROOT/"scripts/rhythm.py", "s1_frozen_rhythm")',
+         'load_module(ROOT/FROZEN["scripts/rhythm.py"], "s1_frozen_rhythm")'),
+    ),
+}
 FFMPEG_PIN = {"path": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
               "sha256": "3a315207e67de78e48c3bbb6b3346663f6a27c02e034d65ac72a12fee74c534a"}
 ANALYSIS_PYTHON_DEFAULT = "/Users/jess/git/video-utils/.venv/bin/python"
@@ -178,13 +197,38 @@ def load_module(path, name):
     return module
 
 
+def pinned_file(path):
+    """On-disk file carrying the pinned bytes of a logical PINS path (frozen copy when vendored)."""
+    frozen = FROZEN.get(path)
+    return ROOT / frozen if frozen and (ROOT / frozen).is_file() else ROOT / path
+
+
+def s1_worker_identity():
+    """'pinned' for the exact S1 bytes, or 'root_routing_8483cc8' when only the recorded routing differs."""
+    raw = (ROOT / S1_WORKER).read_bytes()
+    actual = hashlib.sha256(raw).hexdigest()
+    if actual == S1_WORKER_SHA256:
+        return "pinned"
+    require(actual == S1_ROUTING_PATCH["sha256"], "pinned_source_changed:" + S1_WORKER)
+    text = raw.decode("utf-8")
+    for pinned, routed in S1_ROUTING_PATCH["substitutions"]:
+        require(text.count(routed) == 1, "pinned_source_changed:" + S1_WORKER)
+        text = text.replace(routed, pinned)
+    require(hashlib.sha256(text.encode("utf-8")).hexdigest() == S1_WORKER_SHA256, "pinned_source_changed:" + S1_WORKER)
+    require((ROOT / FROZEN["scripts/rhythm.py"]).is_file(), "pinned_source_changed:scripts/rhythm.py")
+    return "root_routing_8483cc8"
+
+
 def verify_pins():
     for path, expected in PINS.items():
-        require(digest(ROOT / path) == expected, "pinned_source_changed:" + path)
+        if path == S1_WORKER:
+            s1_worker_identity()
+        else:
+            require(digest(pinned_file(path)) == expected, "pinned_source_changed:" + path)
 
 
 def s1_module():
-    require(digest(ROOT / S1_WORKER) == S1_WORKER_SHA256, "pinned_source_changed:" + S1_WORKER)
+    s1_worker_identity()
     return load_module(ROOT / S1_WORKER, "s2_frozen_phrase_proposal_s1")
 
 

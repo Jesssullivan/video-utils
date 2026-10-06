@@ -337,6 +337,73 @@ class AggregateTests(unittest.TestCase):
         self.assertEqual([row["objective"] for row in rows], [2, 2, 2])
 
 
+class PinResolutionTests(unittest.TestCase):
+    """Sealed PINS stay logical; root's frozen rhythm copy and S1 routing patch (8483cc8) resolve to them."""
+
+    def pinned_bytes(self, path):
+        raw = rs.pinned_file(path).read_bytes() if path != rs.S1_WORKER else (ROOT / path).read_bytes()
+        if path == rs.S1_WORKER and hashlib.sha256(raw).hexdigest() != rs.S1_WORKER_SHA256:
+            text = raw.decode()
+            for pinned, routed in rs.S1_ROUTING_PATCH["substitutions"]:
+                text = text.replace(routed, pinned)
+            raw = text.encode()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), rs.PINS[path])
+        return raw
+
+    def tree(self, routed, rhythm_changed=True, s1_text=None):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        for path in rs.PINS:
+            target = root / path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(self.pinned_bytes(path))
+        if routed:
+            (root / rs.FROZEN["scripts/rhythm.py"]).parent.mkdir(parents=True, exist_ok=True)
+            (root / rs.FROZEN["scripts/rhythm.py"]).write_bytes(self.pinned_bytes("scripts/rhythm.py"))
+            text = self.pinned_bytes(rs.S1_WORKER).decode()
+            for pinned, routed_text in rs.S1_ROUTING_PATCH["substitutions"]:
+                self.assertEqual(text.count(pinned), 1)
+                text = text.replace(pinned, routed_text)
+            (root / rs.S1_WORKER).write_text(s1_text(text) if s1_text else text)
+        if rhythm_changed:
+            (root / "scripts/rhythm.py").write_text("# rhythm_clicks S2 rewrite\n")
+        return mock.patch.object(rs, "ROOT", root), root
+
+    def test_19_frozen_rhythm_and_routed_s1_keep_sealed_pins(self):
+        self.assertEqual(rs.PINS["scripts/rhythm.py"], "264b723ca29e4731da0a12d5dce221e7826a38b67f848ce9f4ffcf8bfe4b35b9")
+        patch, root = self.tree(routed=True)
+        with patch:
+            self.assertEqual(hashlib.sha256((root / rs.S1_WORKER).read_bytes()).hexdigest(), rs.S1_ROUTING_PATCH["sha256"])
+            self.assertEqual(rs.s1_worker_identity(), "root_routing_8483cc8")
+            self.assertEqual(rs.pinned_file("scripts/rhythm.py"), root / rs.FROZEN["scripts/rhythm.py"])
+            rs.verify_pins()
+        patch, root = self.tree(routed=False, rhythm_changed=False)
+        with patch:
+            self.assertEqual(rs.s1_worker_identity(), "pinned")
+            self.assertEqual(rs.pinned_file("scripts/rhythm.py"), root / "scripts/rhythm.py")
+            rs.verify_pins()
+
+    def test_19b_refuses_unvendored_change_or_unrecorded_s1_edit(self):
+        patch, _ = self.tree(routed=False)
+        with patch, self.assertRaisesRegex(ValueError, "pinned_source_changed:scripts/rhythm.py"):
+            rs.verify_pins()
+        patch, root = self.tree(routed=True)
+        (root / rs.FROZEN["scripts/rhythm.py"]).write_text("# drifted frozen copy\n")
+        with patch, self.assertRaisesRegex(ValueError, "pinned_source_changed:scripts/rhythm.py"):
+            rs.verify_pins()
+        patch, _ = self.tree(routed=True, s1_text=lambda text: text + "\n# extra\n")
+        with patch, self.assertRaisesRegex(ValueError, "pinned_source_changed:scripts/phrase_proposal_s1.py"):
+            rs.s1_worker_identity()
+        patch, _ = self.tree(routed=True, s1_text=lambda text: text.replace("s1_frozen_rhythm", "s1_live_rhythm"))
+        with patch, self.assertRaisesRegex(ValueError, "pinned_source_changed:scripts/phrase_proposal_s1.py"):
+            rs.verify_pins()
+        with mock.patch.dict(rs.S1_ROUTING_PATCH, sha256="0" * 64):
+            patch, _ = self.tree(routed=True)
+            with patch, self.assertRaisesRegex(ValueError, "pinned_source_changed:scripts/phrase_proposal_s1.py"):
+                rs.s1_module()
+
+
 class V2WrapperTests(unittest.TestCase):
     def test_18_v2_refuses_changed_generator_or_plan_confines_output_and_literals(self):
         self.assertEqual(rs.V2_LICENCE, "pending operator confirmation (repository MIT; proposed CC BY 4.0 for cross-repo use)")
