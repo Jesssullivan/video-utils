@@ -199,6 +199,21 @@ class Client:
         return self.call('POST', path, {} if body is None and 'raw' not in kwargs else body, **kwargs)
 
 
+def sigkill_own_group(pgid):
+    """SIGKILL a process group this test's own WebJobs instance created.
+
+    Darwin's killpg(2) returns EPERM (not ESRCH) when every member of the group is
+    already a zombie awaiting reaping, which happens when a previous SIGKILL to the
+    same group landed before ``Popen.poll()`` reaped the leader. EPERM therefore means
+    "nothing left alive to signal" for a test-owned group; it is not a foreign process.
+    The caller's ``process.wait(timeout=...)`` still fails if the leader survives.
+    """
+    try:
+        os.killpg(pgid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        pass
+
+
 class Env:
     """In-process WebJobs + loopback server on an ephemeral port (no daemon)."""
 
@@ -229,11 +244,8 @@ class Env:
         """The test kills only the stub processes its own WebJobs instance started."""
         for process in self.jobs._detached:
             if process.poll() is None:
-                try:
-                    os.killpg(process.pid, signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
-            process.wait(timeout=10)
+                sigkill_own_group(process.pid)
+            process.wait(timeout=10)  # a genuinely surviving leader still fails the test here
 
     def cleanup(self):
         self.stop()
@@ -335,10 +347,7 @@ class WebJobsTestBase(unittest.TestCase):
 
     def kill_own_stub(self, env, pid):
         """Simulated crash cleanup: the test kills the stub group its own instance created."""
-        try:
-            os.killpg(pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
+        sigkill_own_group(pid)
         env.kill_detached()
 
     def db(self, state_root):

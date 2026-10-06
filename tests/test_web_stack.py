@@ -662,8 +662,8 @@ class _App:
         if self.proc.poll() is None:
             try:
                 os.killpg(self.proc.pid, signal.SIGTERM)
-            except ProcessLookupError:
-                pass
+            except (ProcessLookupError, PermissionError):
+                pass  # Darwin killpg(2) gives EPERM for an own group whose members are all zombies
             try:
                 self.proc.wait(timeout=10)
             except subprocess.TimeoutExpired:

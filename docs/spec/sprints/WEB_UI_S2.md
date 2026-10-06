@@ -764,3 +764,31 @@ section records what was built, the deviations and why. Receipts:
   succeed. The lock hash is unchanged.
 - **NE:** browser playback, hydration, level matching, listening, ~32 Hz
   preservation in the derivative and musical correctness are not established.
+
+## 16. Phase 4 repair: test_web_jobs EPERM flake (appended 2026-10-06)
+
+The audit reran the suite at `4446c23` and recorded an ERROR in
+`test_web_jobs.WebJobsTests.test_interrupted_then_replayed_and_retried_keeps_earlier_artifacts`.
+The traceback ends in the test harness (`Env.kill_detached` → `os.killpg` →
+`PermissionError: [Errno 1]`), not in `web_api.py`.
+
+- **M:** Darwin `killpg(2)` returns EPERM, not ESRCH, when every member of a
+  process group is a zombie. A probe on this host produced 20/20 EPERM. The
+  harness first sends SIGKILL to its own stub group. `Popen.poll()` can then
+  still report the leader as running, and the second `killpg` raises EPERM.
+- **M:** the failure reproduced at `4446c23` under 6-way concurrency in 2 of 36
+  executions of the two tests that use the path. Both failures were at the
+  same harness line. The base `736f406` snapshot passed 48/48 executions. The
+  harness code and `scripts/web_jobs.py` are byte-identical to base. The
+  `web_api.py` diff has no process, signal or shutdown change. The base/HEAD
+  difference is within run-to-run variation (inference, not a significance test).
+- **Fix:** the shared helper `sigkill_own_group` in `tests/test_web_jobs.py`
+  treats EPERM on a test-owned group as nothing left to signal. The cleanup
+  sites in `test_web_parity.py` and `test_web_stack.py` follow the same pattern.
+  `process.wait(timeout=10)` still fails the test if the leader survives.
+  `liveness == 'dead'` assertions still catch a surviving worker.
+- **M:** after the fix, the same stress passed 60/60 executions. The owned suite
+  passed `test_web_jobs` 24/24 (2 opt-in skips) and `test_web_parity` 17/17
+  (1 opt-in skip). `test_web_stack` passed 32/33. S6 still fails on this branch
+  because base lacks main `97ebce6`. With main's file overlaid, the static group
+  passed 10/10. `cargo test --locked -j 1` reported 27 passed and 1 ignored.

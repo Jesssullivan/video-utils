@@ -179,8 +179,8 @@ class Env:
             if process.poll() is None:
                 try:
                     os.killpg(process.pid, signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
+                except (ProcessLookupError, PermissionError):
+                    pass  # Darwin killpg(2) gives EPERM for an own group whose members are all zombies
             process.wait(timeout=10)
 
 
@@ -1258,7 +1258,7 @@ class EndToEndWalkthrough(unittest.TestCase):
                 except subprocess.TimeoutExpired:
                     pass
                 finally:
-                    with contextlib.suppress(ProcessLookupError):
+                    with contextlib.suppress(ProcessLookupError, PermissionError):  # Darwin zombie-only group
                         os.killpg(proc.pid, signal.SIGKILL)
                     proc.wait(timeout=10)
                 if target.is_file() and target.stat().st_size > 0:
