@@ -1,0 +1,302 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; operator supplied arrangement context",
+  "actor": "/root",
+  "time": "2026-10-06T06:27:09.478480+00:00",
+  "run": "artifacts/experiments/s1-demo-context-20261006T0627",
+  "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+  "manifest_sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+  "accepted_manifest_copy_exact": true,
+  "annotation_id": "e2add83c-3d08-485b-a79f-2d9f0405f025",
+  "revision": 1,
+  "kind": "noise",
+  "basis": "operator_context",
+  "source_span": {
+    "start_seconds": 0,
+    "end_seconds": 5,
+    "extent_known": true
+  },
+  "asserted_mistakes": 0,
+  "audio_processing": false,
+  "accepted_run_writes": false,
+  "mcp_annotation_replay_readback_and_corpus_validation": [
+    {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "protocolVersion": "2025-11-25",
+        "capabilities": {
+          "tools": {
+            "listChanged": false
+          },
+          "prompts": {
+            "listChanged": false
+          }
+        },
+        "serverInfo": {
+          "name": "video-utils",
+          "version": "0.1.0"
+        },
+        "instructions": "Local 9-string guitar tools; use the corresponding skill prompt. Separate measurements, inference and listening acceptance. Preserve intentional ~32 Hz fundamentals."
+      }
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 2,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"schema_version\": 1, \"tool\": \"annotation_v2\", \"status\": \"completed\", \"evidence_kind\": \"structured_supplied_annotation\", \"implementation_status\": \"experimental\", \"instrument_context\": {\"strings\": 9, \"lowest_intentional_fundamental_hz\": 32, \"styles\": [\"deathcore\", \"technical\", \"virtuoso\"], \"preserve_distortion\": true, \"automatic_high_pass\": false}, \"result\": {\"schema_version\": 2, \"source_sha256\": \"a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6\", \"manifest_sha256\": \"61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f\", \"revision\": 1, \"annotations\": [{\"kind\": \"noise\", \"basis\": \"operator_context\", \"status\": \"needs_review\", \"source_span\": {\"start_seconds\": 0, \"end_seconds\": 5, \"extent_known\": true}, \"reported_by\": {\"actor\": \"operator\", \"via\": \"agent\"}, \"operator_certainty\": null, \"operator_quote\": null, \"note\": \"Operator supplied: first five seconds have no metronome; fan noise and minor guitar/amp setup sounds. This is contextual coverage, not a verified pure-noise training interval or detected performance issue.\", \"id\": \"e2add83c-3d08-485b-a79f-2d9f0405f025\", \"candidate_id\": null, \"reference_sha256\": null, \"created_at\": \"2026-10-06T06:26:32.548947+00:00\", \"updated_at\": \"2026-10-06T06:26:32.548947+00:00\", \"created_with\": {\"manifest_sha256\": \"61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f\", \"candidate_artifact_sha256\": null}, \"updated_with\": {\"manifest_sha256\": \"61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f\", \"candidate_artifact_sha256\": null}, \"claim_label\": \"INTENT\", \"musical_verdict\": \"not_established\"}], \"listening_acceptance\": \"not_established\", \"mutation\": {\"outcome\": \"replayed\", \"annotation_id\": \"e2add83c-3d08-485b-a79f-2d9f0405f025\", \"committed_revision\": 1}, \"count\": 1, \"status\": \"annotations_v2_saved\"}, \"limitations\": [\"User-reported issues, detector hypotheses and reference intent remain separate; successful writes do not authenticate authorship or confirm musical mistakes.\", \"Separate v2 store is bounded to200 annotations/512 replay receipts/1MB; limits refuse instead of evicting. Literal replay is evaluated before stale-revision conflict.\", \"Original source seconds include stream offsets; display dwell does not establish phrase extent. No audio processing, server launch, master adoption or native/burned overlay operation.\"], \"skill\": \".agents/skills/guitar-annotation-v2/SKILL.md\"}"
+          }
+        ],
+        "structuredContent": {
+          "schema_version": 1,
+          "tool": "annotation_v2",
+          "status": "completed",
+          "evidence_kind": "structured_supplied_annotation",
+          "implementation_status": "experimental",
+          "instrument_context": {
+            "strings": 9,
+            "lowest_intentional_fundamental_hz": 32,
+            "styles": [
+              "deathcore",
+              "technical",
+              "virtuoso"
+            ],
+            "preserve_distortion": true,
+            "automatic_high_pass": false
+          },
+          "result": {
+            "schema_version": 2,
+            "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+            "manifest_sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+            "revision": 1,
+            "annotations": [
+              {
+                "kind": "noise",
+                "basis": "operator_context",
+                "status": "needs_review",
+                "source_span": {
+                  "start_seconds": 0,
+                  "end_seconds": 5,
+                  "extent_known": true
+                },
+                "reported_by": {
+                  "actor": "operator",
+                  "via": "agent"
+                },
+                "operator_certainty": null,
+                "operator_quote": null,
+                "note": "Operator supplied: first five seconds have no metronome; fan noise and minor guitar/amp setup sounds. This is contextual coverage, not a verified pure-noise training interval or detected performance issue.",
+                "id": "e2add83c-3d08-485b-a79f-2d9f0405f025",
+                "candidate_id": null,
+                "reference_sha256": null,
+                "created_at": "2026-10-06T06:26:32.548947+00:00",
+                "updated_at": "2026-10-06T06:26:32.548947+00:00",
+                "created_with": {
+                  "manifest_sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+                  "candidate_artifact_sha256": null
+                },
+                "updated_with": {
+                  "manifest_sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+                  "candidate_artifact_sha256": null
+                },
+                "claim_label": "INTENT",
+                "musical_verdict": "not_established"
+              }
+            ],
+            "listening_acceptance": "not_established",
+            "mutation": {
+              "outcome": "replayed",
+              "annotation_id": "e2add83c-3d08-485b-a79f-2d9f0405f025",
+              "committed_revision": 1
+            },
+            "count": 1,
+            "status": "annotations_v2_saved"
+          },
+          "limitations": [
+            "User-reported issues, detector hypotheses and reference intent remain separate; successful writes do not authenticate authorship or confirm musical mistakes.",
+            "Separate v2 store is bounded to200 annotations/512 replay receipts/1MB; limits refuse instead of evicting. Literal replay is evaluated before stale-revision conflict.",
+            "Original source seconds include stream offsets; display dwell does not establish phrase extent. No audio processing, server launch, master adoption or native/burned overlay operation."
+          ],
+          "skill": ".agents/skills/guitar-annotation-v2/SKILL.md"
+        },
+        "isError": false
+      }
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 3,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"schema_version\": 1, \"tool\": \"annotation_v2\", \"status\": \"completed\", \"evidence_kind\": \"structured_supplied_annotation\", \"implementation_status\": \"experimental\", \"instrument_context\": {\"strings\": 9, \"lowest_intentional_fundamental_hz\": 32, \"styles\": [\"deathcore\", \"technical\", \"virtuoso\"], \"preserve_distortion\": true, \"automatic_high_pass\": false}, \"result\": {\"schema_version\": 2, \"source_sha256\": \"a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6\", \"manifest_sha256\": \"61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f\", \"revision\": 1, \"annotations\": [{\"kind\": \"noise\", \"basis\": \"operator_context\", \"status\": \"needs_review\", \"source_span\": {\"start_seconds\": 0, \"end_seconds\": 5, \"extent_known\": true}, \"reported_by\": {\"actor\": \"operator\", \"via\": \"agent\"}, \"operator_certainty\": null, \"operator_quote\": null, \"note\": \"Operator supplied: first five seconds have no metronome; fan noise and minor guitar/amp setup sounds. This is contextual coverage, not a verified pure-noise training interval or detected performance issue.\", \"id\": \"e2add83c-3d08-485b-a79f-2d9f0405f025\", \"candidate_id\": null, \"reference_sha256\": null, \"created_at\": \"2026-10-06T06:26:32.548947+00:00\", \"updated_at\": \"2026-10-06T06:26:32.548947+00:00\", \"created_with\": {\"manifest_sha256\": \"61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f\", \"candidate_artifact_sha256\": null}, \"updated_with\": {\"manifest_sha256\": \"61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f\", \"candidate_artifact_sha256\": null}, \"claim_label\": \"INTENT\", \"musical_verdict\": \"not_established\"}], \"listening_acceptance\": \"not_established\", \"count\": 1, \"status\": \"annotations_v2_loaded\"}, \"limitations\": [\"User-reported issues, detector hypotheses and reference intent remain separate; successful writes do not authenticate authorship or confirm musical mistakes.\", \"Separate v2 store is bounded to200 annotations/512 replay receipts/1MB; limits refuse instead of evicting. Literal replay is evaluated before stale-revision conflict.\", \"Original source seconds include stream offsets; display dwell does not establish phrase extent. No audio processing, server launch, master adoption or native/burned overlay operation.\"], \"skill\": \".agents/skills/guitar-annotation-v2/SKILL.md\"}"
+          }
+        ],
+        "structuredContent": {
+          "schema_version": 1,
+          "tool": "annotation_v2",
+          "status": "completed",
+          "evidence_kind": "structured_supplied_annotation",
+          "implementation_status": "experimental",
+          "instrument_context": {
+            "strings": 9,
+            "lowest_intentional_fundamental_hz": 32,
+            "styles": [
+              "deathcore",
+              "technical",
+              "virtuoso"
+            ],
+            "preserve_distortion": true,
+            "automatic_high_pass": false
+          },
+          "result": {
+            "schema_version": 2,
+            "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+            "manifest_sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+            "revision": 1,
+            "annotations": [
+              {
+                "kind": "noise",
+                "basis": "operator_context",
+                "status": "needs_review",
+                "source_span": {
+                  "start_seconds": 0,
+                  "end_seconds": 5,
+                  "extent_known": true
+                },
+                "reported_by": {
+                  "actor": "operator",
+                  "via": "agent"
+                },
+                "operator_certainty": null,
+                "operator_quote": null,
+                "note": "Operator supplied: first five seconds have no metronome; fan noise and minor guitar/amp setup sounds. This is contextual coverage, not a verified pure-noise training interval or detected performance issue.",
+                "id": "e2add83c-3d08-485b-a79f-2d9f0405f025",
+                "candidate_id": null,
+                "reference_sha256": null,
+                "created_at": "2026-10-06T06:26:32.548947+00:00",
+                "updated_at": "2026-10-06T06:26:32.548947+00:00",
+                "created_with": {
+                  "manifest_sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+                  "candidate_artifact_sha256": null
+                },
+                "updated_with": {
+                  "manifest_sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
+                  "candidate_artifact_sha256": null
+                },
+                "claim_label": "INTENT",
+                "musical_verdict": "not_established"
+              }
+            ],
+            "listening_acceptance": "not_established",
+            "count": 1,
+            "status": "annotations_v2_loaded"
+          },
+          "limitations": [
+            "User-reported issues, detector hypotheses and reference intent remain separate; successful writes do not authenticate authorship or confirm musical mistakes.",
+            "Separate v2 store is bounded to200 annotations/512 replay receipts/1MB; limits refuse instead of evicting. Literal replay is evaluated before stale-revision conflict.",
+            "Original source seconds include stream offsets; display dwell does not establish phrase extent. No audio processing, server launch, master adoption or native/burned overlay operation."
+          ],
+          "skill": ".agents/skills/guitar-annotation-v2/SKILL.md"
+        },
+        "isError": false
+      }
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": 4,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"schema_version\": 1, \"tool\": \"corpus_split\", \"status\": \"completed\", \"evidence_kind\": \"supplied_family_split_metadata_consistency\", \"implementation_status\": \"experimental\", \"instrument_context\": {\"strings\": 9, \"lowest_intentional_fundamental_hz\": 32, \"styles\": [\"deathcore\", \"technical\", \"virtuoso\"], \"preserve_distortion\": true, \"automatic_high_pass\": false}, \"result\": {\"schema_id\": \"video-utils.corpus-split.s1\", \"schema_version\": 1, \"status\": \"split_metadata_validated\", \"corpus_id\": \"demo-s1-context-only\", \"revision\": 1, \"manifest_sha256\": \"7bffb3a969c9c7c42215ce5230d30db676b611ad897f44ed3238ac102abdb636\", \"approval_state\": \"unreviewed\", \"coverage\": \"sparse_or_unknown_no_negative_inference\", \"record_count\": 1, \"group_count\": 1, \"groups\": [{\"group_sha256\": \"78aadf16223a85c1577fc8ba4e8b84319224bc85d07adaa8dd50b348246be3dc\", \"record_ids\": [\"demo-operator-context\"], \"take_family_id\": \"demo-oct5-2026\", \"assigned_split\": null, \"unassigned_record_count\": 1}], \"record_split_counts\": {\"train\": 0, \"validation\": 0, \"test\": 0, \"unassigned\": 1}, \"origin_counts\": {\"real_recording\": 1}, \"selected_annotation_reference_count\": 1, \"unique_selected_annotation_count\": 1, \"absence_denominator\": 0, \"negative_examples_inferred\": 0, \"unlabelled_intervals\": \"unknown_not_negative\", \"source_audio_read\": false, \"ground_truth_established\": false, \"listening_acceptance\": \"not_established\", \"training_performed\": false, \"split_assignment_authored_not_randomized\": true, \"metadata_bytes_read\": 33006, \"contexts\": [], \"assertion_boundary\": \"source_origin_lineage_and_authorship_are_declared_not_authenticated\", \"annotation_semantics\": \"validated_by_existing_schema_owner_not_reclassified\", \"result_mode\": \"summary\"}, \"limitations\": [\"Metadata checks do not authenticate supplied audio identity, take lineage, authorship or musical ground truth.\", \"Split assignments are explicitly authored; unassigned groups stay unassigned. Unlabelled intervals stay unknown with no negative examples or training.\", \"Read-only bounded JSON:500records,1MB/file,16MBtotal,5000selected annotations. MCP summary omits annotation text and reporter identities. Source audio is never read or rehashed.\"], \"skill\": \".agents/skills/guitar-corpus-split/SKILL.md\"}"
+          }
+        ],
+        "structuredContent": {
+          "schema_version": 1,
+          "tool": "corpus_split",
+          "status": "completed",
+          "evidence_kind": "supplied_family_split_metadata_consistency",
+          "implementation_status": "experimental",
+          "instrument_context": {
+            "strings": 9,
+            "lowest_intentional_fundamental_hz": 32,
+            "styles": [
+              "deathcore",
+              "technical",
+              "virtuoso"
+            ],
+            "preserve_distortion": true,
+            "automatic_high_pass": false
+          },
+          "result": {
+            "schema_id": "video-utils.corpus-split.s1",
+            "schema_version": 1,
+            "status": "split_metadata_validated",
+            "corpus_id": "demo-s1-context-only",
+            "revision": 1,
+            "manifest_sha256": "7bffb3a969c9c7c42215ce5230d30db676b611ad897f44ed3238ac102abdb636",
+            "approval_state": "unreviewed",
+            "coverage": "sparse_or_unknown_no_negative_inference",
+            "record_count": 1,
+            "group_count": 1,
+            "groups": [
+              {
+                "group_sha256": "78aadf16223a85c1577fc8ba4e8b84319224bc85d07adaa8dd50b348246be3dc",
+                "record_ids": [
+                  "demo-operator-context"
+                ],
+                "take_family_id": "demo-oct5-2026",
+                "assigned_split": null,
+                "unassigned_record_count": 1
+              }
+            ],
+            "record_split_counts": {
+              "train": 0,
+              "validation": 0,
+              "test": 0,
+              "unassigned": 1
+            },
+            "origin_counts": {
+              "real_recording": 1
+            },
+            "selected_annotation_reference_count": 1,
+            "unique_selected_annotation_count": 1,
+            "absence_denominator": 0,
+            "negative_examples_inferred": 0,
+            "unlabelled_intervals": "unknown_not_negative",
+            "source_audio_read": false,
+            "ground_truth_established": false,
+            "listening_acceptance": "not_established",
+            "training_performed": false,
+            "split_assignment_authored_not_randomized": true,
+            "metadata_bytes_read": 33006,
+            "contexts": [],
+            "assertion_boundary": "source_origin_lineage_and_authorship_are_declared_not_authenticated",
+            "annotation_semantics": "validated_by_existing_schema_owner_not_reclassified",
+            "result_mode": "summary"
+          },
+          "limitations": [
+            "Metadata checks do not authenticate supplied audio identity, take lineage, authorship or musical ground truth.",
+            "Split assignments are explicitly authored; unassigned groups stay unassigned. Unlabelled intervals stay unknown with no negative examples or training.",
+            "Read-only bounded JSON:500records,1MB/file,16MBtotal,5000selected annotations. MCP summary omits annotation text and reporter identities. Source audio is never read or rehashed."
+          ],
+          "skill": ".agents/skills/guitar-corpus-split/SKILL.md"
+        },
+        "isError": false
+      }
+    }
+  ],
+  "creation": "previous same-process real initialized MCP create+replay+read passed, then corpus invalid_origin refused; corrected only corpus origin before current successful readback",
+  "refused_initial_corpus_origin": "operator_recording; corrected to admitted real_recording enum",
+  "corpus_approval": "unreviewed",
+  "split": "unassigned",
+  "artifact_sha256": {
+    "request.json": "f822f7187c8d024426dcef370fa7e21604e95ec7659b0dfaa419290e7ce8b2f5",
+    "corpus.json": "7bffb3a969c9c7c42215ce5230d30db676b611ad897f44ed3238ac102abdb636",
+    "review-annotations-v2.json": "17041cb31476f91409e3c48f6434fcde8874ecd175a221b0f3fe644614d40eca",
+    "manifest.json": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "actor": "/root",
+  "observed_at": "2026-10-06T06:15:48.533280+00:00",
+  "lane": "corpus",
+  "lane_commit": "5667333694446732cce45b681970b2c1a3431b08",
+  "merge_commit": "b80fa6ab506176a58c7eb943071fe028e54d6ea9",
+  "merge_signature": "G",
+  "worker_sha256": "308300de48b0395ecf8e572a54f07abd36d2f8b6764106efc63b222c1ed60a0d",
+  "integrated_test_sha256": "52ec66a4c4de3ffe05bb6550796ff59993f474006c2fe89bd9bac9eabe7ab29f",
+  "root_fixture_adjustment": "Only dummy idempotency key corpus-fixture-0001 -> example-00000001 to avoid gitleaks false positive; no credential or allowlist changed",
+  "post_adjustment_tests": {
+    "count": 37,
+    "passed": 37,
+    "skips": 0,
+    "seconds": 0.807,
+    "annotation_dependency": "live owner worktree; final integrated dependency qualification remains pending"
+  },
+  "staged_secret_scan": "passed",
+  "source_spec_unchanged": true,
+  "publication_pending": true
+}

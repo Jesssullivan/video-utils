@@ -1,22 +1,19 @@
 # video-utils parallel work board
 
-As-of delivery checkpoint: **2026-10-06 05:34 UTC / October 6, 1:34 a.m. EDT**.
-Root's goal began 20:49:34 UTC; scoped delivery is complete, with original planned end
-**2026-10-06 06:49:34 UTC / 2:49:34 a.m. EDT**. Objective/status does not enforce
-this wall-clock horizon. Root owns integration, factual Linear writes and signed
-publication. This repository-local board does not replace the global Lab board.
+Current sprint: **S1, October6 05:57:52→10:57:52UTC (01:57→06:57EDT)**.
+Root owns administrative merges, signed publication and tracker writes. Prior
+ten-hour delivery is complete and retained below as historical evidence.
 
-Authority: operator ten-hour parallel goal; repository AGENTS.md;
+Authority: operator five-hour six-agent sprint; repository AGENTS.md;
 R-HOOK-CONVERGENCE-20261004 / R-N11/R-N12/R-N13, TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`.
 
-Plan: [TEN_HOUR_PLAN.md](../spec/TEN_HOUR_PLAN.md).
-Prompts: [2026-10-05-user-prompts.md](2026-10-05-user-prompts.md).
-Checkpoints: [2026-10-05-goal-checkpoints.md](2026-10-05-goal-checkpoints.md).
+Active plan: [S1](../spec/sprints/20261006-S1.md).
+Exact owners/metrics: [sprint manifest](../../program/sprints/20261006-s1.json).
+Active tracker: [TIN-5563](https://linear.app/tinyland/issue/TIN-5563/s1-five-hour-parallel-core-sprint-annotations-practice-review-and).
 Tracker IDs: [linear.json](../../program/linear.json).
-Active goal: [TIN-5495](https://linear.app/tinyland/issue/TIN-5495/ten-hour-parallel-guitar-toolkit-implementation-goal).
 
-## Current S1 sprint — October 6, 06:02 UTC
+## Current S1 sprint — October 6, 06:29 UTC
 
 New active five-hour goal: **05:57:52→10:57:52UTC (01:57→06:57EDT)**. Prior ten-hour
 delivery remains complete. Six isolated workers run annotations, localreview UI,
@@ -30,6 +27,21 @@ Plan: [S1](../spec/sprints/20261006-S1.md); exact branches/owners/metrics:
 [manifest](../../program/sprints/20261006-s1.json). CheckpointsT+1/+2/+3;
 featurefreezeT+4; finalhour combinedchecks/CI/handoff. Research non-improvement
 is a valid evaluated result, never an automaticdefault/master change.
+
+| Stream | Owner | Branch | State/evidence | Next |
+|---|---|---|---|---|
+| annotations | s1_annotations | sprint/20261006-s1/annotations | Signed root merge;65 owner/legacy passes; explicit clock/FIFO fixes audited | Combined release |
+| review UI | s1_review_ui | sprint/20261006-s1/review_ui | Signed root merge;25 checks; actual Chrome1440/390 and copied demo decode | Combined release |
+| phrases | s1_phrases | sprint/20261006-s1/phrases | Signed root merge;12 synthetic cases, pair4/4,20ms endpoints0/16; research only | Preserve limits; continuous riffs future |
+| low register | s1_low_register | sprint/20261006-s1/low_register | Signed root merge;36 rows independently recomputed; low-band fan collision retained | Preserve experimental exclusions |
+| corpus | s1_corpus | sprint/20261006-s1/corpus | Signed root merge; leakage refusal; actual-demo context-only unassigned metadata validates | Combined typed admission |
+| audit | s1_audit | sprint/20261006-s1/audit | Independent fixes/numeric closure;32-tool and final matrix running | Root merge final audit |
+| integration | root | main | New hook5/5 real MCP checks;147 combined checks pass(2 optional skips); full qualified suite running | Sign/publish; exact hosted CI/readback |
+
+Accepted master and Desktop remain unchanged. New actual-demo annotation is
+operator context0–5s, not a detected mistake or pure-noise assertion. Source
+publication and CI are pending; native AU/editor and future hosted work remain queued.
+
 
 ## Final delivery checkpoint — October 6, 05:34 UTC
 

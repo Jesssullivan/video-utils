@@ -1,0 +1,28 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13",
+  "actor": "/root",
+  "time": "2026-10-06T06:30:26.214446+00:00",
+  "state": "source_frozen_pending_independent32closure_and_combined_tests",
+  "files_sha256": {
+    "scripts/tool_api.py": "9fffb67c4050e0f2d9e60292bd25d68f3d1c297e2b7715ffb03250f433e97bbf",
+    "program/tools.json": "b1b558a6a0e22779471474ea56ed32ad6bea6838370a661162ee68b3a46bbd24",
+    "just/workflow.just": "8b77aa4467bc996ca6c708adc7ade4e79c036ad02111edb672a94f1bed75e1df",
+    "tests/test_s1_tool_admission.py": "da38e3ec9b1b3218a6e3e41ae533b6f06a641181d62bafa10a93a6d07e3cb865",
+    "tests/test_tool_contracts.py": "050ca80de91ae495989f6b9d123337c98398f1330436515029aa614d7195fc46",
+    "tests/test_share_export_tool.py": "dcdf3f9958cdf5c3e618d6566d4eae7b2cff5a7c96d50c2a61dd690e61993729",
+    ".agents/skills/guitar-annotation-v2/SKILL.md": "3af1eb6df17c3587e6f8309c056c16d3ec033422ff95b06445162b100c97aff1",
+    ".agents/skills/guitar-corpus-split/SKILL.md": "1fc99154a308e46a198edec02895a6c4b8ff1e4efdac02436e3649c5bdc2e6e6"
+  },
+  "existing30_exact_catalog_equality": true,
+  "canonical_original30_ensure_ascii_false": "85fa376c6d6a64e8d2c7c332deb27cf14b4b490fb6f7f1c9ed51efb5ee3a06c7",
+  "canonical_original30_ensure_ascii_true": "c13b2f89011e9fe862728d0e105b18945652d2fac3de36286971ecf686ca64aa",
+  "new_tools": [
+    "annotation_v2",
+    "corpus_split"
+  ],
+  "root_test_outcome": "5 real MCP/path/schema regression checks PASS;147 affected checks PASS2optional missingmedia skips",
+  "quick_validate": "unavailable: PyYAML absent in system/.venv; no install; own repo skill links/frontmatter/exact initialized MCP prompt qualification substitutes",
+  "recipe_dryrun": "all3 unicode/space recipes preserve individual quotedarguments",
+  "default_dsp_and_detector": "unchanged",
+  "scope": "32 source tools only after admission; research helpers not advertised"
+}

@@ -1,0 +1,45 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13",
+  "actor": "/root",
+  "time": "2026-10-06T06:25:41.164935+00:00",
+  "branches": [
+    {
+      "lane": "corpus",
+      "branch": "sprint/20261006-s1/corpus",
+      "commit": "5667333694446732cce45b681970b2c1a3431b08",
+      "signature": "G"
+    },
+    {
+      "lane": "phrases",
+      "branch": "sprint/20261006-s1/phrases",
+      "commit": "6dbd756625afab3d9b0380a8817436f0f20d8d27",
+      "signature": "G"
+    },
+    {
+      "lane": "annotations",
+      "branch": "sprint/20261006-s1/annotations",
+      "commit": "dad10a4207b2099eb73b7a73bab0bd8947623dde",
+      "signature": "G"
+    },
+    {
+      "lane": "review_ui",
+      "branch": "sprint/20261006-s1/review_ui",
+      "commit": "ea910543361f6b667e919cce588a5511b536034d",
+      "signature": "G"
+    },
+    {
+      "lane": "low_register",
+      "branch": "sprint/20261006-s1/low_register",
+      "commit": "44048b7488b396565bae3829beaff54bb27d5efd",
+      "signature": "G"
+    }
+  ],
+  "main_head": "3266b1d2123baabd0734da5004746ad229c4e9f0",
+  "state": "five_lanes_merged_source_not_yet_published",
+  "annotation_report_expansion": "two default-legacy bounded-provider injection signatures root authorized",
+  "original_tool_count": 30,
+  "draft_new_tool_count": 2,
+  "admission_tests": "5 passed; real initialized MCP and exact ancestor symlink refusal",
+  "protected_media": "no writes; final hash verification pending",
+  "borrowed_ui_scripts": "excluded from UI commit"
+}

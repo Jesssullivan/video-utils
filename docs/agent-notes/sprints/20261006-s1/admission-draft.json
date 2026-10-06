@@ -1,0 +1,11 @@
+{
+  "status": "draft_admission_source_pending_worker_merges_and_qualification",
+  "original30_canonical_sha256": "c13b2f89011e9fe862728d0e105b18945652d2fac3de36286971ecf686ca64aa",
+  "catalog_count": 32,
+  "new_tools": [
+    "annotation_v2",
+    "corpus_split"
+  ],
+  "generic_supervisor_unchanged": true,
+  "implementation_source_absent_until_root_admin_merge": true
+}

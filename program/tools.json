@@ -2317,6 +2317,140 @@
         "acceptance": "Verified delivery structure is separate from listening, visual quality, native master preservation and adoption.",
         "max_comparison_candidates_default": 3
       }
+    },
+    {
+      "name": "annotation_v2",
+      "title": "Structured practice annotations",
+      "description": "Read or save separate version2 guitar practice annotations. Records retain source/manifest identity, issue kind, assertion basis, reported attribution and uncertainty. Literal same-key retries are replayed; changed-key content and stale revisions conflict. No audio processing, server or video render; original version1 annotations remain intact.",
+      "intent": "Read or save explicit source-bound structured user practice issues with revision and literal-request replay handling.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Local artifact directory. Analysis files here may be replaced on rerun; choose a new directory for comparisons."
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "read",
+              "write"
+            ],
+            "default": "read"
+          },
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing regular JSON request<=20000bytes, required only for write. Closed v2 body carries source/manifest SHA256, revision, idempotency key and structured annotation. Worker validates basis, point/known span, attribution and uncertainty."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 60,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-annotation-v2/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "structured_supplied_annotation",
+      "limitations": [
+        "User-reported issues, detector hypotheses and reference intent remain separate; successful writes do not authenticate authorship or confirm musical mistakes.",
+        "Separate v2 store is bounded to200 annotations/512 replay receipts/1MB; limits refuse instead of evicting. Literal replay is evaluated before stale-revision conflict.",
+        "Original source seconds include stream offsets; display dwell does not establish phrase extent. No audio processing, server launch, master adoption or native/burned overlay operation."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "review",
+          "pipeline"
+        ],
+        "enforced": false,
+        "note": "Discovery guidance; worker-specific source binding and reference checks apply."
+      },
+      "agent_workflow": {
+        "identify": "Read the skill prompt and inspect evidence; confirm operator intent and distinguish observations from inferences.",
+        "research": "Use primary library or paper documentation when choosing analysis settings; record links, licenses, and music-specific limitations locally.",
+        "iterate": "Change one supported knob at a time, choose fresh run directories for comparisons, compare measurements and audition/residue, and preserve unknowns.",
+        "acceptance": "Measurements and successful execution do not establish listening, musical-phrase or intended-note acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "corpus_split",
+      "title": "Take-family corpus split validation",
+      "description": "Validate closed source-family corpus metadata and source-bound v1/v2 annotation receipts. Refuse shared family/source/artifact/parent/augmentation groups across assigned splits. Compact summary after full metadata validation; no audio, model, training or write.",
+      "intent": "Validate explicit take-family and derivation components against authored held-out splits, retaining sparse labels and unknown coverage.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "manifest": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local corpus manifest inside the selected root; unsafe or symlink components are rejected before normalization can hide them."
+          },
+          "local_root": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Optional existing local metadata boundary; defaults to this repository. Manifest and all referenced regular metadata must remain inside it. This does not grant audio or network access."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Hard worker/process-group deadline in seconds; independent of client timeout."
+          }
+        },
+        "required": [
+          "manifest"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-corpus-split/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "supplied_family_split_metadata_consistency",
+      "limitations": [
+        "Metadata checks do not authenticate supplied audio identity, take lineage, authorship or musical ground truth.",
+        "Split assignments are explicitly authored; unassigned groups stay unassigned. Unlabelled intervals stay unknown with no negative examples or training.",
+        "Read-only bounded JSON:500records,1MB/file,16MBtotal,5000selected annotations. MCP summary omits annotation text and reporter identities. Source audio is never read or rehashed."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "corpus",
+          "annotation_v2"
+        ],
+        "enforced": false,
+        "note": "Explicit existing authored corpus and review-store metadata are required; this tool does not create annotations or corpus labels."
+      },
+      "agent_workflow": {
+        "identify": "Inspect authored corpus scope, explicit origins, source units, sparse spans, reviewer attribution, revisions and receipt hashes; do not infer labels from audio or missing spans.",
+        "research": "Read the repository corpus schema and primary annotation/evaluation guidance; record uncertainty and separate assertions from checked metadata facts.",
+        "iterate": "Correct an explicitly authored metadata inconsistency only within operator scope, rerun bounded validation, and compare receipt hashes; never auto-label or silently refresh a stale annotation.",
+        "acceptance": "Metadata consistency and successful execution do not establish listening, reviewer authenticity, musical correctness, ground truth or real-take labels.",
+        "max_comparison_candidates_default": 3
+      }
     }
   ]
 }

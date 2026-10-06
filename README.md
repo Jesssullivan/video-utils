@@ -193,11 +193,27 @@ spotify-basic-pitch-0.4.0-onnx`, then `just basic-pitch-runtime-setup /path/to/p
 and `just basic-pitch-runtime-check`. See [runtime qualification](docs/research/BASIC_PITCH_QUALIFICATION.md).
 
 The repository includes a versioned tool contract, a local MCP stdio server,
-and thirty per-tool skills for researching and tuning restoration, analysis, comparison, and review.
+and thirty-two per-tool skills for researching and tuning restoration, analysis, comparison, and review.
 Inspect `just tool-info NAME` or launch
 `just mcp` from the repository root. Local invocation is
 separate from connecting an external agent client; see
 [agent tools](docs/spec/AGENT_TOOLS.md).
+
+Structured practice reports use `just annotations-v2 RUN_DIR` and
+`just annotate-v2 RUN_DIR REQUEST_JSON`, or the `annotation_v2` MCP tool. The
+separate version2 store records source-timed points/spans, issue kind, authorship,
+revision and safe retries. User reports, supplied intent and detector hypotheses
+remain distinct. The local review player offers issue badges, keyboard seeking
+and loops within the selected media's actual coverage; these badges are playback
+UI, not newly burned video overlays. See the [annotation contract](docs/spec/sprints/ANNOTATIONS_S1.md)
+and [practice UI](docs/spec/sprints/REVIEW_UI_S1.md).
+
+`just corpus-split MANIFEST LOCAL_ROOT` validates metadata-only training/validation/
+test grouping without reading audio or assigning unknown labels. Derivatives of
+one take cannot leak across assigned splits. Validation preserves sparse coverage
+and unreviewed data; it does not establish musical ground truth or train a model.
+The [five-hour sprint](docs/spec/sprints/20261006-S1.md) records owners, measurements
+and release gates, including experimental phrase and low-register limitations.
 
 The processing graph follows denoise → click/BPM → tonic/mode and repeated-phrase
 candidates → recurrence comparison → timestamp/span review flags. The user's

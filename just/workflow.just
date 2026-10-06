@@ -207,3 +207,14 @@ marked-arrangement run_dir output arrangement_markers:
 # Convert a source-bound assessment into a fresh same-run marker JSON.
 arrangement-markers run_dir assessment output:
     python3 scripts/arrangement_markers.py {{quote(run_dir)}} --assessment {{quote(assessment)}} --output {{quote(output)}}
+
+# Separate structured user issues; legacy review annotations are retained.
+annotations-v2 run_dir:
+    python3 scripts/annotation_v2.py read {{quote(run_dir)}}
+
+annotate-v2 run_dir request:
+    python3 scripts/annotation_v2.py write {{quote(run_dir)}} --input {{quote(request)}}
+
+# Read-only authored take-family split validation; no automatic data assignment.
+corpus-split manifest local_root=".":
+    python3 scripts/corpus_split_s1.py validate {{quote(manifest)}} --root {{quote(local_root)}} --summary

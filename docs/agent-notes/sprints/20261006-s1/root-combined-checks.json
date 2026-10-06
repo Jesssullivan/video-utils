@@ -1,0 +1,22 @@
+{
+  "authority": "R-HOOK-CONVERGENCE-20261004/R-N13",
+  "actor": "/root",
+  "time": "2026-10-06T06:32:31.666467+00:00",
+  "session_id": 64264,
+  "terminal_exit_code": 0,
+  "start_utc": "2026-10-06T06:28:00.139071+00:00",
+  "end_utc": "2026-10-06T06:32:10.361958+00:00",
+  "discovered": 1014,
+  "passed": 1013,
+  "skipped": 1,
+  "failures": 0,
+  "errors": 0,
+  "suite_seconds": 248.5,
+  "command": ".venv/bin/python -m unittest discover -s tests -p test_*.py -v",
+  "environment": "qualified pinned FFmpeg/FFprobe8.1.2, .venv Python3.14.6, numerical threads2",
+  "log": "artifacts/sprint1/root-combined-tests.log",
+  "log_sha256": "394290be72b9935bfd0831016eded62ae77cd921395a26bc88398f04cebfb0f7",
+  "scope": "all implemented product/research source at run start; independent final30 audit cases passed separately; hostedCI will include merged audit suite",
+  "doctor_require_media": "PASS with same qualified media/.venv environment; plain host PATH lacksFFmpeg and is not claimed",
+  "root_admission_freeze": "root-admission-freeze.json"
+}

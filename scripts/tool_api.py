@@ -243,6 +243,47 @@ def corpus_worker_paths(args):
     return str(path), str(root)
 
 
+def annotation_v2_paths(args):
+    """Preserve exact components before opening source-bound metadata."""
+    selected = {}
+    for field in ('run_dir', 'input'):
+        if field not in args:
+            continue
+        value = args[field]
+        if ('\x00' in value or ':' in value or '\\' in value or '..' in value.split('/')):
+            raise ValidationError('annotation paths require exact local components')
+        try:
+            original = Path(value).expanduser().absolute()
+        except (OSError, RuntimeError) as error:
+            raise ToolError('annotation path is unavailable') from error
+        current = Path(original.anchor)
+        for part in original.parts[1:]:
+            current = current / part
+            if current.is_symlink():
+                raise ToolError('annotation paths cannot contain symlink components')
+        if field == 'run_dir':
+            if not original.is_dir():
+                raise ToolError('annotation run_dir must be an existing directory')
+        elif not original.is_file() or original.stat().st_size > 20000:
+            raise ToolError('annotation request must be a regular JSON file<=20000bytes')
+        selected[field] = str(original)
+    return selected
+
+
+def corpus_split_paths(args):
+    """Check every supplied ancestor before legacy corpus normalization."""
+    for value in (args['manifest'], args.get('local_root', str(ROOT))):
+        if ('\x00' in value or ':' in value or '\\' in value or '..' in value.split('/')):
+            raise ValidationError('corpus split paths require exact local components')
+        original = Path(value).expanduser().absolute()
+        current = Path(original.anchor)
+        for part in original.parts[1:]:
+            current = current / part
+            if current.is_symlink():
+                raise ToolError('corpus split paths cannot contain symlink components')
+    return corpus_worker_paths(args)
+
+
 def calibration_path(value, *, output=False, max_bytes=None):
     """Exact safe local index/output paths under the repository benchmark root."""
     try:
@@ -454,7 +495,7 @@ def validate_tool_arguments(name, args):
             if ('\x00' in value or '\\' in value or ':' in value
                     or any(part.startswith('.') or '.partial' in part for part in value.split('/') if part)):
                 raise ValidationError('arrangement inputs require exact safe local paths')
-    if name == 'review':
+    if name in {'review', 'annotation_v2'}:
         operation = args.get('operation', 'read')
         if operation == 'read' and 'input' in args:
             raise ValidationError('review input is accepted only for operation write')
@@ -485,7 +526,7 @@ def validate_tool_arguments(name, args):
             raise ValidationError('editor marker selection/profile input roles must be distinct')
         if '\\' in args['run_dir'] or '..' in args['run_dir'].split('/'):
             raise ValidationError('editor marker run_dir cannot contain traversal components')
-    if name == 'corpus' and any(part == '..' for part in args['manifest'].split('/')):
+    if name in {'corpus', 'corpus_split'} and any(part == '..' for part in args['manifest'].split('/')):
         raise ValidationError('corpus manifest cannot contain traversal components')
     if name in {'marked_video', 'basic_pitch_compare'}:
         for field in (('run_dir', 'output') if name == 'marked_video' else ('run_dir',)):
@@ -524,7 +565,16 @@ def worker_command(name, args):
             or args.get('phrase_backend') == 'librosa'):
         interpreter = os.environ.get('VIDEO_UTILS_ANALYSIS_PYTHON', interpreter)
     head = [interpreter]
-    source = local_path(args['input'], must_exist=True) if 'input' in args and name != 'capture_profile' else None
+    source = local_path(args['input'], must_exist=True) if 'input' in args and name not in {'capture_profile', 'annotation_v2'} else None
+    if name == 'annotation_v2':
+        selected = annotation_v2_paths(args)
+        command = head + [str(ROOT / 'scripts/annotation_v2.py'), args.get('operation', 'read'), selected['run_dir']]
+        if args.get('operation', 'read') == 'write':
+            command += ['--input', selected['input']]
+        return command
+    if name == 'corpus_split':
+        manifest, boundary = corpus_split_paths(args)
+        return head + [str(ROOT / 'scripts/corpus_split_s1.py'), 'validate', manifest, '--root', boundary, '--summary']
     if name == 'share_export':
         original, output = share_export_paths(args)
         command = head + [str(ROOT / 'scripts/share_export.py'), original, output]
