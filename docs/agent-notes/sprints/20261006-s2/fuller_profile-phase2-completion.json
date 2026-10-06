@@ -1,0 +1,143 @@
+{
+  "accepted_audio_identity": "byte_identical",
+  "agent": "workflow-A/fuller_profile (claude-opus-5-5)",
+  "authority": "S2 lane contract relayed by root; R-HOOK-CONVERGENCE-20261004 / R-N11 / R-N12 / R-N13",
+  "capture_click_status": "unknown",
+  "capture_music_status": "unknown",
+  "capture_noise_only_verified": false,
+  "composite_listening_review": "not_performed",
+  "composite_visual_review_performed": false,
+  "contract_freeze_commit": "b4e01969bc56029370ccdac16b9b85e1fb78eed4",
+  "daemons_started": false,
+  "default_profile_changed_by_lane": false,
+  "fundamental_32hz_restoration_claimed": false,
+  "gitignored_outputs": [
+    "artifacts/s2/fuller_profile/repro-A1",
+    "artifacts/s2/fuller_profile/A2-marked-compact"
+  ],
+  "lane": "fuller_profile",
+  "latest_promoted": false,
+  "linear": "TIN-5600",
+  "linear_written": false,
+  "listening_acceptance": "accepted_fuller_v1_by_operator_2026-10-06 (A1/A2 audio branch only, by the identical-chain rule; no new listening)",
+  "markers_are_analysis_of_audio_branch": false,
+  "markers_are_analysis_of_audio_branch_basis": "A2: preview analyzed NR10 denoised cb8a3fa5..., FULLER denoised is 26c9f42c...",
+  "master_adopted": false,
+  "measured_vs_inferred_vs_unknown": {
+    "inferred": [
+      "Byte identity across A1 implies the FULLER template reproduces the accepted render on this host/FFmpeg 8.1.2; other hosts or FFmpeg builds are not covered"
+    ],
+    "measured": [
+      "Filter-text identity and WAV/MOV byte identity against frozen hashes",
+      "Packet, clock and decoded-PCM identity in A2 and fixtures",
+      "Fixture C1 component through the denoiser (synthetic)",
+      "Protected file hashes before/after"
+    ],
+    "unknown_or_not_performed": [
+      "Capture 4.10-4.95 s noise-only status (music/clicks unknown)",
+      "Physical A/V sync",
+      "Tone suitability on other takes",
+      "Composite visual and listening review",
+      "Note correctness and performance issues",
+      "Native editor import"
+    ]
+  },
+  "metrics": {
+    "M1_control_fidelity": "19/19",
+    "M2_filter_graph_identity": {
+      "L_P_N": "3/3",
+      "fixture_C_matches_template": "1/1",
+      "fixture_delay_samples": 1102,
+      "template_at_accepted_equals_C": "1/1"
+    },
+    "M3a_pre_merge_refusals": {
+      "classes": "4/4",
+      "residual_run_or_staging_dirs": 0
+    },
+    "M3b_typed_refusals": {
+      "cli_cases": "8/8",
+      "scope": "lane scratch tree with RQ-M1 diff applied; root integration must repeat with 0 skips",
+      "skipped": 0
+    },
+    "M4_low_end_guard": {
+      "bound": 0.198,
+      "claim_class": "synthetic measurement only; not a real-take, 32 Hz restoration or listening claim",
+      "fixture_c1_component_denoised": 0.2189863842075304,
+      "fixture_c1_component_source": 0.21898844137892826,
+      "forbidden_stages": 0
+    },
+    "M5_marked_compact_synthetic": {
+      "chain_identity_cases": "4/4",
+      "compose": "1/1",
+      "decoded_pcm_equal": "1/1",
+      "parents_unchanged": true,
+      "real_refusals_typed": "3/3",
+      "unit_refusal_reasons_typed": "6/6 gate reasons plus output_invalid and packet_identity_failed",
+      "video_and_aac_packets": "k/k and m/m"
+    },
+    "M6_A1": {
+      "elapsed_seconds": 462.45012612499704,
+      "primary_pass": true,
+      "timeout_seconds": 600,
+      "wav_byte_identity": "6/6"
+    },
+    "M7_A2": {
+      "aac_packets": "6503/6503",
+      "elapsed_seconds": 163.39703404100146,
+      "output_byte_identical_to_4538573a": true,
+      "primary_pass": true,
+      "video_packets": "3621/3621"
+    },
+    "M8_protection": {
+      "A1_protected_unchanged": true,
+      "A2_protected_unchanged": true,
+      "breakdown": "13 accepted run, 4 compact parent, 1 marker, 2 accepted compact, 1 Desktop",
+      "conservative3_default_unchanged": true,
+      "lane_diff_owned_files_only": true,
+      "protected_before_matches_freeze": true,
+      "protected_files": 21
+    },
+    "M9_claim_hygiene": {
+      "accepted_label_occurrences": "A1 (identical chain, 6/6 bytes) and A2 audio branch only",
+      "new_listening_claims": 0
+    }
+  },
+  "models_downloaded": false,
+  "native_editor_import_verified": false,
+  "note_correctness_assessed": false,
+  "owned_file_sha256": {
+    "profiles/fuller.json": "33da74c7d1bda246b6349252e4374d3674e76356dd85d72a83b1389988d04a5c",
+    "scripts/marked_compact.py": "30ceb424108663d3ee3a0b017e8ee5b04fc211b7e883f440dd73f8030bf9acd1",
+    "tests/test_fuller_profile.py": "dceb2664e43358c0aa42bba5c19b38de7db6cbdf72cef8c4bffe7d9df0dc19bc",
+    "tests/test_marked_compact.py": "ed5799fd921dcab57701b8f9bb41ebe55e19021ab7cd72712ff33f1b4176440a"
+  },
+  "per_passage_level_matched": false,
+  "performance_issue_confirmed": false,
+  "phase": "2_implement",
+  "physical_audio_video_sync_verified": false,
+  "pushed_or_merged": false,
+  "receipts": {
+    "A1": "docs/agent-notes/sprints/20261006-s2/fuller_profile-A1.json",
+    "A2": "docs/agent-notes/sprints/20261006-s2/fuller_profile-A2.json",
+    "root_requests": "docs/agent-notes/sprints/20261006-s2/fuller_profile-root-requests.json"
+  },
+  "recorded_utc": "2026-10-06T12:33:53.949587+00:00",
+  "root_owned_files_modified": false,
+  "schema_version": 1,
+  "sealed_predictions_outcome": {
+    "A1_primary": "held",
+    "A1_secondary": "held (6/6)",
+    "A2_primary": "held",
+    "A2_secondary": "held (byte-identical)"
+  },
+  "spec": "docs/spec/sprints/FULLER_S2.md",
+  "sprint": "20261006-s2",
+  "tests_run_by_lane": {
+    "scratch patched-tree regressions": "see fuller_profile-root-requests.json per request",
+    "test_fuller_profile (lane tree, pre-merge)": "13 run, 10 pass, 3 skipped (requires root RQ-M1)",
+    "test_fuller_profile (scratch tree with RQ-M1 applied)": "13 run, 13 pass, 0 skipped",
+    "test_marked_compact": "17 run, 17 pass, 0 skipped",
+    "test_media.ProfileTests + test_arrangement_markers (regression, read-only)": "15 run, 15 pass"
+  },
+  "tone_suitability_other_takes": "unknown"
+}

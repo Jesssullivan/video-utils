@@ -404,3 +404,74 @@ and no held-out set. Fixture seeds and signals are frozen in section 6.
   `docs/agent-notes/sprints/20261006-s2/fuller_profile-A1.json` and
   `-A2.json`, with protected hashes recorded before and after. A1 and A2 run
   one at a time and never concurrently.
+
+## 10. Phase 2 implementation record (additive; sections 1-9 stay frozen)
+
+Recorded 2026-10-06 by the lane. Receipts:
+`docs/agent-notes/sprints/20261006-s2/fuller_profile-A1.json`, `-A2.json`,
+`-root-requests.json` and `-phase2-completion.json`.
+
+### 10.1 Results against section 7
+
+| ID | Result | Claim class |
+| --- | --- | --- |
+| M1 | 19/19 controls equal by value and Python type | static measurement |
+| M2 | L, P, N 3/3 byte-equal; T(accepted) == C 1/1; fixture C_f == T(8820, 46305, 132437, 44100, 1102) 1/1 | fixture measurement |
+| M3a | 4/4 pre-merge refusal classes; 0 residual run or staging directories | fixture measurement |
+| M3b | 8/8 CLI cases with exact `reason`, 0 skipped, **in a lane scratch tree with the RQ-M1 diff applied**; root must repeat in integration | fixture measurement (prototype; root-run pending) |
+| M4 | 0 forbidden stages; fixture denoised C1 component 0.21899 vs source 0.21899 (bound 0.198) | synthetic measurement only |
+| M5 | 1/1 compose with k/k video and m/m AAC packets, decoded PCM equal, parents unchanged; real refusals 3/3 typed; chain_identity 4/4 | fixture measurement |
+| M6 | A1 primary pass (C, L, P, N byte-equal; samples [180810, 218295); delay 1102); WAV byte identity 6/6 | real-take measurement; no listening |
+| M7 | A2 pass: video 3621/3621, AAC 6503/6503; output SHA equals `4538573a...` (byte-identical) | real-take measurement |
+| M8 | 21/21 protected files unchanged before/after A1 and A2 (13 accepted run, 4 compact parent, 1 marker, 2 accepted compact, 1 Desktop); lane commits touch only owned files; conservative3 default unchanged | integrity measurement |
+| M9 | 0 new listening claims. The accepted label appears only on the identical chain with byte-identical audio (A1 run, A2 audio branch) | review |
+
+Both sealed predictions held, including the two secondaries (6/6 WAV identity
+and the byte-identical compact). A1 used 462 s of its 600 s bound, so the
+bound is tight for a 151 s take on this host.
+
+### 10.2 Implementation choices and tightenings (no frozen predicate loosened)
+
+1. `listening_acceptance` additionally requires `export/cleaned-video.mov`
+   to equal the accepted export `91b2f436...` whenever the export hash is
+   evaluated. The acceptance receipt names that file. A mismatch yields
+   `not_performed` with reason `chain_identical_export_differs`.
+2. marked_compact adds a catch-all reason, `internal_error`, for unexpected
+   exceptions, so no failure is mislabelled with a typed reason.
+3. The marked_compact gate order is: export, then preview status, then the
+   marker selector and revalidation, then the preview input hashes. An edited
+   marker file therefore reports `arrangement_markers_mismatch` and not
+   `preview_unverified`.
+4. Protected inputs include every top-level file of RUN_DIR and RUN_DIR/export,
+   the preview outputs and outcome, every preview `input_sha256` entry, the
+   marker tracking set and `artifacts/latest.json` when present.
+5. Chain helpers (`capture_template`, `extract_chain`, `chain_identity`) live in
+   `scripts/marked_compact.py`, so tests and receipts share one definition.
+   `capture_template` builds T from the section 2 formula; tests prove it
+   reproduces the accepted C byte for byte.
+6. The RQ-M1 prototype runs `capture_review_required`, `capture_interval_invalid`
+   and `capture_interval_conflict` before source hashing. That is stricter than
+   "before decode". `bind_capture` drops `noise_capture_required` from the
+   bound profile, so manifests match the materialized pre-merge path.
+
+### 10.3 Consequences root must weigh
+
+- **Editing the `denoise` descriptor in `program/tools.json` (MCP passthrough)**
+  breaks `test_sprint1_audit.AdmissionCompatibilityAudit.test_original_thirty_descriptors_remain_exact`,
+  which pins the hash of the first 30 descriptors. The request is therefore
+  split. RQ-M1 (media.py) and RQ-J1 (run_demo/just) do not touch the pin.
+  RQ-M1b (tools.json plus tool_api denoise passthrough) needs root to rebase
+  that pin, or to defer the MCP path.
+- **Any media.py edit changes its SHA.** `apply_capture_profile.validate`
+  requires the authored receipt's `validator_sha256` to equal the current
+  media.py, so earlier authored capture receipts (captured8/NR8/NR10/FULLER
+  authoring) can no longer be re-applied through that worker after RQ-M1. Root
+  can still re-author them. The FULLER template plus `--capture-interval` is
+  the replacement path, and A1 shows it reproduces the accepted bytes.
+- **RQ-M2 (default flip).** A default `clean INPUT` with no interval refuses
+  with `capture_interval_required`. `just clean` passes its own
+  `profile="conservative3"` default, so the recipe default only changes if
+  root edits it too. Flipping `tool_api` without RQ-M1b leaves MCP `denoise`
+  unable to supply an interval. The lane test
+  `test_conservative3_unchanged_loadable_and_still_default` asserts the lane
+  state, and the exact replacement for a flip is in the root-requests receipt.
