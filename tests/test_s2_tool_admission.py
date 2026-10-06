@@ -1,4 +1,4 @@
-"""S2 admission: freeze the first 32 and 36 descriptors and exercise six new typed hooks.
+"""S2 admission: freeze the first 32, 36 and 38 descriptors and exercise seven new typed hooks.
 
 Synthetic metadata only. Outputs go beneath a patched temporary artifacts/
 boundary; no recording, accepted run or repository artifact is read or written.
@@ -32,6 +32,9 @@ FROZEN_ASCII_SHA256 = '358ce0aeba9214076d64fcc69ee9554cdd048d2001304dc897bf7f38b
 # Second freeze (root_admission_c): tools[:36] as merged at main 736f406, same two serializers.
 FROZEN_36_SHA256 = '82bdb7478deb8dc5859c33e7c2ca017c582cc54fc4dfaf85d858a6b5a77073ba'
 FROZEN_36_ASCII_SHA256 = '51dd154f28079f178979a6add85bf9d2d8fcf4cc2f8d0fefec7061ab16749d31'
+# Third freeze (root_admission_d): tools[:38] as merged at main 0cdca01, same two serializers.
+FROZEN_38_SHA256 = '4005da2b6960de2b973078b272b678e9b995a8bb755888960944cfc8e2e187c5'
+FROZEN_38_ASCII_SHA256 = 'f079cffc30d6c2b19a6dab746fe76915642fef8a77bf3d9add4899a78f3eac54'
 NEW = {
     'editor_marker_export': ('editor-marker-export', False, False,
                              {'run_dir', 'selection', 'profile', 'format'}, 120),
@@ -47,6 +50,11 @@ NEW_C = {
                        600, 'MCP tool `marked_compact`'),
     'phrase_timing': ('guitar-phrase-timing', True, False, {'analysis', 'phrases', 'output_root'}, 300,
                       'Hook `phrase_timing`'),
+}
+# Admitted by root_admission_d (same tuple shape as NEW_C).
+NEW_D = {
+    'tone_ab': ('guitar-tone-ab', False, False, {'run_dir', 'common_region_start', 'common_region_end'}, 1800,
+                'Hook `tone_ab`'),
 }
 SHA = 'a' * 64
 
@@ -65,14 +73,16 @@ class S2ToolAdmissionTests(unittest.TestCase):
     # ----- registry freeze and descriptors ---------------------------------
     def test_first_32_descriptors_frozen_and_four_appended(self):
         tools = tool_api.descriptors()
-        self.assertEqual(len(tools), 38)
+        self.assertEqual(len(tools), 39)
         self.assertEqual(tuple(tool['name'] for tool in tools[:32]), FROZEN_NAMES)
         for count, ascii_only, expected in ((32, False, FROZEN_SHA256), (32, True, FROZEN_ASCII_SHA256),
-                                            (36, False, FROZEN_36_SHA256), (36, True, FROZEN_36_ASCII_SHA256)):
+                                            (36, False, FROZEN_36_SHA256), (36, True, FROZEN_36_ASCII_SHA256),
+                                            (38, False, FROZEN_38_SHA256), (38, True, FROZEN_38_ASCII_SHA256)):
             data = json.dumps(tools[:count], sort_keys=True, separators=(',', ':'), ensure_ascii=ascii_only)
             self.assertEqual(hashlib.sha256(data.encode()).hexdigest(), expected)
         self.assertEqual([tool['name'] for tool in tools[32:36]], list(NEW))
-        self.assertEqual([tool['name'] for tool in tools[36:]], list(NEW_C))
+        self.assertEqual([tool['name'] for tool in tools[36:38]], list(NEW_C))
+        self.assertEqual([tool['name'] for tool in tools[38:]], list(NEW_D))
         raw = (ROOT / 'program/tools.json').read_text(encoding='utf-8')
         self.assertEqual(json.dumps(json.loads(raw), indent=2) + '\n', raw)
 
@@ -493,19 +503,140 @@ class S2ToolAdmissionTests(unittest.TestCase):
                                                'output_root': str(self.artifacts / 'stale-out')})
         self.assertFalse((self.artifacts / 'stale-out').exists())
 
+    # ----- root_admission_d: tone_ab -------------------------------------------
+    def test_admission_d_tone_ab_descriptor_equals_lane_draft_and_skill_admitted(self):
+        draft = json.loads((ROOT / 'docs/agent-notes/sprints/20261006-s2/tone_ab-tool-descriptor.json')
+                           .read_text(encoding='utf-8'))
+        self.assertEqual(tool_api.descriptor('tone_ab'), draft)
+        described = subprocess.run([sys.executable, str(ROOT / 'scripts/tone_ab.py'), 'describe'], cwd=ROOT,
+                                   capture_output=True, text=True, timeout=60, check=True)
+        self.assertEqual(json.loads(described.stdout), draft)
+        for name, (prompt, read_only, idempotent, required, ceiling, hook) in NEW_D.items():
+            with self.subTest(name=name):
+                info = tool_api.descriptor(name)
+                schema = info['inputSchema']
+                tool_api.validate_schema(schema)
+                self.assertIs(schema['additionalProperties'], False)
+                self.assertEqual(set(schema['required']), required)
+                self.assertNotIn('output', ' '.join(schema['properties']))
+                timeout = schema['properties']['timeout_seconds']
+                self.assertEqual((timeout['type'], timeout['minimum'], timeout['maximum'], timeout['default']),
+                                 ('integer', 1, ceiling, 1200))
+                self.assertEqual(info['implementation_status'], 'experimental')
+                self.assertEqual(info['annotations'], {'readOnlyHint': read_only, 'destructiveHint': False,
+                                                       'idempotentHint': idempotent, 'openWorldHint': False})
+                self.assertEqual(info['skill'], f'.agents/skills/{prompt}/SKILL.md')
+                text = (ROOT / info['skill']).read_text(encoding='utf-8')
+                self.assertTrue(text.startswith(f'---\nname: {prompt}\ndescription: '))
+                self.assertIn(hook, text)
+                self.assertNotIn('(draft)', text)
+                self.assertNotIn('once root registers', text)
+                for key in ('identify', 'research', 'iterate', 'acceptance'):
+                    self.assertTrue(info['agent_workflow'][key])
+
+    def test_admission_d_tone_ab_invalid_arguments_refuse_before_worker(self):
+        base = {'run_dir': '/unopened/run', 'common_region_start': 5.0, 'common_region_end': 55.0}
+        invalid = [
+            dict(base, output_dir='artifacts/elsewhere'),
+            dict(base, output='artifacts/x'),
+            dict(base, shelf_gain_db=3.0),
+            dict(base, common_region_start=4.9),
+            dict(base, common_region_end=49.0),
+            dict(base, common_region_start=10.0, common_region_end=54.9),
+            dict(base, common_region_start=True),
+            dict(base, timeout_seconds=0),
+            dict(base, timeout_seconds=1801),
+            dict(base, timeout_seconds=12.5),
+            dict(base, run_dir='/unopened/../run'),
+            dict(base, run_dir='file:///tmp/run'),
+            dict(base, run_dir='C:\\run'),
+            dict(base, run_dir='/unopened/r\x00un'),
+            dict(base, candidate_run_dir='artifacts/runs/../x'),
+            dict(base, candidate_run_dir=''),
+            {k: v for k, v in base.items() if k != 'common_region_end'},
+            {k: v for k, v in base.items() if k != 'run_dir'},
+        ]
+        for arguments in invalid:
+            with self.subTest(arguments=arguments), patch.object(tool_api, 'run_worker') as worker:
+                with self.assertRaises(tool_api.ValidationError):
+                    tool_api.execute('tone_ab', arguments)
+                worker.assert_not_called()
+
+    def tone_ab_run(self, name, *, duration_seconds=30, source='ab' * 32):
+        run = self.base / name
+        run.mkdir()
+        (run / 'manifest.json').write_text(json.dumps({
+            'schema_version': 1, 'run_id': 'admission-d-' + name.replace(' ', '-'),
+            'pcm': {'sample_rate': 1000, 'channels': 1, 'sample_count': 1000 * duration_seconds},
+            'outputs': {'source': 'source.wav', 'denoised': 'denoised.wav', 'cleaned': 'cleaned.wav'},
+            'output_sha256': {}, 'source': {'sha256': source}}))
+        return run
+
+    def test_admission_d_tone_ab_fixed_argv_and_path_refusals(self):
+        run = self.tone_ab_run('tone run $(literal)')
+        candidate = self.tone_ab_run('tone candidate')
+        command = tool_api.worker_command('tone_ab', {'run_dir': str(run), 'common_region_start': 5,
+                                                      'common_region_end': 50.5})
+        self.assertEqual(command[1:], [str(ROOT / 'scripts/tone_ab.py'), 'run', '--run-dir', str(run),
+                                       '--common-region-start', '5.0', '--common-region-end', '50.5',
+                                       '--timeout-seconds', '1200'])
+        command = tool_api.worker_command('tone_ab', {'run_dir': str(run), 'candidate_run_dir': str(candidate),
+                                                      'common_region_start': 6.25, 'common_region_end': 60,
+                                                      'timeout_seconds': 30})
+        self.assertEqual(command[-4:], ['--timeout-seconds', '30', '--candidate-run-dir', str(candidate)])
+        self.assertNotIn('--output-dir', command)
+        alias = self.base / 'tone alias'; alias.symlink_to(run, target_is_directory=True)
+        empty = self.base / 'no manifest'; empty.mkdir()
+        linked = self.base / 'linked manifest'; linked.mkdir()
+        (linked / 'manifest.json').symlink_to(run / 'manifest.json')
+        refusals = [
+            ({'run_dir': str(alias)}, 'symlink'),
+            ({'run_dir': str(empty)}, 'manifest.json'),
+            ({'run_dir': str(linked)}, 'manifest.json'),
+            ({'run_dir': str(self.base / 'absent')}, 'existing directory'),
+            ({'candidate_run_dir': str(alias)}, 'symlink'),
+            ({'candidate_run_dir': str(run)}, 'differ'),
+        ]
+        for change, message in refusals:
+            arguments = dict({'run_dir': str(run), 'common_region_start': 5.0, 'common_region_end': 55.0}, **change)
+            with self.subTest(change=change), patch.object(tool_api, 'run_worker') as worker:
+                with self.assertRaisesRegex(tool_api.ToolError, message):
+                    tool_api.execute('tone_ab', arguments)
+                worker.assert_not_called()
+
+    def test_admission_d_tone_ab_real_worker_refuses_without_writes(self):
+        # The exact dispatcher argv parses in the real worker, which refuses on its own identity and
+        # extent gates (exit 2) before creating any output and without touching the inputs.
+        run = self.tone_ab_run('tone short run')
+        other = self.tone_ab_run('tone other source', source='cd' * 32)
+        outputs = ROOT / 'artifacts' / 's2' / 'tone_ab'
+        before_outputs = sorted(os.listdir(outputs)) if outputs.is_dir() else []
+        before = {path: path.read_bytes() for path in (run / 'manifest.json', other / 'manifest.json')}
+        for arguments, code in (
+                ({'run_dir': str(run), 'common_region_start': 5.0, 'common_region_end': 55.0}, 'region_out_of_bounds'),
+                ({'run_dir': str(self.tone_ab_run('tone long run', duration_seconds=60)),
+                  'candidate_run_dir': str(other), 'common_region_start': 5.0, 'common_region_end': 55.0,
+                  'timeout_seconds': 60}, 'candidate_source_mismatch')):
+            with self.subTest(code=code):
+                with self.assertRaisesRegex(tool_api.ToolError, 'worker failed \\(2\\).*' + code):
+                    tool_api.execute('tone_ab', arguments)
+        self.assertEqual({path: path.read_bytes() for path in before}, before)
+        self.assertEqual(sorted(os.listdir(outputs)) if outputs.is_dir() else [], before_outputs)
+        self.assertEqual(sorted(path.name for path in run.iterdir()), ['manifest.json'])
+
     # ----- MCP prompt readback ------------------------------------------------
     def test_real_mcp_lists_tools_and_reads_back_each_new_skill_prompt(self):
         messages = [initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
                     request(2, 'tools/list'), request(3, 'prompts/list')]
-        admitted = list(NEW.items()) + list(NEW_C.items())
+        admitted = list(NEW.items()) + list(NEW_C.items()) + list(NEW_D.items())
         messages += [request(10 + index, 'prompts/get', {'name': prompt})
                      for index, (_name, (prompt, *_rest)) in enumerate(admitted)]
         replies, stderr = exchange(messages, timeout=30)
         self.assertEqual(stderr, '')
         tools = {row['name']: row for row in replies[1]['result']['tools']}
-        self.assertEqual(len(tools), 38)
+        self.assertEqual(len(tools), 39)
         prompts = {row['name'] for row in replies[2]['result']['prompts']}
-        self.assertEqual(len(prompts), 38)
+        self.assertEqual(len(prompts), 39)
         for offset, (name, (prompt, *_rest)) in enumerate(admitted):
             with self.subTest(name=name):
                 self.assertIs(tools[name]['inputSchema']['additionalProperties'], False)
