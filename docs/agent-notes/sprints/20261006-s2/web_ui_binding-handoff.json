@@ -11,7 +11,7 @@
     "tests/test_web_parity.py (17 named + opt-in demo), tests/test_web_stack.py rescoped (+S10, N14-N18)",
     "docs/spec/sprints/WEB_UI_S2.md section 15 (appended)"
   ],
-  "demo": "see web_ui_binding-demo.json when present (opt-in, read-only)",
+  "demo": "web_ui_binding-demo.json: opt-in read-only walkthrough on the accepted FULLER run export failed/worker_failed (known share_export rejection), compare showed the Prototype label, accepted run tree unchanged",
   "implementation_commits": [
     "74c89a7",
     "55bafed",
