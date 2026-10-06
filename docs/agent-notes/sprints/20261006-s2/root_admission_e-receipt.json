@@ -102,7 +102,7 @@
   "just_list": "`just --list` exit 0; 77 recipes; demo-resume, report-bundle, report-bundle-verify listed",
   "just_tool_info": "`just tool-info report_bundle` exit 0; stdout sha256 abb91372b6563ac0215f972b07c31ccd4ff46027247d083fca7b334226083528 (equals report_d6-tool-descriptor.json file sha256)",
   "secret_scan": "git archive HEAD | tar -x into a fresh mktemp dir; /opt/homebrew/bin/gitleaks dir --redact --no-banner <dir> -> 'no leaks found', exit 0 (runs at 1fa2d2c-era head and at 55ce031); export removed",
-  "host_paths": "no '/Users/' string in any file changed since ebaf72d (grep)"
+  "host_paths": "no absolute home-directory (macOS Users) path in any file changed since ebaf72d (grep)"
  },
  "deferred": [
   {
