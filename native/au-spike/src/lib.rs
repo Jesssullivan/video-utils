@@ -47,7 +47,7 @@ pub unsafe extern "C" fn vu_gain_process(samples: *mut f32, count: u32, gain: f3
     if count == 0 {
         return apply_gain(&mut [], gain).map_or_else(status, |()| VU_OK);
     }
-    if samples.is_null() || (samples as usize) % std::mem::align_of::<f32>() != 0 {
+    if samples.is_null() || !(samples as usize).is_multiple_of(std::mem::align_of::<f32>()) {
         return VU_INVALID_POINTER;
     }
     // SAFETY: The foreign caller provides live initialized, exclusively mutable

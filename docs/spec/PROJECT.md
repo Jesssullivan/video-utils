@@ -61,12 +61,16 @@ need justifies a separate component.
 The recipe contract is `doctor`, `demo INPUT`, `clean INPUT PROFILE`,
 `analyze INPUT`, `report RUN_DIR`, `export RUN_DIR`, `test`, `check`, and
 `model-prefetch MODEL`. The Rust CLI exposes `probe`, `clean`, `demo`, `export`,
-`analyze`, and `report`. A demo proceeds through source inspection, clean/export,
-rhythm analysis, and reporting. Local artifacts are isolated per run under
+`analyze`, and `report`. The Rust CLI natively implements streaming SHA-256 (`hash`)
+and typed, metadata-only run-manifest verification (`verify-run`); FFmpeg/ffprobe
+orchestration remains owned by the Python workers that the CLI dispatches, a
+declared D1 deviation recorded in
+`docs/agent-notes/sprints/20261006-s2/rust_core-d1-acceptance.json`. A demo
+proceeds through source inspection, clean/export, rhythm analysis, and reporting. Local artifacts are isolated per run under
 `artifacts/runs/`; provenance records source identity, commands, tool versions,
 profile parameters, analysis resampling, and output measurements.
 
-The current versioned tool/API contract, local MCP stdio adapter, and thirty
+The current versioned tool/API contract, local MCP stdio adapter, and thirty-six
 per-tool skills expose the same bounded operations. Agent guidance connects research evidence
 to explicit, auditable parameter suggestions for noise, tone, and note analysis.
 Suggestions require comparative evaluation; agents cannot silently change the
