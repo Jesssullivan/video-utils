@@ -663,3 +663,64 @@ independent clip oracle audit pending. These prototypes were excluded from the
 published 25 joint suite and are not promoted by local passes. Existing receipts and
 owner source remain preserved. The goal is active through unchanged
 2026-10-06 06:49:34 UTC. Three tracking docs refreeze for root handoff/publication.
+
+
+## Published26 repair and exact pending hosted run — October 6, 01:08:08 UTC
+
+Root verified private/signature-valid published 5513c385bf289ce495a44aab12f82aa8edc57e6f,
+26 tools/skills with explicit optional runtime setup/check and metadata editor hook.
+This lane independently read exact CI37397487944 at 01:08:08 UTC: in_progress,
+matching 5513c3 head, no conclusion. No hosted green claim. Root owns publication
+and factual tracker updates; this lane changed only its three tracking docs.
+
+Root read failed 1845 CI37395852387 logs: 498 tests/50.150s, one error/one failure/
+22 optional skips. Two tests assumed local qualified Basic Pitch model/runtime in
+fresh offline CI. Missing selected_model.stat raised rawFileNotFoundError; real
+MCP runtime test gated media only. Tonal worker now supplies a domain-error
+regression, hooks owner qualified tests and mocked absent-runtime preflight.
+These source fixes are published 5513c3; the failed historical run remains failed.
+Hosted Rust and secret steps were skipped, not accepted/failed; prior local
+staged secret scans retain their separate scope. Root incident comment 31345 prefix
+and subsequent exact outcome/Linear reconciliation are root-owned.
+
+Affected root Basic Pitch/installer 43 checks: 42 pass/one optional skip/.888s;
+editor 26 checks/.240s, owner hooks 78/all 26 prompts PASS. Fresh runtime setup five
+wheels 44.818s and independent 1349-member installed audit passed, no weights or
+inference/main-media mutation. Actual metadata MCP 26 proof compact 1361 bytes:
+180 flags/24 selected/156 excluded/actions 0/calibration required;24 coverage unknown
+without PTS/grid/origins. Protected 59 original/core/latest hashes unchanged; all 6
+hidden IDs retained. These are dry-run source-coordinate/provenance findings,
+not actual Final Cut/Resolve import or recovered capture synchronization.
+Receipts 2026-10-06-editor-marker-plan-actual-mcp.md/.json are frozen local pending
+root-selected publication. Existing enhanced cleaned/marked/report media unchanged.
+
+Pure learned evaluator 19 tests/audited 1fb883 source and low-register 32-mask/64-source
+second prototype/two quality alerts remain unpublished; independent clip audit
+pending. No production defaults or master replaced; no listening/note-correctness/
+Logic host acceptance inferred. Goal active through same 2026-10-06 06:49:34 UTC.
+Tracking refreezes after handoff; root integrates exact new hosted outcome later.
+
+
+## Exact26-tool hosted success and continuing numerical work — October 6, 01:14:10 UTC
+
+Root verified exact 5513c385bf289ce495a44aab12f82aa8edc57e6f hosted CI37397487944
+completed SUCCESS at 2026-10-06 01:08:47 UTC. Log: 535 Python tests in 72.385seconds,
+512 passing/23 optional skips; seven Rust passed and secret step succeeded.
+This resolves the prior 01:08:08 in-progress readback for the same 26-tool source.
+Optional hosted skips do not replace isolated installed-runtime audit or actual
+inference evidence. The prior 1845 CI37395852387 one-error/one-failure history is
+preserved with its causal offline qualification assumptions and repair receipt.
+No source or tracker/publication history is silently relabelled.
+
+Root confirms all 23 earlier agents individually reattached; completed checkpoints
+stay complete. Current bounded work includes active low-register independent audit
+and actual diagnostic preparation, plus learned numerical preregistration before
+new evaluator measurements. Their unpublished CLI/prototype status, two low-mask
+quality alerts and musical ground-truth limits remain explicit. Existing enhanced
+media, latest pointer and listening false remain unchanged; no production defaults
+or master replaced. Source CI success does not establish native editor import,
+AU/Logic host acceptance, note correctness or musician listening acceptance.
+
+Only this lane's three tracking documents updated/refrozen. Root owns factual
+Linear/program evidence reconciliation. Goal remains active through unchanged
+2026-10-06 06:49:34 UTC; no pause, new horizon or completed-worker activity inferred.

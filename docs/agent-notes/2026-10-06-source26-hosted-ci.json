@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "authority": "Operator Implement the plan/full-force/reattach requests; repository AGENTS.md; R-HOOK-CONVERGENCE-20261004/R-N13",
+  "observed_at": "2026-10-06T01:15:37.033782+00:00",
+  "source_commit": "5513c385bf289ce495a44aab12f82aa8edc57e6f",
+  "private": true,
+  "signature_verified": true,
+  "hosted_ci": {
+    "conclusion": "success",
+    "createdAt": "2026-10-06T01:06:42Z",
+    "headSha": "5513c385bf289ce495a44aab12f82aa8edc57e6f",
+    "jobs": [
+      {
+        "completedAt": "2026-10-06T01:08:47Z",
+        "conclusion": "success",
+        "databaseId": 112056818937,
+        "name": "offline",
+        "startedAt": "2026-10-06T01:06:45Z",
+        "status": "completed",
+        "steps": [],
+        "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37397487944/job/112056818937"
+      }
+    ],
+    "status": "completed",
+    "updatedAt": "2026-10-06T01:08:48Z",
+    "url": "https://github.com/Jesssullivan/video-utils/actions/runs/37397487944"
+  },
+  "python_tests": {
+    "discovered": 535,
+    "passed": 512,
+    "optional_skips": 23,
+    "seconds": 72.385
+  },
+  "rust_tests_passed": 7,
+  "secret_scan_step": "success",
+  "tool_count": 26,
+  "skill_count": 26,
+  "original_25_source_ci_failure_retained": 37395852387,
+  "goal_state": "active",
+  "goal_end_utc": "2026-10-06T06:49:34Z",
+  "media_and_listening_scope": "Existing8clarity and24selectedmarker render unchanged; no listening acceptance, native editor import or Logic acceptance",
+  "actual_editor_mcp_receipt_sha256": "d6e06de2a94f5a1e45ec1c93005a73c20adb3fe385d49bc87b4daa11df3e7768",
+  "tracker_prior_state": {
+    "goal": {
+      "id": "1ceeca7a-a52f-4824-967b-74a919ab654a",
+      "identifier": "TIN-5495",
+      "state": {
+        "name": "In Progress"
+      }
+    },
+    "d0": {
+      "id": "87f4c52a-8275-45db-8e5a-0e7dab9d3557",
+      "identifier": "TIN-5485",
+      "state": {
+        "name": "In Review"
+      }
+    },
+    "project": {
+      "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
+      "name": "video-utils \u2014 guitar restoration and performance analysis",
+      "url": "https://linear.app/tinyland/project/video-utils-guitar-restoration-and-performance-analysis-243628f290ab",
+      "updatedAt": "2026-10-06T00:50:02.699Z"
+    }
+  }
+}
