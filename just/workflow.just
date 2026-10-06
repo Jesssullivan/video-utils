@@ -23,6 +23,13 @@ analyze input run_dir="":
 report run_dir:
     python3 scripts/report.py {{quote(run_dir)}}
 
+# Metadata-only, hash-bound bundle for the optional Quarto report; never copies media.
+report-bundle run_dir:
+    python3 scripts/report_bundle.py build --run-dir {{quote(run_dir)}}
+
+report-bundle-verify bundle_dir:
+    python3 scripts/report_bundle.py verify --bundle-dir {{quote(bundle_dir)}} --check-origin
+
 export run_dir:
     python3 scripts/media.py export {{quote(run_dir)}}
 
@@ -303,3 +310,8 @@ web-test:
 # Read-only AU discovery/auval step; never installs, registers or repairs.
 au-auval-step:
     python3 native/au-spike/host/auval_step.py
+
+# Crash-recover one recorded demo invocation in place (same run_dir and ID); replays recorded settings.
+# Typed refusals (exit 1) write nothing; see docs/spec/sprints/ROBUSTNESS_S2.md section 3.6.
+demo-resume invocation_id:
+    python3 scripts/run_demo.py --resume {{quote(invocation_id)}}
