@@ -1,4 +1,4 @@
-"""S2 admission: freeze the first 32, 36 and 38 descriptors and exercise seven new typed hooks.
+"""S2 admission: freeze the first 32, 36, 38 and 39 descriptors and exercise eight new typed hooks.
 
 Synthetic metadata only. Outputs go beneath a patched temporary artifacts/
 boundary; no recording, accepted run or repository artifact is read or written.
@@ -35,6 +35,9 @@ FROZEN_36_ASCII_SHA256 = '51dd154f28079f178979a6add85bf9d2d8fcf4cc2f8d0fefec7061
 # Third freeze (root_admission_d): tools[:38] as merged at main 0cdca01, same two serializers.
 FROZEN_38_SHA256 = '4005da2b6960de2b973078b272b678e9b995a8bb755888960944cfc8e2e187c5'
 FROZEN_38_ASCII_SHA256 = 'f079cffc30d6c2b19a6dab746fe76915642fef8a77bf3d9add4899a78f3eac54'
+# Fourth freeze (root_admission_e): tools[:39] as merged at main ebaf72d, same two serializers.
+FROZEN_39_SHA256 = 'eada780f79f40516db8583bd13c0f9a8b9bf7386f1f94a3ff1147a165165436f'
+FROZEN_39_ASCII_SHA256 = 'aa60371ab37c791ed3b27cd9d940948a555bdbb5a5a9b4560c4ac48b75737259'
 NEW = {
     'editor_marker_export': ('editor-marker-export', False, False,
                              {'run_dir', 'selection', 'profile', 'format'}, 120),
@@ -56,6 +59,12 @@ NEW_D = {
     'tone_ab': ('guitar-tone-ab', False, False, {'run_dir', 'common_region_start', 'common_region_end'}, 1800,
                 'Hook `tone_ab`'),
 }
+# Admitted by root_admission_e (same tuple shape as NEW_C).
+NEW_E = {
+    'report_bundle': ('guitar-report-bundle', False, False, {'run_dir'}, 900, 'MCP tool `report_bundle`'),
+}
+# sha256 of the skill text taken verbatim from report_d6-handoff.json at lane commit 5c9115e.
+REPORT_BUNDLE_SKILL_SHA256 = '33045f113109c0d4cdaa73908ee49871677eb4b3c7c47df1fbb112c78c919ea9'
 SHA = 'a' * 64
 
 
@@ -73,16 +82,18 @@ class S2ToolAdmissionTests(unittest.TestCase):
     # ----- registry freeze and descriptors ---------------------------------
     def test_first_32_descriptors_frozen_and_four_appended(self):
         tools = tool_api.descriptors()
-        self.assertEqual(len(tools), 39)
+        self.assertEqual(len(tools), 40)
         self.assertEqual(tuple(tool['name'] for tool in tools[:32]), FROZEN_NAMES)
         for count, ascii_only, expected in ((32, False, FROZEN_SHA256), (32, True, FROZEN_ASCII_SHA256),
                                             (36, False, FROZEN_36_SHA256), (36, True, FROZEN_36_ASCII_SHA256),
-                                            (38, False, FROZEN_38_SHA256), (38, True, FROZEN_38_ASCII_SHA256)):
+                                            (38, False, FROZEN_38_SHA256), (38, True, FROZEN_38_ASCII_SHA256),
+                                            (39, False, FROZEN_39_SHA256), (39, True, FROZEN_39_ASCII_SHA256)):
             data = json.dumps(tools[:count], sort_keys=True, separators=(',', ':'), ensure_ascii=ascii_only)
             self.assertEqual(hashlib.sha256(data.encode()).hexdigest(), expected)
         self.assertEqual([tool['name'] for tool in tools[32:36]], list(NEW))
         self.assertEqual([tool['name'] for tool in tools[36:38]], list(NEW_C))
-        self.assertEqual([tool['name'] for tool in tools[38:]], list(NEW_D))
+        self.assertEqual([tool['name'] for tool in tools[38:39]], list(NEW_D))
+        self.assertEqual([tool['name'] for tool in tools[39:]], list(NEW_E))
         raw = (ROOT / 'program/tools.json').read_text(encoding='utf-8')
         self.assertEqual(json.dumps(json.loads(raw), indent=2) + '\n', raw)
 
@@ -624,19 +635,205 @@ class S2ToolAdmissionTests(unittest.TestCase):
         self.assertEqual(sorted(os.listdir(outputs)) if outputs.is_dir() else [], before_outputs)
         self.assertEqual(sorted(path.name for path in run.iterdir()), ['manifest.json'])
 
+    # ----- root_admission_e: report_bundle -------------------------------------
+    def test_admission_e_report_bundle_descriptor_equals_lane_draft_and_skill_exists(self):
+        draft = json.loads((ROOT / 'docs/agent-notes/sprints/20261006-s2/report_d6-tool-descriptor.json')
+                           .read_text(encoding='utf-8'))
+        self.assertEqual(tool_api.descriptor('report_bundle'), draft)
+        for name, (prompt, read_only, idempotent, required, ceiling, hook) in NEW_E.items():
+            with self.subTest(name=name):
+                info = tool_api.descriptor(name)
+                schema = info['inputSchema']
+                tool_api.validate_schema(schema)
+                self.assertIs(schema['additionalProperties'], False)
+                self.assertEqual(set(schema['required']), required)
+                self.assertEqual(set(schema['properties']),
+                                 {'run_dir', 'analysis_run_dir', 'annotation_store', 'timeout_seconds'})
+                self.assertNotIn('output', ' '.join(schema['properties']))
+                timeout = schema['properties']['timeout_seconds']
+                self.assertEqual((timeout['type'], timeout['minimum'], timeout['maximum'], timeout['default']),
+                                 ('integer', 1, ceiling, 600))
+                self.assertEqual(info['implementation_status'], 'experimental')
+                self.assertEqual(info['annotations'], {'readOnlyHint': read_only, 'destructiveHint': False,
+                                                       'idempotentHint': idempotent, 'openWorldHint': False})
+                self.assertEqual(info['skill'], f'.agents/skills/{prompt}/SKILL.md')
+                data = (ROOT / info['skill']).read_bytes()
+                self.assertEqual(hashlib.sha256(data).hexdigest(), REPORT_BUNDLE_SKILL_SHA256)
+                text = data.decode('utf-8')
+                self.assertTrue(text.startswith(f'---\nname: {prompt}\ndescription: '))
+                self.assertIn(hook, text)
+                self.assertIn('Never adopt a detector, profile or master default', text)
+                for key in ('identify', 'research', 'iterate', 'acceptance'):
+                    self.assertTrue(info['agent_workflow'][key])
+                with self.assertRaises(tool_api.ValidationError):
+                    tool_api.validate({'unknown': True}, schema)
+
+    def test_admission_e_report_bundle_invalid_arguments_refuse_before_worker(self):
+        base = {'run_dir': '/unopened/run'}
+        invalid = [
+            dict(base, output_dir='artifacts/elsewhere'),
+            dict(base, output='artifacts/x'),
+            dict(base, argv=['--output-dir', '/tmp/x']),
+            dict(base, check_origin=True),
+            dict(base, timeout_seconds=0),
+            dict(base, timeout_seconds=901),
+            dict(base, timeout_seconds=12.5),
+            dict(base, timeout_seconds=True),
+            dict(base, run_dir='/unopened/../run'),
+            dict(base, run_dir='../run'),
+            dict(base, run_dir='file:///tmp/run'),
+            dict(base, run_dir='C:\\run'),
+            dict(base, run_dir='/unopened/r\x00un'),
+            dict(base, run_dir=''),
+            dict(base, analysis_run_dir='artifacts/runs/../x'),
+            dict(base, analysis_run_dir=''),
+            dict(base, annotation_store='../review-annotations-v2.json'),
+            dict(base, annotation_store='https://host.invalid/store.json'),
+            {},
+        ]
+        for arguments in invalid:
+            with self.subTest(arguments=arguments), patch.object(tool_api, 'run_report_bundle_worker') as worker:
+                with self.assertRaises(tool_api.ValidationError):
+                    tool_api.execute('report_bundle', arguments)
+                worker.assert_not_called()
+
+    def report_bundle_run(self, name, manifest=None):
+        run = self.base / name
+        run.mkdir()
+        (run / 'manifest.json').write_text(json.dumps(manifest if manifest is not None else {
+            'schema_version': 1, 'run_id': 'admission-e', 'source': {'sha256': 'ab' * 32}, 'output_sha256': {}}))
+        return run
+
+    def test_admission_e_report_bundle_fixed_argv_and_path_refusals(self):
+        run = self.report_bundle_run('bundle run $(literal)')
+        analysis = self.report_bundle_run('bundle analysis')
+        store = self.base / 'review-annotations-v2.json'; store.write_text('{}')
+        command = tool_api.worker_command('report_bundle', {'run_dir': str(run)})
+        self.assertEqual(command[1:], [str(ROOT / 'scripts/report_bundle.py'), 'build', '--run-dir', str(run)])
+        command = tool_api.worker_command('report_bundle', {'run_dir': str(run), 'analysis_run_dir': str(analysis),
+                                                            'annotation_store': str(store), 'timeout_seconds': 30})
+        self.assertEqual(command[1:], [str(ROOT / 'scripts/report_bundle.py'), 'build', '--run-dir', str(run),
+                                       '--analysis-run-dir', str(analysis), '--annotation-store', str(store)])
+        self.assertNotIn('--output-dir', command)
+        self.assertNotIn('30', command)
+        alias = self.base / 'bundle alias'; alias.symlink_to(run, target_is_directory=True)
+        store_alias = self.base / 'store-alias.json'; store_alias.symlink_to(store)
+        text = self.base / 'store.txt'; text.write_text('{}')
+        empty = self.base / 'no manifest'; empty.mkdir()
+        refusals = [
+            ({'run_dir': str(alias)}, 'symlink'),
+            ({'run_dir': str(empty)}, 'manifest.json'),
+            ({'run_dir': str(self.base / 'absent')}, 'existing directory'),
+            ({'analysis_run_dir': str(alias)}, 'symlink'),
+            ({'analysis_run_dir': str(empty)}, 'manifest.json'),
+            ({'annotation_store': str(store_alias)}, 'symlink'),
+            ({'annotation_store': str(text)}, 'JSON'),
+            ({'annotation_store': str(self.base / 'absent.json')}, 'existing bounded regular file'),
+        ]
+        for change, message in refusals:
+            arguments = dict({'run_dir': str(run)}, **change)
+            with self.subTest(change=change), patch.object(tool_api, 'run_report_bundle_worker') as worker:
+                with self.assertRaisesRegex(tool_api.ToolError, message):
+                    tool_api.execute('report_bundle', arguments)
+                worker.assert_not_called()
+
+    def test_admission_e_report_bundle_deadline_and_result_confinement(self):
+        run = self.report_bundle_run('bundle deadline run')
+        boundary = self.artifacts / 's2' / 'report_d6' / 'bundles'
+        boundary.mkdir(parents=True)
+        built = boundary / 'admission-e-20261006T000000Z'
+        (built / 'tables').mkdir(parents=True)
+        (built / 'bundle.json').write_text('{}')
+        good = {'status': 'built', 'bundle_dir': str(built), 'bundle_sha256': 'c' * 64}
+        with patch.object(tool_api, 'REPORT_BUNDLE_OUTPUT_ROOT', boundary):
+            for arguments, deadline in (({'run_dir': str(run)}, 600), ({'run_dir': str(run), 'timeout_seconds': 900}, 900),
+                                        ({'run_dir': str(run), 'timeout_seconds': 1}, 1)):
+                with self.subTest(arguments=arguments), patch.object(tool_api, 'run_report_bundle_worker',
+                                                                     return_value=dict(good)) as worker:
+                    result = tool_api.execute('report_bundle', arguments)
+                    self.assertEqual(result['result'], good)
+                    self.assertEqual(result['evidence_kind'], 'hash_bound_metadata_bundle_with_quoted_receipt_figures')
+                    worker.assert_called_once()
+                    self.assertEqual(worker.call_args.args[1], deadline)
+                    self.assertEqual(worker.call_args.kwargs, {})
+            outside = self.base / 'outside-bundle'; outside.mkdir()
+            nested = boundary / 'a' / 'b'; nested.mkdir(parents=True)
+            linked = boundary / 'linked'; linked.symlink_to(outside, target_is_directory=True)
+            media = boundary / 'with-media'; media.mkdir(); (media / 'stage.wav').write_bytes(b'RIFF')
+            bad = [dict(good, status='refused'), dict(good, bundle_sha256='C' * 64), dict(good, bundle_dir='relative'),
+                   dict(good, bundle_dir=str(outside)), dict(good, bundle_dir=str(nested)),
+                   dict(good, bundle_dir=str(linked)), dict(good, bundle_dir=str(boundary / 'absent')),
+                   dict(good, bundle_dir=str(media))]
+            for result in bad:
+                with self.subTest(result=result), self.assertRaises(tool_api.ToolError):
+                    tool_api.classify_report_bundle_result(result)
+
+    def test_admission_e_report_bundle_failure_codes_never_relay_tails(self):
+        refused = tool_api.report_bundle_failure(2, b'{"reason": "stage_hash_mismatch", "status": "refused"}\n')
+        self.assertEqual(str(refused), 'worker refused (2): report_bundle stage_hash_mismatch')
+        self.assertEqual(refused.receipt, {'report_bundle': {'status': 'refused', 'reason': 'stage_hash_mismatch',
+                                                             'published': False}})
+        error = tool_api.report_bundle_failure(1, b'{"error": "PermissionError", "status": "error"}\n')
+        self.assertEqual(str(error), 'worker failed (1): report_bundle error PermissionError')
+        for code, data in ((2, b'{"status": "refused", "reason": "/srv/private/path"}'),
+                           (1, b'Traceback: /private/take.mov'), (2, b''), (3, b'{"status": "refused", "reason": "x"}'),
+                           (1, b'{"status": "error", "error": "a b"}')):
+            with self.subTest(code=code, data=data):
+                failure = tool_api.report_bundle_failure(code, data)
+                self.assertEqual(str(failure), f'worker failed ({code}): report_bundle returned no typed diagnostic')
+                self.assertIsNone(failure.receipt)
+
+    def test_admission_e_report_bundle_runner_deadline_and_stdout_codes(self):
+        script = self.base / 'fake worker.py'
+        cases = (('import time; time.sleep(30)', None),
+                 ('print(\'{"status": "refused", "reason": "bundle_too_large"}\'); raise SystemExit(2)',
+                  'worker refused (2): report_bundle bundle_too_large'),
+                 ('import sys; sys.stderr.write("/srv/private"); raise SystemExit(1)',
+                  'worker failed (1): report_bundle returned no typed diagnostic'),
+                 ('print(\'{"status": "built"}\')', None))
+        for index, (body, message) in enumerate(cases):
+            script.write_text(body)
+            with self.subTest(body=body):
+                if index == 0:
+                    with self.assertRaisesRegex(tool_api.ToolError, 'deadline exceeded \\(1s\\)') as caught:
+                        tool_api.run_report_bundle_worker([sys.executable, str(script)], 1)
+                    self.assertEqual(caught.exception.receipt['result']['signal_target'], 'owned_process_group')
+                elif message:
+                    with self.assertRaises(tool_api.ToolError) as caught:
+                        tool_api.run_report_bundle_worker([sys.executable, str(script)], 30)
+                    self.assertEqual(str(caught.exception), message)
+                else:
+                    self.assertEqual(tool_api.run_report_bundle_worker([sys.executable, str(script)], 30),
+                                     {'status': 'built'})
+
+    def test_admission_e_report_bundle_real_worker_refusal_writes_nothing(self):
+        # The exact dispatcher argv parses in the real worker, which refuses on manifest identity (exit 2)
+        # before choosing an output directory, so nothing is written anywhere.
+        run = self.report_bundle_run('bundle no source', manifest={'schema_version': 1, 'output_sha256': {}})
+        outputs = ROOT / 'artifacts' / 's2' / 'report_d6' / 'bundles'
+        before_outputs = sorted(os.listdir(outputs)) if outputs.is_dir() else []
+        before = (run / 'manifest.json').read_bytes()
+        with self.assertRaises(tool_api.ToolError) as caught:
+            tool_api.execute('report_bundle', {'run_dir': str(run), 'timeout_seconds': 60})
+        self.assertEqual(str(caught.exception), 'worker refused (2): report_bundle source_identity_missing')
+        self.assertEqual(caught.exception.receipt['report_bundle']['reason'], 'source_identity_missing')
+        self.assertEqual((run / 'manifest.json').read_bytes(), before)
+        self.assertEqual(sorted(path.name for path in run.iterdir()), ['manifest.json'])
+        self.assertEqual(sorted(os.listdir(outputs)) if outputs.is_dir() else [], before_outputs)
+
     # ----- MCP prompt readback ------------------------------------------------
     def test_real_mcp_lists_tools_and_reads_back_each_new_skill_prompt(self):
         messages = [initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
                     request(2, 'tools/list'), request(3, 'prompts/list')]
-        admitted = list(NEW.items()) + list(NEW_C.items()) + list(NEW_D.items())
+        admitted = list(NEW.items()) + list(NEW_C.items()) + list(NEW_D.items()) + list(NEW_E.items())
         messages += [request(10 + index, 'prompts/get', {'name': prompt})
                      for index, (_name, (prompt, *_rest)) in enumerate(admitted)]
         replies, stderr = exchange(messages, timeout=30)
         self.assertEqual(stderr, '')
         tools = {row['name']: row for row in replies[1]['result']['tools']}
-        self.assertEqual(len(tools), 39)
+        self.assertEqual(len(tools), 40)
         prompts = {row['name'] for row in replies[2]['result']['prompts']}
-        self.assertEqual(len(prompts), 39)
+        self.assertEqual(len(prompts), 40)
         for offset, (name, (prompt, *_rest)) in enumerate(admitted):
             with self.subTest(name=name):
                 self.assertIs(tools[name]['inputSchema']['additionalProperties'], False)

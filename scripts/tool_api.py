@@ -28,8 +28,15 @@ S2_EXACT_PATH_FIELDS = {'annotation_markers': ('run_dir', 'output_dir'),
                         'corpus_eval_s2': ('manifest', 'local_root', 'proposals', 'output'),
                         'marked_compact': ('run_dir', 'picture_preview', 'output'),
                         'phrase_timing': ('analysis', 'phrases', 'output_root'),
-                        'tone_ab': ('run_dir', 'candidate_run_dir')}
+                        'tone_ab': ('run_dir', 'candidate_run_dir'),
+                        'report_bundle': ('run_dir', 'analysis_run_dir', 'annotation_store')}
 PHRASE_TIMING_MAX_INPUT_BYTES = 64 * 1024 * 1024
+# report_bundle: the worker always writes a fresh default directory here (no output field) and
+# refuses with exit 2 and one stable reason code; exit 1 reports an exception class name only.
+REPORT_BUNDLE_OUTPUT_ROOT = ROOT / 'artifacts' / 's2' / 'report_d6' / 'bundles'
+REPORT_BUNDLE_MAX_STORE_BYTES = 64 * 1024 * 1024
+REPORT_BUNDLE_MEDIA_SUFFIXES = frozenset({'.wav', '.flac', '.aiff', '.aif', '.mp3', '.aac', '.m4a', '.mov', '.mp4',
+                                          '.m4v', '.mkv', '.webm', '.caf'})
 S2_DIGEST_FIELDS = {'annotation_markers': 'store_sha256', 'corpus_eval_s2': 'proposals_sha256'}
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
                          'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default',
@@ -742,6 +749,20 @@ def worker_command(name, args):
                 raise ToolError('tone_ab candidate_run_dir must differ from run_dir')
             command += ['--candidate-run-dir', str(candidate)]
         return command
+    if name == 'report_bundle':
+        # Fixed argv only: no --output-dir passthrough, so the worker writes only a fresh
+        # ROOT/artifacts/s2/report_d6/bundles/<run_id>-<UTC>/ and never writes the run directories.
+        directory = s2_input_directory(args['run_dir'], ('manifest.json',))
+        command = head + [str(ROOT / 'scripts/report_bundle.py'), 'build', '--run-dir', str(directory)]
+        if 'analysis_run_dir' in args:
+            analysis = s2_input_directory(args['analysis_run_dir'], ('manifest.json',))
+            command += ['--analysis-run-dir', str(analysis)]
+        if 'annotation_store' in args:
+            store = s2_input_file(args['annotation_store'], REPORT_BUNDLE_MAX_STORE_BYTES)
+            if store.suffix != '.json':
+                raise ToolError('report_bundle annotation_store must be a JSON file')
+            command += ['--annotation-store', str(store)]
+        return command
     if name == 'corpus_eval_s2':
         manifest, boundary = corpus_split_paths(args)
         proposals = s2_input_file(args['proposals'], 20_000_000)
@@ -990,6 +1011,97 @@ def run_worker(command, timeout, error_json_tool=None):
         return result
 
 
+def report_bundle_failure(returncode, data):
+    """Exit 2 is a typed refusal with one stable reason code; exit 1 names an exception class only."""
+    try:
+        diagnostic = strict_json(data.decode('utf-8'))
+    except (UnicodeError, ValueError):
+        diagnostic = None
+    def token(value):
+        return (isinstance(value, str) and 0 < len(value) <= 64
+                and all(character.isalnum() or character == '_' for character in value))
+    if (returncode == 2 and isinstance(diagnostic, dict) and diagnostic.get('status') == 'refused'
+            and token(diagnostic.get('reason'))):
+        reason = diagnostic['reason']
+        return ToolError(f'worker refused (2): report_bundle {reason}',
+                         receipt={'report_bundle': {'status': 'refused', 'reason': reason, 'published': False}})
+    if (returncode == 1 and isinstance(diagnostic, dict) and diagnostic.get('status') == 'error'
+            and token(diagnostic.get('error'))):
+        return ToolError(f'worker failed (1): report_bundle error {diagnostic["error"]}')
+    # Never relay an unparsed tail: worker text may carry private paths.
+    return ToolError(f'worker failed ({returncode}): report_bundle returned no typed diagnostic')
+
+
+def run_report_bundle_worker(command, timeout):
+    """Dedicated bounded runner (the generic run_worker is source-pinned): hard deadline on an owned
+    process group, typed exit-2 refusals and class-only exit-1 errors read from stdout, never a stderr tail."""
+    if not Path(command[1]).is_file():
+        raise ToolError('implementation worker is unavailable; no bundle was built')
+    with tempfile.TemporaryFile() as stdout:
+        try:
+            process = subprocess.Popen(command, cwd=ROOT, stdin=subprocess.DEVNULL, stdout=stdout,
+                                       stderr=subprocess.DEVNULL, start_new_session=True)
+        except OSError as error:
+            raise ToolError(f'worker could not start: {type(error).__name__}') from error
+        try:
+            process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired as error:
+            prior_group, signal_target = None, 'already_exited'
+            try:
+                prior_group = os.getpgid(process.pid)
+                if prior_group == process.pid:
+                    os.killpg(process.pid, signal.SIGKILL)
+                    signal_target = 'owned_process_group'
+                else:
+                    process.kill()
+                    signal_target = 'owned_worker_only'
+            except ProcessLookupError:
+                pass
+            process.wait()
+            receipt = {'actor': 'video-utils/tool_api',
+                       'target_ownership': {'pid': process.pid, 'observed_pgid': prior_group,
+                                            'created_by_invocation': True, 'new_session_requested': True},
+                       'reason': f'worker hard deadline exceeded ({timeout}s)',
+                       'ruling': 'R-N11; R-HOOK-CONVERGENCE-20261004; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43',
+                       'prior_state': 'owned worker wait timed out; live pgid checked before signal',
+                       'result': {'signal_target': signal_target, 'worker_returncode': process.returncode}}
+            raise ToolError(f'worker deadline exceeded ({timeout}s); owned process group stopped', receipt) from error
+        size = stdout.seek(0, os.SEEK_END)
+        if size > MAX_WORKER_OUTPUT:
+            raise ToolError('worker result exceeds 2 MiB result limit; inspect local artifacts')
+        stdout.seek(0)
+        data = stdout.read()
+    if process.returncode:
+        raise report_bundle_failure(process.returncode, data[:4096])
+    try:
+        result = strict_json(data.decode('utf-8'))
+    except (UnicodeError, ValueError) as error:
+        raise ToolError('worker did not return a single finite JSON object') from error
+    if not isinstance(result, dict):
+        raise ToolError('worker result must be a JSON object')
+    return result
+
+
+def classify_report_bundle_result(result):
+    """A built bundle must be a fresh directory beneath the confined root and contain no media."""
+    digest = result.get('bundle_sha256')
+    if (result.get('status') != 'built' or not isinstance(digest, str) or len(digest) != 64
+            or any(character not in '0123456789abcdef' for character in digest)):
+        raise ToolError('report_bundle worker returned an unknown or malformed status')
+    bundle = result.get('bundle_dir')
+    if not isinstance(bundle, str) or not Path(bundle).is_absolute():
+        raise ToolError('report_bundle worker returned no absolute bundle_dir')
+    bundle = Path(bundle)
+    boundary = Path(REPORT_BUNDLE_OUTPUT_ROOT)
+    if (bundle.parent != boundary or bundle.is_symlink() or not bundle.is_dir()
+            or bundle.resolve().parent != boundary.resolve()):
+        raise ToolError('report_bundle output escaped artifacts/s2/report_d6/bundles')
+    for path in bundle.rglob('*'):
+        if path.is_symlink() or path.suffix.lower() in REPORT_BUNDLE_MEDIA_SUFFIXES:
+            raise ToolError('report_bundle output contains a link or media file; bundle must not be used')
+    return result
+
+
 def classify_share_export_result(result, arguments):
     """Transport success does not turn a sharing-domain failure into success."""
     try:
@@ -1093,6 +1205,8 @@ def execute(name, arguments):
             raise ToolError(message, receipt=receipt) from error
     elif name == 'capture_profile':
         result = run_worker(worker_command(name, arguments), timeout, error_json_tool=name)
+    elif name == 'report_bundle':
+        result = classify_report_bundle_result(run_report_bundle_worker(worker_command(name, arguments), timeout))
     elif name == 'share_export':
         result = classify_share_export_result(run_worker(worker_command(name, arguments), timeout), arguments)
     else:
