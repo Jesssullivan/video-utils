@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "lane": "robustness",
+  "sprint": "20261006-s2",
+  "linear": "TIN-5609",
+  "parent": "TIN-5599",
+  "phase": "1_contract_freeze",
+  "created_at": "2026-10-06",
+  "authority": "R-HOOK-CONVERGENCE-20261004; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43 (R-N11/R-N12/R-N13)",
+  "base_commit": "0cdca0192f56ec347a228ec77c711786dc3c28c4",
+  "spec_path": "docs/spec/sprints/ROBUSTNESS_S2.md",
+  "spec_sha256": "7e2fa6791469cb83e9813d61781f29b19410c4b86a44b3c33375067d6cbe0b91",
+  "numerics_run": false,
+  "ffmpeg_renders": 0,
+  "tests_run": 0,
+  "real_take_opened": false,
+  "experiment": null,
+  "preregistered": false,
+  "preregistration_note": "No experiment, arms or scoring; acceptance tolerances in spec section 6 sealed before any fixture build.",
+  "owned_files": [
+    "scripts/run_demo.py",
+    "tests/test_demo.py",
+    "tests/support/phone_fixtures.py",
+    "tests/test_phone_fixtures.py",
+    "docs/spec/sprints/ROBUSTNESS_S2.md",
+    "docs/agent-notes/sprints/20261006-s2/robustness-*.json"
+  ],
+  "inputs_read": {
+    "accepted_run_manifest": "artifacts/runs/20261006T041633Z-990aa1bd6737/manifest.json (probe fields only)"
+  },
+  "real_take_reference_read_not_computed": {
+    "video": "h264 1620x1080 tb 1/600 avg_frame_rate 108930/4549",
+    "audio": "aac mono 44100 start 0.0 duration 150.954059",
+    "video_header_duration": 150.905,
+    "header_duration_difference_ms": 49.059,
+    "lane_instruction_tail_ms": 69,
+    "reconciled": false
+  },
+  "unknowns": {
+    "memory_ceiling": "unknown_not_measured",
+    "real_take_equivalence": "not_established",
+    "listening": "not_performed"
+  },
+  "root_owned_changes_requested": [
+    {
+      "file": "just/workflow.just",
+      "change": "add recipe: demo-resume invocation_id: python3 scripts/run_demo.py --resume {{quote(invocation_id)}}"
+    },
+    {
+      "file": ".agents/skills/guitar-pipeline",
+      "change": "document --resume, skip/dependency rule and the typed refusal codes from ROBUSTNESS_S2.md section 3.6"
+    },
+    {
+      "file": "program/tools.json; scripts/tool_api.py; scripts/mcp_server.py",
+      "change": "none unless run_demo is admitted as a typed MCP tool; then add resume.invocation_id (pattern ^[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12}$) mutually exclusive with input/existing_run and a closed refusal enum"
+    }
+  ]
+}
