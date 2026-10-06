@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "lane": "ui_core",
+  "sprint": "20261006-s2",
+  "linear": "TIN-5610",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N11/R-N12/R-N13)",
+  "date": "2026-10-06",
+  "phase": "1_contract_freeze",
+  "branch": "sprint/20261006-s2/ui_core",
+  "baseline_commit": "0cdca01",
+  "spec": {"path": "docs/spec/sprints/REVIEW_UI_S2.md", "sha256": "506c0d42676679540867284bd05587a1c00c833dcf8f069b8e48bef1287bb9e8"},
+  "numerics_run": false,
+  "media_decoded": false,
+  "browser_or_server_started": false,
+  "read_only_inspection": [
+    "existing JSON receipts and S2 outputs (tone-ab.json, phrase_anchor spans, phrase-timing.json, phrases.json, applied-profile.json)",
+    "review_server.Session(open_media=False) constructed read-only on 20261006T041633Z-990aa1bd6737 and 20261006T034521Z-a0def0c43eac"
+  ],
+  "observed_bindings": {
+    "original_source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
+    "fuller_session_manifest_sha256_prefix": "61c9b3930c36",
+    "fuller_denoised_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
+    "analysis_layers_analyzed_input_sha256": "cb8a3fa559424810f206c94191a149156423770bbf91a13724a2ba28a44e879e",
+    "analysis_input_differs_from_tone_denoised": true,
+    "arrangement_sha256": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a",
+    "fuller_session_markers": 0,
+    "real_take_triage_window_basis": "click_grid_16_period_navigation_windows (annot_corpus receipt; not phrase spans)"
+  },
+  "preregistered_experiment": false,
+  "preregistration_note": "No experiment arms or truth comparison; acceptance thresholds for UI/verification metrics are frozen in spec section 8.4.",
+  "root_owned_changes_planned": "scripts/review_server.py: --practice-s2 BUNDLE_DIR, GET /api/practice-s2, GET /media/s2/<name>, asset /practice_s2.js (exact diff in Phase 2)",
+  "known_divergence": "S1 panel detector_hypothesis label stays 'DETECTOR HYPOTHESIS' (frozen by non-owned tests/test_review_ui_s1.py); S2 uses annotation_v2 claim_label 'REVIEW'."
+}
