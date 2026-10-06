@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "authority": "R-HOOK-CONVERGENCE-20261004 / R-N13",
+  "owner": "/root/s1_annotations",
+  "created_at": "2026-10-06T06:15:46.249596+00:00",
+  "state": "owner_source_frozen_pending_independent_final_admission",
+  "source_sha256": {
+    "scripts/annotation_v2.py": "60c0e9f19afcebf2db91a030b0929d3a2fc5b3302af53606cff571309c20e92b",
+    "scripts/review_server.py": "bf09698ac23330385bb07287b9d2aee62bb64c8ebf795b60650dfcad36e3415c",
+    "scripts/report.py": "a3f18765f7579448526e36fceca56a40b882814a3df2786c60f65fb82f0ee866",
+    "tests/test_annotation_v2.py": "edeed1f8324bf1ed4027411bff1166e94eb80dca1963d4c6b9112c7fe5d97060",
+    "docs/spec/sprints/ANNOTATIONS_S1.md": "f29d740b0ef4b4afa3158992cfef991be98c17d5c79129cc902b38d8ff9998ba"
+  },
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_annotation_v2 test_review_server test_report -v",
+    "total": 63,
+    "passed": 63,
+    "wrapper_seconds": 1.64779,
+    "generated_origin_properties": 100,
+    "log_path": "artifacts/sprint1/annotations-qualification/owner-tests.log",
+    "log_sha256": "a9408b9608c4bedf41f88b6e9d2f2e9c0fb4546e65a8142b8f7ad2ed58cd3af6",
+    "source_guard_unchanged": true
+  },
+  "storage": "separate review-annotations-v2.json; no v1 migration",
+  "bounds": {
+    "annotations": 200,
+    "replay_receipts": 512,
+    "store_bytes": 1000000,
+    "request_bytes": 20000,
+    "metadata_file_bytes": 20000000,
+    "metadata_total_bytes": 40000000,
+    "session_hash_bytes": 536870912,
+    "session_selected_files": 256
+  },
+  "known_fixed_defects": [
+    "nonblocking regular-file reads prevent FIFO hang before fstat",
+    "new v2 CLI bounded metadata snapshots before legacy Session loading",
+    "selected raw audio hashes have explicit separate budget and are not globally JSON-capped",
+    "invalid/deep store JSON produces stable refusal without mutation"
+  ],
+  "owned_expansion": "scripts/report.py: two default-legacy loader/hash injection signatures explicitly authorized by root",
+  "real_accepted_run_annotation_writes": false,
+  "audio_processing": false,
+  "possible_audio_reads": "selected existing derivative media may be streamed for lineage hashing",
+  "publication": "root pending",
+  "independent_audit": "pending final closure"
+}

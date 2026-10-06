@@ -67,7 +67,7 @@ def source_identity(payload):
     return source.get("sha256") if isinstance(source, dict) else None
 
 
-def analysis_lineage(root, manifest, analysis):
+def analysis_lineage(root, manifest, analysis, *, sha256=sha256):
     if not analysis:
         return "unavailable"
     fingerprint = source_identity(analysis)
@@ -111,7 +111,7 @@ def export_evidence(root, manifest):
     return result, "source_and_video_hash_verified" if expected else "source_hash_bound_export_unverified"
 
 
-def auxiliary_evidence(root, manifest):
+def auxiliary_evidence(root, manifest, *, load_json=load_json, sha256=sha256):
     original = source_identity(manifest)
     payloads = {}
     statuses = {}

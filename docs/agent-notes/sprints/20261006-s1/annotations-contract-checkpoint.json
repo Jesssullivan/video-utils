@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "authority": "R-HOOK-CONVERGENCE-20261004 / R-N13",
+  "owner": "/root/s1_annotations",
+  "created_at": "2026-10-06T06:06:29.310586+00:00",
+  "state": "implemented_contract_checkpoint_pending_independent_freeze",
+  "source_sha256": {
+    "scripts/annotation_v2.py": "714c917226c679f57edc06569d69205217ce0dec1181274230996b35171237f7",
+    "scripts/review_server.py": "97e617d8d3e549a614283bf40eeef175e6f169879594ca3eb545709a205a3e29",
+    "tests/test_annotation_v2.py": "9e6b9896ed04490d6532e31074d575e81ba406e7988107b383daf72aaf1d9b5b",
+    "docs/spec/sprints/ANNOTATIONS_S1.md": "5f7c58139971209a1d257eb765c4e8e1f3765dd0dc8da60c38726c80f0b83ea0"
+  },
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_annotation_v2 test_review_server -v",
+    "total": 35,
+    "passed": 35,
+    "duration_seconds": 0.95,
+    "generated_origin_properties": 100
+  },
+  "real_accepted_run_writes": false,
+  "v1_storage_migrated": false,
+  "known_fixed_defects": [
+    "FIFO open blocking before fstat: O_NONBLOCK on bounded readers",
+    "unbounded provenance read_bytes: capped streamed regular-file hash"
+  ],
+  "remaining": [
+    "independent refusal audit closure",
+    "root typed hook and skill admission",
+    "UI integration browser walkthrough"
+  ]
+}

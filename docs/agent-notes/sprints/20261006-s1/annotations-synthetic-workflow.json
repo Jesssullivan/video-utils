@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "authority": "R-HOOK-CONVERGENCE-20261004 / R-N13",
+  "owner": "/root/s1_annotations",
+  "created_at": "2026-10-06T06:08:15.843727+00:00",
+  "artifact_dir": "artifacts/sprint1/annotations-synthetic-workflow",
+  "synthetic_source_sha256": "128efc0d3a39ce1cd6554f719922172057d66d60a41d0e26a36021cbcaaa4237",
+  "synthetic_manifest_sha256": "4e4fb46c7fa294ae9688b431cc742c61b6d056c98523271bfebd6905ffc4a092",
+  "store_sha256_after_save_replay_refusal_read": "d3f7f053cac7e8ad9e203c01d5555c096529b2bb0be156a27eed6d9baac3bca9",
+  "operations": [
+    {
+      "name": "saved",
+      "returncode": 0,
+      "stdout_sha256": "ced5aa7bca0682d84221987aef17335881a0faff156bd3055d3c2e3c26091e3f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "replayed",
+      "returncode": 0,
+      "stdout_sha256": "e191c521c8664357efc2c9fe83323d624b40e78fd67a2844c70c67360b2c268f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "cross-source-refused",
+      "returncode": 1,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "6b613ba5cab87ca98aa6a609fbc502054292258a5b770fc09e606074d2c38784"
+    },
+    {
+      "name": "readback",
+      "returncode": 0,
+      "stdout_sha256": "c5eff2e39ec8f8ebfc2eba12121f8e35f8deaf9b1066487434e1523c98f34899",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "result": "synthetic_cli_save_replay_cross_source_refusal_readback_passed",
+  "saved_id": "e8364720-e608-4db7-bca9-f71eb356c90b",
+  "committed_revision": 1,
+  "replay_outcome": "replayed",
+  "musical_verdict": "not_established",
+  "real_accepted_run_writes": false,
+  "v1_store_created": false
+}
