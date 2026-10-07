@@ -122,11 +122,12 @@ Facts read (sources state):
   `^3.22.2`, pnpm `10.13.1`. site.scaffold: Skeleton `5.0.1`, effect
   `^3.22.1`. tinyland.dev: Skeleton `^4.15.2`. video-utils: Skeleton `5.0.1`,
   effect `4.0.1`, pnpm `11.25.0`, Node `>=22.12 <23`, TypeScript `6.0.3`.
-- **Registry modules** (tinyland-inc/bazel-registry `modules/`): 67 entries
-  in the Phase 1 listing, including `xoxd_spectrogram` (versions `0.1.0`),
+- **Registry modules** (tinyland-inc/bazel-registry `modules/`): 69 entries
+  (61 `tummycrypt_*`; Phase 2 re-count of the same commit, the Phase 1 figures
+  67/59 were a miscount), including `xoxd_spectrogram` (versions `0.1.0`),
   `xoxd_theme` (`0.1.0`, `0.1.1`), `xoxd_public_chrome` (`0.1.0`),
-  `rules_tectonic`, and 59 `tummycrypt_*` modules. Phase 2 re-counts and
-  records the latest version of each.
+  `rules_tectonic`, and 61 `tummycrypt_*` modules. The latest version of each
+  is recorded in `tools/bazel/registry_modules.json`.
 - **`xoxd_spectrogram` 0.1.0** `MODULE.bazel` docstring says "Svelte 5 +
   Skeleton 5.0.1"; it has `bazel_dep`s on `xoxd_theme 0.1.0`,
   `tummycrypt_tinyland_composables 0.2.4`, `tummycrypt_tinyland_color_utils
@@ -347,3 +348,81 @@ post-fetch commits), `bazel_graph-host-attempt.json`,
 `bazel_graph-root-requests.json` (exact diffs for `justfile`,
 `.github/workflows/ci.yml`, `.gitignore`), `bazel_graph-handoff.json`
 (section 9 keys, commit shas, R-N13 citation).
+
+## 11. Phase 2 amendments (2026-10-07)
+
+Recorded with the implementation, as section 3 allows. Sections 1 to 10 are the
+frozen Phase 1 text apart from the registry count corrected in section 3.
+
+1. **Estate facts after fetch.** The four remote tips are unchanged from the
+   pre-fetch read. The registry holds 69 modules (61 `tummycrypt_*`), not 67/59.
+   tinyland.dev's `.bazelrc` really is BCR-only (per-module registry overrides in
+   `MODULE.bazel`); it was not used as the pattern.
+2. **rules versions (section 4.3).** `rules_rust 0.70.0` (the BCR release whose
+   default toolchain is Rust 1.95.0), `rules_python 1.8.3` (estate),
+   `rules_nodejs 6.7.3` and `aspect_bazel_lib 2.22.5` (estate). **Departure from
+   the estate:** `aspect_rules_js 3.5.1` and `aspect_rules_ts 3.10.1` instead of
+   2.9.1 / 3.8.4. The cause is not BCR resolution but pnpm 11: rules_js reads
+   pnpm 11's `allowBuilds` only from 3.1, and rules_ts 3.10.1 carries TypeScript
+   6.0.3. Evidence: `docs/research/2026-10-07-estate-bazel-patterns.md` section 3.
+   `bazel_skylib` and `platforms` are not direct deps (nothing loads them).
+3. **Root-owned precondition for `//web`.** `web/pnpm-workspace.yaml` has no
+   `allowBuilds` key, so rules_js refuses to translate the lock (measured on the
+   host). The lane does not own that file; the one-line change is requested from
+   root. Until it lands, `//web/...` and `bazel mod graph` report that single
+   extension error; `//src`, `//native/au-spike`, `//scripts` and `//tests` do
+   not depend on `//web` or `@npm` and are unaffected.
+4. **Python tests are not sandboxed (section 4.5).** Every unittest target
+   carries `no-sandbox`, uniformly, for one recorded reason: each module and
+   worker finds the repository through `Path(__file__).resolve()`, which leaves
+   the runfiles tree for the real checkout, and many create scratch directories
+   under `<checkout>/artifacts`. All tracked files are still declared as test
+   data so the cache key follows them. Three further classes exist beyond the
+   two the contract named: `exclusive` (6 modules that install into, build or
+   serve from `web/`), `workspace-artifacts` (26 modules; also `no-cache`) and
+   `reads-web-tree` (7 modules; also `no-cache`, because `//web` is deliberately
+   not a data dependency of the Python tests). No module is `manual`: none was
+   found that fails, rather than skips, without its host tool (inference).
+   The lists live in `tests/BUILD.bazel` and, with method and limits, in
+   `tools/bazel/test_classification.json`; the structural test holds the two equal.
+5. **Coverage is glob-driven.** `tests/BUILD.bazel` and `scripts/BUILD.bazel`
+   cover `test_*.py` and `*.py` + `frozen/*.py` by glob, so a module added by
+   another lane is covered without touching this lane's files. The exclusions
+   file exists and is empty (0 workers, 0 tests excluded).
+6. **Convenience symlinks (section 4.8).** `.bazelrc` sets
+   `--symlink_prefix=.local/bazel/`, so no `bazel-*` path appears in the
+   repository root and the requested `.gitignore` line is a safeguard only.
+7. **Launcher.** Recipes go through `tools/bazel/run.py`: bazelisk-else-bazel,
+   wall-clock bound (default 1800 s), refusal of remote cache/executor/BES flags,
+   and `bazel shutdown` afterwards so no Bazel server outlives a recipe.
+8. **`CARGO_MANIFEST_DIR`.** `//src:video-utils` compiles with
+   `CARGO_MANIFEST_DIR="."`: the default worker root of a Bazel-built CLI is the
+   directory it is started from, not a sandbox path. `VIDEO_UTILS_ROOT` overrides
+   it exactly as before. The Cargo build is unchanged.
+9. **Host runs (section 8).** The section 8 bound answered one question: can
+   Bazel run on this host at all. The first bounded attempt (`bazel mod graph`,
+   1800 s limit) showed that it can: the launcher's storage gate qualified,
+   Bazel 8.2.1 started, the module graph resolved and Bazel wrote
+   `MODULE.bazel.lock`; the command exited 2 on one authored defect (an
+   undeclared `web/.npmrc`). That outcome is recorded verbatim as the section 8
+   attempt. Because the host was not blocked, the implementation was then
+   verified with further bounded runs (each through `tools/bazel/run.py`, 1800 s
+   limit, `--jobs=2`, one at a time, server shut down afterwards), all listed in
+   `bazel_graph-host-attempt.json`. Those runs fix authored defects found by
+   Bazel; none works around a host limit. This reading of "one attempt" is the
+   lane's and is flagged for root in the handoff.
+10. **Registry decisions.** Zero modules consumed. `xoxd_spectrogram` is
+    `deferred_needs_root_change`, not blocked on TIN-5716: its manifest and its
+    closure's manifests declare Skeleton 5.0.1 / no Effect. The other four
+    examined modules are `not_applicable`; 64 are `not_evaluated`.
+11. **npm package contents.** `npm.npm_exclude_package_contents(package = "*",
+    presets = [])` keeps packages byte-complete; the rules_js 3 default drops
+    `*.md`, which SvelteKit reads at `svelte-kit sync` time (found by the run).
+12. **Measured outcome.** Section 6 metric 11 is `ran_failed` for the single
+    section 8 attempt and, for the verification runs that followed: Rust build
+    and 5 of 5 Rust tests pass, 3 of 3 sampled Python modules pass, 178 targets
+    analyse; `//web` builds, checks and translates the lock only in a scratch
+    copy carrying the requested `allowBuilds` line. Details and limits:
+    research record section 9. The graph is **built and tested for Rust,
+    sampled for Python, and root-precondition-blocked for web**.
+

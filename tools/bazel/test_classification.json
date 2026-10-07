@@ -1,0 +1,142 @@
+{
+  "schema": "vu.bazel_graph.test_classification.v1",
+  "recorded": "2026-10-07",
+  "method": "Phase 2 read of every tests/test_*.py reference to FFmpeg/FFprobe, node/pnpm/git/xcrun/auval/cargo, absolute host paths and the artifacts/ and web/ trees (grep to locate, then the surrounding code read to separate real execution from mocks, sentinels and string fixtures). Not validated by executing the modules under Bazel.",
+  "claim_classes": {
+    "tags_present": "measured by tests/test_bazel_graph_s3.py",
+    "completeness": "inference",
+    "behaviour_under_bazel": "unknown"
+  },
+  "module_count_at_classification": 95,
+  "classes": {
+    "ffmpeg": {
+      "tag": "requires-ffmpeg",
+      "build_list": "FFMPEG_TESTS",
+      "criterion": "executes a real FFmpeg or FFprobe binary (FFMPEG/FFPROBE environment, PATH, or the hash-pinned Nix store path); skips when unavailable",
+      "modules": [
+        "test_arrangement_markers",
+        "test_eq_shelf",
+        "test_fuller_profile",
+        "test_marked_compact",
+        "test_marked_video",
+        "test_mcp",
+        "test_media",
+        "test_phone_fixtures",
+        "test_review_ui_s2",
+        "test_share_export",
+        "test_share_export_preroll",
+        "test_tone_ab",
+        "test_tool_contracts",
+        "test_web_jobs",
+        "test_web_parity",
+        "test_web_processing_s3",
+        "test_web_reliability",
+        "test_web_runs_s3"
+      ]
+    },
+    "host_tools": {
+      "tag": "requires-host-tools",
+      "build_list": "HOST_TOOL_TESTS",
+      "criterion": "uses node, pnpm or git from PATH, or the hash-pinned Nix FFmpeg path",
+      "modules": [
+        "test_auth_hosting_s3",
+        "test_eq_shelf",
+        "test_phone_fixtures",
+        "test_phrase_riff_s2",
+        "test_review_ui_s1",
+        "test_review_ui_s2",
+        "test_share_export",
+        "test_share_export_preroll",
+        "test_sprint1_audit",
+        "test_web_parity",
+        "test_web_processing_s3",
+        "test_web_reliability",
+        "test_web_runs_s3",
+        "test_web_stack"
+      ]
+    },
+    "exclusive": {
+      "tag": "exclusive",
+      "build_list": "EXCLUSIVE_TESTS",
+      "criterion": "installs into, builds or serves from the checkout's web/ tree",
+      "modules": [
+        "test_auth_hosting_s3",
+        "test_web_parity",
+        "test_web_processing_s3",
+        "test_web_reliability",
+        "test_web_runs_s3",
+        "test_web_stack"
+      ]
+    },
+    "workspace_artifacts": {
+      "tag": "workspace-artifacts",
+      "build_list": "WORKSPACE_ARTIFACT_TESTS",
+      "criterion": "reads or creates paths under the checkout's artifacts/ tree (also tagged no-cache)",
+      "modules": [
+        "test_annotation_markers",
+        "test_apply_capture_profile",
+        "test_arrangement_reference_tool",
+        "test_capture_application_tool",
+        "test_click_attack_ab",
+        "test_corpus_eval_s2",
+        "test_demo",
+        "test_eq_shelf",
+        "test_flags_triage",
+        "test_marked_compact",
+        "test_phone_fixtures",
+        "test_phrase_anchor",
+        "test_phrase_localize",
+        "test_phrase_localize_audit",
+        "test_phrase_timing",
+        "test_review_ui_s2",
+        "test_rhythm",
+        "test_s2_tool_admission",
+        "test_share_export",
+        "test_share_export_preroll",
+        "test_tool_contracts",
+        "test_web_jobs",
+        "test_web_parity",
+        "test_web_processing_s3",
+        "test_web_reliability",
+        "test_web_runs_s3"
+      ]
+    },
+    "web_tree": {
+      "tag": "reads-web-tree",
+      "build_list": "WEB_TREE_TESTS",
+      "criterion": "reads the checkout's web/ tree, which is not a declared input of the Python tests (also tagged no-cache)",
+      "modules": [
+        "test_auth_hosting_s3",
+        "test_bazel_graph_s3",
+        "test_web_parity",
+        "test_web_processing_s3",
+        "test_web_reliability",
+        "test_web_runs_s3",
+        "test_web_stack"
+      ]
+    }
+  },
+  "all_modules": {
+    "tags": [
+      "python-unittest",
+      "no-sandbox"
+    ],
+    "reason": "Every module and worker locates the repository through Path(__file__).resolve(), which leaves the runfiles tree for the real checkout, and many create scratch directories under <checkout>/artifacts; a sandbox would deny those writes."
+  },
+  "manual": {
+    "modules": [],
+    "note": "No module was identified that fails, rather than skips, when its host tool is absent. Inference from reading, not from a run."
+  },
+  "mentions_ffmpeg_but_not_classified": {
+    "test_arrangement_reference_tool": "sets FFMPEG/FFPROBE to nonexistent paths to prove no decode happens",
+    "test_capabilities": "asserts descriptor strings",
+    "test_lowreg_spectrogram": "command string inside a fixture record",
+    "test_nr8_nr10_comparison": "fixture paths and a mocked meter",
+    "test_phrase_riff_s2": "writes a placeholder file and patches the pin",
+    "test_share_export_audit": "patches the worker command builder",
+    "test_share_export_tool": "sets FFMPEG/FFPROBE to nonexistent paths"
+  },
+  "rust": {
+    "tests/dsp.rs": "ffmpeg_parity is #[ignore] and reads FFMPEG itself; //tests:rust_dsp_test is not tagged requires-ffmpeg"
+  }
+}

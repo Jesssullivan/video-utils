@@ -1,0 +1,20 @@
+# DRAFT for root (S3 bazel_graph lane). Not applied: .github/workflows/ci.yml is root-owned.
+# Insert under `jobs:` beside `offline`. Optional and non-blocking until root has seen it green.
+# The hosted ubuntu-24.04 image ships bazelisk as `bazel`; .bazelversion selects 8.2.1.
+# No remote cache, no credentials, no media, no model downloads.
+  bazel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Structural graph contract (no Bazel needed)
+        run: PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v
+      - name: Rust crates and tests through Bazel
+        run: python3 tools/bazel/run.py --timeout 1800 test //:rust_tests //src:all //native/au-spike:all
+      - name: Stdlib Python tests through Bazel
+        run: python3 tools/bazel/run.py --timeout 1800 test //tests:python_stdlib
+      # Add once web/pnpm-workspace.yaml carries `allowBuilds`:
+      #   python3 tools/bazel/run.py --timeout 900 mod graph
+      #   python3 tools/bazel/run.py --timeout 1800 test //web:svelte_check_test
+      #   python3 tools/bazel/run.py --timeout 1800 build //web:build

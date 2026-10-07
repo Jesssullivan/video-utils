@@ -1,0 +1,14 @@
+.git
+.local
+.cache
+.direnv
+.venv
+.serena
+artifacts
+data
+models
+target
+native/au-spike/target
+web/node_modules
+web/build
+web/.svelte-kit

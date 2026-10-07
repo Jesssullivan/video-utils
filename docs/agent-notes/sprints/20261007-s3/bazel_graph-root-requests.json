@@ -1,0 +1,43 @@
+{
+  "schema": "vu.bazel_graph.root-requests.v1",
+  "lane": "bazel_graph",
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5722",
+  "recorded": "2026-10-07",
+  "authority": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N13",
+  "contract": "docs/spec/sprints/BAZEL_GRAPH_S3.md",
+  "note": "Text only. The lane edited none of these files.",
+  "requests": [
+    {
+      "file": "justfile",
+      "required_for": "`just bazel-build`, `just bazel-test`, `just bazel-graph`",
+      "diff": "--- a/justfile\n+++ b/justfile\n@@ -3,4 +3,5 @@\n \n import 'just/workflow.just'\n+import 'just/bazel.just'\n \n default:\n",
+      "verified": "just --list parses just/bazel.just when imported beside the same shell settings (just 1.51.0); no recipe name collides with just/workflow.just (measured by grep)"
+    },
+    {
+      "file": "web/pnpm-workspace.yaml",
+      "required_for": "everything under //web and a clean `bazel mod graph`",
+      "diff": "--- a/web/pnpm-workspace.yaml\n+++ b/web/pnpm-workspace.yaml\n@@ -8,2 +8,5 @@\n minimumReleaseAgeExclude:\n   - vite@8.3.3\n+\n+# Build scripts stay disabled for every dependency (pnpm 11 allowlist; rules_js reads it).\n+allowBuilds: {}\n",
+      "verified": "in a scratch copy: Bazel lock translation, //web:sveltekit_types, //web:svelte_check_test, //web:build, and pnpm 11.25.0 install --frozen-lockfile --offline / check / build all exit 0 with this line",
+      "unknown": "whether root wants any dependency's build script allowed (the empty map allows none, which matches today's behaviour)"
+    },
+    {
+      "file": ".gitignore",
+      "required_for": "safeguard only; .bazelrc already sends convenience symlinks to .local/bazel/",
+      "diff": "--- a/.gitignore\n+++ b/.gitignore\n@@ -6,4 +6,7 @@\n /.local/\n /target/\n+/native/au-spike/target/\n+/bazel-*\n+/user.bazelrc\n /.direnv/\n /.venv/\n",
+      "note": "/user.bazelrc is the untracked per-machine override that .bazelrc try-imports and must never be committed. /native/au-spike/target/ is the crate's Cargo output directory, which no current ignore rule covers (git check-ignore: no match)."
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "required_for": "optional, non-blocking Bazel job",
+      "text": "# DRAFT for root (S3 bazel_graph lane). Not applied: .github/workflows/ci.yml is root-owned.\n# Insert under `jobs:` beside `offline`. Optional and non-blocking until root has seen it green.\n# The hosted ubuntu-24.04 image ships bazelisk as `bazel`; .bazelversion selects 8.2.1.\n# No remote cache, no credentials, no media, no model downloads.\n  bazel:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 45\n    continue-on-error: true\n    steps:\n      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4\n      - name: Structural graph contract (no Bazel needed)\n        run: PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v\n      - name: Rust crates and tests through Bazel\n        run: python3 tools/bazel/run.py --timeout 1800 test //:rust_tests //src:all //native/au-spike:all\n      - name: Stdlib Python tests through Bazel\n        run: python3 tools/bazel/run.py --timeout 1800 test //tests:python_stdlib\n      # Add once web/pnpm-workspace.yaml carries `allowBuilds`:\n      #   python3 tools/bazel/run.py --timeout 900 mod graph\n      #   python3 tools/bazel/run.py --timeout 1800 test //web:svelte_check_test\n      #   python3 tools/bazel/run.py --timeout 1800 build //web:build\n",
+      "draft_file": "tools/bazel/ci-bazel-job.draft.yml",
+      "verified": "not run on a hosted runner (unknown)"
+    }
+  ],
+  "not_requested": [
+    "program/tools.json, scripts/tool_api.py, scripts/mcp_server.py: the Bazel graph adds no processing primitive, so no tool descriptor, MCP hook or skill is proposed",
+    "program/linear.json, Linear: root administers",
+    "web/package.json, web/pnpm-lock.yaml: unchanged; consuming xoxd_spectrogram would need them and is deferred"
+  ]
+}

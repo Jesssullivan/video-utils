@@ -1,0 +1,54 @@
+"""
+Root package for video-utils.
+
+`just` is the operator entrypoint; these targets back just/bazel.just. The
+source tree is the product: Python tests and workers locate the repository
+from their own file path, so every tracked non-package file is declared here as
+test data (cache correctness), not copied anywhere.
+"""
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    ".bazelignore",
+    ".bazelrc",
+    ".bazelversion",
+    "Cargo.toml",
+    "MODULE.bazel",
+    "pyproject.toml",
+    "rust-toolchain.toml",
+])
+
+# Every file of the root package: docs/, program/, profiles/, review/, reports/,
+# deploy/, .agents/, .github/, just/ and the top-level manifests. Sub-packages
+# (src, scripts, tests, web, native/au-spike, tools/bazel) export their own
+# `all_files`; .bazelignore removes generated and private trees.
+filegroup(
+    name = "repo_data",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            ".git",
+            ".git/**",
+            "bazel-*/**",
+            "**/__pycache__/**",
+            "**/.DS_Store",
+        ],
+    ),
+)
+
+alias(
+    name = "cli",
+    actual = "//src:video-utils",
+)
+
+test_suite(
+    name = "rust_tests",
+    tests = [
+        "//native/au-spike:biquad_ffi_test",
+        "//native/au-spike:video_utils_gain_ffi_unit_test",
+        "//src:video_utils_unit_test",
+        "//tests:rust_cli_test",
+        "//tests:rust_dsp_test",
+    ],
+)

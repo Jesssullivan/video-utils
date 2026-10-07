@@ -1,0 +1,34 @@
+"""Stdlib Python workers. Every scripts/**/*.py file is in `workers`."""
+
+load("@rules_python//python:defs.bzl", "py_library")
+load("//tools/bazel:python.bzl", "worker_binaries")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/.DS_Store",
+        ],
+    ),
+)
+
+# One library: workers import their siblings by file path or by putting
+# scripts/ on sys.path themselves, exactly as under `python3 scripts/<x>.py`.
+py_library(
+    name = "workers",
+    srcs = glob([
+        "*.py",
+        "frozen/*.py",
+    ]),
+    data = ["//:repo_data"],
+)
+
+# `bazel run //scripts:<worker>` for each top-level worker, on the hermetic interpreter.
+worker_binaries(
+    srcs = glob(["*.py"]),
+    deps = [":workers"],
+)

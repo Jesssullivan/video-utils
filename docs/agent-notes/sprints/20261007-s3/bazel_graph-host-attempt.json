@@ -1,0 +1,324 @@
+{
+  "schema": "vu.bazel_graph.host-attempt.v1",
+  "lane": "bazel_graph",
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5722",
+  "recorded": "2026-10-07",
+  "authority": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N13",
+  "contract": "docs/spec/sprints/BAZEL_GRAPH_S3.md",
+  "host": {
+    "os": "macOS arm64 (Darwin 25.6.0)",
+    "memory_bytes": 8589934592,
+    "cpus": 6,
+    "launcher": "bazelisk 1.28.1 via the advisory tinyland-local-build-guard wrapper and the storage transport gate (status=qualified)",
+    "bazel_version_observed": "8.2.1",
+    "jobs": 2,
+    "remote_cache": "none"
+  },
+  "bounds": "every command through tools/bazel/run.py --timeout 1800, one at a time, Bazel server shut down after each sequence; the guard and gate were not bypassed, reconfigured or signalled",
+  "section_8_attempt": {
+    "command": "start 2026-10-07T09:39:14Z",
+    "tree": "lane worktree",
+    "start_utc": "2026-10-07T09:39:14Z",
+    "end_utc": "2026-10-07T09:39:31Z",
+    "exit": 2,
+    "verbatim_key_lines": [
+      "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+      "Starting local Bazel server (8.2.1) and connecting to it...",
+      "ERROR: <output_base>/external/aspect_rules_js+/npm/private/npm_translate_lock_state.bzl:195:21: Traceback (most recent call last):",
+      "Error in fail:",
+      "ERROR: Undeclared .npmrc file `@@//web:.npmrc`.",
+      "ERROR: error evaluating module extension @@aspect_rules_js+//npm:extensions.bzl%npm",
+      "ERROR: Results may be incomplete as 1 extension failed."
+    ],
+    "log": "artifacts/s2/bazel_graph/host-attempt/mod-graph.log (gitignored, local only)",
+    "note": "Section 8 attempt. Module resolution succeeded and Bazel wrote MODULE.bazel.lock; the npm module extension failed on an authored defect (web/.npmrc not declared).",
+    "outcome": "ran_failed",
+    "bazel_run_blocked_on_host": false
+  },
+  "interpretation_flag_for_root": "The contract allowed exactly one attempt. It showed the host is not blocked, so the lane verified its implementation with the further bounded runs below, fixing two authored defects (undeclared web/.npmrc; rules_js content preset). If root reads section 8 as forbidding any second run, the section_8_attempt above is the only run that counts and everything below is extra evidence.",
+  "verification_runs": [
+    {
+      "command": "python3 tools/bazel/run.py --timeout 1800 mod graph",
+      "tree": "lane worktree (committed tree)",
+      "start_utc": "2026-10-07T09:41:50Z",
+      "end_utc": "2026-10-07T09:41:58Z",
+      "exit": 2,
+      "verbatim_key_lines": [
+        "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+        "Starting local Bazel server (8.2.1) and connecting to it...",
+        "ERROR: <output_base>/external/aspect_rules_js+/npm/private/npm_translate_lock_helpers.bzl:821:13: Traceback (most recent call last):",
+        "Error in fail: ERROR: pnpm 'allowBuilds' (or 'onlyBuiltDependencies' in pnpm < 10.26) configuration required.",
+        "ERROR: error evaluating module extension @@aspect_rules_js+//npm:extensions.bzl%npm",
+        "ERROR: Results may be incomplete as 1 extension failed."
+      ],
+      "log": "artifacts/s2/bazel_graph/host-attempt/r2/step-1.log (gitignored, local only)",
+      "note": "After declaring npmrc: the remaining error is the root-owned allowBuilds precondition."
+    },
+    {
+      "command": "python3 tools/bazel/run.py --timeout 1800 build --jobs=2 //src:all //native/au-spike:all",
+      "tree": "lane worktree (committed tree)",
+      "start_utc": "2026-10-07T09:41:58Z",
+      "end_utc": "2026-10-07T09:43:10Z",
+      "exit": 0,
+      "verbatim_key_lines": [
+        "ADVISORY local build on macbook-neo: prefer remote execution; check memory and bound jobs/cores.",
+        "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+        "(05:42:45) INFO: Analyzed 9 targets (127 packages loaded, 2042 targets configured).",
+        "(05:43:10) INFO: Build completed successfully, 183 total actions"
+      ],
+      "log": "artifacts/s2/bazel_graph/host-attempt/r2/step-2.log (gitignored, local only)"
+    },
+    {
+      "command": "python3 tools/bazel/run.py --timeout 1800 test --jobs=2 //:rust_tests",
+      "tree": "lane worktree (committed tree)",
+      "start_utc": "2026-10-07T09:43:10Z",
+      "end_utc": "2026-10-07T09:43:21Z",
+      "exit": 0,
+      "verbatim_key_lines": [
+        "ADVISORY local build on macbook-neo: prefer remote execution; check memory and bound jobs/cores.",
+        "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+        "(05:43:15) INFO: Analyzed 5 targets (3 packages loaded, 1962 targets configured).",
+        "(05:43:21) INFO: Build completed successfully, 14 total actions",
+        "//native/au-spike:biquad_ffi_test PASSED in 1.3s",
+        "PASSED .native/au-spike/biquad_ffi_test (0.0s)",
+        "//native/au-spike:video_utils_gain_ffi_unit_test PASSED in 0.9s",
+        "PASSED .native/au-spike/video_utils_gain_ffi_unit_test (0.0s)",
+        "//src:video_utils_unit_test PASSED in 2.0s",
+        "PASSED .src/video_utils_unit_test (0.0s)",
+        "//tests:rust_cli_test PASSED in 1.0s",
+        "PASSED .tests/rust_cli_test (0.0s)",
+        "//tests:rust_dsp_test PASSED in 0.6s",
+        "PASSED .tests/rust_dsp_test (0.0s)"
+      ],
+      "log": "artifacts/s2/bazel_graph/host-attempt/r2/step-3.log (gitignored, local only)"
+    },
+    {
+      "command": "python3 tools/bazel/run.py --timeout 1800 test --jobs=2 //tests:test_bazel_graph_s3 //tests:test_timecode //tests:test_media",
+      "tree": "lane worktree (committed tree)",
+      "start_utc": "2026-10-07T09:43:21Z",
+      "end_utc": "2026-10-07T09:45:00Z",
+      "exit": 0,
+      "verbatim_key_lines": [
+        "ADVISORY local build on macbook-neo: prefer remote execution; check memory and bound jobs/cores.",
+        "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+        "(05:43:31) INFO: Analyzed 3 targets (8 packages loaded, 2887 targets configured).",
+        "(05:45:00) INFO: Build completed successfully, 25 total actions",
+        "//tests:test_bazel_graph_s3 PASSED in 2.8s",
+        "PASSED .tests/test_bazel_graph_s3 (0.0s)",
+        "//tests:test_media PASSED in 40.9s",
+        "PASSED .tests/test_media (0.0s)",
+        "//tests:test_timecode PASSED in 86.9s",
+        "PASSED .tests/test_timecode (0.1s)",
+        "Executed 3 out of 3 tests: 3 tests pass."
+      ],
+      "log": "artifacts/s2/bazel_graph/host-attempt/r2/step-4.log (gitignored, local only)",
+      "note": "test_media: Ran 18 tests, OK, 0 skipped (FFmpeg via FFMPEG/FFPROBE pass-through). test_timecode: Ran 11 tests, OK."
+    },
+    {
+      "command": "python3 tools/bazel/run.py --timeout 1800 mod graph",
+      "tree": "scratch copy of the tree + `allowBuilds: {}` appended to web/pnpm-workspace.yaml (artifacts/s2/bazel_graph/verify-tree, removed after the run)",
+      "start_utc": "2026-10-07T09:45:12Z",
+      "end_utc": "2026-10-07T09:45:21Z",
+      "exit": 0,
+      "verbatim_key_lines": [
+        "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+        "Starting local Bazel server (8.2.1) and connecting to it..."
+      ],
+      "log": "artifacts/s2/bazel_graph/host-attempt/r3/step-1.log (gitignored, local only)",
+      "note": "pnpm 11.25.0 lock translates once allowBuilds is present."
+    },
+    {
+      "command": "python3 tools/bazel/run.py --timeout 1800 build --jobs=2 //web:sveltekit_types",
+      "tree": "scratch copy of the tree + `allowBuilds: {}` appended to web/pnpm-workspace.yaml (artifacts/s2/bazel_graph/verify-tree, removed after the run)",
+      "start_utc": "2026-10-07T09:45:21Z",
+      "end_utc": "2026-10-07T09:45:58Z",
+      "exit": 1,
+      "verbatim_key_lines": [
+        "ADVISORY local build on macbook-neo: prefer remote execution; check memory and bound jobs/cores.",
+        "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+        "(05:45:30) INFO: Analyzed target //web:sveltekit_types (268 packages loaded, 7493 targets configured).",
+        "(05:45:58) ERROR: <scratch_copy>/web/BUILD.bazel:98:14: JsRunBinary web/.svelte-kit failed: (Exit 1): spawn_binary failed: error executing JsRunBinary command (from target //web:sveltekit_types) external/bazel_lib++toolchains+spawn_binary_darwin_arm64/spawn_binary --silent-on-success -- bazel-out/darwin_arm64-opt-exec-ST-d57f47055a04/bin/web",
+        "Loading Svelte config from Vite config failed: Error: ENOENT: no such file or directory, open '<output_base>/execroot/_main/bazel-out/darwin_arm64-fastbuild/bin/web/node_modules/.aspect_rules_js/@sveltejs+kit@2.70.3_1058372524/node_modules/@sveltejs/kit/src/types/synthetic/$env+static+private.md'",
+        "(05:45:58) ERROR: Build did NOT complete successfully"
+      ],
+      "log": "artifacts/s2/bazel_graph/host-attempt/r3/step-2.log (gitignored, local only)",
+      "note": "Authored defect: rules_js 3 default content preset removed *.md that SvelteKit reads. Fixed with npm_exclude_package_contents(presets = [])."
+    },
+    {
+      "command": "python3 tools/bazel/run.py --timeout 1800 build --jobs=2 //web:sveltekit_types",
+      "tree": "scratch copy of the tree + `allowBuilds: {}` appended to web/pnpm-workspace.yaml (artifacts/s2/bazel_graph/verify-tree, removed after the run)",
+      "start_utc": "2026-10-07T09:55:27Z",
+      "end_utc": "2026-10-07T09:56:07Z",
+      "exit": 0,
+      "verbatim_key_lines": [
+        "ADVISORY local build on macbook-neo: prefer remote execution; check memory and bound jobs/cores.",
+        "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+        "Starting local Bazel server (8.2.1) and connecting to it...",
+        "(05:55:39) INFO: Analyzed target //web:sveltekit_types (268 packages loaded, 7493 targets configured).",
+        "(05:56:07) INFO: Build completed successfully, 308 total actions"
+      ],
+      "log": "artifacts/s2/bazel_graph/host-attempt/r4/step-1.log (gitignored, local only)"
+    },
+    {
+      "command": "python3 tools/bazel/run.py --timeout 1800 test --jobs=2 //web:svelte_check_test",
+      "tree": "scratch copy of the tree + `allowBuilds: {}` appended to web/pnpm-workspace.yaml (artifacts/s2/bazel_graph/verify-tree, removed after the run)",
+      "start_utc": "2026-10-07T09:56:07Z",
+      "end_utc": "2026-10-07T09:56:20Z",
+      "exit": 0,
+      "verbatim_key_lines": [
+        "ADVISORY local build on macbook-neo: prefer remote execution; check memory and bound jobs/cores.",
+        "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+        "(05:56:10) INFO: Analyzed target //web:svelte_check_test (3 packages loaded, 7468 targets configured).",
+        "(05:56:20) INFO: Build completed successfully, 2 total actions",
+        "//web:svelte_check_test PASSED in 9.1s",
+        "PASSED .web/svelte_check_test_/svelte_check_test (0.0s)",
+        "Executed 1 out of 1 test: 1 test passes."
+      ],
+      "log": "artifacts/s2/bazel_graph/host-attempt/r4/step-2.log (gitignored, local only)",
+      "note": "test.log: svelte-check found 0 errors and 0 warnings."
+    },
+    {
+      "command": "python3 tools/bazel/run.py --timeout 1800 build --jobs=2 //web:build",
+      "tree": "scratch copy of the tree + `allowBuilds: {}` appended to web/pnpm-workspace.yaml (artifacts/s2/bazel_graph/verify-tree, removed after the run)",
+      "start_utc": "2026-10-07T09:56:20Z",
+      "end_utc": "2026-10-07T09:56:34Z",
+      "exit": 0,
+      "verbatim_key_lines": [
+        "ADVISORY local build on macbook-neo: prefer remote execution; check memory and bound jobs/cores.",
+        "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+        "(05:56:23) INFO: Analyzed target //web:build (1 packages loaded, 7458 targets configured).",
+        "(05:56:34) INFO: Build completed successfully, 3 total actions"
+      ],
+      "log": "artifacts/s2/bazel_graph/host-attempt/r4/step-3.log (gitignored, local only)",
+      "note": "Output build/: index.js, handler.js, env.js, shims.js, client/, server/ (4.0 MB)."
+    },
+    {
+      "command": "python3 tools/bazel/run.py --timeout 1800 build --jobs=2 --nobuild //src:all //native/au-spike:all //scripts:all //tests:all //tools/bazel:all //:all",
+      "tree": "lane worktree (committed tree)",
+      "start_utc": "2026-10-07T09:57:36Z",
+      "end_utc": "2026-10-07T09:57:46Z",
+      "exit": 0,
+      "verbatim_key_lines": [
+        "ADVISORY local build on macbook-neo: prefer remote execution; check memory and bound jobs/cores.",
+        "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+        "Starting local Bazel server (8.2.1) and connecting to it...",
+        "(05:57:46) INFO: Analyzed 178 targets (137 packages loaded, 5050 targets configured).",
+        "(05:57:46) INFO: Build completed successfully, 0 total actions"
+      ],
+      "log": "artifacts/s2/bazel_graph/host-attempt/r5/step-1.log (gitignored, local only)",
+      "note": "178 targets analysed, nothing built."
+    },
+    {
+      "command": "python3 tools/bazel/run.py --timeout 1800 run --jobs=2 //:cli -- --version",
+      "tree": "lane worktree (committed tree)",
+      "start_utc": "2026-10-07T09:57:46Z",
+      "end_utc": "2026-10-07T09:57:51Z",
+      "exit": 0,
+      "verbatim_key_lines": [
+        "ADVISORY local build on macbook-neo: prefer remote execution; check memory and bound jobs/cores.",
+        "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+        "(05:57:49) INFO: Analyzed target //:cli (0 packages loaded, 0 targets configured).",
+        "(05:57:51) INFO: Build completed successfully, 1 total action",
+        "video-utils 0.1.0"
+      ],
+      "log": "artifacts/s2/bazel_graph/host-attempt/r5/step-2.log (gitignored, local only)"
+    },
+    {
+      "command": "python3 tools/bazel/run.py --timeout 1800 run --jobs=2 //:cli -- doctor",
+      "tree": "lane worktree (committed tree)",
+      "start_utc": "2026-10-07T09:57:51Z",
+      "end_utc": "2026-10-07T09:57:54Z",
+      "exit": 2,
+      "verbatim_key_lines": [
+        "ADVISORY local build on macbook-neo: prefer remote execution; check memory and bound jobs/cores.",
+        "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+        "(05:57:54) INFO: Analyzed target //:cli (0 packages loaded, 0 targets configured).",
+        "(05:57:54) INFO: Build completed successfully, 1 total action"
+      ],
+      "log": "artifacts/s2/bazel_graph/host-attempt/r5/step-3.log (gitignored, local only)",
+      "note": "`doctor` is not a CLI command; exit 2 is the CLI's own usage error, not a graph defect."
+    },
+    {
+      "command": "python3 tools/bazel/run.py --timeout 1800 build --jobs=2 //web:build",
+      "tree": "lane worktree (committed tree)",
+      "start_utc": "2026-10-07T09:57:54Z",
+      "end_utc": "2026-10-07T09:57:56Z",
+      "exit": 48,
+      "verbatim_key_lines": [
+        "ADVISORY local build on macbook-neo: prefer remote execution; check memory and bound jobs/cores.",
+        "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+        "(05:57:56) ERROR: <output_base>/external/aspect_rules_js+/npm/private/npm_translate_lock_helpers.bzl:821:13: Traceback (most recent call last):",
+        "Error in fail: ERROR: pnpm 'allowBuilds' (or 'onlyBuiltDependencies' in pnpm < 10.26) configuration required.",
+        "(05:57:56) ERROR: error evaluating module extension @@aspect_rules_js+//npm:extensions.bzl%npm",
+        "(05:57:56) ERROR: Build did NOT complete successfully",
+        "(05:57:56) FAILED:"
+      ],
+      "log": "artifacts/s2/bazel_graph/host-attempt/r5/step-4.log (gitignored, local only)",
+      "note": "Expected: //web is blocked on the root-owned allowBuilds line."
+    },
+    {
+      "command": "python3 tools/bazel/run.py --timeout 1800 test --jobs=2 //tests:test_bazel_graph_s3 //:rust_tests",
+      "tree": "lane worktree (committed tree)",
+      "start_utc": "2026-10-07T09:57:56Z",
+      "end_utc": "2026-10-07T09:58:02Z",
+      "exit": 0,
+      "verbatim_key_lines": [
+        "ADVISORY local build on macbook-neo: prefer remote execution; check memory and bound jobs/cores.",
+        "storage gate: consumer=bazel status=qualified reason=qualified (device identifiers redacted)",
+        "(05:57:59) INFO: Analyzed 6 targets (0 packages loaded, 4847 targets configured).",
+        "(05:58:02) INFO: Build completed successfully, 2 total actions",
+        "//native/au-spike:biquad_ffi_test (cached) PASSED in 1.3s",
+        "PASSED .native/au-spike/biquad_ffi_test (0.0s)",
+        "//native/au-spike:video_utils_gain_ffi_unit_test (cached) PASSED in 0.9s",
+        "PASSED .native/au-spike/video_utils_gain_ffi_unit_test (0.0s)",
+        "//src:video_utils_unit_test (cached) PASSED in 2.0s",
+        "PASSED .src/video_utils_unit_test (0.0s)",
+        "//tests:rust_cli_test (cached) PASSED in 1.0s",
+        "PASSED .tests/rust_cli_test (0.0s)",
+        "//tests:rust_dsp_test (cached) PASSED in 0.6s",
+        "PASSED .tests/rust_dsp_test (0.0s)"
+      ],
+      "log": "artifacts/s2/bazel_graph/host-attempt/r5/step-5.log (gitignored, local only)"
+    }
+  ],
+  "pnpm_check_in_scratch_copy": {
+    "pnpm": "11.25.0",
+    "commands": [
+      "pnpm install --frozen-lockfile --offline",
+      "pnpm run check",
+      "pnpm run build"
+    ],
+    "exit": [
+      0,
+      0,
+      0
+    ],
+    "with": "allowBuilds: {} appended to web/pnpm-workspace.yaml",
+    "timeouts_s": [
+      300,
+      300,
+      300
+    ]
+  },
+  "lock": {
+    "module_lock_generated_by_bazel": true,
+    "registryFileHashes": 376,
+    "tinyland_registry_lookups": 169,
+    "byte_identical_between_worktree_and_scratch_copy": true
+  },
+  "summary": {
+    "rust": "built; 5 of 5 tests pass",
+    "python": "3 of 95 modules run under Bazel, 3 pass (sample, not the suite)",
+    "analysis": "178 targets analysed outside //web",
+    "web_committed_tree": "blocked on root-owned allowBuilds line (measured error)",
+    "web_with_requested_line": "lock translates; sveltekit_types, svelte_check_test (0 errors, 0 warnings) and build pass in a scratch copy",
+    "not_run": [
+      "the other 92 Python modules",
+      "Linux / hosted CI",
+      "-c opt",
+      "py_binary execution of workers"
+    ]
+  },
+  "redaction": "Host paths are replaced by <output_base>, <worktree> and <scratch_copy>, and the storage gate's device identifiers are removed; nothing else in the quoted lines was altered."
+}

@@ -1,0 +1,64 @@
+{
+  "schema": "vu.bazel_graph.tests.v1",
+  "lane": "bazel_graph",
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5722",
+  "recorded": "2026-10-07",
+  "authority": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N13",
+  "contract": "docs/spec/sprints/BAZEL_GRAPH_S3.md",
+  "commands": [
+    {
+      "command": "PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v",
+      "returncode": 0,
+      "ran": 34,
+      "result": "OK (skipped=1)",
+      "skipped": [
+        "test_constructs_outside_the_subset_raise_instead_of_being_skipped (test_bazel_graph_s3.NegativeSelfChecks.test_constructs_outside_the_subset_raise_instead_of_being_skipped)",
+        "test_marker_case_runs_only_under_the_shim (test_bazel_graph_s3.ShimSelfTest.test_marker_case_runs_only_under_the_shim)"
+      ],
+      "negative_self_checks": 11
+    },
+    {
+      "command": "PATH=/usr/bin:/bin PYTHONPATH=tests python3 -m unittest test_web_stack test_auth_hosting_s3 (static part; node and pnpm deliberately off PATH)",
+      "ran": 70,
+      "skipped": 52,
+      "failures": 3,
+      "failing": "test_web_stack.WebStackStaticTests.test_s8_prototype_routes_label_only, subtests compare/review/download: 'PrototypeNotice' not found in web/src/routes/<route>/+page.svelte",
+      "attribution": "not caused by this lane: the assertion reads only web/src route files, and `git diff --stat 93e7b2d -- web/src` is empty (measured). Whether it also fails at the baseline on other hosts was not run (inference: yes)."
+    },
+    {
+      "command": "buildifier --mode=check --lint=warn on MODULE.bazel, 7 BUILD.bazel files and tools/bazel/*.bzl",
+      "returncode": 0
+    },
+    {
+      "command": "gitleaks dir --redact on MODULE.bazel, MODULE.bazel.lock, .bazelrc, tools/bazel/registry_modules.json",
+      "result": "no leaks found"
+    },
+    {
+      "command": "bazel test //tests:test_bazel_graph_s3 //tests:test_timecode //tests:test_media and //:rust_tests",
+      "result": "see bazel_graph-host-attempt.json"
+    }
+  ],
+  "not_run_by_lane": [
+    "just check",
+    "just test (full suite)",
+    "just test-rust (cargo)",
+    "pnpm build in the worktree",
+    "the full Bazel test set //..."
+  ],
+  "metrics": {
+    "required_graph_files": "11 of 11",
+    "registry_lines": "2 of 2, 0 remote backend flags",
+    "worker_coverage": "67 of 67 (66 top-level + 1 frozen), 0 excluded",
+    "test_coverage": "95 of 95 (94 at baseline + this lane's module), 0 excluded",
+    "ffmpeg_tagged": 18,
+    "host_tool_tagged": 14,
+    "exclusive": 6,
+    "workspace_artifacts": 26,
+    "reads_web_tree": 7,
+    "manual": 0,
+    "rust_targets": "6 of 6",
+    "house_stack_pins": "3 of 3 identical in package.json and lock; no second npm version site in Bazel",
+    "registry_decisions": "5 decided, 64 not evaluated, 0 consumed"
+  }
+}

@@ -1,0 +1,51 @@
+"""Root crate `video-utils` (Cargo.toml): library, CLI binary and unit tests."""
+
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
+load("//tools/bazel:rust.bzl", "CRATE_VERSION", "RELEASE_RUSTC_FLAGS", "RUST_EDITION")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/.DS_Store",
+        ],
+    ),
+)
+
+rust_library(
+    name = "video_utils",
+    srcs = glob(
+        ["*.rs"],
+        exclude = ["main.rs"],
+    ),
+    crate_root = "lib.rs",
+    edition = RUST_EDITION,
+    rustc_flags = RELEASE_RUSTC_FLAGS,
+    version = CRATE_VERSION,
+)
+
+# Cargo names the binary after the package: `video-utils`.
+# CARGO_MANIFEST_DIR is "." so the compiled-in worker root is the directory the
+# binary is started from (the repository root, or the runfiles root under
+# `bazel run`), never a sandbox path. VIDEO_UTILS_ROOT still overrides it.
+rust_binary(
+    name = "video-utils",
+    srcs = ["main.rs"],
+    crate_root = "main.rs",
+    data = ["//scripts:all_files"],
+    edition = RUST_EDITION,
+    rustc_env = {"CARGO_MANIFEST_DIR": "."},
+    rustc_flags = RELEASE_RUSTC_FLAGS,
+    version = CRATE_VERSION,
+    deps = [":video_utils"],
+)
+
+rust_test(
+    name = "video_utils_unit_test",
+    crate = ":video_utils",
+    edition = RUST_EDITION,
+)

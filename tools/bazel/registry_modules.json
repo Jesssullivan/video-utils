@@ -1,0 +1,635 @@
+{
+  "schema": "vu.bazel_graph.registry_modules.v1",
+  "recorded": "2026-10-07",
+  "registry": {
+    "repository": "tinyland-inc/bazel-registry",
+    "remote": "origin",
+    "branch": "main",
+    "commit": "8d3e5407863132f62c14a5d674435890823a9d22",
+    "commit_date": "2026-10-05T21:59:29-04:00",
+    "url": "https://raw.githubusercontent.com/tinyland-inc/bazel-registry/8d3e5407863132f62c14a5d674435890823a9d22",
+    "module_count": 69,
+    "read": "git fetch origin main; git show origin/main:<path> (never a working tree)"
+  },
+  "policy": {
+    "house_stack": {
+      "@skeletonlabs/skeleton": "5.0.1",
+      "@skeletonlabs/skeleton-svelte": "5.0.1",
+      "effect": "4.0.1"
+    },
+    "rule": "A module is consumed only if no manifest in its bazel_dep closure admits Skeleton 4 or Effect 3, its peer ranges admit the video-utils pins without a package.json or lock change, and video-utils has a real use for it. A docstring is never evidence.",
+    "decision_values": [
+      "consumed",
+      "blocked_estate_drift_TIN-5716",
+      "blocked_unverifiable",
+      "not_applicable",
+      "deferred_needs_root_change"
+    ],
+    "estate_drift_issue": "TIN-5716"
+  },
+  "claim_classes": {
+    "manifest_contents": "measured (read from the remote source at the registry's source.json reference)",
+    "compliance": "inference from those manifests; no resolved lockfile of any module was audited",
+    "dependency_edges": "unknown: bazel mod graph did not run on the authoring host"
+  },
+  "consumed": [],
+  "decisions": [
+    {
+      "module": "xoxd_spectrogram",
+      "version": "0.1.0",
+      "decision": "deferred_needs_root_change",
+      "pins_skeleton_4": false,
+      "pins_effect_3": false,
+      "compliance": "compliant_by_manifest_reading",
+      "has_use_in_video_utils": "candidate_unproven",
+      "closure": [
+        "xoxd_theme@0.1.0",
+        "tummycrypt_tinyland_composables@0.2.4",
+        "tummycrypt_tinyland_color_utils@0.2.3"
+      ],
+      "evidence": {
+        "registry_source_json": "modules/xoxd_spectrogram/0.1.0/source.json",
+        "source": "xoxd-ai/xoxd-spectrogram@8264a38651c785aa0dd9c02e3569b2d979747d80 (private; default branch main tip at read time, commit date 2026-10-02T13:46:31Z)",
+        "read_via": "GitHub contents API at the source.json commit",
+        "package": "@xoxd/spectrogram 0.1.0",
+        "peerDependencies": {
+          "@skeletonlabs/skeleton-svelte": "5.0.1",
+          "@tummycrypt/tinyland-color-utils": "0.2.3",
+          "@tummycrypt/tinyland-composables": "0.2.4",
+          "fft.js": "4.0.4",
+          "svelte": "^5.57.1"
+        },
+        "devDependencies_stack": {
+          "@skeletonlabs/skeleton-svelte": "5.0.1",
+          "svelte": "5.57.1",
+          "typescript": "6.0.3"
+        },
+        "effect_dependency": null,
+        "module_toolchains": {
+          "node": "22.22.0 (dev)",
+          "pnpm": "10.13.1 (dev)",
+          "aspect_rules_js": "2.9.1",
+          "npm_translate_lock": "non-dev, repo xoxd_spectrogram_npm"
+        }
+      },
+      "reasons": [
+        "Peer ranges admit the video-utils pins (Svelte 5.57.1, Skeleton 5.0.1) and there is no Effect dependency, so it is not blocked on TIN-5716.",
+        "Its peer dependency fft.js 4.0.4 is not in web/package.json or web/pnpm-lock.yaml; adding it is a root-owned change.",
+        "A Bazel-only package is absent from the pnpm install that `pnpm build` and `pnpm check` (the accepted gates) use, so importing it from web/src would break those gates until root decides how the two paths coexist.",
+        "The source archive is a private GitHub API tarball: Bazel needs a credential helper to fetch it, which the hosted CI job does not have.",
+        "Use is unproven: web/src/lib/components/review/SpectrogramView.svelte renders the server-produced low-register spectrogram; the module's DSP core is a 16 kHz mel/PCEN demo pipeline and its behaviour near 32 Hz was not measured."
+      ],
+      "root_changes_needed": [
+        "web/package.json + web/pnpm-lock.yaml: fft.js 4.0.4",
+        "web/src: import @xoxd/spectrogram",
+        "decision on Bazel-only packages versus the pnpm gates",
+        "CI credential for the private source archive"
+      ]
+    },
+    {
+      "module": "xoxd_theme",
+      "version": "0.1.1",
+      "decision": "not_applicable",
+      "pins_skeleton_4": false,
+      "pins_effect_3": false,
+      "compliance": "compliant_by_manifest_reading",
+      "has_use_in_video_utils": "no",
+      "closure": [],
+      "evidence": {
+        "registry_source_json": "modules/xoxd_theme/0.1.1/source.json",
+        "source": "xoxd-ai/bazel-registry release public-frontend-v0.1.1 asset xoxd_theme-0.1.1.tar.gz (sha256 matches source.json integrity sha256-DtBiJ/++QAmLQF+M0gNEKptUEdiLEHndOev70ZfVT0U=)",
+        "read_via": "release asset download, package.json read from the archive",
+        "package": "@xoxd/theme 0.1.1",
+        "dependencies": {},
+        "peerDependencies": {},
+        "effect_dependency": null,
+        "version_0_1_0": "xoxd-ai/xoxd-theme@4161de6037454a11c1127f1a470456ab4f2d49d4 has no package.json (tree listing via GitHub API); this is the version in xoxd_spectrogram's closure"
+      },
+      "reasons": [
+        "xoxd.ai brand design tokens and fonts; video-utils is a private loopback tool with its own Skeleton theme and no decorative dependency is taken."
+      ]
+    },
+    {
+      "module": "xoxd_public_chrome",
+      "version": "0.1.0",
+      "decision": "not_applicable",
+      "pins_skeleton_4": false,
+      "pins_effect_3": false,
+      "compliance": "compliant_by_manifest_reading",
+      "has_use_in_video_utils": "no",
+      "closure": [],
+      "evidence": {
+        "registry_source_json": "modules/xoxd_public_chrome/0.1.0/source.json",
+        "source": "xoxd-ai/bazel-registry release public-frontend-v0.1.1 asset xoxd_public_chrome-0.1.0.tar.gz (sha256 matches source.json integrity sha256-AdbvlPHa7HAxfWAGDyjRSO58d2eqhbxqyxKJjVs1RJI=)",
+        "read_via": "release asset download, package.json read from the archive",
+        "package": "@xoxd/public-chrome 0.1.0",
+        "peerDependencies": {
+          "@lucide/svelte": "^1.28.0",
+          "@skeletonlabs/skeleton": "5.0.1",
+          "@skeletonlabs/skeleton-svelte": "5.0.1",
+          "svelte": "^5.56.8"
+        },
+        "effect_dependency": null
+      },
+      "reasons": [
+        "Public-site navigation, footer and theme picker for xoxd.ai; video-utils has no public site chrome.",
+        "Its peer @lucide/svelte is not in web/package.json."
+      ]
+    },
+    {
+      "module": "tummycrypt_tinyland_composables",
+      "version": "0.2.4",
+      "decision": "not_applicable",
+      "pins_skeleton_4": false,
+      "pins_effect_3": false,
+      "compliance": "compliant_by_manifest_reading",
+      "has_use_in_video_utils": "only_as_xoxd_spectrogram_closure",
+      "closure": [],
+      "evidence": {
+        "registry_source_json": "modules/tummycrypt_tinyland_composables/0.2.4/source.json",
+        "source": "tinyland-inc/tinyland-composables tag v0.2.4",
+        "read_via": "GitHub contents API at the tag",
+        "package": "@tummycrypt/tinyland-composables 0.2.4",
+        "peerDependencies": {
+          "svelte": ">=5.0.0"
+        },
+        "devDependencies_stack": {
+          "svelte": "^5.0.0",
+          "typescript": "^5.0.0"
+        },
+        "effect_dependency": null,
+        "module_toolchains": {
+          "rules_ts ts_version": "5.9.3",
+          "pnpm": "10.13.1"
+        }
+      },
+      "reasons": [
+        "No direct use; it would arrive only with xoxd_spectrogram."
+      ]
+    },
+    {
+      "module": "tummycrypt_tinyland_color_utils",
+      "version": "0.2.3",
+      "decision": "not_applicable",
+      "pins_skeleton_4": false,
+      "pins_effect_3": false,
+      "compliance": "compliant_by_manifest_reading",
+      "has_use_in_video_utils": "only_as_xoxd_spectrogram_closure",
+      "closure": [],
+      "evidence": {
+        "registry_source_json": "modules/tummycrypt_tinyland_color_utils/0.2.3/source.json",
+        "source": "tinyland-inc/tinyland-color-utils tag v0.2.3",
+        "read_via": "GitHub contents API at the tag",
+        "package": "@tummycrypt/tinyland-color-utils 0.2.3",
+        "peerDependencies": {},
+        "devDependencies_stack": {
+          "typescript": "^5.5.0"
+        },
+        "effect_dependency": null,
+        "module_toolchains": {
+          "rules_ts ts_version": "5.9.3",
+          "pnpm": "10.13.1"
+        }
+      },
+      "reasons": [
+        "No direct use; it would arrive only with xoxd_spectrogram."
+      ]
+    }
+  ],
+  "blocked_estate_drift": {
+    "count": 0,
+    "note": "No examined registry module pins Skeleton 4 or Effect 3. The recorded drift is in the estate applications, not in these modules: xoxd.ai effect ^3.22.2, site.scaffold effect ^3.22.1, tinyland.dev Skeleton ^4.15.2 (docs/research/2026-10-07-estate-bazel-patterns.md)."
+  },
+  "not_evaluated": {
+    "count": 64,
+    "reason": "No candidate use in video-utils; manifests not read. Unknown compliance, not presumed either way.",
+    "modules": [
+      "dsa_study_packet",
+      "gftb_site",
+      "rules_tectonic",
+      "spear_resumes",
+      "tinyland_tempo_store",
+      "tummycrypt_scheduling_bridge",
+      "tummycrypt_scheduling_kit",
+      "tummycrypt_tinyland_a11y_engine",
+      "tummycrypt_tinyland_a11y_logger",
+      "tummycrypt_tinyland_activity_feed",
+      "tummycrypt_tinyland_activity_logger",
+      "tummycrypt_tinyland_activitypub",
+      "tummycrypt_tinyland_admin_audit",
+      "tummycrypt_tinyland_admin_data",
+      "tummycrypt_tinyland_admin_user_repository",
+      "tummycrypt_tinyland_admin_user_service",
+      "tummycrypt_tinyland_admin_validation",
+      "tummycrypt_tinyland_analytics",
+      "tummycrypt_tinyland_analytics_data",
+      "tummycrypt_tinyland_auth",
+      "tummycrypt_tinyland_auth_pg",
+      "tummycrypt_tinyland_auth_redis",
+      "tummycrypt_tinyland_business_pg",
+      "tummycrypt_tinyland_caldav_client",
+      "tummycrypt_tinyland_calendar",
+      "tummycrypt_tinyland_content",
+      "tummycrypt_tinyland_content_types",
+      "tummycrypt_tinyland_credentials_generator",
+      "tummycrypt_tinyland_credentials_helper",
+      "tummycrypt_tinyland_event_loader",
+      "tummycrypt_tinyland_file_logger",
+      "tummycrypt_tinyland_fingerprint",
+      "tummycrypt_tinyland_forms",
+      "tummycrypt_tinyland_grafana",
+      "tummycrypt_tinyland_invitation",
+      "tummycrypt_tinyland_ip_bans",
+      "tummycrypt_tinyland_ip_location",
+      "tummycrypt_tinyland_logging",
+      "tummycrypt_tinyland_logging_middleware",
+      "tummycrypt_tinyland_metrics",
+      "tummycrypt_tinyland_metrics_collectors",
+      "tummycrypt_tinyland_offer_builder",
+      "tummycrypt_tinyland_otel",
+      "tummycrypt_tinyland_physics",
+      "tummycrypt_tinyland_product_loader",
+      "tummycrypt_tinyland_profile_loader",
+      "tummycrypt_tinyland_prometheus",
+      "tummycrypt_tinyland_publishing_hooks",
+      "tummycrypt_tinyland_rate_limit",
+      "tummycrypt_tinyland_scheduled_publishing",
+      "tummycrypt_tinyland_schemas",
+      "tummycrypt_tinyland_security",
+      "tummycrypt_tinyland_server_config",
+      "tummycrypt_tinyland_server_utils",
+      "tummycrypt_tinyland_stores",
+      "tummycrypt_tinyland_threat_detection",
+      "tummycrypt_tinyland_tracing_middleware",
+      "tummycrypt_tinyland_types",
+      "tummycrypt_tinyland_user_resolution",
+      "tummycrypt_tinyland_video_thumbnails",
+      "tummycrypt_tinyland_websocket_metrics",
+      "tummycrypt_tinyvectors",
+      "tummycrypt_vite_plugin_a11y",
+      "tummycrypt_vite_plugin_skeleton_colors"
+    ]
+  },
+  "modules": {
+    "dsa_study_packet": {
+      "latest": "0.2.0",
+      "version_count": 2,
+      "yanked": [
+        "0.1.0"
+      ]
+    },
+    "gftb_site": {
+      "latest": "0.3.1",
+      "version_count": 2,
+      "yanked": []
+    },
+    "rules_tectonic": {
+      "latest": "0.2.3",
+      "version_count": 4,
+      "yanked": []
+    },
+    "spear_resumes": {
+      "latest": "0.2.0",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tinyland_tempo_store": {
+      "latest": "0.1.0",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_scheduling_bridge": {
+      "latest": "0.7.2",
+      "version_count": 15,
+      "yanked": []
+    },
+    "tummycrypt_scheduling_kit": {
+      "latest": "0.11.1",
+      "version_count": 12,
+      "yanked": [
+        "0.11.0"
+      ]
+    },
+    "tummycrypt_tinyland_a11y_engine": {
+      "latest": "0.2.4",
+      "version_count": 3,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_a11y_logger": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_activity_feed": {
+      "latest": "0.2.0",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_activity_logger": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_activitypub": {
+      "latest": "0.3.2",
+      "version_count": 7,
+      "yanked": [
+        "0.2.2",
+        "0.2.3",
+        "0.2.4",
+        "0.2.5"
+      ]
+    },
+    "tummycrypt_tinyland_admin_audit": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_admin_data": {
+      "latest": "0.2.2",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_admin_user_repository": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_admin_user_service": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_admin_validation": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_analytics": {
+      "latest": "0.2.2",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_analytics_data": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_auth": {
+      "latest": "0.7.1",
+      "version_count": 9,
+      "yanked": [
+        "0.7.0"
+      ]
+    },
+    "tummycrypt_tinyland_auth_pg": {
+      "latest": "0.2.4",
+      "version_count": 3,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_auth_redis": {
+      "latest": "0.1.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_business_pg": {
+      "latest": "0.1.1",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_caldav_client": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_calendar": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_color_utils": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_composables": {
+      "latest": "0.2.4",
+      "version_count": 3,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_content": {
+      "latest": "0.3.2",
+      "version_count": 6,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_content_types": {
+      "latest": "0.3.1",
+      "version_count": 5,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_credentials_generator": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_credentials_helper": {
+      "latest": "0.2.2",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_event_loader": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_file_logger": {
+      "latest": "0.2.2",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_fingerprint": {
+      "latest": "0.3.0",
+      "version_count": 3,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_forms": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_grafana": {
+      "latest": "0.2.4",
+      "version_count": 3,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_invitation": {
+      "latest": "0.2.7",
+      "version_count": 5,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_ip_bans": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_ip_location": {
+      "latest": "0.2.2",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_logging": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_logging_middleware": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_metrics": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_metrics_collectors": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_offer_builder": {
+      "latest": "0.2.0",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_otel": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_physics": {
+      "latest": "0.2.2",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_product_loader": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_profile_loader": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_prometheus": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_publishing_hooks": {
+      "latest": "0.2.2",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_rate_limit": {
+      "latest": "0.3.0",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_scheduled_publishing": {
+      "latest": "0.2.2",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_schemas": {
+      "latest": "0.3.0",
+      "version_count": 4,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_security": {
+      "latest": "0.3.2",
+      "version_count": 5,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_server_config": {
+      "latest": "0.2.2",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_server_utils": {
+      "latest": "0.2.2",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_stores": {
+      "latest": "0.3.1",
+      "version_count": 4,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_threat_detection": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_tracing_middleware": {
+      "latest": "0.2.2",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_types": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_user_resolution": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_video_thumbnails": {
+      "latest": "0.2.3",
+      "version_count": 2,
+      "yanked": []
+    },
+    "tummycrypt_tinyland_websocket_metrics": {
+      "latest": "0.2.2",
+      "version_count": 1,
+      "yanked": []
+    },
+    "tummycrypt_tinyvectors": {
+      "latest": "0.3.7",
+      "version_count": 11,
+      "yanked": []
+    },
+    "tummycrypt_vite_plugin_a11y": {
+      "latest": "0.2.4",
+      "version_count": 3,
+      "yanked": [
+        "0.2.3"
+      ]
+    },
+    "tummycrypt_vite_plugin_skeleton_colors": {
+      "latest": "0.2.4",
+      "version_count": 3,
+      "yanked": [
+        "0.2.3"
+      ]
+    },
+    "xoxd_public_chrome": {
+      "latest": "0.1.0",
+      "version_count": 1,
+      "yanked": []
+    },
+    "xoxd_spectrogram": {
+      "latest": "0.1.0",
+      "version_count": 1,
+      "yanked": []
+    },
+    "xoxd_theme": {
+      "latest": "0.1.1",
+      "version_count": 2,
+      "yanked": []
+    }
+  }
+}

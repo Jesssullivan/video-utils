@@ -1,0 +1,62 @@
+"""
+Crate `video-utils-gain-ffi` (native/au-spike/Cargo.toml): rlib, staticlib and
+Rust tests only. The Swift/ObjC/C harnesses, AU packaging, auval and every host
+acceptance step stay outside Bazel (native/au-spike/check.py and the just recipes).
+"""
+
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_static_library", "rust_test")
+load("//tools/bazel:rust.bzl", "CRATE_VERSION", "FFI_RELEASE_RUSTC_FLAGS", "RELEASE_RUSTC_FLAGS", "RUST_EDITION")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/.DS_Store",
+        ],
+    ),
+)
+
+rust_library(
+    name = "video_utils_gain_ffi",
+    srcs = ["src/lib.rs"],
+    crate_root = "src/lib.rs",
+    edition = RUST_EDITION,
+    rustc_flags = RELEASE_RUSTC_FLAGS,
+    version = CRATE_VERSION,
+    deps = ["//src:video_utils"],
+)
+
+# crate-type "staticlib". Cargo's release profile for this crate is
+# panic = "abort" so no unwind can cross the native ABI; the same flag is
+# applied here under `-c opt`.
+rust_static_library(
+    name = "video_utils_gain_ffi_static",
+    srcs = ["src/lib.rs"],
+    crate_name = "video_utils_gain_ffi",
+    crate_root = "src/lib.rs",
+    edition = RUST_EDITION,
+    rustc_flags = FFI_RELEASE_RUSTC_FLAGS,
+    version = CRATE_VERSION,
+    deps = ["//src:video_utils"],
+)
+
+rust_test(
+    name = "video_utils_gain_ffi_unit_test",
+    crate = ":video_utils_gain_ffi",
+    edition = RUST_EDITION,
+)
+
+rust_test(
+    name = "biquad_ffi_test",
+    srcs = ["tests/biquad_ffi.rs"],
+    crate_root = "tests/biquad_ffi.rs",
+    edition = RUST_EDITION,
+    deps = [
+        ":video_utils_gain_ffi",
+        "//src:video_utils",
+    ],
+)
