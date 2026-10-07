@@ -76,11 +76,25 @@ A `PROPFIND` (Depth 1) on the share listed 44 checkpoints. Selected rows:
 What these numbers support:
 - **Documentary.** The README says "About 78 MB per model" for `final*`.
   81,058,141 B is 77.3 MiB, which is consistent.
-- **Unknown, by design.** No SHA-256 has been observed. The server SHA1 is
-  server-reported metadata. It is not a substitute for the registry's sha256.
-  Root fills the registry sha256 from its own explicit hash-bound fetch.
-- **Inference.** Root may use the SHA1 only as a cross-check of its fetched
-  bytes.
+- **Lane state when this section was written.** The lane observed no SHA-256.
+  The server SHA1 is server-reported metadata. It is not a substitute for the
+  registry's sha256.
+- **Measured by root (2026-10-07T10:28:54Z, explicit hash-bound fetch of the
+  URL in section 2).** 81,058,141 bytes, equal to the upstream
+  `content-length`. SHA-256
+  `8c328b45f59d8dd3dff219253ff6a8d6482be57d0133a29140e2febbf8eb8331`. SHA-1
+  `e1506282faf66ca10e8ab50ee26bd542b7b9ff0a`, equal to the server-reported
+  `oc-checksum`. The size and SHA-1 agreement is a cross-check of the fetched
+  bytes against server metadata only. It is not a publisher signature.
+- **Registered.** `program/models.json` carries `cpjku-beat-this-final0` with
+  that sha256, `fetched_at_utc` and
+  `gate_state: registered_hash_bound_runtime_not_qualified_no_inference_run`.
+- **Still not established.** The honey runtime is not qualified and no
+  inference has run. Whether the checkpoint loads under
+  `torch.load(..., weights_only=True)` is unverified (section 6). The
+  comparator keeps refusing: `model_file_missing` on a checkout without
+  `models/cpjku-beat-this-final0.bin`, then `runtime_not_qualified`, then
+  `platform_unsupported` off Linux.
 
 ### 4. Runtime dependencies
 
@@ -212,8 +226,9 @@ not a processing change to any video-utils signal. Masters are untouched.
 
 ## Registry entry (handed to root; M2)
 
-Root adds the entry only after its own explicit fetch. It replaces the
-placeholder with the measured sha256 before committing.
+Root registered the entry on 2026-10-07 after its own explicit fetch, with the
+measured sha256 from section 3 in place of the placeholder. The text below is
+the lane's hand-off draft, kept as written.
 `model_prefetch.py` rejects non-hex digests, and that refusal is intended.
 
 ```json
@@ -230,8 +245,9 @@ placeholder with the measured sha256 before committing.
 
 - `max_bytes` is the exact published `content-length`. A changed upstream file
   therefore fails the fetch rather than being silently accepted.
-- `server_sha1_cross_check` is an extra key. `model_prefetch.py` ignores it, so
-  root may drop it.
+- `server_sha1_cross_check` is an extra key. `model_prefetch.py` ignores it.
+  Root kept it and added the extra keys `fetched_at_utc` and `gate_state`,
+  which `model_prefetch.py` and `beat_this_compare.py` also ignore.
 
 ## Use in the project
 
@@ -252,7 +268,9 @@ placeholder with the measured sha256 before committing.
 
 ## Limitations
 
-- No bytes of any checkpoint were read, so no sha256 is known to the lane.
+- The lane read no checkpoint bytes. The registered sha256 comes from root's
+  fetch (section 3). Registration is not qualification: no runtime is
+  qualified and no inference has run.
 - The honey architecture (x86_64 or aarch64) is unverified. The lock carries
   both `soxr` wheels and selects by `platform.machine()`.
 - Whether a venv created from the nix `python3.withPackages` interpreter sees

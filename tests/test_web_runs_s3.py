@@ -987,25 +987,36 @@ class Capabilities(ApiCase):
             self.assertEqual(tool['area_basis'], 'program/capabilities.json domain')
             self.assertIn('network', tool['capability']['effects'])
             self.assertIn('timeout_seconds', tool['capability']['resources'])
-        self.assertEqual(len(caps['models']), 1)
-        model = caps['models'][0]
+        self.assertEqual(len(caps['models']), 2)
+        by_id = {model['model_id']: model for model in caps['models']}
+        self.assertEqual(sorted(by_id), ['cpjku-beat-this-final0', 'spotify-basic-pitch-0.4.0-onnx'])
+        model = by_id['spotify-basic-pitch-0.4.0-onnx']
         self.assertEqual((model['local_presence'], model['url_host'], model['registration']),
                          ('not_checked', 'raw.githubusercontent.com', 'registered_hash_bound'))
         self.assertEqual(model['gate_state'], {'value': None, 'reason': 'not recorded in program/models.json'})
+        # Beat This final0: registered from root's hash-bound fetch; runtime unqualified, no inference run.
+        beat = by_id['cpjku-beat-this-final0']
+        self.assertEqual((beat['local_presence'], beat['url_host'], beat['registration']),
+                         ('not_checked', 'cloud.cp.jku.at', 'registered_hash_bound'))
+        self.assertEqual((beat['sha256'], beat['max_bytes']),
+                         ('8c328b45f59d8dd3dff219253ff6a8d6482be57d0133a29140e2febbf8eb8331', 81058141))
+        self.assertEqual(beat['gate_state'], {'value': 'registered_hash_bound_runtime_not_qualified_no_inference_run',
+                                              'reason': 'recorded in program/models.json'})
         self.assertNotIn('https://', json.dumps(caps))
         METRICS['capabilities'] = {'tools': f'{len(names)}/42', 'pilot_with_metadata': f'{len(with_capability)}/8',
                                    'null_reason': f'{len(without)}/34', 'unmapped': len(unmapped),
-                                   'models': f'{len(caps["models"])}/1'}
+                                   'models': f'{len(caps["models"])}/2'}
 
     def test_extra_model_fields_pass_through(self):
         program = Path(self._tmp.name) / 'program'
         shutil.copytree(ROOT / 'program', program)
         models = json.loads((program / 'models.json').read_text())
-        entry = next(iter(models['models'].values()))
+        entry = models['models']['spotify-basic-pitch-0.4.0-onnx']
         entry.update(gate_state='gate_pending_root_review', lane='model_lanes', gate='TIN-5721', status='registered')
         (program / 'models.json').write_text(json.dumps(models))
         self.start(self.fx.api(program_root=program))
-        model = self.get_json('/api/v1/capabilities')['models'][0]
+        model = next(item for item in self.get_json('/api/v1/capabilities')['models']
+                     if item['model_id'] == 'spotify-basic-pitch-0.4.0-onnx')
         self.assertEqual(model['gate_state'], {'value': 'gate_pending_root_review', 'reason': 'recorded in program/models.json'})
         self.assertEqual((model['lane'], model['gate'], model['status']), ('model_lanes', 'TIN-5721', 'registered'))
         (program / 'tools.json').write_text('{"tools": [}')
