@@ -368,13 +368,24 @@ class S3Base(unittest.TestCase):
                 self.fail(f'job did not reach {states}; last {response.json["state"]} {response.json["reason_code"]}')
             time.sleep(0.05)
 
-    def wait_beat(self, builder, timeout=15):
+    def wait_beat(self, builder, since, timeout=15):
+        """Heartbeat of the first launch made after `since` = len(builder.beats) taken before the submit.
+
+        Earlier launches on the same builder (for example the parent capture_profile job of an
+        apply_capture_profile fixture) are never returned, so the caller cannot read a stale beat when
+        it reaches this point before the supervisor has called the builder for the new job.
+        """
         end = time.monotonic() + timeout
         while time.monotonic() < end:
-            if builder.beats and builder.beats[-1].exists():
-                return json.loads(builder.beats[-1].read_text())
+            with builder.lock:
+                beat = builder.beats[since] if len(builder.beats) > since else None
+            if beat is not None and beat.exists():
+                try:
+                    return json.loads(beat.read_text())
+                except ValueError:  # stub is mid-write; poll again
+                    pass
             time.sleep(0.02)
-        self.fail('stub heartbeat not observed')
+        self.fail(f'stub heartbeat not observed for launch index {since}')
 
     def wait_gone(self, pid, timeout=10):
         end = time.monotonic() + timeout
@@ -1058,8 +1069,9 @@ class LifecycleTests(S3Base):
         if tool == 'apply_capture_profile':
             fx['parent'] = self.authored_job(env, fx)
         builder.modes = ['sleep']
+        launches = len(builder.beats)
         job = self.submit_for(env, tool, fx)
-        beat = self.wait_beat(builder)
+        beat = self.wait_beat(builder, launches)
         response = env['client'].post(f'/api/v1/jobs/{job.json["job_id"]}/cancel', {})
         final = self.wait_job(env['client'], job.json['job_id'], ('cancelled',), timeout=30)
         outcomes['cancel_running'] = (response.status == 202 and self.wait_gone(beat['pid'])
@@ -1073,8 +1085,9 @@ class LifecycleTests(S3Base):
         if tool == 'apply_capture_profile':
             fx['parent'] = self.authored_job(env, fx)
         builder.modes = ['sleep']
+        launches = len(builder.beats)
         job = self.submit_for(env, tool, fx)
-        beat = self.wait_beat(builder)
+        beat = self.wait_beat(builder, launches)
         state = env['state']
         env['stop']()  # detaches; the test kills only its own stub group
         sigkill_own_group(beat['pid'])
