@@ -590,6 +590,30 @@ class GraphFilesTest(unittest.TestCase):
         ignored = set((ROOT / ".bazelignore").read_text().split())
         self.assertEqual([tree for tree in IGNORED_TREES if tree not in ignored], [])
 
+    def test_foreign_bazel_packages_are_ignored_so_wildcard_patterns_load(self):
+        """Vendored trees carry their own MODULE.bazel/BUILD.bazel (another module's labels).
+
+        `bazel build //...` loads every un-ignored BUILD file, so one outside this graph's packages
+        breaks the default `just bazel-build` / `just bazel-test` pattern at analysis time.
+        """
+        import subprocess
+        listed = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True, timeout=60)
+        if listed.returncode != 0:
+            self.skipTest("not a git checkout; tracked-file inventory unavailable (skip is not a pass)")
+        ignored = [line.strip() for line in (ROOT / ".bazelignore").read_text().splitlines() if line.strip()]
+        owned = {"", "src", "scripts", "tests", "web", "native/au-spike", "tools/bazel"}
+        names = {"BUILD", "BUILD.bazel", "MODULE.bazel", "WORKSPACE", "WORKSPACE.bazel", "REPO.bazel"}
+        stray = []
+        for path in listed.stdout.decode().split("\0"):
+            directory, _, name = path.rpartition("/")
+            if name not in names or (directory in owned and name in ("BUILD.bazel", "MODULE.bazel")):
+                continue
+            if not any(directory == tree or directory.startswith(tree + "/") for tree in ignored):
+                stray.append(path)
+        self.assertEqual(stray, [])
+        for tree in ("site/vendor", "site/node_modules", "site/build", "site/.svelte-kit"):
+            self.assertIn(tree, ignored)
+
     def test_every_bazel_file_is_inside_the_starlark_subset(self):
         read_module(ROOT)
         for package in ("", "src", "scripts", "tests", "web", "native/au-spike", "tools/bazel"):
