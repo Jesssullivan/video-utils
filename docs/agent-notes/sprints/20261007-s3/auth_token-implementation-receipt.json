@@ -1,0 +1,1276 @@
+{
+  "schema": "video-utils.sprint-lane-receipt.v1",
+  "lane": "auth_token",
+  "sprint": "20261007-s3",
+  "tracker": {
+    "linear": "TIN-5720",
+    "linear_written": false
+  },
+  "date": "2026-10-07",
+  "branch": "sprint/20261007-s3/auth_token",
+  "contract": {
+    "path": "docs/spec/sprints/AUTH_TOKEN_S3.md",
+    "freeze_commit": "360086b2333803b1f852d701fe50c2c0364609e6",
+    "implementation_record_section": 12
+  },
+  "authority": "Operator S3 decision (docs/spec/sprints/20261007-S3.md); repository AGENTS.md; R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43)",
+  "preregistered": false,
+  "implementation_commit": "f4782d1e4148a4e2ffc1f706b23dea02304c1cea",
+  "run": {
+    "stamp": "20261007T153003Z-6500a5",
+    "artifact_dir": "artifacts/s2/auth_token/20261007T153003Z-6500a5/ (gitignored, not committed)",
+    "commands": [
+      "cd web && pnpm install --frozen-lockfile --offline  (174 packages reused from the store, 0 downloaded)",
+      "cd web && pnpm run build",
+      "PYTHONPATH=tests python3 -m unittest test_auth_token_s3 -v",
+      "PYTHONPATH=tests python3 -m unittest test_auth_hosting_s3 -v",
+      "cd web && pnpm exec vitest run src/lib/server/auth",
+      "cd web && pnpm exec svelte-check --tsconfig ./tsconfig.json"
+    ],
+    "node_version": "v22.23.2",
+    "web_build": {
+      "source_commit": "f4782d1e4148a4e2ffc1f706b23dea02304c1cea",
+      "note": "built from the working tree that was then committed unchanged as f4782d1 (web/src and serve.js identical)",
+      "adapter_node": "5.5.7",
+      "kit": "2.70.3",
+      "location": "web/build (gitignored)"
+    },
+    "server_launch": "cd web && node --import file://<artifact>/<process>/seam.mjs serve.js (VIDEO_UTILS_AUTH_MODE=tailnet, HOST=127.0.0.1, scrubbed env)"
+  },
+  "results": {
+    "claim_class": "e2e-local (built adapter-node server on loopback, synthetic run-time RSA keys, loopback JWKS via the test seam, virtual clock)",
+    "metrics": {
+      "decision_matched": {
+        "numerator": 37,
+        "denominator": 37
+      },
+      "fetch_matched": {
+        "numerator": 37,
+        "denominator": 37
+      },
+      "expected_mix": {
+        "allow": 14,
+        "deny": 21,
+        "host": 2
+      },
+      "distinct_identity_deny_bodies": {
+        "distinct": 1,
+        "denies": 21
+      },
+      "dod_groups_covered": {
+        "numerator": 11,
+        "denominator": 11,
+        "groups": {
+          "J1": {
+            "cases": 1,
+            "all_matched": true
+          },
+          "J13": {
+            "cases": 1,
+            "all_matched": true
+          },
+          "expired": {
+            "cases": 2,
+            "all_matched": true
+          },
+          "not_yet_valid": {
+            "cases": 3,
+            "all_matched": true
+          },
+          "wrong_aud": {
+            "cases": 2,
+            "all_matched": true
+          },
+          "wrong_iss": {
+            "cases": 3,
+            "all_matched": true
+          },
+          "unknown_kid": {
+            "cases": 3,
+            "all_matched": true
+          },
+          "rotation": {
+            "cases": 5,
+            "all_matched": true
+          },
+          "alg_none_hs256": {
+            "cases": 4,
+            "all_matched": true
+          },
+          "oversize_jwks": {
+            "cases": 3,
+            "all_matched": true
+          },
+          "endpoint_down_stale": {
+            "cases": 7,
+            "all_matched": true
+          }
+        }
+      },
+      "seam_guard_refusals": {
+        "numerator": 5,
+        "denominator": 5
+      },
+      "egress_refused": {
+        "count": 0,
+        "of_jwks_attempts": 13,
+        "note": "P_A/P_B/P_C attempts; the O1 process asserted 0 attempts and 0 refused egress separately"
+      },
+      "jwks_attempt_init_conformant": {
+        "numerator": 13,
+        "denominator": 13,
+        "definition": "method GET, redirect 'error', an AbortSignal, accept application/json, as seen by the seam"
+      },
+      "auth_source_defects": {
+        "found": 1,
+        "fixed_with_regression_test": 1,
+        "expected_at_freeze": 0
+      }
+    },
+    "case_table": [
+      {
+        "id": "E00a",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "host_precedence",
+        "case": "valid k1, Host rebind.example.org",
+        "jwks_mode": "serve",
+        "expected": {
+          "decision": "host",
+          "status": 421,
+          "code": "bff_host_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "host",
+          "status": 421,
+          "code": "bff_host_refused",
+          "deny_body_exact": false,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E00b",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "host_precedence",
+        "case": "valid k1, Host 127.0.0.1:<port>",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "host",
+          "status": 421,
+          "code": "bff_host_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "host",
+          "status": 421,
+          "code": "bff_host_refused",
+          "deny_body_exact": false,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E01",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "J1",
+        "case": "J1 valid k1, email Operator@EXAMPLE.org",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "allow",
+          "status": null,
+          "code": null,
+          "delta_fetch": 1
+        },
+        "observed": {
+          "decision": "allow",
+          "status": 200,
+          "code": null,
+          "deny_body_exact": false,
+          "delta_fetch_seam": 1,
+          "delta_fetch_server": 1
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E02",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "J13",
+        "case": "J13 valid k1, not allowlisted",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E03",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "expired",
+        "case": "exp = now - 61",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E03c",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "expired",
+        "case": "control: exp = now - 30 (within skew)",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "allow",
+          "status": null,
+          "code": null,
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "allow",
+          "status": 200,
+          "code": null,
+          "deny_body_exact": false,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E04",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "not_yet_valid",
+        "case": "nbf = now + 120",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E04b",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "not_yet_valid",
+        "case": "iat = now + 120",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E04c",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "not_yet_valid",
+        "case": "control: nbf = now + 30",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "allow",
+          "status": null,
+          "code": null,
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "allow",
+          "status": 200,
+          "code": null,
+          "deny_body_exact": false,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E05",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "wrong_aud",
+        "case": "aud not configured",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E05b",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "wrong_aud",
+        "case": "AUD case-folded",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E06",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "wrong_iss",
+        "case": "other team issuer",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E06b",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "wrong_iss",
+        "case": "issuer with trailing /",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E06c",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "wrong_iss",
+        "case": "issuer with http://",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E07a",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "alg_none_hs256",
+        "case": "alg none, empty signature",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E07b",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "alg_none_hs256",
+        "case": "alg none, garbage signature",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E07c",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "alg_none_hs256",
+        "case": "HS256 keyed with k1 SPKI PEM",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E07d",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "alg_none_hs256",
+        "case": "HS256 keyed with served JWKS bytes",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E07e",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "signature",
+        "case": "RS256 kid-a signed by unpublished kx",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E08",
+        "process": "P_A",
+        "step_s": 0,
+        "group": "unknown_kid",
+        "case": "kid-zzz within cooldown",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E09",
+        "process": "P_A",
+        "step_s": 40,
+        "group": "unknown_kid",
+        "case": "kid-zzz: one refetch",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 1
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 1,
+          "delta_fetch_server": 1
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E09b",
+        "process": "P_A",
+        "step_s": 40,
+        "group": "unknown_kid",
+        "case": "kid-zzz again (cooldown)",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E10",
+        "process": "P_A",
+        "step_s": 80,
+        "group": "rotation",
+        "case": "rotated key k2 (kid-b)",
+        "jwks_mode": "serve",
+        "expected": {
+          "decision": "allow",
+          "status": null,
+          "code": null,
+          "delta_fetch": 1
+        },
+        "observed": {
+          "decision": "allow",
+          "status": 200,
+          "code": null,
+          "deny_body_exact": false,
+          "delta_fetch_seam": 1,
+          "delta_fetch_server": 1
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E10b",
+        "process": "P_A",
+        "step_s": 80,
+        "group": "rotation",
+        "case": "k1 after rotation publish",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "allow",
+          "status": null,
+          "code": null,
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "allow",
+          "status": 200,
+          "code": null,
+          "deny_body_exact": false,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E11",
+        "process": "P_A",
+        "step_s": 120,
+        "group": "rotation",
+        "case": "retired k1 within fresh TTL (designed lag)",
+        "jwks_mode": "serve",
+        "expected": {
+          "decision": "allow",
+          "status": null,
+          "code": null,
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "allow",
+          "status": 200,
+          "code": null,
+          "deny_body_exact": false,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E12",
+        "process": "P_A",
+        "step_s": 740,
+        "group": "rotation",
+        "case": "retired k1 after fresh TTL",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 1
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 1,
+          "delta_fetch_server": 1
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E12b",
+        "process": "P_A",
+        "step_s": 740,
+        "group": "rotation",
+        "case": "k2 after retirement",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "allow",
+          "status": null,
+          "code": null,
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "allow",
+          "status": 200,
+          "code": null,
+          "deny_body_exact": false,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E13",
+        "process": "P_B",
+        "step_s": 0,
+        "group": "oversize_jwks",
+        "case": "declared Content-Length 65537",
+        "jwks_mode": "oversize_declared",
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 1
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 1,
+          "delta_fetch_server": 1
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E13b",
+        "process": "P_B",
+        "step_s": 40,
+        "group": "oversize_jwks",
+        "case": "chunked body 65537 bytes",
+        "jwks_mode": "oversize_chunked",
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 1
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 1,
+          "delta_fetch_server": 1
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E13c",
+        "process": "P_B",
+        "step_s": 80,
+        "group": "oversize_jwks",
+        "case": "control: declared 65536 (at cap)",
+        "jwks_mode": "oversize_declared",
+        "expected": {
+          "decision": "allow",
+          "status": null,
+          "code": null,
+          "delta_fetch": 1
+        },
+        "observed": {
+          "decision": "allow",
+          "status": 200,
+          "code": null,
+          "deny_body_exact": false,
+          "delta_fetch_seam": 1,
+          "delta_fetch_server": 1
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E14a",
+        "process": "P_C",
+        "step_s": 0,
+        "group": "endpoint_down_stale",
+        "case": "serve",
+        "jwks_mode": "serve",
+        "expected": {
+          "decision": "allow",
+          "status": null,
+          "code": null,
+          "delta_fetch": 1
+        },
+        "observed": {
+          "decision": "allow",
+          "status": 200,
+          "code": null,
+          "deny_body_exact": false,
+          "delta_fetch_seam": 1,
+          "delta_fetch_server": 1
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E14b",
+        "process": "P_C",
+        "step_s": 660,
+        "group": "endpoint_down_stale",
+        "case": "503, stale allow",
+        "jwks_mode": "status",
+        "expected": {
+          "decision": "allow",
+          "status": null,
+          "code": null,
+          "delta_fetch": 1
+        },
+        "observed": {
+          "decision": "allow",
+          "status": 200,
+          "code": null,
+          "deny_body_exact": false,
+          "delta_fetch_seam": 1,
+          "delta_fetch_server": 1
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E14c",
+        "process": "P_C",
+        "step_s": 670,
+        "group": "endpoint_down_stale",
+        "case": "503, cooldown, stale allow",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "allow",
+          "status": null,
+          "code": null,
+          "delta_fetch": 0
+        },
+        "observed": {
+          "decision": "allow",
+          "status": 200,
+          "code": null,
+          "deny_body_exact": false,
+          "delta_fetch_seam": 0,
+          "delta_fetch_server": 0
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E14d",
+        "process": "P_C",
+        "step_s": 1800,
+        "group": "endpoint_down_stale",
+        "case": "closed, stale allow",
+        "jwks_mode": "closed",
+        "expected": {
+          "decision": "allow",
+          "status": null,
+          "code": null,
+          "delta_fetch": 1
+        },
+        "observed": {
+          "decision": "allow",
+          "status": 200,
+          "code": null,
+          "deny_body_exact": false,
+          "delta_fetch_seam": 1,
+          "delta_fetch_server": null
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E14e",
+        "process": "P_C",
+        "step_s": 3540,
+        "group": "endpoint_down_stale",
+        "case": "closed, stale allow (age < 60 min)",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "allow",
+          "status": null,
+          "code": null,
+          "delta_fetch": 1
+        },
+        "observed": {
+          "decision": "allow",
+          "status": 200,
+          "code": null,
+          "deny_body_exact": false,
+          "delta_fetch_seam": 1,
+          "delta_fetch_server": null
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E14f",
+        "process": "P_C",
+        "step_s": 3660,
+        "group": "endpoint_down_stale",
+        "case": "closed, age > 60 min",
+        "jwks_mode": null,
+        "expected": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "delta_fetch": 1
+        },
+        "observed": {
+          "decision": "deny",
+          "status": 403,
+          "code": "bff_identity_refused",
+          "deny_body_exact": true,
+          "delta_fetch_seam": 1,
+          "delta_fetch_server": null
+        },
+        "decision_match": true,
+        "fetch_match": true
+      },
+      {
+        "id": "E14g",
+        "process": "P_C",
+        "step_s": 3720,
+        "group": "endpoint_down_stale",
+        "case": "serve again on same port",
+        "jwks_mode": "serve",
+        "expected": {
+          "decision": "allow",
+          "status": null,
+          "code": null,
+          "delta_fetch": 1
+        },
+        "observed": {
+          "decision": "allow",
+          "status": 200,
+          "code": null,
+          "deny_body_exact": false,
+          "delta_fetch_seam": 1,
+          "delta_fetch_server": 1
+        },
+        "decision_match": true,
+        "fetch_match": true
+      }
+    ],
+    "processes": [
+      {
+        "process": "P_A",
+        "jwks_attempts": 4,
+        "jwks_server_requests": 4,
+        "egress_refused": 0,
+        "attempt_init_conformant": 4,
+        "server_exit_code": 0
+      },
+      {
+        "process": "P_B",
+        "jwks_attempts": 3,
+        "jwks_server_requests": 3,
+        "egress_refused": 0,
+        "attempt_init_conformant": 3,
+        "server_exit_code": 0
+      },
+      {
+        "process": "P_C",
+        "jwks_attempts": 6,
+        "jwks_server_requests": 3,
+        "egress_refused": 0,
+        "attempt_init_conformant": 6,
+        "server_exit_code": 0
+      }
+    ],
+    "seam_guards": [
+      {
+        "id": "SG1",
+        "rule": "NODE_ENV",
+        "exit_code": 1,
+        "ever_listened": false,
+        "stderr_names_rule": true
+      },
+      {
+        "id": "SG2",
+        "rule": "KUBERNETES_SERVICE_HOST",
+        "exit_code": 1,
+        "ever_listened": false,
+        "stderr_names_rule": true
+      },
+      {
+        "id": "SG3",
+        "rule": "HOST",
+        "exit_code": 1,
+        "ever_listened": false,
+        "stderr_names_rule": true
+      },
+      {
+        "id": "SG4",
+        "rule": "VIDEO_UTILS_AUTH_TOKEN_SEAM_NONCE",
+        "exit_code": 1,
+        "ever_listened": false,
+        "stderr_names_rule": true
+      },
+      {
+        "id": "SG5",
+        "rule": "VIDEO_UTILS_CF_ACCESS_TEAM_DOMAIN",
+        "exit_code": 1,
+        "ever_listened": false,
+        "stderr_names_rule": true
+      }
+    ],
+    "static_checks": {
+      "sg6": {
+        "web_files_scanned": 219,
+        "sub_checks": 8,
+        "sub_checks_holding": 8,
+        "checks": {
+          "web_tree_free_of_seam_references": true,
+          "containerfile_no_import_flag": true,
+          "containerfile_no_node_options": true,
+          "image_sets_node_env_production": true,
+          "image_workdir_is_app": true,
+          "mode_js_jwks_url_derivation_unchanged": true,
+          "mode_js_team_domain_pattern_unchanged": true,
+          "auth_dir_exactly_four_modules": true
+        }
+      },
+      "sh1": {
+        "files_scanned": 8,
+        "artifact_files_scanned": 40,
+        "findings": 0
+      },
+      "sh1_note": "SH1 counts are from the run before this receipt existed; the receipt itself is scanned on every later run",
+      "gitleaks": "gitleaks dir with .gitleaks.toml over tests/test_auth_token_s3.py, cf-access.js, cf-access.test.ts, this receipt and the contract: no leaks found"
+    },
+    "test_modules": {
+      "test_auth_token_s3": {
+        "ran": 14,
+        "passed": 14,
+        "skipped": 0,
+        "failed": 0,
+        "note": "ReceiptTests skips until this receipt exists; 14/14 after it was written"
+      },
+      "test_auth_hosting_s3": {
+        "ran": 39,
+        "passed": 39,
+        "skipped": 0,
+        "failed": 0
+      },
+      "vitest_auth": {
+        "files": 2,
+        "tests": 34,
+        "passed": 34,
+        "note": "cf-access.test.ts 18 (incl. new 16), gate.test.ts 16"
+      },
+      "svelte_check": {
+        "files": 1370,
+        "errors": 0,
+        "warnings": 0
+      }
+    }
+  },
+  "defects": [
+    {
+      "id": "D1",
+      "file": "web/src/lib/server/auth/cf-access.js",
+      "found_by": "E13 (P_B, oversize_declared 65537): the built server process exited mid-request; the client saw ECONNRESET",
+      "symptom_measured": "uncaught AssertionError [ERR_ASSERTION] assert(!this.paused) at Parser.finish in node:internal/deps/undici (node v22.23.2); process exit, so every later request fails",
+      "root_cause": "readCapped returned null on a declared content-length above the cap, and refresh threw on a non-OK status, without reading or cancelling the response body; the paused undici parser then saw the peer close the socket and its internal assertion threw outside any promise chain",
+      "fix": "discardBody(response) cancels the unread body on both early exits (declared oversize, non-OK status). No validation rule, limit, timeout or cache rule changed",
+      "regression_tests": [
+        "tests/test_auth_token_s3.py CfAccessRegressionTests.test_d1_unread_jwks_body_cannot_crash_process (node, module loaded directly, real loopback socket; 2 shapes)",
+        "web/src/lib/server/auth/cf-access.test.ts '16. a declared-oversize or non-OK JWKS response has its unread body cancelled' (3 shapes)"
+      ],
+      "before": {
+        "built_server_run": "artifacts/s2/auth_token/20261007T151617Z-4d7d08 (P_B crashed at E13; P_A 27/27 and P_C 7/7 matched)",
+        "standalone_unfixed_module_process_exits": {
+          "declared_65537_status_200": "3/3 crashed",
+          "body_65537_status_503": "3/3 crashed",
+          "declared_1000000_status_200": "0/3 crashed",
+          "body_200000_status_503": "0/3 crashed",
+          "body_1000000_status_503": "0/3 crashed"
+        },
+        "regression_tests_on_unfixed_source": "python D1 failed 2/2 shapes (exit 1); vitest 16 failed (cancel count 0, expected 1)"
+      },
+      "after": {
+        "standalone_fixed_module_process_exits": {
+          "declared_65537_status_200": "0/3 crashed",
+          "body_65537_status_503": "0/3 crashed",
+          "declared_1000000_status_200": "0/3 crashed",
+          "body_200000_status_503": "0/3 crashed"
+        },
+        "built_server_rerun": "20261007T153003Z-6500a5: 37/37 decisions, 37/37 fetch deltas; E13 deny, server exit code 0 at teardown"
+      },
+      "severity": {
+        "class": "inference",
+        "statement": "Hosted, the JWKS URL is Cloudflare over TLS. Only a JWKS response (an error page or an oversize body that is fully delivered and then closed) could trigger it. A client cannot choose that response, but an unknown kid can prompt a refetch at most once per 30 s. The effect was termination of the whole BFF process, not an authentication bypass. The 1 MB shapes did not crash in 3 runs; a likely cause is that the peer never finished writing within the 1.5 s window, but this is not measured."
+      }
+    }
+  ],
+  "properties_recorded": [
+    {
+      "id": "E11",
+      "property": "retired key stays accepted while the cache is fresh (up to JWKS_FRESH_TTL_MS = 10 min after the last successful fetch)",
+      "observed": "allow",
+      "class": "e2e-local",
+      "status": "designed behaviour, not a defect"
+    },
+    {
+      "id": "E14b-E14f",
+      "property": "stale keys usable for < 60 min after the last successful fetch when refresh fails; denied after",
+      "observed": "allow at +660/+670/+1800/+3540 s, deny at +3660 s, recovery at +3720 s",
+      "class": "e2e-local"
+    }
+  ],
+  "static_asset_observation": {
+    "class": "e2e-local observation (not in the decision denominator)",
+    "rows": [
+      {
+        "id": "O1a",
+        "path": "/favicon.svg",
+        "spec_expectation_auth_hosting_4_5": 403,
+        "build_reading_prediction": 200,
+        "observed_status": 200,
+        "observed_content_type": "image/svg+xml",
+        "control_root_status": 403
+      },
+      {
+        "id": "O1b",
+        "path": "/_app/version.json",
+        "spec_expectation_auth_hosting_4_5": 403,
+        "build_reading_prediction": 200,
+        "observed_status": 200,
+        "observed_content_type": "application/json",
+        "control_root_status": 403
+      }
+    ],
+    "reading": "adapter-node runs sirv for build/client before SvelteKit hooks, so public client assets answer without an Access assertion in tailnet mode (source-reading confirmed by O1)",
+    "severity": {
+      "class": "inference",
+      "statement": "public build assets carry no operator data; the Access edge and NetworkPolicy sit in front of the origin. It diverges from AUTH_HOSTING_S3 section 4.5's deny-by-default wording"
+    },
+    "action": "section 9 request 2 filed for root/operator choice; serve.js not changed by this lane"
+  },
+  "keys": {
+    "generated": 3,
+    "modulus_bits": [
+      2048,
+      2048,
+      2048
+    ],
+    "private_members_in_public_jwks": false,
+    "storage": "memory of one node subprocess per run; never written to disk",
+    "tokens_on_disk": false
+  },
+  "committed_key_material": false,
+  "unknowns": {
+    "public_hostname": null,
+    "cloudflare_tunnel_id": null,
+    "access_application_aud": null,
+    "access_idp_ids": null,
+    "tsidp_claims_in_access_jwt": "unknown",
+    "assertion_idp_visible_to_app": "unknown",
+    "real_access_token_claim_shape": "unknown",
+    "real_cloudflare_jwks_contacted": false,
+    "jwks_tls_path": "not_exercised",
+    "dns_resolution": "not_exercised",
+    "jwks_transport": "loopback_http_via_test_seam",
+    "clock": "virtual_via_test_seam",
+    "virtual_epoch_ms": 1900000000000,
+    "jwks_fetch_timeout_5s": "not_exercised",
+    "tailscale_serve_identity": "not_accepted",
+    "applied": false,
+    "served_proof": "not_run",
+    "container_built": false,
+    "static_asset_gate": {
+      "O1a": 200,
+      "O1b": 200
+    }
+  },
+  "not_claimed": [
+    "real Cloudflare JWKS, TLS to Cloudflare, DNS resolution, or the 5 s JWKS fetch timeout",
+    "a real Access-issued token or its claim shape; tsidp claims inside an Access JWT",
+    "hosted or served proof, any deploy/apply, tunnel, Access application, container build",
+    "behaviour under the production image (NODE_ENV=production refuses the seam by design)",
+    "any DSP, detector, profile, master, listening or note-correctness claim"
+  ],
+  "measured_inferred_unknown": {
+    "measured": [
+      "case table (37 decisions, 37 fetch deltas), seam guards 5/5, O1 statuses, D1 before/after process exits, test module outcomes"
+    ],
+    "inferred": [
+      "D1 severity and reachability in hosted mode",
+      "O1 severity",
+      "that the seam changes only the JWKS destination and Date.now (source of the generated seam; SG6/SG6b static checks)"
+    ],
+    "unknown": "see unknowns"
+  },
+  "root_owned_requests": [
+    "just/*.just: optional auth-token-test recipe (exact text in the lane's final report)",
+    "O1 observed 200: choose (a) a serve.js tailnet-mode gate in front of adapter-node's handler, or (b) amend AUTH_HOSTING_S3 section 4.5 with an explicit client-asset exemption"
+  ],
+  "contract_deviations": "docs/spec/sprints/AUTH_TOKEN_S3.md section 12",
+  "doctrine": "No audio, detector, profile or master change; ~32 Hz protection, no blanket high-pass, no mains notch untouched; the real take and the accepted FULLER run were not read or written."
+}

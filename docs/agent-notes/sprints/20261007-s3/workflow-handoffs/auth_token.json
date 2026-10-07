@@ -1,0 +1,91 @@
+{
+  "lane": "auth_token",
+  "branch": "sprint/20261007-s3/auth_token",
+  "head": "9016bf7abf2ff802cbcafd7535c6ba4b6f201b98",
+  "base_commit": "549a14dea88f6b7951a81f2c2fa0718cb83a1c21",
+  "worktree": ".local/sprint3/auth_token",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/auth_token-implementation-receipt.json",
+      "sha256": "0c8d2a3c48f4b832dd414fcfa6cb834414267ec494a1d492a85dd5c1d4268935",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/sprints/AUTH_TOKEN_S3.md",
+      "sha256": "906302c7313cb1486f1df3fcdd0b8e997f9891b80136d53079432db02d596a8c",
+      "kind": "spec"
+    },
+    {
+      "path": "tests/test_auth_token_s3.py",
+      "sha256": "710ff9718e92949ad7ed863b480a5805bf36da84ed2a472aceee15e4e4b774a5",
+      "kind": "test"
+    },
+    {
+      "path": "web/src/lib/server/auth/cf-access.js",
+      "sha256": "47c90310c5959ae7684406f4ed09d25795bbccdad0020d9794510c89199d4a12",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/server/auth/cf-access.test.ts",
+      "sha256": "5bd3de19dabca160367572213e844dc35fac619383347e6a7910cec81fea6cef",
+      "kind": "source"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_auth_hosting_s3 test_auth_token_s3 -v",
+    "discovered": 53,
+    "passed": 53,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 54
+  },
+  "metrics": [],
+  "unknowns": [
+    "real JWKS host and TLS in production",
+    "DNS resolution in production",
+    "5 second timeout behavior in production",
+    "real token shape from Cloudflare Access",
+    "actual Cloudflare API responses"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "just/workflow.just",
+      "change": "Insert after the existing `auth-hosting-test` recipe:\n\n# S3 valid-token Access path end to end on the built server (loopback JWKS seam, virtual clock; no network)\nauth-token-test:\n    PYTHONPATH=tests python3 -m unittest test_auth_token_s3 -v\n",
+      "why": "Contract section 9 item 1: an optional operator recipe wrapping the section 6 runner."
+    },
+    {
+      "file": "web/serve.js OR docs/spec/sprints/AUTH_HOSTING_S3.md",
+      "change": "Root or operator picks one: (a) in web/serve.js, tailnet mode only, serve through a small node:http server that awaits gateRequest({env: process.env, host, assertion, ...}) and answers the refusal JSON with Cache-Control: no-store before calling adapter-node's exported `handler` from ./build/handler.js; loopback mode stays as it is. (b) Amend AUTH_HOSTING_S3 section 4.5 to say explicitly that public build/client assets (e.g. /favicon.svg, /_app/immutable/*, /_app/version.json) are served by adapter-node's sirv before hooks and are exempt from the identity gate.",
+      "why": "O1 observed 200 for /favicon.svg and /_app/version.json with no Access token in tailnet mode, while / returned 403 in the same process. That contradicts section 4.5's deny-by-default wording. The lane made neither change, per contract section 9 item 2."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261007-s3/auth_token-implementation-receipt.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Scope holds. Diff 549a14d...HEAD touches exactly 5 files, all owned: docs/agent-notes/sprints/20261007-s3/auth_token-implementation-receipt.json, docs/spec/sprints/AUTH_TOKEN_S3.md, tests/test_auth_token_s3.py, web/src/lib/server/auth/cf-access.js and web/src/lib/server/auth/cf-access.test.ts. No deploy/, just/, program/ or other root-owned file changed. After the 360086b freeze the contract only gained lines: section 12 added 119 lines and removed none.",
+      "(2) No forbidden writes found. The lane commits write nothing under artifacts/runs, ~/Documents, ~/Desktop, program/tools.json, scripts/tool_api.py or just/workflow.just. The test module writes only under artifacts/s2/auth_token/<stamp>/, which .gitignore:3 /artifacts/ ignores. No model downloads. The JWKS server is an in-process daemon thread that is closed at teardown, and every subprocess has a timeout of 60 s or less.",
+      "(4) Test counts reproduced. With the stated FFMPEG/FFPROBE, `PYTHONPATH=tests python3 -m unittest test_auth_hosting_s3 test_auth_token_s3 -v` printed 'Ran 53 tests in 45.498s', then OK and exit 0: 53 ok, 0 skipped. The fresh case-table.json (stamp 20261007T153500Z-2c4866) shows decision_matched 37/37, fetch_matched 37/37, mix 14 allow / 21 deny / 2 host, 1 distinct deny body across 21 denies, DoD groups 11/11, seam guards SG1-SG5 5/5 (exit 1, never listened, stderr names the rule), 13 JWKS attempts, 13/13 conforming init, 0 egress refused. `pnpm exec vitest run src/lib/server/auth` passed 34/34. gitleaks over 549a14d..HEAD found no leaks.",
+      "(4) The D1 regression is real and the test catches it. I took the pre-fix cf-access.js from 549a14d (git show into the scratchpad) and ran the lane's D1_SCRIPT against the same loopback JWKS shapes. The process exited 1 for both shapes: a declared 200 response at 65537 bytes, and a 503 with a 65537-byte body. The fixed file exited 0 with {key_resolved:false, stats:{fetches:1, failures:1}, alive:true}. This was a genuine production crash: any non-OK or declared-oversize JWKS reply that the server did not read could kill the process. The fix (discardBody in cf-access.js around lines 119-127, 136-139 and 222-225) cancels the unread body on both early-exit paths and loosens no validation.",
+      "(6) Arithmetic reproduced. Expected fetches per process: P_A 4 (E01, E09, E10, E12), P_B 3 and P_C 6, totalling 13, which matches jwks_attempts_total. E11: at +120 s the cache is 40 s old (last fetch at +80), under the 600 s fresh TTL, so the retired k1 is allowed. E12: at +740 s the cache is 660 s old, over 600, so it refetches, finds no k1 and denies. E14e: at +3540 s the last good fetch is 3540 s old, under 3600, so stale allow. E14f: at +3660 s it is over 3600, so deny. E09: at +40 s the cooldown since the last attempt at 0 is over 30 s, so one refetch. All expectations are consistent with the cf-access.js constants.",
+      "(3) Claim classes are sound. The receipt carries numerator and denominator for every metric, claim_class 'e2e-local', the 7.1 unknown fields (real JWKS, TLS, DNS, the 5 s timeout, real token shape: unknown or not_exercised), a not_claimed list, and separate measured, inferred and unknown sections. There are no audio, detector, profile, default or note-correctness claims, and no high-pass or notch change; grep hits are doctrine text only.",
+      "O1 security observation, which the lane routed to root: in tailnet mode /favicon.svg and /_app/version.json return 200 without auth while / returns 403. That is because adapter-node's sirv serves build/client before the SvelteKit hooks. Every /_app/immutable client bundle is presumably reachable unauthenticated too. AUTH_HOSTING_S3 section 4.5 expects 403, so root must choose either a serve.js gate or a spec exemption before hosted exposure. This is not a lane defect.",
+      "Minor: the seam's cwd=/app and KUBERNETES_PORT refusals are only checked statically for presence in the template (test_sg6b). Only 5 of the 7 refusal rules are exercised at runtime. The DoD's 'ConfigMap shape' rule is approximated by the Kubernetes env vars plus the /app cwd rather than a literal ConfigMap probe.",
+      "Minor: _prerequisite_skip decides staleness by mtime only. A rebuilt-but-wrong web/build would not be detected, although the receipt records the build's source_commit as f4782d1.",
+      "Process: both lane commits are unsigned. Root should sign or re-sign them at integration, as the fork-first and custody guidance requires. The lane-reported summary is also truncated mid-sentence ('A designed delay showed up as e;'), but the receipt correctly records E11 as designed behaviour, not a defect.",
+      "Side effects of this audit's reruns: new gitignored stamp directories under artifacts/s2/auth_token/, and an overwritten gitignored artifacts/s2/web_tests/unit/vitest-report.json in the worktree. No tracked file changed."
+    ],
+    "must_fix": []
+  },
+  "dropped_scope": []
+}
