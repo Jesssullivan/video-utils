@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "lane": "stems_contract",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5721",
+  "phase": "2_handoff",
+  "recorded_utc": "2026-10-07T15:44:14Z",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "branch": "sprint/20261007-s3/stems_contract",
+  "implementation_commit": "3c2cb0788e2971aedc32cae6038b510c784d3ab3",
+  "root_signs_merge": true,
+  "owned_files_changed": [
+    "scripts/stems_estimate.py",
+    "tests/test_stems_estimate.py",
+    ".agents/skills/stems-estimate/SKILL.md",
+    "program/tool-drafts/stems_estimate.json",
+    "program/model-drafts/htdemucs_6s.json",
+    "docs/spec/sprints/STEMS_S3.md",
+    "docs/agent-notes/sprints/20261007-s3/stems_contract-implementation.json",
+    "docs/agent-notes/sprints/20261007-s3/stems_contract-tests.json",
+    "docs/agent-notes/sprints/20261007-s3/stems_contract-experiment.json",
+    "docs/agent-notes/sprints/20261007-s3/stems_contract-handoff.json"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "order": 1,
+      "file": "program/models.json",
+      "change": "After root's explicit hash-bound fetch and a recorded operator acknowledgement, add under \"models\" the key \"demucs-htdemucs_6s-5c90dfd2\" with the entry object below (from program/model-drafts/htdemucs_6s.json). Never commit it with a null sha256 or null acknowledgement.",
+      "entry_template": {
+        "url": "https://dl.fbaipublicfiles.com/demucs/hybrid_transformer/5c90dfd2-34c22ccb.th",
+        "sha256": "<64 lowercase hex measured by root's own hash-bound fetch; first 8 hex must equal 34c22ccb>",
+        "max_bytes": 54996327,
+        "expected_bytes_source": "HTTP HEAD 2026-10-07, docs/research/2026-10-07-stems-weights-licence.md",
+        "upstream_sha256_prefix_cross_check": "34c22ccb",
+        "format": "demucs serialized package (torch.save of klass/args/kwargs/state); loaded only after sha256 verification",
+        "license": "Weights: no licence file; maintainer statements limit use to personal/research (facebookresearch/demucs issues 327 and 384). Code MIT does not cover weights. Training data includes MUSDB18-HQ (other-nc).",
+        "license_verdict": "admissible_private_comparator",
+        "license_conditions": [
+          "personal_research_use_only",
+          "no_redistribution_of_weights_or_real_take_outputs",
+          "outputs_under_ignored_artifacts_v6",
+          "outputs_labelled_estimates",
+          "operator_acknowledgement_before_first_use"
+        ],
+        "operator_terms_acknowledgement": "<receipt reference of the explicit operator acknowledgement, e.g. docs/agent-notes/...>",
+        "source_commit": "e976d93ecc3865e5757426930257e200846a520a",
+        "sources": [
+          "drums",
+          "bass",
+          "other",
+          "vocals",
+          "guitar",
+          "piano"
+        ],
+        "model_rate_hz": 44100,
+        "model_channels": 2,
+        "gate_state": "<root post-fetch state, e.g. registered_hash_bound_runtime_not_qualified_no_inference_run>",
+        "fetched_at_utc": "<root fetch time>"
+      },
+      "why": "The worker reads only program/models.json; until this entry exists every valid request refuses model_not_registered (null sha256 -> model_hash_not_registered, null acknowledgement -> model_terms_not_acknowledged)."
+    },
+    {
+      "order": 2,
+      "file": "program/tools.json",
+      "change": "Append the \"descriptor\" object of program/tool-drafts/stems_estimate.json unchanged to tools[] (implementation_status experimental, evidence_kind uncalibrated_model_stem_estimates_from_mono_mixture). If root renames the skill to the guitar-* convention, update descriptor.skill to match.",
+      "descriptor_source": "program/tool-drafts/stems_estimate.json#/descriptor",
+      "descriptor_sha256_of_draft_file": "76bc7b94435977b0ea0dcc2191f428ddcf72dfae3c56d28cc6c36dc9a9f589cf",
+      "why": "MCP admission of the typed hook; the draft passes tool_api.validate_schema and has the 12 admitted-descriptor keys."
+    },
+    {
+      "order": 3,
+      "file": "scripts/tool_api.py",
+      "change": "unified diff below",
+      "diff": "--- a/scripts/tool_api.py\n+++ b/scripts/tool_api.py\n@@\n-TYPED_REFUSAL_TOOLS = {'beat_this_compare': 0, 'guitar_noul_decide': 10}\n-TRAVERSAL_GUARDED_RUN_TOOLS = {'marked_video', 'basic_pitch_compare', 'beat_this_compare', 'guitar_noul_decide'}\n+TYPED_REFUSAL_TOOLS = {'beat_this_compare': 0, 'guitar_noul_decide': 10, 'stems_estimate': 0}\n+TRAVERSAL_GUARDED_RUN_TOOLS = {'marked_video', 'basic_pitch_compare', 'beat_this_compare', 'guitar_noul_decide',\n+                               'stems_estimate'}\n@@ def worker_command(name, args):\n     if name == 'guitar_noul_decide':\n         # The gateway URL and the V6 real-take switch stay environment-only; the worker owns every refusal.\n         request = {'run_dir': args['run_dir'], 'windows': args['windows'], 'timeout_seconds': args['timeout_seconds']}\n         return head + [str(ROOT / 'scripts/guitar_noul_client.py'), '--request-json', json.dumps(request)]\n+    if name == 'stems_estimate':\n+        # Closed request; no model, runtime or network argument exists. The worker resolves the registry-verified\n+        # checkpoint, the operator terms acknowledgement and the isolated runtime itself and owns every typed refusal.\n+        request = {key: args[key] for key in ('run_dir', 'input_role', 'excerpt_start_seconds',\n+                                              'excerpt_end_seconds', 'timeout_seconds') if key in args}\n+        return head + [str(ROOT / 'scripts/stems_estimate.py'), 'estimate', '--request-json', json.dumps(request)]\n",
+      "why": "Dispatch through the owned-process-group typed-refusal runner (stdin is DEVNULL there, so --request-json is used); exit 2 refusals relay refusal_code; traversal guard on run_dir. scripts/mcp_server.py follows tools.json.",
+      "optional_follow_up": "typed_refusal_failure could also relay a worker status:\"failed\" failure_code (exit 1); today it becomes a code-free ToolError."
+    },
+    {
+      "order": 4,
+      "file": "just/workflow.just",
+      "change": "Insert after the beat-this-runtime-check recipe:",
+      "recipe": "# Optional experimental htdemucs_6s stem estimates (never recovered stems, never a default). Refuses until root\n# registers the hash-bound model, the operator acknowledges the weights' terms and a runtime lane qualifies the runtime.\nstems-estimate run_dir start end input_role=\"denoised\":\n    python3 -c 'import json, sys; print(json.dumps({\"run_dir\": sys.argv[1], \"excerpt_start_seconds\": float(sys.argv[2]), \"excerpt_end_seconds\": float(sys.argv[3]), \"input_role\": sys.argv[4]}))' {{quote(run_dir)}} {{quote(start)}} {{quote(end)}} {{quote(input_role)}} | python3 scripts/stems_estimate.py estimate --request -\n",
+      "verified": "recipe body executed in bash -euo pipefail with quote() simulated: exit 2, model_not_registered, nothing written",
+      "why": "Operator entrypoint parity with beat-this-compare."
+    },
+    {
+      "order": 5,
+      "file": ".agents/skills/stems-estimate/ (lane-owned)",
+      "change": "Optional rename to the guitar-* convention at admission; descriptor.skill follows.",
+      "why": "Repository naming convention."
+    },
+    {
+      "order": 6,
+      "file": "runtime lane (separate, root-run on honey)",
+      "change": "Prepare an isolated Linux CPU interpreter beneath artifacts/model-runtime-env/ (a real file, not a symlink), pin demucs and torch, confirm sources order drums/bass/other/vocals/guitar/piano, 44.1 kHz stereo, apply_model defaults (shifts 1, overlap 0.25, split True, segment None), load_model(package dict), the separate-CLI normalisation and whether torch.load(weights_only=True) suffices; then set DEMUCS_PIN/TORCH_PIN in scripts/stems_estimate.py (lane-owned, via a new lane) and export VIDEO_UTILS_STEMS_RUNTIME_PYTHON.",
+      "why": "runtime_unavailable/not_pinned until qualified; infer_task has never executed."
+    },
+    {
+      "order": 7,
+      "file": "program/linear.json",
+      "change": "none",
+      "why": "No new project or issue IDs from this lane."
+    }
+  ],
+  "next_after_root": [
+    "M14: generate-suite --role heldout --seeds 4103 4211 (refuses until A1 runnable), predict A0/A1, seal, score once; report medians with every case listed",
+    "M15: estimate on FULLER run [30, 60) s after root confirms the V6 private scratch path; measurements only"
+  ],
+  "measured": "see stems_contract-tests.json (fake-separator measurements only)",
+  "inferred": "see stems_contract-implementation.json inferences_not_verified",
+  "listening_claims": null,
+  "default_adoption": false
+}

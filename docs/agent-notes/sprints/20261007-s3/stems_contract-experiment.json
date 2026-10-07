@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "lane": "stems_contract",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5721",
+  "phase": "2_experiment",
+  "recorded_utc": "2026-10-07T15:44:14Z",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "preregistration": {"path": "docs/spec/sprints/STEMS_S3.md section 8", "sealed_commit": "e900b997b2b829d2a31cfca6ae61c5e8dbacd08e"},
+  "M14_heldout_experiment": {
+    "status": "blocked_with_receipt",
+    "valid_completion": true,
+    "denominator_cases": 8,
+    "cases_generated": 0,
+    "cases_scored": 0,
+    "missing_prerequisites": [
+      "program/models.json entry demucs-htdemucs_6s-5c90dfd2 with a root-measured sha256 (today: not registered -> model_not_registered)",
+      "operator_terms_acknowledgement receipt for the maintainer's personal/research terms (research condition 5)",
+      "models/demucs-htdemucs_6s-5c90dfd2.bin from root's explicit hash-bound fetch",
+      "qualified isolated Linux CPU runtime on honey with DEMUCS_PIN/TORCH_PIN set (separate runtime lane)"
+    ],
+    "observed_refusal": "generate_suite(role=heldout, seeds=[4103, 4211]) refuses model_not_registered and writes nothing (asserted by test_heldout_generation_blocked_until_a1_runnable)",
+    "heldout_seeds_consumed": false,
+    "truth_read": false,
+    "dev_seed_4001_use": "smoke and determinism tests only, at 2.0 s; never scored or reported as held-out"
+  },
+  "M15_real_take_pass": {
+    "status": "blocked_with_receipt",
+    "valid_completion": true,
+    "input": "artifacts/runs/20261006T041633Z-990aa1bd6737/denoised.wav (manifest output_sha256 26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd, 44.1 kHz mono)",
+    "excerpt_seconds": [30.0, 60.0],
+    "observed_refusal": "model_not_registered (CLI exit 2, nothing written)",
+    "missing_prerequisites": ["same as M14", "root confirmation of the V6 private scratch path on the run host"],
+    "measurements": null,
+    "claims": "none; when it runs it reports low_end_check, mixture_consistency and identities only"
+  },
+  "default_adoption": false,
+  "real_take_claim": null
+}

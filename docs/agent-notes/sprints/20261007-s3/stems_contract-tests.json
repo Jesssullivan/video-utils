@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "lane": "stems_contract",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5721",
+  "phase": "2_tests",
+  "recorded_utc": "2026-10-07T15:44:14Z",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "implementation_commit": "3c2cb0788e2971aedc32cae6038b510c784d3ab3",
+  "host": {"label": "neo", "platform": "darwin", "python": "3.12.14", "ffmpeg": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg (8.1.2)", "load_average_during_run": "60-135 (other lanes); wall time inflated, CPU about 22 s"},
+  "commands": [
+    "export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe",
+    "PYTHONPATH=tests python3 -m unittest test_stems_estimate -v",
+    "PYTHONPATH=tests python3 -m unittest test_beat_this_compare test_media test_bazel_graph_s3"
+  ],
+  "results": {
+    "test_stems_estimate": {"ran": 43, "passed": 43, "failed": 0, "errors": 0, "skipped": 0, "wall_seconds": 155.6},
+    "directly_affected_unchanged_modules": {"modules": ["test_beat_this_compare", "test_media", "test_bazel_graph_s3"], "ran": 87, "failed": 0, "errors": 0, "skipped": 1, "skip_reason": "test_bazel_graph_s3 ShimSelfTest marker case (designed skip); test_media integration ran with FFMPEG set"}
+  },
+  "metrics": {
+    "M1_refusal_coverage": {"passed": 10, "denominator": 10, "claim_class": "test_measurement", "network_patched": ["socket.socket", "socket.create_connection", "urllib.request.urlopen"]},
+    "M2_refusal_precedence_adjacent_pairs": {"passed": 9, "denominator": 9, "claim_class": "test_measurement"},
+    "M3_today_behaviour": {"passed": 1, "denominator": 1, "refusal_code": "model_not_registered", "paths": ["--request-json", "--request -"], "files_written": 0, "claim_class": "test_measurement", "note": "skips once root registers the entry (describes the pre-registration state)"},
+    "M4_import_hygiene": {"modules_absent": ["torch", "torchaudio", "demucs", "numpy"], "modules_denominator": 4, "network_entry_points_never_called": ["socket.socket", "urllib.request.urlopen"], "entry_points_denominator": 2, "method": "fresh -I interpreter: import, request_invalid refusal, model_not_registered refusal; plus in-process checks after every refusal", "claim_class": "test_measurement"},
+    "M5_schema": {"result_key_set_equal_contract": true, "unknown_fields_exact": 17, "unknown_fields_denominator": 17, "stems_verified": 6, "stems_denominator": 6, "claim_class": "test_measurement"},
+    "M6_low_end_accounting": {
+      "passed": 3, "denominator": 3, "fixture": "2.0 s 32.70 Hz (0.3) + 261.6 Hz (0.2) PCM16 44.1 kHz mono", "claim_class": "test_measurement_with_fake_separators",
+      "measured": {
+        "identity": {"guitar_vs_input_band_db": 0.0, "guitar_band_share": 1.0, "threshold": "within +/-0.2 dB of 0"},
+        "low_to_bass": {"guitar_vs_input_band_db": -64.195, "bass_band_share": 0.9999996, "guitar_plus_bass_vs_input_band_db": 0.0, "threshold": "guitar <= -40 dB, bass share >= 0.99", "fake": "12 cascaded RBJ high-pass biquads at 45 Hz Q 0.7071 for guitar; bass = input - guitar (deviation recorded in STEMS_S3 section 13)"},
+        "minus_6db": {"guitar_vs_input_band_db": -6.0206, "threshold": "within +/-0.2 dB of -6.02"}
+      }
+    },
+    "M7_sample_rate_round_trip": {
+      "passed": 2, "denominator": 2, "ffmpeg_skipped": false, "claim_class": "test_measurement",
+      "a_48k_via_ffmpeg": {"frame_count": 96000, "analysed_frames_44k1": 88200, "length_adjust_frames": 0, "xcorr_peak_lag_samples": 0, "band_20_45_db": -0.00012, "band_800_1250_db": 0.00014, "filters": ["aresample=44100:resampler=swr", "aresample=48000:resampler=swr"], "fixture_note": "1 kHz component (0.1) added so the 1 kHz ratio is measurable"},
+      "b_44k1_passthrough": {"applied": false, "bit_exact_float32_data_chunk": true}
+    },
+    "M8_source_timeline": {"passed": 2, "denominator": 2, "origins_seconds": [0.0, 1.25], "excerpt": "[0.5, 1.75) s -> start_frame 22050, frame_count 55125", "identity_samples_equal_excerpt": true, "claim_class": "test_measurement"},
+    "M9_no_run_writes": {"checked_in": "every FakeRuntimePath end-to-end test", "run_hashes_unchanged": true, "new_paths_only_beneath": "artifacts/s2/stems_contract", "claim_class": "test_measurement"},
+    "M10_descriptor_draft": {"validate_schema": "passed (tool_api imported read-only)", "keys": 12, "keys_equal_admitted_descriptor": true, "additionalProperties": false, "claim_class": "test_measurement"},
+    "M11_registry_draft": {"entry_fields": 15, "sha256": null, "max_bytes": 54996327, "gate_state": "registered_pending_fetch", "draft_entry_in_registry_refuses": "model_hash_not_registered", "claim_class": "test_measurement"},
+    "M12_skill_sections": {"present": 7, "denominator": 7, "research_link": "docs/research/2026-10-07-stems-weights-licence.md", "claim_class": "documentary (also asserted by a test)"},
+    "M13_fixture_harness": {"passed": 3, "denominator": 3, "behaviours": ["dev seed 4001 k1-c1-chug 2.0 s -> identical sha256 twice for mixture/guitar/fan/click", "predict never opens truth/ (io.open and builtins.open guarded); truth files mode 0400", "scorer refuses a tampered or added prediction file and refuses dev suites"], "claim_class": "test_measurement"},
+    "additional": ["runtime resolver reason order incl. symlinked interpreter", "bounded_child deadline kills its process group and writes an R-N11 receipt", "infer_task refuses a changed identity before any heavy import", "ChildSeparator re-verifies the checkpoint before launch", "separator faults are failures (not refusals)", "input mutated during inference fails input_or_model_changed", "scorer metrics S1-S4, SI-SDR, projection and decision rule on constructed arrays"]
+  },
+  "not_measured": ["real htdemucs_6s inference (no weights, no torch)", "infer_task execution", "listening"],
+  "default_adoption": false
+}
