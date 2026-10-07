@@ -1,0 +1,1735 @@
+{
+ "schema_version": 1,
+ "lane": "timing_calibration",
+ "sprint": "20261007-s3",
+ "linear": "TIN-5488",
+ "phase": "2_sealed_eval_r2_results",
+ "recorded_utc": "2026-10-07T16:09:06Z",
+ "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+ "preregistration": "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval-r2.json",
+ "fix_commit": "339ae093e37fa2dc094d0ab6da4897bd97e58a95",
+ "preregistration_commit": "0095d7c20c9adcd4533a44ad81b367cfc8108a0b",
+ "r1_results_not_rescored": "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval-results.json (S1 FAILED: 4/8 calibrated)",
+ "code_sha256_at_run": {
+  "timing_calibration_sha256": "2a93a1650ed4a1d90128115ad4778021e5be0666a1a95807c60eecc93583130a",
+  "rhythm_sha256": "cd719914d933b03faec6e1c92afbaee232797ec247427cc87038a1e67b15e8d3"
+ },
+ "run": {
+  "started_utc": "2026-10-07T16:04:04Z",
+  "finished_utc": "2026-10-07T16:08:23Z",
+  "wall_seconds": 257.8,
+  "executions": 1,
+  "exit": 0,
+  "results_json": "artifacts/s2/timing_calibration/sealed/results-r2.json (gitignored)",
+  "results_json_sha256": "7b43333217ca94b33bc82beaf000939f874af0ac480bd878acc43bdb08852b5e"
+ },
+ "claim_class": "M-syn (sealed seeds 5601-5608, generator truth); no M-real, no listening",
+ "metrics": {
+  "S1_E1": {
+   "calibrated_cases": {
+    "count": 8,
+    "denominator": 8,
+    "rate": 1.0
+   },
+   "median_abs_error_ms_withheld_inf_over_48": 0.9776610728130848,
+   "median_abs_error_ms_measured_only": 0.7236421042542993,
+   "measured_phrases": {
+    "count": 41,
+    "denominator": 48,
+    "rate": 0.8541666666666666
+   },
+   "coverage": {
+    "count": 41,
+    "denominator": 41,
+    "rate": 1.0
+   },
+   "verdict": "MET: calibrated 8/8 >= 7/8; median |error| 0.98 ms <= 3.0 over 48 (7 withheld counted as inf); coverage 41/41 = 1.00 >= 0.90"
+  },
+  "S2_E2": {
+   "abstained_cases": {
+    "count": 0,
+    "denominator": 8,
+    "rate": 0.0
+   },
+   "median_abs_error_ms_withheld_inf_over_48": 1.1769280803642959,
+   "median_abs_error_ms_measured_only": 0.8089020606285899,
+   "coverage": {
+    "count": 41,
+    "denominator": 41,
+    "rate": 1.0
+   },
+   "verdict": "MET: 0/8 abstentions; median |error| 1.18 ms <= 3.0 (withheld as inf); coverage 41/41 = 1.00"
+  },
+  "S3_E1_union_E2": {
+   "sign_correct_over_emitted": {
+    "count": 62,
+    "denominator": 62,
+    "rate": 1.0
+   },
+   "emissions_on_on_time_phrases": {
+    "count": 0,
+    "denominator": 24,
+    "rate": 0.0
+   },
+   "E1_emission_rate_on_abs_delta_ge_15ms": {
+    "count": 20,
+    "denominator": 21,
+    "rate": 0.9523809523809523
+   },
+   "verdict": "MET: sign-correct 62/62 = 1.00 >= 0.95; emissions on on-time phrases 0/24; E1 emission rate on |delta| >= 15 ms 20/21 = 0.95, above the predicted 0.75"
+  },
+  "S4_E3": {
+   "calibrated_cases": {
+    "count": 8,
+    "denominator": 8,
+    "rate": 1.0
+   },
+   "median_abs_error_ms_measured_only": 4.751867370662539,
+   "coverage": {
+    "count": 16,
+    "denominator": 38,
+    "rate": 0.42105263157894735
+   },
+   "wrong_sign": {
+    "count": 1,
+    "denominator": 27,
+    "rate": 0.037037037037037035
+   },
+   "emissions_on_on_time_phrases": {
+    "count": 1,
+    "denominator": 12,
+    "rate": 0.08333333333333333
+   },
+   "verdict": "Reported only. With the amp moved 1.5 m after calibration, median |error| is 4.75 ms, coverage 16/38, 1 wrong sign in 27 emitted, and 1/12 on-time phrases get a direction. A moved placement invalidates the record, as the protocol states."
+  }
+ },
+ "withheld_by_click_coincidence_guard": {
+  "E1": 7,
+  "E2": 7,
+  "E3": 10,
+  "denominator_per_arm": 48
+ },
+ "observations": [
+  "E1/E2 seed 5605: a phrase with truth +20.0 ms was measured by phrase_timing at about +5 ms after calibration and stayed within_uncertainty (no direction). It is covered only because U_phrase is wide; it is the same click/attack confound as the guard, reported rather than tuned.",
+  "Withheld phrases are concentrated on on-time and small offsets, where the guitar onset median and the click's own broadband self-offset coincide; this is the intended conservative behaviour."
+ ],
+ "cases": {
+  "E1": [
+   {
+    "seed": 5601,
+    "period_s": 0.33707865168539325,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": 0.375,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 2.0476788907527386,
+    "expanded_uncertainty_ms": 1.9612475767055297,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": -3.375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -27.65625,
+      "calibrated_ms": -28.642197567212527,
+      "abs_error_ms": 0.9859475672125271,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 2.3125,
+      "calibrated_ms": 3.0361421042542993,
+      "abs_error_ms": 0.7236421042542993,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 8.53125,
+      "calibrated_ms": 9.198980618504113,
+      "abs_error_ms": 0.6677306185041125,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 23.84375,
+      "calibrated_ms": 22.981790031984314,
+      "abs_error_ms": 0.861959968015686,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -9.875,
+      "calibrated_ms": -9.244434948096117,
+      "abs_error_ms": 0.6305650519038828,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5602,
+    "period_s": 0.4,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": -1.0625,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 2.1894374852036265,
+    "expanded_uncertainty_ms": 3.456371646545043,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 1.71875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -0.12499999999999997,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -22.71875,
+      "calibrated_ms": -22.189437485211194,
+      "abs_error_ms": 0.5293125147888063,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 8.0,
+      "calibrated_ms": 7.810562514789055,
+      "abs_error_ms": 0.18943748521094506,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -22.46875,
+      "calibrated_ms": -22.189437485210306,
+      "abs_error_ms": 0.27931251478969443,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 14.59375,
+      "calibrated_ms": 12.810562514789837,
+      "abs_error_ms": 1.7831874852101635,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5603,
+    "period_s": 0.4,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -4.4375,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -2.733975314930116,
+    "expanded_uncertainty_ms": 3.480902732494393,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 20.46875,
+      "calibrated_ms": 20.233975314940736,
+      "abs_error_ms": 0.23477468505926424,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.15625000000000003,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 0.15625,
+      "calibrated_ms": -2.266024685062672,
+      "abs_error_ms": 2.422274685062672,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -16.28125,
+      "calibrated_ms": -17.266024685065016,
+      "abs_error_ms": 0.9847746850650161,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 15.25,
+      "calibrated_ms": 15.233975314932959,
+      "abs_error_ms": 0.016024685067041133,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -27.65625,
+      "calibrated_ms": -27.266024685067467,
+      "abs_error_ms": 0.39022531493253254,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5604,
+    "period_s": 0.6757,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": -5.9375,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -4.681753219562826,
+    "expanded_uncertainty_ms": 2.1368320794316156,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 1.78125,
+      "calibrated_ms": 2.0604670065826367,
+      "abs_error_ms": 0.2792170065826367,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 0.375,
+      "calibrated_ms": 1.6039070766522032,
+      "abs_error_ms": 1.2289070766522032,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 23.96875,
+      "calibrated_ms": 26.214580197807482,
+      "abs_error_ms": 2.245830197807482,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -8.8125,
+      "calibrated_ms": -7.3273768543469755,
+      "abs_error_ms": 1.4851231456530245,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 24.34375,
+      "calibrated_ms": 24.610817056517522,
+      "abs_error_ms": 0.26706705651752216,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -15.28125,
+      "calibrated_ms": -13.755489160866272,
+      "abs_error_ms": 1.5257608391337278,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5605,
+    "period_s": 0.4,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": 6.125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 10.11733673318341,
+    "expanded_uncertainty_ms": 3.5075604076269205,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 0.53125,
+      "calibrated_ms": -0.24303400886130788,
+      "abs_error_ms": 0.7742840088613079,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 19.96875,
+      "calibrated_ms": 5.140770951248843,
+      "abs_error_ms": 14.827979048751157,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -18.53125,
+      "calibrated_ms": -19.667407423292236,
+      "abs_error_ms": 1.1361574232922358,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.59375,
+      "calibrated_ms": 0.3767974605611535,
+      "abs_error_ms": 0.9705474605611535,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -15.0,
+      "calibrated_ms": -14.744542745801201,
+      "abs_error_ms": 0.2554572541987987,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 13.4375,
+      "calibrated_ms": 15.04432719393142,
+      "abs_error_ms": 1.6068271939314194,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5606,
+    "period_s": 0.6757,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": 3.0,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 5.375870332964491,
+    "expanded_uncertainty_ms": 2.1610925101215015,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 0.78125,
+      "calibrated_ms": 0.7802361425357542,
+      "abs_error_ms": 0.0010138574642457598,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -1.0,
+      "calibrated_ms": -0.29877453902371265,
+      "abs_error_ms": 0.7012254609762874,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -15.15625,
+      "calibrated_ms": -15.417740573614887,
+      "abs_error_ms": 0.26149057361488737,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 10.90625,
+      "calibrated_ms": 10.447719136690074,
+      "abs_error_ms": 0.4585308633099263,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -10.8125,
+      "calibrated_ms": -10.85019187587721,
+      "abs_error_ms": 0.03769187587720957,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 13.71875,
+      "calibrated_ms": 13.119574248287028,
+      "abs_error_ms": 0.5991757517129717,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5607,
+    "period_s": 0.4,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -3.125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -3.208682135297496,
+    "expanded_uncertainty_ms": 3.553439363085912,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": -7.9375,
+      "calibrated_ms": -6.257182678496138,
+      "abs_error_ms": 1.6803173215038623,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 13.625000000000002,
+      "calibrated_ms": 13.529898623556173,
+      "abs_error_ms": 0.09510137644382866,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -2.03125,
+      "calibrated_ms": -1.6614129163814062,
+      "abs_error_ms": 0.3698370836185938,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -28.15625,
+      "calibrated_ms": -26.79610537256401,
+      "abs_error_ms": 1.3601446274359894,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 1.375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 21.875,
+      "calibrated_ms": 23.187041740334852,
+      "abs_error_ms": 1.3120417403348519,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5608,
+    "period_s": 0.33707865168539325,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": -1.3125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 0.500423796411321,
+    "expanded_uncertainty_ms": 2.215534254479314,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 22.9375,
+      "calibrated_ms": 21.33614016234767,
+      "abs_error_ms": 1.6013598376523284,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -29.5,
+      "calibrated_ms": -28.3811805993793,
+      "abs_error_ms": 1.1188194006207013,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -15.375,
+      "calibrated_ms": -15.006687894494187,
+      "abs_error_ms": 0.3683121055058134,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.28125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -2.3125000000000004,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 25.125,
+      "calibrated_ms": 23.12467540572941,
+      "abs_error_ms": 2.000324594270591,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   }
+  ],
+  "E2": [
+   {
+    "seed": 5601,
+    "period_s": 0.33707865168539325,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": 0.375,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 2.351777773337018,
+    "expanded_uncertainty_ms": 2.410470211024282,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": -3.375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -27.65625,
+      "calibrated_ms": -28.946296449796808,
+      "abs_error_ms": 1.290046449796808,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 2.3125,
+      "calibrated_ms": 2.7320432216700197,
+      "abs_error_ms": 0.4195432216700197,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 8.53125,
+      "calibrated_ms": 8.894881735919833,
+      "abs_error_ms": 0.36363173591983333,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 23.84375,
+      "calibrated_ms": 22.677691149400033,
+      "abs_error_ms": 1.166058850599967,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -9.875,
+      "calibrated_ms": -9.548533830680396,
+      "abs_error_ms": 0.3264661693196036,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5602,
+    "period_s": 0.4,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": -1.0625,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 2.483726359574854,
+    "expanded_uncertainty_ms": 3.7296644924779274,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 1.71875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -0.12499999999999997,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -22.71875,
+      "calibrated_ms": -22.48372635958242,
+      "abs_error_ms": 0.23502364041758028,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 8.0,
+      "calibrated_ms": 7.516273640417827,
+      "abs_error_ms": 0.4837263595821728,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -22.46875,
+      "calibrated_ms": -22.48372635958153,
+      "abs_error_ms": 0.01497635958153154,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 14.59375,
+      "calibrated_ms": 12.516273640418609,
+      "abs_error_ms": 2.077476359581391,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5603,
+    "period_s": 0.4,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -4.4375,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -2.1485115829593155,
+    "expanded_uncertainty_ms": 3.7527748791692934,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 20.46875,
+      "calibrated_ms": 19.648511582969935,
+      "abs_error_ms": 0.8202384170300654,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.15625000000000003,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 0.15625,
+      "calibrated_ms": -2.8514884170334724,
+      "abs_error_ms": 3.0077384170334724,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -16.28125,
+      "calibrated_ms": -17.851488417035817,
+      "abs_error_ms": 1.5702384170358172,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 15.25,
+      "calibrated_ms": 14.648511582962158,
+      "abs_error_ms": 0.6014884170378423,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -27.65625,
+      "calibrated_ms": -27.85148841703827,
+      "abs_error_ms": 0.1952384170382686,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5604,
+    "period_s": 0.6757,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": -5.9375,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -4.983600402145905,
+    "expanded_uncertainty_ms": 2.556893751074543,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 1.78125,
+      "calibrated_ms": 2.3623141891657156,
+      "abs_error_ms": 0.5810641891657156,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 0.375,
+      "calibrated_ms": 1.905754259235282,
+      "abs_error_ms": 1.530754259235282,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 23.96875,
+      "calibrated_ms": 26.51642738039056,
+      "abs_error_ms": 2.54767738039056,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -8.8125,
+      "calibrated_ms": -7.025529671763897,
+      "abs_error_ms": 1.7869703282361034,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 24.34375,
+      "calibrated_ms": 24.9126642391006,
+      "abs_error_ms": 0.5689142391006001,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -15.28125,
+      "calibrated_ms": -13.453641978283192,
+      "abs_error_ms": 1.8276080217168076,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5605,
+    "period_s": 0.4,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": 6.125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 9.790081370519763,
+    "expanded_uncertainty_ms": 3.778018122480034,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 0.53125,
+      "calibrated_ms": 0.08422135380233975,
+      "abs_error_ms": 0.44702864619766025,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 19.96875,
+      "calibrated_ms": 5.468026313912491,
+      "abs_error_ms": 14.50072368608751,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -18.53125,
+      "calibrated_ms": -19.34015206062859,
+      "abs_error_ms": 0.8089020606285899,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.59375,
+      "calibrated_ms": 0.7040528232248011,
+      "abs_error_ms": 1.2978028232248011,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -15.0,
+      "calibrated_ms": -14.417287383137554,
+      "abs_error_ms": 0.5827126168624464,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 13.4375,
+      "calibrated_ms": 15.371582556595067,
+      "abs_error_ms": 1.934082556595067,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5606,
+    "period_s": 0.6757,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": 3.0,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 4.889298483812153,
+    "expanded_uncertainty_ms": 2.575911322124374,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 0.78125,
+      "calibrated_ms": 1.2668079916880917,
+      "abs_error_ms": 0.48555799168809166,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -1.0,
+      "calibrated_ms": 0.18779731012862477,
+      "abs_error_ms": 1.1877973101286248,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -15.15625,
+      "calibrated_ms": -14.93116872446255,
+      "abs_error_ms": 0.22508127553745005,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 10.90625,
+      "calibrated_ms": 10.934290985842411,
+      "abs_error_ms": 0.028040985842411104,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -10.8125,
+      "calibrated_ms": -10.363620026724872,
+      "abs_error_ms": 0.44887997327512785,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 13.71875,
+      "calibrated_ms": 13.606146097439366,
+      "abs_error_ms": 0.11260390256063424,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5607,
+    "period_s": 0.4,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -3.125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -3.836658300686182,
+    "expanded_uncertainty_ms": 3.8201538617053568,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": -7.9375,
+      "calibrated_ms": -5.629206513107452,
+      "abs_error_ms": 2.3082934868925484,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 13.625000000000002,
+      "calibrated_ms": 14.15787478894486,
+      "abs_error_ms": 0.5328747889448575,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -2.03125,
+      "calibrated_ms": -1.03343675099272,
+      "abs_error_ms": 0.99781324900728,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -28.15625,
+      "calibrated_ms": -26.168129207175326,
+      "abs_error_ms": 1.9881207928246738,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 1.375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 21.875,
+      "calibrated_ms": 23.815017905723536,
+      "abs_error_ms": 1.9400179057235363,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5608,
+    "period_s": 0.33707865168539325,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": -1.3125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 1.5576446562405268,
+    "expanded_uncertainty_ms": 2.621519479875338,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 22.9375,
+      "calibrated_ms": 20.278919302518467,
+      "abs_error_ms": 2.6585806974815327,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -29.5,
+      "calibrated_ms": -29.438401459208503,
+      "abs_error_ms": 0.06159854079149696,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -15.375,
+      "calibrated_ms": -16.063908754323393,
+      "abs_error_ms": 0.6889087543233927,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.28125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -2.3125000000000004,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 25.125,
+      "calibrated_ms": 22.067454545900205,
+      "abs_error_ms": 3.0575454540997953,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   }
+  ],
+  "E3": [
+   {
+    "seed": 5601,
+    "period_s": 0.33707865168539325,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": 0.375,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 2.0476788907527386,
+    "expanded_uncertainty_ms": 1.9612475767055297,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": -3.375,
+      "calibrated_ms": 2.0973510093691496,
+      "abs_error_ms": 5.47235100936915,
+      "covered": false,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -27.65625,
+      "calibrated_ms": -24.452180616669864,
+      "abs_error_ms": 3.204069383330136,
+      "covered": false,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 2.3125,
+      "calibrated_ms": 7.8727792625937845,
+      "abs_error_ms": 5.5602792625937845,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 8.53125,
+      "calibrated_ms": 14.227857979038813,
+      "abs_error_ms": 5.696607979038813,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 23.84375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -9.875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     }
+    ]
+   },
+   {
+    "seed": 5602,
+    "period_s": 0.4,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": -1.0625,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 2.1894374852036265,
+    "expanded_uncertainty_ms": 3.456371646545043,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 1.71875,
+      "calibrated_ms": 4.690714750719128,
+      "abs_error_ms": 2.9719647507191276,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.12499999999999997,
+      "calibrated_ms": 2.506356065588456,
+      "abs_error_ms": 2.631356065588456,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -22.71875,
+      "calibrated_ms": -22.20767696195437,
+      "abs_error_ms": 0.5110730380456303,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 8.0,
+      "calibrated_ms": 12.893830527290973,
+      "abs_error_ms": 4.893830527290973,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -22.46875,
+      "calibrated_ms": -19.59174363550399,
+      "abs_error_ms": 2.8770063644960118,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 14.59375,
+      "calibrated_ms": 17.770872922322923,
+      "abs_error_ms": 3.1771229223229227,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5603,
+    "period_s": 0.4,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -4.4375,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -2.733975314930116,
+    "expanded_uncertainty_ms": 3.480902732494393,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 20.46875,
+      "calibrated_ms": 25.23397531494096,
+      "abs_error_ms": 4.76522531494096,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.15625000000000003,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 0.15625,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -16.28125,
+      "calibrated_ms": -12.266024685063346,
+      "abs_error_ms": 4.015225314936654,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 15.25,
+      "calibrated_ms": 20.23397531493374,
+      "abs_error_ms": 4.9839753149337405,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -27.65625,
+      "calibrated_ms": -22.266024685068462,
+      "abs_error_ms": 5.390225314931538,
+      "covered": false,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5604,
+    "period_s": 0.6757,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": -5.9375,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -4.681753219562826,
+    "expanded_uncertainty_ms": 2.1368320794316156,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 1.78125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 0.375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 23.96875,
+      "calibrated_ms": 27.524075543814366,
+      "abs_error_ms": 3.555325543814366,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -8.8125,
+      "calibrated_ms": -2.722681981147498,
+      "abs_error_ms": 6.089818018852502,
+      "covered": false,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 24.34375,
+      "calibrated_ms": 29.525929219582583,
+      "abs_error_ms": 5.182179219582583,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -15.28125,
+      "calibrated_ms": -9.011598650461803,
+      "abs_error_ms": 6.269651349538197,
+      "covered": false,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5605,
+    "period_s": 0.4,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": 6.125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 10.11733673318341,
+    "expanded_uncertainty_ms": 3.5075604076269205,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 0.53125,
+      "calibrated_ms": 2.382663266803444,
+      "abs_error_ms": 1.8514132668034442,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 19.96875,
+      "calibrated_ms": 24.882663266804297,
+      "abs_error_ms": 4.913913266804297,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -18.53125,
+      "calibrated_ms": -15.11733673319485,
+      "abs_error_ms": 3.4139132668051495,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.59375,
+      "calibrated_ms": 4.882663266805611,
+      "abs_error_ms": 5.476413266805611,
+      "covered": false,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -15.0,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 13.4375,
+      "calibrated_ms": 17.382663266804013,
+      "abs_error_ms": 3.9451632668040126,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5606,
+    "period_s": 0.6757,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": 3.0,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 5.375870332964491,
+    "expanded_uncertainty_ms": 2.1610925101215015,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 0.78125,
+      "calibrated_ms": 4.528765376066838,
+      "abs_error_ms": 3.747515376066838,
+      "covered": false,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -1.0,
+      "calibrated_ms": 2.890107712812954,
+      "abs_error_ms": 3.890107712812954,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -15.15625,
+      "calibrated_ms": -10.417740573615882,
+      "abs_error_ms": 4.738509426384118,
+      "covered": false,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 10.90625,
+      "calibrated_ms": 15.447719136692632,
+      "abs_error_ms": 4.541469136692632,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -10.8125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 13.71875,
+      "calibrated_ms": 16.33632172515687,
+      "abs_error_ms": 2.6175717251568713,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5607,
+    "period_s": 0.4,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -3.125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -3.208682135297496,
+    "expanded_uncertainty_ms": 3.553439363085912,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": -7.9375,
+      "calibrated_ms": -1.5359985280884625,
+      "abs_error_ms": 6.401501471911537,
+      "covered": false,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 13.625000000000002,
+      "calibrated_ms": 18.35088077189488,
+      "abs_error_ms": 4.725880771894877,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -2.03125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -28.15625,
+      "calibrated_ms": -21.796602958997507,
+      "abs_error_ms": 6.359647041002493,
+      "covered": false,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 1.375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 21.875,
+      "calibrated_ms": 28.19715609147892,
+      "abs_error_ms": 6.32215609147892,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5608,
+    "period_s": 0.33707865168539325,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": -1.3125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 0.500423796411321,
+    "expanded_uncertainty_ms": 2.215534254479314,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 22.9375,
+      "calibrated_ms": 24.77594636074235,
+      "abs_error_ms": 1.8384463607423491,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -29.5,
+      "calibrated_ms": -23.259691723673672,
+      "abs_error_ms": 6.240308276326328,
+      "covered": false,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -15.375,
+      "calibrated_ms": -10.925573099667874,
+      "abs_error_ms": 4.449426900332126,
+      "covered": false,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.28125,
+      "calibrated_ms": 5.156937280150464,
+      "abs_error_ms": 5.438187280150464,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -2.3125000000000004,
+      "calibrated_ms": 2.4720560596171217,
+      "abs_error_ms": 4.784556059617122,
+      "covered": false,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 25.125,
+      "calibrated_ms": 13.09529964300774,
+      "abs_error_ms": 12.02970035699226,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     }
+    ]
+   }
+  ]
+ },
+ "real_take_processed": false,
+ "real_take_direction": "not_claimed_by_lane",
+ "default_adoption": false
+}
