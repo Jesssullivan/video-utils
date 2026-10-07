@@ -53,9 +53,8 @@ descriptor.
 | Rails + Active Job/Solid Queue | Strong application/identity/admin/job conventions; adds Ruby across an existing Rust/Python product | Choose if concrete estate reuse justifies that boundary; retain the same processing protocol |
 | Effect HTTP backend only | Could remove the Python HTTP process while retaining a separate Python worker | Revisit after an Effect v4 job/storage qualification spike; do not implement two schedulers |
 
-The read-only `xoxd.ai` snapshot currently declares Effect `^3.21.2`, Skeleton
-`4.15.2`, Svelte `^5.55.5`, SvelteKit `^2.59.1`, and `adapter-static`, with runes
-enabled and small Effect Schema/runtime helpers. Reuse patterns deliberately;
+xoxd.ai is a static (`adapter-static`) site with runes enabled and small Effect
+Schema/runtime helpers. **Correction 2026-10-07:** an earlier version of this passage reported Effect `^3.21.2` and Skeleton `4.15.2` for xoxd.ai. That came from a stale local checkout (branch `codex/cloudflare-pages-projection-truth`, `5e081b2`, 2026-05-08), not the default branch, and was wrong as an estate statement. Verified against remote default branches on 2026-10-07: xoxd.ai `main` `cc570c3` declares Skeleton `5.0.1` and Effect `^3.22.2`; site.scaffold `main` `9fef9ee` declares Skeleton `5.0.1` and Effect `^3.22.1`; tinyland.dev (`xoxd-ai/tinyland.dev` `main` `7422982`) declares Skeleton `^4.15.2`. The operator rule is that the whole estate uses the latest Skeleton v5 and latest Effect (npm latest on 2026-10-07: Skeleton `5.0.1`, Effect `4.0.1`); video-utils `web/` complies (Skeleton `5.0.1`, Effect `4.0.1`), and the Effect 3 and Skeleton 4 declarations above are estate drift tracked separately. Reuse patterns deliberately;
 this is not an already running dynamic processing stack. Official primary
 documentation now describes stable Effect v4 and Skeleton v5 migration. Exact
 version pins, schema behavior and component/stylesheet migration need a local

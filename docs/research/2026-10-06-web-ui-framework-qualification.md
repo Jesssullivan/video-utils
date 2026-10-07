@@ -13,11 +13,9 @@ not a clip-upload/processing app. The design records actual players, span loopin
 candidate filters, five note topics, three note states, optimistic revisions and
 JSON download. Browser visual/runtime acceptance was not rerun in this lane.
 
-The sibling xoxd contract was read before inspecting its files. At HEAD
-`5e081b2b1f8a69f69b1236057eb397954a84be5a`, the working-tree `package.json`
-declares Effect`^3.21.2`, Svelte`^5.55.5`, Kit`^2.59.1`, `adapter-static` and
-Skeleton`4.15.2`. These are source declarations; no package manager, lock resolver
-or build was run here. `AGENTS.md` explicitly calls it a static brand/project
+The sibling xoxd contract was read before inspecting its files.
+
+**Correction 2026-10-07:** an earlier version of this passage reported Effect `^3.21.2` and Skeleton `4.15.2` for xoxd.ai. That came from a stale local checkout (branch `codex/cloudflare-pages-projection-truth`, `5e081b2`, 2026-05-08), not the default branch, and was wrong as an estate statement. Verified against remote default branches on 2026-10-07: xoxd.ai `main` `cc570c3` declares Skeleton `5.0.1` and Effect `^3.22.2`; site.scaffold `main` `9fef9ee` declares Skeleton `5.0.1` and Effect `^3.22.1`; tinyland.dev (`xoxd-ai/tinyland.dev` `main` `7422982`) declares Skeleton `^4.15.2`. The operator rule is that the whole estate uses the latest Skeleton v5 and latest Effect (npm latest on 2026-10-07: Skeleton `5.0.1`, Effect `4.0.1`); video-utils `web/` complies (Skeleton `5.0.1`, Effect `4.0.1`), and the Effect 3 and Skeleton 4 declarations above are estate drift tracked separately. `AGENTS.md` explicitly calls it a static brand/project
 site and forbids adding runtime business/auth/data responsibilities there.
 
 `src/routes/+layout.svelte` demonstrates `$props`/`$state`, skip navigation,

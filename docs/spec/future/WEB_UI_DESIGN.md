@@ -190,11 +190,8 @@ and operational contract. [Svelte runes](https://svelte.dev/docs/svelte/what-are
 [SvelteKit Node adapter](https://svelte.dev/docs/kit/adapter-node)
 
 Use the operator's xoxd estate for Just/Nix/toolchain conventions, theme tokens,
-accessible navigation and typed schema/runtime boundaries. Read-only inspection
-of `/Users/jess/git/xoxd.ai` at HEAD
-`5e081b2b1f8a69f69b1236057eb397954a84be5a` found a static brand scaffold,
-`adapter-static`, Svelte5, Kit2 declarations, Effect3.21.2 and pinned
-Skeleton4.15.2. Its empty Effect layer and decoding helpers are patterns, not a
+accessible navigation and typed schema/runtime boundaries. xoxd.ai is a static brand
+scaffold (`adapter-static`, Svelte 5, Kit 2). **Correction 2026-10-07:** an earlier version of this passage reported Effect `^3.21.2` and Skeleton `4.15.2` for xoxd.ai. That came from a stale local checkout (branch `codex/cloudflare-pages-projection-truth`, `5e081b2`, 2026-05-08), not the default branch, and was wrong as an estate statement. Verified against remote default branches on 2026-10-07: xoxd.ai `main` `cc570c3` declares Skeleton `5.0.1` and Effect `^3.22.2`; site.scaffold `main` `9fef9ee` declares Skeleton `5.0.1` and Effect `^3.22.1`; tinyland.dev (`xoxd-ai/tinyland.dev` `main` `7422982`) declares Skeleton `^4.15.2`. The operator rule is that the whole estate uses the latest Skeleton v5 and latest Effect (npm latest on 2026-10-07: Skeleton `5.0.1`, Effect `4.0.1`); video-utils `web/` complies (Skeleton `5.0.1`, Effect `4.0.1`), and the Effect 3 and Skeleton 4 declarations above are estate drift tracked separately. Its empty Effect layer and decoding helpers are patterns, not a
 job service or v4 compatibility proof. Do not copy an unchecked effect
 environment cast into a new service boundary.
 
