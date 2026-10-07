@@ -107,6 +107,24 @@ def label(unit):
     return (name + suffix)[:120]
 
 
+def resolve_reference(recorded):
+    """The reference the assessment recorded: the demo arrangement, or another take's own reference file.
+
+    The demo reference keeps its repository selector so markers built before this change revalidate unchanged.
+    Any other reference must be an exact absolute or repository-relative regular file (no symlink, no traversal);
+    its sha256 and source binding are checked by the caller.
+    """
+    require(isinstance(recorded, str) and recorded and '\x00' not in recorded and len(recorded) <= 4096,
+            'Arrangement reference path missing')
+    demo = ROOT / REFERENCE
+    candidate = Path(recorded) if Path(recorded).is_absolute() else ROOT / recorded
+    require('..' not in Path(recorded).parts, 'Arrangement reference path traversal')
+    if candidate.absolute() == demo.absolute():
+        return demo, REFERENCE
+    require(not candidate.is_symlink() and candidate.is_file(), 'Arrangement reference must be a regular file')
+    return candidate, recorded
+
+
 def build(run_dir, assessment_selector):
     """Revalidate all identities; intent-only regions never select a clock phase."""
     run_dir = Path(run_dir).absolute()
@@ -114,14 +132,15 @@ def build(run_dir, assessment_selector):
     assessment_path = selector(run_dir, assessment_selector)
     manifest, manifest_hash = read_json(manifest_path)
     assessment, assessment_hash = read_json(assessment_path)
-    reference_path = ROOT / REFERENCE
+    reference_identity = assessment.get('reference', {})
+    reference_path, reference_selector = resolve_reference(reference_identity.get('path'))
     reference, reference_hash = read_json(reference_path, 64_000)
     import arrangement_reference as reference_tool
     source_hash = fingerprint(manifest['source']['sha256'])
     expanded = reference_tool.validate_reference(reference, source_hash)
     expected_units = expanded['units']
-    reference_identity = assessment.get('reference', {})
-    require(reference_identity.get('path') in (REFERENCE, str(reference_path.absolute()))
+    accepted_paths = (reference_selector, str(reference_path.absolute()))
+    require(reference_identity.get('path') in accepted_paths
             and reference_identity.get('sha256') == reference_hash, 'Arrangement reference identity mismatch')
     require(assessment.get('schema_version') == 1 and assessment.get('tool') == 'arrangement_reference'
             and assessment.get('source_sha256') == source_hash, 'Assessment source/schema mismatch')
@@ -150,7 +169,7 @@ def build(run_dir, assessment_selector):
         tracked[path] = expected
     bound_reference = binding.get('reference', {})
     require(isinstance(bound_reference, dict) and set(bound_reference) == {'path', 'sha256'}
-            and bound_reference.get('path') in (REFERENCE, str(reference_path.absolute()))
+            and bound_reference.get('path') in accepted_paths
             and bound_reference.get('sha256') == reference_hash,
             'Assessment reference binding mismatch')
     origin = number(manifest['timeline']['audio_start_seconds'], 'source origin')
@@ -258,7 +277,7 @@ def build(run_dir, assessment_selector):
     payload = {'schema_version': 1, 'format': 'arrangement_reference_review_markers_seconds',
                'source_sha256': source_hash, 'analyzed_input_sha256': input_hash, 'manifest_sha256': manifest_hash,
                'assessment': {'selector': assessment_selector, 'sha256': assessment_hash},
-               'reference': {'selector': REFERENCE, 'sha256': reference_hash},
+               'reference': {'selector': reference_selector, 'sha256': reference_hash},
                'producer_sha256': digest(__file__), 'reference_validator_sha256': tracked[validator_path],
                'tempo': {'bpm': expanded['tempo']['bpm'], 'precision': expanded['tempo']['precision'],
                          'basis': 'operator_supplied_reference_not_measured_tempo'},

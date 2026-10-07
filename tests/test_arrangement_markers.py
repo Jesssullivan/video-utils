@@ -275,5 +275,40 @@ class RealArrangementVideoTests(unittest.TestCase):
                     self.assertEqual(adapter.digest(path), identity)
 
 
+class ReferenceResolutionTests(unittest.TestCase):
+    """A second take binds its own arrangement reference; the demo keeps its repository selector."""
+
+    def setUp(self):
+        import arrangement_markers
+        self.tool = arrangement_markers
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+
+    def test_demo_reference_keeps_repository_selector(self):
+        demo = self.tool.ROOT / self.tool.REFERENCE
+        for recorded in (self.tool.REFERENCE, str(demo.absolute())):
+            path, selector = self.tool.resolve_reference(recorded)
+            self.assertEqual(selector, self.tool.REFERENCE)
+            self.assertEqual(path.absolute(), demo.absolute())
+
+    def test_other_take_reference_is_used_as_recorded(self):
+        other = self.tmp / 'take-two-arrangement.json'
+        other.write_text('{}')
+        path, selector = self.tool.resolve_reference(str(other))
+        self.assertEqual(path, other)
+        self.assertEqual(selector, str(other))
+
+    def test_refusals(self):
+        real = self.tmp / 'real.json'
+        real.write_text('{}')
+        link = self.tmp / 'link.json'
+        link.symlink_to(real)
+        for recorded in (None, '', 'a\x00b', str(link), str(self.tmp / 'missing.json'), str(self.tmp),
+                         'program/../program/demo-arrangement.json'):
+            with self.subTest(recorded=recorded):
+                with self.assertRaises(ValueError):
+                    self.tool.resolve_reference(recorded)
+
+
 if __name__ == '__main__':
     unittest.main()
