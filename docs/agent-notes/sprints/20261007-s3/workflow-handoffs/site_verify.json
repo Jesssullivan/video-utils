@@ -1,0 +1,295 @@
+{
+  "lane": "site_verify",
+  "branch": "sprint/20261007-s3/site_verify",
+  "base_commit": "549a14dea88f6b7951a81f2c2fa0718cb83a1c21",
+  "head": "18ba31fd0bcebacf812ee6d2b8e21e0658bb789f",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint3/site_verify",
+  "files": [
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/site_verify-a11y.json",
+      "sha256": "f1a968f1c7765858f6a5009128cb9e72cb0e266533d83fdbdf70d02548bf42f9",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/site_verify-browser.json",
+      "sha256": "30ef7a86985ee2262690f07e6e18e0da96242811ba522669b398c780bcc83d61",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/site_verify-contract-freeze.json",
+      "sha256": "e4e1bfc2a32d6d45100dbf2aca778b328d0797dd08af0c77cbe273d28bfb6c3f",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/site_verify-handoff.json",
+      "sha256": "4581f970e9cdfda2211008a30de2cf62cccda0c2c1b769ce970b9d6375a22a77",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/site_verify-install.json",
+      "sha256": "1d6a286968ce1de7cf4dfd65a427aa929d11d31019b5fded1b16049814bfe6b2",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/site_verify-links-privacy.json",
+      "sha256": "3e30bff86cf05c485dec1261098a36ae4e5ca808e6601968cd25690587d66075",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/site_verify-root-requests.json",
+      "sha256": "98122fad9825f0c59e735b4eed18d92987ce90efe19d1e1d3146eddbc98ce766",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/sprints/SITE_VERIFY_S3.md",
+      "sha256": "4ea7230e9800f5bf76b1bbde9c0819eb02f78c99c1f56d4516fc243f99054715",
+      "kind": "spec"
+    },
+    {
+      "path": "site/DEPLOY.md",
+      "sha256": "e4c02cd6139432d0e569d5f75191107b4ba3ef52e296502050707f04fb42abd4",
+      "kind": "source"
+    },
+    {
+      "path": "site/e2e/a11y-baseline.json",
+      "sha256": "ace08005807e63d7184e942f6b61f069ad8700f3ba9b7c245c3c15ce7c7e2514",
+      "kind": "test"
+    },
+    {
+      "path": "site/e2e/a11y.spec.ts",
+      "sha256": "9aba044e44a520b87e28470f40295169604ef8b6bd85612560d88dc0dcc9ed6f",
+      "kind": "test"
+    },
+    {
+      "path": "site/e2e/global-setup.ts",
+      "sha256": "f7abb1ac702f391611b2165a541dd9e6e97516aa8b3e1fcce98bdb8c8031c443",
+      "kind": "test"
+    },
+    {
+      "path": "site/e2e/global-teardown.ts",
+      "sha256": "60ea6293766ae1749673c64f9cedfdf19a99df2e4745c8a711032c5b47af7d3e",
+      "kind": "test"
+    },
+    {
+      "path": "site/e2e/routes.ts",
+      "sha256": "9a25667b185120eacbb3b59a3fec9f1eb84d8350c5d16ac447abe27bb4872739",
+      "kind": "test"
+    },
+    {
+      "path": "site/e2e/smoke.spec.ts",
+      "sha256": "9a4a554d30001743bb00b3762332411ab0c2cf4fe2a7377bc51a65cd42cc41ff",
+      "kind": "test"
+    },
+    {
+      "path": "site/e2e/static-server.mjs",
+      "sha256": "94388e0681030985f469b868b61338864699bbb04fa2cb410481e9a461f509fa",
+      "kind": "test"
+    },
+    {
+      "path": "site/e2e/support.ts",
+      "sha256": "261db58488b7bdae0c243bf68c843205480fb199a2ca0218dc79cfc2a97f8047",
+      "kind": "test"
+    },
+    {
+      "path": "site/package.json",
+      "sha256": "5844c4d8b648374a1d119c5487dcd983e00f9738429f5c8afdb7cac6dbdbca93",
+      "kind": "source"
+    },
+    {
+      "path": "site/playwright.config.ts",
+      "sha256": "79df7690824146a9a992816f5c3983cb4e1ae4a9b8e4f565d6d0cfc9b3b0b2f3",
+      "kind": "test"
+    },
+    {
+      "path": "site/pnpm-lock.yaml",
+      "sha256": "94d985258d0afac3f2465eba7ed2bf5be3433cef0ff79f58632d358845debf1b",
+      "kind": "source"
+    },
+    {
+      "path": "site/src/app.css",
+      "sha256": "21c9634299f4b051e6aea8b5b767ec8a12cd739dfb41032b2e2ff3571e1fc679",
+      "kind": "source"
+    },
+    {
+      "path": "site/src/hooks.client.ts",
+      "sha256": "a600b8076b0f45af684723ffb5cd29998dc716de36c82097cc61cec8f7174b8f",
+      "kind": "source"
+    },
+    {
+      "path": "site/tests/browser-ladder.ts",
+      "sha256": "197fb77091a99b3f1762087e8d26f4171ebf9b11299f7a40d804ace76ae4869a",
+      "kind": "test"
+    },
+    {
+      "path": "tests/test_public_site_s3.py",
+      "sha256": "b21adce87067105664488575c8f03542e5bea7767b78eefbeac3261883b164aa",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v",
+    "discovered": 85,
+    "passed": 83,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 2,
+    "seconds": 200.5
+  },
+  "metrics": [
+    {
+      "name": "browser_smoke_routes",
+      "numerator": 25,
+      "denominator": 25,
+      "unit": "routes",
+      "claim_class": "measured"
+    },
+    {
+      "name": "browser_smoke_console_errors",
+      "numerator": 0,
+      "denominator": 25,
+      "unit": "errors",
+      "claim_class": "measured"
+    },
+    {
+      "name": "browser_smoke_horizontal_overflow",
+      "numerator": 0,
+      "denominator": 25,
+      "unit": "px",
+      "claim_class": "measured"
+    },
+    {
+      "name": "browser_smoke_external_requests",
+      "numerator": 0,
+      "denominator": 1,
+      "unit": "requests",
+      "claim_class": "measured"
+    },
+    {
+      "name": "browser_smoke_skip_link_reach",
+      "numerator": 5,
+      "denominator": 5,
+      "unit": "routes",
+      "claim_class": "measured"
+    },
+    {
+      "name": "browser_smoke_tests",
+      "numerator": 52,
+      "denominator": 52,
+      "unit": "tests",
+      "claim_class": "measured",
+      "note": "Playwright 1.63.0 at 131s, Chromium 153.0.8010.12 cached, 0 bytes downloaded"
+    },
+    {
+      "name": "axe_scans",
+      "numerator": 22,
+      "denominator": 22,
+      "unit": "scans",
+      "claim_class": "measured",
+      "note": "axe 4.13.0 in light and dark modes"
+    },
+    {
+      "name": "axe_incomplete_results",
+      "numerator": 46,
+      "denominator": 122,
+      "unit": "nodes",
+      "claim_class": "measured",
+      "note": "From 22 a11y/*.json files"
+    },
+    {
+      "name": "link_check_references",
+      "numerator": 200,
+      "denominator": 204,
+      "unit": "references",
+      "claim_class": "measured",
+      "note": "139 external + 12 same-page + 10 cross-site + 41 root + 1 nav + 1 banner + 4 fragments"
+    },
+    {
+      "name": "build_html_documents",
+      "numerator": 5,
+      "denominator": 5,
+      "unit": "documents",
+      "claim_class": "measured"
+    },
+    {
+      "name": "build_total_files",
+      "numerator": 35,
+      "denominator": 35,
+      "unit": "files",
+      "claim_class": "measured",
+      "note": "25 text + 10 binary"
+    },
+    {
+      "name": "privacy_scan_hits",
+      "numerator": 0,
+      "denominator": 8,
+      "unit": "families",
+      "claim_class": "measured",
+      "note": "No run digests or tailnet names in 25 text files"
+    },
+    {
+      "name": "gitleaks_positive_control",
+      "numerator": 1,
+      "denominator": 1,
+      "unit": "test",
+      "claim_class": "measured",
+      "note": "Positive control detects a secret and exits 1"
+    }
+  ],
+  "unknowns": [
+    "hosted_runner_artifact_digests",
+    "ci_workflow_python3_availability",
+    "gitleaks_in_ci_shell"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "just/workflow.just",
+      "change": "Insert after the existing `site-test` recipe:\n\n# Site verification gates (S3 site_verify; docs/spec/sprints/SITE_VERIFY_S3.md): frozen install (no browser\n# download), then the public_site lane tests with the browser suite enabled: check, build, leak scans, internal link\n# check, V6 privacy scan, gitleaks with a positive control, Chromium smoke at five viewports and axe in light and dark.\n# Nothing is deployed. Outputs go to artifacts/site-verify/<UTC stamp>/ (gitignored).\nsite-verify:\n    #!/usr/bin/env bash\n    set -euo pipefail\n    out=\"$PWD/artifacts/site-verify/$(date -u +%Y%m%dT%H%M%SZ)\"\n    mkdir -p \"$out\"\n    (cd site && PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install --frozen-lockfile)\n    SITE_VERIFY_OUT_DIR=\"$out\" SITE_VERIFY_BROWSER=1 PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v 2>&1 | tee \"$out/lane-tests.log\"\n    test -f \"$out/browser-summary.json\"\n    python3 -c 'import json,sys; m=json.load(open(sys.argv[1]))[\"metrics\"]; bad=[k for k,v in m.items() if v.get(\"pass\") is not True]; sys.exit(\"site-verify: failing \" + \",\".join(bad) if bad else 0)' \"$out/browser-summary.json\"",
+      "why": "Contract section 11: one operator entrypoint that runs the section 8 gates in order with SITE_VERIFY_OUT_DIR under the root artifacts directory. Not loaded into a justfile by the lane; its commands are the ones the lane ran."
+    },
+    {
+      "file": "just/workflow.just",
+      "change": "Replace the current refusal-only `site-pages-deploy` recipe (its comment line and two-line body) with:\n\n# OUTWARD-FACING: publishes site/build to Cloudflare Pages. Refuses unless the operator sets\n# VIDEO_UTILS_SITE_DEPLOY_OPERATOR_GO=deploy-public-site for this one invocation (site/DEPLOY.md).\n# Credentials come only from the operator's environment; none is stored in this repository.\n# Every verification gate (site-verify: build, leak, link, privacy, gitleaks, browser and axe) runs first.\nsite-pages-deploy project branch:\n    #!/usr/bin/env bash\n    set -euo pipefail\n    if [ \"${VIDEO_UTILS_SITE_DEPLOY_OPERATOR_GO:-}\" != \"deploy-public-site\" ]; then\n        echo \"site-pages-deploy: refused. Deploying the public site needs a separate operator go; see site/DEPLOY.md.\" >&2\n        exit 64\n    fi\n    if ! command -v wrangler >/dev/null 2>&1; then\n        echo \"site-pages-deploy: wrangler is not on PATH; the operator pins and provides it (site/DEPLOY.md).\" >&2\n        exit 69\n    fi\n    just site-verify\n    cd site && wrangler pages deploy build --project-name {{quote(project)}} --branch {{quote(branch)}}",
+      "why": "Amends the public_site lane's proposed gated deploy recipe so it also requires the browser and privacy gates (site-verify) to be green. It still refuses without the explicit operator-go variable. Not executed by the lane."
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "change": "Proposal only, root's call: add a `site` job after the existing `web` job (same pinned actions, same .#web dev shell):\n\n  site:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 25\n    env:\n      CI: \"true\"\n    steps:\n      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4\n      - uses: cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7 # v31\n      - name: Install site dependencies from the committed lock (no browser download)\n        run: nix develop --no-write-lock-file .#web --command bash -c 'cd site && PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install --frozen-lockfile'\n      - name: Site static gates (check, build, leak scans, link check, V6 privacy scan, DEPLOY.md order)\n        run: nix develop --no-write-lock-file .#web --command bash -c 'PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v'\n      # Optional: browser smoke and axe on the runner's installed Chrome (ladder step c); nothing is downloaded.\n      # - name: Site browser smoke and axe\n      #   run: nix develop --no-write-lock-file .#web --command bash -c 'SITE_VERIFY_OUT_DIR=\"$RUNNER_TEMP/site-verify\" SITE_VERIFY_BROWSER=1 PYTHONPATH=tests python3 -m unittest test_public_site_s3.BrowserSuiteTests -v'",
+      "why": "Runs the static gates in hosted CI; the browser suite stays opt-in. Open points recorded in site_verify-root-requests.json: (1) a hosted runner has no run outputs, so the private-run digest group reports checked: false with 0 identifiers, which is not a pass; (2) GitleaksBuildTests skips unless gitleaks is in the shell; (3) python3 availability in .#web was not checked; (4) the lane did not run this workflow."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261007-s3/site_verify-a11y.json",
+    "docs/agent-notes/sprints/20261007-s3/site_verify-browser.json",
+    "docs/agent-notes/sprints/20261007-s3/site_verify-contract-freeze.json",
+    "docs/agent-notes/sprints/20261007-s3/site_verify-handoff.json",
+    "docs/agent-notes/sprints/20261007-s3/site_verify-install.json",
+    "docs/agent-notes/sprints/20261007-s3/site_verify-links-privacy.json",
+    "docs/agent-notes/sprints/20261007-s3/site_verify-root-requests.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "state": "implemented_tested_audited",
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Scope holds. `git diff --name-only 549a14d...HEAD` in /Users/jess/git/video-utils/.local/sprint3/site_verify lists 24 files across c878c1c, 152baa1 and 18ba31f. All are owned paths: site/DEPLOY.md, site/e2e/*, site/package.json, site/playwright.config.ts, site/pnpm-lock.yaml, site/src/app.css, site/src/hooks.client.ts, site/tests/browser-ladder.ts, tests/test_public_site_s3.py, docs/spec/sprints/SITE_VERIFY_S3.md and docs/agent-notes/sprints/20261007-s3/site_verify-*.json. There are no root-owned or foreign edits: nothing in web/, just/, program/ or scripts/.",
+      "(2) No forbidden writes found. `find artifacts/runs -newermt <contract commit time>` in the main checkout returns nothing. ~/Library/Caches/ms-playwright still holds only chromium-1243, chromium_headless_shell-1234 and ffmpeg-1011, all dated Oct 2 to Oct 6, so no browser was downloaded. Run outputs are in the worktree under artifacts/s2/site_verify/final, which is gitignored (.gitignore:3 /artifacts/). The worktree is clean. Proposed just/workflow.just and ci.yml text is only in site_verify-root-requests.json and was not applied. No wrangler is in package.json or the lock. No daemon: the static server runs inside the Playwright process and global-teardown closes it.",
+      "(4) Rerun reproduces the claim. With the given FFMPEG/FFPROBE and `PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v`: 'Ran 85 tests in 134.859s, OK (skipped=2)'. Skips: BrowserSuiteTests.test_v1_to_v7 (opt-in, SITE_VERIFY_BROWSER unset) and LeakRuleTests.test_private_app_hostname_is_absent_when_known (existing). This matches 85 discovered, 83 passed, 2 skipped. The '1 skip' in the browser-enabled final run is consistent, because BrowserSuiteTests runs there.",
+      "(4) The tests exercise the claimed behaviour. The link-check self-test plants 8 broken references and 2 broken fragments and asserts exact equality. The privacy self-test asserts 8/8 positives and 0/8 negatives, plus upper-case hex, base64 SRI, binary-embedded digest and IPv6 cases. The gitleaks test uses a positive control that must exit 1. BrowserSuiteTests asserts that V1 to V7 pass, V1 equals 5R/5R, external requests are [] and download bytes are 0. global-teardown counts a missing per-case file against the denominator, and global-setup clears old per-case files first, so stale results cannot pass.",
+      "(6) Arithmetic reproduced: smoke 5 routes x 5 viewports = 25; axe 4R+2 = 22; Playwright tests 25 smoke + 5 skip-link + 22 axe = 52. Recomputing from the 22 a11y/*.json files gives 46 incomplete results on 122 nodes. In links-privacy.json, by_kind sums to 139+12+10+41+1+1 = 204, which equals 200 references checked + 4 fragments. The fresh build has 35 files, matching 25 text + 10 binary, and 5 HTML documents, matching R = 5.",
+      "(3) Claim classes are correct. Receipts use M/I/U. Pages equivalence is 'inferred', WCAG conformance 'not_claimed', axe incomplete results are recorded as unknown, and zoom is labelled viewport emulation. real_take_accuracy and low_register_pitch_accuracy are 'unknown' and listening_acceptance is 'not_claimed'. There is no note-correctness verdict and no default/profile/detector adoption.",
+      "(5) Not applicable to this web-only lane: no DSP, filter or notch is touched. Every subprocess in the test module has an explicit timeout (scanner 60, gitleaks 120, Playwright 900, full digest 600). The Playwright config uses 1 worker, 0 retries and a 60 s per-test timeout.",
+      "Minor: the CSS at site/src/app.css:39-46 applies `.site-chrome__quick { min-width:0; overflow-x:auto; padding:0.375rem }` at every width, while the comment describes a fix for widths below about 440px. The extra padding and the scroll container also apply on desktop. Most axe color-contrast incomplete results are on .site-chrome__quick-link nodes, and part of that may come from the new scroll container. This is unverified, because there is no before/after comparison of incomplete counts.",
+      "Minor: site/src/hooks.client.ts suppresses console.error for every client error with status 404, not only the fallback route. A genuine client-side 404, such as a broken internal link reached through client navigation, would also go unlogged. The link check covers built references, which reduces the risk.",
+      "Minor: in privacy_scan, binary files (10 font/ico files) are checked only for run digests and take identifiers. They are not checked for tailnet names, private IPs, host names, artifacts/ paths or Linear patterns. That is acceptable for fonts, but the '0 hits in each of 8 families over 25 text and 10 binary files' wording overstates how much of the binaries was covered.",
+      "Minor receipt inaccuracy: site_verify-install.json lock_resolved_transitive says 'fsevents 2.3.3 (optional, from playwright)'. In site/pnpm-lock.yaml, playwright@1.63.0 (lines 815 and 1744) has no optionalDependencies. fsevents 2.3.3 at line 1858 belongs to another package (the vite/rolldown block).",
+      "Observation for root: the handoff records 6 failing test_tool_contracts tests (MCP tool-call tests), attributed as pre-existing or load-related (inferred, not checked on main). The lane touched none of their inputs. Root's full suite must confirm this before merge.",
+      "Lane commits c878c1c, 152baa1 and 18ba31f are unsigned (%G? = N). This matches other lanes' commits; main's admin merges are signed."
+    ],
+    "must_fix": []
+  }
+}
