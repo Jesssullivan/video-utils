@@ -640,6 +640,117 @@ class LauncherTests(unittest.TestCase):
                 self.assertIsNone(self._started(proc))
 
 
+def _free_port() -> int:
+    import socket
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        return sock.getsockname()[1]
+
+
+class BuiltHooksTests(unittest.TestCase):
+    """End-to-end hooks enforcement on the real adapter-node build (skips without web/build).
+
+    No network: only requests that are refused before any JWKS fetch are sent (no assertion,
+    a malformed assertion, a wrong Host, an unconfigured process). The valid-token path is covered
+    by the node harness with a stub JWKS (J1, G1).
+    """
+
+    def _request(self, port: int, host: str, headers: dict[str, str] | None = None) -> tuple[int, dict, str]:
+        import http.client
+        conn = http.client.HTTPConnection("127.0.0.1", port, timeout=10)
+        try:
+            conn.request("GET", "/", headers={"Host": host, **(headers or {})})
+            resp = conn.getresponse()
+            body = resp.read().decode("utf-8", "replace")
+            return resp.status, (json.loads(body) if body.startswith("{") else {}), resp.getheader("cache-control") or ""
+        finally:
+            conn.close()
+
+    def _run_server(self, argv: list[str], env: dict[str, str]):
+        import time
+        import urllib.error
+        proc = subprocess.Popen(argv, cwd=WEB, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        port = int(env["PORT"])
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            if proc.poll() is not None:
+                break
+            try:
+                import socket
+                with socket.create_connection(("127.0.0.1", port), timeout=0.5):
+                    return proc
+            except OSError:
+                time.sleep(0.2)
+        proc.kill()
+        out, err = proc.communicate(timeout=10)
+        self.fail(f"server did not listen: {err[-2000:]}")
+
+    def _stop(self, proc) -> None:
+        proc.terminate()
+        try:
+            proc.communicate(timeout=10)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.communicate(timeout=10)
+
+    def setUp(self) -> None:
+        if shutil.which("node") is None:
+            self.skipTest("node not on PATH")
+        if not (WEB / "build" / "index.js").is_file():
+            self.skipTest("web/build absent (run the web_stack build tests first)")
+
+    def test_t1_tailnet_mode_denies_by_default(self) -> None:
+        port = _free_port()
+        env = _clean_env(**TAILNET_ENV, HOST="127.0.0.1", PORT=str(port))
+        proc = self._run_server(["node", "serve.js"], env)
+        try:
+            cases = {
+                "missing_assertion": ("video-utils.example.org", {}, 403, "bff_identity_refused"),
+                "malformed_assertion": ("video-utils.example.org", {"Cf-Access-Jwt-Assertion": "not.a-jwt"}, 403,
+                                        "bff_identity_refused"),
+                "plaintext_email_only": ("video-utils.example.org",
+                                         {"Cf-Access-Authenticated-User-Email": "operator@example.org",
+                                          "Tailscale-User-Login": "operator@example.org"}, 403, "bff_identity_refused"),
+                "wrong_host": ("rebind.example.org", {}, 421, "bff_host_refused"),
+                "loopback_host": (f"127.0.0.1:{port}", {}, 421, "bff_host_refused"),
+            }
+            for name, (host, headers, status, code) in cases.items():
+                with self.subTest(case=name):
+                    got_status, body, cache = self._request(port, host, headers)
+                    self.assertEqual((got_status, body.get("code")), (status, code))
+                    self.assertEqual(list(body), ERROR_KEYS)
+                    self.assertEqual(cache, "no-store")
+        finally:
+            self._stop(proc)
+
+    def test_t2_unconfigured_process_answers_503(self) -> None:
+        # Bypass serve.js (which would refuse to start) to prove hooks fail closed on their own.
+        port = _free_port()
+        env = _clean_env(VIDEO_UTILS_AUTH_MODE="tailnet", HOST="127.0.0.1", PORT=str(port))
+        proc = self._run_server(["node", "build/index.js"], env)
+        try:
+            for host in ("video-utils.example.org", f"127.0.0.1:{port}"):
+                with self.subTest(host=host):
+                    status, body, _ = self._request(port, host)
+                    self.assertEqual((status, body.get("code")), (503, "bff_auth_unconfigured"))
+        finally:
+            self._stop(proc)
+
+    def test_t3_loopback_default_unchanged_on_build(self) -> None:
+        port = _free_port()
+        proc = self._run_server(["node", "serve.js"], _clean_env(PORT=str(port)))
+        try:
+            status, body, cache = self._request(port, "rebind.example.org")
+            self.assertEqual((status, body), (421, {
+                "status": "error", "code": "bff_host_refused", "message": S2_LOOPBACK_MESSAGE,
+                "upstream_status": None, "upstream_code": None, "upstream_detail_code": None}))
+            self.assertEqual(cache, "no-store")
+            status, _, _ = self._request(port, f"127.0.0.1:{port}")
+            self.assertNotIn(status, (403, 421, 503))
+        finally:
+            self._stop(proc)
+
+
 class HooksStaticTests(unittest.TestCase):
     def test_l3_hooks_uses_loopback_host_and_only_gate(self) -> None:
         hooks = (WEB / "src" / "hooks.server.ts").read_text()
