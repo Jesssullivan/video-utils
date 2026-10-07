@@ -1,0 +1,120 @@
+{
+  "basis": {
+    "baseline_commit": "a077766da88b1cccf8190f4b34fda0893723b9c4",
+    "contract_commit": "18651c9d11b3efd87928cac70e8fa3b7626696dd",
+    "date_utc": "2026-10-07",
+    "lane_branch": "sprint/20261007-s3/web_fixes",
+    "lane_commit": "4ddf4b7c8c525820bbbc99f4754800566860a326",
+    "measured_on": "the lane worktree at HEAD 4ddf4b7 (clean tree); this receipt is added by the following commit, which changes only this file",
+    "not_a_merge": "the lane did not merge, push or touch main"
+  },
+  "claim_class": "behaviour",
+  "command": "PYTHONPATH=tests timeout 3600 python3 -m unittest test_web_house_stack_s3 test_web_stack test_web_processing_s3 test_web_runs_s3 test_auth_hosting_s3 -v (one process, worktree root, FFMPEG/FFPROBE exported)",
+  "earlier_noncompletion_cause": null,
+  "errors": 0,
+  "exit_code": 0,
+  "failed": 0,
+  "full_suite": null,
+  "full_suite_reason": "root's",
+  "host": {
+    "load_averages_end": "54.73 84.86 77.69",
+    "load_averages_start": "104.53 100.00 78.63",
+    "logical_cpus": 6,
+    "note": "the host was not quiet (other sessions' builds were running; the lane signalled none of them, R-N11). The run nevertheless completed in under 4 minutes, so the earlier non-completions are not reproduced; their cause is unknown.",
+    "quieter_host": false
+  },
+  "lane": "web_fixes",
+  "modules": {
+    "test_auth_hosting_s3": 39,
+    "test_web_house_stack_s3": 19,
+    "test_web_processing_s3": 24,
+    "test_web_runs_s3": 36,
+    "test_web_stack": 33
+  },
+  "modules_note": "per-module counts are distinct test ids in the -v log and equal the loader's countTestCases(); they sum to 151. test_auth_hosting_s3 (39) is first run on this branch here.",
+  "output": {
+    "format": "each line prefixed with a UTC HH:MM:SS timestamp",
+    "gitignored": true,
+    "path": "artifacts/s2/web_fixes/phase4/five-module.log",
+    "sha256": "2cad189e79351645e4da8758ef516d4a45ca288a3e98c4022b0b5ad78bb54597"
+  },
+  "passed": 151,
+  "phase": "phase 4 repair: closes the audit verification gap (the five-module command had never completed; test_auth_hosting_s3 had never run on this branch)",
+  "ran_line": "Ran 151 tests in 222.347s",
+  "receipt": "python-full",
+  "result_line": "OK",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N11/R-N12/R-N13",
+  "rust": {
+    "binaries": {
+      "doc-tests": {
+        "passed": 0
+      },
+      "src/lib.rs": {
+        "passed": 15
+      },
+      "src/main.rs": {
+        "passed": 0
+      },
+      "tests/cli.rs": {
+        "passed": 7
+      },
+      "tests/dsp.rs": {
+        "ignored": 1,
+        "passed": 5
+      }
+    },
+    "command": "CARGO_BUILD_JOBS=1 timeout 2400 cargo test --locked -j 1",
+    "exit_code": 0,
+    "failed": 0,
+    "ignored": 1,
+    "output": {
+      "gitignored": true,
+      "path": "artifacts/s2/web_fixes/phase4/cargo-test.log",
+      "sha256": "f84f156ccfdc79a19305a20b8087047a87b76c8a7df453c4e0fa49237d6327f1"
+    },
+    "passed": 27,
+    "rust_sources_changed_by_lane": false,
+    "wall_seconds": 11
+  },
+  "schema_version": 1,
+  "skip_reasons": [],
+  "skipped": 0,
+  "source_or_test_changes_in_this_phase": false,
+  "sprint": "20261007-s3",
+  "tests_run": 151,
+  "tracker": "TIN-5724",
+  "unknowns": {
+    "browser_source": "playwright cache (expected revision already present); nothing downloaded",
+    "browser_used": "chromium",
+    "browser_version": "153.0.8010.12",
+    "claims_note": "no listening, ~32 Hz, detector, profile, master or note-correctness claim is made; no DSP code was touched",
+    "containerfile_serves_static": null,
+    "containerfile_serves_static_reason": "root-owned; no image was built by this lane (see web_fixes-root-requests.json)",
+    "favicon_under_tailnet_auth_mode": null,
+    "favicon_under_tailnet_auth_mode_reason": "only loopback mode was exercised",
+    "firefox_webkit_behaviour": null,
+    "firefox_webkit_behaviour_reason": "Chromium only",
+    "fixture_drift": null,
+    "fixture_drift_reason": "fixtures were not regenerated or compared with the registries on main by this lane",
+    "flaky_retries": 0,
+    "light_theme_exists": false,
+    "listening_claims": null,
+    "low_register_claims": null,
+    "manual_accessibility_audit": null,
+    "manual_accessibility_audit_reason": "not performed; axe automated rules only",
+    "note_correctness_claims": null,
+    "real_control_api_under_playwright": null,
+    "real_control_api_under_playwright_reason": "the browser suites replay committed synthetic fixtures through the mock",
+    "real_take_facts_in_fixtures": false,
+    "screen_reader_acceptance": null,
+    "screen_reader_acceptance_reason": "no assistive technology was run",
+    "wcag_conformance": null,
+    "wcag_conformance_reason": "axe evaluates a subset of WCAG; zero axe violations is not conformance"
+  },
+  "wall_budget_seconds": 3600,
+  "wall_seconds": 223,
+  "x16": {
+    "failed_total": 0,
+    "met": true
+  }
+}
