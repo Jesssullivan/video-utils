@@ -1,0 +1,30 @@
+{
+  "client_bundle": "no token, token env name or control URL env name in build/client (WebBuild) and test_web_stack s10 passed",
+  "contract": "docs/spec/sprints/ROUTES_REVIEW_S3.md (frozen at 828b678; section 13 appended 2026-10-07)",
+  "lane": "routes_review",
+  "lock_and_package": {
+    "changed_vs_4bd806d": false,
+    "new_dependencies": 0,
+    "package.json_sha256": "fb4555de281222fa984f519e4628420037f445ac39d1eeca0c101210adf0e1a2",
+    "pnpm-lock.yaml_sha256": "d1d2e584134f723d1c1af0924c174fdf70690fc23b2faf144385222599df5db5"
+  },
+  "node": "v22.23.2",
+  "pnpm": "11.25.0",
+  "pnpm_build": {
+    "result": "ok (adapter-node build/index.js written)",
+    "wall_seconds_observed": "about 140 to 300 (external SSD)"
+  },
+  "pnpm_check": {
+    "baseline": "COMPLETED 1226 FILES 0 ERRORS 0 WARNINGS",
+    "result": "COMPLETED 1294 FILES 0 ERRORS 0 WARNINGS 0 FILES_WITH_PROBLEMS"
+  },
+  "pnpm_install": "pnpm install --frozen-lockfile --offline: ok",
+  "real_data_decode": "RunGraph, RunLayers, RunList and Capabilities produced read-only from the main checkout decode with the closed TypeScript schemas (4/4); not a test",
+  "real_take_touched_by_tests": false,
+  "recorded_utc": "2026-10-07T07:24:19+00:00",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N11/R-N12/R-N13); TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "schema": "video-utils/routes-review-checkbuild",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5719"
+}

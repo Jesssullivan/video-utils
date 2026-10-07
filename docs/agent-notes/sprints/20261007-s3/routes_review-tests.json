@@ -1,0 +1,247 @@
+{
+  "command": "PYTHONPATH=tests python3 -m unittest test_web_runs_s3 -v (classes run in three invocations; FFMPEG/FFPROBE set for Walkthrough)",
+  "contract": "docs/spec/sprints/ROUTES_REVIEW_S3.md (frozen at 828b678; section 13 appended 2026-10-07)",
+  "lane": "routes_review",
+  "metrics": {
+    "10_bases_distinct": {
+      "class": "S",
+      "result": "4/4"
+    },
+    "11_keyboard": {
+      "class": "S plus node behaviour check of the pure dispatcher; no in-browser key automation",
+      "node_dispatch": {
+        "bindings_dispatched": "12/12",
+        "guards_held": "4/4"
+      },
+      "static": "12/12"
+    },
+    "12_no_autoplay_or_play_call": {
+      "autoplay": 0,
+      "class": "S",
+      "owned_web_files": 50,
+      "play_call_sites": 0
+    },
+    "13_timing_direction": {
+      "abstained_shown_as_dash": 1,
+      "class": "S+M (node, synthetic rows)",
+      "directions_on_real_take": 0,
+      "measured": 2,
+      "withheld": 2
+    },
+    "14_marker_downloads_labelled": {
+      "class": "S+M",
+      "result": "static label present; walkthrough deliver page shows the label"
+    },
+    "15_stubs_replaced": {
+      "class": "S",
+      "result": "3/3"
+    },
+    "16_check_build": {
+      "class": "M",
+      "see": "routes_review-checkbuild.json"
+    },
+    "17_directly_affected": {
+      "class": "M",
+      "test_artifact_ids": {
+        "ok": 20,
+        "tests": 20
+      },
+      "test_web_parity": {
+        "ok": 17,
+        "skip": "opt-in demo walkthrough (WEB_UI_DEMO unset)",
+        "skipped": 1,
+        "tests": 18
+      },
+      "test_web_stack": {
+        "failed_subtests": 3,
+        "failed_tests": 1,
+        "failure": "test_s8_prototype_routes_label_only (compare, review, download): asserts the S2 prototype stubs that contract section 6.8 replaces",
+        "new_failure_vs_baseline": true,
+        "resolution": "root-owned rescope diff requested; the rescoped s8 was executed against this tree from a scratch copy and passed",
+        "tests": 33
+      }
+    },
+    "18_not_claimed": {
+      "class": "U",
+      "default_adoption": false,
+      "listening": "not_performed",
+      "musical_verdicts": "not_established"
+    },
+    "1_confinement_refusals": {
+      "cases": [
+        {
+          "case": "absolute_path",
+          "code": "malformed_id",
+          "status": 400
+        },
+        {
+          "case": "artifact_of_other_run",
+          "code": "unknown_artifact",
+          "status": 404
+        },
+        {
+          "case": "dotdot",
+          "code": "malformed_id",
+          "status": 400
+        },
+        {
+          "case": "empty_segment",
+          "code": "malformed_id",
+          "status": 400
+        },
+        {
+          "case": "encoded_dotdot",
+          "code": "malformed_id",
+          "status": 400
+        },
+        {
+          "case": "evidence_via_symlinked_dir",
+          "code": "unknown_evidence",
+          "status": 404
+        },
+        {
+          "case": "id_129_chars",
+          "code": "malformed_id",
+          "status": 400
+        },
+        {
+          "case": "media_not_in_table",
+          "code": "unknown_media",
+          "status": 404
+        },
+        {
+          "case": "media_with_slash",
+          "code": "unknown_media",
+          "status": 404
+        },
+        {
+          "case": "non_ascii",
+          "code": "malformed_id",
+          "status": 400
+        },
+        {
+          "case": "partial_suffix",
+          "code": "malformed_id",
+          "status": 400
+        },
+        {
+          "case": "slash_in_id",
+          "code": "route_not_found",
+          "status": 404
+        },
+        {
+          "case": "symlinked_manifest",
+          "code": "confinement_refused",
+          "status": 403
+        },
+        {
+          "case": "symlinked_run_dir",
+          "code": "confinement_refused",
+          "status": 403
+        },
+        {
+          "case": "symlinked_stage",
+          "code": "confinement_refused",
+          "status": 403
+        },
+        {
+          "case": "symlinked_stage_artifact",
+          "code": "confinement_refused",
+          "status": 403
+        }
+      ],
+      "class": "M",
+      "denominator": 16,
+      "http_200": 0,
+      "refused_with_typed_code": 16
+    },
+    "2_host_path_free_responses": {
+      "class": "M",
+      "leaks": 0,
+      "note": "every 2xx/4xx response in the API classes is also asserted at request time; Walkthrough checks every BFF response",
+      "responses_checked": 80
+    },
+    "3_hash_binding_mutations": {
+      "cases": [
+        "artifact_short_body_closed_connection",
+        "bundle_json_edit_rebinds",
+        "bundle_media_flip_media_stale",
+        "manifest_edit_bound_manifest_changed",
+        "marker_flip_file_hash_mismatch",
+        "receipt_pin_mismatch_not_established",
+        "render_parent_analyzed_input_not_current",
+        "stage_deleted_missing",
+        "stage_flip_stale"
+      ],
+      "class": "M",
+      "denominator": 9,
+      "detected": 9
+    },
+    "4_schema_conformance": {
+      "class": "M",
+      "closed_key_checked_documents": 4,
+      "note": "closed-key checks cover one document of each of the four response kinds plus nested structs, not every success response individually",
+      "strict_parsed": "every JSON response read by the tests"
+    },
+    "5_unknown_keys": {
+      "class": "M",
+      "present_with_value_and_reason": 66,
+      "required": 66
+    },
+    "6_ts_python_key_parity": {
+      "class": "S",
+      "result": "5/5"
+    },
+    "7_tools_models": {
+      "class": "M",
+      "models": "1/1",
+      "null_reason": "32/32",
+      "pilot_with_metadata": "8/8",
+      "tools": "40/40",
+      "unmapped": 0
+    },
+    "8_routes_reachable": {
+      "class": "M",
+      "result": "11/11",
+      "single_run_redirects_303": "3/3"
+    },
+    "9_mark_here": {
+      "claim_label": "USER REPORTED",
+      "class": "M",
+      "result": "1/1",
+      "revision_delta": 1
+    }
+  },
+  "owned_module": {
+    "Walkthrough": {
+      "failed": 0,
+      "first_attempt": "failed on a test expectation (picker returned 200 with two runs; contract allows 303 or 200); test corrected and a single-run 303 check added",
+      "ok": 1,
+      "second_attempt_found": "flags_triage envelope nesting bug in review-logic.ts (flags read as unknown); fixed and asserted in SSR and in the node behaviour check",
+      "tests": 1,
+      "wall_seconds": 283.8
+    },
+    "WebBuild": {
+      "failed": 0,
+      "ok": 2,
+      "tests": 2
+    },
+    "fast_classes": {
+      "failed": 0,
+      "ok": 32,
+      "skip": "Registration: root registration hunk not applied",
+      "skipped": 1,
+      "tests": 33,
+      "wall_seconds": 20.5
+    },
+    "module": "tests/test_web_runs_s3.py"
+  },
+  "real_take_touched_by_tests": false,
+  "recorded_utc": "2026-10-07T07:24:19+00:00",
+  "registration_proof": "Registration class passed (1/1) when run against a scratch copy of scripts/web_api.py with the section 11.1 hunk applied; the hunk applies cleanly with patch -p1 to the current file. scripts/web_api.py itself was not edited.",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N11/R-N12/R-N13); TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "schema": "video-utils/routes-review-tests",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5719"
+}
