@@ -1,0 +1,45 @@
+{
+  "schema": "vu.bazel_graph.contract-freeze.v1",
+  "lane": "bazel_graph",
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5722",
+  "recorded": "2026-10-07",
+  "authority": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N13",
+  "contract": "docs/spec/sprints/BAZEL_GRAPH_S3.md",
+  "phase_1_commit": "93e7b2d5f588d57077818cbc6301c564fc3b56ee",
+  "baseline": "f44f962ba159e82b0384dd89e95d8a3ba5246267",
+  "estate_sources_post_fetch": [
+    {
+      "repo": "tinyland-inc/xoxd.ai",
+      "ref": "origin/main",
+      "commit": "cc570c3c1079cc5754840395184f0c1a6fece97f",
+      "commit_date": "2026-10-05T21:35:12-04:00"
+    },
+    {
+      "repo": "tinyland-inc/site.scaffold",
+      "ref": "origin/main",
+      "commit": "9fef9eea73cb948f984acd8c6159a6422778956a",
+      "commit_date": "2026-10-05T21:35:12-04:00"
+    },
+    {
+      "repo": "xoxd-ai/tinyland.dev",
+      "ref": "github/main",
+      "commit": "7422982619e357d31a0ddf0affdf8dedd0b51a93",
+      "commit_date": "2026-10-02T14:13:22-04:00"
+    },
+    {
+      "repo": "tinyland-inc/bazel-registry",
+      "ref": "origin/main",
+      "commit": "8d3e5407863132f62c14a5d674435890823a9d22",
+      "commit_date": "2026-10-05T21:59:29-04:00"
+    }
+  ],
+  "fetch": "git -C <repo> fetch <remote> main on 2026-10-07; all four tips equal the pre-fetch Phase 1 read",
+  "corrections_to_phase_1": [
+    "registry module count is 69 (61 tummycrypt_*), not 67/59",
+    "aspect_rules_js 3.5.1 and aspect_rules_ts 3.10.1 instead of estate 2.9.1/3.8.4 (pnpm 11 allowBuilds, TypeScript 6.0.3)",
+    "section 8 one-attempt bound read as the can-Bazel-run question; verification runs followed (flagged for root)"
+  ],
+  "amendments": "docs/spec/sprints/BAZEL_GRAPH_S3.md section 11",
+  "research": "docs/research/2026-10-07-estate-bazel-patterns.md"
+}

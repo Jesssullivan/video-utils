@@ -1,0 +1,180 @@
+"""
+Python unittest modules (one py_test each) and the root crate's Rust integration tests.
+
+`bazel test //tests:test_media` is the counterpart of
+`PYTHONPATH=tests python3 -m unittest test_media -v`. Every tests/test_*.py file
+is covered by the glob below; tests/test_bazel_graph_s3.py checks that, and that
+each name in the classification lists is a real module.
+
+The classification lists were produced in S3 Phase 2 by reading the FFmpeg,
+host-tool and artifacts references of each module (method and limits:
+docs/spec/sprints/BAZEL_GRAPH_S3.md, Phase 2 amendments). They were not
+validated by a Bazel run on the authoring host.
+"""
+
+load("@rules_rust//rust:defs.bzl", "rust_test")
+load("//tools/bazel:python.bzl", "unittest_py_tests")
+load("//tools/bazel:rust.bzl", "RUST_EDITION")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/.DS_Store",
+        ],
+    ),
+)
+
+# Modules that execute a real FFmpeg/FFprobe binary. They skip (never pass)
+# when FFMPEG/FFPROBE do not resolve; run them with
+#   bazel test //tests/... --test_tag_filters=requires-ffmpeg --test_env=FFMPEG --test_env=FFPROBE
+FFMPEG_TESTS = [
+    "test_arrangement_markers",
+    "test_eq_shelf",
+    "test_fuller_profile",
+    "test_marked_compact",
+    "test_marked_video",
+    "test_mcp",
+    "test_media",
+    "test_phone_fixtures",
+    "test_review_ui_s2",
+    "test_share_export",
+    "test_share_export_preroll",
+    "test_tone_ab",
+    "test_tool_contracts",
+    "test_web_jobs",
+    "test_web_parity",
+    "test_web_processing_s3",
+    "test_web_reliability",
+    "test_web_runs_s3",
+]
+
+# Modules that use node, pnpm, git or the hash-pinned Nix FFmpeg path. Bazel
+# gives tests a minimal PATH; add --config=host-tools to pass PATH and HOME.
+HOST_TOOL_TESTS = [
+    "test_auth_hosting_s3",
+    "test_eq_shelf",
+    "test_phone_fixtures",
+    "test_phrase_riff_s2",
+    "test_review_ui_s1",
+    "test_review_ui_s2",
+    "test_share_export",
+    "test_share_export_preroll",
+    "test_sprint1_audit",
+    "test_web_parity",
+    "test_web_processing_s3",
+    "test_web_reliability",
+    "test_web_runs_s3",
+    "test_web_stack",
+]
+
+# Modules that install into, build or serve from the checkout's web/ tree.
+# They must not run beside each other or any other test.
+EXCLUSIVE_TESTS = [
+    "test_auth_hosting_s3",
+    "test_web_parity",
+    "test_web_processing_s3",
+    "test_web_reliability",
+    "test_web_runs_s3",
+    "test_web_stack",
+]
+
+# Modules that read or create paths under the checkout's artifacts/ tree, which
+# is private, ignored by Git and by Bazel, and therefore not a declared input.
+WORKSPACE_ARTIFACT_TESTS = [
+    "test_annotation_markers",
+    "test_apply_capture_profile",
+    "test_arrangement_reference_tool",
+    "test_capture_application_tool",
+    "test_click_attack_ab",
+    "test_corpus_eval_s2",
+    "test_demo",
+    "test_eq_shelf",
+    "test_flags_triage",
+    "test_marked_compact",
+    "test_phone_fixtures",
+    "test_phrase_anchor",
+    "test_phrase_localize",
+    "test_phrase_localize_audit",
+    "test_phrase_timing",
+    "test_review_ui_s2",
+    "test_rhythm",
+    "test_s2_tool_admission",
+    "test_share_export",
+    "test_share_export_preroll",
+    "test_tool_contracts",
+    "test_web_jobs",
+    "test_web_parity",
+    "test_web_processing_s3",
+    "test_web_reliability",
+    "test_web_runs_s3",
+]
+
+# Modules that read the checkout's web/ tree. //web is deliberately not a data
+# dependency of the Python tests: loading it requires the npm lock translation.
+WEB_TREE_TESTS = [
+    "test_auth_hosting_s3",
+    "test_bazel_graph_s3",
+    "test_web_parity",
+    "test_web_processing_s3",
+    "test_web_reliability",
+    "test_web_runs_s3",
+    "test_web_stack",
+]
+
+unittest_py_tests(
+    srcs = glob(["test_*.py"]),
+    data = [
+        ":all_files",
+        "//:repo_data",
+        "//native/au-spike:all_files",
+        "//scripts:all_files",
+        "//src:all_files",
+        "//tools/bazel:all_files",
+    ],
+    exclusive = EXCLUSIVE_TESTS,
+    ffmpeg = FFMPEG_TESTS,
+    host_tools = HOST_TOOL_TESTS,
+    web_tree = WEB_TREE_TESTS,
+    workspace_artifacts = WORKSPACE_ARTIFACT_TESTS,
+    deps = ["//scripts:workers"],
+)
+
+test_suite(
+    name = "python",
+    tags = ["python-unittest"],
+)
+
+# The stdlib-only subset: no FFmpeg, no host tools.
+test_suite(
+    name = "python_stdlib",
+    tags = [
+        "-requires-ffmpeg",
+        "-requires-host-tools",
+        "python-unittest",
+    ],
+)
+
+# tests/cli.rs runs the built CLI: Cargo exposes it as CARGO_BIN_EXE_video-utils.
+rust_test(
+    name = "rust_cli_test",
+    srcs = ["cli.rs"],
+    crate_root = "cli.rs",
+    data = ["//src:video-utils"],
+    edition = RUST_EDITION,
+    rustc_env = {"CARGO_BIN_EXE_video-utils": "$(rootpath //src:video-utils)"},
+    deps = ["//src:video_utils"],
+)
+
+# tests/dsp.rs: the FFmpeg parity case is #[ignore] and reads FFMPEG itself.
+rust_test(
+    name = "rust_dsp_test",
+    srcs = ["dsp.rs"],
+    crate_root = "dsp.rs",
+    edition = RUST_EDITION,
+    deps = ["//src:video_utils"],
+)

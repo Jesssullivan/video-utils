@@ -1,0 +1,5 @@
+{
+  "schema": "vu.bazel_graph.coverage_exclusions.v1",
+  "note": "scripts/**/*.py workers and tests/test_*.py modules that are deliberately not in a Bazel target. Each entry needs path, kind (worker|test) and a non-empty reason. Empty means every file is covered.",
+  "exclusions": []
+}

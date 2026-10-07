@@ -1,0 +1,55 @@
+# video-utils Bazel configuration (S3 bazel_graph lane, docs/spec/sprints/BAZEL_GRAPH_S3.md).
+#
+# Bazel 8 + Bzlmod. `just` stays the operator entrypoint (just/bazel.just) and Nix
+# stays the dev environment; `just check`, `just test`, `just test-rust` and
+# `pnpm build` remain the accepted gates. Estate pattern source:
+# docs/research/2026-10-07-estate-bazel-patterns.md.
+
+# The Bazel server is a per-workspace helper process, not a host daemon: it exits
+# after two idle minutes, and tools/bazel/run.py shuts it down after each recipe.
+startup --max_idle_secs=120
+
+common --enable_bzlmod
+
+# Registry order is a contract (tests/test_bazel_graph_s3.py): the Tinyland
+# registry first, pinned to an immutable commit so module metadata cannot change
+# underneath this repository, then the Bazel Central Registry. Re-pin with the
+# commit of tinyland-inc/bazel-registry main, refresh tools/bazel/registry_modules.json
+# and regenerate MODULE.bazel.lock in the same commit.
+common --registry=https://raw.githubusercontent.com/tinyland-inc/bazel-registry/8d3e5407863132f62c14a5d674435890823a9d22
+common --registry=https://bcr.bazel.build
+common --experimental_repository_downloader_retries=5
+common --http_timeout_scaling=2.0
+
+# Private repository: opt out of the Aspect rules usage report.
+common --repo_env=DO_NOT_TRACK=1
+
+# Convenience symlinks go under the already-ignored .local/ tree instead of
+# bazel-bin/bazel-out/... in the repository root, so a Bazel run never adds
+# untracked paths to `git status`.
+common --symlink_prefix=.local/bazel/
+
+# Bounded local execution. There is no remote cache or remote executor here:
+# GloriousFlywheel is reachable only in-cluster and is not required. A machine
+# that has one may add it in the untracked user.bazelrc imported at the end.
+build --jobs=4
+build --disk_cache=~/.cache/bazel-video-utils
+build --show_timestamps
+
+# rules_ts: SvelteKit-style declaration files need skipLibCheck (estate setting).
+build --@aspect_rules_ts//ts:skipLibCheck=always
+
+# FFmpeg/FFprobe are selected by environment, never by a path in this file.
+# Tests tagged requires-ffmpeg skip (not pass) when the variables are unset.
+test --test_env=FFMPEG
+test --test_env=FFPROBE
+test --test_output=errors
+test --test_summary=detailed
+test --local_test_jobs=2
+test --test_timeout=120,600,1800,3600
+
+# Opt-in: let tests tagged requires-host-tools find node, pnpm and git.
+test:host-tools --test_env=PATH
+test:host-tools --test_env=HOME
+
+try-import %workspace%/user.bazelrc

@@ -1,0 +1,146 @@
+"""
+SvelteKit web app under Bazel (estate pattern: site.scaffold root BUILD.bazel).
+
+`pnpm build` / `pnpm check` in web/ stay the accepted gates. These targets build
+the same sources from web/pnpm-lock.yaml through rules_js:
+
+    //web:sveltekit_types    svelte-kit sync            -> .svelte-kit/
+    //web:svelte_check_test  svelte-check (pnpm check)
+    //web:build              vite build (pnpm build)    -> build/
+
+Precondition (root-owned, requested in the lane receipt): rules_js needs pnpm's
+build-script allowlist to be explicit, so web/pnpm-workspace.yaml must carry
+`allowBuilds`. Until it does, loading this package fails with the rules_js
+"allowBuilds configuration required" error and nothing else in the graph is affected.
+
+No Tinyland registry package is linked here (tools/bazel/registry_modules.json).
+A compliant one is added as `bazel_dep` in MODULE.bazel plus
+`npm_link_package(name = "node_modules/@scope/pkg", src = "@module//:pkg")`,
+never as an npm specifier in package.json.
+"""
+
+load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
+load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary", "js_test")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+])
+
+npm_link_all_packages(name = "node_modules")
+
+# Exactly the dependencies and devDependencies of web/package.json.
+APP_NPM_PACKAGES = [
+    ":node_modules/@skeletonlabs/skeleton",
+    ":node_modules/@skeletonlabs/skeleton-svelte",
+    ":node_modules/@sveltejs/adapter-node",
+    ":node_modules/@sveltejs/kit",
+    ":node_modules/@sveltejs/vite-plugin-svelte",
+    ":node_modules/@tailwindcss/vite",
+    ":node_modules/@types/node",
+    ":node_modules/effect",
+    ":node_modules/svelte",
+    ":node_modules/svelte-check",
+    ":node_modules/tailwindcss",
+    ":node_modules/typescript",
+    ":node_modules/vite",
+]
+
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/.DS_Store",
+        ],
+    ),
+)
+
+filegroup(
+    name = "app_srcs",
+    srcs = glob(
+        [
+            "src/**",
+            "static/**",
+        ],
+        allow_empty = True,
+    ) + [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "serve.js",
+        "svelte.config.js",
+        "tsconfig.json",
+        "vite.config.ts",
+    ],
+)
+
+# The runner lives in tools/bazel/web; it is copied next to node_modules so Node
+# resolves vite, @sveltejs/kit and svelte-check from this package's link tree.
+copy_file(
+    name = "sveltekit_runner",
+    src = "//tools/bazel:web/sveltekit.mjs",
+    out = "bazel_sveltekit.mjs",
+)
+
+js_binary(
+    name = "sveltekit_bin",
+    data = APP_NPM_PACKAGES,
+    entry_point = "bazel_sveltekit.mjs",
+)
+
+js_run_binary(
+    name = "sveltekit_types",
+    srcs = [":app_srcs"],
+    args = ["sync"],
+    chdir = package_name(),
+    out_dirs = [".svelte-kit"],
+    tool = ":sveltekit_bin",
+)
+
+# Sources and their generated tsconfig in one declared tree. The runner copies
+# it to scratch before building so the bundler never follows a symlink out of
+# the action.
+copy_to_directory(
+    name = "app_workspace",
+    srcs = [
+        ":app_srcs",
+        ":sveltekit_types",
+    ],
+    hardlink = "off",
+    root_paths = ["."],
+)
+
+js_test(
+    name = "svelte_check_test",
+    timeout = "long",
+    args = ["check"],
+    chdir = package_name(),
+    data = [
+        ":app_srcs",
+        ":sveltekit_types",
+    ] + APP_NPM_PACKAGES,
+    entry_point = "bazel_sveltekit.mjs",
+)
+
+js_run_binary(
+    name = "build",
+    srcs = [":app_workspace"],
+    args = [
+        "build",
+        "--workspace",
+        "app_workspace",
+        "--output-dir",
+        "build",
+    ],
+    chdir = package_name(),
+    out_dirs = ["build"],
+    patch_node_fs = False,
+    tool = ":sveltekit_bin",
+)

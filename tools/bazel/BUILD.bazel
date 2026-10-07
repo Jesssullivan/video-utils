@@ -1,0 +1,25 @@
+"""Bazel helpers for video-utils: macros, the unittest shim and the web runner."""
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "unittest_main.py",
+    "web/sveltekit.mjs",
+])
+
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/.DS_Store",
+        ],
+    ),
+)
+
+# `bazel build -c opt` is the counterpart of Cargo's release profile.
+config_setting(
+    name = "opt",
+    values = {"compilation_mode": "opt"},
+)
