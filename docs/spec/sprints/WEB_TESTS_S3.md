@@ -546,6 +546,12 @@ low-register or musical claim.
     reported as `registry_projections_behind_the_registry`; it is not a pass
     claim about the newer registry, and the browser suite still replays the
     older snapshot until the fixtures are regenerated.
+17. **Section 4 `test:unit` script.** The script is `svelte-kit sync && vitest run`
+    (frozen text: `vitest run`). `web/tsconfig.json` extends the generated
+    `.svelte-kit/tsconfig.json`; on a clean checkout that file does not exist
+    and all 13 test files fail to transform. This was observed on the merge
+    tree during the repair; the Phase 2 runs happened in a worktree where
+    `check` had already generated it.
 
 ### 11.3 Known source defects found by the browser suite
 
@@ -571,6 +577,7 @@ subsection records them and what replaced them.
 | `SiteObeysSameRule` failed on main + lane (`file:vendor/...` in `site/package.json`); the lane's run had no `site/` | Item 15 above; `VendoredCarriers` exercises the site branch on synthetic packages whether or not `site/` exists; the module was also run on the merge tree of main and the lane (`web_tests-pins.json`) |
 | Section 11 cited receipts that did not exist and gave two unsupported causes (items 12 and 13); `web/e2e/fixtures/README.json` repeated them | Items 12-14 and the README text are corrected; the receipts now exist |
 | Found during the repair: main moved to `f2281b6` and `FixtureDrift` failed on the merge tree (new model registry row) | Item 16 above |
+| Found during the repair: on a clean extraction of the merge tree `pnpm run test:unit` failed 13 of 13 files (generated tsconfig absent) | Item 17 above |
 | Receipts, recipe text and CI proposal were not on the branch | The eight receipts of section 6 are committed; recipes and the CI proposal are in `web_tests-root-requests.json` |
 | e2e and a11y figures were measured before the fixtures were regenerated; `pnpm run check` predated two helper files | Unit, check, build, e2e and a11y were rerun at the repair commit; only that rerun is recorded |
 

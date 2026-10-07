@@ -45,7 +45,8 @@ OUT = ROOT / 'artifacts' / 's2' / 'web_tests'
 CONTRACT_PINS = {'@skeletonlabs/skeleton': '5.0.1', '@skeletonlabs/skeleton-svelte': '5.0.1', 'effect': '4.0.1'}
 SKELETON_PACKAGES = ('@skeletonlabs/skeleton', '@skeletonlabs/skeleton-svelte')
 ADDED_DEV_DEPENDENCIES = ('vitest', '@playwright/test', '@axe-core/playwright', 'fast-check')
-LANE_SCRIPTS = {'test:unit': 'vitest run', 'test:e2e': 'playwright test --project=e2e',
+# test:unit syncs first: web/tsconfig.json extends the generated .svelte-kit/tsconfig.json, absent on a clean checkout.
+LANE_SCRIPTS = {'test:unit': 'svelte-kit sync && vitest run', 'test:e2e': 'playwright test --project=e2e',
                 'test:a11y': 'playwright test --project=a11y'}
 EXACT_VERSION = re.compile(r'^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$')
 VENDORED_SPEC = re.compile(r'^file:(vendor/[a-z0-9][a-z0-9_-]*)$')
