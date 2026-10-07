@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "lane": "eq_shelf",
+  "sprint": "20261007-s2r",
+  "linear": "TIN-5487",
+  "phase": "1_contract_freeze",
+  "authority": "operator ruling 2026-10-07 EQ below 160 Hz (docs/agent-notes/2026-10-07-s2-operator-rulings.md sha256 62b922626fc039d5dede6837b78cc79187b294944c4841ffcf687cece186bb85); R-HOOK-CONVERGENCE-20261004 R-N13",
+  "baseline_commit": "7d0e11e",
+  "spec": {"path": "docs/spec/sprints/EQ_SHELF_S2R.md", "sha256": "5c4a4e77b87fabca4cb21d609629fb0cc5fee3f8b2915400813f0c80a11b300a"},
+  "numerics_run_before_freeze": false,
+  "preregistered_shelf": {"frequency_hz": 100.0, "gain_db": 1.5, "q": 0.7, "filter": "lowshelf=f=100:t=q:w=0.7:g=1.5:r=f64", "source": "docs/agent-notes/sprints/20261006-s2/tone_ab-20261006T120702Z-actual-run.json experiment.filter"},
+  "bounds": {"frequency_hz": [80, 160], "gain_db": [0.0, 2.0], "q": [0.5, 0.707], "max_shelves": 1, "negative_gain": "refused"},
+  "baseline_hashes": {
+    "scripts/media.py": "4a6289adc90e8bc97490db7e906f9d01f0b5e270d3a77698ccea345a4f466bc2",
+    "profiles/fuller.json": "33da74c7d1bda246b6349252e4374d3674e76356dd85d72a83b1389988d04a5c",
+    ".agents/skills/guitar-denoise/SKILL.md": "1a83c20d44b4c164a851e40922a66519df69da239752f2be663486092ec87c68",
+    "tests/test_media.py": "d83397da3147ff84d9ef97192b8a06b897805a0395ad13446084da91d4e8a062",
+    "docs/agent-notes/sprints/20261006-s2/tone_ab-20261006T120702Z-actual-run.json": "328717ea2ccc3d52ac6543a34452b78c64f6ab528dffb8241694d9e3e8ce9ef6"
+  },
+  "default_profile_changed": false,
+  "accepted_run_modified": false,
+  "listening_acceptance": "not_performed"
+}
