@@ -1,0 +1,18 @@
+{
+  "actor": "/root video-utils-d6",
+  "authority": "operator interview 2026-10-07: activate the Beat This comparator lane (honey CPU); AGENTS.md: model downloads are explicit and hash-bound",
+  "action": "explicit single fetch of the Beat This final0 checkpoint to establish its sha256",
+  "url": "https://cloud.cp.jku.at/public.php/dav/files/7ik4RrBKTS273gp/final0.ckpt",
+  "fetched_at_utc": "2026-10-07T10:28:54Z",
+  "bytes": 81058141,
+  "bytes_match_upstream_content_length": true,
+  "sha1": "e1506282faf66ca10e8ab50ee26bd542b7b9ff0a",
+  "sha1_matches_server_oc_checksum": true,
+  "sha256": "8c328b45f59d8dd3dff219253ff6a8d6482be57d0133a29140e2febbf8eb8331",
+  "upstream_sha256_published": false,
+  "trust_basis": "first-download hash cross-checked against the server-reported SHA-1 and size; all later use is bound to this sha256 through program/models.json",
+  "local_path": "models/cpjku-beat-this-final0.bin (gitignored; neo only)",
+  "license_note": "MIT per upstream code LICENSE and README; training-data rights distinct and unresolved",
+  "not_done": ["Linux runtime qualification on honey", "any inference", "any accuracy claim"],
+  "registry_entry": "added by the S3 root integration G branch together with the test updates"
+}
