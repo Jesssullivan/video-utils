@@ -533,3 +533,109 @@ The receipts are under `docs/agent-notes/sprints/20261007-s3/`:
 
 Each cites R-N13 and records file hashes. Measurements, inferences and
 unverified listening claims stay in distinct fields.
+
+## 13. Phase-2 implementation notes (additive; sections 1-12 unchanged)
+
+Recorded at implementation (2026-10-07). Each note is an interpretation of an
+open point or a declared deviation. None of them changes a refusal order,
+fixed setting, preregistered seed, arm, metric or decision rule.
+
+**Interfaces**
+- **Timeline.** `excerpt_*_seconds` are seconds from
+  `timeline.audio_start_seconds` (WAV-relative):
+  `start_frame = round(start × R)`. The reported `source_start_seconds` /
+  `source_end_seconds` of the excerpt and of every stem are
+  `origin + frame / R`, so the origin is always carried.
+- **CLI.** It adds `--request-json <text>` beside `--request <file|->`, with
+  the same closed schema. `tool_api` runs workers with stdin `DEVNULL`, as in
+  `guitar_noul_decide`.
+- **Refusal object.** It carries one additive key, `runtime_reason`, which is
+  `null` except for `runtime_unavailable`.
+- **Runtime reasons** are checked in this order:
+  1. `not_configured`;
+  2. `platform_unsupported`;
+  3. `path_rejected`: not absolute, `..`, outside `artifacts/model-runtime-env/`,
+     any symlink component (the interpreter file included), or not executable;
+  4. `not_pinned`: pins are `None`, checked before any probe;
+  5. `identity_failed`: the probe fails or exceeds its 60 s timeout;
+  6. `not_pinned`: probed versions differ from the pins.
+
+  The probe reads package metadata only (`importlib.metadata`) and never imports
+  torch. A symlinked venv interpreter is rejected; the runtime lane provides a
+  real interpreter file or asks root to change the rule.
+- **Failure codes** after admission (`status:"failed"`, exit 1, `failure.json`
+  in the work directory):
+  - `round_trip_length_mismatch`;
+  - `separator_output_invalid`;
+  - `inference_failed`;
+  - `input_or_model_changed`;
+  - `model_changed` (pre-launch recheck);
+  - `analysed_input_mismatch`;
+  - `separator_unavailable`;
+  - `resampler_unavailable` / `resampler_failed`;
+  - `output_path_rejected`;
+  - `internal_error`.
+- **Unreadable files.** An `OSError` while hashing the model maps to
+  `model_file_missing`. An `OSError`/`ValueError` while reading the input maps
+  to `input_not_admitted`. A NUL in `run_dir` is `request_invalid`.
+
+**Measurements**
+- **`low_end_check` additive inner keys:**
+  - `biquad_q`, `rate_hz`, `measured_frames` and `claim_class`;
+  - every `*_reason` key, always present and `null` when a value is measured.
+
+  The reason values are `zero_input_band_energy`, `zero_stem_band_energy`,
+  `zero_guitar_band_energy`, `zero_guitar_plus_bass_band_energy` and
+  `zero_stem_band_sum`.
+- **`mixture_consistency`** is measured on the same frames as the low-end check,
+  after settle exclusion. It adds `residual_definition`, `claim_class` and the
+  reason keys `zero_input_energy`, `zero_residual_energy` and
+  `zero_residual_band_energy`.
+- **`runtime_identity.python`** is the child's Python version once real inference
+  has run, as in Beat This. For the injected fake it is the fake's label.
+  `model_identity.checkpoint_load` is `"not_loaded_injected_fake"` for the fake.
+- **Child normalisation.** The child applies the upstream separate-CLI
+  normalisation (mixture mean/std, with std 0 guarded to 1) around
+  `apply_model`. This is recalled, not verified. It is recorded in the child's
+  `inference.json`. The runtime lane confirms it with the `sources` order, the
+  model rate and the `apply_model` defaults.
+
+**Tests (section 11)**
+- **M6 low-to-bass fake.** An order-4 45 Hz split cannot reach −40 dB at
+  32.70 Hz: the Butterworth-4 high-pass at 45 Hz gives about −11 dB. The fake
+  therefore cascades 12 RBJ high-pass biquads at 45 Hz (Q 0.7071) for `guitar`,
+  and `bass = input − guitar`.
+- **M7a fixture.** The 48 kHz fixture adds a 1 kHz component (amplitude 0.1) to
+  32.70 Hz + 261.6 Hz, so that the contract's 1 kHz energy ratio is measurable.
+- **Measured swr round trip** (FFmpeg 8.1.2, 2 s, 48 kHz → 44.1 kHz → 48 kHz):
+  - 88,200 / 96,000 frames;
+  - cross-correlation peak at lag 0;
+  - 20–45 Hz −0.0001 dB and 800–1250 Hz +0.0001 dB;
+  - maximum sample error 1.0e-5 away from the edges.
+
+**Section 8.1 choices the contract left open**
+- Grid start t0 = 0.25 s.
+- Click tempo: k2 at 120 BPM (1.5 s notes = 3 beats); k4 at 178 BPM.
+- The k3 legato run is the fixed cycle Ab3 Bb3 C4 Db4 Eb4 F4 Eb4 Db4 C4 Bb3 in
+  sixteenths. Seeds drive only the fan and the jitter.
+- Jitter is Gaussian with σ 2 ms, clipped to ±5 ms. Legato τ is 0.4 s.
+- Layout:
+  - truth: `truth/<case>/{guitar,fan,click}.wav` and `truth/<case>.json`, each
+    mode 0400;
+  - predictions: `predictions/<arm>/<case>/{guitar.wav[, bass.wav], record.json}`.
+
+**Scoring**
+- **Settle exclusion.** Band-filtered metrics (S1, the band parts of S3 and S4)
+  exclude the same settle window as section 7. Full-band metrics use all
+  frames.
+- **Infinities.** Infinite values from zero energies are reported as
+  `value:null` with the reason `minus_infinity_zero_numerator_energy` or
+  `plus_infinity_zero_error_energy`. They take part in the medians and the
+  decision as ±∞. Undefined values (zero reference) are excluded, with
+  `n_defined` recorded.
+- **Seal checks.** The scorer verifies the seal (it exists, predates the scorer,
+  the file set is equal and the hashes match) before it refuses dev suites, so
+  tampering is reported first. Dev suites are never scored.
+- **Held-out generation** calls the registry and default runtime resolution
+  first. It refuses (for example `model_not_registered`) and writes nothing
+  until arm A1 is runnable.

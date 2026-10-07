@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "draft_for": "program/tools.json",
+  "admission": {
+    "status": "draft_not_admitted",
+    "contract": "docs/spec/sprints/STEMS_S3.md sections 4, 5, 7 and 9",
+    "root_inserts": "the descriptor object below into program/tools.json tools[] unchanged (rename skill path if root adopts the guitar-* convention)",
+    "read_at_runtime": false
+  },
+  "descriptor": {
+    "name": "stems_estimate",
+    "title": "Optional htdemucs_6s stem estimates from the mono take (experimental)",
+    "description": "Run htdemucs_6s on a 1-30 s source-timed excerpt of the manifest-verified denoised.wav (or source.wav) of an existing run and write six mono estimate WAVs (drums, bass, other, vocals, guitar, piano) at the source rate plus stems_estimate.json with model, runtime and input identities, the sample-rate round trip, a measured 20-45 Hz low-end check and mixture consistency. Every output is an estimate from a mono mixture, never a recovered original stem. Uses only a registry-verified local checkpoint with a recorded operator terms acknowledgement and a qualified isolated Linux CPU runtime; never downloads, installs or falls back. Refuses with a typed refusal_code until all of those exist. Writes a fresh directory beneath artifacts/s2/stems_contract/estimates and never writes the run.",
+    "intent": "Give listening review and agent iteration a private, labelled model allocation of the distorted nine-string take, with the C1 (~32.7 Hz) band energy of the guitar and bass estimates measured against the input, without claiming instrument presence, separation accuracy, low-end preservation, tone or any performance verdict, and without becoming a cleanup, tone or master input.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "run_dir": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "description": "Existing run beneath repository artifacts/runs (or a generated fixture case beneath artifacts/s2/stems_contract/fixtures) with a regular manifest.json binding the input WAV by output_sha256, an explicit timeline.audio_start_seconds and a 64-hex source.sha256. Mono, <=300 s. Symlink and traversal components are rejected."
+        },
+        "input_role": {
+          "type": "string",
+          "enum": ["denoised", "source"],
+          "default": "denoised",
+          "description": "denoised.wav (default) or source.wav of the run; both must be bound by manifest output_sha256."
+        },
+        "excerpt_start_seconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 300,
+          "description": "Excerpt start in seconds from timeline.audio_start_seconds; mapped to frame round(start x rate). Stems report source_start_seconds = origin + start_frame / rate."
+        },
+        "excerpt_end_seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 300,
+          "description": "Excerpt end on the same timeline. Length end - start must be >= 1.0 s (request_invalid) and <= 30.0 s (excerpt_too_long); an end beyond the input refuses input_not_admitted."
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 900,
+          "default": 660,
+          "description": "Outer owned-process-group deadline; the worker's internal inference deadline is 600 s."
+        }
+      },
+      "required": ["run_dir", "excerpt_start_seconds", "excerpt_end_seconds"],
+      "additionalProperties": false
+    },
+    "skill": ".agents/skills/stems-estimate/SKILL.md",
+    "implementation_status": "experimental",
+    "evidence_kind": "uncalibrated_model_stem_estimates_from_mono_mixture",
+    "limitations": [
+      "All six outputs are htdemucs_6s allocations of one mono mixture to trained target labels, not recovered original stems; estimate_from_mono_mixture is always true, recovered_original_stem false, stem_semantics model_target_allocation_not_instrument_identity and instrument_presence_claim none. A drums, bass, vocals or piano output does not mean that instrument is present.",
+      "low_end_check reports measured 20-45 Hz (and 45-120 Hz reference) band energies of every estimate against the input after the sample-rate round trip; it is not a verdict that ~32 Hz content is musically preserved (low_end_preservation_verdict null), and listening and bleed/artifact review are separate and unperformed.",
+      "C1 guitar energy may be allocated to bass and click attacks to drums; read guitar_plus_bass_vs_input_band_db and per-stem band shares. Behaviour on a heavily distorted down-tuned nine-string phone recording with a box fan is unknown (separation_accuracy unknown).",
+      "No knobs: htdemucs_6s single model, CPU, 2 threads, shifts 1, overlap 0.25, split true, model-default segment, seed 20261007, 600 s deadline, 3 GiB RSS. The estimate is never a cleanup, tone, dynamics or master default (cleanup_default, master_eligible and default_adoption are always false).",
+      "Fails closed in order: request_invalid, excerpt_too_long, model_not_registered, model_hash_not_registered, model_registry_entry_invalid, model_terms_not_acknowledged, model_file_missing, model_hash_mismatch, runtime_unavailable (runtime_reason), input_not_admitted. Registry entry, hash-bound fetch, operator acknowledgement and runtime qualification are explicit root acts; this tool performs none of them.",
+      "Weights are limited by the maintainer to personal/research use (code MIT does not cover them; training data includes MUSDB18-HQ). Real-take outputs are V6_private_real_take_derived, stay in ignored artifacts and are never redistributed (redistribution_permitted false). No note-correctness, missed/extra-note or performance claim is made."
+    ],
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "dependencies": {
+      "recommended_prior_tools": ["denoise"],
+      "enforced": false,
+      "note": "A current verified run, a program/models.json entry demucs-htdemucs_6s-5c90dfd2 with a measured sha256 and an operator_terms_acknowledgement, the prefetched local checkpoint and the qualified isolated Linux runtime (VIDEO_UTILS_STEMS_RUNTIME_PYTHON beneath artifacts/model-runtime-env, pinned demucs/torch) are required. Prior tools are not invoked automatically; registration, prefetch, acknowledgement and runtime setup are separate explicit root/operator operations."
+    },
+    "agent_workflow": {
+      "identify": "Inspect model, runtime and input identities, the excerpt frame mapping, sample_rate_conversion, low_end_check (guitar and guitar_plus_bass vs input, per-stem band shares) and mixture_consistency, plus every fixed unknown field; on a refusal read refusal_code (and runtime_reason) first.",
+      "research": "Read docs/research/2026-10-07-stems-weights-licence.md for terms and checkpoint bytes and docs/spec/sprints/STEMS_S3.md for the contract, refusal order and the preregistered s3-stems-1 experiment.",
+      "iterate": "There are no knobs. Compare the estimates with the input over the same source span by listening, and choose excerpts before looking at content. Any change to the worker or settings is a new experiment with new seeds, never tuning to truth.",
+      "acceptance": "A completed estimate or a near-0 dB guitar band ratio does not establish separation accuracy, instrument presence, low-end musical preservation, listening acceptance, tone recreation or note correctness; any use beyond private review is a separate root/operator decision.",
+      "max_comparison_candidates_default": 1
+    }
+  }
+}
