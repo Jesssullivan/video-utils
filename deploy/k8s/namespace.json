@@ -1,0 +1,16 @@
+{
+  "apiVersion": "v1",
+  "kind": "Namespace",
+  "metadata": {
+    "name": "video-utils",
+    "labels": {
+      "app.kubernetes.io/part-of": "video-utils",
+      "pod-security.kubernetes.io/enforce": "restricted",
+      "pod-security.kubernetes.io/enforce-version": "latest"
+    },
+    "annotations": {
+      "video-utils.dev/contract": "docs/spec/sprints/AUTH_HOSTING_S3.md",
+      "video-utils.dev/applied": "false"
+    }
+  }
+}

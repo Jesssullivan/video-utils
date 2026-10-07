@@ -347,3 +347,32 @@ untouched by this lane. Real-take media are never baked into an image or
 committed; whether the RKE2 cluster host counts as an operator-controlled host
 for real-take media (V6) is an operator decision recorded as part of the
 apply go, not inferred here.
+
+## 11. Phase 2 implementation record (appended 2026-10-07; sections 1-10 unchanged)
+
+Implemented on `sprint/20261007-s3/auth_hosting` on top of the freeze commit
+`38d9ed92d81bc19d0c8bc4be617bf45d7dab01e5`. The receipt is
+`docs/agent-notes/sprints/20261007-s3/auth_hosting-implementation-receipt.json`.
+These are the deliberate deviations from, or readings of, the frozen text:
+
+1. **Runtime image also copies `src/lib/server/auth/`** (four pure ES modules, no secrets).
+   Section 4.1/L2 requires `serve.js` to validate the complete tailnet configuration at startup.
+   It does this with `mode.js`, so the module has to be present next to `serve.js`. Section
+   5.1's "copies only build/, serve.js, package.json, production node_modules" is widened by
+   exactly that directory.
+2. **K3 digest/commit exemption.** The 32+-hex rule exempts the zero sentinel, the one observed
+   base-image index digest (`node:22.23.2-bookworm-slim`, `sha256:48e4b67d…f0f9`, read from
+   registry-1.docker.io on 2026-10-07), and 40-hex git commit ids in plan/receipt JSON. All three
+   are public provenance identifiers, not credentials.
+3. **`VIDEO_UTILS_AUTH_MODE=loopback` (literal) is invalid.** Section 4.1 says "any other value",
+   so only unset or empty selects loopback.
+4. **Gate also refuses a loopback `Host` in tailnet mode with 421.** This follows from the
+   public-host rule, since loopback names are not valid entries in `VIDEO_UTILS_PUBLIC_HOSTS`.
+5. **`deploy/k8s/networkpolicy.json` is a `v1` `List`** of two NetworkPolicies (default-deny plus
+   cloudflared allow), so the owned-file list stays at one file.
+6. **Estate tips moved during the lane.** lab (`fdd75a3d019e`) and tinyland-infra (`336c159e5672`)
+   advanced on 2026-10-07. Every path read from them has the same path commit at both tips. The
+   research record lists both tips.
+7. **hooks.server.ts** imports `CF_ACCESS_JWT_HEADER` and `gateRequest` from `gate.js` only (L3).
+   It passes `LOOPBACK_HOST` from `$lib/server/http` into the gate, which keeps the S2 refusal body
+   unchanged: same code, same message, same six keys, same `no-store` header.
