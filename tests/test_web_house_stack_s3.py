@@ -65,6 +65,10 @@ E2E_SPECS = ('library', 'upload', 'source', 'capture', 'process', 'runs', 'jobs'
              'headers')
 FORBIDDEN_IN_LANE_FILES = ('0.0.0.0', '--no-sandbox', '--disable-web-security', 'autoplay-policy', 'gitleaks:allow',
                            'gitleaks-allow', '.gitleaksignore', 'pragma: allowlist')
+# Fixtures that project root-owned registries (program/tools.json, models.json, capabilities.json). Root adds
+# registry rows without touching this lane, so for these files the drift gate is "every committed row shape is
+# still served" plus the W11 tool-name equality; a strict shape difference is reported, not gated.
+REGISTRY_PROJECTIONS = ('capabilities.json',)
 METRICS: dict = {}
 
 
@@ -689,11 +693,39 @@ class LaneStatics(unittest.TestCase):
                                     'wcag_conformance': None, 'screen_reader_acceptance': None}
 
 
+def shape_covers(fresh, committed):
+    """True when every key and every list-item shape of `committed` is still present in `fresh` (shape() values)."""
+    if isinstance(fresh, dict) and isinstance(committed, dict):
+        return sorted(fresh) == sorted(committed) and all(shape_covers(fresh[key], committed[key]) for key in committed)
+    if isinstance(fresh, list) and isinstance(committed, list):
+        return all(any(shape_covers(candidate, item) for candidate in fresh[1]) for item in committed[1])
+    return fresh == committed
+
+
+def load_generator():
+    spec = importlib.util.spec_from_file_location('web_e2e_fixture_generator', GENERATOR)
+    generator = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(generator)
+    return generator
+
+
 class FixtureDrift(unittest.TestCase):
+    def test_registry_projection_rule_accepts_added_rows_and_refuses_changed_ones(self):
+        shape = load_generator().shape
+        committed = shape({'models': [{'id': 'a', 'gate': None}], 'count': 1})
+        self.assertTrue(shape_covers(committed, committed))
+        self.assertTrue(shape_covers(shape({'models': [{'id': 'a', 'gate': None}, {'id': 'b', 'gate': {'v': 1}}],
+                                            'count': 2}), committed), 'a new registry row is not drift')
+        for label, fresh in {
+                'row shape no longer served': {'models': [{'id': 'b', 'gate': {'v': 1}}], 'count': 1},
+                'key added': {'models': [{'id': 'a', 'gate': None}], 'count': 1, 'extra': True},
+                'key removed': {'models': [{'id': 'a', 'gate': None}]},
+                'row key added': {'models': [{'id': 'a', 'gate': None, 'lane': 'x'}], 'count': 1},
+                'scalar type changed': {'models': [{'id': 'a', 'gate': None}], 'count': '1'}}.items():
+            self.assertFalse(shape_covers(shape(fresh), committed), label)
+
     def test_regenerated_fixtures_match_the_committed_set(self):
-        spec = importlib.util.spec_from_file_location('web_e2e_fixture_generator', GENERATOR)
-        generator = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(generator)
+        generator = load_generator()
         with tempfile.TemporaryDirectory(prefix='web-e2e-drift-') as tmp:
             try:
                 result = subprocess.run([sys.executable, str(GENERATOR), '--out', tmp], cwd=ROOT, capture_output=True,
@@ -710,12 +742,23 @@ class FixtureDrift(unittest.TestCase):
         committed = {path.name: path.read_text() for path in sorted(FIXTURES.glob('*.json'))}
         self.assertEqual(sorted(fresh), sorted(committed), 'the fixture file set changed')
         exact = [name for name in committed if fresh[name] == committed[name]]
-        differing_shape = [name for name in committed
-                           if generator.shape(strict_loads(fresh[name])) != generator.shape(strict_loads(committed[name]))]
-        METRICS['fixture_drift'] = {'status': 'equal' if not differing_shape else 'differs', 'files': len(committed),
-                                    'basis': 'file set, ids.json, routes.json, and keys + JSON types of every file',
-                                    'exact_equal_files': len(exact), 'shape_differs': differing_shape}
+        shapes = {name: (generator.shape(strict_loads(fresh[name])), generator.shape(strict_loads(committed[name])))
+                  for name in committed}
+        strict = [name for name, (new, old) in shapes.items() if new != old]
+        differing_shape = [name for name in strict if name not in REGISTRY_PROJECTIONS]
+        projections_behind = [name for name in strict if name in REGISTRY_PROJECTIONS]
+        uncovered = [name for name in projections_behind if not shape_covers(*shapes[name])]
+        status = 'differs' if differing_shape or uncovered else ('registry_projection_behind' if projections_behind else 'equal')
+        METRICS['fixture_drift'] = {'status': status,
+                                    'files': len(committed),
+                                    'basis': 'file set, ids.json, routes.json, and keys + JSON types of every file; '
+                                             'registry projections: every committed row shape still served',
+                                    'exact_equal_files': len(exact), 'shape_differs': differing_shape,
+                                    'registry_projections': list(REGISTRY_PROJECTIONS),
+                                    'registry_projections_behind_the_registry': projections_behind,
+                                    'registry_projection_rows_no_longer_served': uncovered}
         self.assertEqual(differing_shape, [], 'regenerate with web/e2e/fixtures/generate.py and review the diff')
+        self.assertEqual(uncovered, [], 'a committed registry row shape is no longer served; regenerate the fixtures')
         for name in ('ids.json', 'routes.json'):
             self.assertEqual(fresh[name], committed[name], name)
         capabilities = strict_loads(fresh['capabilities.json'])

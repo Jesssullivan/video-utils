@@ -537,6 +537,15 @@ low-register or musical claim.
     with the same Skeleton and Effect rules. Whether vendoring is the right
     long-term shape for `site/` is root's decision; the test only refuses an
     unrecorded or modified carrier.
+16. **5.4 `FixtureDrift` and registry rows.** `capabilities.json` is the
+    projection of root-owned registries at generation time. Main added a model
+    row (`f2281b6`) after the fixtures were generated, which changed that
+    file's strict shape and would have failed the gate on main. For this one
+    file the gate is now: every committed row shape is still served, and the
+    tool names equal the registry (W11). A registry row added later is
+    reported as `registry_projections_behind_the_registry`; it is not a pass
+    claim about the newer registry, and the browser suite still replays the
+    older snapshot until the fixtures are regenerated.
 
 ### 11.3 Known source defects found by the browser suite
 
@@ -561,6 +570,7 @@ subsection records them and what replaced them.
 | --- | --- |
 | `SiteObeysSameRule` failed on main + lane (`file:vendor/...` in `site/package.json`); the lane's run had no `site/` | Item 15 above; `VendoredCarriers` exercises the site branch on synthetic packages whether or not `site/` exists; the module was also run on the merge tree of main and the lane (`web_tests-pins.json`) |
 | Section 11 cited receipts that did not exist and gave two unsupported causes (items 12 and 13); `web/e2e/fixtures/README.json` repeated them | Items 12-14 and the README text are corrected; the receipts now exist |
+| Found during the repair: main moved to `f2281b6` and `FixtureDrift` failed on the merge tree (new model registry row) | Item 16 above |
 | Receipts, recipe text and CI proposal were not on the branch | The eight receipts of section 6 are committed; recipes and the CI proposal are in `web_tests-root-requests.json` |
 | e2e and a11y figures were measured before the fixtures were regenerated; `pnpm run check` predated two helper files | Unit, check, build, e2e and a11y were rerun at the repair commit; only that rerun is recorded |
 
