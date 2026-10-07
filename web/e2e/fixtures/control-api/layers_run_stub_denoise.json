@@ -1,0 +1,234 @@
+{
+  "alternatives": [],
+  "claim_boundary": {
+    "default_adopted": false,
+    "listening_acceptance_scope": null,
+    "master_changed": false,
+    "missed_or_extra_notes": "not_assessed_no_approved_reference",
+    "musical_verdict": "not_established"
+  },
+  "clock": {
+    "alignment": "unverified",
+    "annotation_axis": "web clock manifest: share_export video packet presentation extent (source seconds)",
+    "layer_axis": "original source decoded-audio seconds",
+    "reason": "Layers use the decoded source audio clock; annotations use the web clock manifest. Their alignment, and the browser media clock, are not verified."
+  },
+  "discovery_truncated": false,
+  "layers": {
+    "bpm": {
+      "basis": null,
+      "grid": null,
+      "reason": "no fitted click grid in bound evidence",
+      "value": null
+    },
+    "coverage": {
+      "document": null,
+      "reason": "no current practice bundle is bound to this run",
+      "status": "unavailable"
+    },
+    "flags_triage": {
+      "document": null,
+      "reason": "no current practice bundle is bound to this run",
+      "status": "unavailable"
+    },
+    "phrase_timing": {
+      "document": null,
+      "reason": "no current practice bundle is bound to this run",
+      "status": "unavailable"
+    },
+    "spectrogram": {
+      "document": null,
+      "reason": "no low-register render bound to this run",
+      "status": "unavailable"
+    },
+    "tone_ab": {
+      "document": null,
+      "reason": "no current practice bundle is bound to this run",
+      "status": "unavailable"
+    }
+  },
+  "manifest_sha256": "000000000000000000000000000000000000000000000000000000000000001d",
+  "media": {},
+  "run_id": "RUN-STUB-DENOISE",
+  "schema_id": "video-utils.web-runs.layers",
+  "schema_version": 1,
+  "selected_evidence_id": null,
+  "selected_generated_utc": null,
+  "source_extent": {
+    "audio_start_seconds": 0.0,
+    "duration_seconds": 1.0
+  },
+  "spectrogram": {
+    "axis_offset_seconds": null,
+    "band_centre_hz": [],
+    "band_centre_hz_range": null,
+    "claim": "visualisation only; no pitch, note or stem claim",
+    "evidence_id": null,
+    "first_frame_centre_seconds": null,
+    "hop_seconds": null,
+    "matrices": [],
+    "pcen_status": null,
+    "reason": "no low-register render bound to this run",
+    "reference_lines": [],
+    "shape": null,
+    "signal_version": null,
+    "stage": null,
+    "status": "unavailable",
+    "window_seconds": null
+  },
+  "unknown_fields": {
+    "anchor_adopted": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "Arrangement anchors are review candidates; none is adopted.",
+      "value": false
+    },
+    "annotation_source": {
+      "reason": "no admitted source of this run has a share_export annotation clock",
+      "value": null
+    },
+    "bpm": {
+      "reason": "no fitted click grid in bound evidence",
+      "value": null
+    },
+    "breakdown1_execution": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "Operator context copied verbatim; execution of breakdown 1 is unknown.",
+      "value": "unknown_operator_reported_possible_rush_or_skip"
+    },
+    "browser_level_match": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "The page applies no gain; playback level depends on the device.",
+      "value": "excerpt files pre-gained by tone_ab; browser output level and device unmeasured"
+    },
+    "click_identity": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "Periodic high-frequency transients are not a verified metronome.",
+      "value": "unverified"
+    },
+    "clock_alignment": {
+      "reason": "Layer axis is decoded source audio. Annotation axis is the web clock manifest (share_export packet extent).",
+      "value": "unverified"
+    },
+    "detector_delay": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "No detector delay calibration was supplied.",
+      "value": "uncalibrated"
+    },
+    "downbeat_confirmed": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "The anchor is a review candidate, not a confirmed downbeat.",
+      "value": false
+    },
+    "editor_import": {
+      "reason": "No editor application import proof exists.",
+      "value": "unverified"
+    },
+    "fan_only_gain": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "Fan and music are not separated.",
+      "value": null
+    },
+    "fundamental_32hz_presence": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "A band level is not a measured played C1 fundamental.",
+      "value": null
+    },
+    "listening_acceptance": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "No operator listening review exists for these renders.",
+      "value": "not_established"
+    },
+    "meter": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "Meter and downbeat are not identified by any layer.",
+      "value": "unknown"
+    },
+    "missed_or_extra_notes": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "No approved expected-rhythm or note reference exists.",
+      "value": "not_assessed_no_approved_reference"
+    },
+    "model_gate_state": {
+      "reason": "not recorded in program/models.json",
+      "value": null
+    },
+    "model_local_presence": {
+      "reason": "This read API never inspects model caches.",
+      "value": "not_checked"
+    },
+    "monitoring_device": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "The operator's playback device and level are unknown.",
+      "value": null
+    },
+    "music_only_gain": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "Fan and music are not separated.",
+      "value": null
+    },
+    "nasal_quality": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "Nasal quality is a listening judgement.",
+      "value": null
+    },
+    "operator_preference": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "not recorded",
+      "value": null
+    },
+    "perceived_fullness": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "Perceived fullness is a listening judgement.",
+      "value": null
+    },
+    "phrase_timing.real_take_status": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "Phrase timing offsets are unvalidated until an operator spot check.",
+      "value": "unvalidated_until_operator_spot_check"
+    },
+    "physical_av_sync": {
+      "reason": "The run manifest does not record physical audio/video sync verification.",
+      "value": null
+    },
+    "physical_capture_latency": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "Microphone and capture-chain latency were never measured.",
+      "value": "uncalibrated"
+    },
+    "real_take_phrase_correctness": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "Phrase correctness needs operator-marked boundaries.",
+      "value": "unknown_until_operator_marks_boundaries"
+    },
+    "room_response_recovered": {
+      "reason": "No room or microphone response is measured or inverted; EQ does not recreate the in-room amp tone.",
+      "value": false
+    },
+    "share_low_register_preservation": {
+      "reason": "Lossy AAC sharing derivative; ~32 Hz content is not measured in it.",
+      "value": "not_claimed"
+    },
+    "spectrogram_binding": {
+      "reason": "no low-register render bound to this run",
+      "value": "unavailable"
+    },
+    "stems": {
+      "reason": "No stem lane is admitted, and an estimate would never be an original stem.",
+      "value": "not_available"
+    },
+    "tool_area_basis": {
+      "reason": "Tool areas come from program/capabilities.json domains where present, else this presentation map.",
+      "value": "routes_review presentation map; not a registry field"
+    },
+    "true_peak_dbtp": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "True peak was not measured; only sample peak is reported.",
+      "value": null
+    },
+    "walkthrough_listening": {
+      "basis": "S2 default (no practice bundle value bound)",
+      "reason": "Automated browser checks are muted; nobody listened.",
+      "value": "not_performed"
+    }
+  }
+}

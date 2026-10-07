@@ -1,0 +1,5 @@
+{
+  "code": "uploads_disabled",
+  "error": "uploads are disabled; start serve with --allow-uploads",
+  "status": "error"
+}

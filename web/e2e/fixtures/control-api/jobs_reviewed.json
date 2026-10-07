@@ -1,0 +1,148 @@
+{
+  "jobs": [
+    {
+      "artifact_count": 0,
+      "attempt_count": 1,
+      "created_at": "2026-10-07T12:00:22Z",
+      "job_id": "job_00000000000000000000000000000006",
+      "parameters": {
+        "audio_kbps": 96,
+        "codec": "h264",
+        "crf": 27,
+        "height": 720,
+        "timeout_seconds": 900
+      },
+      "reason_code": null,
+      "state": "queued",
+      "updated_at": "2026-10-07T12:00:22Z"
+    },
+    {
+      "artifact_count": 0,
+      "attempt_count": 1,
+      "created_at": "2026-10-07T12:00:20Z",
+      "job_id": "job_00000000000000000000000000000007",
+      "parameters": {
+        "audio_kbps": 96,
+        "codec": "h264",
+        "crf": 30,
+        "height": 720,
+        "timeout_seconds": 900
+      },
+      "reason_code": null,
+      "state": "running",
+      "updated_at": "2026-10-07T12:00:21Z"
+    },
+    {
+      "artifact_count": 0,
+      "attempt_count": 1,
+      "created_at": "2026-10-07T12:00:17Z",
+      "job_id": "job_00000000000000000000000000000005",
+      "parameters": {
+        "audio_kbps": 96,
+        "codec": "h264",
+        "crf": 27,
+        "height": 720,
+        "timeout_seconds": 900
+      },
+      "reason_code": "worker_rejected",
+      "state": "failed",
+      "updated_at": "2026-10-07T12:00:19Z"
+    },
+    {
+      "artifact_count": 1,
+      "attempt_count": 1,
+      "bound_input": {
+        "authoring_id": "RUN-STUB-AUTHORING",
+        "capture_profile_job_id": "job_00000000000000000000000000000002",
+        "receipt_sha256": "0000000000000000000000000000000000000000000000000000000000000010",
+        "run_id": "BASE-REVIEWED"
+      },
+      "created_at": "2026-10-07T12:00:13Z",
+      "job_id": "job_00000000000000000000000000000003",
+      "parameters": {
+        "timeout_seconds": 30
+      },
+      "reason_code": null,
+      "state": "succeeded",
+      "tool": "apply_capture_profile",
+      "updated_at": "2026-10-07T12:00:15Z"
+    },
+    {
+      "artifact_count": 1,
+      "attempt_count": 1,
+      "bound_input": {
+        "capture_review_id": "rev_00000000000000000000000000000001",
+        "review_sha256": "0000000000000000000000000000000000000000000000000000000000000015",
+        "run_id": "BASE-REVIEWED"
+      },
+      "created_at": "2026-10-07T12:00:10Z",
+      "job_id": "job_00000000000000000000000000000002",
+      "parameters": {
+        "adaptivity": 0.0,
+        "compressor": {
+          "attack_ms": 15.0,
+          "knee_db": 3.0,
+          "ratio": 2.0,
+          "release_ms": 100.0,
+          "threshold_db": -18.0
+        },
+        "gain_smooth": 0,
+        "integrated_lufs": -18.0,
+        "noise_floor_db": -40.0,
+        "peaking_eq": [
+          {
+            "frequency_hz": 160.0,
+            "gain_db": 2.0,
+            "q": 0.7
+          },
+          {
+            "frequency_hz": 300.0,
+            "gain_db": 1.0,
+            "q": 0.8
+          }
+        ],
+        "preset": "fuller",
+        "reduction_db": 8.0,
+        "timeout_seconds": 60,
+        "true_peak_dbtp": -1.75
+      },
+      "reason_code": null,
+      "state": "succeeded",
+      "tool": "capture_profile",
+      "updated_at": "2026-10-07T12:00:12Z"
+    },
+    {
+      "artifact_count": 1,
+      "attempt_count": 1,
+      "bound_input": null,
+      "created_at": "2026-10-07T12:00:07Z",
+      "job_id": "job_00000000000000000000000000000004",
+      "parameters": {
+        "profile": "bypass",
+        "timeout_seconds": 30
+      },
+      "reason_code": null,
+      "state": "succeeded",
+      "tool": "denoise",
+      "updated_at": "2026-10-07T12:00:09Z"
+    },
+    {
+      "artifact_count": 3,
+      "attempt_count": 1,
+      "created_at": "2026-10-07T12:00:02Z",
+      "job_id": "job_00000000000000000000000000000001",
+      "parameters": {
+        "audio_kbps": 96,
+        "codec": "h264",
+        "crf": 30,
+        "height": 240,
+        "timeout_seconds": 120
+      },
+      "reason_code": null,
+      "state": "succeeded",
+      "updated_at": "2026-10-07T12:00:04Z"
+    }
+  ],
+  "schema_version": 1,
+  "truncated": false
+}

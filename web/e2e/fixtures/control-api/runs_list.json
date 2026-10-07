@@ -1,0 +1,67 @@
+{
+  "runs": [
+    {
+      "manifest_readable": true,
+      "manifest_sha256": "000000000000000000000000000000000000000000000000000000000000002b",
+      "run_id": "RUN-S3",
+      "run_status": "rendered_unreviewed",
+      "source_id": "src_00000000000000000000000000000001",
+      "source_sha256": "0000000000000000000000000000000000000000000000000000000000000025",
+      "stage_count": 6,
+      "state_basis": "listing does not re-hash"
+    },
+    {
+      "manifest_readable": true,
+      "manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000024",
+      "run_id": "RUN-OTHER",
+      "run_status": "rendered_unreviewed",
+      "source_id": "src_00000000000000000000000000000004",
+      "source_sha256": "0000000000000000000000000000000000000000000000000000000000000032",
+      "stage_count": 1,
+      "state_basis": "listing does not re-hash"
+    },
+    {
+      "manifest_readable": true,
+      "manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000023",
+      "run_id": "BASE-REVIEWED",
+      "run_status": "rendered_unreviewed",
+      "source_id": "src_00000000000000000000000000000003",
+      "source_sha256": "0000000000000000000000000000000000000000000000000000000000000002",
+      "stage_count": 1,
+      "state_basis": "listing does not re-hash"
+    },
+    {
+      "manifest_readable": true,
+      "manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000022",
+      "run_id": "BASE-PLAIN",
+      "run_status": "rendered_unreviewed",
+      "source_id": "src_00000000000000000000000000000002",
+      "source_sha256": "0000000000000000000000000000000000000000000000000000000000000030",
+      "stage_count": 1,
+      "state_basis": "listing does not re-hash"
+    },
+    {
+      "manifest_readable": true,
+      "manifest_sha256": "000000000000000000000000000000000000000000000000000000000000000e",
+      "run_id": "RUN-STUB-APPLY",
+      "run_status": "rendered_unreviewed",
+      "source_id": "src_00000000000000000000000000000003",
+      "source_sha256": "0000000000000000000000000000000000000000000000000000000000000002",
+      "stage_count": 5,
+      "state_basis": "listing does not re-hash"
+    },
+    {
+      "manifest_readable": true,
+      "manifest_sha256": "000000000000000000000000000000000000000000000000000000000000001d",
+      "run_id": "RUN-STUB-DENOISE",
+      "run_status": "rendered_unreviewed",
+      "source_id": "src_00000000000000000000000000000003",
+      "source_sha256": "0000000000000000000000000000000000000000000000000000000000000002",
+      "stage_count": 5,
+      "state_basis": "listing does not re-hash"
+    }
+  ],
+  "schema_id": "video-utils.web-runs.list",
+  "schema_version": 1,
+  "truncated": false
+}

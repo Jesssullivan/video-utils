@@ -1,0 +1,5 @@
+{
+  "code": "capture_interval_required",
+  "error": "a saved, reviewed capture interval is required before capture_profile (FULLER never runs without one)",
+  "status": "error"
+}

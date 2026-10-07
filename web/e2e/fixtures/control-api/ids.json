@@ -1,0 +1,19 @@
+{
+  "baseline_plain": "BASE-PLAIN",
+  "baseline_reviewed": "BASE-REVIEWED",
+  "jobs": {
+    "apply_succeeded": "job_00000000000000000000000000000003",
+    "bad_unknown_key": "job_fffffffffffffffffffffffffffffff1",
+    "capture_profile_succeeded": "job_00000000000000000000000000000002",
+    "denoise_succeeded": "job_00000000000000000000000000000004",
+    "share_failed": "job_00000000000000000000000000000005",
+    "share_queued": "job_00000000000000000000000000000006",
+    "share_running": "job_00000000000000000000000000000007",
+    "share_succeeded": "job_00000000000000000000000000000001"
+  },
+  "review_reviewed": "rev_00000000000000000000000000000001",
+  "run_main": "RUN-S3",
+  "run_other": "RUN-OTHER",
+  "source_plain": "art_00000000000000000000000000000001",
+  "source_reviewed": "art_00000000000000000000000000000002"
+}

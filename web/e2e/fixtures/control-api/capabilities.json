@@ -1,0 +1,2413 @@
+{
+  "areas": [
+    {
+      "area": "analysis",
+      "tools": [
+        "probe",
+        "clicks",
+        "guitar_noul_decide"
+      ]
+    },
+    {
+      "area": "corpus",
+      "tools": [
+        "corpus_split"
+      ]
+    },
+    {
+      "area": "corpus_eval",
+      "tools": [
+        "benchmark",
+        "corpus",
+        "corpus_eval_s2"
+      ]
+    },
+    {
+      "area": "delivery",
+      "tools": [
+        "export",
+        "marked_video",
+        "share_export",
+        "editor_marker_export",
+        "marked_compact"
+      ]
+    },
+    {
+      "area": "phrase_rhythm",
+      "tools": [
+        "bpm",
+        "rhythm",
+        "phrases",
+        "phrase_compare",
+        "meter",
+        "phrase_evaluate",
+        "arrangement_reference",
+        "phrase_timing",
+        "beat_this_compare"
+      ]
+    },
+    {
+      "area": "pipeline_report",
+      "tools": [
+        "report",
+        "pipeline",
+        "report_bundle"
+      ]
+    },
+    {
+      "area": "pitch",
+      "tools": [
+        "notes",
+        "pitch",
+        "tonal",
+        "pitch_evaluate",
+        "basic_pitch_compare",
+        "learned_pitch_evaluate"
+      ]
+    },
+    {
+      "area": "restoration",
+      "tools": [
+        "denoise",
+        "noise",
+        "tone",
+        "capture_profile",
+        "apply_capture_profile"
+      ]
+    },
+    {
+      "area": "review",
+      "tools": [
+        "markers",
+        "review",
+        "editor_marker_plan",
+        "annotation_v2",
+        "annotation_markers",
+        "flags_triage",
+        "tone_ab"
+      ]
+    }
+  ],
+  "model_note": "S3 model lanes (Beat This, guitar_noul, stems) are tracked in TIN-5721 and appear here only once root registers them in program/models.json.",
+  "models": [
+    {
+      "format": "onnx",
+      "gate": null,
+      "gate_state": {
+        "reason": "not recorded in program/models.json",
+        "value": null
+      },
+      "lane": null,
+      "license": "Apache-2.0 repository-wide; bundled-weight applicability inferred",
+      "local_presence": "not_checked",
+      "max_bytes": 230444,
+      "model_id": "spotify-basic-pitch-0.4.0-onnx",
+      "registration": "registered_hash_bound",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000003",
+      "source_commit": "9991303bba609a3b93089d13ec80d1d495083596",
+      "status": null,
+      "url_host": "raw.githubusercontent.com"
+    }
+  ],
+  "pilot_tool_count": 8,
+  "registry_sha256": {
+    "capabilities": "0000000000000000000000000000000000000000000000000000000000000004",
+    "models": "0000000000000000000000000000000000000000000000000000000000000005",
+    "tools": "0000000000000000000000000000000000000000000000000000000000000006"
+  },
+  "schema_id": "video-utils.web-runs.capabilities",
+  "schema_version": 1,
+  "tool_count": 42,
+  "tools": [
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "area": "analysis",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface.",
+        "recommended_prior_tools": []
+      },
+      "evidence_kind": "measured",
+      "implementation_status": "available",
+      "input": {
+        "properties": [
+          "input",
+          "timeout_seconds"
+        ],
+        "required": [
+          "input"
+        ]
+      },
+      "limitations": [
+        "Source metadata does not establish sound quality or instrument identity."
+      ],
+      "limitations_count": 1,
+      "name": "probe",
+      "skill": ".agents/skills/video-probe/SKILL.md",
+      "title": "Probe"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "restoration",
+      "area_basis": "program/capabilities.json domain",
+      "capability": {
+        "domain": "restoration",
+        "effects": {
+          "model_acquisition": false,
+          "network": false,
+          "overwrites_input": false,
+          "reads": [
+            "original_source"
+          ],
+          "renders_audio": true,
+          "renders_video": false,
+          "writes": [
+            "run_audio",
+            "run_json_evidence"
+          ]
+        },
+        "parameters": {
+          "input": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "profile": {
+            "default_owner": "operator",
+            "default_policy": "schema_default"
+          },
+          "timeout_seconds": {
+            "default_owner": "root",
+            "default_policy": "schema_default"
+          }
+        },
+        "resources": {
+          "heavy_numeric": true,
+          "resource_class": "media_render_ffmpeg",
+          "timeout_seconds": {
+            "default": 600,
+            "max": 900,
+            "min": 1
+          }
+        },
+        "stage": "render_candidate"
+      },
+      "capability_reason": null,
+      "dependencies": {
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface.",
+        "recommended_prior_tools": [
+          "probe",
+          "noise"
+        ]
+      },
+      "evidence_kind": "rendered_unreviewed",
+      "implementation_status": "available",
+      "input": {
+        "properties": [
+          "input",
+          "profile",
+          "timeout_seconds"
+        ],
+        "required": [
+          "input"
+        ]
+      },
+      "limitations": [
+        "No automatic high-pass or hum notch; denoising can still remove intended fundamentals and harmonics. Listening acceptance is required.",
+        "Captured presets require original SHA 0000000000000000000000000000000000000000000000000000000000000007 and root-reviewed 4.10\u20134.95 second audio-relative interval. Different sources reject before probe/render; music or sustain absence is uncertain.",
+        "Pure denoised.wav and removed-signal residue remain separate from optional processed.wav EQ/compression and final cleaned.wav normalization. No optimal-tone or listening acceptance claim.",
+        "Only fixed profile names are exposed; no arbitrary capture interval, EQ or compressor object. Actual source-bound presets are excluded from synthetic benchmark profile choices."
+      ],
+      "limitations_count": 4,
+      "name": "denoise",
+      "skill": ".agents/skills/guitar-denoise/SKILL.md",
+      "title": "Denoise"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "phrase_rhythm",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface.",
+        "recommended_prior_tools": [
+          "probe",
+          "denoise"
+        ]
+      },
+      "evidence_kind": "inferred",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "backend",
+          "bpm",
+          "input",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "input",
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Clicks and pick attacks overlap in a mono mixture. BPM candidates are not confirmed metronome identity or meter."
+      ],
+      "limitations_count": 1,
+      "name": "bpm",
+      "skill": ".agents/skills/guitar-bpm/SKILL.md",
+      "title": "Bpm"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "restoration",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface.",
+        "recommended_prior_tools": [
+          "probe"
+        ]
+      },
+      "evidence_kind": "measured_and_inferred",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "input",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "input",
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Quiet intervals are noise candidates, not proven noise-only captures; never automatically authorize denoise training from them."
+      ],
+      "limitations_count": 1,
+      "name": "noise",
+      "skill": ".agents/skills/guitar-noise/SKILL.md",
+      "title": "Noise"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "restoration",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface.",
+        "recommended_prior_tools": [
+          "probe",
+          "denoise"
+        ]
+      },
+      "evidence_kind": "measured",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "input",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "input",
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Band energy is not a tone-quality grade or a recovered guitar stem; room/recorder coloration remains mixed."
+      ],
+      "limitations_count": 1,
+      "name": "tone",
+      "skill": ".agents/skills/guitar-tone/SKILL.md",
+      "title": "Tone"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "pitch",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface.",
+        "recommended_prior_tools": [
+          "probe",
+          "denoise",
+          "tone"
+        ]
+      },
+      "evidence_kind": "inferred",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "input",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "input",
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Distortion, polyphony and weak fundamentals cause octave ambiguity. Intended notes require a separately approved reference."
+      ],
+      "limitations_count": 1,
+      "name": "notes",
+      "skill": ".agents/skills/guitar-notes/SKILL.md",
+      "title": "Notes"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "phrase_rhythm",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface.",
+        "recommended_prior_tools": [
+          "bpm",
+          "notes"
+        ]
+      },
+      "evidence_kind": "inferred",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "backend",
+          "bpm",
+          "input",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "input",
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Without approved expected-rhythm and calibration, offsets cannot establish missed, extra or rushed notes. Grid phase is not physical audio phase."
+      ],
+      "limitations_count": 1,
+      "name": "rhythm",
+      "skill": ".agents/skills/guitar-rhythm/SKILL.md",
+      "title": "Rhythm"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "phrase_rhythm",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface.",
+        "recommended_prior_tools": [
+          "bpm",
+          "notes",
+          "rhythm"
+        ]
+      },
+      "evidence_kind": "inferred",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "backend",
+          "bpm",
+          "input",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "input",
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Candidate musical phrases can be discovered without an intended-phrase reference; confirmed phrase mistakes require an approved reference. Optional librosa needs an explicitly installed local analysis environment."
+      ],
+      "limitations_count": 1,
+      "name": "phrases",
+      "skill": ".agents/skills/guitar-phrases/SKILL.md",
+      "title": "Phrases"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "delivery",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface.",
+        "recommended_prior_tools": [
+          "denoise"
+        ]
+      },
+      "evidence_kind": "exported_unreviewed",
+      "implementation_status": "available",
+      "input": {
+        "properties": [
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Rendered export and audiovisual/listening acceptance are separate; no timing correction or isolated source is implied."
+      ],
+      "limitations_count": 1,
+      "name": "export",
+      "skill": ".agents/skills/media-export/SKILL.md",
+      "title": "Export"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "pipeline_report",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Independent invocation is supported; typed pipeline ancestry is a separate interface.",
+        "recommended_prior_tools": [
+          "export",
+          "rhythm",
+          "phrases"
+        ]
+      },
+      "evidence_kind": "report_rendered",
+      "implementation_status": "available",
+      "input": {
+        "properties": [
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "The report preserves existing measurements and inferences; it does not create listening acceptance or establish intended notes."
+      ],
+      "limitations_count": 1,
+      "name": "report",
+      "skill": ".agents/skills/guitar-report/SKILL.md",
+      "title": "Report"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "pipeline_report",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Worker validates existing artifact/source relationships; this descriptor is dependency discovery guidance.",
+        "recommended_prior_tools": [
+          "denoise",
+          "bpm",
+          "tone",
+          "notes",
+          "rhythm",
+          "phrases",
+          "clicks",
+          "pitch",
+          "meter",
+          "tonal",
+          "phrase_compare"
+        ]
+      },
+      "evidence_kind": "artifact_provenance_and_reference_candidates",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "clicks_artifact",
+          "comparisons_artifact",
+          "meter_artifact",
+          "pitch_artifact",
+          "reference",
+          "run_dir",
+          "timeout_seconds",
+          "tonal_artifact"
+        ],
+        "required": [
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Evaluates existing artifacts; does not execute or schedule the render pipeline. Selected JSON is bounded to 20 MB per artifact and 40 MB total.",
+        "No automatic newest-path discovery; exact selected paths must remain within run_dir without symlink or staging components.",
+        "Source/upstream/settings mismatches remain rejected evidence; verified provenance does not confirm click identity, pitch, meter, tonic, mode, intended notes or listening acceptance.",
+        "Sparse pitch coverage and nullable tonal/meter context remain visible; review flags are hypotheses."
+      ],
+      "limitations_count": 4,
+      "name": "pipeline",
+      "skill": ".agents/skills/guitar-pipeline/SKILL.md",
+      "title": "Pipeline"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "review",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Worker validates existing artifact/source relationships; this descriptor is dependency discovery guidance.",
+        "recommended_prior_tools": [
+          "pipeline"
+        ]
+      },
+      "evidence_kind": "review_metadata_exported",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Generic seconds-based CSV/JSON is not a validated Final Cut Pro or DaVinci Resolve import. Flags retain their uncertainty; physical audio phase is unrelated."
+      ],
+      "limitations_count": 1,
+      "name": "markers",
+      "skill": ".agents/skills/phrase-markers/SKILL.md",
+      "title": "Markers"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "analysis",
+      "area_basis": "program/capabilities.json domain",
+      "capability": {
+        "domain": "analysis",
+        "effects": {
+          "model_acquisition": false,
+          "network": false,
+          "overwrites_input": false,
+          "reads": [
+            "original_source"
+          ],
+          "renders_audio": true,
+          "renders_video": false,
+          "writes": [
+            "run_json_evidence",
+            "run_audio"
+          ]
+        },
+        "parameters": {
+          "attenuate": {
+            "default_owner": "operator",
+            "default_policy": "schema_default"
+          },
+          "bpm": {
+            "default_owner": "none",
+            "default_policy": "omitted_means_worker_default"
+          },
+          "input": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "run_dir": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "strength": {
+            "default_owner": "operator",
+            "default_policy": "schema_default"
+          },
+          "template_click_only": {
+            "default_owner": "operator",
+            "default_policy": "schema_default"
+          },
+          "template_end": {
+            "default_owner": "none",
+            "default_policy": "omitted_means_none"
+          },
+          "template_start": {
+            "default_owner": "none",
+            "default_policy": "omitted_means_none"
+          },
+          "timeout_seconds": {
+            "default_owner": "root",
+            "default_policy": "schema_default"
+          }
+        },
+        "resources": {
+          "heavy_numeric": true,
+          "resource_class": "analysis_cpu",
+          "timeout_seconds": {
+            "default": 600,
+            "max": 900,
+            "min": 1
+          }
+        },
+        "stage": "event_analysis"
+      },
+      "capability_reason": null,
+      "dependencies": {
+        "enforced": false,
+        "note": "Discovery guidance; worker-specific source binding and reference checks apply.",
+        "recommended_prior_tools": [
+          "probe",
+          "denoise"
+        ]
+      },
+      "evidence_kind": "inferred_and_optional_rendered_unreviewed",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "attenuate",
+          "bpm",
+          "input",
+          "run_dir",
+          "strength",
+          "template_click_only",
+          "template_end",
+          "template_start",
+          "timeout_seconds"
+        ],
+        "required": [
+          "input",
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Detection-only by default; clicks, pick attacks and overlap can remain unknown. New immutable variant directories preserve native rate/channels; no recovered metronome stem or listening claim. Explicit NumPy/SciPy analysis environment required."
+      ],
+      "limitations_count": 1,
+      "name": "clicks",
+      "skill": ".agents/skills/guitar-clicks/SKILL.md",
+      "title": "Clicks"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "phrase_rhythm",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Discovery guidance; worker-specific source binding and reference checks apply.",
+        "recommended_prior_tools": [
+          "bpm",
+          "phrases"
+        ]
+      },
+      "evidence_kind": "comparative_inferred",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "band_fraction",
+          "max_pairs",
+          "max_rate",
+          "min_rate",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Consumes existing hash-bound feature/phrase artifacts without an implicit analysis rerun or intended-phrase gate. Relative alignment differences remain hypotheses; unknown confidence or legato abstains from attack-edit claims."
+      ],
+      "limitations_count": 1,
+      "name": "phrase_compare",
+      "skill": ".agents/skills/guitar-phrase-compare/SKILL.md",
+      "title": "Phrase Compare"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "corpus_eval",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Discovery guidance; worker-specific source binding and reference checks apply.",
+        "recommended_prior_tools": []
+      },
+      "evidence_kind": "synthetic_fixture_or_tool_measurements",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "operation",
+          "output",
+          "phrase_backend",
+          "profile",
+          "suite",
+          "timeout_seconds"
+        ],
+        "required": [
+          "output"
+        ]
+      },
+      "limitations": [
+        "technical-v1 default behavior is preserved; technical-v2 is twelve synthetic cases, 120 seconds total and at most 12 seconds per case.",
+        "Synthetic references and measurements do not establish correctness or musician intent on the operator recording; structural failures, quality alerts and listening acceptance remain separate.",
+        "Bounded local workers only: no downloads, models, installation, network or private-media acquisition."
+      ],
+      "limitations_count": 3,
+      "name": "benchmark",
+      "skill": ".agents/skills/guitar-benchmark/SKILL.md",
+      "title": "Benchmark"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "review",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Discovery guidance; worker-specific source binding and reference checks apply.",
+        "recommended_prior_tools": [
+          "pipeline",
+          "markers"
+        ]
+      },
+      "evidence_kind": "operator_annotation",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "input",
+          "operation",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "A saved operator observation does not alter analysis or establish listening/musical acceptance. Write requests are <=20,000 bytes, stores <=1,000,000 bytes and <=200 annotations; stale revisions/source identities reject. No HTTP server is started."
+      ],
+      "limitations_count": 1,
+      "name": "review",
+      "skill": ".agents/skills/guitar-review/SKILL.md",
+      "title": "Review"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "pitch",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Worker records actual source/manifest lineage and analyzed coverage; independent local input remains supported.",
+        "recommended_prior_tools": [
+          "probe",
+          "denoise"
+        ]
+      },
+      "evidence_kind": "sampled_pitch_candidate_inference",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "input",
+          "max_analysis_seconds",
+          "run_dir",
+          "start_seconds",
+          "timeout_seconds"
+        ],
+        "required": [
+          "input",
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Sparse candidate hypotheses are not full transcription, identified strings, tonic/mode or intended-note grades. Exact operator tuning retains inferred octaves and theoretical frequencies. Requires an explicitly installed librosa analysis interpreter; full frame evidence stays in local pitch.json."
+      ],
+      "limitations_count": 1,
+      "name": "pitch",
+      "skill": ".agents/skills/guitar-pitch/SKILL.md",
+      "title": "Pitch Candidates"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "phrase_rhythm",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Worker enforces existing derivative, manifest/timeline/hash lineage; catalog edges are discovery guidance.",
+        "recommended_prior_tools": [
+          "denoise",
+          "bpm"
+        ]
+      },
+      "evidence_kind": "accent_cycle_inference_not_confirmed_meter",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Energy-proxy accent cycles do not confirm notation, downbeats, additive grouping or time signature. Uniform clicks, legato and weak/conflicting evidence can correctly yield unknown. Requires a verified run-local derivative and matching source timeline; immutable receipts do not change media."
+      ],
+      "limitations_count": 1,
+      "name": "meter",
+      "skill": ".agents/skills/guitar-meter/SKILL.md",
+      "title": "Meter Hypotheses"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "pitch",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Worker enforces hash-bound restored feature lineage and optional context identity. Pitch is separate sparse evidence.",
+        "recommended_prior_tools": [
+          "denoise",
+          "bpm",
+          "phrases",
+          "pitch"
+        ]
+      },
+      "evidence_kind": "tonal_distribution_and_profile_hypotheses",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "max_recurrences",
+          "max_regions",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Uncalibrated profile scores and scale rotations do not identify a global tonic/mode, played notes or tonal mistakes. Tonic/mode remain null; low-register chroma resolution is unqualified. Theoretical tuning is not used as a tonic prior and sparse dependent pitch hypotheses are not pooled. No decoding, dependency installation or expected-score gate."
+      ],
+      "limitations_count": 1,
+      "name": "tonal",
+      "skill": ".agents/skills/guitar-tonal/SKILL.md",
+      "title": "Tonal Context Hypotheses"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "area": "corpus_eval",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Explicit existing authored corpus and review-store metadata are required; this tool does not create annotations or corpus labels.",
+        "recommended_prior_tools": [
+          "review"
+        ]
+      },
+      "evidence_kind": "supplied_review_metadata_consistency",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "local_root",
+          "manifest",
+          "timeout_seconds"
+        ],
+        "required": [
+          "manifest"
+        ]
+      },
+      "limitations": [
+        "Metadata validation authenticates neither source origins, reviewers nor musical labels; no musician ground truth is established.",
+        "Summary follows full validation; no raw labels, reviewer identities or repeated paths are returned through MCP.",
+        "Unlabelled intervals remain unknown, never negative labels. Synthetic fixtures remain separate from declared real recordings.",
+        "Read-only JSON metadata: 1 MB per file, 16 MB aggregate, 100 sources/reviewers, 5000 selected labels, 200 stored annotations per source, 12 hours per source. Source audio is never opened or rehashed."
+      ],
+      "limitations_count": 4,
+      "name": "corpus",
+      "skill": ".agents/skills/guitar-corpus/SKILL.md",
+      "title": "Corpus metadata validation"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "pitch",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Existing generated bank and pilot artifacts are required; this evaluator does not run prior discovery tools.",
+        "recommended_prior_tools": [
+          "benchmark",
+          "pitch"
+        ]
+      },
+      "evidence_kind": "synthetic_generated_reference_calibration",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "fixture_index",
+          "output",
+          "pilot_index",
+          "timeout_seconds"
+        ],
+        "required": [
+          "fixture_index",
+          "output",
+          "pilot_index"
+        ]
+      },
+      "limitations": [
+        "Only the selected four-job/30-second pilot is evaluated; unrequested bank coverage is not whole-bank inference or transcription.",
+        "5 MB ancillary JSON, 64 MB per pitch artifact, 4000 branch frames per artifact, source WAV <=3 MB; no truth-selected branch/octave or fitted pitch/timing correction.",
+        "Source WAV bytes are read for hashes/native headers; source_audio_decoded and inference_invoked remain false. No discovery, model, installation, network or private-source acquisition.",
+        "References are generator_only_not_musician; listening and real-performance grading remain unestablished. Structural rejection and failed hard gates are errors; quality alerts remain visible baseline measurements.",
+        "Fixed --summary after full selected-evidence validation; full metric rows remain in local immutable evaluation artifacts."
+      ],
+      "limitations_count": 5,
+      "name": "pitch_evaluate",
+      "skill": ".agents/skills/guitar-pitch-evaluate/SKILL.md",
+      "title": "Pitch pilot calibration"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "phrase_rhythm",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Existing generated bank and pilot artifacts are required; this evaluator does not run prior discovery tools.",
+        "recommended_prior_tools": [
+          "benchmark",
+          "phrases",
+          "phrase_compare"
+        ]
+      },
+      "evidence_kind": "synthetic_generated_reference_calibration",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "fixture_index",
+          "output",
+          "pilot_index",
+          "timeout_seconds"
+        ],
+        "required": [
+          "fixture_index",
+          "output",
+          "pilot_index"
+        ]
+      },
+      "limitations": [
+        "At most 12 generated fixtures and 120 seconds; metadata 20 MB per file/64 MB aggregate, full evaluation JSON 20 MB and compact stdout 8 KB.",
+        "Boundary/phrase/attack quality metrics are initial baselines; generated reference agreement does not confirm semantic phrases, musician intent or real performance correctness.",
+        "Source WAV bytes are read for hashes/native headers; source_audio_decoded and inference_invoked remain false. No discovery, model, installation, network or private-source acquisition.",
+        "References are generator_only_not_musician; listening and real-performance grading remain unestablished. Structural rejection and failed hard gates are errors; quality alerts remain visible baseline measurements.",
+        "Fixed --summary after full selected-evidence validation; full metric rows remain in local immutable evaluation artifacts."
+      ],
+      "limitations_count": 5,
+      "name": "phrase_evaluate",
+      "skill": ".agents/skills/guitar-phrase-evaluate/SKILL.md",
+      "title": "Phrase pilot calibration"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "delivery",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Current verified artifacts are required; prior tools are not invoked automatically.",
+        "recommended_prior_tools": [
+          "export",
+          "pipeline",
+          "markers"
+        ]
+      },
+      "evidence_kind": "verified_media_preservation_with_uncertain_review_callouts",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "arrangement_markers",
+          "output",
+          "run_dir",
+          "selection",
+          "timeout_seconds"
+        ],
+        "required": [
+          "output",
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "All callouts remain uncertain review hypotheses, not confirmed note or performance mistakes.",
+        "Existing current manifest, export, DAG, flags and markers are required; stale provenance rejects before output creation. Later render failures retain local diagnostics.",
+        "Source duration <=600 seconds; <=5000 input markers, <=128 selected except all-review <=5000; two codec/filter threads and bounded child output.",
+        "Picture is reencoded; AAC packet timing/payload and decoded PCM identity are verified. ASS cues have 10 ms quantization; physical capture synchronization and listening remain unverified.",
+        "No new analysis, original/master overwrite, native editor import, AU/Logic validation or automatic installation."
+      ],
+      "limitations_count": 5,
+      "name": "marked_video",
+      "skill": ".agents/skills/guitar-marked-video/SKILL.md",
+      "title": "Marked guitar review preview"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "pitch",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "A current verified denoised run, explicitly qualified local model and isolated runtime are required. Prior tools are not invoked automatically; optional runtime stays separate from existing analysis environment.",
+        "recommended_prior_tools": [
+          "denoise",
+          "pitch"
+        ]
+      },
+      "evidence_kind": "uncalibrated_learned_pitch_event_hypotheses",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "frame_threshold",
+          "max_analysis_seconds",
+          "onset_threshold",
+          "run_dir",
+          "start_seconds",
+          "timeout_seconds"
+        ],
+        "required": [
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Qualified official Basic Pitch 0.4.0 ONNX model with project threshold-run/onset-split decoding; upstream Melodia/postprocessing parity is false. Fixed duration presets127.7/25ms reuse identical raw arrays.",
+        "Input <=300 seconds, total analyzed <=30 seconds, <=24 model windows, CPU2threads, measured RSS <=1GiB, raw arrays<=20MiB, <=5000 events per preset, internal600sdeadline. Wrapper manifest<=1MiB and derivative<=1GiB preflight bounds.",
+        "Model/source/native extent/registry/tuning/runtime-wheel/worker identities are verified; missing or changed qualified artifacts reject without prefetch, installation, runtime fallback or network. No arbitrary model/interpreter/decoder JSON inputs.",
+        "Sparse excerpts and approximately2second model context do not provide whole-take transcription or latency calibration. Activations are uncalibrated; no inferred string, stem, intended note, note correctness or performance grade.",
+        "Qualification retained a linear missing-fundamental C1 failure (0/258 raw top-one frames); comparator disagreement remains listening evidence rather than correctness or voicing confidence. Listening and AU/Logic acceptance remain unestablished."
+      ],
+      "limitations_count": 5,
+      "name": "basic_pitch_compare",
+      "skill": ".agents/skills/guitar-basic-pitch/SKILL.md",
+      "title": "Optional learned guitar pitch comparison"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "restoration",
+      "area_basis": "program/capabilities.json domain",
+      "capability": {
+        "domain": "restoration",
+        "effects": {
+          "model_acquisition": false,
+          "network": false,
+          "overwrites_input": false,
+          "reads": [
+            "original_source",
+            "run_manifest",
+            "run_pcm",
+            "capture_review"
+          ],
+          "renders_audio": false,
+          "renders_video": false,
+          "writes": [
+            "capture_profile_metadata",
+            "run_json_evidence"
+          ]
+        },
+        "parameters": {
+          "adaptivity": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "capture_end_seconds": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "capture_start_seconds": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "compressor": {
+            "default_owner": "none",
+            "default_policy": "omitted_means_off"
+          },
+          "gain_smooth": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "input": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "integrated_lufs": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "noise_floor_db": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "peaking_eq": {
+            "default_owner": "none",
+            "default_policy": "omitted_means_off"
+          },
+          "reduction_db": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "review": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "run_dir": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "timeout_seconds": {
+            "default_owner": "root",
+            "default_policy": "schema_default"
+          },
+          "true_peak_dbtp": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          }
+        },
+        "resources": {
+          "heavy_numeric": false,
+          "resource_class": "analysis_cpu",
+          "timeout_seconds": {
+            "default": 60,
+            "max": 60,
+            "min": 1
+          }
+        },
+        "stage": "profile_authoring"
+      },
+      "capability_reason": null,
+      "dependencies": {
+        "enforced": false,
+        "note": "Existing current verified native source run and exact reviewed sidecar are required; no prerequisite tool or later render is invoked automatically.",
+        "recommended_prior_tools": [
+          "probe",
+          "noise",
+          "denoise"
+        ]
+      },
+      "evidence_kind": "source_bound_profile_authoring",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "adaptivity",
+          "capture_end_seconds",
+          "capture_start_seconds",
+          "compressor",
+          "gain_smooth",
+          "input",
+          "integrated_lufs",
+          "noise_floor_db",
+          "peaking_eq",
+          "reduction_db",
+          "review",
+          "run_dir",
+          "timeout_seconds",
+          "true_peak_dbtp"
+        ],
+        "required": [
+          "adaptivity",
+          "capture_end_seconds",
+          "capture_start_seconds",
+          "gain_smooth",
+          "input",
+          "integrated_lufs",
+          "noise_floor_db",
+          "reduction_db",
+          "review",
+          "run_dir",
+          "true_peak_dbtp"
+        ]
+      },
+      "limitations": [
+        "Supplied review identities and authorization assertions are not authenticated. Quiet/fan diagnostics do not establish a noise-only capture or isolated guitar stem. Unknown/suspected content remains explicit.",
+        "Authoring-only scope cannot emit a runnable authorized profile. Render scope emits authored_unrendered metadata only; rejected/present music or clicks produce needs_reselection. Ambient music is not automatically separated.",
+        "Source<=3GiB, nativePCM<=1GiB, native8..192kHz/mono-stereo/<=600s, capture0.1..10s; manifest1MiB, context64KiB, review/profile16KiB, receipt64KiB, compactresult16KiB; wholeworkerdeadline<=60s.",
+        "All finite numeric controls are explicit; bounded<=3typedEQbands and exactcompressorobject only. Source/context/review/worker/validator hashes rechecked before immutable publication.",
+        "No audio decoding, DSP, measured learned band shape, media overwrite, model/runtime acquisition, arbitraryargv/filter/JSON controls or custom-profile denoise application. Listening and AU/Logic acceptance remain unestablished."
+      ],
+      "limitations_count": 5,
+      "name": "capture_profile",
+      "skill": ".agents/skills/guitar-capture-profile/SKILL.md",
+      "title": "Source-bound noise capture authoring"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "area": "review",
+      "area_basis": "program/capabilities.json domain",
+      "capability": {
+        "domain": "review",
+        "effects": {
+          "model_acquisition": false,
+          "network": false,
+          "overwrites_input": false,
+          "reads": [
+            "run_manifest",
+            "run_json_evidence"
+          ],
+          "renders_audio": false,
+          "renders_video": false,
+          "writes": []
+        },
+        "parameters": {
+          "profile": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "run_dir": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "selection": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "timeout_seconds": {
+            "default_owner": "root",
+            "default_policy": "schema_default"
+          }
+        },
+        "resources": {
+          "heavy_numeric": false,
+          "resource_class": "metadata_light",
+          "timeout_seconds": {
+            "default": 120,
+            "max": 120,
+            "min": 1
+          }
+        },
+        "stage": "editor_plan"
+      },
+      "capability_reason": null,
+      "dependencies": {
+        "enforced": false,
+        "note": "Current generic markers, manifest, flags/DAG/context and explicit selection/profile are required; prior tools are not invoked automatically. Full CLI plan remains available separately from this bounded summary.",
+        "recommended_prior_tools": [
+          "pipeline",
+          "markers",
+          "marked_video"
+        ]
+      },
+      "evidence_kind": "metadata_only_source_time_editor_dry_run",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "profile",
+          "run_dir",
+          "selection",
+          "timeout_seconds"
+        ],
+        "required": [
+          "profile",
+          "run_dir",
+          "selection"
+        ]
+      },
+      "limitations": [
+        "Fixed --summary follows complete worker validation; compact stdout <=64KiB, stderr <=16KiB. Input JSON <=20MB each, aggregate <=64MB, markers/selection <=50000, hypothetical actions <=1000, PTS frames <=120000.",
+        "Native contract is always unverified; executable=false and host_frame_id remains null. A fixture action count never establishes a runnable native API or import file.",
+        "Original media is not rehashed or decoded; source identity is manifest/graph bound. Existing upstream bytes may be hashed for provenance; no audio processing, network or editor invocation.",
+        "Full PTS membership, source/asset origins and clip bounds must be explicit. Missing coverage abstains; nominal/average rates and a timing digest cannot recover native frame coordinates.",
+        "Exact source observations and all exclusions remain traceable, including preview-hidden selections. Quantization gaps/tails and collisions do not shift, clamp, suppress observations or overwrite user markers. No musical correctness, native import, listening or AU/Logic acceptance."
+      ],
+      "limitations_count": 5,
+      "name": "editor_marker_plan",
+      "skill": ".agents/skills/editor-marker-plan/SKILL.md",
+      "title": "Source-time editor review marker plan"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "pitch",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Requires existing bound bank and two pilot indices; no prior tool, model setup or inference is invoked automatically.",
+        "recommended_prior_tools": [
+          "benchmark",
+          "pitch",
+          "basic_pitch_compare"
+        ]
+      },
+      "evidence_kind": "hash_bound_generated_learned_pitch_calibration",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "fixture_index",
+          "learned_pilot_index",
+          "output",
+          "pyin_pilot_index",
+          "timeout_seconds"
+        ],
+        "required": [
+          "fixture_index",
+          "learned_pilot_index",
+          "output",
+          "pyin_pilot_index"
+        ]
+      },
+      "limitations": [
+        "Exactly four fixed cases and 30 seconds; no actual-take grades or automatic estimator selection. Generated labels are supplied generator evidence, not measured musician ground truth.",
+        "Waveform bytes are hashed/header checked and finite NPZ arrays read; source_audio_decoded=false and inference_invoked=false. Model/runtime identifiers bind supplied receipts, not current installation or weight qualification.",
+        "NPZ uncompressed arrays <=20MiB, model windows <=24, events <=5000 per preset; indices <=5MB, pitch/comparison JSON <=64MB, waveform <=3MB. Strict finite JSON depth <=128 and no object/pickle arrays.",
+        "Fixed decoder/thresholds and 127.7/25ms presets; audited clocks stay separately labelled. No clock or branch selection by truth; physical model latency remains unqualified.",
+        "Fresh output contains evaluation JSON and frame/event CSVs. Structural and unsupported-claim failures retain diagnostics and exit nonzero; low numerical quality remains visible regression evidence, not a tool failure or listening acceptance."
+      ],
+      "limitations_count": 5,
+      "name": "learned_pitch_evaluate",
+      "skill": ".agents/skills/guitar-learned-pitch-evaluate/SKILL.md",
+      "title": "Generated learned pitch artifact evaluation"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "restoration",
+      "area_basis": "program/capabilities.json domain",
+      "capability": {
+        "domain": "restoration",
+        "effects": {
+          "model_acquisition": false,
+          "network": false,
+          "overwrites_input": false,
+          "reads": [
+            "original_source",
+            "run_manifest",
+            "run_pcm",
+            "profile_receipt"
+          ],
+          "renders_audio": true,
+          "renders_video": true,
+          "writes": [
+            "applied_run",
+            "run_audio",
+            "run_json_evidence",
+            "delivery_media"
+          ]
+        },
+        "parameters": {
+          "authoring_dir": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "input": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "receipt_sha256": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "timeout_seconds": {
+            "default_owner": "root",
+            "default_policy": "schema_default"
+          }
+        },
+        "resources": {
+          "heavy_numeric": true,
+          "resource_class": "media_render_ffmpeg",
+          "timeout_seconds": {
+            "default": 600,
+            "max": 600,
+            "min": 12
+          }
+        },
+        "stage": "profile_application"
+      },
+      "capability_reason": null,
+      "dependencies": {
+        "enforced": true,
+        "note": "Requires existing source-bound authoring output; authoring is not invoked automatically.",
+        "recommended_prior_tools": [
+          "capture_profile"
+        ]
+      },
+      "evidence_kind": "source_bound_capture_profile_application",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "authoring_dir",
+          "input",
+          "receipt_sha256",
+          "timeout_seconds"
+        ],
+        "required": [
+          "authoring_dir",
+          "input",
+          "receipt_sha256"
+        ]
+      },
+      "limitations": [
+        "Requires a current authored_unrendered source/profile/receipt/review/parent/context/producer binding and supplied existing experimental_capture_render scope; asserted identities are not authentication.",
+        "No DSP/filter/runtime/model/argv overrides; author separately to compare settings. Source<=300s,8\u2013192kHz,mono/stereo; fixed two media threads. New immutable candidate only.",
+        "Noise-capture contamination, EQ phase and compression attack/sustain effects remain uncertain. Measurements and export integrity do not establish listening or musical correctness.",
+        "Supervision checks only observed owned sessions with native birth/ancestry/live membership; sampling gaps, escaped sessions, identity refusal and OS scheduling retain uncertainty, not kernel containment.",
+        "Precommit failure, retained committed-unreviewed reporting failure and unknown publication attempts remain distinct. Timeout does not prove absence; recover from exact pinned local receipts, never newest-run discovery.",
+        "Pure denoise/residue, optional separate EQ/compression, normalization and delivery export are separately retained. Listening_accepted=false and master_adopted=false; original/latest unchanged."
+      ],
+      "limitations_count": 6,
+      "name": "apply_capture_profile",
+      "skill": ".agents/skills/guitar-apply-capture-profile/SKILL.md",
+      "title": "Apply source-bound capture profile"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "phrase_rhythm",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": true,
+        "note": "Requires existing exact run-derived evidence and explicit source-bound reference; no prior analysis is invoked.",
+        "recommended_prior_tools": [
+          "phrases",
+          "rhythm"
+        ]
+      },
+      "evidence_kind": "reference_conditioned_review_candidates",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "output",
+          "reference",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "output",
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Original encoded recording is not rehashed/decoded. Cached JSON/current canonical PCM hashes and native source mapping are verified; source metadata assertions do not authenticate original media.",
+        "Supplied approximate tempo/anchor/404demo intended clicks remain reference claims; observed click count is null. Reference-equivalent duration ratios are not detected mechanical events.",
+        "Feature boundaries and detector latency are uncalibrated; repeated joins can lack support, alternatives abstain and censored endpoints remain unknown. All flags need review; no confirmed missed/rushed beat, note correctness or listening acceptance.",
+        "Bounded metadata-only worker: reference64KiB/manifest1MiB/analysis16MiB/phrases4MiB/PCM1GiB,<=300s/128expectedunits/2048observations,30s fixed matching budget. Outputs<=2MiB each plus64KiB receipt.",
+        "Fresh assessment leaves unsupervised graph/artifacts unchanged. Native editor conversion/import and master adoption are independent."
+      ],
+      "limitations_count": 5,
+      "name": "arrangement_reference",
+      "skill": ".agents/skills/guitar-arrangement-reference/SKILL.md",
+      "title": "Assess supplied guitar arrangement"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "delivery",
+      "area_basis": "program/capabilities.json domain",
+      "capability": {
+        "domain": "delivery",
+        "effects": {
+          "model_acquisition": false,
+          "network": false,
+          "overwrites_input": false,
+          "reads": [
+            "delivery_media"
+          ],
+          "renders_audio": true,
+          "renders_video": true,
+          "writes": [
+            "delivery_media",
+            "delivery_receipt"
+          ]
+        },
+        "parameters": {
+          "audio_kbps": {
+            "default_owner": "root",
+            "default_policy": "schema_default"
+          },
+          "codec": {
+            "default_owner": "root",
+            "default_policy": "schema_default"
+          },
+          "crf": {
+            "default_owner": "root",
+            "default_policy": "schema_default"
+          },
+          "height": {
+            "default_owner": "root",
+            "default_policy": "schema_default"
+          },
+          "output": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "source": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "timeout_seconds": {
+            "default_owner": "root",
+            "default_policy": "schema_default"
+          }
+        },
+        "resources": {
+          "heavy_numeric": true,
+          "resource_class": "media_render_ffmpeg",
+          "timeout_seconds": {
+            "default": 900,
+            "max": 900,
+            "min": 30
+          }
+        },
+        "stage": "share_derivative"
+      },
+      "capability_reason": null,
+      "dependencies": {
+        "enforced": false,
+        "note": "Select an explicit existing video/master delivery file; no automatic render, latest selection or model acquisition.",
+        "recommended_prior_tools": [
+          "export"
+        ]
+      },
+      "evidence_kind": "lossy_sharing_derivative",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "audio_kbps",
+          "codec",
+          "crf",
+          "height",
+          "output",
+          "source",
+          "timeout_seconds"
+        ],
+        "required": [
+          "output",
+          "source"
+        ]
+      },
+      "limitations": [
+        "Source/native master stays intact. Lossy sharing video and AAC are not a preservation master, recovered stem, listening acceptance or automatic adoption.",
+        "H.264 veryfast/CRF27/720p/AAC96 default; HEVC can be slow locally. CRF does not guarantee file-size reduction or an exact byte limit. Square-pixel video without side data is required; copy accepts H.264/HEVC within requested height.",
+        "Checks rational packet presentation timing/extent, source before-after hash, delivery decode, rate/channels and AAC priming/padding allowance. Reencoding is not source decoded-frame or exact PCM identity, nor proof of physical capture sync.",
+        "At most one video encode and two audio attempts, up to3dB audio attenuation to meet measured -1.5dBTP. Native8..192kHz/1..8 channels and duration<=300s; generated qualification covers mono/stereo; source/output<=3GiB. Two threads, owned logs4MiB per stream, compact16KiB and receipt64KiB.",
+        "Known domain failures remain tool errors with bounded staging/recovery receipts, including possible/committed publication. Inspect exact receipts before retrying; missing sidecar alone does not prove absence.",
+        "Worker cleanup covers its recorded owned children under the inner deadline; generic outer group fallback does not establish containment of distinct child sessions or unknown publication after a wedged worker."
+      ],
+      "limitations_count": 6,
+      "name": "share_export",
+      "skill": ".agents/skills/media-share-export/SKILL.md",
+      "title": "Export a compressed sharing video"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "review",
+      "area_basis": "program/capabilities.json domain",
+      "capability": {
+        "domain": "review",
+        "effects": {
+          "model_acquisition": false,
+          "network": false,
+          "overwrites_input": false,
+          "reads": [
+            "run_manifest",
+            "run_json_evidence",
+            "annotation_request"
+          ],
+          "renders_audio": false,
+          "renders_video": false,
+          "writes": [
+            "annotation_store"
+          ]
+        },
+        "parameters": {
+          "input": {
+            "default_owner": "none",
+            "default_policy": "omitted_means_none"
+          },
+          "operation": {
+            "default_owner": "root",
+            "default_policy": "schema_default"
+          },
+          "run_dir": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "timeout_seconds": {
+            "default_owner": "root",
+            "default_policy": "schema_default"
+          }
+        },
+        "resources": {
+          "heavy_numeric": false,
+          "resource_class": "metadata_light",
+          "timeout_seconds": {
+            "default": 60,
+            "max": 900,
+            "min": 1
+          }
+        },
+        "stage": "annotation_store"
+      },
+      "capability_reason": null,
+      "dependencies": {
+        "enforced": false,
+        "note": "Discovery guidance; worker-specific source binding and reference checks apply.",
+        "recommended_prior_tools": [
+          "review",
+          "pipeline"
+        ]
+      },
+      "evidence_kind": "structured_supplied_annotation",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "input",
+          "operation",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "User-reported issues, detector hypotheses and reference intent remain separate; successful writes do not authenticate authorship or confirm musical mistakes.",
+        "Separate v2 store is bounded to200 annotations/512 replay receipts/1MB; limits refuse instead of evicting. Literal replay is evaluated before stale-revision conflict.",
+        "Original source seconds include stream offsets; display dwell does not establish phrase extent. No audio processing, server launch, master adoption or native/burned overlay operation."
+      ],
+      "limitations_count": 3,
+      "name": "annotation_v2",
+      "skill": ".agents/skills/guitar-annotation-v2/SKILL.md",
+      "title": "Structured practice annotations"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "area": "corpus",
+      "area_basis": "program/capabilities.json domain",
+      "capability": {
+        "domain": "corpus",
+        "effects": {
+          "model_acquisition": false,
+          "network": false,
+          "overwrites_input": false,
+          "reads": [
+            "corpus_metadata"
+          ],
+          "renders_audio": false,
+          "renders_video": false,
+          "writes": []
+        },
+        "parameters": {
+          "local_root": {
+            "default_owner": "none",
+            "default_policy": "omitted_means_worker_default"
+          },
+          "manifest": {
+            "default_owner": "none",
+            "default_policy": "explicit_required"
+          },
+          "timeout_seconds": {
+            "default_owner": "root",
+            "default_policy": "schema_default"
+          }
+        },
+        "resources": {
+          "heavy_numeric": false,
+          "resource_class": "metadata_light",
+          "timeout_seconds": {
+            "default": 600,
+            "max": 900,
+            "min": 1
+          }
+        },
+        "stage": "split_validation"
+      },
+      "capability_reason": null,
+      "dependencies": {
+        "enforced": false,
+        "note": "Explicit existing authored corpus and review-store metadata are required; this tool does not create annotations or corpus labels.",
+        "recommended_prior_tools": [
+          "corpus",
+          "annotation_v2"
+        ]
+      },
+      "evidence_kind": "supplied_family_split_metadata_consistency",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "local_root",
+          "manifest",
+          "timeout_seconds"
+        ],
+        "required": [
+          "manifest"
+        ]
+      },
+      "limitations": [
+        "Metadata checks do not authenticate supplied audio identity, take lineage, authorship or musical ground truth.",
+        "Split assignments are explicitly authored; unassigned groups stay unassigned. Unlabelled intervals stay unknown with no negative examples or training.",
+        "Read-only bounded JSON:500records,1MB/file,16MBtotal,5000selected annotations. MCP summary omits annotation text and reporter identities. Source audio is never read or rehashed."
+      ],
+      "limitations_count": 3,
+      "name": "corpus_split",
+      "skill": ".agents/skills/guitar-corpus-split/SKILL.md",
+      "title": "Take-family corpus split validation"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "delivery",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Requires current generic markers, manifest, flags/DAG context, an explicit selection, a hash-bound planner profile with a complete PTS artifact and the closed export profile. Prior tools are not invoked automatically; the exporter calls the planner worker unchanged.",
+        "recommended_prior_tools": [
+          "markers",
+          "marked_video",
+          "editor_marker_plan"
+        ]
+      },
+      "evidence_kind": "uniform_grid_gated_native_marker_preview_unverified_import",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "format",
+          "profile",
+          "run_dir",
+          "selection",
+          "timeout_seconds"
+        ],
+        "required": [
+          "format",
+          "profile",
+          "run_dir",
+          "selection"
+        ]
+      },
+      "limitations": [
+        "Writes only to a fresh exclusive <run_dir>/editor-export-<format>-<export_profile_sha256[:12]> directory chosen by the dispatcher; an existing path rejects and nothing is overwritten. Abstention creates no file or directory. Summary stdout <=64KiB, stderr <=16KiB, Info.fcpxml <=4MiB, sidecar <=16MiB; planner bounds are inherited (<=1000 actions or selection_required with no truncation).",
+        "Cadence is measured only from the complete PTS table; average/nominal frame rate, header frame counts and file names never satisfy a check. The October 5, 2026 take is VFR and abstains with calibration_required / cadence variable.",
+        "Valid XML is not an import: application_import is not_performed, final_cut_version/resolve_version are null, api_contract is unverified, executable is false and host_frame_id is null. The MCP hook exposes no DTD input, so dtd_validation is always not_performed here.",
+        "Display timecode labels (NDF everywhere; DF only at 30000/1001, 60000/1001, 120000/1001) are sidecar identifiers with an unverified host basis; they never change media time or samples.",
+        "Markers remain needs_review hypotheses. No note-correctness, missed/extra-note or mistake verdict, no listening, mastering or AU/Logic acceptance; listening_acceptance and musical_verdict stay not_established."
+      ],
+      "limitations_count": 5,
+      "name": "editor_marker_export",
+      "skill": ".agents/skills/editor-marker-export/SKILL.md",
+      "title": "Verified-uniform editor marker export preview"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "area": "review",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Requires an existing v2 store and its current SHA-256 (read it with annotation_v2 first); this tool does not create or change annotations.",
+        "recommended_prior_tools": [
+          "annotation_v2"
+        ]
+      },
+      "evidence_kind": "human_annotation_projection_not_verdict",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "include_text",
+          "output_dir",
+          "run_dir",
+          "store_sha256",
+          "timeout_seconds"
+        ],
+        "required": [
+          "output_dir",
+          "run_dir",
+          "store_sha256"
+        ]
+      },
+      "limitations": [
+        "Reads only run-local manifest.json and review-annotations-v2.json (store <=1MB); never opens audio, never writes the run and never edits the annotation store. Output is a fresh directory beneath repository artifacts/; nothing is overwritten.",
+        "Basis labels USER REPORTED / INTENT / REVIEW / REFERENCE REVIEW are assertion provenance, not verdicts; musical_verdict stays not_established and performance_issue_confirmed false. Points keep end == start; no duration is invented.",
+        "At most two simultaneously visible callouts by the frozen basis-priority rule; suppressed rows remain in suppressed_markers with a reason. editor_import is not_validated, picture_coverage not_evaluated and listening_acceptance not_established.",
+        "The existing marked_video renderer does not yet draw the basis badge; annotation-marker rows rendered there cannot be told apart from detector rows until that root-owned change lands."
+      ],
+      "limitations_count": 4,
+      "name": "annotation_markers",
+      "skill": ".agents/skills/guitar-annotation-markers/SKILL.md",
+      "title": "Annotation v2 marker projection"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "area": "review",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Requires an existing flags.json and either hash-bound semantic phrase spans or a bound click grid; prior tools are not invoked automatically.",
+        "recommended_prior_tools": [
+          "phrases",
+          "clicks"
+        ]
+      },
+      "evidence_kind": "review_ordering_of_existing_hypotheses",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "output",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "output",
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Frozen rule flags-triage-priority-v1 with no knobs: tier by existing kind, hash-bound evidence slot, then source time, kind and index. Numeric confidence/similarity values are uncalibrated and never used.",
+        "Windows come from hash-bound semantic phrase spans or 16 consecutive click-grid periods; grid windows are navigation aids, not bars or downbeats. Without either basis the tool refuses rather than inventing windows.",
+        "Navigation proxies are hidden but retained verbatim in hidden_navigation; suppressed flags keep their winner. shown + suppressed_lower_priority + navigation_hidden == total_flags.",
+        "Reads run metadata only and writes one fresh file beneath repository artifacts/; the run is never written. No new flag kinds, no verdict, performance_grade not_assigned and musical_verdict not_established."
+      ],
+      "limitations_count": 4,
+      "name": "flags_triage",
+      "skill": ".agents/skills/guitar-flags-triage/SKILL.md",
+      "title": "Default review ordering of run flags"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "area": "corpus_eval",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Requires a valid authored split manifest, selected v2 annotation stores and an explicit proposals file with its SHA-256; prior tools are not invoked automatically.",
+        "recommended_prior_tools": [
+          "corpus_split",
+          "annotation_v2"
+        ]
+      },
+      "evidence_kind": "sparse_coverage_first_recall_no_negatives",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "local_root",
+          "manifest",
+          "output",
+          "proposals",
+          "proposals_sha256",
+          "timeout_seconds"
+        ],
+        "required": [
+          "manifest",
+          "output",
+          "proposals",
+          "proposals_sha256"
+        ]
+      },
+      "limitations": [
+        "Fixed coverage_threshold 0.5 and match tolerance 0.25 s. Below threshold, or without literal accepted operator assertions, recall is null; a null result is valid.",
+        "Precision is always null: the v2 schema has no reviewed-absence label, unlabelled time is unknown_not_negative and negatives/true_negatives/false_positives are null.",
+        "Proposals are read once, hash-pinned and never filtered, re-thresholded or re-ranked beyond excluding navigation proxies. Error and articulation axes stay separate; v2 articulation has no subtype and is not spread across technique axes.",
+        "Metadata only: no audio is read, no model runs and nothing is trained. Writes one fresh file beneath repository artifacts/. Detector latency and physical sync are uncalibrated; ground_truth_established stays false and listening_acceptance not_established."
+      ],
+      "limitations_count": 4,
+      "name": "corpus_eval_s2",
+      "skill": ".agents/skills/guitar-corpus-eval/SKILL.md",
+      "title": "Coverage-first sparse corpus evaluation"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "delivery",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Current verified export and arrangement preview are required; prior tools are not invoked automatically.",
+        "recommended_prior_tools": [
+          "export",
+          "marked_video"
+        ]
+      },
+      "evidence_kind": "verified_copy_only_composition",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "arrangement_markers",
+          "output",
+          "picture_preview",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "arrangement_markers",
+          "picture_preview",
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Both branches must share the original SHA-256, native PCM and origin 0 with no time stretch; other origins refuse in v1.",
+        "Accepted FULLER listening label only for the identical chain with byte-identical audio; otherwise not_performed. The composite has no visual or listening review.",
+        "Markers may analyze a different signal version of the same take; markers_are_analysis_of_audio_branch records this.",
+        "Physical capture A/V synchronization, native editor import and per-passage level matching remain unverified."
+      ],
+      "limitations_count": 4,
+      "name": "marked_compact",
+      "skill": ".agents/skills/guitar-marked-compact/SKILL.md",
+      "title": "Compact marked review movie (copy only)"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "area": "phrase_rhythm",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Requires an existing rhythm analysis.json with a click grid or drift model and a phrase source bound to the same analyzed input; prior tools are not invoked automatically.",
+        "recommended_prior_tools": [
+          "rhythm",
+          "phrases",
+          "arrangement_reference"
+        ]
+      },
+      "evidence_kind": "descriptive_click_relative_timing_unvalidated",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "analysis",
+          "output_root",
+          "phrases",
+          "run_kind",
+          "timeout_seconds"
+        ],
+        "required": [
+          "analysis",
+          "output_root",
+          "phrases"
+        ]
+      },
+      "limitations": [
+        "Offsets use broadband attack candidates, which can include click energy, handling noise or several merged attacks; they are not note identities.",
+        "The click reference is fitted to unverified periodic high-frequency transients; a guitar attack can displace or mask a click. Physical capture latency is uncalibrated and detector-delay compensation uses synthetic-probe medians.",
+        "Phrase spans are review candidates or reference-conditioned alignments, not detected musical boundaries. Phrases with fewer than 4 click-proximal onsets, no click grid or spans outside the analysis abstain.",
+        "Ahead/behind direction is reported only for generated known-offset fixtures (run_kind synthetic_fixture) or with an operator calibration, and no calibration input exists yet; on real takes direction is null with direction_status withheld_uncalibrated. No intended-rhythm reference is used: no performance grade, missed/extra note or mistake verdict. Inputs are read only; one fresh output child is written beneath artifacts/."
+      ],
+      "limitations_count": 4,
+      "name": "phrase_timing",
+      "skill": ".agents/skills/guitar-phrase-timing/SKILL.md",
+      "title": "Per-phrase timing against the recorded click (experimental)"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "review",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Requires an existing run with manifest-recorded stage hashes; attack panels need an analysis.json bound to the run's denoised sha256 (run dir or capture-profile parent run), otherwise attack metrics are null with a reason.",
+        "recommended_prior_tools": [
+          "denoise",
+          "apply_capture_profile",
+          "bpm"
+        ]
+      },
+      "evidence_kind": "level_matched_mixture_band_and_attack_measurements_with_unreview",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "candidate_run_dir",
+          "common_region_end",
+          "common_region_start",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "common_region_end",
+          "common_region_start",
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Band and attack values are mixture energy; fan and music are not separated, and a 20-45 Hz level is not a measured played C1 fundamental.",
+        "processed.wav combines EQ and compressor; the two cannot be attributed separately.",
+        "Attack positions are unverified detector hypotheses with +/-5 ms hop quantization and uncalibrated detector delay.",
+        "The low-shelf trial is a single preregistered, unreviewed arm (rejected_or_unreviewed_trial); it is never adopted or forwarded to a capture profile.",
+        "Excerpts are for operator listening; preference, fullness and nasal quality stay null until the operator responds. True peak is not measured."
+      ],
+      "limitations_count": 5,
+      "name": "tone_ab",
+      "skill": ".agents/skills/guitar-tone-ab/SKILL.md",
+      "title": "Stage-attributed level-matched tone A/B"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "pipeline_report",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Bundles whatever bound evidence exists; missing or rejected analysis and payloads stay visible as statuses and the report abstains.",
+        "recommended_prior_tools": [
+          "rhythm",
+          "pipeline",
+          "report"
+        ]
+      },
+      "evidence_kind": "hash_bound_metadata_bundle_with_quoted_receipt_figures",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "analysis_run_dir",
+          "annotation_store",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Receipt figures are quoted from each receipt, not re-measured; a source_bound_different_analyzed_input receipt describes a different derivative of the same take.",
+        "Synthetic generated-bank results are never operator-labelled coverage or real-take accuracy.",
+        "Operator-labelled coverage reflects the bound annotation store only; absence of labels is not evidence of correctness.",
+        "The bundle establishes provenance, not listening acceptance, note correctness, meter, tonic, mode or the presence of the ~32.7 Hz fundamental.",
+        "verify --check-origin rehashes member origins but not the run's stage WAVs; rebuild to rehash them."
+      ],
+      "limitations_count": 5,
+      "name": "report_bundle",
+      "skill": ".agents/skills/guitar-report-bundle/SKILL.md",
+      "title": "Hash-bound report bundle"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "phrase_rhythm",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "A current verified denoised run, a program/models.json entry with a measured sha256, the prefetched local checkpoint and the isolated Linux runtime are required. Prior tools are not invoked automatically; model registration, prefetch and runtime setup are separate explicit root operations.",
+        "recommended_prior_tools": [
+          "denoise",
+          "bpm",
+          "clicks"
+        ]
+      },
+      "evidence_kind": "uncalibrated_learned_beat_downbeat_hypotheses",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "Beats and downbeats from a mono mixture with an in-room click are uncalibrated model hypotheses; downbeat spacing does not establish meter, a time signature or bar lines (meter_claim none, downbeat_semantics model_hypothesis_not_bar_line).",
+        "median_ibi_seconds, ibi_tempo_bpm and the half/double ratio against the click grid are arithmetic on model output, not an identification of intended tempo; tempo_identity and real-take accuracy remain unknown and physical capture latency is uncalibrated.",
+        "No note-correctness, missed/extra-note, phrase or performance claim is made and no expected-rhythm reference is used; note_correctness, performance_issue and expected_rhythm_reference are always null.",
+        "The comparator has no knobs (final0, CPU, float16 off, DBN off, 2 threads, 600 s, 2 GiB RSS) and is never a default detector; listening_accepted and default_adoption are always false and rhythm/bpm/clicks output is never replaced.",
+        "Fails closed in order: model_not_registered, model_hash_not_registered, model_registry_entry_invalid, model_file_missing, model_hash_mismatch, runtime_not_qualified, platform_unsupported, input_rejected. The model registry entry, hash-bound fetch and Linux runtime setup are explicit root acts; this tool performs none of them.",
+        "Analysis runs at 22.05 kHz with mel f_min 30 Hz inside the upstream preprocessing; approximately 32 Hz low-string fundamentals sit at the edge of that front end and their contribution to the model's pulse is not measured. Real-take outputs are V6_private_real_take_derived and stay in ignored artifacts."
+      ],
+      "limitations_count": 6,
+      "name": "beat_this_compare",
+      "skill": ".agents/skills/guitar-beat-this/SKILL.md",
+      "title": "Optional learned beat/downbeat comparison (Beat This)"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "area": "analysis",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "A current verified denoised run or generated fixture is required. The gateway URL (VIDEO_UTILS_GUITAR_NOUL_GATEWAY) and the real-take switch are operator environment configuration; prior tools are not invoked automatically.",
+        "recommended_prior_tools": [
+          "denoise",
+          "phrases",
+          "rhythm"
+        ]
+      },
+      "evidence_kind": "external_detector_window_hypotheses",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "run_dir",
+          "timeout_seconds",
+          "windows"
+        ],
+        "required": [
+          "run_dir",
+          "timeout_seconds",
+          "windows"
+        ]
+      },
+      "limitations": [
+        "Gateway labels are opaque detector hypotheses (claim_class detector_hypothesis, authorship detector:guitar_noul, is_label false, user_reported false); they are never mapped to annotations, flags, review badges, user labels or counted as errors.",
+        "note_correctness and performance_issue are always null; no missed/extra-note, phrase or performance verdict follows from a label, and confidence_label is gateway-reported and uncalibrated.",
+        "The gateway is not deployed and the wire schema tin-5619-v0 and label vocabulary are provisional and unratified (gateway_wire_schema_ratified false, label_vocabulary_ratified false); until configured every call refuses gateway_not_configured.",
+        "Every run that is not a generated fixture with a recorded generator and seed is treated as a real take; its windows leave video-utils only with VIDEO_UTILS_GUITAR_NOUL_ALLOW_REAL_TAKE set to the exact V6 value, otherwise the call refuses real_take_not_permitted without contacting the gateway.",
+        "The client holds no credentials; tailnet/tsidp identity is assumed and not verified by the client. HTTP 401/403 maps to gateway_auth_refused and connection errors to gateway_unreachable after one retry.",
+        "Excerpts are 16 kHz mono PCM16 resamples of denoised.wav (<=30 s per window, <=8 MiB per request); approximately 32 Hz low-string content, saturated texture and the full custom tuning are not represented to the detector as recorded, and its behaviour on the distorted nine-string is unknown."
+      ],
+      "limitations_count": 6,
+      "name": "guitar_noul_decide",
+      "skill": ".agents/skills/guitar-noul/SKILL.md",
+      "title": "External guitar_noul window hypotheses (TIN-5619 client)"
+    }
+  ],
+  "unknown_fields": {
+    "model_gate_state": {
+      "reason": "per model: gate_state is copied only when recorded",
+      "value": null
+    },
+    "model_local_presence": {
+      "reason": "This read API never inspects model caches.",
+      "value": "not_checked"
+    },
+    "tool_area_basis": {
+      "reason": "Tool areas come from program/capabilities.json domains where present, else this presentation map.",
+      "value": "routes_review presentation map; not a registry field"
+    }
+  }
+}

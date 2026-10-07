@@ -1,0 +1,37 @@
+{
+  "runs": [
+    {
+      "baseline_eligibility_reason": "bounded manifest + source.wav + native timeline; manifest names the admitted file",
+      "baseline_eligible": true,
+      "manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000022",
+      "output_hash_basis": "manifest-claimed sha256, not re-hashed by this listing; media and capture routes re-hash",
+      "outputs": [
+        {
+          "artifact_id": "art_00000000000000000000000000000018",
+          "role": "source",
+          "served_via_run_media": true,
+          "sha256_claimed": "000000000000000000000000000000000000000000000000000000000000002f"
+        }
+      ],
+      "pcm": {
+        "channels": 1,
+        "codec": "pcm_f32le",
+        "duration_seconds": 13.0,
+        "sample_count": 208000,
+        "sample_rate": 16000
+      },
+      "profile_name": "bypass",
+      "role": "baseline",
+      "run_id": "BASE-PLAIN",
+      "status": "rendered_unreviewed"
+    }
+  ],
+  "scanned_entries": 7,
+  "schema_version": 1,
+  "source_artifact_id": "art_00000000000000000000000000000001",
+  "truncated": false,
+  "unknowns": {
+    "probe_duration_seconds": null,
+    "probe_duration_seconds_reason": "listing reports bound run manifest PCM only; no container probe"
+  }
+}

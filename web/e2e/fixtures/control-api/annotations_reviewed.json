@@ -1,0 +1,55 @@
+{
+  "clock": {
+    "attempt": 1,
+    "clock_basis": "share_export video packet presentation extent (inference, not a container probe)",
+    "duration_seconds": 2.0,
+    "job_id": "job_00000000000000000000000000000001",
+    "manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000001",
+    "player_clock_offset_reason": "span seconds = player currentTime + source_start_seconds; whether the browser media clock matches the container presentation timeline is not verified",
+    "player_clock_offset_verified": false,
+    "source_end_seconds": 2.0,
+    "source_start_seconds": 0.0
+  },
+  "schema_version": 1,
+  "store": {
+    "annotations": [
+      {
+        "basis": "operator_assertion",
+        "candidate_id": null,
+        "claim_label": "USER REPORTED",
+        "created_at": "2026-10-07T12:00:05+00:00",
+        "created_with": {
+          "candidate_artifact_sha256": null,
+          "manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000001"
+        },
+        "id": "00000000-0000-0000-0000-000000000001",
+        "kind": "tone",
+        "musical_verdict": "not_established",
+        "note": "synthetic fixture note (no recording was heard)",
+        "operator_certainty": "uncertain",
+        "operator_quote": "synthetic fixture quote",
+        "reference_sha256": null,
+        "reported_by": {
+          "actor": "operator",
+          "via": "browser"
+        },
+        "source_span": {
+          "end_seconds": 0.5,
+          "extent_known": false,
+          "start_seconds": 0.5
+        },
+        "status": "needs_review",
+        "updated_at": "2026-10-07T12:00:05+00:00",
+        "updated_with": {
+          "candidate_artifact_sha256": null,
+          "manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000001"
+        }
+      }
+    ],
+    "listening_acceptance": "not_established",
+    "manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000001",
+    "revision": 1,
+    "schema_version": 2,
+    "source_sha256": "0000000000000000000000000000000000000000000000000000000000000002"
+  }
+}

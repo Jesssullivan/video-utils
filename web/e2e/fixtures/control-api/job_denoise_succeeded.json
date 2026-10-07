@@ -1,0 +1,239 @@
+{
+  "admission_state": "admitted",
+  "artifacts": [
+    {
+      "artifact_id": "art_0000000000000000000000000000000e",
+      "attempt": 1,
+      "content_type": "application/json",
+      "downloadable": true,
+      "role": "publication",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000017",
+      "size_bytes": 5156
+    }
+  ],
+  "attempts": [
+    {
+      "attempt": 1,
+      "cancel": null,
+      "ended_at": "2026-10-07T12:00:09Z",
+      "liveness": null,
+      "reason_code": null,
+      "reconciled_publication": false,
+      "started_at": "2026-10-07T12:00:08Z",
+      "state": "succeeded",
+      "worker_checks": {
+        "dsp_performed": true,
+        "high_pass_applied": false,
+        "hum_notches_applied": false,
+        "listening_accepted": false,
+        "master_adopted": false,
+        "outputs": [
+          {
+            "artifact_id": "art_0000000000000000000000000000000f",
+            "content_type": "audio/wav",
+            "name": "baseline.wav",
+            "role": "baseline",
+            "served_via_run_media": false,
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000018",
+            "size_bytes": 48
+          },
+          {
+            "artifact_id": "art_00000000000000000000000000000010",
+            "content_type": "audio/wav",
+            "name": "cleaned.wav",
+            "role": "cleaned",
+            "served_via_run_media": true,
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000019",
+            "size_bytes": 47
+          },
+          {
+            "artifact_id": "art_00000000000000000000000000000011",
+            "content_type": "audio/wav",
+            "name": "denoised.wav",
+            "role": "denoised",
+            "served_via_run_media": true,
+            "sha256": "000000000000000000000000000000000000000000000000000000000000001a",
+            "size_bytes": 48
+          },
+          {
+            "artifact_id": "art_00000000000000000000000000000012",
+            "content_type": "audio/wav",
+            "name": "residue.wav",
+            "role": "residue",
+            "served_via_run_media": true,
+            "sha256": "000000000000000000000000000000000000000000000000000000000000001b",
+            "size_bytes": 47
+          },
+          {
+            "artifact_id": "art_00000000000000000000000000000013",
+            "content_type": "audio/wav",
+            "name": "source.wav",
+            "role": "source",
+            "served_via_run_media": true,
+            "sha256": "000000000000000000000000000000000000000000000000000000000000001c",
+            "size_bytes": 46
+          },
+          {
+            "artifact_id": "art_00000000000000000000000000000014",
+            "content_type": "application/json",
+            "name": "manifest.json",
+            "role": "manifest",
+            "served_via_run_media": false,
+            "sha256": "000000000000000000000000000000000000000000000000000000000000001d",
+            "size_bytes": 1519
+          }
+        ],
+        "pcm": {
+          "channels": 1,
+          "codec": "pcm_f32le",
+          "duration_seconds": 1.0,
+          "sample_count": 16000,
+          "sample_rate": 16000
+        },
+        "profile_name": "bypass",
+        "run_id": "RUN-STUB-DENOISE",
+        "source_sha256": "0000000000000000000000000000000000000000000000000000000000000002",
+        "status": "rendered_unreviewed"
+      },
+      "worker_kind": "test_stub"
+    }
+  ],
+  "authoring_id": null,
+  "bound_input": null,
+  "cancel_requested": false,
+  "capability_revision": "000000000000000000000000000000000000000000000000000000000000001e",
+  "claim_class": "job_state_record",
+  "created_at": "2026-10-07T12:00:07Z",
+  "eta_seconds": null,
+  "eta_seconds_reason": "not estimated",
+  "idempotency_key": "fixture-00000004",
+  "job_id": "job_00000000000000000000000000000004",
+  "outputs": [
+    {
+      "artifact_id": "art_0000000000000000000000000000000f",
+      "content_type": "audio/wav",
+      "name": "baseline.wav",
+      "role": "baseline",
+      "served_via_run_media": false,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000018",
+      "size_bytes": 48
+    },
+    {
+      "artifact_id": "art_00000000000000000000000000000010",
+      "content_type": "audio/wav",
+      "name": "cleaned.wav",
+      "role": "cleaned",
+      "served_via_run_media": true,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000019",
+      "size_bytes": 47
+    },
+    {
+      "artifact_id": "art_00000000000000000000000000000011",
+      "content_type": "audio/wav",
+      "name": "denoised.wav",
+      "role": "denoised",
+      "served_via_run_media": true,
+      "sha256": "000000000000000000000000000000000000000000000000000000000000001a",
+      "size_bytes": 48
+    },
+    {
+      "artifact_id": "art_00000000000000000000000000000012",
+      "content_type": "audio/wav",
+      "name": "residue.wav",
+      "role": "residue",
+      "served_via_run_media": true,
+      "sha256": "000000000000000000000000000000000000000000000000000000000000001b",
+      "size_bytes": 47
+    },
+    {
+      "artifact_id": "art_00000000000000000000000000000013",
+      "content_type": "audio/wav",
+      "name": "source.wav",
+      "role": "source",
+      "served_via_run_media": true,
+      "sha256": "000000000000000000000000000000000000000000000000000000000000001c",
+      "size_bytes": 46
+    },
+    {
+      "artifact_id": "art_00000000000000000000000000000014",
+      "content_type": "application/json",
+      "name": "manifest.json",
+      "role": "manifest",
+      "served_via_run_media": false,
+      "sha256": "000000000000000000000000000000000000000000000000000000000000001d",
+      "size_bytes": 1519
+    }
+  ],
+  "parameters": {
+    "profile": "bypass",
+    "timeout_seconds": 30
+  },
+  "phase": "published",
+  "phase_reason": "latest job event reason code, read from a separate read-only snapshot; it may lead or lag state by one event",
+  "progress": {
+    "completed": 6,
+    "denominator": 6,
+    "unit": "lifecycle_steps"
+  },
+  "progress_reason": "lifecycle step count from the job event log; not an encode fraction; share_export reports no incremental progress",
+  "reason_code": null,
+  "run_id": "RUN-STUB-DENOISE",
+  "schema_version": 1,
+  "source_artifact_id": "art_00000000000000000000000000000002",
+  "source_binding": "bound",
+  "source_id": "src_00000000000000000000000000000001",
+  "state": "succeeded",
+  "tool": "denoise",
+  "tool_envelope": {
+    "evidence_kind": "rendered_unreviewed",
+    "implementation_status": "available",
+    "instrument_context": {
+      "automatic_high_pass": false,
+      "lowest_intentional_fundamental_hz": 32,
+      "preserve_distortion": true,
+      "strings": 9,
+      "styles": [
+        "deathcore",
+        "technical",
+        "virtuoso"
+      ]
+    },
+    "limitations": [
+      "No automatic high-pass or hum notch; denoising can still remove intended fundamentals and harmonics. Listening acceptance is required.",
+      "Captured presets require original SHA 0000000000000000000000000000000000000000000000000000000000000007 and root-reviewed 4.10\u20134.95 second audio-relative interval. Different sources reject before probe/render; music or sustain absence is uncertain.",
+      "Pure denoised.wav and removed-signal residue remain separate from optional processed.wav EQ/compression and final cleaned.wav normalization. No optimal-tone or listening acceptance claim.",
+      "Only fixed profile names are exposed; no arbitrary capture interval, EQ or compressor object. Actual source-bound presets are excluded from synthetic benchmark profile choices."
+    ],
+    "schema_version": 1,
+    "skill": ".agents/skills/guitar-denoise/SKILL.md",
+    "tool": "denoise"
+  },
+  "unknowns": {
+    "capture_noise_only": null,
+    "capture_noise_only_reason": "the reviewed interval is not verified noise-only",
+    "cpu_seconds": null,
+    "cpu_seconds_reason": "not measured; no OS CPU quota is applied",
+    "exactly_once": "not_claimed",
+    "fuller_listening_transfer": null,
+    "fuller_listening_transfer_reason": "FULLER acceptance covers one source/interval only (a522115f4e72, native samples [180810, 218295)); not transferred",
+    "level_matched": null,
+    "level_matched_reason": "span audition is not level-matched",
+    "listening_acceptance": null,
+    "listening_acceptance_reason": "operator listening not performed for this version",
+    "low_register_preservation": null,
+    "low_register_preservation_reason": "~32 Hz content not measured by a job service",
+    "master_adopted": false,
+    "master_adopted_reason": "the web job service never adopts a master or latest pointer",
+    "memory_bytes_peak": null,
+    "memory_bytes_peak_reason": "not measured; no OS memory quota is applied",
+    "music_or_click_presence": null,
+    "music_or_click_presence_reason": "operator assertion only unless reviewed_present",
+    "musical_review": null,
+    "musical_review_reason": "no note-correctness, missed-note or phrase verdict",
+    "slo": "not_claimed",
+    "worker_birth": "recorded",
+    "worker_birth_reason": "ps lstart recorded for the latest attempt"
+  },
+  "updated_at": "2026-10-07T12:00:09Z",
+  "worker_status": "rendered_unreviewed"
+}

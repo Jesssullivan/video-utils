@@ -1,0 +1,134 @@
+{
+  "runs": [
+    {
+      "baseline_eligibility_reason": "bounded manifest + source.wav + native timeline; manifest names the admitted file",
+      "baseline_eligible": true,
+      "manifest_sha256": "000000000000000000000000000000000000000000000000000000000000001d",
+      "output_hash_basis": "manifest-claimed sha256, not re-hashed by this listing; media and capture routes re-hash",
+      "outputs": [
+        {
+          "artifact_id": "art_0000000000000000000000000000000f",
+          "role": "baseline",
+          "served_via_run_media": false,
+          "sha256_claimed": "0000000000000000000000000000000000000000000000000000000000000018"
+        },
+        {
+          "artifact_id": "art_00000000000000000000000000000010",
+          "role": "cleaned",
+          "served_via_run_media": true,
+          "sha256_claimed": "0000000000000000000000000000000000000000000000000000000000000019"
+        },
+        {
+          "artifact_id": "art_00000000000000000000000000000011",
+          "role": "denoised",
+          "served_via_run_media": true,
+          "sha256_claimed": "000000000000000000000000000000000000000000000000000000000000001a"
+        },
+        {
+          "artifact_id": "art_00000000000000000000000000000012",
+          "role": "residue",
+          "served_via_run_media": true,
+          "sha256_claimed": "000000000000000000000000000000000000000000000000000000000000001b"
+        },
+        {
+          "artifact_id": "art_00000000000000000000000000000013",
+          "role": "source",
+          "served_via_run_media": true,
+          "sha256_claimed": "000000000000000000000000000000000000000000000000000000000000001c"
+        }
+      ],
+      "pcm": {
+        "channels": 1,
+        "codec": "pcm_f32le",
+        "duration_seconds": 1.0,
+        "sample_count": 16000,
+        "sample_rate": 16000
+      },
+      "profile_name": "bypass",
+      "role": "baseline",
+      "run_id": "RUN-STUB-DENOISE",
+      "status": "rendered_unreviewed"
+    },
+    {
+      "baseline_eligibility_reason": "bounded manifest + source.wav + native timeline; manifest names the admitted file",
+      "baseline_eligible": true,
+      "manifest_sha256": "000000000000000000000000000000000000000000000000000000000000000e",
+      "output_hash_basis": "manifest-claimed sha256, not re-hashed by this listing; media and capture routes re-hash",
+      "outputs": [
+        {
+          "artifact_id": "art_00000000000000000000000000000004",
+          "role": "baseline",
+          "served_via_run_media": false,
+          "sha256_claimed": "0000000000000000000000000000000000000000000000000000000000000009"
+        },
+        {
+          "artifact_id": "art_00000000000000000000000000000005",
+          "role": "cleaned",
+          "served_via_run_media": true,
+          "sha256_claimed": "000000000000000000000000000000000000000000000000000000000000000a"
+        },
+        {
+          "artifact_id": "art_00000000000000000000000000000006",
+          "role": "denoised",
+          "served_via_run_media": true,
+          "sha256_claimed": "000000000000000000000000000000000000000000000000000000000000000b"
+        },
+        {
+          "artifact_id": "art_00000000000000000000000000000007",
+          "role": "residue",
+          "served_via_run_media": true,
+          "sha256_claimed": "000000000000000000000000000000000000000000000000000000000000000c"
+        },
+        {
+          "artifact_id": "art_00000000000000000000000000000008",
+          "role": "source",
+          "served_via_run_media": true,
+          "sha256_claimed": "000000000000000000000000000000000000000000000000000000000000000d"
+        }
+      ],
+      "pcm": {
+        "channels": 1,
+        "duration_seconds": 1.0,
+        "sample_count": 16000,
+        "sample_rate": 16000
+      },
+      "profile_name": null,
+      "role": "capture_candidate",
+      "run_id": "RUN-STUB-APPLY",
+      "status": "rendered_unreviewed"
+    },
+    {
+      "baseline_eligibility_reason": "bounded manifest + source.wav + native timeline; manifest names the admitted file",
+      "baseline_eligible": true,
+      "manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000023",
+      "output_hash_basis": "manifest-claimed sha256, not re-hashed by this listing; media and capture routes re-hash",
+      "outputs": [
+        {
+          "artifact_id": "art_00000000000000000000000000000019",
+          "role": "source",
+          "served_via_run_media": true,
+          "sha256_claimed": "000000000000000000000000000000000000000000000000000000000000002f"
+        }
+      ],
+      "pcm": {
+        "channels": 1,
+        "codec": "pcm_f32le",
+        "duration_seconds": 13.0,
+        "sample_count": 208000,
+        "sample_rate": 16000
+      },
+      "profile_name": "bypass",
+      "role": "baseline",
+      "run_id": "BASE-REVIEWED",
+      "status": "rendered_unreviewed"
+    }
+  ],
+  "scanned_entries": 7,
+  "schema_version": 1,
+  "source_artifact_id": "art_00000000000000000000000000000002",
+  "truncated": false,
+  "unknowns": {
+    "probe_duration_seconds": null,
+    "probe_duration_seconds_reason": "listing reports bound run manifest PCM only; no container probe"
+  }
+}
