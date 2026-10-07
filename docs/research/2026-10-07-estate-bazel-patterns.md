@@ -285,7 +285,7 @@ The lock Bazel wrote in the scratch copy is byte-identical to the committed one.
 Not established:
 
 - `//web` in the committed tree: it works only once root adds `allowBuilds`.
-- The other 91 Python test modules under Bazel. Only three ran; the tag
+- The other 92 of 95 Python test modules under Bazel. Only three ran; the tag
   classification is a reading, not a run, and the full suite is root's.
 - Linux and the hosted CI runner: nothing ran there.
 - `-c opt` builds (the `-Coverflow-checks`/`-Cpanic=abort` flags) were not built.
