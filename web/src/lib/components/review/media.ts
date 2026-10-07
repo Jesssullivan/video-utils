@@ -1,5 +1,5 @@
 // Client-safe media helpers. Exclusive playback: starting one player pauses the others. Nothing here starts
-// playback; there is no autoplay attribute and no play call anywhere in the review components.
+// playback; the review components never start playback themselves.
 export function pauseOthers(current: EventTarget | null): void {
 	if (typeof document === 'undefined') return;
 	for (const element of document.querySelectorAll<HTMLMediaElement>('audio, video')) {

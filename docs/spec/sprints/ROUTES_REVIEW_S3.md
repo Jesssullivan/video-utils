@@ -865,3 +865,139 @@ tool.
   practice bundle (`manifest_sha256 61c9b393…0a5f`, which currently matches)
   may be inspected read-only by root for an optional non-test smoke check. No
   test uses them.
+
+## 13. Phase 2 implementation notes (appended 2026-10-07)
+
+This section is additive. Sections 1 to 12 stay as frozen at `828b678`. It
+records where the implementation is more specific than the frozen text, and the
+one root-owned change that the stub replacement forces.
+
+### 13.1 Additive response keys
+
+All keys below are additive and closed in both `scripts/web_runs_api.py` and
+`web/src/lib/server/runs/schema.ts`. The `Schema` test class compares the
+top-level key sets of the five schemas (Python and TypeScript, 5/5).
+
+- `RunSummary` is `{run_id, run_status, source_id, source_sha256,
+  manifest_sha256, manifest_readable, stage_count, state_basis}`.
+- `RunGraph.admitted_sources_lookup` is `available` or `unavailable`. When it is
+  unavailable, `admitted_sources` is `[]` and every `has_annotation_clock` is
+  unknown, not false.
+- `RunGraph.processing` adds `noise_capture {selected_seconds, review}`,
+  `dsp_latency_status {name: status}` and `manifest_listening_accepted_field`.
+  The last one is the manifest's own `capture_profile_application.listening_accepted`
+  copied as recorded, and it is never treated as an acceptance.
+- `listening_acceptance` adds `master_adopted: false` and
+  `accepted_file_sha256`, which holds the cleaned WAV and export video hashes
+  that the pinned receipt names. The deliver page puts the accepted label only on
+  files whose SHA-256 is in that list.
+- `evidence[].files` lists `{name, role, artifact_id, sha256, size_bytes,
+  import_verified}` for current `editor_marker_export` and `marked_compact`
+  attachments. Marker payloads carry `import_verified: false`. An attachment file
+  ID is `artifact_id_for("evidence/<evidence_id>/<name>", sha256)`. It is opaque
+  and has no selector.
+- `RunLayers` adds `selected_generated_utc`, `source_extent {audio_start_seconds,
+  duration_seconds}` and `discovery_truncated`.
+- The `tone_ab`, `coverage`, `flags_triage` and `phrase_timing` layers are
+  closed envelopes `{status, reason, document}`. `document` is the bundle layer
+  copied and scrubbed (13.3). `phrase_timing.document` is `{files, refused}`,
+  where each kept file is `{file, sha256, analyzed_input_sha256, source_binding,
+  run_kind, document}`.
+- `layers.spectrogram` is `{status, reason, document: null}`. The top-level
+  `spectrogram` always carries the full key set, with nulls when unavailable. It
+  adds `stage`, `band_centre_hz` (copied from `render.json`),
+  `first_frame_centre_seconds`, `axis_offset_seconds`, `pcen_status` and
+  `reference_lines`. The reference line is read from `program/instrument.json`
+  string 9 and labelled "theoretical C1 (instrument.json)".
+- `layers.bpm` is `{value, reason, basis, grid}`. `value` is copied only from an
+  explicit `bpm` or `tempo_bpm` field and is never derived. `grid` is the
+  `flags_triage` `window_basis` period and phase, labelled as a navigation grid.
+  The reason is "no fitted click grid in bound evidence" when nothing is
+  recorded, or the grid-only reason when only a period is recorded.
+
+### 13.2 Unknown-field precedence
+
+The 21 S2 keys are copied from the selected bundle. They fall back to the
+composer defaults, with `basis: "S2 default (no practice bundle value bound)"`.
+There is one override. When the pinned acceptance receipt matches,
+`listening_acceptance` becomes `accepted_exact_files_only`, with the receipt's
+scope sentence as its reason. This stops the page from showing both "accepted"
+and "not established" for the same file. The 12 S3 keys follow section 7. The
+override applies only to the files the receipt names.
+
+### 13.3 Copied-document scrub
+
+Copied layer documents drop the keys `path`, `run_dir`, `output_dir`,
+`authoring_dir`, `commands`, `command`, `argv`, `inputs`, `output`,
+`input_path`, `filter`, `audio_master` and `picture_preview`. Any string that
+looks like a host path becomes `[host path withheld]`. Bundle `inputs` and
+`commands` are never projected.
+
+### 13.4 Binding details
+
+- A `lowreg_render` binds through `resampler.source_sha256`, which must equal the
+  recorded output hash of a `current` stage. A render whose `input.sha256` equals
+  a stage hash but that has no resampler record is listed as `unbound` and is not
+  drawn. The spectrogram prefers the stages cleaned, then processed, then
+  denoised, then source, then baseline.
+- A `marked_compact` receipt binds when `audio_branch.cleaned_sha256` equals the
+  run's recorded `cleaned.wav` hash. Its `audio_branch.manifest_sha256`, when
+  present, must equal the current manifest. If it does not, the receipt is
+  `bound_manifest_changed`.
+- An `editor_marker_export` binds by `source_sha256`. Every `payload_sha256`
+  entry must re-hash. If one does not, the attachment is `file_hash_mismatch`.
+- `export/*` videos are `current` when `export/outcome.json` records the same
+  hash under the same name, `stale` when it records another hash, and `unbound`
+  otherwise.
+- Discovery skips dot-prefixed entries, such as producer staging directories.
+
+### 13.5 UI behaviour details
+
+- Keyboard: `←` and `→` step 1 s, and holding Shift makes the step 5 s (S1
+  `transportKey` parity). As in S2, `B`, `I`, `N`, `P`, `Shift+N`, `Shift+P` and
+  `U` act only while the labelling session is on.
+- Without an admitted source, the review page shows a position slider in place
+  of the player, and the tracks still render.
+- The compact overlay sits in the top corner of the player and has
+  `pointer-events: none`. It never covers the native transport controls.
+
+### 13.6 Real-run read-only smoke (root may repeat it)
+
+Root can repeat this read-only check against the main checkout's
+`20261006T041633Z-990aa1bd6737`. No test uses that run.
+
+- **Graph.** All 6 stages are `current`. `export/cleaned-video.mov` is `current`
+  through `outcome.json`. `export/photoboof_demo_lega.mov` is `unbound`, with the
+  same bytes and no outcome entry. Listening acceptance is `accepted` with the
+  receipt scope.
+- **Evidence.** Three practice bundles and one marked-compact receipt are found.
+  `discovery_truncated` is false.
+- **Timing.** A cold request took 10.3 s, almost all of it hashing about 600 MB.
+  Repeat requests use the signature cache.
+- **Selection.** Two real-take bundles share `generated_utc`
+  `2026-10-06T20:09:03+00:00`. Under the frozen tie rule (lowest evidence ID) the
+  default is a schema-1 refusal-check bundle, so the default layers read
+  `phrase_timing: layer_schema_superseded` and `tone_ab: input_not_supplied`.
+  The fuller bundle is offered as an alternative (`?evidence=`). The rule was
+  not changed. This is recorded for root, and a sub-second composer timestamp
+  or an explicit root selection would resolve it.
+- **Schemas.** The `RunGraph`, `RunLayers`, `RunList` and `Capabilities`
+  outputs from this run decode with the closed TypeScript schemas (4/4).
+- **Cold-request limit.** The 10.3 s cold graph request is longer than the
+  frozen 5 s BFF request timeout. On the real take, the first page load after
+  `web_api` starts can therefore show `control_api_timeout`. The Python side
+  finishes hashing and caches by file signature, so a reload succeeds. The frozen
+  timeout was not raised. A root-owned cache warm-up or a longer graph timeout
+  would be a later decision.
+
+### 13.7 Root-owned change forced by the stub replacement
+
+`tests/test_web_stack.py` `test_s8_prototype_routes_label_only` asserts that
+`/compare`, `/review` and `/download` still import `PrototypeNotice` and have no
+`+page.server.ts`. Section 6.8 replaces those stubs with run pickers, so s8 fails
+until root applies the rescope requested in the lane handoff. That request
+replaces the stub assertions with picker assertions: no `PrototypeNotice`, a
+`+page.server.ts` with `redirect(303`, no `<form` and no `<input`. Every other
+s8 check, including the client-fetch and secret checks, is kept unchanged.
+`ComparePanel.svelte` (not owned by this lane) still uses `PrototypeNotice`, so
+the notice component itself remains.

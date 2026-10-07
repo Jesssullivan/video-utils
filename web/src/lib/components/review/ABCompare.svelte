@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Matched-level A/B from the tone_ab layer (port of practice_s2.js s2RenderAB). The excerpt files are
-	// pre-gained by tone_ab; this page applies no gain. One active player at a time; preload none; no autoplay.
+	// pre-gained by tone_ab; this page applies no gain. One active player at a time; preload none; playback starts only from the operator.
 	import { arr, fixed, human, num, rec, signed, str } from './review-logic';
 	import { layerMediaUrl, pauseOthers } from './media';
 

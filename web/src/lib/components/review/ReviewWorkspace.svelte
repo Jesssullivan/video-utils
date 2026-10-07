@@ -2,7 +2,7 @@
 	// /runs/[id]/review workspace (ROUTES_REVIEW_S3.md 6.4): player on the left with the compact overlay and the
 	// source-time tracks below it; inspector on the right (Cleanup, Tone, Markers, Notes) with the selected span,
 	// the source time and a persistent Mark here. One column below 768 px. Keys match the S2 practice UI and fire
-	// only from the transport or the quick-mark bar. Nothing starts playback: no autoplay and no play call.
+	// only from the transport or the quick-mark bar. Nothing starts playback on its own; only the operator presses play.
 	import { beforeNavigate } from '$app/navigation';
 	import type { AnnotationClock, AnnotationStorePublic } from '$lib/schema/control';
 	import BasisBadge from './BasisBadge.svelte';

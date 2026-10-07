@@ -1,5 +1,5 @@
-// Client-safe structural views of the runs read API (the closed Effect Schemas live server-side in
-// $lib/server/runs/schema.ts; pages pass decoded data into components typed by these supertypes).
+// Client-safe structural views of the runs read API (the closed Effect Schemas live in the server-only runs module;
+// pages pass decoded data into components typed by these supertypes).
 export interface Envelope {
 	readonly status: string;
 	readonly reason: string | null;

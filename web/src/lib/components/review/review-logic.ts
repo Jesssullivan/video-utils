@@ -204,7 +204,9 @@ export function detectorSpans(coverage: Json): DetectorSpan[] {
 export type FlagItem = { id: string; group: 'shown' | 'navigation' | 'suppressed'; kind: string; start: number | null; end: number | null; window: string; tier: string; note: string | null };
 
 export function flagGroups(document: Json): { shown: FlagItem[]; navigation: FlagItem[]; suppressed: FlagItem[]; denominators: Record<string, Json>; windowBasis: Record<string, Json> } {
-	const doc = rec(document);
+	// The layer envelope copies the bundle layer {file, sha256, document}; accept either nesting.
+	const outer = rec(document);
+	const doc = outer.schema_id === undefined && typeof outer.document === 'object' ? rec(outer.document) : outer;
 	const read = (items: Json, group: FlagItem['group']): FlagItem[] =>
 		arr(items).map((raw, index) => {
 			const item = rec(raw);
