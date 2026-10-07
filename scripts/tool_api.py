@@ -38,7 +38,7 @@ REPORT_BUNDLE_MAX_STORE_BYTES = 64 * 1024 * 1024
 REPORT_BUNDLE_MEDIA_SUFFIXES = frozenset({'.wav', '.flac', '.aiff', '.aif', '.mp3', '.aac', '.m4a', '.mov', '.mp4',
                                           '.m4v', '.mkv', '.webm', '.caf'})
 # S3 model lanes: these workers print a typed refusal object (status 'refused', refusal_code) on stdout
-# and exit non-zero. The refusal code is relayed in the ToolError instead of a stderr tail. The value is
+# and exit non-zero. run_typed_refusal_worker relays the refusal code in the ToolError; no stderr tail. The value is
 # seconds of outer-deadline slack beyond the caller's timeout so the worker's own deadline reports first.
 TYPED_REFUSAL_TOOLS = {'beat_this_compare': 0, 'guitar_noul_decide': 10}
 TRAVERSAL_GUARDED_RUN_TOOLS = {'marked_video', 'basic_pitch_compare', 'beat_this_compare', 'guitar_noul_decide'}
@@ -956,7 +956,7 @@ def worker_command(name, args):
     raise ToolError('tool has no allowlisted worker')
 
 
-def run_worker(command, timeout, error_json_tool=None, refusal_tool=None):
+def run_worker(command, timeout, error_json_tool=None):
     if not Path(command[1]).is_file():
         raise ToolError('implementation worker is unavailable; no analysis was performed')
     # File-backed output avoids allocating all worker logs in memory. Workers are fixed,
@@ -1002,20 +1002,6 @@ def run_worker(command, timeout, error_json_tool=None, refusal_tool=None):
         stderr.seek(max(0, stderr_size - 2500))
         error_tail = stderr.read().decode('utf-8', errors='replace')
         if process.returncode:
-            if refusal_tool is not None:
-                stdout.seek(0)
-                try:
-                    refused = strict_json(stdout.read().decode('utf-8'))
-                except (UnicodeError, ValueError):
-                    refused = None
-                code = refused.get('refusal_code') if isinstance(refused, dict) else None
-                if (isinstance(refused, dict) and refused.get('status') == 'refused' and isinstance(code, str)
-                        and 1 <= len(code) <= 64 and all(character in 'abcdefghijklmnopqrstuvwxyz_' for character in code)):
-                    message = refused.get('message')
-                    raise ToolError(f'{refusal_tool} refused: {code}', receipt={
-                        'status': 'refused', 'tool': refusal_tool, 'refusal_code': code,
-                        'message': message[:1000] if isinstance(message, str) else None,
-                        'worker_returncode': process.returncode})
             if error_json_tool == 'capture_profile':
                 stdout.seek(0)
                 try:
@@ -1059,11 +1045,13 @@ def report_bundle_failure(returncode, data):
     return ToolError(f'worker failed ({returncode}): report_bundle returned no typed diagnostic')
 
 
-def run_report_bundle_worker(command, timeout):
+def run_report_bundle_worker(command, timeout, failure=None):
     """Dedicated bounded runner (the generic run_worker is source-pinned): hard deadline on an owned
-    process group, typed exit-2 refusals and class-only exit-1 errors read from stdout, never a stderr tail."""
+    process group, typed exit-2 refusals and class-only exit-1 errors read from stdout, never a stderr tail.
+    ``failure(returncode, stdout_bytes)`` replaces the report_bundle classification for other typed workers."""
     if not Path(command[1]).is_file():
-        raise ToolError('implementation worker is unavailable; no bundle was built')
+        raise ToolError('implementation worker is unavailable; no bundle was built' if failure is None
+                        else 'implementation worker is unavailable; nothing was run')
     with tempfile.TemporaryFile() as stdout:
         try:
             process = subprocess.Popen(command, cwd=ROOT, stdin=subprocess.DEVNULL, stdout=stdout,
@@ -1099,7 +1087,8 @@ def run_report_bundle_worker(command, timeout):
         stdout.seek(0)
         data = stdout.read()
     if process.returncode:
-        raise report_bundle_failure(process.returncode, data[:4096])
+        raise (report_bundle_failure(process.returncode, data[:4096]) if failure is None
+               else failure(process.returncode, data))
     try:
         result = strict_json(data.decode('utf-8'))
     except (UnicodeError, ValueError) as error:
@@ -1107,6 +1096,28 @@ def run_report_bundle_worker(command, timeout):
     if not isinstance(result, dict):
         raise ToolError('worker result must be a JSON object')
     return result
+
+
+def typed_refusal_failure(tool, returncode, data):
+    """S3 model lanes: relay a worker's typed refusal object (status 'refused', refusal_code) from stdout.
+    Anything else becomes a code-free failure; a stderr or stdout tail is never relayed."""
+    try:
+        refused = strict_json(data.decode('utf-8'))
+    except (UnicodeError, ValueError):
+        refused = None
+    code = refused.get('refusal_code') if isinstance(refused, dict) else None
+    if (isinstance(refused, dict) and refused.get('status') == 'refused' and isinstance(code, str)
+            and 1 <= len(code) <= 64 and all(character in 'abcdefghijklmnopqrstuvwxyz_' for character in code)):
+        message = refused.get('message')
+        return ToolError(f'{tool} refused: {code}', receipt={
+            'status': 'refused', 'tool': tool, 'refusal_code': code,
+            'message': message[:1000] if isinstance(message, str) else None, 'worker_returncode': returncode})
+    return ToolError(f'worker failed ({returncode}): {tool} returned no typed refusal')
+
+
+def run_typed_refusal_worker(command, timeout, tool):
+    return run_report_bundle_worker(command, timeout,
+                                    failure=lambda returncode, data: typed_refusal_failure(tool, returncode, data))
 
 
 def classify_report_bundle_result(result):
@@ -1233,7 +1244,7 @@ def execute(name, arguments):
     elif name == 'capture_profile':
         result = run_worker(worker_command(name, arguments), timeout, error_json_tool=name)
     elif name in TYPED_REFUSAL_TOOLS:
-        result = run_worker(worker_command(name, arguments), timeout + TYPED_REFUSAL_TOOLS[name], refusal_tool=name)
+        result = run_typed_refusal_worker(worker_command(name, arguments), timeout + TYPED_REFUSAL_TOOLS[name], name)
     elif name == 'report_bundle':
         result = classify_report_bundle_result(run_report_bundle_worker(worker_command(name, arguments), timeout))
     elif name == 'share_export':

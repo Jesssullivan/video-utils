@@ -157,12 +157,14 @@ class S3ToolAdmissionTests(unittest.TestCase):
                                     'allow_real_take': 'v6-private-operator-lab-host'}),
             ('guitar_noul_decide', {'run_dir': 'artifacts/runs/../x', 'windows': [WINDOW], 'timeout_seconds': 5}),
         ]
-        with patch.object(tool_api, 'run_worker') as run, patch.object(tool_api, 'worker_command') as command:
+        with patch.object(tool_api, 'run_typed_refusal_worker') as run, patch.object(tool_api, 'run_worker') as generic, \
+                patch.object(tool_api, 'worker_command') as command:
             for name, arguments in cases:
                 with self.subTest(name=name, arguments=arguments):
                     with self.assertRaises(tool_api.ValidationError):
                         tool_api.execute(name, arguments)
             run.assert_not_called()
+            generic.assert_not_called()
             command.assert_not_called()
 
     # ----- fixed argv ----------------------------------------------------------
@@ -187,12 +189,14 @@ class S3ToolAdmissionTests(unittest.TestCase):
 
     def test_execute_uses_typed_refusal_relay_and_outer_deadline(self):
         with patch.object(tool_api, 'worker_command', return_value=['python', 'worker']), \
-                patch.object(tool_api, 'run_worker', return_value={'status': 'completed'}) as run:
+                patch.object(tool_api, 'run_typed_refusal_worker', return_value={'status': 'completed'}) as run, \
+                patch.object(tool_api, 'run_worker') as generic:
             tool_api.execute('beat_this_compare', {'run_dir': 'artifacts/runs/one'})
-            self.assertEqual((run.call_args.args[1], run.call_args.kwargs), (660, {'refusal_tool': 'beat_this_compare'}))
+            self.assertEqual(run.call_args.args[1:], (660, 'beat_this_compare'))
             tool_api.execute('guitar_noul_decide', {'run_dir': 'artifacts/runs/one', 'windows': [WINDOW],
                                                     'timeout_seconds': 30})
-            self.assertEqual((run.call_args.args[1], run.call_args.kwargs), (40, {'refusal_tool': 'guitar_noul_decide'}))
+            self.assertEqual(run.call_args.args[1:], (40, 'guitar_noul_decide'))
+            generic.assert_not_called()
 
     # ----- model registry and typed refusal -----------------------------------
     def test_beat_this_model_is_not_registered_and_no_checkpoint_is_present(self):
@@ -238,6 +242,12 @@ class S3ToolAdmissionTests(unittest.TestCase):
         self.assertIn(receipt['refusal_code'], ('input_schema_invalid', 'gateway_not_configured'))
         self.assertEqual(str(caught.exception), f'guitar_noul_decide refused: {receipt["refusal_code"]}')
 
+    def test_generic_run_worker_source_pin_is_untouched(self):
+        import inspect
+        # Same pin as tests/test_share_export_tool.py: typed refusals use a dedicated runner instead.
+        self.assertEqual(hashlib.sha256(inspect.getsource(tool_api.run_worker).encode()).hexdigest(),
+                         'acd72926a70c33cc92bd056f055fb83f348ad2e7c9a3576e7bfcd6d20e9bd3af')
+
     def test_refusal_relay_ignores_untyped_or_malformed_worker_output(self):
         with tempfile.TemporaryDirectory(prefix='s3 admission ') as base:
             worker = pathlib.Path(base) / 'worker.py'
@@ -251,7 +261,7 @@ class S3ToolAdmissionTests(unittest.TestCase):
                     text = body if isinstance(body, str) else json.dumps(body)
                     worker.write_text(f'import sys\nsys.stdout.write({text!r})\nsys.exit(2)\n')
                     with self.assertRaises(tool_api.ToolError) as caught:
-                        tool_api.run_worker([sys.executable, str(worker)], 30, refusal_tool='beat_this_compare')
+                        tool_api.run_typed_refusal_worker([sys.executable, str(worker)], 30, 'beat_this_compare')
                     self.assertTrue(str(caught.exception).startswith(expected), str(caught.exception))
                     if expected.endswith('model_hash_not_registered'):
                         self.assertEqual(len(caught.exception.receipt['message']), 1000)
