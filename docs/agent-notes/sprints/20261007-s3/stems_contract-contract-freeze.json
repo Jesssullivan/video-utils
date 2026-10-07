@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "lane": "stems_contract",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5721",
+  "phase": "1_contract_freeze",
+  "recorded_utc": "2026-10-07T15:03:56Z",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "spec": {"path": "docs/spec/sprints/STEMS_S3.md", "sha256": "1b2b6eea254fe7244f58d7a1f2ee43429105a9296eac6d1658b529a0a7dbd02e"},
+  "preregistered": true,
+  "preregistration": {"suite": "s3-stems-1", "dev_seed": 4001, "heldout_seeds": [4103, 4211], "heldout_cases": 8, "guitar_cases": 6, "negative_cases": 2, "arms": ["A0_passthrough", "A1_htdemucs_6s_guitar"], "secondary_readout": "A1_guitar_plus_bass", "aggregation": "medians with every case listed, never averaged rates", "seal_before_truth": true, "heldout_generated_only_when_A1_runnable": true, "default_adoption": false},
+  "numerics_run": false,
+  "downloads": false,
+  "torch_imported": false,
+  "truth_read": false,
+  "inputs_read": ["docs/research/2026-10-07-stems-weights-licence.md", "docs/spec/sprints/MODEL_LANES_S3.md", "scripts/beat_this_compare.py", "program/models.json (read-only)", "program/tools.json (read-only)", "scripts/tool_api.py (read-only)", "artifacts/runs/20261006T041633Z-990aa1bd6737/manifest.json (read-only)"],
+  "inferences": ["htdemucs_6s sources order, 44.1 kHz stereo model I/O and apply_model defaults (shifts 1, overlap 0.25, split true) are recalled from upstream source and require confirmation by the runtime lane"],
+  "open_items": ["root hash-bound fetch fills sha256", "explicit operator acknowledgement of maintainer personal/research terms (research condition 5)", "separate runtime lane pins demucs/torch on honey Linux CPU", "checkpoint load path weights_only vs pickle-after-sha256 to be determined in runtime lane", "V6 private scratch path on run host for the real-take pass"]
+}

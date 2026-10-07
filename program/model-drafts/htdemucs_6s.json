@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "draft_for": "program/models.json",
+  "model_id": "demucs-htdemucs_6s-5c90dfd2",
+  "entry": {
+    "url": "https://dl.fbaipublicfiles.com/demucs/hybrid_transformer/5c90dfd2-34c22ccb.th",
+    "sha256": null,
+    "max_bytes": 54996327,
+    "expected_bytes_source": "HTTP HEAD 2026-10-07, docs/research/2026-10-07-stems-weights-licence.md",
+    "upstream_sha256_prefix_cross_check": "34c22ccb",
+    "format": "demucs serialized package (torch.save of klass/args/kwargs/state); loaded only after sha256 verification",
+    "license": "Weights: no licence file; maintainer statements limit use to personal/research (facebookresearch/demucs issues 327 and 384). Code MIT does not cover weights. Training data includes MUSDB18-HQ (other-nc).",
+    "license_verdict": "admissible_private_comparator",
+    "license_conditions": ["personal_research_use_only", "no_redistribution_of_weights_or_real_take_outputs", "outputs_under_ignored_artifacts_v6", "outputs_labelled_estimates", "operator_acknowledgement_before_first_use"],
+    "operator_terms_acknowledgement": null,
+    "source_commit": "e976d93ecc3865e5757426930257e200846a520a",
+    "sources": ["drums", "bass", "other", "vocals", "guitar", "piano"],
+    "model_rate_hz": 44100,
+    "model_channels": 2,
+    "gate_state": "registered_pending_fetch"
+  }
+}

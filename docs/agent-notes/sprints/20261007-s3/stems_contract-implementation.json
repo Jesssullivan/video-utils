@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "lane": "stems_contract",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5721",
+  "phase": "2_implementation",
+  "recorded_utc": "2026-10-07T15:44:14Z",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "contract": {"path": "docs/spec/sprints/STEMS_S3.md", "frozen_commit": "e900b997b2b829d2a31cfca6ae61c5e8dbacd08e", "phase2_additive_section": 13},
+  "implementation_commit": "3c2cb0788e2971aedc32cae6038b510c784d3ab3",
+  "files": {
+    "scripts/stems_estimate.py": "a0058b955b8799d6d7f50622d575960caa7c15736bd54d61c886bd934311eea4",
+    "tests/test_stems_estimate.py": "83f5c6155db455302a775eb21c5689418270e0a49faece7ddd482e3392eeb6f7",
+    ".agents/skills/stems-estimate/SKILL.md": "ecb19e0fb946798410da71fb557fdd3a9709aa76ed66b5e821336cd017c3b4ce",
+    "program/tool-drafts/stems_estimate.json": "76bc7b94435977b0ea0dcc2191f428ddcf72dfae3c56d28cc6c36dc9a9f589cf",
+    "program/model-drafts/htdemucs_6s.json": "27a6fe9c8d03489254c6cc99207fab158493a3377c3c5ab2f11bdea22b333ed0",
+    "docs/spec/sprints/STEMS_S3.md": "51b5f45964dc30ceedf9fd097b4ca541eab171bc8757c021c4c53a9c3f2874b4"
+  },
+  "worker": {
+    "entry": "python3 scripts/stems_estimate.py estimate --request <file|-> | --request-json <text>",
+    "exit_codes": {"completed": 0, "refused": 2, "failed": 1},
+    "top_level_imports": "stdlib only; torch/demucs/numpy imported only inside infer_task in the isolated child",
+    "refusal_order": ["request_invalid", "excerpt_too_long", "model_not_registered", "model_hash_not_registered", "model_registry_entry_invalid", "model_terms_not_acknowledged", "model_file_missing", "model_hash_mismatch", "runtime_unavailable", "input_not_admitted"],
+    "runtime_reasons": ["not_configured", "platform_unsupported", "path_rejected", "not_pinned", "identity_failed"],
+    "pins": {"DEMUCS_PIN": null, "TORCH_PIN": null},
+    "runtime_env_var": "VIDEO_UTILS_STEMS_RUNTIME_PYTHON",
+    "seams": {"separator": "separator(stereo_44k, model, workdir) -> {six names: 2 x N at 44.1 kHz}", "runtime_resolver": "runtime_resolver(root) -> dict"},
+    "default_separator": "ChildSeparator: <runtime python> -I scripts/stems_estimate.py infer --task task.json; own session/process group, 600 s deadline, 3 GiB RSS, empty TORCH_HOME/HF_HOME/XDG_CACHE_HOME, unreachable proxies, sha256 re-verified immediately before launch",
+    "sample_rate_conversion": "FFmpeg aresample=44100:resampler=swr forward and aresample=R:resampler=swr return, only when R != 44100; subprocess timeout 120 s; trim/pad to exact frame_count, |adjust| > 2 fails",
+    "outputs": "artifacts/s2/stems_contract/estimates/<UTC>-<hex>/ (gitignored); run directories never written",
+    "fixture_harness": "generate-suite / predict / seal / score for s3-stems-1; held-out generation refuses until A1 is runnable"
+  },
+  "today_behaviour_measured": {
+    "committed_registry_has_entry": false,
+    "cli_refusal_code_for_valid_request": "model_not_registered",
+    "files_written": 0,
+    "network_used": false,
+    "weights_downloaded": false,
+    "torch_imported": false
+  },
+  "inferences_not_verified": [
+    "htdemucs_6s sources order drums/bass/other/vocals/guitar/piano, 44.1 kHz stereo model I/O and apply_model defaults (shifts 1, overlap 0.25, split true, segment None) are recalled from upstream and require confirmation by the runtime lane",
+    "demucs.states.load_model accepting a package dict, and the separate-CLI mean/std normalisation used in infer_task, are recalled; infer_task has not executed anywhere (no torch here)",
+    "whether torch.load(weights_only=True) can read the Demucs package or the pickle_after_sha256_verify path is required is unknown until the runtime lane"
+  ],
+  "unknown": ["separation accuracy of htdemucs_6s on the real take", "low-end musical preservation", "listening acceptance", "bleed/artifact character"],
+  "default_adoption": false,
+  "root_owned_files_touched": []
+}

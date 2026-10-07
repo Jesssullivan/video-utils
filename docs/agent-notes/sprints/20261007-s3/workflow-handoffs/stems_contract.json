@@ -1,0 +1,134 @@
+{
+  "lane": "stems_contract",
+  "branch": "sprint/20261007-s3/stems_contract",
+  "head": "aafa21d4375b32ae07d5bf2ef58c8d93aa7b01fd",
+  "base_commit": "549a14dea88f6b7951a81f2c2fa0718cb83a1c21",
+  "worktree": ".local/sprint3/stems_contract",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": ".agents/skills/stems-estimate/SKILL.md",
+      "kind": "skill_draft",
+      "sha256": "ecb19e0fb946798410da71fb557fdd3a9709aa76ed66b5e821336cd017c3b4ce"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/stems_contract-contract-freeze.json",
+      "kind": "receipt",
+      "sha256": "f9621219a6d8993bf7506adab78ea469e7352a15974a00aa57498cb616005077"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/stems_contract-experiment.json",
+      "kind": "receipt",
+      "sha256": "826a962398fcd3b4dc28099a70209a6ada90d41c6e1fc9700c8230a0c85872e3"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/stems_contract-handoff.json",
+      "kind": "receipt",
+      "sha256": "3dad707647beca3db96076b225e3a8889e6ef3966987afd0db768480368a5e9f"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/stems_contract-implementation.json",
+      "kind": "receipt",
+      "sha256": "65319c11e550115fdc8be7cadf076866427ddceb8d758f29567ccc67b4c25c59"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/stems_contract-tests.json",
+      "kind": "receipt",
+      "sha256": "bf9b55aa00b8d22b680aa16e25a6f5fc7f1a6ad23cbe1080dc1ca755438cf653"
+    },
+    {
+      "path": "docs/spec/sprints/STEMS_S3.md",
+      "kind": "spec",
+      "sha256": "51b5f45964dc30ceedf9fd097b4ca541eab171bc8757c021c4c53a9c3f2874b4"
+    },
+    {
+      "path": "program/model-drafts/htdemucs_6s.json",
+      "kind": "data",
+      "sha256": "27a6fe9c8d03489254c6cc99207fab158493a3377c3c5ab2f11bdea22b333ed0"
+    },
+    {
+      "path": "program/tool-drafts/stems_estimate.json",
+      "kind": "data",
+      "sha256": "76bc7b94435977b0ea0dcc2191f428ddcf72dfae3c56d28cc6c36dc9a9f589cf"
+    },
+    {
+      "path": "scripts/stems_estimate.py",
+      "kind": "source",
+      "sha256": "a0058b955b8799d6d7f50622d575960caa7c15736bd54d61c886bd934311eea4"
+    },
+    {
+      "path": "tests/test_stems_estimate.py",
+      "kind": "test",
+      "sha256": "83f5c6155db455302a775eb21c5689418270e0a49faece7ddd482e3392eeb6f7"
+    }
+  ],
+  "tests": {
+    "command": "cd .local/sprint3/stems_contract && FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe PYTHONPATH=tests python3 -m unittest test_stems_estimate -v",
+    "discovered": 43,
+    "passed": 43,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 228.27
+  },
+  "metrics": [],
+  "unknowns": [],
+  "root_owned_changes_requested": [
+    {
+      "file": "program/models.json",
+      "change": "After root's own explicit hash-bound fetch and a recorded operator acknowledgement, add under \"models\" the key \"demucs-htdemucs_6s-5c90dfd2\" with the entry object from program/model-drafts/htdemucs_6s.json#/entry, filling: \"sha256\": \"<64 lowercase hex from root's fetch; first 8 hex must equal 34c22ccb>\", \"operator_terms_acknowledgement\": \"<receipt reference of the operator's explicit acknowledgement of the maintainer's personal/research terms and risk sentence>\", plus root's post-fetch \"gate_state\" (e.g. \"registered_hash_bound_runtime_not_qualified_no_inference_run\") and \"fetched_at_utc\". Keep url https://dl.fbaipublicfiles.com/demucs/hybrid_transformer/5c90dfd2-34c22ccb.th and max_bytes 54996327. Never commit it with a null sha256 or null acknowledgement.",
+      "why": "The worker reads only program/models.json; until the entry exists every valid request refuses model_not_registered (a null sha256 gives model_hash_not_registered and a null acknowledgement gives model_terms_not_acknowledged)."
+    },
+    {
+      "file": "program/tools.json",
+      "change": "Append the \"descriptor\" object of program/tool-drafts/stems_estimate.json (draft file sha256 76bc7b94435977b0ea0dcc2191f428ddcf72dfae3c56d28cc6c36dc9a9f589cf) unchanged to tools[]: name stems_estimate, implementation_status \"experimental\", evidence_kind \"uncalibrated_model_stem_estimates_from_mono_mixture\", skill \".agents/skills/stems-estimate/SKILL.md\" (update if root renames the skill to the guitar-* convention).",
+      "why": "Admits the typed MCP hook. The draft passes tool_api.validate_schema, has the 12 admitted-descriptor keys and additionalProperties false."
+    },
+    {
+      "file": "scripts/tool_api.py",
+      "change": "-TYPED_REFUSAL_TOOLS = {'beat_this_compare': 0, 'guitar_noul_decide': 10}\n-TRAVERSAL_GUARDED_RUN_TOOLS = {'marked_video', 'basic_pitch_compare', 'beat_this_compare', 'guitar_noul_decide'}\n+TYPED_REFUSAL_TOOLS = {'beat_this_compare': 0, 'guitar_noul_decide': 10, 'stems_estimate': 0}\n+TRAVERSAL_GUARDED_RUN_TOOLS = {'marked_video', 'basic_pitch_compare', 'beat_this_compare', 'guitar_noul_decide',\n+                               'stems_estimate'}\n\nand in worker_command(), directly after the guitar_noul_decide branch:\n+    if name == 'stems_estimate':\n+        # Closed request; no model, runtime or network argument exists. The worker resolves the registry-verified\n+        # checkpoint, the operator terms acknowledgement and the isolated runtime itself and owns every typed refusal.\n+        request = {key: args[key] for key in ('run_dir', 'input_role', 'excerpt_start_seconds',\n+                                              'excerpt_end_seconds', 'timeout_seconds') if key in args}\n+        return head + [str(ROOT / 'scripts/stems_estimate.py'), 'estimate', '--request-json', json.dumps(request)]\n\nOptional follow-up: typed_refusal_failure could also relay a worker status \"failed\" failure_code (exit 1); today that becomes a code-free ToolError.",
+      "why": "Dispatches through the owned-process-group typed-refusal runner. Its stdin is DEVNULL, so the request goes via --request-json. Exit-2 refusals relay refusal_code, and run_dir gets the traversal guard. scripts/mcp_server.py follows tools.json."
+    },
+    {
+      "file": "just/workflow.just",
+      "change": "Insert after the beat-this-runtime-check recipe:\n\n# Optional experimental htdemucs_6s stem estimates (never recovered stems, never a default). Refuses until root\n# registers the hash-bound model, the operator acknowledges the weights' terms and a runtime lane qualifies the runtime.\nstems-estimate run_dir start end input_role=\"denoised\":\n    python3 -c 'import json, sys; print(json.dumps({\"run_dir\": sys.argv[1], \"excerpt_start_seconds\": float(sys.argv[2]), \"excerpt_end_seconds\": float(sys.argv[3]), \"input_role\": sys.argv[4]}))' {{quote(run_dir)}} {{quote(start)}} {{quote(end)}} {{quote(input_role)}} | python3 scripts/stems_estimate.py estimate --request -\n",
+      "why": "Gives operators a just entrypoint like beat-this-compare. The body was run in bash -euo pipefail with quote() simulated: exit 2, model_not_registered, nothing written."
+    },
+    {
+      "file": "runtime lane (separate root-run lane on honey; not a file edit by this lane)",
+      "change": "Prepare an isolated Linux CPU interpreter beneath artifacts/model-runtime-env/. It must be a real file, not a symlink. Pin demucs and torch. Confirm against the pinned package: sources order drums/bass/other/vocals/guitar/piano, 44.1 kHz stereo, apply_model defaults (shifts 1, overlap 0.25, split True, segment None), load_model accepting a package dict, the separate-CLI mean/std normalisation, and whether torch.load(weights_only=True) suffices. Then set DEMUCS_PIN/TORCH_PIN in scripts/stems_estimate.py through a lane that owns that file, and export VIDEO_UTILS_STEMS_RUNTIME_PYTHON.",
+      "why": "Every request refuses runtime_unavailable/not_pinned until this is done, and infer_task has never run. This is also a prerequisite for M14 and M15."
+    },
+    {
+      "file": "program/linear.json",
+      "change": "none",
+      "why": "This lane introduces no new Linear project or issue IDs."
+    }
+  ],
+  "receipts_written": [],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "dropped_scope": [],
+  "audit": {
+    "model": "haiku",
+    "refuted": false,
+    "findings": [
+      "(1) Scope holds. git diff --name-only 549a14d...HEAD lists 11 files, and all of them are owned: scripts/stems_estimate.py, tests/test_stems_estimate.py, .agents/skills/stems-estimate/SKILL.md, program/tool-drafts/stems_estimate.json, program/model-drafts/htdemucs_6s.json, docs/spec/sprints/STEMS_S3.md and five docs/agent-notes/sprints/20261007-s3/stems_contract-*.json receipts. Neither program/tools.json, scripts/tool_api.py, just/workflow.just nor program/models.json is touched; the changes to them exist only as text inside stems_contract-handoff.json. The worktree is clean apart from ignored __pycache__ directories.",
+      "(2) No forbidden writes found. artifacts/s2/stems_contract does not exist in the main checkout or the worktree. models/ has no demucs file. No artifacts/runs entry is newer than the spec. The only stems_estimate processes in ps were the children of my own test run. The child process gets an unreachable proxy, socket connect is disabled, and torch.hub loaders are stubbed (scripts/stems_estimate.py:257-263 and 715-736).",
+      "(3) Claim classes are explicit throughout. Every M-metric in stems_contract-tests.json has a denominator and a claim_class, and the fake-separator measurements are labelled test_measurement_with_fake_separators. The held-out run (M14) and the real-take pass (M15) are blocked_with_receipt with measurements null and real_take_claim null. The unknown fields and LIMITATIONS (stems_estimate.py:74-106) cover separation_accuracy unknown, note_correctness null and default_adoption false. Missed/extra notes are excluded (STEMS_S3.md:80) and nothing is adopted as a default.",
+      "(4) I reran the owned module with the pinned FFmpeg 8.1.2: 43 tests run, 43 OK, 0 skipped, 187.1 s (log in scratchpad/stt/run.log). The counts match the claim; wall times differ only with host load. The tests exercise what is claimed: refusal codes with a no-writes tree diff, adjacent-pair precedence, M3 through the real CLI (both --request-json and --request -), M4 in a fresh -I interpreter with socket and urlopen trapped, a 48 kHz round trip through real FFmpeg with cross-correlation lag <= 1, bit-exact 44.1 kHz passthrough, source-timeline origins 0.0 and 1.25, and run-directory hash invariance (M9).",
+      "(5) 32 Hz doctrine holds. The only high-pass and low-pass biquads are the analysis bandpass used to measure 20-45 Hz energy (stems_estimate.py:494-527); they are never applied to the output stems. The resampling filters are plain aresample swr with no high-pass or notch. Timeouts are bounded: ffmpeg 120 s, probe 60 s, child 600 s with a 3 GiB RSS cap, and request timeout_seconds limited to [1, 900].",
+      "(6) Reproduced numerically. midi 24 = 32.7032 Hz. The Butterworth-4 Q values are 1/(2cos(pi/8)) = 0.5412 and 1/(2cos(3pi/8)) = 1.3066. The analytic 20-45 Hz bandpass gain at C1 is -0.4096 dB and the worker's own bandpass measures -0.4102 dB; it cancels in the ratios. The spec's 'about -11 dB' for a 45 Hz Butterworth-4 high-pass at 32.70 Hz checks out at -11.42 dB. The M6 low_to_bass receipt values (guitar -64.195 dB, bass share 0.9999996) reproduce exactly from my own script. 20log10(0.5) = -6.0206 dB. Frames 22050/55125 for [0.5, 1.75) s are correct.",
+      "Receipt hashes match the files at HEAD: worker a0058b95..., tests 83f5c615..., tool draft 76bc7b94..., spec 51b5f459... The frozen spec at e900b99 hashes to 1b2b6eea... as recorded, and the phase-2 diff only adds section 13 (106 lines, no deletions). The draft's max_bytes 54996327 matches the research doc's table (docs/research/2026-10-07-stems-weights-licence.md:94).",
+      "Minor: output and fixture paths use artifacts/s2/stems_contract (stems_estimate.py:59) although this is S3 sprint work. Root may want artifacts/s3/... at admission.",
+      "Minor: request timeout_seconds is validated but the worker never uses it (stems_estimate.py:188-197); only the proposed tool_api outer runner would enforce it. The worker's internal bounds can add up to more than the 660 s default and the 900 s maximum (600 s inference + 7 x 120 s ffmpeg + 60 s probe). At 48 kHz, an outer kill could therefore arrive before a typed failure.",
+      "Minor: infer_task falls back to torch.load(weights_only=False) after re-verifying the sha256 (stems_estimate.py:744-750). This is documented and hash-bound, but the runtime lane must confirm it. infer_task has never executed, and the sources order and apply defaults are recalled from upstream, not verified; both are recorded as inferences.",
+      "Minor: stems_contract-tests.json records wall_seconds 155.6, while the lane summary says 228.27 s / 226.0 s. These are different runs; the counts agree.",
+      "Minor: the DoD asks for 'energy below 45 Hz', but the worker measures a 20-45 Hz band, so content below 20 Hz is excluded. This is documented as band_hz [20, 45]."
+    ],
+    "must_fix": []
+  }
+}
