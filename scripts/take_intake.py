@@ -1376,7 +1376,7 @@ def run_intake(source_value, *, capture_interval=None, capture_review=None, inte
     STATE_ROOT_HINT['path'] = state_path
     if collision['prior_intakes_same_source_and_family']:
         raise IntakeRefusal('intake_exists', 'an intake for this source and family already exists; use run --resume INTAKE_ID '
-                            'or an explicit new --family', intake_ids=collision['prior_intakes_same_source_and_family'])
+                            'or a fresh --state-root', intake_ids=collision['prior_intakes_same_source_and_family'])
     intake_id = new_intake_id()
     intake_dir = state_path / family_id / intake_id
     intake_dir.mkdir(parents=True, exist_ok=False, mode=0o700)

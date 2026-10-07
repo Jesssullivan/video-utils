@@ -84,7 +84,7 @@
               "plan",
               "packet"
             ],
-            "description": "plan: read-only intake plan for SOURCE (writes nothing). packet: rebuild evidence-packet.json and the TIN-5186 draft (draft_not_sent) inside an intake directory."
+            "description": "plan: intake plan for SOURCE; reads the source only and writes nothing outside a transient admissibility scratch directory that it removes. packet: rebuild evidence-packet.json and the TIN-5186 draft (draft_not_sent) inside an intake directory."
           },
           "source": {
             "type": "string",

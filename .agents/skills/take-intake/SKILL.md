@@ -42,4 +42,4 @@ Hook `take_intake` with `operation` `plan` or `packet` (drafted in `program/tool
 - **Operator input required:** split, arrangement reference, latency calibration, at least 10 boundary marks.
 - **Not performed:** timing direction, note correctness, missed or extra notes, editor import.
 
-To compare settings, start a new intake with another `--family` or a fresh state root. Never edit a packet by hand. A synthetic end-to-end result shows that the orchestration works. It says nothing about restoration or musical correctness on a real take. Experimental non-improvement is a valid outcome.
+To compare settings, start a new intake under a fresh state root (a source already registered refuses a different `--family` with `source_already_registered`). Never edit a packet by hand. A synthetic end-to-end result shows that the orchestration works. It says nothing about restoration or musical correctness on a real take. Experimental non-improvement is a valid outcome.

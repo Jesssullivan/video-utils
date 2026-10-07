@@ -729,7 +729,9 @@ class EndToEndTests(unittest.TestCase):
         }
         payload = ti.Scrubber(root, fixture).deep(payload)
         E2E_RESULTS.write_text(json.dumps(payload, indent=2) + '\n')
-        E2E_RECEIPT.write_text(json.dumps(payload, indent=2) + '\n')
+        # The tracked receipt is sealed; reruns write only the ignored lane copy.
+        if os.environ.get('TAKE_INTAKE_E2E_RESEAL') == '1':
+            E2E_RECEIPT.write_text(json.dumps(payload, indent=2) + '\n')
         self.assertEqual(after, fixture_identity)
         self.assertEqual(ti.draft_violations(draft), [])
         self.assertEqual(payload['absolute_paths_in_packet_and_state'], 0)
