@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "video-utils.cloudflare-access.plan.v1",
+  "ticket": "TIN-5720",
+  "status": "plan_only",
+  "applied": false,
+  "modelledOn": [
+    {
+      "repo": "tinyland-inc/tinyland-infra",
+      "ref": "origin/main",
+      "commit": "336c159e56723e3da85ec760c6aa557b6ebc296f",
+      "path": "tofu/stacks/xoxd-ai-edge/xoruby-clients.tf",
+      "path_commit": "301beeb45543ea093243db2ea375bf8793be3c94",
+      "path_date": "2026-10-03",
+      "used_for": "zone-bound exact-hostname all-paths self_hosted application, 24h session, HttpOnly, SameSite=Lax, exact-email allow policy (never a shared group or email_domain), gate before DNS"
+    },
+    {
+      "repo": "Great-Falls-Tool-Bus/great-falls-tool-bus-infra",
+      "ref": "upstream/main",
+      "commit": "bb969bea496926b19f9350857a91da9d02a5f2c5",
+      "path": "docs/runbooks/cf-access-tsidp.md",
+      "path_commit": "3d0d02d6b6ae0b856bc9ae9e47adbe39eefdf218",
+      "path_date": "2026-10-05",
+      "used_for": "tsidp federated into Access as an OIDC IdP; allowed_idps pinned to Google Workspace, One-Time-PIN and tsidp; tsidp logins excluded from email policies and admitted only by a claim with a login_method requirement"
+    }
+  ],
+  "application": {
+    "name": "video-utils gate",
+    "type": "self_hosted",
+    "domain": null,
+    "paths": "all",
+    "session_duration": "24h",
+    "app_launcher_visible": false,
+    "http_only_cookie_attribute": true,
+    "same_site_cookie_attribute": "lax",
+    "allowed_idps": [
+      {
+        "name": "Google Workspace",
+        "id": null
+      },
+      {
+        "name": "One-Time-PIN",
+        "id": null
+      },
+      {
+        "name": "tsidp",
+        "id": null
+      }
+    ],
+    "aud": null
+  },
+  "policies": [
+    {
+      "name": "video-utils exact operators",
+      "decision": "allow",
+      "precedence": 1,
+      "enabled_by_default": true,
+      "include": {
+        "selector": "email",
+        "values": null,
+        "values_source": "exact operator email(s) supplied at apply; never committed, never a shared group or email_domain"
+      },
+      "exclude": {
+        "selector": "login_method",
+        "values": [
+          "tsidp"
+        ],
+        "reason": "gftb pattern: tsidp rewrites @github/@passkey logins to non-routable addresses, so a tsidp identity is never admitted by email"
+      }
+    },
+    {
+      "name": "video-utils operators via tailnet (tsidp)",
+      "decision": "allow",
+      "precedence": 2,
+      "enabled_by_default": false,
+      "include": {
+        "selector": "oidc_claim",
+        "idp": "tsidp",
+        "claim_name": null,
+        "claim_value": null
+      },
+      "require": {
+        "selector": "login_method",
+        "values": [
+          "tsidp"
+        ]
+      },
+      "note": "Off until the operator rules on a tailnet capability claim for video-utils. Even when on, the origin admits only a verified Access JWT email on VIDEO_UTILS_OPERATOR_ALLOWLIST; whether that email is the operator's tailnet login for a tsidp sign-in is unknown (tsidp_claims_in_access_jwt, assertion_idp_visible_to_app)."
+    },
+    {
+      "name": "video-utils review service token",
+      "decision": "non_identity",
+      "precedence": 3,
+      "enabled_by_default": false,
+      "include": {
+        "selector": "service_token",
+        "token_name": null
+      },
+      "note": "Optional, by name only; no token id or secret is recorded. Inference (not verified against a live token): a service-token Access JWT carries no user email, so the origin verifier refuses it with 403 until a separate ruling adds service-token handling."
+    }
+  ],
+  "bypass_applications": [],
+  "not_here": [
+    "No bypass application: probes are tcpSocket inside the cluster, so no health path is exempt at the edge or at the origin.",
+    "No DNS record, tunnel route, IdP creation, application AUD or service token is created by this file; each is an operator act.",
+    "No secret values: Cloudflare API tokens, tsidp client credentials and service-token secrets stay in operator custody (sops / GitHub environment secrets set by stdin), names only."
+  ],
+  "origin_config_from_apply": {
+    "VIDEO_UTILS_CF_ACCESS_TEAM_DOMAIN": "the account team domain <team>.cloudflareaccess.com (issuer https://<team>, JWKS https://<team>/cdn-cgi/access/certs)",
+    "VIDEO_UTILS_CF_ACCESS_AUDS": "the AUD tag of the application above, read back after apply",
+    "VIDEO_UTILS_OPERATOR_ALLOWLIST": "the same exact operator email(s) as the allow policy",
+    "VIDEO_UTILS_PUBLIC_HOSTS": "the application domain",
+    "ORIGIN": "https://<application domain>"
+  },
+  "unknowns": {
+    "public_hostname": null,
+    "cloudflare_tunnel_id": null,
+    "access_application_aud": null,
+    "access_idp_ids": null,
+    "cluster_target": "unknown",
+    "cloudflared_namespace": "unknown",
+    "tsidp_claims_in_access_jwt": "unknown",
+    "assertion_idp_visible_to_app": "unknown"
+  }
+}

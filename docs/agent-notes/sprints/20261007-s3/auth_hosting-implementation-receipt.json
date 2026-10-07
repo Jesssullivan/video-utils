@@ -1,0 +1,201 @@
+{
+  "schema": "video-utils.sprint-lane-receipt.v1",
+  "lane": "auth_hosting",
+  "sprint": "20261007-s3",
+  "tracker": {
+    "linear": "TIN-5720",
+    "related": [
+      "TIN-5552"
+    ],
+    "linear_written": false
+  },
+  "date": "2026-10-07",
+  "branch": "sprint/20261007-s3/auth_hosting",
+  "contract": {
+    "path": "docs/spec/sprints/AUTH_HOSTING_S3.md",
+    "freeze_commit": "38d9ed92d81bc19d0c8bc4be617bf45d7dab01e5",
+    "implementation_record_section": 11
+  },
+  "authority": "Operator S3 decision (docs/spec/sprints/20261007-S3.md); R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43)",
+  "preregistered": false,
+  "estate_sources": {
+    "method": "git fetch then git show/grep on remote default branches only; no local working tree read",
+    "fetched_at": "2026-10-07T05:15Z",
+    "recorded": 9,
+    "denominator": 9,
+    "tips": {
+      "tinyland-inc/xoxd.ai origin/main": [
+        "cc570c3c1079cc5754840395184f0c1a6fece97f",
+        "2026-10-05"
+      ],
+      "xoxd-ai/tinyland.dev github/main": [
+        "7422982619e357d31a0ddf0affdf8dedd0b51a93",
+        "2026-10-02"
+      ],
+      "Great-Falls-Tool-Bus/great-falls-tool-bus-infra upstream/main": [
+        "bb969bea496926b19f9350857a91da9d02a5f2c5",
+        "2026-10-06"
+      ],
+      "Great-Falls-Tool-Bus/greatfallstoolbus.org upstream/main": [
+        "b7f5b29690c72dbe777f1058bf8e88acaca3ab31",
+        "2026-10-06"
+      ],
+      "Jesssullivan/gftb-site origin/main": [
+        "849af37beaaa8675a9115b741aeee7a0ba13b8f4",
+        "2026-09-22"
+      ],
+      "tinyland-inc/massage-ithaca-portal origin/main": [
+        "fda9163fb9847c8b10a1b7ae4bc1fd8bddeb793e",
+        "2026-10-01"
+      ],
+      "xoxd-ai/lab origin/main": [
+        "fdd75a3d019ea81b5c986f67dfbfc0312ab0a11f",
+        "2026-10-07"
+      ],
+      "tinyland-inc/tinyland-infra origin/main": [
+        "336c159e56723e3da85ec760c6aa557b6ebc296f",
+        "2026-10-07"
+      ],
+      "tinyland-inc/GloriousFlywheel origin/main": [
+        "aacc52916c9160b178105e628ed18fb95c8338d1",
+        "2026-10-06"
+      ]
+    },
+    "tips_moved_since_freeze": [
+      "xoxd-ai/lab",
+      "tinyland-inc/tinyland-infra"
+    ],
+    "moved_paths_changed": 0,
+    "record": "docs/research/2026-10-07-estate-auth-hosting.md",
+    "claim_class": "source-reading"
+  },
+  "container_base": {
+    "image": "docker.io/library/node:22.23.2-bookworm-slim",
+    "index_digest": "sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9",
+    "observed_from": "registry-1.docker.io manifest HEAD (anonymous pull token), read-only",
+    "observed_at": "2026-10-07T05:21:13Z",
+    "claim_class": "measured"
+  },
+  "results": {
+    "claim_class": "source-check (unit/static/local-process results in this worktree; node v22.23.2, python 3.12)",
+    "commands": [
+      "PYTHONPATH=tests python3 -m unittest test_auth_hosting_s3 -v",
+      "PYTHONPATH=tests python3 -m unittest test_web_stack.WebStackStaticTests test_web_stack.WebStackBuildTests -v",
+      "PYTHONPATH=tests python3 -m unittest test_web_stack.WebStackIntegrationTests"
+    ],
+    "test_auth_hosting_s3": {
+      "ran": 39,
+      "passed": 39,
+      "skipped": 0,
+      "failed": 0
+    },
+    "test_web_stack_static_build": {
+      "ran": 15,
+      "passed": 15,
+      "skipped": 0,
+      "failed": 0,
+      "svelte_check_errors": 0,
+      "note": "offline frozen pnpm install and adapter-node build ran locally; build/ and node_modules are gitignored"
+    },
+    "test_web_stack_integration": {
+      "ran": 18,
+      "passed": 18,
+      "failed": 0
+    },
+    "jwt_decision_ids": {
+      "matched": 14,
+      "denominator": 14,
+      "sub_case_decisions_matched": 20,
+      "sub_case_denominator": 20,
+      "extra_decisions": [
+        "aud string",
+        "iat future",
+        "exp missing",
+        "ES256 alg",
+        "kid missing"
+      ]
+    },
+    "jwks_cache_cases": {
+      "matched": 4,
+      "denominator": 4,
+      "extra": [
+        "64 KiB body cap",
+        "1024-bit and non-RSA keys ignored",
+        "stale > 60 min denied"
+      ]
+    },
+    "gate_matrix_rows": {
+      "matched": 7,
+      "denominator": 7,
+      "rows_exercised": 13
+    },
+    "built_hooks_end_to_end": {
+      "matched": 8,
+      "denominator": 8,
+      "note": "tailnet build: missing/malformed/plaintext-header-only identity 403, wrong and loopback Host 421, unconfigured 503 (x2); loopback build: 421 body byte-identical in content to S2. Valid-token path not exercised end to end (would need JWKS network); covered by stub JWKS in J1/G1."
+    },
+    "loopback_default_cases": {
+      "L1_sub_cases": 7,
+      "L2_sub_cases": 12,
+      "L3": "present",
+      "all_matched": true
+    },
+    "manifests": {
+      "files_parsed": 10,
+      "denominator": 10,
+      "k2_invariants_hold": true
+    },
+    "secret_scan": {
+      "files_scanned": 18,
+      "findings": 0
+    },
+    "containerfile_k4": "holds (3 FROM pinned to one digest, USER 10001:10001, no ADD, no COPY of fixtures/artifacts/media/.env)",
+    "research_sources_recorded": {
+      "recorded": 9,
+      "denominator": 9
+    }
+  },
+  "unknowns": {
+    "public_hostname": null,
+    "cloudflare_tunnel_id": null,
+    "access_application_aud": null,
+    "access_idp_ids": null,
+    "cluster_target": "unknown",
+    "namespace_exists": "unknown",
+    "storage_class": "unknown",
+    "cloudflared_namespace": "unknown",
+    "container_base_digest": "sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9",
+    "container_image_digest": null,
+    "container_built": false,
+    "control_api_colocation": "unresolved",
+    "tsidp_claims_in_access_jwt": "unknown",
+    "assertion_idp_visible_to_app": "unknown",
+    "tailscale_serve_identity": "not_accepted",
+    "applied": false,
+    "served_proof": "not_run"
+  },
+  "not_claimed": [
+    "any apply to Cloudflare, a tunnel, DNS or a cluster",
+    "creation of an Access application, AUD, IdP, service token, namespace or Secret",
+    "image build or push",
+    "served proof",
+    "live Cloudflare/tsidp behaviour",
+    "any DSP, detector, profile, master or listening change"
+  ],
+  "doctrine": "No audio-processing change; ~32 Hz protection, no blanket high-pass, no mains notch untouched. Real-take media never baked into the image or committed.",
+  "implementation_commit": "53cf71e (plus this receipt commit)",
+  "contract_deviations": "docs/spec/sprints/AUTH_HOSTING_S3.md section 11 (7 items; notably the runtime image also copies src/lib/server/auth/ for serve.js startup validation)",
+  "measured_inferred_unknown": {
+    "measured": [
+      "test outcomes above",
+      "node base image index digest from the registry",
+      "estate remote tips and per-path commits"
+    ],
+    "inferred": [
+      "origin sees only an Access JWT even for tsidp logins (tsidp federated into Access)",
+      "service-token readers would be refused by the origin (no email claim); not verified against a live token",
+      "tcpSocket probes remove the need for any health bypass"
+    ],
+    "unknown": "see unknowns"
+  }
+}

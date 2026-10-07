@@ -1,0 +1,27 @@
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": "video-utils-web-config",
+    "namespace": "video-utils",
+    "labels": {
+      "app.kubernetes.io/name": "video-utils-web",
+      "app.kubernetes.io/part-of": "video-utils",
+      "app.kubernetes.io/component": "web-bff"
+    },
+    "annotations": {
+      "video-utils.dev/contract": "docs/spec/sprints/AUTH_HOSTING_S3.md",
+      "video-utils.dev/applied": "false",
+      "video-utils.dev/values": "Empty values are placeholders the operator supplies at apply; serve.js exits 2 (fail closed) until every tailnet variable validates. Non-secret by construction: AUD tags, team domain, hostnames and allowlisted emails are configuration, not credentials."
+    }
+  },
+  "data": {
+    "VIDEO_UTILS_AUTH_MODE": "tailnet",
+    "PORT": "3000",
+    "VIDEO_UTILS_CF_ACCESS_TEAM_DOMAIN": "",
+    "VIDEO_UTILS_CF_ACCESS_AUDS": "",
+    "VIDEO_UTILS_OPERATOR_ALLOWLIST": "",
+    "VIDEO_UTILS_PUBLIC_HOSTS": "",
+    "ORIGIN": ""
+  }
+}

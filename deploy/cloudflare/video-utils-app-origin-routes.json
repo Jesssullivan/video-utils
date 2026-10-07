@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "tinyland.cloudflare-tunnel.app-origin.v1",
+  "ticket": "TIN-5720",
+  "tunnelName": null,
+  "tunnelId": null,
+  "hostname": null,
+  "publicAppOrigin": null,
+  "service": "http://video-utils-web.video-utils.svc.cluster.local:3000",
+  "catchAllService": "http_status:404",
+  "routes": [
+    {
+      "path": "/",
+      "purpose": "Whole app origin for the private video-utils review BFF. Every path stays behind the all-paths Cloudflare Access application in video-utils-access-plan.json; the origin additionally verifies the Access JWT and the operator allowlist (AUTH_HOSTING_S3.md section 4.5).",
+      "expectedMethods": [
+        "GET",
+        "POST"
+      ],
+      "expectedStatus": 200,
+      "expectedSignedOutStatus": 302,
+      "expectedSignedOutRedirectHostSuffix": "cloudflareaccess.com"
+    }
+  ],
+  "notes": [
+    "Modelled on xoxd-ai/tinyland.dev infra/cloudflare/honey-ingress-mothership-xoxd-ai-routes.json (github/main 7422982619e357d31a0ddf0affdf8dedd0b51a93, path commit 8a80a74805a2c0efc1ca60b4e3f7f8428ef22934, 2026-09-19): a source-controlled expected route contract applied out of band against a shared Cloudflare Tunnel, never by a script or workflow in this repository.",
+    "tunnelName, tunnelId, hostname and publicAppOrigin are null pending operator decision; the estate pattern uses the shared honey-ingress tunnel, but which cluster and tunnel serve video-utils is not decided (cluster_target unknown).",
+    "Order (xoruby pattern, tinyland-infra tofu/stacks/xoxd-ai-edge README): Access gate first and read back, then this tunnel route, then the proxied DNS record. Rollback in reverse.",
+    "Applying this file is an outward-facing operator act requiring a separate go (deploy/README.md)."
+  ],
+  "applied": false,
+  "unknowns": {
+    "public_hostname": null,
+    "cloudflare_tunnel_id": null,
+    "access_application_aud": null,
+    "access_idp_ids": null,
+    "cluster_target": "unknown",
+    "cloudflared_namespace": "unknown",
+    "tsidp_claims_in_access_jwt": "unknown",
+    "assertion_idp_visible_to_app": "unknown"
+  }
+}

@@ -1,0 +1,246 @@
+{
+  "lane": "auth_hosting",
+  "branch": "sprint/20261007-s3/auth_hosting",
+  "head": "1a6e9c1599f2b32c1e62ef2d35daee44530f0f02",
+  "base_commit": "4bd806db3944d05fb4b5cca16a87642a71f5458f",
+  "worktree": ".local/sprint3/auth_hosting",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": "deploy/README.md",
+      "sha256": "642d648ef862758a7c94ff73e89066c9cbc009267dd87a264b4d1f44bed36dbe",
+      "kind": "source"
+    },
+    {
+      "path": "deploy/cloudflare/video-utils-access-plan.json",
+      "sha256": "e3365f846e9407da89ed246b9a6008faf804c197244a0a0c0baaa2091ab4797c",
+      "kind": "source"
+    },
+    {
+      "path": "deploy/cloudflare/video-utils-app-origin-routes.json",
+      "sha256": "21fd9de352151767442c6915574da17024bdfbd3be3469fa1d3ee6f7d33de04a",
+      "kind": "source"
+    },
+    {
+      "path": "deploy/k8s/configmap.json",
+      "sha256": "f06fe0e2d1a927f1efacf70b6a1d5e24ed1cc961b458b19f180371a5651bc15d",
+      "kind": "source"
+    },
+    {
+      "path": "deploy/k8s/deployment.json",
+      "sha256": "5c5c01fc71d8aa521594dbcdaeb081fd03ef218e39d629c3e71266dcf6514e62",
+      "kind": "source"
+    },
+    {
+      "path": "deploy/k8s/kustomization.yaml",
+      "sha256": "fedabbb132158a71d6ec1fc84595b2b550e7575d20c5559c1b7bed409b5c9260",
+      "kind": "source"
+    },
+    {
+      "path": "deploy/k8s/namespace.json",
+      "sha256": "c6744fcd8799d82a52f6ef309d13757f2b89daab011f419013992b5ebae9815a",
+      "kind": "source"
+    },
+    {
+      "path": "deploy/k8s/networkpolicy.json",
+      "sha256": "7c97e9c967be5ccc59bb77831296d21fb4e805888f2a7e0efd351d95f35530e2",
+      "kind": "source"
+    },
+    {
+      "path": "deploy/k8s/pvc.json",
+      "sha256": "33f1445740f55de5bee8229af0eb70970114ea3855f2500cce7c5092913f452c",
+      "kind": "source"
+    },
+    {
+      "path": "deploy/k8s/service.json",
+      "sha256": "afb3ac231e961534fbf4ad4f035ee8048efc53e0f6bd037b6bc204975bd6b43a",
+      "kind": "source"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/auth_hosting-implementation-receipt.json",
+      "sha256": "30a5fbb52102e9b380dc6bf71b7a7baeed4f4d7db566440502aa2b0a3986323f",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/research/2026-10-07-estate-auth-hosting.md",
+      "sha256": "3ea618200d2c60a42a4609eb3055b818cbe3f4cdc3d2950d91c00a49827184c0",
+      "kind": "data"
+    },
+    {
+      "path": "docs/spec/sprints/AUTH_HOSTING_S3.md",
+      "sha256": "5f1842efc156a1b113b8f8391c35fdd13c5cb5201a0bc34ba4823f7d277303a6",
+      "kind": "spec"
+    },
+    {
+      "path": "tests/test_auth_hosting_s3.py",
+      "sha256": "b69b0ae1ee6bb09459b880017ac412cdf9ba78d4990e04679d9815fff522f6b7",
+      "kind": "test"
+    },
+    {
+      "path": "web/Containerfile",
+      "sha256": "59cecbfee09c59356c230689f0c35792d9ef26b0b37c546af112226de0defeb1",
+      "kind": "source"
+    },
+    {
+      "path": "web/serve.js",
+      "sha256": "3f76fbffedb5546b63cfde544e5335e195ecfe2703cbf8e520a66ee8889ba892",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/hooks.server.ts",
+      "sha256": "08c846f202ee4e0cad584cac39e60849abd254f18682ff17ba3d51e5cfb6be10",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/server/auth/allowlist.js",
+      "sha256": "124fc17b95ff7a4867c190a6a69ba47100ebc06cb44c5da24da69ed30661aa94",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/server/auth/cf-access.js",
+      "sha256": "4f19c7e62538a3aa2e8087fa293a354cff9e0b3b882a54385dd618969fdfa2d1",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/server/auth/gate.js",
+      "sha256": "228391c01ee9644ac5bc8bd30b9787faba07002be76640cf2adbb074a41fafb0",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/server/auth/mode.js",
+      "sha256": "6f971c43594d78895bbeb85dc01293d6292cebe3e1d3ef30e3138a2ffec28012",
+      "kind": "source"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_auth_hosting_s3 test_web_stack -v",
+    "discovered": 72,
+    "passed": 72,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 571
+  },
+  "metrics": [
+    {
+      "name": "test_auth_hosting_s3 tests",
+      "numerator": 39,
+      "denominator": 39,
+      "unit": "tests",
+      "claim_class": "measured"
+    },
+    {
+      "name": "test_web_stack static/build tests",
+      "numerator": 15,
+      "denominator": 15,
+      "unit": "tests",
+      "claim_class": "measured"
+    },
+    {
+      "name": "test_web_stack integration tests",
+      "numerator": 18,
+      "denominator": 18,
+      "unit": "tests",
+      "claim_class": "measured"
+    },
+    {
+      "name": "JWT test cases",
+      "numerator": 20,
+      "denominator": 20,
+      "unit": "sub-cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "JWKS cache test cases",
+      "numerator": 4,
+      "denominator": 4,
+      "unit": "cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Gate matrix rows exercised",
+      "numerator": 13,
+      "denominator": 7,
+      "unit": "exercised/rows",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Estate repositories checked",
+      "numerator": 9,
+      "denominator": 9,
+      "unit": "repos",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Secret/PII scan findings",
+      "numerator": 0,
+      "denominator": 18,
+      "unit": "findings/files",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "public_hostname deployment configuration (currently null)",
+    "applied flag (currently false, not applied to cluster)",
+    "served_proof (not_run, valid-token end-to-end path not exercised)",
+    "Domain configuration for CORS/hosting",
+    "Load testing under production-like concurrent demand",
+    "Performance characteristics under high gateway throughput",
+    "Failover and redundancy scenarios",
+    "Metrics and observability integration state",
+    "Incident and rollback procedures",
+    "Cache efficiency metrics for JWKS refresh patterns",
+    "Token refresh and expiration edge cases",
+    "Multi-region deployment behavior",
+    "Rate limiting and DDoS protection configuration",
+    "Audit logging configuration and retention",
+    "Secret rotation procedures",
+    "IdentityProvider failover behavior",
+    "Performance impact of signature verification under load"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "web/src/lib/control-types.ts",
+      "change": "Add two members to the BffErrorCode union, after 'bff_host_refused': | 'bff_identity_refused' | 'bff_auth_unconfigured'",
+      "why": "gate.js emits these codes in the six-key BFF error body (403 for a missing, invalid or non-allowlisted identity; 503 for an invalid mode or tailnet config). hooks.server.ts currently returns them via json() so it type-checks without them; adding them lets UI code that parses BffError recognise both codes (AUTH_HOSTING_S3.md section 8.1)."
+    },
+    {
+      "file": "web/.containerignore",
+      "change": "New file with the lines: node_modules, build, .svelte-kit, fixtures, .env, .env.*, *.log",
+      "why": "Keeps the build context small and private. web/Containerfile already copies only named paths, so this is defense in depth, not needed for correctness (section 8.2)."
+    },
+    {
+      "file": "just/workflow.just (or a new just/auth_hosting.just routed from the root justfile)",
+      "change": "auth-hosting-test: PYTHONPATH=tests python3 -m unittest test_auth_hosting_s3 -v",
+      "why": "Operator entrypoint for the lane's test module (section 8.4). The BuiltHooksTests class skips unless web/build exists, so run the web-stack build tests first for full coverage."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261006-s2/auth_hosting-handoff.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Scope holds. `git diff --name-only 4bd806d...HEAD` in .local/sprint3/auth_hosting lists 21 files, and every one is lane-owned: deploy/** (10), docs/agent-notes/sprints/20261007-s3/auth_hosting-implementation-receipt.json, docs/research/2026-10-07-estate-auth-hosting.md, docs/spec/sprints/AUTH_HOSTING_S3.md, tests/test_auth_hosting_s3.py, web/Containerfile, web/serve.js, web/src/hooks.server.ts and web/src/lib/server/auth/{allowlist,cf-access,gate,mode}.js. No root-owned or foreign file is touched. The branch has three commits (38d9ed9 contract freeze, 53cf71e, 1a6e9c1) and the worktree is clean.",
+      "(2) No forbidden writes. The diff does not touch artifacts/runs, program/tools.json, scripts/tool_api.py, just/workflow.just, ~/Documents or ~/Desktop. No model download or daemon appears. The only network effects are the documented read-only git fetch and registry manifest HEAD.",
+      "(3) Claim classes look correct. The receipt separates measured (test outcomes, base digest, estate tips), inferred (tsidp federated into Access, service-token refusal, tcpSocket probes) and unknown (17 explicit fields, including public_hostname null, applied false, served_proof not_run). The valid-token end-to-end path is honestly marked as not exercised. Every count has a denominator. There are no audio, DSP, detector or default changes, so no missed-note, accuracy or FULLER-adoption claims apply.",
+      "(4) Rerun results. In an isolated `git archive 1a6e9c1` copy under the scratchpad, the exact claimed command (FFMPEG/FFPROBE set, `PYTHONPATH=tests python3 -m unittest test_auth_hosting_s3 test_web_stack -v`) gave Ran 72, FAILED (errors=3, skipped=3) in 494.6 s. The 3 errors (S5, S6, S7) were artifacts of my export: `git ls-files` exits 128 in a non-git directory. After `git init` plus commit, a rerun of WebStackStaticTests and BuiltHooksTests gave Ran 13, OK in 288 s. The 72-test total and an all-pass outcome reproduce across the two invocations.",
+      "Test-order dependency (not blocking). On a clean checkout, BuiltHooksTests T1-T3 skip with 'web/build absent' (tests/test_auth_hosting_s3.py:699-700). test_auth_hosting_s3 sorts before test_web_stack, and test_web_stack produces the build. The lane's '0 skipped' therefore depended on a web/build left in its worktree by an earlier run. In CI or any fresh clone, the claimed command skips the only end-to-end tailnet tests. Reorder the modules (test_web_stack first) or have BuiltHooksTests build or require a build.",
+      "Deny-by-default gap, confirmed empirically. I ran `node build/index.js` from the lane worktree with VIDEO_UTILS_AUTH_MODE=tailnet, no other config and Host: evil.example.org. GET / returned 503, but GET /_app/version.json returned 200 and GET /_app/immutable/entry/app.GrsUNIqA.js returned 200. adapter-node's handler sequence serves build/client through sirv before ssr/hooks (node_modules/@sveltejs/adapter-node/files/handler.js:239-242). This contradicts AUTH_HOSTING_S3.md:139 ('hooks answer 503 to every request') and :189 ('503 … every path'). It also bypasses the Host 421 and identity 403 checks for static client assets. The impact is low: the assets are public JS bundles (test S10 checks they carry no token or control URL), Access fronts all paths and the NetworkPolicy limits ingress. The spec wording should be corrected, or a pre-sirv guard added, before any apply.",
+      "Loopback behaviour is preserved. hooks.server.ts now uses json(decision.error, {status, headers: NO_STORE}), which is equivalent to errorResponse in web/src/lib/server/http.ts:9-10. gate.js builds the same six-key body in makeBffError order. T3 asserts a byte-equal 421 body and no-store.",
+      "Verifier review of web/src/lib/server/auth/cf-access.js. It accepts RS256 only and refuses none, HS* and ES*. It checks crit, verifies the signature before checking claims, and compares iss exactly. AUD is any-of and case-sensitive. exp is required, with 60 s skew, and nbf/iat are checked. Email must be present and is lowercased. The assertion is capped at 8 KiB. The JWKS fetch has a 5 s timeout, redirect:error, a 64 KiB body cap, a 2048-bit RSA minimum, a 10 min fresh TTL, a 30 s refetch cooldown and a 60 min stale cap. All timeouts are bounded. I found no defect.",
+      "Minor: deploy/README.md step 8 says a request 'straight to the Service without an Access JWT gets 403'. A direct in-cluster request would normally carry the Service or pod Host and get 421 first. 403 only appears if the operator spoofs the public Host. Clarify the wording.",
+      "Minor: the 20 s per-node-subprocess timeout at tests/test_auth_hosting_s3.py:594 can fail spuriously under host saturation, as the lane itself reported. My run passed L1 and L2 at load averages of about 150-290.",
+      "(5) Doctrine: not applicable. The lane makes no audio-path changes and adds no high-pass or notch, and the receipt says so. The unknown fields are present in the receipt, the README and the plan JSON (null or 'unknown'), and R2 enforces them.",
+      "(6) Numbers reproduced. 39 + 15 + 18 = 72 matches the discovered count. Estate provenance checks against local clones, all matching the research table: massage-ithaca-portal fda9163 is dated 2026-10-01, and cf-access.ts at that commit contains the quoted deny-by-default, no-dev-bypass and any-of-AUD text. GloriousFlywheel aacc529 is dated 2026-10-06, and `git grep -il tsidp` returns only docs/decisions/cold-start-enrollment-2026-06.md (path commit 32c1e6fb, 2026-09-04). gftb-infra bb969be has docs/runbooks/cf-access-tsidp.md at path commit 3d0d02d6 (2026-10-05). tinyland-infra 336c159 exists.",
+      "Secrets and PII: the diff has no PEM blocks, JWTs, tokens or /Users paths. The research doc quotes the public Access team name 'sulliwood.cloudflareaccess.com' from estate sources. That is a team identifier, not a credential, in a private repo. The ConfigMap leaves the allowlist and hostnames empty for the operator to set at apply."
+    ],
+    "must_fix": []
+  }
+}
