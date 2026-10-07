@@ -262,7 +262,12 @@
     "Linear, push, merge and hosted CI are root's"
   ],
   "secret_scan": {
-    "state": "pending"
+    "tool": "/opt/homebrew/bin/gitleaks dir --redact --no-banner on a clean export (git archive HEAD | tar -x)",
+    "result": "no leaks found",
+    "exit": 0,
+    "scanned_tree": "the commit immediately before this field was filled; that tree differs from the final commit only in this secret_scan object. The final HEAD was scanned again after commit and the result is reported in the lane summary.",
+    "earlier_finding": "the first receipt draft tripped generic-api-key on a JSON field named entry_key holding the model id cpjku-beat-this-final0 (not a secret); the field was renamed to registry_model_id. No allowlist was added.",
+    "allowlist_changes": "none"
   },
   "files_sha256": [
     {
