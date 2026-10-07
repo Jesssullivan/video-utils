@@ -1,0 +1,185 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "art_00000000000000000000000000000015",
+      "attempt": 1,
+      "content_type": "application/json",
+      "downloadable": true,
+      "role": "publication",
+      "sha256": "000000000000000000000000000000000000000000000000000000000000001f",
+      "size_bytes": 2644
+    },
+    {
+      "artifact_id": "art_00000000000000000000000000000016",
+      "attempt": 1,
+      "content_type": "video/mp4",
+      "downloadable": true,
+      "role": "share_mp4",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000020",
+      "size_bytes": 62662
+    },
+    {
+      "artifact_id": "art_00000000000000000000000000000017",
+      "attempt": 1,
+      "content_type": "application/json",
+      "downloadable": false,
+      "role": "share_receipt",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000021",
+      "size_bytes": 11533
+    }
+  ],
+  "attempts": [
+    {
+      "attempt": 1,
+      "cancel": null,
+      "ended_at": "2026-10-07T12:00:04Z",
+      "liveness": null,
+      "reason_code": null,
+      "reconciled_publication": false,
+      "started_at": "2026-10-07T12:00:03Z",
+      "state": "succeeded",
+      "worker_checks": {
+        "audio_proof": {
+          "audio_reencoded": true,
+          "channels": 1,
+          "exact_pcm_sample_identity": false,
+          "method": "decoded_audio_frame_timestamps_and_samples",
+          "priming_padding_allowance_seconds": 0.023242630385487528,
+          "sample_rate": 44100
+        },
+        "byte_reduction_fraction": 0.4635791636348072,
+        "codecs": {
+          "audio": "aac",
+          "video": "h264"
+        },
+        "dimensions": {
+          "height": 240,
+          "width": 320
+        },
+        "listening_accepted": false,
+        "loudness": {
+          "integrated_lufs": -29.22,
+          "method": "ffmpeg_loudnorm_decoded_audio_measurement",
+          "silence": false,
+          "true_peak_dbtp": -17.61
+        },
+        "master_adopted": false,
+        "output_bytes": 62662,
+        "output_decode_errors_checked": true,
+        "output_sha256": "0000000000000000000000000000000000000000000000000000000000000020",
+        "settings": {
+          "attenuation_db_max": 3.0,
+          "audio_attempts_max": 2,
+          "audio_kbps": 96,
+          "cleanup_grace_seconds": 5,
+          "codec": "h264",
+          "crf": 30,
+          "height": 240,
+          "operation_seconds": 110,
+          "reporting_headroom_seconds": 5,
+          "target_true_peak_dbtp": -1.5,
+          "threads": 2,
+          "timeout_seconds": 120
+        },
+        "source_bytes": 116815,
+        "source_sha256": "0000000000000000000000000000000000000000000000000000000000000002",
+        "status": "exported_unreviewed",
+        "video_encode_count": 1,
+        "video_proof": {
+          "comparison_scope": "presented_packets_excluding_edit_list_discard",
+          "maximum_pts_delta_seconds": 0.0,
+          "method": "sorted_packet_presentation_timestamps_rational",
+          "output_decode_only_packets": 0,
+          "output_packet_count_total": 48,
+          "output_presented_packet_count": 48,
+          "packet_count": 48,
+          "physical_capture_sync_verified": false,
+          "source_decode_only_packets": 0,
+          "source_end_seconds": 2.0,
+          "source_full_frame_decode_verified": false,
+          "source_packet_count_total": 48,
+          "source_presented_packet_count": 48,
+          "source_start_seconds": 0.0,
+          "tail_extent_delta_seconds": 0.0,
+          "tolerance_seconds": 8.138020833333333e-05
+        }
+      },
+      "worker_kind": "test_stub"
+    }
+  ],
+  "cancel_requested": false,
+  "capability_revision": "0000000000000000000000000000000000000000000000000000000000000012",
+  "claim_class": "job_state_record",
+  "created_at": "2026-10-07T12:00:02Z",
+  "eta_seconds": null,
+  "eta_seconds_reason": "not estimated",
+  "idempotency_key": "fixture-00000001",
+  "job_id": "job_00000000000000000000000000000001",
+  "parameters": {
+    "audio_kbps": 96,
+    "codec": "h264",
+    "crf": 30,
+    "height": 240,
+    "timeout_seconds": 120
+  },
+  "phase": "published",
+  "phase_reason": "latest job event reason code, read from a separate read-only snapshot; it may lead or lag state by one event",
+  "progress": {
+    "completed": 6,
+    "denominator": 6,
+    "unit": "lifecycle_steps"
+  },
+  "progress_reason": "lifecycle step count from the job event log; not an encode fraction; share_export reports no incremental progress",
+  "reason_code": null,
+  "schema_version": 1,
+  "source_artifact_id": "art_00000000000000000000000000000002",
+  "source_binding": "bound",
+  "source_id": "src_00000000000000000000000000000001",
+  "state": "succeeded",
+  "tool": "share_export",
+  "tool_envelope": {
+    "evidence_kind": "lossy_sharing_derivative",
+    "implementation_status": "experimental",
+    "instrument_context": {
+      "automatic_high_pass": false,
+      "lowest_intentional_fundamental_hz": 32,
+      "preserve_distortion": true,
+      "strings": 9,
+      "styles": [
+        "deathcore",
+        "technical",
+        "virtuoso"
+      ]
+    },
+    "limitations": [
+      "Source/native master stays intact. Lossy sharing video and AAC are not a preservation master, recovered stem, listening acceptance or automatic adoption.",
+      "H.264 veryfast/CRF27/720p/AAC96 default; HEVC can be slow locally. CRF does not guarantee file-size reduction or an exact byte limit. Square-pixel video without side data is required; copy accepts H.264/HEVC within requested height.",
+      "Checks rational packet presentation timing/extent, source before-after hash, delivery decode, rate/channels and AAC priming/padding allowance. Reencoding is not source decoded-frame or exact PCM identity, nor proof of physical capture sync.",
+      "At most one video encode and two audio attempts, up to3dB audio attenuation to meet measured -1.5dBTP. Native8..192kHz/1..8 channels and duration<=300s; generated qualification covers mono/stereo; source/output<=3GiB. Two threads, owned logs4MiB per stream, compact16KiB and receipt64KiB.",
+      "Known domain failures remain tool errors with bounded staging/recovery receipts, including possible/committed publication. Inspect exact receipts before retrying; missing sidecar alone does not prove absence.",
+      "Worker cleanup covers its recorded owned children under the inner deadline; generic outer group fallback does not establish containment of distinct child sessions or unknown publication after a wedged worker."
+    ],
+    "schema_version": 1,
+    "skill": ".agents/skills/media-share-export/SKILL.md",
+    "tool": "share_export"
+  },
+  "unknowns": {
+    "cpu_seconds": null,
+    "cpu_seconds_reason": "not measured; no OS CPU quota is applied",
+    "exactly_once": "not_claimed",
+    "listening_acceptance": "not_established",
+    "low_register_preservation": null,
+    "low_register_preservation_reason": "lossy AAC sharing derivative; ~32 Hz content is not measured by this lane",
+    "master_adopted": false,
+    "memory_bytes_peak": null,
+    "memory_bytes_peak_reason": "not measured; no OS memory quota is applied",
+    "musical_review": null,
+    "musical_review_reason": "no note-correctness, missed-note or phrase verdicts are made by a job service",
+    "slo": "not_claimed",
+    "source_duration_seconds": 2.0,
+    "source_duration_seconds_reason": "worker video packet presentation extent (source_end - source_start); not a container probe",
+    "worker_birth": "recorded",
+    "worker_birth_reason": "ps lstart recorded for the latest attempt"
+  },
+  "updated_at": "2026-10-07T12:00:04Z"
+}

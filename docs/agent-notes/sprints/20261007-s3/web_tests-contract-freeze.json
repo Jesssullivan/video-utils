@@ -1,0 +1,20 @@
+{
+  "appended_after_freeze": "section 11 (implementation record, differences 1-17, Phase 4 repair record)",
+  "claim_class": "contract",
+  "freeze_commit": "665810f4212ba16ae44da76b2940dc56f5956281",
+  "frozen_lines": 445,
+  "frozen_sha256": "4600248630682950455d99cbb4438a1144a23a587fbdba4f4eb006e2c7ba49c7",
+  "lane": "web_tests",
+  "lane_commit": "c79aac5014d898ee2bd8cea497ae05bba2b8091a",
+  "merge_base": "05a13f209a84eed24f5be592105d164a5cd6205c",
+  "receipt": "contract-freeze",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N13 traceable receipt)",
+  "schema_version": 1,
+  "sections_1_to_10_check": "sha256 of the first frozen_lines lines of the spec at lane_commit equals frozen_sha256",
+  "sections_1_to_10_unchanged": true,
+  "spec": "docs/spec/sprints/WEB_TESTS_S3.md",
+  "spec_sha256_at_lane_commit": "a0e75ee09129a94e2cf2241dae67463792ef7ed6546e860de27057e7da252e30",
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5724",
+  "written_in": "Phase 4 repair; Phase 2 did not write this receipt"
+}

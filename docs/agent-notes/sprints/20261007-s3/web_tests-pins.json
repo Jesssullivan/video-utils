@@ -1,0 +1,316 @@
+{
+  "added_dev_dependencies": {
+    "@axe-core/playwright": {
+      "chosen": "4.13.0",
+      "equals_recorded_latest": true,
+      "recorded_npm_latest": "4.13.0"
+    },
+    "@playwright/test": {
+      "chosen": "1.63.0",
+      "equals_recorded_latest": true,
+      "recorded_npm_latest": "1.63.0"
+    },
+    "fast-check": {
+      "chosen": "4.10.2",
+      "equals_recorded_latest": true,
+      "recorded_npm_latest": "4.10.2"
+    },
+    "vitest": {
+      "chosen": "5.0.3",
+      "equals_recorded_latest": true,
+      "recorded_npm_latest": "5.0.3"
+    }
+  },
+  "basis": {
+    "date_utc": "2026-10-07",
+    "lane_branch": "sprint/20261007-s3/web_tests",
+    "lane_commit": "c79aac5014d898ee2bd8cea497ae05bba2b8091a",
+    "main_commit": "f2281b62520cecfefe221501340f83004e390e5e",
+    "measured_on": "merge tree of main and the lane branch, extracted to a scratch directory outside the repository (git merge-tree, textually clean); dependencies installed there with pnpm install --frozen-lockfile --offline",
+    "merge_tree": "7943df57b743d44d441217078a4bd45d511a2bf2",
+    "not_a_merge": "the lane did not merge, push or touch main; if main moves again these figures describe main_commit only",
+    "receipt_commit_note": "these receipts are added by the commit after lane_commit; that commit changes only docs/agent-notes/sprints/20261007-s3/web_tests-*.json",
+    "supersedes": "the Phase 2 figures measured before the fixtures were regenerated; none of them is used here",
+    "web_source_identity": "git diff of web/src between the merge base 05a13f2 and main is empty; main differs from the merge base under web/ only in BUILD.bazel and pnpm-workspace.yaml"
+  },
+  "claim_class": "contract",
+  "contract_pins": {
+    "@skeletonlabs/skeleton": "5.0.1",
+    "@skeletonlabs/skeleton-svelte": "5.0.1",
+    "effect": "4.0.1",
+    "svelte": "5.57.1"
+  },
+  "house_stack_module": {
+    "audit_failure_reproduced_before_fix": "SiteObeysSameRule failed on main + cb9ed3e at check_pins (file:vendor spec) as the audit reported; after the fix it passes on the merge tree",
+    "lane_tree": {
+      "fixture_drift": {
+        "basis": "file set, ids.json, routes.json, and keys + JSON types of every file; registry projections: every committed row shape still served",
+        "exact_equal_files": 41,
+        "files": 41,
+        "registry_projection_rows_no_longer_served": [],
+        "registry_projections": [
+          "capabilities.json"
+        ],
+        "registry_projections_behind_the_registry": [],
+        "shape_differs": [],
+        "status": "equal"
+      },
+      "note": "site/ does not exist on the lane branch; the site rule is exercised there by VendoredCarriers on synthetic packages only",
+      "result": "OK",
+      "site_package_present": false,
+      "skipped": 0,
+      "tests": 19
+    },
+    "merge_tree": {
+      "metrics": {
+        "W11_tools": {
+          "fixture": 42,
+          "registry": 42
+        },
+        "W1_pins": {
+          "checked": 4,
+          "denominator": 4,
+          "lockfile_single_version": 3,
+          "pins": {
+            "@skeletonlabs/skeleton": "5.0.1",
+            "@skeletonlabs/skeleton-svelte": "5.0.1",
+            "effect": "4.0.1",
+            "svelte": "5.57.1"
+          }
+        },
+        "W20_lane_files_scanned": 38,
+        "W2_effect": {
+          "effect3_only_subpaths_checked": 80,
+          "effect_root_imports": 7,
+          "effect_subpath_imports": 0,
+          "not_asserted": 0,
+          "rules_asserted": 3
+        },
+        "W2_skeleton": {
+          "not_asserted": 0,
+          "rules_asserted": 5,
+          "skeleton_imports_checked": 4,
+          "v4_classes_checked": 6,
+          "v4_only_entry_points": 0,
+          "v4_tokens_checked": 31
+        },
+        "W3_dev_dependencies": {
+          "@axe-core/playwright": "4.13.0",
+          "@playwright/test": "1.63.0",
+          "fast-check": "4.10.2",
+          "vitest": "5.0.3"
+        },
+        "a11y_baseline": {
+          "by_rule": {
+            "color-contrast": 30,
+            "heading-order": 4,
+            "label": 4,
+            "link-in-text-block": 4
+          },
+          "entries": 42,
+          "screen_reader_acceptance": null,
+          "wcag_conformance": null
+        },
+        "files": {
+          "a11y_specs": 1,
+          "e2e_specs": 11,
+          "unit_test_files": 13
+        },
+        "fixture_drift": {
+          "basis": "file set, ids.json, routes.json, and keys + JSON types of every file; registry projections: every committed row shape still served",
+          "exact_equal_files": 9,
+          "files": 41,
+          "registry_projection_rows_no_longer_served": [],
+          "registry_projections": [
+            "capabilities.json"
+          ],
+          "registry_projections_behind_the_registry": [
+            "capabilities.json"
+          ],
+          "shape_differs": [],
+          "status": "registry_projection_behind"
+        },
+        "fixtures": {
+          "files": 41,
+          "ids_checked": 184,
+          "routes": 39
+        },
+        "major_latest": {
+          "npm_latest_at_ci_time": null,
+          "record_age_days": 0.03,
+          "record_checked_at_utc": "2026-10-07T10:30:23Z",
+          "rows": [
+            {
+              "package": "@skeletonlabs/skeleton",
+              "pin": "5.0.1",
+              "pin_equals_recorded_latest": true,
+              "recorded_latest": "5.0.1"
+            },
+            {
+              "package": "@skeletonlabs/skeleton-svelte",
+              "pin": "5.0.1",
+              "pin_equals_recorded_latest": true,
+              "recorded_latest": "5.0.1"
+            },
+            {
+              "package": "effect",
+              "pin": "4.0.1",
+              "pin_equals_recorded_latest": true,
+              "recorded_latest": "4.0.1"
+            }
+          ]
+        },
+        "site": {
+          "effect": {
+            "effect3_only_subpaths_checked": 80,
+            "effect_root_imports": 0,
+            "effect_subpath_imports": 0,
+            "not_asserted": 0,
+            "rules_asserted": 3
+          },
+          "major_latest": [
+            {
+              "package": "@skeletonlabs/skeleton",
+              "pin": "5.0.1",
+              "pin_equals_recorded_latest": true,
+              "recorded_latest": "5.0.1"
+            },
+            {
+              "package": "@skeletonlabs/skeleton-svelte",
+              "pin": "5.0.1",
+              "pin_equals_recorded_latest": true,
+              "recorded_latest": "5.0.1"
+            }
+          ],
+          "pins_checked": 3,
+          "site_package_present": true,
+          "skeleton": {
+            "not_asserted": 0,
+            "rules_asserted": 5,
+            "skeleton_imports_checked": 7,
+            "v4_classes_checked": 6,
+            "v4_only_entry_points": 0,
+            "v4_tokens_checked": 31
+          },
+          "vendored": [
+            {
+              "contract_packages_declared": [
+                "@skeletonlabs/skeleton",
+                "@skeletonlabs/skeleton-svelte"
+              ],
+              "directory": "vendor/xoxd-public-chrome",
+              "package": "@xoxd/public-chrome",
+              "version": "0.1.0"
+            },
+            {
+              "contract_packages_declared": [],
+              "directory": "vendor/xoxd-theme",
+              "package": "@xoxd/theme",
+              "version": "0.1.1"
+            }
+          ],
+          "vendored_sources_scanned": 16
+        },
+        "vendored_rule": {
+          "accepted_cases": 2,
+          "refused_cases": 17,
+          "web_rule_refuses_vendored": true
+        }
+      },
+      "result": "OK",
+      "site_package_present": true,
+      "skipped": 0,
+      "tests": 19
+    },
+    "module": "tests/test_web_house_stack_s3.py",
+    "sha256": "a107ad0b8faa122aaf356872483027e2d192217962fc3dfcdf2492dff02ed836"
+  },
+  "lane": "web_tests",
+  "npm_latest_recheck": {
+    "all_equal_to_pins": true,
+    "checked_at_utc": "2026-10-07T10:58:20Z",
+    "claim_class": "measurement",
+    "command": "npm view <package> version",
+    "note": "registry state at that time only; web_tests-npm-latest.json (the record the test reads) is unchanged",
+    "values": {
+      "@axe-core/playwright": "4.13.0",
+      "@playwright/test": "1.63.0",
+      "@skeletonlabs/skeleton": "5.0.1",
+      "@skeletonlabs/skeleton-svelte": "5.0.1",
+      "effect": "4.0.1",
+      "fast-check": "4.10.2",
+      "vitest": "5.0.3"
+    }
+  },
+  "receipt": "pins",
+  "rejected_versions": [],
+  "rejected_versions_note": "no candidate version was rejected: each added devDependency is the npm latest recorded in web_tests-npm-latest.json. Not acted on, as recorded there: {\"@sveltejs/kit\": \"pin 2.70.3, latest 3.0.1 (not this lane)\", \"axe-core\": \"transitive 4.13.0 through @axe-core/playwright 4.13.0 (its dependency range is ~4.13.0); npm latest is 4.14.0\", \"svelte\": \"pin 5.57.1, latest 5.57.2 (patch; exact 5.x contract holds)\", \"typescript\": \"pin 6.0.3, latest 7.0.2 (not this lane)\"}",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N13 traceable receipt)",
+  "schema_version": 1,
+  "scripts": {
+    "test:a11y": "playwright test --project=a11y",
+    "test:e2e": "playwright test --project=e2e",
+    "test:unit": "svelte-kit sync && vitest run"
+  },
+  "site_vendored_rule": {
+    "accepted": "file:vendor/<dir> in site/ only, when site/vendor/PROVENANCE.json lists the package and directory as an unmodified carrier with equal integrity values, the vendored package.json matches its recorded sha256, name and version, contract packages are declared at the exact pins, and the lockfile resolves the directory",
+    "carrier_sources_scanned": 16,
+    "carriers_on_main": [
+      {
+        "contract_packages_declared": [
+          "@skeletonlabs/skeleton",
+          "@skeletonlabs/skeleton-svelte"
+        ],
+        "directory": "vendor/xoxd-public-chrome",
+        "package": "@xoxd/public-chrome",
+        "version": "0.1.0"
+      },
+      {
+        "contract_packages_declared": [],
+        "directory": "vendor/xoxd-theme",
+        "package": "@xoxd/theme",
+        "version": "0.1.1"
+      }
+    ],
+    "not_established": "that the carriers equal their upstream archives (the test trusts the recorded integrity fields and re-hashes package.json only); whether vendoring is the right long-term shape is root's decision",
+    "synthetic_cases": {
+      "accepted_cases": 2,
+      "refused_cases": 17,
+      "web_rule_refuses_vendored": true
+    },
+    "web_rule": "unchanged: exact versions only; a file: spec in web/ is refused"
+  },
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5724",
+  "w1": {
+    "denominator": 4,
+    "lockfile_single_version": "3/3",
+    "status": "met",
+    "value": 4
+  },
+  "w2": {
+    "effect": {
+      "effect3_only_subpaths_checked": 80,
+      "effect_root_imports": 7,
+      "effect_subpath_imports": 0,
+      "not_asserted": 0,
+      "rules_asserted": 3
+    },
+    "not_asserted": 0,
+    "skeleton": {
+      "not_asserted": 0,
+      "rules_asserted": 5,
+      "skeleton_imports_checked": 4,
+      "v4_classes_checked": 6,
+      "v4_only_entry_points": 0,
+      "v4_tokens_checked": 31
+    },
+    "status": "met"
+  },
+  "w3": {
+    "denominator": 4,
+    "status": "met",
+    "test_web_stack": "see web_tests-handoff.json python_modules",
+    "value": 4
+  }
+}

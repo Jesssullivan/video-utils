@@ -1,0 +1,5 @@
+{
+  "code": "setup_interval_unacknowledged",
+  "error": "interval overlaps the first five seconds (setup guitar/amp sounds, possible windup); acknowledge it explicitly",
+  "status": "error"
+}

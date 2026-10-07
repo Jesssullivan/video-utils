@@ -378,3 +378,16 @@ site-test:
 # Deploying is an outward-facing action: this recipe only refuses and points at the plan.
 site-pages-deploy:
     @echo "refused: deploying the public site needs an explicit operator go; see docs/spec/sprints/PUBLIC_SITE_S3.md" && exit 2
+
+# Web app tests (S3 web_tests; docs/spec/sprints/WEB_TESTS_S3.md). Loopback only; mocked control API.
+web-unit:
+    cd web && pnpm run test:unit
+
+web-e2e:
+    cd web && pnpm run build && pnpm run test:e2e
+
+web-a11y:
+    cd web && pnpm run build && pnpm run test:a11y
+
+web-house-stack-test:
+    PYTHONPATH=tests python3 -m unittest test_web_house_stack_s3 -v

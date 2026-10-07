@@ -1,0 +1,201 @@
+{
+  "admission_state": "admitted",
+  "artifacts": [
+    {
+      "artifact_id": "art_0000000000000000000000000000000b",
+      "attempt": 1,
+      "content_type": "application/json",
+      "downloadable": true,
+      "role": "publication",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000013",
+      "size_bytes": 3844
+    }
+  ],
+  "attempts": [
+    {
+      "attempt": 1,
+      "cancel": null,
+      "ended_at": "2026-10-07T12:00:12Z",
+      "liveness": null,
+      "reason_code": null,
+      "reconciled_publication": false,
+      "started_at": "2026-10-07T12:00:11Z",
+      "state": "succeeded",
+      "worker_checks": {
+        "authoring_id": "RUN-STUB-AUTHORING",
+        "authorization_scope": "experimental_capture_render",
+        "capture": {
+          "native_samples": [
+            0,
+            1
+          ],
+          "requested_seconds": [
+            5.5,
+            6.4
+          ],
+          "source_media_span_seconds": null
+        },
+        "dsp_performed": false,
+        "listening_accepted": false,
+        "master_adopted": false,
+        "outputs": [
+          {
+            "artifact_id": "art_0000000000000000000000000000000c",
+            "content_type": "application/json",
+            "name": "receipt.json",
+            "role": "capture_receipt",
+            "served_via_run_media": false,
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000010",
+            "size_bytes": 940
+          },
+          {
+            "artifact_id": "art_0000000000000000000000000000000d",
+            "content_type": "application/json",
+            "name": "profile.json",
+            "role": "capture_profile",
+            "served_via_run_media": false,
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000014",
+            "size_bytes": 470
+          }
+        ],
+        "review_status": "reviewed_candidate",
+        "run_id": "BASE-REVIEWED",
+        "source_sha256": "0000000000000000000000000000000000000000000000000000000000000002",
+        "status": "authored_unrendered"
+      },
+      "worker_kind": "test_stub"
+    }
+  ],
+  "authoring_id": "RUN-STUB-AUTHORING",
+  "bound_input": {
+    "capture_review_id": "rev_00000000000000000000000000000001",
+    "review_sha256": "0000000000000000000000000000000000000000000000000000000000000015",
+    "run_id": "BASE-REVIEWED"
+  },
+  "cancel_requested": false,
+  "capability_revision": "0000000000000000000000000000000000000000000000000000000000000016",
+  "claim_class": "job_state_record",
+  "created_at": "2026-10-07T12:00:10Z",
+  "eta_seconds": null,
+  "eta_seconds_reason": "not estimated",
+  "idempotency_key": "fixture-00000005",
+  "job_id": "job_00000000000000000000000000000002",
+  "outputs": [
+    {
+      "artifact_id": "art_0000000000000000000000000000000c",
+      "content_type": "application/json",
+      "name": "receipt.json",
+      "role": "capture_receipt",
+      "served_via_run_media": false,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000010",
+      "size_bytes": 940
+    },
+    {
+      "artifact_id": "art_0000000000000000000000000000000d",
+      "content_type": "application/json",
+      "name": "profile.json",
+      "role": "capture_profile",
+      "served_via_run_media": false,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000014",
+      "size_bytes": 470
+    }
+  ],
+  "parameters": {
+    "adaptivity": 0.0,
+    "compressor": {
+      "attack_ms": 15.0,
+      "knee_db": 3.0,
+      "ratio": 2.0,
+      "release_ms": 100.0,
+      "threshold_db": -18.0
+    },
+    "gain_smooth": 0,
+    "integrated_lufs": -18.0,
+    "noise_floor_db": -40.0,
+    "peaking_eq": [
+      {
+        "frequency_hz": 160.0,
+        "gain_db": 2.0,
+        "q": 0.7
+      },
+      {
+        "frequency_hz": 300.0,
+        "gain_db": 1.0,
+        "q": 0.8
+      }
+    ],
+    "preset": "fuller",
+    "reduction_db": 8.0,
+    "timeout_seconds": 60,
+    "true_peak_dbtp": -1.75
+  },
+  "phase": "published",
+  "phase_reason": "latest job event reason code, read from a separate read-only snapshot; it may lead or lag state by one event",
+  "progress": {
+    "completed": 6,
+    "denominator": 6,
+    "unit": "lifecycle_steps"
+  },
+  "progress_reason": "lifecycle step count from the job event log; not an encode fraction; share_export reports no incremental progress",
+  "reason_code": null,
+  "run_id": "BASE-REVIEWED",
+  "schema_version": 1,
+  "source_artifact_id": "art_00000000000000000000000000000002",
+  "source_binding": "bound",
+  "source_id": "src_00000000000000000000000000000001",
+  "state": "succeeded",
+  "tool": "capture_profile",
+  "tool_envelope": {
+    "evidence_kind": "source_bound_profile_authoring",
+    "implementation_status": "experimental",
+    "instrument_context": {
+      "automatic_high_pass": false,
+      "lowest_intentional_fundamental_hz": 32,
+      "preserve_distortion": true,
+      "strings": 9,
+      "styles": [
+        "deathcore",
+        "technical",
+        "virtuoso"
+      ]
+    },
+    "limitations": [
+      "Supplied review identities and authorization assertions are not authenticated. Quiet/fan diagnostics do not establish a noise-only capture or isolated guitar stem. Unknown/suspected content remains explicit.",
+      "Authoring-only scope cannot emit a runnable authorized profile. Render scope emits authored_unrendered metadata only; rejected/present music or clicks produce needs_reselection. Ambient music is not automatically separated.",
+      "Source<=3GiB, nativePCM<=1GiB, native8..192kHz/mono-stereo/<=600s, capture0.1..10s; manifest1MiB, context64KiB, review/profile16KiB, receipt64KiB, compactresult16KiB; wholeworkerdeadline<=60s.",
+      "All finite numeric controls are explicit; bounded<=3typedEQbands and exactcompressorobject only. Source/context/review/worker/validator hashes rechecked before immutable publication.",
+      "No audio decoding, DSP, measured learned band shape, media overwrite, model/runtime acquisition, arbitraryargv/filter/JSON controls or custom-profile denoise application. Listening and AU/Logic acceptance remain unestablished."
+    ],
+    "schema_version": 1,
+    "skill": ".agents/skills/guitar-capture-profile/SKILL.md",
+    "tool": "capture_profile"
+  },
+  "unknowns": {
+    "capture_noise_only": null,
+    "capture_noise_only_reason": "the reviewed interval is not verified noise-only",
+    "cpu_seconds": null,
+    "cpu_seconds_reason": "not measured; no OS CPU quota is applied",
+    "exactly_once": "not_claimed",
+    "fuller_listening_transfer": null,
+    "fuller_listening_transfer_reason": "FULLER acceptance covers one source/interval only (a522115f4e72, native samples [180810, 218295)); not transferred",
+    "level_matched": null,
+    "level_matched_reason": "span audition is not level-matched",
+    "listening_acceptance": null,
+    "listening_acceptance_reason": "operator listening not performed for this version",
+    "low_register_preservation": null,
+    "low_register_preservation_reason": "~32 Hz content not measured by a job service",
+    "master_adopted": false,
+    "master_adopted_reason": "the web job service never adopts a master or latest pointer",
+    "memory_bytes_peak": null,
+    "memory_bytes_peak_reason": "not measured; no OS memory quota is applied",
+    "music_or_click_presence": null,
+    "music_or_click_presence_reason": "operator assertion only unless reviewed_present",
+    "musical_review": null,
+    "musical_review_reason": "no note-correctness, missed-note or phrase verdict",
+    "slo": "not_claimed",
+    "worker_birth": "recorded",
+    "worker_birth_reason": "ps lstart recorded for the latest attempt"
+  },
+  "updated_at": "2026-10-07T12:00:12Z",
+  "worker_status": "authored_unrendered"
+}

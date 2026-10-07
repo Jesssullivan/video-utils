@@ -1,0 +1,736 @@
+{
+  "alternatives": [],
+  "claim_boundary": {
+    "default_adopted": false,
+    "listening_acceptance_scope": "Synthetic acceptance scope sentence for the exact fixture audio only.",
+    "master_changed": false,
+    "missed_or_extra_notes": "not_assessed_no_approved_reference",
+    "musical_verdict": "not_established"
+  },
+  "clock": {
+    "alignment": "unverified",
+    "annotation_axis": "web clock manifest: share_export video packet presentation extent (source seconds)",
+    "layer_axis": "original source decoded-audio seconds",
+    "reason": "Layers use the decoded source audio clock; annotations use the web clock manifest. Their alignment, and the browser media clock, are not verified."
+  },
+  "discovery_truncated": false,
+  "layers": {
+    "bpm": {
+      "basis": null,
+      "grid": {
+        "basis": "flags_triage window_basis: periodic transient navigation grid; not bars, meter or a verified metronome",
+        "period_seconds": 0.25,
+        "phase_seconds": 0.0,
+        "window_seconds": 4.0
+      },
+      "reason": "no BPM field in bound evidence; a recorded click period is shown as a navigation grid (click identity unverified)",
+      "value": null
+    },
+    "coverage": {
+      "document": {
+        "detector": {
+          "proposed_review_spans": [
+            {
+              "kind": "low_register_riff_or_breakdown_candidate",
+              "label": "riff_region_1",
+              "source_end_seconds": 0.6,
+              "source_start_seconds": 0.2
+            }
+          ],
+          "status": "available"
+        },
+        "intent": {
+          "files": [
+            {
+              "anchor_adopted": false,
+              "anchor_status": "review_candidate_not_confirmed_downbeat",
+              "boundaries": [
+                {
+                  "id": "boundary:0",
+                  "join_confidence": "uncertain",
+                  "source_seconds": 0.5,
+                  "structural_status": [
+                    "breakdown_execution_uncertain"
+                  ]
+                }
+              ],
+              "breakdown1_execution": "unknown_operator_reported_possible_rush_or_skip",
+              "file": "spans-k3.json",
+              "k0": 3,
+              "units": [
+                {
+                  "coverage": "within_source",
+                  "end_source_seconds": 0.5,
+                  "id": "verse:1",
+                  "kind": "phrase",
+                  "section_id": "verse",
+                  "section_unit_index": 1,
+                  "start_source_seconds": 0.1
+                },
+                {
+                  "coverage": "within_source",
+                  "end_source_seconds": 0.9,
+                  "id": "verse:2",
+                  "kind": "phrase",
+                  "section_id": "verse",
+                  "section_unit_index": 2,
+                  "start_source_seconds": 0.5
+                }
+              ]
+            }
+          ],
+          "refused": [],
+          "status": "available"
+        },
+        "overlap_is_not_agreement": "Overlap between lanes is not agreement, accuracy or correctness.",
+        "source_max_seconds": 1.0,
+        "source_min_seconds": 0.0
+      },
+      "reason": null,
+      "status": "available"
+    },
+    "flags_triage": {
+      "document": {
+        "document": {
+          "denominators": {
+            "navigation_hidden": 1,
+            "shown": 1,
+            "suppressed_lower_priority": 1,
+            "total_flags": 3
+          },
+          "hidden_navigation": [
+            {
+              "flag": {
+                "confidence": "navigation_proxy_not_confirmed_bar",
+                "end_seconds": 0.30000000000000004,
+                "kind": "four_pulse_group_review_candidate",
+                "performance_issue_confirmed": false,
+                "source_time_seconds": 0.1,
+                "status": "needs_review"
+              },
+              "flag_id": "flag-0",
+              "reason": "navigation_proxy_hidden_by_default"
+            }
+          ],
+          "schema_id": "video-utils.flags-triage.s2",
+          "schema_version": 1,
+          "shown": [
+            {
+              "flag": {
+                "confidence": "unvalidated_automatic_phrase_candidate",
+                "end_seconds": 0.5,
+                "kind": "automatic_recurrence_review_candidate",
+                "performance_issue_confirmed": false,
+                "source_time_seconds": 0.3,
+                "status": "needs_review"
+              },
+              "flag_id": "flag-1",
+              "tier": "T2",
+              "tier_name": "automatic_recurrence",
+              "window_id": "grid_+00"
+            }
+          ],
+          "source_sha256": "0000000000000000000000000000000000000000000000000000000000000025",
+          "suppressed": [
+            {
+              "flag": {
+                "confidence": "unvalidated_automatic_phrase_candidate",
+                "end_seconds": 0.55,
+                "kind": "spectral_texture_region_candidate",
+                "performance_issue_confirmed": false,
+                "source_time_seconds": 0.35,
+                "status": "needs_review"
+              },
+              "flag_id": "flag-2",
+              "reason": "lower_priority_in_window",
+              "window_id": "grid_+00",
+              "winner_flag_id": "flag-1"
+            }
+          ],
+          "timeline": {
+            "axis": "original_source_stream_timestamps_seconds"
+          },
+          "window_basis": {
+            "kind": "click_grid_16_period_navigation_windows",
+            "period_seconds": 0.25,
+            "phase_seconds_source": 0.0,
+            "window_seconds": 4.0
+          }
+        },
+        "file": "flags-triage.json",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000026"
+      },
+      "reason": null,
+      "status": "available"
+    },
+    "phrase_timing": {
+      "document": {
+        "files": [
+          {
+            "analyzed_input_sha256": "0000000000000000000000000000000000000000000000000000000000000027",
+            "document": {
+              "click_reference": {
+                "basis": "synthetic",
+                "identity": "not_verified_metronome"
+              },
+              "detector_delay": {
+                "status": "synthetic_probe_medians_applied"
+              },
+              "phrase_basis": "automatic_review_span",
+              "phrases": [
+                {
+                  "abstain_reason": null,
+                  "click_proximal_onset_count": 6,
+                  "direction": null,
+                  "direction_status": "withheld_uncalibrated",
+                  "iqr_ms": [
+                    -16.0,
+                    -9.0
+                  ],
+                  "iqr_ms_delay_compensated": [
+                    -18.2,
+                    -11.2
+                  ],
+                  "label": "riff_region_1",
+                  "label_basis": "automatic_review_span",
+                  "median_offset_ms": -12.0,
+                  "median_offset_ms_delay_compensated": -14.2,
+                  "phrase_id": "span-0",
+                  "span_source_seconds": [
+                    0.1,
+                    0.5
+                  ],
+                  "status": "measured"
+                },
+                {
+                  "abstain_reason": "fewer_than_4_click_proximal_onsets",
+                  "click_proximal_onset_count": 2,
+                  "direction": null,
+                  "direction_status": null,
+                  "iqr_ms": null,
+                  "iqr_ms_delay_compensated": null,
+                  "label": null,
+                  "label_basis": "automatic_review_span",
+                  "median_offset_ms": null,
+                  "median_offset_ms_delay_compensated": null,
+                  "phrase_id": "span-1",
+                  "span_source_seconds": [
+                    0.5,
+                    0.9
+                  ],
+                  "status": "abstained"
+                }
+              ],
+              "real_take_status": "unvalidated_until_operator_spot_check",
+              "run_kind": "real_take",
+              "schema_version": 2,
+              "summary": {
+                "abstained_count": 1,
+                "measured_count": 1,
+                "phrase_count": 2
+              },
+              "tool": "phrase_timing"
+            },
+            "file": "layers/phrase-timing.json",
+            "run_kind": "real_take",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000028",
+            "source_binding": "session manifest output denoised.wav"
+          }
+        ],
+        "refused": []
+      },
+      "reason": null,
+      "status": "available"
+    },
+    "spectrogram": {
+      "document": null,
+      "reason": null,
+      "status": "available"
+    },
+    "tone_ab": {
+      "document": {
+        "claims": {
+          "inferences": [],
+          "listening": [],
+          "measurements": [
+            "synthetic fixture"
+          ]
+        },
+        "default_adopted": false,
+        "excerpts": {
+          "blind_key": [
+            {
+              "X": "delivery_master",
+              "Y": "source",
+              "pair": 1
+            }
+          ],
+          "frames_per_file": 800,
+          "pairs": [
+            {
+              "end_sample_exclusive": 1600,
+              "files": {
+                "X": {
+                  "file": "excerpt-1-X.wav",
+                  "sha256": "0000000000000000000000000000000000000000000000000000000000000029"
+                },
+                "Y": {
+                  "file": "excerpt-1-Y.wav",
+                  "sha256": "000000000000000000000000000000000000000000000000000000000000002a"
+                }
+              },
+              "pair": 1,
+              "start_sample": 800,
+              "start_seconds": 0.1
+            }
+          ]
+        },
+        "experiment": {
+          "attack_deltas_vs_delivery_master": {
+            "primary": {
+              "centroid_hz": -3.0,
+              "centroid_pairs": 12,
+              "energy_db_matched": 0.01,
+              "pairs": 12
+            }
+          },
+          "band_deltas_vs_delivery_master": {
+            "20-45": {
+              "matched_db": 1.3,
+              "raw_db": 1.4,
+              "share_db": 1.2
+            }
+          }
+        },
+        "file": "tone-ab.json",
+        "limitations": [
+          "Synthetic fixture excerpts; no listening review exists."
+        ],
+        "listening_accepted": false,
+        "loudness_match": {
+          "match_lu_delta": 0.02,
+          "match_status": "matched",
+          "meter": "synthetic fixture value (not a measurement)",
+          "per_arm": {
+            "delivery_master": {
+              "abs_delta_lu": 0.02,
+              "gain_db": -3.0,
+              "lufs_after": -21.02,
+              "lufs_before": -18.0
+            },
+            "source": {
+              "abs_delta_lu": 0.0,
+              "gain_db": -1.0,
+              "lufs_after": -21.0,
+              "lufs_before": -20.0
+            }
+          },
+          "target_lufs": -21.0,
+          "tolerance_lu": 0.3
+        },
+        "master_changed": false,
+        "operator_preference": null,
+        "pair_media": [
+          {
+            "X": "excerpt-1-X.wav",
+            "Y": "excerpt-1-Y.wav",
+            "pair": 1
+          }
+        ],
+        "region": {
+          "end_seconds": 0.9,
+          "excluded_setup_interval_seconds": [
+            0.0,
+            0.1
+          ],
+          "start_seconds": 0.1
+        },
+        "run": {
+          "manifest_sha256": "000000000000000000000000000000000000000000000000000000000000002b",
+          "run_id": "RUN-S3",
+          "source_sha256": "0000000000000000000000000000000000000000000000000000000000000025"
+        },
+        "schema_version": 1,
+        "sha256": "000000000000000000000000000000000000000000000000000000000000002c",
+        "tone_ab_status": "completed",
+        "tool": "tone_ab",
+        "trial": {
+          "reason": "trial_excerpts_not_requested",
+          "status": "unavailable"
+        }
+      },
+      "reason": null,
+      "status": "available"
+    }
+  },
+  "manifest_sha256": "000000000000000000000000000000000000000000000000000000000000002b",
+  "media": {
+    "excerpt-1-X.wav": {
+      "channels": 1,
+      "evidence_id": "evd_00000000000000000000000000000001",
+      "frames": 800,
+      "role": "tone_ab blind excerpt pair 1 X",
+      "sample_rate": 8000,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000029"
+    },
+    "excerpt-1-Y.wav": {
+      "channels": 1,
+      "evidence_id": "evd_00000000000000000000000000000001",
+      "frames": 800,
+      "role": "tone_ab blind excerpt pair 1 Y",
+      "sample_rate": 8000,
+      "sha256": "000000000000000000000000000000000000000000000000000000000000002a"
+    }
+  },
+  "run_id": "RUN-S3",
+  "schema_id": "video-utils.web-runs.layers",
+  "schema_version": 1,
+  "selected_evidence_id": "evd_00000000000000000000000000000001",
+  "selected_generated_utc": "2026-10-07T12:00:24+00:00",
+  "source_extent": {
+    "audio_start_seconds": 0.0,
+    "duration_seconds": 1.0
+  },
+  "spectrogram": {
+    "axis_offset_seconds": 0.0,
+    "band_centre_hz": [
+      20.0,
+      20.58604473286984,
+      21.189261887185907,
+      21.810154653305155,
+      22.44924096618746,
+      23.107053937445457,
+      23.78414230005442,
+      24.481070866093106,
+      25.198420997897465,
+      25.936791093020194,
+      26.69679708340069,
+      27.479072949161782,
+      28.284271247461902,
+      29.113063656843746,
+      29.96614153753363,
+      30.844216508158816,
+      31.748021039363987,
+      32.678309064822,
+      33.63585661014858,
+      34.62146244024572,
+      35.635948725613574,
+      36.680161728186846,
+      37.75497250726774,
+      38.86127764614423,
+      40.0,
+      41.17208946573968,
+      42.378523774371814,
+      43.62030930661031,
+      44.89848193237492,
+      46.214107874890914,
+      47.56828460010884,
+      48.96214173218621,
+      50.39684199579493,
+      51.87358218604039,
+      53.39359416680138,
+      54.958145898323565,
+      56.568542494923804,
+      58.2261273136875,
+      59.93228307506726,
+      61.68843301631763,
+      63.49604207872798,
+      65.35661812964399,
+      67.27171322029716,
+      69.24292488049144,
+      71.27189745122715,
+      73.36032345637369,
+      75.50994501453548,
+      77.72255529228846,
+      80.0,
+      82.34417893147935,
+      84.75704754874363,
+      87.24061861322062,
+      89.79696386474983,
+      92.42821574978186,
+      95.13656920021768,
+      97.92428346437241,
+      100.79368399158986,
+      103.74716437208077,
+      106.78718833360273,
+      109.91629179664714,
+      113.13708498984761,
+      116.45225462737498,
+      119.86456615013454,
+      123.37686603263526,
+      126.99208415745595,
+      130.713236259288,
+      134.54342644059432,
+      138.4858497609829,
+      142.5437949024543,
+      146.72064691274738,
+      151.01989002907095,
+      155.44511058457695,
+      160.0,
+      164.6883578629587,
+      169.51409509748726,
+      174.48123722644124,
+      179.59392772949965,
+      184.8564314995637,
+      190.27313840043536,
+      195.84856692874482,
+      201.58736798317972,
+      207.49432874416155,
+      213.57437666720546,
+      219.8325835932943,
+      226.27416997969522,
+      232.90450925474997,
+      239.72913230026907,
+      246.75373206527053,
+      253.9841683149119,
+      261.426472518576,
+      269.08685288118863,
+      276.9716995219658,
+      285.0875898049086,
+      293.44129382549477,
+      302.0397800581419,
+      310.8902211691539,
+      320.0,
+      329.3767157259175,
+      339.0281901949744,
+      348.9624744528825,
+      359.1878554589994,
+      369.71286299912725,
+      380.5462768008707,
+      391.6971338574898,
+      403.1747359663593,
+      414.9886574883231,
+      427.1487533344111,
+      439.66516718658846,
+      452.54833995939043,
+      465.80901850950005,
+      479.45826460053803,
+      493.50746413054105,
+      507.96833662982397,
+      522.8529450371518,
+      538.1737057623773,
+      553.9433990439317,
+      570.1751796098171,
+      586.8825876509895,
+      604.0795601162839,
+      621.7804423383076,
+      640.0,
+      658.753431451835,
+      678.0563803899488,
+      697.924948905765,
+      718.3757109179988,
+      739.4257259982545,
+      761.0925536017414,
+      783.3942677149796,
+      806.3494719327186,
+      829.9773149766462,
+      854.2975066688222,
+      879.3303343731769,
+      905.0966799187809,
+      931.6180370190001,
+      958.9165292010761,
+      987.0149282610821,
+      1015.9366732596479,
+      1045.7058900743036,
+      1076.3474115247545,
+      1107.8867980878633,
+      1140.3503592196341,
+      1173.765175301979,
+      1208.1591202325678,
+      1243.5608846766152,
+      1280.0,
+      1317.50686290367,
+      1356.1127607798976,
+      1395.84989781153,
+      1436.7514218359977,
+      1478.851451996509,
+      1522.1851072034829,
+      1566.7885354299592,
+      1612.6989438654373,
+      1659.9546299532924,
+      1708.5950133376443,
+      1758.6606687463538,
+      1810.1933598375617,
+      1863.2360740380002,
+      1917.8330584021521,
+      1974.0298565221642
+    ],
+    "band_centre_hz_range": [
+      20.0,
+      1974.0298565221642
+    ],
+    "claim": "visualisation only; no pitch, note or stem claim",
+    "evidence_id": "evd_00000000000000000000000000000002",
+    "first_frame_centre_seconds": 0.256,
+    "hop_seconds": 0.02,
+    "matrices": [
+      {
+        "dtype": "float64_little_endian",
+        "layout": "row_major_frames_by_bands",
+        "media_name": "log_power_db.f64le",
+        "name": "log_power_db",
+        "sha256": "000000000000000000000000000000000000000000000000000000000000002d",
+        "status": "baseline_log_power"
+      },
+      {
+        "dtype": "float64_little_endian",
+        "layout": "row_major_frames_by_bands",
+        "media_name": "pcen.f64le",
+        "name": "pcen",
+        "sha256": "000000000000000000000000000000000000000000000000000000000000002e",
+        "status": "experimental_fixed_knobs_not_tuned"
+      }
+    ],
+    "pcen_status": "experimental_fixed_knobs_not_tuned",
+    "reason": null,
+    "reference_lines": [
+      {
+        "hz": 32.703195663,
+        "label": "theoretical C1 (instrument.json)"
+      }
+    ],
+    "shape": {
+      "bands": 160,
+      "frames": 4
+    },
+    "signal_version": "sha256:0000000000000000000000000000000000000000000000000000000000000027",
+    "stage": "denoised.wav",
+    "status": "available",
+    "window_seconds": 0.512
+  },
+  "unknown_fields": {
+    "anchor_adopted": {
+      "reason": "Arrangement anchors are review candidates; none is adopted.",
+      "value": false
+    },
+    "annotation_source": {
+      "reason": "most recent admitted source of this run with a share_export clock",
+      "value": "art_00000000000000000000000000000002"
+    },
+    "bpm": {
+      "reason": "no BPM field in bound evidence; a recorded click period is shown as a navigation grid (click identity unverified)",
+      "value": null
+    },
+    "breakdown1_execution": {
+      "reason": "Operator context copied verbatim; execution of breakdown 1 is unknown.",
+      "value": "unknown_operator_reported_possible_rush_or_skip"
+    },
+    "browser_level_match": {
+      "reason": "The page applies no gain; playback level depends on the device.",
+      "value": "excerpt files pre-gained by tone_ab; browser output level and device unmeasured"
+    },
+    "click_identity": {
+      "reason": "Periodic high-frequency transients are not a verified metronome.",
+      "value": "unverified"
+    },
+    "clock_alignment": {
+      "reason": "Layer axis is decoded source audio. Annotation axis is the web clock manifest (share_export packet extent).",
+      "value": "unverified"
+    },
+    "detector_delay": {
+      "reason": "No detector delay calibration was supplied.",
+      "value": "uncalibrated"
+    },
+    "downbeat_confirmed": {
+      "reason": "The anchor is a review candidate, not a confirmed downbeat.",
+      "value": false
+    },
+    "editor_import": {
+      "reason": "No editor application import proof exists.",
+      "value": "unverified"
+    },
+    "fan_only_gain": {
+      "reason": "Fan and music are not separated.",
+      "value": null
+    },
+    "fundamental_32hz_presence": {
+      "reason": "A band level is not a measured played C1 fundamental.",
+      "value": null
+    },
+    "listening_acceptance": {
+      "basis": "pinned acceptance receipt; applies only to the files it names",
+      "reason": "Synthetic acceptance scope sentence for the exact fixture audio only.",
+      "value": "accepted_exact_files_only"
+    },
+    "meter": {
+      "reason": "Meter and downbeat are not identified by any layer.",
+      "value": "unknown"
+    },
+    "missed_or_extra_notes": {
+      "reason": "No approved expected-rhythm or note reference exists.",
+      "value": "not_assessed_no_approved_reference"
+    },
+    "model_gate_state": {
+      "reason": "not recorded in program/models.json",
+      "value": null
+    },
+    "model_local_presence": {
+      "reason": "This read API never inspects model caches.",
+      "value": "not_checked"
+    },
+    "monitoring_device": {
+      "reason": "The operator's playback device and level are unknown.",
+      "value": null
+    },
+    "music_only_gain": {
+      "reason": "Fan and music are not separated.",
+      "value": null
+    },
+    "nasal_quality": {
+      "reason": "Nasal quality is a listening judgement.",
+      "value": null
+    },
+    "operator_preference": {
+      "reason": "not recorded",
+      "value": null
+    },
+    "perceived_fullness": {
+      "reason": "Perceived fullness is a listening judgement.",
+      "value": null
+    },
+    "phrase_timing.real_take_status": {
+      "reason": "Phrase timing offsets are unvalidated until an operator spot check.",
+      "value": "unvalidated_until_operator_spot_check"
+    },
+    "physical_av_sync": {
+      "reason": "Copied from manifest dsp_latency.physical_audio_video_sync_verified.",
+      "value": false
+    },
+    "physical_capture_latency": {
+      "reason": "Microphone and capture-chain latency were never measured.",
+      "value": "uncalibrated"
+    },
+    "real_take_phrase_correctness": {
+      "reason": "Phrase correctness needs operator-marked boundaries.",
+      "value": "unknown_until_operator_marks_boundaries"
+    },
+    "room_response_recovered": {
+      "reason": "No room or microphone response is measured or inverted; EQ does not recreate the in-room amp tone.",
+      "value": false
+    },
+    "share_low_register_preservation": {
+      "reason": "Lossy AAC sharing derivative; ~32 Hz content is not measured in it.",
+      "value": "not_claimed"
+    },
+    "spectrogram_binding": {
+      "reason": "A current lowreg-render-v1 is bound through its resampler record to a current run stage.",
+      "value": "bound"
+    },
+    "stems": {
+      "reason": "No stem lane is admitted, and an estimate would never be an original stem.",
+      "value": "not_available"
+    },
+    "tool_area_basis": {
+      "reason": "Tool areas come from program/capabilities.json domains where present, else this presentation map.",
+      "value": "routes_review presentation map; not a registry field"
+    },
+    "true_peak_dbtp": {
+      "reason": "True peak was not measured; only sample peak is reported.",
+      "value": null
+    },
+    "walkthrough_listening": {
+      "reason": "Automated browser checks are muted; nobody listened.",
+      "value": "not_performed"
+    }
+  }
+}

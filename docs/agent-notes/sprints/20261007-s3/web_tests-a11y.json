@@ -1,0 +1,603 @@
+{
+  "a11y_status": "ran",
+  "axe_core_playwright_version": "4.13.0",
+  "axe_rules_evaluated_count": 90,
+  "axe_version": "4.13.0",
+  "baseline": {
+    "by_rule": {
+      "color-contrast": {
+        "entries": 30,
+        "impact": [
+          "serious"
+        ],
+        "nodes": 46,
+        "scans": [
+          "/",
+          "/ (control API unconfigured)",
+          "/jobs",
+          "/jobs/[id]",
+          "/runs",
+          "/runs/[id]",
+          "/runs/[id]/compare",
+          "/runs/[id]/deliver",
+          "/runs/[id]/review",
+          "/sources/[id]",
+          "/sources/[id]/capture",
+          "/sources/[id]/process",
+          "/tools",
+          "/upload",
+          "/upload (after a typed refusal)"
+        ]
+      },
+      "heading-order": {
+        "entries": 4,
+        "impact": [
+          "moderate"
+        ],
+        "nodes": 4,
+        "scans": [
+          "/runs/[id]/compare",
+          "/runs/[id]/review"
+        ]
+      },
+      "label": {
+        "entries": 4,
+        "impact": [
+          "critical"
+        ],
+        "nodes": 4,
+        "scans": [
+          "/upload",
+          "/upload (after a typed refusal)"
+        ]
+      },
+      "link-in-text-block": {
+        "entries": 4,
+        "impact": [
+          "serious"
+        ],
+        "nodes": 8,
+        "scans": [
+          "/",
+          "/ (control API unconfigured)"
+        ]
+      }
+    },
+    "file": "web/e2e/a11y-baseline.json",
+    "provenance": "recorded in Phase 2 from a first run on the earlier fixture set; this rerun on the committed fixtures found the same 42 entries (0 outside, 42 violations in total), so the file was not changed",
+    "sha256": "7b86f569badce0275d7dcb30546cdbf506f6328726c9199fd137633af15173c3"
+  },
+  "basis": {
+    "date_utc": "2026-10-07",
+    "lane_branch": "sprint/20261007-s3/web_tests",
+    "lane_commit": "c79aac5014d898ee2bd8cea497ae05bba2b8091a",
+    "main_commit": "f2281b62520cecfefe221501340f83004e390e5e",
+    "measured_on": "merge tree of main and the lane branch, extracted to a scratch directory outside the repository (git merge-tree, textually clean); dependencies installed there with pnpm install --frozen-lockfile --offline",
+    "merge_tree": "7943df57b743d44d441217078a4bd45d511a2bf2",
+    "not_a_merge": "the lane did not merge, push or touch main; if main moves again these figures describe main_commit only",
+    "receipt_commit_note": "these receipts are added by the commit after lane_commit; that commit changes only docs/agent-notes/sprints/20261007-s3/web_tests-*.json",
+    "supersedes": "the Phase 2 figures measured before the fixtures were regenerated; none of them is used here",
+    "web_source_identity": "git diff of web/src between the merge base 05a13f2 and main is empty; main differs from the merge base under web/ only in BUILD.bazel and pnpm-workspace.yaml"
+  },
+  "claim_class": "measurement",
+  "command": "pnpm run build && pnpm run test:a11y (playwright test --project=a11y)",
+  "exit_code": 0,
+  "lane": "web_tests",
+  "page_errors": {
+    "scenarios": 38,
+    "unexpected_total": 0
+  },
+  "per_scan": [
+    {
+      "inapplicable": 55,
+      "incomplete": 0,
+      "incomplete_nodes": 0,
+      "passes": 34,
+      "route": "/",
+      "scan": "library",
+      "scheme": "light",
+      "violation_nodes": 3,
+      "violations": 2
+    },
+    {
+      "inapplicable": 55,
+      "incomplete": 0,
+      "incomplete_nodes": 0,
+      "passes": 34,
+      "route": "/",
+      "scan": "library",
+      "scheme": "dark",
+      "violation_nodes": 3,
+      "violations": 2
+    },
+    {
+      "inapplicable": 55,
+      "incomplete": 0,
+      "incomplete_nodes": 0,
+      "passes": 35,
+      "route": "/upload",
+      "scan": "upload",
+      "scheme": "light",
+      "violation_nodes": 2,
+      "violations": 2
+    },
+    {
+      "inapplicable": 55,
+      "incomplete": 0,
+      "incomplete_nodes": 0,
+      "passes": 35,
+      "route": "/upload",
+      "scan": "upload",
+      "scheme": "dark",
+      "violation_nodes": 2,
+      "violations": 2
+    },
+    {
+      "inapplicable": 43,
+      "incomplete": 3,
+      "incomplete_nodes": 3,
+      "passes": 45,
+      "route": "/sources/[id]",
+      "scan": "source",
+      "scheme": "light",
+      "violation_nodes": 3,
+      "violations": 1
+    },
+    {
+      "inapplicable": 43,
+      "incomplete": 3,
+      "incomplete_nodes": 3,
+      "passes": 45,
+      "route": "/sources/[id]",
+      "scan": "source",
+      "scheme": "dark",
+      "violation_nodes": 3,
+      "violations": 1
+    },
+    {
+      "inapplicable": 51,
+      "incomplete": 1,
+      "incomplete_nodes": 1,
+      "passes": 39,
+      "route": "/sources/[id]/capture",
+      "scan": "capture",
+      "scheme": "light",
+      "violation_nodes": 1,
+      "violations": 1
+    },
+    {
+      "inapplicable": 51,
+      "incomplete": 1,
+      "incomplete_nodes": 1,
+      "passes": 39,
+      "route": "/sources/[id]/capture",
+      "scan": "capture",
+      "scheme": "dark",
+      "violation_nodes": 1,
+      "violations": 1
+    },
+    {
+      "inapplicable": 51,
+      "incomplete": 1,
+      "incomplete_nodes": 1,
+      "passes": 39,
+      "route": "/sources/[id]/process",
+      "scan": "process",
+      "scheme": "light",
+      "violation_nodes": 2,
+      "violations": 1
+    },
+    {
+      "inapplicable": 51,
+      "incomplete": 1,
+      "incomplete_nodes": 1,
+      "passes": 39,
+      "route": "/sources/[id]/process",
+      "scan": "process",
+      "scheme": "dark",
+      "violation_nodes": 2,
+      "violations": 1
+    },
+    {
+      "inapplicable": 56,
+      "incomplete": 0,
+      "incomplete_nodes": 0,
+      "passes": 34,
+      "route": "/runs",
+      "scan": "runs",
+      "scheme": "light",
+      "violation_nodes": 1,
+      "violations": 1
+    },
+    {
+      "inapplicable": 56,
+      "incomplete": 0,
+      "incomplete_nodes": 0,
+      "passes": 34,
+      "route": "/runs",
+      "scan": "runs",
+      "scheme": "dark",
+      "violation_nodes": 1,
+      "violations": 1
+    },
+    {
+      "inapplicable": 48,
+      "incomplete": 2,
+      "incomplete_nodes": 21,
+      "passes": 41,
+      "route": "/runs/[id]",
+      "scan": "run-graph",
+      "scheme": "light",
+      "violation_nodes": 1,
+      "violations": 1
+    },
+    {
+      "inapplicable": 48,
+      "incomplete": 2,
+      "incomplete_nodes": 21,
+      "passes": 41,
+      "route": "/runs/[id]",
+      "scan": "run-graph",
+      "scheme": "dark",
+      "violation_nodes": 1,
+      "violations": 1
+    },
+    {
+      "inapplicable": 46,
+      "incomplete": 1,
+      "incomplete_nodes": 1,
+      "passes": 44,
+      "route": "/runs/[id]/compare",
+      "scan": "run-compare",
+      "scheme": "light",
+      "violation_nodes": 3,
+      "violations": 2
+    },
+    {
+      "inapplicable": 46,
+      "incomplete": 1,
+      "incomplete_nodes": 1,
+      "passes": 44,
+      "route": "/runs/[id]/compare",
+      "scan": "run-compare",
+      "scheme": "dark",
+      "violation_nodes": 3,
+      "violations": 2
+    },
+    {
+      "inapplicable": 37,
+      "incomplete": 2,
+      "incomplete_nodes": 14,
+      "passes": 52,
+      "route": "/runs/[id]/review",
+      "scan": "run-review",
+      "scheme": "light",
+      "violation_nodes": 4,
+      "violations": 2
+    },
+    {
+      "inapplicable": 37,
+      "incomplete": 2,
+      "incomplete_nodes": 14,
+      "passes": 52,
+      "route": "/runs/[id]/review",
+      "scan": "run-review",
+      "scheme": "dark",
+      "violation_nodes": 4,
+      "violations": 2
+    },
+    {
+      "inapplicable": 52,
+      "incomplete": 2,
+      "incomplete_nodes": 3,
+      "passes": 37,
+      "route": "/runs/[id]/deliver",
+      "scan": "run-deliver",
+      "scheme": "light",
+      "violation_nodes": 1,
+      "violations": 1
+    },
+    {
+      "inapplicable": 52,
+      "incomplete": 2,
+      "incomplete_nodes": 3,
+      "passes": 37,
+      "route": "/runs/[id]/deliver",
+      "scan": "run-deliver",
+      "scheme": "dark",
+      "violation_nodes": 1,
+      "violations": 1
+    },
+    {
+      "inapplicable": 56,
+      "incomplete": 0,
+      "incomplete_nodes": 0,
+      "passes": 34,
+      "route": "/jobs",
+      "scan": "jobs",
+      "scheme": "light",
+      "violation_nodes": 2,
+      "violations": 1
+    },
+    {
+      "inapplicable": 56,
+      "incomplete": 0,
+      "incomplete_nodes": 0,
+      "passes": 34,
+      "route": "/jobs",
+      "scan": "jobs",
+      "scheme": "dark",
+      "violation_nodes": 2,
+      "violations": 1
+    },
+    {
+      "inapplicable": 45,
+      "incomplete": 1,
+      "incomplete_nodes": 2,
+      "passes": 44,
+      "route": "/jobs/[id]",
+      "scan": "job",
+      "scheme": "light",
+      "violation_nodes": 1,
+      "violations": 1
+    },
+    {
+      "inapplicable": 45,
+      "incomplete": 1,
+      "incomplete_nodes": 2,
+      "passes": 44,
+      "route": "/jobs/[id]",
+      "scan": "job",
+      "scheme": "dark",
+      "violation_nodes": 1,
+      "violations": 1
+    },
+    {
+      "inapplicable": 54,
+      "incomplete": 0,
+      "incomplete_nodes": 0,
+      "passes": 36,
+      "route": "/tools",
+      "scan": "tools",
+      "scheme": "light",
+      "violation_nodes": 1,
+      "violations": 1
+    },
+    {
+      "inapplicable": 54,
+      "incomplete": 0,
+      "incomplete_nodes": 0,
+      "passes": 36,
+      "route": "/tools",
+      "scan": "tools",
+      "scheme": "dark",
+      "violation_nodes": 1,
+      "violations": 1
+    },
+    {
+      "inapplicable": 57,
+      "incomplete": 1,
+      "incomplete_nodes": 6,
+      "passes": 32,
+      "route": "/compare",
+      "scan": "pick-compare",
+      "scheme": "light",
+      "violation_nodes": 0,
+      "violations": 0
+    },
+    {
+      "inapplicable": 57,
+      "incomplete": 1,
+      "incomplete_nodes": 6,
+      "passes": 32,
+      "route": "/compare",
+      "scan": "pick-compare",
+      "scheme": "dark",
+      "violation_nodes": 0,
+      "violations": 0
+    },
+    {
+      "inapplicable": 57,
+      "incomplete": 1,
+      "incomplete_nodes": 6,
+      "passes": 32,
+      "route": "/review",
+      "scan": "pick-review",
+      "scheme": "light",
+      "violation_nodes": 0,
+      "violations": 0
+    },
+    {
+      "inapplicable": 57,
+      "incomplete": 1,
+      "incomplete_nodes": 6,
+      "passes": 32,
+      "route": "/review",
+      "scan": "pick-review",
+      "scheme": "dark",
+      "violation_nodes": 0,
+      "violations": 0
+    },
+    {
+      "inapplicable": 57,
+      "incomplete": 1,
+      "incomplete_nodes": 6,
+      "passes": 32,
+      "route": "/download",
+      "scan": "pick-download",
+      "scheme": "light",
+      "violation_nodes": 0,
+      "violations": 0
+    },
+    {
+      "inapplicable": 57,
+      "incomplete": 1,
+      "incomplete_nodes": 6,
+      "passes": 32,
+      "route": "/download",
+      "scan": "pick-download",
+      "scheme": "dark",
+      "violation_nodes": 0,
+      "violations": 0
+    },
+    {
+      "inapplicable": 51,
+      "incomplete": 0,
+      "incomplete_nodes": 0,
+      "passes": 39,
+      "route": "/upload (after a typed refusal)",
+      "scan": "state-upload-refused",
+      "scheme": "light",
+      "violation_nodes": 3,
+      "violations": 2
+    },
+    {
+      "inapplicable": 51,
+      "incomplete": 0,
+      "incomplete_nodes": 0,
+      "passes": 39,
+      "route": "/upload (after a typed refusal)",
+      "scan": "state-upload-refused",
+      "scheme": "dark",
+      "violation_nodes": 3,
+      "violations": 2
+    },
+    {
+      "inapplicable": 47,
+      "incomplete": 1,
+      "incomplete_nodes": 1,
+      "passes": 43,
+      "route": "/sources/[id]/process (FULLER refusal visible)",
+      "scan": "state-process-fuller-refused",
+      "scheme": "light",
+      "violation_nodes": 0,
+      "violations": 0
+    },
+    {
+      "inapplicable": 47,
+      "incomplete": 1,
+      "incomplete_nodes": 1,
+      "passes": 43,
+      "route": "/sources/[id]/process (FULLER refusal visible)",
+      "scan": "state-process-fuller-refused",
+      "scheme": "dark",
+      "violation_nodes": 0,
+      "violations": 0
+    },
+    {
+      "inapplicable": 55,
+      "incomplete": 0,
+      "incomplete_nodes": 0,
+      "passes": 34,
+      "route": "/ (control API unconfigured)",
+      "scan": "state-library-unconfigured",
+      "scheme": "light",
+      "violation_nodes": 3,
+      "violations": 2
+    },
+    {
+      "inapplicable": 55,
+      "incomplete": 0,
+      "incomplete_nodes": 0,
+      "passes": 34,
+      "route": "/ (control API unconfigured)",
+      "scan": "state-library-unconfigured",
+      "scheme": "dark",
+      "violation_nodes": 3,
+      "violations": 2
+    }
+  ],
+  "playwright_duration_ms": 55954,
+  "protocol": {
+    "disabled_rules": [],
+    "excluded_selectors": [],
+    "scans_planned": 38,
+    "schemes": [
+      "light",
+      "dark"
+    ],
+    "tags": [
+      "wcag2a",
+      "wcag2aa",
+      "wcag21a",
+      "wcag21aa",
+      "wcag22aa",
+      "best-practice"
+    ]
+  },
+  "receipt": "a11y",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N13 traceable receipt)",
+  "schema_version": 1,
+  "screen_reader_acceptance": null,
+  "sprint": "20261007-s3",
+  "started_at_utc": "2026-10-07T11:07:46.701Z",
+  "tracker": "TIN-5724",
+  "unknowns": {
+    "a11y_status": "ran",
+    "axe_incomplete_count": 34,
+    "axe_rules_evaluated_count": 90,
+    "axe_version": "4.13.0",
+    "browser_download_bytes": null,
+    "browser_download_bytes_reason": "no download performed; the expected Chromium revision was already in the Playwright cache",
+    "browser_source": "playwright cache (expected revision already present)",
+    "browser_used": "chromium",
+    "browser_version": "153.0.8010.12",
+    "ci_node_available": null,
+    "ci_node_available_reason": "not established until root decides the CI proposal in web_tests-root-requests.json",
+    "e2e_status": "ran",
+    "effect3_only_subpath_list_source": "npm registry export map of effect@3.22.2 minus effect@4.0.1 export keys and installed dist modules; recorded 2026-10-07T10:30:23Z",
+    "firefox_webkit_behaviour": null,
+    "firefox_webkit_behaviour_reason": "Chromium only",
+    "fixture_drift": {
+      "lane_tree": "equal",
+      "merge_tree": "registry_projection_behind"
+    },
+    "flaky_retries": 0,
+    "listening_claims": null,
+    "listening_claims_reason": "none made",
+    "npm_latest_at_ci_time": null,
+    "npm_latest_at_ci_time_reason": "CI does not query the registry",
+    "real_control_api_under_playwright": null,
+    "real_control_api_under_playwright_reason": "mock replay only",
+    "real_take_facts_in_fixtures": false,
+    "screen_reader_acceptance": null,
+    "screen_reader_acceptance_reason": "not tested by this lane",
+    "skeleton4_entry_point_list_source": "https://www.skeleton.dev/docs/svelte/get-started/migrate-from-v4.md fetched 2026-10-07T10:31:01Z plus the four npm export maps above",
+    "tailnet_mode_e2e": null,
+    "tailnet_mode_e2e_reason": "only unit-level JWT and gate tests",
+    "wcag_conformance": null,
+    "wcag_conformance_reason": "automated rules do not establish conformance"
+  },
+  "w14": {
+    "denominator": 38,
+    "playwright_tests": {
+      "expected": 38,
+      "flaky": 0,
+      "skipped": 0,
+      "unexpected": 0
+    },
+    "status": "met",
+    "value": 38
+  },
+  "w15": {
+    "baseline_entries": 42,
+    "note": "the gate is 0 violations outside the committed baseline; 42 violations exist in source the lane may not edit. Target 0 is not reached and not claimed.",
+    "scans_with_violations": 30,
+    "status": "gate_met_violations_present",
+    "violation_nodes_total": 62,
+    "violations_by_impact": {
+      "critical": 4,
+      "moderate": 4,
+      "serious": 34
+    },
+    "violations_outside_baseline": 0,
+    "violations_total": 42
+  },
+  "w16": {
+    "axe_incomplete_count": 34,
+    "axe_incomplete_nodes": 130,
+    "status": "reported"
+  },
+  "wall_seconds": 60,
+  "wcag_conformance": null
+}

@@ -36,6 +36,8 @@ npm_link_all_packages(name = "node_modules")
 
 # Exactly the dependencies and devDependencies of web/package.json.
 APP_NPM_PACKAGES = [
+    ":node_modules/@axe-core/playwright",
+    ":node_modules/@playwright/test",
     ":node_modules/@skeletonlabs/skeleton",
     ":node_modules/@skeletonlabs/skeleton-svelte",
     ":node_modules/@sveltejs/adapter-node",
@@ -44,10 +46,12 @@ APP_NPM_PACKAGES = [
     ":node_modules/@tailwindcss/vite",
     ":node_modules/@types/node",
     ":node_modules/effect",
+    ":node_modules/fast-check",
     ":node_modules/svelte",
     ":node_modules/svelte-check",
     ":node_modules/tailwindcss",
     ":node_modules/typescript",
+    ":node_modules/vitest",
     ":node_modules/vite",
 ]
 

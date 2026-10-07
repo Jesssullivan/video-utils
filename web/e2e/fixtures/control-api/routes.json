@@ -1,0 +1,280 @@
+{
+  "claim_class": "synthetic_fixture",
+  "note": "method + path (limit removed) -> recorded response; variant rows are chosen by the mock",
+  "routes": [
+    {
+      "file": "capabilities.json",
+      "method": "GET",
+      "path": "/api/v1/capabilities",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "job_types.json",
+      "method": "GET",
+      "path": "/api/v1/job-types",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "job_types_product_default.json",
+      "method": "GET",
+      "path": "/api/v1/job-types",
+      "status": 200,
+      "variant": "product_default"
+    },
+    {
+      "file": "jobs_all.json",
+      "method": "GET",
+      "path": "/api/v1/jobs",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "submit_refused.json",
+      "method": "POST",
+      "path": "/api/v1/jobs",
+      "status": 409,
+      "variant": null
+    },
+    {
+      "file": "job_share_succeeded.json",
+      "method": "GET",
+      "path": "/api/v1/jobs/job_00000000000000000000000000000001",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "job_capture_profile_succeeded.json",
+      "method": "GET",
+      "path": "/api/v1/jobs/job_00000000000000000000000000000002",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "job_apply_succeeded.json",
+      "method": "GET",
+      "path": "/api/v1/jobs/job_00000000000000000000000000000003",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "job_denoise_succeeded.json",
+      "method": "GET",
+      "path": "/api/v1/jobs/job_00000000000000000000000000000004",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "job_share_failed.json",
+      "method": "GET",
+      "path": "/api/v1/jobs/job_00000000000000000000000000000005",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "job_share_queued.json",
+      "method": "GET",
+      "path": "/api/v1/jobs/job_00000000000000000000000000000006",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "job_share_running.json",
+      "method": "GET",
+      "path": "/api/v1/jobs/job_00000000000000000000000000000007",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "job_bad_unknown_key.json",
+      "method": "GET",
+      "path": "/api/v1/jobs/job_fffffffffffffffffffffffffffffff1",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "jobs_plain.json",
+      "method": "GET",
+      "path": "/api/v1/jobs?source_artifact_id=art_00000000000000000000000000000001",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "jobs_reviewed.json",
+      "method": "GET",
+      "path": "/api/v1/jobs?source_artifact_id=art_00000000000000000000000000000002",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "runs_list.json",
+      "method": "GET",
+      "path": "/api/v1/runs",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "run_base_plain.json",
+      "method": "GET",
+      "path": "/api/v1/runs/BASE-PLAIN",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "layers_base_plain.json",
+      "method": "GET",
+      "path": "/api/v1/runs/BASE-PLAIN/layers",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "run_base_reviewed.json",
+      "method": "GET",
+      "path": "/api/v1/runs/BASE-REVIEWED",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "layers_base_reviewed.json",
+      "method": "GET",
+      "path": "/api/v1/runs/BASE-REVIEWED/layers",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "run_run_other.json",
+      "method": "GET",
+      "path": "/api/v1/runs/RUN-OTHER",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "layers_run_other.json",
+      "method": "GET",
+      "path": "/api/v1/runs/RUN-OTHER/layers",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "run_run_s3.json",
+      "method": "GET",
+      "path": "/api/v1/runs/RUN-S3",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "layers_run_s3.json",
+      "method": "GET",
+      "path": "/api/v1/runs/RUN-S3/layers",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "run_run_stub_apply.json",
+      "method": "GET",
+      "path": "/api/v1/runs/RUN-STUB-APPLY",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "layers_run_stub_apply.json",
+      "method": "GET",
+      "path": "/api/v1/runs/RUN-STUB-APPLY/layers",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "run_run_stub_denoise.json",
+      "method": "GET",
+      "path": "/api/v1/runs/RUN-STUB-DENOISE",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "layers_run_stub_denoise.json",
+      "method": "GET",
+      "path": "/api/v1/runs/RUN-STUB-DENOISE/layers",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "sources.json",
+      "method": "GET",
+      "path": "/api/v1/sources",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "annotations_plain.json",
+      "method": "GET",
+      "path": "/api/v1/sources/art_00000000000000000000000000000001/annotations",
+      "status": 409,
+      "variant": null
+    },
+    {
+      "file": "measurement.json",
+      "method": "POST",
+      "path": "/api/v1/sources/art_00000000000000000000000000000001/capture-measurements",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "reviews_plain.json",
+      "method": "GET",
+      "path": "/api/v1/sources/art_00000000000000000000000000000001/capture-reviews",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "review_saved_acknowledged.json",
+      "method": "POST",
+      "path": "/api/v1/sources/art_00000000000000000000000000000001/capture-reviews",
+      "status": 201,
+      "variant": "acknowledged"
+    },
+    {
+      "file": "review_refused_setup.json",
+      "method": "POST",
+      "path": "/api/v1/sources/art_00000000000000000000000000000001/capture-reviews",
+      "status": 422,
+      "variant": "unacknowledged"
+    },
+    {
+      "file": "source_runs_plain.json",
+      "method": "GET",
+      "path": "/api/v1/sources/art_00000000000000000000000000000001/runs",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "annotations_reviewed.json",
+      "method": "GET",
+      "path": "/api/v1/sources/art_00000000000000000000000000000002/annotations",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "reviews_reviewed.json",
+      "method": "GET",
+      "path": "/api/v1/sources/art_00000000000000000000000000000002/capture-reviews",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "source_runs_reviewed.json",
+      "method": "GET",
+      "path": "/api/v1/sources/art_00000000000000000000000000000002/runs",
+      "status": 200,
+      "variant": null
+    },
+    {
+      "file": "upload_refused.json",
+      "method": "POST",
+      "path": "/api/v1/uploads",
+      "status": 403,
+      "variant": null
+    }
+  ],
+  "schema_version": 1
+}

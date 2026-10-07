@@ -1,0 +1,395 @@
+{
+  "admitted_sources": [
+    {
+      "has_annotation_clock": true,
+      "kind": "video",
+      "source_artifact_id": "art_00000000000000000000000000000002"
+    }
+  ],
+  "admitted_sources_lookup": "available",
+  "claim_boundary": {
+    "default_adopted": false,
+    "listening_acceptance_scope": "Synthetic acceptance scope sentence for the exact fixture audio only.",
+    "master_changed": false,
+    "missed_or_extra_notes": "not_assessed_no_approved_reference",
+    "musical_verdict": "not_established"
+  },
+  "discovery_truncated": false,
+  "edges": [
+    {
+      "edge_basis": "routes_review filename map; not a manifest field",
+      "from": "source.wav",
+      "to": "denoised.wav"
+    },
+    {
+      "edge_basis": "routes_review filename map; not a manifest field",
+      "from": "denoised.wav",
+      "to": "processed.wav"
+    },
+    {
+      "edge_basis": "routes_review filename map; not a manifest field",
+      "from": "processed.wav",
+      "to": "cleaned.wav"
+    },
+    {
+      "edge_basis": "routes_review filename map; not a manifest field",
+      "from": "source.wav",
+      "to": "baseline.wav"
+    },
+    {
+      "edge_basis": "routes_review filename map; not a manifest field",
+      "from": "source.wav",
+      "to": "residue.wav"
+    },
+    {
+      "edge_basis": "routes_review filename map; not a manifest field",
+      "from": "denoised.wav",
+      "to": "residue.wav"
+    }
+  ],
+  "evidence": [
+    {
+      "bound_signal_version": "sha256:0000000000000000000000000000000000000000000000000000000000000025",
+      "evidence_id": "evd_00000000000000000000000000000003",
+      "files": [
+        {
+          "artifact_id": "art_0000000000000000000000000000001b",
+          "import_verified": false,
+          "name": "Info.fcpxml",
+          "role": "FCPXML marker preview (Final Cut Pro)",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000034",
+          "size_bytes": 72
+        },
+        {
+          "artifact_id": "art_0000000000000000000000000000001c",
+          "import_verified": null,
+          "name": "editor-marker-export.sidecar.json",
+          "role": "Exact-time marker sidecar (JSON)",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000035",
+          "size_bytes": 393
+        }
+      ],
+      "generated_utc": null,
+      "kind": "editor_marker_export",
+      "reason": null,
+      "state": "current"
+    },
+    {
+      "bound_signal_version": "sha256:0000000000000000000000000000000000000000000000000000000000000027",
+      "evidence_id": "evd_00000000000000000000000000000002",
+      "files": [],
+      "generated_utc": null,
+      "kind": "lowreg_render",
+      "reason": null,
+      "state": "current"
+    },
+    {
+      "bound_signal_version": "sha256:0000000000000000000000000000000000000000000000000000000000000036",
+      "evidence_id": "evd_00000000000000000000000000000004",
+      "files": [
+        {
+          "artifact_id": "art_0000000000000000000000000000001d",
+          "import_verified": null,
+          "name": "marked-compact.mov",
+          "role": "Marked compact movie (overlay over the accepted audio)",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000037",
+          "size_bytes": 4130
+        }
+      ],
+      "generated_utc": "2026-10-07T12:00:00+00:00",
+      "kind": "marked_compact",
+      "reason": null,
+      "state": "current"
+    },
+    {
+      "bound_signal_version": "sha256:000000000000000000000000000000000000000000000000000000000000002b",
+      "evidence_id": "evd_00000000000000000000000000000001",
+      "files": [],
+      "generated_utc": "2026-10-07T12:00:24+00:00",
+      "kind": "practice_bundle",
+      "reason": null,
+      "state": "current"
+    }
+  ],
+  "invalidation": [],
+  "listening_acceptance": {
+    "accepted_file_sha256": [
+      "0000000000000000000000000000000000000000000000000000000000000036",
+      "0000000000000000000000000000000000000000000000000000000000000038"
+    ],
+    "master_adopted": false,
+    "reason": "pinned acceptance receipt re-hashes to its pin and names this run, manifest and current cleaned.wav",
+    "receipt_sha256": "0000000000000000000000000000000000000000000000000000000000000039",
+    "scope": "Synthetic acceptance scope sentence for the exact fixture audio only.",
+    "value": "accepted"
+  },
+  "manifest_sha256": "000000000000000000000000000000000000000000000000000000000000002b",
+  "pcm": {
+    "channels": 1,
+    "duration_seconds": 1.0,
+    "sample_count": 8000,
+    "sample_rate": 8000
+  },
+  "processing": {
+    "denoise": {
+      "delay_samples": 100,
+      "filter": "afftdn",
+      "status": "measured_and_compensated"
+    },
+    "dsp_latency_status": {
+      "denoise": "measured_and_compensated"
+    },
+    "high_pass_applied": false,
+    "hum_notches_applied": false,
+    "intentional_low_fundamental_hz": 32,
+    "loudness_targets": {
+      "cleaned": {
+        "target_integrated_lufs": -18.0,
+        "target_true_peak_dbtp": -1.75
+      }
+    },
+    "manifest_listening_accepted_field": false,
+    "noise_capture": {
+      "review": "synthetic fixture review text",
+      "selected_seconds": [
+        0.1,
+        0.3
+      ]
+    },
+    "profile_name": "synthetic-fuller",
+    "tone": {
+      "compressor": {
+        "ratio": 2.0,
+        "threshold_db": -18.0
+      },
+      "peaking_eq": [
+        {
+          "frequency_hz": 160.0,
+          "gain_db": 2.0,
+          "q": 0.7
+        }
+      ]
+    }
+  },
+  "run_id": "RUN-S3",
+  "run_status": "rendered_unreviewed",
+  "schema_id": "video-utils.web-runs.run",
+  "schema_version": 1,
+  "source_id": "src_00000000000000000000000000000001",
+  "source_sha256": "0000000000000000000000000000000000000000000000000000000000000025",
+  "stages": [
+    {
+      "artifact_id": "art_0000000000000000000000000000001e",
+      "file_role": "Decoded native source PCM",
+      "role_basis": "routes_review filename map; not a manifest field",
+      "signal_version": "sha256:000000000000000000000000000000000000000000000000000000000000003a",
+      "size_bytes": 16044,
+      "stage": "source.wav",
+      "state": "current"
+    },
+    {
+      "artifact_id": "art_0000000000000000000000000000001f",
+      "file_role": "Pure denoise (afftdn)",
+      "role_basis": "routes_review filename map; not a manifest field",
+      "signal_version": "sha256:0000000000000000000000000000000000000000000000000000000000000027",
+      "size_bytes": 16044,
+      "stage": "denoised.wav",
+      "state": "current"
+    },
+    {
+      "artifact_id": "art_00000000000000000000000000000020",
+      "file_role": "Tone and dynamics",
+      "role_basis": "routes_review filename map; not a manifest field",
+      "signal_version": "sha256:000000000000000000000000000000000000000000000000000000000000003b",
+      "size_bytes": 16044,
+      "stage": "processed.wav",
+      "state": "current"
+    },
+    {
+      "artifact_id": "art_00000000000000000000000000000021",
+      "file_role": "Delivery master",
+      "role_basis": "routes_review filename map; not a manifest field",
+      "signal_version": "sha256:0000000000000000000000000000000000000000000000000000000000000036",
+      "size_bytes": 16044,
+      "stage": "cleaned.wav",
+      "state": "current"
+    },
+    {
+      "artifact_id": "art_00000000000000000000000000000022",
+      "file_role": "Normalization-only baseline",
+      "role_basis": "routes_review filename map; not a manifest field",
+      "signal_version": "sha256:000000000000000000000000000000000000000000000000000000000000003c",
+      "size_bytes": 16044,
+      "stage": "baseline.wav",
+      "state": "current"
+    },
+    {
+      "artifact_id": "art_00000000000000000000000000000023",
+      "file_role": "Removed-signal estimate",
+      "role_basis": "routes_review filename map; not a manifest field",
+      "signal_version": "sha256:000000000000000000000000000000000000000000000000000000000000003d",
+      "size_bytes": 16044,
+      "stage": "residue.wav",
+      "state": "current"
+    },
+    {
+      "artifact_id": "art_00000000000000000000000000000024",
+      "file_role": "Restored video export (hash-identified; bound only when export/outcome.json records it)",
+      "role_basis": "routes_review filename map; not a manifest field",
+      "signal_version": "sha256:0000000000000000000000000000000000000000000000000000000000000038",
+      "size_bytes": 4116,
+      "stage": "export/cleaned-video.mov",
+      "state": "current"
+    },
+    {
+      "artifact_id": "art_00000000000000000000000000000002",
+      "file_role": "Restored video export (hash-identified; bound only when export/outcome.json records it)",
+      "role_basis": "routes_review filename map; not a manifest field",
+      "signal_version": "sha256:0000000000000000000000000000000000000000000000000000000000000002",
+      "size_bytes": 116815,
+      "stage": "export/clip.mov",
+      "state": "unbound"
+    }
+  ],
+  "timeline": {
+    "audio_start_seconds": 0.0,
+    "axis": "decoded source audio seconds",
+    "format_start_seconds": 0.0,
+    "no_time_stretch": true
+  },
+  "unknown_fields": {
+    "anchor_adopted": {
+      "reason": "Arrangement anchors are review candidates; none is adopted.",
+      "value": false
+    },
+    "annotation_source": {
+      "reason": "most recent admitted source of this run with a share_export clock",
+      "value": "art_00000000000000000000000000000002"
+    },
+    "bpm": {
+      "reason": "no BPM field in bound evidence; a recorded click period is shown as a navigation grid (click identity unverified)",
+      "value": null
+    },
+    "breakdown1_execution": {
+      "reason": "Operator context copied verbatim; execution of breakdown 1 is unknown.",
+      "value": "unknown_operator_reported_possible_rush_or_skip"
+    },
+    "browser_level_match": {
+      "reason": "The page applies no gain; playback level depends on the device.",
+      "value": "excerpt files pre-gained by tone_ab; browser output level and device unmeasured"
+    },
+    "click_identity": {
+      "reason": "Periodic high-frequency transients are not a verified metronome.",
+      "value": "unverified"
+    },
+    "clock_alignment": {
+      "reason": "Layer axis is decoded source audio. Annotation axis is the web clock manifest (share_export packet extent).",
+      "value": "unverified"
+    },
+    "detector_delay": {
+      "reason": "No detector delay calibration was supplied.",
+      "value": "uncalibrated"
+    },
+    "downbeat_confirmed": {
+      "reason": "The anchor is a review candidate, not a confirmed downbeat.",
+      "value": false
+    },
+    "editor_import": {
+      "reason": "No editor application import proof exists.",
+      "value": "unverified"
+    },
+    "fan_only_gain": {
+      "reason": "Fan and music are not separated.",
+      "value": null
+    },
+    "fundamental_32hz_presence": {
+      "reason": "A band level is not a measured played C1 fundamental.",
+      "value": null
+    },
+    "listening_acceptance": {
+      "basis": "pinned acceptance receipt; applies only to the files it names",
+      "reason": "Synthetic acceptance scope sentence for the exact fixture audio only.",
+      "value": "accepted_exact_files_only"
+    },
+    "meter": {
+      "reason": "Meter and downbeat are not identified by any layer.",
+      "value": "unknown"
+    },
+    "missed_or_extra_notes": {
+      "reason": "No approved expected-rhythm or note reference exists.",
+      "value": "not_assessed_no_approved_reference"
+    },
+    "model_gate_state": {
+      "reason": "not recorded in program/models.json",
+      "value": null
+    },
+    "model_local_presence": {
+      "reason": "This read API never inspects model caches.",
+      "value": "not_checked"
+    },
+    "monitoring_device": {
+      "reason": "The operator's playback device and level are unknown.",
+      "value": null
+    },
+    "music_only_gain": {
+      "reason": "Fan and music are not separated.",
+      "value": null
+    },
+    "nasal_quality": {
+      "reason": "Nasal quality is a listening judgement.",
+      "value": null
+    },
+    "operator_preference": {
+      "reason": "not recorded",
+      "value": null
+    },
+    "perceived_fullness": {
+      "reason": "Perceived fullness is a listening judgement.",
+      "value": null
+    },
+    "phrase_timing.real_take_status": {
+      "reason": "Phrase timing offsets are unvalidated until an operator spot check.",
+      "value": "unvalidated_until_operator_spot_check"
+    },
+    "physical_av_sync": {
+      "reason": "Copied from manifest dsp_latency.physical_audio_video_sync_verified.",
+      "value": false
+    },
+    "physical_capture_latency": {
+      "reason": "Microphone and capture-chain latency were never measured.",
+      "value": "uncalibrated"
+    },
+    "real_take_phrase_correctness": {
+      "reason": "Phrase correctness needs operator-marked boundaries.",
+      "value": "unknown_until_operator_marks_boundaries"
+    },
+    "room_response_recovered": {
+      "reason": "No room or microphone response is measured or inverted; EQ does not recreate the in-room amp tone.",
+      "value": false
+    },
+    "share_low_register_preservation": {
+      "reason": "Lossy AAC sharing derivative; ~32 Hz content is not measured in it.",
+      "value": "not_claimed"
+    },
+    "spectrogram_binding": {
+      "reason": "A current lowreg-render-v1 is bound through its resampler record to a current run stage.",
+      "value": "bound"
+    },
+    "stems": {
+      "reason": "No stem lane is admitted, and an estimate would never be an original stem.",
+      "value": "not_available"
+    },
+    "tool_area_basis": {
+      "reason": "Tool areas come from program/capabilities.json domains where present, else this presentation map.",
+      "value": "routes_review presentation map; not a registry field"
+    },
+    "true_peak_dbtp": {
+      "reason": "True peak was not measured; only sample peak is reported.",
+      "value": null
+    },
+    "walkthrough_listening": {
+      "reason": "Automated browser checks are muted; nobody listened.",
+      "value": "not_performed"
+    }
+  }
+}

@@ -1,0 +1,387 @@
+{
+  "allowlist": [
+    "share_export",
+    "denoise",
+    "capture_profile",
+    "apply_capture_profile"
+  ],
+  "claim_class": "contract_catalogue",
+  "job_types": [
+    {
+      "admission_state": "admitted",
+      "bound_field": null,
+      "capability_revision": "0000000000000000000000000000000000000000000000000000000000000012",
+      "capability_state": "admitted",
+      "evidence_kind": "lossy_sharing_derivative",
+      "implementation_status": "experimental",
+      "knobs": {
+        "audio_kbps": {
+          "default": 96,
+          "description": "Lossy AAC audio bitrate, preserving source rate/channels within admitted1..8 channel bounds.",
+          "group": "delivery",
+          "maximum": 192,
+          "minimum": 64,
+          "required_by_tool": false,
+          "type": "integer"
+        },
+        "codec": {
+          "default": "h264",
+          "description": "H.264 is the locally qualified default; HEVC is explicit opt-in. Copy accepts existing H.264/HEVC only, with no resize.",
+          "enum": [
+            "hevc",
+            "h264",
+            "copy"
+          ],
+          "group": "delivery",
+          "required_by_tool": false,
+          "type": "string"
+        },
+        "crf": {
+          "default": 27,
+          "description": "Fixed encoder CRF; no guaranteed byte-size target. Inactive for video copy.",
+          "group": "delivery",
+          "maximum": 32,
+          "minimum": 18,
+          "required_by_tool": false,
+          "type": "integer"
+        },
+        "height": {
+          "default": 720,
+          "description": "Even maximum output height; aspect ratio retained within integer rounding, never upscale. Copy requires native height already within this bound.",
+          "group": "delivery",
+          "maximum": 1080,
+          "minimum": 240,
+          "required_by_tool": false,
+          "type": "integer"
+        },
+        "timeout_seconds": {
+          "default": 900,
+          "description": "Total outer budget passed unchanged; worker operation D-10, shared cleanup<=5s plus5s reporting headroom. No hard realtime or kernel containment guarantee.",
+          "group": "supervision",
+          "maximum": 900,
+          "minimum": 30,
+          "required_by_tool": false,
+          "type": "integer"
+        }
+      },
+      "outer_headroom_seconds": 10,
+      "resource_class": "media",
+      "timeout_seconds": {
+        "default": 900,
+        "maximum": 900,
+        "minimum": 30
+      },
+      "tool": "share_export",
+      "web_only_constraints": [
+        "parameters.height must be even (also enforced by tool_api)"
+      ]
+    },
+    {
+      "admission_state": "admitted",
+      "bound_field": null,
+      "capability_revision": "000000000000000000000000000000000000000000000000000000000000001e",
+      "capability_state": "admitted",
+      "evidence_kind": "rendered_unreviewed",
+      "implementation_status": "available",
+      "knobs": {
+        "profile": {
+          "default": "conservative3",
+          "description": "Fixed bounded preset. Captured presets bind the reviewed original-source SHA and 4.10\u20134.95 second capture interval; different recordings reject before rendering. Clarity adds separate EQ/compression processing. Compare matched-level baseline, pure denoised audio and residue before acceptance.",
+          "enum": [
+            "bypass",
+            "conservative3",
+            "mild6",
+            "captured8",
+            "captured12",
+            "captured8-clarity"
+          ],
+          "group": "preset",
+          "required_by_tool": false,
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "default": 600,
+          "description": "Hard worker/process-group deadline in seconds; independent of client timeout.",
+          "group": "supervision",
+          "maximum": 900,
+          "minimum": 1,
+          "required_by_tool": false,
+          "type": "integer"
+        }
+      },
+      "outer_headroom_seconds": 10,
+      "profiles": [
+        {
+          "name": "bypass",
+          "source_bound_sha256": null
+        },
+        {
+          "name": "conservative3",
+          "source_bound_sha256": null
+        },
+        {
+          "name": "mild6",
+          "source_bound_sha256": null
+        },
+        {
+          "name": "captured8",
+          "source_bound_sha256": "0000000000000000000000000000000000000000000000000000000000000007"
+        },
+        {
+          "name": "captured12",
+          "source_bound_sha256": "0000000000000000000000000000000000000000000000000000000000000007"
+        },
+        {
+          "name": "captured8-clarity",
+          "source_bound_sha256": "0000000000000000000000000000000000000000000000000000000000000007"
+        }
+      ],
+      "resource_class": "media",
+      "timeout_seconds": {
+        "default": 600,
+        "maximum": 900,
+        "minimum": 1
+      },
+      "tool": "denoise",
+      "web_only_constraints": [
+        "parameters.profile is required (no silent tool default)",
+        "captured* profiles are refused profile_source_mismatch unless the admitted source sha256 equals the profile noise_capture_source_sha256",
+        "input is always the re-hashed admitted source; no browser path"
+      ]
+    },
+    {
+      "admission_state": "admitted",
+      "bound_field": "capture_review_id",
+      "capability_revision": "0000000000000000000000000000000000000000000000000000000000000016",
+      "capability_state": "admitted",
+      "evidence_kind": "source_bound_profile_authoring",
+      "implementation_status": "experimental",
+      "knobs": {
+        "adaptivity": {
+          "group": "cleanup",
+          "maximum": 1,
+          "minimum": 0,
+          "required_by_tool": true,
+          "type": "number"
+        },
+        "compressor": {
+          "description": "Optional exact all-or-none fixed compressor controls; omitted means off.",
+          "group": "dynamics",
+          "properties": {
+            "attack_ms": {
+              "maximum": 20,
+              "minimum": 8,
+              "type": "number"
+            },
+            "knee_db": {
+              "maximum": 6,
+              "minimum": 0,
+              "type": "number"
+            },
+            "ratio": {
+              "maximum": 3,
+              "minimum": 1,
+              "type": "number"
+            },
+            "release_ms": {
+              "maximum": 200,
+              "minimum": 60,
+              "type": "number"
+            },
+            "threshold_db": {
+              "maximum": -6,
+              "minimum": -36,
+              "type": "number"
+            }
+          },
+          "required": [
+            "threshold_db",
+            "ratio",
+            "attack_ms",
+            "release_ms",
+            "knee_db"
+          ],
+          "required_by_tool": false,
+          "type": "object"
+        },
+        "gain_smooth": {
+          "group": "cleanup",
+          "maximum": 50,
+          "minimum": 0,
+          "required_by_tool": true,
+          "type": "integer"
+        },
+        "integrated_lufs": {
+          "group": "delivery_loudness",
+          "maximum": -5,
+          "minimum": -70,
+          "required_by_tool": true,
+          "type": "number"
+        },
+        "noise_floor_db": {
+          "group": "cleanup",
+          "maximum": -20,
+          "minimum": -80,
+          "required_by_tool": true,
+          "type": "number"
+        },
+        "peaking_eq": {
+          "description": "Optional bounded fixed EQ bands; frequency must also be strictly below native Nyquist. Omitted means none.",
+          "group": "tone",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "frequency_hz": {
+                "maximum": 6000,
+                "minimum": 160,
+                "type": "number"
+              },
+              "gain_db": {
+                "maximum": 3,
+                "minimum": -3,
+                "type": "number"
+              },
+              "q": {
+                "maximum": 2,
+                "minimum": 0.5,
+                "type": "number"
+              }
+            },
+            "required": [
+              "frequency_hz",
+              "gain_db",
+              "q"
+            ],
+            "type": "object"
+          },
+          "maxItems": 3,
+          "minItems": 0,
+          "required_by_tool": false,
+          "type": "array"
+        },
+        "preset": {
+          "description": "fuller expands profiles/fuller.json verbatim; custom requires every control explicitly",
+          "enum": [
+            "fuller",
+            "custom"
+          ],
+          "group": "preset",
+          "type": "string",
+          "web_only": true
+        },
+        "reduction_db": {
+          "group": "cleanup",
+          "maximum": 12,
+          "minimum": 0.01,
+          "required_by_tool": true,
+          "type": "number"
+        },
+        "timeout_seconds": {
+          "default": 60,
+          "description": "Whole-worker deadline, also forwarded to standalone owned SIGALRM authoring worker.",
+          "group": "supervision",
+          "maximum": 60,
+          "minimum": 1,
+          "required_by_tool": false,
+          "type": "integer"
+        },
+        "true_peak_dbtp": {
+          "group": "delivery_loudness",
+          "maximum": 0,
+          "minimum": -9,
+          "required_by_tool": true,
+          "type": "number"
+        }
+      },
+      "low_shelf": {
+        "available": false,
+        "reason": "no typed tool exposes the shelf (capture_profile schema has no low_shelf control and denoise profiles have no shelf profile)"
+      },
+      "outer_headroom_seconds": 10,
+      "presets": {
+        "custom": {
+          "controls": null,
+          "default_selection": false
+        },
+        "fuller": {
+          "controls": {
+            "adaptivity": 0.0,
+            "compressor": {
+              "attack_ms": 15.0,
+              "knee_db": 3.0,
+              "ratio": 2.0,
+              "release_ms": 100.0,
+              "threshold_db": -18.0
+            },
+            "gain_smooth": 0,
+            "integrated_lufs": -18.0,
+            "noise_floor_db": -40.0,
+            "peaking_eq": [
+              {
+                "frequency_hz": 160.0,
+                "gain_db": 2.0,
+                "q": 0.7
+              },
+              {
+                "frequency_hz": 300.0,
+                "gain_db": 1.0,
+                "q": 0.8
+              }
+            ],
+            "reduction_db": 8.0,
+            "true_peak_dbtp": -1.75
+          },
+          "default_selection": true,
+          "listening_acceptance_scope": "FULLER acceptance covers one source/interval only (a522115f4e72, native samples [180810, 218295)); not transferred",
+          "source": "profiles/fuller.json"
+        }
+      },
+      "resource_class": "analysis",
+      "timeout_seconds": {
+        "default": 60,
+        "maximum": 60,
+        "minimum": 1
+      },
+      "tool": "capture_profile",
+      "web_only_constraints": [
+        "parameters.preset is required: fuller | custom",
+        "preset 'fuller' forbids any explicit control (expanded verbatim from profiles/fuller.json)",
+        "preset 'custom' requires every required control explicitly",
+        "capture_review_id is required; a review with authorization_scope experimental_capture_render and status other than rejected_contaminated",
+        "capture interval, run_dir and review are derived from the saved review, never the body"
+      ]
+    },
+    {
+      "admission_state": "admitted",
+      "bound_field": "capture_profile_job_id",
+      "capability_revision": "0000000000000000000000000000000000000000000000000000000000000011",
+      "capability_state": "planned",
+      "evidence_kind": "source_bound_capture_profile_application",
+      "implementation_status": "experimental",
+      "knobs": {
+        "timeout_seconds": {
+          "default": 600,
+          "description": "Outer supervision budget; fixed worker operation budget outer\u221210, fallback begins outer\u22125 with one shared remaining cleanup/reporting end. Scheduling is not hard real time.",
+          "group": "supervision",
+          "maximum": 600,
+          "minimum": 12,
+          "required_by_tool": false,
+          "type": "integer"
+        }
+      },
+      "outer_headroom_seconds": 10,
+      "resource_class": "media",
+      "timeout_seconds": {
+        "default": 600,
+        "maximum": 600,
+        "minimum": 12
+      },
+      "tool": "apply_capture_profile",
+      "web_only_constraints": [
+        "capture_profile_job_id is required: a succeeded capture_profile job for the same source whose publication is authored_unrendered with scope experimental_capture_render",
+        "authoring_dir and receipt_sha256 are read from that job publication"
+      ]
+    }
+  ],
+  "schema_version": 1
+}
