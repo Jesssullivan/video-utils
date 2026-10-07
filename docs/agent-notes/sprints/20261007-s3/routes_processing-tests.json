@@ -1,0 +1,346 @@
+{
+  "branch": "sprint/20261007-s3/routes_processing",
+  "claim_classes": {
+    "build": [
+      "M14"
+    ],
+    "contract": [
+      "M1",
+      "M2",
+      "M3",
+      "M4",
+      "M5a",
+      "M5b",
+      "M6",
+      "M8",
+      "M10",
+      "M11",
+      "M12",
+      "M13"
+    ],
+    "listening": "not_performed (M16)",
+    "measurement": [
+      "M7 chain comparison",
+      "M9",
+      "M15"
+    ]
+  },
+  "commands": [
+    "PYTHONPATH=tests python3 -m unittest test_web_processing_s3 -v",
+    "PYTHONPATH=tests python3 -m unittest test_web_jobs -v",
+    "PYTHONPATH=tests python3 -m unittest test_web_parity test_web_reliability",
+    "PYTHONPATH=tests python3 -m unittest test_web_stack -v"
+  ],
+  "contract": "docs/spec/sprints/ROUTES_PROCESSING_S3.md",
+  "date": "2026-10-07",
+  "deviations": {
+    "M12": "three processing types + review + measurement; share_export keeps the S2 unknown block",
+    "M7": "13 control fields compared (6 scalars + 2 EQ bands + 5 compressor fields); contract said 11",
+    "M8_deadline": "web_jobs.OUTER_HEADROOM_S patched in the test so the outer deadline is 1.5 s; production headroom is +10 s",
+    "real_apply": "skipped: tool_api.validate_tool_arguments refuses dot-prefixed path components and this worktree is under .local/"
+  },
+  "environment": {
+    "FFMPEG": "nix ffmpeg-headless 8.1.2 (FFMPEG/FFPROBE env set)",
+    "node": "v22.23.2",
+    "python": "python3 on PATH (stdlib only)"
+  },
+  "lane": "routes_processing",
+  "metrics": {
+    "M1": {
+      "denominator": 39,
+      "non_allowlisted_registry_tools": 36,
+      "pending_denominator": 3,
+      "pending_refused": 3,
+      "refused_tool_not_admitted": 39,
+      "synthetic_names": 3
+    },
+    "M10_responses_scanned": 636,
+    "M11": {
+      "hits": 0,
+      "knobs_and_presets_checked": 20
+    },
+    "M12": {
+      "denominator": 50,
+      "fields_per_record": 10,
+      "present_with_reason": 50,
+      "records": [
+        "review",
+        "measurement",
+        "capture_profile",
+        "denoise",
+        "apply_capture_profile"
+      ],
+      "share_export_note": "share_export keeps the S2 unknowns shape (contract section 5)"
+    },
+    "M15": {
+      "checks": 57,
+      "fixtures": "2 formats x 2 channel layouts x 3 spans",
+      "passed": 57
+    },
+    "M2": {
+      "apply_capture_profile": {
+        "agree": 9,
+        "parity_denominator": 9,
+        "vectors": 9,
+        "web_only_cases": [],
+        "web_only_stricter": 0
+      },
+      "capture_profile": {
+        "agree": 108,
+        "parity_denominator": 108,
+        "vectors": 111,
+        "web_only_cases": [
+          "preset_bad",
+          "preset_omitted",
+          "fuller_with_control"
+        ],
+        "web_only_stricter": 3
+      },
+      "denoise": {
+        "agree": 13,
+        "parity_denominator": 13,
+        "vectors": 17,
+        "web_only_cases": [
+          "profile=captured8",
+          "profile=captured12",
+          "profile=captured8-clarity",
+          "profile_omitted"
+        ],
+        "web_only_stricter": 4
+      }
+    },
+    "M3": {
+      "denominator": 4,
+      "refused": 4
+    },
+    "M4": {
+      "codes": {
+        "baseline_manifest_changed": "review_stale",
+        "review_file_changed": "review_stale",
+        "run_of_another_source": "run_not_bound",
+        "source_bytes_changed": "source_stale",
+        "source_wav_changed": "review_stale"
+      },
+      "denominator": 5,
+      "refused": 5,
+      "store_unchanged": true
+    },
+    "M5a_api": {
+      "reviews_created": 0,
+      "routes_called": 7
+    },
+    "M5a_pages": {
+      "pages_loaded": 3,
+      "reviews_created": 0
+    },
+    "M5b": {
+      "grid": 612,
+      "intervals": 102,
+      "non_overlapping_cases": 306,
+      "overlapping_cases": 306,
+      "violations": 0
+    },
+    "M6": {
+      "passed": "4/4",
+      "server_with_review": 202,
+      "server_without_interval": "capture_interval_required",
+      "ui_with": true,
+      "ui_without": "capture_interval_required"
+    },
+    "M7": {
+      "accepted_run": "20261006T041633Z-990aa1bd6737",
+      "chain": "equal",
+      "chain_diff": null,
+      "equal": 13,
+      "fields": 13,
+      "sample_rate": 44100
+    },
+    "M8": {
+      "cases": 28,
+      "passed": 28,
+      "per_type": {
+        "apply_capture_profile": {
+          "cancel_queued": true,
+          "cancel_running": true,
+          "conflict": true,
+          "deadline": true,
+          "interrupted_retry": true,
+          "publish_crash_adoption": true,
+          "replay": true
+        },
+        "capture_profile": {
+          "cancel_queued": true,
+          "cancel_running": true,
+          "conflict": true,
+          "deadline": true,
+          "interrupted_retry": true,
+          "publish_crash_adoption": true,
+          "replay": true
+        },
+        "denoise": {
+          "cancel_queued": true,
+          "cancel_running": true,
+          "conflict": true,
+          "deadline": true,
+          "interrupted_retry": true,
+          "publish_crash_adoption": true,
+          "replay": true
+        },
+        "share_export": {
+          "cancel_queued": true,
+          "cancel_running": true,
+          "conflict": true,
+          "deadline": true,
+          "interrupted_retry": true,
+          "publish_crash_adoption": true,
+          "replay": true
+        }
+      }
+    },
+    "M9": {
+      "media_jobs": 6,
+      "overlaps": 0,
+      "state_roots": 2,
+      "waiting_host_media_slot_events": 1
+    },
+    "real_workers": {
+      "apply_capture_profile": "skipped",
+      "capture_profile": "succeeded",
+      "denoise": "succeeded"
+    },
+    "review_enum_parity_checked": 22,
+    "schema_migration": {
+      "v1_job_readable": true,
+      "v1_job_retried": true,
+      "v1_replay_same_fingerprint": true,
+      "v1_to_v2": "migrated_once"
+    },
+    "walkthrough": {
+      "actions": [
+        "measure",
+        "save (refused setup)",
+        "save",
+        "author",
+        "author custom (refused invalid_parameters)",
+        "apply",
+        "denoise (refused profile_source_mismatch)"
+      ],
+      "jobs_succeeded": 2,
+      "reviews_saved": 1,
+      "worker_kind": "test_stub (admission seam)"
+    }
+  },
+  "modules": {
+    "test_web_jobs": {
+      "changed_assertions": [
+        "user_version 1 -> 2",
+        "positional jobs INSERT gains the bound_input_json column (NULL)",
+        "mismatch cases v3 / v1-no-tables / v0-tables (v2 is now the current version)"
+      ],
+      "errors": 0,
+      "failures": 0,
+      "ran": 26,
+      "skipped": 2,
+      "skips": [
+        "ActualDemoJob.test_actual_demo_job: opt-in WEB_JOBS_DEMO=1",
+        "LocalLatencyMeasurement.test_measure_local_latencies: opt-in WEB_JOBS_MEASURE=1"
+      ]
+    },
+    "test_web_parity + test_web_reliability": {
+      "errors": 0,
+      "failures": 0,
+      "ran": 35,
+      "run_before": "the one-line host-slot release on the supervisor error path (exception path only)",
+      "skipped": 2,
+      "skips": "two opt-in real/demo classes (WEB_UI_DEMO=1, WEB_RELIABILITY_REAL=1) inferred from their skip conditions; that run was not verbose, so the identities are an inference"
+    },
+    "test_web_processing_s3": {
+      "errors": 0,
+      "failures": 0,
+      "note": "apply_capture_profile real render recorded as not run inside the passing real-worker test (see real_workers); it is not counted as a pass",
+      "ran": 24,
+      "seconds": 684.2,
+      "skipped": 0
+    },
+    "test_web_stack": {
+      "errors": 0,
+      "failures": 0,
+      "ran": 33,
+      "seconds": 525.8,
+      "skipped": 0
+    }
+  },
+  "preregistered": false,
+  "repair_20261007_phase4": {
+    "audit_finding": "test_web_processing_s3 LifecycleTests.test_m8_lifecycle_per_type intermittently errored with KeyError child (apply_capture_profile) at 447a11e: wait_beat returned builder.beats[-1], which could still be the parent capture_profile succeed beat. Test race; no product defect shown. The earlier M8 28/28 and ran-24/errors-0 entries were therefore not reliably reproducible at 447a11e.",
+    "fix": "wait_beat(builder, since) returns only the beat at index since = len(builder.beats) recorded before the submit (read under builder.lock; tolerates a mid-write beat); both call sites (cancel-running, interrupted-retry) updated. Test-only change; no product file changed.",
+    "fix_commit": "04b3efe",
+    "not_rerun": "full suite (root-owned); browser, listening and real-take checks remain as recorded under unknown",
+    "ruling": "R-HOOK-CONVERGENCE-20261004",
+    "runs": {
+      "cargo test --locked -j 1": {
+        "at": "04b3efe",
+        "breakdown": {
+          "cli": 7,
+          "dsp": 5,
+          "lib": 15
+        },
+        "failed": 0,
+        "ignored": 1,
+        "passed": 27
+      },
+      "test_web_jobs + test_web_parity + test_web_reliability": {
+        "at": "04b3efe",
+        "errors": 0,
+        "failures": 0,
+        "ran": 61,
+        "seconds": 274.0,
+        "skipped": 4,
+        "skips": [
+          "ActualDemoJob (WEB_JOBS_DEMO=1)",
+          "LocalLatencyMeasurement (WEB_JOBS_MEASURE=1)",
+          "DemoWalkthrough (WEB_UI_DEMO=1)",
+          "RealTakeWebJob (WEB_RELIABILITY_REAL=1)"
+        ]
+      },
+      "test_web_processing_s3": {
+        "at": "04b3efe",
+        "errors": 0,
+        "failures": 0,
+        "note": "4 runs on the identical working tree before commit, 1 after; 5 runs do not prove absence of every race, only that the identified stale-beat path is closed",
+        "passed_runs": 5,
+        "ran_each": 24,
+        "runs": 5,
+        "seconds": [
+          153.3,
+          79.5,
+          81.6,
+          81.6,
+          92.8
+        ],
+        "skipped": 0
+      },
+      "test_web_stack": {
+        "at": "04b3efe",
+        "errors": 0,
+        "failures": 0,
+        "ran": 33,
+        "seconds": 77.3,
+        "skipped": 0
+      }
+    }
+  },
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "schema": "video-utils/lane-test-receipt",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5718",
+  "unknown": {
+    "browser_behaviour": "no browser run: hydration, audio playback, span loop and accessibility are unverified; only SSR HTML and form actions were exercised over HTTP",
+    "listening_acceptance": "not performed",
+    "low_register_preservation": "not measured (~32 Hz)",
+    "memory_cpu": "not measured",
+    "musical_review": "no note-correctness, missed-note or phrase verdict",
+    "real_take": "never opened by this lane"
+  }
+}

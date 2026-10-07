@@ -1,0 +1,95 @@
+{
+  "claim_class": "contract_and_structural_check",
+  "fixture": "synthetic 7 s testsrc2 + 32.70 Hz sine MOV (FFmpeg lavfi); the real take was never opened",
+  "lane": "routes_processing",
+  "listening": "not_performed",
+  "master_adopted": false,
+  "measured": {
+    "capability_revision": "f4a63d613410a23d77f2dd12624e23452f31e653663f303c7dfb803d8f6af366",
+    "outputs": [
+      {
+        "artifact_id": "art_6d378848a1b527b1542f97c032ee5ef4",
+        "content_type": "audio/wav",
+        "name": "baseline.wav",
+        "role": "baseline",
+        "served_via_run_media": false,
+        "sha256": "7f04a6594e3158e7227d18ad7b96b2a677c67360c42ff4bb1e27cc6370c8ea68",
+        "size_bytes": 927846
+      },
+      {
+        "artifact_id": "art_880cac6face56e708ce59fb25786b7d1",
+        "content_type": "audio/wav",
+        "name": "cleaned.wav",
+        "role": "cleaned",
+        "served_via_run_media": true,
+        "sha256": "7f04a6594e3158e7227d18ad7b96b2a677c67360c42ff4bb1e27cc6370c8ea68",
+        "size_bytes": 927846
+      },
+      {
+        "artifact_id": "art_b30e4be85df47b9b887a253f2ef62948",
+        "content_type": "audio/wav",
+        "name": "denoised.wav",
+        "role": "denoised",
+        "served_via_run_media": true,
+        "sha256": "ed2b9d78e0c9033c1be09c2f9d386abe146ecc0bb40e0e50405c84c5e54ade0d",
+        "size_bytes": 1237084
+      },
+      {
+        "artifact_id": "art_619ceaffb7d026097e94a1c07b9ed322",
+        "content_type": "audio/wav",
+        "name": "residue.wav",
+        "role": "residue",
+        "served_via_run_media": true,
+        "sha256": "5aa72b920fe2754e02bdb25900be5aa943f1f79b074437659b37ffc38187c9ac",
+        "size_bytes": 1237084
+      },
+      {
+        "artifact_id": "art_1822d1ef9b363ea8fdb977cec363a73d",
+        "content_type": "audio/wav",
+        "name": "source.wav",
+        "role": "source",
+        "served_via_run_media": true,
+        "sha256": "ed2b9d78e0c9033c1be09c2f9d386abe146ecc0bb40e0e50405c84c5e54ade0d",
+        "size_bytes": 1237084
+      },
+      {
+        "artifact_id": "art_d74f676168e9cd9700a49770bf92f72b",
+        "content_type": "application/json",
+        "name": "manifest.json",
+        "role": "manifest",
+        "served_via_run_media": false,
+        "sha256": "2d4fbca00a4d558675b3919eff9ae6f3e80b5ed4b06f7cad0575ffa8fd7bc156",
+        "size_bytes": 19392
+      }
+    ],
+    "run_id": "20261007T070932Z-d94956fd8530",
+    "state": "succeeded",
+    "wall_seconds_including_supervision": 48.171,
+    "worker_status": "rendered_unreviewed"
+  },
+  "outcome": "succeeded",
+  "requested_change": {
+    "program/capabilities.json": "denoise.adapters.web_job planned -> admitted (root decision)",
+    "scripts/capabilities.py WEB_JOB_ADMISSIONS": {
+      "denoise": "docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-denoise.json"
+    }
+  },
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "schema": "video-utils/web-job-admission-evidence",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "tool": "denoise",
+  "tracker": "TIN-5718",
+  "unknown": {
+    "capture_noise_only": "the reviewed interval is not verified noise-only",
+    "cpu_seconds": "not measured; no OS CPU quota is applied",
+    "fuller_listening_transfer": "FULLER acceptance covers one source/interval only (a522115f4e72, native samples [180810, 218295)); not transferred",
+    "level_matched": "span audition is not level-matched",
+    "listening_acceptance": "operator listening not performed for this version",
+    "low_register_preservation": "~32 Hz content not measured by a job service",
+    "memory_bytes_peak": "not measured; no OS memory quota is applied",
+    "music_or_click_presence": "operator assertion only unless reviewed_present",
+    "musical_review": "no note-correctness, missed-note or phrase verdict"
+  },
+  "worker_path": "WebJobs supervisor -> pass-through test builder returning WebJobs.real_command(tool, args) (identical product argv; worker_kind recorded as test_stub because admission is pending)"
+}

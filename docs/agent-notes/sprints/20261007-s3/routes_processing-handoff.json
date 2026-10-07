@@ -1,0 +1,121 @@
+{
+  "lane": "routes_processing",
+  "branch": "sprint/20261007-s3/routes_processing",
+  "head": "7f2187967c7d23dd99c6aebeedd6660dd48f428c",
+  "base_commit": "4bd806db3944d05fb4b5cca16a87642a71f5458f",
+  "worktree": ".local/sprint3/routes_processing",
+  "state": "implemented_tested_audited",
+  "files": [
+    {"path": "docs/agent-notes/sprints/20261007-s3/routes_processing-build.json", "sha256": "ddd3bdb274c5406d28f263ff28044537567a288ef9d5d617d3bac2fc9d8bebd9", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/routes_processing-root-requests.json", "sha256": "3449853e7813cd93d194b67cbc13dd3754af1121f8374acf76f8c251a92ca5c2", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/routes_processing-tests.json", "sha256": "7cb599645c1303b8769808a2f66db11d96d196f4d2ab04bd6699c3e950e44a18", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/routes_processing-walkthrough.json", "sha256": "17d278882fb5b567909a025cf8e13ffa0a918ad4ba47a588e7e706b00f73f619", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-apply_capture_profile.json", "sha256": "c0b4d61f97df67d16edfbe48c1f35bdb1e6d63f2182f271abcd1be32c3d00825", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-capture_profile.json", "sha256": "429b4fff0bf0828ad5bcb2226d2257655d80e7985ec8d73e0496aae85ec75543", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-denoise.json", "sha256": "1dce0d7cc2ac216651c408ddacb65d9af0260546d239676cfeedd6e3931f1684", "kind": "receipt"},
+    {"path": "docs/spec/sprints/ROUTES_PROCESSING_S3.md", "sha256": "8f597dbe078af854c95bf3d355cd2cd444ba229e78cf4a5ce04c8b64e18ac1a1", "kind": "spec"},
+    {"path": "scripts/web_api.py", "sha256": "8cbab9ce326a0fcad83fd148df074158555341aa63546bdce34aa0b4a80ae7fd", "kind": "source"},
+    {"path": "scripts/web_jobs.py", "sha256": "8a786c7604a1da73b4e30679b8a06f151aed5da9cc8f2377883f45365102e3d5", "kind": "source"},
+    {"path": "tests/test_web_jobs.py", "sha256": "5bf41292b990c83c5c25190772ad3a92dd0cfe8f7ff3c0a42a11b5d4168b5750", "kind": "test"},
+    {"path": "tests/test_web_processing_s3.py", "sha256": "66e68be72a6a7ab954d1be93b6351871e53c943f8929c370e3a9fc4c1ace7933", "kind": "test"},
+    {"path": "web/src/lib/components/processing/IntervalPicker.svelte", "sha256": "a1ffed5b4dfe02e05d0076ac6554bb90467742baece505958a730babb4f90e66", "kind": "source"},
+    {"path": "web/src/lib/components/processing/KnobField.svelte", "sha256": "498e224d2ee0f33ce591c42fece9cc5cc7c493f3a6c40959d70519899de7ff01", "kind": "source"},
+    {"path": "web/src/lib/components/processing/LaneRefusal.svelte", "sha256": "87c55e7bd6d8b9379e4480eda9fd75fd5f497802fd6b0f6be5247273aa62cbb5", "kind": "source"},
+    {"path": "web/src/lib/components/processing/MeasurementPanel.svelte", "sha256": "014a80169e67862ff2de39185416b1bbb3f15eddce7aa0dfb553ba31e04fa738", "kind": "source"},
+    {"path": "web/src/lib/components/processing/OriginNotice.svelte", "sha256": "472f82e7e73a930396c4951e93c60c472a7f72b00cc768a1fdaae5e8d32b40c6", "kind": "source"},
+    {"path": "web/src/lib/components/processing/SpanAudition.svelte", "sha256": "e9c40db46507c826454ccbda29834da9b55106165bb9aeac2fbd222a65f9b1c4", "kind": "source"},
+    {"path": "web/src/lib/components/processing/processing-text.ts", "sha256": "2d02c13ac598e5b496e1a123110ce49bf0bae49b2caf1da1d477cbbc00d8df72", "kind": "source"},
+    {"path": "web/src/lib/components/processing/setup.ts", "sha256": "9d2ffd710cb604bc27ad6f0f9b6f42354d2b55ed235596482a3f6bef97df6629", "kind": "source"},
+    {"path": "web/src/lib/server/processing/client.ts", "sha256": "2e806eff44f1f3387314df47402c9cf7c692e02743485b664d49155c2a42ed1e", "kind": "source"},
+    {"path": "web/src/lib/server/processing/forms.ts", "sha256": "4b1093ce4c3333c05a20bf80c566e4cc66bbdd48c8017d38bbe235ab2d3b3f00", "kind": "source"},
+    {"path": "web/src/lib/server/processing/options.ts", "sha256": "19165c2bd22f4fae929e09a0554804ab3ea55b3ec65072834f12f696663d7e85", "kind": "source"},
+    {"path": "web/src/lib/server/processing/schema.ts", "sha256": "6ea9fd0b1261a2ef9354fed36026878d56b5231afad47c3e469225fe2688f30d", "kind": "source"},
+    {"path": "web/src/routes/sources/[id=artifactid]/+page.server.ts", "sha256": "9782ba8861cdeef4172ecf5d7dc1457c3282bae3faa86ae367f84cc1f253c106", "kind": "source"},
+    {"path": "web/src/routes/sources/[id=artifactid]/+page.svelte", "sha256": "31f5d2942c210c6229fd601aa1345567d30d02e53d8b477e5a36f3dd42bb0537", "kind": "source"},
+    {"path": "web/src/routes/sources/[id=artifactid]/capture/+page.server.ts", "sha256": "ec5915f8764acf1d8561a4f99dda633f0dac4064cc489aeefb3e3f86459201e6", "kind": "source"},
+    {"path": "web/src/routes/sources/[id=artifactid]/capture/+page.svelte", "sha256": "8d9d2d578e07f3d57bf47e8118975e7c9f52a6b9d5d1c649eca7329d40f5d12b", "kind": "source"},
+    {"path": "web/src/routes/sources/[id=artifactid]/process/+page.server.ts", "sha256": "5f7ede8d552b72e484ad5db828efbb334c044f43a7194c3a78a5c41071ee810d", "kind": "source"},
+    {"path": "web/src/routes/sources/[id=artifactid]/process/+page.svelte", "sha256": "6df0c59905745d09b031cc90beff9c4ac439de69348a63fc3f48fae48a373020", "kind": "source"},
+    {"path": "web/src/routes/sources/[id=artifactid]/runs/[run]/media/[role]/+server.ts", "sha256": "5d4fd70379ad00f5bb0fd1284cb59cd15c8ec9406ea597ee5d7b9183eb3716f2", "kind": "source"}
+  ],
+  "tests": {
+    "command": "cd .local/sprint3/routes_processing && export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe && PYTHONPATH=tests python3 -m unittest test_web_jobs test_web_parity test_web_stack test_web_reliability test_web_processing_s3 -v && cargo test --locked -j 1",
+    "discovered": 145,
+    "passed": 145,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 5,
+    "seconds": 423.1
+  },
+  "metrics": [
+    {"name": "Python test coverage", "numerator": 145, "denominator": 145, "unit": "tests", "claim_class": "measured"},
+    {"name": "Rust test coverage", "numerator": 27, "denominator": 28, "unit": "tests", "claim_class": "measured"},
+    {"name": "Tool catalogue configuration", "numerator": 36, "denominator": 39, "unit": "tools", "claim_class": "measured"},
+    {"name": "Processing parity vectors", "numerator": 34, "denominator": 39, "unit": "vectors", "claim_class": "measured"}
+  ],
+  "unknowns": [
+    "Listening review acceptance not performed",
+    "32 Hz low-end preservation not measured",
+    "Real take never opened in workflow",
+    "Browser hydration and audio playback not verified",
+    "Shared /jobs/[id] page decode blocked pending control.ts widening",
+    "apply_capture_profile real-worker render blocked in .local/ worktree"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "scripts/capabilities.py",
+      "change": "Replace WEB_JOB_ADMISSIONS with entries for share_export, denoise, capture_profile, apply_capture_profile pointing to their respective receipts",
+      "why": "Admit the three new web_job adapters; apply_capture_profile conditioned on real-worker pass from main checkout"
+    },
+    {
+      "file": "program/capabilities.json",
+      "change": "Set capabilities[tool=denoise|capture_profile|apply_capture_profile].adapters.web_job to 'admitted'",
+      "why": "Runtime gate read by WebJobs.admission_state; gating tool submissions"
+    },
+    {
+      "file": "web/src/lib/schema/control.ts",
+      "change": "Apply unified diff from docs/agent-notes/sprints/20261007-s3/routes_processing-root-requests.json: add JOB_TOOLS/JobTool schemas and widen Attempt/JobProjection/JobSummary types",
+      "why": "Shared /jobs/[id] route currently refuses processing projections; decode evidence requires schema expansion"
+    },
+    {
+      "file": "web/src/lib/server/control-client.ts",
+      "change": "Export requestJson and decodeWith functions",
+      "why": "Drop duplicated transport in web/src/lib/server/processing/client.ts"
+    },
+    {
+      "file": "web/serve.js",
+      "change": "Set ORIGIN environment variable before SvelteKit import to loopback URL when undefined",
+      "why": "SvelteKit CSRF check refuses form actions on http loopback without ORIGIN set"
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261007-s3/routes_processing-build.json",
+    "docs/agent-notes/sprints/20261007-s3/routes_processing-root-requests.json",
+    "docs/agent-notes/sprints/20261007-s3/routes_processing-tests.json",
+    "docs/agent-notes/sprints/20261007-s3/routes_processing-walkthrough.json",
+    "docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-apply_capture_profile.json",
+    "docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-capture_profile.json",
+    "docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-denoise.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "claude-opus",
+    "refuted": true,
+    "findings": [
+      "Ownership HOLDS: all 34 files in owned set (scripts/web_jobs.py, scripts/web_api.py, tests/test_web_*.py, docs/spec/sprints/ROUTES_PROCESSING_S3.md, web-owned route/component/server files)",
+      "Four-module Python count reproduced on rerun: 94 tests, 90 passed, 4 opt-in skips",
+      "Test-web-processing-s3 race fixed at 04b3efe: wait_beat now returns only beat at pre-submit index; 5/5 clean reruns at 04b3efe",
+      "Comprehensive reruns at 04b3efe: 118 Python tests (61+33+24), 27 Rust tests, all passed",
+      "Doctrine HOLDS: no high-pass/low-cut/notch knobs; FULLER bands 160Hz +2dB, 300Hz +1dB boosts only",
+      "Schema v2 migration, capture-reviews append-only, first-5-seconds DB CHECK enforced",
+      "Known non-working states disclosed: three new job types tool_pending_admission pending root admission; 403 form errors without ORIGIN set; /jobs/[id] decode blocked pending control.ts"
+    ],
+    "must_fix": [
+      "Test race in test_web_processing_s3.LifecycleTests.test_m8_lifecycle_per_type: stale heartbeat returned when parent capture_profile and child apply_capture_profile call authored_job before builder.modes set. Fixed at 04b3efe by wait_beat returning only beat at pre-submit index. Verified 5/5 clean reruns."
+    ]
+  }
+}

@@ -364,7 +364,7 @@ class WebJobsTests(WebJobsTestBase):
         jobs = WebJobs(self.R, state, command_builder=StubBuilder(self.base / 'beats-schema'))
         self.addCleanup(jobs.close)
         connection = self.db(state)
-        self.assertEqual(connection.execute('PRAGMA user_version').fetchone()[0], 1)
+        self.assertEqual(connection.execute('PRAGMA user_version').fetchone()[0], 2)  # S3 schema v2
         self.assertEqual(connection.execute('PRAGMA journal_mode').fetchone()[0], 'wal')
         triggers = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'trigger'")}
         self.assertTrue({'jobs_state_transition', 'attempts_state_transition', 'artifacts_no_update',
@@ -382,7 +382,7 @@ class WebJobsTests(WebJobsTestBase):
                     number += 1
                     job_id = f'job_{number:032x}'
                     connection.execute("INSERT INTO jobs VALUES (?, ?, 'f', 'share_export', 'art_" + '1' * 32
-                                       + "', '{}', 'r', 'queued', NULL, 0, 'now', 'now')",
+                                       + "', '{}', 'r', 'queued', NULL, 0, 'now', 'now', NULL)",
                                        (job_id, f'key-{number:08d}'))
                     connection.execute("INSERT INTO attempts(job_id, attempt, state) VALUES (?, 1, 'queued')",
                                        (job_id,))
@@ -401,7 +401,7 @@ class WebJobsTests(WebJobsTestBase):
         self.assertEqual((accepted_illegal, refused_legal, checked), (0, 0, 72))
         with self.assertRaises(sqlite3.DatabaseError):
             connection.execute("INSERT INTO jobs VALUES ('job_" + 'f' * 32 + "', 'key-insert-x', 'f', 'share_export', "
-                               "'art_" + '1' * 32 + "', '{}', 'r', 'running', NULL, 0, 'now', 'now')")
+                               "'art_" + '1' * 32 + "', '{}', 'r', 'running', NULL, 0, 'now', 'now', NULL)")
         connection.execute("INSERT INTO artifacts VALUES ('art_" + '2' * 32 + "', 'job_" + '0' * 31 + "1', 1, "
                            "'share_mp4', 'jobs/x/attempt-1/share.mp4', '" + 'b' * 64 + "', 1, 'video/mp4', 'now')")
         for statement in ("UPDATE artifacts SET size_bytes = 2", 'DELETE FROM artifacts',
@@ -942,7 +942,8 @@ class WebJobsTests(WebJobsTestBase):
 
     # 20
     def test_schema_version_mismatch_refused(self):
-        for label, setup in (('v2', 'PRAGMA user_version = 2'), ('v0-tables', 'CREATE TABLE stray(x)')):
+        for label, setup in (('v3', 'PRAGMA user_version = 3'), ('v1-no-tables', 'PRAGMA user_version = 1'),
+                             ('v0-tables', 'CREATE TABLE stray(x)')):
             state = self.state(label)
             state.mkdir(parents=True, mode=0o700)
             connection = sqlite3.connect(state / 'jobs.sqlite3')

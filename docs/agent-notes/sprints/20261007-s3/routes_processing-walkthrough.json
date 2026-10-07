@@ -1,0 +1,52 @@
+{
+  "branch": "sprint/20261007-s3/routes_processing",
+  "contract": "docs/spec/sprints/ROUTES_PROCESSING_S3.md",
+  "date": "2026-10-07",
+  "lane": "routes_processing",
+  "not_covered": [
+    "real workers behind the UI (admission pending)",
+    "browser hydration and audio playback",
+    "real take",
+    "listening"
+  ],
+  "page_loads": {
+    "pages_loaded": 3,
+    "reviews_created": 0
+  },
+  "result": {
+    "actions": [
+      "measure",
+      "save (refused setup)",
+      "save",
+      "author",
+      "author custom (refused invalid_parameters)",
+      "apply",
+      "denoise (refused profile_source_mismatch)"
+    ],
+    "jobs_succeeded": 2,
+    "reviews_saved": 1,
+    "worker_kind": "test_stub (admission seam)"
+  },
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "schema": "video-utils/lane-walkthrough-receipt",
+  "schema_version": 1,
+  "scope": "synthetic walkthrough through the built app (node serve.js on loopback, ORIGIN set) against a live web_api server; stub workers under the test-only admission seam; synthetic baseline run (13 s, 16 kHz mono f32)",
+  "sprint": "20261007-s3",
+  "steps": [
+    "GET /sources/{id}/capture?run=<baseline>: native timeline shown, interval empty (data-interval-empty=true)",
+    "POST ?/measure 5.5-6.4 s: measurement panel rendered; no record written",
+    "POST ?/save 1.0-2.0 s as reviewed_candidate: refused setup_interval_unacknowledged",
+    "POST ?/save 5.5-6.4 s: review saved (rev_ id shown)",
+    "GET /sources/{id}/process: FULLER option enabled only after the saved review",
+    "POST ?/author preset fuller + review: capture_profile job queued -> succeeded (authored_unrendered)",
+    "POST ?/author preset custom with reduction_db 50: refused invalid_parameters (not clamped)",
+    "POST ?/apply with the authored job: apply_capture_profile job queued -> succeeded",
+    "POST ?/denoise profile captured8: refused profile_source_mismatch",
+    "GET process: span audition block present, data-level-matched=false",
+    "GET overview: probe summary and processing job rows present",
+    "GET /sources/{id}/runs/{run}/media/source: 200; traversal run id refused"
+  ],
+  "test": "tests/test_web_processing_s3.py WalkthroughTests.test_walkthrough_capture_and_process_actions",
+  "tracker": "TIN-5718",
+  "without_origin": "capture and process pages render data-origin-warning and form POSTs would be refused 403 by SvelteKit (verified: the first walkthrough attempt without ORIGIN returned 403)"
+}
