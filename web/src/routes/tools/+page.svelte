@@ -53,8 +53,10 @@
 		{/each}
 
 		<section class="space-y-2" data-models="true">
-			<h2 class="h4">Models</h2>
-			<div class="table-wrap vu-panel card overflow-x-auto">
+			<h2 class="h4" id="models-heading">Models</h2>
+			<!-- Wide table: the scroll region is focusable so keyboard users can scroll it (axe scrollable-region-focusable). -->
+			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+			<div class="table-wrap vu-panel card overflow-x-auto" role="region" aria-labelledby="models-heading" tabindex="0">
 				<table class="table text-sm">
 					<thead><tr><th>Model</th><th>Format</th><th>License</th><th>SHA-256</th><th>Max bytes</th><th>Host</th><th>Registration</th><th>Gate state</th><th>Local presence</th></tr></thead>
 					<tbody>
