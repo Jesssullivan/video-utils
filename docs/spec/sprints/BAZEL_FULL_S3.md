@@ -530,3 +530,34 @@ value named here is in the receipts (section 14).
    requested as R6; 2 `macos_process_inspection`, reproduced at a16d02d);
    11 Bazel-only cases attributed to host load (pass under plain unittest and
    in a low-load Bazel run); `//site` 2 of 2 `built_in_scratch_copy`.
+
+## 17. Phase 4 repair: rebase onto main 0ea22c3
+
+Cause (audit must_fix): main added `tests/test_take_intake.py` and
+`tests/test_timing_calibration.py` after the baseline, so a merge left the
+supplement at `module_count_at_supplement: 98` against 100 modules and
+`test_bazel_graph_s3` (run by `just check`) failed. The two modules had no
+classification either.
+
+- The branch is rebased onto main `0ea22c3` with no conflicts. The section 3
+  facts and the full-run record stay as measured at `549a14d`.
+- `bazel/test_classification_s3_full.json` now records 100 modules and five
+  added modules, with a reason for each tag:
+  `test_take_intake` gets `requires-ffmpeg`, `requires-host-tools` (Nix FFmpeg
+  path fallback, `git`) and `workspace-artifacts` (writes under
+  `artifacts/s2/take_intake/`). `test_timing_calibration` gets
+  `requires-ffmpeg` (the CLI analyze case needs FFMPEG/FFPROBE) and
+  `workspace-artifacts`. The second is conservative: only its opt-in sealed
+  evaluations write `artifacts/s2/timing_calibration/sealed/`.
+  `tests/BUILD.bazel` lists now have these sizes: FFmpeg 20, host tools 17,
+  exclusive 7, workspace artifacts 31, web tree 8.
+- Measured at the rebased head (site gate on): 100 `py_test` targets,
+  106 test targets and 89 targets without `requires-host-tools`.
+  `test_bazel_graph_s3` ran 50 with 1 skipped, OK. `cargo test --locked -j 1`
+  passes. A supplementary Bazel run of the two new targets passed both: 34 and
+  26 cases ran, and the only skips (1 and 2) are env-gated e2e and sealed
+  cases. The single full `//...` run was not repeated.
+- R4 (hosted job) now gives 83 Python modules and 17 excluded by
+  `requires-host-tools` (`test_take_intake` added). The target counts are 89
+  before R1-R3 and 90 after. `ci.yml` on main is byte-identical to the
+  `9154f8a` the diff was written against.

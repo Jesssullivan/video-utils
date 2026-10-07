@@ -37,7 +37,7 @@
    "file": ".github/workflows/ci.yml",
    "owner": "root",
    "change": "add a non-blocking `bazel` job (mirrors bazel/ci-bazel-full.draft.yml; supersedes tools/bazel/ci-bazel-job.draft.yml)",
-   "diff_against": "main 9154f8a .github/workflows/ci.yml",
+   "diff_against": "main 0ea22c3 .github/workflows/ci.yml (byte-identical to 9154f8a: git diff --stat 9154f8a main -- .github/workflows/ci.yml is empty)",
    "diff": "--- a/.github/workflows/ci.yml\n+++ b/.github/workflows/ci.yml\n@@ -41,3 +41,32 @@\n         run: nix develop --no-write-lock-file .#web --command bash -c 'cd web && pnpm run test:e2e'\n       - name: Accessibility scans\n         run: nix develop --no-write-lock-file .#web --command bash -c 'cd web && pnpm run test:a11y'\n+  bazel:\n+    runs-on: ubuntu-24.04\n+    timeout-minutes: 90\n+    continue-on-error: true\n+    steps:\n+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4\n+      - uses: cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7 # v31\n+      # Optional warm cache (root pins the action SHA; the lane does not resolve it):\n+      # - uses: actions/cache@<sha> # v4\n+      #   with:\n+      #     path: |\n+      #       ~/.cache/bazel-video-utils\n+      #       ~/.cache/bazel/_bazel_runner/cache/repos\n+      #     key: bazel-${{ runner.os }}-${{ hashFiles('MODULE.bazel.lock', 'web/pnpm-lock.yaml', 'site/pnpm-lock.yaml') }}\n+      #     restore-keys: bazel-${{ runner.os }}-\n+      - name: Structural graph contract (no Bazel needed)\n+        run: PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v\n+      - name: Module graph and lock\n+        run: |\n+          python3 tools/bazel/run.py --timeout 900 mod graph > /dev/null\n+          python3 tools/bazel/run.py --timeout 900 build --nobuild //... --lockfile_mode=error\n+      - name: Full Bazel test run without host-tool modules\n+        run: >-\n+          nix develop --no-write-lock-file --command bash -c\n+          'python3 tools/bazel/run.py --timeout 4800 test //...\n+          --jobs=4 --local_resources=cpu=4 --keep_going\n+          --test_tag_filters=-requires-host-tools\n+          --test_env=FFMPEG=\"$(command -v ffmpeg)\" --test_env=FFPROBE=\"$(command -v ffprobe)\"\n+          --test_output=errors --test_summary=detailed'\n",
    "expected_runtime": {
     "measured_local_full_run_s": 2934,
@@ -54,7 +54,7 @@
     "filter": "--test_tag_filters=-requires-host-tools",
     "excluded_by_tag": {
      "tag": "requires-host-tools",
-     "count": 16,
+     "count": 17,
      "modules": [
       "test_auth_hosting_s3",
       "test_eq_shelf",
@@ -67,6 +67,7 @@
       "test_share_export",
       "test_share_export_preroll",
       "test_sprint1_audit",
+      "test_take_intake",
       "test_web_parity",
       "test_web_processing_s3",
       "test_web_reliability",
@@ -75,9 +76,10 @@
      ],
      "reason": "they need node/pnpm/git (and, for the exclusive web modules, an offline pnpm store and web/build) from PATH; the default Nix dev shell has git and ffmpeg but no node/pnpm, and CI must not run an online pnpm install inside a test. Under --config=host-tools on this host they passed, but largely by typed skips (e.g. test_web_stack 22 skips in the full run, 0 in a low-load diagnostic run), so a hosted job would measure skips, not behaviour."
     },
-    "included": "every other test: 82 Python modules (including the 9 FFmpeg modules not tagged host-tools, with the dev shell's ffmpeg), 5 Rust tests, //web:svelte_check_test and, once R1-R3 land, //site:svelte_check_test (rules_js hermetic node only)",
-    "count_after_R1_R3": 89,
-    "count_before_R1_R3": 88
+    "included": "every other test: 83 Python modules (including the 10 FFmpeg modules not tagged host-tools, with the dev shell's ffmpeg), 5 Rust tests, //web:svelte_check_test and, once R1-R3 land, //site:svelte_check_test (rules_js hermetic node only)",
+    "count_after_R1_R3": 90,
+    "count_before_R1_R3": 89,
+    "count_source": "bazel query 'tests(//...) except attr(tags, \"requires-host-tools\", tests(//...))' = 89 at the rebased lane head (site gate on); +1 //site:svelte_check_test after R1-R3 (inference from the scratch R1-R3 state)"
    },
    "ffmpeg_tagged_also_host_tools": [
     "test_eq_shelf",
@@ -85,6 +87,7 @@
     "test_review_ui_s2",
     "test_share_export",
     "test_share_export_preroll",
+    "test_take_intake",
     "test_web_parity",
     "test_web_processing_s3",
     "test_web_reliability",

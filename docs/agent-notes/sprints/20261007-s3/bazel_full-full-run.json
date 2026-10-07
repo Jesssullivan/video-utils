@@ -1438,5 +1438,51 @@
    "duration_s": 246.9
   }
  ],
- "artifacts": "artifacts/s2/bazel_full/full/{bep.json,console.log,tests.txt,py_tests.txt,report.json,testlogs/} (gitignored, local only)"
+ "artifacts": "artifacts/s2/bazel_full/full/{bep.json,console.log,tests.txt,py_tests.txt,report.json,testlogs/} (gitignored, local only)",
+ "python_modules_total_note": "98 = modules at the run's baseline tree (549a14d); 100 after the rebase onto main 0ea22c3 (rebase_onto_main)",
+ "rebase_onto_main": {
+  "onto": "main 0ea22c3",
+  "previous_baseline": "549a14dea88f6b7951a81f2c2fa0718cb83a1c21",
+  "reason": "Phase 4 audit must_fix: main added tests/test_take_intake.py and tests/test_timing_calibration.py, so the supplement count (98) failed test_bazel_graph_s3 on a merge into main",
+  "python_modules_total_now": 100,
+  "py_test_targets_now": 100,
+  "test_targets_total_now": 106,
+  "test_targets_total_now_after_root_R1_R3": 107,
+  "test_targets_without_requires_host_tools_now": 89,
+  "denominator_sources": "ls tests/test_*.py (100); bazel query 'kind(py_test, //tests:all)' (100); bazel query 'tests(//...)' (106); bazel query 'tests(//...) except attr(tags, \"requires-host-tools\", tests(//...))' (89), all at the rebased lane head with the site gate on",
+  "added_modules_classification": "bazel/test_classification_s3_full.json (test_take_intake: requires-ffmpeg, requires-host-tools, workspace-artifacts; test_timing_calibration: requires-ffmpeg, workspace-artifacts)",
+  "full_run_not_repeated": "the single full run above covered the 98 modules at the baseline; the 2 added modules ran in the supplementary run below, not inside a full //... run",
+  "supplementary_run": {
+   "command": "python3 tools/bazel/run.py --timeout 580 test //tests:test_take_intake //tests:test_timing_calibration --config=host-tools --jobs=4 --local_resources=cpu=4 --test_env=FFMPEG=<nix ffmpeg-headless 8.1.2> --test_env=FFPROBE=<nix ffprobe> --test_output=errors --test_summary=detailed --build_event_json_file=<lane artifacts>/rebase/bep.json",
+   "host_load_1min_before": 3.8,
+   "exit": 0,
+   "wall_s": 24.5,
+   "targets": {
+    "//tests:test_take_intake": {
+     "status": "PASSED",
+     "ran": 34,
+     "skipped": 1,
+     "skip_reasons": {
+      "e2e_gated_set_TAKE_INTAKE_E2E_1": 1
+     },
+     "failures": 0,
+     "errors": 0
+    },
+    "//tests:test_timing_calibration": {
+     "status": "PASSED",
+     "ran": 26,
+     "skipped": 2,
+     "skip_reasons": {
+      "sealed evaluation runs once, on request": 1,
+      "R2 sealed evaluation runs once, on request": 1
+     },
+     "failures": 0,
+     "errors": 0
+    }
+   },
+   "ffmpeg_modules_run_with_ffmpeg": "2 of 2 (test_timing_calibration.test_p2_cli_analyze_on_wav ran, not skipped)",
+   "claim_class": "M"
+  },
+  "claim_class": "M"
+ }
 }

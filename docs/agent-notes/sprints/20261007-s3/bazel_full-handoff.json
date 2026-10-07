@@ -7,20 +7,21 @@
  "authority": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N13",
  "contract": "docs/spec/sprints/BAZEL_FULL_S3.md",
  "contract_commit": "7441e1c089706ef1fb67d1bced95d3738ce1a414",
- "baseline": "549a14dea88f6b7951a81f2c2fa0718cb83a1c21",
+ "baseline": "0ea22c3 (main, after the Phase 4 rebase; lane started at 549a14dea88f6b7951a81f2c2fa0718cb83a1c21)",
  "branch": "sprint/20261007-s3/bazel_full",
  "commits": {
   "full_run_head": "30477904e5323693349936ffb7a20020a54357ec",
   "diagnostic_run_head": "3b0b5973399a0b64fd89652ef6016483f1b9a153",
-  "final": "see `git log` on the branch; the receipt commit cannot name its own sha"
+  "final": "see `git log` on the branch; the receipt commit cannot name its own sha",
+  "note": "full_run_head and diagnostic_run_head are pre-rebase shas (549a14d base); after the rebase onto main 0ea22c3 they correspond to 84f9a7c and 99de408"
  },
  "full_run_status": "ran_complete",
  "full_run_exit": 3,
  "full_run_wall_s": 2934,
  "full_run_command": "python3 tools/bazel/run.py --timeout 7200 test //... --config=host-tools --jobs=4 --local_resources=cpu=4 --test_env=FFMPEG=<nix ffmpeg-headless 8.1.2> --test_env=FFPROBE=<nix ffprobe> --test_output=errors --test_summary=detailed --keep_going --build_event_json_file=<lane artifacts>/full/bep.json",
- "test_targets_total": 104,
- "test_targets_total_after_root_R1_R3": 105,
- "python_modules_total": 98,
+ "test_targets_total": 106,
+ "test_targets_total_after_root_R1_R3": 107,
+ "python_modules_total": 100,
  "passed": 94,
  "failed": 9,
  "timeout": 1,
@@ -39,7 +40,7 @@
    "//tests:test_timecode (TIMEOUT)"
   ]
  },
- "ffmpeg_modules_run_with_ffmpeg": "18 of 18",
+ "ffmpeg_modules_run_with_ffmpeg": "18 of 18 in the full run; 2 of 2 rebase additions in the supplementary run (20 of 20)",
  "ffmpeg_modules_all_cases_skipped": [],
  "known_host_failures": {
   "count": 10,
@@ -136,5 +137,20 @@
   "bazel_full-tests.json",
   "bazel_full-root-requests.json",
   "bazel_full-handoff.json"
- ]
+ ],
+ "python_modules_total_note": "100 after the rebase onto main 0ea22c3; the full run covered the 98 baseline modules (94/9/1 status counts are over its 104 targets); test_take_intake and test_timing_calibration PASSED in a supplementary Bazel run (bazel_full-full-run.json rebase_onto_main)",
+ "full_run_target_denominator": 104,
+ "rebase_onto_main": {
+  "onto": "main 0ea22c3",
+  "modules_added_on_main": [
+   "test_take_intake",
+   "test_timing_calibration"
+  ],
+  "supplementary_run": {
+   "//tests:test_take_intake": "PASSED (34 ran, 1 gated skip)",
+   "//tests:test_timing_calibration": "PASSED (26 ran, 2 gated skips)"
+  },
+  "structural_test": "test_bazel_graph_s3 50 ran, 1 skipped, OK at the rebased head",
+  "rust": "cargo test --locked -j 1: lib 15, cli 7, dsp 5 (+1 ignored) pass"
+ }
 }
