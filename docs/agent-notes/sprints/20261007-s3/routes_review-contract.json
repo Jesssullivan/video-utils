@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "lane": "routes_review",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5719",
+  "phase": "phase1_contract_freeze",
+  "recorded_utc": "2026-10-07T05:02:26Z",
+  "authority": "R-HOOK-CONVERGENCE-20261004 R-N13; S3 route map docs/spec/sprints/20261007-S3.md",
+  "baseline_commit": "4bd806db3944d05fb4b5cca16a87642a71f5458f",
+  "spec": "docs/spec/sprints/ROUTES_REVIEW_S3.md",
+  "spec_sha256": "6b3761044337e29839f5039b9684c4b85f9640f7f4fedb4789d53a0006cf01dd",
+  "numerics_run": false,
+  "experiment": "none",
+  "preregistered": false,
+  "root_owned_changes_requested": ["scripts/web_api.py registration hunk (spec 11.1; git apply --check passed against baseline)", "just/workflow.just web-runs-test recipe (optional, 11.2)", "control-client.ts requestJson export (optional consolidation, 11.3; not lane-owned)"],
+  "real_take_touched": false
+}
