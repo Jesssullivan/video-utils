@@ -1,0 +1,347 @@
+{
+  "schema_version": 1,
+  "lane": "site_verify",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5723",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_utc": "2026-10-07",
+  "phase": "2_implement",
+  "contract_commit": "c878c1cd0ae6afd81bc41115aa8f64a58bd3511f",
+  "implementation_commit": "152baa181a75df25d944fe01be83545ab7286ef7 (harness, fixes, tests); receipts and the spec addendum follow on the same branch",
+  "claim_classes": {
+    "M": "measured by a command in this lane on the authored site build or on synthetic fixtures",
+    "I": "inferred",
+    "U": "unknown or not performed"
+  },
+  "kind": "accessibility_automated",
+  "axe": {
+    "axe_core": "4.13.0",
+    "axe_core_playwright": null,
+    "tags": [
+      "wcag2a",
+      "wcag2aa",
+      "wcag21a",
+      "wcag21aa",
+      "wcag22aa",
+      "best-practice"
+    ],
+    "rules_disabled": [],
+    "excluded": []
+  },
+  "scans_expected": 22,
+  "scans_executed": 22,
+  "mode_assertion_held": 22,
+  "violations_total": 0,
+  "violation_nodes": 0,
+  "violations_outside_baseline": 0,
+  "baseline_entries": 0,
+  "incomplete_total": 46,
+  "incomplete_nodes": 122,
+  "incomplete_rules": [
+    "aria-hidden-focus",
+    "aria-valid-attr-value",
+    "color-contrast"
+  ],
+  "incomplete_detail": {
+    "aria-valid-attr-value": "1 node per scan, the theme picker popover trigger (vendored chrome, Skeleton/Zag popover) whose aria-controls target is not rendered while closed; status unknown, not a pass",
+    "color-contrast": "4 nodes per w375 scan (the four quick navigation links) and 5 per w1280 scan (the wordmark and the four full-navigation links), all in the vendored header; axe could not determine their background; contrast for these nodes is unknown",
+    "aria-hidden-focus": "1 node in each mobile-dialog-open scan: the aria-hidden page wrapper while the dialog is open; unknown"
+  },
+  "rules_evaluated_per_scan_max": 93,
+  "scans": [
+    {
+      "scan": "agents-w1280-dark",
+      "route": "/agents",
+      "scheme": "dark",
+      "width": "w1280",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 36
+    },
+    {
+      "scan": "agents-w1280-light",
+      "route": "/agents",
+      "scheme": "light",
+      "width": "w1280",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 36
+    },
+    {
+      "scan": "agents-w375-dark",
+      "route": "/agents",
+      "scheme": "dark",
+      "width": "w375",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 37
+    },
+    {
+      "scan": "agents-w375-light",
+      "route": "/agents",
+      "scheme": "light",
+      "width": "w375",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 37
+    },
+    {
+      "scan": "features-w1280-dark",
+      "route": "/features",
+      "scheme": "dark",
+      "width": "w1280",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 36
+    },
+    {
+      "scan": "features-w1280-light",
+      "route": "/features",
+      "scheme": "light",
+      "width": "w1280",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 36
+    },
+    {
+      "scan": "features-w375-dark",
+      "route": "/features",
+      "scheme": "dark",
+      "width": "w375",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 37
+    },
+    {
+      "scan": "features-w375-light",
+      "route": "/features",
+      "scheme": "light",
+      "width": "w375",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 37
+    },
+    {
+      "scan": "home-w1280-dark",
+      "route": "/",
+      "scheme": "dark",
+      "width": "w1280",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 37
+    },
+    {
+      "scan": "home-w1280-light",
+      "route": "/",
+      "scheme": "light",
+      "width": "w1280",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 37
+    },
+    {
+      "scan": "home-w375-dark",
+      "route": "/",
+      "scheme": "dark",
+      "width": "w375",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 38
+    },
+    {
+      "scan": "home-w375-light",
+      "route": "/",
+      "scheme": "light",
+      "width": "w375",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 38
+    },
+    {
+      "scan": "not-found-w1280-dark",
+      "route": "/site-verify-not-found",
+      "scheme": "dark",
+      "width": "w1280",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 37
+    },
+    {
+      "scan": "not-found-w1280-light",
+      "route": "/site-verify-not-found",
+      "scheme": "light",
+      "width": "w1280",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 37
+    },
+    {
+      "scan": "not-found-w375-dark",
+      "route": "/site-verify-not-found",
+      "scheme": "dark",
+      "width": "w375",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 38
+    },
+    {
+      "scan": "not-found-w375-light",
+      "route": "/site-verify-not-found",
+      "scheme": "light",
+      "width": "w375",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 38
+    },
+    {
+      "scan": "state-mobile-nav-open-w375-dark",
+      "route": "/",
+      "scheme": "dark",
+      "width": "w375",
+      "state": "mobile_navigation_dialog_open",
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 3,
+      "passes": 33
+    },
+    {
+      "scan": "state-mobile-nav-open-w375-light",
+      "route": "/",
+      "scheme": "light",
+      "width": "w375",
+      "state": "mobile_navigation_dialog_open",
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 3,
+      "passes": 33
+    },
+    {
+      "scan": "status-w1280-dark",
+      "route": "/status",
+      "scheme": "dark",
+      "width": "w1280",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 36
+    },
+    {
+      "scan": "status-w1280-light",
+      "route": "/status",
+      "scheme": "light",
+      "width": "w1280",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 36
+    },
+    {
+      "scan": "status-w375-dark",
+      "route": "/status",
+      "scheme": "dark",
+      "width": "w375",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 37
+    },
+    {
+      "scan": "status-w375-light",
+      "route": "/status",
+      "scheme": "light",
+      "width": "w375",
+      "state": null,
+      "mode_assertion": true,
+      "violations": 0,
+      "incomplete": 2,
+      "passes": 37
+    }
+  ],
+  "metrics": {
+    "V6": {
+      "numerator": 22,
+      "denominator": 22,
+      "pass": true
+    },
+    "V7": {
+      "violations": 0,
+      "outside_baseline": 0,
+      "incomplete": 46,
+      "pass": true
+    }
+  },
+  "colour_modes": "light and dark via localStorage color-mode plus prefers-color-scheme emulation; html[data-mode] asserted before every scan (22/22 held)",
+  "claim": "automated axe rule results only; no WCAG conformance, screen-reader, cognitive or manual contrast claim",
+  "unknown": [
+    "themes scaffold, pine, rose, catppuccin, trans",
+    "the system mode value",
+    "reduced motion",
+    "forced colours",
+    "widths other than w1280 and w375"
+  ],
+  "deployed": false,
+  "served_check": "not_performed",
+  "pages_project_name": null,
+  "cloudflare_account": null,
+  "public_hostname": null,
+  "custom_domain": null,
+  "wrangler_version": null,
+  "server_kind": "local_static_emulation",
+  "pages_equivalence": "inferred",
+  "response_headers_on_pages": "unknown",
+  "browser_engines": [
+    "chromium"
+  ],
+  "browser_download_bytes": 0,
+  "zoom_method": "viewport_emulation",
+  "real_device_check": "not_performed",
+  "wcag_conformance": "not_claimed",
+  "screen_reader_check": "not_performed",
+  "contrast_basis": "axe_color_contrast_rule_only",
+  "keyboard_walkthrough": "not_performed",
+  "reduced_motion_verified": false,
+  "non_default_themes_scanned": false,
+  "csp_enforced": false,
+  "external_links_fetched": 0,
+  "artifact_digests_complete": true,
+  "real_take_accuracy": "unknown",
+  "low_register_pitch_accuracy": "unknown",
+  "listening_acceptance": "not_claimed",
+  "effect_in_site": "absent",
+  "media_shown": 0
+}

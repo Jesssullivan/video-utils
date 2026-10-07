@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "lane": "site_verify",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5723",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_utc": "2026-10-07",
+  "phase": "2_implement",
+  "kind": "root_requests",
+  "contract_commit": "c878c1cd0ae6afd81bc41115aa8f64a58bd3511f",
+  "note": "The lane made none of these changes. Each is root's decision; texts are exact.",
+  "deployed": false,
+  "requests": [
+    {
+      "file": "just/workflow.just",
+      "change": "insert after the existing `site-test` recipe:\n\n# Site verification gates (S3 site_verify; docs/spec/sprints/SITE_VERIFY_S3.md): frozen install (no browser\n# download), then the public_site lane tests with the browser suite enabled: check, build, leak scans, internal link\n# check, V6 privacy scan, gitleaks with a positive control, Chromium smoke at five viewports and axe in light and dark.\n# Nothing is deployed. Outputs go to artifacts/site-verify/<UTC stamp>/ (gitignored).\nsite-verify:\n    #!/usr/bin/env bash\n    set -euo pipefail\n    out=\"$PWD/artifacts/site-verify/$(date -u +%Y%m%dT%H%M%SZ)\"\n    mkdir -p \"$out\"\n    (cd site && PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install --frozen-lockfile)\n    SITE_VERIFY_OUT_DIR=\"$out\" SITE_VERIFY_BROWSER=1 PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v 2>&1 | tee \"$out/lane-tests.log\"\n    test -f \"$out/browser-summary.json\"\n    python3 -c 'import json,sys; m=json.load(open(sys.argv[1]))[\"metrics\"]; bad=[k for k,v in m.items() if v.get(\"pass\") is not True]; sys.exit(\"site-verify: failing \" + \",\".join(bad) if bad else 0)' \"$out/browser-summary.json\"\n",
+      "why": "operator entrypoint that runs the section 8 gates in order with SITE_VERIFY_OUT_DIR under the root artifacts directory (contract section 11)",
+      "evidence": "not loaded into a justfile by the lane; the commands inside are the ones the lane ran (see site_verify-install.json and site_verify-browser.json). `timeout` is not used because macOS has none by default; every subprocess in the module has its own timeout."
+    },
+    {
+      "file": "just/workflow.just",
+      "change": "replace the current refusal-only `site-pages-deploy` recipe (the two lines starting `# Deploying is an outward-facing action` and the recipe body) with:\n\n# OUTWARD-FACING: publishes site/build to Cloudflare Pages. Refuses unless the operator sets\n# VIDEO_UTILS_SITE_DEPLOY_OPERATOR_GO=deploy-public-site for this one invocation (site/DEPLOY.md).\n# Credentials come only from the operator's environment; none is stored in this repository.\n# Every verification gate (site-verify: build, leak, link, privacy, gitleaks, browser and axe) runs first.\nsite-pages-deploy project branch:\n    #!/usr/bin/env bash\n    set -euo pipefail\n    if [ \"${VIDEO_UTILS_SITE_DEPLOY_OPERATOR_GO:-}\" != \"deploy-public-site\" ]; then\n        echo \"site-pages-deploy: refused. Deploying the public site needs a separate operator go; see site/DEPLOY.md.\" >&2\n        exit 64\n    fi\n    if ! command -v wrangler >/dev/null 2>&1; then\n        echo \"site-pages-deploy: wrangler is not on PATH; the operator pins and provides it (site/DEPLOY.md).\" >&2\n        exit 69\n    fi\n    just site-verify\n    cd site && wrangler pages deploy build --project-name {{quote(project)}} --branch {{quote(branch)}}\n",
+      "why": "amends the public_site lane's proposed gated deploy recipe so it also requires the browser and privacy gates (site-verify) to pass; it still refuses without the explicit operator-go variable",
+      "evidence": "not executed; the recipe text extends public_site-root-requests.json request 1 by replacing `just site-build; just site-leak-scan; just site-test` with `just site-verify`"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "change": "proposal only, root's call: add a `site` job after the existing `web` job (same pinned actions and the same `.#web` dev shell that provides Node 22 and pnpm):\n\n  site:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 25\n    env:\n      CI: \"true\"\n    steps:\n      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4\n      - uses: cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7 # v31\n      - name: Install site dependencies from the committed lock (no browser download)\n        run: nix develop --no-write-lock-file .#web --command bash -c 'cd site && PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install --frozen-lockfile'\n      - name: Site static gates (check, build, leak scans, link check, V6 privacy scan, DEPLOY.md order)\n        run: nix develop --no-write-lock-file .#web --command bash -c 'PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v'\n      # Optional, root's call: the browser suite on the runner's installed Chrome (ladder step c); nothing is downloaded.\n      # - name: Site browser smoke and axe\n      #   run: nix develop --no-write-lock-file .#web --command bash -c 'SITE_VERIFY_OUT_DIR=\"$RUNNER_TEMP/site-verify\" SITE_VERIFY_BROWSER=1 PYTHONPATH=tests python3 -m unittest test_public_site_s3.BrowserSuiteTests -v'\n",
+      "why": "runs the static gates in hosted CI; BrowserSuiteTests stays opt-in (SITE_VERIFY_BROWSER unset) unless root enables the commented step, which would use the runner's installed Chrome like the web job does",
+      "open_decisions": [
+        "On a hosted runner there is no main checkout with artifacts/runs, so privacy family 7 reports checked: false, identifiers: 0 (never a pass over an unknown set); the generic content-hash-64 leak rule still applies.",
+        "GitleaksBuildTests skips with gitleaks_unavailable unless the `.#web` shell carries gitleaks; the offline job's repository-wide `gitleaks dir --redact .` does not see site/build because the build is not committed.",
+        "Whether python3 is on PATH inside `.#web` was not checked by the lane.",
+        "Untested: the lane did not run this workflow."
+      ]
+    },
+    {
+      "file": "program/tools.json, .agents/skills/",
+      "change": "none requested",
+      "why": "site verification is a release gate for the public landing, not a processing primitive, so no MCP tool descriptor or skill is proposed"
+    },
+    {
+      "file": "site/svelte.config.js, site/vite.config.ts, site/pnpm-workspace.yaml, site/.gitignore, site/vendor/",
+      "change": "none requested",
+      "why": "both defects found (D1 fallback console error, D2 narrow-width header overflow) were fixed in owned site/src/ files; no vendored or config change was needed"
+    }
+  ]
+}
