@@ -12,3 +12,7 @@ native/au-spike/target
 web/node_modules
 web/build
 web/.svelte-kit
+site/vendor
+site/node_modules
+site/build
+site/.svelte-kit

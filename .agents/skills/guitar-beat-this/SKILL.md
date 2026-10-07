@@ -8,12 +8,15 @@ description: Compare Beat This (CPJKU final0) beat and downbeat hypotheses again
 **Hook:** MCP tool `beat_this_compare` (admitted as tool 41, experimental).
 Fallback: `just beat-this-compare "<run-dir>"`.
 
-**Status:** the descriptor, MCP hook and `just` recipes are admitted. The model
-is **not** registered: `program/models.json` has no `cpjku-beat-this-final0`
-entry until root's explicit hash-bound fetch, so every call currently refuses
-with `model_not_registered`. That refusal is the designed behaviour, not a
-fault. The tool is never a default detector and never replaces
-`rhythm`/`bpm`/`clicks` output.
+**Status:** the descriptor, MCP hook and `just` recipes are admitted. The
+checkpoint is registered: `program/models.json` carries
+`cpjku-beat-this-final0` with the sha256 from root's explicit hash-bound fetch
+(2026-10-07T10:28:54Z, 81,058,141 bytes). The runtime on honey is **not**
+qualified and no inference has run. Every call therefore still refuses:
+`model_file_missing` on a checkout without `models/cpjku-beat-this-final0.bin`,
+otherwise `runtime_not_qualified`, or `platform_unsupported` off Linux. That
+refusal is the designed behaviour, not a fault. The tool is never a default
+detector and never replaces `rhythm`/`bpm`/`clicks` output.
 
 ## Intent
 
@@ -27,11 +30,12 @@ verdict.
 
 ## Prerequisites (explicit and root-run; the tool never acquires anything)
 
-1. **Registry.** Root adds the `program/models.json` entry
-   `cpjku-beat-this-final0` after its own hash-bound fetch. The draft text is in
-   `docs/research/BEAT_THIS_QUALIFICATION.md`. Then root runs
-   `just model-prefetch cpjku-beat-this-final0`. The placeholder sha256 is
-   refused by design.
+1. **Registry (done 2026-10-07).** Root added the `program/models.json` entry
+   `cpjku-beat-this-final0` after its own hash-bound fetch; the measured sha256
+   and its size/SHA-1 cross-check are in
+   `docs/research/BEAT_THIS_QUALIFICATION.md` section 3. On each checkout that
+   should run the tool, root runs `just model-prefetch cpjku-beat-this-final0`.
+   A placeholder or changed sha256 is refused by design.
 2. **Runtime.** On honey, inside `nix develop .#ml`, root runs:
    `python3 scripts/beat_this_runtime_setup.py --python "$(command -v python3)"`.
    The runtime is Linux only. Four hash-pinned wheels are extracted offline. Torch

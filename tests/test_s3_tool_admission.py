@@ -1,8 +1,11 @@
 """S3 admission (root_integration_f): freeze the first 40 descriptors and admit two experimental model-lane hooks.
 
-Tools 41 and 42 are ``beat_this_compare`` and ``guitar_noul_decide`` (MODEL_LANES_S3 sections 3 and 4). No model is
-registered or downloaded here: ``program/models.json`` must not carry the Beat This entry until root's explicit
-hash-bound fetch, and the comparator must refuse with a typed reason meanwhile. No gateway is contacted.
+Tools 41 and 42 are ``beat_this_compare`` and ``guitar_noul_decide`` (MODEL_LANES_S3 sections 3 and 4). Root's
+explicit hash-bound fetch (2026-10-07T10:28:54Z) registered the Beat This ``final0`` checkpoint in
+``program/models.json``; nothing is downloaded here. The Linux runtime is not qualified and no inference has run, so
+the comparator still refuses with a typed reason: ``model_file_missing`` on a checkout without the checkpoint,
+otherwise ``runtime_not_qualified`` / ``platform_unsupported``. ``model_not_registered`` stays covered with a
+temporary registry. No gateway is contacted.
 
 Synthetic metadata only; no recording, accepted run or repository artifact is read or written.
 """
@@ -10,6 +13,7 @@ import hashlib
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -35,6 +39,7 @@ ADMITTED_42_SHA256 = '92aa3d3e82f2ff62211b063ddc9d4e37e96140fc1776308a51d2d11f7d
 ADMITTED_42_ASCII_SHA256 = '61604b1af6c8791a42dfee924e5ef7a13d1e084c6de5693978fc68c00ddc06a7'
 
 BEAT_THIS_MODEL_ID = 'cpjku-beat-this-final0'
+BEAT_THIS_SHA256 = '8c328b45f59d8dd3dff219253ff6a8d6482be57d0133a29140e2febbf8eb8331'
 BEAT_THIS_REFUSALS = ('model_not_registered', 'model_hash_not_registered', 'model_registry_entry_invalid',
                       'model_file_missing', 'model_hash_mismatch', 'runtime_not_qualified', 'platform_unsupported',
                       'input_rejected')
@@ -199,22 +204,77 @@ class S3ToolAdmissionTests(unittest.TestCase):
             generic.assert_not_called()
 
     # ----- model registry and typed refusal -----------------------------------
-    def test_beat_this_model_is_not_registered_and_no_checkpoint_is_present(self):
+    def test_beat_this_model_is_registered_hash_bound_from_roots_fetch(self):
         registry = json.loads((ROOT / 'program/models.json').read_text(encoding='utf-8'))
-        self.assertNotIn(BEAT_THIS_MODEL_ID, registry['models'])
+        self.assertEqual(sorted(registry['models']), [BEAT_THIS_MODEL_ID, 'spotify-basic-pitch-0.4.0-onnx'])
+        entry = registry['models'][BEAT_THIS_MODEL_ID]
+        self.assertEqual(entry['sha256'], BEAT_THIS_SHA256)
+        self.assertEqual(entry['max_bytes'], 81058141)
+        self.assertEqual(entry['url'], 'https://cloud.cp.jku.at/public.php/dav/files/7ik4RrBKTS273gp/final0.ckpt')
+        self.assertEqual(entry['source_commit'], 'ad7974846029835307ba19a3d5cefbf40b243041')
+        self.assertEqual(entry['server_sha1_cross_check'], 'e1506282faf66ca10e8ab50ee26bd542b7b9ff0a')
+        self.assertEqual(entry['fetched_at_utc'], '2026-10-07T10:28:54Z')
+        # Registration is not qualification: the recorded gate state says no runtime and no inference.
+        self.assertEqual(entry['gate_state'], 'registered_hash_bound_runtime_not_qualified_no_inference_run')
+        self.assertIn('training-data rights distinct and unresolved', entry['license'])
         self.assertNotIn('TO_BE_FILLED_BY_ROOT_HASH_BOUND_FETCH', json.dumps(registry))
-        self.assertFalse((ROOT / 'models' / f'{BEAT_THIS_MODEL_ID}.bin').exists())
+        # The checkpoint is never tracked; a cached copy, when present, must be the registered bytes.
+        git = shutil.which('git')
+        if git is not None:  # absent git or a non-git export leaves this unchecked, never passed by assumption
+            tracked = subprocess.run([git, 'ls-files', '--', 'models'], cwd=ROOT, capture_output=True, text=True, timeout=30)
+            if tracked.returncode == 0:
+                self.assertEqual(tracked.stdout.strip(), '')
+        checkpoint = ROOT / 'models' / f'{BEAT_THIS_MODEL_ID}.bin'
+        if checkpoint.exists():
+            self.assertFalse(checkpoint.is_symlink())
+            self.assertEqual(checkpoint.stat().st_size, 81058141)
 
-    def test_real_comparator_refuses_typed_while_hash_unregistered(self):
+    def expected_real_refusals(self):
+        """Typed refusals the real worker may give on this checkout; never a completed inference."""
+        if not (ROOT / 'models' / f'{BEAT_THIS_MODEL_ID}.bin').exists():
+            return ('model_file_missing',)
+        # Checkpoint cached by root: the runtime is still not qualified and inference is Linux-only.
+        return ('runtime_not_qualified', 'platform_unsupported')
+
+    def test_real_comparator_refuses_typed_while_runtime_unqualified(self):
         process = subprocess.run(
             [sys.executable, str(ROOT / 'scripts/beat_this_compare.py'), 'compare', '--run-dir', 'artifacts/runs/absent-s3-admission'],
-            cwd=ROOT, capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL)
+            cwd=ROOT, capture_output=True, text=True, timeout=120, stdin=subprocess.DEVNULL)
         self.assertEqual(process.returncode, 2)
         refused = json.loads(process.stdout)
-        self.assertEqual((refused['status'], refused['refusal_code'], refused['model_id']),
-                         ('refused', 'model_not_registered', BEAT_THIS_MODEL_ID))
+        self.assertEqual((refused['status'], refused['model_id']), ('refused', BEAT_THIS_MODEL_ID))
+        self.assertIn(refused['refusal_code'], self.expected_real_refusals())
         self.assertEqual((refused['network_used'], refused['model_acquired'], refused['default_adoption']),
                          (False, False, False))
+
+    def test_model_not_registered_stays_covered_with_a_temporary_registry(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('beat_this_compare_s3_admission', ROOT / 'scripts/beat_this_compare.py')
+        comparator = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(comparator)
+        live = json.loads((ROOT / 'program/models.json').read_text(encoding='utf-8'))
+        with tempfile.TemporaryDirectory(prefix='s3 admission ') as base:
+            root = pathlib.Path(base).resolve()
+            (root / 'program').mkdir()
+            cases = (
+                ({'schema_version': 1, 'models': {key: value for key, value in live['models'].items()
+                                                  if key != BEAT_THIS_MODEL_ID}}, 'model_not_registered'),
+                ({'schema_version': 1, 'models': {}}, 'model_not_registered'),
+                ({'schema_version': 1, 'models': {BEAT_THIS_MODEL_ID: dict(live['models'][BEAT_THIS_MODEL_ID],
+                                                                          sha256='TO_BE_FILLED_BY_ROOT_HASH_BOUND_FETCH')}},
+                 'model_hash_not_registered'),
+                # The live entry in a root without the checkpoint: registered, then the file is missing.
+                (live, 'model_file_missing'))
+            for registry, expected in cases:
+                with self.subTest(expected=expected, models=sorted(registry['models'])):
+                    (root / 'program/models.json').write_text(json.dumps(registry))
+                    with self.assertRaises(comparator.Refused) as caught:
+                        comparator.resolve_model(root)
+                    self.assertEqual(caught.exception.code, expected)
+            (root / 'program/models.json').unlink()
+            with self.assertRaises(comparator.Refused) as caught:
+                comparator.resolve_model(root)
+            self.assertEqual(caught.exception.code, 'model_not_registered')
 
     def test_tool_api_relays_the_typed_refusal_from_the_real_worker(self):
         with tempfile.TemporaryDirectory(prefix='s3 admission ') as base:
@@ -226,10 +286,11 @@ class S3ToolAdmissionTests(unittest.TestCase):
                     tool_api.execute('beat_this_compare', {'run_dir': 'artifacts/runs/one', 'timeout_seconds': 60})
             self.assertEqual(sorted(os.listdir(run)), before)
         self.assertNotIsInstance(caught.exception, tool_api.ValidationError)
-        self.assertEqual(str(caught.exception), 'beat_this_compare refused: model_not_registered')
         receipt = caught.exception.receipt
-        self.assertEqual((receipt['status'], receipt['tool'], receipt['refusal_code'], receipt['worker_returncode']),
-                         ('refused', 'beat_this_compare', 'model_not_registered', 2))
+        self.assertIn(receipt['refusal_code'], self.expected_real_refusals())
+        self.assertEqual(str(caught.exception), f'beat_this_compare refused: {receipt["refusal_code"]}')
+        self.assertEqual((receipt['status'], receipt['tool'], receipt['worker_returncode']),
+                         ('refused', 'beat_this_compare', 2))
 
     def test_guitar_noul_refuses_typed_without_gateway_or_transport(self):
         environment = {key: value for key, value in os.environ.items() if not key.startswith('VIDEO_UTILS_GUITAR_NOUL_')}

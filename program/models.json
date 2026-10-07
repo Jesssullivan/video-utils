@@ -8,6 +8,17 @@
       "format": "onnx",
       "license": "Apache-2.0 repository-wide; bundled-weight applicability inferred",
       "source_commit": "9991303bba609a3b93089d13ec80d1d495083596"
+    },
+    "cpjku-beat-this-final0": {
+      "url": "https://cloud.cp.jku.at/public.php/dav/files/7ik4RrBKTS273gp/final0.ckpt",
+      "sha256": "8c328b45f59d8dd3dff219253ff6a8d6482be57d0133a29140e2febbf8eb8331",
+      "max_bytes": 81058141,
+      "format": "pytorch-lightning-ckpt (torch.load weights_only=True; optimizer state stripped upstream)",
+      "license": "MIT (code LICENSE; published weights per upstream README commit b95c8ab0c58c2d9fcfd40508ae8dffbc05ac4f5c, 2026-05-28); training-data rights distinct and unresolved",
+      "source_commit": "ad7974846029835307ba19a3d5cefbf40b243041",
+      "server_sha1_cross_check": "e1506282faf66ca10e8ab50ee26bd542b7b9ff0a",
+      "fetched_at_utc": "2026-10-07T10:28:54Z",
+      "gate_state": "registered_hash_bound_runtime_not_qualified_no_inference_run"
     }
   }
 }

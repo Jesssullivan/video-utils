@@ -8,7 +8,12 @@ the repository root:
 - the working directory is the real checkout when the runfiles are symlinks
   (the test modules already resolve their own path back to it), otherwise the
   runfiles root, where the same tracked files are present as declared data;
-- a Bazel --test_filter is forwarded as a unittest -k pattern.
+- a Bazel --test_filter is forwarded as a unittest -k pattern;
+- PYTHONSAFEPATH, which the rules_python launcher exports for this process, is
+  removed from the environment so that worker scripts the tests start as
+  subprocesses (`python scripts/<worker>.py`) get their own directory on
+  sys.path, exactly as under the reference command. Without this, every such
+  subprocess fails with ModuleNotFoundError on its sibling imports.
 
 Stdlib only. Starts no process and applies no timeout of its own: Bazel bounds
 the test through the target's timeout.
@@ -41,6 +46,7 @@ def main(argv: list[str]) -> int:
     if tests_directory not in sys.path:
         sys.path.insert(0, tests_directory)
     os.chdir(checkout_root(module))
+    os.environ.pop("PYTHONSAFEPATH", None)
     arguments = [f"python -m unittest {module}", "-v", *argv[2:]]
     selected = os.environ.get("TESTBRIDGE_TEST_ONLY")
     if selected:
