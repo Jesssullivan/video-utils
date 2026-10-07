@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "receipt": "take_intake owned tests (M13) and directly affected module",
+  "lane": "take_intake",
+  "sprint": "20261007-s3",
+  "authority": "TAKE_INTAKE_S3 section 10; R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_at": "2026-10-07",
+  "code_commit": "ee77962",
+  "take_intake_py_sha256": "0997082e3db2c789eeb99d786aa36bc5b98eb32e66a0eb8d1419b2b2444e1389",
+  "test_module_sha256": "e55bd6dcb9517ce154adb2dbf2edd89f716416446031d999c4a5dba25b06149b",
+  "command": "PYTHONPATH=tests python3 -m unittest test_take_intake -v (FFMPEG/FFPROBE = qualified nix ffmpeg-headless 8.1.2)",
+  "owned_module": {
+    "ran": 34,
+    "passed": 33,
+    "failed": 0,
+    "skipped": [
+      {
+        "test": "test_sealed_take_run",
+        "reason": "e2e_gated_set_TAKE_INTAKE_E2E_1"
+      }
+    ],
+    "duration_seconds": 139.25,
+    "by_class": {
+      "DemoBindingTests": 1,
+      "EndToEndTests": 1,
+      "FamilyIdTests": 2,
+      "PacketTests": 5,
+      "PlanTests": 9,
+      "ResumeTests": 5,
+      "RunRefusalTests": 11
+    }
+  },
+  "gated_e2e": {
+    "command": "TAKE_INTAKE_E2E=1 TAKE_INTAKE_E2E_FIXTURE=<sealed take.mov> TAKE_INTAKE_E2E_FIXTURE_SHA256=34d53399... python3 -m unittest test_take_intake.EndToEndTests",
+    "ran": 1,
+    "passed": 1,
+    "note": "the test asserts invariants (source unchanged, V6 draft 0 violations, 0 absolute paths); stage predictions are scored, not asserted"
+  },
+  "directly_affected": {
+    "module": "test_corpus_split_s1",
+    "ran": 37,
+    "passed": 37,
+    "reason": "imports corpus_split_s1.validate_split/SCHEMA"
+  },
+  "source_identity_checks_in_unit_tests": {
+    "unchanged": 24,
+    "total": 24
+  },
+  "metrics": {
+    "M1": {
+      "value": "3/3 byte-identical plan stdout; 2/2 equal take_family_id/source/corpus_row_draft for the same bytes at two paths",
+      "class": "measured (synthetic)"
+    },
+    "M2": {
+      "value": "3/3 vectors equal the section 4 formula and pass corpus.identifier",
+      "class": "measured"
+    },
+    "M3": {
+      "value": "17/17 typed refusals with exact codes and unchanged state-root/fixture snapshots",
+      "cases": [
+        "capture_interval_required",
+        "capture_review_required",
+        "capture_interval_invalid (duration)",
+        "capture_interval_invalid (negative start)",
+        "capture_interval_in_setup_window",
+        "capture_interval_outside_source",
+        "source_missing",
+        "source_is_symlink",
+        "source_in_repository_tracked_path",
+        "source_is_derived_artifact",
+        "family_collision",
+        "source_already_registered",
+        "arrangement_source_mismatch",
+        "anchor_requires_arrangement",
+        "state_root_invalid",
+        "resume_settings_conflict",
+        "intake_locked"
+      ],
+      "class": "measured"
+    },
+    "M4": {
+      "value": "2/2 locations (intake.json, evidence-packet.json) carry the setup override for an interval starting at 0.2 s",
+      "class": "measured"
+    },
+    "M5": {
+      "value": "5/5 resume scenarios (a SIGKILLed child, b running with dead orchestrator PID, c tampered output, d missing output, e live lock); final stage tables equal an uninterrupted run",
+      "class": "measured"
+    },
+    "M6": {
+      "value": "3/3 (one candidate bound incl. pointer receipt; zero and two refuse demo_invocation_unbound); non-matching source/interval ignored",
+      "class": "measured"
+    },
+    "M7": {
+      "value": "12/12 section 7 keys; 23/23 section 9 unknowns with reasons; direction_status withheld_uncalibrated",
+      "class": "measured"
+    },
+    "M8": {
+      "value": "0 violations over 6 pattern checks plus closed key set and <=4 KiB; 6/6 planted negative controls caught plus a numeric-span control",
+      "class": "measured"
+    },
+    "M9": {
+      "value": "0 absolute host paths in intake.json, evidence-packet.json and the draft",
+      "class": "measured"
+    },
+    "M10": {
+      "value": "24/24 unit-test invocations, 1/1 sealed e2e (2/2 intake checks), dev resume smokes 5/5 intake checks: source sha256/size/mtime_ns unchanged",
+      "class": "measured"
+    },
+    "M13": {
+      "value": "33/34 passed, 1 skipped (e2e gated); e2e 1/1 separately",
+      "class": "measured"
+    },
+    "M14": {
+      "value": "8/8: closed schema (tool_api.validate_schema passes), required fields match CLI, refusal codes match code (0 diff), skill states intent, knobs, dependencies, research/iteration and evidence",
+      "class": "review"
+    }
+  },
+  "real_take_opened": false,
+  "models_downloaded": false,
+  "daemons_started": false
+}

@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "receipt": "take_intake lane handoff (TAKE_INTAKE_S3 phase 4)",
+  "lane": "take_intake",
+  "sprint": "20261007-s3",
+  "branch": "sprint/20261007-s3/take_intake",
+  "worktree": ".local/sprint3/take_intake",
+  "baseline": "452fd467fa6bfd22daf51e8c071bbd4029819a95",
+  "tracker": "TIN-5186 (root writes Linear and sends the XORuby draft; the lane did neither)",
+  "authority": "Operator ruling 2026-10-07 'Second take | New take family plus full pipeline'; reassertion note 2026-10-07; AGENTS.md; R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43)",
+  "plan_and_dialogs_reread": [
+    "docs/agent-notes/2026-10-07-reassertion.md",
+    "docs/agent-notes/2026-10-07-s2-operator-rulings.md",
+    "docs/agent-notes/2026-10-06-s2-resume.md",
+    "docs/agent-notes/2026-10-05-user-prompts.md",
+    "docs/spec/sprints/20261007-S3.md",
+    "docs/agent-notes/WORKSTREAM_BOARD.md",
+    "AGENTS.md",
+    "docs/spec/sprints/TAKE_INTAKE_S3.md"
+  ],
+  "commits": {
+    "contract_freeze": "72a224a",
+    "implementation": "ee77962",
+    "e2e_preregistration": "b08eb0a",
+    "receipts_and_notes": "this commit"
+  },
+  "owned_file_sha256": {
+    "scripts/take_intake.py": "0997082e3db2c789eeb99d786aa36bc5b98eb32e66a0eb8d1419b2b2444e1389",
+    "tests/test_take_intake.py": "e55bd6dcb9517ce154adb2dbf2edd89f716416446031d999c4a5dba25b06149b",
+    "just/take.just": "01c8641eccab022a6f7283425907a12b97e181f1b2f3fca84048dfe80c37e01f",
+    ".agents/skills/take-intake/SKILL.md": "17180e567c66c276f62a994f3b20f9ba49df2201e967420c36c0547dc79790bc",
+    "program/tool-drafts/take_intake.json": "66b15858de9c45d4711189edd152b6d56ed6a3850f3bd2063748c07ef35085de",
+    "docs/spec/sprints/TAKE_INTAKE_S3.md": "8666987ef0b059d2a57137d46b93f1f73b40165447ff6bf82b0953e22b29170e",
+    "docs/agent-notes/sprints/20261007-s3/take_intake-e2e-prereg.json": "3179977542b35b612943e934ba10ec4b97f6eca10e1b687130e47ddc940aa730",
+    "docs/agent-notes/sprints/20261007-s3/take_intake-e2e.json": "900ce03c594bdc1f222b6336b3d2f945954965037a625806b7f3d854380127ca",
+    "docs/agent-notes/sprints/20261007-s3/take_intake-tests.json": "b9dcfce0da93b764c0ac066df05275abe8456e9b1a46f159664e3836fa84b707"
+  },
+  "results": {
+    "owned_tests": "33/34 passed, 1 skipped (e2e gated, reason e2e_gated_set_TAKE_INTAKE_E2E_1); gated e2e 1/1; test_corpus_split_s1 37/37",
+    "sealed_e2e": {
+      "fixture_sha256": "34d53399af6642d1a8e2f166c2eec6def6f23b94686f5874c3ef8f506bf8b580",
+      "intake_status": "partial (predicted completed_with_abstentions)",
+      "stages": "completed 3/10, abstained 4/10, failed 2/10, skipped 1/10 (predicted 6/4/0)",
+      "as_predicted": "7/10 stages",
+      "differs": {
+        "flags_triage": "failed triage_window_basis_unavailable",
+        "marked_video": "failed: No selected evidence intersects decoded picture coverage",
+        "share_export": "skipped_dependency_failed"
+      },
+      "measured_cause": "phrases.json proposed 0 review spans -> flags 0, markers 0; base features give no clicks artifact for a triage grid basis; rhythm click grid period 0.67387 s vs 0.674 s constructed, 8/8 periodic candidates",
+      "repair_run": "none (preregistered rule; differences are worker outcomes on the fixture, not orchestration defects)"
+    },
+    "development_resume_smokes": {
+      "fixture": "tiny 3 s (not the sealed fixture)",
+      "results": [
+        "orchestrator SIGKILL with live run_demo child: resume refused prior_stage_worker_alive (no signal sent); after the child exited, resume adopted the completed bound invocation (hash-verified, no re-render) and matched the uninterrupted dev statuses",
+        "orchestrator plus own child group SIGKILL: run_demo --resume refused prior_worker_group_alive for its own export worker (fail-closed); a second resume ran run_demo --resume, which skipped hash-verified media and reran 9 stages; final statuses equal the uninterrupted dev run; source unchanged 5/5 checks"
+      ],
+      "process_receipts": "actor this lane session | targets: own take_intake orchestrators (PIDs 48377 wrapper subshell, 51393, 54267) and own recorded run_demo child group 54415, all started by this lane | reason development resume smoke | ruling R-N11 own recorded tasks | result SIGKILL; no other process signalled"
+    }
+  },
+  "claims": {
+    "measured": [
+      "plan determinism and family id derivation",
+      "17 typed refusals with zero-byte snapshots",
+      "resume scenarios and demo-invocation binding",
+      "packet completeness, V6 draft scrub, no host paths",
+      "e2e stage statuses, export frames 288/288, final AAC -19.96 LUFS / -1.75 dBTP vs -18 / -1.75 targets (synthetic fixture, LRA 13.6 LU), 0/14 low-register guard violations, source unchanged"
+    ],
+    "inferred": [
+      "the e2e differences come from the fixture producing no phrase review spans (not from the orchestrator)"
+    ],
+    "needs_listening": [
+      "everything audible; no listening was done"
+    ],
+    "unknown": [
+      "marked_video -> share_export and the arrangement branch are not exercised end to end through take_intake",
+      "behaviour on the real second take (not processed by this lane)",
+      "memory ceiling (unknown_not_measured)"
+    ],
+    "not_performed": [
+      "real take processing",
+      "note correctness, missed/extra notes, timing direction",
+      "editor import",
+      "TIN-5186 send",
+      "default adoption"
+    ]
+  },
+  "deviations": "docs/spec/sprints/TAKE_INTAKE_S3.md section 14 (D1-D13)",
+  "skips_with_reasons": [
+    {
+      "item": "EndToEndTests in the default suite",
+      "reason": "gated by TAKE_INTAKE_E2E=1 (1800 s heavy job); ran separately 1/1"
+    }
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "justfile",
+      "change": "after `import 'just/bazel.just'` add the line `import 'just/take.just'`",
+      "why": "exposes take-plan, take-run, take-resume, take-packet, take-intake-test"
+    },
+    {
+      "file": "program/tools.json",
+      "change": "append program/tool-drafts/take_intake.json tools[0] (the single `take_intake` descriptor) verbatim to `tools`",
+      "why": "MCP admission of operation plan|packet; run/resume stay just/CLI"
+    },
+    {
+      "file": "scripts/tool_api.py",
+      "change": "# scripts/tool_api.py, validate_tool_arguments(name, args): add\n    if name == 'take_intake':\n        if args['operation'] == 'plan' and ('source' not in args or 'intake_dir' in args):\n            raise ValidationError('take_intake plan requires source and rejects intake_dir')\n        if args['operation'] == 'packet' and ('intake_dir' not in args\n                or set(args) & {'source', 'family', 'arrangement', 'bpm', 'features', 'origin'}):\n            raise ValidationError('take_intake packet requires intake_dir and accepts no plan fields')\n        for field in ('source', 'intake_dir', 'arrangement'):\n            value = args.get(field)\n            if value is not None and ('\\x00' in value or '\\\\' in value or ':' in value or '..' in value.split('/')):\n                raise ValidationError('take_intake paths must be exact local paths without traversal/NUL/URL')\n\n# scripts/tool_api.py, worker_command(name, args): add\n    if name == 'take_intake':\n        worker = str(ROOT / 'scripts/take_intake.py')\n        if args['operation'] == 'packet':\n            directory = s2_input_directory(args['intake_dir'], ('intake.json',))\n            return head + [worker, 'packet', str(directory)]\n        # Pass SOURCE unresolved so take_intake's own source_is_symlink / tracked-path refusals apply.\n        command = head + [worker, 'plan', str(Path(args['source']).expanduser())]\n        for field in ('family', 'arrangement', 'features', 'origin'):\n            if field in args:\n                command += ['--' + field, str(args[field])]\n        if 'bpm' in args:\n            command += ['--bpm', repr(float(args['bpm']))]\n        return command\n\n# Refusal transport: take_intake exits 2 with one JSON object on stderr\n# {\"status\": \"refused\", \"reason\": <code>, \"message\": ...}; relay `reason` in the ToolError\n# (stdout is empty on refusal). plan stdout is the plan JSON; packet stdout is\n# {\"status\": \"packet_written\", ...}. Use timeout_seconds (default 300, max 900) as the owned-worker deadline.",
+      "why": "cross-field rules and argv for the admitted descriptor; refusal relay"
+    },
+    {
+      "file": "tests/test_s3_tool_admission.py (or root's admission test)",
+      "change": "pin .agents/skills/take-intake/SKILL.md sha256 17180e567c66c276f62a994f3b20f9ba49df2201e967420c36c0547dc79790bc and add the descriptor to the admitted-tool set",
+      "why": "skill/prompt pinning as for other admitted tools"
+    },
+    {
+      "file": "scripts/arrangement_markers.py (owner lane or root)",
+      "change": "replace the fixed REFERENCE = 'program/demo-arrangement.json' with the reference identity recorded in the assessment (path + sha256 re-verified, source_sha256 equal to the run's source) so a reference bound to a new take can produce markers",
+      "why": "D2: with a new take's reference, arrangement_markers fails and marked_compact cannot run"
+    },
+    {
+      "file": "Linear TIN-5186",
+      "change": "after the operator runs `just take-run` on the second take and reviews evidence-packet.json, root sends tin-5186-message-draft.json (draft_not_sent; family id + non-media metadata only)",
+      "why": "operator ruling: family id reported to XORuby on TIN-5186"
+    }
+  ],
+  "boundaries_kept": [
+    "no push/merge/main",
+    "no Linear writes",
+    "no model downloads or daemons",
+    "no writes under any accepted artifacts/runs/* (e2e and dev runs used copied roots under artifacts/s2/take_intake/)",
+    "Documents/Desktop untouched; real take not opened or hashed",
+    "no default detector/profile/master adoption"
+  ]
+}

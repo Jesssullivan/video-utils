@@ -1,0 +1,275 @@
+{
+  "schema_version": 1,
+  "receipt": "take_intake sealed end-to-end synthetic run (TAKE_INTAKE_S3 section 11)",
+  "fixture": {
+    "kind": "take",
+    "sha256": "34d53399af6642d1a8e2f166c2eec6def6f23b94686f5874c3ef8f506bf8b580",
+    "size_bytes": 856934,
+    "spec": {
+      "duration_seconds": 12.0,
+      "sample_rate": 44100,
+      "video": "480x320 testsrc2 24000/1001 fps H.264",
+      "noise": "lavfi anoisesrc pink amplitude 0.02 seed 5186 throughout (fan stand-in)",
+      "setup_window": {
+        "span_seconds": [
+          0.0,
+          5.0
+        ],
+        "thump_at_seconds": 1.5,
+        "thump_length_seconds": 0.3,
+        "thump_partials_hz": [
+          32.703,
+          65.406,
+          98.10900000000001,
+          130.812,
+          163.51500000000001,
+          196.21800000000002
+        ]
+      },
+      "noise_only_seconds": [
+        5.0,
+        7.0
+      ],
+      "click_grid": {
+        "start_seconds": 7.0,
+        "period_seconds": 0.674,
+        "count": 8,
+        "burst": "5 ms 2 kHz Hann, peak 0.5"
+      },
+      "phrases": {
+        "count": 2,
+        "attacks_per_phrase": 4,
+        "attack_spacing_seconds": 0.337,
+        "starts_seconds": [
+          7.0,
+          9.696
+        ],
+        "note": "C1-rooted harmonic stack 32.703 Hz, harmonics 1-8 (2-8 decaying faster), 0.3 s",
+        "interpretation": "contract '4-click riff phrases' read as 4 attacks per phrase at half-click spacing so two identical phrases and a click-only rest fit in 7.0-12.0 s"
+      },
+      "rest_seconds": [
+        11.0,
+        12.0
+      ]
+    },
+    "origin": "synthetic_fixture_not_derived_from_a_real_take"
+  },
+  "arguments": [
+    "run",
+    "<FIXTURE>",
+    "--capture-interval",
+    "5.2",
+    "6.8",
+    "--capture-review",
+    "synthetic fixture: pink noise only by construction (seed 5186)",
+    "--features",
+    "base",
+    "--origin",
+    "synthetic_fixture"
+  ],
+  "exit_code": 1,
+  "intake_status": "partial",
+  "take_family_id": "take-4d5eb1e6f95ab1c6",
+  "stage_scoring": {
+    "demo": {
+      "predicted": "completed",
+      "observed": "completed",
+      "score": "as_predicted",
+      "reason": null
+    },
+    "flags_triage": {
+      "predicted": "completed",
+      "observed": "failed",
+      "score": "differs",
+      "reason": "{\"status\": \"rejected\", \"error\": \"triage_window_basis_unavailable\"}"
+    },
+    "arrangement_reference": {
+      "predicted": "abstained_no_reference",
+      "observed": "abstained_no_reference",
+      "score": "as_predicted",
+      "reason": "no source-bound arrangement reference supplied"
+    },
+    "arrangement_markers": {
+      "predicted": "abstained_no_reference",
+      "observed": "abstained_no_reference",
+      "score": "as_predicted",
+      "reason": "no source-bound arrangement reference supplied"
+    },
+    "phrase_anchor": {
+      "predicted": "abstained_no_reference",
+      "observed": "abstained_no_reference",
+      "score": "as_predicted",
+      "reason": "no source-bound arrangement reference supplied"
+    },
+    "phrase_timing": {
+      "predicted": "completed",
+      "observed": "completed",
+      "score": "as_predicted",
+      "reason": null
+    },
+    "marked_video": {
+      "predicted": "completed",
+      "observed": "failed",
+      "score": "differs",
+      "reason": "{\"status\": \"error\", \"error\": \"No selected evidence intersects decoded picture coverage\"}"
+    },
+    "marked_compact": {
+      "predicted": "abstained_arrangement_markers_required",
+      "observed": "abstained_arrangement_markers_required",
+      "score": "as_predicted",
+      "reason": "marked_compact needs verified arrangement markers for this take"
+    },
+    "share_export": {
+      "predicted": "completed",
+      "observed": "skipped_dependency_failed",
+      "score": "differs",
+      "reason": null
+    },
+    "packet": {
+      "predicted": "completed",
+      "observed": "completed",
+      "score": "as_predicted",
+      "reason": null
+    }
+  },
+  "stage_counts": {
+    "planned": 10,
+    "completed": 3,
+    "abstained": 4,
+    "failed": 2,
+    "skipped_dependency_failed": 1,
+    "completed_over_planned": "3/10"
+  },
+  "predicted_counts": {
+    "completed": 6,
+    "abstained": 4,
+    "failed": 0,
+    "planned": 10
+  },
+  "run_demo_stage_status": {
+    "media": "completed",
+    "export": "completed",
+    "rhythm": "measured_candidates",
+    "noise": "measured_candidates",
+    "tone": "measured_candidates",
+    "notes": "measured_candidates",
+    "phrases": "measured_candidates",
+    "dag": "completed",
+    "markers": "completed",
+    "report": "completed"
+  },
+  "measurements": {
+    "export_frames": {
+      "source_decoded_video_frames": 288,
+      "export_decoded_video_frames": 288,
+      "class": "measured"
+    },
+    "final_loudness": {
+      "integrated_lufs": -19.96,
+      "true_peak_dbtp": -1.75,
+      "targets": {
+        "integrated_lufs": -18.0,
+        "true_peak_dbtp": -1.75
+      },
+      "class": "measured",
+      "scope": "delivery AAC measurement from export/outcome.json; not listening acceptance"
+    },
+    "master_loudness": {
+      "input_i": "-20.94",
+      "input_lra": "19.20",
+      "input_thresh": "-34.06",
+      "input_tp": "-1.73",
+      "normalization_type": "dynamic",
+      "output_i": "-19.96",
+      "output_lra": "13.60",
+      "output_thresh": "-32.25",
+      "output_tp": "-1.75",
+      "target_offset": "1.96"
+    }
+  },
+  "phrase_timing": {
+    "phrases_measured": 0,
+    "phrases_total": 0,
+    "abstain_reason_counts": {
+      "fewer_than_4_click_proximal_onsets": 0,
+      "no_click_grid": 0,
+      "span_outside_analysis": 0
+    },
+    "direction_status": "withheld_uncalibrated"
+  },
+  "flags_triage": {
+    "shown": null,
+    "total": null
+  },
+  "low_register_guard": {
+    "filter_graphs_inspected": 14,
+    "violations": 0,
+    "violation_kinds": [],
+    "patterns": [
+      "highpass",
+      "bandreject",
+      "anequalizer",
+      "mains_notch",
+      "lowpass_below_60_hz"
+    ],
+    "scope": "static text inspection of recorded FFmpeg filter graphs; not a spectral or listening check"
+  },
+  "signal_versions_consumed": [
+    {
+      "artifact": "run:analysis.json",
+      "status": "current"
+    },
+    {
+      "artifact": "run:noise.json",
+      "status": "current"
+    },
+    {
+      "artifact": "run:tone.json",
+      "status": "current"
+    },
+    {
+      "artifact": "run:notes.json",
+      "status": "current"
+    },
+    {
+      "artifact": "run:phrases.json",
+      "status": "current"
+    },
+    {
+      "artifact": "intake:phrase-timing/20261007T154643Z-eda6c06f4765/phrase-timing.json",
+      "status": "current"
+    }
+  ],
+  "source_unchanged": {
+    "invocations": 1,
+    "unchanged": 1,
+    "intake_source_checks": {
+      "unchanged": 2,
+      "total": 2
+    }
+  },
+  "v6_draft_violations": [],
+  "absolute_paths_in_packet_and_state": 0,
+  "elapsed_seconds": 92.7,
+  "tool_versions": {
+    "repository": {
+      "head": "b08eb0ab24385534685b9460f12c5ef20d23a9e7",
+      "tracked_dirty": false
+    },
+    "python_version": "3.12.14",
+    "ffmpeg": {
+      "version_line": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
+      "binary_sha256": "3a315207e67de78e48c3bbb6b3346663f6a27c02e034d65ac72a12fee74c534a"
+    },
+    "ffprobe": {
+      "version_line": "ffprobe version 8.1.2 Copyright (c) 2007-2026 the FFmpeg developers",
+      "binary_sha256": "5fb21f955aad27bc59615906801ce4b5b9f1466e99450b714b6d989f836c8850"
+    },
+    "profile": {
+      "name": "fuller",
+      "sha256": "33da74c7d1bda246b6349252e4374d3674e76356dd85d72a83b1389988d04a5c"
+    }
+  },
+  "interpretation_boundary": "A synthetic fixture result says the orchestration, refusals, resume and packet work; it says nothing about restoration quality, detection accuracy or musical correctness on the real second take. Everything audible is needs_listening.",
+  "retained_lane_dir": "artifacts/s2/take_intake/e2e-20261007T154518Z"
+}

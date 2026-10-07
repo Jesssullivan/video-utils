@@ -419,3 +419,47 @@ Exact descriptor and recipe text is returned in the lane handoff's
 3. Owned tests (M1–M10, M13) and the sealed end-to-end run (M11, M12).
 4. Handoff receipt `take_intake-handoff.json` with hashes, denominators,
    skips with reasons and root requests.
+
+## 14. Phase 2 implementation notes (additive; sections 1–13 stay frozen)
+
+Implementation commits on `sprint/20261007-s3/take_intake`: `ee77962` (orchestrator, tests,
+recipes, skill, tool draft) and `b08eb0a` (sealed e2e preregistration, written before the run).
+Every deviation below follows from a reused entrypoint's existing boundary, so none changes a worker.
+
+| # | Contract text | Implemented | Reason |
+| --- | --- | --- | --- |
+| D1 | `arrangement_reference … --output INTAKE/arrangement-assessment.json` | `--output RUN/arrangement-reference` (fresh directory in the new run) | `arrangement_reference.py` writes a directory, and `arrangement_markers.py` accepts only a same-run-relative `--assessment` selector (`arrangement-reference/assessment.json`) |
+| D2 | `arrangement_markers` runs for a supplied reference | Runs, but **fails for any new take** today | `arrangement_markers.py` hard-codes `REFERENCE = 'program/demo-arrangement.json'` and validates it against the run's source sha256. A reference bound to the new take is refused (`reference source mismatch`). `marked_compact` then abstains or skips. This is a root request (generalize the reference) |
+| D3 | `phrase_anchor … --output INTAKE/phrase-anchor-spans.json` | `--output ROOT/artifacts/s2/phrase_anchor_riff/take-intake/<intake_id>/phrase-anchor-spans.json` | `phrase_anchor.py` refuses outputs outside its lane area (`output_outside_lane_area`) |
+| D4 | anchor needs `--anchor-seconds S --anchor-source TEXT` | Also requires `--clicks-per-grid-period 1\|2` (refusal `anchor_inputs_incomplete`) | `phrase_anchor spans` requires it, and the lane does not infer it |
+| D5 | intake state carries replayable settings | Absolute source path, review text, analysis interpreter and arrangement path are kept in `INTAKE/replay-arguments.local.json` (local only). `intake.json` keeps `capture_review_sha256` | M9: `intake.json`, packet and draft stay free of host paths. Every stored string is scrubbed (`<ROOT>`, `<SOURCE>`, `<PYTHON>`, `<ABS>`) |
+| D6 | plan steps carry exact argv | argv uses `<PYTHON>`, `<SOURCE>` and repository-relative `scripts/…` | Plan stdout stays path-free and byte-identical |
+| D7 | `run_demo` exit 1 with report is `completed_with_stage_failures` | Same status, and it makes the intake `partial` | Conservative: a `run_demo` stage failure is never reported as a completed intake |
+| D8 | resume reruns a bound invocation with `run_demo --resume` | Also: if the bound invocation is already `completed_unreviewed`, adopt it after re-verifying every recorded run artifact hash (else `run_artifact_hash_drift`) | Covers the case where the orchestrator died after its child finished. `run_demo --resume` refuses `invocation_already_terminal` there. Nothing is re-rendered |
+| D9 | resume refusals | Added `prior_stage_worker_alive` (a recorded stage worker group still answers signal 0), `intake_not_found`, `source_changed` | No signal is ever sent. The live-lock check runs before any other resume check |
+| D10 | additive CLI/arguments | `plan --origin --state-root --features --anchor-seconds`; `run --origin`; refusals `family_invalid`, `bpm_invalid`, `settings_invalid`, `draft_privacy_violation`, `packet_privacy_violation` | `origin` feeds the corpus row draft (`synthetic_fixture` for fixtures) |
+| D11 | tool draft `take_intake` with plan and packet | One descriptor, `operation: plan\|packet` (flat closed schema; `tool_api.py` supports no `oneOf`) | MCP prompt names come from the skill directory, so two tools sharing `take-intake` would collide |
+| D12 | packet sections | Added `measurements`, `low_register_guard` and `claim_class_counts`. Draft keys: `issue`, `note`, `probe_class.container_duration_rounded_0_1` | M11 and M12 are read from the packet. The draft check also rejects any numeric list (span) |
+| D13 | `take` fixture "two identical 4-click riff phrases … then a rest" | 4 attacks per phrase at half-click spacing (0.337 s), starting 7.000 s and 9.696 s; clicks continue to 11.718 s; events are a stdlib PCM writer mixed with lavfi pink noise and testsrc2 | Two 4-click phrases (8 × 0.674 s = 5.39 s) cannot fit with a rest in 7.0–12.0 s. Recorded before the run in `take_intake-e2e-prereg.json` |
+
+Sealed end-to-end outcome (`take_intake-e2e.json`), fixture sha256 `34d53399…b580`,
+scored against section 11:
+
+- **7 of 10 stages as predicted:** `demo` completed (all 10 `run_demo` stages success-terminal), the 4 abstentions, `phrase_timing` completed, `packet` completed.
+- **3 of 10 differ:**
+  - `flags_triage` failed `triage_window_basis_unavailable`.
+  - `marked_video` failed "No selected evidence intersects decoded picture coverage".
+  - `share_export` was `skipped_dependency_failed`.
+- **Intake status:** `partial` (predicted `completed_with_abstentions`).
+
+Measured cause on this fixture: rhythm found the click grid (period 0.67387 s vs 0.674 s constructed; 8 periodic high-frequency candidates vs 8 constructed clicks; 58 broadband attack candidates). `phrases.json` proposed 0 review spans, so `flags.json` held 0 flags and `markers.json` 0 markers. With `--features base` there is no clicks artifact for the triage grid basis. These are worker outcomes on a 12 s fixture, not orchestration defects. Per the preregistration, no repair run was made.
+
+Other measurements:
+- Export frames 288/288.
+- Final AAC −19.96 LUFS integrated (target −18; synthetic fixture, LRA 13.6 LU) and −1.75 dBTP (target −1.75).
+- Low-register guard: 0 violations over 14 filter graphs.
+- Source unchanged 2/2 checks.
+- V6 draft violations: 0.
+- Absolute paths in packet and state: 0.
+
+The `marked_video` → `share_export` branch (and the arrangement branch, see D2) is therefore not yet exercised end to end through `take_intake`. Only its plan argv and its condition logic exist here, and the reused workers keep their own tests. The first real exercise will be the operator's run on the second take.
