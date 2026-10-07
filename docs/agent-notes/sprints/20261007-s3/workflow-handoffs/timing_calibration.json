@@ -1,0 +1,213 @@
+{
+  "lane": "timing_calibration",
+  "branch": "sprint/20261007-s3/timing_calibration",
+  "head": "d305f546fbea97214639af5bec2152bb9c60d68a",
+  "base_commit": "452fd467fa6bfd22daf51e8c071bbd4029819a95",
+  "worktree": ".local/sprint3/timing_calibration",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": ".agents/skills/timing-calibration/SKILL.md",
+      "sha256": "376084b93e1872ad4d244cf8a1b7dbcfa623902e3ea54f77e1f35c1d4b531e42",
+      "kind": "skill_draft"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/timing_calibration-contract-freeze.json",
+      "sha256": "38a8a647cccb04d4c39fb51359b8e0c8a24547842ee931c7f85ba0fa49e408f2",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval-r2-results.json",
+      "sha256": "ecdba57bbff54e87c3fbf5d18877b59fe60ae2bfe7b9454ee3f90c80d39b2505",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval-r2.json",
+      "sha256": "a636f749de42b00621120ee90a9fc5cd0259a123301a5ee73525dc0eb45d9530",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval-results.json",
+      "sha256": "9cf7ad533afbbfa625712177ac62e64e74a260925b1734e3392d93b9a342155e",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval.json",
+      "sha256": "9afaf9a1b7d66186845d35e8fe6eeeae605e549021946a64a31f98edca71023f",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/timing_calibration-handoff.json",
+      "sha256": "fb3d3fd3d8ef6c5b5fc4c20e487528c1801b9fb4b1fcd5b37d04d406c31d1795",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/timing_calibration-implementation.json",
+      "sha256": "e55f6e209691e15f5c4e96f73cf65e1d2577d32804d89467f35e84ad795069d1",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/research/2026-10-07-capture-latency-calibration.md",
+      "sha256": "b2f0d9cb2ce00b6ec19a9a29c3b170c403dc105d5852d9e6ed541f818d6f8f47",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/sprints/TIMING_CALIBRATION_S3.md",
+      "sha256": "1ccad935fbcf0156cd846a5cb45432f0f7a006774ed9a698524cccb47909ea26",
+      "kind": "spec"
+    },
+    {
+      "path": "program/tool-drafts/timing_calibration.json",
+      "sha256": "8747e6884267a65ce78988c2df89565016762d477678f6c15f0292b8c25e2d1f",
+      "kind": "data"
+    },
+    {
+      "path": "scripts/timing_calibration.py",
+      "sha256": "2a93a1650ed4a1d90128115ad4778021e5be0666a1a95807c60eecc93583130a",
+      "kind": "source"
+    },
+    {
+      "path": "tests/test_timing_calibration.py",
+      "sha256": "789bab637aaa754089a33ee2e045e8bac62f51bbe2ee435d22c5b5e1e280dbf9",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_timing_calibration -v (FFMPEG/FFPROBE exported, cwd .local/sprint3/timing_calibration)",
+    "discovered": 26,
+    "passed": 24,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 2,
+    "seconds": 57.8,
+    "commit": "d305f546fbea97214639af5bec2152bb9c60d68a"
+  },
+  "metrics": [
+    {
+      "name": "Calibrated cases (R2)",
+      "numerator": 8,
+      "denominator": 8,
+      "unit": "cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Median absolute timing error (R2, E1)",
+      "numerator": 0.9777,
+      "denominator": 1,
+      "unit": "ms",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Median absolute timing error (R2, E2)",
+      "numerator": 1.1769,
+      "denominator": 1,
+      "unit": "ms",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Sign-correct calibrations (R2)",
+      "numerator": 62,
+      "denominator": 62,
+      "unit": "directions",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Coverage (R2, E1)",
+      "numerator": 41,
+      "denominator": 41,
+      "unit": "phrases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "On-time emissions (R2)",
+      "numerator": 0,
+      "denominator": 24,
+      "unit": "phrases",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "Real-take direction withheld until operator calibration clip processed",
+    "On-time emission denominators include withheld phrases and abstained click-coincident cases"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "program/tools.json",
+      "change": "Append the two objects in program/tool-drafts/timing_calibration.json tools[] (timing_calibration_analyze, timing_calibration_apply) verbatim to tools[], with implementation_status experimental and no default adoption.",
+      "why": "Tool admission is root-owned (spec section 8); the closed input schemas are in the lane's descriptor draft."
+    },
+    {
+      "file": "scripts/tool_api.py",
+      "change": "Add S2_EXACT_PATH_FIELDS entries and helper function with command builder for timing_calibration_analyze and timing_calibration_apply",
+      "why": "Typed hook dispatch for the two drafts using the existing S2 path guards (no traversal, no symlink components, no outputs under artifacts/runs)."
+    },
+    {
+      "file": "scripts/mcp_server.py",
+      "change": "Expose timing_calibration_analyze and timing_calibration_apply as MCP tools from the admitted tools.json descriptors",
+      "why": "Every processing primitive needs a typed MCP hook (AGENTS.md product axiom 2)."
+    },
+    {
+      "file": "just/workflow.just",
+      "change": "Add timing-calibration-analyze and timing-calibration-apply recipe entries with 600 s timeout",
+      "why": "Operator entrypoint recipes requested in spec section 8, with a 600 s timeout; FFmpeg comes from the FFMPEG/FFPROBE environment variables."
+    },
+    {
+      "file": ".agents/skills/guitar-phrase-timing/SKILL.md",
+      "change": "Append to the Limits paragraph: reference to timing_calibration_apply calibrated view",
+      "why": "Points the existing phrase-timing skill at the calibrated view without changing phrase_timing's direction policy (not lane-owned)."
+    },
+    {
+      "file": "skill admission / prompt registry",
+      "change": "Admit .agents/skills/timing-calibration/SKILL.md under prompt name timing-calibration, pinned by its sha256",
+      "why": "Skill admission is root-owned."
+    },
+    {
+      "file": "docs/spec/PROJECT.md",
+      "change": "D4 row: add timing_calibration lane status update with R1 failure and R2 success metrics",
+      "why": "Keeps the plan's evidence row accurate; root owns PROJECT.md."
+    },
+    {
+      "file": "program/linear.json / Linear TIN-5488",
+      "change": "Record the lane state: implemented and sealed-evaluated on synthetic fixtures; R1 failed, R2 met; root admission pending; no real take processed.",
+      "why": "The lane writes no tracker entries; facts belong in Linear (R-N13)."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261007-s3/timing_calibration-contract-freeze.json",
+    "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval.json",
+    "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval-results.json",
+    "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval-r2.json",
+    "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval-r2-results.json",
+    "docs/agent-notes/sprints/20261007-s3/timing_calibration-implementation.json",
+    "docs/agent-notes/sprints/20261007-s3/timing_calibration-handoff.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "must_fix": [],
+    "findings": [
+      "Authority reread (as the user asked). PROJECT.md line 281 (D4 row) says 'Per-phrase timing direction on the real take is withheld until calibration'. In docs/agent-notes/2026-10-05-user-prompts.md, line 29 asks to 'identify / mark rhythm issues', line 39 asks where the musician 'rushed / miuseed beats', and line 49 gives the metronome as 'around 178bpm'. The spec header (TIMING_CALIBRATION_S3.md lines 7-22) cites exactly these, and the lane makes no real-take claim.",
+      "Scope (check 1) passes. Diff from merge-base 452fd46 to HEAD d305f54 touches 13 files, all in the owned list: scripts/timing_calibration.py, tests/test_timing_calibration.py, the spec, the research note, the SKILL.md draft, program/tool-drafts/timing_calibration.json and 7 receipts named docs/agent-notes/sprints/20261007-s3/timing_calibration-*.json. There are no root-owned or foreign edits.",
+      "Forbidden writes (check 2) pass. program/tools.json, scripts/tool_api.py and just/workflow.just are not in the diff. Generated output sits only under the gitignored worktree directory artifacts/s2/timing_calibration/ (dev/, sealed/, logs). command_analyze and command_apply refuse output under artifacts/runs (timing_calibration.py lines 1468-1469 and 1501-1502). There are no download, socket or thread calls, no daemons, and the only subprocess use is rhythm.run with a timeout.",
+      "Test rerun (check 4) matches the lane's claim. I ran FFMPEG/FFPROBE=nix ffmpeg-headless-8.1.2 with PYTHONPATH=tests python3 -m unittest test_timing_calibration -v in the worktree: 'Ran 26 tests in 42.315s, OK (skipped=2)'. That is 26 run, 24 passed, 0 failed, 0 errors, 2 skipped (the env-gated SealedEvaluationTests and SealedEvaluationR2Tests).",
+      "The sealing chronology holds. The eval.json hashes (timing_calibration.py 58d7440b..., the tests 8ec64dd4..., the spec ef1fd042...) match commit 9918aee. The eval-r2.json hashes (2a93a165..., 789bab63..., 1ccad935...) match 339ae09 and are unchanged at HEAD. rhythm.py (cd719914...) and phrase_timing.py (0d3c248b...) are identical at every lane commit. Commit times run: R1 preregistration 11:46:09, run started 15:46:20Z; R2 preregistration 12:03:47, run started 16:04:04Z. The gitignored sealed/results.json and results-r2.json sha256 values (de04b64a..., 7b433332...) match the receipts. Spec sections 5 and 7 were not edited after the seal; only section 11 was appended.",
+      "Numbers I reproduced (check 6) from the per-case data in the results receipts. R2: E1 median |error| 0.9777 ms over 48 (withheld counted as infinite), coverage 41/41; E2 1.1769 ms, 41/41; sign-correct 31+31 = 62/62; E1 emission on |\u03b4| \u2265 15 ms 20/21; on-time emissions 0/24; E3 measured-only median 4.752 ms, coverage 16/38, 1/27 wrong sign. R1: E1 calibrated 4/8, measured-only median 1.081 ms, coverage 17/18, 34/34 sign-correct. Constants: c(21 \u00b0C) = 331.3\u00b7\u221a(1 + 21/273.15) = 343.8 m/s, or 2.909 ms/m; 1.858 = 2\u00b71.253/1.349; seed 5601 path delay 0.375 ms = 6 samples at 16 kHz. All match the receipts.",
+      "Claim classes (check 3) are correct. All results are labelled M-syn with denominators. listening = [], real_take_processed = false, default_adoption = false. FIXED_UNKNOWNS (lines 134-144) carry human_intent_is_ground_truth = false, filters_applied = [] and audio_written = false. Directions are framed as listening hypotheses, never grades. The tool draft's evidence_kind is 'synthetic_validated..._real_take_unvalidated'. I found no missed-note or note-correctness verdicts.",
+      "Doctrine (check 5) passes. There is no high-pass, notch or filter. T4 checks 32.70 Hz power is more than 4\u00d7 the 47 Hz control and that the samples' sha256 is unchanged (tests lines 157-171). Timeouts are bounded: probe 30 s, decode 180 s (rhythm.run default), analyze 600 s via SIGALRM (lines 1549-1551), sealed run 1800 s. JSON is capped at 64 MiB, audio at 600 s, and symlink, URL and traversal inputs are refused (lines 1415-1425).",
+      "Test gap: test_on_click_segment_never_sets_the_offset (tests lines 260-270) never asserts that the shifted record's offset_correction_ms.estimate equals the unshifted one. It only checks that the consistency median changed. The property does hold in the code, because the offset is formed (lines 874-886) before on_click is read (line 888). Add assertEqual(shifted['offset_correction_ms']['estimate'], record['offset_correction_ms']['estimate']).",
+      "Stale test counts in two receipts. timing_calibration-handoff.json validation and timing_calibration-implementation.json post_eval_fix.dev_tests_after_fix both say 'Ran 25 tests OK (skipped=1)'. The test file at 339ae09 and HEAD (sha 789bab63) has 26 tests with 2 skips, which my rerun confirms.",
+      "The on-time emission denominators are partly vacuous. In R1, 0/24 includes 14 on-time phrases in abstained cases, where no direction can be emitted; only 10 were in calibrated cases. In R2, 10 of the 24 on-time phrases were withheld by the click-coincidence guard, so the direction rule produced 0 emissions on 14. The research note table (lines 211-214) shows 0/24 without this context.",
+      "Provenance wording. The implementation summary says the isolation finding came from 'dev seeds 11\u201321 (before the first sealed run)', but seeds 14-21 were used only after R1 (spec section 11); section 10 says 11-13. Spec section 11 also says the R2 fix was 'developed on dev seeds 11\u201321 only', while eval-results.json failure_diagnosis_after_seal records a read-only diagnostic rerun on sealed seeds 5501, 5503, 5504 and 5508. Section 7.5 permits this because R2 used fresh seeds, but section 11 should say so.",
+      "A1(c) is loose: the fan-masked test accepts either click_grid_not_fitted or insufficient_click_events (tests line 241), not one expected reason as the contract implies.",
+      "T2 is mildly circular: its 'truth' bias uses the estimator's own valid-row selection, nearest to a true onset (tests lines 148-150), not an independent isolated-event set as spec section 5 defines it.",
+      "Error typing. A failure in rhythm.probe (no audio stream, ffprobe error or bad duration) at line 1474 runs outside the decode try/except. It surfaces as a generic exit 1, not the typed decode_failed abstained record or an input_invalid refusal.",
+      "FIXED_UNKNOWNS hardcodes real_take_direction = 'not_claimed_by_lane' (line 144), and validate_record enforces it on every record and view. After root admits the tool, a future operator calibration record would still carry this lane-scoped wording. Root should consider renaming it at admission.",
+      "R2 observation, disclosed by the lane: seed 5605 had a +20 ms truth phrase measured near +5 ms and left within_uncertainty, which is the same click and attack confound as the guard. Together with the real take's 74/216 click-coincident onsets, the guard may withhold many real-take phrases. That is expected conservative behaviour, not a defect."
+    ]
+  }
+}

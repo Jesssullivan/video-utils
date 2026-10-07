@@ -1,0 +1,165 @@
+{
+ "schema_version": 1,
+ "lane": "timing_calibration",
+ "sprint": "20261007-s3",
+ "linear": "TIN-5488",
+ "branch": "sprint/20261007-s3/timing_calibration",
+ "worktree": ".local/sprint3/timing_calibration",
+ "head_before_handoff_commit": "852a6add015d2abb878de55f291570c097adf98d",
+ "base_commit": "452fd467fa6bfd22daf51e8c071bbd4029819a95",
+ "state": "implemented_tested_sealed_evaluated",
+ "ruling": "R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13",
+ "authority_reasserted": [
+  "docs/spec/PROJECT.md D4 row",
+  "docs/agent-notes/2026-10-05-user-prompts.md prompts 4-6",
+  "docs/agent-notes/2026-10-07-s2-operator-rulings.md",
+  "docs/spec/sprints/20261007-S3.md",
+  "docs/spec/sprints/TIMING_CALIBRATION_S3.md"
+ ],
+ "commits": [
+  "3fb39e4 contract freeze",
+  "9918aee implementation",
+  "4ad7e01 eval preregistration",
+  "9c6b165 R1 results",
+  "339ae09 R2 fix",
+  "0095d7c R2 preregistration",
+  "416a5d2 R2 results",
+  "852a6ad docs, skill, descriptor draft"
+ ],
+ "files": [
+  {
+   "path": "scripts/timing_calibration.py",
+   "kind": "worker",
+   "sha256": "2a93a1650ed4a1d90128115ad4778021e5be0666a1a95807c60eecc93583130a"
+  },
+  {
+   "path": "tests/test_timing_calibration.py",
+   "kind": "test",
+   "sha256": "789bab637aaa754089a33ee2e045e8bac62f51bbe2ee435d22c5b5e1e280dbf9"
+  },
+  {
+   "path": "docs/spec/sprints/TIMING_CALIBRATION_S3.md",
+   "kind": "spec",
+   "sha256": "1ccad935fbcf0156cd846a5cb45432f0f7a006774ed9a698524cccb47909ea26"
+  },
+  {
+   "path": "docs/research/2026-10-07-capture-latency-calibration.md",
+   "kind": "research",
+   "sha256": "b2f0d9cb2ce00b6ec19a9a29c3b170c403dc105d5852d9e6ed541f818d6f8f47"
+  },
+  {
+   "path": ".agents/skills/timing-calibration/SKILL.md",
+   "kind": "skill_draft",
+   "sha256": "376084b93e1872ad4d244cf8a1b7dbcfa623902e3ea54f77e1f35c1d4b531e42"
+  },
+  {
+   "path": "program/tool-drafts/timing_calibration.json",
+   "kind": "descriptor_draft",
+   "sha256": "8747e6884267a65ce78988c2df89565016762d477678f6c15f0292b8c25e2d1f"
+  },
+  {
+   "path": "docs/agent-notes/sprints/20261007-s3/timing_calibration-contract-freeze.json",
+   "kind": "receipt",
+   "sha256": "38a8a647cccb04d4c39fb51359b8e0c8a24547842ee931c7f85ba0fa49e408f2"
+  },
+  {
+   "path": "docs/agent-notes/sprints/20261007-s3/timing_calibration-implementation.json",
+   "kind": "receipt",
+   "sha256": "e55f6e209691e15f5c4e96f73cf65e1d2577d32804d89467f35e84ad795069d1"
+  },
+  {
+   "path": "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval.json",
+   "kind": "receipt",
+   "sha256": "9afaf9a1b7d66186845d35e8fe6eeeae605e549021946a64a31f98edca71023f"
+  },
+  {
+   "path": "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval-results.json",
+   "kind": "receipt",
+   "sha256": "9cf7ad533afbbfa625712177ac62e64e74a260925b1734e3392d93b9a342155e"
+  },
+  {
+   "path": "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval-r2.json",
+   "kind": "receipt",
+   "sha256": "a636f749de42b00621120ee90a9fc5cd0259a123301a5ee73525dc0eb45d9530"
+  },
+  {
+   "path": "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval-r2-results.json",
+   "kind": "receipt",
+   "sha256": "ecdba57bbff54e87c3fbf5d18877b59fe60ae2bfe7b9454ee3f90c80d39b2505"
+  }
+ ],
+ "validation": {
+  "test_timing_calibration": "Ran 25 tests OK (skipped=1 sealed; sealed R1 and R2 ran once each via env gates)",
+  "G1": "test_phrase_timing + test_rhythm: Ran 40 tests OK (skipped=3); neither module edited"
+ },
+ "measured_M_syn": {
+  "R1_sealed_5501_5508": "S1 FAILED: E1 4/8 calibrated (click_grid_not_fitted x4); where calibrated: E1 1.08 ms, coverage 17/18; S3 34/34 sign-correct, 0/24 on-time emissions",
+  "R2_sealed_5601_5608": "S1-S3 MET: E1 8/8, 0.98 ms over 48 (withheld inf), coverage 41/41; E2 0/8 abstained, 1.18 ms, 41/41; 62/62 sign-correct; 0/24 on-time emissions; E1 |delta|>=15 ms emission 20/21",
+  "S4_E3": "reported: R2 4.75 ms measured, coverage 16/38, 1/27 wrong sign"
+ },
+ "inferred": [
+  "phone input latency common-mode within one recording",
+  "acoustic path from declared distances and c(T)",
+  "fine-onset probe bias transfers to real transients"
+ ],
+ "unknown_or_uncalibrated": [
+  "real click and real pick-attack biases (no operator clip yet)",
+  "legato/tapping/sweep bias",
+  "signal-dependent phone processing",
+  "click identity in the take",
+  "listening validity of any direction"
+ ],
+ "listening_claims": [],
+ "real_take_processed": false,
+ "real_take_direction": "not_claimed_by_lane",
+ "downloads": false,
+ "accepted_runs_written": false,
+ "default_adoption": false,
+ "root_owned_changes_requested": [
+  {
+   "file": "program/tools.json",
+   "change": "Append the two objects in program/tool-drafts/timing_calibration.json tools[] (timing_calibration_analyze, timing_calibration_apply) verbatim to tools[]; implementation_status experimental; no default adoption.",
+   "why": "Tool admission is root-owned (spec section 8); the closed input schemas are drafted in the lane's descriptor draft."
+  },
+  {
+   "file": "scripts/tool_api.py",
+   "change": "# S2_EXACT_PATH_FIELDS additions:\n                        'timing_calibration_analyze': ('input', 'segments', 'output_root'),\n                        'timing_calibration_apply': ('phrase_timing', 'calibration', 'output_root'),\n\n# new helper next to phrase_timing_paths():\ndef timing_calibration_output_root(value):\n    root = s2_output_relative(value)\n    if os.path.lexists(root) and not root.is_dir():\n        raise ToolError('timing calibration output_root must be a directory')\n    if not root.exists() and not root.parent.is_dir():\n        raise ToolError('timing calibration output_root parent must be an existing directory')\n    return root\n\n# command builder, next to the phrase_timing branch:\n    if name == 'timing_calibration_analyze':\n        segments = s2_input_file(args['segments'], PHRASE_TIMING_MAX_INPUT_BYTES)\n        if segments.suffix != '.json':\n            raise ToolError('timing calibration segments must be an existing .json file')\n        source = s2_original_path(args['input'])\n        source = s2_input_directory(source, ('denoised.wav', 'manifest.json')) if source.is_dir() else s2_input_file(source, 4_000_000_000)\n        command = head + [str(ROOT / 'scripts/timing_calibration.py'), 'analyze', str(source), '--segments', str(segments),\n                          '--distances', args['distances'], '--distance-method', args['distance_method'],\n                          '--amp-chain', args['amp_chain'], '--setup-id', args['setup_id'],\n                          '--output-root', str(timing_calibration_output_root(args['output_root']))]\n        if 'room_temp_c' in args:\n            command += ['--room-temp-c', str(args['room_temp_c'])]\n        return command\n    if name == 'timing_calibration_apply':\n        inputs = []\n        for field in ('phrase_timing', 'calibration'):\n            path = s2_input_file(args[field], PHRASE_TIMING_MAX_INPUT_BYTES)\n            if path.suffix != '.json':\n                raise ToolError('timing calibration ' + field + ' must be an existing .json file')\n            inputs.append(path)\n        return head + [str(ROOT / 'scripts/timing_calibration.py'), 'apply', '--phrase-timing', str(inputs[0]),\n                       '--calibration', str(inputs[1]), '--setup-id', args['setup_id'],\n                       '--output-root', str(timing_calibration_output_root(args['output_root']))]\n# Worker exit codes: 0 ok; 2 typed refusal (stderr JSON {\"refusal\": code, \"message\": ...}, nothing written); 1 error.",
+   "why": "Typed hook dispatch for the two drafts with the existing S2 path guards (no traversal, symlink components or artifacts/runs outputs)."
+  },
+  {
+   "file": "scripts/mcp_server.py",
+   "change": "Expose timing_calibration_analyze and timing_calibration_apply as MCP tools from the admitted tools.json descriptors (no extra logic if hooks are generated from program/tools.json); annotations readOnlyHint true, destructiveHint false.",
+   "why": "Every processing primitive needs a typed MCP hook (AGENTS.md product axiom 2)."
+  },
+  {
+   "file": "just/workflow.just",
+   "change": "# Experimental capture-latency calibration record from an operator clip; analysis only, never adopts a default.\ntiming-calibration-analyze input segments distances method amp_chain setup_id output_root:\n    timeout 600 python3 scripts/timing_calibration.py analyze {{quote(input)}} --segments {{quote(segments)}} --distances {{quote(distances)}} --distance-method {{quote(method)}} --amp-chain {{quote(amp_chain)}} --setup-id {{quote(setup_id)}} --output-root {{quote(output_root)}}\n\n# Calibrated phrase-timing view: direction only beyond the calibrated uncertainty; the phrase-timing input is never modified.\ntiming-calibration-apply phrase_timing calibration setup_id output_root:\n    timeout 600 python3 scripts/timing_calibration.py apply --phrase-timing {{quote(phrase_timing)}} --calibration {{quote(calibration)}} --setup-id {{quote(setup_id)}} --output-root {{quote(output_root)}}\n",
+   "why": "Operator entrypoint recipes requested in spec section 8 with a 600 s timeout; FFmpeg comes from FFMPEG/FFPROBE env vars."
+  },
+  {
+   "file": ".agents/skills/guitar-phrase-timing/SKILL.md",
+   "change": "Append to the Limits paragraph of .agents/skills/guitar-phrase-timing/SKILL.md:\n\"An experimental calibrated view exists separately: timing_calibration_apply (draft, see .agents/skills/timing-calibration/SKILL.md) turns this phrase-timing.json plus an operator calibration record (same setup and placement, same rhythm.py) into phrase-timing-calibrated.json, emitting ahead/behind only beyond the calibrated uncertainty. This tool's own direction policy is unchanged (operator_calibration_input_supported stays false).\"",
+   "why": "Point the existing phrase-timing skill at the calibrated view without changing phrase_timing's direction policy (not lane-owned)."
+  },
+  {
+   "file": "skill admission / prompt registry",
+   "change": "Admit .agents/skills/timing-calibration/SKILL.md (sha256 376084b93e1872ad4d244cf8a1b7dbcfa623902e3ea54f77e1f35c1d4b531e42) with prompt name timing-calibration, pinned as the admission tests require.",
+   "why": "Skill admission is root-owned."
+  },
+  {
+   "file": "docs/spec/PROJECT.md",
+   "change": "D4 row: add 'timing_calibration lane (TIN-5488): calibrated view drafted; sealed synthetic R1 failed S1 (4/8, click-grid seeding), R2 after fix on new seeds met S1-S3 (8/8 calibrated, 0.98 ms, coverage 41/41, 62/62 sign-correct, 0/24 on-time emissions); real-take direction still withheld until an operator calibration clip exists.'",
+   "why": "Keep the plan's evidence row truthful; root owns PROJECT.md."
+  },
+  {
+   "file": "program/linear.json / Linear TIN-5488",
+   "change": "Record lane state: implemented and sealed-evaluated on synthetic fixtures; R1 failed, R2 met; root admission pending; no real take processed.",
+   "why": "The lane writes no tracker entries; facts belong in Linear (R-N13)."
+  },
+  {
+   "file": "scripts/phrase_timing.py (finding, no edit requested by default)",
+   "change": "Consider a follow-up: the nearest-onset rule can select the click's own broadband event over a later guitar attack on phrases played behind the click (dev E1: 2 wrong-sign directions in 11 before the lane's view-side guard). A phrase_timing-side fix (e.g. magnitude-qualified onsets or excluding observed click-coincident onsets) would need its own contract and sealed evaluation.",
+   "why": "A measured property of a root-integrated tool that bears on the real take (74/216 click-coincident onsets in the S2 receipt); the lane only withholds such phrases in its view."
+  }
+ ]
+}

@@ -1,0 +1,62 @@
+{
+ "schema_version": 1,
+ "lane": "timing_calibration",
+ "sprint": "20261007-s3",
+ "linear": "TIN-5488",
+ "phase": "2_implementation",
+ "recorded_utc": "2026-10-07T16:12:00Z",
+ "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+ "authority_reasserted": [
+  "docs/spec/PROJECT.md (D4 row: per-phrase timing direction on the real take withheld until calibration)",
+  "docs/agent-notes/2026-10-05-user-prompts.md (prompts 4-6: identify/mark rhythm issues; where they rushed / miuseed beats; metronome around 178bpm)",
+  "docs/agent-notes/2026-10-07-s2-operator-rulings.md",
+  "docs/spec/sprints/20261007-S3.md",
+  "docs/spec/sprints/TIMING_CALIBRATION_S3.md @ 3fb39e4",
+  "AGENTS.md"
+ ],
+ "implementation_commit": "9918aee5f77118d9f0a0de84e47f4f956208d107",
+ "eval_preregistration_commit": "4ad7e01cee1d659765e5bc7f46572185cb7130bf",
+ "commands": {
+  "dev_tests": "FFMPEG=... FFPROBE=... PYTHONPATH=tests python3 -m unittest test_timing_calibration -v",
+  "regression_G1": "FFMPEG=... FFPROBE=... PYTHONPATH=tests python3 -m unittest test_phrase_timing test_rhythm"
+ },
+ "results": {
+  "test_timing_calibration": "Ran 25 tests, OK (skipped=1: sealed evaluation gated by env)",
+  "G1_test_phrase_timing_and_test_rhythm": "Ran 40 tests, OK (skipped=3); neither module edited by the lane"
+ },
+ "metrics_dev_M_syn": {
+  "T1": "4/4 geometry cases: estimate within 0.01 ms of analytic, truth inside interval 4/4",
+  "T2": "9/9 class biases within 1.0 ms of generator truth (max deviation about 0.21 ms)",
+  "T3": "E1 median |error| 1.90 ms over 18 phrases (5 withheld by the click-coincidence guard counted as inf); 1.09 ms over 13 measured; coverage 13/13; 8 directions emitted, 8 sign-correct; 0 emissions on 4 on-time phrases",
+  "T4": "16/16 C1-only open attacks detected per dev seed (3/3 seeds >= 12/16)",
+  "A1": "4/4 abstained with expected reason: insufficient_click_events; expanded_uncertainty_exceeds_decision_margin; click_grid_not_fitted (click SNR -7.4 dB); played_on_click_consistency_failed",
+  "R1": "6/6 typed CLI refusals, no file written",
+  "P1": "input sha256 unchanged after apply; every source_entry equals the input entry",
+  "P2": "in-memory and CLI (FFmpeg-decoded WAV) input hashes unchanged; JSON-only outputs; audio_written false; filters_applied []",
+  "P3": "exact key sets, fixed unknowns, no verdict tokens"
+ },
+ "development_findings": [
+  "Isolation at 150 ms left 7-11/16 valid attacks per class on dev seeds; tightened to 100 ms asymmetric (spec section 10.1).",
+  "phrase_timing's nearest-onset rule measured the click's own broadband event on 'behind' phrases (2 wrong-sign emissions of 11 on dev E1 before the guard); the view now withholds phrases whose onset median coincides with the click self-offset (spec 10.7). This is a phrase_timing property relevant to the real take (74/216 click-coincident onsets in the S2 receipt).",
+  "At hop-locked tempi (P = 0.4 s) the click detector phase is fixed per recording; a +/-2.5 ms uniform term is added (spec 10.5)."
+ ],
+ "claims": {
+  "measured": "M-syn only (dev seeds 11-13)",
+  "M_real": "none",
+  "listening": "none"
+ },
+ "real_take_processed": false,
+ "accepted_runs_written": false,
+ "downloads": false,
+ "default_adoption": false,
+ "post_eval_fix": {
+  "commit": "339ae093e37fa2dc094d0ab6da4897bd97e58a95",
+  "change": "strong-event floor for high-frequency peaks in click_only spans (spec section 11)",
+  "dev_tests_after_fix": "Ran 25 tests, OK (skipped=1)",
+  "extra_dev_seeds_14_21": "11/11 grids fitted (dev 14, 16, 20 failed before the fix); E1 on 14/16/20: 3/3 calibrated, 0 wrong signs, coverage 13/14"
+ },
+ "sealed": {
+  "R1": "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval-results.json (S1 FAILED 4/8)",
+  "R2": "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval-r2-results.json (S1-S3 met)"
+ }
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "lane": "timing_calibration",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5488",
+  "phase": "2_eval_r2_preregistration",
+  "recorded_utc": "2026-10-07T16:03:47Z",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "reason": "R1 sealed run (seeds 5501-5508) failed S1 on click-grid seeding; the post-eval fix (spec section 11) is evaluated only on newly preregistered seeds; R1 is not rescored and both results are reported",
+  "r1_results": "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval-results.json",
+  "fix_commit": "339ae093e37fa2dc094d0ab6da4897bd97e58a95",
+  "sha256": {
+    "scripts/timing_calibration.py": "2a93a1650ed4a1d90128115ad4778021e5be0666a1a95807c60eecc93583130a",
+    "scripts/rhythm.py": "cd719914d933b03faec6e1c92afbaee232797ec247427cc87038a1e67b15e8d3",
+    "scripts/phrase_timing.py": "0d3c248bdb82262b7baeee080b2c2d505f736f6f01234fc1ff89fdc85fa70b5b",
+    "tests/test_timing_calibration.py": "789bab637aaa754089a33ee2e045e8bac62f51bbe2ee435d22c5b5e1e280dbf9",
+    "docs/spec/sprints/TIMING_CALIBRATION_S3.md": "1ccad935fbcf0156cd846a5cb45432f0f7a006774ed9a698524cccb47909ea26"
+  },
+  "sealed_seeds": [5601, 5602, 5603, 5604, 5605, 5606, 5607, 5608],
+  "sealed_namespace": "timing-calibration-s3-eval:{seed}:{arm}:{knob}",
+  "arms_thresholds_scoring": "unchanged from spec sections 5 and 7 (S1-S4 as in timing_calibration-eval.json)",
+  "sealed_seeds_generated_before_this_receipt": false,
+  "command": "FFMPEG=... FFPROBE=... TIMING_CALIBRATION_S3_SEALED_EVAL_R2=1 PYTHONPATH=tests timeout 1800 python3 -m unittest test_timing_calibration.SealedEvaluationR2Tests -v",
+  "output": "artifacts/s2/timing_calibration/sealed/results-r2.json (gitignored)",
+  "rerun_policy": "runs once",
+  "real_take_processed": false,
+  "default_adoption": false
+}

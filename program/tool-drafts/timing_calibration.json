@@ -1,0 +1,202 @@
+{
+ "schema_version": 1,
+ "status": "draft_for_root_admission",
+ "lane": "timing_calibration",
+ "sprint": "20261007-s3",
+ "linear": "TIN-5488",
+ "spec": "docs/spec/sprints/TIMING_CALIBRATION_S3.md",
+ "worker": "scripts/timing_calibration.py",
+ "skill": ".agents/skills/timing-calibration/SKILL.md",
+ "tools": [
+  {
+   "name": "timing_calibration_analyze",
+   "title": "Capture-latency calibration record (experimental)",
+   "description": "From an operator calibration clip (click only, offbeat palm-muted and open pick attacks, optional played-on-click check) and mic distances, estimate the offset between the in-room acoustic click and amplified pick attacks as a GUM expanded-uncertainty correction (acoustic path, amp chain, per-class detector bias, residual). Writes one fresh calibration-record.json; abstains when the expanded uncertainty exceeds the 5 ms decision margin. Analysis only; never a performance grade.",
+   "intent": "Give a musician a calibrated, uncertainty-bounded capture offset so later phrase timing can say ahead/behind the click only when the evidence supports it.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "input": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "Calibration clip (WAV/MOV/M4A/MP4, at most 600 s) or a run directory containing denoised.wav and manifest.json. Read only; its sha256 is recorded and re-checked."
+     },
+     "segments": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "Operator-reviewed SEG.json: {schema_version: 1, segments: [{kind, start_seconds, end_seconds, review_text}]} with kinds click_only, offbeat_palm_muted, offbeat_open, on_click_palm_muted; bounded regular .json, at most 64 MiB; traversal, URL and symlinked-file inputs reject. Read only."
+     },
+     "distances": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[a-z_]+=[0-9.]+(,[a-z_]+=[0-9.]+){1,3}$",
+      "description": "mic_to_metronome=M,mic_to_amp=M[,ear_to_metronome=M,ear_to_amp=M] in metres, each in (0, 20]."
+     },
+     "distance_method": {
+      "type": "string",
+      "enum": [
+       "measured",
+       "estimated"
+      ],
+      "description": "measured = +/-0.05 m, estimated = +/-0.30 m half-width (uniform)."
+     },
+     "amp_chain": {
+      "type": "string",
+      "pattern": "^(analog|unknown|declared:[0-9.]+)$",
+      "description": "analog (0 +/- 0.1 ms), declared:MS (+/- 0.5 ms, 0-50 ms) or unknown (always abstains)."
+     },
+     "setup_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Operator label binding the record to one phone/app/room/amp/metronome placement."
+     },
+     "room_temp_c": {
+      "type": "number",
+      "minimum": -10,
+      "maximum": 45,
+      "description": "Optional room temperature (+/-2 C); omitted means 15-30 C."
+     },
+     "output_root": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "Directory beneath repository artifacts/ (never artifacts/runs); each call writes records/<UTC>-<hex12>/calibration-record.json."
+     },
+     "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 600,
+      "default": 600,
+      "description": "Hard owned-worker deadline; FFmpeg decode is bounded at 180 s."
+     }
+    },
+    "required": [
+     "input",
+     "segments",
+     "distances",
+     "distance_method",
+     "amp_chain",
+     "setup_id",
+     "output_root"
+    ],
+    "additionalProperties": false
+   },
+   "skill": ".agents/skills/timing-calibration/SKILL.md",
+   "implementation_status": "experimental",
+   "evidence_kind": "synthetic_validated_calibration_record_real_take_unvalidated",
+   "limitations": [
+    "Experimental and analysis only: no audio is written or filtered (32.70 Hz content untouched); no default detector, profile or master is adopted.",
+    "The offset correction combines an operator-declared acoustic path (distances, temperature-bounded speed of sound), a declared amp-chain term, per-class detector bias measured on the real click and isolated real attacks against a fine-onset reference whose own bias comes from noise-free synthetic probes, and a +/-1 ms residual floor; GUM root-sum-square, k=2.",
+    "Abstains when the expanded uncertainty exceeds the 5 ms decision margin, when segments, click or attack events are insufficient, when the click grid does not fit, when distances are out of bounds, or when the played-on-click consistency check fails. Played-on-click attacks never set the offset; human intent is not ground truth.",
+    "Phone input latency is treated as common-mode within one recording (inference); signal-dependent device processing, reflections, legato/tapping/sweep attacks and click identity in the take are uncalibrated or unverified. Placement match is operator-declared."
+   ],
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "dependencies": {
+    "recommended_prior_tools": [],
+    "enforced": false,
+    "note": "Needs an operator calibration clip recorded with the same setup and placement as the take; no real clip exists yet."
+   },
+   "agent_workflow": {
+    "identify": "Confirm the clip was recorded with the take's setup and placement and that SEG.json spans were reviewed.",
+    "research": "Read docs/research/2026-10-07-capture-latency-calibration.md and the spec; inspect abstain_reasons, components and consistency_check.",
+    "iterate": "On abstention, re-record or measure (never loosen thresholds); compare records across sessions.",
+    "acceptance": "A calibrated record is an uncertainty-bounded synthetic-validated estimate; real-take validity needs operator spot-checks and listening.",
+    "max_comparison_candidates_default": 3
+   }
+  },
+  {
+   "name": "timing_calibration_apply",
+   "title": "Calibrated phrase-timing view (experimental)",
+   "description": "Apply a calibrated capture-latency record to an existing phrase_timing schema-2 JSON and write a new phrase-timing-calibrated.json: per phrase the verbatim source entry plus a calibrated median, combined uncertainty and a direction emitted only beyond max(U_phrase, 5 ms), else within_uncertainty. The source file is never modified; never a performance grade or missed-note verdict.",
+   "intent": "Let a musician see which phrases are ahead of or behind the click only where the calibrated evidence exceeds its uncertainty.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "phrase_timing": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "phrase_timing schema-2 phrase-timing.json; bounded regular .json, at most 64 MiB; traversal, URL and symlinked-file inputs reject. Read only."
+     },
+     "calibration": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "calibration-record.json from timing_calibration_analyze with status calibrated; bounded regular .json, at most 64 MiB; traversal, URL and symlinked-file inputs reject. Read only."
+     },
+     "setup_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Must equal the record's capture_setup.setup_id."
+     },
+     "output_root": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "Directory beneath repository artifacts/ (never artifacts/runs); each call writes views/<UTC>-<hex12>/phrase-timing-calibrated.json."
+     },
+     "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 300,
+      "default": 60,
+      "description": "Hard owned-worker deadline."
+     }
+    },
+    "required": [
+     "phrase_timing",
+     "calibration",
+     "setup_id",
+     "output_root"
+    ],
+    "additionalProperties": false
+   },
+   "skill": ".agents/skills/timing-calibration/SKILL.md",
+   "implementation_status": "experimental",
+   "evidence_kind": "calibrated_click_relative_timing_hypothesis_unvalidated",
+   "limitations": [
+    "Writes a new phrase-timing-calibrated.json; the phrase-timing input is never modified and both input hashes are re-read after writing.",
+    "Direction (ahead_of_click/behind_click) is emitted only when |calibrated median| exceeds max(sqrt(U_cal^2 + U_median^2), 5 ms); otherwise within_uncertainty. Phrases whose onset median coincides with the click's own broadband self-detection are withheld.",
+    "Refuses (typed, nothing written) without a calibrated record, on detector-identity (rhythm_sha256) or setup-id mismatch, on a non-schema-2 phrase timing, or under artifacts/runs.",
+    "Directions are review hypotheses for listening about the calibrated source-emission offset; never a performance grade, missed/extra note or note-level verdict. No real-take direction has been validated."
+   ],
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "dependencies": {
+    "recommended_prior_tools": [
+     "rhythm",
+     "phrase_timing",
+     "timing_calibration_analyze"
+    ],
+    "enforced": false,
+    "note": "phrase_timing must come from the same rhythm.py (rhythm_sha256) as the calibration record."
+   },
+   "agent_workflow": {
+    "identify": "Confirm setup id, rhythm_sha256 and the take's placement match the record.",
+    "research": "Inspect calibration_consumed, per-phrase combined_uncertainty_ms and withheld_basis before reading directions.",
+    "iterate": "No knobs; after rhythm, phrase spans or calibration change, write a fresh view and compare.",
+    "acceptance": "Directions are listening hypotheses; no performance grade, missed or extra note, or listening acceptance.",
+    "max_comparison_candidates_default": 3
+   }
+  }
+ ],
+ "recipes_requested": {
+  "timing-calibration-analyze": "INPUT SEGMENTS DISTANCES METHOD AMP_CHAIN SETUP_ID OUTPUT_ROOT -> timeout 600 python3 scripts/timing_calibration.py analyze INPUT --segments SEGMENTS --distances DISTANCES --distance-method METHOD --amp-chain AMP_CHAIN --setup-id SETUP_ID --output-root OUTPUT_ROOT",
+  "timing-calibration-apply": "PHRASE_TIMING CALIBRATION SETUP_ID OUTPUT_ROOT -> timeout 600 python3 scripts/timing_calibration.py apply --phrase-timing PHRASE_TIMING --calibration CALIBRATION --setup-id SETUP_ID --output-root OUTPUT_ROOT"
+ },
+ "default_adoption": false
+}

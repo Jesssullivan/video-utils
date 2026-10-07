@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "lane": "timing_calibration",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5488",
+  "phase": "2_eval_preregistration",
+  "recorded_utc": "2026-10-07T15:46:01Z",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "implementation_commit": "9918aee5f77118d9f0a0de84e47f4f956208d107",
+  "sha256": {
+    "scripts/timing_calibration.py": "58d7440b72700596a4b6c2b1db3afdc2a92bf0b1c78fa62cf933e3c3466632ae",
+    "scripts/rhythm.py": "cd719914d933b03faec6e1c92afbaee232797ec247427cc87038a1e67b15e8d3",
+    "scripts/phrase_timing.py": "0d3c248bdb82262b7baeee080b2c2d505f736f6f01234fc1ff89fdc85fa70b5b",
+    "tests/test_timing_calibration.py": "8ec64dd476c825588418490be9d41d135daf08ff5ff780762342cdc0035b46a7",
+    "docs/spec/sprints/TIMING_CALIBRATION_S3.md": "ef1fd042dfac735c94325535b7d344ac3f243aa8d334ddea1bcf20c681b70c2d"
+  },
+  "sealed_seeds": [5501, 5502, 5503, 5504, 5505, 5506, 5507, 5508],
+  "sealed_namespace": "timing-calibration-s3-eval:{seed}:{arm}:{knob}",
+  "arms": {"E1": "measured distances = truth, --room-temp-c 21", "E2": "estimated distances = truth + U[-0.25, 0.25] m, no temperature", "E3": "E1 record applied to a take with the amp 1.5 m farther (reported only)"},
+  "acceptance": {
+    "S1": "E1 calibrated >= 7/8; median |error| <= 3.0 ms over 48 (abstentions inf); coverage >= 0.90 over measured phrases",
+    "S2": "E2 abstentions reported; on calibrated cases median |error| <= 3.0 ms and coverage >= 0.90",
+    "S3": "E1 u E2 sign-correct/emitted >= 0.95; emissions on |delta| <= 2 ms phrases = 0; emission rate on |delta| >= 15 ms reported (predicted >= 0.75 for E1)",
+    "S4": "E3 reported only"
+  },
+  "frozen_rules": "docs/spec/sprints/TIMING_CALIBRATION_S3.md sections 5, 7 and 10 at the implementation commit",
+  "sealed_seeds_generated_before_this_receipt": false,
+  "command": "FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe TIMING_CALIBRATION_S3_SEALED_EVAL=1 PYTHONPATH=tests timeout 1800 python3 -m unittest test_timing_calibration.SealedEvaluationTests -v",
+  "output": "artifacts/s2/timing_calibration/sealed/results.json (gitignored; summary copied to timing_calibration-eval-results.json)",
+  "rerun_policy": "runs once; any post-eval code change needs newly preregistered seeds and both results reported",
+  "real_take_processed": false,
+  "default_adoption": false
+}
