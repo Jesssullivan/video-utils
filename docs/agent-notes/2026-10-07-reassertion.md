@@ -60,3 +60,16 @@ editor import (TIN-5494) | operator | — | export produced, import unverified (
 
 Operator-held: labelling session, second take by 2026-10-09, listening preference on `fuller-shelf` and the
 low-end feedback, capture-latency calibration recording, go for hosting/Cloudflare Access, go for public site deploy.
+
+## Checkpoint (usage limit, ~18:10Z)
+
+- Merged and signed on main, hosted CI green (run 37663315317): W6 timing_calibration (14031ab), take_intake (9c87398);
+  W5 stems_contract (6f4f227), auth_token (87674c6), site_verify (2588aca), bazel_full (7d4da4f, 62d5838);
+  root fixes: arrangement reference binding (0ea22c3), tailnet gate before static files + shared JWKS cache (8172118).
+  TIN-5724 Done.
+- Running: root admission pass G (Opus agent) in .local/sprint3/root_admission_g on branch
+  sprint/20261007-s3/root_admission_g. It admits take_intake, timing_calibration_analyze/apply and stems_estimate,
+  fixes the R6 tool_api dot-path defect, and writes root_admission_g-receipt.json. To resume: read that receipt, check
+  the branch, then run the merge gate (owned files, tests, signed merge, CI, Linear).
+- Next in root: Bazel R1–R3 (site under Bazel), R4 non-blocking hosted Bazel job, PROJECT.md S3 status section,
+  TIN-5186 relay after the second take, and peer replies (xoruby 379243, llama 425233; none received yet).
