@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "draft_status": "lane_draft_for_root_admission",
+  "contract": "docs/spec/sprints/TAKE_INTAKE_S3.md",
+  "worker": "scripts/take_intake.py",
+  "admission_note": "program/tools.json and scripts/tool_api.py are root-owned. Root admits the single descriptor below (operation plan|packet is the MCP surface; one tool because MCP prompt names come from the skill directory); run/resume stay just/CLI actions because they are long and mutating. The tool_api.py dispatch text is in the lane handoff root_owned_changes_requested.",
+  "refusal_codes": {
+    "plan": [
+      "source_missing",
+      "source_not_regular_file",
+      "source_is_symlink",
+      "source_in_repository_tracked_path",
+      "source_is_derived_artifact",
+      "probe_failed",
+      "family_invalid",
+      "family_collision",
+      "source_already_registered",
+      "arrangement_source_mismatch",
+      "bpm_invalid"
+    ],
+    "run": [
+      "capture_interval_required",
+      "capture_review_required",
+      "capture_interval_invalid",
+      "capture_interval_in_setup_window",
+      "anchor_requires_arrangement",
+      "anchor_inputs_incomplete",
+      "bpm_invalid",
+      "settings_invalid",
+      "source_missing",
+      "source_not_regular_file",
+      "source_is_symlink",
+      "source_in_repository_tracked_path",
+      "source_is_derived_artifact",
+      "probe_failed",
+      "capture_interval_outside_source",
+      "family_invalid",
+      "family_collision",
+      "source_already_registered",
+      "arrangement_source_mismatch",
+      "state_root_invalid",
+      "intake_exists"
+    ],
+    "resume": [
+      "resume_settings_conflict",
+      "state_root_invalid",
+      "intake_not_found",
+      "intake_locked",
+      "not_an_intake_run_dir",
+      "prior_stage_worker_alive",
+      "source_changed",
+      "demo_invocation_unbound"
+    ],
+    "packet": [
+      "not_an_intake_run_dir",
+      "draft_privacy_violation",
+      "packet_privacy_violation"
+    ]
+  },
+  "refusal_transport": "exit 2 with one JSON object on stderr: {status: refused, reason: <code>, message}",
+  "cli_only": {
+    "run": "python3 scripts/take_intake.py run SOURCE --capture-interval START END --capture-review TEXT [--interval-reviewed-includes-setup] [--family ID] [--arrangement PATH --anchor-seconds S --anchor-source TEXT --clicks-per-grid-period 1|2] [--bpm X] [--features base|extended] [--analysis-python PATH] [--origin real_recording|synthetic_fixture] [--state-root DIR]",
+    "resume": "python3 scripts/take_intake.py run --resume INTAKE_ID [--state-root DIR]",
+    "recipes": [
+      "take-plan",
+      "take-run",
+      "take-resume",
+      "take-packet",
+      "take-intake-test"
+    ]
+  },
+  "tools": [
+    {
+      "name": "take_intake",
+      "title": "Second-take intake: plan and evidence packet",
+      "description": "operation plan: read-only intake plan for a NEW take (source sha256, ffprobe summary, deterministic take_family_id that never collides with the October 5 family, corpus row draft with split null, ordered stages with exact argv, required operator inputs). operation packet: path-free evidence packet for a finished or partial intake (stage denominators, hashes, signal versions, tool versions, capture record, phrase timing offsets with direction withheld_uncalibrated, claim classes, unknowns) plus a closed-schema TIN-5186 draft carrying only the family id and non-media metadata (V6), never sent by the tool. The long mutating run/resume stays a just/CLI action.",
+      "intent": "Show exactly what a new-take intake will run and which inputs only the operator can supply, then give root and the operator a reviewable, path-free account of the result before anything is reported to XORuby.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": [
+              "plan",
+              "packet"
+            ],
+            "description": "plan: read-only intake plan for SOURCE (writes nothing). packet: rebuild evidence-packet.json and the TIN-5186 draft (draft_not_sent) inside an intake directory."
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local recording; must not be a symlink, inside artifacts/runs, or a tracked/unignored repository path. Never written."
+          },
+          "family": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "Optional explicit take_family_id (corpus.IDENTIFIER); default is take-<16 hex> derived from the source sha256."
+          },
+          "arrangement": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Optional arrangement reference bound to THIS source sha256; program/demo-arrangement.json belongs to the first take and is refused."
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 20,
+            "maximum": 400,
+            "description": "Optional approximate operator pulse; not an intended score."
+          },
+          "features": {
+            "type": "string",
+            "enum": [
+              "base",
+              "extended"
+            ],
+            "default": "base",
+            "description": "run_demo feature set the plan describes; phrase_anchor needs extended clicks."
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "real_recording",
+              "synthetic_fixture"
+            ],
+            "default": "real_recording",
+            "description": "Corpus row origin for the draft."
+          },
+          "intake_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Intake run directory written by take_intake run (<state-root>/<family>/<intake_id>/ holding intake.json). A pipeline artifacts/runs directory is refused (not_an_intake_run_dir)."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 300,
+            "description": "Hard owned-worker deadline in seconds; plan hashes the source and runs ffprobe, packet re-hashes recorded outputs."
+          }
+        },
+        "required": [
+          "operation"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/take-intake/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "intake_plan_or_evidence_packet",
+      "limitations": [
+        "Probe fields are ffprobe declarations; nothing is decoded or listened to.",
+        "The family id is a truncated domain-separated hash of the source sha256; the same bytes at any path give the same id.",
+        "split stays null (pending_operator_choice); the admissibility check only shows the row validates once a split is chosen.",
+        "Plans never assign a split, author an arrangement reference, adopt a default or verify that a capture interval is noise-only.",
+        "Writes evidence-packet.json and tin-5186-message-draft.json inside the intake directory only; status draft_not_sent.",
+        "The draft holds no media, no 64-hex hashes, no src_/art_ ids, no source-timed spans, no capture values, no review text, no file names and no host paths.",
+        "Phrase timing is measured signed offsets only; ahead/behind direction stays withheld_uncalibrated. No note-correctness or missed-note verdict.",
+        "Everything audible stays needs_listening; packets adopt no detector, profile or master."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "video_probe"
+        ],
+        "enforced": false,
+        "note": "packet requires an intake directory produced by just take-run; review the capture interval on /sources/[id]/capture or with just review before take-run."
+      },
+      "agent_workflow": {
+        "identify": "Confirm this is a new take (not the October 5 source), read the required operator inputs, and for packets confirm the run manifest binding is bound.",
+        "research": "Read docs/spec/sprints/TAKE_INTAKE_S3.md and the operator ruling of 2026-10-07; the first 5.0 s are setup and never auto-confirmed noise; every analysis must declare the current denoised.wav.",
+        "iterate": "Plan again after the operator supplies a reference, anchor or BPM (plans are byte-identical for identical inputs); rebuild packets after a resume and never edit them by hand.",
+        "acceptance": "Neither a plan nor a packet establishes restoration quality, phrase correctness, note correctness or listening acceptance; root sends the TIN-5186 draft only after operator review.",
+        "max_comparison_candidates_default": 1
+      }
+    }
+  ],
+  "cross_field_rules": {
+    "plan": "requires source; rejects intake_dir",
+    "packet": "requires intake_dir; rejects source, family, arrangement, bpm, features and origin"
+  }
+}
