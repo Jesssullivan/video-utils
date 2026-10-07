@@ -1,0 +1,396 @@
+{
+  "lane": "routes_review",
+  "branch": "sprint/20261007-s3/routes_review",
+  "head": "0f06243afc6dae83f423543c6ac55bfd0dfcabd5",
+  "base_commit": "4bd806db3944d05fb4b5cca16a87642a71f5458f",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint3/routes_review",
+  "state": "implemented_tested_audit_findings",
+  "files": [
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/routes_review-checkbuild.json",
+      "sha256": "9bba1b145fd5b84414f1fae7e3ce16eb79d52f13b5bc612c24d894b83dc9bb4f",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/routes_review-contract.json",
+      "sha256": "09bb0b97f99fab0ff3c95de47790976c9eb69e9b39af855ab6512fe9bf55d6be",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/routes_review-handoff.json",
+      "sha256": "6aa4203160a388daef70043d832ac09b1586bf1ae6811395235db5ff33b2dfcd",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/routes_review-tests.json",
+      "sha256": "3441b4a02a9f88555b3d873f99fbd9e22bf483b813d326c161cf238bfe2e8b58",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/routes_review-walkthrough.json",
+      "sha256": "76a7c7a39262a138a8e683dd076242f9c3f8f4bf84394d0d65862291315393ce",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/sprints/ROUTES_REVIEW_S3.md",
+      "sha256": "dd06f356396c317797cb19bbf51754f083407f51534c4dbf7dc4c73c9454bfec",
+      "kind": "spec"
+    },
+    {
+      "path": "scripts/web_runs_api.py",
+      "sha256": "29c8936c4176b446bafbc017d64ae3a9d7ae823e0d55954fcb957bb6c4d9ac9a",
+      "kind": "source"
+    },
+    {
+      "path": "tests/test_web_runs_s3.py",
+      "sha256": "975bb95e28ae692a3782ee68e2158aaba039c896795f4b7f0e84c5ea404683c9",
+      "kind": "test"
+    },
+    {
+      "path": "web/src/lib/components/review/ABCompare.svelte",
+      "sha256": "6f67b7b07951108505c021d36378a17de9fcad6e13618029470662fdb767d74f",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/BasisBadge.svelte",
+      "sha256": "528091fc70eef4a21589f187775bd0011e13056d429a5a5fe70a7f1d92259cdb",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/CompactOverlay.svelte",
+      "sha256": "6b4a244ef24d80b8acebfafceef9369d973035551bb6ac2fa6d96a40e41af46a",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/EvidencePicker.svelte",
+      "sha256": "4536044e08229ae880949e5d9423ae95201c791cc30225c09b079f7c23ada587",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/FlagsList.svelte",
+      "sha256": "95697f98fb0c0b379b2d35d203a91e26cce3c03f6859dda382d497fe3e80828a",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/MarkHere.svelte",
+      "sha256": "e92f850fe700adf347fd27d572bb24cf8a5fddcc2403d683231579e86aa69083",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/QuickMarkBar.svelte",
+      "sha256": "397c7fbfe9bac46ae3af4725102bed009512e68d5c452062c412a7e183353f9b",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/ReviewWorkspace.svelte",
+      "sha256": "e956be4ea48256074d40967f17d19ba085d047315a0e4caee3aa7c397eadbbd9",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/RunUnknowns.svelte",
+      "sha256": "05de26b397a7d766635fc9c9643c80517ffbca4d82193c1f476b24cb4e478558",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/SpectrogramView.svelte",
+      "sha256": "d91b7d540582bd50d528a05b9bc2fd6cd66eac5bb641455659d7f1705be81905",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/StateBadge.svelte",
+      "sha256": "b7a9f553fb5984893fe4e60d1278c0e1d4807fec9f91e845fee5c8ae6a47c88e",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/StepBar.svelte",
+      "sha256": "71b31259dcc14383c41211abb9cf57b6a613d82f1f45c1bfeb6935f4513f5728",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/TimelineTracks.svelte",
+      "sha256": "07ec6a4390f2ef1802883c917c6be475f87f86006272c21cf9ad600324ab76c4",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/TimingTable.svelte",
+      "sha256": "afebeae741a11f792505a434b5b5684da3b98fd27d736d6447e45d2de74b7ed9",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/annotations-client.ts",
+      "sha256": "5ac86e8bcc566619658850453ad95f37b05cc7e808de8e4ae0fa8b5260ca2702",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/media.ts",
+      "sha256": "d026b9e68b195fe677b52f266546ee28235d4e623e9f74d4058636cbddc21240",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/review-logic.ts",
+      "sha256": "6251763ca9d3b552ae73db4412153c56c50bd54739f527db73ab42c9079e2fc2",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/step-context.ts",
+      "sha256": "86fecaf4e45256f8d7388a9d0e4a06b9472ca5f08a5b56c636904991ebdcd83e",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/types.ts",
+      "sha256": "e1cb18764eea76d92fd0be6387584c06fd71c0cc2b091cad90e89d298a5bdd5b",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/server/runs/client.ts",
+      "sha256": "e77412c840e4448b213c8003452f24a9ba1138353975c20ad3b0001e69ecd11d",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/server/runs/schema.ts",
+      "sha256": "fb21bbfffefc825ef8eb278609586309a6f603d5641c3d11592db5b0fc812977",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/params/runid.ts",
+      "sha256": "1c47744449b974d8ae4822b00b3a1191cb8e3ade112fc8532273498281ae77e2",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/+layout.svelte",
+      "sha256": "91c4d7148a9da0ba8f28400cb904b8b91018a877967a73c44d48aa1d6efd72fe",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/+page.svelte",
+      "sha256": "b7b5ac618383959372c1c76f0438839232982ad49c83f055f5c783b6f9428c09",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/api/capabilities/+server.ts",
+      "sha256": "afc9d563b2719b4a7d4ba113e02528531e0f86ceb616c8cb84a665b369f7aa6f",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/api/runs/+server.ts",
+      "sha256": "1d37cd124de5449aa42b8435c23e4fc88183a2e40d93494a1139f29aa9d585c7",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/api/runs/[id=runid]/+server.ts",
+      "sha256": "b22d0fa8206264405cf2e22781a4649fefd9991532d6b7689470211b31f32f63",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/api/runs/[id=runid]/artifacts/[artifact=artifactid]/+server.ts",
+      "sha256": "58c63e43ec3adb8d8c63a761352609796242344e161b41d22813ff5d7b23239f",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/api/runs/[id=runid]/layers/+server.ts",
+      "sha256": "0be0c39ad7d30f2347daf3dcbc513db4fbecf73f5dd052df5ddf21860d89494b",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/api/runs/[id=runid]/layers/media/[evidence]/[name]/+server.ts",
+      "sha256": "560465efcd6794a082b8f409afcbe59a7eaa431f46fc3db9dc801fe9bebc66e3",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/compare/+page.server.ts",
+      "sha256": "a5a5231e9b4abfecafbb0b50c2b611ad73ec91e70303431c2414129a85197d05",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/compare/+page.svelte",
+      "sha256": "b7a9f510a1dc4224abf5935491f19d2e69f7ab26b82fca60947647615c7749a3",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/download/+page.server.ts",
+      "sha256": "0ab390698c5e901e72d716e41ab1844edd00d347c85555f1e7547845ebd89a09",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/download/+page.svelte",
+      "sha256": "27e5b750d5697e20dd74796ea8dae4b0481a44a74247ab988662015e0f46a2ac",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/jobs/+page.server.ts",
+      "sha256": "48116c1d2654c737486fdf1929622f9b044c59a8205ed7219862c33c614fd026",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/jobs/+page.svelte",
+      "sha256": "750230e35e9241f31ee1bfe7d8cb35e2147e4e91f46234d3984086074ff2fe8a",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/review/+page.server.ts",
+      "sha256": "b63b8320fb0b6ebae3e877b2fc5e23f6c3e9c74f25a3778ced1da6c855c9bfbb",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/review/+page.svelte",
+      "sha256": "22b9d6cc277e0d8bdb35318539f8d7c1fbad9e5ca91028859b6d4109044ca85f",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/runs/+page.server.ts",
+      "sha256": "4e9cae27b0713cd62942e94ac2a46843be4eb4cd4c091cd1d1a2c96979d5b88c",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/runs/+page.svelte",
+      "sha256": "7dd028cd547b863b453516a6e9775659d9e0597efddc5416ede9520a5be3eb49",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/runs/[id=runid]/+layout.server.ts",
+      "sha256": "7dedcd4651dfaae23247d7f2952717858dfb5469fb7db4addc07f2574f115a3e",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/runs/[id=runid]/+page.svelte",
+      "sha256": "9a5ca6e7a710519d2a851712f852d3deb7503731acc6a96c1cd7976532ab737b",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/runs/[id=runid]/compare/+page.server.ts",
+      "sha256": "796f4af524abba109e3d3f787b2ff09912372c1b4bead98f1adc717c310967db",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/runs/[id=runid]/compare/+page.svelte",
+      "sha256": "b0201ffb19b9d707fd093b86369a9af8a9479ee4a7266dde72fec547a57851d6",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/runs/[id=runid]/deliver/+page.server.ts",
+      "sha256": "06aed7d66f9e36e78d8bf45523d1b3231e15cd3d1afe78e9b2cbb944942d9ec2",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/runs/[id=runid]/deliver/+page.svelte",
+      "sha256": "49afd4eb08b01b7d187b3edb84a9220f40a7928e8b808684b3378dcaf2ac2914",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/runs/[id=runid]/review/+page.server.ts",
+      "sha256": "bdd9bd0ff22565b1675bf551eb586f630b947347d74e517bc1ce28e26893bfeb",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/runs/[id=runid]/review/+page.svelte",
+      "sha256": "4e415cb88558426fe728d771276eb2c7f485fcc6f2729e7eff1d7219c7fbbfb9",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/tools/+page.server.ts",
+      "sha256": "48796e5427d8c8c1ac964cfa2b0f1188aa255efd676d026aa783d7f6be005c0e",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/routes/tools/+page.svelte",
+      "sha256": "755fc4931b1653c6197b323e509d65ae80dadb2c7ed33f51528b3bd971fd78f5",
+      "kind": "source"
+    }
+  ],
+  "tests": {
+    "command": "cd /Users/jess/git/video-utils/.local/sprint3/routes_review && export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe && PYTHONPATH=tests python3 -m unittest test_web_runs_s3 test_web_stack test_web_parity -v",
+    "discovered": 87,
+    "passed": 84,
+    "failed": 1,
+    "errors": 0,
+    "skipped": 2,
+    "seconds": 264.7
+  },
+  "metrics": [
+    {
+      "name": "confinement_refusals",
+      "numerator": 16,
+      "denominator": 16,
+      "unit": "adversarial cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "host_path_free_responses",
+      "numerator": 0,
+      "denominator": 80,
+      "unit": "leaks in API responses",
+      "claim_class": "measured"
+    },
+    {
+      "name": "hash_binding_mutations_detected",
+      "numerator": 9,
+      "denominator": 9,
+      "unit": "cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "routes_reachable",
+      "numerator": 11,
+      "denominator": 11,
+      "unit": "routes",
+      "claim_class": "measured"
+    },
+    {
+      "name": "single_run_redirects",
+      "numerator": 3,
+      "denominator": 3,
+      "unit": "picker routes (303)",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "listening acceptance of anything beyond the pinned receipt files",
+    "in-browser keyboard and player-paused behaviour (screenshots only)",
+    "browser playback and accessibility audit",
+    "BPM derivation (never derived; null unless explicit field)",
+    "FCPXML/Resolve import",
+    "processing-lane routes linkage"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "scripts/web_api.py",
+      "change": "--- a/scripts/web_api.py\n+++ b/scripts/web_api.py\n@@ -16,4 +16,10 @@\n     POST /api/v1/jobs/{job_id}/retry              explicit retry of interrupted/failed jobs (attempt n+1)\n     GET  /api/v1/artifacts/{artifact_id}          published job output bytes, re-hashed before sending\n+    GET  /api/v1/runs                             run listing (scripts/web_runs_api.py, read-only)\n+    GET  /api/v1/runs/{run_id}                    run graph: stages, signal versions, evidence, invalidation\n+    GET  /api/v1/runs/{run_id}/layers             bound review layers (tone_ab, spans, timing, flags, spectrogram)\n+    GET  /api/v1/runs/{run_id}/layers/media/{evidence_id}/{name}   re-hashed layer media\n+    GET  /api/v1/runs/{run_id}/artifacts/{artifact_id}             re-hashed run/attachment file\n+    GET  /api/v1/capabilities                     tools, capability metadata and model registry\n \n The six unversioned web_jobs routes (``/sources``, ``/jobs``, ``/jobs/{id}``,\n@@ -60,4 +66,5 @@\n import tool_api  # noqa: E402  (import only, never edited)\n import web_jobs  # noqa: E402  (import only, never edited)\n+import web_runs_api  # noqa: E402  (S3 routes_review read API; import only)\n from web_jobs import WebJobs, WebJobsError  # noqa: E402\n \n@@ -564,6 +571,10 @@\n             if self.server.shutting_down or self.server.jobs.closed:\n                 raise WebJobsError('shutting_down', 503, 'server is shutting down')\n             parts = urlsplit(self.path)\n+            runs_route = web_runs_api.match(parts.path)\n+            if runs_route is not None:  # read-only S3 runs/capabilities API, after the trust checks\n+                web_runs_api.serve(self, runs_route, parts.query)\n+                return\n             name, identifier, methods, flavour = self._route(parts.path)\n             if name is None:\n                 raise WebJobsError('route_not_found', 404, 'unknown route')",
+      "why": "REQUIRED: mounts the read API; without it /api/v1/runs* and /api/v1/capabilities return route_not_found and every new page shows a refusal"
+    },
+    {
+      "file": "tests/test_web_stack.py",
+      "change": "--- a/tests/test_web_stack.py\t2026-10-06 23:51:10\n+++ b/tests/test_web_stack.py\t2026-10-07 02:39:17\n@@ -307,17 +307,19 @@\n         self.assertLess(serve.index(\"process.exit(REFUSAL_EXIT_CODE)\"), serve.index(\"import('./build/index.js')\"))\n \n     def test_s8_prototype_routes_label_only(self) -> None:\n-        \"\"\"Rescoped (WEB_UI_S2 9.3): bound routes post only to /api/* BFF endpoints; client files never\n-        name the control API URL, the token env or fetch('http://; remaining prototype routes keep the label.\"\"\"\n+        \"\"\"Rescoped (WEB_UI_S2 9.3; ROUTES_REVIEW_S3 6.8): bound routes post only to /api/* BFF endpoints; client\n+        files never name the control API URL, the token env or fetch('http://; the former prototype stubs\n+        (/compare, /review, /download) are run pickers that redirect (303) to /runs/[id]/... with no form.\"\"\"\n         for slug in PROTOTYPE_ROUTES:\n             route = WEB / \"src\" / \"routes\" / slug / \"+page.svelte\"\n             with self.subTest(route=slug):\n                 text = route.read_text()\n-                self.assertIn(\"PrototypeNotice\", text)\n-                self.assertIn(\"Prototype\", text)\n+                loader = (route.parent / \"+page.server.ts\").read_text()\n+                self.assertNotIn(\"PrototypeNotice\", text + loader)\n+                self.assertIn(\"redirect(303\", loader)\n+                self.assertIn(\"/runs/\", text + loader)\n                 self.assertNotIn(\"<form\", text)\n                 self.assertNotIn(\"<input\", text)\n-                self.assertFalse((route.parent / \"+page.server.ts\").exists())\n                 self.assertFalse((route.parent / \"+server.ts\").exists())\n         notice = (WEB / \"src\" / \"lib\" / \"components\" / \"PrototypeNotice.svelte\").read_text()\n         self.assertIn(\"Not implemented in S2\", notice)\n",
+      "why": "REQUIRED: s8 asserts the S2 prototype stubs that section 6.8 replaces; 3 subtests fail until rescoped"
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261007-s3/routes_review-checkbuild.json",
+    "docs/agent-notes/sprints/20261007-s3/routes_review-contract.json",
+    "docs/agent-notes/sprints/20261007-s3/routes_review-tests.json",
+    "docs/agent-notes/sprints/20261007-s3/routes_review-walkthrough.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": true,
+    "findings": [
+      "Scope HOLDS: git diff lists 58 files, all inside owned set; worktree clean at df1ef5c",
+      "No forbidden writes: no write-mode operations, no model downloads, no daemon code; web/package.json unchanged",
+      "Test rerun in scratch clone: 87 tests, 83 passed, 2 failed, 2 skipped; reproduces 3 s8 subtest failures + 1 unrelated timeout",
+      "Both requested root hunks verified: apply cleanly to main, pass when applied (16 tests OK)",
+      "Claim classes HOLD: all test metrics on synthetic fixtures; no musical verdicts or automatic note correctness",
+      "Doctrine HOLDS: no high-pass/notch introduced; unknown fields present with value/reason; no autoplay",
+      "REAL-DEMO GAP 1: default bundle selection picks schema-1 refusal-check bundle due to tie-break; fuller bundle available",
+      "REAL-DEMO GAP 2: low-register spectrogram unavailable for real run; definition-of-done view only on fixtures",
+      "REAL-DEMO GAP 3: cold run-graph request (10.3s) exceeds frozen 5s BFF timeout; reload succeeds with cache"
+    ],
+    "must_fix": [
+      "Merge coupling (root action): must land both scripts/web_api.py registration and tests/test_web_stack.py s8 rescope hunks in same merge",
+      "Host-path metric corrected: 0 leaks in 80 checked of 80 recorded responses (41 2xx, 37 4xx, 2 5xx); check extended to 5xx"
+    ]
+  }
+}
