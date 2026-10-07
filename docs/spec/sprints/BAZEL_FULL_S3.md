@@ -472,3 +472,49 @@ preregistration applies. The one sealed expectation, written here before any
 run, is root's relayed prediction in section 3 (5 calibration cases, 2 macOS
 process cases); Phase 2 reports observed against it without adjusting the
 graph to match.
+
+## 16. Phase 2 amendments (recorded deviations, with cause)
+
+Recorded during implementation; the frozen sections above are unchanged. Every
+value named here is in the receipts (section 14).
+
+1. **Site gate (deviation from 4.1, cause: 9.2 and 9.3).** rules_js 3.5.1
+   fails `npm_translate_lock` when the lock's `pnpm-workspace.yaml` has no
+   `allowBuilds` (`npm_translate_lock_helpers.bzl` `_verify_lifecycle_hooks_specified`,
+   called unconditionally by `parse_and_verify_lock`; no attribute bypasses it,
+   and the only other source is `pnpm.onlyBuiltDependencies` in
+   `site/package.json`, also not owned), and one refused translation fails the
+   whole `npm` extension, `//web` included. The `npm_site` translation therefore
+   sits in a `dev_dependency = True` usage, and `.bazelrc` carries
+   `common --ignore_dev_dependency` and `common --deleted_packages=site`, so the
+   committed tree loads exactly the bazel_graph packages plus `//bazel`.
+   `tests/test_bazel_graph_s3.py` requires the gate to be present exactly while
+   a prerequisite is missing. `MODULE.bazel.lock` is byte-identical with and
+   without the gate (measured).
+2. **Carrier method (9.3).** Option 1 without un-ignoring fails
+   (`no such package 'site/vendor/xoxd-public-chrome': Package is considered
+   deleted due to --deleted_packages`). Option 2 cannot redirect: rules_js
+   generates the first-party store with a fixed main-repository label
+   `//site/vendor/<dir>:pkg` and skips `replace_packages` for
+   `resolution.type == "directory"` (`npm_translate_lock_helpers.bzl` line 508);
+   a scratch probe with both `local_path_override`s resolved the module graph
+   and failed with the same deleted-package error. Option 1 works once the
+   root-owned `.bazelignore` replaces `site/vendor` with
+   `site/vendor/xoxd-theme/test` (the carrier's own test package, whose
+   `//:test_inputs` labels only resolve inside its own module); the vendored
+   files are not edited. `//site` is therefore `built_in_scratch_copy` until
+   root applies both lines (scratch = lane HEAD + the three requested root
+   changes).
+3. **Owned site build runner.** The site's agents page reads
+   `<site>/../program/tools.json` at prerender time; the shared runner builds in
+   a scratch directory without that sibling. `bazel/site_build.mjs` (owned)
+   lays out `<scratch>/site` and `<scratch>/program/tools.json`; sync and check
+   reuse `//tools/bazel:web/sveltekit.mjs` unchanged. The root package exports
+   `program/tools.json` and `//site:tool_registry` copies it into the package
+   (rules_js copies only same-package files to the output tree).
+4. **`//bazel` package.** `bazel/BUILD.bazel` exports the site runner and an
+   `all_files` group added to the unittest data. No BUILD or `.bzl` file reads
+   `bazel/known_host_failures.json`.
+5. **Host gate.** `bazel/host_gate.py` logs each reading to the lane artifacts;
+   the receipts carry the series. The site bring-up wait was superseded so that
+   the first opening went to the full run.
