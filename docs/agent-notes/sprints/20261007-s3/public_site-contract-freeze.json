@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "lane": "public_site",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5723",
+  "phase": "1_contract_freeze",
+  "recorded_utc": "2026-10-07T09:24:25Z",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "baseline": "f44f962ba159e82b0384dd89e95d8a3ba5246267",
+  "spec": {"path": "docs/spec/sprints/PUBLIC_SITE_S3.md", "sha256": "ac5ed53e202d94022d7cc23887b4df1fc5a2dfe693a98baed5a685e041d9aaec"},
+  "preregistered": false,
+  "preregistration": null,
+  "experiment": "none",
+  "numerics_run": false,
+  "installs_run": false,
+  "builds_run": false,
+  "downloads": false,
+  "deployed": false,
+  "estate_sources_read": [
+    {"repo": "site.scaffold", "ref": "origin/main", "commit": "9fef9eea73cb948f984acd8c6159a6422778956a", "commit_date": "2026-10-05T21:35:12-04:00"},
+    {"repo": "xoxd.ai", "ref": "origin/main", "commit": "cc570c3c1079cc5754840395184f0c1a6fece97f", "commit_date": "2026-10-05T21:35:12-04:00"},
+    {"repo": "bazel-registry", "ref": "origin/main", "commit": "8d3e5407863132f62c14a5d674435890823a9d22", "commit_date": "2026-10-05T21:59:29-04:00"}
+  ],
+  "sibling_repo_actions": "git fetch origin only (remote-tracking refs updated); no working tree, branch or config changed",
+  "frozen": {
+    "skeleton": "5.0.1",
+    "effect": "absent (public template has none); 4.0.1 is the only admissible pin",
+    "routes": ["/", "/features", "/agents", "/status"],
+    "leak_rules": 24,
+    "chrome_ladder": ["A_verified_public_archives_vendored", "B_local_token_only_chrome"]
+  },
+  "unknown": {
+    "archives_anonymously_fetchable": "unknown",
+    "xoxd_chrome_consumed": "unknown",
+    "xoxd_theme_consumed": "unknown",
+    "pages_project_name": null,
+    "public_hostname": null,
+    "public_product_name": null,
+    "template_archive_verified": false
+  },
+  "open_items": [
+    "Rung A commits carrier copies of chrome 0.1.0 and theme 0.1.1, a deviation from estate ruling N2; root may prefer a Bazel link later",
+    "pnpm alignment target: public template pins 10.13.1, web/ and this site use 11.25.0",
+    "Public product name, Pages project, account and domain are operator decisions",
+    "Full tuning, artist references and dated market comparisons are withheld from the public site pending an operator decision"
+  ],
+  "root_owned_changes_requested": []
+}
