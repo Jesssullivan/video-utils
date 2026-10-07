@@ -1,164 +1,143 @@
 {
-  "author_action_keeps_run": true,
-  "basis": {
-    "baseline_commit": "a077766da88b1cccf8190f4b34fda0893723b9c4",
-    "contract_commit": "18651c9d11b3efd87928cac70e8fa3b7626696dd",
-    "date_utc": "2026-10-07",
-    "lane_branch": "sprint/20261007-s3/web_fixes",
-    "lane_commit": "d4e3b962345619150dedd3c61fdeaad9acce75b8",
-    "measured_on": "the lane worktree at lane_commit (source and tests); receipts are added by the following commit, which changes only web_fixes-*.json",
-    "not_a_merge": "the lane did not merge, push or touch main"
-  },
-  "claim_class": "contract",
-  "command": null,
-  "definition_of_done": {
-    "1_interval_typing": {
-      "evidence": "X5 9/9 typed cases without page error; warning 3/3 inside, absent 4/4 outside",
-      "met": true
-    },
-    "1b_same_class": {
-      "evidence": "7/7 number inputs typed without page error; 4 components threw unfixed, 4 changed",
-      "met": true
-    },
-    "2_run_stays_selected": {
-      "evidence": "3/3 actions (measure, refused save, accepted save) plus author 1/1; forged run ids select nothing 6/6",
-      "met": true
-    },
-    "3_favicon": {
-      "evidence": "GET /favicon.svg 200 image/svg+xml; 0 favicon errors in 60 scenarios",
-      "met": true
-    },
-    "4_axe": {
-      "evidence": "38/38 scans, 0 violations in light and dark; baseline 0/42 entries, 0/62 nodes",
-      "met": true
-    },
-    "tests_unfailed": {
-      "evidence": "test.fail count 2 -> 0; defect tolerances 5 -> 0",
-      "met": true
-    }
-  },
-  "exit_code": null,
-  "files_changed": [
-    "docs/spec/sprints/WEB_FIXES_S3.md",
-    "web/e2e/a11y-baseline.json",
-    "web/e2e/capture.spec.ts",
-    "web/e2e/library.spec.ts",
-    "web/e2e/process.spec.ts",
-    "web/e2e/source.spec.ts",
-    "web/src/app.css",
-    "web/src/app.html",
-    "web/src/lib/components/AnnotationPanel.svelte",
-    "web/src/lib/components/JobStateBadge.svelte",
-    "web/src/lib/components/ProcessForm.svelte",
-    "web/src/lib/components/processing/IntervalPicker.svelte",
-    "web/src/lib/components/processing/SpanAudition.svelte",
-    "web/src/lib/components/review/ABCompare.svelte",
-    "web/src/lib/components/review/FlagsList.svelte",
-    "web/src/lib/components/review/MarkHere.svelte",
-    "web/src/lib/components/review/QuickMarkBar.svelte",
-    "web/src/lib/components/review/ReviewWorkspace.svelte",
-    "web/src/lib/components/review/TimingTable.svelte",
-    "web/src/routes/+layout.svelte",
-    "web/src/routes/sources/[id=artifactid]/capture/+page.svelte",
-    "web/src/routes/sources/[id=artifactid]/process/+page.svelte",
-    "web/src/routes/upload/+page.svelte",
-    "web/static/favicon.svg",
-    "web/tests/e2e-support.ts"
-  ],
   "lane": "web_fixes",
-  "measured_vs_inferred": {
-    "inferred": [
-      "after contrast ratios 5.78 and 4.64, computed from theme tokens",
-      "scheme_changes_rendering false, from identical light/dark axe counts"
-    ],
-    "measured": [
-      "svelte-check, build, vitest, Playwright and axe counts above",
-      "before contrast ratios 3.62 (primary) and 2.71/2.72 (error badge) from axe node data",
-      "the three unfixed components each threw \"trim is not a function\" in a browser run"
-    ],
-    "unknown": [
-      "manual accessibility, screen reader, WCAG conformance",
-      "appearance of the changed presets and underlined links (no visual review)",
-      "Firefox/WebKit",
-      "behaviour against the real control API in a browser",
-      "whether the container image serves static/",
-      "fixture drift"
-    ]
-  },
-  "new_colour_literals": [],
-  "not_done": [
-    "no push, merge, Linear write, model or browser download, daemon, or root-owned file edit",
-    "run artifacts stay in the gitignored artifacts/s2/web_fixes/ and are cited by sha256"
-  ],
-  "plain_statement": "Accessibility figures are automated axe-core results only. No manual audit, no screen-reader test and no WCAG conformance claim was made. Nobody looked at the restyled buttons, badge or links.",
-  "receipt": "handoff",
-  "receipts": [
-    "web_fixes-contract-freeze.json",
-    "web_fixes-check-build.json",
-    "web_fixes-unit.json",
-    "web_fixes-e2e.json",
-    "web_fixes-a11y.json",
-    "web_fixes-python.json",
-    "web_fixes-root-requests.json",
-    "web_fixes-handoff.json"
-  ],
-  "residual_baseline_entries": [],
-  "results": {
-    "a11y": "38 passed of 38; 0 violations; incomplete 22 results / 86 nodes (was 34 / 130), reported not passed",
-    "build": "exit 0",
-    "check": "0 errors, 0 warnings, 1370 files",
-    "e2e": "60 passed of 60, 0 expected failures, 0 unexpected, 0 flaky, 0 skipped (11 files)",
-    "python": {
-      "test_web_house_stack_s3": "19/19 passed, 0 failed, 0 skipped",
-      "test_web_processing_s3": "24/24 passed, 0 failed, 0 skipped",
-      "test_web_runs_s3": "36/36 passed, 0 failed, 0 skipped",
-      "test_web_stack": "33/33 passed, 0 failed, 0 skipped"
-    },
-    "unit": "153 passed + 2 expected failures of 155 (13/13 files); the 2 are refusal_text_prototype_key, carried"
-  },
-  "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N11/R-N12/R-N13",
-  "schema_version": 1,
   "sprint": "20261007-s3",
-  "status": "complete: all four defect groups fixed in source; 0 expected failures; empty axe baseline",
-  "things_root_should_know": [
-    "Every .anchor link is now underlined at rest, not only the in-text ones on /.",
-    "Primary filled buttons and the active nav item are a darker blue (primary-700 instead of primary-500); the failed/interrupted job badge is a darker red (error-800).",
-    "The error badge after-ratio is 4.64 against a 4.5 threshold: it passes axe with little margin.",
-    "Capture form action URLs now end in &run=<id>; anything that posts to ?/measure, ?/save or ?/author without it still works and simply selects no run afterwards (as before).",
-    "The e2e and a11y suites took 4.9 and 7.2 minutes here with one worker (limits 10 minutes each); the same a11y suite took 1.0 and 2.9 minutes in earlier runs the same day, so wall time on this host varies widely.",
-    "Python modules ran on the same working tree content as lane_commit; two of them finished just after the commit was made."
-  ],
+  "branch": "sprint/20261007-s3/web_fixes",
+  "base_commit": "a077766da88b1cccf8190f4b34fda0893723b9c4",
+  "head": "83abbbfb42d7a627fed3bc794b75505448ffedcb",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint3/web_fixes",
   "tracker": "TIN-5724",
-  "unit_expected_failures_carried": {
-    "code": "refusal_text_prototype_key",
-    "count": 2
+  "authority": "docs/spec/sprints/20261007-S3.md, WEB_TESTS_S3.md, repository AGENTS.md, R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13",
+  "contract_freeze_date": "2026-10-07",
+  "state": "implemented_tested_audited",
+  "files": [
+    {"path": "docs/agent-notes/sprints/20261007-s3/web_fixes-a11y.json", "sha256": "7cd38855f277088d4bcfb2207959c60c6055066bfdba0b35a39e32fb854583bc", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/web_fixes-check-build.json", "sha256": "c267a0f52e5cfbb122686fbec1221078532950a7ca2feca8670ddd50ab948ef5", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/web_fixes-contract-freeze.json", "sha256": "aaefc26cb86bba1f3e466e3f3f9e331d38d34577b8f5951ffb5b5892fb6389f9", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/web_fixes-e2e.json", "sha256": "2cd03efbbea387b21c4d418998854e7a70ecd41c9697af9d56f328bc40a95734", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/web_fixes-handoff.json", "sha256": "096343ce53702a82bc62a0f3db62f3af945f69bb006daf663727eed0342a9542", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/web_fixes-python-full.json", "sha256": "255ea51e8be1eefb9b2d84c8fbe1ed4b16639670edb612447f5a06a1cc5778e6", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/web_fixes-python.json", "sha256": "a7fd6f34f6693239b046cfb45eae3e35337e749c340a24dde25f2877592f64ad", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/web_fixes-root-requests.json", "sha256": "7196a34abc8cab72b662b9e484beac8f4724329ad344383e5290613dda3575e7", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/web_fixes-unit.json", "sha256": "3941e601197c88a0ed91c5fee78e9492550c8e4977f74339c34254d9dbb08d1a", "kind": "receipt"},
+    {"path": "docs/spec/sprints/WEB_FIXES_S3.md", "sha256": "7fde13b820dc2abaa4d054f6894d18e6dab901a3e7e38f5b739d280090803f47", "kind": "spec"},
+    {"path": "web/e2e/a11y-baseline.json", "sha256": "ace08005807e63d7184e942f6b61f069ad8700f3ba9b7c245c3c15ce7c7e2514", "kind": "test"},
+    {"path": "web/e2e/capture.spec.ts", "sha256": "fb75d8065a7c5ec876dd9f3ce99833d4f9084a80f454817b963f47b5ba90829a", "kind": "test"},
+    {"path": "web/e2e/library.spec.ts", "sha256": "cd8f0668d9640f73dd4aba58f3e902a1f59949bc785b860816addae6c404c0e2", "kind": "test"},
+    {"path": "web/e2e/process.spec.ts", "sha256": "4beafb6ce67a4ebd53a69bb04e2183b6ed75ca3bba5980d822fac14fd7195032", "kind": "test"},
+    {"path": "web/e2e/source.spec.ts", "sha256": "f91340bea06bdcb157a95de48a15a832627b12450671c60e2626903a7e7065e1", "kind": "test"},
+    {"path": "web/src/app.css", "sha256": "9940408db910c0e1b8e34f8105018ab0e30db485cd4510aa67c3c797965e982e", "kind": "source"},
+    {"path": "web/src/app.html", "sha256": "e64a945e4bd41ae058034e1d13d1b25b6d23debe298eb0ba66b9c3f1b370df01", "kind": "source"},
+    {"path": "web/src/lib/components/AnnotationPanel.svelte", "sha256": "8fb2a6f58489b40e7095e594ad2cf92e7816cf5de2248b2251cdb3a3e487612b", "kind": "source"},
+    {"path": "web/src/lib/components/JobStateBadge.svelte", "sha256": "3f8a9339e8c488597e4e03dbea428286a4140648b38ae425f7b907e53967bc92", "kind": "source"},
+    {"path": "web/src/lib/components/ProcessForm.svelte", "sha256": "8b9fbb82adfaa0163eb56bae8385fe956332c3b41db38f2f6f8138402ff5776f", "kind": "source"},
+    {"path": "web/src/lib/components/processing/IntervalPicker.svelte", "sha256": "53902f77e0c019edb93d23179b7fa55943dd2fb35347a2567e73b7c859240f41", "kind": "source"},
+    {"path": "web/src/lib/components/processing/SpanAudition.svelte", "sha256": "c9194c810ebc882242be9b2cdf418fc106f96c52a8511fc13092ba592657b2bc", "kind": "source"},
+    {"path": "web/src/lib/components/review/ABCompare.svelte", "sha256": "ac2664f2a14ea0659b2327de75590d1c6d94851d95778b39ea610bfc550996d0", "kind": "source"},
+    {"path": "web/src/lib/components/review/FlagsList.svelte", "sha256": "8acd024a7d71194798f17734b232373bdfa935804e260ac44c10e90fc397b33b", "kind": "source"},
+    {"path": "web/src/lib/components/review/MarkHere.svelte", "sha256": "a11508233301f20116f1bdd0810e6082f04a7837d2d330b963091303f536bde6", "kind": "source"},
+    {"path": "web/src/lib/components/review/QuickMarkBar.svelte", "sha256": "b08c3631623223e9d9f0594607bae2065487e5a1e82c887e25a847071979e680", "kind": "source"},
+    {"path": "web/src/lib/components/review/ReviewWorkspace.svelte", "sha256": "70ecae8bbfed86e57334d14234ecc164397af7995a3a98f9614ebe46b7aa7285", "kind": "source"},
+    {"path": "web/src/lib/components/review/TimingTable.svelte", "sha256": "94bbbb545c0e6e46334b996657491c58e45526c108374a333e03863f29c10c96", "kind": "source"},
+    {"path": "web/src/routes/+layout.svelte", "sha256": "7fe3bee93da662de5ece1389d558dfb59cbf4bc82048faba8a6b63bc3e91bf00", "kind": "source"},
+    {"path": "web/src/routes/sources/[id=artifactid]/capture/+page.svelte", "sha256": "5114c5278f7363f07a4dd29013d351a856112d91a98eb56ee5e78935707f2f0a", "kind": "source"},
+    {"path": "web/src/routes/sources/[id=artifactid]/process/+page.svelte", "sha256": "52255beed3d4dedd800237f10c79a70cbc0b7bed09f157d59fcd4c24f455f38c", "kind": "source"},
+    {"path": "web/src/routes/upload/+page.svelte", "sha256": "ddc65a21f5c2d5d1e9b29ff3e91ca142d96936274d582bdee9bb0da37ed7e244", "kind": "source"},
+    {"path": "web/static/favicon.svg", "sha256": "1239dd73d4d7614b3b979fc0910a9c9054995aff7fdc414050105449cebb89ec", "kind": "source"},
+    {"path": "web/tests/e2e-support.ts", "sha256": "084945e001ec431737973ba38bfdf140316e67d412d923168df6a56eaf75be46", "kind": "test"}
+  ],
+  "tests": {
+    "command": "cd /Users/jess/git/video-utils && export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe && PYTHONPATH=tests timeout 3600 python3 -m unittest test_web_house_stack_s3 test_web_stack test_web_processing_s3 test_web_runs_s3 test_auth_hosting_s3 -v",
+    "discovered": 151,
+    "passed": 151,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 223
   },
-  "unknowns": {
-    "browser_source": "playwright cache (expected revision already present); nothing downloaded",
-    "browser_used": "chromium",
-    "browser_version": "153.0.8010.12",
-    "claims_note": "no listening, ~32 Hz, detector, profile, master or note-correctness claim is made; no DSP code was touched",
-    "containerfile_serves_static": null,
-    "containerfile_serves_static_reason": "root-owned; no image was built by this lane (see web_fixes-root-requests.json)",
-    "favicon_under_tailnet_auth_mode": null,
-    "favicon_under_tailnet_auth_mode_reason": "only loopback mode was exercised",
-    "firefox_webkit_behaviour": null,
-    "firefox_webkit_behaviour_reason": "Chromium only",
-    "fixture_drift": null,
-    "fixture_drift_reason": "fixtures were not regenerated or compared with the registries on main by this lane",
-    "flaky_retries": 0,
-    "light_theme_exists": false,
-    "listening_claims": null,
-    "low_register_claims": null,
-    "manual_accessibility_audit": null,
-    "manual_accessibility_audit_reason": "not performed; axe automated rules only",
-    "note_correctness_claims": null,
-    "real_control_api_under_playwright": null,
-    "real_control_api_under_playwright_reason": "the browser suites replay committed synthetic fixtures through the mock",
-    "real_take_facts_in_fixtures": false,
-    "screen_reader_acceptance": null,
-    "screen_reader_acceptance_reason": "no assistive technology was run",
-    "wcag_conformance": null,
-    "wcag_conformance_reason": "axe evaluates a subset of WCAG; zero axe violations is not conformance"
+  "metrics": [
+    {"name": "pnpm check", "numerator": 0, "denominator": 1, "unit": "errors", "claim_class": "measurement"},
+    {"name": "pnpm build", "numerator": 1, "denominator": 1, "unit": "success", "claim_class": "measurement"},
+    {"name": "build stage produces favicon.svg", "numerator": 1, "denominator": 1, "unit": "present", "claim_class": "measurement"},
+    {"name": "unit tests passed", "numerator": 153, "denominator": 155, "unit": "tests", "claim_class": "behaviour"},
+    {"name": "unit tests expected failures", "numerator": 2, "denominator": 2, "unit": "tests", "claim_class": "behaviour"},
+    {"name": "e2e tests passed", "numerator": 60, "denominator": 60, "unit": "tests", "claim_class": "behaviour"},
+    {"name": "e2e expected failures", "numerator": 0, "denominator": 0, "unit": "tests", "claim_class": "behaviour"},
+    {"name": "e2e unexpected", "numerator": 0, "denominator": 60, "unit": "tests", "claim_class": "behaviour"},
+    {"name": "interval typing cases without error", "numerator": 9, "denominator": 9, "unit": "cases", "claim_class": "behaviour"},
+    {"name": "interval warning when start < 5s", "numerator": 3, "denominator": 3, "unit": "cases", "claim_class": "behaviour"},
+    {"name": "interval silent when start >= 5s", "numerator": 4, "denominator": 4, "unit": "cases", "claim_class": "behaviour"},
+    {"name": "number inputs typed without error", "numerator": 7, "denominator": 7, "unit": "inputs", "claim_class": "behaviour"},
+    {"name": "components with number-binding defect fixed", "numerator": 4, "denominator": 7, "unit": "components", "claim_class": "behaviour"},
+    {"name": "actions keeping run selected", "numerator": 3, "denominator": 3, "unit": "actions", "claim_class": "behaviour"},
+    {"name": "forged run values selecting nothing", "numerator": 6, "denominator": 6, "unit": "values", "claim_class": "behaviour"},
+    {"name": "favicon requests with 200 status", "numerator": 1, "denominator": 1, "unit": "favicon", "claim_class": "behaviour"},
+    {"name": "favicon console errors", "numerator": 0, "denominator": 60, "unit": "scenarios", "claim_class": "behaviour"},
+    {"name": "declared tolerances removed", "numerator": 0, "denominator": 5, "unit": "tolerances", "claim_class": "contract"},
+    {"name": "a11y scans executed", "numerator": 38, "denominator": 38, "unit": "scans", "claim_class": "measurement"},
+    {"name": "a11y violations found", "numerator": 0, "denominator": 38, "unit": "scans", "claim_class": "measurement"},
+    {"name": "a11y violations outside baseline", "numerator": 0, "denominator": 0, "unit": "violations", "claim_class": "measurement"},
+    {"name": "baseline entries remaining", "numerator": 0, "denominator": 42, "unit": "entries", "claim_class": "measurement"},
+    {"name": "baseline nodes remaining", "numerator": 0, "denominator": 62, "unit": "nodes", "claim_class": "measurement"},
+    {"name": "new colour literals added", "numerator": 0, "denominator": 1, "unit": "zero", "claim_class": "contract"},
+    {"name": "Python tests passed (five modules)", "numerator": 151, "denominator": 151, "unit": "tests", "claim_class": "behaviour"},
+    {"name": "Rust tests passed", "numerator": 27, "denominator": 28, "unit": "tests", "claim_class": "behaviour"},
+    {"name": "Rust tests ignored", "numerator": 1, "denominator": 28, "unit": "tests", "claim_class": "behaviour"},
+    {"name": "files changed outside scope", "numerator": 0, "denominator": 34, "unit": "files", "claim_class": "contract"}
+  ],
+  "unknowns": [
+    "manual_accessibility_audit: automated axe-core results only, not manual audit or screen-reader test",
+    "screen_reader_acceptance: no assistive technology was run",
+    "wcag_conformance: zero axe violations does not imply full WCAG conformance; axe evaluates a subset",
+    "light_theme_exists: false; app.html fixes class=\"dark\" and color-scheme: dark, so light scans measure dark page",
+    "firefox_webkit_behaviour: Chromium only; Firefox and WebKit untested",
+    "real_control_api_under_playwright: commits mock synthesized fixtures, not real API",
+    "fixture_drift: fixtures not regenerated or compared with registries on main by this lane",
+    "containerfile_serves_static: null; root-owned; no image was built by this lane",
+    "favicon_under_tailnet_auth_mode: only loopback mode exercised, not tailnet auth",
+    "visual_review: changed button, badge and link appearance not reviewed by person"
+  ],
+  "dropped_scope": [],
+  "root_owned_changes_requested": [
+    {
+      "file": "web/Containerfile",
+      "change": "--- a/web/Containerfile\n+++ b/web/Containerfile\n@@ -21,4 +21,5 @@\n RUN pnpm install --frozen-lockfile\n COPY svelte.config.js vite.config.ts tsconfig.json ./\n COPY src/ ./src/\n+COPY static/ ./static/\n RUN pnpm run build",
+      "why": "The build stage copies src/ only. web/static/favicon.svg is new, so an image built from the current Containerfile would link /favicon.svg and answer 404. adapter-node copies static/ into build/client at build time, so one COPY before the build is enough. Needed before next image build, not for this merge."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261007-s3/web_fixes-contract-freeze.json",
+    "docs/agent-notes/sprints/20261007-s3/web_fixes-check-build.json",
+    "docs/agent-notes/sprints/20261007-s3/web_fixes-unit.json",
+    "docs/agent-notes/sprints/20261007-s3/web_fixes-e2e.json",
+    "docs/agent-notes/sprints/20261007-s3/web_fixes-a11y.json",
+    "docs/agent-notes/sprints/20261007-s3/web_fixes-python.json",
+    "docs/agent-notes/sprints/20261007-s3/web_fixes-python-full.json",
+    "docs/agent-notes/sprints/20261007-s3/web_fixes-root-requests.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "All 34 files are within the owned set: web/src/**, web/static/favicon.svg, web/e2e/**, web/tests/e2e-support.ts, docs/spec/sprints/WEB_FIXES_S3.md, docs/agent-notes/sprints/20261007-s3/web_fixes-*.json",
+      "No root-owned files were edited; requested changes for web/Containerfile are deferred to root",
+      "Test suite completed successfully: 151 Python tests + 27 Rust tests passed; 0 failures; 1 Rust test ignored (expected)",
+      "F1 defects (interval input number binding) fixed in IntervalPicker and capture/+page.svelte",
+      "F1b same-class audit found and fixed 3 additional components: SpanAudition, AnnotationPanel, ProcessForm; KnobField left untouched (no error observed)",
+      "F2 run retention: measure, save and author action URLs now carry &run=<chosen run>",
+      "F3 favicon: new SVG file web/static/favicon.svg linked from app.html",
+      "F4 contrast fixes: primary-500 -> primary-300-700 (42 nodes) and error-500 -> error-200-800 (4 nodes); all now meet 4.5:1 WCAG 2 AA",
+      "Heading order fixed: h3 -> h2 in ABCompare, FlagsList, TimingTable",
+      "Upload file input now has visible label",
+      "In-text anchor links underlined via cerberus tokens",
+      "All tolerances removed: 4 NUMBER_BINDING_DEFECT + 1 favicon-404 default",
+      "a11y baseline empty: 0/42 entries, 0/62 nodes; 38/38 scans with 0 violations",
+      "No model downloads, browser cache used, no daemon started"
+    ],
+    "must_fix": []
   }
 }
