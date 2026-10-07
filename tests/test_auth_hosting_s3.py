@@ -700,6 +700,12 @@ class BuiltHooksTests(unittest.TestCase):
             self.skipTest("node not on PATH")
         if not (WEB / "build" / "index.js").is_file():
             self.skipTest("web/build absent (run the web_stack build tests first)")
+        built = (WEB / "build" / "index.js").stat().st_mtime
+        newest_source = max((f.stat().st_mtime for d in ("src",) for f in (WEB / d).rglob("*") if f.is_file()),
+                            default=0.0)
+        newest_source = max(newest_source, (WEB / "serve.js").stat().st_mtime)
+        if newest_source > built:
+            self.skipTest("web/build is older than web sources (stale build; rebuild with `pnpm run build` first)")
 
     def test_t1_tailnet_mode_denies_by_default(self) -> None:
         port = _free_port()

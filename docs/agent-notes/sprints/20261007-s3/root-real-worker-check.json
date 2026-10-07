@@ -1,0 +1,30 @@
+{
+  "actor": "/root video-utils-d6",
+  "date_utc": "2026-10-07T09:47:00Z",
+  "head": "0c98b66",
+  "command": "python3 -m unittest discover -s tests -p 'test_*.py' (main checkout, FFMPEG/FFPROBE = nix ffmpeg-headless 8.1.2)",
+  "purpose": "real-worker check for web job types that the lane and integration worktrees could not run because their paths contain a dot-prefixed component",
+  "real_workers": {
+    "apply_capture_profile": "succeeded",
+    "capture_profile": "succeeded",
+    "denoise": "succeeded"
+  },
+  "source": "synthetic generated fixture only; the real take was not opened",
+  "log_excerpt": "\"real_workers\": {\n    \"apply_capture_profile\": \"succeeded\",\n    \"capture_profile\": \"succeeded\",\n    \"denoise\": \"succeeded\"\n  },\n  \"review_enum_parity_checked\": 22,\n  \"schema_migration\": {\n    \"v1_job_",
+  "full_suite": {
+    "ran": 1692,
+    "failures": 8,
+    "skipped": 71,
+    "failure_causes": {
+      "pre_existing_macos_process_entitlement": 2,
+      "stale_local_web_build_in_BuiltHooksTests": 6
+    },
+    "rerun_auth_hosting_after_rebuild": "39 run, OK"
+  },
+  "decision": "apply_capture_profile web_job adapter is eligible for admission; the coordinated change (WEB_JOB_ADMISSIONS, WEB_JOB_PENDING_REAL_WORKER, program/capabilities.json, test_capabilities and test_web_processing_s3 pins) lands with the next root integration",
+  "not_established": [
+    "listening acceptance",
+    "real-take behaviour through the web path for apply_capture_profile",
+    "~32 Hz preservation measured by a web job"
+  ]
+}
