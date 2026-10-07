@@ -449,9 +449,11 @@ reason) is a valid, fully reported completion.
 The frozen text above is the contract as committed at `665810f` (sha256
 `4600248630682950455d99cbb4438a1144a23a587fbdba4f4eb006e2c7ba49c7`). This section
 records what was built and where the implementation differs from that text.
-Counts and results are in the receipts
-`docs/agent-notes/sprints/20261007-s3/web_tests-*.json`; nothing here adds a
-listening, tone, low-register or musical claim.
+Phase 2 committed one receipt, `web_tests-npm-latest.json`. Counts and results
+are in the receipts `docs/agent-notes/sprints/20261007-s3/web_tests-*.json`
+written by the Phase 4 repair (11.4) from a rerun at the repair commit; no
+Phase 2 run is cited as evidence. Nothing here adds a listening, tone,
+low-register or musical claim.
 
 ### 11.1 Delivered
 
@@ -511,12 +513,30 @@ listening, tone, low-register or musical claim.
     Named imports from `effect` are checked against the same list.
 12. **5.4 `FixtureDrift` gate.** The gate is the file set, `ids.json`,
     `routes.json` and the shape (keys and JSON types) of every file. Byte
-    equality is reported. One FFmpeg-measured size was seen to vary between
-    runs on one host.
-13. **4.8 fixture keys.** Idempotency keys are `fixture-000000NN` counters.
-    Word-like keys tripped the scanner's entropy rule; no allowlist was added.
-14. **Section 6 receipts.** `web_tests-contract-freeze.json` is written in
-    Phase 2 (Phase 1 committed the specification only).
+    equality is reported as a measurement, not gated: sizes and loudness come
+    from the FFmpeg worker and a different FFmpeg build may produce other
+    numbers (design choice; not measured, one build was used). No run-to-run
+    variation is on record: four regenerations on one host were byte-identical
+    to the committed set (`web_tests-e2e.json`, `fixture_regeneration`).
+13. **4.8 fixture keys.** Idempotency keys are `fixture-000000NN` counters,
+    chosen in advance under the lane rule that fixture keys stay low entropy.
+    The lane recorded no scanner finding for any other key form. No allowlist
+    was added.
+14. **Section 6 receipts.** Phase 2 committed `web_tests-npm-latest.json`
+    only. The other eight receipts of section 6, including
+    `web_tests-contract-freeze.json`, were written in the Phase 4 repair.
+15. **5.4 site rule.** `site/` did not exist at the lane's merge base
+    (`05a13f2`); it landed on main in `eab94ed` with two dependencies declared
+    as `file:vendor/<dir>`. The frozen rule "every dependency is an exact
+    version" stays as written for `web/`. For `site/` the test accepts
+    `file:vendor/<dir>` only when `site/vendor/PROVENANCE.json` lists that
+    package and directory as an unmodified carrier with matching integrity
+    values, the vendored `package.json` has the recorded sha256, name and
+    version, it declares any contract package at the exact contract pin, and
+    the lockfile resolves it as that directory. Carrier sources are scanned
+    with the same Skeleton and Effect rules. Whether vendoring is the right
+    long-term shape for `site/` is root's decision; the test only refuses an
+    unrecorded or modified carrier.
 
 ### 11.3 Known source defects found by the browser suite
 
@@ -532,7 +552,23 @@ it and a fix request in `web_tests-root-requests.json`. Tests marked
 | `favicon_missing` | No favicon; the browser logs a 404 on first load | counted per test, never ignored |
 | axe violations | 42 baseline entries over 4 rules (section 5.3) | recorded; gate passes inside the baseline |
 
-### 11.4 Unchanged doctrine
+### 11.4 Phase 4 repair (2026-10-07)
+
+An audit of `cb9ed3e` found four defects in the lane's delivery; this
+subsection records them and what replaced them.
+
+| Audit finding | Repair |
+| --- | --- |
+| `SiteObeysSameRule` failed on main + lane (`file:vendor/...` in `site/package.json`); the lane's run had no `site/` | Item 15 above; `VendoredCarriers` exercises the site branch on synthetic packages whether or not `site/` exists; the module was also run on the merge tree of main and the lane (`web_tests-pins.json`) |
+| Section 11 cited receipts that did not exist and gave two unsupported causes (items 12 and 13); `web/e2e/fixtures/README.json` repeated them | Items 12-14 and the README text are corrected; the receipts now exist |
+| Receipts, recipe text and CI proposal were not on the branch | The eight receipts of section 6 are committed; recipes and the CI proposal are in `web_tests-root-requests.json` |
+| e2e and a11y figures were measured before the fixtures were regenerated; `pnpm run check` predated two helper files | Unit, check, build, e2e and a11y were rerun at the repair commit; only that rerun is recorded |
+
+The Phase 2 figures that were reported but never committed ("52 tests, 50
+passed", "38 scans inside the baseline") are withdrawn as evidence. They are
+not restated in any receipt.
+
+### 11.5 Unchanged doctrine
 
 No high-pass, low-cut or notch control is introduced, defaulted or sendable
 (unit property and a browser check over every preset). The synthetic clip and

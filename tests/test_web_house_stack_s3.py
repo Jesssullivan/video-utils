@@ -9,6 +9,11 @@ of the registry at the recorded time; this test never asks the registry), and re
 an Effect 3 import path. The Skeleton and Effect lists it checks against are read from that record, where
 they were derived from the Skeleton v5 migration guide and npm export maps; nothing is asserted from memory.
 
+Vendored carriers: web/ takes exact registry versions only. site/ (root-owned, landed after this lane's
+contract was frozen) may also declare `file:vendor/<dir>` for a directory that site/vendor/PROVENANCE.json
+lists as an unmodified, integrity-matched carrier; such a carrier is checked against the same Skeleton and
+Effect rules (its own declared contract packages and its sources). Any other non-registry spec is refused.
+
 Claim classes: every assertion here is a contract (a static statement about committed files) except
 FixtureDrift, which regenerates the synthetic e2e fixtures and reports a typed skip
 `fixture_generation_unavailable` (not a pass) when FFmpeg or a generator dependency is missing.
@@ -16,6 +21,7 @@ FixtureDrift, which regenerates the synthetic e2e fixtures and reports a typed s
 from __future__ import annotations
 
 import datetime
+import hashlib
 import importlib.util
 import json
 import os
@@ -42,6 +48,8 @@ ADDED_DEV_DEPENDENCIES = ('vitest', '@playwright/test', '@axe-core/playwright', 
 LANE_SCRIPTS = {'test:unit': 'vitest run', 'test:e2e': 'playwright test --project=e2e',
                 'test:a11y': 'playwright test --project=a11y'}
 EXACT_VERSION = re.compile(r'^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$')
+VENDORED_SPEC = re.compile(r'^file:(vendor/[a-z0-9][a-z0-9_-]*)$')
+NON_REGISTRY_PREFIXES = ('npm:', 'link:', 'file:', 'workspace:', 'git', 'http')
 EXPECTED_TOOL_COUNT = 42
 GENERATE_TIMEOUT_S = 300
 UNAVAILABLE_EXIT = 75
@@ -131,8 +139,10 @@ def major(version):
 class Stack:
     """One package directory (web/, or site/ when it exists) checked against the house-stack rules."""
 
-    def __init__(self, directory):
+    def __init__(self, directory, allow_vendored=False):
         self.directory = Path(directory)
+        # Only site/ may carry provenance-bound `file:vendor/<dir>` dependencies; web/ never does.
+        self.allow_vendored = allow_vendored
         self.package = read_json(self.directory / 'package.json')
         self.declared = declared(self.package)
         lock = self.directory / 'pnpm-lock.yaml'
@@ -141,6 +151,56 @@ class Stack:
         workspace = self.directory / 'pnpm-workspace.yaml'
         self.workspace_text = workspace.read_text() if workspace.is_file() else ''
         self.sources = source_files(self.directory / 'src') if (self.directory / 'src').is_dir() else []
+        # Sources of vendored carriers obey the same import and token rules as the package's own sources.
+        self.vendored_sources = 0
+        for directory in sorted({vendored_directory(self, spec) for spec, _block in self.declared.values()} - {None}):
+            found = source_files(self.directory / directory)
+            self.vendored_sources += len(found)
+            self.sources += found
+
+
+def vendored_directory(stack, spec):
+    """`vendor/<dir>` when the stack may vendor and the spec is exactly `file:vendor/<dir>`, else None."""
+    match = VENDORED_SPEC.match(spec) if stack.allow_vendored else None
+    return match.group(1) if match else None
+
+
+def check_vendored(case, stack, name, spec):
+    """A `file:vendor/<dir>` dependency is accepted only as a recorded, unmodified, integrity-matched carrier."""
+    directory = vendored_directory(stack, spec)
+    case.assertIsNotNone(directory, f'{name}: {spec} is not an accepted vendored spec')
+    case.assertNotIn(name, CONTRACT_PINS, f'{name} is a contract package and may not be vendored')
+    case.assertFalse(name.startswith(('@skeletonlabs/', '@effect/')), f'{name} may not be vendored')
+    provenance = stack.directory / 'vendor' / 'PROVENANCE.json'
+    case.assertTrue(provenance.is_file(), f'{name}: vendor/PROVENANCE.json is missing')
+    carriers = [row for row in read_json(provenance)['carriers'] if row.get('package') == name]
+    case.assertEqual(len(carriers), 1, f'{name}: exactly one carrier record is required')
+    carrier = carriers[0]
+    case.assertEqual(carrier['directory'], directory, f'{name}: carrier directory')
+    case.assertIs(carrier['integrity_match'], True, f'{name}: carrier integrity is not recorded as matched')
+    case.assertIs(carrier['modified'], False, f'{name}: carrier is recorded as modified')
+    case.assertEqual(carrier['registry_integrity'], carrier['computed_integrity'], f'{name}: integrity values differ')
+    manifest = stack.directory / directory / 'package.json'
+    case.assertTrue(manifest.is_file(), f'{name}: {directory}/package.json is missing')
+    recorded = {row['path']: row['sha256'] for row in carrier['files']}
+    case.assertEqual(hashlib.sha256(manifest.read_bytes()).hexdigest(), recorded.get('package.json'),
+                     f'{name}: vendored package.json differs from its provenance record')
+    package = read_json(manifest)
+    case.assertEqual(package.get('name'), name, f'{directory} holds another package')
+    case.assertEqual(package.get('version'), carrier['version'], f'{name}: carrier version')
+    case.assertRegex(package['version'], EXACT_VERSION)
+    inner = declared(package)
+    for contract, pin in CONTRACT_PINS.items():
+        if contract in inner:
+            case.assertEqual(inner[contract][0], pin, f'{name} declares {contract} {inner[contract][0]}, not {pin}')
+    for legacy_name, (inner_spec, _block) in inner.items():
+        case.assertFalse(inner_spec.startswith(NON_REGISTRY_PREFIXES), f'{name} -> {legacy_name}: {inner_spec}')
+    if stack.lock_text is not None:
+        entry = re.search(rf"(?m)^  '{re.escape(name)}@{re.escape(spec)}':\n    resolution: \{{directory: "
+                          rf"{re.escape(directory)}, type: directory\}}$", stack.lock_text)
+        case.assertIsNotNone(entry, f'{name}: the lockfile does not resolve {spec} as that directory')
+    return {'package': name, 'directory': directory, 'version': package['version'],
+            'contract_packages_declared': sorted(set(inner) & set(CONTRACT_PINS))}
 
 
 def load_record():
@@ -166,7 +226,11 @@ def check_pins(case, stack, required):
         checked += 1
     else:
         case.assertFalse(required, 'svelte is not declared')
+    stack.vendored = []
     for name, (spec, _block) in stack.declared.items():
+        if vendored_directory(stack, spec) is not None:
+            stack.vendored.append(check_vendored(case, stack, name, spec))
+            continue
         case.assertRegex(spec, EXACT_VERSION, f'{name} must be an exact version, got {spec!r}')
     return checked
 
@@ -199,8 +263,13 @@ def check_no_skeleton4_shim(case, stack, record):
             case.assertNotIn(legacy, stack.lock_text)
     asserted += 1
     # No alias, override, resolution or patch that swaps in another Skeleton build.
+    # The one exception is a provenance-bound vendored carrier of a non-Skeleton package (site/ only).
     for name, (spec, _block) in stack.declared.items():
-        case.assertFalse(spec.startswith(('npm:', 'link:', 'file:', 'workspace:', 'git', 'http')), f'{name}: {spec}')
+        if vendored_directory(stack, spec) is not None:
+            check_vendored(case, stack, name, spec)
+            case.assertNotIn('skeleton', name.lower(), f'{name}: a vendored Skeleton build')
+        else:
+            case.assertFalse(spec.startswith(NON_REGISTRY_PREFIXES), f'{name}: {spec}')
         if 'skeleton' in spec.lower():
             case.fail(f'{name} aliases a Skeleton package: {spec}')
     for key in ('overrides', 'resolutions', 'patchedDependencies'):
@@ -398,11 +467,102 @@ class SiteObeysSameRule(unittest.TestCase):
             # Nothing is claimed about a site that does not exist in this repository.
             return
         record = load_record()
-        stack = Stack(SITE)
+        stack = Stack(SITE, allow_vendored=True)
         METRICS['site'].update(pins_checked=check_pins(self, stack, required=False),
+                               vendored=stack.vendored, vendored_sources_scanned=stack.vendored_sources,
                                major_latest=check_major_latest(self, stack, record),
                                skeleton=check_no_skeleton4_shim(self, stack, record),
                                effect=check_no_effect3_paths(self, stack, record))
+
+
+def write_site(root, carrier=None, manifest=None, spec='file:vendor/acme-chrome', lock=False, source=None):
+    """A synthetic site/ package with one vendored carrier; every argument overrides one recorded fact."""
+    root = Path(root)
+    vendor = root / 'vendor' / 'acme-chrome'
+    (vendor / 'src').mkdir(parents=True, exist_ok=True)
+    inner = {'name': '@acme/chrome', 'version': '0.1.0',
+             'peerDependencies': {'@skeletonlabs/skeleton': '5.0.1', '@skeletonlabs/skeleton-svelte': '5.0.1'}}
+    inner.update(manifest or {})
+    (vendor / 'package.json').write_text(json.dumps(inner))
+    (vendor / 'src' / 'index.ts').write_text(source or "export { Tabs } from '@skeletonlabs/skeleton-svelte';\n")
+    row = {'package': '@acme/chrome', 'version': '0.1.0', 'directory': 'vendor/acme-chrome', 'integrity_match': True,
+           'modified': False, 'registry_integrity': 'sha256-synthetic', 'computed_integrity': 'sha256-synthetic',
+           'files': [{'path': 'package.json',
+                      'sha256': hashlib.sha256((vendor / 'package.json').read_bytes()).hexdigest()}]}
+    row.update(carrier or {})
+    (root / 'vendor' / 'PROVENANCE.json').write_text(json.dumps({'schema_version': 1, 'carriers': [row]}))
+    (root / 'package.json').write_text(json.dumps({
+        'name': 'synthetic-site', 'dependencies': {'@acme/chrome': spec},
+        'devDependencies': {'@skeletonlabs/skeleton': '5.0.1', '@skeletonlabs/skeleton-svelte': '5.0.1',
+                            'svelte': '5.57.1'}}))
+    if lock:
+        (root / 'pnpm-lock.yaml').write_text(
+            "lockfileVersion: '9.0'\n\npackages:\n\n  '@skeletonlabs/skeleton-svelte@5.0.1':\n    resolution: {}\n\n"
+            "  '@skeletonlabs/skeleton@5.0.1':\n    resolution: {}\n\n"
+            f"  '@acme/chrome@{lock}':\n    resolution: {{directory: vendor/acme-chrome, type: directory}}\n\n"
+            "snapshots:\n")
+    return root
+
+
+class VendoredCarriers(unittest.TestCase):
+    """The site/ branch on synthetic packages, so it is exercised whether or not site/ exists in the tree."""
+
+    def run_checks(self, root, allow_vendored=True):
+        record = load_record()
+        stack = Stack(root, allow_vendored=allow_vendored)
+        checked = check_pins(self, stack, required=False)
+        check_major_latest(self, stack, record)
+        check_no_skeleton4_shim(self, stack, record)
+        check_no_effect3_paths(self, stack, record)
+        return stack, checked
+
+    def test_a_recorded_unmodified_carrier_is_accepted_for_site_only(self):
+        with tempfile.TemporaryDirectory(prefix='web-house-stack-site-') as tmp:
+            stack, checked = self.run_checks(write_site(tmp))
+            self.assertEqual(checked, 3)
+            self.assertEqual([row['package'] for row in stack.vendored], ['@acme/chrome'])
+            self.assertEqual(stack.vendored_sources, 1)
+            stack, _checked = self.run_checks(write_site(tmp, lock='file:vendor/acme-chrome'))
+            self.assertEqual(stack.lock['@skeletonlabs/skeleton'], {'5.0.1'})
+            # The same package checked under the web/ rule (no vendoring) is refused by both checks.
+            with self.assertRaises(AssertionError):
+                check_pins(self, Stack(tmp), required=False)
+            with self.assertRaises(AssertionError):
+                check_no_skeleton4_shim(self, Stack(tmp), load_record())
+            METRICS['vendored_rule'] = {'accepted_cases': 2, 'web_rule_refuses_vendored': True}
+
+    def test_an_unrecorded_modified_or_misplaced_carrier_is_refused(self):
+        v4 = {'peerDependencies': {'@skeletonlabs/skeleton': '4.15.2'}}
+        cases = {
+            'modified': dict(carrier={'modified': True}),
+            'integrity_not_matched': dict(carrier={'integrity_match': False}),
+            'integrity_values_differ': dict(carrier={'computed_integrity': 'sha256-other'}),
+            'other_directory': dict(carrier={'directory': 'vendor/elsewhere'}),
+            'unrecorded_package': dict(carrier={'package': '@acme/other'}),
+            'manifest_hash_differs': dict(carrier={'files': [{'path': 'package.json', 'sha256': '0' * 64}]}),
+            'version_differs': dict(carrier={'version': '0.2.0'}),
+            'skeleton4_peer': dict(manifest=v4),
+            'range_peer': dict(manifest={'peerDependencies': {'@skeletonlabs/skeleton': '^5.0.1'}}),
+            'nested_file_dependency': dict(manifest={'dependencies': {'left': 'file:../left'}}),
+            'outside_vendor': dict(spec='file:../acme-chrome'),
+            'nested_path': dict(spec='file:vendor/acme-chrome/../../x'),
+            'link_spec': dict(spec='link:vendor/acme-chrome'),
+            'lock_resolves_elsewhere': dict(lock='file:vendor/other'),
+            'effect3_import_in_carrier': dict(source="import * as Either from 'effect/Either';\n"),
+            'skeleton4_token_in_carrier': None,
+        }
+        token = load_record()['skeleton']['v4_tokens_renamed_in_v5'][0]
+        cases['skeleton4_token_in_carrier'] = dict(source=f'export const css = "{token}";\n')
+        for label, arguments in cases.items():
+            with tempfile.TemporaryDirectory(prefix='web-house-stack-site-') as tmp:
+                with self.assertRaises(AssertionError, msg=label):
+                    self.run_checks(write_site(tmp, **arguments))
+        with tempfile.TemporaryDirectory(prefix='web-house-stack-site-') as tmp:
+            write_site(tmp)
+            (Path(tmp) / 'vendor' / 'PROVENANCE.json').unlink()
+            with self.assertRaises(AssertionError, msg='no provenance file'):
+                self.run_checks(tmp)
+        METRICS.setdefault('vendored_rule', {})['refused_cases'] = len(cases) + 1
 
 
 class LaneStatics(unittest.TestCase):
