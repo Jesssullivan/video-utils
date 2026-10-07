@@ -58,8 +58,7 @@ test --test_timeout=120,600,1800,3600
 # deleted, so `bazel test //...` loads exactly the bazel_graph packages plus
 # //bazel. Root removes these two lines in the same commit that applies the
 # changes (tests/test_bazel_graph_s3.py holds the three in step).
-common --ignore_dev_dependency
-common --deleted_packages=site
+# Root applied all three on 2026-10-07 (site/pnpm-workspace.yaml allowBuilds, .bazelignore, gate lines removed).
 
 # Opt-in: let tests tagged requires-host-tools find node, pnpm and git.
 test:host-tools --test_env=PATH

@@ -120,7 +120,7 @@ RECEIPT_FIELDS = {
     "keyboard_walkthrough": ("not_performed",),
     "reduced_motion_verified": (False,),
     "csp_enforced": (False,),
-    "bazel_graph": ("absent",),
+    "bazel_graph": ("absent", "present"),  # "absent" in the S3 public_site receipts; //site joined the graph at root R1-R3
     "template_archive_verified": (False, True),
     "effect_in_site": ("absent", "4.0.1"),
     "media_shown": (0,),

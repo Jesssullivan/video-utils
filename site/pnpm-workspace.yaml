@@ -5,3 +5,5 @@ packages:
 strictPeerDependencies: true
 # Fail instead of silently running an (online) install when a script finds stale deps.
 verifyDepsBeforeRun: error
+# Required by rules_js for pnpm 11 (S3 bazel_full //site); an empty map allows no build scripts.
+allowBuilds: {}
