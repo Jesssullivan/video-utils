@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "lane": "site_verify",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5723",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_utc": "2026-10-07",
+  "phase": "2_implement",
+  "contract_commit": "c878c1cd0ae6afd81bc41115aa8f64a58bd3511f",
+  "implementation_commit": "152baa181a75df25d944fe01be83545ab7286ef7 (harness, fixes, tests); receipts and the spec addendum follow on the same branch",
+  "claim_classes": {
+    "M": "measured by a command in this lane on the authored site build or on synthetic fixtures",
+    "I": "inferred",
+    "U": "unknown or not performed"
+  },
+  "kind": "browser_smoke",
+  "command": "SITE_VERIFY_OUT_DIR=<lane out dir>/final SITE_VERIFY_BROWSER=1 SITE_VERIFY_FULL_DIGESTS=1 PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v (BrowserSuiteTests runs `pnpm exec playwright test` from site/)",
+  "module_run": {
+    "exit": 0,
+    "tests": 85,
+    "skipped": 1,
+    "skipped_reason": "private app hostname is null in deploy/cloudflare (existing public_site test)",
+    "duration_s": 484
+  },
+  "playwright": {
+    "tests_expected": 52,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "duration_s": 130.7,
+    "version": "1.63.0"
+  },
+  "browser_ladder_step": "b_cached_expected_revision",
+  "browser_version": "153.0.8010.12",
+  "route_count": 5,
+  "routes": [
+    "/site-verify-not-found",
+    "/agents",
+    "/features",
+    "/",
+    "/status"
+  ],
+  "viewports": [
+    {
+      "id": "w375",
+      "width": 375,
+      "height": 812,
+      "deviceScaleFactor": 1,
+      "meaning": "small phone width"
+    },
+    {
+      "id": "w390",
+      "width": 390,
+      "height": 844,
+      "deviceScaleFactor": 1,
+      "meaning": "current phone width"
+    },
+    {
+      "id": "w768",
+      "width": 768,
+      "height": 1024,
+      "deviceScaleFactor": 1,
+      "meaning": "tablet portrait"
+    },
+    {
+      "id": "w1280",
+      "width": 1280,
+      "height": 800,
+      "deviceScaleFactor": 1,
+      "meaning": "desktop"
+    },
+    {
+      "id": "z200",
+      "width": 640,
+      "height": 400,
+      "deviceScaleFactor": 2,
+      "meaning": "1280 x 800 window at 200 percent zoom (viewport emulation)"
+    }
+  ],
+  "smoke": {
+    "cases_expected": 25,
+    "cases_executed": 25,
+    "cases_passed": 25,
+    "failing_cases": [],
+    "console_errors": 0,
+    "page_errors": 0,
+    "expected_document_404_allowance": 5,
+    "warnings_count": 0,
+    "overflow_cases": [],
+    "max_overflow_px": 0,
+    "start_module_200": 25,
+    "compact_header_after_scroll": {
+      "true": 23,
+      "false": 0,
+      "not_scrollable": 2
+    },
+    "requests_total": 400
+  },
+  "external_requests_observed": [],
+  "build_intended_external": [],
+  "external_fetched": 0,
+  "skip_link": {
+    "expected": 5,
+    "executed": 5,
+    "passed": 5
+  },
+  "metrics": {
+    "V1": {
+      "numerator": 25,
+      "denominator": 25,
+      "pass": true
+    },
+    "V2": {
+      "console_errors": 0,
+      "page_errors": 0,
+      "expected_document_404_allowance": 5,
+      "pass": true
+    },
+    "V3": {
+      "overflow_cases": 0,
+      "denominator": 25,
+      "max_overflow_px": 0,
+      "pass": true
+    },
+    "V4": {
+      "observed": [],
+      "intended": [],
+      "fetched": 0,
+      "pass": true
+    },
+    "V5": {
+      "numerator": 5,
+      "denominator": 5,
+      "pass": true
+    }
+  },
+  "allowance_note": "expected_document_404 counted 5: one per not-found probe case, the browser's own report of the fallback's 404 document status; no other console error remained after defect D1 was fixed",
+  "earlier_runs": [
+    {
+      "build": "before the D1 and D2 fixes",
+      "result": "timed out at the 900 s cap (exit 124) under host load average about 130 on 6 CPUs; per-case files showed console_error on the not-found probe (SvelteKit client logged `Not found: /site-verify-not-found`) and horizontal overflow of 66 px at w375 and 51 px at w390 on every route (scrollWidth 441)"
+    },
+    {
+      "build": "after the fixes, direct `pnpm run verify:browser`",
+      "result": "52/52 passed in 691 s under host load average about 130; same V1 to V7 values as the final run"
+    }
+  ],
+  "defects_fixed": [
+    {
+      "id": "D1",
+      "found_by": "smoke check 4 (console) on /site-verify-not-found, 5/5 viewports",
+      "cause": "SvelteKit's default client handleError writes every unexpected client error to console.error, including the router's 404 for an unmatched path on the fallback page",
+      "fix": "site/src/hooks.client.ts: handleError skips console output only for status 404 and still logs every other client error",
+      "verified": "final run: console_errors 0 over 25 cases"
+    },
+    {
+      "id": "D2",
+      "found_by": "smoke check 5 (horizontal scroll) at w375 and w390 on all 5 routes",
+      "cause": "the vendored chrome's quick navigation (four whitespace-nowrap links) could not shrink, so the theme and menu buttons were pushed past the viewport (menu button right edge at 441 px)",
+      "fix": "site/src/app.css: .site-chrome__quick gets min-width: 0, overflow-x: auto and padding so the links scroll inside their own row; no vendored file changed",
+      "verified": "final run: 0 overflow cases of 25, max 0 px; a probe at 320 px also showed scrollWidth equal to clientWidth (single observation, not part of the frozen set)"
+    }
+  ],
+  "inferred": [
+    "V21: the local static server's path resolution and header application are equivalent to Cloudflare Pages (not proven)",
+    "z200 viewport emulation stands in for the browser zoom control"
+  ],
+  "unknown": [
+    "Firefox, WebKit, real devices",
+    "served-copy behaviour and headers",
+    "behaviour on widths outside the five configurations"
+  ],
+  "deployed": false,
+  "served_check": "not_performed",
+  "pages_project_name": null,
+  "cloudflare_account": null,
+  "public_hostname": null,
+  "custom_domain": null,
+  "wrangler_version": null,
+  "server_kind": "local_static_emulation",
+  "pages_equivalence": "inferred",
+  "response_headers_on_pages": "unknown",
+  "browser_engines": [
+    "chromium"
+  ],
+  "browser_download_bytes": 0,
+  "zoom_method": "viewport_emulation",
+  "real_device_check": "not_performed",
+  "wcag_conformance": "not_claimed",
+  "screen_reader_check": "not_performed",
+  "contrast_basis": "axe_color_contrast_rule_only",
+  "keyboard_walkthrough": "not_performed",
+  "reduced_motion_verified": false,
+  "non_default_themes_scanned": false,
+  "csp_enforced": false,
+  "external_links_fetched": 0,
+  "artifact_digests_complete": true,
+  "real_take_accuracy": "unknown",
+  "low_register_pitch_accuracy": "unknown",
+  "listening_acceptance": "not_claimed",
+  "effect_in_site": "absent",
+  "media_shown": 0
+}

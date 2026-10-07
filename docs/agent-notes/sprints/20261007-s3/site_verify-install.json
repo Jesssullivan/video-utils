@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "lane": "site_verify",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5723",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_utc": "2026-10-07",
+  "phase": "2_implement",
+  "contract_commit": "c878c1cd0ae6afd81bc41115aa8f64a58bd3511f",
+  "implementation_commit": "152baa181a75df25d944fe01be83545ab7286ef7 (harness, fixes, tests); receipts and the spec addendum follow on the same branch",
+  "claim_classes": {
+    "M": "measured by a command in this lane on the authored site build or on synthetic fixtures",
+    "I": "inferred",
+    "U": "unknown or not performed"
+  },
+  "kind": "install",
+  "commands": [
+    {
+      "cwd": "site",
+      "command": "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm add --save-dev --save-exact @playwright/test@1.63.0 @axe-core/playwright@4.13.0",
+      "exit": 0,
+      "duration_s": 20,
+      "pnpm_progress": "resolved 187, reused 142, downloaded 0, added 142"
+    },
+    {
+      "cwd": "site",
+      "command": "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install --frozen-lockfile",
+      "exit": 0,
+      "duration_s": 14,
+      "note": "after the pnpm add"
+    },
+    {
+      "cwd": "site",
+      "command": "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install --frozen-lockfile",
+      "exit": 0,
+      "duration_s": 15,
+      "note": "repeated after adding the verify:browser script: pnpm's verifyDepsBeforeRun refused `pnpm run build` (ERR_PNPM_VERIFY_DEPS_BEFORE_RUN) until the install state matched the changed manifest; lockfile unchanged"
+    }
+  ],
+  "never_run": [
+    "pnpm exec playwright install",
+    "any browser download",
+    "wrangler"
+  ],
+  "dev_dependencies_added": {
+    "@playwright/test": "1.63.0",
+    "@axe-core/playwright": "4.13.0"
+  },
+  "lock_resolved_transitive": {
+    "playwright": "1.63.0",
+    "playwright-core": "1.63.0",
+    "axe-core": "4.13.0",
+    "fsevents": "2.3.3 (optional, from playwright)"
+  },
+  "scripts_added": {
+    "verify:browser": "playwright test"
+  },
+  "lifecycle_scripts": [],
+  "pins": {
+    "skeleton_package_pins": {
+      "@skeletonlabs/skeleton": "5.0.1",
+      "@skeletonlabs/skeleton-svelte": "5.0.1"
+    },
+    "skeleton_lock_versions": [
+      "5.0.1"
+    ],
+    "effect_lock_entries": 0,
+    "wrangler_in_lock": false
+  },
+  "browser_cache_entries_before_and_after": [
+    "chromium-1243",
+    "chromium_headless_shell-1234",
+    "ffmpeg-1011"
+  ],
+  "browser_cache_new_entries": [],
+  "browser_ladder_step": "b_cached_expected_revision",
+  "browser_version": "153.0.8010.12",
+  "registry_fetch": "pnpm reported downloaded 0 for package tarballs (reused from the local pnpm store); metadata resolution may have contacted the registry (allowed for the pinned packages)",
+  "host_node": "v22.23.2 on PATH (recorded by Playwright global setup as process.version)",
+  "observation_pnpm_engine_warning": "pnpm printed `Unsupported engine: wanted node >=22.13 <23 (current: node v24.19.0)` on install and run; scripts themselves ran under v22.23.2 per run.json. Inferred: the warning reflects pnpm's own runtime, not the script runtime (I).",
+  "check_build_after_change": {
+    "pnpm run check": "exit 0, 0 errors, 0 warnings (test_v14 and BuildTests M4 on the final fresh build)",
+    "pnpm run build": "exit 0 (shared fresh build of the final module run)"
+  },
+  "metrics": {
+    "V14": "3/3 exit 0 (frozen install, check, build)",
+    "V15": "holds",
+    "V16": "0 bytes; ladder step b, Chromium 153.0.8010.12 from the existing chromium-1243 cache entry"
+  },
+  "deployed": false,
+  "served_check": "not_performed",
+  "pages_project_name": null,
+  "cloudflare_account": null,
+  "public_hostname": null,
+  "custom_domain": null,
+  "wrangler_version": null,
+  "server_kind": "local_static_emulation",
+  "pages_equivalence": "inferred",
+  "response_headers_on_pages": "unknown",
+  "browser_engines": [
+    "chromium"
+  ],
+  "browser_download_bytes": 0,
+  "zoom_method": "viewport_emulation",
+  "real_device_check": "not_performed",
+  "wcag_conformance": "not_claimed",
+  "screen_reader_check": "not_performed",
+  "contrast_basis": "axe_color_contrast_rule_only",
+  "keyboard_walkthrough": "not_performed",
+  "reduced_motion_verified": false,
+  "non_default_themes_scanned": false,
+  "csp_enforced": false,
+  "external_links_fetched": 0,
+  "artifact_digests_complete": true,
+  "real_take_accuracy": "unknown",
+  "low_register_pitch_accuracy": "unknown",
+  "listening_acceptance": "not_claimed",
+  "effect_in_site": "absent",
+  "media_shown": 0
+}

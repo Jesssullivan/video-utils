@@ -543,3 +543,83 @@ set (5.1), the per-case checks (5.2), the single console allowance (5.3), the
 empty external-request list (5.4), the axe tags, modes and scan count (6), the
 link-check reference kinds (7.1), the eight privacy families and digest policy
 (7.2), the gitleaks command (7.3), and the metric targets (9).
+
+## 14. Phase 2 results (2026-10-07)
+
+Implemented on `sprint/20261007-s3/site_verify` (harness, fixes and tests in
+`152baa1`; receipts and this section after it). Sections 1 to 13 are unchanged.
+Receipts: `site_verify-install.json`, `site_verify-browser.json`,
+`site_verify-a11y.json`, `site_verify-links-privacy.json`,
+`site_verify-handoff.json`, `site_verify-root-requests.json`. Run outputs stay
+in the lane's gitignored output directory. Nothing was deployed (V19 = 0).
+
+### 14.1 Results by metric (M unless marked)
+
+Final run: `SITE_VERIFY_OUT_DIR=<out>/final SITE_VERIFY_BROWSER=1
+SITE_VERIFY_FULL_DIGESTS=1 PYTHONPATH=tests python3 -m unittest
+test_public_site_s3 -v`, exit 0, 85 tests, 0 failures, 1 skip (the existing
+`private_app_hostname` reason), 484 s. The Playwright part ran 52/52 tests in
+131 s.
+
+| # | Result |
+| --- | --- |
+| V1 | 25/25 smoke cases pass all six checks; R = 5 read from the build |
+| V2 | 0 console errors and 0 page errors; `expected_document_404` allowance used 5 times (one per not-found probe case); 0 warnings |
+| V3 | 0 of 25 cases overflow; max 0 px |
+| V4 | observed external requests `[]` equal the frozen `[]`; 0 fetched; 400 local requests |
+| V5 | 5/5 first-Tab skip-link checks |
+| V6 | 22/22 axe scans with `html[data-mode]` matching the requested mode |
+| V7 | 0 violations; baseline empty; 46 incomplete results on 122 nodes (rules `color-contrast`, `aria-valid-attr-value`, `aria-hidden-focus`, all on vendored chrome nodes), recorded as unknown |
+| V8 | 0 broken of 200 internal references; 0 broken of 4 fragment references; 0 external references; 0 fetched |
+| V9 | link-checker self-test reports exactly its 8 broken references and 2 broken fragments |
+| V10 | 0 hits in each of 8 families over 25 text and 10 binary files; family 7: default run K = 862 identifiers, H = 614 of N = 626 files hashed (12 over 64 MiB not hashed); full run K = 871, 626 of 626 (`artifact_digests_complete: true`); family 8: 47 identifiers |
+| V11 | 8/8 positives fire, 0/8 negatives fire; upper-case hex, base64 SRI and binary-embedded digests also caught |
+| V12 | gitleaks 8.30.1 exit 0 with 0 findings on the build; positive control exit 1 with 1 finding (`generic-api-key`) |
+| V13 | build leak scan 0 findings (24 rules); source scan 0 findings, harness files included (Node: 38 files) |
+| V14 | frozen install, check (0 errors, 0 warnings), build: 3/3 exit 0 |
+| V15 | `@playwright/test` 1.63.0 and `@axe-core/playwright` 4.13.0 exact; Skeleton 5.0.1 2/2 and sole lock version; `effect` and `wrangler` absent |
+| V16 | 0 browser bytes; ladder step b, Chromium 153.0.8010.12 from the existing `chromium-1243` cache entry; cache entries identical before and after |
+| V17 | every pre-existing class of the module passes (BuildTests now shares the once-per-process fresh build, as section 10.1 item 4 specifies) |
+| V18 | DEPLOY.md gate commands present in order; operator-go actions named |
+| V19 | 0 deploy actions |
+| V20 | 2 defects found and fixed, below |
+| V21 (I) | local server equivalence to Pages path resolution and headers: inferred, not proven |
+| V22 (U) | Firefox, WebKit, real devices, screen readers, non-default themes, reduced motion: not performed |
+
+### 14.2 Defects found and fixed (V20)
+
+- **D1** (found by smoke check 4 on the not-found probe, 5/5 viewports):
+  SvelteKit's default client `handleError` wrote the router's
+  `Not found: /site-verify-not-found` error to `console.error` on every
+  fallback visit. Fixed in `site/src/hooks.client.ts`: status 404 is not
+  logged; every other client error still is.
+- **D2** (found by smoke check 5 at w375 and w390 on all five routes): the
+  vendored chrome's quick navigation could not shrink, pushing the theme and
+  menu buttons past the viewport (document width 441 px; overflow 66 px at 375,
+  51 px at 390). Fixed in `site/src/app.css` (`.site-chrome__quick` gets
+  `min-width: 0`, `overflow-x: auto` and padding for the focus ring). No
+  vendored file changed.
+
+### 14.3 Deviations and observations
+
+- An extra harness module `site/e2e/support.ts` (shared context, request
+  blocking and hydration evidence) sits beside the section 4.2 files.
+- Smoke records one supplementary hydration probe that is not a pass
+  condition: the header's scroll listener (attached after hydration) set the
+  compact class in 23 of 23 scrollable cases; 2 cases were not scrollable.
+- The link checker also resolves the fallback document's references at a
+  nested path, because Pages serves it at any depth.
+- Wall time depends on host load: before the fixes, a run exceeded the 900 s
+  cap (exit 124) while failing cases restarted the worker at a load average
+  near 130 on 6 CPUs; after the fixes the suite took 691 s at that load and
+  131 s at a load average near 30. The cap was not changed.
+- pnpm refused `pnpm run build` after the script was added
+  (`ERR_PNPM_VERIFY_DEPS_BEFORE_RUN`) until a second
+  `pnpm install --frozen-lockfile`; the lockfile did not change. pnpm printed
+  an engine warning naming node v24.19.0 while the scripts ran under the
+  PATH node v22.23.2 (recorded by global setup); the warning's source is
+  inferred to be pnpm's own runtime.
+- Directly affected modules: `test_web_stack` passes; six
+  `test_tool_contracts` tests that drive MCP tool calls fail with and without
+  the FFmpeg variables. The lane changed no file they read; attribution to a
+  pre-existing or load-related cause is inferred, and root's full suite decides.

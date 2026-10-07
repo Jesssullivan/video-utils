@@ -2156,7 +2156,7 @@ class BrowserSuiteTests(unittest.TestCase):
         cls.tmp = tempfile.TemporaryDirectory(prefix="site-verify-browser-")
         out = os.environ.get("SITE_VERIFY_OUT_DIR") or cls.tmp.name
         env = {**os.environ, "SITE_VERIFY_OUT_DIR": out, "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"}
-        cls.run = subprocess.run(["pnpm", "exec", "playwright", "test"], cwd=SITE, env=env, capture_output=True,
+        cls.playwright = subprocess.run(["pnpm", "exec", "playwright", "test"], cwd=SITE, env=env, capture_output=True,
                                  text=True, timeout=PLAYWRIGHT_TIMEOUT_S, check=False)
         summary = Path(out) / "browser-summary.json"
         cls.summary = json.loads(summary.read_text(encoding="utf-8")) if summary.is_file() else None
@@ -2168,7 +2168,7 @@ class BrowserSuiteTests(unittest.TestCase):
         cls.tmp.cleanup()
 
     def test_v1_to_v7(self):
-        self.assertIsNotNone(self.summary, (self.run.stdout + self.run.stderr)[-2000:])
+        self.assertIsNotNone(self.summary, (self.playwright.stdout + self.playwright.stderr)[-2000:])
         metrics = self.summary["metrics"]
         routes = self.summary["route_count"]
         self.assertEqual(routes, len(EXPECTED_HTML))
@@ -2178,7 +2178,7 @@ class BrowserSuiteTests(unittest.TestCase):
                 self.assertIs(metrics[key]["pass"], True, metrics[key])
         self.assertEqual(self.summary["external_requests_observed"], [])
         self.assertEqual(self.summary["browser_download_bytes"], 0)
-        self.assertEqual(self.run.returncode, 0, self.run.stdout[-2000:])
+        self.assertEqual(self.playwright.returncode, 0, self.playwright.stdout[-2000:])
 
 
 if __name__ == "__main__":

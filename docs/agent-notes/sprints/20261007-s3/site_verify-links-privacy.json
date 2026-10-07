@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "lane": "site_verify",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5723",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_utc": "2026-10-07",
+  "phase": "2_implement",
+  "contract_commit": "c878c1cd0ae6afd81bc41115aa8f64a58bd3511f",
+  "implementation_commit": "152baa181a75df25d944fe01be83545ab7286ef7 (harness, fixes, tests); receipts and the spec addendum follow on the same branch",
+  "claim_classes": {
+    "M": "measured by a command in this lane on the authored site build or on synthetic fixtures",
+    "I": "inferred",
+    "U": "unknown or not performed"
+  },
+  "kind": "links_privacy_gitleaks",
+  "build": "the shared fresh build of the final module run (site/build, 35 files: 25 text, 10 binary)",
+  "link_check": {
+    "documents": 5,
+    "references_checked": 200,
+    "broken": [],
+    "fragment_references": 4,
+    "broken_fragments": [],
+    "external": [],
+    "external_fetched": 0,
+    "inline_data_references": 0,
+    "by_kind": {
+      "href": 139,
+      "inline-import": 12,
+      "css-url": 10,
+      "js-import": 41,
+      "data-json": 1,
+      "data-json-route": 1
+    }
+  },
+  "link_check_note": "the fallback 404.html is checked at two bases (the probe path and a nested path) because Pages serves it at any depth; data-json covers prerendered server loads read from the source routes; external list is empty (no HTML, CSS or JS reference with a scheme or // prefix)",
+  "privacy_scan_default": {
+    "text_files": 25,
+    "binary_files": 10,
+    "hits_per_family": {
+      "tailnet_names": 0,
+      "private_addresses": 0,
+      "estate_host_names": 0,
+      "private_zone_hosts": 0,
+      "artifact_paths": 0,
+      "linear_urls_and_keys": 0,
+      "private_run_digests": 0,
+      "real_take_identifiers": 0
+    },
+    "hits_total": 0,
+    "patterns_or_identifiers_per_family": {
+      "tailnet_names": 3,
+      "private_addresses": 10,
+      "estate_host_names": 4,
+      "private_zone_hosts": 2,
+      "artifact_paths": 4,
+      "linear_urls_and_keys": 2,
+      "private_run_digests": 862,
+      "real_take_identifiers": 47
+    },
+    "digests": {
+      "checked": true,
+      "roots": 1,
+      "identifiers": 862,
+      "files_total": 626,
+      "files_hashed": 614,
+      "not_hashed": 12,
+      "manifests_read": 331,
+      "full": false,
+      "duration_s": 4.89
+    },
+    "duration_s": 5.38
+  },
+  "privacy_scan_full_digests": {
+    "env": "SITE_VERIFY_FULL_DIGESTS=1",
+    "hits_per_family": {
+      "tailnet_names": 0,
+      "private_addresses": 0,
+      "estate_host_names": 0,
+      "private_zone_hosts": 0,
+      "artifact_paths": 0,
+      "linear_urls_and_keys": 0,
+      "private_run_digests": 0,
+      "real_take_identifiers": 0
+    },
+    "hits_total": 0,
+    "digests": {
+      "checked": true,
+      "roots": 1,
+      "identifiers": 871,
+      "files_total": 626,
+      "files_hashed": 626,
+      "not_hashed": 0,
+      "manifests_read": 331,
+      "full": true,
+      "duration_s": 6.15
+    },
+    "duration_s": 6.66,
+    "timeout_s": 600
+  },
+  "real_take_identifiers_by_kind": {
+    "source_sha256": 1,
+    "recording_basename": 2,
+    "recording_stem": 1,
+    "recording_date_prefix": 1,
+    "run_directory": 42
+  },
+  "privacy_hits_recorded_as": "family, file, offset only (never the matched text)",
+  "framework_deviations": [],
+  "gitleaks": {
+    "exit": 0,
+    "findings": 0,
+    "duration_s": 0.46,
+    "version": "8.30.1",
+    "config_sha256": "466b9c6b34747a0b345c1a12ba9c1678290b9458e47fc7f292100d4bc525218a",
+    "stderr_tail": "",
+    "command": "gitleaks dir site/build --config .gitleaks.toml --no-banner --redact --log-level warn --report-format json --report-path <out>/gitleaks-build.json --exit-code 1",
+    "cwd": "worktree root"
+  },
+  "gitleaks_positive_control": {
+    "exit": 1,
+    "findings": 1,
+    "rules": [
+      "generic-api-key"
+    ],
+    "input": "one synthetic credential-shaped string assembled at run time in a temp directory"
+  },
+  "existing_leak_scans": {
+    "build_rules": 24,
+    "build_findings": 0,
+    "source_findings": 0,
+    "source_files_include_harness": true,
+    "node_source_scan": "rules=24 files=38 unscannable=0 findings=0"
+  },
+  "self_tests": {
+    "V9": "link checker reported exactly the 8 broken references and 2 broken fragments of the synthetic tree",
+    "V11": "8/8 positives fired, 0/8 negatives fired; upper-case hex, base64 SRI and binary-embedded digests also detected"
+  },
+  "metrics": {
+    "V8": "0 broken of 200 references, 0 broken of 4 fragments, 0 external, 0 fetched",
+    "V9": "pass",
+    "V10": "0 hits in each of 8 families over 25 text and 10 binary files; family 7 K=862 identifiers from 614/626 files hashed (default), K=871 from 626/626 (full)",
+    "V11": "8/8 and 0/8",
+    "V12": "exit 0 with 0 findings; control exit 1 with 1 finding",
+    "V13": "0 and 0"
+  },
+  "inferred": [
+    "family 3 also includes this host's short name read at test time; a different host reads a different name"
+  ],
+  "unknown": [
+    "whether a private identifier exists that is in none of the eight families"
+  ],
+  "deployed": false,
+  "served_check": "not_performed",
+  "pages_project_name": null,
+  "cloudflare_account": null,
+  "public_hostname": null,
+  "custom_domain": null,
+  "wrangler_version": null,
+  "server_kind": "local_static_emulation",
+  "pages_equivalence": "inferred",
+  "response_headers_on_pages": "unknown",
+  "browser_engines": [
+    "chromium"
+  ],
+  "browser_download_bytes": 0,
+  "zoom_method": "viewport_emulation",
+  "real_device_check": "not_performed",
+  "wcag_conformance": "not_claimed",
+  "screen_reader_check": "not_performed",
+  "contrast_basis": "axe_color_contrast_rule_only",
+  "keyboard_walkthrough": "not_performed",
+  "reduced_motion_verified": false,
+  "non_default_themes_scanned": false,
+  "csp_enforced": false,
+  "external_links_fetched": 0,
+  "artifact_digests_complete": true,
+  "real_take_accuracy": "unknown",
+  "low_register_pitch_accuracy": "unknown",
+  "listening_acceptance": "not_claimed",
+  "effect_in_site": "absent",
+  "media_shown": 0
+}
