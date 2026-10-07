@@ -1,0 +1,43 @@
+# DRAFT for root (S3 bazel_full lane, docs/spec/sprints/BAZEL_FULL_S3.md section 10).
+# Not applied: .github/workflows/ci.yml is root-owned. Supersedes
+# tools/bazel/ci-bazel-job.draft.yml. The exact unified diff against main's
+# ci.yml is in docs/agent-notes/sprints/20261007-s3/bazel_full-root-requests.json.
+#
+# Insert under `jobs:` beside `offline` and `web`. Non-blocking
+# (continue-on-error) until root has seen it green twice.
+# - Bazel: the runner image's bazelisk (`bazel`); .bazelversion selects 8.2.1.
+# - FFmpeg/node/pnpm/git: the existing Nix dev shell, passed by environment.
+# - No remote cache, no credentials, no media, no model downloads.
+# - Target set: //... minus tests tagged requires-host-tools (reasons and
+#   counts in bazel_full-root-requests.json); FFmpeg modules run with the
+#   dev shell's ffmpeg.
+# - Linux behaviour is unknown until the first hosted run.
+  bazel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7 # v31
+      # Optional warm cache (root pins the action SHA; the lane does not resolve it):
+      # - uses: actions/cache@<sha> # v4
+      #   with:
+      #     path: |
+      #       ~/.cache/bazel-video-utils
+      #       ~/.cache/bazel/_bazel_runner/cache/repos
+      #     key: bazel-${{ runner.os }}-${{ hashFiles('MODULE.bazel.lock', 'web/pnpm-lock.yaml', 'site/pnpm-lock.yaml') }}
+      #     restore-keys: bazel-${{ runner.os }}-
+      - name: Structural graph contract (no Bazel needed)
+        run: PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v
+      - name: Module graph and lock
+        run: |
+          python3 tools/bazel/run.py --timeout 900 mod graph > /dev/null
+          python3 tools/bazel/run.py --timeout 900 build --nobuild //... --lockfile_mode=error
+      - name: Full Bazel test run without host-tool modules
+        run: >-
+          nix develop --no-write-lock-file --command bash -c
+          'python3 tools/bazel/run.py --timeout 4800 test //...
+          --jobs=4 --local_resources=cpu=4 --keep_going
+          --test_tag_filters=-requires-host-tools
+          --test_env=FFMPEG="$(command -v ffmpeg)" --test_env=FFPROBE="$(command -v ffprobe)"
+          --test_output=errors --test_summary=detailed'
