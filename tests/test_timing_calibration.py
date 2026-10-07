@@ -267,6 +267,7 @@ class AbstentionTests(unittest.TestCase):
         self.assertEqual(shifted["consistency_check"]["played_on_click"]["status"], "passed")
         self.assertNotEqual(shifted["consistency_check"]["played_on_click"]["calibrated_median_ms"],
                             record["consistency_check"]["played_on_click"]["calibrated_median_ms"])
+        self.assertEqual(shifted["offset_correction_ms"]["estimate"], record["offset_correction_ms"]["estimate"])
         self.assertIsNotNone(params)
 
 
@@ -442,6 +443,8 @@ class SchemaAndTokenTests(unittest.TestCase):
             self.assertEqual(record["kind"], "capture_latency_calibration_record")
             for key, value in tc.FIXED_UNKNOWNS.items():
                 self.assertEqual(record[key], value)
+            # Tool-level wording (root_admission_g audit finding), not a lane-scoped value.
+            self.assertEqual(record["real_take_direction"], "not_claimed_without_operator_calibration_record")
             self.assertEqual(set(record["components"]), set(tc.COMPONENT_NAMES))
             for name in tc.COMPONENT_NAMES:
                 self.assertTrue(tc.COMPONENT_KEYS <= set(record["components"][name]), name)

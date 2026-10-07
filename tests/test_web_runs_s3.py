@@ -974,12 +974,12 @@ class Capabilities(ApiCase):
         caps = self.get_json('/api/v1/capabilities')
         names = [tool['name'] for tool in caps['tools']]
         self.assertEqual(names, [tool['name'] for tool in registry['tools']])
-        self.assertEqual(caps['tool_count'], 42)
+        self.assertEqual(caps['tool_count'], 46)
         with_capability = [tool for tool in caps['tools'] if tool['capability'] is not None]
         without = [tool for tool in caps['tools'] if tool['capability'] is None]
         self.assertEqual(sorted(tool['name'] for tool in with_capability), sorted(pilot))
         self.assertEqual(len(with_capability), 8)
-        self.assertEqual(len(without), 34)
+        self.assertEqual(len(without), 38)
         self.assertTrue(all(tool['capability_reason'] == 'capability pilot covers 8 tools' for tool in without))
         unmapped = [tool['name'] for tool in caps['tools'] if tool['area'] == 'unmapped']
         self.assertEqual(unmapped, [])

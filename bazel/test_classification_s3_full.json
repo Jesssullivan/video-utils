@@ -5,17 +5,18 @@
   "recorded": "2026-10-07",
   "contract": "docs/spec/sprints/BAZEL_FULL_S3.md section 2 (ownership note) and section 12",
   "supplements": "tools/bazel/test_classification.json (bazel_graph, 95 modules at classification); that file is reused read-only",
-  "method": "Read of the five test modules added since the bazel_graph classification (git diff --name-status f44f962..549a14d -- tests/ for the first three at the lane baseline; git diff --name-status 549a14d..0ea22c3 -- tests/ for test_take_intake and test_timing_calibration, added on main and classified after the Phase 4 rebase): every FFmpeg/FFprobe, node/pnpm/git, artifacts/ and web/ or site/ reference located with grep, then the surrounding code read to separate real execution from string fixtures. The executed behaviour under Bazel of the first three is recorded in docs/agent-notes/sprints/20261007-s3/bazel_full-full-run.json; the two rebase additions were not part of that run (see its rebase_onto_main section). Root classified test_auth_token_s3 and test_stems_estimate at integration (merged on main after the lane returned) by reading their imports, subprocess calls and paths.",
+  "method": "Read of the five test modules added since the bazel_graph classification (git diff --name-status f44f962..549a14d -- tests/ for the first three at the lane baseline; git diff --name-status 549a14d..0ea22c3 -- tests/ for test_take_intake and test_timing_calibration, added on main and classified after the Phase 4 rebase): every FFmpeg/FFprobe, node/pnpm/git, artifacts/ and web/ or site/ reference located with grep, then the surrounding code read to separate real execution from string fixtures. The executed behaviour under Bazel of the first three is recorded in docs/agent-notes/sprints/20261007-s3/bazel_full-full-run.json; the two rebase additions were not part of that run (see its rebase_onto_main section). Root classified test_auth_token_s3 and test_stems_estimate at integration (merged on main after the lane returned) by reading their imports, subprocess calls and paths. Root classified test_s3g_tool_admission at root_admission_g (2026-10-07) by reading its imports, subprocess calls and paths: no FFmpeg, node, pnpm or git; workspace-artifacts for the reason recorded.",
   "claim_classes": {
     "tags_present": "measured by tests/test_bazel_graph_s3.py",
     "completeness": "inference",
     "behaviour_under_bazel": "measured by the single full run (bazel_full-full-run.json)"
   },
-  "module_count_at_supplement": 102,
+  "module_count_at_supplement": 103,
   "added_modules": [
     "test_auth_token_s3",
     "test_public_site_s3",
     "test_s3_tool_admission",
+    "test_s3g_tool_admission",
     "test_stems_estimate",
     "test_take_intake",
     "test_timing_calibration",
@@ -65,6 +66,7 @@
         "test_auth_token_s3",
         "test_public_site_s3",
         "test_s3_tool_admission",
+        "test_s3g_tool_admission",
         "test_take_intake",
         "test_timing_calibration",
         "test_web_house_stack_s3"
@@ -75,7 +77,8 @@
         "test_take_intake": "creates and removes artifacts/s2/take_intake/tests-<pid>/ (fixtures, state roots), writes artifacts/s2/take_intake/test-results.json in tearDownModule, and asserts artifacts/runs/take-intake-x is never created; the gated e2e case (TAKE_INTAKE_E2E=1) also writes artifacts/take-intake/",
         "test_timing_calibration": "the opt-in sealed evaluations (TIMING_CALIBRATION_S3_SEALED_EVAL=1 / _R2=1, not passed by Bazel unless --test_env names them) write artifacts/s2/timing_calibration/sealed/; default cases use temporary directories only. Tagged conservatively so a result is never cached across an artifacts/ change",
         "test_web_house_stack_s3": "writes artifacts/s2/web_tests/house-stack.json in tearDownModule",
-        "test_auth_token_s3": "writes its case table and server logs under artifacts/s2/auth_token/<stamp>/"
+        "test_auth_token_s3": "writes its case table and server logs under artifacts/s2/auth_token/<stamp>/",
+        "test_s3g_tool_admission": "starts scripts/stems_estimate.py (directly and through the MCP server) against artifacts/runs/absent-s3g-admission and scripts/take_intake.py plan on an absent repository-relative source (both refuse before reading or writing; ignored, undeclared trees); every other case uses temporary directories"
       }
     },
     "web_tree": {

@@ -51,7 +51,7 @@ LANE_SCRIPTS = {'test:unit': 'svelte-kit sync && vitest run', 'test:e2e': 'playw
 EXACT_VERSION = re.compile(r'^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$')
 VENDORED_SPEC = re.compile(r'^file:(vendor/[a-z0-9][a-z0-9_-]*)$')
 NON_REGISTRY_PREFIXES = ('npm:', 'link:', 'file:', 'workspace:', 'git', 'http')
-EXPECTED_TOOL_COUNT = 42
+EXPECTED_TOOL_COUNT = 46
 GENERATE_TIMEOUT_S = 300
 UNAVAILABLE_EXIT = 75
 SOURCE_SUFFIXES = {'.ts', '.js', '.svelte', '.css', '.html'}
@@ -602,7 +602,7 @@ class LaneStatics(unittest.TestCase):
         self.assertTrue((E2E / 'a11y-routes.spec.ts').is_file())
         METRICS['files'] = {'unit_test_files': len(UNIT_TEST_FILES), 'e2e_specs': len(E2E_SPECS), 'a11y_specs': 1}
 
-    def test_w11_registry_holds_42_tools_and_the_fixture_matches_it(self):
+    def test_w11_registry_holds_the_expected_tools_and_the_fixture_matches_it(self):
         tools = read_json(ROOT / 'program' / 'tools.json')['tools']
         names = sorted(tool['name'] for tool in tools)
         self.assertEqual(len(names), EXPECTED_TOOL_COUNT)

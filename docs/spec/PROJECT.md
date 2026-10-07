@@ -73,8 +73,8 @@ proceeds through source inspection, clean/export, rhythm analysis, and reporting
 `artifacts/runs/`; provenance records source identity, commands, tool versions,
 profile parameters, analysis resampling, and output measurements.
 
-The current versioned tool/API contract, local MCP stdio adapter, and forty-two
-per-tool skills expose the same bounded operations. Agent guidance connects research evidence
+The current versioned tool/API contract, local MCP stdio adapter, and forty-five
+per-tool skills (46 typed tools) expose the same bounded operations. Agent guidance connects research evidence
 to explicit, auditable parameter suggestions for noise, tone, and note analysis.
 Suggestions require comparative evaluation; agents cannot silently change the
 accepted profile or manufacture intended-note references.
@@ -270,6 +270,10 @@ gateway not configured). Web job adapters admitted: `share_export`, `denoise`, `
 `apply_capture_profile` (the last on root's real-worker check from the main checkout,
 [root-real-worker-check](../agent-notes/sprints/20261007-s3/root-real-worker-check.json):
 synthetic fixture only; listening and real-take web behaviour are not established).
+S3 root_admission_g (2026-10-07, unpushed) raises it to **46 typed tools and 45 skills**
+([receipt](../agent-notes/sprints/20261007-s3/root_admission_g-receipt.json)): experimental `take_intake`,
+`timing_calibration_analyze`, `timing_calibration_apply` (one shared skill) and `stems_estimate` (refuses
+`model_not_registered`; no htdemucs_6s registry entry or fetch). No real take has been calibrated or separated.
 
 ### Core days
 

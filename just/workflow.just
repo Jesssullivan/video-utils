@@ -157,6 +157,12 @@ beat-this-runtime-setup python:
 beat-this-runtime-check:
     python3 scripts/beat_this_runtime_setup.py --check
 
+# Refuses until root registers the hash-bound model, the operator acknowledges the weights' terms and a runtime
+# lane qualifies the runtime.
+# Optional experimental htdemucs_6s stem estimates (never recovered stems, never a default).
+stems-estimate run_dir start end input_role="denoised":
+    python3 -c 'import json, sys; print(json.dumps({"run_dir": sys.argv[1], "excerpt_start_seconds": float(sys.argv[2]), "excerpt_end_seconds": float(sys.argv[3]), "input_role": sys.argv[4]}))' {{quote(run_dir)}} {{quote(start)}} {{quote(end)}} {{quote(input_role)}} | python3 scripts/stems_estimate.py estimate --request -
+
 # Experimental guitar_noul gateway client (TIN-5619); refuses unless VIDEO_UTILS_GUITAR_NOUL_GATEWAY is configured.
 guitar-noul-decide request:
     python3 scripts/guitar_noul_client.py --request {{quote(request)}}
@@ -289,6 +295,16 @@ artifact-id SELECTOR:
 # Experimental per-phrase onset offsets from the recorded click; descriptive, never a grade or verdict.
 phrase-timing analysis phrases output_root run_kind="real_take":
     python3 scripts/phrase_timing.py --analysis {{quote(analysis)}} --phrases {{quote(phrases)}} --output-root {{quote(output_root)}} --run-kind {{quote(run_kind)}}
+
+# Extra ARGS: --room-temp-c C, --device-label/--app-label/--metronome-label/--placement-note TEXT. 600 s bound.
+# Experimental capture-latency calibration record from an operator clip; analysis only, abstains beyond 5 ms.
+[positional-arguments]
+timing-calibration-analyze input segments distances method amp_chain setup_id output_root *ARGS:
+    python3 -c 'import subprocess, sys; sys.exit(subprocess.run(sys.argv[1:], stdin=subprocess.DEVNULL, timeout=600).returncode)' python3 scripts/timing_calibration.py analyze "$1" --segments="$2" --distances="$3" --distance-method="$4" --amp-chain="$5" --setup-id="$6" --output-root="$7" "${@:8}"
+
+# Calibrated phrase-timing view; a direction only beyond the stated uncertainty, never a grade. 600 s bound.
+timing-calibration-apply phrase_timing calibration setup_id output_root:
+    python3 -c 'import subprocess, sys; sys.exit(subprocess.run(sys.argv[1:], stdin=subprocess.DEVNULL, timeout=600).returncode)' python3 scripts/timing_calibration.py apply --phrase-timing={{quote(phrase_timing)}} --calibration={{quote(calibration)}} --setup-id={{quote(setup_id)}} --output-root={{quote(output_root)}}
 
 # Level-matched stage tone A/B with one unreviewed low-shelf trial; never adopts a master.
 tone-ab run_dir start end timeout="1200":

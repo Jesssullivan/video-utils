@@ -60,7 +60,11 @@ class MCPTests(unittest.TestCase):
         tools = replies[2]['result']['tools']
         self.assertEqual(len(tools), len(mcp_server.Server().catalog['tools']))
         self.assertTrue(all('outputSchema' in tool for tool in tools))
-        self.assertEqual(len(replies[3]['result']['prompts']), len(tools))
+        # One prompt per skill (tools sharing a skill share its prompt; names stay unique).
+        skills = {Path(tool['_meta']['video-utils']['skill']).parent.name for tool in tools}
+        prompt_names = [prompt['name'] for prompt in replies[3]['result']['prompts']]
+        self.assertEqual(len(prompt_names), len(set(prompt_names)))
+        self.assertEqual(set(prompt_names), skills)
         self.assertEqual(replies[4]['result'], {})
         self.assertEqual(replies[5]['error']['code'], -32602)
         self.assertTrue(replies[6]['result']['isError'])
@@ -95,7 +99,8 @@ class MCPTests(unittest.TestCase):
     def test_every_advertised_tool_has_a_readable_skill_prompt(self):
         server = mcp_server.Server()
         prompts = server.prompts()
-        self.assertEqual(len(prompts), len(server.catalog['tools']))
+        self.assertEqual(len(prompts), len({Path(item['skill']).parent.name for item in server.catalog['tools']}))
+        self.assertEqual(len(prompts), len({prompt['name'] for prompt in prompts}))
         messages = [initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'}]
         messages.extend(request(index + 2, 'prompts/get', {'name': prompt['name']})
                         for index, prompt in enumerate(prompts))

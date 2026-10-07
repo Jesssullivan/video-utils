@@ -8,6 +8,7 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 import signal
 import subprocess
 import sys
@@ -29,8 +30,16 @@ S2_EXACT_PATH_FIELDS = {'annotation_markers': ('run_dir', 'output_dir'),
                         'marked_compact': ('run_dir', 'picture_preview', 'output'),
                         'phrase_timing': ('analysis', 'phrases', 'output_root'),
                         'tone_ab': ('run_dir', 'candidate_run_dir'),
-                        'report_bundle': ('run_dir', 'analysis_run_dir', 'annotation_store')}
+                        'report_bundle': ('run_dir', 'analysis_run_dir', 'annotation_store'),
+                        'timing_calibration_analyze': ('input', 'segments', 'output_root'),
+                        'timing_calibration_apply': ('phrase_timing', 'calibration', 'output_root')}
 PHRASE_TIMING_MAX_INPUT_BYTES = 64 * 1024 * 1024
+# S3 timing_calibration (admitted by root_admission_g): validate_schema has no 'pattern' keyword, so the draft's two
+# string patterns are enforced here before any worker starts; the worker re-parses and refuses typed as well.
+TIMING_CALIBRATION_PATTERNS = {'distances': r'[a-z_]+=[0-9.]+(,[a-z_]+=[0-9.]+){1,3}',
+                               'amp_chain': r'(analog|unknown|declared:[0-9.]+)'}
+TIMING_CALIBRATION_MAX_JSON_BYTES = 64 * 1024 * 1024
+TIMING_CALIBRATION_MAX_AUDIO_BYTES = 3 * 1024**3
 # report_bundle: the worker always writes a fresh default directory here (no output field) and
 # refuses with exit 2 and one stable reason code; exit 1 reports an exception class name only.
 REPORT_BUNDLE_OUTPUT_ROOT = ROOT / 'artifacts' / 's2' / 'report_d6' / 'bundles'
@@ -40,8 +49,13 @@ REPORT_BUNDLE_MEDIA_SUFFIXES = frozenset({'.wav', '.flac', '.aiff', '.aif', '.mp
 # S3 model lanes: these workers print a typed refusal object (status 'refused', refusal_code) on stdout
 # and exit non-zero. run_typed_refusal_worker relays the refusal code in the ToolError; no stderr tail. The value is
 # seconds of outer-deadline slack beyond the caller's timeout so the worker's own deadline reports first.
-TYPED_REFUSAL_TOOLS = {'beat_this_compare': 0, 'guitar_noul_decide': 10}
-TRAVERSAL_GUARDED_RUN_TOOLS = {'marked_video', 'basic_pitch_compare', 'beat_this_compare', 'guitar_noul_decide'}
+TYPED_REFUSAL_TOOLS = {'beat_this_compare': 0, 'guitar_noul_decide': 10, 'stems_estimate': 0}
+TRAVERSAL_GUARDED_RUN_TOOLS = {'marked_video', 'basic_pitch_compare', 'beat_this_compare', 'guitar_noul_decide',
+                               'stems_estimate'}
+# S3 take_intake and timing_calibration print one JSON refusal object on stderr and exit 2. The value names the
+# refusal-code key; run_stderr_refusal_worker relays only that code and a bounded message, never an untyped tail.
+STDERR_REFUSAL_TOOLS = {'take_intake': 'reason', 'timing_calibration_analyze': 'refusal',
+                        'timing_calibration_apply': 'refusal'}
 S2_DIGEST_FIELDS = {'annotation_markers': 'store_sha256', 'corpus_eval_s2': 'proposals_sha256'}
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
                          'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default',
@@ -607,6 +621,49 @@ def editor_marker_export_output(directory, args):
     return str(output)
 
 
+def guarded_parts(value):
+    """Components the hidden/staging/traversal guards inspect.
+
+    For an absolute path inside this checkout only the components below ROOT are
+    user input; the checkout's own location (for example a worktree under
+    .local/) is not. Every component is inspected for any other value.
+    """
+    prefix = str(ROOT).rstrip('/') + '/'
+    return value[len(prefix):].split('/') if value.startswith(prefix) else value.split('/')
+
+
+def timing_calibration_json(value):
+    path = s2_input_file(value, TIMING_CALIBRATION_MAX_JSON_BYTES)
+    if path.suffix.lower() != '.json':
+        raise ToolError('timing calibration JSON inputs must be existing .json files')
+    return path
+
+
+def timing_calibration_output_root(value):
+    """Beneath repository artifacts/ but never artifacts/runs; the worker adds a fresh records/ or views/ child."""
+    root = s2_output_relative(value)
+    if os.path.lexists(root) and not root.is_dir():
+        raise ToolError('timing calibration output_root must be a directory')
+    if not root.exists() and not root.parent.is_dir():
+        raise ToolError('timing calibration output_root parent must be an existing directory')
+    return root
+
+
+def timing_calibration_input(value):
+    """A bounded regular clip, or a run directory with regular manifest.json and denoised.wav; never a symlink."""
+    path = s2_original_path(value)
+    s2_reject_symlink_components(path)
+    if path.is_dir():
+        directory = s2_input_directory(value, ('manifest.json',))
+        audio = directory / 'denoised.wav'
+        if audio.is_symlink() or not audio.is_file() or audio.stat().st_size > TIMING_CALIBRATION_MAX_AUDIO_BYTES:
+            raise ToolError('timing calibration run directory requires a bounded regular denoised.wav')
+        return directory
+    if not path.is_file() or path.stat().st_size > TIMING_CALIBRATION_MAX_AUDIO_BYTES:
+        raise ToolError('timing calibration input must be an existing bounded regular file or run directory')
+    return path
+
+
 def validate_tool_arguments(name, args):
     """Cross-field rules that are known before a worker or file read starts."""
     if name == 'share_export':
@@ -623,14 +680,14 @@ def validate_tool_arguments(name, args):
         for field in ('input','authoring_dir'):
             value = args[field]
             if ('\x00' in value or '\\' in value or ':' in value
-                    or any(part.startswith('.') or '.partial' in part for part in value.split('/') if part)):
+                    or any(part.startswith('.') or '.partial' in part for part in guarded_parts(value) if part)):
                 raise ValidationError('capture application requires exact local paths without traversal/NUL/URL')
     if name == 'arrangement_reference':
         for field in ('run_dir','output','reference'):
             if field not in args: continue
             value=args[field]
             if ('\x00' in value or '\\' in value or ':' in value
-                    or any(part.startswith('.') or '.partial' in part for part in value.split('/') if part)):
+                    or any(part.startswith('.') or '.partial' in part for part in guarded_parts(value) if part)):
                 raise ValidationError('arrangement inputs require exact safe local paths')
     if name in {'review', 'annotation_v2'}:
         operation = args.get('operation', 'read')
@@ -695,12 +752,26 @@ def validate_tool_arguments(name, args):
         fields = LEARNED_EVALUATION_FIELDS if name == 'learned_pitch_evaluate' else ('fixture_index', 'pilot_index', 'output')
         for field in fields:
             value = args[field]
-            parts = value.split('/')
-            if value.startswith('/'):
+            parts = guarded_parts(value)
+            if value.startswith('/') and parts[:1] == ['']:
                 parts = parts[1:]
             if (':' in value or '\\' in value or any(not part or part.startswith('.') or '.partial' in part for part in parts)
                     or (field != 'output' and not value.endswith('.json'))):
                 raise ValidationError('calibration paths require exact JSON indices and a fresh safe local output path')
+    if name == 'take_intake':
+        if args['operation'] == 'plan' and ('source' not in args or 'intake_dir' in args):
+            raise ValidationError('take_intake plan requires source and rejects intake_dir')
+        if args['operation'] == 'packet' and ('intake_dir' not in args
+                or set(args) & {'source', 'family', 'arrangement', 'bpm', 'features', 'origin'}):
+            raise ValidationError('take_intake packet requires intake_dir and accepts no plan fields')
+        for field in ('source', 'intake_dir', 'arrangement'):
+            value = args.get(field)
+            if value is not None and ('\x00' in value or '\\' in value or ':' in value or '..' in value.split('/')):
+                raise ValidationError('take_intake paths must be exact local paths without traversal/NUL/URL')
+    if name == 'timing_calibration_analyze':
+        for field, pattern in TIMING_CALIBRATION_PATTERNS.items():
+            if re.fullmatch(pattern, args[field], flags=re.ASCII) is None:
+                raise ValidationError(f'timing calibration {field} does not match its declared format')
     if name == 'clicks':
         supplied = ('template_start' in args, 'template_end' in args)
         if supplied[0] != supplied[1]:
@@ -855,6 +926,43 @@ def worker_command(name, args):
         # The gateway URL and the V6 real-take switch stay environment-only; the worker owns every refusal.
         request = {'run_dir': args['run_dir'], 'windows': args['windows'], 'timeout_seconds': args['timeout_seconds']}
         return head + [str(ROOT / 'scripts/guitar_noul_client.py'), '--request-json', json.dumps(request)]
+    if name == 'stems_estimate':
+        # Closed request; no model, runtime or network argument exists. The worker resolves the registry-verified
+        # checkpoint, the operator terms acknowledgement and the isolated runtime itself and owns every typed refusal.
+        request = {key: args[key] for key in ('run_dir', 'input_role', 'excerpt_start_seconds',
+                                              'excerpt_end_seconds', 'timeout_seconds') if key in args}
+        return head + [str(ROOT / 'scripts/stems_estimate.py'), 'estimate', '--request-json', json.dumps(request)]
+    if name == 'take_intake':
+        worker = str(ROOT / 'scripts/take_intake.py')
+        if args['operation'] == 'packet':
+            directory = s2_input_directory(args['intake_dir'], ('intake.json',))
+            return head + [worker, 'packet', str(directory)]
+        # Anchored at ROOT but never resolved, so take_intake's own source_is_symlink refusal still applies and
+        # the positional argument can never be read as an option.
+        source = Path(args['source']).expanduser()
+        command = head + [worker, 'plan', str(source if source.is_absolute() else ROOT / source)]
+        for field in ('family', 'arrangement', 'features', 'origin'):
+            if field in args:
+                command.append('--' + field + '=' + str(args[field]))
+        if 'bpm' in args:
+            command.append('--bpm=' + repr(float(args['bpm'])))
+        return command
+    if name == 'timing_calibration_analyze':
+        command = head + [str(ROOT / 'scripts/timing_calibration.py'), 'analyze',
+                          str(timing_calibration_input(args['input'])),
+                          '--segments=' + str(timing_calibration_json(args['segments'])),
+                          '--distances=' + args['distances'], '--distance-method=' + args['distance_method'],
+                          '--amp-chain=' + args['amp_chain'], '--setup-id=' + args['setup_id'],
+                          '--output-root=' + str(timing_calibration_output_root(args['output_root']))]
+        if 'room_temp_c' in args:
+            command.append('--room-temp-c=' + repr(float(args['room_temp_c'])))
+        return command
+    if name == 'timing_calibration_apply':
+        return head + [str(ROOT / 'scripts/timing_calibration.py'), 'apply',
+                       '--phrase-timing=' + str(timing_calibration_json(args['phrase_timing'])),
+                       '--calibration=' + str(timing_calibration_json(args['calibration'])),
+                       '--setup-id=' + args['setup_id'],
+                       '--output-root=' + str(timing_calibration_output_root(args['output_root']))]
     if name == 'editor_marker_plan':
         return head + [str(ROOT / 'scripts/editor_marker_plan.py'), editor_marker_inputs(args),
                        args['selection'], args['profile'], '--summary']
@@ -1045,17 +1153,19 @@ def report_bundle_failure(returncode, data):
     return ToolError(f'worker failed ({returncode}): report_bundle returned no typed diagnostic')
 
 
-def run_report_bundle_worker(command, timeout, failure=None):
+def run_report_bundle_worker(command, timeout, failure=None, failure_from_stderr=False):
     """Dedicated bounded runner (the generic run_worker is source-pinned): hard deadline on an owned
     process group, typed exit-2 refusals and class-only exit-1 errors read from stdout, never a stderr tail.
-    ``failure(returncode, stdout_bytes)`` replaces the report_bundle classification for other typed workers."""
+    ``failure(returncode, stdout_bytes)`` replaces the report_bundle classification for other typed workers;
+    with ``failure_from_stderr`` it receives the last 64 KiB of stderr instead (parsed, never relayed raw)."""
     if not Path(command[1]).is_file():
         raise ToolError('implementation worker is unavailable; no bundle was built' if failure is None
                         else 'implementation worker is unavailable; nothing was run')
-    with tempfile.TemporaryFile() as stdout:
+    with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
         try:
             process = subprocess.Popen(command, cwd=ROOT, stdin=subprocess.DEVNULL, stdout=stdout,
-                                       stderr=subprocess.DEVNULL, start_new_session=True)
+                                       stderr=stderr if failure_from_stderr else subprocess.DEVNULL,
+                                       start_new_session=True)
         except OSError as error:
             raise ToolError(f'worker could not start: {type(error).__name__}') from error
         try:
@@ -1086,6 +1196,9 @@ def run_report_bundle_worker(command, timeout, failure=None):
             raise ToolError('worker result exceeds 2 MiB result limit; inspect local artifacts')
         stdout.seek(0)
         data = stdout.read()
+        if failure_from_stderr and process.returncode:
+            stderr.seek(max(0, stderr.seek(0, os.SEEK_END) - 64 * 1024))
+            data = stderr.read()
     if process.returncode:
         raise (report_bundle_failure(process.returncode, data[:4096]) if failure is None
                else failure(process.returncode, data))
@@ -1118,6 +1231,29 @@ def typed_refusal_failure(tool, returncode, data):
 def run_typed_refusal_worker(command, timeout, tool):
     return run_report_bundle_worker(command, timeout,
                                     failure=lambda returncode, data: typed_refusal_failure(tool, returncode, data))
+
+
+def stderr_refusal_failure(tool, returncode, data):
+    """S3 take_intake / timing_calibration: exit 2 with one JSON refusal object as the last stderr line. Only the
+    typed code (and a bounded message) is relayed; exit 1, argparse usage or any other text stays code-free."""
+    lines = [line for line in data.splitlines() if line.strip()]
+    try:
+        refused = strict_json(lines[-1].decode('utf-8')) if returncode == 2 and lines else None
+    except (UnicodeError, ValueError):
+        refused = None
+    code = refused.get(STDERR_REFUSAL_TOOLS[tool]) if isinstance(refused, dict) else None
+    if (isinstance(code, str) and 1 <= len(code) <= 64 and all(character in 'abcdefghijklmnopqrstuvwxyz_' for character in code)
+            and refused.get('status', 'refused') == 'refused'):
+        message = refused.get('message')
+        return ToolError(f'{tool} refused: {code}', receipt={
+            'status': 'refused', 'tool': tool, 'refusal_code': code,
+            'message': message[:1000] if isinstance(message, str) else None, 'worker_returncode': returncode})
+    return ToolError(f'worker failed ({returncode}): {tool} returned no typed refusal')
+
+
+def run_stderr_refusal_worker(command, timeout, tool):
+    return run_report_bundle_worker(command, timeout, failure_from_stderr=True,
+                                    failure=lambda returncode, data: stderr_refusal_failure(tool, returncode, data))
 
 
 def classify_report_bundle_result(result):
@@ -1245,6 +1381,8 @@ def execute(name, arguments):
         result = run_worker(worker_command(name, arguments), timeout, error_json_tool=name)
     elif name in TYPED_REFUSAL_TOOLS:
         result = run_typed_refusal_worker(worker_command(name, arguments), timeout + TYPED_REFUSAL_TOOLS[name], name)
+    elif name in STDERR_REFUSAL_TOOLS:
+        result = run_stderr_refusal_worker(worker_command(name, arguments), timeout, name)
     elif name == 'report_bundle':
         result = classify_report_bundle_result(run_report_bundle_worker(worker_command(name, arguments), timeout))
     elif name == 'share_export':

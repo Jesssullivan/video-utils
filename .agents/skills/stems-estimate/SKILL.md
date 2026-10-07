@@ -5,9 +5,9 @@ description: Produce private, labelled htdemucs_6s stem estimates from a source-
 
 # Estimate stems from the mono take (htdemucs_6s, experimental)
 
-**Hook:** MCP tool `stems_estimate`, **draft only**. The descriptor is in
-`program/tool-drafts/stems_estimate.json` and root admits it into
-`program/tools.json`. Worker: `scripts/stems_estimate.py`. Contract:
+**Hook:** MCP tool `stems_estimate` (admitted as tool 46, experimental). The
+descriptor draft is `program/tool-drafts/stems_estimate.json`; operators run
+`just stems-estimate`. Worker: `scripts/stems_estimate.py`. Contract:
 `docs/spec/sprints/STEMS_S3.md`.
 
 **Status (2026-10-07):** `program/models.json` has no

@@ -68,13 +68,13 @@ class S3ToolAdmissionTests(unittest.TestCase):
     # ----- registry freeze ----------------------------------------------------
     def test_first_40_descriptors_frozen_and_two_appended(self):
         tools = tool_api.descriptors()
-        self.assertEqual(len(tools), 42)
+        self.assertEqual(len(tools), 46)  # 42 admitted here; tools[42:] are admitted by tests/test_s3g_tool_admission.py
         self.assertEqual(digest(tools, 40, False), FROZEN_40_SHA256)
         self.assertEqual(digest(tools, 40, True), FROZEN_40_ASCII_SHA256)
         self.assertEqual(digest(tools, 42, False), ADMITTED_42_SHA256)
         self.assertEqual(digest(tools, 42, True), ADMITTED_42_ASCII_SHA256)
-        self.assertEqual([tool['name'] for tool in tools[40:]], list(NEW_F))
-        self.assertEqual(len({tool['name'] for tool in tools}), 42)
+        self.assertEqual([tool['name'] for tool in tools[40:42]], list(NEW_F))
+        self.assertEqual(len({tool['name'] for tool in tools}), 46)
         raw = (ROOT / 'program/tools.json').read_text(encoding='utf-8')
         self.assertEqual(json.dumps(json.loads(raw), indent=2) + '\n', raw)
 
@@ -330,7 +330,7 @@ class S3ToolAdmissionTests(unittest.TestCase):
                         self.assertIsNone(caught.exception.receipt)
 
     # ----- MCP readback --------------------------------------------------------
-    def test_real_mcp_lists_42_tools_and_reads_back_both_skill_prompts(self):
+    def test_real_mcp_lists_all_tools_and_reads_back_both_skill_prompts(self):
         messages = [initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
                     request(2, 'tools/list'), request(3, 'prompts/list')]
         messages += [request(10 + index, 'prompts/get', {'name': prompt})
@@ -340,9 +340,9 @@ class S3ToolAdmissionTests(unittest.TestCase):
         replies, stderr = exchange(messages, timeout=30)
         self.assertEqual(stderr, '')
         tools = {row['name']: row for row in replies[1]['result']['tools']}
-        self.assertEqual(len(tools), 42)
+        self.assertEqual(len(tools), 46)  # tools[42:] admitted by tests/test_s3g_tool_admission.py
         prompts = {row['name'] for row in replies[2]['result']['prompts']}
-        self.assertEqual(len(prompts), 42)
+        self.assertEqual(len(prompts), 45)  # timing_calibration_analyze/_apply share the timing-calibration prompt
         for offset, (name, (prompt, annotations, *_rest)) in enumerate(NEW_F.items()):
             with self.subTest(name=name):
                 self.assertIs(tools[name]['inputSchema']['additionalProperties'], False)

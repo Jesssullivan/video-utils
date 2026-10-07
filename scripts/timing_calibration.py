@@ -141,7 +141,7 @@ FIXED_UNKNOWNS = {
     "expected_rhythm_reference": None,
     "audio_written": False,
     "filters_applied": [],
-    "real_take_direction": "not_claimed_by_lane",
+    "real_take_direction": "not_claimed_without_operator_calibration_record",
 }
 RECORD_KEYS = frozenset({
     "schema_version", "tool", "kind", "run_id", "status", "abstain_reasons", "producer", "claims", "input",

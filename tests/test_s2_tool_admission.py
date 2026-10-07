@@ -112,7 +112,7 @@ class S2ToolAdmissionTests(unittest.TestCase):
     # ----- registry freeze and descriptors ---------------------------------
     def test_first_32_descriptors_frozen_and_four_appended(self):
         tools = tool_api.descriptors()
-        self.assertEqual(len(tools), 42)  # 40 frozen here; tools[40:] are admitted by tests/test_s3_tool_admission.py
+        self.assertEqual(len(tools), 46)  # 40 frozen here; tools[40:42] by tests/test_s3_tool_admission.py, tools[42:] by tests/test_s3g_tool_admission.py
         self.assertEqual(tuple(tool['name'] for tool in tools[:32]), FROZEN_NAMES)
         for count, ascii_only, expected in ((32, False, FROZEN_SHA256), (32, True, FROZEN_ASCII_SHA256),
                                             (36, False, FROZEN_36_SHA256), (36, True, FROZEN_36_ASCII_SHA256),
@@ -909,9 +909,9 @@ class S2ToolAdmissionTests(unittest.TestCase):
         replies, stderr = exchange(messages, timeout=30)
         self.assertEqual(stderr, '')
         tools = {row['name']: row for row in replies[1]['result']['tools']}
-        self.assertEqual(len(tools), 42)
+        self.assertEqual(len(tools), 46)
         prompts = {row['name'] for row in replies[2]['result']['prompts']}
-        self.assertEqual(len(prompts), 42)
+        self.assertEqual(len(prompts), 45)  # timing_calibration_analyze/_apply share one prompt
         for offset, (name, (prompt, *_rest)) in enumerate(admitted):
             with self.subTest(name=name):
                 self.assertIs(tools[name]['inputSchema']['additionalProperties'], False)

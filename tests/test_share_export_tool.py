@@ -70,7 +70,7 @@ class ShareExportToolTests(unittest.TestCase):
         messages = [initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'}, request(2, 'tools/list'), request(3, 'prompts/get', {'name': 'media-share-export'}), request(4, 'tools/call', {'name': 'share_export', 'arguments': {'source': 'absent-source.mov', 'output': 'absent-parent/share.mp4'}}), request(5, 'tools/call', {'name': 'share_export', 'arguments': {'source': 'absent-source.mov', 'output': 'absent-parent/share.mp4', 'height': 721}})]
         replies, stderr = exchange(messages, timeout=20)
         self.assertEqual(stderr, '')
-        self.assertEqual(len(replies[1]['result']['tools']), 42)
+        self.assertEqual(len(replies[1]['result']['tools']), 46)
         schema = next(row['inputSchema'] for row in replies[1]['result']['tools'] if row['name']=='share_export')
         self.assertEqual(schema['required'], ['source', 'output']); self.assertFalse(schema['additionalProperties'])
         self.assertEqual(replies[2]['result']['messages'][0]['content']['text'], (ROOT/'.agents/skills/media-share-export/SKILL.md').read_text())
