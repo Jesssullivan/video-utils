@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "lane": "quarto_fix",
+  "sprint": "20261007-s2r",
+  "linear": "TIN-5491",
+  "ruling": "R-N13; R-HOOK-CONVERGENCE-20261004; TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43; docs/agent-notes/2026-10-07-s2-operator-rulings.md (D6)",
+  "branch": "sprint/20261007-s2r/quarto_fix",
+  "base_commit": "7d0e11e3430bc19ff03b06bd94654dbfb3ee2a84",
+  "spec_commit": "5fb9be77589449e82db646830e1319c317676b7d",
+  "commits": {
+    "fix": "bfcbea0695de3b19f9b2ad1c878fd6f11c475c53",
+    "receipt": "abc2ea3613d70528ec0a999fc7f72d73f58d9ee6"
+  },
+  "files_changed": [
+    {
+      "path": "flake.nix",
+      "sha256": "95e81c3993308e47c37ce1e1421a9e58625a9779384948b284a383e34033efb4",
+      "changed": true
+    },
+    {
+      "path": "docs/spec/sprints/QUARTO_FIX_S2R.md",
+      "sha256": "e436f8d65e2a4b8a1558d489a2a87513081a55d127b3d2bd09a6727f831c3e99",
+      "changed": true
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s2r/quarto_fix-render-attempt.json",
+      "sha256": "405f78907693eac1f1dda2d44035a05a4f02230eb9c330f0ab0a3bc2ea44971a",
+      "changed": true
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s2r/quarto_fix-handoff.json",
+      "sha256": "f1b6dcde44ebfafd464bb365a6b5ba49b859f729ec66323188b2ef266e28d712",
+      "changed": true
+    }
+  ],
+  "files_note": "flake.lock unchanged (478998ae...). reports/ unchanged.",
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_report_bundle test_report -v",
+    "discovered": 42,
+    "passed": 42,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 7.16
+  },
+  "metrics": [
+    {
+      "name": "render_attempts_used",
+      "numerator": 0,
+      "denominator": 1,
+      "unit": "attempt",
+      "claim_class": "measured"
+    },
+    {
+      "name": "default_shell_drvpath_unchanged",
+      "numerator": 1,
+      "denominator": 1,
+      "unit": "shell",
+      "claim_class": "measured"
+    },
+    {
+      "name": "analysis_shell_drvpath_unchanged",
+      "numerator": 1,
+      "denominator": 1,
+      "unit": "shell",
+      "claim_class": "measured"
+    },
+    {
+      "name": "flake_lock_unchanged",
+      "numerator": 1,
+      "denominator": 1,
+      "unit": "file",
+      "claim_class": "measured"
+    },
+    {
+      "name": "report_shell_eval_ok",
+      "numerator": 2,
+      "denominator": 2,
+      "unit": "system",
+      "note": "aarch64-darwin and x86_64-linux (eval only on Linux)",
+      "claim_class": "measured"
+    },
+    {
+      "name": "test_pass_rate",
+      "numerator": 42,
+      "denominator": 42,
+      "unit": "test",
+      "claim_class": "measured"
+    },
+    {
+      "name": "preflight_runs",
+      "numerator": 2,
+      "denominator": 2,
+      "unit": "attempt",
+      "note": "both timed out at 1800 s (exit 124)",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": {
+    "render_with_fix_succeeds": null,
+    "render_readability_acceptance": null,
+    "listening_accepted": false,
+    "fundamental_32hz_presence": null,
+    "note_correctness": null,
+    "missed_or_extra_notes": null,
+    "linux_report_shell_runtime": null,
+    "project_config_merged": null,
+    "bundle_sha_difference_cause": null
+  },
+  "root_notes": [
+    "D6 stays open. 0 of 1 approved render attempts were used, so the ruling's closing condition ('if it fails again') did not occur, and the lane does not declare plain HTML final for D6. Both preflights timed out on nix substitution and remote-builder copy-back under host contention (load averages up to about 530), not on the fix. The direct probe shows the bundled pandoc 3.10 accepts the option that blocked D6. Whether to spend the unused attempt in a quieter host window or close D6 on the plain HTML report is an operator decision.",
+    "Merging flake.nix changes only the report devShell. default and analysis drvPaths are measured identical, so CI (nix develop --no-write-lock-file --command just ...) is unaffected.",
+    "The quarto tarball is now a valid local store path. The bundled-pandoc output (188 MB) exists valid only on the remote builder petting-zoo-mini, and its local copy is partial (not valid)."
+  ],
+  "root_owned_changes_requested": []
+}

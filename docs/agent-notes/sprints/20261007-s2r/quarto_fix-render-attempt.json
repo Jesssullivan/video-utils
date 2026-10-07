@@ -1,0 +1,205 @@
+{
+ "schema_version": 1,
+ "lane": "quarto_fix",
+ "sprint": "20261007-s2r",
+ "linear": "TIN-5491",
+ "receipt_kind": "phase2_fix_and_render_protocol",
+ "ruling": "docs/agent-notes/2026-10-07-s2-operator-rulings.md row 'Quarto report (D6)' (fix + ONE bounded render attempt; if it fails, plain HTML is final for D6); R-N13; R-HOOK-CONVERGENCE-20261004; TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43",
+ "spec": "docs/spec/sprints/QUARTO_FIX_S2R.md",
+ "spec_commit": "5fb9be77589449e82db646830e1319c317676b7d",
+ "implementation_commit": "bfcbea0695de3b19f9b2ad1c878fd6f11c475c53",
+ "cwd": ".local/sprint2/quarto_fix",
+ "fix_applied": {
+  "description": "report devShell sets QUARTO_PANDOC to the pandoc that upstream Quarto 1.10.18 ships, extracted by a runCommand from pkgs.quarto.src (the release tarball nixpkgs already pins by hash). No new input, URL or hash; default/analysis/ml/formatter untouched.",
+  "flake_nix_diff_summary": "+ let-binding quartoBundledPandoc (pkgs.runCommand 'quarto-<version>-bundled-pandoc', tar -xzf $src, find */bin/tools/<cpu>/pandoc, install to $out/bin/pandoc); report = mkShell { packages = core ++ [R quarto]; QUARTO_PANDOC = \"${quartoBundledPandoc}/bin/pandoc\"; }",
+  "bundled_pandoc_store_path": "/nix/store/n143ym1q7jbs2gfpvmx11dpdjf5nymbx-quarto-1.10.18-bundled-pandoc",
+  "bundled_pandoc_drv": "/nix/store/0awkc5rydxmrrv3xzxs4z0fx5mzhj6gj-quarto-1.10.18-bundled-pandoc.drv",
+  "bundled_pandoc_store_path_valid_locally": false,
+  "bundled_pandoc_store_path_note": "built on the remote builder; copy back was interrupted by the preflight-2 timeout. A 30973544-byte partial file exists locally and nix-store --check-validity reports the path not valid.",
+  "quarto_src_tarball": "/nix/store/sqirvw532xkyisi16xprc53h06k2yc7h-quarto-1.10.18-macos.tar.gz",
+  "quarto_src_tarball_sha256": "ddd6a71a9e0448ab15fb655bc589e11cb6589a248ec35ccd7f7f44137531688e",
+  "quarto_src_tarball_sri_in_nixpkgs": "sha256-3danGp4ESKsV+2VbxYnhHLZYmiSOw1zNf39EE3UxaI4=",
+  "fallback_used": false,
+  "fallback_url": null,
+  "fallback_hash": null,
+  "fallback_not_used_reason": "Neither preflight failure reached pandoc: both timed out in substitution/remote-build copy under host contention. A different pinned pandoc binary would not address that. The direct probe (below) measured that the bundled pandoc is 3.10 and accepts --syntax-highlighting, so the section 2 fallback trigger (version < 3.8 or option rejected) never fired."
+ },
+ "nix": {
+  "nix_on_path": "/Users/jess/.local/libexec/tinyland/local-build-guard/bin/nix (tinyland-local-build-guard --hosts macbook-neo; printed 'ADVISORY local build on macbook-neo: prefer remote execution')",
+  "nix_version": "nix (Determinate Nix 3.23.0) 2.35.2",
+  "eval_result": "succeeded (read-only)",
+  "eval_method": "nix eval --read-only --json; base from git show 7d0e11e:flake.{nix,lock} exported to artifacts/s2/quarto_fix/eval/base and evaluated as path:",
+  "eval_seconds": {
+   "base_aarch64_darwin": 133.69,
+   "new_aarch64_darwin": 120.12,
+   "new_x86_64_linux_report": 46.07,
+   "dry_run_report_instantiate": 402.17
+  },
+  "eval_deviation": "Contract step 1 named 600 s per eval. The instantiating evals timed out under host load: git+file?rev= at 600 s, then path: at 900 s and at 1800 s (1965.6 s wall, 5.71 s user). --read-only (no .drv writes to the daemon) finished in 120-134 s. drvPaths computed read-only are the same store paths that instantiation writes; the dry-run instantiation later produced the same report drvPath.",
+  "drvpaths_before": {
+   "default": "/nix/store/523kfb0gn1bsf39q59q0nk03fvxl3jdl-nix-shell.drv",
+   "analysis": "/nix/store/gljrdgwz1vlxghqn223ix7cq5z8j4iz6-nix-shell.drv",
+   "report": "/nix/store/ila1kv6khjpywhaqagyqqv2m2n7f6y4s-nix-shell.drv"
+  },
+  "drvpaths_after": {
+   "default": "/nix/store/523kfb0gn1bsf39q59q0nk03fvxl3jdl-nix-shell.drv",
+   "analysis": "/nix/store/gljrdgwz1vlxghqn223ix7cq5z8j4iz6-nix-shell.drv",
+   "report": "/nix/store/gksgdj6maixh8iipm6f7nsnkrfylhhgj-nix-shell.drv"
+  },
+  "report_drvpath_x86_64_linux_after": "/nix/store/d7rcr9hgw90fn0bpn3a8386h2qrcjn7b-nix-shell.drv",
+  "default_shell_drvpath_unchanged": true,
+  "analysis_shell_drvpath_unchanged": true,
+  "report_shell_eval_ok": {
+   "aarch64-darwin": true,
+   "x86_64-linux": true
+  },
+  "flake_lock_sha256_before": "478998ae59a2b2191feb820dd911beea3d7fb42eed8af6e16a6fe8721ee7713a",
+  "flake_lock_sha256_after": "478998ae59a2b2191feb820dd911beea3d7fb42eed8af6e16a6fe8721ee7713a",
+  "flake_lock_unchanged": true,
+  "dry_run": {
+   "exit_code": 0,
+   "to_build": [
+    "/nix/store/0awkc5rydxmrrv3xzxs4z0fx5mzhj6gj-quarto-1.10.18-bundled-pandoc.drv",
+    "/nix/store/gksgdj6maixh8iipm6f7nsnkrfylhhgj-nix-shell.drv"
+   ],
+   "to_fetch": [
+    "/nix/store/sqirvw532xkyisi16xprc53h06k2yc7h-quarto-1.10.18-macos.tar.gz",
+    "/nix/store/zab5dysvhn69vvyyw3vj3grx12nrf3j0-stdenv-darwin-no-cc"
+   ],
+   "fetch_size": "234.8 MiB download, 236.1 MiB unpacked"
+  },
+  "fetch_result": "failed",
+  "fetch_result_detail": "Preflight 2: the quarto tarball and stdenv-darwin-no-cc were substituted, with repeated narinfo/NAR timeouts (curl error 28) from cache.nixos.org and edge.cache.flakehub.com. The bundled-pandoc derivation was built remotely, but copying its 188 MB output back did not finish before the 1800 s timeout. nix-shell-env was never built.",
+  "store_paths_copied": "quarto-1.10.18-macos.tar.gz (valid locally), stdenv-darwin-no-cc; bundled-pandoc partial (not valid)",
+  "builder": "remote: ssh-ng://jsullivan2@petting-zoo-mini.local (selected by the local-build guard) for quarto-1.10.18-bundled-pandoc",
+  "host_load_averages_observed": "about 30 to 530 (1-minute) across the session on 6 CPUs; 529.88 at 2026-10-07T04:40Z during preflight 2"
+ },
+ "versions": {
+  "quarto": "1.10.18",
+  "quarto_source": "store path name /nix/store/skzd95zvkw7llz7fkmnsyn6svq86qs6y-quarto-1.10.18 (no quarto --version ran in this lane)",
+  "pandoc": "3.10",
+  "pandoc_source": "direct probe of ./bin/tools/aarch64/pandoc extracted from the hash-verified quarto tarball (sha256 5f873678b993531ad15d5986f1270b99e0f9e8ae09fbef43f94b58db6f6bdb80, 188564000 bytes, Mach-O arm64), not from inside nix develop",
+  "pandoc_path": "/nix/store/n143ym1q7jbs2gfpvmx11dpdjf5nymbx-quarto-1.10.18-bundled-pandoc/bin/pandoc (planned QUARTO_PANDOC; not valid locally)",
+  "r": null,
+  "r_reason": "report shell never entered; prior D6 receipt measured R 4.6.1 at the same nixpkgs rev (not re-measured)"
+ },
+ "preflight": {
+  "command": "timeout 1800 nix develop .#report --command sh -c 'printf \"%s\\n\" \"$QUARTO_PANDOC\"; \"$QUARTO_PANDOC\" --version | head -n 1; printf \"x\\n\" | \"$QUARTO_PANDOC\" -f markdown -t html --syntax-highlighting=pygments >/dev/null && echo SH_OK'",
+  "runs": [
+   {
+    "n": 1,
+    "started_utc": "2026-10-07T03:29:24Z",
+    "finished_utc": "2026-10-07T04:03:01Z",
+    "seconds": 2017.35,
+    "exit_code": 124,
+    "timed_out": true,
+    "log": "artifacts/s2/quarto_fix/preflight/preflight-1.log",
+    "stage_reached": "evaluation/substitution query; no build or copy lines printed"
+   },
+   {
+    "n": 2,
+    "started_utc": "2026-10-07T04:17:16Z",
+    "finished_utc": "2026-10-07T04:47:18Z",
+    "seconds": 1801.67,
+    "exit_code": 124,
+    "timed_out": true,
+    "log": "artifacts/s2/quarto_fix/preflight/preflight-2.log",
+    "stage_reached": "bundled-pandoc built remotely; copy back in progress at timeout"
+   }
+  ],
+  "seconds": 1801.67,
+  "exit_code": 124,
+  "syntax_highlighting_accepted": null,
+  "syntax_highlighting_accepted_reason": "never reached inside nix develop in either run",
+  "preflight_deviation": "The second preflight reused the primary fix instead of the section 2 fallback, because preflight 1 produced no pandoc evidence (see fix_applied.fallback_not_used_reason). The total stayed within the 2-preflight budget.",
+  "direct_probe": {
+   "kind": "diagnostic, not the contract preflight",
+   "pandoc_version_line": "pandoc 3.10",
+   "syntax_highlighting_accepted": true,
+   "sh_ok_printed": true,
+   "seconds": 5,
+   "exit_code": 0
+  }
+ },
+ "attempt_count": 0,
+ "command": null,
+ "planned_command": "/usr/bin/time -p timeout 1800 nix develop .#report --command sh -c 'quarto --version; R --version | head -n 1; printf \"QUARTO_PANDOC=%s\\n\" \"$QUARTO_PANDOC\"; \"$QUARTO_PANDOC\" --version | head -n 1; quarto render reports/demo.qmd -P run_dir=\"$1\"' sh \"$B\"",
+ "started_utc": null,
+ "finished_utc": null,
+ "seconds": null,
+ "exit_code": null,
+ "timed_out": null,
+ "outcome": "render_not_attempted_infra_timeout",
+ "outcome_basis": "Both preflights timed out (exit 124) during nix substitution and remote-builder copy-back, so 0 render attempts were made. The ruling's closing condition ('if it fails again') did not occur: no render ran and failed. The contract's section 2 fallback-preflight condition was not met either, because the fallback was not used and no failure involved pandoc. render_blocked_final therefore does not apply. This label is outside the contract's section 5 enumeration and is recorded as a phase 4 audit correction.",
+ "outcome_corrected_from": "render_blocked_final",
+ "outcome_correction": "Phase 4 audit repair, 2026-10-07: the earlier label claimed the ruling's final condition without a failed render.",
+ "d6_status": "open",
+ "d6_closure": "operator decision; the lane does not close D6 or declare plain HTML final",
+ "approved_render_attempts_unused": 1,
+ "blocking_error_line": "error: unable to download 'https://cache.nixos.org/nar/1nsjhb2kr37pghspyaj0568f0y94rxl6ca67nzhh599ancp5n6pm.nar.zst': Timeout was reached (28) Connection timed out after 35236 milliseconds",
+ "blocking_error_note": "Last error line before the preflight-2 timeout. Direct probes from this host returned 200 from cache.nixos.org in 0.30 s, so the failure is time-dependent and not a hard outage.",
+ "html_sha256": null,
+ "html_bytes": null,
+ "html_path": null,
+ "html_null_reason": "no render attempted",
+ "remote_reference_scan": null,
+ "mathjax_present": null,
+ "project_config_merged": null,
+ "in_tree_products_removed": [],
+ "bundle": {
+  "path": "artifacts/s2/quarto_fix/bundles/20261006T041633Z-990aa1bd6737-20261007T020223Z",
+  "bundle_sha256": "de522a15b470be8441e089afa2e693a94e36e78a1fc76c1ea7486cae9cd58319",
+  "verify_status": "verified",
+  "origin_checked": true,
+  "member_count": 24,
+  "total_member_bytes": 4864121,
+  "analysis_lineage": "verified_run_derivative_hash_bound (auto-resolved; --analysis-run-dir not needed)",
+  "equals_prior_d6_bundle": false,
+  "prior_d6_bundle_sha256": "d3cfb5c729fe61612276821185997bd430cfbc89a1456893616d51d49426a333",
+  "difference_cause": null,
+  "difference_cause_reason": "not investigated; this is a reproducibility observation and does not gate anything"
+ },
+ "tests": {
+  "command": "PYTHONPATH=tests python3 -m unittest test_report_bundle test_report -v (FFMPEG/FFPROBE exported to the ffmpeg-headless-8.1.2 store path)",
+  "discovered": 42,
+  "passed": 42,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "seconds": 8.493,
+  "log": "artifacts/s2/quarto_fix/tests.log"
+ },
+ "fallback_statement": "The plain HTML report from scripts/report.py remains the primary report and the D6 fallback; this render is optional.",
+ "claims": {
+  "measurements": [
+   "default and analysis devShell drvPaths are identical before and after (aarch64-darwin, read-only eval)",
+   "report devShell evaluates on aarch64-darwin and x86_64-linux (eval only)",
+   "flake.lock sha256 is unchanged",
+   "quarto tarball sha256 ddd6a71a... matches the nixpkgs SRI pin; it contains bin/tools/{aarch64,x86_64}/pandoc",
+   "the extracted aarch64 bundled pandoc reports 'pandoc 3.10' and accepts --syntax-highlighting=pygments (direct probe)",
+   "preflight 1 and 2 exit 124 at the 1800 s timeout; 0 render attempts",
+   "bundle verified, sha256 de522a15..., differs from the prior d3cfb5c7...",
+   "test_report_bundle + test_report: 42/42 passed"
+  ],
+  "inferences": [
+   "I1 (from the contract, now supported by the direct probe): the prior failure was the nixpkgs quarto 1.10.18 / pandoc 3.7.0.2 pairing. The bundled pandoc 3.10 accepts the rejected option, so the fix should clear that error. This is unverified in an actual render.",
+   "I2: both preflight timeouts came from host contention (load averages up to about 530 on 6 CPUs, curl timeouts in the nix daemon, a slow 188 MB remote-builder copy-back), not from the fix.",
+   "I3: a render under a less-loaded host may still fail on a later, unobserved report-source or Quarto issue. That is unknown."
+  ],
+  "listening": []
+ },
+ "unknowns": {
+  "render_readability_acceptance": null,
+  "listening_accepted": false,
+  "fundamental_32hz_presence": null,
+  "note_correctness": null,
+  "missed_or_extra_notes": null,
+  "missed_or_extra_notes_reason": "no approved expected-rhythm reference",
+  "linux_report_shell_runtime": null,
+  "linux_report_shell_runtime_reason": "evaluated only, not run, on Linux",
+  "project_config_merged": null,
+  "project_config_merged_reason": "no HTML produced",
+  "render_with_fix_succeeds": null
+ },
+ "note": "No audio processing, detector, profile or master was changed or adopted. A blocked render is a valid completion state. Rendering success would not be listening or readability acceptance."
+}
