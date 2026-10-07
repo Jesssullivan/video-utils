@@ -7,3 +7,5 @@ strictPeerDependencies: true
 verifyDepsBeforeRun: error
 minimumReleaseAgeExclude:
   - vite@8.3.3
+# Required by rules_js for pnpm 11 (S3 bazel_graph); an empty map allows no build scripts.
+allowBuilds: {}

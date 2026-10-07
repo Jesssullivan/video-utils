@@ -358,3 +358,23 @@ au-auval-step:
 # Typed refusals (exit 1) write nothing; see docs/spec/sprints/ROBUSTNESS_S2.md section 3.6.
 demo-resume invocation_id:
     python3 scripts/run_demo.py --resume {{quote(invocation_id)}}
+
+# Public static landing site (S3 public_site; docs/spec/sprints/PUBLIC_SITE_S3.md). Never deployed by these recipes.
+site-install:
+    cd site && pnpm install --frozen-lockfile
+
+site-check:
+    cd site && pnpm run check
+
+site-build:
+    cd site && pnpm run build
+
+site-leak-scan:
+    cd site && pnpm run leak-scan
+
+site-test:
+    PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v
+
+# Deploying is an outward-facing action: this recipe only refuses and points at the plan.
+site-pages-deploy:
+    @echo "refused: deploying the public site needs an explicit operator go; see docs/spec/sprints/PUBLIC_SITE_S3.md" && exit 2

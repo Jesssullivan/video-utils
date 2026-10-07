@@ -30,3 +30,7 @@ __pycache__/
 *.FLAC
 *.AIFF
 # Documentation figures and committed synthetic fixture metadata remain allowed.
+# Cargo output of the AU spike, Bazel convenience symlinks and per-machine overrides.
+/native/au-spike/target/
+/bazel-*
+/user.bazelrc
