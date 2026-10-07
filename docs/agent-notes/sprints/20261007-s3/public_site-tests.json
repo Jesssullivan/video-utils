@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "lane": "public_site",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5723",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_utc": "2026-10-07",
+  "baseline": "f44f962ba159e82b0384dd89e95d8a3ba5246267",
+  "contract_commit": "a68e82ae1142d5e7ee060d265ded01c0b6a2ff84",
+  "implementation_commit": "f7ff2d6 (site, scanner and tests; receipts and the spec addendum follow in a later commit on the same branch)",
+  "phase": "2_implement",
+  "kind": "tests",
+  "module": "tests/test_public_site_s3.py",
+  "command": "PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v",
+  "cwd": "worktree root",
+  "result": {
+    "tests": 63,
+    "passed": 62,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 1,
+    "exit_status": 0,
+    "seconds_about": 40
+  },
+  "skipped": [
+    {
+      "test": "LeakRuleTests.test_private_app_hostname_is_absent_when_known",
+      "reason": "the private app hostname is null in deploy/cloudflare, so there is no value to search for (private_app_hostname_checked: false)"
+    }
+  ],
+  "classes": {
+    "SpecAndReceiptTests": 6,
+    "PinTests": 7,
+    "PrerenderConfigTests": 5,
+    "ContentContractTests": 12,
+    "LeakRuleTests": 15,
+    "LeakScannerNodeTests": 4,
+    "BuildTests": 14
+  },
+  "build_tests": "ran: node and pnpm on PATH and site/node_modules present. The module deletes site/build, runs pnpm run check then pnpm run build (300 s timeout each) and inspects only that build. It never runs pnpm install.",
+  "subprocess_timeouts_seconds": {
+    "node_scanner": 60,
+    "check": 300,
+    "build": 300,
+    "git": 30
+  },
+  "fixtures": "synthetic, generated per test in a temporary directory; trigger strings assembled from fragments; no real identifier is used as a fixture; no media fixture exists",
+  "identifier_check": "real-take identifiers are read from repository files at test time and are not written into the test module or any receipt",
+  "directly_affected_modules": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_web_stack test_tool_contracts",
+    "result": {
+      "tests": 98,
+      "failures": 3,
+      "errors": 5,
+      "skipped": 3
+    },
+    "failing": [
+      {
+        "test": "test_web_stack.WebStackStaticTests.test_s8_prototype_routes_label_only",
+        "subtests": [
+          "compare",
+          "review",
+          "download"
+        ],
+        "observed": "web/src/routes/<slug>/+page.svelte no longer contains PrototypeNotice"
+      },
+      {
+        "tests": [
+          "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_mcp_preserves_octave_failure_and_inputs",
+          "test_real_learned_evaluator_stale_raw_retains_structural_receipt",
+          "test_real_learned_evaluator_unsupported_claim_keeps_metrics_and_fails",
+          "test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate",
+          "test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure"
+        ],
+        "observed": "KeyError 'result' on the MCP reply"
+      }
+    ],
+    "attribution": "inferred, not verified at baseline: the failing assertions read web/ route files and MCP evaluator replies; none reads site/ or any file this lane changed. The baseline commit was not re-run by this lane.",
+    "action": "none taken; these files are outside the lane's ownership"
+  },
+  "full_suite": "not run by the lane (root runs it)",
+  "not_tested": [
+    "rendering in a browser",
+    "keyboard operation",
+    "contrast",
+    "served headers",
+    "the proposed CI step"
+  ],
+  "deployed": false
+}

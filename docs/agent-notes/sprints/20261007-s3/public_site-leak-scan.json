@@ -1,0 +1,206 @@
+{
+  "schema_version": 1,
+  "lane": "public_site",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5723",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_utc": "2026-10-07",
+  "baseline": "f44f962ba159e82b0384dd89e95d8a3ba5246267",
+  "contract_commit": "a68e82ae1142d5e7ee060d265ded01c0b6a2ff84",
+  "implementation_commit": "f7ff2d6 (site, scanner and tests; receipts and the spec addendum follow in a later commit on the same branch)",
+  "phase": "2_implement",
+  "kind": "leak_scan",
+  "modelled_on": {
+    "repo": "xoxd.ai",
+    "ref": "origin/main",
+    "commit": "cc570c3c1079cc5754840395184f0c1a6fece97f",
+    "paths": [
+      "scripts/lib/leak-scan-rules.json",
+      "scripts/lib/leak-scan.mjs"
+    ]
+  },
+  "rules": {
+    "total": 24,
+    "ported": 15,
+    "added": 9,
+    "not_ported": [
+      "plan-private-name",
+      "unsourced-promise"
+    ],
+    "upstream_allowlist_entries_copied": 0
+  },
+  "metrics": {
+    "M10_fixtures": {
+      "class": "M",
+      "node_rules_with_firing_positive_and_silent_negative": "24/24",
+      "python_rules_with_firing_positive_and_silent_negative": "24/24",
+      "verdict_agreement": "48/48",
+      "fixtures": "synthetic, assembled from fragments at run time"
+    },
+    "M11_build_scan": {
+      "class": "M",
+      "findings": 0,
+      "files_scanned": 25,
+      "rules_applied": 24,
+      "unscannable_files": [
+        "_app/immutable/assets/inter-latin-400-normal.C38fXH4l.woff2",
+        "_app/immutable/assets/inter-latin-400-normal.CyCys3Eg.woff",
+        "_app/immutable/assets/inter-latin-500-normal.BL9OpVg8.woff",
+        "_app/immutable/assets/inter-latin-500-normal.Cerq10X2.woff2",
+        "_app/immutable/assets/inter-latin-600-normal.CiBQ2DWP.woff",
+        "_app/immutable/assets/inter-latin-600-normal.LgqL8muc.woff2",
+        "_app/immutable/assets/inter-latin-700-normal.BLAVimhd.woff",
+        "_app/immutable/assets/inter-latin-700-normal.Yt3aPRUw.woff2",
+        "fonts/FiraCodeNerdFontMono-Bold.woff2",
+        "fonts/FiraCodeNerdFontMono-Regular.woff2"
+      ],
+      "unscannable_reason": "opaque font binaries",
+      "exit_status": 0,
+      "python_port_findings": 0
+    },
+    "M12_source_scan": {
+      "class": "M",
+      "findings": 0,
+      "files_scanned": 27,
+      "rules_applied": 24,
+      "exit_status": 0,
+      "excluded": [
+        "node_modules/",
+        ".svelte-kit/",
+        "build/",
+        "vendor/",
+        "static/fonts/",
+        "pnpm-lock.yaml"
+      ]
+    },
+    "vendor_scan": {
+      "class": "M",
+      "findings": 0,
+      "files_scanned": 46,
+      "rules_applied": 9,
+      "unscannable_files": [
+        "xoxd-theme/fonts/FiraCodeNerdFontMono-Bold.woff2",
+        "xoxd-theme/fonts/FiraCodeNerdFontMono-Regular.woff2"
+      ],
+      "exit_status": 0,
+      "note": "vendored upstream text outside the nine carrier rules is not judged; one upstream Bazel comment cites a tracker id and is not part of the build"
+    },
+    "M13_exact_identifiers": {
+      "class": "M",
+      "found": 0,
+      "identifiers_checked": 47,
+      "by_kind": {
+        "source_sha256": 1,
+        "recording_basename": 2,
+        "recording_stem": 1,
+        "recording_date_prefix": 1,
+        "run_directory": 42
+      },
+      "surfaces": "every file under site/ except node_modules and .svelte-kit, plus site/build",
+      "identifier_values_recorded_here": false
+    },
+    "gitleaks": {
+      "class": "M",
+      "command": "gitleaks dir --redact site",
+      "result": "no leaks found",
+      "note": "the repository's existing secret scanner, run once locally on site/"
+    }
+  },
+  "allowed_hosts": [
+    {
+      "host": "www.w3.org",
+      "where": "every built page, static/favicon.svg, the Svelte runtime chunk",
+      "reason": "SVG and XHTML namespace identifiers; never fetched"
+    },
+    {
+      "host": "svelte.dev",
+      "where": "_app/immutable/chunks/",
+      "reason": "links inside the Svelte runtime's own error messages; framework code"
+    },
+    {
+      "host": "scripts.sil.org",
+      "where": "fonts/OFL.txt",
+      "reason": "the font licence text that accompanies the self-hosted fonts"
+    }
+  ],
+  "allowed_exact_forge_urls": {
+    "count": 2,
+    "where": "fonts/OFL.txt",
+    "reason": "the licence text credits the two upstream font projects; the forge host itself is not allowlisted and any other path is a finding"
+  },
+  "allowed_mailboxes": 0,
+  "framework_deviations": [
+    {
+      "rule": "form-or-upload-surface",
+      "file": "_app/immutable/assets/0.*.css",
+      "measured": "6 findings before the change",
+      "cause": "Skeleton attribute selectors for a file selector button",
+      "change": "the file-input alternative refuses a preceding bracket or word character",
+      "authored_content_still_caught": true
+    },
+    {
+      "rule": "analytics-or-beacon",
+      "file": "_app/immutable/nodes/0.*.js",
+      "measured": "1 finding before the change",
+      "cause": "a component library event-name key for double click matched the bare advertising-host word case-insensitively",
+      "change": "that alternative requires its .net suffix",
+      "authored_content_still_caught": true
+    },
+    {
+      "rule": "internal-tracker-reference",
+      "file": "fonts/OFL.txt",
+      "measured": "2 findings before the change",
+      "cause": "the font licence names two upstream projects by URL",
+      "change": "exact-URL exception list, the upstream mechanism with none of its entries",
+      "authored_content_still_caught": true
+    }
+  ],
+  "first_build_scan_before_allowlisting": {
+    "findings": 128,
+    "by_cause": {
+      "www.w3.org namespace identifiers": 91,
+      "svelte.dev runtime links": 25,
+      "Skeleton file-selector selectors": 6,
+      "font licence forge URLs (host and tracker rule)": 4,
+      "font licence address": 1,
+      "event-name key": 1
+    }
+  },
+  "self_scan": "the rule file is in the source scan with no exemption and produces 0 findings",
+  "limits": [
+    "a text scanner cannot judge font binaries; 10 build files and 2 vendored files are listed as unscannable",
+    "framework runtime chunks skip the two content-authorship rules, as upstream does; built HTML and authored sources are scanned in full",
+    "the private app hostname is null in deploy/cloudflare, so its absence could not be checked by value"
+  ],
+  "sha256": {
+    "site/scripts/leak-scan-rules.json": "02edaf22178106ecce24b845fa710a489f5d459c2fa48da7999a7e92a94d4f06",
+    "site/scripts/leak-scan.mjs": "a0e5d214d23b71d17316aa95800a7ae462baa076f8e14d800d20fe8ed75dcf15"
+  },
+  "deployed": false,
+  "pages_project_name": null,
+  "cloudflare_account": null,
+  "public_hostname": null,
+  "custom_domain": null,
+  "wrangler_version": null,
+  "served_check": "not_performed",
+  "public_product_name": null,
+  "private_app_hostname_checked": false,
+  "real_take_accuracy": "unknown",
+  "low_register_pitch_accuracy": "unknown",
+  "listening_acceptance": "not_claimed",
+  "logic_au_host_acceptance": "not_done",
+  "editor_import_proof": "not_done",
+  "market_claim": "hypothesis",
+  "xoxd_chrome_consumed": true,
+  "xoxd_theme_consumed": true,
+  "archives_anonymously_fetchable": true,
+  "contrast_ratio_measured": false,
+  "keyboard_walkthrough": "not_performed",
+  "reduced_motion_verified": false,
+  "csp_enforced": false,
+  "bazel_graph": "absent",
+  "template_archive_verified": true,
+  "effect_in_site": "absent",
+  "agents_intents_withheld": 0,
+  "media_shown": 0
+}

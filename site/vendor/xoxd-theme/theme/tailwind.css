@@ -1,0 +1,9 @@
+@theme {
+	--font-sans: 'Inter', 'Inter Fallback', system-ui, -apple-system, sans-serif;
+	--font-mono:
+		'FiraCode Nerd Font Mono', 'FiraCode Nerd Font Mono Fallback', ui-monospace, SFMono-Regular, Menlo, Monaco,
+		Consolas, monospace;
+}
+
+
+@custom-variant dark (&:where([data-mode='dark'], [data-mode='dark'] *));

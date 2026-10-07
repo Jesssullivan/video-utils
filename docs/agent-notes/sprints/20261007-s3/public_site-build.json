@@ -1,0 +1,311 @@
+{
+  "schema_version": 1,
+  "lane": "public_site",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5723",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_utc": "2026-10-07",
+  "baseline": "f44f962ba159e82b0384dd89e95d8a3ba5246267",
+  "contract_commit": "a68e82ae1142d5e7ee060d265ded01c0b6a2ff84",
+  "implementation_commit": "f7ff2d6 (site, scanner and tests; receipts and the spec addendum follow in a later commit on the same branch)",
+  "phase": "2_implement",
+  "kind": "build",
+  "claim_classes": {
+    "M": "measured by a command in this lane on authored or synthetic inputs",
+    "I": "inferred",
+    "U": "unknown or not performed"
+  },
+  "toolchain": {
+    "node_on_path": "v22.23.2",
+    "pnpm": "11.25.0",
+    "pnpm_runtime_node": "v24.19.0 (pnpm's bundled runtime; prints an unsupported-engine warning, engineStrict unset)",
+    "network_used": "pnpm lock resolution and first install fetched from the npm registry; three public release archives fetched once over anonymous HTTPS"
+  },
+  "chrome_rung": "A_verified_public_archives_vendored",
+  "archives": [
+    {
+      "asset": "xoxd_public_chrome-0.1.0.tar.gz",
+      "http_status": 200,
+      "bytes": 11948,
+      "registry_integrity": "sha256-AdbvlPHa7HAxfWAGDyjRSO58d2eqhbxqyxKJjVs1RJI=",
+      "integrity_match": true,
+      "files": 21,
+      "vendored_to": "site/vendor/xoxd-public-chrome",
+      "edits": 0
+    },
+    {
+      "asset": "xoxd_theme-0.1.1.tar.gz",
+      "http_status": 200,
+      "bytes": 84851,
+      "registry_integrity": "sha256-DtBiJ/++QAmLQF+M0gNEKptUEdiLEHndOev70ZfVT0U=",
+      "integrity_match": true,
+      "files": 26,
+      "vendored_to": "site/vendor/xoxd-theme",
+      "edits": 0
+    },
+    {
+      "asset": "site-scaffold-public-0.1.1.tar.gz",
+      "http_status": 200,
+      "bytes": 143436,
+      "registry_sha256": "9d834297fbd8103f30758ac58364c59ba628c8b09d6114b093cc68d5a5acf9a4",
+      "sha256_match": true,
+      "files": 35,
+      "vendored_to": null,
+      "use": "read for template conventions only; not copied into the repository"
+    }
+  ],
+  "estate_ruling_deviation": "Rung A commits carrier copies (estate ruling N2 keeps carriers generated). Recorded in site/vendor/PROVENANCE.json; root's Bazel lane may replace site/vendor/ with a package link.",
+  "metrics": {
+    "M1_exact_pins": {
+      "class": "M",
+      "numerator": 16,
+      "denominator": 16,
+      "inexact": []
+    },
+    "M2_skeleton": {
+      "class": "M",
+      "package_pins_equal_5_0_1": "2/2",
+      "lock_versions": [
+        "5.0.1"
+      ],
+      "other_skeleton_versions_in_lock": 0
+    },
+    "M3_effect": {
+      "class": "M",
+      "package_pin": null,
+      "lock_versions": [],
+      "holds": true
+    },
+    "M4_commands": {
+      "class": "M",
+      "numerator": 3,
+      "denominator": 3,
+      "run": "in order from site/ after deleting node_modules, .svelte-kit and build",
+      "commands": [
+        {
+          "command": "pnpm install --frozen-lockfile",
+          "cwd": "site",
+          "exit_status": 0,
+          "seconds": 14.4
+        },
+        {
+          "command": "pnpm run check",
+          "cwd": "site",
+          "exit_status": 0,
+          "seconds": 21.6
+        },
+        {
+          "command": "pnpm run build",
+          "cwd": "site",
+          "exit_status": 0,
+          "seconds": 20.7
+        }
+      ]
+    },
+    "M5_svelte_check": {
+      "class": "M",
+      "files": 4798,
+      "errors": 0,
+      "warnings": 0
+    },
+    "M6_prerender_config": {
+      "class": "M",
+      "numerator": 5,
+      "denominator": 5,
+      "source": "PrerenderConfigTests.test_m6_prerender_configuration"
+    },
+    "M7_pages": {
+      "class": "M",
+      "numerator": 5,
+      "denominator": 5,
+      "pages": [
+        "index.html",
+        "features.html",
+        "agents.html",
+        "status.html",
+        "404.html"
+      ],
+      "html_files_in_build": [
+        "404.html",
+        "agents.html",
+        "features.html",
+        "index.html",
+        "status.html"
+      ]
+    },
+    "M8_tools_rendered": {
+      "class": "M",
+      "numerator": 40,
+      "denominator": 40,
+      "status_counts_from_registry": {
+        "available": 4,
+        "experimental": 36
+      },
+      "registry_sha256": "392cc900ceeeaf3b2ff3f8973f0b1652627058c4abccf4e168e56d8e035094c5"
+    },
+    "M9_forbidden_tool_fields": {
+      "class": "M",
+      "occurrences": 0,
+      "candidates_checked": 184,
+      "surfaces": [
+        "build/agents.html",
+        "build/agents/__data.json"
+      ]
+    },
+    "M14_unknown_placements": {
+      "class": "M",
+      "numerator": 15,
+      "denominator": 15
+    },
+    "M15_claim_elements": {
+      "class": "M",
+      "numerator": 31,
+      "denominator": 31,
+      "claims_in_registry": 26
+    },
+    "M16_banned_phrases": {
+      "class": "M",
+      "patterns_with_hits": 0,
+      "patterns": 10
+    },
+    "M17_forbidden_surfaces": {
+      "class": "M",
+      "form": 0,
+      "textarea": 0,
+      "audio": 0,
+      "video": 0,
+      "iframe": 0,
+      "object": 0,
+      "embed": 0,
+      "img": 0,
+      "picture": 0,
+      "source": 0,
+      "file_inputs": 0,
+      "third_party_origin_attributes": 0,
+      "authored_outbound_links": 0,
+      "inputs": [],
+      "action_or_method_attributes": 0
+    },
+    "M18_accessibility_structure": {
+      "class": "M",
+      "numerator": 32,
+      "denominator": 32,
+      "failed": [],
+      "scope": "static structure of prerendered HTML only; not a browser or assistive-technology test"
+    },
+    "M19_authored_colour_literals": {
+      "class": "M",
+      "files_with_literals": 0
+    },
+    "M20_chrome_rung": {
+      "class": "M",
+      "rung": "A",
+      "integrity_matches": "2/2",
+      "vendored_files_matching_archive_digests": "47/47"
+    },
+    "M21_deployment_actions": {
+      "class": "M",
+      "count": 0,
+      "note": "No wrangler run, no project created. The proposed deploy recipe was exercised once in a scratch justfile without the go variable and refused with exit 64 before reaching any tool."
+    },
+    "M22_contrast_ratios": {
+      "class": "U",
+      "value": "not_measured"
+    },
+    "M23_keyboard_walkthrough": {
+      "class": "U",
+      "value": "not_performed"
+    },
+    "M24_template_drift_items": {
+      "class": "M",
+      "count": 8,
+      "where": "public_site-root-requests.json template_drift_for_TIN-5716"
+    }
+  },
+  "feature_sections": {
+    "restoration": {
+      "note_visible": true,
+      "measured_or_implemented": 3,
+      "unknown": 2
+    },
+    "review": {
+      "note_visible": true,
+      "measured_or_implemented": 2,
+      "unknown": 2
+    },
+    "agent_tools": {
+      "note_visible": true,
+      "measured_or_implemented": 2,
+      "unknown": 1
+    }
+  },
+  "build_output": {
+    "files": 35,
+    "bytes": 969630,
+    "source_maps": 0,
+    "compressed_twins": 0,
+    "directory": "site/build (gitignored)"
+  },
+  "inputs_enumerated": [],
+  "client_storage": "theme and colour-mode preference kept by the chrome in local storage; stated on /status",
+  "resolved_at_lock_time": {
+    "@lucide/svelte": "1.28.0",
+    "@fontsource/inter": "5.3.0",
+    "basis": "the versions the public template's own lockfile resolves"
+  },
+  "template_deviations": [
+    "mdsvex and shiki not carried (no .svx content)",
+    "@tummycrypt/vite-plugin-a11y and vite-plugin-skeleton-colors not carried (Bazel-only modules)",
+    "tinyvectors not carried",
+    "eslint, prettier, vitest, playwright, sharp, svgo, serve, tsx and rollup-plugin-visualizer not carried",
+    "Bazel and Nix files and the template Justfile not carried",
+    "precompress false and strict true (template: true and false)",
+    "prerender handlers fail (template: warn)",
+    "no BASE_PATH or BUILD_OUTPUT_DIR environment switches",
+    "main landmark rendered by the layout, not by each page",
+    "exact pins and pnpm 11.25.0 (template: caret ranges and pnpm 10.13.1)",
+    "pnpm settings in pnpm-workspace.yaml; no legacy-peer-deps (strictPeerDependencies true)",
+    "own favicon; the template favicon carries another site's label"
+  ],
+  "contract_deviations": "docs/spec/sprints/PUBLIC_SITE_S3.md section 13 (eight items)",
+  "sha256": {
+    "program/tools.json": "392cc900ceeeaf3b2ff3f8973f0b1652627058c4abccf4e168e56d8e035094c5",
+    "site/package.json": "fc8fbf3b8c817ad6708a00a96fc383ede06e1742d0c7942bfa315223e56e77fa",
+    "site/pnpm-lock.yaml": "ffa62fcba63e64a9bc36b6b0b2ddcf0576c47a6b1b1e4a050ac6273f82757f6c",
+    "site/scripts/leak-scan-rules.json": "02edaf22178106ecce24b845fa710a489f5d459c2fa48da7999a7e92a94d4f06",
+    "site/scripts/leak-scan.mjs": "a0e5d214d23b71d17316aa95800a7ae462baa076f8e14d800d20fe8ed75dcf15"
+  },
+  "local_reports": "artifacts/s2/public_site/ (gitignored): install.log, check.log, build.log, measure.json, leak-scan-*.json",
+  "not_claimed": [
+    "any deploy or served behaviour",
+    "any accuracy, listening or accessibility-audit result",
+    "visual review in a browser"
+  ],
+  "deployed": false,
+  "pages_project_name": null,
+  "cloudflare_account": null,
+  "public_hostname": null,
+  "custom_domain": null,
+  "wrangler_version": null,
+  "served_check": "not_performed",
+  "public_product_name": null,
+  "private_app_hostname_checked": false,
+  "real_take_accuracy": "unknown",
+  "low_register_pitch_accuracy": "unknown",
+  "listening_acceptance": "not_claimed",
+  "logic_au_host_acceptance": "not_done",
+  "editor_import_proof": "not_done",
+  "market_claim": "hypothesis",
+  "xoxd_chrome_consumed": true,
+  "xoxd_theme_consumed": true,
+  "archives_anonymously_fetchable": true,
+  "contrast_ratio_measured": false,
+  "keyboard_walkthrough": "not_performed",
+  "reduced_motion_verified": false,
+  "csp_enforced": false,
+  "bazel_graph": "absent",
+  "template_archive_verified": true,
+  "effect_in_site": "absent",
+  "agents_intents_withheld": 0,
+  "media_shown": 0
+}

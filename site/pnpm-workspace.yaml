@@ -1,0 +1,7 @@
+# pnpm 11 reads package-manager settings from this file (not .npmrc).
+# This site is its own workspace root so it never joins a parent workspace.
+packages:
+  - .
+strictPeerDependencies: true
+# Fail instead of silently running an (online) install when a script finds stale deps.
+verifyDepsBeforeRun: error

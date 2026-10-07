@@ -1,0 +1,17 @@
+load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
+load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+
+package(default_visibility = ["//visibility:public"])
+
+copy_to_directory(
+    name = "package_files",
+    srcs = glob(["src/**"]) + ["package.json", "LICENSE", "NOTICE"],
+    root_paths = [".", "public/chrome"],
+)
+
+npm_package(
+    name = "pkg",
+    srcs = [":package_files"],
+    package = "@xoxd/public-chrome",
+    root_paths = ["package_files", "**/package_files"],
+)
