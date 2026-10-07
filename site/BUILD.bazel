@@ -12,13 +12,15 @@ sources from site/pnpm-lock.yaml through rules_js:
 Bazel writes nothing into site/: every output is under bazel-bin.
 
 The two vendored carriers (@xoxd/theme, @xoxd/public-chrome) are `file:`
-directory dependencies in the lock. rules_js links those to an `npm_package`
-named `pkg` in the vendored directory; the directories keep their own,
-unmodified BUILD.bazel and MODULE.bazel and are outside this graph's packages,
-so MODULE.bazel maps each one to its own module with `local_path_override`
-(the committed, integrity-verified bytes; no archive download) and the links
-below take the module's `//:pkg`. Contract: docs/spec/sprints/BAZEL_FULL_S3.md
-section 9.
+directory dependencies in the lock. rules_js treats those as first-party
+packages and links each to the `npm_package` named `pkg` in its own directory
+(//site/vendor/xoxd-theme:pkg, //site/vendor/xoxd-public-chrome:pkg), which the
+carriers' unmodified BUILD.bazel files already declare. That needs the
+root-owned .bazelignore to expose the two carrier packages (ignoring only the
+carrier's own test package); `replace_packages` and `local_path_override`
+cannot redirect a directory-resolved package (contract section 9.3,
+bazel_full-site.json). Until root applies that line and `allowBuilds: {}` in
+site/pnpm-workspace.yaml, .bazelrc gates this package off.
 
 The prerender of the agents page reads the repository tool registry from
 `<site>/../program/tools.json`; //bazel:site_build.mjs lays that file out
