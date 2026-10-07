@@ -515,5 +515,20 @@ class SealedEvaluationTests(unittest.TestCase):
             self.assertEqual(summary["phrase_count"], 48)
 
 
+
+@unittest.skipUnless(os.environ.get("TIMING_CALIBRATION_S3_SEALED_EVAL_R2") == "1", "R2 sealed evaluation runs once, on request")
+class SealedEvaluationR2Tests(unittest.TestCase):
+    """Post-eval fix (spec section 11) on newly preregistered seeds 5601-5608; 5501-5508 are not rescored."""
+
+    def test_sealed_evaluation_r2(self):
+        result = tc.sealed_evaluation(seeds=tc.EVAL_SEEDS_R2)
+        result["producer"] = tc.producer_hashes()
+        SEALED_OUTPUT.mkdir(parents=True, exist_ok=True)
+        tc.rhythm.atomic_write(SEALED_OUTPUT / "results-r2.json", json.dumps(result, indent=2, allow_nan=False, default=str) + "\n")
+        for arm in ("E1", "E2", "E3"):
+            self.assertEqual(result["summary"][arm]["case_count"], 8)
+            self.assertEqual(result["summary"][arm]["phrase_count"], 48)
+
+
 if __name__ == "__main__":
     unittest.main()

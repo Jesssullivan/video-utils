@@ -97,6 +97,9 @@ ON_CLICK_MIN_EVENTS = 8
 PHASE_LOCK_RESULTANT = .9
 CLICK_COINCIDENCE_HALF_WIDTH_MS = HOP / RATE / 2 * 1000  # half a hop (2.5 ms); development guard (section 10)
 CLICK_SELF_MIN_EVENTS = 8
+# Post-eval fix R2 (spec section 11): strong-event floor for high-frequency peaks in click_only spans.
+CLICK_STRENGTH_FRACTION = .3
+CLICK_REFERENCE_SECONDS_PER_EVENT = 2.0
 
 MAX_AUDIO_SECONDS = 600
 MAX_JSON_BYTES = 64 * 1024 * 1024
@@ -639,6 +642,19 @@ def fit_session_grid(span_events: list[list[float]]) -> dict:
     return result
 
 
+def strong_click_events(events: list[tuple[float, float]], span_seconds: float) -> list[tuple[float, float]]:
+    """Keep high-frequency peaks with novelty >= 0.3 x the median of the strongest ceil(span/2 s) peaks.
+
+    In a click-only span no attack sets the peak picker's maximum, so fan-noise peaks pass its adaptive
+    threshold; the strongest ceil(span/2 s) peaks are clicks at any tempo of at least 30 BPM.
+    """
+    if not events:
+        return []
+    count = max(1, min(len(events), math.ceil(span_seconds / CLICK_REFERENCE_SECONDS_PER_EVENT)))
+    reference = statistics.median(sorted((value for _, value in events), reverse=True)[:count])
+    return [(time, value) for time, value in events if value >= CLICK_STRENGTH_FRACTION * reference]
+
+
 def _isolated(time: float, value: float, events: list[tuple[float, float]]) -> bool:
     """No other same-path event in the preceding 100 ms and no stronger one in the following 100 ms."""
     for other, strength in events:
@@ -693,7 +709,8 @@ def measure_session(samples, spans: list[dict], audio_start_seconds: float = 0.0
            for span in spans]
     rel = [span for span in rel if span["end"] > 0 and span["start"] < duration]
     click_spans = sorted((s for s in rel if s["kind"] == "click_only"), key=lambda s: s["start"])
-    hf_by_span = [env.events("high_frequency_novelty", s["start"], s["end"]) for s in click_spans]
+    hf_by_span = [strong_click_events(env.events("high_frequency_novelty", s["start"], s["end"]), s["end"] - s["start"])
+                  for s in click_spans]
     grid = fit_session_grid([[t for t, _ in events] for events in hf_by_span])
     out = {"grid": grid, "classes": {"click": [], "palm_muted_pick_attack": [], "open_pick_attack": []},
            "on_click": [], "click_broadband_reference": None, "click_broadband_self_offsets": []}
@@ -1106,6 +1123,7 @@ DEV_NAMESPACE = "timing-calibration-s3-dev"
 EVAL_NAMESPACE = "timing-calibration-s3-eval"
 DEV_SEEDS = (11, 12, 13)
 EVAL_SEEDS = tuple(range(5501, 5509))
+EVAL_SEEDS_R2 = tuple(range(5601, 5609))  # newly preregistered after the R1 seal (spec section 11)
 
 
 def knob(namespace: str, seed: int, arm: str, name: str) -> float:

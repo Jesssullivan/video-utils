@@ -668,3 +668,41 @@ sections 5 and 7 are unchanged.
       directions, all sign-correct.
     - T4: 16/16 C1-only open attacks per seed.
     - A1: 4/4 abstained with the expected reason.
+
+## 11. Post-eval fix R2 (after the sealed run; evaluated only on new seeds)
+
+**R1 result.** The single sealed run at eval commit `4ad7e01` is recorded in
+`timing_calibration-eval-results.json`.
+- **S1 failed:** E1 calibrated 4/8, and the median |error| over 48 phrases is ∞.
+- Every abstention was `click_grid_not_fitted`.
+- Where a grid fitted:
+  - median |error| was 1.08 ms (E1) and 1.07 ms (E2);
+  - coverage was 17/18 (E1) and 18/18 (E2);
+  - sign-correct was 34/34;
+  - emissions on on-time phrases were 0/24.
+
+Seeds 5501–5508 are **not rescored**.
+
+**Diagnosis** (read-only, unchanged code). In `click_only` spans the
+high-frequency peak picker passes fan-noise peaks, 2–10× as many as there are clicks,
+because no attack sets its adaptive maximum. The median-IOI seed then comes from
+spurious intervals. The failure reproduced on extra dev seeds 14, 16 and 20 (dev
+namespace).
+
+**Change.** High-frequency peaks in each `click_only` span are kept only when their
+novelty is ≥ 0.3 × the median of the strongest ceil(span_seconds / 2) peaks. The
+strongest peaks are clicks at any tempo ≥ 30 BPM. These strong events feed:
+- the grid seed and fit;
+- click association;
+- click isolation.
+
+The change was developed on dev seeds 11–21 only: 11/11 grids fitted, and the extra
+dev seeds 14, 16 and 20 gave E1 3/3 calibrated, 0 wrong signs and coverage 13/14.
+All dev tests pass (25, 1 skipped).
+
+**R2 preregistration.** The R2 seeds are 5601–5608 in the same
+`timing-calibration-s3-eval:{seed}:{arm}:{knob}` namespace. They use the same arms,
+thresholds, tolerances and scoring (sections 5 and 7). R2 runs once at the commit
+recorded in `timing_calibration-eval-r2.json`, through
+`SealedEvaluationR2Tests` with `TIMING_CALIBRATION_S3_SEALED_EVAL_R2=1`. Both R1 and
+R2 are reported.
