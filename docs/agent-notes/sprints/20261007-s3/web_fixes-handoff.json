@@ -1,0 +1,164 @@
+{
+  "author_action_keeps_run": true,
+  "basis": {
+    "baseline_commit": "a077766da88b1cccf8190f4b34fda0893723b9c4",
+    "contract_commit": "18651c9d11b3efd87928cac70e8fa3b7626696dd",
+    "date_utc": "2026-10-07",
+    "lane_branch": "sprint/20261007-s3/web_fixes",
+    "lane_commit": "d4e3b962345619150dedd3c61fdeaad9acce75b8",
+    "measured_on": "the lane worktree at lane_commit (source and tests); receipts are added by the following commit, which changes only web_fixes-*.json",
+    "not_a_merge": "the lane did not merge, push or touch main"
+  },
+  "claim_class": "contract",
+  "command": null,
+  "definition_of_done": {
+    "1_interval_typing": {
+      "evidence": "X5 9/9 typed cases without page error; warning 3/3 inside, absent 4/4 outside",
+      "met": true
+    },
+    "1b_same_class": {
+      "evidence": "7/7 number inputs typed without page error; 4 components threw unfixed, 4 changed",
+      "met": true
+    },
+    "2_run_stays_selected": {
+      "evidence": "3/3 actions (measure, refused save, accepted save) plus author 1/1; forged run ids select nothing 6/6",
+      "met": true
+    },
+    "3_favicon": {
+      "evidence": "GET /favicon.svg 200 image/svg+xml; 0 favicon errors in 60 scenarios",
+      "met": true
+    },
+    "4_axe": {
+      "evidence": "38/38 scans, 0 violations in light and dark; baseline 0/42 entries, 0/62 nodes",
+      "met": true
+    },
+    "tests_unfailed": {
+      "evidence": "test.fail count 2 -> 0; defect tolerances 5 -> 0",
+      "met": true
+    }
+  },
+  "exit_code": null,
+  "files_changed": [
+    "docs/spec/sprints/WEB_FIXES_S3.md",
+    "web/e2e/a11y-baseline.json",
+    "web/e2e/capture.spec.ts",
+    "web/e2e/library.spec.ts",
+    "web/e2e/process.spec.ts",
+    "web/e2e/source.spec.ts",
+    "web/src/app.css",
+    "web/src/app.html",
+    "web/src/lib/components/AnnotationPanel.svelte",
+    "web/src/lib/components/JobStateBadge.svelte",
+    "web/src/lib/components/ProcessForm.svelte",
+    "web/src/lib/components/processing/IntervalPicker.svelte",
+    "web/src/lib/components/processing/SpanAudition.svelte",
+    "web/src/lib/components/review/ABCompare.svelte",
+    "web/src/lib/components/review/FlagsList.svelte",
+    "web/src/lib/components/review/MarkHere.svelte",
+    "web/src/lib/components/review/QuickMarkBar.svelte",
+    "web/src/lib/components/review/ReviewWorkspace.svelte",
+    "web/src/lib/components/review/TimingTable.svelte",
+    "web/src/routes/+layout.svelte",
+    "web/src/routes/sources/[id=artifactid]/capture/+page.svelte",
+    "web/src/routes/sources/[id=artifactid]/process/+page.svelte",
+    "web/src/routes/upload/+page.svelte",
+    "web/static/favicon.svg",
+    "web/tests/e2e-support.ts"
+  ],
+  "lane": "web_fixes",
+  "measured_vs_inferred": {
+    "inferred": [
+      "after contrast ratios 5.78 and 4.64, computed from theme tokens",
+      "scheme_changes_rendering false, from identical light/dark axe counts"
+    ],
+    "measured": [
+      "svelte-check, build, vitest, Playwright and axe counts above",
+      "before contrast ratios 3.62 (primary) and 2.71/2.72 (error badge) from axe node data",
+      "the three unfixed components each threw \"trim is not a function\" in a browser run"
+    ],
+    "unknown": [
+      "manual accessibility, screen reader, WCAG conformance",
+      "appearance of the changed presets and underlined links (no visual review)",
+      "Firefox/WebKit",
+      "behaviour against the real control API in a browser",
+      "whether the container image serves static/",
+      "fixture drift"
+    ]
+  },
+  "new_colour_literals": [],
+  "not_done": [
+    "no push, merge, Linear write, model or browser download, daemon, or root-owned file edit",
+    "run artifacts stay in the gitignored artifacts/s2/web_fixes/ and are cited by sha256"
+  ],
+  "plain_statement": "Accessibility figures are automated axe-core results only. No manual audit, no screen-reader test and no WCAG conformance claim was made. Nobody looked at the restyled buttons, badge or links.",
+  "receipt": "handoff",
+  "receipts": [
+    "web_fixes-contract-freeze.json",
+    "web_fixes-check-build.json",
+    "web_fixes-unit.json",
+    "web_fixes-e2e.json",
+    "web_fixes-a11y.json",
+    "web_fixes-python.json",
+    "web_fixes-root-requests.json",
+    "web_fixes-handoff.json"
+  ],
+  "residual_baseline_entries": [],
+  "results": {
+    "a11y": "38 passed of 38; 0 violations; incomplete 22 results / 86 nodes (was 34 / 130), reported not passed",
+    "build": "exit 0",
+    "check": "0 errors, 0 warnings, 1370 files",
+    "e2e": "60 passed of 60, 0 expected failures, 0 unexpected, 0 flaky, 0 skipped (11 files)",
+    "python": {
+      "test_web_house_stack_s3": "19/19 passed, 0 failed, 0 skipped",
+      "test_web_processing_s3": "24/24 passed, 0 failed, 0 skipped",
+      "test_web_runs_s3": "36/36 passed, 0 failed, 0 skipped",
+      "test_web_stack": "33/33 passed, 0 failed, 0 skipped"
+    },
+    "unit": "153 passed + 2 expected failures of 155 (13/13 files); the 2 are refusal_text_prototype_key, carried"
+  },
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N11/R-N12/R-N13",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "status": "complete: all four defect groups fixed in source; 0 expected failures; empty axe baseline",
+  "things_root_should_know": [
+    "Every .anchor link is now underlined at rest, not only the in-text ones on /.",
+    "Primary filled buttons and the active nav item are a darker blue (primary-700 instead of primary-500); the failed/interrupted job badge is a darker red (error-800).",
+    "The error badge after-ratio is 4.64 against a 4.5 threshold: it passes axe with little margin.",
+    "Capture form action URLs now end in &run=<id>; anything that posts to ?/measure, ?/save or ?/author without it still works and simply selects no run afterwards (as before).",
+    "The e2e and a11y suites took 4.9 and 7.2 minutes here with one worker (limits 10 minutes each); the same a11y suite took 1.0 and 2.9 minutes in earlier runs the same day, so wall time on this host varies widely.",
+    "Python modules ran on the same working tree content as lane_commit; two of them finished just after the commit was made."
+  ],
+  "tracker": "TIN-5724",
+  "unit_expected_failures_carried": {
+    "code": "refusal_text_prototype_key",
+    "count": 2
+  },
+  "unknowns": {
+    "browser_source": "playwright cache (expected revision already present); nothing downloaded",
+    "browser_used": "chromium",
+    "browser_version": "153.0.8010.12",
+    "claims_note": "no listening, ~32 Hz, detector, profile, master or note-correctness claim is made; no DSP code was touched",
+    "containerfile_serves_static": null,
+    "containerfile_serves_static_reason": "root-owned; no image was built by this lane (see web_fixes-root-requests.json)",
+    "favicon_under_tailnet_auth_mode": null,
+    "favicon_under_tailnet_auth_mode_reason": "only loopback mode was exercised",
+    "firefox_webkit_behaviour": null,
+    "firefox_webkit_behaviour_reason": "Chromium only",
+    "fixture_drift": null,
+    "fixture_drift_reason": "fixtures were not regenerated or compared with the registries on main by this lane",
+    "flaky_retries": 0,
+    "light_theme_exists": false,
+    "listening_claims": null,
+    "low_register_claims": null,
+    "manual_accessibility_audit": null,
+    "manual_accessibility_audit_reason": "not performed; axe automated rules only",
+    "note_correctness_claims": null,
+    "real_control_api_under_playwright": null,
+    "real_control_api_under_playwright_reason": "the browser suites replay committed synthetic fixtures through the mock",
+    "real_take_facts_in_fixtures": false,
+    "screen_reader_acceptance": null,
+    "screen_reader_acceptance_reason": "no assistive technology was run",
+    "wcag_conformance": null,
+    "wcag_conformance_reason": "axe evaluates a subset of WCAG; zero axe violations is not conformance"
+  }
+}

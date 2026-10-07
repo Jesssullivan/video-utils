@@ -1,0 +1,237 @@
+{
+  "axe_incomplete_count": 22,
+  "axe_incomplete_nodes": 86,
+  "axe_rules_evaluated_count": 90,
+  "axe_version": "4.13.0",
+  "baseline_file": {
+    "content": {
+      "schema_version": 1,
+      "violations": []
+    },
+    "how": "copied from baseline-candidate.json written by a completed 38/38 run on the fixed build (that run passed against the old 42-entry baseline with 0 violations); the suite was then rerun against the empty baseline: 38/38 passed",
+    "path": "web/e2e/a11y-baseline.json"
+  },
+  "basis": {
+    "baseline_commit": "a077766da88b1cccf8190f4b34fda0893723b9c4",
+    "contract_commit": "18651c9d11b3efd87928cac70e8fa3b7626696dd",
+    "date_utc": "2026-10-07",
+    "lane_branch": "sprint/20261007-s3/web_fixes",
+    "lane_commit": "d4e3b962345619150dedd3c61fdeaad9acce75b8",
+    "measured_on": "the lane worktree at lane_commit (source and tests); receipts are added by the following commit, which changes only web_fixes-*.json",
+    "not_a_merge": "the lane did not merge, push or touch main"
+  },
+  "before_run_on_baseline_source": {
+    "nodes": 62,
+    "note": "re-measured by this lane before any change; equals the committed web_tests baseline",
+    "scans": 38,
+    "summary": {
+      "gitignored": true,
+      "path": "artifacts/s2/web_fixes/a11y-before/summary.json",
+      "sha256": "1cb6dd786be039d95310ea453234eec15a42cdf650b47ff6f1417bb160f4ee6b"
+    },
+    "violations": 42
+  },
+  "claim_class": "measurement",
+  "command": "cd web && timeout 600 pnpm run test:a11y",
+  "contrast_fixes": [
+    {
+      "axe_after": "no color-contrast violation on any of the 38 scans (measurement)",
+      "bg": "#0770ef",
+      "class_after": "preset-filled-primary-300-700",
+      "fg": "#d4e6ff",
+      "nodes": 42,
+      "ratio_after_computed": 5.78,
+      "ratio_after_source": "inference: computed by this lane from the cerberus oklch token values converted to sRGB; axe reports no node data for passing nodes, and the spec does not store passes",
+      "ratio_before": 3.62,
+      "required": "4.5:1",
+      "selectors": [
+        ".preset-filled-primary-500",
+        ".preset-filled-primary-500.btn[role=\"tab\"]",
+        ".sm\\:col-span-2.items-center.gap-3 > button",
+        ".space-y-4 > button",
+        "a[href$=\"runs\"]",
+        "a[href$=\"upload\"]",
+        "button[data-mark-here-button=\"true\"]",
+        "div[role=\"group\"] > button",
+        "form[action=\"?/apply\"] > button",
+        "form[data-process-form=\"share_export\"] > .items-center.gap-3.flex > button",
+        "form[data-upload-form=\"true\"] > button"
+      ],
+      "tokens_after": "--color-primary-50 on --color-primary-700"
+    },
+    {
+      "axe_after": "no color-contrast violation on any of the 38 scans (measurement)",
+      "bg": "#f53f33",
+      "class_after": "preset-filled-error-200-800",
+      "fg": "#f7d4d6",
+      "nodes": 4,
+      "ratio_after_computed": 4.64,
+      "ratio_after_source": "inference: computed by this lane from the cerberus oklch token values converted to sRGB; axe reports no node data for passing nodes, and the spec does not store passes",
+      "ratio_before": 2.71,
+      "required": "4.5:1",
+      "selectors": [
+        ".preset-filled-error-500"
+      ],
+      "tokens_after": "--color-error-50 on --color-error-800"
+    }
+  ],
+  "contrast_ratios_source": "axe node data for the before values; the after values are computed from theme tokens (inference), because axe gives no data for passing nodes",
+  "exit_code": 0,
+  "fixes_by_rule": {
+    "color-contrast": "preset-filled-primary-500 -> preset-filled-primary-300-700 (13 uses, 10 files); preset-filled-error-500 -> preset-filled-error-200-800 (JobStateBadge). Skeleton paired presets; no colour literal.",
+    "heading-order": "h3 -> h2 (visual class h5 kept) in ABCompare, FlagsList and TimingTable",
+    "label": "the /upload file input is wrapped in a <label class=\"label\"> with visible text \"Video file (.mov, .mp4, .m4v, .mkv or .webm)\"",
+    "link-in-text-block": "app.css sets the cerberus --typo-anchor--text-decoration-line tokens (rest, active, focus) to underline; applies to every .anchor"
+  },
+  "lane": "web_fixes",
+  "plain_statement": "These are automated axe-core results on synthetic fixtures in Chromium. They are not a manual accessibility audit, not a screen-reader or other assistive-technology test, and not a WCAG conformance claim.",
+  "protocol": {
+    "disabled_rules": [],
+    "excluded_selectors": [],
+    "scans_planned": 38,
+    "schemes": [
+      "light",
+      "dark"
+    ],
+    "tags": [
+      "wcag2a",
+      "wcag2aa",
+      "wcag21a",
+      "wcag21aa",
+      "wcag22aa",
+      "best-practice"
+    ],
+    "unchanged": "web/e2e/a11y-routes.spec.ts and web/playwright.config.ts are byte-identical to the baseline commit"
+  },
+  "receipt": "a11y",
+  "report": {
+    "gitignored": true,
+    "path": "artifacts/s2/web_fixes/a11y/scans/report.json",
+    "sha256": "4524a7dc62ed727d0575fee9e72f719e0ab1126a572990484a9cecaaefb7719e"
+  },
+  "residual_baseline_entries": [],
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N11/R-N12/R-N13",
+  "runs": [
+    {
+      "baseline_entries": 42,
+      "output": {
+        "gitignored": true,
+        "path": "artifacts/s2/web_fixes/a11y/output-old-baseline.txt",
+        "sha256": "107acfc6eef15083727d48c9556cd2474aee5e3ed573c097adbb2f5b483660ef"
+      },
+      "scans": 38,
+      "violations": 0
+    },
+    {
+      "baseline_entries": 0,
+      "output": {
+        "gitignored": true,
+        "path": "artifacts/s2/web_fixes/a11y/output.txt",
+        "sha256": "6b08ae53d7f07a662ea8c0ebf99affb959ba354d28297ee829411912b7136c0a"
+      },
+      "scans": 38,
+      "violations": 0
+    }
+  ],
+  "schema_version": 1,
+  "scheme_changes_rendering": false,
+  "scheme_changes_rendering_basis": "inference from counts: for all 19 scans the light and dark rows have identical violation, incomplete, pass and inapplicable counts (True); app.html fixes class=\"dark\" and color-scheme: dark. No pixel comparison was made.",
+  "sprint": "20261007-s3",
+  "summary": {
+    "gitignored": true,
+    "path": "artifacts/s2/web_fixes/a11y/summary.json",
+    "sha256": "4baf996d1c1a94b85b05a5890c9634effe2b7d1ae3f381ab22fe52a6c11715f4"
+  },
+  "tracker": "TIN-5724",
+  "unknowns": {
+    "browser_source": "playwright cache (expected revision already present); nothing downloaded",
+    "browser_used": "chromium",
+    "browser_version": "153.0.8010.12",
+    "claims_note": "no listening, ~32 Hz, detector, profile, master or note-correctness claim is made; no DSP code was touched",
+    "containerfile_serves_static": null,
+    "containerfile_serves_static_reason": "root-owned; no image was built by this lane (see web_fixes-root-requests.json)",
+    "favicon_under_tailnet_auth_mode": null,
+    "favicon_under_tailnet_auth_mode_reason": "only loopback mode was exercised",
+    "firefox_webkit_behaviour": null,
+    "firefox_webkit_behaviour_reason": "Chromium only",
+    "fixture_drift": null,
+    "fixture_drift_reason": "fixtures were not regenerated or compared with the registries on main by this lane",
+    "flaky_retries": 0,
+    "light_theme_exists": false,
+    "listening_claims": null,
+    "low_register_claims": null,
+    "manual_accessibility_audit": null,
+    "manual_accessibility_audit_reason": "not performed; axe automated rules only",
+    "note_correctness_claims": null,
+    "real_control_api_under_playwright": null,
+    "real_control_api_under_playwright_reason": "the browser suites replay committed synthetic fixtures through the mock",
+    "real_take_facts_in_fixtures": false,
+    "screen_reader_acceptance": null,
+    "screen_reader_acceptance_reason": "no assistive technology was run",
+    "wcag_conformance": null,
+    "wcag_conformance_reason": "axe evaluates a subset of WCAG; zero axe violations is not conformance"
+  },
+  "visual_review": null,
+  "visual_review_reason": "the changed button, badge and link appearance was not looked at by a person or compared by screenshot",
+  "x11": {
+    "met": true,
+    "per_scheme": {
+      "dark": {
+        "scans": 19,
+        "violations": 0
+      },
+      "light": {
+        "scans": 19,
+        "violations": 0
+      }
+    },
+    "scans_executed": 38,
+    "scans_planned": 38,
+    "violation_nodes_total": 0,
+    "violations_outside_baseline": 0,
+    "violations_total": 0
+  },
+  "x12": {
+    "baseline_entries_remaining": 0,
+    "by_rule_remaining": {
+      "color-contrast": "0/30",
+      "heading-order": "0/4",
+      "label": "0/4",
+      "link-in-text-block": "0/4"
+    },
+    "met": true,
+    "nodes_of": 62,
+    "nodes_remaining": 0,
+    "of": 42
+  },
+  "x13_incomplete": {
+    "after": {
+      "by_rule": {
+        "color-contrast": 16,
+        "video-caption": 6
+      },
+      "nodes": 86,
+      "nodes_by_rule": {
+        "color-contrast": 78,
+        "video-caption": 8
+      },
+      "results": 22
+    },
+    "before": {
+      "by_rule": {
+        "color-contrast": 16,
+        "link-in-text-block": 12,
+        "video-caption": 6
+      },
+      "nodes": 130,
+      "nodes_by_rule": {
+        "color-contrast": 78,
+        "link-in-text-block": 44,
+        "video-caption": 8
+      },
+      "results": 34
+    },
+    "increase": [],
+    "note": "incomplete means axe could not decide; these are not passes. color-contrast incomplete (16 results / 78 nodes) and video-caption (6 / 8) are unchanged; link-in-text-block incomplete (12 / 44) no longer appears because underlined links are not evaluated for colour difference"
+  }
+}

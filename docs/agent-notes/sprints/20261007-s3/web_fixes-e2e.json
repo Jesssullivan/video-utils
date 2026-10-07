@@ -1,0 +1,355 @@
+{
+  "author_action_keeps_run": true,
+  "basis": {
+    "baseline_commit": "a077766da88b1cccf8190f4b34fda0893723b9c4",
+    "contract_commit": "18651c9d11b3efd87928cac70e8fa3b7626696dd",
+    "date_utc": "2026-10-07",
+    "lane_branch": "sprint/20261007-s3/web_fixes",
+    "lane_commit": "d4e3b962345619150dedd3c61fdeaad9acce75b8",
+    "measured_on": "the lane worktree at lane_commit (source and tests); receipts are added by the following commit, which changes only web_fixes-*.json",
+    "not_a_merge": "the lane did not merge, push or touch main"
+  },
+  "claim_class": "behaviour",
+  "command": "cd web && timeout 600 pnpm run test:e2e",
+  "exit_code": 0,
+  "lane": "web_fixes",
+  "metrics": {
+    "gitignored": true,
+    "path": "artifacts/s2/web_fixes/e2e/metrics.jsonl",
+    "sha256": "614bc9a1df62ad24f115c6c5c583b34cb2a2723bbb29cd2e5ad98139492ef333"
+  },
+  "output": {
+    "gitignored": true,
+    "path": "artifacts/s2/web_fixes/e2e/output.txt",
+    "sha256": "5cf7ed83aea2eaaa9c5fcd4a1161ab82299b0c359fe2a2591c5328a5362591d3"
+  },
+  "playwright_duration_ms": 294659,
+  "receipt": "e2e",
+  "report": {
+    "gitignored": true,
+    "path": "artifacts/s2/web_fixes/e2e/report.json",
+    "sha256": "f1f2f15f5ba861a1985d1df94c14ff0eedd5ded5847a3992f898e2558bd8624d"
+  },
+  "retries": 0,
+  "route_behaviour_change": "capture form actions post to ?/<action>&run=<chosen run> instead of ?/<action>; request bodies, BFF calls and job semantics are unchanged",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N11/R-N12/R-N13",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "tests": {
+    "baseline": "50 passed + 2 expected failures of 52; 8 tests added by this lane, 2 un-failed",
+    "expected_failures": 0,
+    "flaky": 0,
+    "passed": 60,
+    "skipped": 0,
+    "spec_files": 11,
+    "total": 60,
+    "unexpected": 0
+  },
+  "tolerance_pattern_changed": "the refused-save pattern now matches ?/save&run=<id> because the action URL carries the run",
+  "tolerances_added_by_lane": [
+    "capture ?/author refusal document (mock replays a typed refusal for every job submission)",
+    "POST /api/jobs refusal (same)",
+    "annotations write the mock does not replay",
+    "second refused-save test"
+  ],
+  "tolerances_declared_now": [
+    {
+      "declared_expected": [
+        {
+          "hits": 1,
+          "reason": "the browser logs the typed 422 answer to the refused form post"
+        }
+      ],
+      "test": "an interval inside the first five seconds cannot be saved without the explicit acknowledgement",
+      "unexpected": 0
+    },
+    {
+      "declared_expected": [
+        {
+          "hits": 1,
+          "reason": "the browser logs the typed 422 answer to the refused form post"
+        }
+      ],
+      "test": "the run stays selected after a refused save and after an accepted save",
+      "unexpected": 0
+    },
+    {
+      "declared_expected": [
+        {
+          "hits": 1,
+          "reason": "the browser logs the typed refusal the mock replays for every job submission"
+        }
+      ],
+      "test": "the run stays selected after the author action",
+      "unexpected": 0
+    },
+    {
+      "declared_expected": [
+        {
+          "hits": 0,
+          "reason": "the job page polls the BFF, which answers the same typed 502 decode error"
+        }
+      ],
+      "test": "a closed-schema-violating job renders the typed decode error and no partial data",
+      "unexpected": 0
+    },
+    {
+      "declared_expected": [
+        {
+          "hits": 1,
+          "reason": "the browser logs the 404 document"
+        }
+      ],
+      "test": "an id that is not a job id is a 404 before any control API request",
+      "unexpected": 0
+    },
+    {
+      "declared_expected": [
+        {
+          "hits": 1,
+          "reason": "the review player request is aborted by this test on purpose"
+        }
+      ],
+      "test": "review workspace bindings > all 12 bindings act from the transport toolbar",
+      "unexpected": 0
+    },
+    {
+      "declared_expected": [
+        {
+          "hits": 1,
+          "reason": "the browser logs the typed refusal the mock replays for every job submission"
+        }
+      ],
+      "test": "typing into the share-preview knob inputs and submitting never throws (X6)",
+      "unexpected": 0
+    },
+    {
+      "declared_expected": [
+        {
+          "hits": 1,
+          "reason": "the mock replays no annotation write, so the BFF answers with a typed error the browser logs"
+        }
+      ],
+      "test": "typing a span length and adding a note never throws (X6)",
+      "unexpected": 0
+    },
+    {
+      "declared_expected": [
+        {
+          "hits": 1,
+          "reason": "the browser logs the typed 403 refusal of POST /api/uploads"
+        }
+      ],
+      "test": "with uploads disabled, submitting shows the typed code uploads_disabled and its refusal text",
+      "unexpected": 0
+    },
+    {
+      "declared_expected": [
+        {
+          "hits": 1,
+          "reason": "the browser logs the typed 403 refusal of POST /api/uploads"
+        }
+      ],
+      "test": "a file whose browser type is empty falls back to its extension; an extension outside the list is still refused",
+      "unexpected": 0
+    }
+  ],
+  "tracker": "TIN-5724",
+  "unknowns": {
+    "browser_source": "playwright cache (expected revision already present); nothing downloaded",
+    "browser_used": "chromium",
+    "browser_version": "153.0.8010.12",
+    "claims_note": "no listening, ~32 Hz, detector, profile, master or note-correctness claim is made; no DSP code was touched",
+    "containerfile_serves_static": null,
+    "containerfile_serves_static_reason": "root-owned; no image was built by this lane (see web_fixes-root-requests.json)",
+    "favicon_under_tailnet_auth_mode": null,
+    "favicon_under_tailnet_auth_mode_reason": "only loopback mode was exercised",
+    "firefox_webkit_behaviour": null,
+    "firefox_webkit_behaviour_reason": "Chromium only",
+    "fixture_drift": null,
+    "fixture_drift_reason": "fixtures were not regenerated or compared with the registries on main by this lane",
+    "flaky_retries": 0,
+    "light_theme_exists": false,
+    "listening_claims": null,
+    "low_register_claims": null,
+    "manual_accessibility_audit": null,
+    "manual_accessibility_audit_reason": "not performed; axe automated rules only",
+    "note_correctness_claims": null,
+    "real_control_api_under_playwright": null,
+    "real_control_api_under_playwright_reason": "the browser suites replay committed synthetic fixtures through the mock",
+    "real_take_facts_in_fixtures": false,
+    "screen_reader_acceptance": null,
+    "screen_reader_acceptance_reason": "no assistive technology was run",
+    "wcag_conformance": null,
+    "wcag_conformance_reason": "axe evaluates a subset of WCAG; zero axe violations is not conformance"
+  },
+  "workers": 1,
+  "x10_tolerances_remaining": {
+    "met": true,
+    "note": "4 NUMBER_BINDING_DEFECT tolerances and the default favicon tolerance are deleted",
+    "of": 5,
+    "value": 0
+  },
+  "x15_doctrine_markers": {
+    "acknowledgements_added_by_page": 0,
+    "existing_tests_modified": "only capture.spec.ts tolerances and test.fail lines were removed and one tolerance pattern updated; no doctrine assertion was changed or deleted",
+    "high_pass_low_cut_notch_controls": {
+      "controls_checked": 726,
+      "matches": 0
+    },
+    "met": true,
+    "no_auto_confirm": {
+      "non_get_requests": 0,
+      "page_loads": 4,
+      "review_records": 0
+    },
+    "no_autoplay": {
+      "media_elements": 15,
+      "play_calls": 0,
+      "routes": 16,
+      "unpaused": 0
+    },
+    "user_vs_detector_shapes": {
+      "detector_items": 1,
+      "shapes": {
+        "detector": "dotted",
+        "user": "solid"
+      },
+      "user_reported_items": 1
+    }
+  },
+  "x4": {
+    "expected_failures": 0,
+    "flaky": 0,
+    "met": true,
+    "skipped": 0,
+    "test_fail_annotations_in_e2e": 0,
+    "unexpected": 0
+  },
+  "x5_typed_interval": {
+    "cases": 9,
+    "inside_cases": 3,
+    "inside_warned": 3,
+    "met": true,
+    "observed": [
+      {
+        "name": "start 0",
+        "value": "0",
+        "warning": true
+      },
+      {
+        "name": "start 1",
+        "value": "1",
+        "warning": true
+      },
+      {
+        "name": "start 4.999",
+        "value": "4.999",
+        "warning": true
+      },
+      {
+        "name": "start 5",
+        "value": "5",
+        "warning": false
+      },
+      {
+        "name": "start 5.5",
+        "value": "5.5",
+        "warning": false
+      },
+      {
+        "name": "start partial \"-\"",
+        "value": "",
+        "warning": false
+      },
+      {
+        "name": "start partial \"1.\"",
+        "value": "1",
+        "warning": true
+      },
+      {
+        "name": "start typed then cleared",
+        "value": "",
+        "warning": false
+      },
+      {
+        "name": "end only",
+        "value": "",
+        "warning": false
+      }
+    ],
+    "outside_cases": 4,
+    "outside_silent": 4,
+    "partial_cases": 2,
+    "partial_consistent": 2,
+    "partial_entry_note": "Chromium reports \"\" for a lone \"-\" (no warning) and \"1\" for \"1.\" (warning shown); other browsers not observed",
+    "summary": "typed cases without page error 9/9; warning shown when start < 5 s 3/3; warning absent otherwise 4/4; partial entries consistent with the value the input reports 2/2",
+    "without_page_error": 9
+  },
+  "x6_number_inputs": {
+    "by_component": {
+      "AnnotationPanel": 1,
+      "IntervalPicker": 2,
+      "KnobField": 1,
+      "ProcessForm": 1,
+      "SpanAudition": 2
+    },
+    "components_changed": 4,
+    "components_that_threw": 4,
+    "left_untouched": [
+      "KnobField (no page error; native form post)"
+    ],
+    "met": true,
+    "number_inputs_in_source": 7,
+    "of": 7,
+    "sites_that_threw_unfixed": [
+      "IntervalPicker (web_tests receipt, 2 inputs)",
+      "SpanAudition (on timeupdate, 2 inputs)",
+      "AnnotationPanel (on submit)",
+      "ProcessForm (on submit; not named in the contract, found by the new test)"
+    ],
+    "typed_without_page_error": 7,
+    "unfixed_evidence": {
+      "gitignored": true,
+      "method": "the three new X6 tests were run once against a build with SpanAudition, AnnotationPanel and ProcessForm at the baseline source: 3 failed of 3, each with pageerror \"trim is not a function\"",
+      "path": "artifacts/s2/web_fixes/e2e-before/x6-unfixed-report.json",
+      "sha256": "1cb4619af80f55227868f20a2d44f65131928470e991e18ceece91b56326ab3a"
+    }
+  },
+  "x7_run_kept": {
+    "actions": [
+      "measure ok (twice in a row)",
+      "save refused 422",
+      "save accepted 201"
+    ],
+    "author": {
+      "author_answer": "typed refusal replayed by the mock",
+      "kept": 1,
+      "of": 1
+    },
+    "kept": 3,
+    "met": true,
+    "of": 3
+  },
+  "x8_forged_run": {
+    "met": true,
+    "of": 6,
+    "selected_nothing": 6,
+    "urls_tried": 12,
+    "values": "malformed, well-formed but unlisted, a non-baseline run, another source's baseline, suffixed, path-like"
+  },
+  "x9_favicon": {
+    "basis": "the default /favicon.ico tolerance is deleted, so any such console error fails its test; 60/60 passed",
+    "bytes": 451,
+    "content_type": "image/svg+xml",
+    "favicon_errors": 0,
+    "favicon_requests_seen": [
+      "200 /favicon.svg",
+      "200 /favicon.svg"
+    ],
+    "met": true,
+    "scenarios": 60,
+    "scenarios_with_favicon_404_or_console_error": 0,
+    "status": 200
+  }
+}
