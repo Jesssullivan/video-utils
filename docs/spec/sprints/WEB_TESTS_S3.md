@@ -443,3 +443,99 @@ survive decoding and rendering as unknown. The first 5 s are never
 auto-confirmed. No note-correctness or missed-note wording is asserted or
 introduced. Non-improvement (violations found, e2e skipped with a typed
 reason) is a valid, fully reported completion.
+
+## 11. Phase 2 implementation record (appended 2026-10-07; sections 1-10 are unchanged)
+
+The frozen text above is the contract as committed at `665810f` (sha256
+`4600248630682950455d99cbb4438a1144a23a587fbdba4f4eb006e2c7ba49c7`). This section
+records what was built and where the implementation differs from that text.
+Counts and results are in the receipts
+`docs/agent-notes/sprints/20261007-s3/web_tests-*.json`; nothing here adds a
+listening, tone, low-register or musical claim.
+
+### 11.1 Delivered
+
+| Item | Where |
+| --- | --- |
+| Exact devDependencies and scripts | `web/package.json`, `web/pnpm-lock.yaml` (additions only) |
+| Unit tests, 13 files | `web/src/**/*.test.ts`, helpers in `web/tests/` |
+| Synthetic fixtures and generator | `web/e2e/fixtures/generate.py`, `web/e2e/fixtures/control-api/*.json`, `web/e2e/fixtures/README.json` |
+| Replay mock | `web/e2e/mock-control-api.mjs` |
+| e2e specs, 11 files | `web/e2e/*.spec.ts` |
+| axe scans, 38 | `web/e2e/a11y-routes.spec.ts`, `web/e2e/a11y-baseline.json` |
+| House-stack contract | `tests/test_web_house_stack_s3.py` |
+
+### 11.2 Differences from the frozen text
+
+1. **5.1 `buildJobRequest` "unknown knob".** The builder refuses a malformed
+   parameter name or value but forwards a well-formed unknown knob unchanged;
+   the control API is the single validator (the module's own header says so).
+   The test asserts the implemented behaviour and says why.
+2. **5.1 `overlapsSetup`.** The function takes the start only. The property is
+   stated for intervals `[start, start + length)` with `start >= 0`.
+3. **4.6 browser ladder step (b).** The cache holds the full Chromium build of
+   the revision the pinned Playwright expects, but not its separate headless
+   shell. Step (b) therefore launches `channel: 'chromium'` (new headless
+   mode). Nothing was downloaded.
+4. **4.7 processes.** The mock runs inside the Playwright runner process.
+   Two copies of the built app are started, each in its own process group:
+   one configured against the mock and one with no control API (the
+   unconfigured-state scan). Teardown signals those two groups only.
+5. **Section 2 helper location.** Code shared by the specs is in
+   `web/tests/e2e-support.ts` and `web/tests/browser-ladder.ts`.
+6. **5.2 fixtures.** Job-type admission in `job_types.json` was recorded under
+   the WebJobs test seam (all four tools admitted), as
+   `test_web_processing_s3` does. A second catalogue recorded without the seam
+   is replayed in a third process-form state; at the baseline it reports
+   `apply_capture_profile` as `pending_root_admission`, so FULLER is disabled
+   with `tool_pending_admission` there even with a saved review.
+7. **5.2 mock write rules.** The mock evaluates no product rule except one
+   documented switch: a capture-review post whose start is below 5 s and whose
+   acknowledgement is not `true` replays the control API's recorded 422. The
+   rule itself is the control API's; the browser assertion is that the page
+   forwards no acknowledgement the operator did not tick.
+8. **5.2 keyboard bindings.** The 12-binding test keeps the review player empty
+   (its media request is aborted) so the position is exactly what the keys
+   set. Seeking against real video is out of scope (section 1).
+9. **5.3 baseline key.** A violation is inside the baseline when its rule,
+   scan and colour scheme are listed and its node count is not above the
+   recorded count.
+10. **5.4 Skeleton list.** The 4.15.2 and 5.0.1 export maps are identical and
+    the migration guide names no import-path change, so the derived v4-only
+    entry-point list is empty. The test asserts that every Skeleton import is a
+    v5 export key and also refuses the v4 design tokens and classes the guide
+    lists as renamed, removed or replaced.
+11. **5.4 Effect list.** `effect@4.0.1` exports `./*`, so its export keys alone
+    do not separate the lines. The Effect 3-only list is the latest 3.x export
+    keys minus the 4.0.1 export keys and installed `dist` modules (80 names).
+    Named imports from `effect` are checked against the same list.
+12. **5.4 `FixtureDrift` gate.** The gate is the file set, `ids.json`,
+    `routes.json` and the shape (keys and JSON types) of every file. Byte
+    equality is reported. One FFmpeg-measured size was seen to vary between
+    runs on one host.
+13. **4.8 fixture keys.** Idempotency keys are `fixture-000000NN` counters.
+    Word-like keys tripped the scanner's entropy rule; no allowlist was added.
+14. **Section 6 receipts.** `web_tests-contract-freeze.json` is written in
+    Phase 2 (Phase 1 committed the specification only).
+
+### 11.3 Known source defects found by the browser suite
+
+The lane changes no web source. Each defect below has a test that documents
+it and a fix request in `web_tests-root-requests.json`. Tests marked
+*expected failure* turn red as soon as the source is fixed.
+
+| Code | Finding | Test state |
+| --- | --- | --- |
+| `capture_interval_number_binding` | Typing in the capture interval inputs throws `trim is not a function` (a number-bound input is treated as text); the live setup warning never renders | 1 e2e expected failure; the page error is declared in 3 other capture tests |
+| `capture_action_drops_run_selection` | The measure and save form actions drop `?run=`; after either action no baseline run is selected and Save is disabled | 1 e2e expected failure |
+| `refusal_text_prototype_key` | `refusalText('constructor')` and `processingText('__proto__')` return an `Object.prototype` member instead of the fallback text | 2 unit expected failures |
+| `favicon_missing` | No favicon; the browser logs a 404 on first load | counted per test, never ignored |
+| axe violations | 42 baseline entries over 4 rules (section 5.3) | recorded; gate passes inside the baseline |
+
+### 11.4 Unchanged doctrine
+
+No high-pass, low-cut or notch control is introduced, defaulted or sendable
+(unit property and a browser check over every preset). The synthetic clip and
+the mock media carry a 32.70 Hz sine. Nullable BPM, duration, source id and
+phrase measurements are asserted to render as unknown with their reasons. No
+test states a note-level result, and none adopts a detector, profile or master.
