@@ -25,7 +25,7 @@
 						<tr data-job-id={job.job_id}>
 							<td><a class="anchor" href={`/jobs/${job.job_id}`}><code>{job.job_id.slice(0, 16)}…</code></a></td>
 							<td><JobStateBadge state={job.state} /></td>
-							<td>share_export</td>
+							<td>{job.tool ?? 'share_export'}</td>
 							<td><UnknownValue value={job.reason_code} reason={job.reason_code === null ? 'none recorded' : null} /></td>
 							<td class="vu-time">{job.attempt_count}</td>
 							<td class="vu-time">{job.artifact_count}</td>

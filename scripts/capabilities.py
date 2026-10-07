@@ -24,9 +24,19 @@ from tool_api import strict_json, validate_schema  # noqa: E402  (read-only libr
 
 ROOT = SCRIPTS.parent
 
-# Root-admitted web_job adapters (S2 root decision, 2026-10-06): tool -> evidence receipt.
+# Root-admitted web_job adapters: tool -> evidence receipt. share_export: S2 root decision, 2026-10-06.
+# denoise and capture_profile: S3 root integration, 2026-10-07, on their succeeded real-argv receipts.
+# apply_capture_profile is NOT admitted and stays 'planned' in program/capabilities.json: its receipt
+# (docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-apply_capture_profile.json) records
+# outcome not_run because tool_api refuses dot-prefixed path components and the lane worktree lived
+# under .local/. Root must run the real-worker check from the main checkout before admitting it.
 WEB_JOB_ADMISSIONS = {
     'share_export': 'docs/agent-notes/sprints/20261006-s2/web_reliability-real-web-job.json',
+    'denoise': 'docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-denoise.json',
+    'capture_profile': 'docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-capture_profile.json',
+}
+WEB_JOB_PENDING_REAL_WORKER = {
+    'apply_capture_profile': 'docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-apply_capture_profile.json',
 }
 CAPABILITIES = ROOT / 'program' / 'capabilities.json'
 REGISTRY = ROOT / 'program' / 'tools.json'

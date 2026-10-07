@@ -6,6 +6,7 @@ import { authorBody, echo, measurementBody, reviewBody } from '$lib/server/proce
 import type { LaneJobProjection, Measurement, ReviewRecord } from '$lib/server/processing/schema';
 import type { BffError } from '$lib/control-types';
 import { newFormKey } from '$lib/idempotency';
+import type { StepContext } from '$lib/components/review/step-context';
 
 // Capture review (ROUTES_PROCESSING_S3 section 4): the interval is chosen by the operator on the
 // baseline run's native timeline. Loads never write; nothing is prefilled, proposed or auto-saved.
@@ -28,7 +29,9 @@ const outcome = (action: CaptureOutcome['action'], values: Record<string, string
 });
 
 export const load: PageServerLoad = async ({ params, url, request }) => {
-	const originMisconfigured = url.protocol === 'https:';
+	// serve.js sets a loopback http ORIGIN by default; tailnet mode carries an explicit https ORIGIN.
+	// Only an https url.origin with no ORIGIN at all (adapter-node started without serve.js) is a misconfiguration.
+	const originMisconfigured = url.protocol === 'https:' && !process.env.ORIGIN;
 	const signal = request.signal;
 	const [sources, runs, reviews, types] = await Promise.all([
 		runControl(listSources, signal),
@@ -37,9 +40,11 @@ export const load: PageServerLoad = async ({ params, url, request }) => {
 		runControl(getJobTypes, signal)
 	]);
 	const keys = { save: newFormKey(), author: newFormKey() };
+	// Cross-lane step bar (ROUTES_REVIEW_S3 6.1); Review/Download need a selected run.
+	const step = (runId: string | null): StepContext => ({ current: 'capture', source_artifact_id: params.id, run_id: runId, disabled_reasons: {} });
 	if (!sources.ok) {
 		return { sourceId: params.id, source: null, error: sources.error, runs: [], runsError: null, reviews: [], reviewsError: null,
-			selectedRun: null, captureAdmission: null, typesError: null, keys, originMisconfigured };
+			selectedRun: null, captureAdmission: null, typesError: null, keys, originMisconfigured, stepContext: step(null) };
 	}
 	const source = sources.data.sources.find((s) => s.source_artifact_id === params.id) ?? null;
 	if (source === null) error(404, { message: 'The control API lists no such admitted source.', code: 'source_not_found' });
@@ -59,7 +64,8 @@ export const load: PageServerLoad = async ({ params, url, request }) => {
 		captureAdmission: capture?.admission_state ?? null,
 		typesError: types.ok ? null : types.error,
 		keys,
-		originMisconfigured
+		originMisconfigured,
+		stepContext: step(selectedRun?.run_id ?? null)
 	};
 };
 

@@ -10,6 +10,7 @@
 	import { isBffError, type BffError } from '$lib/control-types';
 	import { newFormKey } from '$lib/idempotency';
 	import { nextPollDecision } from '$lib/polling.js';
+	import { stepTarget } from '$lib/components/review/step-context';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -25,6 +26,15 @@
 
 	const current = $derived(live !== null && live.jobId === data.jobId ? live : { jobId: data.jobId, job: data.job, error: data.error });
 	const job = $derived(current.job);
+	// share_export is the only job type this page can re-submit or compare; S3 processing jobs (denoise,
+	// capture_profile, apply_capture_profile) are read here and adjusted on the source's process page.
+	const shareParameters = $derived(job && job.tool === 'share_export' && 'height' in job.parameters ? job.parameters : null);
+	const parameterText = $derived(
+		job ? Object.entries(job.parameters).map(([k, v]) => `${k}=${typeof v === 'object' && v !== null ? JSON.stringify(v) : v}`).join(' ') : ''
+	);
+	const runReviewHref = $derived(
+		job ? stepTarget({ current: 'process', source_artifact_id: job.source_artifact_id, run_id: job.run_id ?? null, disabled_reasons: {} }, 'review').href : null
+	);
 	const elapsedSeconds = $derived(job ? Math.max(0, (Date.parse(job.updated_at) - Date.parse(job.created_at)) / 1000) : null);
 
 	$effect(() => {
@@ -146,7 +156,15 @@
 			<dt class="vu-muted">Source</dt>
 			<dd><a class="anchor" href={`/sources/${job.source_artifact_id}`}><code>{job.source_artifact_id}</code></a></dd>
 			<dt class="vu-muted">Parameters</dt>
-			<dd class="vu-time text-sm">{Object.entries(job.parameters).map(([k, v]) => `${k}=${v}`).join(' ')}</dd>
+			<dd class="vu-time text-sm">{parameterText}</dd>
+			{#if job.tool !== 'share_export'}
+				<dt class="vu-muted">Run</dt>
+				<dd>
+					<UnknownValue value={job.run_id ?? null} mono reason={job.run_id ? null : 'no run recorded for this job'} />
+					{#if runReviewHref}<a class="anchor text-xs" href={runReviewHref} data-review-link="true">review this run</a>{/if}
+					<span class="vu-muted text-xs">· worker status <UnknownValue value={job.worker_status ?? null} /></span>
+				</dd>
+			{/if}
 			<dt class="vu-muted">Phase</dt>
 			<dd><UnknownValue value={job.phase} reason={job.phase === null ? 'no job event recorded' : null} /> <span class="vu-muted text-xs">— {job.phase_reason}</span></dd>
 			<dt class="vu-muted">Progress</dt>
@@ -176,16 +194,20 @@
 			{#if job.state === 'failed' || job.state === 'interrupted'}
 				<button class="btn preset-tonal-warning" type="button" disabled={actionPending} onclick={() => act('retry')}>Retry (new attempt)</button>
 			{/if}
-			<button class="btn preset-tonal" type="button" onclick={() => (adjustKey = newFormKey())}>Adjust settings</button>
+			{#if shareParameters}
+				<button class="btn preset-tonal" type="button" onclick={() => (adjustKey = newFormKey())}>Adjust settings</button>
+			{:else}
+				<a class="btn preset-tonal" href={`/sources/${job.source_artifact_id}/process`} data-process-link="true">Adjust on the process page</a>
+			{/if}
 		</div>
 		{#if actionError}<ControlApiError error={actionError} />{/if}
-		{#if adjustKey}
+		{#if adjustKey && shareParameters}
 			{#key adjustKey}
-				<ProcessForm sourceId={job.source_artifact_id} formKey={adjustKey} initial={job.parameters} heading="Adjust settings (creates a new job; this job and its artifacts are kept)" />
+				<ProcessForm sourceId={job.source_artifact_id} formKey={adjustKey} initial={shareParameters} heading="Adjust settings (creates a new job; this job and its artifacts are kept)" />
 			{/key}
 		{/if}
 
-		<ComparePanel {job} />
+		{#if job.tool === 'share_export'}<ComparePanel {job} />{/if}
 
 		<section class="vu-panel card space-y-3 p-5" data-download="true">
 			<p class="vu-eyebrow">Download</p>

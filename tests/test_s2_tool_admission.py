@@ -112,7 +112,7 @@ class S2ToolAdmissionTests(unittest.TestCase):
     # ----- registry freeze and descriptors ---------------------------------
     def test_first_32_descriptors_frozen_and_four_appended(self):
         tools = tool_api.descriptors()
-        self.assertEqual(len(tools), 40)
+        self.assertEqual(len(tools), 42)  # 40 frozen here; tools[40:] are admitted by tests/test_s3_tool_admission.py
         self.assertEqual(tuple(tool['name'] for tool in tools[:32]), FROZEN_NAMES)
         for count, ascii_only, expected in ((32, False, FROZEN_SHA256), (32, True, FROZEN_ASCII_SHA256),
                                             (36, False, FROZEN_36_SHA256), (36, True, FROZEN_36_ASCII_SHA256),
@@ -125,7 +125,7 @@ class S2ToolAdmissionTests(unittest.TestCase):
         self.assertEqual([tool['name'] for tool in tools[32:36]], list(NEW))
         self.assertEqual([tool['name'] for tool in tools[36:38]], list(NEW_C))
         self.assertEqual([tool['name'] for tool in tools[38:39]], list(NEW_D))
-        self.assertEqual([tool['name'] for tool in tools[39:]], list(NEW_E))
+        self.assertEqual([tool['name'] for tool in tools[39:40]], list(NEW_E))
         raw = (ROOT / 'program/tools.json').read_text(encoding='utf-8')
         self.assertEqual(json.dumps(json.loads(raw), indent=2) + '\n', raw)
 
@@ -909,9 +909,9 @@ class S2ToolAdmissionTests(unittest.TestCase):
         replies, stderr = exchange(messages, timeout=30)
         self.assertEqual(stderr, '')
         tools = {row['name']: row for row in replies[1]['result']['tools']}
-        self.assertEqual(len(tools), 40)
+        self.assertEqual(len(tools), 42)
         prompts = {row['name'] for row in replies[2]['result']['prompts']}
-        self.assertEqual(len(prompts), 40)
+        self.assertEqual(len(prompts), 42)
         for offset, (name, (prompt, *_rest)) in enumerate(admitted):
             with self.subTest(name=name):
                 self.assertIs(tools[name]['inputSchema']['additionalProperties'], False)

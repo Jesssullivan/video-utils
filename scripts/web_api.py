@@ -21,6 +21,12 @@ Versioned routes (contract ``docs/spec/sprints/WEB_UI_S2.md`` section 4)::
     GET  /api/v1/sources/{id}/capture-reviews     immutable capture review records
     POST /api/v1/sources/{id}/capture-reviews     create-only review bound to source/run/PCM sha256
     GET  /api/v1/runs/{run_id}/media/{role}       re-hashed run WAV for span audition (bound runs only)
+    GET  /api/v1/runs                             run listing (scripts/web_runs_api.py, read-only)
+    GET  /api/v1/runs/{run_id}                    run graph: stages, signal versions, evidence, invalidation
+    GET  /api/v1/runs/{run_id}/layers             bound review layers (tone_ab, spans, timing, flags, spectrogram)
+    GET  /api/v1/runs/{run_id}/layers/media/{evidence_id}/{name}   re-hashed layer media
+    GET  /api/v1/runs/{run_id}/artifacts/{artifact_id}             re-hashed run/attachment file
+    GET  /api/v1/capabilities                     tools, capability metadata and model registry
 
 ``POST /api/v1/jobs`` accepts the closed allowlist ``share_export``, ``denoise``,
 ``capture_profile`` and ``apply_capture_profile`` (ROUTES_PROCESSING_S3 section
@@ -70,6 +76,7 @@ import annotation_v2  # noqa: E402  (import only, never edited)
 import artifact_ids  # noqa: E402  (import only, never edited)
 import tool_api  # noqa: E402  (import only, never edited)
 import web_jobs  # noqa: E402  (import only, never edited)
+import web_runs_api  # noqa: E402  (S3 routes_review read API; import only)
 from web_jobs import WebJobs, WebJobsError  # noqa: E402
 
 BIND_ADDRESS = '127.0.0.1'
@@ -595,6 +602,13 @@ class Handler(BaseHTTPRequestHandler):
                 raise WebJobsError('shutting_down', 503, 'server is shutting down')
             parts = urlsplit(self.path)
             name, identifier, methods, flavour = self._route(parts.path)
+            # Read-only S3 runs/capabilities API, after the trust checks. The dispatch table is consulted
+            # first so the routes_processing span-audition route /api/v1/runs/{run_id}/media/{role} keeps
+            # its handler; every other /api/v1/runs* and /api/v1/capabilities path belongs to web_runs_api.
+            runs_route = web_runs_api.match(parts.path) if name is None else None
+            if runs_route is not None:
+                web_runs_api.serve(self, runs_route, parts.query)
+                return
             if name is None:
                 raise WebJobsError('route_not_found', 404, 'unknown route')
             action = methods.get(self.command)

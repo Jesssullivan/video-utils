@@ -50,7 +50,10 @@ WEB = ROOT / 'web'
 OPTIONS_TS = WEB / 'src' / 'lib' / 'server' / 'processing' / 'options.ts'
 ACCEPTED_FULLER_RUN = '20261006T041633Z-990aa1bd6737'
 RECEIPTS = ROOT / 'docs' / 'agent-notes' / 'sprints' / '20261007-s3'
-PENDING = ('denoise', 'capture_profile', 'apply_capture_profile')
+# Root integration S3 (2026-10-07) admitted denoise and capture_profile on their receipts; apply_capture_profile
+# stays planned until root runs its real-worker check from the main checkout.
+PENDING = ('apply_capture_profile',)
+ROOT_ADMITTED = ('share_export', 'denoise', 'capture_profile')
 ALL_ADMITTED = frozenset(web_jobs.JOB_TYPE_NAMES)
 
 # --------------------------------------------------------------------------- stub worker
@@ -475,9 +478,8 @@ class AllowlistTests(S3Base):
         self.assertEqual(self.count(env['state'], 'jobs'), 0)
         catalogue = env['client'].get('/api/v1/job-types').json
         states = {entry['tool']: entry['admission_state'] for entry in catalogue['job_types']}
-        self.assertEqual(states, {'share_export': 'admitted', 'denoise': 'pending_root_admission',
-                                  'capture_profile': 'pending_root_admission',
-                                  'apply_capture_profile': 'pending_root_admission'})
+        self.assertEqual(states, {**{tool: 'admitted' for tool in ROOT_ADMITTED},
+                                  **{tool: 'pending_root_admission' for tool in PENDING}})
         METRICS['M1'] = {'non_allowlisted_registry_tools': len(others), 'synthetic_names': len(synthetic),
                          'refused_tool_not_admitted': refused, 'denominator': len(others) + len(synthetic),
                          'pending_refused': pending, 'pending_denominator': len(PENDING)}
@@ -1455,7 +1457,9 @@ class PageLoadTests(S3Base):
                         self.assertNotIn('high-pass', body.lower().replace('no high-pass', ''))
                     if page.endswith('/capture'):
                         self.assertIn('data-interval-empty="true"', body)
-                        self.assertIn('data-origin-warning="true"', body)  # ORIGIN unset in this launch
+                        # ORIGIN is unset in this launch; serve.js now defaults it to the loopback http origin
+                        # (root integration S3), so the misconfiguration notice must not render.
+                        self.assertNotIn('data-origin-warning="true"', body)
                 except (ConnectionError, OSError):
                     time.sleep(0.2)
         self.assertEqual(statuses, {page: 200 for page in pages})

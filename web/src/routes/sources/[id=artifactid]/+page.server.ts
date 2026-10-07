@@ -6,6 +6,7 @@ import type { LaneJobProjection } from '$lib/server/processing/schema';
 import type { JobProjection } from '$lib/schema/control';
 import type { BffError } from '$lib/control-types';
 import { newFormKey } from '$lib/idempotency';
+import type { StepContext } from '$lib/components/review/step-context';
 
 const PROJECTED_JOBS = 12; // projections for the newest jobs; every job stays listed
 
@@ -13,6 +14,8 @@ type Projection = { tool: string; share: JobProjection | null; lane: LaneJobProj
 
 export const load: PageServerLoad = async ({ params, request }) => {
 	const signal = request.signal;
+	// Cross-lane step bar (ROUTES_REVIEW_S3 6.1); no run is selected on the clip page.
+	const stepContext: StepContext = { current: 'clip', source_artifact_id: params.id, run_id: null, disabled_reasons: {} };
 	const [sources, jobs, annotations, runs, reviews] = await Promise.all([
 		runControl(listSources, signal),
 		runControl(listLaneJobs(params.id), signal),
@@ -23,7 +26,7 @@ export const load: PageServerLoad = async ({ params, request }) => {
 	if (!sources.ok) {
 		return {
 			sourceId: params.id, source: null, error: sources.error, jobs: null, jobsError: null, projections: {} as Record<string, Projection>,
-			annotations: null, annotationError: null, runs: null, runsError: null, reviews: null, reviewsError: null, formKey: newFormKey()
+			annotations: null, annotationError: null, runs: null, runsError: null, reviews: null, reviewsError: null, formKey: newFormKey(), stepContext
 		};
 	}
 	const source = sources.data.sources.find((s) => s.source_artifact_id === params.id) ?? null;
@@ -57,6 +60,7 @@ export const load: PageServerLoad = async ({ params, request }) => {
 		runsError: runs.ok ? null : runs.error,
 		reviews: reviews.ok ? reviews.data : null,
 		reviewsError: reviews.ok ? null : reviews.error,
-		formKey: newFormKey()
+		formKey: newFormKey(),
+		stepContext
 	};
 };

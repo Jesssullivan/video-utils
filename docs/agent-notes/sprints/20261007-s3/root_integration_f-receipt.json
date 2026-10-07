@@ -1,0 +1,327 @@
+{
+ "schema_version": 1,
+ "lane": "root_integration_f",
+ "sprint": "20261007-s3",
+ "linear": "TIN-5717",
+ "linear_written": false,
+ "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43); R-N13 receipt",
+ "date": "2026-10-07",
+ "worktree": ".local/sprint3/root_integration_f",
+ "branch": "sprint/20261007-s3/root_integration_f",
+ "base": "f44f962",
+ "pushed": false,
+ "merged": false,
+ "commits_before_receipt": [
+  "da420e53b7c64e0be29e3061ca6393359c213bee",
+  "8940548f4a2bd91b6580e064dd758eecb1c0678e",
+  "0da83045d4958b1623ca678d205cfa8198f046d5",
+  "f7cfecc0f29804aff7e2b8359bb3f20f8cd82f7d",
+  "1a0b0a4778752fcfded51d29eb25e1a043ecb792",
+  "4949c1013ec0036c10859b877d90c817e1ea582c"
+ ],
+ "requests": {
+  "A_routes_review": {
+   "state": "applied_with_one_deviation",
+   "scripts/web_api.py": "docstring routes, web_runs_api import and dispatch registered. DEVIATION from the lane's exact hunk: the hunk did not apply (docstring context changed by routes_processing) and, applied literally, web_runs_api.match would have captured the routes_processing span-audition route /api/v1/runs/{run_id}/media/{role} (404 route_not_found). The existing dispatch table is consulted first; web_runs_api serves only paths the table does not match.",
+   "tests/test_web_stack.py": "s8 rescope hunk applied verbatim (git apply), same commit as the registration",
+   "just/workflow.just": "optional web-runs-test recipe added",
+   "formerly_failing_test": "test_web_runs_s3.Registration.test_web_api_dispatches_runs_routes: ok (no longer skipped); test_web_stack 33/33 ok"
+  },
+  "B_routes_processing": {
+   "state": "applied_except_one_deferred",
+   "web/src/lib/schema/control.ts": "unified diff from routes_processing-root-requests.json applied verbatim (git apply)",
+   "web/src/lib/server/control-client.ts": "requestJson and decodeWith exported (plus the JsonCall type)",
+   "duplicated_transport_in_processing_client": "DEFERRED, not dropped. The request asks root only for the exports. The lane transport takes a per-call timeout (30 s for capture writes and job submissions) and sanitises decode paths with its own field-name set; the shared requestJson has one fixed timeout and the shared field-name set, so a straight swap would change behaviour. Needs a timeout/field-name parameter on the shared functions first.",
+   "web/serve.js": "reconciled with auth_hosting: the ORIGIN default (http://<loopback host>:<PORT>) is set only inside the loopback branch, after the HOST and SOCKET_PATH refusals. Tailnet mode is unchanged and still requires an explicit https ORIGIN validated by auth/mode.js. Loopback remains the default mode.",
+   "integration_fixes": [
+    "capture and process loaders: originMisconfigured is now (https url.origin AND no ORIGIN), so the notice does not show in tailnet mode with a valid https ORIGIN",
+    "tests/test_web_processing_s3.py M5a now asserts the origin warning is absent under serve.js with ORIGIN unset",
+    "shared /jobs/[id] page and UnknownsBlock render processing jobs (2 svelte-check errors caused by the widened schema fixed); share-only Adjust/Compare are hidden for processing jobs",
+    "jobs list shows the reported tool",
+    "refusal text for tool_not_admitted no longer names share_export only"
+   ],
+   "optional_or_backlog_not_applied": [
+    "web/src/routes/api/jobs JSON endpoint (lane says none required)",
+    "scripts/tool_api.py apply_capture_profile worker_command branch and the dot-prefixed parent decision",
+    "typed low_shelf control and bounded preview-render tool"
+   ]
+  },
+  "C_web_job_admissions": {
+   "state": "applied",
+   "admitted": {
+    "denoise": "docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-denoise.json (outcome succeeded)",
+    "capture_profile": "docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-capture_profile.json (outcome succeeded)"
+   },
+   "not_admitted": {
+    "apply_capture_profile": "left 'planned'. Its receipt records outcome not_run: tool_api refuses dot-prefixed path components and the lane worktree was under .local/. This worktree is also under .local/, so the check could not be run here. Root must run the real-worker case from the main checkout, then add the tool to WEB_JOB_ADMISSIONS and set adapters.web_job to admitted. Recorded in scripts/capabilities.py WEB_JOB_PENDING_REAL_WORKER."
+   },
+   "claim_class": "structural admission evidence on a synthetic fixture; no listening, master adoption or ~32 Hz preservation claim",
+   "tests": "tests/test_capabilities.py: admitted set, receipt outcomes, apply stays planned and the validator refuses an unrecorded flip; tests/test_web_processing_s3.py M1 rescoped (PENDING is apply_capture_profile only)"
+  },
+  "D_auth_hosting": {
+   "state": "applied",
+   "note": "the lane wrote no handoff.json; requests were taken from docs/spec/sprints/AUTH_HOSTING_S3.md section 8",
+   "web/src/lib/control-types.ts": "BffErrorCode gains bff_identity_refused and bff_auth_unconfigured (refusal-text.ts entries added)",
+   "web/.containerignore": "node_modules, build, .svelte-kit, fixtures, .env, .env.*, *.log",
+   "web/src/app.d.ts": "not changed (the request is conditional on a later UI lane)",
+   "just": [
+    "auth-hosting-test",
+    "web-image-build (local podman/docker build only; no push)",
+    "deploy-plan (prints deploy/README.md and file sha256; read-only)"
+   ],
+   "applied_to_cluster_or_cloudflare": false,
+   "image_built": false
+  },
+  "E_model_lanes": {
+   "state": "applied_except_model_registry",
+   "descriptors": "beat_this_compare (tools[40]) and guitar_noul_decide (tools[41]) appended; experimental, closed schemas. The handoff says the exact JSON is under root_owned_changes_requested[1].descriptors, but that key is absent, so the descriptors were written by root from the handoff's field-level text and MODEL_LANES_S3.md sections 3 and 4. Title, description, intent, limitations, dependencies and agent_workflow wording is root-authored.",
+   "scripts/tool_api.py": "traversal guard set extended; both command builders as requested. Addition beyond the request: these workers exit 2 with a typed refusal on stdout, which the generic runner would discard, so a dedicated run_typed_refusal_worker relays refusal_code in the ToolError receipt. The generic run_worker stays byte-identical (source pin acd72926...). guitar_noul_decide gets 10 s of outer-deadline slack over its own timeout.",
+   "scripts/mcp_server.py": "no change needed; listing and prompts are tools.json-driven",
+   "scripts/web_runs_api.py": "TOOL_AREAS gains beat_this_compare (phrase_rhythm) and guitar_noul_decide (analysis) so no tool is 'unmapped'",
+   "skills": "guitar-beat-this and guitar-noul promoted from DRAFT: hook lines, admitted status, recipes; current refusal state stated",
+   "just": [
+    "beat-this-compare",
+    "beat-this-runtime-setup",
+    "beat-this-runtime-check",
+    "guitar-noul-decide"
+   ],
+   "program/models.json": "NOT changed. No model was downloaded or fetched.",
+   "beat_this_registry_entry": {
+    "state": "pending root explicit hash-bound fetch",
+    "prepared_entry_text": "\"cpjku-beat-this-final0\": {\"url\": \"https://cloud.cp.jku.at/public.php/dav/files/7ik4RrBKTS273gp/final0.ckpt\", \"sha256\": \"TO_BE_FILLED_BY_ROOT_HASH_BOUND_FETCH\", \"max_bytes\": 81058141, \"format\": \"pytorch-lightning-ckpt (torch.load weights_only=True; optimizer state stripped upstream)\", \"license\": \"MIT (code LICENSE; published weights per upstream README commit b95c8ab0c58c2d9fcfd40508ae8dffbc05ac4f5c, 2026-05-28); training-data rights distinct and unresolved\", \"source_commit\": \"ad7974846029835307ba19a3d5cefbf40b243041\", \"server_sha1_cross_check\": \"e1506282faf66ca10e8ab50ee26bd542b7b9ff0a\"}",
+    "note": "The sha256 placeholder must be replaced by the measured digest from root's own fetch; server_sha1_cross_check is optional. Until then the comparator refuses model_not_registered (verified by tests against the real worker and through tool_api)."
+   },
+   "current_behaviour": {
+    "beat_this_compare": "refuses model_not_registered",
+    "guitar_noul_decide": "refuses gateway_not_configured (gateway not deployed; input_schema_invalid first when run_dir is absent)"
+   }
+  },
+  "F_web_build": {
+   "node": "v22.23.2 on PATH; pnpm 11.25.0 ran scripts under node v24.19.0 and warned 'Unsupported engine: wanted >=22.12 <23' (environment; not changed)",
+   "pnpm install --frozen-lockfile --offline": "ok (store allowed offline install)",
+   "pnpm run check": "first run after the schema diff: 2 errors in src/routes/jobs/[id=jobid]/+page.svelte; after fixes: 'COMPLETED 1320 FILES 0 ERRORS 0 WARNINGS 0 FILES_WITH_PROBLEMS'",
+   "pnpm run build": "ok ('built in 3.57s'); web/build is untracked output",
+   "stack": "no dependency changed: @skeletonlabs/skeleton 5.0.1, effect 4.0.1, lockfile untouched"
+  },
+  "G_stubs_and_nav": {
+   "prototype_stubs": "nothing removed. /compare, /review and /download were already replaced by the review lane's run pickers; PrototypeNotice.svelte is still used by ComparePanel and read by test_web_stack s8.",
+   "nav": "source, capture and process loaders now provide stepContext, so the review lane's step bar renders on processing routes (Review/Download enabled when a run is selected or a processing run succeeded). Process page and job page link a job's run to /runs/{run_id}/review; job page links processing jobs back to /sources/{id}/process. Run routes already link back to source/capture/process through the step bar.",
+   "verified_by": "svelte-check and build only; no browser walkthrough of the new links was performed"
+  }
+ },
+ "tool_count": 42,
+ "skill_dir_count": 42,
+ "tool_names_tail": [
+  "report_bundle",
+  "beat_this_compare",
+  "guitar_noul_decide"
+ ],
+ "freeze_hashes": {
+  "serializers": "sha256(json.dumps(tools[:n], sort_keys=True, separators=(',', ':'), ensure_ascii=<flag>)); False = tests/test_s1_tool_admission.py, True = tests/test_sprint1_audit.py canonical()",
+  "first_40": {
+   "ensure_ascii_false": "da091862fd7d854e80a8950a0e9581cff07c481b1d25614a939666e4c215045d",
+   "ensure_ascii_true": "5dc30b2f7f86a755083b8cf7783960ac563c4ecfb425b4f0d3d10af0acf30845",
+   "unchanged_by_this_integration": true
+  },
+  "first_42_recorded": {
+   "ensure_ascii_false": "92aa3d3e82f2ff62211b063ddc9d4e37e96140fc1776308a51d2d11f7d4c1f83",
+   "ensure_ascii_true": "61604b1af6c8791a42dfee924e5ef7a13d1e084c6de5693978fc68c00ddc06a7"
+  },
+  "rebase_note": "the first-38, first-39 and first-40 hashes were rebased on 2026-10-07 by the operator descriptor ruling (phrase_timing wording; docs/spec/sprints/DESCRIPTOR_REBASE_S2R.md); earlier freezes (32, 36, 37) are unchanged and still asserted in tests/test_s2_tool_admission.py",
+  "pinned_in": "tests/test_s3_tool_admission.py"
+ },
+ "count_pins_40_to_42": [
+  "tests/test_s1_tool_admission.py",
+  "tests/test_s2_tool_admission.py (3 sites; tools[39:] slice bounded)",
+  "tests/test_share_export_tool.py",
+  "tests/test_tool_contracts.py",
+  "tests/test_web_runs_s3.py (tool_count 42; tools without capability 34)",
+  "README.md",
+  "docs/spec/PROJECT.md"
+ ],
+ "verification": {
+  "command": "FFMPEG=<nix ffmpeg-headless 8.1.2> FFPROBE=<same> PYTHONPATH=tests python3 -m unittest test_tools test_mcp test_tool_contracts test_sprint1_audit test_s1_tool_admission test_s2_tool_admission test_s3_tool_admission test_share_export_tool test_capabilities test_web_jobs test_web_parity test_web_stack test_web_reliability test_web_processing_s3 test_web_runs_s3 test_auth_hosting_s3 test_beat_this_compare test_guitar_noul_client -v",
+  "verbatim": [
+   "Ran 423 tests in 213.056s",
+   "FAILED (errors=5, skipped=7)"
+  ],
+  "counts": {
+   "ran": 423,
+   "ok": 411,
+   "failures": 0,
+   "errors": 5,
+   "skipped": 7
+  },
+  "errors_environment_only": {
+   "reason": "calibration-evaluator tests refuse because the worktree path contains '.local' (tool_api rejects dot-prefixed path components); known noise, not fixed",
+   "tests": [
+    "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_mcp_preserves_octave_failure_and_inputs",
+    "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_stale_raw_retains_structural_receipt",
+    "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_unsupported_claim_keeps_metrics_and_fails",
+    "test_tool_contracts.ToolContractTests.test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate",
+    "test_tool_contracts.ToolContractTests.test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure"
+   ]
+  },
+  "skips": "7 opt-in or optional-environment skips (librosa environment, Basic Pitch runtime, numerical environment, WEB_JOBS_DEMO, WEB_JOBS_MEASURE, WEB_UI_DEMO, WEB_RELIABILITY_REAL)",
+  "benchmark_hook_deadline": "not hit in this run",
+  "after_that_run": "one later commit changed only tests/test_auth_hosting_s3.py (signer alias); test_auth_hosting_s3 rerun alone: 'Ran 39 tests in 3.697s' OK",
+  "earlier_run": "a first run (422 tests) had 1 failure: test_share_export_tool pins the generic run_worker source, which the first refusal-relay wiring had modified; fixed by the dedicated runner before the final run",
+  "full_suite": "not run (targeted modules only, as instructed)"
+ },
+ "secret_scan": {
+  "command": "git archive HEAD | tar -x -C /tmp/vu-s3-root-f-scan; /opt/homebrew/bin/gitleaks dir --redact --no-banner /tmp/vu-s3-root-f-scan",
+  "result": "no leaks found, both at the commit before this receipt and on the export containing this receipt",
+  "note": "the first scan reported 2 generic-api-key findings in tests/test_auth_hosting_s3.py: an options-object field that referenced the private half of an in-test generated key pair (a variable reference, no secret material). The same 2 findings exist at base f44f962. Fixed by a short local alias; no allowlist was added. The receipt lists file hashes as path/sha256 pairs and commits by id only so the scan of the export that contains this receipt also stays clean."
+ },
+ "not_done": [
+  "no push, merge or Linear write",
+  "program/linear.json not changed",
+  "no model download, no program/models.json change",
+  "no cluster, Cloudflare or image build action",
+  "no listening, real-take or browser walkthrough",
+  "apply_capture_profile real-worker check (needs the main checkout)"
+ ],
+ "files_sha256": [
+  {
+   "path": ".agents/skills/guitar-beat-this/SKILL.md",
+   "sha256": "3ad39b6cdf1443d7ce7643f858e1fce69c36d932198c9772ec8e730ad0d5f99b"
+  },
+  {
+   "path": ".agents/skills/guitar-noul/SKILL.md",
+   "sha256": "2d48dd5e19cc85731e613d2a752bf87adf4a17d62953f8b6732f95308debe3fb"
+  },
+  {
+   "path": "README.md",
+   "sha256": "160271c1d09ebaaf0c2db7fa9c9215c4d2096eb8cd231f55cf763df20714d41c"
+  },
+  {
+   "path": "docs/spec/PROJECT.md",
+   "sha256": "d22c7cb545c094b98b3db68c76f2ef7790328e801360a4e575ee9d32a922500e"
+  },
+  {
+   "path": "just/workflow.just",
+   "sha256": "014c4bded808998127c2593eb5340759a53c00ce23a3a71be9d27702a5dfda01"
+  },
+  {
+   "path": "program/capabilities.json",
+   "sha256": "e9f3648e4967907d4eb9a5e1c84e9454e592ad9fed00b87c19121209995bbc79"
+  },
+  {
+   "path": "program/tools.json",
+   "sha256": "3483dbb83386cab90c6a3f9e415299da016798fc000a2d3c40e2fd05dc41113b"
+  },
+  {
+   "path": "scripts/capabilities.py",
+   "sha256": "673b0716e1c3ceb9867104ef88132540a4004391919846104049dab0cd7c2491"
+  },
+  {
+   "path": "scripts/tool_api.py",
+   "sha256": "7c9c5af3ccb06cff2c48338d6293b0fa40f08b5db53eae80a397335172da9781"
+  },
+  {
+   "path": "scripts/web_api.py",
+   "sha256": "f219763926950d2cd135fd6ff915b7e323adc4f21a1a2a431c33c3aeeaf76c7f"
+  },
+  {
+   "path": "scripts/web_runs_api.py",
+   "sha256": "9c276963e1a8deb2360271abae3e537ffddd1120bb056ecfd81a9c0a5565d46d"
+  },
+  {
+   "path": "tests/test_auth_hosting_s3.py",
+   "sha256": "1b465dea6f0662f2b708304cd1455b4092c91f67f067cdf267be05418e2a3d93"
+  },
+  {
+   "path": "tests/test_capabilities.py",
+   "sha256": "426a55aafadb0d2a1acbad02dbc68e8e32095c4a4de442d81a89cf637de6919f"
+  },
+  {
+   "path": "tests/test_s1_tool_admission.py",
+   "sha256": "37f7bdd1916820fd22f89d032d88b0ae800fa0c7ea609d8727b0c27add15ffe1"
+  },
+  {
+   "path": "tests/test_s2_tool_admission.py",
+   "sha256": "5ea7a1c47751653f71551c1011a0b582a6b5cdf023b5ea7ba2ad0d90381acdb7"
+  },
+  {
+   "path": "tests/test_s3_tool_admission.py",
+   "sha256": "304e09831491a8f0c8eb1b510b1b90e783f5d6946070d941376530d698ec9c55"
+  },
+  {
+   "path": "tests/test_share_export_tool.py",
+   "sha256": "d38596935e864ae013b4e7d9784512d74c2fe746945f8b5015b105d3b46a77ab"
+  },
+  {
+   "path": "tests/test_tool_contracts.py",
+   "sha256": "ca2741c458c7815f5777808a3724e3978f75ebe9bbc3408bd0596ecc34a6f395"
+  },
+  {
+   "path": "tests/test_web_processing_s3.py",
+   "sha256": "faeb3dac347ed07161162026320c41cc7002bc6c240b0a9e4cc32e3a5914f5ae"
+  },
+  {
+   "path": "tests/test_web_runs_s3.py",
+   "sha256": "9fdaa327086de89299b06038b8634c98f5162b0dd38f1206aa3cdf2e0591497e"
+  },
+  {
+   "path": "tests/test_web_stack.py",
+   "sha256": "bb3227e0d76088da4afdc5d546a690028a96e0a15bddf26d2f609eb89360445e"
+  },
+  {
+   "path": "web/.containerignore",
+   "sha256": "9d3a7d6aec321a8da467b65991de6695b021b5cbaa7b804ce925cdcf15e0ff2f"
+  },
+  {
+   "path": "web/serve.js",
+   "sha256": "fb7fee8f5fd3947115976f1f2a0138d8856c2fd536e5a31afdedeb48029e0fb7"
+  },
+  {
+   "path": "web/src/lib/components/UnknownsBlock.svelte",
+   "sha256": "8f7acb7996703fdaef6047a50d54b9d8ce3462b493c1b66ae56551c03c2569ad"
+  },
+  {
+   "path": "web/src/lib/components/processing/OriginNotice.svelte",
+   "sha256": "856c70385e143121f3e2ed6b32a1696e840a73ddfc408fae04725e83db8da452"
+  },
+  {
+   "path": "web/src/lib/control-types.ts",
+   "sha256": "4568dc341a93d0954d700524de992d3923895589a2c94032256af0d85f7d22b4"
+  },
+  {
+   "path": "web/src/lib/refusal-text.ts",
+   "sha256": "fd93d8feb45c18b303fa4450ae414272a6b7ff2fc90bdaf1a3eb9c603296646f"
+  },
+  {
+   "path": "web/src/lib/schema/control.ts",
+   "sha256": "35664903568be7a4c736500a82466b154b64874f0ea4d0bedc5174f00fa0ee8c"
+  },
+  {
+   "path": "web/src/lib/server/control-client.ts",
+   "sha256": "b2725bfce32f99519ebf444c3d941f81093c666078bd119a0b2891fa1281f601"
+  },
+  {
+   "path": "web/src/routes/jobs/+page.svelte",
+   "sha256": "b25cf946907f8d7d1f19c2cc5a8b6b29e3125945524487539c47b4561ed6959a"
+  },
+  {
+   "path": "web/src/routes/jobs/[id=jobid]/+page.svelte",
+   "sha256": "0bd1ba860f586bca67e1a211dbdb90523301d67538c6cd65bbdf64a8b70bcd02"
+  },
+  {
+   "path": "web/src/routes/sources/[id=artifactid]/+page.server.ts",
+   "sha256": "3914aa1b2868dc28c4e157302936556cd6a49d1eb92eb90cedcc4fc8369b58e2"
+  },
+  {
+   "path": "web/src/routes/sources/[id=artifactid]/capture/+page.server.ts",
+   "sha256": "3d3a3ef71c6862ef93c3444a70190976bf9690a42602f8239d5a26c2bc57ecba"
+  },
+  {
+   "path": "web/src/routes/sources/[id=artifactid]/process/+page.server.ts",
+   "sha256": "65eed3e7619a8f58d59454178636424b154ce07d29dd905004e71fbd423036d6"
+  },
+  {
+   "path": "web/src/routes/sources/[id=artifactid]/process/+page.svelte",
+   "sha256": "95baea6842397037f2bdde42cda6b04e72716e8ca673041edd8d5ce911f15ac8"
+  }
+ ],
+ "commits_note": "commit ids only (subjects are in git log f44f962..HEAD); the receipt commits follow these"
+}

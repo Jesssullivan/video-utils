@@ -208,7 +208,9 @@ spotify-basic-pitch-0.4.0-onnx`, then `just basic-pitch-runtime-setup /path/to/p
 and `just basic-pitch-runtime-check`. See [runtime qualification](docs/research/BASIC_PITCH_QUALIFICATION.md).
 
 The repository includes a versioned tool contract, a local MCP stdio server,
-and forty per-tool skills (40 typed tools) for researching and tuning restoration, analysis, comparison, and review.
+and forty-two per-tool skills (42 typed tools) for researching and tuning restoration, analysis, comparison, and review.
+Tools 41 and 42 (`beat_this_compare`, `guitar_noul_decide`) are experimental model-lane hooks: the Beat This
+model is not registered and the guitar_noul gateway is not configured, so both currently refuse with a typed reason.
 Inspect `just tool-info NAME` or launch
 `just mcp` from the repository root. Local invocation is
 separate from connecting an external agent client; see

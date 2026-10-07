@@ -145,6 +145,22 @@ basic-pitch-runtime-setup python:
 basic-pitch-runtime-check:
     python3 scripts/basic_pitch_runtime_setup.py --check
 
+# Optional experimental Beat This comparator; no model or runtime installation is implicit.
+beat-this-compare run_dir:
+    python3 scripts/beat_this_compare.py compare --run-dir {{quote(run_dir)}}
+
+# Explicit Linux-only runtime setup from the flake ml shell python (run on honey inside nix develop .#ml).
+beat-this-runtime-setup python:
+    python3 scripts/beat_this_runtime_setup.py --python {{quote(python)}}
+
+# Verify the isolated Beat This runtime without downloads, installation or model inference.
+beat-this-runtime-check:
+    python3 scripts/beat_this_runtime_setup.py --check
+
+# Experimental guitar_noul gateway client (TIN-5619); refuses unless VIDEO_UTILS_GUITAR_NOUL_GATEWAY is configured.
+guitar-noul-decide request:
+    python3 scripts/guitar_noul_client.py --request {{quote(request)}}
+
 # Metadata planning only; no editor API, import file or native execution.
 editor-marker-plan run_dir selection profile:
     python3 scripts/editor_marker_plan.py {{quote(run_dir)}} {{quote(selection)}} {{quote(profile)}} --summary
@@ -310,6 +326,29 @@ web-serve port="3000" control_api="":
 # Web fixture behaviour tests (loopback enforcement, BFF limits, pins).
 web-test:
     PYTHONPATH=tests python3 -m unittest test_web_stack -v
+
+# S3 routes_review read API and route tests (foreground, synthetic fixtures only)
+web-runs-test:
+    PYTHONPATH=tests python3 -m unittest test_web_runs_s3 -v
+
+# S3 processing job types, capture reviews and capture/process routes (foreground, synthetic fixtures only)
+web-processing-test:
+    PYTHONPATH=tests python3 -m unittest test_web_processing_s3 -v
+
+# S3 auth modes, Access JWT gate, container and deploy-plan static checks (no network, nothing applied)
+auth-hosting-test:
+    PYTHONPATH=tests python3 -m unittest test_auth_hosting_s3 -v
+
+# Build the web BFF image locally from web/Containerfile. Local build only: no push, no registry login, no deploy.
+web-image-build tag="video-utils-web:local" engine="podman":
+    {{quote(engine)}} build -f web/Containerfile -t {{quote(tag)}} web
+
+# Print the reviewed hosted deploy plan and its file hashes. Read-only: applies nothing to a cluster or Cloudflare.
+deploy-plan:
+    @cat deploy/README.md
+    @echo
+    @echo "deploy plan files (sha256); nothing here has been applied:"
+    @shasum -a 256 deploy/k8s/* deploy/cloudflare/* web/Containerfile
 
 # Read-only AU discovery/auval step; never installs, registers or repairs.
 au-auval-step:

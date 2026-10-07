@@ -7,6 +7,7 @@ import { buildPresetOptions, groupKnobs } from '$lib/server/processing/options';
 import type { JobTypeEntry, LaneJobProjection } from '$lib/server/processing/schema';
 import type { BffError } from '$lib/control-types';
 import { newFormKey } from '$lib/idempotency';
+import type { StepContext } from '$lib/components/review/step-context';
 
 // Process (ROUTES_PROCESSING_S3 section 8): FULLER default (needs a saved reviewed interval),
 // conservative3 / mild6 / bypass explicit, source-bound captured* only for their own source, no
@@ -29,7 +30,9 @@ const outcome = (action: ProcessOutcome['action'], values: Record<string, string
 const entry = (types: ReadonlyArray<JobTypeEntry>, tool: string) => types.find((item) => item.tool === tool) ?? null;
 
 export const load: PageServerLoad = async ({ params, request, url }) => {
-	const originMisconfigured = url.protocol === 'https:';
+	// serve.js sets a loopback http ORIGIN by default; tailnet mode carries an explicit https ORIGIN.
+	// Only an https url.origin with no ORIGIN at all (adapter-node started without serve.js) is a misconfiguration.
+	const originMisconfigured = url.protocol === 'https:' && !process.env.ORIGIN;
 	const signal = request.signal;
 	const [sources, runs, reviews, types, jobs] = await Promise.all([
 		runControl(listSources, signal),
@@ -39,9 +42,11 @@ export const load: PageServerLoad = async ({ params, request, url }) => {
 		runControl(listLaneJobs(params.id), signal)
 	]);
 	const keys = { denoise: newFormKey(), author: newFormKey(), apply: newFormKey() };
+	// Cross-lane step bar (ROUTES_REVIEW_S3 6.1): Review/Download point at the newest succeeded processing run, when any.
+	const step = (runId: string | null): StepContext => ({ current: 'process', source_artifact_id: params.id, run_id: runId, disabled_reasons: {} });
 	if (!sources.ok) {
 		return { sourceId: params.id, source: null, error: sources.error, options: [], catalogue: null, typesError: null, groups: {},
-			reviews: [], reviewsError: null, runs: [], jobsError: null, processing: [], keys, originMisconfigured };
+			reviews: [], reviewsError: null, runs: [], jobsError: null, processing: [], keys, originMisconfigured, stepContext: step(null) };
 	}
 	const source = sources.data.sources.find((s) => s.source_artifact_id === params.id) ?? null;
 	if (source === null) error(404, { message: 'The control API lists no such admitted source.', code: 'source_not_found' });
@@ -76,7 +81,8 @@ export const load: PageServerLoad = async ({ params, request, url }) => {
 		jobsError: jobs.ok ? null : jobs.error,
 		processing,
 		keys,
-		originMisconfigured
+		originMisconfigured,
+		stepContext: step(processing.find((job) => job.state === 'succeeded' && job.run_id)?.run_id ?? null)
 	};
 };
 

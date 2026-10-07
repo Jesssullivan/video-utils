@@ -73,7 +73,7 @@ proceeds through source inspection, clean/export, rhythm analysis, and reporting
 `artifacts/runs/`; provenance records source identity, commands, tool versions,
 profile parameters, analysis resampling, and output measurements.
 
-The current versioned tool/API contract, local MCP stdio adapter, and forty
+The current versioned tool/API contract, local MCP stdio adapter, and forty-two
 per-tool skills expose the same bounded operations. Agent guidance connects research evidence
 to explicit, auditable parameter suggestions for noise, tone, and note analysis.
 Suggestions require comparative evaluation; agents cannot silently change the
@@ -259,8 +259,14 @@ Integration state: every S2 lane is merged on local `main` at `e3ef39b`. The
 last hosted CI run is 37531977858, which succeeded on `1741e33` (1423 Python OK,
 106 optional skips, Rust OK, no gitleaks findings). The later merges `4be2812`,
 `ebaf72d`, `3e397ad`, `46aee65` and `e3ef39b` had not been pushed and had no
-hosted CI run when this was written. The registry has **40 typed tools and 40
-skills** ([root_admission_e](../agent-notes/sprints/20261006-s2/root_admission_e-receipt.json)).
+hosted CI run when this was written. The S2 registry had 40 typed tools and 40
+skills ([root_admission_e](../agent-notes/sprints/20261006-s2/root_admission_e-receipt.json)).
+S3 root integration (2026-10-07, unpushed, no hosted CI) raises it to **42 typed tools and 42
+skills** ([root_integration_f](../agent-notes/sprints/20261007-s3/root_integration_f-receipt.json)):
+`beat_this_compare` and `guitar_noul_decide` are experimental and currently refuse with a typed
+reason (Beat This model not registered in `program/models.json`; guitar_noul gateway not
+configured). Web job adapters admitted: `share_export`, `denoise`, `capture_profile`;
+`apply_capture_profile` stays planned until its real-worker check runs from the main checkout.
 
 ### Core days
 

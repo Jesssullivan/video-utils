@@ -3072,6 +3072,157 @@
         "acceptance": "verified status and protected readback are provenance checks only; listening acceptance and any default adoption remain operator/root decisions.",
         "max_comparison_candidates_default": 1
       }
+    },
+    {
+      "name": "beat_this_compare",
+      "title": "Optional learned beat/downbeat comparison (Beat This)",
+      "description": "Compare Beat This (CPJKU final0) beat and downbeat hypotheses with the project click grid on the manifest-verified denoised.wav of an existing run. Uses only a registry-verified local checkpoint and the prequalified isolated Linux CPU runtime; never downloads, installs or falls back. Refuses with a typed refusal_code while the model hash is unregistered, the model file or runtime is missing, or the platform is not Linux. Writes beat_this_comparison.json to a fresh directory beneath artifacts/s2/model_lanes and never writes the run.",
+      "intent": "Give listening review and agent iteration a second, independent pulse estimate for riffs, irregular subdivisions, half-time feels, rests and legato on the distorted nine-string, without claiming meter, intended tempo, bar lines or any performance verdict.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing run beneath repository artifacts/runs with regular manifest.json and denoised.wav (<=300 s, explicit timeline.audio_start_seconds). Symlink and traversal components are rejected."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 660,
+            "description": "Outer owned-process-group deadline; the worker's internal inference deadline is 600 s."
+          }
+        },
+        "required": [
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-beat-this/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "uncalibrated_learned_beat_downbeat_hypotheses",
+      "limitations": [
+        "Beats and downbeats from a mono mixture with an in-room click are uncalibrated model hypotheses; downbeat spacing does not establish meter, a time signature or bar lines (meter_claim none, downbeat_semantics model_hypothesis_not_bar_line).",
+        "median_ibi_seconds, ibi_tempo_bpm and the half/double ratio against the click grid are arithmetic on model output, not an identification of intended tempo; tempo_identity and real-take accuracy remain unknown and physical capture latency is uncalibrated.",
+        "No note-correctness, missed/extra-note, phrase or performance claim is made and no expected-rhythm reference is used; note_correctness, performance_issue and expected_rhythm_reference are always null.",
+        "The comparator has no knobs (final0, CPU, float16 off, DBN off, 2 threads, 600 s, 2 GiB RSS) and is never a default detector; listening_accepted and default_adoption are always false and rhythm/bpm/clicks output is never replaced.",
+        "Fails closed in order: model_not_registered, model_hash_not_registered, model_registry_entry_invalid, model_file_missing, model_hash_mismatch, runtime_not_qualified, platform_unsupported, input_rejected. The model registry entry, hash-bound fetch and Linux runtime setup are explicit root acts; this tool performs none of them.",
+        "Analysis runs at 22.05 kHz with mel f_min 30 Hz inside the upstream preprocessing; approximately 32 Hz low-string fundamentals sit at the edge of that front end and their contribution to the model's pulse is not measured. Real-take outputs are V6_private_real_take_derived and stay in ignored artifacts."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "denoise",
+          "bpm",
+          "clicks"
+        ],
+        "enforced": false,
+        "note": "A current verified denoised run, a program/models.json entry with a measured sha256, the prefetched local checkpoint and the isolated Linux runtime are required. Prior tools are not invoked automatically; model registration, prefetch and runtime setup are separate explicit root operations."
+      },
+      "agent_workflow": {
+        "identify": "Inspect model, runtime and input identities, beat and downbeat counts, the half/double relation against the click grid and every fixed unknown field; on a refusal read refusal_code first.",
+        "research": "Read docs/research/BEAT_THIS_QUALIFICATION.md and docs/spec/sprints/MODEL_LANES_S3.md sections 3 and 7 for licence, checkpoint bytes, preprocessing and the preregistered fixture experiment.",
+        "iterate": "There are no knobs; compare the hypotheses with rhythm/bpm/clicks evidence over the same source spans and listen to disagreements. Any change to the comparator is a new experiment with new seeds, never tuning to truth.",
+        "acceptance": "A completed comparison or agreement with the click grid does not establish meter, intended tempo, real-take beat accuracy, note correctness or listening acceptance; adoption as a default is a separate root/operator decision.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "guitar_noul_decide",
+      "title": "External guitar_noul window hypotheses (TIN-5619 client)",
+      "description": "Request one opaque detector decision or abstain per source-timed window from the tailnet-only guitar_noul gateway under the closed TIN-5619 input contract. Reads only manifest-verified denoised.wav excerpts of an existing run or generated fixture and writes nothing. Refuses with a typed refusal_code when the gateway is not configured, the gateway URL is not allowed, or the run is a real take without the explicit V6 operator switch; the gateway URL and that switch are environment-only, never arguments.",
+      "intent": "Let agents place an external read-only detector's per-window hypotheses beside project phrase, onset and rhythm evidence for the same source spans, keeping them distinguishable from operator-reported issues and from any note or performance verdict.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing run beneath artifacts/runs or generated fixture beneath artifacts/s2/model_lanes/fixtures with a regular manifest.json (<=1 MiB). Symlink and traversal components are rejected."
+          },
+          "windows": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 64,
+            "description": "Non-overlapping source-timed windows, each 0.25-30 s long and inside the manifest duration.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source_start_s": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 86400,
+                  "description": "Window start in source-timeline seconds."
+                },
+                "source_end_s": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 86400,
+                  "description": "Exclusive window end in source-timeline seconds; greater than source_start_s."
+                }
+              },
+              "required": [
+                "source_start_s",
+                "source_end_s"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 120,
+            "description": "Overall client deadline for the single gateway request, including one retry of a connection error."
+          }
+        },
+        "required": [
+          "run_dir",
+          "windows",
+          "timeout_seconds"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/guitar-noul/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "external_detector_window_hypotheses",
+      "limitations": [
+        "Gateway labels are opaque detector hypotheses (claim_class detector_hypothesis, authorship detector:guitar_noul, is_label false, user_reported false); they are never mapped to annotations, flags, review badges, user labels or counted as errors.",
+        "note_correctness and performance_issue are always null; no missed/extra-note, phrase or performance verdict follows from a label, and confidence_label is gateway-reported and uncalibrated.",
+        "The gateway is not deployed and the wire schema tin-5619-v0 and label vocabulary are provisional and unratified (gateway_wire_schema_ratified false, label_vocabulary_ratified false); until configured every call refuses gateway_not_configured.",
+        "Every run that is not a generated fixture with a recorded generator and seed is treated as a real take; its windows leave video-utils only with VIDEO_UTILS_GUITAR_NOUL_ALLOW_REAL_TAKE set to the exact V6 value, otherwise the call refuses real_take_not_permitted without contacting the gateway.",
+        "The client holds no credentials; tailnet/tsidp identity is assumed and not verified by the client. HTTP 401/403 maps to gateway_auth_refused and connection errors to gateway_unreachable after one retry.",
+        "Excerpts are 16 kHz mono PCM16 resamples of denoised.wav (<=30 s per window, <=8 MiB per request); approximately 32 Hz low-string content, saturated texture and the full custom tuning are not represented to the detector as recorded, and its behaviour on the distorted nine-string is unknown."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "denoise",
+          "phrases",
+          "rhythm"
+        ],
+        "enforced": false,
+        "note": "A current verified denoised run or generated fixture is required. The gateway URL (VIDEO_UTILS_GUITAR_NOUL_GATEWAY) and the real-take switch are operator environment configuration; prior tools are not invoked automatically."
+      },
+      "agent_workflow": {
+        "identify": "Read status and refusal_code first; for a completed call inspect each window's decision or abstain_reason, model_identity, input signal_version and the fixed claim fields.",
+        "research": "Read docs/spec/sprints/MODEL_LANES_S3.md section 4 and the TIN-5619 contract notes; the wire schema, label vocabulary and gateway deployment are open root/peer items.",
+        "iterate": "Choose windows from project phrase/onset/rhythm evidence, compare hypotheses over the same source spans and listen to disagreements; invalidate a comparison when model_identity or signal_version changes.",
+        "acceptance": "A returned label is not a verdict, an annotation or an operator-reported issue; detector agreement does not establish note correctness, phrase mistakes or listening acceptance.",
+        "max_comparison_candidates_default": 1
+      }
     }
   ]
 }

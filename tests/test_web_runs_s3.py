@@ -974,12 +974,12 @@ class Capabilities(ApiCase):
         caps = self.get_json('/api/v1/capabilities')
         names = [tool['name'] for tool in caps['tools']]
         self.assertEqual(names, [tool['name'] for tool in registry['tools']])
-        self.assertEqual(caps['tool_count'], 40)
+        self.assertEqual(caps['tool_count'], 42)
         with_capability = [tool for tool in caps['tools'] if tool['capability'] is not None]
         without = [tool for tool in caps['tools'] if tool['capability'] is None]
         self.assertEqual(sorted(tool['name'] for tool in with_capability), sorted(pilot))
         self.assertEqual(len(with_capability), 8)
-        self.assertEqual(len(without), 32)
+        self.assertEqual(len(without), 34)
         self.assertTrue(all(tool['capability_reason'] == 'capability pilot covers 8 tools' for tool in without))
         unmapped = [tool['name'] for tool in caps['tools'] if tool['area'] == 'unmapped']
         self.assertEqual(unmapped, [])
@@ -993,8 +993,8 @@ class Capabilities(ApiCase):
                          ('not_checked', 'raw.githubusercontent.com', 'registered_hash_bound'))
         self.assertEqual(model['gate_state'], {'value': None, 'reason': 'not recorded in program/models.json'})
         self.assertNotIn('https://', json.dumps(caps))
-        METRICS['capabilities'] = {'tools': f'{len(names)}/40', 'pilot_with_metadata': f'{len(with_capability)}/8',
-                                   'null_reason': f'{len(without)}/32', 'unmapped': len(unmapped),
+        METRICS['capabilities'] = {'tools': f'{len(names)}/42', 'pilot_with_metadata': f'{len(with_capability)}/8',
+                                   'null_reason': f'{len(without)}/34', 'unmapped': len(unmapped),
                                    'models': f'{len(caps["models"])}/1'}
 
     def test_extra_model_fields_pass_through(self):

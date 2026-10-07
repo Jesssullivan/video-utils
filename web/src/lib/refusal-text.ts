@@ -27,7 +27,7 @@ const TEXT: Readonly<Record<string, string>> = {
 	queue_full: 'The job queue is full; wait for a queued job to start.',
 	not_retryable: 'Only failed or interrupted jobs can be retried.',
 	prior_worker_alive: 'An earlier worker may still be running; it is not signalled by the service.',
-	tool_not_admitted: 'Only share_export is admitted as a web job.',
+	tool_not_admitted: 'This tool is not on the web job allowlist.',
 	unknown_job: 'This job id is not known to the control API.',
 	artifact_private: 'This artifact is listed but never served (it records host paths).',
 	artifact_stale: 'The published artifact bytes changed; it is not served.',
@@ -49,6 +49,8 @@ const TEXT: Readonly<Record<string, string>> = {
 	control_api_timeout: 'The control API did not answer in time.',
 	bff_host_refused: 'This app answers only on a loopback host (127.0.0.1, [::1] or localhost).',
 	bff_cross_origin_refused: 'Requests that change anything must come from this page.',
+	bff_identity_refused: 'This app could not verify an allowed operator identity for this request.',
+	bff_auth_unconfigured: 'Hosted sign-in is not configured for this server; nothing is served.',
 	bff_content_type_refused: 'The request content type is not accepted.',
 	bff_length_required: 'The upload needs a Content-Length.',
 	invalid_request: 'The request was malformed and was not sent to the control API.'
