@@ -1,4 +1,4 @@
-"""S2 admission: freeze the first 32, 36, 38 and 39 descriptors and exercise eight new typed hooks.
+"""S2 admission: freeze the first 32, 36, 37, 38, 39 and 40 descriptors and exercise eight new typed hooks.
 
 Synthetic metadata only. Outputs go beneath a patched temporary artifacts/
 boundary; no recording, accepted run or repository artifact is read or written.
@@ -32,12 +32,38 @@ FROZEN_ASCII_SHA256 = '358ce0aeba9214076d64fcc69ee9554cdd048d2001304dc897bf7f38b
 # Second freeze (root_admission_c): tools[:36] as merged at main 736f406, same two serializers.
 FROZEN_36_SHA256 = '82bdb7478deb8dc5859c33e7c2ca017c582cc54fc4dfaf85d858a6b5a77073ba'
 FROZEN_36_ASCII_SHA256 = '51dd154f28079f178979a6add85bf9d2d8fcf4cc2f8d0fefec7061ab16749d31'
-# Third freeze (root_admission_d): tools[:38] as merged at main 0cdca01, same two serializers.
-FROZEN_38_SHA256 = '4005da2b6960de2b973078b272b678e9b995a8bb755888960944cfc8e2e187c5'
-FROZEN_38_ASCII_SHA256 = 'f079cffc30d6c2b19a6dab746fe76915642fef8a77bf3d9add4899a78f3eac54'
-# Fourth freeze (root_admission_e): tools[:39] as merged at main ebaf72d, same two serializers.
-FROZEN_39_SHA256 = 'eada780f79f40516db8583bd13c0f9a8b9bf7386f1f94a3ff1147a165165436f'
-FROZEN_39_ASCII_SHA256 = 'aa60371ab37c791ed3b27cd9d940948a555bdbb5a5a9b4560c4ac48b75737259'
+# Rebase proof (S2R descriptor_rebase): tools[:37] measured at base 7d0e11e, same two serializers. Everything
+# before phrase_timing (tools[37]) is byte-identical across the rebase.
+FROZEN_37_SHA256 = '72ed9aadd9ce065e93b47d6d00b22782d2b3a3ba45bc36a0508921f59374a7c3'
+FROZEN_37_ASCII_SHA256 = '71977d3cace1baa00044925fb9da3e973d5d0c53830302c9050dee2e66271d21'
+# Third freeze (root_admission_d), REBASED by the 2026-10-07 operator ruling "phrase_timing descriptor: rebase
+# the freeze and fix the wording" (docs/agent-notes/2026-10-07-s2-operator-rulings.md; S2 follow-up 7): only
+# tools[37] description/intent/limitations changed. Superseded values (main 0cdca01):
+# 4005da2b6960de2b973078b272b678e9b995a8bb755888960944cfc8e2e187c5 / f079cffc30d6c2b19a6dab746fe76915642fef8a77bf3d9add4899a78f3eac54
+FROZEN_38_SHA256 = '14eca3d3bd6f802791a8f7a30f4fb27593eeb7426959210f8d6ae535ceb429e5'
+FROZEN_38_ASCII_SHA256 = '3714eb7a4377889180ce95e3158151512a96ed92801b6e7e9ef12eefa46fb688'
+# Fourth freeze (root_admission_e), REBASED by the same 2026-10-07 operator ruling. Superseded values (main ebaf72d):
+# eada780f79f40516db8583bd13c0f9a8b9bf7386f1f94a3ff1147a165165436f / aa60371ab37c791ed3b27cd9d940948a555bdbb5a5a9b4560c4ac48b75737259
+FROZEN_39_SHA256 = '031cb17c9f75354228f0d218ec4f5943172b80deb5005405c39ad3fa8fa46619'
+FROZEN_39_ASCII_SHA256 = 'd87b5fb852d75f6d51eb4df6981d4c12a534574d61a5659c7f99511fa1dcb267'
+# Fifth freeze (newly pinned by S2R descriptor_rebase under the 2026-10-07 operator ruling): tools[:40]. The
+# pre-ruling value at base 7d0e11e, never pinned, was
+# b77d5243ed0ee3b797a5c2869a012120a29e6377b343666751dfe27863ed89b4 / 38dfb867168d41cec9536bab2b44956c3110a26ba4124eceeee13ea8eec86245
+FROZEN_40_SHA256 = 'da091862fd7d854e80a8950a0e9581cff07c481b1d25614a939666e4c215045d'
+FROZEN_40_ASCII_SHA256 = '5dc30b2f7f86a755083b8cf7783960ac563c4ecfb425b4f0d3d10af0acf30845'
+# tools[37] (phrase_timing) invariance anchors measured at base 7d0e11e (serializer with ensure_ascii=False).
+PHRASE_TIMING_SCHEMA_SHA256 = 'ec6401f8ec660ab07fbe2dee11ff8d6a4f093f85bc3dcd7aaf9f440905ba272e'
+PHRASE_TIMING_NON_TEXT_SHA256 = '93ac74d44468c9bc36c49173468cf9629e2a19f4b579bc45d173b07c4ff21945'
+PHRASE_TIMING_TEXT_KEYS = ('description', 'intent', 'limitations')
+PHRASE_TIMING_BASE_LIMITATIONS_0_2 = (
+    'Offsets use broadband attack candidates, which can include click energy, handling noise or several merged '
+    'attacks; they are not note identities.',
+    'The click reference is fitted to unverified periodic high-frequency transients; a guitar attack can displace '
+    'or mask a click. Physical capture latency is uncalibrated and detector-delay compensation uses synthetic-probe '
+    'medians.',
+    'Phrase spans are review candidates or reference-conditioned alignments, not detected musical boundaries. '
+    'Phrases with fewer than 4 click-proximal onsets, no click grid or spans outside the analysis abstain.',
+)
 NEW = {
     'editor_marker_export': ('editor-marker-export', False, False,
                              {'run_dir', 'selection', 'profile', 'format'}, 120),
@@ -63,8 +89,12 @@ NEW_D = {
 NEW_E = {
     'report_bundle': ('guitar-report-bundle', False, False, {'run_dir'}, 900, 'MCP tool `report_bundle`'),
 }
-# sha256 of the skill text taken verbatim from report_d6-handoff.json at lane commit 5c9115e.
-REPORT_BUNDLE_SKILL_SHA256 = '33045f113109c0d4cdaa73908ee49871677eb4b3c7c47df1fbb112c78c919ea9'
+# sha256 of the admitted skill text. Re-pinned by S2R descriptor_rebase under the 2026-10-07 operator ruling
+# "report_bundle skill text: update the wording and re-pin" (S2 follow-up 8): the hook line now says
+# "(admitted as tool 40)" instead of "(once admitted by root)"; no other byte changed. Superseded value (skill text
+# verbatim from report_d6-handoff.json at lane commit 5c9115e):
+# 33045f113109c0d4cdaa73908ee49871677eb4b3c7c47df1fbb112c78c919ea9
+REPORT_BUNDLE_SKILL_SHA256 = 'a8261d31be2fb328570c10e000beeff5fb84b5732215660e628420802319e483'
 SHA = 'a' * 64
 
 
@@ -86,8 +116,10 @@ class S2ToolAdmissionTests(unittest.TestCase):
         self.assertEqual(tuple(tool['name'] for tool in tools[:32]), FROZEN_NAMES)
         for count, ascii_only, expected in ((32, False, FROZEN_SHA256), (32, True, FROZEN_ASCII_SHA256),
                                             (36, False, FROZEN_36_SHA256), (36, True, FROZEN_36_ASCII_SHA256),
+                                            (37, False, FROZEN_37_SHA256), (37, True, FROZEN_37_ASCII_SHA256),
                                             (38, False, FROZEN_38_SHA256), (38, True, FROZEN_38_ASCII_SHA256),
-                                            (39, False, FROZEN_39_SHA256), (39, True, FROZEN_39_ASCII_SHA256)):
+                                            (39, False, FROZEN_39_SHA256), (39, True, FROZEN_39_ASCII_SHA256),
+                                            (40, False, FROZEN_40_SHA256), (40, True, FROZEN_40_ASCII_SHA256)):
             data = json.dumps(tools[:count], sort_keys=True, separators=(',', ':'), ensure_ascii=ascii_only)
             self.assertEqual(hashlib.sha256(data.encode()).hexdigest(), expected)
         self.assertEqual([tool['name'] for tool in tools[32:36]], list(NEW))
@@ -514,6 +546,50 @@ class S2ToolAdmissionTests(unittest.TestCase):
                                                'output_root': str(self.artifacts / 'stale-out')})
         self.assertFalse((self.artifacts / 'stale-out').exists())
 
+    # ----- S2R descriptor_rebase: phrase_timing wording only (2026-10-07 ruling) ---
+    def test_descriptor_rebase_phrase_timing_only_text_changed(self):
+        info = tool_api.descriptors()[37]
+        self.assertEqual(info['name'], 'phrase_timing')
+
+        def digest(value):
+            data = json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
+            return hashlib.sha256(data.encode()).hexdigest()
+
+        self.assertEqual(digest(info['inputSchema']), PHRASE_TIMING_SCHEMA_SHA256)
+        self.assertEqual(digest({k: v for k, v in info.items() if k not in PHRASE_TIMING_TEXT_KEYS}),
+                         PHRASE_TIMING_NON_TEXT_SHA256)
+        self.assertEqual(len(info['limitations']), 4)
+        self.assertEqual(tuple(info['limitations'][:3]), PHRASE_TIMING_BASE_LIMITATIONS_0_2)
+        for key in PHRASE_TIMING_TEXT_KEYS:
+            self.assertTrue(json.dumps(info[key], ensure_ascii=False).isascii(), key)
+
+    def test_descriptor_rebase_phrase_timing_argv_unchanged(self):
+        analysis, markers = self.phrase_timing_inputs()
+        root = self.artifacts / 'rebase timing'
+        command = tool_api.worker_command('phrase_timing', {'analysis': str(analysis), 'phrases': str(markers),
+                                                            'output_root': str(root)})
+        self.assertEqual(command[1:], [str(ROOT / 'scripts/phrase_timing.py'), '--analysis', str(analysis),
+                                       '--phrases', str(markers), '--output-root', str(root),
+                                       '--run-kind', 'real_take'])
+        run_kind = tool_api.descriptor('phrase_timing')['inputSchema']['properties']['run_kind']
+        self.assertEqual(run_kind['default'], 'real_take')
+        self.assertEqual(run_kind['enum'], ['real_take', 'synthetic_fixture'])
+
+    def test_descriptor_rebase_phrase_timing_skill_consistency(self):
+        info = tool_api.descriptor('phrase_timing')
+        text = ' '.join([info['description'], info['intent']] + info['limitations'])
+        for phrase in ('median', 'IQR', 'count', 'withheld on real takes', 'known-offset fixtures',
+                       'operator calibration'):
+            self.assertIn(phrase, text)
+        lowered = text.lower()
+        for forbidden in ('tends', 'tendency', 'rushing', 'dragging'):
+            self.assertNotIn(forbidden, lowered)
+        skill = (ROOT / info['skill']).read_text(encoding='utf-8')
+        self.assertTrue(skill.startswith('---\nname: guitar-phrase-timing\ndescription: '))
+        for token in ('withheld_uncalibrated', 'synthetic_known_offset_fixture', 'median', 'IQR',
+                      'operator calibration'):
+            self.assertIn(token, skill)
+
     # ----- root_admission_d: tone_ab -------------------------------------------
     def test_admission_d_tone_ab_descriptor_equals_lane_draft_and_skill_admitted(self):
         draft = json.loads((ROOT / 'docs/agent-notes/sprints/20261006-s2/tone_ab-tool-descriptor.json')
@@ -662,6 +738,8 @@ class S2ToolAdmissionTests(unittest.TestCase):
                 text = data.decode('utf-8')
                 self.assertTrue(text.startswith(f'---\nname: {prompt}\ndescription: '))
                 self.assertIn(hook, text)
+                self.assertNotIn('once admitted by root', text)
+                self.assertIn('**Hook:** MCP tool `report_bundle` (admitted as tool 40).', text)
                 self.assertIn('Never adopt a detector, profile or master default', text)
                 for key in ('identify', 'research', 'iterate', 'acceptance'):
                     self.assertTrue(info['agent_workflow'][key])
