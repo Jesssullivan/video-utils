@@ -83,7 +83,7 @@
 
 <section class="space-y-2 rounded border p-3 text-sm" data-mark-here="true" aria-label="Mark here">
 	<div class="flex flex-wrap items-center gap-2">
-		<button type="button" class="btn btn-sm preset-filled-primary-500" disabled={blocked} onclick={mark} data-mark-here-button="true">
+		<button type="button" class="btn btn-sm preset-filled-primary-300-700" disabled={blocked} onclick={mark} data-mark-here-button="true">
 			{uncertain ? 'Retry same mark' : 'Mark here'}
 		</button>
 		<span class="vu-time">{span.extent_known ? `${clockText(span.start_seconds)}–${clockText(span.end_seconds)} (span)` : `${clockText(span.start_seconds)} (point; extent unknown)`}</span>

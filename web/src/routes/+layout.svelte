@@ -29,7 +29,7 @@
 		<p class="vu-eyebrow">video-utils · local loopback pilot</p>
 		<nav class="flex flex-wrap gap-2 text-sm" aria-label="Primary">
 			{#each NAV as item (item.href)}
-				<a class="btn btn-sm {active(item.href) ? 'preset-filled-primary-500' : 'preset-tonal'}" href={item.href}
+				<a class="btn btn-sm {active(item.href) ? 'preset-filled-primary-300-700' : 'preset-tonal'}" href={item.href}
 					aria-current={active(item.href) ? 'page' : undefined}>{item.label}</a>
 			{/each}
 		</nav>

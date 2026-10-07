@@ -13,7 +13,7 @@
 </script>
 
 <section class="space-y-2 text-sm" data-timing="true">
-	<h3 class="h5">Per-phrase timing</h3>
+	<h2 class="h5">Per-phrase timing</h2>
 	{#if layer.status !== 'available'}
 		<p class="vu-muted" data-timing-unavailable={layer.reason ?? 'unavailable'}>Unavailable: {human(layer.reason ?? 'unknown')}.</p>
 	{:else}

@@ -4,6 +4,10 @@
 	// playhead. Span loop is a listening aid only (not level-matched, no listening claim).
 	import { overlapsSetup } from './setup';
 
+	// `start` and `end` are always strings. A number input bound with bind:value would be assigned a number (or
+	// null), so the inputs are read through their own `value` text instead and the state never changes type.
+	const text = (event: Event) => (event.currentTarget as HTMLInputElement).value;
+
 	interface Props {
 		mediaUrl: string | null;
 		durationSeconds: number | null;
@@ -38,12 +42,12 @@
 	<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
 		<label class="label space-y-1">
 			<span class="label-text">Start (s, decoded-source axis)</span>
-			<input class="input vu-time" type="number" name="start_seconds" step="0.001" inputmode="decimal" bind:value={start} />
+			<input class="input vu-time" type="number" name="start_seconds" step="0.001" inputmode="decimal" value={start} oninput={(event) => (start = text(event))} />
 			<button type="button" class="btn btn-sm preset-tonal" onclick={() => (start = playhead())} disabled={!player}>Set start from playhead</button>
 		</label>
 		<label class="label space-y-1">
 			<span class="label-text">End (s)</span>
-			<input class="input vu-time" type="number" name="end_seconds" step="0.001" inputmode="decimal" bind:value={end} />
+			<input class="input vu-time" type="number" name="end_seconds" step="0.001" inputmode="decimal" value={end} oninput={(event) => (end = text(event))} />
 			<button type="button" class="btn btn-sm preset-tonal" onclick={() => (end = playhead())} disabled={!player}>Set end from playhead</button>
 		</label>
 		<div class="space-y-1 text-sm">

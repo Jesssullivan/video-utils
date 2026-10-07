@@ -23,6 +23,9 @@
 	const overlap = $derived(start.trim() !== '' && overlapsSetup(Number(start)));
 	const run = $derived(data.selectedRun);
 	const duration = $derived(typeof run?.pcm?.duration_seconds === 'number' ? (run.pcm.duration_seconds as number) : null);
+	// A form action replaces the query string, so each action URL carries the chosen run. The load still selects it
+	// only from the eligible baseline list (isRunId + eligible.find); an absent or ineligible id selects nothing.
+	const actionUrl = (name: 'measure' | 'save' | 'author') => (run ? `?/${name}&run=${encodeURIComponent(run.run_id)}` : `?/${name}`);
 	const mediaUrl = $derived(run ? `/sources/${data.sourceId}/runs/${run.run_id}/media/source` : null);
 </script>
 
@@ -71,7 +74,7 @@
 			<input type="hidden" name="idempotency_key" value={data.keys.save} />
 			<IntervalPicker {mediaUrl} durationSeconds={duration} bind:start bind:end />
 			<div class="flex flex-wrap gap-3">
-				<button class="btn preset-tonal" type="submit" formaction="?/measure" disabled={!run}>Measure interval (writes nothing)</button>
+				<button class="btn preset-tonal" type="submit" formaction={actionUrl('measure')} disabled={!run}>Measure interval (writes nothing)</button>
 			</div>
 			{#if form?.action === 'measure' && form.measurement}<MeasurementPanel measurement={form.measurement} />{/if}
 			{#if form?.action === 'measure'}<LaneRefusal error={form.error} local={form.local} />{/if}
@@ -116,7 +119,7 @@
 				</label>
 			</fieldset>
 			<div class="flex flex-wrap items-center gap-3">
-				<button class="btn preset-filled-primary-500" type="submit" formaction="?/save" disabled={!run}>Save review (immutable record)</button>
+				<button class="btn preset-filled-primary-300-700" type="submit" formaction={actionUrl('save')} disabled={!run}>Save review (immutable record)</button>
 				<span class="vu-muted text-xs">Form key <code class="vu-time">{data.keys.save.slice(0, 11)}…</code> — a double submit replays the same record.</span>
 			</div>
 			{#if form?.action === 'save'}
@@ -140,7 +143,7 @@
 				<p class="vu-muted text-sm">No saved review for this source.</p>
 			{:else}
 				{#each data.reviews as review (review.review_id)}
-					<form method="POST" action="?/author" class="vu-panel card flex flex-wrap items-center gap-3 p-3 text-sm" data-review-row={review.review_id}>
+					<form method="POST" action={actionUrl('author')} class="vu-panel card flex flex-wrap items-center gap-3 p-3 text-sm" data-review-row={review.review_id}>
 						<input type="hidden" name="capture_review_id" value={review.review_id} />
 						<input type="hidden" name="idempotency_key" value={data.keys.author} />
 						<code>{review.review_id}</code>

@@ -148,13 +148,13 @@
 				</label>
 			{/if}
 			<label class="label"><span class="label-text">Span length (s, optional; blank = point)</span>
-				<input class="input" type="number" min="0" step="0.01" bind:value={draft.spanLength} />
+				<input class="input" type="number" min="0" step="0.01" value={draft.spanLength} oninput={(event) => (draft.spanLength = event.currentTarget.value)} />
 			</label>
 			<label class="label sm:col-span-2"><span class="label-text">Note</span>
 				<textarea class="textarea" rows="2" bind:value={draft.note} maxlength="4000"></textarea>
 			</label>
 			<div class="sm:col-span-2 flex items-center gap-3">
-				<button class="btn preset-filled-primary-500" type="submit" disabled={pending}>Add note at current time</button>
+				<button class="btn preset-filled-primary-300-700" type="submit" disabled={pending}>Add note at current time</button>
 				{#if message}<span class="text-sm" data-annotation-message="true">{message}</span>{/if}
 			</div>
 		</form>

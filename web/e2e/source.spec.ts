@@ -75,3 +75,43 @@ test('processing jobs on the reviewed source state that nothing is adopted or li
 	await expect(page.locator('[data-track="detector"] [data-detector-empty="true"]')).toContainText('This is not an empty pass.');
 	await expect(page.locator('[data-player-clock-verified="false"]')).toHaveText('no');
 });
+
+test('typing into the share-preview knob inputs and submitting never throws (X6)', async ({ page, mock, problems }) => {
+	problems.expectConsoleError(/\[\/api\/jobs\]/, 'the browser logs the typed refusal the mock replays for every job submission');
+	await open(page, `/sources/${ids.source_reviewed}`);
+	const form = page.locator('[data-process-form="share_export"]');
+	const knobs = form.locator('input[type="number"]');
+	const count = await knobs.count();
+	expect(count).toBeGreaterThan(0);
+	for (let index = 0; index < count; index += 1) {
+		await knobs.nth(index).click();
+		await knobs.nth(index).pressSequentially('60');
+		await expect(knobs.nth(index)).toHaveValue('60');
+	}
+	// Submitting reads every typed knob; the mock answers with its recorded typed refusal, which the form shows.
+	await form.getByRole('button', { name: 'Submit share preview job' }).click();
+	await expect(form.locator('[data-upstream-code]')).toBeVisible();
+	const log = await mock.log();
+	expect(log.job_submissions).toBe(1);
+	expect(problems.seen()).toEqual([]);
+	record('source', 'X6_process_form_number_inputs', { typed_without_page_error: 1, of: 1, knob_fields_typed: count, inputs: ['ProcessForm'] });
+});
+
+test('typing a span length and adding a note never throws (X6)', async ({ page, mock, problems }) => {
+	problems.expectConsoleError(/\[\/api\/sources\/art_[0-9a-f]{32}\/annotations\]/, 'the mock replays no annotation write, so the BFF answers with a typed error the browser logs');
+	await open(page, `/sources/${ids.source_reviewed}`);
+	const form = page.locator('[data-annotation-form="true"]');
+	await expect(form).toBeVisible();
+	const length = form.locator('input[type="number"]');
+	await expect(length).toHaveCount(1);
+	await length.click();
+	await length.pressSequentially('0.5');
+	await expect(length).toHaveValue('0.5');
+	await form.locator('textarea').fill('e2e synthetic note');
+	await form.getByRole('button', { name: 'Add note at current time' }).click();
+	// The save handler read the typed length and reached the BFF: one write attempt arrived upstream.
+	await expect.poll(async () => (await mock.nonGet()).length).toBe(1);
+	expect((await mock.nonGet())[0].path).toBe(`/api/v1/sources/${ids.source_reviewed}/annotations`);
+	expect(problems.seen()).toEqual([]);
+	record('source', 'X6_annotation_number_input', { typed_without_page_error: 1, of: 1, inputs: ['AnnotationPanel'] });
+});

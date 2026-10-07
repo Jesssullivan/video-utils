@@ -17,6 +17,14 @@
 	--vu-coral: #c98370;
 }
 
+/* Theme-token overrides (WEB_FIXES_S3 F4). In-text links carry a non-colour cue: the cerberus theme underlines
+   anchors on hover only, so the resting, active and focus states are underlined through the same theme tokens. */
+html[data-theme='cerberus'] {
+	--typo-anchor--text-decoration-line: underline;
+	--typo-anchor--active--text-decoration-line: underline;
+	--typo-anchor--focus--text-decoration-line: underline;
+}
+
 body {
 	background: var(--vu-bg);
 	color: var(--vu-text);

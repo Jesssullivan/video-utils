@@ -246,3 +246,25 @@ partial one.
 Text only, in `web_fixes-root-requests.json`: the `web/Containerfile`
 `static/` copy; any root-owned test that pins markup changed here; fixture
 regeneration if main's registries moved. Root reviews, signs and merges.
+
+## 8. Phase 2 outcome (2026-10-07)
+
+Sections 1-7 are the frozen contract and are unchanged. What the implementation
+did, with the figures in `docs/agent-notes/sprints/20261007-s3/web_fixes-*.json`:
+
+- F1: the two interval inputs are read through their `value` text (`value=` +
+  `oninput`), so the state never changes type. No helper was added, so no new
+  unit test file exists.
+- F1b: the contract named two more `.trim()` sites; the browser tests found a
+  third (`ProcessForm.svelte`, on submit). Three components threw when run
+  unfixed (`SpanAudition`, `AnnotationPanel`, `ProcessForm`) and all three were
+  fixed the same way. `KnobField` did not throw and is untouched.
+- F2: the three action URLs carry `&run=<chosen run>`; the load rule is unchanged.
+- F3: `web/static/favicon.svg`, linked from `app.html`.
+- F4: `preset-filled-primary-500` -> `preset-filled-primary-300-700` and
+  `preset-filled-error-500` -> `preset-filled-error-200-800` (Skeleton paired
+  presets, theme tokens only); anchors underlined through the cerberus
+  `--typo-anchor--*` tokens; a visible `<label>` on the upload file input;
+  `h3` -> `h2` in `ABCompare`, `FlagsList` and `TimingTable`.
+- The baseline is empty. The axe result is an automated check only: not a manual
+  audit, not a screen-reader test, not a WCAG conformance claim.
