@@ -467,3 +467,47 @@ The receipts are under `docs/agent-notes/sprints/20261007-s3/`:
 
 Each cites R-N13 and records file hashes. Measurements, inferences and
 unverified listening claims stay in distinct fields.
+
+## 11. Phase 2 implementation notes (appended; sections 1–10 unchanged)
+
+Phase 2 (2026-10-07) implemented sections 3–5 and 7 without changing any
+preregistered fixture, seed, arm, scoring rule or decision rule. Deviations from
+the phase-1 text, each with its reason:
+
+1. **Runtime lock contents.**
+   - `tqdm` is dropped. No inference-path module of `beat-this` 1.1.0 imports
+     it (verified from source).
+   - `soxr` is a compiled abi3 manylinux wheel, licensed LGPL-2.1-or-later. It
+     is not pure Python. The lock carries the x86_64 and aarch64 wheels and
+     selects by `platform.machine()`, because the honey architecture is
+     unverified.
+   - Versions are the upstream "known working" `einops` 0.8.0 and
+     `rotary-embedding-torch` 0.6.4. `soxr` is 1.1.0, because 0.3.7 has no
+     Python 3.14 wheel.
+2. **Offline install.** Install is a verified self-extraction of the wheel
+   members into the venv: no `uv` or `pip`, `--no-deps` semantics, and `.data`
+   members are refused. `uv` availability on honey is unverified, and every
+   locked wheel is pure or abi3.
+3. **Unroutable proxy.** It is the closed loopback port
+   `http://127.0.0.1:9`, which fails fast. Hub download is also disabled by
+   replacing `beat_this.inference.load_checkpoint` and
+   `torch.hub.load_state_dict_from_url` inside the worker.
+4. **Unknown fields.** `UNKNOWN_FIELDS` holds the 13 exact values of 3.2 plus
+   `intended_tempo_bpm: null` and `bar_lines: null`, making the 15 counted by M4.
+5. **`insufficient_beats`.** This status means fewer than 4 beats, matching the
+   minimum used by `rhythm.fit_click_grid`.
+6. **Fixture background noise.** It uses uniform white noise
+   (`random.random() - 0.5`) through the one-pole low-pass, rather than
+   Gaussian noise, for speed. The output is still RMS-normalised to −42 dBFS.
+   Determinism is per host and Python build (`math.sin`/`math.tanh` from the
+   platform libm).
+7. **Fixture inputs to the comparator.** These are
+   `artifacts/s2/model_lanes/fixtures/<suite>/cases/<case>.wav`, bound by the
+   suite `manifest.json`. `--generated-truth` is accepted only for `role: dev`
+   suites. Held-out truth is read only by `score`, after `seal`.
+8. **guitar_noul abstains.** A gateway's own abstain reason is kept as
+   `gateway:<reason>`, so it stays distinct from client-side reasons. Non-200,
+   non-401/403 statuses give `gateway_response_invalid` for every window.
+
+Registry `max_bytes` for `final0` is the exact published content-length,
+81,058,141 B. See `docs/research/BEAT_THIS_QUALIFICATION.md`.
