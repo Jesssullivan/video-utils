@@ -97,7 +97,8 @@
 						max={spec[key].maximum}
 						step={key === 'height' ? 2 : 1}
 						placeholder={`default ${spec[key].default}`}
-						bind:value={values[key]}
+						value={values[key]}
+						oninput={(event) => (values[key] = event.currentTarget.value)}
 					/>
 				{/if}
 				<span class="vu-muted block text-xs">{bounds(key)}</span>
@@ -105,7 +106,7 @@
 		{/each}
 	</div>
 	<div class="flex items-center gap-3">
-		<button class="btn preset-filled-primary-500" type="submit" disabled={pending}>{pending ? 'Submitting…' : 'Submit share preview job'}</button>
+		<button class="btn preset-filled-primary-300-700" type="submit" disabled={pending}>{pending ? 'Submitting…' : 'Submit share preview job'}</button>
 		<span class="vu-muted text-xs">Form key <code class="vu-time">{formKey.slice(0, 11)}…</code> — a double submit replays the same job.</span>
 	</div>
 	{#if error}<ControlApiError {error} />{/if}

@@ -120,3 +120,36 @@ test('the low shelf is listed as unavailable and offers no form', async ({ page 
 	await expect(page.locator('[data-option-unavailable="fuller-shelf"]')).toBeVisible();
 	await expect(page.locator('main form[method="POST"]')).toHaveCount(0);
 });
+
+test('typing into the span audition and knob number inputs never throws (X6)', async ({ page, mock, problems }) => {
+	await open(page, reviewed);
+	const audition = page.locator('[data-span-audition="true"]').first();
+	await expect(audition).toBeVisible();
+	const span = audition.locator('input[type="number"]');
+	await expect(span).toHaveCount(2);
+	await span.nth(0).click();
+	await span.nth(0).pressSequentially('1');
+	await span.nth(1).click();
+	await span.nth(1).pressSequentially('2.5');
+	// The loop handler reads both values on every timeupdate of a player; nothing is played by this test.
+	const player = audition.locator('audio').first();
+	await player.dispatchEvent('timeupdate');
+	expect(await player.evaluate((element: HTMLAudioElement) => element.paused)).toBe(true);
+	await expect(span.nth(0)).toHaveValue('1');
+	await expect(span.nth(1)).toHaveValue('2.5');
+	// A partial entry and a cleared entry are read the same way.
+	await span.nth(1).press('Backspace');
+	await span.nth(1).press('Backspace');
+	await span.nth(1).press('Backspace');
+	await span.nth(0).pressSequentially('.');
+	await player.dispatchEvent('timeupdate');
+
+	const knob = page.locator('[data-knob] input[type="number"]:enabled').first();
+	await expect(knob).toBeVisible();
+	await knob.click();
+	await knob.pressSequentially('30');
+	await expect(knob).toHaveValue('30');
+	expect(problems.seen()).toEqual([]);
+	expect((await mock.log()).requests.filter((entry) => entry.non_get)).toEqual([]);
+	record('process', 'X6_number_inputs', { typed_without_page_error: 3, of: 3, inputs: ['SpanAudition start', 'SpanAudition end', 'KnobField'] });
+});

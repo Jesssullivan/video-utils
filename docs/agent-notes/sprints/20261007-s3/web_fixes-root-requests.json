@@ -1,0 +1,78 @@
+{
+  "basis": {
+    "baseline_commit": "a077766da88b1cccf8190f4b34fda0893723b9c4",
+    "contract_commit": "18651c9d11b3efd87928cac70e8fa3b7626696dd",
+    "date_utc": "2026-10-07",
+    "lane_branch": "sprint/20261007-s3/web_fixes",
+    "lane_commit": "d4e3b962345619150dedd3c61fdeaad9acce75b8",
+    "measured_on": "the lane worktree at lane_commit (source and tests); receipts are added by the following commit, which changes only web_fixes-*.json",
+    "not_a_merge": "the lane did not merge, push or touch main"
+  },
+  "claim_class": "contract",
+  "command": null,
+  "exit_code": null,
+  "lane": "web_fixes",
+  "note": "The lane made none of these changes. Each is root's decision.",
+  "receipt": "root-requests",
+  "requests": [
+    {
+      "change": "--- a/web/Containerfile\n+++ b/web/Containerfile\n@@ -21,4 +21,5 @@\n RUN pnpm install --frozen-lockfile\n COPY svelte.config.js vite.config.ts tsconfig.json ./\n COPY src/ ./src/\n+COPY static/ ./static/\n RUN pnpm run build\n",
+      "evidence": {
+        "containerfile_serves_static": null,
+        "image_built": false,
+        "k4_test": "tests/test_auth_hosting_s3.test_k4_containerfile was read, not run with the hunk: the added line matches none of its refused COPY patterns",
+        "local_build": "pnpm run build in the worktree wrote build/client/favicon.svg (451 bytes)"
+      },
+      "file": "web/Containerfile",
+      "id": "containerfile_copy_static",
+      "priority": "needed before the next image build, not for this merge",
+      "why": "The build stage copies src/ only. web/static/favicon.svg is new, so an image built from the current Containerfile would link /favicon.svg from app.html and answer 404 for it. adapter-node copies static/ into build/client at build time, so one COPY before the build is enough; the runtime stage needs no change."
+    },
+    {
+      "change": "no change requested",
+      "file": "web/e2e/fixtures/** (generator outputs)",
+      "id": "fixture_regeneration",
+      "priority": "none requested",
+      "why": "the fixes needed no new fixture; whether main's registries have moved since the fixtures were recorded was not checked by this lane (fixture_drift: null)"
+    },
+    {
+      "change": "no change requested",
+      "file": "tests/*.py",
+      "id": "root_owned_tests_pinning_markup",
+      "priority": "none requested",
+      "why": "test_web_stack (33), test_web_house_stack_s3 (19), test_web_runs_s3 (36) and test_web_processing_s3 (24) pass unchanged on the fixed tree; no test pins the replaced preset classes, the h3 headings or the action URLs"
+    }
+  ],
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N11/R-N12/R-N13",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5724",
+  "unknowns": {
+    "browser_source": "playwright cache (expected revision already present); nothing downloaded",
+    "browser_used": "chromium",
+    "browser_version": "153.0.8010.12",
+    "claims_note": "no listening, ~32 Hz, detector, profile, master or note-correctness claim is made; no DSP code was touched",
+    "containerfile_serves_static": null,
+    "containerfile_serves_static_reason": "root-owned; no image was built by this lane (see web_fixes-root-requests.json)",
+    "favicon_under_tailnet_auth_mode": null,
+    "favicon_under_tailnet_auth_mode_reason": "only loopback mode was exercised",
+    "firefox_webkit_behaviour": null,
+    "firefox_webkit_behaviour_reason": "Chromium only",
+    "fixture_drift": null,
+    "fixture_drift_reason": "fixtures were not regenerated or compared with the registries on main by this lane",
+    "flaky_retries": 0,
+    "light_theme_exists": false,
+    "listening_claims": null,
+    "low_register_claims": null,
+    "manual_accessibility_audit": null,
+    "manual_accessibility_audit_reason": "not performed; axe automated rules only",
+    "note_correctness_claims": null,
+    "real_control_api_under_playwright": null,
+    "real_control_api_under_playwright_reason": "the browser suites replay committed synthetic fixtures through the mock",
+    "real_take_facts_in_fixtures": false,
+    "screen_reader_acceptance": null,
+    "screen_reader_acceptance_reason": "no assistive technology was run",
+    "wcag_conformance": null,
+    "wcag_conformance_reason": "axe evaluates a subset of WCAG; zero axe violations is not conformance"
+  }
+}

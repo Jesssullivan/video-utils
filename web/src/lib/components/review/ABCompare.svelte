@@ -83,7 +83,7 @@
 		<div class="vu-panel card space-y-3 p-4" data-pairs="true">
 			<div class="flex flex-wrap gap-2" role="group" aria-label="Excerpt pair">
 				{#each pairs as item, index (index)}
-					<button type="button" class="btn btn-sm {index === pairIndex ? 'preset-filled-primary-500' : 'preset-tonal'}" aria-pressed={index === pairIndex} onclick={() => (pairIndex = index)}>Pair {String(item.pair)}</button>
+					<button type="button" class="btn btn-sm {index === pairIndex ? 'preset-filled-primary-300-700' : 'preset-tonal'}" aria-pressed={index === pairIndex} onclick={() => (pairIndex = index)}>Pair {String(item.pair)}</button>
 				{/each}
 			</div>
 			{#if pair}
@@ -129,7 +129,7 @@
 
 		{#if bandDeltas.length || attackDeltas.length}
 			<div class="vu-panel card space-y-2 p-4 text-sm" data-band-measurements="true">
-				<h3 class="h5">Trial vs delivery master: band and attack measurements</h3>
+				<h2 class="h5">Trial vs delivery master: band and attack measurements</h2>
 				{#if bandDeltas.length}
 					<div class="table-wrap overflow-x-auto">
 						<table class="table text-sm">

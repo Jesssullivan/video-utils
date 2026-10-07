@@ -1,0 +1,139 @@
+{
+  "basis": {
+    "baseline_commit": "a077766da88b1cccf8190f4b34fda0893723b9c4",
+    "contract_commit": "18651c9d11b3efd87928cac70e8fa3b7626696dd",
+    "date_utc": "2026-10-07",
+    "lane_branch": "sprint/20261007-s3/web_fixes",
+    "lane_commit": "d4e3b962345619150dedd3c61fdeaad9acce75b8",
+    "measured_on": "the lane worktree at lane_commit (source and tests); receipts are added by the following commit, which changes only web_fixes-*.json",
+    "not_a_merge": "the lane did not merge, push or touch main"
+  },
+  "build": {
+    "command": "cd web && timeout 300 pnpm run build",
+    "exit_code": 0,
+    "favicon_in_build": "build/client/favicon.svg present, 451 bytes",
+    "output": {
+      "gitignored": true,
+      "path": "artifacts/s2/web_fixes/build/output.txt",
+      "sha256": "5cb9e4776a9c6913ee7a026d4e23139174223438b8c3bdf2ed964d3b864232af"
+    }
+  },
+  "check": {
+    "command": "cd web && timeout 300 pnpm run check",
+    "errors": 0,
+    "exit_code": 0,
+    "files": 1370,
+    "files_with_problems": 0,
+    "output": {
+      "gitignored": true,
+      "path": "artifacts/s2/web_fixes/check/output.txt",
+      "sha256": "dd44c7a62688fc894d815366e07f480ef83d969c2262882910b10a5ae7b2f37a"
+    },
+    "warnings": 0
+  },
+  "claim_class": "measurement",
+  "command": "pnpm run check; pnpm run build",
+  "exit_code": 0,
+  "install": "pnpm install --frozen-lockfile --offline (store already populated; no network)",
+  "lane": "web_fixes",
+  "new_colour_literals": [],
+  "node": {
+    "playwright_node_version": "v22.23.2",
+    "pnpm_reported_runtime": "v24.19.0 (pnpm printed an unsupported-engine warning for its own runtime; node on PATH is v22.23.2)"
+  },
+  "pins": {
+    "effect": "4.0.1",
+    "package_json_and_lockfile_diff_vs_baseline": "empty",
+    "skeleton": "5.0.1",
+    "skeleton_svelte": "5.0.1"
+  },
+  "receipt": "check-build",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N11/R-N12/R-N13",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5724",
+  "unknowns": {
+    "browser_source": "playwright cache (expected revision already present); nothing downloaded",
+    "browser_used": "chromium",
+    "browser_version": "153.0.8010.12",
+    "claims_note": "no listening, ~32 Hz, detector, profile, master or note-correctness claim is made; no DSP code was touched",
+    "containerfile_serves_static": null,
+    "containerfile_serves_static_reason": "root-owned; no image was built by this lane (see web_fixes-root-requests.json)",
+    "favicon_under_tailnet_auth_mode": null,
+    "favicon_under_tailnet_auth_mode_reason": "only loopback mode was exercised",
+    "firefox_webkit_behaviour": null,
+    "firefox_webkit_behaviour_reason": "Chromium only",
+    "fixture_drift": null,
+    "fixture_drift_reason": "fixtures were not regenerated or compared with the registries on main by this lane",
+    "flaky_retries": 0,
+    "light_theme_exists": false,
+    "listening_claims": null,
+    "low_register_claims": null,
+    "manual_accessibility_audit": null,
+    "manual_accessibility_audit_reason": "not performed; axe automated rules only",
+    "note_correctness_claims": null,
+    "real_control_api_under_playwright": null,
+    "real_control_api_under_playwright_reason": "the browser suites replay committed synthetic fixtures through the mock",
+    "real_take_facts_in_fixtures": false,
+    "screen_reader_acceptance": null,
+    "screen_reader_acceptance_reason": "no assistive technology was run",
+    "wcag_conformance": null,
+    "wcag_conformance_reason": "axe evaluates a subset of WCAG; zero axe violations is not conformance"
+  },
+  "x14_new_colour_literals": {
+    "colour_declarations_changed_under_web_src": 0,
+    "note": "contrast was fixed by switching Skeleton preset classes and overriding theme tokens; no colour declaration was written under web/src",
+    "outside_web_src": [
+      {
+        "file": "web/static/favicon.svg",
+        "literals": [
+          "#161512",
+          "#d6b474",
+          "#c98370"
+        ],
+        "reason": "a static SVG cannot read CSS custom properties; the three values copy --vu-bg, --vu-gold and --vu-coral from app.css"
+      }
+    ],
+    "under_web_src": 0
+  },
+  "x17_files_changed_outside_owned_paths": {
+    "files_changed": [
+      "docs/spec/sprints/WEB_FIXES_S3.md",
+      "web/e2e/a11y-baseline.json",
+      "web/e2e/capture.spec.ts",
+      "web/e2e/library.spec.ts",
+      "web/e2e/process.spec.ts",
+      "web/e2e/source.spec.ts",
+      "web/src/app.css",
+      "web/src/app.html",
+      "web/src/lib/components/AnnotationPanel.svelte",
+      "web/src/lib/components/JobStateBadge.svelte",
+      "web/src/lib/components/ProcessForm.svelte",
+      "web/src/lib/components/processing/IntervalPicker.svelte",
+      "web/src/lib/components/processing/SpanAudition.svelte",
+      "web/src/lib/components/review/ABCompare.svelte",
+      "web/src/lib/components/review/FlagsList.svelte",
+      "web/src/lib/components/review/MarkHere.svelte",
+      "web/src/lib/components/review/QuickMarkBar.svelte",
+      "web/src/lib/components/review/ReviewWorkspace.svelte",
+      "web/src/lib/components/review/TimingTable.svelte",
+      "web/src/routes/+layout.svelte",
+      "web/src/routes/sources/[id=artifactid]/capture/+page.svelte",
+      "web/src/routes/sources/[id=artifactid]/process/+page.svelte",
+      "web/src/routes/upload/+page.svelte",
+      "web/static/favicon.svg",
+      "web/tests/e2e-support.ts"
+    ],
+    "value": 0
+  },
+  "x1_svelte_check_errors": {
+    "met": true,
+    "target": 0,
+    "value": 0
+  },
+  "x2_build": {
+    "exit_code": 0,
+    "favicon_present": true,
+    "met": true
+  }
+}

@@ -111,7 +111,7 @@
 				{#if selected.id === 'fuller'}
 					<p class="vu-muted text-xs">FULLER values are shown as preset values and sent verbatim from profiles/fuller.json; explicit controls are refused. Listening acceptance covers only the identical chain on source a522115f4e72 with samples [180810, 218295); for this take it is <strong>not performed</strong>.</p>
 				{/if}
-				<button class="btn preset-filled-primary-500" type="submit" disabled={!selected.enabled}>Author {selected.id === 'fuller' ? 'FULLER' : 'custom'} settings</button>
+				<button class="btn preset-filled-primary-300-700" type="submit" disabled={!selected.enabled}>Author {selected.id === 'fuller' ? 'FULLER' : 'custom'} settings</button>
 				{#if form?.action === 'author'}
 					{#if form.job}<p class="text-sm" data-submitted-job={form.job.job_id}>{form.job.replayed ? 'Replayed' : 'Queued'} <code>{form.job.job_id}</code> <JobStateBadge state={form.job.state} /></p>{/if}
 					<LaneRefusal error={form.error} local={form.local} />
@@ -129,7 +129,7 @@
 					</select>
 				</label>
 				<KnobField name="timeout_seconds" spec={data.catalogue?.apply?.knobs?.timeout_seconds} value={echoed('timeout_seconds')} />
-				<button class="btn preset-filled-primary-500" type="submit" disabled={!selected.enabled || authored.length === 0}>Render full take</button>
+				<button class="btn preset-filled-primary-300-700" type="submit" disabled={!selected.enabled || authored.length === 0}>Render full take</button>
 				{#if authored.length === 0}<p class="vu-muted text-xs" data-refusal="capture_interval_required">No authored profile yet: <code>capture_interval_required</code>.</p>{/if}
 				{#if form?.action === 'apply'}
 					{#if form.job}<p class="text-sm" data-submitted-job={form.job.job_id}>Queued <code>{form.job.job_id}</code> <JobStateBadge state={form.job.state} /></p>{/if}
@@ -143,7 +143,7 @@
 				<p class="vu-eyebrow">Render full take (denoise, fixed profile <code>{selected.id}</code>)</p>
 				{#if !selected.enabled}<LaneRefusal local={{ code: selected.refusal_code ?? 'refused', message: selected.reason }} />{/if}
 				<KnobField name="timeout_seconds" spec={data.catalogue?.denoise?.knobs?.timeout_seconds} value={echoed('timeout_seconds')} />
-				<button class="btn preset-filled-primary-500" type="submit" disabled={!selected.enabled}>Render full take</button>
+				<button class="btn preset-filled-primary-300-700" type="submit" disabled={!selected.enabled}>Render full take</button>
 				{#if form?.action === 'denoise'}
 					{#if form.job}<p class="text-sm" data-submitted-job={form.job.job_id}>{form.job.replayed ? 'Replayed' : 'Queued'} <code>{form.job.job_id}</code> <JobStateBadge state={form.job.state} /></p>{/if}
 					<LaneRefusal error={form.error} local={form.local} />

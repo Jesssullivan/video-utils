@@ -23,7 +23,7 @@
 </script>
 
 <section class="space-y-2 text-sm" data-flags="true">
-	<h3 class="h5">Triaged flags</h3>
+	<h2 class="h5">Triaged flags</h2>
 	{#if !available}
 		<p class="vu-muted">Unavailable: {human(reason ?? 'unknown')}.</p>
 	{:else}

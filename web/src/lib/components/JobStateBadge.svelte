@@ -8,7 +8,7 @@
 		state === 'succeeded'
 			? 'preset-filled-success-500'
 			: state === 'failed' || state === 'interrupted'
-				? 'preset-filled-error-500'
+				? 'preset-filled-error-200-800'
 				: isTerminalState(state)
 					? 'preset-tonal-surface'
 					: 'preset-tonal-warning'

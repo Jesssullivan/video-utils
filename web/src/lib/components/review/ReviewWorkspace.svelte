@@ -288,7 +288,7 @@
 		</div>
 		<div class="flex flex-wrap gap-1" role="tablist" aria-label="Inspector tabs">
 			{#each [['cleanup', 'Cleanup'], ['tone', 'Tone'], ['markers', 'Markers'], ['notes', 'Notes']] as [key, label] (key)}
-				<button type="button" role="tab" class="btn btn-sm {tab === key ? 'preset-filled-primary-500' : 'preset-tonal'}" aria-selected={tab === key}
+				<button type="button" role="tab" class="btn btn-sm {tab === key ? 'preset-filled-primary-300-700' : 'preset-tonal'}" aria-selected={tab === key}
 					onclick={() => (tab = key as typeof tab)}>{label}</button>
 			{/each}
 		</div>

@@ -1,0 +1,69 @@
+{
+  "basis": {
+    "baseline_commit": "a077766da88b1cccf8190f4b34fda0893723b9c4",
+    "contract_commit": "18651c9d11b3efd87928cac70e8fa3b7626696dd",
+    "date_utc": "2026-10-07",
+    "lane_branch": "sprint/20261007-s3/web_fixes",
+    "lane_commit": "d4e3b962345619150dedd3c61fdeaad9acce75b8",
+    "measured_on": "the lane worktree at lane_commit (source and tests); receipts are added by the following commit, which changes only web_fixes-*.json",
+    "not_a_merge": "the lane did not merge, push or touch main"
+  },
+  "claim_class": "contract",
+  "command": null,
+  "contract": "docs/spec/sprints/WEB_FIXES_S3.md",
+  "deviations": [
+    {
+      "contract": "named SpanAudition and AnnotationPanel as same-shape sites",
+      "found": "ProcessForm.svelte also threw on submit after typing a knob; fixed the same way under the F1b rule (any site that throws is fixed)",
+      "item": "F1b"
+    },
+    {
+      "contract": "a vitest file next to any new pure helper",
+      "found": "no helper was added, so no unit test file was added",
+      "item": "tests"
+    },
+    {
+      "contract": "X6 typing in process.spec.ts / runs.spec.ts",
+      "found": "the remaining number inputs live on the process and source pages, so the tests are in process.spec.ts and source.spec.ts; /runs pages have no number input",
+      "item": "tests"
+    }
+  ],
+  "exit_code": null,
+  "frozen_at_commit": "18651c9d11b3efd87928cac70e8fa3b7626696dd",
+  "lane": "web_fixes",
+  "phase_2_addition": "section 8 (outcome) appended; no frozen text edited",
+  "receipt": "contract-freeze",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N11/R-N12/R-N13",
+  "schema_version": 1,
+  "sections_1_to_7_changed_in_phase_2": false,
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5724",
+  "unknowns": {
+    "browser_source": "playwright cache (expected revision already present); nothing downloaded",
+    "browser_used": "chromium",
+    "browser_version": "153.0.8010.12",
+    "claims_note": "no listening, ~32 Hz, detector, profile, master or note-correctness claim is made; no DSP code was touched",
+    "containerfile_serves_static": null,
+    "containerfile_serves_static_reason": "root-owned; no image was built by this lane (see web_fixes-root-requests.json)",
+    "favicon_under_tailnet_auth_mode": null,
+    "favicon_under_tailnet_auth_mode_reason": "only loopback mode was exercised",
+    "firefox_webkit_behaviour": null,
+    "firefox_webkit_behaviour_reason": "Chromium only",
+    "fixture_drift": null,
+    "fixture_drift_reason": "fixtures were not regenerated or compared with the registries on main by this lane",
+    "flaky_retries": 0,
+    "light_theme_exists": false,
+    "listening_claims": null,
+    "low_register_claims": null,
+    "manual_accessibility_audit": null,
+    "manual_accessibility_audit_reason": "not performed; axe automated rules only",
+    "note_correctness_claims": null,
+    "real_control_api_under_playwright": null,
+    "real_control_api_under_playwright_reason": "the browser suites replay committed synthetic fixtures through the mock",
+    "real_take_facts_in_fixtures": false,
+    "screen_reader_acceptance": null,
+    "screen_reader_acceptance_reason": "no assistive technology was run",
+    "wcag_conformance": null,
+    "wcag_conformance_reason": "axe evaluates a subset of WCAG; zero axe violations is not conformance"
+  }
+}

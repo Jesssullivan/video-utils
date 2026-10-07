@@ -1,0 +1,75 @@
+{
+  "basis": {
+    "baseline_commit": "a077766da88b1cccf8190f4b34fda0893723b9c4",
+    "contract_commit": "18651c9d11b3efd87928cac70e8fa3b7626696dd",
+    "date_utc": "2026-10-07",
+    "lane_branch": "sprint/20261007-s3/web_fixes",
+    "lane_commit": "d4e3b962345619150dedd3c61fdeaad9acce75b8",
+    "measured_on": "the lane worktree at lane_commit (source and tests); receipts are added by the following commit, which changes only web_fixes-*.json",
+    "not_a_merge": "the lane did not merge, push or touch main"
+  },
+  "claim_class": "behaviour",
+  "command": "cd web && timeout 300 pnpm run test:unit",
+  "exit_code": 0,
+  "files": {
+    "passed": 13,
+    "total": 13
+  },
+  "lane": "web_fixes",
+  "new_unit_tests": 0,
+  "new_unit_tests_reason": "no pure helper was added; the fixes are in Svelte markup and are covered by browser tests",
+  "output": {
+    "gitignored": true,
+    "path": "artifacts/s2/web_fixes/unit/output.txt",
+    "sha256": "82bd288f24d5b6340846d3e94473e71238da6885c3357dba63193b52ddd66d07"
+  },
+  "receipt": "unit",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N11/R-N12/R-N13",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "tests": {
+    "expected_failures": 2,
+    "failed": 0,
+    "passed": 153,
+    "total": 155
+  },
+  "tracker": "TIN-5724",
+  "unit_expected_failures_carried": {
+    "code": "refusal_text_prototype_key",
+    "count": 2,
+    "note": "out of this lane's scope; not fixed, not hidden"
+  },
+  "unknowns": {
+    "browser_source": "playwright cache (expected revision already present); nothing downloaded",
+    "browser_used": "chromium",
+    "browser_version": "153.0.8010.12",
+    "claims_note": "no listening, ~32 Hz, detector, profile, master or note-correctness claim is made; no DSP code was touched",
+    "containerfile_serves_static": null,
+    "containerfile_serves_static_reason": "root-owned; no image was built by this lane (see web_fixes-root-requests.json)",
+    "favicon_under_tailnet_auth_mode": null,
+    "favicon_under_tailnet_auth_mode_reason": "only loopback mode was exercised",
+    "firefox_webkit_behaviour": null,
+    "firefox_webkit_behaviour_reason": "Chromium only",
+    "fixture_drift": null,
+    "fixture_drift_reason": "fixtures were not regenerated or compared with the registries on main by this lane",
+    "flaky_retries": 0,
+    "light_theme_exists": false,
+    "listening_claims": null,
+    "low_register_claims": null,
+    "manual_accessibility_audit": null,
+    "manual_accessibility_audit_reason": "not performed; axe automated rules only",
+    "note_correctness_claims": null,
+    "real_control_api_under_playwright": null,
+    "real_control_api_under_playwright_reason": "the browser suites replay committed synthetic fixtures through the mock",
+    "real_take_facts_in_fixtures": false,
+    "screen_reader_acceptance": null,
+    "screen_reader_acceptance_reason": "no assistive technology was run",
+    "wcag_conformance": null,
+    "wcag_conformance_reason": "axe evaluates a subset of WCAG; zero axe violations is not conformance"
+  },
+  "x3": {
+    "baseline": "153 passed + 2 expected failures of 155 in 13 files (unchanged)",
+    "failed": 0,
+    "met": true
+  }
+}

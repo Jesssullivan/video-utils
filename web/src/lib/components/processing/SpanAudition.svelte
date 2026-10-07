@@ -9,6 +9,7 @@
 		players: ReadonlyArray<Player>;
 	}
 	let { players }: Props = $props();
+	// Always strings: the number inputs are read through their `value` text, never bound as numbers.
 	let start = $state('');
 	let end = $state('');
 	const elements: (HTMLAudioElement | null)[] = $state([]);
@@ -28,8 +29,8 @@
 		performed or recorded here.
 	</p>
 	<div class="grid grid-cols-2 gap-3 sm:max-w-md">
-		<label class="label"><span class="label-text">Span start (s)</span><input class="input vu-time" type="number" step="0.001" bind:value={start} /></label>
-		<label class="label"><span class="label-text">Span end (s)</span><input class="input vu-time" type="number" step="0.001" bind:value={end} /></label>
+		<label class="label"><span class="label-text">Span start (s)</span><input class="input vu-time" type="number" step="0.001" value={start} oninput={(event) => (start = event.currentTarget.value)} /></label>
+		<label class="label"><span class="label-text">Span end (s)</span><input class="input vu-time" type="number" step="0.001" value={end} oninput={(event) => (end = event.currentTarget.value)} /></label>
 	</div>
 	{#each players as player, index (player.src)}
 		<div class="space-y-1">

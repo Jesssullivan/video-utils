@@ -95,9 +95,8 @@ export const test = base.extend<{ mock: Mock; problems: Problems; skipWithoutBro
 	problems: [
 		async ({ page }, use, testInfo) => {
 			const unexpected: string[] = [];
-			// Known source finding reported to root (code favicon_missing): the app ships no favicon, so Chromium logs a
-			// 404 for /favicon.ico on the first page of every browser context. Counted here; never silently ignored.
-			const expected: Array<{ pattern: RegExp; reason: string; hits: number }> = [{ pattern: /\/favicon\.ico\b/, reason: 'favicon_missing (source finding)', hits: 0 }];
+			// Nothing is tolerated by default: a favicon is served (WEB_FIXES_S3 F3), so a /favicon.ico 404 is unexpected again.
+			const expected: Array<{ pattern: RegExp; reason: string; hits: number }> = [];
 			const note = (text: string) => {
 				const allowed = expected.find((item) => item.pattern.test(text));
 				if (allowed) allowed.hits += 1;

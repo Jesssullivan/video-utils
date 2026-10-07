@@ -159,7 +159,7 @@
 			</ol>
 			<div class="flex flex-wrap items-center gap-2">
 				<span data-queue-count={queue.length}>{queue.length} queued</span>
-				<button type="button" class="btn btn-sm preset-filled-primary-500" disabled={queueBusy || markBusy || queue.length === 0 || !!disabledReason} onclick={save}>{uncertain ? 'Retry same mark' : 'Save queued marks'}</button>
+				<button type="button" class="btn btn-sm preset-filled-primary-300-700" disabled={queueBusy || markBusy || queue.length === 0 || !!disabledReason} onclick={save}>{uncertain ? 'Retry same mark' : 'Save queued marks'}</button>
 				<button type="button" class="btn btn-sm preset-tonal" disabled={locked || queue.length === 0} onclick={undo}>Undo last</button>
 			</div>
 			{#if notice}<p class="text-xs" role="status">{notice}</p>{/if}

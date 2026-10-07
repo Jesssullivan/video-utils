@@ -9,14 +9,8 @@ import { expect, expectNoForbiddenText, ids, open, record, test } from '../tests
 const BASE = `/sources/${ids.source_plain}/capture`;
 const WITH_RUN = `${BASE}?run=${ids.baseline_plain}`;
 
-// KNOWN SOURCE DEFECT, reported to root (code capture_interval_number_binding). IntervalPicker.svelte and the capture
-// page bind `<input type="number">` to state they then call `.trim()` on; Svelte gives a number for that binding, so
-// typing an interval in a real browser throws "trim is not a function" and the live setup warning never renders.
-// The Python walkthroughs post the form without a browser and cannot see it. The form itself still posts natively,
-// and the warning does render once the server echoes the values back as text.
-const NUMBER_BINDING_DEFECT = /trim is not a function/;
-const DEFECT_REASON = 'known source defect capture_interval_number_binding (typing in the interval inputs throws)';
-
+// The interval inputs are number inputs whose state stays text (WEB_FIXES_S3 F1): typing never throws and the setup
+// warning follows the typed start at once. No console-error tolerance is declared for it anywhere in this file.
 test('loading and reloading the page writes nothing and proposes no interval', async ({ page, mock }) => {
 	let loads = 0;
 	for (const path of [BASE, WITH_RUN]) {
@@ -49,8 +43,6 @@ test('loading and reloading the page writes nothing and proposes no interval', a
 });
 
 test('typing an interval inside the first five seconds shows the setup warning at once, without a page error', async ({ page }) => {
-	// Expected to fail while capture_interval_number_binding exists; Playwright reports an unexpected pass once it is fixed.
-	test.fail(true, DEFECT_REASON);
 	await open(page, WITH_RUN);
 	await page.locator('input[name="start_seconds"]').fill('1');
 	await page.locator('input[name="end_seconds"]').fill('2');
@@ -69,8 +61,7 @@ async function enterSetupInterval(page: Page): Promise<void> {
 }
 
 test('an interval inside the first five seconds cannot be saved without the explicit acknowledgement', async ({ page, mock, problems }) => {
-	problems.expectConsoleError(NUMBER_BINDING_DEFECT, DEFECT_REASON);
-	problems.expectConsoleError(/\[\/sources\/art_[0-9a-f]{32}\/capture\?\/save\]/, 'the browser logs the typed 422 answer to the refused form post');
+	problems.expectConsoleError(/\[\/sources\/art_[0-9a-f]{32}\/capture\?\/save&run=[A-Za-z0-9_.-]+\]/, 'the browser logs the typed 422 answer to the refused form post');
 	await enterSetupInterval(page);
 	const acknowledge = page.locator('input[name="setup_interval_acknowledged"]');
 	await expect(acknowledge).not.toBeChecked();
@@ -99,8 +90,7 @@ test('an interval inside the first five seconds cannot be saved without the expl
 	record('capture', 'setup_interval_refused', { refused_without_acknowledgement: 1, review_records: log.review_records, acknowledgements_added_by_page: 0 });
 });
 
-test('the same interval saves once the operator ticks the acknowledgement themselves', async ({ page, mock, problems }) => {
-	problems.expectConsoleError(NUMBER_BINDING_DEFECT, DEFECT_REASON);
+test('the same interval saves once the operator ticks the acknowledgement themselves', async ({ page, mock }) => {
 	await enterSetupInterval(page);
 	const acknowledge = page.locator('input[name="setup_interval_acknowledged"]');
 	await expect(acknowledge).not.toBeChecked();
@@ -118,23 +108,140 @@ test('the same interval saves once the operator ticks the acknowledgement themse
 	record('capture', 'setup_interval_saved', { saved_after_explicit_acknowledgement: 1, review_records: log.review_records });
 });
 
-test('after a form action the chosen baseline run is still selected, so the operator can continue', async ({ page, problems }) => {
-	// KNOWN SOURCE DEFECT, reported to root (code capture_action_drops_run_selection): the measure/save form actions post
-	// to `?/measure` and `?/save`, which replaces the `?run=` query. The page then loads with no baseline run, Save and
-	// Measure are disabled, and re-choosing the run discards the typed interval. Expected to fail until that is fixed.
-	test.fail(true, 'known source defect capture_action_drops_run_selection (a form action drops ?run=)');
-	problems.expectConsoleError(NUMBER_BINDING_DEFECT, DEFECT_REASON);
+// X5: every typed case, keyed in through the keyboard as an operator would. `expected` is null where the browser decides
+// what a partial entry's value is; the warning must then agree with the value the input itself reports.
+const TYPING_CASES: ReadonlyArray<{ name: string; field: 'start_seconds' | 'end_seconds'; keys: string; erase?: number; warning: boolean | null }> = [
+	{ name: 'start 0', field: 'start_seconds', keys: '0', warning: true },
+	{ name: 'start 1', field: 'start_seconds', keys: '1', warning: true },
+	{ name: 'start 4.999', field: 'start_seconds', keys: '4.999', warning: true },
+	{ name: 'start 5', field: 'start_seconds', keys: '5', warning: false },
+	{ name: 'start 5.5', field: 'start_seconds', keys: '5.5', warning: false },
+	{ name: 'start partial "-"', field: 'start_seconds', keys: '-', warning: null },
+	{ name: 'start partial "1."', field: 'start_seconds', keys: '1.', warning: null },
+	{ name: 'start typed then cleared', field: 'start_seconds', keys: '1', erase: 1, warning: false },
+	{ name: 'end only', field: 'end_seconds', keys: '2', warning: false }
+];
+
+test('typing any interval value never throws; the setup warning follows the typed start at once', async ({ page, mock, problems }) => {
+	const outcome = { cases: TYPING_CASES.length, without_page_error: 0, inside_cases: 0, inside_warned: 0, outside_cases: 0, outside_silent: 0, partial_cases: 0, partial_consistent: 0, observed: [] as Array<{ name: string; value: string; warning: boolean }> };
+	for (const item of TYPING_CASES) {
+		await open(page, WITH_RUN);
+		const before = problems.seen().length;
+		const input = page.locator(`input[name="${item.field}"]`);
+		await input.click();
+		await input.pressSequentially(item.keys);
+		for (let index = 0; index < (item.erase ?? 0); index += 1) await input.press('Backspace');
+		const warning = page.locator('[data-setup-warning="true"]');
+		const clean = page.locator('select[name="review_status"] option[value="reviewed_candidate"]');
+		if (item.warning === true) {
+			await expect(warning, item.name).toBeVisible({ timeout: 3000 });
+			await expect(clean, item.name).toHaveJSProperty('disabled', true);
+			outcome.inside_cases += 1;
+			outcome.inside_warned += 1;
+		} else if (item.warning === false) {
+			await expect(warning, item.name).toHaveCount(0);
+			await expect(clean, item.name).toHaveJSProperty('disabled', false);
+			outcome.outside_cases += 1;
+			outcome.outside_silent += 1;
+		}
+		// The warning always agrees with the text the start input reports (a partial entry may report an empty value).
+		const start = await page.locator('input[name="start_seconds"]').inputValue();
+		const shown = (await warning.count()) === 1;
+		expect(shown, `${item.name}: warning agrees with the reported start value "${start}"`).toBe(start.trim() !== '' && Number(start) < 5);
+		expect(await clean.evaluate((option: HTMLOptionElement) => option.disabled), item.name).toBe(shown);
+		if (item.warning === null) {
+			outcome.partial_cases += 1;
+			outcome.partial_consistent += 1;
+		}
+		await expect(page.locator('[data-interval-picker="true"]')).toHaveAttribute('data-interval-empty', (await input.inputValue()) === '' ? 'true' : 'false');
+		// The acknowledgement is never ticked for the operator, whatever is typed.
+		await expect(page.locator('input[name="setup_interval_acknowledged"]')).not.toBeChecked();
+		expect(problems.seen().slice(before), item.name).toEqual([]);
+		outcome.without_page_error += 1;
+		outcome.observed.push({ name: item.name, value: start, warning: shown });
+	}
+	expect((await mock.log()).requests.filter((entry) => entry.non_get)).toEqual([]);
+	record('capture', 'X5_typed_interval', outcome);
+});
+
+// X7 (WEB_FIXES_S3 F2): each form action keeps the chosen baseline run, so Measure and Save stay enabled and the typed
+// interval is kept. The run is still chosen by the load from the eligible baseline list only.
+async function expectRunKept(page: Page, runId: string): Promise<void> {
+	await expect(page.locator('select[name="run"]')).toHaveValue(runId, { timeout: 3000 });
+	await expect(page.locator('input[name="run_id"]')).toHaveValue(runId);
+	await expect(page.locator('[data-native-timeline="true"]')).toBeVisible();
+	await expect(page.getByRole('button', { name: /Save review/ })).toBeEnabled({ timeout: 3000 });
+	await expect(page.getByRole('button', { name: /Measure interval/ })).toBeEnabled();
+}
+
+test('after a form action the chosen baseline run is still selected, so the operator can continue', async ({ page }) => {
 	await open(page, WITH_RUN);
 	await page.locator('input[name="start_seconds"]').fill('5.5');
 	await page.locator('input[name="end_seconds"]').fill('6.4');
 	await page.getByRole('button', { name: /Measure interval/ }).click();
 	await expect(page.locator('[data-measurement="true"]')).toBeVisible();
-	await expect(page.locator('select[name="run"]')).toHaveValue(ids.baseline_plain, { timeout: 3000 });
-	await expect(page.getByRole('button', { name: /Save review/ })).toBeEnabled({ timeout: 3000 });
+	await expectRunKept(page, ids.baseline_plain);
+	await expect(page.locator('input[name="start_seconds"]')).toHaveValue('5.5');
+	await expect(page.locator('input[name="end_seconds"]')).toHaveValue('6.4');
+	// The operator can go straight on to a second action without choosing the run again.
+	await page.getByRole('button', { name: /Measure interval/ }).click();
+	await expect(page.locator('[data-measurement="true"]')).toBeVisible();
+	await expectRunKept(page, ids.baseline_plain);
+	record('capture', 'X7_run_kept_after_measure', { kept: 1, of: 1 });
 });
 
-test('an interval after the first five seconds shows no setup warning; measuring writes no review', async ({ page, mock, problems }) => {
-	problems.expectConsoleError(NUMBER_BINDING_DEFECT, DEFECT_REASON);
+test('the run stays selected after a refused save and after an accepted save', async ({ page, mock, problems }) => {
+	problems.expectConsoleError(/\[\/sources\/art_[0-9a-f]{32}\/capture\?\/save&run=[A-Za-z0-9_.-]+\]/, 'the browser logs the typed 422 answer to the refused form post');
+	await enterSetupInterval(page);
+	await page.getByRole('button', { name: /Save review/ }).click();
+	await expect(page.locator('[data-refusal-code="setup_interval_unacknowledged"]')).toBeVisible();
+	await expectRunKept(page, ids.baseline_plain);
+	await expect(page.locator('input[name="start_seconds"]')).toHaveValue('1');
+	await expect(page.locator('input[name="end_seconds"]')).toHaveValue('2');
+	// Still not acknowledged by the page; the operator ticks it and saves from the same page.
+	const acknowledge = page.locator('input[name="setup_interval_acknowledged"]');
+	await expect(acknowledge).not.toBeChecked();
+	await acknowledge.check();
+	await page.getByRole('button', { name: /Save review/ }).click();
+	await expect(page.locator('[data-review-saved]')).toBeVisible();
+	await expectRunKept(page, ids.baseline_plain);
+	const posts = (await mock.log()).requests.filter((entry) => entry.non_get);
+	expect(posts.map((entry) => entry.status)).toEqual([422, 201]);
+	expect(posts.map((entry) => entry.review_request?.setup_interval_acknowledged)).toEqual([false, true]);
+	record('capture', 'X7_run_kept_after_save', { kept: 2, of: 2, actions: ['save refused 422', 'save accepted'] });
+});
+
+test('the run stays selected after the author action', async ({ page, mock, problems }) => {
+	problems.expectConsoleError(/\[\/sources\/art_[0-9a-f]{32}\/capture\?\/author&run=[A-Za-z0-9_.-]+\]/, 'the browser logs the typed refusal the mock replays for every job submission');
+	const runId = ids.baseline_reviewed;
+	await open(page, `/sources/${ids.source_reviewed}/capture?run=${runId}`);
+	const author = page.locator(`[data-review-row="${ids.review_reviewed}"]`).getByRole('button', { name: 'Author FULLER profile' });
+	await expect(author).toBeEnabled();
+	await author.click();
+	await expect(page.locator('[data-saved-reviews="true"] [data-refusal-code]')).toBeVisible();
+	await expectRunKept(page, runId);
+	expect((await mock.log()).job_submissions).toBe(1);
+	record('capture', 'X7_run_kept_after_author', { kept: 1, of: 1, author_answer: 'typed refusal replayed by the mock' });
+});
+
+test('a run id that is malformed, unlisted or bound to another source selects nothing, before or after an action', async ({ page, mock }) => {
+	const forged = ['not-a-run', 'BASE-UNLISTED', ids.run_main, ids.baseline_reviewed, `${ids.baseline_plain}x`, '../' + ids.baseline_plain];
+	for (const value of forged) {
+		for (const query of [`?run=${encodeURIComponent(value)}`, `?/measure&run=${encodeURIComponent(value)}`]) {
+			await open(page, `${BASE}${query}`);
+			await expect(page.locator('select[name="run"]'), value).toHaveValue('');
+			await expect(page.locator('input[name="run_id"]'), value).toHaveValue('');
+			await expect(page.locator('[data-native-timeline="true"]'), value).toHaveCount(0);
+			await expect(page.locator('audio[data-baseline-player="true"]'), value).toHaveCount(0);
+			await expect(page.getByRole('button', { name: /Save review/ }), value).toBeDisabled();
+			await expect(page.getByRole('button', { name: /Measure interval/ }), value).toBeDisabled();
+		}
+	}
+	expect((await mock.log()).requests.filter((entry) => entry.non_get)).toEqual([]);
+	record('capture', 'X8_forged_run_selects_nothing', { selected_nothing: forged.length, of: forged.length, urls_tried: forged.length * 2 });
+});
+
+test('an interval after the first five seconds shows no setup warning; measuring writes no review', async ({ page, mock }) => {
 	await open(page, WITH_RUN);
 	await page.locator('input[name="start_seconds"]').fill('5.5');
 	await page.locator('input[name="end_seconds"]').fill('6.4');

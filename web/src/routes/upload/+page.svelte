@@ -90,7 +90,9 @@
 
 	<form class="vu-panel card space-y-3 p-5" onsubmit={upload} data-upload-form="true">
 		<h2 class="h4">Upload a video file</h2>
-		<input class="input" type="file" accept={UPLOAD_ACCEPT} onchange={pick} />
+		<label class="label"><span class="label-text">Video file (.mov, .mp4, .m4v, .mkv or .webm)</span>
+			<input class="input" type="file" accept={UPLOAD_ACCEPT} onchange={pick} />
+		</label>
 		<label class="label"><span class="label-text">Label (optional, kept only in the upload receipt)</span>
 			<input class="input" bind:value={label} maxlength="120" />
 		</label>
@@ -99,7 +101,7 @@
 				{bytes(file.size)}{#if file.size > ADVISORY_MAX} — larger than the default 3 GiB bound (advisory; the control API decides){/if}
 			</p>
 		{/if}
-		<button class="btn preset-filled-primary-500" type="submit" disabled={!file || pending}>Upload and admit</button>
+		<button class="btn preset-filled-primary-300-700" type="submit" disabled={!file || pending}>Upload and admit</button>
 	</form>
 
 	<form class="vu-panel card space-y-3 p-5" onsubmit={admit} data-selector-form="true">
@@ -107,7 +109,7 @@
 		<label class="label"><span class="label-text">Run-relative selector (RUN/…/file.mov)</span>
 			<input class="input" bind:value={selector} maxlength="1024" placeholder="RUN/export/cleaned-video.mov" />
 		</label>
-		<button class="btn preset-filled-primary-500" type="submit" disabled={selector.trim() === '' || pending}>Admit selector</button>
+		<button class="btn preset-filled-primary-300-700" type="submit" disabled={selector.trim() === '' || pending}>Admit selector</button>
 	</form>
 
 	{#if error}<ControlApiError {error} />{/if}
