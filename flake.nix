@@ -31,6 +31,9 @@
         OMP_NUM_THREADS = "2";
         OPENBLAS_NUM_THREADS = "2";
       };
+      # Web app checks (svelte-check, vitest, build, Playwright). pnpm switches itself to the
+      # version pinned by web/package.json `packageManager`; no browser is provided here.
+      web = pkgs.mkShell { packages = [ pkgs.nodejs_22 pkgs.pnpm pkgs.just pkgs.git ]; };
       report = pkgs.mkShell {
         packages = core ++ [ pkgs.R pkgs.quarto ];
         QUARTO_PANDOC = "${quartoBundledPandoc}/bin/pandoc";
