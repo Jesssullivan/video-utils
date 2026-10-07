@@ -57,5 +57,5 @@ const TEXT: Readonly<Record<string, string>> = {
 };
 
 export function refusalText(code: string): string {
-	return TEXT[code] ?? 'Refused with a typed code; see the code shown.';
+	return Object.hasOwn(TEXT, code) ? TEXT[code] : 'Refused with a typed code; see the code shown.';
 }

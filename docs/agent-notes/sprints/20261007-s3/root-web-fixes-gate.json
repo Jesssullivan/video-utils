@@ -1,0 +1,23 @@
+{
+  "schema": "video-utils.root-merge-gate.v1",
+  "lane": "web_fixes",
+  "linear": "TIN-5724",
+  "merge_commit": "549a14d",
+  "hosted_ci": {"run": 37622808474, "conclusion": "success", "head": "549a14dea88f6b7951a81f2c2fa0718cb83a1c21"},
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "root_follow_up": [
+    {"item": "refusal_text_prototype_key", "action": "refusalText and processingText read their tables with an own-property check; the two it.fails tests became normal tests", "result": "vitest 155/155 passed, 0 expected failures"},
+    {"item": "containerfile_copy_static", "action": "web/Containerfile build stage copies static/ before the build", "result": "source change only; image_built false"}
+  ],
+  "local_gate_main_checkout": {
+    "svelte_check": {"errors": 0, "warnings": 0, "files": 1370},
+    "build": "rc 0",
+    "e2e_full_run": {"passed": 59, "failed": 1, "of": 60, "failure": "e2e/source.spec.ts:8 plain source: apiRequestContext.get ECONNRESET on the loopback mock log while host 1-min load was 53 to 177"},
+    "a11y_full_run": {"passed": 37, "failed": 1, "of": 38, "failure": "axe upload [light] during the same high-load window"},
+    "rerun_at_load_under_8": {"e2e_source_spec": "6/6 passed", "a11y_routes_spec": "38/38 passed"},
+    "python": {"ran": 1810, "failures": 2, "skipped": 87, "failures_named": ["test_learned_pitch_pilot.ControllerTests.test_failed_leader_cleans_owned_live_descendant", "test_phrase_localization_pilot.InertOrchestrationTests.test_owned_exited_leader_live_inert_child_cleanup"], "note": "both fail at baseline a16d02d on this host (macOS process inspection); pass in hosted CI"},
+    "cargo": "all test results ok"
+  },
+  "hosted_web_job": {"branch": "ci/web-node", "run": 37633232643, "conclusion": "success", "web": {"unit_check_build": "success", "e2e": "60 passed", "a11y": "38 passed", "browser": "runner-installed Chrome via browser ladder step c; nothing downloaded"}},
+  "claims": "accessibility results are automated axe checks only, not a manual or screen-reader audit"
+}

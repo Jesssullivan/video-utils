@@ -35,5 +35,5 @@ const TEXT: Record<string, string> = {
 };
 
 export function processingText(code: string): string {
-	return TEXT[code] ?? 'The control API refused this request with a typed code.';
+	return Object.hasOwn(TEXT, code) ? TEXT[code] : 'The control API refused this request with a typed code.';
 }

@@ -36,14 +36,12 @@ describe('refusalText', () => {
 		for (const code of ['', 'unknown', 'UPLOADS_DISABLED', 'uploads_disabled ', 'x'.repeat(65), 'internal_error']) expect(refusalText(code)).toBe(FALLBACK);
 	});
 
-	// KNOWN SOURCE DEFECT, reported to root (web_tests-root-requests.json, code refusal_text_prototype_key):
-	// both tables are plain objects read with `TEXT[code] ?? fallback`, so a code that names an Object.prototype
-	// member and matches ^[a-z_]{1,64}$ ("constructor", "__proto__") returns that member instead of the fallback.
-	// `it.fails` keeps the suite green while the defect exists and turns red as soon as the source is fixed.
-	it.fails('known defect: refusalText returns the fallback string for Object.prototype member names', () => {
+	// Both tables are read with an own-property check, so a code naming an Object.prototype member
+	// ("constructor", "__proto__") gets the fallback string and never an inherited member.
+	it('refusalText returns the fallback string for Object.prototype member names', () => {
 		for (const code of ['constructor', '__proto__']) expect(refusalText(code)).toBe(FALLBACK);
 	});
-	it.fails('known defect: processingText returns the fallback string for Object.prototype member names', () => {
+	it('processingText returns the fallback string for Object.prototype member names', () => {
 		for (const code of ['constructor', '__proto__']) expect(processingText(code)).toBe(LANE_FALLBACK);
 	});
 
