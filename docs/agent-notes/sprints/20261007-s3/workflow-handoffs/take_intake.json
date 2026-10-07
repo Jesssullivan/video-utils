@@ -1,0 +1,217 @@
+{
+  "lane": "take_intake",
+  "branch": "sprint/20261007-s3/take_intake",
+  "head": "3c4f4e90a11d183a3d464042de365704d99fbce6",
+  "base_commit": "452fd467fa6bfd22daf51e8c071bbd4029819a95",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint3/take_intake",
+  "state": "implemented_tested_audit_findings",
+  "files": [
+    {
+      "path": ".agents/skills/take-intake/SKILL.md",
+      "sha256": "17180e567c66c276f62a994f3b20f9ba49df2201e967420c36c0547dc79790bc",
+      "kind": "skill_draft"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/take_intake-contract-freeze.json",
+      "sha256": "2db989bf630922b38611593b56a9d9d157a2f4d2ef4a3b7d24ca5a0774b9f7d1",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/take_intake-e2e-prereg.json",
+      "sha256": "3179977542b35b612943e934ba10ec4b97f6eca10e1b687130e47ddc940aa730",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/take_intake-e2e.json",
+      "sha256": "900ce03c594bdc1f222b6336b3d2f945954965037a625806b7f3d854380127ca",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/take_intake-handoff.json",
+      "sha256": "701811d41e96399166efd593307270a4a2e1e73a14f0e3fd10ed960c1f597754",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/take_intake-tests.json",
+      "sha256": "b9dcfce0da93b764c0ac066df05275abe8456e9b1a46f159664e3836fa84b707",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/sprints/TAKE_INTAKE_S3.md",
+      "sha256": "8666987ef0b059d2a57137d46b93f1f73b40165447ff6bf82b0953e22b29170e",
+      "kind": "spec"
+    },
+    {
+      "path": "just/take.just",
+      "sha256": "01c8641eccab022a6f7283425907a12b97e181f1b2f3fca84048dfe80c37e01f",
+      "kind": "source"
+    },
+    {
+      "path": "program/tool-drafts/take_intake.json",
+      "sha256": "66b15858de9c45d4711189edd152b6d56ed6a3850f3bd2063748c07ef35085de",
+      "kind": "tool_draft"
+    },
+    {
+      "path": "scripts/take_intake.py",
+      "sha256": "0997082e3db2c789eeb99d786aa36bc5b98eb32e66a0eb8d1419b2b2444e1389",
+      "kind": "source"
+    },
+    {
+      "path": "tests/test_take_intake.py",
+      "sha256": "e55bd6dcb9517ce154adb2dbf2edd89f716416446031d999c4a5dba25b06149b",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "cd /Users/jess/git/video-utils/.local/sprint3/take_intake && FFMPEG=nix ffmpeg-headless-8.1.2 FFPROBE=nix ffprobe-headless-8.1.2 PYTHONPATH=tests python3 -m unittest test_take_intake -v",
+    "discovered": 34,
+    "passed": 33,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 1,
+    "seconds": 120.7
+  },
+  "metrics": [
+    {
+      "name": "stages_completed",
+      "numerator": 3,
+      "denominator": 10,
+      "unit": "stages",
+      "claim_class": "measured"
+    },
+    {
+      "name": "stages_abstained",
+      "numerator": 4,
+      "denominator": 10,
+      "unit": "stages",
+      "claim_class": "measured"
+    },
+    {
+      "name": "stages_failed",
+      "numerator": 2,
+      "denominator": 10,
+      "unit": "stages",
+      "claim_class": "measured"
+    },
+    {
+      "name": "stages_skipped",
+      "numerator": 1,
+      "denominator": 10,
+      "unit": "stages",
+      "claim_class": "measured"
+    },
+    {
+      "name": "sealed_fixture_sha256",
+      "numerator": 1,
+      "denominator": 1,
+      "unit": "match",
+      "claim_class": "measured",
+      "note": "34d53399...b580"
+    },
+    {
+      "name": "frame_count",
+      "numerator": 288,
+      "denominator": 288,
+      "unit": "frames",
+      "claim_class": "measured"
+    },
+    {
+      "name": "loudness_offset",
+      "numerator": 1.96,
+      "denominator": 1,
+      "unit": "LU",
+      "claim_class": "measured"
+    },
+    {
+      "name": "phrase_starts_correct",
+      "numerator": 1,
+      "denominator": 1,
+      "unit": "computed",
+      "claim_class": "measured",
+      "note": "9.696s = 7.0 + 4 x 0.674"
+    },
+    {
+      "name": "fundamental_frequency_c1",
+      "numerator": 32.703,
+      "denominator": 1,
+      "unit": "Hz",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "capture_interval_setup_override",
+    "source_identity_collision",
+    "flags_triage_available",
+    "marked_video_callouts",
+    "arrangement_reference_match",
+    "phrase_timing_population",
+    "phrase_anchor_inferred",
+    "xoruby_delivery_state",
+    "default_adoption_status",
+    "artifact_export_format_choice"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "justfile",
+      "change": "After the line `import 'just/bazel.just'` add the line `import 'just/take.just'`.",
+      "why": "Exposes the lane recipes take-plan, take-run, take-resume, take-packet and take-intake-test (just/take.just was validated with a scratch import and `just --list`)."
+    },
+    {
+      "file": "program/tools.json",
+      "change": "Append program/tool-drafts/take_intake.json `tools[0]` (the single `take_intake` descriptor: operation enum plan|packet, closed flat inputSchema with source, family, arrangement, bpm, features, origin, intake_dir, timeout_seconds; skill .agents/skills/take-intake/SKILL.md) verbatim to the `tools` array. The schema passes tool_api.validate_schema.",
+      "why": "MCP admission of the read-only plan and the evidence packet; run/resume stay just/CLI actions because they are long and mutating. One descriptor because MCP prompt names come from the skill directory."
+    },
+    {
+      "file": "scripts/tool_api.py",
+      "change": "In validate_tool_arguments add:\n    if name == 'take_intake':\n        if args['operation'] == 'plan' and ('source' not in args or 'intake_dir' in args):\n            raise ValidationError('take_intake plan requires source and rejects intake_dir')\n        if args['operation'] == 'packet' and ('intake_dir' not in args\n                or set(args) & {'source', 'family', 'arrangement', 'bpm', 'features', 'origin'}):\n            raise ValidationError('take_intake packet requires intake_dir and accepts no plan fields')\n        for field in ('source', 'intake_dir', 'arrangement'):\n            value = args.get(field)\n            if value is not None and ('\\x00' in value or '\\\\' in value or ':' in value or '..' in value.split('/')):\n                raise ValidationError('take_intake paths must be exact local paths without traversal/NUL/URL')\nIn worker_command add:\n    if name == 'take_intake':\n        worker = str(ROOT / 'scripts/take_intake.py')\n        if args['operation'] == 'packet':\n            directory = s2_input_directory(args['intake_dir'], ('intake.json',))\n            return head + [worker, 'packet', str(directory)]\n        command = head + [worker, 'plan', str(Path(args['source']).expanduser())]  # unresolved so source_is_symlink applies\n        for field in ('family', 'arrangement', 'features', 'origin'):\n            if field in args:\n                command += ['--' + field, str(args[field])]\n        if 'bpm' in args:\n            command += ['--bpm', repr(float(args['bpm']))]\n        return command\nRefusal transport: exit 2 with one JSON object on stderr {status: refused, reason, message}; relay `reason` in the ToolError. Deadline: timeout_seconds (default 300, max 900).",
+      "why": "Cross-field rules and exact argv for the admitted descriptor; keeps take_intake's own source refusals effective."
+    },
+    {
+      "file": "tests/test_s3_tool_admission.py",
+      "change": "Pin .agents/skills/take-intake/SKILL.md (sha256 recorded in docs/agent-notes/sprints/20261007-s3/take_intake-handoff.json) and add `take_intake` to the admitted-tool set, as for other admitted tools.",
+      "why": "Skill/prompt pinning parity with existing admitted tools."
+    },
+    {
+      "file": "scripts/arrangement_markers.py",
+      "change": "Replace the fixed `REFERENCE = 'program/demo-arrangement.json'` with the reference identity recorded in the assessment (path re-read, sha256 re-verified, reference source_sha256 equal to the run manifest source sha256).",
+      "why": "Deviation D2: a reference bound to a new take is currently refused (reference source mismatch), so arrangement_markers fails and marked_compact cannot run for the second take."
+    },
+    {
+      "file": "Linear TIN-5186 (XORuby relay)",
+      "change": "After the operator runs `just take-run` on the second take and reviews evidence-packet.json, root sends the intake's tin-5186-message-draft.json (draft_not_sent; take_family_id plus non-media metadata only). program/linear.json: no change from this lane.",
+      "why": "Operator ruling 2026-10-07: family id reported to XORuby on TIN-5186; the lane never writes Linear or sends peer messages."
+    }
+  ],
+  "receipts_written": [],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": false
+  },
+  "dropped_scope": [],
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "Verdict: the lane's claims hold. I checked all six points and none of them blocks an admin merge. The findings below are non-blocking.",
+      "(1) Scope check passed. `git diff --name-only 452fd46...HEAD` lists 11 files, all owned: scripts/take_intake.py, tests/test_take_intake.py, just/take.just, .agents/skills/take-intake/SKILL.md, program/tool-drafts/take_intake.json, docs/spec/sprints/TAKE_INTAKE_S3.md, and 5 files matching docs/agent-notes/sprints/20261007-s3/take_intake-*.json. There are no root-owned or foreign edits. The frozen spec (72a224a to HEAD) only gained 44 lines in a new section 14; sections 1-13 are unchanged. The working tree is clean.",
+      "(2) Boundary check passed. Nothing was written to the main checkout's artifacts/runs; its newest run is from Oct 6, and artifacts/take-intake does not exist. The worktree's artifacts/ holds only s2/. The e2e and dev runs used copied roots under artifacts/s2/take_intake/e2e-*/root. The code never references Documents or Desktop. There are no edits to program/tools.json, scripts/tool_api.py or just/workflow.just. The code is stdlib only: no model downloads and no daemons. Child processes run in their own session, are waited on, and are SIGKILLed only on a deadline (stop_owned_child, take_intake.py ~889-911). The dev-smoke SIGKILLs targeted the lane's own processes and are receipted in take_intake-handoff.json.",
+      "(4) Test rerun reproduced the claimed counts. I ran FFMPEG/FFPROBE=nix ffmpeg-headless-8.1.2 with PYTHONPATH=tests python3 -m unittest test_take_intake -v. Result: 'Ran 34 tests in 92.840s', 'OK (skipped=1)', exit 0, 33 ok. The skipped test is EndToEndTests.test_sealed_take_run (e2e_gated_set_TAKE_INTAKE_E2E_1). The lane claimed 119.451 s and the receipt says 139.25 s; only the timing differs. The shasum of scripts/take_intake.py (0997082e...) and tests/test_take_intake.py (e55bd6dc...) match the receipts.",
+      "(4) The tests exercise the claimed behaviour. They cover plan determinism (3 byte-identical plan stdouts, and the same bytes at two paths), refusals with filesystem snapshots, resume scenarios a-e, demo binding with 0, 1 and 2 candidates, packet keys and unknowns, the V6 draft with planted negative controls, and the absence of host paths. Caveat: all 5 resume tests use stub stages. The real demo/run_demo --resume path is exercised only by the untracked dev smokes described in the handoff, not by any unit test.",
+      "(4) The tracked-path refusal test (tests/test_take_intake.py ~318-331) only covers an untracked, unignored file in a fresh git repo, plus the ignored case being accepted. No test covers an actually tracked file that git has staged or committed.",
+      "(6) Arithmetic reproduced from the retained state in artifacts/s2/take_intake/e2e-20261007T154518Z/root/artifacts/take-intake/*/*/intake.json. Stage statuses: completed 3, abstained 3+1=4, failed 2, skipped 1, total 10, intake status 'partial'. Sealed fixture sha256 = 34d53399...b580, matching the preregistration. 12.012 s x 24000/1001 fps = 288.0 frames, matching 288/288. -18 - (-19.96) = 1.96 LU, matching target_offset 1.96. Phrase start 9.696 = 7.0 + 4 x 0.674. 32.703 Hz = C1. The committed take_intake-e2e.json is byte-identical (cmp) to the retained e2e-results.json, so the receipt was not hand-edited.",
+      "(5) The 32 Hz doctrine is respected. In the e2e run manifest and export outcome I found no highpass, bandreject, anequalizer or lowpass filters, only afftdn, which matches the packet guard's 0 violations across 14 graphs. The orchestrator adds no filter. All 23 UNKNOWNS fields are present with reasons. Every stage has a hard timeout (demo has the largest at 7800 s; the rest are 180-1260 s). git and ffprobe calls are bounded at 20 s and 60 s. FULLER is already DEFAULT_PROFILE on main (scripts/run_demo.py:36), and the lane only passes it explicitly, so nothing is adopted.",
+      "(3) Claims are classed correctly. The e2e receipt, handoff and skill keep the synthetic run separate from real-take accuracy and carry an explicit interpretation_boundary. No verdict is given on note correctness or missed notes. Timing direction is withheld_uncalibrated.",
+      "(3) The phrase_timing result is empty. The e2e receipt scores phrase_timing as 'completed' and 'as_predicted', but it measured 0 of 0 phrases: phrases.json proposed 0 review spans, although the fixture contains 2 phrases by construction. The completed status has a zero denominator. The packet reports it, but the receipt and handoff should mark it plainly as 0/0 rather than an as-predicted completion.",
+      "(3) The preregistration predicted that flags_triage and marked_video would complete. Yet its own development_runs_before_sealing note records that the dev smoke already failed with triage_window_basis_unavailable and found no marked_video callouts. Those predictions ignored evidence the lane already had. The miss is disclosed, so this is not misreporting.",
+      "Wrong guidance: the intake_exists refusal message (scripts/take_intake.py:1379) and SKILL.md lines 20 and 45 tell the operator to use 'an explicit new --family' to start another intake of the same source. resolve_family (take_intake.py:411) refuses that case with source_already_registered. I confirmed this by calling resolve_family directly with a prior_intake registry entry: the new --family returned source_already_registered. In practice only a fresh --state-root works. The message and skill text should be corrected.",
+      "Overclaim in the implementation summary: it says run 'refuses a source inside the repository'. check_source (take_intake.py ~249-288) accepts a git-ignored path inside the repository and refuses only tracked or unignored ones. That matches the DoD's 'repo-tracked path' but not the summary's wording.",
+      "plan is not strictly read-only. admissibility_check (take_intake.py ~451-486) creates the state-root directories and a .scratch/row-*/split.json, then deletes them. A crash between creation and cleanup would leave them behind. The plan JSON's 'writes' field and SKILL.md disclose this, but the tool draft (program/tool-drafts/take_intake.json:87) says 'writes nothing'.",
+      "Running the gated e2e test overwrites the tracked receipt docs/agent-notes/sprints/20261007-s3/take_intake-e2e.json (tests/test_take_intake.py:732). Any rerun would replace the sealed result. It should write only to the ignored lane directory.",
+      "Minor claim-class issues: UNKNOWNS['capture_interval_setup_override'] is classed 'measured' (take_intake.py:106), but it records an operator assertion. The packet's flags_triage block is claim_class 'inferred' (take_intake.py:1667), while the claims list classes 'flags triage denominators' as 'measured'. phrase_anchor_adopted, xoruby_delivery and default_adoption have class None.",
+      "Minor: phrase_timing is always invoked with --run-kind real_take (take_intake.py:576), even when --origin is synthetic_fixture. The packet's measurements.master_loudness has no class field.",
+      "Known limitation, disclosed as D2 in the handoff: arrangement_markers.py hard-codes program/demo-arrangement.json. For a new take with its own arrangement reference, arrangement_markers fails, and marked_compact plus the arrangement branch are not exercised end to end. The marked_video to share_export branch is also not exercised end to end, because marked_video failed on the fixture. The operator's first run on the real second take will be the first real exercise of these branches."
+    ],
+    "must_fix": []
+  }
+}
