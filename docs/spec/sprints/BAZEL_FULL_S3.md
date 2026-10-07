@@ -518,3 +518,15 @@ value named here is in the receipts (section 14).
 5. **Host gate.** `bazel/host_gate.py` logs each reading to the lane artifacts;
    the receipts carry the series. The site bring-up wait was superseded so that
    the first opening went to the full run.
+6. **`//web` graph defect fixed (deviation from 4.1, cause: section 7 rule).**
+   The full run failed `//web:svelte_check_test` (14 errors: `Cannot find
+   module '../tests/fixtures'`): `web/tests/**`, added after bazel_graph, was not
+   in `//web:app_srcs` although the SvelteKit tsconfig includes it. The glob
+   now adds `tests/**`; a separate diagnostic run passed it. The full-run
+   record is unchanged.
+7. **Outcome summary** (details in the receipts): full run `ran_complete`,
+   exit 3, 2934 s, T = 104 (94 passed, 9 failed, 1 timeout); 10 known
+   host-specific cases (8 `dot_path_component`, verdict `product_defect`, fix
+   requested as R6; 2 `macos_process_inspection`, reproduced at a16d02d);
+   11 Bazel-only cases attributed to host load (pass under plain unittest and
+   in a low-load Bazel run); `//site` 2 of 2 `built_in_scratch_copy`.
