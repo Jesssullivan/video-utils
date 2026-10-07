@@ -60,7 +60,7 @@
   },
   "task_3_beat_this_registration": {
     "source_of_values": "coordinator message relaying root's explicit hash-bound fetch; this lane downloaded nothing and did not observe the bytes",
-    "entry_key": "cpjku-beat-this-final0",
+    "registry_model_id": "cpjku-beat-this-final0",
     "url": "https://cloud.cp.jku.at/public.php/dav/files/7ik4RrBKTS273gp/final0.ckpt",
     "fetched_at_utc": "2026-10-07T10:28:54Z",
     "bytes": 81058141,
