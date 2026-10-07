@@ -566,3 +566,105 @@ derivative is read by the tests.
   count, and this lane does not use them. First-five-second setup sounds are not
   treated as noise-only.
 - Real-take derivatives stay private under V6. This lane creates none.
+
+## 10. Phase 2 implementation clarifications (frozen at the eval commit, before any sealed run)
+
+Section 7.5 allows the fine-onset estimator and the isolation rules to change during
+development on dev seeds 11–13, and freezes them at the evaluation commit. The items
+below were settled on dev fixtures only. No sealed seed was generated or run before
+this section was committed. Thresholds, tolerances, seeds, arms and scoring in
+sections 5 and 7 are unchanged.
+
+1. **Isolation (changed from 150 ms).** An event is isolated when no other same-path
+   detector event lies in the preceding 100 ms, and no *stronger* same-path event lies
+   in the following 100 ms. Reason, measured on dev seeds: the symmetric 150 ms rule
+   rejected offbeat attacks whose player jitter brought them within 150 ms of the next
+   click, and it also rejected sustain-ripple peaks of low-C open notes (32.70 Hz).
+   That left 7–11 of 16 valid attacks per class, below the 12 minimum. The 100 ms
+   window still covers the fine-onset windows ([−60, +40] ms).
+2. **Association.**
+   - Clicks: one high-frequency event per grid beat within ±min(25 ms, 0.1·P), from
+     the `click_only` spans only.
+   - Offbeat attacks: the earliest broadband event per half-beat slot, within
+     ±0.25·P of the half-beat. Its novelty must be at least 1.5× the 95th percentile
+     of broadband novelty peaks in the `click_only` spans, so that a click's own
+     broadband event is not taken as an attack.
+   - `on_click_palm_muted`: for each beat, the magnitude-qualified broadband event
+     nearest the predicted click. A status needs at least 8 events; otherwise it is
+     `not_available`.
+3. **Click grid.**
+   - The seed is the median inter-onset interval in the longest `click_only` span.
+   - Beat indices are counted incrementally from consecutive intervals. Least
+     squares then runs over all `click_only` spans with three MAD rejection passes,
+     each with a floor of 12 ms.
+   - A grid is fitted only when there are ≥ 8 retained events, the median |residual|
+     is ≤ min(25 ms, 0.05·P), and each span with ≥ 4 candidates has coverage ≥ 0.5.
+   - The shift in median residual between the first and last span is reported as the
+     bracket check.
+4. **Fine-onset estimator details.**
+   - The 8-sample mean of |x| is trailing (causal).
+   - The threshold crossing is linearly interpolated between samples.
+   - An event is invalid when it is already above threshold at det − 15 ms, or when
+     the peak is ≤ 1.5× the floor.
+   - The probe table classes are: `click` ← {unit_impulse, click_3500hz_exp,
+     mechanical_wood_click}; `palm_muted_pick_attack` ← distorted_c1_attack;
+     `open_pick_attack` ← open_sustained_c1 (C1, τ 300 ms, drive 3.5). Each class bias
+     is the midpoint of [min, max] of (fine − true) over its probes × 16 sub-hop
+     offsets.
+5. **Class standard uncertainty.** u_class = √(u_orderstat² + (fine half-range/√3)²
+   [+ (2.5 ms/√3)² when sub-hop phase-locked]). The fine-estimator spread is added in
+   quadrature, which is conservative.
+   - "Phase-locked" means the circular resultant of the fine onsets' sub-hop phase
+     is ≥ 0.9. This happens, for example, when the click period is an exact multiple
+     of the 80-sample hop (P = 0.4 s).
+   - In that case the take's click phase relative to the hop cannot be assumed to
+     match the session's, so the uniform ±half-hop term is added.
+6. **Generator realism (section 6).**
+   - Offbeat attacks carry player jitter N(0, σ_player).
+   - Session and take start at a knob-drawn sub-hop offset (`session_sub_hop`,
+     `take_sub_hop`).
+   - The session lead is 0.5 s and the gap between segments is 2 beats.
+   - Open notes are muted after 2.5 periods with a 10 ms release.
+   - All waveforms keep their 32.70 Hz content; nothing is filtered.
+7. **Click-coincidence guard in `apply` (stricter; can only withhold).**
+   - The dev seeds showed that on "behind" phrases, `phrase_timing`'s nearest-onset
+     rule can measure the click's own broadband event (offset ≈ 0) instead of the
+     later guitar attack. Before the guard, E1 had 2 wrong-sign emissions over 11
+     emitted directions.
+   - The record therefore measures `click_grid.click_broadband_self_offset` (the
+     median broadband-path offset of clicks relative to the grid in `click_only`
+     spans; n ≥ 8).
+   - `apply` withholds a phrase with `direction: null`, `direction_status:
+     phrase_abstained` and `withheld_basis:
+     onset_median_coincides_with_click_self_detection` when |median_offset_ms −
+     self offset| ≤ 2.5 ms.
+   - Withheld phrases score as ∞ in the error median and are excluded from the
+     coverage denominator, as section 7.4 does for phrase abstentions.
+   - This is a property of `phrase_timing` (not lane-owned), reported for root.
+8. **Closed key sets** are the constants `RECORD_KEYS`, `COMPONENT_KEYS`,
+   `CLASS_KEYS`, `OFFSET_KEYS`, `CONSISTENCY_KEYS`, `VIEW_KEYS` and `CALIBRATED_KEYS`
+   in `scripts/timing_calibration.py`. They are asserted by `SchemaAndTokenTests`.
+   Keys added beyond section 3 are all additive diagnostics:
+   - record and view: `limitations`, `rules`, `summary`;
+   - offset block: `attempted_estimate`, `attempted_expanded_uncertainty_ms`,
+     `standard_uncertainty_budget_ms`;
+   - consistency block: `used_in_offset_estimate: false`;
+   - calibrated block: `withheld_basis`;
+   - class block: `valid_fine_onset_count`, `ci_order_statistics`, `ci_coverage`,
+     `sub_hop_phase_resultant`, `sub_hop_phase_locked`, `bias_estimate_ms`,
+     `standard_uncertainty_ms`, `interval_ms`.
+9. **Abstention and refusals.**
+   - A decode failure yields an abstained record with `decode_failed`.
+   - Analyze input errors are typed refusals that write nothing: `segments_invalid`,
+     `distances_invalid`, `amp_chain_invalid`, `input_invalid`, `audio_too_long`.
+   - SEG.json is closed: `{schema_version: 1, segments[], source_sha256?, note?}`.
+     Each span has exactly `{kind, start_seconds, end_seconds, review_text}`, and
+     spans must not overlap.
+10. **Dev-seed results (M-syn, dev seeds 11–13, not sealed).**
+    - T2: 9/9 class biases within 1.0 ms of generator truth, maximum deviation
+      ≈ 0.21 ms.
+    - T3 (E1): median |error| 1.90 ms over 18 phrases, with 5 withheld counted as ∞.
+      Over the 13 measured phrases it is 1.09 ms, with coverage 13/13 and 8 emitted
+      directions, all sign-correct.
+    - T4: 16/16 C1-only open attacks per seed.
+    - A1: 4/4 abstained with the expected reason.
