@@ -1,18 +1,18 @@
 ---
 name: guitar-noul
-description: DRAFT (S3 model_lanes, not admitted). Request per-window guitar_noul detector hypotheses from the tailnet-only models.xoxd.ai gateway under the TIN-5619 closed contract; refuses when the gateway is not configured, and sends real-take windows only with the explicit V6 operator switch.
+description: Request per-window guitar_noul detector hypotheses from the tailnet-only models.xoxd.ai gateway under the TIN-5619 closed contract; refuses when the gateway is not configured, and sends real-take windows only with the explicit V6 operator switch.
 ---
 
 # Request guitar_noul window hypotheses (TIN-5619, experimental)
 
-**Status:** draft client. The gateway is not deployed: serving waits on
-TIN-5590 parity, around 2026-10-10. The wire schema `tin-5619-v0` is
-provisional and unratified (`gateway_wire_schema_ratified: false`).
+**Hook:** MCP tool `guitar_noul_decide` (admitted as tool 42, experimental).
+Fallback: `just guitar-noul-decide "<request.json>"`.
 
-Root still has to admit:
-- the descriptor `guitar_noul_decide`;
-- the MCP hook;
-- the recipe.
+**Status:** the descriptor, MCP hook and recipe are admitted. The gateway is
+not deployed: serving waits on TIN-5590 parity, around 2026-10-10, so every
+call currently refuses with `gateway_not_configured`. The wire schema
+`tin-5619-v0` is provisional and unratified
+(`gateway_wire_schema_ratified: false`).
 
 ## Intent
 
@@ -57,7 +57,12 @@ and tsidp, and the client does not verify it.
 
 ## Use
 
+Through MCP the arguments are exactly the closed input above; the gateway URL
+and the real-take switch are never arguments. A refusal arrives as a tool error
+whose receipt carries `refusal_code`. The MCP hook writes no file.
+
 ```sh
+just guitar-noul-decide request.json
 VIDEO_UTILS_GUITAR_NOUL_GATEWAY=https://models.xoxd.ai/<endpoint> \
   python3 scripts/guitar_noul_client.py --request request.json --out artifacts/s2/model_lanes/noul/<name>.json
 ```

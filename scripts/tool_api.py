@@ -37,6 +37,11 @@ REPORT_BUNDLE_OUTPUT_ROOT = ROOT / 'artifacts' / 's2' / 'report_d6' / 'bundles'
 REPORT_BUNDLE_MAX_STORE_BYTES = 64 * 1024 * 1024
 REPORT_BUNDLE_MEDIA_SUFFIXES = frozenset({'.wav', '.flac', '.aiff', '.aif', '.mp3', '.aac', '.m4a', '.mov', '.mp4',
                                           '.m4v', '.mkv', '.webm', '.caf'})
+# S3 model lanes: these workers print a typed refusal object (status 'refused', refusal_code) on stdout
+# and exit non-zero. The refusal code is relayed in the ToolError instead of a stderr tail. The value is
+# seconds of outer-deadline slack beyond the caller's timeout so the worker's own deadline reports first.
+TYPED_REFUSAL_TOOLS = {'beat_this_compare': 0, 'guitar_noul_decide': 10}
+TRAVERSAL_GUARDED_RUN_TOOLS = {'marked_video', 'basic_pitch_compare', 'beat_this_compare', 'guitar_noul_decide'}
 S2_DIGEST_FIELDS = {'annotation_markers': 'store_sha256', 'corpus_eval_s2': 'proposals_sha256'}
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
                          'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default',
@@ -673,7 +678,7 @@ def validate_tool_arguments(name, args):
             raise ValidationError('editor marker run_dir cannot contain traversal components')
     if name in {'corpus', 'corpus_split'} and any(part == '..' for part in args['manifest'].split('/')):
         raise ValidationError('corpus manifest cannot contain traversal components')
-    if name in {'marked_video', 'basic_pitch_compare'}:
+    if name in TRAVERSAL_GUARDED_RUN_TOOLS:
         for field in (('run_dir', 'output') if name == 'marked_video' else ('run_dir',)):
             if '\\' in args[field] or '..' in args[field].split('/'):
                 raise ValidationError('marked video directories cannot contain traversal or backslash components')
@@ -842,6 +847,14 @@ def worker_command(name, args):
         # The worker owns its pinned isolated ONNX launcher. Neither an MCP
         # argument nor the analysis-interpreter environment selects that child.
         return command
+    if name == 'beat_this_compare':
+        # No model, runtime or network argument exists: the worker resolves the registry-verified
+        # local checkpoint itself and refuses (typed) before any inference when it is unregistered.
+        return head + [str(ROOT / 'scripts/beat_this_compare.py'), 'compare', '--run-dir', basic_pitch_directory(args['run_dir'])]
+    if name == 'guitar_noul_decide':
+        # The gateway URL and the V6 real-take switch stay environment-only; the worker owns every refusal.
+        request = {'run_dir': args['run_dir'], 'windows': args['windows'], 'timeout_seconds': args['timeout_seconds']}
+        return head + [str(ROOT / 'scripts/guitar_noul_client.py'), '--request-json', json.dumps(request)]
     if name == 'editor_marker_plan':
         return head + [str(ROOT / 'scripts/editor_marker_plan.py'), editor_marker_inputs(args),
                        args['selection'], args['profile'], '--summary']
@@ -943,7 +956,7 @@ def worker_command(name, args):
     raise ToolError('tool has no allowlisted worker')
 
 
-def run_worker(command, timeout, error_json_tool=None):
+def run_worker(command, timeout, error_json_tool=None, refusal_tool=None):
     if not Path(command[1]).is_file():
         raise ToolError('implementation worker is unavailable; no analysis was performed')
     # File-backed output avoids allocating all worker logs in memory. Workers are fixed,
@@ -989,6 +1002,20 @@ def run_worker(command, timeout, error_json_tool=None):
         stderr.seek(max(0, stderr_size - 2500))
         error_tail = stderr.read().decode('utf-8', errors='replace')
         if process.returncode:
+            if refusal_tool is not None:
+                stdout.seek(0)
+                try:
+                    refused = strict_json(stdout.read().decode('utf-8'))
+                except (UnicodeError, ValueError):
+                    refused = None
+                code = refused.get('refusal_code') if isinstance(refused, dict) else None
+                if (isinstance(refused, dict) and refused.get('status') == 'refused' and isinstance(code, str)
+                        and 1 <= len(code) <= 64 and all(character in 'abcdefghijklmnopqrstuvwxyz_' for character in code)):
+                    message = refused.get('message')
+                    raise ToolError(f'{refusal_tool} refused: {code}', receipt={
+                        'status': 'refused', 'tool': refusal_tool, 'refusal_code': code,
+                        'message': message[:1000] if isinstance(message, str) else None,
+                        'worker_returncode': process.returncode})
             if error_json_tool == 'capture_profile':
                 stdout.seek(0)
                 try:
@@ -1205,6 +1232,8 @@ def execute(name, arguments):
             raise ToolError(message, receipt=receipt) from error
     elif name == 'capture_profile':
         result = run_worker(worker_command(name, arguments), timeout, error_json_tool=name)
+    elif name in TYPED_REFUSAL_TOOLS:
+        result = run_worker(worker_command(name, arguments), timeout + TYPED_REFUSAL_TOOLS[name], refusal_tool=name)
     elif name == 'report_bundle':
         result = classify_report_bundle_result(run_report_bundle_worker(worker_command(name, arguments), timeout))
     elif name == 'share_export':

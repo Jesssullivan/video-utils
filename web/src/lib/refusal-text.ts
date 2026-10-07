@@ -27,7 +27,7 @@ const TEXT: Readonly<Record<string, string>> = {
 	queue_full: 'The job queue is full; wait for a queued job to start.',
 	not_retryable: 'Only failed or interrupted jobs can be retried.',
 	prior_worker_alive: 'An earlier worker may still be running; it is not signalled by the service.',
-	tool_not_admitted: 'Only share_export is admitted as a web job.',
+	tool_not_admitted: 'This tool is not on the web job allowlist.',
 	unknown_job: 'This job id is not known to the control API.',
 	artifact_private: 'This artifact is listed but never served (it records host paths).',
 	artifact_stale: 'The published artifact bytes changed; it is not served.',

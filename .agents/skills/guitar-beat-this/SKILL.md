@@ -1,17 +1,19 @@
 ---
 name: guitar-beat-this
-description: DRAFT (S3 model_lanes, not admitted). Compare Beat This (CPJKU final0) beat and downbeat hypotheses against the project click grid on a verified run or generated fixture, through an isolated Linux CPU runtime and a registry-verified local checkpoint; meter, intended tempo and real-take accuracy stay unknown.
+description: Compare Beat This (CPJKU final0) beat and downbeat hypotheses against the project click grid on a verified run or generated fixture, through an isolated Linux CPU runtime and a registry-verified local checkpoint; meter, intended tempo and real-take accuracy stay unknown.
 ---
 
 # Compare learned beat hypotheses (Beat This, experimental)
 
-**Status:** draft. Root still has to admit three things:
-- the `program/tools.json` descriptor `beat_this_compare`;
-- the MCP hook;
-- the `just` recipes.
+**Hook:** MCP tool `beat_this_compare` (admitted as tool 41, experimental).
+Fallback: `just beat-this-compare "<run-dir>"`.
 
-Until then, call the worker directly. It is never a default detector and never
-replaces `rhythm`/`bpm`/`clicks` output.
+**Status:** the descriptor, MCP hook and `just` recipes are admitted. The model
+is **not** registered: `program/models.json` has no `cpjku-beat-this-final0`
+entry until root's explicit hash-bound fetch, so every call currently refuses
+with `model_not_registered`. That refusal is the designed behaviour, not a
+fault. The tool is never a default detector and never replaces
+`rhythm`/`bpm`/`clicks` output.
 
 ## Intent
 
@@ -39,7 +41,13 @@ verdict.
 
 ## Use
 
+Through MCP the only arguments are `run_dir` (required) and `timeout_seconds`
+(1-900, default 660). A refusal arrives as a tool error whose receipt carries
+`refusal_code`.
+
 ```sh
+just beat-this-compare artifacts/runs/<run>
+just beat-this-runtime-check
 python3 scripts/beat_this_compare.py compare --run-dir artifacts/runs/<run>
 python3 scripts/beat_this_compare.py compare --fixture-wav artifacts/s2/model_lanes/fixtures/<suite>/cases/<case>.wav \
     [--generated-truth artifacts/s2/model_lanes/fixtures/<suite>/truth/<case>.json]   # dev suites only

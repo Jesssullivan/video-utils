@@ -166,6 +166,7 @@ TOOL_AREAS = {
     'corpus_split': 'corpus_eval', 'editor_marker_export': 'delivery', 'annotation_markers': 'review',
     'flags_triage': 'review', 'corpus_eval_s2': 'corpus_eval', 'marked_compact': 'delivery',
     'phrase_timing': 'phrase_rhythm', 'tone_ab': 'review', 'report_bundle': 'pipeline_report',
+    'beat_this_compare': 'phrase_rhythm', 'guitar_noul_decide': 'analysis',
 }
 AREAS = ('restoration', 'analysis', 'phrase_rhythm', 'pitch', 'review', 'delivery', 'corpus_eval',
          'pipeline_report')
