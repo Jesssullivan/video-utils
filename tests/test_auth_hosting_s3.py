@@ -561,6 +561,9 @@ class AllowlistModeGateTests(unittest.TestCase):
 # --------------------------------------------------------------------------------------
 
 STUB_BUILD = "console.log(JSON.stringify({ started: true, host: process.env.HOST }));\n"
+# Tailnet mode imports the adapter handler (not index.js) so the gate runs before static files.
+STUB_HANDLER = ("console.log(JSON.stringify({ started: true, host: process.env.HOST }));\n"
+                "process.exit(0);\nexport const handler = () => {};\n")
 TAILNET_ENV = {
     "VIDEO_UTILS_AUTH_MODE": "tailnet",
     "VIDEO_UTILS_CF_ACCESS_TEAM_DOMAIN": "videoutils-test.cloudflareaccess.com",
@@ -585,6 +588,7 @@ class LauncherTests(unittest.TestCase):
         (cls.root / "package.json").write_text('{"type": "module"}\n')
         (cls.root / "build").mkdir()
         (cls.root / "build" / "index.js").write_text(STUB_BUILD)
+        (cls.root / "build" / "handler.js").write_text(STUB_HANDLER)
         shutil.copytree(AUTH, cls.root / "src" / "lib" / "server" / "auth")
 
     @classmethod
@@ -771,6 +775,10 @@ class HooksStaticTests(unittest.TestCase):
         self.assertNotIn("locals", hooks.split("export const handle", 1)[1])
         serve = (WEB / "serve.js").read_text()
         self.assertLess(serve.index("process.exit(REFUSAL_EXIT_CODE)"), serve.index("import('./build/index.js')"))
+        self.assertLess(serve.index("process.exit(REFUSAL_EXIT_CODE)"), serve.index("import('./build/handler.js')"))
+        tailnet = serve.split("if (mode === 'tailnet') {", 2)[-1]
+        self.assertLess(tailnet.index("await gateRequest("), tailnet.index("handler(req, res"),
+                        "tailnet mode gates every request before the adapter handler serves static files")
 
     def test_l4_untrusted_identity_inputs_never_read(self) -> None:
         sources = {p.name: p.read_text() for p in AUTH.glob("*.js")}

@@ -1017,14 +1017,22 @@ class StaticAssetObservationTests(unittest.TestCase):
             if not server.wait_listening():
                 self.fail(f"O1: server did not listen: {server.stderr_text()[-2000:]}")
             control = _request(port, PUBLIC_HOST, None, "/")
-            for oid, path in (("O1a", "/favicon.svg"), ("O1b", "/_app/version.json")):
-                resp = _request(port, PUBLIC_HOST, None, path)
+            immutable = sorted((WEB / "build" / "client" / "_app" / "immutable").rglob("*.js"))
+            self.assertTrue(immutable, "web/build has no immutable client bundle")
+            bundle = "/" + immutable[0].relative_to(WEB / "build" / "client").as_posix()
+            # Root fix (serve.js gates every request before adapter-node's static handler): static files
+            # now answer exactly like pages, 403 without an identity and 421 on a wrong Host.
+            for oid, host, path, expected in (("O1a", PUBLIC_HOST, "/favicon.svg", 403),
+                                              ("O1b", PUBLIC_HOST, "/_app/version.json", 403),
+                                              ("O1c", PUBLIC_HOST, bundle, 403),
+                                              ("O1d", "evil.example.org", "/favicon.svg", 421)):
+                resp = _request(port, host, None, path)
                 _SESSION["observations"].append({
-                    "id": oid, "path": path, "spec_expectation_auth_hosting_4_5": 403, "build_reading_prediction": 200,
+                    "id": oid, "path": path, "spec_expectation_auth_hosting_4_5": expected,
                     "observed_status": resp["status"], "observed_content_type": resp["content_type"],
                     "control_root_status": control["status"]})
                 with self.subTest(observation=oid):
-                    self.assertIn(resp["status"], (200, 403))
+                    self.assertEqual(resp["status"], expected)
             self.assertEqual(control["status"], 403)
             self.assertEqual(len(_lines(files.attempts)), 0)
             self.assertEqual(len(_lines(files.egress)), 0)

@@ -57,4 +57,48 @@ if (mode === '') {
 	process.exit(REFUSAL_EXIT_CODE);
 }
 
-await import('./build/index.js');
+if (mode === 'tailnet') {
+	// adapter-node's own entry serves build/client (/_app/*, favicon, version.json) through sirv BEFORE
+	// the SvelteKit hooks run, so the hook gate alone would leave static files reachable without an
+	// Access identity. In tailnet mode this wrapper applies the same gate to EVERY request first and
+	// only then hands it to the adapter's handler; the hooks still gate again (defence in depth).
+	const http = await import('node:http');
+	const { gateRequest, CF_ACCESS_JWT_HEADER } = await import('./src/lib/server/auth/gate.js');
+	const { handler } = await import('./build/handler.js');
+	const NO_STORE = { 'content-type': 'application/json', 'cache-control': 'no-store' };
+	const server = http.createServer(async (req, res) => {
+		let decision;
+		try {
+			const assertion = req.headers[CF_ACCESS_JWT_HEADER];
+			decision = await gateRequest({
+				env: { ...process.env },
+				host: req.headers.host ?? null,
+				assertion: typeof assertion === 'string' ? assertion : null
+			});
+		} catch {
+			decision = null;
+		}
+		if (decision === null || decision.action !== 'resolve') {
+			const status = decision === null ? 503 : decision.httpStatus;
+			const body = decision === null ? { status: 'error', code: 'bff_auth_unconfigured',
+				message: 'This app is not configured for hosted access.', upstream_status: null, upstream_code: null,
+				upstream_detail_code: null } : decision.error;
+			res.writeHead(status, NO_STORE);
+			res.end(JSON.stringify(body));
+			return;
+		}
+		handler(req, res, () => {
+			res.writeHead(404, NO_STORE);
+			res.end('{"status":"error","code":"not_found"}');
+		});
+	});
+	const port = Number.parseInt(process.env.PORT || '3000', 10);
+	server.listen(port, process.env.HOST, () => {
+		console.log(`Listening on http://${process.env.HOST}:${port} (tailnet mode, gate before static files)`);
+	});
+	const close = () => server.close(() => process.exit(0));
+	process.once('SIGTERM', close);
+	process.once('SIGINT', close);
+} else {
+	await import('./build/index.js');
+}

@@ -376,3 +376,18 @@ These are the deliberate deviations from, or readings of, the frozen text:
 7. **hooks.server.ts** imports `CF_ACCESS_JWT_HEADER` and `gateRequest` from `gate.js` only (L3).
    It passes `LOOPBACK_HOST` from `$lib/server/http` into the gate, which keeps the S2 refusal body
    unchanged: same code, same message, same six keys, same `no-store` header.
+
+## Root amendment 2026-10-07: gate before static files
+
+Audit finding (auth_hosting and auth_token lanes): adapter-node's entry serves
+`build/client` (`/_app/immutable/*`, `/_app/version.json`, `/favicon.svg`)
+through sirv before the SvelteKit hooks run, so "every path" in the tables above
+did not hold for static files. In tailnet mode, `web/serve.js` now imports
+`build/handler.js` and runs `gateRequest` on every request before handing it to
+the adapter handler. Static files answer 421 on a wrong Host, 503 when the
+configuration is invalid and 403 without an approved identity, exactly like
+pages. The hooks still gate again. The JWKS cache registry is keyed on a
+process-global symbol so the source and bundled copies of `cf-access.js` share
+one cache per team domain. Regression: `tests/test_auth_token_s3.py`
+O1a–O1d and the ordering assertions in `tests/test_auth_hosting_s3.py` L3.
+Loopback mode is unchanged.

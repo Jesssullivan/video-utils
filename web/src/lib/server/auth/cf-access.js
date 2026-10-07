@@ -263,11 +263,15 @@ export function createJwksCache({ jwksUrl, fetchImpl, nowMs }) {
 	return { resolveKey, stats };
 }
 
+// Process-wide registry. serve.js (tailnet mode) gates with the source copy of this module and the
+// built hooks gate with the bundled copy; keying the registry on a global symbol keeps ONE cache per
+// team domain across both copies, so a JWKS document is fetched once, not once per copy.
+const SHARED_CACHES_KEY = Symbol.for('video-utils.cf-access.jwks-caches');
 /** @type {Map<string, ReturnType<typeof createJwksCache>>} */
-const sharedCaches = new Map();
+const sharedCaches = (/** @type {any} */ (globalThis)[SHARED_CACHES_KEY] ??= new Map());
 
 /**
- * The process-wide JWKS cache for a team domain (module-level, one per domain).
+ * The process-wide JWKS cache for a team domain (one per domain, shared across module copies).
  * @param {string} teamDomain
  * @param {string} jwksUrl
  */
