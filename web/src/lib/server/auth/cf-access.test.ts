@@ -1,10 +1,11 @@
 // Cloudflare Access assertion verification with a key generated at test run time (WEB_TESTS_S3.md 5.1; W6).
-// 1 accepted token, 11 refusals and 3 JWKS cache cases. No key is written anywhere; the JWKS is exported as JWK.
+// 1 accepted token, 11 refusals and 4 JWKS cache cases (16 is the AUTH_TOKEN_S3 D1 regression). No key is written anywhere; the JWKS is exported as JWK.
 import { createHmac, generateKeyPairSync, sign as cryptoSign, type KeyObject } from 'node:crypto';
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
 	CLOCK_SKEW_SECONDS,
 	JWKS_FRESH_TTL_MS,
+	JWKS_MAX_BODY_BYTES,
 	JWKS_MAX_STALE_MS,
 	JWKS_REFETCH_COOLDOWN_MS,
 	MAX_ASSERTION_BYTES,
@@ -188,5 +189,23 @@ describe('createJwksCache', () => {
 		never.state.fail = true;
 		expect(await never.cache.resolveKey(KID)).toBeNull();
 		expect(never.cache.stats).toEqual({ fetches: 1, failures: 1 });
+	});
+
+	// Regression (AUTH_TOKEN_S3 section 12, defect D1): an unread, paused undici body whose socket then
+	// closed crashed the whole server process; every early exit must cancel the body it does not read.
+	it('16. a declared-oversize or non-OK JWKS response has its unread body cancelled', async () => {
+		for (const [status, length] of [[200, JWKS_MAX_BODY_BYTES + 1], [503, JWKS_MAX_BODY_BYTES + 1], [503, 10]] as const) {
+			let cancelled = 0;
+			const body = new ReadableStream<Uint8Array>({
+				cancel: () => {
+					cancelled += 1;
+				}
+			});
+			const fetchImpl = async () => new Response(body, { status, headers: { 'content-length': String(length) } });
+			const cache = createJwksCache({ jwksUrl: JWKS_URL, fetchImpl, nowMs: () => 1_000_000 });
+			expect(await cache.resolveKey(KID)).toBeNull();
+			expect(cache.stats).toEqual({ fetches: 1, failures: 1 });
+			expect(cancelled).toBe(1);
+		}
 	});
 });

@@ -117,6 +117,15 @@ async function verifyUnsafe(token, { issuer, auds, resolveKey, nowSeconds }) {
 }
 
 /**
+ * Release an unread response body. An unconsumed, paused undici body whose socket then closes trips
+ * an internal assertion that crashes the process (AUTH_TOKEN_S3 E13), so every early exit cancels it.
+ * @param {Response} response
+ */
+async function discardBody(response) {
+	await response.body?.cancel().catch(() => undefined);
+}
+
+/**
  * Read a response body with a hard byte cap.
  * @param {Response} response
  * @param {number} cap
@@ -124,7 +133,10 @@ async function verifyUnsafe(token, { issuer, auds, resolveKey, nowSeconds }) {
  */
 async function readCapped(response, cap) {
 	const declared = Number(response.headers.get('content-length') ?? 'NaN');
-	if (Number.isFinite(declared) && declared > cap) return null;
+	if (Number.isFinite(declared) && declared > cap) {
+		await discardBody(response);
+		return null;
+	}
 	if (!response.body) return '';
 	const reader = response.body.getReader();
 	/** @type {Uint8Array[]} */
@@ -207,7 +219,10 @@ export function createJwksCache({ jwksUrl, fetchImpl, nowMs }) {
 				headers: { accept: 'application/json' },
 				signal: AbortSignal.timeout(JWKS_FETCH_TIMEOUT_MS)
 			});
-			if (!response.ok) throw new Error('jwks_http_status');
+			if (!response.ok) {
+				await discardBody(response);
+				throw new Error('jwks_http_status');
+			}
 			const text = await readCapped(response, JWKS_MAX_BODY_BYTES);
 			if (text === null) throw new Error('jwks_too_large');
 			const parsed = parseJwks(text);
