@@ -1,0 +1,182 @@
+{
+  "lane": "bazel_full",
+  "branch": "sprint/20261007-s3/bazel_full",
+  "head": "2df85468e8140cb08da74313f9213c880e61a719",
+  "base_commit": "0ea22c3ab6028314b3c338ac5b67834944d3a6d8",
+  "worktree": ".local/sprint3/bazel_full",
+  "state": "implemented_tested_audit_findings",
+  "files": [
+    {"path": ".bazelrc", "sha256": "0dfae71b21ecd753a9cc391040ee656ade0c321d7ab39a76b4f4cfc57cdcebd9", "kind": "source"},
+    {"path": "BUILD.bazel", "sha256": "801e4f79a60d54d34e3530d8f50a09d9f1e1e5a066bac5cee6cd4fbc534b07c0", "kind": "source"},
+    {"path": "MODULE.bazel", "sha256": "b0888f8a0b43f4c7a2998e4348384a985e7d2d7e583f26adb26bd1d97d771c12", "kind": "source"},
+    {"path": "bazel/BUILD.bazel", "sha256": "527af7965c5e6a82eb5a9d91851c518ef7e9e3a8fefb8e399b6e82175adb3004", "kind": "source"},
+    {"path": "bazel/ci-bazel-full.draft.yml", "sha256": "1dae3cd586577bf32dc0828ba5838bf8a3cee9334faa450be799ac6189453949", "kind": "source"},
+    {"path": "bazel/full_run_report.py", "sha256": "5f6d7944b54dda82648753f4398a9cc1b7a0b42d63f05b78fe64e12a32dfc5b5", "kind": "source"},
+    {"path": "bazel/host_gate.py", "sha256": "f51deaa0f6ae9eb0182a8da4f34baca3c0c47fafb5172ea2d9f6a78ac243a0ec", "kind": "source"},
+    {"path": "bazel/known_host_failures.json", "sha256": "6f3b4edfbeae289d0b36c550a944ba0ffe7667043bf1204fafd6fabddfb07759", "kind": "source"},
+    {"path": "bazel/site_build.mjs", "sha256": "4ed6b2c0817c67fec14ab6cca8af93958fd781e7d033859bb7b1db722b6ec4b5", "kind": "source"},
+    {"path": "bazel/test_classification_s3_full.json", "sha256": "af25c7ee9b9a1037ca709e7e182e67d47944569579814397db606e7f8b9ec0f9", "kind": "source"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/bazel_full-contract-freeze.json", "sha256": "a6ab5329f6f4a6119439b72175e12c2ccd2a66f8e1acff3e1b7bf89fda066f66", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/bazel_full-full-run.json", "sha256": "920683d4dde35a59d82a1c64eac5fc5e63a7c0ac7fef5b14083fd670adfc30b9", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/bazel_full-handoff.json", "sha256": "73c1de4fa9cc2d1d62ca76fa40410bb43f834f22224b2da65729d0b5e5bf43e7", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/bazel_full-host-gate.json", "sha256": "d024973ef2e306e6e748286226449c84dc8bbb311cb3a4e8456ae5288c95ac4a", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/bazel_full-known-host-failures.json", "sha256": "6d9a9bd30d6dfe885b0d484cb6e326cd14787abacc7bcb84c8ee07c0cdb96554", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/bazel_full-root-requests.json", "sha256": "5ab65a86b53ba284731c2b39b56b0df4573922487f68e6e3b930b7c1a4508a2a", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/bazel_full-site.json", "sha256": "8ffec4e46b49ac4becbba932d23ded789608452ec93f459b4080c3d1e0427cad", "kind": "receipt"},
+    {"path": "docs/agent-notes/sprints/20261007-s3/bazel_full-tests.json", "sha256": "309673102cb22854ea0d9fc64f884b66bbeadf3eca008010d8d4831d9fcdcf29", "kind": "receipt"},
+    {"path": "docs/spec/sprints/BAZEL_FULL_S3.md", "sha256": "8e9ece51dd75c6cfd6895283bb53fc167261237c3959b54972560a4d9627d73a", "kind": "spec"},
+    {"path": "just/bazel.just", "sha256": "bd357c4e81f330a638aa7f5e5e6b7da00930ad7a5281247a20d88de27cc101f1", "kind": "source"},
+    {"path": "site/BUILD.bazel", "sha256": "67010f1e6ab75928e76d267a113bef1efd1cca3e8eca70cb77b5c6e728650415", "kind": "source"},
+    {"path": "tests/BUILD.bazel", "sha256": "3426ddf409ca352132f2b5d34bf00299c0a054203b4a3a934ee3d663013e10ea", "kind": "test"},
+    {"path": "tests/test_bazel_graph_s3.py", "sha256": "3d4f26e148bc070be1617ff380ead380b7045c9fbb3d398d8aca29af270d1049", "kind": "test"},
+    {"path": "web/BUILD.bazel", "sha256": "31131915977609cdedb2a0b337e598e2f29c8228f23f5b67e2be32c7035fa6b5", "kind": "source"}
+  ],
+  "tests": {
+    "command": "cd .local/sprint3/bazel_full && export FFMPEG=... FFPROBE=... && PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v",
+    "discovered": 50,
+    "passed": 49,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 1,
+    "seconds": 8.23
+  },
+  "metrics": [
+    {
+      "name": "py_test_coverage",
+      "numerator": 98,
+      "denominator": 98,
+      "unit": "modules",
+      "claim_class": "measured"
+    },
+    {
+      "name": "bazel_full_run_targets_total",
+      "numerator": 104,
+      "denominator": 104,
+      "unit": "targets",
+      "claim_class": "measured"
+    },
+    {
+      "name": "bazel_full_run_passed",
+      "numerator": 94,
+      "denominator": 104,
+      "unit": "targets",
+      "claim_class": "measured"
+    },
+    {
+      "name": "bazel_full_run_failed",
+      "numerator": 9,
+      "denominator": 104,
+      "unit": "targets",
+      "claim_class": "measured"
+    },
+    {
+      "name": "bazel_full_run_timeout",
+      "numerator": 1,
+      "denominator": 104,
+      "unit": "targets",
+      "claim_class": "measured"
+    },
+    {
+      "name": "cases_ran",
+      "numerator": 1814,
+      "denominator": 1814,
+      "unit": "test_cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "cases_skipped",
+      "numerator": 121,
+      "denominator": 1935,
+      "unit": "test_cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "known_host_failures",
+      "numerator": 10,
+      "denominator": 20,
+      "unit": "cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "hosted_runtime_cold_inference_min",
+      "numerator": 30,
+      "denominator": 50,
+      "unit": "minutes",
+      "claim_class": "inferred"
+    },
+    {
+      "name": "hosted_runtime_warm_inference_min",
+      "numerator": 15,
+      "denominator": 25,
+      "unit": "minutes",
+      "claim_class": "inferred"
+    }
+  ],
+  "unknowns": [
+    "Linux Bazel hosted behavior until first run",
+    "site/BUILD.bazel gates require R1-R3 applied to run",
+    "net impact of high host load on full run timing"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "site/pnpm-workspace.yaml",
+      "change": "R1: append `# Required by rules_js for pnpm 11 (S3 bazel_full //site); an empty map allows no build scripts.` and `allowBuilds: {}` after `verifyDepsBeforeRun: error`",
+      "why": "rules_js 3.5.1 refuses a pnpm 11 lock without allowBuilds and fails the whole npm extension; an empty map allows no lifecycle scripts"
+    },
+    {
+      "file": ".bazelignore",
+      "change": "R2: replace the line `site/vendor` with `site/vendor/xoxd-theme/test`",
+      "why": "rules_js links the lock's file:vendor/<dir> dependencies to //site/vendor/<dir>:pkg; only the theme's own test package must stay ignored"
+    },
+    {
+      "file": ".bazelrc",
+      "change": "R3: delete `common --ignore_dev_dependency` and `common --deleted_packages=site` (the site gate lines)",
+      "why": "test_bazel_graph_s3 requires the gate while R1 or R2 is missing and fails after R1+R2 until these lines go"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "change": "R4: add the non-blocking `bazel` job with 83 Python modules, 5 Rust tests, //web:svelte_check_test and //site:svelte_check_test after R1-R3 = 89-90 targets; timeout-minutes 90, continue-on-error",
+      "why": "Hosted Bazel coverage; expected runtime cold 30-50 min, warm 15-25 min"
+    },
+    {
+      "file": "scripts/tool_api.py",
+      "change": "R6: add `guarded_parts(value)` and use it instead of `value.split('/')` in hidden/staging/traversal guards for apply_capture_profile, arrangement_reference and calibration evaluator fields",
+      "why": "The guard rejects any path component starting with '.', so every checkout under .local/ fails 8 known dot_path_component cases (product_defect)"
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261007-s3/bazel_full-contract-freeze.json",
+    "docs/agent-notes/sprints/20261007-s3/bazel_full-full-run.json",
+    "docs/agent-notes/sprints/20261007-s3/bazel_full-handoff.json",
+    "docs/agent-notes/sprints/20261007-s3/bazel_full-host-gate.json",
+    "docs/agent-notes/sprints/20261007-s3/bazel_full-known-host-failures.json",
+    "docs/agent-notes/sprints/20261007-s3/bazel_full-root-requests.json",
+    "docs/agent-notes/sprints/20261007-s3/bazel_full-site.json",
+    "docs/agent-notes/sprints/20261007-s3/bazel_full-tests.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": false
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "Scope (check 1) holds: git diff --name-only 549a14d...HEAD lists 24 files, all in the owned set (MODULE.bazel, .bazelrc, BUILD.bazel, bazel/*, site/BUILD.bazel and web/BUILD.bazel under **/BUILD.bazel, just/bazel.just, tests/BUILD.bazel, tests/test_bazel_graph_s3.py, docs/spec/sprints/BAZEL_FULL_S3.md, docs/agent-notes/sprints/20261007-s3/bazel_full-*.json). MODULE.bazel.lock is unchanged. scripts/tool_api.py, program/tools.json, just/workflow.just and .github/workflows/ci.yml are not edited. The root BUILD.bazel only adds an exports_files entry so //site can read program/tools.json.",
+      "Owned-module rerun (check 4) matches the claim: PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v with the nix FFMPEG/FFPROBE ran 50 tests in 8.6 s, OK (skipped=1). The only skip is the shim marker case. That is 50/49/0/0/1, the same as claimed.",
+      "Arithmetic (check 6) reproduces from the per_target array in bazel_full-full-run.json. The 104 targets split 94 PASSED + 9 FAILED + 1 TIMEOUT, and 94+9+1=104. Summing the 97 parsed modules gives ran 1814, skipped 121, failures 3, errors 18.",
+      "The R4 target-set arithmetic checks out. HOST_TOOL_TESTS in tests/BUILD.bazel lists 16 modules, so 98-16 = 82 Python + 5 Rust + //web = 88 targets, or 89 with //site.",
+      "The R4 ci.yml diff passes git apply --check against current main's ci.yml. Its action SHAs equal main's existing pins. Its diff_against field cites 9154f8a, but the last ci.yml change on main is 2600e09; this is harmless but stale metadata.",
+      "The R6 diff passes git apply --check against scripts/tool_api.py. The cited raising lines are correct. The current code refuses ROOT/artifacts/benchmarks/x/i.json and the fixed code accepts it. The product_defect verdict is supported.",
+      "DoD (2) is only met conditionally. //site:svelte_check_test and //site:build passed only in a transient scratch copy with root requests R1, R2 and R3 applied. In the committed tree //site is deleted.",
+      "The full run was at 3047790, before the //web:svelte_check_test fix in 9e0f815. The fix was checked only by a 5-target diagnostic run at 3b0b597. No full bazel test //... has run at HEAD b8c047c.",
+      "Doctrine (checks 3 and 5) holds. No DSP, profile, detector or default change. There are no high-pass or notch defaults. bazel_replaces_just is false and BAZEL_FULL_S3.md:20 keeps just as the operator entrypoint.",
+      "Writes and artifacts (check 2): the run artifacts are at artifacts/s2/bazel_full/{full,diag,diag2,repro,lane-tests}, which is gitignored and local only."
+    ],
+    "must_fix": [
+      "Merging into current main breaks the structural test and hosted CI. Since the merge-base (549a14d), main has added tests/test_take_intake.py and tests/test_timing_calibration.py, so main now has 100 modules. Overlaying the lane's changed files on git archive main in /tmp and running PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 results in FAILED (failures=1) in test_classification_supplement_covers_the_added_modules_with_reasons, with 'supplement module_count_at_supplement 98 != 100 modules'. Fix: rebase onto main, classify both modules with reasons in bazel/test_classification_s3_full.json, set module_count_at_supplement to 100, update the tests/BUILD.bazel lists, and update the counts in the receipts (98 to 100)."
+    ]
+  },
+  "dropped_scope": []
+}

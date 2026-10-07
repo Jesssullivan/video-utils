@@ -1,0 +1,115 @@
+{
+  "schema": "vu.bazel_full.test_classification_supplement.v1",
+  "lane": "bazel_full",
+  "sprint": "20261007-s3",
+  "recorded": "2026-10-07",
+  "contract": "docs/spec/sprints/BAZEL_FULL_S3.md section 2 (ownership note) and section 12",
+  "supplements": "tools/bazel/test_classification.json (bazel_graph, 95 modules at classification); that file is reused read-only",
+  "method": "Read of the five test modules added since the bazel_graph classification (git diff --name-status f44f962..549a14d -- tests/ for the first three at the lane baseline; git diff --name-status 549a14d..0ea22c3 -- tests/ for test_take_intake and test_timing_calibration, added on main and classified after the Phase 4 rebase): every FFmpeg/FFprobe, node/pnpm/git, artifacts/ and web/ or site/ reference located with grep, then the surrounding code read to separate real execution from string fixtures. The executed behaviour under Bazel of the first three is recorded in docs/agent-notes/sprints/20261007-s3/bazel_full-full-run.json; the two rebase additions were not part of that run (see its rebase_onto_main section). Root classified test_auth_token_s3 and test_stems_estimate at integration (merged on main after the lane returned) by reading their imports, subprocess calls and paths.",
+  "claim_classes": {
+    "tags_present": "measured by tests/test_bazel_graph_s3.py",
+    "completeness": "inference",
+    "behaviour_under_bazel": "measured by the single full run (bazel_full-full-run.json)"
+  },
+  "module_count_at_supplement": 102,
+  "added_modules": [
+    "test_auth_token_s3",
+    "test_public_site_s3",
+    "test_s3_tool_admission",
+    "test_stems_estimate",
+    "test_take_intake",
+    "test_timing_calibration",
+    "test_web_house_stack_s3"
+  ],
+  "classes": {
+    "ffmpeg": {
+      "tag": "requires-ffmpeg",
+      "modules": [
+        "test_stems_estimate",
+        "test_take_intake",
+        "test_timing_calibration"
+      ],
+      "reasons": {
+        "test_take_intake": "builds synthetic .mov fixtures with a real FFmpeg (lavfi testsrc2) and runs scripts/take_intake.py, which probes and decodes them; media tests skip with reason ffmpeg_unavailable when neither FFMPEG/FFPROBE nor the hash-pinned Nix path resolves",
+        "test_timing_calibration": "test_p2_cli_analyze_on_wav decodes a generated WAV through FFmpeg via scripts/media.py; skipUnless FFMPEG and FFPROBE are exported (pass --test_env=FFMPEG --test_env=FFPROBE)",
+        "test_stems_estimate": "M7a renders a synthetic 32.7 Hz excerpt through FFmpeg resampling (FFMPEG env or PATH); the rest run on a temporary root with fake separators and no FFmpeg"
+      }
+    },
+    "host_tools": {
+      "tag": "requires-host-tools",
+      "modules": [
+        "test_auth_token_s3",
+        "test_public_site_s3",
+        "test_s3_tool_admission",
+        "test_take_intake"
+      ],
+      "reasons": {
+        "test_public_site_s3": "runs `node site/scripts/leak-scan.mjs`, `pnpm run check`/`pnpm run build` in site/ (skips when site/node_modules is absent) and `git ls-files`",
+        "test_s3_tool_admission": "runs `git ls-files -- models` when git resolves (unchecked, never passed, when absent)",
+        "test_take_intake": "falls back to the hash-pinned Nix FFmpeg/FFprobe path when FFMPEG/FFPROBE are unset, runs `git init` (skips git_unavailable on failure), and scripts/take_intake.py resolves git from PATH for its tracked-path check",
+        "test_auth_token_s3": "starts the built adapter-node server with `node serve.js` in tailnet mode and a loopback JWKS server"
+      }
+    },
+    "exclusive": {
+      "tag": "exclusive",
+      "modules": [
+        "test_public_site_s3"
+      ],
+      "reasons": {
+        "test_public_site_s3": "removes and rebuilds the checkout's site/build and site/.svelte-kit through pnpm when site/node_modules is installed (the site analogue of the web/ criterion)"
+      }
+    },
+    "workspace_artifacts": {
+      "tag": "workspace-artifacts",
+      "modules": [
+        "test_auth_token_s3",
+        "test_public_site_s3",
+        "test_s3_tool_admission",
+        "test_take_intake",
+        "test_timing_calibration",
+        "test_web_house_stack_s3"
+      ],
+      "reasons": {
+        "test_public_site_s3": "lists artifacts/runs/ (and the main checkout's) to build its private-identifier needles",
+        "test_s3_tool_admission": "starts scripts/beat_this_compare.py against artifacts/runs/absent-s3-admission and reads models/ (both ignored, undeclared trees)",
+        "test_take_intake": "creates and removes artifacts/s2/take_intake/tests-<pid>/ (fixtures, state roots), writes artifacts/s2/take_intake/test-results.json in tearDownModule, and asserts artifacts/runs/take-intake-x is never created; the gated e2e case (TAKE_INTAKE_E2E=1) also writes artifacts/take-intake/",
+        "test_timing_calibration": "the opt-in sealed evaluations (TIMING_CALIBRATION_S3_SEALED_EVAL=1 / _R2=1, not passed by Bazel unless --test_env names them) write artifacts/s2/timing_calibration/sealed/; default cases use temporary directories only. Tagged conservatively so a result is never cached across an artifacts/ change",
+        "test_web_house_stack_s3": "writes artifacts/s2/web_tests/house-stack.json in tearDownModule",
+        "test_auth_token_s3": "writes its case table and server logs under artifacts/s2/auth_token/<stamp>/"
+      }
+    },
+    "web_tree": {
+      "tag": "reads-web-tree",
+      "modules": [
+        "test_auth_token_s3",
+        "test_web_house_stack_s3"
+      ],
+      "reasons": {
+        "test_web_house_stack_s3": "reads web/package.json, web/pnpm-lock.yaml and web/e2e fixtures (and site/ manifests when present)",
+        "test_auth_token_s3": "requires a current web/build (skips when absent or older than web sources); does not rebuild it"
+      }
+    }
+  },
+  "site_tree_readers": {
+    "modules": [
+      "test_bazel_graph_s3",
+      "test_public_site_s3",
+      "test_web_house_stack_s3"
+    ],
+    "note": "//site is not a data dependency of the Python tests, for the same reason as //web (loading it needs the npm lock translation). Every module that reads site/ is already tagged no-cache through workspace-artifacts or reads-web-tree, so no stale cached result can hide a site/ change. A dedicated reads-site-tree tag would need a change to tools/bazel/python.bzl (not owned); not requested because the no-cache property already holds."
+  },
+  "manual": {
+    "modules": [],
+    "note": "No manual tag is added (contract section 4.2)."
+  },
+  "rebase": {
+    "onto": "main 0ea22c3",
+    "previous_baseline": "549a14d",
+    "module_count_at_baseline": 98,
+    "added_on_main": [
+      "test_take_intake",
+      "test_timing_calibration"
+    ],
+    "claim_class": "M (ls tests/test_*.py after rebase: 100)"
+  }
+}

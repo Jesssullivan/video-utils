@@ -1,0 +1,103 @@
+{
+ "lane": "bazel_full",
+ "sprint": "20261007-s3",
+ "tracker": "TIN-5722",
+ "recorded": "2026-10-07",
+ "authority": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N13",
+ "contract": "docs/spec/sprints/BAZEL_FULL_S3.md",
+ "schema": "vu.bazel_full.tests.v1",
+ "runs": [
+  {
+   "command": "PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v (FFMPEG/FFPROBE exported)",
+   "cwd": "lane worktree rebased onto main 0ea22c3 (100 modules)",
+   "ran": 50,
+   "skipped": 1,
+   "skip_reason": "marker case: selected by the shim self-check below",
+   "result": "OK"
+  },
+  {
+   "command": "cargo test --locked -j 1",
+   "cwd": "lane worktree rebased onto main 0ea22c3",
+   "result": "OK",
+   "counts": {
+    "lib": 15,
+    "main": 0,
+    "cli": 7,
+    "dsp": "5 passed, 1 ignored (FFmpeg parity, #[ignore])",
+    "doc": 0
+   }
+  },
+  {
+   "command": "python3 tools/bazel/run.py --timeout 580 test //tests:test_take_intake //tests:test_timing_calibration --config=host-tools --jobs=4 --local_resources=cpu=4 --test_env=FFMPEG=<nix ffmpeg-headless 8.1.2> --test_env=FFPROBE=<nix ffprobe> --test_output=errors --test_summary=detailed --build_event_json_file=<lane artifacts>/rebase/bep.json",
+   "cwd": "lane worktree rebased onto main 0ea22c3",
+   "result": "2 of 2 PASSED",
+   "targets": {
+    "//tests:test_take_intake": {
+     "status": "PASSED",
+     "ran": 34,
+     "skipped": 1,
+     "skip_reasons": {
+      "e2e_gated_set_TAKE_INTAKE_E2E_1": 1
+     },
+     "failures": 0,
+     "errors": 0
+    },
+    "//tests:test_timing_calibration": {
+     "status": "PASSED",
+     "ran": 26,
+     "skipped": 2,
+     "skip_reasons": {
+      "sealed evaluation runs once, on request": 1,
+      "R2 sealed evaluation runs once, on request": 1
+     },
+     "failures": 0,
+     "errors": 0
+    }
+   }
+  },
+  {
+   "command": "PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v",
+   "cwd": "lane worktree",
+   "ran": 50,
+   "skipped": 1,
+   "skip_reason": "marker case: selected by the shim self-check below",
+   "result": "OK"
+  },
+  {
+   "command": "PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v",
+   "cwd": "scratch copy with R1+R2+R3 applied (not a git checkout)",
+   "ran": 50,
+   "skipped": 2,
+   "result": "OK"
+  },
+  {
+   "command": "PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v",
+   "cwd": "lane worktree",
+   "ran": 63,
+   "skipped": 15,
+   "skip_reasons": {
+    "site/node_modules is absent; run `pnpm install --frozen-lockfile` in site/ first (never run by tests)": 14,
+    "private app hostname is null in deploy/cloudflare (private_app_hostname_checked: false)": 1
+   },
+   "result": "OK"
+  },
+  {
+   "command": "PYTHONPATH=tests python3 -m unittest test_web_stack -v",
+   "cwd": "lane worktree",
+   "ran": 33,
+   "skipped": 0,
+   "result": "OK"
+  }
+ ],
+ "structural_additions": [
+  "SiteGraphTest (5)",
+  "RegisterTest (3)",
+  "LaneHelperTest (3)",
+  "CoverageTest supplement case",
+  "NegativeSelfChecks: bazel_full negatives (third translation, Effect 3 / Skeleton 4 site lock, local_path_override outside site/vendor, missing known-failure case, PASS repro, manual tag, expectedFailure in shim, default tag filter, private needle in site/BUILD.bazel), site gate inconsistencies, vendored stray-file states"
+ ],
+ "fixtures": "repository tree; synthetic BEP/unittest logs and gate readings in temp dirs; no media, no seeds, no network",
+ "just_check": "unknown (root runs it)",
+ "full_unittest_suite": "unknown (root runs it)",
+ "pnpm_build": "unknown (root runs it)"
+}

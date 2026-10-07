@@ -1,0 +1,114 @@
+{
+ "lane": "bazel_full",
+ "sprint": "20261007-s3",
+ "tracker": "TIN-5722",
+ "recorded": "2026-10-07",
+ "authority": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N13",
+ "contract": "docs/spec/sprints/BAZEL_FULL_S3.md",
+ "schema": "vu.bazel_full.site.v1",
+ "site_check_under_bazel": "built_in_scratch_copy",
+ "site_build_under_bazel": "built_in_scratch_copy",
+ "committed_tree_state": "declared, gated off by .bazelrc (--deleted_packages=site, --ignore_dev_dependency) until root applies R1+R2 and removes R3",
+ "scratch_copy": "lane HEAD (rsync of tracked files) + R1 site/pnpm-workspace.yaml allowBuilds + R2 .bazelignore + R3 gate lines removed, at a session scratchpad path (no dot-prefixed component); copy is transient",
+ "steps": [
+  {
+   "command": "python3 tools/bazel/run.py --timeout 1800 build //site:sveltekit_types --jobs=4 --local_resources=cpu=4",
+   "exit": 0,
+   "wall_s": 34
+  },
+  {
+   "command": "python3 tools/bazel/run.py --timeout 1800 test //site:svelte_check_test --jobs=4 --local_resources=cpu=4",
+   "exit": 0,
+   "wall_s": 20,
+   "result": "svelte-check found 0 errors and 0 warnings"
+  },
+  {
+   "command": "python3 tools/bazel/run.py --timeout 1800 build //site:build --jobs=4 --local_resources=cpu=4",
+   "exit": 0,
+   "wall_s": 29
+  }
+ ],
+ "metric_9": {
+  "value": "2 of 2 in the scratch copy; 0 of 2 runnable in the committed tree (gated)",
+  "claim_class": "M"
+ },
+ "build_output": {
+  "files": 35,
+  "html_pages": [
+   "404.html",
+   "agents.html",
+   "features.html",
+   "index.html",
+   "status.html"
+  ],
+  "other": [
+   "_headers",
+   "favicon.svg",
+   "agents/__data.json",
+   "_app/version.json",
+   "fonts/ (3)",
+   "_app/immutable (23)"
+  ],
+  "source_maps": 0,
+  "claim_class": "M"
+ },
+ "optional_leak_scan": {
+  "command": "node site/scripts/leak-scan.mjs <bazel-bin>/site/build --surface build",
+  "exit": 0,
+  "result": "surface=build rules=24 files=25 unscannable=10 findings=0",
+  "counted_separately": true,
+  "claim_class": "M"
+ },
+ "site_tree_untouched": {
+  "value": true,
+  "evidence": "no build/, .svelte-kit/ or node_modules/ under the scratch copy's site/ after the three steps",
+  "claim_class": "M"
+ },
+ "site_build_parity_with_pnpm": "not_compared",
+ "site_build_parity_reason": "no site/build exists in the lane worktree or the main checkout, and the lane never runs pnpm install",
+ "site_vendor_carrier_method": "9.3 option 1 (rules_js native first-party link to //site/vendor/<dir>:pkg), conditional on root request R2; options 1-as-frozen and 2 failed",
+ "carrier_attempts": [
+  {
+   "option": "9.3.1 without un-ignoring site/vendor",
+   "outcome": "failed",
+   "error": "ERROR: no such package 'site/vendor/xoxd-public-chrome': Package is considered deleted due to --deleted_packages ... referenced by '//site:.aspect_rules_js/node_modules/@xoxd+public-chrome@1008200163_1840494348'"
+  },
+  {
+   "option": "9.3.2 bazel_dep + local_path_override(site/vendor/<dir>)",
+   "outcome": "failed",
+   "error": "module graph resolved (xoxd modules' aspect_rules_js 2.9.1 resolved against the root's 3.5.1 without error), then ERROR: no such package 'site/vendor/xoxd-theme': Package is considered deleted due to --deleted_packages and referenced by '//site:.aspect_rules_js/node_modules/@xoxd+theme@file+vendor+xoxd-theme'",
+   "why": "rules_js generates `_npm_local_package_store(src = \"//site/vendor/<dir>:pkg\")` for directory-resolved packages and skips replace_packages for them (npm_translate_lock_helpers.bzl:508), so a module label cannot be substituted",
+   "probe": "scratch copy only; reverted"
+  },
+  {
+   "option": "9.3.1 with R2 (.bazelignore exposes the two carrier packages, ignores xoxd-theme/test)",
+   "outcome": "works",
+   "evidence": "steps above"
+  }
+ ],
+ "site_allow_builds_method": "9.2(b): root request R1 (`allowBuilds: {}`); rules_js 3.5.1 has no npm_translate_lock attribute that bypasses _verify_lifecycle_hooks_specified",
+ "site_runner": "bazel/site_build.mjs (owned) for build; //tools/bazel:web/sveltekit.mjs reused unchanged for sync and check",
+ "house_stack_pins": {
+  "skeleton": "5.0.1 x2 (site/package.json = lock importer)",
+  "effect": "absent",
+  "typescript": "6.0.3",
+  "pnpm": "11.25.0 = site packageManager",
+  "node": "22.13.1 within >=22.13 <23",
+  "registry_modules_pinning_skeleton4_or_effect3_consumed": 0,
+  "claim_class": "M (tests/test_bazel_graph_s3.py SiteGraphTest)"
+ },
+ "npm_archives_fetched_for_site": {
+  "count": 135,
+  "bytes": 31156050,
+  "lock_entries_with_integrity": 180,
+  "note": "package.tgz repositories materialised in the scratch output base for the three //site steps; every one is named with integrity in site/pnpm-lock.yaml. The split between network downloads and hits in the shared repository cache (which already held web's overlapping packages) was not measured. The 45 unfetched lock entries are platform-specific optional binaries and unused packages (inference).",
+  "claim_class": "M (count, bytes); U (network vs cache split)"
+ },
+ "new_bazel_deps": [],
+ "new_extension_repos": [
+  "npm_site (dev-dependency usage of the existing rules_js npm extension; dropped while gated)"
+ ],
+ "private_tree_needles_in_site_BUILD": 0,
+ "listening_claims": "none",
+ "signal_path_changed": false
+}

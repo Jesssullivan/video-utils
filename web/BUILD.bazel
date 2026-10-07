@@ -72,6 +72,10 @@ filegroup(
         [
             "src/**",
             "static/**",
+            # Unit-test helpers (web/tests/fixtures.ts and friends): the
+            # SvelteKit tsconfig includes ../tests/**, and src/**/*.test.ts
+            # import them, so `pnpm check` type-checks them (S3 bazel_full).
+            "tests/**",
         ],
         allow_empty = True,
     ) + [

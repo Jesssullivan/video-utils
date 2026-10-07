@@ -10,6 +10,12 @@ The classification lists were produced in S3 Phase 2 by reading the FFmpeg,
 host-tool and artifacts references of each module (method and limits:
 docs/spec/sprints/BAZEL_GRAPH_S3.md, Phase 2 amendments). They were not
 validated by a Bazel run on the authoring host.
+
+S3 bazel_full added the five modules written since then (test_public_site_s3,
+test_s3_tool_admission, test_web_house_stack_s3, and, after the Phase 4 rebase
+onto main, test_take_intake and test_timing_calibration); their classification
+and reasons are in bazel/test_classification_s3_full.json, and each list below
+is the union of the two classification files (tests/test_bazel_graph_s3.py).
 """
 
 load("@rules_rust//rust:defs.bzl", "rust_test")
@@ -44,6 +50,9 @@ FFMPEG_TESTS = [
     "test_review_ui_s2",
     "test_share_export",
     "test_share_export_preroll",
+    "test_stems_estimate",
+    "test_take_intake",
+    "test_timing_calibration",
     "test_tone_ab",
     "test_tool_contracts",
     "test_web_jobs",
@@ -57,14 +66,18 @@ FFMPEG_TESTS = [
 # gives tests a minimal PATH; add --config=host-tools to pass PATH and HOME.
 HOST_TOOL_TESTS = [
     "test_auth_hosting_s3",
+    "test_auth_token_s3",
     "test_eq_shelf",
     "test_phone_fixtures",
     "test_phrase_riff_s2",
+    "test_public_site_s3",
     "test_review_ui_s1",
     "test_review_ui_s2",
+    "test_s3_tool_admission",
     "test_share_export",
     "test_share_export_preroll",
     "test_sprint1_audit",
+    "test_take_intake",
     "test_web_parity",
     "test_web_processing_s3",
     "test_web_reliability",
@@ -76,6 +89,7 @@ HOST_TOOL_TESTS = [
 # They must not run beside each other or any other test.
 EXCLUSIVE_TESTS = [
     "test_auth_hosting_s3",
+    "test_public_site_s3",
     "test_web_parity",
     "test_web_processing_s3",
     "test_web_reliability",
@@ -89,6 +103,7 @@ WORKSPACE_ARTIFACT_TESTS = [
     "test_annotation_markers",
     "test_apply_capture_profile",
     "test_arrangement_reference_tool",
+    "test_auth_token_s3",
     "test_capture_application_tool",
     "test_click_attack_ab",
     "test_corpus_eval_s2",
@@ -101,12 +116,17 @@ WORKSPACE_ARTIFACT_TESTS = [
     "test_phrase_localize",
     "test_phrase_localize_audit",
     "test_phrase_timing",
+    "test_public_site_s3",
     "test_review_ui_s2",
     "test_rhythm",
     "test_s2_tool_admission",
+    "test_s3_tool_admission",
     "test_share_export",
     "test_share_export_preroll",
+    "test_take_intake",
+    "test_timing_calibration",
     "test_tool_contracts",
+    "test_web_house_stack_s3",
     "test_web_jobs",
     "test_web_parity",
     "test_web_processing_s3",
@@ -118,7 +138,9 @@ WORKSPACE_ARTIFACT_TESTS = [
 # dependency of the Python tests: loading it requires the npm lock translation.
 WEB_TREE_TESTS = [
     "test_auth_hosting_s3",
+    "test_auth_token_s3",
     "test_bazel_graph_s3",
+    "test_web_house_stack_s3",
     "test_web_parity",
     "test_web_processing_s3",
     "test_web_reliability",
@@ -131,6 +153,7 @@ unittest_py_tests(
     data = [
         ":all_files",
         "//:repo_data",
+        "//bazel:all_files",
         "//native/au-spike:all_files",
         "//scripts:all_files",
         "//src:all_files",

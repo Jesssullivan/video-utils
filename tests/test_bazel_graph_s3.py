@@ -1,6 +1,8 @@
-"""S3 bazel_graph lane: structural contract test for the Bzlmod graph.
+"""S3 bazel_graph and bazel_full lanes: structural contract test for the Bzlmod graph.
 
-Contract: docs/spec/sprints/BAZEL_GRAPH_S3.md section 7. Stdlib only; no Bazel,
+Contracts: docs/spec/sprints/BAZEL_GRAPH_S3.md section 7 and
+docs/spec/sprints/BAZEL_FULL_S3.md section 12 (//site, the classification
+supplement, the known-host-failure register, the site gate). Stdlib only; no Bazel,
 network, FFmpeg, node or pnpm is needed. The fixture is the repository tree.
 
 This is an inventory check, not a build: it proves that the graph files exist,
@@ -34,8 +36,13 @@ SHIM_MARKER_ENV = "BAZEL_GRAPH_S3_SHIM_SELFTEST"
 REQUIRED_FILES = (
     ".bazelversion", ".bazelrc", ".bazelignore", "MODULE.bazel", "BUILD.bazel",
     "src/BUILD.bazel", "scripts/BUILD.bazel", "tests/BUILD.bazel", "web/BUILD.bazel",
-    "native/au-spike/BUILD.bazel", "just/bazel.just",
+    "native/au-spike/BUILD.bazel", "just/bazel.just", "site/BUILD.bazel", "bazel/BUILD.bazel",
 )
+LANE_FILES = (
+    "bazel/test_classification_s3_full.json", "bazel/known_host_failures.json", "bazel/ci-bazel-full.draft.yml",
+    "bazel/site_build.mjs", "bazel/host_gate.py", "bazel/full_run_report.py",
+)
+OWNED_PACKAGES = ("", "src", "scripts", "tests", "web", "site", "native/au-spike", "tools/bazel", "bazel")
 HELPER_FILES = (
     "tools/bazel/BUILD.bazel", "tools/bazel/python.bzl", "tools/bazel/rust.bzl",
     "tools/bazel/unittest_main.py", "tools/bazel/run.py", "tools/bazel/web/sveltekit.mjs",
@@ -53,7 +60,7 @@ FORBIDDEN_MAJOR = {"@skeletonlabs/skeleton": 4, "@skeletonlabs/skeleton-svelte":
 EXACT = re.compile(r"^\d+\.\d+\.\d+$")
 IGNORED_TREES = (".local", "artifacts", "target", "data", "models", "web/node_modules", "web/build", "web/.svelte-kit")
 BAZEL_FILE_NAMES = ("MODULE.bazel", "BUILD.bazel")
-RECIPES = ("bazel-build", "bazel-test", "bazel-graph")
+RECIPES = ("bazel-build", "bazel-test", "bazel-graph", "bazel-site", "bazel-full")
 DECISIONS = {"consumed", "blocked_estate_drift_TIN-5716", "blocked_unverifiable", "not_applicable",
              "deferred_needs_root_change"}
 CLASS_TAGS = {"ffmpeg": "requires-ffmpeg", "host_tools": "requires-host-tools", "exclusive": "exclusive",
@@ -279,18 +286,54 @@ def module_errors(module: Starlark) -> list[str]:
         version = deps.get(name)
         if not isinstance(version, str) or not re.match(r"^\d+\.\d+\.\d+$", version):
             errors.append(f"bazel_dep {name} needs a literal X.Y.Z version, found {version!r}")
-    locks = module.named("npm.npm_translate_lock")
-    if len(locks) != 1 or locks[0].kwargs.get("pnpm_lock") != "//web:pnpm-lock.yaml":
-        errors.append("exactly one npm.npm_translate_lock with pnpm_lock = //web:pnpm-lock.yaml is required")
-    elif "//web:package.json" not in locks[0].kwargs.get("data", []):
-        errors.append("npm_translate_lock data must include //web:package.json")
-    elif locks[0].kwargs.get("npmrc") != "//web:.npmrc":
-        errors.append("npm_translate_lock must declare npmrc = //web:.npmrc (rules_js refuses an undeclared one)")
-    if module.named("npm.npm_import"):
-        errors.append("npm.npm_import adds a second npm version site; use web/pnpm-lock.yaml only")
-    for banned in ("local_path_override", "git_override", "archive_override"):
+    locks = {call.kwargs.get("name"): call for call in module.calls if call.name.endswith(".npm_translate_lock")}
+    if len([call for call in module.calls if call.name.endswith(".npm_translate_lock")]) != len(TRANSLATIONS) \
+            or sorted(locks) != sorted(TRANSLATIONS):
+        errors.append(f"exactly the npm_translate_lock calls {sorted(TRANSLATIONS)} are required, found {sorted(locks)}")
+    for name, package in TRANSLATIONS.items():
+        call = locks.get(name)
+        if call is None:
+            continue
+        if call.kwargs.get("pnpm_lock") != f"//{package}:pnpm-lock.yaml":
+            errors.append(f"npm_translate_lock {name} must read //{package}:pnpm-lock.yaml")
+        if f"//{package}:package.json" not in call.kwargs.get("data", []):
+            errors.append(f"npm_translate_lock {name} data must include //{package}:package.json")
+        if call.kwargs.get("npmrc") != f"//{package}:.npmrc":
+            errors.append(f"npm_translate_lock {name} must declare npmrc = //{package}:.npmrc (rules_js refuses an undeclared one)")
+    if [call for call in module.calls if call.name.endswith(".npm_import")]:
+        errors.append("npm_import adds a second npm version site; use the package's pnpm-lock.yaml only")
+    for banned in ("git_override", "archive_override", "single_version_override", "multiple_version_override"):
         if module.named(banned):
             errors.append(f"{banned} is not allowed in MODULE.bazel")
+    errors += local_override_errors(module)
+    return errors
+
+
+TRANSLATIONS = {"npm": "web", "npm_site": "site"}
+
+
+def vendored_module(root: Path, path: str) -> dict:
+    """name/version of a vendored carrier's own module() call."""
+    calls = Starlark((root / path / "MODULE.bazel").read_text(), label=f"{path}/MODULE.bazel").named("module")
+    return calls[0].kwargs if calls else {}
+
+
+def local_override_errors(module: Starlark, root: Path | None = None) -> list[str]:
+    """A local_path_override may only point at a vendored carrier under site/vendor (contract 9.3.2)."""
+    root = root or ROOT
+    errors = []
+    deps = bazel_deps(module)
+    for call in module.named("local_path_override"):
+        name, path = call.kwargs.get("module_name"), call.kwargs.get("path", "")
+        if not isinstance(path, str) or not path.startswith("site/vendor/") or ".." in path.split("/"):
+            errors.append(f"local_path_override {name!r} path {path!r} is not under site/vendor/")
+            continue
+        if not (root / path / "MODULE.bazel").is_file():
+            errors.append(f"local_path_override {name!r}: {path}/MODULE.bazel does not exist")
+            continue
+        vendored = vendored_module(root, path)
+        if vendored.get("name") != name or deps.get(name) != vendored.get("version"):
+            errors.append(f"local_path_override {name!r} does not match {path}/MODULE.bazel {vendored}")
     return errors
 
 
@@ -341,7 +384,7 @@ def bazel_texts(root: Path) -> dict[str, str]:
     """Every Bazel-owned text file: MODULE.bazel, each BUILD.bazel and tools/bazel/*.bzl."""
     paths = [root / "MODULE.bazel", root / "BUILD.bazel"]
     paths += [root / package / "BUILD.bazel" for package in ("src", "scripts", "tests", "web", "native/au-spike",
-                                                               "tools/bazel")]
+                                                               "tools/bazel", "bazel")]
     paths += sorted((root / "tools/bazel").glob("*.bzl")) if (root / "tools/bazel").is_dir() else []
     return {str(path.relative_to(root)): path.read_text() for path in paths if path.is_file()}
 
@@ -429,10 +472,54 @@ def coverage_errors(root: Path) -> list[str]:
     return errors
 
 
+def classification_union(root: Path) -> dict[str, list[str]]:
+    """class key -> sorted union of tools/bazel/test_classification.json and the bazel_full supplement."""
+    base = json.loads((root / "tools/bazel/test_classification.json").read_text())
+    supplement_path = root / "bazel/test_classification_s3_full.json"
+    supplement = json.loads(supplement_path.read_text()) if supplement_path.is_file() else {"classes": {}}
+    union = {}
+    for key in CLASS_TAGS:
+        members = set(base.get("classes", {}).get(key, {}).get("modules", []))
+        members |= set(supplement.get("classes", {}).get(key, {}).get("modules", []))
+        union[key] = sorted(members)
+    return union
+
+
+def supplement_errors(root: Path) -> list[str]:
+    errors = []
+    document = json.loads((root / "bazel/test_classification_s3_full.json").read_text())
+    modules = {path.stem for path in (root / "tests").glob("test_*.py")}
+    base = json.loads((root / "tools/bazel/test_classification.json").read_text())
+    if document.get("module_count_at_supplement") != len(modules):
+        errors.append(f"supplement module_count_at_supplement {document.get('module_count_at_supplement')} != {len(modules)} modules")
+    for name in document.get("added_modules", []):
+        if name not in modules:
+            errors.append(f"supplement added module {name} does not exist")
+    for key, tag in CLASS_TAGS.items():
+        entry = document.get("classes", {}).get(key)
+        if entry is None or entry.get("tag") != tag:
+            errors.append(f"supplement class {key} must record tag {tag}")
+            continue
+        listed = entry.get("modules", [])
+        if listed != sorted(set(listed)):
+            errors.append(f"supplement {key} list must be sorted and unique")
+        for name in listed:
+            if name not in modules:
+                errors.append(f"supplement {key} lists {name}, which is not a test module")
+            if not str(entry.get("reasons", {}).get(name, "")).strip():
+                errors.append(f"supplement {key} member {name} has no reason")
+            if name in base.get("classes", {}).get(key, {}).get("modules", []):
+                errors.append(f"supplement {key} repeats {name} from tools/bazel/test_classification.json")
+    if document.get("manual", {}).get("modules"):
+        errors.append("the supplement may not add a manual module")
+    return errors
+
+
 def classification_errors(root: Path) -> list[str]:
     errors = []
     build = read_build(root, "tests")
     document = json.loads((root / "tools/bazel/test_classification.json").read_text())
+    union = classification_union(root)
     modules = {path.stem for path in (root / "tests").glob("test_*.py")}
     macros = build.named("unittest_py_tests")
     if len(macros) != 1:
@@ -443,8 +530,9 @@ def classification_errors(root: Path) -> list[str]:
         listed = macros[0].kwargs.get(key, [])
         if recorded.get("tag") != tag:
             errors.append(f"classification {key} must record tag {tag}")
-        if sorted(recorded.get("modules", [])) != sorted(listed):
-            errors.append(f"tests/BUILD.bazel {key} list differs from tools/bazel/test_classification.json")
+        if union[key] != sorted(listed):
+            errors.append(f"tests/BUILD.bazel {key} list differs from the union of tools/bazel/test_classification.json "
+                          f"and bazel/test_classification_s3_full.json")
         if listed != sorted(set(listed)):
             errors.append(f"{key} list must be sorted and unique")
         for name in sorted(set(listed) - modules):
@@ -573,14 +661,241 @@ def load_launcher(root: Path):
     return module
 
 
+# --------------------------------------------------------------------------- bazel_full checkers (//site, gate, registers)
+
+SITE_GATE_LINES = ("common --ignore_dev_dependency", "common --deleted_packages=site")
+SITE_VENDOR_TEST_IGNORE = "site/vendor/xoxd-theme/test"
+SITE_HOUSE_STACK = {"@skeletonlabs/skeleton": "5.0.1", "@skeletonlabs/skeleton-svelte": "5.0.1"}
+SITE_TYPESCRIPT = "6.0.3"
+SITE_TARGETS = {"svelte_check_test": "js_test", "build": "js_run_binary", "sveltekit_types": "js_run_binary"}
+FAILURE_CLASSES = ("dot_path_component", "macos_process_inspection", "other")
+FAILURE_KEYS = ("case", "target", "class", "bazel_outcome", "first_error_line", "plain_unittest_repro",
+                "control_repro", "baseline_repro", "cause", "claim_class")
+SKIP_TOKENS = ("manual", "expectedFailure", "SkipTest", "skipTest", "unittest.skip", "known_host_failures")
+DEFAULT_RC_FILTERS = ("--test_tag_filters", "--test_filter", "--build_tag_filters", "--test_lang_filters")
+
+
+def private_needles() -> list[str]:
+    """Private-tree and recording needles, assembled so this file never contains them literally."""
+    return ["".join(("art", "ifacts", "/")), "".join((".loc", "al/sprint")), "".join(("Mov", "ie on ")),
+            "".join(("/Us", "ers/"))]
+
+
+def site_gate(root: Path) -> dict:
+    """State of the .bazelrc site gate and of the two root-owned prerequisites it stands in for."""
+    lines = rc_lines((root / ".bazelrc").read_text())
+    present = [line for line in SITE_GATE_LINES if line in lines]
+    workspace = root / "site/pnpm-workspace.yaml"
+    allow_builds = workspace.is_file() and re.search(r"^allowBuilds:", workspace.read_text(), re.MULTILINE) is not None
+    ignored = [line.strip() for line in (root / ".bazelignore").read_text().splitlines() if line.strip()]
+    vendor_exposed = "site/vendor" not in ignored and SITE_VENDOR_TEST_IGNORE in ignored
+    state = {2: "gated", 0: "open"}.get(len(present), "partial")
+    errors = []
+    if state == "partial":
+        errors.append(f"site gate is half applied: {present}")
+    if state == "gated" and allow_builds and vendor_exposed:
+        errors.append("site prerequisites are applied; remove the two .bazelrc site gate lines")
+    if state == "open" and not (allow_builds and vendor_exposed):
+        errors.append("site gate removed before site/pnpm-workspace.yaml allowBuilds and the .bazelignore change landed")
+    if state == "gated":
+        usage = Starlark((root / "MODULE.bazel").read_text(), repo_root=root, label="MODULE.bazel").names.get("npm_site")
+        if not isinstance(usage, Call) or usage.kwargs.get("dev_dependency") is not True:
+            errors.append("while gated, the npm_site translation must sit in a dev_dependency = True usage")
+    return {"state": state, "allow_builds": allow_builds, "vendor_exposed": vendor_exposed, "errors": errors}
+
+
+def vendored_carrier_dirs(root: Path) -> list[str]:
+    document = json.loads((root / "site/vendor/PROVENANCE.json").read_text())
+    return sorted("site/" + carrier["directory"] for carrier in document.get("carriers", []))
+
+
+def stray_bazel_files(paths: list[str], ignored: list[str], gate_state: str, root: Path | None = None) -> list[str]:
+    """Tracked Bazel boundary files outside this graph's packages and outside every ignored tree."""
+    root = root or ROOT
+    names = {"BUILD", "BUILD.bazel", "MODULE.bazel", "WORKSPACE", "WORKSPACE.bazel", "REPO.bazel"}
+    carriers = vendored_carrier_dirs(root) if gate_state == "open" else []
+    stray = []
+    for path in paths:
+        directory, _, name = path.rpartition("/")
+        if name not in names or (directory in OWNED_PACKAGES and name in ("BUILD.bazel", "MODULE.bazel")):
+            continue
+        if directory in carriers and name in ("BUILD.bazel", "MODULE.bazel"):
+            continue  # provenance-bound vendored carrier packages, exposed once the gate is open
+        if not any(directory == tree or directory.startswith(tree + "/") for tree in ignored):
+            stray.append(path)
+    return stray
+
+
+def site_build_errors(root: Path, text: str | None = None) -> list[str]:
+    errors = []
+    text = text if text is not None else (root / "site/BUILD.bazel").read_text()
+    build = Starlark(text, package_dir=root / "site", repo_root=root, label="site/BUILD.bazel")
+    loads = [call.args[0] for call in build.named("load") if call.args]
+    if "@npm_site//:defs.bzl" not in loads:
+        errors.append("site/BUILD.bazel must load @npm_site//:defs.bzl")
+    if any(source.startswith("@npm//") for source in loads):
+        errors.append("site/BUILD.bazel must not link web's @npm packages")
+    rules = {call.kwargs.get("name"): call.name for call in build.calls}
+    for name, rule in SITE_TARGETS.items():
+        if rules.get(name) != rule:
+            errors.append(f"site/BUILD.bazel needs {rule} {name}, found {rules.get(name)}")
+    if len(build.named("npm_link_all_packages")) != 1:
+        errors.append("site/BUILD.bazel must call npm_link_all_packages once")
+    package = json.loads((root / "site/package.json").read_text())
+    declared = {f":node_modules/{name}" for name in {**package.get("dependencies", {}), **package.get("devDependencies", {})}}
+    if set(build.names.get("SITE_NPM_PACKAGES", [])) != declared:
+        errors.append("SITE_NPM_PACKAGES differs from site/package.json dependencies + devDependencies")
+    for needle in private_needles():
+        if needle in text:
+            errors.append(f"site/BUILD.bazel contains a private-tree needle ({len(needle)} chars)")
+    return errors
+
+
+def site_pin_errors(root: Path, module: Starlark, lock_text: str | None = None, package: dict | None = None) -> list[str]:
+    errors = []
+    package = package if package is not None else json.loads((root / "site/package.json").read_text())
+    lock_text = lock_text if lock_text is not None else (root / "site/pnpm-lock.yaml").read_text()
+    declared = {**package.get("dependencies", {}), **package.get("devDependencies", {})}
+    importer = lock_importer(lock_text)
+    for name, expected in SITE_HOUSE_STACK.items():
+        if declared.get(name) != expected:
+            errors.append(f"site/package.json {name} is {declared.get(name)!r}, house stack is {expected}")
+        locked = importer.get(name, {})
+        if locked.get("specifier") != expected or locked.get("version") != expected:
+            errors.append(f"site/pnpm-lock.yaml importer {name} is {locked}, house stack is {expected}")
+    if "effect" in declared and (declared["effect"] != "4.0.1" or importer.get("effect", {}).get("version") != "4.0.1"):
+        errors.append(f"site effect must be absent or exactly 4.0.1, found {declared['effect']!r}")
+    if declared.get("typescript") != SITE_TYPESCRIPT or importer.get("typescript", {}).get("version") != SITE_TYPESCRIPT:
+        errors.append(f"site typescript must be {SITE_TYPESCRIPT} in package.json and the lock importer")
+    for name, major in FORBIDDEN_MAJOR.items():
+        if re.search(rf"^  '?{re.escape(name)}@{major}\.", lock_text, re.MULTILINE):
+            errors.append(f"site/pnpm-lock.yaml resolves {name}@{major}.x (Skeleton 4 / Effect 3)")
+    manager = package.get("packageManager", "")
+    pnpm = [call.kwargs.get("pnpm_version") for call in module.named("pnpm.pnpm")]
+    if pnpm != [manager.removeprefix("pnpm@").split("+")[0]]:
+        errors.append(f"MODULE.bazel pnpm_version {pnpm} differs from site packageManager {manager!r}")
+    engines = package.get("engines", {}).get("node")
+    for call in module.named("node.toolchain"):
+        version = call.kwargs.get("node_version", "")
+        if not EXACT.match(version) or (engines and not satisfies_engines(version, engines)):
+            errors.append(f"MODULE.bazel node_version {version!r} is outside site engines {engines!r}")
+    return errors
+
+
+def case_exists(root: Path, case: str) -> bool:
+    """module.Class.method names a class defined in tests/<module>.py that has (or inherits in-module) the method."""
+    parts = case.split(".")
+    if len(parts) != 3:
+        return False
+    module, cls, method = parts
+    path = root / "tests" / f"{module}.py"
+    if not path.is_file():
+        return False
+    tree = ast.parse(path.read_text())
+    classes = {node.name: node for node in tree.body if isinstance(node, ast.ClassDef)}
+
+    def has(name: str, seen: set) -> bool:
+        node = classes.get(name)
+        if node is None or name in seen:
+            return False
+        seen.add(name)
+        if any(isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name == method for item in node.body):
+            return True
+        return any(isinstance(base, ast.Name) and has(base.id, seen) for base in node.bases)
+
+    return cls in classes and has(cls, set())
+
+
+def known_failure_errors(root: Path, document: dict) -> list[str]:
+    errors = []
+    entries = document.get("entries")
+    if not isinstance(entries, list):
+        return ["known_host_failures.json needs an entries list"]
+    for index, entry in enumerate(entries):
+        label = entry.get("case", f"entry {index}")
+        missing = [key for key in FAILURE_KEYS if key not in entry]
+        if missing:
+            errors.append(f"{label}: missing {missing}")
+            continue
+        if not case_exists(root, entry["case"]):
+            errors.append(f"{label}: does not name an existing tests/<module>.py Class.method")
+        if entry["target"] != "//tests:" + entry["case"].split(".")[0]:
+            errors.append(f"{label}: target {entry['target']} does not match the module")
+        if entry["class"] not in FAILURE_CLASSES:
+            errors.append(f"{label}: unknown class {entry['class']!r}")
+        if entry["bazel_outcome"] not in ("FAIL", "ERROR"):
+            errors.append(f"{label}: bazel_outcome must be FAIL or ERROR")
+        if not isinstance(entry["first_error_line"], str) or not entry["first_error_line"].strip():
+            errors.append(f"{label}: first_error_line must be the verbatim line")
+        repro = entry["plain_unittest_repro"]
+        if not isinstance(repro, dict) or not {"command", "cwd", "outcome"} <= set(repro) \
+                or repro.get("outcome") not in ("FAIL", "ERROR", "PASS"):
+            errors.append(f"{label}: plain_unittest_repro needs command, cwd and a FAIL/ERROR/PASS outcome")
+        elif repro["outcome"] == "PASS":
+            errors.append(f"{label}: passes under plain unittest, so it is a Bazel-graph defect, not a host failure")
+        for key, fields in (("control_repro", {"path_kind", "outcome"}), ("baseline_repro", {"commit", "outcome"})):
+            value = entry[key]
+            if value is not None and (not isinstance(value, dict) or not fields <= set(value)):
+                errors.append(f"{label}: {key} must be null or carry {sorted(fields)}")
+        if not isinstance(entry["cause"], str) or not entry["cause"].strip():
+            errors.append(f"{label}: cause is empty")
+        if entry["claim_class"] not in ("M", "I"):
+            errors.append(f"{label}: claim_class must be M or I")
+    for item in document.get("not_reproduced", []):
+        if not isinstance(item, dict) or not item.get("prediction") or not item.get("evidence"):
+            errors.append("not_reproduced items need a prediction and evidence")
+    return errors
+
+
+def register_reference_errors(root: Path) -> list[str]:
+    """The register is documentation only: no BUILD, MODULE or .bzl file may read it."""
+    errors = []
+    pruned = {".git", ".local", "artifacts", "node_modules", "target", "vendor", ".svelte-kit", "build", "data",
+              "models", "__pycache__"}
+    for current, directories, files in os.walk(root):
+        directories[:] = sorted(name for name in directories if name not in pruned)
+        for name in files:
+            if name in ("BUILD.bazel", "BUILD", "MODULE.bazel") or name.endswith(".bzl"):
+                path = Path(current) / name
+                if "known_host_failures" in path.read_text(errors="replace"):
+                    errors.append(f"{path.relative_to(root).as_posix()} references the known-host-failure register")
+    return errors
+
+
+def skip_mechanism_errors(tests_build: str, macros: str, shim: str, bazelrc: str) -> list[str]:
+    """No manual tag, case-level skip, expected-failure or default filter hides a failing target."""
+    errors = []
+    if re.search(r'"manual"', tests_build):
+        errors.append("tests/BUILD.bazel tags a target manual")
+    for label, text in (("tools/bazel/python.bzl", macros), ("tools/bazel/unittest_main.py", shim)):
+        for token in SKIP_TOKENS:
+            if token in text:
+                errors.append(f"{label} contains {token!r}")
+    for line in rc_lines(bazelrc):
+        command = line.split()[0]
+        if ":" in command:
+            continue  # a named config is opt-in
+        for flag in DEFAULT_RC_FILTERS:
+            if flag in line:
+                errors.append(f".bazelrc default line filters tests: {line}")
+    return errors
+
+
+def load_lane_helper(root: Path, name: str):
+    spec = importlib.util.spec_from_file_location(f"bazel_full_{name}", root / "bazel" / f"{name}.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 # --------------------------------------------------------------------------- tests on the repository tree
 
 
 class GraphFilesTest(unittest.TestCase):
     def test_required_graph_files_exist(self):
-        missing = [name for name in REQUIRED_FILES + HELPER_FILES if not (ROOT / name).is_file()]
+        missing = [name for name in REQUIRED_FILES + HELPER_FILES + LANE_FILES if not (ROOT / name).is_file()]
         self.assertEqual(missing, [])
-        self.assertEqual(len(REQUIRED_FILES), 11)
+        self.assertEqual(len(REQUIRED_FILES), 13)
 
     def test_bazelversion_is_one_exact_version(self):
         text = (ROOT / ".bazelversion").read_text()
@@ -601,22 +916,13 @@ class GraphFilesTest(unittest.TestCase):
         if listed.returncode != 0:
             self.skipTest("not a git checkout; tracked-file inventory unavailable (skip is not a pass)")
         ignored = [line.strip() for line in (ROOT / ".bazelignore").read_text().splitlines() if line.strip()]
-        owned = {"", "src", "scripts", "tests", "web", "native/au-spike", "tools/bazel"}
-        names = {"BUILD", "BUILD.bazel", "MODULE.bazel", "WORKSPACE", "WORKSPACE.bazel", "REPO.bazel"}
-        stray = []
-        for path in listed.stdout.decode().split("\0"):
-            directory, _, name = path.rpartition("/")
-            if name not in names or (directory in owned and name in ("BUILD.bazel", "MODULE.bazel")):
-                continue
-            if not any(directory == tree or directory.startswith(tree + "/") for tree in ignored):
-                stray.append(path)
-        self.assertEqual(stray, [])
-        for tree in ("site/vendor", "site/node_modules", "site/build", "site/.svelte-kit"):
+        self.assertEqual(stray_bazel_files(listed.stdout.decode().split("\0"), ignored, site_gate(ROOT)["state"]), [])
+        for tree in ("site/node_modules", "site/build", "site/.svelte-kit"):
             self.assertIn(tree, ignored)
 
     def test_every_bazel_file_is_inside_the_starlark_subset(self):
         read_module(ROOT)
-        for package in ("", "src", "scripts", "tests", "web", "native/au-spike", "tools/bazel"):
+        for package in OWNED_PACKAGES:
             with self.subTest(package=package or "//"):
                 read_build(ROOT, package)
 
@@ -686,6 +992,9 @@ class CoverageTest(unittest.TestCase):
     def test_classification_lists_match_the_recorded_classification_and_tags(self):
         self.assertEqual(classification_errors(ROOT), [])
 
+    def test_classification_supplement_covers_the_added_modules_with_reasons(self):
+        self.assertEqual(supplement_errors(ROOT), [])
+
     def test_python_tests_do_not_depend_on_the_web_package(self):
         macro = read_build(ROOT, "tests").named("unittest_py_tests")[0]
         self.assertEqual([label for label in macro.kwargs["data"] if label.startswith("//web")], [])
@@ -750,10 +1059,222 @@ class ShimSelfTest(unittest.TestCase):
         self.assertNotEqual(refused.returncode, 0)
 
 
+class SiteGraphTest(unittest.TestCase):
+    """bazel_full contract section 12: //site, the site gate and the second translation."""
+
+    def test_site_package_declares_check_and_build_without_private_needles(self):
+        self.assertEqual(site_build_errors(ROOT), [])
+
+    def test_site_gate_matches_the_root_owned_prerequisites(self):
+        gate = site_gate(ROOT)
+        self.assertIn(gate["state"], ("gated", "open"))
+        self.assertEqual(gate["errors"], [])
+
+    def test_site_house_stack_pins(self):
+        self.assertEqual(site_pin_errors(ROOT, read_module(ROOT)), [])
+
+    def test_two_translations_each_on_its_own_lock(self):
+        module = read_module(ROOT)
+        locks = {call.kwargs["name"]: call.kwargs["pnpm_lock"] for call in module.calls
+                 if call.name.endswith(".npm_translate_lock")}
+        self.assertEqual(locks, {"npm": "//web:pnpm-lock.yaml", "npm_site": "//site:pnpm-lock.yaml"})
+        self.assertEqual(local_override_errors(module), [])
+
+    def test_site_build_runner_is_exported_and_shared_runner_reused(self):
+        site = read_build(ROOT, "site")
+        sources = {call.kwargs.get("name"): call.kwargs.get("src") for call in site.named("copy_file")}
+        self.assertEqual(sources.get("sveltekit_runner"), "//tools/bazel:web/sveltekit.mjs")
+        self.assertEqual(sources.get("site_build_runner"), "//bazel:site_build.mjs")
+        exported = [name for call in read_build(ROOT, "bazel").named("exports_files") for name in call.args[0]]
+        self.assertIn("site_build.mjs", exported)
+
+
+class RegisterTest(unittest.TestCase):
+    """bazel_full contract section 7: the known-host-failure register is complete and documentation only."""
+
+    def test_known_host_failure_register_schema_and_cases(self):
+        document = json.loads((ROOT / "bazel/known_host_failures.json").read_text())
+        self.assertEqual(document.get("schema"), "vu.bazel_full.known_host_failures.v1")
+        self.assertEqual(known_failure_errors(ROOT, document), [])
+
+    def test_no_bazel_file_reads_the_register(self):
+        self.assertEqual(register_reference_errors(ROOT), [])
+
+    def test_no_manual_tag_skip_or_default_filter_hides_a_target(self):
+        errors = skip_mechanism_errors((ROOT / "tests/BUILD.bazel").read_text(),
+                                       (ROOT / "tools/bazel/python.bzl").read_text(),
+                                       (ROOT / "tools/bazel/unittest_main.py").read_text(),
+                                       (ROOT / ".bazelrc").read_text())
+        self.assertEqual(errors, [])
+
+
+class LaneHelperTest(unittest.TestCase):
+    """The bazel_full helpers on synthetic inputs (no Bazel run, no load reading of this host)."""
+
+    LOG = "\n".join((
+        "test_alpha (test_x.AlphaTest.test_alpha) ... ok",
+        "test_beta (test_x.AlphaTest.test_beta)",
+        "Docstring first line ... FAIL",
+        "test_gamma (test_x.AlphaTest.test_gamma) ... skipped 'FFMPEG is not set'",
+        "test_delta (test_x.AlphaTest.test_delta) ... ERROR",
+        "",
+        "======================================================================",
+        "ERROR: test_delta (test_x.AlphaTest.test_delta)",
+        "----------------------------------------------------------------------",
+        "Traceback (most recent call last):",
+        '  File "x.py", line 1, in test_delta',
+        "    raise ValueError('path component starts with a dot')",
+        "ValueError: path component starts with a dot",
+        "",
+        "======================================================================",
+        "FAIL: test_beta (test_x.AlphaTest.test_beta)",
+        "Docstring first line",
+        "----------------------------------------------------------------------",
+        "Traceback (most recent call last):",
+        '  File "x.py", line 2, in test_beta',
+        "AssertionError: 1 != 2",
+        "",
+        "----------------------------------------------------------------------",
+        "Ran 4 tests in 0.010s",
+        "",
+        "FAILED (failures=1, errors=1, skipped=1)",
+    ))
+
+    def test_unittest_log_parse_counts_reasons_and_first_error_lines(self):
+        report = load_lane_helper(ROOT, "full_run_report")
+        parsed = report.parse_unittest_log(self.LOG)
+        self.assertTrue(parsed["parsed"])
+        self.assertEqual((parsed["ran"], parsed["failures"], parsed["errors"], parsed["skipped"]), (4, 1, 1, 1))
+        self.assertEqual(parsed["skip_reasons"], {"FFMPEG is not set": 1})
+        self.assertEqual(parsed["failing_cases"], [
+            {"case": "test_x.AlphaTest.test_delta", "kind": "ERROR",
+             "first_error_line": "ValueError: path component starts with a dot"},
+            {"case": "test_x.AlphaTest.test_beta", "kind": "FAIL", "first_error_line": "AssertionError: 1 != 2"},
+        ])
+        self.assertFalse(report.parse_unittest_log("no summary here")["parsed"])
+
+    def test_bep_report_gives_every_denominator_target_one_status(self):
+        report = load_lane_helper(ROOT, "full_run_report")
+        events = [
+            {"id": {"started": {}}, "started": {"command": "test"}},
+            {"id": {"testSummary": {"label": "//tests:test_x"}},
+             "testSummary": {"overallStatus": "FAILED", "attemptCount": 1, "totalRunDurationMillis": "1200"}},
+            {"id": {"testSummary": {"label": "//tests:test_y"}}, "testSummary": {"overallStatus": "PASSED"}},
+            {"id": {"targetCompleted": {"label": "//web:svelte_check_test"}},
+             "aborted": {"reason": "ANALYSIS_FAILURE"}},
+            {"id": {"buildFinished": {}}, "finished": {"exitCode": {"name": "TESTS_FAILED", "code": 3}}},
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            (base / "bep.json").write_text("\n".join(json.dumps(event) for event in events) + "\n")
+            (base / "targets.txt").write_text("//tests:test_x\n//tests:test_y\n//web:svelte_check_test\n//src:t\n")
+            (base / "logs/tests/test_x").mkdir(parents=True)
+            (base / "logs/tests/test_x/test.log").write_text(self.LOG)
+            document = report.build_report(base / "bep.json", base / "targets.txt", base / "logs")
+        self.assertEqual(document["denominator_targets"], 4)
+        statuses = {row["target"]: row["status"] for row in document["targets"]}
+        self.assertEqual(statuses, {"//tests:test_x": "FAILED", "//tests:test_y": "PASSED",
+                                    "//web:svelte_check_test": "NO_STATUS", "//src:t": "NO_STATUS"})
+        rows = {row["target"]: row for row in document["targets"]}
+        self.assertEqual(rows["//web:svelte_check_test"]["reason"], "ANALYSIS_FAILURE")
+        self.assertEqual(rows["//tests:test_x"]["unittest"]["errors"], 1)
+        self.assertFalse(rows["//tests:test_y"]["unittest"]["parsed"])
+        self.assertEqual(document["bep"]["exit_code"], 3)
+        self.assertEqual(sum(document["status_counts"].values()), 4)
+
+    def test_host_gate_waits_logs_and_blocks(self):
+        gate = load_lane_helper(ROOT, "host_gate")
+        clock = iter(range(0, 10_000, 30))
+        now = [0.0]
+
+        def tick():
+            now[0] = float(next(clock))
+            return now[0]
+
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / "gate.jsonl"
+            loads = iter([(40.0, 0, 0), (30.0, 0, 0), (12.0, 0, 0)])
+            self.assertEqual(gate.gate("s", log, 24.0, 600, 60, clock=tick, load=lambda: next(loads),
+                                       pause=lambda _: None), gate.EXIT_OPEN)
+            readings = [json.loads(line) for line in log.read_text().splitlines()]
+            self.assertEqual([r["open"] for r in readings], [False, False, True])
+            blocked = Path(directory) / "blocked.jsonl"
+            self.assertEqual(gate.gate("s", blocked, 24.0, 100, 60, clock=tick, load=lambda: (99.0, 0, 0),
+                                       pause=lambda _: None), gate.EXIT_BLOCKED)
+            self.assertIn("blocked_on_host", blocked.read_text())
+
+
 # --------------------------------------------------------------------------- negative self-checks (no tree mutation)
 
 
 class NegativeSelfChecks(unittest.TestCase):
+    def test_bazel_full_negative_self_checks(self):
+        module_text = (ROOT / "MODULE.bazel").read_text()
+        third = module_text + ('npm.npm_translate_lock(name = "npm_extra", pnpm_lock = "//extra:pnpm-lock.yaml", '
+                               'npmrc = "//extra:.npmrc", data = ["//extra:package.json"])\n')
+        self.assertTrue(any("npm_translate_lock calls" in e for e in module_errors(Starlark(third, repo_root=ROOT))))
+        effect3 = (ROOT / "site/pnpm-lock.yaml").read_text() + "\n  effect@3.22.1:\n    resolution: {integrity: x}\n"
+        self.assertTrue(any("Effect 3" in e for e in site_pin_errors(ROOT, read_module(ROOT), lock_text=effect3)))
+        package = json.loads((ROOT / "site/package.json").read_text())
+        package["devDependencies"]["@skeletonlabs/skeleton"] = "4.15.2"
+        self.assertTrue(site_pin_errors(ROOT, read_module(ROOT), package=package))
+        outside = module_text + 'local_path_override(module_name = "xoxd_theme", path = "../elsewhere")\n'
+        self.assertTrue(local_override_errors(Starlark(outside, repo_root=ROOT)))
+        entry = {"case": "test_media.NoSuchClass.test_nothing", "target": "//tests:test_media", "class": "other",
+                 "bazel_outcome": "FAIL", "first_error_line": "AssertionError", "cause": "x", "claim_class": "M",
+                 "plain_unittest_repro": {"command": "c", "cwd": "w", "outcome": "FAIL"},
+                 "control_repro": None, "baseline_repro": None}
+        self.assertTrue(any("existing" in e for e in known_failure_errors(ROOT, {"entries": [entry]})))
+        passing = dict(entry, case="test_bazel_graph_s3.SiteGraphTest.test_site_house_stack_pins",
+                       target="//tests:test_bazel_graph_s3",
+                       plain_unittest_repro={"command": "c", "cwd": "w", "outcome": "PASS"})
+        self.assertTrue(any("Bazel-graph defect" in e for e in known_failure_errors(ROOT, {"entries": [passing]})))
+        tests_build = (ROOT / "tests/BUILD.bazel").read_text().replace(
+            'tags = ["python-unittest"],', 'tags = ["python-unittest", "manual"],')
+        self.assertNotEqual(tests_build, (ROOT / "tests/BUILD.bazel").read_text())
+        macros, shim = (ROOT / "tools/bazel/python.bzl").read_text(), (ROOT / "tools/bazel/unittest_main.py").read_text()
+        rc = (ROOT / ".bazelrc").read_text()
+        self.assertTrue(skip_mechanism_errors(tests_build, macros, shim, rc))
+        self.assertTrue(skip_mechanism_errors((ROOT / "tests/BUILD.bazel").read_text(), macros,
+                                              shim + "\nunittest.expectedFailure\n", rc))
+        self.assertTrue(skip_mechanism_errors((ROOT / "tests/BUILD.bazel").read_text(), macros, shim,
+                                              rc + "\ntest --test_tag_filters=-macos\n"))
+        self.assertEqual(skip_mechanism_errors((ROOT / "tests/BUILD.bazel").read_text(), macros, shim,
+                                               rc + "\ntest:ci --test_tag_filters=-requires-host-tools\n"), [])
+        site_text = (ROOT / "site/BUILD.bazel").read_text() + "# " + private_needles()[0] + "runs/x\n"
+        self.assertTrue(any("needle" in e for e in site_build_errors(ROOT, site_text)))
+
+    def test_site_gate_inconsistencies_are_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            (base / "site").mkdir()
+            (base / "MODULE.bazel").write_text('npm_site = use_extension("@x//:e.bzl", "npm", dev_dependency = True)\n')
+            gate = "\n".join(SITE_GATE_LINES) + "\n"
+            cases = {
+                "partial": (SITE_GATE_LINES[0] + "\n", "packages: [.]\n", "site/vendor\n", "half applied"),
+                "gated_but_ready": (gate, "allowBuilds: {}\n", SITE_VENDOR_TEST_IGNORE + "\n", "remove the two"),
+                "open_too_early": ("", "packages: [.]\n", "site/vendor\n", "gate removed"),
+            }
+            for label, (rc, workspace, ignore, needle) in cases.items():
+                with self.subTest(case=label):
+                    (base / ".bazelrc").write_text(rc)
+                    (base / "site/pnpm-workspace.yaml").write_text(workspace)
+                    (base / ".bazelignore").write_text(ignore)
+                    self.assertTrue(any(needle in e for e in site_gate(base)["errors"]), site_gate(base))
+            (base / ".bazelrc").write_text(gate)
+            (base / "site/pnpm-workspace.yaml").write_text("packages: [.]\n")
+            (base / ".bazelignore").write_text("site/vendor\n")
+            self.assertEqual(site_gate(base)["errors"], [])
+            (base / "MODULE.bazel").write_text('npm_site = use_extension("@x//:e.bzl", "npm")\n')
+            self.assertTrue(any("dev_dependency" in e for e in site_gate(base)["errors"]))
+
+    def test_vendored_carrier_files_are_stray_only_while_gated_and_unignored(self):
+        carrier = vendored_carrier_dirs(ROOT)[0] + "/BUILD.bazel"
+        self.assertEqual(stray_bazel_files([carrier], ["site/vendor"], "gated"), [])
+        self.assertEqual(stray_bazel_files([carrier], [SITE_VENDOR_TEST_IGNORE], "open"), [])
+        self.assertEqual(stray_bazel_files([carrier], [SITE_VENDOR_TEST_IGNORE], "gated"), [carrier])
+        self.assertEqual(stray_bazel_files(["elsewhere/BUILD.bazel"], [], "open"), ["elsewhere/BUILD.bazel"])
+
     def test_swapped_registry_order_is_rejected(self):
         lines = (ROOT / ".bazelrc").read_text().splitlines()
         first, second = [index for index, line in enumerate(lines) if line.startswith("common --registry=")]

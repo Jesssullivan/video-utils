@@ -1,0 +1,113 @@
+{
+ "schema": "vu.bazel_full.contract_freeze.v1",
+ "lane": "bazel_full",
+ "sprint": "20261007-s3",
+ "tracker": "TIN-5722",
+ "recorded": "2026-10-07",
+ "authority": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N13",
+ "contract": "docs/spec/sprints/BAZEL_FULL_S3.md",
+ "contract_commit": "7441e1c089706ef1fb67d1bced95d3738ce1a414",
+ "baseline": "549a14dea88f6b7951a81f2c2fa0718cb83a1c21",
+ "phase": "Phase 2 re-measurement of the section 3 facts at the baseline tree (before any lane change)",
+ "facts": {
+  "python_test_modules": {
+   "value": 98,
+   "claim_class": "M",
+   "method": "ls tests/test_*.py"
+  },
+  "modules_added_since_bazel_graph_classification": {
+   "value": [
+    "test_public_site_s3",
+    "test_s3_tool_admission",
+    "test_web_house_stack_s3"
+   ],
+   "claim_class": "M",
+   "method": "git diff --name-status f44f962..549a14d -- tests/ (test_bazel_graph_s3 was already classified)"
+  },
+  "classification_lists_at_baseline": {
+   "FFMPEG_TESTS": 18,
+   "HOST_TOOL_TESTS": 14,
+   "EXCLUSIVE_TESTS": 6,
+   "WORKSPACE_ARTIFACT_TESTS": 26,
+   "WEB_TREE_TESTS": 7,
+   "manual": 0,
+   "claim_class": "M"
+  },
+  "bazel_version": {
+   "value": "8.2.1",
+   "claim_class": "M",
+   "method": "bazel --version (bazelisk via the advisory tinyland-local-build-guard wrapper)"
+  },
+  "mod_graph_exit_baseline": {
+   "value": 0,
+   "claim_class": "M",
+   "command": "python3 tools/bazel/run.py --timeout 900 mod graph",
+   "wall_s": 40
+  },
+  "lockfile_mode_error_exit_baseline": {
+   "value": 0,
+   "claim_class": "M",
+   "command": "python3 tools/bazel/run.py --timeout 900 build --nobuild //... --lockfile_mode=error",
+   "targets_found": 189,
+   "elapsed_s": 247.3
+  },
+  "web_allow_builds_present": {
+   "value": true,
+   "claim_class": "M"
+  },
+  "site_allow_builds_present": {
+   "value": false,
+   "claim_class": "M"
+  },
+  "host_load_1min_at_first_step": {
+   "value": 28.15,
+   "utc": "2026-10-07T15:04:34Z",
+   "claim_class": "M",
+   "note": "the two baseline graph checks are not heavy steps (no actions executed) and ran above the 24 gate; recorded, not hidden"
+  },
+  "effective_disk_cache": {
+   "value": "the user ~/.bazelrc disk_cache on the TinylandSSD output root overrides the workspace .bazelrc `build --disk_cache=~/.cache/bazel-video-utils` (rc order: workspace then home)",
+   "claim_class": "I",
+   "evidence": "~/.bazelrc lines read; ~/.cache/bazel-video-utils does not exist"
+  },
+  "output_and_repository_cache_root": {
+   "value": "/Volumes/TinylandSSD/tinyland/bazel (user ~/.bazelrc)",
+   "claim_class": "M"
+  },
+  "storage_gate_line": {
+   "value": "present on every Bazel invocation (consumer=bazel status=qualified); device identifiers redacted from receipts",
+   "claim_class": "M"
+  }
+ },
+ "predictions_sealed_before_any_run": {
+  "calibration_evaluator_dot_local_cases": 5,
+  "macos_process_inspection_cases": 2,
+  "source": "root reading on TIN-5722 relayed by the lane brief"
+ },
+ "deployed": false,
+ "rebase_addendum": {
+  "recorded": "2026-10-07",
+  "onto": "main 0ea22c3",
+  "python_test_modules": {
+   "value": 100,
+   "claim_class": "M",
+   "method": "ls tests/test_*.py after rebase"
+  },
+  "modules_added_on_main_since_baseline": {
+   "value": [
+    "test_take_intake",
+    "test_timing_calibration"
+   ],
+   "claim_class": "M",
+   "method": "git diff --name-status 549a14d..0ea22c3 -- tests/"
+  },
+  "classification_lists_after_rebase": {
+   "FFMPEG_TESTS": 20,
+   "HOST_TOOL_TESTS": 17,
+   "EXCLUSIVE_TESTS": 7,
+   "WORKSPACE_ARTIFACT_TESTS": 31,
+   "WEB_TREE_TESTS": 8
+  },
+  "note": "the facts above are the Phase 2 baseline measurements (98 modules at 549a14d) and are kept as measured"
+ }
+}

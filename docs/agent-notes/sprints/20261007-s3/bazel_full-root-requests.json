@@ -1,0 +1,119 @@
+{
+ "schema": "vu.bazel_full.root_requests.v1",
+ "lane": "bazel_full",
+ "sprint": "20261007-s3",
+ "tracker": "TIN-5722",
+ "recorded": "2026-10-07",
+ "authority": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N13",
+ "contract": "docs/spec/sprints/BAZEL_FULL_S3.md",
+ "requests": [
+  {
+   "id": "R1",
+   "file": "site/pnpm-workspace.yaml",
+   "owner": "root (site/** not owned by this lane)",
+   "change": "append two lines",
+   "diff": "--- a/site/pnpm-workspace.yaml\n+++ b/site/pnpm-workspace.yaml\n@@ -5,3 +5,5 @@\n strictPeerDependencies: true\n # Fail instead of silently running an (online) install when a script finds stale deps.\n verifyDepsBeforeRun: error\n+# Required by rules_js for pnpm 11 (S3 bazel_full //site); an empty map allows no build scripts.\n+allowBuilds: {}\n",
+   "why": "rules_js 3.5.1 refuses a pnpm 11 lock without allowBuilds and that refusal fails the whole npm extension (web precedent f496cea). An empty map allows no lifecycle scripts, the same as web/."
+  },
+  {
+   "id": "R2",
+   "file": ".bazelignore",
+   "owner": "root",
+   "change": "replace the line `site/vendor` with `site/vendor/xoxd-theme/test`",
+   "diff": "--- a/.bazelignore\n+++ b/.bazelignore\n@@ -12,7 +12,7 @@\n web/node_modules\n web/build\n web/.svelte-kit\n-site/vendor\n+site/vendor/xoxd-theme/test\n site/node_modules\n site/build\n site/.svelte-kit\n",
+   "why": "rules_js links the lock's two `file:vendor/<dir>` directory dependencies to //site/vendor/<dir>:pkg (fixed label; replace_packages and local_path_override cannot redirect a directory-resolved package). The carriers' unmodified BUILD.bazel already declare :pkg. Only the theme's own test package must stay ignored: its labels (//:test_inputs) resolve only inside its own module. Vendored files stay unedited."
+  },
+  {
+   "id": "R3",
+   "file": ".bazelrc (lane-owned; listed so root applies it in the same commit as R1+R2)",
+   "owner": "bazel_full lane file, applied by root at merge",
+   "change": "delete the two site gate lines",
+   "diff": "--- a/.bazelrc\n+++ b/.bazelrc\n@@ -58,8 +58,6 @@\n # deleted, so `bazel test //...` loads exactly the bazel_graph packages plus\n # //bazel. Root removes these two lines in the same commit that applies the\n # changes (tests/test_bazel_graph_s3.py holds the three in step).\n-common --ignore_dev_dependency\n-common --deleted_packages=site\n \n # Opt-in: let tests tagged requires-host-tools find node, pnpm and git.\n test:host-tools --test_env=PATH\n",
+   "why": "tests/test_bazel_graph_s3.py requires the gate exactly while R1 or R2 is missing; after R1+R2 it fails until these lines go. Verified state: scratch copy = lane HEAD + R1 + R2 + R3 (bazel_full-site.json).",
+   "note": "the comment block above the two lines may be trimmed by root at the same time; the structural test only reads the two lines"
+  },
+  {
+   "id": "R4",
+   "file": ".github/workflows/ci.yml",
+   "owner": "root",
+   "change": "add a non-blocking `bazel` job (mirrors bazel/ci-bazel-full.draft.yml; supersedes tools/bazel/ci-bazel-job.draft.yml)",
+   "diff_against": "main 0ea22c3 .github/workflows/ci.yml (byte-identical to 9154f8a: git diff --stat 9154f8a main -- .github/workflows/ci.yml is empty)",
+   "diff": "--- a/.github/workflows/ci.yml\n+++ b/.github/workflows/ci.yml\n@@ -41,3 +41,32 @@\n         run: nix develop --no-write-lock-file .#web --command bash -c 'cd web && pnpm run test:e2e'\n       - name: Accessibility scans\n         run: nix develop --no-write-lock-file .#web --command bash -c 'cd web && pnpm run test:a11y'\n+  bazel:\n+    runs-on: ubuntu-24.04\n+    timeout-minutes: 90\n+    continue-on-error: true\n+    steps:\n+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4\n+      - uses: cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7 # v31\n+      # Optional warm cache (root pins the action SHA; the lane does not resolve it):\n+      # - uses: actions/cache@<sha> # v4\n+      #   with:\n+      #     path: |\n+      #       ~/.cache/bazel-video-utils\n+      #       ~/.cache/bazel/_bazel_runner/cache/repos\n+      #     key: bazel-${{ runner.os }}-${{ hashFiles('MODULE.bazel.lock', 'web/pnpm-lock.yaml', 'site/pnpm-lock.yaml') }}\n+      #     restore-keys: bazel-${{ runner.os }}-\n+      - name: Structural graph contract (no Bazel needed)\n+        run: PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v\n+      - name: Module graph and lock\n+        run: |\n+          python3 tools/bazel/run.py --timeout 900 mod graph > /dev/null\n+          python3 tools/bazel/run.py --timeout 900 build --nobuild //... --lockfile_mode=error\n+      - name: Full Bazel test run without host-tool modules\n+        run: >-\n+          nix develop --no-write-lock-file --command bash -c\n+          'python3 tools/bazel/run.py --timeout 4800 test //...\n+          --jobs=4 --local_resources=cpu=4 --keep_going\n+          --test_tag_filters=-requires-host-tools\n+          --test_env=FFMPEG=\"$(command -v ffmpeg)\" --test_env=FFPROBE=\"$(command -v ffprobe)\"\n+          --test_output=errors --test_summary=detailed'\n",
+   "expected_runtime": {
+    "measured_local_full_run_s": 2934,
+    "measured_conditions": "macOS arm64, 6 CPUs, 8 GiB, --jobs=4 --local_resources=cpu=4, local_test_jobs=2, warm repository cache, host 1-minute load ~21 to ~290 from other sessions",
+    "expected_ci_min": "cold 30-50, warm 15-25 (inference: hosted ubuntu-24.04 4 vCPU, cold toolchain and npm fetch for two locks, FFmpeg modules run serially by local_test_jobs=2)",
+    "timeout_minutes": 90,
+    "timeout_basis": "measured 49 min local full run under heavy contention, with margin",
+    "claim_class": "I"
+   },
+   "cache_notes": "no remote cache. Optional actions/cache of the Bazel disk cache and repository cache keyed on MODULE.bazel.lock, web/pnpm-lock.yaml and site/pnpm-lock.yaml; root pins the action SHA (not resolved by the lane). Cold vs warm runtime is inference.",
+   "linux_behaviour": "unknown until a hosted run",
+   "target_set": {
+    "pattern": "//...",
+    "filter": "--test_tag_filters=-requires-host-tools",
+    "excluded_by_tag": {
+     "tag": "requires-host-tools",
+     "count": 17,
+     "modules": [
+      "test_auth_hosting_s3",
+      "test_eq_shelf",
+      "test_phone_fixtures",
+      "test_phrase_riff_s2",
+      "test_public_site_s3",
+      "test_review_ui_s1",
+      "test_review_ui_s2",
+      "test_s3_tool_admission",
+      "test_share_export",
+      "test_share_export_preroll",
+      "test_sprint1_audit",
+      "test_take_intake",
+      "test_web_parity",
+      "test_web_processing_s3",
+      "test_web_reliability",
+      "test_web_runs_s3",
+      "test_web_stack"
+     ],
+     "reason": "they need node/pnpm/git (and, for the exclusive web modules, an offline pnpm store and web/build) from PATH; the default Nix dev shell has git and ffmpeg but no node/pnpm, and CI must not run an online pnpm install inside a test. Under --config=host-tools on this host they passed, but largely by typed skips (e.g. test_web_stack 22 skips in the full run, 0 in a low-load diagnostic run), so a hosted job would measure skips, not behaviour."
+    },
+    "included": "every other test: 83 Python modules (including the 10 FFmpeg modules not tagged host-tools, with the dev shell's ffmpeg), 5 Rust tests, //web:svelte_check_test and, once R1-R3 land, //site:svelte_check_test (rules_js hermetic node only)",
+    "count_after_R1_R3": 90,
+    "count_before_R1_R3": 89,
+    "count_source": "bazel query 'tests(//...) except attr(tags, \"requires-host-tools\", tests(//...))' = 89 at the rebased lane head (site gate on); +1 //site:svelte_check_test after R1-R3 (inference from the scratch R1-R3 state)"
+   },
+   "ffmpeg_tagged_also_host_tools": [
+    "test_eq_shelf",
+    "test_phone_fixtures",
+    "test_review_ui_s2",
+    "test_share_export",
+    "test_share_export_preroll",
+    "test_take_intake",
+    "test_web_parity",
+    "test_web_processing_s3",
+    "test_web_reliability",
+    "test_web_runs_s3"
+   ],
+   "dot_path_class_on_linux": "should not occur on a runner checkout path without a dot-prefixed component (inference); R6 removes it everywhere",
+   "macos_process_class_on_linux": "may not apply (inference); unknown until a hosted run"
+  },
+  {
+   "id": "R5",
+   "file": "docs/agent-notes/sprints/20261007-s3/public_site-handoff.json and tests/test_public_site_s3.py RECEIPT_FIELDS",
+   "owner": "root (public_site lane files)",
+   "change": "note only: `bazel_graph: absent` is stale now that site/BUILD.bazel exists (gated). The public_site test pins that value to (\"absent\",); root decides whether to widen it (e.g. add \"gated\") when R1-R3 land.",
+   "diff": null,
+   "why": "contract section 14 asks for the staleness to be reported, not edited by this lane."
+  },
+  {
+   "id": "R6",
+   "file": "scripts/tool_api.py",
+   "owner": "root (root-owned file)",
+   "change": "apply the hidden/staging/traversal component guard to the part of an absolute path below ROOT when the path is inside this checkout; every component of any other value is still inspected",
+   "diff": "--- a/scripts/tool_api.py\n+++ b/scripts/tool_api.py\n@@ -605,8 +605,19 @@\n     if os.path.lexists(output):\n         raise ToolError('editor marker export output already exists; nothing is overwritten')\n     return str(output)\n+\n \n+def guarded_parts(value):\n+    \"\"\"Components the hidden/staging/traversal guards inspect.\n \n+    For an absolute path inside this checkout only the components below ROOT are\n+    user input; the checkout's own location (for example a worktree under\n+    .local/) is not. Every component is inspected for any other value.\n+    \"\"\"\n+    prefix = str(ROOT).rstrip('/') + '/'\n+    return value[len(prefix):].split('/') if value.startswith(prefix) else value.split('/')\n+\n+\n def validate_tool_arguments(name, args):\n     \"\"\"Cross-field rules that are known before a worker or file read starts.\"\"\"\n     if name == 'share_export':\n@@ -623,14 +634,14 @@\n         for field in ('input','authoring_dir'):\n             value = args[field]\n             if ('\\x00' in value or '\\\\' in value or ':' in value\n-                    or any(part.startswith('.') or '.partial' in part for part in value.split('/') if part)):\n+                    or any(part.startswith('.') or '.partial' in part for part in guarded_parts(value) if part)):\n                 raise ValidationError('capture application requires exact local paths without traversal/NUL/URL')\n     if name == 'arrangement_reference':\n         for field in ('run_dir','output','reference'):\n             if field not in args: continue\n             value=args[field]\n             if ('\\x00' in value or '\\\\' in value or ':' in value\n-                    or any(part.startswith('.') or '.partial' in part for part in value.split('/') if part)):\n+                    or any(part.startswith('.') or '.partial' in part for part in guarded_parts(value) if part)):\n                 raise ValidationError('arrangement inputs require exact safe local paths')\n     if name in {'review', 'annotation_v2'}:\n         operation = args.get('operation', 'read')\n@@ -695,8 +706,8 @@\n         fields = LEARNED_EVALUATION_FIELDS if name == 'learned_pitch_evaluate' else ('fixture_index', 'pilot_index', 'output')\n         for field in fields:\n             value = args[field]\n-            parts = value.split('/')\n-            if value.startswith('/'):\n+            parts = guarded_parts(value)\n+            if value.startswith('/') and parts[:1] == ['']:\n                 parts = parts[1:]\n             if (':' in value or '\\\\' in value or any(not part or part.startswith('.') or '.partial' in part for part in parts)\n                     or (field != 'output' and not value.endswith('.json'))):\n",
+   "why": "dot_local verdict product_defect (bazel_full-known-host-failures.json): validate_tool_arguments refuses the checkout's own `.local` prefix (tool_api.py:703 calibration, :634 arrangement_reference, :627 apply_capture_profile), so the same request succeeds from a dot-free checkout and fails from a .local worktree with no difference below ROOT. calibration_path() already confines calibration paths beneath ROOT/artifacts/benchmarks.",
+   "doctrine": "dot-prefixed, '.partial' and '..' components below ROOT stay refused, and every component of a path outside the checkout is still inspected (probe in bazel_full-known-host-failures.json)",
+   "test_for_the_fix": "the 8 failing cases (test_tool_contracts 5, test_arrangement_reference_tool 2, test_capture_application_tool 1) are the regression tests; they need a checkout path with a dot-prefixed component to exercise it (any .local worktree). A dedicated unit case is suggested for root's owner of tests/test_tool_contracts.py: assert validate_tool_arguments('phrase_evaluate', ...) accepts str(ROOT/'artifacts/benchmarks/x/i.json') when ROOT is patched to a path containing '/.local/', and refuses str(ROOT/'artifacts/benchmarks/.hidden/i.json') and '/elsewhere/.local/x.json'.",
+   "verification": "see bazel_full-known-host-failures.json dot_path_copy_with_requested_fix reproductions"
+  }
+ ]
+}

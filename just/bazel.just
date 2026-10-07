@@ -25,3 +25,20 @@ bazel-test *TARGETS="//...":
 bazel-graph:
     python3 tools/bazel/run.py mod graph
     PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v
+
+# S3 bazel_full lane (docs/spec/sprints/BAZEL_FULL_S3.md). //site is gated in
+# .bazelrc until root applies the requested site/pnpm-workspace.yaml and
+# .bazelignore lines; until then bazel-site reports the deleted package.
+
+# Type-check and build the static site through Bazel (pnpm in site/ stays the gate).
+bazel-site:
+    python3 tools/bazel/run.py --timeout 1800 test //site:svelte_check_test
+    python3 tools/bazel/run.py --timeout 1800 build //site:build
+
+# Host tools and the exported FFMPEG/FFPROBE are passed through; failures do not
+# stop the run, and known host-specific failures stay visible
+# (bazel/known_host_failures.json). Gate the host first: bazel/host_gate.py.
+
+# One full `bazel test //...` run with a Build Event Protocol file.
+bazel-full BEP=".local/bazel/full-bep.json":
+    python3 tools/bazel/run.py --timeout 7200 test //... --config=host-tools --jobs=4 --local_resources=cpu=4 --test_env=FFMPEG --test_env=FFPROBE --test_output=errors --test_summary=detailed --keep_going --build_event_json_file={{BEP}}

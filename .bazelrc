@@ -48,6 +48,19 @@ test --test_summary=detailed
 test --local_test_jobs=2
 test --test_timeout=120,600,1800,3600
 
+# Site gate (S3 bazel_full, docs/spec/sprints/BAZEL_FULL_S3.md section 9.2).
+# //site needs two root-owned changes before it can load: `allowBuilds: {}` in
+# site/pnpm-workspace.yaml (rules_js 3.5.1 refuses the lock without it, and the
+# refusal fails the whole npm extension, //web included) and a .bazelignore
+# that exposes the two vendored carrier packages (rules_js links a `file:`
+# directory dependency to //site/vendor/<dir>:pkg). Until root applies both,
+# the dev-dependency site translation in MODULE.bazel is dropped and //site is
+# deleted, so `bazel test //...` loads exactly the bazel_graph packages plus
+# //bazel. Root removes these two lines in the same commit that applies the
+# changes (tests/test_bazel_graph_s3.py holds the three in step).
+common --ignore_dev_dependency
+common --deleted_packages=site
+
 # Opt-in: let tests tagged requires-host-tools find node, pnpm and git.
 test:host-tools --test_env=PATH
 test:host-tools --test_env=HOME

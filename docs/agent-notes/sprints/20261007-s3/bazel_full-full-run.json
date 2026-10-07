@@ -1,0 +1,1488 @@
+{
+ "schema": "vu.bazel_full.full_run.v1",
+ "lane": "bazel_full",
+ "sprint": "20261007-s3",
+ "tracker": "TIN-5722",
+ "recorded": "2026-10-07",
+ "authority": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N13",
+ "contract": "docs/spec/sprints/BAZEL_FULL_S3.md sections 5 (metrics 1-7) and 6.3 step 4",
+ "full_run_status": "ran_complete",
+ "full_run_exit": 3,
+ "full_run_exit_name": "TESTS_FAILED",
+ "full_run_wall_s": 2934,
+ "full_run_start_utc": "2026-10-07T16:03:01Z",
+ "full_run_end_utc": "2026-10-07T16:51:55Z",
+ "head": "30477904e5323693349936ffb7a20020a54357ec",
+ "full_run_command": "python3 tools/bazel/run.py --timeout 7200 test //... --config=host-tools --jobs=4 --local_resources=cpu=4 --test_env=FFMPEG=<nix ffmpeg-headless 8.1.2> --test_env=FFPROBE=<nix ffprobe> --test_output=errors --test_summary=detailed --keep_going --build_event_json_file=<lane artifacts>/full/bep.json",
+ "executed_once": true,
+ "tree_state": "committed lane tree with the site gate on: //site deleted and the npm_site translation dropped (bazel_full-site.json); T counts the targets this tree defines",
+ "test_targets_total": 104,
+ "python_modules_total": 98,
+ "denominator_sources": {
+  "T": "bazel query 'tests(//...)' (104 lines, artifacts full/tests.txt)",
+  "P": "bazel query 'kind(py_test, //tests:all)' (98) and ls tests/test_*.py (98); 0 excluded"
+ },
+ "status_counts": {
+  "passed": 94,
+  "failed": 9,
+  "timeout": 1,
+  "flaky": 0,
+  "no_status": 0,
+  "skipped": 0,
+  "not_run": 0
+ },
+ "python_case_totals_over_parsed_modules": {
+  "ran": 1814,
+  "skipped": 121,
+  "failures": 3,
+  "errors": 18,
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "parsed_modules": 97,
+  "unparsed_modules": [
+   "//tests:test_timecode (TIMEOUT)"
+  ]
+ },
+ "ffmpeg_modules_run_with_ffmpeg": {
+  "k": 18,
+  "F": 18,
+  "modules": [
+   "test_arrangement_markers",
+   "test_eq_shelf",
+   "test_fuller_profile",
+   "test_marked_compact",
+   "test_marked_video",
+   "test_mcp",
+   "test_media",
+   "test_phone_fixtures",
+   "test_review_ui_s2",
+   "test_share_export",
+   "test_share_export_preroll",
+   "test_tone_ab",
+   "test_tool_contracts",
+   "test_web_jobs",
+   "test_web_parity",
+   "test_web_processing_s3",
+   "test_web_reliability",
+   "test_web_runs_s3"
+  ],
+  "note": "every FFmpeg-tagged module ran cases with FFMPEG/FFPROBE set; the only skips in these modules are opt-in, optional-runtime or offline-pnpm reasons, none is an FFmpeg-unavailable skip (per-module skip_reasons below)"
+ },
+ "ffmpeg_modules_all_cases_skipped": [],
+ "failing_cases_total": 20,
+ "known_host_failures": {
+  "count": 10,
+  "register": "bazel/known_host_failures.json",
+  "by_class": {
+   "dot_path_component": 8,
+   "macos_process_inspection": 2
+  }
+ },
+ "bazel_only_failures": {
+  "count": 11,
+  "cases": [
+   {
+    "case": "test_capture_application_adapter.AdapterTests.test_actual_mcp_recorded_orphan_that_moves_session_remains_unknown",
+    "bazel_outcome": "FAIL",
+    "plain_unittest_outcome": "PASS",
+    "plain_unittest_load1": 20.8
+   },
+   {
+    "case": "test_share_export_audit.SharePublicationAudit.test_inner_owned_deadline_reaps_inert_same_session_child_and_retains_logs",
+    "bazel_outcome": "ERROR",
+    "plain_unittest_outcome": "PASS",
+    "plain_unittest_load1": 19.5
+   },
+   {
+    "case": "test_sprint1_audit.AnnotationRefusalAudit.test_cli_metadata_is_bounded_before_session_loading",
+    "bazel_outcome": "ERROR",
+    "plain_unittest_outcome": "PASS",
+    "plain_unittest_load1": 19.5
+   },
+   {
+    "case": "test_sprint1_audit.AnnotationRefusalAudit.test_cli_unknown_source_clock_cannot_author_annotations",
+    "bazel_outcome": "ERROR",
+    "plain_unittest_outcome": "PASS",
+    "plain_unittest_load1": 19.3
+   },
+   {
+    "case": "test_sprint1_audit.AnnotationRefusalAudit.test_fifo_read_is_bounded_and_refused",
+    "bazel_outcome": "ERROR",
+    "plain_unittest_outcome": "PASS",
+    "plain_unittest_load1": 19.3
+   },
+   {
+    "case": "test_sprint1_audit.PracticeSourceClockAudit.test_claim_labels_remain_four_distinct_evidence_bases",
+    "bazel_outcome": "ERROR",
+    "plain_unittest_outcome": "PASS",
+    "plain_unittest_load1": 19.3
+   },
+   {
+    "case": "test_sprint1_audit.PracticeSourceClockAudit.test_point_display_dwell_does_not_invent_extent_or_late_endpoint",
+    "bazel_outcome": "ERROR",
+    "plain_unittest_outcome": "PASS",
+    "plain_unittest_load1": 19.3
+   },
+   {
+    "case": "test_sprint1_audit.PracticeSourceClockAudit.test_role_switch_rechecks_loop_and_unknown_duration_abstains",
+    "bazel_outcome": "ERROR",
+    "plain_unittest_outcome": "PASS",
+    "plain_unittest_load1": 19.3
+   },
+   {
+    "case": "test_sprint1_audit.PracticeSourceClockAudit.test_source_seek_uses_audio_origin_and_never_autoplays",
+    "bazel_outcome": "ERROR",
+    "plain_unittest_outcome": "PASS",
+    "plain_unittest_load1": 19.3
+   },
+   {
+    "case": "test_sprint1_audit.PracticeSourceClockAudit.test_unreachable_audio_loop_is_refused_without_rewriting_span",
+    "bazel_outcome": "ERROR",
+    "plain_unittest_outcome": "PASS",
+    "plain_unittest_load1": 19.3
+   },
+   {
+    "case": "test_timecode (module; TIMEOUT at the moderate 600 s bound, no per-case log)",
+    "bazel_outcome": "TIMEOUT",
+    "plain_unittest_outcome": "PASS",
+    "plain_unittest_load1": 16.9
+   }
+  ],
+  "diagnosis": "each passes under plain unittest at 1-minute load ~17-22, and the same Bazel targets pass in a separate diagnostic Bazel run at load ~14 (diagnostic_run below). The full run executed at host 1-minute load between ~21 and ~290 (other sessions); the failures are subprocess TimeoutExpired (test_sprint1_audit), a missing temp file during a bounded cleanup deadline (test_share_export_audit), a session-membership race (test_capture_application_adapter) and the 600 s moderate bound (test_timecode). Cause: host load (inference, supported by the low-load Bazel pass); not a Bazel-graph defect in the sense of section 7.",
+  "claim_class": "I"
+ },
+ "unexplained_failures": {
+  "count": 0,
+  "cases": []
+ },
+ "graph_defects_found": [
+  {
+   "target": "//web:svelte_check_test",
+   "bazel_outcome": "FAILED (svelte-check 14 errors in 6 files: Cannot find module '../tests/fixtures' and implicit any from it)",
+   "cause": "M: web/tests/** (added after bazel_graph by the web test lane) was not in //web:app_srcs, while the SvelteKit tsconfig includes ../tests/** and src/**/*.test.ts import tests/fixtures.ts",
+   "fix": "web/BUILD.bazel app_srcs glob adds tests/** (commit 9e0f815)",
+   "verified": "PASSED in the diagnostic run (svelte-check found 0 errors and 0 warnings)"
+  }
+ ],
+ "diagnostic_run": {
+  "note": "not a rerun of the full run; the full-run record above is unchanged",
+  "head": "3b0b5973399a0b64fd89652ef6016483f1b9a153",
+  "command": "python3 tools/bazel/run.py --timeout 3600 test //tests:test_capture_application_adapter //tests:test_share_export_audit //tests:test_sprint1_audit //tests:test_timecode //web:svelte_check_test --config=host-tools --jobs=4 --local_resources=cpu=4 --test_env=FFMPEG=... --test_env=FFPROBE=... --keep_going --nocache_test_results",
+  "exit": 0,
+  "wall_s": 87,
+  "load1_start": 14.74,
+  "targets": [
+   {
+    "target": "//tests:test_capture_application_adapter",
+    "status": "PASSED",
+    "duration_s": 38.3
+   },
+   {
+    "target": "//tests:test_share_export_audit",
+    "status": "PASSED",
+    "duration_s": 2.7
+   },
+   {
+    "target": "//tests:test_sprint1_audit",
+    "status": "PASSED",
+    "duration_s": 3.3
+   },
+   {
+    "target": "//tests:test_timecode",
+    "status": "PASSED",
+    "duration_s": 70.0
+   },
+   {
+    "target": "//web:svelte_check_test",
+    "status": "PASSED",
+    "duration_s": 14.8
+   }
+  ]
+ },
+ "host_load_during_full_run": {
+  "gate_reading_at_start": 21.15,
+  "observed_samples": "21.2 at start (gate), 64.6 at 16:10Z, ~112 at 16:37Z, ~273 at 16:55Z (uptime readings by the lane)",
+  "claim_class": "M (samples), I (attribution to other sessions)"
+ },
+ "linux_behaviour": "unknown",
+ "remote_cache": "not_configured",
+ "listening_claims": "none",
+ "signal_path_changed": false,
+ "bazel_replaces_just": false,
+ "per_target": [
+  {
+   "target": "//native/au-spike:biquad_ffi_test",
+   "status": "PASSED",
+   "duration_s": 10.2
+  },
+  {
+   "target": "//native/au-spike:video_utils_gain_ffi_unit_test",
+   "status": "PASSED",
+   "duration_s": 8.5
+  },
+  {
+   "target": "//src:video_utils_unit_test",
+   "status": "PASSED",
+   "duration_s": 4.8
+  },
+  {
+   "target": "//tests:rust_cli_test",
+   "status": "PASSED",
+   "duration_s": 18.8
+  },
+  {
+   "target": "//tests:rust_dsp_test",
+   "status": "PASSED",
+   "duration_s": 2.1
+  },
+  {
+   "target": "//tests:test_annotation_markers",
+   "status": "PASSED",
+   "duration_s": 2.3,
+   "ran": 13,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_annotation_v2",
+   "status": "PASSED",
+   "duration_s": 30.1,
+   "ran": 30,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_apply_capture_profile",
+   "status": "PASSED",
+   "duration_s": 45.8,
+   "ran": 42,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_apply_capture_profile_audit",
+   "status": "PASSED",
+   "duration_s": 17.5,
+   "ran": 9,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_arrangement_markers",
+   "status": "PASSED",
+   "duration_s": 17.8,
+   "ran": 11,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_arrangement_reference",
+   "status": "PASSED",
+   "duration_s": 3.6,
+   "ran": 17,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_arrangement_reference_audit",
+   "status": "PASSED",
+   "duration_s": 3.0,
+   "ran": 31,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_arrangement_reference_tool",
+   "status": "FAILED",
+   "duration_s": 17.6,
+   "ran": 6,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 2,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "failing_cases": [
+    "test_arrangement_reference_tool.ArrangementToolTests.test_real_stdio_assessment_preserves_intent_nulls_and_native_hashes",
+    "test_arrangement_reference_tool.ArrangementToolTests.test_real_stdio_stale_lineage_and_changed_pcm_reject_without_output"
+   ]
+  },
+  {
+   "target": "//tests:test_artifact_ids",
+   "status": "PASSED",
+   "duration_s": 24.1,
+   "ran": 20,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_au_auval",
+   "status": "PASSED",
+   "duration_s": 9.3,
+   "ran": 21,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_auth_hosting_s3",
+   "status": "PASSED",
+   "duration_s": 6.0,
+   "ran": 39,
+   "skipped": 3,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "web/build absent (run the web_stack build tests first)": 3
+   }
+  },
+  {
+   "target": "//tests:test_basic_pitch_compare",
+   "status": "PASSED",
+   "duration_s": 6.2,
+   "ran": 19,
+   "skipped": 1,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "optional qualified runtime integration; no implicit install": 1
+   }
+  },
+  {
+   "target": "//tests:test_basic_pitch_runtime_setup",
+   "status": "PASSED",
+   "duration_s": 8.6,
+   "ran": 20,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_basic_pitch_runtime_setup_audit",
+   "status": "PASSED",
+   "duration_s": 9.2,
+   "ran": 4,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_bazel_graph_s3",
+   "status": "PASSED",
+   "duration_s": 16.5,
+   "ran": 50,
+   "skipped": 1,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "marker case: selected by the shim self-check below": 1
+   }
+  },
+  {
+   "target": "//tests:test_beat_this_compare",
+   "status": "PASSED",
+   "duration_s": 11.4,
+   "ran": 34,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_benchmark",
+   "status": "PASSED",
+   "duration_s": 9.9,
+   "ran": 7,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_benchmark_bank",
+   "status": "PASSED",
+   "duration_s": 25.4,
+   "ran": 9,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_benchmark_holdout",
+   "status": "PASSED",
+   "duration_s": 14.4,
+   "ran": 14,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_calibration_pilot",
+   "status": "PASSED",
+   "duration_s": 20.5,
+   "ran": 10,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_capabilities",
+   "status": "PASSED",
+   "duration_s": 25.8,
+   "ran": 17,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_capture_application_adapter",
+   "status": "FAILED",
+   "duration_s": 79.1,
+   "ran": 20,
+   "skipped": 0,
+   "failures": 1,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "failing_cases": [
+    "test_capture_application_adapter.AdapterTests.test_actual_mcp_recorded_orphan_that_moves_session_remains_unknown"
+   ]
+  },
+  {
+   "target": "//tests:test_capture_application_adapter_audit",
+   "status": "PASSED",
+   "duration_s": 24.2,
+   "ran": 3,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_capture_application_tool",
+   "status": "FAILED",
+   "duration_s": 16.2,
+   "ran": 7,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 1,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "failing_cases": [
+    "test_capture_application_tool.ApplicationToolTests.test_real_initialized_mcp_wrong_pin_fails_before_media"
+   ]
+  },
+  {
+   "target": "//tests:test_capture_profile",
+   "status": "PASSED",
+   "duration_s": 18.5,
+   "ran": 33,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_capture_profile_audit",
+   "status": "PASSED",
+   "duration_s": 5.2,
+   "ran": 12,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_click_attack_ab",
+   "status": "PASSED",
+   "duration_s": 4.6,
+   "ran": 6,
+   "skipped": 6,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "optional locked analysis dependencies absent": 6
+   }
+  },
+  {
+   "target": "//tests:test_clicks",
+   "status": "PASSED",
+   "duration_s": 5.0,
+   "ran": 12,
+   "skipped": 12,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "optional locked analysis dependencies absent": 12
+   }
+  },
+  {
+   "target": "//tests:test_corpus",
+   "status": "PASSED",
+   "duration_s": 20.5,
+   "ran": 16,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_corpus_eval_s2",
+   "status": "PASSED",
+   "duration_s": 11.6,
+   "ran": 14,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_corpus_split_s1",
+   "status": "PASSED",
+   "duration_s": 26.0,
+   "ran": 37,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_dag",
+   "status": "PASSED",
+   "duration_s": 6.4,
+   "ran": 39,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_demo",
+   "status": "PASSED",
+   "duration_s": 54.5,
+   "ran": 29,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_editor_marker_export",
+   "status": "PASSED",
+   "duration_s": 7.8,
+   "ran": 23,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_editor_marker_plan",
+   "status": "PASSED",
+   "duration_s": 14.9,
+   "ran": 21,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_editor_marker_timing_audit",
+   "status": "PASSED",
+   "duration_s": 4.5,
+   "ran": 5,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_eq_shelf",
+   "status": "PASSED",
+   "duration_s": 42.2,
+   "ran": 29,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_flags_triage",
+   "status": "PASSED",
+   "duration_s": 10.9,
+   "ran": 9,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_fuller_profile",
+   "status": "PASSED",
+   "duration_s": 71.6,
+   "ran": 14,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_guitar_features",
+   "status": "PASSED",
+   "duration_s": 8.6,
+   "ran": 16,
+   "skipped": 2,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "optional locked analysis environment": 2
+   }
+  },
+  {
+   "target": "//tests:test_guitar_noul_client",
+   "status": "PASSED",
+   "duration_s": 12.2,
+   "ran": 15,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_holdout_release",
+   "status": "PASSED",
+   "duration_s": 19.1,
+   "ran": 2,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_learned_pitch_audit",
+   "status": "PASSED",
+   "duration_s": 16.1,
+   "ran": 5,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_learned_pitch_evaluate",
+   "status": "PASSED",
+   "duration_s": 92.0,
+   "ran": 15,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_learned_pitch_pilot",
+   "status": "FAILED",
+   "duration_s": 14.7,
+   "ran": 14,
+   "skipped": 0,
+   "failures": 1,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "failing_cases": [
+    "test_learned_pitch_pilot.ControllerTests.test_failed_leader_cleans_owned_live_descendant"
+   ]
+  },
+  {
+   "target": "//tests:test_low_register_denoise_probe",
+   "status": "PASSED",
+   "duration_s": 5.2,
+   "ran": 10,
+   "skipped": 10,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "Optional locked NumPy/SciPy analysis environment required": 10
+   }
+  },
+  {
+   "target": "//tests:test_low_register_fixtures",
+   "status": "PASSED",
+   "duration_s": 4.2,
+   "ran": 10,
+   "skipped": 6,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "Optional NumPy/SciPy fixture-oracle environment required": 6
+   }
+  },
+  {
+   "target": "//tests:test_low_register_probe_audit",
+   "status": "PASSED",
+   "duration_s": 3.3,
+   "ran": 2,
+   "skipped": 2,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "Optional locked NumPy/SciPy environment required": 2
+   }
+  },
+  {
+   "target": "//tests:test_low_register_s1",
+   "status": "PASSED",
+   "duration_s": 4.5,
+   "ran": 8,
+   "skipped": 4,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "Optional locked NumPy/SciPy environment required": 4
+   }
+  },
+  {
+   "target": "//tests:test_lowreg_spectrogram",
+   "status": "PASSED",
+   "duration_s": 20.2,
+   "ran": 19,
+   "skipped": 1,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "numpy not importable": 1
+   }
+  },
+  {
+   "target": "//tests:test_marked_compact",
+   "status": "PASSED",
+   "duration_s": 33.6,
+   "ran": 17,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_marked_video",
+   "status": "PASSED",
+   "duration_s": 41.1,
+   "ran": 13,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_markers",
+   "status": "PASSED",
+   "duration_s": 7.0,
+   "ran": 15,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_mcp",
+   "status": "PASSED",
+   "duration_s": 26.8,
+   "ran": 8,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_media",
+   "status": "PASSED",
+   "duration_s": 224.8,
+   "ran": 18,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_meter",
+   "status": "PASSED",
+   "duration_s": 7.1,
+   "ran": 12,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_nr8_nr10_comparison",
+   "status": "PASSED",
+   "duration_s": 17.7,
+   "ran": 23,
+   "skipped": 3,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "locked NumPy/SciPy optional; no implicit installation": 3
+   }
+  },
+  {
+   "target": "//tests:test_nr8_nr10_comparison_audit",
+   "status": "PASSED",
+   "duration_s": 12.5,
+   "ran": 2,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_phone_fixtures",
+   "status": "PASSED",
+   "duration_s": 1263.6,
+   "ran": 11,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_phrase_anchor",
+   "status": "PASSED",
+   "duration_s": 18.5,
+   "ran": 14,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_phrase_compare",
+   "status": "PASSED",
+   "duration_s": 7.4,
+   "ran": 21,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_phrase_evaluate",
+   "status": "PASSED",
+   "duration_s": 7.8,
+   "ran": 24,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_phrase_localization_experiment_audit",
+   "status": "PASSED",
+   "duration_s": 37.6,
+   "ran": 25,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_phrase_localization_pilot",
+   "status": "FAILED",
+   "duration_s": 9.9,
+   "ran": 22,
+   "skipped": 0,
+   "failures": 1,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "failing_cases": [
+    "test_phrase_localization_pilot.InertOrchestrationTests.test_owned_exited_leader_live_inert_child_cleanup"
+   ]
+  },
+  {
+   "target": "//tests:test_phrase_localize",
+   "status": "PASSED",
+   "duration_s": 11.4,
+   "ran": 18,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_phrase_localize_audit",
+   "status": "PASSED",
+   "duration_s": 17.3,
+   "ran": 22,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_phrase_proposal_s1",
+   "status": "PASSED",
+   "duration_s": 11.8,
+   "ran": 16,
+   "skipped": 7,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "locked numerical environment is optional in baseline CI": 7
+   }
+  },
+  {
+   "target": "//tests:test_phrase_riff_s2",
+   "status": "PASSED",
+   "duration_s": 27.1,
+   "ran": 12,
+   "skipped": 2,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "numpy synthesis/R1 checks run only under VIDEO_UTILS_ANALYSIS_PYTHON": 2
+   }
+  },
+  {
+   "target": "//tests:test_phrase_timing",
+   "status": "PASSED",
+   "duration_s": 17.4,
+   "ran": 11,
+   "skipped": 1,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "sealed P2 evaluation runs once after the eval receipt": 1
+   }
+  },
+  {
+   "target": "//tests:test_pitch",
+   "status": "PASSED",
+   "duration_s": 6.2,
+   "ran": 11,
+   "skipped": 5,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "optional locked analysis environment": 5
+   }
+  },
+  {
+   "target": "//tests:test_pitch_evaluate",
+   "status": "PASSED",
+   "duration_s": 42.8,
+   "ran": 17,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_public_site_s3",
+   "status": "PASSED",
+   "duration_s": 4.7,
+   "ran": 63,
+   "skipped": 15,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "private app hostname is null in deploy/cloudflare (private_app_hostname_checked: false)": 1,
+    "site/node_modules is absent; run `pnpm install --frozen-lockfile` in site/ first (never run by tests)": 14
+   }
+  },
+  {
+   "target": "//tests:test_report",
+   "status": "PASSED",
+   "duration_s": 4.1,
+   "ran": 23,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_report_bundle",
+   "status": "PASSED",
+   "duration_s": 6.3,
+   "ran": 19,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_review_server",
+   "status": "PASSED",
+   "duration_s": 10.3,
+   "ran": 12,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_review_ui_s1",
+   "status": "PASSED",
+   "duration_s": 14.3,
+   "ran": 13,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_review_ui_s2",
+   "status": "PASSED",
+   "duration_s": 46.0,
+   "ran": 24,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_rhythm",
+   "status": "PASSED",
+   "duration_s": 47.8,
+   "ran": 29,
+   "skipped": 2,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "optional librosa dependency absent": 1,
+    "sealed D3 evaluation runs once after the eval receipt": 1
+   }
+  },
+  {
+   "target": "//tests:test_s1_tool_admission",
+   "status": "PASSED",
+   "duration_s": 23.1,
+   "ran": 5,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_s2_tool_admission",
+   "status": "PASSED",
+   "duration_s": 40.0,
+   "ran": 26,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_s3_tool_admission",
+   "status": "PASSED",
+   "duration_s": 20.2,
+   "ran": 15,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_share_export",
+   "status": "PASSED",
+   "duration_s": 47.8,
+   "ran": 28,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_share_export_audit",
+   "status": "FAILED",
+   "duration_s": 9.5,
+   "ran": 14,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 1,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "failing_cases": [
+    "test_share_export_audit.SharePublicationAudit.test_inner_owned_deadline_reaps_inert_same_session_child_and_retains_logs"
+   ]
+  },
+  {
+   "target": "//tests:test_share_export_preroll",
+   "status": "PASSED",
+   "duration_s": 33.3,
+   "ran": 9,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_share_export_tool",
+   "status": "PASSED",
+   "duration_s": 13.8,
+   "ran": 8,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_sprint1_audit",
+   "status": "FAILED",
+   "duration_s": 76.2,
+   "ran": 27,
+   "skipped": 1,
+   "failures": 0,
+   "errors": 9,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "Optional qualified numerical environment required": 1
+   },
+   "failing_cases": [
+    "test_sprint1_audit.AnnotationRefusalAudit.test_cli_metadata_is_bounded_before_session_loading",
+    "test_sprint1_audit.AnnotationRefusalAudit.test_cli_metadata_is_bounded_before_session_loading",
+    "test_sprint1_audit.AnnotationRefusalAudit.test_cli_unknown_source_clock_cannot_author_annotations",
+    "test_sprint1_audit.AnnotationRefusalAudit.test_fifo_read_is_bounded_and_refused",
+    "test_sprint1_audit.PracticeSourceClockAudit.test_claim_labels_remain_four_distinct_evidence_bases",
+    "test_sprint1_audit.PracticeSourceClockAudit.test_point_display_dwell_does_not_invent_extent_or_late_endpoint",
+    "test_sprint1_audit.PracticeSourceClockAudit.test_role_switch_rechecks_loop_and_unknown_duration_abstains",
+    "test_sprint1_audit.PracticeSourceClockAudit.test_source_seek_uses_audio_origin_and_never_autoplays",
+    "test_sprint1_audit.PracticeSourceClockAudit.test_unreachable_audio_loop_is_refused_without_rewriting_span"
+   ]
+  },
+  {
+   "target": "//tests:test_timecode",
+   "status": "TIMEOUT",
+   "duration_s": 600.5,
+   "unittest": "unparsed: no unittest summary line (not a Python unittest log)"
+  },
+  {
+   "target": "//tests:test_tonal",
+   "status": "PASSED",
+   "duration_s": 7.8,
+   "ran": 21,
+   "skipped": 1,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "Explicit optional analysis environment required": 1
+   }
+  },
+  {
+   "target": "//tests:test_tone_ab",
+   "status": "PASSED",
+   "duration_s": 316.0,
+   "ran": 29,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_tool_contracts",
+   "status": "FAILED",
+   "duration_s": 115.3,
+   "ran": 65,
+   "skipped": 2,
+   "failures": 0,
+   "errors": 5,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "Optional qualified Basic Pitch inference unavailable: local model, isolated runtime, runtime wheel manifest; no model/runtime acquisition in tests": 1,
+    "explicit installed librosa analysis environment is required": 1
+   },
+   "failing_cases": [
+    "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_mcp_preserves_octave_failure_and_inputs",
+    "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_stale_raw_retains_structural_receipt",
+    "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_unsupported_claim_keeps_metrics_and_fails",
+    "test_tool_contracts.ToolContractTests.test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate",
+    "test_tool_contracts.ToolContractTests.test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure"
+   ]
+  },
+  {
+   "target": "//tests:test_tools",
+   "status": "PASSED",
+   "duration_s": 13.0,
+   "ran": 11,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_web_house_stack_s3",
+   "status": "PASSED",
+   "duration_s": 53.5,
+   "ran": 19,
+   "skipped": 0,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0
+  },
+  {
+   "target": "//tests:test_web_jobs",
+   "status": "PASSED",
+   "duration_s": 104.0,
+   "ran": 26,
+   "skipped": 2,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "opt-in actual-demo structural job (WEB_JOBS_DEMO=1 and qualified FFmpeg)": 1,
+    "opt-in local latency measurement (WEB_JOBS_MEASURE=1)": 1
+   }
+  },
+  {
+   "target": "//tests:test_web_parity",
+   "status": "PASSED",
+   "duration_s": 102.6,
+   "ran": 18,
+   "skipped": 2,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "offline install: packages/metadata missing from the local pnpm store": 1,
+    "opt-in read-only demo walkthrough (WEB_UI_DEMO=1, FFmpeg, node, pnpm)": 1
+   }
+  },
+  {
+   "target": "//tests:test_web_processing_s3",
+   "status": "PASSED",
+   "duration_s": 116.4,
+   "ran": 24,
+   "skipped": 3,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "node or web/build missing; build with pnpm build first (skip is not a pass)": 3
+   }
+  },
+  {
+   "target": "//tests:test_web_reliability",
+   "status": "PASSED",
+   "duration_s": 46.8,
+   "ran": 17,
+   "skipped": 2,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "offline install: packages/metadata missing from the local pnpm store": 1,
+    "opt-in real-take web job (WEB_RELIABILITY_REAL=1 and qualified FFmpeg); not part of the pass count": 1
+   }
+  },
+  {
+   "target": "//tests:test_web_runs_s3",
+   "status": "PASSED",
+   "duration_s": 38.3,
+   "ran": 36,
+   "skipped": 3,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "offline install: packages/metadata missing from the local pnpm store": 3
+   }
+  },
+  {
+   "target": "//tests:test_web_stack",
+   "status": "PASSED",
+   "duration_s": 53.4,
+   "ran": 33,
+   "skipped": 22,
+   "failures": 0,
+   "errors": 0,
+   "expected_failures": 0,
+   "unexpected_successes": 0,
+   "skip_reasons": {
+    "offline install: packages/metadata missing from the local pnpm store": 22
+   }
+  },
+  {
+   "target": "//web:svelte_check_test",
+   "status": "FAILED",
+   "duration_s": 246.9
+  }
+ ],
+ "artifacts": "artifacts/s2/bazel_full/full/{bep.json,console.log,tests.txt,py_tests.txt,report.json,testlogs/} (gitignored, local only)",
+ "python_modules_total_note": "98 = modules at the run's baseline tree (549a14d); 100 after the rebase onto main 0ea22c3 (rebase_onto_main)",
+ "rebase_onto_main": {
+  "onto": "main 0ea22c3",
+  "previous_baseline": "549a14dea88f6b7951a81f2c2fa0718cb83a1c21",
+  "reason": "Phase 4 audit must_fix: main added tests/test_take_intake.py and tests/test_timing_calibration.py, so the supplement count (98) failed test_bazel_graph_s3 on a merge into main",
+  "python_modules_total_now": 100,
+  "py_test_targets_now": 100,
+  "test_targets_total_now": 106,
+  "test_targets_total_now_after_root_R1_R3": 107,
+  "test_targets_without_requires_host_tools_now": 89,
+  "denominator_sources": "ls tests/test_*.py (100); bazel query 'kind(py_test, //tests:all)' (100); bazel query 'tests(//...)' (106); bazel query 'tests(//...) except attr(tags, \"requires-host-tools\", tests(//...))' (89), all at the rebased lane head with the site gate on",
+  "added_modules_classification": "bazel/test_classification_s3_full.json (test_take_intake: requires-ffmpeg, requires-host-tools, workspace-artifacts; test_timing_calibration: requires-ffmpeg, workspace-artifacts)",
+  "full_run_not_repeated": "the single full run above covered the 98 modules at the baseline; the 2 added modules ran in the supplementary run below, not inside a full //... run",
+  "supplementary_run": {
+   "command": "python3 tools/bazel/run.py --timeout 580 test //tests:test_take_intake //tests:test_timing_calibration --config=host-tools --jobs=4 --local_resources=cpu=4 --test_env=FFMPEG=<nix ffmpeg-headless 8.1.2> --test_env=FFPROBE=<nix ffprobe> --test_output=errors --test_summary=detailed --build_event_json_file=<lane artifacts>/rebase/bep.json",
+   "host_load_1min_before": 3.8,
+   "exit": 0,
+   "wall_s": 24.5,
+   "targets": {
+    "//tests:test_take_intake": {
+     "status": "PASSED",
+     "ran": 34,
+     "skipped": 1,
+     "skip_reasons": {
+      "e2e_gated_set_TAKE_INTAKE_E2E_1": 1
+     },
+     "failures": 0,
+     "errors": 0
+    },
+    "//tests:test_timing_calibration": {
+     "status": "PASSED",
+     "ran": 26,
+     "skipped": 2,
+     "skip_reasons": {
+      "sealed evaluation runs once, on request": 1,
+      "R2 sealed evaluation runs once, on request": 1
+     },
+     "failures": 0,
+     "errors": 0
+    }
+   },
+   "ffmpeg_modules_run_with_ffmpeg": "2 of 2 (test_timing_calibration.test_p2_cli_analyze_on_wav ran, not skipped)",
+   "claim_class": "M"
+  },
+  "claim_class": "M"
+ }
+}
