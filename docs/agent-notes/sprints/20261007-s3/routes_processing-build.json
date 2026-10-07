@@ -1,0 +1,47 @@
+{
+  "also": "test_web_stack b1-b4 (offline frozen install, check, build outputs, non-loopback HOST refused) passed",
+  "branch": "sprint/20261007-s3/routes_processing",
+  "commands": [
+    {
+      "command": "pnpm install --offline --frozen-lockfile",
+      "exit": 0,
+      "result": "Already up to date"
+    },
+    {
+      "command": "pnpm check",
+      "exit": 0,
+      "svelte_check": {
+        "errors": 0,
+        "files": 1248,
+        "warnings": 0
+      }
+    },
+    {
+      "command": "pnpm build",
+      "exit": 0,
+      "result": "adapter-node build/ written"
+    }
+  ],
+  "contract": "docs/spec/sprints/ROUTES_PROCESSING_S3.md",
+  "date": "2026-10-07",
+  "directory": "web/",
+  "lane": "routes_processing",
+  "limitation": "form actions need ORIGIN=http://127.0.0.1:<port> (root request: serve.js default); pages show data-origin-warning when it is unset",
+  "notes": [
+    "pnpm reported an unsupported-engine warning (its bundled node v24.19.0 vs engines >=22.12 <23); node on PATH is v22.23.2",
+    "package.json and pnpm-lock.yaml unchanged",
+    "host I/O was slow: check took 205 s wall, build 105 s"
+  ],
+  "pins": {
+    "@skeletonlabs/skeleton": "5.0.1",
+    "@skeletonlabs/skeleton-svelte": "5.0.1",
+    "@sveltejs/kit": "2.70.3",
+    "effect": "4.0.1",
+    "svelte": "5.57.1"
+  },
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "schema": "video-utils/lane-build-receipt",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5718"
+}

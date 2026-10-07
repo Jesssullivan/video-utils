@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-07",
+  "lane": "routes_processing",
+  "note": "The lane made none of these changes. Each is root's decision; texts are exact.",
+  "requests": [
+    {
+      "change": "replace the WEB_JOB_ADMISSIONS mapping with:\nWEB_JOB_ADMISSIONS = {\n    'share_export': 'docs/agent-notes/sprints/20261006-s2/web_reliability-real-web-job.json',\n    'denoise': 'docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-denoise.json',\n    'capture_profile': 'docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-capture_profile.json',\n    'apply_capture_profile': 'docs/agent-notes/sprints/20261007-s3/routes_processing-web-job-apply_capture_profile.json',\n}",
+      "condition": "apply_capture_profile receipt records outcome not_run (real render blocked in a .local/ worktree by tool_api path rules); admit it only after the real-worker case passes from the main checkout",
+      "file": "scripts/capabilities.py",
+      "why": "admit the three new web_job adapters with their evidence receipts (contract section 13.1)"
+    },
+    {
+      "change": "capabilities[tool=denoise|capture_profile|apply_capture_profile].adapters.web_job: \"planned\" -> \"admitted\"",
+      "file": "program/capabilities.json",
+      "why": "runtime gate read by WebJobs.admission_state; without it submissions stay tool_pending_admission"
+    },
+    {
+      "change": "--- a/web/src/lib/schema/control.ts\n+++ b/web/src/lib/schema/control.ts\n@@ -92,6 +92,34 @@\n });\n export type JobParameters = typeof JobParameters.Type;\n \n+// S3 allowlist (ROUTES_PROCESSING_S3 section 6): processing job types and their closed parameters.\n+export const JOB_TOOLS = ['share_export', 'denoise', 'capture_profile', 'apply_capture_profile'] as const;\n+export const JobTool = Schema.Literals(JOB_TOOLS);\n+const PeakingBand = Schema.Struct({ frequency_hz: Schema.Finite, gain_db: Schema.Finite, q: Schema.Finite });\n+const Compressor = Schema.Struct({\n+\tthreshold_db: Schema.Finite,\n+\tratio: Schema.Finite,\n+\tattack_ms: Schema.Finite,\n+\trelease_ms: Schema.Finite,\n+\tknee_db: Schema.Finite\n+});\n+export const DenoiseParameters = Schema.Struct({ profile: BoundedText(64), timeout_seconds: IntBetween(1, 900) });\n+export const CaptureParameters = Schema.Struct({\n+\tpreset: Schema.Literals(['fuller', 'custom']),\n+\treduction_db: Schema.Finite,\n+\tnoise_floor_db: Schema.Finite,\n+\tadaptivity: Schema.Finite,\n+\tgain_smooth: Schema.Int,\n+\tintegrated_lufs: Schema.Finite,\n+\ttrue_peak_dbtp: Schema.Finite,\n+\tpeaking_eq: Schema.optionalKey(Schema.Array(PeakingBand).check(Schema.isMaxLength(3))),\n+\tcompressor: Schema.optionalKey(Compressor),\n+\ttimeout_seconds: IntBetween(1, 60)\n+});\n+export const ApplyParameters = Schema.Struct({ timeout_seconds: IntBetween(12, 600) });\n+export const AnyJobParameters = Schema.Union([JobParameters, DenoiseParameters, CaptureParameters, ApplyParameters]);\n+const BoundInput = Schema.Record(Schema.String, Schema.Union([Schema.String, Schema.Null]));\n+\n export const JobProgress = Schema.Struct({\n \tcompleted: IntBetween(0, 6),\n \tdenominator: Schema.Literal(6),\n@@ -128,14 +156,29 @@\n \tloudness: Schema.optionalKey(Schema.Unknown),\n \toutput_decode_errors_checked: Schema.optionalKey(Schema.Unknown),\n \tmaster_adopted: Schema.optionalKey(Schema.NullOr(Schema.Boolean)),\n-\tlistening_accepted: Schema.optionalKey(Schema.NullOr(Schema.Boolean))\n+\tlistening_accepted: Schema.optionalKey(Schema.NullOr(Schema.Boolean)),\n+\t// S3 processing checks (path-free): run/authoring ids, verified outputs and stage flags.\n+\trun_id: Schema.optionalKey(Schema.NullOr(Text(128))),\n+\tauthoring_id: Schema.optionalKey(Schema.NullOr(Text(128))),\n+\tprofile_name: Schema.optionalKey(Schema.NullOr(Text(128))),\n+\tpcm: Schema.optionalKey(Schema.Unknown),\n+\toutputs: Schema.optionalKey(Schema.Unknown),\n+\tcapture: Schema.optionalKey(Schema.Unknown),\n+\tauthorization_scope: Schema.optionalKey(Schema.NullOr(Text(64))),\n+\treview_status: Schema.optionalKey(Schema.NullOr(Text(64))),\n+\texport_status: Schema.optionalKey(Schema.NullOr(Text(64))),\n+\thigh_pass_applied: Schema.optionalKey(Schema.NullOr(Schema.Boolean)),\n+\thum_notches_applied: Schema.optionalKey(Schema.NullOr(Schema.Boolean)),\n+\tdsp_performed: Schema.optionalKey(Schema.NullOr(Schema.Boolean))\n });\n export type WorkerChecks = typeof WorkerChecks.Type;\n \n const Attempt = Schema.Struct({\n \tattempt: IntBetween(1, 1000),\n \tstate: JobState,\n-\tworker_kind: Schema.NullOr(Schema.Literals(['tool_api_share_export', 'test_stub'])),\n+\tworker_kind: Schema.NullOr(\n+\t\tSchema.Literals(['tool_api_share_export', 'test_stub', 'tool_api_denoise', 'tool_api_capture_profile', 'tool_api_apply_capture_profile'])\n+\t),\n \treason_code: Schema.NullOr(Code),\n \tstarted_at: Schema.NullOr(IsoUtc),\n \tended_at: Schema.NullOr(IsoUtc),\n@@ -177,10 +220,40 @@\n \tworker_birth_reason: BoundedText(300)\n });\n export type Unknowns = typeof Unknowns.Type;\n+\n+/** ROUTES_PROCESSING_S3 section 9 unknowns of a processing job: null + reason, master_adopted false. */\n+const nullWithReason = (key: string) => ({ [key]: Schema.Null, [`${key}_reason`]: BoundedText(300) });\n+const ProcessingUnknowns = Schema.Struct({\n+\tmaster_adopted: Schema.Literal(false),\n+\tmaster_adopted_reason: BoundedText(300),\n+\t...nullWithReason('listening_acceptance'),\n+\t...nullWithReason('low_register_preservation'),\n+\t...nullWithReason('capture_noise_only'),\n+\t...nullWithReason('music_or_click_presence'),\n+\t...nullWithReason('fuller_listening_transfer'),\n+\t...nullWithReason('musical_review'),\n+\t...nullWithReason('level_matched'),\n+\t...nullWithReason('memory_bytes_peak'),\n+\t...nullWithReason('cpu_seconds'),\n+\texactly_once: Schema.Literal('not_claimed'),\n+\tslo: Schema.Literal('not_claimed'),\n+\tworker_birth: Schema.NullOr(Schema.Literal('recorded')),\n+\tworker_birth_reason: BoundedText(300)\n+});\n \n+const OutputRow = Schema.Struct({\n+\trole: BoundedText(32),\n+\tname: BoundedText(64),\n+\tartifact_id: ArtifactId,\n+\tsha256: Sha256,\n+\tsize_bytes: NonNegativeInt,\n+\tcontent_type: BoundedText(100),\n+\tserved_via_run_media: Schema.Boolean\n+});\n+\n const ToolEnvelope = Schema.Struct({\n \tschema_version: Schema.Literal(1),\n-\ttool: Schema.Literal('share_export'),\n+\ttool: JobTool,\n \tevidence_kind: BoundedText(100),\n \timplementation_status: BoundedText(100),\n \tlimitations: Schema.Array(Text(2000)).check(Schema.isMaxLength(32)),\n@@ -190,20 +263,26 @@\n \n export const JobProjection = Schema.Struct({\n \tjob_id: JobId,\n-\ttool: Schema.Literal('share_export'),\n+\ttool: JobTool,\n \tstate: JobState,\n \treason_code: Schema.NullOr(Code),\n \tsource_artifact_id: ArtifactId,\n \tsource_id: Schema.NullOr(SourceId),\n \tsource_binding: Schema.Literals(['bound', 'unknown']),\n-\tparameters: JobParameters,\n+\tparameters: AnyJobParameters,\n \tcapability_revision: Sha256,\n \tidempotency_key: BoundedText(128),\n \tcancel_requested: Schema.Boolean,\n \tattempts: Schema.Array(Attempt).check(Schema.isMaxLength(64)),\n \tartifacts: Schema.Array(JobArtifact).check(Schema.isMaxLength(192)),\n \tclaim_class: Schema.Literal('job_state_record'),\n-\tunknowns: Unknowns,\n+\tunknowns: Schema.Union([Unknowns, ProcessingUnknowns]),\n+\tbound_input: Schema.optionalKey(Schema.NullOr(BoundInput)),\n+\trun_id: Schema.optionalKey(Schema.NullOr(BoundedText(128))),\n+\tauthoring_id: Schema.optionalKey(Schema.NullOr(BoundedText(128))),\n+\tworker_status: Schema.optionalKey(Schema.NullOr(BoundedText(64))),\n+\toutputs: Schema.optionalKey(Schema.Array(OutputRow).check(Schema.isMaxLength(16))),\n+\tadmission_state: Schema.optionalKey(Schema.Literals(['admitted', 'pending_root_admission'])),\n \tschema_version: Schema.Literal(1),\n \tphase: Schema.NullOr(Code),\n \tphase_reason: BoundedText(300),\n@@ -223,11 +302,13 @@\n \tjob_id: JobId,\n \tstate: JobState,\n \treason_code: Schema.NullOr(Code),\n-\tparameters: JobParameters,\n+\tparameters: AnyJobParameters,\n \tcreated_at: IsoUtc,\n \tupdated_at: IsoUtc,\n \tattempt_count: IntBetween(1, 1000),\n-\tartifact_count: NonNegativeInt\n+\tartifact_count: NonNegativeInt,\n+\ttool: Schema.optionalKey(Schema.Literals(['denoise', 'capture_profile', 'apply_capture_profile'])),\n+\tbound_input: Schema.optionalKey(Schema.NullOr(BoundInput))\n });\n export type JobSummary = typeof JobSummary.Type;\n \n@@ -336,6 +417,13 @@\n \tUploadResult,\n \tUploadResult.fields.upload,\n \tJobParameters,\n+\tDenoiseParameters,\n+\tCaptureParameters,\n+\tApplyParameters,\n+\tPeakingBand,\n+\tCompressor,\n+\tProcessingUnknowns,\n+\tOutputRow,\n \tJobProgress,\n \tCancelReceipt,\n \tWorkerChecks,\n",
+      "decode_evidence": {
+        "apply_capture_profile": {
+          "candidate": "ok",
+          "current_shared": "refused"
+        },
+        "capture_profile": {
+          "candidate": "ok",
+          "current_shared": "refused"
+        },
+        "denoise": {
+          "candidate": "ok",
+          "current_shared": "refused"
+        },
+        "job_list": {
+          "candidate": "ok",
+          "current_shared": "refused: SchemaError(Expected no excess property\n  at [\"jobs\"][0][\"bound_input\"]\nExpected no excess property\n  at [\"jobs\"][0][\"tool\"]\nMissing key\n  at [\"jobs\"][0][\"parameters\"][\"height\"]\nMissing key\n  at [\"jobs\"][0][\"parameters\"][\"crf\"]\nMissing key\n  at [\"jobs\"][0][\"parameters\"][\"audio_kbps\"]\nMissing key\n  a"
+        },
+        "share_export": {
+          "candidate": "ok",
+          "current_shared": "ok"
+        }
+      },
+      "file": "web/src/lib/schema/control.ts",
+      "why": "shared /jobs/[id], /api/jobs/[id] and job listing decoders are closed to share_export and refuse every processing projection (decode evidence below); candidate type-checked (svelte-check 0/0) and decoded real projections of all four types plus the job list"
+    },
+    {
+      "change": "change `const requestJson = (call: JsonCall) =>` to `export const requestJson = (call: JsonCall) =>` and `function decodeWith<S extends Schema.Top>(schema: S) {` to `export function decodeWith<S extends Schema.Top>(schema: S) {`",
+      "file": "web/src/lib/server/control-client.ts",
+      "why": "lets web/src/lib/server/processing/client.ts drop its duplicated transport (contract section 13.3)"
+    },
+    {
+      "change": "insert after the SOCKET_PATH refusal block and before `await import('./build/index.js');`:\n// SvelteKit's CSRF check compares a form POST's Origin with url.origin; adapter-node reports\n// https:// unless ORIGIN is set, which refuses every form action on this http loopback listener.\nif (!process.env.ORIGIN) {\n\tconst port = process.env.PORT || '3000';\n\tprocess.env.ORIGIN = `http://${host === '::1' ? '[::1]' : host}:${port}`;\n}\n",
+      "file": "web/serve.js",
+      "why": "without ORIGIN, SvelteKit refuses every form action (403) under serve.js / just web-serve; pages show data-origin-warning meanwhile"
+    },
+    {
+      "change": "none required (the lane submits through form actions); optional only if root prefers a JSON endpoint",
+      "file": "web/src/routes/api/jobs/+server.ts and web/src/lib/server/job-request.ts",
+      "why": "contract section 13.4"
+    },
+    {
+      "change": "optional: add an apply_capture_profile branch to worker_command, or accept the tool_api `run` launch the supervisor uses; and decide whether dot-prefixed parents (e.g. .local/ worktrees) are refused",
+      "file": "scripts/tool_api.py (backlog)",
+      "why": "worker_command raises for apply; validate_tool_arguments refuses any .-prefixed path component"
+    },
+    {
+      "change": "typed low_shelf control (80-160 Hz, 0..+2 dB, Q 0.5-0.707, boost only, never default) per the 2026-10-07 ruling; a bounded preview-render tool with a typed interval argument",
+      "file": "program/tools.json + scripts/capture_profile.py (backlog)",
+      "why": "the process page shows the shelf as unavailable and renders full takes only until these exist"
+    }
+  ],
+  "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "schema": "video-utils/lane-root-requests",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5718"
+}

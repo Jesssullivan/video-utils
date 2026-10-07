@@ -448,3 +448,95 @@ routes and components, pnpm check/build (M14), admission evidence receipts,
 synthetic walkthrough receipt. Risks: shared decoder strictness (request 2);
 `capture_profile` confinement to `ROOT/artifacts/runs` (fixture placement
 above); eq_shelf merge timing (section 8.2).
+
+## 15. Phase 2 implementation record (2026-10-07)
+
+Implemented on `sprint/20261007-s3/routes_processing` (contract phases 2 and 3
+together). Receipts: `docs/agent-notes/sprints/20261007-s3/routes_processing-*.json`.
+Sections 1-14 above stay the frozen contract; this section records what was
+built, what differs, and why. Claim classes as in section 10.
+
+### 15.1 Built
+
+- `scripts/web_jobs.py`: closed `JOB_TYPES` allowlist (frozen mapping) with
+  per-type resource class, closed parameter keys, bound field, worker scripts
+  for `capability_revision(tool)` and listed web-only constraints; admission
+  gate read from `program/capabilities.json` (`tool_pending_admission`, 409);
+  test-only `admitted_tools=` seam refused without a stub `command_builder`;
+  schema v2 (`jobs.bound_input_json`, append-only `capture_reviews` with
+  DB-level CHECKs for the first-five-seconds rule, tool allowlist/immutable
+  triggers) and a one-time v1 -> v2 migration (`schema_migrated_1_2` in `meta`
+  and `events`); host media lock `<state-root parent>/.host-media.lock`
+  (injectable) with queued phase `waiting_host_media_slot`; capture review
+  create/list, bound-run listing, interval measurement, run media and the job
+  type catalogue.
+- `scripts/web_api.py`: the six section-5 routes; `POST /api/v1/jobs` accepts
+  the allowlist; per-tool `tool_envelope`; processing job rows in
+  `GET /api/v1/jobs` add `tool` and `bound_input` (share_export rows unchanged).
+- Web (`web/`): `/sources/[id]` overview (identity, probe summary from bound run
+  manifests or Unknown, bound runs, reviews, jobs of every type with phase),
+  `/sources/[id]/capture` (baseline run selector, empty interval, native
+  timeline, span loop on the baseline `source.wav`, Measure / Save review /
+  Author FULLER actions), `/sources/[id]/process` (preset choice from the pure
+  `options.ts` builder, knob groups with bounds from the live catalogue, author
+  -> render steps, conservative3/mild6/bypass, captured* only for their source,
+  shelf unavailable, span audition labelled not level-matched),
+  `/sources/[id]/runs/[run]/media/[role]` BFF media proxy. Lane-local closed
+  Effect 4 decoders and transport under `lib/server/processing/`.
+  `/compare` and `/download` stubs were left in place (routes_review has not
+  landed replacements in this worktree).
+
+### 15.2 Deviations from sections 1-14 (all recorded, none silently)
+
+1. **apply_capture_profile launch path.** `tool_api.worker_command` has no
+   `apply_capture_profile` branch (it raises `tool has no allowlisted worker`;
+   `tool_api.execute` runs `ApplicationAdapter` in-process). The supervisor
+   launches `python scripts/tool_api.py run apply_capture_profile --arguments
+   <canonical json>` (fixed argv, no shell) in its owned process group; the
+   worker the adapter starts runs in its own session, so cancel/deadline signals
+   stop the adapter but the worker is bounded by its own inner deadline
+   (outer - 10 s). Recorded as a limitation, not containment.
+2. **Real apply render not run in this worktree.**
+   `tool_api.validate_tool_arguments('apply_capture_profile')` refuses any path
+   component starting with `.`; this worktree lives under `.local/`, so the
+   real-worker apply case skips with that reason. Root's run from the main
+   checkout covers it. Stub lifecycle cases (M8) cover apply fully.
+3. **Form actions need `ORIGIN`.** adapter-node reports an `https://` app origin
+   unless `ORIGIN` is set, so SvelteKit's CSRF check refuses every form POST
+   (403) under the current `serve.js` / `just web-serve`. Pages show
+   `data-origin-warning` in that state; the walkthrough sets
+   `ORIGIN=http://127.0.0.1:<port>`. Root request: default `ORIGIN` in
+   `serve.js` (section 15.4).
+4. **share_export shape kept.** share_export projections and job rows keep the
+   exact S2 shape (S2 suites assert it), so M12 covers the three processing
+   types plus review and measurement; share_export keeps the S2 unknown block.
+5. **M7 field count.** `profiles/fuller.json` has 13 control fields counted as
+   6 scalars + 2 EQ bands + 5 compressor fields (the contract's "11" undercounted).
+6. **Capture page "Author" is FULLER only**; custom controls live on the
+   process page. Web authoring requires scope `experimental_capture_render`
+   (authoring-only drafts are refused `capture_interval_required` with
+   `detail_code: review_scope_authoring_only`).
+7. **Host lock scope.** "Host-wide" holds for state roots that share a parent
+   directory (the default lock path); unrelated parents need the injected path.
+
+### 15.3 Results (measurement / contract / build; listening not performed)
+
+See the tests and build receipts for denominators. Summary at commit time:
+M1 39/39 and 3/3; M2 parity 130/130 general vectors (7 web-only stricter
+vectors counted separately); M3 4/4; M4 5/5 store unchanged; M5a 0 reviews
+after 7 API routes and 3 built-app page loads; M5b 612/612, 0 violations;
+M6 4/4; M7 13/13 fields, chain `equal` against the accepted run (read only);
+M8 28/28; M9 0 overlaps across 6 media jobs on 2 state roots; M10 0 leaks over
+every scanned response; M11 0 hits; M12 50/50; M15 57/57; M16 listening,
+low-register and musical claims `not_performed` / null. Real workers:
+denoise (bypass) and capture_profile (FULLER authoring) succeeded on a
+synthetic 7 s fixture; apply skipped (15.2.2).
+
+### 15.4 Root-owned requests
+
+Listed with exact text in the lane result and in
+`docs/agent-notes/sprints/20261007-s3/routes_processing-root-requests.json`:
+WEB_JOB_ADMISSIONS + `capabilities.json` admissions (root's decision),
+`control.ts` widening (type-checked and decode-tested candidate),
+`control-client.ts` exports, `serve.js` ORIGIN default, and backlog items
+(typed `low_shelf`, bounded preview-render tool, apply path rule).

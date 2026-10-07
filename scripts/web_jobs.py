@@ -1505,6 +1505,7 @@ class WebJobs:
                 claim = self._claim()
             except Exception as error:  # store contention: report, back off, keep serving
                 self.last_error = type(error).__name__
+                self._release_host_slot()
                 self._wake.wait(0.5)
                 self._wake.clear()
                 continue
