@@ -236,14 +236,14 @@ async function upstreamFailure(response: Response, signal: AbortSignal, notFound
 	return new ControlApiHttpError({ upstreamStatus: status, upstreamCode: code, upstreamDetailCode: detail });
 }
 
-type JsonCall = {
+export type JsonCall = {
 	readonly method: 'GET' | 'POST';
 	readonly path: string;
 	readonly body?: unknown;
 	readonly notFound?: IdKind;
 };
 
-const requestJson = (call: JsonCall) =>
+export const requestJson = (call: JsonCall) =>
 	Effect.gen(function* () {
 		const { baseUrl, token } = yield* Effect.suspend(() => configEffect(readControlApiConfig()));
 		const outcome = yield* Effect.gen(function* () {
@@ -307,7 +307,7 @@ function issuePaths(error: Schema.SchemaError): string[] {
 
 const DECODE_OPTIONS = { onExcessProperty: 'error', errors: 'all' } as const;
 
-function decodeWith<S extends Schema.Top>(schema: S) {
+export function decodeWith<S extends Schema.Top>(schema: S) {
 	return (outcome: { status: number; body: unknown }) =>
 		Schema.decodeUnknownEffect(schema as never)(outcome.body, DECODE_OPTIONS).pipe(
 			Effect.map((data) => ({ status: outcome.status, data: data as S['Type'] })),

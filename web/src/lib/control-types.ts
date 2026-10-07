@@ -12,6 +12,8 @@ export type BffErrorCode =
 	| 'control_api_decode_error'
 	| 'bff_cross_origin_refused'
 	| 'bff_host_refused'
+	| 'bff_identity_refused'
+	| 'bff_auth_unconfigured'
 	| 'bff_content_type_refused'
 	| 'bff_length_required'
 	| 'bff_body_too_large'

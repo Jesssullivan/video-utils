@@ -92,6 +92,34 @@ export const JobParameters = Schema.Struct({
 });
 export type JobParameters = typeof JobParameters.Type;
 
+// S3 allowlist (ROUTES_PROCESSING_S3 section 6): processing job types and their closed parameters.
+export const JOB_TOOLS = ['share_export', 'denoise', 'capture_profile', 'apply_capture_profile'] as const;
+export const JobTool = Schema.Literals(JOB_TOOLS);
+const PeakingBand = Schema.Struct({ frequency_hz: Schema.Finite, gain_db: Schema.Finite, q: Schema.Finite });
+const Compressor = Schema.Struct({
+	threshold_db: Schema.Finite,
+	ratio: Schema.Finite,
+	attack_ms: Schema.Finite,
+	release_ms: Schema.Finite,
+	knee_db: Schema.Finite
+});
+export const DenoiseParameters = Schema.Struct({ profile: BoundedText(64), timeout_seconds: IntBetween(1, 900) });
+export const CaptureParameters = Schema.Struct({
+	preset: Schema.Literals(['fuller', 'custom']),
+	reduction_db: Schema.Finite,
+	noise_floor_db: Schema.Finite,
+	adaptivity: Schema.Finite,
+	gain_smooth: Schema.Int,
+	integrated_lufs: Schema.Finite,
+	true_peak_dbtp: Schema.Finite,
+	peaking_eq: Schema.optionalKey(Schema.Array(PeakingBand).check(Schema.isMaxLength(3))),
+	compressor: Schema.optionalKey(Compressor),
+	timeout_seconds: IntBetween(1, 60)
+});
+export const ApplyParameters = Schema.Struct({ timeout_seconds: IntBetween(12, 600) });
+export const AnyJobParameters = Schema.Union([JobParameters, DenoiseParameters, CaptureParameters, ApplyParameters]);
+const BoundInput = Schema.Record(Schema.String, Schema.Union([Schema.String, Schema.Null]));
+
 export const JobProgress = Schema.Struct({
 	completed: IntBetween(0, 6),
 	denominator: Schema.Literal(6),
@@ -128,14 +156,29 @@ const WorkerChecks = Schema.Struct({
 	loudness: Schema.optionalKey(Schema.Unknown),
 	output_decode_errors_checked: Schema.optionalKey(Schema.Unknown),
 	master_adopted: Schema.optionalKey(Schema.NullOr(Schema.Boolean)),
-	listening_accepted: Schema.optionalKey(Schema.NullOr(Schema.Boolean))
+	listening_accepted: Schema.optionalKey(Schema.NullOr(Schema.Boolean)),
+	// S3 processing checks (path-free): run/authoring ids, verified outputs and stage flags.
+	run_id: Schema.optionalKey(Schema.NullOr(Text(128))),
+	authoring_id: Schema.optionalKey(Schema.NullOr(Text(128))),
+	profile_name: Schema.optionalKey(Schema.NullOr(Text(128))),
+	pcm: Schema.optionalKey(Schema.Unknown),
+	outputs: Schema.optionalKey(Schema.Unknown),
+	capture: Schema.optionalKey(Schema.Unknown),
+	authorization_scope: Schema.optionalKey(Schema.NullOr(Text(64))),
+	review_status: Schema.optionalKey(Schema.NullOr(Text(64))),
+	export_status: Schema.optionalKey(Schema.NullOr(Text(64))),
+	high_pass_applied: Schema.optionalKey(Schema.NullOr(Schema.Boolean)),
+	hum_notches_applied: Schema.optionalKey(Schema.NullOr(Schema.Boolean)),
+	dsp_performed: Schema.optionalKey(Schema.NullOr(Schema.Boolean))
 });
 export type WorkerChecks = typeof WorkerChecks.Type;
 
 const Attempt = Schema.Struct({
 	attempt: IntBetween(1, 1000),
 	state: JobState,
-	worker_kind: Schema.NullOr(Schema.Literals(['tool_api_share_export', 'test_stub'])),
+	worker_kind: Schema.NullOr(
+		Schema.Literals(['tool_api_share_export', 'test_stub', 'tool_api_denoise', 'tool_api_capture_profile', 'tool_api_apply_capture_profile'])
+	),
 	reason_code: Schema.NullOr(Code),
 	started_at: Schema.NullOr(IsoUtc),
 	ended_at: Schema.NullOr(IsoUtc),
@@ -178,9 +221,39 @@ const Unknowns = Schema.Struct({
 });
 export type Unknowns = typeof Unknowns.Type;
 
+/** ROUTES_PROCESSING_S3 section 9 unknowns of a processing job: null + reason, master_adopted false. */
+const nullWithReason = (key: string) => ({ [key]: Schema.Null, [`${key}_reason`]: BoundedText(300) });
+const ProcessingUnknowns = Schema.Struct({
+	master_adopted: Schema.Literal(false),
+	master_adopted_reason: BoundedText(300),
+	...nullWithReason('listening_acceptance'),
+	...nullWithReason('low_register_preservation'),
+	...nullWithReason('capture_noise_only'),
+	...nullWithReason('music_or_click_presence'),
+	...nullWithReason('fuller_listening_transfer'),
+	...nullWithReason('musical_review'),
+	...nullWithReason('level_matched'),
+	...nullWithReason('memory_bytes_peak'),
+	...nullWithReason('cpu_seconds'),
+	exactly_once: Schema.Literal('not_claimed'),
+	slo: Schema.Literal('not_claimed'),
+	worker_birth: Schema.NullOr(Schema.Literal('recorded')),
+	worker_birth_reason: BoundedText(300)
+});
+
+const OutputRow = Schema.Struct({
+	role: BoundedText(32),
+	name: BoundedText(64),
+	artifact_id: ArtifactId,
+	sha256: Sha256,
+	size_bytes: NonNegativeInt,
+	content_type: BoundedText(100),
+	served_via_run_media: Schema.Boolean
+});
+
 const ToolEnvelope = Schema.Struct({
 	schema_version: Schema.Literal(1),
-	tool: Schema.Literal('share_export'),
+	tool: JobTool,
 	evidence_kind: BoundedText(100),
 	implementation_status: BoundedText(100),
 	limitations: Schema.Array(Text(2000)).check(Schema.isMaxLength(32)),
@@ -190,20 +263,26 @@ const ToolEnvelope = Schema.Struct({
 
 export const JobProjection = Schema.Struct({
 	job_id: JobId,
-	tool: Schema.Literal('share_export'),
+	tool: JobTool,
 	state: JobState,
 	reason_code: Schema.NullOr(Code),
 	source_artifact_id: ArtifactId,
 	source_id: Schema.NullOr(SourceId),
 	source_binding: Schema.Literals(['bound', 'unknown']),
-	parameters: JobParameters,
+	parameters: AnyJobParameters,
 	capability_revision: Sha256,
 	idempotency_key: BoundedText(128),
 	cancel_requested: Schema.Boolean,
 	attempts: Schema.Array(Attempt).check(Schema.isMaxLength(64)),
 	artifacts: Schema.Array(JobArtifact).check(Schema.isMaxLength(192)),
 	claim_class: Schema.Literal('job_state_record'),
-	unknowns: Unknowns,
+	unknowns: Schema.Union([Unknowns, ProcessingUnknowns]),
+	bound_input: Schema.optionalKey(Schema.NullOr(BoundInput)),
+	run_id: Schema.optionalKey(Schema.NullOr(BoundedText(128))),
+	authoring_id: Schema.optionalKey(Schema.NullOr(BoundedText(128))),
+	worker_status: Schema.optionalKey(Schema.NullOr(BoundedText(64))),
+	outputs: Schema.optionalKey(Schema.Array(OutputRow).check(Schema.isMaxLength(16))),
+	admission_state: Schema.optionalKey(Schema.Literals(['admitted', 'pending_root_admission'])),
 	schema_version: Schema.Literal(1),
 	phase: Schema.NullOr(Code),
 	phase_reason: BoundedText(300),
@@ -223,11 +302,13 @@ export const JobSummary = Schema.Struct({
 	job_id: JobId,
 	state: JobState,
 	reason_code: Schema.NullOr(Code),
-	parameters: JobParameters,
+	parameters: AnyJobParameters,
 	created_at: IsoUtc,
 	updated_at: IsoUtc,
 	attempt_count: IntBetween(1, 1000),
-	artifact_count: NonNegativeInt
+	artifact_count: NonNegativeInt,
+	tool: Schema.optionalKey(Schema.Literals(['denoise', 'capture_profile', 'apply_capture_profile'])),
+	bound_input: Schema.optionalKey(Schema.NullOr(BoundInput))
 });
 export type JobSummary = typeof JobSummary.Type;
 
@@ -336,6 +417,13 @@ const structs = [
 	UploadResult,
 	UploadResult.fields.upload,
 	JobParameters,
+	DenoiseParameters,
+	CaptureParameters,
+	ApplyParameters,
+	PeakingBand,
+	Compressor,
+	ProcessingUnknowns,
+	OutputRow,
 	JobProgress,
 	CancelReceipt,
 	WorkerChecks,

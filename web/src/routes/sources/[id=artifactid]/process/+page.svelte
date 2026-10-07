@@ -5,6 +5,7 @@
 	import KnobField from '$lib/components/processing/KnobField.svelte';
 	import LaneRefusal from '$lib/components/processing/LaneRefusal.svelte';
 	import OriginNotice from '$lib/components/processing/OriginNotice.svelte';
+	import { stepTarget } from '$lib/components/review/step-context';
 	import SpanAudition from '$lib/components/processing/SpanAudition.svelte';
 	import type { PageProps } from './$types';
 
@@ -24,6 +25,9 @@
 	const candidates = $derived(data.processing.filter((job) => job.tool !== 'capture_profile' && job.state === 'succeeded' && job.run_id));
 	const baseline = $derived(data.runs.find((run) => run.role === 'baseline') ?? null);
 	const groupLabel: Record<string, string> = { cleanup: 'Cleanup (pure denoise)', tone: 'Tone (peaking EQ, ≥160 Hz)', dynamics: 'Dynamics (compressor, all-or-none)', delivery_loudness: 'Delivery loudness', supervision: 'Supervision' };
+	// Review route of a run (routes_review); null for an absent or malformed run id, so no dead link renders.
+	const reviewHref = (run: string | null | undefined) =>
+		stepTarget({ current: 'process', source_artifact_id: data.sourceId, run_id: run ?? null, disabled_reasons: {} }, 'review').href;
 	const media = (run: string, role: string) => `/sources/${data.sourceId}/runs/${run}/media/${role}`;
 	const players = (job: (typeof candidates)[number]) => [
 		...(baseline ? [{ label: `baseline ${baseline.run_id} · source`, src: media(baseline.run_id, 'source') }] : []),
@@ -162,6 +166,7 @@
 						<span class="vu-muted text-xs">phase <code>{job.phase ?? 'unknown'}</code>{#if job.reason_code} · reason <code>{job.reason_code}</code>{/if}</span>
 						<span class="vu-muted text-xs">run <UnknownValue value={job.run_id ?? null} mono /> · status <UnknownValue value={job.worker_status ?? null} /></span>
 						<a class="anchor text-xs" href={`/jobs/${job.job_id}`}>job page</a>
+						{#if reviewHref(job.run_id)}<a class="anchor text-xs" href={reviewHref(job.run_id)} data-review-link="true">review this run</a>{/if}
 					</p>
 					<p class="vu-muted text-xs">master adopted: false · listening acceptance: <UnknownValue value={null} reason="operator listening not performed for this version" /> · ~32 Hz preservation: <UnknownValue value={null} reason="not measured by a job service" /></p>
 				</article>

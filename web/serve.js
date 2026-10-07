@@ -28,6 +28,13 @@ if (mode === '') {
 		console.error('serve.js: refusing SOCKET_PATH; S2 serves only a loopback TCP port.');
 		process.exit(REFUSAL_EXIT_CODE);
 	}
+	// SvelteKit's CSRF check compares a form POST's Origin with url.origin; adapter-node reports
+	// https:// unless ORIGIN is set, which refuses every form action on this http loopback listener.
+	// Loopback mode only: tailnet mode requires an explicit https ORIGIN validated by auth/mode.js.
+	if (!process.env.ORIGIN) {
+		const port = process.env.PORT || '3000';
+		process.env.ORIGIN = `http://${host === '::1' ? '[::1]' : host}:${port}`;
+	}
 } else if (mode === 'tailnet') {
 	if (process.env.SOCKET_PATH) {
 		console.error('serve.js: refusing SOCKET_PATH; tailnet mode serves only a TCP port.');

@@ -1455,7 +1455,9 @@ class PageLoadTests(S3Base):
                         self.assertNotIn('high-pass', body.lower().replace('no high-pass', ''))
                     if page.endswith('/capture'):
                         self.assertIn('data-interval-empty="true"', body)
-                        self.assertIn('data-origin-warning="true"', body)  # ORIGIN unset in this launch
+                        # ORIGIN is unset in this launch; serve.js now defaults it to the loopback http origin
+                        # (root integration S3), so the misconfiguration notice must not render.
+                        self.assertNotIn('data-origin-warning="true"', body)
                 except (ConnectionError, OSError):
                     time.sleep(0.2)
         self.assertEqual(statuses, {page: 200 for page in pages})

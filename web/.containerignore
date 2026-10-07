@@ -1,0 +1,9 @@
+# Build-context exclusions for web/Containerfile (AUTH_HOSTING_S3.md section 8, item 2).
+# The Containerfile copies named sources only; this keeps local state out of the context as well.
+node_modules
+build
+.svelte-kit
+fixtures
+.env
+.env.*
+*.log

@@ -49,6 +49,8 @@ const TEXT: Readonly<Record<string, string>> = {
 	control_api_timeout: 'The control API did not answer in time.',
 	bff_host_refused: 'This app answers only on a loopback host (127.0.0.1, [::1] or localhost).',
 	bff_cross_origin_refused: 'Requests that change anything must come from this page.',
+	bff_identity_refused: 'This app could not verify an allowed operator identity for this request.',
+	bff_auth_unconfigured: 'Hosted sign-in is not configured for this server; nothing is served.',
 	bff_content_type_refused: 'The request content type is not accepted.',
 	bff_length_required: 'The upload needs a Content-Length.',
 	invalid_request: 'The request was malformed and was not sent to the control API.'
