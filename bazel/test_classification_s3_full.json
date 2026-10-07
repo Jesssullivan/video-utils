@@ -1,0 +1,81 @@
+{
+  "schema": "vu.bazel_full.test_classification_supplement.v1",
+  "lane": "bazel_full",
+  "sprint": "20261007-s3",
+  "recorded": "2026-10-07",
+  "contract": "docs/spec/sprints/BAZEL_FULL_S3.md section 2 (ownership note) and section 12",
+  "supplements": "tools/bazel/test_classification.json (bazel_graph, 95 modules at classification); that file is reused read-only",
+  "method": "Read of the three test modules added since the bazel_graph classification (git diff --name-status f44f962..549a14d -- tests/): every FFmpeg/FFprobe, node/pnpm/git, artifacts/ and web/ or site/ reference located with grep, then the surrounding code read to separate real execution from string fixtures. The executed behaviour under Bazel is recorded separately in docs/agent-notes/sprints/20261007-s3/bazel_full-full-run.json.",
+  "claim_classes": {
+    "tags_present": "measured by tests/test_bazel_graph_s3.py",
+    "completeness": "inference",
+    "behaviour_under_bazel": "measured by the single full run (bazel_full-full-run.json)"
+  },
+  "module_count_at_supplement": 98,
+  "added_modules": [
+    "test_public_site_s3",
+    "test_s3_tool_admission",
+    "test_web_house_stack_s3"
+  ],
+  "classes": {
+    "ffmpeg": {
+      "tag": "requires-ffmpeg",
+      "modules": [],
+      "reasons": {}
+    },
+    "host_tools": {
+      "tag": "requires-host-tools",
+      "modules": [
+        "test_public_site_s3",
+        "test_s3_tool_admission"
+      ],
+      "reasons": {
+        "test_public_site_s3": "runs `node site/scripts/leak-scan.mjs`, `pnpm run check`/`pnpm run build` in site/ (skips when site/node_modules is absent) and `git ls-files`",
+        "test_s3_tool_admission": "runs `git ls-files -- models` when git resolves (unchecked, never passed, when absent)"
+      }
+    },
+    "exclusive": {
+      "tag": "exclusive",
+      "modules": [
+        "test_public_site_s3"
+      ],
+      "reasons": {
+        "test_public_site_s3": "removes and rebuilds the checkout's site/build and site/.svelte-kit through pnpm when site/node_modules is installed (the site analogue of the web/ criterion)"
+      }
+    },
+    "workspace_artifacts": {
+      "tag": "workspace-artifacts",
+      "modules": [
+        "test_public_site_s3",
+        "test_s3_tool_admission",
+        "test_web_house_stack_s3"
+      ],
+      "reasons": {
+        "test_public_site_s3": "lists artifacts/runs/ (and the main checkout's) to build its private-identifier needles",
+        "test_s3_tool_admission": "starts scripts/beat_this_compare.py against artifacts/runs/absent-s3-admission and reads models/ (both ignored, undeclared trees)",
+        "test_web_house_stack_s3": "writes artifacts/s2/web_tests/house-stack.json in tearDownModule"
+      }
+    },
+    "web_tree": {
+      "tag": "reads-web-tree",
+      "modules": [
+        "test_web_house_stack_s3"
+      ],
+      "reasons": {
+        "test_web_house_stack_s3": "reads web/package.json, web/pnpm-lock.yaml and web/e2e fixtures (and site/ manifests when present)"
+      }
+    }
+  },
+  "site_tree_readers": {
+    "modules": [
+      "test_bazel_graph_s3",
+      "test_public_site_s3",
+      "test_web_house_stack_s3"
+    ],
+    "note": "//site is not a data dependency of the Python tests, for the same reason as //web (loading it needs the npm lock translation). Every module that reads site/ is already tagged no-cache through workspace-artifacts or reads-web-tree, so no stale cached result can hide a site/ change. A dedicated reads-site-tree tag would need a change to tools/bazel/python.bzl (not owned); not requested because the no-cache property already holds."
+  },
+  "manual": {
+    "modules": [],
+    "note": "No manual tag is added (contract section 4.2)."
+  }
+}

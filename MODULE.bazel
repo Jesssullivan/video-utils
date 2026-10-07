@@ -92,6 +92,36 @@ npm.npm_exclude_package_contents(
 )
 use_repo(npm, "npm")
 
+# The static site (site/) is its own pnpm workspace with its own lock: a second
+# translation, so site/package.json + site/pnpm-lock.yaml stay the only npm
+# version sites for the site (docs/spec/sprints/BAZEL_FULL_S3.md section 9).
+#
+# Site gate (recorded deviation, BAZEL_FULL_S3 section 9.2): rules_js refuses a
+# lock whose pnpm-workspace.yaml has no `allowBuilds`, and one refused
+# translation fails the whole npm extension (//web included). site/ lacks that
+# root-owned line, so this usage is a dev dependency and .bazelrc drops it with
+# `--ignore_dev_dependency` and deletes //site until root applies the requested
+# lines (bazel_full-root-requests.json); then the two .bazelrc gate lines go.
+npm_site = use_extension(
+    "@aspect_rules_js//npm:extensions.bzl",
+    "npm",
+    dev_dependency = True,
+)
+npm_site.npm_translate_lock(
+    name = "npm_site",
+    data = [
+        "//site:package.json",
+        "//site:pnpm-workspace.yaml",
+    ],
+    npmrc = "//site:.npmrc",
+    pnpm_lock = "//site:pnpm-lock.yaml",
+    verify_node_modules_ignored = "//:.bazelignore",
+)
+# The byte-complete `npm_exclude_package_contents` setting above is global to
+# the npm extension (rules_js fails on a duplicate "*" tag), so it covers this
+# lock too.
+use_repo(npm_site, "npm_site")
+
 # TypeScript 6.0.3 (web/package.json; integrity equals web/pnpm-lock.yaml).
 typescript = use_extension("@aspect_rules_ts//ts:extensions.bzl", "typescript")
 typescript.deps(

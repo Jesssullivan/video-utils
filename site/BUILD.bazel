@@ -1,0 +1,171 @@
+"""
+Static public landing under Bazel (S3 bazel_full lane, mirrors //web).
+
+`pnpm run check` / `pnpm run build` in site/ (and `just site-check` /
+`just site-build`) stay the accepted gates. These targets build the same
+sources from site/pnpm-lock.yaml through rules_js:
+
+    //site:sveltekit_types    svelte-kit sync            -> .svelte-kit/
+    //site:svelte_check_test  svelte-check (pnpm run check)
+    //site:build              vite build (pnpm run build) -> build/
+
+Bazel writes nothing into site/: every output is under bazel-bin.
+
+The two vendored carriers (@xoxd/theme, @xoxd/public-chrome) are `file:`
+directory dependencies in the lock. rules_js links those to an `npm_package`
+named `pkg` in the vendored directory; the directories keep their own,
+unmodified BUILD.bazel and MODULE.bazel and are outside this graph's packages,
+so MODULE.bazel maps each one to its own module with `local_path_override`
+(the committed, integrity-verified bytes; no archive download) and the links
+below take the module's `//:pkg`. Contract: docs/spec/sprints/BAZEL_FULL_S3.md
+section 9.
+
+The prerender of the agents page reads the repository tool registry from
+`<site>/../program/tools.json`; //bazel:site_build.mjs lays that file out
+beside the copied site (the shared web runner has no such sibling).
+"""
+
+load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
+load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary", "js_test")
+load("@npm_site//:defs.bzl", "npm_link_all_packages")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    ".npmrc",
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+])
+
+npm_link_all_packages(name = "node_modules")
+
+# Exactly the dependencies and devDependencies of site/package.json.
+SITE_NPM_PACKAGES = [
+    ":node_modules/@fontsource/inter",
+    ":node_modules/@lucide/svelte",
+    ":node_modules/@skeletonlabs/skeleton",
+    ":node_modules/@skeletonlabs/skeleton-svelte",
+    ":node_modules/@sveltejs/adapter-static",
+    ":node_modules/@sveltejs/kit",
+    ":node_modules/@sveltejs/vite-plugin-svelte",
+    ":node_modules/@tailwindcss/vite",
+    ":node_modules/@types/node",
+    ":node_modules/@xoxd/public-chrome",
+    ":node_modules/@xoxd/theme",
+    ":node_modules/svelte",
+    ":node_modules/svelte-check",
+    ":node_modules/tailwindcss",
+    ":node_modules/typescript",
+    ":node_modules/vite",
+]
+
+filegroup(
+    name = "site_srcs",
+    srcs = glob(
+        [
+            "scripts/**",
+            "src/**",
+            "static/**",
+        ],
+        allow_empty = True,
+    ) + [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "svelte.config.js",
+        "tsconfig.json",
+        "vite.config.ts",
+    ],
+)
+
+# The shared runner (sync, check) is reused unchanged; it is copied next to
+# node_modules so Node resolves @sveltejs/kit and svelte-check from this
+# package's link tree.
+copy_file(
+    name = "sveltekit_runner",
+    src = "//tools/bazel:web/sveltekit.mjs",
+    out = "bazel_sveltekit.mjs",
+)
+
+copy_file(
+    name = "site_build_runner",
+    src = "//bazel:site_build.mjs",
+    out = "bazel_site_build.mjs",
+)
+
+js_binary(
+    name = "sveltekit_bin",
+    data = SITE_NPM_PACKAGES,
+    entry_point = "bazel_sveltekit.mjs",
+)
+
+js_binary(
+    name = "site_build_bin",
+    data = SITE_NPM_PACKAGES,
+    entry_point = "bazel_site_build.mjs",
+)
+
+js_run_binary(
+    name = "sveltekit_types",
+    srcs = [":site_srcs"],
+    args = ["sync"],
+    chdir = package_name(),
+    out_dirs = [".svelte-kit"],
+    tool = ":sveltekit_bin",
+)
+
+# Sources and their generated tsconfig in one declared tree. The runner copies
+# it to scratch before building so the bundler never follows a symlink out of
+# the action.
+copy_to_directory(
+    name = "site_workspace",
+    srcs = [
+        ":site_srcs",
+        ":sveltekit_types",
+    ],
+    hardlink = "off",
+    root_paths = ["."],
+)
+
+js_test(
+    name = "svelte_check_test",
+    timeout = "long",
+    args = ["check"],
+    chdir = package_name(),
+    data = [
+        ":site_srcs",
+        ":sveltekit_types",
+    ] + SITE_NPM_PACKAGES,
+    entry_point = "bazel_sveltekit.mjs",
+)
+
+# The tool registry the agents page reads at prerender time, copied into this
+# package (rules_js copies only same-package files to the output tree).
+copy_file(
+    name = "tool_registry",
+    src = "//:program/tools.json",
+    out = "bazel_tool_registry.json",
+)
+
+js_run_binary(
+    name = "build",
+    srcs = [
+        ":site_workspace",
+        ":tool_registry",
+    ],
+    args = [
+        "build",
+        "--workspace",
+        "site_workspace",
+        "--registry",
+        "bazel_tool_registry.json",
+        "--output-dir",
+        "build",
+    ],
+    chdir = package_name(),
+    out_dirs = ["build"],
+    patch_node_fs = False,
+    tool = ":site_build_bin",
+)

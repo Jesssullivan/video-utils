@@ -1,0 +1,22 @@
+"""S3 bazel_full lane helpers (docs/spec/sprints/BAZEL_FULL_S3.md section 2).
+
+The site build runner is exported for //site. The Python helpers
+(host_gate.py, full_run_report.py) and the JSON registers are lane tooling run
+directly with python3, never by a BUILD rule; no BUILD or .bzl file reads the
+known-host-failure register (contract section 7).
+"""
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["site_build.mjs"])
+
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/.DS_Store",
+        ],
+    ),
+)
