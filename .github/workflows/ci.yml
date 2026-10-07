@@ -24,3 +24,20 @@ jobs:
       - name: Secret scan
         run: nix develop --no-write-lock-file --command gitleaks dir --redact .
       # No private recording acquisition, media upload or model downloads in CI.
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7 # v31
+      - name: Install web dependencies from the committed lock
+        run: nix develop --no-write-lock-file .#web --command bash -c 'cd web && pnpm install --frozen-lockfile'
+      - name: Type check, unit tests and build
+        run: nix develop --no-write-lock-file .#web --command bash -c 'cd web && pnpm run check && pnpm run test:unit && pnpm run build'
+      # Browser suites use the runner's installed Chrome (tests/browser-ladder.ts step c); nothing is downloaded.
+      - name: End-to-end tests
+        run: nix develop --no-write-lock-file .#web --command bash -c 'cd web && pnpm run test:e2e'
+      - name: Accessibility scans
+        run: nix develop --no-write-lock-file .#web --command bash -c 'cd web && pnpm run test:a11y'
