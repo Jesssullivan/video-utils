@@ -1,0 +1,140 @@
+{
+  "lane": "eq_shelf",
+  "branch": "sprint/20261007-s2r/eq_shelf",
+  "head": "8488630d3c4b487afa5e0ff2b71f7b48eab5fd59",
+  "base_commit": "7d0e11e3430bc19ff03b06bd94654dbfb3ee2a84",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint2/eq_shelf",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": ".agents/skills/guitar-denoise/SKILL.md",
+      "sha256": "f0b243ca49a0d8da707e6bfc79479c3f3375a03f28f641f512b6ab37c341368e",
+      "kind": "skill_draft"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s2r/eq_shelf-20261007-run.json",
+      "sha256": "e9e197fa0d711586d33089226d46d83985522981c001ebf063a942fc6f5e3285",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s2r/eq_shelf-phase1-freeze.json",
+      "sha256": "fa328c36bee27b5bd876c26835fc5117aa71d7e45798a0b4578f93aedcb046c6",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/sprints/EQ_SHELF_S2R.md",
+      "sha256": "d17539b525fdaa142d1055f783a5ec9ed557417eab4e4600c18871e7fd7cc5dc",
+      "kind": "spec"
+    },
+    {
+      "path": "profiles/fuller-shelf.json",
+      "sha256": "6483a0cd9c63c67d002c7613d6fc1fc6cb1ee9ef76d2275a23d3f8b085a58757",
+      "kind": "data"
+    },
+    {
+      "path": "scripts/media.py",
+      "sha256": "e34a10bf1c3347e02265d733ef8b91e03e761d00a2416d0ce5e1ceb77ebdb59c",
+      "kind": "source"
+    },
+    {
+      "path": "tests/test_eq_shelf.py",
+      "sha256": "3a5fb392b6ba1ba056716dee3ff87372e73b61eb38fee71e83e1de876d585256",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "cd /Users/jess/git/video-utils/.local/sprint2/eq_shelf && export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe && PYTHONPATH=tests timeout 3000 python3 -u -m unittest test_media test_fuller_profile test_tone_ab -v",
+    "discovered": 61,
+    "passed": 61,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 1106.784
+  },
+  "metrics": [
+    {
+      "name": "C1_low_shelf_boost_db",
+      "numerator": 1.48,
+      "denominator": 1,
+      "unit": "dB",
+      "claim_class": "measured"
+    },
+    {
+      "name": "no_cut_strictness_profiles",
+      "numerator": 9,
+      "denominator": 9,
+      "unit": "count",
+      "claim_class": "measured"
+    },
+    {
+      "name": "k5_harmonic_boost_db",
+      "numerator": 0.192,
+      "denominator": 1,
+      "unit": "dB",
+      "claim_class": "measured"
+    },
+    {
+      "name": "rbj_shelf_monotonicity_min_db",
+      "numerator": 1.8e-9,
+      "denominator": 1,
+      "unit": "dB",
+      "claim_class": "measured"
+    },
+    {
+      "name": "byte_equality_existing_profiles",
+      "numerator": 7,
+      "denominator": 7,
+      "unit": "count",
+      "claim_class": "measured"
+    },
+    {
+      "name": "test_eq_shelf_coverage",
+      "numerator": 29,
+      "denominator": 61,
+      "unit": "tests",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "Real-take effect in recording context (listening acceptance not performed)",
+    "In-chain interaction with other processing stages beyond tone_ab",
+    "Microphone response to the shelf boost across full frequency range",
+    "C1 (32.703 Hz) presence and perceptibility in actual take"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "scripts/report.py",
+      "change": "Add low_shelf label rendering in delivery-chain loop (around line 800) before peaking_eq branch, and update analysis_stage_caption post-stage predicate to include low_shelf",
+      "why": "Without this, a fuller-shelf run shows generic fallback label 'low shelf' with no controls and missing caveat about cleaned.wav including post-processing"
+    },
+    {
+      "file": "program/tools.json and scripts/tool_api.py",
+      "change": "Optional: add 'fuller-shelf' to MCP denoise profile enum with descriptor; no tool_api.py code change needed",
+      "why": "Frozen MCP denoise descriptor does not accept fuller or capture intervals yet; registration must follow that root decision"
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261007-s2r/eq_shelf-20261007-run.json",
+    "docs/agent-notes/sprints/20261007-s2r/eq_shelf-phase1-freeze.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "Ownership: PASS. All 7 changed files are lane-owned; tests/test_media.py not touched; merge-tree clean; no overlap with descriptor_rebase or quarto_fix lanes",
+      "No forbidden writes: PASS. Branch does not touch program/tools.json, scripts/tool_api.py or just/workflow.just",
+      "Claim classes: PASS. Receipt separates C/M/I/L; E1 at C1 is +1.48 dB measured with 1 component/1 fixture; no-cut is 9/9; real-take effect, listening, mic response marked unknown",
+      "Tests: PASS. Ran 90 tests in 941.769s (61 prescribed + 29 owned from test_eq_shelf); 0 skipped; tests exercise typed-code refusals (18 total), accepted edges, peaking-EQ bounds, fuller hash/P equality, tone_ab filter byte equality, capture_interval_required refusal",
+      "Doctrine: PASS. New filter is lowshelf boost-only; Q ≤ 0.707 keeps RBJ shelf monotonic (minimum +1.8e-9 dB); no highpass/notch/highshelf; preserve_low_fundamental_hz stays 32",
+      "Reproduction: PASS. Independent RBJ biquad evaluation at fs=44100, f0=100, g=1.5, Q=0.7 gives +1.479804 dB at 32.703 Hz; k=2..9 match receipt to 6 decimals; FFmpeg run measured +1.4802 dB at C1 and +0.196 dB at k=5",
+      "Non-blocking: Receipt preregistration_expectation_check has 'consistent': false for C1 1.48 dB (falls inside expected +1.2 to +1.5 range); false refers only to k≥5 expectation miss",
+      "Non-blocking: scripts/report.py lacks low_shelf label and analysis_stage_caption predicate ignores low_shelf; root-owned already listed in spec section 9"
+    ],
+    "must_fix": []
+  }
+}
