@@ -271,6 +271,65 @@
     }
   },
   "preregistered": false,
+  "repair_20261007_phase4": {
+    "audit_finding": "test_web_processing_s3 LifecycleTests.test_m8_lifecycle_per_type intermittently errored with KeyError child (apply_capture_profile) at 447a11e: wait_beat returned builder.beats[-1], which could still be the parent capture_profile succeed beat. Test race; no product defect shown. The earlier M8 28/28 and ran-24/errors-0 entries were therefore not reliably reproducible at 447a11e.",
+    "fix": "wait_beat(builder, since) returns only the beat at index since = len(builder.beats) recorded before the submit (read under builder.lock; tolerates a mid-write beat); both call sites (cancel-running, interrupted-retry) updated. Test-only change; no product file changed.",
+    "fix_commit": "04b3efe",
+    "not_rerun": "full suite (root-owned); browser, listening and real-take checks remain as recorded under unknown",
+    "ruling": "R-HOOK-CONVERGENCE-20261004",
+    "runs": {
+      "cargo test --locked -j 1": {
+        "at": "04b3efe",
+        "breakdown": {
+          "cli": 7,
+          "dsp": 5,
+          "lib": 15
+        },
+        "failed": 0,
+        "ignored": 1,
+        "passed": 27
+      },
+      "test_web_jobs + test_web_parity + test_web_reliability": {
+        "at": "04b3efe",
+        "errors": 0,
+        "failures": 0,
+        "ran": 61,
+        "seconds": 274.0,
+        "skipped": 4,
+        "skips": [
+          "ActualDemoJob (WEB_JOBS_DEMO=1)",
+          "LocalLatencyMeasurement (WEB_JOBS_MEASURE=1)",
+          "DemoWalkthrough (WEB_UI_DEMO=1)",
+          "RealTakeWebJob (WEB_RELIABILITY_REAL=1)"
+        ]
+      },
+      "test_web_processing_s3": {
+        "at": "04b3efe",
+        "errors": 0,
+        "failures": 0,
+        "note": "4 runs on the identical working tree before commit, 1 after; 5 runs do not prove absence of every race, only that the identified stale-beat path is closed",
+        "passed_runs": 5,
+        "ran_each": 24,
+        "runs": 5,
+        "seconds": [
+          153.3,
+          79.5,
+          81.6,
+          81.6,
+          92.8
+        ],
+        "skipped": 0
+      },
+      "test_web_stack": {
+        "at": "04b3efe",
+        "errors": 0,
+        "failures": 0,
+        "ran": 33,
+        "seconds": 77.3,
+        "skipped": 0
+      }
+    }
+  },
   "ruling": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
   "schema": "video-utils/lane-test-receipt",
   "schema_version": 1,
