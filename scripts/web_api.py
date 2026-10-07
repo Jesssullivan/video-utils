@@ -15,6 +15,17 @@ Versioned routes (contract ``docs/spec/sprints/WEB_UI_S2.md`` section 4)::
     POST /api/v1/jobs/{job_id}/cancel             cancel (queued -> cancelled, running -> cancel_requested)
     POST /api/v1/jobs/{job_id}/retry              explicit retry of interrupted/failed jobs (attempt n+1)
     GET  /api/v1/artifacts/{artifact_id}          published job output bytes, re-hashed before sending
+    GET  /api/v1/job-types                        closed job-type catalogue (S3; knobs from live descriptors)
+    GET  /api/v1/sources/{id}/runs                runs bound to the source by manifest sha256 (no paths)
+    POST /api/v1/sources/{id}/capture-measurements  interval statistics of the mixture (writes nothing)
+    GET  /api/v1/sources/{id}/capture-reviews     immutable capture review records
+    POST /api/v1/sources/{id}/capture-reviews     create-only review bound to source/run/PCM sha256
+    GET  /api/v1/runs/{run_id}/media/{role}       re-hashed run WAV for span audition (bound runs only)
+
+``POST /api/v1/jobs`` accepts the closed allowlist ``share_export``, ``denoise``,
+``capture_profile`` and ``apply_capture_profile`` (ROUTES_PROCESSING_S3 section
+5); a type whose web_job adapter is not root-admitted is refused
+``tool_pending_admission``.
 
 The six unversioned web_jobs routes (``/sources``, ``/jobs``, ``/jobs/{id}``,
 ``/jobs/{id}/cancel``, ``/jobs/{id}/retry``, ``/artifacts/{id}``) remain as
@@ -114,6 +125,7 @@ BROWSER_BASES = ('operator_assertion', 'operator_context')
 SEGMENT = r'([^/]{1,128})'
 V1 = '/api/v1'
 LIST_ACTIONS = ('list_sources', 'list_jobs')  # the only actions that accept a query string
+ROLE_SEGMENT = r'([a-z]{1,16})'
 # (pattern, route name, {method: action}, projection flavour)
 ROUTES = (
     # Unversioned web_jobs aliases (legacy projection, unchanged behaviour).
@@ -134,6 +146,14 @@ ROUTES = (
     (re.compile(rf'{V1}/jobs/{SEGMENT}/cancel'), 'v1_cancel', {'POST': 'cancel'}, 'v1'),
     (re.compile(rf'{V1}/jobs/{SEGMENT}/retry'), 'v1_retry', {'POST': 'retry'}, 'v1'),
     (re.compile(rf'{V1}/artifacts/{SEGMENT}'), 'v1_artifact', {'GET': 'artifact'}, 'v1'),
+    # S3 processing routes (ROUTES_PROCESSING_S3 section 5).
+    (re.compile(rf'{V1}/job-types'), 'v1_job_types', {'GET': 'job_types'}, 'v1'),
+    (re.compile(rf'{V1}/sources/{SEGMENT}/runs'), 'v1_source_runs', {'GET': 'source_runs'}, 'v1'),
+    (re.compile(rf'{V1}/sources/{SEGMENT}/capture-measurements'), 'v1_capture_measure',
+     {'POST': 'capture_measure'}, 'v1'),
+    (re.compile(rf'{V1}/sources/{SEGMENT}/capture-reviews'), 'v1_capture_reviews',
+     {'GET': 'reviews_read', 'POST': 'reviews_write'}, 'v1'),
+    (re.compile(rf'{V1}/runs/{SEGMENT}/media/{ROLE_SEGMENT}'), 'v1_run_media', {'GET': 'run_media'}, 'v1'),
 )
 # Kept for callers of the S2 web_jobs module surface: legacy route name -> method.
 METHODS = {name: next(iter(methods)) for _, name, methods, flavour in ROUTES if flavour == 'legacy'}
@@ -143,10 +163,10 @@ def utc_stamp():
     return datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
 
 
-def tool_envelope():
-    """The typed envelope fields ``tool_api.execute`` attaches to a share_export result."""
-    info = tool_api.descriptor(web_jobs.TOOL)
-    return {'schema_version': 1, 'tool': web_jobs.TOOL, 'evidence_kind': info['evidence_kind'],
+def tool_envelope(tool=web_jobs.TOOL):
+    """The typed envelope fields ``tool_api.execute`` attaches to a tool result."""
+    info = tool_api.descriptor(tool)
+    return {'schema_version': 1, 'tool': tool, 'evidence_kind': info['evidence_kind'],
             'implementation_status': info['implementation_status'], 'limitations': list(info['limitations']),
             'skill': info['skill'], 'instrument_context': tool_api.load_registry()['instrument_context']}
 
@@ -210,6 +230,7 @@ class WebAPIServer(ThreadingHTTPServer):
         self.allow_uploads = bool(allow_uploads)
         self.max_upload_bytes = min(max_upload_bytes, jobs.max_source_bytes)
         self.envelope = tool_envelope()
+        self.envelopes = {name: tool_envelope(name) for name in web_jobs.JOB_TYPES}
         self.handlers = threading.BoundedSemaphore(MAX_HANDLERS)
         self._annotation_locks = {}
         self._annotation_guard = threading.Lock()
@@ -288,7 +309,7 @@ class WebAPIServer(ThreadingHTTPServer):
                 'progress': progress, 'progress_reason': PROGRESS_REASON,
                 'eta_seconds': None, 'eta_seconds_reason': ETA_REASON,
                 'created_at': job['created_at'], 'updated_at': job['updated_at'],
-                'tool_envelope': self.envelope}
+                'tool_envelope': self.envelopes.get(legacy.get('tool'), self.envelope)}
 
     def newest_extent(self, conn, source_artifact_id, sha256):
         """(start, end, job_id, attempt) of the newest succeeded attempt's video packet extent, or None."""
@@ -338,15 +359,22 @@ class WebAPIServer(ThreadingHTTPServer):
         with self.read_only() as conn:
             where, args = ('WHERE j.source_artifact_id = ?', (source,)) if source else ('', ())
             rows = conn.execute(
-                'SELECT j.job_id, j.state, j.reason_code, j.parameters_json, j.created_at, j.updated_at, '
+                'SELECT j.job_id, j.tool, j.state, j.reason_code, j.parameters_json, j.bound_input_json, '
+                'j.created_at, j.updated_at, '
                 '(SELECT count(*) FROM attempts a WHERE a.job_id = j.job_id) AS attempt_count, '
                 '(SELECT count(*) FROM artifacts r WHERE r.job_id = j.job_id) AS artifact_count '
                 f'FROM jobs j {where} ORDER BY j.created_at DESC, j.rowid DESC LIMIT ?',
                 (*args, limit + 1)).fetchall()
-        jobs = [{'job_id': r['job_id'], 'state': r['state'], 'reason_code': r['reason_code'],
-                 'parameters': json.loads(r['parameters_json']), 'created_at': r['created_at'],
-                 'updated_at': r['updated_at'], 'attempt_count': r['attempt_count'],
-                 'artifact_count': r['artifact_count']} for r in rows[:limit]]
+        jobs = []
+        for r in rows[:limit]:
+            row = {'job_id': r['job_id'], 'state': r['state'], 'reason_code': r['reason_code'],
+                   'parameters': json.loads(r['parameters_json']), 'created_at': r['created_at'],
+                   'updated_at': r['updated_at'], 'attempt_count': r['attempt_count'],
+                   'artifact_count': r['artifact_count']}
+            if r['tool'] != web_jobs.TOOL:  # share_export rows keep the S2 shape exactly
+                row['tool'] = r['tool']
+                row['bound_input'] = json.loads(r['bound_input_json']) if r['bound_input_json'] else None
+            jobs.append(row)
         return 200, {'schema_version': API_SCHEMA_VERSION, 'jobs': jobs, 'truncated': len(rows) > limit}
 
     # ----------------------------------------------------------------- annotations
@@ -552,7 +580,9 @@ class Handler(BaseHTTPRequestHandler):
         for pattern, name, methods, flavour in ROUTES:
             match = pattern.fullmatch(path)
             if match:
-                return name, (match.group(1) if match.groups() else None), methods, flavour
+                groups = match.groups()
+                identifier = None if not groups else (groups[0] if len(groups) == 1 else groups)
+                return name, identifier, methods, flavour
         return None, None, None, None
 
     # ----------------------------------------------------------------- dispatch
@@ -591,12 +621,25 @@ class Handler(BaseHTTPRequestHandler):
         if action == 'media':
             self._send_source_media(identifier)
             return
+        if action == 'run_media':
+            self._send_file(jobs.open_run_media(*identifier), 'inline')
+            return
         if action == 'upload':
             status, value = self._upload()
         elif action == 'list_sources':
             status, value = server.list_sources(query)
         elif action == 'list_jobs':
             status, value = server.list_jobs(query)
+        elif action == 'job_types':
+            status, value = jobs.job_types()
+        elif action == 'source_runs':
+            status, value = jobs.list_runs(identifier)
+        elif action == 'capture_measure':
+            status, value = jobs.measure_interval(identifier, self._body())
+        elif action == 'reviews_read':
+            status, value = jobs.list_capture_reviews(identifier)
+        elif action == 'reviews_write':
+            status, value = jobs.create_capture_review(identifier, self._body())
         elif action == 'annotations_read':
             status, value = server.annotations_read(identifier)
         elif action == 'annotations_write':
