@@ -415,16 +415,53 @@ if __name__ == '__main__':
 
 
 class WebJobAdmissionTests(__import__('unittest').TestCase):
-    def test_share_export_web_job_admitted_with_existing_evidence(self):
+    ADMITTED = ('share_export', 'denoise', 'capture_profile')
+
+    def _load(self):
         import json, importlib.util
         from pathlib import Path
         root = Path(__file__).resolve().parents[1]
         spec = importlib.util.spec_from_file_location('caps_adm', root / 'scripts/capabilities.py')
         caps = importlib.util.module_from_spec(spec); spec.loader.exec_module(caps)
-        self.assertEqual(set(caps.WEB_JOB_ADMISSIONS), {'share_export'})
-        self.assertTrue((root / caps.WEB_JOB_ADMISSIONS['share_export']).is_file())
         data = json.loads((root / 'program/capabilities.json').read_text())
-        entries = data['tools'] if isinstance(data, dict) and 'tools' in data else data.get('capabilities', data)
-        states = {e['tool']: e['adapters']['web_job'] for e in entries}
+        states = {e['tool']: e['adapters']['web_job'] for e in data['capabilities']}
+        return root, caps, json, states
+
+    def test_share_export_web_job_admitted_with_existing_evidence(self):
+        root, caps, json, states = self._load()
+        self.assertEqual(set(caps.WEB_JOB_ADMISSIONS), set(self.ADMITTED))
+        self.assertTrue((root / caps.WEB_JOB_ADMISSIONS['share_export']).is_file())
         self.assertEqual(states['share_export'], 'admitted')
-        self.assertTrue(all(v in ('planned', 'unsupported') for k, v in states.items() if k != 'share_export'))
+        self.assertTrue(all(v in ('planned', 'unsupported') for k, v in states.items() if k not in self.ADMITTED))
+
+    def test_s3_denoise_and_capture_profile_admitted_on_succeeded_receipts(self):
+        root, caps, json, states = self._load()
+        for tool in ('denoise', 'capture_profile'):
+            with self.subTest(tool=tool):
+                self.assertEqual(states[tool], 'admitted')
+                receipt = json.loads((root / caps.WEB_JOB_ADMISSIONS[tool]).read_text())
+                self.assertEqual(receipt['schema'], 'video-utils/web-job-admission-evidence')
+                self.assertEqual(receipt['tool'], tool)
+                self.assertEqual(receipt['outcome'], 'succeeded')
+                self.assertEqual(receipt['measured']['state'], 'succeeded')
+                self.assertTrue(receipt['measured']['outputs'])
+                # Admission is structural evidence only; no master or listening claim rides on it.
+                self.assertIs(receipt['master_adopted'], False)
+                self.assertEqual(receipt['listening'], 'not_performed')
+        caps.validate(json.loads((root / 'program/capabilities.json').read_text()),
+                      json.loads((root / 'program/tools.json').read_text()))
+
+    def test_s3_apply_capture_profile_stays_planned_until_real_worker_check(self):
+        root, caps, json, states = self._load()
+        self.assertNotIn('apply_capture_profile', caps.WEB_JOB_ADMISSIONS)
+        self.assertEqual(states['apply_capture_profile'], 'planned')
+        self.assertEqual(set(caps.WEB_JOB_PENDING_REAL_WORKER), {'apply_capture_profile'})
+        receipt = json.loads((root / caps.WEB_JOB_PENDING_REAL_WORKER['apply_capture_profile']).read_text())
+        self.assertEqual(receipt['outcome'], 'not_run')
+        self.assertEqual(receipt['measured'], {})
+        self.assertIn('real_worker_run', receipt['unknown'])
+        # Flipping the state without a root admission record is refused by the validator.
+        doc = json.loads((root / 'program/capabilities.json').read_text())
+        next(e for e in doc['capabilities'] if e['tool'] == 'apply_capture_profile')['adapters']['web_job'] = 'admitted'
+        with self.assertRaises(caps.CapabilityError):
+            caps.validate(doc, json.loads((root / 'program/tools.json').read_text()))
