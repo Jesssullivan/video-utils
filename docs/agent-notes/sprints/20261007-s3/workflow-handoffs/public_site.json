@@ -149,7 +149,7 @@
     }
   ],
   "receipts_written": [
-    "docs/agent-notes/sprints/20261007-s3/public_site-workflow-handoff.json"
+    "docs/agent-notes/sprints/20261007-s3/workflow-handoffs/public_site.json"
   ],
   "protected": {
     "accepted_media_or_desktop_changed": false,
