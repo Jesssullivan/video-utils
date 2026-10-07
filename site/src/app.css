@@ -1,0 +1,48 @@
+@import 'tailwindcss';
+@import '@fontsource/inter/latin-400.css';
+@import '@fontsource/inter/latin-500.css';
+@import '@fontsource/inter/latin-600.css';
+@import '@fontsource/inter/latin-700.css';
+@import '@skeletonlabs/skeleton';
+@import '@skeletonlabs/skeleton-svelte';
+@import '@xoxd/theme/theme/fonts.css';
+@import '@xoxd/theme/theme/tailwind.css';
+@import '@xoxd/theme/theme/theme-xoxd.css';
+@import '@xoxd/theme/theme/base.css';
+@import '@xoxd/public-chrome/styles.css';
+
+@source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
+@source '../node_modules/@xoxd/public-chrome';
+
+/* Authored styles use theme tokens only; no colour literal appears in this tree. */
+@layer components {
+	.claim {
+		border-inline-start: 3px solid var(--color-surface-400);
+	}
+
+	.claim[data-claim-class='implemented'],
+	.claim[data-claim-class='measured_synthetic'] {
+		border-inline-start-color: var(--color-success-500);
+	}
+
+	.claim[data-claim-class='inferred'],
+	.claim[data-claim-class='product_hypothesis'] {
+		border-inline-start-color: var(--color-secondary-500);
+	}
+
+	.claim[data-claim-class='unknown'],
+	.claim[data-claim-class='not_done'],
+	.claim[data-claim-class='unverified_listening'] {
+		border-inline-start-color: var(--color-warning-500);
+	}
+
+	.skip-link:focus {
+		position: fixed;
+		inset-block-start: 0.5rem;
+		inset-inline-start: 0.5rem;
+		z-index: var(--z-tooltip);
+		padding: 0.5rem 0.75rem;
+		background: var(--color-surface-50);
+		color: var(--color-surface-950);
+	}
+}

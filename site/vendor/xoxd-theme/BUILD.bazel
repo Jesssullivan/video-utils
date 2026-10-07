@@ -1,0 +1,93 @@
+# xoxd_theme (rulings PC8a, PC8d; Linear TIN-5016). Bazel only.
+#
+#   bazelisk build //:pkg     the carrier directory a consumer materialises
+#   bazelisk test //...       the gate
+#   bazelisk run //:build_theme_css [-- --check]
+load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
+load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_library")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "MODULE.bazel",
+    "LICENSE",
+    "package.json",
+    "NOTICE",
+    "xoxd-theme.json",
+    "scripts/build-theme-css.mjs",
+    "scripts/lib/color-contrast.mjs",
+])
+
+filegroup(
+    name = "theme_css",
+    srcs = [
+        "theme/base.css",
+        "theme/fonts.css",
+        "theme/tailwind.css",
+        "theme/theme-xoxd.css",
+    ],
+)
+
+filegroup(
+    name = "sources",
+    srcs = [
+        "theme/fouc.d.mts",
+        "theme/fouc.mjs",
+        "theme/palette.ts",
+    ],
+)
+
+filegroup(
+    name = "fonts",
+    srcs = glob(["fonts/*.woff2"]) + ["fonts/OFL.txt"],
+)
+
+# The carrier: one directory holding everything a consumer takes, with the
+# repository's own layout (theme/, fonts/, the manifest and the notice). It is
+# local build output; nothing publishes it.
+copy_to_directory(
+    name = "package_files",
+    srcs = [
+        "LICENSE",
+        "package.json",
+        "NOTICE",
+        "xoxd-theme.json",
+        ":fonts",
+        ":sources",
+        ":theme_css",
+    ],
+)
+
+js_binary(
+    name = "build_theme_css",
+    data = [
+        "theme/palette.ts",
+        "theme/theme-xoxd.css",
+    ],
+    entry_point = "scripts/build-theme-css.mjs",
+)
+
+# The files the tests read, copied to the output tree for them (aspect_rules_js
+# copies sources beside a test only through a js_library).
+js_library(
+    name = "test_inputs",
+    srcs = [
+        "MODULE.bazel",
+        "scripts/build-theme-css.mjs",
+        "scripts/lib/color-contrast.mjs",
+        "xoxd-theme.json",
+        "LICENSE",
+        "NOTICE",
+        ":sources",
+        ":theme_css",
+    ],
+    visibility = ["//test:__pkg__"],
+)
+
+npm_package(
+    name = "pkg",
+    srcs = [":package_files"],
+    package = "@xoxd/theme",
+    root_paths = ["package_files", "**/package_files"],
+)

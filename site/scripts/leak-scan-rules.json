@@ -1,0 +1,220 @@
+{
+	"schema_version": 1,
+	"comment": [
+		"Public-output leak rules for the video-utils static landing. Modelled on the xoxd.ai rule file",
+		"scripts/lib/leak-scan-rules.json at origin/main cc570c3 (commit date 2026-10-05). Read by",
+		"scripts/leak-scan.mjs and by the Python port in the lane test module, which must agree.",
+		"Patterns are RegExp source strings valid in both JavaScript (u flag) and Python; flags are applied",
+		"per rule and the scanner adds g.",
+		"",
+		"Ported with the same intent (15): the six secret rules, the cluster credential rule, the private",
+		"host name, private address, cache endpoint, loopback, source map, developer path, tracker and dash",
+		"rules. Not ported: the upstream rule that enumerates private individuals (copying it would itself",
+		"be a leak) and the upstream timed-promise rule (superseded by the banned phrase list in the lane",
+		"contract). No upstream allowlist entry is copied.",
+		"",
+		"Added for video-utils (9): real-take-filename, media-file-reference, content-hash-64,",
+		"run-identifier, artifact-path-reference, nix-store-path, analytics-or-beacon,",
+		"form-or-upload-surface, private-estate-hostname.",
+		"",
+		"Self-safety: this file is scanned like any other source file and gets no exemption. Literals that",
+		"a rule would match are written with a one-character class, and the two rules whose own id contains",
+		"their trigger word carry a narrow negative lookahead for that id suffix only.",
+		"",
+		"Per-rule surface fields. skipVendorRuntimeChunks: the build scan skips the rule for files under",
+		"_app/immutable/chunks/ (framework runtime, the upstream behaviour for the two content-authorship",
+		"rules). sourceScope src: in the source scan the rule applies to files under src/ only.",
+		"vendorCarrier: the rule is one of the nine applied to the unmodified third-party carriers under",
+		"vendor/ (secrets, host paths, real-take names).",
+		"",
+		"Framework deviations measured on the Phase 2 build (2026-10-07). None changes what authored",
+		"content may contain.",
+		"1. form-or-upload-surface: the file-input alternative carries a lookbehind that refuses a",
+		"preceding bracket or word character. Cause: the Skeleton stylesheet in",
+		"_app/immutable/assets/0.*.css ships six attribute selectors for a file selector button",
+		"(bracket, the attribute name, equals, the value). An HTML attribute is preceded by white space,",
+		"so an authored file input still fires.",
+		"2. analytics-or-beacon: the advertising host alternative requires its .net suffix. Cause: the",
+		"layout chunk _app/immutable/nodes/0.*.js carries a component library event-name map whose",
+		"double-click handler key matched the bare word case-insensitively.",
+		"3. allowedPublicForgeUrls: exact URL exceptions to the forge-host alternative of",
+		"internal-tracker-reference, the upstream mechanism with none of its entries. Cause: the",
+		"published font licence text names its two upstream font projects. Any other forge path,",
+		"query string or fragment remains a finding."
+	],
+	"rules": [
+		{
+			"id": "secret-pem-block",
+			"description": "PEM private key or certificate block",
+			"pattern": "-----BEGIN [A-Z ]*(PRIVATE KEY|CERTIFICATE)-----",
+			"flags": "u",
+			"vendorCarrier": true
+		},
+		{
+			"id": "secret-ssh-key",
+			"description": "OpenSSH public or private key material",
+			"pattern": "ssh-(rsa|ed25519) AAAA[0-9A-Za-z+/]{32,}",
+			"flags": "u",
+			"vendorCarrier": true
+		},
+		{
+			"id": "secret-cloud-access-key",
+			"description": "cloud provider access key id",
+			"pattern": "\\b(AKIA|ASIA)[0-9A-Z]{16}\\b",
+			"flags": "u",
+			"vendorCarrier": true
+		},
+		{
+			"id": "secret-forge-token",
+			"description": "code-forge or chat access token",
+			"pattern": "\\b(ghp_[0-9A-Za-z]{36}|github_pat_[0-9A-Za-z_]{22,}|glpat-[0-9A-Za-z_-]{20}|xox[abprs]-[0-9A-Za-z-]{10,})\\b",
+			"flags": "u",
+			"vendorCarrier": true
+		},
+		{
+			"id": "secret-json-web-token",
+			"description": "signed JSON Web Token",
+			"pattern": "\\beyJ[0-9A-Za-z_-]{10,}\\.eyJ[0-9A-Za-z_-]{10,}\\.[0-9A-Za-z_-]{10,}\\b",
+			"flags": "u",
+			"vendorCarrier": true
+		},
+		{
+			"id": "secret-assignment",
+			"description": "credential-shaped assignment",
+			"pattern": "\\b(api[_-]?key|secret[_-]?key|access[_-]?token|client[_-]?secret|password|passwd)\\b\\s*[:=]\\s*[\"'][^\"'\\s]{12,}[\"']",
+			"flags": "iu",
+			"vendorCarrier": true
+		},
+		{
+			"id": "kubeconfig-fragment",
+			"description": "cluster credential fragment",
+			"pattern": "\\b(client-certificate-d[a]ta|client-key-d[a]ta|certificate-authority-d[a]ta|current-c[o]ntext|kube[c]onfig(?!-fragment)|serviceaccount/t[o]ken)\\b",
+			"flags": "iu"
+		},
+		{
+			"id": "internal-hostname",
+			"description": "cluster-local, tailnet, or otherwise private host name (case-sensitive, as upstream)",
+			"pattern": "\\b[a-z0-9-]+(?:\\.[a-z0-9-]+)*\\.(?:svc|cluster\\.local|ts\\.net|internal|intranet|lan|home\\.arpa)\\b",
+			"flags": "u"
+		},
+		{
+			"id": "private-network-address",
+			"description": "RFC1918, loopback, link-local, or CGNAT address",
+			"pattern": "\\b(?:10(?:\\.\\d{1,3}){3}|172\\.(?:1[6-9]|2\\d|3[01])(?:\\.\\d{1,3}){2}|192\\.168(?:\\.\\d{1,3}){2}|127(?:\\.\\d{1,3}){3}|169\\.254(?:\\.\\d{1,3}){2}|100\\.(?:6[4-9]|[7-9]\\d|1[01]\\d|12[0-7])(?:\\.\\d{1,3}){2})\\b",
+			"flags": "u"
+		},
+		{
+			"id": "cache-or-executor-endpoint",
+			"description": "build cache, remote executor, or gRPC endpoint literal",
+			"pattern": "(?:grpcs?://|https?://[^\\s\"'`<>)]*(?:bazel-cache|remote-cache|reapi|executor|buildbarn|buildfarm))",
+			"flags": "iu"
+		},
+		{
+			"id": "localhost-reference",
+			"description": "loopback host name or the any-interface bind address",
+			"pattern": "\\bloc[a]lhost(?!-reference)(?::\\d{1,5})?\\b|\\b0\\.0\\.0\\.0\\b",
+			"flags": "iu"
+		},
+		{
+			"id": "source-map-or-dev-artifact",
+			"description": "source map comment leaked into the public build",
+			"pattern": "sourceMapp[i]ngURL|//# source[U]RL",
+			"flags": "u"
+		},
+		{
+			"id": "developer-filesystem-path",
+			"description": "absolute path from a developer or CI machine",
+			"pattern": "(?:/Users/[a-z0-9._-]+|/home/[a-z0-9._-]+|/private/(?:var|tmp)/[a-z0-9._/-]+|/Volumes/[a-z0-9._-]+|/roo[t]/|[A-Z]:\\\\Users\\\\)",
+			"flags": "iu",
+			"vendorCarrier": true
+		},
+		{
+			"id": "internal-tracker-reference",
+			"description": "issue tracker id, tracker or forge host, change request, or commit pointer",
+			"pattern": "\\bTIN-\\d+\\b|\\blinear\\.app\\b|\\bgithub\\.com\\b|\\bpull[ ]request\\b|\\bPR\\s*#\\d+\\b|\\b[0-9a-f]{40}\\b",
+			"flags": "iu",
+			"skipVendorRuntimeChunks": true
+		},
+		{
+			"id": "operator-banned-dash",
+			"description": "em dash or en dash in published output (house rule)",
+			"pattern": "[\\u2014\\u2013]",
+			"flags": "u",
+			"skipVendorRuntimeChunks": true,
+			"sourceScope": "src"
+		},
+		{
+			"id": "real-take-filename",
+			"description": "Photo Booth style recording name",
+			"pattern": "\\bMov[i]e[ ]on[ ]\\d{1,2}-\\d{1,2}-\\d{2,4}\\b",
+			"flags": "iu",
+			"vendorCarrier": true
+		},
+		{
+			"id": "media-file-reference",
+			"description": "reference to a movie or audio file by extension",
+			"pattern": "[\\w)\\]-]\\.(?:mov|mp4|m4v|wav|flac|aiff|aac|mp3)\\b",
+			"flags": "iu"
+		},
+		{
+			"id": "content-hash-64",
+			"description": "64 hexadecimal characters (a source or artifact digest)",
+			"pattern": "\\b[0-9a-f]{64}\\b",
+			"flags": "iu"
+		},
+		{
+			"id": "run-identifier",
+			"description": "run id shaped as a compact UTC timestamp and twelve hexadecimal characters",
+			"pattern": "\\b\\d{8}T\\d{6}Z-[0-9a-f]{12}\\b",
+			"flags": "iu"
+		},
+		{
+			"id": "artifact-path-reference",
+			"description": "path naming the private artifact, data, model or sprint worktree directories",
+			"pattern": "\\bartifacts[/\\\\]|[.]local[/\\\\]sprint|\\b(?:runs|experiments)[/\\\\]\\d{8}T|(?<![\\w./-])(?:data|models)[/\\\\](?:[\\w.-]+[/\\\\])*[\\w.-]+[.](?:json|pt|pth|onnx|safetensors|ckpt|npz|csv)\\b",
+			"flags": "iu"
+		},
+		{
+			"id": "nix-store-path",
+			"description": "Nix store path",
+			"pattern": "/nix/st[o]re/",
+			"flags": "u",
+			"vendorCarrier": true
+		},
+		{
+			"id": "analytics-or-beacon",
+			"description": "analytics, RUM or tag-manager host or snippet",
+			"pattern": "g[o]ogletagmanager|g[o]ogle-analytics|\\bgt[a]g\\(|cl[o]udflareinsights|cdn-cgi/r[u]m|pl[a]usible\\.io|\\bh[o]tjar\\b|\\bm[i]xpanel\\b|\\bp[o]sthog\\b|\\bs[e]ntry\\.io\\b|\\bf[a]ro-web|\\bm[a]tomo\\b|\\bum[a]mi\\.is\\b|d[o]ubleclick\\.net|c[o]nnect\\.facebook|navigator\\.s[e]ndBeacon",
+			"flags": "iu"
+		},
+		{
+			"id": "form-or-upload-surface",
+			"description": "form, text area, file input, multipart or post surface",
+			"pattern": "<[f]orm\\b|<[t]extarea\\b|(?<![\\[\\w])typ[e]=[\"']?file\\b|en[c]type\\s*=|meth[o]d=[\"']?post\\b",
+			"flags": "iu",
+			"sourceScope": "src"
+		},
+		{
+			"id": "private-estate-hostname",
+			"description": "estate service host under the operator's zones, or an Access or tunnel host",
+			"pattern": "\\b(?:[a-z0-9-]+\\.)+(?:tinyland\\.dev|xoxd\\.ai)\\b|\\b[a-z0-9-]+\\.(?:cloudflareaccess|cfargotunnel|trycloudflare)\\.com\\b",
+			"flags": "iu"
+		}
+	],
+	"allowedHostsComment": [
+		"Starts empty for authored hosts. Each entry below was added only because the Phase 2 build or an",
+		"authored static file actually contains it. No authored page links to any of them.",
+		"www.w3.org: the SVG and XHTML namespace identifiers in every built page (icon markup from the",
+		"chrome), in static/favicon.svg and in the Svelte runtime chunk. Identifiers, never fetched.",
+		"svelte.dev: documentation links inside the Svelte runtime's own error messages in",
+		"_app/immutable/chunks/. Framework code, not rendered as page text.",
+		"scripts.sil.org: the SIL Open Font License address inside fonts/OFL.txt, the licence text that",
+		"must accompany the self-hosted font files.",
+		"The forge host is deliberately NOT on this list: fonts/OFL.txt credits the two upstream font",
+		"projects by URL, and only the two exact URLs in allowedPublicForgeUrls pass, both for",
+		"internal-tracker-reference and for the outbound host check."
+	],
+	"allowedHosts": ["scripts.sil.org", "svelte.dev", "www.w3.org"],
+	"allowedPublicForgeUrls": ["https://github.com/tonsky/FiraCode", "https://github.com/ryanoasis/nerd-fonts"],
+	"allowedMailboxes": []
+}

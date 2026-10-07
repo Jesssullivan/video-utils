@@ -1,0 +1,8 @@
+xoxd public chrome
+
+Navigation, footer, and theme controls are derived from xoxd.ai and
+site.scaffold, Copyright (c) 2026 Jess Sullivan, under the MIT License.
+The Saturn mark and theme controls retain the Great Falls Tool Bus CityLink
+and Tinyland scaffold lineage. Dependencies retain their own licenses;
+Skeleton, Svelte, and Lucide are imported from their upstream packages.
+No telemetry, authentication, or application lifecycle is supplied here.

@@ -1,0 +1,308 @@
+{
+  "schema_version": 1,
+  "note": "Unmodified copies of two public release archives. Verified against the registry integrity value before unpacking. Do not edit files under these directories; replace the whole directory from a newly verified archive instead.",
+  "fetched_utc": "2026-10-07",
+  "fetch": "anonymous HTTPS GET, no credentials, HTTP 200",
+  "registry": {
+    "repository": "xoxd-ai/bazel-registry",
+    "release_tag": "public-frontend-v0.1.1",
+    "metadata_read_from": "tinyland-inc/bazel-registry origin/main",
+    "metadata_commit": "8d3e5407863132f62c14a5d674435890823a9d22",
+    "metadata_commit_date": "2026-10-05T21:59:29-04:00"
+  },
+  "deviation": "Estate ruling N2 keeps carriers generated, never committed. These copies are committed because this site must build with plain pnpm and this lane may not add a Bazel graph. Root's Bazel lane may replace them with a package link.",
+  "carriers": [
+    {
+      "package": "@xoxd/public-chrome",
+      "version": "0.1.0",
+      "directory": "vendor/xoxd-public-chrome",
+      "url": "https://github.com/xoxd-ai/bazel-registry/releases/download/public-frontend-v0.1.1/xoxd_public_chrome-0.1.0.tar.gz",
+      "registry_source_json": "modules/xoxd_public_chrome/0.1.0/source.json",
+      "registry_integrity": "sha256-AdbvlPHa7HAxfWAGDyjRSO58d2eqhbxqyxKJjVs1RJI=",
+      "computed_integrity": "sha256-AdbvlPHa7HAxfWAGDyjRSO58d2eqhbxqyxKJjVs1RJI=",
+      "integrity_match": true,
+      "archive_sha256": "01d6ef94f1daec70317d60060f28d148ee7c7767aa85bc6acb12898d5b354492",
+      "archive_bytes": 11948,
+      "strip_prefix": "xoxd_public_chrome-0.1.0",
+      "file_count": 21,
+      "modified": false,
+      "licence_files": [
+        "LICENSE",
+        "NOTICE"
+      ],
+      "files": [
+        {
+          "path": ".bazelversion",
+          "sha256": "4fa9948d0ae7007cbd1cc05768bc3e7cc6ec46ad0ea84c87df79e7a0c48d76b4",
+          "bytes": 6
+        },
+        {
+          "path": ".gitignore",
+          "sha256": "8f1ea2c8ec4575f362abca222c524a8eaa020367c332357b3a8755d010ff36c9",
+          "bytes": 26
+        },
+        {
+          "path": "BUILD.bazel",
+          "sha256": "6d968e0f1d8dbb09d1e8dba0a963d7913ee533a8c53ff5426bd539fd36413876",
+          "bytes": 501
+        },
+        {
+          "path": "LICENSE",
+          "sha256": "3d4a11add6aa6ac9a746f186a2597fac0f793960b7d82cd5a29e2037b9f61801",
+          "bytes": 1070
+        },
+        {
+          "path": "MODULE.bazel",
+          "sha256": "d6f98a6437ac024034600c60143308c88120eb4b5aba54935ce4b908686b9feb",
+          "bytes": 193
+        },
+        {
+          "path": "NOTICE",
+          "sha256": "0b6cc21b24b33e0b9ad8a26757c01206b8aeb74f0dbd28762020d610de9885ec",
+          "bytes": 452
+        },
+        {
+          "path": "README.md",
+          "sha256": "fb4012bd3050f5c68ae10ed08f2cd92e1255a71832d4073f8f00c8b888cb9a5c",
+          "bytes": 1269
+        },
+        {
+          "path": "package.json",
+          "sha256": "7fadf91ea8689da5413ac7d92f85f9507a88da3036708ce28dbc64a33180a34f",
+          "bytes": 648
+        },
+        {
+          "path": "src/PublicNavigation.svelte",
+          "sha256": "0c8922f67cb41eb65440faf1ed716a862c540afc2c501f48558ae03f7376fd8d",
+          "bytes": 7273
+        },
+        {
+          "path": "src/SaturnMark.svelte",
+          "sha256": "d75abb3e77f106c09a99c8fb2bd9f9801af33021c0bc0beb4d22a008cc56ccaa",
+          "bytes": 651
+        },
+        {
+          "path": "src/SiteFooter.svelte",
+          "sha256": "54c34628f36e725edd3e265f2a89f7647f023adc8b7ed231643e601cfb8ca066",
+          "bytes": 2175
+        },
+        {
+          "path": "src/ThemePicker.svelte",
+          "sha256": "fa40d4742043ff638238f29511f8c6fa11adc932b2aa9d98a75898f09a22cf06",
+          "bytes": 4445
+        },
+        {
+          "path": "src/fouc.d.mts",
+          "sha256": "c62218d6aa0d1d621606efe39b187fd5d812be110503f633ac1dea3417dfaf35",
+          "bytes": 42
+        },
+        {
+          "path": "src/fouc.mjs",
+          "sha256": "12ba49a99062a616a3f5108b3edadb423124efd8cb05a9663b5ec12702c72e75",
+          "bytes": 613
+        },
+        {
+          "path": "src/index.ts",
+          "sha256": "e385a406d4e19a4b126403f64ec2aeb3f830ae3bf94e700db97cb8a4a9545d9e",
+          "bytes": 575
+        },
+        {
+          "path": "src/styles.css",
+          "sha256": "4d80dc4bed56f0364314ae7eaadb83b958ed005f9b5297f727969dc0943bd1c5",
+          "bytes": 1909
+        },
+        {
+          "path": "src/styles/theme-scaffold.css",
+          "sha256": "d4fc152194a806e525b85ffe9f96d8ace0deceeb4cd0d16ef1d4b00b4df39496",
+          "bytes": 13724
+        },
+        {
+          "path": "src/styles/themes/trans.css",
+          "sha256": "7598e0941a5e6086abd6ee55d8601e585ea8f1c85d6a6b62a33bf1e4c4a821c5",
+          "bytes": 13020
+        },
+        {
+          "path": "src/theme.svelte.ts",
+          "sha256": "94e4925fd04c9daeb36bc044bf65c890fbf5765679aa742fe5ff78ef1a2aa7d2",
+          "bytes": 2755
+        },
+        {
+          "path": "src/theme/suite.ts",
+          "sha256": "72947676923ddcd00f1863cd48b4109d9ce89d6cad55614dde54881a977c9ed4",
+          "bytes": 1174
+        },
+        {
+          "path": "src/types.ts",
+          "sha256": "a047a656f00f2fbcf090c5560d9280d31826db73fdd711f28156a0cdfc4c0462",
+          "bytes": 251
+        }
+      ]
+    },
+    {
+      "package": "@xoxd/theme",
+      "version": "0.1.1",
+      "directory": "vendor/xoxd-theme",
+      "url": "https://github.com/xoxd-ai/bazel-registry/releases/download/public-frontend-v0.1.1/xoxd_theme-0.1.1.tar.gz",
+      "registry_source_json": "modules/xoxd_theme/0.1.1/source.json",
+      "registry_integrity": "sha256-DtBiJ/++QAmLQF+M0gNEKptUEdiLEHndOev70ZfVT0U=",
+      "computed_integrity": "sha256-DtBiJ/++QAmLQF+M0gNEKptUEdiLEHndOev70ZfVT0U=",
+      "integrity_match": true,
+      "archive_sha256": "0ed06227ffbe40098b405f8cd203442a9b5411d88b1079dd39ebfbd197d54f45",
+      "archive_bytes": 84851,
+      "strip_prefix": "xoxd_theme-0.1.1",
+      "file_count": 26,
+      "modified": false,
+      "licence_files": [
+        "LICENSE",
+        "NOTICE",
+        "fonts/OFL.txt"
+      ],
+      "files": [
+        {
+          "path": ".bazelversion",
+          "sha256": "4fa9948d0ae7007cbd1cc05768bc3e7cc6ec46ad0ea84c87df79e7a0c48d76b4",
+          "bytes": 6
+        },
+        {
+          "path": "BUILD.bazel",
+          "sha256": "caeaf27df67c4f8a76642c34dcb83b21a2f7a2caa7345fbaf2dbfde4a8ce91c7",
+          "bytes": 2251
+        },
+        {
+          "path": "LICENSE",
+          "sha256": "3d4a11add6aa6ac9a746f186a2597fac0f793960b7d82cd5a29e2037b9f61801",
+          "bytes": 1070
+        },
+        {
+          "path": "MODULE.bazel",
+          "sha256": "3bab2ba70823b9b51f3a8d254ca3cfc16c636c9dcd05f5f867732d6671724b5f",
+          "bytes": 371
+        },
+        {
+          "path": "NOTICE",
+          "sha256": "e6e85f69576591b9a65e2372252dff77c2474e56e531c7db44c36abc1909b450",
+          "bytes": 514
+        },
+        {
+          "path": "README.md",
+          "sha256": "feeb841deb24a6d8416799818078cb77709aa787af2328b26abbc4b156582265",
+          "bytes": 518
+        },
+        {
+          "path": "fonts/FiraCodeNerdFontMono-Bold.woff2",
+          "sha256": "f72b063fb0995723c6436f31552c0b4654d58f36073b182bc6f1c2d606230a98",
+          "bytes": 31708
+        },
+        {
+          "path": "fonts/FiraCodeNerdFontMono-Regular.woff2",
+          "sha256": "34d7df7258d66982d7c9a989f29751c2c0c943eb5d7cf7350008e5ecb1680ca2",
+          "bytes": 32304
+        },
+        {
+          "path": "fonts/OFL.txt",
+          "sha256": "7fdf3d5f20431522654a53988a4354c107b6eb704b942f67f438bd032cc80085",
+          "bytes": 4487
+        },
+        {
+          "path": "package.json",
+          "sha256": "a5538487bfa4041c6575e896db92c3a725cd03c73f83506a8cf9a14c53a132d6",
+          "bytes": 203
+        },
+        {
+          "path": "scripts/build-theme-css.mjs",
+          "sha256": "0bf569e3383c14f8bbde6b8781df5201795010905465e094123c28f674e884fb",
+          "bytes": 3588
+        },
+        {
+          "path": "scripts/lib/color-contrast.mjs",
+          "sha256": "f9897fe475da5559d1f13ea5c9f432b7e66fb3e12c6d8a470a54074f95104fcf",
+          "bytes": 12900
+        },
+        {
+          "path": "test/BUILD.bazel",
+          "sha256": "b3d2f8c5203be737144837123e216620674f30b342967911a02e0d5d5a8d2b74",
+          "bytes": 490
+        },
+        {
+          "path": "test/dist_scan.test.mjs",
+          "sha256": "a74373cb9a6d60b099ad5b6ec3b34dae8cd2dd937cb3fc6f8e1e896d89324321",
+          "bytes": 1556
+        },
+        {
+          "path": "test/fouc.test.mjs",
+          "sha256": "1248dc799a32e4ffdd502ccd8023cbfd15449aee3b5c6305d9f11aabe3bd5919",
+          "bytes": 2138
+        },
+        {
+          "path": "test/lib.mjs",
+          "sha256": "5bccc1fb8e3cb4520a4aefe70a274b30484af8a7dd45b57a2d69256c10122a00",
+          "bytes": 1961
+        },
+        {
+          "path": "test/palette.test.mjs",
+          "sha256": "e9bde0defe28b3c66a5e1a767ce4d0b1aec7bc90e5328d22f979cfd2ca1ad897",
+          "bytes": 6534
+        },
+        {
+          "path": "test/theme_css.test.mjs",
+          "sha256": "cffe3f440f8eae2cfdb5f357aa3f636ac8229eba2da205f5cf624aa12509b966",
+          "bytes": 3511
+        },
+        {
+          "path": "theme/base.css",
+          "sha256": "47e1fae30de126629e2c46376140669520b415ec858ed574d6c871f334aaf8f3",
+          "bytes": 1382
+        },
+        {
+          "path": "theme/fonts.css",
+          "sha256": "94642257d54d2ad65bbd37c5c737d9dbf0e5bdd83949e97c38761bdf88030149",
+          "bytes": 871
+        },
+        {
+          "path": "theme/fouc.d.mts",
+          "sha256": "e63360ed2a8cc238827c25451ffcfdef29889d97073eb72cad141a1672367528",
+          "bytes": 175
+        },
+        {
+          "path": "theme/fouc.mjs",
+          "sha256": "4c65732635ba64a73f91118c2440f113638403c34b2e25d2b2089f1d5a5f4ef5",
+          "bytes": 682
+        },
+        {
+          "path": "theme/palette.ts",
+          "sha256": "e37155e16ed9381c11cd6a7fc27e0b271d87a0aac536a2110bc0a40682494159",
+          "bytes": 8447
+        },
+        {
+          "path": "theme/tailwind.css",
+          "sha256": "6f8ea68a83704c72accfda6478dcf42dd62908ac9928ab259cb784a57abe3198",
+          "bytes": 313
+        },
+        {
+          "path": "theme/theme-xoxd.css",
+          "sha256": "0df38734bb771372e56445b3956769bb1aa5abe2b7e5b6249ba889c551c95e64",
+          "bytes": 14126
+        },
+        {
+          "path": "xoxd-theme.json",
+          "sha256": "f0ac63955f149974360a5659a6413cbdc19fc7bd35dfe74bebfc1c7b508597ed",
+          "bytes": 51
+        }
+      ]
+    }
+  ],
+  "fonts_copied_to_static": [
+    {
+      "from": "vendor/xoxd-theme/fonts/FiraCodeNerdFontMono-Bold.woff2",
+      "to": "static/fonts/FiraCodeNerdFontMono-Bold.woff2"
+    },
+    {
+      "from": "vendor/xoxd-theme/fonts/FiraCodeNerdFontMono-Regular.woff2",
+      "to": "static/fonts/FiraCodeNerdFontMono-Regular.woff2"
+    },
+    {
+      "from": "vendor/xoxd-theme/fonts/OFL.txt",
+      "to": "static/fonts/OFL.txt"
+    }
+  ]
+}

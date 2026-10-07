@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="video-utils">
+	<rect width="64" height="64" rx="10" fill="#020103" />
+	<g fill="none" stroke="#f7f3fc" stroke-linecap="round">
+		<path d="M12 12h40" stroke-width="1" />
+		<path d="M12 17h40" stroke-width="1.2" />
+		<path d="M12 22h40" stroke-width="1.4" />
+		<path d="M12 27h40" stroke-width="1.7" />
+		<path d="M12 32h40" stroke-width="2" />
+		<path d="M12 37h40" stroke-width="2.3" />
+		<path d="M12 42h40" stroke-width="2.7" />
+		<path d="M12 47h40" stroke-width="3.1" />
+		<path d="M12 53h40" stroke-width="3.6" />
+	</g>
+</svg>

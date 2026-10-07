@@ -1,0 +1,66 @@
+@import '@skeletonlabs/skeleton/themes/pine';
+@import '@skeletonlabs/skeleton/themes/rose';
+@import '@skeletonlabs/skeleton/themes/catppuccin';
+@import './styles/theme-scaffold.css';
+@import './styles/themes/trans.css';
+@source './**/*.{svelte,ts}';
+
+:root { --z-base: 0; --z-dropdown: 20; --z-sticky: 40; --z-modal-backdrop: 60; --z-modal: 70; --z-tooltip: 80; }
+@layer components {
+	.saturn-nav {
+		background: color-mix(in oklch, var(--color-surface-50) 88%, transparent);
+		border-bottom: 2px solid color-mix(in oklch, var(--color-primary-500) 50%, transparent);
+	}
+
+	[data-mode='dark'] .saturn-nav {
+		background: color-mix(in oklch, var(--color-surface-950) 85%, transparent);
+		border-bottom-color: color-mix(in oklch, var(--color-primary-500) 60%, transparent);
+	}
+
+	@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+		.saturn-nav {
+			background: color-mix(in oklch, var(--color-surface-50) 55%, transparent);
+			backdrop-filter: blur(20px) saturate(160%);
+			-webkit-backdrop-filter: blur(18px) saturate(140%);
+		}
+
+		[data-mode='dark'] .saturn-nav {
+			background: color-mix(in oklch, var(--color-surface-950) 60%, transparent);
+			backdrop-filter: blur(20px) saturate(140%);
+			-webkit-backdrop-filter: blur(18px) saturate(120%);
+		}
+	}
+
+	
+	.saturn-nav::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: clamp(120px, 18vw, 240px);
+		height: 100%;
+		background: radial-gradient(
+			ellipse at 80% 20%,
+			color-mix(in oklch, var(--color-primary-500) 16%, transparent),
+			transparent 70%
+		);
+		pointer-events: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.saturn-nav {
+			backdrop-filter: none !important;
+			-webkit-backdrop-filter: none !important;
+		}
+	}
+
+	.site-footer__group h2 {
+		margin: 0 0 0.75rem;
+		font-size: 0.7rem;
+		line-height: 1.2;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+	}
+
+}

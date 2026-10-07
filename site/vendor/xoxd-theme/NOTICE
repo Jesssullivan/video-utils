@@ -1,0 +1,10 @@
+xoxd-theme
+
+Copyright (c) 2026 Jess Sullivan. Code and design tokens are available under
+the MIT License (LICENSE). The palette derives from the Goth theme on
+Jess Sullivan's blog and retains the Great Falls Tool Bus/Tinyland lineage.
+
+fonts/FiraCodeNerdFontMono-{Regular,Bold}.woff2 are a subset of Fira Code
+Nerd Font Mono (Nerd Fonts3.3.0, Fira Code6.002), under the SIL Open Font
+License1.1 (fonts/OFL.txt). Inter is supplied by the consumer's
+@fontsource/inter package under its own SIL Open Font License1.1.
