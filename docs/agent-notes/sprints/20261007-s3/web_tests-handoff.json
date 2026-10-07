@@ -1,271 +1,581 @@
 {
-  "basis": {
-    "date_utc": "2026-10-07",
-    "lane_branch": "sprint/20261007-s3/web_tests",
-    "lane_commit": "c79aac5014d898ee2bd8cea497ae05bba2b8091a",
-    "main_commit": "f2281b62520cecfefe221501340f83004e390e5e",
-    "measured_on": "merge tree of main and the lane branch, extracted to a scratch directory outside the repository (git merge-tree, textually clean); dependencies installed there with pnpm install --frozen-lockfile --offline",
-    "merge_tree": "7943df57b743d44d441217078a4bd45d511a2bf2",
-    "not_a_merge": "the lane did not merge, push or touch main; if main moves again these figures describe main_commit only",
-    "receipt_commit_note": "these receipts are added by the commit after lane_commit; that commit changes only docs/agent-notes/sprints/20261007-s3/web_tests-*.json",
-    "supersedes": "the Phase 2 figures measured before the fixtures were regenerated; none of them is used here",
-    "web_source_identity": "git diff of web/src between the merge base 05a13f2 and main is empty; main differs from the merge base under web/ only in BUILD.bazel and pnpm-workspace.yaml"
-  },
-  "claim_class": "summary",
-  "contract": "docs/spec/sprints/WEB_TESTS_S3.md (frozen at 665810f; section 11 appended)",
-  "doctrine": {
-    "controls_checked": 726,
-    "high_pass_low_cut_or_notch_control_offered": false,
-    "listening_claims": null,
-    "note_correctness_or_missed_note_verdicts": null,
-    "real_take_read": false
-  },
-  "inferred": [
-    "the merged app equals the app the lane tested: web/src is identical between the merge base and main"
-  ],
   "lane": "web_tests",
-  "measured": [
-    "every count in web_tests-unit.json, web_tests-e2e.json and web_tests-a11y.json (synthetic fixtures, one host, one Chromium build)",
-    "fixture regeneration: 4 of 4 runs byte-identical on the lane tree",
-    "npm latest re-check at the time recorded in web_tests-pins.json"
-  ],
-  "merge_coupling": {
-    "owner": "root",
-    "rule": "land the web/BUILD.bazel hunk of web_tests-root-requests.json (bazel_app_npm_packages) in the same merge; otherwise test_bazel_graph_s3 fails on main"
-  },
-  "metrics": {
-    "W1": "met 4/4; lockfile single-version 3/3",
-    "W10": "met 2/2; 0 job submissions",
-    "W11": "met 42/42",
-    "W12": "met 16/16 routes; 0 play calls, 0 unpaused",
-    "W13": "met: skip link 1, primary nav 5/5, review bindings 12/12, traps 0/16 routes",
-    "W14": "met 38/38 scans",
-    "W15": "42 violations (34 serious, 4 critical, 4 moderate), 0 outside the baseline of 42; target 0 not reached",
-    "W16": "34 incomplete results (130 nodes) reported",
-    "W17": "not met: 1 unexpected page error in 1 of 52 e2e scenarios (inside the expected-failure test of capture_interval_number_binding); 0 in 38 a11y scenarios",
-    "W18": "6/6 modules pass on the merge tree; skips are the 2 opt-in cases listed; the skip set at the baseline commit was not re-measured",
-    "W19": "met 2/2 (check: 1370 files, 0 errors, 0 warnings; build exit 0)",
-    "W2": "met; 5 Skeleton rules and 3 Effect rules asserted, not_asserted 0",
-    "W20": "see secret_scan; 0 host paths in lane files (LaneStatics)",
-    "W21": "met (web_tests-root-requests.json)",
-    "W3": "met 4/4",
-    "W4": "met with 2 declared expected failures: 13/13 files, 155 tests = 153 passed + 2 expected failures, 0 failed, 0 skipped",
-    "W5": "met 7/7 README cases; 41 e2e fixture files strict JSON",
-    "W6": "met 15/15",
-    "W7": "49/49 table codes non-fallback; 2 of 12 referenced codes unmapped in both tables (reported)",
-    "W8": "not met as frozen: 10/11 spec files all-pass; capture.spec.ts has 2 expected failures for source defects; 52 tests = 50 passed + 2 expected failures, 0 unexpected, 0 skipped, 0 flaky",
-    "W9": "met: 4 page loads, 0 non-GET requests, 0 review records"
-  },
-  "no_adoption": {
-    "anchor": false,
-    "default_detector": false,
-    "master": false,
-    "profile": false
-  },
-  "phase4_repair": {
-    "audited_commit": "cb9ed3e393108c809bbf8d768b4c4dca07dbbc93",
-    "found_during_repair": [
-      {
-        "commit": "c99c8b2",
-        "finding": "main moved to f2281b6; FixtureDrift failed on the merge tree (new model registry row changed the strict shape of capabilities.json)",
-        "repair": "registry-projection rule (spec 11.2 item 16)"
-      },
-      {
-        "commit": "c79aac5",
-        "finding": "pnpm run test:unit failed 13 of 13 files on a clean extraction (generated tsconfig absent)",
-        "repair": "test:unit runs svelte-kit sync first (spec 11.2 item 17)"
-      },
-      {
-        "commit": null,
-        "finding": "test_bazel_graph_s3 fails 1 of 35 on main + lane (APP_NPM_PACKAGES)",
-        "repair": "not repairable by the lane: web/BUILD.bazel is root-owned; exact hunk requested"
-      }
-    ],
-    "items": [
-      {
-        "commit": "07b1bfc",
-        "finding": "SiteObeysSameRule failed on main + lane (file:vendor specs in site/package.json)",
-        "repair": "provenance-bound vendored carriers accepted for site/ only; VendoredCarriers exercises the branch on synthetic packages (2 accepted, 17 refused cases); module passes on the merge tree"
-      },
-      {
-        "commit": "07b1bfc",
-        "finding": "spec section 11 cited missing receipts and two unsupported causes",
-        "repair": "items 12-14 and web/e2e/fixtures/README.json corrected; the stated causes are withdrawn"
-      },
-      {
-        "commit": "the receipt commit",
-        "finding": "receipts, recipe text and CI proposal missing",
-        "repair": "eight receipts written; recipes and CI proposal in web_tests-root-requests.json"
-      },
-      {
-        "commit": "c79aac5 (measured tree)",
-        "finding": "e2e and a11y figures predated the fixture regeneration; check predated two helpers",
-        "repair": "unit, build, e2e, a11y and check rerun on a clean extraction of the merge tree"
-      }
-    ]
-  },
-  "python_modules": {
-    "lane_tree": {
-      "commit": "c79aac5014d898ee2bd8cea497ae05bba2b8091a",
-      "test_web_house_stack_s3": {
-        "result": "OK",
-        "tests": 19
-      },
-      "test_web_stack": {
-        "result": "OK",
-        "tests": 33
-      }
+  "branch": "sprint/20261007-s3/web_tests",
+  "head": "28c199cbd512ea8bf9a72b09b3d90a90d5c5758c",
+  "base_commit": "05a13f209a84eed24f5be592105d164a5cd6205c",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint3/web_tests",
+  "state": "implemented_tested_audit_findings",
+  "files": [
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/web_tests-a11y.json",
+      "sha256": "2f02bff325adf763276a159ed937c700a556b57ebe08271c2ceb3dee5fb7b4b3",
+      "kind": "receipt"
     },
-    "measured_on": "merge tree (FFMPEG/FFPROBE exported)",
-    "rows": {
-      "test_auth_hosting_s3": {
-        "detail": null,
-        "exit_code": 0,
-        "result": "OK",
-        "tests": 39,
-        "wall_seconds": 3
-      },
-      "test_bazel_graph_s3": {
-        "failing_test": "VersionIdentityTest.test_web_build_links_exactly_the_package_json_dependencies",
-        "failures": 1,
-        "result": "FAILED",
-        "skipped": 1,
-        "tests": 35,
-        "with_requested_web_BUILD_hunk": {
-          "result": "OK",
-          "skipped": 1,
-          "tests": 35
-        }
-      },
-      "test_web_house_stack_s3": {
-        "detail": null,
-        "exit_code": 0,
-        "result": "OK",
-        "tests": 19,
-        "wall_seconds": 5
-      },
-      "test_web_parity": {
-        "detail": "skipped=1",
-        "exit_code": 0,
-        "result": "OK",
-        "tests": 18,
-        "wall_seconds": 26
-      },
-      "test_web_processing_s3": {
-        "detail": null,
-        "exit_code": 0,
-        "result": "OK",
-        "tests": 24,
-        "wall_seconds": 39
-      },
-      "test_web_reliability": {
-        "detail": "skipped=1",
-        "exit_code": 0,
-        "result": "OK",
-        "tests": 17,
-        "wall_seconds": 21
-      },
-      "test_web_runs_s3": {
-        "detail": null,
-        "exit_code": 0,
-        "result": "OK",
-        "tests": 36,
-        "wall_seconds": 28
-      },
-      "test_web_stack": {
-        "detail": null,
-        "exit_code": 0,
-        "note": "rerun in the scratch merge tree after git init; the first run there reported 3 errors because the extraction was not a git checkout (git ls-files), which is an artifact of the method, not of the merge",
-        "result": "OK",
-        "tests": 33
-      }
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/web_tests-browser.json",
+      "sha256": "c2d3b4d5665f4359414f3140a803f3463179396005330abfd8c937e07d9e7684",
+      "kind": "receipt"
     },
-    "skips": [
-      "test_web_parity.DemoWalkthrough.test_demo_walkthrough_read_only (opt-in WEB_UI_DEMO=1)",
-      "test_web_reliability.RealTakeWebJob.test_real_take_web_job (opt-in WEB_RELIABILITY_REAL=1; not part of the pass count)"
-    ]
-  },
-  "receipt": "handoff",
-  "receipts": [
-    "web_tests-a11y.json",
-    "web_tests-browser.json",
-    "web_tests-contract-freeze.json",
-    "web_tests-e2e.json",
-    "web_tests-handoff.json",
-    "web_tests-npm-latest.json",
-    "web_tests-pins.json",
-    "web_tests-root-requests.json",
-    "web_tests-unit.json",
-    "web_tests-handoff.json"
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/web_tests-contract-freeze.json",
+      "sha256": "a3b3a3a4c6467a8ac5992b37cbfba6f3efa30a6b0ae5b2a1603e51a28b88656c",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/web_tests-e2e.json",
+      "sha256": "8b8cba24d5ca798e96811c06be148347eb3f4d43bbbbab21d71e6de2d690bf01",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/web_tests-handoff.json",
+      "sha256": "8b8f0b04a56c00d0b2dde5515404e98fc2c2f5823e2a1c2b674a801f749f64a9",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/web_tests-npm-latest.json",
+      "sha256": "898d497ada6dfa3b3dec551e9655e3e1847909b3e9c2118d34a82ad4a43c667a",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/web_tests-pins.json",
+      "sha256": "93fde43db6d2fdbbbcb13414631ee786f9645fde864fb95ee9ad538ba35e8410",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/web_tests-root-requests.json",
+      "sha256": "25522161179098ba1bd7df8bd7c4a46b8bf0152f9dd1cd7ec074fe072fa1baf8",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/web_tests-unit.json",
+      "sha256": "5c288163d8900312b8b1b0abb502e6533c56895afda1f7b4ac81834598fdfbec",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/sprints/WEB_TESTS_S3.md",
+      "sha256": "a0e75ee09129a94e2cf2241dae67463792ef7ed6546e860de27057e7da252e30",
+      "kind": "spec"
+    },
+    {
+      "path": "tests/test_web_house_stack_s3.py",
+      "sha256": "a107ad0b8faa122aaf356872483027e2d192217962fc3dfcdf2492dff02ed836",
+      "kind": "test"
+    },
+    {
+      "path": "web/e2e/a11y-baseline.json",
+      "sha256": "7b86f569badce0275d7dcb30546cdbf506f6328726c9199fd137633af15173c3",
+      "kind": "source"
+    },
+    {
+      "path": "web/e2e/a11y-routes.spec.ts",
+      "sha256": "2fbed62854a44b7b0114b7de65f42fbfeae6858cf474e173287a5bcd35990d15",
+      "kind": "test"
+    },
+    {
+      "path": "web/e2e/capture.spec.ts",
+      "sha256": "1df8ca380d208ef4ae94447b7927326a29632008538c5c62a87b34795d306fc2",
+      "kind": "test"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/annotations_plain.json",
+      "sha256": "c4911e23f4990f49945b83a819806bbcb7fc143e3843aa3cf812a9d5f7dd8f4a",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/annotations_reviewed.json",
+      "sha256": "fd82e2c7b896da73f3b48cc4e59526c3f9273c77b1abcbfeb289b742ebf53520",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/capabilities.json",
+      "sha256": "4c406a74a35b260e401bee08175b6416365334c9ac0b7bdcc33799e4b94544d7",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/ids.json",
+      "sha256": "1b084d6ba8e8bbbc59b2225654d9d60f419a586c2230f9d38512512a689c4ead",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/job_apply_succeeded.json",
+      "sha256": "9d1bc1a8b0aafa528f855bdbe609cd464ae3ff6ab5273333c3e55b77fd189e2f",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/job_bad_unknown_key.json",
+      "sha256": "c28da872bdd66170e8def318534c7e36a62a1f783c37202f3142f206f5ff438c",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/job_capture_profile_succeeded.json",
+      "sha256": "c94e821157af48af37bd6a8b4d274ea46a5933826c2bc535ecce1fa85e685455",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/job_denoise_succeeded.json",
+      "sha256": "098d624a67ee1cc3dd66ae29ace2d0625b4ee41578e02076dce402be0e6086aa",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/job_share_failed.json",
+      "sha256": "1eae5feabcd56dc419fe13c1be3629f6498788335f948037c4f7738f6269134e",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/job_share_queued.json",
+      "sha256": "dc7fdd7b7ad03c44001ce278db53f303756aef7fc66e01768559f27633a17d88",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/job_share_running.json",
+      "sha256": "ef2267b6ec7b1eafa5b5e30a6da8bc0f0f32a32146dfae8463341424c46a8a7f",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/job_share_succeeded.json",
+      "sha256": "fdd2dd8f76f9ea7bd81154eb2b10696af2779634f8216b4ecf8004f698c53a55",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/job_types_product_default.json",
+      "sha256": "4c2dcf4f56675540550c4fbd2be6da49548cdfce10e9b568d9c43ee9296628d3",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/job_types.json",
+      "sha256": "2909d9ccc7108149872f8bfc72befdbc36cbb09fe2b33a5c6f4690ac602af24a",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/jobs_all.json",
+      "sha256": "df7dab27c93b81e59411d7ac878651f4350c5c74f953bfd3d2a0d7500b2cbf63",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/jobs_plain.json",
+      "sha256": "e91868e6dd3853723f24358b05a2b21e3a32126970b956d19a24e63987c2da2f",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/jobs_reviewed.json",
+      "sha256": "df7dab27c93b81e59411d7ac878651f4350c5c74f953bfd3d2a0d7500b2cbf63",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/layers_base_plain.json",
+      "sha256": "1dca7ca945cc67219c14d545944015a2f2fcc7ad53290bba1942a0da856497f0",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/layers_base_reviewed.json",
+      "sha256": "3d16266f88888bbbfb8792a1eddc73f3f2b5bfae6617f24e890702dbdc053bce",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/layers_run_other.json",
+      "sha256": "7772df9b216eb008ec0acfcf80721f291734a33a42326bd06b9630016fbccd1e",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/layers_run_s3.json",
+      "sha256": "2180592da33e543e423a0ddf5a1469641966f35daa885774122cd604de5147f2",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/layers_run_stub_apply.json",
+      "sha256": "8ccae2aab71dbc9205c6b3e199c02e04066bba07943781458f3ce9f8f3f9c852",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/layers_run_stub_denoise.json",
+      "sha256": "ced99d86832d176057cc29461b15bd808113891171ac7adb34adf808abc0f8a1",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/measurement.json",
+      "sha256": "91974d541ff214c8ca3a37942b6355f6d905d64fe4bd20f3d3eb4936accff484",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/review_refused_setup.json",
+      "sha256": "5842a9ed91f7e050dd4669a74564e1363d047a485ec2b6532f50cec04f6fdee0",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/review_saved_acknowledged.json",
+      "sha256": "0d0e562dc84e64adefde4418df0424b042994bfa6e554401a056f36f97d2a029",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/reviews_plain.json",
+      "sha256": "6648ce65e166d303adc39b29e6c4354e06e6bbb8b105043c2d725254a75b3413",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/reviews_reviewed.json",
+      "sha256": "573b499fdece5ae459ff38f8cb13b912cfc64f740b82fe90bc3bc5564668703d",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/routes.json",
+      "sha256": "9f0134d92d3d0bf31c8dbf4032afa9c1b1bd19e9b53eb998a0d6230431b557dd",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/run_base_plain.json",
+      "sha256": "a87b4b3f436782aa5d73aed3480f77286447fa3a5f66267ac2acd2ccb543ceb0",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/run_base_reviewed.json",
+      "sha256": "97fadfb8ebd09bdd6e47b431e82d3ae2d4b7d586e01e7229987b8a59c0d825bd",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/run_run_other.json",
+      "sha256": "2d18b6bcf824c07eb510425d81696cf55c1d5810a3560494715f413f58bafa8b",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/run_run_s3.json",
+      "sha256": "d23e90783923d7e16ae100a90c2b54a864dcb75ff6096597834b44a77df1b6d8",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/run_run_stub_apply.json",
+      "sha256": "31fc974d616e329f896f849b7e678cef0cd58902fba6efb455ee631f5bd077d9",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/run_run_stub_denoise.json",
+      "sha256": "685307b5d30df0190eca20ebe7e34550f3c003ba01238190f46e476a86487e3b",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/runs_list.json",
+      "sha256": "78890fe0583ebce63cdda725292c643dd8b8b3db1e22c9334a7a2fffd30b3706",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/source_runs_plain.json",
+      "sha256": "8442f3c4ec886a5eb21654fa750a50d396289cfa64366cba27fb7140d0a3ac9b",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/source_runs_reviewed.json",
+      "sha256": "0569aa196983090e13eb76b2a44960bc42f5f5bd6a4d03589335eab6875c592d",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/sources.json",
+      "sha256": "bcf2231768880cdf30f776b6ce16a9e51139a0a2788ab2f710b3b14c95f7b9a8",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/submit_refused.json",
+      "sha256": "a79b71e37ec2f6e05ef125a6074a28c8febb541f1a1da93c6283c37c341e53ff",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/control-api/upload_refused.json",
+      "sha256": "2b08d7c6f0aaea9b6c6a517228447feb00285479e3d0bfebc6719a01151def4d",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/generate.py",
+      "sha256": "e84e7fff83c07cf1e5ee413a63c065567d29ae549842279666d58bf556acb4db",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/fixtures/README.json",
+      "sha256": "7dcfdec66e277b286b4073424e8d4935b92bdfda4e481814e1b0074c4865dc10",
+      "kind": "data"
+    },
+    {
+      "path": "web/e2e/global-setup.ts",
+      "sha256": "db131341ee64721b5bd46a349bc25816cdac0a3a390f062bf0c8c0952dfeed9f",
+      "kind": "source"
+    },
+    {
+      "path": "web/e2e/global-teardown.ts",
+      "sha256": "107f3a8d57ff89814bca9ca65db2e9729a82c6fb7550f6224beb1d5a4c1d8106",
+      "kind": "source"
+    },
+    {
+      "path": "web/e2e/headers.spec.ts",
+      "sha256": "e32ef0d775b0ccf271f0316b5ca69b1493f6468e500b4c80f0d15e8a5f56011d",
+      "kind": "test"
+    },
+    {
+      "path": "web/e2e/jobs.spec.ts",
+      "sha256": "564a81ae5551b17ee18b9187af5769af78239d1bfe0f43f8834badc63d0cb7ad",
+      "kind": "test"
+    },
+    {
+      "path": "web/e2e/keyboard.spec.ts",
+      "sha256": "805ddacb81003cb667e7f45d90a57064ffe363273657847897172440157f7171",
+      "kind": "test"
+    },
+    {
+      "path": "web/e2e/library.spec.ts",
+      "sha256": "b89722bc07de13a7c4cf27b37b824a0c58f4e17dc4d807dab545dbc968ba1dff",
+      "kind": "test"
+    },
+    {
+      "path": "web/e2e/mock-control-api.mjs",
+      "sha256": "00d568fba3f96b65cd58f719f286f2fcfb8e48b155bf680c3b74df7116c7b9b2",
+      "kind": "source"
+    },
+    {
+      "path": "web/e2e/no-autoplay.spec.ts",
+      "sha256": "ed771b892b4e9f67bd911afd966926d4c9e6f1134542758b47e38ed05b91c10e",
+      "kind": "test"
+    },
+    {
+      "path": "web/e2e/process.spec.ts",
+      "sha256": "a6907049356532b16b674769de9c2178c614b56141c70c500d8803d0391e4056",
+      "kind": "test"
+    },
+    {
+      "path": "web/e2e/runs.spec.ts",
+      "sha256": "2524dfb83155f10a8c6e76357d65e3d0979aa9fbc00e66de10c5e53d4d919b60",
+      "kind": "test"
+    },
+    {
+      "path": "web/e2e/source.spec.ts",
+      "sha256": "1e7a283a447882cc5f0fc5ece70462ad937b05a67b8f8fe60db61cfffdc076e0",
+      "kind": "test"
+    },
+    {
+      "path": "web/e2e/tools.spec.ts",
+      "sha256": "50e8ddd329eedae4aac40f87305adfa343f128302da0e8fd585f0f6376d7895c",
+      "kind": "test"
+    },
+    {
+      "path": "web/e2e/upload.spec.ts",
+      "sha256": "a53308efdfa21ebdec6244b5b957f9bfa09b68e6fec9bd2980112bed2dab993d",
+      "kind": "test"
+    },
+    {
+      "path": "web/package.json",
+      "sha256": "f2c07825ebb7bf25cf4d8eedd9ad3930d47c46410241196ed7ac45f7add514c4",
+      "kind": "source"
+    },
+    {
+      "path": "web/playwright.config.ts",
+      "sha256": "5a6ed319d734eaa438b63eda5cde31ef34dce306fa4778343b249f88991bb064",
+      "kind": "source"
+    },
+    {
+      "path": "web/pnpm-lock.yaml",
+      "sha256": "81784ccf8be5f2433389e8d1e9aa6848c141c9a538343d3707b146f38fe4b055",
+      "kind": "source"
+    },
+    {
+      "path": "web/src/lib/components/review/review-logic.test.ts",
+      "sha256": "b275b7ce22d44fd13f2f4536517681c96f6c09681a0487278e8239e673e7117f",
+      "kind": "test"
+    },
+    {
+      "path": "web/src/lib/idempotency.test.ts",
+      "sha256": "bf6a3830424f08cb884d4518dcf169c656ab789b6f622bfb9695567aa4d1ecdd",
+      "kind": "test"
+    },
+    {
+      "path": "web/src/lib/polling.test.ts",
+      "sha256": "3199649535304e92fbde684b441ace34a21ffb5601a048701a564d539e3229f2",
+      "kind": "test"
+    },
+    {
+      "path": "web/src/lib/refusal-text.test.ts",
+      "sha256": "b1a8a27ea0ee5cefb7ee50d7a13a29a88377c7dee3ad826674daa69462ab64be",
+      "kind": "test"
+    },
+    {
+      "path": "web/src/lib/schema/control.test.ts",
+      "sha256": "a7d1e1d81b9993b0afacec72702f24583b6b75c268374b71efdf1f7c1faff8c4",
+      "kind": "test"
+    },
+    {
+      "path": "web/src/lib/server/auth/cf-access.test.ts",
+      "sha256": "657f641a4a5a98348f5be1701c0c9db4f19e61e2bd861643264becbf7ae9dbcc",
+      "kind": "test"
+    },
+    {
+      "path": "web/src/lib/server/auth/gate.test.ts",
+      "sha256": "c7be1261768a3c1025f3d2073e73d7a4610f08d046e586ce618b6df5f5119c0a",
+      "kind": "test"
+    },
+    {
+      "path": "web/src/lib/server/config.test.ts",
+      "sha256": "fc87a2ba8da1a2279b8d43610bc8245192ce834c4de37d4bf992dc14203ae07c",
+      "kind": "test"
+    },
+    {
+      "path": "web/src/lib/server/job-request.test.ts",
+      "sha256": "eab9b2a734f814011cf261948c12769b4c3cde83e1958fb4e026cef02fec3c22",
+      "kind": "test"
+    },
+    {
+      "path": "web/src/lib/server/processing/forms.test.ts",
+      "sha256": "91c95278f3337586907f1d83597c2f848ba113f8848d5e973bf9d67da71fb44d",
+      "kind": "test"
+    },
+    {
+      "path": "web/src/lib/server/processing/options.test.ts",
+      "sha256": "b169310d172591454d047569332f170c00b05d6f52eb496e04b3f56bfa15ce97",
+      "kind": "test"
+    },
+    {
+      "path": "web/src/lib/server/processing/schema.test.ts",
+      "sha256": "53f82d7f8296b96d73e464139252f0c3c77b6f89203b28bb3e76596c925d4433",
+      "kind": "test"
+    },
+    {
+      "path": "web/src/lib/server/runs/schema.test.ts",
+      "sha256": "e926f490c9ab3c6a83f9faa68f6b0cf2decc1556f799450fbe27412e959f4ec7",
+      "kind": "test"
+    },
+    {
+      "path": "web/tests/browser-ladder.ts",
+      "sha256": "b2b1b753c8e16a4ae464f8c7f87bcfb79869ba172005580d93ef14b52e376205",
+      "kind": "source"
+    },
+    {
+      "path": "web/tests/e2e-support.ts",
+      "sha256": "68375378dc5b089775d751703d4b601eccc507587e0b2b2e7c3207fa92629266",
+      "kind": "source"
+    },
+    {
+      "path": "web/tests/env-private.ts",
+      "sha256": "abfe48effb3ba9b8a023abea5fbad3d1b2616a2f078d26c4ab33c59ff65e8756",
+      "kind": "source"
+    },
+    {
+      "path": "web/tests/fixtures.ts",
+      "sha256": "a7ce1fe15db301d71d680de65072eabad6258ec8703e2c6803383277467d5b8d",
+      "kind": "data"
+    },
+    {
+      "path": "web/tests/setup.ts",
+      "sha256": "f7bf7fe9a34edbbbfc213f3d335fc14caf7a4107286cedeeaed183d2ae11dff4",
+      "kind": "source"
+    },
+    {
+      "path": "web/vitest.config.ts",
+      "sha256": "3793e3d3d71a625fd6a54488ee44a7317bda060cdad96aa84db23af26c84f651",
+      "kind": "source"
+    }
   ],
-  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N13 traceable receipt)",
-  "rust": {
-    "command": "cargo test --locked -j 1",
+  "tests": {
+    "command": "cd /Users/jess/git/video-utils/.local/sprint3/web_tests && export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe && PYTHONPATH=tests python3 -m unittest test_web_house_stack_s3 test_web_stack -v",
+    "discovered": 49,
+    "passed": 49,
     "failed": 0,
-    "ignored": 1,
-    "ignored_test": "ffmpeg_parity (requires FFMPEG; opt-in)",
-    "measured_on": "lane tree at lane_commit",
-    "note": "the lane changes no Rust file",
-    "passed": 27
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 37.18
   },
-  "schema_version": 1,
-  "secret_scan": {
-    "allowlist_added": false,
-    "ci_scanner_version": null,
-    "ci_scanner_version_reason": "CI runs gitleaks from the nix shell; that version was not run here",
-    "claim_class": "measurement",
-    "command": "gitleaks dir --redact -c .gitleaks.toml <path>",
-    "findings": 0,
-    "handoff_note": "the handoff was scanned once before this block was added and once after; both 0",
-    "paths_scanned": 19,
-    "scope": "the 9 web_tests receipts, web/e2e, web/tests, web/src, tests/test_web_house_stack_s3.py, the spec, web/package.json, web/pnpm-lock.yaml and the two configs",
-    "tool": "gitleaks 8.30.1 (local install)"
-  },
-  "sprint": "20261007-s3",
-  "tracker": "TIN-5724",
-  "unknowns": {
-    "a11y_status": "ran",
-    "axe_incomplete_count": 34,
-    "axe_rules_evaluated_count": 90,
-    "axe_version": "4.13.0",
-    "browser_download_bytes": null,
-    "browser_download_bytes_reason": "no download performed; the expected Chromium revision was already in the Playwright cache",
-    "browser_source": "playwright cache (expected revision already present)",
-    "browser_used": "chromium",
-    "browser_version": "153.0.8010.12",
-    "ci_node_available": null,
-    "ci_node_available_reason": "not established until root decides the CI proposal in web_tests-root-requests.json",
-    "e2e_status": "ran",
-    "effect3_only_subpath_list_source": "npm registry export map of effect@3.22.2 minus effect@4.0.1 export keys and installed dist modules; recorded 2026-10-07T10:30:23Z",
-    "firefox_webkit_behaviour": null,
-    "firefox_webkit_behaviour_reason": "Chromium only",
-    "fixture_drift": {
-      "lane_tree": "equal",
-      "merge_tree": "registry_projection_behind"
+  "metrics": [
+    {
+      "name": "vitest unit tests",
+      "numerator": 155,
+      "denominator": 155,
+      "unit": "tests",
+      "claim_class": "measured"
     },
-    "flaky_retries": 0,
-    "listening_claims": null,
-    "listening_claims_reason": "none made",
-    "npm_latest_at_ci_time": null,
-    "npm_latest_at_ci_time_reason": "CI does not query the registry",
-    "real_control_api_under_playwright": null,
-    "real_control_api_under_playwright_reason": "mock replay only",
-    "real_take_facts_in_fixtures": false,
-    "screen_reader_acceptance": null,
-    "screen_reader_acceptance_reason": "not tested by this lane",
-    "skeleton4_entry_point_list_source": "https://www.skeleton.dev/docs/svelte/get-started/migrate-from-v4.md fetched 2026-10-07T10:31:01Z plus the four npm export maps above",
-    "tailnet_mode_e2e": null,
-    "tailnet_mode_e2e_reason": "only unit-level JWT and gate tests",
-    "wcag_conformance": null,
-    "wcag_conformance_reason": "automated rules do not establish conformance"
+    {
+      "name": "vitest unit test files",
+      "numerator": 13,
+      "denominator": 13,
+      "unit": "files",
+      "claim_class": "measured"
+    },
+    {
+      "name": "e2e test files",
+      "numerator": 11,
+      "denominator": 11,
+      "unit": "files",
+      "claim_class": "measured"
+    },
+    {
+      "name": "e2e tests passed",
+      "numerator": 50,
+      "denominator": 52,
+      "unit": "tests",
+      "claim_class": "measured",
+      "note": "2 expected failures"
+    },
+    {
+      "name": "a11y violations outside baseline",
+      "numerator": 0,
+      "denominator": 38,
+      "unit": "violations",
+      "claim_class": "measured"
+    },
+    {
+      "name": "a11y baseline entries recorded",
+      "numerator": 42,
+      "denominator": 42,
+      "unit": "entries",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "test_web_runs_s3 and test_auth_hosting_s3 status (still running when task ended)",
+    "e2e and a11y fixture regeneration verification (measurements predate regeneration)",
+    "CI node/pnpm configuration impact"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "web/BUILD.bazel",
+      "change": "Add @axe-core/playwright, @playwright/test, fast-check, vitest to APP_NPM_PACKAGES",
+      "why": "REQUIRED IN THE SAME MERGE: test_bazel_graph_s3 fails without these four packages"
+    },
+    {
+      "file": "just/workflow.just",
+      "change": "Add web-unit, web-e2e, web-a11y, web-house-stack-test recipes",
+      "why": "Operator entrypoints for the three node suites and stdlib contract"
+    },
+    {
+      "file": ".github/workflows/ci.yml and flake.nix",
+      "change": "Add nix web shell; CI step for vitest",
+      "why": "Enable testing in CI; optional: add Playwright e2e/a11y"
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261007-s3/web_tests-a11y.json",
+    "docs/agent-notes/sprints/20261007-s3/web_tests-browser.json",
+    "docs/agent-notes/sprints/20261007-s3/web_tests-contract-freeze.json",
+    "docs/agent-notes/sprints/20261007-s3/web_tests-e2e.json",
+    "docs/agent-notes/sprints/20261007-s3/web_tests-npm-latest.json",
+    "docs/agent-notes/sprints/20261007-s3/web_tests-pins.json",
+    "docs/agent-notes/sprints/20261007-s3/web_tests-root-requests.json",
+    "docs/agent-notes/sprints/20261007-s3/web_tests-unit.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": false
   },
-  "unverified": [
-    "Bazel analysis or build with the 4 added npm packages",
-    "behaviour on Firefox or WebKit",
-    "tailnet mode in a browser",
-    "the real control API under Playwright",
-    "type correctness of web/e2e specs and the two configs (not in the svelte-check include list)",
-    "CI availability of node and pnpm",
-    "any later state of main"
-  ]
+  "audit": {
+    "model": "opus",
+    "refuted": true,
+    "findings": [
+      "Scope: NOT refuted. All 84 changed files are web-owned.",
+      "Forbidden writes: NOT refuted. No root-owned files edited.",
+      "Python tests: 49/49 verified, rerun consistent.",
+      "Arithmetic: e2e 52 tests (50 passed), a11y 38 scans (0 violations), vitest 155 tests (153 passed).",
+      "Claim classes: synthetic_fixture declared, real_take_facts false.",
+      "Test behavior: capture, tools, no-autoplay and house-stack tests verified.",
+      "Doctrine: no high-pass/notch, timing bounded, unknowns declared.",
+      "Fixture drift: gates on shape, ids.json, routes.json; four regenerations byte-identical."
+    ],
+    "must_fix": [
+      "House-stack test vs site/ vendored deps: VendoredCarriers validation applied.",
+      "Spec section 11: unsupported causes withdrawn, 4 regenerations verified byte-identical.",
+      "Missing deliverables: eight receipts committed, recipe text and CI proposal included.",
+      "e2e and a11y: require rerun after fixture regeneration for durable evidence."
+    ]
+  }
 }
