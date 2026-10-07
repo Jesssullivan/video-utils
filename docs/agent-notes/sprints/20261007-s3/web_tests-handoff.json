@@ -1,0 +1,271 @@
+{
+  "basis": {
+    "date_utc": "2026-10-07",
+    "lane_branch": "sprint/20261007-s3/web_tests",
+    "lane_commit": "c79aac5014d898ee2bd8cea497ae05bba2b8091a",
+    "main_commit": "f2281b62520cecfefe221501340f83004e390e5e",
+    "measured_on": "merge tree of main and the lane branch, extracted to a scratch directory outside the repository (git merge-tree, textually clean); dependencies installed there with pnpm install --frozen-lockfile --offline",
+    "merge_tree": "7943df57b743d44d441217078a4bd45d511a2bf2",
+    "not_a_merge": "the lane did not merge, push or touch main; if main moves again these figures describe main_commit only",
+    "receipt_commit_note": "these receipts are added by the commit after lane_commit; that commit changes only docs/agent-notes/sprints/20261007-s3/web_tests-*.json",
+    "supersedes": "the Phase 2 figures measured before the fixtures were regenerated; none of them is used here",
+    "web_source_identity": "git diff of web/src between the merge base 05a13f2 and main is empty; main differs from the merge base under web/ only in BUILD.bazel and pnpm-workspace.yaml"
+  },
+  "claim_class": "summary",
+  "contract": "docs/spec/sprints/WEB_TESTS_S3.md (frozen at 665810f; section 11 appended)",
+  "doctrine": {
+    "controls_checked": 726,
+    "high_pass_low_cut_or_notch_control_offered": false,
+    "listening_claims": null,
+    "note_correctness_or_missed_note_verdicts": null,
+    "real_take_read": false
+  },
+  "inferred": [
+    "the merged app equals the app the lane tested: web/src is identical between the merge base and main"
+  ],
+  "lane": "web_tests",
+  "measured": [
+    "every count in web_tests-unit.json, web_tests-e2e.json and web_tests-a11y.json (synthetic fixtures, one host, one Chromium build)",
+    "fixture regeneration: 4 of 4 runs byte-identical on the lane tree",
+    "npm latest re-check at the time recorded in web_tests-pins.json"
+  ],
+  "merge_coupling": {
+    "owner": "root",
+    "rule": "land the web/BUILD.bazel hunk of web_tests-root-requests.json (bazel_app_npm_packages) in the same merge; otherwise test_bazel_graph_s3 fails on main"
+  },
+  "metrics": {
+    "W1": "met 4/4; lockfile single-version 3/3",
+    "W10": "met 2/2; 0 job submissions",
+    "W11": "met 42/42",
+    "W12": "met 16/16 routes; 0 play calls, 0 unpaused",
+    "W13": "met: skip link 1, primary nav 5/5, review bindings 12/12, traps 0/16 routes",
+    "W14": "met 38/38 scans",
+    "W15": "42 violations (34 serious, 4 critical, 4 moderate), 0 outside the baseline of 42; target 0 not reached",
+    "W16": "34 incomplete results (130 nodes) reported",
+    "W17": "not met: 1 unexpected page error in 1 of 52 e2e scenarios (inside the expected-failure test of capture_interval_number_binding); 0 in 38 a11y scenarios",
+    "W18": "6/6 modules pass on the merge tree; skips are the 2 opt-in cases listed; the skip set at the baseline commit was not re-measured",
+    "W19": "met 2/2 (check: 1370 files, 0 errors, 0 warnings; build exit 0)",
+    "W2": "met; 5 Skeleton rules and 3 Effect rules asserted, not_asserted 0",
+    "W20": "see secret_scan; 0 host paths in lane files (LaneStatics)",
+    "W21": "met (web_tests-root-requests.json)",
+    "W3": "met 4/4",
+    "W4": "met with 2 declared expected failures: 13/13 files, 155 tests = 153 passed + 2 expected failures, 0 failed, 0 skipped",
+    "W5": "met 7/7 README cases; 41 e2e fixture files strict JSON",
+    "W6": "met 15/15",
+    "W7": "49/49 table codes non-fallback; 2 of 12 referenced codes unmapped in both tables (reported)",
+    "W8": "not met as frozen: 10/11 spec files all-pass; capture.spec.ts has 2 expected failures for source defects; 52 tests = 50 passed + 2 expected failures, 0 unexpected, 0 skipped, 0 flaky",
+    "W9": "met: 4 page loads, 0 non-GET requests, 0 review records"
+  },
+  "no_adoption": {
+    "anchor": false,
+    "default_detector": false,
+    "master": false,
+    "profile": false
+  },
+  "phase4_repair": {
+    "audited_commit": "cb9ed3e393108c809bbf8d768b4c4dca07dbbc93",
+    "found_during_repair": [
+      {
+        "commit": "c99c8b2",
+        "finding": "main moved to f2281b6; FixtureDrift failed on the merge tree (new model registry row changed the strict shape of capabilities.json)",
+        "repair": "registry-projection rule (spec 11.2 item 16)"
+      },
+      {
+        "commit": "c79aac5",
+        "finding": "pnpm run test:unit failed 13 of 13 files on a clean extraction (generated tsconfig absent)",
+        "repair": "test:unit runs svelte-kit sync first (spec 11.2 item 17)"
+      },
+      {
+        "commit": null,
+        "finding": "test_bazel_graph_s3 fails 1 of 35 on main + lane (APP_NPM_PACKAGES)",
+        "repair": "not repairable by the lane: web/BUILD.bazel is root-owned; exact hunk requested"
+      }
+    ],
+    "items": [
+      {
+        "commit": "07b1bfc",
+        "finding": "SiteObeysSameRule failed on main + lane (file:vendor specs in site/package.json)",
+        "repair": "provenance-bound vendored carriers accepted for site/ only; VendoredCarriers exercises the branch on synthetic packages (2 accepted, 17 refused cases); module passes on the merge tree"
+      },
+      {
+        "commit": "07b1bfc",
+        "finding": "spec section 11 cited missing receipts and two unsupported causes",
+        "repair": "items 12-14 and web/e2e/fixtures/README.json corrected; the stated causes are withdrawn"
+      },
+      {
+        "commit": "the receipt commit",
+        "finding": "receipts, recipe text and CI proposal missing",
+        "repair": "eight receipts written; recipes and CI proposal in web_tests-root-requests.json"
+      },
+      {
+        "commit": "c79aac5 (measured tree)",
+        "finding": "e2e and a11y figures predated the fixture regeneration; check predated two helpers",
+        "repair": "unit, build, e2e, a11y and check rerun on a clean extraction of the merge tree"
+      }
+    ]
+  },
+  "python_modules": {
+    "lane_tree": {
+      "commit": "c79aac5014d898ee2bd8cea497ae05bba2b8091a",
+      "test_web_house_stack_s3": {
+        "result": "OK",
+        "tests": 19
+      },
+      "test_web_stack": {
+        "result": "OK",
+        "tests": 33
+      }
+    },
+    "measured_on": "merge tree (FFMPEG/FFPROBE exported)",
+    "rows": {
+      "test_auth_hosting_s3": {
+        "detail": null,
+        "exit_code": 0,
+        "result": "OK",
+        "tests": 39,
+        "wall_seconds": 3
+      },
+      "test_bazel_graph_s3": {
+        "failing_test": "VersionIdentityTest.test_web_build_links_exactly_the_package_json_dependencies",
+        "failures": 1,
+        "result": "FAILED",
+        "skipped": 1,
+        "tests": 35,
+        "with_requested_web_BUILD_hunk": {
+          "result": "OK",
+          "skipped": 1,
+          "tests": 35
+        }
+      },
+      "test_web_house_stack_s3": {
+        "detail": null,
+        "exit_code": 0,
+        "result": "OK",
+        "tests": 19,
+        "wall_seconds": 5
+      },
+      "test_web_parity": {
+        "detail": "skipped=1",
+        "exit_code": 0,
+        "result": "OK",
+        "tests": 18,
+        "wall_seconds": 26
+      },
+      "test_web_processing_s3": {
+        "detail": null,
+        "exit_code": 0,
+        "result": "OK",
+        "tests": 24,
+        "wall_seconds": 39
+      },
+      "test_web_reliability": {
+        "detail": "skipped=1",
+        "exit_code": 0,
+        "result": "OK",
+        "tests": 17,
+        "wall_seconds": 21
+      },
+      "test_web_runs_s3": {
+        "detail": null,
+        "exit_code": 0,
+        "result": "OK",
+        "tests": 36,
+        "wall_seconds": 28
+      },
+      "test_web_stack": {
+        "detail": null,
+        "exit_code": 0,
+        "note": "rerun in the scratch merge tree after git init; the first run there reported 3 errors because the extraction was not a git checkout (git ls-files), which is an artifact of the method, not of the merge",
+        "result": "OK",
+        "tests": 33
+      }
+    },
+    "skips": [
+      "test_web_parity.DemoWalkthrough.test_demo_walkthrough_read_only (opt-in WEB_UI_DEMO=1)",
+      "test_web_reliability.RealTakeWebJob.test_real_take_web_job (opt-in WEB_RELIABILITY_REAL=1; not part of the pass count)"
+    ]
+  },
+  "receipt": "handoff",
+  "receipts": [
+    "web_tests-a11y.json",
+    "web_tests-browser.json",
+    "web_tests-contract-freeze.json",
+    "web_tests-e2e.json",
+    "web_tests-handoff.json",
+    "web_tests-npm-latest.json",
+    "web_tests-pins.json",
+    "web_tests-root-requests.json",
+    "web_tests-unit.json",
+    "web_tests-handoff.json"
+  ],
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N13 traceable receipt)",
+  "rust": {
+    "command": "cargo test --locked -j 1",
+    "failed": 0,
+    "ignored": 1,
+    "ignored_test": "ffmpeg_parity (requires FFMPEG; opt-in)",
+    "measured_on": "lane tree at lane_commit",
+    "note": "the lane changes no Rust file",
+    "passed": 27
+  },
+  "schema_version": 1,
+  "secret_scan": {
+    "allowlist_added": false,
+    "ci_scanner_version": null,
+    "ci_scanner_version_reason": "CI runs gitleaks from the nix shell; that version was not run here",
+    "claim_class": "measurement",
+    "command": "gitleaks dir --redact -c .gitleaks.toml <path>",
+    "findings": 0,
+    "handoff_note": "the handoff was scanned once before this block was added and once after; both 0",
+    "paths_scanned": 19,
+    "scope": "the 9 web_tests receipts, web/e2e, web/tests, web/src, tests/test_web_house_stack_s3.py, the spec, web/package.json, web/pnpm-lock.yaml and the two configs",
+    "tool": "gitleaks 8.30.1 (local install)"
+  },
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5724",
+  "unknowns": {
+    "a11y_status": "ran",
+    "axe_incomplete_count": 34,
+    "axe_rules_evaluated_count": 90,
+    "axe_version": "4.13.0",
+    "browser_download_bytes": null,
+    "browser_download_bytes_reason": "no download performed; the expected Chromium revision was already in the Playwright cache",
+    "browser_source": "playwright cache (expected revision already present)",
+    "browser_used": "chromium",
+    "browser_version": "153.0.8010.12",
+    "ci_node_available": null,
+    "ci_node_available_reason": "not established until root decides the CI proposal in web_tests-root-requests.json",
+    "e2e_status": "ran",
+    "effect3_only_subpath_list_source": "npm registry export map of effect@3.22.2 minus effect@4.0.1 export keys and installed dist modules; recorded 2026-10-07T10:30:23Z",
+    "firefox_webkit_behaviour": null,
+    "firefox_webkit_behaviour_reason": "Chromium only",
+    "fixture_drift": {
+      "lane_tree": "equal",
+      "merge_tree": "registry_projection_behind"
+    },
+    "flaky_retries": 0,
+    "listening_claims": null,
+    "listening_claims_reason": "none made",
+    "npm_latest_at_ci_time": null,
+    "npm_latest_at_ci_time_reason": "CI does not query the registry",
+    "real_control_api_under_playwright": null,
+    "real_control_api_under_playwright_reason": "mock replay only",
+    "real_take_facts_in_fixtures": false,
+    "screen_reader_acceptance": null,
+    "screen_reader_acceptance_reason": "not tested by this lane",
+    "skeleton4_entry_point_list_source": "https://www.skeleton.dev/docs/svelte/get-started/migrate-from-v4.md fetched 2026-10-07T10:31:01Z plus the four npm export maps above",
+    "tailnet_mode_e2e": null,
+    "tailnet_mode_e2e_reason": "only unit-level JWT and gate tests",
+    "wcag_conformance": null,
+    "wcag_conformance_reason": "automated rules do not establish conformance"
+  },
+  "unverified": [
+    "Bazel analysis or build with the 4 added npm packages",
+    "behaviour on Firefox or WebKit",
+    "tailnet mode in a browser",
+    "the real control API under Playwright",
+    "type correctness of web/e2e specs and the two configs (not in the svelte-check include list)",
+    "CI availability of node and pnpm",
+    "any later state of main"
+  ]
+}

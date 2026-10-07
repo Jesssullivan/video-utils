@@ -1,0 +1,349 @@
+{
+  "basis": {
+    "date_utc": "2026-10-07",
+    "lane_branch": "sprint/20261007-s3/web_tests",
+    "lane_commit": "c79aac5014d898ee2bd8cea497ae05bba2b8091a",
+    "main_commit": "f2281b62520cecfefe221501340f83004e390e5e",
+    "measured_on": "merge tree of main and the lane branch, extracted to a scratch directory outside the repository (git merge-tree, textually clean); dependencies installed there with pnpm install --frozen-lockfile --offline",
+    "merge_tree": "7943df57b743d44d441217078a4bd45d511a2bf2",
+    "not_a_merge": "the lane did not merge, push or touch main; if main moves again these figures describe main_commit only",
+    "receipt_commit_note": "these receipts are added by the commit after lane_commit; that commit changes only docs/agent-notes/sprints/20261007-s3/web_tests-*.json",
+    "supersedes": "the Phase 2 figures measured before the fixtures were regenerated; none of them is used here",
+    "web_source_identity": "git diff of web/src between the merge base 05a13f2 and main is empty; main differs from the merge base under web/ only in BUILD.bazel and pnpm-workspace.yaml"
+  },
+  "claim_class": "behaviour",
+  "command": "pnpm run build && pnpm run test:e2e (playwright test --project=e2e)",
+  "e2e_status": "ran",
+  "exit_code": 0,
+  "expected_failures": [
+    {
+      "spec": "web/e2e/capture.spec.ts",
+      "title": "typing an interval inside the first five seconds shows the setup warning at once, without a page error"
+    },
+    {
+      "spec": "web/e2e/capture.spec.ts",
+      "title": "after a form action the chosen baseline run is still selected, so the operator can continue"
+    }
+  ],
+  "expected_failures_note": "Playwright counts a test.fail test that fails as expected; these 2 document source defects and turn red when the source is fixed. They are not passes of the behaviour they describe.",
+  "fixture_regeneration": {
+    "across_ffmpeg_builds": null,
+    "across_ffmpeg_builds_reason": "one build was used",
+    "claim_class": "measurement",
+    "lane_tree": {
+      "ffmpeg_builds": 1,
+      "files_per_run": 41,
+      "hosts": 1,
+      "runs": 4,
+      "runs_byte_identical_to_committed": 4
+    },
+    "merge_tree": {
+      "basis": "file set, ids.json, routes.json, and keys + JSON types of every file; registry projections: every committed row shape still served",
+      "exact_equal_files": 9,
+      "files": 41,
+      "registry_projection_rows_no_longer_served": [],
+      "registry_projections": [
+        "capabilities.json"
+      ],
+      "registry_projections_behind_the_registry": [
+        "capabilities.json"
+      ],
+      "shape_differs": [],
+      "status": "registry_projection_behind"
+    },
+    "merge_tree_note": "main added one model registry row and admitted apply_capture_profile after the fixtures were generated; counter values shift in 32 files and capabilities.json is behind the registry. The browser suite replays the older snapshot; nothing here is a result for the newer registry.",
+    "run_to_run_variation_on_record": false
+  },
+  "fixtures": {
+    "claim_class": "synthetic_fixture",
+    "directory": "web/e2e/fixtures/control-api",
+    "files": 41,
+    "generated_at": "the lane tree (registries as of merge base 05a13f2)",
+    "git_tree": "67b5c18dee1c3b9eb1e5a97662f7bfe7814e564f",
+    "routes": 39
+  },
+  "lane": "web_tests",
+  "low_register": {
+    "claim": "fixture content only; no listening or low-register preservation claim",
+    "mock_media": "32.70 Hz sine WAV synthesized by the mock"
+  },
+  "other_measurements": {
+    "closed_schema_violation": {
+      "partial_data_rendered": false,
+      "rendered": "control_api_decode_error"
+    },
+    "cross_origin_guard": {
+      "mutation_routes": 6,
+      "refused_403": 30,
+      "same_origin_reaches_upstream": 1
+    },
+    "deliver_import_unverified": {
+      "import_unverified": 1,
+      "marker_files": 2
+    },
+    "host_guard": {
+      "non_loopback_hosts": 5,
+      "requests_refused_421": 15,
+      "upstream_requests": 0
+    },
+    "no_high_pass_low_cut_notch_control": {
+      "controls_checked": 726,
+      "matches": 0
+    },
+    "no_token_in_responses": {
+      "forbidden_strings": 8,
+      "hits": 0,
+      "responses_scanned": 32
+    },
+    "review_labels": {
+      "detector_items": 1,
+      "shapes": {
+        "detector": "dotted",
+        "user": "solid"
+      },
+      "user_reported_items": 1
+    },
+    "setup_interval_refused": {
+      "acknowledgements_added_by_page": 0,
+      "refused_without_acknowledgement": 1,
+      "review_records": 0
+    },
+    "setup_interval_saved": {
+      "review_records": 1,
+      "saved_after_explicit_acknowledgement": 1
+    },
+    "upload_type_refused": {
+      "stored_bytes": 0,
+      "upload_requests": 0
+    },
+    "uploads_disabled": {
+      "received_bytes": 1036,
+      "stored_bytes": 0,
+      "upload_requests": 1
+    }
+  },
+  "playwright_duration_ms": 102442,
+  "receipt": "e2e",
+  "retries": 0,
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N13 traceable receipt)",
+  "schema_version": 1,
+  "spec_files": {
+    "all_tests_passed": 10,
+    "denominator": 11,
+    "executed": 11,
+    "rows": {
+      "web/e2e/capture.spec.ts": {
+        "expected_failures": 2,
+        "passed": 5,
+        "tests": 7,
+        "unexpected": 0
+      },
+      "web/e2e/headers.spec.ts": {
+        "expected_failures": 0,
+        "passed": 5,
+        "tests": 5,
+        "unexpected": 0
+      },
+      "web/e2e/jobs.spec.ts": {
+        "expected_failures": 0,
+        "passed": 8,
+        "tests": 8,
+        "unexpected": 0
+      },
+      "web/e2e/keyboard.spec.ts": {
+        "expected_failures": 0,
+        "passed": 5,
+        "tests": 5,
+        "unexpected": 0
+      },
+      "web/e2e/library.spec.ts": {
+        "expected_failures": 0,
+        "passed": 2,
+        "tests": 2,
+        "unexpected": 0
+      },
+      "web/e2e/no-autoplay.spec.ts": {
+        "expected_failures": 0,
+        "passed": 2,
+        "tests": 2,
+        "unexpected": 0
+      },
+      "web/e2e/process.spec.ts": {
+        "expected_failures": 0,
+        "passed": 5,
+        "tests": 5,
+        "unexpected": 0
+      },
+      "web/e2e/runs.spec.ts": {
+        "expected_failures": 0,
+        "passed": 9,
+        "tests": 9,
+        "unexpected": 0
+      },
+      "web/e2e/source.spec.ts": {
+        "expected_failures": 0,
+        "passed": 4,
+        "tests": 4,
+        "unexpected": 0
+      },
+      "web/e2e/tools.spec.ts": {
+        "expected_failures": 0,
+        "passed": 2,
+        "tests": 2,
+        "unexpected": 0
+      },
+      "web/e2e/upload.spec.ts": {
+        "expected_failures": 0,
+        "passed": 3,
+        "tests": 3,
+        "unexpected": 0
+      }
+    }
+  },
+  "sprint": "20261007-s3",
+  "started_at_utc": "2026-10-07T11:05:59.905Z",
+  "tests": {
+    "expected_failures": 2,
+    "flaky": 0,
+    "passed": 50,
+    "skipped": 0,
+    "tests": 52,
+    "unexpected": 0
+  },
+  "tracker": "TIN-5724",
+  "typecheck_coverage": {
+    "web_e2e_specs_and_configs": null,
+    "web_e2e_specs_and_configs_reason": "web/e2e/*.ts, playwright.config.ts and vitest.config.ts are outside the svelte-check include list; they are transpiled by Playwright and vitest without a type check",
+    "web_tests_helpers": "included by svelte-check (tests/**)"
+  },
+  "unknowns": {
+    "a11y_status": "ran",
+    "axe_incomplete_count": 34,
+    "axe_rules_evaluated_count": 90,
+    "axe_version": "4.13.0",
+    "browser_download_bytes": null,
+    "browser_download_bytes_reason": "no download performed; the expected Chromium revision was already in the Playwright cache",
+    "browser_source": "playwright cache (expected revision already present)",
+    "browser_used": "chromium",
+    "browser_version": "153.0.8010.12",
+    "ci_node_available": null,
+    "ci_node_available_reason": "not established until root decides the CI proposal in web_tests-root-requests.json",
+    "e2e_status": "ran",
+    "effect3_only_subpath_list_source": "npm registry export map of effect@3.22.2 minus effect@4.0.1 export keys and installed dist modules; recorded 2026-10-07T10:30:23Z",
+    "firefox_webkit_behaviour": null,
+    "firefox_webkit_behaviour_reason": "Chromium only",
+    "fixture_drift": {
+      "lane_tree": "equal",
+      "merge_tree": "registry_projection_behind"
+    },
+    "flaky_retries": 0,
+    "listening_claims": null,
+    "listening_claims_reason": "none made",
+    "npm_latest_at_ci_time": null,
+    "npm_latest_at_ci_time_reason": "CI does not query the registry",
+    "real_control_api_under_playwright": null,
+    "real_control_api_under_playwright_reason": "mock replay only",
+    "real_take_facts_in_fixtures": false,
+    "screen_reader_acceptance": null,
+    "screen_reader_acceptance_reason": "not tested by this lane",
+    "skeleton4_entry_point_list_source": "https://www.skeleton.dev/docs/svelte/get-started/migrate-from-v4.md fetched 2026-10-07T10:31:01Z plus the four npm export maps above",
+    "tailnet_mode_e2e": null,
+    "tailnet_mode_e2e_reason": "only unit-level JWT and gate tests",
+    "wcag_conformance": null,
+    "wcag_conformance_reason": "automated rules do not establish conformance"
+  },
+  "w10": {
+    "enabled": {
+      "admission_basis": "test seam catalogue (job_types.json)",
+      "fuller_enabled": true,
+      "job_submissions": 0
+    },
+    "product_default_catalogue": {
+      "fuller_enabled": false,
+      "pending_tools": [
+        "apply_capture_profile"
+      ]
+    },
+    "refused": {
+      "activation_attempts": "pointer x3, keyboard Space/Enter, implicit submission",
+      "fuller_enabled": false,
+      "job_submissions": 0,
+      "refusal_code": "capture_interval_required"
+    },
+    "states": 2,
+    "status": "met"
+  },
+  "w11": {
+    "data_tool_count": 42,
+    "denominator": 42,
+    "fixture_tool_count": 42,
+    "note": "the fixture is the registry projection at generation time (lane tree); the registry names are unchanged on main",
+    "rendered": 42,
+    "status": "met"
+  },
+  "w12": {
+    "media_elements": 15,
+    "play_calls": 0,
+    "routes": 16,
+    "routes_with_media": 6,
+    "status": "met",
+    "unpaused": 0
+  },
+  "w13": {
+    "no_keyboard_trap": {
+      "routes": 16,
+      "traps": 0
+    },
+    "primary_nav": {
+      "links": 5,
+      "reachable_in_dom_order": 5,
+      "visible_focus_indicator": 5
+    },
+    "review_bindings": {
+      "acted": 12,
+      "bindings": 12
+    },
+    "review_bindings_inert_without_workspace_focus": {
+      "key_presses": 48,
+      "state_changes": 0
+    },
+    "skip_link": {
+      "enter_moves_focus_to": "main",
+      "first_tab_focus": "Skip to content"
+    },
+    "status": "met"
+  },
+  "w17": {
+    "declared_expected_hits": {
+      "favicon_missing (source finding)": 2,
+      "known source defect capture_interval_number_binding (typing in the interval inputs throws)": 4,
+      "the browser logs the 404 document": 1,
+      "the browser logs the typed 403 refusal of POST /api/uploads": 2,
+      "the browser logs the typed 422 answer to the refused form post": 1,
+      "the job page polls the BFF, which answers the same typed 502 decode error": 0,
+      "the review player request is aborted by this test on purpose": 1
+    },
+    "reason": "the 1 unexpected page error is the trim-is-not-a-function error inside the expected-failure test for capture_interval_number_binding; the target of 0 is not reached while that source defect exists",
+    "scenarios": 52,
+    "scenarios_with_unexpected_page_errors": 1,
+    "status": "not_met",
+    "unexpected_total": 1,
+    "where": [
+      "typing an interval inside the first five seconds shows the setup warning at once, without a page error"
+    ]
+  },
+  "w8": {
+    "denominator": 11,
+    "reason": "capture.spec.ts holds 2 expected failures for known source defects; 0 unexpected results in 11/11 files",
+    "status": "not_met_as_frozen",
+    "value": 10
+  },
+  "w9": {
+    "non_get_requests": 0,
+    "page_loads": 4,
+    "review_records": 0,
+    "status": "met"
+  },
+  "wall_seconds": 105,
+  "workers": 1
+}

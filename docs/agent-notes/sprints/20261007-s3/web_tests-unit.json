@@ -1,0 +1,190 @@
+{
+  "basis": {
+    "date_utc": "2026-10-07",
+    "lane_branch": "sprint/20261007-s3/web_tests",
+    "lane_commit": "c79aac5014d898ee2bd8cea497ae05bba2b8091a",
+    "main_commit": "f2281b62520cecfefe221501340f83004e390e5e",
+    "measured_on": "merge tree of main and the lane branch, extracted to a scratch directory outside the repository (git merge-tree, textually clean); dependencies installed there with pnpm install --frozen-lockfile --offline",
+    "merge_tree": "7943df57b743d44d441217078a4bd45d511a2bf2",
+    "not_a_merge": "the lane did not merge, push or touch main; if main moves again these figures describe main_commit only",
+    "receipt_commit_note": "these receipts are added by the commit after lane_commit; that commit changes only docs/agent-notes/sprints/20261007-s3/web_tests-*.json",
+    "supersedes": "the Phase 2 figures measured before the fixtures were regenerated; none of them is used here",
+    "web_source_identity": "git diff of web/src between the merge base 05a13f2 and main is empty; main differs from the merge base under web/ only in BUILD.bazel and pnpm-workspace.yaml"
+  },
+  "claim_class": "behaviour",
+  "clean_checkout_finding": "with the frozen script (vitest run) all 13 files failed to transform on a clean extraction because .svelte-kit/tsconfig.json did not exist; the script now syncs first (spec 11.2 item 17)",
+  "command": "pnpm run test:unit (svelte-kit sync && vitest run)",
+  "exit_code": 0,
+  "expected_failures": [
+    {
+      "code": "refusal_text_prototype_key",
+      "file": "web/src/lib/refusal-text.test.ts",
+      "meaning": "known source defect; the tests turn red when the source is fixed",
+      "tests": 2
+    }
+  ],
+  "fast_check": {
+    "runs_per_property": 200,
+    "seed": 20261007
+  },
+  "files": {
+    "denominator": 13,
+    "rows": [
+      {
+        "file": "web/src/lib/components/review/review-logic.test.ts",
+        "status": "passed",
+        "tests": 21
+      },
+      {
+        "file": "web/src/lib/idempotency.test.ts",
+        "status": "passed",
+        "tests": 6
+      },
+      {
+        "file": "web/src/lib/polling.test.ts",
+        "status": "passed",
+        "tests": 7
+      },
+      {
+        "file": "web/src/lib/refusal-text.test.ts",
+        "status": "passed",
+        "tests": 9
+      },
+      {
+        "file": "web/src/lib/schema/control.test.ts",
+        "status": "passed",
+        "tests": 18
+      },
+      {
+        "file": "web/src/lib/server/auth/cf-access.test.ts",
+        "status": "passed",
+        "tests": 17
+      },
+      {
+        "file": "web/src/lib/server/auth/gate.test.ts",
+        "status": "passed",
+        "tests": 16
+      },
+      {
+        "file": "web/src/lib/server/config.test.ts",
+        "status": "passed",
+        "tests": 6
+      },
+      {
+        "file": "web/src/lib/server/job-request.test.ts",
+        "status": "passed",
+        "tests": 8
+      },
+      {
+        "file": "web/src/lib/server/processing/forms.test.ts",
+        "status": "passed",
+        "tests": 16
+      },
+      {
+        "file": "web/src/lib/server/processing/options.test.ts",
+        "status": "passed",
+        "tests": 14
+      },
+      {
+        "file": "web/src/lib/server/processing/schema.test.ts",
+        "status": "passed",
+        "tests": 9
+      },
+      {
+        "file": "web/src/lib/server/runs/schema.test.ts",
+        "status": "passed",
+        "tests": 8
+      }
+    ],
+    "value": 13
+  },
+  "lane": "web_tests",
+  "receipt": "unit",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N13 traceable receipt)",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "started_at_utc": "2026-10-07T11:05:39Z",
+  "tests": {
+    "expected_failures": 2,
+    "failed": 0,
+    "note": "the vitest JSON report counts an it.fails test whose body fails as passed; the 2 expected failures are from the console summary",
+    "passed": 153,
+    "skipped": 0,
+    "todo": 0,
+    "total": 155
+  },
+  "tracker": "TIN-5724",
+  "unknowns": {
+    "a11y_status": "ran",
+    "axe_incomplete_count": 34,
+    "axe_rules_evaluated_count": 90,
+    "axe_version": "4.13.0",
+    "browser_download_bytes": null,
+    "browser_download_bytes_reason": "no download performed; the expected Chromium revision was already in the Playwright cache",
+    "browser_source": "playwright cache (expected revision already present)",
+    "browser_used": "chromium",
+    "browser_version": "153.0.8010.12",
+    "ci_node_available": null,
+    "ci_node_available_reason": "not established until root decides the CI proposal in web_tests-root-requests.json",
+    "e2e_status": "ran",
+    "effect3_only_subpath_list_source": "npm registry export map of effect@3.22.2 minus effect@4.0.1 export keys and installed dist modules; recorded 2026-10-07T10:30:23Z",
+    "firefox_webkit_behaviour": null,
+    "firefox_webkit_behaviour_reason": "Chromium only",
+    "fixture_drift": {
+      "lane_tree": "equal",
+      "merge_tree": "registry_projection_behind"
+    },
+    "flaky_retries": 0,
+    "listening_claims": null,
+    "listening_claims_reason": "none made",
+    "npm_latest_at_ci_time": null,
+    "npm_latest_at_ci_time_reason": "CI does not query the registry",
+    "real_control_api_under_playwright": null,
+    "real_control_api_under_playwright_reason": "mock replay only",
+    "real_take_facts_in_fixtures": false,
+    "screen_reader_acceptance": null,
+    "screen_reader_acceptance_reason": "not tested by this lane",
+    "skeleton4_entry_point_list_source": "https://www.skeleton.dev/docs/svelte/get-started/migrate-from-v4.md fetched 2026-10-07T10:31:01Z plus the four npm export maps above",
+    "tailnet_mode_e2e": null,
+    "tailnet_mode_e2e_reason": "only unit-level JWT and gate tests",
+    "wcag_conformance": null,
+    "wcag_conformance_reason": "automated rules do not establish conformance"
+  },
+  "vitest_version": "5.0.3",
+  "w4": {
+    "denominator": 13,
+    "expected_failures": 2,
+    "failed_tests": 0,
+    "skipped_tests": 0,
+    "status": "met_with_declared_expected_failures",
+    "value": 13
+  },
+  "w5": {
+    "basis": "the 7 per-case tests and the fixture-file test in control.test.ts passed",
+    "e2e_fixture_files_strict_json": 41,
+    "readme_cases": {
+      "accepted": 5,
+      "denominator": 7,
+      "refused": 2,
+      "value": 7
+    },
+    "status": "met"
+  },
+  "w6": {
+    "basis": "numbered cases 1-15 in cf-access.test.ts; the key is generated at run time",
+    "denominator": 15,
+    "status": "met",
+    "value": 15
+  },
+  "w7": {
+    "referenced_codes": 12,
+    "status": "met_for_table_codes; 2 referenced codes are unmapped in both tables and are reported to root",
+    "table_codes": 49,
+    "table_codes_non_fallback": 49,
+    "unmapped_in_both_tables": [
+      "shelf_not_exposed",
+      "unreviewed_trial"
+    ]
+  },
+  "wall_seconds": 8
+}

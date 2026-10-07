@@ -1,0 +1,141 @@
+{
+  "basis": {
+    "date_utc": "2026-10-07",
+    "lane_branch": "sprint/20261007-s3/web_tests",
+    "lane_commit": "c79aac5014d898ee2bd8cea497ae05bba2b8091a",
+    "main_commit": "f2281b62520cecfefe221501340f83004e390e5e",
+    "measured_on": "merge tree of main and the lane branch, extracted to a scratch directory outside the repository (git merge-tree, textually clean); dependencies installed there with pnpm install --frozen-lockfile --offline",
+    "merge_tree": "7943df57b743d44d441217078a4bd45d511a2bf2",
+    "not_a_merge": "the lane did not merge, push or touch main; if main moves again these figures describe main_commit only",
+    "receipt_commit_note": "these receipts are added by the commit after lane_commit; that commit changes only docs/agent-notes/sprints/20261007-s3/web_tests-*.json",
+    "supersedes": "the Phase 2 figures measured before the fixtures were regenerated; none of them is used here",
+    "web_source_identity": "git diff of web/src between the merge base 05a13f2 and main is empty; main differs from the merge base under web/ only in BUILD.bazel and pnpm-workspace.yaml"
+  },
+  "claim_class": "contract",
+  "lane": "web_tests",
+  "merge_coupling": {
+    "rule": "land the web/BUILD.bazel hunk in the same merge as this branch",
+    "without_it": "test_bazel_graph_s3 fails 1 of 35 on main"
+  },
+  "note": "The lane made none of these changes. Each is root's decision; diff and recipe texts are exact, source-fix texts are suggestions.",
+  "receipt": "root-requests",
+  "requests": [
+    {
+      "change": "--- a/web/BUILD.bazel\n+++ b/web/BUILD.bazel\n@@ -36,6 +36,8 @@\n \n # Exactly the dependencies and devDependencies of web/package.json.\n APP_NPM_PACKAGES = [\n+    \":node_modules/@axe-core/playwright\",\n+    \":node_modules/@playwright/test\",\n     \":node_modules/@skeletonlabs/skeleton\",\n     \":node_modules/@skeletonlabs/skeleton-svelte\",\n     \":node_modules/@sveltejs/adapter-node\",\n@@ -44,11 +46,13 @@\n     \":node_modules/@tailwindcss/vite\",\n     \":node_modules/@types/node\",\n     \":node_modules/effect\",\n+    \":node_modules/fast-check\",\n     \":node_modules/svelte\",\n     \":node_modules/svelte-check\",\n     \":node_modules/tailwindcss\",\n     \":node_modules/typescript\",\n     \":node_modules/vite\",\n+    \":node_modules/vitest\",\n ]\n \n filegroup(\n",
+      "evidence": {
+        "measured_on": "scratch copy of the merge tree with git init; no root-owned file was edited in the lane worktree",
+        "not_established": "no Bazel build or analysis was run with the 4 packages linked; whether the app_srcs globs should exclude web/e2e, web/tests and *.test.ts from the Bazel app build is root's call",
+        "with_hunk": "test_bazel_graph_s3: 35 run, 0 failures, 1 skip (shim marker case)",
+        "without_hunk": "test_bazel_graph_s3: 35 run, 1 failure"
+      },
+      "file": "web/BUILD.bazel",
+      "id": "bazel_app_npm_packages",
+      "priority": "required_in_the_same_merge",
+      "why": "tests/test_bazel_graph_s3.VersionIdentityTest.test_web_build_links_exactly_the_package_json_dependencies requires APP_NPM_PACKAGES to equal the dependencies and devDependencies of web/package.json; the lane adds 4 devDependencies, so main + lane fails that test (1 failure of 35) without this hunk."
+    },
+    {
+      "change": "# Web unit tests (vitest; pure modules, no browser, no control API)\nweb-unit:\n    cd web && pnpm install --frozen-lockfile --offline && pnpm run test:unit\n\n# Web end-to-end tests against the built app with the mocked control API (loopback, foreground, one worker)\nweb-e2e:\n    cd web && pnpm install --frozen-lockfile --offline && pnpm run build && pnpm run test:e2e\n\n# axe accessibility scans on every route (records violations; fails only on ones outside web/e2e/a11y-baseline.json)\nweb-a11y:\n    cd web && pnpm install --frozen-lockfile --offline && pnpm run build && pnpm run test:a11y\n\n# House-stack contract: latest Skeleton v5 and Effect pins (stdlib, no node)\nweb-house-stack-test:\n    PYTHONPATH=tests python3 -m unittest test_web_house_stack_s3 -v\n",
+      "evidence": {
+        "web-a11y": {
+          "exit_code": 0,
+          "wall_seconds": 60
+        },
+        "web-e2e": {
+          "exit_code": 0,
+          "wall_seconds": 105
+        },
+        "web-house-stack-test": {
+          "detail": null,
+          "exit_code": 0,
+          "result": "OK",
+          "tests": 19,
+          "wall_seconds": 5
+        },
+        "web-unit": {
+          "exit_code": 0,
+          "wall_seconds": 8
+        }
+      },
+      "file": "just/workflow.just",
+      "id": "just_recipes",
+      "priority": "requested",
+      "why": "operator entrypoints for the three node suites and the stdlib contract (spec 8.1). Each recipe body was run as written on a clean extraction of the merge tree: unit, e2e and a11y exit 0."
+    },
+    {
+      "change": "Option A (preferred, small): add a `web` dev shell to flake.nix (nodejs_22, pnpm) and a CI step `nix develop .#web --no-write-lock-file --command just web-unit`, using `pnpm install --frozen-lockfile` (online, first install in CI) against the committed lockfile. Unit tests only; no browser in CI. Option B (later): add web-e2e and web-a11y in CI with a nix-provided Chromium passed through PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH so no browser is downloaded at CI time.",
+      "evidence": {
+        "ci_node_available": null,
+        "option_b_nixpkgs_chromium_compatible_with_playwright_1_63_0": null,
+        "reason": "neither option was tried by the lane"
+      },
+      "file": ".github/workflows/ci.yml and flake.nix",
+      "id": "ci_proposal",
+      "priority": "decision",
+      "why": "the nix core shell has no nodejs or pnpm, so CI cannot run vitest or Playwright today. tests/test_web_house_stack_s3.py needs neither and is picked up by the existing unittest discovery."
+    },
+    {
+      "change": "line 23: `const overlap = $derived(start.trim() !== '' && overlapsSetup(Number(start)));` -> `const overlap = $derived(String(start ?? '').trim() !== '' && overlapsSetup(Number(start)));` (suggested; not applied or tested by the lane)",
+      "file": "web/src/routes/sources/[id=artifactid]/capture/+page.svelte",
+      "id": "capture_interval_number_binding",
+      "priority": "source_defect",
+      "why": "the interval inputs are number-bound, so after typing `start` is a number and `.trim` throws `trim is not a function`; the live setup warning never renders. 1 e2e expected failure; the same page error is declared as expected in the other capture tests that type an interval (4 hits in this run)."
+    },
+    {
+      "change": "keep the selected run across the measure and save actions (lines 74 and 119 post to `?/measure` and `?/save`, which replaces `?run=`): for example build the formaction with the current run id, or select the run from the echoed `run_id` form value in load. Design choice left to root; not applied or tested by the lane.",
+      "file": "web/src/routes/sources/[id=artifactid]/capture/+page.svelte and +page.server.ts",
+      "id": "capture_action_drops_run_selection",
+      "priority": "source_defect",
+      "why": "after either action no baseline run is selected, Measure and Save are disabled, and re-choosing the run discards the typed interval. 1 e2e expected failure."
+    },
+    {
+      "change": "`return TEXT[code] ?? FALLBACK` -> `return Object.hasOwn(TEXT, code) ? TEXT[code] : FALLBACK` in refusalText and processingText (suggested; not applied or tested by the lane)",
+      "file": "web/src/lib/refusal-text.ts and web/src/lib/components/processing/processing-text.ts",
+      "id": "refusal_text_prototype_key",
+      "priority": "source_defect",
+      "why": "a code naming an Object.prototype member (`constructor`, `__proto__`) returns that member instead of the fallback text. 2 unit expected failures."
+    },
+    {
+      "change": "add a favicon or an explicit empty icon link so the first load does not log a 404",
+      "file": "web/static/favicon (new) or web/src/app.html",
+      "id": "favicon_missing",
+      "priority": "source_defect",
+      "why": "the browser logs a 404 on first load; declared per test and counted (2 hits in the e2e run), never ignored."
+    },
+    {
+      "change": "add texts for `shelf_not_exposed` and `unreviewed_trial` (produced by web/src/lib/server/processing/options.ts) or confirm their inline messages are the intended only text",
+      "file": "web/src/lib/components/processing/processing-text.ts",
+      "id": "unmapped_refusal_codes",
+      "priority": "source_defect",
+      "why": "both codes are unmapped in both text tables (2 of 12 referenced codes); they carry an inline message today."
+    },
+    {
+      "change": "fix the 42 baseline entries listed with route, scheme, rule, impact, node count and selectors in web/e2e/a11y-baseline.json, then delete the fixed entries from that file: color-contrast (30 entries, 46 nodes, serious; includes `.preset-filled-primary-500`), link-in-text-block (4 entries, 8 nodes, serious; library page), label (4 entries, 4 nodes, critical; `input[type=\"file\"]` on /upload), heading-order (4 entries, 4 nodes, moderate; /runs/[id]/compare and /runs/[id]/review)",
+      "file": "web/src (routes and shared layout)",
+      "id": "axe_violations",
+      "priority": "source_defect",
+      "why": "recorded by the axe scans (38 scans, 2 schemes); the gate passes only because these are inside the baseline. Not a conformance statement either way."
+    },
+    {
+      "change": "FFMPEG=... FFPROBE=... python3 web/e2e/fixtures/generate.py, review the diff, then rerun web-e2e and web-a11y before committing",
+      "evidence": {
+        "e2e_after_regeneration": null,
+        "reason": "not run by the lane: the lane tree holds the older registries"
+      },
+      "file": "web/e2e/fixtures/control-api/*.json (lane-owned; regenerate on main after the merge)",
+      "id": "fixture_regeneration_after_registry_change",
+      "priority": "optional",
+      "why": "main added a model registry row and admitted apply_capture_profile after the fixtures were generated; on the merge tree 32 of 41 files differ by counter values and capabilities.json is behind the registry. The contract test passes without regeneration (registry_projection_behind)."
+    }
+  ],
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N13 traceable receipt)",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5724",
+  "w21": {
+    "ci_proposals": 1,
+    "recipes": 4,
+    "recipes_frozen_minimum": 3,
+    "source_fix_items": 6,
+    "status": "met"
+  }
+}
