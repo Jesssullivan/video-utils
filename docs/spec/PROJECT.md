@@ -307,3 +307,30 @@ S3 root_admission_g (2026-10-07, unpushed) raises it to **46 typed tools and 45 
   (`34247a4e…0f10`) were unchanged at release (see RELEASE.md).
 - Protected low-register intent still holds: no blanket high-pass, no mains
   notch, and no speech-denoiser default was introduced.
+
+## S3 status — October 7, 2026
+
+Sprint S3 (Linear parent TIN-5717; contract [20261007-S3](sprints/20261007-S3.md)) added
+application routing, private hosting and auth, a public site, the Bazel graph and model
+lanes. Then, on the operator's "dive in wide" prompt, it added lanes that unblock the
+week's open product claims. Status words follow the S2 section. Signed root merges are on
+`main` with hosted CI per merge (receipts `docs/agent-notes/sprints/20261007-s3/root-hosted-ci-*.json`).
+The registry has **46 typed tools and skills**, and the four tools admitted in S3 pass G are experimental
+([admission receipt](../agent-notes/sprints/20261007-s3/root_admission_g-receipt.json)).
+
+| Lane | Status | Remaining limits |
+| --- | --- | --- |
+| Routes (processing, review) | done locally | Four web job types admitted. Real-take web behaviour and listening are not established. |
+| Web tests and fixes (TIN-5724) | done | vitest, e2e and axe run in hosted CI (automated checks only; no manual or screen-reader audit). |
+| Auth and hosting (TIN-5720) | partial | The valid-token Access path is proven end to end on loopback JWKS (37/37 cases). Tailnet mode now gates static files too. Real Cloudflare JWKS, TLS and DNS are unknown. **Nothing is applied; applying needs an operator go.** |
+| Public site (TIN-5723) | partial | Browser smoke 25/25, axe 0 violations, 0 broken links, 0 privacy hits; builds under Bazel. **Not deployed; deploying needs an operator go.** |
+| Bazel graph (TIN-5722) | partial | All 102 Python modules, Rust, web and site are in the graph. The lane's full run was 94/104 targets passing, with named host-only failures. The hosted Bazel job is on a branch until proven. |
+| Second-take intake | done for synthetic fixtures | One command per take family with a required reviewed interval. The synthetic e2e completed 3 of 10 stages, 4 abstained, 2 failed and 1 was skipped. The operator's second take will be its first real run. |
+| Timing calibration (D3/D4) | done for synthetic fixtures | The sealed synthetic R2 met its bar (median 0.98 ms, sign correct 62/62). **Real-take rush/drag direction stays withheld until the operator records the calibration protocol.** |
+| Stems (htdemucs_6s) | contract only | Licence qualified as a private comparator. The tool refuses with `model_not_registered`, and nothing is downloaded. Outputs are always estimates from a mono mixture. |
+| Beat This | registered, not run | Hash-bound checkpoint. The Linux runtime is unqualified, and the honey CPU window is contested (TIN-5694). |
+| D6 report | partial | Quarto rendered. Annotations need the operator's labelling session (≥10 boundaries). |
+
+Operator-held: labelling session, second take (by 2026-10-09), listening verdict on
+`fuller-shelf` and the low-end feedback, the calibration recording, and the go for hosting/Access and
+for the site deploy. Final Cut/Resolve import stays unverified (applications absent).
