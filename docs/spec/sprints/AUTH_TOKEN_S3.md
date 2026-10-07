@@ -468,3 +468,122 @@ are untouched. The real take and the accepted FULLER run
 this lane. Nothing here makes a note-correctness or listening claim.
 Measurements (e2e-local), readings (source-reading) and non-claims stay
 separate in every receipt.
+
+## 12. Implementation record (Phase 2, 2026-10-07)
+
+Implementation commit `f4782d1e4148a4e2ffc1f706b23dea02304c1cea`. Receipt:
+`docs/agent-notes/sprints/20261007-s3/auth_token-implementation-receipt.json`. Final
+run stamp `20261007T153003Z-6500a5` (gitignored artifacts). Prerequisites were met:
+`pnpm install --frozen-lockfile --offline` reused 174 packages from the store and
+downloaded none, and `pnpm run build` succeeded. No `blocked: build_prerequisite`.
+
+### 12.1 Results (e2e-local unless marked)
+
+| Metric | Observed |
+| --- | --- |
+| Decision cases matching expected status, code and body | 37 / 37 (14 allow, 21 identity-deny, 2 host) |
+| Δfetch matching expectation (seam log; server count agrees whenever the listener is up) | 37 / 37 |
+| Distinct identity-deny bodies | 1 across 21 denies |
+| DoD groups covered | 11 / 11 |
+| Seam guard refusals (SG1..SG5: exit ≠ 0, never listened, stderr names the rule) | 5 / 5 |
+| JWKS attempts carrying `redirect: 'error'`, an AbortSignal, GET and `accept: application/json` | 13 / 13 |
+| Egress refused by the seam (non-loopback attempts) | 0 of 13 JWKS attempts; O1 process 0 |
+| SG6 sub-checks holding (source-check) | 8 / 8; 219 `web/` files scanned |
+| SH1 findings (source-check) | 0 over 8 owned files + 40 run artifact files; gitleaks clean |
+| Auth-source defects found / fixed with regression test (source-check) | 1 / 1 (D1, expected 0 at freeze) |
+| O1 static asset observation | `/favicon.svg` 200, `/_app/version.json` 200 (root `/` 403 in the same process) |
+| `test_auth_token_s3` / `test_auth_hosting_s3` / vitest auth / svelte-check | 14/14 / 39/39 / 34/34 / 0 errors |
+
+### 12.2 Defect D1 (fixed in `cf-access.js`)
+
+- **Found by:** E13. The built server process exited mid-request on a JWKS
+  response that declared `Content-Length: 65537`. Its stderr showed an uncaught
+  `AssertionError assert(!this.paused)` at `Parser.finish` in node's bundled
+  undici.
+- **Root cause:** two early exits left the response body unread and
+  uncancelled:
+  - `readCapped` returned `null` on a declared length above the cap;
+  - `refresh` threw on a non-OK status.
+
+  The paused undici parser then saw the peer close the socket, and the internal
+  assertion threw outside any promise chain.
+- **Measured before the fix** (standalone module, real loopback socket, 3 runs per
+  shape):
+
+  | Response | Crashes |
+  | --- | --- |
+  | Declared 65 537, status 200 | 3/3 |
+  | 65 537 body, status 503 | 3/3 |
+  | 1 000 000, status 200 | 0/3 |
+  | 200 000, status 503 | 0/3 |
+  | 1 000 000, status 503 | 0/3 |
+
+- **Measured after the fix:** 0/3 crashes on each shape tried, and the built
+  server reran clean.
+- **Fix:** `discardBody(response)` cancels the unread body on both early exits.
+  No validation rule, limit, timeout or cache rule changed.
+- **Regression tests:**
+  - `CfAccessRegressionTests.test_d1_unread_jwks_body_cannot_crash_process`
+    (node, module loaded directly, 2 shapes);
+  - `cf-access.test.ts` case 16 (3 shapes).
+
+  Both fail on the pre-fix source and pass after it.
+- **Severity (inference):**
+  - Hosted, only the Cloudflare JWKS response over TLS can trigger it.
+  - A client cannot choose that response. An unknown `kid` can prompt at most one
+    refetch per 30 s.
+  - The effect was termination of the whole BFF process, not an authentication
+    bypass.
+
+### 12.3 Deviations and additions (none relax a production check)
+
+1. Classes added beyond section 6:
+   - `CfAccessRegressionTests` (section 8 regression);
+   - `ReceiptTests` (receipt keeps the 7.1 fields and the denominators; skips until
+     the receipt exists);
+   - `SeamStaticTests.test_sg6b_seam_template_guards_present` (every refusal
+     precedes any patch).
+2. The seam is generated per server process: its own directory, nonce, clock
+   and logs. The JWKS port is baked in, so P_C reuses one port after `closed`.
+3. Seam details:
+   - It deletes the nonce variable from `process.env` after checking it.
+   - It records each JWKS attempt's `method`, `redirect`, signal presence and
+     `accept`, but never the URL query or any header value beyond `accept`.
+   - It refuses other egress by returning a rejected promise (fetch semantics)
+     with a `TypeError`.
+4. Section 5 base claims gave no email. Every token carries
+   `email: "Operator@EXAMPLE.org"`, except E02 (`stranger@example.org`), so each
+   deny is attributable to the claim under test.
+5. O1 runs in its own seam process with the JWKS listener answering 503. It
+   asserts 0 JWKS attempts and 0 refused egress, and controls with `/` (403).
+6. `cf-access.test.ts` changed only by the regression import and case 16.
+   svelte-check still reports 0 errors.
+
+### 12.4 Requests filed under section 9 (root decides; the lane made none of these changes)
+
+1. `just/workflow.just`, after the `auth-hosting-test` recipe:
+
+   ```
+   # S3 valid-token Access path end to end on the built server (loopback JWKS seam, virtual clock; no network)
+   auth-token-test:
+       PYTHONPATH=tests python3 -m unittest test_auth_token_s3 -v
+   ```
+
+2. O1 observed 200 for both client assets. Choose one:
+   - (a) a tailnet-mode `node:http` front in `web/serve.js` that runs
+     `gateRequest` before adapter-node's exported `handler`;
+   - (b) amend AUTH_HOSTING_S3 §4.5 to exempt `build/client` assets explicitly.
+
+   Severity is an inference: the assets carry no operator data, and the Access
+   edge and NetworkPolicy sit in front.
+
+### 12.5 Still not claimed
+
+These remain not exercised:
+
+- real Cloudflare JWKS, TLS, DNS and the 5 s fetch timeout;
+- real Access tokens and the tsidp claim shape;
+- the production image (whose `NODE_ENV=production` refuses the seam);
+- any deploy or served proof.
+
+Unknown fields are as listed in 7.1, with `static_asset_gate = {O1a: 200, O1b: 200}`.
