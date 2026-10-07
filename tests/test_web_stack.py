@@ -307,17 +307,19 @@ class WebStackStaticTests(unittest.TestCase):
         self.assertLess(serve.index("process.exit(REFUSAL_EXIT_CODE)"), serve.index("import('./build/index.js')"))
 
     def test_s8_prototype_routes_label_only(self) -> None:
-        """Rescoped (WEB_UI_S2 9.3): bound routes post only to /api/* BFF endpoints; client files never
-        name the control API URL, the token env or fetch('http://; remaining prototype routes keep the label."""
+        """Rescoped (WEB_UI_S2 9.3; ROUTES_REVIEW_S3 6.8): bound routes post only to /api/* BFF endpoints; client
+        files never name the control API URL, the token env or fetch('http://; the former prototype stubs
+        (/compare, /review, /download) are run pickers that redirect (303) to /runs/[id]/... with no form."""
         for slug in PROTOTYPE_ROUTES:
             route = WEB / "src" / "routes" / slug / "+page.svelte"
             with self.subTest(route=slug):
                 text = route.read_text()
-                self.assertIn("PrototypeNotice", text)
-                self.assertIn("Prototype", text)
+                loader = (route.parent / "+page.server.ts").read_text()
+                self.assertNotIn("PrototypeNotice", text + loader)
+                self.assertIn("redirect(303", loader)
+                self.assertIn("/runs/", text + loader)
                 self.assertNotIn("<form", text)
                 self.assertNotIn("<input", text)
-                self.assertFalse((route.parent / "+page.server.ts").exists())
                 self.assertFalse((route.parent / "+server.ts").exists())
         notice = (WEB / "src" / "lib" / "components" / "PrototypeNotice.svelte").read_text()
         self.assertIn("Not implemented in S2", notice)
