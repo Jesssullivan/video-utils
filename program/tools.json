@@ -2842,8 +2842,8 @@
     {
       "name": "phrase_timing",
       "title": "Per-phrase timing against the recorded click (experimental)",
-      "description": "Measure, per phrase span, signed offsets of broadband attack candidates from the nearest modelled in-recording click (fitted drift model, else constant grid) from an existing rhythm analysis.json and hash-bound arrangement markers or phrases.json review spans. Writes one fresh phrase-timing.json and abstains below 4 click-proximal onsets. Click identity unverified and capture latency uncalibrated; never a performance grade or missed-note verdict.",
-      "intent": "Show a musician whether each phrase tends ahead of or behind the recorded click, with abstention and uncertainty, without an intended-rhythm reference.",
+      "description": "Measure, per phrase span, signed onset offsets of broadband attack candidates from the nearest modelled in-recording click (fitted drift model, else constant grid) from an existing rhythm analysis.json and hash-bound arrangement markers or phrases.json review spans. Reports measured per-phrase median offset, IQR and click-proximal onset count, writes one fresh phrase-timing.json and abstains below 4 click-proximal onsets. Ahead/behind direction is reported only for generated known-offset fixtures or with an operator calibration, and is withheld on real takes. Click identity unverified and capture latency uncalibrated; never a performance grade or missed-note verdict.",
+      "intent": "Show a musician the measured signed onset offsets of each phrase against the recorded click (median, IQR, count), with abstention and uncertainty and without an intended-rhythm reference; whether a phrase is ahead of or behind the click is withheld on real takes until an operator calibration exists.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -2896,7 +2896,7 @@
         "Offsets use broadband attack candidates, which can include click energy, handling noise or several merged attacks; they are not note identities.",
         "The click reference is fitted to unverified periodic high-frequency transients; a guitar attack can displace or mask a click. Physical capture latency is uncalibrated and detector-delay compensation uses synthetic-probe medians.",
         "Phrase spans are review candidates or reference-conditioned alignments, not detected musical boundaries. Phrases with fewer than 4 click-proximal onsets, no click grid or spans outside the analysis abstain.",
-        "Ahead/behind tendency labels on real takes are descriptive and uncalibrated. No intended-rhythm reference is used: no performance grade, missed/extra note or mistake verdict. Inputs are read only; one fresh output child is written beneath artifacts/."
+        "Ahead/behind direction is reported only for generated known-offset fixtures (run_kind synthetic_fixture) or with an operator calibration, and no calibration input exists yet; on real takes direction is null with direction_status withheld_uncalibrated. No intended-rhythm reference is used: no performance grade, missed/extra note or mistake verdict. Inputs are read only; one fresh output child is written beneath artifacts/."
       ],
       "annotations": {
         "readOnlyHint": true,

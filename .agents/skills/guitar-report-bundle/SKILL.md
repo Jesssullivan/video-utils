@@ -5,7 +5,7 @@ description: Build and verify a metadata-only, hash-bound evidence bundle for on
 
 # Package a run's bound evidence for the optional Quarto report without copying media.
 
-**Hook:** MCP tool `report_bundle` (once admitted by root). Fallback: `just report-bundle "<run-dir>"`, then `just report-bundle-verify "<bundle-dir>"`.
+**Hook:** MCP tool `report_bundle` (admitted as tool 40). Fallback: `just report-bundle "<run-dir>"`, then `just report-bundle-verify "<bundle-dir>"`.
 
 **Capability:** Experimental. The plain `report.html` from `scripts/report.py` remains the primary report; the Quarto view is optional and separately verified.
 

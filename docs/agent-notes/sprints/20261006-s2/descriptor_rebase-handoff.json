@@ -1,0 +1,152 @@
+{
+  "lane": "descriptor_rebase",
+  "branch": "sprint/20261007-s2r/descriptor_rebase",
+  "head": "902bff7c7ed6aafaae730c9ba0f64a041539f6c5",
+  "base_commit": "7d0e11e3430bc19ff03b06bd94654dbfb3ee2a84",
+  "worktree": ".local/sprint2/descriptor_rebase",
+  "state": "implemented_tested_audit_findings",
+  "files": [
+    {
+      "path": ".agents/skills/guitar-phrase-timing/SKILL.md",
+      "sha256": "9018372df2f79c724699c97c3c409cd87ec8d9f700d3ea9fac3bdf6b2090bb2d",
+      "kind": "skill_draft"
+    },
+    {
+      "path": ".agents/skills/guitar-report-bundle/SKILL.md",
+      "sha256": "a8261d31be2fb328570c10e000beeff5fb84b5732215660e628420802319e483",
+      "kind": "skill_draft"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s2r/descriptor_rebase-receipt.json",
+      "sha256": "76d8d522cbdeff1e2e572f7eeccd003fb627e538906da1985ff57234a96b0a7a",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/spec/sprints/DESCRIPTOR_REBASE_S2R.md",
+      "sha256": "366d4a8a51e5c3febb24999b4ac52a460a7033914ecfc7887ef82ee7478b8e4c",
+      "kind": "spec"
+    },
+    {
+      "path": "program/tools.json",
+      "sha256": "392cc900ceeeaf3b2ff3f8973f0b1652627058c4abccf4e168e56d8e035094c5",
+      "kind": "data"
+    },
+    {
+      "path": "tests/test_s2_tool_admission.py",
+      "sha256": "ac5b528781b3009bf1f2888305407cd6eb7e1b1e99c59249b0f403fb0049967c",
+      "kind": "test"
+    }
+  ],
+  "tests": {
+    "command": "cd .local/sprint2/descriptor_rebase && export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe && PYTHONPATH=tests python3 -m unittest test_tools test_mcp test_tool_contracts test_sprint1_audit test_s1_tool_admission test_s2_tool_admission test_share_export_tool test_phrase_timing test_report_bundle -v",
+    "discovered": 180,
+    "passed": 170,
+    "failed": 1,
+    "errors": 5,
+    "skipped": 4,
+    "seconds": 496,
+    "commit": "902bff7c7ed6aafaae730c9ba0f64a041539f6c5",
+    "notes": "The runner reported 'Ran 180 tests in 493.763s' and 'FAILED (failures=1, errors=5, skipped=4)'. Wall time was 496 s. The passed count of 170 is derived from those numbers. Every failure is in test_tool_contracts. The failing test is test_real_benchmark_v2_hook_generates_bounded_synthetic_bank, where the MCP reply came back with isError=True. The errors are MCP replies with no 'result' (KeyError), in the real pitch, phrase and learned evaluator tests. These are end-to-end subprocess tests for benchmark and evaluator tools, which this lane's diff (program/tools.json and tests/test_s2_tool_admission.py) does not touch. The host was overloaded during the run: load average was 185 at 22:34. Running test_tool_contracts on its own gave more errors (about 12: capture_profile, editor_marker, marked_video and learned_evaluator), so the set of failing tests changed between runs. That points to worker timeouts caused by the load rather than lane defects."
+  },
+  "metrics": [
+    {
+      "name": "Freeze preservation",
+      "numerator": 8,
+      "denominator": 8,
+      "unit": "base hash prefixes unchanged",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Rebased freezes",
+      "numerator": 6,
+      "denominator": 6,
+      "unit": "new constants match registry",
+      "claim_class": "measured"
+    },
+    {
+      "name": "tools[37] invariance",
+      "numerator": 3,
+      "denominator": 3,
+      "unit": "anchors hold",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Wording compliance",
+      "numerator": 6,
+      "denominator": 6,
+      "unit": "required phrases present",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Wording forbidden tokens",
+      "numerator": 0,
+      "denominator": 4,
+      "unit": "forbidden tokens found",
+      "claim_class": "measured"
+    },
+    {
+      "name": "report_bundle skill sync",
+      "numerator": 2,
+      "denominator": 2,
+      "unit": "edited skills match MCP readback",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "real_take_direction",
+    "operator_calibration",
+    "operator_calibration_input_supported",
+    "capture_latency",
+    "click_identity",
+    "listening_acceptance",
+    "performance_grading",
+    "expected_rhythm_reference",
+    "media_or_numerics_run",
+    "full_suite",
+    "hosted_ci",
+    "root_merge",
+    "signature",
+    "linear_sync"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "docs/spec/sprints/S2_FOLLOWUPS.md",
+      "change": "Mark follow-up 7 (phrase_timing descriptor wording / tools[:38] freeze rebase) and follow-up 8 (report_bundle skill 'once admitted by root' wording and hash re-pin) as closed by lane descriptor_rebase commit 902bff7 under the 2026-10-07 operator rulings, citing docs/agent-notes/sprints/20261007-s2r/descriptor_rebase-receipt.json. Follow-up 3 (operator calibration input) stays open.",
+      "why": "The contract says the lane closes S2 follow-ups 7 and 8 once root merges it. This file sits outside the lane's owned paths."
+    },
+    {
+      "file": "docs/spec/PROJECT.md",
+      "change": "In the S2 status or follow-up section, record that the phrase_timing descriptor now says 'measured per-phrase median offset, IQR and click-proximal onset count; ahead/behind direction only for generated known-offset fixtures or with an operator calibration, withheld on real takes'. Also record that the tools[:38]/[:39] freezes were rebased and tools[:40] newly pinned (A da091862fd7d854e80a8950a0e9581cff07c481b1d25614a939666e4c215045d / B 5dc30b2f7f86a755083b8cf7783960ac563c4ecfb425b4f0d3d10af0acf30845) per the 2026-10-07 ruling, with follow-ups 7 and 8 closed.",
+      "why": "Keeps the operator-facing truth surface in step with the registry after the merge. PROJECT.md is root-owned."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261007-s2r/descriptor_rebase-receipt.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Scope holds. Command: git -C .../descriptor_rebase diff --name-only 7d0e11e...HEAD, where 7d0e11e is the merge-base. It lists 6 files, all owned: .agents/skills/guitar-phrase-timing/SKILL.md, .agents/skills/guitar-report-bundle/SKILL.md, docs/agent-notes/sprints/20261007-s2r/descriptor_rebase-receipt.json, docs/spec/sprints/DESCRIPTOR_REBASE_S2R.md, program/tools.json and tests/test_s2_tool_admission.py. Running git diff 7d0e11e -- scripts/ produces 0 lines, so scripts/tool_api.py, scripts/phrase_timing.py and just/workflow.just are untouched. The worktree is clean apart from ignored __pycache__.",
+      "(2) The audit brief contradicts itself on program/tools.json: item (1) lists it as owned and item (2) forbids writing to it. The frozen contract (DESCRIPTOR_REBASE_S2R.md, Owned files table) gives this lane tools[37] description/intent/limitations, and the operator ruling requires that edit. The diff stays inside those three strings (program/tools.json lines ~2845-2846 and limitations[3] at ~2899). I checked that the file round-trips as json.dumps(obj, indent=2)+'\\n': True. No artifacts/runs, Documents or Desktop writes, model downloads or daemons were found in the diff.",
+      "(6) I recomputed the hashes from git show <rev>:program/tools.json under both serializers. At base 7d0e11e and at HEAD, tools[:30] = 85fa376c/c13b2f89, [:32] = 932d3e26/358ce0ae, [:36] = 82bdb747/51dd154f and [:37] = 72ed9aad/71977d3c are identical, so 8/8 are unchanged. At base, [:38] = 4005da2b/f079cffc, [:39] = eada780f/aa60371a and [:40] = b77d5243/38dfb867. At HEAD, [:38] = 14eca3d3/3714eb7a, [:39] = 031cb17c/d87b5fb8 and [:40] = da091862/5dc30b2f. These match the test constants and the receipt. The tools[37] inputSchema hash is ec6401f8 and the non-text-field hash is 93ac74d4, and both are unchanged base to HEAD. shasum of guitar-report-bundle/SKILL.md = a8261d31..., which equals the re-pin. Lane test-count arithmetic: 180 - 1 - 5 - 4 = 170, which is correct.",
+      "(4) My test runs, with FFMPEG/FFPROBE as specified and PYTHONDONTWRITEBYTECODE=1. The 8 non-contract modules (test_s2_tool_admission, test_s1_tool_admission, test_sprint1_audit, test_mcp, test_tools, test_phrase_timing, test_share_export_tool, test_report_bundle) first gave 'Ran 115 tests in 249.4s FAILED (errors=5, skipped=2)'. All 5 errors were test_sprint1_audit node subprocess 5 s TimeoutExpired at load ~89-118. A rerun gave 'Ran 115 tests in 198.7s OK (skipped=2)'.",
+      "(4) test_tool_contracts alone, at load 132: 'Ran 65 tests in 447.5s FAILED (failures=2, errors=6, skipped=2)'. Five errors are the documented .local KeyError 'result' set (learned x3, phrase, pitch evaluator). The sixth is marked_video, where an ffmpeg remux hit a 20 s TimeoutExpired. captured_profile failed with 'worker deadline exceeded (5s)'. benchmark_v2 failed with isError=True. I reproduced the benchmark_v2 MCP call directly and the reply was 'worker deadline exceeded (90s); owned process group stopped' (worker_returncode -9). All of these are timeouts while the host was overloaded, not a descriptor or text regression. The benchmark worker does not depend on the phrase_timing description, intent or limitations, and the schema/argv are byte-identical.",
+      "(4) Tests do exercise the claims. tests/test_s2_tool_admission.py:116-124 asserts all 12 prefix hashes. test_descriptor_rebase_phrase_timing_only_text_changed asserts the schema and non-text hashes, limitations[0..2] equality and ASCII. test_descriptor_rebase_phrase_timing_argv_unchanged asserts exact worker_command argv and run_kind default/enum. Lines 741-742 assert the report_bundle hook line text and that 'once admitted by root' is absent.",
+      "Weak test, non-blocking: test_descriptor_rebase_phrase_timing_skill_consistency checks the skill for tokens ('withheld_uncalibrated', 'synthetic_known_offset_fixture', 'median', 'IQR') that were already in the skill before the lane, so it does not prove the Intent paragraph was realigned. Its forbidden-token list is 'tends/tendency/rushing/dragging', while the contract text says 'rush'/'drag'. That leaves 'rushes'/'drags'/'rush' uncaught.",
+      "Wording nuance, non-blocking: the description says direction is reported 'with an operator calibration' but does not say that no calibration input exists. That caveat appears only in limitations[3] and in intent ('until an operator calibration exists'). scripts/phrase_timing.py:45 has operator_calibration_input_supported False. A reader of the description alone could infer that the calibration path exists. The ruling text dictated this phrase.",
+      "Provenance: the cited authority file docs/agent-notes/2026-10-07-s2-operator-rulings.md is not in the lane tree. It was added on main at 95a012d, after merge-base 7d0e11e. The rows in main's copy (lines 11 and 14) do match the quoted rulings, and merging will not conflict because it is a single added file. The ruling row names only the 'first-38 freeze rebased'. The rebases of 39 and 40 follow mechanically and are disclosed.",
+      "(3)/(5) Doctrine holds. The new text makes no real-take ahead/behind, grade or missed-note claim. The worker field names cited in limitations[3] exist: direction null at scripts/phrase_timing.py:176 and withheld_uncalibrated at :39. The receipt carries the unknown/abstain fields: real_take_direction withheld_uncalibrated, operator_calibration null, capture_latency uncalibrated, click_identity unverified, listening_acceptance not_performed, expected_rhythm_reference null, full_suite not_run_by_lane. I found no default, profile or detector adoption and no high-pass/notch change. The timeout_seconds bounds are unchanged.",
+      "The commit message for 902bff7 has no AI Co-Authored-By line, which complies with the user's global instruction. The receipt's M6 'owned_modules_combined ... errors=5' run and the later 180-test run (failures=1, errors=5) disagree, and the lane disclosed both honestly."
+    ],
+    "must_fix": [
+      "Before an admin merge, root must rerun test_tool_contracts at HEAD 902bff7 under normal host load and get 0 failures and 0 errors apart from the five documented .local evaluator KeyErrors. Under the contract's own rule ('Any other error or failure blocks completion'), the lane has not shown a clean run. test_real_benchmark_v2_hook_generates_bounded_synthetic_bank failed in the lane run, in my full-module run and in my isolated rerun, each time with 'worker deadline exceeded (90s)' at load average 130-158. I attribute this to the environment, not to a lane code defect."
+    ]
+  },
+  "dropped_scope": []
+}
