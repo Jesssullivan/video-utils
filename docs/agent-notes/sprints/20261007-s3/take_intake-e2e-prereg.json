@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "receipt": "take_intake sealed end-to-end preregistration (TAKE_INTAKE_S3 section 11); written and committed before the run",
+  "lane": "take_intake",
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5186 (root writes Linear; lane never does)",
+  "authority": "Operator ruling 2026-10-07 second take; AGENTS.md; R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13",
+  "recorded_at": "2026-10-07",
+  "code_commit": "ee77962",
+  "take_intake_py_sha256": "0997082e3db2c789eeb99d786aa36bc5b98eb32e66a0eb8d1419b2b2444e1389",
+  "test_module_sha256": "e55bd6dcb9517ce154adb2dbf2edd89f716416446031d999c4a5dba25b06149b",
+  "fixture": {
+    "kind": "take",
+    "sha256": "34d53399af6642d1a8e2f166c2eec6def6f23b94686f5874c3ef8f506bf8b580",
+    "size_bytes": 856934,
+    "spec": {
+      "duration_seconds": 12.0,
+      "sample_rate": 44100,
+      "video": "480x320 testsrc2 24000/1001 fps H.264",
+      "noise": "lavfi anoisesrc pink amplitude 0.02 seed 5186 throughout (fan stand-in)",
+      "setup_window": {
+        "span_seconds": [
+          0.0,
+          5.0
+        ],
+        "thump_at_seconds": 1.5,
+        "thump_length_seconds": 0.3,
+        "thump_partials_hz": [
+          32.703,
+          65.406,
+          98.10900000000001,
+          130.812,
+          163.51500000000001,
+          196.21800000000002
+        ]
+      },
+      "noise_only_seconds": [
+        5.0,
+        7.0
+      ],
+      "click_grid": {
+        "start_seconds": 7.0,
+        "period_seconds": 0.674,
+        "count": 8,
+        "burst": "5 ms 2 kHz Hann, peak 0.5"
+      },
+      "phrases": {
+        "count": 2,
+        "attacks_per_phrase": 4,
+        "attack_spacing_seconds": 0.337,
+        "starts_seconds": [
+          7.0,
+          9.696
+        ],
+        "note": "C1-rooted harmonic stack 32.703 Hz, harmonics 1-8 (2-8 decaying faster), 0.3 s",
+        "interpretation": "contract '4-click riff phrases' read as 4 attacks per phrase at half-click spacing so two identical phrases and a click-only rest fit in 7.0-12.0 s"
+      },
+      "rest_seconds": [
+        11.0,
+        12.0
+      ]
+    },
+    "generated_once": true,
+    "origin": "synthetic_fixture_not_derived_from_a_real_take",
+    "v6_restricted": false,
+    "probe_declared": {
+      "container_duration_seconds": 12.012,
+      "video": "h264 480x320 24000/1001",
+      "audio": "aac 44100 Hz mono"
+    }
+  },
+  "arm": {
+    "single_arm": true,
+    "command": "take_intake.py run <FIXTURE> --capture-interval 5.2 6.8 --capture-review \"synthetic fixture: pink noise only by construction (seed 5186)\" --features base --origin synthetic_fixture",
+    "backend": "stdlib (run_demo default)",
+    "arrangement": null,
+    "bpm": null,
+    "isolation": "copied scripts/ profiles/ program/ into artifacts/s2/take_intake/e2e-<UTC>/root/; run there",
+    "bound_seconds": 1800,
+    "heavy_jobs_at_once": 1
+  },
+  "predictions": {
+    "stage_status": {
+      "demo": "completed",
+      "flags_triage": "completed",
+      "arrangement_reference": "abstained_no_reference",
+      "arrangement_markers": "abstained_no_reference",
+      "phrase_anchor": "abstained_no_reference",
+      "phrase_timing": "completed",
+      "marked_video": "completed",
+      "marked_compact": "abstained_arrangement_markers_required",
+      "share_export": "completed",
+      "packet": "completed"
+    },
+    "intake_status": "completed_with_abstentions",
+    "counts": {
+      "completed": 6,
+      "abstained": 4,
+      "failed": 0,
+      "planned": 10
+    },
+    "phrase_timing": "may abstain per phrase (fewer_than_4_click_proximal_onsets accepted); direction withheld_uncalibrated",
+    "source_unchanged": true,
+    "low_register_guard_violations": 0,
+    "v6_draft_violations": 0
+  },
+  "scoring": "per stage as_predicted / differs with the observed reason; no argument, threshold or fixture parameter changes after the first result; any repair is a new separately labelled run that keeps the first result",
+  "interpretation_boundary": "A synthetic fixture result says the orchestration, refusals, resume and packet work; it says nothing about restoration quality, detection accuracy or musical correctness on the real second take.",
+  "development_runs_before_sealing": {
+    "fixture": "tiny (3.0 s lavfi testsrc2 + pink noise seed 5186), a different fixture",
+    "runs": [
+      "dev smoke run (partial: flags_triage refused triage_window_basis_unavailable; marked_video found no callouts in picture coverage)",
+      "dev resume smokes: orchestrator SIGKILL with live run_demo child (refused prior_stage_worker_alive, then adopted the completed bound invocation); orchestrator plus child group SIGKILL (run_demo refused prior_worker_group_alive for its own export worker, then run_demo --resume skipped hash-verified media and reran the rest)"
+    ],
+    "note": "The sealed take fixture was not run before this receipt was committed."
+  }
+}

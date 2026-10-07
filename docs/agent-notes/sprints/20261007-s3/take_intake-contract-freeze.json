@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "lane": "take_intake",
+  "sprint": "20261007-s3",
+  "branch": "sprint/20261007-s3/take_intake",
+  "phase": "1_contract_freeze",
+  "frozen_at": "2026-10-07T15:12:03Z",
+  "baseline_commit": "452fd467fa6bfd22daf51e8c071bbd4029819a95",
+  "spec": {"path": "docs/spec/sprints/TAKE_INTAKE_S3.md", "sha256": "a1ce72eb3681f04caf24dee8a7a7e56d4ac4ead56c4742154ec4c563c8b42a8d"},
+  "sources_reread": [
+    "docs/spec/PROJECT.md",
+    "docs/agent-notes/2026-10-05-user-prompts.md",
+    "docs/agent-notes/2026-10-06-s2-resume.md",
+    "docs/agent-notes/2026-10-07-reassertion.md",
+    "docs/agent-notes/2026-10-07-s2-operator-rulings.md",
+    "docs/spec/sprints/20261007-S3.md",
+    "docs/spec/sprints/20261006-S1.md",
+    "AGENTS.md"
+  ],
+  "operator_ruling": "Second take: new take family plus full pipeline (FULLER with a reviewed fan interval, phrase anchoring, timing, marked compact export; family id reported to XORuby on TIN-5186)",
+  "numerics_run": false,
+  "real_take_opened": false,
+  "preregistered": "single-arm sealed end-to-end verification (spec section 11); no comparative arms",
+  "authority": "R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13; TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43"
+}
