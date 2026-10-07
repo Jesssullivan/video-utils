@@ -415,7 +415,7 @@ if __name__ == '__main__':
 
 
 class WebJobAdmissionTests(__import__('unittest').TestCase):
-    ADMITTED = ('share_export', 'denoise', 'capture_profile')
+    ADMITTED = ('share_export', 'denoise', 'capture_profile', 'apply_capture_profile')
 
     def _load(self):
         import json, importlib.util
@@ -451,17 +451,27 @@ class WebJobAdmissionTests(__import__('unittest').TestCase):
         caps.validate(json.loads((root / 'program/capabilities.json').read_text()),
                       json.loads((root / 'program/tools.json').read_text()))
 
-    def test_s3_apply_capture_profile_stays_planned_until_real_worker_check(self):
+    def test_s3_apply_capture_profile_admitted_on_root_real_worker_check(self):
         root, caps, json, states = self._load()
-        self.assertNotIn('apply_capture_profile', caps.WEB_JOB_ADMISSIONS)
-        self.assertEqual(states['apply_capture_profile'], 'planned')
-        self.assertEqual(set(caps.WEB_JOB_PENDING_REAL_WORKER), {'apply_capture_profile'})
-        receipt = json.loads((root / caps.WEB_JOB_PENDING_REAL_WORKER['apply_capture_profile']).read_text())
-        self.assertEqual(receipt['outcome'], 'not_run')
-        self.assertEqual(receipt['measured'], {})
-        self.assertIn('real_worker_run', receipt['unknown'])
-        # Flipping the state without a root admission record is refused by the validator.
+        self.assertEqual(states['apply_capture_profile'], 'admitted')
+        evidence = caps.WEB_JOB_ADMISSIONS['apply_capture_profile']
+        self.assertEqual(evidence, 'docs/agent-notes/sprints/20261007-s3/root-real-worker-check.json')
+        receipt = json.loads((root / evidence).read_text())
+        self.assertEqual(receipt['real_workers']['apply_capture_profile'], 'succeeded')
+        self.assertIn('synthetic', receipt['source'])
+        # Admission is structural evidence only; listening and real-take behaviour stay unestablished.
+        self.assertIn('listening acceptance', receipt['not_established'])
+        self.assertTrue(any('real-take' in item for item in receipt['not_established']))
+        # The pending mechanism is kept for future tools and is empty now; no tool is in both maps.
+        self.assertEqual(caps.WEB_JOB_PENDING_REAL_WORKER, {})
+        self.assertFalse(set(caps.WEB_JOB_PENDING_REAL_WORKER) & set(caps.WEB_JOB_ADMISSIONS))
         doc = json.loads((root / 'program/capabilities.json').read_text())
-        next(e for e in doc['capabilities'] if e['tool'] == 'apply_capture_profile')['adapters']['web_job'] = 'admitted'
-        with self.assertRaises(caps.CapabilityError):
-            caps.validate(doc, json.loads((root / 'program/tools.json').read_text()))
+        registry = json.loads((root / 'program/tools.json').read_text())
+        caps.validate(doc, registry)
+        # Without the root admission record the validator still refuses the admitted state.
+        record = caps.WEB_JOB_ADMISSIONS.pop('apply_capture_profile')
+        try:
+            with self.assertRaises(caps.CapabilityError):
+                caps.validate(doc, registry)
+        finally:
+            caps.WEB_JOB_ADMISSIONS['apply_capture_profile'] = record

@@ -265,8 +265,10 @@ S3 root integration (2026-10-07, unpushed, no hosted CI) raises it to **42 typed
 skills** ([root_integration_f](../agent-notes/sprints/20261007-s3/root_integration_f-receipt.json)):
 `beat_this_compare` and `guitar_noul_decide` are experimental and currently refuse with a typed
 reason (Beat This model not registered in `program/models.json`; guitar_noul gateway not
-configured). Web job adapters admitted: `share_export`, `denoise`, `capture_profile`;
-`apply_capture_profile` stays planned until its real-worker check runs from the main checkout.
+configured). Web job adapters admitted: `share_export`, `denoise`, `capture_profile` and
+`apply_capture_profile` (the last on root's real-worker check from the main checkout,
+[root-real-worker-check](../agent-notes/sprints/20261007-s3/root-real-worker-check.json):
+synthetic fixture only; listening and real-take web behaviour are not established).
 
 ### Core days
 

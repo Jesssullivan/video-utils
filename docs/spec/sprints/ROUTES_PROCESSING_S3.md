@@ -500,7 +500,10 @@ built, what differs, and why. Claim classes as in section 10.
    `tool_api.validate_tool_arguments('apply_capture_profile')` refuses any path
    component starting with `.`; this worktree lives under `.local/`, so the
    real-worker apply case skips with that reason. Root's run from the main
-   checkout covers it. Stub lifecycle cases (M8) cover apply fully.
+   checkout covers it (2026-10-07: succeeded on the synthetic fixture,
+   `docs/agent-notes/sprints/20261007-s3/root-real-worker-check.json`; the
+   `apply_capture_profile` web_job adapter is admitted on that receipt). Stub
+   lifecycle cases (M8) cover apply fully.
 3. **Form actions need `ORIGIN`.** adapter-node reports an `https://` app origin
    unless `ORIGIN` is set, so SvelteKit's CSRF check refuses every form POST
    (403) under the current `serve.js` / `just web-serve`. Pages show

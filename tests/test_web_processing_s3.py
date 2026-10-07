@@ -50,10 +50,11 @@ WEB = ROOT / 'web'
 OPTIONS_TS = WEB / 'src' / 'lib' / 'server' / 'processing' / 'options.ts'
 ACCEPTED_FULLER_RUN = '20261006T041633Z-990aa1bd6737'
 RECEIPTS = ROOT / 'docs' / 'agent-notes' / 'sprints' / '20261007-s3'
-# Root integration S3 (2026-10-07) admitted denoise and capture_profile on their receipts; apply_capture_profile
-# stays planned until root runs its real-worker check from the main checkout.
-PENDING = ('apply_capture_profile',)
-ROOT_ADMITTED = ('share_export', 'denoise', 'capture_profile')
+# Root integration S3 (2026-10-07) admitted denoise and capture_profile on their receipts, then
+# apply_capture_profile on root's real-worker check from the main checkout (root-real-worker-check.json).
+# PENDING is the tuple of allowlisted tools still awaiting root admission; it is empty now.
+PENDING = ()
+ROOT_ADMITTED = ('share_export', 'denoise', 'capture_profile', 'apply_capture_profile')
 ALL_ADMITTED = frozenset(web_jobs.JOB_TYPE_NAMES)
 
 # --------------------------------------------------------------------------- stub worker
@@ -480,9 +481,24 @@ class AllowlistTests(S3Base):
         states = {entry['tool']: entry['admission_state'] for entry in catalogue['job_types']}
         self.assertEqual(states, {**{tool: 'admitted' for tool in ROOT_ADMITTED},
                                   **{tool: 'pending_root_admission' for tool in PENDING}})
+        # The pending gate itself stays exercised now that no shipped tool is pending: a supervisor whose
+        # loaded capability state for a tool is 'planned' (in-memory only; capabilities.json is untouched)
+        # still refuses that tool with 409 and reports it as pending in the catalogue.
+        gate = self.env(admitted=None)
+        gate_fx = self.fixture(gate)
+        gate['jobs'].capability_states = {**gate['jobs'].capability_states, 'apply_capture_profile': 'planned'}
+        response = gate['client'].post('/api/v1/jobs', self.job_body('apply_capture_profile', gate_fx,
+                                                                     capture_profile_job_id='job_' + '0' * 32))
+        self.assertEqual((response.status, response.code), (409, 'tool_pending_admission'), response.json)
+        self.assertEqual(response.json['capability_state'], 'planned')
+        self.assertEqual(self.count(gate['state'], 'jobs'), 0)
+        gate_states = {entry['tool']: entry['admission_state']
+                       for entry in gate['client'].get('/api/v1/job-types').json['job_types']}
+        self.assertEqual(gate_states['apply_capture_profile'], 'pending_root_admission')
         METRICS['M1'] = {'non_allowlisted_registry_tools': len(others), 'synthetic_names': len(synthetic),
                          'refused_tool_not_admitted': refused, 'denominator': len(others) + len(synthetic),
-                         'pending_refused': pending, 'pending_denominator': len(PENDING)}
+                         'pending_refused': pending, 'pending_denominator': len(PENDING),
+                         'synthetic_planned_state_refused': 1, 'synthetic_planned_state_denominator': 1}
 
     def test_m1_seam_refused_without_stub_builder(self):
         state = self.base / 'states' / self.unique('seam')
