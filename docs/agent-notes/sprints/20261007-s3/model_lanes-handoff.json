@@ -1,0 +1,171 @@
+{
+  "lane": "model_lanes",
+  "branch": "sprint/20261007-s3/model_lanes",
+  "head": "4fdf0441c127b71ff81490a160c833bc6c7169fd",
+  "base_commit": "4bd806db3944d05fb4b5cca16a87642a71f5458f",
+  "worktree": ".local/sprint3/model_lanes",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": "tests/test_beat_this_compare.py",
+      "kind": "test",
+      "sha256": "433e712cf500db74ff7236663c541574babc28489dea3d5e0e5f740cb0cdb2e9"
+    },
+    {
+      "path": "tests/test_guitar_noul_client.py",
+      "kind": "test",
+      "sha256": "21f58e5e1e189cf3be139c0c62b524d19571c7d3e9afc0d502b39b2309543367"
+    },
+    {
+      "path": "docs/spec/sprints/MODEL_LANES_S3.md",
+      "kind": "spec",
+      "sha256": "9ef9a0a4df39eb9260ec880b00fce39de178623bec2a2dcc4bd172976867b1f7"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/model_lanes-contract-freeze.json",
+      "kind": "receipt",
+      "sha256": "b9d91af489dd2b0aaeecaa3da3636c033d80843944fb5171651fab1d94581865"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/model_lanes-experiment.json",
+      "kind": "receipt",
+      "sha256": "b4c99460a68a176b24b9407326a776cda720c33f3576d82d009ba752981315a1"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/model_lanes-implementation.json",
+      "kind": "receipt",
+      "sha256": "a8a74bf1edb1ea8378a17aeecc67b7009328446801bc8a0a6f46ff5af65b80ab"
+    },
+    {
+      "path": ".agents/skills/guitar-beat-this/SKILL.md",
+      "kind": "skill_draft",
+      "sha256": "3c397d4919cec3efd71d03cf1f6a4fa68b07aa4dc574cdbc50b2f5e58262b542"
+    },
+    {
+      "path": ".agents/skills/guitar-noul/SKILL.md",
+      "kind": "skill_draft",
+      "sha256": "867418c4c7df492b2ef018a60f4e759bb53430c59524a69d9be254b545a9edcb"
+    },
+    {
+      "path": "docs/research/2026-10-07-stems-weights-licence.md",
+      "kind": "source",
+      "sha256": "1f831692a9ea70b6b11c051d7d339fe2d9c3e7f9a8e5c23b031e05572cafb2d9"
+    },
+    {
+      "path": "docs/research/BEAT_THIS_QUALIFICATION.md",
+      "kind": "source",
+      "sha256": "c4c83042be4ce06c014fcf4bad7e550fd916e4aad66c00912f043f5a1dcde516"
+    },
+    {
+      "path": "scripts/beat_this_compare.py",
+      "kind": "source",
+      "sha256": "ceb9070130aa8324b36f2c01d3bbb4be2cadb1e631ea0f5a71edfebe6d81936a"
+    },
+    {
+      "path": "scripts/beat_this_runtime_setup.py",
+      "kind": "source",
+      "sha256": "9a3d19c289f2bb27fb7c288675d98105314eb76b746e5f5fdc296f55e362e04d"
+    },
+    {
+      "path": "scripts/guitar_noul_client.py",
+      "kind": "source",
+      "sha256": "54c09258a544ea089b2a21968ce236b4e592bf699b2e9698d051786b62c5bb4d"
+    }
+  ],
+  "tests": {
+    "command": "PYTHONPATH=tests python3 -m unittest test_beat_this_compare test_guitar_noul_client -v",
+    "discovered": 49,
+    "passed": 49,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 57.9
+  },
+  "metrics": [
+    {
+      "name": "refusal_order_codes_tested",
+      "numerator": 8,
+      "denominator": 8,
+      "unit": "codes",
+      "claim_class": "measured"
+    },
+    {
+      "name": "unknown_fields_defined",
+      "numerator": 15,
+      "denominator": 15,
+      "unit": "fields",
+      "claim_class": "measured"
+    },
+    {
+      "name": "beat_measure_f_score_window",
+      "numerator": 70,
+      "denominator": 1,
+      "unit": "milliseconds",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "Runtime validation: torch checkpoint load with weights_only=True on Linux honey platform (Lightning 1.9.4, torch 2.x)",
+    "Runtime validation: beat_this.inference.load_checkpoint patch interception with actual Audio2Beats in beat-this 1.1.0",
+    "Root operation: model prefetch from cloud.cp.jku.at and hash verification for program/models.json",
+    "Root operation: tool descriptor admission to program/tools.json and scripts/tool_api.py wiring",
+    "M11 experiment: execution and scoring blocked until root completes prefetch, registry entry, and Linux runtime setup on honey"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "program/models.json",
+      "change": "Add under \"models\" ONLY after root's explicit hash-bound fetch, replacing the placeholder with the measured sha256: \"cpjku-beat-this-final0\": {\"url\": \"https://cloud.cp.jku.at/public.php/dav/files/7ik4RrBKTS273gp/final0.ckpt\", \"sha256\": \"TO_BE_FILLED_BY_ROOT_HASH_BOUND_FETCH\", \"max_bytes\": 81058141, \"format\": \"pytorch-lightning-ckpt (torch.load weights_only=True; optimizer state stripped upstream)\", \"license\": \"MIT (code LICENSE; published weights per upstream README commit b95c8ab0c58c2d9fcfd40508ae8dffbc05ac4f5c, 2026-05-28); training-data rights distinct and unresolved\", \"source_commit\": \"ad7974846029835307ba19a3d5cefbf40b243041\", \"server_sha1_cross_check\": \"e1506282faf66ca10e8ab50ee26bd542b7b9ff0a\"}",
+      "why": "The comparator refuses model_not_registered or model_hash_not_registered until this entry exists with a real digest. max_bytes is the exact published content-length. The extra server_sha1_cross_check key is optional: model_prefetch ignores it, so root may drop it."
+    },
+    {
+      "file": "program/tools.json",
+      "change": "Append two experimental descriptors, beat_this_compare and guitar_noul_decide. The full exact JSON is in docs/agent-notes/sprints/20261007-s3/model_lanes-handoff.json under root_owned_changes_requested[1].descriptors. beat_this_compare takes {run_dir: string 1-4096, timeout_seconds: integer 1-900, default 660}, required run_dir, additionalProperties false, implementation_status experimental, evidence_kind uncalibrated_learned_beat_downbeat_hypotheses, skill .agents/skills/guitar-beat-this/SKILL.md. guitar_noul_decide takes {run_dir, windows[1..64]{source_start_s, source_end_s}, timeout_seconds 1-120}, all required, additionalProperties false, readOnlyHint true, openWorldHint true, evidence_kind external_detector_window_hypotheses, skill .agents/skills/guitar-noul/SKILL.md.",
+      "why": "Tool admission is root-owned. Both descriptors are experimental, non-default, and have closed schemas that mirror contract sections 3.1/3.2 and 4.1/4.4."
+    },
+    {
+      "file": "scripts/tool_api.py",
+      "change": "Extend the traversal guard set to {'marked_video', 'basic_pitch_compare', 'beat_this_compare', 'guitar_noul_decide'}. Add these command builders next to basic_pitch_compare:\n    if name == 'beat_this_compare':\n        return head + [str(ROOT / 'scripts/beat_this_compare.py'), 'compare', '--run-dir', basic_pitch_directory(args['run_dir'])]\n    if name == 'guitar_noul_decide':\n        request = {'run_dir': args['run_dir'], 'windows': args['windows'], 'timeout_seconds': args['timeout_seconds']}\n        return head + [str(ROOT / 'scripts/guitar_noul_client.py'), '--request-json', json.dumps(request)]",
+      "why": "Wires the MCP hooks through the existing argv path. The gateway URL and the V6 switch stay environment-only, and the worker owns every refusal."
+    },
+    {
+      "file": "scripts/mcp_server.py",
+      "change": "Expose both descriptors through the existing tools.json-driven listing, with prompts guitar-beat-this and guitar-noul taken from the skill drafts. No new transport code.",
+      "why": "AGENTS.md requires every processing primitive to have a typed MCP hook and a skill."
+    },
+    {
+      "file": "just/workflow.just",
+      "change": "Append after basic-pitch-runtime-check:\n# Optional experimental Beat This comparator; no model or runtime installation is implicit.\nbeat-this-compare run_dir:\n    python3 scripts/beat_this_compare.py compare --run-dir {{quote(run_dir)}}\n\n# Explicit Linux-only runtime setup from the flake ml shell python (run on honey inside nix develop .#ml).\nbeat-this-runtime-setup python:\n    python3 scripts/beat_this_runtime_setup.py --python {{quote(python)}}\n\n# Verify the isolated Beat This runtime without downloads, installation or model inference.\nbeat-this-runtime-check:\n    python3 scripts/beat_this_runtime_setup.py --check",
+      "why": "Operator entrypoint recipes for the setup, check and compare steps. M11 is unblocked once root has run the prefetch and runtime setup on honey."
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261007-s3/model_lanes-handoff.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Scope check passes. git diff --name-only 4bd806d...HEAD lists 14 files, all in the owned list: the 3 scripts, 2 tests, 2 research docs, docs/spec/sprints/MODEL_LANES_S3.md, 2 SKILL.md files and 4 docs/agent-notes/sprints/20261007-s3/model_lanes-*.json. There are no diffs to program/, scripts/tool_api.py or just/. Commits f27aa9a and 4fdf044 have author Jess Sullivan and no Co-Authored-By or Claude lines. git merge-tree against current main (18dd984) merges cleanly.",
+      "(2) No forbidden writes found. The only ignored outputs in the worktree are artifacts/s2/model_lanes/dev-smoke.log and fixtures/s3-beat-1-dev3001 (dev seed 3001 only, written 01:29-01:33). Nothing was written under artifacts/runs. No held-out suite was generated, the dev-smoke log shows A1 refused with model_not_registered, and no model file exists. The new code starts no daemon. bounded_child uses a Popen direct child with a PPID ownership check, a 600 s deadline, a 2 GiB RSS cap and a log-byte cap.",
+      "(4) Test counts reproduced. With the given FFMPEG/FFPROBE, I ran PYTHONPATH=tests python3 -m unittest test_beat_this_compare test_guitar_noul_client -v and got 'Ran 49 tests in 63.350s', 'OK', exit 0, and 49 '... ok' lines. git status stayed clean afterwards.",
+      "(4) Refusal order matches the claim and contract 3.1. scripts/beat_this_compare.py lines 181-214 cover orders 1-5, line 619 is the runtime check (6), line 620 is require_linux (7) and line 621 is resolve_input (8). RefusalOrderTests (tests/test_beat_this_compare.py lines 103-188) asserts each code, plus runner.calls == [] and network_used False.",
+      "(4) The receipt overstates the network guard. model_lanes-implementation.json line 47 says socket/urlopen are 'patched to raise in every test class'. F70Tests (line 249) and HalfDoubleTests (line 286) subclass plain unittest.TestCase without the patch. They test pure arithmetic, so there is no practical risk, but the receipt wording is inaccurate.",
+      "(4) One test name does not match what it asserts. tests/test_guitar_noul_client.py line 245, test_cli_refuses_without_gateway_and_never_raises, actually asserts refusal_code 'input_schema_invalid', because validate_request runs before gateway_config (guitar_noul_client.py lines 327-328). This ordering is consistent with spec line 197 ('before any I/O beyond input validation'). gateway_not_configured itself is covered by decide() tests at line 126, but the CLI path never shows it.",
+      "(4) Inference-worker coverage gap. infer_task (beat_this_compare.py lines 529-579) and the IsolatedRunner have no test, even with a fake beat_this module; every test injects StubRunner. Two things therefore remain unverified until root runs the runtime on honey: that replacing beat_this.inference.load_checkpoint actually intercepts Audio2Beats in beat-this 1.1.0, and that the Lightning checkpoint loads with weights_only=True. The qualification doc already records the second as unknown.",
+      "(2)/(claim wording) 'installs offline by verified wheel extraction' is only partly accurate. setup() (beat_this_runtime_setup.py lines 333-334) downloads the 4 wheels from files.pythonhosted.org with hash, size and host checks; only the extraction step is offline. These are dependency wheels, not models, so the no-model-download rule holds, and --check is read-only: I ran it and it refused platform_unsupported on darwin, exit 2, with nothing written.",
+      "(6) Lock self-hash reproduced: python3 -B scripts/beat_this_runtime_setup.py --print-lock-sha256 printed 5cd29f827825973ad0dd30391919382449b807be4a4b87251d010313ec78d593, matching LOCK_SHA and the doc.",
+      "(6) Dev-smoke numbers reproduced from the A0 prediction files and the suite manifest (sha256 7ca8bdd8... matches the receipt; generator script sha ceb90701... equals the committed beat_this_compare.py). Click-grid period divided by construction period gives c1 1.9989, c2 0.9999, c3 3.5013, c4 1.0026, c5 1.9997, c6 0.7499 and c7 4.0035. c8 has 58 beats on the selected-periodicity basis. All match the experiment receipt's '2x / 3.5x / 4x / 0.75x / ~1x / 58 beats' observation. They are correctly classed as dev-only and unscored.",
+      "(3) Claim classes are sound. UNKNOWN_FIELDS has exactly 15 entries (meter_claim 'none', real_take_accuracy 'unknown', note_correctness null, default_adoption False, and so on), and EndToEndStubTests asserts each one with its type. F70 is computed only when inp['fixture'] is set (line 420), and load_generated_truth refuses real takes and held-out truth. guitar_noul windows carry claim_class detector_hypothesis, is_label False and authorship detector:guitar_noul. The scorer's decision is descriptive_only with default_adoption False. No defaults, profiles or detectors were adopted, and there are no missed/extra-note verdicts.",
+      "(5) Doctrine is respected. The lane adds no high-pass, notch or EQ, and masters are untouched. The 30 Hz f_min of the model front end is stated as a limitation, not hidden. Timeouts are bounded: guitar_noul allows 1-120 s with one retry on connection error only, setup has a 600 s deadline and 60 s probes, and the worker has a 600 s deadline.",
+      "Seal/score risk (not exercised by the lane). If A1 refuses (for example model_not_registered), predict() still writes {beats: None, refusal: ...} records. seal() does not reject them, and score() would then produce f_measure None and the decision 'no improvement shown' rather than 'A1 not run', which would also use up the sealed held-out seeds 3101/3203. Recommend that seal() refuse when any arm's prediction carries a refusal, before root runs M11.",
+      "Minor: is_generated_fixture/is_real_take trust manifest.source.kind == 'generated_fixture'. A run manifest under artifacts/runs that declared it would lose the V6 privacy tag, and in guitar_noul it would bypass the real-take allow gate. Pipeline manifests do not write this field today, so this is low risk.",
+      "Minor: load_generated_truth (line 606) resolves the truth path with os.path.abspath relative to the cwd rather than root. A relative --generated-truth therefore only works when run from the repository root; this fails closed."
+    ],
+    "must_fix": []
+  }
+}
