@@ -276,8 +276,15 @@ Receipt: `docs/agent-notes/sprints/20261007-s2r/quarto_fix-render-attempt.json`.
 - Both preflights timed out at 1800 s (exit 124) during substitution and the
   remote-builder copy-back, with host load averages up to about 530 on
   6 CPUs. The fallback was not used, because no failure involved pandoc.
-- Outcome under section 2: `render_blocked_final`, with 0 of 1 render attempts
-  used. The plain HTML report remains final for D6.
+- Outcome: `render_not_attempted_infra_timeout`, with 0 of 1 render attempts
+  used. This corrects the earlier `render_blocked_final` label (phase 4
+  audit). The ruling's closing condition, "if it fails again", did not occur
+  because no render ran. The section 2 fallback-preflight condition was not
+  met either. D6 stays open with its 1 approved render attempt unused. Closing
+  D6, whether on plain HTML or after the unused attempt, is an operator
+  decision. The plain HTML report remains the primary report and the fallback,
+  but this lane does not declare it final for D6. The new label is outside
+  the section 5 enumeration.
 - Deviations: the evals used `--read-only` after the instantiating evals timed
   out. Preflight 2 reused the primary fix. The bundle sha256 differs from the
   prior D6 bundle, and the cause is unknown.
