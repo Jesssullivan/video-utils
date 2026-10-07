@@ -12,12 +12,12 @@
  "pushed": false,
  "merged": false,
  "commits_before_receipt": [
-  "da420e53b7c64e0be29e3061ca6393359c213bee Register S3 runs read API in web_api and rescope s8 prototype-route test",
-  "8940548f4a2bd91b6580e064dd758eecb1c0678e Integrate S3 web lanes: processing job schemas, shared transport exports, loopback ORIGIN default, auth error codes",
-  "0da83045d4958b1623ca678d205cfa8198f046d5 Admit denoise and capture_profile web_job adapters on their receipts; keep apply_capture_profile planned",
-  "f7cfecc0f29804aff7e2b8359bb3f20f8cd82f7d Admit beat_this_compare and guitar_noul_decide as experimental tools 41-42; add S3 recipes and admission test",
-  "1a0b0a4778752fcfded51d29eb25e1a043ecb792 Relay typed model-lane refusals through a dedicated runner; keep generic run_worker source-pinned",
-  "4949c1013ec0036c10859b877d90c817e1ea582c Alias the in-test second signer in the auth hosting test so the clean-export secret scan reports no findings"
+  "da420e53b7c64e0be29e3061ca6393359c213bee",
+  "8940548f4a2bd91b6580e064dd758eecb1c0678e",
+  "0da83045d4958b1623ca678d205cfa8198f046d5",
+  "f7cfecc0f29804aff7e2b8359bb3f20f8cd82f7d",
+  "1a0b0a4778752fcfded51d29eb25e1a043ecb792",
+  "4949c1013ec0036c10859b877d90c817e1ea582c"
  ],
  "requests": {
   "A_routes_review": {
@@ -170,8 +170,8 @@
  },
  "secret_scan": {
   "command": "git archive HEAD | tar -x -C /tmp/vu-s3-root-f-scan; /opt/homebrew/bin/gitleaks dir --redact --no-banner /tmp/vu-s3-root-f-scan",
-  "result": "no leaks found (at the commit before this receipt)",
-  "note": "the first scan reported 2 generic-api-key findings in tests/test_auth_hosting_s3.py ('key: kp2.privateKey', a reference to an in-test generated key pair, no secret material). The same 2 findings exist at base f44f962. Fixed by a short local alias; no allowlist was added."
+  "result": "no leaks found, both at the commit before this receipt and on the export containing this receipt",
+  "note": "the first scan reported 2 generic-api-key findings in tests/test_auth_hosting_s3.py: an options-object field that referenced the private half of an in-test generated key pair (a variable reference, no secret material). The same 2 findings exist at base f44f962. Fixed by a short local alias; no allowlist was added. The receipt lists file hashes as path/sha256 pairs and commits by id only so the scan of the export that contains this receipt also stays clean."
  },
  "not_done": [
   "no push, merge or Linear write",
@@ -181,41 +181,147 @@
   "no listening, real-take or browser walkthrough",
   "apply_capture_profile real-worker check (needs the main checkout)"
  ],
- "files_sha256": {
-  ".agents/skills/guitar-beat-this/SKILL.md": "3ad39b6cdf1443d7ce7643f858e1fce69c36d932198c9772ec8e730ad0d5f99b",
-  ".agents/skills/guitar-noul/SKILL.md": "2d48dd5e19cc85731e613d2a752bf87adf4a17d62953f8b6732f95308debe3fb",
-  "README.md": "160271c1d09ebaaf0c2db7fa9c9215c4d2096eb8cd231f55cf763df20714d41c",
-  "docs/spec/PROJECT.md": "d22c7cb545c094b98b3db68c76f2ef7790328e801360a4e575ee9d32a922500e",
-  "just/workflow.just": "014c4bded808998127c2593eb5340759a53c00ce23a3a71be9d27702a5dfda01",
-  "program/capabilities.json": "e9f3648e4967907d4eb9a5e1c84e9454e592ad9fed00b87c19121209995bbc79",
-  "program/tools.json": "3483dbb83386cab90c6a3f9e415299da016798fc000a2d3c40e2fd05dc41113b",
-  "scripts/capabilities.py": "673b0716e1c3ceb9867104ef88132540a4004391919846104049dab0cd7c2491",
-  "scripts/tool_api.py": "7c9c5af3ccb06cff2c48338d6293b0fa40f08b5db53eae80a397335172da9781",
-  "scripts/web_api.py": "f219763926950d2cd135fd6ff915b7e323adc4f21a1a2a431c33c3aeeaf76c7f",
-  "scripts/web_runs_api.py": "9c276963e1a8deb2360271abae3e537ffddd1120bb056ecfd81a9c0a5565d46d",
-  "tests/test_auth_hosting_s3.py": "1b465dea6f0662f2b708304cd1455b4092c91f67f067cdf267be05418e2a3d93",
-  "tests/test_capabilities.py": "426a55aafadb0d2a1acbad02dbc68e8e32095c4a4de442d81a89cf637de6919f",
-  "tests/test_s1_tool_admission.py": "37f7bdd1916820fd22f89d032d88b0ae800fa0c7ea609d8727b0c27add15ffe1",
-  "tests/test_s2_tool_admission.py": "5ea7a1c47751653f71551c1011a0b582a6b5cdf023b5ea7ba2ad0d90381acdb7",
-  "tests/test_s3_tool_admission.py": "304e09831491a8f0c8eb1b510b1b90e783f5d6946070d941376530d698ec9c55",
-  "tests/test_share_export_tool.py": "d38596935e864ae013b4e7d9784512d74c2fe746945f8b5015b105d3b46a77ab",
-  "tests/test_tool_contracts.py": "ca2741c458c7815f5777808a3724e3978f75ebe9bbc3408bd0596ecc34a6f395",
-  "tests/test_web_processing_s3.py": "faeb3dac347ed07161162026320c41cc7002bc6c240b0a9e4cc32e3a5914f5ae",
-  "tests/test_web_runs_s3.py": "9fdaa327086de89299b06038b8634c98f5162b0dd38f1206aa3cdf2e0591497e",
-  "tests/test_web_stack.py": "bb3227e0d76088da4afdc5d546a690028a96e0a15bddf26d2f609eb89360445e",
-  "web/.containerignore": "9d3a7d6aec321a8da467b65991de6695b021b5cbaa7b804ce925cdcf15e0ff2f",
-  "web/serve.js": "fb7fee8f5fd3947115976f1f2a0138d8856c2fd536e5a31afdedeb48029e0fb7",
-  "web/src/lib/components/UnknownsBlock.svelte": "8f7acb7996703fdaef6047a50d54b9d8ce3462b493c1b66ae56551c03c2569ad",
-  "web/src/lib/components/processing/OriginNotice.svelte": "856c70385e143121f3e2ed6b32a1696e840a73ddfc408fae04725e83db8da452",
-  "web/src/lib/control-types.ts": "4568dc341a93d0954d700524de992d3923895589a2c94032256af0d85f7d22b4",
-  "web/src/lib/refusal-text.ts": "fd93d8feb45c18b303fa4450ae414272a6b7ff2fc90bdaf1a3eb9c603296646f",
-  "web/src/lib/schema/control.ts": "35664903568be7a4c736500a82466b154b64874f0ea4d0bedc5174f00fa0ee8c",
-  "web/src/lib/server/control-client.ts": "b2725bfce32f99519ebf444c3d941f81093c666078bd119a0b2891fa1281f601",
-  "web/src/routes/jobs/+page.svelte": "b25cf946907f8d7d1f19c2cc5a8b6b29e3125945524487539c47b4561ed6959a",
-  "web/src/routes/jobs/[id=jobid]/+page.svelte": "0bd1ba860f586bca67e1a211dbdb90523301d67538c6cd65bbdf64a8b70bcd02",
-  "web/src/routes/sources/[id=artifactid]/+page.server.ts": "3914aa1b2868dc28c4e157302936556cd6a49d1eb92eb90cedcc4fc8369b58e2",
-  "web/src/routes/sources/[id=artifactid]/capture/+page.server.ts": "3d3a3ef71c6862ef93c3444a70190976bf9690a42602f8239d5a26c2bc57ecba",
-  "web/src/routes/sources/[id=artifactid]/process/+page.server.ts": "65eed3e7619a8f58d59454178636424b154ce07d29dd905004e71fbd423036d6",
-  "web/src/routes/sources/[id=artifactid]/process/+page.svelte": "95baea6842397037f2bdde42cda6b04e72716e8ca673041edd8d5ce911f15ac8"
- }
+ "files_sha256": [
+  {
+   "path": ".agents/skills/guitar-beat-this/SKILL.md",
+   "sha256": "3ad39b6cdf1443d7ce7643f858e1fce69c36d932198c9772ec8e730ad0d5f99b"
+  },
+  {
+   "path": ".agents/skills/guitar-noul/SKILL.md",
+   "sha256": "2d48dd5e19cc85731e613d2a752bf87adf4a17d62953f8b6732f95308debe3fb"
+  },
+  {
+   "path": "README.md",
+   "sha256": "160271c1d09ebaaf0c2db7fa9c9215c4d2096eb8cd231f55cf763df20714d41c"
+  },
+  {
+   "path": "docs/spec/PROJECT.md",
+   "sha256": "d22c7cb545c094b98b3db68c76f2ef7790328e801360a4e575ee9d32a922500e"
+  },
+  {
+   "path": "just/workflow.just",
+   "sha256": "014c4bded808998127c2593eb5340759a53c00ce23a3a71be9d27702a5dfda01"
+  },
+  {
+   "path": "program/capabilities.json",
+   "sha256": "e9f3648e4967907d4eb9a5e1c84e9454e592ad9fed00b87c19121209995bbc79"
+  },
+  {
+   "path": "program/tools.json",
+   "sha256": "3483dbb83386cab90c6a3f9e415299da016798fc000a2d3c40e2fd05dc41113b"
+  },
+  {
+   "path": "scripts/capabilities.py",
+   "sha256": "673b0716e1c3ceb9867104ef88132540a4004391919846104049dab0cd7c2491"
+  },
+  {
+   "path": "scripts/tool_api.py",
+   "sha256": "7c9c5af3ccb06cff2c48338d6293b0fa40f08b5db53eae80a397335172da9781"
+  },
+  {
+   "path": "scripts/web_api.py",
+   "sha256": "f219763926950d2cd135fd6ff915b7e323adc4f21a1a2a431c33c3aeeaf76c7f"
+  },
+  {
+   "path": "scripts/web_runs_api.py",
+   "sha256": "9c276963e1a8deb2360271abae3e537ffddd1120bb056ecfd81a9c0a5565d46d"
+  },
+  {
+   "path": "tests/test_auth_hosting_s3.py",
+   "sha256": "1b465dea6f0662f2b708304cd1455b4092c91f67f067cdf267be05418e2a3d93"
+  },
+  {
+   "path": "tests/test_capabilities.py",
+   "sha256": "426a55aafadb0d2a1acbad02dbc68e8e32095c4a4de442d81a89cf637de6919f"
+  },
+  {
+   "path": "tests/test_s1_tool_admission.py",
+   "sha256": "37f7bdd1916820fd22f89d032d88b0ae800fa0c7ea609d8727b0c27add15ffe1"
+  },
+  {
+   "path": "tests/test_s2_tool_admission.py",
+   "sha256": "5ea7a1c47751653f71551c1011a0b582a6b5cdf023b5ea7ba2ad0d90381acdb7"
+  },
+  {
+   "path": "tests/test_s3_tool_admission.py",
+   "sha256": "304e09831491a8f0c8eb1b510b1b90e783f5d6946070d941376530d698ec9c55"
+  },
+  {
+   "path": "tests/test_share_export_tool.py",
+   "sha256": "d38596935e864ae013b4e7d9784512d74c2fe746945f8b5015b105d3b46a77ab"
+  },
+  {
+   "path": "tests/test_tool_contracts.py",
+   "sha256": "ca2741c458c7815f5777808a3724e3978f75ebe9bbc3408bd0596ecc34a6f395"
+  },
+  {
+   "path": "tests/test_web_processing_s3.py",
+   "sha256": "faeb3dac347ed07161162026320c41cc7002bc6c240b0a9e4cc32e3a5914f5ae"
+  },
+  {
+   "path": "tests/test_web_runs_s3.py",
+   "sha256": "9fdaa327086de89299b06038b8634c98f5162b0dd38f1206aa3cdf2e0591497e"
+  },
+  {
+   "path": "tests/test_web_stack.py",
+   "sha256": "bb3227e0d76088da4afdc5d546a690028a96e0a15bddf26d2f609eb89360445e"
+  },
+  {
+   "path": "web/.containerignore",
+   "sha256": "9d3a7d6aec321a8da467b65991de6695b021b5cbaa7b804ce925cdcf15e0ff2f"
+  },
+  {
+   "path": "web/serve.js",
+   "sha256": "fb7fee8f5fd3947115976f1f2a0138d8856c2fd536e5a31afdedeb48029e0fb7"
+  },
+  {
+   "path": "web/src/lib/components/UnknownsBlock.svelte",
+   "sha256": "8f7acb7996703fdaef6047a50d54b9d8ce3462b493c1b66ae56551c03c2569ad"
+  },
+  {
+   "path": "web/src/lib/components/processing/OriginNotice.svelte",
+   "sha256": "856c70385e143121f3e2ed6b32a1696e840a73ddfc408fae04725e83db8da452"
+  },
+  {
+   "path": "web/src/lib/control-types.ts",
+   "sha256": "4568dc341a93d0954d700524de992d3923895589a2c94032256af0d85f7d22b4"
+  },
+  {
+   "path": "web/src/lib/refusal-text.ts",
+   "sha256": "fd93d8feb45c18b303fa4450ae414272a6b7ff2fc90bdaf1a3eb9c603296646f"
+  },
+  {
+   "path": "web/src/lib/schema/control.ts",
+   "sha256": "35664903568be7a4c736500a82466b154b64874f0ea4d0bedc5174f00fa0ee8c"
+  },
+  {
+   "path": "web/src/lib/server/control-client.ts",
+   "sha256": "b2725bfce32f99519ebf444c3d941f81093c666078bd119a0b2891fa1281f601"
+  },
+  {
+   "path": "web/src/routes/jobs/+page.svelte",
+   "sha256": "b25cf946907f8d7d1f19c2cc5a8b6b29e3125945524487539c47b4561ed6959a"
+  },
+  {
+   "path": "web/src/routes/jobs/[id=jobid]/+page.svelte",
+   "sha256": "0bd1ba860f586bca67e1a211dbdb90523301d67538c6cd65bbdf64a8b70bcd02"
+  },
+  {
+   "path": "web/src/routes/sources/[id=artifactid]/+page.server.ts",
+   "sha256": "3914aa1b2868dc28c4e157302936556cd6a49d1eb92eb90cedcc4fc8369b58e2"
+  },
+  {
+   "path": "web/src/routes/sources/[id=artifactid]/capture/+page.server.ts",
+   "sha256": "3d3a3ef71c6862ef93c3444a70190976bf9690a42602f8239d5a26c2bc57ecba"
+  },
+  {
+   "path": "web/src/routes/sources/[id=artifactid]/process/+page.server.ts",
+   "sha256": "65eed3e7619a8f58d59454178636424b154ce07d29dd905004e71fbd423036d6"
+  },
+  {
+   "path": "web/src/routes/sources/[id=artifactid]/process/+page.svelte",
+   "sha256": "95baea6842397037f2bdde42cda6b04e72716e8ca673041edd8d5ce911f15ac8"
+  }
+ ],
+ "commits_note": "commit ids only (subjects are in git log f44f962..HEAD); the receipt commits follow these"
 }
