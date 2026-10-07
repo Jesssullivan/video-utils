@@ -262,3 +262,22 @@ it does not change the ~32 Hz handling. The report is metadata-only, and the
 bundle copies no media. Unknown and abstain fields from the bundle are rendered
 as given and never filled in. Experimental non-improvement, meaning a failed
 render, is a valid completion.
+
+## 9. Phase 2 execution record (appended 2026-10-07; sections 1-8 unchanged)
+
+Receipt: `docs/agent-notes/sprints/20261007-s2r/quarto_fix-render-attempt.json`.
+
+- The fix landed as planned in `bfcbea0`. The `default` and `analysis` drvPaths
+  are unchanged, `flake.lock` is unchanged, and `report` evaluates on
+  aarch64-darwin and x86_64-linux. All measured.
+- Direct probe: the aarch64 pandoc inside the hash-verified quarto 1.10.18
+  tarball reports `pandoc 3.10` and accepts `--syntax-highlighting`. Measured
+  outside `nix develop`.
+- Both preflights timed out at 1800 s (exit 124) during substitution and the
+  remote-builder copy-back, with host load averages up to about 530 on
+  6 CPUs. The fallback was not used, because no failure involved pandoc.
+- Outcome under section 2: `render_blocked_final`, with 0 of 1 render attempts
+  used. The plain HTML report remains final for D6.
+- Deviations: the evals used `--read-only` after the instantiating evals timed
+  out. Preflight 2 reused the primary fix. The bundle sha256 differs from the
+  prior D6 bundle, and the cause is unknown.
