@@ -1,0 +1,1755 @@
+{
+ "schema_version": 1,
+ "lane": "timing_calibration",
+ "sprint": "20261007-s3",
+ "linear": "TIN-5488",
+ "phase": "2_sealed_eval_results",
+ "recorded_utc": "2026-10-07T15:54:55Z",
+ "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+ "preregistration": "docs/agent-notes/sprints/20261007-s3/timing_calibration-eval.json",
+ "eval_commit": "4ad7e01cee1d659765e5bc7f46572185cb7130bf",
+ "implementation_commit": "9918aee5f77118d9f0a0de84e47f4f956208d107",
+ "code_sha256_at_run": {
+  "timing_calibration_sha256": "58d7440b72700596a4b6c2b1db3afdc2a92bf0b1c78fa62cf933e3c3466632ae",
+  "rhythm_sha256": "cd719914d933b03faec6e1c92afbaee232797ec247427cc87038a1e67b15e8d3"
+ },
+ "run": {
+  "started_utc": "2026-10-07T15:46:20Z",
+  "finished_utc": "2026-10-07T15:50:56Z",
+  "wall_seconds": 276.1,
+  "executions": 1,
+  "exit": 0,
+  "results_json": "artifacts/s2/timing_calibration/sealed/results.json (gitignored)",
+  "results_json_sha256": "de04b64ab3609949e529c4fe4e18cbd9d930a920664ddca4f6c24ee822ca6873"
+ },
+ "claim_class": "M-syn (sealed seeds 5501-5508, generator truth); no M-real, no listening",
+ "metrics": {
+  "S1_E1": {
+   "calibrated_cases": {
+    "count": 4,
+    "denominator": 8,
+    "rate": 0.5
+   },
+   "bound": ">= 7/8",
+   "median_abs_error_ms_abstentions_inf": "inf",
+   "median_abs_error_ms_measured_phrases_only": 1.0810899317423304,
+   "measured_phrases": {
+    "count": 18,
+    "denominator": 48,
+    "rate": 0.375
+   },
+   "coverage": {
+    "count": 17,
+    "denominator": 18,
+    "rate": 0.9444444444444444
+   },
+   "verdict": "FAILED: calibrated 4/8 < 7/8, and the median |error| over 48 is inf because 30/48 phrases abstained (24 in abstained cases) or were withheld (6). Coverage 17/18 = 0.944 meets >= 0.90 on measured phrases."
+  },
+  "S2_E2": {
+   "abstained_cases": {
+    "count": 4,
+    "denominator": 8,
+    "rate": 0.5
+   },
+   "median_abs_error_ms_calibrated_cases_measured_phrases": 1.0700260712461067,
+   "coverage": {
+    "count": 18,
+    "denominator": 18,
+    "rate": 1.0
+   },
+   "verdict": "4/8 abstentions reported (no bound). On calibrated cases, median |error| 1.07 ms <= 3.0 and coverage 18/18 = 1.00 >= 0.90 (met)."
+  },
+  "S3_E1_union_E2": {
+   "sign_correct_over_emitted": {
+    "count": 34,
+    "denominator": 34,
+    "rate": 1.0
+   },
+   "emissions_on_on_time_phrases": {
+    "count": 0,
+    "denominator": 24,
+    "rate": 0.0
+   },
+   "E1_emission_rate_on_abs_delta_ge_15ms": {
+    "count": 8,
+    "denominator": 20,
+    "rate": 0.4
+   },
+   "verdict": "sign-correct 34/34 = 1.00 >= 0.95 (met); emissions on on-time phrases 0/24 (met); E1 emission rate on |delta| >= 15 ms is 8/20 = 0.40, below the predicted >= 0.75, because 12 of those 20 phrases sit in the 4 abstained cases."
+  },
+  "S4_E3": {
+   "calibrated_cases": {
+    "count": 4,
+    "denominator": 8,
+    "rate": 0.5
+   },
+   "median_abs_error_ms_measured": 4.26280286378742,
+   "coverage": {
+    "count": 8,
+    "denominator": 22,
+    "rate": 0.36363636363636365
+   },
+   "wrong_sign": 0,
+   "emissions_on_on_time_phrases": {
+    "count": 3,
+    "denominator": 12,
+    "rate": 0.25
+   },
+   "verdict": "Reported only. Moving the amp 1.5 m after calibration (about +4.4 ms truth shift) raises median |error| to 4.26 ms, coverage falls to 8/22, and 3/12 on-time phrases get a direction; no wrong sign. This demonstrates the operator-declared placement limit."
+  }
+ },
+ "withheld_by_click_coincidence_guard": {
+  "E1": 6,
+  "E2": 6,
+  "denominator_per_arm_phrases_in_calibrated_cases": 24
+ },
+ "failure_diagnosis_after_seal": {
+  "method": "read-only diagnostic rerun of fit_session_grid on sealed seeds 5501/5503/5504/5508 with the unchanged eval-commit code; not a rescore (script artifacts/s2/timing_calibration/dev/diag_grid.py)",
+  "finding": "In click_only spans the high-frequency novelty peak picker (threshold max(3*median, 4% max)) returns 2-10x more peaks than clicks (151 for 50 clicks; 296 for 30) because fan-noise peaks pass the adaptive threshold when no attack sets the maximum. The median-IOI grid seed is then taken from spurious intervals (0.23 s, 0.21 s and 0.185 s against P = 0.4, 0.4 and 0.6757 s), or the second span's coverage collapses (5503: 2/7 retained), giving click_grid_not_fitted. Click SNR was 12.6-15.3 dB, so these were not masking cases. Dev seeds 11-13 did not show the failure.",
+  "consequence": "Where a grid fitted, the estimator, bias recovery and direction rule stayed within bounds. The failure is in the robustness of click-grid seeding."
+ },
+ "rerun_policy": "Any fix is a post-eval change: it is evaluated only on newly preregistered seeds and both results are reported. Seeds 5501-5508 are not rescored.",
+ "cases": {
+  "E1": [
+   {
+    "seed": 5501,
+    "period_s": 0.4,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -2.875,
+    "record_status": "abstained",
+    "abstain_reasons": [
+     "click_grid_not_fitted"
+    ],
+    "offset_estimate_ms": null,
+    "expanded_uncertainty_ms": null,
+    "consistency": "not_available",
+    "phrases": [
+     {
+      "truth_ms": -3.6875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 7.468750000000001,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -27.71875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 12.781250000000002,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.25,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -16.4375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5502,
+    "period_s": 0.4,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": -1.6875,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 1.537729462677588,
+    "expanded_uncertainty_ms": 3.6869458787160507,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": -4.656250000000001,
+      "calibrated_ms": -6.581847512596809,
+      "abs_error_ms": 1.9255975125968083,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 9.937499999999998,
+      "calibrated_ms": 11.077470429459298,
+      "abs_error_ms": 1.1399704294593,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 13.125,
+      "calibrated_ms": 13.714036751077204,
+      "abs_error_ms": 0.5890367510772041,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -16.5,
+      "calibrated_ms": -16.252861255407907,
+      "abs_error_ms": 0.2471387445920925,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.96875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -20.71875,
+      "calibrated_ms": -21.48015111698585,
+      "abs_error_ms": 0.7614011169858514,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5503,
+    "period_s": 0.6757,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": 0.1875,
+    "record_status": "abstained",
+    "abstain_reasons": [
+     "click_grid_not_fitted"
+    ],
+    "offset_estimate_ms": null,
+    "expanded_uncertainty_ms": null,
+    "consistency": "not_available",
+    "phrases": [
+     {
+      "truth_ms": 14.375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -30.71875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -19.34375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -1.8124999999999998,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 23.90625,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.03125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5504,
+    "period_s": 0.4,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": 4.8125,
+    "record_status": "abstained",
+    "abstain_reasons": [
+     "click_grid_not_fitted"
+    ],
+    "offset_estimate_ms": null,
+    "expanded_uncertainty_ms": null,
+    "consistency": "not_available",
+    "phrases": [
+     {
+      "truth_ms": 21.374999999999996,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -21.9375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 1.1875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 22.4375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.78125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -20.1875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5505,
+    "period_s": 0.33707865168539325,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -4.125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -1.4746166429516148,
+    "expanded_uncertainty_ms": 2.470249410378958,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 20.25,
+      "calibrated_ms": 18.545723204112292,
+      "abs_error_ms": 1.7042767958877079,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -11.09375,
+      "calibrated_ms": -11.496766359036576,
+      "abs_error_ms": 0.4030163590365756,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 0.75,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 22.8125,
+      "calibrated_ms": 22.27988456844959,
+      "abs_error_ms": 0.5326154315504112,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -11.9375,
+      "calibrated_ms": -12.03842813933082,
+      "abs_error_ms": 0.10092813933082034,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 0.21874999999999997,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     }
+    ]
+   },
+   {
+    "seed": 5506,
+    "period_s": 0.4,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": 2.3125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 3.124582521194207,
+    "expanded_uncertainty_ms": 3.2582431557892417,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 0.8749999999999999,
+      "calibrated_ms": 1.8972094340253607,
+      "abs_error_ms": 1.0222094340253607,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -3.96875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 13.40625,
+      "calibrated_ms": 11.759780484421924,
+      "abs_error_ms": 1.646469515578076,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -19.875,
+      "calibrated_ms": -18.106225919417483,
+      "abs_error_ms": 1.7687740805825172,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 19.6875,
+      "calibrated_ms": 17.548067224186205,
+      "abs_error_ms": 2.1394327758137948,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -10.468749999999998,
+      "calibrated_ms": -11.784159173741891,
+      "abs_error_ms": 1.3154091737418927,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5507,
+    "period_s": 0.33707865168539325,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -4.1875,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -3.0861051524950653,
+    "expanded_uncertainty_ms": 2.0505559800868527,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 20.75,
+      "calibrated_ms": 20.34210048813555,
+      "abs_error_ms": 0.40789951186444995,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 12.375,
+      "calibrated_ms": 15.470246793394914,
+      "abs_error_ms": 3.0952467933949137,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -22.15625,
+      "calibrated_ms": -20.461392441063943,
+      "abs_error_ms": 1.6948575589360573,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 0.96875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 2.90625,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -14.218749999999998,
+      "calibrated_ms": -13.25048577778999,
+      "abs_error_ms": 0.9682642222100082,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5508,
+    "period_s": 0.6757,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": 1.375,
+    "record_status": "abstained",
+    "abstain_reasons": [
+     "click_grid_not_fitted"
+    ],
+    "offset_estimate_ms": null,
+    "expanded_uncertainty_ms": null,
+    "consistency": "not_available",
+    "phrases": [
+     {
+      "truth_ms": 29.15625,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -28.59375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 12.125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.5625,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 1.28125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -26.21875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     }
+    ]
+   }
+  ],
+  "E2": [
+   {
+    "seed": 5501,
+    "period_s": 0.4,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -2.875,
+    "record_status": "abstained",
+    "abstain_reasons": [
+     "click_grid_not_fitted"
+    ],
+    "offset_estimate_ms": null,
+    "expanded_uncertainty_ms": null,
+    "consistency": "not_available",
+    "phrases": [
+     {
+      "truth_ms": -3.6875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 7.468750000000001,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -27.71875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 12.781250000000002,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.25,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -16.4375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5502,
+    "period_s": 0.4,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": -1.6875,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 2.2659647030654906,
+    "expanded_uncertainty_ms": 3.944299416529173,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": -4.656250000000001,
+      "calibrated_ms": -7.310082752984712,
+      "abs_error_ms": 2.6538327529847114,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 9.937499999999998,
+      "calibrated_ms": 10.349235189071395,
+      "abs_error_ms": 0.41173518907139695,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 13.125,
+      "calibrated_ms": 12.985801510689301,
+      "abs_error_ms": 0.139198489310699,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -16.5,
+      "calibrated_ms": -16.98109649579581,
+      "abs_error_ms": 0.4810964957958106,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.96875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -20.71875,
+      "calibrated_ms": -22.208386357373755,
+      "abs_error_ms": 1.4896363573737545,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5503,
+    "period_s": 0.6757,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": 0.1875,
+    "record_status": "abstained",
+    "abstain_reasons": [
+     "click_grid_not_fitted"
+    ],
+    "offset_estimate_ms": null,
+    "expanded_uncertainty_ms": null,
+    "consistency": "not_available",
+    "phrases": [
+     {
+      "truth_ms": 14.375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -30.71875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -19.34375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -1.8124999999999998,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 23.90625,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.03125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5504,
+    "period_s": 0.4,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": 4.8125,
+    "record_status": "abstained",
+    "abstain_reasons": [
+     "click_grid_not_fitted"
+    ],
+    "offset_estimate_ms": null,
+    "expanded_uncertainty_ms": null,
+    "consistency": "not_available",
+    "phrases": [
+     {
+      "truth_ms": 21.374999999999996,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -21.9375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 1.1875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 22.4375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.78125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -20.1875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5505,
+    "period_s": 0.33707865168539325,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -4.125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -1.473264347375446,
+    "expanded_uncertainty_ms": 2.840647007604887,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 20.25,
+      "calibrated_ms": 18.544370908536123,
+      "abs_error_ms": 1.7056290914638765,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -11.09375,
+      "calibrated_ms": -11.498118654612744,
+      "abs_error_ms": 0.4043686546127443,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 0.75,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 22.8125,
+      "calibrated_ms": 22.27853227287342,
+      "abs_error_ms": 0.5339677271265799,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -11.9375,
+      "calibrated_ms": -12.039780434906989,
+      "abs_error_ms": 0.10228043490698902,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 0.21874999999999997,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     }
+    ]
+   },
+   {
+    "seed": 5506,
+    "period_s": 0.4,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": 2.3125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 3.4500482072520393,
+    "expanded_uncertainty_ms": 3.547018928095803,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 0.8749999999999999,
+      "calibrated_ms": 1.5717437479675285,
+      "abs_error_ms": 0.6967437479675286,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -3.96875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 13.40625,
+      "calibrated_ms": 11.434314798364092,
+      "abs_error_ms": 1.9719352016359082,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -19.875,
+      "calibrated_ms": -18.431691605475315,
+      "abs_error_ms": 1.443308394524685,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 19.6875,
+      "calibrated_ms": 17.222601538128373,
+      "abs_error_ms": 2.464898461871627,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -10.468749999999998,
+      "calibrated_ms": -12.109624859799723,
+      "abs_error_ms": 1.640874859799725,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5507,
+    "period_s": 0.33707865168539325,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -4.1875,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -1.9390140735829418,
+    "expanded_uncertainty_ms": 2.484011416609859,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 20.75,
+      "calibrated_ms": 19.195009409223427,
+      "abs_error_ms": 1.5549905907765726,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 12.375,
+      "calibrated_ms": 14.323155714482791,
+      "abs_error_ms": 1.948155714482791,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -22.15625,
+      "calibrated_ms": -21.608483519976065,
+      "abs_error_ms": 0.5477664800239346,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 0.96875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 2.90625,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": -14.218749999999998,
+      "calibrated_ms": -14.397576856702113,
+      "abs_error_ms": 0.1788268567021145,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5508,
+    "period_s": 0.6757,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": 1.375,
+    "record_status": "abstained",
+    "abstain_reasons": [
+     "click_grid_not_fitted"
+    ],
+    "offset_estimate_ms": null,
+    "expanded_uncertainty_ms": null,
+    "consistency": "not_available",
+    "phrases": [
+     {
+      "truth_ms": 29.15625,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -28.59375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 12.125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.5625,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 1.28125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -26.21875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     }
+    ]
+   }
+  ],
+  "E3": [
+   {
+    "seed": 5501,
+    "period_s": 0.4,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -2.875,
+    "record_status": "abstained",
+    "abstain_reasons": [
+     "click_grid_not_fitted"
+    ],
+    "offset_estimate_ms": null,
+    "expanded_uncertainty_ms": null,
+    "consistency": "not_available",
+    "phrases": [
+     {
+      "truth_ms": -3.6875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 7.468750000000001,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -27.71875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 12.781250000000002,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.25,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -16.4375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5502,
+    "period_s": 0.4,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": -1.6875,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 1.537729462677588,
+    "expanded_uncertainty_ms": 3.6869458787160507,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": -4.656250000000001,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     },
+     {
+      "truth_ms": 9.937499999999998,
+      "calibrated_ms": 13.462270537331863,
+      "abs_error_ms": 3.5247705373318645,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 13.125,
+      "calibrated_ms": 18.46227053732909,
+      "abs_error_ms": 5.33727053732909,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -16.5,
+      "calibrated_ms": -11.537729462672045,
+      "abs_error_ms": 4.962270537327955,
+      "covered": false,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.96875,
+      "calibrated_ms": 3.46227053732497,
+      "abs_error_ms": 4.4310205373249705,
+      "covered": false,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -20.71875,
+      "calibrated_ms": -16.53772946267638,
+      "abs_error_ms": 4.181020537323619,
+      "covered": false,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5503,
+    "period_s": 0.6757,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": 0.1875,
+    "record_status": "abstained",
+    "abstain_reasons": [
+     "click_grid_not_fitted"
+    ],
+    "offset_estimate_ms": null,
+    "expanded_uncertainty_ms": null,
+    "consistency": "not_available",
+    "phrases": [
+     {
+      "truth_ms": 14.375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -30.71875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -19.34375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -1.8124999999999998,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 23.90625,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.03125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5504,
+    "period_s": 0.4,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": 4.8125,
+    "record_status": "abstained",
+    "abstain_reasons": [
+     "click_grid_not_fitted"
+    ],
+    "offset_estimate_ms": null,
+    "expanded_uncertainty_ms": null,
+    "consistency": "not_available",
+    "phrases": [
+     {
+      "truth_ms": 21.374999999999996,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -21.9375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 1.1875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 22.4375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.78125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -20.1875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5505,
+    "period_s": 0.33707865168539325,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -4.125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -1.4746166429516148,
+    "expanded_uncertainty_ms": 2.470249410378958,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 20.25,
+      "calibrated_ms": 23.333707213147534,
+      "abs_error_ms": 3.083707213147534,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -11.09375,
+      "calibrated_ms": -6.763176286110179,
+      "abs_error_ms": 4.330573713889821,
+      "covered": false,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 0.75,
+      "calibrated_ms": 5.381309473698797,
+      "abs_error_ms": 4.631309473698797,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 22.8125,
+      "calibrated_ms": 23.543779889567958,
+      "abs_error_ms": 0.7312798895679578,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -11.9375,
+      "calibrated_ms": -8.103976172938404,
+      "abs_error_ms": 3.8335238270615957,
+      "covered": false,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 0.21874999999999997,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "phrase_abstained",
+      "withheld_basis": "onset_median_coincides_with_click_self_detection"
+     }
+    ]
+   },
+   {
+    "seed": 5506,
+    "period_s": 0.4,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": 2.3125,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": 3.124582521194207,
+    "expanded_uncertainty_ms": 3.2582431557892417,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 0.8749999999999999,
+      "calibrated_ms": 6.87541747881646,
+      "abs_error_ms": 6.00041747881646,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -3.96875,
+      "calibrated_ms": -0.6245825211853786,
+      "abs_error_ms": 3.3441674788146214,
+      "covered": true,
+      "direction": "within_uncertainty",
+      "direction_status": "within_uncertainty",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 13.40625,
+      "calibrated_ms": 16.87541747881336,
+      "abs_error_ms": 3.469167478813361,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -19.875,
+      "calibrated_ms": -18.12458252118767,
+      "abs_error_ms": 1.7504174788123308,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 19.6875,
+      "calibrated_ms": 16.875417478807144,
+      "abs_error_ms": 2.812082521192856,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -10.468749999999998,
+      "calibrated_ms": -8.124582521193211,
+      "abs_error_ms": 2.3441674788067868,
+      "covered": true,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5507,
+    "period_s": 0.33707865168539325,
+    "click_model": "click_3500hz_exp",
+    "path_delay_ms_true": -4.1875,
+    "record_status": "calibrated",
+    "abstain_reasons": [],
+    "offset_estimate_ms": -3.0861051524950653,
+    "expanded_uncertainty_ms": 2.0505559800868527,
+    "consistency": "passed",
+    "phrases": [
+     {
+      "truth_ms": 20.75,
+      "calibrated_ms": 24.94503201368502,
+      "abs_error_ms": 4.195032013685019,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 12.375,
+      "calibrated_ms": 18.04855316951558,
+      "abs_error_ms": 5.6735531695155785,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -22.15625,
+      "calibrated_ms": -16.810629798607714,
+      "abs_error_ms": 5.345620201392286,
+      "covered": false,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 0.96875,
+      "calibrated_ms": 5.98817972736375,
+      "abs_error_ms": 5.01942972736375,
+      "covered": true,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 2.90625,
+      "calibrated_ms": 7.341056274104517,
+      "abs_error_ms": 4.434806274104517,
+      "covered": false,
+      "direction": "behind_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -14.218749999999998,
+      "calibrated_ms": -8.231495189902972,
+      "abs_error_ms": 5.987254810097026,
+      "covered": false,
+      "direction": "ahead_of_click",
+      "direction_status": "calibrated_direction",
+      "withheld_basis": null
+     }
+    ]
+   },
+   {
+    "seed": 5508,
+    "period_s": 0.6757,
+    "click_model": "mechanical_wood_click",
+    "path_delay_ms_true": 1.375,
+    "record_status": "abstained",
+    "abstain_reasons": [
+     "click_grid_not_fitted"
+    ],
+    "offset_estimate_ms": null,
+    "expanded_uncertainty_ms": null,
+    "consistency": "not_available",
+    "phrases": [
+     {
+      "truth_ms": 29.15625,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -28.59375,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 12.125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -0.5625,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": 1.28125,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     },
+     {
+      "truth_ms": -26.21875,
+      "calibrated_ms": null,
+      "abs_error_ms": null,
+      "covered": null,
+      "direction": null,
+      "direction_status": "calibration_abstained",
+      "withheld_basis": null
+     }
+    ]
+   }
+  ]
+ },
+ "real_take_processed": false,
+ "real_take_direction": "not_claimed_by_lane",
+ "default_adoption": false
+}
