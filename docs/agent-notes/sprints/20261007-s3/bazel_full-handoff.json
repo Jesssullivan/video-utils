@@ -1,0 +1,140 @@
+{
+ "schema": "vu.bazel_full.handoff.v1",
+ "lane": "bazel_full",
+ "sprint": "20261007-s3",
+ "tracker": "TIN-5722",
+ "recorded": "2026-10-07",
+ "authority": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N13",
+ "contract": "docs/spec/sprints/BAZEL_FULL_S3.md",
+ "contract_commit": "7441e1c089706ef1fb67d1bced95d3738ce1a414",
+ "baseline": "549a14dea88f6b7951a81f2c2fa0718cb83a1c21",
+ "branch": "sprint/20261007-s3/bazel_full",
+ "commits": {
+  "full_run_head": "30477904e5323693349936ffb7a20020a54357ec",
+  "diagnostic_run_head": "3b0b5973399a0b64fd89652ef6016483f1b9a153",
+  "final": "see `git log` on the branch; the receipt commit cannot name its own sha"
+ },
+ "full_run_status": "ran_complete",
+ "full_run_exit": 3,
+ "full_run_wall_s": 2934,
+ "full_run_command": "python3 tools/bazel/run.py --timeout 7200 test //... --config=host-tools --jobs=4 --local_resources=cpu=4 --test_env=FFMPEG=<nix ffmpeg-headless 8.1.2> --test_env=FFPROBE=<nix ffprobe> --test_output=errors --test_summary=detailed --keep_going --build_event_json_file=<lane artifacts>/full/bep.json",
+ "test_targets_total": 104,
+ "test_targets_total_after_root_R1_R3": 105,
+ "python_modules_total": 98,
+ "passed": 94,
+ "failed": 9,
+ "timeout": 1,
+ "flaky": 0,
+ "no_status": 0,
+ "not_run": 0,
+ "python_cases": {
+  "ran": 1814,
+  "skipped": 121,
+  "failures": 3,
+  "errors": 18,
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "parsed_modules": 97,
+  "unparsed_modules": [
+   "//tests:test_timecode (TIMEOUT)"
+  ]
+ },
+ "ffmpeg_modules_run_with_ffmpeg": "18 of 18",
+ "ffmpeg_modules_all_cases_skipped": [],
+ "known_host_failures": {
+  "count": 10,
+  "cases": [
+   "test_arrangement_reference_tool.ArrangementToolTests.test_real_stdio_assessment_preserves_intent_nulls_and_native_hashes",
+   "test_arrangement_reference_tool.ArrangementToolTests.test_real_stdio_stale_lineage_and_changed_pcm_reject_without_output",
+   "test_capture_application_tool.ApplicationToolTests.test_real_initialized_mcp_wrong_pin_fails_before_media",
+   "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_mcp_preserves_octave_failure_and_inputs",
+   "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_stale_raw_retains_structural_receipt",
+   "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_unsupported_claim_keeps_metrics_and_fails",
+   "test_tool_contracts.ToolContractTests.test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate",
+   "test_tool_contracts.ToolContractTests.test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure",
+   "test_learned_pitch_pilot.ControllerTests.test_failed_leader_cleans_owned_live_descendant",
+   "test_phrase_localization_pilot.InertOrchestrationTests.test_owned_exited_leader_live_inert_child_cleanup"
+  ]
+ },
+ "bazel_only_failures": {
+  "count": 11,
+  "cases": [
+   "test_capture_application_adapter.AdapterTests.test_actual_mcp_recorded_orphan_that_moves_session_remains_unknown",
+   "test_share_export_audit.SharePublicationAudit.test_inner_owned_deadline_reaps_inert_same_session_child_and_retains_logs",
+   "test_sprint1_audit.AnnotationRefusalAudit.test_cli_metadata_is_bounded_before_session_loading",
+   "test_sprint1_audit.AnnotationRefusalAudit.test_cli_unknown_source_clock_cannot_author_annotations",
+   "test_sprint1_audit.AnnotationRefusalAudit.test_fifo_read_is_bounded_and_refused",
+   "test_sprint1_audit.PracticeSourceClockAudit.test_claim_labels_remain_four_distinct_evidence_bases",
+   "test_sprint1_audit.PracticeSourceClockAudit.test_point_display_dwell_does_not_invent_extent_or_late_endpoint",
+   "test_sprint1_audit.PracticeSourceClockAudit.test_role_switch_rechecks_loop_and_unknown_duration_abstains",
+   "test_sprint1_audit.PracticeSourceClockAudit.test_source_seek_uses_audio_origin_and_never_autoplays",
+   "test_sprint1_audit.PracticeSourceClockAudit.test_unreachable_audio_loop_is_refused_without_rewriting_span",
+   "test_timecode (module; TIMEOUT at the moderate 600 s bound, no per-case log)"
+  ],
+  "cause": "host load (inference; each passes under plain unittest and in a low-load diagnostic Bazel run)"
+ },
+ "unexplained_failures": {
+  "count": 0,
+  "cases": []
+ },
+ "graph_defects_fixed": [
+  "//web:svelte_check_test: web/tests/** added to app_srcs (failed in the full run, PASSED in the diagnostic run)"
+ ],
+ "dot_local_verdict": "product_defect",
+ "dot_local_raising_line": "scripts/tool_api.py:703 (calibration), :634 (arrangement_reference), :627 (apply_capture_profile)",
+ "dot_local_fix_requested": true,
+ "macos_process_cases_baseline_repro": "reproduced",
+ "predictions": {
+  "calibration_dot_local_5": "reproduced, plus 3 unpredicted cases of the same guard family",
+  "macos_process_2": "reproduced (2 of 2)"
+ },
+ "site_check_under_bazel": "built_in_scratch_copy",
+ "site_build_under_bazel": "built_in_scratch_copy",
+ "site_vendor_carrier_method": "9.3 option 1 with root request R2 (.bazelignore exposes the carrier packages); options 1-as-frozen and 2 failed with recorded errors",
+ "site_allow_builds_method": "9.2(b) root request R1; committed tree gated (R3 removes the gate)",
+ "site_build_parity_with_pnpm": "not_compared",
+ "mod_graph_exit": 0,
+ "lockfile_mode_error_exit": 0,
+ "mod_graph_vs_baseline": "identical dependency tree; MODULE.bazel.lock byte-identical to the baseline and to the post-R1-R3 scratch state (mod graph 0, lockfile_mode=error 0 there too)",
+ "new_bazel_deps": [],
+ "new_extension_repos": [
+  "npm_site (dev-dependency usage; dropped while gated)"
+ ],
+ "npm_archives_fetched_for_site": {
+  "count": 135,
+  "bytes": 31156050,
+  "network_vs_cache": "unknown"
+ },
+ "registries_used": "2 of 2 pinned (tinyland-inc/bazel-registry@8d3e5407..., bcr.bazel.build), 0 others",
+ "linux_behaviour": "unknown",
+ "ci_bazel_job": "requested_not_applied",
+ "ci_expected_runtime_min": "cold 30-50, warm 15-25 (inference); timeout-minutes 90",
+ "host_load_gate_waits": {
+  "count": 4,
+  "longest_s": 1201.5
+ },
+ "remote_cache": "not_configured",
+ "listening_claims": "none",
+ "signal_path_changed": false,
+ "bazel_replaces_just": false,
+ "root_owned_files_changed": 0,
+ "bazel_dir_vs_tools_bazel": "bazel/ read literally (new top-level package); tools/bazel/* reused unchanged; no tools/bazel change requested",
+ "doctrine_note": "No DSP, detector, profile, master or media output is touched; the ~32 Hz / no-blanket-high-pass / no-mains-notch doctrine is preserved by construction and no audio, note-correctness or listening result is asserted. No default is adopted.",
+ "root_actions": [
+  "apply R1+R2+R3 together (site allowBuilds, .bazelignore carriers, remove the .bazelrc gate), then run test_bazel_graph_s3 and `just bazel-site`",
+  "apply R6 (tool_api.py guard) and consider the suggested regression case",
+  "decide R4 (hosted bazel job) and pin actions/cache if wanted",
+  "note R5 (public_site `bazel_graph: absent` now stale)",
+  "run the accepted gates (just check, just test, just test-rust, pnpm build)"
+ ],
+ "receipts": [
+  "bazel_full-contract-freeze.json",
+  "bazel_full-host-gate.json",
+  "bazel_full-full-run.json",
+  "bazel_full-known-host-failures.json",
+  "bazel_full-site.json",
+  "bazel_full-tests.json",
+  "bazel_full-root-requests.json",
+  "bazel_full-handoff.json"
+ ]
+}

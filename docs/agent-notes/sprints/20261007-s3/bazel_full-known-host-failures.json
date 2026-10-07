@@ -1,0 +1,320 @@
+{
+ "lane": "bazel_full",
+ "sprint": "20261007-s3",
+ "tracker": "TIN-5722",
+ "recorded": "2026-10-07",
+ "authority": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N13",
+ "contract": "docs/spec/sprints/BAZEL_FULL_S3.md",
+ "schema": "vu.bazel_full.known_host_failures_receipt.v1",
+ "mirror_of": "bazel/known_host_failures.json",
+ "register": {
+  "schema": "vu.bazel_full.known_host_failures.v1",
+  "lane": "bazel_full",
+  "recorded": "2026-10-07",
+  "purpose": "Documentation only (contract section 7): every case that failed in the single full `bazel test //...` run and also fails under plain unittest on this host. No BUILD, .bzl, shim or config reads this file; nothing is skipped, expected-failed or filtered because of it.",
+  "full_run": "docs/agent-notes/sprints/20261007-s3/bazel_full-full-run.json",
+  "entries": [
+   {
+    "case": "test_arrangement_reference_tool.ArrangementToolTests.test_real_stdio_assessment_preserves_intent_nulls_and_native_hashes",
+    "target": "//tests:test_arrangement_reference_tool",
+    "class": "dot_path_component",
+    "bazel_outcome": "ERROR",
+    "first_error_line": "KeyError: 'result'",
+    "plain_unittest_repro": {
+     "command": "PYTHONPATH=tests python3 -m unittest test_arrangement_reference_tool.ArrangementToolTests.test_real_stdio_assessment_preserves_intent_nulls_and_native_hashes -v",
+     "cwd": "<worktree> /Users/jess/git/video-utils/.local/sprint3/bazel_full",
+     "outcome": "ERROR",
+     "load1_at_start": 22.0
+    },
+    "control_repro": {
+     "path_kind": "dot_free_copy",
+     "cwd": "session scratchpad (git archive of lane HEAD; no dot-prefixed component)",
+     "outcome": "PASS"
+    },
+    "baseline_repro": null,
+    "cause": "M: validate_tool_arguments inspects every component of the absolute path the test builds from ROOT, so the worktree's own '.local' prefix is refused at scripts/tool_api.py:634 raise ValidationError('arrangement inputs require exact safe local paths'); the MCP reply is an error without 'result', hence the KeyError. Same case passes from a dot-free copy and from a dot-path copy carrying the requested fix (R6).",
+    "claim_class": "M",
+    "requested_fix_repro": {
+     "path_kind": "dot_path_copy (component '.dotted') + R6 tool_api.py diff",
+     "outcome": "PASS"
+    },
+    "baseline_repro_reason": "not run: the class is a checkout-location property, shown by the dot-free control"
+   },
+   {
+    "case": "test_arrangement_reference_tool.ArrangementToolTests.test_real_stdio_stale_lineage_and_changed_pcm_reject_without_output",
+    "target": "//tests:test_arrangement_reference_tool",
+    "class": "dot_path_component",
+    "bazel_outcome": "ERROR",
+    "first_error_line": "KeyError: 'result'",
+    "plain_unittest_repro": {
+     "command": "PYTHONPATH=tests python3 -m unittest test_arrangement_reference_tool.ArrangementToolTests.test_real_stdio_stale_lineage_and_changed_pcm_reject_without_output -v",
+     "cwd": "<worktree> /Users/jess/git/video-utils/.local/sprint3/bazel_full",
+     "outcome": "ERROR",
+     "load1_at_start": 22.0
+    },
+    "control_repro": {
+     "path_kind": "dot_free_copy",
+     "cwd": "session scratchpad (git archive of lane HEAD; no dot-prefixed component)",
+     "outcome": "PASS"
+    },
+    "baseline_repro": null,
+    "cause": "M: validate_tool_arguments inspects every component of the absolute path the test builds from ROOT, so the worktree's own '.local' prefix is refused at scripts/tool_api.py:634 raise ValidationError('arrangement inputs require exact safe local paths'); the MCP reply is an error without 'result', hence the KeyError. Same case passes from a dot-free copy and from a dot-path copy carrying the requested fix (R6).",
+    "claim_class": "M",
+    "requested_fix_repro": {
+     "path_kind": "dot_path_copy (component '.dotted') + R6 tool_api.py diff",
+     "outcome": "PASS"
+    },
+    "baseline_repro_reason": "not run: the class is a checkout-location property, shown by the dot-free control"
+   },
+   {
+    "case": "test_capture_application_tool.ApplicationToolTests.test_real_initialized_mcp_wrong_pin_fails_before_media",
+    "target": "//tests:test_capture_application_tool",
+    "class": "dot_path_component",
+    "bazel_outcome": "ERROR",
+    "first_error_line": "KeyError: 'result'",
+    "plain_unittest_repro": {
+     "command": "PYTHONPATH=tests python3 -m unittest test_capture_application_tool.ApplicationToolTests.test_real_initialized_mcp_wrong_pin_fails_before_media -v",
+     "cwd": "<worktree> /Users/jess/git/video-utils/.local/sprint3/bazel_full",
+     "outcome": "ERROR",
+     "load1_at_start": 19.5
+    },
+    "control_repro": {
+     "path_kind": "dot_free_copy",
+     "cwd": "session scratchpad (git archive of lane HEAD; no dot-prefixed component)",
+     "outcome": "PASS"
+    },
+    "baseline_repro": null,
+    "cause": "M: validate_tool_arguments inspects every component of the absolute path the test builds from ROOT, so the worktree's own '.local' prefix is refused at scripts/tool_api.py:627 raise ValidationError('capture application requires exact local paths without traversal/NUL/URL'); the MCP reply is an error without 'result', hence the KeyError. Same case passes from a dot-free copy and from a dot-path copy carrying the requested fix (R6).",
+    "claim_class": "M",
+    "requested_fix_repro": {
+     "path_kind": "dot_path_copy (component '.dotted') + R6 tool_api.py diff",
+     "outcome": "PASS"
+    },
+    "baseline_repro_reason": "not run: the class is a checkout-location property, shown by the dot-free control"
+   },
+   {
+    "case": "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_mcp_preserves_octave_failure_and_inputs",
+    "target": "//tests:test_tool_contracts",
+    "class": "dot_path_component",
+    "bazel_outcome": "ERROR",
+    "first_error_line": "KeyError: 'result'",
+    "plain_unittest_repro": {
+     "command": "PYTHONPATH=tests python3 -m unittest test_tool_contracts.ToolContractTests.test_real_learned_evaluator_mcp_preserves_octave_failure_and_inputs -v",
+     "cwd": "<worktree> /Users/jess/git/video-utils/.local/sprint3/bazel_full",
+     "outcome": "ERROR",
+     "load1_at_start": 19.3
+    },
+    "control_repro": {
+     "path_kind": "dot_free_copy",
+     "cwd": "session scratchpad (git archive of lane HEAD; no dot-prefixed component)",
+     "outcome": "PASS"
+    },
+    "baseline_repro": null,
+    "cause": "M: validate_tool_arguments inspects every component of the absolute path the test builds from ROOT, so the worktree's own '.local' prefix is refused at scripts/tool_api.py:703 (calibration: learned_pitch_evaluate / phrase_evaluate / pitch_evaluate) raise ValidationError('calibration paths require exact JSON indices and a fresh safe local output path'); the MCP reply is an error without 'result', hence the KeyError. Same case passes from a dot-free copy and from a dot-path copy carrying the requested fix (R6).",
+    "claim_class": "M",
+    "requested_fix_repro": {
+     "path_kind": "dot_path_copy (component '.dotted') + R6 tool_api.py diff",
+     "outcome": "PASS"
+    },
+    "baseline_repro_reason": "not run: the class is a checkout-location property, shown by the dot-free control"
+   },
+   {
+    "case": "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_stale_raw_retains_structural_receipt",
+    "target": "//tests:test_tool_contracts",
+    "class": "dot_path_component",
+    "bazel_outcome": "ERROR",
+    "first_error_line": "KeyError: 'result'",
+    "plain_unittest_repro": {
+     "command": "PYTHONPATH=tests python3 -m unittest test_tool_contracts.ToolContractTests.test_real_learned_evaluator_stale_raw_retains_structural_receipt -v",
+     "cwd": "<worktree> /Users/jess/git/video-utils/.local/sprint3/bazel_full",
+     "outcome": "ERROR",
+     "load1_at_start": 18.1
+    },
+    "control_repro": {
+     "path_kind": "dot_free_copy",
+     "cwd": "session scratchpad (git archive of lane HEAD; no dot-prefixed component)",
+     "outcome": "PASS"
+    },
+    "baseline_repro": null,
+    "cause": "M: validate_tool_arguments inspects every component of the absolute path the test builds from ROOT, so the worktree's own '.local' prefix is refused at scripts/tool_api.py:703 (calibration: learned_pitch_evaluate / phrase_evaluate / pitch_evaluate) raise ValidationError('calibration paths require exact JSON indices and a fresh safe local output path'); the MCP reply is an error without 'result', hence the KeyError. Same case passes from a dot-free copy and from a dot-path copy carrying the requested fix (R6).",
+    "claim_class": "M",
+    "requested_fix_repro": {
+     "path_kind": "dot_path_copy (component '.dotted') + R6 tool_api.py diff",
+     "outcome": "PASS"
+    },
+    "baseline_repro_reason": "not run: the class is a checkout-location property, shown by the dot-free control"
+   },
+   {
+    "case": "test_tool_contracts.ToolContractTests.test_real_learned_evaluator_unsupported_claim_keeps_metrics_and_fails",
+    "target": "//tests:test_tool_contracts",
+    "class": "dot_path_component",
+    "bazel_outcome": "ERROR",
+    "first_error_line": "KeyError: 'result'",
+    "plain_unittest_repro": {
+     "command": "PYTHONPATH=tests python3 -m unittest test_tool_contracts.ToolContractTests.test_real_learned_evaluator_unsupported_claim_keeps_metrics_and_fails -v",
+     "cwd": "<worktree> /Users/jess/git/video-utils/.local/sprint3/bazel_full",
+     "outcome": "ERROR",
+     "load1_at_start": 18.1
+    },
+    "control_repro": {
+     "path_kind": "dot_free_copy",
+     "cwd": "session scratchpad (git archive of lane HEAD; no dot-prefixed component)",
+     "outcome": "PASS"
+    },
+    "baseline_repro": null,
+    "cause": "M: validate_tool_arguments inspects every component of the absolute path the test builds from ROOT, so the worktree's own '.local' prefix is refused at scripts/tool_api.py:703 (calibration: learned_pitch_evaluate / phrase_evaluate / pitch_evaluate) raise ValidationError('calibration paths require exact JSON indices and a fresh safe local output path'); the MCP reply is an error without 'result', hence the KeyError. Same case passes from a dot-free copy and from a dot-path copy carrying the requested fix (R6).",
+    "claim_class": "M",
+    "requested_fix_repro": {
+     "path_kind": "dot_path_copy (component '.dotted') + R6 tool_api.py diff",
+     "outcome": "PASS"
+    },
+    "baseline_repro_reason": "not run: the class is a checkout-location property, shown by the dot-free control"
+   },
+   {
+    "case": "test_tool_contracts.ToolContractTests.test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate",
+    "target": "//tests:test_tool_contracts",
+    "class": "dot_path_component",
+    "bazel_outcome": "ERROR",
+    "first_error_line": "KeyError: 'result'",
+    "plain_unittest_repro": {
+     "command": "PYTHONPATH=tests python3 -m unittest test_tool_contracts.ToolContractTests.test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate -v",
+     "cwd": "<worktree> /Users/jess/git/video-utils/.local/sprint3/bazel_full",
+     "outcome": "ERROR",
+     "load1_at_start": 16.9
+    },
+    "control_repro": {
+     "path_kind": "dot_free_copy",
+     "cwd": "session scratchpad (git archive of lane HEAD; no dot-prefixed component)",
+     "outcome": "PASS"
+    },
+    "baseline_repro": null,
+    "cause": "M: validate_tool_arguments inspects every component of the absolute path the test builds from ROOT, so the worktree's own '.local' prefix is refused at scripts/tool_api.py:703 (calibration: learned_pitch_evaluate / phrase_evaluate / pitch_evaluate) raise ValidationError('calibration paths require exact JSON indices and a fresh safe local output path'); the MCP reply is an error without 'result', hence the KeyError. Same case passes from a dot-free copy and from a dot-path copy carrying the requested fix (R6).",
+    "claim_class": "M",
+    "requested_fix_repro": {
+     "path_kind": "dot_path_copy (component '.dotted') + R6 tool_api.py diff",
+     "outcome": "PASS"
+    },
+    "baseline_repro_reason": "not run: the class is a checkout-location property, shown by the dot-free control"
+   },
+   {
+    "case": "test_tool_contracts.ToolContractTests.test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure",
+    "target": "//tests:test_tool_contracts",
+    "class": "dot_path_component",
+    "bazel_outcome": "ERROR",
+    "first_error_line": "KeyError: 'result'",
+    "plain_unittest_repro": {
+     "command": "PYTHONPATH=tests python3 -m unittest test_tool_contracts.ToolContractTests.test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure -v",
+     "cwd": "<worktree> /Users/jess/git/video-utils/.local/sprint3/bazel_full",
+     "outcome": "ERROR",
+     "load1_at_start": 16.9
+    },
+    "control_repro": {
+     "path_kind": "dot_free_copy",
+     "cwd": "session scratchpad (git archive of lane HEAD; no dot-prefixed component)",
+     "outcome": "PASS"
+    },
+    "baseline_repro": null,
+    "cause": "M: validate_tool_arguments inspects every component of the absolute path the test builds from ROOT, so the worktree's own '.local' prefix is refused at scripts/tool_api.py:703 (calibration: learned_pitch_evaluate / phrase_evaluate / pitch_evaluate) raise ValidationError('calibration paths require exact JSON indices and a fresh safe local output path'); the MCP reply is an error without 'result', hence the KeyError. Same case passes from a dot-free copy and from a dot-path copy carrying the requested fix (R6).",
+    "claim_class": "M",
+    "requested_fix_repro": {
+     "path_kind": "dot_path_copy (component '.dotted') + R6 tool_api.py diff",
+     "outcome": "PASS"
+    },
+    "baseline_repro_reason": "not run: the class is a checkout-location property, shown by the dot-free control"
+   },
+   {
+    "case": "test_learned_pitch_pilot.ControllerTests.test_failed_leader_cleans_owned_live_descendant",
+    "target": "//tests:test_learned_pitch_pilot",
+    "class": "macos_process_inspection",
+    "bazel_outcome": "FAIL",
+    "first_error_line": "AssertionError: 'already exited' != 'signalled and reaped'",
+    "plain_unittest_repro": {
+     "command": "PYTHONPATH=tests python3 -m unittest test_learned_pitch_pilot.ControllerTests.test_failed_leader_cleans_owned_live_descendant -v",
+     "cwd": "<worktree> /Users/jess/git/video-utils/.local/sprint3/bazel_full",
+     "outcome": "FAIL",
+     "load1_at_start": 19.5
+    },
+    "control_repro": {
+     "path_kind": "dot_free_copy",
+     "cwd": "session scratchpad (git archive of lane HEAD; no dot-prefixed component)",
+     "outcome": "FAIL"
+    },
+    "baseline_repro": {
+     "commit": "a16d02d",
+     "path_kind": "dot_free_copy",
+     "outcome": "FAIL"
+    },
+    "cause": "I: the case expects an exited leader's live same-session descendant to be found and signalled; on this macOS host the inspection reports it already exited / finds no member, in every location tried (worktree, dot-free copy, baseline a16d02d), so it is location- and Bazel-independent; the precise kernel/session cause was not isolated.",
+    "claim_class": "I"
+   },
+   {
+    "case": "test_phrase_localization_pilot.InertOrchestrationTests.test_owned_exited_leader_live_inert_child_cleanup",
+    "target": "//tests:test_phrase_localization_pilot",
+    "class": "macos_process_inspection",
+    "bazel_outcome": "FAIL",
+    "first_error_line": "AssertionError: [] is not true",
+    "plain_unittest_repro": {
+     "command": "PYTHONPATH=tests python3 -m unittest test_phrase_localization_pilot.InertOrchestrationTests.test_owned_exited_leader_live_inert_child_cleanup -v",
+     "cwd": "<worktree> /Users/jess/git/video-utils/.local/sprint3/bazel_full",
+     "outcome": "FAIL",
+     "load1_at_start": 19.5
+    },
+    "control_repro": {
+     "path_kind": "dot_free_copy",
+     "cwd": "session scratchpad (git archive of lane HEAD; no dot-prefixed component)",
+     "outcome": "FAIL"
+    },
+    "baseline_repro": {
+     "commit": "a16d02d",
+     "path_kind": "dot_free_copy",
+     "outcome": "FAIL"
+    },
+    "cause": "I: the case expects an exited leader's live same-session descendant to be found and signalled; on this macOS host the inspection reports it already exited / finds no member, in every location tried (worktree, dot-free copy, baseline a16d02d), so it is location- and Bazel-independent; the precise kernel/session cause was not isolated.",
+    "claim_class": "I"
+   }
+  ],
+  "predictions_vs_observed": [
+   {
+    "prediction": "root relayed: 5 calibration-evaluator tests error when the path contains '.local'",
+    "evidence": "reproduced as 5 test_tool_contracts cases (3 learned_pitch_evaluate, 1 phrase_evaluate, 1 pitch_evaluate); the same guard family also fails 3 further cases (test_arrangement_reference_tool 2, test_capture_application_tool 1) that the prediction did not name. test_calibration_pilot itself passes in the worktree (10 of 10).",
+    "observed": "reproduced (5 named) plus 3 unpredicted cases of the same class"
+   },
+   {
+    "prediction": "root relayed: 2 macOS process-inspection tests fail at baseline a16d02d",
+    "evidence": "reproduced: exactly 2 cases (test_learned_pitch_pilot, test_phrase_localization_pilot) fail in the worktree, a dot-free copy and a dot-free a16d02d copy. Two further process-related cases that failed under Bazel (test_capture_application_adapter, test_share_export_audit) pass under plain unittest and are not in this register (bazel_full-full-run.json bazel_only_failures).",
+    "observed": "reproduced (2 of 2)"
+   }
+  ],
+  "not_reproduced": []
+ },
+ "dot_local_verdict": "product_defect",
+ "dot_local_raising_line": [
+  "scripts/tool_api.py:703",
+  "scripts/tool_api.py:634",
+  "scripts/tool_api.py:627"
+ ],
+ "dot_local_rationale": "I: the guards apply the hidden-component check to the whole absolute path, including the checkout's own location; the identical request below ROOT is accepted from a dot-free copy and refused from the .local worktree (probe M), and calibration_path() already confines these paths beneath ROOT/artifacts/benchmarks",
+ "dot_local_fix_requested": true,
+ "dot_local_fix": "bazel_full-root-requests.json R6",
+ "dot_local_probe": {
+  "worktree": {
+   "phrase_evaluate": "REFUSED tool_api.py:703",
+   "learned_pitch_evaluate": "REFUSED tool_api.py:703",
+   "arrangement_reference": "REFUSED tool_api.py:634",
+   "apply_capture_profile": "REFUSED tool_api.py:627"
+  },
+  "dot_free_copy": "all 4 ACCEPTED",
+  "dot_path_copy_with_R6": {
+   "all 4": "ACCEPTED",
+   "still_refused": [
+    "<ROOT>/artifacts/benchmarks/.hidden/i.json",
+    "<ROOT>/artifacts/benchmarks/../x.json",
+    "/elsewhere/.local/x.json",
+    "artifacts/benchmarks/.x/i.json"
+   ]
+  },
+  "claim_class": "M"
+ },
+ "macos_process_cases_baseline_repro": "reproduced",
+ "reproductions": "artifacts/s2/bazel_full/repro/repro.jsonl (45 rows; gitignored)"
+}

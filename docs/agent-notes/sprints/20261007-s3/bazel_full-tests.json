@@ -1,0 +1,55 @@
+{
+ "lane": "bazel_full",
+ "sprint": "20261007-s3",
+ "tracker": "TIN-5722",
+ "recorded": "2026-10-07",
+ "authority": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43), R-N13",
+ "contract": "docs/spec/sprints/BAZEL_FULL_S3.md",
+ "schema": "vu.bazel_full.tests.v1",
+ "runs": [
+  {
+   "command": "PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v",
+   "cwd": "lane worktree",
+   "ran": 50,
+   "skipped": 1,
+   "skip_reason": "marker case: selected by the shim self-check below",
+   "result": "OK"
+  },
+  {
+   "command": "PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v",
+   "cwd": "scratch copy with R1+R2+R3 applied (not a git checkout)",
+   "ran": 50,
+   "skipped": 2,
+   "result": "OK"
+  },
+  {
+   "command": "PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v",
+   "cwd": "lane worktree",
+   "ran": 63,
+   "skipped": 15,
+   "skip_reasons": {
+    "site/node_modules is absent; run `pnpm install --frozen-lockfile` in site/ first (never run by tests)": 14,
+    "private app hostname is null in deploy/cloudflare (private_app_hostname_checked: false)": 1
+   },
+   "result": "OK"
+  },
+  {
+   "command": "PYTHONPATH=tests python3 -m unittest test_web_stack -v",
+   "cwd": "lane worktree",
+   "ran": 33,
+   "skipped": 0,
+   "result": "OK"
+  }
+ ],
+ "structural_additions": [
+  "SiteGraphTest (5)",
+  "RegisterTest (3)",
+  "LaneHelperTest (3)",
+  "CoverageTest supplement case",
+  "NegativeSelfChecks: bazel_full negatives (third translation, Effect 3 / Skeleton 4 site lock, local_path_override outside site/vendor, missing known-failure case, PASS repro, manual tag, expectedFailure in shim, default tag filter, private needle in site/BUILD.bazel), site gate inconsistencies, vendored stray-file states"
+ ],
+ "fixtures": "repository tree; synthetic BEP/unittest logs and gate readings in temp dirs; no media, no seeds, no network",
+ "just_check": "unknown (root runs it)",
+ "full_unittest_suite": "unknown (root runs it)",
+ "pnpm_build": "unknown (root runs it)"
+}
