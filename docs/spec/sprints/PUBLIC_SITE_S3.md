@@ -580,3 +580,57 @@ scores, and nothing is tuned. `preregistered: false`. The only frozen-in-advance
 decisions are the consumption ladder (section 4.2), the rule list (section 6.2)
 and the metric targets (section 7), all sealed by this commit before any
 install or build.
+
+## 13. Phase 2 implementation record (appended 2026-10-07; sections 1 to 12 are unchanged)
+
+Implemented as frozen. Measured results and their denominators are in
+`docs/agent-notes/sprints/20261007-s3/public_site-build.json`,
+`public_site-leak-scan.json` and `public_site-tests.json`. Nothing was deployed.
+
+Outcome of the two things section 3 left unknown:
+
+- The three public release archives downloaded anonymously (HTTP 200, no
+  credentials) and each matched its registry integrity value. The template
+  archive sha256 was recomputed and matches the registry plan; the template
+  archive itself is not vendored.
+- Chrome 0.1.0 and theme 0.1.1 pass `check` and `build` at the section 4 pins
+  with zero edits. **Rung A** was used. Per-file digests are in
+  `site/vendor/PROVENANCE.json` and the lane test recomputes them.
+
+Lock-time resolutions (section 4.1): `@lucide/svelte` `1.28.0` and
+`@fontsource/inter` `5.3.0`, the versions the public template's own lockfile
+resolves.
+
+Deviations from the frozen text, each recorded in the build receipt:
+
+1. Package-manager settings live in `site/pnpm-workspace.yaml`, because pnpm 11
+   reads them there and not from a `pnpm` key in `package.json`. No dependency
+   needed a build-script approval, so no built-dependency list exists.
+2. `<main id="content">` is rendered once by the layout, not by each page as in
+   the template. The skip link targets it.
+3. SvelteKit also writes `agents/__data.json` for the prerendered server load.
+   It carries the same four fields per tool and the two aggregates, is scanned
+   as text, and is covered by the forbidden-field check (M9).
+4. `src/routes/+error.svelte` supplies the not-found text inside the chrome.
+5. Section 6.2 anticipated allowlist and framework entries. Three hosts were
+   added, each because the build contains it: `www.w3.org` (SVG and XHTML
+   namespace identifiers), `svelte.dev` (runtime error links in framework
+   chunks) and `scripts.sil.org` (the font licence text). The forge host is
+   not allowlisted; two exact font-project URLs inside the published
+   `fonts/OFL.txt` pass through `allowedPublicForgeUrls`, the upstream
+   exact-URL mechanism with none of its entries.
+6. Two rule patterns were narrowed after framework code tripped them, with the
+   measured cause in the rule file comment: the file-input alternative of
+   `form-or-upload-surface` (Skeleton attribute selectors in the stylesheet)
+   and the advertising-host alternative of `analytics-or-beacon` (a component
+   library event-name key). Both still fire on authored HTML, and tests assert
+   that.
+7. The build-surface scanner refuses raster images as well as maps, documents,
+   media and archives, because section 5.4 allows no raster image.
+8. `engines.node` is `>=22.13 <23` and the `node` on PATH is 22, but this
+   host's pnpm 11 runs on its own bundled runtime and prints an unsupported
+   engine warning. `engineStrict` is not set, matching `web/`.
+
+Not done in Phase 2 and still unknown: contrast ratios, a browser keyboard
+walkthrough, reduced-motion behaviour, a Content-Security-Policy, any served
+check, and every deployment decision in section 10.

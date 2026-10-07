@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "lane": "public_site",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5723",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_utc": "2026-10-07",
+  "baseline": "f44f962ba159e82b0384dd89e95d8a3ba5246267",
+  "contract_commit": "a68e82ae1142d5e7ee060d265ded01c0b6a2ff84",
+  "implementation_commit": "f7ff2d6 (site, scanner and tests; receipts and the spec addendum follow in a later commit on the same branch)",
+  "phase": "2_implement",
+  "kind": "root_requests",
+  "note": "The lane made none of these changes. Each is root's decision; texts are exact.",
+  "deployed": false,
+  "requests": [
+    {
+      "file": "just/workflow.just",
+      "change": "append the following recipes:\n\n# Public static landing (site/): frozen-lockfile install. No server and no deployment.\nsite-install:\n    cd site && pnpm install --frozen-lockfile\n\n# Type check of the public landing; zero svelte-check errors and warnings are expected.\nsite-check:\n    cd site && pnpm run check\n\n# Offline frozen install, type check and prerendered build of the public landing into site/build.\nsite-build:\n    cd site && pnpm install --frozen-lockfile --offline && pnpm run check && pnpm run build\n\n# Leak scan of the built landing, its sources and the vendored carriers. Run site-build first.\nsite-leak-scan:\n    cd site && node scripts/leak-scan.mjs build && node scripts/leak-scan.mjs . --surface source && node scripts/leak-scan.mjs vendor --surface vendor\n\n# Public landing lane tests (pins, prerender config, content contract, leak rules, fresh build checks).\nsite-test:\n    PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v\n\n# OUTWARD-FACING: publishes site/build to Cloudflare Pages. Refuses unless the operator sets\n# VIDEO_UTILS_SITE_DEPLOY_OPERATOR_GO=deploy-public-site for this one invocation (site/DEPLOY.md).\n# Credentials come only from the operator's environment; none is stored in this repository.\nsite-pages-deploy project branch:\n    #!/usr/bin/env bash\n    set -euo pipefail\n    if [ \"${VIDEO_UTILS_SITE_DEPLOY_OPERATOR_GO:-}\" != \"deploy-public-site\" ]; then\n        echo \"site-pages-deploy: refused. Deploying the public site needs a separate operator go; see site/DEPLOY.md.\" >&2\n        exit 64\n    fi\n    if ! command -v wrangler >/dev/null 2>&1; then\n        echo \"site-pages-deploy: wrangler is not on PATH; the operator pins and provides it (site/DEPLOY.md).\" >&2\n        exit 69\n    fi\n    just site-build\n    just site-leak-scan\n    just site-test\n    cd site && wrangler pages deploy build --project-name {{quote(project)}} --branch {{quote(branch)}}\n",
+      "why": "operator entrypoints for the public landing (contract section 9). site-pages-deploy is the only outward-facing recipe and refuses unless the operator sets VIDEO_UTILS_SITE_DEPLOY_OPERATOR_GO=deploy-public-site for that invocation.",
+      "evidence": "The exact text was loaded from a scratch justfile: `just --list` parsed all six recipes; site-leak-scan ran against the worktree and exited 0; site-pages-deploy without the variable refused with exit 64 before reaching wrangler. The deploy branch past the refusal was not executed."
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "change": "proposal, add after the existing steps of the offline job (action SHAs to be pinned by root in the repository's existing style):\n\n      - uses: actions/setup-node@<PINNED_SHA> # v6, node 22\n        with:\n          node-version: '22'\n      - uses: pnpm/action-setup@<PINNED_SHA> # pnpm 11.25.0\n        with:\n          version: '11.25.0'\n          run_install: false\n      - name: Public landing install, check, build, leak scan and lane tests\n        run: |\n          cd site\n          pnpm install --frozen-lockfile\n          pnpm run check\n          pnpm run build\n          node scripts/leak-scan.mjs build\n          node scripts/leak-scan.mjs . --surface source\n          node scripts/leak-scan.mjs vendor --surface vendor\n          cd ..\n          PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v\n",
+      "why": "gate the public landing in CI with the same order as site/DEPLOY.md, with no deploy step",
+      "open_decisions": [
+        "The workflow is named for offline checks and the Nix dev shell has no Node or pnpm; the install step needs the npm registry. Root decides between this hosted-action step, adding nodejs_22 and pnpm to flake.nix, or keeping the site gate local only.",
+        "Untested: the lane did not run this workflow."
+      ]
+    },
+    {
+      "file": "flake.nix",
+      "change": "optional alternative to the CI actions above: add nodejs_22 and pnpm to the `core` package list of the dev shell",
+      "why": "lets `nix develop --command just site-build` work in CI and locally without host tools; not required for the lane's definition of done"
+    },
+    {
+      "file": "program/tools.json",
+      "change": "none requested",
+      "why": "0 of 40 tool names, titles or intents tripped a public leak rule, so no wording is sent back (contract section 5.2)"
+    },
+    {
+      "file": "program/linear.json and Linear TIN-5716",
+      "change": "record the template drift items below on TIN-5716 (the lane does not write Linear)",
+      "why": "estate P0 stack rule follow-up"
+    }
+  ],
+  "template_drift_for_TIN-5716": [
+    "site.scaffold root package.json pins effect ^3.22.1 (origin/main 9fef9ee, 2026-10-05); the P0 rule requires 4.0.1",
+    "xoxd.ai package.json pins effect ^3.22.2 (origin/main cc570c3, 2026-10-05); the P0 rule requires 4.0.1",
+    "The public template (site.scaffold.public 0.1.1) has no effect dependency, so this site carries no Effect pin; nothing to upgrade here",
+    "The public template uses caret ranges for everything except Skeleton, mdsvex and TypeScript; this site pins exact versions",
+    "The public template pins pnpm@10.13.1; web/ and this site use pnpm@11.25.0; the estate alignment target is root's call",
+    "The public template cannot be built without Bazel; a pnpm-only consumer has to vendor or re-package @xoxd/public-chrome and @xoxd/theme (done here as rung A, a recorded deviation from estate ruling N2)",
+    "The public template .npmrc sets legacy-peer-deps=true; this site resolves with strictPeerDependencies true and no peer errors at the pins used",
+    "The public template static/favicon.svg carries another site's accessible label; a consumer has to replace it"
+  ],
+  "positive_findings_for_the_estate": [
+    "@xoxd/public-chrome 0.1.0 and @xoxd/theme 0.1.1 from the public registry release compile outside Bazel under plain pnpm with Skeleton 5.0.1, Svelte 5.57.1, Vite 8.3.3 and Tailwind 4.3.3 with zero edits and zero svelte-check diagnostics",
+    "All three public release archives are anonymously fetchable and match their registry integrity values (checked 2026-10-07)"
+  ],
+  "operator_decisions_needed": [
+    "Pages project name, account, production branch, hostname and custom domain",
+    "Wrangler version to pin",
+    "whether preview deployments are public",
+    "public product name",
+    "whether site/vendor/ stays committed or is replaced by a Bazel package link",
+    "whether the full tuning, artist references or dated market comparisons may ever be published (withheld in v1)"
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "lane": "public_site",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5723",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_utc": "2026-10-07",
+  "baseline": "f44f962ba159e82b0384dd89e95d8a3ba5246267",
+  "contract_commit": "a68e82ae1142d5e7ee060d265ded01c0b6a2ff84",
+  "implementation_commit": "f7ff2d6 (site, scanner and tests; receipts and the spec addendum follow in a later commit on the same branch)",
+  "phase": "2_implement",
+  "kind": "handoff",
+  "state": "implemented and committed on sprint/20261007-s3/public_site; not pushed, not merged, not deployed",
+  "definition_of_done": {
+    "static_sveltekit_adapter_static_prerendered": true,
+    "exact_pins_and_committed_lockfile": true,
+    "skeleton_5_0_1": true,
+    "effect": "absent",
+    "xoxd_chrome_and_theme": "consumed unmodified from verified public archives (rung A)",
+    "pages": [
+      "/",
+      "/features",
+      "/agents",
+      "/status"
+    ],
+    "agents_generated_from_program_tools_json_at_build_time": true,
+    "no_analytics_forms_uploads_or_private_hostname": true,
+    "install_check_build_exit_zero": "3/3",
+    "leak_scan": "0 findings on build (25 files, 24 rules), source (27 files, 24 rules) and vendor (46 files, 9 rules)",
+    "lane_tests": "63 run, 62 passed, 1 skipped with a stated reason",
+    "cloudflare_pages": "plan document and recipe text only; nothing applied"
+  },
+  "measured": [
+    "pins, lockfile and prerender configuration",
+    "install, check and build exit statuses",
+    "page presence, tool rendering, forbidden fields, unknown placements, claim classes, banned phrases, forbidden surfaces and static accessibility structure on a fresh build",
+    "leak scans on three surfaces and 48/48 Node and Python fixture verdict agreement",
+    "0 of 47 exact real-take identifiers under site/ or the build",
+    "archive integrity (3/3) and vendored file digests (47/47)"
+  ],
+  "inferred": [
+    "that the three test failures seen in test_web_stack and test_tool_contracts are unrelated to this lane (by reading the assertions; baseline not re-run)",
+    "that a Pages direct upload of site/build will serve as built (not tried)"
+  ],
+  "unknown_or_not_done": [
+    "how the site looks and behaves in a browser: no visual review, no keyboard walkthrough, no contrast measurement, no reduced-motion check",
+    "served headers and any served behaviour",
+    "a Content-Security-Policy",
+    "every deployment decision",
+    "accuracy on real recordings, low-register pitch accuracy, listening acceptance, host and editor acceptance: stated as unknown or not done on the site itself"
+  ],
+  "files": {
+    "site": "site/ (79 tracked files, of which 47 are vendored carrier files plus site/vendor/PROVENANCE.json)",
+    "tests": "tests/test_public_site_s3.py",
+    "spec": "docs/spec/sprints/PUBLIC_SITE_S3.md (section 13 appended; sections 1 to 12 unchanged)",
+    "receipts": [
+      "public_site-contract-freeze.json",
+      "public_site-build.json",
+      "public_site-leak-scan.json",
+      "public_site-tests.json",
+      "public_site-root-requests.json",
+      "public_site-handoff.json"
+    ]
+  },
+  "how_to_verify": [
+    "cd site && pnpm install --frozen-lockfile && pnpm run check && pnpm run build",
+    "cd site && node scripts/leak-scan.mjs build && node scripts/leak-scan.mjs . --surface source && node scripts/leak-scan.mjs vendor --surface vendor",
+    "PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v"
+  ],
+  "review_first": [
+    "site/src/lib/content/claims.ts: every authored public claim and its class, the wording most worth an operator read before anything is published",
+    "site/scripts/leak-scan-rules.json: the three framework deviations and the three allowlisted hosts",
+    "site/vendor/PROVENANCE.json: the committed carrier copies and the estate ruling deviation"
+  ],
+  "root_owned_changes_requested": "public_site-root-requests.json",
+  "next": [
+    "operator read of the public copy",
+    "a browser pass (visual, keyboard, contrast) before any deploy",
+    "operator go and deployment decisions per site/DEPLOY.md"
+  ],
+  "deployed": false,
+  "pages_project_name": null,
+  "cloudflare_account": null,
+  "public_hostname": null,
+  "custom_domain": null,
+  "wrangler_version": null,
+  "served_check": "not_performed",
+  "public_product_name": null,
+  "private_app_hostname_checked": false,
+  "real_take_accuracy": "unknown",
+  "low_register_pitch_accuracy": "unknown",
+  "listening_acceptance": "not_claimed",
+  "logic_au_host_acceptance": "not_done",
+  "editor_import_proof": "not_done",
+  "market_claim": "hypothesis",
+  "xoxd_chrome_consumed": true,
+  "xoxd_theme_consumed": true,
+  "archives_anonymously_fetchable": true,
+  "contrast_ratio_measured": false,
+  "keyboard_walkthrough": "not_performed",
+  "reduced_motion_verified": false,
+  "csp_enforced": false,
+  "bazel_graph": "absent",
+  "template_archive_verified": true,
+  "effect_in_site": "absent",
+  "agents_intents_withheld": 0,
+  "media_shown": 0
+}
