@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -218,9 +219,11 @@ class S3ToolAdmissionTests(unittest.TestCase):
         self.assertIn('training-data rights distinct and unresolved', entry['license'])
         self.assertNotIn('TO_BE_FILLED_BY_ROOT_HASH_BOUND_FETCH', json.dumps(registry))
         # The checkpoint is never tracked; a cached copy, when present, must be the registered bytes.
-        tracked = subprocess.run(['git', 'ls-files', '--', 'models'], cwd=ROOT, capture_output=True, text=True, timeout=30)
-        if tracked.returncode == 0:
-            self.assertEqual(tracked.stdout.strip(), '')
+        git = shutil.which('git')
+        if git is not None:  # absent git or a non-git export leaves this unchecked, never passed by assumption
+            tracked = subprocess.run([git, 'ls-files', '--', 'models'], cwd=ROOT, capture_output=True, text=True, timeout=30)
+            if tracked.returncode == 0:
+                self.assertEqual(tracked.stdout.strip(), '')
         checkpoint = ROOT / 'models' / f'{BEAT_THIS_MODEL_ID}.bin'
         if checkpoint.exists():
             self.assertFalse(checkpoint.is_symlink())
