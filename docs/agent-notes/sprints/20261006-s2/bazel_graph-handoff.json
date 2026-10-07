@@ -1,0 +1,259 @@
+{
+  "lane": "bazel_graph",
+  "branch": "sprint/20261007-s3/bazel_graph",
+  "head": "7880d994f1379164de2d0caed01193f2723866a3",
+  "base_commit": "f44f962ba159e82b0384dd89e95d8a3ba5246267",
+  "worktree": "/Users/jess/git/video-utils/.local/sprint3/bazel_graph",
+  "state": "implemented_tested_audited",
+  "files": [
+    {
+      "path": ".bazelignore",
+      "sha256": "8876f1bf48169ec2464739b90808b4da1d71b827b99fec8d5fbe30cc8a926a9f",
+      "kind": "source"
+    },
+    {
+      "path": ".bazelrc",
+      "sha256": "fa12aa70bc65676c028bc46441a9f162eb4f8ef5bfaaaf6787cdad3de459f151",
+      "kind": "source"
+    },
+    {
+      "path": ".bazelversion",
+      "sha256": "4fa9948d0ae7007cbd1cc05768bc3e7cc6ec46ad0ea84c87df79e7a0c48d76b4",
+      "kind": "source"
+    },
+    {
+      "path": "BUILD.bazel",
+      "sha256": "ae4d6bdae40ef3d1435c54ab2677df66a634920a11ce0e434972b068f2e4a373",
+      "kind": "source"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/bazel_graph-contract-freeze.json",
+      "sha256": "3fd69f96bae7da1a79fefb4f186678cc9989dde9feb3f7e2f385d73ccb7f90bb",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/bazel_graph-handoff.json",
+      "sha256": "f892298762f3373656eb5ccd240e17e283124da6a0f591cc4659b29a558d40fe",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/bazel_graph-host-attempt.json",
+      "sha256": "c5b98a45659ac701909bd63e4a8b2a779ca5c52c513196f21cb520f21dec0b6e",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/bazel_graph-root-requests.json",
+      "sha256": "50001a6eee58c28841e2459cc5de6653c7d88715554d84275104736adcbfefbd",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/agent-notes/sprints/20261007-s3/bazel_graph-tests.json",
+      "sha256": "12d78e27d175b7f9109280e019755b36827b3697f5e97abfcd892394d02a5eec",
+      "kind": "receipt"
+    },
+    {
+      "path": "docs/research/2026-10-07-estate-bazel-patterns.md",
+      "sha256": "51c8608df8d08669ebc53cf8bf6c6ce8f8c2c941e34358eb92a30a5363752773",
+      "kind": "source"
+    },
+    {
+      "path": "docs/spec/sprints/BAZEL_GRAPH_S3.md",
+      "sha256": "1ec8f13130b341cfd7a149eebd072ec27509830e899c29e680cf5f3385426ade",
+      "kind": "spec"
+    },
+    {
+      "path": "just/bazel.just",
+      "sha256": "f28115a81f2d6aa4774b59e0d3059c16d244c24474285aace2555bd8cc747551",
+      "kind": "source"
+    },
+    {
+      "path": "MODULE.bazel.lock",
+      "sha256": "c1d3ab9011bd6707c7b09f46787b0743640bb556fa099a8a6c6f5858a0afc7ca",
+      "kind": "source"
+    },
+    {
+      "path": "MODULE.bazel",
+      "sha256": "a1225a220eb849cb7d2c1f144bb10f0b8a02889c68d1040089b7243b57b61d92",
+      "kind": "source"
+    },
+    {
+      "path": "native/au-spike/BUILD.bazel",
+      "sha256": "f5128eaf7b947ef05b68d575d8cb0c0bcfc391e5c479283e03ef71655a1f8b3e",
+      "kind": "source"
+    },
+    {
+      "path": "scripts/BUILD.bazel",
+      "sha256": "7285f71d63c75c3de5bfc3686c5615432808dc14ba1e217d0249c601744f580d",
+      "kind": "source"
+    },
+    {
+      "path": "src/BUILD.bazel",
+      "sha256": "61594572d6565e463db6b0b365be665fb97a7b98d134941f0324ee8480ac77b4",
+      "kind": "source"
+    },
+    {
+      "path": "tests/BUILD.bazel",
+      "sha256": "855f128fa12391caedd0662f64a44b10a80eff55ec015bd4ca525187d8b14f20",
+      "kind": "test"
+    },
+    {
+      "path": "tests/test_bazel_graph_s3.py",
+      "sha256": "522be1b17ace3488f68b460a7ee6492f7ace0783a11da6e340ed439c5e9db1af",
+      "kind": "test"
+    },
+    {
+      "path": "tools/bazel/BUILD.bazel",
+      "sha256": "226020a4f77d7bbb7ed52c83aa1a19876302c985511cf4fe8ee7479c68497c88",
+      "kind": "source"
+    },
+    {
+      "path": "tools/bazel/ci-bazel-job.draft.yml",
+      "sha256": "21a77d6450f435b5458a474942a4fc1799b796f8c73a767fe3a371249d1e186f",
+      "kind": "source"
+    },
+    {
+      "path": "tools/bazel/coverage_exclusions.json",
+      "sha256": "53b7931104b1735a86948b44dfefa42096f170d4a8208a843d08852bcb0f1d58",
+      "kind": "source"
+    },
+    {
+      "path": "tools/bazel/python.bzl",
+      "sha256": "15540d7ade76aaf9f9b0905f30fed0be12571b26caee234f6ed3f7d1b6415f41",
+      "kind": "source"
+    },
+    {
+      "path": "tools/bazel/registry_modules.json",
+      "sha256": "3f4166f2075e20c889badd5b29603fb1298f868305f6eceb1471854ef52a2499",
+      "kind": "source"
+    },
+    {
+      "path": "tools/bazel/run.py",
+      "sha256": "d0d34621839a9bdbcc9179079fe02de97be9ef7ac47e59071e29c8fab123115a",
+      "kind": "source"
+    },
+    {
+      "path": "tools/bazel/rust.bzl",
+      "sha256": "e4bad667c4b1de2c85662b9b9df7df9ad058b52e79dedd252c2aa536173c8d3e",
+      "kind": "source"
+    },
+    {
+      "path": "tools/bazel/test_classification.json",
+      "sha256": "8a16a9e30057e1ebb5e7443d0ec8cbae2784a8ae1528ec17d5d0fda0866b3f5d",
+      "kind": "source"
+    },
+    {
+      "path": "tools/bazel/unittest_main.py",
+      "sha256": "5bceab49a66828ccd67cb91001e1fc74098abed93c12950b85c10ec13ec4fe70",
+      "kind": "source"
+    },
+    {
+      "path": "tools/bazel/web/sveltekit.mjs",
+      "sha256": "b6c7bf86036e46b3f96e94b7af9db22f673738890869177d07fe76ded6ec05db",
+      "kind": "source"
+    },
+    {
+      "path": "web/BUILD.bazel",
+      "sha256": "0875faa436fb72a9aa29684029df72d111acc6ced0264dce9a5a848997fdf8c0",
+      "kind": "source"
+    }
+  ],
+  "tests": {
+    "command": "cd /Users/jess/git/video-utils/.local/sprint3/bazel_graph && export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe && PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v",
+    "discovered": 34,
+    "passed": 33,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 1,
+    "seconds": 0.598,
+    "commit": "7880d994f1379164de2d0caed01193f2723866a3"
+  },
+  "metrics": [
+    {
+      "name": "Rust targets built and tested",
+      "numerator": 5,
+      "denominator": 5,
+      "unit": "test cases",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Python test modules run under Bazel",
+      "numerator": 3,
+      "denominator": 95,
+      "unit": "modules",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Bazel analysis (targets outside //web)",
+      "numerator": 178,
+      "denominator": 178,
+      "unit": "targets",
+      "claim_class": "measured"
+    },
+    {
+      "name": "Registry module decisions",
+      "numerator": 69,
+      "denominator": 69,
+      "unit": "modules",
+      "claim_class": "measured"
+    }
+  ],
+  "unknowns": [
+    "Full Python stdlib test suite under Bazel (//:python_stdlib) - not run in final worktree",
+    "Web build and Svelte type-check - blocked until root applies pnpm-workspace.yaml change",
+    "End-to-end CI job execution on hosted runners",
+    "Audio signal processing and accuracy comparisons per instrument spec"
+  ],
+  "root_owned_changes_requested": [
+    {
+      "file": "justfile",
+      "change": "Add import 'just/bazel.just' to expose bazel-build, bazel-test, and bazel-graph recipes",
+      "why": "Exposes Bazel entrypoints; no recipe collision with existing just/workflow.just"
+    },
+    {
+      "file": "web/pnpm-workspace.yaml",
+      "change": "Add 'allowBuilds: {}' section (required by rules_js for pnpm 11)",
+      "why": "Required for //web targets and bazel mod graph to exit 0; empty map allows no build scripts (current behavior)"
+    },
+    {
+      "file": ".gitignore",
+      "change": "Add /native/au-spike/target/, /bazel-*, and /user.bazelrc lines",
+      "why": "Optional safeguard for Cargo output, Bazel convenience symlinks, and per-machine Bazel overrides"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "change": "Add optional bazel job with continue-on-error: true (see tools/bazel/ci-bazel-job.draft.yml)",
+      "why": "Non-blocking Bazel test job; kept advisory until full Python suite and hosted runners validated"
+    }
+  ],
+  "receipts_written": [
+    "docs/agent-notes/sprints/20261007-s3/bazel_graph-contract-freeze.json",
+    "docs/agent-notes/sprints/20261007-s3/bazel_graph-host-attempt.json",
+    "docs/agent-notes/sprints/20261007-s3/bazel_graph-root-requests.json",
+    "docs/agent-notes/sprints/20261007-s3/bazel_graph-tests.json"
+  ],
+  "protected": {
+    "accepted_media_or_desktop_changed": false,
+    "default_detector_unchanged": true,
+    "root_owned_files_untouched": true
+  },
+  "audit": {
+    "model": "opus",
+    "refuted": false,
+    "findings": [
+      "(1) Ownership holds. `git diff --name-only f44f962...HEAD` (merge-base f44f962, HEAD 7880d99, worktree clean) lists 30 files, all inside the owned set. No justfile, .gitignore, web/pnpm-workspace.yaml, CI, program/ or scripts/*.py edit; root-owned changes are text-only in docs/agent-notes/sprints/20261007-s3/bazel_graph-root-requests.json.",
+      "(2) No forbidden writes found. Lane logs went to gitignored artifacts/s2/bazel_graph/ (not artifacts/runs/*). program/tools.json, scripts/tool_api.py and just/workflow.just are untouched. No model download. The only live Bazel servers on the host belong to other repositories (greatfallstoolbus.org, scheduling-bridge); none for video-utils. Note that .bazelrc sets `build --disk_cache=~/.cache/bazel-video-utils`, a write outside the repo but not to a forbidden path.",
+      "(4) Owned module reproduced: `Ran 34 tests in 0.404s, OK (skipped=1)`, the skip being ShimSelfTest.test_marker_case_runs_only_under_the_shim. Counts match the claim (34 discovered, 33 passed, 1 skipped, 0 failed).",
+      "(4) Merge-forward check: in a scratch copy of current main with the lane's 30 files overlaid (main now has 96 test modules), test_bazel_graph_s3 still passes 34/1 skip. A subset of existing modules that scan the tree (test_sprint1_audit, test_s2_tool_admission, test_report_bundle, test_holdout_release, test_corpus, test_tool_contracts) ran 155 tests OK. `cargo test --locked -j 1` passed there too (15 lib, 7 cli, 5 dsp with 1 ignored). The added BUILD.bazel files are not picked up by the suffix filters in native/au-spike/check.py:162 or packaging/build.py:124.",
+      "(4) Receipt inconsistency: bazel_graph-tests.json lists two skipped tests (including NegativeSelfChecks.test_constructs_outside_the_subset_raise_instead_of_being_skipped) for the native run, but the runner reports skipped=1 and that test runs `ok`. The receipt should be corrected; not merge-blocking.",
+      "(4) The lane did not run `just check`, `just test` (full suite), `just test-rust` or `pnpm build` in the worktree (tests.json `not_run_by_lane`), so the definition-of-done line 'do not break' those gates is only partly evidenced. My partial runs found no breakage; the full Python suite and pnpm build remain unrun by me as well.",
+      "(3) Claim classes are sound. The summary separates measured from not-run: 3 of 95 Python modules ran under Bazel, 178 targets were analysed only, and web was verified only in a scratch copy with `allowBuilds: {}`. registry_modules.json labels compliance as inference and dependency edges as unknown. No audio-accuracy, note-correctness or default/profile adoption claim appears anywhere in the lane.",
+      "(3) Contract deviation, disclosed by the lane: section 8 allowed one host Bazel attempt and the lane ran about 15 bounded invocations. The first attempt is recorded as `ran_failed` (exit 2, undeclared web/.npmrc, an authored defect since fixed). Root must decide whether the extra runs are accepted.",
+      "(3) Committed-tree limitation, disclosed by the lane: `bazel mod graph` exits 2 and `//web:build` exits 48 until root adds `allowBuilds: {}` to web/pnpm-workspace.yaml. Consequently `just bazel-graph` and the default `//...` of `just bazel-build` / `just bazel-test` fail as committed. Nothing imports just/bazel.just yet, so merging breaks no existing gate, but 'working Bzlmod graph' holds only for Rust and Python until root applies requests 1 and 2.",
+      "(3) The draft CI step `bazel test //tests:python_stdlib` has never been run (only 3 Python modules ran under Bazel). The test-classification lists are explicitly unvalidated by Bazel (tests/BUILD.bazel header). Keep the CI job `continue-on-error`, as drafted.",
+      "(5) Doctrine: no high-pass, notch or audio-processing default is introduced. Timeouts are bounded (tools/bazel/run.py default 1800 s with process-group kill, 60 s shutdown; .bazelrc `test_timeout=120,600,1800,3600`, `max_idle_secs=120`, `jobs=4`). No remote cache is configured and run.py refuses remote flags. Registry order in .bazelrc is tinyland at 8d3e540 then BCR, and MODULE.bazel.lock agrees (169 tinyland-registry entries, all 'not found', and 207 BCR entries).",
+      "(6) Arithmetic reproduced: workers 66 top-level + 1 frozen = 67 (`find scripts -name '*.py'` gives 67); tests 95 at lane HEAD; registry decisions 5 decided + 64 not evaluated = 69 = module_count and 69 keys in `modules`; 18 FFmpeg-tagged and 14 host-tool entries in tests/BUILD.bazel; 11 NegativeSelfChecks tests in the run output.",
+      "MODULE.bazel pins aspect_rules_js 3.5.1 and aspect_rules_ts 3.10.1, deliberately newer than the estate's 2.9.1 / 3.8.4 (reason given: pnpm 11 `allowBuilds`). The departure is documented in the research doc section 3; root should be aware of it."
+    ],
+    "must_fix": []
+  }
+}
