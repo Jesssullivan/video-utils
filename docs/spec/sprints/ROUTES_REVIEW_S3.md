@@ -1001,3 +1001,49 @@ replaces the stub assertions with picker assertions: no `PrototypeNotice`, a
 s8 check, including the client-fetch and secret checks, is kept unchanged.
 `ComparePanel.svelte` (not owned by this lane) still uses `PrototypeNotice`, so
 the notice component itself remains.
+
+### 13.8 Phase 4 repair (2026-10-07): host-path metric and merge coupling
+
+**Metric 2 correction.** The earlier receipt reported `responses_checked: 80,
+leaks: 0`. That overstated the denominator. Of the 80 recorded API responses
+(41 2xx, 37 4xx, 2 5xx), the request-time assertion and the `NoHostPath` sweep
+both skipped 5xx bodies, so 78 of 80 were checked. The two unchecked responses
+were `GET /api/v1/capabilities` (500 `registry_unreadable`) and
+`GET /api/v1/runs/RUN-S3/layers` (507 `layers_too_large`). The sweep itself saw
+only 53 responses, because test classes load alphabetically and `Schema`,
+`Selection` and `SelectionSchemaOne` run after `NoHostPath`.
+
+The check now covers every status class:
+
+- `request()` asserts each response body at request time, 5xx included, and
+  counts it in `leak_checked`;
+- `NoHostPath` keeps a mid-module sweep (`sweep_at_no_host_path`);
+- `tearDownModule` runs a final sweep over every recorded response
+  (`sweep_final`), records the tally by status class and fails the module on a
+  leak.
+
+Measured after the change, on synthetic fixtures: 0 leaks in 80 checked of 80
+recorded responses (41 2xx, 37 4xx, 2 5xx; 0 excluded). The mid-module sweep
+covers 53 of those (29 2xx, 23 4xx, 1 5xx). Walkthrough BFF responses are
+asserted separately at request time and are not part of this count.
+
+**Merge coupling (root action).** This branch must not land on `main` without
+the two required root-owned hunks recorded in
+`docs/agent-notes/sprints/20261007-s3/routes_review-handoff.json`
+(`merge_coupling`):
+
+1. `tests/test_web_stack.py` s8 rescope. Without it,
+   `test_s8_prototype_routes_label_only` fails on 3 subtests (compare, review,
+   download).
+2. `scripts/web_api.py` registration hunk (section 11.1). Without it, every new
+   page shows a refusal and the `Registration` test stays skipped.
+
+Both target files on this branch are byte-identical to `main` at `18dd984`, and
+both hunks apply cleanly with `patch -p1`. With both applied in a scratch clone,
+`Registration` passes (1/1) and `test_web_stack` passes 33 of 33, the rescoped
+s8 included. Neither root-owned file was edited by this lane.
+
+Rerun on this branch without the hunks (one invocation, 87 tests):
+`test_web_runs_s3` 35 ok and 1 skipped of 36, `test_web_stack` 32 ok of 33 (the
+3 expected s8 subtest failures), `test_web_parity` 17 ok and 1 opt-in skip of
+18. `cargo test --locked -j 1`: 27 passed, 0 failed, 1 ignored.

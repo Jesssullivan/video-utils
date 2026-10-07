@@ -535,9 +535,10 @@ class ApiCase(unittest.TestCase):
         RESPONSES.append((path if isinstance(path, str) else path.decode('latin-1'), response.status, response.body,
                           self.fx.forbidden()))
         METRICS['responses'] += 1
-        if 200 <= response.status < 300 or 400 <= response.status < 500:
-            for needle in self.fx.forbidden():
-                self.assertNotIn(needle.encode(), response.body, f'{path!r} leaked a host path or command string')
+        # Every status class is checked, 5xx bodies included (registry_unreadable, layers_too_large).
+        for needle in self.fx.forbidden():
+            self.assertNotIn(needle.encode(), response.body, f'{path!r} leaked a host path or command string')
+        METRICS['leak_checked'] += 1
         return response
 
     def get_json(self, path, status=200):
@@ -1024,16 +1025,9 @@ class NoHostPath(ApiCase):
         cleaned = next(node for node in graph['stages'] if node['stage'] == 'cleaned.wav')
         self.request(f'/api/v1/runs/{RUN}/artifacts/{cleaned["artifact_id"]}')
         self.request('/api/v1/runs/NOPE')
-        leaks = []
-        for path, status, body, forbidden in RESPONSES:
-            if not (200 <= status < 300 or 400 <= status < 500):
-                continue
-            for needle in forbidden:
-                if needle.encode() in body:
-                    leaks.append((path, status, needle))
-        METRICS['leak_checked'] = len(RESPONSES)
-        METRICS['leaks'] = len(leaks)
-        self.assertEqual(leaks, [])
+        # Mid-module sweep (classes load alphabetically, so later classes are covered by the
+        # request-time assertion and by the final sweep in tearDownModule).
+        self.assertEqual(sweep_recorded_responses('sweep_at_no_host_path'), [])
 
 
 # --------------------------------------------------------------------------- 7. Policy (static)
@@ -1551,9 +1545,27 @@ class Walkthrough(unittest.TestCase):
                 'listening': 'not_performed'}
 
 
+def sweep_recorded_responses(label):
+    """Recheck every recorded response body, whatever its status, and record the tally by status class."""
+    leaks, by_class = [], {}
+    for path, status, body, forbidden in RESPONSES:
+        key = f'{status // 100}xx'
+        by_class[key] = by_class.get(key, 0) + 1
+        for needle in forbidden:
+            if needle.encode() in body:
+                leaks.append((path, status, needle[:12]))
+    METRICS[label] = {'responses': len(RESPONSES), 'checked': len(RESPONSES), 'excluded': 0,
+                      'by_status_class': dict(sorted(by_class.items())), 'leaks': len(leaks)}
+    METRICS['leaks'] = len(leaks)
+    return leaks
+
+
 def tearDownModule():
+    leaks = sweep_recorded_responses('sweep_final')
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUT_DIR / 'test-metrics-latest.json').write_text(json.dumps(METRICS, indent=2, sort_keys=True, default=str) + '\n')
+    if leaks:
+        raise AssertionError(f'recorded responses leaked a host path or command string: {leaks[:5]}')
 
 
 if __name__ == '__main__':

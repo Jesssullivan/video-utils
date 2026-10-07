@@ -24,11 +24,48 @@
     "all metrics in routes_review-tests.json on synthetic fixtures",
     "real accepted run read-only smoke: 6/6 stages current, acceptance receipt pin matches, cold graph 10.3 s"
   ],
+  "merge_coupling": {
+    "owner": "root",
+    "recorded_utc": "2026-10-07",
+    "rule": "this branch must not land on main without both required root-owned hunks in root_owned_changes_requested (scripts/web_api.py registration; tests/test_web_stack.py s8 rescope); land them in the same merge",
+    "verified_with_both_applied": {
+      "hunks_apply_cleanly": "2/2",
+      "main_at": "18dd984e8a2187dad2c7f224d1b4c166d663fcf5",
+      "method": "scratch clone of this branch (df1ef5c plus the repaired tests/test_web_runs_s3.py) with both handoff diffs applied by patch -p1; no root-owned file edited in the lane worktree",
+      "target_files_identical_to_main": {
+        "scripts/web_api.py": true,
+        "tests/test_web_stack.py": true
+      },
+      "test_web_runs_s3.Registration": {
+        "ok": 1,
+        "tests": 1
+      },
+      "test_web_stack": {
+        "failed": 0,
+        "ok": 33,
+        "s8_rescoped": "ok",
+        "tests": 33
+      }
+    },
+    "without_test_web_stack_rescope": "test_s8_prototype_routes_label_only fails on 3 subtests (compare, review, download); reproduced on this branch: test_web_stack 32 ok of 33",
+    "without_web_api_registration": "/api/v1/runs* and /api/v1/capabilities return route_not_found, every new page shows a refusal, and test_web_runs_s3.Registration stays skipped"
+  },
   "no_adoption": {
     "anchor": false,
     "default_detector": false,
     "master": false,
     "profile": false
+  },
+  "phase4_repair": {
+    "items": [
+      "host-path metric denominator corrected and check extended to 5xx bodies: 0 leaks in 80 checked of 80 recorded responses (41 2xx, 37 4xx, 2 5xx; 0 excluded)",
+      "merge coupling recorded for root"
+    ],
+    "recorded_utc": "2026-10-07",
+    "see": [
+      "routes_review-tests.json metrics.2_host_path_free_responses and phase4_repair_rerun",
+      "docs/spec/sprints/ROUTES_REVIEW_S3.md section 13.8"
+    ]
   },
   "real_take_touched_by_tests": false,
   "recorded_utc": "2026-10-07T07:24:19+00:00",

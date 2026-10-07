@@ -156,10 +156,43 @@
       "refused_with_typed_code": 16
     },
     "2_host_path_free_responses": {
+      "by_status_class": {
+        "2xx": 41,
+        "4xx": 37,
+        "5xx": 2
+      },
       "class": "M",
+      "correction": {
+        "actual_before_repair": "78 of 80 checked; request-time assertion and NoHostPath sweep both skipped 5xx; the NoHostPath sweep itself saw 53",
+        "previously_unchecked": [
+          "GET /api/v1/capabilities -> 500 registry_unreadable",
+          "GET /api/v1/runs/RUN-S3/layers -> 507 layers_too_large"
+        ],
+        "recorded_utc": "2026-10-07",
+        "repair": "request() asserts every status class at request time; NoHostPath keeps a mid-module sweep; tearDownModule sweeps all recorded responses and fails the module on a leak",
+        "superseded_claim": "responses_checked 80, leaks 0"
+      },
+      "final_sweep_in_tearDownModule": {
+        "checked": 80,
+        "leaks": 0
+      },
+      "fixtures": "synthetic",
       "leaks": 0,
-      "note": "every 2xx/4xx response in the API classes is also asserted at request time; Walkthrough checks every BFF response",
-      "responses_checked": 80
+      "mid_module_sweep_at_no_host_path": {
+        "by_status_class": {
+          "2xx": 29,
+          "4xx": 23,
+          "5xx": 1
+        },
+        "checked": 53,
+        "leaks": 0,
+        "note": "classes load alphabetically; Schema, Selection and SelectionSchemaOne run after NoHostPath, so this sweep is a subset"
+      },
+      "note": "Walkthrough BFF responses are asserted separately at request time and are not part of this count",
+      "responses_checked": 80,
+      "responses_excluded": 0,
+      "responses_recorded": 80,
+      "statement": "0 leaks in 80 checked of 80 recorded API responses (41 2xx, 37 4xx, 2 5xx; 0 excluded)"
     },
     "3_hash_binding_mutations": {
       "cases": [
@@ -235,6 +268,62 @@
       "wall_seconds": 20.5
     },
     "module": "tests/test_web_runs_s3.py"
+  },
+  "phase4_repair_rerun": {
+    "cargo_test": {
+      "command": "cargo test --locked -j 1",
+      "failed": 0,
+      "ignored": 1,
+      "ignored_reason": "ffmpeg_parity requires --ignored",
+      "note": "no Rust file is changed by this lane",
+      "passed": 27,
+      "returncode": 0
+    },
+    "command": "PYTHONPATH=tests python3 -m unittest test_web_runs_s3 test_web_stack test_web_parity -v (one invocation; FFMPEG/FFPROBE exported)",
+    "failed_subtests": 3,
+    "failed_tests": 1,
+    "recorded_utc": "2026-10-07",
+    "skipped": 2,
+    "test_web_parity": {
+      "ok": 17,
+      "skip": "opt-in demo walkthrough (WEB_UI_DEMO unset)",
+      "skipped": 1,
+      "tests": 18
+    },
+    "test_web_runs_s3": {
+      "ok": 35,
+      "skip": "Registration: root registration hunk not applied",
+      "skipped": 1,
+      "tests": 36
+    },
+    "test_web_stack": {
+      "failed_subtests": 3,
+      "failed_tests": 1,
+      "failure": "test_s8_prototype_routes_label_only (compare, review, download); expected until the root-owned rescope hunk lands",
+      "ok": 32,
+      "tests": 33
+    },
+    "tests_run": 87,
+    "wall_seconds": 264.7,
+    "with_both_root_hunks_in_scratch_clone": {
+      "hunks_apply_cleanly": "2/2",
+      "main_at": "18dd984e8a2187dad2c7f224d1b4c166d663fcf5",
+      "method": "scratch clone of this branch (df1ef5c plus the repaired tests/test_web_runs_s3.py) with both handoff diffs applied by patch -p1; no root-owned file edited in the lane worktree",
+      "target_files_identical_to_main": {
+        "scripts/web_api.py": true,
+        "tests/test_web_stack.py": true
+      },
+      "test_web_runs_s3.Registration": {
+        "ok": 1,
+        "tests": 1
+      },
+      "test_web_stack": {
+        "failed": 0,
+        "ok": 33,
+        "s8_rescoped": "ok",
+        "tests": 33
+      }
+    }
   },
   "real_take_touched_by_tests": false,
   "recorded_utc": "2026-10-07T07:24:19+00:00",
