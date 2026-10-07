@@ -17,10 +17,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
 import tempfile
+import time
 import unittest
 from html.parser import HTMLParser
 from pathlib import Path
@@ -718,6 +720,30 @@ def run_pnpm(script: str, timeout: int) -> subprocess.CompletedProcess:
                           timeout=timeout, check=False)
 
 
+_FRESH_BUILD: dict = {}
+
+
+def fresh_build() -> dict:
+    """Removes any stale build, then runs check and build once per process (never install, never network flags).
+
+    Shared by BuildTests and the site_verify build classes so the 300 s build runs once. Returns
+    {"check": CompletedProcess, "build": CompletedProcess | None, "check_s": float, "build_s": float | None}.
+    """
+    if not _FRESH_BUILD:
+        if BUILD.exists():
+            shutil.rmtree(BUILD)  # a stale build is never trusted
+        started = time.monotonic()
+        check = run_pnpm("check", CHECK_TIMEOUT_S)
+        check_s = time.monotonic() - started
+        build, build_s = None, None
+        if check.returncode == 0:
+            started = time.monotonic()
+            build = run_pnpm("build", BUILD_TIMEOUT_S)
+            build_s = time.monotonic() - started
+        _FRESH_BUILD.update({"check": check, "build": build, "check_s": check_s, "build_s": build_s})
+    return _FRESH_BUILD
+
+
 # --------------------------------------------------------------------------------------------
 # Tests
 # --------------------------------------------------------------------------------------------
@@ -1248,12 +1274,11 @@ class BuildTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if BUILD.exists():
-            shutil.rmtree(BUILD)  # a stale build is never trusted
-        cls.check = run_pnpm("check", CHECK_TIMEOUT_S)
+        # Shared once-per-process fresh build (SITE_VERIFY_S3.md section 10.1 item 4); same steps as before.
+        fresh = fresh_build()
+        cls.check, cls.build = fresh["check"], fresh["build"]
         if cls.check.returncode == PNPM_GATE_UNAVAILABLE_EXIT:
             raise unittest.SkipTest("pnpm storage gate unavailable on this host (exit 75)")
-        cls.build = run_pnpm("build", BUILD_TIMEOUT_S) if cls.check.returncode == 0 else None
         cls.metrics = build_metrics(BUILD) if cls.build is not None and cls.build.returncode == 0 else None
 
     def setUp(self):
@@ -1379,6 +1404,781 @@ class BuildTests(unittest.TestCase):
         text = (BUILD / "404.html").read_text(encoding="utf-8")
         self.assertIn('<html lang="en"', text)
         self.assertNotIn("data-tool=", text)
+
+
+
+# ============================================================================================
+# S3 site_verify lane (docs/spec/sprints/SITE_VERIFY_S3.md): link check, V6 privacy scan,
+# gitleaks, pins, deploy readiness and the opt-in browser suite. Stdlib only; every
+# subprocess has an explicit timeout; fixtures are synthetic and assembled from fragments.
+# ============================================================================================
+
+VERIFY_SPEC = REPO / "docs" / "spec" / "sprints" / "SITE_VERIFY_S3.md"
+VERIFY_RECEIPTS = ("site_verify-install.json", "site_verify-browser.json", "site_verify-a11y.json",
+                   "site_verify-links-privacy.json", "site_verify-handoff.json")
+# SITE_VERIFY_S3.md section 12: field -> allowed values (None in a tuple means JSON null).
+VERIFY_FIELDS = {
+    "deployed": (False,),
+    "served_check": ("not_performed",),
+    "pages_project_name": (None,),
+    "cloudflare_account": (None,),
+    "public_hostname": (None,),
+    "custom_domain": (None,),
+    "wrangler_version": (None,),
+    "server_kind": ("local_static_emulation",),
+    "pages_equivalence": ("inferred",),
+    "response_headers_on_pages": ("unknown",),
+    "browser_engines": (["chromium"],),
+    "browser_download_bytes": (0,),
+    "zoom_method": ("viewport_emulation",),
+    "real_device_check": ("not_performed",),
+    "wcag_conformance": ("not_claimed",),
+    "screen_reader_check": ("not_performed",),
+    "contrast_basis": ("axe_color_contrast_rule_only",),
+    "keyboard_walkthrough": ("not_performed",),
+    "reduced_motion_verified": (False,),
+    "non_default_themes_scanned": (False,),
+    "csp_enforced": (False,),
+    "external_links_fetched": (0,),
+    "artifact_digests_complete": (False, True),
+    "real_take_accuracy": ("unknown",),
+    "low_register_pitch_accuracy": ("unknown",),
+    "listening_acceptance": ("not_claimed",),
+    "effect_in_site": ("absent",),
+    "media_shown": (0,),
+}
+SCANNER_TIMEOUT_S = 60
+GITLEAKS_TIMEOUT_S = 120
+PLAYWRIGHT_TIMEOUT_S = 900
+FULL_DIGEST_TIMEOUT_S = 600
+DIGEST_SIZE_LIMIT = 64 * 1024 * 1024
+MANIFEST_SIZE_LIMIT = 4 * 1024 * 1024
+MANIFEST_SUFFIXES = frozenset((".json", ".txt", ".md", ".csv", ".tsv"))
+NOT_FOUND_PROBE = "/site-verify-not-found"
+HARNESS_FILES = ("playwright.config.ts", "e2e/static-server.mjs", "e2e/global-setup.ts", "e2e/global-teardown.ts",
+                 "e2e/routes.ts", "e2e/support.ts", "e2e/smoke.spec.ts", "e2e/a11y.spec.ts",
+                 "e2e/a11y-baseline.json", "tests/browser-ladder.ts")
+SECURITY_DISABLING = ("--disable-web-security", "--no-sandbox", "chromiumSandbox: false", "ignoreHTTPSErrors",
+                      "bypassCSP", "playwright install", "--disable-site-isolation")
+
+
+# ---------------------------------------------------------------- Pages path emulation
+
+def pages_resolve(build: Path, url_path: str) -> Path | None:
+    """Section 4.2: exact file; else <path>.html; else <path>/index.html; else None (served as 404)."""
+    from urllib.parse import unquote
+    rel = unquote(url_path.split("?", 1)[0].split("#", 1)[0]).lstrip("/")
+    root = build.resolve()
+    target = (root / rel).resolve() if rel else root
+    if target != root and root not in target.parents:
+        return None
+    trimmed = str(target).rstrip("/")
+    for candidate in (target, Path(trimmed + ".html"), target / "index.html"):
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def document_url_path(build: Path, path: Path) -> str:
+    """The URL path a built HTML document is served at (its base for relative references)."""
+    rel = path.relative_to(build).as_posix()
+    if rel == "404.html":
+        return NOT_FOUND_PROBE
+    if rel == "index.html":
+        return "/"
+    if rel.endswith("/index.html"):
+        return "/" + rel[: -len("index.html")]
+    return "/" + rel[: -len(".html")]
+
+
+# ---------------------------------------------------------------- link check (section 7.1)
+
+EXTERNAL_REF = re.compile(r"^(?:[a-z][a-z0-9+.-]*:|//)", re.I)
+CSS_URL = re.compile(r"url\(\s*(['\"]?)([^'\")]+)\1\s*\)", re.I)
+JS_IMPORT = re.compile(r"(?:\bimport\s*\(\s*|\bfrom\s*|\bimport\s*)([\"'`])((?:\.{1,2}/|/)[^\"'`\s]+)\1")
+JS_DEP_STRING = re.compile(r"[\"']((?:\.{1,2}/)[^\"'\s]+\.(?:js|mjs|css))[\"']")
+
+
+class _RefParser(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.refs: list[tuple[str, str]] = []  # (kind, value)
+        self.ids: set[str] = set()
+        self.scripts: list[str] = []
+        self._in_script = False
+
+    def handle_starttag(self, tag, attrs):
+        values = {k: (v or "") for k, v in attrs}
+        if values.get("id"):
+            self.ids.add(values["id"])
+        if tag == "a" and values.get("name"):
+            self.ids.add(values["name"])
+        for key in ("href", "src"):
+            if key in values:
+                self.refs.append((key, values[key].strip()))
+        if values.get("srcset"):
+            for candidate in values["srcset"].split(","):
+                url = candidate.strip().split()[0] if candidate.strip() else ""
+                if url:
+                    self.refs.append(("srcset", url))
+        self._in_script = tag == "script" and "src" not in values
+
+    def handle_startendtag(self, tag, attrs):
+        self.handle_starttag(tag, attrs)
+        self._in_script = False
+
+    def handle_endtag(self, tag):
+        if tag == "script":
+            self._in_script = False
+
+    def handle_data(self, data):
+        if self._in_script:
+            self.scripts.append(data)
+
+
+def _html_model(path: Path) -> _RefParser:
+    parser = _RefParser()
+    parser.feed(path.read_text(encoding="utf-8"))
+    parser.close()
+    return parser
+
+
+def link_check(build: Path, data_routes: list[str] | None = None) -> dict:
+    """Checks every internal reference of a static build. Never fetches anything external.
+
+    data_routes: route paths whose prerendered `__data.json` must exist (default: read from the
+    source routes that have a server load). Returns counts, broken lists and the external list.
+    """
+    from urllib.parse import urljoin
+    models: dict[Path, _RefParser] = {}
+
+    def model(path: Path) -> _RefParser:
+        if path not in models:
+            models[path] = _html_model(path)
+        return models[path]
+
+    checked, broken, fragments, broken_fragments, external, inline = 0, [], 0, [], [], 0
+    by_kind: dict[str, int] = {}
+
+    def check(document: str, kind: str, base: str, value: str):
+        nonlocal checked, fragments, inline
+        if not value:
+            return
+        if value.lower().startswith(("data:", "blob:")):
+            inline += 1
+            return
+        if EXTERNAL_REF.match(value):
+            external.append({"document": document, "kind": kind, "url": value})
+            return
+        by_kind[kind] = by_kind.get(kind, 0) + 1
+        resolved = urljoin(base, value)
+        path_part, _, fragment = resolved.partition("#")
+        path_part = path_part.split("?", 1)[0]
+        if value.startswith("#"):
+            fragments += 1
+            own = build / document
+            if fragment and fragment not in model(own).ids:
+                broken_fragments.append({"document": document, "ref": value})
+            return
+        checked += 1
+        target = pages_resolve(build, path_part)
+        if target is None:
+            broken.append({"document": document, "kind": kind, "ref": value})
+            return
+        if fragment and kind in ("href",) and target.suffix == ".html":
+            fragments += 1
+            if fragment not in model(target).ids:
+                broken_fragments.append({"document": document, "ref": value})
+
+    html_files = sorted(p for p in build.rglob("*.html") if "_app" not in p.relative_to(build).parts)
+    for path in html_files:
+        rel = path.relative_to(build).as_posix()
+        parsed = model(path)
+        bases = [document_url_path(build, path)]
+        if rel == "404.html":
+            bases.append(NOT_FOUND_PROBE + "/nested")  # the fallback is served at any depth
+        for base in bases:
+            for kind, value in parsed.refs:
+                check(rel, kind, base, value)
+            for script in parsed.scripts:
+                for match in JS_IMPORT.finditer(script):
+                    check(rel, "inline-import", base, match.group(2))
+    for path in sorted(build.rglob("*.css")):
+        rel = path.relative_to(build).as_posix()
+        for match in CSS_URL.finditer(path.read_text(encoding="utf-8")):
+            check(rel, "css-url", "/" + rel, match.group(2).strip())
+    for path in sorted([*build.rglob("*.js"), *build.rglob("*.mjs")]):
+        rel = path.relative_to(build).as_posix()
+        text = path.read_text(encoding="utf-8")
+        specifiers = {m.group(2) for m in JS_IMPORT.finditer(text)} | {m.group(1) for m in JS_DEP_STRING.finditer(text)}
+        for specifier in sorted(specifiers):
+            check(rel, "js-import", "/" + rel, specifier)
+    if data_routes is None:
+        data_routes = sorted(
+            "/" + p.parent.relative_to(SRC / "routes").as_posix().strip(".")
+            for p in (SRC / "routes").rglob("+page.server.*"))
+    for route in data_routes:
+        target = "/" + "/".join(x for x in (route.strip("/"), "__data.json") if x)
+        check("(prerendered load)", "data-json", "/", target)
+    for path in sorted(build.rglob("__data.json")):
+        page = path.parent.relative_to(build).as_posix()
+        check(path.relative_to(build).as_posix(), "data-json-route", "/", "/" + page if page != "." else "/")
+    return {"references_checked": checked, "broken": broken, "fragment_references": fragments,
+            "broken_fragments": broken_fragments, "external": external, "external_fetched": 0,
+            "inline_data_references": inline, "by_kind": by_kind, "documents": len(html_files)}
+
+
+# ---------------------------------------------------------------- V6 privacy scan (section 7.2)
+
+PRIVACY_FAMILIES = ("tailnet_names", "private_addresses", "estate_host_names", "private_zone_hosts",
+                    "artifact_paths", "linear_urls_and_keys", "private_run_digests", "real_take_identifiers")
+IPV4 = re.compile(r"(?<![\d.])(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(?![\d.])")
+IPV6_PRIVATE = re.compile(r"(?<![0-9a-f:])(?:f[cd][0-9a-f]{2}|fe[89ab][0-9a-f]):[0-9a-f:]*[0-9a-f](?![0-9a-z:])", re.I)
+IPV6_LOOPBACK = re.compile(r"(?<![0-9a-z:])::1(?![0-9a-z:])", re.I)
+HEX64 = re.compile(r"(?<![0-9A-Fa-f])[0-9A-Fa-f]{64}(?![0-9A-Fa-f])")
+B64_SHA256 = re.compile(r"(?<![A-Za-z0-9+/])[A-Za-z0-9+/]{43}=")
+HEX64_BYTES = re.compile(rb"(?<![0-9A-Fa-f])[0-9A-Fa-f]{64}(?![0-9A-Fa-f])")
+B64_SHA256_BYTES = re.compile(rb"(?<![A-Za-z0-9+/])[A-Za-z0-9+/]{43}=")
+
+
+def _private_v4(octets: tuple[int, ...]) -> bool:
+    a, b = octets[0], octets[1]
+    return (a == 10 or (a == 172 and 16 <= b <= 31) or (a == 192 and b == 168) or (a == 100 and 64 <= b <= 127)
+            or a == 127 or (a == 169 and b == 254) or octets == (0, 0, 0, 0))
+
+
+def privacy_patterns(host_short: str | None = None) -> dict[str, list[re.Pattern]]:
+    """Families 1 and 3 to 6 as compiled patterns (literals assembled from fragments)."""
+    ruleset = load_rules()
+    by_id = {r["id"]: r for r in ruleset["rules"]}
+    hosts = ["ne" + "o", "st" + "ing", "hon" + "ey"]
+    if host_short and len(host_short) >= 3:
+        hosts.append(host_short.lower())
+    return {
+        "tailnet_names": [re.compile(r"\bts\." + "net" + r"\b", re.I), re.compile(r"\btail" + "net" + r"\b", re.I),
+                          re.compile(r"\btail(?=[0-9a-f]*\d)[0-9a-f]{4,10}\b", re.I)],
+        "estate_host_names": [re.compile(r"(?<![\w-])(?:" + "|".join(re.escape(h) for h in hosts) + r")(?![\w-])", re.I)],
+        "private_zone_hosts": [by_id["private-estate-hostname"]["regexp"], by_id["internal-hostname"]["regexp"]],
+        "artifact_paths": [re.compile(r"\bart" + r"ifacts[/\\]", re.I), re.compile(r"\.lo" + r"cal[/\\]sprint", re.I),
+                           re.compile(r"\bruns[/\\]\d{8}T", re.I), re.compile(r"\bexperiments[/\\]\d{8}T", re.I)],
+        "linear_urls_and_keys": [re.compile(r"\blin" + r"ear\.app\b", re.I), re.compile(r"\bTI" + r"N-\d+\b", re.I)],
+    }
+
+
+_DIGEST_CACHE: dict = {}
+
+
+def private_run_digests(runs_roots: list[Path] | None = None, full: bool = False) -> dict:
+    """Family 7 identifiers: sha256 of run files (<= 64 MiB unless full) and 64-hex strings in text manifests."""
+    key = (tuple(str(r) for r in runs_roots) if runs_roots is not None else None, full)
+    if key in _DIGEST_CACHE:
+        return _DIGEST_CACHE[key]
+    if runs_roots is None:
+        runs_roots = [r for r in ([REPO / "artifacts" / "runs"]
+                                  + ([main_checkout() / "artifacts" / "runs"] if main_checkout() else [])) if r.is_dir()]
+    started = time.monotonic()
+    hexes: set[str] = set()
+    b64: set[str] = set()
+    total = hashed = not_hashed = manifests = 0
+    for root in runs_roots:
+        for path in sorted(root.rglob("*")):
+            if not path.is_file() or path.is_symlink():
+                continue
+            total += 1
+            size = path.stat().st_size
+            if full or size <= DIGEST_SIZE_LIMIT:
+                with path.open("rb") as handle:
+                    digest = hashlib.file_digest(handle, "sha256").digest()
+                hexes.add(digest.hex())
+                b64.add(__import__("base64").b64encode(digest).decode("ascii"))
+                hashed += 1
+            else:
+                not_hashed += 1
+            if path.suffix.lower() in MANIFEST_SUFFIXES and size <= MANIFEST_SIZE_LIMIT:
+                manifests += 1
+                text = path.read_text(encoding="utf-8", errors="ignore")
+                hexes.update(m.group(0).lower() for m in HEX64.finditer(text))
+    result = {"checked": bool(runs_roots), "roots": len(runs_roots), "hex": hexes, "b64": b64,
+              "identifiers": len(hexes) + len(b64), "files_total": total, "files_hashed": hashed,
+              "not_hashed": not_hashed, "manifests_read": manifests, "full": full,
+              "duration_s": round(time.monotonic() - started, 2)}
+    if not runs_roots:
+        result.update({"identifiers": 0, "checked": False})
+    _DIGEST_CACHE[key] = result
+    return result
+
+
+def privacy_scan(build: Path, digests: dict, take_identifiers: dict[str, str],
+                 host_short: str | None = None) -> dict:
+    """Applies the eight families to every file of a build. Hits carry family, file and offset only."""
+    patterns = privacy_patterns(host_short)
+    needles = sorted(take_identifiers)
+    hits: list[dict] = []
+    text_files: list[str] = []
+    binary_files: list[str] = []
+
+    def add(family: str, rel: str, offset: int):
+        hits.append({"family": family, "file": rel, "offset": offset})
+
+    for path in sorted(p for p in build.rglob("*") if p.is_file()):
+        rel = path.relative_to(build).as_posix()
+        data = path.read_bytes()
+        text = _decode(data) if path.suffix.lower() in BUILD_TEXT_EXT else None
+        if text is None:
+            binary_files.append(rel)
+            for match in HEX64_BYTES.finditer(data):
+                if match.group(0).decode("ascii").lower() in digests["hex"]:
+                    add("private_run_digests", rel, match.start())
+            for match in B64_SHA256_BYTES.finditer(data):
+                if match.group(0).decode("ascii") in digests["b64"]:
+                    add("private_run_digests", rel, match.start())
+            for needle in needles:
+                index = data.find(needle.encode("utf-8"))
+                if index >= 0:
+                    add("real_take_identifiers", rel, index)
+            continue
+        text_files.append(rel)
+        for family, compiled in patterns.items():
+            for pattern in compiled:
+                for match in pattern.finditer(text):
+                    add(family, rel, match.start())
+        for match in IPV4.finditer(text):
+            octets = tuple(int(g) for g in match.groups())
+            if all(o <= 255 for o in octets) and _private_v4(octets):
+                add("private_addresses", rel, match.start())
+        for pattern in (IPV6_PRIVATE, IPV6_LOOPBACK):
+            for match in pattern.finditer(text):
+                add("private_addresses", rel, match.start())
+        for match in HEX64.finditer(text):
+            if match.group(0).lower() in digests["hex"]:
+                add("private_run_digests", rel, match.start())
+        for match in B64_SHA256.finditer(text):
+            if match.group(0) in digests["b64"]:
+                add("private_run_digests", rel, match.start())
+        for needle in needles:
+            index = text.find(needle)
+            if index >= 0:
+                add("real_take_identifiers", rel, index)
+    per_family = {family: sum(1 for h in hits if h["family"] == family) for family in PRIVACY_FAMILIES}
+    return {"text_files": len(text_files), "binary_files": len(binary_files), "hits": hits,
+            "hits_per_family": per_family, "hits_total": len(hits),
+            "identifiers": {"tailnet_names": len(patterns["tailnet_names"]),
+                            "private_addresses": 10,  # 8 IPv4 classes + 2 IPv6 classes (+ loopback ::1 pattern)
+                            "estate_host_names": len(patterns["estate_host_names"][0].pattern.split("|")),
+                            "private_zone_hosts": len(patterns["private_zone_hosts"]),
+                            "artifact_paths": len(patterns["artifact_paths"]),
+                            "linear_urls_and_keys": len(patterns["linear_urls_and_keys"]),
+                            "private_run_digests": digests["identifiers"],
+                            "real_take_identifiers": len(needles)}}
+
+
+def privacy_fixtures(digest_hex: str) -> dict[str, tuple[str, str]]:
+    """family -> (positive text, negative text). Invented names, documentation-range lookalikes, synthetic digests."""
+    j = "".join
+    other = hashlib.sha256(b"site-verify negative control, not in any run").hexdigest()
+    return {
+        "tailnet_names": (j(("node-a.tail", "0a1b2", ".ts", ".net")), "a detailed retail tail on tailwind"),
+        "private_addresses": (j(("10", ".20.30", ".40")), "203.0.113.9 and 198.51.100.7 and 1.2.3"),
+        "estate_host_names": (j(("ssh ", "ne", "o", " now")), "neon stingers honeycomb"),
+        "private_zone_hosts": (j(("db.example", ".inter", "nal")), "an internal note about example.org"),
+        "artifact_paths": (j(("art", "ifacts", "/runs/x")), "the artifacts of history"),
+        "linear_urls_and_keys": (j(("TI", "N-", "42")), "TINY-house linear algebra"),
+        "private_run_digests": (digest_hex, other),
+        "real_take_identifiers": (j(("Mov", "ie on ", "1-2-34 at 5.06 PM")), "Movie night on Friday"),
+    }
+
+
+def gitleaks_command(target: Path, report: Path) -> list[str]:
+    """Section 7.3, verbatim apart from the target and report paths."""
+    return ["gitleaks", "dir", str(target), "--config", ".gitleaks.toml", "--no-banner", "--redact",
+            "--log-level", "warn", "--report-format", "json", "--report-path", str(report), "--exit-code", "1"]
+
+
+def synthetic_credential() -> str:
+    """A credential-shaped string assembled at run time (never a real token)."""
+    alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    seed = hashlib.sha256(b"site-verify gitleaks positive control").digest()
+    body = "".join(alphabet[b % 62] for b in seed)[:36]
+    return "gh" + "p_" + body
+
+
+# ---------------------------------------------------------------- tests
+
+class SiteVerifySpecTests(unittest.TestCase):
+    def test_spec_exists_with_unknown_field_section(self):
+        text = VERIFY_SPEC.read_text(encoding="utf-8")
+        self.assertIn("site_verify", text)
+        self.assertIn("## 12. Explicit unknown fields", text)
+
+    def test_present_receipts_are_json_carry_fields_and_never_claim_a_deploy(self):
+        present = sorted(RECEIPT_DIR.glob("site_verify-*.json"))
+        self.assertTrue(any(p.name == "site_verify-contract-freeze.json" for p in present))
+        for path in present:
+            receipt = json.loads(path.read_text(encoding="utf-8"))
+            with self.subTest(receipt=path.name):
+                self.assertEqual(receipt.get("lane"), "site_verify")
+                self.assertIsNot(receipt.get("deployed"), True)
+            if path.name not in VERIFY_RECEIPTS:
+                continue
+            for field, allowed in VERIFY_FIELDS.items():
+                with self.subTest(receipt=path.name, field=field):
+                    self.assertIn(field, receipt)
+                    self.assertTrue(any(receipt[field] is a or (type(receipt[field]) is type(a) and receipt[field] == a)
+                                        for a in allowed), receipt[field])
+
+
+class SiteVerifyPinTests(unittest.TestCase):
+    def test_v15_pins(self):
+        package = package_json()
+        dev = package["devDependencies"]
+        self.assertEqual((dev.get("@playwright/test"), dev.get("@axe-core/playwright")), ("1.63.0", "4.13.0"))
+        metrics = pin_metrics()
+        self.assertEqual(metrics["inexact"], [])
+        self.assertEqual(metrics["skeleton_package_pins"],
+                         {"@skeletonlabs/skeleton": "5.0.1", "@skeletonlabs/skeleton-svelte": "5.0.1"})
+        self.assertEqual(metrics["skeleton_lock_versions"], ["5.0.1"])
+        self.assertIsNone(metrics["effect_package_pin"])
+        self.assertEqual(metrics["effect_lock_versions"], [])
+        lock = (SITE / "pnpm-lock.yaml").read_text(encoding="utf-8")
+        self.assertNotIn("wrangler", lock)
+        for name, version in (("@playwright/test", "1.63.0"), ("@axe-core/playwright", "4.13.0")):
+            with self.subTest(dependency=name):
+                self.assertRegex(lock, r"(?m)^      '" + re.escape(name) + r"':\n        specifier: " + re.escape(version)
+                                 + r"\n        version: " + re.escape(version))
+        self.assertEqual(sorted(set(re.findall(r"(?m)^  playwright(?:-core)?@(\d+\.\d+\.\d+):", lock))), ["1.63.0"])
+        self.assertRegex(lock, r"(?m)^  axe-core@\d+\.\d+\.\d+:")
+
+    def test_verify_script_and_no_lifecycle_script(self):
+        scripts = package_json()["scripts"]
+        self.assertEqual(scripts.get("verify:browser"), "playwright test")
+        lifecycle = {"preinstall", "install", "postinstall", "prepare", "prepublish", "prepublishOnly", "prepack",
+                     "postpack", "preverify:browser", "postverify:browser"}
+        self.assertEqual(lifecycle & set(scripts), set())
+
+    def test_harness_files_exist_and_config_requires_the_out_dir(self):
+        for rel in HARNESS_FILES:
+            with self.subTest(file=rel):
+                self.assertTrue((SITE / rel).is_file())
+        config = (SITE / "playwright.config.ts").read_text(encoding="utf-8")
+        routes = (SITE / "e2e" / "routes.ts").read_text(encoding="utf-8")
+        self.assertIn("SITE_VERIFY_OUT_DIR", config)
+        self.assertRegex(config, r"const out = outDir\(\);")
+        self.assertIn("process.env.SITE_VERIFY_OUT_DIR", routes)
+        self.assertIn("site_verify_out_dir_required", routes)
+        for option in ("workers: 1", "retries: 0", "serviceWorkers: 'block'", "video: 'off'",
+                       "screenshot: 'only-on-failure'", "trace: 'retain-on-failure'", "browserName: 'chromium'"):
+            with self.subTest(option=option):
+                self.assertIn(option, config)
+        self.assertNotRegex(config, r"projects:\s*\[[^\]]*(firefox|webkit)")
+
+    def test_no_browser_download_or_security_disabling_option(self):
+        for rel in HARNESS_FILES:
+            text = (SITE / rel).read_text(encoding="utf-8")
+            for needle in SECURITY_DISABLING:
+                with self.subTest(file=rel, option=needle):
+                    if rel == "tests/browser-ladder.ts" and needle == "playwright install":
+                        # The ladder names the operator-run step (d) in a comment and never executes it.
+                        self.assertNotRegex(text, r"(spawn|exec|execSync|execFile)\([^)]*install")
+                        continue
+                    self.assertNotIn(needle, text)
+
+    def test_static_server_has_no_loopback_literal_and_refuses_escapes(self):
+        server = (SITE / "e2e" / "static-server.mjs").read_text(encoding="utf-8")
+        ruleset = load_rules()
+        self.assertEqual([f["ruleId"] for f in scan_text("e2e/static-server.mjs", server, ruleset, "source")], [])
+        self.assertIn("[127, 0, 0, 1].join('.')", server)
+        self.assertIn("kind: 'refused'", server)
+
+    def test_ladder_is_a_copy_of_the_web_ladder(self):
+        ours = (SITE / "tests" / "browser-ladder.ts").read_text(encoding="utf-8").splitlines()
+        theirs = (REPO / "web" / "tests" / "browser-ladder.ts").read_text(encoding="utf-8").splitlines()
+        self.assertEqual(ours[2:], theirs[1:])
+
+    def test_a11y_baseline_shape(self):
+        baseline = json.loads((SITE / "e2e" / "a11y-baseline.json").read_text(encoding="utf-8"))
+        self.assertEqual(baseline["schema_version"], 1)
+        for entry in baseline["violations"]:
+            with self.subTest(entry=entry.get("rule_id")):
+                for key in ("reason", "rule_id", "route", "scheme", "width", "node_count"):
+                    self.assertIn(key, entry)
+                self.assertTrue(entry["reason"].strip())
+
+
+class LinkCheckSelfTests(unittest.TestCase):
+    def test_v9_reports_exactly_the_broken_references(self):
+        with tempfile.TemporaryDirectory(prefix="site-verify-links-") as tmp:
+            build = Path(tmp) / "build"
+            (build / "_app").mkdir(parents=True)
+            (build / "deep").mkdir()
+            (build / "index.html").write_text(
+                '<a href="/about">ok</a><a href="/missing">bad</a>'
+                '<a href="#top" id="top">ok</a><a href="#nowhere">bad</a>'
+                '<a href="/about#team">ok</a><a href="/about#gone">bad</a>'
+                '<script src="./_app/a.js"></script><script src="./_app/none.js"></script>'
+                '<img srcset="/img.svg 1x, /no.svg 2x">'
+                '<link rel="stylesheet" href="./_app/s.css">'
+                '<a href="https://example.org/x">ext</a><a href="mailto:someone@example.org">mail</a>'
+                '<script>import("/_app/a.js"); import("/_app/gone.js")</script>', encoding="utf-8")
+            (build / "about.html").write_text('<h2 id="team">Team</h2>', encoding="utf-8")
+            (build / "deep" / "index.html").write_text('<a href="../about">ok</a><a href="./nothing">bad</a>', encoding="utf-8")
+            (build / "404.html").write_text('<a href="/">ok</a>', encoding="utf-8")
+            (build / "img.svg").write_text("<svg/>", encoding="utf-8")
+            (build / "_app" / "a.js").write_text('import { x } from "./b.js"; import("./c.js");', encoding="utf-8")
+            (build / "_app" / "b.js").write_text("export const x = 1;", encoding="utf-8")
+            (build / "_app" / "s.css").write_text("a{background:url(./font.woff2)}b{background:url('./missing.woff2')}"
+                                                  "c{background:url(data:image/png;base64,AAAA)}", encoding="utf-8")
+            (build / "_app" / "font.woff2").write_bytes(b"\x00")
+            (build / "about").mkdir()
+            (build / "about" / "__data.json").write_text("{}", encoding="utf-8")
+            result = link_check(build, data_routes=["/about", "/nodata"])
+        broken = sorted((b["document"], b["ref"]) for b in result["broken"])
+        self.assertEqual(broken, sorted([
+            ("index.html", "/missing"), ("index.html", "./_app/none.js"), ("index.html", "/no.svg"),
+            ("index.html", "/_app/gone.js"), ("deep/index.html", "./nothing"), ("_app/a.js", "./c.js"),
+            ("_app/s.css", "./missing.woff2"), ("(prerendered load)", "/nodata/__data.json")]))
+        self.assertEqual(sorted(b["ref"] for b in result["broken_fragments"]), ["#nowhere", "/about#gone"])
+        self.assertEqual(sorted(e["url"] for e in result["external"]), ["https://example.org/x", "mailto:someone@example.org"])
+        self.assertEqual(result["external_fetched"], 0)
+        self.assertEqual(result["inline_data_references"], 1)
+
+    def test_pages_resolution_order_and_escape_refusal(self):
+        with tempfile.TemporaryDirectory(prefix="site-verify-pages-") as tmp:
+            build = Path(tmp) / "build"
+            (build / "a").mkdir(parents=True)
+            (build / "a.html").write_text("a", encoding="utf-8")
+            (build / "a" / "index.html").write_text("a-index", encoding="utf-8")
+            (build / "index.html").write_text("i", encoding="utf-8")
+            (Path(tmp) / "secret.txt").write_text("s", encoding="utf-8")
+            self.assertEqual(pages_resolve(build, "/").name, "index.html")
+            self.assertEqual(pages_resolve(build, "/a").name, "a.html")
+            self.assertEqual(pages_resolve(build, "/a/index.html").relative_to(build.resolve()).as_posix(), "a/index.html")
+            self.assertIsNone(pages_resolve(build, "/../secret.txt"))
+            self.assertIsNone(pages_resolve(build, "/%2e%2e/secret.txt"))
+            self.assertIsNone(pages_resolve(build, "/b"))
+
+
+class PrivacyScanSelfTests(unittest.TestCase):
+    def test_v11_every_family_fires_on_its_positive_and_never_on_a_negative(self):
+        with tempfile.TemporaryDirectory(prefix="site-verify-privacy-") as tmp:
+            runs = Path(tmp) / "runs" / "synthetic-run"
+            runs.mkdir(parents=True)
+            payload = runs / "payload.bin"
+            payload.write_bytes(b"synthetic run payload for the site_verify privacy self-test\n")
+            digest = hashlib.sha256(payload.read_bytes()).digest()
+            (runs / "manifest.json").write_text(json.dumps({"input": "0" * 63 + "1"}), encoding="utf-8")
+            digests = private_run_digests([Path(tmp) / "runs"])
+            self.assertEqual((digests["files_total"], digests["files_hashed"], digests["manifests_read"]), (2, 2, 1))
+            self.assertIn("0" * 63 + "1", digests["hex"])
+            take = {"".join(("Mov", "ie on ", "1-2-34 at 5.06 PM")): "recording_basename"}
+            build = Path(tmp) / "build"
+            fixtures = privacy_fixtures(digest.hex())
+            for family, (positive, negative) in fixtures.items():
+                (build / "pos").mkdir(parents=True, exist_ok=True)
+                (build / "neg").mkdir(parents=True, exist_ok=True)
+                (build / "pos" / f"{family}.txt").write_text(positive + "\n", encoding="utf-8")
+                (build / "neg" / f"{family}.txt").write_text(negative + "\n", encoding="utf-8")
+            (build / "extra").mkdir()
+            (build / "extra" / "upper.txt").write_text(digest.hex().upper(), encoding="utf-8")
+            (build / "extra" / "sri.txt").write_text("sha256-" + __import__("base64").b64encode(digest).decode(), encoding="utf-8")
+            (build / "extra" / "font.woff2").write_bytes(b"\x00\x01" + digest.hex().encode() + b"\x00")
+            (build / "extra" / "ipv6.txt").write_text("fd12:3456::1 and fe80::1 and ::1", encoding="utf-8")
+            (build / "extra" / "manifest.txt").write_text("0" * 63 + "1", encoding="utf-8")
+            result = privacy_scan(build, digests, take, host_short="synthetic-host")
+        fired: dict[str, set[str]] = {}
+        for hit in result["hits"]:
+            fired.setdefault(hit["file"], set()).add(hit["family"])
+        positives = sum(1 for family in PRIVACY_FAMILIES if family in fired.get(f"pos/{family}.txt", set()))
+        negatives = sum(1 for family in PRIVACY_FAMILIES if fired.get(f"neg/{family}.txt"))
+        self.assertEqual((positives, negatives), (8, 0), fired)
+        self.assertEqual(fired.get("extra/upper.txt"), {"private_run_digests"})
+        self.assertEqual(fired.get("extra/sri.txt"), {"private_run_digests"})
+        self.assertEqual(fired.get("extra/font.woff2"), {"private_run_digests"})
+        self.assertEqual(fired.get("extra/manifest.txt"), {"private_run_digests"})
+        self.assertEqual(sum(1 for h in result["hits"] if h["file"] == "extra/ipv6.txt"), 3)
+        self.assertEqual(result["binary_files"], 1)
+        self.assertTrue(all(set(h) == {"family", "file", "offset"} for h in result["hits"]))
+
+    def test_missing_runs_root_reports_unchecked_not_a_pass(self):
+        digests = private_run_digests([])
+        self.assertEqual((digests["checked"], digests["identifiers"]), (False, 0))
+
+
+class DeployDocTests(unittest.TestCase):
+    """V18: DEPLOY.md keeps its statements and lists the gate commands in the section 8 order."""
+
+    ORDERED = (
+        "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install --frozen-lockfile",
+        "pnpm run check",
+        "pnpm run build",
+        "node scripts/leak-scan.mjs build",
+        "node scripts/leak-scan.mjs . --surface source",
+        "test_public_site_s3.SiteVerifyBuildTests",
+        "test_public_site_s3.GitleaksBuildTests",
+        "pnpm run verify:browser",
+        "SITE_VERIFY_BROWSER=1 PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v",
+        "wrangler pages deploy build",
+    )
+    OPERATOR_GO = ("choosing the Cloudflare account", "creating the Pages project", "pinning a Wrangler version",
+                   "first `wrangler pages deploy`", "every later `wrangler pages deploy`", "attaching a custom domain",
+                   "whether preview deployments are public")
+
+    def setUp(self):
+        self.text = (SITE / "DEPLOY.md").read_text(encoding="utf-8")
+
+    def test_v18_gate_commands_in_order(self):
+        gates = self.text[self.text.index("## Verification gates (in order)"):]
+        position = 0
+        for command in self.ORDERED:
+            with self.subTest(command=command):
+                found = gates.find(command, position)
+                self.assertGreaterEqual(found, 0, f"{command!r} missing or out of order")
+                position = max(position, found)
+
+    def test_v18_operator_go_actions_and_existing_statements(self):
+        flat = re.sub(r"\s+", " ", self.text)
+        for action in self.OPERATOR_GO:
+            with self.subTest(action=action):
+                self.assertIn(action, flat)
+        for statement in (r"(?i)plan only", r"(?i)nothing in this directory has been deployed",
+                          r"separate operator go", r"(?i)no credential belongs in this repository",
+                          r"(?i)no browser is downloaded", r"(?i)condition to proceed",
+                          r"export SITE_VERIFY_OUT_DIR=", r"site_verify_out_dir_required", r"e2e_browser_unavailable",
+                          r"(?i)not a WCAG conformance\s+claim"):
+            with self.subTest(statement=statement):
+                self.assertRegex(self.text, statement)
+
+    def test_v19_no_deploy_tooling_in_the_site(self):
+        self.assertFalse(list(SITE.glob("wrangler.*")))
+        self.assertNotIn("wrangler", json.dumps(package_json()))
+
+
+@unittest.skipIf(_build_skip_reason() is not None, _build_skip_reason() or "")
+class SiteVerifyBuildTests(unittest.TestCase):
+    """V8, V10, V13 and V14 (check and build) on the shared fresh build."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fresh = fresh_build()
+        if cls.fresh["check"].returncode == PNPM_GATE_UNAVAILABLE_EXIT:
+            raise unittest.SkipTest("pnpm storage gate unavailable on this host (exit 75)")
+
+    def setUp(self):
+        check, build = self.fresh["check"], self.fresh["build"]
+        self.assertEqual(check.returncode, 0, (check.stdout + check.stderr)[-1500:])
+        self.assertIsNotNone(build)
+        self.assertEqual(build.returncode, 0, (build.stdout + build.stderr)[-1500:])
+
+    def test_v14_check_has_no_diagnostics(self):
+        summary = re.search(r"COMPLETED (\d+) FILES (\d+) ERRORS (\d+) WARNINGS", self.fresh["check"].stdout)
+        self.assertIsNotNone(summary)
+        self.assertEqual((summary.group(2), summary.group(3)), ("0", "0"))
+
+    def test_v8_internal_links(self):
+        result = link_check(BUILD)
+        self.assertEqual(result["documents"], len(EXPECTED_HTML))
+        self.assertGreater(result["references_checked"], 20)
+        self.assertGreater(result["fragment_references"], 0)
+        self.assertEqual(result["broken"], [])
+        self.assertEqual(result["broken_fragments"], [])
+        self.assertEqual(result["external_fetched"], 0)
+
+    def test_v10_privacy_scan(self):
+        import socket
+        full = os.environ.get("SITE_VERIFY_FULL_DIGESTS") == "1"
+        started = time.monotonic()
+        digests = private_run_digests(full=full)
+        take = real_take_identifiers()["identifiers"]
+        result = privacy_scan(BUILD, digests, take, socket.gethostname().split(".")[0])
+        elapsed = time.monotonic() - started
+        self.assertLess(elapsed, FULL_DIGEST_TIMEOUT_S if full else SCANNER_TIMEOUT_S + digests["duration_s"])
+        self.assertGreater(result["text_files"], 10)
+        self.assertEqual(result["hits_per_family"], {family: 0 for family in PRIVACY_FAMILIES})
+        if main_checkout() is not None or (REPO / "artifacts" / "runs").is_dir():
+            self.assertTrue(digests["checked"])
+            self.assertGreater(digests["files_hashed"], 0)
+        if full:
+            self.assertEqual(digests["not_hashed"], 0)
+
+    def test_v13_existing_leak_scans_stay_clean(self):
+        ruleset = load_rules()
+        self.assertEqual(len(ruleset["rules"]), 24)
+        build_scan = scan_directory(BUILD, ruleset, "build")
+        source = source_scan(ruleset)
+        self.assertEqual(build_scan["findings"], [])
+        self.assertEqual(source["findings"], [])
+        for rel in HARNESS_FILES:
+            with self.subTest(file=rel):
+                self.assertIn(rel, source["files_scanned"])
+
+
+@unittest.skipIf(_build_skip_reason() is not None, _build_skip_reason() or "")
+@unittest.skipIf(shutil.which("gitleaks") is None, "gitleaks_unavailable")
+class GitleaksBuildTests(unittest.TestCase):
+    """V12: gitleaks on the fresh build (exit 0, no findings) with a positive control (exit 1)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fresh = fresh_build()
+        if cls.fresh["check"].returncode == PNPM_GATE_UNAVAILABLE_EXIT:
+            raise unittest.SkipTest("pnpm storage gate unavailable on this host (exit 75)")
+
+    def test_v12_build_is_clean_and_the_control_fires(self):
+        self.assertIsNotNone(self.fresh["build"])
+        self.assertEqual(self.fresh["build"].returncode, 0)
+        with tempfile.TemporaryDirectory(prefix="site-verify-gitleaks-") as tmp:
+            report = Path(tmp) / "gitleaks-build.json"
+            clean = subprocess.run(gitleaks_command(Path("site") / "build", report), cwd=REPO, capture_output=True,
+                                   text=True, timeout=GITLEAKS_TIMEOUT_S, check=False)
+            self.assertEqual(clean.returncode, 0, (clean.stdout + clean.stderr)[-800:])
+            self.assertEqual(json.loads(report.read_text(encoding="utf-8") or "[]"), [])
+            control_dir = Path(tmp) / "control"
+            control_dir.mkdir()
+            (control_dir / "control.txt").write_text(f'token = "{synthetic_credential()}"\n', encoding="utf-8")
+            control_report = Path(tmp) / "gitleaks-control.json"
+            control = subprocess.run(gitleaks_command(control_dir, control_report), cwd=REPO, capture_output=True,
+                                     text=True, timeout=GITLEAKS_TIMEOUT_S, check=False)
+            self.assertEqual(control.returncode, 1, (control.stdout + control.stderr)[-800:])
+            self.assertGreaterEqual(len(json.loads(control_report.read_text(encoding="utf-8"))), 1)
+
+
+@unittest.skipUnless(os.environ.get("SITE_VERIFY_BROWSER") == "1", "opt-in: set SITE_VERIFY_BROWSER=1")
+@unittest.skipIf(_build_skip_reason() is not None, _build_skip_reason() or "")
+class BrowserSuiteTests(unittest.TestCase):
+    """V1 to V7 from browser-summary.json of a Playwright run against the shared fresh build."""
+
+    @classmethod
+    def setUpClass(cls):
+        fresh = fresh_build()
+        if fresh["check"].returncode == PNPM_GATE_UNAVAILABLE_EXIT:
+            raise unittest.SkipTest("pnpm storage gate unavailable on this host (exit 75)")
+        if fresh["build"] is None or fresh["build"].returncode != 0:
+            raise AssertionError("the fresh build failed; the browser suite needs it")
+        cls.tmp = tempfile.TemporaryDirectory(prefix="site-verify-browser-")
+        out = os.environ.get("SITE_VERIFY_OUT_DIR") or cls.tmp.name
+        env = {**os.environ, "SITE_VERIFY_OUT_DIR": out, "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"}
+        cls.run = subprocess.run(["pnpm", "exec", "playwright", "test"], cwd=SITE, env=env, capture_output=True,
+                                 text=True, timeout=PLAYWRIGHT_TIMEOUT_S, check=False)
+        summary = Path(out) / "browser-summary.json"
+        cls.summary = json.loads(summary.read_text(encoding="utf-8")) if summary.is_file() else None
+        if cls.summary is not None and cls.summary.get("skip_code") == "e2e_browser_unavailable":
+            raise unittest.SkipTest("e2e_browser_unavailable")
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_v1_to_v7(self):
+        self.assertIsNotNone(self.summary, (self.run.stdout + self.run.stderr)[-2000:])
+        metrics = self.summary["metrics"]
+        routes = self.summary["route_count"]
+        self.assertEqual(routes, len(EXPECTED_HTML))
+        self.assertEqual((metrics["V1"]["numerator"], metrics["V1"]["denominator"]), (5 * routes, 5 * routes))
+        for key in ("V1", "V2", "V3", "V4", "V5", "V6", "V7"):
+            with self.subTest(metric=key):
+                self.assertIs(metrics[key]["pass"], True, metrics[key])
+        self.assertEqual(self.summary["external_requests_observed"], [])
+        self.assertEqual(self.summary["browser_download_bytes"], 0)
+        self.assertEqual(self.run.returncode, 0, self.run.stdout[-2000:])
 
 
 if __name__ == "__main__":
