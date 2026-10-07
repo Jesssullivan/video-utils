@@ -3,3 +3,6 @@
 _render/
 *_files/
 *.html
+
+/.quarto/
+**/*.quarto_ipynb

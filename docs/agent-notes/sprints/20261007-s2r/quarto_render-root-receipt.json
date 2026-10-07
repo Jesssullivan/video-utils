@@ -1,0 +1,17 @@
+{
+  "actor": "/root video-utils-d6",
+  "authority": "operator ruling 2026-10-07: approve flake quarto/pandoc fix plus one bounded render attempt (docs/agent-notes/2026-10-07-s2-operator-rulings.md)",
+  "date_utc": "2026-10-07T09:20:12Z",
+  "outcome": "render_succeeded",
+  "render_attempts_used": 1,
+  "render_attempts_approved": 1,
+  "fix": "report devShell QUARTO_PANDOC -> pandoc bundled in the hash-pinned Quarto 1.10.18 tarball (merge c162733)",
+  "bundle": {"dir": "artifacts/s2/report_d6/bundles/20261006T041633Z-990aa1bd6737-20261007T091935Z", "bundle_sha256": "40e8097261f66e9413a53706b23b0683f88a1e1af6dcfdd85f23cbd5bafdc3d1", "member_count": 24, "origin_checked": true, "status": "verified", "media_copied": false},
+  "preflight": {"exit": 0, "seconds": 23, "quarto": "1.10.18", "r": "R version 4.6.1 (2026-06-24)", "pandoc": "pandoc 3.10", "quarto_pandoc": "/nix/store/n143ym1q7jbs2gfpvmx11dpdjf5nymbx-quarto-1.10.18-bundled-pandoc/bin/pandoc"},
+  "render": {"command": "timeout 1800 nix develop .#report --command sh -c 'quarto render reports/demo.qmd -P run_dir=<bundle abs path>'", "exit": 0, "seconds": 13, "output": "reports/_render/demo.html (gitignored); preserved copy artifacts/s2/quarto_render_root/render/demo.html", "html_sha256": "7396e18c8c6911c4acdf3057742248af04561f7137f21c20935f6b50d62e2000", "html_bytes": 1349825},
+  "host": "neo (aarch64-darwin), load ~6 at run time",
+  "side_effects": "quarto appended '/.quarto/' and '**/*.quarto_ipynb' to reports/.gitignore (kept)",
+  "claims": {"measured": ["render exit 0", "html sha256 and size", "tool versions"], "not_established": ["render readability acceptance by the operator", "listening acceptance", "real-take accuracy", "note correctness"]},
+  "plain_html_report": "remains available as the model-free fallback",
+  "d6_remaining": "small labelled corpus still has one context record; operator labelling session pending"
+}
