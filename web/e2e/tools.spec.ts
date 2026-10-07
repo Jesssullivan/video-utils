@@ -1,28 +1,28 @@
 // The tools page lists every typed tool (WEB_TESTS_S3.md 5.2; metric W11). The number has one source:
 // program/tools.json, projected by the real control API into capabilities.json at generation time;
-// tests/test_web_house_stack_s3.py asserts the registry holds 42 tools and that the fixture names match it.
+// tests/test_web_house_stack_s3.py asserts the registry holds 46 tools and that the fixture names match it.
 import { expect, expectNoForbiddenText, fixture, open, record, test } from '../tests/e2e-support';
 
 type Capabilities = { tool_count: number; pilot_tool_count: number; tools: Array<{ name: string; capability: unknown }>; areas: Array<{ area: string; tools: string[] }>; models: Array<{ model_id: string }> };
 const capabilities = fixture<Capabilities>('capabilities.json');
 
-test('lists 42 tools: rendered cards = data-tool-count = fixture tool_count = 42', async ({ page, mock }) => {
+test('lists 46 tools: rendered cards = data-tool-count = fixture tool_count = 46', async ({ page, mock }) => {
 	await open(page, '/tools');
 	await expect(page.locator('main#main [data-tools-page="true"]')).toBeVisible();
 	await expect(page.getByRole('heading', { level: 1, name: 'Typed tools and models' })).toBeVisible();
 	const count = page.locator('[data-tool-count]');
-	await expect(count).toHaveAttribute('data-tool-count', '42');
+	await expect(count).toHaveAttribute('data-tool-count', '46');
 	const cards = page.locator('[data-tool]');
-	await expect(cards).toHaveCount(42);
-	expect(capabilities.tool_count).toBe(42);
-	expect(capabilities.tools.length).toBe(42);
+	await expect(cards).toHaveCount(46);
+	expect(capabilities.tool_count).toBe(46);
+	expect(capabilities.tools.length).toBe(46);
 	const rendered = await cards.evaluateAll((elements) => elements.map((element) => element.getAttribute('data-tool') ?? ''));
 	expect([...rendered].sort()).toEqual(capabilities.tools.map((tool) => tool.name).sort());
-	expect(new Set(rendered).size).toBe(42);
+	expect(new Set(rendered).size).toBe(46);
 	await expect(page.locator('section[data-area]')).toHaveCount(capabilities.areas.length);
 	expect(await mock.nonGet()).toEqual([]);
 	await expectNoForbiddenText(page);
-	record('tools', 'W11_tools_listed', { rendered: rendered.length, data_tool_count: 42, fixture_tool_count: capabilities.tool_count });
+	record('tools', 'W11_tools_listed', { rendered: rendered.length, data_tool_count: 46, fixture_tool_count: capabilities.tool_count });
 });
 
 test('capability metadata and model rows are registry views: unknown stays unknown, nothing runs', async ({ page }) => {

@@ -13,9 +13,11 @@ validated by a Bazel run on the authoring host.
 
 S3 bazel_full added the five modules written since then (test_public_site_s3,
 test_s3_tool_admission, test_web_house_stack_s3, and, after the Phase 4 rebase
-onto main, test_take_intake and test_timing_calibration); their classification
-and reasons are in bazel/test_classification_s3_full.json, and each list below
-is the union of the two classification files (tests/test_bazel_graph_s3.py).
+onto main, test_take_intake and test_timing_calibration); root added
+test_auth_token_s3, test_stems_estimate and test_s3g_tool_admission at
+integration. Their classification and reasons are in
+bazel/test_classification_s3_full.json, and each list below is the union of
+the two classification files (tests/test_bazel_graph_s3.py).
 """
 
 load("@rules_rust//rust:defs.bzl", "rust_test")
@@ -121,6 +123,7 @@ WORKSPACE_ARTIFACT_TESTS = [
     "test_rhythm",
     "test_s2_tool_admission",
     "test_s3_tool_admission",
+    "test_s3g_tool_admission",
     "test_share_export",
     "test_share_export_preroll",
     "test_take_intake",

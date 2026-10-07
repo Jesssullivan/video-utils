@@ -5,7 +5,8 @@
       "tools": [
         "probe",
         "clicks",
-        "guitar_noul_decide"
+        "guitar_noul_decide",
+        "stems_estimate"
       ]
     },
     {
@@ -43,7 +44,9 @@
         "phrase_evaluate",
         "arrangement_reference",
         "phrase_timing",
-        "beat_this_compare"
+        "beat_this_compare",
+        "timing_calibration_analyze",
+        "timing_calibration_apply"
       ]
     },
     {
@@ -51,7 +54,8 @@
       "tools": [
         "report",
         "pipeline",
-        "report_bundle"
+        "report_bundle",
+        "take_intake"
       ]
     },
     {
@@ -91,6 +95,24 @@
   "model_note": "S3 model lanes (Beat This, guitar_noul, stems) are tracked in TIN-5721 and appear here only once root registers them in program/models.json.",
   "models": [
     {
+      "format": "pytorch-lightning-ckpt (torch.load weights_only=True; optimizer ",
+      "gate": null,
+      "gate_state": {
+        "reason": "recorded in program/models.json",
+        "value": "registered_hash_bound_runtime_not_qualified_no_inference_run"
+      },
+      "lane": null,
+      "license": "MIT (code LICENSE; published weights per upstream README commit b95c8ab0c58c2d9fcfd40508ae8dffbc05ac4f5c, 2026-05-28); training-data rights distinct and unresolved",
+      "local_presence": "not_checked",
+      "max_bytes": 81058141,
+      "model_id": "cpjku-beat-this-final0",
+      "registration": "registered_hash_bound",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000003",
+      "source_commit": "ad7974846029835307ba19a3d5cefbf40b243041",
+      "status": null,
+      "url_host": "cloud.cp.jku.at"
+    },
+    {
       "format": "onnx",
       "gate": null,
       "gate_state": {
@@ -103,7 +125,7 @@
       "max_bytes": 230444,
       "model_id": "spotify-basic-pitch-0.4.0-onnx",
       "registration": "registered_hash_bound",
-      "sha256": "0000000000000000000000000000000000000000000000000000000000000003",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000004",
       "source_commit": "9991303bba609a3b93089d13ec80d1d495083596",
       "status": null,
       "url_host": "raw.githubusercontent.com"
@@ -111,13 +133,13 @@
   ],
   "pilot_tool_count": 8,
   "registry_sha256": {
-    "capabilities": "0000000000000000000000000000000000000000000000000000000000000004",
-    "models": "0000000000000000000000000000000000000000000000000000000000000005",
-    "tools": "0000000000000000000000000000000000000000000000000000000000000006"
+    "capabilities": "0000000000000000000000000000000000000000000000000000000000000005",
+    "models": "0000000000000000000000000000000000000000000000000000000000000006",
+    "tools": "0000000000000000000000000000000000000000000000000000000000000007"
   },
   "schema_id": "video-utils.web-runs.capabilities",
   "schema_version": 1,
-  "tool_count": 42,
+  "tool_count": 46,
   "tools": [
     {
       "annotations": {
@@ -227,7 +249,7 @@
       },
       "limitations": [
         "No automatic high-pass or hum notch; denoising can still remove intended fundamentals and harmonics. Listening acceptance is required.",
-        "Captured presets require original SHA 0000000000000000000000000000000000000000000000000000000000000007 and root-reviewed 4.10\u20134.95 second audio-relative interval. Different sources reject before probe/render; music or sustain absence is uncertain.",
+        "Captured presets require original SHA 0000000000000000000000000000000000000000000000000000000000000008 and root-reviewed 4.10\u20134.95 second audio-relative interval. Different sources reject before probe/render; music or sustain absence is uncertain.",
         "Pure denoised.wav and removed-signal residue remain separate from optional processed.wav EQ/compression and final cleaned.wav normalization. No optimal-tone or listening acceptance claim.",
         "Only fixed profile names are exposed; no arbitrary capture interval, EQ or compressor object. Actual source-bound presets are excluded from synthetic benchmark profile choices."
       ],
@@ -2394,6 +2416,203 @@
       "name": "guitar_noul_decide",
       "skill": ".agents/skills/guitar-noul/SKILL.md",
       "title": "External guitar_noul window hypotheses (TIN-5619 client)"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "pipeline_report",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "packet requires an intake directory produced by just take-run; review the capture interval on /sources/[id]/capture or with just review before take-run.",
+        "recommended_prior_tools": [
+          "video_probe"
+        ]
+      },
+      "evidence_kind": "intake_plan_or_evidence_packet",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "arrangement",
+          "bpm",
+          "family",
+          "features",
+          "intake_dir",
+          "operation",
+          "origin",
+          "source",
+          "timeout_seconds"
+        ],
+        "required": [
+          "operation"
+        ]
+      },
+      "limitations": [
+        "Probe fields are ffprobe declarations; nothing is decoded or listened to.",
+        "The family id is a truncated domain-separated hash of the source sha256; the same bytes at any path give the same id.",
+        "split stays null (pending_operator_choice); the admissibility check only shows the row validates once a split is chosen.",
+        "Plans never assign a split, author an arrangement reference, adopt a default or verify that a capture interval is noise-only.",
+        "Writes evidence-packet.json and tin-5186-message-draft.json inside the intake directory only; status draft_not_sent.",
+        "The draft holds no media, no 64-hex hashes, no src_/art_ ids, no source-timed spans, no capture values, no review text, no file names and no host paths.",
+        "Phrase timing is measured signed offsets only; ahead/behind direction stays withheld_uncalibrated. No note-correctness or missed-note verdict.",
+        "Everything audible stays needs_listening; packets adopt no detector, profile or master."
+      ],
+      "limitations_count": 8,
+      "name": "take_intake",
+      "skill": ".agents/skills/take-intake/SKILL.md",
+      "title": "Second-take intake: plan and evidence packet"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "area": "phrase_rhythm",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Needs an operator calibration clip recorded with the same setup and placement as the take; no real clip exists yet.",
+        "recommended_prior_tools": []
+      },
+      "evidence_kind": "synthetic_validated_calibration_record_real_take_unvalidated",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "amp_chain",
+          "distance_method",
+          "distances",
+          "input",
+          "output_root",
+          "room_temp_c",
+          "segments",
+          "setup_id",
+          "timeout_seconds"
+        ],
+        "required": [
+          "amp_chain",
+          "distance_method",
+          "distances",
+          "input",
+          "output_root",
+          "segments",
+          "setup_id"
+        ]
+      },
+      "limitations": [
+        "Experimental and analysis only: no audio is written or filtered (32.70 Hz content untouched); no default detector, profile or master is adopted.",
+        "The offset correction combines an operator-declared acoustic path (distances, temperature-bounded speed of sound), a declared amp-chain term, per-class detector bias measured on the real click and isolated real attacks against a fine-onset reference whose own bias comes from noise-free synthetic probes, and a +/-1 ms residual floor; GUM root-sum-square, k=2.",
+        "Abstains when the expanded uncertainty exceeds the 5 ms decision margin, when segments, click or attack events are insufficient, when the click grid does not fit, when distances are out of bounds, or when the played-on-click consistency check fails. Played-on-click attacks never set the offset; human intent is not ground truth.",
+        "Phone input latency is treated as common-mode within one recording (inference); signal-dependent device processing, reflections, legato/tapping/sweep attacks and click identity in the take are uncalibrated or unverified. Placement match is operator-declared."
+      ],
+      "limitations_count": 4,
+      "name": "timing_calibration_analyze",
+      "skill": ".agents/skills/timing-calibration/SKILL.md",
+      "title": "Capture-latency calibration record (experimental)"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "area": "phrase_rhythm",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "phrase_timing must come from the same rhythm.py (rhythm_sha256) as the calibration record.",
+        "recommended_prior_tools": [
+          "rhythm",
+          "phrase_timing",
+          "timing_calibration_analyze"
+        ]
+      },
+      "evidence_kind": "calibrated_click_relative_timing_hypothesis_unvalidated",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "calibration",
+          "output_root",
+          "phrase_timing",
+          "setup_id",
+          "timeout_seconds"
+        ],
+        "required": [
+          "calibration",
+          "output_root",
+          "phrase_timing",
+          "setup_id"
+        ]
+      },
+      "limitations": [
+        "Writes a new phrase-timing-calibrated.json; the phrase-timing input is never modified and both input hashes are re-read after writing.",
+        "Direction (ahead_of_click/behind_click) is emitted only when |calibrated median| exceeds max(sqrt(U_cal^2 + U_median^2), 5 ms); otherwise within_uncertainty. Phrases whose onset median coincides with the click's own broadband self-detection are withheld.",
+        "Refuses (typed, nothing written) without a calibrated record, on detector-identity (rhythm_sha256) or setup-id mismatch, on a non-schema-2 phrase timing, or under artifacts/runs.",
+        "Directions are review hypotheses for listening about the calibrated source-emission offset; never a performance grade, missed/extra note or note-level verdict. No real-take direction has been validated."
+      ],
+      "limitations_count": 4,
+      "name": "timing_calibration_apply",
+      "skill": ".agents/skills/timing-calibration/SKILL.md",
+      "title": "Calibrated phrase-timing view (experimental)"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "analysis",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "A current verified run, a program/models.json entry demucs-htdemucs_6s-5c90dfd2 with a measured sha256 and an operator_terms_acknowledgement, the prefetched local checkpoint and the qualified isolated Linux runtime (VIDEO_UTILS_STEMS_RUNTIME_PYTHON beneath artifacts/model-runtime-env, pinned demucs/torch) are required. Prior tools are not invoked automatically; registration, prefetch, acknowledgement and runtime setup are separate explicit root/operator operations.",
+        "recommended_prior_tools": [
+          "denoise"
+        ]
+      },
+      "evidence_kind": "uncalibrated_model_stem_estimates_from_mono_mixture",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "excerpt_end_seconds",
+          "excerpt_start_seconds",
+          "input_role",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "excerpt_end_seconds",
+          "excerpt_start_seconds",
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "All six outputs are htdemucs_6s allocations of one mono mixture to trained target labels, not recovered original stems; estimate_from_mono_mixture is always true, recovered_original_stem false, stem_semantics model_target_allocation_not_instrument_identity and instrument_presence_claim none. A drums, bass, vocals or piano output does not mean that instrument is present.",
+        "low_end_check reports measured 20-45 Hz (and 45-120 Hz reference) band energies of every estimate against the input after the sample-rate round trip; it is not a verdict that ~32 Hz content is musically preserved (low_end_preservation_verdict null), and listening and bleed/artifact review are separate and unperformed.",
+        "C1 guitar energy may be allocated to bass and click attacks to drums; read guitar_plus_bass_vs_input_band_db and per-stem band shares. Behaviour on a heavily distorted down-tuned nine-string phone recording with a box fan is unknown (separation_accuracy unknown).",
+        "No knobs: htdemucs_6s single model, CPU, 2 threads, shifts 1, overlap 0.25, split true, model-default segment, seed 20261007, 600 s deadline, 3 GiB RSS. The estimate is never a cleanup, tone, dynamics or master default (cleanup_default, master_eligible and default_adoption are always false).",
+        "Fails closed in order: request_invalid, excerpt_too_long, model_not_registered, model_hash_not_registered, model_registry_entry_invalid, model_terms_not_acknowledged, model_file_missing, model_hash_mismatch, runtime_unavailable (runtime_reason), input_not_admitted. Registry entry, hash-bound fetch, operator acknowledgement and runtime qualification are explicit root acts; this tool performs none of them.",
+        "Weights are limited by the maintainer to personal/research use (code MIT does not cover them; training data includes MUSDB18-HQ). Real-take outputs are V6_private_real_take_derived, stay in ignored artifacts and are never redistributed (redistribution_permitted false). No note-correctness, missed/extra-note or performance claim is made."
+      ],
+      "limitations_count": 6,
+      "name": "stems_estimate",
+      "skill": ".agents/skills/stems-estimate/SKILL.md",
+      "title": "Optional htdemucs_6s stem estimates from the mono take (experimental)"
     }
   ],
   "unknown_fields": {

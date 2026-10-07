@@ -3223,6 +3223,382 @@
         "acceptance": "A returned label is not a verdict, an annotation or an operator-reported issue; detector agreement does not establish note correctness, phrase mistakes or listening acceptance.",
         "max_comparison_candidates_default": 1
       }
+    },
+    {
+      "name": "take_intake",
+      "title": "Second-take intake: plan and evidence packet",
+      "description": "operation plan: read-only intake plan for a NEW take (source sha256, ffprobe summary, deterministic take_family_id that never collides with the October 5 family, corpus row draft with split null, ordered stages with exact argv, required operator inputs). operation packet: path-free evidence packet for a finished or partial intake (stage denominators, hashes, signal versions, tool versions, capture record, phrase timing offsets with direction withheld_uncalibrated, claim classes, unknowns) plus a closed-schema TIN-5186 draft carrying only the family id and non-media metadata (V6), never sent by the tool. The long mutating run/resume stays a just/CLI action.",
+      "intent": "Show exactly what a new-take intake will run and which inputs only the operator can supply, then give root and the operator a reviewable, path-free account of the result before anything is reported to XORuby.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": [
+              "plan",
+              "packet"
+            ],
+            "description": "plan: intake plan for SOURCE; reads the source only and writes nothing outside a transient admissibility scratch directory that it removes. packet: rebuild evidence-packet.json and the TIN-5186 draft (draft_not_sent) inside an intake directory."
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing local recording; must not be a symlink, inside artifacts/runs, or a tracked/unignored repository path. Never written."
+          },
+          "family": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "Optional explicit take_family_id (corpus.IDENTIFIER); default is take-<16 hex> derived from the source sha256."
+          },
+          "arrangement": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Optional arrangement reference bound to THIS source sha256; program/demo-arrangement.json belongs to the first take and is refused."
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 20,
+            "maximum": 400,
+            "description": "Optional approximate operator pulse; not an intended score."
+          },
+          "features": {
+            "type": "string",
+            "enum": [
+              "base",
+              "extended"
+            ],
+            "default": "base",
+            "description": "run_demo feature set the plan describes; phrase_anchor needs extended clicks."
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "real_recording",
+              "synthetic_fixture"
+            ],
+            "default": "real_recording",
+            "description": "Corpus row origin for the draft."
+          },
+          "intake_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Intake run directory written by take_intake run (<state-root>/<family>/<intake_id>/ holding intake.json). A pipeline artifacts/runs directory is refused (not_an_intake_run_dir)."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 300,
+            "description": "Hard owned-worker deadline in seconds; plan hashes the source and runs ffprobe, packet re-hashes recorded outputs."
+          }
+        },
+        "required": [
+          "operation"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/take-intake/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "intake_plan_or_evidence_packet",
+      "limitations": [
+        "Probe fields are ffprobe declarations; nothing is decoded or listened to.",
+        "The family id is a truncated domain-separated hash of the source sha256; the same bytes at any path give the same id.",
+        "split stays null (pending_operator_choice); the admissibility check only shows the row validates once a split is chosen.",
+        "Plans never assign a split, author an arrangement reference, adopt a default or verify that a capture interval is noise-only.",
+        "Writes evidence-packet.json and tin-5186-message-draft.json inside the intake directory only; status draft_not_sent.",
+        "The draft holds no media, no 64-hex hashes, no src_/art_ ids, no source-timed spans, no capture values, no review text, no file names and no host paths.",
+        "Phrase timing is measured signed offsets only; ahead/behind direction stays withheld_uncalibrated. No note-correctness or missed-note verdict.",
+        "Everything audible stays needs_listening; packets adopt no detector, profile or master."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "video_probe"
+        ],
+        "enforced": false,
+        "note": "packet requires an intake directory produced by just take-run; review the capture interval on /sources/[id]/capture or with just review before take-run."
+      },
+      "agent_workflow": {
+        "identify": "Confirm this is a new take (not the October 5 source), read the required operator inputs, and for packets confirm the run manifest binding is bound.",
+        "research": "Read docs/spec/sprints/TAKE_INTAKE_S3.md and the operator ruling of 2026-10-07; the first 5.0 s are setup and never auto-confirmed noise; every analysis must declare the current denoised.wav.",
+        "iterate": "Plan again after the operator supplies a reference, anchor or BPM (plans are byte-identical for identical inputs); rebuild packets after a resume and never edit them by hand.",
+        "acceptance": "Neither a plan nor a packet establishes restoration quality, phrase correctness, note correctness or listening acceptance; root sends the TIN-5186 draft only after operator review.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "timing_calibration_analyze",
+      "title": "Capture-latency calibration record (experimental)",
+      "description": "From an operator calibration clip (click only, offbeat palm-muted and open pick attacks, optional played-on-click check) and mic distances, estimate the offset between the in-room acoustic click and amplified pick attacks as a GUM expanded-uncertainty correction (acoustic path, amp chain, per-class detector bias, residual). Writes one fresh calibration-record.json; abstains when the expanded uncertainty exceeds the 5 ms decision margin. Analysis only; never a performance grade.",
+      "intent": "Give a musician a calibrated, uncertainty-bounded capture offset so later phrase timing can say ahead/behind the click only when the evidence supports it.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Calibration clip (WAV/MOV/M4A/MP4, at most 600 s) or a run directory containing denoised.wav and manifest.json. Read only; its sha256 is recorded and re-checked."
+          },
+          "segments": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Operator-reviewed SEG.json: {schema_version: 1, segments: [{kind, start_seconds, end_seconds, review_text}]} with kinds click_only, offbeat_palm_muted, offbeat_open, on_click_palm_muted; bounded regular .json, at most 64 MiB; traversal, URL and symlinked-file inputs reject. Read only."
+          },
+          "distances": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "description": "mic_to_metronome=M,mic_to_amp=M[,ear_to_metronome=M,ear_to_amp=M] in metres, each in (0, 20]."
+          },
+          "distance_method": {
+            "type": "string",
+            "enum": [
+              "measured",
+              "estimated"
+            ],
+            "description": "measured = +/-0.05 m, estimated = +/-0.30 m half-width (uniform)."
+          },
+          "amp_chain": {
+            "type": "string",
+            "description": "analog (0 +/- 0.1 ms), declared:MS (+/- 0.5 ms, 0-50 ms) or unknown (always abstains)."
+          },
+          "setup_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Operator label binding the record to one phone/app/room/amp/metronome placement."
+          },
+          "room_temp_c": {
+            "type": "number",
+            "minimum": -10,
+            "maximum": 45,
+            "description": "Optional room temperature (+/-2 C); omitted means 15-30 C."
+          },
+          "output_root": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Directory beneath repository artifacts/ (never artifacts/runs); each call writes records/<UTC>-<hex12>/calibration-record.json."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 600,
+            "default": 600,
+            "description": "Hard owned-worker deadline; FFmpeg decode is bounded at 180 s."
+          }
+        },
+        "required": [
+          "input",
+          "segments",
+          "distances",
+          "distance_method",
+          "amp_chain",
+          "setup_id",
+          "output_root"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/timing-calibration/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "synthetic_validated_calibration_record_real_take_unvalidated",
+      "limitations": [
+        "Experimental and analysis only: no audio is written or filtered (32.70 Hz content untouched); no default detector, profile or master is adopted.",
+        "The offset correction combines an operator-declared acoustic path (distances, temperature-bounded speed of sound), a declared amp-chain term, per-class detector bias measured on the real click and isolated real attacks against a fine-onset reference whose own bias comes from noise-free synthetic probes, and a +/-1 ms residual floor; GUM root-sum-square, k=2.",
+        "Abstains when the expanded uncertainty exceeds the 5 ms decision margin, when segments, click or attack events are insufficient, when the click grid does not fit, when distances are out of bounds, or when the played-on-click consistency check fails. Played-on-click attacks never set the offset; human intent is not ground truth.",
+        "Phone input latency is treated as common-mode within one recording (inference); signal-dependent device processing, reflections, legato/tapping/sweep attacks and click identity in the take are uncalibrated or unverified. Placement match is operator-declared."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [],
+        "enforced": false,
+        "note": "Needs an operator calibration clip recorded with the same setup and placement as the take; no real clip exists yet."
+      },
+      "agent_workflow": {
+        "identify": "Confirm the clip was recorded with the take's setup and placement and that SEG.json spans were reviewed.",
+        "research": "Read docs/research/2026-10-07-capture-latency-calibration.md and the spec; inspect abstain_reasons, components and consistency_check.",
+        "iterate": "On abstention, re-record or measure (never loosen thresholds); compare records across sessions.",
+        "acceptance": "A calibrated record is an uncertainty-bounded synthetic-validated estimate; real-take validity needs operator spot-checks and listening.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "timing_calibration_apply",
+      "title": "Calibrated phrase-timing view (experimental)",
+      "description": "Apply a calibrated capture-latency record to an existing phrase_timing schema-2 JSON and write a new phrase-timing-calibrated.json: per phrase the verbatim source entry plus a calibrated median, combined uncertainty and a direction emitted only beyond max(U_phrase, 5 ms), else within_uncertainty. The source file is never modified; never a performance grade or missed-note verdict.",
+      "intent": "Let a musician see which phrases are ahead of or behind the click only where the calibrated evidence exceeds its uncertainty.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "phrase_timing": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "phrase_timing schema-2 phrase-timing.json; bounded regular .json, at most 64 MiB; traversal, URL and symlinked-file inputs reject. Read only."
+          },
+          "calibration": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "calibration-record.json from timing_calibration_analyze with status calibrated; bounded regular .json, at most 64 MiB; traversal, URL and symlinked-file inputs reject. Read only."
+          },
+          "setup_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Must equal the record's capture_setup.setup_id."
+          },
+          "output_root": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Directory beneath repository artifacts/ (never artifacts/runs); each call writes views/<UTC>-<hex12>/phrase-timing-calibrated.json."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 300,
+            "default": 60,
+            "description": "Hard owned-worker deadline."
+          }
+        },
+        "required": [
+          "phrase_timing",
+          "calibration",
+          "setup_id",
+          "output_root"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/timing-calibration/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "calibrated_click_relative_timing_hypothesis_unvalidated",
+      "limitations": [
+        "Writes a new phrase-timing-calibrated.json; the phrase-timing input is never modified and both input hashes are re-read after writing.",
+        "Direction (ahead_of_click/behind_click) is emitted only when |calibrated median| exceeds max(sqrt(U_cal^2 + U_median^2), 5 ms); otherwise within_uncertainty. Phrases whose onset median coincides with the click's own broadband self-detection are withheld.",
+        "Refuses (typed, nothing written) without a calibrated record, on detector-identity (rhythm_sha256) or setup-id mismatch, on a non-schema-2 phrase timing, or under artifacts/runs.",
+        "Directions are review hypotheses for listening about the calibrated source-emission offset; never a performance grade, missed/extra note or note-level verdict. No real-take direction has been validated."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "rhythm",
+          "phrase_timing",
+          "timing_calibration_analyze"
+        ],
+        "enforced": false,
+        "note": "phrase_timing must come from the same rhythm.py (rhythm_sha256) as the calibration record."
+      },
+      "agent_workflow": {
+        "identify": "Confirm setup id, rhythm_sha256 and the take's placement match the record.",
+        "research": "Inspect calibration_consumed, per-phrase combined_uncertainty_ms and withheld_basis before reading directions.",
+        "iterate": "No knobs; after rhythm, phrase spans or calibration change, write a fresh view and compare.",
+        "acceptance": "Directions are listening hypotheses; no performance grade, missed or extra note, or listening acceptance.",
+        "max_comparison_candidates_default": 3
+      }
+    },
+    {
+      "name": "stems_estimate",
+      "title": "Optional htdemucs_6s stem estimates from the mono take (experimental)",
+      "description": "Run htdemucs_6s on a 1-30 s source-timed excerpt of the manifest-verified denoised.wav (or source.wav) of an existing run and write six mono estimate WAVs (drums, bass, other, vocals, guitar, piano) at the source rate plus stems_estimate.json with model, runtime and input identities, the sample-rate round trip, a measured 20-45 Hz low-end check and mixture consistency. Every output is an estimate from a mono mixture, never a recovered original stem. Uses only a registry-verified local checkpoint with a recorded operator terms acknowledgement and a qualified isolated Linux CPU runtime; never downloads, installs or falls back. Refuses with a typed refusal_code until all of those exist. Writes a fresh directory beneath artifacts/s2/stems_contract/estimates and never writes the run.",
+      "intent": "Give listening review and agent iteration a private, labelled model allocation of the distorted nine-string take, with the C1 (~32.7 Hz) band energy of the guitar and bass estimates measured against the input, without claiming instrument presence, separation accuracy, low-end preservation, tone or any performance verdict, and without becoming a cleanup, tone or master input.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Existing run beneath repository artifacts/runs (or a generated fixture case beneath artifacts/s2/stems_contract/fixtures) with a regular manifest.json binding the input WAV by output_sha256, an explicit timeline.audio_start_seconds and a 64-hex source.sha256. Mono, <=300 s. Symlink and traversal components are rejected."
+          },
+          "input_role": {
+            "type": "string",
+            "enum": [
+              "denoised",
+              "source"
+            ],
+            "default": "denoised",
+            "description": "denoised.wav (default) or source.wav of the run; both must be bound by manifest output_sha256."
+          },
+          "excerpt_start_seconds": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 300,
+            "description": "Excerpt start in seconds from timeline.audio_start_seconds; mapped to frame round(start x rate). Stems report source_start_seconds = origin + start_frame / rate."
+          },
+          "excerpt_end_seconds": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 300,
+            "description": "Excerpt end on the same timeline. Length end - start must be >= 1.0 s (request_invalid) and <= 30.0 s (excerpt_too_long); an end beyond the input refuses input_not_admitted."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 660,
+            "description": "Outer owned-process-group deadline; the worker's internal inference deadline is 600 s."
+          }
+        },
+        "required": [
+          "run_dir",
+          "excerpt_start_seconds",
+          "excerpt_end_seconds"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/stems-estimate/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "uncalibrated_model_stem_estimates_from_mono_mixture",
+      "limitations": [
+        "All six outputs are htdemucs_6s allocations of one mono mixture to trained target labels, not recovered original stems; estimate_from_mono_mixture is always true, recovered_original_stem false, stem_semantics model_target_allocation_not_instrument_identity and instrument_presence_claim none. A drums, bass, vocals or piano output does not mean that instrument is present.",
+        "low_end_check reports measured 20-45 Hz (and 45-120 Hz reference) band energies of every estimate against the input after the sample-rate round trip; it is not a verdict that ~32 Hz content is musically preserved (low_end_preservation_verdict null), and listening and bleed/artifact review are separate and unperformed.",
+        "C1 guitar energy may be allocated to bass and click attacks to drums; read guitar_plus_bass_vs_input_band_db and per-stem band shares. Behaviour on a heavily distorted down-tuned nine-string phone recording with a box fan is unknown (separation_accuracy unknown).",
+        "No knobs: htdemucs_6s single model, CPU, 2 threads, shifts 1, overlap 0.25, split true, model-default segment, seed 20261007, 600 s deadline, 3 GiB RSS. The estimate is never a cleanup, tone, dynamics or master default (cleanup_default, master_eligible and default_adoption are always false).",
+        "Fails closed in order: request_invalid, excerpt_too_long, model_not_registered, model_hash_not_registered, model_registry_entry_invalid, model_terms_not_acknowledged, model_file_missing, model_hash_mismatch, runtime_unavailable (runtime_reason), input_not_admitted. Registry entry, hash-bound fetch, operator acknowledgement and runtime qualification are explicit root acts; this tool performs none of them.",
+        "Weights are limited by the maintainer to personal/research use (code MIT does not cover them; training data includes MUSDB18-HQ). Real-take outputs are V6_private_real_take_derived, stay in ignored artifacts and are never redistributed (redistribution_permitted false). No note-correctness, missed/extra-note or performance claim is made."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "denoise"
+        ],
+        "enforced": false,
+        "note": "A current verified run, a program/models.json entry demucs-htdemucs_6s-5c90dfd2 with a measured sha256 and an operator_terms_acknowledgement, the prefetched local checkpoint and the qualified isolated Linux runtime (VIDEO_UTILS_STEMS_RUNTIME_PYTHON beneath artifacts/model-runtime-env, pinned demucs/torch) are required. Prior tools are not invoked automatically; registration, prefetch, acknowledgement and runtime setup are separate explicit root/operator operations."
+      },
+      "agent_workflow": {
+        "identify": "Inspect model, runtime and input identities, the excerpt frame mapping, sample_rate_conversion, low_end_check (guitar and guitar_plus_bass vs input, per-stem band shares) and mixture_consistency, plus every fixed unknown field; on a refusal read refusal_code (and runtime_reason) first.",
+        "research": "Read docs/research/2026-10-07-stems-weights-licence.md for terms and checkpoint bytes and docs/spec/sprints/STEMS_S3.md for the contract, refusal order and the preregistered s3-stems-1 experiment.",
+        "iterate": "There are no knobs. Compare the estimates with the input over the same source span by listening, and choose excerpts before looking at content. Any change to the worker or settings is a new experiment with new seeds, never tuning to truth.",
+        "acceptance": "A completed estimate or a near-0 dB guitar band ratio does not establish separation accuracy, instrument presence, low-end musical preservation, listening acceptance, tone recreation or note correctness; any use beyond private review is a separate root/operator decision.",
+        "max_comparison_candidates_default": 1
+      }
     }
   ]
 }

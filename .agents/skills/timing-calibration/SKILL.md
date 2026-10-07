@@ -3,9 +3,9 @@ name: timing-calibration
 description: Calibrate the capture-latency offset between an in-room acoustic metronome click and amplified distorted nine-string pick attacks from a short operator clip plus mic distances, then write a calibrated phrase-timing view that emits ahead/behind only beyond the stated uncertainty; experimental, analysis only, never a performance grade or missed-note verdict.
 ---
 
-# Calibrate click-relative phrase timing (experimental draft; not yet admitted)
+# Calibrate click-relative phrase timing (experimental)
 
-Hooks `timing_calibration_analyze` and `timing_calibration_apply` are **drafts** in `program/tool-drafts/timing_calibration.json`; root admits them. The worker is `scripts/timing_calibration.py`. Read [the lane contract](../../../docs/spec/sprints/TIMING_CALIBRATION_S3.md) and [the research note](../../../docs/research/2026-10-07-capture-latency-calibration.md) before relying on a record.
+**Hook:** MCP tools `timing_calibration_analyze` and `timing_calibration_apply` (admitted as tools 44 and 45, experimental); prompt `timing-calibration`; operators run `just timing-calibration-analyze` and `just timing-calibration-apply`. The worker is `scripts/timing_calibration.py`. Read [the lane contract](../../../docs/spec/sprints/TIMING_CALIBRATION_S3.md) and [the research note](../../../docs/research/2026-10-07-capture-latency-calibration.md) before relying on a record.
 
 **Intent.** A musician woodshedding with an acoustic metronome wants to know whether a phrase was ahead of or behind the click. `phrase_timing` measures onset − click, but that number also contains:
 
@@ -47,7 +47,7 @@ Then review the five spans in `SEG.json` (`{"schema_version": 1, "segments": [{"
   - `offset_correction_ms`: estimate, expanded U and interval;
   - `consistency_check.played_on_click`;
   - the click grid, including the click's own broadband self-offset;
-  - fixed unknowns: `human_intent_is_ground_truth: false`, `phone_input_latency: common_mode_within_one_recording_inference`, `click_identity_in_take: unverified`, `listening_ab: not_performed`, `performance_grading: not_performed`, `audio_written: false`, `filters_applied: []`, `real_take_direction: not_claimed_by_lane`.
+  - fixed unknowns: `human_intent_is_ground_truth: false`, `phone_input_latency: common_mode_within_one_recording_inference`, `click_identity_in_take: unverified`, `listening_ab: not_performed`, `performance_grading: not_performed`, `audio_written: false`, `filters_applied: []`, `real_take_direction: not_claimed_without_operator_calibration_record`.
 - The view copies every phrase-timing entry verbatim under `source_entry` and adds a `calibrated` block:
   - calibrated median;
   - U_phrase = √(U_cal² + (1.858·IQR/√n)²);
@@ -65,7 +65,7 @@ Then review the five spans in `SEG.json` (`{"schema_version": 1, "segments": [{"
 - Phone signal-dependent processing is unmodelled.
 - Placement match is operator-declared. Moving the amp 1.5 m shifts the truth by about 4.4 ms (stress arm E3).
 - Never derive ahead/behind from a raw `phrase_timing` offset yourself.
-- No real take has been calibrated by this lane, and no real-take direction is claimed.
+- No real take has been calibrated, and no real-take direction is claimed without an operator calibration record.
 
 **Research and iteration.**
 - If a record abstains, read `abstain_reasons`:

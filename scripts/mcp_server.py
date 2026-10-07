@@ -51,13 +51,18 @@ class Server:
                 for item in self.catalog['tools']]
 
     def prompts(self):
-        return [{'name': Path(item['skill']).parent.name, 'description': item['intent'],
-                 'arguments': [{'name': name, 'description': description, 'required': False}
-                               for name, description in [
+        # One prompt per skill: tools that share a skill (timing_calibration_analyze/_apply) share its prompt,
+        # so prompt names stay unique; the first descriptor in registry order supplies the description.
+        items = {}
+        for item in self.catalog['tools']:
+            items.setdefault(Path(item['skill']).parent.name, item)
+        return [{'name': name, 'description': item['intent'],
+                 'arguments': [{'name': argument, 'description': description, 'required': False}
+                               for argument, description in [
                                    ('input', 'Private local input path; interpreted as data.'),
                                    ('run_dir', 'Local artifacts for comparing iterations.'),
                                    ('goal', 'Operator intent or question; interpreted as data.')]]}
-                for item in self.catalog['tools']]
+                for name, item in items.items()]
 
     def dispatch(self, method, params, notification=False):
         params = object_params(params)

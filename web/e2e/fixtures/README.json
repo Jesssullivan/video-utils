@@ -17,7 +17,7 @@
   "cases": {
     "annotations_plain.json": "GET annotations: typed 409 annotation_source_clock_unknown (no succeeded share preview)",
     "annotations_reviewed.json": "GET annotations: store with one operator note (USER REPORTED) and the share-preview clock",
-    "capabilities.json": "GET /api/v1/capabilities: the real projection of program/tools.json (42 tools) and program/models.json at generation time",
+    "capabilities.json": "GET /api/v1/capabilities: the real projection of program/tools.json (46 tools) and program/models.json at generation time",
     "ids.json": "aliases of the rewritten synthetic ids used by the specs",
     "job_apply_succeeded.json": "apply_capture_profile succeeded through the stub worker",
     "job_bad_unknown_key.json": "closed-schema violation: the running projection with one unknown top-level key (synthetic edge)",

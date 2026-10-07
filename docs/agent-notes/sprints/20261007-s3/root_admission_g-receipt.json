@@ -1,0 +1,90 @@
+{
+  "schema": "video-utils.root-admission.v1",
+  "pass": "root_admission_g",
+  "sprint": "20261007-s3",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "branch": "sprint/20261007-s3/root_admission_g",
+  "actor": "root-directed Opus agent; it stopped on a rate limit before committing, and root committed its worktree (6f8171b), verified and merged it",
+  "tool_count": 46,
+  "tools_admitted": [
+    {
+      "index": 42,
+      "name": "take_intake",
+      "implementation_status": "experimental",
+      "skill": ".agents/skills/take-intake/SKILL.md",
+      "skill_sha256": "e9cd028bc5d2c08bb41a2e387d3763189fe7b78c830e3bca1a729ca310597334",
+      "descriptor_sha256": "32b9ae1b826f1f1cda08a29b48b27209ad8a5bed1c5a49af09f96211e110b5f9"
+    },
+    {
+      "index": 43,
+      "name": "timing_calibration_analyze",
+      "implementation_status": "experimental",
+      "skill": ".agents/skills/timing-calibration/SKILL.md",
+      "skill_sha256": "19870fec044611e57a2a48e273dcb0eeb98e42737a97b4eab2cbb785f9ac3b37",
+      "descriptor_sha256": "fc48899d80558d1fe362afb32608f5032bd7955618480d33b7c80acd8c816f4f"
+    },
+    {
+      "index": 44,
+      "name": "timing_calibration_apply",
+      "implementation_status": "experimental",
+      "skill": ".agents/skills/timing-calibration/SKILL.md",
+      "skill_sha256": "19870fec044611e57a2a48e273dcb0eeb98e42737a97b4eab2cbb785f9ac3b37",
+      "descriptor_sha256": "c1be6599b4c600ed10cd13612b0ef958283bb77e4ddf2d8959d50e4691df574e"
+    },
+    {
+      "index": 45,
+      "name": "stems_estimate",
+      "implementation_status": "experimental",
+      "skill": ".agents/skills/stems-estimate/SKILL.md",
+      "skill_sha256": "ec0f8dd3d67eef1f0d2b21e4586c93f5c9ea916f0c6028e55af63608ecf2839a",
+      "descriptor_sha256": "dfb2d0ebe2318e168270a48709c88d8a7af6bb8526d9fc0ecf7f1bc796517215"
+    }
+  ],
+  "freeze": {
+    "tools_42_sha256": "92aa3d3e82f2ff62211b063ddc9d4e37e96140fc1776308a51d2d11f7d4c1f83",
+    "tools_42_ascii_sha256": "61604b1af6c8791a42dfee924e5ef7a13d1e084c6de5693978fc68c00ddc06a7",
+    "tools_46_sha256": "ed2494b5e259ffac5d98ab554ac8e0b55b21119c948f49829a31170a5c7e6a4b",
+    "tools_46_ascii_sha256": "15852f750b668e3ea51206dc00bfdac35dd3364e50288138ee30f0d7e171ebb1",
+    "test_constants": {
+      "ADMITTED_42_SHA256": "92aa3d3e82f2ff62211b063ddc9d4e37e96140fc1776308a51d2d11f7d4c1f83",
+      "ADMITTED_42_ASCII_SHA256": "61604b1af6c8791a42dfee924e5ef7a13d1e084c6de5693978fc68c00ddc06a7",
+      "ADMITTED_46_SHA256": "ed2494b5e259ffac5d98ab554ac8e0b55b21119c948f49829a31170a5c7e6a4b",
+      "ADMITTED_46_ASCII_SHA256": "15852f750b668e3ea51206dc00bfdac35dd3364e50288138ee30f0d7e171ebb1"
+    }
+  },
+  "default_adoption": false,
+  "models_json_changed": false,
+  "downloads": 0,
+  "r6_tool_api_dot_path": "guarded_parts() strips only this checkout's absolute prefix before the hidden/staging/traversal checks, so a checkout under .local/ is no longer refused; dot components and .. inside the argument are still refused",
+  "tests": {
+    "targeted_branch": {
+      "command": "PYTHONPATH=tests python3 -m unittest <16 admission, tool, MCP, lane, bazel and web modules>",
+      "ran": 429,
+      "result": "OK",
+      "skipped": 7,
+      "seconds": 710.8
+    },
+    "full_suite_at_merge": {
+      "command": "PYTHONPATH=tests python3 -m unittest discover -s tests (main checkout, merge staged)",
+      "ran": 1990,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 96,
+      "seconds": 742.3,
+      "failures_named": [
+        "test_learned_pitch_pilot.ControllerTests.test_failed_leader_cleans_owned_live_descendant",
+        "test_phrase_localization_pilot.InertOrchestrationTests.test_owned_exited_leader_live_inert_child_cleanup"
+      ],
+      "note": "both are the known macOS process-inspection failures on this host since baseline a16d02d; they pass in hosted CI"
+    },
+    "web": {
+      "svelte_check": "0 errors",
+      "vitest": "156/156 after root updated the 42-tool pin in src/lib/server/runs/schema.test.ts to 46",
+      "e2e_tools_spec": "2 passed"
+    }
+  },
+  "not_done_by_agent": [
+    "receipt (written by root)",
+    "full-suite record (run by root at merge)"
+  ]
+}

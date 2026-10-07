@@ -741,7 +741,8 @@ class Drafts(unittest.TestCase):
         self.assertEqual((descriptor['name'], descriptor['implementation_status'], descriptor['evidence_kind']),
                          ('stems_estimate', 'experimental', 'uncalibrated_model_stem_estimates_from_mono_mixture'))
         self.assertTrue((ROOT / descriptor['skill']).is_file())
-        self.assertNotIn('stems_estimate', {t['name'] for t in admitted})  # draft only; root admits
+        # Admitted unchanged by root_admission_g (tests/test_s3g_tool_admission.py).
+        self.assertEqual(next(t for t in admitted if t['name'] == 'stems_estimate'), descriptor)
 
     def test_m11_registry_draft(self):
         draft = json.loads((ROOT / 'program' / 'model-drafts' / 'htdemucs_6s.json').read_text())
