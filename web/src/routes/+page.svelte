@@ -17,6 +17,14 @@
 		</p>
 	</div>
 
+	<aside class="vu-panel card space-y-1 p-4 text-sm" data-runs-entry="true">
+		<p class="vu-eyebrow">Runs</p>
+		<p>
+			Processed takes live in <a class="anchor" href="/runs">Runs</a>: each run has a graph (stages, signal versions,
+			evidence), matched-level compare, review (phrase/BPM overlays, triaged flags, Mark here) and deliver pages.
+		</p>
+	</aside>
+
 	{#if data.error}
 		<ControlApiError error={data.error} />
 	{:else if data.sources && data.sources.length === 0}

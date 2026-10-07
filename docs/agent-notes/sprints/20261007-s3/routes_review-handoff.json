@@ -1,0 +1,106 @@
+{
+  "branch": "sprint/20261007-s3/routes_review",
+  "contract": "docs/spec/sprints/ROUTES_REVIEW_S3.md (frozen at 828b678; section 13 appended 2026-10-07)",
+  "delivered": [
+    "scripts/web_runs_api.py (6 GET routes; match/serve entry points)",
+    "BFF client, closed Effect schemas and 6 endpoints",
+    "/runs, /runs/[id], /runs/[id]/compare, /runs/[id]/review, /runs/[id]/deliver, /jobs, /tools; /compare, /review, /download run pickers (303 with one run)",
+    "shared +layout.svelte nav and step bar (stepContext interface in lib/components/review/step-context.ts)",
+    "tests/test_web_runs_s3.py",
+    "receipts: tests, checkbuild, walkthrough"
+  ],
+  "inferred": [
+    "stage roles and graph edges come from a lane filename map (role_basis carried), not from the manifest",
+    "tool areas outside the 8 pilot tools come from a lane presentation map"
+  ],
+  "known_limits": [
+    "cold run-graph request on the real take (10.3 s) exceeds the frozen 5 s BFF timeout; a reload succeeds once hashes are cached",
+    "default bundle selection on the real run picks a schema-1 refusal-check bundle under the frozen tie rule; the fuller bundle is an alternative",
+    "whole-file media without Range",
+    "the timing table scrolls horizontally inside the inspector at desktop width"
+  ],
+  "lane": "routes_review",
+  "measured": [
+    "all metrics in routes_review-tests.json on synthetic fixtures",
+    "real accepted run read-only smoke: 6/6 stages current, acceptance receipt pin matches, cold graph 10.3 s"
+  ],
+  "merge_coupling": {
+    "owner": "root",
+    "recorded_utc": "2026-10-07",
+    "rule": "this branch must not land on main without both required root-owned hunks in root_owned_changes_requested (scripts/web_api.py registration; tests/test_web_stack.py s8 rescope); land them in the same merge",
+    "verified_with_both_applied": {
+      "hunks_apply_cleanly": "2/2",
+      "main_at": "18dd984e8a2187dad2c7f224d1b4c166d663fcf5",
+      "method": "scratch clone of this branch (df1ef5c plus the repaired tests/test_web_runs_s3.py) with both handoff diffs applied by patch -p1; no root-owned file edited in the lane worktree",
+      "target_files_identical_to_main": {
+        "scripts/web_api.py": true,
+        "tests/test_web_stack.py": true
+      },
+      "test_web_runs_s3.Registration": {
+        "ok": 1,
+        "tests": 1
+      },
+      "test_web_stack": {
+        "failed": 0,
+        "ok": 33,
+        "s8_rescoped": "ok",
+        "tests": 33
+      }
+    },
+    "without_test_web_stack_rescope": "test_s8_prototype_routes_label_only fails on 3 subtests (compare, review, download); reproduced on this branch: test_web_stack 32 ok of 33",
+    "without_web_api_registration": "/api/v1/runs* and /api/v1/capabilities return route_not_found, every new page shows a refusal, and test_web_runs_s3.Registration stays skipped"
+  },
+  "no_adoption": {
+    "anchor": false,
+    "default_detector": false,
+    "master": false,
+    "profile": false
+  },
+  "phase4_repair": {
+    "items": [
+      "host-path metric denominator corrected and check extended to 5xx bodies: 0 leaks in 80 checked of 80 recorded responses (41 2xx, 37 4xx, 2 5xx; 0 excluded)",
+      "merge coupling recorded for root"
+    ],
+    "recorded_utc": "2026-10-07",
+    "see": [
+      "routes_review-tests.json metrics.2_host_path_free_responses and phase4_repair_rerun",
+      "docs/spec/sprints/ROUTES_REVIEW_S3.md section 13.8"
+    ]
+  },
+  "real_take_touched_by_tests": false,
+  "recorded_utc": "2026-10-07T07:24:19+00:00",
+  "root_owned_changes_requested": [
+    {
+      "diff": "--- a/scripts/web_api.py\n+++ b/scripts/web_api.py\n@@ -16,4 +16,10 @@\n     POST /api/v1/jobs/{job_id}/retry              explicit retry of interrupted/failed jobs (attempt n+1)\n     GET  /api/v1/artifacts/{artifact_id}          published job output bytes, re-hashed before sending\n+    GET  /api/v1/runs                             run listing (scripts/web_runs_api.py, read-only)\n+    GET  /api/v1/runs/{run_id}                    run graph: stages, signal versions, evidence, invalidation\n+    GET  /api/v1/runs/{run_id}/layers             bound review layers (tone_ab, spans, timing, flags, spectrogram)\n+    GET  /api/v1/runs/{run_id}/layers/media/{evidence_id}/{name}   re-hashed layer media\n+    GET  /api/v1/runs/{run_id}/artifacts/{artifact_id}             re-hashed run/attachment file\n+    GET  /api/v1/capabilities                     tools, capability metadata and model registry\n \n The six unversioned web_jobs routes (``/sources``, ``/jobs``, ``/jobs/{id}``,\n@@ -60,4 +66,5 @@\n import tool_api  # noqa: E402  (import only, never edited)\n import web_jobs  # noqa: E402  (import only, never edited)\n+import web_runs_api  # noqa: E402  (S3 routes_review read API; import only)\n from web_jobs import WebJobs, WebJobsError  # noqa: E402\n \n@@ -564,6 +571,10 @@\n             if self.server.shutting_down or self.server.jobs.closed:\n                 raise WebJobsError('shutting_down', 503, 'server is shutting down')\n             parts = urlsplit(self.path)\n+            runs_route = web_runs_api.match(parts.path)\n+            if runs_route is not None:  # read-only S3 runs/capabilities API, after the trust checks\n+                web_runs_api.serve(self, runs_route, parts.query)\n+                return\n             name, identifier, methods, flavour = self._route(parts.path)\n             if name is None:\n                 raise WebJobsError('route_not_found', 404, 'unknown route')\n",
+      "file": "scripts/web_api.py",
+      "required": true,
+      "why": "mounts the read API; without it /api/v1/runs* and /api/v1/capabilities return route_not_found and every new page shows a refusal"
+    },
+    {
+      "diff": "--- a/tests/test_web_stack.py\t2026-10-06 23:51:10\n+++ b/tests/test_web_stack.py\t2026-10-07 02:39:17\n@@ -307,17 +307,19 @@\n         self.assertLess(serve.index(\"process.exit(REFUSAL_EXIT_CODE)\"), serve.index(\"import('./build/index.js')\"))\n \n     def test_s8_prototype_routes_label_only(self) -> None:\n-        \"\"\"Rescoped (WEB_UI_S2 9.3): bound routes post only to /api/* BFF endpoints; client files never\n-        name the control API URL, the token env or fetch('http://; remaining prototype routes keep the label.\"\"\"\n+        \"\"\"Rescoped (WEB_UI_S2 9.3; ROUTES_REVIEW_S3 6.8): bound routes post only to /api/* BFF endpoints; client\n+        files never name the control API URL, the token env or fetch('http://; the former prototype stubs\n+        (/compare, /review, /download) are run pickers that redirect (303) to /runs/[id]/... with no form.\"\"\"\n         for slug in PROTOTYPE_ROUTES:\n             route = WEB / \"src\" / \"routes\" / slug / \"+page.svelte\"\n             with self.subTest(route=slug):\n                 text = route.read_text()\n-                self.assertIn(\"PrototypeNotice\", text)\n-                self.assertIn(\"Prototype\", text)\n+                loader = (route.parent / \"+page.server.ts\").read_text()\n+                self.assertNotIn(\"PrototypeNotice\", text + loader)\n+                self.assertIn(\"redirect(303\", loader)\n+                self.assertIn(\"/runs/\", text + loader)\n                 self.assertNotIn(\"<form\", text)\n                 self.assertNotIn(\"<input\", text)\n-                self.assertFalse((route.parent / \"+page.server.ts\").exists())\n                 self.assertFalse((route.parent / \"+server.ts\").exists())\n         notice = (WEB / \"src\" / \"lib\" / \"components\" / \"PrototypeNotice.svelte\").read_text()\n         self.assertIn(\"Not implemented in S2\", notice)\n",
+      "file": "tests/test_web_stack.py",
+      "required": true,
+      "why": "s8 asserts the prototype stubs that section 6.8 replaces; 3 subtests fail until rescoped"
+    },
+    {
+      "file": "just/workflow.just",
+      "required": false,
+      "text": "# S3 routes_review read API and route tests (foreground, synthetic fixtures only)\nweb-runs-test:\n    PYTHONPATH=tests python3 -m unittest test_web_runs_s3 -v\n",
+      "why": "optional recipe"
+    }
+  ],
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N11/R-N12/R-N13); TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "schema": "video-utils/routes-review-handoff",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "tracker": "TIN-5719",
+  "unknown_or_not_claimed": [
+    "listening acceptance of anything beyond the pinned receipt files",
+    "in-browser keyboard and player-paused behaviour (screenshots only; one of two viewports timed out per run)",
+    "browser playback, accessibility audit and level matching",
+    "clock alignment between layers and annotations (shown as unverified)",
+    "BPM (never derived; null unless an explicit field exists)",
+    "FCPXML/Resolve import",
+    "behaviour of processing-lane routes that the step bar links to"
+  ]
+}

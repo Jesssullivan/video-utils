@@ -1,0 +1,153 @@
+{
+  "browser": {
+    "keys_and_players_paused": "not_performed (no CDP automation in this lane); static keyboard checks only",
+    "listening": "not_performed",
+    "screenshots": [
+      {
+        "returncode": 0,
+        "viewport": "narrow-390",
+        "written": true
+      },
+      {
+        "reason": "timeout",
+        "returncode": null,
+        "viewport": "desktop",
+        "written": false
+      }
+    ],
+    "status": "screenshots_only"
+  },
+  "claim_classes": {
+    "B": "browser check (muted, no listening)",
+    "M": "measured on the synthetic fixture",
+    "U": "not claimed"
+  },
+  "fixture": "synthetic: 1 s 32.7 Hz + 196 Hz PCM16 stage WAVs at 8 kHz; 2 s testsrc2 + 32.70 Hz sine clip; in-test practice bundle, lowreg render, marker sidecar, marked-compact receipt",
+  "lane": "routes_review",
+  "not_claimed": [
+    "listening acceptance",
+    "musical or note-level verdicts",
+    "default adoption",
+    "physical audio/video sync",
+    "FCPXML/Resolve import"
+  ],
+  "real_take_touched": false,
+  "recorded_utc": "2026-10-07T07:01:57+00:00",
+  "registration": "test_local_subclass",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 (R-N11/R-N12/R-N13); TIN-3692 98cf680c-7299-4949-bfb2-60079053ad43",
+  "schema": "video-utils/routes-review-walkthrough",
+  "schema_version": 1,
+  "sprint": "20261007-s3",
+  "steps": [
+    {
+      "state": "succeeded",
+      "step": "share_export_job",
+      "wall_s": 16.2
+    },
+    {
+      "reached": "11/11",
+      "routes": [
+        {
+          "marker": "data-runs-entry",
+          "ok": true,
+          "route": "/",
+          "status": 200
+        },
+        {
+          "marker": "data-run-id=\"RUN-S3\"",
+          "ok": true,
+          "route": "/runs",
+          "status": 200
+        },
+        {
+          "marker": "data-run-graph",
+          "ok": true,
+          "route": "/runs/RUN-S3",
+          "status": 200
+        },
+        {
+          "marker": "data-ab=\"true\"",
+          "ok": true,
+          "route": "/runs/RUN-S3/compare",
+          "status": 200
+        },
+        {
+          "marker": "data-review-workspace",
+          "ok": true,
+          "route": "/runs/RUN-S3/review",
+          "status": 200
+        },
+        {
+          "marker": "data-deliverables",
+          "ok": true,
+          "route": "/runs/RUN-S3/deliver",
+          "status": 200
+        },
+        {
+          "marker": "data-jobs-page",
+          "ok": true,
+          "route": "/jobs",
+          "status": 200
+        },
+        {
+          "marker": "data-tools-page",
+          "ok": true,
+          "route": "/tools",
+          "status": 200
+        },
+        {
+          "marker": "/runs/RUN-S3/compare",
+          "ok": true,
+          "route": "/compare",
+          "status": 200
+        },
+        {
+          "marker": "/runs/RUN-S3/review",
+          "ok": true,
+          "route": "/review",
+          "status": 200
+        },
+        {
+          "marker": "/runs/RUN-S3/deliver",
+          "ok": true,
+          "route": "/download",
+          "status": 200
+        }
+      ],
+      "step": "routes"
+    },
+    {
+      "redirected": "3/3",
+      "routes": [
+        {
+          "location": "/runs/RUN-S3/compare",
+          "route": "/compare",
+          "status": 303
+        },
+        {
+          "location": "/runs/RUN-S3/review",
+          "route": "/review",
+          "status": 303
+        },
+        {
+          "location": "/runs/RUN-S3/deliver",
+          "route": "/download",
+          "status": 303
+        }
+      ],
+      "step": "single_run_redirects"
+    },
+    {
+      "claim_label": "USER REPORTED",
+      "revision_delta": 1,
+      "step": "mark_here"
+    },
+    {
+      "layer_media_rehash": "match",
+      "run_artifact_rehash": "match",
+      "step": "downloads"
+    }
+  ],
+  "tracker": "TIN-5719",
+  "wall_seconds": 126.3
+}
