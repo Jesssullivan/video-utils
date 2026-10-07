@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "lane": "model_lanes",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5721",
+  "branch": "sprint/20261007-s3/model_lanes",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_utc": "2026-10-07T05:50:00Z",
+  "root_owned_changes_requested": [
+    {
+      "file": "program/models.json",
+      "change": "add key under models after root explicit hash-bound fetch; replace sha256 placeholder with measured digest before committing",
+      "entry": {
+        "cpjku-beat-this-final0": {
+          "url": "https://cloud.cp.jku.at/public.php/dav/files/7ik4RrBKTS273gp/final0.ckpt",
+          "sha256": "TO_BE_FILLED_BY_ROOT_HASH_BOUND_FETCH",
+          "max_bytes": 81058141,
+          "format": "pytorch-lightning-ckpt (torch.load weights_only=True; optimizer state stripped upstream)",
+          "license": "MIT (code LICENSE; published weights per upstream README commit b95c8ab0c58c2d9fcfd40508ae8dffbc05ac4f5c, 2026-05-28); training-data rights distinct and unresolved",
+          "source_commit": "ad7974846029835307ba19a3d5cefbf40b243041",
+          "server_sha1_cross_check": "e1506282faf66ca10e8ab50ee26bd542b7b9ff0a"
+        }
+      }
+    },
+    {
+      "file": "program/tools.json",
+      "change": "append two experimental descriptors",
+      "descriptors": [
+        {
+          "name": "beat_this_compare",
+          "title": "Experimental learned beat/downbeat comparison (Beat This final0)",
+          "description": "Compare CPJKU Beat This final0 beat and downbeat hypotheses with the project click grid on a current hash-bound denoised run. Uses only a registry-verified local checkpoint and the qualified isolated Linux CPU runtime; never downloads or installs. Writes a fresh comparison beneath artifacts/s2/model_lanes, reports the half/double relation to the click grid, and leaves meter, intended tempo and real-take accuracy unknown.",
+          "intent": "Give agents and musicians a second, independent pulse estimate for half-time, odd-grouping, drift and legato passages of the distorted nine-string without adopting it as a detector, meter or tempo authority.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "run_dir": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096,
+                "description": "Existing run beneath repository artifacts/runs with regular manifest.json (<=1 MiB) and manifest-verified denoised.wav (<=300 s). Traversal/symlink components are rejected."
+              },
+              "timeout_seconds": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 900,
+                "default": 660,
+                "description": "Outer owned-process deadline; the worker's own inference deadline is 600 s."
+              }
+            },
+            "required": [
+              "run_dir"
+            ],
+            "additionalProperties": false
+          },
+          "skill": ".agents/skills/guitar-beat-this/SKILL.md",
+          "implementation_status": "experimental",
+          "evidence_kind": "uncalibrated_learned_beat_downbeat_hypotheses",
+          "limitations": [
+            "Fixed final0 checkpoint, CPU, float16 off, DBN off, upstream minimal postprocessing; no tunable knobs. Typed refusals in order: model_not_registered, model_hash_not_registered, model_registry_entry_invalid, model_file_missing, model_hash_mismatch, runtime_not_qualified, platform_unsupported (Linux only), input_rejected.",
+            "Beats from a mono mixture with an in-room click are model hypotheses; downbeats are not bar lines; meter_claim is always none and time_signature null.",
+            "half_double_ratio_vs_click_grid is arithmetic on outputs against rhythm.analyze defaults, not an intended-tempo identification.",
+            "F-measure at 70 ms exists only for generated fixtures; real-take accuracy, note correctness and performance issues are never reported.",
+            "Upstream mel front end starts at 30 Hz on a 22.05 kHz analysis downmix; masters are untouched and ~32 Hz handling is not implied."
+          ],
+          "annotations": {
+            "readOnlyHint": false,
+            "destructiveHint": false,
+            "idempotentHint": false,
+            "openWorldHint": false
+          },
+          "dependencies": {
+            "recommended_prior_tools": [
+              "denoise",
+              "bpm"
+            ],
+            "enforced": false,
+            "note": "Requires root's hash-bound cpjku-beat-this-final0 registry entry and prefetch plus beat-this-runtime-setup on honey (flake ml shell). Prior tools are not invoked automatically."
+          },
+          "agent_workflow": {
+            "identify": "Inspect beat/downbeat counts, median IBI, half/double relation, model/runtime/input hashes and the fixed unknown fields.",
+            "research": "Read docs/research/BEAT_THIS_QUALIFICATION.md and the preregistered s3-beat-1 protocol before interpreting disagreements.",
+            "iterate": "Compare against rhythm/bpm evidence per passage and listen to disagreements; any setting change is a new preregistered experiment with new seeds.",
+            "acceptance": "Successful inference or agreement with the click grid does not establish meter, intended tempo, real-take beat accuracy, listening or default adoption.",
+            "max_comparison_candidates_default": 2
+          }
+        },
+        {
+          "name": "guitar_noul_decide",
+          "title": "Experimental guitar_noul gateway window hypotheses (TIN-5619)",
+          "description": "Send bounded source-timed windows of a verified run to the configured tailnet-only models.xoxd.ai guitar_noul gateway and record per-window detector hypotheses (opaque label or abstain) with model identity. Refuses when the gateway is unset; sends real-take windows only with the explicit V6 operator switch; never writes inside the run.",
+          "intent": "Collect an external detector's per-window hypotheses for comparison with project phrase/rhythm evidence without turning them into labels, flags or note verdicts.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "run_dir": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096,
+                "description": "Existing run beneath artifacts/runs or artifacts/s2/model_lanes/fixtures with regular manifest.json <=1 MiB and pcm.duration_seconds."
+              },
+              "windows": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 64,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "source_start_s": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "source_end_s": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "required": [
+                    "source_start_s",
+                    "source_end_s"
+                  ],
+                  "additionalProperties": false
+                },
+                "description": "Non-overlapping windows of 0.25-30 s inside the manifest duration."
+              },
+              "timeout_seconds": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 120,
+                "description": "Overall gateway deadline."
+              }
+            },
+            "required": [
+              "run_dir",
+              "windows",
+              "timeout_seconds"
+            ],
+            "additionalProperties": false
+          },
+          "skill": ".agents/skills/guitar-noul/SKILL.md",
+          "implementation_status": "experimental",
+          "evidence_kind": "external_detector_window_hypotheses",
+          "limitations": [
+            "Gateway configured only by VIDEO_UTILS_GUITAR_NOUL_GATEWAY (https, models.xoxd.ai or *.ts.net, port 443); unset -> gateway_not_configured. Gateway is assumed tailnet-only behind tsidp and is not deployed until TIN-5590 serving parity.",
+            "Real-take windows leave video-utils only with VIDEO_UTILS_GUITAR_NOUL_ALLOW_REAL_TAKE=v6-private-operator-lab-host (V6); otherwise real_take_not_permitted before any transport.",
+            "Wire schema tin-5619-v0 and label vocabulary are unratified; labels are opaque detector hypotheses (is_label false), never annotations, badges or note verdicts.",
+            "Invalid gateway items abstain with gateway_response_invalid and keep the raw response sha256; omitted windows abstain missing_from_response; deadline abstains timeout."
+          ],
+          "annotations": {
+            "readOnlyHint": true,
+            "destructiveHint": false,
+            "idempotentHint": false,
+            "openWorldHint": true
+          },
+          "dependencies": {
+            "recommended_prior_tools": [
+              "denoise",
+              "phrases"
+            ],
+            "enforced": false,
+            "note": "Requires the deployed gateway and, for real takes, the explicit V6 environment switch. No credentials are held by the client."
+          },
+          "agent_workflow": {
+            "identify": "Inspect per-window decisions, abstain reasons, model identity and the input signal version.",
+            "research": "Read TIN-5619 and the guitar-noul skill; treat the gateway as an external hypothesis source.",
+            "iterate": "Compare hypotheses with project phrase/rhythm evidence on the same spans; listen; never map labels to issue badges.",
+            "acceptance": "A decision is never a label, a mistake verdict or listening acceptance; vocabulary ratification is an open item.",
+            "max_comparison_candidates_default": 1
+          }
+        }
+      ]
+    },
+    {
+      "file": "scripts/tool_api.py",
+      "change": "argument guards and command builders",
+      "text": "# scripts/tool_api.py (root-owned) - suggested insertions mirroring basic_pitch_compare\n# 1) traversal guard: extend the set at the marked_video/basic_pitch_compare check\n#    if name in {'marked_video', 'basic_pitch_compare', 'beat_this_compare', 'guitar_noul_decide'}:\n#    (guitar_noul_decide validates run_dir as a string field there too)\n# 2) command builders, beside basic_pitch_compare:\n    if name == 'beat_this_compare':\n        # Worker owns refusals (models.json, isolated runtime, Linux, input); preflight bounds only.\n        return head + [str(ROOT / 'scripts/beat_this_compare.py'), 'compare',\n                       '--run-dir', basic_pitch_directory(args['run_dir'])]\n    if name == 'guitar_noul_decide':\n        request = {'run_dir': args['run_dir'], 'windows': args['windows'], 'timeout_seconds': args['timeout_seconds']}\n        return head + [str(ROOT / 'scripts/guitar_noul_client.py'), '--request-json', json.dumps(request)]\n# Gateway URL and V6 switch are read by the worker from the environment only; no MCP argument selects them.\n"
+    },
+    {
+      "file": "scripts/mcp_server.py",
+      "change": "expose the two descriptors through the existing tools.json-driven listing; prompts guitar-beat-this and guitar-noul from the skill drafts",
+      "text": "No new transport code; reuse the existing descriptor-to-tool path used for basic_pitch_compare."
+    },
+    {
+      "file": "just/workflow.just",
+      "change": "append three recipes after basic-pitch-runtime-check",
+      "text": "# Optional experimental Beat This comparator; no model or runtime installation is implicit.\nbeat-this-compare run_dir:\n    python3 scripts/beat_this_compare.py compare --run-dir {{quote(run_dir)}}\n\n# Explicit Linux-only runtime setup from the flake ml shell python (run on honey inside nix develop .#ml).\nbeat-this-runtime-setup python:\n    python3 scripts/beat_this_runtime_setup.py --python {{quote(python)}}\n\n# Verify the isolated Beat This runtime without downloads, installation or model inference.\nbeat-this-runtime-check:\n    python3 scripts/beat_this_runtime_setup.py --check\n"
+    },
+    {
+      "file": "program/linear.json",
+      "change": "none from the lane; root records TIN-5721 facts"
+    }
+  ],
+  "operator_decisions_needed": [
+    "Acknowledge Demucs maintainer terms (personal/research use, \"risk is acceptable to you\") before htdemucs_6s becomes an admissible private comparator; otherwise verdict reverts to hold_unresolved_terms.",
+    "Confirm V6 private scratch path on honey before the M12 real-take Beat This pass."
+  ],
+  "root_actions_to_unblock_m11": [
+    "just model-prefetch cpjku-beat-this-final0 after the registry entry",
+    "on honey: nix develop .#ml -c python3 scripts/beat_this_runtime_setup.py --python \"$(command -v python3)\" then --check",
+    "generate-suite --name s3-beat-1-heldout --role heldout --seeds 3101 3203; predict --arm A0; predict --arm A1; seal; score (one job at a time, explicit timeouts)"
+  ]
+}

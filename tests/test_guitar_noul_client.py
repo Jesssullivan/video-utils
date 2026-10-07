@@ -241,5 +241,18 @@ class WindowOutcomeTests(Base):
         self.assertTrue(written.is_file())
 
 
+class CliTests(Base):
+    def test_cli_refuses_without_gateway_and_never_raises(self):
+        request = json.dumps(self.request())
+        with patch.dict(os.environ, {}, clear=False), patch('builtins.print') as printed:
+            os.environ.pop(gn.GATEWAY_ENV, None)
+            code = gn.main(['--request-json', request])
+        self.assertEqual(code, 2)
+        self.assertEqual(json.loads(printed.call_args[0][0])['refusal_code'], 'input_schema_invalid')  # run_dir is relative to the real ROOT
+        with patch('builtins.print') as printed:
+            self.assertEqual(gn.main(['--request-json', '{not json']), 2)
+        self.assertEqual(json.loads(printed.call_args[0][0])['refusal_code'], 'input_schema_invalid')
+
+
 if __name__ == '__main__':
     unittest.main()

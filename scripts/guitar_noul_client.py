@@ -395,11 +395,13 @@ def write_output(doc: dict, out: Path, run_dir: Path | None, root: Path = ROOT) 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('--request', type=Path, help='JSON request file (default: stdin)')
+    source = parser.add_mutually_exclusive_group()
+    source.add_argument('--request', type=Path, help='JSON request file (default: stdin)')
+    source.add_argument('--request-json', help='closed JSON request inline (for the tool_api argv)')
     parser.add_argument('--out', type=Path, help=f'write guitar_noul_decisions.json beneath {OUTPUT_BASE}')
     args = parser.parse_args(argv)
     try:
-        text = args.request.read_text() if args.request else sys.stdin.read()
+        text = args.request_json if args.request_json is not None else args.request.read_text() if args.request else sys.stdin.read()
         request = json.loads(text)
     except (OSError, ValueError) as exc:
         print(json.dumps(refusal('input_schema_invalid', f'Unreadable request: {exc}')))

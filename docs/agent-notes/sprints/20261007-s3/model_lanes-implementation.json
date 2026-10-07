@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "lane": "model_lanes",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5721",
+  "branch": "sprint/20261007-s3/model_lanes",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_utc": "2026-10-07T05:40:00Z",
+  "implementation_commit": "see git log on sprint/20261007-s3/model_lanes (f27aa9a plus receipt commit)",
+  "phase": "2_implementation",
+  "file_sha256": {
+    "scripts/beat_this_compare.py": "ceb9070130aa8324b36f2c01d3bbb4be2cadb1e631ea0f5a71edfebe6d81936a",
+    "scripts/beat_this_runtime_setup.py": "9a3d19c289f2bb27fb7c288675d98105314eb76b746e5f5fdc296f55e362e04d",
+    "scripts/guitar_noul_client.py": "54c09258a544ea089b2a21968ce236b4e592bf699b2e9698d051786b62c5bb4d",
+    "tests/test_beat_this_compare.py": "433e712cf500db74ff7236663c541574babc28489dea3d5e0e5f740cb0cdb2e9",
+    "tests/test_guitar_noul_client.py": "21f58e5e1e189cf3be139c0c62b524d19571c7d3e9afc0d502b39b2309543367",
+    "docs/research/BEAT_THIS_QUALIFICATION.md": "c4c83042be4ce06c014fcf4bad7e550fd916e4aad66c00912f043f5a1dcde516",
+    "docs/research/2026-10-07-stems-weights-licence.md": "1f831692a9ea70b6b11c051d7d339fe2d9c3e7f9a8e5c23b031e05572cafb2d9",
+    "docs/spec/sprints/MODEL_LANES_S3.md": "9ef9a0a4df39eb9260ec880b00fce39de178623bec2a2dcc4bd172976867b1f7",
+    ".agents/skills/guitar-beat-this/SKILL.md": "3c397d4919cec3efd71d03cf1f6a4fa68b07aa4dc574cdbc50b2f5e58262b542",
+    ".agents/skills/guitar-noul/SKILL.md": "867418c4c7df492b2ef018a60f4e759bb53430c59524a69d9be254b545a9edcb"
+  },
+  "tests": {
+    "commands": [
+      "PYTHONPATH=tests python3 -m unittest test_beat_this_compare -v",
+      "PYTHONPATH=tests python3 -m unittest test_guitar_noul_client -v",
+      "PYTHONPATH=tests python3 -m unittest test_benchmark test_rhythm -v"
+    ],
+    "results": {
+      "test_beat_this_compare": {
+        "ran": 34,
+        "failures": 0,
+        "errors": 0
+      },
+      "test_guitar_noul_client": {
+        "ran": 15,
+        "failures": 0,
+        "errors": 0
+      },
+      "test_benchmark+test_rhythm (unchanged readers)": {
+        "ran": 36,
+        "skipped": 2,
+        "failures": 0,
+        "errors": 0
+      }
+    },
+    "network_guard": "socket.socket, socket.create_connection and urllib.request.urlopen patched to raise in every test class"
+  },
+  "metrics": {
+    "M1": {
+      "claim_class": "documentary",
+      "numerator": 6,
+      "denominator": 6,
+      "evidence": "docs/research/BEAT_THIS_QUALIFICATION.md"
+    },
+    "M2": {
+      "claim_class": "documentary",
+      "numerator": 1,
+      "denominator": 1,
+      "evidence": "handoff root_owned_changes program/models.json"
+    },
+    "M3": {
+      "claim_class": "test_measurement",
+      "numerator": 8,
+      "denominator": 8,
+      "evidence": "RefusalOrderTests (runner never invoked; network patched)"
+    },
+    "M4": {
+      "claim_class": "test_measurement",
+      "schema": 1,
+      "unknown_fields": 15,
+      "evidence": "EndToEndStubTests"
+    },
+    "M5": {
+      "claim_class": "test_measurement",
+      "numerator": 6,
+      "denominator": 6,
+      "evidence": "F70Tests (+ pooled-sum case)"
+    },
+    "M6": {
+      "claim_class": "test_measurement",
+      "numerator": 9,
+      "denominator": 9,
+      "evidence": "HalfDoubleTests: 7 relations, +3% related, +5% unrelated, no grid (+ insufficient beats)"
+    },
+    "M7": {
+      "claim_class": "test_measurement",
+      "numerator": 3,
+      "denominator": 3,
+      "evidence": "RuntimeSetupTests"
+    },
+    "M8": {
+      "claim_class": "test_measurement",
+      "numerator": 10,
+      "denominator": 10,
+      "evidence": "RefusalTests (7 codes) + WindowOutcomeTests (3 abstain reasons)"
+    },
+    "M9": {
+      "claim_class": "test_measurement",
+      "scope": "every emitted window in WindowOutcomeTests",
+      "run_dir_unchanged": true
+    },
+    "M10": {
+      "claim_class": "documentary",
+      "numerator": 6,
+      "denominator_minimum": 5,
+      "evidence": "docs/research/2026-10-07-stems-weights-licence.md"
+    },
+    "M11": {
+      "status": "blocked_with_receipt",
+      "evidence": "model_lanes-experiment.json"
+    },
+    "M12": {
+      "status": "not_run",
+      "reason": "requires root registry fetch, honey runtime and root-confirmed V6 private scratch path"
+    }
+  },
+  "measurements": [
+    "Lock self-hash 5cd29f827825973ad0dd30391919382449b807be4a4b87251d010313ec78d593 over canonical JSON of the embedded lock.",
+    "Checkpoint final0 content-length 81058141 and server SHA1 e1506282faf66ca10e8ab50ee26bd542b7b9ff0a from HTTP HEAD (metadata only)."
+  ],
+  "inferences": [
+    "Demucs v4 weights admissible only as a private personal/research comparator under five conditions; terms are maintainer issue comments, not a licence file.",
+    "Beat This weights licence (MIT) taken from the upstream README statement added after v1.1.0."
+  ],
+  "unknown": [
+    "final0 sha256 (root fetch)",
+    "honey architecture",
+    "torch 2.12 weights_only load of final0",
+    "Beat This accuracy on the real take",
+    "guitar_noul gateway wire schema and label vocabulary (unratified)"
+  ],
+  "listening_claims": [],
+  "downloads": false,
+  "model_weights_read": false,
+  "defaults_changed": false
+}

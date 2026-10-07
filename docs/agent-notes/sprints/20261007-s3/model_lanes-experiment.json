@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "lane": "model_lanes",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5721",
+  "branch": "sprint/20261007-s3/model_lanes",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "recorded_utc": "2026-10-07T05:40:00Z",
+  "implementation_commit": "f27aa9aba7342c8944bed949cafcff47e94d6597",
+  "phase": "2_experiment",
+  "status": "blocked_with_receipt",
+  "preregistration": {
+    "spec": "docs/spec/sprints/MODEL_LANES_S3.md section 7",
+    "sealed_by_commit": "faf91d658b42ed35825fb84932fa677574fcd338"
+  },
+  "blocked_on": [
+    "root explicit hash-bound fetch of cpjku-beat-this-final0 and program/models.json entry (comparator refuses model_not_registered today)",
+    "root beat-this-runtime-setup on honey inside nix develop .#ml (Linux only; this lane ran on neo/darwin)",
+    "honey CPU placement for one bounded job (600 s deadline, 2 GiB RSS, 2 threads)"
+  ],
+  "heldout": {
+    "seeds": [
+      3101,
+      3203
+    ],
+    "cases": 16,
+    "generated": false,
+    "truth_read": false,
+    "note": "Held-out audio/truth intentionally not generated before A1 is runnable, so seal covers A0 and A1 together."
+  },
+  "dev_smoke": {
+    "seed": 3001,
+    "role": "dev",
+    "scored": false,
+    "truth_read": false,
+    "suite_dir_ignored": "artifacts/s2/model_lanes/fixtures/s3-beat-1-dev3001",
+    "suite_manifest_sha256": "7ca8bdd8c680b630e0338a965f162f692204bf3e2dec4b9a8b0728e348cba1d7",
+    "generator_script_sha256": "ceb9070130aa8324b36f2c01d3bbb4be2cadb1e631ea0f5a71edfebe6d81936a",
+    "truth_mode": "0400",
+    "cases": 8,
+    "duration_seconds_each": 30.0,
+    "a0_rhythm_analyze_defaults": {
+      "claim_class": "measurement_on_dev_fixture_prediction_side_only",
+      "per_case": {
+        "c1-chug178": {
+          "basis": "click_grid",
+          "beats": 45,
+          "click_grid_period_s": 0.6738,
+          "construction_period_s": 0.3371
+        },
+        "c2-halftime89": {
+          "basis": "click_grid",
+          "beats": 44,
+          "click_grid_period_s": 0.6741,
+          "construction_period_s": 0.6742
+        },
+        "c3-odd7": {
+          "basis": "click_grid",
+          "beats": 22,
+          "click_grid_period_s": 1.4005,
+          "construction_period_s": 0.4
+        },
+        "c4-drift": {
+          "basis": "click_grid",
+          "beats": 88,
+          "click_grid_period_s": 0.3436,
+          "construction_period_s": 0.3427
+        },
+        "c5-rests": {
+          "basis": "click_grid",
+          "beats": 45,
+          "click_grid_period_s": 0.674,
+          "construction_period_s": 0.3371
+        },
+        "c6-legato": {
+          "basis": "click_grid",
+          "beats": 107,
+          "click_grid_period_s": 0.2812,
+          "construction_period_s": 0.375
+        },
+        "c7-noclick": {
+          "basis": "click_grid",
+          "beats": 22,
+          "click_grid_period_s": 1.3495,
+          "construction_period_s": 0.3371
+        },
+        "c8-negative": {
+          "basis": "selected_periodicity_anchored_first_high_frequency_peak",
+          "beats": 58,
+          "click_grid_period_s": null,
+          "construction_period_s": null
+        }
+      },
+      "observation": "Construction periods are generator metadata in the suite manifest, not truth files. On dev seed 3001, A0 fitted the click grid at about 2x the construction period on c1/c5, 3.5x on c3 (bar level) and 4x on c7, 0.75x on c6, about 1x on c2/c4, and predicted 58 periodic beats on the pulse-free c8 drone.",
+      "interpretation_limit": "Dev smoke only, single seed, never scored, not held-out evidence and not a statement about A1."
+    },
+    "a1": {
+      "status": "refused",
+      "refusal_code": "model_not_registered",
+      "network_used": false
+    }
+  },
+  "listening_claims": [],
+  "default_adoption": false
+}
