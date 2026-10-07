@@ -1,0 +1,439 @@
+{
+  "schema": "eq_shelf_run_receipt/1",
+  "lane": "eq_shelf",
+  "sprint": "20261007-s2r",
+  "linear_issue": "TIN-5487",
+  "branch": "sprint/20261007-s2r/eq_shelf",
+  "contract": "docs/spec/sprints/EQ_SHELF_S2R.md",
+  "contract_freeze_commit": "f2627c85748b80745cfe9c38ecc46f15d95d315c",
+  "implementation_commit": "45ebfb1",
+  "authority": {
+    "operator_ruling": "docs/agent-notes/2026-10-07-s2-operator-rulings.md (EQ below 160 Hz)",
+    "ruling_sha256": "62b922626fc039d5dede6837b78cc79187b294944c4841ffcf687cece186bb85",
+    "global": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43)"
+  },
+  "recorded_utc": "2026-10-07T02:46:57Z",
+  "claim_classes": {
+    "C": "contract/code behaviour",
+    "M": "measurement on synthetic fixture F1",
+    "I": "RBJ filter-theory inference",
+    "L": "listening (not performed)"
+  },
+  "ffmpeg": {
+    "version": "ffmpeg version 8.1.2",
+    "path": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg"
+  },
+  "hashes": {
+    "scripts/media.py": "e34a10bf1c3347e02265d733ef8b91e03e761d00a2416d0ce5e1ceb77ebdb59c",
+    "profiles/fuller.json": "33da74c7d1bda246b6349252e4374d3674e76356dd85d72a83b1389988d04a5c",
+    "profiles/fuller-shelf.json": "6483a0cd9c63c67d002c7613d6fc1fc6cb1ee9ef76d2275a23d3f8b085a58757",
+    "tests/test_eq_shelf.py": "3a5fb392b6ba1ba056716dee3ff87372e73b61eb38fee71e83e1de876d585256",
+    ".agents/skills/guitar-denoise/SKILL.md": "f0b243ca49a0d8da707e6bfc79479c3f3375a03f28f641f512b6ab37c341368e"
+  },
+  "fuller_json_sha256": {
+    "before": "33da74c7d1bda246b6349252e4374d3674e76356dd85d72a83b1389988d04a5c",
+    "after": "33da74c7d1bda246b6349252e4374d3674e76356dd85d72a83b1389988d04a5c"
+  },
+  "metrics": {
+    "1_shelf_refusals_typed_code": {
+      "value": "18/18",
+      "class": "C"
+    },
+    "2_accepted_edges": {
+      "value": "6/6",
+      "class": "C"
+    },
+    "3_peaking_eq_bounds_unchanged": {
+      "value": "4/4",
+      "sub_160_band_refused": "1/1",
+      "class": "C"
+    },
+    "4_fuller_unchanged": {
+      "value": "3/3",
+      "class": "C"
+    },
+    "5_existing_profiles_identical": {
+      "value": "7/7",
+      "basis": "frozen 7d0e11e media.py via git show and static pin",
+      "class": "C"
+    },
+    "6_fuller_shelf_p_prime_and_tone_ab_filter": {
+      "value": "2/2",
+      "class": "C"
+    },
+    "7_capture_interval_required_before_hash_decode": {
+      "value": "2/2",
+      "class": "C"
+    },
+    "8_c1_delta_db_e1": {
+      "value": 1.48,
+      "pass_band": "(0, +2.0]",
+      "passes": true,
+      "denominator": "1 component / 1 fixture",
+      "class": "M"
+    },
+    "9_components_not_cut_e1": {
+      "value": "9/9",
+      "tolerance_db": -0.02,
+      "class": "M"
+    },
+    "10_c1_measured_vs_rbj": {
+      "measured_db": 1.48,
+      "analytic_db": 1.48,
+      "difference_db": 0.0,
+      "band_db": 0.15,
+      "within_band": true,
+      "max_abs_difference_all_9_db": 0.0,
+      "class": "M vs I"
+    },
+    "11_full_post_chain_e2": {
+      "c1_delta_db": 1.407,
+      "per_component_db": [
+        1.407132,
+        1.17879,
+        0.691663,
+        0.30245,
+        0.107151,
+        0.01716,
+        -0.028205,
+        -0.054438,
+        -0.070686
+      ],
+      "denominator": "9 components",
+      "report_only": true,
+      "observation": "k=7..9 (229-294 Hz) fall 0.028-0.071 dB in P' vs P; attributed by inference to the RMS compressor reacting to the added low-band level, not to the shelf (E1 shows no cut)",
+      "class": "M (attribution I)"
+    },
+    "12_skill_text_checks": {
+      "value": "8/8",
+      "class": "C"
+    },
+    "13_regression_modules": {
+      "class": "C",
+      "test_eq_shelf": {
+        "passed": 29,
+        "run": 29,
+        "skipped": 0,
+        "seconds": 78.2
+      },
+      "test_media": {
+        "passed": 18,
+        "run": 18,
+        "skipped": 0,
+        "seconds": 1002.0
+      },
+      "test_fuller_profile": {
+        "passed": 14,
+        "run": 14,
+        "skipped": 0,
+        "seconds": 201.6
+      },
+      "test_mcp": {
+        "passed": 8,
+        "run": 8,
+        "skipped": 0,
+        "seconds": 36.1
+      },
+      "test_capture_profile": {
+        "passed": 33,
+        "run": 33,
+        "skipped": 0,
+        "seconds": 40.7
+      },
+      "test_apply_capture_profile": {
+        "passed": 40,
+        "run": 42,
+        "skipped": 0,
+        "seconds": 86.9,
+        "failures": [
+          "OwnedRunnerTests.test_exited_leader_does_not_leave_runnable_owned_child",
+          "OwnedRunnerTests.test_outer_cli_alarm_interrupt_also_cleans_owned_process_session"
+        ],
+        "failure_cause": "fixture assertion bounded fixture readiness handshake expired (5 s child readiness wait) while other sprint lanes loaded the host; neither test reaches media.py shelf code",
+        "isolated_rerun": {
+          "target": "test_apply_capture_profile.OwnedRunnerTests",
+          "passed": 10,
+          "run": 10,
+          "skipped": 0,
+          "seconds": 23.0
+        },
+        "status": "host_load_flake_not_lane_regression (inference; root full-suite run is authoritative)"
+      },
+      "full_suite": "not_run_by_lane (root runs it)"
+    },
+    "14_listening_preference": {
+      "value": "not_performed",
+      "class": "L"
+    }
+  },
+  "preregistration_expectation_check": {
+    "expected_c1_e1_db": "about +1.2 to +1.5",
+    "observed": 1.48,
+    "consistent": false,
+    "expected_k_ge_5_db": "near +0.1 or less",
+    "observed_k5_db": 0.192128,
+    "note": "inference was slightly low at k=5 (+0.19 dB); theory and measurement agree, no knob changed"
+  },
+  "fixture_measurement": {
+    "fixture": {
+      "id": "F1",
+      "sample_rate": 44100,
+      "channels": 1,
+      "format": "float32",
+      "duration_s": 8.0,
+      "c1_hz": 32.703,
+      "c1_basis": "theoretical A4=440 ET; not measured",
+      "harmonics": 9,
+      "amplitude_rule": "0.25/k, phase 0 (sin)",
+      "fade": "50 ms raised cosine in/out",
+      "peak": 0.423059,
+      "scope": "synthetic harmonic series; not a model of the instrument or the take"
+    },
+    "scoring": {
+      "window_s": [
+        2.0,
+        6.0
+      ],
+      "method": "joint least-squares sin/cos projection at k*C1",
+      "delta": "20*log10(A_arm/A_ref) per component",
+      "denominator": "9 components"
+    },
+    "arms": {
+      "E0": {
+        "filter": "anull",
+        "role": "reference for E1"
+      },
+      "E1": {
+        "filter": "lowshelf=f=100:t=q:w=0.7:g=1.5:r=f64",
+        "role": "shelf only vs E0"
+      },
+      "E2": {
+        "filter_reference": "equalizer=f=160:t=q:w=0.7:g=2:b=0:r=f64,equalizer=f=300:t=q:w=0.8:g=1:b=0:r=f64,acompressor=threshold=0.125892541179:ratio=2:attack=15:release=100:knee=1.41253754462:makeup=1:level_in=1:mode=downward:link=maximum:detection=rms:mix=0.25",
+        "filter_arm": "lowshelf=f=100:t=q:w=0.7:g=1.5:r=f64,equalizer=f=160:t=q:w=0.7:g=2:b=0:r=f64,equalizer=f=300:t=q:w=0.8:g=1:b=0:r=f64,acompressor=threshold=0.125892541179:ratio=2:attack=15:release=100:knee=1.41253754462:makeup=1:level_in=1:mode=downward:link=maximum:detection=rms:mix=0.25",
+        "role": "full post chain P' vs P, report only; includes compressor; no loudnorm"
+      }
+    },
+    "components": [
+      {
+        "k": 1,
+        "frequency_hz": 32.703,
+        "e1_shelf_only_delta_db": 1.479804,
+        "e2_full_post_chain_delta_db": 1.407132,
+        "rbj_analytic_db": 1.479804
+      },
+      {
+        "k": 2,
+        "frequency_hz": 65.406,
+        "e1_shelf_only_delta_db": 1.259775,
+        "e2_full_post_chain_delta_db": 1.17879,
+        "rbj_analytic_db": 1.259775
+      },
+      {
+        "k": 3,
+        "frequency_hz": 98.109,
+        "e1_shelf_only_delta_db": 0.777984,
+        "e2_full_post_chain_delta_db": 0.691663,
+        "rbj_analytic_db": 0.777984
+      },
+      {
+        "k": 4,
+        "frequency_hz": 130.812,
+        "e1_shelf_only_delta_db": 0.388944,
+        "e2_full_post_chain_delta_db": 0.30245,
+        "rbj_analytic_db": 0.388944
+      },
+      {
+        "k": 5,
+        "frequency_hz": 163.515,
+        "e1_shelf_only_delta_db": 0.192128,
+        "e2_full_post_chain_delta_db": 0.107151,
+        "rbj_analytic_db": 0.192128
+      },
+      {
+        "k": 6,
+        "frequency_hz": 196.218,
+        "e1_shelf_only_delta_db": 0.101603,
+        "e2_full_post_chain_delta_db": 0.01716,
+        "rbj_analytic_db": 0.101603
+      },
+      {
+        "k": 7,
+        "frequency_hz": 228.921,
+        "e1_shelf_only_delta_db": 0.058123,
+        "e2_full_post_chain_delta_db": -0.028205,
+        "rbj_analytic_db": 0.058123
+      },
+      {
+        "k": 8,
+        "frequency_hz": 261.624,
+        "e1_shelf_only_delta_db": 0.035655,
+        "e2_full_post_chain_delta_db": -0.054438,
+        "rbj_analytic_db": 0.035655
+      },
+      {
+        "k": 9,
+        "frequency_hz": 294.327,
+        "e1_shelf_only_delta_db": 0.023191,
+        "e2_full_post_chain_delta_db": -0.070686,
+        "rbj_analytic_db": 0.023191
+      }
+    ],
+    "c1_delta_db_e1": 1.48,
+    "c1_delta_db_e1_pass_band": "(0, +2.0]",
+    "c1_delta_e1_passes": true,
+    "components_not_cut_e1": "9/9",
+    "no_cut_tolerance_db": -0.02,
+    "c1_rbj_analytic_db": 1.48,
+    "c1_measured_minus_analytic_db": 0.0,
+    "rbj_agreement_band_db": 0.15,
+    "c1_rbj_within_band": true,
+    "max_abs_measured_minus_analytic_db_e1": 0.0,
+    "c1_delta_db_e2": 1.407,
+    "commands": {
+      "E0": [
+        "-hide_banner",
+        "-nostdin",
+        "-loglevel",
+        "error",
+        "-threads",
+        "2",
+        "-filter_threads",
+        "2",
+        "-f",
+        "f32le",
+        "-ar",
+        "44100",
+        "-ac",
+        "1",
+        "-i",
+        "/var/folders/z6/7m3zpx6j3x982j_fzwg1lppw0000gn/T/eq_shelf-bf5jni8k/f1.f32",
+        "-af",
+        "anull",
+        "-f",
+        "f32le",
+        "-ar",
+        "44100",
+        "-ac",
+        "1",
+        "-c:a",
+        "pcm_f32le",
+        "-y",
+        "/var/folders/z6/7m3zpx6j3x982j_fzwg1lppw0000gn/T/eq_shelf-bf5jni8k/e0.f32"
+      ],
+      "E1": [
+        "-hide_banner",
+        "-nostdin",
+        "-loglevel",
+        "error",
+        "-threads",
+        "2",
+        "-filter_threads",
+        "2",
+        "-f",
+        "f32le",
+        "-ar",
+        "44100",
+        "-ac",
+        "1",
+        "-i",
+        "/var/folders/z6/7m3zpx6j3x982j_fzwg1lppw0000gn/T/eq_shelf-bf5jni8k/f1.f32",
+        "-af",
+        "lowshelf=f=100:t=q:w=0.7:g=1.5:r=f64",
+        "-f",
+        "f32le",
+        "-ar",
+        "44100",
+        "-ac",
+        "1",
+        "-c:a",
+        "pcm_f32le",
+        "-y",
+        "/var/folders/z6/7m3zpx6j3x982j_fzwg1lppw0000gn/T/eq_shelf-bf5jni8k/e1.f32"
+      ],
+      "E2_P": [
+        "-hide_banner",
+        "-nostdin",
+        "-loglevel",
+        "error",
+        "-threads",
+        "2",
+        "-filter_threads",
+        "2",
+        "-f",
+        "f32le",
+        "-ar",
+        "44100",
+        "-ac",
+        "1",
+        "-i",
+        "/var/folders/z6/7m3zpx6j3x982j_fzwg1lppw0000gn/T/eq_shelf-bf5jni8k/f1.f32",
+        "-af",
+        "equalizer=f=160:t=q:w=0.7:g=2:b=0:r=f64,equalizer=f=300:t=q:w=0.8:g=1:b=0:r=f64,acompressor=threshold=0.125892541179:ratio=2:attack=15:release=100:knee=1.41253754462:makeup=1:level_in=1:mode=downward:link=maximum:detection=rms:mix=0.25",
+        "-f",
+        "f32le",
+        "-ar",
+        "44100",
+        "-ac",
+        "1",
+        "-c:a",
+        "pcm_f32le",
+        "-y",
+        "/var/folders/z6/7m3zpx6j3x982j_fzwg1lppw0000gn/T/eq_shelf-bf5jni8k/p.f32"
+      ],
+      "E2_P_prime": [
+        "-hide_banner",
+        "-nostdin",
+        "-loglevel",
+        "error",
+        "-threads",
+        "2",
+        "-filter_threads",
+        "2",
+        "-f",
+        "f32le",
+        "-ar",
+        "44100",
+        "-ac",
+        "1",
+        "-i",
+        "/var/folders/z6/7m3zpx6j3x982j_fzwg1lppw0000gn/T/eq_shelf-bf5jni8k/f1.f32",
+        "-af",
+        "lowshelf=f=100:t=q:w=0.7:g=1.5:r=f64,equalizer=f=160:t=q:w=0.7:g=2:b=0:r=f64,equalizer=f=300:t=q:w=0.8:g=1:b=0:r=f64,acompressor=threshold=0.125892541179:ratio=2:attack=15:release=100:knee=1.41253754462:makeup=1:level_in=1:mode=downward:link=maximum:detection=rms:mix=0.25",
+        "-f",
+        "f32le",
+        "-ar",
+        "44100",
+        "-ac",
+        "1",
+        "-c:a",
+        "pcm_f32le",
+        "-y",
+        "/var/folders/z6/7m3zpx6j3x982j_fzwg1lppw0000gn/T/eq_shelf-bf5jni8k/pp.f32"
+      ]
+    }
+  },
+  "fixture_measurement_artifact": {
+    "path": ".local/sprint2/eq_shelf/artifacts/s2/eq_shelf/fixture-measurement.json (gitignored)",
+    "sha256": "a5895e0aadde00156750efe91518f4826cef0af6d246ad5fc2a75bf97011ba37"
+  },
+  "e3_real_take_arm": {
+    "status": "not_run",
+    "reason": "optional per contract section 7; skipped to keep the lane bounded"
+  },
+  "listening_preference": null,
+  "listening_status": "not_performed",
+  "real_take_effect_in_chain": "unknown",
+  "isolated_guitar_spectrum": "unknown",
+  "microphone_low_frequency_response": "unknown",
+  "c1_presence_in_take": "not_established",
+  "fan_noise_overlap_below_160_hz": "unknown",
+  "recreates_uncaptured_fundamental": false,
+  "default_profile_changed": false,
+  "default_profile": "fuller",
+  "accepted_run_modified": false,
+  "desktop_export_modified": false,
+  "fuller_shelf_status": {
+    "operator_review_status": "unreviewed_trial",
+    "listening_acceptance": "not_performed"
+  }
+}

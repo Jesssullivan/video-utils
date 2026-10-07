@@ -337,3 +337,28 @@ The lane run receipt (`eq_shelf-<UTC>-run.json`) carries, explicitly:
 - No `just` recipe change is needed: `just clean INPUT fuller-shelf
   --capture-interval S E --capture-review TEXT` resolves through the existing
   profile-name lookup. Root confirms this at integration.
+
+## 10. Phase 2 outcome (appended after implementation; sections 1–9 unchanged)
+
+Implemented as frozen. The receipt is
+`docs/agent-notes/sprints/20261007-s2r/eq_shelf-20261007-run.json`.
+
+- **Contract (C).** `low_shelf` is validated in `validate_post_controls`
+  (`validate_low_shelf`, `validate_review_status`) and rendered first by
+  `post_denoise_filters`. `load_profile` refuses a repeated `low_shelf` key via
+  an `object_pairs_hook`; every other key keeps json's last-wins behaviour.
+  Peaking EQ, `fuller.json` (sha256 unchanged) and `DEFAULT_PROFILE` are
+  untouched. All seven existing profiles have byte-identical stage lists
+  against the frozen 7d0e11e source and against a static pin.
+- **Measured (M), synthetic F1 only.** E1 shelf-only C1 delta is +1.480 dB
+  (1/1, pass band (0, +2.0]). 9/9 components are not cut; the smallest delta
+  is +0.023 dB at k=9. E2 (P′ vs P, compressor included, no loudnorm) gives a
+  C1 delta of +1.407 dB. Components k=7..9 (229–294 Hz) are −0.028 to
+  −0.071 dB in E2. Those are compressor level interaction, not a shelf cut,
+  and are reported only.
+- **Inference (I).** RBJ analytic C1 is +1.480 dB; the measured-minus-analytic
+  difference is 0.000 dB (all 9 components agree within 0.0001 dB). The
+  section 7 expectation that k ≥ 5 would be about +0.1 dB or less was
+  slightly low: k=5 is +0.192 dB in both measurement and theory.
+- **Unknown / not performed.** The optional E3 real-take arm was not run, so
+  `real_take_effect_in_chain` is `unknown`. Listening is `not_performed`.
