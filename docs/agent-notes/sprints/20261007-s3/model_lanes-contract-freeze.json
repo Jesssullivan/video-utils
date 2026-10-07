@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "lane": "model_lanes",
+  "sprint": "20261007-s3",
+  "linear": "TIN-5721",
+  "phase": "1_contract_freeze",
+  "recorded_utc": "2026-10-07T04:10:42Z",
+  "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
+  "spec": {"path": "docs/spec/sprints/MODEL_LANES_S3.md", "sha256": "520c317cc87536817c3dcf2ed8a68370e5364fe37269beb24e653f4d04d11084"},
+  "preregistered": true,
+  "preregistration": {"suite": "s3-beat-1", "dev_seed": 3001, "heldout_seeds": [3101, 3203], "heldout_cases": 16, "arms": ["A0_rhythm_analyze_default", "A1_beat_this_final0_cpu_no_dbn"], "tolerance_seconds": 0.07, "aggregation": "pooled sums, never averaged rates", "seal_before_truth": true, "default_adoption": false},
+  "numerics_run": false,
+  "downloads": false,
+  "truth_read": false,
+  "external_inputs_read": ["https://github.com/CPJKU/beat_this README (2026-10-07)", "Linear TIN-5619 description (read-only)"],
+  "open_items": ["TIN-5619 wire payload kind unratified (gateway_wire_schema_ratified:false)", "honey architecture and ml-shell torch version unverified", "V6 private scratch path on honey for real-take pass requires root confirmation", "final0 checkpoint byte size and exact URL pending research"]
+}
