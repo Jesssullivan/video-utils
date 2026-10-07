@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "name": "fuller-shelf",
+  "denoise": true,
+  "reduction_db": 8.0,
+  "noise_floor_db": -40.0,
+  "adaptivity": 0.0,
+  "gain_smooth": 0,
+  "preserve_low_fundamental_hz": 32,
+  "integrated_lufs": -18.0,
+  "true_peak_dbtp": -1.75,
+  "noise_capture_required": true,
+  "low_shelf": {"frequency_hz": 100.0, "gain_db": 1.5, "q": 0.7},
+  "peaking_eq": [
+    {"frequency_hz": 160.0, "gain_db": 2.0, "q": 0.7},
+    {"frequency_hz": 300.0, "gain_db": 1.0, "q": 0.8}
+  ],
+  "compressor": {
+    "threshold_db": -18.0,
+    "ratio": 2.0,
+    "attack_ms": 15.0,
+    "release_ms": 100.0,
+    "knee_db": 3.0
+  },
+  "operator_review_status": "unreviewed_trial",
+  "listening_acceptance": "not_performed",
+  "description": "FULLER-shelf: an explicit, optional trial, never the default (fuller stays the default). Every FULLER-v1 control is copied verbatim from profiles/fuller.json; the only addition is one boost-only low shelf at 100 Hz, +1.5 dB, Q 0.7 (lowshelf t=q), the tone_ab trial values, under the 2026-10-07 operator ruling (bounded 80-160 Hz, 0 to +2 dB, Q 0.5-0.707; never a cut or notch near the ~32 Hz fundamental). The shelf runs before the peaking EQ, compression and loudnorm, unlike the tone_ab trial, which was applied after delivery loudness normalization, so the tone_ab real-take delta does not transfer to this chain. It is not covered by the FULLER listening acceptance: operator_review_status unreviewed_trial, listening_acceptance not_performed. Preference requires operator listening at matched level against fuller. Reversible procedurally: re-render the unchanged source with profile fuller. A reviewed per-take capture interval is required input and is never baked in. No high-pass, low cut, hum notch or 2.2 kHz boost; preserve_low_fundamental_hz 32. No claim of 32 Hz restoration, recreation of an uncaptured fundamental, room or amp tone, isolated fan removal, analysis accuracy or suitability on other takes."
+}

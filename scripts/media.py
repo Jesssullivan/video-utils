@@ -152,10 +152,20 @@ def load_profile(value: str | Path) -> dict:
     if not path.is_file():
         path = ROOT / "profiles" / f"{value}.json"
     try:
-        profile = json.loads(path.read_text())
+        profile = json.loads(path.read_text(), object_pairs_hook=_profile_object)
     except (OSError, json.JSONDecodeError) as exc:
         raise MediaError(f"cannot read profile: {value}") from exc
     return validate_profile(profile)
+
+
+def _profile_object(pairs: list) -> dict:
+    """Plain dict (last key wins, as json.loads) except a repeated low_shelf is refused.
+
+    Only low_shelf is checked so that one profile file can never smuggle a second
+    shelf past the at-most-one rule; general duplicate-key hardening is separate."""
+    if sum(1 for key, _ in pairs if key == "low_shelf") > 1:
+        raise MediaError("profile may contain at most one low_shelf", "low_shelf_multiple")
+    return dict(pairs)
 
 
 def validate_profile(profile: dict) -> dict:
@@ -166,7 +176,8 @@ def validate_profile(profile: dict) -> dict:
                "integrated_lufs", "true_peak_dbtp", "noise_capture_seconds",
                "noise_capture_authorized", "noise_capture_source_sha256",
                "noise_capture_review", "adaptivity", "peaking_eq", "compressor",
-               "noise_capture_required"}
+               "noise_capture_required", "low_shelf", "operator_review_status",
+               "listening_acceptance"}
     if set(profile) - allowed:
         raise MediaError("profile contains unsupported fields")
     if not isinstance(profile.get("denoise"), bool):
@@ -248,7 +259,74 @@ def numeric_control(value, low: float, high: float, name: str) -> float:
     return float(value)
 
 
+# Operator ruling 2026-10-07 (S2R, TIN-5487): a capped, reversible low-shelf is an
+# explicit profile option below 160 Hz; FULLER stays the default; never a cut or
+# notch near the ~32 Hz fundamental. Q <= 1/sqrt(2) keeps the RBJ shelf monotonic,
+# so a boost never dips below unity at any frequency. Widening the status enums
+# after operator listening is a root/operator decision, not a lane decision.
+LOW_SHELF_KEYS = frozenset({"frequency_hz", "gain_db", "q"})
+LOW_SHELF_FREQUENCY_HZ = (80.0, 160.0)
+LOW_SHELF_GAIN_DB = (0.0, 2.0)
+LOW_SHELF_Q = (0.5, 0.707)
+OPERATOR_REVIEW_STATUSES = ("unreviewed_trial",)
+LISTENING_ACCEPTANCE_STATUSES = ("not_performed",)
+
+
+def _shelf_number(value, name: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise MediaError(f"low_shelf {name} must be a finite number", "low_shelf_invalid")
+    try:
+        result = float(value)
+    except OverflowError as exc:
+        raise MediaError(f"low_shelf {name} must be a finite number", "low_shelf_invalid") from exc
+    if not math.isfinite(result):
+        raise MediaError(f"low_shelf {name} must be a finite number", "low_shelf_invalid")
+    return result
+
+
+def validate_low_shelf(profile: dict) -> dict | None:
+    """Typed refusals for the optional single boost-only low shelf; None when absent."""
+    if "low_shelf" not in profile:
+        return None
+    shelf = profile["low_shelf"]
+    if isinstance(shelf, list):
+        raise MediaError("profile may contain at most one low_shelf object, never a list",
+                         "low_shelf_multiple")
+    if not isinstance(shelf, dict) or set(shelf) != LOW_SHELF_KEYS:
+        raise MediaError("low_shelf requires exactly frequency_hz, gain_db and q", "low_shelf_invalid")
+    frequency = _shelf_number(shelf["frequency_hz"], "frequency_hz")
+    gain = _shelf_number(shelf["gain_db"], "gain_db")
+    q = _shelf_number(shelf["q"], "q")
+    low, high = LOW_SHELF_FREQUENCY_HZ
+    if not low <= frequency <= high:
+        raise MediaError(f"low_shelf frequency_hz must be between {low:g} and {high:g}",
+                         "low_shelf_frequency_out_of_bounds")
+    if gain < 0 or math.copysign(1.0, gain) < 0:
+        raise MediaError("low_shelf is boost only; a negative gain_db (cut) is refused",
+                         "low_shelf_cut_refused")
+    if gain > LOW_SHELF_GAIN_DB[1]:
+        raise MediaError(f"low_shelf gain_db must be at most +{LOW_SHELF_GAIN_DB[1]:g} dB",
+                         "low_shelf_gain_out_of_bounds")
+    low, high = LOW_SHELF_Q
+    if not low <= q <= high:
+        raise MediaError(f"low_shelf q must be between {low:g} and {high:g}", "low_shelf_q_out_of_bounds")
+    return shelf
+
+
+def validate_review_status(profile: dict) -> None:
+    for key, allowed in (("operator_review_status", OPERATOR_REVIEW_STATUSES),
+                         ("listening_acceptance", LISTENING_ACCEPTANCE_STATUSES)):
+        if key in profile and (not isinstance(profile[key], str) or profile[key] not in allowed):
+            raise MediaError(f"{key} must be one of {', '.join(allowed)}", "low_shelf_review_status_invalid")
+    if "low_shelf" in profile and not all(key in profile for key in ("operator_review_status",
+                                                                    "listening_acceptance")):
+        raise MediaError("low_shelf requires operator_review_status and listening_acceptance",
+                         "low_shelf_review_status_required")
+
+
 def validate_post_controls(profile: dict):
+    validate_low_shelf(profile)
+    validate_review_status(profile)
     bands = profile.get("peaking_eq", [])
     if not isinstance(bands, list) or len(bands) > 3:
         raise MediaError("peaking_eq must contain at most three numeric bands")
@@ -272,6 +350,20 @@ def post_denoise_filters(profile: dict, sample_rate: int) -> list[dict]:
     """Build a closed set of serial stages; profile values cannot inject filters."""
     validate_post_controls(profile)
     stages = []
+    shelf = profile.get("low_shelf")
+    if shelf is not None:
+        if shelf["frequency_hz"] >= sample_rate / 2:
+            raise MediaError("low_shelf frequency must be below source Nyquist", "low_shelf_above_nyquist")
+        stages.append({"stage": "low_shelf", "controls": dict(shelf),
+                       "filter": (f"lowshelf=f={float(shelf['frequency_hz']):.9g}:t=q:"
+                                  f"w={float(shelf['q']):.9g}:g={float(shelf['gain_db']):.9g}:r=f64"),
+                       "timing": {"sample_axis_policy": "causal forward IIR; no block delay or time stretch",
+                                  "frequency_dependent_phase": True,
+                                  "acoustic_alignment_verified": False},
+                       "boost_only": True,
+                       "reversibility": ("procedural: re-render the unchanged source with profile fuller; "
+                                         "the shelf is not inverted from a rendered master"),
+                       "recreates_uncaptured_fundamental": False})
     for index, band in enumerate(profile.get("peaking_eq", [])):
         if band["frequency_hz"] >= sample_rate / 2:
             raise MediaError("EQ frequency must be below source Nyquist")
