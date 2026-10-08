@@ -1,4 +1,4 @@
-# video-utils
+# Temporal Difference Learning for adhoc riff recording 👀
 
 Local-first restoration and rhythm analysis for guitar takes recorded on a phone
 or in Photo Booth. Rust provides the CLI and reusable DSP; FFmpeg handles media;
@@ -273,18 +273,6 @@ To reproduce the richer pass with an approximate 178 BPM operator seed:
 just analysis-setup
 VIDEO_UTILS_ANALYSIS_PYTHON="$PWD/.venv/bin/python" just demo INPUT 178 librosa extended
 ```
-
-Today's operator requests are preserved in [the prompt record](docs/agent-notes/2026-10-05-user-prompts.md).
-The active [ten-hour work plan](docs/spec/TEN_HOUR_PLAN.md) and
-[parallel lane board](docs/agent-notes/WORKSTREAM_BOARD.md) define ownership and checkpoints.
-The [future practice studio designs](docs/spec/future/README.md) cover upload-to-
-download workflows, queued processing, typed controls, compact issue overlays,
-capture-aware mastering and semi-supervised classification. These are proposed
-milestones, separate from the current local playback and annotation interface.
-
-The actual local comparison report includes manual audio/video seeking to review
-spans. `just marked-video` renders separate synchronized previews with uncertain
-review callouts. Native editor imports remain a future milestone.
 
 For an already rendered take, run the optional evidence workflow without encoding
 media again:
