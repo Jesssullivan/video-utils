@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CLASS_LABELS, type Claim } from '$lib/content/claims';
+	import { CLASS_LABELS, type Claim } from '#lib/content/claims.js';
 
 	let { claim }: { claim: Claim } = $props();
 </script>

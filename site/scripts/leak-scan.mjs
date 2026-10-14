@@ -50,9 +50,12 @@ export const BUILD_REFUSED_EXTENSIONS = dotted([
 	'zip', 'tar', 'gz', 'tgz', 'br', 'bz2', 'xz', '7z'
 ]);
 
-/** Source surface: directories and files that are generated or third-party. */
-export const SOURCE_EXCLUDED_PREFIXES = Object.freeze(['node_modules/', '.svelte-kit/', 'build/', 'vendor/', 'static/fonts/']);
-export const SOURCE_EXCLUDED_FILES = Object.freeze(['pnpm-lock.yaml']);
+/**
+ * Source surface: directories and files that are generated or third-party. patches/ and .pnpmfile.cjs are
+ * the RU13 TypeScript 7 set copied from site.scaffold: each names its upstream repository and tracker by design.
+ */
+export const SOURCE_EXCLUDED_PREFIXES = Object.freeze(['node_modules/', '.svelte-kit/', 'build/', 'vendor/', 'patches/', 'static/fonts/']);
+export const SOURCE_EXCLUDED_FILES = Object.freeze(['pnpm-lock.yaml', '.pnpmfile.cjs']);
 
 const VENDOR_RUNTIME_CHUNK_RE = /(?:^|\/)_app\/immutable\/chunks\//u;
 const URL_RE = /\bhttps?:\/\/([a-z0-9.-]+)/giu;

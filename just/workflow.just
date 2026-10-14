@@ -376,8 +376,11 @@ demo-resume invocation_id:
     python3 scripts/run_demo.py --resume {{quote(invocation_id)}}
 
 # Public static landing site (S3 public_site; docs/spec/sprints/PUBLIC_SITE_S3.md). Never deployed by these recipes.
+# The in-house @xoxd packages are Bazel-only (RU9): pnpm installs the third-party
+# lock, then inhouse-link builds the registry modules and materialises them.
 site-install:
     cd site && pnpm install --frozen-lockfile
+    cd site && node scripts/inhouse-link.mjs
 
 site-check:
     cd site && pnpm run check

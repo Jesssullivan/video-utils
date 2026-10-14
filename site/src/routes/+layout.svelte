@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { PublicNavigation, SiteFooter } from '@xoxd/public-chrome';
-	import { SITE } from '$lib/content/claims';
+	import { SITE } from '#lib/content/claims.js';
 	import '../app.css';
 
 	let { children } = $props();

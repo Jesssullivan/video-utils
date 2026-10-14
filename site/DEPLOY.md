@@ -22,12 +22,17 @@ worker, no redirects file, no media and no raster images.
 | Input | Value |
 | --- | --- |
 | Root directory | `site` |
-| Build command | `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install --frozen-lockfile && pnpm run check && pnpm run build` |
+| Build command | `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install --frozen-lockfile && node scripts/inhouse-link.mjs && pnpm run check && pnpm run build` |
 | Output directory | `site/build` |
-| Node | 22 (`engines.node` is `>=22.13 <23`) |
+| Node | 22 (`engines.node` is `>=22.17 <23`; SvelteKit 3 needs 22.17 or later) |
 | Package manager | `pnpm@11.25.0` (the `packageManager` field) |
 | Environment variables | none |
 | Build-time secrets | none |
+
+The two in-house packages (`@xoxd/theme`, `@xoxd/public-chrome`) are Bazel
+registry modules (ruling RU9), not npm dependencies: `node scripts/inhouse-link.mjs`
+builds them with Bazel and copies them into `node_modules/@xoxd`, so a build host
+needs Bazel (bazelisk) as well as pnpm.
 
 The agent tools page reads `program/tools.json` from the repository root while
 prerendering, so a build needs the whole repository checked out, not only
@@ -51,11 +56,11 @@ report, trace or screenshot is ever written inside `site/`.
 
 | # | Where | Command | Condition to proceed |
 | --- | --- | --- | --- |
-| 1 | `site/` | `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install --frozen-lockfile` | exit 0; the lockfile is unchanged; no browser fetched |
+| 1 | `site/` | `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install --frozen-lockfile`, then `node scripts/inhouse-link.mjs` | exit 0 each; the lockfile is unchanged; no browser fetched; both in-house packages materialised at their MODULE.bazel pins |
 | 2 | `site/` | `pnpm run check` | exit 0 with 0 errors and 0 warnings |
 | 3 | `site/` | `pnpm run build` | exit 0; five HTML documents, no source maps |
 | 4 | `site/` | `node scripts/leak-scan.mjs build` | exit 0, 0 findings over every rule |
-| 5 | `site/` | `node scripts/leak-scan.mjs . --surface source` and `node scripts/leak-scan.mjs vendor --surface vendor` | exit 0, 0 findings each |
+| 5 | `site/` | `node scripts/leak-scan.mjs . --surface source` and `node scripts/leak-scan.mjs node_modules/@xoxd --surface vendor` | exit 0, 0 findings each |
 | 6 | repository root | `PYTHONPATH=tests python3 -m unittest test_public_site_s3.SiteVerifyBuildTests -v` | 0 failures: 0 broken internal references and fragments (external links listed, never fetched), 0 privacy hits in each of the eight families, existing leak scans clean |
 | 7 | repository root | `PYTHONPATH=tests python3 -m unittest test_public_site_s3.GitleaksBuildTests -v` | 0 failures: gitleaks exits 0 with 0 findings on the build and its positive control exits 1 |
 | 8 | `site/` | `SITE_VERIFY_OUT_DIR="$SITE_VERIFY_OUT_DIR/playwright" pnpm run verify:browser` | exit 0; `browser-summary.json` in that directory shows V1 to V7 passing (every route at five viewport configurations, 0 console and page errors beyond the declared fallback 404 report, 0 horizontal overflow, 0 external requests, axe 0 violations in light and dark) |
@@ -114,7 +119,7 @@ receipts and is not applied by this lane.
 | Whether preview deployments are public | not decided |
 | Wrangler version to pin | not pinned |
 | Public product name | not chosen (`video-utils` is a working title) |
-| Whether the committed carriers under `site/vendor/` stay or are replaced by a package link | root's call |
+| Whether the committed carriers under `site/vendor/` stay or are replaced by a package link | decided by ruling RU9 (2026-10-08): replaced by the `xoxd_theme` / `xoxd_public_chrome` registry modules (bazel_dep + npm_link_package), 2026-10-10 |
 
 ## Response headers
 

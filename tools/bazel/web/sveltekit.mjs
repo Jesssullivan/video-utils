@@ -11,8 +11,10 @@
 import { spawn } from 'node:child_process';
 import {
 	chmodSync,
+	copyFileSync,
 	cpSync,
 	existsSync,
+	mkdirSync,
 	mkdtempSync,
 	readdirSync,
 	rmSync,
@@ -61,15 +63,25 @@ function option(name) {
 	return rest[index + 1];
 }
 
-function chmodTree(path) {
-	if (statSync(path).isDirectory()) {
-		chmodSync(path, 0o755);
-		for (const entry of readdirSync(path)) {
-			chmodTree(join(path, entry));
+/**
+ * Copy a declared tree into writable scratch as real files and directories.
+ * Bazel hands actions their inputs as symlinks into read-only trees, and on
+ * Node 22.22+ `cpSync(..., { dereference: true })` dereferences only the
+ * top-level path, so nested symlinks would stay links into the read-only
+ * sandbox (chmod then fails with EROFS). `statSync` and `copyFileSync` follow
+ * every symlink. Same helper as //bazel:site_build.mjs.
+ */
+function copyTreeDereferenced(source, destination) {
+	if (statSync(source).isDirectory()) {
+		mkdirSync(destination, { recursive: true });
+		chmodSync(destination, 0o755);
+		for (const entry of readdirSync(source)) {
+			copyTreeDereferenced(join(source, entry), join(destination, entry));
 		}
-	} else {
-		chmodSync(path, 0o644);
+		return;
 	}
+	copyFileSync(source, destination);
+	chmodSync(destination, 0o644);
 }
 
 if (mode === 'sync') {
@@ -95,8 +107,7 @@ if (mode === 'sync') {
 	const scratch = mkdtempSync(join(tmpdir(), 'video-utils-web-build-'));
 	const workspace = join(scratch, 'workspace');
 	process.once('exit', () => rmSync(scratch, { recursive: true, force: true }));
-	cpSync(declared, workspace, { recursive: true, dereference: true });
-	chmodTree(workspace);
+	copyTreeDereferenced(declared, workspace);
 	symlinkSync(nodeModules, join(workspace, 'node_modules'), 'dir');
 	// web/svelte.config.js fixes the adapter-node output to ./build.
 	run(cli('vite', 'bin/vite.js'), ['build'], { cwd: workspace }, () => {

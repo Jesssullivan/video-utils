@@ -26,13 +26,13 @@ bazel-graph:
     python3 tools/bazel/run.py mod graph
     PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v
 
-# S3 bazel_full lane (docs/spec/sprints/BAZEL_FULL_S3.md). //site is gated in
-# .bazelrc until root applies the requested site/pnpm-workspace.yaml and
-# .bazelignore lines; until then bazel-site reports the deleted package.
+# S3 bazel_full lane (docs/spec/sprints/BAZEL_FULL_S3.md). //site joined the
+# graph on 2026-10-07; since the RU1 uplift it type-checks with svelte-check
+# --tsgo (TypeScript 7) and links the in-house @xoxd modules with npm_link_package.
 
 # Type-check and build the static site through Bazel (pnpm in site/ stays the gate).
 bazel-site:
-    python3 tools/bazel/run.py --timeout 1800 test //site:svelte_check_test
+    python3 tools/bazel/run.py --timeout 1800 test //site:svelte_check_test //site:svelte_check_canary_test
     python3 tools/bazel/run.py --timeout 1800 build //site:build
 
 # Host tools and the exported FFMPEG/FFPROBE are passed through; failures do not

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Claim } from '$lib/content/claims';
+	import type { Claim } from '#lib/content/claims.js';
 	import ClaimItem from './ClaimItem.svelte';
 
 	let { claims, label }: { claims: readonly Claim[]; label: string } = $props();

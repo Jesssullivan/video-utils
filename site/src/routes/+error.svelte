@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { SITE } from '$lib/content/claims';
+	import { SITE } from '#lib/content/claims.js';
 </script>
 
 <svelte:head>
