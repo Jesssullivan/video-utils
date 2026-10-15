@@ -26,6 +26,9 @@ AGENTS.md and R-N13. Drafts: `program/tool-drafts/condense.json`. Skills:
 - Every clip `file`, the `work` directory and the `out` path in it resolve
   beneath the config's directory. No `..` component and no symlink on the way.
 - No output path equals a clip file.
+- `[whisper] backend`, when set, is `cli`. The optional http speech-to-text
+  backend (`docs/spec/CONDENSE.md`) is not admitted under MCP, and workers run
+  without `CONDENSE_STT_TOKEN` in their environment.
 - `condense_recover` refuses an existing output.
 - Each call has an outer `timeout_seconds`; each tool call inside it is bounded
   by `CONDENSE_TOOL_TIMEOUT_S` (7200 s).

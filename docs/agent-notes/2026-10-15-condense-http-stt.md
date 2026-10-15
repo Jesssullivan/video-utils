@@ -59,9 +59,48 @@ are unchanged: no MCP input knob is needed, and both are hash-frozen by `tests/t
   service was contacted, so whether tubebrain-stt serves it is unverified.
 - Treating word starts from a `segments/words` reply as DTW times is an inference. No measurement
   compares them with whisper.cpp DTW onsets.
-- The MCP tool `condense_transcribe` is frozen with `openWorldHint: false`, and the worker requires the
-  registered model. A talk.toml with `backend = "http"` run through MCP would still need the model,
-  and it would contact the loopback URL. A later admission revision should either refuse the http
-  backend under MCP or declare it.
+- Superseded by the review round below: the MCP preflight now refuses the http backend.
 - `http_timeout_s` bounds each socket wait, not the total request. A service that trickles bytes
   could hold a request longer.
+
+## Review round (2026-10-15)
+
+A review of PR 22 reproduced three blocking defects. Each is fixed in a new signed commit, with tests.
+
+- Token leak. A `CONDENSE_STT_TOKEN` ending in a line break made `http.client` raise a `ValueError`
+  that quoted the header value, token included. The token must now be visible ASCII with no space or
+  line break. Any other value is refused before audio extraction (and in `read()`), and the refusal
+  does not echo it. `http_full` also turns any `ValueError` from the client into a token-free
+  `RuntimeError`. Tests: four bad tokens (LF, CRLF, a space, non-ASCII) through `transcribe()` and
+  `read()`, 0 requests reach the fake service; a header forced past the check fails closed with no
+  token and no chained cause.
+- URL fragment. A `#fragment` in `whisper.url` swallowed the appended query, so the DTW pass lost
+  `dtw`, `language` and `prompt`. A fragment (an empty one too) and `;params` are now refused before
+  any work. Three cases join the bad-settings test.
+- MCP scope. `condense_config_paths` refuses any `[whisper] backend` other than `cli`, so
+  `condense_transcribe`, `condense_edl` and `condense_check` cannot reach the network under their
+  `openWorldHint: false` admission. `run_condense_tool` drops `CONDENSE_STT_TOKEN` from the worker
+  environment. Tool descriptors and skills are unchanged; the frozen digests still match.
+  `docs/spec/CONDENSE_TOOL_CONTRACT.md` states the rule.
+
+Nits fixed in the same round:
+
+- An oversized reply (`MAX_REPLY` patched to 100 bytes) and a `segments` reply with an infinite word
+  start now have fail-closed cases. `whisper_json` catches `OverflowError`.
+- `transcribe()` removes the clip's `pass1.json`, `dtw.json` and `stt.json` at the start, for both
+  backends, and writes them only after both passes succeed. A failed run, including a DTW-pass
+  failure after pass 1 succeeded, leaves none behind.
+- `work/<clip>.stt.json` records the backend (model file name or service URL), language, DTW preset,
+  `pass1` and `chunk_s`. The parity test checks it for both backends; the token is in no work file.
+- `http_timeout_s` must be a finite number above 0: 0, -1, infinity, NaN, a boolean and a string
+  are refused before any work.
+- The tests use `localhost` instead of a spelled-out address. `localhost` counts as loopback only
+  while every address it resolves to is loopback; a test stubs the resolver both ways.
+- An `HTTPError` response is closed on the error path.
+
+Not changed: `edl`'s `pause_asr.json` cache of `read()` text is not keyed by backend, so switching
+backends reuses earlier text until that cache is removed. `condense/README.md` stays outside the
+lane's owned files, as first disclosed.
+
+Gates for this round: `nix develop .#condense -c just condense-lint condense-test`: ruff clean,
+92 passed. `tests/test_s4b_tool_admission.py`: 12 ran, OK (1 skipped locally: end-to-end worker).

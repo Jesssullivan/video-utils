@@ -1178,6 +1178,11 @@ def condense_config_paths(value):
         raw = tomllib.loads(config.read_text(encoding='utf-8'))
     except (UnicodeError, ValueError) as error:
         raise ToolError(f'condense config is not valid TOML: {error}') from error
+    whisper = raw.get('whisper', {})
+    if not isinstance(whisper, dict) or whisper.get('backend', 'cli') != 'cli':
+        # The admitted tools declare whisper-cli and the registered model, offline. The http STT backend
+        # (docs/spec/CONDENSE.md) posts audio and a token, so it waits for a contract revision.
+        raise ToolError('condense tools run [whisper] backend = "cli" only; the http backend is not admitted under MCP')
     base = config.parent
     clips = raw.get('clip')
     if not isinstance(clips, list) or not clips or not all(isinstance(c, dict) for c in clips):
@@ -1235,6 +1240,11 @@ def condense_command(name, args):
     return command, env
 
 
+def condense_env(extra_env):
+    """The worker environment: the caller's, plus extra_env, without the http STT backend's token."""
+    return {k: v for k, v in os.environ.items() if k != 'CONDENSE_STT_TOKEN'} | extra_env
+
+
 def run_condense_tool(name, args, timeout):
     if not (ROOT / 'condense' / '__main__.py').is_file():
         raise ToolError('implementation worker is unavailable; no stage was run')
@@ -1242,7 +1252,7 @@ def run_condense_tool(name, args, timeout):
     with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
         try:
             process = subprocess.Popen(command, cwd=ROOT, stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr,
-                                       start_new_session=True, env=dict(os.environ, **extra_env))
+                                       start_new_session=True, env=condense_env(extra_env))
         except OSError as error:
             raise ToolError(f'worker could not start: {error}') from error
         try:

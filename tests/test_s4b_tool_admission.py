@@ -191,7 +191,9 @@ class S4BToolAdmissionTests(unittest.TestCase):
         for value, message in [(str(link), 'condense config must be an existing regular talk.toml'),
                                (str(self.dir / 'absent.toml'), 'condense config must be an existing regular talk.toml'),
                                (self.toml('[[clip]\n', 'bad.toml'), 'condense config is not valid TOML'),
-                               (self.toml('out = "out/x.mp4"\n', 'none.toml'), 'at least one [[clip]] table')]:
+                               (self.toml('out = "out/x.mp4"\n', 'none.toml'), 'at least one [[clip]] table'),
+                               (self.toml('[whisper]\nbackend = "http"\n', 'http.toml'), 'backend = "cli" only'),
+                               (self.toml('whisper = 1\n', 'flat.toml'), 'backend = "cli" only')]:
             with self.subTest(value=value):
                 self.refuse('condense_edl', {'config': value}, message=message)
 
@@ -218,6 +220,17 @@ class S4BToolAdmissionTests(unittest.TestCase):
                 message = 'must not be a clip file'
             with self.subTest(text=text):
                 self.refuse('condense_captions', {'config': self.toml(text)}, message=message)
+
+    def test_the_http_stt_backend_stays_outside_mcp(self):
+        http = self.toml('[whisper]\nbackend = "http"\nurl = "http://localhost:9/t"\n'
+                         '[[clip]]\nname = "talk"\nfile = "talk.mkv"\n', 'http.toml')
+        for name in ('condense_transcribe', 'condense_edl', 'condense_check'):
+            with self.subTest(name=name):
+                self.refuse(name, {'config': http}, message='backend = "cli" only')
+        with patch.dict(os.environ, {'CONDENSE_STT_TOKEN': 'synthetic-token'}):
+            env = tool_api.condense_env({'WHISPER_MODEL': 'model.bin'})
+        self.assertNotIn('CONDENSE_STT_TOKEN', env)
+        self.assertEqual(env['WHISPER_MODEL'], 'model.bin')
 
     def test_transcribe_refuses_without_the_registered_model(self):
         with patch.object(tool_api, 'ROOT', self.dir), patch.object(tool_api, 'load_registry_models',
