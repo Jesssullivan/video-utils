@@ -5,6 +5,7 @@ use std::fmt;
 
 pub mod dsp;
 pub mod hash;
+pub mod json;
 pub mod run_record;
 
 /// Maximum interleaved or planar sample count accepted by one gain operation.
