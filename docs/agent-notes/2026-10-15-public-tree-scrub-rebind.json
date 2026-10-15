@@ -6,7 +6,7 @@
  "receipt": "docs/agent-notes/2026-10-15-public-tree-scrub.md",
  "pre_scrub_commit": "e28dd9f8351d385da4095c1824a1cdbc53b4deef",
  "meaning": "Each file below was scrubbed of private identifiers. Its sha256_before is recorded elsewhere in the tree; those records refer to the bytes at pre_scrub_commit, which history keeps. No recorded hash value was edited.",
- "count": 153,
+ "count": 166,
  "files": [
   {
    "path": ".agents/skills/guitar-beat-this/SKILL.md",
@@ -54,9 +54,24 @@
    "sha256_after": "4fa8c269487656cf7a44f3a8201d2955ac075d10b5a2274130b913043e7522b5"
   },
   {
+   "path": "docs/agent-notes/2026-10-06-accepted-fuller-compact-assembly.py",
+   "sha256_before": "095fa1e694fb97cc9a53f1d12e04c86cac7fbd637a7d574c6295102ecd44a533",
+   "sha256_after": "5719434e21adecf342e4212a94f104e300822047d7d154ee238895968c42f087"
+  },
+  {
    "path": "docs/agent-notes/2026-10-06-actual-matched-capture-render.py",
    "sha256_before": "7d08f45414b07d1bb15692ed599d7245c6735d9ac54eaabf91ca5c8b73278fce",
    "sha256_after": "a3f8724fcfb5d26c102ebc584a7a649a0731d3f1dd0e39c3378a14a1224b0e6d"
+  },
+  {
+   "path": "docs/agent-notes/2026-10-06-actual-nr-pair-artifact-audit.py",
+   "sha256_before": "aaec5344a7929c240efc6f1277817b22c9d2ad4a604e5f7d77eb5aef856313b0",
+   "sha256_after": "f422a0d599cd23ccce58c467b132c396001dd00f7d62e9ac736c9fa64467498f"
+  },
+  {
+   "path": "docs/agent-notes/2026-10-06-actual-nr10-resource-artifact-audit.py",
+   "sha256_before": "7139058e83748d42d088036053ceb1ce181f3f057f0e8d66df991bce884196ac",
+   "sha256_after": "2dee1eb8e3218c7e860d4e6b6b081a51d83497ae4c6bb2b9f88cb8fb3b8d639f"
   },
   {
    "path": "docs/agent-notes/2026-10-06-actual-nr10-resource-independent-artifact-audit.json",
@@ -67,6 +82,16 @@
    "path": "docs/agent-notes/2026-10-06-actual-nr10-resource-retry.py",
    "sha256_before": "46ca7e3faa4c67cb61e9ff7a856bc7da1b2598da84cdc404748e778298d64344",
    "sha256_after": "235ca9fd129535a51f783209a6bf9db53657e4be9d3fef8407382b92d77ca5f3"
+  },
+  {
+   "path": "docs/agent-notes/2026-10-06-actual-nr8-independent-artifact-audit.json",
+   "sha256_before": "dc79c3af65bcc5f893af9cf6b61293baeff3429a9f3fa5cfc56fb242efab5d59",
+   "sha256_after": "25f047d3bf9223de785bb332aee9b3148ef410af367a16606887b995bceb692a"
+  },
+  {
+   "path": "docs/agent-notes/2026-10-06-actual-nr8-nr10-capture-authoring.json",
+   "sha256_before": "98108ca07705bfed300dfc8a5b6a40de72215f7cb838d05e87bca8aaa8206a8b",
+   "sha256_after": "2e283207f689e7536c463077091ed1c89eedd9ffa4e7fc098fff684489f49241"
   },
   {
    "path": "docs/agent-notes/2026-10-06-arrangement-markers-preview.json",
@@ -114,6 +139,11 @@
    "sha256_after": "60c1eb6db0dff5e26d12404117de626e267b82e7942650049d27bd9bfa9a2b15"
   },
   {
+   "path": "docs/agent-notes/2026-10-06-capture-application-native-qualification-preregistration.json",
+   "sha256_before": "0eca36a73660f797c18d122bbad6d29cfa0b9815c291557d5329089e0c70320c",
+   "sha256_after": "701f73b0db245d68848e66cd742dd9cdd2cf47c6e03a8ac71427738e7ac90b05"
+  },
+  {
    "path": "docs/agent-notes/2026-10-06-capture-application-resource-artifact-audit.json",
    "sha256_before": "7b54aa586122ab6a93df051078e3016a9cf61193102a996f8d96bb5afa2c31b7",
    "sha256_after": "2507604a57a0e8d669f40e39910d3b9114bc1f5e86b519b4c005f24adcc68426"
@@ -127,6 +157,11 @@
    "path": "docs/agent-notes/2026-10-06-capture-application-resource-qualification-freeze.json",
    "sha256_before": "87a11ee80a9c862ff951f3ce92c022f0ecf3360c2d8df1e6e676ff49f7467d6b",
    "sha256_after": "93b0bba36a2f39597a39b8d4678e680685dd05ba9f9a2f7aaa786d979279431e"
+  },
+  {
+   "path": "docs/agent-notes/2026-10-06-capture-application-resource-qualification-preregistration.json",
+   "sha256_before": "f6bec7567bc3e676d13f39c1f3f79671e307d4f75483ff1204a67bb33891d5c0",
+   "sha256_after": "2d6da89272f4abee67c94556fe6f6aefc466c22ae2405170717cb953d6f7afcb"
   },
   {
    "path": "docs/agent-notes/2026-10-06-desktop-mvp-export-fast.py",
@@ -172,6 +207,11 @@
    "path": "docs/agent-notes/2026-10-06-fuller-nr8-independent-artifact-audit.py",
    "sha256_before": "609b4a74e191085fc17e8c14bee9baad4d89dd606789c7def144c7f62cbb441c",
    "sha256_after": "9284e43a948db5a4e8d3cf5b3364db963290be728821a5d6911e2b17cf8df38d"
+  },
+  {
+   "path": "docs/agent-notes/2026-10-06-fuller-v1-plan.json",
+   "sha256_before": "f62cce0d5bf9e83ba045bfb9bd22a20d341ccc8ff690413fbfcd85bc447be599",
+   "sha256_after": "ef674f24aba714755fa6655d66535c8969a20510cda6ccd264e86c87f88d3bfd"
   },
   {
    "path": "docs/agent-notes/2026-10-06-joint-pulse-ranking-plan.md",
@@ -234,6 +274,26 @@
    "sha256_after": "bbfad5e375653a094a6b9fd5a0b0a794e2918768f4cd68d58f0f4de3a24e65c6"
   },
   {
+   "path": "docs/agent-notes/2026-10-06-root-actual-nr10-resource-retry-release.json",
+   "sha256_before": "24ba4717093779c7afbb7d8ade6cba493353ed6d93a0b447f48f3336023392f9",
+   "sha256_after": "4ba6a77b5df3c063bd1a1ada675800d266ebc904cd8ec038a4e65d683d5ab46a"
+  },
+  {
+   "path": "docs/agent-notes/2026-10-06-root-actual-nr8-nr10-render-release.json",
+   "sha256_before": "7d47ca235de555cb3f721c8b6f041e1517e71c5a1d2e87356affc9f47586c531",
+   "sha256_after": "096111aac48ad32ff3fcf2f6b2bee555b8bff4f87dd875fc93ac8cc1ec8c68e8"
+  },
+  {
+   "path": "docs/agent-notes/2026-10-06-root-capture-application-native-release.json",
+   "sha256_before": "56e49d0789fa84e8a0d75f03d222f4bda291995a519810c63d8f297d94e98b3c",
+   "sha256_after": "16a8187b114cce274f5bf08048606666815e7b575efbf1afc5769653aeb6ca6d"
+  },
+  {
+   "path": "docs/agent-notes/2026-10-06-root-capture-application-resource-release.json",
+   "sha256_before": "65662826f918c156b450f219ae8a60ed47256e3257d0a21d74919a0d606b07bc",
+   "sha256_after": "4ac05c17214ffc139b17ee786ad44e89e2beb844d4a3b5ecfcfe644e9f9365ef"
+  },
+  {
    "path": "docs/agent-notes/2026-10-06-root-learned-actual-mcp.json",
    "sha256_before": "cead74a464ce76fce6d11122a81045a02e41ee7582c11880b4846f734ba30a4f",
    "sha256_after": "b1bcb71a6ccdb3a36ad8518690b11bd9e3be7ccf7d4f617172cf1b13e0b52e70"
@@ -242,6 +302,11 @@
    "path": "docs/agent-notes/2026-10-06-root-learned-pitch-pilot-release.json",
    "sha256_before": "1d599a67bb3bd176c50607983818cfa39e43c37ebc69686e893c3d8194d34f23",
    "sha256_after": "47cf23df9560295ba844c8e05085c598a3a106615af03872d3c3c90b860dbd1a"
+  },
+  {
+   "path": "docs/agent-notes/2026-10-06-root-low-register-diagnostic-release.json",
+   "sha256_before": "26bb0a5cc3a1d72e95471830f72ceeb706e5aed21c3474dc48c838e0e2a8225b",
+   "sha256_after": "ed197a3d41c06def146e7aeb1aab676c2c63a168edbf0468cfb2a5d4d012e47b"
   },
   {
    "path": "docs/agent-notes/2026-10-06-root-nr8-nr10-measurement-release-300.json",

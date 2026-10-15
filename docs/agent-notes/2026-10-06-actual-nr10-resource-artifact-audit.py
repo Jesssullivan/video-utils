@@ -159,7 +159,7 @@ def main(label):
     require(receipt['listening_accepted'] is False and receipt['master_adopted'] is False, 'Receipt acceptance promoted')
     for file, expected in release['protected_sha256'].items():
         require(sha(file) == expected, 'Protected inputs changed during audit')
-    output = {'schema_version': 1, 'actor': '/root/release_review', 'authority': 'Root explicit saved-actual-artifact audit; R-HOOK-CONVERGENCE-20261004/R-N13',
+    output = {'schema_version': 1, 'actor': 'root/release_review', 'authority': 'Root explicit saved-actual-artifact audit; R-HOOK-CONVERGENCE-20261004/R-N13',
               'status': 'independent_actual_candidate_artifact_audit_passed', 'label': label,
               'auditor_source_sha256': sha(__file__), 'root_release_sha256': sha(RELEASE),
               'verified_summary_sha256': sha(summary_path), 'candidate_run_dir': str(run),
