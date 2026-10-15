@@ -1,0 +1,684 @@
+{
+  "schema_version": 1,
+  "status": "draft_for_root_admission",
+  "lane": "condense",
+  "linear": "TIN-6511",
+  "spec": "docs/spec/CONDENSE_TOOL_CONTRACT.md",
+  "worker": "python3 -m condense <stage> CONFIG; video-utils timeline <command>",
+  "skill": ".agents/skills/{edl-timeline,condense-*}/SKILL.md",
+  "admission": "Not admitted. timeline_validate and timeline_map are planned as tools 47 and 48; the condense stage tools follow in a second admission; condense_publish waits for C11. tool_api.validate_schema has no 'pattern' support, so path rules are enforced in scripts/tool_api.py before any worker starts.",
+  "tools": [
+    {
+      "name": "timeline_validate",
+      "title": "Validate a condense EDL with the Rust timeline",
+      "description": "Run `video-utils timeline validate` on an edl.json and return its receipt: fps, clips, segments, total frames and seconds, the largest frame drift and the file's sha256, or a typed reason (edl_invalid family, too_large, edl_unreadable). Reads one file; writes nothing.",
+      "intent": "Give agents the Rust authority's verdict on an EDL before render, publish or verify-run.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "edl": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular edl.json written by the condense edl stage (not a symlink; at most 16 MiB)."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 300,
+            "default": 60,
+            "description": "Outer deadline for the whole call in seconds; each tool call inside it is also bounded by CONDENSE_TOOL_TIMEOUT_S (7200 s)."
+          }
+        },
+        "required": [
+          "edl"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/edl-timeline/SKILL.md",
+      "implementation_status": "implemented",
+      "evidence_kind": "rust_timeline_validation_receipt",
+      "limitations": [
+        "Validation proves the EDL's internal contract (frames, contiguity, cuts, totals), not that the edit sounds right or keeps every word."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "condense_edl"
+        ],
+        "enforced": false,
+        "note": "The EDL comes from the condense edl stage."
+      },
+      "agent_workflow": {
+        "identify": "Read status, reason, detail, total_frames and max_drift_frames.",
+        "research": "src/timeline.rs holds the contract; docs/spec/TIMELINE_CONTRACT.md the manifest side.",
+        "iterate": "There are no knobs; fix the EDL's producer, never the validator.",
+        "acceptance": "status ok is required before render or publish; it is not listening acceptance.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "timeline_map",
+      "title": "Map source and output times through a condense EDL",
+      "description": "Answer a batch of to_out (clip, source_s, snap), to_src (output_s) and row (clip, source_s) queries against an edl.json with `video-utils timeline map`. Returns one result per query in order; null where a time is dropped or past the end. Reads one file; writes nothing.",
+      "intent": "Let agents place captions, corrections and review notes on the output clock, or find the source moment under an output time, with the same arithmetic the render used.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "edl": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular edl.json written by the condense edl stage (not a symlink; at most 16 MiB)."
+          },
+          "queries": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10000,
+            "items": {
+              "type": "object",
+              "properties": {
+                "op": {
+                  "type": "string",
+                  "enum": [
+                    "to_out",
+                    "to_src",
+                    "row"
+                  ]
+                },
+                "clip": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "source_s": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "output_s": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "snap": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "op"
+              ],
+              "additionalProperties": false
+            },
+            "description": "to_out needs clip and source_s (snap optional); row needs clip and source_s; to_src needs output_s."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 300,
+            "default": 60,
+            "description": "Outer deadline for the whole call in seconds; each tool call inside it is also bounded by CONDENSE_TOOL_TIMEOUT_S (7200 s)."
+          }
+        },
+        "required": [
+          "edl",
+          "queries"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/edl-timeline/SKILL.md",
+      "implementation_status": "implemented",
+      "evidence_kind": "rust_timeline_time_map",
+      "limitations": [
+        "Source times are per-clip analysis seconds from the first decoded audio sample; add the clip's shift for the recording's own clock."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "timeline_validate"
+        ],
+        "enforced": false,
+        "note": "A map on an invalid EDL refuses with the validator's reason."
+      },
+      "agent_workflow": {
+        "identify": "Match each result to its query by position; a null is a dropped span or past the end.",
+        "research": "condense/README.md 'edl' explains kinds, cuts and the join.",
+        "iterate": "Use snap to move a time inside a cut to its join.",
+        "acceptance": "A mapped time is arithmetic on the EDL, not evidence about what was said there.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "condense_transcribe",
+      "title": "Transcribe talk recordings with whisper.cpp",
+      "description": "Extract 16 kHz analysis audio and run whisper.cpp twice per ~800 s chunk (a beam pass and a DTW pass) with the registered ggml-small.en model. Reads the clip recordings and the registered model; writes work/<clip>.16k.wav, .pass1.json and .dtw.json beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Let an agent run the condense transcribe stage on one talk with bounded time and typed failures, and inspect what it wrote.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular talk.toml (not a symlink). Its clip files, work directory and output resolve relative to it and must stay beneath its directory; no output may overwrite a clip file."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 14400,
+            "default": 7200,
+            "description": "Outer deadline for the whole call in seconds; each tool call inside it is also bounded by CONDENSE_TOOL_TIMEOUT_S (7200 s)."
+          }
+        },
+        "required": [
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/condense-transcribe/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "whisper_cpp_word_timings",
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "Refuses without the registered, hash-verified model in models/; never downloads it (just condense-model is a separate explicit step).",
+        "DTW word starts can run up to 0.6 s early; pass 1 hears more words with looser times."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [],
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
+      },
+      "agent_workflow": {
+        "identify": "Read the stage's printed summary and the files it wrote (work/<clip>.16k.wav, .pass1.json and .dtw.json).",
+        "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
+        "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
+        "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "condense_events",
+      "title": "Find silences, fillers and pauses",
+      "description": "Measure silences and 100 ms RMS frames, merge the two whisper passes into words, and mark pauses, fillers, repeats and unworded bursts. Reads the whisper JSON and the analysis wav; writes work/<clip>.words.json, .events.json and .rms.txt beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Let an agent run the condense events stage on one talk with bounded time and typed failures, and inspect what it wrote.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular talk.toml (not a symlink). Its clip files, work directory and output resolve relative to it and must stay beneath its directory; no output may overwrite a clip file."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3600,
+            "default": 600,
+            "description": "Outer deadline for the whole call in seconds; each tool call inside it is also bounded by CONDENSE_TOOL_TIMEOUT_S (7200 s)."
+          }
+        },
+        "required": [
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/condense-events/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "heuristic_speech_events",
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "Filler and repeat detection is lexical and timing-based; a wrong guess speeds a word up, it never cuts one."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "condense_transcribe"
+        ],
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
+      },
+      "agent_workflow": {
+        "identify": "Read the stage's printed summary and the files it wrote (work/<clip>.words.json, .events.json and .rms.txt).",
+        "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
+        "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
+        "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "condense_edl",
+      "title": "Build the edit decision list",
+      "description": "Give every span of every clip a kind and a speed, quantise to whole frames, write edl.json and validate it with the Rust timeline. Reads words, events and RMS; writes work/edl.json beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Let an agent run the condense edl stage on one talk with bounded time and typed failures, and inspect what it wrote.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular talk.toml (not a symlink). Its clip files, work directory and output resolve relative to it and must stay beneath its directory; no output may overwrite a clip file."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7200,
+            "default": 1800,
+            "description": "Outer deadline for the whole call in seconds; each tool call inside it is also bounded by CONDENSE_TOOL_TIMEOUT_S (7200 s)."
+          }
+        },
+        "required": [
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/condense-edl/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "rust_validated_edl",
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "Pause carving keeps sound with evidence at speech speed; 'asr' evidence reruns whisper on pause spans."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "condense_events"
+        ],
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
+      },
+      "agent_workflow": {
+        "identify": "Read the stage's printed summary and the files it wrote (work/edl.json).",
+        "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
+        "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
+        "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "condense_render",
+      "title": "Render the condensed talk",
+      "description": "Build mezzanines, render parts in parallel ([encode] jobs, default 2), join them, apply two-pass loudness to -16 LUFS / -1.5 dBTP and encode HEVC with AAC. Reads edl.json and the recordings; writes work/<clip>.mezz.mkv, the parts and the output mp4 beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Let an agent run the condense render stage on one talk with bounded time and typed failures, and inspect what it wrote.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular talk.toml (not a symlink). Its clip files, work directory and output resolve relative to it and must stay beneath its directory; no output may overwrite a clip file."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 14400,
+            "default": 7200,
+            "description": "Outer deadline for the whole call in seconds; each tool call inside it is also bounded by CONDENSE_TOOL_TIMEOUT_S (7200 s)."
+          }
+        },
+        "required": [
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/condense-render/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "rendered_media_unreviewed",
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "A mezzanine is reused when newer than its recording; delete it after changing frame size or rate."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "condense_edl"
+        ],
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
+      },
+      "agent_workflow": {
+        "identify": "Read the stage's printed summary and the files it wrote (work/<clip>.mezz.mkv, the parts and the output mp4).",
+        "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
+        "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
+        "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "condense_check",
+      "title": "Gate a rendered edit",
+      "description": "Run the named checks (default all): silence (no 1.0 s gap at -35 dB), loud (within 1 LU, true peak under 0 dBTP), sync (probe and real, within 20 ms) and bounds (whisper re-reads at cuts for a person). Reads the output and edl.json; writes a printed report only beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Let an agent run the condense check stage on one talk with bounded time and typed failures, and inspect what it wrote.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular talk.toml (not a symlink). Its clip files, work directory and output resolve relative to it and must stay beneath its directory; no output may overwrite a clip file."
+          },
+          "checks": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "silence",
+                "loud",
+                "sync",
+                "bounds"
+              ]
+            },
+            "description": "Checks to run; all when omitted."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7200,
+            "default": 3600,
+            "description": "Outer deadline for the whole call in seconds; each tool call inside it is also bounded by CONDENSE_TOOL_TIMEOUT_S (7200 s)."
+          }
+        },
+        "required": [
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/condense-check/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "measured_gates_and_human_review_text",
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "bounds prints text for a person to read; it does not pass or fail on its own."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "condense_render"
+        ],
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
+      },
+      "agent_workflow": {
+        "identify": "Read the stage's printed summary and the files it wrote (a printed report only).",
+        "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
+        "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
+        "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "condense_captions",
+      "title": "Write captions on the output clock",
+      "description": "Map each kept word through the EDL and write SRT and WebVTT cues of at most 2 lines of 42 characters. Reads words and edl.json; writes out/<name>.srt and .vtt beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Let an agent run the condense captions stage on one talk with bounded time and typed failures, and inspect what it wrote.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular talk.toml (not a symlink). Its clip files, work directory and output resolve relative to it and must stay beneath its directory; no output may overwrite a clip file."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1800,
+            "default": 300,
+            "description": "Outer deadline for the whole call in seconds; each tool call inside it is also bounded by CONDENSE_TOOL_TIMEOUT_S (7200 s)."
+          }
+        },
+        "required": [
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/condense-captions/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "derived_captions_unreviewed",
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "Caption text is whisper's; it is not a verified transcript."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "condense_edl"
+        ],
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
+      },
+      "agent_workflow": {
+        "identify": "Read the stage's printed summary and the files it wrote (out/<name>.srt and .vtt).",
+        "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
+        "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
+        "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "condense_overlay",
+      "title": "Burn correction notes into a copy",
+      "description": "Map each [[correction]] source time to the output clock and burn it for 3 s into a second file; the audio is copied. Reads [[correction]] entries, edl.json and the parts; writes out/<name>.corrected.mp4 beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Let an agent run the condense overlay stage on one talk with bounded time and typed failures, and inspect what it wrote.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular talk.toml (not a symlink). Its clip files, work directory and output resolve relative to it and must stay beneath its directory; no output may overwrite a clip file."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7200,
+            "default": 3600,
+            "description": "Outer deadline for the whole call in seconds; each tool call inside it is also bounded by CONDENSE_TOOL_TIMEOUT_S (7200 s)."
+          }
+        },
+        "required": [
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/condense-overlay/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "rendered_media_unreviewed",
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "Needs TALK_FONT (the condense dev shell sets it)."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "condense_render"
+        ],
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
+      },
+      "agent_workflow": {
+        "identify": "Read the stage's printed summary and the files it wrote (out/<name>.corrected.mp4).",
+        "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
+        "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
+        "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "condense_recover",
+      "title": "Rebuild a truncated .mov with untrunc",
+      "description": "Rebuild a recording with no moov atom from a healthy reference made by the same device and app, then report packets found, duration and the share of bytes recovered; fails under 90%. Refuses to overwrite an existing output. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Recover a talk recording cut off by a full disk or a crash before condensing it.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A long healthy .mov from the same device and app (regular file)."
+          },
+          "broken": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "The truncated .mov (regular file); never modified."
+          },
+          "fixed": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Output path; must not exist."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7200,
+            "default": 3600,
+            "description": "Outer deadline for the whole call in seconds; each tool call inside it is also bounded by CONDENSE_TOOL_TIMEOUT_S (7200 s)."
+          }
+        },
+        "required": [
+          "reference",
+          "broken",
+          "fixed"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/condense-recover/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "untrunc_rebuild_with_byte_share",
+      "limitations": [
+        "untrunc exits 1 even on a full rebuild; the verdict comes from its log and the byte share.",
+        "A short reference rebuilds only part of a long file."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [],
+        "enforced": false,
+        "note": "Run before condense_transcribe when a recording does not open."
+      },
+      "agent_workflow": {
+        "identify": "Read the Found/Duration lines and the byte share; the log sits beside the output.",
+        "research": "condense/README.md 'Recover a truncated .mov'.",
+        "iterate": "Try a longer reference from the same session.",
+        "acceptance": "A rebuilt file still needs a look and a listen; its audio can run longer than its video.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "condense_publish",
+      "title": "Publish a hash-bound condense run",
+      "description": "Copy the delivered edit, edl.json and captions into a fresh artifacts/condense/<run_id>/ with a manifest whose timeline mapping is edl_v1, then verify it with `video-utils verify-run --timeline edl_v1`. Reads the outputs and edl.json; writes artifacts/condense/<run_id>/ beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Let an agent run the condense publish stage on one talk with bounded time and typed failures, and inspect what it wrote.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular talk.toml (not a symlink). Its clip files, work directory and output resolve relative to it and must stay beneath its directory; no output may overwrite a clip file."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3600,
+            "default": 600,
+            "description": "Outer deadline for the whole call in seconds; each tool call inside it is also bounded by CONDENSE_TOOL_TIMEOUT_S (7200 s)."
+          }
+        },
+        "required": [
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/condense-publish/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "hash_bound_condense_manifest",
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "Pending C11 (TIN-6510): admitted only after the publish stage and verify-run --timeline edl_v1 land."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "condense_check"
+        ],
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
+      },
+      "agent_workflow": {
+        "identify": "Read the stage's printed summary and the files it wrote (artifacts/condense/<run_id>/).",
+        "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
+        "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
+        "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
+        "max_comparison_candidates_default": 1
+      }
+    }
+  ],
+  "recipes_requested": {},
+  "default_adoption": false
+}
