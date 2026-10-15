@@ -312,29 +312,14 @@ def module_errors(module: Starlark) -> list[str]:
 TRANSLATIONS = {"npm": "web", "npm_site": "site"}
 
 
-def vendored_module(root: Path, path: str) -> dict:
-    """name/version of a vendored carrier's own module() call."""
-    calls = Starlark((root / path / "MODULE.bazel").read_text(), label=f"{path}/MODULE.bazel").named("module")
-    return calls[0].kwargs if calls else {}
-
-
 def local_override_errors(module: Starlark, root: Path | None = None) -> list[str]:
-    """A local_path_override may only point at a vendored carrier under site/vendor (contract 9.3.2)."""
-    root = root or ROOT
-    errors = []
-    deps = bazel_deps(module)
-    for call in module.named("local_path_override"):
-        name, path = call.kwargs.get("module_name"), call.kwargs.get("path", "")
-        if not isinstance(path, str) or not path.startswith("site/vendor/") or ".." in path.split("/"):
-            errors.append(f"local_path_override {name!r} path {path!r} is not under site/vendor/")
-            continue
-        if not (root / path / "MODULE.bazel").is_file():
-            errors.append(f"local_path_override {name!r}: {path}/MODULE.bazel does not exist")
-            continue
-        vendored = vendored_module(root, path)
-        if vendored.get("name") != name or deps.get(name) != vendored.get("version"):
-            errors.append(f"local_path_override {name!r} does not match {path}/MODULE.bazel {vendored}")
-    return errors
+    """No local_path_override: the in-house carriers come only from the pinned registry (ruling RU9).
+
+    The site's former committed copies under site/vendor (contract 9.3.2) were replaced by bazel_dep +
+    npm_link_package on 2026-10-10.
+    """
+    return [f"local_path_override {call.kwargs.get('module_name')!r} is not allowed; consume the registry module"
+            for call in module.named("local_path_override")]
 
 
 def lock_importer(lock_text: str) -> dict[str, dict[str, str]]:
@@ -593,7 +578,7 @@ def rust_target_inventory(root: Path) -> dict[str, bool]:
     }
 
 
-def registry_errors(module: Starlark, web_build: Starlark, document: dict, pinned_commit: str | None) -> list[str]:
+def registry_errors(module: Starlark, builds: list[Starlark], document: dict, pinned_commit: str | None) -> list[str]:
     errors = []
     registry = document.get("registry", {})
     if registry.get("commit") != pinned_commit:
@@ -631,7 +616,7 @@ def registry_errors(module: Starlark, web_build: Starlark, document: dict, pinne
                 errors.append(f"{name}: a closure member has no recorded decision")
             elif member.get("pins_skeleton_4") is not False or member.get("pins_effect_3") is not False:
                 errors.append(f"{name}: closure member {member.get('module')} pins Skeleton 4 or Effect 3, or is unverified")
-    for call in web_build.named("npm_link_package"):
+    for call in [call for build in builds for call in build.named("npm_link_package")]:
         source = call.kwargs.get("src", "")
         match = re.match(r"^@([A-Za-z0-9_.-]+)//", source)
         if not match or match.group(1) not in deps:
@@ -664,10 +649,10 @@ def load_launcher(root: Path):
 # --------------------------------------------------------------------------- bazel_full checkers (//site, gate, registers)
 
 SITE_GATE_LINES = ("common --ignore_dev_dependency", "common --deleted_packages=site")
-SITE_VENDOR_TEST_IGNORE = "site/vendor/xoxd-theme/test"
 SITE_HOUSE_STACK = {"@skeletonlabs/skeleton": "5.0.1", "@skeletonlabs/skeleton-svelte": "5.0.1"}
-SITE_TYPESCRIPT = "6.0.3"
-SITE_TARGETS = {"svelte_check_test": "js_test", "build": "js_run_binary", "sveltekit_types": "js_run_binary"}
+SITE_TYPESCRIPT = "7.0.2"  # RU13: TypeScript 7 as `typescript`, checked with svelte-check --tsgo
+SITE_TARGETS = {"svelte_check_test": "js_test", "svelte_check_canary_test": "js_test", "build": "js_run_binary",
+                "sveltekit_types": "js_run_binary"}
 FAILURE_CLASSES = ("dot_path_component", "macos_process_inspection", "other")
 FAILURE_KEYS = ("case", "target", "class", "bazel_outcome", "first_error_line", "plain_unittest_repro",
                 "control_repro", "baseline_repro", "cause", "claim_class")
@@ -688,39 +673,32 @@ def site_gate(root: Path) -> dict:
     workspace = root / "site/pnpm-workspace.yaml"
     allow_builds = workspace.is_file() and re.search(r"^allowBuilds:", workspace.read_text(), re.MULTILINE) is not None
     ignored = [line.strip() for line in (root / ".bazelignore").read_text().splitlines() if line.strip()]
-    vendor_exposed = "site/vendor" not in ignored and SITE_VENDOR_TEST_IGNORE in ignored
+    # The carriers are registry modules linked by npm_link_package (RU9): no committed copy and no ignore line.
+    inhouse_linked = not (root / "site/vendor").exists() and not any(
+        line == "site/vendor" or line.startswith("site/vendor/") for line in ignored)
     state = {2: "gated", 0: "open"}.get(len(present), "partial")
     errors = []
     if state == "partial":
         errors.append(f"site gate is half applied: {present}")
-    if state == "gated" and allow_builds and vendor_exposed:
+    if state == "gated" and allow_builds and inhouse_linked:
         errors.append("site prerequisites are applied; remove the two .bazelrc site gate lines")
-    if state == "open" and not (allow_builds and vendor_exposed):
-        errors.append("site gate removed before site/pnpm-workspace.yaml allowBuilds and the .bazelignore change landed")
+    if state == "open" and not (allow_builds and inhouse_linked):
+        errors.append("site gate removed before site/pnpm-workspace.yaml allowBuilds and the in-house module links landed")
     if state == "gated":
         usage = Starlark((root / "MODULE.bazel").read_text(), repo_root=root, label="MODULE.bazel").names.get("npm_site")
         if not isinstance(usage, Call) or usage.kwargs.get("dev_dependency") is not True:
             errors.append("while gated, the npm_site translation must sit in a dev_dependency = True usage")
-    return {"state": state, "allow_builds": allow_builds, "vendor_exposed": vendor_exposed, "errors": errors}
+    return {"state": state, "allow_builds": allow_builds, "inhouse_linked": inhouse_linked, "errors": errors}
 
 
-def vendored_carrier_dirs(root: Path) -> list[str]:
-    document = json.loads((root / "site/vendor/PROVENANCE.json").read_text())
-    return sorted("site/" + carrier["directory"] for carrier in document.get("carriers", []))
-
-
-def stray_bazel_files(paths: list[str], ignored: list[str], gate_state: str, root: Path | None = None) -> list[str]:
+def stray_bazel_files(paths: list[str], ignored: list[str]) -> list[str]:
     """Tracked Bazel boundary files outside this graph's packages and outside every ignored tree."""
-    root = root or ROOT
     names = {"BUILD", "BUILD.bazel", "MODULE.bazel", "WORKSPACE", "WORKSPACE.bazel", "REPO.bazel"}
-    carriers = vendored_carrier_dirs(root) if gate_state == "open" else []
     stray = []
     for path in paths:
         directory, _, name = path.rpartition("/")
         if name not in names or (directory in OWNED_PACKAGES and name in ("BUILD.bazel", "MODULE.bazel")):
             continue
-        if directory in carriers and name in ("BUILD.bazel", "MODULE.bazel"):
-            continue  # provenance-bound vendored carrier packages, exposed once the gate is open
         if not any(directory == tree or directory.startswith(tree + "/") for tree in ignored):
             stray.append(path)
     return stray
@@ -916,7 +894,7 @@ class GraphFilesTest(unittest.TestCase):
         if listed.returncode != 0:
             self.skipTest("not a git checkout; tracked-file inventory unavailable (skip is not a pass)")
         ignored = [line.strip() for line in (ROOT / ".bazelignore").read_text().splitlines() if line.strip()]
-        self.assertEqual(stray_bazel_files(listed.stdout.decode().split("\0"), ignored, site_gate(ROOT)["state"]), [])
+        self.assertEqual(stray_bazel_files(listed.stdout.decode().split("\0"), ignored), [])
         for tree in ("site/node_modules", "site/build", "site/.svelte-kit"):
             self.assertIn(tree, ignored)
 
@@ -1005,7 +983,7 @@ class RegistryModulesTest(unittest.TestCase):
         self.document = json.loads((ROOT / "tools/bazel/registry_modules.json").read_text())
 
     def test_no_unrecorded_or_noncompliant_registry_module_is_consumed(self):
-        errors = registry_errors(read_module(ROOT), read_build(ROOT, "web"), self.document,
+        errors = registry_errors(read_module(ROOT), [read_build(ROOT, "web"), read_build(ROOT, "site")], self.document,
                                  registry_commit((ROOT / ".bazelrc").read_text()))
         self.assertEqual(errors, [])
 
@@ -1065,6 +1043,15 @@ class SiteGraphTest(unittest.TestCase):
     def test_site_package_declares_check_and_build_without_private_needles(self):
         self.assertEqual(site_build_errors(ROOT), [])
 
+    def test_site_links_each_in_house_module_once(self):
+        site = read_build(ROOT, "site")
+        links = {call.kwargs.get("name"): call.kwargs.get("src") for call in site.named("npm_link_package")}
+        self.assertEqual(links, {"node_modules/@xoxd/public-chrome": "@xoxd_public_chrome//:pkg",
+                                 "node_modules/@xoxd/theme": "@xoxd_theme//:pkg"})
+        self.assertEqual(set(site.names["SITE_INHOUSE_PACKAGES"]), {":" + name for name in links})
+        deps = bazel_deps(read_module(ROOT))
+        self.assertEqual((deps.get("xoxd_public_chrome"), deps.get("xoxd_theme")), ("0.1.0", "0.1.1"))
+
     def test_site_gate_matches_the_root_owned_prerequisites(self):
         gate = site_gate(ROOT)
         self.assertIn(gate["state"], ("gated", "open"))
@@ -1080,11 +1067,17 @@ class SiteGraphTest(unittest.TestCase):
         self.assertEqual(locks, {"npm": "//web:pnpm-lock.yaml", "npm_site": "//site:pnpm-lock.yaml"})
         self.assertEqual(local_override_errors(module), [])
 
-    def test_site_build_runner_is_exported_and_shared_runner_reused(self):
+    def test_site_build_runner_is_exported_and_drives_sync_check_and_build(self):
+        # SvelteKit 3 writes node_modules/$app and svelte-check --tsgo writes .svelte-kit, so the site runs its own
+        # runner (scratch copies) instead of the web runner, which expects Kit 2's .svelte-kit/tsconfig.json.
         site = read_build(ROOT, "site")
         sources = {call.kwargs.get("name"): call.kwargs.get("src") for call in site.named("copy_file")}
-        self.assertEqual(sources.get("sveltekit_runner"), "//tools/bazel:web/sveltekit.mjs")
+        self.assertNotIn("//tools/bazel:web/sveltekit.mjs", sources.values())
         self.assertEqual(sources.get("site_build_runner"), "//bazel:site_build.mjs")
+        modes = {call.kwargs.get("name"): (call.kwargs.get("args") or [None])[0]
+                 for call in site.named("js_run_binary", "js_test")}
+        self.assertEqual(modes, {"sveltekit_types": "sync", "svelte_check_test": "check",
+                                 "svelte_check_canary_test": "check", "build": "build"})
         exported = [name for call in read_build(ROOT, "bazel").named("exports_files") for name in call.args[0]]
         self.assertIn("site_build.mjs", exported)
 
@@ -1252,8 +1245,9 @@ class NegativeSelfChecks(unittest.TestCase):
             gate = "\n".join(SITE_GATE_LINES) + "\n"
             cases = {
                 "partial": (SITE_GATE_LINES[0] + "\n", "packages: [.]\n", "site/vendor\n", "half applied"),
-                "gated_but_ready": (gate, "allowBuilds: {}\n", SITE_VENDOR_TEST_IGNORE + "\n", "remove the two"),
+                "gated_but_ready": (gate, "allowBuilds: {}\n", "site/build\n", "remove the two"),
                 "open_too_early": ("", "packages: [.]\n", "site/vendor\n", "gate removed"),
+                "open_with_ignored_carriers": ("", "allowBuilds: {}\n", "site/vendor\n", "gate removed"),
             }
             for label, (rc, workspace, ignore, needle) in cases.items():
                 with self.subTest(case=label):
@@ -1268,12 +1262,11 @@ class NegativeSelfChecks(unittest.TestCase):
             (base / "MODULE.bazel").write_text('npm_site = use_extension("@x//:e.bzl", "npm")\n')
             self.assertTrue(any("dev_dependency" in e for e in site_gate(base)["errors"]))
 
-    def test_vendored_carrier_files_are_stray_only_while_gated_and_unignored(self):
-        carrier = vendored_carrier_dirs(ROOT)[0] + "/BUILD.bazel"
-        self.assertEqual(stray_bazel_files([carrier], ["site/vendor"], "gated"), [])
-        self.assertEqual(stray_bazel_files([carrier], [SITE_VENDOR_TEST_IGNORE], "open"), [])
-        self.assertEqual(stray_bazel_files([carrier], [SITE_VENDOR_TEST_IGNORE], "gated"), [carrier])
-        self.assertEqual(stray_bazel_files(["elsewhere/BUILD.bazel"], [], "open"), ["elsewhere/BUILD.bazel"])
+    def test_untracked_carrier_bazel_files_are_stray_unless_ignored(self):
+        carrier = "site/vendor/xoxd-theme/BUILD.bazel"
+        self.assertEqual(stray_bazel_files([carrier], []), [carrier])
+        self.assertEqual(stray_bazel_files([carrier], ["site/vendor"]), [])
+        self.assertEqual(stray_bazel_files(["elsewhere/BUILD.bazel"], []), ["elsewhere/BUILD.bazel"])
 
     def test_swapped_registry_order_is_rejected(self):
         lines = (ROOT / ".bazelrc").read_text().splitlines()
@@ -1359,7 +1352,7 @@ class NegativeSelfChecks(unittest.TestCase):
         text = (ROOT / "MODULE.bazel").read_text()
         for label, old, new in (("pnpm", 'pnpm_version = "11.25.0"', 'pnpm_version = "10.13.1"'),
                                 ("typescript", 'version = "6.0.3"', 'version = "5.9.3"'),
-                                ("node", 'node_version = "22.13.1"', 'node_version = "24.1.0"')):
+                                ("node", 'node_version = "22.22.0"', 'node_version = "24.1.0"')):
             with self.subTest(case=label):
                 self.assertIn(old, text)
                 module = Starlark(text.replace(old, new), repo_root=ROOT)
@@ -1372,7 +1365,7 @@ class NegativeSelfChecks(unittest.TestCase):
         text = (ROOT / "MODULE.bazel").read_text() + 'bazel_dep(name = "xoxd_spectrogram", version = "0.1.0")\n'
         module = Starlark(text, repo_root=ROOT)
         self.assertTrue(any("without a `consumed` decision" in e or "recorded consumed" in e
-                            for e in registry_errors(module, web, document, commit)))
+                            for e in registry_errors(module, [web], document, commit)))
         forced = json.loads(json.dumps(document))
         forced["consumed"] = ["xoxd_spectrogram"]
         for entry in forced["decisions"]:
@@ -1380,11 +1373,11 @@ class NegativeSelfChecks(unittest.TestCase):
                 entry["decision"] = "consumed"
             if entry["module"] == "tummycrypt_tinyland_composables":
                 entry["pins_effect_3"] = True
-        errors = registry_errors(module, web, forced, commit)
+        errors = registry_errors(module, [web], forced, commit)
         self.assertTrue(any("pins Skeleton 4 or Effect 3" in error for error in errors), errors)
         linked = Starlark('npm_link_package(name = "node_modules/@xoxd/spectrogram", src = "@xoxd_spectrogram//:pkg")\n')
-        self.assertTrue(any("no matching bazel_dep" in e for e in registry_errors(read_module(ROOT), linked, document, commit)))
-        self.assertTrue(registry_errors(read_module(ROOT), web, document, "0" * 40))
+        self.assertTrue(any("no matching bazel_dep" in e for e in registry_errors(read_module(ROOT), [linked], document, commit)))
+        self.assertTrue(registry_errors(read_module(ROOT), [web], document, "0" * 40))
 
     def test_constructs_outside_the_subset_raise_instead_of_being_skipped(self):
         for text in ("def macro():\n    pass\n", "[py_test(name = n) for n in NAMES]\n", "x = unknown_name\n",

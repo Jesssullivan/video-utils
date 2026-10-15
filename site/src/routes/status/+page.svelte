@@ -1,6 +1,6 @@
 <script lang="ts">
-	import ClaimList from '$lib/components/ClaimList.svelte';
-	import { SITE, claimsFor } from '$lib/content/claims';
+	import ClaimList from '#lib/components/ClaimList.svelte';
+	import { SITE, claimsFor } from '#lib/content/claims.js';
 
 	const all = claimsFor('status');
 	const notDone = all.filter((claim) => claim.claim_class === 'not_done');

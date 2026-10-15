@@ -7,3 +7,24 @@ strictPeerDependencies: true
 verifyDepsBeforeRun: error
 # Required by rules_js for pnpm 11 (S3 bazel_full //site); an empty map allows no build scripts.
 allowBuilds: {}
+
+# TypeScript 7.0.2 is `typescript` (RU13). Tools that still call the TypeScript
+# compiler JS API get it from @typescript/typescript6: SvelteKit through its
+# patch and this optional peer, svelte-check through the readPackage hook in
+# .pnpmfile.cjs. The patch set is copied from site.scaffold (U1); see
+# patches/README.md.
+packageExtensions:
+  '@sveltejs/kit@3.0.1':
+    peerDependencies:
+      '@typescript/typescript6': '^6.0.0'
+    peerDependenciesMeta:
+      '@typescript/typescript6':
+        optional: true
+
+peerDependencyRules:
+  allowedVersions:
+    '@sveltejs/kit>typescript': '7'
+
+patchedDependencies:
+  '@sveltejs/kit@3.0.1': 'patches/sveltejs__kit-3.0.1.patch'
+  'svelte-check@4.7.6': 'patches/svelte-check-4.7.6.patch'

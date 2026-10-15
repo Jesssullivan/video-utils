@@ -1,9 +1,10 @@
 <script lang="ts">
-	import ClaimList from '$lib/components/ClaimList.svelte';
-	import { SITE, claimsFor } from '$lib/content/claims';
-	import type { PageProps } from './$types';
+	import ClaimList from '#lib/components/ClaimList.svelte';
+	import { SITE, claimsFor } from '#lib/content/claims.js';
+	import { getAgentTools } from './tools.remote';
 
-	let { data }: PageProps = $props();
+	// RU3: build-time server data comes from a `prerender` remote function.
+	const data = await getAgentTools();
 
 	const withheld = $derived(data.tools.filter((tool) => tool.intent === null).length);
 	const skillCount = $derived(new Set(data.tools.map((tool) => tool.skill_name)).size);

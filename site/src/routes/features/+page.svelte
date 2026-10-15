@@ -1,6 +1,6 @@
 <script lang="ts">
-	import ClaimList from '$lib/components/ClaimList.svelte';
-	import { SITE, claimsFor, type SectionId } from '$lib/content/claims';
+	import ClaimList from '#lib/components/ClaimList.svelte';
+	import { SITE, claimsFor, type SectionId } from '#lib/content/claims.js';
 
 	interface FeatureSection {
 		readonly id: SectionId;

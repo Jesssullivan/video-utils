@@ -31,7 +31,16 @@ REPO = Path(__file__).resolve().parents[1]
 SITE = REPO / "site"
 SRC = SITE / "src"
 BUILD = SITE / "build"
-VENDOR = SITE / "vendor"
+# In-house carriers (@xoxd/theme, @xoxd/public-chrome) are Bazel registry modules (ruling RU9); `just site-install`
+# materialises them here. The "vendor" scan surface covers these materialised copies.
+VENDOR = SITE / "node_modules" / "@xoxd"
+INHOUSE_MODULES = {"@xoxd/public-chrome": ("xoxd_public_chrome", "0.1.0"), "@xoxd/theme": ("xoxd_theme", "0.1.1")}
+# sha256 of the xoxd_theme 0.1.1 fonts copied into static/fonts (recorded from the integrity-checked archive).
+THEME_FONT_SHA256 = {
+    "FiraCodeNerdFontMono-Bold.woff2": "f72b063fb0995723c6436f31552c0b4654d58f36073b182bc6f1c2d606230a98",
+    "FiraCodeNerdFontMono-Regular.woff2": "34d7df7258d66982d7c9a989f29751c2c0c943eb5d7cf7350008e5ecb1680ca2",
+    "OFL.txt": "7fdf3d5f20431522654a53988a4354c107b6eb704b942f67f438bd032cc80085",
+}
 RULES_PATH = SITE / "scripts" / "leak-scan-rules.json"
 SCANNER = SITE / "scripts" / "leak-scan.mjs"
 SPEC = REPO / "docs" / "spec" / "sprints" / "PUBLIC_SITE_S3.md"
@@ -45,7 +54,6 @@ GIT_TIMEOUT_S = 30
 PNPM_GATE_UNAVAILABLE_EXIT = 75  # EX_TEMPFAIL from this host's pnpm storage gate
 
 EXACT_VERSION = re.compile(r"^\d+\.\d+\.\d+$")
-VENDOR_SPEC = re.compile(r"^file:vendor/[a-z0-9][a-z0-9-]*$")
 EXPECTED_RULE_IDS = (
     "secret-pem-block", "secret-ssh-key", "secret-cloud-access-key", "secret-forge-token",
     "secret-json-web-token", "secret-assignment", "kubeconfig-fragment", "internal-hostname",
@@ -128,8 +136,8 @@ RECEIPT_FIELDS = {
 RECEIPTS_WITH_FIELDS = ("public_site-build.json", "public_site-leak-scan.json", "public_site-handoff.json")
 
 GENERATED_PREFIXES = ("node_modules/", ".svelte-kit/", "build/")
-SOURCE_EXCLUDED_PREFIXES = ("node_modules/", ".svelte-kit/", "build/", "vendor/", "static/fonts/")
-SOURCE_EXCLUDED_FILES = ("pnpm-lock.yaml",)
+SOURCE_EXCLUDED_PREFIXES = ("node_modules/", ".svelte-kit/", "build/", "vendor/", "patches/", "static/fonts/")
+SOURCE_EXCLUDED_FILES = ("pnpm-lock.yaml", ".pnpmfile.cjs")
 BUILD_TEXT_EXT = frozenset((".html", ".js", ".mjs", ".css", ".json", ".svg", ".txt", ".md", ".xml", ""))
 BUILD_OPAQUE_EXT = frozenset((".woff", ".woff2", ".ico"))
 BUILD_REFUSED_EXT = frozenset("." + e for e in (
@@ -349,7 +357,7 @@ def package_json() -> dict:
 def pin_metrics() -> dict:
     package = package_json()
     specs = {**package.get("dependencies", {}), **package.get("devDependencies", {})}
-    exact = {name: spec for name, spec in specs.items() if EXACT_VERSION.match(spec) or VENDOR_SPEC.match(spec)}
+    exact = {name: spec for name, spec in specs.items() if EXACT_VERSION.match(spec)}
     lock = (SITE / "pnpm-lock.yaml").read_text(encoding="utf-8")
     skeleton_versions = sorted(set(re.findall(r"@skeletonlabs/[a-z-]+@(\d+\.\d+\.\d+)", lock)))
     effect_versions = sorted(set(re.findall(r"(?m)^\s+'?effect@(\d+\.\d+\.\d+)", lock)))
@@ -389,6 +397,10 @@ def source_scan(ruleset: dict) -> dict:
 
 
 def vendor_scan(ruleset: dict) -> dict:
+    """The materialised in-house carriers; an absent tree (no `just site-install` yet) scans nothing."""
+    if not VENDOR.is_dir():
+        return {"files_scanned": [], "files_unscannable": [], "findings": [],
+                "rules_applied": [r["id"] for r in ruleset["rules"] if r.get("vendorCarrier") is True]}
     return scan_directory(VENDOR, ruleset, "vendor")
 
 
@@ -720,6 +732,20 @@ def run_pnpm(script: str, timeout: int) -> subprocess.CompletedProcess:
                           timeout=timeout, check=False)
 
 
+def check_summary(stdout: str) -> tuple[str, str] | None:
+    """(errors, warnings) from svelte-check's closing summary, in either output format.
+
+    svelte-check prints `COMPLETED <n> FILES <e> ERRORS <w> WARNINGS` in machine mode and
+    `svelte-check found <e> errors and <w> warnings` in human mode; which one it picks depends on the
+    caller's environment (it switches to machine output when CLAUDECODE=1), not on this repository.
+    """
+    machine = re.search(r"COMPLETED (\d+) FILES (\d+) ERRORS (\d+) WARNINGS", stdout)
+    if machine:
+        return machine.group(2), machine.group(3)
+    human = re.search(r"svelte-check found (\d+) errors? and (\d+) warnings?", stdout)
+    return (human.group(1), human.group(2)) if human else None
+
+
 _FRESH_BUILD: dict = {}
 
 
@@ -799,7 +825,7 @@ class SpecAndReceiptTests(unittest.TestCase):
 
 
 class PinTests(unittest.TestCase):
-    def test_m1_every_specifier_is_exact_or_a_vendor_path(self):
+    def test_m1_every_specifier_is_exact(self):
         metrics = pin_metrics()
         self.assertGreater(metrics["specifiers_total"], 0)
         self.assertEqual(metrics["inexact"], [])
@@ -821,10 +847,10 @@ class PinTests(unittest.TestCase):
     def test_package_manager_engine_and_scripts(self):
         package = package_json()
         self.assertEqual(package["packageManager"], "pnpm@11.25.0")
-        self.assertEqual(package["engines"]["node"], ">=22.13 <23")
+        self.assertEqual(package["engines"]["node"], ">=22.17 <23")
         self.assertIs(package["private"], True)
         scripts = package["scripts"]
-        self.assertEqual(scripts["check"], "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json")
+        self.assertEqual(scripts["check"], "svelte-kit sync && svelte-check --tsgo --tsconfig ./tsconfig.json")
         self.assertEqual(scripts["build"], "vite build")
         self.assertEqual(scripts["leak-scan"], "node scripts/leak-scan.mjs build")
         lifecycle = {"preinstall", "install", "postinstall", "prepare", "prepublish", "prepublishOnly", "prepack",
@@ -852,32 +878,38 @@ class PinTests(unittest.TestCase):
                                  timeout=GIT_TIMEOUT_S, check=True).stdout.splitlines()
         self.assertEqual([t for t in tracked if t[len("site/"):].startswith(GENERATED_PREFIXES)], [])
 
-    def test_m20_vendored_carriers_are_unmodified_and_integrity_matched(self):
-        provenance = json.loads((VENDOR / "PROVENANCE.json").read_text(encoding="utf-8"))
-        self.assertEqual(len(provenance["carriers"]), 2)
-        for carrier in provenance["carriers"]:
-            with self.subTest(carrier=carrier["package"]):
-                self.assertIs(carrier["integrity_match"], True)
-                self.assertEqual(carrier["registry_integrity"], carrier["computed_integrity"])
-                self.assertIs(carrier["modified"], False)
-                root = SITE / carrier["directory"]
-                on_disk = {p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
-                           for p in root.rglob("*") if p.is_file()}
-                self.assertEqual(on_disk, {f["path"]: f["sha256"] for f in carrier["files"]})
-                self.assertEqual(carrier["file_count"], len(on_disk))
-                self.assertIn("LICENSE", on_disk)
-                self.assertIn("NOTICE", on_disk)
-                manifest = json.loads((root / "package.json").read_text(encoding="utf-8"))
-                self.assertEqual((manifest["name"], manifest["version"]), (carrier["package"], carrier["version"]))
-        for font in sorted((VENDOR / "xoxd-theme" / "fonts").iterdir()):
-            with self.subTest(font=font.name):
-                self.assertEqual((SITE / "static" / "fonts" / font.name).read_bytes(), font.read_bytes())
-        self.assertTrue((SITE / "static" / "fonts" / "OFL.txt").is_file())
+    def test_m20_in_house_carriers_are_bazel_modules_not_npm_specifiers(self):
+        """RU9: the @xoxd packages come only from their registry modules (bazel_dep + npm_link_package)."""
+        package = package_json()
+        names = set(package.get("dependencies", {})) | set(package.get("devDependencies", {}))
+        self.assertEqual(sorted(n for n in names if n.startswith("@xoxd/")), [])
+        lock = (SITE / "pnpm-lock.yaml").read_text(encoding="utf-8")
+        self.assertNotIn("@xoxd/", lock)
+        self.assertFalse((SITE / "vendor").exists(), "committed carrier copies are replaced by Bazel modules")
+        module = (REPO / "MODULE.bazel").read_text(encoding="utf-8")
+        build = (SITE / "BUILD.bazel").read_text(encoding="utf-8")
+        for name, (module_name, version) in INHOUSE_MODULES.items():
+            with self.subTest(carrier=name):
+                self.assertIn(f'bazel_dep(name = "{module_name}", version = "{version}")', module)
+                self.assertRegex(build, r'npm_link_package\(\s*name = "node_modules/' + re.escape(name)
+                                 + r'",\s*src = "@' + re.escape(module_name) + r'//:pkg",\s*\)')
+                materialised = VENDOR.parent / name / "package.json"
+                if materialised.is_file():
+                    manifest = json.loads(materialised.read_text(encoding="utf-8"))
+                    self.assertEqual((manifest["name"], manifest["version"]), (name, version))
+        for font, digest in sorted(THEME_FONT_SHA256.items()):
+            with self.subTest(font=font):
+                served = SITE / "static" / "fonts" / font
+                self.assertEqual(hashlib.sha256(served.read_bytes()).hexdigest(), digest)
+                carried = VENDOR / "theme" / "fonts" / font
+                if carried.is_file():
+                    self.assertEqual(served.read_bytes(), carried.read_bytes())
 
 
 class PrerenderConfigTests(unittest.TestCase):
     def setUp(self):
-        self.config = (SITE / "svelte.config.js").read_text(encoding="utf-8")
+        # SvelteKit 3 reads its configuration from the sveltekit() plugin options in vite.config.ts.
+        self.config = (SITE / "vite.config.ts").read_text(encoding="utf-8")
         self.route_files = [p for p in (SRC / "routes").rglob("*") if p.is_file()]
 
     def test_m6_prerender_configuration(self):
@@ -894,6 +926,7 @@ class PrerenderConfigTests(unittest.TestCase):
         self.assertEqual(sum(checks.values()), 5, checks)
 
     def test_adapter_and_prerender_options(self):
+        self.assertFalse((SITE / "svelte.config.js").exists(), "SvelteKit 3 refuses svelte.config.js")
         for pattern in (r"pages: 'build'", r"assets: 'build'", r"fallback: '404\.html'", r"precompress: false",
                         r"strict: true", r"base: ''", r"handleHttpError: 'fail'", r"handleMissingId: 'fail'",
                         r"handleUnseenRoutes: 'fail'", r"runes: true"):
@@ -931,7 +964,7 @@ class ContentContractTests(unittest.TestCase):
 
     def test_route_files_exist(self):
         for rel in ("+layout.svelte", "+layout.ts", "+page.svelte", "features/+page.svelte", "agents/+page.svelte",
-                    "agents/+page.server.ts", "status/+page.svelte"):
+                    "agents/tools.remote.ts", "status/+page.svelte"):
             with self.subTest(route=rel):
                 self.assertTrue((SRC / "routes" / rel).is_file())
         pages = sorted(p.parent.relative_to(SRC / "routes").as_posix() for p in (SRC / "routes").rglob("+page.svelte"))
@@ -1038,7 +1071,10 @@ class ContentContractTests(unittest.TestCase):
         self.assertIsNone(COLOUR_LITERAL.search('href="#content" color-mix(in oklch, var(--x) 5%, transparent)'))
 
     def test_agents_loader_emits_only_public_fields(self):
-        loader = self.src_text["src/routes/agents/+page.server.ts"]
+        # RU3: the build-time registry overview is a `prerender` remote function.
+        loader = self.src_text["src/routes/agents/tools.remote.ts"]
+        self.assertIn("export const getAgentTools = prerender(", loader)
+        self.assertFalse((SRC / "routes" / "agents" / "+page.server.ts").exists())
         self.assertIn(
             "return { name, title: trips(title) ? name : title, intent: withheld ? null : intent, "
             "skill_name: skillMatch[1] };", loader)
@@ -1214,7 +1250,9 @@ class LeakScannerNodeTests(unittest.TestCase):
 
     def test_node_and_python_agree_on_real_surfaces(self):
         ruleset = load_rules()
-        for directory, surface in ((SITE, "source"), (VENDOR, "vendor")):
+        # The vendor surface is the materialised in-house carriers (present after `just site-install`).
+        surfaces = ((SITE, "source"), (VENDOR, "vendor")) if VENDOR.is_dir() else ((SITE, "source"),)
+        for directory, surface in surfaces:
             with self.subTest(surface=surface), tempfile.TemporaryDirectory() as tmp:
                 report = Path(tmp) / "report.json"
                 result = run_node_scanner(directory, surface, report)
@@ -1288,9 +1326,9 @@ class BuildTests(unittest.TestCase):
         self.assertIsNotNone(self.metrics)
 
     def test_m4_m5_check_and_build_exit_zero_with_no_diagnostics(self):
-        summary = re.search(r"COMPLETED (\d+) FILES (\d+) ERRORS (\d+) WARNINGS", self.check.stdout)
+        summary = check_summary(self.check.stdout)
         self.assertIsNotNone(summary, self.check.stdout[-600:])
-        self.assertEqual((summary.group(2), summary.group(3)), ("0", "0"))
+        self.assertEqual(summary, ("0", "0"))
         self.assertNotRegex(self.build.stdout + self.build.stderr, r"(?i)\ba11y_[a-z_]+\b")
 
     def test_m7_expected_pages_and_nothing_else(self):
@@ -1831,7 +1869,7 @@ class SiteVerifyPinTests(unittest.TestCase):
     def test_v15_pins(self):
         package = package_json()
         dev = package["devDependencies"]
-        self.assertEqual((dev.get("@playwright/test"), dev.get("@axe-core/playwright")), ("1.63.0", "4.13.0"))
+        self.assertEqual((dev.get("@playwright/test"), dev.get("@axe-core/playwright")), ("1.64.0", "4.13.0"))
         metrics = pin_metrics()
         self.assertEqual(metrics["inexact"], [])
         self.assertEqual(metrics["skeleton_package_pins"],
@@ -1841,11 +1879,11 @@ class SiteVerifyPinTests(unittest.TestCase):
         self.assertEqual(metrics["effect_lock_versions"], [])
         lock = (SITE / "pnpm-lock.yaml").read_text(encoding="utf-8")
         self.assertNotIn("wrangler", lock)
-        for name, version in (("@playwright/test", "1.63.0"), ("@axe-core/playwright", "4.13.0")):
+        for name, version in (("@playwright/test", "1.64.0"), ("@axe-core/playwright", "4.13.0")):
             with self.subTest(dependency=name):
                 self.assertRegex(lock, r"(?m)^      '" + re.escape(name) + r"':\n        specifier: " + re.escape(version)
                                  + r"\n        version: " + re.escape(version))
-        self.assertEqual(sorted(set(re.findall(r"(?m)^  playwright(?:-core)?@(\d+\.\d+\.\d+):", lock))), ["1.63.0"])
+        self.assertEqual(sorted(set(re.findall(r"(?m)^  playwright(?:-core)?@(\d+\.\d+\.\d+):", lock))), ["1.64.0"])
         self.assertRegex(lock, r"(?m)^  axe-core@\d+\.\d+\.\d+:")
 
     def test_verify_script_and_no_lifecycle_script(self):
@@ -2008,6 +2046,7 @@ class DeployDocTests(unittest.TestCase):
 
     ORDERED = (
         "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install --frozen-lockfile",
+        "node scripts/inhouse-link.mjs",
         "pnpm run check",
         "pnpm run build",
         "node scripts/leak-scan.mjs build",
@@ -2069,9 +2108,9 @@ class SiteVerifyBuildTests(unittest.TestCase):
         self.assertEqual(build.returncode, 0, (build.stdout + build.stderr)[-1500:])
 
     def test_v14_check_has_no_diagnostics(self):
-        summary = re.search(r"COMPLETED (\d+) FILES (\d+) ERRORS (\d+) WARNINGS", self.fresh["check"].stdout)
+        summary = check_summary(self.fresh["check"].stdout)
         self.assertIsNotNone(summary)
-        self.assertEqual((summary.group(2), summary.group(3)), ("0", "0"))
+        self.assertEqual(summary, ("0", "0"))
 
     def test_v8_internal_links(self):
         result = link_check(BUILD)

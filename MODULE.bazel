@@ -10,9 +10,10 @@ Version sites: rust-toolchain.toml / Cargo.toml (Rust), pyproject.toml (Python
 floor), web/package.json + web/pnpm-lock.yaml (every npm package). The literals
 below must equal those files; tests/test_bazel_graph_s3.py holds them together.
 
-No Tinyland registry module is consumed: see tools/bazel/registry_modules.json
-for the per-module decisions and evidence. First-party packages are only ever
-consumed as `bazel_dep` + `npm_link_package`, never as npm specifiers.
+Tinyland registry modules are consumed only as recorded in
+tools/bazel/registry_modules.json (per-module decisions and evidence). First-party
+packages are only ever consumed as `bazel_dep` + `npm_link_package`, never as npm
+specifiers (ruling RU9).
 """
 
 module(
@@ -40,6 +41,15 @@ bazel_dep(name = "rules_nodejs", version = "6.7.3")
 bazel_dep(name = "aspect_rules_js", version = "3.5.1")
 bazel_dep(name = "aspect_rules_ts", version = "3.10.1")
 
+# First-party modules from the Tinyland registry (ruling RU9, 2026-10-08). The
+# static site (site/) links each npm package from its module with
+# npm_link_package in site/BUILD.bazel; site/package.json and
+# site/pnpm-lock.yaml carry none of them. `just site-install` materialises the
+# same Bazel outputs into site/node_modules for the plain pnpm loop
+# (site/scripts/inhouse-link.mjs). These are the newest registered versions.
+bazel_dep(name = "xoxd_theme", version = "0.1.1")
+bazel_dep(name = "xoxd_public_chrome", version = "0.1.0")
+
 # Rust 1.95.0, edition 2024 (rust-toolchain.toml, Cargo.toml).
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust.toolchain(
@@ -57,9 +67,10 @@ python.toolchain(
     python_version = "3.12",
 )
 
-# Node 22.13.1 (estate toolchain; inside web/package.json engines >=22.12 <23).
+# Node 22.22.0: SvelteKit 3 (site/) needs >= 22.17; inside both web/package.json
+# engines (>=22.12 <23) and site/package.json engines (>=22.17 <23).
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
-node.toolchain(node_version = "22.13.1")
+node.toolchain(node_version = "22.22.0")
 
 # pnpm 11.25.0 (web/package.json packageManager).
 pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm")
@@ -110,7 +121,10 @@ npm_site = use_extension(
 npm_site.npm_translate_lock(
     name = "npm_site",
     data = [
+        "//site:.pnpmfile.cjs",
         "//site:package.json",
+        "//site:patches/sveltejs__kit-3.0.1.patch",
+        "//site:patches/svelte-check-4.7.6.patch",
         "//site:pnpm-workspace.yaml",
     ],
     npmrc = "//site:.npmrc",

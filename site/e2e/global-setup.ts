@@ -23,7 +23,8 @@ function newestInput(): { path: string; mtimeMs: number } {
 			newest = { path: path.slice(SITE_DIR.length), mtimeMs: info.mtimeMs };
 		}
 	};
-	for (const entry of ['src', 'static', 'vendor', 'package.json', 'svelte.config.js', 'vite.config.ts']) {
+	// node_modules/@xoxd holds the in-house carriers that `just site-install` materialises from Bazel (RU9).
+	for (const entry of ['src', 'static', 'node_modules/@xoxd', 'package.json', 'vite.config.ts']) {
 		if (existsSync(join(SITE_DIR, entry))) visit(join(SITE_DIR, entry));
 	}
 	return newest;

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import ClaimList from '$lib/components/ClaimList.svelte';
-	import { AXIOMS, SITE, claimsFor } from '$lib/content/claims';
+	import ClaimList from '#lib/components/ClaimList.svelte';
+	import { AXIOMS, SITE, claimsFor } from '#lib/content/claims.js';
 
 	const capabilities = claimsFor('home');
 </script>

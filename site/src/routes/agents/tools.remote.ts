@@ -1,10 +1,12 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import type { PageServerLoad } from './$types';
+import { prerender } from '$app/server';
 
 /**
- * Build-time overview of the typed agent tools. Runs only during prerender:
- * it reads the repository tool registry and emits, per tool, exactly four
+ * Build-time overview of the typed agent tools, as a SvelteKit `prerender`
+ * remote function (RU3: remote functions are the estate pattern for server
+ * data; this replaces the former `+page.server.ts` load). Runs only during
+ * prerender: it reads the repository tool registry and emits, per tool, exactly four
  * fields (name, title, intent, skill_name) plus two aggregates. Schemas,
  * limitations, dependencies, workflows, paths and instrument context are
  * never emitted. No generated copy of the registry is committed.
@@ -51,7 +53,7 @@ function requireString(value: unknown, field: string, index: number): string {
 	return value;
 }
 
-export const load: PageServerLoad = () => {
+function loadAgentTools() {
 	// `pnpm run build` runs with the site directory as the working directory.
 	const siteRoot = process.cwd();
 	const registry = readJson(path.resolve(siteRoot, '..', 'program', 'tools.json'), 'tool registry');
@@ -102,4 +104,7 @@ export const load: PageServerLoad = () => {
 			.map(([status, count]) => ({ status, count }))
 			.sort((left, right) => right.count - left.count || left.status.localeCompare(right.status))
 	};
-};
+}
+
+/** The page awaits this directly; its result is serialized into the static output. */
+export const getAgentTools = prerender(async () => loadAgentTools());

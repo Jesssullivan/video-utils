@@ -1,43 +1,43 @@
 """
-Static public landing under Bazel (S3 bazel_full lane, mirrors //web).
+Static public landing under Bazel (S3 bazel_full lane; SvelteKit 3.0.1 and
+TypeScript 7.0.2 since the RU1 uplift, 2026-10-10).
 
 `pnpm run check` / `pnpm run build` in site/ (and `just site-check` /
 `just site-build`) stay the accepted gates. These targets build the same
 sources from site/pnpm-lock.yaml through rules_js:
 
-    //site:sveltekit_types    svelte-kit sync            -> .svelte-kit/
-    //site:svelte_check_test  svelte-check (pnpm run check)
-    //site:build              vite build (pnpm run build) -> build/
+    //site:sveltekit_types           svelte-kit sync  -> .svelte-kit/, node_modules/$app/
+    //site:svelte_check_test         svelte-check --tsgo (pnpm run check)
+    //site:svelte_check_canary_test  the same gate with seeded errors (must report both)
+    //site:build                     vite build (pnpm run build) -> build/
 
 Bazel writes nothing into site/: every output is under bazel-bin.
 
-The two vendored carriers (@xoxd/theme, @xoxd/public-chrome) are `file:`
-directory dependencies in the lock. rules_js treats those as first-party
-packages and links each to the `npm_package` named `pkg` in its own directory
-(//site/vendor/xoxd-theme:pkg, //site/vendor/xoxd-public-chrome:pkg), which the
-carriers' unmodified BUILD.bazel files already declare. That needs the
-root-owned .bazelignore to expose the two carrier packages (ignoring only the
-carrier's own test package); `replace_packages` and `local_path_override`
-cannot redirect a directory-resolved package (contract section 9.3,
-bazel_full-site.json). Until root applies that line and `allowBuilds: {}` in
-site/pnpm-workspace.yaml, .bazelrc gates this package off.
+The two in-house packages (@xoxd/theme, @xoxd/public-chrome) are Bazel-only
+(ruling RU9): each is a bazel_dep in MODULE.bazel, linked here from the
+module's `:pkg` target with npm_link_package, and absent from package.json and
+pnpm-lock.yaml. `just site-install` materialises the same outputs into
+site/node_modules for the plain pnpm loop (scripts/inhouse-link.mjs).
 
 The prerender of the agents page reads the repository tool registry from
 `<site>/../program/tools.json`; //bazel:site_build.mjs lays that file out
-beside the copied site (the shared web runner has no such sibling).
+beside the copied site.
 """
-
 load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
 load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary", "js_test")
+load("@aspect_rules_js//npm:defs.bzl", "npm_link_package")
 load("@npm_site//:defs.bzl", "npm_link_all_packages")
 
 package(default_visibility = ["//visibility:public"])
 
 exports_files([
     ".npmrc",
+    ".pnpmfile.cjs",
     "package.json",
     "pnpm-lock.yaml",
+    "patches/sveltejs__kit-3.0.1.patch",
+    "patches/svelte-check-4.7.6.patch",
     "pnpm-workspace.yaml",
 ])
 
@@ -56,13 +56,30 @@ SITE_NPM_PACKAGES = [
     ":node_modules/@sveltejs/vite-plugin-svelte",
     ":node_modules/@tailwindcss/vite",
     ":node_modules/@types/node",
-    ":node_modules/@xoxd/public-chrome",
-    ":node_modules/@xoxd/theme",
+    ":node_modules/@typescript/typescript6",
     ":node_modules/svelte",
     ":node_modules/svelte-check",
     ":node_modules/tailwindcss",
     ":node_modules/typescript",
     ":node_modules/vite",
+]
+
+# In-house packages (ruling RU9): one npm_link_package per bazel_dep, linked
+# from the registry module's own `:pkg` target. Peers (svelte, Skeleton,
+# lucide) resolve from this package's node_modules.
+npm_link_package(
+    name = "node_modules/@xoxd/public-chrome",
+    src = "@xoxd_public_chrome//:pkg",
+)
+
+npm_link_package(
+    name = "node_modules/@xoxd/theme",
+    src = "@xoxd_theme//:pkg",
+)
+
+SITE_INHOUSE_PACKAGES = [
+    ":node_modules/@xoxd/public-chrome",
+    ":node_modules/@xoxd/theme",
 ]
 
 filegroup(
@@ -78,21 +95,13 @@ filegroup(
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "svelte.config.js",
         "tsconfig.json",
         "vite.config.ts",
     ],
 )
 
-# The shared runner (sync, check) is reused unchanged; it is copied next to
-# node_modules so Node resolves @sveltejs/kit and svelte-check from this
-# package's link tree.
-copy_file(
-    name = "sveltekit_runner",
-    src = "//tools/bazel:web/sveltekit.mjs",
-    out = "bazel_sveltekit.mjs",
-)
-
+# One runner for sync, check and build, copied next to node_modules so Node
+# resolves @sveltejs/kit, svelte-check and vite from this package's link tree.
 copy_file(
     name = "site_build_runner",
     src = "//bazel:site_build.mjs",
@@ -100,29 +109,29 @@ copy_file(
 )
 
 js_binary(
-    name = "sveltekit_bin",
-    data = SITE_NPM_PACKAGES,
-    entry_point = "bazel_sveltekit.mjs",
-)
-
-js_binary(
     name = "site_build_bin",
-    data = SITE_NPM_PACKAGES,
+    data = SITE_NPM_PACKAGES + SITE_INHOUSE_PACKAGES,
     entry_point = "bazel_site_build.mjs",
 )
 
+# SvelteKit 3 writes the parent tsconfig (`$app/tsconfig`) and the `$app` types
+# under node_modules/$app, and the route types under .svelte-kit; both trees
+# are declared outputs so every consumer sees the same generated types.
 js_run_binary(
     name = "sveltekit_types",
     srcs = [":site_srcs"],
     args = ["sync"],
     chdir = package_name(),
-    out_dirs = [".svelte-kit"],
-    tool = ":sveltekit_bin",
+    out_dirs = [
+        ".svelte-kit",
+        "node_modules/$app",
+    ],
+    tool = ":site_build_bin",
 )
 
 # Sources and their generated tsconfig in one declared tree. The runner copies
-# it to scratch before building so the bundler never follows a symlink out of
-# the action.
+# it to scratch before checking or building so nothing follows a symlink out
+# of the action.
 copy_to_directory(
     name = "site_workspace",
     srcs = [
@@ -133,16 +142,34 @@ copy_to_directory(
     root_paths = ["."],
 )
 
+# RU13: svelte-check runs in its TypeScript 7 native mode (`--tsgo`), which
+# writes transpiled components into .svelte-kit (read-only in runfiles), so the
+# runner checks a writable scratch copy of :site_workspace.
 js_test(
     name = "svelte_check_test",
     timeout = "long",
-    args = ["check"],
-    chdir = package_name(),
-    data = [
-        ":site_srcs",
-        ":sveltekit_types",
-    ] + SITE_NPM_PACKAGES,
-    entry_point = "bazel_sveltekit.mjs",
+    args = [
+        "check",
+        "--workspace",
+        "$(rootpath :site_workspace)",
+    ],
+    data = [":site_workspace"] + SITE_NPM_PACKAGES + SITE_INHOUSE_PACKAGES,
+    entry_point = "bazel_site_build.mjs",
+)
+
+# Seeded-error canary for the gate above: one .ts and one .svelte type error
+# must both be reported, so a tsconfig that checks nothing cannot pass green.
+js_test(
+    name = "svelte_check_canary_test",
+    timeout = "long",
+    args = [
+        "check",
+        "--workspace",
+        "$(rootpath :site_workspace)",
+        "--canary",
+    ],
+    data = [":site_workspace"] + SITE_NPM_PACKAGES + SITE_INHOUSE_PACKAGES,
+    entry_point = "bazel_site_build.mjs",
 )
 
 # The tool registry the agents page reads at prerender time, copied into this

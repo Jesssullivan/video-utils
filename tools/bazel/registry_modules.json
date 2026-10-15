@@ -32,7 +32,10 @@
     "compliance": "inference from those manifests; no resolved lockfile of any module was audited",
     "dependency_edges": "unknown: bazel mod graph did not run on the authoring host"
   },
-  "consumed": [],
+  "consumed": [
+    "xoxd_public_chrome",
+    "xoxd_theme"
+  ],
   "decisions": [
     {
       "module": "xoxd_spectrogram",
@@ -89,11 +92,11 @@
     {
       "module": "xoxd_theme",
       "version": "0.1.1",
-      "decision": "not_applicable",
+      "decision": "consumed",
       "pins_skeleton_4": false,
       "pins_effect_3": false,
       "compliance": "compliant_by_manifest_reading",
-      "has_use_in_video_utils": "no",
+      "has_use_in_video_utils": "yes: //site (site/src/app.css theme CSS imports; static/fonts are its fonts)",
       "closure": [],
       "evidence": {
         "registry_source_json": "modules/xoxd_theme/0.1.1/source.json",
@@ -103,20 +106,22 @@
         "dependencies": {},
         "peerDependencies": {},
         "effect_dependency": null,
-        "version_0_1_0": "xoxd-ai/xoxd-theme@4161de6037454a11c1127f1a470456ab4f2d49d4 has no package.json (tree listing via GitHub API); this is the version in xoxd_spectrogram's closure"
+        "version_0_1_0": "xoxd-ai/xoxd-theme@4161de6037454a11c1127f1a470456ab4f2d49d4 has no package.json (tree listing via GitHub API); this is the version in xoxd_spectrogram's closure",
+        "consumed_since": "2026-10-10 (replaces site/vendor/xoxd-theme, PROVENANCE integrity sha256-DtBiJ/++QAmLQF+M0gNEKptUEdiLEHndOev70ZfVT0U=)"
       },
       "reasons": [
-        "xoxd.ai brand design tokens and fonts; video-utils is a private loopback tool with its own Skeleton theme and no decorative dependency is taken."
+        "Ruling RU9 (operator, 2026-10-08): in-house packages are consumed only as bazel_dep + rules_js npm_link_package. The public site (site/) already used @xoxd/theme 0.1.1 through a committed, integrity-matched copy under site/vendor; on 2026-10-10 (U4 RU1 uplift) that copy was replaced by this module, linked in site/BUILD.bazel.",
+        "No dependencies or peers, no Effect and no Skeleton pin; 0.1.1 is the newest registered version (xoxd-ai/bazel-registry main 1700cc1, 2026-10-10)."
       ]
     },
     {
       "module": "xoxd_public_chrome",
       "version": "0.1.0",
-      "decision": "not_applicable",
+      "decision": "consumed",
       "pins_skeleton_4": false,
       "pins_effect_3": false,
       "compliance": "compliant_by_manifest_reading",
-      "has_use_in_video_utils": "no",
+      "has_use_in_video_utils": "yes: //site (navigation, footer, theme picker and pre-paint script)",
       "closure": [],
       "evidence": {
         "registry_source_json": "modules/xoxd_public_chrome/0.1.0/source.json",
@@ -129,11 +134,12 @@
           "@skeletonlabs/skeleton-svelte": "5.0.1",
           "svelte": "^5.56.8"
         },
-        "effect_dependency": null
+        "effect_dependency": null,
+        "consumed_since": "2026-10-10 (replaces site/vendor/xoxd-public-chrome, PROVENANCE integrity sha256-AdbvlPHa7HAxfWAGDyjRSO58d2eqhbxqyxKJjVs1RJI=)"
       },
       "reasons": [
-        "Public-site navigation, footer and theme picker for xoxd.ai; video-utils has no public site chrome.",
-        "Its peer @lucide/svelte is not in web/package.json."
+        "Ruling RU9 (operator, 2026-10-08): in-house packages are consumed only as bazel_dep + rules_js npm_link_package. The public site (site/) already used @xoxd/public-chrome 0.1.0 through a committed, integrity-matched copy under site/vendor; on 2026-10-10 (U4 RU1 uplift) that copy was replaced by this module, linked in site/BUILD.bazel.",
+        "Its peers (@lucide/svelte ^1.28.0, Skeleton 5.0.1, svelte ^5.56.8) are site/package.json dependencies (1.28.0, 5.0.1, 5.57.2), so they resolve from site/node_modules; web/ does not consume it. 0.1.0 is the newest registered version (xoxd-ai/bazel-registry main 1700cc1, 2026-10-10)."
       ]
     },
     {
