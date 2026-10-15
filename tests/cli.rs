@@ -563,3 +563,278 @@ fn verify_run_refuses_tamper_with_typed_reasons() {
         cases.len()
     );
 }
+
+// ---------------------------------------------------------------------------
+// Native `timeline`: the condense EDL contract (src/timeline.rs).
+
+use video_utils::timeline::{Edl, Timeline};
+
+const TIMELINE_EDL: &str = r#"{"fps": 30, "rules": {}, "expected_total_s": 1.633, "clips": [{
+  "name": "talk", "duration": 6.0, "shift": 0.1, "speed": 2.0, "welcome": null,
+  "expected_s": 1.633, "out_s_by_kind": {"speech": 1.333, "cut": 0.3},
+  "segments": [
+    {"src": "talk", "inp": 0.0, "out": 2.0, "speed": 2.0, "kind": "speech", "frames": 30, "out_dur": 1.0, "gain": 1.0},
+    {"src": "talk", "inp": 2.0, "out": 4.0, "speed": 1.0, "kind": "cut", "frames": 9, "out_dur": 0.3, "gain": 1.0,
+     "keep": [[2.0, 2.1666666666666665], [3.8666666666666667, 4.0]]},
+    {"src": "talk", "inp": 4.0, "out": 6.0, "speed": 6.0, "kind": "speech", "frames": 10, "out_dur": 0.333333, "gain": 1.0}]}]}"#;
+
+fn timeline_run(
+    fixture: &Fixture,
+    args: &[&str],
+    stdin: Option<&str>,
+) -> (Option<i32>, Value, String) {
+    use std::io::Write as _;
+    use std::process::Stdio;
+    let mut child = fixture
+        .command()
+        .arg("timeline")
+        .args(args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut input = child.stdin.take().unwrap();
+    input.write_all(stdin.unwrap_or("").as_bytes()).unwrap();
+    drop(input);
+    let output = child.wait_with_output().unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+    let receipt = if output.stdout.is_empty() {
+        Value::Null
+    } else {
+        receipt_of(&output.stdout)
+    };
+    (output.status.code(), receipt, stderr)
+}
+
+fn number(value: &Value) -> f64 {
+    value.as_number().expect("a number").as_f64()
+}
+
+#[test]
+fn timeline_validate_prints_a_receipt_with_the_edl_hash() {
+    let fixture = Fixture::new();
+    let edl = fixture.0.join("edl.json");
+    fs::write(&edl, TIMELINE_EDL).unwrap();
+    let (code, receipt, stderr) =
+        timeline_run(&fixture, &["validate", edl.to_str().unwrap()], None);
+    assert_eq!(code, Some(0), "{stderr}");
+    assert_eq!(field(&receipt, &["status"]).as_str(), Some("ok"));
+    assert_eq!(field(&receipt, &["reason"]), &Value::Null);
+    assert_eq!(as_u64(field(&receipt, &["total_frames"])), 49);
+    assert_eq!(as_u64(field(&receipt, &["segments"])), 3);
+    assert_eq!(
+        field(&receipt, &["edl_sha256"]).as_str(),
+        Some(digest(TIMELINE_EDL.as_bytes()).to_hex().as_str())
+    );
+    let (code, receipt, _) = timeline_run(&fixture, &["validate", "-"], Some(TIMELINE_EDL));
+    assert_eq!(
+        (code, field(&receipt, &["status"]).as_str()),
+        (Some(0), Some("ok"))
+    );
+}
+
+#[test]
+fn timeline_map_answers_a_batch_exactly_like_the_library() {
+    let fixture = Fixture::new();
+    let edl_path = fixture.0.join("edl.json");
+    fs::write(&edl_path, TIMELINE_EDL).unwrap();
+    let edl = Edl::parse(TIMELINE_EDL.as_bytes()).unwrap();
+    let tl = Timeline::new(&edl);
+    let times = [-1.0, 0.0, 0.7, 1.999, 2.1, 2.5, 3.9, 4.0, 5.3, 6.0];
+    let mut queries = Vec::new();
+    for t in times {
+        queries.push(format!(
+            r#"{{"op": "to_out", "clip": "talk", "source_s": {t:?}}}"#
+        ));
+        queries.push(format!(
+            r#"{{"op": "to_out", "clip": "talk", "source_s": {t:?}, "snap": true}}"#
+        ));
+        queries.push(format!(
+            r#"{{"op": "row", "clip": "talk", "source_s": {t:?}}}"#
+        ));
+        queries.push(format!(r#"{{"op": "to_src", "output_s": {:?}}}"#, t / 4.0));
+    }
+    let batch = format!(r#"{{"queries": [{}]}}"#, queries.join(","));
+    let (code, receipt, stderr) = timeline_run(
+        &fixture,
+        &["map", edl_path.to_str().unwrap(), "-"],
+        Some(&batch),
+    );
+    assert_eq!(code, Some(0), "{stderr}");
+    let Value::Array(results) = field(&receipt, &["results"]) else {
+        panic!("results")
+    };
+    assert_eq!(results.len(), times.len() * 4);
+    let mut answered = 0;
+    for (i, t) in times.iter().enumerate() {
+        let got = &results[i * 4..i * 4 + 4];
+        for (snap, value) in [(false, &got[0]), (true, &got[1])] {
+            match tl.to_out("talk", *t, snap) {
+                None => assert_eq!(value, &Value::Null, "to_out {t} snap {snap}"),
+                Some(out) => assert_eq!(number(value).to_bits(), out.to_bits(), "to_out {t}"),
+            }
+        }
+        match tl.row("talk", *t) {
+            None => assert_eq!(&got[2], &Value::Null),
+            Some(row) => {
+                assert_eq!(as_u64(field(&got[2], &["segment_index"])), row as u64);
+                assert_eq!(
+                    field(&got[2], &["kind"]).as_str(),
+                    Some(tl.segment(row).kind.as_str())
+                );
+            }
+        }
+        match tl.to_src(t / 4.0) {
+            None => assert_eq!(&got[3], &Value::Null),
+            Some((source, row)) => {
+                assert_eq!(
+                    number(field(&got[3], &["source_s"])).to_bits(),
+                    source.to_bits()
+                );
+                assert_eq!(as_u64(field(&got[3], &["segment_index"])), row as u64);
+            }
+        }
+        answered += 4;
+    }
+    assert_eq!(answered, 40);
+    assert_eq!(tl.to_out("talk", 2.5, false), None, "the cut drops 2.5 s");
+}
+
+#[test]
+fn timeline_table_and_quantise_reproduce_the_condense_rules() {
+    let fixture = Fixture::new();
+    let edl = fixture.0.join("edl.json");
+    fs::write(&edl, TIMELINE_EDL).unwrap();
+    let (code, receipt, _) = timeline_run(&fixture, &["table", edl.to_str().unwrap()], None);
+    assert_eq!(code, Some(0));
+    let Value::Array(rows) = field(&receipt, &["rows"]) else {
+        panic!("rows")
+    };
+    let frames: Vec<(u64, u64)> = rows
+        .iter()
+        .map(|r| {
+            (
+                as_u64(field(r, &["start_frame"])),
+                as_u64(field(r, &["end_frame"])),
+            )
+        })
+        .collect();
+    assert_eq!(frames, [(0, 30), (30, 39), (39, 49)]);
+    let Value::Array(clips) = field(&receipt, &["clips"]) else {
+        panic!("clips")
+    };
+    assert_eq!(number(field(&clips[0], &["shift"])), 0.1);
+    // talk-condense tests/test_edl.py: a blip too short for a frame joins its neighbour
+    let segments = r#"{"segments": [
+      {"src": "x", "inp": 0.0, "out": 2.0, "speed": 2.0, "kind": "speech"},
+      {"src": "x", "inp": 2.0, "out": 2.1, "speed": 8.0, "kind": "filler"},
+      {"src": "x", "inp": 2.1, "out": 4.0, "speed": 1.0, "kind": "cut", "keep": [[2.1, 2.2], [3.9, 4.0]]},
+      {"src": "x", "inp": 4.0, "out": 6.0, "speed": 2.0, "kind": "speech"}]}"#;
+    let (code, receipt, stderr) =
+        timeline_run(&fixture, &["quantise", "--fps", "30", "-"], Some(segments));
+    assert_eq!(code, Some(0), "{stderr}");
+    let Value::Array(out) = field(&receipt, &["segments"]) else {
+        panic!("segments")
+    };
+    let got: Vec<(String, u64)> = out
+        .iter()
+        .map(|s| {
+            (
+                field(s, &["kind"]).as_str().unwrap().to_owned(),
+                as_u64(field(s, &["frames"])),
+            )
+        })
+        .collect();
+    assert_eq!(
+        got,
+        [
+            ("speech".to_owned(), 31),
+            ("cut".to_owned(), 6),
+            ("speech".to_owned(), 30)
+        ]
+    );
+    assert_eq!(number(field(&out[0], &["out"])), 2.1);
+}
+
+#[test]
+fn timeline_refusals_are_typed_and_usage_errors_exit_2() {
+    let fixture = Fixture::new();
+    let edl = fixture.0.join("edl.json");
+    fs::write(&edl, TIMELINE_EDL).unwrap();
+    let edl = edl.to_str().unwrap();
+    let missing = fixture.0.join("missing.json");
+    let cases: [(&[&str], Option<&str>, &str); 8] = [
+        (
+            &["validate", missing.to_str().unwrap()],
+            None,
+            "edl_unreadable",
+        ),
+        (&["validate", "-"], Some("{\"fps\": 30"), "invalid_json"),
+        (
+            &["validate", "-"],
+            Some(&TIMELINE_EDL.replace("\"fps\": 30", "\"fps\": 7")),
+            "fps_invalid",
+        ),
+        (
+            &["validate", "-"],
+            Some(&TIMELINE_EDL.replace("\"frames\": 9", "\"frames\": 8")),
+            "frames_invalid",
+        ),
+        (
+            &["map", edl, "-"],
+            Some(r#"{"queries": [{"op": "to_out", "clip": "other", "source_s": 1.0}]}"#),
+            "clip_unknown",
+        ),
+        (
+            &["map", edl, "-"],
+            Some(r#"{"queries": [{"op": "jump", "output_s": 1.0}]}"#),
+            "query_invalid",
+        ),
+        (
+            &["map", edl, "-"],
+            Some(r#"{"queries": [{"op": "to_src"}]}"#),
+            "query_invalid",
+        ),
+        (
+            &["quantise", "--fps", "7", "-"],
+            Some(r#"{"segments": []}"#),
+            "fps_invalid",
+        ),
+    ];
+    for (args, stdin, reason) in cases {
+        let (code, receipt, stderr) = timeline_run(&fixture, args, stdin);
+        assert_eq!(code, Some(1), "{args:?}: {stderr}");
+        assert_eq!(
+            field(&receipt, &["status"]).as_str(),
+            Some("failed"),
+            "{args:?}"
+        );
+        assert_eq!(
+            field(&receipt, &["reason"]).as_str(),
+            Some(reason),
+            "{args:?}: {stderr}"
+        );
+        assert!(
+            stderr.contains(&format!("failed: {reason}: ")),
+            "{args:?}: {stderr}"
+        );
+    }
+    for args in [
+        &[][..],
+        &["validate"][..],
+        &["frob", edl][..],
+        &["map", edl][..],
+        &["quantise", "--fps", "thirty", "-"][..],
+    ] {
+        let (code, receipt, _) = timeline_run(&fixture, args, None);
+        assert_eq!((code, &receipt), (Some(2), &Value::Null), "{args:?}");
+    }
+    let help = fixture
+        .command()
+        .args(["timeline", "--help"])
+        .output()
+        .unwrap();
+    assert!(help.status.success());
+    assert!(String::from_utf8_lossy(&help.stdout).contains("quantise --fps N"));
+}
