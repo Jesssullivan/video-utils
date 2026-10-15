@@ -32,7 +32,7 @@ QUALIFIED_SHA = {
 }
 PIPELINE_TIMEOUT = 600
 CAPTURE_REVIEW = 'synthetic fixture lead-in: pink noise only by construction (seed 5609)'
-REAL_TAKE = '/Users/jess/Documents/Movie on 10-5-26 at 3.38 PM.mov'
+REAL_TAKE_DIR = Path.home() / 'Documents'  # where the operator's real takes live
 VERDICT_KEYS = {'performance_issue_confirmed', 'note_correctness_confirmed', 'missed_notes_confirmed',
                 'extra_notes_confirmed', 'musical_error_confirmed', 'note_correctness', 'missed_or_extra_notes'}
 
@@ -390,7 +390,7 @@ class PhoneFixturePipelineTests(unittest.TestCase):
                 self.assertEqual(receipt['binaries']['ffmpeg']['sha256'], QUALIFIED_SHA['ffmpeg'])
                 self.assertEqual(receipt['binaries']['ffprobe']['sha256'], QUALIFIED_SHA['ffprobe'])
                 self.assertLessEqual(receipt['measured']['audio_end_seconds'], fixtures.MAX_SECONDS + 1)
-                self.assertNotEqual(Path(receipt['path']).resolve(), Path(REAL_TAKE))
+                self.assertFalse(Path(receipt['path']).resolve().is_relative_to(REAL_TAKE_DIR.resolve()))
         self.assertEqual(fixtures.MAX_TIMEOUT, 60)
 
     @retain_on_failure

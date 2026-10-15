@@ -29,8 +29,8 @@ planner = exporter.planner
 
 SOURCE = "a" * 64
 NAME = 'recurrence, "uncertain" & <riff> ♫'
-TAKE_PATH = "/Users/jess/Documents/Movie on 10-5-26 at 3.38 PM.mov"
-TAKE_URL = "file:///Users/jess/Documents/Movie%20on%2010-5-26%20at%203.38%E2%80%AFPM.mov"
+TAKE_PATH = "/Users/fixture/Documents/Take on 1-2-03 at 4.56 PM.mov"
+TAKE_URL = "file:///Users/fixture/Documents/Take%20on%201-2-03%20at%204.56%E2%80%AFPM.mov"
 TIME = re.compile(r"-?[0-9]+(/[0-9]+)?s")
 DESCRIPTOR = ROOT / "docs/agent-notes/sprints/20261006-s2/editor_export-tool-descriptor.json"
 SKILL = ROOT / ".agents/skills/editor-marker-export/SKILL.md"
@@ -394,7 +394,7 @@ class EditorMarkerExportTests(unittest.TestCase):
         self.assertIn(f"candidate={tricky};", note)
         self.assertEqual(root.find("resources/asset/media-rep").get("src"), TAKE_URL)
         self.assertEqual(exporter.file_url_from_path(TAKE_PATH), TAKE_URL)
-        for bad in ("file:///Users/jess/Movie on.mov", "file:///Users/jess/3.38 PM.mov", "/Users/jess/a.mov",
+        for bad in ("file:///Users/fixture/Movie on.mov", "file:///Users/fixture/3.38 PM.mov", "/Users/fixture/a.mov",
                     "file://host/a.mov", "https://example.com/a.mov", "file:///a.mov?x=1", "file:///a%2.mov"):
             profile = export_profile(url=bad)
             with self.subTest(url=bad), self.assertRaises(ValueError):

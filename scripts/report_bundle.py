@@ -52,8 +52,7 @@ SHA = re.compile(r"[0-9a-f]{64}\Z")
 PHRASE_LABEL_KINDS = frozenset({"phrase_omission", "phrase_duration"})
 NOTE_LABEL_KINDS = frozenset({"melodic_pitch"})
 BOUND_LINEAGE = ("original_source_hash_bound", "verified_run_derivative_hash_bound")
-PROTECTED_HOME_DIRS = tuple(dict.fromkeys(
-    [Path("/Users/jess/Documents"), Path("/Users/jess/Desktop"), Path.home() / "Documents", Path.home() / "Desktop"]))
+PROTECTED_HOME_DIRS = (Path.home() / "Documents", Path.home() / "Desktop")
 
 UNKNOWNS = (
     ("listening_accepted", False, "No operator listening review is bound to this bundle."),

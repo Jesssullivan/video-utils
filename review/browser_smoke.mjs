@@ -41,7 +41,7 @@ for (let attempt=0; attempt<30; attempt++) {
   if (await evaluate('typeof session !== "undefined" && session !== null && document.getElementById("notice").textContent.startsWith("Ready")')) break;
   await new Promise(resolve => setTimeout(resolve, 100));
 }
-const initial = await evaluate(`({ready:document.getElementById("notice").textContent,markers:session?.markers.length,media:Object.keys(session?.media||{}),sourcePathExposed:document.body.textContent.includes("/Users/jess/Documents"),horizontalOverflow:document.documentElement.scrollWidth>innerWidth})`);
+const initial = await evaluate(`({ready:document.getElementById("notice").textContent,markers:session?.markers.length,media:Object.keys(session?.media||{}),sourcePathExposed:document.body.textContent.includes("/Users/"),horizontalOverflow:document.documentElement.scrollWidth>innerWidth})`);
 const filter = await evaluate(`(() => {const select=document.getElementById("kind-filter");if(select.options.length<2)return {available:false};select.value=select.options[1].value;select.dispatchEvent(new Event("change"));return {available:true,shown:document.querySelectorAll(".candidate").length,total:session.markers.length};})()`);
 await evaluate('document.querySelector(".candidate")?.click()');
 await new Promise(resolve => setTimeout(resolve, 500));

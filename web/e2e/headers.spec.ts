@@ -21,7 +21,7 @@ function raw(base: string, path: string, options: { method?: string; headers?: R
 
 test('a request with a non-loopback Host is refused with 421 before routing', async ({ baseURL, mock }) => {
 	const app = baseURL as string;
-	const hosts = ['attacker.test', 'video.example.org:443', '192.168.1.10:3000', '127.0.0.1.attacker.test', 'localhost.attacker.test'];
+	const hosts = ['attacker.test', 'video.example.org:443', '192.0.2.10:3000', '127.0.0.1.attacker.test', 'localhost.attacker.test'];
 	for (const host of hosts) {
 		for (const path of ['/', '/api/sources', `/sources/${ids.source_reviewed}`]) {
 			const reply = await raw(app, path, { headers: { host } });

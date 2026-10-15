@@ -55,8 +55,10 @@ NEW_G = {
         'calibrated_click_relative_timing_hypothesis_unvalidated',
         '**Hook:** MCP tools `timing_calibration_analyze` and `timing_calibration_apply` (admitted as tools 44 and 45, '
         'experimental)'),
+    # Re-pinned by the public-tree scrub (TIN-6515): the runtime-lane host name became its role; no other byte
+    # changed. Superseded value: ec0f8dd3d67eef1f0d2b21e4586c93f5c9ea916f0c6028e55af63608ecf2839a
     'stems_estimate': (
-        'stems-estimate', 'ec0f8dd3d67eef1f0d2b21e4586c93f5c9ea916f0c6028e55af63608ecf2839a',
+        'stems-estimate', '7d6d935626ae61fd8aaf126c3720f2e4db06474d18031c356b6ec3997c4b99e0',
         {'readOnlyHint': False, 'destructiveHint': False, 'idempotentHint': False, 'openWorldHint': False},
         {'run_dir', 'excerpt_start_seconds', 'excerpt_end_seconds'}, (1, 900, 660),
         'uncalibrated_model_stem_estimates_from_mono_mixture',

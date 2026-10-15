@@ -112,7 +112,7 @@ def verified_lock(lock: dict = LOCK, expected: str | None = None) -> dict:
 def require_linux(system: str | None = None) -> None:
     system = sys.platform if system is None else system
     if not system.startswith('linux'):
-        raise Refused('platform_unsupported', 'Beat This runtime is qualified only for Linux CPU (honey via the flake ml shell); no platform fallback')
+        raise Refused('platform_unsupported', 'Beat This runtime is qualified only for Linux CPU (the compute host, via the flake ml shell); no platform fallback')
 
 
 def selected_packages(lock: dict, machine: str | None = None) -> list[dict]:

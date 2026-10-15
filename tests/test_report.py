@@ -22,12 +22,12 @@ class ReportTests(unittest.TestCase):
         (self.root / "manifest.json").write_text(json.dumps(value), encoding="utf-8")
 
     def test_missing_analysis_is_explicit_and_atomic(self):
-        self.manifest({"source": {"path": '/Users/jess/Documents/<script>alert("x")</script>.mov'}})
+        self.manifest({"source": {"path": '/Users/fixture/Documents/<script>alert("x")</script>.mov'}})
         result = report.write_report(self.root)
         text = (self.root / "report.html").read_text()
         self.assertFalse(result["analysis_available"])
         self.assertIn("Rhythm analysis unavailable", text)
-        self.assertNotIn("/Users/jess/Documents", text)
+        self.assertNotIn("/Users/fixture/Documents", text)
         self.assertNotIn('<script>alert("x")</script>', text)
         self.assertEqual(list(self.root.glob(".report-*")), [])
         self.assertNotIn("autoplay", text)
@@ -83,7 +83,7 @@ class ReportTests(unittest.TestCase):
         (self.root / "source.wav").write_bytes(b"RIFF" + struct.pack("<I", len(payload)) + payload)
         for name in ("baseline.wav", "cleaned.wav", "residue.wav"):
             (self.root / name).write_bytes(b"fixture")
-        self.manifest({"source": {"path": "/Users/jess/Documents/take.mov", "sha256": "a" * 64}, "outputs": {"source": "source.wav", "baseline": "baseline.wav", "cleaned": "cleaned.wav", "residue": "residue.wav"}, "loudness": {"cleaned": {"output": {"input_i": "-18.05", "input_tp": "-1.50"}}}})
+        self.manifest({"source": {"path": "/Users/fixture/Documents/take.mov", "sha256": "a" * 64}, "outputs": {"source": "source.wav", "baseline": "baseline.wav", "cleaned": "cleaned.wav", "residue": "residue.wav"}, "loudness": {"cleaned": {"output": {"input_i": "-18.05", "input_tp": "-1.50"}}}})
         (self.root / "analysis.json").write_text(json.dumps({"source": {"sha256": "a" * 64}, "tempo_candidates": [{"bpm": 88.5}], "metrical_interpretations": [{"bpm": 44.25}, {"bpm": 88.5}, {"bpm": 177}], "click_grid": {"bpm": 88.8, "median_absolute_residual_ms": 8.5}}))
         (self.root / "events.csv").write_text("audio_relative_seconds,kind,grid_offset_ms\n0.3,periodic_high_frequency_candidate,1\n0.7,broadband_attack_candidate,-15\n")
         report.write_report(self.root)
@@ -128,7 +128,7 @@ class ReportTests(unittest.TestCase):
         self.assertFalse(report.write_report(self.root)["analysis_available"])
 
     def test_actual_export_schema_discovers_video_and_verifies_hash(self):
-        self.manifest({"source": {"path": "/Users/jess/Documents/take.mov", "sha256": "a" * 64}})
+        self.manifest({"source": {"path": "/Users/fixture/Documents/take.mov", "sha256": "a" * 64}})
         export = self.root / "export"
         export.mkdir()
         video = export / "cleaned-video.mov"
@@ -139,7 +139,7 @@ class ReportTests(unittest.TestCase):
         text = (self.root / "report.html").read_text()
         self.assertIn('src="export/cleaned-video.mov"', text)
         self.assertNotIn(str(self.root), text)
-        self.assertNotIn("/Users/jess/Documents", text)
+        self.assertNotIn("/Users/fixture/Documents", text)
         self.assertIn("-18.12 LUFS", text)
         self.assertIn("Video frame count preserved: passed", text)
         self.assertEqual(result["export_evidence"], "source_and_video_hash_verified")
@@ -216,7 +216,7 @@ class ReportTests(unittest.TestCase):
         self.assertNotIn("confirmed verse", text.split("Automatic labels")[0])
 
     def selected_graph(self, payloads):
-        self.manifest({"source": {"path": "/Users/jess/Documents/take.mov", "sha256": "a" * 64}, "timeline": {"audio_start_seconds": 10, "format_start_seconds": 9}})
+        self.manifest({"source": {"path": "/Users/fixture/Documents/take.mov", "sha256": "a" * 64}, "timeline": {"audio_start_seconds": 10, "format_start_seconds": 9}})
         upstream = self.root / "analysis.json"
         upstream.write_text(json.dumps({"source": {"sha256": "a" * 64}}))
         hashes = {"analysis.json": report.sha256(upstream), "manifest.json": report.sha256(self.root / "manifest.json")}
@@ -245,7 +245,7 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(set(result["selected_evidence"].values()), {"verified"})
         for fragment in ["13.25%", "20.00 seconds", "32.70 Hz · C1", "10.872–11.128s", "Notated time signature: <strong>unknown", "family_&lt;a&gt;", "Tonic: <strong>unknown", "Mode: <strong>unknown", "attack_edits_abstained", "overlap_&lt;guitar&gt;", 'data-time="3.000000"', 'href="selected/pitch/result.json"']:
             self.assertIn(fragment, text)
-        self.assertNotIn("/Users/jess/Documents", text)
+        self.assertNotIn("/Users/fixture/Documents", text)
         self.assertNotIn("autoplay", text)
 
     def test_unselected_receipts_are_never_discovered(self):

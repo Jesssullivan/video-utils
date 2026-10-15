@@ -131,7 +131,7 @@ class RefusalTests(Base):
         for url in ('http://models.xoxd.ai/x', 'https://user@models.xoxd.ai/x', 'https://models.xoxd.ai:8443/x',
                     'https://example.org/x', 'https://ts.net/x', 'https://evil-models.xoxd.ai.example/x'):
             self.assertRefused(*self.decide(self.request(), env={gn.GATEWAY_ENV: url}), 'gateway_url_rejected')
-        result, _ = self.decide(self.request(), env={gn.GATEWAY_ENV: 'https://honey.tail1234.ts.net:443/noul'})
+        result, _ = self.decide(self.request(), env={gn.GATEWAY_ENV: 'https://gateway-host.tail1234.ts.net:443/noul'})
         self.assertEqual(result['status'], 'completed')
 
     def test_real_take_not_permitted(self):

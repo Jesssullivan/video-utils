@@ -227,7 +227,7 @@ def default_runtime_checker(root: Path = ROOT) -> dict:
 def require_linux(system: str | None = None) -> None:
     system = sys.platform if system is None else system
     if not system.startswith('linux'):
-        raise Refused('platform_unsupported', 'Beat This inference is qualified only on Linux CPU (honey via the flake ml shell)')
+        raise Refused('platform_unsupported', 'Beat This inference is qualified only on Linux CPU (the compute host, via the flake ml shell)')
 
 
 def no_symlink_components(path: Path, root: Path) -> None:

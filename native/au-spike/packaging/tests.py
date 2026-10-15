@@ -37,7 +37,7 @@ class PackagingContract(unittest.TestCase):
             build.validate_targets(value)
 
     def test_external_and_rpath_dependencies_reject(self):
-        for dependency in ["/Users/jess/libAudio.dylib", "@rpath/libPrivate.dylib", "/nix/store/private.dylib"]:
+        for dependency in ["/Users/fixture/libAudio.dylib", "@rpath/libPrivate.dylib", "/nix/store/private.dylib"]:
             with self.subTest(dependency=dependency), self.assertRaises(ValueError):
                 build.validate_linkage("binary:\n\t" + dependency + " (compatibility version 1.0.0)\n")
         self.assertEqual(build.validate_linkage("binary:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0)\n"),

@@ -25,7 +25,7 @@ class ReviewTests(unittest.TestCase):
         self.media = b"synthetic-media-fixture-0123456789"
         (self.root / "baseline.wav").write_bytes(self.media)
         (self.root / "cleaned.wav").write_bytes(self.media)
-        self.manifest = {"source": {"path": "/Users/jess/Documents/<take>.mov", "sha256": "a" * 64}, "timeline": {"audio_start_seconds": 2, "format_start_seconds": 1}, "pcm": {"duration_seconds": 10}, "outputs": {"baseline": "baseline.wav", "cleaned": "cleaned.wav"}, "output_sha256": {name: review.report.sha256(self.root / name) for name in ("baseline.wav", "cleaned.wav")}}
+        self.manifest = {"source": {"path": "/Users/fixture/Documents/<take>.mov", "sha256": "a" * 64}, "timeline": {"audio_start_seconds": 2, "format_start_seconds": 1}, "pcm": {"duration_seconds": 10}, "outputs": {"baseline": "baseline.wav", "cleaned": "cleaned.wav"}, "output_sha256": {name: review.report.sha256(self.root / name) for name in ("baseline.wav", "cleaned.wav")}}
         self.write("manifest", self.manifest)
         self.write("markers", {"source_sha256": "a" * 64, "markers": [{"source_time_seconds": 3, "end_seconds": 4, "name": "phrase_<candidate>", "confidence": "heuristic_not_probability", "status": "needs_review"}]})
 
@@ -124,7 +124,7 @@ class ReviewTests(unittest.TestCase):
         self.assertNotIn("clean", session.media)
         self.assertIn("original", session.media)
         serialized = json.dumps(session.data())
-        self.assertNotIn("/Users/jess/Documents", serialized)
+        self.assertNotIn("/Users/fixture/Documents", serialized)
         self.assertNotIn(str(self.root), serialized)
 
     def test_media_ranges_head_and_traversal_routes(self):
@@ -144,7 +144,7 @@ class ReviewTests(unittest.TestCase):
         self.assertEqual(int(headers["Content-Length"]), len(self.media))
         self.assertEqual(self.http(server, "GET", "/media/original", headers={"Range": "bytes=999-"})[0], 416)
         self.assertEqual(self.http(server, "GET", "/media/original", headers={"Range": "bytes=" + "9" * 100 + "-"})[0], 416)
-        for path in ("/manifest.json", "/media/../manifest.json", "/%2e%2e/AGENTS.md", "/media/original%2f..%2fmanifest.json", "/Users/jess/Documents/take.mov"):
+        for path in ("/manifest.json", "/media/../manifest.json", "/%2e%2e/AGENTS.md", "/media/original%2f..%2fmanifest.json", "/Users/fixture/Documents/take.mov"):
             self.assertEqual(self.http(server, "GET", path)[0], 404)
 
     def test_host_origin_token_and_request_size_checks(self):

@@ -25,8 +25,8 @@ ARRANGEMENT = json.loads((ROOT / "program/demo-arrangement.json").read_text())
 SOURCE = ARRANGEMENT["source_sha256"]
 ANALYZED = "cd" * 32
 MANIFEST = "ef" * 32
-REAL_GRID = Path("/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/clicks/"
-                 "20261006T040944Z-a98ce2dc1f72/clicks.json")
+REAL_GRID = ROOT / ("artifacts/runs/20261006T034521Z-a0def0c43eac/clicks/"
+                    "20261006T040944Z-a98ce2dc1f72/clicks.json")
 REAL_GRID_SHA = "cee9a506d70f3bebb95d054ae6a4bb5f8c880133d31327a8b7c0a19950497937"
 
 

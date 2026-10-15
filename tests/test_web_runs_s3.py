@@ -2,7 +2,7 @@
 
 Synthetic fixtures only: every case builds a repository-shaped TemporaryDirectory (stage WAVs are 1 s of a
 32.7 Hz + 196 Hz sine at 8 kHz written by ``wave``; bundles, renders, sidecars and receipts are generated
-in-test). The real take, the main checkout's artifacts/runs, /Users/jess/Documents and /Users/jess/Desktop are
+in-test). The real take, the main checkout's artifacts/runs, the operator's Documents and Desktop are
 never read. The read API is driven through a test-owned loopback handler that calls the same
 ``web_runs_api.match``/``serve`` entry points web_api will call once root applies the registration hunk.
 Every subprocess has a timeout; every process started here is terminated in tearDown/tearDownClass.

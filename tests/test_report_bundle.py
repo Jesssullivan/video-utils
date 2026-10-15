@@ -59,7 +59,7 @@ class BundleFixture(unittest.TestCase):
         self.write_parent_payloads()
         self.manifest = {
             "run_id": self.run.name,
-            "source": {"path": "/Users/jess/Documents/Movie take.mov", "sha256": self.source_sha},
+            "source": {"path": "/Users/fixture/Documents/Movie take.mov", "sha256": self.source_sha},
             "output_sha256": {"source.wav": self.source_wav_sha, "denoised.wav": self.denoised_sha},
             "capture_profile_application": {"authoring_dir": str(self.parent / "capture-profiles" / "p1")},
             "pcm": {"duration_seconds": 150.0, "sample_rate": 44100},

@@ -75,7 +75,7 @@ S1_ROUTING_PATCH = {
 }
 FFMPEG_PIN = {"path": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg",
               "sha256": "3a315207e67de78e48c3bbb6b3346663f6a27c02e034d65ac72a12fee74c534a"}
-ANALYSIS_PYTHON_DEFAULT = "/Users/jess/git/video-utils/.venv/bin/python"
+ANALYSIS_PYTHON_DEFAULT = "<repo>/.venv/bin/python"
 BUDGETS = {"overall_seconds": 900, "case_seconds": 120, "ffmpeg_seconds": 20, "threads": 2,
            "json_bytes": 2_000_000, "wav_bytes": 1_000_000, "native_seconds": 8, "native_rate": RATE,
            "analysis_rate": 16000, "dev_run_seconds": 300, "dev_runs_maximum": 3,

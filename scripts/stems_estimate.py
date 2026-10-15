@@ -285,7 +285,7 @@ def default_runtime_resolver(root: Path = ROOT, environ: dict | None = None, sys
         raise Refused('runtime_unavailable', f'{RUNTIME_ENV_VAR} is not set; a separate root-run runtime lane prepares it',
                       'not_configured')
     if not system.startswith('linux'):
-        raise Refused('runtime_unavailable', 'htdemucs_6s inference is qualified only on Linux CPU (honey)', 'platform_unsupported')
+        raise Refused('runtime_unavailable', 'htdemucs_6s inference is qualified only on Linux CPU (the compute host)', 'platform_unsupported')
     base = root / RUNTIME_REL
     path = Path(raw)
     if not path.is_absolute() or '..' in path.parts or not Path(os.path.abspath(path)).is_relative_to(base):

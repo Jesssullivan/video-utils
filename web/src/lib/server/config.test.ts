@@ -18,7 +18,7 @@ describe('parseControlApiConfig', () => {
 	it('refuses every non-loopback, non-http or decorated URL', () => {
 		const wildcard = ['0', '0', '0', '0'].join('.');
 		const refused = [
-			'http://localhost:8765', `http://${wildcard}:8765`, 'http://192.168.1.10:8765', 'http://example.org:8765', 'https://127.0.0.1:8765',
+			'http://localhost:8765', `http://${wildcard}:8765`, 'http://192.0.2.10:8765', 'http://example.org:8765', 'https://127.0.0.1:8765',
 			'http://127.0.0.1', 'http://127.0.0.1:0', 'http://127.0.0.1:65536', 'http://127.0.0.1:8765/api', 'http://127.0.0.1:8765?x=1',
 			'http://127.0.0.1:8765#f', 'http://user@127.0.0.1:8765', 'http://127.0.0.1.example.org:8765', '127.0.0.1:8765', 'ftp://127.0.0.1:8765'
 		];

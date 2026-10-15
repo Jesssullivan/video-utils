@@ -123,7 +123,7 @@ describe('gateRequest: loopback mode (default)', () => {
 		}
 	});
 	it('refuses a non-loopback Host with 421 bff_host_refused', async () => {
-		for (const host of ['video.example.org', 'attacker.test:3000', '192.168.1.10:3000', `${WILDCARD_HOST}:3000`, '127.0.0.1.attacker.test', '', null]) {
+		for (const host of ['video.example.org', 'attacker.test:3000', '192.0.2.10:3000', `${WILDCARD_HOST}:3000`, '127.0.0.1.attacker.test', '', null]) {
 			const decision = await gateRequest({ env: {}, host, assertion: assertion(EMAIL) });
 			expect(decision.action).toBe('refuse');
 			if (decision.action !== 'refuse') continue;

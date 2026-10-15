@@ -32,7 +32,7 @@ SECTION5 = ('capture_noise_only_verified', 'capture_music_status', 'capture_clic
             'master_adopted', 'latest_promoted', 'default_profile_changed_by_lane',
             'native_editor_import_verified', 'listening_acceptance', 'accepted_audio_identity',
             'tone_suitability_other_takes')
-ACCEPTED_RUN = Path('/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737')
+ACCEPTED_RUN = REPO / 'artifacts/runs/20261006T041633Z-990aa1bd6737'
 
 
 def accepted_stub():

@@ -68,7 +68,7 @@ fn filenames_and_arguments_are_forwarded_without_shell_interpretation() {
         "printf '%s\\n' \"$@\"\n",
     )
     .unwrap();
-    let filename = "Movie on 10-5-26 at 3.38 PM $(unexpected);.mov";
+    let filename = "Take on 1-2-03 at 4.56 PM $(unexpected);.mov";
     let output = fixture
         .command()
         .args(["probe", filename])
@@ -134,8 +134,8 @@ fn hash_matches_fips_digest_and_shasum_for_unicode_space_paths() {
     let fixture = Fixture::new();
     let dir = fixture.0.join("take 3.38\u{202f}PM $(x);");
     fs::create_dir_all(&dir).unwrap();
-    let small = dir.join("Movie on 10-5-26 at 3.38\u{202f}PM $(x); abc.txt");
-    let large = dir.join("Movie on 10-5-26 at 3.38\u{202f}PM $(x); million a.bin");
+    let small = dir.join("Take on 1-2-03 at 4.56\u{202f}PM $(x); abc.txt");
+    let large = dir.join("Take on 1-2-03 at 4.56\u{202f}PM $(x); million a.bin");
     fs::write(&small, b"abc").unwrap();
     fs::write(&large, vec![b'a'; 1_000_000]).unwrap();
 
@@ -223,7 +223,7 @@ impl RunFixture {
             .join("runs")
             .join("20261006T000000Z-fixture run 3.38\u{202f}PM");
         fs::create_dir_all(&run_dir).unwrap();
-        let source = root.join("Movie on 10-5-26 at 3.38\u{202f}PM.mov");
+        let source = root.join("Take on 1-2-03 at 4.56\u{202f}PM.mov");
         fs::write(&source, b"fixture source media bytes").unwrap();
         for (name, bytes) in OUTPUTS {
             fs::write(run_dir.join(name), bytes).unwrap();

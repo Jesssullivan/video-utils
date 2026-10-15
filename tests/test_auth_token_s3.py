@@ -947,7 +947,7 @@ class SeamGuardTests(unittest.TestCase):
         self._refused("SG1", "NODE_ENV", NODE_ENV="production")
 
     def test_sg2_kubernetes_pod_shape(self) -> None:
-        self._refused("SG2", "KUBERNETES_SERVICE_HOST", KUBERNETES_SERVICE_HOST="10.0.0.1")
+        self._refused("SG2", "KUBERNETES_SERVICE_HOST", KUBERNETES_SERVICE_HOST="192.0.2.1")
 
     def test_sg3_all_interfaces_host(self) -> None:
         self._refused("SG3", "HOST", HOST=ALL_INTERFACES)
