@@ -11,7 +11,7 @@
     "completeness": "inference",
     "behaviour_under_bazel": "measured by the single full run (bazel_full-full-run.json)"
   },
-  "module_count_at_supplement": 105,
+  "module_count_at_supplement": 106,
   "added_modules": [
     "test_auth_token_s3",
     "test_condense_public_surface",
@@ -21,6 +21,7 @@
     "test_s3g_tool_admission",
     "test_stems_estimate",
     "test_take_intake",
+    "test_timeline_contract",
     "test_timing_calibration",
     "test_web_house_stack_s3"
   ],

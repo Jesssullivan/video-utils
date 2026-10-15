@@ -37,7 +37,7 @@ Commands:
 Use video-utils <COMMAND> --help for worker options.
 Analyze: video-utils analyze INPUT [--run-dir DIR] [--backend stdlib|librosa] [--bpm BPM]
 Hash: video-utils hash [--] FILE...
-Verify: video-utils verify-run [--require-source] RUN_DIR
+Verify: video-utils verify-run [--require-source] [--timeline identity|edl_v1] RUN_DIR
 Timeline: video-utils timeline validate|table|map|quantise ...
 
 hash, verify-run and timeline are implemented in Rust; FFmpeg/ffprobe orchestration
@@ -137,11 +137,15 @@ Directories and unreadable paths report a typed error and exit 1; the
 remaining files are still hashed.
 ";
 
-const VERIFY_USAGE: &str = "Usage: video-utils verify-run [--require-source] RUN_DIR
+const VERIFY_USAGE: &str =
+    "Usage: video-utils verify-run [--require-source] [--timeline identity|edl_v1] RUN_DIR
 Metadata-only, read-only verification of RUN_DIR/manifest.json: typed
 schema-1 fields and SHA-256 of every output_sha256 file and of the source.
 Prints one JSON receipt. Exit 0 verified, 1 failed (typed reason), 2 usage.
---require-source  treat an absent source file as failure source_missing
+--require-source     treat an absent source file as failure source_missing
+--timeline identity  a guitar take: no time stretch (the default)
+--timeline edl_v1    a condense run: its edl.json maps output time to source
+                     time; the EDL is validated against the manifest
 ";
 
 fn name_bytes(name: &OsStr) -> Vec<u8> {
@@ -199,13 +203,26 @@ fn verify_run_command(args: Vec<OsString>) -> Result<u8, String> {
     let mut options = VerifyOptions::default();
     let mut run_dir: Option<OsString> = None;
     let mut positional_only = false;
-    for arg in args {
+    let mut edl_mapping = false;
+    let mut args = args.into_iter();
+    while let Some(arg) = args.next() {
         match arg.to_str() {
             Some("--help" | "-h") if !positional_only => {
                 print!("{VERIFY_USAGE}");
                 return Ok(0);
             }
             Some("--require-source") if !positional_only => options.require_source = true,
+            Some("--timeline") if !positional_only => {
+                edl_mapping = match args.next().as_deref().and_then(OsStr::to_str) {
+                    Some(run_record::IDENTITY_MAPPING) => false,
+                    Some(timeline::EDL_MAPPING) => true,
+                    _ => {
+                        return Err(format!(
+                            "verify-run: --timeline takes identity or edl_v1\n{VERIFY_USAGE}"
+                        ));
+                    }
+                };
+            }
             Some("--") if !positional_only => positional_only = true,
             Some(flag) if !positional_only && flag.starts_with('-') && flag.len() > 1 => {
                 return Err(format!(
@@ -223,14 +240,21 @@ fn verify_run_command(args: Vec<OsString>) -> Result<u8, String> {
     let Some(run_dir) = run_dir else {
         return Err(format!("verify-run requires RUN_DIR\n{VERIFY_USAGE}"));
     };
-    let verification = run_record::verify_run(Path::new(&run_dir), options);
     let verifier = format!("video-utils {} verify-run", env!("CARGO_PKG_VERSION"));
-    let text = run_record::receipt(&verification, &verifier).to_pretty();
+    let (text, failure) = if edl_mapping {
+        let verification = run_record::verify_condense_run(Path::new(&run_dir), options);
+        let text = run_record::condense_receipt(&verification, &verifier).to_pretty();
+        (text, verification.failure)
+    } else {
+        let verification = run_record::verify_run(Path::new(&run_dir), options);
+        let text = run_record::receipt(&verification, &verifier).to_pretty();
+        (text, verification.failure)
+    };
     let mut out = io::stdout().lock();
     out.write_all(text.as_bytes())
         .and_then(|()| out.flush())
         .map_err(|error| format!("verify-run: could not write receipt: {error}"))?;
-    match &verification.failure {
+    match &failure {
         None => Ok(0),
         Some(failure) => {
             eprintln!("video-utils: verify-run failed: {failure}");

@@ -564,6 +564,133 @@ fn verify_run_refuses_tamper_with_typed_reasons() {
     );
 }
 
+/// The default receipt for the identity fixture, with its temporary paths, sizes and manifest hash replaced.
+/// It must not change when the manifest contract grows (docs/spec/TIMELINE_CONTRACT.md).
+const IDENTITY_RECEIPT_GOLDEN: &str = r#"{
+  "bytes_hashed": "<BYTES_HASHED>",
+  "canonical_run_dir": "<CANONICAL_RUN_DIR>",
+  "claim_scope": "byte identity of listed files and typed manifest-field validity only; not media quality, decoded PCM extent, timing accuracy, export integrity or listening acceptance",
+  "detail": null,
+  "dsp_latency": {
+    "denoise_delay_samples": null,
+    "denoise_status": null
+  },
+  "export_receipt_verified": "not_checked",
+  "kind": "video_utils_verify_run_receipt",
+  "listening_accepted": null,
+  "manifest_bytes": "<MANIFEST_BYTES>",
+  "manifest_schema_version": 1,
+  "manifest_sha256": "<MANIFEST_SHA256>",
+  "manifest_status": "rendered_unreviewed",
+  "media_decoded": false,
+  "outputs": {
+    "files": [
+      {
+        "actual_sha256": "cf787b5c7be77ef6a5de4ead7480f83b4d31c0a904a8d95ba8091f0432445adb",
+        "bytes": 27,
+        "expected_sha256": "cf787b5c7be77ef6a5de4ead7480f83b4d31c0a904a8d95ba8091f0432445adb",
+        "name": "baseline.wav",
+        "status": "verified"
+      },
+      {
+        "actual_sha256": "ee9a852900168740cde5ba5023caf47ab5af3e0bc3080af94c0b73652b9a3bc1",
+        "bytes": 26,
+        "expected_sha256": "ee9a852900168740cde5ba5023caf47ab5af3e0bc3080af94c0b73652b9a3bc1",
+        "name": "cleaned.wav",
+        "status": "verified"
+      },
+      {
+        "actual_sha256": "228676581713a660d3d9564f4937d83006632c63112d6c30afba1008a109b320",
+        "bytes": 28,
+        "expected_sha256": "228676581713a660d3d9564f4937d83006632c63112d6c30afba1008a109b320",
+        "name": "processed.wav",
+        "status": "verified"
+      }
+    ],
+    "total": 3,
+    "verified": 3
+  },
+  "pcm": {
+    "channels": 1,
+    "codec": "pcm_f32le",
+    "sample_count": 6657385,
+    "sample_rate": 44100
+  },
+  "pcm_extent_basis": "metadata_only_no_decode",
+  "pcm_extent_verified": false,
+  "physical_audio_video_sync_verified": null,
+  "read_budget_bytes": 8589934592,
+  "reason": null,
+  "run_dir": "<RUN_DIR>",
+  "run_id": "20261006T000000Z-fixture run 3.38 PM",
+  "schema_version": 1,
+  "source": {
+    "actual_sha256": "f3216c010c3f0d9264d7e49f91666473d58c2aecee32a2ec538dd9d93bee9adf",
+    "bytes": 26,
+    "expected_sha256": "f3216c010c3f0d9264d7e49f91666473d58c2aecee32a2ec538dd9d93bee9adf",
+    "path": "<SOURCE>",
+    "status": "verified"
+  },
+  "status": "verified",
+  "subprocesses_launched": 0,
+  "timeline": {
+    "audio_start_seconds": 0.0,
+    "format_start_seconds": 0.0,
+    "no_time_stretch": true
+  },
+  "verifier": "video-utils 0.2.0 verify-run"
+}
+"#;
+
+fn normalised_identity_receipt(run: &RunFixture, stdout: Vec<u8>, manifest: &str) -> String {
+    let canonical = fs::canonicalize(&run.run_dir).unwrap();
+    let hashed = 2 * manifest.len()
+        + OUTPUTS.iter().map(|(_, bytes)| bytes.len()).sum::<usize>()
+        + b"fixture source media bytes".len();
+    String::from_utf8(stdout)
+        .unwrap()
+        .replace(
+            &format!(
+                "\"canonical_run_dir\": {}",
+                json_string(canonical.to_str().unwrap())
+            ),
+            "\"canonical_run_dir\": \"<CANONICAL_RUN_DIR>\"",
+        )
+        .replace(
+            &format!(
+                "\"run_dir\": {}",
+                json_string(run.run_dir.to_str().unwrap())
+            ),
+            "\"run_dir\": \"<RUN_DIR>\"",
+        )
+        .replace(&json_string(run.source.to_str().unwrap()), "\"<SOURCE>\"")
+        .replace(&digest(manifest.as_bytes()).to_hex(), "<MANIFEST_SHA256>")
+        .replace(
+            &format!("\"manifest_bytes\": {}", manifest.len()),
+            "\"manifest_bytes\": \"<MANIFEST_BYTES>\"",
+        )
+        .replace(
+            &format!("\"bytes_hashed\": {hashed}"),
+            "\"bytes_hashed\": \"<BYTES_HASHED>\"",
+        )
+}
+
+#[cfg(unix)]
+#[test]
+fn verify_run_identity_receipt_is_byte_identical_to_the_golden() {
+    let fixture = Fixture::new();
+    let run = RunFixture::new(&fixture, "golden");
+    let output = fixture
+        .command()
+        .arg("verify-run")
+        .arg(&run.run_dir)
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(0));
+    let text = normalised_identity_receipt(&run, output.stdout, &run.manifest());
+    assert_eq!(text, IDENTITY_RECEIPT_GOLDEN);
+}
+
 // ---------------------------------------------------------------------------
 // Native `timeline`: the condense EDL contract (src/timeline.rs).
 
@@ -837,4 +964,345 @@ fn timeline_refusals_are_typed_and_usage_errors_exit_2() {
         .unwrap();
     assert!(help.status.success());
     assert!(String::from_utf8_lossy(&help.stdout).contains("quantise --fps N"));
+}
+
+// ---------------------------------------------------------------------------
+// `verify-run --timeline edl_v1`: condense runs (docs/spec/TIMELINE_CONTRACT.md).
+
+struct CondenseFixture {
+    run_dir: PathBuf,
+    source: PathBuf,
+}
+
+const CONDENSE_SOURCE: &[u8] = b"fixture talk recording bytes";
+
+impl CondenseFixture {
+    fn new(fixture: &Fixture, label: &str) -> Self {
+        let root = fixture.0.join(format!("condense {label}"));
+        let run_dir = root
+            .join("condense")
+            .join("20261015T000000Z-talk 3.38\u{202f}PM");
+        fs::create_dir_all(&run_dir).unwrap();
+        let source = root.join("talk recording.mov");
+        fs::write(&source, CONDENSE_SOURCE).unwrap();
+        fs::write(run_dir.join("edl.json"), TIMELINE_EDL).unwrap();
+        fs::write(run_dir.join("talk.mp4"), b"fixture delivered talk bytes").unwrap();
+        fs::write(
+            run_dir.join("talk.srt"),
+            b"1\n00:00:00,000 --> 00:00:01,000\nHello\n",
+        )
+        .unwrap();
+        let run = Self { run_dir, source };
+        run.rewrite_manifest(|m| m);
+        run
+    }
+
+    fn digest_of(&self, name: &str) -> String {
+        digest(&fs::read(self.run_dir.join(name)).unwrap()).to_hex()
+    }
+
+    /// The manifest for the files as they are on disk now.
+    fn manifest(&self) -> String {
+        let outputs: Vec<String> = ["edl.json", "talk.mp4", "talk.srt"]
+            .iter()
+            .map(|name| format!("    {}: \"{}\"", json_string(name), self.digest_of(name)))
+            .collect();
+        format!(
+            "{{\n  \"schema_version\": 1,\n  \"kind\": \"condense_edit\",\n  \"status\": \"rendered_unreviewed\",\n  \"run_id\": {},\n  \"run_dir\": {},\n  \"sources\": [{{\"clip\": \"talk\", \"path\": {}, \"sha256\": \"{}\"}}],\n  \"output_sha256\": {{\n{}\n  }},\n  \"timeline\": {{\"mapping\": \"edl_v1\", \"no_time_stretch\": false, \"edl\": {{\"file\": \"edl.json\", \"sha256\": \"{}\"}}, \"fps\": 30, \"total_frames\": 49, \"clips\": [{{\"name\": \"talk\", \"shift_seconds\": 0.1}}]}},\n  \"delivery\": {{\"file\": \"talk.mp4\", \"audio_sample_rate\": 48000, \"audio_channels\": 1, \"video_frames\": 49}}\n}}\n",
+            json_string(self.run_dir.file_name().unwrap().to_str().unwrap()),
+            json_string(self.run_dir.to_str().unwrap()),
+            json_string(self.source.to_str().unwrap()),
+            digest(CONDENSE_SOURCE).to_hex(),
+            outputs.join(",\n"),
+            self.digest_of("edl.json"),
+        )
+    }
+
+    fn rewrite_manifest(&self, edit: impl FnOnce(String) -> String) {
+        fs::write(self.run_dir.join("manifest.json"), edit(self.manifest())).unwrap();
+    }
+
+    fn snapshot(&self) -> BTreeMap<PathBuf, Vec<u8>> {
+        let mut out = BTreeMap::new();
+        for entry in fs::read_dir(&self.run_dir).unwrap() {
+            let path = entry.unwrap().path();
+            out.insert(path.clone(), fs::read(&path).unwrap());
+        }
+        out.insert(self.source.clone(), fs::read(&self.source).unwrap());
+        out
+    }
+}
+
+fn verify(fixture: &Fixture, args: &[&str], run_dir: &Path) -> (Option<i32>, Value, String) {
+    let output = fixture
+        .command()
+        .arg("verify-run")
+        .args(args)
+        .arg(run_dir)
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+    let receipt = if output.stdout.is_empty() {
+        Value::Null
+    } else {
+        receipt_of(&output.stdout)
+    };
+    (output.status.code(), receipt, stderr)
+}
+
+#[cfg(unix)]
+#[test]
+fn verify_run_edl_v1_accepts_a_matching_condense_run() {
+    let fixture = Fixture::new();
+    let run = CondenseFixture::new(&fixture, "positive");
+    let before = run.snapshot();
+    let (code, receipt, stderr) = verify(&fixture, &["--timeline", "edl_v1"], &run.run_dir);
+    assert_eq!(code, Some(0), "{stderr}");
+    assert_eq!(field(&receipt, &["status"]).as_str(), Some("verified"));
+    assert_eq!(field(&receipt, &["reason"]), &Value::Null);
+    assert_eq!(
+        field(&receipt, &["manifest_kind"]).as_str(),
+        Some("condense_edit")
+    );
+    assert_eq!(
+        field(&receipt, &["timeline", "mapping"]).as_str(),
+        Some("edl_v1")
+    );
+    assert_eq!(
+        field(&receipt, &["timeline", "no_time_stretch"]),
+        &Value::Bool(false)
+    );
+    assert_eq!(
+        field(&receipt, &["timeline", "edl_sha256"]).as_str(),
+        Some(digest(TIMELINE_EDL.as_bytes()).to_hex().as_str())
+    );
+    assert_eq!(as_u64(field(&receipt, &["timeline", "total_frames"])), 49);
+    assert_eq!(as_u64(field(&receipt, &["timeline", "edl_segments"])), 3);
+    assert_eq!(as_u64(field(&receipt, &["outputs", "verified"])), 3);
+    assert_eq!(
+        field(&receipt, &["sources", "status"]).as_str(),
+        Some("verified")
+    );
+    assert_eq!(as_u64(field(&receipt, &["subprocesses_launched"])), 0);
+    assert_eq!(
+        run.snapshot(),
+        before,
+        "verify-run modified the condense run"
+    );
+
+    // An absent recording is reported, and fails only on request.
+    fs::remove_file(&run.source).unwrap();
+    let (code, receipt, _) = verify(&fixture, &["--timeline", "edl_v1"], &run.run_dir);
+    assert_eq!(code, Some(0));
+    assert_eq!(
+        field(&receipt, &["sources", "status"]).as_str(),
+        Some("absent_unverified")
+    );
+    let (code, receipt, _) = verify(
+        &fixture,
+        &["--require-source", "--timeline", "edl_v1"],
+        &run.run_dir,
+    );
+    assert_eq!(code, Some(1));
+    assert_eq!(
+        field(&receipt, &["reason"]).as_str(),
+        Some("source_missing")
+    );
+}
+
+type CondenseMutation = fn(&CondenseFixture);
+
+#[cfg(unix)]
+#[test]
+fn verify_run_edl_v1_refuses_tamper_with_typed_reasons() {
+    let cases: [(&str, CondenseMutation, &str); 13] = [
+        (
+            "no_time_stretch true",
+            |run| {
+                run.rewrite_manifest(|m| {
+                    m.replace("\"no_time_stretch\": false", "\"no_time_stretch\": true")
+                })
+            },
+            "timeline_mapping_invalid",
+        ),
+        (
+            "no_time_stretch absent",
+            |run| run.rewrite_manifest(|m| m.replace("\"no_time_stretch\": false, ", "")),
+            "timeline_mapping_invalid",
+        ),
+        (
+            "unknown mapping",
+            |run| run.rewrite_manifest(|m| m.replace("\"edl_v1\"", "\"edl_v2\"")),
+            "timeline_mapping_invalid",
+        ),
+        (
+            "kind absent",
+            |run| run.rewrite_manifest(|m| m.replace("  \"kind\": \"condense_edit\",\n", "")),
+            "manifest_field_invalid",
+        ),
+        (
+            "edl digest differs from output_sha256",
+            |run| {
+                let listed = run.digest_of("edl.json");
+                run.rewrite_manifest(|m| {
+                    m.replacen(&listed, &"0".repeat(64), 2)
+                        .replacen(&"0".repeat(64), &listed, 1)
+                })
+            },
+            "manifest_field_invalid",
+        ),
+        (
+            "edl byte changed",
+            |run| {
+                let path = run.run_dir.join("edl.json");
+                let text = fs::read_to_string(&path).unwrap();
+                fs::write(path, text.replace("\"speed\": 6.0", "\"speed\": 6.5")).unwrap();
+            },
+            "output_hash_mismatch",
+        ),
+        (
+            "edl invalid with matching hashes",
+            |run| {
+                let path = run.run_dir.join("edl.json");
+                let text = fs::read_to_string(&path).unwrap();
+                fs::write(path, text.replace("\"frames\": 10", "\"frames\": 0")).unwrap();
+                run.rewrite_manifest(|m| m);
+            },
+            "edl_invalid",
+        ),
+        (
+            "fps differs",
+            |run| run.rewrite_manifest(|m| m.replace("\"fps\": 30", "\"fps\": 25")),
+            "edl_invalid",
+        ),
+        (
+            "total_frames differs",
+            |run| {
+                run.rewrite_manifest(|m| m.replace("\"total_frames\": 49", "\"total_frames\": 50"))
+            },
+            "edl_invalid",
+        ),
+        (
+            "delivered frames differ",
+            |run| {
+                run.rewrite_manifest(|m| m.replace("\"video_frames\": 49", "\"video_frames\": 48"))
+            },
+            "edl_invalid",
+        ),
+        (
+            "shift differs",
+            |run| {
+                run.rewrite_manifest(|m| {
+                    m.replace("\"shift_seconds\": 0.1", "\"shift_seconds\": 0.2")
+                })
+            },
+            "edl_invalid",
+        ),
+        (
+            "segment source not in sources",
+            |run| {
+                run.rewrite_manifest(|m| m.replace("[{\"clip\": \"talk\"", "[{\"clip\": \"other\""))
+            },
+            "edl_invalid",
+        ),
+        (
+            "recording changed",
+            |run| fs::write(&run.source, b"fixture talk recording bytes, edited").unwrap(),
+            "source_hash_mismatch",
+        ),
+    ];
+    let fixture = Fixture::new();
+    for (index, (label, mutate, reason)) in cases.iter().enumerate() {
+        let run = CondenseFixture::new(&fixture, &format!("tamper {index}"));
+        mutate(&run);
+        let before = run.snapshot();
+        let (code, receipt, stderr) = verify(&fixture, &["--timeline", "edl_v1"], &run.run_dir);
+        assert_eq!(code, Some(1), "{label}: {stderr}");
+        assert_eq!(
+            field(&receipt, &["status"]).as_str(),
+            Some("failed"),
+            "{label}"
+        );
+        assert_eq!(
+            field(&receipt, &["reason"]).as_str(),
+            Some(*reason),
+            "{label}: {stderr}"
+        );
+        assert!(
+            stderr.contains(&format!("video-utils: verify-run failed: {reason}: ")),
+            "{label}: {stderr}"
+        );
+        assert_eq!(
+            run.snapshot(),
+            before,
+            "{label}: verify-run modified the run"
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn each_verifier_refuses_the_other_mapping() {
+    let fixture = Fixture::new();
+    let condense = CondenseFixture::new(&fixture, "mismatch");
+    let (code, receipt, _) = verify(&fixture, &[], &condense.run_dir);
+    assert_eq!(code, Some(1));
+    assert_eq!(
+        field(&receipt, &["reason"]).as_str(),
+        Some("time_stretch_not_excluded")
+    );
+    assert!(
+        field(&receipt, &["detail"])
+            .as_str()
+            .unwrap()
+            .contains("requires --timeline edl_v1")
+    );
+
+    let take = RunFixture::new(&fixture, "mismatch");
+    let (code, receipt, _) = verify(&fixture, &["--timeline", "edl_v1"], &take.run_dir);
+    assert_eq!(code, Some(1));
+    assert_eq!(
+        field(&receipt, &["reason"]).as_str(),
+        Some("timeline_mapping_mismatch")
+    );
+
+    // An explicit identity mapping is a guitar take: verified by default and by --timeline identity,
+    // refused by edl_v1.
+    take.rewrite_manifest(|m| {
+        m.replace(
+            "\"timeline\": {\"no_time_stretch\": true",
+            "\"timeline\": {\"mapping\": \"identity\", \"no_time_stretch\": true",
+        )
+    });
+    for args in [&[][..], &["--timeline", "identity"][..]] {
+        let (code, receipt, stderr) = verify(&fixture, args, &take.run_dir);
+        assert_eq!(code, Some(0), "{args:?}: {stderr}");
+        assert_eq!(field(&receipt, &["status"]).as_str(), Some("verified"));
+    }
+    let (_, receipt, _) = verify(&fixture, &["--timeline", "edl_v1"], &take.run_dir);
+    assert_eq!(
+        field(&receipt, &["reason"]).as_str(),
+        Some("timeline_mapping_mismatch")
+    );
+
+    // A non-string or unknown mapping is never read as identity.
+    take.rewrite_manifest(|m| {
+        m.replace(
+            "\"timeline\": {\"no_time_stretch\": true",
+            "\"timeline\": {\"mapping\": null, \"no_time_stretch\": true",
+        )
+    });
+    let (code, receipt, _) = verify(&fixture, &[], &take.run_dir);
+    assert_eq!(code, Some(1));
+    assert_eq!(
+        field(&receipt, &["reason"]).as_str(),
+        Some("time_stretch_not_excluded")
+    );
+
+    let (code, receipt, stderr) = verify(&fixture, &["--timeline", "edl_v2"], &take.run_dir);
+    assert_eq!((code, receipt), (Some(2), Value::Null));
+    assert!(
+        stderr.contains("--timeline takes identity or edl_v1"),
+        "{stderr}"
+    );
 }

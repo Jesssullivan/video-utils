@@ -12,6 +12,7 @@
 //! cache, so a minimal strict RFC 8259 reader lives in [`json`].
 
 use crate::hash::{self, Digest};
+use crate::timeline;
 use std::collections::BTreeMap;
 use std::fmt;
 use std::fs::{self, File};
@@ -30,6 +31,12 @@ pub const MAX_VERIFY_READ_BYTES: u64 = 8 * 1024 * 1024 * 1024;
 pub const SUPPORTED_SCHEMA_VERSION: u64 = 1;
 /// Receipt schema emitted by `verify-run`.
 pub const RECEIPT_SCHEMA_VERSION: u64 = 1;
+/// `timeline.mapping` of a guitar take: output time is source time.
+pub const IDENTITY_MAPPING: &str = "identity";
+/// `kind` of a condense run manifest (docs/spec/TIMELINE_CONTRACT.md).
+pub const CONDENSE_KIND: &str = "condense_edit";
+/// Maximum number of `sources` in a condense manifest.
+pub const MAX_SOURCES: usize = 64;
 
 pub use crate::json;
 
@@ -62,6 +69,9 @@ pub enum Reason {
     FileChangedDuringVerification,
     ReadBudgetExceeded,
     ReadError,
+    TimelineMappingInvalid,
+    TimelineMappingMismatch,
+    EdlInvalid,
 }
 
 impl Reason {
@@ -91,6 +101,9 @@ impl Reason {
             Self::FileChangedDuringVerification => "file_changed_during_verification",
             Self::ReadBudgetExceeded => "read_budget_exceeded",
             Self::ReadError => "read_error",
+            Self::TimelineMappingInvalid => "timeline_mapping_invalid",
+            Self::TimelineMappingMismatch => "timeline_mapping_mismatch",
+            Self::EdlInvalid => "edl_invalid",
         }
     }
 }
@@ -194,44 +207,100 @@ pub fn is_safe_output_name(name: &str) -> bool {
         && !name.contains("..")
 }
 
+fn parse_schema_version(root: &Value) -> Result<u64, Failure> {
+    match root.get("schema_version").and_then(Value::as_number) {
+        Some(number) if number.as_u64() == Some(SUPPORTED_SCHEMA_VERSION) => {
+            Ok(SUPPORTED_SCHEMA_VERSION)
+        }
+        other => {
+            let shown = other.map_or_else(
+                || "absent or non-numeric".to_owned(),
+                |n| n.raw().to_owned(),
+            );
+            Err(Failure::new(
+                Reason::SchemaVersionUnsupported,
+                format!("schema_version must be 1, found {shown}"),
+            ))
+        }
+    }
+}
+
+/// An identity verifier refuses any other declared mapping before it reads further fields.
+fn refuse_non_identity_mapping(root: &Value) -> Result<(), Failure> {
+    match root
+        .get("timeline")
+        .and_then(|timeline| timeline.get("mapping"))
+    {
+        None => Ok(()),
+        Some(Value::String(mapping)) if mapping == IDENTITY_MAPPING => Ok(()),
+        Some(_) => Err(Failure::new(
+            Reason::TimeStretchNotExcluded,
+            "timeline.mapping is not \"identity\"; requires --timeline edl_v1",
+        )),
+    }
+}
+
+fn parse_run_identity(root: &Value) -> Result<(String, PathBuf), Failure> {
+    let run_id = match root.get("run_id").and_then(Value::as_str) {
+        Some(text) if !text.is_empty() => text.to_owned(),
+        _ => {
+            return Err(Failure::new(
+                Reason::RunIdMismatch,
+                "run_id must be a non-empty string",
+            ));
+        }
+    };
+    let run_dir = match root.get("run_dir").and_then(Value::as_str) {
+        Some(text) if Path::new(text).is_absolute() => PathBuf::from(text),
+        _ => {
+            return Err(Failure::new(
+                Reason::RunDirMismatch,
+                "run_dir must be an absolute path string",
+            ));
+        }
+    };
+    Ok((run_id, run_dir))
+}
+
+fn parse_outputs(root: &Value) -> Result<BTreeMap<String, String>, Failure> {
+    let outputs = root
+        .get("output_sha256")
+        .and_then(Value::as_object)
+        .ok_or_else(|| field_invalid("output_sha256", "must be an object"))?;
+    if outputs.is_empty() || outputs.len() > MAX_OUTPUTS {
+        return Err(field_invalid("output_sha256", "must list 1..=64 files"));
+    }
+    let mut output_sha256 = BTreeMap::new();
+    for (name, value) in outputs {
+        if !is_safe_output_name(name) {
+            return Err(Failure::new(
+                Reason::UnsafeOutputName,
+                format!("output_sha256 key {name:?} is not a plain run-relative basename"),
+            ));
+        }
+        match value.as_str() {
+            Some(text) if hash::is_lower_hex_digest(text) => {
+                output_sha256.insert(name.clone(), text.to_owned());
+            }
+            _ => {
+                return Err(Failure::new(
+                    Reason::HashMalformed,
+                    format!("output_sha256[{name:?}] must be 64 lowercase hex characters"),
+                ));
+            }
+        }
+    }
+    Ok(output_sha256)
+}
+
 impl RunRecord {
     /// Validate the typed subset in contract-table order. The first failing
     /// field determines the reason. Identity checks against the run directory
     /// (run_id basename, canonical run_dir) are performed by [`verify_run`].
     pub fn from_json(root: &Value) -> Result<Self, Failure> {
-        let schema_version = match root.get("schema_version").and_then(Value::as_number) {
-            Some(number) if number.as_u64() == Some(SUPPORTED_SCHEMA_VERSION) => {
-                SUPPORTED_SCHEMA_VERSION
-            }
-            other => {
-                let shown = other.map_or_else(
-                    || "absent or non-numeric".to_owned(),
-                    |n| n.raw().to_owned(),
-                );
-                return Err(Failure::new(
-                    Reason::SchemaVersionUnsupported,
-                    format!("schema_version must be 1, found {shown}"),
-                ));
-            }
-        };
-        let run_id = match root.get("run_id").and_then(Value::as_str) {
-            Some(text) if !text.is_empty() => text.to_owned(),
-            _ => {
-                return Err(Failure::new(
-                    Reason::RunIdMismatch,
-                    "run_id must be a non-empty string",
-                ));
-            }
-        };
-        let run_dir = match root.get("run_dir").and_then(Value::as_str) {
-            Some(text) if Path::new(text).is_absolute() => PathBuf::from(text),
-            _ => {
-                return Err(Failure::new(
-                    Reason::RunDirMismatch,
-                    "run_dir must be an absolute path string",
-                ));
-            }
-        };
+        let schema_version = parse_schema_version(root)?;
+        refuse_non_identity_mapping(root)?;
+        let (run_id, run_dir) = parse_run_identity(root)?;
         let source = root
             .get("source")
             .filter(|value| value.as_object().is_some())
@@ -254,33 +323,7 @@ impl RunRecord {
                 ));
             }
         };
-        let outputs = root
-            .get("output_sha256")
-            .and_then(Value::as_object)
-            .ok_or_else(|| field_invalid("output_sha256", "must be an object"))?;
-        if outputs.is_empty() || outputs.len() > MAX_OUTPUTS {
-            return Err(field_invalid("output_sha256", "must list 1..=64 files"));
-        }
-        let mut output_sha256 = BTreeMap::new();
-        for (name, value) in outputs {
-            if !is_safe_output_name(name) {
-                return Err(Failure::new(
-                    Reason::UnsafeOutputName,
-                    format!("output_sha256 key {name:?} is not a plain run-relative basename"),
-                ));
-            }
-            match value.as_str() {
-                Some(text) if hash::is_lower_hex_digest(text) => {
-                    output_sha256.insert(name.clone(), text.to_owned());
-                }
-                _ => {
-                    return Err(Failure::new(
-                        Reason::HashMalformed,
-                        format!("output_sha256[{name:?}] must be 64 lowercase hex characters"),
-                    ));
-                }
-            }
-        }
+        let output_sha256 = parse_outputs(root)?;
         let timeline = root
             .get("timeline")
             .filter(|value| value.as_object().is_some())
@@ -588,6 +631,106 @@ fn read_manifest(path: &Path) -> Result<(Vec<u8>, Digest), Failure> {
     Ok((bytes, digest))
 }
 
+fn canonical_run_dir(run_dir: &Path) -> Result<PathBuf, Failure> {
+    match fs::canonicalize(run_dir) {
+        Ok(path) if path.is_dir() => Ok(path),
+        Ok(_) => Err(Failure::new(
+            Reason::RunDirMissing,
+            "RUN_DIR is not a directory",
+        )),
+        Err(error) => Err(Failure::new(
+            Reason::RunDirMissing,
+            format!("RUN_DIR: {error}"),
+        )),
+    }
+}
+
+/// run_id must be RUN_DIR's basename, and run_dir must resolve to RUN_DIR.
+fn check_run_identity(canonical: &Path, run_id: &str, run_dir: &Path) -> Result<(), Failure> {
+    let basename = canonical
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("");
+    if run_id != basename {
+        return Err(Failure::new(
+            Reason::RunIdMismatch,
+            format!("run_id {run_id:?} differs from RUN_DIR basename {basename:?}"),
+        ));
+    }
+    match fs::canonicalize(run_dir) {
+        Ok(path) if path == canonical => Ok(()),
+        _ => Err(Failure::new(
+            Reason::RunDirMismatch,
+            "manifest run_dir does not resolve to RUN_DIR",
+        )),
+    }
+}
+
+/// Hash every listed output in name order; stop at the first failure.
+fn hash_outputs(
+    canonical: &Path,
+    outputs: &BTreeMap<String, String>,
+    budget: &mut Budget,
+    checks: &mut Vec<FileCheck>,
+) -> Result<(), Failure> {
+    for (name, expected) in outputs {
+        let mut check = FileCheck {
+            name: name.clone(),
+            expected_sha256: expected.clone(),
+            actual_sha256: None,
+            bytes: None,
+            status: "failed",
+        };
+        let outcome = hash_stable_file(
+            &canonical.join(name),
+            Role::Output,
+            &format!("output {name:?}"),
+            budget,
+        );
+        match outcome {
+            Ok((digest, length)) => {
+                check.actual_sha256 = Some(digest.to_hex());
+                check.bytes = Some(length);
+                if digest.to_hex() == *expected {
+                    check.status = "verified";
+                    checks.push(check);
+                } else {
+                    check.status = "hash_mismatch";
+                    checks.push(check);
+                    return Err(Failure::new(
+                        Reason::OutputHashMismatch,
+                        format!("output {name:?} digest differs from manifest"),
+                    ));
+                }
+            }
+            Err(failure) => {
+                check.status = failure.reason.code();
+                checks.push(check);
+                return Err(failure);
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn reread_manifest(path: &Path, digest: &Digest, budget: &mut Budget) -> Result<(), Failure> {
+    let (again, digest_again) = read_manifest(path).map_err(|failure| {
+        Failure::new(
+            Reason::ManifestChanged,
+            format!("manifest re-read failed: {failure}"),
+        )
+    })?;
+    budget.used += again.len() as u64;
+    if digest_again != *digest {
+        return Err(Failure::new(
+            Reason::ManifestChanged,
+            "manifest.json changed during verification",
+        ));
+    }
+    Ok(())
+}
+
 /// Metadata-only, read-only verification of one run directory.
 pub fn verify_run(run_dir: &Path, options: VerifyOptions) -> Verification {
     let mut result = Verification {
@@ -613,21 +756,7 @@ fn verify_into(
     options: VerifyOptions,
     result: &mut Verification,
 ) -> Result<(), Failure> {
-    let canonical = match fs::canonicalize(run_dir) {
-        Ok(path) if path.is_dir() => path,
-        Ok(_) => {
-            return Err(Failure::new(
-                Reason::RunDirMissing,
-                "RUN_DIR is not a directory",
-            ));
-        }
-        Err(error) => {
-            return Err(Failure::new(
-                Reason::RunDirMissing,
-                format!("RUN_DIR: {error}"),
-            ));
-        }
-    };
+    let canonical = canonical_run_dir(run_dir)?;
     result.canonical_run_dir = Some(canonical.clone());
     let manifest_path = canonical.join("manifest.json");
     let mut budget = Budget { used: 0 };
@@ -643,67 +772,16 @@ fn verify_into(
     drop(root);
     result.record = Some(record.clone());
 
-    let basename = canonical
-        .file_name()
-        .and_then(|name| name.to_str())
-        .unwrap_or("");
-    if record.run_id != basename {
-        return Err(Failure::new(
-            Reason::RunIdMismatch,
-            format!(
-                "run_id {:?} differs from RUN_DIR basename {basename:?}",
-                record.run_id
-            ),
-        ));
-    }
-    match fs::canonicalize(&record.run_dir) {
-        Ok(path) if path == canonical => {}
-        _ => {
-            return Err(Failure::new(
-                Reason::RunDirMismatch,
-                "manifest run_dir does not resolve to RUN_DIR",
-            ));
-        }
-    }
+    check_run_identity(&canonical, &record.run_id, &record.run_dir)?;
 
-    for (name, expected) in &record.output_sha256 {
-        let mut check = FileCheck {
-            name: name.clone(),
-            expected_sha256: expected.clone(),
-            actual_sha256: None,
-            bytes: None,
-            status: "failed",
-        };
-        let outcome = hash_stable_file(
-            &canonical.join(name),
-            Role::Output,
-            &format!("output {name:?}"),
-            &mut budget,
-        );
-        result.bytes_hashed = budget.used;
-        match outcome {
-            Ok((digest, length)) => {
-                check.actual_sha256 = Some(digest.to_hex());
-                check.bytes = Some(length);
-                if digest.to_hex() == *expected {
-                    check.status = "verified";
-                    result.outputs.push(check);
-                } else {
-                    check.status = "hash_mismatch";
-                    result.outputs.push(check);
-                    return Err(Failure::new(
-                        Reason::OutputHashMismatch,
-                        format!("output {name:?} digest differs from manifest"),
-                    ));
-                }
-            }
-            Err(failure) => {
-                check.status = failure.reason.code();
-                result.outputs.push(check);
-                return Err(failure);
-            }
-        }
-    }
+    let outcome = hash_outputs(
+        &canonical,
+        &record.output_sha256,
+        &mut budget,
+        &mut result.outputs,
+    );
+    result.bytes_hashed = budget.used;
+    outcome?;
 
     let mut source = FileCheck {
         name: record.source.path.to_string_lossy().into_owned(),
@@ -745,21 +823,590 @@ fn verify_into(
         }
     }
 
-    let (again, digest_again) = read_manifest(&manifest_path).map_err(|failure| {
-        Failure::new(
-            Reason::ManifestChanged,
-            format!("manifest re-read failed: {failure}"),
-        )
-    })?;
-    budget.used += again.len() as u64;
+    let outcome = reread_manifest(&manifest_path, &manifest_digest, &mut budget);
     result.bytes_hashed = budget.used;
-    if digest_again != manifest_digest {
+    outcome
+}
+
+// ---------------------------------------------------------------------------
+// Condense runs: the `edl_v1` timeline mapping (docs/spec/TIMELINE_CONTRACT.md).
+
+/// One recording a condense run was cut from.
+#[derive(Debug, Clone, PartialEq)]
+pub struct CondenseSource {
+    pub clip: String,
+    pub path: PathBuf,
+    pub sha256: String,
+}
+
+/// A clip as the manifest's timeline declares it.
+#[derive(Debug, Clone, PartialEq)]
+pub struct CondenseClip {
+    pub name: String,
+    pub shift_seconds: f64,
+}
+
+/// Typed `condense_edit` manifest (schema_version 1, `timeline.mapping` `edl_v1`).
+#[derive(Debug, Clone, PartialEq)]
+pub struct CondenseRecord {
+    pub schema_version: u64,
+    pub run_id: String,
+    pub run_dir: PathBuf,
+    pub sources: Vec<CondenseSource>,
+    pub output_sha256: BTreeMap<String, String>,
+    pub edl_file: String,
+    pub edl_sha256: String,
+    pub fps: u64,
+    pub total_frames: u64,
+    pub clips: Vec<CondenseClip>,
+    pub delivery_file: String,
+    pub video_frames: u64,
+    pub status: Option<String>,
+}
+
+fn mapping_invalid(detail: impl Into<String>) -> Failure {
+    Failure::new(Reason::TimelineMappingInvalid, detail)
+}
+
+fn exact_u64(value: Option<&Value>, path: &str) -> Result<u64, Failure> {
+    value
+        .and_then(Value::as_number)
+        .and_then(json::Number::as_u64)
+        .ok_or_else(|| field_invalid(path, "must be a non-negative exact integer"))
+}
+
+fn listed_output(
+    value: Option<&Value>,
+    path: &str,
+    outputs: &BTreeMap<String, String>,
+) -> Result<String, Failure> {
+    let name = value
+        .and_then(Value::as_str)
+        .ok_or_else(|| field_invalid(path, "must be a string"))?;
+    if !is_safe_output_name(name) {
         return Err(Failure::new(
-            Reason::ManifestChanged,
-            "manifest.json changed during verification",
+            Reason::UnsafeOutputName,
+            format!("{path} {name:?} is not a plain run-relative basename"),
         ));
     }
-    Ok(())
+    if !outputs.contains_key(name) {
+        return Err(field_invalid(
+            path,
+            "must name a file listed in output_sha256",
+        ));
+    }
+    Ok(name.to_owned())
+}
+
+impl CondenseRecord {
+    /// Validate a condense manifest. An identity manifest is refused with
+    /// `timeline_mapping_mismatch`, any other mapping with `timeline_mapping_invalid`.
+    pub fn from_json(root: &Value) -> Result<Self, Failure> {
+        let schema_version = parse_schema_version(root)?;
+        let timeline = root
+            .get("timeline")
+            .filter(|value| value.as_object().is_some())
+            .ok_or_else(|| mapping_invalid("timeline object is absent"))?;
+        match timeline.get("mapping") {
+            None => {
+                return Err(Failure::new(
+                    Reason::TimelineMappingMismatch,
+                    "timeline.mapping is absent: an identity manifest; verify it without --timeline",
+                ));
+            }
+            Some(Value::String(mapping)) if mapping == IDENTITY_MAPPING => {
+                return Err(Failure::new(
+                    Reason::TimelineMappingMismatch,
+                    "timeline.mapping is \"identity\"; verify it without --timeline",
+                ));
+            }
+            Some(Value::String(mapping)) if mapping == timeline::EDL_MAPPING => {}
+            Some(_) => return Err(mapping_invalid("timeline.mapping must be \"edl_v1\"")),
+        }
+        if timeline.get("no_time_stretch") != Some(&Value::Bool(false)) {
+            return Err(mapping_invalid(
+                "timeline.no_time_stretch must be JSON false for an edl_v1 mapping",
+            ));
+        }
+        if root.get("kind").and_then(Value::as_str) != Some(CONDENSE_KIND) {
+            return Err(field_invalid("kind", "must be \"condense_edit\""));
+        }
+        let (run_id, run_dir) = parse_run_identity(root)?;
+        let Some(Value::Array(listed)) = root.get("sources") else {
+            return Err(field_invalid("sources", "must be an array"));
+        };
+        if listed.is_empty() || listed.len() > MAX_SOURCES {
+            return Err(field_invalid("sources", "must list 1..=64 recordings"));
+        }
+        let mut sources: Vec<CondenseSource> = Vec::with_capacity(listed.len());
+        for (index, entry) in listed.iter().enumerate() {
+            let at = format!("sources[{index}]");
+            let clip = match entry.get("clip").and_then(Value::as_str) {
+                Some(text) if !text.is_empty() => text.to_owned(),
+                _ => {
+                    return Err(field_invalid(
+                        &format!("{at}.clip"),
+                        "must be a non-empty string",
+                    ));
+                }
+            };
+            if sources.iter().any(|source| source.clip == clip) {
+                return Err(field_invalid(
+                    &format!("{at}.clip"),
+                    "repeats an earlier clip",
+                ));
+            }
+            let path = match entry.get("path").and_then(Value::as_str) {
+                Some(text) if Path::new(text).is_absolute() => PathBuf::from(text),
+                _ => {
+                    return Err(field_invalid(
+                        &format!("{at}.path"),
+                        "must be an absolute path string",
+                    ));
+                }
+            };
+            let sha256 = match entry.get("sha256").and_then(Value::as_str) {
+                Some(text) if hash::is_lower_hex_digest(text) => text.to_owned(),
+                _ => {
+                    return Err(Failure::new(
+                        Reason::HashMalformed,
+                        format!("{at}.sha256 must be 64 lowercase hex characters"),
+                    ));
+                }
+            };
+            sources.push(CondenseSource { clip, path, sha256 });
+        }
+        let output_sha256 = parse_outputs(root)?;
+        let edl = timeline
+            .get("edl")
+            .filter(|value| value.as_object().is_some())
+            .ok_or_else(|| field_invalid("timeline.edl", "must be an object"))?;
+        let edl_file = listed_output(edl.get("file"), "timeline.edl.file", &output_sha256)?;
+        let edl_sha256 = match edl.get("sha256").and_then(Value::as_str) {
+            Some(text) if hash::is_lower_hex_digest(text) => text.to_owned(),
+            _ => {
+                return Err(Failure::new(
+                    Reason::HashMalformed,
+                    "timeline.edl.sha256 must be 64 lowercase hex characters",
+                ));
+            }
+        };
+        if output_sha256.get(&edl_file) != Some(&edl_sha256) {
+            return Err(field_invalid(
+                "timeline.edl.sha256",
+                "must equal output_sha256 of timeline.edl.file",
+            ));
+        }
+        let fps = exact_u64(timeline.get("fps"), "timeline.fps")?;
+        if fps == 0 {
+            return Err(field_invalid("timeline.fps", "must be positive"));
+        }
+        let total_frames = exact_u64(timeline.get("total_frames"), "timeline.total_frames")?;
+        let Some(Value::Array(declared)) = timeline.get("clips") else {
+            return Err(field_invalid("timeline.clips", "must be an array"));
+        };
+        if declared.is_empty() || declared.len() > timeline::MAX_CLIPS {
+            return Err(field_invalid("timeline.clips", "must list 1..=64 clips"));
+        }
+        let mut clips = Vec::with_capacity(declared.len());
+        for (index, entry) in declared.iter().enumerate() {
+            let at = format!("timeline.clips[{index}]");
+            let name = match entry.get("name").and_then(Value::as_str) {
+                Some(text) if !text.is_empty() => text.to_owned(),
+                _ => {
+                    return Err(field_invalid(
+                        &format!("{at}.name"),
+                        "must be a non-empty string",
+                    ));
+                }
+            };
+            let shift_seconds = entry
+                .get("shift_seconds")
+                .and_then(Value::as_number)
+                .map(json::Number::as_f64)
+                .filter(|value| value.is_finite())
+                .ok_or_else(|| {
+                    field_invalid(&format!("{at}.shift_seconds"), "must be a finite number")
+                })?;
+            clips.push(CondenseClip {
+                name,
+                shift_seconds,
+            });
+        }
+        let delivery = root
+            .get("delivery")
+            .filter(|value| value.as_object().is_some())
+            .ok_or_else(|| field_invalid("delivery", "must be an object"))?;
+        let delivery_file = listed_output(delivery.get("file"), "delivery.file", &output_sha256)?;
+        let video_frames = exact_u64(delivery.get("video_frames"), "delivery.video_frames")?;
+        let status = optional_string(root.get("status"), "status")?;
+        Ok(Self {
+            schema_version,
+            run_id,
+            run_dir,
+            sources,
+            output_sha256,
+            edl_file,
+            edl_sha256,
+            fps,
+            total_frames,
+            clips,
+            delivery_file,
+            video_frames,
+            status,
+        })
+    }
+}
+
+/// Outcome of [`verify_condense_run`]; always renderable as a receipt.
+#[derive(Debug, Clone)]
+pub struct CondenseVerification {
+    pub run_dir: PathBuf,
+    pub canonical_run_dir: Option<PathBuf>,
+    pub manifest_sha256: Option<String>,
+    pub manifest_bytes: Option<u64>,
+    pub record: Option<CondenseRecord>,
+    pub outputs: Vec<FileCheck>,
+    /// One check per source, in manifest order, labelled by clip.
+    pub sources: Vec<FileCheck>,
+    pub source_status: &'static str,
+    pub edl_segments: Option<u64>,
+    pub bytes_hashed: u64,
+    pub failure: Option<Failure>,
+}
+
+impl CondenseVerification {
+    pub fn verified(&self) -> bool {
+        self.failure.is_none()
+    }
+}
+
+fn edl_invalid(detail: impl Into<String>) -> Failure {
+    Failure::new(Reason::EdlInvalid, detail)
+}
+
+/// Read the already hashed EDL again within its size bound, and require the same digest.
+fn read_edl(path: &Path, expected: &str, budget: &mut Budget) -> Result<Vec<u8>, Failure> {
+    let label = "timeline.edl.file";
+    let file = File::open(path)
+        .map_err(|error| Failure::new(Reason::ReadError, format!("{label}: {error}")))?;
+    let length = file
+        .metadata()
+        .map_err(|error| Failure::new(Reason::ReadError, format!("{label}: {error}")))?
+        .len();
+    if length > timeline::MAX_EDL_BYTES {
+        return Err(edl_invalid(format!(
+            "too_large: the EDL is {length} bytes; bound is {}",
+            timeline::MAX_EDL_BYTES
+        )));
+    }
+    budget.reserve(length, label)?;
+    let mut bytes = Vec::with_capacity(length as usize);
+    file.take(timeline::MAX_EDL_BYTES + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|error| Failure::new(Reason::ReadError, format!("{label}: {error}")))?;
+    budget.used += bytes.len() as u64;
+    if hash::digest(&bytes).to_hex() != expected {
+        return Err(Failure::new(
+            Reason::FileChangedDuringVerification,
+            "the EDL changed between hashing and parsing",
+        ));
+    }
+    Ok(bytes)
+}
+
+/// The EDL must agree with the manifest on frame rate, frame totals, clips, shifts and sources.
+fn check_edl(record: &CondenseRecord, bytes: &[u8]) -> Result<u64, Failure> {
+    let edl = timeline::Edl::parse(bytes)
+        .map_err(|failure| edl_invalid(format!("{}: {}", failure.reason.code(), failure.detail)))?;
+    let report = edl
+        .validate()
+        .map_err(|failure| edl_invalid(format!("{}: {}", failure.reason.code(), failure.detail)))?;
+    if edl.fps != record.fps {
+        return Err(edl_invalid(format!(
+            "EDL fps {} differs from timeline.fps {}",
+            edl.fps, record.fps
+        )));
+    }
+    if report.total_frames != record.total_frames || record.total_frames != record.video_frames {
+        return Err(edl_invalid(format!(
+            "EDL frames {}, timeline.total_frames {} and delivery.video_frames {} must agree",
+            report.total_frames, record.total_frames, record.video_frames
+        )));
+    }
+    let declared: Vec<(&str, u64)> = record
+        .clips
+        .iter()
+        .map(|clip| (clip.name.as_str(), clip.shift_seconds.to_bits()))
+        .collect();
+    let edl_clips: Vec<(&str, u64)> = edl
+        .clips
+        .iter()
+        .map(|clip| (clip.name.as_str(), clip.shift.to_bits()))
+        .collect();
+    if declared != edl_clips {
+        return Err(edl_invalid(
+            "timeline.clips names and shift_seconds must equal the EDL clips, in order",
+        ));
+    }
+    for clip in &edl.clips {
+        for segment in &clip.segments {
+            if !record
+                .sources
+                .iter()
+                .any(|source| source.clip == segment.src)
+            {
+                return Err(edl_invalid(format!(
+                    "segment source {:?} is not listed in sources",
+                    segment.src
+                )));
+            }
+        }
+    }
+    Ok(report.segments as u64)
+}
+
+/// Metadata-only, read-only verification of one condense run directory (`--timeline edl_v1`).
+pub fn verify_condense_run(run_dir: &Path, options: VerifyOptions) -> CondenseVerification {
+    let mut result = CondenseVerification {
+        run_dir: run_dir.to_path_buf(),
+        canonical_run_dir: None,
+        manifest_sha256: None,
+        manifest_bytes: None,
+        record: None,
+        outputs: Vec::new(),
+        sources: Vec::new(),
+        source_status: "not_checked",
+        edl_segments: None,
+        bytes_hashed: 0,
+        failure: None,
+    };
+    if let Err(failure) = verify_condense_into(run_dir, options, &mut result) {
+        result.failure = Some(failure);
+    }
+    result
+}
+
+fn verify_condense_into(
+    run_dir: &Path,
+    options: VerifyOptions,
+    result: &mut CondenseVerification,
+) -> Result<(), Failure> {
+    let canonical = canonical_run_dir(run_dir)?;
+    result.canonical_run_dir = Some(canonical.clone());
+    let manifest_path = canonical.join("manifest.json");
+    let mut budget = Budget { used: 0 };
+    let (bytes, manifest_digest) = read_manifest(&manifest_path)?;
+    budget.used += bytes.len() as u64;
+    result.bytes_hashed = budget.used;
+    result.manifest_sha256 = Some(manifest_digest.to_hex());
+    result.manifest_bytes = Some(bytes.len() as u64);
+    let root = json::parse_object(&bytes)
+        .map_err(|error| Failure::new(Reason::ManifestInvalidJson, error.to_string()))?;
+    drop(bytes);
+    let record = CondenseRecord::from_json(&root)?;
+    drop(root);
+    result.record = Some(record.clone());
+    check_run_identity(&canonical, &record.run_id, &record.run_dir)?;
+
+    let outcome = hash_outputs(
+        &canonical,
+        &record.output_sha256,
+        &mut budget,
+        &mut result.outputs,
+    );
+    result.bytes_hashed = budget.used;
+    outcome?;
+    let outcome = read_edl(
+        &canonical.join(&record.edl_file),
+        &record.edl_sha256,
+        &mut budget,
+    );
+    result.bytes_hashed = budget.used;
+    result.edl_segments = Some(check_edl(&record, &outcome?)?);
+
+    result.source_status = "verified";
+    for source in &record.sources {
+        let mut check = FileCheck {
+            name: source.clip.clone(),
+            expected_sha256: source.sha256.clone(),
+            actual_sha256: None,
+            bytes: None,
+            status: "not_checked",
+        };
+        let label = format!("source {:?}", source.clip);
+        let outcome = hash_stable_file(&source.path, Role::Source, &label, &mut budget);
+        result.bytes_hashed = budget.used;
+        match outcome {
+            Ok((digest, length)) => {
+                check.actual_sha256 = Some(digest.to_hex());
+                check.bytes = Some(length);
+                if digest.to_hex() == source.sha256 {
+                    check.status = "verified";
+                    result.sources.push(check);
+                } else {
+                    check.status = "hash_mismatch";
+                    result.sources.push(check);
+                    result.source_status = "hash_mismatch";
+                    return Err(Failure::new(
+                        Reason::SourceHashMismatch,
+                        format!("{label} digest differs from manifest"),
+                    ));
+                }
+            }
+            Err(failure) if failure.reason == Reason::SourceMissing && !options.require_source => {
+                check.status = "absent_unverified";
+                result.sources.push(check);
+                result.source_status = "absent_unverified";
+            }
+            Err(failure) => {
+                check.status = failure.reason.code();
+                result.sources.push(check);
+                result.source_status = failure.reason.code();
+                return Err(failure);
+            }
+        }
+    }
+
+    let outcome = reread_manifest(&manifest_path, &manifest_digest, &mut budget);
+    result.bytes_hashed = budget.used;
+    outcome
+}
+
+/// Render a condense verification as its `verify-run --timeline edl_v1` receipt.
+pub fn condense_receipt(verification: &CondenseVerification, verifier: &str) -> Value {
+    let mut map = BTreeMap::new();
+    let record = verification.record.as_ref();
+    let failure = verification.failure.as_ref();
+    map.insert("schema_version".into(), Value::u64(RECEIPT_SCHEMA_VERSION));
+    map.insert(
+        "kind".into(),
+        Value::string("video_utils_verify_run_receipt"),
+    );
+    map.insert("verifier".into(), Value::string(verifier));
+    map.insert(
+        "status".into(),
+        Value::string(if verification.verified() {
+            "verified"
+        } else {
+            "failed"
+        }),
+    );
+    map.insert(
+        "reason".into(),
+        Value::opt_string(failure.map(|f| f.reason.code())),
+    );
+    map.insert(
+        "detail".into(),
+        Value::opt_string(failure.map(|f| f.detail.as_str())),
+    );
+    map.insert(
+        "run_dir".into(),
+        Value::string(verification.run_dir.to_string_lossy()),
+    );
+    map.insert(
+        "canonical_run_dir".into(),
+        Value::opt_string(
+            verification
+                .canonical_run_dir
+                .as_ref()
+                .map(|path| path.to_string_lossy())
+                .as_deref(),
+        ),
+    );
+    map.insert(
+        "run_id".into(),
+        Value::opt_string(record.map(|r| r.run_id.as_str())),
+    );
+    map.insert(
+        "manifest_sha256".into(),
+        Value::opt_string(verification.manifest_sha256.as_deref()),
+    );
+    map.insert(
+        "manifest_bytes".into(),
+        verification.manifest_bytes.map_or(Value::Null, Value::u64),
+    );
+    map.insert(
+        "manifest_schema_version".into(),
+        record.map_or(Value::Null, |r| Value::u64(r.schema_version)),
+    );
+    map.insert(
+        "manifest_kind".into(),
+        Value::opt_string(record.map(|_| CONDENSE_KIND)),
+    );
+    map.insert(
+        "manifest_status".into(),
+        Value::opt_string(record.and_then(|r| r.status.as_deref())),
+    );
+    let verified_outputs = verification
+        .outputs
+        .iter()
+        .filter(|c| c.status == "verified")
+        .count();
+    let mut outputs = BTreeMap::new();
+    outputs.insert("verified".into(), Value::u64(verified_outputs as u64));
+    outputs.insert(
+        "total".into(),
+        record.map_or(Value::Null, |r| Value::u64(r.output_sha256.len() as u64)),
+    );
+    outputs.insert(
+        "files".into(),
+        Value::Array(verification.outputs.iter().map(file_check_json).collect()),
+    );
+    map.insert("outputs".into(), Value::Object(outputs));
+    let mut sources = BTreeMap::new();
+    sources.insert("status".into(), Value::string(verification.source_status));
+    sources.insert(
+        "total".into(),
+        record.map_or(Value::Null, |r| Value::u64(r.sources.len() as u64)),
+    );
+    sources.insert(
+        "files".into(),
+        Value::Array(verification.sources.iter().map(file_check_json).collect()),
+    );
+    map.insert("sources".into(), Value::Object(sources));
+    map.insert(
+        "timeline".into(),
+        record.map_or(Value::Null, |r| {
+            let mut timeline = BTreeMap::new();
+            timeline.insert("mapping".into(), Value::string(timeline::EDL_MAPPING));
+            timeline.insert("no_time_stretch".into(), Value::Bool(false));
+            timeline.insert("edl_file".into(), Value::string(&r.edl_file));
+            timeline.insert("edl_sha256".into(), Value::string(&r.edl_sha256));
+            timeline.insert("fps".into(), Value::u64(r.fps));
+            timeline.insert("total_frames".into(), Value::u64(r.total_frames));
+            timeline.insert(
+                "edl_segments".into(),
+                verification.edl_segments.map_or(Value::Null, Value::u64),
+            );
+            Value::Object(timeline)
+        }),
+    );
+    map.insert(
+        "delivery".into(),
+        record.map_or(Value::Null, |r| {
+            let mut delivery = BTreeMap::new();
+            delivery.insert("file".into(), Value::string(&r.delivery_file));
+            delivery.insert("video_frames".into(), Value::u64(r.video_frames));
+            Value::Object(delivery)
+        }),
+    );
+    map.insert("listening_accepted".into(), Value::Null);
+    map.insert("media_decoded".into(), Value::Bool(false));
+    map.insert("subprocesses_launched".into(), Value::u64(0));
+    map.insert("bytes_hashed".into(), Value::u64(verification.bytes_hashed));
+    map.insert(
+        "read_budget_bytes".into(),
+        Value::u64(MAX_VERIFY_READ_BYTES),
+    );
+    map.insert(
+        "claim_scope".into(),
+        Value::string(
+            "byte identity of listed files, typed manifest-field validity and EDL agreement with the \
+             manifest only; not media quality, A/V sync, caption accuracy or listening acceptance",
+        ),
+    );
+    Value::Object(map)
 }
 
 fn file_check_json(check: &FileCheck) -> Value {

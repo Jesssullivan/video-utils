@@ -15,7 +15,9 @@ This is today's contract, unchanged.
   `"identity"`. Every manifest written before this contract omits it.
 - `video-utils verify-run RUN_DIR` refuses a manifest whose `timeline.mapping`
   is present and not `"identity"`, with the existing reason
-  `time_stretch_not_excluded`.
+  `time_stretch_not_excluded`. A `null` or non-string mapping is refused the same
+  way. The check runs right after `schema_version`, so a condense manifest gets
+  this reason rather than a missing-field one.
 - Every Python consumer keeps its `no_time_stretch is True` check.
 
 ## `edl_v1`: condense runs
@@ -37,10 +39,21 @@ A condense run maps output time to source time through an EDL.
 - Condense manifests live under `artifacts/condense/<run_id>/`, outside
   `artifacts/runs/`.
 
-`video-utils verify-run --timeline edl_v1 RUN_DIR` checks the hashes, parses and
-validates the EDL with `src/timeline.rs` (`edl_invalid` on failure), and
-cross-checks fps, frame totals, clip names and shifts. It refuses an identity
-manifest (`timeline_mapping_mismatch`).
+- `sources` lists 1 to 64 recordings, each `{clip, path, sha256}` with a unique
+  clip name. `delivery` names the delivered file, which is listed in
+  `output_sha256`, and its `video_frames`.
+
+`video-utils verify-run --timeline edl_v1 RUN_DIR` checks the hashes of every
+listed output and recording, parses and validates the EDL with
+`src/timeline.rs` (`edl_invalid` on failure), and cross-checks fps, frame totals,
+clip names and shifts, and that every segment's source is a listed recording
+(`edl_invalid` when they disagree). A `timeline.edl.sha256` that differs from the
+file's `output_sha256` entry is `manifest_field_invalid`. It refuses an identity
+manifest, with no mapping or `"identity"` (`timeline_mapping_mismatch`), and any
+other mapping (`timeline_mapping_invalid`). Its receipt adds `timeline.mapping`,
+`timeline.edl_sha256`, `timeline.total_frames` and `timeline.edl_segments`, plus
+`manifest_kind`, the `sources` checks and `delivery`. `--timeline identity` is the
+default path, named explicitly.
 
 ## What must not change
 
