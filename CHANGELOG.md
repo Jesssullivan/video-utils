@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `src/timeline.rs` and `video-utils timeline validate|table|map|quantise`: the
+  EDL model, frame quantisation and time map, bit-exact with the frozen
+  talk-condense oracle (`tests/fixtures/edl-golden-v1.json`).
+- `video-utils verify-run --timeline edl_v1`: condense runs are verified against
+  their hash-bound EDL. The default receipt for guitar runs is unchanged.
+- `condense publish`: a hash-bound run under `artifacts/condense/<run_id>/`.
+- MCP tools 47 to 57: `timeline_validate`, `timeline_map` and the nine condense
+  stages, each with a skill.
+
+### Changed
+
+- The condense edl stage validates every `edl.json` with the Rust timeline.
+- Condense defaults: 2 parallel jobs, 4 whisper threads and a 7200 s limit per
+  tool call (`CONDENSE_TOOL_TIMEOUT_S`).
+
 ## 0.2.0 (2026-10-15)
 
 ### Added
