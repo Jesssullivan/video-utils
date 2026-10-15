@@ -3,7 +3,7 @@
   "authority": "Operator approved plan / Implement the plan; R-HOOK-CONVERGENCE-20261004 / R-N13",
   "repository": "https://github.com/Jesssullivan/video-utils",
   "team_id": "a2c482c8-4d0d-4171-82d9-553265b6c706",
-  "updated_at": "2026-10-07T01:50:00+00:00",
+  "updated_at": "2026-10-15T07:00:00+00:00",
   "milestones": [
     {
       "id": "71bd7738-f346-48dd-8426-4095575a386a",
@@ -1161,5 +1161,114 @@
         "TIN-5554": "Backlog"
       }
     }
+  },
+  "media_initiative": {
+    "authority": "Operator decision 2026-10-15 / R-N13",
+    "initiative": {
+      "identifier": "I-78",
+      "id": "6b59b377-9f47-4ed7-a8ca-293ad39d7c4d",
+      "name": "Media & audio analysis",
+      "url": "https://linear.app/tinyland/initiative/media-and-audio-analysis-aa5450d444f0",
+      "projects": [
+        "P-TIN-190",
+        "P-TIN-45",
+        "P-TIN-181"
+      ],
+      "related": [
+        "P-TIN-180"
+      ]
+    },
+    "milestone": {
+      "id": "ff9e98e4-f035-4987-bf80-77c9a45401ee",
+      "name": "Absorb talk-condense"
+    },
+    "issues": [
+      {
+        "identifier": "TIN-6500",
+        "id": "8fc9d2d0-b5a2-4a67-9ec7-cdca06b62248",
+        "title": "C1: declare the ./condense scope and correct public-repository statements"
+      },
+      {
+        "identifier": "TIN-6501",
+        "id": "3ef24e28-b1dd-4d44-96a1-d4ba3d3940a3",
+        "title": "C2: condense devShell"
+      },
+      {
+        "identifier": "TIN-6502",
+        "id": "d2c6c5dc-2622-4d35-b7b3-53389b9f9981",
+        "title": "C3: register whisper.cpp ggml-small.en hash-bound"
+      },
+      {
+        "identifier": "TIN-6503",
+        "id": "70476654-4917-4c13-ae44-dd2e46761a68",
+        "title": "C4: absorb talk-condense at bf5b9dc as ./condense"
+      },
+      {
+        "identifier": "TIN-6504",
+        "id": "3438b302-5ec0-495d-b730-8c8a788ed289",
+        "title": "C5: release 0.2.0 and retire talk-condense"
+      },
+      {
+        "identifier": "TIN-6505",
+        "id": "a5ebc249-49c9-40bf-a136-a3bd0fcb1149",
+        "title": "C6: extract crate::json from run_record"
+      },
+      {
+        "identifier": "TIN-6506",
+        "id": "614de635-7f29-4338-bdc1-f5b004b2c7ff",
+        "title": "C7: Rust EDL timeline core (model, quantise, time map)"
+      },
+      {
+        "identifier": "TIN-6507",
+        "id": "545af9a7-3919-4b3e-b028-abbe5dffe5f5",
+        "title": "C8: video-utils timeline CLI"
+      },
+      {
+        "identifier": "TIN-6508",
+        "id": "91f3ef1a-60e0-4846-b7b1-29491dee2859",
+        "title": "C9: route condense through the Rust timeline with frozen-oracle parity"
+      },
+      {
+        "identifier": "TIN-6509",
+        "id": "75bfe37b-a9ac-4327-84dd-2d9ce1484c5d",
+        "title": "C10: EDL timeline mapping in run manifests with a refusal matrix"
+      },
+      {
+        "identifier": "TIN-6510",
+        "id": "750946e2-f2f9-4a5c-bce5-7d4026b7521a",
+        "title": "C11: condense publish stage (hash-bound EDL-mapped manifest)"
+      },
+      {
+        "identifier": "TIN-6511",
+        "id": "279a754c-4b81-44dd-87c7-0b457653eb62",
+        "title": "C12: draft and admit condense and timeline MCP tools and skills"
+      },
+      {
+        "identifier": "TIN-6512",
+        "id": "583e5269-696b-4924-942c-6ff9130ac680",
+        "title": "C13: dedupe condense with scripts/media.py helpers"
+      },
+      {
+        "identifier": "TIN-6513",
+        "id": "f4766d3e-db7d-4f8b-9818-4aa567d1e5c3",
+        "title": "C14: bound condense parallelism and subprocess timeouts"
+      }
+    ],
+    "backlog": [
+      {
+        "identifier": "TIN-6514",
+        "id": "5f22e64a-4f72-4df1-8185-d6a7e50f08e6",
+        "title": "Optional tubebrain-stt HTTP backend for condense_transcribe"
+      },
+      {
+        "identifier": "TIN-6515",
+        "id": "93bb434c-fbac-4127-b626-e5311778cf46",
+        "title": "Triage private identifiers already in the public video-utils tree"
+      }
+    ],
+    "spec": [
+      "docs/spec/CONDENSE.md",
+      "docs/spec/TIMELINE_CONTRACT.md"
+    ]
   }
 }

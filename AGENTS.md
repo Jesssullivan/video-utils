@@ -47,7 +47,8 @@ overlapping features, and retain unverified specialized accuracy as unknown.
 - `just` is the operator entrypoint. Root `justfile` routes `just/*.just`.
 - Commit toolchain/dependency locks; model downloads are explicit and hash-bound.
 - Original recordings, rendered media, model checkpoints, and caches stay out
-  of Git. The repository is private; privacy still applies to CI/log artifacts.
+  of Git. The repository is public: no real takes, recordings, host names,
+  personal paths or private estate details in tracked files, CI or logs.
 - Preserve source rate/channels and timeline in masters. Analysis resampling is
   separate and recorded. Never overwrite the input.
 - Keep workers bounded; use existing approved builders for heavy compilation,
@@ -134,3 +135,19 @@ Every analysis declares the signal version it consumed; invalidate downstream
 results when that input changes. Shareable overlays default to compact section/
 phrase labels, BPM and brief issue badges. User-reported issues retain their
 authorship and must remain distinguishable from detector hypotheses.
+
+## Talk condensing (`./condense`)
+
+`condense/` condenses recorded talks: long pauses are cut, short pauses and
+fillers are sped up, speech plays faster and no word is dropped. It came from
+`Jesssullivan/talk-condense` (see `CHANGELOG.md`) and is specified in
+`docs/spec/CONDENSE.md`.
+
+- The guitar axioms above govern guitar takes, not speech. Condense's 80 Hz
+  high-pass and whisper normalisation apply only to its speech analysis copies,
+  and it ships no guitar default.
+- Condense time-stretches by design. Its runs declare an explicit EDL mapping
+  (`docs/spec/TIMELINE_CONTRACT.md`) and live outside `artifacts/runs/`; guitar
+  tools keep refusing any input without `no_time_stretch: true`.
+- whisper.cpp runs through the `condense` dev shell; its model is registered and
+  hash-bound in `program/models.json` like every other model.

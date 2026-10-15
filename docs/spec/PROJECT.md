@@ -1,7 +1,8 @@
 # Guitar restoration and performance analysis
 
-Approved direction, October 5, 2026. Private repository:
-`Jesssullivan/video-utils`. Work is tracked in a dedicated Tinyland Linear
+Approved direction, October 5, 2026. Public repository:
+`Jesssullivan/video-utils`. Talk condensing lives in `./condense`
+(`docs/spec/CONDENSE.md`). Work is tracked in a dedicated Tinyland Linear
 project; published project and issue IDs belong in `program/linear.json`.
 
 The user's instrument is always a downtuned nine-string guitar, with a lowest
