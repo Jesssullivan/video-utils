@@ -7,6 +7,7 @@ pub mod dsp;
 pub mod hash;
 pub mod json;
 pub mod run_record;
+pub mod timeline;
 
 /// Maximum interleaved or planar sample count accepted by one gain operation.
 pub const MAX_BLOCK_SAMPLES: usize = 65_536;

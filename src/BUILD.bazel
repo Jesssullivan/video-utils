@@ -44,8 +44,10 @@ rust_binary(
     deps = [":video_utils"],
 )
 
+# src/timeline.rs embeds the frozen oracle's answers with include_str!.
 rust_test(
     name = "video_utils_unit_test",
+    compile_data = ["//tests:fixtures/edl-golden-v1.json"],
     crate = ":video_utils",
     edition = RUST_EDITION,
 )

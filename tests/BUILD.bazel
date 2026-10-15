@@ -26,6 +26,8 @@ load("//tools/bazel:rust.bzl", "RUST_EDITION")
 
 package(default_visibility = ["//visibility:public"])
 
+exports_files(["fixtures/edl-golden-v1.json"])
+
 filegroup(
     name = "all_files",
     srcs = glob(
