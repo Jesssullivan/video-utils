@@ -13,8 +13,10 @@ whisper-cli's full JSON (or the segments/words shape whisper_json adapts), so ev
 import http.client
 import ipaddress
 import json
+import math
 import os
 import re
+import socket
 import tempfile
 import urllib.error
 import urllib.parse
@@ -63,18 +65,65 @@ def backend(cfg):
     return name
 
 
+def loopback(host):
+    """True when host is a loopback address, or localhost resolving to loopback addresses only."""
+    try:
+        if host == "localhost":
+            found = {a[4][0] for a in socket.getaddrinfo(host, None)}
+            return bool(found) and all(ipaddress.ip_address(a).is_loopback for a in found)
+        return ipaddress.ip_address(host or "").is_loopback
+    except (OSError, ValueError):
+        return False
+
+
 def stt_url(cfg):
-    """The http backend's endpoint: an http(s) URL on a loopback host, without user info."""
+    """The http backend's endpoint: an http(s) URL on a loopback host, without user info, params or fragment.
+    A fragment would swallow the query this module appends, so it is refused rather than dropped."""
     url = cfg.whisper["url"]
     p = urllib.parse.urlsplit(url)
     try:
         _ = p.port  # a malformed port raises ValueError
-        local = p.hostname == "localhost" or ipaddress.ip_address(p.hostname or "").is_loopback
+        local = loopback(p.hostname)
     except ValueError:
         local = False
     if p.scheme not in ("http", "https") or not local or "@" in p.netloc:
         raise ValueError("whisper.url must be an http(s) URL on a loopback host, without user info")
+    if "#" in url or urllib.parse.urlparse(url).params:
+        raise ValueError("whisper.url must carry no fragment and no ;params")
     return url
+
+
+def http_timeout(cfg):
+    """Seconds to wait on the service per socket operation: a finite number above zero."""
+    t = cfg.whisper["http_timeout_s"]
+    if isinstance(t, bool) or not isinstance(t, (int, float)) or not math.isfinite(t) or t <= 0:
+        raise ValueError("whisper.http_timeout_s must be a finite number of seconds above 0")
+    return float(t)
+
+
+def bearer():
+    """The Authorization header value from CONDENSE_STT_TOKEN, or None when it is unset or empty.
+    A token that is not visible ASCII (a trailing newline from an env file, say) is refused without echoing it."""
+    token = os.environ.get(TOKEN_ENV)
+    if not token:
+        return None
+    if not re.fullmatch(r"[\x21-\x7e]+", token):
+        raise ValueError(f"{TOKEN_ENV} must be visible ASCII without spaces or line breaks")
+    return f"Bearer {token}"
+
+
+def http_settings(cfg):
+    """Check every http backend setting before any work. Return (url, timeout, authorization or None)."""
+    return stt_url(cfg), http_timeout(cfg), bearer()
+
+
+def provenance(cfg):
+    """What produced the transcription, for work/<clip>.stt.json. Never the token."""
+    w = cfg.whisper
+    common = {"language": w["language"], "dtw": w["dtw"], "pass1": w["pass1"], "chunk_s": w["chunk_s"]}
+    if backend(cfg) == "http":
+        return {"backend": "http", "url": stt_url(cfg), "response_format": "whisper_full", **common}
+    return {"backend": "cli", "model": Path(cfg.model).name, **common}
 
 
 def whisper_json(doc):
@@ -114,14 +163,15 @@ def whisper_json(doc):
                     raise TypeError
                 if "t_dtw" in part and not whole(part["t_dtw"]):
                     raise TypeError
-    except (KeyError, TypeError, ValueError, AttributeError):
+    except (KeyError, TypeError, ValueError, AttributeError, OverflowError):
         raise RuntimeError("stt service sent JSON that is not whisper's full transcription") from None
     return doc
 
 
 def http_full(cfg, wav, **query):
-    """POST one wav to the STT service. Return whisper-cli full JSON. Every failure raises; none is retried."""
-    url = stt_url(cfg)
+    """POST one wav to the STT service. Return whisper-cli full JSON. Every failure raises; none is retried.
+    No error message carries the token."""
+    url, timeout, auth = http_settings(cfg)
     params = urllib.parse.urlencode({"response_format": "whisper_full", "language": cfg.whisper["language"], **query})
     req = urllib.request.Request(
         f"{url}{'&' if urllib.parse.urlsplit(url).query else '?'}{params}",
@@ -129,18 +179,17 @@ def http_full(cfg, wav, **query):
         headers={"Content-Type": "audio/wav", "Accept": "application/json"},
         method="POST",
     )
-    token = os.environ.get(TOKEN_ENV)
-    if token:
-        req.add_header("Authorization", f"Bearer {token}")
-    timeout = float(cfg.whisper["http_timeout_s"])
+    if auth:
+        req.add_header("Authorization", auth)
     try:
         with OPENER.open(req, timeout=timeout) as r:
             if r.status != 200:
                 raise RuntimeError(f"stt service answered HTTP {r.status}")
             body = r.read(MAX_REPLY + 1)
     except urllib.error.HTTPError as e:
+        e.close()
         raise RuntimeError(f"stt service answered HTTP {e.code}") from None
-    except (urllib.error.URLError, http.client.HTTPException, OSError) as e:
+    except (urllib.error.URLError, http.client.HTTPException, OSError, ValueError) as e:
         r = getattr(e, "reason", e)
         why = "timed out" if isinstance(r, TimeoutError) else type(r if isinstance(r, BaseException) else e).__name__
         raise RuntimeError(f"stt service failed ({why}; each wait is bounded by {timeout:g} s)") from None
@@ -190,6 +239,8 @@ def merge(fulls, offsets):
 
 def read(cfg, src, a, b):
     """Whisper's plain text for [a, b] seconds of any media file, without [noise] tags."""
+    if backend(cfg) == "http":
+        http_settings(cfg)
     with tempfile.NamedTemporaryFile(suffix=".wav", dir=cfg.work) as f:
         cut = ("-ss", f"{a:.3f}", "-t", f"{b - a:.3f}", "-i", src, "-vn", "-ac", "1", "-ar", "16000")
         run(*FF, "-v", "error", *cut, "-c:a", "pcm_s16le", f.name)
@@ -202,9 +253,13 @@ def read(cfg, src, a, b):
 
 def transcribe(cfg, clip):
     if backend(cfg) == "http":
-        stt_url(cfg)
+        http_settings(cfg)
         if clip["whisper_args"]:
             raise ValueError(f"{clip['name']}: whisper_args apply to whisper-cli only, not to backend = http")
+    # A failed run leaves no pass JSON behind, not even an earlier run's: events must not read stale words.
+    outputs = {tag: cfg.f(clip, f"{tag}.json") for tag in ("pass1", "dtw", "stt")}
+    for path in outputs.values():
+        path.unlink(missing_ok=True)
     wav = audio.extract(cfg, clip)
     spans = cuts(
         audio.silences(wav, clip["silence_db"], cfg.rules["silence_s"]), audio.duration(wav), cfg.whisper["chunk_s"]
@@ -216,6 +271,7 @@ def transcribe(cfg, clip):
     parts = [tmp / f"{clip['name']}.{i}.wav" for i in range(len(spans))]
     for part, (a, b) in zip(parts, spans, strict=True):
         run(*FF, "-v", "error", "-ss", a, "-to", b, "-i", wav, "-c:a", "pcm_s16le", part)
+    done = {}
     for tag in ["pass1", "dtw"] if cfg.whisper["pass1"] else ["dtw"]:
 
         def one(part, tag=tag):
@@ -226,5 +282,8 @@ def transcribe(cfg, clip):
         tokens = [t for seg in full["transcription"] for t in seg["tokens"]]
         if tag == "dtw" and tokens and all(t.get("t_dtw", -1) < 0 for t in tokens):
             raise RuntimeError("whisper returned no DTW times: flash attention was on, or the dtw preset is wrong")
-        cfg.f(clip, f"{tag}.json").write_text(json.dumps(full))
+        done[tag] = json.dumps(full)
         print(f"{clip['name']} {tag}: {len(spans)} chunks, {len(full['transcription'])} segments, {len(tokens)} tokens")
+    for tag, text in done.items():
+        outputs[tag].write_text(text)
+    outputs["stt"].write_text(json.dumps(provenance(cfg), indent=1))

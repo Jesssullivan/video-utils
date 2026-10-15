@@ -55,13 +55,18 @@ above. `backend = "http"` sends the same 16 kHz mono chunks to a speech-to-text
 service instead, such as a local tubebrain-stt. TubeBrain stays a separate
 product; no code moves between the repositories.
 
-- `url` must be an `http` or `https` URL on a loopback host (`localhost` or
-  an IPv4 or IPv6 loopback address) with no user info. A remote service needs an operator
-  port forward. Proxies are bypassed and redirects are refused, so the token
-  and the audio reach only that address.
+- `url` must be an `http` or `https` URL on a loopback host (an IPv4 or IPv6
+  loopback address, or `localhost` while every address it resolves to is
+  loopback) with no user info, no `;params` and no `#fragment`. A fragment
+  would swallow the query the backend appends, so it is refused. A remote
+  service needs an operator port forward. Proxies are bypassed and redirects
+  are refused, so the token and the audio reach only that address.
+- `http_timeout_s` must be a finite number above 0.
 - The bearer token is read only from the `CONDENSE_STT_TOKEN` environment
-  variable, and it is sent only when that variable is set. It never appears in
-  `talk.toml`, in `work/` or in an error message.
+  variable, and it is sent only when that variable is set. It must be visible
+  ASCII with no space or line break; any other value (a trailing newline from
+  an env file, say) is refused before any work, and the refusal does not echo
+  it. It never appears in `talk.toml`, in `work/` or in an error message.
 - Request: `POST <url>?response_format=whisper_full&language=..&prompt=..[&dtw=<preset>]`
   with the chunk as an `audio/wav` body. The DTW pass adds `dtw`; `read()` sends
   neither `prompt` nor `dtw` and joins the segment texts.
@@ -72,18 +77,26 @@ product; no code moves between the repositories.
   time. That substitution is an inference, not a measured equivalence.
 - `events.words_from` reads both backends unchanged. The pass-1 and DTW JSON
   land in `work/` as before, and the stage still fails when no DTW time came
-  back.
+  back. `work/<clip>.stt.json` records the backend that produced them (the
+  model file name, or the service URL), the language, the DTW preset, `pass1`
+  and `chunk_s`; never the token.
 - Fail closed: any HTTP status other than 200, a redirect, an unreachable
   service, a wait over `http_timeout_s` (3600 s), a reply over 64 MiB, invalid
-  JSON or any other shape stops the stage. Nothing is retried and no partial
-  JSON is written. `whisper_args` apply to whisper-cli only and are refused.
+  JSON or any other shape stops the stage. Nothing is retried. For both
+  backends the stage first removes the clip's `pass1.json`, `dtw.json` and
+  `stt.json`, and writes them only after both passes succeed, so a failed run
+  leaves none behind, not even an earlier run's. `whisper_args` apply to
+  whisper-cli only and are refused.
 - `condense/tests/test_transcribe_http.py` runs an in-process fake service on
   synthetic media. Its `words.json` equals the whisper-cli path's for the same
   canned JSON. No real service has been contacted, so the tubebrain-stt request
   and reply shapes above are an unverified contract.
-- The MCP tool `condense_transcribe` is frozen at admission. It still requires
-  the registered model and declares `openWorldHint: false`. Running the http
-  backend through it is not part of that contract yet.
+- The condense MCP tools are frozen at admission with `openWorldHint: false`,
+  and `condense_transcribe` requires the registered model. Their talk.toml
+  preflight refuses any `[whisper] backend` other than `cli`, and workers never
+  receive `CONDENSE_STT_TOKEN`. That covers `condense_edl` and `condense_check`
+  too, which call `read()`. Admitting the http backend under MCP needs a
+  contract revision that declares it.
 
 ## Rules that differ from the guitar workflow
 

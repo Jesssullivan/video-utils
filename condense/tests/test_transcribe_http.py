@@ -21,7 +21,7 @@ from condense import audio, config, events, transcribe
 from condense.config import Config
 
 TOKEN = "synthetic-test-token-0123"
-HOST = ".".join(["127", "0", "0", "1"])  # loopback, spelled so the public leak scan has no address to match
+HOST = "localhost"  # stt_url accepts it only while it resolves to loopback addresses
 TOML = """
 [whisper]
 backend = "{backend}"
@@ -191,6 +191,12 @@ def test_http_words_equal_cli_words_for_the_same_whisper_json(tmp_path, media, s
         assert r["query"]["response_format"] == "whisper_full" and r["query"]["language"] == "en"
         assert r["query"]["prompt"] == config.WHISPER["prompt"]
     assert TOKEN not in "".join(p.read_text(errors="replace") for p in web.work.rglob("*.json"))
+    # each run names the backend that produced its transcription; neither names the token
+    stt = {cfg.whisper["backend"]: json.loads(cfg.f("talk", "stt.json").read_text()) for cfg in (cli, web)}
+    assert stt["http"]["backend"] == "http" and stt["http"]["url"] == fake.url
+    assert stt["cli"] == {"backend": "cli", "model": "model.bin"} | {
+        k: v for k, v in stt["http"].items() if k in ("language", "dtw", "pass1", "chunk_s")
+    }
 
 
 def test_the_segments_shape_is_adapted_to_whisper_json(tmp_path, media, service):
@@ -228,6 +234,11 @@ def test_read_joins_the_service_text_without_tags_and_without_dtw(tmp_path, medi
     assert abs(seconds(r["body"]) - 3.5) < 0.01
 
 
+def inf_word():
+    """A word whose start is Infinity: json.dumps writes it and json.loads accepts it; no time is infinite."""
+    return {"start": float("inf"), "end": 1, "word": "a"}
+
+
 def slow(query, body):
     time.sleep(2)
     return ok(canned())
@@ -245,17 +256,23 @@ def slow(query, body):
             "not whisper's full",
         ),
         (lambda q, b: ok([1, 2]), "not whisper's full"),
+        (lambda q, b: ok({"segments": [{"start": 0, "end": 1, "text": " a", "words": [inf_word()]}]}), "not whisper's"),
+        (lambda q, b: ok({"transcription": []} | {"pad": "x" * 200}), "over 100 bytes"),
         (slow, "timed out"),
     ],
 )
 def test_service_errors_and_timeouts_fail_closed(tmp_path, media, service, monkeypatch, capsys, reply, match):
     monkeypatch.setenv(transcribe.TOKEN_ENV, TOKEN)
+    monkeypatch.setattr(transcribe, "MAX_REPLY", 100 if match.startswith("over") else transcribe.MAX_REPLY)
     fake = service(reply)
     cfg = make(tmp_path, media, "err", "http", fake.url)
     cfg.whisper["http_timeout_s"] = 0.5
+    cfg.work.mkdir(exist_ok=True)
+    for ext in ("pass1.json", "dtw.json", "stt.json"):  # an earlier run's outputs must not outlive a failed one
+        cfg.f("talk", ext).write_text(json.dumps(canned()))
     with pytest.raises(RuntimeError, match=match) as err:
         transcribe.transcribe(cfg, cfg.clips[0])
-    assert not cfg.f("talk", "pass1.json").exists() and not cfg.f("talk", "dtw.json").exists()
+    assert not any(cfg.f("talk", ext).exists() for ext in ("pass1.json", "dtw.json", "stt.json"))
     out = capsys.readouterr()
     assert TOKEN not in str(err.value) + out.out + out.err
 
@@ -269,7 +286,8 @@ def test_no_dtw_times_from_the_service_fail_closed(tmp_path, media, service):
     cfg = make(tmp_path, media, "nodtw", "http", fake.url)
     with pytest.raises(RuntimeError, match="no DTW times"):
         transcribe.transcribe(cfg, cfg.clips[0])
-    assert not cfg.f("talk", "dtw.json").exists()
+    assert len(fake.requests) == 2  # pass 1 succeeded; its JSON is still not written alone
+    assert not any(cfg.f("talk", ext).exists() for ext in ("pass1.json", "dtw.json", "stt.json"))
 
 
 def test_a_redirect_is_refused_and_not_followed(tmp_path, media, service, monkeypatch):
@@ -301,6 +319,9 @@ def test_an_unreachable_service_fails_closed(tmp_path, media, service):
         ("http", f"ftp://{HOST}/v1/transcribe", "", "loopback"),
         ("http", f"http://user:pw@{HOST}:9/v1/transcribe", "", "user info"),
         ("http", f"http://{HOST}:9/v1/transcribe", 'whisper_args = ["-bs", "8"]', "whisper-cli only"),
+        ("http", f"http://{HOST}:9/v1/transcribe#part", "", "no fragment"),
+        ("http", f"http://{HOST}:9/v1/transcribe#", "", "no fragment"),
+        ("http", f"http://{HOST}:9/v1/transcribe;v=1", "", "no ;params"),
     ],
 )
 def test_bad_backend_settings_are_refused_before_any_work(tmp_path, media, backend, url, extra, match):
@@ -314,3 +335,48 @@ def test_bad_backend_settings_are_refused_before_any_work(tmp_path, media, backe
 def test_the_defaults_keep_the_cli_backend():
     assert config.WHISPER["backend"] == "cli" and config.WHISPER["url"] == ""
     assert "token" not in json.dumps(config.WHISPER).lower()  # the token lives in the environment only
+
+
+@pytest.mark.parametrize("timeout", [0, -1, float("inf"), float("nan"), True, "60"])
+def test_a_timeout_that_is_not_a_positive_number_is_refused(tmp_path, media, timeout):
+    cfg = make(tmp_path, media, "timeout", "http", f"http://{HOST}:9/v1/transcribe")
+    cfg.whisper["http_timeout_s"] = timeout
+    with pytest.raises(ValueError, match="http_timeout_s"):
+        transcribe.transcribe(cfg, cfg.clips[0])
+    assert not cfg.f("talk", "16k.wav").exists()
+
+
+@pytest.mark.parametrize("token", [TOKEN + "\n", TOKEN + "\r\n", "two words", TOKEN + "\u00e9"])
+def test_a_token_that_is_no_header_value_is_refused_without_echoing_it(tmp_path, media, service, monkeypatch, token):
+    monkeypatch.setenv(transcribe.TOKEN_ENV, token)
+    fake = service()
+    cfg = make(tmp_path, media, "token", "http", fake.url)
+    clip = cfg.clips[0]
+    for call in (lambda: transcribe.transcribe(cfg, clip), lambda: transcribe.read(cfg, clip["file"], 1, 2)):
+        with pytest.raises(ValueError, match=transcribe.TOKEN_ENV) as err:
+            call()
+        assert token.strip() not in str(err.value)
+    assert fake.requests == [] and not cfg.f("talk", "16k.wav").exists()
+
+
+def test_a_header_the_client_refuses_fails_closed_without_the_token(tmp_path, media, service, monkeypatch):
+    """Belt and braces: should a bad header value reach http.client, its ValueError leaves no token behind."""
+    monkeypatch.setattr(transcribe, "bearer", lambda: f"Bearer {TOKEN}\n")
+    fake = service()
+    cfg = make(tmp_path, media, "header", "http", fake.url)
+    with pytest.raises(RuntimeError, match="stt service failed") as err:
+        transcribe.http_full(cfg, media)
+    assert TOKEN not in str(err.value) and err.value.__cause__ is None and err.value.__suppress_context__
+    assert fake.requests == []
+
+
+def test_localhost_counts_only_while_it_resolves_to_loopback(monkeypatch):
+    def resolve(addresses):
+        return lambda host, port: [(None, None, None, "", (a, 0)) for a in addresses]
+
+    monkeypatch.setattr(transcribe.socket, "getaddrinfo", resolve(["::1"]))
+    assert transcribe.loopback("localhost")
+    monkeypatch.setattr(transcribe.socket, "getaddrinfo", resolve(["::1", "192.0.2.10"]))
+    assert not transcribe.loopback("localhost")
+    monkeypatch.setattr(transcribe.socket, "getaddrinfo", resolve([]))
+    assert not transcribe.loopback("localhost")
