@@ -46,8 +46,8 @@ condense-overlay config="talk.toml":
 condense-publish config="talk.toml": cli
     python3 -m condense publish {{quote(config)}}
 
-# Every stage in order.
-condense-all config="talk.toml": (condense-transcribe config) (condense-events config) (condense-edl config) (condense-render config) (condense-check config) (condense-captions config) (condense-overlay config)
+# Every stage in order, ending in a published run that `verify-run --timeline edl_v1` accepted. Exits 1 on a refusal.
+condense-all config="talk.toml": (condense-transcribe config) (condense-events config) (condense-edl config) (condense-render config) (condense-check config) (condense-captions config) (condense-overlay config) (condense-publish config)
 
 # Lint and format check.
 condense-lint:

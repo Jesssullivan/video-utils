@@ -280,9 +280,9 @@ corpus-eval-s2 manifest proposals proposals_sha256 output local_root=".":
 hash +FILES:
     CARGO_BUILD_JOBS=1 cargo run --locked -j 1 --quiet -- hash {{FILES}}
 
-# Metadata-only, read-only hash/typed-field verification of a run directory
-verify-run RUN_DIR:
-    CARGO_BUILD_JOBS=1 cargo run --locked -j 1 --quiet -- verify-run "{{RUN_DIR}}"
+# Metadata-only, read-only hash/typed-field verification of a run directory; TIMELINE=edl_v1 for a condense run
+verify-run RUN_DIR TIMELINE="":
+    CARGO_BUILD_JOBS=1 cargo run --locked -j 1 --quiet -- verify-run {{ if TIMELINE == "" { "" } else { "--timeline " + quote(TIMELINE) } }} "{{RUN_DIR}}"
 
 # Closed-schema capability metadata check and static worker/skill/test traversal.
 capabilities-check:

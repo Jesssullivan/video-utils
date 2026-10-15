@@ -16,9 +16,12 @@ Run these from the repository root.
 nix develop .#condense                    # ffmpeg 8.1.2, whisper-cpp 1.8.4, python3, just, ruff, untrunc
 just condense-model                       # the registered, hash-bound ggml-small.en model (465 MiB)
 cp condense/examples/talk.toml talk.toml  # then name your recordings and set the speeds
-just condense-all                         # every stage in order
+just condense-all                         # every stage, then publish: a verified artifacts/condense/<run_id>/
 just condense-lint condense-test          # lint and the synthetic-media tests, under a minute
 ```
+
+`just condense-all` is the one command. It runs every stage below in order and ends in `publish`, which
+runs `verify-run --timeline edl_v1`. It exits non-zero when a check gate fails or verify-run refuses the run.
 
 Each stage is one recipe and one module in `condense/`. Each reads `talk.toml` and the files that the
 stage before it left in `work/`. Run one stage again after you change a number.
@@ -230,4 +233,8 @@ fresh `artifacts/condense/<run_id>/`. Its `manifest.json` hashes every file and 
 timeline mapping is `edl_v1`: output time maps to source time through `edl.json`
 (`../docs/spec/TIMELINE_CONTRACT.md`). The stage then runs `video-utils verify-run --timeline edl_v1` on the
 run. A run that fails the check is renamed to `.failed-<run_id>` and the stage exits 1. Guitar tools never
-list or accept these runs.
+list or accept these runs. `just condense-all` ends in this stage. To check a published run again:
+
+```sh
+just verify-run artifacts/condense/<run_id> edl_v1
+```
