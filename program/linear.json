@@ -3,7 +3,7 @@
   "authority": "Operator approved plan / Implement the plan; R-HOOK-CONVERGENCE-20261004 / R-N13",
   "repository": "https://github.com/Jesssullivan/video-utils",
   "team_id": "a2c482c8-4d0d-4171-82d9-553265b6c706",
-  "updated_at": "2026-10-15T16:00:00+00:00",
+  "updated_at": "2026-10-15T18:00:00+00:00",
   "milestones": [
     {
       "id": "71bd7738-f346-48dd-8426-4095575a386a",
@@ -87,7 +87,7 @@
       "kind": "ten_hour_goal"
     }
   ],
-  "evidence_state": "S2 complete: 17 lanes + 5 root integrations admin-merged (signed); 40 typed tools/skills; final source d1e74fe hosted CI 37535277896 success (1479 OK/110 optional skips, Rust, no leaks). D6 and TIN-5494 In Progress with stated reasons; operator follow-ups in docs/spec/sprints/S2_FOLLOWUPS.md.",
+  "evidence_state": "S4 in progress (2026-10-15 to 10-22). Talk-condense absorbed as ./condense (v0.2.0, TIN-6500..6513); typed tools 1-57 admitted; main CI green with four jobs. D6 (TIN-5491) and TIN-5494 carried into S4.",
   "project": {
     "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
     "name": "video-utils — media analysis toolkit",
@@ -666,7 +666,7 @@
       "id": "TIN-5546",
       "uuid": "ce6c9487-d0c8-47d8-a6b6-66a45a3ce04d",
       "url": "https://linear.app/tinyland/issue/TIN-5546/future-goal-private-guitar-practice-studio-mastering-and-explainable",
-      "status": "Backlog"
+      "status": "In Progress"
     },
     "milestones": [
       {
@@ -879,24 +879,6 @@
     "final_handoff": "docs/agent-notes/2026-10-06-final-handoff.md",
     "future_goal_activated": false
   },
-  "active_sprint": {
-    "id": "TIN-5563",
-    "url": "https://linear.app/tinyland/issue/TIN-5563/s1-five-hour-parallel-core-sprint-annotations-practice-review-and",
-    "plan": "docs/spec/sprints/20261006-S1.md",
-    "manifest": "program/sprints/20261006-s1.json",
-    "status": "In Progress",
-    "start_utc": "2026-10-06T05:57:52+00:00",
-    "end_utc": "2026-10-06T10:57:52+00:00",
-    "worker_count": 6,
-    "checkpoint": "all7issues independentlyDone; exact hostedCI successful",
-    "integration_receipt": "docs/agent-notes/sprints/20261006-s1/root-integration-checkpoint.json",
-    "demo_context_receipt": "docs/agent-notes/sprints/20261006-s1/root-actual-demo-context.json",
-    "hosted_ci": "37424756499 source48c46f090f6c7fe7a07660367ac6c098bed7f81c success",
-    "state": "scoped_delivery_complete",
-    "final_audit": "docs/agent-notes/sprints/20261006-s1/root-completion-audit.json",
-    "goal_control": "operator_overnight_pause",
-    "night_handoff": "docs/agent-notes/sprints/20261006-s1/NIGHT_HANDOFF.md"
-  },
   "sprint_publication": {
     "authority": "R-HOOK-CONVERGENCE-20261004/R-N13",
     "actor": "/root",
@@ -1018,6 +1000,45 @@
     "secret_scan": "PASS"
   },
   "sprints": {
+    "20261006-s1": {
+      "id": "TIN-5563",
+      "url": "https://linear.app/tinyland/issue/TIN-5563/s1-five-hour-parallel-core-sprint-annotations-practice-review-and",
+      "plan": "docs/spec/sprints/20261006-S1.md",
+      "manifest": "program/sprints/20261006-s1.json",
+      "status": "Done",
+      "start_utc": "2026-10-06T05:57:52+00:00",
+      "end_utc": "2026-10-06T10:57:52+00:00",
+      "worker_count": 6,
+      "checkpoint": "all7issues independentlyDone; exact hostedCI successful",
+      "integration_receipt": "docs/agent-notes/sprints/20261006-s1/root-integration-checkpoint.json",
+      "demo_context_receipt": "docs/agent-notes/sprints/20261006-s1/root-actual-demo-context.json",
+      "hosted_ci": "37424756499 source48c46f090f6c7fe7a07660367ac6c098bed7f81c success",
+      "state": "scoped_delivery_complete",
+      "final_audit": "docs/agent-notes/sprints/20261006-s1/root-completion-audit.json",
+      "goal_control": "operator_overnight_pause",
+      "night_handoff": "docs/agent-notes/sprints/20261006-s1/NIGHT_HANDOFF.md"
+    },
+    "20261007-s3": {
+      "plan": "docs/spec/sprints/20261007-S3.md",
+      "parent": {
+        "identifier": "TIN-5717",
+        "id": "5db4809c-480e-4c06-a425-5f94f9b6e0ef",
+        "state": "In Progress"
+      },
+      "children": {
+        "done": [
+          "TIN-5718",
+          "TIN-5719",
+          "TIN-5724"
+        ],
+        "open": [
+          "TIN-5720",
+          "TIN-5721",
+          "TIN-5722",
+          "TIN-5723"
+        ]
+      }
+    },
     "20261006-s2": {
       "parent": {
         "identifier": "TIN-5599",
@@ -1213,7 +1234,20 @@
         "TIN-5720",
         "TIN-5721",
         "TIN-5546"
-      ]
+      ],
+      "issue_ids": {
+        "TIN-6543": "70db6e50-4251-4122-9453-3b111cd59fd2",
+        "TIN-6544": "2b751925-ea51-4047-b991-8128bf58abdb",
+        "TIN-6545": "006bfd63-5ddf-45a2-bdf0-b5addd961a21",
+        "TIN-6546": "af4b197a-d001-4ed2-80d1-5c856a7cb0b9",
+        "TIN-5491": "28d0291e-6556-4f49-b6e3-5d50a016c539",
+        "TIN-5494": "99918a4a-9278-48a2-a9b8-34016a2a4279",
+        "TIN-5722": "7efcdc48-c380-4648-8c42-c0c6da79fb8a",
+        "TIN-5723": "8a1fb576-2699-40c9-ab78-fd01deab6870",
+        "TIN-5717": "5db4809c-480e-4c06-a425-5f94f9b6e0ef",
+        "TIN-6515": "93bb434c-fbac-4127-b626-e5311778cf46",
+        "TIN-6514": "5f22e64a-4f72-4df1-8185-d6a7e50f08e6"
+      }
     }
   },
   "media_initiative": {
@@ -1349,5 +1383,10 @@
       ],
       "receipt": "docs/agent-notes/2026-10-15-media-merge-program.md"
     }
+  },
+  "active_sprint": {
+    "key": "20261015-s4",
+    "plan": "docs/spec/sprints/20261015-S4.md",
+    "status": "In Progress"
   }
 }

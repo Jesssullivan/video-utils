@@ -30,7 +30,7 @@ def cuts(sil, total, chunk_s):
 
 def model(cfg):
     if not Path(cfg.model).exists():
-        raise FileNotFoundError(f"no whisper model at {cfg.model}: run `just model` or set WHISPER_MODEL")
+        raise FileNotFoundError(f"no whisper model at {cfg.model}: run `just condense-model` or set WHISPER_MODEL")
     return cfg.model
 
 

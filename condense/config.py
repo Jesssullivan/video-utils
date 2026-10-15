@@ -40,7 +40,7 @@ ENCODE = {
     "jobs": 2,  # part renders and whisper chunks in parallel
 }
 WHISPER = {
-    "model": "models/ggml-small.en.bin",
+    "model": "models/ggerganov-whisper-cpp-ggml-small.en.bin",
     "dtw": "small.en",
     "language": "en",
     "threads": 4,  # per whisper run
