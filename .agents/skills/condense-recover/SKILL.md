@@ -5,7 +5,7 @@ description: Rebuild a truncated .mov with untrunc.
 
 # Recover a talk recording cut off by a full disk or a crash before condensing it.
 
-**Hook (draft):** MCP tool `condense_recover` in `program/tool-drafts/condense.json`. Not admitted yet: `tools/list` does not show it until root admission (TIN-6511).
+**Hook:** MCP tool `condense_recover` (admitted as tool 56, experimental). Launch the repository stdio server with `just mcp`; inspect `tools/list` before a call. The worker is `python -m condense recover`; reference and broken must be regular files and fixed a fresh path, checked before it starts.
 
 **Capability:** Rebuild a recording with no moov atom from a healthy reference made by the same device and app, then report packets found, duration and the share of bytes recovered; fails under 90%. Refuses to overwrite an existing output.
 

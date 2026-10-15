@@ -5,7 +5,7 @@ description: Build the edit decision list.
 
 # Let an agent run the condense edl stage on one talk with bounded time and typed failures, and inspect what it wrote.
 
-**Hook (draft):** MCP tool `condense_edl` in `program/tool-drafts/condense.json`. Not admitted yet: `tools/list` does not show it until root admission (TIN-6511).
+**Hook:** MCP tool `condense_edl` (admitted as tool 51, experimental). Launch the repository stdio server with `just mcp`; inspect `tools/list` before a call. The worker is `python -m condense edl`; the talk.toml path rules in docs/spec/CONDENSE_TOOL_CONTRACT.md are checked before it starts.
 
 **Capability:** Give every span of every clip a kind and a speed, quantise to whole frames, write edl.json and validate it with the Rust timeline. Reads words, events and RMS; writes work/edl.json beneath the config's work/out paths.
 

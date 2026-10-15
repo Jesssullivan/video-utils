@@ -5,7 +5,7 @@ description: Render the condensed talk.
 
 # Let an agent run the condense render stage on one talk with bounded time and typed failures, and inspect what it wrote.
 
-**Hook (draft):** MCP tool `condense_render` in `program/tool-drafts/condense.json`. Not admitted yet: `tools/list` does not show it until root admission (TIN-6511).
+**Hook:** MCP tool `condense_render` (admitted as tool 52, experimental). Launch the repository stdio server with `just mcp`; inspect `tools/list` before a call. The worker is `python -m condense render`; the talk.toml path rules in docs/spec/CONDENSE_TOOL_CONTRACT.md are checked before it starts.
 
 **Capability:** Build mezzanines, render parts in parallel ([encode] jobs, default 2), join them, apply two-pass loudness to -16 LUFS / -1.5 dBTP and encode HEVC with AAC. Reads edl.json and the recordings; writes work/<clip>.mezz.mkv, the parts and the output mp4 beneath the config's work/out paths.
 

@@ -5,7 +5,7 @@ description: Burn correction notes into a copy.
 
 # Let an agent run the condense overlay stage on one talk with bounded time and typed failures, and inspect what it wrote.
 
-**Hook (draft):** MCP tool `condense_overlay` in `program/tool-drafts/condense.json`. Not admitted yet: `tools/list` does not show it until root admission (TIN-6511).
+**Hook:** MCP tool `condense_overlay` (admitted as tool 55, experimental). Launch the repository stdio server with `just mcp`; inspect `tools/list` before a call. The worker is `python -m condense overlay`; the talk.toml path rules in docs/spec/CONDENSE_TOOL_CONTRACT.md are checked before it starts.
 
 **Capability:** Map each [[correction]] source time to the output clock and burn it for 3 s into a second file; the audio is copied. Reads [[correction]] entries, edl.json and the parts; writes out/<name>.corrected.mp4 beneath the config's work/out paths.
 

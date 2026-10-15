@@ -33,6 +33,9 @@ jobs:
       # Synthetic media only: no recording, no transcript and no whisper model in CI.
       - name: Talk condensing lint and tests
         run: nix develop --no-write-lock-file .#condense --command just cli condense-lint condense-test
+      # The condense stage tools end to end through tool_api: this shell has the worker's numpy and FFmpeg.
+      - name: Condense stage tool admission
+        run: nix develop --no-write-lock-file .#condense --command bash -c 'cd tests && python3 -m unittest -v test_s4b_tool_admission'
   web:
     runs-on: ubuntu-24.04
     timeout-minutes: 20

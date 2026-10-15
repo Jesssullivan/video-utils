@@ -169,7 +169,10 @@ TOOL_AREAS = {
     'beat_this_compare': 'phrase_rhythm', 'guitar_noul_decide': 'analysis',
     'take_intake': 'pipeline_report', 'timing_calibration_analyze': 'phrase_rhythm',
     'timing_calibration_apply': 'phrase_rhythm', 'stems_estimate': 'analysis',
-    'timeline_validate': 'analysis', 'timeline_map': 'analysis',
+    'timeline_validate': 'analysis', 'timeline_map': 'analysis', 'condense_transcribe': 'analysis',
+    'condense_events': 'analysis', 'condense_edl': 'delivery', 'condense_render': 'delivery',
+    'condense_check': 'review', 'condense_captions': 'delivery', 'condense_overlay': 'delivery',
+    'condense_recover': 'restoration', 'condense_publish': 'delivery',
 }
 AREAS = ('restoration', 'analysis', 'phrase_rhythm', 'pitch', 'review', 'delivery', 'corpus_eval',
          'pipeline_report')

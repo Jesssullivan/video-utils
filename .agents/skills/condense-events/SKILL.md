@@ -5,7 +5,7 @@ description: Find silences, fillers and pauses.
 
 # Let an agent run the condense events stage on one talk with bounded time and typed failures, and inspect what it wrote.
 
-**Hook (draft):** MCP tool `condense_events` in `program/tool-drafts/condense.json`. Not admitted yet: `tools/list` does not show it until root admission (TIN-6511).
+**Hook:** MCP tool `condense_events` (admitted as tool 50, experimental). Launch the repository stdio server with `just mcp`; inspect `tools/list` before a call. The worker is `python -m condense events`; the talk.toml path rules in docs/spec/CONDENSE_TOOL_CONTRACT.md are checked before it starts.
 
 **Capability:** Measure silences and 100 ms RMS frames, merge the two whisper passes into words, and mark pauses, fillers, repeats and unworded bursts. Reads the whisper JSON and the analysis wav; writes work/<clip>.words.json, .events.json and .rms.txt beneath the config's work/out paths.
 

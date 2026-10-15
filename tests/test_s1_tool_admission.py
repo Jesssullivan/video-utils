@@ -24,7 +24,7 @@ class SprintToolAdmissionTests(unittest.TestCase):
 
     def test_original_thirty_descriptors_preserved(self):
         tools = tool_api.descriptors()
-        self.assertEqual(len(tools), 48)  # tools[42:46] admitted by tests/test_s3g_tool_admission.py, tools[46:] by tests/test_s4a_tool_admission.py
+        self.assertEqual(len(tools), 57)  # tools[42:46] admitted by tests/test_s3g_tool_admission.py, tools[46:48] by tests/test_s4a_tool_admission.py, tools[48:] by tests/test_s4b_tool_admission.py
         original = json.dumps(tools[:30], sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()
         self.assertEqual(hashlib.sha256(original).hexdigest(),
                          '85fa376c6d6a64e8d2c7c332deb27cf14b4b490fb6f7f1c9ed51efb5ee3a06c7')

@@ -10,15 +10,15 @@ AGENTS.md and R-N13. Drafts: `program/tool-drafts/condense.json`. Skills:
 | --- | --- | --- | --- | --- |
 | `timeline_validate` | `video-utils timeline validate` | edl.json | nothing | tool 47 |
 | `timeline_map` | `video-utils timeline map` | edl.json, queries | nothing | tool 48 |
-| `condense_transcribe` | `python3 -m condense transcribe` | recordings, model | work/ | second admission |
-| `condense_events` | `python3 -m condense events` | whisper JSON | work/ | second admission |
-| `condense_edl` | `python3 -m condense edl` | words, events | work/edl.json | second admission |
-| `condense_render` | `python3 -m condense render` | edl.json | work/, out/ | second admission |
-| `condense_check` | `python3 -m condense check` | out/, edl.json | report only | second admission |
-| `condense_captions` | `python3 -m condense captions` | words, edl.json | out/ | second admission |
-| `condense_overlay` | `python3 -m condense overlay` | corrections, parts | out/ | second admission |
-| `condense_recover` | `python3 -m condense recover` | two .mov files | one new .mov | second admission |
-| `condense_publish` | `python3 -m condense publish` | out/, edl.json | artifacts/condense/ | after C11 |
+| `condense_transcribe` | `python3 -m condense transcribe` | recordings, model | work/ | tool 49 |
+| `condense_events` | `python3 -m condense events` | whisper JSON | work/ | tool 50 |
+| `condense_edl` | `python3 -m condense edl` | words, events | work/edl.json | tool 51 |
+| `condense_render` | `python3 -m condense render` | edl.json | work/, out/ | tool 52 |
+| `condense_check` | `python3 -m condense check` | out/, edl.json | report only | tool 53 |
+| `condense_captions` | `python3 -m condense captions` | words, edl.json | out/ | tool 54 |
+| `condense_overlay` | `python3 -m condense overlay` | corrections, parts | out/ | tool 55 |
+| `condense_recover` | `python3 -m condense recover` | two .mov files | one new .mov | tool 56 |
+| `condense_publish` | `python3 -m condense publish` | out/, edl.json | artifacts/condense/ | tool 57 |
 
 ## Rules every condense tool enforces before a worker starts
 
@@ -36,5 +36,6 @@ AGENTS.md and R-N13. Drafts: `program/tool-drafts/condense.json`. Skills:
 
 - Condense tools never read or write `artifacts/runs/`. Their runs carry the
   `edl_v1` timeline mapping (`docs/spec/TIMELINE_CONTRACT.md`).
-- Admission appends to `program/tools.json`. The first 46 tools stay frozen
-  against the `ADMITTED_46_*` hashes in `tests/test_s3g_tool_admission.py`.
+- Admission appends to `program/tools.json`. Each freeze test pins the tools
+  before it: `ADMITTED_46_*` in `tests/test_s4a_tool_admission.py` and
+  `ADMITTED_48_*` in `tests/test_s4b_tool_admission.py`.

@@ -6,7 +6,7 @@
   "spec": "docs/spec/CONDENSE_TOOL_CONTRACT.md",
   "worker": "python3 -m condense <stage> CONFIG; video-utils timeline <command>",
   "skill": ".agents/skills/{edl-timeline,condense-*}/SKILL.md",
-  "admission": "timeline_validate and timeline_map are admitted as tools 47 and 48 (tests/test_s4a_tool_admission.py); tools[:2] below equal the admitted descriptors. The condense stage tools follow in a second admission; condense_publish waits for C11. tool_api.validate_schema has no pattern or uniqueItems support and bounds arrays at 128 items, so per-op query fields and path rules are enforced in scripts/tool_api.py before any worker starts.",
+  "admission": "timeline_validate and timeline_map are admitted as tools 47 and 48 (tests/test_s4a_tool_admission.py); the nine condense stage tools, condense_publish included, as tools 49-57 (tests/test_s4b_tool_admission.py). The tools below equal the admitted descriptors. tool_api.validate_schema has no pattern or uniqueItems support and bounds arrays at 128 items, so per-op query fields, unique checks and the talk.toml path rules are enforced in scripts/tool_api.py before any worker starts.",
   "tools": [
     {
       "name": "timeline_validate",
@@ -393,7 +393,6 @@
             "type": "array",
             "minItems": 1,
             "maxItems": 4,
-            "uniqueItems": true,
             "items": {
               "type": "string",
               "enum": [
@@ -403,7 +402,7 @@
                 "bounds"
               ]
             },
-            "description": "Checks to run; all when omitted."
+            "description": "Checks to run, each at most once; all when omitted."
           },
           "timeout_seconds": {
             "type": "integer",
@@ -626,7 +625,7 @@
     {
       "name": "condense_publish",
       "title": "Publish a hash-bound condense run",
-      "description": "Copy the delivered edit, edl.json and captions into a fresh artifacts/condense/<run_id>/ with a manifest whose timeline mapping is edl_v1, then verify it with `video-utils verify-run --timeline edl_v1`. Reads the outputs and edl.json; writes artifacts/condense/<run_id>/ beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "description": "Copy the delivered edit, edl.json and whichever captions and corrected copy exist into a fresh artifacts/condense/<run_id>/ with a manifest whose timeline mapping is edl_v1, then verify it with `video-utils verify-run --timeline edl_v1`; a run that fails the check is kept as .failed-<run_id> and the call fails. Reads the config's out and work paths; the output root is fixed (repository artifacts/condense) and there is no output field. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
       "intent": "Let an agent run the condense publish stage on one talk with bounded time and typed failures, and inspect what it wrote.",
       "inputSchema": {
         "type": "object",
@@ -654,13 +653,13 @@
       "implementation_status": "experimental",
       "evidence_kind": "hash_bound_condense_manifest",
       "limitations": [
-        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
-        "Pending C11 (TIN-6510): admitted only after the publish stage and verify-run --timeline edl_v1 land."
+        "The manifest binds hashes and the EDL timeline; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "Each call writes a new run; earlier runs are never changed or removed."
       ],
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
-        "idempotentHint": true,
+        "idempotentHint": false,
         "openWorldHint": false
       },
       "dependencies": {
@@ -671,10 +670,10 @@
         "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
       },
       "agent_workflow": {
-        "identify": "Read the stage's printed summary and the files it wrote (artifacts/condense/<run_id>/).",
+        "identify": "Read the printed run directory, file count and frame total; the manifest and verify-run receipt sit in it.",
         "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
-        "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
-        "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
+        "iterate": "Publish again after a new render; compare runs by their manifests.",
+        "acceptance": "A verified run proves the hashes and the timeline mapping, not that the edit is accepted.",
         "max_comparison_candidates_default": 1
       }
     }

@@ -2,7 +2,7 @@
 
 Tools 47-48 are ``timeline_validate`` and ``timeline_map`` (docs/spec/CONDENSE_TOOL_CONTRACT.md). Both run this
 checkout's ``video-utils timeline`` binary and share the edl-timeline skill and MCP prompt. The end-to-end cases
-build the binary with cargo when it is absent and skip, with that reason, when cargo is unavailable.
+build the current binary with cargo and skip, with that reason, when cargo is unavailable.
 
 Synthetic EDLs only; no recording, run or repository artifact is read or written.
 """
@@ -51,17 +51,14 @@ def edl(frames=60):
 
 
 def binary():
-    """The checkout's debug build, built here when absent; None when cargo is unavailable."""
+    """The checkout's current debug build (cargo rebuilds only what changed); None when cargo is unavailable."""
     path = ROOT / 'target/debug/video-utils'
-    if not path.is_file():
-        cargo = shutil.which('cargo')
-        if cargo is None:
-            return None
-        built = subprocess.run([cargo, 'build', '--locked', '-j', '1', '-q'], cwd=ROOT, capture_output=True,
-                               timeout=900, stdin=subprocess.DEVNULL, env=dict(os.environ, CARGO_BUILD_JOBS='1'))
-        if built.returncode or not path.is_file():
-            return None
-    return path
+    cargo = shutil.which('cargo')
+    if cargo is None:
+        return None
+    built = subprocess.run([cargo, 'build', '--locked', '-j', '1', '-q'], cwd=ROOT, capture_output=True,
+                           timeout=900, stdin=subprocess.DEVNULL, env=dict(os.environ, CARGO_BUILD_JOBS='1'))
+    return path if built.returncode == 0 and path.is_file() else None
 
 
 class S4AToolAdmissionTests(unittest.TestCase):
@@ -88,13 +85,13 @@ class S4AToolAdmissionTests(unittest.TestCase):
     # ----- registry freeze ----------------------------------------------------
     def test_first_46_descriptors_frozen_and_two_appended(self):
         tools = tool_api.descriptors()
-        self.assertEqual(len(tools), 48)
+        self.assertEqual(len(tools), 57)  # tools[48:] admitted by tests/test_s4b_tool_admission.py
         self.assertEqual(digest(tools, 46, False), ADMITTED_46_SHA256)
         self.assertEqual(digest(tools, 46, True), ADMITTED_46_ASCII_SHA256)
         self.assertEqual(digest(tools, 48, False), ADMITTED_48_SHA256)
         self.assertEqual(digest(tools, 48, True), ADMITTED_48_ASCII_SHA256)
-        self.assertEqual([tool['name'] for tool in tools[46:]], list(NEW))
-        self.assertEqual(len({tool['name'] for tool in tools}), 48)
+        self.assertEqual([tool['name'] for tool in tools[46:48]], list(NEW))
+        self.assertEqual(len({tool['name'] for tool in tools}), 57)
 
     def test_freeze_hashes_match_the_s3g_record(self):
         import test_s3g_tool_admission as s3g
@@ -210,7 +207,7 @@ class S4AToolAdmissionTests(unittest.TestCase):
             self.assertEqual(caught.exception.receipt['reason'], 'clip_unknown')
 
     # ----- MCP readback ---------------------------------------------------------
-    def test_real_mcp_lists_48_tools_one_shared_prompt_and_reads_the_skill(self):
+    def test_real_mcp_lists_the_tools_one_shared_prompt_and_reads_the_skill(self):
         messages = [initialization(), {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
                     request(2, 'tools/list'), request(3, 'prompts/list'),
                     request(4, 'prompts/get', {'name': 'edl-timeline'}),
@@ -219,10 +216,10 @@ class S4AToolAdmissionTests(unittest.TestCase):
         replies, stderr = exchange(messages, timeout=60)
         self.assertEqual(stderr, '')
         tools = {row['name']: row for row in replies[1]['result']['tools']}
-        self.assertEqual(len(tools), 48)
+        self.assertEqual(len(tools), 57)  # tools 49-57 by tests/test_s4b_tool_admission.py
         names = [row['name'] for row in replies[2]['result']['prompts']]
         self.assertEqual(len(names), len(set(names)))
-        self.assertEqual(len(names), 46)
+        self.assertEqual(len(names), 55)
         self.assertIn('edl-timeline', names)
         for name in NEW:
             with self.subTest(name=name):

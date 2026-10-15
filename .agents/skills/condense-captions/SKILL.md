@@ -5,7 +5,7 @@ description: Write captions on the output clock.
 
 # Let an agent run the condense captions stage on one talk with bounded time and typed failures, and inspect what it wrote.
 
-**Hook (draft):** MCP tool `condense_captions` in `program/tool-drafts/condense.json`. Not admitted yet: `tools/list` does not show it until root admission (TIN-6511).
+**Hook:** MCP tool `condense_captions` (admitted as tool 54, experimental). Launch the repository stdio server with `just mcp`; inspect `tools/list` before a call. The worker is `python -m condense captions`; the talk.toml path rules in docs/spec/CONDENSE_TOOL_CONTRACT.md are checked before it starts.
 
 **Capability:** Map each kept word through the EDL and write SRT and WebVTT cues of at most 2 lines of 42 characters. Reads words and edl.json; writes out/<name>.srt and .vtt beneath the config's work/out paths.
 

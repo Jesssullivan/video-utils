@@ -62,6 +62,17 @@ TIMELINE_TOOLS = {'timeline_validate': 'validate', 'timeline_map': 'map'}
 TIMELINE_MAX_EDL_BYTES = 16 * 1024 * 1024
 TIMELINE_QUERY_FIELDS = {'to_out': ({'clip', 'source_s'}, {'snap'}), 'row': ({'clip', 'source_s'}, set()),
                          'to_src': ({'output_s'}, set())}
+# Condense stage tools (admitted as tools 49-57, docs/spec/CONDENSE_TOOL_CONTRACT.md): `python -m condense STAGE
+# CONFIG` from the checkout. The talk.toml path rules are checked here before a worker starts; stages print a
+# human summary, so the result is the exit status and a bounded log tail, never parsed output.
+CONDENSE_STAGES = {'condense_transcribe': 'transcribe', 'condense_events': 'events', 'condense_edl': 'edl',
+                   'condense_render': 'render', 'condense_check': 'check', 'condense_captions': 'captions',
+                   'condense_overlay': 'overlay', 'condense_recover': 'recover',
+                   'condense_publish': 'publish'}
+CONDENSE_MAX_CONFIG_BYTES = 1024 * 1024
+CONDENSE_MAX_MEDIA_BYTES = 64 * 1024**3
+CONDENSE_LOG_TAIL = 4000
+CONDENSE_MODEL_ID = 'ggerganov-whisper-cpp-ggml-small.en'
 S2_DIGEST_FIELDS = {'annotation_markers': 'store_sha256', 'corpus_eval_s2': 'proposals_sha256'}
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
                          'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default',
@@ -672,6 +683,13 @@ def timing_calibration_input(value):
 
 def validate_tool_arguments(name, args):
     """Cross-field rules that are known before a worker or file read starts."""
+    if name in CONDENSE_STAGES:
+        for field in ('config', 'reference', 'broken', 'fixed'):
+            if field in args and (':' in args[field] or '\\' in args[field] or '..' in args[field].split('/')):
+                raise ValidationError(f'condense {field} must be an exact local path without traversal or URL')
+        checks = args.get('checks', [])
+        if len(checks) != len(set(checks)):
+            raise ValidationError('condense_check checks must each appear once')
     if name in TIMELINE_TOOLS:
         value = args['edl']
         if ':' in value or '\\' in value or '..' in value.split('/'):
@@ -1131,6 +1149,128 @@ def run_timeline_tool(name, args, timeout):
     return receipt
 
 
+def condense_beneath(base, value, label):
+    """A talk.toml path: relative to its directory, beneath it, no '..' and no symlink component below it."""
+    if not isinstance(value, str) or not value or '\x00' in value or '..' in Path(value).parts:
+        raise ToolError(f'condense {label} must be a path beneath the config directory without traversal')
+    path = Path(value) if Path(value).is_absolute() else base / value
+    try:
+        relative = path.relative_to(base)
+    except ValueError as error:
+        raise ToolError(f'condense {label} must stay beneath the config directory') from error
+    current = base
+    for part in relative.parts:
+        current = current / part
+        if current.is_symlink():
+            raise ToolError(f'condense {label} cannot contain a symlink component')
+    return path
+
+
+def condense_config_paths(value):
+    """The config file and the clip, work and output paths it names, checked before any worker starts."""
+    import tomllib
+    try:
+        config = s2_input_file(value, CONDENSE_MAX_CONFIG_BYTES)
+    except ToolError as error:
+        raise ToolError('condense config must be an existing regular talk.toml of at most 1 MiB without symlink '
+                        'components') from error
+    try:
+        raw = tomllib.loads(config.read_text(encoding='utf-8'))
+    except (UnicodeError, ValueError) as error:
+        raise ToolError(f'condense config is not valid TOML: {error}') from error
+    base = config.parent
+    clips = raw.get('clip')
+    if not isinstance(clips, list) or not clips or not all(isinstance(c, dict) for c in clips):
+        raise ToolError('condense config needs at least one [[clip]] table')
+    files = []
+    for index, clip in enumerate(clips):
+        path = condense_beneath(base, clip.get('file'), f'clip {index} file')
+        if not path.is_file():
+            raise ToolError(f'condense clip {index} file must be an existing regular file')
+        files.append(path.resolve())
+    work = condense_beneath(base, raw.get('work', 'work'), 'work')
+    out = condense_beneath(base, raw.get('out', 'out/talk.mp4'), 'out')
+    written = [work, out, *(out.with_suffix(suffix) for suffix in ('.srt', '.vtt', '.corrected.mp4'))]
+    if any(path.resolve() in files for path in written):
+        raise ToolError('condense work, out and the files written beside out must not be a clip file')
+    return config
+
+
+def condense_model():
+    """The registered whisper model under models/, hash-verified; never downloaded here."""
+    entry = load_registry_models().get(CONDENSE_MODEL_ID)
+    path = ROOT / 'models' / f'{CONDENSE_MODEL_ID}.bin'
+    if entry is None or path.is_symlink() or not path.is_file() or path.stat().st_size != entry['max_bytes']:
+        raise ToolError(f'condense_transcribe needs the registered model: run just condense-model ({CONDENSE_MODEL_ID})')
+    with path.open('rb') as handle:
+        if hashlib.file_digest(handle, 'sha256').hexdigest() != entry['sha256']:
+            raise ToolError('condense_transcribe model checksum differs from program/models.json')
+    return path
+
+
+def load_registry_models():
+    return strict_json((ROOT / 'program' / 'models.json').read_text(encoding='utf-8')).get('models', {})
+
+
+def condense_command(name, args):
+    interpreter = os.environ.get('VIDEO_UTILS_PYTHON', sys.executable)
+    head = [interpreter, '-m', 'condense', CONDENSE_STAGES[name]]
+    if name == 'condense_recover':
+        paths = []
+        for field in ('reference', 'broken'):
+            try:
+                paths.append(str(s2_input_file(args[field], CONDENSE_MAX_MEDIA_BYTES)))
+            except ToolError as error:
+                raise ToolError(f'condense_recover {field} must be an existing regular file without symlink '
+                                'components') from error
+        fixed = s2_original_path(args['fixed'])
+        s2_reject_symlink_components(fixed.parent)
+        if not fixed.parent.is_dir() or os.path.lexists(fixed) or os.path.lexists(f'{fixed}.untrunc.log'):
+            raise ToolError('condense_recover fixed must be a fresh path in an existing directory')
+        if str(fixed) in paths:
+            raise ToolError('condense_recover fixed must differ from its inputs')
+        return head + [*paths, str(fixed)], {}
+    command = head + [str(condense_config_paths(args['config'])), *args.get('checks', [])]
+    env = {'WHISPER_MODEL': str(condense_model())} if name == 'condense_transcribe' else {}
+    return command, env
+
+
+def run_condense_tool(name, args, timeout):
+    if not (ROOT / 'condense' / '__main__.py').is_file():
+        raise ToolError('implementation worker is unavailable; no stage was run')
+    command, extra_env = condense_command(name, args)
+    with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
+        try:
+            process = subprocess.Popen(command, cwd=ROOT, stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr,
+                                       start_new_session=True, env=dict(os.environ, **extra_env))
+        except OSError as error:
+            raise ToolError(f'worker could not start: {error}') from error
+        try:
+            process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired as error:
+            # This new process group was created by this invocation; check its pgid before signalling it.
+            try:
+                if os.getpgid(process.pid) == process.pid:
+                    os.killpg(process.pid, signal.SIGKILL)
+                else:
+                    process.kill()
+            except ProcessLookupError:
+                pass
+            process.wait()
+            raise ToolError(f'worker deadline exceeded ({timeout}s); owned process group stopped') from error
+        tails = []
+        for stream in (stdout, stderr):
+            stream.seek(0, os.SEEK_END)
+            stream.seek(max(0, stream.tell() - CONDENSE_LOG_TAIL))
+            tails.append(stream.read().decode('utf-8', errors='replace'))
+    result = {'stage': CONDENSE_STAGES[name], 'exit_code': process.returncode, 'log_tail': tails[0]}
+    if name == 'condense_check' and process.returncode == 1 and 'Traceback' not in tails[1]:
+        return result | {'gates_passed': False}
+    if process.returncode:
+        raise ToolError(f'{name} failed ({process.returncode}): {tails[1][-1500:]}')
+    return result | ({'gates_passed': True} if name == 'condense_check' else {})
+
+
 def run_worker(command, timeout, error_json_tool=None):
     if not Path(command[1]).is_file():
         raise ToolError('implementation worker is unavailable; no analysis was performed')
@@ -1446,6 +1586,8 @@ def execute(name, arguments):
             raise ToolError(message, receipt=receipt) from error
     elif name in TIMELINE_TOOLS:
         result = run_timeline_tool(name, arguments, timeout)
+    elif name in CONDENSE_STAGES:
+        result = run_condense_tool(name, arguments, timeout)
     elif name == 'capture_profile':
         result = run_worker(worker_command(name, arguments), timeout, error_json_tool=name)
     elif name in TYPED_REFUSAL_TOOLS:

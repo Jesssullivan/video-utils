@@ -8,7 +8,9 @@
         "guitar_noul_decide",
         "stems_estimate",
         "timeline_validate",
-        "timeline_map"
+        "timeline_map",
+        "condense_transcribe",
+        "condense_events"
       ]
     },
     {
@@ -32,7 +34,12 @@
         "marked_video",
         "share_export",
         "editor_marker_export",
-        "marked_compact"
+        "marked_compact",
+        "condense_edl",
+        "condense_render",
+        "condense_captions",
+        "condense_overlay",
+        "condense_publish"
       ]
     },
     {
@@ -78,7 +85,8 @@
         "noise",
         "tone",
         "capture_profile",
-        "apply_capture_profile"
+        "apply_capture_profile",
+        "condense_recover"
       ]
     },
     {
@@ -90,7 +98,8 @@
         "annotation_v2",
         "annotation_markers",
         "flags_triage",
-        "tone_ab"
+        "tone_ab",
+        "condense_check"
       ]
     }
   ],
@@ -141,7 +150,7 @@
   },
   "schema_id": "video-utils.web-runs.capabilities",
   "schema_version": 1,
-  "tool_count": 48,
+  "tool_count": 57,
   "tools": [
     {
       "annotations": {
@@ -2691,6 +2700,350 @@
       "name": "timeline_map",
       "skill": ".agents/skills/edl-timeline/SKILL.md",
       "title": "Map source and output times through a condense EDL"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "analysis",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically.",
+        "recommended_prior_tools": []
+      },
+      "evidence_kind": "whisper_cpp_word_timings",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "config",
+          "timeout_seconds"
+        ],
+        "required": [
+          "config"
+        ]
+      },
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "Refuses without the registered, hash-verified model in models/; never downloads it (just condense-model is a separate explicit step).",
+        "DTW word starts can run up to 0.6 s early; pass 1 hears more words with looser times."
+      ],
+      "limitations_count": 3,
+      "name": "condense_transcribe",
+      "skill": ".agents/skills/condense-transcribe/SKILL.md",
+      "title": "Transcribe talk recordings with whisper.cpp"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "analysis",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically.",
+        "recommended_prior_tools": [
+          "condense_transcribe"
+        ]
+      },
+      "evidence_kind": "heuristic_speech_events",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "config",
+          "timeout_seconds"
+        ],
+        "required": [
+          "config"
+        ]
+      },
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "Filler and repeat detection is lexical and timing-based; a wrong guess speeds a word up, it never cuts one."
+      ],
+      "limitations_count": 2,
+      "name": "condense_events",
+      "skill": ".agents/skills/condense-events/SKILL.md",
+      "title": "Find silences, fillers and pauses"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "delivery",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically.",
+        "recommended_prior_tools": [
+          "condense_events"
+        ]
+      },
+      "evidence_kind": "rust_validated_edl",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "config",
+          "timeout_seconds"
+        ],
+        "required": [
+          "config"
+        ]
+      },
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "Pause carving keeps sound with evidence at speech speed; 'asr' evidence reruns whisper on pause spans."
+      ],
+      "limitations_count": 2,
+      "name": "condense_edl",
+      "skill": ".agents/skills/condense-edl/SKILL.md",
+      "title": "Build the edit decision list"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "delivery",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically.",
+        "recommended_prior_tools": [
+          "condense_edl"
+        ]
+      },
+      "evidence_kind": "rendered_media_unreviewed",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "config",
+          "timeout_seconds"
+        ],
+        "required": [
+          "config"
+        ]
+      },
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "A mezzanine is reused when newer than its recording; delete it after changing frame size or rate."
+      ],
+      "limitations_count": 2,
+      "name": "condense_render",
+      "skill": ".agents/skills/condense-render/SKILL.md",
+      "title": "Render the condensed talk"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "review",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically.",
+        "recommended_prior_tools": [
+          "condense_render"
+        ]
+      },
+      "evidence_kind": "measured_gates_and_human_review_text",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "checks",
+          "config",
+          "timeout_seconds"
+        ],
+        "required": [
+          "config"
+        ]
+      },
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "bounds prints text for a person to read; it does not pass or fail on its own."
+      ],
+      "limitations_count": 2,
+      "name": "condense_check",
+      "skill": ".agents/skills/condense-check/SKILL.md",
+      "title": "Gate a rendered edit"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "delivery",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically.",
+        "recommended_prior_tools": [
+          "condense_edl"
+        ]
+      },
+      "evidence_kind": "derived_captions_unreviewed",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "config",
+          "timeout_seconds"
+        ],
+        "required": [
+          "config"
+        ]
+      },
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "Caption text is whisper's; it is not a verified transcript."
+      ],
+      "limitations_count": 2,
+      "name": "condense_captions",
+      "skill": ".agents/skills/condense-captions/SKILL.md",
+      "title": "Write captions on the output clock"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "delivery",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically.",
+        "recommended_prior_tools": [
+          "condense_render"
+        ]
+      },
+      "evidence_kind": "rendered_media_unreviewed",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "config",
+          "timeout_seconds"
+        ],
+        "required": [
+          "config"
+        ]
+      },
+      "limitations": [
+        "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "Needs TALK_FONT (the condense dev shell sets it)."
+      ],
+      "limitations_count": 2,
+      "name": "condense_overlay",
+      "skill": ".agents/skills/condense-overlay/SKILL.md",
+      "title": "Burn correction notes into a copy"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "restoration",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Run before condense_transcribe when a recording does not open.",
+        "recommended_prior_tools": []
+      },
+      "evidence_kind": "untrunc_rebuild_with_byte_share",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "broken",
+          "fixed",
+          "reference",
+          "timeout_seconds"
+        ],
+        "required": [
+          "broken",
+          "fixed",
+          "reference"
+        ]
+      },
+      "limitations": [
+        "untrunc exits 1 even on a full rebuild; the verdict comes from its log and the byte share.",
+        "A short reference rebuilds only part of a long file."
+      ],
+      "limitations_count": 2,
+      "name": "condense_recover",
+      "skill": ".agents/skills/condense-recover/SKILL.md",
+      "title": "Rebuild a truncated .mov with untrunc"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "area": "delivery",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Stages read the files the earlier stage left in work/; they are not run automatically.",
+        "recommended_prior_tools": [
+          "condense_check"
+        ]
+      },
+      "evidence_kind": "hash_bound_condense_manifest",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "config",
+          "timeout_seconds"
+        ],
+        "required": [
+          "config"
+        ]
+      },
+      "limitations": [
+        "The manifest binds hashes and the EDL timeline; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
+        "Each call writes a new run; earlier runs are never changed or removed."
+      ],
+      "limitations_count": 2,
+      "name": "condense_publish",
+      "skill": ".agents/skills/condense-publish/SKILL.md",
+      "title": "Publish a hash-bound condense run"
     }
   ],
   "unknown_fields": {

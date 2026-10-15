@@ -11,7 +11,7 @@
     "completeness": "inference",
     "behaviour_under_bazel": "measured by the single full run (bazel_full-full-run.json)"
   },
-  "module_count_at_supplement": 107,
+  "module_count_at_supplement": 108,
   "added_modules": [
     "test_auth_token_s3",
     "test_condense_public_surface",
@@ -20,6 +20,7 @@
     "test_s3_tool_admission",
     "test_s3g_tool_admission",
     "test_s4a_tool_admission",
+    "test_s4b_tool_admission",
     "test_stems_estimate",
     "test_take_intake",
     "test_timeline_contract",
@@ -48,6 +49,7 @@
         "test_public_site_s3",
         "test_s3_tool_admission",
         "test_s4a_tool_admission",
+        "test_s4b_tool_admission",
         "test_take_intake"
       ],
       "reasons": {
@@ -56,7 +58,8 @@
         "test_take_intake": "falls back to the hash-pinned Nix FFmpeg/FFprobe path when FFMPEG/FFPROBE are unset, runs `git init` (skips git_unavailable on failure), and scripts/take_intake.py resolves git from PATH for its tracked-path check",
         "test_auth_token_s3": "starts the built adapter-node server with `node serve.js` in tailnet mode and a loopback JWKS server",
         "test_condense_public_surface": "runs `git ls-files` to list the condense sources it scans",
-        "test_s4a_tool_admission": "builds the checkout video-utils binary with cargo when absent (skips with that reason when cargo is unavailable) and runs it"
+        "test_s4a_tool_admission": "builds the checkout video-utils binary with cargo when absent (skips with that reason when cargo is unavailable) and runs it",
+        "test_s4b_tool_admission": "its end-to-end case runs ffmpeg/ffprobe from PATH, builds the video-utils binary with cargo and runs python -m condense, publishing one run under artifacts/condense that it then removes; it skips, naming the missing dependency, without ffmpeg, numpy in the worker interpreter or cargo"
       }
     },
     "exclusive": {
@@ -75,6 +78,7 @@
         "test_public_site_s3",
         "test_s3_tool_admission",
         "test_s3g_tool_admission",
+        "test_s4b_tool_admission",
         "test_take_intake",
         "test_timing_calibration",
         "test_web_house_stack_s3"
@@ -86,7 +90,8 @@
         "test_timing_calibration": "the opt-in sealed evaluations (TIMING_CALIBRATION_S3_SEALED_EVAL=1 / _R2=1, not passed by Bazel unless --test_env names them) write artifacts/s2/timing_calibration/sealed/; default cases use temporary directories only. Tagged conservatively so a result is never cached across an artifacts/ change",
         "test_web_house_stack_s3": "writes artifacts/s2/web_tests/house-stack.json in tearDownModule",
         "test_auth_token_s3": "writes its case table and server logs under artifacts/s2/auth_token/<stamp>/",
-        "test_s3g_tool_admission": "starts scripts/stems_estimate.py (directly and through the MCP server) against artifacts/runs/absent-s3g-admission and scripts/take_intake.py plan on an absent repository-relative source (both refuse before reading or writing; ignored, undeclared trees); every other case uses temporary directories"
+        "test_s3g_tool_admission": "starts scripts/stems_estimate.py (directly and through the MCP server) against artifacts/runs/absent-s3g-admission and scripts/take_intake.py plan on an absent repository-relative source (both refuse before reading or writing; ignored, undeclared trees); every other case uses temporary directories",
+        "test_s4b_tool_admission": "the end-to-end case publishes one condense run under artifacts/condense/<run_id>/ (an ignored, undeclared tree) and removes exactly that run"
       }
     },
     "web_tree": {

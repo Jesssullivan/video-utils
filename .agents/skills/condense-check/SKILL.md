@@ -5,7 +5,7 @@ description: Gate a rendered edit.
 
 # Let an agent run the condense check stage on one talk with bounded time and typed failures, and inspect what it wrote.
 
-**Hook (draft):** MCP tool `condense_check` in `program/tool-drafts/condense.json`. Not admitted yet: `tools/list` does not show it until root admission (TIN-6511).
+**Hook:** MCP tool `condense_check` (admitted as tool 53, experimental). Launch the repository stdio server with `just mcp`; inspect `tools/list` before a call. The worker is `python -m condense check`; the talk.toml path rules in docs/spec/CONDENSE_TOOL_CONTRACT.md are checked before it starts.
 
 **Capability:** Run the named checks (default all): silence (no 1.0 s gap at -35 dB), loud (within 1 LU, true peak under 0 dBTP), sync (probe and real, within 20 ms) and bounds (whisper re-reads at cuts for a person). Reads the output and edl.json; writes a printed report only beneath the config's work/out paths.
 
