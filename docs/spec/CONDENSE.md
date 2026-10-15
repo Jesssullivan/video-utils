@@ -48,6 +48,43 @@ the defaults and `talk.toml` overrides them.
 - Every stage gets a typed tool in `program/tools.json` and a skill under
   `.agents/skills/`, admitted in its own PR.
 
+## Optional HTTP speech-to-text backend
+
+TIN-6514. `[whisper] backend = "cli"` is the default and runs whisper-cli as
+above. `backend = "http"` sends the same 16 kHz mono chunks to a speech-to-text
+service instead, such as a local tubebrain-stt. TubeBrain stays a separate
+product; no code moves between the repositories.
+
+- `url` must be an `http` or `https` URL on a loopback host (`localhost` or
+  an IPv4 or IPv6 loopback address) with no user info. A remote service needs an operator
+  port forward. Proxies are bypassed and redirects are refused, so the token
+  and the audio reach only that address.
+- The bearer token is read only from the `CONDENSE_STT_TOKEN` environment
+  variable, and it is sent only when that variable is set. It never appears in
+  `talk.toml`, in `work/` or in an error message.
+- Request: `POST <url>?response_format=whisper_full&language=..&prompt=..[&dtw=<preset>]`
+  with the chunk as an `audio/wav` body. The DTW pass adds `dtw`; `read()` sends
+  neither `prompt` nor `dtw` and joins the segment texts.
+- Reply: HTTP 200 with whisper-cli's `-ojf` JSON (`transcription[].offsets` and
+  `tokens[].{text, offsets, t_dtw}`). A reply shaped
+  `{"segments": [{start, end, text, words: [{start, end, word}]}]}` in seconds
+  is adapted to one token per word, and the word start stands in for the DTW
+  time. That substitution is an inference, not a measured equivalence.
+- `events.words_from` reads both backends unchanged. The pass-1 and DTW JSON
+  land in `work/` as before, and the stage still fails when no DTW time came
+  back.
+- Fail closed: any HTTP status other than 200, a redirect, an unreachable
+  service, a wait over `http_timeout_s` (3600 s), a reply over 64 MiB, invalid
+  JSON or any other shape stops the stage. Nothing is retried and no partial
+  JSON is written. `whisper_args` apply to whisper-cli only and are refused.
+- `condense/tests/test_transcribe_http.py` runs an in-process fake service on
+  synthetic media. Its `words.json` equals the whisper-cli path's for the same
+  canned JSON. No real service has been contacted, so the tubebrain-stt request
+  and reply shapes above are an unverified contract.
+- The MCP tool `condense_transcribe` is frozen at admission. It still requires
+  the registered model and declares `openWorldHint: false`. Running the http
+  backend through it is not part of that contract yet.
+
 ## Rules that differ from the guitar workflow
 
 - Speech delivery targets -16 LUFS and -1.5 dBTP. Guitar masters keep -18 LUFS.

@@ -47,6 +47,9 @@ WHISPER = {
     "chunk_s": 800,
     "pass1": True,
     "prompt": "Um, uh, so, okay, you know, I mean, er, hmm. So, um, let's see.",  # seeds whisper to write fillers
+    "backend": "cli",  # cli: whisper-cli and the model; http: a loopback STT service (docs/spec/CONDENSE.md)
+    "url": "",  # http backend only; its bearer token comes from CONDENSE_STT_TOKEN, never from a file
+    "http_timeout_s": 3600,  # http backend: the longest wait on the service in one request
 }
 CLIP = {
     "speed": 2.0,

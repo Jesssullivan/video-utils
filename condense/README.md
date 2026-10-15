@@ -59,6 +59,9 @@ whisper.cpp with the `ggml-small.en` model writes every word with a start time.
   The stage fails when that happens.
 - The model is registered by URL, size (487614201 bytes) and SHA-256 in `program/models.json`.
   `just condense-model` downloads and verifies it into `models/`. Nothing else downloads it.
+- `[whisper] backend = "http"` with a loopback `url` sends the chunks to a speech-to-text service instead
+  of whisper-cli. The bearer token comes only from `CONDENSE_STT_TOKEN`. `docs/spec/CONDENSE.md` gives the
+  request, the reply and the failure rules.
 
 ### events
 
