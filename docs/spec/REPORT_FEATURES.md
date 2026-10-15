@@ -1,6 +1,6 @@
 # Selected feature evidence in the local report
 
-Owner: `/root/plan_review`. Authority: the operator's existing ten-hour parallel
+Owner: `root/plan_review`. Authority: the operator's existing ten-hour parallel
 goal, repository AGENTS.md and R-HOOK-CONVERGENCE-20261004 / R-N13. This lane
 owns `scripts/report.py`, `tests/test_report.py` and this specification. Root
 owns actual-run integration, publication and tracker receipts.

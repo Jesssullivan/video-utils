@@ -1,6 +1,6 @@
 # Source-bound capture profile skill design
 
-Owner: `/root/tool_skills`. Authority: operator-authorized continued parallel
+Owner: `root/tool_skills`. Authority: operator-authorized continued parallel
 project work; repository AGENTS.md; R-HOOK-CONVERGENCE-20261004 / R-N12 / R-N13.
 This assignment owns this new design document only. Existing twenty-three
 skills stay frozen. Root owns worker admission, profile use, registry/recipe
@@ -24,7 +24,7 @@ activation, counts, tracker evidence, publication and actual listening acceptanc
 
 ## Coordination checkpoint
 
-Worker owner: `/root/rhythm_analysis`; hook owner: `/root/tool_hooks`.
+Worker owner: `root/rhythm_analysis`; hook owner: `root/tool_hooks`.
 Initial sources: CAPTURE_PROFILE_TOOL_CONTRACT.md and
 RESTORATION_REFINEMENT_LANE.md. Existing source-bound captured presets remain
 separate verified candidates; a new authoring design cannot make them universal

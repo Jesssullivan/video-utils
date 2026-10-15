@@ -90,7 +90,7 @@ commit recorded where it differs.
 | Repo (remote/branch) | Tip commit, date | Paths read (path commit, date) |
 | --- | --- | --- |
 | tinyland-inc/xoxd.ai `origin/main` | `cc570c3c1079cc5754840395184f0c1a6fece97f`, 2026-10-05 | `docs/agent-notes/2026-09-19-deploy-rulings.md`, `AGENTS.md` (Deploy Lane, plan site), `src/lib/components/PublicAccessDialog.svelte`, `.github/workflows/deploy-pages-plan.yml` |
-| xoxd-ai/tinyland.dev `github/main` | `7422982619e357d31a0ddf0affdf8dedd0b51a93`, 2026-10-02 | `docs/plans/tinyland-auth-golden-convergence.md` (`4c7634228c64`, 2026-07-13), `infra/cloudflare/honey-ingress-mothership-xoxd-ai-routes.json` (`8a80a74805a2`, 2026-09-19), `infra/cloudflare/honey-ingress-broker-origin-routes.json`, `docs/runbooks/2026-09-19-mothership-identity-rotation.md` (`cf1cd8e634a5`, 2026-09-19), `infra/staging/sveltekit-deployment.yaml` (`f08b92827ce2`, 2026-09-21), `infra/staging/kustomization.yaml`, `ContainerFile` (`f4362f001ba8`, 2026-07-09) |
+| xoxd-ai/tinyland.dev `github/main` | `7422982619e357d31a0ddf0affdf8dedd0b51a93`, 2026-10-02 | `docs/plans/tinyland-auth-golden-convergence.md` (`4c7634228c64`, 2026-07-13), `infra/cloudflare/<cluster>-ingress-mothership-xoxd-ai-routes.json` (`8a80a74805a2`, 2026-09-19), `infra/cloudflare/<cluster>-ingress-broker-origin-routes.json`, `docs/runbooks/2026-09-19-mothership-identity-rotation.md` (`cf1cd8e634a5`, 2026-09-19), `infra/staging/sveltekit-deployment.yaml` (`f08b92827ce2`, 2026-09-21), `infra/staging/kustomization.yaml`, `ContainerFile` (`f4362f001ba8`, 2026-07-09) |
 | Great-Falls-Tool-Bus/great-falls-tool-bus-infra `upstream/main` | `bb969bea496926b19f9350857a91da9d02a5f2c5`, 2026-10-06 | `docs/runbooks/cf-access-tsidp.md` (`3d0d02d6b6ae`, 2026-10-05) |
 | Great-Falls-Tool-Bus/greatfallstoolbus.org `upstream/main` | `b7f5b29690c72dbe777f1058bf8e88acaca3ab31`, 2026-10-06 | grep for Access JWT handling (none at origin; app uses its own OIDC + edge Access) |
 | Jesssullivan/gftb-site `origin/main` | `849af37beaaa8675a9115b741aeee7a0ba13b8f4`, 2026-09-22 | grep only (no auth matches) |
@@ -107,7 +107,7 @@ Facts frozen from those sources (the research doc carries quotations):
   (xoruby): zone-bound exact hostname, all paths, 24h session, HttpOnly,
   SameSite=Lax, exact-email allow policy, a narrow `bypass` application only
   for a health path.
-- **Origin.** Dynamic apps are reached through the shared `honey-ingress`
+- **Origin.** Dynamic apps are reached through the shared `<cluster>-ingress`
   Cloudflare Tunnel to a ClusterIP Service; the route is a source-controlled
   JSON contract applied out of band (tinyland.dev `infra/cloudflare`).
 - **tsidp.** tsidp is federated *into* Cloudflare Access as an OIDC IdP

@@ -1,6 +1,6 @@
 # Basic Pitch comparator skill design
 
-Owner: `/root/tool_skills`. Authority: operator-authorized continued parallel
+Owner: `root/tool_skills`. Authority: operator-authorized continued parallel
 project work; repository AGENTS.md; R-HOOK-CONVERGENCE-20261004 / R-N12 / R-N13.
 This assignment owns this new design document only. Existing twenty-three
 SKILL.md files remain frozen. Worker admission, recipes, registry activation,
@@ -22,7 +22,7 @@ counts, tracker evidence and publication belong to root and their named owners.
 
 ## Coordination checkpoint
 
-Worker owner: `/root/tonal_inference`; hook owner: `/root/tool_hooks`.
+Worker owner: `root/tonal_inference`; hook owner: `root/tool_hooks`.
 Initial sources: BASIC_PITCH_COMPARATOR_LANE.md, BASIC_PITCH_TOOL_CONTRACT.md,
 research/BASIC_PITCH_QUALIFICATION.md and the dated qualified-model receipt.
 Parent reports qualified CPU runtime passing; adapter implementation/readiness

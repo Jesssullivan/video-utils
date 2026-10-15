@@ -44,7 +44,7 @@ Root-owned changes (descriptor in `program/tools.json`, MCP/tool_api wiring,
 CLI: `python3 scripts/tone_ab.py run --run-dir D [--candidate-run-dir C]
 --common-region-start S --common-region-end E [--timeout-seconds T]`.
 
-The actual run is `run_dir = /Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737`
+The actual run is `run_dir = <repo>/artifacts/runs/20261006T041633Z-990aa1bd6737`
 (accepted FULLER, read-only), with S = 5.0 and E = 150.0. Native PCM is 44100 Hz
 mono, 6,657,385 frames.
 

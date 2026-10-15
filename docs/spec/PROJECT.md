@@ -115,7 +115,7 @@ risks directing the allocations:
 
 ## Demo decisions and evidence
 
-The reference source is `Movie on 10-5-26 at 3.38 PM.mov` in Documents. Its
+The reference source is `<demo-take>.mov` in Documents. Its
 read-only FFmpeg 8.1.2 baseline is:
 
 | Measurement | Value |
@@ -329,7 +329,7 @@ The registry has **46 typed tools and skills**, and the four tools admitted in S
 | Second-take intake | done for synthetic fixtures | One command per take family with a required reviewed interval. The synthetic e2e completed 3 of 10 stages, 4 abstained, 2 failed and 1 was skipped. The operator's second take will be its first real run. |
 | Timing calibration (D3/D4) | done for synthetic fixtures | The sealed synthetic R2 met its bar (median 0.98 ms, sign correct 62/62). **Real-take rush/drag direction stays withheld until the operator records the calibration protocol.** |
 | Stems (htdemucs_6s) | contract only | Licence qualified as a private comparator. The tool refuses with `model_not_registered`, and nothing is downloaded. Outputs are always estimates from a mono mixture. |
-| Beat This | registered, not run | Hash-bound checkpoint. The Linux runtime is unqualified, and the honey CPU window is contested (TIN-5694). |
+| Beat This | registered, not run | Hash-bound checkpoint. The Linux runtime is unqualified, and the compute-host CPU window is contested (TIN-5694). |
 | D6 report | partial | Quarto rendered. Annotations need the operator's labelling session (≥10 boundaries). |
 
 Operator-held: labelling session, second take (by 2026-10-09), listening verdict on

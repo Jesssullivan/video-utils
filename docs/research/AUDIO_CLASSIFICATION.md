@@ -1,6 +1,6 @@
 # Audio classification candidate research
 
-Reviewed October 6, 2026 by `/root/classification_future`. Authority: explicit
+Reviewed October 6, 2026 by `root/classification_future`. Authority: explicit
 operator future planning request and repository AGENTS.md / R-N13. Read-only
 local source inspection and primary web documentation only; no model bytes,
 package installation, inference, sibling edits or remote infrastructure action.
@@ -37,19 +37,19 @@ They support bounded comparisons, not a current trained guitar classifier.
 
 Read-only sibling paths inspected:
 
-- `/Users/jess/git/xoruby-2026-tin5128/docs/research/recipe-reconstruction-2026.md`,
+- `<operator-home>/git/xoruby-2026-tin5128/docs/research/recipe-reconstruction-2026.md`,
   `docs/agent-notes/2026-09-29-r2-recipe.md` and `ml/recipe2021/{frontend,model,train}.py`.
   They document a public-audio reconstruction, trainable PCEN, ResNet-18
   multi-label head, recording-level grouping, ablation failures and Ruby/ONNX
   parity receipts. Their target is bird classification; frontend starts at
   400 Hz. No private historic substrate or implementation was copied. Historical
   receipt statements were read, with no rerun or present runtime acceptance.
-- `/Users/jess/git/blahaj/docs/applications/searxng/pg-backend-architecture.md`
+- `<operator-home>/git/blahaj/docs/applications/searxng/pg-backend-architecture.md`
   discusses Qwen3-Embedding/text query vectors; this is not an audio encoder or
   a verified guitar classifier. Its numerical platform estimates were not adopted.
-- `/Users/jess/git/blahaj/docs/sprints/2026-W18-pod-classification.md` concerns
-  cluster workload placement/classification and Sting compute ownership, not
-  musical class labels. No `/Users/jess/git/sting` checkout was present.
+- `<operator-home>/git/blahaj/docs/sprints/2026-W18-pod-classification.md` concerns
+  cluster workload placement/classification and Peer-host compute ownership, not
+  musical class labels. No `<operator-home>/git/peer-host` checkout was present.
 
 No source receipt for the user-mentioned decision rank models or separate
 “runes” audio work was established by these bounded path/content searches.

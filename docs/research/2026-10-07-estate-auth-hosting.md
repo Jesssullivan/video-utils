@@ -25,7 +25,7 @@ Lane `auth_hosting`, sprint `20261007-s3`, Linear TIN-5720 (related TIN-5552). C
 | Repo (remote/branch) | Tip commit, date | Paths read (path commit, date) |
 | --- | --- | --- |
 | tinyland-inc/xoxd.ai `origin/main` | `cc570c3c1079cc5754840395184f0c1a6fece97f`, 2026-10-05 | `docs/agent-notes/2026-09-19-deploy-rulings.md` (`eab7161a9fab`, 2026-09-19); `AGENTS.md` (`8bbcd3aeb9dc`, 2026-10-02); `src/lib/components/PublicAccessDialog.svelte` (`8279fc3567dd`, 2026-09-22); `.github/workflows/deploy-pages-plan.yml` (`eabc429c5d55`, 2026-10-05) |
-| xoxd-ai/tinyland.dev `github/main` | `7422982619e357d31a0ddf0affdf8dedd0b51a93`, 2026-10-02 | `docs/plans/tinyland-auth-golden-convergence.md` (`4c7634228c64`, 2026-07-13); `infra/cloudflare/honey-ingress-mothership-xoxd-ai-routes.json` (`8a80a74805a2`, 2026-09-19); `infra/cloudflare/honey-ingress-broker-origin-routes.json` (`14479365bf9c`, 2026-09-22); `docs/runbooks/2026-09-19-mothership-identity-rotation.md` (`cf1cd8e634a5`, 2026-09-19); `infra/staging/sveltekit-deployment.yaml` (`f08b92827ce2`, 2026-09-21); `infra/staging/kustomization.yaml` (`7c74d31c9036`, 2026-08-22); `infra/staging/network-policy.yaml` (`722fecdc4d80`, 2026-09-26); `ContainerFile` (`f4362f001ba8`, 2026-07-09) |
+| xoxd-ai/tinyland.dev `github/main` | `7422982619e357d31a0ddf0affdf8dedd0b51a93`, 2026-10-02 | `docs/plans/tinyland-auth-golden-convergence.md` (`4c7634228c64`, 2026-07-13); `infra/cloudflare/<cluster>-ingress-mothership-xoxd-ai-routes.json` (`8a80a74805a2`, 2026-09-19); `infra/cloudflare/<cluster>-ingress-broker-origin-routes.json` (`14479365bf9c`, 2026-09-22); `docs/runbooks/2026-09-19-mothership-identity-rotation.md` (`cf1cd8e634a5`, 2026-09-19); `infra/staging/sveltekit-deployment.yaml` (`f08b92827ce2`, 2026-09-21); `infra/staging/kustomization.yaml` (`7c74d31c9036`, 2026-08-22); `infra/staging/network-policy.yaml` (`722fecdc4d80`, 2026-09-26); `ContainerFile` (`f4362f001ba8`, 2026-07-09) |
 | Great-Falls-Tool-Bus/great-falls-tool-bus-infra `upstream/main` | `bb969bea496926b19f9350857a91da9d02a5f2c5`, 2026-10-06 | `docs/runbooks/cf-access-tsidp.md` (`3d0d02d6b6ae`, 2026-10-05); file listing of `tofu/stacks/edge/` |
 | Great-Falls-Tool-Bus/greatfallstoolbus.org `upstream/main` | `b7f5b29690c72dbe777f1058bf8e88acaca3ab31`, 2026-10-06 | grep for Access JWT handling: no origin verifier. Matches only in `e2e/member-onboarding.spec.ts` and `scripts/production-health-probe*.sh` (redirect to `*.cloudflareaccess.com/cdn-cgi/access/login/`). `src/lib/identity/policy.ts` (`b751f71d299b`, 2026-10-02): the app's own Keycloak OIDC realm |
 | Jesssullivan/gftb-site `origin/main` | `849af37beaaa8675a9115b741aeee7a0ba13b8f4`, 2026-09-22 | grep `cf-access`, `jwt-assertion`, `cloudflareaccess`, `tsidp`: no matches |
@@ -53,7 +53,7 @@ Lane `auth_hosting`, sprint `20261007-s3`, Linear TIN-5720 (related TIN-5552). C
   selectors only … Never the shared operators group", and an application that is "Zone-bound,
   exact hostname, all paths. 24h session, HttpOnly, SameSite=Lax". A separate `bypass`
   application exists "for `/healthz` only. Access picks the most specific matching path." The DNS
-  record is a "Proxied CNAME to the honey-ingress tunnel". The order is "1. Apply the gate and read
+  record is a "Proxied CNAME to the <cluster>-ingress tunnel". The order is "1. Apply the gate and read
   it back … 2. … applies the tunnel rule … 3. Once the origin Service answers, flip
   `xoruby_dns_enabled` …". "Rollback runs in reverse." The header of `xoruby-clients.tf` says:
   "GATE FIRST, RECORD LATER", and "an Access service token is a new credential and gets its own
@@ -64,10 +64,10 @@ Lane `auth_hosting`, sprint `20261007-s3`, Linear TIN-5720 (related TIN-5552). C
 
 ### 2. Origins are reached through the shared tunnel, by a source-controlled route contract
 
-- tinyland.dev `infra/cloudflare/honey-ingress-mothership-xoxd-ai-routes.json`: `schemaVersion`
-  `tinyland.cloudflare-tunnel.app-origin.v1`, `tunnelName` `honey-ingress`, `service`
-  `http://sveltekit.tinyland-staging.svc.cluster.local:3000`, `catchAllService`
-  `http_status:404`. Its notes say: "Applied today … by hand against the shared honey-ingress
+- tinyland.dev `infra/cloudflare/<cluster>-ingress-mothership-xoxd-ai-routes.json`: `schemaVersion`
+  `tinyland.cloudflare-tunnel.app-origin.v1`, `tunnelName` `<cluster>-ingress`, `service`
+  `http://<estate-staging-service>:3000`, `catchAllService`
+  `http_status:404`. Its notes say: "Applied today … by hand against the shared <cluster>-ingress
   Cloudflare Tunnel … out of band from this repo. No script or GitHub Actions workflow in
   tinyland.dev reads or applies this file; it is the source-controlled expected route contract
   only", and "Reachability still requires the pre-launch Cloudflare Access gate … to stay enabled
@@ -77,7 +77,7 @@ Lane `auth_hosting`, sprint `20261007-s3`, Linear TIN-5720 (related TIN-5552). C
   `app.kubernetes.io/name: cloudflared` on TCP 3000 only, commented "The retained Cloudflare
   Tunnel connector … reaches SvelteKit directly on port 3000".
 - tinyland.dev `infra/staging/sveltekit-deployment.yaml`: `replicas: 1`, `strategy: Recreate`,
-  a ClusterIP Service on 3000, PVCs with `storageClassName: openebs-bumble-zfs`, Secrets by
+  a ClusterIP Service on 3000, PVCs with `storageClassName: openebs-<node>-zfs`, Secrets by
   `secretKeyRef` name, and `httpGet /api/health` probes with a startupProbe. The comment explains
   that adapter-node "does not bind :3000 until `await server.init()` resolves". Image
   `ghcr.io/xoxd-ai/tinyland.dev:latest`.
@@ -94,7 +94,7 @@ Lane `auth_hosting`, sprint `20261007-s3`, Linear TIN-5720 (related TIN-5552). C
   policy "**requires** the tsidp login method, so the claim is trusted from tsidp only". The
   existing email policy "gains `exclude = [login_method tsidp]`". "`allowed_idps` is pinned to
   exactly Google Workspace, One-Time-PIN and tsidp (the TIN-2660 pattern)". The redirect URI is
-  "`https://sulliwood.cloudflareaccess.com/cdn-cgi/access/callback`", and tsidp runs on "a new tag
+  "`https://<operator-team>.cloudflareaccess.com/cdn-cgi/access/callback`", and tsidp runs on "a new tag
   `tag:gftb-idp` … the `funnel` node attribute". Custody: "Never paste either value into a command
   line, a ticket, a chat or an agent session … (with no `--body`, `gh secret set` reads stdin)".
   Rollback: "Deleting the IdP does not end Access sessions (24h) or `CF_Authorization` cookies
@@ -113,7 +113,7 @@ Lane `auth_hosting`, sprint `20261007-s3`, Linear TIN-5720 (related TIN-5552). C
   It states: "The plaintext `Cf-Access-Authenticated-User-Email` header is NEVER trusted", "There
   is deliberately no development shortcut", and "The origin is expected to be tunnel-only
   (TIN-2446)". JWKS: `createRemoteJWKSet(new URL(\`https://${teamDomain}/cdn-cgi/access/certs\`))`,
-  cached module-level per team domain. Issuer: "`https://sulliwood.cloudflareaccess.com` …
+  cached module-level per team domain. Issuer: "`https://<operator-team>.cloudflareaccess.com` …
   a token with any other issuer, or none, is refused". AUDs: "trimmed, de-duplicated array. It
   does NOT lowercase: an Access application AUD is an opaque, case-sensitive identifier", any-of.
   Email: "Its *verified* `email` claim must be a non-empty string", lowercased. Public path

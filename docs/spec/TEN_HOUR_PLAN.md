@@ -136,9 +136,9 @@ Named bounded follow-ups and file ownership:
 
 | Owner | Assigned scope | Acceptance / dependency |
 | --- | --- | --- |
-| `/root/goal_plan` | Exact arrangement archive, `program/demo-arrangement.json`, this plan and durable lane board | Preserve verbatim prompt; locked closed schema with operator/assumption provenance; arithmetic404/24; no observed result invented |
-| `/root/rhythm_analysis` | New `scripts/arrangement_reference.py` and explicitly assigned tests | Validate closed/hash-bound reference and expand expected units; compare observed evidence independently; property-based tests before actual-take acceptance |
-| `/root/phrase_dag` | Independent arrangement audit/tests/spec in its assigned files | Source/hash/arithmetic/provenance review; mutation/property coverage without changing owned fixture; explicit partial-tail/unknown handling |
+| `root/goal_plan` | Exact arrangement archive, `program/demo-arrangement.json`, this plan and durable lane board | Preserve verbatim prompt; locked closed schema with operator/assumption provenance; arithmetic404/24; no observed result invented |
+| `root/rhythm_analysis` | New `scripts/arrangement_reference.py` and explicitly assigned tests | Validate closed/hash-bound reference and expand expected units; compare observed evidence independently; property-based tests before actual-take acceptance |
+| `root/phrase_dag` | Independent arrangement audit/tests/spec in its assigned files | Source/hash/arithmetic/provenance review; mutation/property coverage without changing owned fixture; explicit partial-tail/unknown handling |
 | Root integration | Shared graph/MCP/recipes, actual bounded comparison and publication/tracker receipts | Integrate only tested schema; source/runtime/real-take/listening separate; no implicit tool admission or unchanged media promoted |
 
 Property-based validation should cover closed schema/type/hash refusal, totals
@@ -264,8 +264,8 @@ protected low-end acceptance and weak musical-inference results remain visible.
 ### Historical named continuation — application28 before native execution
 
 This future capability remains **unadmitted/unpublished**, separate from the 27
-registered tools. `/root/rhythm_analysis` owns new application source/tests;
-`/root/release_review` owns independent refusal/source audit. `/root/media_latency`
+registered tools. `root/rhythm_analysis` owns new application source/tests;
+`root/release_review` owns independent refusal/source audit. `root/media_latency`
 owns the plan-only generated native fixture specification; root owns explicit
 execution release, actual trial, hook/skill admission and integration. No actual
 application28 DSP or MCP admission is claimed at this checkpoint.
@@ -404,16 +404,16 @@ the ten-hour goal.
 
 | Lane | Owned files | Deliverable and verification | Dependency / checkpoint |
 | --- | --- | --- | --- |
-| `/root/rhythm_analysis` | `scripts/rhythm.py`, `tests/test_rhythm.py`, `requirements-analysis.*` | Declared versus fitted tempo, bounded optional onset backend, subdivision ambiguity; known-grid and real-take checks | Agree schema with features/tools/report before integration |
-| `/root/guitar_features` | `scripts/guitar_features.py`, `tests/test_guitar_features.py`, `docs/research/LOW_TUNING.md` | Beat-synchronous novelty/self-similarity/recurrence candidates without intent; low-register and legato fixtures | Uses post-denoise identity and tempo context; publish schema to DAG/report |
-| `/root/phrase_dag` | `scripts/dag.py`, `scripts/markers.py`, `program/dags/guitar-take.json`, `tests/test_dag.py`, `tests/test_markers.py`, `docs/spec/PHRASE_DAG.md` | Provenance evaluator, automatic review spans, optional qualified-reference comparator, generic markers | Feature artifact schema first; no native editor-import claim |
-| `/root/tool_hooks` | `scripts/tool_api.py`, `scripts/mcp_server.py`, `program/tools.json`, `tests/test_tools.py`, `tests/test_mcp.py`, `docs/spec/MCP.md` | Typed interfaces for all registered tools, validated knobs, bounded workers and explicit backend selection | Coordinate worker arguments and skills; actual stdio checks |
-| `/root/tool_skills` | `.agents/skills/**`, `docs/spec/AGENT_TOOLS.md` | Tool intent/research/iteration instructions matching actual contracts | Contracts first, validator plus live prompt reads |
-| `/root/plan_review` | `scripts/report.py`, `reports/demo.qmd`, `reports/plots.R`, `tests/test_report.py` | Evidence report, declared/fitted tempo, candidate spans/recurrence seeks, stale-artifact rejection | Feature/DAG schemas; no invented browser or Quarto runtime proof |
-| `/root/clip_baseline` | `README.md`, `docs/spec/PROJECT.md`, `docs/research/RESEARCH.md`, `docs/agent-notes/2026-10-05-implementation.md`, `program/models.json` | Domain/acceptance/research documentation and current roadmap; preserve observed receipts | Root supplies actual integrated measurements/publication |
-| `/root/repo_patterns` | `flake.nix`, `flake.lock`, `justfile`, `just/*.just`, `.github/**`, `.gitignore`, `pyproject.toml`, `uv.lock`, environment/doctor/model-prefetch support | Pinned lightweight environment and operator recipes; source/runtime evidence separated | Existing lane may be idle after completed handoff; root reassigns explicitly |
-| `/root/au_architecture` | `src/**`, `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`; assigned AU research notes | Dependency-free CLI/DSP checks and future ABI/real-time architecture | AU implementation only if root assigns bounded spike; no plugin installation |
-| `/root/goal_plan` | `docs/spec/TEN_HOUR_PLAN.md`, `docs/agent-notes/2026-10-05-user-prompts.md`, `docs/agent-notes/WORKSTREAM_BOARD.md` | Durable operator requests, horizon, named lanes and checkpoint/handoff contract | Root supplies exact goal start and newly assigned lane names |
+| `root/rhythm_analysis` | `scripts/rhythm.py`, `tests/test_rhythm.py`, `requirements-analysis.*` | Declared versus fitted tempo, bounded optional onset backend, subdivision ambiguity; known-grid and real-take checks | Agree schema with features/tools/report before integration |
+| `root/guitar_features` | `scripts/guitar_features.py`, `tests/test_guitar_features.py`, `docs/research/LOW_TUNING.md` | Beat-synchronous novelty/self-similarity/recurrence candidates without intent; low-register and legato fixtures | Uses post-denoise identity and tempo context; publish schema to DAG/report |
+| `root/phrase_dag` | `scripts/dag.py`, `scripts/markers.py`, `program/dags/guitar-take.json`, `tests/test_dag.py`, `tests/test_markers.py`, `docs/spec/PHRASE_DAG.md` | Provenance evaluator, automatic review spans, optional qualified-reference comparator, generic markers | Feature artifact schema first; no native editor-import claim |
+| `root/tool_hooks` | `scripts/tool_api.py`, `scripts/mcp_server.py`, `program/tools.json`, `tests/test_tools.py`, `tests/test_mcp.py`, `docs/spec/MCP.md` | Typed interfaces for all registered tools, validated knobs, bounded workers and explicit backend selection | Coordinate worker arguments and skills; actual stdio checks |
+| `root/tool_skills` | `.agents/skills/**`, `docs/spec/AGENT_TOOLS.md` | Tool intent/research/iteration instructions matching actual contracts | Contracts first, validator plus live prompt reads |
+| `root/plan_review` | `scripts/report.py`, `reports/demo.qmd`, `reports/plots.R`, `tests/test_report.py` | Evidence report, declared/fitted tempo, candidate spans/recurrence seeks, stale-artifact rejection | Feature/DAG schemas; no invented browser or Quarto runtime proof |
+| `root/clip_baseline` | `README.md`, `docs/spec/PROJECT.md`, `docs/research/RESEARCH.md`, `docs/agent-notes/2026-10-05-implementation.md`, `program/models.json` | Domain/acceptance/research documentation and current roadmap; preserve observed receipts | Root supplies actual integrated measurements/publication |
+| `root/repo_patterns` | `flake.nix`, `flake.lock`, `justfile`, `just/*.just`, `.github/**`, `.gitignore`, `pyproject.toml`, `uv.lock`, environment/doctor/model-prefetch support | Pinned lightweight environment and operator recipes; source/runtime evidence separated | Existing lane may be idle after completed handoff; root reassigns explicitly |
+| `root/au_architecture` | `src/**`, `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`; assigned AU research notes | Dependency-free CLI/DSP checks and future ABI/real-time architecture | AU implementation only if root assigns bounded spike; no plugin installation |
+| `root/goal_plan` | `docs/spec/TEN_HOUR_PLAN.md`, `docs/agent-notes/2026-10-05-user-prompts.md`, `docs/agent-notes/WORKSTREAM_BOARD.md` | Durable operator requests, horizon, named lanes and checkpoint/handoff contract | Root supplies exact goal start and newly assigned lane names |
 | Root integration | `AGENTS.md`, `scripts/run_demo.py`, other explicitly retained shared files, `program/linear.json`, final publication receipts | Integrate and test, rerun real media/analysis, commit/push, publish factual Linear updates | Root alone updates shared entrypoint/publication; no race with named owners |
 
 The root earlier assigned the following work to named agents (handoffs now
@@ -424,20 +424,20 @@ still require root integration before publication:
 
 | Owner | New files / scope | Acceptance checkpoint |
 | --- | --- | --- |
-| `/root/rhythm_analysis` | `scripts/clicks.py`, `tests/test_clicks.py`, `docs/spec/CLICK_LANE.md`, `docs/research/CLICK_RESEARCH.md` | Measured click candidates and bounded attenuation experiment; overlapping guitar attacks protected; primary-source research |
-| `/root/guitar_features` | `scripts/pitch.py`, `tests/test_pitch.py`, `docs/spec/PITCH_LANE.md` | Use constant tuning with inferred-octave evidence; bounded optional dual-resolution pitch candidates; low-register/intentional-distortion ambiguity and unknowns retained |
-| `/root/meter_inference` | `scripts/meter.py`, `tests/test_meter.py`, `docs/spec/METER_LANE.md`, `docs/research/METER.md` | Confidence-qualified meter candidates without intended arrangement; ambiguous accents, subdivisions and half/double interpretations permit unknown |
-| `/root/tonal_inference` | `scripts/tonal.py`, `tests/test_tonal.py`, `docs/spec/TONAL_LANE.md`, `docs/research/TONAL.md` | Distortion-aware tonic/mode candidates with primary-source methods, protected low register and abstention on insufficient evidence |
-| `/root/phrase_dag` | `scripts/phrase_compare.py`, `tests/test_phrase_compare.py`, `docs/spec/PHRASE_COMPARE_LANE.md` | Reference-free recurrence-difference review with source spans; tests distinguish hypotheses from correctness |
-| `/root/repo_patterns` | `scripts/benchmark.py`, `tests/test_benchmark.py`, `program/benchmarks.json`, `docs/spec/BENCHMARK_LANE.md` | Reproducible benchmark records with exact fixture/output provenance and bounded resources |
-| `/root/plan_review` | `scripts/review_server.py`, `tests/test_review_server.py`, `docs/spec/REVIEW_LANE.md`, `staticreview/**` | Local graphical review and source-time navigation; resource/path boundaries and playback claims tested |
-| `/root/au_architecture` | Initial `native/au-spike/**` and `docs/spec/AU_SPIKE.md` handoff; next only `native/au-spike/automation/**` and `docs/spec/AU_AUTOMATION.md` | Isolated automation experiments; existing native spike frozen until root publication; no installation or host-acceptance claim |
-| `/root/tool_hooks` | `docs/spec/MCP_EXTENSION_LANE.md`, `tests/test_tool_contracts.py`; existing registry only after root's first-push broadcast | Extension contracts agree with supported operations and explicit dependencies before shared registry edits |
-| `/root/tool_skills` | `docs/spec/SKILL_EXTENSION_LANE.md`; per-tool extensions after contract handoff | Agent guidance matches actual validated new tool contracts |
-| `/root/clip_baseline` | `docs/research/FOSS_AUDIO_MATRIX.md`, `docs/spec/RESEARCH_LANE.md` | Primary-source FOSS applicability/licensing comparison for distorted low-register guitar; separate repairs research from host changes |
+| `root/rhythm_analysis` | `scripts/clicks.py`, `tests/test_clicks.py`, `docs/spec/CLICK_LANE.md`, `docs/research/CLICK_RESEARCH.md` | Measured click candidates and bounded attenuation experiment; overlapping guitar attacks protected; primary-source research |
+| `root/guitar_features` | `scripts/pitch.py`, `tests/test_pitch.py`, `docs/spec/PITCH_LANE.md` | Use constant tuning with inferred-octave evidence; bounded optional dual-resolution pitch candidates; low-register/intentional-distortion ambiguity and unknowns retained |
+| `root/meter_inference` | `scripts/meter.py`, `tests/test_meter.py`, `docs/spec/METER_LANE.md`, `docs/research/METER.md` | Confidence-qualified meter candidates without intended arrangement; ambiguous accents, subdivisions and half/double interpretations permit unknown |
+| `root/tonal_inference` | `scripts/tonal.py`, `tests/test_tonal.py`, `docs/spec/TONAL_LANE.md`, `docs/research/TONAL.md` | Distortion-aware tonic/mode candidates with primary-source methods, protected low register and abstention on insufficient evidence |
+| `root/phrase_dag` | `scripts/phrase_compare.py`, `tests/test_phrase_compare.py`, `docs/spec/PHRASE_COMPARE_LANE.md` | Reference-free recurrence-difference review with source spans; tests distinguish hypotheses from correctness |
+| `root/repo_patterns` | `scripts/benchmark.py`, `tests/test_benchmark.py`, `program/benchmarks.json`, `docs/spec/BENCHMARK_LANE.md` | Reproducible benchmark records with exact fixture/output provenance and bounded resources |
+| `root/plan_review` | `scripts/review_server.py`, `tests/test_review_server.py`, `docs/spec/REVIEW_LANE.md`, `staticreview/**` | Local graphical review and source-time navigation; resource/path boundaries and playback claims tested |
+| `root/au_architecture` | Initial `native/au-spike/**` and `docs/spec/AU_SPIKE.md` handoff; next only `native/au-spike/automation/**` and `docs/spec/AU_AUTOMATION.md` | Isolated automation experiments; existing native spike frozen until root publication; no installation or host-acceptance claim |
+| `root/tool_hooks` | `docs/spec/MCP_EXTENSION_LANE.md`, `tests/test_tool_contracts.py`; existing registry only after root's first-push broadcast | Extension contracts agree with supported operations and explicit dependencies before shared registry edits |
+| `root/tool_skills` | `docs/spec/SKILL_EXTENSION_LANE.md`; per-tool extensions after contract handoff | Agent guidance matches actual validated new tool contracts |
+| `root/clip_baseline` | `docs/research/FOSS_AUDIO_MATRIX.md`, `docs/spec/RESEARCH_LANE.md` | Primary-source FOSS applicability/licensing comparison for distorted low-register guitar; separate repairs research from host changes |
 
 Assignment versus execution: the earlier publication broadcast did not trigger
-the idle pitch worker. Root explicitly started `/root/guitar_features`'s pitch
+the idle pitch worker. Root explicitly started `root/guitar_features`'s pitch
 follow-up around 21:20 UTC. Treat earlier pitch rows as assignments, not evidence
 that pitch implementation was running before that follow-up.
 
@@ -457,11 +457,11 @@ historical table into new file grants.
 
 | Owner | Exact assigned scope | Dependency / acceptance |
 | --- | --- | --- |
-| `/root/repo_patterns` | `scripts/benchmark.py`; optional new `scripts/benchmark_bank.py`; `tests/test_benchmark.py`; optional new `tests/test_benchmark_bank.py`; `program/benchmarks.json`; BENCHMARK_CALIBRATION_LANE |≤12 deterministic fixtures/120 source seconds, retain v1 hashes, generator-only truth/index contract first; bounded actual bank pilot |
-| `/root/guitar_features` | New `scripts/pitch_evaluate.py`, `tests/test_pitch_evaluate.py`; PITCH_CALIBRATION_LANE and owned dated receipts | Four serial jobs/30 source seconds; depends on bank/index; independent cents/voicing/octave/coverage with transition exclusions |
-| `/root/phrase_dag` | New `scripts/phrase_evaluate.py`, `tests/test_phrase_evaluate.py`; PHRASE_CALIBRATION_LANE and owned dated receipts | Independent boundary/span/recurrence/warp metrics; truth labels withheld from discovery; depends on generated source/truth/artifacts |
-| `/root/tool_hooks` | `program/tools.json`, `scripts/tool_api.py`, `tests/test_tool_contracts.py` and existing owned contract docs/tests | Validate exact evaluator arguments/results and bounded schemas; no untested registry promise |
-| `/root/tool_skills` | Three calibration skills under existing owned `.agents/skills/**` and extension guidance | Depends on actual hook/worker contracts; supported intent/knobs and validation before publication |
+| `root/repo_patterns` | `scripts/benchmark.py`; optional new `scripts/benchmark_bank.py`; `tests/test_benchmark.py`; optional new `tests/test_benchmark_bank.py`; `program/benchmarks.json`; BENCHMARK_CALIBRATION_LANE |≤12 deterministic fixtures/120 source seconds, retain v1 hashes, generator-only truth/index contract first; bounded actual bank pilot |
+| `root/guitar_features` | New `scripts/pitch_evaluate.py`, `tests/test_pitch_evaluate.py`; PITCH_CALIBRATION_LANE and owned dated receipts | Four serial jobs/30 source seconds; depends on bank/index; independent cents/voicing/octave/coverage with transition exclusions |
+| `root/phrase_dag` | New `scripts/phrase_evaluate.py`, `tests/test_phrase_evaluate.py`; PHRASE_CALIBRATION_LANE and owned dated receipts | Independent boundary/span/recurrence/warp metrics; truth labels withheld from discovery; depends on generated source/truth/artifacts |
+| `root/tool_hooks` | `program/tools.json`, `scripts/tool_api.py`, `tests/test_tool_contracts.py` and existing owned contract docs/tests | Validate exact evaluator arguments/results and bounded schemas; no untested registry promise |
+| `root/tool_skills` | Three calibration skills under existing owned `.agents/skills/**` and extension guidance | Depends on actual hook/worker contracts; supported intent/knobs and validation before publication |
 | Root integration | Shared recipes/source integration, real bank pilot, relevant checks, tracker and signed publication | Root tests/integrates and records exact remote/hosted/readback; synthetic metrics do not become musician ground truth |
 
 At the October 5, 22:40 checkpoint, published count was **twenty**. **Twenty-two**

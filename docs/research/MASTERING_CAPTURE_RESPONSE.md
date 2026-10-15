@@ -1,6 +1,6 @@
 # Mastering and capture response: primary-source review
 
-Reviewed October 6, 2026 by `/root/mastering_future`; R-N13. Purpose: support
+Reviewed October 6, 2026 by `root/mastering_future`; R-N13. Purpose: support
 the [future balance design](../spec/future/MASTERING_AND_CAPTURE_RESPONSE.md)
 for distorted nine-string C1 guitar and reported thin/nasal processed tone.
 This is a dated upstream/API review, not a local install, quality audition,

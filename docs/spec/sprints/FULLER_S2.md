@@ -230,7 +230,7 @@ reason. They are never omitted.
 ## 6. Test protocol (lane runs only these modules)
 
 Run from the worktree root with
-`FFMPEG=/nix/store/mv3x…-8.1.2-bin/bin/ffmpeg FFPROBE=…/ffprobe`:
+`FFMPEG=<nix-store>/mv3x…-8.1.2-bin/bin/ffmpeg FFPROBE=…/ffprobe`:
 
 ```
 PYTHONPATH=tests python3 -m unittest test_fuller_profile -v

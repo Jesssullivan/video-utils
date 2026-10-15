@@ -1,7 +1,7 @@
 # Learned-pitch evaluation skill lane
 
-Owner `/root/tool_skills`; worker `/root/guitar_features`; hook
-`/root/tool_hooks`. Authority: root's explicit pure evaluator tool twenty-seven
+Owner `root/tool_skills`; worker `root/guitar_features`; hook
+`root/tool_hooks`. Authority: root's explicit pure evaluator tool twenty-seven
 admission, operator-authorized parallel work, repository AGENTS.md and
 R-HOOK-CONVERGENCE-20261004 / R-N12 / R-N13. Own only the new matching skill and
 this supporting specification; existing twenty-six skills stay frozen.

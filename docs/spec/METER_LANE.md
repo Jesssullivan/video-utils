@@ -1,6 +1,6 @@
 # Automatic meter hypothesis lane
 
-Owner: `/root/meter_inference`. Authority: operator-authorized ten-hour parallel
+Owner: `root/meter_inference`. Authority: operator-authorized ten-hour parallel
 goal, October 5, 2026; repository AGENTS.md and R-HOOK-CONVERGENCE-20261004.
 
 Implement an offline, bounded worker consuming the existing hash-bound

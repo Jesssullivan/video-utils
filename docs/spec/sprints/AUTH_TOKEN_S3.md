@@ -122,7 +122,7 @@ The launch environment is scrubbed: no `NODE_OPTIONS`, no inherited `VIDEO_UTILS
 The seam changes exactly two things:
 
 1. **JWKS destination.** It wraps `globalThis.fetch`.
-   - The exact URL `https://videoutils-authtoken-test.cloudflareaccess.com/cdn-cgi/access/certs`
+   - The exact URL `https://<test-team>.cloudflareaccess.com/cdn-cgi/access/certs`
      is re-issued with the **original** fetch to
      `http://127.0.0.1:<jwks_port>/cdn-cgi/access/certs`, with the caller's
      `init` unchanged (`redirect: 'error'`, the abort `signal`, headers). Each
@@ -147,7 +147,7 @@ Everything else is the production path. That includes:
 - undici fetch.
 
 The issuer stays the production derivation
-`https://videoutils-authtoken-test.cloudflareaccess.com`.
+`https://<test-team>.cloudflareaccess.com`.
 
 **Refusal guards.** The seam throws at import, so node exits non-zero before
 `serve.js` runs, and stderr carries `auth_token test seam refused: <rule>` with
@@ -158,7 +158,7 @@ rule names only. The guards refuse when:
 - `process.cwd()` is `/app` (the image `WORKDIR`).
 - `HOST !== '127.0.0.1'`.
 - `VIDEO_UTILS_CF_ACCESS_TEAM_DOMAIN` is not the reserved test domain
-  `videoutils-authtoken-test.cloudflareaccess.com`.
+  `<test-team>.cloudflareaccess.com`.
 - `VIDEO_UTILS_AUTH_TOKEN_SEAM_NONCE` does not equal the random 128-bit nonce
   baked into that run's generated file. The environment variable alone does
   nothing, and the file alone does nothing.
@@ -192,7 +192,7 @@ unless section 8 records a defect fix.
 
   | Variable | Value |
   | --- | --- |
-  | Team | `videoutils-authtoken-test.cloudflareaccess.com` |
+  | Team | `<test-team>.cloudflareaccess.com` |
   | `VIDEO_UTILS_CF_ACCESS_AUDS` | `AudTokenLaneA0123456789abcdef,AudTokenLaneB9876543210fedcba` |
   | `VIDEO_UTILS_OPERATOR_ALLOWLIST` | ` Operator@Example.org , second@example.org` (mixed case and spaces on purpose) |
   | `VIDEO_UTILS_PUBLIC_HOSTS` | `video-utils.example.org` |
@@ -200,7 +200,7 @@ unless section 8 records a defect fix.
   | `HOST` | `127.0.0.1` |
   | `PORT` | free ephemeral port |
 - **Base claims.**
-  - `iss` = `https://videoutils-authtoken-test.cloudflareaccess.com`
+  - `iss` = `https://<test-team>.cloudflareaccess.com`
   - `aud` = `[AUD_A]`
   - `sub` = `synthetic`
   - `iat` = `nbf` = `now - 10`
@@ -296,7 +296,7 @@ step (seconds) cannot cross a boundary.
 | E04c | +0 s | control: `nbf = now + 30` | allow | 0 |
 | E05 | +0 s | **wrong aud** `aud: ["AudTokenLaneZ0000000000000000"]` | deny | 0 |
 | E05b | +0 s | AUD case-folded (`AUD_A.toLowerCase()`) | deny | 0 |
-| E06 | +0 s | **wrong iss** `https://other-team.cloudflareaccess.com` | deny | 0 |
+| E06 | +0 s | **wrong iss** `https://<other-team>.cloudflareaccess.com` | deny | 0 |
 | E06b | +0 s | iss with trailing `/` | deny | 0 |
 | E06c | +0 s | iss with `http://` scheme | deny | 0 |
 | E07a | +0 s | **alg none**, empty signature segment (`h.p.`) | deny | 0 |
@@ -341,7 +341,7 @@ E11 is the designed retirement lag: up to 10 min of fresh TTL, documented in
 | ID | Check | Expected |
 | --- | --- | --- |
 | SG1 | seam + `NODE_ENV=production` | exit ≠ 0, port never listens, stderr names `NODE_ENV` |
-| SG2 | seam + `KUBERNETES_SERVICE_HOST=10.0.0.1` | refused likewise |
+| SG2 | seam + `KUBERNETES_SERVICE_HOST=192.0.2.1` | refused likewise |
 | SG3 | seam + all-interfaces `HOST` | refused likewise |
 | SG4 | seam + wrong nonce | refused likewise |
 | SG5 | seam + non-reserved team domain | refused likewise |

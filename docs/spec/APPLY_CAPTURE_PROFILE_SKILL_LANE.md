@@ -9,8 +9,8 @@ quality, publication and listening acceptance retain separate evidence. The
 twenty-seven original skills remain untouched. Earlier docs-only/source-draft
 checkpoints below are historical.
 
-Owner `/root/tool_skills`; restoration owner `/root/rhythm_analysis`; hook owner
-`/root/tool_hooks`. Authority: root's explicit docs-only assignment, persistent
+Owner `root/tool_skills`; restoration owner `root/rhythm_analysis`; hook owner
+`root/tool_hooks`. Authority: root's explicit docs-only assignment, persistent
 operator-authorized full-take capture processing, repository AGENTS.md and
 R-HOOK-CONVERGENCE-20261004 / R-N12 / R-N13. Own this new document only. Current
 twenty-seven skills/catalog are frozen; this design creates no skill, prompt,
@@ -386,7 +386,7 @@ pinned durable results and canonical publication recovery.
 
 A first bulk stdio proof using the host-default interpreter times out without
 completing exact readback; it is not a passing proof. Process escape-hatch
-receipt: actor `/root/tool_skills`; target owned readback MCP child PID 80529,
+receipt: actor `root/tool_skills`; target owned readback MCP child PID 80529,
 parent 80511, exact live command/parent verified; reason prolonged read-only
 proof after its 45-second timeout; authority R-N11 / R-HOOK-CONVERGENCE-20261004;
 prior state sleeping child with same recorded identity; action direct SIGTERM

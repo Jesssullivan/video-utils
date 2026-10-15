@@ -1,6 +1,6 @@
 # Preregistered optional PCEN frontend experiment
 
-Owner `/root/xod_spectrogram`; root integrates. Written before this secondary
+Owner `root/xod_spectrogram`; root integrates. Written before this secondary
 experiment on October 5, 2026. Authority R-HOOK-CONVERGENCE-20261004, TIN-3692
 comment `98cf680c-7299-4949-bfb2-60079053ad43`. Original XOD golden proof and
 production frontend remain frozen. This is feature research, not a new tool.

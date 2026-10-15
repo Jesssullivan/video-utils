@@ -70,7 +70,7 @@ label only; they expose no control that implies a supported tool argument.
 Generated outputs (`web/node_modules`, `web/build`, `web/.svelte-kit`) are
 gitignored. Lane measurement files go only under
 `.local/sprint2/web_stack/artifacts/s2/web_stack/` (repo-gitignored). Nothing is
-written under `artifacts/runs/*`, `/Users/jess/Documents` or `/Users/jess/Desktop`.
+written under `artifacts/runs/*`, `<operator-home>/Documents` or `<operator-home>/Desktop`.
 
 ## 3. Frozen toolchain and exact pins
 
@@ -283,7 +283,7 @@ Class `WebStackStaticTests` (always runs; no node required):
 | S3 | Each lock `importers['.']` specifier equals the `package.json` value (stdlib line parse of the lock) |
 | S4 | `svelte.config.js` imports `@sveltejs/adapter-node`; no `adapter-static`/`adapter-auto`; no `remoteFunctions` |
 | S5 | `web/.gitignore` lists `node_modules`, `build`, `.svelte-kit`, `.env`; `git ls-files web` contains none of them |
-| S6 | Secret/host-path scan over git-tracked + to-be-committed files under `web/` (excluding `node_modules/`, `build/`, `.svelte-kit/`) and `web_stack-*.json` receipts (this spec is excluded because it lists the patterns): zero hits for `/Users/`, `/home/`, `/private/`, `/Volumes/`, `/nix/store/`, `C:\`, `_authToken`, `npm_[A-Za-z0-9]{36}`, `ghp_`, `github_pat_`, `-----BEGIN`, `AKIA[0-9A-Z]{16}`; no tracked `.env*`; `.npmrc` has no auth/registry-credential lines |
+| S6 | Secret/host-path scan over git-tracked + to-be-committed files under `web/` (excluding `node_modules/`, `build/`, `.svelte-kit/`) and `web_stack-*.json` receipts (this spec is excluded because it lists the patterns): zero hits for `/Users/`, `/home/`, `/private/`, `/Volumes/`, `/nix/store`, `C:\`, `_authToken`, `npm_[A-Za-z0-9]{36}`, `ghp_`, `github_pat_`, `-----BEGIN`, `AKIA[0-9A-Z]{16}`; no tracked `.env*`; `.npmrc` has no auth/registry-credential lines |
 | S7 | Loopback: `vite.config.ts` has `host: '127.0.0.1'` for server and preview; no `0.0.0.0` or `host: true` in `web/` sources; `package.json` `start` script is `node serve.js` |
 | S8 | Prototype route files contain the prototype label and no `<form` / `<input` |
 | S9 | Fixture JSON files parse, contain no host paths, and cover the cases in N4 |

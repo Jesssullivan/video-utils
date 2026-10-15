@@ -1,7 +1,7 @@
 # Optional learned pitch comparator lane
 
 Implemented bounded worker checkpoint, October 5–6, 2026; owner
-`/root/tonal_inference`. Authority: operator's ten-hour parallel goal and root's
+`root/tonal_inference`. Authority: operator's ten-hour parallel goal and root's
 explicit isolated-runtime/adapter release; R-HOOK-CONVERGENCE-20261004 / R-N13.
 Root owns publication, just/MCP routing and skill admission. A worker pass is
 separate from independent musical acceptance or AU/Logic host acceptance.

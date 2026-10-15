@@ -1,6 +1,6 @@
 # Future guitar phrase and audio classification
 
-Status: proposed design, October 6, 2026. Owner `/root/classification_future`;
+Status: proposed design, October 6, 2026. Owner `root/classification_future`;
 root integrates. Authority: operator's explicit future planning and parallel
 lane request; repository AGENTS.md; R-HOOK-CONVERGENCE-20261004 / R-N13.
 This design admits no tool, model, package, service or trained classifier.
@@ -172,7 +172,7 @@ results. Keep canonical and converted model evaluations separate.
 
 ## Local related work and boundaries
 
-Read-only inspection found no `/Users/jess/git/sting` checkout. Sting appears
+Read-only inspection found no `<operator-home>/git/peer-host` checkout. Peer-host appears
 as a compute node in Blahaj source; no remote node/session query was made.
 The inspected Blahaj SearXNG architecture discusses Qwen3-Embedding for text
 search. Its timing/cost table is a planning claim, not measured audio capability.
@@ -180,7 +180,7 @@ Current capacity, model serving, ranking work and the other Codex session's
 knowledge remain unknown; request a source receipt through the owner lane when
 this integration is prioritized, without contacting other sessions implicitly.
 
-The xoruby checkout `/Users/jess/git/xoruby-2026-tin5128` contains a documented
+The xoruby checkout `<operator-home>/git/xoruby-2026-tin5128` contains a documented
 public-audio recipe reconstruction with trainable PCEN, a ResNet-18 multi-label
 head, recording-level splits, Ruby/Python feature parity and ONNX inference
 receipts. Its bird-target task and 400-Hz lower bound do not transfer guitar

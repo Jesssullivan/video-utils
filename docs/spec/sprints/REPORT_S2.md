@@ -192,12 +192,12 @@ listed, except `bundle.json`) or `bundle_hash_mismatch`. With
   match a RIFF/WAVE, `ftyp`, ID3, `fLaC`, `OggS`, `FORM`, `caff` or EBML magic.
   Limits are 8 MiB per member and 16 MiB in total (`bundle_too_large`). The
   bundle carries no URLs to media. It records `run_id` and file names only.
-  Absolute `/Users/jess/Documents` paths in copied manifests remain as data in
+  Absolute `<operator-home>/Documents` paths in copied manifests remain as data in
   the gitignored bundle. The Quarto output never prints `source.path`.
 - **Output directory.** It must be fresh (`output_dir_exists`). It is refused
   (`output_dir_protected`) if it resolves inside `run_dir`, the analysis-run
-  directory, any `artifacts/runs/*`, `/Users/jess/Documents`,
-  `/Users/jess/Desktop` or `.local/sprint1`. Work happens in
+  directory, any `artifacts/runs/*`, `<operator-home>/Documents`,
+  `<operator-home>/Desktop` or `.local/sprint1`. Work happens in
   `<output>.staging-<pid>` and is renamed into place only on success. A
   refusal before staging writes nothing. A failure after staging leaves only
   `<output>.failed/report-bundle.failed.json` with the reason.

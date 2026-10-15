@@ -1,6 +1,6 @@
 # S1 phrase proposal research protocol
 
-Owner `/root/s1_phrases`; sprint parent `docs/spec/sprints/20261006-S1.md`
+Owner `root/s1_phrases`; sprint parent `docs/spec/sprints/20261006-S1.md`
 (root checkout owns that administration file); lane TIN-5565. Authority is the
 operator's six-agent five-hour sprint request and R-HOOK-CONVERGENCE-20261004,
 R-N11/R-N12/R-N13. Existing accepted media and all30 product tools remain intact.

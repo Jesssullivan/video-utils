@@ -74,7 +74,7 @@ All of these are explicit root or operator acts. The tool acquires nothing.
 3. **Prefetch.** Root places `models/demucs-htdemucs_6s-5c90dfd2.bin` on the run
    host.
 4. **Runtime.** A separate root-run lane prepares an isolated Linux CPU
-   interpreter beneath `artifacts/model-runtime-env/` (honey). It pins `demucs`
+   interpreter beneath `artifacts/model-runtime-env/` (the compute host). It pins `demucs`
    and `torch` by setting `DEMUCS_PIN`/`TORCH_PIN` in the worker. The worker
    finds the interpreter only through `VIDEO_UTILS_STEMS_RUNTIME_PYTHON`, and
    the interpreter path must not contain a symlink.

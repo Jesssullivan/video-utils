@@ -14,7 +14,7 @@ fixture, matrix, golden or real-take render has been computed for this lane.
 ## Why this lane exists
 
 The xoruby peer adopted V4 "with log-mel baseline, PCEN experimental, separate
-attack branch" once a path and sha256 merge. The sting inference lane reports a
+attack branch" once a path and sha256 merge. The peer-host inference lane reports a
 Rune 6r PCEN render that dropped everything below 400 Hz, a suspected cause of
 chance-level scores. The xoxd 2021 reconstruction also starts at 400 Hz, and
 even xoxd's default (16 kHz, 400-sample window, 512 FFT, 31.25 Hz bins, first
@@ -206,7 +206,7 @@ claims; real-take evidence is `not_run`.
 | M9 | M | Refusals: wrong rate, non-PCM16, < 4096 samples, existing output, symlink input, non-finite array via API, spec-hash mismatch | 7/7 refused with unchanged inputs |
 | M10 | M | Golden size | <= 50,000 bytes |
 | M11 | M | Input invariance: fixture WAV sha256 before/after render | 1/1 unchanged |
-| M12 | M | Runtime: stdlib test module wall time on neo | recorded; budget <= 120 s |
+| M12 | M | Runtime: stdlib test module wall time on the operator host | recorded; budget <= 120 s |
 | M13 | doc | V4 note states spec path+sha256, golden path+sha256, log-mel baseline, PCEN experimental, separate attack branch, `pitch_resolution_claim: none` | 6/6 statements |
 
 A failed C gate is reported as a finding (the prediction was wrong), never
@@ -218,7 +218,7 @@ From the worktree root, owned module only:
 
 ```
 PYTHONPATH=tests python3 -m unittest test_lowreg_spectrogram -v
-PYTHONPATH=tests /Users/jess/git/video-utils/.venv/bin/python -m unittest test_lowreg_spectrogram -v
+PYTHONPATH=tests <repo>/.venv/bin/python -m unittest test_lowreg_spectrogram -v
 ```
 
 The first (system Python 3.12, no numpy) runs stdlib tests; the numpy parity

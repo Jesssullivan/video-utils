@@ -33,7 +33,7 @@ master, catalog entry or registry.
      default) goes to root as a requested change (section 8). Its `sha256` is
      marked `TO_BE_FILLED_BY_ROOT_HASH_BOUND_FETCH`.
    - `scripts/beat_this_runtime_setup.py` is an isolated pinned runtime modelled
-     on `basic_pitch_runtime_setup.py`. It targets Linux CPU on honey through
+     on `basic_pitch_runtime_setup.py`. It targets Linux CPU on the compute host through
      the flake `ml` shell (torch/torchaudio from nixpkgs). The Beat This package
      and the pure-Python dependencies the ml shell lacks (`einops`,
      `rotary-embedding-torch`, `soxr`, `tqdm`) are pinned by sha256 in a lock
@@ -68,7 +68,7 @@ Out of scope:
 - default adoption of any model output
 - stem extraction runs
 - model or wheel downloads by the lane
-- deploying or calling the real models.xoxd.ai gateway
+- deploying or calling the real the model gateway host gateway
 - listening acceptance
 
 ## 2. Owned files
@@ -196,7 +196,7 @@ Required keys:
 - `VIDEO_UTILS_GUITAR_NOUL_GATEWAY`. When unset or empty, the client refuses
   with `gateway_not_configured` before any I/O beyond input validation. The URL
   must be `https`, have no userinfo, port 443 or none, and a host equal to
-  `models.xoxd.ai` or ending in `.ts.net`. Anything else refuses with
+  `the model gateway host` or ending in `.ts.net`. Anything else refuses with
   `gateway_url_rejected`.
 - `VIDEO_UTILS_GUITAR_NOUL_ALLOW_REAL_TAKE`. Only the exact value
   `v6-private-operator-lab-host` permits real-take windows.
@@ -299,8 +299,8 @@ stem.
 | M8 | guitar_noul: each refusal code (`input_schema_invalid`, `window_invalid`, `gateway_not_configured`, `gateway_url_rejected`, `real_take_not_permitted`, `gateway_auth_refused`, `gateway_unreachable`) plus window abstains (`gateway_response_invalid`, `timeout`, `missing_from_response`) with transport-call assertions | 10 outcomes | test measurement |
 | M9 | guitar_noul: every emitted window carries `claim_class:"detector_hypothesis"`, `is_label:false`; no file written under `run_dir` | all windows in the tests | test measurement |
 | M10 | Stems: candidates qualified with dated quotes; verdict per candidate | ≥ 5 checkpoints | documentary |
-| M11 | Preregistered experiment (section 7) run on honey **or** a `blocked_with_receipt` stating which prerequisite is missing (root fetch, runtime, honey placement) | 16 held-out cases | measurement on generated fixtures |
-| M12 | Real-take Beat This pass on the accepted FULLER run, only if root confirms an approved V6 private scratch path on honey | 1 take (counts and ratio only, no F) | measurement without truth (private) |
+| M11 | Preregistered experiment (section 7) run on the compute host **or** a `blocked_with_receipt` stating which prerequisite is missing (root fetch, runtime, compute-host placement) | 16 held-out cases | measurement on generated fixtures |
+| M12 | Real-take Beat This pass on the accepted FULLER run, only if root confirms an approved V6 private scratch path on the compute host | 1 take (counts and ratio only, no F) | measurement without truth (private) |
 
 No metric claims real-take beat accuracy, intended tempo, meter, or musical
 correctness. Experimental non-improvement, or a blocked M11/M12 with a receipt,
@@ -399,7 +399,7 @@ this experiment.
 
 The input is the FULLER run `artifacts/runs/20261006T041633Z-990aa1bd6737`
 `denoised.wav`, after manifest verification. It runs only after root confirms
-the approved V6 private scratch location on honey. The pass reports beat and
+the approved V6 private scratch location on the compute host. The pass reports beat and
 downbeat counts and `half_double_ratio_vs_click_grid` against
 `rhythm.analyze()` on the same input. There is no F-measure or accuracy. The
 output is private and stays under the lane's ignored artifacts.
@@ -455,7 +455,7 @@ PYTHONPATH=tests python3 -m unittest test_benchmark test_rhythm -v   # directly 
 class.
 
 Heavy numerics are limited to one job at a time with explicit timeouts. A1 runs
-only on honey after root's fetch and runtime setup.
+only on the compute host after root's fetch and runtime setup.
 
 ## 10. Receipts
 
@@ -479,14 +479,14 @@ the phase-1 text, each with its reason:
      it (verified from source).
    - `soxr` is a compiled abi3 manylinux wheel, licensed LGPL-2.1-or-later. It
      is not pure Python. The lock carries the x86_64 and aarch64 wheels and
-     selects by `platform.machine()`, because the honey architecture is
+     selects by `platform.machine()`, because the compute-host architecture is
      unverified.
    - Versions are the upstream "known working" `einops` 0.8.0 and
      `rotary-embedding-torch` 0.6.4. `soxr` is 1.1.0, because 0.3.7 has no
      Python 3.14 wheel.
 2. **Offline install.** Install is a verified self-extraction of the wheel
    members into the venv: no `uv` or `pip`, `--no-deps` semantics, and `.data`
-   members are refused. `uv` availability on honey is unverified, and every
+   members are refused. `uv` availability on the compute host is unverified, and every
    locked wheel is pure or abi3.
 3. **Unroutable proxy.** It is the closed loopback port
    `http://127.0.0.1:9`, which fails fast. Hub download is also disabled by

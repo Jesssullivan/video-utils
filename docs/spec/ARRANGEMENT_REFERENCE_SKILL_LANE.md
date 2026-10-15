@@ -9,8 +9,8 @@ sole additive same-run arrangement marker selector in the marked-video skill.
 No new metadata
 evaluation, DSP, render or listening action is performed by this skill lane.
 
-Owner `/root/tool_skills`; worker owner `/root/rhythm_analysis`; hook owner
-`/root/tool_hooks`. Root releases coordination after tool28 prompt closure.
+Owner `root/tool_skills`; worker owner `root/rhythm_analysis`; hook owner
+`root/tool_hooks`. Root releases coordination after tool28 prompt closure.
 This new document owns skill intent only: no worker, API, registry, recipe,
 render, inference, annotation or original27 skill changes. Tool29 is not yet
 admitted; exact supported schema and frozen qualification precede its skill.

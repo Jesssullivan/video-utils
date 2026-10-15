@@ -1,6 +1,6 @@
 ---
 name: guitar-noul
-description: Request per-window guitar_noul detector hypotheses from the tailnet-only models.xoxd.ai gateway under the TIN-5619 closed contract; refuses when the gateway is not configured, and sends real-take windows only with the explicit V6 operator switch.
+description: Request per-window guitar_noul detector hypotheses from the tailnet-only the model gateway host gateway under the TIN-5619 closed contract; refuses when the gateway is not configured, and sends real-take windows only with the explicit V6 operator switch.
 ---
 
 # Request guitar_noul window hypotheses (TIN-5619, experimental)
@@ -40,7 +40,7 @@ Rules:
 ## Configuration (environment only)
 
 - `VIDEO_UTILS_GUITAR_NOUL_GATEWAY`:
-  - must be `https` on `models.xoxd.ai` or a `*.ts.net` host, port 443, with no
+  - must be `https` on `the model gateway host` or a `*.ts.net` host, port 443, with no
     userinfo;
   - unset refuses with `gateway_not_configured`;
   - anything else refuses with `gateway_url_rejected`.
@@ -63,7 +63,7 @@ whose receipt carries `refusal_code`. The MCP hook writes no file.
 
 ```sh
 just guitar-noul-decide request.json
-VIDEO_UTILS_GUITAR_NOUL_GATEWAY=https://models.xoxd.ai/<endpoint> \
+VIDEO_UTILS_GUITAR_NOUL_GATEWAY=https://the model gateway host/<endpoint> \
   python3 scripts/guitar_noul_client.py --request request.json --out artifacts/s2/model_lanes/noul/<name>.json
 ```
 

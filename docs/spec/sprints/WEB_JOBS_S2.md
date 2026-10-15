@@ -65,8 +65,8 @@ Generated outputs (gitignored, `/artifacts/` is ignored) go only under
 `.local/sprint2/web_jobs/artifacts/s2/web_jobs/`. The product default state
 root `artifacts/web-jobs/` is used only when the operator runs the server;
 lane runs pass an explicit `--state-root` under `artifacts/s2/web_jobs/`.
-Nothing is written under `artifacts/runs/*`, `/Users/jess/Documents` or
-`/Users/jess/Desktop`.
+Nothing is written under `artifacts/runs/*`, `<operator-home>/Documents` or
+`<operator-home>/Desktop`.
 
 ## 3. Reused modules (import only, never edited)
 
@@ -411,7 +411,7 @@ engineering targets and no comparison verdict is asserted.
 
 ## 10. Actual-demo read-only job (not an experiment)
 
-One bounded job through the HTTP API with `runs_root=/Users/jess/git/video-utils`
+One bounded job through the HTTP API with `runs_root=<repo>`
 (read-only) and `state_root=.local/sprint2/web_jobs/artifacts/s2/web_jobs/demo-state`:
 admit `20261006T041633Z-990aa1bd6737/export/cleaned-video.mov` from the accepted
 FULLER run, submit `share_export` with defaults (H.264 720p CRF27 AAC96),

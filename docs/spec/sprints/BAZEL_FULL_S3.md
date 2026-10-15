@@ -129,7 +129,7 @@ run directories under `artifacts/runs/*` are read-only.
   each depending on `aspect_rules_js 2.9.1`, `aspect_bazel_lib 2.22.5`) and
   are integrity-verified copies of the public release archives.
 - Root reading on TIN-5722 (relayed by the lane brief; not re-measured here):
-  Bazel 8.2.1 on neo; Rust 5/5; `//web` type-check and build pass; **74 of 97**
+  Bazel 8.2.1 on the operator host; Rust 5/5; `//web` type-check and build pass; **74 of 97**
   Python modules ran under Bazel (70 pass, 4 fail on cases that also fail
   under direct unittest only inside a `.local` worktree path: 5
   calibration-evaluator tests error when the path contains `.local`, and 2

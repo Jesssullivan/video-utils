@@ -89,7 +89,7 @@ What these numbers support:
 - **Registered.** `program/models.json` carries `cpjku-beat-this-final0` with
   that sha256, `fetched_at_utc` and
   `gate_state: registered_hash_bound_runtime_not_qualified_no_inference_run`.
-- **Still not established.** The honey runtime is not qualified and no
+- **Still not established.** The compute-host runtime is not qualified and no
   inference has run. Whether the checkpoint loads under
   `torch.load(..., weights_only=True)` is unverified (section 6). The
   comparator keeps refusing: `model_file_missing` on a checkout without
@@ -148,7 +148,7 @@ Notes on the nixpkgs versions:
 - **Unknown.** torch 2.12 / torchaudio 2.11 differ from the known-working
   2.3.1. Numerical parity with the paper setup is unverified.
 - **Unknown.** Whether the nixpkgs `torchaudio` 2.11 pairs cleanly with
-  `torch` 2.12 on honey is unverified. The comparator never calls
+  `torch` 2.12 on the compute host is unverified. The comparator never calls
   `torchaudio.load`: it passes a decoded array to `Audio2Beats`. It still needs
   `torchaudio.transforms.MelSpectrogram`.
 
@@ -271,7 +271,7 @@ the lane's hand-off draft, kept as written.
 - The lane read no checkpoint bytes. The registered sha256 comes from root's
   fetch (section 3). Registration is not qualification: no runtime is
   qualified and no inference has run.
-- The honey architecture (x86_64 or aarch64) is unverified. The lock carries
+- The compute-host architecture (x86_64 or aarch64) is unverified. The lock carries
   both `soxr` wheels and selects by `platform.machine()`.
 - Whether a venv created from the nix `python3.withPackages` interpreter sees
   the nix torch through `--system-site-packages` is expected, not verified. The

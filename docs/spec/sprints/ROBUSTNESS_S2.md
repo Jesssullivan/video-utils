@@ -56,7 +56,7 @@ Generated outputs go only under `artifacts/s2/robustness/` (gitignored). Test
 temporary roots are created there with `tempfile.mkdtemp(dir=…)`. They are
 removed on success and retained, with their path attached to the failure, on
 failure. Accepted `artifacts/runs/*` directories are read-only. The real take
-`/Users/jess/Documents/Movie on 10-5-26 at 3.38 PM.mov` is never opened by any
+`<operator-home>/Documents/<demo-take>.mov` is never opened by any
 lane test.
 
 ## 3. `--resume` contract

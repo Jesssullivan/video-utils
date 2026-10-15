@@ -1,6 +1,6 @@
 # Automatic tonal-context candidate lane
 
-Owner: `/root/tonal_inference`, October 5, 2026. Authority: the operator's
+Owner: `root/tonal_inference`, October 5, 2026. Authority: the operator's
 ten-hour parallel goal and R-HOOK-CONVERGENCE-20261004 / R-N13. This lane owns
 `scripts/tonal.py`, `tests/test_tonal.py`, this specification and
 `docs/research/TONAL.md`; root owns integration and publication.

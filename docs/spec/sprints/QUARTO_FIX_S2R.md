@@ -21,8 +21,8 @@ and read-only inspection of the local Nix store:
 | Fact | Value | Class |
 | --- | --- | --- |
 | Locked nixpkgs rev (`flake.lock`) | `2c423e03bbafcff28bfadc6781a4a8257f205cb5` | measured |
-| `pkgs.quarto` at that rev | `quarto-1.10.18` (`/nix/store/skzd95zv...-quarto-1.10.18`) | measured |
-| Wrapper default | `QUARTO_PANDOC=${QUARTO_PANDOC-'/nix/store/vqa60811...-pandoc-cli-3.7.0.2/bin/pandoc'}` (shell default expansion, so an exported `QUARTO_PANDOC` wins) | measured (read `bin/quarto`) |
+| `pkgs.quarto` at that rev | `quarto-1.10.18` (`<nix-store>/skzd95zv...-quarto-1.10.18`) | measured |
+| Wrapper default | `QUARTO_PANDOC=${QUARTO_PANDOC-'<nix-store>/vqa60811...-pandoc-cli-3.7.0.2/bin/pandoc'}` (shell default expansion, so an exported `QUARTO_PANDOC` wins) | measured (read `bin/quarto`) |
 | Prior attempt | 1 of 1 used, exit 1, 1172.14 s, 21/21 knitr chunks ran, no HTML | measured (prior receipt) |
 | Blocking line | `Aeson exception: Error in $: Unknown option "syntax-highlighting"` | measured (prior receipt) |
 | `quarto.js` 1.10.18 | declares `kSyntaxHighlighting`; `highlight-style` is marked "Deprecated: use `syntax-highlighting` instead" | measured (grep) |
@@ -116,7 +116,7 @@ Out of scope and untouched: root-owned files (`scripts/tool_api.py`,
 `scripts/mcp_server.py`, `program/models.json`, `program/linear.json`,
 `docs/spec/PROJECT.md`). Also untouched: `scripts/report.py`,
 `scripts/report_bundle.py`, `tests/`, other worktrees, `artifacts/runs/*`
-(read-only), `/Users/jess/Documents`, `/Users/jess/Desktop`, Linear, model
+(read-only), `<operator-home>/Documents`, `<operator-home>/Desktop`, Linear, model
 downloads, daemons, host or plugin config, push, merge and main. A
 just-recipe wish goes to root through `root_owned_changes_requested`.
 

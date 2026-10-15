@@ -453,7 +453,7 @@ values are on the full 10 s, band filters as in section 7.
 5. **Skill path:** root may rename `.agents/skills/stems-estimate/` to the
    `guitar-*` convention at admission. The descriptor `skill` field follows the
    rename.
-6. **Runtime lane (separate):** pin `demucs` and `torch` on honey (Linux CPU),
+6. **Runtime lane (separate):** pin `demucs` and `torch` on the compute host (Linux CPU),
    confirm the `sources` order, model rate and `apply_model` defaults, and set
    `DEMUCS_PIN`/`TORCH_PIN`.
 7. **`program/linear.json`:** no change from the lane.
@@ -518,7 +518,7 @@ under the real `artifacts/`):
   directory separation only.
 
 Heavy numerics are limited to one job at a time with explicit timeouts. Real A1
-inference runs only on honey after root's fetch, the acknowledgement and the
+inference runs only on the compute host after root's fetch, the acknowledgement and the
 runtime lane.
 
 ## 12. Receipts

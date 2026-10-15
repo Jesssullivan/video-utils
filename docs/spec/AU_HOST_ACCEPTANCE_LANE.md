@@ -63,7 +63,7 @@ The proposed copy/signature commands, **only after approved absent-target and ow
 
 ```bash
 /usr/bin/ditto --rsrc --extattr \
-  /Users/jess/git/video-utils/.cache/au-packaging/VideoUtilsGainPrototype.app \
+  <repo>/.cache/au-packaging/VideoUtilsGainPrototype.app \
   /Applications/VideoUtilsGainPrototype.app
 /usr/bin/codesign --verify --strict --deep /Applications/VideoUtilsGainPrototype.app
 /usr/bin/codesign --display --verbose=4 /Applications/VideoUtilsGainPrototype.app

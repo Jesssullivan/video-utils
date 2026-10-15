@@ -149,7 +149,7 @@ basic-pitch-runtime-check:
 beat-this-compare run_dir:
     python3 scripts/beat_this_compare.py compare --run-dir {{quote(run_dir)}}
 
-# Explicit Linux-only runtime setup from the flake ml shell python (run on honey inside nix develop .#ml).
+# Explicit Linux-only runtime setup from the flake ml shell python (run on the compute host inside nix develop .#ml).
 beat-this-runtime-setup python:
     python3 scripts/beat_this_runtime_setup.py --python {{quote(python)}}
 

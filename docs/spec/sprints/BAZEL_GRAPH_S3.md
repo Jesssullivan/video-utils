@@ -302,7 +302,7 @@ Phase 1; not run), `bazel mod graph`.
 ## 8. Bounded host attempt (not an experiment)
 
 Phase 1 observation: `bazel` and `bazelisk` on PATH are
-`tinyland-local-build-guard` wrappers (`--hosts macbook-neo bazel`); the
+`tinyland-local-build-guard` wrappers (`--hosts operator-host bazel`); the
 flake dev shell does not provide Bazel. Whether the guard permits a local
 build on this host is **unknown**. Phase 2 makes exactly one attempt, with a
 1800 s timeout, on a small target (order of preference: `bazel mod graph`

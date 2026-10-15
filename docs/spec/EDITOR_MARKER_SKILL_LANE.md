@@ -1,7 +1,7 @@
 # Editor marker-plan skill lane
 
-Owner: `/root/tool_skills`; hook owner: `/root/tool_hooks`; planner owner:
-`/root/clip_baseline/resolve_marker_sources`. Authority: root's explicit tool
+Owner: `root/tool_skills`; hook owner: `root/tool_hooks`; planner owner:
+`root/clip_baseline/resolve_marker_sources`. Authority: root's explicit tool
 twenty-six admission under operator-authorized parallel work, repository
 AGENTS.md and R-HOOK-CONVERGENCE-20261004 / R-N12 / R-N13. This lane owns only
 the new skill and this specification. Existing twenty-five skills stay frozen.

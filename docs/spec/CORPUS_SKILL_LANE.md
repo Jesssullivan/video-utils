@@ -1,6 +1,6 @@
 # Corpus skill lane
 
-Owner: `/root/tool_skills`. Authority: operator-authorized parallel ten-hour
+Owner: `root/tool_skills`. Authority: operator-authorized parallel ten-hour
 project work; repository AGENTS.md; R-HOOK-CONVERGENCE-20261004, TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`. Exclusive edits in this checkpoint are
 `.agents/skills/guitar-corpus/SKILL.md` and this specification. Root owns central
@@ -105,7 +105,7 @@ Every `prompts/get` response exactly matched its registered SKILL.md bytes;
 stderr was empty. This is verified local interface/source evidence, not signed
 remote publication, audio-quality acceptance or a corpus ground-truth claim.
 
-Independent read-only forward review by `/root/tool_skills/skill_forward_test`
+Independent read-only forward review by `root/tool_skills/skill_forward_test`
 found no concrete instruction gap. For the scenario above, it retained metadata
 consistency versus supplied origin/reviewer assertions, unlabelled intervals as
 unknown, synthetic fixture separation, ambiguity and explicit stale-receipt

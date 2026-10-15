@@ -81,9 +81,9 @@ Generated outputs are gitignored, since `/artifacts/` is ignored:
   `pnpm run build` inside the worktree `web/`. This creates `node_modules/`,
   `.svelte-kit/` and `build/`, all gitignored. The test makes no network fetch.
 
-Read-only: the main checkout `/Users/jess/git/video-utils`,
+Read-only: the main checkout `<repo>`,
 `artifacts/runs/20261006T041633Z-990aa1bd6737` (tree digest before and after),
-other worktrees, `/Users/jess/Documents` and `/Users/jess/Desktop`. The original
+other worktrees, `<operator-home>/Documents` and `<operator-home>/Desktop`. The original
 take is never opened.
 
 ## 3. Reused helpers (import only, never edited)

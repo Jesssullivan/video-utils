@@ -11,7 +11,7 @@ Fallback: `just beat-this-compare "<run-dir>"`.
 **Status:** the descriptor, MCP hook and `just` recipes are admitted. The
 checkpoint is registered: `program/models.json` carries
 `cpjku-beat-this-final0` with the sha256 from root's explicit hash-bound fetch
-(2026-10-07T10:28:54Z, 81,058,141 bytes). The runtime on honey is **not**
+(2026-10-07T10:28:54Z, 81,058,141 bytes). The runtime on the compute host is **not**
 qualified and no inference has run. Every call therefore still refuses:
 `model_file_missing` on a checkout without `models/cpjku-beat-this-final0.bin`,
 otherwise `runtime_not_qualified`, or `platform_unsupported` off Linux. That
@@ -36,7 +36,7 @@ verdict.
    `docs/research/BEAT_THIS_QUALIFICATION.md` section 3. On each checkout that
    should run the tool, root runs `just model-prefetch cpjku-beat-this-final0`.
    A placeholder or changed sha256 is refused by design.
-2. **Runtime.** On honey, inside `nix develop .#ml`, root runs:
+2. **Runtime.** On the compute host, inside `nix develop .#ml`, root runs:
    `python3 scripts/beat_this_runtime_setup.py --python "$(command -v python3)"`.
    The runtime is Linux only. Four hash-pinned wheels are extracted offline. Torch
    comes from the ml shell as recorded system site packages.

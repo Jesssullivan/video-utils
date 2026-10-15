@@ -155,7 +155,7 @@ Before any use:
   root's own fetch; the 8-hex prefix `34c22ccb` is only a cross-check.
 - A separate runtime lane is needed. Demucs needs `torch`/`torchaudio` and the
   `demucs` package, which is not qualified here.
-- Bounded CPU placement on honey.
+- Bounded CPU placement on the compute host.
 
 Mandatory output semantics:
 - "estimate from a mono mixture";

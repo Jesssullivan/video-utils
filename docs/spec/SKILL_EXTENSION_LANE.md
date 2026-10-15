@@ -1,6 +1,6 @@
 # Agent skill extension lane
 
-Owner: `/root/tool_skills`. Authority: operator-authorized parallel project work,
+Owner: `root/tool_skills`. Authority: operator-authorized parallel project work,
 repository AGENTS.md and R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`). This lane owns repository skills and their
 agent contract; root integrates and publishes. The initial freeze ended after signed private publication `be085b4`; initial

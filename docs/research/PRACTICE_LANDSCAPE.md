@@ -1,7 +1,7 @@
 # Technical-guitar practice landscape
 
 Primary documentation checked October 5, 2026 UTC and in the operator's
-America/New_York session. Owner: `/root/plan_review`. This bounded comparison
+America/New_York session. Owner: `root/plan_review`. This bounded comparison
 covers eight adjacent products; it is not an exhaustive market survey or a
 product benchmark. No account, installation, model download, microphone capture
 or private-media upload was used.

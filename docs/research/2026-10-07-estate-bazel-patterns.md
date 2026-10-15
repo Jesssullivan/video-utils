@@ -197,7 +197,7 @@ inventory, not proof of an edge.
   environment; the checked-in `.bazelrc` holds only endpoint-free `ci-cached`
   behaviour flags and `try-import %workspace%/.bazelrc.flywheel`.
 - tinyland.dev: the same rule ("Keep endpoint coordinates out of .bazelrc"),
-  with a `gf-reapi-cell.gf-rbe.svc.cluster.local` credential helper, i.e. an
+  with a `<estate-remote-execution-service>` credential helper, i.e. an
   in-cluster endpoint.
 
 **Decision (I):** video-utils configures **no** remote cache, executor or BES:

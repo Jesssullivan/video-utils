@@ -1,6 +1,6 @@
 # Read-only pulse and meter evidence ablation
 
-Owner: `/root/meter_inference`; admitted by root under the user's ten-hour
+Owner: `root/meter_inference`; admitted by root under the user's ten-hour
 parallel goal, October 5, 2026. Authority: repository AGENTS.md and R-N13.
 Published `scripts/meter.py` is frozen. This lane owns this plan, a dated
 reproducibility receipt and isolated `artifacts/experiments/meter-pulse` outputs.

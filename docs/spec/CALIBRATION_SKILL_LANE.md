@@ -1,6 +1,6 @@
 # Generated calibration skill lane
 
-Owner: `/root/tool_skills`. Authority: operator-authorized parallel project work;
+Owner: `root/tool_skills`. Authority: operator-authorized parallel project work;
 repository AGENTS.md; R-HOOK-CONVERGENCE-20261004, TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`. Root owns integration, catalog counts,
 recipes, tracker evidence and publication. This lane owns only the new
@@ -33,9 +33,9 @@ worker, dependency or global agent configuration changes belong to this lane.
 
 ## Coordination checkpoint
 
-The worker owners are `/root/guitar_features` (pitch evaluation),
-`/root/phrase_dag` (phrase evaluation) and `/root/repo_patterns` (generated bank
-and benchmark controls). `/root/tool_hooks` owns typed catalog integration.
+The worker owners are `root/guitar_features` (pitch evaluation),
+`root/phrase_dag` (phrase evaluation) and `root/repo_patterns` (generated bank
+and benchmark controls). `root/tool_hooks` owns typed catalog integration.
 The first inspected specifications are PITCH_CALIBRATION_LANE.md,
 PHRASE_CALIBRATION_LANE.md and BENCHMARK_CALIBRATION_LANE.md. Exact implemented
 interfaces and verification receipts will be added after owners confirm them;
@@ -95,7 +95,7 @@ or real-performance accuracy.
 All twenty-two skill bundles pass the existing bundled skill-creator validator
 with cached PyYAML and no installation. This checks skill structure only.
 Independent read-only forward review by
-`/root/tool_skills/skill_forward_test` found no concrete behavioral gap in either
+`root/tool_skills/skill_forward_test` found no concrete behavioral gap in either
 recorded scenario. It retained independent pitch branches, null zero-eligibility
 metrics, clean/mixture separation, score-free discovery, one-to-one boundary
 credit and visible pre/post-warp timing differences. It confirmed benchmark

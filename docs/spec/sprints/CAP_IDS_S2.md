@@ -57,7 +57,7 @@ default detector/profile/master changes; AU parameter mapping; generated
 
 Generated lane outputs (gitignored) go only under
 `.local/sprint2/cap_ids/artifacts/s2/cap_ids/`. Nothing is written under
-`artifacts/runs/*`, `/Users/jess/Documents` or `/Users/jess/Desktop`.
+`artifacts/runs/*`, `<operator-home>/Documents` or `<operator-home>/Desktop`.
 
 ## 3. `program/capabilities.json` contract (closed schema v1)
 
@@ -363,7 +363,7 @@ runtime-verified; **NE** = explicitly not established.
 
 After tests pass, one bounded read-only projection over the accepted run
 `artifacts/runs/20261006T041633Z-990aa1bd6737` in the main checkout (passed as
-`--root /Users/jess/git/video-utils`, read-only): enumerate files (≤256),
+`--root <repo>`, read-only): enumerate files (≤256),
 project each, record refusals by code (the hidden
 `.video-frame-count-cache.json` must refuse `unsafe_component`), and compare a
 pre/post tree hash (paths + sha256 + size + mtime_ns). Timeout 300 s, a single

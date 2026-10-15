@@ -1,6 +1,6 @@
 # Basic Pitch comparator qualification
 
-Initial research-only checkpoint, October 5, 2026. Owner: `/root/tonal_inference`.
+Initial research-only checkpoint, October 5, 2026. Owner: `root/tonal_inference`.
 Authority: operator's ten-hour parallel goal; R-HOOK-CONVERGENCE-20261004 / R-N13.
 This checkpoint inspected primary source text, Git refs/tree metadata and PyPI
 metadata. It downloaded no checkpoint, wheel or source archive; installed

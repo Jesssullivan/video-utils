@@ -1,6 +1,6 @@
 # Marked review video skill lane
 
-Owner: `/root/tool_skills`. Authority: operator-requested marked evening MVP;
+Owner: `root/tool_skills`. Authority: operator-requested marked evening MVP;
 repository AGENTS.md; R-HOOK-CONVERGENCE-20261004, TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`. Exclusive edits are the new
 `guitar-marked-video` skill and this document. Root owns integration, recipes,
@@ -34,7 +34,7 @@ plugin or operator annotation is changed by this lane.
 
 ## Coordination checkpoint
 
-`/root/media_latency` owns `marked_video.py`; `/root/tool_hooks` owns its typed
+`root/media_latency` owns `marked_video.py`; `root/tool_hooks` owns its typed
 hook. Implementation and exact controls are awaiting owner confirmation. This
 pre-code DoD claims no renderer capability, audio-copy proof or catalog count.
 

@@ -13,7 +13,7 @@ and R-HOOK-CONVERGENCE-20261004 R-N11/R-N12/R-N13 (TIN-3692 comment
 Root reviews, signs the merge, admits recipes, publishes and writes Linear. This
 lane never pushes, merges, writes Linear, edits root-owned files, downloads
 models, starts a daemon, deploys anything, or writes under `artifacts/runs/*`,
-`/Users/jess/Documents` or `/Users/jess/Desktop`.
+`<operator-home>/Documents` or `<operator-home>/Desktop`.
 
 Design sources are reused here, not re-decided:
 
@@ -654,7 +654,7 @@ with an explicit timeout.
 | Pinned acceptance receipt | A test-local pin list replaces the constant through a constructor argument |
 
 The real take, `artifacts/runs/*` in the main checkout,
-`/Users/jess/Documents` and `/Users/jess/Desktop` are never touched.
+`<operator-home>/Documents` and `<operator-home>/Desktop` are never touched.
 
 **Test classes in `tests/test_web_runs_s3.py`.** The names are frozen; cases
 may be added.

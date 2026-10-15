@@ -235,7 +235,7 @@ The following fields must appear explicitly, with no omission and no default pro
 
 ## Real-take acceptance check (phase 2, predeclared)
 
-Inputs are read-only. The take is `/Users/jess/Documents/Movie on 10-5-26 at 3.38 PM.mov`,
+Inputs are read-only. The take is `<operator-home>/Documents/<demo-take>.mov`,
 with source SHA-256 `a522115f…76c6`. Video `avg_frame_rate=108930/4549`,
 `r_frame_rate=24/1`, time base `1/600`. Run `20261006T034521Z-a0def0c43eac`
 has 171 generic markers and selection `reference-marked-preview-compact/selection.json`

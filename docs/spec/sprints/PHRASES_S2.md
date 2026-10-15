@@ -29,7 +29,7 @@ Non-goals: no default detector/profile/master adoption; no typed MCP tool or
 extra-note, rushed-breakdown or note-correctness verdict; no real-take phrase
 accuracy claim; no model download, daemon, or host change; no change to S1
 artifacts, accepted run `artifacts/runs/20261006T041633Z-990aa1bd6737`, or
-`/Users/jess/Documents` / `/Users/jess/Desktop`.
+`<operator-home>/Documents` / `<operator-home>/Desktop`.
 
 ## 2. Owned files
 
@@ -61,10 +61,10 @@ change is returned as `root_owned_changes_requested` text. Phase 1 requests none
 | `scripts/benchmark_holdout.py` (V2 generator; last commit `f180572b8b51bd408debd55d661e670269d23b8f`) | `051d8689364564513c34a1ab00a2c23560407e474da12c2bf25e7513dbc81709` |
 | Real-take click grid `artifacts/runs/20261006T034521Z-a0def0c43eac/clicks/20261006T040944Z-a98ce2dc1f72/clicks.json` | `cee9a506d70f3bebb95d054ae6a4bb5f8c880133d31327a8b7c0a19950497937` |
 | Grid analyzed input (`denoised.wav` of that run) | `cb8a3fa559424810f206c94191a149156423770bbf91a13724a2ba28a44e879e` |
-| Original source (`Movie on 10-5-26 at 3.38 PM.mov`, never opened by this lane) | `a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6` |
+| Original source (`<demo-take>.mov`, never opened by this lane) | `a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6` |
 | Anchor candidates `docs/agent-notes/2026-10-06-operator-arrangement-click-anchor.json` | hashed at use; candidates came from the NR8 run (analyzed `26c9f42c…`), same original source and no-stretch timeline |
 | Checker assessment `…a0def0c43eac/arrangement-reference-20261006/assessment.json` | optional cross-reference, hashed at use |
-| Qualified FFmpeg `/nix/store/mv3x2v2p…-ffmpeg-headless-8.1.2-bin/bin/ffmpeg` | `3a315207e67de78e48c3bbb6b3346663f6a27c02e034d65ac72a12fee74c534a` (S1 pin) |
+| Qualified FFmpeg `<nix-store>/mv3x2v2p…-ffmpeg-headless-8.1.2-bin/bin/ffmpeg` | `3a315207e67de78e48c3bbb6b3346663f6a27c02e034d65ac72a12fee74c534a` (S1 pin) |
 
 The real-take grid measured 88.80 BPM (period 0.675662 s, phase 0.510680 s,
 coverage 0.991, median residual 5.32 ms, 219 observed events, beat indices 2–222,
@@ -286,7 +286,7 @@ Held-out generation + discovery + scoring ≤ **900 s** wall under an external
 `timeout`, ≤ 120 s per source child, 20 s FFmpeg decode (1 thread), 2 numeric
 threads (`OMP/OPENBLAS/MKL/NUMBA_NUM_THREADS=2`), one heavy job at a time inside
 the sprint heavy slot, JSON ≤ 2 MB, WAV ≤ 1 MB per file. Numerics use the locked
-analysis interpreter `/Users/jess/git/video-utils/.venv/bin/python`
+analysis interpreter `<repo>/.venv/bin/python`
 (numpy 2.5.3, librosa 0.11.0) via `VIDEO_UTILS_ANALYSIS_PYTHON`; no installs.
 
 ## 6. Deliverable C — V2 holdout-bank receipt

@@ -76,7 +76,7 @@ terminated in `tearDown`.
 Generated outputs (gitignored) go only under
 `.local/sprint2/web_ui_binding/artifacts/s2/web_ui_binding/`. Tests use
 `tempfile.TemporaryDirectory()` runs and state roots. Nothing is written under
-the real `artifacts/runs/*`, `/Users/jess/Documents` or `/Users/jess/Desktop`.
+the real `artifacts/runs/*`, `<operator-home>/Documents` or `<operator-home>/Desktop`.
 The real take is never opened by any test.
 
 ## 3. Reused modules (import only, never edited)

@@ -323,7 +323,7 @@ fragments at run time:
 | --- | --- | --- |
 | 1 | Tailnet names | the `ts.net` suffix, the word `tailnet`, Tailscale-style `tail<hex>` labels |
 | 2 | Private and special addresses | IPv4 10/8, 172.16/12, 192.168/16, 100.64/10, 127/8, 169.254/16, the unspecified address, IPv6 `fc00::/7` and `fe80::/10`, loopback `::1` |
-| 3 | Estate host names | the bare words `neo`, `sting`, `honey` (word-bounded), and this host's short name read at test time |
+| 3 | Estate host names | the bare words `operator-host`, `peer-host`, `compute-host` (word-bounded), and this host's short name read at test time |
 | 4 | Private-zone and tunnel hosts | the public_site `private-estate-hostname` and `internal-hostname` rules, applied verbatim |
 | 5 | Artifact paths | `artifacts/`, `.local/sprint`, `runs/<date>T`, `experiments/<date>T` |
 | 6 | Linear URLs and keys | the `linear.app` host and `TIN-<n>` keys |

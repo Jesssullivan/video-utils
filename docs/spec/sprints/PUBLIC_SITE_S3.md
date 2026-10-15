@@ -366,7 +366,7 @@ Added for video-utils (9):
 | `content-hash-64` | Any 64-hex string (source sha256, artifact digests) |
 | `run-identifier` | A run id shaped `YYYYMMDDTHHMMSSZ-<12 hex>` |
 | `artifact-path-reference` | A path segment naming the private artifacts, data, models or sprint worktree directories |
-| `nix-store-path` | A `/nix/store/` path |
+| `nix-store-path` | A `/nix/store` path |
 | `analytics-or-beacon` | Known analytics, RUM and tag-manager hosts and snippets |
 | `form-or-upload-surface` | `<form`, `<textarea`, `type="file"`, `enctype=`, `method="post"` |
 | `private-estate-hostname` | Estate service hostnames under the operator's private zones and any `*.cloudflareaccess.com` or tunnel hostname |

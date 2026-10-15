@@ -271,7 +271,7 @@ noted as numpy-gated.
 PYTHONPATH=tests python3 -m unittest test_rhythm -v          # D1 D2 D4 C1 C2 C3 + existing
 PYTHONPATH=tests python3 -m unittest test_phrase_timing -v   # P1 P3, hash-binding refusal, token scan
 PYTHONPATH=tests python3 -m unittest test_clicks -v          # existing (numpy tests skip on stdlib)
-PYTHONPATH=tests /Users/jess/git/video-utils/.venv/bin/python -m unittest test_clicks test_click_attack_ab -v
+PYTHONPATH=tests <repo>/.venv/bin/python -m unittest test_clicks test_click_attack_ab -v
 PYTHONPATH=tests python3 -m unittest test_demo test_dag -v   # G1 regression
 PYTHONPATH=tests python3 -m unittest test_phrase_localization_pilot test_phrase_proposal_s1 -v  # pin check, see §8
 ```

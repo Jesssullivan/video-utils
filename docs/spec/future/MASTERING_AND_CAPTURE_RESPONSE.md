@@ -1,6 +1,6 @@
 # Mastering, balance and capture-response design
 
-Owner `/root/mastering_future`; October 6, 2026. Authority: operator's full
+Owner `root/mastering_future`; October 6, 2026. Authority: operator's full
 continuation, future design and remastering request; AGENTS.md,
 R-HOOK-CONVERGENCE-20261004 / R-N13. Status: proposed design plus one bounded
 current-schema comparison setting. No DSP, accepted master or host proof is

@@ -92,7 +92,7 @@ to revisit the restoration alternatives.
 ```bash
 nix develop
 just doctor
-just demo "$HOME/Documents/Movie on 10-5-26 at 3.38 PM.mov" "" stdlib base fuller \
+just demo "$HOME/Documents/<demo-take>.mov" "" stdlib base fuller \
   --capture-interval 4.10 4.95 --capture-review "Reviewed opening fan interval for this take"
 ```
 

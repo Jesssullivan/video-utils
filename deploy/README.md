@@ -80,7 +80,7 @@ this plan, because the control API is not containerised here.
 | Field | Value | Meaning |
 | --- | --- | --- |
 | `public_hostname` | `null` | No hostname chosen |
-| `cloudflare_tunnel_id` | `null` | Estate dynamic apps use the shared `honey-ingress` tunnel. Not decided for video-utils |
+| `cloudflare_tunnel_id` | `null` | Estate dynamic apps use the shared `<cluster>-ingress` tunnel. Not decided for video-utils |
 | `access_application_aud` | `null` | Exists only after step 3 |
 | `access_idp_ids` | `null` | Google Workspace, One-Time-PIN and tsidp IdP ids for the account |
 | `cluster_target` | `"unknown"` | Which RKE2 cluster |

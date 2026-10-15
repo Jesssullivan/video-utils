@@ -201,7 +201,7 @@ job at a time:
 3. In `native/au-spike`: `cargo build --locked -j 1`, then
    `cargo test --locked -j 1`, then clippy with the same flags.
 4. Real-run check:
-   `cargo run --locked -j 1 -- verify-run /Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737 > artifacts/s2/rust_core/verify-run-s1.json`,
+   `cargo run --locked -j 1 -- verify-run <repo>/artifacts/runs/20261006T041633Z-990aa1bd6737 > artifacts/s2/rust_core/verify-run-s1.json`,
    with a 300 s timeout. It reads about 140 MB of outputs and, when present, the
    228 MB source.
 5. Real-run hash parity: `video-utils hash` on the 6 output WAVs, compared with
