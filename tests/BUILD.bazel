@@ -76,6 +76,7 @@ HOST_TOOL_TESTS = [
     "test_phone_fixtures",
     "test_phrase_riff_s2",
     "test_public_site_s3",
+    "test_public_tree",
     "test_review_ui_s1",
     "test_review_ui_s2",
     "test_s3_tool_admission",

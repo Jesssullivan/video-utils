@@ -11,12 +11,13 @@
     "completeness": "inference",
     "behaviour_under_bazel": "measured by the single full run (bazel_full-full-run.json)"
   },
-  "module_count_at_supplement": 108,
+  "module_count_at_supplement": 109,
   "added_modules": [
     "test_auth_token_s3",
     "test_condense_public_surface",
     "test_model_prefetch",
     "test_public_site_s3",
+    "test_public_tree",
     "test_s3_tool_admission",
     "test_s3g_tool_admission",
     "test_s4a_tool_admission",
@@ -47,6 +48,7 @@
         "test_auth_token_s3",
         "test_condense_public_surface",
         "test_public_site_s3",
+        "test_public_tree",
         "test_s3_tool_admission",
         "test_s4a_tool_admission",
         "test_s4b_tool_admission",
@@ -58,6 +60,7 @@
         "test_take_intake": "falls back to the hash-pinned Nix FFmpeg/FFprobe path when FFMPEG/FFPROBE are unset, runs `git init` (skips git_unavailable on failure), and scripts/take_intake.py resolves git from PATH for its tracked-path check",
         "test_auth_token_s3": "starts the built adapter-node server with `node serve.js` in tailnet mode and a loopback JWKS server",
         "test_condense_public_surface": "runs `git ls-files` to list the condense sources it scans",
+        "test_public_tree": "runs `git ls-files` to list the tracked and to-be-committed files it scans, and `git init` for its planted positive control",
         "test_s4a_tool_admission": "builds the checkout video-utils binary with cargo when absent (skips with that reason when cargo is unavailable) and runs it",
         "test_s4b_tool_admission": "its end-to-end case runs ffmpeg/ffprobe from PATH, builds the video-utils binary with cargo and runs python -m condense, publishing one run under artifacts/condense that it then removes; it skips, naming the missing dependency, without ffmpeg, numpy in the worker interpreter or cargo"
       }
