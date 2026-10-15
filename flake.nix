@@ -1,8 +1,10 @@
 {
   description = "Local-first guitar video restoration and rhythm analysis";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  # Talk condensing keeps the revision its edits were made with: ffmpeg 8.1.2, whisper-cpp 1.8.4.
+  inputs.nixpkgs-condense.url = "github:NixOS/nixpkgs/7c8764b7c7b09b34f632464276218ef9090eaa11";
 
-  outputs = { nixpkgs, ... }: let
+  outputs = { nixpkgs, nixpkgs-condense, ... }: let
     systems = [ "aarch64-darwin" "x86_64-linux" "aarch64-linux" ];
     forAllSystems = nixpkgs.lib.genAttrs systems;
   in {
@@ -34,6 +36,19 @@
       # Web app checks (svelte-check, vitest, build, Playwright). pnpm switches itself to the
       # version pinned by web/package.json `packageManager`; no browser is provided here.
       web = pkgs.mkShell { packages = [ pkgs.nodejs_22 pkgs.pnpm pkgs.just pkgs.git ]; };
+      # Talk condensing (condense/). The whisper model is registered in program/models.json and
+      # fetched only by `just condense-model`; the shell never downloads it.
+      condense = let
+        cpkgs = import nixpkgs-condense { inherit system; };
+      in cpkgs.mkShell {
+        packages = with cpkgs; [
+          ffmpeg-headless whisper-cpp just ruff git gitleaks rustc cargo
+          (python3.withPackages (ps: with ps; [ numpy pytest ]))
+        ] ++ cpkgs.lib.optional (cpkgs ? untrunc-anthwlock
+          && cpkgs.lib.meta.availableOn cpkgs.stdenv.hostPlatform cpkgs.untrunc-anthwlock) cpkgs.untrunc-anthwlock;
+        TALK_FONT = "${cpkgs.dejavu_fonts}/share/fonts/truetype/DejaVuSans-Bold.ttf";
+        CARGO_BUILD_JOBS = "1";
+      };
       report = pkgs.mkShell {
         packages = core ++ [ pkgs.R pkgs.quarto ];
         QUARTO_PANDOC = "${quartoBundledPandoc}/bin/pandoc";
