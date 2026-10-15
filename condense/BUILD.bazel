@@ -1,0 +1,70 @@
+"""
+Talk condensing (`python -m condense`, docs/spec/CONDENSE.md) in the Bazel graph.
+
+The module graph has a hermetic CPython 3.12 and no pip hub, so the targets
+split by what they import:
+
+- `condense` and `stdlib_test` run on the hermetic interpreter. stdlib_test
+  imports every module that reaches no numpy import (avsync.py, check.py and
+  __main__.py are left out) and checks the pure EDL and caption helpers;
+- `pytest` runs the condense suite (pytest, numpy, FFmpeg and synthetic media,
+  no whisper) on the dev shell's python3 from PATH. It is tagged
+  requires-host-tools, so hosted CI excludes it. Run it with
+    nix develop .#condense -c bazel test //condense:pytest --config=host-tools
+
+`just condense-test` stays the accepted gate; these targets run the same
+sources through the graph.
+"""
+
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/.DS_Store",
+            "**/.pytest_cache/**",
+        ],
+    ),
+)
+
+# `import condense` resolves from the runfiles root, as from the checkout root.
+py_library(
+    name = "condense",
+    srcs = glob(["*.py"]),
+    data = ["examples/talk.toml"],
+    imports = [".."],
+)
+
+py_test(
+    name = "stdlib_test",
+    srcs = ["tests/stdlib_smoke.py"],
+    main = "tests/stdlib_smoke.py",
+    env = {"PYTHONDONTWRITEBYTECODE": "1"},
+    tags = ["python-unittest"],
+    deps = [":condense"],
+)
+
+# Unsandboxed like //tests: the suite resolves its own path back to the checkout.
+py_test(
+    name = "pytest",
+    srcs = ["tests/bazel_pytest.py"],
+    data = [
+        ":all_files",
+        "//src:video-utils",
+    ],
+    env = {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "VIDEO_UTILS_BIN": "$(rootpath //src:video-utils)",
+    },
+    main = "tests/bazel_pytest.py",
+    tags = [
+        "no-sandbox",
+        "requires-host-tools",
+    ],
+    timeout = "long",
+)
