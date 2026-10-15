@@ -33,7 +33,7 @@ import json
 import re
 from types import SimpleNamespace
 
-from . import audio, transcribe
+from . import audio, timeline, transcribe
 from .events import FILL, norm
 
 
@@ -333,7 +333,8 @@ def build(cfg):
         fps=cfg.fps, rules=cfg.rules, clips=clips, expected_total_s=round(sum(c["expected_s"] for c in clips), 3)
     )
     cfg.f("edl", "json").write_text(json.dumps(edl, indent=1))
-    print(f"total {edl['expected_total_s']} s")
+    checked = timeline.validate(cfg.f("edl", "json"))
+    print(f"total {edl['expected_total_s']} s, {checked['total_frames']} frames, validated by video-utils timeline")
     return edl
 
 

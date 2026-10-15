@@ -39,7 +39,11 @@ the defaults and `talk.toml` overrides them.
 - Bounded Python owns analysis: events, pause carving, speed choice and checks.
 - Rust owns the timeline: EDL validation, frame quantisation and the
   source-to-output time map (`src/timeline.rs`, `video-utils timeline`), and
-  run verification (`video-utils verify-run --timeline edl_v1`).
+  run verification (`video-utils verify-run --timeline edl_v1`). The edl stage
+  validates every `edl.json` it writes with `video-utils timeline validate`.
+  `edl.py` keeps an in-process copy of the map and quantiser for the per-word
+  loops in captions, overlay and check; `condense/tests/test_timeline_parity.py`
+  requires its answers to equal the Rust ones exactly.
 - Every stage gets a typed tool in `program/tools.json` and a skill under
   `.agents/skills/`, admitted in its own PR.
 

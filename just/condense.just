@@ -22,8 +22,8 @@ condense-transcribe config="talk.toml":
 condense-events config="talk.toml":
     python3 -m condense events {{quote(config)}}
 
-# The edit decision list: one speed for every span of every clip.
-condense-edl config="talk.toml":
+# The edit decision list: one speed for every span of every clip, validated by `video-utils timeline`.
+condense-edl config="talk.toml": cli
     python3 -m condense edl {{quote(config)}}
 
 # Mezzanines, part renders, the join, two-pass loudness and the final encode.
@@ -50,5 +50,5 @@ condense-lint:
     cd condense && ruff check . && ruff format --check .
 
 # The synthetic-media tests: FFmpeg makes every input, no model and no recording.
-condense-test:
+condense-test: cli
     cd condense && python3 -m pytest -q
