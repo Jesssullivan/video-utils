@@ -206,7 +206,8 @@ class S3ToolAdmissionTests(unittest.TestCase):
     # ----- model registry and typed refusal -----------------------------------
     def test_beat_this_model_is_registered_hash_bound_from_roots_fetch(self):
         registry = json.loads((ROOT / 'program/models.json').read_text(encoding='utf-8'))
-        self.assertEqual(sorted(registry['models']), [BEAT_THIS_MODEL_ID, 'spotify-basic-pitch-0.4.0-onnx'])
+        self.assertEqual(sorted(registry['models']), [BEAT_THIS_MODEL_ID, 'ggerganov-whisper-cpp-ggml-small.en',
+                                                     'spotify-basic-pitch-0.4.0-onnx'])
         entry = registry['models'][BEAT_THIS_MODEL_ID]
         self.assertEqual(entry['sha256'], BEAT_THIS_SHA256)
         self.assertEqual(entry['max_bytes'], 81058141)

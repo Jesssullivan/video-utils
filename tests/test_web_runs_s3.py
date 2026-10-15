@@ -987,9 +987,10 @@ class Capabilities(ApiCase):
             self.assertEqual(tool['area_basis'], 'program/capabilities.json domain')
             self.assertIn('network', tool['capability']['effects'])
             self.assertIn('timeout_seconds', tool['capability']['resources'])
-        self.assertEqual(len(caps['models']), 2)
+        self.assertEqual(len(caps['models']), 3)
         by_id = {model['model_id']: model for model in caps['models']}
-        self.assertEqual(sorted(by_id), ['cpjku-beat-this-final0', 'spotify-basic-pitch-0.4.0-onnx'])
+        self.assertEqual(sorted(by_id), ['cpjku-beat-this-final0', 'ggerganov-whisper-cpp-ggml-small.en',
+                                         'spotify-basic-pitch-0.4.0-onnx'])
         model = by_id['spotify-basic-pitch-0.4.0-onnx']
         self.assertEqual((model['local_presence'], model['url_host'], model['registration']),
                          ('not_checked', 'raw.githubusercontent.com', 'registered_hash_bound'))

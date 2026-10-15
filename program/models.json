@@ -19,6 +19,17 @@
       "server_sha1_cross_check": "e1506282faf66ca10e8ab50ee26bd542b7b9ff0a",
       "fetched_at_utc": "2026-10-07T10:28:54Z",
       "gate_state": "registered_hash_bound_runtime_not_qualified_no_inference_run"
+    },
+    "ggerganov-whisper-cpp-ggml-small.en": {
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-small.en.bin",
+      "sha256": "c6138d6d58ecc8322097e0f987c32f1be8bb0a18532a3f88f734d1bbf9c41e5d",
+      "max_bytes": 487614201,
+      "format": "ggml (whisper.cpp)",
+      "license": "MIT (whisper.cpp repository and OpenAI Whisper weights)",
+      "source_commit": "5359861c739e955e79d9a303bcbc70fb988958b1",
+      "download_timeout_seconds": 1800,
+      "consumer": "condense transcribe (talk condensing); never a guitar default",
+      "gate_state": "registered_hash_bound_runtime_not_qualified"
     }
   }
 }
