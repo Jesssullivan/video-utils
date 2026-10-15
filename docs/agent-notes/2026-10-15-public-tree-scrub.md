@@ -14,23 +14,25 @@ Measured with the same twelve rules over `git ls-files`.
 | State | Hits | Files |
 | --- | --- | --- |
 | Before (main at the lane base) | 1,888 | 419 |
-| After, raw (no exceptions) | 550 | 156 |
+| After, raw (no exceptions) | 456 | 148 |
 | After, with the test's exceptions | 0 | 0 |
 
 Before, by rule: developer-filesystem-path 1,374, private-network-address 213, nix-store-path 210,
 real-take-filename 43, private-estate-hostname 42, internal-hostname 6.
 
-The raw after-count breaks down as follows:
+The raw after-count includes this receipt and breaks down as follows:
 
-- 145 hits are in 15 frozen receipts (decision 3): 122 personal paths, 12 take names and 11 pinned
-  store paths.
-- 208 are loopback `127.0.0.1`.
-- 139 are Nix store paths outside the frozen receipts: the pinned FFmpeg store path and detector
-  literals.
-- 28 are host-path-shaped fixtures, sentinels and three relative `root/` directories.
-- 30 are Access team fixtures, the gateway contract and the repository's own Service name.
+- 38 hits are in the 2 frozen receipts (decision 3): 32 personal paths and 6 pinned store paths.
+- 210 are loopback `127.0.0.1`.
+- 143 are the pinned FFmpeg store path (134) and Nix store detector literals (9).
+- 30 are host-path-shaped fixtures (one a store path), sentinels and three relative `root/` directories.
+- 35 are Access team fixtures (14), the gateway contract (17) and the repository's own Service name (4).
 
-Outside the frozen receipts, 0 real take names and 0 non-loopback private addresses remain.
+0 real take names remain anywhere in the tree, and 0 non-loopback private addresses.
+
+A first version of this receipt (PR head `17c0aa8`) kept 15 receipts frozen and reported 550 raw hits in
+156 files; that count missed this receipt's own two loopback quotes (552 in 157). Review found that only two
+of the 15 are pinned by code that still runs, so the other 13 were scrubbed (decision 3).
 
 ## Classification and treatment
 
@@ -58,21 +60,30 @@ Outside the frozen receipts, 0 real take names and 0 non-loopback private addres
    `<nix-store>/<hash>-<name>`.
 2. **Loopback.** `127.0.0.1` is exempt by value: the web stack's loopback-only bind is a tested
    security property, and the address names no host.
-3. **Frozen receipts.** Fifteen receipts and experiment scripts stay byte-identical:
-   - Thirteen are pinned by sha256 in executable code. The nr8/nr10 comparison worker and its
-     source-freezes, the capture-application and nr10 artifact audits, and the desktop export scripts pin
-     them; `tests/test_nr8_nr10_comparison.py` checks some of those pins.
-   - `2026-10-05-captured-restoration-comparison.json` is pinned by the live low-register gate
-     (`scripts/low_register_actual_diagnostic.py`, whose own hash still equals the released harness hash).
-   - The gate opens its audit through the absolute `audit_path` in
-     `2026-10-06-root-low-register-diagnostic-release.json`.
+3. **Frozen receipts.** Two receipts stay byte-identical, because code that still runs pins them by
+   sha256:
+   - `2026-10-05-captured-restoration-comparison.json` is pinned by the low-register gate
+     (`scripts/low_register_actual_diagnostic.py`). The gate's own hash is the released worker hash, so
+     re-pinning it would also void that release.
+   - `2026-10-06-capture-application-resource-qualification-result.json` is pinned by
+     `docs/agent-notes/2026-10-06-nr8-nr10-comparison.py`, and `tests/test_nr8_nr10_comparison.py` loads
+     that worker and checks the pin.
 
-   Together they keep 145 hits: the operator user name in paths, the take name and the pinned store
-   path. `FROZEN_EVIDENCE` in the test exempts each one only while its sha256 is unchanged. Scrubbing
-   them needs an operator decision to re-pin the gates.
+   Together they keep 38 hits: 32 personal paths and 6 pinned store paths, and no take name.
+   `FROZEN_EVIDENCE` in the test exempts each one only while its sha256 is unchanged. Scrubbing them needs
+   an operator decision to re-pin the gates.
+
+   The method was a `git grep` of each candidate's file name and sha256 over `tests/`, `scripts/`, `src/`,
+   `just/`, `bazel/` and the experiment scripts that tests load. The other 13 receipts and experiment
+   scripts the first version froze are pinned only by archived one-shot experiment scripts and receipts
+   under `docs/agent-notes/`, which nothing executes. They were scrubbed like the 154 others and added to
+   the rebind list. They held all 12 remaining take names and 90 developer-path hits.
+   `2026-10-06-root-low-register-diagnostic-release.json` is not hash-pinned by live code. The gate reads
+   its `audit_path`, which now names the audit repo-relative instead of under the operator's home. The
+   gate therefore resolves the audit from a checkout root, and the audit's sha256 is unchanged.
 4. **Hash-recorded receipts.** 202 of the 419 hit files had their sha256 recorded elsewhere in the tree,
    mostly by later receipts. Apart from the frozen ones, they were scrubbed. A recorded hash now refers to
-   the pre-scrub bytes, which stay in Git history. `2026-10-15-public-tree-scrub-rebind.json` lists the 154
+   the pre-scrub bytes, which stay in Git history. `2026-10-15-public-tree-scrub-rebind.json` lists the 166
    scrubbed files whose old sha256 the tree records, with the new sha256 and the pre-scrub commit. No hash
    value recorded in a receipt was edited.
 
@@ -92,14 +103,17 @@ Outside the frozen receipts, 0 real take names and 0 non-loopback private addres
 ## Exceptions in `tests/test_public_tree.py`
 
 There are 3 value exceptions: loopback, the repository's own `video-utils-web` Service name in its deploy
-manifest, and the pinned FFmpeg store path. There are 15 frozen-evidence entries, each checked by sha256,
-and 26 path-and-rule exceptions:
+manifest, and the pinned FFmpeg store path. There are 2 frozen-evidence entries, each checked by sha256,
+and 28 path-and-rule exceptions:
 
 - 3 relative directories named `root`
 - leak detectors and their sentinels
 - host-path-shaped fixtures that the code must refuse or redact
 - synthetic Access team domains
-- the guitar_noul gateway host contract, which `scripts/guitar_noul_client.py` enforces
+- the guitar_noul gateway host contract, which `scripts/guitar_noul_client.py` enforces. The
+  `guitar-noul` skill and `MODEL_LANES_S3.md` name the literal accepted host again, because the agent
+  contract must say which host the client accepts. The domain is already public through the client, its
+  tests and the site rules. The skill is back to its pre-scrub bytes and left the rebind list.
 
 A stale exception fails the test. A planted file proves that each of the twelve rules fires.
 
@@ -108,18 +122,30 @@ A stale exception fails the test. A planted file proves that each of the twelve 
 - History rewrite: not done (operator decision in TIN-6515). The pre-scrub bytes remain in history.
 - The guitar_noul client hard-codes the estate gateway host. Moving it to configuration would remove one
   exception.
-- The S4 sprint goal of a scan with 0 hits holds only with the exceptions. The 15 frozen receipts still
-  carry the operator user name and the take name until their gates are re-pinned.
+- The S4 sprint goal of a scan with 0 hits holds only with the exceptions. The 2 frozen receipts still
+  carry the operator user name in paths until their gates are re-pinned.
 - The site check `test_m13` used to read the take name from README and PROJECT.md. It now reads it from
-  local run manifests when runs exist, and the shape rule covers it otherwise
-  (`tests/test_public_site_s3.py`, edited because the scrub removed its source).
+  local run manifests when runs exist (`tests/test_public_site_s3.py`, an out-of-lane edit made because the
+  scrub removed its source). Without local runs, as in hosted CI, the exact-name check is a no-op, and the
+  real-take-filename shape rule is the only take-name guard there.
+- `deploy/cloudflare/video-utils-app-origin-routes.json`, `docs/research/2026-10-07-estate-auth-hosting.md`
+  and `docs/spec/sprints/AUTH_HOSTING_S3.md` cite an external routes file as
+  `<cluster>-ingress-mothership-xoxd-ai-routes.json`. `mothership` there is the routed application's
+  hostname label, as in `mothership-xoxd-ai`, not a machine name. This is an inference from the file
+  name and is not verified against the external repository; the operator can confirm it on TIN-6515. With the cluster as a placeholder, the cited path no longer
+  resolves verbatim at the pinned commit. The pinned commit and its `infra/cloudflare/` directory still
+  locate it.
+- Hosted CI exercises `tests/test_public_tree.py` through the offline job. It is registered in
+  `tests/BUILD.bazel` and `bazel/test_classification_s3_full.json` as a host tool (it runs `git`), and the
+  hosted Bazel job excludes host-tool modules, the same as `test_condense_public_surface`.
 - `program/linear.json` and Linear readback copies now differ from the live Linear text where Linear
   itself names a host (one project name). The tracker text is the operator's to change.
 - Project and organisation names (tinyland, xoruby, legalab, blahaj) and git author identity are not
   host or path identifiers and were left as they are.
 - `scripts/report_bundle.py` no longer lists the operator's Documents and Desktop by absolute path. It
-  protects the running user's own Documents and Desktop, which are the same directories on the operator
-  host.
+  protects the running user's own Documents and Desktop, and it refuses any macOS user's Documents or
+  Desktop by pattern, whatever HOME is. `tests/test_report_bundle.py` covers the pattern with a fixture
+  user.
 
 ## Gates
 
