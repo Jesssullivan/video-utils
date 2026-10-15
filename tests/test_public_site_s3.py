@@ -25,7 +25,7 @@ import tempfile
 import time
 import unittest
 from html.parser import HTMLParser
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 REPO = Path(__file__).resolve().parents[1]
 SITE = REPO / "site"
@@ -437,12 +437,26 @@ def real_take_identifiers() -> dict:
     roots = [REPO / "artifacts" / "runs"]
     if main_checkout() is not None:
         roots.append(main_checkout() / "artifacts" / "runs")
+    names: list[str] = []
     for root in roots:
         if root.is_dir():
             for entry in sorted(root.iterdir()):
                 if entry.is_dir():
                     identifiers[entry.name] = "run_directory"
                     run_dirs += 1
+                    # The public tree no longer names the take (TIN-6515); local run manifests still do.
+                    try:
+                        source = json.loads((entry / "manifest.json").read_text(encoding="utf-8")).get("source", {})
+                    except (OSError, ValueError, AttributeError):
+                        continue
+                    if isinstance(source, dict) and isinstance(source.get("path"), str):
+                        names.append(PurePosixPath(source["path"]).name)
+    for full in names:
+        if name_re.fullmatch(full):
+            identifiers.setdefault(full, "recording_basename")
+            identifiers.setdefault(re.sub(r"[\u00a0\u202f]", " ", full), "recording_basename")
+            identifiers.setdefault(re.sub(r"\.[a-z0-9]{3,4}$", "", full), "recording_stem")
+            identifiers.setdefault(prefix_re.match(full).group(0), "recording_date_prefix")
     kinds: dict[str, int] = {}
     for kind in identifiers.values():
         kinds[kind] = kinds.get(kind, 0) + 1
@@ -1208,7 +1222,9 @@ class LeakRuleTests(unittest.TestCase):
     def test_m13_no_exact_real_take_identifier_under_site(self):
         identifiers = real_take_identifiers()
         self.assertGreaterEqual(identifiers["by_kind"].get("source_sha256", 0), 1)
-        self.assertGreaterEqual(identifiers["by_kind"].get("recording_basename", 0), 1)
+        if identifiers["run_directories_found"]:
+            # Without local runs the take name is known nowhere; the real-take-filename rule still applies.
+            self.assertGreaterEqual(identifiers["by_kind"].get("recording_basename", 0), 1)
         self.assertEqual(identifier_hits(identifiers["identifiers"], include_build=True), [])
 
     def test_private_app_hostname_is_absent_when_known(self):

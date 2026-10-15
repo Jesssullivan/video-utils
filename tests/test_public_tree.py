@@ -5,13 +5,15 @@ tests/test_condense_public_surface.py applies to condense/, applied here to ever
 text file. Forward scrub and allowlist rationale: docs/agent-notes/2026-10-15-public-tree-scrub.md.
 
 Exceptions are explicit and narrow. VALUE_ALLOWLIST exempts one exact match of one rule anywhere;
-PATH_ALLOWLIST exempts one rule in one file, for detectors, positive controls, fixtures and the one
-hash-frozen receipt. Every entry must still be needed, so a stale exception fails too.
+PATH_ALLOWLIST exempts one rule in one file, for detectors, positive controls and fixtures;
+FROZEN_EVIDENCE exempts a hash-pinned receipt only while its bytes are unchanged. Every entry must still
+be needed, so a stale exception fails too.
 
 Bare estate host words cannot be listed in a public file without leaking them. Set
 VIDEO_UTILS_PRIVATE_TERMS to an untracked file of words (one per line) to scan for them word-bounded.
 """
 
+import hashlib
 import json
 import os
 import re
@@ -37,18 +39,48 @@ VALUE_ALLOWLIST = {
     ("nix-store-path", PINNED_STORE_PATH),
 }
 
+# Frozen evidence: executable code pins these receipts by sha256 (or opens them through an absolute path they
+# record), so scrubbing them would break a reproducible gate. Exempt from every rule only while the bytes are
+# exactly these; any edit fails the test. Re-pinning them is an operator decision (scrub receipt).
+FROZEN_EVIDENCE = {
+    "docs/agent-notes/2026-10-05-captured-restoration-comparison.json":
+        "16a333af8d6068aabb4215cf183fa2d18b6726d38affcbe439c29d55cf004e0f",
+    "docs/agent-notes/2026-10-06-accepted-fuller-compact-assembly.py":
+        "095fa1e694fb97cc9a53f1d12e04c86cac7fbd637a7d574c6295102ecd44a533",
+    "docs/agent-notes/2026-10-06-actual-nr-pair-artifact-audit.py":
+        "aaec5344a7929c240efc6f1277817b22c9d2ad4a604e5f7d77eb5aef856313b0",
+    "docs/agent-notes/2026-10-06-actual-nr10-resource-artifact-audit.py":
+        "7139058e83748d42d088036053ceb1ce181f3f057f0e8d66df991bce884196ac",
+    "docs/agent-notes/2026-10-06-actual-nr8-independent-artifact-audit.json":
+        "dc79c3af65bcc5f893af9cf6b61293baeff3429a9f3fa5cfc56fb242efab5d59",
+    "docs/agent-notes/2026-10-06-actual-nr8-nr10-capture-authoring.json":
+        "98108ca07705bfed300dfc8a5b6a40de72215f7cb838d05e87bca8aaa8206a8b",
+    "docs/agent-notes/2026-10-06-capture-application-native-qualification-preregistration.json":
+        "0eca36a73660f797c18d122bbad6d29cfa0b9815c291557d5329089e0c70320c",
+    "docs/agent-notes/2026-10-06-capture-application-resource-qualification-preregistration.json":
+        "f6bec7567bc3e676d13f39c1f3f79671e307d4f75483ff1204a67bb33891d5c0",
+    "docs/agent-notes/2026-10-06-capture-application-resource-qualification-result.json":
+        "3ad6a3c119c4e3196604f8818630ec74960028cb1df33e3f3e7c0e3abcb09603",
+    "docs/agent-notes/2026-10-06-fuller-v1-plan.json":
+        "f62cce0d5bf9e83ba045bfb9bd22a20d341ccc8ff690413fbfcd85bc447be599",
+    "docs/agent-notes/2026-10-06-root-actual-nr10-resource-retry-release.json":
+        "24ba4717093779c7afbb7d8ade6cba493353ed6d93a0b447f48f3336023392f9",
+    "docs/agent-notes/2026-10-06-root-actual-nr8-nr10-render-release.json":
+        "7d47ca235de555cb3f721c8b6f041e1517e71c5a1d2e87356affc9f47586c531",
+    "docs/agent-notes/2026-10-06-root-capture-application-native-release.json":
+        "56e49d0789fa84e8a0d75f03d222f4bda291995a519810c63d8f297d94e98b3c",
+    "docs/agent-notes/2026-10-06-root-capture-application-resource-release.json":
+        "65662826f918c156b450f219ae8a60ed47256e3257d0a21d74919a0d606b07bc",
+    "docs/agent-notes/2026-10-06-root-low-register-diagnostic-release.json":
+        "26bb0a5cc3a1d72e95471830f72ceeb706e5aed21c3474dc48c838e0e2a8225b",
+}
+
 DETECTOR = "a leak detector's own pattern or sentinel"
 CONTROL = "a positive control or host-path-shaped fixture the code must refuse or redact"
 TEAM = "synthetic Access team-domain fixtures for the auth gate"
 GATEWAY = "the guitar_noul gateway host contract the client enforces"
-FROZEN = "a receipt a live hash gate reads byte for byte"
 RELATIVE_ROOT = "a relative temporary checkout directory named root, not the superuser home"
 PATH_ALLOWLIST = {
-    # The live low-register diagnostic gate (scripts/low_register_actual_diagnostic.py) pins the comparison by
-    # sha256 and opens the audit through the release's absolute audit_path. Both stay byte-identical until the
-    # operator decides to re-pin; see the scrub receipt.
-    ("docs/agent-notes/2026-10-05-captured-restoration-comparison.json", "developer-filesystem-path"): FROZEN,
-    ("docs/agent-notes/2026-10-06-root-low-register-diagnostic-release.json", "developer-filesystem-path"): FROZEN,
     ("docs/agent-notes/sprints/20261007-s3/take_intake-e2e-prereg.json", "developer-filesystem-path"): RELATIVE_ROOT,
     ("docs/agent-notes/sprints/20261007-s3/workflow-handoffs/take_intake.json",
      "developer-filesystem-path"): RELATIVE_ROOT,
@@ -119,6 +151,10 @@ def scan(root, names, rules, path_allowlist=PATH_ALLOWLIST):
         text = read_text(root / name)
         if text is None:
             continue
+        if root == ROOT and name in FROZEN_EVIDENCE:
+            if hashlib.sha256(text.encode("utf-8")).hexdigest() == FROZEN_EVIDENCE[name]:
+                used.add(name)
+                continue
         for rule, pattern in rules.items():
             for match in pattern.finditer(text):
                 key = allowed_value(rule, text, match)
@@ -158,6 +194,7 @@ class PublicTree(unittest.TestCase):
             self.assertIn(name, self.names, "allowlisted path is not tracked")
         self.assertEqual(sorted(set(PATH_ALLOWLIST) - used), [], "stale path exception")
         self.assertEqual(sorted(VALUE_ALLOWLIST - used), [], "stale value exception")
+        self.assertEqual(sorted(set(FROZEN_EVIDENCE) - used), [], "frozen evidence changed or vanished")
 
     def test_planted_positive_controls_fail_the_scan(self):
         # Built from fragments so this file is not itself a finding.
