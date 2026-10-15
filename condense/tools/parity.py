@@ -3,8 +3,9 @@
     python3 -m condense.tools.parity OLD_ROOT NEW_ROOT talk.toml RUN_DIR [--stages transcribe,events,edl]
 
 A tool root holds `talk_condense/` (the retired tool) or `condense/` (this repository). Each side runs in its
-own RUN_DIR/<side>/ with a copy of talk.toml and links to the same recordings, so both read identical inputs
-and the same `[encode] jobs` and `[whisper] threads` bounds. The sides run one after the other.
+own RUN_DIR/<side>/ with a copy of talk.toml and hard links to the same recordings, so both read identical
+inputs and the same `[encode] jobs` and `[whisper] threads` bounds. The sides run one after the other.
+`publish` runs only where the tool has it, and its `verify-run` refuses a symlinked recording.
 
 The receipt (RUN_DIR/parity.json, and stdout) holds hashes, counts, durations, stage exit codes and tool
 versions. It names no path, host or transcript text: files appear by their name inside work/ or out/.
@@ -67,7 +68,11 @@ def stage_config(config, side_dir):
         link.parent.mkdir(parents=True, exist_ok=True)
         if link.is_symlink() or link.exists():
             link.unlink()
-        link.symlink_to((config.parent / rel).resolve())
+        target = (config.parent / rel).resolve()
+        try:  # verify-run refuses a symlinked source, so publish needs a regular file: a hard link
+            os.link(target, link)
+        except OSError:  # another filesystem: the stages up to overlay still run on a symlink
+            link.symlink_to(target)
     shutil.copyfile(config, side_dir / "talk.toml")
     return side_dir / "talk.toml"
 

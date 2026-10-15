@@ -133,7 +133,7 @@ def test_the_staged_config_links_the_same_recording(talk, tmp_path):
     staged = parity.stage_config(talk, tmp_path / "run" / "old")
     assert staged.read_text() == talk.read_text()
     link = staged.parent / "media" / "intro.mp4"
-    assert link.is_symlink() and link.resolve() == (talk.parent / "media" / "intro.mp4").resolve()
+    assert not link.is_symlink() and link.samefile(talk.parent / "media" / "intro.mp4")
     parity.stage_config(talk, tmp_path / "run" / "old")  # staging twice replaces the link
 
 
