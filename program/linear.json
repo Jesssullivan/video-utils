@@ -3,7 +3,7 @@
   "authority": "Operator approved plan / Implement the plan; R-HOOK-CONVERGENCE-20261004 / R-N13",
   "repository": "https://github.com/Jesssullivan/video-utils",
   "team_id": "a2c482c8-4d0d-4171-82d9-553265b6c706",
-  "updated_at": "2026-10-15T08:35:00+00:00",
+  "updated_at": "2026-10-15T16:00:00+00:00",
   "milestones": [
     {
       "id": "71bd7738-f346-48dd-8426-4095575a386a",
@@ -90,8 +90,8 @@
   "evidence_state": "S2 complete: 17 lanes + 5 root integrations admin-merged (signed); 40 typed tools/skills; final source d1e74fe hosted CI 37535277896 success (1479 OK/110 optional skips, Rust, no leaks). D6 and TIN-5494 In Progress with stated reasons; operator follow-ups in docs/spec/sprints/S2_FOLLOWUPS.md.",
   "project": {
     "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
-    "name": "video-utils — guitar restoration and performance analysis",
-    "url": "https://linear.app/tinyland/project/video-utils-guitar-restoration-and-performance-analysis-243628f290ab"
+    "name": "video-utils — media analysis toolkit",
+    "url": "https://linear.app/tinyland/project/video-utils-media-analysis-toolkit-243628f290ab"
   },
   "publication": {
     "authority": "R-HOOK-CONVERGENCE-20261004/R-N13",
@@ -1160,6 +1160,60 @@
         "TIN-5553": "Backlog",
         "TIN-5554": "Backlog"
       }
+    },
+    "20261015-s4": {
+      "authority": "Operator interview 2026-10-15 / R-N13",
+      "plan": "docs/spec/sprints/20261015-S4.md",
+      "start": "2026-10-15",
+      "target": "2026-10-22",
+      "hours": 35,
+      "reserve_hours": 3.5,
+      "milestones": [
+        {
+          "id": "2e86ca34-38b1-4518-bf7c-149aa7c4e293",
+          "name": "S4 — Condense on real talks",
+          "hours": 11,
+          "issues": [
+            "TIN-6543",
+            "TIN-6544",
+            "TIN-6545",
+            "TIN-6546"
+          ]
+        },
+        {
+          "id": "eb7d4916-46df-4681-815a-a9416ab42ac9",
+          "name": "S4 — Close the guitar core",
+          "hours": 7,
+          "issues": [
+            "TIN-5491",
+            "TIN-5494"
+          ]
+        },
+        {
+          "id": "9c09ace7-9695-4ac0-9527-9a545a6b5c97",
+          "name": "S4 — S3 hosting and site",
+          "hours": 6.5,
+          "issues": [
+            "TIN-5722",
+            "TIN-5723",
+            "TIN-5717"
+          ]
+        },
+        {
+          "id": "0c7895d8-cfce-4ce8-a5c6-b175e3bbb0b2",
+          "name": "S4 — Hygiene and peers",
+          "hours": 7,
+          "issues": [
+            "TIN-6515",
+            "TIN-6514"
+          ]
+        }
+      ],
+      "outside": [
+        "TIN-5720",
+        "TIN-5721",
+        "TIN-5546"
+      ]
     }
   },
   "media_initiative": {
