@@ -86,13 +86,13 @@ class S3GToolAdmissionTests(unittest.TestCase):
     # ----- registry freeze ----------------------------------------------------
     def test_first_42_descriptors_frozen_and_four_appended(self):
         tools = tool_api.descriptors()
-        self.assertEqual(len(tools), 46)
+        self.assertEqual(len(tools), 48)  # tools[46:] admitted by tests/test_s4a_tool_admission.py
         self.assertEqual(digest(tools, 42, False), ADMITTED_42_SHA256)
         self.assertEqual(digest(tools, 42, True), ADMITTED_42_ASCII_SHA256)
         self.assertEqual(digest(tools, 46, False), ADMITTED_46_SHA256)
         self.assertEqual(digest(tools, 46, True), ADMITTED_46_ASCII_SHA256)
-        self.assertEqual([tool['name'] for tool in tools[42:]], list(NEW_G))
-        self.assertEqual(len({tool['name'] for tool in tools}), 46)
+        self.assertEqual([tool['name'] for tool in tools[42:46]], list(NEW_G))
+        self.assertEqual(len({tool['name'] for tool in tools}), 48)
         raw = (ROOT / 'program/tools.json').read_text(encoding='utf-8')
         self.assertEqual(json.dumps(json.loads(raw), indent=2) + '\n', raw)
 
@@ -103,9 +103,9 @@ class S3GToolAdmissionTests(unittest.TestCase):
 
     def test_admitted_descriptors_equal_the_lane_drafts(self):
         tools = tool_api.descriptors()
-        self.assertEqual(tools[42:], drafts())
+        self.assertEqual(tools[42:46], drafts())
         reference = list(tools[0])
-        for tool in tools[42:]:
+        for tool in tools[42:46]:
             self.assertEqual(list(tool), reference)
 
     # ----- descriptors and skills --------------------------------------------
@@ -456,10 +456,10 @@ class S3GToolAdmissionTests(unittest.TestCase):
         replies, stderr = exchange(messages, timeout=60)
         self.assertEqual(stderr, '')
         tools = {row['name']: row for row in replies[1]['result']['tools']}
-        self.assertEqual(len(tools), 46)
+        self.assertEqual(len(tools), 48)  # tools 47-48 by tests/test_s4a_tool_admission.py
         names = [row['name'] for row in replies[2]['result']['prompts']]
         self.assertEqual(len(names), len(set(names)))
-        self.assertEqual(len(names), 45)
+        self.assertEqual(len(names), 46)  # timeline_validate/_map share the edl-timeline prompt
         for name, (prompt, _sha, annotations, *_rest) in NEW_G.items():
             with self.subTest(name=name):
                 self.assertIs(tools[name]['inputSchema']['additionalProperties'], False)

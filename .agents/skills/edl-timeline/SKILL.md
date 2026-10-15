@@ -5,13 +5,13 @@ description: Validate a condense EDL and map source and output times with the Ru
 
 # Give agents the Rust authority's verdict on an EDL before render, publish or verify-run.
 
-**Hook (draft):** MCP tools `timeline_validate`, `timeline_map` in `program/tool-drafts/condense.json`. Not admitted yet: `tools/list` does not show them until root admission (TIN-6511).
+**Hook:** MCP tools `timeline_validate` and `timeline_map` (admitted as tools 47 and 48, implemented). Launch the repository stdio server with `just mcp`; inspect `tools/list` before a call. Both need this checkout's `video-utils` binary (`just cli`).
 
 **Capability:** Run `video-utils timeline validate` on an edl.json and return its receipt: fps, clips, segments, total frames and seconds, the largest frame drift and the file's sha256, or a typed reason (edl_invalid family, too_large, edl_unreadable). Reads one file; writes nothing.
 
 ## Use and controls
 
-Use `timeline_validate` before render or publish and `timeline_map` for any placement on the output clock. Fallback: `video-utils timeline validate EDL` and `video-utils timeline map EDL QUERIES`. Run inside `nix develop .#condense`. Every stage reads one talk.toml; `condense/README.md` gives each rule and default.
+Use `timeline_validate` before render or publish and `timeline_map` for any placement on the output clock (at most 128 queries per call). Fallback: `video-utils timeline validate EDL` and `video-utils timeline map EDL QUERIES`. `just cli` builds the binary in either dev shell.
 
 ## Speech, not guitar
 

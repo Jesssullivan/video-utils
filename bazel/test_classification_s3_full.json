@@ -11,7 +11,7 @@
     "completeness": "inference",
     "behaviour_under_bazel": "measured by the single full run (bazel_full-full-run.json)"
   },
-  "module_count_at_supplement": 106,
+  "module_count_at_supplement": 107,
   "added_modules": [
     "test_auth_token_s3",
     "test_condense_public_surface",
@@ -19,6 +19,7 @@
     "test_public_site_s3",
     "test_s3_tool_admission",
     "test_s3g_tool_admission",
+    "test_s4a_tool_admission",
     "test_stems_estimate",
     "test_take_intake",
     "test_timeline_contract",
@@ -46,6 +47,7 @@
         "test_condense_public_surface",
         "test_public_site_s3",
         "test_s3_tool_admission",
+        "test_s4a_tool_admission",
         "test_take_intake"
       ],
       "reasons": {
@@ -53,7 +55,8 @@
         "test_s3_tool_admission": "runs `git ls-files -- models` when git resolves (unchecked, never passed, when absent)",
         "test_take_intake": "falls back to the hash-pinned Nix FFmpeg/FFprobe path when FFMPEG/FFPROBE are unset, runs `git init` (skips git_unavailable on failure), and scripts/take_intake.py resolves git from PATH for its tracked-path check",
         "test_auth_token_s3": "starts the built adapter-node server with `node serve.js` in tailnet mode and a loopback JWKS server",
-        "test_condense_public_surface": "runs `git ls-files` to list the condense sources it scans"
+        "test_condense_public_surface": "runs `git ls-files` to list the condense sources it scans",
+        "test_s4a_tool_admission": "builds the checkout video-utils binary with cargo when absent (skips with that reason when cargo is unavailable) and runs it"
       }
     },
     "exclusive": {

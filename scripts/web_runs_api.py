@@ -169,6 +169,7 @@ TOOL_AREAS = {
     'beat_this_compare': 'phrase_rhythm', 'guitar_noul_decide': 'analysis',
     'take_intake': 'pipeline_report', 'timing_calibration_analyze': 'phrase_rhythm',
     'timing_calibration_apply': 'phrase_rhythm', 'stems_estimate': 'analysis',
+    'timeline_validate': 'analysis', 'timeline_map': 'analysis',
 }
 AREAS = ('restoration', 'analysis', 'phrase_rhythm', 'pitch', 'review', 'delivery', 'corpus_eval',
          'pipeline_report')

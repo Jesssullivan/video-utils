@@ -56,6 +56,12 @@ TRAVERSAL_GUARDED_RUN_TOOLS = {'marked_video', 'basic_pitch_compare', 'beat_this
 # refusal-code key; run_stderr_refusal_worker relays only that code and a bounded message, never an untyped tail.
 STDERR_REFUSAL_TOOLS = {'take_intake': 'reason', 'timing_calibration_analyze': 'refusal',
                         'timing_calibration_apply': 'refusal'}
+# Rust timeline tools (admitted as tools 47 and 48): the worker is this checkout's video-utils binary. It prints one
+# JSON receipt and exits 0 (ok), 1 (status failed with a stable reason code) or 2 (usage); nothing else is relayed.
+TIMELINE_TOOLS = {'timeline_validate': 'validate', 'timeline_map': 'map'}
+TIMELINE_MAX_EDL_BYTES = 16 * 1024 * 1024
+TIMELINE_QUERY_FIELDS = {'to_out': ({'clip', 'source_s'}, {'snap'}), 'row': ({'clip', 'source_s'}, set()),
+                         'to_src': ({'output_s'}, set())}
 S2_DIGEST_FIELDS = {'annotation_markers': 'store_sha256', 'corpus_eval_s2': 'proposals_sha256'}
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
                          'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default',
@@ -666,6 +672,16 @@ def timing_calibration_input(value):
 
 def validate_tool_arguments(name, args):
     """Cross-field rules that are known before a worker or file read starts."""
+    if name in TIMELINE_TOOLS:
+        value = args['edl']
+        if ':' in value or '\\' in value or '..' in value.split('/'):
+            raise ValidationError('timeline edl must be an exact local path without traversal or URL')
+        for index, query in enumerate(args.get('queries', [])):
+            needed, optional = TIMELINE_QUERY_FIELDS[query['op']]
+            present = set(query) - {'op'}
+            if not needed <= present or present - needed - optional:
+                raise ValidationError(f'timeline query {index} ({query["op"]}) takes exactly '
+                                      f'{sorted(needed)} plus optional {sorted(optional)}')
     if name == 'share_export':
         if args.get('height', 720) % 2:
             raise ValidationError('share export height must be even')
@@ -1064,6 +1080,57 @@ def worker_command(name, args):
     raise ToolError('tool has no allowlisted worker')
 
 
+def video_utils_binary():
+    """VIDEO_UTILS_BIN, then this checkout's release or debug build; never a PATH lookup."""
+    for value in (os.environ.get('VIDEO_UTILS_BIN'), ROOT / 'target/release/video-utils',
+                  ROOT / 'target/debug/video-utils'):
+        if value and Path(value).is_file() and os.access(value, os.X_OK):
+            return str(value)
+    raise ToolError('video-utils binary unavailable: run just cli')
+
+
+def timeline_edl_path(value):
+    try:
+        return s2_input_file(value, TIMELINE_MAX_EDL_BYTES)
+    except ToolError as error:
+        raise ToolError('timeline edl must be an existing regular file of at most 16 MiB without symlink '
+                        'components') from error
+
+
+def run_timeline_tool(name, args, timeout):
+    """One `video-utils timeline` call; the queries go through a private temporary file."""
+    command = [video_utils_binary(), 'timeline', TIMELINE_TOOLS[name], str(timeline_edl_path(args['edl']))]
+    with tempfile.TemporaryDirectory(prefix='video-utils-timeline-') as scratch:
+        if name == 'timeline_map':
+            queries = Path(scratch) / 'queries.json'
+            queries.write_text(json.dumps({'queries': args['queries']}, allow_nan=False), encoding='utf-8')
+            command.append(str(queries))
+        try:
+            process = subprocess.run(command, cwd=ROOT, stdin=subprocess.DEVNULL, capture_output=True,
+                                     timeout=timeout, check=False)
+        except subprocess.TimeoutExpired as error:
+            raise ToolError(f'{name} exceeded its {timeout}s deadline') from error
+        except OSError as error:
+            raise ToolError(f'worker could not start: {error}') from error
+    if len(process.stdout) > MAX_WORKER_OUTPUT:
+        raise ToolError('worker result exceeds 2 MiB result limit')
+    if process.returncode == 2:
+        raise ToolError(f'{name} usage error: ' + process.stderr.decode('utf-8', 'replace')[-500:].strip())
+    try:
+        receipt = strict_json(process.stdout.decode('utf-8'))
+    except (UnicodeError, ValueError) as error:
+        raise ToolError('worker did not return a single finite JSON object') from error
+    if not isinstance(receipt, dict):
+        raise ToolError('worker result must be a JSON object')
+    if process.returncode == 1 and receipt.get('status') == 'failed' and isinstance(receipt.get('reason'), str):
+        raise ToolError(f'{name} refused: {receipt["reason"]}',
+                        receipt={'status': 'refused', 'tool': name, 'reason': receipt['reason'],
+                                 'detail': str(receipt.get('detail', ''))[:1000]})
+    if process.returncode or receipt.get('status') != 'ok':
+        raise ToolError(f'worker failed ({process.returncode})')
+    return receipt
+
+
 def run_worker(command, timeout, error_json_tool=None):
     if not Path(command[1]).is_file():
         raise ToolError('implementation worker is unavailable; no analysis was performed')
@@ -1377,6 +1444,8 @@ def execute(name, arguments):
             if len(json.dumps({'error':message,'receipt':receipt},allow_nan=False).encode()) > 16*1024:
                 receipt['worker_diagnostic'] = None; receipt['worker_diagnostic_omitted'] = True
             raise ToolError(message, receipt=receipt) from error
+    elif name in TIMELINE_TOOLS:
+        result = run_timeline_tool(name, arguments, timeout)
     elif name == 'capture_profile':
         result = run_worker(worker_command(name, arguments), timeout, error_json_tool=name)
     elif name in TYPED_REFUSAL_TOOLS:

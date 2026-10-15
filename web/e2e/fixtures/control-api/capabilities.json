@@ -6,7 +6,9 @@
         "probe",
         "clicks",
         "guitar_noul_decide",
-        "stems_estimate"
+        "stems_estimate",
+        "timeline_validate",
+        "timeline_map"
       ]
     },
     {
@@ -139,7 +141,7 @@
   },
   "schema_id": "video-utils.web-runs.capabilities",
   "schema_version": 1,
-  "tool_count": 46,
+  "tool_count": 48,
   "tools": [
     {
       "annotations": {
@@ -2613,6 +2615,82 @@
       "name": "stems_estimate",
       "skill": ".agents/skills/stems-estimate/SKILL.md",
       "title": "Optional htdemucs_6s stem estimates from the mono take (experimental)"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "area": "analysis",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "The EDL comes from the condense edl stage.",
+        "recommended_prior_tools": [
+          "condense_edl"
+        ]
+      },
+      "evidence_kind": "rust_timeline_validation_receipt",
+      "implementation_status": "implemented",
+      "input": {
+        "properties": [
+          "edl",
+          "timeout_seconds"
+        ],
+        "required": [
+          "edl"
+        ]
+      },
+      "limitations": [
+        "Validation proves the EDL's internal contract (frames, contiguity, cuts, totals), not that the edit sounds right or keeps every word."
+      ],
+      "limitations_count": 1,
+      "name": "timeline_validate",
+      "skill": ".agents/skills/edl-timeline/SKILL.md",
+      "title": "Validate a condense EDL with the Rust timeline"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "area": "analysis",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "A map on an invalid EDL refuses with the validator's reason.",
+        "recommended_prior_tools": [
+          "timeline_validate"
+        ]
+      },
+      "evidence_kind": "rust_timeline_time_map",
+      "implementation_status": "implemented",
+      "input": {
+        "properties": [
+          "edl",
+          "queries",
+          "timeout_seconds"
+        ],
+        "required": [
+          "edl",
+          "queries"
+        ]
+      },
+      "limitations": [
+        "Source times are per-clip analysis seconds from the first decoded audio sample; add the clip's shift for the recording's own clock."
+      ],
+      "limitations_count": 1,
+      "name": "timeline_map",
+      "skill": ".agents/skills/edl-timeline/SKILL.md",
+      "title": "Map source and output times through a condense EDL"
     }
   ],
   "unknown_fields": {
