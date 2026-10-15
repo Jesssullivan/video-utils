@@ -2,8 +2,8 @@
 
 Authority: operator parallel guitar-analysis goal; repository AGENTS.md;
 R-HOOK-CONVERGENCE-20261004/R-N13; root's named source-only fresh-bank admission.
-Actor: `/root/phrase_dag`. Owns this NEW receipt and NEW independent source tests.
-`/root/guitar_features` owns the new plan, generator and harness implementation.
+Actor: `root/phrase_dag`. Owns this NEW receipt and NEW independent source tests.
+`root/guitar_features` owns the new plan, generator and harness implementation.
 Root owns integration and separate generation/numerical admission.
 
 State: **source audit passed; native construction, inference and musical quality

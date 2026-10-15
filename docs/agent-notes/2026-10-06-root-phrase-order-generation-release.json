@@ -8,10 +8,10 @@
   "inference_authorized": false,
   "evaluation_authorized": false,
   "frozen_paths": {
-    "runner": "/Users/jess/git/video-utils/docs/agent-notes/2026-10-06-phrase-order-null.py",
-    "settings": "/Users/jess/git/video-utils/docs/agent-notes/2026-10-06-phrase-order-null-settings.json",
-    "plan": "/Users/jess/git/video-utils/artifacts/experiments/phrase-window-ablation/order-null-prereg-20261006T0149/plan.json",
-    "audit": "/Users/jess/git/video-utils/docs/agent-notes/2026-10-06-phrase-order-null-independent-review.md"
+    "runner": "<repo>/docs/agent-notes/2026-10-06-phrase-order-null.py",
+    "settings": "<repo>/docs/agent-notes/2026-10-06-phrase-order-null-settings.json",
+    "plan": "<repo>/artifacts/experiments/phrase-window-ablation/order-null-prereg-20261006T0149/plan.json",
+    "audit": "<repo>/docs/agent-notes/2026-10-06-phrase-order-null-independent-review.md"
   },
   "frozen_sha256": {
     "runner": "5582a5cf2b415b07a434b59f407da8c6e63fa9101001267dbba03f0cabe9f066",

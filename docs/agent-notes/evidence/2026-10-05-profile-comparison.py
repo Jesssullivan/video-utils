@@ -4,7 +4,7 @@ import numpy as np
 from scipy.io import wavfile
 from scipy.signal import welch
 
-ROOT=Path('/Users/jess/git/video-utils')
+ROOT=Path('<repo>')
 paths={
  'bypass':ROOT/'artifacts/runs/20261005T224706Z-2a72efe386ab',
  'conservative3':ROOT/'artifacts/runs/20261005T211103Z-c6d0bac2fcd2',

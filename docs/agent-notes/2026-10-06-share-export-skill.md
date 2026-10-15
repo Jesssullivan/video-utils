@@ -1,7 +1,7 @@
 # Sharing-export skill lane
 
-Owner `/root/tool_skills`; worker owner `/root/rhythm_analysis`; hook owner
-`/root/tool_hooks`. Authority: root's explicit new tool30 skill assignment under
+Owner `root/tool_skills`; worker owner `root/rhythm_analysis`; hook owner
+`root/tool_hooks`. Authority: root's explicit new tool30 skill assignment under
 the operator's compressed sharing-export request and repository R-N13 doctrine.
 Own only new `media-share-export/SKILL.md` and this receipt. The original29 skill
 files, API/catalog, recipes, masters and media are outside this lane's edits.

@@ -3,7 +3,7 @@
   "branch": "sprint/20261006-s2/rhythm_clicks",
   "head": "4d16f12422535677bcdc4e4a168db8f0c3e0d84f",
   "base_commit": "61e4a2f48b5a99179ac185c1c8816d2a0f429fd4",
-  "worktree": "/Users/jess/git/video-utils/.local/sprint2/rhythm_clicks",
+  "worktree": "<repo>/.local/sprint2/rhythm_clicks",
   "state": "implemented_tested_audited_receipt_corrected",
   "files": [
     {
@@ -18,7 +18,7 @@
     }
   ],
   "tests": {
-    "command": "export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe; cd /Users/jess/git/video-utils/.local/sprint2/rhythm_clicks && PYTHONPATH=tests python3 -m unittest test_rhythm test_clicks test_click_attack_ab test_phrase_timing -v",
+    "command": "export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe; cd <repo>/.local/sprint2/rhythm_clicks && PYTHONPATH=tests python3 -m unittest test_rhythm test_clicks test_click_attack_ab test_phrase_timing -v",
     "discovered": 57,
     "passed": 36,
     "failed": 0,

@@ -2,7 +2,7 @@
   "accepted_audio_manifest_sha256": "61c9b3930c36d050818901138eb1820d5dc940e3603d38f019bde793da750a5f",
   "accepted_audio_movie_sha256": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82",
   "accepted_audio_parent": "artifacts/runs/20261006T041633Z-990aa1bd6737",
-  "actor": "/root/media_latency",
+  "actor": "root/media_latency",
   "additional_approval_required": false,
   "arrangement_assessment_sha256": "834e9420ef10310c2e1df42f243af01f645de06a498e544f06ec1593cdd07028",
   "authority": "Root direct copy-only acceptedFULLER+compactcomposition authorization; R-N11/R-N13",

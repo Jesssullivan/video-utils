@@ -2,7 +2,7 @@
 
 Root's repaired run release53775bdf authorized one bounded run of the unchanged
 9b62a349 bank using successor worker524c673f and original generator8eae011.
-Actor `/root/guitar_features` executed it under R-HOOK-CONVERGENCE-20261004/R-N13.
+Actor `root/guitar_features` executed it under R-HOOK-CONVERGENCE-20261004/R-N13.
 The first failed8eae trial remains preserved with truth unopened. Its schema
 repair changed field routing, not search, L1, scoring, thresholds or bank bytes.
 

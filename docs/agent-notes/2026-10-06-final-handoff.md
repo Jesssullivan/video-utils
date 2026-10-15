@@ -23,7 +23,7 @@ QuickTime. The second exact quote and requested Desktop export are recorded in
   stronger NR10 and FULLER comparisons, including normalization tradeoffs.
 
 The optimized Desktop derivative is delivered at
-`/Users/jess/Desktop/video_util_mvp_demo_1.mp4`: **21,596,491 bytes**, 85.99%
+`<operator-home>/Desktop/video_util_mvp_demo_1.mp4`: **21,596,491 bytes**, 85.99%
 smaller than the accepted marked candidate, SHA256
 `34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10`.
 It has 1080×720 H.264 picture and 96 kbps mono AAC at 44.1 kHz, measured

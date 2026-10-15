@@ -1,6 +1,6 @@
 # Revised resource qualification admission audit
 
-Owner `/root/release_review`; root requested independent exact-identity readback
+Owner `root/release_review`; root requested independent exact-identity readback
 before one newly released generated eight-second native trial. Authority is the
 operator's active goal, repo AGENTS.md and R-HOOK-CONVERGENCE-20261004/R-N13.
 Definition of done: bind revised application source, immutable author/media and

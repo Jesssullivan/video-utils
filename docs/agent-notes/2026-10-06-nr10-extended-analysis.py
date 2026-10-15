@@ -40,7 +40,7 @@ def main():
     if OUT.exists() or any(p.is_symlink() for p in (OUT,*OUT.parents)):raise ValueError('Fresh regular output required')
     OUT.mkdir(parents=True,exist_ok=False)
     if os.getsid(0)!=os.getpid():os.setsid()
-    state={'schema_version':1,'actor':'/root/media_latency','created_utc':datetime.now(timezone.utc).isoformat(),
+    state={'schema_version':1,'actor':'root/media_latency','created_utc':datetime.now(timezone.utc).isoformat(),
       'authority':'Root explicit fresh NR10 extended/no-latest analysis; R-HOOK-CONVERGENCE-20261004/R-N11/R-N13',
       'status':'running','command':[sys.executable,str(source),*ARGS],'controller_sha256':sha(__file__),
       'controller_pid':os.getpid(),'controller_pgid':os.getpgrp(),'controller_sid':os.getsid(0),

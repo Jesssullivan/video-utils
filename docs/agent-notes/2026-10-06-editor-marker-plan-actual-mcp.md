@@ -1,6 +1,6 @@
 # Actual source tool 26 MCP metadata proof
 
-Authority: operator/root task; R-HOOK-CONVERGENCE-20261004, R-N11/R-N12/R-N13. Actor: `/root/clip_baseline/resolve_marker_sources`.
+Authority: operator/root task; R-HOOK-CONVERGENCE-20261004, R-N11/R-N12/R-N13. Actor: `root/clip_baseline/resolve_marker_sources`.
 
 A real initialized stdio MCP session through `just mcp` advertised 26 tools and called the typed `editor_marker_plan` hook against the existing 232741 demo. The hook returned 180 source review candidates, all 24 explicitly selected observations, 156 exclusions and zero actions. All six compositor-hidden selected observations are retained.
 
@@ -10,7 +10,7 @@ Fresh input paths:
 
 ```json
 {
-  "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009",
+  "run_dir": "<repo>/artifacts/runs/20261005T232741Z-2b5dc43fd009",
   "selection": "editor-plan-reviews/20261006T010545Z-51299b0f3fb3/selection.json",
   "profile": "editor-plan-reviews/20261006T010545Z-51299b0f3fb3/profile.json"
 }

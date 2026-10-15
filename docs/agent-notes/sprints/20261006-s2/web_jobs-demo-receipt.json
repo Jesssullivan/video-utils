@@ -35,7 +35,7 @@
     "cpu": "Apple A18 Pro",
     "ffmpeg": "ffmpeg version 8.1.2 Copyright (c) 2000-2026 the FFmpeg developers",
     "python": "3.12.14",
-    "uname": "Darwin macbook-neo 25.6.0 Darwin Kernel Version 25.6.0: Thu Sep 17 21:31:29 PDT 2026; root:xnu-12377.161.15.701.19~1/RELEASE_ARM64_T8140 arm64"
+    "uname": "Darwin operator-host 25.6.0 Darwin Kernel Version 25.6.0: Thu Sep 17 21:31:29 PDT 2026; root:xnu-12377.161.15.701.19~1/RELEASE_ARM64_T8140 arm64"
   },
   "implementation_commit": "159fe28",
   "job_id": "job_7e9c78fe731fd0a3a1779c0c4933a9a7",

@@ -1,6 +1,6 @@
 # Application inspection resource correction audit
 
-Owner `/root/release_review`; root explicitly assigned independent source/reap/
+Owner `root/release_review`; root explicitly assigned independent source/reap/
 absence review after the actual NR10 inspection timeout. Authority operator goal,
 AGENTS.md and R-HOOK-CONVERGENCE-20261004/R-N13. Implementation owner may change
 only the new application supervisor; frozen media/authoring source and existing

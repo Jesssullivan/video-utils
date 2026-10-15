@@ -637,7 +637,7 @@
       "timeout_seconds": 2
     }
   ],
-  "output": "/Users/jess/git/video-utils/artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332",
+  "output": "<repo>/artifacts/experiments/phrase-localization/fresh-bank-617-719-20261006T0332",
   "owned_exec_session_id": 43246,
   "plan_sha256": "8b0e7969f702d0685e2d7176c4ee96c19b1325b2e9b3d848685e093405c4c000",
   "quality_acceptance_claimed": false,

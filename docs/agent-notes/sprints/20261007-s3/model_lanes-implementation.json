@@ -112,7 +112,7 @@
     },
     "M12": {
       "status": "not_run",
-      "reason": "requires root registry fetch, honey runtime and root-confirmed V6 private scratch path"
+      "reason": "requires root registry fetch, compute-host runtime and root-confirmed V6 private scratch path"
     }
   },
   "measurements": [
@@ -125,7 +125,7 @@
   ],
   "unknown": [
     "final0 sha256 (root fetch)",
-    "honey architecture",
+    "compute-host architecture",
     "torch 2.12 weights_only load of final0",
     "Beat This accuracy on the real take",
     "guitar_noul gateway wire schema and label vocabulary (unratified)"

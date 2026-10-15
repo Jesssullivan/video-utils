@@ -1,5 +1,5 @@
 {
-  "actor": "/root/media_latency",
+  "actor": "root/media_latency",
   "authority": "Operator accepted finalcompact and requested optimized Desktop export; root assigned directFFmpeg derivative",
   "automatic_retry": false,
   "created_utc": "2026-10-06T04:52:36.781408+00:00",

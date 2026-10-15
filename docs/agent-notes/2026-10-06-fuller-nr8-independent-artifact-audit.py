@@ -95,7 +95,7 @@ def main():
     for row in protected:require(sha(row['path']) == row['sha256'],'Protected source/latest/master changed during audit')
     require(sha(protected_path)==protected_hash,'Protected evidence changed')
     for path,expected in PINS.items():require(sha(RUN/path)==expected,'Candidate metadata changed during audit')
-    result = {'schema_version':1,'actor':'/root/release_review','authority':'Root explicit saved FULLER_NR8 artifact audit; R-HOOK-CONVERGENCE-20261004/R-N13',
+    result = {'schema_version':1,'actor':'root/release_review','authority':'Root explicit saved FULLER_NR8 artifact audit; R-HOOK-CONVERGENCE-20261004/R-N13',
               'status':'independent_fuller_nr8_artifact_audit_passed','auditor_source_sha256':sha(__file__),
               'plan_sha256':sha(plan_path),'candidate_run_dir':str(RUN),'metadata_sha256':PINS,
               'native_headers':headers,'pure_nr8_denoised_and_residue_bytes_equal':True,

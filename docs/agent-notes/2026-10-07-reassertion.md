@@ -1,6 +1,6 @@
 # Reassertion: plan, dialogs, rulings and workstreams (2026-10-07 ~15:05Z)
 
-Owner: `/root` Claude session `video-utils-operator-takeover` (PID 53511, neo; continues `video-utils-d6`).
+Owner: `/root` Claude session `video-utils-operator-takeover` (PID 53511, operator-host; continues `video-utils-d6`).
 Authority: operator prompts "please reattach all workflows, reattach all subagents, reassert our dialog and linear
 goals, large scale goals and recent interview ratifications and workstreams and dive in wide" and "be sure to
 reassert the plan file and dialogs from which we are working". R-HOOK-CONVERGENCE-20261004 R-N11/R-N13.
@@ -39,9 +39,9 @@ reassert the plan file and dialogs from which we are working". R-HOOK-CONVERGENC
   `docs/agent-notes/sprints/<sprint>/workflow-handoffs/`.
 - Subagents: none were live. The two local peers listed (`sprint-merge-deployment`, `lab-ef`) belong to other
   workstreams, and we did not message them.
-- Sting dialogs: sting rebooted, so the earlier PIDs 264882, 132037 and 1742684 are gone. We re-discovered the
+- Peer-host dialogs: peer-host rebooted, so the earlier PIDs 264882, 132037 and 1742684 are gone. We re-discovered the
   sessions by cwd: xoruby 379243 and llama.cpp 425233. Check-in messages were sent over a LAN socket tunnel
-  (msg `neo-53511-1791385287-xoruby` and `-llama`). Replies will be recorded here and on TIN-5186 / TIN-5619.
+  (msg `operator-host-53511-1791385287-xoruby` and `-llama`). Replies will be recorded here and on TIN-5186 / TIN-5619.
 
 ## Workstreams
 
@@ -52,7 +52,7 @@ bazel_full (TIN-5722) | W5 lane | sprint/20261007-s3/bazel_full | running | merg
 auth_token (TIN-5720) | W5 lane | sprint/20261007-s3/auth_token | running: valid-token path, loopback JWKS | merge gate; applying needs operator go
 site_verify (TIN-5723) | W5 lane | sprint/20261007-s3/site_verify | running | merge gate; deploying needs operator go
 stems_contract (TIN-5721) | W5 lane | sprint/20261007-s3/stems_contract | running; nothing downloaded | merge; weights fetch is a root step
-Beat This runtime (TIN-5721) | root | — | HOLD: honey contested (TIN-5694 runner raise) | asked the inference lane for a window
+Beat This runtime (TIN-5721) | root | — | HOLD: compute-host contested (TIN-5694 runner raise) | asked the inference lane for a window
 guitar_noul (TIN-5619) | inference lane | — | HOLD: gateway absent until TIN-5590 | asked for an endpoint/date
 estate drift (TIN-5716) | tinyland lane | sibling repos | not ours to edit | none
 D6 report (TIN-5491) | operator | — | Quarto render succeeded (demo.html 7396e18c…); labels missing | labelling session (≥10 boundaries)

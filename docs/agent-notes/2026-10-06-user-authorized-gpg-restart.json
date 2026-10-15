@@ -8,21 +8,21 @@
   "prior_state": [
     "3343     1 07:39:21 gpg-agent",
     "55839  3343 01:23:11 scdaemon",
-    "66485  3343    01:27 /nix/store/zc0nh344a6xyrypmc6r437jkb1dbfvxj-pinentry-mac-1.1.1.1/Applications/pinentry-mac.app/Contents/MacOS/pinentry-mac"
+    "66485  3343    01:27 <nix-store>/zc0nh344a6xyrypmc6r437jkb1dbfvxj-pinentry-mac-1.1.1.1/Applications/pinentry-mac.app/Contents/MacOS/pinentry-mac"
   ],
-  "agent_socket": "/Users/jess/.gnupg/S.gpg-agent",
+  "agent_socket": "<operator-home>/.gnupg/S.gpg-agent",
   "kill_exit": 0,
   "launch_exit": 0,
   "result": [
     "3343     1 07:39:22 gpg-agent",
     "55839  3343 01:23:12 scdaemon",
-    "66485  3343    01:28 /nix/store/zc0nh344a6xyrypmc6r437jkb1dbfvxj-pinentry-mac-1.1.1.1/Applications/pinentry-mac.app/Contents/MacOS/pinentry-mac"
+    "66485  3343    01:28 <nix-store>/zc0nh344a6xyrypmc6r437jkb1dbfvxj-pinentry-mac-1.1.1.1/Applications/pinentry-mac.app/Contents/MacOS/pinentry-mac"
   ],
   "graceful_shutdown_result": "gpgconf returned0 but exact old agent/scdaemon/pinentry remained live and pending signer stalled",
   "authorized_fallback": [
     {
       "pid": 66485,
-      "live_identity": "501 66485 /nix/store/zc0nh344a6xyrypmc6r437jkb1dbfvxj-pinentry-mac-1.1.1.1/Applications/pinentry-mac.app/Contents/MacOS/pinentry-mac",
+      "live_identity": "501 66485 <nix-store>/zc0nh344a6xyrypmc6r437jkb1dbfvxj-pinentry-mac-1.1.1.1/Applications/pinentry-mac.app/Contents/MacOS/pinentry-mac",
       "signal": "TERM"
     },
     {

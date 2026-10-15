@@ -1,5 +1,5 @@
 {
-  "actor": "/root/tool_hooks",
+  "actor": "root/tool_hooks",
   "task": "test_mcp.py suite",
   "tool_session": 87653,
   "ruling": "R-N11/R-N13; R-HOOK-CONVERGENCE-20261004",

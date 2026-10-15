@@ -1,5 +1,5 @@
 {
-  "actor": "/root/media_latency",
+  "actor": "root/media_latency",
   "actual_take_authorized_by_this_release": false,
   "application_sha256": "790ac58f1924db2607087c6ab1cdae5d813ba24eda610af1f396d77e93d06584",
   "attempt": 1,

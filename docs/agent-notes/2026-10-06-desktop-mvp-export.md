@@ -1,6 +1,6 @@
 # Optimized MVP Desktop delivery
 
-The operator-requested file is `/Users/jess/Desktop/video_util_mvp_demo_1.mp4`: 23,111,818 bytes, SHA256 `0774fd4ad6116d7770f05b3a3a3ef988bbc837cca56c48f5c10df3810f45c3e5`. Compared with the accepted 154,148,244-byte composition, it is 85.01% smaller. It is 1080×720 (3:2), H264 CRF27 / veryfast / yuv420p, with faststart and exact copied AAC 44.1kHz mono. This is a private picture-compression derivative; the accepted full-size render remains unchanged.
+The operator-requested file is `<operator-home>/Desktop/video_util_mvp_demo_1.mp4`: 23,111,818 bytes, SHA256 `0774fd4ad6116d7770f05b3a3a3ef988bbc837cca56c48f5c10df3810f45c3e5`. Compared with the accepted 154,148,244-byte composition, it is 85.01% smaller. It is 1080×720 (3:2), H264 CRF27 / veryfast / yuv420p, with faststart and exact copied AAC 44.1kHz mono. This is a private picture-compression derivative; the accepted full-size render remains unchanged.
 
 Authority: explicit operator Desktop export request, root H264 compatibility fallback release, R-HOOK-CONVERGENCE-20261004 / R-N11 / R-N13. The media-export skill was applied; direct FFmpeg provided the resizing and compression controls absent from the current ordinary export hook. Frozen FFmpeg8.1.2 and qualified owned-session runner790 were used; no installs or source/master/latest mutations occurred.
 

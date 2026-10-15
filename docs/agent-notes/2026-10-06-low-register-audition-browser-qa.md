@@ -2,7 +2,7 @@
 
 Authority: root's named local audition QA lane in the operator-authorized active
 parallel goal; repository AGENTS.md, R-HOOK-CONVERGENCE-20261004 / R-N11 / R-N13.
-Owner `/root/repo_patterns` owns this receipt and ignored
+Owner `root/repo_patterns` owns this receipt and ignored
 `artifacts/audition-browser-qa-20261006T0140/` only. Existing audition/master/source/
 DSP/default/latest files and root documentation are outside the write scope.
 

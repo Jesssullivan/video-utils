@@ -93,7 +93,7 @@ already implemented. The ten-hour goal remains active.
 ### Calibration ownership and design correction, 22:43 UTC
 
 Root subsequently assigns the composite pilot implementation to
-`/root/media_latency`: new `scripts/calibration_pilot.py`,
+`root/media_latency`: new `scripts/calibration_pilot.py`,
 `tests/test_calibration_pilot.py` and `docs/spec/CALIBRATION_PILOT_LANE.md`.
 Root retains recipes, actual execution, integration and publication. The bank
 owner may add `program/benchmarks-v2.json` while preserving the v1 configuration.

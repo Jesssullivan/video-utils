@@ -91,7 +91,7 @@
     },
     {
       "order": 6,
-      "file": "runtime lane (separate, root-run on honey)",
+      "file": "runtime lane (separate, root-run on the compute host)",
       "change": "Prepare an isolated Linux CPU interpreter beneath artifacts/model-runtime-env/ (a real file, not a symlink), pin demucs and torch, confirm sources order drums/bass/other/vocals/guitar/piano, 44.1 kHz stereo, apply_model defaults (shifts 1, overlap 0.25, split True, segment None), load_model(package dict), the separate-CLI normalisation and whether torch.load(weights_only=True) suffices; then set DEMUCS_PIN/TORCH_PIN in scripts/stems_estimate.py (lane-owned, via a new lane) and export VIDEO_UTILS_STEMS_RUNTIME_PYTHON.",
       "why": "runtime_unavailable/not_pinned until qualified; infer_task has never executed."
     },

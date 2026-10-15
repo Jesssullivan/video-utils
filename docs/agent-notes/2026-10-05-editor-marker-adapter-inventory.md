@@ -12,7 +12,7 @@ agents' dirty work, preserved by this lane. No commits or publication performed.
 ## Read-only app and SDK inventory
 
 Inspected directory entries in `/Applications`, `/Applications/Nix Apps`,
-`/Users/jess/Applications`, its `Home Manager Apps` link, and
+`<operator-home>/Applications`, its `Home Manager Apps` link, and
 `Chrome Apps.localized`. No Final Cut Pro or Resolve app was listed. Exact
 checks also found these paths absent:
 
@@ -22,10 +22,10 @@ checks also found these paths absent:
 /Applications/DaVinci Resolve.app
 /Applications/DaVinci Resolve/DaVinci Resolve.app
 /Library/Application Support/Blackmagic Design
-/Users/jess/Library/Application Support/Blackmagic Design
+<operator-home>/Library/Application Support/Blackmagic Design
 /Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting
 /Library/Application Support/Blackmagic Design/Developer/Scripting
-/Users/jess/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting
+<operator-home>/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting
 ```
 
 A scoped read-only Spotlight query for `com.apple.FinalCut` and

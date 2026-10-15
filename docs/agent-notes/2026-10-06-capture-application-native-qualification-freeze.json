@@ -1,5 +1,5 @@
 {
-  "actor": "/root/media_latency",
+  "actor": "root/media_latency",
   "actual_recording_processed": false,
   "application_qualification": {
     "elapsed_seconds": 26.087,
@@ -41,7 +41,7 @@
   "next": "Independent identity readback and exact root closed release before one generated trial",
   "numerical_execution_released": false,
   "output_absent_at_freeze": true,
-  "preregistered_output": "/Users/jess/git/video-utils/artifacts/experiments/capture-application-native-qualification/native-20261006T0255",
+  "preregistered_output": "<repo>/artifacts/experiments/capture-application-native-qualification/native-20261006T0255",
   "schema_version": 1,
   "status": "source_frozen_inert_qualified_preregistered_numerical_held"
 }

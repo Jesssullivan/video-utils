@@ -1,6 +1,6 @@
 # Evidence-guided next-week priorities audit
 
-Read-only audit at 2026-10-06 00:30 UTC; actor `/root/plan_review`, authority
+Read-only audit at 2026-10-06 00:30 UTC; actor `root/plan_review`, authority
 operator's parallel goal, repository AGENTS.md and R-HOOK-CONVERGENCE-20261004
 R-N13. Published HEAD/origin is `c59d7024a9967b920747e07134c6c166c3ddb38d`:
 23 tools and an empty model registry. The working tree has two additional tools

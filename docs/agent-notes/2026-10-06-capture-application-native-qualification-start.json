@@ -1,5 +1,5 @@
 {
-  "actor": "/root/media_latency",
+  "actor": "root/media_latency",
   "actual_take_authorized_by_this_release": false,
   "attempt": 1,
   "authority": "R-N11/R-N13 plus docs/agent-notes/2026-10-06-root-capture-application-native-release.json",

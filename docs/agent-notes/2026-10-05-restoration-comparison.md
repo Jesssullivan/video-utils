@@ -19,8 +19,8 @@ At these two windows,6dB reduction adds only about0.12/0.17dB RMS reduction comp
 Immutable evidence: [numeric receipt](evidence/2026-10-05-profile-comparison.json) and [exact investigative worker snapshot](evidence/2026-10-05-profile-comparison.py). Worker is an offline analysis receipt, not a new registered DSP primitive; reproduce existing restores with `just clean INPUT bypass`/`just clean INPUT mild6` and use the locked optional environment for the archived spectral calculation. Media/report artifacts stay local and ignored.
 
 Listening locations:
-- `/Users/jess/git/video-utils/artifacts/runs/20261005T224706Z-2a72efe386ab/cleaned.wav` and `report.html`.
-- `/Users/jess/git/video-utils/artifacts/runs/20261005T211103Z-c6d0bac2fcd2/cleaned.wav` and `report.html`.
-- `/Users/jess/git/video-utils/artifacts/runs/20261005T224733Z-0e920a701cf8/cleaned.wav` and `report.html`.
+- `<repo>/artifacts/runs/20261005T224706Z-2a72efe386ab/cleaned.wav` and `report.html`.
+- `<repo>/artifacts/runs/20261005T211103Z-c6d0bac2fcd2/cleaned.wav` and `report.html`.
+- `<repo>/artifacts/runs/20261005T224733Z-0e920a701cf8/cleaned.wav` and `report.html`.
 
 Actual published video remains `artifacts/runs/20261005T211103Z-c6d0bac2fcd2/export/cleaned-video.mov`.

@@ -1,6 +1,6 @@
 {
   "active_owned_processes": [],
-  "actor": "/root/s1_phrases",
+  "actor": "root/s1_phrases",
   "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; operator S1 request",
   "baseline_commit": "51d09357b07864548e2e34cebf2ac2f395fdf296",
   "branch": "sprint/20261006-s1/phrases",
@@ -19,7 +19,7 @@
     "tests/test_phrase_proposal_s1.py": "97843d1adb54cc471730f795fa81ffc13ee3662153e2a360ee14600abc3abc68"
   },
   "independent_audit": {
-    "owner": "/root/s1_audit",
+    "owner": "root/s1_audit",
     "receipt": "audit-worktree/docs/agent-notes/sprints/20261006-s1/audit-phrase-numerical.json",
     "state": "PASS saved-evidence exhaustive matching / PCM component checks; no inference rerun"
   },

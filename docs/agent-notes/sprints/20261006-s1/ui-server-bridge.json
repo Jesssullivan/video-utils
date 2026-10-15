@@ -7,14 +7,14 @@
       "source_sha256": "237d6b53ac1a73f0e981d1bcaa3fa73e3b5f9ab417bc7bf051575b3d6cf0cab6",
       "prior_ui_baseline_sha256": null,
       "target_sha256": "237d6b53ac1a73f0e981d1bcaa3fa73e3b5f9ab417bc7bf051575b3d6cf0cab6",
-      "owner": "/root/s1_annotations",
+      "owner": "root/s1_annotations",
       "target_for": "isolated integrated UI/browser proof; exclude from UI lane commit"
     },
     "review_server.py": {
       "source_sha256": "05bc9cc753a312c96ab822afaceb91f5a4d44bf288d281c201c8bc918b221ef0",
       "prior_ui_baseline_sha256": "0cd79d6fdfaf8815ce4e95ba288ccedf731562e98cc3951332e7e32b9d08aff3",
       "target_sha256": "05bc9cc753a312c96ab822afaceb91f5a4d44bf288d281c201c8bc918b221ef0",
-      "owner": "/root/s1_annotations",
+      "owner": "root/s1_annotations",
       "target_for": "isolated integrated UI/browser proof; exclude from UI lane commit"
     }
   },

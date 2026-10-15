@@ -3,7 +3,7 @@
   "branch": "sprint/20261006-s2/phrase_anchor_riff",
   "head": "0e924640f9a6c0cb410d9650fb374d715f7661e0",
   "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
-  "worktree": "/Users/jess/git/video-utils/.local/sprint2/phrase_anchor_riff",
+  "worktree": "<repo>/.local/sprint2/phrase_anchor_riff",
   "files": [
     {
       "path": "docs/agent-notes/peers/xoruby/V2-holdout-bank-receipt.json",
@@ -288,7 +288,7 @@
       "Self-release. The release for held-out execution is written by the lane itself (actor root_workflow, quoting the workflow task text). This was made legal by the lane's own additive spec amendment, PHRASES_S2.md §12 'Release actor', committed in 81544d6 before generation. Frozen §5.4 says only 'root/workflow-authorized'. This is acceptable only if root accepts lane-authored root_workflow releases; root should acknowledge it at merge.",
       "Doctrine OK. No high-pass or notch anywhere. Synthesis keeps the C1 (~32.7 Hz) sustain, asserted with an amplitude above 0.05 in the numpy test, and the R1 1800 Hz band cap is analysis-only. UNKNOWNS include real_take_phrase_correctness='unknown_until_operator_marks_boundaries', observed_click_count=null, meter unknown, downbeat_confirmed false, and missed_or_extra_notes='not_assessed_no_approved_reference'. Every artifact has default_adoption false and continuous_riff_accuracy_scope 'generated_only'. No profile, detector or default is adopted. join_confidence is labelled heuristic_not_probability.",
       "Claim classes OK. The receipts separate measured (generated-only), inferred (projections, r=2 mapping) and unknown (real-take accuracy, anchor identity, breakdown execution). No synthetic result is presented as real-take accuracy and there is no note-correctness verdict. Denominators are present: 12 pairs, 48 endpoints, 4 negatives, MAE as 4 × matched pairs. Unmatched scorer boundaries are 'not_reviewed', not false positives.",
-      "Portability (minor). scripts/phrase_riff_s2.py:59 hardcodes ANALYSIS_PYTHON_DEFAULT='/Users/jess/git/video-utils/.venv/bin/python', though it is used only as a recorded metadata string; the runtime uses VIDEO_UTILS_ANALYSIS_PYTHON or sys.executable. tests/test_phrase_anchor.py:28 hardcodes a real-grid path under artifacts/runs, and that test skips when the file is absent.",
+      "Portability (minor). scripts/phrase_riff_s2.py:59 hardcodes ANALYSIS_PYTHON_DEFAULT='<repo>/.venv/bin/python', though it is used only as a recorded metadata string; the runtime uses VIDEO_UTILS_ANALYSIS_PYTHON or sys.executable. tests/test_phrase_anchor.py:28 hardcodes a real-grid path under artifacts/runs, and that test skips when the file is absent.",
       "V2 receipt contents verified: plan 495ad2f3…, generator 051d8689… at commit f180572b… (observed by git log), 12 cases and 48 components, reproduction 48/48 components and 12/12 truths against heldout-211-307-20261006T0020, licence line and training statement verbatim, reserved seeds 2101–2199, generator time 161.5 s. Seeds 211/307 are disclosed as already used once.",
       "Context for root. On current main, test_phrase_proposal_s1 already errors (16 tests: errors=1, skipped=7) because the rhythm_clicks merge changed scripts/rhythm.py without applying the vendored-copy patch in rhythm_clicks-pin-resolution.json. The S1 pin break predates this lane."
     ],

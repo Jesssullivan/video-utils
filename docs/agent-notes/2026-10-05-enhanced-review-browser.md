@@ -1,6 +1,6 @@
 # Enhanced actual-take browser verification
 
-Owner: `/root/plan_review`. Authority: operator-authorized active parallel goal,
+Owner: `root/plan_review`. Authority: operator-authorized active parallel goal,
 repository AGENTS.md, R-HOOK-CONVERGENCE-20261004 and R-N11/R-N13. This lane owns
 this receipt and ignored `artifacts/enhanced-review-browser/` only. The target is
 the explicit enhanced run `artifacts/runs/20261005T232741Z-2b5dc43fd009`.
@@ -67,7 +67,7 @@ media transfer; successful metadata and browser error checks are retained.
 
 ## Owned-process and preservation receipt
 
-Actor `/root/plan_review` started Chrome PID 73245 with its exact isolated
+Actor `root/plan_review` started Chrome PID 73245 with its exact isolated
 profile `artifacts/enhanced-review-browser/chrome-profile` and loopback server
 `127.0.0.1:55528` owned by harness PID 73225. Live command/profile identity was
 checked at startup and immediately before termination under R-N11. Only that

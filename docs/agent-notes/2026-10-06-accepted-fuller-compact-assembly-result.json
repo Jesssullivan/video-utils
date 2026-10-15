@@ -4,10 +4,10 @@
     "acceptance_quote": "sounds excellent!  great work!",
     "export_sha256": "fe1b1009d7d56b54fedd8589aced49270a8bb6c37957df52b1e38d688b35f13d",
     "listening_accepted": true,
-    "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737",
+    "run_dir": "<repo>/artifacts/runs/20261006T041633Z-990aa1bd6737",
     "video_sha256": "91b2f436abebf9dd8403791b18dd9b51410e25d25648c71febc27ed269a04a82"
   },
-  "actor": "/root/media_latency",
+  "actor": "root/media_latency",
   "authority": "Root explicit accepted FULLER audio + qualified compact picture composition authorization; R-HOOK-CONVERGENCE-20261004/R-N11/R-N13",
   "claims": {
     "confirmed_performance_mistakes": false,
@@ -66,7 +66,7 @@
       }
     },
     "compact_outcome_sha256": "3a8eacb79586a5946a1f013d1dc922ae10b9a875edd2b065514d228077d1821f",
-    "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac",
+    "run_dir": "<repo>/artifacts/runs/20261006T034521Z-a0def0c43eac",
     "selection_sha256": "0a14edb7c7d24856d86b57d0e7566bc1c4d2d7a016f0050956f556778d6c0da0"
   },
   "receipt": {

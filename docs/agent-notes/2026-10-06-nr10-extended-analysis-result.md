@@ -8,7 +8,7 @@ No models, packages or presets were acquired. The original application-bound
 manifest was first preserved exactly as `restoration-manifest.json` at SHA256
 `a6c371ab36e1f50b850f167a42b010ffa7b923b32aca14f4bfd70fb24036077c`.
 
-Actor `/root/media_latency` owned controller execution session 71529. Controller
+Actor `root/media_latency` owned controller execution session 71529. Controller
 `8e1ae85d…` imported unchanged `run_demo.py` and its exact CLI arguments,
 allocated every stage only the remaining shared 900-second processing budget
 minus cleanup reserve, and preserved the original per-stage new-session cleanup.

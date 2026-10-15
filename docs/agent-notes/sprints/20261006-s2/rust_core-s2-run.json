@@ -71,7 +71,7 @@
     },
     "M4": {
       "result": "pass",
-      "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737",
+      "run_dir": "<repo>/artifacts/runs/20261006T041633Z-990aa1bd6737",
       "exit": 0,
       "outputs": "6/6",
       "source": "1/1 verified (228291885 bytes)",
@@ -264,8 +264,8 @@
     "low_string_protection": "no blanket high-pass/notch; 32.703 Hz measured through 300 Hz band within 0.05 dB"
   },
   "files_read_only": [
-    "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737/*",
-    "/Users/jess/Documents/Movie on 10-5-26 at 3.38 PM.mov (hashed only)"
+    "<repo>/artifacts/runs/20261006T041633Z-990aa1bd6737/*",
+    "<operator-home>/Documents/<demo-take>.mov (hashed only)"
   ],
   "known_divergences": [
     "video-utils hash '-' hashes a file named '-' (shasum reads stdin)",

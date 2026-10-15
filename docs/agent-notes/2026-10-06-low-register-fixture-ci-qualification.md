@@ -31,7 +31,7 @@ not install dependencies or qualify numerical coverage in stdlib-only CI.
 
 | Environment | Availability | Module result |
 | --- | --- | --- |
-| `/Users/jess/.nix-profile/bin/python3.12`, Python 3.12.14 | NumPy/SciPy both absent | Four metadata tests pass; six oracle tests explicitly skip; 0.012 seconds |
+| `<operator-home>/.nix-profile/bin/python3.12`, Python 3.12.14 | NumPy/SciPy both absent | Four metadata tests pass; six oracle tests explicitly skip; 0.012 seconds |
 | Repository `.venv/bin/python`, Python 3.14.6; NumPy 2.5.3, SciPy 1.18.1 | Both available | All ten tests pass; no skips; 7.509 seconds; numerical threads capped at two |
 
 Commands executed:

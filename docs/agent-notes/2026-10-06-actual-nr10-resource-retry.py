@@ -53,7 +53,7 @@ def main():
     binary='/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/'
     env.update(FFMPEG=binary+'ffmpeg',FFPROBE=binary+'ffprobe')
     events=[];results=[];ends=time.monotonic()+665
-    state={'schema_version':1,'actor':'/root/media_latency','created_utc':now(),'root_release_sha256':RELEASE_SHA,'controller_sha256':sha(__file__),'worker_sha256':worker,'protected_sha256':protected,'attempts_per_candidate':1,'threads':2,'overall_budget_seconds':665,'listening_accepted':False,'master_adopted':False,'latest_promoted':False}
+    state={'schema_version':1,'actor':'root/media_latency','created_utc':now(),'root_release_sha256':RELEASE_SHA,'controller_sha256':sha(__file__),'worker_sha256':worker,'protected_sha256':protected,'attempts_per_candidate':1,'threads':2,'overall_budget_seconds':665,'listening_accepted':False,'master_adopted':False,'latest_promoted':False}
     write(OUT/'start.json',state)
     try:
         for c in r['candidates']:
@@ -63,7 +63,7 @@ def main():
             stdout_path=OUT/(label+'-stdout.json');stderr_path=OUT/(label+'-stderr.log')
             with stdout_path.open('xb') as stdout,stderr_path.open('xb') as stderr:
                 process=subprocess.Popen(command,stdin=subprocess.DEVNULL,stdout=stdout,stderr=stderr,env=env,start_new_session=True,close_fds=True)
-                write(OUT/(label+'-start.json'),{'actor':'/root/media_latency','created_utc':now(),'label':label,'pid':process.pid,'session_id':process.pid,'pgid':process.pid,'ruling':'R-N11/R-N13','command':command,'ownership':'Exact process launched by this controller; live session/group checked before any cleanup signals','timeout_seconds':600,'outer_stage_seconds':610})
+                write(OUT/(label+'-start.json'),{'actor':'root/media_latency','created_utc':now(),'label':label,'pid':process.pid,'session_id':process.pid,'pgid':process.pid,'ruling':'R-N11/R-N13','command':command,'ownership':'Exact process launched by this controller; live session/group checked before any cleanup signals','timeout_seconds':600,'outer_stage_seconds':610})
                 reason='stage_finished'
                 try:
                     if process.poll() is None:require(os.getpgid(process.pid)==process.pid and os.getsid(process.pid)==process.pid,'Child session ownership differs')

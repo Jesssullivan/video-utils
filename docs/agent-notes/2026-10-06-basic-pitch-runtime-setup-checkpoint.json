@@ -5,7 +5,7 @@
   "status": "runtime_setup_source_and_unit_tests_pass_readonly_check_pass",
   "unit_tests_pass": 17,
   "readonly_check_returncode": 0,
-  "readonly_check_stdout": "{\"status\": \"already_qualified\", \"runtime_dir\": \"/Users/jess/git/video-utils/artifacts/model-runtime-env/onnx-1.30.0-cp314\", \"wheel_lock_sha256\": \"c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f\", \"python\": \"3.14.6\", \"versions\": {\"onnxruntime\": \"1.30.0\", \"numpy\": \"2.5.3\", \"flatbuffers\": \"25.12.19\", \"packaging\": \"26.3\", \"protobuf\": \"7.36.2\"}, \"installed_member_count\": 1349, \"disk_bytes\": 155558142, \"model_acquired\": false, \"inference_performed\": false}\n",
+  "readonly_check_stdout": "{\"status\": \"already_qualified\", \"runtime_dir\": \"<repo>/artifacts/model-runtime-env/onnx-1.30.0-cp314\", \"wheel_lock_sha256\": \"c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f\", \"python\": \"3.14.6\", \"versions\": {\"onnxruntime\": \"1.30.0\", \"numpy\": \"2.5.3\", \"flatbuffers\": \"25.12.19\", \"packaging\": \"26.3\", \"protobuf\": \"7.36.2\"}, \"installed_member_count\": 1349, \"disk_bytes\": 155558142, \"model_acquired\": false, \"inference_performed\": false}\n",
   "readonly_check_stderr": "",
   "runtime_all_file_snapshots_equal": true,
   "runtime_file_count": 1484,

@@ -1,6 +1,6 @@
 # Completed synthetic calibration pilot — independent results receipt
 
-Actor: `/root/audio_research`. Authority: the operator-approved parallel project
+Actor: `root/audio_research`. Authority: the operator-approved parallel project
 goal, repository `AGENTS.md`, R-HOOK-CONVERGENCE-20261004, TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`, and R-N13. This lane owns this receipt
 only. No workers, tests, recordings, rendered masters, sibling repositories or

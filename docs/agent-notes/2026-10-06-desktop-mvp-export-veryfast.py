@@ -10,7 +10,7 @@ INPUT_SHA='4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2'
 RUNNER_SHA='790ac58f1924db2607087c6ab1cdae5d813ba24eda610af1f396d77e93d06584'
 ASSEMBLY_SHA='095fa1e694fb97cc9a53f1d12e04c86cac7fbd637a7d574c6295102ecd44a533'
 STAGE=ROOT/'artifacts/experiments/desktop-mvp-veryfast-20261006T0503'
-DESKTOP=Path('/Users/jess/Desktop/video_util_mvp_demo_1.mp4')
+DESKTOP=Path('<operator-home>/Desktop/video_util_mvp_demo_1.mp4')
 BIN='/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/'
 def require(ok,msg):
  if not ok:raise ValueError(msg)
@@ -43,7 +43,7 @@ def main():
  protected={str(INPUT):INPUT_SHA,str(INPUT.parent/'receipt.json'):sha(INPUT.parent/'receipt.json')}
  latest=ROOT/'artifacts/latest.json'
  if latest.exists():protected[str(latest)]=sha(latest)
- state={'schema_version':1,'actor':'/root/media_latency','authority':'Explicit operator optimized Desktop export; R-N11/R-N13','created_utc':datetime.now(timezone.utc).isoformat(),'controller_sha256':sha(Path(__file__)),'source_sha256':INPUT_SHA,'source':str(INPUT),'destination':str(DESKTOP),'timeout_seconds':600,'threads':2,'status':'running','new_audio_DSP':False,'current_master_or_latest_promoted':False,'input_sha256':protected}
+ state={'schema_version':1,'actor':'root/media_latency','authority':'Explicit operator optimized Desktop export; R-N11/R-N13','created_utc':datetime.now(timezone.utc).isoformat(),'controller_sha256':sha(Path(__file__)),'source_sha256':INPUT_SHA,'source':str(INPUT),'destination':str(DESKTOP),'timeout_seconds':600,'threads':2,'status':'running','new_audio_DSP':False,'current_master_or_latest_promoted':False,'input_sha256':protected}
  save(STAGE/'start.json',state)
  def run(argv,timeout=120):return app.run_owned(argv,deadline=deadline,timeout=min(timeout,deadline.remaining()),events=events)
  def probe(p):return json.loads(run([BIN+'ffprobe','-v','error','-threads','2','-show_streams','-show_format','-show_data_hash','sha256','-of','json',str(p)]).stdout)

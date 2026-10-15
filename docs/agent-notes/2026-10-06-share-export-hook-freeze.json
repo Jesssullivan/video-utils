@@ -24,12 +24,12 @@
     "count": 42,
     "seconds": 13.665,
     "status": "passed",
-    "owner": "/root/rhythm_analysis",
+    "owner": "root/rhythm_analysis",
     "scope": "owner28 and independent14; not an actual-take sharing export"
   },
   "skill_proof": {
     "status": "all30_bundle_validations_links_and_exact_initialized_prompts_passed",
-    "owner": "/root/tool_skills",
+    "owner": "root/tool_skills",
     "tool_calls": 0,
     "stderr": "",
     "interpreter": "Python3.14.6/file-backed I/O",

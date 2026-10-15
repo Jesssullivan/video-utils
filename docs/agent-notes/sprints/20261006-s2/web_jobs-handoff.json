@@ -3,7 +3,7 @@
   "branch": "sprint/20261006-s2/web_jobs",
   "head": "84b0703d4537a3470bc674bf0005f4095121a235",
   "base_commit": "e0da4ca04930ee9a89a83eec402f060366c5d30d",
-  "worktree": "/Users/jess/git/video-utils/.local/sprint2/web_jobs",
+  "worktree": "<repo>/.local/sprint2/web_jobs",
   "state": "implemented_tested_audited",
   "files": [
     {
@@ -48,7 +48,7 @@
     }
   ],
   "tests": {
-    "command": "export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe; cd /Users/jess/git/video-utils/.local/sprint2/web_jobs && PYTHONPATH=tests python3 -m unittest test_web_jobs -v",
+    "command": "export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe; cd <repo>/.local/sprint2/web_jobs && PYTHONPATH=tests python3 -m unittest test_web_jobs -v",
     "discovered": 26,
     "passed": 24,
     "failed": 0,

@@ -1,6 +1,6 @@
 # Independent capture-profile application audit
 
-Owner `/root/release_review`; authority root's explicitly authorized source and
+Owner `root/release_review`; authority root's explicitly authorized source and
 fixture audit, operator parallel goal, R-HOOK-CONVERGENCE-20261004/R-N13.
 
 Definition of done: inspect exact tool-25 producer receipts, current source/parent

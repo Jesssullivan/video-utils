@@ -986,7 +986,7 @@
       "A3_32_hz": "max relative delta 5.1e-09 (< 1e-5 in every seed and arm: held)"
     },
     "inference": "I: attack windows are unchanged because the overlap guard abstains on every attack-proximal click; coincident clicks therefore remain in the audio. This is attack preservation by non-removal, not a demonstration of coincident click reduction.",
-    "command": "CLICK_AB_S2_SEALED_EVAL=1 PYTHONPATH=tests /Users/jess/git/video-utils/.venv/bin/python -m unittest test_click_attack_ab.ClickAttackFixtureTests.test_sealed_ab_eval -v"
+    "command": "CLICK_AB_S2_SEALED_EVAL=1 PYTHONPATH=tests <repo>/.venv/bin/python -m unittest test_click_attack_ab.ClickAttackFixtureTests.test_sealed_ab_eval -v"
   },
   "unknowns": {
     "click_identity": "unverified",

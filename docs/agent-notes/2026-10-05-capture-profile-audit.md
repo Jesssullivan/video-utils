@@ -1,6 +1,6 @@
 # Independent capture-profile authoring audit
 
-Date: October 5, 2026, America/New_York (initial inspection at 2026-10-06 00:28 UTC). Actor: `/root/rhythm_analysis/capture_profile_tests`, reattached directly by root as the independent audit lane. Authority: repository `AGENTS.md`, the operator's authorized parallel project, and R-HOOK-CONVERGENCE-20261004 / R-N13. Own files are this receipt and `tests/test_capture_profile_audit.py`; the released worker, 33 qualification tests, media validator, presets and existing recordings remain outside this lane's edit scope.
+Date: October 5, 2026, America/New_York (initial inspection at 2026-10-06 00:28 UTC). Actor: `root/rhythm_analysis/capture_profile_tests`, reattached directly by root as the independent audit lane. Authority: repository `AGENTS.md`, the operator's authorized parallel project, and R-HOOK-CONVERGENCE-20261004 / R-N13. Own files are this receipt and `tests/test_capture_profile_audit.py`; the released worker, 33 qualification tests, media validator, presets and existing recordings remain outside this lane's edit scope.
 
 ## Findings and disposition
 

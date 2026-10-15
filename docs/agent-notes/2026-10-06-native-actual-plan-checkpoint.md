@@ -1,6 +1,6 @@
 # Native/actual plan checkpoint — October 6, approximately 03:11 UTC
 
-Actor `/root/goal_plan`; authority root's exact documentation assignment under
+Actor `root/goal_plan`; authority root's exact documentation assignment under
 operator implementation/full-force/reattachment goal; repository AGENTS.md and
 R-HOOK-CONVERGENCE-20261004/R-N12/R-N13. Only
 [TEN_HOUR_PLAN.md](../spec/TEN_HOUR_PLAN.md) and this new receipt changed. Root

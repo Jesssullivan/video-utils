@@ -1,6 +1,6 @@
 # FULLER_NR8 independent saved-artifact audit
 
-Owner `/root/release_review`; root explicitly assigned saved native/timing/
+Owner `root/release_review`; root explicitly assigned saved native/timing/
 protected-hash readback of candidate041633. Authority operator thin/nasal
 feedback and active processing scope, repository AGENTS.md and
 R-HOOK-CONVERGENCE-20261004/R-N13. Audio research owns measurements and audition;

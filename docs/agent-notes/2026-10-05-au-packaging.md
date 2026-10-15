@@ -1,6 +1,6 @@
 # AUv3 packaging prototype receipt
 
-Actor `/root/au_architecture`; owned new `native/au-spike/packaging/**`, `docs/spec/AU_PACKAGING_LANE.md` and this receipt. Authority: operator-approved full-force repository-only packaging lane; R-HOOK-CONVERGENCE-20261004, R-N12/R-N13. Published native baseline `eb378bd33e6c1ab408245e58f93430a495efbf6b` stayed unchanged. Root owns recipe integration and publication.
+Actor `root/au_architecture`; owned new `native/au-spike/packaging/**`, `docs/spec/AU_PACKAGING_LANE.md` and this receipt. Authority: operator-approved full-force repository-only packaging lane; R-HOOK-CONVERGENCE-20261004, R-N12/R-N13. Published native baseline `eb378bd33e6c1ab408245e58f93430a495efbf6b` stayed unchanged. Root owns recipe integration and publication.
 
 ## Result
 

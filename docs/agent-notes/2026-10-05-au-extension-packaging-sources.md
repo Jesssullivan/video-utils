@@ -1,6 +1,6 @@
 # AUv3 extension packaging: primary-source verification
 
-Date: 2026-10-05. Actor: `/root/clip_baseline/plugin_sources`, reattached by root.
+Date: 2026-10-05. Actor: `root/clip_baseline/plugin_sources`, reattached by root.
 Authority: operator-approved parallel AU packaging lane; repository contract;
 R-HOOK-CONVERGENCE-20261004, TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`, R-N12/R-N13.

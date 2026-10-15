@@ -3,7 +3,7 @@
   "branch": "sprint/20261006-s2/annot_corpus",
   "head": "486252b0eb2c2cad4f809c819adacbc4d916c895",
   "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
-  "worktree": "/Users/jess/git/video-utils/.local/sprint2/annot_corpus",
+  "worktree": "<repo>/.local/sprint2/annot_corpus",
   "state": "implemented_tested_audited",
   "files": [
     {
@@ -179,7 +179,7 @@
     "refuted": false,
     "findings": [
       "(1) Scope holds. git diff --name-only 4b87484...HEAD lists 13 files, all on the owned list, and every one is newly added (--diff-filter=M is empty). There are 3 commits: 9ce8c4f (contract freeze, 2 files), c7dfbe6 (code, tests and docs, 11 files) and 486252b (receipt, 1 file). The diff does not touch scripts/marked_video.py, program/, just/ or scripts/tool_api.py.",
-      "(2) No forbidden writes found. Nothing under /Users/jess/git/video-utils/artifacts/runs/* has an mtime after 2026-10-06 05:30, and the lane started at 05:31 -04:00. The real-take flags.json still hashes to 95a0106c…a732. The newest file in artifacts/experiments/s1-demo-context-20261006T0627 is from 02:27, so that folder was not written either. The lane's own outputs are in the gitignored worktree folder .local/sprint2/annot_corpus/artifacts/s2/annot_corpus. The three scripts have no subprocess, network or download code, and the tests stage real metadata into tempdirs.",
+      "(2) No forbidden writes found. Nothing under <repo>/artifacts/runs/* has an mtime after 2026-10-06 05:30, and the lane started at 05:31 -04:00. The real-take flags.json still hashes to 95a0106c…a732. The newest file in artifacts/experiments/s1-demo-context-20261006T0627 is from 02:27, so that folder was not written either. The lane's own outputs are in the gitignored worktree folder .local/sprint2/annot_corpus/artifacts/s2/annot_corpus. The three scripts have no subprocess, network or download code, and the tests stage real metadata into tempdirs.",
       "(4) The test claim reproduces with the exact command and env: 36 ran, OK, 0 skipped (15.9 s). The two real-metadata tests (test_real_take_triage_invariants and test_real_take_null_result) did run rather than skip, and so did test_v3_receipt_equals_fresh_summary. The worktree stayed clean (git status identical before and after). Adjacent modules test_annotation_v2, test_corpus_split_s1, test_markers and test_marked_video: 95 tests, all OK.",
       "(6) I recomputed the real-take triage independently from flags.json and the clicks.json it binds. Period is 0.6756619 s, so the window is 16 × period = 10.81059 s; phase is 0.51068 s. Totals: 171 flags; 112 navigation proxies (all of kind four_pulse_group_review_candidate); 59 eligible; 15 windows in use; 44 suppressed. Winning tiers: T1 2, T2 2, T3 1, T4 10. All of this matches the receipt and the lane's flags-triage.json. Corpus evaluation: coverage 5/150.961111 = 0.0331211 (receipt matches), and 5 of the 59 eligible proposals overlap the covered 0–5 s region (receipt matches).",
       "(3) Claim classes are handled properly. The receipt (docs/agent-notes/sprints/20261006-s2/annot_corpus-implementation.json) marks real-JSON results M, synthetic S and inferences I, and gives each fraction with its denominator (15/171, 112/171, 44/171). Precision is always null, with reason false_positive_requires_reviewed_absence_label. Recall on the real take is null (coverage_below_threshold). negatives_inferred is 0 and listening_claims is empty. The pitch axis carries note_correctness not_established. Nothing adopts a default, profile or detector.",

@@ -1,6 +1,6 @@
 # Future audio classification planning receipt
 
-Actor `/root/classification_future`; authority operator's explicit parallel
+Actor `root/classification_future`; authority operator's explicit parallel
 future-goal/spec/milestone request, repository AGENTS.md and
 R-HOOK-CONVERGENCE-20261004 / R-N13. Owned files are this receipt,
 `docs/spec/future/AUDIO_CLASSIFICATION.md` and
@@ -18,7 +18,7 @@ reference-aware discovery branches; low-register feature limits; grouped corpus
 splits; score calibration/abstention; future typed analysis job resources;
 four-hour shared-core contract and optional eight-to-twelve-hour retrieval slice.
 Existing XOD experiment budget is linked rather than duplicated. Audio serving
-on Sting, separate decision-rank work and the runes audio pointer remain unknown.
+on the peer host, separate decision-rank work and the runes audio pointer remain unknown.
 
 Coordinated issue/basis conventions with overlay lane and job admission with
 backend/capability lanes. Local Markdown link check passed for both owned docs:

@@ -1,6 +1,6 @@
 # Independent future practice-studio review
 
-October 6, 2026. Owner: `/root/plan_review`; root integrates and publishes.
+October 6, 2026. Owner: `root/plan_review`; root integrates and publishes.
 Authority: operator-requested future planning/parallel lanes, repository
 AGENTS.md and R-HOOK-CONVERGENCE-20261004 / R-N13. This lane reads source and
 future designs; it implements no application, starts no service, runs no audio

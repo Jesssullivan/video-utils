@@ -5,7 +5,7 @@
  "linear": "TIN-5599",
  "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43); R-N13 receipt",
  "date": "2026-10-06",
- "worktree": "/Users/jess/git/video-utils/.local/sprint2/root_admission_d",
+ "worktree": "<repo>/.local/sprint2/root_admission_d",
  "branch": "sprint/20261006-s2/root_admission_d",
  "base": "0cdca01",
  "commits_before_receipt": [

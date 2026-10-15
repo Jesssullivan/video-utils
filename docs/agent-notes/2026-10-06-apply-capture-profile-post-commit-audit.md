@@ -1,6 +1,6 @@
 # Capture application post-commit reporting audit
 
-Owner `/root/release_review`. Root explicitly requested this focused
+Owner `root/release_review`. Root explicitly requested this focused
 transaction/reporting review before native execution; authority operator goal,
 AGENTS.md and R-HOOK-CONVERGENCE-20261004/R-N13. The previous source/fixture
 readiness is reopened for this concrete failure invariant. Frozen worker source

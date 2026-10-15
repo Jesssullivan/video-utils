@@ -1,6 +1,6 @@
 # Primary-source practice landscape receipt
 
-Actor: `/root/plan_review`. Authority: operator-authorized parallel product
+Actor: `root/plan_review`. Authority: operator-authorized parallel product
 research lane, repository AGENTS.md, R-HOOK-CONVERGENCE-20261004 and R-N13.
 Checked October 5, 2026, with the final source checkpoint at 23:17 UTC. Owned changes are
 `docs/research/PRACTICE_LANDSCAPE.md` and this receipt only. Previously delivered

@@ -21,6 +21,6 @@ The final sentence about trained weights is root's conservative reading of "allo
 
 ## Actions taken (2026-10-07 ~01:30–01:45Z)
 
-- V6 and V2 rulings posted on TIN-5186 and delivered to the XORuby session (sting PID 264882, cwd xoruby-2026; msg `neo-86778-1791336755`, delivery queued). Receipt: actor root video-utils-d6 | target sting session 264882 by live PID+cwd | reason operator-directed relay of rulings | ruling R-N11 explicit authorization | prior_state tunnel epoch 1791336755 via LAN OpenSSH | result queued.
+- V6 and V2 rulings posted on TIN-5186 and delivered to the XORuby session (peer-host PID 264882, cwd xoruby-2026; msg `operator-host-86778-1791336755`, delivery queued). Receipt: actor root video-utils-d6 | target peer-host session 264882 by live PID+cwd | reason operator-directed relay of rulings | ruling R-N11 explicit authorization | prior_state tunnel epoch 1791336755 via LAN OpenSSH | result queued.
 - Labelling UI started at the operator's request: `scripts/review_server.py serve artifacts/s2/labelling-20261007 --port 8765 --practice-s2 artifacts/s2/ui_core/real-take/bundle`, loopback only, foreground dev process owned by this session (not a daemon). `artifacts/s2/labelling-20261007` is an APFS clone of the accepted run (13 files, hashes identical), so annotations never modify the accepted run.
 - Ruling lanes launched (workflow, Opus 5.5): eq_shelf, quarto_fix (one bounded render attempt), descriptor_rebase (incl. report_bundle skill re-pin).

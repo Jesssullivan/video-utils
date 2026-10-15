@@ -1,6 +1,6 @@
 # Fresh phrase-localization generator/harness source contract
 
-Actor `/root/guitar_features` owns only the new pilot script, its source tests,
+Actor `root/guitar_features` owns only the new pilot script, its source tests,
 fresh preregistration files and this dated receipt. Root admitted source/test
 work under R-HOOK-CONVERGENCE-20261004/R-N13 and the frozen L1 plan. Original
 recordings, historical banks/results, canonical feature/rhythm workers, L1

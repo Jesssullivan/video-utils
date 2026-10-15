@@ -1,10 +1,10 @@
 {
-  "actor": "/root/release_review",
+  "actor": "root/release_review",
   "audio_origin_seconds": 0,
   "auditor_source_sha256": "609b4a74e191085fc17e8c14bee9baad4d89dd606789c7def144c7f62cbb441c",
   "authority": "Root explicit saved FULLER_NR8 artifact audit; R-HOOK-CONVERGENCE-20261004/R-N13",
   "calibrated_delay_samples": 1102,
-  "candidate_run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737",
+  "candidate_run_dir": "<repo>/artifacts/runs/20261006T041633Z-990aa1bd6737",
   "complete_acoustic_alignment_verified": false,
   "compressor": {
     "attack_ms": 15.0,

@@ -99,7 +99,7 @@ def assemble(compact_sha,output):
     verify(protected);output=fresh_output(output)
     spec=importlib.util.spec_from_file_location('assembly_owned_runner',ROOT/'scripts/apply_capture_profile.py');app=importlib.util.module_from_spec(spec);spec.loader.exec_module(app)
     deadline=app.Deadline(600);events=[];started=time.monotonic();output.mkdir(parents=True,mode=0o700)
-    state={'schema_version':1,'actor':'/root/media_latency','created_utc':datetime.now(timezone.utc).isoformat(),'status':'running',
+    state={'schema_version':1,'actor':'root/media_latency','created_utc':datetime.now(timezone.utc).isoformat(),'status':'running',
       'authority':'Root explicit accepted FULLER+compact picture composition; R-HOOK-CONVERGENCE-20261004/R-N11/R-N13',
       'controller_sha256':sha(__file__),'runner_sha256':APP_SHA,'media_sha256':MEDIA_SHA,'timeout_seconds':600,'threads':2,
       'source_sha256':SOURCE_SHA,'input_sha256':protected,'picture_marker_branch':{'run_dir':str(COMPACT.parent),'compact_outcome_sha256':compact_sha,'selection_sha256':compact['output_sha256']['selection.json'],'arrangement_bindings':compact['arrangement_marker_bindings']},

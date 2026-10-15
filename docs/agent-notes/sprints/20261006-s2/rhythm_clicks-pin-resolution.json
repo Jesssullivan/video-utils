@@ -66,7 +66,7 @@
    "skip_reasons": "20 numpy/librosa-gated (optional locked analysis dependencies absent) + sealed P2 one-shot"
   },
   "venv": {
-   "command": "PYTHONPATH=tests /Users/jess/git/video-utils/.venv/bin/python -m unittest test_clicks test_click_attack_ab -v",
+   "command": "PYTHONPATH=tests <repo>/.venv/bin/python -m unittest test_clicks test_click_attack_ab -v",
    "ran": 18,
    "result": "OK",
    "skipped": 1,

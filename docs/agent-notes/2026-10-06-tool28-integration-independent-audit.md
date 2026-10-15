@@ -1,6 +1,6 @@
 # Tool28 integration independent audit
 
-Owner `/root/release_review`; root reattached this independent final integration
+Owner `root/release_review`; root reattached this independent final integration
 lane. Authority operator active full-continue scope, AGENTS.md and
 R-HOOK-CONVERGENCE-20261004/R-N13. Root integrates/publishes. Definition of done:
 read exact new API, descriptor, recipe, skill/contract and meaningful tests;

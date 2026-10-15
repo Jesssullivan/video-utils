@@ -8,7 +8,7 @@ Media `91443154…`, author `7d282087…`, source `a522115f…`, capture and DSP
 were unchanged. The resource-only repair had 51 passing fixtures, the new exact
 8-second native trial and independent artifact audit before this release.
 
-Actor `/root/media_latency` launched controller execution session 33666 once.
+Actor `root/media_latency` launched controller execution session 33666 once.
 The exact CLI child PID/session/group 78105, arguments and ownership checks were
 saved before observation. It used 600 seconds internally, 610 seconds for the
 outer stage, two threads, bounded 4 MiB file-backed output and qualified shared

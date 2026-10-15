@@ -1,5 +1,5 @@
 {
-  "actor": "/root/media_latency",
+  "actor": "root/media_latency",
   "audio_channels": 1,
   "audio_packet_count": 6503,
   "audio_packet_payload_clock_padding_identity": true,
@@ -19,7 +19,7 @@
     "-n",
     "-copyts",
     "-i",
-    "/Users/jess/git/video-utils/artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov",
+    "<repo>/artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov",
     "-map",
     "0:v:0",
     "-map",
@@ -52,7 +52,7 @@
     "disabled",
     "-movflags",
     "+faststart",
-    "/Users/jess/git/video-utils/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/video_util_mvp_demo_1.mp4"
+    "<repo>/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/video_util_mvp_demo_1.mp4"
   ],
   "controller_sha256": "5bb6abd7cf517a8d4b7bc0eb749bba9456c27b5c78d303e88135d9b211108f01",
   "created_utc": "2026-10-06T05:11:19.525844+00:00",
@@ -60,21 +60,21 @@
   "decoded_audio_identity": true,
   "decoded_audio_pcm_sha256": "SHA256=94363b4ffba93acf6ec7cb1cbc2933112caa50d3e80ec0e4bc8e3099a44e2478",
   "desktop_sha256": "0774fd4ad6116d7770f05b3a3a3ef988bbc837cca56c48f5c10df3810f45c3e5",
-  "destination": "/Users/jess/Desktop/video_util_mvp_demo_1.mp4",
+  "destination": "<operator-home>/Desktop/video_util_mvp_demo_1.mp4",
   "elapsed_seconds": 94.55474837499787,
   "frames": [
     {
-      "path": "/Users/jess/git/video-utils/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/widest-label.png",
+      "path": "<repo>/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/widest-label.png",
       "seek_seconds": 36.65,
       "sha256": "594698e93f4e148750c83a72aec6133d3f408451a2fe1fd88269b2cb140cf677"
     },
     {
-      "path": "/Users/jess/git/video-utils/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/breakdown.png",
+      "path": "<repo>/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/breakdown.png",
       "seek_seconds": 44.2,
       "sha256": "249150622de544ed92fb781d171eb2d9914724506cdbbc988cdcae894f1fcb48"
     },
     {
-      "path": "/Users/jess/git/video-utils/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/chorus.png",
+      "path": "<repo>/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/chorus.png",
       "seek_seconds": 96.8,
       "sha256": "e27679ce3c4319ecb8cf7d70edc3bdbef54f5c4240ebd40d1dba81f3701bb51b"
     }
@@ -82,9 +82,9 @@
   "full_audio_decode_errors": false,
   "full_video_decode_errors": false,
   "input_sha256": {
-    "/Users/jess/git/video-utils/artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2",
-    "/Users/jess/git/video-utils/artifacts/experiments/accepted-fuller-compact-20261006T0441/receipt.json": "4809e1ce39c412dbe223801e2b74435c12ac6e9f1eb971752f4fe132d30bb236",
-    "/Users/jess/git/video-utils/artifacts/latest.json": "8ed66efb8f81f06db6c1abb0a5962c38218d6c8bd1fb3c2d46432dc1693fa5ee"
+    "<repo>/artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2",
+    "<repo>/artifacts/experiments/accepted-fuller-compact-20261006T0441/receipt.json": "4809e1ce39c412dbe223801e2b74435c12ac6e9f1eb971752f4fe132d30bb236",
+    "<repo>/artifacts/latest.json": "8ed66efb8f81f06db6c1abb0a5962c38218d6c8bd1fb3c2d46432dc1693fa5ee"
   },
   "new_audio_DSP": false,
   "output_bytes": 23111818,
@@ -92,7 +92,7 @@
     "format": {
       "bit_rate": "1224783",
       "duration": "150.960998",
-      "filename": "/Users/jess/git/video-utils/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/video_util_mvp_demo_1.mp4",
+      "filename": "<repo>/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/video_util_mvp_demo_1.mp4",
       "format_long_name": "QuickTime / MOV",
       "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
       "nb_programs": 0,
@@ -457,10 +457,10 @@
   "protected_inputs_unchanged": true,
   "reduction_fraction": 0.8500675881847866,
   "schema_version": 1,
-  "source": "/Users/jess/git/video-utils/artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov",
+  "source": "<repo>/artifacts/experiments/accepted-fuller-compact-20261006T0441/accepted-marked-video.mov",
   "source_bytes": 154148244,
   "source_sha256": "4538573ae6dd487874613efe3e30fe0e14ccda8e00a80b148ad2d4ce7f13e7e2",
-  "staged_path": "/Users/jess/git/video-utils/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/video_util_mvp_demo_1.mp4",
+  "staged_path": "<repo>/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/video_util_mvp_demo_1.mp4",
   "status": "optimized_desktop_export_verified_unreviewed_visual",
   "threads": 2,
   "timeout_seconds": 600,

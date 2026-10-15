@@ -3,7 +3,7 @@
   "branch": "sprint/20261006-s2/cap_ids",
   "head": "eb46cd66edc2241b0bbc1183e0afb818897f65c8",
   "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
-  "worktree": "/Users/jess/git/video-utils/.local/sprint2/cap_ids",
+  "worktree": "<repo>/.local/sprint2/cap_ids",
   "state": "implemented_tested_audited",
   "files": [
     {
@@ -202,7 +202,7 @@
     "model": "opus",
     "refuted": true,
     "findings": [
-      "(1) Scope holds. `git diff --name-only 4b87484...HEAD` in /Users/jess/git/video-utils/.local/sprint2/cap_ids lists 9 paths, all lane-owned: the 2 cap_ids-*.json receipts, docs/spec/CAPABILITIES.md, docs/spec/sprints/CAP_IDS_S2.md, program/capabilities.json, scripts/artifact_ids.py, scripts/capabilities.py, tests/test_artifact_ids.py and tests/test_capabilities.py. program/tools.json, scripts/tool_api.py and just/workflow.just are untouched. Since the merge-base, main has changed only 4 docs/program sprint files, so there is no textual conflict. No other S2 lane branch edits tools.json or tool_api.py.",
+      "(1) Scope holds. `git diff --name-only 4b87484...HEAD` in <repo>/.local/sprint2/cap_ids lists 9 paths, all lane-owned: the 2 cap_ids-*.json receipts, docs/spec/CAPABILITIES.md, docs/spec/sprints/CAP_IDS_S2.md, program/capabilities.json, scripts/artifact_ids.py, scripts/capabilities.py, tests/test_artifact_ids.py and tests/test_capabilities.py. program/tools.json, scripts/tool_api.py and just/workflow.just are untouched. Since the merge-base, main has changed only 4 docs/program sprint files, so there is no textual conflict. No other S2 lane branch edits tools.json or tool_api.py.",
       "(2) No writes to accepted runs or the main checkout. `find artifacts -newer docs/spec/sprints/CAP_IDS_S2.md` in the main checkout finds nothing. The full lane outputs are in the gitignored worktree path .local/sprint2/cap_ids/artifacts/s2/cap_ids/ (accepted-run-index.json, accepted-run-projection.json), not under artifacts/runs. Neither module calls a subprocess, starts a network connection or downloads a model.",
       "(4) I reran the tests with the given FFMPEG/FFPROBE and PYTHONPATH=tests: `Ran 34 tests in 13.903s / OK`. That is 14 test_capabilities plus 20 test_artifact_ids, matching the claimed 34/34; the repair added one case-variant test to artifact_ids (19→20).",
       "(4) Refusal counts: wrapping CapabilityTests.refused counted 77 refusals through the helper. There are 5 more direct assertRaises calls (tests/test_capabilities.py:103, 247, 362, 367, 372), giving 82 and matching the claim of 82 mutations with 0 accepted.",

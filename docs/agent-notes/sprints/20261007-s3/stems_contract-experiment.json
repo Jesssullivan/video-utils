@@ -17,7 +17,7 @@
       "program/models.json entry demucs-htdemucs_6s-5c90dfd2 with a root-measured sha256 (today: not registered -> model_not_registered)",
       "operator_terms_acknowledgement receipt for the maintainer's personal/research terms (research condition 5)",
       "models/demucs-htdemucs_6s-5c90dfd2.bin from root's explicit hash-bound fetch",
-      "qualified isolated Linux CPU runtime on honey with DEMUCS_PIN/TORCH_PIN set (separate runtime lane)"
+      "qualified isolated Linux CPU runtime on the compute host with DEMUCS_PIN/TORCH_PIN set (separate runtime lane)"
     ],
     "observed_refusal": "generate_suite(role=heldout, seeds=[4103, 4211]) refuses model_not_registered and writes nothing (asserted by test_heldout_generation_blocked_until_a1_runnable)",
     "heldout_seeds_consumed": false,

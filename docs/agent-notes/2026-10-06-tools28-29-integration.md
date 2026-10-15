@@ -1,6 +1,6 @@
 # Tools 28–29 integration handoff
 
-Authority: operator-approved processing/delegation, repository AGENTS.md and R-HOOK-CONVERGENCE-20261004 (R-N11/R-N12/R-N13). Actor: `/root/tool_hooks`. Root integrates and publishes; this lane did not stage, commit, adopt a master or process the operator recording. Exact owned-file hashes are in `2026-10-06-tools28-29-integration-freeze.json`.
+Authority: operator-approved processing/delegation, repository AGENTS.md and R-HOOK-CONVERGENCE-20261004 (R-N11/R-N12/R-N13). Actor: `root/tool_hooks`. Root integrates and publishes; this lane did not stage, commit, adopt a master or process the operator recording. Exact owned-file hashes are in `2026-10-06-tools28-29-integration-freeze.json`.
 
 Local catalog contains29 tools. Tool28 `apply_capture_profile` uses the separately qualified application supervisor, pinned application790 source and authoring7d282 source. Exact supervisor ea2d combined23 inert tests passed48.475s; independent three passed5.609s. Generated8s initialized MCP application passed42.8608s and yielded a fresh native44100Hz/stereo/352800-sample candidate. Protected inputs remained unchanged; five native-stage hashes match the independently audited generated standalone result. Listening acceptance and adoption remain false. See the MCP result and native hash bridge receipts for concrete paths/hashes. This is generated native/MCP evidence, separate from root's actual-take actions.
 

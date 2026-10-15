@@ -118,7 +118,7 @@
           "test_tool_contracts.ToolContractTests.test_real_phrase_evaluator_summary_stale_proof_and_failed_hard_gate",
           "test_tool_contracts.ToolContractTests.test_real_pitch_evaluator_summary_keeps_abstentions_and_structural_failure"
         ],
-        "error_cause": "Environmental and pre-existing, not caused by this change: the worktree path /Users/jess/git/video-utils/.local/sprint2/root_admission_b contains the dot-component '.local', which the unchanged calibration-path check in validate_tool_arguments refuses (-32602 'calibration paths require exact JSON indices and a fresh safe local output path'). Reproduced with the base e0da4ca tool_api.py: it refuses the .local worktree path and accepts the same path under /Users/jess/git/video-utils/artifacts/benchmarks. Expected to pass from the main checkout path.",
+        "error_cause": "Environmental and pre-existing, not caused by this change: the worktree path <repo>/.local/sprint2/root_admission_b contains the dot-component '.local', which the unchanged calibration-path check in validate_tool_arguments refuses (-32602 'calibration paths require exact JSON indices and a fresh safe local output path'). Reproduced with the base e0da4ca tool_api.py: it refuses the .local worktree path and accepts the same path under <repo>/artifacts/benchmarks. Expected to pass from the main checkout path.",
         "skipped": [
           "test_tool_contracts.test_pitch_real_c1_mcp_summary_and_sparse_coverage (librosa env)",
           "test_tool_contracts.test_real_basic_pitch_mcp_qualified_two_second_comparison_and_stale_input (Basic Pitch runtime)",

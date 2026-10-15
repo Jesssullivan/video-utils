@@ -46,7 +46,7 @@
     {"path": "web/tests/e2e-support.ts", "sha256": "084945e001ec431737973ba38bfdf140316e67d412d923168df6a56eaf75be46", "kind": "test"}
   ],
   "tests": {
-    "command": "cd /Users/jess/git/video-utils && export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe && PYTHONPATH=tests timeout 3600 python3 -m unittest test_web_house_stack_s3 test_web_stack test_web_processing_s3 test_web_runs_s3 test_auth_hosting_s3 -v",
+    "command": "cd <repo> && export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe && PYTHONPATH=tests timeout 3600 python3 -m unittest test_web_house_stack_s3 test_web_stack test_web_processing_s3 test_web_runs_s3 test_auth_hosting_s3 -v",
     "discovered": 151,
     "passed": 151,
     "failed": 0,

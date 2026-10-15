@@ -1,7 +1,7 @@
 # Independent held-out phrase result audit
 
 Verdict: **saved result arithmetic and matching verified; no default adoption**.
-Actor `/root/plan_review`; root-assigned independent read-only audit under the
+Actor `root/plan_review`; root-assigned independent read-only audit under the
 operator's parallel goal and R-HOOK-CONVERGENCE-20261004/R-N13. The experiment
 owner supplied exact inputs; this audit did not import or execute its workers,
 decode audio, load feature caches, run inference or feed references back into

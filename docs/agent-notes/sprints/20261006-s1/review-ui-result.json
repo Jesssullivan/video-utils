@@ -1,7 +1,7 @@
 {
   "timestamp_utc": "2026-10-06T06:15:50.493401+00:00",
   "authority": "operatorS1; R-HOOK-CONVERGENCE-20261004 / R-N11/R-N12/R-N13",
-  "owner": "/root/s1_review_ui",
+  "owner": "root/s1_review_ui",
   "state": "implemented_browser_verified_audit_defect_fixed_pending_recheck",
   "owned_source_sha256": {
     "review/index.html": "69418ec04f7a0045257f8e821fe0f450a310e143285e69d18c52ffb2485b2c5a",
@@ -229,7 +229,7 @@
     "Cross-browser and physical mobile touch interactions unverified."
   ],
   "independent_finding": {
-    "reported_by": "/root/s1_audit",
+    "reported_by": "root/s1_audit",
     "defect": "global source span1..1.5 armed on active audio origin2",
     "resolution": "refuse outside selectedplayerorigin+verifiedduration, unknown-duration refusal and role/metadata/liveedit revalidation",
     "regression_tests": 2,
@@ -240,7 +240,7 @@
     }
   },
   "visual_review": {
-    "actor": "/root/s1_review_ui",
+    "actor": "root/s1_review_ui",
     "inspected": "1440desktop and390badge/form screenshots, readable labels and controls, no horizontal overflow",
     "mobile_hardware": "unverified",
     "full_continuous_take_listening": "not_performed"

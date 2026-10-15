@@ -1,9 +1,9 @@
 # Independent Basic Pitch runtime audit
 
-Owner: `/root/tonal_inference/tonal_audit`. Authority: root's explicit
+Owner: `root/tonal_inference/tonal_audit`. Authority: root's explicit
 reattachment for independent review under the operator's ten-hour parallel goal;
 R-HOOK-CONVERGENCE-20261004 / R-N13. This lane owns this receipt only. Model and
-worker implementation remain owned by `/root/tonal_inference`; root owns
+worker implementation remain owned by `root/tonal_inference`; root owns
 integration and publication.
 
 ## Verified checkpoints

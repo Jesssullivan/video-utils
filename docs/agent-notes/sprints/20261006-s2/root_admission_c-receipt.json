@@ -5,7 +5,7 @@
  "linear": "TIN-5599",
  "ruling": "R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c-7299-4949-bfb2-60079053ad43); R-N13 receipt",
  "date": "2026-10-06",
- "worktree": "/Users/jess/git/video-utils/.local/sprint2/root_admission_c",
+ "worktree": "<repo>/.local/sprint2/root_admission_c",
  "branch": "sprint/20261006-s2/root_admission_c",
  "base": "736f406",
  "commits": [
@@ -139,7 +139,7 @@
    ],
    "module": "test_tool_contracts",
    "cause": "Fixtures are written under ROOT/artifacts/benchmarks and ROOT is this worktree, whose path contains the dot component '.local'; the unchanged calibration-path check in validate_tool_arguments refuses it (-32602 'calibration paths require exact JSON indices and a fresh safe local output path'), so the MCP reply has no 'result' (KeyError).",
-   "reproduction": "Base 736f406 scripts/tool_api.py validate_tool_arguments(pitch_evaluate) refuses /Users/jess/git/video-utils/.local/sprint2/root_admission_c/artifacts/benchmarks/x and accepts /Users/jess/git/video-utils/artifacts/benchmarks/x. Same finding recorded in root_admission_b-receipt.json. Expected to pass from the main checkout path.",
+   "reproduction": "Base 736f406 scripts/tool_api.py validate_tool_arguments(pitch_evaluate) refuses <repo>/.local/sprint2/root_admission_c/artifacts/benchmarks/x and accepts <repo>/artifacts/benchmarks/x. Same finding recorded in root_admission_b-receipt.json. Expected to pass from the main checkout path.",
    "code_changed_here": false
   },
   "extra": {

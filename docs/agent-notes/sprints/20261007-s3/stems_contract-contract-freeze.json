@@ -15,5 +15,5 @@
   "truth_read": false,
   "inputs_read": ["docs/research/2026-10-07-stems-weights-licence.md", "docs/spec/sprints/MODEL_LANES_S3.md", "scripts/beat_this_compare.py", "program/models.json (read-only)", "program/tools.json (read-only)", "scripts/tool_api.py (read-only)", "artifacts/runs/20261006T041633Z-990aa1bd6737/manifest.json (read-only)"],
   "inferences": ["htdemucs_6s sources order, 44.1 kHz stereo model I/O and apply_model defaults (shifts 1, overlap 0.25, split true) are recalled from upstream source and require confirmation by the runtime lane"],
-  "open_items": ["root hash-bound fetch fills sha256", "explicit operator acknowledgement of maintainer personal/research terms (research condition 5)", "separate runtime lane pins demucs/torch on honey Linux CPU", "checkpoint load path weights_only vs pickle-after-sha256 to be determined in runtime lane", "V6 private scratch path on run host for the real-take pass"]
+  "open_items": ["root hash-bound fetch fills sha256", "explicit operator acknowledgement of maintainer personal/research terms (research condition 5)", "separate runtime lane pins demucs/torch on the compute host Linux CPU", "checkpoint load path weights_only vs pickle-after-sha256 to be determined in runtime lane", "V6 private scratch path on run host for the real-take pass"]
 }

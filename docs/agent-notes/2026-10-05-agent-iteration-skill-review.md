@@ -1,6 +1,6 @@
 # Agent iteration skill review — October 5, 2026
 
-Owner: `/root/tool_skills/skill_forward_test`. Authority: root's explicit
+Owner: `root/tool_skills/skill_forward_test`. Authority: root's explicit
 adversarial review assignment; repository `AGENTS.md`;
 R-HOOK-CONVERGENCE-20261004 / R-N13. This lane owns only this dated note.
 The skill owner writes docs-only Basic Pitch comparator and per-source capture
@@ -130,7 +130,7 @@ not an advertised callable limit. Output/error ceilings, object/array schema
 validation, custom-profile use and actual worker qualification remain named
 admission tasks. No new concrete instruction gap appeared on this readback.
 
-Completion receipt: `/root/tool_skills/skill_forward_test | named dated note and
+Completion receipt: `root/tool_skills/skill_forward_test | named dated note and
 read-only design/contract sources | root-assigned adversarial design review |
 R-HOOK-CONVERGENCE-20261004/R-N12/R-N13 | populated docs-only designs, existing
 skills frozen | eight cases reviewed, no concrete instruction gap; no worker,
@@ -208,7 +208,7 @@ recurring confirmation. Contamination `needs_reselection`, source binding,
 unknown overlap, floor/SNR and residue/stage boundaries remain intact. No new
 authorization or musical-claim gap appeared. Only this note was edited.
 
-Skill-review receipt: `/root/tool_skills/skill_forward_test | actual new skill,
+Skill-review receipt: `root/tool_skills/skill_forward_test | actual new skill,
 contracts and worker read-only; named note write | owner-requested adversarial
 forward review after root-reported admission | R-HOOK-CONVERGENCE-20261004/R-N13 |
 new skill ready, existing twenty-three untouched | no behavioral gap; linked
@@ -319,7 +319,7 @@ EQ/compressor stages. Basic Pitch's separately reviewed representability,
 short-event clocks, fixed model/runtime and ungraded sparse evidence do not
 become capture-authoring claims or controls.
 
-Final receipt: `/root/tool_skills/skill_forward_test | final actual skill/worker/
+Final receipt: `root/tool_skills/skill_forward_test | final actual skill/worker/
 contracts read-only, short-lived MCP discovery/prompt/prelaunch-negative checks,
 named note write | root reattachment for final capture25 review |
 R-HOOK-CONVERGENCE-20261004/R-N11/R-N13 | initial live prompt proof with owner
@@ -353,7 +353,7 @@ Preparation result: cases ready; final review awaits the owner's actual new skil
 and activated fixed hook. Root/hook/worker owners retain catalog, source,
 application and publication work; this lane owns this note only.
 
-Preparation receipt: `/root/tool_skills/skill_forward_test | named dated note |
+Preparation receipt: `root/tool_skills/skill_forward_test | named dated note |
 root-assigned adversarial design review | R-HOOK-CONVERGENCE-20261004/R-N13 |
 planning contracts and byte qualification, skills not yet ready | cases prepared;
 no worker/media/network/configuration action`.
@@ -422,7 +422,7 @@ repeated here. Historical actual180/selected24/excluded156 evidence remains a
 separate earlier plan proof. Neither that evidence nor this final live discovery
 qualifies native editor import, host frames, musical correctness or acceptance.
 
-Final editor receipt: `/root/tool_skills/skill_forward_test | final actual
+Final editor receipt: `root/tool_skills/skill_forward_test | final actual
 skill/worker/contracts read-only, initialized exact MCP prompt/schema and
 prelaunch-negative checks, owned note write | root-assigned tool26 review |
 R-HOOK-CONVERGENCE-20261004/R-N11/R-N13 | interim skill and owner freeze pending |
@@ -482,7 +482,7 @@ editor-marker-plan e4e47d identities. Process exited0 with empty stderr. This
 executes discovery and prompt reads only, without workers, setup, downloads,
 media, model inference, editor imports or native actions.
 
-Final combined receipt: `/root/tool_skills/skill_forward_test | owned dated
+Final combined receipt: `root/tool_skills/skill_forward_test | owned dated
 review note plus read-only final skills/linked receipts and short-lived MCP |
 root-assigned editor26/prerequisite review | R-HOOK-CONVERGENCE-20261004/R-N13 |
 editor review closed, prerequisite linked-document coherence open | final links
@@ -536,7 +536,7 @@ than measured model success. Individual output files are atomic, not a
 transactional trio; direct evaluation has no internal deadline while the hook
 owns its bounded process group.
 
-Interim receipt: `/root/tool_skills/skill_forward_test | actualskill/worker/spec
+Interim receipt: `root/tool_skills/skill_forward_test | actualskill/worker/spec
 read-only plus owned note | root tool27 independent review |
 R-HOOK-CONVERGENCE-20261004/R-N13 | newskill/source admitted, hook freeze pending |
 bounded forward review no instruction gap; live exact schema/prompt and
@@ -581,7 +581,7 @@ are hook-owner tests, not evaluation repeated here. The skill owner reports all2
 validators/exact live prompts passing. Numerical pilot quality, publication,
 hosted CI, actual take and native acceptance remain root-owned separate states.
 
-Final receipt: `/root/tool_skills/skill_forward_test | final actualskill/worker/
+Final receipt: `root/tool_skills/skill_forward_test | final actualskill/worker/
 contract read-only and short-lived live prompt/schema/prelaunch rejection proof,
 owned note write | root tool27 independent forward review |
 R-HOOK-CONVERGENCE-20261004/R-N13 | interim source review awaiting hook freeze |

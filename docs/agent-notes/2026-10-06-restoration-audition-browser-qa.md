@@ -2,7 +2,7 @@
 
 Authority: root's explicit bounded local audition QA lane relayed by the audio
 owner, active operator restoration iteration; R-HOOK-CONVERGENCE-20261004,
-R-N11/R-N13 and repository AGENTS.md. Owner `/root/repo_patterns` writes only
+R-N11/R-N13 and repository AGENTS.md. Owner `root/repo_patterns` writes only
 this dated receipt and ignored `artifacts/restoration-audition-browser-qa-20261006T0445/`.
 No public server, host/user browser-profile edits, audio/DSP regeneration,
 inference, analysis adoption or selected-master changes occurred.

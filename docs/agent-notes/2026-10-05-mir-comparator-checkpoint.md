@@ -1,6 +1,6 @@
 # Basic Pitch comparator source review
 
-Actor: `/root/clip_baseline/mir_sources`; checkpoint 2026-10-05 23:59 UTC.
+Actor: `root/clip_baseline/mir_sources`; checkpoint 2026-10-05 23:59 UTC.
 Authority: operator-authorized parallel project work, root's named receipt
 assignment, repository AGENTS.md, R-HOOK-CONVERGENCE-20261004 / R-N12 / R-N13.
 Scope: read-only source/research review plus this owned receipt. No package

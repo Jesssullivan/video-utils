@@ -17,7 +17,7 @@
   "skill_proof": {
     "count": 29,
     "status": "all_bundled_validations_and_exact_initialized_prompts_passed",
-    "owner": "/root/tool_skills",
+    "owner": "root/tool_skills",
     "tool_calls": 0,
     "aggregate_sha256": "d9271208fe7ffa3e2abd703df4f7429110fe2ca92d2ad581f1a29117bd9a45f1",
     "marked_skill_sha256": "eb51008e3f0bf860ea9e0ea9f8c5e07ef9492741a2301fafa805c9cb22ab0ce2",
@@ -28,7 +28,7 @@
     {
       "count": 29,
       "status": "all_bundled_validations_and_exact_initialized_prompts_passed",
-      "owner": "/root/tool_skills",
+      "owner": "root/tool_skills",
       "tool_calls": 0,
       "aggregate_sha256": "030403c0f6148ebd385af5cc3576de62ee7e6014ca1fd66745c2603d61679f4f",
       "checkpoint": "before_demo_reference_pure_denoised_overlay_scope_clarification",

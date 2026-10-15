@@ -330,7 +330,7 @@
     "commands": [
       "PYTHONPATH=tests python3 -m unittest test_rhythm -v",
       "PYTHONPATH=tests python3 -m unittest test_phrase_timing -v",
-      "PYTHONPATH=tests /Users/jess/git/video-utils/.venv/bin/python -m unittest test_clicks test_click_attack_ab -v",
+      "PYTHONPATH=tests <repo>/.venv/bin/python -m unittest test_clicks test_click_attack_ab -v",
       "PYTHONPATH=tests python3 -m unittest test_demo test_dag test_clicks"
     ],
     "results": {

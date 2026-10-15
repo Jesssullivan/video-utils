@@ -31,7 +31,7 @@
         "-ss",
         "36.65",
         "-i",
-        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/marked-video.mov",
+        "<repo>/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/marked-video.mov",
         "-map",
         "0:v:0",
         "-an",
@@ -41,7 +41,7 @@
         "1",
         "-threads",
         "2",
-        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/visual-proof/overlap-36.65.png"
+        "<repo>/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/visual-proof/overlap-36.65.png"
       ]
     },
     {
@@ -67,7 +67,7 @@
         "-ss",
         "44.2",
         "-i",
-        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/marked-video.mov",
+        "<repo>/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/marked-video.mov",
         "-map",
         "0:v:0",
         "-an",
@@ -77,7 +77,7 @@
         "1",
         "-threads",
         "2",
-        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/visual-proof/breakdown-44.2.png"
+        "<repo>/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/visual-proof/breakdown-44.2.png"
       ]
     },
     {
@@ -103,7 +103,7 @@
         "-ss",
         "96.8",
         "-i",
-        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/marked-video.mov",
+        "<repo>/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/marked-video.mov",
         "-map",
         "0:v:0",
         "-an",
@@ -113,7 +113,7 @@
         "1",
         "-threads",
         "2",
-        "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/visual-proof/chorus-96.8.png"
+        "<repo>/artifacts/runs/20261006T034521Z-a0def0c43eac/reference-marked-preview-compact/visual-proof/chorus-96.8.png"
       ]
     }
   ],

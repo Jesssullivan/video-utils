@@ -1,6 +1,6 @@
 # Guarded phrase arms: pre-holdout source freeze
 
-Actor: `/root/phrase_dag`. Authority: root's explicit isolated A/B/C/D
+Actor: `root/phrase_dag`. Authority: root's explicit isolated A/B/C/D
 implementation release; operator's parallel ten-hour goal;
 R-HOOK-CONVERGENCE-20261004/R-N13. Freeze precedes held-out generation/inference.
 Canonical workers, registry and first frozen ablation harness were not changed.

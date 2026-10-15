@@ -4,12 +4,12 @@
   "observed_at": "2026-10-06T05:22:54.239567+00:00",
   "status": "desktop_sharing_export_verified",
   "desktop": {
-    "path": "/Users/jess/Desktop/video_util_mvp_demo_1.mp4",
+    "path": "<operator-home>/Desktop/video_util_mvp_demo_1.mp4",
     "sha256": "34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10",
     "bytes": 21596491
   },
   "previous_owned_desktop_sha256": "0774fd4ad6116d7770f05b3a3a3ef988bbc837cca56c48f5c10df3810f45c3e5",
-  "previous_version_retained_at": "/Users/jess/git/video-utils/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/video_util_mvp_demo_1.mp4",
+  "previous_version_retained_at": "<repo>/artifacts/experiments/desktop-mvp-h264-crf27-20261006T0513/video_util_mvp_demo_1.mp4",
   "recipe_outcome": "artifacts/experiments/share-export-tool30-20261006T0518/outcome.json",
   "recipe_outcome_sha256": "415ca5852fd48ebfd4911f369c0c99df75e0142aaeee4a3c3e97faffd6303316",
   "worker_receipt": "artifacts/experiments/share-export-tool30-20261006T0518/video_util_mvp_demo_1.mp4.receipt.json",

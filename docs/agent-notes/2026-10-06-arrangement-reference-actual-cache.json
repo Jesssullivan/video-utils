@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "actor": "/root/rhythm_analysis",
+  "actor": "root/rhythm_analysis",
   "authority": "Root cached NR8 then fresh NR10 assessment release; R-HOOK-CONVERGENCE-20261004/R-N13",
   "worker_sha256": "c6bdc8991b6e378f2ab54873e94e23b1cff63073056e4f32b05ab5f7b58f89ae",
   "reference_sha256": "170a33eb9e5832cbc0a3309c6041b5ded06f5fc1265ba519a6633ab0f84e541a",

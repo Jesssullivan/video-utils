@@ -3,7 +3,7 @@
 Root released one exact generated trial in
 `2026-10-06-root-capture-application-native-release.json` (SHA256
 `56e49d0789fa84e8a0d75f03d222f4bda291995a519810c63d8f297d94e98b3c`).
-Actor `/root/media_latency` launched owned execution session 23980 once, under
+Actor `root/media_latency` launched owned execution session 23980 once, under
 R-N11/R-N13. It returned exit 0 after 45.707 seconds. No rerun or settings
 adjustment occurred. The immutable plan, final application/author/media sources,
 preregistration and existing media binary identities remained pinned.

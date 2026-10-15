@@ -56,7 +56,7 @@ environment; seven Rust tests passed earlier. Hosted GitHub CI
 [37373112479](https://github.com/Jesssullivan/video-utils/actions/runs/37373112479)
 then failed one excessive-nesting test after 109 tests with three optional skips.
 Python 3.14.7 permitted the 10,000-depth parser case the test expected the
-interpreter to reject. Deterministic depth repair owned by `/root/tool_hooks`
+interpreter to reject. Deterministic depth repair owned by `root/tool_hooks`
 subsequently passed 28 targeted checks. **No hosted-pass claim is made.** Root
 must publish the repair and observe a subsequent hosted run.
 
@@ -96,7 +96,7 @@ done. Retain failures and abstentions as evidence.
 Source→denoised synthetic click timing shifted approximately 25 ms in three
 fixtures. Source recall at the 20 ms match threshold was 1; processed recall was 0.
 Strong 32 Hz content was preserved. Container/picture timing proof is valid but
-does not prove physical audio alignment. Root assigned `/root/media_latency` to
+does not prove physical audio alignment. Root assigned `root/media_latency` to
 `scripts/media.py`, `tests/test_media.py`, `docs/spec/MEDIA_LATENCY.md` for chain
 confirmation and calibrated compensation **before another render**. Existing
 media remain preserved; audio alignment/listening acceptance is still open.
@@ -124,7 +124,7 @@ integration suite passed 169 tests. These worktree/new-run results are **not yet
 published in the new bundle**.
 
 Final encoded AAC true peak measured **−1.49 dBTP**, above the strict **−1.50 dBTP**
-target, and final acceptance is false. `/root/media_latency` owns a bounded
+target, and final acceptance is false. `root/media_latency` owns a bounded
 headroom-retry repair before publication. The old first-run peak pass remains
 historical and cannot qualify this new output. Stage completion does not imply
 final numerical or listening acceptance.
@@ -139,7 +139,7 @@ decode and synthetic annotation edit/refresh passed; no dummy annotations were
 added to the real recording. Native AU compiled/ARC audit evidence remains
 qualified source evidence without installation, auval or Logic hosting.
 
-Root assigned `/root/clip_baseline` to FOSS_AUDIO_MATRIX and RESEARCH_LANE
+Root assigned `root/clip_baseline` to FOSS_AUDIO_MATRIX and RESEARCH_LANE
 research docs. Main remains signed parser-repair commit `9883069`; hosted repair
 CI [37373960394](https://github.com/Jesssullivan/video-utils/actions/runs/37373960394)
 was queued at the previous readback. No hosted-pass claim is made. The active
@@ -147,20 +147,20 @@ goal continues to the planned 06:49:34 UTC horizon with these acceptance items o
 
 ## Parallel assignments checkpoint — approximately 21:27 UTC
 
-Root assigned `/root/meter_inference` to new `scripts/meter.py`,
+Root assigned `root/meter_inference` to new `scripts/meter.py`,
 `tests/test_meter.py`, `docs/spec/METER_LANE.md`, `docs/research/METER.md`;
-`/root/tonal_inference` owns corresponding `tonal.py`, `test_tonal.py`,
+`root/tonal_inference` owns corresponding `tonal.py`, `test_tonal.py`,
 `TONAL_LANE.md`, `docs/research/TONAL.md`. Confidence-qualified discovery does not
 require an intended arrangement; unknown meter/tonic/mode remains valid.
 
-`/root/au_architecture`'s next edits are isolated to
+`root/au_architecture`'s next edits are isolated to
 `native/au-spike/automation/**` and `docs/spec/AU_AUTOMATION.md`. Initial native
 spike code is frozen until root publication. Existing compiled/ARC-audit checks
 and root's native recipe passed; native installation and host proof remain absent.
 
 Correction of assignment/execution boundary: the earlier first-publication
 broadcast did not trigger the idle pitch worker. Root explicitly started
-`/root/guitar_features`'s `pitch.py` follow-up around 21:20 UTC; earlier pitch-lane
+`root/guitar_features`'s `pitch.py` follow-up around 21:20 UTC; earlier pitch-lane
 entries denote assignment, not ongoing implementation before that time.
 
 New-bundle source has 169 integrated tests and 33 sixteen-tool contract checks
@@ -331,16 +331,16 @@ Documentation freezes after this handoff for selected receipt publication.
 
 ## Additional named ownership checkpoint — 22:43:49 UTC
 
-Root explicitly activated `/root/media_latency` for new
+Root explicitly activated `root/media_latency` for new
 `scripts/calibration_pilot.py`, `tests/test_calibration_pilot.py` and
 `docs/spec/CALIBRATION_PILOT_LANE.md`, transferring that proposed worker's source
 implementation from root. Root retains operator recipes, actual pilot execution,
 integration and publication. The worker depends on agreed bank/evaluator
 contracts; assignment does not establish a completed pilot.
 
-`/root/audio_research` is active for an independent **read-only** source/spec
+`root/audio_research` is active for an independent **read-only** source/spec
 contract audit, owning a new dated calibration-review note in docs/agent-notes/;
-it does not mutate workers/specs. `/root/au_architecture` is active **plan only**
+it does not mutate workers/specs. `root/au_architecture` is active **plan only**
 for new `docs/spec/AU_PARAMETER_STATE_INTEGRATION_LANE.md` before root assigns
 any native file. Existing native source remains frozen.
 
@@ -371,7 +371,7 @@ Root's actual calibration pilot is **LIVE**, owned exec session 61928, covering
 all twelve unseeded fixtures/120 source seconds and four pitch jobs/30 seconds.
 Controller is frozen during that execution. No completed pilot score is claimed.
 
-Root assigned `/root/media_latency` NEW `scripts/marked_video.py`,
+Root assigned `root/media_latency` NEW `scripts/marked_video.py`,
 `tests/test_marked_video.py`, `docs/spec/MARKED_VIDEO_LANE.md`, owned dated receipt.
 This separate review render validates source/graph/flag/marker hashes, labels
 hypotheses REVIEW/uncertain, reencodes picture and packet-copies delivery AAC.
@@ -380,11 +380,11 @@ marked-video skill and tool_hooks the future contract; primitive twenty-three is
 future until worker/API/skill checks and publication. Existing video/report and
 actual annotations are preserved; no definite MISTAKE label is authorized.
 
-Root released `/root/au_architecture`'s exact native implementation table in
+Root released `root/au_architecture`'s exact native implementation table in
 AU_PARAMETER_STATE_INTEGRATION_LANE.md. The board records those Apple kernel/AU,
 new ingress/harness, regression-test and check.py files. Automation/state/Rust/
 ABI/locks remain frozen; no plugin registration, device operation or host proof.
-`/root/tonal_inference` owns BASIC_PITCH_COMPARATOR_LANE and
+`root/tonal_inference` owns BASIC_PITCH_COMPARATOR_LANE and
 BASIC_PITCH_QUALIFICATION as **plan/research only** for model/dependency/license
 pins. No model download, installation, registry admission or inference occurred.
 
@@ -454,7 +454,7 @@ subsequent actual audio/marked-render/pilot accuracy receipts.
 The exact new user prompt about their xod-spectrogram mel/PCEN work was appended
 verbatim to the prompt archive. No user-message timestamp was supplied; this is
 the documentation checkpoint clock, not an invented message time.
-Root assigned the named `/root/xod_spectrogram` lane for research and bounded
+Root assigned the named `root/xod_spectrogram` lane for research and bounded
 adoption ablation of the existing GitHub/package work. Establish source/license/
 dependency identity and compare mel/PCEN behavior against supported analysis
 before claiming reuse or improvement. Implementation-file ownership follows

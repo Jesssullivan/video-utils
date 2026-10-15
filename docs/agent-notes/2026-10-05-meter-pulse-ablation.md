@@ -1,6 +1,6 @@
 # Meter/pulse cached-feature ablation receipt
 
-Actor `/root/meter_inference`; target owned new plan/receipt/harness and isolated
+Actor `root/meter_inference`; target owned new plan/receipt/harness and isolated
 `artifacts/experiments/meter-pulse`. Reason: operator's full parallel ten-hour
 goal, root's bounded six-case read-only assignment. Authority: repository
 AGENTS.md, R-HOOK-CONVERGENCE-20261004 and R-N13. No process signalling, host

@@ -12,7 +12,7 @@
   ],
   "installer_sha256": "4da3b0f321e2918b44bbb46c6a5688b5ab5f633a59ba1f7ae020b27b5e4b7dd6",
   "lock_sha256": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
-  "explicit_existing_python": "/Users/jess/git/video-utils/.venv/bin/python",
+  "explicit_existing_python": "<repo>/.venv/bin/python",
   "setup_receipt": {
     "path": "artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/setup-receipt.json",
     "sha256": "c8df9c4439c6021b3f7e82aafe20048a46b3b528b6d2d394ac4c447370a06f9e",
@@ -29,13 +29,13 @@
           "ownership": "Popen direct child checked by PPID",
           "ruling": "R-N11",
           "argv": [
-            "/Users/jess/git/video-utils/.venv/bin/python",
+            "<repo>/.venv/bin/python",
             "-I",
             "-B",
             "-m",
             "venv",
             "--without-pip",
-            "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/python"
+            "<repo>/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/python"
           ],
           "returncode": 0,
           "stop_reason": null,
@@ -47,23 +47,23 @@
           "ownership": "Popen direct child checked by PPID",
           "ruling": "R-N11",
           "argv": [
-            "/Users/jess/.nix-profile/bin/uv",
+            "<operator-home>/.nix-profile/bin/uv",
             "--no-config",
             "--no-cache",
             "pip",
             "install",
             "--python",
-            "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/python/bin/python",
+            "<repo>/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/python/bin/python",
             "--offline",
             "--no-index",
             "--no-deps",
             "--no-build",
             "--no-python-downloads",
-            "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/onnxruntime-1.30.0-cp314-cp314-macosx_14_0_arm64.whl",
-            "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/numpy-2.5.3-cp314-cp314-macosx_11_0_arm64.whl",
-            "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/flatbuffers-25.12.19-py2.py3-none-any.whl",
-            "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/packaging-26.3-py3-none-any.whl",
-            "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/protobuf-7.36.2-cp310-abi3-macosx_10_9_universal2.whl"
+            "<repo>/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/onnxruntime-1.30.0-cp314-cp314-macosx_14_0_arm64.whl",
+            "<repo>/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/numpy-2.5.3-cp314-cp314-macosx_11_0_arm64.whl",
+            "<repo>/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/flatbuffers-25.12.19-py2.py3-none-any.whl",
+            "<repo>/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/packaging-26.3-py3-none-any.whl",
+            "<repo>/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314/wheels/protobuf-7.36.2-cp310-abi3-macosx_10_9_universal2.whl"
           ],
           "returncode": 0,
           "stop_reason": null,
@@ -80,7 +80,7 @@
         "deadline_seconds": 600,
         "log_bytes": 2097152
       },
-      "runtime_dir": "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314",
+      "runtime_dir": "<repo>/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314",
       "python": "3.14.6",
       "versions": {
         "onnxruntime": "1.30.0",
@@ -103,7 +103,7 @@
   },
   "readonly_check": {
     "status": "already_qualified",
-    "runtime_dir": "/Users/jess/git/video-utils/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314",
+    "runtime_dir": "<repo>/artifacts/runtime-repro/checkout-20261006T004817Z/artifacts/model-runtime-env/onnx-1.30.0-cp314",
     "wheel_lock_sha256": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
     "python": "3.14.6",
     "versions": {

@@ -2,7 +2,7 @@
 
 Plan recorded before sibling inspection, October 5, 2026.
 
-Authority: operator's requested site.scaffold/legalab/asfw/xoxd-ai/Sting/xoruby
+Authority: operator's requested site.scaffold/legalab/asfw/xoxd-ai/Peer-host/xoruby
 comparison and active parallel goal; R-HOOK-CONVERGENCE-20261004, R-N12/R-N13.
 Owner: `clip_baseline`. Exclusive writes: this receipt and
 `docs/research/REPOSITORY_PATTERNS.md`. Root owns implementation and publication.
@@ -11,7 +11,7 @@ Inspect each repository's AGENTS first, with Lab root read before its diagnostic
 worktree. Capture read-only status, HEAD, common Git directory and worktree
 identity. Inspect only bounded relevant just/Nix/Rust/reporting/interface/lock
 files. Prefer canonical repositories when found; distinguish sampled worktrees
-and unlocated Sting evidence. Cite exact local paths and commits, and compare
+and unlocated Peer-host evidence. Cite exact local paths and commits, and compare
 observations with what video-utils actually contains. No sibling writes, builds,
 installs, network mutations, session signals or host configuration changes.
 
@@ -27,7 +27,7 @@ HEAD revisions, canonical/topic/linked-worktree status and thirteen concrete
 patterns with adopted/partial/deferred decisions. Canonical Legalab's staged
 owner work was preserved; citations use committed bytes. The reset worktree's
 local-first policy is explicitly distinguished from the older branch. The
-XORuby directories are independent topic clones, not linked worktrees. Sting
+XORuby directories are independent topic clones, not linked worktrees. Peer-host
 host declarations were located in Lab, but no remote repository or runtime was
 inspected. Video-utils comparison snapshot is
 `2ff896751e283090de0612384ce2aa65284322d1`; parallel integration files were not

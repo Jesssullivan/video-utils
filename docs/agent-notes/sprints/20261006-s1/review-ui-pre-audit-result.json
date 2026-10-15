@@ -1,7 +1,7 @@
 {
   "timestamp_utc": "2026-10-06T06:11:40.255265+00:00",
   "authority": "operatorS1; R-HOOK-CONVERGENCE-20261004 / R-N11/R-N12/R-N13",
-  "owner": "/root/s1_review_ui",
+  "owner": "root/s1_review_ui",
   "state": "implemented_and_browser_verified_pending_independent_audit",
   "owned_source_sha256": {
     "review/index.html": "69418ec04f7a0045257f8e821fe0f450a310e143285e69d18c52ffb2485b2c5a",

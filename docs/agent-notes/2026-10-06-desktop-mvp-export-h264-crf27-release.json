@@ -1,7 +1,7 @@
 {
   "AAC": "copy",
   "CRF": 27,
-  "actor": "/root/media_latency",
+  "actor": "root/media_latency",
   "authority": "RootexplicitTHIRDencodereleaseH264veryfastCRF27aftertwoHEVCdeadlinefailures; operatorDesktopexport",
   "codec": "libx264",
   "controller": "docs/agent-notes/2026-10-06-desktop-mvp-export-h264-crf27.py",

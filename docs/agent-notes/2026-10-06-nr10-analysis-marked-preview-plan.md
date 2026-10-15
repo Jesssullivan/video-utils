@@ -46,7 +46,7 @@ and optional analysis environment; no setup/install/model-prefetch command.
 ```sh
 export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg
 export FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe
-python3 scripts/run_demo.py --existing-run "$CANDIDATE_RUN_DIR" --features extended --backend librosa --analysis-python /Users/jess/git/video-utils/.venv/bin/python --pitch-seconds 20 --bpm 178 --no-latest
+python3 scripts/run_demo.py --existing-run "$CANDIDATE_RUN_DIR" --features extended --backend librosa --analysis-python <repo>/.venv/bin/python --pitch-seconds 20 --bpm 178 --no-latest
 ```
 
 After a successful analysis receipt with no failed/skipped dependency stages,

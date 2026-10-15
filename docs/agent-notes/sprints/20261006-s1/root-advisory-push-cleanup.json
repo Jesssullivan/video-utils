@@ -5,7 +5,7 @@
     "parent": 37802,
     "owned_push_pid": 37787,
     "exec_session": 21403,
-    "live_verified": "37884 37802 /nix/store/j0hldai2k6ch691p6dlh4v75c1ym73mq-bash-5.3p9/bin/bash /nix/store/bcsz4kna2kwa841s2szfrnl9b78lvjmk-tinyland-home-root-guard/bin/tinyland-home-root-guard rm -f /var/folders/z6/7m3zpx6j3x982j_fzwg1lppw0000gn/T/tmp.lR9FvVSFyx"
+    "live_verified": "37884 37802 <nix-store>/j0hldai2k6ch691p6dlh4v75c1ym73mq-bash-5.3p9/bin/bash <nix-store>/bcsz4kna2kwa841s2szfrnl9b78lvjmk-tinyland-home-root-guard/bin/tinyland-home-root-guard rm -f /var/folders/z6/7m3zpx6j3x982j_fzwg1lppw0000gn/T/tmp.lR9FvVSFyx"
   },
   "reason": "own push advisory temp cleanup wrapper stalled >60s; literal managedguard was advisory",
   "ruling": "R-HOOK-CONVERGENCE-20261004/R-N11/R-N12/R-N13; TIN-3692comment98cf680c-7299-4949-bfb2-60079053ad43",

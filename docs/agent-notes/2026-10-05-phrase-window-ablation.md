@@ -1,6 +1,6 @@
 # Phrase-window causal ablation receipt
 
-Actor: `/root/phrase_dag`. Authority: root's operator-approved parallel ten-hour
+Actor: `root/phrase_dag`. Authority: root's operator-approved parallel ten-hour
 goal, explicit six-case admission, R-HOOK-CONVERGENCE-20261004 and R-N13.
 Checkpoint: 2026-10-05 23:36 UTC. Owned experiment only; no canonical worker,
 registry, full pilot, actual take or latest pointer was changed.

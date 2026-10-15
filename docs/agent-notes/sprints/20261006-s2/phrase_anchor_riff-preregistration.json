@@ -3,7 +3,7 @@
     "env": "VIDEO_UTILS_ANALYSIS_PYTHON",
     "librosa": "0.11.0",
     "numpy": "2.5.3",
-    "path": "/Users/jess/git/video-utils/.venv/bin/python"
+    "path": "<repo>/.venv/bin/python"
   },
   "arms": {
     "Araw": "phrase_proposal_s1.discover_source Araw, unchanged frozen S1 baseline",

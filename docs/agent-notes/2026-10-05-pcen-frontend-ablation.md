@@ -1,6 +1,6 @@
 # Secondary PCEN frontend ablation checkpoint
 
-Actor `/root/xod_spectrogram`; authority R-HOOK-CONVERGENCE-20261004,
+Actor `root/xod_spectrogram`; authority R-HOOK-CONVERGENCE-20261004,
 TIN-3692 comment `98cf680c-7299-4949-bfb2-60079053ad43`, R-N12/R-N13.
 The operator requested additional full-force parallel work; root assigned a
 new optional frontend design and bounded secondary proof. The original XOD
@@ -48,7 +48,7 @@ from root and the generator owner. No holdout waveform proof has run yet.
 
 No dependency installation, ML environment use, private package vendoring,
 current frontend edit, latest-pointer update, media rendering or marker change.
-Coordinate with `/root/phrase_dag` so optional frontend and pulse/window
+Coordinate with `root/phrase_dag` so optional frontend and pulse/window
 factors remain separate. Root owns tracker/publication updates. Append an exact
 admission/index/result checkpoint after a run; do not turn the pending state
 into a passing detector or phrase-quality claim.

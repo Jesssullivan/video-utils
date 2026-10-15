@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "recorded_utc": "2026-10-06 00:29:58 UTC",
-  "actor": "/root/tonal_inference/tonal_audit",
+  "actor": "root/tonal_inference/tonal_audit",
   "authority": "Root enhanced-main-only independent readback release; operator ten-hour parallel goal; R-HOOK-CONVERGENCE-20261004/R-N13",
   "status": "independent_bounded_enhanced_main_readback_pass",
   "run_dir": "artifacts/runs/20261005T232741Z-2b5dc43fd009",

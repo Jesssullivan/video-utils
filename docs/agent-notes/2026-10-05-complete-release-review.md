@@ -1,6 +1,6 @@
 # Complete release review — October 5, 2026
 
-Independent release audit by `/root/audio_research` under
+Independent release audit by `root/audio_research` under
 R-HOOK-CONVERGENCE-20261004, TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`; R-N11/R-N12/R-N13 apply.
 Read-only inspection covered source changes, authoritative root job logs and

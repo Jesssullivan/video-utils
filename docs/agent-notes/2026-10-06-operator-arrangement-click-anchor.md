@@ -1,6 +1,6 @@
 # Operator arrangement: cached click and first-phrase anchor assessment
 
-Actor `/root/meter_inference`; authority: root's explicit resumed bounded
+Actor `root/meter_inference`; authority: root's explicit resumed bounded
 read-only assignment under the operator's goal, repository AGENTS.md and R-N13.
 Owned outputs are this note and the matching JSON receipt. No media decoding,
 canonical analysis/reference mutation, marker edits or mistake grading occurred.

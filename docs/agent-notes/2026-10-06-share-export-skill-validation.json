@@ -1,5 +1,5 @@
 {
-  "actor": "/root/tool_skills",
+  "actor": "root/tool_skills",
   "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; root skill30 assignment",
   "validators": 30,
   "exact_initialized_stdio_prompts": 30,

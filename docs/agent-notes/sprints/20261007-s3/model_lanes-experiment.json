@@ -15,8 +15,8 @@
   },
   "blocked_on": [
     "root explicit hash-bound fetch of cpjku-beat-this-final0 and program/models.json entry (comparator refuses model_not_registered today)",
-    "root beat-this-runtime-setup on honey inside nix develop .#ml (Linux only; this lane ran on neo/darwin)",
-    "honey CPU placement for one bounded job (600 s deadline, 2 GiB RSS, 2 threads)"
+    "root beat-this-runtime-setup on the compute host inside nix develop .#ml (Linux only; this lane ran on the operator host/darwin)",
+    "compute-host CPU placement for one bounded job (600 s deadline, 2 GiB RSS, 2 threads)"
   ],
   "heldout": {
     "seeds": [

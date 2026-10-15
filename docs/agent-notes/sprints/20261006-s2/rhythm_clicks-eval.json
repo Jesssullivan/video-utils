@@ -85,7 +85,7 @@
         "A3": "32 Hz bin relative delta < 1e-5 in every seed and arm"
       },
       "commands": [
-        "CLICK_AB_S2_SEALED_EVAL=1 PYTHONPATH=tests /Users/jess/git/video-utils/.venv/bin/python -m unittest test_click_attack_ab.ClickAttackFixtureTests.test_sealed_ab_eval -v"
+        "CLICK_AB_S2_SEALED_EVAL=1 PYTHONPATH=tests <repo>/.venv/bin/python -m unittest test_click_attack_ab.ClickAttackFixtureTests.test_sealed_ab_eval -v"
       ]
     }
   },

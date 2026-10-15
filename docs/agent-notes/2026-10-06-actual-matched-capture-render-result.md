@@ -7,7 +7,7 @@ The source-bound profiles had matched capture, EQ, compression and loudness
 controls; reduction strength alone differed. Source and capture music/click
 uncertainty were retained. Both calls used the frozen standalone application
 `00a03ef9…`, original source `a522115f…`, 600-second inner deadlines, 610-second
-outer stage limits and two threads. Actor `/root/media_latency` owned controller
+outer stage limits and two threads. Actor `root/media_latency` owned controller
 session 69864 under R-N11/R-N13; exact per-stage PID/session/argv start receipts
 were saved before observing each process. Logs were file-backed and bounded to
 4 MiB each; CLI error JSON was retained even on nonzero exit.

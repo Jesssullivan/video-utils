@@ -218,7 +218,7 @@ def main():
         for name, expected in mapping.items():
             require(sha(name) == expected, 'Protected/parent changed during independent audit')
     require(sha(TRIAL / 'receipt.json') == receipt_hash, 'Original qualification receipt changed')
-    result = {'schema_version': 1, 'actor': '/root/release_review', 'authority': 'Root explicit generated-only metadata probe release; R-HOOK-CONVERGENCE-20261004/R-N13',
+    result = {'schema_version': 1, 'actor': 'root/release_review', 'authority': 'Root explicit generated-only metadata probe release; R-HOOK-CONVERGENCE-20261004/R-N13',
               'status': 'independent_generated_native_artifact_audit_passed', 'auditor_source_sha256': sha(__file__),
               'trial_receipt_sha256': receipt_hash, 'application_receipt_sha256': receipt['application_receipt_sha256'],
               'candidate_run_dir': str(run), 'preregistration_sha256': PREREG, 'release_sha256': RELEASE,

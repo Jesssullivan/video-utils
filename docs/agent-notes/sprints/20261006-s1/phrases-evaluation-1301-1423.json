@@ -176,9 +176,9 @@
     }
   },
   "authorization": {
-    "plan_path": "/Users/jess/git/video-utils/.local/sprint1/phrases/docs/agent-notes/sprints/20261006-s1/phrases-preregistration.json",
+    "plan_path": "<repo>/.local/sprint1/phrases/docs/agent-notes/sprints/20261006-s1/phrases-preregistration.json",
     "plan_sha256": "dd4c43532f47273948e23a3a35e93e61fa8a576ec0f32662036b39fe6b432a6c",
-    "release_path": "/Users/jess/git/video-utils/docs/agent-notes/sprints/20261006-s1/phrases-root-release.json",
+    "release_path": "<repo>/docs/agent-notes/sprints/20261006-s1/phrases-root-release.json",
     "release_sha256": "6289ebf4276a46d69497cad0868f9adb3630fc972de638d9a3d9d6cd69c9196d",
     "worker_sha256": "38b736543a83d5c706a8803014f4e308685eee2c84275e9e6768c431b6b8d0e3"
   },

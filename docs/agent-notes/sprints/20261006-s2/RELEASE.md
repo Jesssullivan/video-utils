@@ -160,9 +160,9 @@ open states are:
   web_ui_binding. "Landed" here means merged on local `main`. Root may want the
   push and hosted CI first.
 
-## Peer exchange (sting lanes)
+## Peer exchange (peer-host lanes)
 
-Source: [peer note](../../2026-10-06-s2-peer-sting.md) and HANDOFF.md.
+Source: [peer note](../../2026-10-06-s2-peer-host.md) and HANDOFF.md.
 
 - **xoruby**: the V2 holdout bank is used for evaluation only, never training.
   V3, V4 and V5 were posted on TIN-5186. The

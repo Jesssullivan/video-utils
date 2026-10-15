@@ -1,6 +1,6 @@
 # Frozen held-out phrase arm results
 
-Actor `/root/phrase_dag`; authority root's explicit post-structural-bank
+Actor `root/phrase_dag`; authority root's explicit post-structural-bank
 A/B/C/D execution release, operator's active parallel goal,
 R-HOOK-CONVERGENCE-20261004/R-N13. Original recordings, canonical scripts,
 registry and defaults remain unchanged. Neither seed211 nor307 was used to

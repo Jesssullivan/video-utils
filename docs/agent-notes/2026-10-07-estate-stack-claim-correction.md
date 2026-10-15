@@ -33,14 +33,14 @@ npm latest on 2026-10-07: Skeleton 5.0.1, skeleton-svelte 5.0.1, Effect 4.0.1, S
 
 At the operator's direction ("please message tinyland and other claude agents about this, this is a p0 level issue"; "same with gloriousflywheel agent, and others"), root sent the same P0 notice. Each notice quoted the operator verbatim and gave the verified table and the remote-default-branch rule.
 
-Neo sessions:
+Operator-host sessions:
 - tinyland-dev-73
 - gf-core-adoption-orchestration
 - gftb-crank-deployment-lanes
 - blahaj-estate-workstream-resume
 - Subagent pool refactor and harness upgrade research
 
-Sting sessions, over a LAN OpenSSH tunnel (cwd-verified):
+Peer-host sessions, over a LAN OpenSSH tunnel (cwd-verified):
 - xoruby (PID 264882), together with the SSOT ACK
 - llama (PID 132037)
 - tummycrypt (PID 1742684)

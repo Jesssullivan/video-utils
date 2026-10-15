@@ -1,6 +1,6 @@
 # Independent calibration contract review
 
-Actor: `/root/audio_research`. Authority: the operator's parallel project goal,
+Actor: `root/audio_research`. Authority: the operator's parallel project goal,
 repository `AGENTS.md`, R-HOOK-CONVERGENCE-20261004, TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`, and R-N13. Ownership is limited to this
 receipt. Workers, tests, source recordings, rendered masters, shared board and

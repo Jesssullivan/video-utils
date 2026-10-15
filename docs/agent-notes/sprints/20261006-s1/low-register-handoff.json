@@ -11,17 +11,17 @@
   ],
   "independent_audit_readbacks": {
     "audit-low-register-harmonic-result.json": {
-      "path": "/Users/jess/git/video-utils/.local/sprint1/audit/docs/agent-notes/sprints/20261006-s1/audit-low-register-harmonic-result.json",
+      "path": "<repo>/.local/sprint1/audit/docs/agent-notes/sprints/20261006-s1/audit-low-register-harmonic-result.json",
       "sha256": "d580a08e649765c51e4caa48faabef0392d5ba7447258b52d061ea2253108fcb",
       "status": "PASS"
     },
     "audit-low-register-numerical.json": {
-      "path": "/Users/jess/git/video-utils/.local/sprint1/audit/docs/agent-notes/sprints/20261006-s1/audit-low-register-numerical.json",
+      "path": "<repo>/.local/sprint1/audit/docs/agent-notes/sprints/20261006-s1/audit-low-register-numerical.json",
       "sha256": "040884fd0e4eb07b2cc0967c58315b310aa6aab25a216a73161d277eaf188683",
       "status": "PASS"
     },
     "audit-low-register-prerun.json": {
-      "path": "/Users/jess/git/video-utils/.local/sprint1/audit/docs/agent-notes/sprints/20261006-s1/audit-low-register-prerun.json",
+      "path": "<repo>/.local/sprint1/audit/docs/agent-notes/sprints/20261006-s1/audit-low-register-prerun.json",
       "sha256": "c93286bd2025eb4b01a04d4a46e54e2e54e40fb772b624766483d0464bc8628a",
       "status": "PASS source/protocol with corrected complete attenuation accounting; numeric readiness only"
     }
@@ -52,7 +52,7 @@
   "owner_tests": {
     "count": 8,
     "passed": 8,
-    "qualified_python": "/Users/jess/git/video-utils/.venv/bin/python",
+    "qualified_python": "<repo>/.venv/bin/python",
     "seconds": 3.003
   },
   "root_only_actions_remaining": [

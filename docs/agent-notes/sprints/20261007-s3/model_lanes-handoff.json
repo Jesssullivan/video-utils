@@ -105,11 +105,11 @@
     }
   ],
   "unknowns": [
-    "Runtime validation: torch checkpoint load with weights_only=True on Linux honey platform (Lightning 1.9.4, torch 2.x)",
+    "Runtime validation: torch checkpoint load with weights_only=True on Linux compute-host platform (Lightning 1.9.4, torch 2.x)",
     "Runtime validation: beat_this.inference.load_checkpoint patch interception with actual Audio2Beats in beat-this 1.1.0",
     "Root operation: model prefetch from cloud.cp.jku.at and hash verification for program/models.json",
     "Root operation: tool descriptor admission to program/tools.json and scripts/tool_api.py wiring",
-    "M11 experiment: execution and scoring blocked until root completes prefetch, registry entry, and Linux runtime setup on honey"
+    "M11 experiment: execution and scoring blocked until root completes prefetch, registry entry, and Linux runtime setup on the compute host"
   ],
   "root_owned_changes_requested": [
     {
@@ -134,8 +134,8 @@
     },
     {
       "file": "just/workflow.just",
-      "change": "Append after basic-pitch-runtime-check:\n# Optional experimental Beat This comparator; no model or runtime installation is implicit.\nbeat-this-compare run_dir:\n    python3 scripts/beat_this_compare.py compare --run-dir {{quote(run_dir)}}\n\n# Explicit Linux-only runtime setup from the flake ml shell python (run on honey inside nix develop .#ml).\nbeat-this-runtime-setup python:\n    python3 scripts/beat_this_runtime_setup.py --python {{quote(python)}}\n\n# Verify the isolated Beat This runtime without downloads, installation or model inference.\nbeat-this-runtime-check:\n    python3 scripts/beat_this_runtime_setup.py --check",
-      "why": "Operator entrypoint recipes for the setup, check and compare steps. M11 is unblocked once root has run the prefetch and runtime setup on honey."
+      "change": "Append after basic-pitch-runtime-check:\n# Optional experimental Beat This comparator; no model or runtime installation is implicit.\nbeat-this-compare run_dir:\n    python3 scripts/beat_this_compare.py compare --run-dir {{quote(run_dir)}}\n\n# Explicit Linux-only runtime setup from the flake ml shell python (run on the compute host inside nix develop .#ml).\nbeat-this-runtime-setup python:\n    python3 scripts/beat_this_runtime_setup.py --python {{quote(python)}}\n\n# Verify the isolated Beat This runtime without downloads, installation or model inference.\nbeat-this-runtime-check:\n    python3 scripts/beat_this_runtime_setup.py --check",
+      "why": "Operator entrypoint recipes for the setup, check and compare steps. M11 is unblocked once root has run the prefetch and runtime setup on the compute host."
     }
   ],
   "receipts_written": [
@@ -156,7 +156,7 @@
       "(4) Refusal order matches the claim and contract 3.1. scripts/beat_this_compare.py lines 181-214 cover orders 1-5, line 619 is the runtime check (6), line 620 is require_linux (7) and line 621 is resolve_input (8). RefusalOrderTests (tests/test_beat_this_compare.py lines 103-188) asserts each code, plus runner.calls == [] and network_used False.",
       "(4) The receipt overstates the network guard. model_lanes-implementation.json line 47 says socket/urlopen are 'patched to raise in every test class'. F70Tests (line 249) and HalfDoubleTests (line 286) subclass plain unittest.TestCase without the patch. They test pure arithmetic, so there is no practical risk, but the receipt wording is inaccurate.",
       "(4) One test name does not match what it asserts. tests/test_guitar_noul_client.py line 245, test_cli_refuses_without_gateway_and_never_raises, actually asserts refusal_code 'input_schema_invalid', because validate_request runs before gateway_config (guitar_noul_client.py lines 327-328). This ordering is consistent with spec line 197 ('before any I/O beyond input validation'). gateway_not_configured itself is covered by decide() tests at line 126, but the CLI path never shows it.",
-      "(4) Inference-worker coverage gap. infer_task (beat_this_compare.py lines 529-579) and the IsolatedRunner have no test, even with a fake beat_this module; every test injects StubRunner. Two things therefore remain unverified until root runs the runtime on honey: that replacing beat_this.inference.load_checkpoint actually intercepts Audio2Beats in beat-this 1.1.0, and that the Lightning checkpoint loads with weights_only=True. The qualification doc already records the second as unknown.",
+      "(4) Inference-worker coverage gap. infer_task (beat_this_compare.py lines 529-579) and the IsolatedRunner have no test, even with a fake beat_this module; every test injects StubRunner. Two things therefore remain unverified until root runs the runtime on the compute host: that replacing beat_this.inference.load_checkpoint actually intercepts Audio2Beats in beat-this 1.1.0, and that the Lightning checkpoint loads with weights_only=True. The qualification doc already records the second as unknown.",
       "(2)/(claim wording) 'installs offline by verified wheel extraction' is only partly accurate. setup() (beat_this_runtime_setup.py lines 333-334) downloads the 4 wheels from files.pythonhosted.org with hash, size and host checks; only the extraction step is offline. These are dependency wheels, not models, so the no-model-download rule holds, and --check is read-only: I ran it and it refused platform_unsupported on darwin, exit 2, with nothing written.",
       "(6) Lock self-hash reproduced: python3 -B scripts/beat_this_runtime_setup.py --print-lock-sha256 printed 5cd29f827825973ad0dd30391919382449b807be4a4b87251d010313ec78d593, matching LOCK_SHA and the doc.",
       "(6) Dev-smoke numbers reproduced from the A0 prediction files and the suite manifest (sha256 7ca8bdd8... matches the receipt; generator script sha ceb90701... equals the committed beat_this_compare.py). Click-grid period divided by construction period gives c1 1.9989, c2 0.9999, c3 3.5013, c4 1.0026, c5 1.9997, c6 0.7499 and c7 4.0035. c8 has 58 beats on the selected-periodicity basis. All match the experiment receipt's '2x / 3.5x / 4x / 0.75x / ~1x / 58 beats' observation. They are correctly classed as dev-only and unscored.",

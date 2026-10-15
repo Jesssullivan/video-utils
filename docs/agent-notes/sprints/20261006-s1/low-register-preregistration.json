@@ -2,7 +2,7 @@
   "authority": "R-HOOK-CONVERGENCE-20261004; R-N11/R-N12/R-N13; operator five-hour sprint",
   "created_utc": "2026-10-06T06:04:37.445053+00:00",
   "lane": "s1_low_register",
-  "owner": "/root/s1_low_register",
+  "owner": "root/s1_low_register",
   "plan": {
     "afftdn": {
       "adaptivity": 0,
@@ -360,7 +360,7 @@
   "scope": "synthetic-only; no product tool admission; no default/master/Desktop mutation",
   "state": "preregistered_not_executed",
   "tests": {
-    "command": "/Users/jess/git/video-utils/.venv/bin/python -m unittest discover -s tests -p test_low_register_s1.py -v",
+    "command": "<repo>/.venv/bin/python -m unittest discover -s tests -p test_low_register_s1.py -v",
     "count": 7,
     "elapsed_seconds": 7.232,
     "passed": 7

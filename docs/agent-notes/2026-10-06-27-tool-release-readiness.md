@@ -1,6 +1,6 @@
 # Independent 27-tool release readiness
 
-Owner: `/root/release_review`. Authority: root's explicit release audit under
+Owner: `root/release_review`. Authority: root's explicit release audit under
 the operator's parallel goal; R-HOOK-CONVERGENCE-20261004 / R-N13.
 
 Definition of done: verify the original 26 descriptors remain unchanged; inspect

@@ -1,6 +1,6 @@
 # Native capture-application harness source admission audit
 
-Owner `/root/release_review`; root explicitly authorized read-only harness
+Owner `root/release_review`; root explicitly authorized read-only harness
 admission review under operator parallel goal and
 R-HOOK-CONVERGENCE-20261004/R-N13. Root owns frozen source release and execution.
 

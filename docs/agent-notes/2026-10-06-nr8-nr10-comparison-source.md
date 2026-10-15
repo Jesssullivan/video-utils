@@ -61,7 +61,7 @@ keys:
   "authority": "root_nr8_nr10_measurement_release",
   "driver_sha256": "<exact driver hash>",
   "method_sha256": "9c06f5094966f4b24d832e4b2034810fe9e77300e21ae364c4b9bb41f58d2d0a",
-  "output_dir": "/Users/jess/git/video-utils/artifacts/experiments/<new-directory>",
+  "output_dir": "<repo>/artifacts/experiments/<new-directory>",
   "ffmpeg": {"path": "<existing binary>", "sha256": "<binary hash>"},
   "candidates": [
     {"label": "nr8", "manifest": {"path": "<manifest>", "sha256": "<hash>"},

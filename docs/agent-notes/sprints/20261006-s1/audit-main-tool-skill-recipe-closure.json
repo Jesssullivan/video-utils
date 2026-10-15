@@ -1,6 +1,6 @@
 {
   "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; operator S1 sprint",
-  "actor": "/root/s1_audit",
+  "actor": "root/s1_audit",
   "time": "2026-10-06T06:31:36.014335+00:00",
   "result": "PASS",
   "initialized_stdio_exit_code": 0,
@@ -379,7 +379,7 @@
   ],
   "scope": "Real initialized MCP list and exact32prompt readback; bounded schemas and literal just dry-run argv, no audio/tool operation or dependency installation",
   "process_escape_hatch": {
-    "actor": "/root/s1_audit",
+    "actor": "root/s1_audit",
     "target": "PID27869 own spawned mcp_server.py child of own audit harness27868",
     "ownership_live_check": "ps parent/command verified own harness before TERM",
     "reason": "audit client pipe stall; replace own transport with qualified file-backed stdio",

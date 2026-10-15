@@ -1,6 +1,6 @@
 # Independent saved-result review: fresh phrase localization
 
-Date: 2026-10-06. Actor: `/root/plan_review`. Authority: root's explicit
+Date: 2026-10-06. Actor: `root/plan_review`. Authority: root's explicit
 read-only numerical-audit assignment, repository AGENTS.md and
 R-HOOK-CONVERGENCE-20261004 / R-N13. No source, settings, predictions, truth,
 media, tracker or default was changed. No generation, inference, DSP or audio

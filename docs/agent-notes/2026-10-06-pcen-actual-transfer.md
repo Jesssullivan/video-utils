@@ -1,6 +1,6 @@
 # Fixed PCEN characterization on the restored actual take
 
-Actor `/root/xod_spectrogram`; authority R-HOOK-CONVERGENCE-20261004,
+Actor `root/xod_spectrogram`; authority R-HOOK-CONVERGENCE-20261004,
 TIN-3692 comment `98cf680c-7299-4949-bfb2-60079053ad43`, R-N12/R-N13.
 Root explicitly authorized characterization of the existing new denoised WAV,
 with the same frozen four policies and two windows. The original XOD golden

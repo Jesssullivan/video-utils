@@ -75,7 +75,7 @@
     "extra_keys_checked": "scripts/model_prefetch.py and scripts/beat_this_compare.resolve_model read keys with .get and have no closed-key check; web_runs_api passes gate_state through to /api/v1/capabilities",
     "behaviour_now": "real comparator on a checkout without models/cpjku-beat-this-final0.bin refuses model_file_missing (observed in this worktree, directly and through tool_api); runtime_not_qualified / platform_unsupported semantics unchanged; model_not_registered and model_hash_not_registered covered with a temporary registry",
     "not_established": [
-      "honey runtime qualification",
+      "compute-host runtime qualification",
       "any inference",
       "torch.load(weights_only=True) of the checkpoint",
       "real-take beat accuracy"
@@ -257,7 +257,7 @@
     "tools/bazel/test_classification.json still records module_count_at_classification 95; the tree has 97 test modules (classification of the 2 newer modules not re-read here)",
     "web/BUILD.bazel docstring still describes allowBuilds as a pending precondition",
     "site/ is not built under Bazel (ignored vendored packages; no //site package)",
-    "Beat This: model prefetch on any checkout, honey runtime qualification and any inference",
+    "Beat This: model prefetch on any checkout, compute-host runtime qualification and any inference",
     "listening acceptance and real-take web behaviour for apply_capture_profile",
     "Linear, push, merge and hosted CI are root's"
   ],

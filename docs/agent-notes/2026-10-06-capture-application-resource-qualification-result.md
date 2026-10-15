@@ -4,7 +4,7 @@ Root's exact new release
 `2026-10-06-root-capture-application-resource-release.json` (SHA256
 `65662826f918c156b450f219ae8a60ed47256e3257d0a21d74919a0d606b07bc`)
 and independent final identity admission authorized one generated trial. Actor
-`/root/media_latency` launched owned execution session 86028 once under
+`root/media_latency` launched owned execution session 86028 once under
 R-N11/R-N13. It exited zero after 68.961 seconds. No rerun occurred.
 
 The new application source is `790ac58f…`; author `7d282087…`, media `91443154…`,

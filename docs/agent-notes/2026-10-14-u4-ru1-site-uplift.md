@@ -1,7 +1,7 @@
 # U4 RU1 stack uplift of site/ (2026-10-14)
 
 ```
-actor: U4 app lane (Claude, executing on sting per A17)
+actor: U4 app lane (Claude, executing on the peer host per A17)
 target: Jesssullivan/video-utils site/ (static public landing); web/ is out of scope
 ruling: RU1, RU3, RU4, RU5, RU9, RU13/RU13b, A17, A19, A20, A21;
         R-HOOK-CONVERGENCE-20261004 (TIN-3692 comment 98cf680c), R-N13
@@ -46,7 +46,7 @@ merge:  not by this lane; RU4 independent verifier, then admin merge by root
 
 ## Proof
 
-Executed on sting under tinyland-heavy (A17/A20). Round r1 (06:43Z) found the Kit 3 hook types,
+Executed on the peer host under tinyland-heavy (A17/A20). Round r1 (06:43Z) found the Kit 3 hook types,
 the leak-scan hits on the copied patch set, the stale graph self-checks and the //web:build
 regression above. Round r2 (07:19Z, before the web runner fix): frozen install, inhouse-link, check
 (0 errors, 0 warnings, `--tsgo` on TypeScript 7.0.2), build, leak scans (build, source, vendor)

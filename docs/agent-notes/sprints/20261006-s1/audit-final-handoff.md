@@ -1,6 +1,6 @@
 # S1 independent audit closure
 
-Owner `/root/s1_audit`; registered protocol approximately 06:01 UTC on October 6, 2026, before S1 numerical results. Authority: operator five-hour, six-worker sprint; repository AGENTS.md; R-HOOK-CONVERGENCE-20261004 and R-N11/R-N12/R-N13. This lane wrote only its independent tests and `audit-*` records. Root owns source admission, administration, merges, publication, CI and tracker state.
+Owner `root/s1_audit`; registered protocol approximately 06:01 UTC on October 6, 2026, before S1 numerical results. Authority: operator five-hour, six-worker sprint; repository AGENTS.md; R-HOOK-CONVERGENCE-20261004 and R-N11/R-N12/R-N13. This lane wrote only its independent tests and `audit-*` records. Root owns source admission, administration, merges, publication, CI and tracker state.
 
 **Ready for root integration.** All 30 independent tests pass against the merged main sources in 2.838 seconds. Source, catalog, skill and recipe hashes are unchanged across verification. All 32 advertised tools expose matching closed schemas and exact skill prompts through a real initialized MCP exchange. The original 30 catalog descriptors retain their preregistered values. Two new primitives, `annotation_v2` and `corpus_split`, are qualified; phrase and low-register experiments remain research helpers.
 

@@ -1,7 +1,7 @@
 {
   "authority": "explicit root final bridge request / R-HOOK-CONVERGENCE-20261004",
   "timestamp_utc": "2026-10-06T06:21:03.983443+00:00",
-  "actor": "/root/s1_review_ui",
+  "actor": "root/s1_review_ui",
   "ownership": "annotation owner source, UI readonly integration bridge; excluded from UI staging",
   "before_sha256": {
     "scripts/annotation_v2.py": "237d6b53ac1a73f0e981d1bcaa3fa73e3b5f9ab417bc7bf051575b3d6cf0cab6",

@@ -1,6 +1,6 @@
 # ActualNR10 repaired application artifact audit
 
-Owner `/root/release_review`; root explicitly reattached tool28 integration and
+Owner `root/release_review`; root explicitly reattached tool28 integration and
 independent saved actualNR10 native/protected/time/loudness review. Authority
 operator full-continue goal, AGENTS.md and R-HOOK-CONVERGENCE-20261004/R-N13.
 Root/media owner executes one separately released actual retry; this lane reads

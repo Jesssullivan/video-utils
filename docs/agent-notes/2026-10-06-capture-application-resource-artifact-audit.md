@@ -1,6 +1,6 @@
 # Revised application generated native artifact audit
 
-Owner `/root/release_review`; root coordinates a single generated native trial
+Owner `root/release_review`; root coordinates a single generated native trial
 for application resource revision790. Authority is the operator's active goal,
 repo AGENTS.md and R-HOOK-CONVERGENCE-20261004/R-N13. Root alone releases media
 processing and actualNR10 retry; this audit must not regenerate or repeat DSP.

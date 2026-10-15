@@ -1,5 +1,5 @@
 {
-  "actor": "/root/media_latency",
+  "actor": "root/media_latency",
   "authority": "Explicitroot successor release presetVERYFAST aftermediumtimeout underoperatorDesktop-exportrequest",
   "automatic_third_encode": false,
   "controller": "docs/agent-notes/2026-10-06-desktop-mvp-export-veryfast.py",

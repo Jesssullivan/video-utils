@@ -1,7 +1,7 @@
 # S1 corpus lane handoff
 
 Authority: operator S1 sprint, TIN-5566, R-HOOK-CONVERGENCE-20261004 and
-R-N12/R-N13. Owner `/root/s1_corpus`, isolated branch
+R-N12/R-N13. Owner `root/s1_corpus`, isolated branch
 `sprint/20261006-s1/corpus`. Root alone owns admission, signed integration,
 publication and Linear. No commit, push, merge, tracker change, additional agent,
 media read, inference or actual annotation write occurred in this lane.
@@ -67,7 +67,7 @@ skill and recipe, integrate the frozen annotation dependency, perform appropriat
 combined checks, then record separate private/signature/CI/Linear evidence. No
 new model, AU, hosted backend or detector default is requested by this lane.
 
-Receipt: `/root/s1_corpus | named corpus files and generated fixtures only |
+Receipt: `root/s1_corpus | named corpus files and generated fixtures only |
 authorized family-split validator/readiness slice | S1, R-N12/R-N13 and
 R-HOOK-CONVERGENCE-20261004 | existing v1 corpus and accepted media unchanged |
 own source frozen;53 owner/legacy checks and5 independent generated checks

@@ -1,5 +1,5 @@
 {
-  "actor": "/root/media_latency",
+  "actor": "root/media_latency",
   "actual_recording_processed": true,
   "additional_nr8_render_performed": false,
   "application_sha256": "790ac58f1924db2607087c6ab1cdae5d813ba24eda610af1f396d77e93d06584",
@@ -90,7 +90,7 @@
     "video_packet_timeline_preserved": true,
     "video_packet_verification_method": "ordered ffprobe packet PTS/DTS/durations in rational stream clocks and SHA256 encoded payloads"
   },
-  "fresh_run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac",
+  "fresh_run_dir": "<repo>/artifacts/runs/20261006T034521Z-a0def0c43eac",
   "inspection_retry_evidence": [],
   "latest_promoted": false,
   "listening_accepted": false,

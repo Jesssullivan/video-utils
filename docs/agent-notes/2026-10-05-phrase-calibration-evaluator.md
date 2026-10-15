@@ -1,6 +1,6 @@
 # Phrase calibration evaluator implementation receipt
 
-Actor: `/root/phrase_dag`. Authority: operator's active ten-hour implementation
+Actor: `root/phrase_dag`. Authority: operator's active ten-hour implementation
 goal; root source-freeze release after
 `45a1313ccbcb0ecc097f3a017979254e5719a3c6`; R-HOOK-CONVERGENCE-20261004,
 R-N13. Checkpoint: 2026-10-05 22:55 UTC.

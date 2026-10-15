@@ -1,6 +1,6 @@
 # Independent optional runtime setup source audit
 
-Owner: `/root/tonal_inference/tonal_audit`. Authority: root's explicit independent
+Owner: `root/tonal_inference/tonal_audit`. Authority: root's explicit independent
 installer source/unit review under the operator's ten-hour parallel goal;
 R-HOOK-CONVERGENCE-20261004 / R-N13. This lane owns this note and
 `tests/test_basic_pitch_runtime_setup_audit.py` only. The implementation owner

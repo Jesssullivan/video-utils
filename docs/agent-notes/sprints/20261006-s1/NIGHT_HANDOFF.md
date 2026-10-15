@@ -24,7 +24,7 @@ will record the actual night-handoff head in Linear. These metadata-only commits
 do not replace the exact CI-qualified product-source identity.
 
 The approved audio, marked movie and Desktop
-`/Users/jess/Desktop/video_util_mvp_demo_1.mp4` remain unchanged. Its hash is
+`<operator-home>/Desktop/video_util_mvp_demo_1.mp4` remain unchanged. Its hash is
 `34247a4e2deec03f7d7e3bf4f8eef66f64bbe721d88013105a3cf88ed0734f10`.
 Fixed C1…F4 tuning and supplied404-click arrangement remain preserved.
 

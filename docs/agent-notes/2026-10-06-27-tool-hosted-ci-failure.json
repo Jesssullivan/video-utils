@@ -102,7 +102,7 @@
     "seconds": 570.424
   },
   "rust_and_secret_steps": "skipped downstream of Python failure",
-  "repair_owner": "/root/clip_baseline",
+  "repair_owner": "root/clip_baseline",
   "repair_scope": "numeric-class dependency qualification only; no worker/default/dependency-install changes",
   "failed_log_sha256": "ad7737ef6d791fb8b87e7754edd5918bc33583a53272bf818d81c9faa22a7c78",
   "goal_status": "active",

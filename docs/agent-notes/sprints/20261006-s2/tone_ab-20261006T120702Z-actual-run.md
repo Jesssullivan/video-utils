@@ -16,7 +16,7 @@
 
 ## Invocation (preregistered values, unchanged)
 
-`python3 scripts/tone_ab.py run --run-dir /Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737 --common-region-start 5.0 --common-region-end 150.0 --timeout-seconds 1800`
+`python3 scripts/tone_ab.py run --run-dir <repo>/artifacts/runs/20261006T041633Z-990aa1bd6737 --common-region-start 5.0 --common-region-end 150.0 --timeout-seconds 1800`
 
 - **Region:** native samples [220500, 6615000), which is 6,394,500 frames at
   44100 Hz mono. The 0–5 s setup interval was excluded.

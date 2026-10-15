@@ -2,7 +2,7 @@
   "schema_version": 1,
   "status": "model_bytes_qualified_runtime_unverified",
   "independent_local_review": {
-    "reviewer": "/root/tonal_inference/tonal_audit",
+    "reviewer": "root/tonal_inference/tonal_audit",
     "status": "verification_pass_no_mustfix",
     "verified": [
       "archive_sha256_and_size",

@@ -1,6 +1,6 @@
 # Independent learned-pitch pilot controller review
 
-Actor `/root/plan_review`; authority root's source/metadata-only assignment,
+Actor `root/plan_review`; authority root's source/metadata-only assignment,
 operator's active parallel goal, repository AGENTS.md and
 R-HOOK-CONVERGENCE-20261004/R-N11/R-N13. This lane owns this separate receipt
 only. No inference, audio/array scoring, dependency changes, source mutation or

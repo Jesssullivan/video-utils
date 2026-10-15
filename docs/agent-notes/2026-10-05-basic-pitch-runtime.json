@@ -354,7 +354,7 @@
   },
   "updated_utc": "2026-10-06T00:13:27.148148+00:00",
   "independent_audit": {
-    "reviewer": "/root/tonal_inference/tonal_audit",
+    "reviewer": "root/tonal_inference/tonal_audit",
     "receipt": "docs/agent-notes/2026-10-05-basic-pitch-runtime-audit.md",
     "status": "source_spec_runtime_generated_actual_readback_pass_no_remaining_implementation_mustfix",
     "scope": "Readback/hash/numeric-array/contract checks and lightweight bounds/cleanup tests; no duplicate model inference or musical correctness acceptance."

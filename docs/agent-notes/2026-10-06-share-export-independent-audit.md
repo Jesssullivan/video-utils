@@ -1,6 +1,6 @@
 # Sharing export independent audit
 
-Actor `/root/release_review`; root assigned new independent share worker/schema
+Actor `root/release_review`; root assigned new independent share worker/schema
 review and meaningful refusal tests under the operator's explicit reusable
 compressed-audio/fixed-resolution sharing request. Authority AGENTS.md and
 R-HOOK-CONVERGENCE-20261004/R-N11/R-N12/R-N13. Root integrates and publishes;

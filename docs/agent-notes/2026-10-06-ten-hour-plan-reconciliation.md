@@ -1,6 +1,6 @@
 # Ten-hour plan reconciliation — October 6, 2026
 
-Actor `/root/goal_plan`; authority operator's implementation/full-force/reattachment
+Actor `root/goal_plan`; authority operator's implementation/full-force/reattachment
 and original ten-hour goal requests; root's exact assigned documentation lane;
 repository AGENTS.md and R-HOOK-CONVERGENCE-20261004/R-N12/R-N13.
 Owned changes: [TEN_HOUR_PLAN.md](../spec/TEN_HOUR_PLAN.md) and this new receipt

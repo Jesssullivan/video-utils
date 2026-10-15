@@ -1,5 +1,5 @@
 {
-  "actor": "/root/s1_phrases",
+  "actor": "root/s1_phrases",
   "authority": "R-HOOK-CONVERGENCE-20261004 / operator S1 sprint request",
   "budgets": {
     "analysis_rate": 16000,

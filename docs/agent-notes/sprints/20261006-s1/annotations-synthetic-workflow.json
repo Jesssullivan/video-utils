@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "authority": "R-HOOK-CONVERGENCE-20261004 / R-N13",
-  "owner": "/root/s1_annotations",
+  "owner": "root/s1_annotations",
   "created_at": "2026-10-06T06:08:15.843727+00:00",
   "artifact_dir": "artifacts/sprint1/annotations-synthetic-workflow",
   "synthetic_source_sha256": "128efc0d3a39ce1cd6554f719922172057d66d60a41d0e26a36021cbcaaa4237",

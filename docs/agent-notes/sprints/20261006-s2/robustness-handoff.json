@@ -244,7 +244,7 @@
       "Minor: dependency_skip entries and inline skipped stages lack started_at and completed_at, even though §3.2 says every stage records them.",
       "Minor: the phone fixture's effective rate is about 25.7 fps (avg_frame_rate 60000/2327) because every 7th frame is dropped. §4 says '~29.97 fps VFR'; that holds for the nominal 30000/1001 rate, and the VFR requirement (2 distinct durations, 1001 and 2002) is met.",
       "Minor: two documented deviations from the frozen §4 text. The fixture builder adds a lower bound of seconds >= 1.5, and ffprobe calls cannot take -nostdin/-n. Both are recorded in robustness-implementation.json rather than hidden.",
-      "Minor: committed host-path text, /Users/jess/Documents/... in tests/test_phone_fixtures.py:35 and the spec. This is consistent with existing main notes, and the repo is private, but recent main commits did scrub host paths from a handoff.",
+      "Minor: committed host-path text, <operator-home>/Documents/... in tests/test_phone_fixtures.py:35 and the spec. This is consistent with existing main notes, and the repo is private, but recent main commits did scrub host paths from a handoff.",
       "Note: CI (ubuntu, nix develop) will skip test_phone_fixtures because QUALIFIED_BIN is a darwin nix-store path checked by sha256. Fixture coverage is therefore local-only. The test_demo resume tests are portable."
     ],
     "must_fix": []

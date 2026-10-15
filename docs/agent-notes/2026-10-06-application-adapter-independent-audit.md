@@ -1,6 +1,6 @@
 # Capture application adapter independent audit
 
-Owner `/root/release_review`; root assigned a new adapter source/resource audit
+Owner `root/release_review`; root assigned a new adapter source/resource audit
 under operator-authorized parallel work and R-HOOK-CONVERGENCE-20261004/R-N13.
 Root integrates and admits tools. The hook owner owns new adapter implementation;
 this lane may own new independent tests and this dated receipt. Existing27

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "recorded_utc": "2026-10-06T00:54:24.234332+00:00",
   "authority": "Root explicit urgent CI37395852387 missing-model preflight release after freshsetup proof; R-HOOK-CONVERGENCE-20261004/R-N13",
-  "owner": "/root/tonal_inference",
+  "owner": "root/tonal_inference",
   "status": "missing_model_preflight_fixed_stdlib_pass_no_acquisition_or_inference",
   "ci_failure": {
     "run": "37395852387",

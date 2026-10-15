@@ -1,5 +1,5 @@
 {
-  "actor": "/root/s1_phrases",
+  "actor": "root/s1_phrases",
   "arms_settings_or_preregistration_changed": false,
   "authority": "R-HOOK-CONVERGENCE-20261004/R-N13; S1 root coordination",
   "fix": "O_NONBLOCK regular-file refusal plus complete bounded read extent; FIFO regression",

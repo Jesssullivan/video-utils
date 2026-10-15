@@ -1,6 +1,6 @@
 # xoxd-spectrogram research and bounded feature proof
 
-Actor: `/root/xod_spectrogram`. Recorded 2026-10-05T23:30 UTC.
+Actor: `root/xod_spectrogram`. Recorded 2026-10-05T23:30 UTC.
 Authority: R-HOOK-CONVERGENCE-20261004, TIN-3692 comment
 `98cf680c-7299-4949-bfb2-60079053ad43`; R-N12 advisory diagnostics and R-N13
 durable receipts. The operator explicitly requested the additional parallel

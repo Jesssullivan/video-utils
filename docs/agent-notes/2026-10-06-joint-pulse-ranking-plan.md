@@ -1,6 +1,6 @@
 # Preregistered isolated joint pulse/phase/subdivision ranking
 
-Owner `/root/meter_inference`; authority: root's explicit read-only research
+Owner `root/meter_inference`; authority: root's explicit read-only research
 assignment under the operator's active ten-hour parallel goal, repository
 AGENTS.md and R-N13. Registered before reading actual features for this new
 experiment. Earlier pulse observations are development context, not withheld

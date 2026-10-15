@@ -14,7 +14,7 @@
   "worktrees": [
     {
       "lane": "annotations",
-      "path": "/Users/jess/git/video-utils/.local/sprint1/annotations",
+      "path": "<repo>/.local/sprint1/annotations",
       "branch": "sprint/20261006-s1/annotations",
       "head": "dad10a4207b2099eb73b7a73bab0bd8947623dde",
       "status": "",
@@ -22,7 +22,7 @@
     },
     {
       "lane": "review_ui",
-      "path": "/Users/jess/git/video-utils/.local/sprint1/review_ui",
+      "path": "<repo>/.local/sprint1/review_ui",
       "branch": "sprint/20261006-s1/review_ui",
       "head": "ea910543361f6b667e919cce588a5511b536034d",
       "status": " M scripts/report.py\n M scripts/review_server.py\n?? scripts/annotation_v2.py\n",
@@ -30,7 +30,7 @@
     },
     {
       "lane": "phrases",
-      "path": "/Users/jess/git/video-utils/.local/sprint1/phrases",
+      "path": "<repo>/.local/sprint1/phrases",
       "branch": "sprint/20261006-s1/phrases",
       "head": "6dbd756625afab3d9b0380a8817436f0f20d8d27",
       "status": "",
@@ -38,7 +38,7 @@
     },
     {
       "lane": "low_register",
-      "path": "/Users/jess/git/video-utils/.local/sprint1/low_register",
+      "path": "<repo>/.local/sprint1/low_register",
       "branch": "sprint/20261006-s1/low_register",
       "head": "44048b7488b396565bae3829beaff54bb27d5efd",
       "status": "",
@@ -46,7 +46,7 @@
     },
     {
       "lane": "corpus",
-      "path": "/Users/jess/git/video-utils/.local/sprint1/corpus",
+      "path": "<repo>/.local/sprint1/corpus",
       "branch": "sprint/20261006-s1/corpus",
       "head": "5667333694446732cce45b681970b2c1a3431b08",
       "status": "",
@@ -54,7 +54,7 @@
     },
     {
       "lane": "audit",
-      "path": "/Users/jess/git/video-utils/.local/sprint1/audit",
+      "path": "<repo>/.local/sprint1/audit",
       "branch": "sprint/20261006-s1/audit",
       "head": "e243749169bf97b7f8ffa92309fd7eccad819e13",
       "status": "",

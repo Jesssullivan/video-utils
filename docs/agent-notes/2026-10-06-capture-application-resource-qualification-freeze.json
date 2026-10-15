@@ -1,5 +1,5 @@
 {
-  "actor": "/root/media_latency",
+  "actor": "root/media_latency",
   "actual_recording_processed": false,
   "all_fixture_controls_identical_to_original": true,
   "application_qualification": {
@@ -43,7 +43,7 @@
   "numerical_execution_released": false,
   "original_plan_sha256": "f2aa237b4d7c0a34e93e5065e7436639a20311c7a81945de196c39c985ecd683",
   "output_absent_at_freeze": true,
-  "preregistered_output": "/Users/jess/git/video-utils/artifacts/experiments/capture-application-native-qualification/native-resource-20261006T0340",
+  "preregistered_output": "<repo>/artifacts/experiments/capture-application-native-qualification/native-resource-20261006T0340",
   "schema_version": 1,
   "status": "resource_revision_frozen_inert_qualified_preregistered_numerical_held",
   "worker_sha256": {

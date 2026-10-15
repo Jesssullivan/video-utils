@@ -8,8 +8,8 @@
   "kind": "real_take_receipt_unvalidated",
   "claim_class": "M-real (no truth; unvalidated until operator spot check) unless marked I",
   "source": {
-    "original_take": "/Users/jess/Documents/Movie on 10-5-26 at 3.38 PM.mov (not opened by this lane)",
-    "analyzed_input": "/Users/jess/git/video-utils/artifacts/runs/20261006T034521Z-a0def0c43eac/denoised.wav",
+    "original_take": "<operator-home>/Documents/<demo-take>.mov (not opened by this lane)",
+    "analyzed_input": "<repo>/artifacts/runs/20261006T034521Z-a0def0c43eac/denoised.wav",
     "analyzed_input_sha256": "cb8a3fa559424810f206c94191a149156423770bbf91a13724a2ba28a44e879e",
     "sha256_before_and_after_all_runs": "unchanged (3 checks)",
     "accepted_run_writes": "none; outputs only under the gitignored artifacts/s2/rhythm_clicks/ in the lane worktree"
@@ -21,7 +21,7 @@
     "click_attack_ab_sha256": "35daea9750fd516cddf508083de7e199f48f39a2111294d168720954c115ce82"
   },
   "commands": [
-    "FFMPEG=... FFPROBE=... timeout 600 /Users/jess/git/video-utils/.venv/bin/python scripts/rhythm.py <denoised.wav> --output artifacts/s2/rhythm_clicks/real-take/analysis --backend librosa --bpm 178",
+    "FFMPEG=... FFPROBE=... timeout 600 <repo>/.venv/bin/python scripts/rhythm.py <denoised.wav> --output artifacts/s2/rhythm_clicks/real-take/analysis --backend librosa --bpm 178",
     "timeout 300 python3 scripts/phrase_timing.py --analysis artifacts/s2/rhythm_clicks/real-take/analysis/analysis.json --phrases <run>/arrangement-reference-20261006/arrangement-markers.json --output-root artifacts/s2/rhythm_clicks/phrase-timing",
     "timeout 300 python3 scripts/phrase_timing.py --analysis artifacts/s2/rhythm_clicks/real-take/analysis/analysis.json --phrases <run>/phrases.json --output-root artifacts/s2/rhythm_clicks/phrase-timing",
     "FFMPEG=... timeout 600 .venv/bin/python scripts/click_attack_ab.py --skip-synthetic --real-input <denoised.wav> --real-analysis artifacts/s2/rhythm_clicks/real-take/analysis/analysis.json --output-root artifacts/s2/rhythm_clicks/click-ab"

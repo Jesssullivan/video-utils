@@ -1,6 +1,6 @@
 # Overlay and annotation inventory receipt
 
-Actor: `/root/overlay_future`. Target/ownership: new future overlay specification
+Actor: `root/overlay_future`. Target/ownership: new future overlay specification
 and this note only. Reason: operator requested exact current marker types/counts,
 timestamp annotation dispatch, mistake overlays and CC0 research. Authority:
 R-HOOK-CONVERGENCE-20261004, R-N13; parent-owned integration and publication.

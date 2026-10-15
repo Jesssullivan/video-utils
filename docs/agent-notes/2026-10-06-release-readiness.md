@@ -1,6 +1,6 @@
 # Independent pending 25-tool release audit
 
-Owner: `/root/release_review`. Authority: operator parallel implementation goal;
+Owner: `root/release_review`. Authority: operator parallel implementation goal;
 R-HOOK-CONVERGENCE-20261004 / R-N13. Root owns integration and publication.
 
 Definition of done: independently inspect pending source, privacy exclusions,

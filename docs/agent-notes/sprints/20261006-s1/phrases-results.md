@@ -1,6 +1,6 @@
 # S1 heldout phrase-proposal result
 
-Actor `/root/s1_phrases`; authority operator six-lane S1 request and
+Actor `root/s1_phrases`; authority operator six-lane S1 request and
 R-HOOK-CONVERGENCE-20261004/R-N11/R-N12/R-N13. Root released exactly one numerical
 run with worker38b736543a83d5c706a8803014f4e308685eee2c84275e9e6768c431b6b8d0e3,
 plan dd4c43532f47273948e23a3a35e93e61fa8a576ec0f32662036b39fe6b432a6c and release
@@ -77,4 +77,4 @@ A future preregistration should include contiguous repeats and partial/changed
 phrases without quiet delimiters, plus heldout real source-bound annotations.
 This completed pilot is a bounded upstream-coverage result; the accepted demo
 and original automatic baseline remain intact. Independent metric/component
-verification is assigned to `/root/s1_audit` and will be recorded separately.
+verification is assigned to `root/s1_audit` and will be recorded separately.

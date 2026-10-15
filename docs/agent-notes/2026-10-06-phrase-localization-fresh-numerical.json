@@ -5077,7 +5077,7 @@
   "model_inference_invoked": false,
   "musical_performance_graded": false,
   "numerical_threads": 2,
-  "output": "/Users/jess/git/video-utils/artifacts/experiments/phrase-localization/fresh-run-schema-repair-617-719-20261006T0408",
+  "output": "<repo>/artifacts/experiments/phrase-localization/fresh-run-schema-repair-617-719-20261006T0408",
   "owned_exec_session_id": 10625,
   "prediction_seal_sha256": "2e7a9792d4277c72a06405508f27eb82a74cdc259f6bb79b856b9d0fb153b575",
   "preregistration_sha256": "8b0e7969f702d0685e2d7176c4ee96c19b1325b2e9b3d848685e093405c4c000",

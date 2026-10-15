@@ -1,5 +1,5 @@
 {
-  "actor": "/root/media_latency",
+  "actor": "root/media_latency",
   "authority": "Root explicit accepted FULLER composition authorization; R-N11/R-N13",
   "automatic_retry": false,
   "compact_outcome_sha256": "3a8eacb79586a5946a1f013d1dc922ae10b9a875edd2b065514d228077d1821f",

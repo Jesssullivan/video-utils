@@ -2,9 +2,9 @@
 
 Authority: operator's score-free guitar-analysis goal; repository AGENTS.md;
 R-HOOK-CONVERGENCE-20261004/R-N13; root's named source-only L1 admission.
-Actor: `/root/phrase_dag`. Owned files: independent test module, this receipt,
+Actor: `root/phrase_dag`. Owned files: independent test module, this receipt,
 and the appended source-status paragraph in the localization plan. Worker and
-owner tests belong to `/root/guitar_features`; root integrates and publishes.
+owner tests belong to `root/guitar_features`; root integrates and publishes.
 
 State: **independent source checks passed; numerical and musical quality remain
 unverified**. No new bank, generated waveform, decoded source, real-take/cache

@@ -12,11 +12,11 @@
   "fix_applied": {
     "description": "report devShell sets QUARTO_PANDOC to the pandoc that upstream Quarto 1.10.18 ships, extracted by a runCommand from pkgs.quarto.src (the release tarball nixpkgs already pins by hash). No new input, URL or hash; default/analysis/ml/formatter untouched.",
     "flake_nix_diff_summary": "+ let-binding quartoBundledPandoc (pkgs.runCommand 'quarto-<version>-bundled-pandoc', tar -xzf $src, find */bin/tools/<cpu>/pandoc, install to $out/bin/pandoc); report = mkShell { packages = core ++ [R quarto]; QUARTO_PANDOC = \"${quartoBundledPandoc}/bin/pandoc\"; }",
-    "bundled_pandoc_store_path": "/nix/store/n143ym1q7jbs2gfpvmx11dpdjf5nymbx-quarto-1.10.18-bundled-pandoc",
-    "bundled_pandoc_drv": "/nix/store/0awkc5rydxmrrv3xzxs4z0fx5mzhj6gj-quarto-1.10.18-bundled-pandoc.drv",
+    "bundled_pandoc_store_path": "<nix-store>/n143ym1q7jbs2gfpvmx11dpdjf5nymbx-quarto-1.10.18-bundled-pandoc",
+    "bundled_pandoc_drv": "<nix-store>/0awkc5rydxmrrv3xzxs4z0fx5mzhj6gj-quarto-1.10.18-bundled-pandoc.drv",
     "bundled_pandoc_store_path_valid_locally": false,
     "bundled_pandoc_store_path_note": "built on the remote builder; copy back was interrupted by the preflight-2 timeout. A 30973544-byte partial file exists locally and nix-store --check-validity reports the path not valid.",
-    "quarto_src_tarball": "/nix/store/sqirvw532xkyisi16xprc53h06k2yc7h-quarto-1.10.18-macos.tar.gz",
+    "quarto_src_tarball": "<nix-store>/sqirvw532xkyisi16xprc53h06k2yc7h-quarto-1.10.18-macos.tar.gz",
     "quarto_src_tarball_sha256": "ddd6a71a9e0448ab15fb655bc589e11cb6589a248ec35ccd7f7f44137531688e",
     "quarto_src_tarball_sri_in_nixpkgs": "sha256-3danGp4ESKsV+2VbxYnhHLZYmiSOw1zNf39EE3UxaI4=",
     "fallback_used": false,
@@ -25,7 +25,7 @@
     "fallback_not_used_reason": "Neither preflight failure reached pandoc: both timed out in substitution/remote-build copy under host contention. A different pinned pandoc binary would not address that. The direct probe (below) measured that the bundled pandoc is 3.10 and accepts --syntax-highlighting, so the section 2 fallback trigger (version < 3.8 or option rejected) never fired."
   },
   "nix": {
-    "nix_on_path": "/Users/jess/.local/libexec/tinyland/local-build-guard/bin/nix (tinyland-local-build-guard --hosts macbook-neo; printed 'ADVISORY local build on macbook-neo: prefer remote execution')",
+    "nix_on_path": "<operator-home>/.local/libexec/tinyland/local-build-guard/bin/nix (tinyland-local-build-guard --hosts operator-host; printed 'ADVISORY local build on operator-host: prefer remote execution')",
     "nix_version": "nix (Determinate Nix 3.23.0) 2.35.2",
     "eval_result": "succeeded (read-only)",
     "eval_method": "nix eval --read-only --json; base from git show 7d0e11e:flake.{nix,lock} exported to artifacts/s2/quarto_fix/eval/base and evaluated as path:",
@@ -37,16 +37,16 @@
     },
     "eval_deviation": "Contract step 1 named 600 s per eval. The instantiating evals timed out under host load: git+file?rev= at 600 s, then path: at 900 s and at 1800 s (1965.6 s wall, 5.71 s user). --read-only (no .drv writes to the daemon) finished in 120-134 s. drvPaths computed read-only are the same store paths that instantiation writes; the dry-run instantiation later produced the same report drvPath.",
     "drvpaths_before": {
-      "default": "/nix/store/523kfb0gn1bsf39q59q0nk03fvxl3jdl-nix-shell.drv",
-      "analysis": "/nix/store/gljrdgwz1vlxghqn223ix7cq5z8j4iz6-nix-shell.drv",
-      "report": "/nix/store/ila1kv6khjpywhaqagyqqv2m2n7f6y4s-nix-shell.drv"
+      "default": "<nix-store>/523kfb0gn1bsf39q59q0nk03fvxl3jdl-nix-shell.drv",
+      "analysis": "<nix-store>/gljrdgwz1vlxghqn223ix7cq5z8j4iz6-nix-shell.drv",
+      "report": "<nix-store>/ila1kv6khjpywhaqagyqqv2m2n7f6y4s-nix-shell.drv"
     },
     "drvpaths_after": {
-      "default": "/nix/store/523kfb0gn1bsf39q59q0nk03fvxl3jdl-nix-shell.drv",
-      "analysis": "/nix/store/gljrdgwz1vlxghqn223ix7cq5z8j4iz6-nix-shell.drv",
-      "report": "/nix/store/gksgdj6maixh8iipm6f7nsnkrfylhhgj-nix-shell.drv"
+      "default": "<nix-store>/523kfb0gn1bsf39q59q0nk03fvxl3jdl-nix-shell.drv",
+      "analysis": "<nix-store>/gljrdgwz1vlxghqn223ix7cq5z8j4iz6-nix-shell.drv",
+      "report": "<nix-store>/gksgdj6maixh8iipm6f7nsnkrfylhhgj-nix-shell.drv"
     },
-    "report_drvpath_x86_64_linux_after": "/nix/store/d7rcr9hgw90fn0bpn3a8386h2qrcjn7b-nix-shell.drv",
+    "report_drvpath_x86_64_linux_after": "<nix-store>/d7rcr9hgw90fn0bpn3a8386h2qrcjn7b-nix-shell.drv",
     "default_shell_drvpath_unchanged": true,
     "analysis_shell_drvpath_unchanged": true,
     "report_shell_eval_ok": {
@@ -59,27 +59,27 @@
     "dry_run": {
       "exit_code": 0,
       "to_build": [
-        "/nix/store/0awkc5rydxmrrv3xzxs4z0fx5mzhj6gj-quarto-1.10.18-bundled-pandoc.drv",
-        "/nix/store/gksgdj6maixh8iipm6f7nsnkrfylhhgj-nix-shell.drv"
+        "<nix-store>/0awkc5rydxmrrv3xzxs4z0fx5mzhj6gj-quarto-1.10.18-bundled-pandoc.drv",
+        "<nix-store>/gksgdj6maixh8iipm6f7nsnkrfylhhgj-nix-shell.drv"
       ],
       "to_fetch": [
-        "/nix/store/sqirvw532xkyisi16xprc53h06k2yc7h-quarto-1.10.18-macos.tar.gz",
-        "/nix/store/zab5dysvhn69vvyyw3vj3grx12nrf3j0-stdenv-darwin-no-cc"
+        "<nix-store>/sqirvw532xkyisi16xprc53h06k2yc7h-quarto-1.10.18-macos.tar.gz",
+        "<nix-store>/zab5dysvhn69vvyyw3vj3grx12nrf3j0-stdenv-darwin-no-cc"
       ],
       "fetch_size": "234.8 MiB download, 236.1 MiB unpacked"
     },
     "fetch_result": "failed",
     "fetch_result_detail": "Preflight 2: the quarto tarball and stdenv-darwin-no-cc were substituted, with repeated narinfo/NAR timeouts (curl error 28) from cache.nixos.org and edge.cache.flakehub.com. The bundled-pandoc derivation was built remotely, but copying its 188 MB output back did not finish before the 1800 s timeout. nix-shell-env was never built.",
     "store_paths_copied": "quarto-1.10.18-macos.tar.gz (valid locally), stdenv-darwin-no-cc; bundled-pandoc partial (not valid)",
-    "builder": "remote: ssh-ng://jsullivan2@petting-zoo-mini.local (selected by the local-build guard) for quarto-1.10.18-bundled-pandoc",
+    "builder": "remote: ssh-ng://<builder>@<build-host> (selected by the local-build guard) for quarto-1.10.18-bundled-pandoc",
     "host_load_averages_observed": "about 30 to 530 (1-minute) across the session on 6 CPUs; 529.88 at 2026-10-07T04:40Z during preflight 2"
   },
   "versions": {
     "quarto": "1.10.18",
-    "quarto_source": "store path name /nix/store/skzd95zvkw7llz7fkmnsyn6svq86qs6y-quarto-1.10.18 (no quarto --version ran in this lane)",
+    "quarto_source": "store path name <nix-store>/skzd95zvkw7llz7fkmnsyn6svq86qs6y-quarto-1.10.18 (no quarto --version ran in this lane)",
     "pandoc": "3.10",
     "pandoc_source": "direct probe of ./bin/tools/aarch64/pandoc extracted from the hash-verified quarto tarball (sha256 5f873678b993531ad15d5986f1270b99e0f9e8ae09fbef43f94b58db6f6bdb80, 188564000 bytes, Mach-O arm64), not from inside nix develop",
-    "pandoc_path": "/nix/store/n143ym1q7jbs2gfpvmx11dpdjf5nymbx-quarto-1.10.18-bundled-pandoc/bin/pandoc (planned QUARTO_PANDOC; not valid locally)",
+    "pandoc_path": "<nix-store>/n143ym1q7jbs2gfpvmx11dpdjf5nymbx-quarto-1.10.18-bundled-pandoc/bin/pandoc (planned QUARTO_PANDOC; not valid locally)",
     "r": null,
     "r_reason": "report shell never entered; prior D6 receipt measured R 4.6.1 at the same nixpkgs rev (not re-measured)"
   },

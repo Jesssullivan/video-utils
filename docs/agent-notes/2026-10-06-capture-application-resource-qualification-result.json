@@ -1,6 +1,6 @@
 {
   "aac_headroom_attempts": 1,
-  "actor": "/root/media_latency",
+  "actor": "root/media_latency",
   "actual_recording_processed": false,
   "attempt": 1,
   "authority": "Exact root resource656628 release; R-HOOK-CONVERGENCE-20261004/R-N11/R-N13",

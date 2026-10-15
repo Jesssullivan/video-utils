@@ -1,7 +1,7 @@
 # Fork-first contributions rule: video-utils lane preserved (2026-10-07)
 
 ```
-actor: /root video-utils-d6 (Claude, neo)
+actor: /root video-utils-d6 (Claude, operator-host)
 target: Jesssullivan/video-utils main (private, operator-owned; no upstream, no fork relationship)
 reason: the estate fork-first rule prefers a signed fork branch plus a reviewed upstream PR, and
         preserves a lane that was already authorized when it carries a dated receipt

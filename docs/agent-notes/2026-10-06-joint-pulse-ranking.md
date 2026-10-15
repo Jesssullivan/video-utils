@@ -1,6 +1,6 @@
 # Joint pulse/phase/subdivision experiment receipt
 
-Actor `/root/meter_inference`; target owned new dated preregistration, harness
+Actor `root/meter_inference`; target owned new dated preregistration, harness
 and isolated `artifacts/experiments/meter-pulse/joint-20261006-01`. Authority:
 operator's active ten-hour parallel goal, root's explicit reattachment task,
 repository AGENTS.md and R-N13. Canonical rhythm, meter, phrase, registry and

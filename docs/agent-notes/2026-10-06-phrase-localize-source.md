@@ -12,7 +12,7 @@ New source `scripts/phrase_localize.py` is frozen at SHA256
 `a64ff3acc5f18931e9975e96d1c6e80a1d454272fbf9dd4925b8b835b8c509de`.
 Own source tests `tests/test_phrase_localize.py` are
 `a615dc76226a7bdc53de67d6ce82957db2c2b7fef0a631ebc48ed2f60a1659ab`.
-Independent tests owned by `/root/phrase_dag`, `tests/test_phrase_localize_audit.py`,
+Independent tests owned by `root/phrase_dag`, `tests/test_phrase_localize_audit.py`,
 are `a090f1bcfb8ff130205d6abb1da0573202f8de9f201559f0d963408ae2f41232`.
 All **40 constructed-feature tests** passed in **8.743 seconds** with
 `python3 -S -m unittest discover -s tests -p 'test_phrase_localize*.py' -q`:

@@ -6,7 +6,7 @@
   "action": "execute_phrase_order_null_discovery_and_evaluation",
   "inference_authorized": true,
   "evaluation_authorized": true,
-  "bank_index_path": "/Users/jess/git/video-utils/artifacts/experiments/phrase-window-ablation/order-null-bank-20261006T0145/fixtures.json",
+  "bank_index_path": "<repo>/artifacts/experiments/phrase-window-ablation/order-null-bank-20261006T0145/fixtures.json",
   "bank_index_sha256": "42ff7501ea734378c22010c4765b58e66ed766627bbaedf81babddd4e69c8fa8",
   "construction_readback_sha256": "6e7c73553af7489650d48e22af70a599b4424aa84a326f02a8db7696b83fca80",
   "root_readback": {

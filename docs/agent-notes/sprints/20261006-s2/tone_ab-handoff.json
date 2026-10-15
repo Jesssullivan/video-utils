@@ -3,7 +3,7 @@
   "branch": "sprint/20261006-s2/tone_ab",
   "head": "b4261e15cc6ea201041c23ff994ddf0e2d967957",
   "base_commit": "4b87484d725007feca6f3a19d2c967c4ca56f513",
-  "worktree": "/Users/jess/git/video-utils/.local/sprint2/tone_ab",
+  "worktree": "<repo>/.local/sprint2/tone_ab",
   "state": "implemented_tested_audited",
   "files": [
     {
@@ -48,7 +48,7 @@
     }
   ],
   "tests": {
-    "command": "PYTHONPATH=tests python3 -m unittest test_tone_ab -v (in /Users/jess/git/video-utils/.local/sprint2/tone_ab, FFMPEG/FFPROBE exported)",
+    "command": "PYTHONPATH=tests python3 -m unittest test_tone_ab -v (in <repo>/.local/sprint2/tone_ab, FFMPEG/FFPROBE exported)",
     "discovered": 28,
     "passed": 28,
     "failed": 0,
@@ -158,7 +158,7 @@
       "(5) Doctrine: there is no high-pass or notch anywhere. The only filter is the preregistered lowshelf f=100 g=1.5 trial on a separate f32 file. All 15 unknown fields are present with reasons. timeout_seconds is an integer 1..1800, each child runs under min(120 s, remaining) with ffprobe capped at 60 s, and the setup region 0-5 s is refused (start must be >= 5.0)."
     ],
     "must_fix": [
-      "The protected-output check is case-sensitive, but APFS on this host is case-insensitive, so the 'never writes into accepted run dirs / artifacts/runs/*' invariant can be bypassed. The check is scripts/tone_ab.py:347-352 (is_protected_location, which uses `path.is_relative_to(directory)` and the literal match parts[i]=='artifacts' and parts[i+1]=='runs'), applied at lines 994-999. Reproduction on a synthetic fixture in the scratchpad: run_dir=<S>/artifacts/runs/AcceptedRun, output_dir=<S>/Artifacts/runs/acceptedrun/probe-out. The check passed. The tool then created `.probe-out.partial-*` (trial WAV, excerpts, attack-positions.json) inside the run dir, the post-run readback failed with protected_input_changed, and `probe-out.failed/` was left permanently inside the 'accepted' run dir. On the real host, a read-only probe confirmed that is_protected_location(Path('/Users/jess/git/video-utils/Artifacts/runs/20261006t041633z-990aa1bd6737/x').resolve(), [run_dir]) returns False, while that path's parent exists. Exposure is CLI --output-dir only; the descriptor has no output field. Fix: compare by inode, i.e. walk output's existing ancestors with os.path.samefile / (st_dev, st_ino) against each protected dir and against the artifacts/runs dir, or casefold the comparison. Add a regression test with a case-variant output path."
+      "The protected-output check is case-sensitive, but APFS on this host is case-insensitive, so the 'never writes into accepted run dirs / artifacts/runs/*' invariant can be bypassed. The check is scripts/tone_ab.py:347-352 (is_protected_location, which uses `path.is_relative_to(directory)` and the literal match parts[i]=='artifacts' and parts[i+1]=='runs'), applied at lines 994-999. Reproduction on a synthetic fixture in the scratchpad: run_dir=<S>/artifacts/runs/AcceptedRun, output_dir=<S>/Artifacts/runs/acceptedrun/probe-out. The check passed. The tool then created `.probe-out.partial-*` (trial WAV, excerpts, attack-positions.json) inside the run dir, the post-run readback failed with protected_input_changed, and `probe-out.failed/` was left permanently inside the 'accepted' run dir. On the real host, a read-only probe confirmed that is_protected_location(Path('<repo>/Artifacts/runs/20261006t041633z-990aa1bd6737/x').resolve(), [run_dir]) returns False, while that path's parent exists. Exposure is CLI --output-dir only; the descriptor has no output field. Fix: compare by inode, i.e. walk output's existing ancestors with os.path.samefile / (st_dev, st_ino) against each protected dir and against the artifacts/runs dir, or casefold the comparison. Add a regression test with a case-variant output path."
     ]
   },
   "dropped_scope": []

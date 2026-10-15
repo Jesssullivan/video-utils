@@ -1,6 +1,6 @@
 # Explicit optional runtime portability plan
 
-Owner `/root/tonal_inference`; root release is **design/read-only only** for
+Owner `root/tonal_inference`; root release is **design/read-only only** for
 runtime setup. Authority: operator's parallel goal and R-HOOK-CONVERGENCE-20261004
 /R-N13. Root separately released the missing-source-origin fix, which is already
 implemented and documented in the [fix receipt](2026-10-06-basic-pitch-source-origin-fix.json).

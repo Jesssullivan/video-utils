@@ -7,7 +7,7 @@
   "recorded_utc": "2026-10-07T15:44:14Z",
   "ruling": "R-HOOK-CONVERGENCE-20261004 R-N13",
   "implementation_commit": "3c2cb0788e2971aedc32cae6038b510c784d3ab3",
-  "host": {"label": "neo", "platform": "darwin", "python": "3.12.14", "ffmpeg": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg (8.1.2)", "load_average_during_run": "60-135 (other lanes); wall time inflated, CPU about 22 s"},
+  "host": {"label": "operator-host", "platform": "darwin", "python": "3.12.14", "ffmpeg": "/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg (8.1.2)", "load_average_during_run": "60-135 (other lanes); wall time inflated, CPU about 22 s"},
   "commands": [
     "export FFMPEG=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffmpeg FFPROBE=/nix/store/mv3x2v2pr6pwvwj7cdyh8nci2q1wpnjq-ffmpeg-headless-8.1.2-bin/bin/ffprobe",
     "PYTHONPATH=tests python3 -m unittest test_stems_estimate -v",

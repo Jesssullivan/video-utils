@@ -14,7 +14,7 @@
   },
   "readonly_check": {
     "status": "already_qualified",
-    "runtime_dir": "/Users/jess/git/video-utils/artifacts/model-runtime-env/onnx-1.30.0-cp314",
+    "runtime_dir": "<repo>/artifacts/model-runtime-env/onnx-1.30.0-cp314",
     "wheel_lock_sha256": "c0e0a0f01023d5e701c13bcd092d23ef216dd3e96b2bc0320293c355252df23f",
     "python": "3.14.6",
     "versions": {

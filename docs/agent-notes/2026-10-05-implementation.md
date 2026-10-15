@@ -12,7 +12,7 @@ target. No process escape hatch was required in the clip-baseline/docs lane.
 ## Measured baseline
 
 Read-only inspection used FFmpeg 8.1.2 and Python standard-library PCM analysis.
-The Documents source is `Movie on 10-5-26 at 3.38 PM.mov`: 150.954 s container
+The Documents source is `<demo-take>.mov`: 150.954 s container
 duration, H.264 1620×1080 at approximately 23.95 fps, mono AAC 44.1 kHz at
 approximately 63 kb/s. A `loudnorm` scan measured −21.24 LUFS integrated,
 −4.16 dBTP true peak, and 4.00 LU loudness range. In-memory decoding measured
@@ -115,7 +115,7 @@ and phrase/reference annotation remain separate acceptance steps.
 
 ## Advisory findings and owned process receipts
 
-- Local-build wrapper warned on Neo. The authorized dependency-free Rust check
+- Local-build wrapper warned on the operator host. The authorized dependency-free Rust check
   used one Cargo job, lasted seconds and passed; no full Nix/ML build occurred.
   R-N12 advisory finding retained; no extra permission gate introduced.
 - uv's managed wrapper rejected an explicit cache override (exit64). The

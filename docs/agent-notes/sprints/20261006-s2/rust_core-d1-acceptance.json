@@ -67,7 +67,7 @@
         {"kind": "test", "ref": "tests/cli.rs::filenames_and_arguments_are_forwarded_without_shell_interpretation", "status": "measured_pass_by_lane"},
         {"kind": "test", "ref": "tests/cli.rs::hash_matches_fips_digest_and_shasum_for_unicode_space_paths", "status": "measured_pass_by_lane", "detail": "space, U+202F and '$(x);' in path; 2/2 FIPS digests; 2/2 byte-identical with /usr/bin/shasum -a 256"},
         {"kind": "test", "ref": "tests/cli.rs::verify_run_accepts_matching_temp_run_dir", "status": "measured_pass_by_lane", "detail": "run dir basename and source name contain space and U+202F"},
-        {"kind": "run", "ref": "artifacts/s2/rust_core/verify-run-s1.json (gitignored)", "status": "measured_by_lane", "detail": "real source path '/Users/jess/Documents/Movie on 10-5-26 at 3.38 PM.mov' hashed and verified"},
+        {"kind": "run", "ref": "artifacts/s2/rust_core/verify-run-s1.json (gitignored)", "status": "measured_by_lane", "detail": "real source path '<operator-home>/Documents/<demo-take>.mov' hashed and verified"},
         {"kind": "test", "ref": "tests/test_media.py::test_32hz_preservation_native_pcm_and_source_immutability", "status": "not_run_by_lane"}
       ]
     },

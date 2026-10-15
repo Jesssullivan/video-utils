@@ -235,7 +235,7 @@
     "component_denominator": 48,
     "identical_components": 48,
     "identical_truths": 12,
-    "reference_fixtures_path": "/Users/jess/git/video-utils/artifacts/benchmarks/heldout-211-307-20261006T0020/fixtures.json",
+    "reference_fixtures_path": "<repo>/artifacts/benchmarks/heldout-211-307-20261006T0020/fixtures.json",
     "reference_fixtures_sha256": "3828ef756c3b2d36890e5b2f444c9323960ec9c0b358d02fe02a8c13ba89936b",
     "truth_denominator": 12
   },

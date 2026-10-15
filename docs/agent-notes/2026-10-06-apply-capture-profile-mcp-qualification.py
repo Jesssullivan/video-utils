@@ -25,7 +25,7 @@ def run():
     destination=ROOT/'artifacts/experiments/application-mcp-qualification'/datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
     destination.mkdir(parents=True)
     arguments={'input':str(source),'authoring_dir':str(author),'receipt_sha256':authored['receipt_sha256'],'timeout_seconds':600}
-    plan={'schema_version':1,'actor':'/root/tool_hooks','authority':'Root tool28 API/native generated qualification release; R-HOOK-CONVERGENCE-20261004/R-N11/R-N13','source_class':'generated8s_not_operator_take','arguments':arguments,'worker_pins':PINS,'protected_before':before,'client_timeout_seconds':620,'tool_outer_seconds':600,'inner_seconds':590,'actual_recording_processed':False}
+    plan={'schema_version':1,'actor':'root/tool_hooks','authority':'Root tool28 API/native generated qualification release; R-HOOK-CONVERGENCE-20261004/R-N11/R-N13','source_class':'generated8s_not_operator_take','arguments':arguments,'worker_pins':PINS,'protected_before':before,'client_timeout_seconds':620,'tool_outer_seconds':600,'inner_seconds':590,'actual_recording_processed':False}
     save(destination/'plan.json',plan)
     messages=[{'jsonrpc':'2.0','id':1,'method':'initialize','params':{'protocolVersion':'2025-11-25','capabilities':{},'clientInfo':{'name':'generated8s-application-proof','version':'1'}}},{'jsonrpc':'2.0','method':'notifications/initialized'},{'jsonrpc':'2.0','id':2,'method':'tools/call','params':{'name':'apply_capture_profile','arguments':arguments}}]
     env=dict(os.environ)

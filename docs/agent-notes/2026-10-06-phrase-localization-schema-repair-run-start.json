@@ -9,7 +9,7 @@
   "worker_sha256": "524c673f5732a5c524a3575b526672c13373b20ce0cf7b73c1fbbf40c67e9563",
   "bank_generator_sha256": "8eae0110995619d128a022e8f0882a522b6213c5899cfd41216128b9847abd6c",
   "bank_sha256": "9b62a3498f8ed5c508cca68c904f4d868c3861280c2f707f1972f098d4f39e67",
-  "output": "/Users/jess/git/video-utils/artifacts/experiments/phrase-localization/fresh-run-schema-repair-617-719-20261006T0408",
+  "output": "<repo>/artifacts/experiments/phrase-localization/fresh-run-schema-repair-617-719-20261006T0408",
   "numerical_threads": 2,
   "overall_deadline_seconds": 600,
   "case_deadline_seconds": 120,

@@ -71,7 +71,7 @@
    "evidence": "~/.bazelrc lines read; ~/.cache/bazel-video-utils does not exist"
   },
   "output_and_repository_cache_root": {
-   "value": "/Volumes/TinylandSSD/tinyland/bazel (user ~/.bazelrc)",
+   "value": "<external-volume>/tinyland/bazel (user ~/.bazelrc)",
    "claim_class": "M"
   },
   "storage_gate_line": {

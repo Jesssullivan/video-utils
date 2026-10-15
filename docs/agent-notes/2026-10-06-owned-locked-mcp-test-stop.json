@@ -1,5 +1,5 @@
 {
-  "actor": "/root/tool_hooks",
+  "actor": "root/tool_hooks",
   "tool_session": 60515,
   "task": "locked test_mcp.py pipe-based suite",
   "reason": "owned all-prompts pipe client stalled past30s client bound; file-backed stdio replacement preserves deadline",

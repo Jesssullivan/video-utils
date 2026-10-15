@@ -1,6 +1,6 @@
 # Actual NR8/NR10 candidate independent artifact audit
 
-Owner `/root/release_review`; root explicitly assigned saved actual-run artifact
+Owner `root/release_review`; root explicitly assigned saved actual-run artifact
 review after the separately released matched render. Authority operator goal,
 AGENTS.md and R-HOOK-CONVERGENCE-20261004/R-N13. Root/media owner execute renders;
 this lane does not generate, restore, rerun models or adopt masters.

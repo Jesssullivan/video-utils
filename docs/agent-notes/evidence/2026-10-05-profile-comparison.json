@@ -51,7 +51,7 @@
   "profiles": [
     {
       "profile": "bypass",
-      "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T224706Z-2a72efe386ab",
+      "run_dir": "<repo>/artifacts/runs/20261005T224706Z-2a72efe386ab",
       "manifest_sha256": "05057c75c7be38401c654894fb65c3e2c3e51f61a9358f257063433bfc38c726",
       "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
       "output_hashes": {
@@ -139,7 +139,7 @@
     },
     {
       "profile": "conservative3",
-      "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T211103Z-c6d0bac2fcd2",
+      "run_dir": "<repo>/artifacts/runs/20261005T211103Z-c6d0bac2fcd2",
       "manifest_sha256": "0438657188d136c36073789e5496ccf27d3a19aa9604eaca0f3941a36ec9162d",
       "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
       "output_hashes": {
@@ -225,7 +225,7 @@
     },
     {
       "profile": "mild6",
-      "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261005T224733Z-0e920a701cf8",
+      "run_dir": "<repo>/artifacts/runs/20261005T224733Z-0e920a701cf8",
       "manifest_sha256": "dbdfea880ff1f6c03acb4702ab950f0084becb3b6bb16a5adadd5cf46e96e241",
       "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
       "output_hashes": {

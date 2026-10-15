@@ -13,5 +13,5 @@
   "downloads": false,
   "truth_read": false,
   "external_inputs_read": ["https://github.com/CPJKU/beat_this README (2026-10-07)", "Linear TIN-5619 description (read-only)"],
-  "open_items": ["TIN-5619 wire payload kind unratified (gateway_wire_schema_ratified:false)", "honey architecture and ml-shell torch version unverified", "V6 private scratch path on honey for real-take pass requires root confirmation", "final0 checkpoint byte size and exact URL pending research"]
+  "open_items": ["TIN-5619 wire payload kind unratified (gateway_wire_schema_ratified:false)", "compute-host architecture and ml-shell torch version unverified", "V6 private scratch path on the compute host for real-take pass requires root confirmation", "final0 checkpoint byte size and exact URL pending research"]
 }

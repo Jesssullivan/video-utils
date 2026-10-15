@@ -1,6 +1,6 @@
 # Saved native capture-application artifact audit
 
-Owner `/root/release_review`; root explicitly assigned independent saved-artifact
+Owner `root/release_review`; root explicitly assigned independent saved-artifact
 review after its one generated native qualification. Authority operator active
 parallel goal, AGENTS.md and R-HOOK-CONVERGENCE-20261004/R-N13. Root owns numerical
 execution, source publication and later tool admission.

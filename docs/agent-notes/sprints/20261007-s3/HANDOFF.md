@@ -1,6 +1,6 @@
-# S3 checkpoint handoff (written before the neo cmux swap, 2026-10-07 ~12:20Z)
+# S3 checkpoint handoff (written before the operator-host cmux swap, 2026-10-07 ~12:20Z)
 
-Owner: `/root` Claude session `video-utils-d6`. Authority: operator interview 2026-10-07 (contract `docs/spec/sprints/20261007-S3.md`); R-HOOK-CONVERGENCE-20261004 R-N13. The lab seat announced that cmux on neo is quit at about 19:30Z for the 0.65.0 swap (teammate information; non-blocking).
+Owner: `/root` Claude session `video-utils-d6`. Authority: operator interview 2026-10-07 (contract `docs/spec/sprints/20261007-S3.md`); R-HOOK-CONVERGENCE-20261004 R-N13. The lab seat announced that cmux on the operator host is quit at about 19:30Z for the 0.65.0 swap (teammate information; non-blocking).
 
 ## State at this checkpoint
 
@@ -11,7 +11,7 @@ main == origin/main `6d22c2d`; hosted CI 37613938171 success on product head `a0
 | routes_processing | TIN-5718 | Done; four web job types admitted |
 | routes_review | TIN-5719 | Done |
 | auth_hosting | TIN-5720 | In Progress: code and manifests merged; nothing applied (needs operator go) |
-| model_lanes | TIN-5721 | In Progress: Beat This registered by hash (`models/cpjku-beat-this-final0.bin`, gitignored, neo only); runtime on honey not qualified; guitar_noul gateway absent |
+| model_lanes | TIN-5721 | In Progress: Beat This registered by hash (`models/cpjku-beat-this-final0.bin`, gitignored, operator-host only); runtime on the compute host not qualified; guitar_noul gateway absent |
 | bazel_graph | TIN-5722 | In Progress: web + Rust pass; 74 of 97 Python test modules ran under Bazel; 4 failing targets not yet checked from the main checkout |
 | public_site | TIN-5723 | In Progress: built and leak-scanned; not deployed (needs operator go) |
 | web_tests | TIN-5724 | In Progress: merged; fix lane running |
@@ -24,7 +24,7 @@ To resume after a restart: relaunch the lane-group workflow with `resumeFromRunI
 
 ## Open with the operator
 
-Labelling session (>=10 phrase boundaries; blocks D6 TIN-5491); go to apply hosting manifests and the Cloudflare Access application; go to deploy the public site; a quiet honey CPU window for Beat This (TIN-5694); second take by 2026-10-09; listening preference for `fuller-shelf` and a read of the rendered Quarto report (`artifacts/s2/quarto_render_root/render/demo.html`).
+Labelling session (>=10 phrase boundaries; blocks D6 TIN-5491); go to apply hosting manifests and the Cloudflare Access application; go to deploy the public site; a quiet compute-host CPU window for Beat This (TIN-5694); second take by 2026-10-09; listening preference for `fuller-shelf` and a read of the rendered Quarto report (`artifacts/s2/quarto_render_root/render/demo.html`).
 
 ## Root housekeeping still owed
 

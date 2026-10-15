@@ -22,13 +22,13 @@
     "phrase consumed-case clocks match pulse grid; allowed grid could meet strict IoU while emitted proposals fail, indicating algorithm/support problem rather than evidenced coordinate bug"
   ],
   "active_owners": {
-    "application_fix": "/root/rhythm_analysis",
-    "application_independent_audit": "/root/release_review",
-    "native_harness": "/root/media_latency",
-    "phrase_localization_design": "/root/phrase_dag",
-    "plan_reconciliation": "/root/goal_plan",
-    "draft_contract": "/root/tool_hooks",
-    "draft_skill": "/root/tool_skills"
+    "application_fix": "root/rhythm_analysis",
+    "application_independent_audit": "root/release_review",
+    "native_harness": "root/media_latency",
+    "phrase_localization_design": "root/phrase_dag",
+    "plan_reconciliation": "root/goal_plan",
+    "draft_contract": "root/tool_hooks",
+    "draft_skill": "root/tool_skills"
   },
   "next": "Freeze revised app and recheck postcommit regressions, freeze harness/preregistration after independent source audit, root release one generated native8second trial, then admit hook/skill only if actual native/export proof passes",
   "numeric_release": "not yet granted for new native fixture",

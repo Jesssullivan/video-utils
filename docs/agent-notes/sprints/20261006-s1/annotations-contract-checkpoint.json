@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "authority": "R-HOOK-CONVERGENCE-20261004 / R-N13",
-  "owner": "/root/s1_annotations",
+  "owner": "root/s1_annotations",
   "created_at": "2026-10-06T06:06:29.310586+00:00",
   "state": "implemented_contract_checkpoint_pending_independent_freeze",
   "source_sha256": {

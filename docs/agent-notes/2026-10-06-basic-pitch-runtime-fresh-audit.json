@@ -2,7 +2,7 @@
   "schema_version": 1,
   "recorded_utc": "2026-10-06 00:53:42 UTC",
   "authority": "Root explicit independent read-only fresh-runtime qualification audit; R-HOOK-CONVERGENCE-20261004/R-N13",
-  "auditor": "/root/tonal_inference/tonal_audit",
+  "auditor": "root/tonal_inference/tonal_audit",
   "scope": "Local-only fresh optional runtime archive, installed-member, environment-layout and frozen-active-state audit",
   "fresh_checkout_root": "artifacts/runtime-repro/checkout-20261006T004817Z",
   "owner_receipt": "docs/agent-notes/2026-10-06-basic-pitch-runtime-fresh-setup.json",

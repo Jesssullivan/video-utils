@@ -1,6 +1,6 @@
 # S1 independent audit protocol
 
-Registered 2026-10-06 at approximately 06:01 UTC, before receiving S1 numerical results. Owner `/root/s1_audit`; isolated worktree `.local/sprint1/audit`; authority operator five-hour/six-agent request, repository AGENTS.md, R-HOOK-CONVERGENCE-20261004 and R-N11/R-N12/R-N13.
+Registered 2026-10-06 at approximately 06:01 UTC, before receiving S1 numerical results. Owner `root/s1_audit`; isolated worktree `.local/sprint1/audit`; authority operator five-hour/six-agent request, repository AGENTS.md, R-HOOK-CONVERGENCE-20261004 and R-N11/R-N12/R-N13.
 
 Audit modifies only `tests/test_sprint1_audit.py` and its own `audit-*` receipts/specification. Other five worktrees are read-only. Root owns source admission, skills, catalog, commits, merges, publication and tracker. No inference, model acquisition, media processing, daemon or host/plugin configuration changes are authorized in this lane.
 

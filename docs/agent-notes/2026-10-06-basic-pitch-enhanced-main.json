@@ -138,7 +138,7 @@
   "independent_audit": {
     "path": "docs/agent-notes/2026-10-06-basic-pitch-enhanced-main-audit.json",
     "sha256": "68f98a1e1159ac058543199e9c20668178be7df3299b6c4ce21fedcb7074cdc8",
-    "reviewer": "/root/tonal_inference/tonal_audit",
+    "reviewer": "root/tonal_inference/tonal_audit",
     "status": "readback_pass_no_mustfix",
     "scope": "32 finite named arrays, three clocks, indices/padding/cropping, native PCM extent, source spans and unchanged24-file core/original/latest checkpoint; no repeated inference or musical accuracy claim."
   }

@@ -1,6 +1,6 @@
 # Fresh617/719 native bank generation
 
-Actor `/root/guitar_features` executed one generation phase under root's exact
+Actor `root/guitar_features` executed one generation phase under root's exact
 `2026-10-06-root-phrase-localization-GENERATION.json` release, SHA256
 `179b9af8fc6a342057fc790e99f055522be6bdbc5ed7ccdea5fe934829e942a3`.
 Authority is the operator's project scope and R-HOOK-CONVERGENCE-20261004/R-N13.

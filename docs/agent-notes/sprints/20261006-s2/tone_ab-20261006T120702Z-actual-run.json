@@ -102,7 +102,7 @@
   "attacks": {
     "analysis": {
       "basis": "parent_run_from_capture_profile_authoring_dir",
-      "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/analysis.json",
+      "path": "<repo>/artifacts/runs/20261005T232741Z-2b5dc43fd009/analysis.json",
       "sha256": "4d32f962c5c59920943217cfb72fbe3c9e3eb9fefa3c6d9b79ee648187cadd0a"
     },
     "attack_identity": "unverified",
@@ -677,7 +677,7 @@
     "candidate_run_dir": null,
     "common_region_end": 150.0,
     "common_region_start": 5.0,
-    "run_dir": "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737",
+    "run_dir": "<repo>/artifacts/runs/20261006T041633Z-990aa1bd6737",
     "timeout_seconds": 1800
   },
   "lane": "tone_ab",
@@ -780,11 +780,11 @@
       "numerator": 4
     }
   },
-  "output_dir": "/Users/jess/git/video-utils/.local/sprint2/tone_ab/artifacts/s2/tone_ab/20261006T041633Z-990aa1bd6737-20261006T120702Z",
+  "output_dir": "<repo>/.local/sprint2/tone_ab/artifacts/s2/tone_ab/20261006T041633Z-990aa1bd6737-20261006T120702Z",
   "output_dir_gitignored": true,
   "protected_readback": {
     "analysis_file": {
-      "path": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/analysis.json",
+      "path": "<repo>/artifacts/runs/20261005T232741Z-2b5dc43fd009/analysis.json",
       "sha256_after": "4d32f962c5c59920943217cfb72fbe3c9e3eb9fefa3c6d9b79ee648187cadd0a",
       "sha256_before": "4d32f962c5c59920943217cfb72fbe3c9e3eb9fefa3c6d9b79ee648187cadd0a"
     },
@@ -797,7 +797,7 @@
           "mtime_ns"
         ],
         "files_checked": 13,
-        "path": "/Users/jess/git/video-utils/artifacts/runs/20261006T041633Z-990aa1bd6737"
+        "path": "<repo>/artifacts/runs/20261006T041633Z-990aa1bd6737"
       }
     },
     "status": "unchanged"
