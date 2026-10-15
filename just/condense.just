@@ -42,6 +42,10 @@ condense-captions config="talk.toml":
 condense-overlay config="talk.toml":
     python3 -m condense overlay {{quote(config)}}
 
+# Copy the edit, its EDL and captions into a hash-bound artifacts/condense/<run_id>/ and verify it.
+condense-publish config="talk.toml": cli
+    python3 -m condense publish {{quote(config)}}
+
 # Every stage in order.
 condense-all config="talk.toml": (condense-transcribe config) (condense-events config) (condense-edl config) (condense-render config) (condense-check config) (condense-captions config) (condense-overlay config)
 

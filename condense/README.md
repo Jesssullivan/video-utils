@@ -33,6 +33,7 @@ stage before it left in `work/`. Run one stage again after you change a number.
 | `just condense-check` | `check.py` | the edit | a report; exit 1 when a gate fails |
 | `just condense-captions` | `captions.py` | words, `edl.json` | `out/talk.srt`, `out/talk.vtt` |
 | `just condense-overlay` | `overlay.py` | `[[correction]]` entries | `out/talk.corrected.mp4` |
+| `just condense-publish` | `publish.py` | the outputs, `edl.json` | `artifacts/condense/<run_id>/` with a manifest |
 
 Recordings, transcripts and the model stay out of git. `.gitignore` lists them.
 
@@ -221,3 +222,12 @@ condense/tests/    pytest on media that ffmpeg generates at test time
 condense/examples/ every per-video setting in talk.toml
 just/condense.just one recipe per stage
 ```
+
+## Publish
+
+`just condense-publish` copies the edit, `edl.json` and whichever captions and corrected copy exist into a
+fresh `artifacts/condense/<run_id>/`. Its `manifest.json` hashes every file and every recording, and its
+timeline mapping is `edl_v1`: output time maps to source time through `edl.json`
+(`../docs/spec/TIMELINE_CONTRACT.md`). The stage then runs `video-utils verify-run --timeline edl_v1` on the
+run. A run that fails the check is renamed to `.failed-<run_id>` and the stage exits 1. Guitar tools never
+list or accept these runs.

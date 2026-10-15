@@ -1,9 +1,9 @@
-"""python -m talk_condense <stage> <talk.toml>"""
+"""python -m condense <stage> <talk.toml>"""
 
 import argparse
 import sys
 
-from . import captions, check, edl, events, overlay, render, transcribe
+from . import captions, check, edl, events, overlay, publish, render, transcribe
 from .config import Config
 from .recover import recover
 
@@ -22,13 +22,15 @@ def stage(name, cfg, names=()):
 
 
 def main():
-    p = argparse.ArgumentParser(prog="talk-condense", description=__doc__)
-    p.add_argument("stage", choices=["recover", *STAGES, "all"])
+    p = argparse.ArgumentParser(prog="condense", description=__doc__)
+    p.add_argument("stage", choices=["recover", *STAGES, "all", "publish"])
     p.add_argument("args", nargs="*", help="talk.toml [check names], or for recover: reference broken fixed")
     a = p.parse_args()
     if a.stage == "recover":
         return recover(*a.args)
     cfg = Config(a.args[0])
+    if a.stage == "publish":
+        return publish.publish(cfg)
     for name in STAGES if a.stage == "all" else [a.stage]:
         stage(name, cfg, a.args[1:])
 

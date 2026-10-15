@@ -26,6 +26,7 @@ receipt in `docs/agent-notes/` records a per-file comparison.
 | check | `check.py`, `avsync.py` | the edit | a report; exit 1 when a gate fails |
 | captions | `captions.py` | words, `edl.json` | `talk.srt`, `talk.vtt` |
 | overlay | `overlay.py` | `[[correction]]` entries | `talk.corrected.mp4` |
+| publish | `publish.py` | the outputs and `edl.json` | `artifacts/condense/<run_id>/` with an `edl_v1` manifest |
 
 `condense/README.md` gives every rule and default. `condense/config.py` holds
 the defaults and `talk.toml` overrides them.
