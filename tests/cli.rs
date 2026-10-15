@@ -722,7 +722,10 @@ fn timeline_run(
         .spawn()
         .unwrap();
     let mut input = child.stdin.take().unwrap();
-    input.write_all(stdin.unwrap_or("").as_bytes()).unwrap();
+    if let Err(error) = input.write_all(stdin.unwrap_or("").as_bytes()) {
+        // A refusal can exit before it reads stdin.
+        assert_eq!(error.kind(), std::io::ErrorKind::BrokenPipe, "{error}");
+    }
     drop(input);
     let output = child.wait_with_output().unwrap();
     let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
