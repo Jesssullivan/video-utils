@@ -67,6 +67,16 @@ inside the stage and again run by hand; 5 files, 12178 frames, 1882350226 bytes 
 timeline frames equal its delivered frames. Manifest sha256
 `328717a66500f89914990f77aa96f82549e844d3c2d0784e98be3063ae28efc8`.
 
+## Evidence custody
+
+`publish` writes under the checkout's gitignored `artifacts/condense/`, so the verified run and its
+`.failed-<run_id>` sibling first landed in the lane worktree. Both are now copied into the private work dir
+beside `talk.toml`, `talk-iphone.toml` and the two parity run dirs, so removing the worktree after merge
+keeps the evidence for TIN-6544. The copies are byte-identical (6 of 6 and the failed run's files by
+sha256). `verify-run` on the copy exits 1 with `run_dir_mismatch`: the manifest binds the absolute run
+directory it was published to, and editing it would change the hashed manifest. So the copy preserves the
+bytes; a fresh `verify-run` pass needs the original directory or a new publish.
+
 ## Findings
 
 1. Parity holds: every compared intermediate and every output of the `iphone` render is byte-identical
@@ -82,9 +92,13 @@ timeline frames equal its delivered frames. Manifest sha256
 5. The private `talk.toml` reproduces the first edit's settings except its intro set-up drop, which has no
    `talk.toml` key. So `intro` runs at the 2.5x cap and 839.1 s against `max_s = 480`. The rebuild of
    the published cut (TIN-6544) owns that gap.
+6. Review fix: `parity.py` raised on a media file ffprobe cannot read, so a render that died partway left
+   no receipt. It now records `probe: failed` on that side and the row differs (also when both sides hold
+   the same unreadable bytes). Synthetic test: two 30-frame sides, one cut in half.
 
 ## Gates
 
 - `just condense-lint`: ruff check and format check pass on 29 files.
 - `just condense-test`: 65 passed before the hard-link change; `test_parity.py` 12 passed after it.
 - `tests/test_condense_public_surface.py`: passes with `condense/tools/parity.py`.
+- After the probe fix: `just condense-lint` passes on 29 files; `just condense-test` 67 passed (`test_parity.py` 14).
