@@ -34,3 +34,12 @@ __pycache__/
 /native/au-spike/target/
 /bazel-*
 /user.bazelrc
+# Talk condensing: per-talk config, work files, renders and captions.
+/talk.toml
+/work/
+/out/
+*.mkv
+*.srt
+*.vtt
+.pytest_cache/
+.ruff_cache/

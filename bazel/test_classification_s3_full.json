@@ -11,9 +11,10 @@
     "completeness": "inference",
     "behaviour_under_bazel": "measured by the single full run (bazel_full-full-run.json)"
   },
-  "module_count_at_supplement": 104,
+  "module_count_at_supplement": 105,
   "added_modules": [
     "test_auth_token_s3",
+    "test_condense_public_surface",
     "test_model_prefetch",
     "test_public_site_s3",
     "test_s3_tool_admission",
@@ -41,6 +42,7 @@
       "tag": "requires-host-tools",
       "modules": [
         "test_auth_token_s3",
+        "test_condense_public_surface",
         "test_public_site_s3",
         "test_s3_tool_admission",
         "test_take_intake"
@@ -49,7 +51,8 @@
         "test_public_site_s3": "runs `node site/scripts/leak-scan.mjs`, `pnpm run check`/`pnpm run build` in site/ (skips when site/node_modules is absent) and `git ls-files`",
         "test_s3_tool_admission": "runs `git ls-files -- models` when git resolves (unchecked, never passed, when absent)",
         "test_take_intake": "falls back to the hash-pinned Nix FFmpeg/FFprobe path when FFMPEG/FFPROBE are unset, runs `git init` (skips git_unavailable on failure), and scripts/take_intake.py resolves git from PATH for its tracked-path check",
-        "test_auth_token_s3": "starts the built adapter-node server with `node serve.js` in tailnet mode and a loopback JWKS server"
+        "test_auth_token_s3": "starts the built adapter-node server with `node serve.js` in tailnet mode and a loopback JWKS server",
+        "test_condense_public_surface": "runs `git ls-files` to list the condense sources it scans"
       }
     },
     "exclusive": {

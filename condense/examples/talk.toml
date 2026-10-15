@@ -1,0 +1,46 @@
+# One file per video. Paths are relative to this file. Copy it to talk.toml and edit.
+work = "work"         # every intermediate file lands here
+out = "out/talk.mp4"  # the edit; captions and the corrected copy land beside it
+order = ["intro", "demo"]
+
+[encode]
+width = 1280
+height = 720
+fps = 30
+crf = 35              # HEVC; 35 keeps slides and a talking head readable at about 0.5 Mb/s
+audio_bitrate = "64k"
+
+[rules]
+cut_over_s = 1.0        # a longer pause is cut down to 0.3 s
+short_pause_speed = 4   # a shorter pause plays at 4x
+filler_speed = 8        # fillers and false starts play at 8x
+
+[[clip]]
+name = "intro"
+file = "media/intro.mov"
+welcome = [12.0, 48.5]  # source seconds that play at 1x with their fillers kept
+speed = 2.0             # speech speed outside the welcome
+speed_max = 2.5         # raise the speed by 0.05 up to this while the clip runs over max_s
+max_s = 480
+voiced_db = -38         # RMS over this inside a pause is sound worth keeping
+evidence = "energy"     # energy | word | asr: what proves that a sound in a pause is speech
+keep_repeats = ["sweet"]  # single words doubled for emphasis, not a restart
+
+[[clip]]
+name = "demo"
+file = "media/demo.mov"
+speed = 2.0
+zones = [[0, 240, 1.25]]  # the first 240 s play at 1.25x
+silence_db = -22          # a noisy room: its floor sits above the default -32 dB
+voiced_db = -29
+evidence = "asr"
+normalize = true          # high-pass and level the audio before whisper
+tonemap = true            # HLG phone footage to SDR
+detect = "phone"          # word ends where the sound stops, and the phone rules in events.detect
+whisper_args = ["-mc", "0"]
+
+# Corrections sit at source times. The overlay stage maps them through the EDL.
+[[correction]]
+clip = "intro"
+source_s = 312.4
+text = "*the queue holds 64 items, not 32"

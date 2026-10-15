@@ -285,3 +285,10 @@ It preserves a bounded snapshot before analysis changes, uses exact returned
 receipt paths for graph selections, and records failures without discarding the
 master. Dependency/model installation remains explicit. The `pipeline` MCP tool
 evaluates these receipts; the CLI workflow executes the tools.
+
+## Talk condensing
+
+`condense/` condenses recorded talks: it cuts long pauses, speeds up short pauses
+and fillers, and keeps every word. It is a speech workflow beside the guitar
+workflow. Run `nix develop .#condense`, then the `just condense-*` recipes; see
+`condense/README.md` and `docs/spec/CONDENSE.md`.
