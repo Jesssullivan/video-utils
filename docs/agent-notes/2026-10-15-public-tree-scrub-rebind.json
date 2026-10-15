@@ -6,17 +6,12 @@
  "receipt": "docs/agent-notes/2026-10-15-public-tree-scrub.md",
  "pre_scrub_commit": "e28dd9f8351d385da4095c1824a1cdbc53b4deef",
  "meaning": "Each file below was scrubbed of private identifiers. Its sha256_before is recorded elsewhere in the tree; those records refer to the bytes at pre_scrub_commit, which history keeps. No recorded hash value was edited.",
- "count": 154,
+ "count": 153,
  "files": [
   {
    "path": ".agents/skills/guitar-beat-this/SKILL.md",
    "sha256_before": "e6764ba70e92355ed741346f7bcae1c2025f673f41e3466c1decf3ae3c3f6b9a",
    "sha256_after": "48d8370642d33f8d590507febc59bca8d9a1c916794865292d31fc2804d11017"
-  },
-  {
-   "path": ".agents/skills/guitar-noul/SKILL.md",
-   "sha256_before": "2d48dd5e19cc85731e613d2a752bf87adf4a17d62953f8b6732f95308debe3fb",
-   "sha256_after": "5bf41145c34c6551f745286c25e04cc6f5d672d13b7c60aaa7b4eeef6024720e"
   },
   {
    "path": ".agents/skills/stems-estimate/SKILL.md",
@@ -641,7 +636,7 @@
   {
    "path": "docs/spec/sprints/MODEL_LANES_S3.md",
    "sha256_before": "9ef9a0a4df39eb9260ec880b00fce39de178623bec2a2dcc4bd172976867b1f7",
-   "sha256_after": "17889e4b660c2d4c1a589ef6b6426287b99f1d0cbc224a468bfe4082e359db3f"
+   "sha256_after": "a3034febdff0dc6794caf17a1802cd5b7083c9cd3a579fae48faa33c9bb2f02e"
   },
   {
    "path": "docs/spec/sprints/PHRASES_S1.md",

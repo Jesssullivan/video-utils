@@ -81,9 +81,11 @@ TEAM = "synthetic Access team-domain fixtures for the auth gate"
 GATEWAY = "the guitar_noul gateway host contract the client enforces"
 RELATIVE_ROOT = "a relative temporary checkout directory named root, not the superuser home"
 PATH_ALLOWLIST = {
+    (".agents/skills/guitar-noul/SKILL.md", "private-estate-hostname"): GATEWAY,
     ("docs/agent-notes/sprints/20261007-s3/take_intake-e2e-prereg.json", "developer-filesystem-path"): RELATIVE_ROOT,
     ("docs/agent-notes/sprints/20261007-s3/workflow-handoffs/take_intake.json",
      "developer-filesystem-path"): RELATIVE_ROOT,
+    ("docs/spec/sprints/MODEL_LANES_S3.md", "private-estate-hostname"): GATEWAY,
     ("docs/spec/sprints/TAKE_INTAKE_S3.md", "developer-filesystem-path"): RELATIVE_ROOT,
     ("native/au-spike/packaging/tests.py", "developer-filesystem-path"): CONTROL,
     ("native/au-spike/packaging/tests.py", "nix-store-path"): CONTROL,

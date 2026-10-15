@@ -68,7 +68,7 @@ Out of scope:
 - default adoption of any model output
 - stem extraction runs
 - model or wheel downloads by the lane
-- deploying or calling the real the model gateway host gateway
+- deploying or calling the real models.xoxd.ai gateway
 - listening acceptance
 
 ## 2. Owned files
@@ -196,7 +196,7 @@ Required keys:
 - `VIDEO_UTILS_GUITAR_NOUL_GATEWAY`. When unset or empty, the client refuses
   with `gateway_not_configured` before any I/O beyond input validation. The URL
   must be `https`, have no userinfo, port 443 or none, and a host equal to
-  `the model gateway host` or ending in `.ts.net`. Anything else refuses with
+  `models.xoxd.ai` or ending in `.ts.net`. Anything else refuses with
   `gateway_url_rejected`.
 - `VIDEO_UTILS_GUITAR_NOUL_ALLOW_REAL_TAKE`. Only the exact value
   `v6-private-operator-lab-host` permits real-take windows.
