@@ -9,7 +9,8 @@ inputs and the same `[encode] jobs` and `[whisper] threads` bounds. The sides ru
 
 The receipt (RUN_DIR/parity.json, and stdout) holds hashes, counts, durations, stage exit codes and tool
 versions. It names no path, host or transcript text: files appear by their name inside work/ or out/.
-A mismatch is reported, never tuned away. The exit code is 0 when every compared file matches.
+A mismatch is reported, never tuned away. A media file ffprobe cannot read is recorded as `probe: failed`
+and its row differs. The exit code is 0 when every compared file matches.
 """
 
 import argparse
@@ -179,7 +180,10 @@ def collect(side_dir):
 def describe(path):
     d = dict(sha256=sha256(path), bytes=path.stat().st_size)
     if path.suffix in MEDIA:
-        d |= probe(path)
+        try:
+            d |= probe(path)
+        except (subprocess.CalledProcessError, ValueError, KeyError, TypeError):
+            d["probe"] = "failed"  # undecodable or truncated, e.g. a render that died partway
     elif path.suffix == ".json":
         d |= {"shape": shape(path)}
     return d
@@ -200,7 +204,10 @@ def compare(old_dir, new_dir):
         row = dict(verdict="match" if x["sha256"] == y["sha256"] else "differ", old=x, new=y)
         if row["verdict"] == "differ" and name.endswith(".json"):
             row["first_diff"] = first_diff(a[name], b[name])
-        if "video_frames" in x or "video_frames" in y:
+        if "probe" in x or "probe" in y:  # equal bytes do not show a playable output: never parity
+            row["verdict"] = "differ"
+            row["frames_and_duration"] = "probe_failed"
+        elif "video_frames" in x or "video_frames" in y:
             same = x.get("video_frames") == y.get("video_frames") and x.get("duration_s") == y.get("duration_s")
             row["frames_and_duration"] = "match" if same else "differ"
         files[name] = row

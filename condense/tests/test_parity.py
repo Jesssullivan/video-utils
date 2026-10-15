@@ -118,6 +118,26 @@ def test_a_frame_count_difference_is_reported(tmp_path):
     assert (row["old"]["video_frames"], row["new"]["video_frames"]) == (10, 11)
 
 
+def test_a_truncated_render_is_recorded_not_raised(tmp_path):
+    old, new = side(tmp_path, "old", {"out/talk.mp4": 30}), side(tmp_path, "new", {"out/talk.mp4": 30})
+    full = (old / "out/talk.mp4").read_bytes()
+    (new / "out/talk.mp4").write_bytes(full[: len(full) // 2])  # a render that died partway
+    c = parity.compare(old, new)
+    row = c["files"]["out/talk.mp4"]
+    assert row["verdict"] == "differ" and row["frames_and_duration"] == "probe_failed" and not c["identical"]
+    assert row["old"]["video_frames"] == 30 and row["new"]["probe"] == "failed"
+
+
+def test_equal_unreadable_media_is_not_parity(tmp_path):
+    old, new = side(tmp_path, "old", {"out/talk.mp4": "not a video"}), side(tmp_path, "new", {})
+    (new / "out/talk.mp4").write_bytes((old / "out/talk.mp4").read_bytes())
+    (new / "out/extra.mov").write_text("")
+    c = parity.compare(old, new)
+    assert c["files"]["out/talk.mp4"]["verdict"] == "differ" and not c["identical"]
+    extra = c["files"]["out/extra.mov"]
+    assert extra["verdict"] == "only_new" and extra["new"]["probe"] == "failed"
+
+
 def test_a_file_on_one_side_only_is_not_a_match(tmp_path):
     old = side(tmp_path, "old", {"work/a.events.json": "{}", "work/a.pause_asr.json": "{}"})
     new = side(tmp_path, "new", {"work/a.events.json": "{}", "out/talk.srt": "1\n"})
