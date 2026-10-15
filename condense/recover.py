@@ -9,12 +9,18 @@ import subprocess
 import sys
 from pathlib import Path
 
+from .config import TIMEOUT_S
+
 
 def recover(ref, broken, fixed):
     # -n: never prompt. -s: step over unknown byte runs. untrunc exits 1 even on a full rebuild,
     # so the verdict comes from its "Found N packets" and "Duration" lines and from the output size.
     p = subprocess.run(
-        ["untrunc", "-n", "-s", "-dst", fixed, ref, broken], capture_output=True, text=True, errors="replace"
+        ["untrunc", "-n", "-s", "-dst", fixed, ref, broken],
+        capture_output=True,
+        text=True,
+        errors="replace",
+        timeout=TIMEOUT_S,
     )
     log = p.stdout + p.stderr
     Path(f"{fixed}.untrunc.log").write_text(log)

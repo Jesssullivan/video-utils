@@ -1,7 +1,8 @@
 # Talk condensing (docs/spec/CONDENSE.md). Run inside `nix develop .#condense`.
 # Root imports this file from the root justfile (`import 'just/condense.just'`).
 # Every stage reads one talk.toml; recordings, transcripts and renders stay out of Git.
-# Defaults are not yet bounded: render runs 8 parts at once and whisper 16 threads (TIN-6513).
+# Bounded defaults: 2 parts or whisper chunks at once, 4 whisper threads, and a 7200 s limit per tool
+# call (CONDENSE_TOOL_TIMEOUT_S). Raise `[encode] jobs` and `[whisper] threads` in talk.toml on a larger host.
 
 export WHISPER_MODEL := env("WHISPER_MODEL", justfile_directory() / "models/ggerganov-whisper-cpp-ggml-small.en.bin")
 

@@ -16,7 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
-from .config import FF, run
+from .config import FF, TIMEOUT_S, run
 from .render import SR, joined, parts, render_part, video_filter
 
 BITS, CELL, RAMP = 20, 4, 4000.0
@@ -110,7 +110,9 @@ def check_probe(cfg, edl, limit_ms):
 
 
 def raw(dtype, *args):
-    out = subprocess.run([*FF, "-v", "error", *map(str, args), "-"], capture_output=True, check=True).stdout
+    out = subprocess.run(
+        [*FF, "-v", "error", *map(str, args), "-"], capture_output=True, check=True, timeout=TIMEOUT_S
+    ).stdout
     return np.frombuffer(out, dtype)
 
 

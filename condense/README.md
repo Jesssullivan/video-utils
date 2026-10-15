@@ -117,7 +117,8 @@ as a filler. Only true silence is cut. `evidence` picks the proof:
    padded with its last frame to the audio length. `tonemap = true` maps HLG phone footage to SDR.
 2. The segments are split into parts of 220. Each part seeks its own window and runs one filter graph:
    `trim` and `setpts` for video, `atrim` and `atempo` for audio. `atempo` is chained in 2x stages.
-   8 parts render in parallel.
+   2 parts render in parallel by default (`[encode] jobs`). Every tool call stops after 7200 s
+   (`CONDENSE_TOOL_TIMEOUT_S`).
 3. The parts are joined. Each part's audio is cut or padded to its video frames first. Audio that runs 11 ms
    past the last frame would shift the next part by a frame.
 4. Loudness takes two passes: one measures, one applies a single linear gain to -16 LUFS with a -1.5 dBTP

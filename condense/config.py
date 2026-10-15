@@ -37,13 +37,13 @@ ENCODE = {
     "true_peak": -1.5,  # dBTP
     "pre_gain_db": 9.5,  # gain into the limiter, so loudnorm can stay linear
     "limit": 0.32,  # limiter ceiling, -9.9 dBFS
-    "jobs": 8,  # part renders in parallel
+    "jobs": 2,  # part renders and whisper chunks in parallel
 }
 WHISPER = {
     "model": "models/ggml-small.en.bin",
     "dtw": "small.en",
     "language": "en",
-    "threads": 16,
+    "threads": 4,  # per whisper run
     "chunk_s": 800,
     "pass1": True,
     "prompt": "Um, uh, so, okay, you know, I mean, er, hmm. So, um, let's see.",  # seeds whisper to write fillers
@@ -65,6 +65,8 @@ CLIP = {
 }
 CHECK = {"silence_db": -35, "silence_s": 1.0, "loudness_lu": 1.0, "sync_ms": 20}
 FF = ("ffmpeg", "-hide_banner", "-nostdin", "-y")
+# Every tool call is bounded. A long talk's mezzanine or untrunc pass takes minutes, not hours.
+TIMEOUT_S = float(os.environ.get("CONDENSE_TOOL_TIMEOUT_S", 7200))
 
 
 class Config:
@@ -95,9 +97,15 @@ class Config:
         return self.work / f"{clip if isinstance(clip, str) else clip['name']}.{ext}"
 
 
-def run(*args, cwd=None):
-    """Run a tool. Return the finished process, or raise with the end of its stderr."""
-    p = subprocess.run([str(a) for a in args], capture_output=True, text=True, errors="replace", cwd=cwd)
+def run(*args, cwd=None, timeout=None):
+    """Run a tool. Return the finished process, or raise with the end of its stderr or on timeout."""
+    timeout = TIMEOUT_S if timeout is None else timeout
+    try:
+        p = subprocess.run(
+            [str(a) for a in args], capture_output=True, text=True, errors="replace", cwd=cwd, timeout=timeout
+        )
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f"{args[0]} ran over {timeout:g} s (CONDENSE_TOOL_TIMEOUT_S)") from None
     if p.returncode:
         raise RuntimeError(f"{args[0]} failed ({p.returncode}):\n{p.stderr[-2000:]}")
     return p
