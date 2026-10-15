@@ -3,13 +3,13 @@
   "application_seconds_max": 600,
   "application_worker_sha256": "790ac58f1924db2607087c6ab1cdae5d813ba24eda610af1f396d77e93d06584",
   "authoring_command": [
-    "<repo>/.venv/bin/python",
+    "/Users/jess/git/video-utils/.venv/bin/python",
     "scripts/capture_profile.py",
-    "<operator-home>/Documents/<demo-take>.mov",
+    "/Users/jess/Documents/Movie on 10-5-26 at 3.38\u202fPM.mov",
     "--run-dir",
-    "<repo>/artifacts/runs/20261005T232741Z-2b5dc43fd009",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009",
     "--review",
-    "<repo>/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profile-review-root.json",
+    "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profile-review-root.json",
     "--capture-start",
     "4.1",
     "--capture-end",
@@ -60,13 +60,13 @@
   "created_utc": "2026-10-06T04:14:15.877009+00:00",
   "expected_denoised_sha256": "26c9f42c2bb2957fc35e00f0070991895f9120fefb69dce0a95248cd7ad39bfd",
   "expected_residue_sha256": "48959e447200dc6996ffe9199770874c93b44b394d91df7c37fdbe38a411d3fc",
-  "fixed_denoise_control_run": "<repo>/artifacts/runs/20261006T030345Z-af60acfd29dd",
+  "fixed_denoise_control_run": "/Users/jess/git/video-utils/artifacts/runs/20261006T030345Z-af60acfd29dd",
   "hypothesis": "more body/balance from tonepackage160+2/300+1 and omitted2200boost; cannotprove32Hzrestoration orisolatedfan/musicgain",
-  "input": "<operator-home>/Documents/<demo-take>.mov",
+  "input": "/Users/jess/Documents/Movie on 10-5-26 at 3.38\u202fPM.mov",
   "listening_accepted": false,
   "owner": "audio_research",
-  "parent_run": "<repo>/artifacts/runs/20261005T232741Z-2b5dc43fd009",
-  "review": "<repo>/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profile-review-root.json",
+  "parent_run": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009",
+  "review": "/Users/jess/git/video-utils/artifacts/runs/20261005T232741Z-2b5dc43fd009/capture-profile-review-root.json",
   "review_sha256": "953d8d84fb12c358d14bf6d32e8ea93bb6f6491e5597b5dc2035bc5577d24cf4",
   "schema_version": 1,
   "settings": {
@@ -99,5 +99,5 @@
   "source_sha256": "a522115f4e72e19384fb341bc84369728eceefe49183b8c6367a1008a95176c6",
   "status": "planned_before_authoring_and_render",
   "threads": 2,
-  "work_dir": "<repo>/artifacts/experiments/fuller-v1-20261006T041415Z"
+  "work_dir": "/Users/jess/git/video-utils/artifacts/experiments/fuller-v1-20261006T041415Z"
 }
