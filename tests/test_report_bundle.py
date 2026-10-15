@@ -350,6 +350,9 @@ class ReportBundleTests(BundleFixture):
         self.refused("output_dir_protected", output=lookalike)
         self.refused("output_dir_protected", output=self.tmp / ".local" / "sprint1" / "bundle")
         self.assertFalse(lookalike.exists())
+        # Any user's Documents or Desktop is refused, whatever HOME the test runs under.
+        for folder in ("Documents", "Desktop"):
+            self.refused("output_dir_protected", output=Path("/Users/fixture") / folder / "bundle")
 
         def explode():
             raise OSError("disk")

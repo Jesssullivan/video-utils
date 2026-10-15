@@ -721,7 +721,7 @@
   {
    "path": "scripts/report_bundle.py",
    "sha256_before": "091a54f186e0d8e22a842223d4936609b81a62eb0c24f37f0f42b3973a96b937",
-   "sha256_after": "5f925c32e4e4c1ccd8303cdf5cf53211ddac549f7afcc4c4b585bb381539d0bf"
+   "sha256_after": "2fe9286ef942cab83150a6061ce5b5b507228bc261bc299c1d32f4cb56d9cc53"
   },
   {
    "path": "scripts/stems_estimate.py",
@@ -756,7 +756,7 @@
   {
    "path": "tests/test_report_bundle.py",
    "sha256_before": "bb1bc079a013dd3290eaf94016447c621e943c50ae0af8e0417f003e6618a011",
-   "sha256_after": "51cc9819d7e673dce1b496db933d909e6917d9b96f683bbe6aa2d7182e1bc007"
+   "sha256_after": "f03be1f9e04234017c4c51a19398657446efc792dbc7160e6735cbddc500a8bc"
   },
   {
    "path": "web/e2e/headers.spec.ts",

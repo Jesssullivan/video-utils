@@ -53,6 +53,8 @@ PHRASE_LABEL_KINDS = frozenset({"phrase_omission", "phrase_duration"})
 NOTE_LABEL_KINDS = frozenset({"melodic_pitch"})
 BOUND_LINEAGE = ("original_source_hash_bound", "verified_run_derivative_hash_bound")
 PROTECTED_HOME_DIRS = (Path.home() / "Documents", Path.home() / "Desktop")
+# Any macOS user's Documents or Desktop (where takes are recorded), whatever HOME this process runs under.
+PROTECTED_USER_FOLDERS = frozenset({"Documents", "Desktop"})
 
 UNKNOWNS = (
     ("listening_accepted", False, "No operator listening review is bound to this bundle."),
@@ -320,6 +322,8 @@ def check_output_dir(output, run_dir, analysis_run_dir):
     protected = [run_dir.resolve()] + ([analysis_run_dir.resolve()] if analysis_run_dir else [])
     protected += [Path(os.path.realpath(home)) for home in PROTECTED_HOME_DIRS]
     if any(inside(resolved, root) for root in protected):
+        raise Refusal("output_dir_protected")
+    if parts[:2] == ("/", "Users") and len(parts) > 3 and parts[3] in PROTECTED_USER_FOLDERS:
         raise Refusal("output_dir_protected")
     if any(parts[index:index + 2] == ("artifacts", "runs") for index in range(len(parts) - 1)):
         raise Refusal("output_dir_protected")
