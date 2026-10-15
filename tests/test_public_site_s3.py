@@ -1223,7 +1223,9 @@ class LeakRuleTests(unittest.TestCase):
         identifiers = real_take_identifiers()
         self.assertGreaterEqual(identifiers["by_kind"].get("source_sha256", 0), 1)
         if identifiers["run_directories_found"]:
-            # Without local runs the take name is known nowhere; the real-take-filename rule still applies.
+            # The take name is read only from local run manifests (TIN-6515). Without local runs, as in CI,
+            # this exact-name check is a no-op; the real-take-filename shape rule (identifier_hits below,
+            # tests/test_public_tree.py and the site leak scan) is the only take-name guard there.
             self.assertGreaterEqual(identifiers["by_kind"].get("recording_basename", 0), 1)
         self.assertEqual(identifier_hits(identifiers["identifiers"], include_build=True), [])
 
