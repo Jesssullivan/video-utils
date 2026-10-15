@@ -83,7 +83,7 @@ class Server:
             self.initialized = True
             return {'protocolVersion': self.version,
                     'capabilities': {'tools': {'listChanged': False}, 'prompts': {'listChanged': False}},
-                    'serverInfo': {'name': 'video-utils', 'version': '0.1.0'},
+                    'serverInfo': {'name': 'video-utils', 'version': '0.2.0'},
                     'instructions': 'Local 9-string guitar tools; use the corresponding skill prompt. Separate measurements, inference and listening acceptance. Preserve intentional ~32 Hz fundamentals.'}
         if method == 'ping':
             return {}

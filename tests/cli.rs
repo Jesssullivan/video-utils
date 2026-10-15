@@ -42,7 +42,7 @@ fn help_and_version_do_not_require_workers() {
     assert!(output.status.success());
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "video-utils 0.1.0"
+        "video-utils 0.2.0"
     );
 }
 
@@ -381,7 +381,7 @@ fn verify_run_accepts_matching_temp_run_dir() {
     assert_eq!(as_u64(field(&receipt, &["subprocesses_launched"])), 0);
     assert_eq!(
         field(&receipt, &["verifier"]).as_str(),
-        Some("video-utils 0.1.0 verify-run")
+        Some("video-utils 0.2.0 verify-run")
     );
     assert_eq!(run.snapshot(), before, "verify-run modified the fixture");
 

@@ -7,8 +7,8 @@ tests/test_bazel_graph_s3.py fails when they diverge.
 # edition = "2024" in both Cargo.toml files.
 RUST_EDITION = "2024"
 
-# version = "0.1.0" in both Cargo.toml files (CARGO_PKG_VERSION).
-CRATE_VERSION = "0.1.0"
+# version = "0.2.0" in both Cargo.toml files (CARGO_PKG_VERSION).
+CRATE_VERSION = "0.2.0"
 
 # [profile.release] overflow-checks = true (both crates).
 RELEASE_RUSTC_FLAGS = select({
