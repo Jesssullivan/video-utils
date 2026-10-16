@@ -8,6 +8,7 @@ Pacing rules (numbers are the defaults in config.RULES):
   filler       plays at 8x. Fillers are never cut, so a wrong guess costs a blip and not a word.
 Anything at 4x or faster is turned down to 0.4 gain.
 A clip with `card` lines is one segment: the whole recording in `card_s` seconds, blurred, under the text.
+A clip's `drop` spans of source are cut like long pauses, talk and all, after the pacing rules (drop()).
 
 Events closer than 0.3 s merge into one span. A span is a pause when pauses cover half of it, else a filler.
 Each span gives 0.15 s back to speech on both sides, and spans under 0.2 s stay speech.
@@ -184,6 +185,39 @@ def event_segments(c, lo, hi, events, zones):
     return segs
 
 
+def drop(c, segs, spans):
+    """Cut each [start, end] of source out of segs as one cut that keeps its head and tail frames at 1x.
+
+    A drop is an editor's decision, such as a set-up stretch with talk in it: `[[clip]] drop` in talk.toml.
+    The edges snap to the frame grid. An edge that lands inside a cut moves out to that cut's edge, so the
+    pause joins the drop and the frames that cut kept stay the same. Segments inside a span go, and a segment
+    across an edge is trimmed to it. Runs before the max_s check, so a drop counts before the speed rises.
+    """
+    head, tail = c.r["keep_head_frames"] / c.fps, c.r["keep_tail_frames"] / c.fps
+    for d0, d1 in spans:
+        d0, d1 = c.snap(d0), c.snap(d1)
+        for s in segs:
+            if s["kind"] == "cut" and s["inp"] < d0 < s["out"]:
+                d0 = s["inp"]
+            if s["kind"] == "cut" and s["inp"] < d1 < s["out"]:
+                d1 = s["out"]
+        out = []
+        for s in segs:
+            if s["out"] <= d0 + 1e-6 or s["inp"] >= d1 - 1e-6:
+                out.append(s)
+                continue
+            if s["inp"] < d0 - 1e-6:
+                out.append(dict(s, out=d0))
+            if s["out"] > d1 + 1e-6:
+                out.append(dict(s, inp=d1))
+        cut = dict(
+            src=c.name, inp=d0, out=d1, speed=1.0, kind="cut", keep=[[d0, c.snap(d0 + head)], [c.snap(d1 - tail), d1]]
+        )
+        at = next((i for i, s in enumerate(out) if s["inp"] >= d1 - 1e-6), len(out))
+        segs = [*out[:at], cut, *out[at:]]
+    return segs
+
+
 def coalesce(segs):
     """Drop empty segments and join neighbours of one kind and speed."""
     out = []
@@ -284,6 +318,9 @@ def build_clip(cfg, clip):
     words = json.loads(cfg.f(clip, "words.json").read_text())
     events = [(a, b, "filler") for a, b, _ in ev["fillers"]] + [(a, b, "pause") for a, b in ev["pauses"]]
     welcome = snap_welcome(clip.get("welcome"), ev["pauses"])
+    for span in clip["drop"]:
+        if span[1] > total + 1e-6:
+            raise ValueError(f"clip {clip['name']}: drop {span!r} ends after the clip's {total:.3f} s")
     cache = cfg.f(clip, "pause_asr.json")
     c = SimpleNamespace(
         name=clip["name"],
@@ -300,7 +337,7 @@ def build_clip(cfg, clip):
     speed, top = clip["speed"], clip.get("speed_max", clip["speed"])
     while True:
         zones = zones_for(clip, total, speed, r["filler_speed"], welcome)
-        segs = coalesce(event_segments(c, 0.0, total, events, zones))
+        segs = coalesce(drop(c, event_segments(c, 0.0, total, events, zones), clip["drop"]))
         if c.missing:  # whisper each pause span alone, then build again with the answers
             print(f"{c.name}: whisper on {len(c.missing)} pause spans")
             for a, b in sorted(c.missing):

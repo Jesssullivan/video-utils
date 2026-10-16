@@ -9,6 +9,8 @@ height = 720
 fps = 30
 crf = 35              # HEVC; 35 keeps slides and a talking head readable at about 0.5 Mb/s
 audio_bitrate = "64k"
+preset = "slow"       # x265 preset; "medium" encodes faster for a slightly larger file
+# upload = "h264"     # also write out/talk.upload.mp4: H.264, no B-frames, a keyframe every 2 s
 
 [rules]
 cut_over_s = 1.0        # a longer pause is cut down to 0.3 s
@@ -25,6 +27,7 @@ max_s = 480
 voiced_db = -38         # RMS over this inside a pause is sound worth keeping
 evidence = "energy"     # energy | word | asr: what proves that a sound in a pause is speech
 keep_repeats = ["sweet"]  # single words doubled for emphasis, not a restart
+drop = [[60.0, 125.0]]    # source seconds removed, talk and all: here a set-up stretch
 
 [[clip]]
 name = "demo"

@@ -6,6 +6,7 @@ waits for the one before it.
 
 This is its own pass, so the main render is not repeated. The video is encoded once more from the lossless
 parts when they are still in the work directory, else from the finished file. The audio is copied.
+With `[encode] upload = "h264"` the corrected picture is also written as <out>.corrected.upload.mp4.
 """
 
 import json
@@ -13,7 +14,7 @@ import textwrap
 
 from .config import FF, run
 from .edl import Timeline
-from .render import joined, parts, video_codec, video_filter
+from .render import joined, parts, upload, video_codec, video_filter
 
 
 def placements(corrections, tl, hold=3.0):
@@ -74,3 +75,5 @@ def burn(cfg):
     for start, end, text in notes:
         print(f"  {start:8.2f}-{end:8.2f} s  {text}")
     print(f"{len(notes)} corrections -> {out}")
+    if cfg.encode["upload"]:  # the corrected copy for a video site too
+        print(f"{upload(cfg, edl, draw, '.corrected')}: H.264, no B-frames")

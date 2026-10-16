@@ -4,7 +4,8 @@ Authority: operator decision of 2026-10-15 (Linear initiative I-78, milestone
 "Absorb talk-condense", TIN-6500 to TIN-6513), repository AGENTS.md and R-N13.
 
 `condense/` condenses a recorded talk. Long pauses are cut. Short pauses and
-fillers are sped up. Speech plays faster. No word is dropped. It is a speech
+fillers are sped up. Speech plays faster. No word is dropped unless the editor
+drops a span. It is a speech
 workflow beside the guitar workflow, not a guitar default.
 
 ## Source
@@ -22,14 +23,31 @@ receipt in `docs/agent-notes/` records a per-file comparison.
 | transcribe | `transcribe.py` | the recordings | 16 kHz analysis wav, whisper pass-1 and DTW JSON |
 | events | `events.py` | the whisper JSON | words, events, 100 ms RMS frames |
 | edl | `edl.py` | words, events, RMS | `edl.json` |
-| render | `render.py` | `edl.json` | mezzanines, parts, `talk.mp4` |
+| render | `render.py` | `edl.json` | mezzanines, parts, `talk.mp4`, optional `talk.upload.mp4` |
 | check | `check.py`, `avsync.py` | the edit | a report; exit 1 when a gate fails |
 | captions | `captions.py` | words, `edl.json` | `talk.srt`, `talk.vtt` |
-| overlay | `overlay.py` | `[[correction]]` entries | `talk.corrected.mp4` |
+| overlay | `overlay.py` | `[[correction]]` entries | `talk.corrected.mp4`, optional `talk.corrected.upload.mp4` |
 | publish | `publish.py` | the outputs and `edl.json` | `artifacts/condense/<run_id>/` with an `edl_v1` manifest |
 
 `condense/README.md` gives every rule and default. `condense/config.py` holds
 the defaults and `talk.toml` overrides them.
+
+## Editor decisions in talk.toml
+
+TIN-6544 rebuilt a published hand-cut walkthrough from a private talk.toml. Three
+of its decisions had no key, and each is now typed, validated when the config
+loads and covered by a synthetic test:
+
+| Key | Decision | Checked |
+| --- | --- | --- |
+| `[[clip]] drop = [[start, end], ...]` | Remove source seconds, talk and all, as one cut each, before `max_s` raises the speed | in order, apart, inside the clip, longer than one cut's kept frames, no card clip |
+| `[encode] preset` | The x265 preset of the edit (and the x264 preset of the upload copy); `slow` stays the default | one of the x264/x265 preset names |
+| `[encode] upload = "h264"` | Also write `<out>.upload.mp4` (and `.corrected.upload.mp4`): H.264, no B-frames, a keyframe every 2 s, no negative CTS, `+faststart`, the edit's audio copied | `""` or `"h264"`; no output path may be a clip file |
+
+`drop` is the one rule that removes words, so it is an explicit editor choice
+per clip and never a default. The HEVC `talk.mp4` stays the archive copy. The
+receipt `docs/agent-notes/2026-10-15-condense-v5-rebuild.md` records how close
+the rebuild came and the decisions that remain gaps.
 
 ## Ownership in this repository
 

@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from condense import audio, edl
+from condense import audio, captions, edl
 from condense.config import Config
 from condense.edl import Timeline
 
@@ -118,3 +118,76 @@ def test_speech_speeds_up_to_the_cap_when_the_clip_runs_over(talk):
 def test_whisper_tags_are_no_proof_of_speech_and_a_hum_is():
     c = SimpleNamespace(asr={"1.000-2.000": "[BLANK_AUDIO]", "3.000-4.000": "Mmm.", "5.000-6.000": " um (coughs)"})
     assert [edl.heard(c, a, a + 1) for a in (1.0, 3.0, 5.0)] == [False, True, False]
+
+
+def test_a_drop_joins_the_cut_it_starts_in_and_trims_the_speech_it_ends_in():
+    c = SimpleNamespace(
+        name="x", fps=30, r=dict(keep_head_frames=5, keep_tail_frames=4), snap=lambda t: round(round(t * 30) / 30, 6)
+    )
+
+    def seg(inp, out, speed, kind, **extra):
+        return dict(src="x", inp=inp, out=out, speed=speed, kind=kind, **extra)
+
+    segs = [
+        seg(0.0, 2.0, 2.0, "speech"),
+        seg(2.0, 4.0, 1.0, "cut", keep=[[2.0, 2.166667], [3.866667, 4.0]]),
+        seg(4.0, 6.0, 2.0, "speech"),
+        seg(6.0, 6.5, 8.0, "filler"),
+        seg(6.5, 10.0, 2.0, "speech"),
+    ]
+    out = edl.drop(c, segs, [[3.0, 7.0]])
+    assert [(s["inp"], s["out"], s["kind"]) for s in out] == [
+        (0.0, 2.0, "speech"),
+        (2.0, 7.0, "cut"),
+        (7.0, 10.0, "speech"),
+    ]
+    assert out[1]["keep"] == [[2.0, 2.166667], [6.866667, 7.0]]  # the cut's own head stays, 4 frames before 7 s
+    both = edl.drop(c, segs, [[0.5, 1.5], [8.0, 9.0]])
+    assert [(s["inp"], s["out"], s["kind"]) for s in both] == [
+        (0.0, 0.5, "speech"),
+        (0.5, 1.5, "cut"),
+        (1.5, 2.0, "speech"),
+        *[(s["inp"], s["out"], s["kind"]) for s in segs[1:4]],
+        (6.5, 8.0, "speech"),
+        (8.0, 9.0, "cut"),
+        (9.0, 10.0, "speech"),
+    ]
+    assert edl.drop(c, segs, []) == segs
+
+
+@pytest.fixture(scope="module")
+def dropped(talk):
+    """The synthetic talk with 6.5-14.0 s dropped: the first point, the um and the queue sentence."""
+    text = (
+        (talk.work.parent / "talk.toml").read_text().replace("speed = 2.0\n", "speed = 2.0\ndrop = [[6.5, 14.0]]\n", 1)
+    )
+    (talk.work.parent / "drop.toml").write_text(text)
+    cfg = Config(talk.work.parent / "drop.toml")
+    segs, info = edl.build_clip(cfg, cfg.clips[0])
+    return cfg, dict(fps=30, rules=cfg.rules, clips=[dict(name="talk", shift=info["shift"], segments=segs)])
+
+
+def test_a_drop_span_is_one_cut_and_its_words_leave_the_captions(talk, built, dropped):
+    cfg, plan = dropped
+    segs = plan["clips"][0]["segments"]
+    assert all(a["out"] == b["inp"] for a, b in zip(segs, segs[1:], strict=False))
+    cut = next(s for s in segs if s["inp"] <= 6.5 and s["out"] >= 14.0)
+    assert cut["kind"] == "cut" and cut["frames"] == 9
+    (a0, a1), (b0, b1) = cut["keep"]
+    assert (a0, b1) == (cut["inp"], cut["out"]) and round((a1 - a0) * 30) == 5 and round((b1 - b0) * 30) == 4
+    tl = Timeline(plan)
+    assert all(tl.to_out("talk", t) is None for t in (7.0, 10.0, 12.5))
+    full = sum(s["frames"] for s in built["clips"][0]["segments"])
+    assert sum(s["frames"] for s in segs) < full - 3 * 30  # 7.5 s of source, about 4 s of output, is gone
+    said = [w for _, _, w in captions.output_words(cfg, tl)]
+    assert "Hello" in said and "watching" in said and not {"first", "queue", "um"} & set(said)
+
+
+def test_a_drop_past_the_end_of_the_clip_is_refused(talk):
+    text = (
+        (talk.work.parent / "talk.toml").read_text().replace("speed = 2.0\n", "speed = 2.0\ndrop = [[20.0, 30.0]]\n", 1)
+    )
+    (talk.work.parent / "late.toml").write_text(text)
+    cfg = Config(talk.work.parent / "late.toml")
+    with pytest.raises(ValueError, match="ends after the clip's 24.000 s"):
+        edl.build_clip(cfg, cfg.clips[0])

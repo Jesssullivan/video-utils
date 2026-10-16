@@ -95,3 +95,45 @@ def test_captions_are_written_beside_the_edit(rendered):
     srt = rendered.out.with_suffix(".srt").read_text()
     assert srt.startswith("1\n00:00:00,") and "Hello and welcome everyone." in srt and "um" not in srt.split()
     assert rendered.out.with_suffix(".vtt").read_text().startswith("WEBVTT\n\n00:00:00.")
+
+
+def packets(path):
+    """[(pts, dts, flags)] of the video stream, in file order."""
+    cmd = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_entries",
+        "packet=pts,dts,flags",
+        "-of",
+        "csv=p=0",
+    ]
+    out = subprocess.run([*cmd, path], capture_output=True, text=True, check=True).stdout.split()
+    return [(int(p), int(d), f) for p, d, f in (line.split(",")[:3] for line in out)]
+
+
+def assert_upload(path, edit):
+    """H.264 with no B-frame, so no packet's pts runs ahead of its dts, from pts 0, a keyframe every 2 s."""
+    assert probe(path, "v:0", "codec_name,has_b_frames") == "h264,0"
+    found = packets(path)
+    assert found[0][0] == 0 and all(p == d for p, d, _ in found)
+    assert [i for i, (_, _, f) in enumerate(found) if "K" in f] == list(range(0, len(found), 60))
+    assert len(found) == audio.frames(edit) and audio_md5(path) == audio_md5(edit)
+
+
+def test_the_upload_copy_is_h264_without_b_frames_with_the_edits_frames_and_sound(rendered, monkeypatch):
+    edl = json.loads(rendered.f("edl", "json").read_text())
+    out = render.upload(rendered, edl)
+    assert out == rendered.out.with_suffix(".upload.mp4")
+    assert_upload(out, rendered.out)
+    monkeypatch.setattr(render, "parts", lambda edl: [("gone", "talk", [])])  # the parts were cleaned up
+    assert_upload(render.upload(rendered, edl, suffix=".from-edit"), rendered.out)
+
+
+def test_the_overlay_pass_writes_a_corrected_upload_copy_when_asked(rendered):
+    cfg = copy.copy(rendered)
+    cfg.encode = rendered.encode | {"upload": "h264"}
+    overlay.burn(cfg)
+    assert_upload(rendered.out.with_suffix(".corrected.upload.mp4"), rendered.out)

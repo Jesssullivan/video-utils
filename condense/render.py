@@ -9,6 +9,9 @@
 3. Final: the parts are joined. Loudness is measured in one pass and applied linearly in a second
    (-16 LUFS, -1.5 dBTP). The encode is HEVC CRF 35 tagged hvc1, so QuickTime, Safari and iOS play it,
    with AAC.
+4. Upload, with `[encode] upload = "h264"`: the same frames once more as H.264 without B-frames and a
+   keyframe every 2 s, with the edit's audio copied. One video site scrambled the first seconds of the
+   HEVC file, whose negative CTS offsets stand in for an edit list.
 
 Sync rules. The first render broke each of them, and its sound ran up to 107 ms off the picture.
 - Video is never retimed with setpts=(PTS-STARTPTS)/speed. Frames are picked evenly and renumbered.
@@ -205,20 +208,45 @@ def joined(cfg, names, kind="mezz"):
     return inputs, graph + "".join(f"[v{i}][p{i}]" for i in range(len(names))) + f"concat=n={len(names)}:v=1:a=1[v][a0]"
 
 
+COLOR = ("-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709")
+
+
 def video_codec(cfg):
     e = cfg.encode
     codec = ("-c:v", "libx265", "-preset", e["preset"], "-crf", e["crf"], "-tag:v", "hvc1", "-pix_fmt", "yuv420p")
-    return (
-        *codec,
-        "-x265-params",
-        "log-level=error",
-        "-color_primaries",
-        "bt709",
-        "-color_trc",
-        "bt709",
-        "-colorspace",
-        "bt709",
-    )
+    return (*codec, "-x265-params", "log-level=error", *COLOR)
+
+
+def upload_codec(cfg):
+    """H.264 with no B-frames, so every pts equals its dts and none is negative, and a keyframe every 2 s."""
+    e, gop = cfg.encode, 2 * cfg.fps
+    codec = ("-c:v", "libx264", "-preset", e["preset"], "-crf", e["upload_crf"], "-profile:v", "high")
+    gops = ("-bf", "0", "-g", gop, "-keyint_min", gop, "-sc_threshold", "0", "-pix_fmt", "yuv420p")
+    return (*codec, *gops, *COLOR)
+
+
+def upload(cfg, edl, draw="", suffix=""):
+    """Write <out><suffix>.upload.mp4: the picture of <out><suffix>.mp4 as H.264, the audio of <out> copied.
+
+    draw: the overlay's drawtext chain, for the corrected copy. The picture comes from the lossless parts
+    when they are still in work/, else from the edit. Plain +faststart: no negative CTS offsets, and the
+    video's only edit list is none at all, because its first pts is 0.
+    """
+    names = [name for name, _, _ in parts(edl)]
+    if all(cfg.f(name, "mezz.mkv").exists() for name in names):
+        inputs, graph = joined(cfg, names)
+        graph += f";[a0]anullsink;[v]{video_filter(cfg)}{draw and ','}{draw}[vo]"
+    else:
+        inputs, graph = ["-i", cfg.out], f"[0:v]{draw or 'null'}[vo]"
+    out = cfg.out.with_suffix(f"{suffix}.upload.mp4")
+    graph_file = cfg.f(f"upload{suffix}", "filter")
+    graph_file.write_text(graph)
+    maps = ("-map", "[vo]", "-map", f"{len(inputs) // 2}:a", "-map_metadata", "-1", "-c:a", "copy")
+    args = (*inputs, "-i", cfg.out, "-/filter_complex", graph_file, *maps, *upload_codec(cfg))
+    run(*FF, "-v", "error", *args, "-movflags", "+faststart", out, cwd=cfg.work)
+    if audio.frames(out) != audio.frames(cfg.out):
+        raise RuntimeError(f"{out}: {audio.frames(out)} frames, the edit has {audio.frames(cfg.out)}")
+    return out
 
 
 def video_filter(cfg):
@@ -260,3 +288,5 @@ def render(cfg):
         names = list(pool.map(lambda p: render_part(cfg, edl, *p), parts(edl)))
     final(cfg, edl)
     print(f"{cfg.out}: {edl['expected_total_s']} s in {len(names)} parts")
+    if cfg.encode["upload"]:
+        print(f"{upload(cfg, edl)}: H.264, no B-frames, a keyframe every {2 * cfg.fps} frames")

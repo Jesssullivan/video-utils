@@ -30,7 +30,7 @@ ENCODE = {
     "height": 720,
     "fps": 30,
     "crf": 35,
-    "preset": "slow",
+    "preset": "slow",  # x265 preset of talk.mp4 and x264 preset of the upload copy (PRESETS)
     "audio_bitrate": "64k",
     "denoise": "hqdn3d=2:1.5:4:3",
     "loudness": -16.0,  # LUFS
@@ -38,7 +38,11 @@ ENCODE = {
     "pre_gain_db": 9.5,  # gain into the limiter, so loudnorm can stay linear
     "limit": 0.32,  # limiter ceiling, -9.9 dBFS
     "jobs": 2,  # part renders and whisper chunks in parallel
+    "upload": "",  # "h264": also write <out>.upload.mp4 for a video site (render.upload)
+    "upload_crf": 18,  # x264 CRF of the upload copy: near-transparent, the site re-encodes it
 }
+PRESETS = ("ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow", "placebo")
+UPLOADS = ("", "h264")
 WHISPER = {
     "model": "models/ggerganov-whisper-cpp-ggml-small.en.bin",
     "dtw": "small.en",
@@ -65,6 +69,7 @@ CLIP = {
     "whisper_args": [],
     "card": [],  # text lines: the whole clip plays in card_s seconds, blurred, under them
     "card_s": 20,
+    "drop": [],  # [[start, end]] source seconds cut like a long pause, before the speed rules (edl.drop)
 }
 CHECK = {"silence_db": -35, "silence_s": 1.0, "loudness_lu": 1.0, "sync_ms": 20}
 FF = ("ffmpeg", "-hide_banner", "-nostdin", "-y")
@@ -90,14 +95,46 @@ class Config:
         self.fps = self.encode["fps"]
         if 48000 % self.fps:
             raise ValueError(f"encode.fps = {self.fps}: a frame must be a whole number of 48 kHz samples")
+        if self.encode["preset"] not in PRESETS:
+            raise ValueError(f"encode.preset = {self.encode['preset']!r}: one of {', '.join(PRESETS)}")
+        if self.encode["upload"] not in UPLOADS:
+            raise ValueError(f'encode.upload = {self.encode["upload"]!r}: "h264", or leave it out')
+        for clip in self.clips:
+            check_drops(clip, (self.rules["keep_head_frames"] + self.rules["keep_tail_frames"] + 1) / self.fps)
+        for path in self.outputs():
+            if any(path.resolve() == Path(c["file"]).resolve() for c in self.clips):
+                raise ValueError(f"{path} is a clip file: an output may never overwrite a recording")
         self.work.mkdir(parents=True, exist_ok=True)
 
     def clip(self, name):
         return next(c for c in self.clips if c["name"] == name)
 
+    def outputs(self):
+        """Every file written beside out: the edit, its captions, the corrected copy and the upload copies."""
+        suffixes = [".srt", ".vtt", ".corrected.mp4"]
+        suffixes += [".upload.mp4", ".corrected.upload.mp4"] if self.encode["upload"] else []
+        return [self.out, *(self.out.with_suffix(s) for s in suffixes)]
+
     def f(self, clip, ext):
         """work/<clip>.<ext>"""
         return self.work / f"{clip if isinstance(clip, str) else clip['name']}.{ext}"
+
+
+def check_drops(clip, shortest):
+    """Drop spans are [start, end] source seconds, each longer than the frames a cut keeps, in order, apart."""
+    spans, name = clip["drop"], clip["name"]
+    if spans and clip["card"]:
+        raise ValueError(f"clip {name}: a card clip plays whole, so it takes no drop")
+    end = 0.0
+    for span in spans:
+        ok = isinstance(span, list) and len(span) == 2 and all(type(x) in (int, float) for x in span)
+        if not ok or not 0 <= span[0] < span[1]:
+            raise ValueError(f"clip {name}: drop {span!r} must be [start, end] with 0 <= start < end")
+        if span[1] - span[0] < shortest:
+            raise ValueError(f"clip {name}: drop {span!r} is shorter than the {shortest:.3f} s a cut keeps")
+        if span[0] < end:
+            raise ValueError(f"clip {name}: drop {span!r} overlaps or precedes the one before it")
+        end = span[1]
 
 
 def run(*args, cwd=None, timeout=None):

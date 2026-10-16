@@ -32,10 +32,10 @@ stage before it left in `work/`. Run one stage again after you change a number.
 | `just condense-transcribe` | `transcribe.py` | the recordings | `work/<clip>.16k.wav`, `.pass1.json`, `.dtw.json` |
 | `just condense-events` | `events.py` | the whisper JSON | `work/<clip>.words.json`, `.events.json`, `.rms.txt` |
 | `just condense-edl` | `edl.py` | words, events, RMS | `work/edl.json` |
-| `just condense-render` | `render.py` | `edl.json` | `work/<clip>.mezz.mkv`, parts, `out/talk.mp4` |
+| `just condense-render` | `render.py` | `edl.json` | `work/<clip>.mezz.mkv`, parts, `out/talk.mp4` (and `talk.upload.mp4`) |
 | `just condense-check` | `check.py` | the edit | a report; exit 1 when a gate fails |
 | `just condense-captions` | `captions.py` | words, `edl.json` | `out/talk.srt`, `out/talk.vtt` |
-| `just condense-overlay` | `overlay.py` | `[[correction]]` entries | `out/talk.corrected.mp4` |
+| `just condense-overlay` | `overlay.py` | `[[correction]]` entries | `out/talk.corrected.mp4` (and `.corrected.upload.mp4`) |
 | `just condense-publish` | `publish.py` | the outputs, `edl.json` | `artifacts/condense/<run_id>/` with a manifest |
 
 Recordings, transcripts and the model stay out of git. `.gitignore` lists them.
@@ -104,6 +104,11 @@ Every span of every clip gets a kind and a speed.
 - With `max_s` and `speed_max` set, the speech speed rises by 0.05 until the clip fits or the cap is reached.
 - A clip ends with its shorter stream, so the last frames never freeze.
 - Fillers are sped up and never cut. A wrong guess costs a blip, not a word.
+- `drop = [[start, end], ...]` removes an editor's choice of source seconds from a clip, talk and all: a
+  set-up stretch, say. Each span becomes one cut with the usual 5 head and 4 tail frames. An edge inside a
+  pause cut moves out to that cut's edge, so the pause joins the drop. Spans must be in order, apart, inside
+  the clip and longer than the 10 frames a cut keeps. A card clip takes none. The drop counts before
+  `max_s` raises the speed. This is the one rule that drops words: the captions leave them out too.
 
 Pause carving protects words that whisper missed or mis-timed. Inside a pause span, every run of 2 or more
 RMS frames above `voiced_db` is a sound. A sound with evidence stays speech. A sound without evidence plays
@@ -134,6 +139,13 @@ as a filler. Only true silence is cut. `evidence` picks the proof:
 5. The encode is HEVC CRF 35 with the `hvc1` tag, so QuickTime, Safari and iOS play it. A light `hqdn3d`
    denoise runs first, because camera grain is most of the bitrate. Audio is AAC at 64 kb/s with
    `-aac_pns 0`: the encoder's noise substitution turned one transient into a +4.0 dBTP spike.
+   `[encode] preset` is the x265 preset, `slow` by default.
+6. `[encode] upload = "h264"` also writes `out/talk.upload.mp4` for a video site: the same frames as H.264
+   CRF 18 (`upload_crf`) with no B-frames and a keyframe every 2 s, and the edit's audio stream copied. Its
+   packets' presentation and decode times are equal and start at 0, so there is no negative CTS offset and no
+   edit list to honour. One video site scrambled the first 8 s of the HEVC file, whose
+   `negative_cts_offsets` stand in for an edit list. The overlay pass then writes
+   `talk.corrected.upload.mp4` the same way. The HEVC files stay the archive copies.
 
 #### Sync
 
@@ -201,7 +213,7 @@ text = "*the queue holds 64 items, not 32"
 The time map moves each note to the output clock. It shows for 3 s in the top right corner. A note that
 lands in a cut moves to the join. Two notes never overlap.
 
-The overlay is its own pass, so the main render is not repeated. The video is encoded once more, from the
+`[rules] overlay_s` sets how long a note shows. The overlay is its own pass, so the main render is not repeated. The video is encoded once more, from the
 parts in `work/` when they are still there. The audio stream is copied.
 
 ## Recover a truncated .mov
