@@ -29,15 +29,25 @@ row.
 ### Matching
 
 Matching is one-to-one: a label matches at most one detection, and a detection
-matches at most one label. Among all one-to-one matchings within the tolerance,
-the scorer picks the one with the most pairs, then the one with the smallest total
-absolute offset. It is an ordered dynamic programme
+matches at most one label. Detections are matched against **every** counted
+operator onset label, including labels outside declared segments and, for the
+`confirmed_only` subset, the labels that are not confirmed. Among all one-to-one
+matchings within the tolerance, the scorer picks the one with the most matches to
+scored labels, then the most pairs overall, then the smallest total absolute
+offset. It is an ordered dynamic programme
 (`scripts/onset_benchmark.py: ordered_pairs`). On a line, any crossing pair can be
-uncrossed without losing a match or adding offset, so the ordered optimum is the
-global optimum. A test compares it with brute force on random small sets.
-It is the same programme as `event_metrics_v2` in `scripts/benchmark.py`. That file
-is not changed, because the admitted holdout plan binds its bytes. A test checks
-that the two agree.
+uncrossed without losing a match, changing which labels are matched or adding
+offset, so the ordered optimum is the global optimum. Tests compare it with brute
+force on random small sets, with and without scored-label priority.
+Without the priority it is the same programme as `event_metrics_v2` in
+`scripts/benchmark.py`. That file is not changed, because the admitted holdout
+plan binds its bytes. A test checks that the two agree.
+
+- **Tolerance boundary.** A pair matches when `|detector − operator| ≤ tolerance +
+  1e-9 s`. Imported labels are rounded to 6 decimal places, so an offset of exactly
+  10 ms can sit a few 1e-12 s above 0.010 in binary floating point. The epsilon
+  keeps that offset inside the 10 ms window; it is far below any frame. The frozen
+  `event_metrics_v2` has no epsilon.
 
 - Offsets are `detector − operator`. A positive median means the detector is later
   than the heard attack. The median is reported but never subtracted.
@@ -51,14 +61,27 @@ that the two agree.
 - **No declared segment (recall only).** Unlabelled time is unknown, not onset-free.
   Recall is matched labels ÷ labels. Precision and F1 are null with
   `no_operator_declared_fully_labelled_segment`.
-- **With `onset_segment` spans.** Overlapping spans are merged. Only labels inside a
-  segment are scored, and labels outside are counted. A detection can match from
-  just outside the segment edge. An unmatched detection is a false positive only if
-  it lies inside a segment. Precision is matched ÷ (matched + false positives).
+- **With `onset_segment` spans.** Overlapping spans are merged. Recall counts only
+  labels inside a segment; labels outside are counted and still take part in
+  matching. The segment edge rule is symmetric:
+  - a detection just outside the edge can match a scored label inside it, and that
+    counts as a hit;
+  - a detection is a false positive only if it lies inside a segment **and** is
+    matched to no operator label at all. A detection inside the segment that pairs
+    with a label just outside a hand-drawn edge is neither a hit nor a false
+    positive; it is counted as `detections_in_scope_matched_to_unscored_labels`.
+
+  Precision is scored matches ÷ (scored matches + false positives). Region labels
+  in an audio editor are dragged by hand and often start a few ms after the first
+  attack; this rule keeps that slack from lowering precision. Example at 25 ms:
+  labels 1.995 s (outside) and 2.5 s, detections 2.004 s and 2.5 s, segment
+  2.0–3.0 s give one scored label, one match, no false positive, precision 1.0.
 - **Abstention.** With 0 scored labels the status is `no_operator_onset_labels`.
   With 1–9 it is `insufficient_operator_onset_labels`. Neither case reports a rate.
-  The same rule applies to the `confirmed_only` subset, which keeps only labels
-  whose `operator_certainty` is `confirmed`.
+  The same rule applies to the `confirmed_only` subset, which scores only labels
+  whose `operator_certainty` is `confirmed`. Unconfirmed labels still take part in
+  matching, so a detection at an unconfirmed attack is never a false positive of
+  that subset.
 - **Counted labels.** A label counts when its actor is `operator`, its basis is
   operator-authored and its status is not `dismissed_candidate`. Quick marks save as
   `needs_review`, and they count. Excluded records are counted by reason.
@@ -82,14 +105,19 @@ offset.
   manifest hash, the source hash, the store hash and revision, and the analysis hash
   with its lineage (`report.analysis_lineage`). It contains no paths. A store bound
   to another manifest is refused. An unbound analysis gives
-  `detector_analysis_unbound`.
+  `detector_analysis_unbound`. As in `report_bundle.py`, an analysis whose
+  `source_lineage.original_source_sha256` names another source is
+  `rejected_original_source_mismatch` and is not scored, so the receipt and the
+  bundle table agree for the same inputs.
 - `scripts/report_bundle.py build` adds `tables/onset_labels.csv` (status and counts)
   and `tables/onset_benchmark.csv` (one row per detector, axis, subset and
   tolerance) to the hash-bound bundle. It also adds `run.onset_labels` to
   `bundle.json`. No free text is copied.
-- `reports/demo.qmd` section 7 reads those tables. With no labels it prints **"No
-  operator onset labels yet."** and `plot_onset_benchmark` draws an abstention
-  panel. It shows no rates until the scorer measures.
+- `reports/demo.qmd` section 7 reads those tables. Every state with zero operator
+  onset labels (no store, an unbound or refused store, or a bound store without
+  onset records) prints **"No operator onset labels yet."** with the store status,
+  and no scoring mode. `plot_onset_benchmark` draws an abstention panel. It shows no
+  rates until the scorer measures.
 
 ## Operator guide: one labelling hour
 
@@ -116,25 +144,31 @@ Tapping along in real time adds your reaction time, often 150–250 ms. That is 
 outside a 50 ms window. Place onsets on a waveform instead.
 
 1. Open the run's `source.wav` in an audio editor with a label track (for example
-   Audacity). This WAV is the run's no-time-stretch decode, and its hash is in the
-   run manifest. `denoised.wav` or `cleaned.wav` from the same run also work if
-   their attacks are easier to see.
+   Audacity). Its hash is in the run manifest, and the import refuses a run whose
+   manifest timeline does not declare `no_time_stretch: true`. `denoised.wav` or
+   `cleaned.wav` from the same run also work if their attacks are easier to see.
 2. Zoom in until single attacks are visible. Add a **point label** at the start of
    each attack you hear. Palm mutes, ghost notes, tapping and legato onsets count
    when you hear them. If you are unsure, put your words in the label text, for
    example `unsure`.
 3. Add one **region label** over each span in which you labelled every onset you
    could hear. This declares an `onset_segment`, and only it enables precision. Do
-   not cover parts you skipped.
+   not cover parts you skipped. The edges need not be exact: a label a few ms
+   outside the region still absorbs its detection (see the edge rule above).
 4. Export the labels as text. Each line is `start<TAB>end<TAB>text`, in seconds from
    the start of the file.
 5. Import them:
 
    ```sh
-   just onset-import RUN_DIR LABELS.txt source.wav onset "onset"
+   just onset-import RUN_DIR LABELS.txt source.wav onset "onset" confirmed accepted_observation
    ```
 
-   The last argument is the text saved for labels whose text is empty. Times are
+   The fifth argument is the text saved for labels whose text is empty. The last
+   two set every imported row's certainty (`uncertain`, the default, or
+   `confirmed`) and review state (`needs_review`, the default, or
+   `accepted_observation`). Only `confirmed` labels enter the `confirmed_only`
+   subset, so import the labels you are sure of as `confirmed` and any doubtful
+   ones from a second label file with the defaults. Times are
    moved onto the source clock: the manifest's `audio_start_seconds` plus the label
    seconds. The import checks every row before it writes anything. Running it again
    replays and does not duplicate.
@@ -185,7 +219,8 @@ A public receipt carries only hashes, counts and the measured rates.
 - Without an approved expected-rhythm reference, a missed label is never a missed
   or extra note.
 - The label-track import accepts only `source.wav`, `denoised.wav` or `cleaned.wav`
-  from the same run, checked against the manifest hashes. No other editor file or
-  clock is supported.
+  from the same run, checked against the manifest hashes, and only when the
+  manifest timeline declares `no_time_stretch: true`. No other editor file or clock
+  is supported. One import applies one certainty and one review state to all rows.
 - The scorer has no MCP tool or skill yet. It runs through `just`, the
   `scripts/onset_benchmark.py` CLI and the report bundle.

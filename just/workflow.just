@@ -262,8 +262,9 @@ annotate-v2 run_dir request:
 
 # Import an operator label track (start TAB end TAB text, seconds in the run WAV) as v2 records.
 # Points become kind (onset or phrase_duration); regions declare onset-labelled segments. Replays on rerun.
-onset-import run_dir labels audio="source.wav" kind="onset" quote="":
-    if [[ -n {{quote(quote)}} ]]; then python3 scripts/annotation_v2.py import-labels {{quote(run_dir)}} --labels {{quote(labels)}} --audio {{quote(audio)}} --point-kind {{quote(kind)}} --quote {{quote(quote)}}; else python3 scripts/annotation_v2.py import-labels {{quote(run_dir)}} --labels {{quote(labels)}} --audio {{quote(audio)}} --point-kind {{quote(kind)}}; fi
+# certainty: uncertain|confirmed (confirmed feeds the confirmed_only subset); status: needs_review|accepted_observation.
+onset-import run_dir labels audio="source.wav" kind="onset" quote="" certainty="uncertain" status="needs_review":
+    args=(import-labels {{quote(run_dir)}} --labels {{quote(labels)}} --audio {{quote(audio)}} --point-kind {{quote(kind)}} --certainty {{quote(certainty)}} --status {{quote(status)}}); if [[ -n {{quote(quote)}} ]]; then args+=(--quote {{quote(quote)}}); fi; python3 scripts/annotation_v2.py "${args[@]}"
 
 # Operator onset labels versus detector onset candidates at 10/25/50 ms; abstains below 10 labels.
 onset-benchmark run_dir output:

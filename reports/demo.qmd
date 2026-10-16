@@ -209,10 +209,16 @@ correctness, and the operator's own placement error is not calibrated.
 onset_summary <- table_of("onset_labels.csv")
 onset_rows <- table_of("onset_benchmark.csv")
 onset_status <- value_of(onset_summary, "status")
+onset_count <- suppressWarnings(as.integer(value_of(onset_summary, "operator_onset_labels")))
+# Every state with zero operator onset labels (no store, an unbound or refused store,
+# or a bound store without onset records) is the same empty state: no scoring mode.
+onset_empty <- identical(onset_status, "no_operator_onset_labels") || identical(onset_count, 0L) ||
+  isTRUE(startsWith(as.character(onset_status), "annotation_store_"))
 if (!verified || is.null(onset_summary)) {
   cat("Unavailable: the bundle did not verify or carries no onset-label table.\n\n")
-} else if (identical(onset_status, "no_operator_onset_labels")) {
+} else if (onset_empty) {
   cat("**No operator onset labels yet.** No precision, recall or F1 is shown. ",
+      "Annotation store: `", value_of(onset_summary, "annotation_store_status"), "`. ",
       "See `docs/spec/ONSET_LABELS.md` for the labelling procedure.\n\n", sep = "")
 } else if (identical(onset_status, "insufficient_operator_onset_labels")) {
   cat("**Fewer than ", value_of(onset_summary, "minimum_operator_labels"),

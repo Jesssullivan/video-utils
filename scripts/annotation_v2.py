@@ -562,13 +562,16 @@ def import_labels(store, labels_path, audio_name, *, point_kind=ONSET_KIND, quot
                   status="needs_review"):
     """Import an operator label track bound to one run-local, no-time-stretch audio file.
 
-    The labelled file must be a run WAV whose sha256 the manifest lists; its first
-    sample sits at the manifest's audio_start_seconds on the source clock. Every row
+    The labelled file must be a run WAV whose sha256 the manifest lists, and the
+    manifest timeline must declare `no_time_stretch: true`; its first sample then
+    sits at the manifest's audio_start_seconds on the source clock. Every row
     is validated before the first write, and keys derive from the label-file hash so a
     repeated import replays instead of duplicating.
     """
     session = store.session
     require(audio_name in LABEL_AUDIO_NAMES, "labelled_audio_name_unsupported")
+    timeline = session.manifest.get("timeline") if isinstance(session.manifest.get("timeline"), dict) else {}
+    require(timeline.get("no_time_stretch") is True, "labelled_audio_requires_no_time_stretch_timeline", 409)
     expected = session.manifest.get("output_sha256", {}).get(audio_name) if isinstance(session.manifest.get("output_sha256"), dict) else None
     path = session.root / audio_name
     require(sha(expected) and not path.is_symlink() and path.is_file(), "labelled_audio_not_run_bound", 409)

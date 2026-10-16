@@ -12,7 +12,10 @@ import json
 import os
 from pathlib import Path
 import random
+import re
+import shutil
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -36,6 +39,7 @@ review = load("review_server_onset_tests", SCRIPTS / "review_server.py")
 benchmark = load("onset_benchmark_tests", SCRIPTS / "onset_benchmark.py")
 event_benchmark = load("benchmark_event_tests", SCRIPTS / "benchmark.py")
 TOLERANCES = (.010, .025, .050)
+RSCRIPT = shutil.which("Rscript")
 
 
 def sha(data):
@@ -79,19 +83,19 @@ def separated_times(rng, count, start=1.0, gap=(0.15, 0.4)):
     return times
 
 
-def brute_force(first, second, tolerance):
-    """Maximum one-to-one match count, then minimum total offset, over all matchings."""
-    best = (0, 0.0)
+def brute_force(first, second, tolerance, priority=None):
+    """Maximum prioritised count, then maximum count, then minimum total offset, over all matchings."""
+    weight = priority or [False] * len(first)
+    best = (0, 0, 0.0)
     edges = [(i, j) for i in range(len(first)) for j in range(len(second)) if abs(first[i] - second[j]) <= tolerance]
     for size in range(len(edges), 0, -1):
         for chosen in itertools.combinations(edges, size):
             if len({i for i, _ in chosen}) < size or len({j for _, j in chosen}) < size:
                 continue
+            preferred = sum(weight[i] for i, _ in chosen)
             cost = sum(abs(first[i] - second[j]) for i, j in chosen)
-            if size > best[0] or (size == best[0] and cost < best[1] - 1e-12):
-                best = (size, cost)
-        if best[0] == size:
-            return best
+            if (preferred, size) > best[:2] or ((preferred, size) == best[:2] and cost < best[2] - 1e-12):
+                best = (preferred, size, cost)
     return best
 
 
@@ -140,7 +144,7 @@ class LabelImportTests(unittest.TestCase):
             stream.setparams((1, 2, 8000, 0, "NONE", "not compressed"))
             stream.writeframes(struct.pack("<h", 0) * 8000 * 12)
         self.manifest = {"source": {"sha256": "a" * 64}, "output_sha256": {"source.wav": sha((self.root / "source.wav").read_bytes())},
-                         "timeline": {"audio_start_seconds": 0.25, "format_start_seconds": 0},
+                         "timeline": {"audio_start_seconds": 0.25, "format_start_seconds": 0, "no_time_stretch": True},
                          "pcm": {"duration_seconds": 12}}
         (self.root / "manifest.json").write_text(json.dumps(self.manifest))
         self.session = review.Session(self.root, open_media=False)
@@ -206,6 +210,19 @@ class LabelImportTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, "labelled_audio_not_run_bound")
         self.assertFalse(self.store.path.exists())
 
+    def test_labelled_audio_requires_a_no_time_stretch_timeline(self):
+        self.write_labels("1.0\t1.0\tx\n")
+        for timeline in ({"audio_start_seconds": 0.25, "format_start_seconds": 0},
+                         {"audio_start_seconds": 0.25, "format_start_seconds": 0, "no_time_stretch": False}):
+            with self.subTest(timeline=timeline):
+                (self.root / "manifest.json").write_text(json.dumps({**self.manifest, "timeline": timeline}))
+                session = review.Session(self.root, open_media=False)
+                self.addCleanup(session.close)
+                with self.assertRaises(annotations.AnnotationError) as caught:
+                    annotations.import_labels(annotations.AnnotationStore(session), self.labels, "source.wav")
+                self.assertEqual(caught.exception.code, "labelled_audio_requires_no_time_stretch_timeline")
+                self.assertFalse(self.store.path.exists())
+
     def test_cli_import_and_argument_contract(self):
         self.write_labels("1.0\t1.0\tx\n")
         with contextlib.redirect_stdout(io.StringIO()) as stream:
@@ -227,8 +244,22 @@ class OnsetScorerTests(unittest.TestCase):
             self.assertEqual(len({i for i, _ in pairs}), len(pairs))
             self.assertEqual(len({j for _, j in pairs}), len(pairs))
             self.assertTrue(all(abs(first[i] - second[j]) <= tolerance for i, j in pairs))
-            count, cost = brute_force(first, second, tolerance)
+            _, count, cost = brute_force(first, second, tolerance)
             self.assertEqual(len(pairs), count)
+            self.assertAlmostEqual(sum(abs(first[i] - second[j]) for i, j in pairs), cost, places=9)
+
+    def test_prioritised_matching_equals_brute_force_optimum(self):
+        rng = random.Random(5492)
+        for _ in range(150):
+            first = sorted(round(rng.uniform(0, 0.3), 4) for _ in range(rng.randint(0, 5)))
+            second = sorted(round(rng.uniform(0, 0.3), 4) for _ in range(rng.randint(0, 5)))
+            priority = [rng.random() < 0.5 for _ in first]
+            tolerance = rng.choice(TOLERANCES)
+            pairs = benchmark.ordered_pairs(first, second, tolerance, priority=priority)
+            self.assertEqual(len({i for i, _ in pairs}), len(pairs))
+            self.assertEqual(len({j for _, j in pairs}), len(pairs))
+            preferred, count, cost = brute_force(first, second, tolerance, priority)
+            self.assertEqual((sum(priority[i] for i, _ in pairs), len(pairs)), (preferred, count))
             self.assertAlmostEqual(sum(abs(first[i] - second[j]) for i, j in pairs), cost, places=9)
 
     def test_matcher_agrees_with_frozen_event_metrics_v2(self):
@@ -298,6 +329,61 @@ class OnsetScorerTests(unittest.TestCase):
         result = benchmark.onset_agreement(labels, [1.0, 2.0, 3.0, 9.0, 9.5], .01, [[0.5, 3.5]])
         self.assertEqual((result["operator_label_count"], result["matched_count"], result["false_positive_count"]), (3, 3, 0))
         self.assertEqual(result["detections_in_scope"], 3)
+
+    def test_segment_edge_detection_matched_to_outside_label_is_not_a_false_positive(self):
+        # A hand-drawn region starts 5 ms after the first heard attack; its detection lands inside.
+        result = benchmark.onset_agreement([1.995, 2.5], [2.004, 2.5], .025, [[2.0, 3.0]])
+        self.assertEqual((result["operator_label_count"], result["matched_count"], result["false_positive_count"]), (1, 1, 0))
+        self.assertEqual((result["precision"], result["recall"], result["f1"]), (1.0, 1.0, 1.0))
+        self.assertEqual(result["detections_in_scope_matched_to_unscored_labels"], 1)
+        self.assertEqual(result["unscored_operator_label_count"], 1)
+        # Symmetric case: a detection just outside the edge still matches a label inside it.
+        result = benchmark.onset_agreement([2.004, 2.5], [1.995, 2.5], .025, [[2.0, 3.0]])
+        self.assertEqual((result["operator_label_count"], result["matched_count"], result["false_positive_count"]), (2, 2, 0))
+        self.assertEqual(result["detections_in_scope"], 1)
+        # An in-segment detection near no label at all is still a false positive.
+        result = benchmark.onset_agreement([1.995, 2.5], [2.004, 2.5, 2.75], .025, [[2.0, 3.0]])
+        self.assertEqual((result["matched_count"], result["false_positive_count"]), (1, 1))
+        self.assertAlmostEqual(result["precision"], 0.5)
+
+    def test_contested_edge_detection_prefers_the_scored_label(self):
+        # One detection between a label outside the segment and one inside it, equally far.
+        result = benchmark.onset_agreement([1.99, 2.01], [2.0], .025, [[2.0, 3.0]])
+        self.assertEqual((result["operator_label_count"], result["matched_count"], result["missed_label_count"]), (1, 1, 0))
+        self.assertEqual((result["false_positive_count"], result["contested_detection_count"]), (0, 1))
+
+    def test_edge_jitter_property_with_tight_hand_drawn_segments(self):
+        rng = random.Random(91)
+        for _ in range(60):
+            labels = separated_times(rng, rng.randint(14, 40))
+            inner = labels[2:-2]
+            # Region edges dragged a few ms after the first and before the last scored attack.
+            segments = [[inner[0] - rng.uniform(-0.004, 0.004), inner[-1] + rng.uniform(-0.004, 0.004)]]
+            scored = [value for value in labels if segments[0][0] <= value <= segments[0][1]]
+            detections = [value + rng.uniform(-0.009, 0.009) for value in labels]
+            for tolerance in TOLERANCES:
+                result = benchmark.onset_agreement(labels, detections, tolerance, segments)
+                self.assertEqual(result["operator_label_count"], len(scored))
+                self.assertEqual((result["matched_count"], result["false_positive_count"]), (len(scored), 0))
+                self.assertEqual(result["precision"], 1.0)
+
+    def test_offset_of_exactly_the_tolerance_matches_after_label_rounding(self):
+        labels = [round(value, 6) for value in separated_times(random.Random(12), 12)]
+        for tolerance in TOLERANCES:
+            detections = [round(value + tolerance, 6) for value in labels]
+            result = benchmark.onset_agreement(labels, detections, tolerance)
+            self.assertEqual(result["recall"], 1.0, tolerance)
+            late = benchmark.onset_agreement(labels, [round(value + tolerance + 0.000002, 6) for value in labels], tolerance)
+            self.assertEqual(late["matched_count"], 0)
+
+    def test_confirmed_only_matches_against_unconfirmed_labels_too(self):
+        times = [1.0 + index * 0.3 for index in range(24)]
+        items = [onset(value, certainty="confirmed" if index % 2 else "uncertain") for index, value in enumerate(times)]
+        document = benchmark.onset_label_benchmark(store_of(segment(0.9, 9.0), *items), analysis_of(times))
+        confirmed = document["detectors"][0]["subsets"]["confirmed_only"]["by_tolerance"][0]
+        self.assertEqual((confirmed["operator_label_count"], confirmed["matched_count"]), (12, 12))
+        self.assertEqual((confirmed["false_positive_count"], confirmed["precision"]), (0, 1.0))
+        self.assertEqual(confirmed["detections_in_scope_matched_to_unscored_labels"], 12)
 
     def benchmark_for(self, items, analysis):
         return benchmark.onset_label_benchmark(store_of(*items), analysis)
@@ -415,6 +501,18 @@ class OnsetReceiptTests(unittest.TestCase):
         self.assertEqual(receipt["status"], "detector_analysis_unbound")
         self.assertEqual(receipt["detectors"], [])
 
+    def test_analysis_declaring_another_original_source_is_not_scored(self):
+        self.write_analysis("a" * 64)
+        analysis = json.loads((self.root / "analysis.json").read_text())
+        analysis["source_lineage"] = {"original_source_sha256": "e" * 64}
+        (self.root / "analysis.json").write_text(json.dumps(analysis))
+        receipt = benchmark.onset_labels_receipt(self.root)
+        self.assertEqual(receipt["inputs"]["analysis"]["status"], "rejected_original_source_mismatch")
+        self.assertEqual((receipt["status"], receipt["detectors"]), ("detector_analysis_unbound", []))
+        analysis["source_lineage"] = {"original_source_sha256": "a" * 64}
+        (self.root / "analysis.json").write_text(json.dumps(analysis))
+        self.assertEqual(benchmark.onset_labels_receipt(self.root)["status"], "measured_operator_label_agreement")
+
     def test_store_bound_to_other_manifest_is_refused(self):
         self.write_analysis("a" * 64)
         store = json.loads((self.root / "review-annotations-v2.json").read_text())
@@ -448,6 +546,17 @@ class OnsetReportTableTests(unittest.TestCase):
         status, _ = self.bundle_tests.rb.verify(output, check_origin=True)
         self.assertEqual(status, "verified")
 
+    def test_bundle_without_a_store_is_the_no_labels_empty_state(self):
+        case = self.fixture()
+        case.store_path.unlink()
+        _, output = case.build()
+        run = case.index(output)["run"]["onset_labels"]
+        self.assertEqual((run["status"], run["operator_label_count"], run["metric_rows"]), ("annotation_store_absent", 0, 0))
+        summary = self.table(output, "onset_labels.csv")
+        self.assertIn("operator_onset_labels,0", summary)
+        self.assertIn("annotation_store_status,annotation_store_absent", summary)
+        self.assertEqual(len(self.table(output, "onset_benchmark.csv")), 1)
+
     def test_labelled_store_produces_metric_rows_without_free_text(self):
         case = self.fixture()
         times = [10.0 + index * 0.3 for index in range(12)]
@@ -475,6 +584,30 @@ class OnsetReportTableTests(unittest.TestCase):
             if path.is_file():
                 self.assertNotIn(b"PRIVATE-FREE-TEXT", path.read_bytes())
 
+    def onset_chunk_output(self, output):
+        """Run the shipped section-7 R chunk and its table helpers against one bundle."""
+        qmd = (ROOT / "reports" / "demo.qmd").read_text()
+        helpers = re.search(r"^table_of <- function.*?^value_of <- function.*?^}$", qmd, re.S | re.M).group(0)
+        chunk = re.search(r"^```\{r onsets\}\n(.*?)^```$", qmd, re.S | re.M).group(1)
+        script = output.parent / f"onset-chunk-{output.name}.R"
+        script.write_text(f"bundle_dir <- {json.dumps(str(output))}\nverified <- TRUE\n{helpers}\n{chunk}")
+        result = subprocess.run([RSCRIPT, "--vanilla", str(script)], capture_output=True, text=True, timeout=60)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout
+
+    @unittest.skipUnless(RSCRIPT, "Rscript (report shell) required to run the shipped report chunk")
+    def test_report_chunk_renders_every_no_label_state_as_the_empty_state(self):
+        bound = self.fixture()
+        _, bound_output = bound.build()
+        absent = self.fixture()
+        absent.store_path.unlink()
+        _, absent_output = absent.build()
+        for output in (bound_output, absent_output):
+            text = self.onset_chunk_output(output)
+            self.assertIn("No operator onset labels yet.", text)
+            self.assertNotIn("Scoring mode", text)
+        self.assertIn("Annotation store: `annotation_store_absent`", self.onset_chunk_output(absent_output))
+
     def test_report_sources_render_empty_state_honestly(self):
         qmd = (ROOT / "reports" / "demo.qmd").read_text()
         plots = (ROOT / "reports" / "plots.R").read_text()
@@ -486,6 +619,41 @@ class OnsetReportTableTests(unittest.TestCase):
         guide = (ROOT / "docs" / "spec" / "ONSET_LABELS.md").read_text()
         for phrase in ("just review", "onset-import", "onset-benchmark", "phrase-anchor-score", "10, 25 and 50 ms"):
             self.assertIn(phrase, guide)
+
+
+NODE = shutil.which("node")
+
+
+@unittest.skipUnless(NODE, "Node required for shipped JavaScript behaviour")
+class OnsetReviewDisplayTests(unittest.TestCase):
+    """Stored onset/onset_segment records through the shipped review UI display paths."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.s1 = load("review_ui_s1_onsets", ROOT / "tests" / "test_review_ui_s1.py")
+
+    def check_js(self, code):
+        result = subprocess.run([NODE, "-e", self.s1.HARNESS + code, str(ROOT / "review" / "practice.js")],
+                                capture_output=True, text=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return json.loads(result.stdout)
+
+    def test_stored_onset_segment_and_onset_render_as_user_reported_span_and_point(self):
+        records = [segment(4.0, 5.0), onset(4.5, certainty="confirmed")]
+        value = self.check_js(f'''run("issueStore={{annotations:"+JSON.stringify({json.dumps(records)})+"}}");run("renderIssues()");
+          run("renderCallouts(4.5)");
+          emit({{issues:element("saved-issues").children.map(a=>[a.children[0].text,a.children[1].text,a.children[1].cls]),
+                badges:element("review-callouts").children.map(b=>[b.children[0].text,b.children[1].text])}});''')
+        self.assertEqual(value["issues"], [["4 → 5", "USER REPORTED · onset segment · user reports certainty", "issue-provenance"],
+                                           ["4.5 · point", "USER REPORTED · onset · user reports certainty", "issue-provenance"]])
+        self.assertEqual(value["badges"], [["USER REPORTED · onset segment", "4 → 5"],
+                                           ["USER REPORTED · onset", "Point @ 4.5 · display cue only"]])
+
+    def test_edit_form_offers_both_onset_kinds_for_a_stored_record(self):
+        page = (ROOT / "review" / "index.html").read_text()
+        select = re.search(r'<select id="issue-kind">(.*?)</select>', page, re.S).group(1)
+        self.assertIn('<option value="onset">', select)
+        self.assertIn('<option value="onset_segment">', select)
 
 
 if __name__ == "__main__":
