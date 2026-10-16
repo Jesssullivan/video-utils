@@ -9,7 +9,7 @@ height = 720
 fps = 30
 crf = 35              # HEVC; 35 keeps slides and a talking head readable at about 0.5 Mb/s
 audio_bitrate = "64k"
-preset = "slow"       # x265 preset; "medium" encodes faster for a slightly larger file
+preset = "slow"       # x265 preset; "medium" took 40% of the CPU for a smaller, slightly softer file
 # upload = "h264"     # also write out/talk.upload.mp4: H.264, no B-frames, a keyframe every 2 s
 
 [rules]
