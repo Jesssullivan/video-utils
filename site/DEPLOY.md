@@ -6,11 +6,15 @@ copy of this site. Creating the project, attaching a domain and deploying are
 outward-facing actions that need a **separate operator go**. This lane did not
 run Wrangler and Wrangler is not a dependency of this site.
 
-Current state (2026-10-15, S4 site lane): the uplifted site was
-re-verified locally through gates 1 to 9 below, and the `site` job in
-`.github/workflows/ci.yml` now runs gates 1 to 9 on every push and proposed change
-as a blocking check. The deploy is still **awaiting the operator go**:
-`just site-pages-deploy` refuses (exit 2), and CI asserts that it does.
+Current state (2026-10-15, S4 site lane): gates 1 to 8 below passed
+locally on the uplifted site. Gate 9 passed on the hosted runner; locally it
+had failures that do not reproduce there (one in the privacy scan's
+linked-worktree handling, one from a host network event; see the dated S4
+site receipt in `docs/agent-notes/`), so gate 9 is not claimed as a local
+pass. The `site` job in `.github/workflows/ci.yml` now runs gates 1 to 9 on
+every push and proposed change as a blocking check. The deploy is still
+**awaiting the operator go**: `just site-pages-deploy` refuses (exit 2), and CI
+asserts that it does.
 
 No credential belongs in this repository: no API token, no account id, no
 project secret, in any file, script, recipe or workflow.
@@ -91,22 +95,30 @@ served copy.
 ## Continuous verification (hosted CI)
 
 The `site` job in `.github/workflows/ci.yml` runs on the hosted Ubuntu runner
-with the `.#web` dev shell (Node 22, pnpm switched to the `packageManager` pin)
-and the runner's own bazelisk for `inhouse-link.mjs`. It holds no credential,
-sets no deploy variable and never runs Wrangler. Steps, in order:
+with the `.#web` dev shell (Node 22, pnpm switched to the `packageManager` pin,
+just and git) and the runner's own bazelisk for `inhouse-link.mjs`. The `.#web`
+shell has no Python and no gitleaks, so the job builds `python3` and `gitleaks`
+from the flake-locked nixpkgs (the same store paths as the default dev shell)
+and puts them first on `PATH`; the runner image's own Python is not used for
+the tests. It holds no credential, sets no deploy variable and never runs
+Wrangler. Steps, in order:
 
 | Step | Gates | Fails the job when |
 | --- | --- | --- |
 | Frozen install, then `git diff --exit-code -- pnpm-lock.yaml` | 1 | the install fails or the lockfile changes |
 | `node scripts/inhouse-link.mjs` | 1 | an in-house package is missing or differs from its MODULE.bazel pin |
+| `git diff` of tracked files | 1 | any tracked file other than `MODULE.bazel.lock` changed; the known `usagesDigest` rewrite in `MODULE.bazel.lock` by the link's Bazel run only warns |
 | `pnpm run check` and `pnpm run build` | 2, 3 | either exits non-zero |
 | leak scans on build, source and vendor | 4, 5 | any finding |
-| `SITE_VERIFY_BROWSER=1 PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v`, with gitleaks from the default dev shell on `PATH` | 6 to 9 | any failure, or a skip of the browser suite (`e2e_browser_unavailable`), gitleaks or the build classes |
+| `SITE_VERIFY_BROWSER=1 PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v`, with the pinned `python3` and `gitleaks` on `PATH` | 6 to 9 | any failure; the run not ending in `OK`; or any skip other than the allowlisted private-hostname skip (so a skipped browser suite, gitleaks or build class, or any new skip reason, fails) |
+| browser summary (always runs) | report only | never; it prints the V1 to V7 metrics, smoke, skip-link and axe counts and the browser ladder step from `browser-summary.json` |
 | `just site-pages-deploy` | 10 (refusal only) | the recipe exits with anything but 2 |
 
-The browser suite uses the runner's installed Google Chrome (ladder step c), so
-no browser is downloaded in CI either. A green job is source and build
-evidence only; it is not a served-copy check and not a WCAG claim.
+The browser suite is expected to use the runner's installed Google Chrome
+(ladder step c), so no browser is downloaded in CI either. That step is
+expected, not yet measured: the browser summary step prints the ladder step the
+run actually took. A green job is source and build evidence only; it is not a
+served-copy check and not a WCAG claim.
 
 ## Deploy command (for the operator, after the go)
 

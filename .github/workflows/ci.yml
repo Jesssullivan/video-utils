@@ -71,6 +71,20 @@ jobs:
       # The in-house packages are Bazel registry modules (RU9); the runner's bazelisk builds them at their pins.
       - name: Materialise the in-house packages
         run: nix develop --no-write-lock-file .#web --command bash -c 'cd site && node scripts/inhouse-link.mjs'
+      # inhouse-link's Bazel run rewrites one usagesDigest in MODULE.bazel.lock on the runner too, so later
+      # steps evaluate a dirty flake tree (the dev shells do not read the tree's source). That known file warns;
+      # drift in any other tracked file fails. The bazel job keeps --lockfile_mode=error on the committed lock.
+      - name: Tracked-file drift after the in-house link
+        run: |
+          git diff --stat
+          other="$(git diff --name-only | grep -vx 'MODULE.bazel.lock' || true)"
+          if [ -n "$other" ]; then
+            echo "tracked files changed by install or inhouse-link: $other" >&2
+            exit 1
+          fi
+          if ! git diff --quiet -- MODULE.bazel.lock; then
+            echo "::warning file=MODULE.bazel.lock::inhouse-link rewrote MODULE.bazel.lock (known usagesDigest drift)"
+          fi
       - name: Type check and build
         run: nix develop --no-write-lock-file .#web --command bash -c 'cd site && pnpm run check && pnpm run build'
       - name: Leak scans (build, source, vendor)
@@ -79,21 +93,60 @@ jobs:
           'cd site && node scripts/leak-scan.mjs build
           && node scripts/leak-scan.mjs . --surface source
           && node scripts/leak-scan.mjs node_modules/@xoxd --surface vendor'
+      # python3 and gitleaks come from the flake-locked nixpkgs (the same store paths as the default dev shell)
+      # without evaluating the whole default shell; .#web supplies node, pnpm, just and git.
+      - name: Pinned test tools
+        run: |
+          py="$(nix build --inputs-from . --no-link --print-out-paths nixpkgs#python3)"
+          gl="$(nix build --inputs-from . --no-link --print-out-paths nixpkgs#gitleaks)"
+          echo "SITE_TOOLS_PATH=$py/bin:$gl/bin" >> "$GITHUB_ENV"
+          "$py/bin/python3" --version
+          "$gl/bin/gitleaks" version
       # Rebuilds once, then the link check, privacy scan, gitleaks with its positive control and the browser
-      # suite (smoke and axe) on the runner's installed Chrome. A browser skip fails this step.
+      # suite (smoke and axe) on a browser found by the ladder in site/e2e (installed Chrome is expected on the
+      # runner). Fails closed: the run must end in OK and every reported skip must be the allowlisted
+      # private-hostname skip, so a skipped browser suite, gitleaks or build class (or any new skip) fails.
       - name: Site tests
         run: |
           set -o pipefail
-          GITLEAKS_DIR="$(nix develop --no-write-lock-file --command bash -c 'dirname "$(command -v gitleaks)"')"
-          export GITLEAKS_DIR SITE_VERIFY_BROWSER=1 SITE_VERIFY_OUT_DIR="$RUNNER_TEMP/site-verify"
+          export SITE_VERIFY_BROWSER=1 SITE_VERIFY_OUT_DIR="$RUNNER_TEMP/site-verify"
+          log="$RUNNER_TEMP/site-tests.log"
           mkdir -p "$SITE_VERIFY_OUT_DIR"
           nix develop --no-write-lock-file .#web --command bash -c \
-            'PATH="$PATH:$GITLEAKS_DIR" PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v' \
-            2>&1 | tee "$RUNNER_TEMP/site-tests.log"
-          if grep -E "skipped '(e2e_browser_unavailable|gitleaks_unavailable|node is not|pnpm is not|site/node_modules is absent|pnpm storage gate)" "$RUNNER_TEMP/site-tests.log"; then
-            echo "a required site gate was skipped" >&2
+            'PATH="$SITE_TOOLS_PATH:$PATH" PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v' \
+            2>&1 | tee "$log"
+          last="$(tail -n 1 "$log")"
+          if ! printf '%s\n' "$last" | grep -Eqx 'OK( \(skipped=[0-9]+\))?'; then
+            echo "unexpected final line: $last" >&2
             exit 1
           fi
+          reported="$(printf '%s\n' "$last" | sed -nE 's/^OK \(skipped=([0-9]+)\)$/\1/p')"
+          allowed="$(grep -cE "skipped 'private app hostname is null in deploy/cloudflare" "$log" || true)"
+          if [ "${reported:-0}" != "$allowed" ]; then
+            echo "skips reported: ${reported:-0}; allowlisted private-hostname skips: $allowed" >&2
+            grep -E "skipped '" "$log" >&2 || true
+            exit 1
+          fi
+      - name: Browser summary (V1 to V7, ladder step)
+        if: always()
+        run: |
+          summary="$RUNNER_TEMP/site-verify/browser-summary.json"
+          if [ ! -f "$summary" ]; then echo "no browser-summary.json was written"; exit 0; fi
+          PATH="$SITE_TOOLS_PATH:$PATH" python3 -I - "$summary" <<'PY'
+          import json, sys
+          s = json.load(open(sys.argv[1], encoding="utf-8"))
+          for key in ("skip_code", "browser_ladder_step", "browser_source", "browser_version", "playwright_version",
+                      "axe_version", "browser_download_bytes", "external_requests_observed"):
+              print(f"{key}: {s.get(key)}")
+          sm, sl, a = s.get("smoke", {}), s.get("skip_link", {}), s.get("a11y", {})
+          print(f"smoke: {sm.get('cases_passed')}/{sm.get('cases_expected')} passed, console_errors {sm.get('console_errors')}, "
+                f"page_errors {sm.get('page_errors')}, max_overflow_px {sm.get('max_overflow_px')}")
+          print(f"skip_link: {sl.get('passed')}/{sl.get('expected')}")
+          print(f"axe: {a.get('scans_executed')}/{a.get('scans_expected')} scans, mode_assertion {a.get('mode_assertion_held')}, "
+                f"violations {a.get('violations_total')}, incomplete {a.get('incomplete_total')} ({a.get('incomplete_rules')})")
+          for key, m in sorted((s.get("metrics") or {}).items()):
+              print(f"{key}: {m.get('numerator')}/{m.get('denominator')} pass={m.get('pass')}")
+          PY
       - name: Deploy recipe still refuses
         run: |
           set +e
