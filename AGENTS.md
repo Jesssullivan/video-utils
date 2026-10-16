@@ -136,6 +136,29 @@ results when that input changes. Shareable overlays default to compact section/
 phrase labels, BPM and brief issue badges. User-reported issues retain their
 authorship and must remain distinguishable from detector hypotheses.
 
+## Practice capture (`./livecode`)
+
+`livecode/` is an operator capture tool: screen, camera corner and microphone,
+recorded to MKV or streamed to RTMP with plain FFmpeg on macOS. Its MKV is a
+practice take for take intake. It came from xoxd-ai/lab (see `CHANGELOG.md`)
+and is described in `livecode/README.md`.
+
+- **Exempt from the typed-MCP-hook rule (operator ruling R-C788, 2026-10-16,
+  "Skill only, no MCP").** livecode is interactive and gated by macOS Screen
+  Recording, Camera and Microphone permission, and agents never start screen,
+  camera or microphone capture. It has the skill `.agents/skills/livecode/`
+  (usage and setup) and no MCP tool or `program/tools.json` entry. Do not add
+  one, or any other agent path that opens a capture device, without a new
+  operator ruling.
+- It is a shard. It depends on nothing else here (no `//:repo_data`; CI checks
+  with `bazel query`), its test takes the script from `LIVECODE_UNDER_TEST`,
+  and its version is `package.nix` `passthru.version`, mirrored by
+  `livecode --version` and its CHANGELOG row (`tests/test_bazel_graph_s3.py`).
+  The flake `shards` list generates `packages` and `checks`.
+- Host storage policy stays with the deployer. The tool carries no host's
+  paths or volume UUID: `LIVECODE_DIR` is required, and the deployer supplies
+  `LIVECODE_VOLUME_UUID`. The internal-disk refusal is the tool's own default.
+
 ## Talk condensing (`./condense`)
 
 `condense/` condenses recorded talks: long pauses are cut, short pauses and

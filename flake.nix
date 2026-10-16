@@ -4,10 +4,35 @@
   # Talk condensing keeps the revision its edits were made with: ffmpeg 8.1.2, whisper-cpp 1.8.4.
   inputs.nixpkgs-condense.url = "github:NixOS/nixpkgs/7c8764b7c7b09b34f632464276218ef9090eaa11";
 
-  outputs = { nixpkgs, nixpkgs-condense, ... }: let
+  outputs = { self, nixpkgs, nixpkgs-condense, ... }: let
     systems = [ "aarch64-darwin" "x86_64-linux" "aarch64-linux" ];
     forAllSystems = nixpkgs.lib.genAttrs systems;
+    inherit (nixpkgs) lib;
+    # Shards (AGENTS.md, livecode): self-contained directories, each with a
+    # callPackage-able package.nix and a tests/ directory that takes the built
+    # program from <NAME>_UNDER_TEST. tests/test_bazel_graph_s3.py holds this
+    # list equal to the directories, their Bazel packages and CHANGELOG rows.
+    shards = [ "livecode" ];
   in {
+    packages = forAllSystems (system: let
+      pkgs = import nixpkgs { inherit system; };
+    in lib.genAttrs shards (name: pkgs.callPackage (./. + "/${name}/package.nix") { }));
+
+    # The shard's own test file against the built package; no FFmpeg, camera or macOS.
+    checks = forAllSystems (system: let
+      pkgs = import nixpkgs { inherit system; };
+    in lib.genAttrs shards (name: let
+      package = self.packages.${system}.${name};
+      tests = builtins.path { path = ./. + "/${name}/tests"; name = "${name}-tests"; };
+    in pkgs.runCommand "${name}-check" {
+      nativeBuildInputs = [ pkgs.bash pkgs.python3 ];
+      "${lib.toUpper name}_UNDER_TEST" = lib.getExe package;
+      PYTHONDONTWRITEBYTECODE = "1";
+    } ''
+      python3 -m unittest discover -s ${tests} -p 'test_*.py' -v
+      touch "$out"
+    ''));
+
     devShells = forAllSystems (system: let
       pkgs = import nixpkgs { inherit system; };
       core = with pkgs; [ rustc cargo rustfmt clippy ffmpeg-headless just jq python3 uv git gh gitleaks shellcheck ];

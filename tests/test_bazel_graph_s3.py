@@ -37,14 +37,14 @@ REQUIRED_FILES = (
     ".bazelversion", ".bazelrc", ".bazelignore", "MODULE.bazel", "BUILD.bazel",
     "src/BUILD.bazel", "scripts/BUILD.bazel", "tests/BUILD.bazel", "web/BUILD.bazel",
     "native/au-spike/BUILD.bazel", "just/bazel.just", "site/BUILD.bazel", "bazel/BUILD.bazel",
-    "condense/BUILD.bazel",
+    "condense/BUILD.bazel", "livecode/BUILD.bazel",
 )
 LANE_FILES = (
     "bazel/test_classification_s3_full.json", "bazel/known_host_failures.json", "bazel/ci-bazel-full.draft.yml",
     "bazel/site_build.mjs", "bazel/host_gate.py", "bazel/full_run_report.py",
 )
 OWNED_PACKAGES = ("", "src", "scripts", "tests", "web", "site", "native/au-spike", "tools/bazel", "bazel",
-                  "condense")
+                  "condense", "livecode")
 HELPER_FILES = (
     "tools/bazel/BUILD.bazel", "tools/bazel/python.bzl", "tools/bazel/rust.bzl",
     "tools/bazel/unittest_main.py", "tools/bazel/run.py", "tools/bazel/web/sveltekit.mjs",
@@ -371,7 +371,7 @@ def bazel_texts(root: Path) -> dict[str, str]:
     """Every Bazel-owned text file: MODULE.bazel, each BUILD.bazel and tools/bazel/*.bzl."""
     paths = [root / "MODULE.bazel", root / "BUILD.bazel"]
     paths += [root / package / "BUILD.bazel" for package in ("src", "scripts", "tests", "web", "native/au-spike",
-                                                               "tools/bazel", "bazel", "condense")]
+                                                               "tools/bazel", "bazel", "condense", "livecode")]
     paths += sorted((root / "tools/bazel").glob("*.bzl")) if (root / "tools/bazel").is_dir() else []
     return {str(path.relative_to(root)): path.read_text() for path in paths if path.is_file()}
 
@@ -868,6 +868,59 @@ def load_lane_helper(root: Path, name: str):
     return module
 
 
+# --------------------------------------------------------------------------- shards (AGENTS.md, livecode)
+
+SHARD_LIST = re.compile(r"^\s*shards = \[([^\]]*)\];", re.M)
+SEMVER = r"\d+\.\d+\.\d+"
+
+
+def flake_shards(root: Path) -> list[str] | None:
+    match = SHARD_LIST.search((root / "flake.nix").read_text())
+    return re.findall(r'"([a-z0-9-]+)"', match.group(1)) if match else None
+
+
+def shard_errors(root: Path) -> list[str]:
+    """Flake shards equal the package.nix directories and their Bazel packages; versions agree; tests use env."""
+    shards = flake_shards(root)
+    if shards is None:
+        return ["flake.nix has no `shards = [ ... ];` list"]
+    errors = []
+    on_disk = sorted(path.parent.name for path in root.glob("*/package.nix"))
+    if sorted(shards) != on_disk:
+        errors.append(f"flake shards {sorted(shards)} differ from the package.nix directories {on_disk}")
+    changelog = (root / "CHANGELOG.md").read_text()
+    for name in shards:
+        directory, env = root / name, f"{name.upper().replace('-', '_')}_UNDER_TEST"
+        if name not in OWNED_PACKAGES or not (directory / "BUILD.bazel").is_file():
+            errors.append(f"shard {name} is not an owned Bazel package")
+            continue
+        package = (directory / "package.nix").read_text() if (directory / "package.nix").is_file() else ""
+        versions = set(re.findall(rf'^\s*version = "({SEMVER})";', package, re.M))
+        if len(versions) != 1:
+            errors.append(f"{name}/package.nix must declare exactly one version, found {sorted(versions)}")
+            continue
+        version = versions.pop()
+        script = directory / f"{name}.sh"
+        if script.is_file():
+            literal = re.findall(rf'^[A-Z_]+_VERSION="({SEMVER})"$', script.read_text(), re.M)
+            if literal != [version]:
+                errors.append(f"{name}/{name}.sh version {literal} differs from package.nix {version}")
+        rows = re.findall(rf"^- `{re.escape(name)}` ({SEMVER}):", changelog, re.M)
+        if version not in rows:
+            errors.append(f"CHANGELOG.md has no `- `{name}` {version}:` row (found {rows})")
+        tests = sorted((directory / "tests").glob("test_*.py"))
+        if not tests:
+            errors.append(f"shard {name} has no tests/test_*.py")
+        for test in tests:
+            text = test.read_text()
+            if env not in text or "__file__" in text:
+                errors.append(f"{test.relative_to(root)} must take its program from {env}, never __file__")
+        for call in read_build(root, name).named("py_test"):
+            if env not in call.kwargs.get("env", {}):
+                errors.append(f"{name}/BUILD.bazel py_test {call.kwargs.get('name')} does not set {env}")
+    return errors
+
+
 # --------------------------------------------------------------------------- tests on the repository tree
 
 
@@ -875,7 +928,7 @@ class GraphFilesTest(unittest.TestCase):
     def test_required_graph_files_exist(self):
         missing = [name for name in REQUIRED_FILES + HELPER_FILES + LANE_FILES if not (ROOT / name).is_file()]
         self.assertEqual(missing, [])
-        self.assertEqual(len(REQUIRED_FILES), 14)
+        self.assertEqual(len(REQUIRED_FILES), 15)
 
     def test_bazelversion_is_one_exact_version(self):
         text = (ROOT / ".bazelversion").read_text()
@@ -1406,6 +1459,29 @@ class NegativeSelfChecks(unittest.TestCase):
         self.assertTrue(satisfies_engines("3.12", ">=3.12"))
         with self.assertRaises(ValueError):
             satisfies_engines("22.13.1", "^22")
+
+
+class ShardTest(unittest.TestCase):
+    def test_flake_shards_match_directories_packages_versions_and_changelog(self):
+        self.assertEqual(flake_shards(ROOT), ["livecode"])
+        self.assertEqual(shard_errors(ROOT), [])
+
+    def test_shard_drift_is_reported(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            root = Path(scratch)
+            (root / "livecode" / "tests").mkdir(parents=True)
+            (root / "flake.nix").write_text('  shards = [ "livecode" ];\n')
+            (root / "CHANGELOG.md").write_text("- `livecode` 0.0.9: older\n")
+            (root / "livecode" / "package.nix").write_text('  version = "0.1.0";\n')
+            (root / "livecode" / "livecode.sh").write_text('LIVECODE_VERSION="0.2.0"\n')
+            (root / "livecode" / "tests" / "test_x.py").write_text("SCRIPT = __file__\n")
+            (root / "livecode" / "BUILD.bazel").write_text('py_test(name = "t", srcs = ["tests/test_x.py"])\n')
+            (root / "orphan").mkdir()
+            (root / "orphan" / "package.nix").write_text('  version = "1.0.0";\n')
+            errors = "\n".join(shard_errors(root))
+            for needle in ("package.nix directories", "livecode.sh version", "CHANGELOG.md has no",
+                           "never __file__", "does not set LIVECODE_UNDER_TEST"):
+                self.assertIn(needle, errors)
 
 
 if __name__ == "__main__":
