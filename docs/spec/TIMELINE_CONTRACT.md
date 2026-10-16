@@ -42,17 +42,26 @@ A condense run maps output time to source time through an EDL.
 - `sources` lists 1 to 64 recordings, each `{clip, path, sha256}` with a unique
   clip name. `delivery` names the delivered file, which is listed in
   `output_sha256`, and its `video_frames`.
+- `uploads`, when present, lists at most 8 upload copies, each `{file, of,
+  video_frames, faststart, moov_offset, mdat_offset, ...}`. Every listed
+  `*.upload.mp4` output is described; `file` and `of` are listed outputs;
+  `video_frames` equals `delivery.video_frames` (`upload_invalid`); `faststart`
+  is true and `moov_offset` precedes `mdat_offset` (`upload_not_faststart`).
+  Other fields are open (docs/spec/CONDENSE.md).
 
 `video-utils verify-run --timeline edl_v1 RUN_DIR` checks the hashes of every
 listed output and recording, parses and validates the EDL with
 `src/timeline.rs` (`edl_invalid` on failure), and cross-checks fps, frame totals,
 clip names and shifts, and that every segment's source is a listed recording
-(`edl_invalid` when they disagree). A `timeline.edl.sha256` that differs from the
+(`edl_invalid` when they disagree). For each upload copy it then reads the
+top-level ISO BMFF box headers, no media data: the first `moov` must precede the
+first `mdat` (`upload_not_faststart`) at the manifest's offsets, and no box may
+overrun the file (`upload_invalid`). A `timeline.edl.sha256` that differs from the
 file's `output_sha256` entry is `manifest_field_invalid`. It refuses an identity
 manifest, with no mapping or `"identity"` (`timeline_mapping_mismatch`), and any
 other mapping (`timeline_mapping_invalid`). Its receipt adds `timeline.mapping`,
 `timeline.edl_sha256`, `timeline.total_frames` and `timeline.edl_segments`, plus
-`manifest_kind`, the `sources` checks and `delivery`. `--timeline identity` is the
+`manifest_kind`, the `sources` checks, `delivery` and `uploads`. `--timeline identity` is the
 default path, named explicitly.
 
 ## What must not change

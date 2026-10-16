@@ -144,8 +144,10 @@ as a filler. Only true silence is cut. `evidence` picks the proof:
    `[encode] preset` is the x265 preset, `slow` by default.
 6. `[encode] upload = "h264"` also writes `out/talk.upload.mp4` for a video site: the same frames as H.264
    CRF 18 (`upload_crf`, 0 to 51) with no B-frames and a keyframe every 2 s, and the edit's audio stream copied. Its
-   packets' presentation and decode times are equal and start at 0, so there is no negative CTS offset and no
-   edit list to honour. One video site scrambled the first keyframe interval of the HEVC file, whose
+   video packets' presentation and decode times are equal and start at 0, so the video has no negative CTS
+   offset and no edit list to honour; the copied AAC audio keeps the encoder's 1024-sample priming (first packet
+   pts -1024 at 1/48000 s) behind its own edit list. The render refuses a copy whose moov box does not precede
+   its mdat box (`+faststart`). One video site scrambled the first keyframe interval of the HEVC file, whose
    `negative_cts_offsets` stand in for an edit list. The overlay pass then writes
    `talk.corrected.upload.mp4` the same way. The HEVC files stay the archive copies.
 
@@ -212,7 +214,7 @@ frame size or rate.
 every gate's limits, measured values and verdict, and a `status`: `passed`, `partial` (what ran passed, not
 every gate ran), `not_measured` or `failed`. It is bound to the sha256 of the edit and of `edl.json` only: the
 captions and overlay stages write `talk.srt`, `talk.vtt` and `talk.corrected.mp4` after it, and check measures
-none of them. The upload copies are not measured or published either. It holds names, times and numbers only; the bounds text stays in the printed report.
+none of them. The upload copies are not measured either; publish carries them. It holds names, times and numbers only; the bounds text stays in the printed report.
 
 ### captions
 
@@ -265,8 +267,11 @@ just/condense.just one recipe per stage
 
 ## Publish
 
-`just condense-publish` copies the edit, `edl.json` and whichever captions and corrected copy exist into a
-fresh `artifacts/condense/<run_id>/`. Its `manifest.json` hashes every file and every recording, and its
+`just condense-publish` copies the edit, `edl.json` and whichever captions, corrected copy and upload copies
+exist into a fresh `artifacts/condense/<run_id>/`. An upload copy must hold the edit's frames and its audio
+packets unchanged, its moov box before its mdat box and its first video packet at pts and dts 0; the manifest's
+`uploads` records that, the box offsets verify-run reads again, and the audio's first packet pts (-1024 at
+1/48000 s: AAC priming, which the mp4 edit list hides). Its `manifest.json` hashes every file and every recording, and its
 timeline mapping is `edl_v1`: output time maps to source time through `edl.json`
 (`../docs/spec/TIMELINE_CONTRACT.md`). The stage then runs `video-utils verify-run --timeline edl_v1` on the
 run. A run that verify-run refuses is renamed to `.failed-<run_id>` and the stage exits 1. No binary stops the

@@ -12,6 +12,14 @@ outputs'), the run carries it as check.json and the manifest records its sha256,
 check.json of another edit, or one that is not a check report, is refused; without one the manifest says the
 check was not run. A partial check (work/check.partial.json) is never published, and one of the same edit
 that is newer than check.json and says failed or not_measured refuses the publish: check.json is stale.
+
+The upload copies (`[encode] upload = "h264"`: talk.upload.mp4, and talk.corrected.upload.mp4 beside
+talk.corrected.mp4) are carried and hashed when present, and required for talk.upload.mp4 when the config sets
+upload. Before anything is staged each must hold the same frames as the copy whose picture it carries, the
+edit's audio packets unchanged (so an upload copy of another edit is refused), its moov box before its mdat
+box, and a first video packet at pts and dts 0 with no B-frames. The manifest's `uploads` records those
+facts, the box offsets that verify-run reads again, and the audio's first packet pts (-1024 at 1/48000 s: AAC
+priming, which the mp4 edit list hides).
 """
 
 import hashlib
@@ -22,13 +30,18 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
-from . import audio, timeline
+from . import audio, render, timeline
 from .config import TIMEOUT_S, run
 
 ARTIFACTS = timeline.ROOT / "artifacts" / "condense"
 CHECK_REPORT = ("check", "json")  # work/check.json, written by the check stage when all four gates ran
 PARTIAL_REPORT = ("check", "partial.json")  # work/check.partial.json, when only some ran; never published
 STATUSES = ("passed", "partial", "not_measured", "failed")
+# (published upload copy, the published copy whose picture it carries, its suffix beside out)
+UPLOADS = (
+    ("talk.upload.mp4", "talk.mp4", ".upload.mp4"),
+    ("talk.corrected.upload.mp4", "talk.corrected.mp4", ".corrected.upload.mp4"),
+)
 
 
 def sha256(path):
@@ -40,7 +53,7 @@ def sha256(path):
 
 
 def outputs(cfg):
-    """Published name -> local file: the edit, its EDL and whichever captions and corrected copy exist."""
+    """Published name -> local file: the edit, its EDL, and whichever captions, corrected and upload copies exist."""
     found = {"talk.mp4": cfg.out, "edl.json": cfg.f("edl", "json")}
     for name, path in (
         ("talk.srt", cfg.out.with_suffix(".srt")),
@@ -52,6 +65,15 @@ def outputs(cfg):
     for name in ("talk.mp4", "edl.json"):
         if not found[name].is_file():
             raise FileNotFoundError(f"{found[name]}: run the render stage first")
+    for name, picture, suffix in UPLOADS:
+        path = cfg.out.with_suffix(suffix)
+        if not path.is_file():
+            if name == "talk.upload.mp4" and cfg.encode["upload"]:
+                raise FileNotFoundError(f"{path}: [encode] upload is set; run the render stage again")
+            continue
+        if picture not in found:
+            raise RuntimeError(f"{path} has no {picture} beside it: run the overlay stage again, or remove it")
+        found[name] = path
     report = cfg.f(*CHECK_REPORT)
     if report.is_file():
         bound = read_report(report)
@@ -74,6 +96,29 @@ def outputs(cfg):
                 )
         found["check.json"] = report
     return found
+
+
+def uploads(files):
+    """The manifest's uploads entries, measured on the files before they are staged. Raise for a copy that is not
+    an upload copy of this very edit."""
+    entries, sound = [], None
+    for name, picture, _ in UPLOADS:
+        if name not in files:
+            continue
+        path = files[name]
+        frames, want = audio.frames(path), audio.frames(files[picture])
+        if frames != want:
+            raise RuntimeError(f"{path}: {frames} frames, {picture} has {want}: render it again, or remove it")
+        sound = sound or render.audio_packets(files["talk.mp4"])
+        packets = render.audio_packets(path)
+        if packets != sound:
+            raise RuntimeError(f"{path} does not carry this edit's audio packets: render it again, or remove it")
+        facts = render.upload_facts(path)
+        entries.append(
+            {"file": name, "of": picture, "video_frames": frames, **facts}
+            | {"audio_copied_from": "talk.mp4", "audio_packets_sha256": packets}
+        )
+    return entries
 
 
 def read_report(path):
@@ -127,7 +172,7 @@ def stream(path):
     return int(s["sample_rate"]), int(s["channels"])
 
 
-def manifest(cfg, run_id, final, files, edl):
+def manifest(cfg, run_id, final, files, edl, carried=()):
     checked = timeline.validate(files["edl.json"])
     rate, channels = stream(files["talk.mp4"])
     digests = {name: sha256(path) for name, path in files.items()}
@@ -156,6 +201,7 @@ def manifest(cfg, run_id, final, files, edl):
             "audio_channels": channels,
             "video_frames": audio.frames(files["talk.mp4"]),
         },
+        "uploads": list(carried),
         "check": check_summary(files, digests),
         "tools": {"ffmpeg": version, "video_utils_timeline": checked["schema_version"]},
     }
@@ -184,6 +230,7 @@ def publish(cfg, root=None):
     root = Path(root or ARTIFACTS)
     root.mkdir(parents=True, exist_ok=True)
     files = outputs(cfg)
+    carried = uploads(files)
     edl = json.loads(files["edl.json"].read_text())
     run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:12]
     final, staging = root / run_id, root / f".staging-{run_id}"
@@ -191,7 +238,7 @@ def publish(cfg, root=None):
     try:
         for name, path in files.items():
             shutil.copy2(path, staging / name)
-        record = manifest(cfg, run_id, final.resolve(), {n: staging / n for n in files}, edl)
+        record = manifest(cfg, run_id, final.resolve(), {n: staging / n for n in files}, edl, carried)
         (staging / "manifest.json").write_text(json.dumps(record, indent=2) + "\n")
         staging.rename(final)
     except BaseException:
@@ -206,6 +253,7 @@ def publish(cfg, root=None):
     if not accepted:
         final.rename(root / f".failed-{run_id}")
         raise RuntimeError(f"verify-run refused {run_id}; kept as .failed-{run_id}: {receipt}")
-    check = record["check"]["status"]
-    print(f"{final}: {len(files)} files, {record['timeline']['total_frames']} frames, check {check}, verified")
+    check, carried = record["check"]["status"], len(record["uploads"])
+    total = record["timeline"]["total_frames"]
+    print(f"{final}: {len(files)} files, {total} frames, {carried} upload copies, check {check}, verified")
     return final

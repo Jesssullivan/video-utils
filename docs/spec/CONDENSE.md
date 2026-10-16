@@ -27,7 +27,7 @@ receipt in `docs/agent-notes/` records a per-file comparison.
 | check | `check.py`, `avsync.py` | the edit | `check.json`; exit 1 when a gate fails or is not measured |
 | captions | `captions.py` | words, `edl.json` | `talk.srt`, `talk.vtt` |
 | overlay | `overlay.py` | `[[correction]]` entries | `talk.corrected.mp4`, optional `talk.corrected.upload.mp4` |
-| publish | `publish.py` | the outputs and `edl.json` | `artifacts/condense/<run_id>/` with an `edl_v1` manifest |
+| publish | `publish.py` | the outputs, upload copies, `check.json` and `edl.json` | `artifacts/condense/<run_id>/` with an `edl_v1` manifest |
 
 `condense/README.md` gives every rule and default. `condense/config.py` holds
 the defaults and `talk.toml` overrides them.
@@ -42,7 +42,7 @@ loads, except where the table says otherwise) and covered by a synthetic test:
 | --- | --- | --- |
 | `[[clip]] drop = [[start, end], ...]` | Remove source seconds, talk and all, as one cut each, before `max_s` raises the speed | at load: in order, apart, at least one frame longer than a cut's 9 kept frames, no card clip; at the `edl` stage: inside the clip |
 | `[encode] preset` | The x265 preset of the edit (and the x264 preset of the upload copy); `slow` stays the default | one of the x264/x265 preset names |
-| `[encode] upload = "h264"` | Also write `<out>.upload.mp4` (and `.corrected.upload.mp4`): H.264, no B-frames, a keyframe every 2 s, no negative CTS, `+faststart`, the edit's audio copied | `""` or `"h264"`; `upload_crf` a whole number 0 to 51; no output path may be a clip file |
+| `[encode] upload = "h264"` | Also write `<out>.upload.mp4` (and `.corrected.upload.mp4`): H.264, no B-frames, a keyframe every 2 s, no negative CTS, `+faststart`, the edit's audio copied; `publish` carries them | `""` or `"h264"`; `upload_crf` a whole number 0 to 51; no output path may be a clip file; at render, publish and `verify-run`: moov before mdat |
 
 `drop` is the one rule that removes words, so it is an explicit editor choice
 per clip and never a default. The HEVC `talk.mp4` stays the archive copy. The
@@ -192,8 +192,9 @@ delivered `talk.srt`. The captions and overlay stages write `talk.srt`,
 `talk.vtt` and `talk.corrected.mp4` after `check`, so a published run's
 captions and corrected copy are not what `check.json` measured. The render
 stage writes `talk.upload.mp4` (`[encode] upload`) before `check`, but `check`
-does not measure it and `publish` does not carry it; its sync and loudness are
-measured only by calling the same measures with `out` set to the upload copy.
+does not measure it; `publish` carries it (below) without a `check` verdict, and
+its sync and loudness are measured only by calling the same measures with `out`
+set to the upload copy.
 
 `publish` carries a `check.json` that measured this very edit into the run as
 an `output_sha256` file, so `verify-run` hashes it, and the manifest's `check`
@@ -208,6 +209,45 @@ listening review. `verify-run` reads the `check` object as an open field and
 checks only the file's hash. When `verify-run` gives no verdict (it cannot
 start, crashes or runs over the time limit), the run keeps its name and a file
 `.unverified-<run_id>` beside it records why.
+
+### Upload copies in a run
+
+TIN-6575. `publish` carries `talk.upload.mp4` and, beside `talk.corrected.mp4`,
+`talk.corrected.upload.mp4` when they exist, and requires `talk.upload.mp4` when
+the config sets `[encode] upload`. Each is an `output_sha256` file, so
+`verify-run` hashes it. Before anything is staged, publish refuses an upload copy
+that
+
+- has a different video frame count from the copy whose picture it carries;
+- does not carry the edit's audio packets unchanged (the sha256 of the copied
+  AAC packets, read with `-c copy`, not decoded, must equal `talk.mp4`'s), which
+  refuses an upload copy left over from another edit;
+- has its `moov` box after its `mdat` box (not `+faststart`), read from the
+  top-level ISO BMFF box headers;
+- has a first video packet with pts or dts other than 0, or B-frames;
+- is `talk.corrected.upload.mp4` with no `talk.corrected.mp4` beside it.
+
+The render and overlay stages run the same box, pts and B-frame checks after
+writing a copy. The manifest's `uploads` lists one entry per copy: `file`, `of`
+(the copy whose picture it carries), `video_frames`, `faststart`, `moov_offset`,
+`mdat_offset`, `video_first_pts`, `video_first_dts`, `video_b_frames`,
+`audio_copied_from`, `audio_packets_sha256`, `audio_first_pts`,
+`audio_start_pts` and `audio_time_base`. The audio's first packet pts is
+recorded, not judged: the AAC encoder's 1024-sample priming puts the copied
+edit's first packet at -1024 at 1/48000 s, and the mp4 edit list starts
+playback at 0 (`audio_start_pts` 0). The video has no such offset and no edit
+list.
+
+`verify-run --timeline edl_v1` requires `uploads` to describe every listed
+`*.upload.mp4` file, each `file` and `of` listed in `output_sha256`, its
+`video_frames` equal to `delivery.video_frames` (`upload_invalid`) and
+`faststart` true with `moov_offset` before `mdat_offset`
+(`upload_not_faststart`). After hashing, it reads each copy's top-level box
+headers itself, without decoding or a subprocess: a `moov` after the `mdat` is
+`upload_not_faststart`, offsets other than the manifest's or a box that
+overruns the file is `upload_invalid`. Its receipt lists each upload copy with
+its offsets and status. A run published before this change has no `uploads`
+and no upload copy, and still verifies.
 
 ### Thresholds against a real talk
 

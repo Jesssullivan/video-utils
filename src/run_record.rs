@@ -16,7 +16,7 @@ use crate::timeline;
 use std::collections::BTreeMap;
 use std::fmt;
 use std::fs::{self, File};
-use std::io::{self, Read};
+use std::io::{self, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 
 /// Manifest size bound, equal to `MAX_MANIFEST_BYTES` in `scripts/run_demo.py`.
@@ -37,6 +37,12 @@ pub const IDENTITY_MAPPING: &str = "identity";
 pub const CONDENSE_KIND: &str = "condense_edit";
 /// Maximum number of `sources` in a condense manifest.
 pub const MAX_SOURCES: usize = 64;
+/// Name suffix of a condense upload copy (`[encode] upload`, docs/spec/CONDENSE.md).
+pub const UPLOAD_SUFFIX: &str = ".upload.mp4";
+/// Maximum number of `uploads` in a condense manifest.
+pub const MAX_UPLOADS: usize = 8;
+/// Top-level ISO BMFF boxes read from an upload copy before moov and mdat must both appear.
+pub const MAX_UPLOAD_BOXES: usize = 64;
 
 pub use crate::json;
 
@@ -72,6 +78,8 @@ pub enum Reason {
     TimelineMappingInvalid,
     TimelineMappingMismatch,
     EdlInvalid,
+    UploadInvalid,
+    UploadNotFaststart,
 }
 
 impl Reason {
@@ -104,6 +112,8 @@ impl Reason {
             Self::TimelineMappingInvalid => "timeline_mapping_invalid",
             Self::TimelineMappingMismatch => "timeline_mapping_mismatch",
             Self::EdlInvalid => "edl_invalid",
+            Self::UploadInvalid => "upload_invalid",
+            Self::UploadNotFaststart => "upload_not_faststart",
         }
     }
 }
@@ -846,6 +856,16 @@ pub struct CondenseClip {
     pub shift_seconds: f64,
 }
 
+/// An upload copy as the manifest describes it: the same frames as `of`, its moov box before its mdat box.
+#[derive(Debug, Clone, PartialEq)]
+pub struct CondenseUpload {
+    pub file: String,
+    pub of: String,
+    pub video_frames: u64,
+    pub moov_offset: u64,
+    pub mdat_offset: u64,
+}
+
 /// Typed `condense_edit` manifest (schema_version 1, `timeline.mapping` `edl_v1`).
 #[derive(Debug, Clone, PartialEq)]
 pub struct CondenseRecord {
@@ -861,6 +881,7 @@ pub struct CondenseRecord {
     pub clips: Vec<CondenseClip>,
     pub delivery_file: String,
     pub video_frames: u64,
+    pub uploads: Vec<CondenseUpload>,
     pub status: Option<String>,
 }
 
@@ -896,6 +917,149 @@ fn listed_output(
         ));
     }
     Ok(name.to_owned())
+}
+
+fn upload_invalid(detail: impl Into<String>) -> Failure {
+    Failure::new(Reason::UploadInvalid, detail)
+}
+
+/// `uploads`: absent or an array describing every listed `*.upload.mp4` file, each the same frames as the
+/// delivery and declared faststart (moov before mdat).
+fn parse_uploads(
+    root: &Value,
+    outputs: &BTreeMap<String, String>,
+    video_frames: u64,
+) -> Result<Vec<CondenseUpload>, Failure> {
+    let listed: &[Value] = match root.get("uploads") {
+        None => &[],
+        Some(Value::Array(items)) if items.len() <= MAX_UPLOADS => items,
+        Some(_) => {
+            return Err(field_invalid(
+                "uploads",
+                "must be an array of at most 8 entries",
+            ));
+        }
+    };
+    let mut uploads: Vec<CondenseUpload> = Vec::with_capacity(listed.len());
+    for (index, entry) in listed.iter().enumerate() {
+        let at = format!("uploads[{index}]");
+        if entry.as_object().is_none() {
+            return Err(field_invalid(&at, "must be an object"));
+        }
+        let file = listed_output(entry.get("file"), &format!("{at}.file"), outputs)?;
+        let of = listed_output(entry.get("of"), &format!("{at}.of"), outputs)?;
+        if !file.ends_with(UPLOAD_SUFFIX) || of.ends_with(UPLOAD_SUFFIX) {
+            return Err(field_invalid(
+                &at,
+                "file must end in .upload.mp4 and of must name a file that does not",
+            ));
+        }
+        if uploads.iter().any(|upload| upload.file == file) {
+            return Err(field_invalid(
+                &format!("{at}.file"),
+                "repeats an earlier upload",
+            ));
+        }
+        let frames = exact_u64(entry.get("video_frames"), &format!("{at}.video_frames"))?;
+        if frames != video_frames {
+            return Err(upload_invalid(format!(
+                "{at}.video_frames {frames} differs from delivery.video_frames {video_frames}"
+            )));
+        }
+        let moov_offset = exact_u64(entry.get("moov_offset"), &format!("{at}.moov_offset"))?;
+        let mdat_offset = exact_u64(entry.get("mdat_offset"), &format!("{at}.mdat_offset"))?;
+        if entry.get("faststart") != Some(&Value::Bool(true)) || moov_offset >= mdat_offset {
+            return Err(Failure::new(
+                Reason::UploadNotFaststart,
+                format!("{at} must declare faststart true with moov_offset before mdat_offset"),
+            ));
+        }
+        uploads.push(CondenseUpload {
+            file,
+            of,
+            video_frames: frames,
+            moov_offset,
+            mdat_offset,
+        });
+    }
+    if let Some(name) = outputs.keys().find(|name| {
+        name.ends_with(UPLOAD_SUFFIX) && !uploads.iter().any(|upload| &upload.file == *name)
+    }) {
+        return Err(field_invalid(
+            "uploads",
+            &format!("must describe every listed upload copy; {name:?} is not described"),
+        ));
+    }
+    Ok(uploads)
+}
+
+/// Offsets of the first top-level `moov` and `mdat` boxes, read from box headers only (ISO/IEC 14496-12
+/// sizes: 32-bit, 64-bit when the 32-bit size is 1, to the end of the file when it is 0). The moov box
+/// must come first: a player can then start before the media data has arrived (`+faststart`).
+fn scan_upload_boxes(path: &Path, label: &str, budget: &mut Budget) -> Result<(u64, u64), Failure> {
+    let read_error =
+        |error: io::Error| Failure::new(Reason::ReadError, format!("{label}: {error}"));
+    let mut file = File::open(path).map_err(read_error)?;
+    let length = file.metadata().map_err(read_error)?.len();
+    let (mut offset, mut moov, mut mdat) = (0u64, None, None);
+    for _ in 0..MAX_UPLOAD_BOXES {
+        if offset >= length || (moov.is_some() && mdat.is_some()) {
+            break;
+        }
+        if length - offset < 8 {
+            return Err(upload_invalid(format!(
+                "{label}: a truncated box header at byte {offset}"
+            )));
+        }
+        budget.reserve(16, label)?;
+        let mut header = [0u8; 16];
+        file.seek(SeekFrom::Start(offset)).map_err(read_error)?;
+        file.read_exact(&mut header[..8]).map_err(read_error)?;
+        let kind = [header[4], header[5], header[6], header[7]];
+        let (size, head) = match u32::from_be_bytes([header[0], header[1], header[2], header[3]]) {
+            0 => (length - offset, 8),
+            1 if length - offset >= 16 => {
+                file.read_exact(&mut header[8..]).map_err(read_error)?;
+                let mut large = [0u8; 8];
+                large.copy_from_slice(&header[8..]);
+                (u64::from_be_bytes(large), 16)
+            }
+            1 => {
+                return Err(upload_invalid(format!(
+                    "{label}: a truncated box header at byte {offset}"
+                )));
+            }
+            small => (u64::from(small), 8),
+        };
+        budget.used += head;
+        if size < head || size > length - offset {
+            return Err(upload_invalid(format!(
+                "{label}: the {:?} box at byte {offset} claims {size} bytes of the {} left",
+                String::from_utf8_lossy(&kind),
+                length - offset
+            )));
+        }
+        match &kind {
+            b"moov" => {
+                moov.get_or_insert(offset);
+            }
+            b"mdat" => {
+                mdat.get_or_insert(offset);
+            }
+            _ => {}
+        }
+        offset += size;
+    }
+    match (moov, mdat) {
+        (Some(moov), Some(mdat)) if moov < mdat => Ok((moov, mdat)),
+        (Some(moov), Some(mdat)) => Err(Failure::new(
+            Reason::UploadNotFaststart,
+            format!("{label}: moov at byte {moov} follows mdat at byte {mdat}"),
+        )),
+        _ => Err(upload_invalid(format!(
+            "{label}: no top-level moov and mdat box within the first {MAX_UPLOAD_BOXES} boxes"
+        ))),
+    }
 }
 
 impl CondenseRecord {
@@ -1039,6 +1203,7 @@ impl CondenseRecord {
             .ok_or_else(|| field_invalid("delivery", "must be an object"))?;
         let delivery_file = listed_output(delivery.get("file"), "delivery.file", &output_sha256)?;
         let video_frames = exact_u64(delivery.get("video_frames"), "delivery.video_frames")?;
+        let uploads = parse_uploads(root, &output_sha256, video_frames)?;
         let status = optional_string(root.get("status"), "status")?;
         Ok(Self {
             schema_version,
@@ -1053,6 +1218,7 @@ impl CondenseRecord {
             clips,
             delivery_file,
             video_frames,
+            uploads,
             status,
         })
     }
@@ -1071,6 +1237,8 @@ pub struct CondenseVerification {
     pub sources: Vec<FileCheck>,
     pub source_status: &'static str,
     pub edl_segments: Option<u64>,
+    /// One status per manifest upload, in manifest order: `verified` once its boxes were read.
+    pub uploads: Vec<&'static str>,
     pub bytes_hashed: u64,
     pub failure: Option<Failure>,
 }
@@ -1178,6 +1346,7 @@ pub fn verify_condense_run(run_dir: &Path, options: VerifyOptions) -> CondenseVe
         sources: Vec::new(),
         source_status: "not_checked",
         edl_segments: None,
+        uploads: Vec::new(),
         bytes_hashed: 0,
         failure: None,
     };
@@ -1224,6 +1393,22 @@ fn verify_condense_into(
     );
     result.bytes_hashed = budget.used;
     result.edl_segments = Some(check_edl(&record, &outcome?)?);
+
+    for upload in &record.uploads {
+        let label = format!("upload {:?}", upload.file);
+        let outcome = scan_upload_boxes(&canonical.join(&upload.file), &label, &mut budget);
+        result.bytes_hashed = budget.used;
+        let (moov, mdat) =
+            outcome.inspect_err(|failure| result.uploads.push(failure.reason.code()))?;
+        if (moov, mdat) != (upload.moov_offset, upload.mdat_offset) {
+            result.uploads.push(Reason::UploadInvalid.code());
+            return Err(upload_invalid(format!(
+                "{label}: moov at byte {moov} and mdat at byte {mdat}, the manifest says {} and {}",
+                upload.moov_offset, upload.mdat_offset
+            )));
+        }
+        result.uploads.push("verified");
+    }
 
     result.source_status = "verified";
     for source in &record.sources {
@@ -1391,6 +1576,25 @@ pub fn condense_receipt(verification: &CondenseVerification, verifier: &str) -> 
             Value::Object(delivery)
         }),
     );
+    map.insert(
+        "uploads".into(),
+        record.map_or(Value::Null, |r| {
+            let checked = r.uploads.iter().enumerate().map(|(index, upload)| {
+                let mut entry = BTreeMap::new();
+                entry.insert("file".into(), Value::string(&upload.file));
+                entry.insert("of".into(), Value::string(&upload.of));
+                entry.insert("moov_offset".into(), Value::u64(upload.moov_offset));
+                entry.insert("mdat_offset".into(), Value::u64(upload.mdat_offset));
+                let status = verification.uploads.get(index).copied();
+                entry.insert(
+                    "status".into(),
+                    Value::string(status.unwrap_or("not_checked")),
+                );
+                Value::Object(entry)
+            });
+            Value::Array(checked.collect())
+        }),
+    );
     map.insert("listening_accepted".into(), Value::Null);
     map.insert("media_decoded".into(), Value::Bool(false));
     map.insert("subprocesses_launched".into(), Value::u64(0));
@@ -1402,8 +1606,9 @@ pub fn condense_receipt(verification: &CondenseVerification, verifier: &str) -> 
     map.insert(
         "claim_scope".into(),
         Value::string(
-            "byte identity of listed files, typed manifest-field validity and EDL agreement with the \
-             manifest only; not media quality, A/V sync, caption accuracy or listening acceptance",
+            "byte identity of listed files, typed manifest-field validity, EDL agreement with the \
+             manifest and the top-level box order of upload copies only; not media quality, A/V sync, \
+             caption accuracy or listening acceptance",
         ),
     );
     Value::Object(map)

@@ -11,7 +11,8 @@
    with AAC.
 4. Upload, with `[encode] upload = "h264"`: the same frames once more as H.264 without B-frames and a
    keyframe every 2 s, with the edit's audio copied. One video site scrambled the first keyframe interval
-   of the HEVC file, whose negative CTS offsets stand in for an edit list.
+   of the HEVC file, whose negative CTS offsets stand in for an edit list. The copy is refused unless its
+   moov box precedes its mdat box (+faststart) and its first video packet has pts and dts 0 (upload_facts).
 
 Sync rules. The first render broke each of them, and its sound ran up to 107 ms off the picture.
 - Video is never retimed with setpts=(PTS-STARTPTS)/speed. Frames are picked evenly and renumbered.
@@ -247,7 +248,102 @@ def upload(cfg, edl, draw="", suffix=""):
     run(*FF, "-v", "error", *args, "-movflags", "+faststart", out, cwd=cfg.work)
     if audio.frames(out) != audio.frames(cfg.out):
         raise RuntimeError(f"{out}: {audio.frames(out)} frames, the edit has {audio.frames(cfg.out)}")
+    facts = upload_facts(out)
+    first = f"{facts['audio_first_pts']} x {facts['audio_time_base']} s"
+    print(f"{out}: moov at byte {facts['moov_offset']}, before mdat; audio first pts {first}")
     return out
+
+
+MAX_BOXES = 64  # top-level boxes read before moov and mdat must both have appeared, as verify-run reads
+
+
+def boxes(path):
+    """(moov offset, mdat offset): the first top-level moov and mdat boxes, None for one not found.
+
+    ISO/IEC 14496-12 box headers only: a 32-bit size and a type; size 1 means a 64-bit size follows, size 0
+    runs to the end of the file. A size that overruns the file raises. `video-utils verify-run` reads the
+    same headers the same way.
+    """
+    found, offset = {}, 0
+    with open(path, "rb") as f:
+        length = f.seek(0, 2)
+        for _ in range(MAX_BOXES):
+            if offset >= length or len(found) == 2:
+                break
+            f.seek(offset)
+            head = f.read(8)
+            if len(head) < 8:
+                raise RuntimeError(f"{path}: a truncated box header at byte {offset}")
+            size, kind, used = int.from_bytes(head[:4], "big"), head[4:], 8
+            if size == 1:
+                large = f.read(8)
+                if len(large) < 8:
+                    raise RuntimeError(f"{path}: a truncated box header at byte {offset}")
+                size, used = int.from_bytes(large, "big"), 16
+            elif size == 0:
+                size = length - offset
+            if size < used or size > length - offset:
+                raise RuntimeError(
+                    f"{path}: the {kind!r} box at byte {offset} claims {size} of {length - offset} bytes"
+                )
+            if kind in (b"moov", b"mdat"):
+                found.setdefault(kind.decode(), offset)
+            offset += size
+    return found.get("moov"), found.get("mdat")
+
+
+def first_packet(path, stream):
+    """The stream's time_base, start_pts (after any edit list) and has_b_frames, and its first packet's pts and dts."""
+    entries = "stream=time_base,start_pts,has_b_frames:packet=pts,dts"
+    out = run(
+        "ffprobe",
+        "-v",
+        "error",
+        "-select_streams",
+        stream,
+        "-show_entries",
+        entries,
+        "-read_intervals",
+        "%+#1",
+        "-of",
+        "json",
+        path,
+    ).stdout
+    found = json.loads(out)
+    return found["streams"][0], found["packets"][0]
+
+
+def audio_packets(path):
+    """sha256 of the first audio stream's coded packets, copied, not decoded: equal for a stream copied unchanged."""
+    out = run(*FF, "-v", "error", "-i", path, "-map", "0:a:0", "-c", "copy", "-f", "streamhash", "-hash", "sha256", "-")
+    return out.stdout.strip().rsplit("=", 1)[-1].lower()
+
+
+def upload_facts(path):
+    """What an upload copy must be, measured: raise unless moov precedes mdat and the video starts at pts and dts 0
+    with no B-frames. The audio's first packet pts is recorded, not judged: AAC's encoder delay puts the copied
+    edit's first packet at -1024 (1/48000), before 0, and the mp4 edit list starts playback at 0."""
+    moov, mdat = boxes(path)
+    if moov is None or mdat is None or moov > mdat:
+        raise RuntimeError(f"{path}: moov at byte {moov}, mdat at byte {mdat}; an upload copy is +faststart")
+    video, vfirst = first_packet(path, "v:0")
+    sound, afirst = first_packet(path, "a:0")
+    starts = (int(vfirst["pts"]), int(vfirst["dts"]))
+    if starts != (0, 0) or int(video.get("has_b_frames", 0)):
+        raise RuntimeError(
+            f"{path}: video pts/dts {starts}, B-frames {video.get('has_b_frames')}; want (0, 0) and none"
+        )
+    return {
+        "faststart": True,
+        "moov_offset": moov,
+        "mdat_offset": mdat,
+        "video_first_pts": 0,
+        "video_first_dts": 0,
+        "video_b_frames": 0,
+        "audio_first_pts": int(afirst["pts"]),
+        "audio_start_pts": int(sound["start_pts"]),
+        "audio_time_base": sound["time_base"],
+    }
 
 
 def video_filter(cfg):
