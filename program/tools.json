@@ -3915,7 +3915,7 @@
     {
       "name": "condense_render",
       "title": "Render the condensed talk",
-      "description": "Build mezzanines, render parts in parallel ([encode] jobs, default 2), join them, apply two-pass loudness to -16 LUFS / -1.5 dBTP and encode HEVC with AAC. Reads edl.json and the recordings; writes work/<clip>.mezz.mkv, the parts and the output mp4 beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "description": "Build mezzanines, render parts in parallel ([encode] jobs, default 2), join them, apply two-pass loudness to -16 LUFS / -1.5 dBTP and encode HEVC with AAC. With [encode] upload = \"h264\" it also writes <name>.upload.mp4: the same frames as H.264 with no B-frames and a keyframe every 2 s, the edit's audio copied, refused unless its moov box precedes its mdat box (+faststart) and its video starts at pts and dts 0. Reads edl.json and the recordings; writes work/<clip>.mezz.mkv, the parts, the output mp4 and the optional upload copy beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
       "intent": "Let an agent run the condense render stage on one talk with bounded time and typed failures, and inspect what it wrote.",
       "inputSchema": {
         "type": "object",
@@ -3960,7 +3960,7 @@
         "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
       },
       "agent_workflow": {
-        "identify": "Read the stage's printed summary and the files it wrote (work/<clip>.mezz.mkv, the parts and the output mp4).",
+        "identify": "Read the stage's printed summary and the files it wrote (work/<clip>.mezz.mkv, the parts, the output mp4 and, with [encode] upload, out/<name>.upload.mp4 with its printed moov offset and audio first pts).",
         "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
         "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
         "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
@@ -3970,7 +3970,7 @@
     {
       "name": "condense_check",
       "title": "Gate a rendered edit",
-      "description": "Run the named checks (default all): silence (no 1.0 s gap at -35 dB), loud (within 1 LU, true peak under 0 dBTP), sync (probe and real, within 20 ms) and bounds (whisper re-reads at cuts for a person). Reads the output and edl.json; writes a printed report only beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "description": "Run the named checks (default all): silence (no 1.0 s gap at -35 dB), loud (within 1 LU, true peak under 0 dBTP), sync (probe, real and joined medians within 20 ms; a median needs 4 clear spots, else not_measured) and bounds (whisper re-reads at cuts for a person). Reads the output and edl.json; writes work/check.json when all four gates ran, else work/check.partial.json, beneath the config's work path: status passed, partial, not_measured or failed, each gate's limits, measures and verdict, every tried sync spot, and a summary, bound to the sha256 of the output and edl.json only. It does not measure the captions, the corrected copy or the upload copies. Exit 1 when a gate fails or is not measured. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
       "intent": "Let an agent run the condense check stage on one talk with bounded time and typed failures, and inspect what it wrote.",
       "inputSchema": {
         "type": "object",
@@ -4014,7 +4014,8 @@
       "evidence_kind": "measured_gates_and_human_review_text",
       "limitations": [
         "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
-        "bounds prints text for a person to read; it does not pass or fail on its own."
+        "bounds prints text for a person to read; it does not pass or fail on its own.",
+        "A run of fewer than four gates never replaces work/check.json; condense_publish refuses a newer check.partial.json of the same edit that says failed or not_measured."
       ],
       "annotations": {
         "readOnlyHint": false,
@@ -4030,7 +4031,7 @@
         "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
       },
       "agent_workflow": {
-        "identify": "Read the stage's printed summary and the files it wrote (a printed report only).",
+        "identify": "Read the printed report and work/check.json (or work/check.partial.json): its status, each gate's verdict, and for sync every tried spot with why it was not clear (sound or picture) and any too_few_spots clip or third.",
         "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
         "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
         "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
@@ -4095,7 +4096,7 @@
     {
       "name": "condense_overlay",
       "title": "Burn correction notes into a copy",
-      "description": "Map each [[correction]] source time to the output clock and burn it for 3 s into a second file; the audio is copied. Reads [[correction]] entries, edl.json and the parts; writes out/<name>.corrected.mp4 beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "description": "Map each [[correction]] source time to the output clock and burn it for 3 s into a second file; the audio is copied. Reads [[correction]] entries, edl.json and the parts; writes out/<name>.corrected.mp4 and, with [encode] upload = \"h264\", out/<name>.corrected.upload.mp4 (H.264, +faststart, as condense_render's upload copy) beneath the config's work/out paths. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
       "intent": "Let an agent run the condense overlay stage on one talk with bounded time and typed failures, and inspect what it wrote.",
       "inputSchema": {
         "type": "object",
@@ -4140,7 +4141,7 @@
         "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
       },
       "agent_workflow": {
-        "identify": "Read the stage's printed summary and the files it wrote (out/<name>.corrected.mp4).",
+        "identify": "Read the stage's printed summary and the files it wrote (out/<name>.corrected.mp4 and the optional out/<name>.corrected.upload.mp4).",
         "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
         "iterate": "Change one talk.toml number, rerun this stage and the ones after it, and compare.",
         "acceptance": "A finished stage is not an accepted edit: condense_check gates the render and a person reads the bounds report.",
@@ -4217,7 +4218,7 @@
     {
       "name": "condense_publish",
       "title": "Publish a hash-bound condense run",
-      "description": "Copy the delivered edit, edl.json and whichever captions and corrected copy exist into a fresh artifacts/condense/<run_id>/ with a manifest whose timeline mapping is edl_v1, then verify it with `video-utils verify-run --timeline edl_v1`; a run that fails the check is kept as .failed-<run_id> and the call fails. Reads the config's out and work paths; the output root is fixed (repository artifacts/condense) and there is no output field. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
+      "description": "Copy the delivered edit, edl.json and whichever captions, corrected copy, upload copies (talk.upload.mp4, talk.corrected.upload.mp4) and work/check.json of this very edit exist into a fresh artifacts/condense/<run_id>/ with a manifest whose timeline mapping is edl_v1, then verify it with `video-utils verify-run --timeline edl_v1`; a run that fails the check is kept as .failed-<run_id> and the call fails. The manifest's check records the report's sha256, status, gates and summary, or not_run; its uploads records each copy's frames, moov and mdat offsets (verify-run reads the box order again) and the audio's first packet pts (-1024 at 1/48000 s, AAC priming). Refused before anything is staged: a check.json of another edit, a newer failed or not_measured check.partial.json of the same edit, and an upload copy without the edit's frames or audio packets, not +faststart, or whose video does not start at pts 0. Reads the config's out and work paths; the output root is fixed (repository artifacts/condense) and there is no output field. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply, and no guitar tool accepts its outputs (docs/spec/TIMELINE_CONTRACT.md).",
       "intent": "Let an agent run the condense publish stage on one talk with bounded time and typed failures, and inspect what it wrote.",
       "inputSchema": {
         "type": "object",
@@ -4246,7 +4247,8 @@
       "evidence_kind": "hash_bound_condense_manifest",
       "limitations": [
         "The manifest binds hashes and the EDL timeline; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
-        "Each call writes a new run; earlier runs are never changed or removed."
+        "Each call writes a new run; earlier runs are never changed or removed.",
+        "The manifest's check describes talk.mp4 only: check measures neither the captions nor the corrected or upload copies."
       ],
       "annotations": {
         "readOnlyHint": false,
@@ -4262,7 +4264,7 @@
         "note": "Stages read the files the earlier stage left in work/; they are not run automatically."
       },
       "agent_workflow": {
-        "identify": "Read the printed run directory, file count and frame total; the manifest and verify-run receipt sit in it.",
+        "identify": "Read the printed run directory, file count, frame total, upload copy count and check status; the manifest (check, uploads) and verify-run receipt sit in it.",
         "research": "condense/README.md gives every rule and default; docs/spec/CONDENSE.md gives ownership.",
         "iterate": "Publish again after a new render; compare runs by their manifests.",
         "acceptance": "A verified run proves the hashes and the timeline mapping, not that the edit is accepted.",

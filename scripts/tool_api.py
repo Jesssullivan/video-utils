@@ -1195,9 +1195,13 @@ def condense_config_paths(value):
         files.append(path.resolve())
     work = condense_beneath(base, raw.get('work', 'work'), 'work')
     out = condense_beneath(base, raw.get('out', 'out/talk.mp4'), 'out')
-    written = [work, out, *(out.with_suffix(suffix) for suffix in ('.srt', '.vtt', '.corrected.mp4'))]
+    # Beside out: the captions, the corrected copy and both upload copies ([encode] upload = "h264", named whether
+    # or not this config sets it); in work: the check reports that condense_publish carries.
+    beside = ('.srt', '.vtt', '.corrected.mp4', '.upload.mp4', '.corrected.upload.mp4')
+    written = [work, out, *(out.with_suffix(suffix) for suffix in beside),
+               *(work / name for name in ('check.json', 'check.partial.json'))]
     if any(path.resolve() in files for path in written):
-        raise ToolError('condense work, out and the files written beside out must not be a clip file')
+        raise ToolError('condense work, out and the files written beside out or in work must not be a clip file')
     return config
 
 
