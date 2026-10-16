@@ -19,13 +19,17 @@ hash identity: a hand-run pipeline made v5.
 | YouTube copy: H.264, `-bf 0 -g 60`, `+faststart` | no key | `[encode] upload = "h264"` writes `talk.upload.mp4` and `talk.corrected.upload.mp4` |
 | Four approved `*` corrections | `[[correction]]` | unchanged; `[rules] overlay_s = 3.5` sets v5's hold |
 
-Each new key is validated when the config loads and has a synthetic test (`condense/tests/test_config.py`,
-`test_edl.py`, `test_render.py`): bad, overlapping, out-of-order, too-short and past-the-end drop spans are
-refused; a card clip takes no drop; a drop becomes one cut of 5 + 4 kept frames, an edge inside a pause cut
-moves out to that cut's edge, the time map returns nothing inside it and its words leave the captions; the
-upload copy is H.264 with `has_b_frames=0`, every packet's pts equal to its dts from 0, a keyframe every 60
-frames, the edit's frame count and its audio stream bit-identical (md5), from the parts and from the edit; no
-output path may be a clip file.
+Each new key has a synthetic test (`condense/tests/test_config.py`, `test_edl.py`, `test_render.py`). The
+config refuses bad, overlapping, out-of-order and too-short drop spans when it loads (a cut keeps 9 frames,
+so a span needs at least 10), a drop on a card clip, an unknown preset or upload, an `upload_crf` that is not
+a whole number from 0 to 51, and any output path that is a clip file. A span that ends past the clip is
+refused at the `edl` stage, which knows the clip's length. A drop becomes one cut of 5 + 4 kept frames; an
+edge inside a pause cut moves out to that cut's edge (the end-edge case is the tool tier's 141.067 to
+141.233 s); two valid spans that meet once an edge moves become one cut; the time map returns nothing inside
+a drop and its words leave the captions; with `evidence = "asr"` whisper never reads a pause span inside a
+drop. The upload copy is H.264 with `has_b_frames=0`, every packet's pts equal to its dts from 0, a keyframe
+every 60 frames, the edit's frame count and its audio stream bit-identical (md5), from the parts and (with a
+printed second-generation warning) from the edit; `render()` itself writes it only when `upload` is set.
 
 ## Inputs
 
@@ -36,6 +40,20 @@ output path may be a clip file.
 | Hand-run `build_edl.py` (the `drop()` and `A_DROP` source) | `1ea68eade3c4b11a8e5fe45ffa7d13585d88d6e1fbfa9465ac107453464dc097` |
 | Private v5 `talk.toml` (three clips, drop, `medium`, upload, 4 corrections, `overlay_s` 3.5) | `394736084675d97f1206d5d25a07c224404a049bbca0e09aad7450c2740493e0` |
 | Recordings | the three TIN-6543 hashes (`2026-10-15-condense-parity.md`), hard-linked |
+| Converter of the hand-run analysis (seeded tier), `2026-10-15-condense-v5-seed-hand.py` | `140d0e0416769354749b772dcd7a5e527c87c8121ea44eee2f5fbb938194220a` |
+| Edit-list comparison, `2026-10-15-condense-v5-compare-edl.py` | `002f13539be4f29699b545c6d02d6fbef090d0b72bc0be9d9e9d5a2533b7d7b6` |
+| Caption comparison, `2026-10-15-condense-v5-compare-srt.py` | `6138a31728e2ebb6a85a7ff1619b3ec86de9ae8d65f7808aa24120a863bc3dd7` |
+| SSIM against the lossless parts, `2026-10-15-condense-v5-ssim.py` | `594f172c31ce7f5f98e4b7f5979bcb56e0ccf5f4e6f254a0cfe9825261e90023` |
+| Final join and encode only (preset timing), `2026-10-15-condense-v5-final-only.py` | `eb78b130427d09e3b2f40804d29273da95bad645660312261b33d43bfb2a8c40` |
+
+The five scripts sit beside this receipt in `docs/agent-notes/` and, byte-identical, in the private parity
+directory's `scripts/`. Four are the bytes that produced the numbers below. The edit-list comparison's
+`match()` docstring was corrected on 2026-10-16 (it claimed a half-second window that the code never had;
+the earlier bytes hashed `f4170c83...e0b615`); its code is unchanged. Re-run on 2026-10-16 from these files:
+the converter rebuilt the seeded `edl.json` to the same sha256 (`3fdb0c65...`, 0 pause spans missing, no
+`FIXED_WELCOME`), the tool-tier edl stage rebuilt `767cfcac...` with whisper stubbed to fail, and the two
+comparisons printed the same counts as the tables below. The SSIM and preset scripts were not re-run (two
+long encodes); their logs stay in the private preset run directory.
 
 Versions: FFmpeg 8.1.2, whisper-cpp 1.8.4 (not run), Python 3.13.15, `nix develop .#condense`.
 
@@ -51,7 +69,13 @@ re-reads). The two are measured apart.
   render, captions and overlay with the v5 talk.toml.
 
 A kept span is source time the edit plays: a speech, pause, filler or card segment, or one kept edge of a
-cut. Spans are matched by source edges; "within 1 frame" means both edges within 1/30 s and the same speed.
+cut (two spans per cut). Matching rule (`compare-edl.py`, `match()`): one forward pass over v5's spans in
+source order; for each, skip the new spans that end at or before it starts, take the next 5 candidates
+around that point (indices j-2 to j+2), and pair it with the one whose |start difference| + |end difference|
+is least. A pair counts "within 1 frame" when both edges differ by at most 1/30 s and the speeds by at most
+0.1%. A new span may pair with more than one v5 span. The seeded-tier counts do not depend on the rule; the
+tool-tier counts do: an independent order-tolerant matcher (review of 2026-10-16) found 1587 intro and 479
+iphone matches where this one finds 1467 and 446, and on the seeded tier the same 2377, 797 and 37530 frames.
 
 ### Edit list against `edl.v5.json`
 
@@ -141,13 +165,26 @@ the CPU and writes 8.2% fewer bytes at a lower SSIM, so it is a different point 
 win. The default stays `slow`, which also keeps the TIN-6543 parity hashes; a talk.toml that wants v5's
 speed sets `preset = "medium"`, as the v5 one does.
 
+## TIN-6544 acceptance: not met as written
+
+TIN-6544 stays open; this PR does not close it.
+
+| Acceptance line | State |
+| --- | --- |
+| Every kept span within 1 frame of `edl.v5.json` | Seeded tier only (hand-run analysis): 2377 of 2379 and 797 of 797. With condense's own analysis from the TIN-6543 all-clip run, which the lane task named: 1467 of 2379 and 446 of 797 (matcher-dependent, above) |
+| Total within 1 frame | Seeded tier only: 37530 against 37531. Tool tier: +194 frames |
+| Captions cue for cue within 1 frame | Not met: 0 of 520 cues on either tier (gap 1) |
+| No B-frames, no negative CTS for the upload | Met on both upload copies |
+| Every decision a typed field with a test, or a recorded gap | Met: three typed keys, six gaps below |
+| Rebuild with `just condense-all` | Not done: the stages ran one at a time (`edl`, `render`, `check silence loud`, `captions`, `overlay`), seeded from TIN-6543 analysis so whisper did not run; `publish` was not run (gap 6) |
+
 ## Gaps that stay
 
 1. **Caption grouping.** v5's captions came from a one-off script: up to 84 characters, a break at a 1.2 s
    gap, at 6 s and at every sentence end, a 0.6 s minimum, and a card caption for the lost clip.
    `captions.py` holds 2 lines of 42 characters, breaks at a 1.0 s gap and only at sentence ends past half a
-   line, and gives cards no caption. `captions.py` is outside this lane's files, so a `[captions]` style
-   (and a card caption) is a follow-up, not a change made here.
+   line, and gives cards no caption. The cue grouping was deliberately left for a follow-up (a `[captions]`
+   style and a card caption), so this PR changes no caption rule.
 2. **Correction placement and look.** v5 held the last note 4.0 s (the others 3.5 s), placed a note inside a
    cut at the cut's end and drew it at 40 px with a 0.6 box; condense holds every note `overlay_s`, places
    it at the join and draws at h/24 with a 0.65 box. Up to 5 frames of placement and the font size differ.
@@ -162,6 +199,17 @@ speed sets `preset = "medium"`, as the v5 one does.
 6. **Publish.** `publish.py` does not copy the upload copies into a run. Not run here (TIN-6546 owns
    `condense-all` ending in a verified run).
 
+## Proposed follow-ups (not filed here)
+
+This lane is read-only on Linear apart from one comment on TIN-6544, so these are proposals for the
+integrator to file, not issues:
+
+1. A `[captions]` style (characters per cue, gap and duration breaks, minimum cue length) and a card
+   caption, so a talk.toml can reproduce v5's cue grouping (gap 1).
+2. Name `talk.upload.mp4` and `talk.corrected.upload.mp4` in `program/tools.json`, the condense skills and
+   `scripts/tool_api.py`'s write guard, through an admission revision (gap 5).
+3. `publish.py` copies and hashes the upload copies into a run, and `verify-run` checks them (gap 6).
+
 ## Old-tool full render (TIN-6543 note)
 
 The new full render cannot be compared with a full render of the retired tool on this talk.toml: the retired
@@ -172,11 +220,15 @@ both tools on the TIN-6543 talk.toml without a drop, two more renders of the 55-
 ## Files outside this lane
 
 `condense/overlay.py` (5 lines): the overlay pass writes `talk.corrected.upload.mp4` when `upload` is set,
-because the v5 YouTube copy carried the corrections.
+because the v5 YouTube copy carried the corrections. The five comparison scripts are new receipt files
+beside this one; nothing imports or runs them.
 
 ## Gates
 
-- `just condense-lint`: ruff check and format check pass on 33 files. `just condense-test`: 127 passed.
+- 2026-10-15, code commit: `just condense-lint`: ruff check and format check pass on 33 files.
+  `just condense-test`: 127 passed.
+- 2026-10-16, review fixes: `nix develop .#condense -c just condense-lint condense-test`: lint passes,
+  133 passed (six new tests).
 - `tests/test_s4b_tool_admission.py`: 12 tests OK (1 skipped); no descriptor or skill changed.
   `tests/test_condense_public_surface.py`: OK.
 - `just check` locally: 2014 tests, 27 failures and 6 errors, all in the known environment-only set
