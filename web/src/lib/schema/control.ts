@@ -332,7 +332,9 @@ export const ANNOTATION_KINDS = [
 	'meter_mismatch',
 	'tone',
 	'noise',
-	'other'
+	'other',
+	'onset',
+	'onset_segment'
 ] as const;
 
 const SourceSpan = Schema.Struct({

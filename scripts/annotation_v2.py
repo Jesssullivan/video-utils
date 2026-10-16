@@ -25,9 +25,17 @@ MAX_SESSION_HASH_BYTES = 512 * 1024 * 1024
 MAX_SESSION_FILES = 256
 MAX_ANNOTATIONS = 200
 MAX_REPLAY_RECEIPTS = 512
-KINDS = frozenset({"rhythm_timing", "rhythm_pattern", "phrase_omission", "phrase_duration",
-                   "melodic_pitch", "articulation", "rest_execution", "meter_mismatch",
-                   "tone", "noise", "other"})
+ISSUE_KINDS = frozenset({"rhythm_timing", "rhythm_pattern", "phrase_omission", "phrase_duration",
+                         "melodic_pitch", "articulation", "rest_execution", "meter_mismatch",
+                         "tone", "noise", "other"})
+# Operator onset labels (D6). `onset` is one heard attack at a source-time point;
+# `onset_segment` declares a source span inside which every audible onset is marked.
+# Both are operator-authored only; detector onsets stay in analysis.json.
+ONSET_KIND = "onset"
+ONSET_SEGMENT_KIND = "onset_segment"
+ONSET_KINDS = frozenset({ONSET_KIND, ONSET_SEGMENT_KIND})
+OPERATOR_BASES = frozenset({"operator_assertion", "operator_context"})
+KINDS = ISSUE_KINDS | ONSET_KINDS
 BASES = frozenset({"operator_assertion", "operator_context", "detector_hypothesis", "reference_comparison"})
 STATES = frozenset({"needs_review", "accepted_observation", "dismissed_candidate"})
 LABELS = {"operator_assertion": "USER REPORTED", "operator_context": "INTENT",
@@ -131,6 +139,12 @@ def validate_annotation(item, *, source_min_seconds, source_max_seconds, stored=
             require(who["actor"] == "operator", "operator_context_requires_operator_authorship")
         if basis == "detector_hypothesis":
             require(who["actor"] == "detector", "detector_hypothesis_requires_detector_authorship")
+    if item["kind"] in ONSET_KINDS:
+        require(basis in OPERATOR_BASES, "onset_label_requires_operator_basis")
+        if item["kind"] == ONSET_KIND:
+            require(not span["extent_known"], "onset_label_requires_point_timestamp")
+        else:
+            require(span["extent_known"] and end > start, "onset_segment_requires_known_span")
     text(item["note"], "note")
     if "id" in item:
         valid_id(item["id"])
@@ -486,19 +500,140 @@ def request_schema():
             "candidate_id": nullable_sha, "reference_sha256": nullable_sha}}}}
 
 
+MAX_LABEL_FILE_BYTES = 1_000_000
+LABEL_AUDIO_NAMES = ("source.wav", "denoised.wav", "cleaned.wav")
+LABEL_POINT_KINDS = (ONSET_KIND, "phrase_duration")
+
+
+def parse_label_track(data):
+    """Parse a plain label-track export: one `start<TAB>end<TAB>text` row per label.
+
+    Seconds count from the first sample of the labelled audio file. `start == end`
+    is a point label; `start < end` is a region. Rows that begin with a backslash
+    (an editor's optional frequency-range rows) are ignored and counted. Nothing is
+    inferred: an empty text stays empty and the caller decides what to do with it.
+    """
+    try:
+        text_value = data.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise AnnotationError("label_file_not_utf8") from exc
+    rows, ignored = [], 0
+    for number, line in enumerate(text_value.splitlines(), 1):
+        if not line.strip():
+            continue
+        if line.startswith("\\"):
+            ignored += 1
+            continue
+        fields = line.split("\t", 2)
+        require(len(fields) >= 2, "label_row_requires_start_and_end")
+        try:
+            start, end = float(fields[0]), float(fields[1])
+        except ValueError as exc:
+            raise AnnotationError("label_row_time_invalid") from exc
+        require(math.isfinite(start) and math.isfinite(end) and 0 <= start <= end, "label_row_time_invalid")
+        rows.append({"line": number, "start": start, "end": end, "text": fields[2].strip() if len(fields) == 3 else ""})
+        require(len(rows) <= MAX_ANNOTATIONS, "annotation_limit_reached", 413)
+    require(bool(rows), "label_file_has_no_labels")
+    return rows, ignored
+
+
+def label_annotations(rows, *, point_kind, quote, certainty, status, offset, audio_name, audio_sha256, labels_sha256):
+    """Map parsed operator labels to v2 operator_assertion records; no time is moved."""
+    require(point_kind in LABEL_POINT_KINDS, "invalid_label_point_kind")
+    result = []
+    for index, row in enumerate(rows):
+        start, end = round(offset + row["start"], 6), round(offset + row["end"], 6)
+        if row["start"] == row["end"]:
+            kind, span = point_kind, {"start_seconds": start, "end_seconds": start, "extent_known": False}
+        else:
+            require(point_kind == ONSET_KIND, "region_label_only_declares_an_onset_segment")
+            kind, span = ONSET_SEGMENT_KIND, {"start_seconds": start, "end_seconds": end, "extent_known": True}
+        words = row["text"] or quote
+        require(isinstance(words, str) and words.strip(), "label_text_or_quote_required")
+        note = (f"imported label row {row['line']} from label file sha256 {labels_sha256}; labelled audio "
+                f"{audio_name} sha256 {audio_sha256}; source seconds = audio_start_seconds {offset!r} + label seconds")
+        result.append({"kind": kind, "basis": "operator_assertion", "status": status, "source_span": span,
+                       "reported_by": {"actor": "operator", "via": "cli"}, "operator_certainty": certainty,
+                       "operator_quote": words, "note": note})
+    return result
+
+
+def import_labels(store, labels_path, audio_name, *, point_kind=ONSET_KIND, quote=None, certainty="uncertain",
+                  status="needs_review"):
+    """Import an operator label track bound to one run-local, no-time-stretch audio file.
+
+    The labelled file must be a run WAV whose sha256 the manifest lists; its first
+    sample sits at the manifest's audio_start_seconds on the source clock. Every row
+    is validated before the first write, and keys derive from the label-file hash so a
+    repeated import replays instead of duplicating.
+    """
+    session = store.session
+    require(audio_name in LABEL_AUDIO_NAMES, "labelled_audio_name_unsupported")
+    expected = session.manifest.get("output_sha256", {}).get(audio_name) if isinstance(session.manifest.get("output_sha256"), dict) else None
+    path = session.root / audio_name
+    require(sha(expected) and not path.is_symlink() and path.is_file(), "labelled_audio_not_run_bound", 409)
+    audio_sha256 = hash_provenance(path, max_bytes=MAX_SESSION_HASH_BYTES)
+    require(audio_sha256 == expected, "labelled_audio_not_run_bound", 409)
+    data = read_bytes(Path(labels_path), MAX_LABEL_FILE_BYTES)
+    labels_sha256 = hashlib.sha256(data).hexdigest()
+    rows, ignored = parse_label_track(data)
+    items = label_annotations(rows, point_kind=point_kind, quote=quote, certainty=certainty, status=status,
+                              offset=session.audio_start, audio_name=audio_name, audio_sha256=audio_sha256,
+                              labels_sha256=labels_sha256)
+    for item in items:
+        validate_annotation(item, source_min_seconds=session.source_min, source_max_seconds=session.source_max)
+    current = store.load()
+    replayed_keys = {entry["key"] for entry in current["replay_receipts"]}
+    keys = [f"labels-{labels_sha256[:24]}-{point_kind}-{index:04d}" for index in range(len(items))]
+    pending = sum(key not in replayed_keys for key in keys)
+    require(len(current["annotations"]) + pending <= MAX_ANNOTATIONS, "annotation_limit_reached", 413)
+    require(current["revision"] + pending <= MAX_REPLAY_RECEIPTS, "annotation_replay_limit_reached", 413)
+    outcomes, value = {"saved": 0, "replayed": 0}, current
+    for key, item in zip(keys, items):
+        if key in replayed_keys:
+            # Committed by an earlier import of this exact file; a later edit is the operator's newer word.
+            outcomes["replayed"] += 1
+            continue
+        revision = store.load()["revision"]
+        value = store.write({"schema_version": 2, "expected_revision": revision, "idempotency_key": key,
+                             "source_sha256": session.source_hash, "manifest_sha256": session.manifest_hash,
+                             "annotation": item})
+        outcomes[value["mutation"]["outcome"]] += 1
+    kinds = {}
+    for item in items:
+        kinds[item["kind"]] = kinds.get(item["kind"], 0) + 1
+    return {"status": "labels_imported", "label_file_sha256": labels_sha256, "labelled_audio": audio_name,
+            "labelled_audio_sha256": audio_sha256, "audio_start_seconds": session.audio_start,
+            "label_rows": len(rows), "ignored_frequency_rows": ignored, "by_kind": dict(sorted(kinds.items())),
+            **outcomes, "revision": value["revision"], "count": len(value["annotations"]),
+            "musical_verdict": "not_established"}
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("operation", choices=("read", "write"))
+    parser.add_argument("operation", choices=("read", "write", "import-labels"))
     parser.add_argument("run_dir", type=Path)
     parser.add_argument("--input", type=Path)
+    parser.add_argument("--labels", type=Path, help="import-labels: label-track text export (start, end, text)")
+    parser.add_argument("--audio", choices=LABEL_AUDIO_NAMES, help="import-labels: the run WAV that was labelled")
+    parser.add_argument("--point-kind", choices=LABEL_POINT_KINDS, default=ONSET_KIND)
+    parser.add_argument("--quote", help="import-labels: your words for rows whose label text is empty")
+    parser.add_argument("--certainty", choices=("uncertain", "confirmed"), default="uncertain")
+    parser.add_argument("--status", choices=("needs_review", "accepted_observation"), default="needs_review")
     args = parser.parse_args(argv)
     if (args.operation == "write") != (args.input is not None):
         parser.error("--input is required only for write")
+    if (args.operation == "import-labels") != (args.labels is not None and args.audio is not None):
+        parser.error("--labels and --audio are required only for import-labels")
     import review_server
     session = None
     try:
         session = review_server.Session(args.run_dir, open_media=False, bounded_metadata=True)
         store = AnnotationStore(session)
+        if args.operation == "import-labels":
+            print(json.dumps(import_labels(store, args.labels, args.audio, point_kind=args.point_kind, quote=args.quote,
+                                           certainty=args.certainty, status=args.status), ensure_ascii=False, allow_nan=False))
+            return 0
         value = store.write(read_json(args.input, MAX_REQUEST_BYTES)) if args.operation == "write" else store.read()
         print(json.dumps({**value, "count": len(value["annotations"]), "status": "annotations_v2_saved" if args.operation == "write" else "annotations_v2_loaded"}, ensure_ascii=False, allow_nan=False))
     except (AnnotationError, review_server.ReviewError, OSError, ValueError, TypeError, KeyError, RecursionError) as error:
