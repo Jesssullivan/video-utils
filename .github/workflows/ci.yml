@@ -19,6 +19,9 @@ jobs:
       - uses: cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7 # v31
       - name: Python and synthetic media checks
         run: nix develop --no-write-lock-file --command just check
+      # The livecode shard: shellcheck, its test on the source and on the built package. Stubs only, no capture.
+      - name: livecode shard checks
+        run: nix develop --no-write-lock-file --command just livecode-check
       - name: Rust checks on the supported hosted builder
         run: nix develop --no-write-lock-file --command just test-rust
       - name: Secret scan
@@ -75,6 +78,11 @@ jobs:
         run: |
           python3 tools/bazel/run.py --timeout 900 mod graph > /dev/null
           python3 tools/bazel/run.py --timeout 900 build --nobuild //... --lockfile_mode=error
+      - name: Shard boundary (no shard depends on //:repo_data)
+        run: |
+          set -euo pipefail
+          deps="$(python3 tools/bazel/run.py --timeout 900 query 'rdeps(//livecode/..., //:repo_data)')"
+          if [ -n "$deps" ]; then echo "livecode depends on //:repo_data:"; echo "$deps"; exit 1; fi
       - name: Full Bazel test run without host-tool modules
         run: >-
           nix develop --no-write-lock-file --command bash -c

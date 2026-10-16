@@ -22,8 +22,9 @@ exports_files([
 
 # Every file of the root package: docs/, program/, profiles/, review/, reports/,
 # deploy/, .agents/, .github/, just/ and the top-level manifests. Sub-packages
-# (src, scripts, tests, web, site, native/au-spike, tools/bazel, bazel) export their own
-# `all_files`; .bazelignore removes generated and private trees.
+# (src, scripts, tests, web, site, native/au-spike, tools/bazel, bazel, condense,
+# livecode) export their own `all_files`; .bazelignore removes generated and
+# private trees.
 filegroup(
     name = "repo_data",
     srcs = glob(

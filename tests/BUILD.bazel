@@ -165,6 +165,7 @@ unittest_py_tests(
         "//:repo_data",
         "//bazel:all_files",
         "//condense:all_files",
+        "//livecode:all_files",
         "//native/au-spike:all_files",
         "//scripts:all_files",
         "//src:all_files",

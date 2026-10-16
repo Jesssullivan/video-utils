@@ -4,6 +4,14 @@
 
 ### Added
 
+- `livecode` 0.1.0: the first shard. A screen + camera corner + mic recorder,
+  previewer and RTMP streamer with plain FFmpeg (macOS), moved from
+  xoxd-ai/lab at `d3997eef5` (lab #2723, #2726, #2728) and made generic:
+  `LIVECODE_DIR` is required, an internal disk is refused unless
+  `LIVECODE_ALLOW_INTERNAL=1`, and `LIVECODE_VOLUME_UUID` pins the volume
+  when set. It ships as
+  `livecode/package.nix` (`packages.<system>.livecode`), `//livecode`, the
+  `.agents/skills/livecode` skill (no MCP tool) and `just livecode-check`.
 - `src/timeline.rs` and `video-utils timeline validate|table|map|quantise`: the
   EDL model, frame quantisation and time map, bit-exact with the frozen
   talk-condense oracle (`tests/fixtures/edl-golden-v1.json`).
