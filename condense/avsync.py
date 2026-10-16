@@ -9,6 +9,10 @@ real:  measures the delivered file at speech that plays at 1x. The picture is ma
        frames around the EDL's answer (5 frames, 25 candidates). 0.4 s of sound is cross-correlated against
        the mezzanine audio 0.25 s to each side. This is the check that sees the source's own clocks,
        atempo, the encode and the mp4 timestamps.
+joined: measures the delivered file at any speed, at points spread over the whole edit, against the
+       lossless parts in work/ that the final step joined. The same picture and sound match, so it sees the
+       join, the delivery filters, the encode and the mp4 timestamps, also where speech is sped up. Only
+       atempo's own timing inside a sped segment is measured by none of the three.
 """
 
 import subprocess
@@ -92,9 +96,22 @@ def stats(x):
     return f"{len(x)} frames, min {lo:+.1f}, median {mid:+.1f}, max {hi:+.1f} ms"
 
 
-def check_probe(cfg, edl, limit_ms):
-    """True when every readable output frame of every clip is within the limit."""
-    ok = True
+def summary(x):
+    """Frames, min, median, max and the largest |offset| in ms, or None when no frame was measured."""
+    if not len(x):
+        return None
+    lo, mid, hi = (round(float(v), 2) for v in np.percentile(x, [0, 50, 100]))
+    return {"frames": len(x), "min_ms": lo, "median_ms": mid, "max_ms": hi, "max_abs_ms": max(-lo, hi)}
+
+
+def thirds(t, total):
+    """Masks for the start, middle and end third of an output timeline `total` seconds long."""
+    return {name: (t >= total * i / 3) & (t < total * (i + 1) / 3) for i, name in enumerate(("start", "middle", "end"))}
+
+
+def measure_probe(cfg, edl, limit_ms):
+    """Per clip: set-aside frames, offset summaries by window and by third, and whether every frame is in limit."""
+    clips, ok = [], True
     for clip in (c for c in edl["clips"] if c["segments"][0]["kind"] != "card"):
         off, good = probe(cfg, edl, clip)
         t = np.arange(len(off)) / edl["fps"]
@@ -103,10 +120,28 @@ def check_probe(cfg, edl, limit_ms):
             [s["frames"] for s in clip["segments"]],
         )
         print(f"sync probe: {clip['name']}: {int((~good).sum())} crossfade or padded frames set aside")
+        windows = {}
         for name, mask in (("first 60 s", t < 60), ("1x", ~fast), ("sped", fast), ("all", t >= 0)):
             print(f"  {name:10s} {stats(off[good & mask])}")
-        ok &= bool(good.any() and np.abs(off[good]).max() <= limit_ms)
-    return ok
+            windows[name] = summary(off[good & mask])
+        passed = bool(good.any() and np.abs(off[good]).max() <= limit_ms)
+        ok &= passed
+        clips.append(
+            {
+                "clip": clip["name"],
+                "frames": len(off),
+                "set_aside_frames": int((~good).sum()),
+                "windows": windows,
+                "thirds": {k: summary(off[good & m]) for k, m in thirds(t, len(off) / edl["fps"]).items()},
+                "passed": passed,
+            }
+        )
+    return {"limit_ms": limit_ms, "passed": ok, "clips": clips}
+
+
+def check_probe(cfg, edl, limit_ms):
+    """True when every readable output frame of every clip is within the limit."""
+    return measure_probe(cfg, edl, limit_ms)["passed"]
 
 
 def raw(dtype, *args):
@@ -140,38 +175,114 @@ def match(y, x):
     return corr / (np.sqrt((power[len(x) :] - power[: -len(x)]) * (x * x).sum()) + 1e-9)
 
 
-def real_at(cfg, s, shift, t0, j):
-    """(audio - video in ms, correlation, sharpness) at output frame j of 1x segment s, which starts at t0."""
+def offset_at(cfg, ref, j, want):
+    """(audio - video in ms, correlation, sharpness) at output frame j, against `ref` near its time `want` s.
+
+    The picture is matched against 25 frames of ref around `want` (through the delivery filters), and 0.4 s of
+    sound is cross-correlated against ref's sound 0.25 s to each side.
+    """
     fps = cfg.fps
-    mezz, want = cfg.f(s["src"], "mezz.mkv"), s["inp"] + shift + j / fps - t0  # the source time the EDL puts there
     k0 = max(0, round(want * fps) - 12)
-    edit, source = gray(cfg.out, j, 5, fps), gray(mezz, k0, 29, fps, video_filter(cfg) + ",")
+    edit, source = gray(cfg.out, j, 5, fps), gray(ref, k0, 29, fps, video_filter(cfg) + ",")
     miss = [((edit - source[k : k + 5]) ** 2).mean() for k in range(len(source) - 4)]
     seen = (k0 + int(np.argmin(miss))) / fps
     x = pcm(cfg.out, j * SR // fps, 19200)
     c0 = max(0, round(want * SR) - 12000)
-    y = pcm(mezz, c0, len(x) + 24000)
+    y = pcm(ref, c0, len(x) + 24000)
     corr = match(y, x - x.mean())
     heard = (c0 + int(np.argmax(corr))) / SR
-    return (heard - seen) * 1000, corr.max(), np.sort(miss)[1] / (min(miss) + 1e-9)
+    return (heard - seen) * 1000, float(corr.max()), np.sort(miss)[1] / (min(miss) + 1e-9)
 
 
-def check_real(cfg, tl, edl, limit_ms, points=8):
-    """True when the median offset of every clip with 1x speech is within the limit."""
-    ok = True
+def real_at(cfg, s, shift, t0, j):
+    """(audio - video in ms, correlation, sharpness) at output frame j of 1x segment s, which starts at t0."""
+    want = s["inp"] + shift + j / cfg.fps - t0  # the source time the EDL puts there
+    return offset_at(cfg, cfg.f(s["src"], "mezz.mkv"), j, want)
+
+
+def measure_real(cfg, tl, edl, limit_ms, points=8):
+    """Per clip: every measured spot and its median. Then the spots of all clips by third of the edit."""
+    ok, clips, every = True, [], []
     for clip in edl["clips"]:
         rows = [r for r in tl.by_clip[clip["name"]][1] if r[2]["kind"] == "speech" and r[1] - r[0] >= 0.8]
         rows = [r for r in rows if r[2]["frames"] == round((r[2]["out"] - r[2]["inp"]) * cfg.fps)]
         spots = [(r, t) for r in rows for t in np.arange(r[0] + 0.2, r[1] - 0.45, 0.5)]
-        found = []
+        found, unclear = [], 0
         for (t0, _, s), t in spots[:: max(1, len(spots) // points)]:
             gap, corr, sharp = real_at(cfg, s, clip["shift"], t0, round(t * cfg.fps))
             if corr >= 0.5 and sharp >= 1.15:  # else the sound or the picture has no clear match there
-                found.append(gap)
+                found.append(
+                    {"t_s": round(float(t), 3), "offset_ms": round(float(gap), 2), "correlation": round(corr, 3)}
+                )
                 print(f"sync real: {clip['name']} at {t:8.2f} s: {gap:+6.1f} ms (correlation {corr:.2f})")
+            else:
+                unclear += 1
+        median = None
         if found:
-            ok &= abs(float(np.median(found))) <= limit_ms
-            print(f"sync real: {clip['name']} median {np.median(found):+.1f} ms over {len(found)} spots")
-        else:
+            median = round(float(np.median([f["offset_ms"] for f in found])), 2)
+            ok &= abs(median) <= limit_ms
+            print(f"sync real: {clip['name']} median {median:+.1f} ms over {len(found)} spots")
+        elif clip["segments"][0]["kind"] != "card":
             print(f"sync real: {clip['name']} has no clear 1x speech to measure")
-    return ok
+        clips.append({"clip": clip["name"], "spots": found, "unclear_spots": unclear, "median_ms": median})
+        every += found
+    t = np.array([f["t_s"] for f in every])
+    off = np.array([f["offset_ms"] for f in every])
+    by_third = {}
+    for name, mask in thirds(t, tl.total).items():
+        by_third[name] = (
+            {"spots": int(mask.sum()), "median_ms": round(float(np.median(off[mask])), 2)} if mask.any() else None
+        )
+    return {"limit_ms": limit_ms, "passed": ok, "clips": clips, "thirds": by_third}
+
+
+def check_real(cfg, tl, edl, limit_ms, points=8):
+    """True when the median offset of every clip with 1x speech is within the limit."""
+    return measure_real(cfg, tl, edl, limit_ms, points)["passed"]
+
+
+def measure_joined(cfg, edl, limit_ms, points=24):
+    """Spots spread evenly over the edit, each against its lossless part. Passes when every third's median
+    is within the limit. Set aside, and passing, when the parts are no longer in work/."""
+    fps, found, unclear = cfg.fps, [], 0
+    names = [(cfg.f(name, "mezz.mkv"), sum(s["frames"] for s in segs)) for name, _, segs in parts(edl)]
+    if not all(path.is_file() for path, _ in names):
+        print("sync joined: the parts are not in work/, not measured")
+        return {"limit_ms": limit_ms, "passed": True, "measured": False, "spots": [], "thirds": None}
+    starts = np.cumsum([0] + [n for _, n in names])
+    total = int(starts[-1])
+    for i in range(points):
+        j = int(total * (i + 0.5) / points)
+        p = int(np.searchsorted(starts, j, side="right")) - 1
+        part, n = names[p]
+        if n < 60:  # too short to keep the 29-frame and 0.9 s windows inside it
+            unclear += 1
+            continue
+        local = min(max(j - int(starts[p]), 15), n - 45)  # keep both windows inside the part
+        j = int(starts[p]) + local
+        gap, corr, sharp = offset_at(cfg, part, j, local / fps)
+        if corr >= 0.5 and sharp >= 1.15:
+            found.append({"t_s": round(j / fps, 3), "offset_ms": round(float(gap), 2), "correlation": round(corr, 3)})
+            print(f"sync joined: at {j / fps:8.2f} s: {gap:+6.1f} ms (correlation {corr:.2f})")
+        else:
+            unclear += 1
+    t = np.array([f["t_s"] for f in found])
+    off = np.array([f["offset_ms"] for f in found])
+    by_third = {}
+    for name, mask in thirds(t, total / fps).items():
+        by_third[name] = (
+            {"spots": int(mask.sum()), "median_ms": round(float(np.median(off[mask])), 2)} if mask.any() else None
+        )
+    ok = all(abs(v["median_ms"]) <= limit_ms for v in by_third.values() if v)
+    print(
+        f"sync joined: {len(found)} of {points} spots clear, "
+        + ", ".join(f"{k} {v['median_ms']:+.1f} ms" for k, v in by_third.items() if v)
+    )
+    return {
+        "limit_ms": limit_ms,
+        "passed": ok,
+        "measured": True,
+        "spots": found,
+        "unclear_spots": unclear,
+        "thirds": by_third,
+    }

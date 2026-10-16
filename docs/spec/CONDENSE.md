@@ -133,3 +133,55 @@ job runs it in the `condense` dev shell. `check` gates a real edit: no silence
 of 1.0 s or more at -35 dB, loudness within 1 LU, a true peak under 0 dBTP, and
 picture and sound within 20 ms. Listening quality and ASR accuracy are not
 claimed by any gate.
+
+### check.json
+
+TIN-6545. Every `check` run writes `work/check.json` (`kind` `condense_check`,
+schema 1), whether its gates pass or fail. It binds the sha256 of the delivered
+file and of `edl.json`, lists the checks that ran (`complete` when all four
+gates did), and records per gate its limits, measured values and verdict:
+
+| Gate | Measured | Limit |
+| --- | --- | --- |
+| `silence` | hits at `silence_db` over `silence_s`, with output and source times | 0 hits |
+| `loud` | integrated LUFS, deviation from the target, true peak, loudness range | 1 LU; true peak under 0 dBTP |
+| `sync` probe | every frame of a coded stand-in, per clip: set-aside frames; min, median, max by window and by third | every frame within 20 ms |
+| `sync` real | the delivered file at 1x speech against the mezzanine, per spot and per clip; medians by third of the edit | each clip's median within 20 ms |
+| `sync` joined | the delivered file at 24 spots spread over the whole edit, at any speed, against the lossless parts | each third's median within 20 ms |
+| `bounds` | the whisper match ratio at each cut and join; the text stays in the printed report | none; a person reads it |
+| `captions` | cue start minus the nearest sound onset at up to 24 cues after a 0.3 s lead-in | none; measured, not gated |
+
+`start`, `middle` and `end` are the thirds of the output timeline. Offsets are
+in ms; positive means the sound leads the picture, or that the caption appears
+after the speech starts. The file holds names, times and numbers only.
+
+`publish` carries a `check.json` that measured this very edit into the run as
+an `output_sha256` file, so `verify-run` hashes it, and the manifest's `check`
+records its sha256, `status` (`passed` or `failed`), the gates and a summary.
+A `check.json` of another edit is refused; without one `check.status` is
+`not_run`. The manifest's `status` stays `rendered_unreviewed`: a machine check
+is not a listening review. `verify-run` reads the `check` object as an open
+field and checks only the file's hash.
+
+### Thresholds against a real talk
+
+Measured on 2026-10-16 on the tool-tier v5 rebuild (TIN-6544; 37725 frames,
+1257.5 s, three clips), receipt `docs/agent-notes/2026-10-16-condense-check-receipt.md`:
+
+- **Sync, 20 ms: kept.** The coded probe's worst frame is 14.49 ms (sped
+  phone speech; 8.79 ms in the room clip), the 1x real median +0.31 ms over 6
+  spots, and the joined medians -5.05, -5.17 and -5.12 ms at the start, middle
+  and end. The v2 bug, an 87 ms lead, is over four times the limit and fails
+  the gate (`condense/tests/test_check.py`). Single spots read one frame off
+  (+28 to +34 ms, -38.5 ms) at 3 of 27 clear spots, so the limit applies to
+  medians, never to one spot. The 1x real measure covers only the opening
+  welcome here: the other clips play no speech at 1x.
+- **Loudness, 1 LU: kept.** The delivered and upload copies both measure
+  -16.0 LUFS (deviation 0.0 LU), loudness range 3.5 LU and true peak -1.0 dBTP:
+  0.5 dB over the render's -1.5 dBTP target after AAC, 1.0 dB under the gate.
+  The 11 s synthetic edit lands 0.4 LU off, so 1 LU is not loose for a short
+  edit and two-pass linear loudnorm needs no tighter one for a long one.
+- **Captions: not gated.** 15 of 24 sampled cues had a clear onset: median
+  +135 ms, 90th percentile of |offset| 263 ms, range -215 to +280 ms. An energy
+  onset is not a word onset (a breath or a click counts), so no limit is set
+  until a reviewed set of cue starts exists.

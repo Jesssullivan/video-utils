@@ -6,7 +6,7 @@ import subprocess
 
 import pytest
 
-from condense import publish, timeline
+from condense import check, publish, timeline
 
 
 def verify(run_dir):
@@ -32,6 +32,7 @@ def test_the_manifest_binds_every_output_and_declares_the_edl_mapping(published,
     assert [c["name"] for c in m["timeline"]["clips"]] == [c["name"] for c in edl["clips"]]
     assert {s["clip"] for s in m["sources"]} == {c["name"] for c in rendered.clips}
     assert "source" not in m and "pcm" not in m
+    assert m["check"] == {"status": "not_run"} and "check.json" not in m["output_sha256"]
 
 
 def test_the_published_run_passes_verify_run(published):
@@ -70,3 +71,97 @@ def test_publish_refuses_without_a_render(talk, tmp_path):
     finally:
         talk.out = talk_out
     assert list(tmp_path.iterdir()) == []
+
+
+@pytest.fixture
+def report(rendered):
+    """work/check.json of the rendered edit, removed afterwards so no other test publishes it."""
+    path = rendered.f(*publish.CHECK_REPORT)
+    yield path
+    path.unlink(missing_ok=True)
+
+
+def test_a_check_report_is_published_hash_bound_and_summarised(rendered, report, tmp_path):
+    assert check.check(rendered, ["silence", "loud"])
+    run_dir = publish.publish(rendered, tmp_path)
+    m = json.loads((run_dir / "manifest.json").read_text())
+    r = json.loads(report.read_text())
+    assert m["check"] == {
+        "status": "passed",
+        "file": "check.json",
+        "sha256": publish.sha256(report),
+        "complete": False,
+        "gates": {"silence": True, "loud": True},
+        "summary": r["summary"],
+    }
+    assert m["output_sha256"]["check.json"] == m["check"]["sha256"]
+    assert m["status"] == "rendered_unreviewed"  # a machine check is not a listening review
+    assert verify(run_dir).returncode == 0
+    (run_dir / "check.json").write_text((run_dir / "check.json").read_text().replace('"passed": true', '"passed": 1'))
+    assert verify(run_dir).returncode == 1
+
+
+def test_a_check_report_of_another_edit_is_refused(rendered, report, tmp_path):
+    report.write_text(json.dumps({"kind": "condense_check", "delivery": {"sha256": "0" * 64}, "edl_sha256": "0" * 64}))
+    with pytest.raises(RuntimeError, match="checked another edit"):
+        publish.publish(rendered, tmp_path)
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_no_binary_stops_publish_before_anything_is_staged(rendered, tmp_path, monkeypatch):
+    def missing():
+        raise RuntimeError("no video-utils binary: run `just cli`, or set VIDEO_UTILS_BIN")
+
+    monkeypatch.setattr(publish.timeline, "binary", missing)
+    with pytest.raises(RuntimeError, match="no video-utils binary"):
+        publish.publish(rendered, tmp_path / "root")
+    assert not (tmp_path / "root").exists()
+
+
+def fake_verifier(tmp_path, body):
+    """The real binary, except that verify-run runs `body`."""
+    script = tmp_path / "fake-video-utils"
+    script.write_text(f'#!/bin/sh\nif [ "$1" = verify-run ]; then {body}; fi\nexec "{timeline.binary()}" "$@"\n')
+    script.chmod(0o755)
+    return str(script)
+
+
+@pytest.mark.parametrize(
+    "body, kept",
+    [
+        ('echo \'{"status": "failed"}\'; exit 1', False),  # a verdict: refused
+        ("echo usage >&2; exit 2", True),  # not a verdict
+        ("kill -9 $$", True),  # a crash
+    ],
+    ids=["refused", "usage", "crash"],
+)
+def test_only_a_refusal_renames_the_run_failed(rendered, tmp_path, monkeypatch, body, kept):
+    verifier = fake_verifier(tmp_path, body)
+    monkeypatch.setattr(publish.timeline, "binary", lambda: verifier)
+    root = tmp_path / "root"
+    with pytest.raises(RuntimeError) as caught:
+        publish.publish(rendered, root)
+    (entry,) = list(root.iterdir())
+    if kept:
+        assert "unverified, not refused" in str(caught.value)
+        assert not entry.name.startswith(".") and (entry / "manifest.json").is_file()
+    else:
+        assert str(caught.value).startswith("verify-run refused") and entry.name.startswith(".failed-")
+
+
+def test_a_verify_run_timeout_is_not_a_refusal(rendered, tmp_path, monkeypatch):
+    real = subprocess.run
+
+    def slow(args, **kw):
+        if "verify-run" in args:
+            raise subprocess.TimeoutExpired(args, kw.get("timeout"))
+        return real(args, **kw)
+
+    monkeypatch.setattr(publish.subprocess, "run", slow)
+    root = tmp_path / "root"
+    with pytest.raises(RuntimeError, match="unverified, not refused.*ran over") as caught:
+        publish.publish(rendered, root)
+    (entry,) = list(root.iterdir())
+    assert not entry.name.startswith(".") and not str(caught.value).startswith("verify-run refused")
+    monkeypatch.undo()
+    assert verify(entry).returncode == 0  # the run itself was good all along

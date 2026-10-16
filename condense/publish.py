@@ -2,21 +2,28 @@
 
 The manifest's timeline mapping is edl_v1 (docs/spec/TIMELINE_CONTRACT.md): output time maps to source time
 through edl.json, so `no_time_stretch` is false and no guitar tool accepts the run. The run is staged, renamed
-into place, then checked by `video-utils verify-run --timeline edl_v1`. A run that fails the check is renamed
-to .failed-<run_id> and the stage exits 1.
+into place, then checked by `video-utils verify-run --timeline edl_v1`. A run that verify-run refuses is
+renamed to .failed-<run_id> and the stage exits 1. The binary is found before anything is staged; a verify-run
+that cannot start or runs over the time limit refuses nothing, so the run keeps its name and stays unverified.
+
+When the check stage wrote work/check.json for this very edit (its delivery and edl.json sha256 equal the
+outputs'), the run carries it as check.json and the manifest records its sha256 and summary. A check.json
+of another edit is refused; without one the manifest says the check was not run.
 """
 
 import hashlib
 import json
 import shutil
+import subprocess
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
 from . import audio, timeline
-from .config import run
+from .config import TIMEOUT_S, run
 
 ARTIFACTS = timeline.ROOT / "artifacts" / "condense"
+CHECK_REPORT = ("check", "json")  # work/check.json, written by the check stage
 
 
 def sha256(path):
@@ -40,7 +47,32 @@ def outputs(cfg):
     for name in ("talk.mp4", "edl.json"):
         if not found[name].is_file():
             raise FileNotFoundError(f"{found[name]}: run the render stage first")
+    report = cfg.f(*CHECK_REPORT)
+    if report.is_file():
+        bound = json.loads(report.read_text())
+        measured = ((bound.get("delivery") or {}).get("sha256"), bound.get("edl_sha256"))
+        if bound.get("kind") != "condense_check" or measured != (
+            sha256(found["talk.mp4"]),
+            sha256(found["edl.json"]),
+        ):
+            raise RuntimeError(f"{report} checked another edit: run the check stage again")
+        found["check.json"] = report
     return found
+
+
+def check_summary(files, digests):
+    """The manifest's check entry: the report's sha256, which gates ran and passed, and its summary numbers."""
+    if "check.json" not in files:
+        return {"status": "not_run"}
+    report = json.loads(files["check.json"].read_text())
+    return {
+        "status": "passed" if report["passed"] else "failed",
+        "file": "check.json",
+        "sha256": digests["check.json"],
+        "complete": report["complete"],
+        "gates": {name: gate["passed"] for name, gate in report["gates"].items()},
+        "summary": report["summary"],
+    }
 
 
 def stream(path):
@@ -90,11 +122,31 @@ def manifest(cfg, run_id, final, files, edl):
             "audio_channels": channels,
             "video_frames": audio.frames(files["talk.mp4"]),
         },
+        "check": check_summary(files, digests),
         "tools": {"ffmpeg": version, "video_utils_timeline": checked["schema_version"]},
     }
 
 
+def verify(verifier, run_dir):
+    """(accepted, the end of its receipt): verify-run's verdict, 0 or 1. Raise when it gave none."""
+    try:
+        p = subprocess.run(
+            [verifier, "verify-run", "--timeline", "edl_v1", str(run_dir)],
+            capture_output=True,
+            text=True,
+            timeout=TIMEOUT_S,
+        )
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f"verify-run ran over {TIMEOUT_S:g} s (CONDENSE_TOOL_TIMEOUT_S)") from None
+    except OSError as error:
+        raise RuntimeError(f"verify-run could not start: {error}") from None
+    if p.returncode not in (0, 1):  # 2 is a usage error; anything else is a crash, not a verdict
+        raise RuntimeError(f"verify-run exited {p.returncode}: {p.stderr.strip()[-2000:]}")
+    return p.returncode == 0, (p.stdout.strip() or p.stderr.strip())[-2000:]
+
+
 def publish(cfg, root=None):
+    verifier = timeline.binary()  # before any staging: no binary means no run at all
     root = Path(root or ARTIFACTS)
     root.mkdir(parents=True, exist_ok=True)
     files = outputs(cfg)
@@ -112,9 +164,12 @@ def publish(cfg, root=None):
         shutil.rmtree(staging, ignore_errors=True)
         raise
     try:
-        run(timeline.binary(), "verify-run", "--timeline", "edl_v1", final)
-    except RuntimeError as refused:
+        accepted, receipt = verify(verifier, final)
+    except RuntimeError as error:
+        raise RuntimeError(f"{run_id} is unverified, not refused; it keeps its name: {error}") from None
+    if not accepted:
         final.rename(root / f".failed-{run_id}")
-        raise RuntimeError(f"verify-run refused {run_id}; kept as .failed-{run_id}: {refused}") from None
-    print(f"{final}: {len(files)} files, {record['timeline']['total_frames']} frames, verified")
+        raise RuntimeError(f"verify-run refused {run_id}; kept as .failed-{run_id}: {receipt}")
+    check = record["check"]["status"]
+    print(f"{final}: {len(files)} files, {record['timeline']['total_frames']} frames, check {check}, verified")
     return final

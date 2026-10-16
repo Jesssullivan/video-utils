@@ -192,7 +192,13 @@ frame size or rate.
 - `bounds`: whisper re-reads 6 s of the edit around two cuts per clip and around every clip join. It also
   reads the same span of the source. Both print side by side. A person reads them: a cut must not eat a word.
 
-`just condense-check talk.toml silence loud` runs only the named checks.
+- `captions`: a measurement, not a gate. At up to 24 cues that follow 0.3 s with no cue, the cue start is
+  compared with the nearest sound onset (a 10 dB rise after 50 ms below it) within 0.3 s in the delivered
+  file. Positive means the caption appears after the speech starts.
+
+`just condense-check talk.toml silence loud` runs only the named checks. Every run writes `work/check.json`:
+each gate's limits, measured values and verdict, bound to the sha256 of the edit and of `edl.json`. It holds
+names, times and numbers only; the bounds text stays in the printed report.
 
 ### captions
 
@@ -249,7 +255,11 @@ just/condense.just one recipe per stage
 fresh `artifacts/condense/<run_id>/`. Its `manifest.json` hashes every file and every recording, and its
 timeline mapping is `edl_v1`: output time maps to source time through `edl.json`
 (`../docs/spec/TIMELINE_CONTRACT.md`). The stage then runs `video-utils verify-run --timeline edl_v1` on the
-run. A run that fails the check is renamed to `.failed-<run_id>` and the stage exits 1. Guitar tools never
+run. A run that verify-run refuses is renamed to `.failed-<run_id>` and the stage exits 1. No binary stops the
+stage before anything is staged; a verify-run that cannot start or runs over the limit refuses nothing, so the
+run keeps its name, unverified, and the stage exits 1. When `work/check.json` measured this very edit, the run
+carries it as `check.json` and the manifest's `check` records its sha256, the gates and their summary numbers;
+a `check.json` of another edit is refused, and without one `check` says `not_run`. Guitar tools never
 list or accept these runs. `just condense-all` ends in this stage. To check a published run again:
 
 ```sh
