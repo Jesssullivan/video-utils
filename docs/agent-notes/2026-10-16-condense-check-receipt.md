@@ -308,3 +308,44 @@ picture clusters its unclear spots, so a slide talk is `not_measured` far more o
 - `nix develop .#condense -c just condense-lint condense-test`: lint clean, 134 passed.
 - `tests/test_public_tree.py` and `tests/test_s4b_tool_admission.py` in the condense shell: 15 passed,
   1 skipped.
+
+## Rebase onto the drop, preset and upload change (2026-10-16)
+
+The branch is rebased (signed) onto `origin/main` at `7d78ebe` (TIN-6544: typed drop spans, `[encode]
+preset`, the H.264 upload copy, the touching-drop fix), then onto `59313aa`, which adds one agent note only. One conflict, the stage table of
+`docs/spec/CONDENSE.md`, is resolved to keep both sides: render writes `talk.mp4` and the optional
+`talk.upload.mp4`; check writes `check.json` and exits 1 when a gate fails or is not measured. The README and
+the rest of the spec merged cleanly with both PRs' text. `check.py`, `avsync.py`, `publish.py` and their tests
+are byte-identical to `ef8ea41`. New text in the spec and the README: `check` neither measures nor publishes
+the upload copy (render writes it before `check`; `publish` carries `talk.mp4`, `edl.json`, the captions,
+the corrected copy and `check.json` only).
+
+### Real talk, rebased code
+
+Script `2026-10-16-condense-check-rebase.sh` (sha256
+`2d1d7de37dad490d658892a986d0638742e615cfd8309d881cdfbacbf8f79104`): reflink copies of the round-3 inputs
+(no earlier report) in a new private run dir, the check stage, the sync and loudness measures on the upload
+copy, then publish. Same `talk.toml` (`39473608...`), `talk.mp4` (`a0709eb8...`), `talk.upload.mp4`
+(`79c1053e...`) and `edl.json` (`767cfcac...`, which the TIN-6544 receipt rebuilt unchanged after the
+touching-drop fix), registered whisper model (sha256 checked), `[encode] jobs = 2`, 4 whisper threads.
+Host load 10 to 29.
+
+- `check` exit 0 in 413 s wall. `check.json` sha256 `44a9290070ea5daca310097bed0861982a2df3a29b36526807285a070a18a853`,
+  byte-identical to round 3: `status` `passed`, `complete` true.
+- Upload copy: `check-upload.json` sha256 `f7e50456a939fea5030687c0862f9139082a3504ae77cec98255bbf7a60ec4d4`;
+  its `sync_real`, `sync_joined` and `loud` sections equal round 3's `check-r3-upload.json` field for field:
+  real +0.31 ms (6 clear, 3 picture-unclear of 9), joined 23 clear and 1 picture-unclear of 24, every third
+  within 20 ms, -16.0 LUFS, -1.0 dBTP, `passed`.
+- Publish: `4 files, 37725 frames, check passed, verified`; manifest sha256
+  `d0144e46c93e148a26bb2d820f15c2546e952a95948a05df8ba7e6eb0c686ae2`, `check.status` `passed`, `complete`
+  true, five gates true, manifest `status` `rendered_unreviewed`. The run holds no upload copy.
+
+### Gates (rebase)
+
+- `nix develop .#condense -c just condense-lint condense-test`: lint clean, 159 passed.
+- `tests/test_public_tree.py` and `tests/test_s4b_tool_admission.py` in the condense shell: 15 passed,
+  1 skipped.
+- Hosted CI on the rebased head `91d4f72`: `offline`, `condense`, `web`, `bazel` and `site` pass. The final
+  head adds this receipt section and sits on `59313aa`; its CI is on the PR.
+
+The admission-revision and follow-up items under "Still open" (round 3) are unchanged.
