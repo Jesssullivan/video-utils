@@ -17,13 +17,40 @@ def measured(joined):
 
 
 def leading(rendered, tmp_path, lead):
-    """The in-sync edit with its sound moved `lead` seconds early."""
+    """The edit with its sound moved `lead` seconds early."""
     moved = copy.copy(rendered)
     moved.out = tmp_path / "talk.lead.mp4"
     early = f"atrim=start={lead},asetpts=PTS-STARTPTS,apad"
     remux = ["-i", rendered.out, "-map", "0:v", "-map", "0:a", "-c:v", "copy", "-af", early, "-c:a", "aac"]
     subprocess.run(["ffmpeg", "-v", "error", "-y", *remux, "-shortest", moved.out], check=True)
     return moved
+
+
+def still(rendered, tmp_path):
+    """The in-sync edit, its mezzanines and its lossless parts with one textured picture held still, as a slide
+    or a screen recording holds it: the same sound, frames and timestamps, and no motion to time a frame by."""
+    held = copy.copy(rendered)
+    held.work, held.out = tmp_path / "work", tmp_path / "talk.still.mp4"
+    held.work.mkdir()
+    slide = "format=yuv420p,geq=lum='128+90*sin(X/5)*cos(Y/7)':cb=128:cr=128"
+
+    def hold(src, dst, *codec):
+        cmd = ["ffmpeg", "-v", "error", "-y", "-i", src, "-map", "0:v", "-map", "0:a", "-vf", slide, *codec]
+        subprocess.run([*cmd, "-c:a", "copy", dst], check=True)
+
+    for path in rendered.work.iterdir():
+        if path.is_file() and path.name.endswith("mezz.mkv"):
+            hold(path, held.work / path.name, "-c:v", "ffv1")
+        elif path.is_file() and ".probe" not in path.name:
+            (held.work / path.name).symlink_to(path)
+    hold(rendered.out, held.out, "-c:v", "libx264", "-preset", "ultrafast")
+    return held
+
+
+def spots(sync):
+    """Every spot the real and the joined measure tried."""
+    real, joined = sync["measured"]["real"], sync["measured"]["joined"]
+    return [s for clip in real["clips"] for s in clip["spots"]] + joined["spots"]
 
 
 def test_the_report_binds_the_edit_and_records_every_measurement(rendered, tmp_path):
@@ -49,17 +76,20 @@ def test_the_report_binds_the_edit_and_records_every_measurement(rendered, tmp_p
     assert sync["passed"] and sync["verdict"] == "passed"
     probe, real = sync["measured"]["probe"], sync["measured"]["real"]
     assert [c["verdict"] for c in real["clips"]] == ["passed", "no_1x_speech"]  # the card plays no speech
-    assert len(real["clips"][0]["spots"]) >= avsync.MIN_CLEAR
+    assert real["clips"][0]["clear_spots"] >= avsync.MIN_CLEAR
+    for spot in spots(sync):  # every tried spot says what it measured and why it is not clear
+        assert set(spot) == {"t_s", "offset_ms", "correlation", "sharpness", "unclear"}
+        assert spot["unclear"] in (None, "sound", "picture")
     assert [c["clip"] for c in probe["clips"]] == ["talk"]  # the card has no picture of its own to probe
     assert probe["clips"][0]["windows"]["all"]["max_abs_ms"] <= 20
     assert real["clips"][0]["spots"] and abs(real["clips"][0]["median_ms"]) <= 5
     start = real["thirds"]["start"]
-    assert start and start["spots"] >= 1 and abs(start["median_ms"]) <= 5
+    assert start and start["clear_spots"] >= 1 and abs(start["median_ms"]) <= 5
     joined = sync["measured"]["joined"]  # the whole edit, sped speech too, against the lossless parts
     assert joined["measured"] and set(joined["thirds"]) == {"start", "middle", "end"}
     assert len(measured(joined)) >= 2 and joined["verdict"] == "passed"
     assert all(third["verdict"] == "passed" and abs(third["median_ms"]) <= 5 for third in measured(joined))
-    assert all(third["spots"] >= avsync.MIN_CLEAR for third in measured(joined))
+    assert all(third["clear_spots"] >= avsync.MIN_CLEAR for third in measured(joined))
     t = [spot["t_s"] for spot in joined["spots"]]
     assert len(set(t)) == len(t)  # every spot is a different frame
 
@@ -106,8 +136,8 @@ def test_an_87_ms_audio_lead_fails_the_sync_gate(rendered, tmp_path, capsys):
 
 @pytest.mark.parametrize("lead", [1.0, 3.0, 8.0])
 def test_a_lead_beyond_the_search_window_fails_the_sync_gate(rendered, tmp_path, lead):
-    """The sound search reaches 0.25 s to each side. Beyond it every peak is spurious: no spot is clear, and a
-    measure that tried enough spots and found too few clear ones fails, whatever its few spurious spots say."""
+    """The sound search reaches 0.25 s to each side. Beyond it every peak is spurious: the sound is unclear at
+    every tried spot, and a measure that tried enough spots and heard too few fails."""
     report = tmp_path / "check.json"
     assert not check.check(leading(rendered, tmp_path, lead), ["sync"], report=report)
     r = json.loads(report.read_text())
@@ -115,11 +145,42 @@ def test_a_lead_beyond_the_search_window_fails_the_sync_gate(rendered, tmp_path,
     assert r["status"] == "failed" and r["failed"] == ["sync"] and sync["verdict"] == "failed"
     real, joined = sync["measured"]["real"], sync["measured"]["joined"]
     talk = real["clips"][0]
-    assert talk["verdict"] == "failed" and talk["tried_spots"] >= avsync.MIN_CLEAR
-    assert len(talk["spots"]) < avsync.MIN_CLEAR and real["verdict"] == "failed"
+    assert talk["verdict"] == "failed" and talk["tried_spots"] >= avsync.MIN_CLEAR and real["verdict"] == "failed"
     assert joined["verdict"] == "failed" and len(measured(joined)) >= 2
     assert all(third["verdict"] == "failed" for third in measured(joined))
-    assert all(spot["correlation"] >= avsync.CLEAR_CORR for spot in joined["spots"] + talk["spots"])
+    tried = spots(sync)
+    assert len(tried) == talk["tried_spots"] + joined["tried_spots"] >= 3 * avsync.MIN_CLEAR
+    assert max(spot["correlation"] for spot in tried) < avsync.CLEAR_CORR
+    assert all(spot["unclear"] == "sound" for spot in tried)
+    assert talk["sound_unclear_spots"] == talk["tried_spots"] and joined["clear_spots"] == 0
+
+
+def test_a_still_picture_in_sync_is_not_measured_never_failed(rendered, tmp_path):
+    """A slide, a screen recording or a still speaker: the sound matches, the picture has no frame to time it
+    by. That is no evidence either way, so sync is not_measured (and does not pass), never failed."""
+    report = tmp_path / "check.json"
+    assert not check.check(still(rendered, tmp_path), ["sync"], report=report)
+    r = json.loads(report.read_text())
+    sync = r["gates"]["sync"]
+    assert r["status"] == "not_measured" and r["failed"] == [] and r["not_measured"] == ["sync"]
+    real, joined = sync["measured"]["real"], sync["measured"]["joined"]
+    assert sync["verdict"] == "not_measured" and real["verdict"] == "not_measured"
+    assert joined["verdict"] == "not_measured" and len(measured(joined)) >= 2
+    assert all(third["verdict"] == "not_measured" for third in measured(joined))
+    tried = spots(sync)
+    assert len(tried) >= 3 * avsync.MIN_CLEAR
+    assert all(spot["unclear"] == "picture" for spot in tried)  # the sound was clear at every spot
+    assert min(spot["correlation"] for spot in tried) >= avsync.CLEAR_CORR
+    assert max(spot["sharpness"] for spot in tried) < avsync.CLEAR_SHARP
+
+
+def test_a_still_picture_with_a_gross_lead_still_fails(rendered, tmp_path):
+    """The sound alone carries a gross offset: with no match near the picture, a still picture fails too."""
+    report = tmp_path / "check.json"
+    assert not check.check(leading(still(rendered, tmp_path), tmp_path, 3.0), ["sync"], report=report)
+    sync = json.loads(report.read_text())["gates"]["sync"]
+    assert sync["verdict"] == "failed" and sync["measured"]["real"]["verdict"] == "failed"
+    assert all(spot["unclear"] == "sound" for spot in spots(sync))
 
 
 def test_missing_parts_leave_the_sync_gate_not_measured_and_not_passed(rendered, tmp_path):
@@ -145,7 +206,9 @@ def test_missing_parts_leave_the_sync_gate_not_measured_and_not_passed(rendered,
         "measured": False,
         "spots": [],
         "tried_spots": 0,
-        "unclear_spots": 0,
+        "clear_spots": 0,
+        "sound_unclear_spots": 0,
+        "picture_unclear_spots": 0,
         "thirds": None,
     }
     assert sync["measured"]["real"]["verdict"] == "passed"  # the other measures still ran
@@ -153,11 +216,28 @@ def test_missing_parts_leave_the_sync_gate_not_measured_and_not_passed(rendered,
 
 def test_a_measure_needs_enough_clear_spots():
     limit = 20
-    assert avsync.judged([1.0] * 4, 8, limit) == ("passed", 1.0)
-    assert avsync.judged([30.0] * 4, 8, limit) == ("failed", 30.0)
-    assert avsync.judged([1.0] * 3, 8, limit) == ("failed", 1.0)  # tried enough, too few clear
-    assert avsync.judged([1.0] * 3, 3, limit) == ("not_measured", 1.0)  # too few tried to say
-    assert avsync.judged([], 0, limit) == ("not_measured", None)
+
+    def tried(clear, sound=0, picture=0, at=1.0):
+        return [{"offset_ms": at, "unclear": None}] * clear + [
+            {"offset_ms": 0.0, "unclear": why} for why in ["sound"] * sound + ["picture"] * picture
+        ]
+
+    assert avsync.judged(tried(4, 4), limit) == ("passed", 1.0)
+    assert avsync.judged(tried(4, at=30.0), limit) == ("failed", 30.0)
+    assert avsync.judged(tried(3, sound=5), limit) == ("failed", 1.0)  # the sound unclear at too many spots
+    assert avsync.judged(tried(0, sound=8), limit) == ("failed", None)  # a gross offset
+    assert avsync.judged(tried(3, picture=5), limit) == ("not_measured", 1.0)  # heard, the picture could not tell
+    assert avsync.judged(tried(0, picture=8), limit) == ("not_measured", None)  # a still picture
+    assert avsync.judged(tried(2, sound=3, picture=3), limit) == ("not_measured", 1.0)  # 5 heard near the picture
+    assert avsync.judged(tried(1, sound=4, picture=2), limit) == ("failed", 1.0)  # 3 heard near the picture
+    assert avsync.judged(tried(3), limit) == ("too_few_spots", 1.0)  # too few tried to say
+    assert avsync.judged([], limit) == ("too_few_spots", None)
+    assert avsync.tally(tried(1, 2, 3)) == {
+        "tried_spots": 6,
+        "clear_spots": 1,
+        "sound_unclear_spots": 2,
+        "picture_unclear_spots": 3,
+    }
     assert avsync.overall([]) == "not_measured"
     assert avsync.overall(["passed", "not_measured"]) == "not_measured"
     assert avsync.overall(["not_measured", "failed"]) == "failed"

@@ -162,15 +162,24 @@ after the speech starts. The file holds names, times and numbers only.
 correlate at 0.80 to 0.99 (in sync and with an 87 ms lead); on the synthetic
 talk with its sound moved 0.5 to 8 s early, beyond the window, every peak is
 spurious at 0.57 or less, and on the real talk a 1 s lead leaves 0 of 33 spots
-clear. A median
-needs 4 clear spots. A real clip or joined third that tried 4 spots and found
-fewer clear ones fails: a gross offset leaves nothing clear. One that could try
-fewer is not measured. A real clip with no 1x speech, and a joined third with
-only cards or parts under 60 frames, have nothing to measure and are recorded
-as such. Each measure is `passed` only when nothing failed and something
-passed; otherwise `failed` or `not_measured`. Missing parts in `work/` make
-the joined measure `not_measured`. The `sync` gate passes only when all three
-measures passed, so an unmeasured gate fails the stage.
+clear. A spot that is not clear is unclear for its sound (no match near the
+picture, the sign of a gross offset) or, its sound clear, for its picture alone
+(a slide, a screen recording or a still speaker gives no frame to time it by).
+A median needs 4 clear spots. A real clip or joined third that tried 4 or more
+spots and found fewer clear ones fails when its sound was unclear at so many
+spots that fewer than 4 could have been clear; otherwise the picture kept them
+from it, and it is `not_measured`, never `failed`: a talk in sync on a still
+picture lacks evidence, it is not desynchronised. A clip or third with fewer
+than 4 spots to try is `too_few_spots`; a real clip with no 1x speech, and a
+joined third with only cards or parts under 60 frames, have nothing to measure.
+All three are recorded and do not count. Each measure is `passed` only when
+nothing failed or was `not_measured` and something passed; otherwise `failed`
+or `not_measured`. Missing parts in `work/` make the joined measure
+`not_measured`. The `sync` gate passes only when all three measures passed, so
+an unmeasured gate fails the stage. `check.json` records every tried spot with
+its offset, correlation, sharpness and `unclear` (`null`, `sound` or
+`picture`), and per clip and third the tried, clear, sound-unclear and
+picture-unclear counts, so a `failed` or `not_measured` verdict explains itself.
 
 The report's `status` is `failed` when a gate failed, `not_measured` when none
 failed but one lacked evidence, `partial` when every gate that ran passed but
@@ -188,7 +197,9 @@ an `output_sha256` file, so `verify-run` hashes it, and the manifest's `check`
 records its sha256, `status` (the report's, so `partial` is never `passed`),
 the gates and a summary. A `check.json` of another edit, or one that is not a
 readable check report, is refused before anything is staged; without one
-`check.status` is `not_run`. A partial report is never published. The
+`check.status` is `not_run`. A partial report is never published, and a
+`work/check.partial.json` of the same edit that is newer than `check.json` and
+says `failed` or `not_measured` refuses the publish: `check.json` is stale. The
 manifest's `status` stays `rendered_unreviewed`: a machine check is not a
 listening review. `verify-run` reads the `check` object as an open field and
 checks only the file's hash. When `verify-run` gives no verdict (it cannot
@@ -215,8 +226,20 @@ Measured on 2026-10-16 on the tool-tier v5 rebuild (TIN-6544; 37725 frames,
   rate (6 of 54 a frame late, 1 of 54 early), one third with 6 to 8 clear spots
   would fail falsely with a probability of 0.07 % to 0.4 %, about 0.7 % per run
   of three thirds; at the worst run's 3 in 12 it would be 3 % to 7 % per third.
-  Frame-exact reads would remove this; they are a follow-up. The 1x real measure
-  covers only the opening welcome here: the other clips play no speech at 1x.
+  Unclear spots are a second source, which that estimate left out while the
+  picture test alone could fail a measure. In the round-3 run every unclear
+  spot near the sound was unclear for the picture only: 16 of 99 on the
+  delivered, upload and 87 ms copies (sharpness 1.031 to 1.137, correlation
+  0.853 to 0.989), none for the sound. Inference, assuming independent spots:
+  at 16 in 99 a third of 8 or the real clip of 9 lacks 4 clear spots with a
+  probability of 0.4 % or 0.1 %, about 1.3 % per run, which is now recorded as
+  `not_measured`, never `failed`; at the 95 % upper bound of 3 in 99
+  sound-unclear spots with the true match inside the window, a false `failed`
+  from them is under 0.001 % per run. A still picture clusters its unclear
+  spots, so a slide talk is `not_measured` far more often than that.
+  Frame-exact reads would remove the misreads; they are a follow-up. The 1x
+  real measure covers only the opening welcome here: the other clips play no
+  speech at 1x.
 - **Loudness, 1 LU: kept.** The delivered and upload copies both measure
   -16.0 LUFS (deviation 0.0 LU), loudness range 3.5 LU and true peak -1.0 dBTP:
   0.5 dB over the render's -1.5 dBTP target after AAC, 1.0 dB under the gate.

@@ -7,7 +7,8 @@ only.
 
 The sections from "What changed" to "Gates" record the first pass (commit `7304e8a`). The review fixes at
 the end supersede them where they differ: the first pass let the sync gate pass without evidence, and
-published a partial check as `passed`.
+published a partial check as `passed`. The round-3 section supersedes the second pass's spot rule and its
+false-fail estimate: the second pass let a spot unclear for its picture alone count toward `failed`.
 
 ## What changed
 
@@ -219,3 +220,91 @@ reads are a follow-up that has no tracker issue yet.
 - `nix develop .#condense -c just condense-lint condense-test`: lint clean, 131 passed.
 - `tests/test_s4b_tool_admission` and `tests/test_public_tree` in the condense shell: 16 tests OK, 1
   skipped.
+
+## Review fixes (2026-10-16, round 3)
+
+### Defect fixed
+
+**A still picture in sync could be recorded as a measured desync (measured, real talk, at `0cba2e4`).** A
+spot that failed only the picture-sharpness test counted the same as one whose sound had no match near the
+picture, and a clip or third that tried 4 and found fewer than 4 clear failed. In this run all 6 unclear
+spots of the in-sync delivered file were unclear for the picture alone: 3 of 9 real (sharpness 1.054, 1.089,
+1.137) and 3 of 24 joined (1.031, 1.031, 1.032), at sound correlations 0.869 to 0.989 and offsets in limit.
+A talk of slides, a screen recording or a still speaker would have recorded sync `failed`.
+
+### What changed
+
+- `condense/avsync.py`: each tried spot records `t_s`, `offset_ms`, `correlation`, `sharpness` and
+  `unclear` (`null`, `sound` or `picture`; `sound` wins when both fail). `judged(spots, limit)`: 4 clear
+  spots give a median, passed or failed; of 4 or more tried with fewer clear, `failed` when fewer than 4
+  had their sound matched near the picture, else `not_measured`; fewer than 4 tried is `too_few_spots`.
+  The sparse rule is now the same for a real clip and a joined third: `too_few_spots`, like `no_1x_speech`
+  and `nothing_to_measure`, is recorded and does not count (before, a joined third with 1 to 3 spots made
+  the measure `not_measured` while a real clip with 1 to 3 was dropped). A `not_measured` real clip now
+  keeps the real measure from passing. Per clip, per third and per measure: `tried_spots`, `clear_spots`,
+  `sound_unclear_spots`, `picture_unclear_spots`; `spots` lists every tried spot, not only the clear ones.
+- `condense/publish.py`: a `work/check.partial.json` of the same edit (delivery and `edl.json` sha256),
+  newer than `check.json`, that says `failed` or `not_measured` refuses the publish before staging.
+- Docs: `docs/spec/CONDENSE.md` (spot rule, sparse rule, every-spot record, the stale-check refusal, the
+  corrected estimate) and `condense/README.md`.
+
+### Tests (synthetic media only)
+
+New: the in-sync edit with its mezzanines, lossless parts and delivery held on one still textured picture
+records sync `not_measured`, never `failed`: every tried spot `picture`-unclear, correlations 0.75 or more,
+sharpness under 1.15, every measured third and the real clip `not_measured`; the same still edit with a 3 s
+lead still fails, every spot `sound`-unclear. The 1, 3 and 8 s leads now assert that every tried spot's
+correlation is under 0.75 and every spot is `sound`-unclear (before, the assertion read only clear spots and
+held trivially). `judged` on mixed sound and picture counts; a newer failing partial report refuses the
+publish, an older one or one of another edit does not. The 87 ms lead still fails at +87 ms within 3 ms.
+
+### Real talk, same inputs
+
+Script `2026-10-16-condense-check-round3.sh` (sha256
+`3529d579957e1f8cebad566c51d41ee21bd2809dd5a9ea56fb1466d4f8a4c90b`), same private run dir, inputs, versions,
+registered whisper model, `[encode] jobs = 2` and 4 whisper threads as the second pass. The second pass's
+`check.json` is kept as `check-fix.json` (`f99a7953...4fcf37`). Host load 20 to 45.
+
+`check` exit 0 in 610 s wall. `check.json` sha256
+`44a9290070ea5daca310097bed0861982a2df3a29b36526807285a070a18a853`, `status` `passed`, `complete` true.
+Silence 0 hits; -16.0 LUFS, -1.0 dBTP; probe worst frame 14.49 ms; captions median +135 ms over 24 sampled
+cues: as before.
+
+| Copy | Real (intro, 1x): clear / sound / picture of 9 | Joined start / middle / end: median (clear, picture-unclear of 8) | Verdict |
+| --- | --- | --- | --- |
+| delivered | +0.31 ms: 6 / 0 / 3 | -5.05 (6, 2) / -5.17 (7, 1) / -5.22 ms (8, 0) | passed |
+| upload | +0.31 ms: 6 / 0 / 3 | -5.08 (7, 1) / -5.12 (8, 0) / -5.22 ms (8, 0) | passed |
+| delivered, sound 87 ms early | +87.31 ms: 6 / 0 / 3 | +81.95 (6, 2) / +81.83 (7, 1) / +81.78 ms (8, 0) | failed |
+| delivered, sound 1 s early | none: 0 / 9 / 0 | 0 of 8, all sound-unclear, in each third | failed |
+
+Every unclear spot near the sound is unclear for the picture only: 16 of 99 on the first three copies,
+sharpness 1.031 to 1.137, correlation 0.853 to 0.989; none for the sound. With the 1 s lead all 33 spots
+are sound-unclear (correlation 0.035 to 0.324). Reports: `check-r3-upload.json` `6b0f3e59...3c01ca05`,
+`check-r3-lead87.json` `20415a48...6b1ead65`, `check-r3-lead1000.json` `06fe8739...f9c74c21` (the moved
+copies were deleted after measuring). Publish: `4 files, 37725 frames, check passed, verified`; manifest sha256
+`c3a991d5fc91d19429ef9c9cb55cab8498fa7db3a04507bff726b894de2fb13e`, `check.status` `passed`, `complete`
+true, five gates true, `check.json` as above.
+
+### Corrected false-fail estimate
+
+The second pass's 0.7 % per run covered one-frame misreads moving a median past 20 ms only. Under the second
+pass's rule, picture-unclear spots were a second false-fail source it left out. Inference, assuming
+independent spots: at 16 in 99, a third of 8 or the real clip of 9 lacks 4 clear spots with probability
+0.4 % or 0.1 %, about 1.3 % per run; that was a false `failed` before and is `not_measured` now. At the
+95 % upper bound of 3 in 99 sound-unclear spots with the true match inside the window, a false `failed`
+from the sound is under 0.001 % per run. The misread estimate (about 0.7 % per run) is unchanged. A still
+picture clusters its unclear spots, so a slide talk is `not_measured` far more often than 1.3 %.
+
+### Still open
+
+- The hash-pinned descriptor (`program/tools.json`, `condense_check`) and the frozen condense-check and
+  condense-publish skills name neither `check.json`, the joined measure, `not_measured`, `too_few_spots`,
+  the every-spot record nor the stale-partial refusal: an admission revision is needed (integrator to file).
+- Frame-exact picture reads (removes the misreads) and a timing reference for still pictures (a still talk
+  is `not_measured` today, so its sync gate fails the stage without a measurement) are follow-ups.
+
+### Gates (round 3)
+
+- `nix develop .#condense -c just condense-lint condense-test`: lint clean, 134 passed.
+- `tests/test_public_tree.py` and `tests/test_s4b_tool_admission.py` in the condense shell: 15 passed,
+  1 skipped.

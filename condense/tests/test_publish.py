@@ -1,6 +1,7 @@
 """A published condense run is hash-bound, carries the edl_v1 mapping and passes verify-run; tampering fails it."""
 
 import json
+import os
 import shutil
 import subprocess
 
@@ -124,6 +125,28 @@ def test_a_partial_check_is_never_published_as_passed(rendered, report, tmp_path
         report.write_text(json.dumps(older))
         m = json.loads((publish.publish(rendered, tmp_path / "c") / "manifest.json").read_text())
         assert m["check"]["status"] == "partial"
+    finally:
+        partial.unlink(missing_ok=True)
+
+
+def test_a_newer_failing_partial_check_of_the_same_edit_refuses_the_publish(rendered, report, tmp_path):
+    """check.json passed, then `check sync` alone failed on the same edit: check.json no longer stands."""
+    partial = rendered.f(*publish.PARTIAL_REPORT)
+    try:
+        assert check.check(rendered, ["silence"], report=report)
+        assert check.check(rendered, ["silence"])
+        failing = json.loads(partial.read_text()) | {"status": "failed", "passed": False, "failed": ["sync"]}
+        partial.write_text(json.dumps(failing))
+        os.utime(report, ns=(partial.stat().st_mtime_ns - 10**9,) * 2)
+        with pytest.raises(RuntimeError, match="newer than check.json, says failed for this edit"):
+            publish.publish(rendered, tmp_path / "a")
+        assert not (tmp_path / "a").exists() or list((tmp_path / "a").iterdir()) == []
+        os.utime(partial, ns=(report.stat().st_mtime_ns - 10**9,) * 2)  # an older partial was superseded
+        assert publish.publish(rendered, tmp_path / "b")
+        os.utime(partial, ns=(report.stat().st_mtime_ns + 10**9,) * 2)
+        partial.write_text(json.dumps(failing | {"edl_sha256": "0" * 64}))  # a newer partial of another edit
+        os.utime(partial, ns=(report.stat().st_mtime_ns + 10**9,) * 2)
+        assert publish.publish(rendered, tmp_path / "c")
     finally:
         partial.unlink(missing_ok=True)
 

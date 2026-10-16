@@ -192,10 +192,14 @@ frame size or rate.
   - joined: 8 spots spread over each third of the edit, at any speed, are matched the same way against the
     lossless parts the render joined. Each third's median must be within 20 ms.
 
-  A spot counts only when its sound correlates at 0.75 or more inside the search window and its picture
-  match is clear. A median needs 4 such spots: a clip or third that tried 4 and found fewer fails, so a
-  sound moved far beyond the window fails rather than passing on chance matches. A measure with nothing to
-  try (no 1x speech anywhere, or the parts gone from `work/`) is `not_measured`, and the gate does not pass.
+  A spot is clear when its sound correlates at 0.75 or more inside the search window and its picture match
+  is clear. A median needs 4 clear spots. A clip or third that tried 4 or more and found fewer fails when its
+  sound was unclear at so many spots that fewer than 4 could have been clear, so a sound moved far beyond
+  the window fails rather than passing on chance matches. When the sound matched but the picture alone was
+  unclear (a slide, a screen recording, a still speaker), it is `not_measured`: no evidence either way. A
+  clip or third with fewer than 4 spots to try is `too_few_spots` and does not count. A measure with nothing
+  to try (no 1x speech anywhere, or the parts gone from `work/`) is `not_measured`, and the gate does not
+  pass. `check.json` records every tried spot: offset, correlation, sharpness and why it is not clear.
 - `bounds`: whisper re-reads 6 s of the edit around two cuts per clip and around every clip join. It also
   reads the same span of the source. Both print side by side. A person reads them: a cut must not eat a word.
 
@@ -271,8 +275,8 @@ nothing, so the run keeps its name, a file `.unverified-<run_id>` beside it says
 When `work/check.json` measured this very edit, the run carries it as `check.json` and the manifest's `check`
 records its sha256, its status, the gates and their summary numbers; a `check.json` of another edit, or one
 that is not a check report, is refused, and without one `check` says `not_run`. A partial check is never
-published. Guitar tools never
-list or accept these runs. `just condense-all` ends in this stage. To check a published run again:
+published, and a newer `work/check.partial.json` of the same edit that says `failed` or `not_measured`
+refuses the publish. Guitar tools never list or accept these runs. `just condense-all` ends in this stage. To check a published run again:
 
 ```sh
 just verify-run artifacts/condense/<run_id> edl_v1

@@ -10,7 +10,8 @@ that cannot start, crashes or runs over the time limit refuses nothing, so the r
 When the check stage wrote work/check.json for this very edit (its delivery and edl.json sha256 equal the
 outputs'), the run carries it as check.json and the manifest records its sha256, status and summary. A
 check.json of another edit, or one that is not a check report, is refused; without one the manifest says the
-check was not run. A partial check (work/check.partial.json) is never published.
+check was not run. A partial check (work/check.partial.json) is never published, and one of the same edit
+that is newer than check.json and says failed or not_measured refuses the publish: check.json is stale.
 """
 
 import hashlib
@@ -59,6 +60,18 @@ def outputs(cfg):
             sha256(found["edl.json"]),
         ):
             raise RuntimeError(f"{report} checked another edit: run the check stage again")
+        later = cfg.f(*PARTIAL_REPORT)
+        if later.is_file() and later.stat().st_mtime_ns > report.stat().st_mtime_ns:
+            partial = read_report(later)
+            same = (partial["delivery"].get("sha256"), partial.get("edl_sha256")) == (
+                bound["delivery"].get("sha256"),
+                bound.get("edl_sha256"),
+            )
+            if same and partial.get("status") in ("failed", "not_measured"):
+                raise RuntimeError(
+                    f"{later}, newer than {report.name}, says {partial['status']} for this edit: run the check "
+                    "stage with all four gates again"
+                )
         found["check.json"] = report
     return found
 

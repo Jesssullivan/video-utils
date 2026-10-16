@@ -4,8 +4,10 @@ silence:  no silence of 1 s or more at -35 dB is left. Each hit prints with the 
 loud:     integrated loudness within 1 LU of the target, true peak under 0 dBTP.
 sync:     avsync.py. Every output frame of a coded stand-in, the delivered file at 1x speech (median per
           clip), and the delivered file against its lossless parts (median per third) must sit within 20 ms.
-          A median needs avsync.MIN_CLEAR clear spots. A measure without that evidence is not_measured, and
-          the gate then does not pass: its verdict is passed, failed or not_measured.
+          A median needs avsync.MIN_CLEAR clear spots. Spots whose sound has no match near the picture count
+          toward failed (a gross offset); spots whose picture alone is unclear (a still picture) toward
+          not_measured. Every tried spot is recorded. A measure without evidence is not_measured, and the
+          gate then does not pass: its verdict is passed, failed or not_measured.
 bounds:   whisper reads 6 s of the edit around cuts and clip joins, and the same span of the source.
           Printed side by side for a human: a cut must not eat a word. It never fails on its own.
 captions: a measurement, not a gate. At sampled cues that follow a quiet lead-in, the cue start against the
