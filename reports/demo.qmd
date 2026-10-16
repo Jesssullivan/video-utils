@@ -194,14 +194,64 @@ cat("User-reported annotations (structured fields only; free text is never copie
 show_table(annotations, "No bound operator annotations.")
 ```
 
-## 7. Unknowns
+## 7. Onset labels: operator-heard onsets versus detector onset candidates
+
+Operator onset labels are user-authored points on the original source clock
+(annotation kind `onset`); an `onset_segment` span declares that every audible
+onset inside it was labelled. Detector onset candidates are hypotheses from the
+bound `analysis.json`. Each detector kind is scored on its own, one-to-one, at
+10, 25 and 50 ms. Precision exists only inside declared segments, because
+unlabelled time is unknown rather than onset-free. Agreement is not note
+correctness, and the operator's own placement error is not calibrated.
+
+```{r onsets}
+#| results: asis
+onset_summary <- table_of("onset_labels.csv")
+onset_rows <- table_of("onset_benchmark.csv")
+onset_status <- value_of(onset_summary, "status")
+if (!verified || is.null(onset_summary)) {
+  cat("Unavailable: the bundle did not verify or carries no onset-label table.\n\n")
+} else if (identical(onset_status, "no_operator_onset_labels")) {
+  cat("**No operator onset labels yet.** No precision, recall or F1 is shown. ",
+      "See `docs/spec/ONSET_LABELS.md` for the labelling procedure.\n\n", sep = "")
+} else if (identical(onset_status, "insufficient_operator_onset_labels")) {
+  cat("**Fewer than ", value_of(onset_summary, "minimum_operator_labels"),
+      " scored operator onset labels** (", value_of(onset_summary, "scored_operator_onset_labels"),
+      " scored). The scorer abstains; no rates are shown.\n\n", sep = "")
+} else {
+  cat("Onset-label status: **", onset_status, "**. Scoring mode: `",
+      value_of(onset_summary, "scoring_mode"), "`.\n\n", sep = "")
+}
+if (verified && !is.null(onset_summary)) {
+  show_table(onset_summary[onset_summary$field %in% c("operator_onset_labels", "scored_operator_onset_labels",
+                                                      "labels_outside_declared_segments", "declared_segments",
+                                                      "declared_segment_total_seconds", "by_certainty",
+                                                      "excluded", "detector_sets", "annotation_store_status",
+                                                      "analysis_status"), ])
+}
+if (verified && !is.null(onset_rows) && nrow(onset_rows)) {
+  show_table(onset_rows)
+}
+```
+
+```{r onsets-plot}
+#| fig-width: 9
+#| fig-height: 3.6
+if (verified) {
+  plot_onset_benchmark(bundle_dir)
+} else {
+  abstain_plot("Bundle not verified; no onset agreement shown")
+}
+```
+
+## 8. Unknowns
 
 ```{r unknowns}
 #| results: asis
 show_table(table_of("unknowns.csv"))
 ```
 
-## 8. Listening review
+## 9. Listening review
 
 Listening acceptance is not established. Record an operator review in a copy of
 the all-null template `docs/spec/examples/listening-review.json`, bound to this

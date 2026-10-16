@@ -29,6 +29,8 @@ Fixture generation and restoration/analysis measurements are separate from the `
 
 V2 discovery is unseeded: the bank's generated BPM and score do not become discovery inputs or truth-derived click templates. Its click stage is detection only. Pitch/expanded phrase calibration remain `not_requested` in benchmark-run receipts, and attenuation safety is `not_evaluated` when no attenuation ran. No case selector or automatic pilot-execution knob is exposed. Preserve the source/extent/32 Hz and exact denoised-bypass gates separately from these unrequested tasks.
 
+Operator onset labels are scored by a separate CLI worker that the `benchmark` hook does not expose. Run `just onset-benchmark RUN_DIR OUTPUT.json`, or directly `python3 scripts/onset_benchmark.py --run-dir RUN_DIR --output OUTPUT.json`. It joins user-authored `onset` labels to each detector `*_attack_candidate` kind in the bound `analysis.json`. Matching is one-to-one, and P/R/F1 are reported at 10, 25 and 50 ms. Precision exists only inside operator-declared `onset_segment` spans. The worker abstains below 10 scored labels. Offsets are reported, never subtracted. A missed label is not a missed note. Read [ONSET_LABELS](../../../docs/spec/ONSET_LABELS.md).
+
 **Review scenario:** A deliberately damaging high-pass should trigger low-frequency evidence even if the output is quieter. A louder bypass should not earn noise-reduction credit. Duplicate click candidates must not satisfy one truth event twice.
 
 ## Agent iteration

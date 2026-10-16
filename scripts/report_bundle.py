@@ -24,6 +24,17 @@ import shutil
 import sys
 
 REPO = Path(__file__).resolve().parents[1]
+_ONSETS = None
+
+
+def onset_module():
+    """The onset-label scorer lives in scripts/onset_benchmark.py; reuse it, never reimplement it."""
+    global _ONSETS
+    if _ONSETS is None:
+        spec = importlib.util.spec_from_file_location("report_bundle_onsets", REPO / "scripts" / "onset_benchmark.py")
+        _ONSETS = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_ONSETS)
+    return _ONSETS
 _SPEC = importlib.util.spec_from_file_location("report", REPO / "scripts" / "report.py")
 report = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(report)
@@ -742,7 +753,7 @@ def build(run_dir, analysis_run_dir=None, annotation_store=None, output_dir=None
 
     # Rule 8: operator annotation store (structured fields only).
     store_path = Path(annotation_store) if annotation_store is not None else data_root / DEFAULT_STORE_REL
-    store_status, store_rows, store_sha = "annotation_store_absent", [], None
+    store_status, store_rows, store_sha, bound_store = "annotation_store_absent", [], None, None
     if store_path.is_file() and not store_path.is_symlink():
         try:
             data = tracker.read_bytes(store_path, MAX_RECEIPT_BYTES)
@@ -758,6 +769,7 @@ def build(run_dir, analysis_run_dir=None, annotation_store=None, output_dir=None
             store_status = "annotation_store_unbound"
         else:
             store_status = "bound"
+            bound_store = store
             store_rows = project_store(store)
             projection = {"schema": SCHEMA + "#annotations", "store_sha256": store_sha,
                           "source_sha256": source_sha, "manifest_sha256": manifest_sha,
@@ -770,6 +782,33 @@ def build(run_dir, analysis_run_dir=None, annotation_store=None, output_dir=None
               "annotation_store_sha256": store_sha}
 
     unknowns = unknowns_with_candidates(analysis)
+
+    # Rule 8b: operator onset labels joined to detector onset candidates (D6); counts and rates only.
+    scorer = onset_module()
+    onset = scorer.onset_label_benchmark(bound_store if bound_store is not None else {"annotations": []}, analysis)
+    onset_status = onset["status"] if store_status == "bound" else store_status
+    if onset_status == "no_detector_onsets" and not analysis:
+        onset_status = "detector_analysis_" + analysis_status
+    onset_summary = [
+        {"field": "status", "value": onset_status},
+        {"field": "annotation_store_status", "value": store_status},
+        {"field": "analysis_status", "value": analysis_status},
+        {"field": "operator_onset_labels", "value": onset["operator_labels"]["count"]},
+        {"field": "scored_operator_onset_labels", "value": onset["operator_labels"]["scored_count"]},
+        {"field": "labels_outside_declared_segments", "value": onset["operator_labels"]["outside_declared_segments"]},
+        {"field": "declared_segments", "value": len(onset["declared_segments_seconds"])},
+        {"field": "declared_segment_total_seconds", "value": onset["declared_segment_total_seconds"]},
+        {"field": "scoring_mode", "value": onset["scoring_mode"]},
+        {"field": "minimum_operator_labels", "value": onset["minimum_operator_labels"]},
+        {"field": "tolerances_ms", "value": "; ".join(str(round(value * 1000)) for value in onset["tolerances_seconds"])},
+        {"field": "by_status", "value": "; ".join(f"{k}={v}" for k, v in onset["operator_labels"]["by_status"].items())},
+        {"field": "by_certainty", "value": "; ".join(f"{k}={v}" for k, v in onset["operator_labels"]["by_certainty"].items())},
+        {"field": "excluded", "value": "; ".join(f"{k}={v}" for k, v in onset["operator_labels"]["excluded"].items())},
+        {"field": "detector_sets", "value": len(onset["detectors"])},
+        {"field": "matching", "value": onset["matching"]},
+        {"field": "note_correctness", "value": onset["claims"]["note_correctness"]},
+    ]
+    onset_rows = scorer.onset_benchmark_rows(onset) if store_status == "bound" else []
 
     # Derived base-R tables.
     events = analysis.get("events") if isinstance(analysis.get("events"), list) else []
@@ -824,6 +863,10 @@ def build(run_dir, analysis_run_dir=None, annotation_store=None, output_dir=None
         "annotations.csv": (["id", "kind", "basis", "claim_label", "review_state", "reported_by_actor",
                              "source_time_seconds", "end_seconds", "extent_known", "musical_verdict"], store_rows),
         "corpus.csv": (["pool", "field", "value"], corpus_rows(corpus)),
+        "onset_labels.csv": (["field", "value"], onset_summary),
+        "onset_benchmark.csv": (["detector_kind", "time_axis", "label_subset", "tolerance_ms", "operator_labels",
+                                 "matched", "missed_labels", "false_positives", "precision", "recall", "f1",
+                                 "median_signed_offset_ms"], onset_rows),
         "unknowns.csv": (["field", "value", "reason", "candidate"],
                          [{"field": name, "value": shown(row["value"]), "reason": row["reason"],
                            "candidate": row["candidate"]} for name, row in unknowns.items()]),
@@ -861,7 +904,10 @@ def build(run_dir, analysis_run_dir=None, annotation_store=None, output_dir=None
            "auxiliary": auxiliary, "corpus_sha256": digest(canonical(corpus)),
            "review_flags": {"total": flags_total, "rows": len(flag_rows), "row_cap": MAX_FLAG_ROWS,
                             "authorship": "detector_hypothesis"},
-           "annotation_store_status": store_status}
+           "annotation_store_status": store_status,
+           "onset_labels": {"status": onset_status, "operator_label_count": onset["operator_labels"]["count"],
+                            "scored_label_count": onset["operator_labels"]["scored_count"],
+                            "scoring_mode": onset["scoring_mode"], "metric_rows": len(onset_rows)}}
 
     # Stage, recheck protected inputs, then publish atomically.
     staging = Path(f"{output}.staging-{os.getpid()}")

@@ -260,6 +260,19 @@ annotations-v2 run_dir:
 annotate-v2 run_dir request:
     python3 scripts/annotation_v2.py write {{quote(run_dir)}} --input {{quote(request)}}
 
+# Import an operator label track (start TAB end TAB text, seconds in the run WAV) as v2 records.
+# Points become kind (onset or phrase_duration); regions declare onset-labelled segments. Replays on rerun.
+onset-import run_dir labels audio="source.wav" kind="onset" quote="":
+    if [[ -n {{quote(quote)}} ]]; then python3 scripts/annotation_v2.py import-labels {{quote(run_dir)}} --labels {{quote(labels)}} --audio {{quote(audio)}} --point-kind {{quote(kind)}} --quote {{quote(quote)}}; else python3 scripts/annotation_v2.py import-labels {{quote(run_dir)}} --labels {{quote(labels)}} --audio {{quote(audio)}} --point-kind {{quote(kind)}}; fi
+
+# Operator onset labels versus detector onset candidates at 10/25/50 ms; abstains below 10 labels.
+onset-benchmark run_dir output:
+    python3 scripts/onset_benchmark.py --run-dir {{quote(run_dir)}} --output {{quote(output)}}
+
+# Score >= 10 operator phrase-boundary marks against a phrase_anchor projection (+-100 ms and +-1 click).
+phrase-anchor-score spans run_dir output:
+    python3 scripts/phrase_anchor.py score --spans {{quote(spans)}} --annotation-store {{quote(run_dir)}}/review-annotations-v2.json --output {{quote(output)}}
+
 # Read-only authored take-family split validation; no automatic data assignment.
 corpus-split manifest local_root=".":
     python3 scripts/corpus_split_s1.py validate {{quote(manifest)}} --root {{quote(local_root)}} --summary
