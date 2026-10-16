@@ -106,8 +106,13 @@ product; no code moves between the repositories.
 - `events.words_from` reads both backends unchanged. The pass-1 and DTW JSON
   land in `work/` as before, and the stage still fails when no DTW time came
   back. `work/<clip>.stt.json` records the backend that produced them (the
-  model file name, or the service URL), the language, the DTW preset, `pass1`
-  and `chunk_s`; never the token.
+  model file name, or the service's `scheme://host:port/path` without its
+  query), the language, the DTW preset, `pass1` and `chunk_s`; never the token.
+- `edl`'s pause-span answers in `work/<clip>.pause_asr.json` keep their flat
+  shape; `work/<clip>.pause_asr.key` names the backend and model (cli) or the
+  endpoint, a sha256 of the full URL and the language (http) that wrote them,
+  with the cache's sha256. A cache whose key does not match the configured
+  speech-to-text is read again, so switching backends never reuses answers.
 - Fail closed: any HTTP status other than 200, a redirect, an unreachable
   service, a wait over `http_timeout_s` (3600 s), a reply over 64 MiB, invalid
   JSON or any other shape stops the stage. Nothing is retried. For both

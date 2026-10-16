@@ -120,7 +120,8 @@ as a filler. Only true silence is cut. `evidence` picks the proof:
 - `word`: a transcribed word overlaps the sound. Only the filler lexicon is no proof, so a drawn-out "mmm"
   stays at speech speed.
 - `asr`: that, or whisper re-run on the pause span alone hears a word. For noisy rooms. The answers are
-  cached in `work/<clip>.pause_asr.json`.
+  cached in `work/<clip>.pause_asr.json`, keyed in `work/<clip>.pause_asr.key` by the speech-to-text backend and
+  model; a cache another backend or model wrote is read again.
 
 `edl.py` also holds the time map. `Timeline.to_out(clip, source_s)` gives an output time, and
 `Timeline.to_src(output_s)` goes back. Captions, overlays and checks all use it.

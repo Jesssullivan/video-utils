@@ -18,7 +18,8 @@ pause span is searched for sound: runs of 2+ RMS frames (100 ms each) over the c
 evidence stays speech, a run without evidence plays as a filler, and only true silence is cut. Evidence:
   energy  any run counts. For gated audio, where silence is digital silence.
   word    a transcribed word overlaps the run. Only the filler lexicon is no proof: a drawn-out "mmm" is a sound.
-  asr     that, or whisper re-run on the pause span alone hears a word. For noisy rooms. Cached per clip.
+  asr     that, or whisper re-run on the pause span alone hears a word. For noisy rooms. Cached per clip and
+          keyed by the speech-to-text that answered (pause_asr_key()).
 
 Sync: every segment is a whole number of output frames ("frames"). quantise() rounds the running total, so
 the rounding error never passes half a frame and never builds up. The render makes each segment's video and
@@ -30,8 +31,10 @@ analysis time + shift of the source.
 """
 
 import bisect
+import hashlib
 import json
 import re
+from pathlib import Path
 from types import SimpleNamespace
 
 from . import audio, timeline, transcribe
@@ -307,6 +310,49 @@ def zones_for(clip, total, speed, filler_speed, welcome):
     return out
 
 
+def pause_asr_key(cfg):
+    """What decides transcribe.read()'s answers: the backend and its model (cli), or its endpoint, full URL and
+    language (http). The full URL enters only as a sha256, so the key never stores a query."""
+    if transcribe.backend(cfg) == "http":
+        url = transcribe.stt_url(cfg)
+        return {
+            "backend": "http",
+            "url": transcribe.endpoint(url),
+            "url_sha256": hashlib.sha256(url.encode()).hexdigest(),
+            "language": cfg.whisper["language"],
+        }
+    return {"backend": "cli", "model": Path(cfg.model).name}
+
+
+def load_pause_asr(cfg, clip):
+    """The clip's cached pause-span answers when the speech-to-text configured now wrote them, else {}.
+
+    work/<clip>.pause_asr.json keeps the flat {"a-b": text} shape the retired tool wrote, so the parity check
+    still compares it by sha256. work/<clip>.pause_asr.key names the STT that wrote it and the cache's sha256.
+    A cache without a matching key (another backend or model, an older run, a hand-copied file) is read again."""
+    cache, stamp = cfg.f(clip, "pause_asr.json"), cfg.f(clip, "pause_asr.key")
+    if not cache.exists():
+        return {}
+    data = cache.read_bytes()
+    try:
+        found = json.loads(stamp.read_text()) if stamp.exists() else None
+    except ValueError:
+        found = None
+    want = {"stt": pause_asr_key(cfg), "pause_asr_sha256": hashlib.sha256(data).hexdigest()}
+    if found != want:
+        print(f"{clip['name']}: the pause_asr cache is not keyed to this speech-to-text; its spans are read again")
+        return {}
+    return json.loads(data)
+
+
+def save_pause_asr(cfg, clip, asr):
+    """Write the cache, then its key. A key left from an earlier cache never matches the new cache's sha256."""
+    cache = cfg.f(clip, "pause_asr.json")
+    cache.write_text(json.dumps(asr, indent=0, sort_keys=True))
+    key = {"stt": pause_asr_key(cfg), "pause_asr_sha256": hashlib.sha256(cache.read_bytes()).hexdigest()}
+    cfg.f(clip, "pause_asr.key").write_text(json.dumps(key, indent=1, sort_keys=True))
+
+
 def build_clip(cfg, clip):
     """Segments for one clip. Raises the speech speed by 0.05 up to speed_max while the clip runs over max_s."""
     fps, r = cfg.fps, cfg.rules
@@ -325,7 +371,6 @@ def build_clip(cfg, clip):
     for span in clip["drop"]:
         if span[1] > total + 1e-6:
             raise ValueError(f"clip {clip['name']}: drop {span!r} ends after the clip's {total:.3f} s")
-    cache = cfg.f(clip, "pause_asr.json")
     c = SimpleNamespace(
         name=clip["name"],
         fps=fps,
@@ -335,7 +380,7 @@ def build_clip(cfg, clip):
         lex=[(w["start"], w["end"]) for w in words if norm(w["word"]) not in FILL],
         voiced_db=clip["voiced_db"],
         mode=clip["evidence"],
-        asr=json.loads(cache.read_text()) if cache.exists() else {},
+        asr=load_pause_asr(cfg, clip) if clip["evidence"] == "asr" else {},
         missing=set(),
     )
     speed, top = clip["speed"], clip.get("speed_max", clip["speed"])
@@ -348,7 +393,7 @@ def build_clip(cfg, clip):
             print(f"{c.name}: whisper on {len(c.missing)} pause spans")
             for a, b in sorted(c.missing):
                 c.asr[f"{a:.3f}-{b:.3f}"] = transcribe.read(cfg, cfg.f(clip, "16k.wav"), a, b)
-            cache.write_text(json.dumps(c.asr, indent=0, sort_keys=True))
+            save_pause_asr(cfg, clip, c.asr)
             c.missing.clear()
             continue
         if "max_s" not in clip or sum(map(seg_dur, segs)) <= clip["max_s"] or speed >= top - 1e-9:

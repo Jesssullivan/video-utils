@@ -1,4 +1,5 @@
 import json
+import re
 from types import SimpleNamespace
 
 import pytest
@@ -287,3 +288,49 @@ def test_whisper_never_reads_a_pause_span_inside_a_drop(talk, monkeypatch):
     segs = build("drop = [[13.5, 18.6]]\n")
     assert calls == []
     assert any(s["kind"] == "cut" and s["inp"] <= 13.5 and s["out"] >= 18.6 for s in segs)
+
+
+def test_the_pause_asr_cache_is_keyed_by_the_speech_to_text(talk, monkeypatch):
+    """Answers whisper-cli gave are never reused by the http backend, and the other way round (TIN-6578)."""
+    base = talk.work.parent
+    work = base / "key-work"
+    work.mkdir(exist_ok=True)
+    for ext in ("16k.wav", "words.json", "rms.txt"):
+        (work / f"talk.{ext}").write_bytes(talk.f("talk", ext).read_bytes())
+    ev = json.loads(talk.f("talk", "events.json").read_text())
+    ev["fillers"] = [f for f in ev["fillers"] if not 14.0 <= f[0] < 18.6]  # the burst now sits in a pause
+    ev["pauses"] = [p for p in ev["pauses"] if not 14.0 <= p[0] < 18.6] + [[14.0, 18.6]]
+    (work / "talk.events.json").write_text(json.dumps(ev))
+    calls = []
+    monkeypatch.setattr(edl.transcribe, "read", lambda cfg, wav, a, b: calls.append((a, b)) or "")
+    cache, key = work / "talk.pause_asr.json", work / "talk.pause_asr.key"
+
+    def build(model="model-a.bin", backend="cli", url=""):
+        monkeypatch.setenv("WHISPER_MODEL", str(base / model))
+        text = (base / "talk.toml").read_text().replace("speed = 2.0\n", 'speed = 2.0\nevidence = "asr"\n', 1)
+        whisper = f'\n[whisper]\nbackend = "{backend}"\nurl = "{url}"\n'
+        (base / "key.toml").write_text(f'work = "key-work"\n{text}{whisper}')
+        cfg = Config(base / "key.toml")
+        calls.clear()
+        edl.build_clip(cfg, cfg.clips[0])
+        return len(calls)
+
+    local = "http://localhost:9/v1/transcribe"
+    assert build() > 0  # the control: a fresh work dir reads its pause spans
+    spans = json.loads(cache.read_text())
+    assert spans and all(re.fullmatch(r"\d+\.\d{3}-\d+\.\d{3}", k) for k in spans)  # the flat shape stays
+    assert json.loads(key.read_text())["stt"] == {"backend": "cli", "model": "model-a.bin"}
+    assert build() == 0  # the same backend and model reuse the answers
+    assert build(backend="http", url=f"{local}?model=small&k=v") > 0  # never the other backend's answers
+    stt = json.loads(key.read_text())["stt"]
+    assert stt["backend"] == "http" and stt["url"] == local and "model=small" not in key.read_text()
+    assert build(backend="http", url=f"{local}?model=small&k=v") == 0
+    assert build(backend="http", url=f"{local}?model=large&k=v") > 0  # another query is another service
+    assert build() > 0  # back to whisper-cli: read again
+    assert build(model="model-b.bin") > 0  # another model: read again
+    assert build(model="model-b.bin") == 0
+    key.unlink()  # a cache without its key (an older run, a hand-copied file) is read again
+    assert build(model="model-b.bin") > 0
+    cache.write_text(cache.read_text().replace("{", '{"0.000-0.100": "",', 1))  # a cache edited under its key
+    assert build(model="model-b.bin") > 0
+    assert build(model="model-b.bin", backend="cli") == 0

@@ -380,3 +380,27 @@ def test_localhost_counts_only_while_it_resolves_to_loopback(monkeypatch):
     assert not transcribe.loopback("localhost")
     monkeypatch.setattr(transcribe.socket, "getaddrinfo", resolve([]))
     assert not transcribe.loopback("localhost")
+
+
+@pytest.mark.parametrize(
+    "url, recorded",
+    [
+        (f"http://{HOST}:8080/v1/transcribe?model=large&key=k1", f"http://{HOST}:8080/v1/transcribe"),
+        (f"http://{HOST}/v1/transcribe?x=1", f"http://{HOST}:80/v1/transcribe"),
+        ("https://[::1]:9443/stt?", "https://[::1]:9443/stt"),
+        (f"http://{HOST}:9", f"http://{HOST}:9"),
+    ],
+)
+def test_provenance_records_scheme_host_port_and_path_only(tmp_path, media, url, recorded):
+    cfg = make(tmp_path, media, "prov", "http", url)
+    record = transcribe.provenance(cfg)
+    assert record["url"] == recorded and "?" not in json.dumps(record) and "k1" not in json.dumps(record)
+
+
+def test_stt_json_never_carries_the_url_query(tmp_path, media, service):
+    fake = service()
+    cfg = make(tmp_path, media, "query", "http", f"{fake.url}?model=large&key=k1")
+    transcribe.transcribe(cfg, cfg.clips[0])
+    assert all(r["query"]["model"] == "large" and r["query"]["key"] == "k1" for r in fake.requests)  # still sent
+    text = cfg.f("talk", "stt.json").read_text()
+    assert json.loads(text)["url"] == fake.url and "?" not in text and "k1" not in text

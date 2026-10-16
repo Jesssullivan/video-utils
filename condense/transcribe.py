@@ -117,12 +117,19 @@ def http_settings(cfg):
     return stt_url(cfg), http_timeout(cfg), bearer()
 
 
+def endpoint(url):
+    """scheme://host:port/path of an STT URL: no query, so nothing a query carries reaches a record."""
+    p = urllib.parse.urlsplit(url)
+    host = f"[{p.hostname}]" if ":" in p.hostname else p.hostname
+    return f"{p.scheme}://{host}:{p.port or {'http': 80, 'https': 443}[p.scheme]}{p.path}"
+
+
 def provenance(cfg):
-    """What produced the transcription, for work/<clip>.stt.json. Never the token."""
+    """What produced the transcription, for work/<clip>.stt.json. Never the token, never the URL's query."""
     w = cfg.whisper
     common = {"language": w["language"], "dtw": w["dtw"], "pass1": w["pass1"], "chunk_s": w["chunk_s"]}
     if backend(cfg) == "http":
-        return {"backend": "http", "url": stt_url(cfg), "response_format": "whisper_full", **common}
+        return {"backend": "http", "url": endpoint(stt_url(cfg)), "response_format": "whisper_full", **common}
     return {"backend": "cli", "model": Path(cfg.model).name, **common}
 
 
