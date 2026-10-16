@@ -107,7 +107,7 @@ Wrangler. Steps, in order:
 | --- | --- | --- |
 | Frozen install, then `git diff --exit-code -- pnpm-lock.yaml` | 1 | the install fails or the lockfile changes |
 | `node scripts/inhouse-link.mjs` | 1 | an in-house package is missing or differs from its MODULE.bazel pin |
-| `git diff` of tracked files | 1 | any tracked file other than `MODULE.bazel.lock` changed; the known `usagesDigest` rewrite in `MODULE.bazel.lock` by the link's Bazel run only warns |
+| `git diff` of tracked files | 1 | any tracked file changed, `MODULE.bazel.lock` included (the committed lock carries the digest Bazel computes, so the link's Bazel run leaves it unchanged) |
 | `pnpm run check` and `pnpm run build` | 2, 3 | either exits non-zero |
 | leak scans on build, source and vendor | 4, 5 | any finding |
 | `SITE_VERIFY_BROWSER=1 PYTHONPATH=tests python3 -m unittest test_public_site_s3 -v`, with the pinned `python3` and `gitleaks` on `PATH` | 6 to 9 | any failure; the run not ending in `OK`; or any skip other than the allowlisted private-hostname skip (so a skipped browser suite, gitleaks or build class, or any new skip reason, fails) |

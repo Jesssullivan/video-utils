@@ -71,19 +71,15 @@ jobs:
       # The in-house packages are Bazel registry modules (RU9); the runner's bazelisk builds them at their pins.
       - name: Materialise the in-house packages
         run: nix develop --no-write-lock-file .#web --command bash -c 'cd site && node scripts/inhouse-link.mjs'
-      # inhouse-link's Bazel run rewrites one usagesDigest in MODULE.bazel.lock on the runner too, so later
-      # steps evaluate a dirty flake tree (the dev shells do not read the tree's source). That known file warns;
-      # drift in any other tracked file fails. The bazel job keeps --lockfile_mode=error on the committed lock.
+      # The install and inhouse-link's Bazel run must leave every tracked file as committed, MODULE.bazel.lock
+      # included (TIN-6577: the committed lock carries the digest Bazel computes, so the link is lock-neutral).
       - name: Tracked-file drift after the in-house link
         run: |
           git diff --stat
-          other="$(git diff --name-only | grep -vx 'MODULE.bazel.lock' || true)"
-          if [ -n "$other" ]; then
-            echo "tracked files changed by install or inhouse-link: $other" >&2
+          if ! git diff --quiet; then
+            git diff -- MODULE.bazel.lock
+            echo "tracked files changed by install or inhouse-link: $(git diff --name-only | tr '\n' ' ')" >&2
             exit 1
-          fi
-          if ! git diff --quiet -- MODULE.bazel.lock; then
-            echo "::warning file=MODULE.bazel.lock::inhouse-link rewrote MODULE.bazel.lock (known usagesDigest drift)"
           fi
       - name: Type check and build
         run: nix develop --no-write-lock-file .#web --command bash -c 'cd site && pnpm run check && pnpm run build'
@@ -173,7 +169,7 @@ jobs:
         run: PYTHONPATH=tests python3 -m unittest test_bazel_graph_s3 -v
       - name: Module graph and lock
         run: |
-          python3 tools/bazel/run.py --timeout 900 mod graph > /dev/null
+          python3 tools/bazel/run.py --timeout 900 mod graph --lockfile_mode=error > /dev/null
           python3 tools/bazel/run.py --timeout 900 build --nobuild //... --lockfile_mode=error
       - name: Full Bazel test run without host-tool modules
         run: >-
