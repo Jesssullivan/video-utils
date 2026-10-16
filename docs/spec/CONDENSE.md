@@ -35,14 +35,14 @@ the defaults and `talk.toml` overrides them.
 ## Editor decisions in talk.toml
 
 TIN-6544 rebuilt a published hand-cut walkthrough from a private talk.toml. Three
-of its decisions had no key, and each is now typed, validated when the config
-loads and covered by a synthetic test:
+of its decisions had no key, and each is now typed, validated (when the config
+loads, except where the table says otherwise) and covered by a synthetic test:
 
 | Key | Decision | Checked |
 | --- | --- | --- |
-| `[[clip]] drop = [[start, end], ...]` | Remove source seconds, talk and all, as one cut each, before `max_s` raises the speed | in order, apart, inside the clip, longer than one cut's kept frames, no card clip |
+| `[[clip]] drop = [[start, end], ...]` | Remove source seconds, talk and all, as one cut each, before `max_s` raises the speed | at load: in order, apart, at least one frame longer than a cut's 9 kept frames, no card clip; at the `edl` stage: inside the clip |
 | `[encode] preset` | The x265 preset of the edit (and the x264 preset of the upload copy); `slow` stays the default | one of the x264/x265 preset names |
-| `[encode] upload = "h264"` | Also write `<out>.upload.mp4` (and `.corrected.upload.mp4`): H.264, no B-frames, a keyframe every 2 s, no negative CTS, `+faststart`, the edit's audio copied | `""` or `"h264"`; no output path may be a clip file |
+| `[encode] upload = "h264"` | Also write `<out>.upload.mp4` (and `.corrected.upload.mp4`): H.264, no B-frames, a keyframe every 2 s, no negative CTS, `+faststart`, the edit's audio copied | `""` or `"h264"`; `upload_crf` a whole number 0 to 51; no output path may be a clip file |
 
 `drop` is the one rule that removes words, so it is an explicit editor choice
 per clip and never a default. The HEVC `talk.mp4` stays the archive copy. The

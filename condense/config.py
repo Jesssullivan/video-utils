@@ -99,8 +99,11 @@ class Config:
             raise ValueError(f"encode.preset = {self.encode['preset']!r}: one of {', '.join(PRESETS)}")
         if self.encode["upload"] not in UPLOADS:
             raise ValueError(f'encode.upload = {self.encode["upload"]!r}: "h264", or leave it out')
+        crf = self.encode["upload_crf"]
+        if type(crf) is not int or not 0 <= crf <= 51:
+            raise ValueError(f"encode.upload_crf = {crf!r}: a whole number from 0 to 51 (x264's 8-bit range)")
         for clip in self.clips:
-            check_drops(clip, (self.rules["keep_head_frames"] + self.rules["keep_tail_frames"] + 1) / self.fps)
+            check_drops(clip, self.rules["keep_head_frames"] + self.rules["keep_tail_frames"], self.fps)
         for path in self.outputs():
             if any(path.resolve() == Path(c["file"]).resolve() for c in self.clips):
                 raise ValueError(f"{path} is a clip file: an output may never overwrite a recording")
@@ -120,9 +123,13 @@ class Config:
         return self.work / f"{clip if isinstance(clip, str) else clip['name']}.{ext}"
 
 
-def check_drops(clip, shortest):
-    """Drop spans are [start, end] source seconds, each longer than the frames a cut keeps, in order, apart."""
-    spans, name = clip["drop"], clip["name"]
+def check_drops(clip, kept, fps):
+    """Drop spans are [start, end] source seconds, in order, apart and at least kept + 1 frames long.
+
+    kept is the frames a cut keeps (keep_head_frames + keep_tail_frames), so a drop always removes something.
+    Whether a span ends inside the clip needs the clip's duration, so edl.build_clip checks that.
+    """
+    spans, name, shortest = clip["drop"], clip["name"], (kept + 1) / fps
     if spans and clip["card"]:
         raise ValueError(f"clip {name}: a card clip plays whole, so it takes no drop")
     end = 0.0
@@ -131,7 +138,9 @@ def check_drops(clip, shortest):
         if not ok or not 0 <= span[0] < span[1]:
             raise ValueError(f"clip {name}: drop {span!r} must be [start, end] with 0 <= start < end")
         if span[1] - span[0] < shortest:
-            raise ValueError(f"clip {name}: drop {span!r} is shorter than the {shortest:.3f} s a cut keeps")
+            raise ValueError(
+                f"clip {name}: drop {span!r} is under {kept + 1} frames ({shortest:.3f} s); a cut keeps {kept}"
+            )
         if span[0] < end:
             raise ValueError(f"clip {name}: drop {span!r} overlaps or precedes the one before it")
         end = span[1]

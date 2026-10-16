@@ -1,7 +1,7 @@
 # condense
 
 Condense a recorded talk. Long pauses are cut. Short pauses and fillers are sped up. Speech plays faster.
-No word is dropped.
+No word is dropped unless the editor drops a span (`drop`, below).
 
 On one unpublished recording, the first edit made with these rules turned 74 minutes into 21 minutes.
 
@@ -106,9 +106,11 @@ Every span of every clip gets a kind and a speed.
 - Fillers are sped up and never cut. A wrong guess costs a blip, not a word.
 - `drop = [[start, end], ...]` removes an editor's choice of source seconds from a clip, talk and all: a
   set-up stretch, say. Each span becomes one cut with the usual 5 head and 4 tail frames. An edge inside a
-  pause cut moves out to that cut's edge, so the pause joins the drop. Spans must be in order, apart, inside
-  the clip and longer than the 10 frames a cut keeps. A card clip takes none. The drop counts before
-  `max_s` raises the speed. This is the one rule that drops words: the captions leave them out too.
+  pause cut moves out to that cut's edge, so the pause joins the drop. A cut keeps 9 frames (0.3 s), so a
+  span must be at least 10 frames long. Spans must be in order and apart, and a card clip takes none: the
+  config checks these when it loads. That a span ends inside the clip is checked at the `edl` stage, which
+  knows the clip's length. The drop counts before `max_s` raises the speed. Pause spans inside a drop are
+  never sent to whisper. This is the one rule that drops words: the captions leave them out too.
 
 Pause carving protects words that whisper missed or mis-timed. Inside a pause span, every run of 2 or more
 RMS frames above `voiced_db` is a sound. A sound with evidence stays speech. A sound without evidence plays
@@ -141,9 +143,9 @@ as a filler. Only true silence is cut. `evidence` picks the proof:
    `-aac_pns 0`: the encoder's noise substitution turned one transient into a +4.0 dBTP spike.
    `[encode] preset` is the x265 preset, `slow` by default.
 6. `[encode] upload = "h264"` also writes `out/talk.upload.mp4` for a video site: the same frames as H.264
-   CRF 18 (`upload_crf`) with no B-frames and a keyframe every 2 s, and the edit's audio stream copied. Its
+   CRF 18 (`upload_crf`, 0 to 51) with no B-frames and a keyframe every 2 s, and the edit's audio stream copied. Its
    packets' presentation and decode times are equal and start at 0, so there is no negative CTS offset and no
-   edit list to honour. One video site scrambled the first 8 s of the HEVC file, whose
+   edit list to honour. One video site scrambled the first keyframe interval of the HEVC file, whose
    `negative_cts_offsets` stand in for an edit list. The overlay pass then writes
    `talk.corrected.upload.mp4` the same way. The HEVC files stay the archive copies.
 

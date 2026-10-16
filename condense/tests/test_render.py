@@ -123,13 +123,30 @@ def assert_upload(path, edit):
     assert len(found) == audio.frames(edit) and audio_md5(path) == audio_md5(edit)
 
 
-def test_the_upload_copy_is_h264_without_b_frames_with_the_edits_frames_and_sound(rendered, monkeypatch):
+def test_the_upload_copy_is_h264_without_b_frames_with_the_edits_frames_and_sound(rendered, monkeypatch, capsys):
     edl = json.loads(rendered.f("edl", "json").read_text())
     out = render.upload(rendered, edl)
     assert out == rendered.out.with_suffix(".upload.mp4")
     assert_upload(out, rendered.out)
     monkeypatch.setattr(render, "parts", lambda edl: [("gone", "talk", [])])  # the parts were cleaned up
     assert_upload(render.upload(rendered, edl, suffix=".from-edit"), rendered.out)
+    assert "a second generation of loss" in capsys.readouterr().out
+
+
+def test_render_writes_the_upload_copy_when_asked_and_only_then(rendered, monkeypatch, capsys):
+    # The parts and talk.mp4 are already rendered; stub those steps so only the upload decision runs again.
+    monkeypatch.setattr(render, "mezzanine", lambda cfg, clip, total: None)
+    monkeypatch.setattr(render, "render_part", lambda cfg, edl, name, *rest: name)
+    monkeypatch.setattr(render, "final", lambda cfg, edl: None)
+    copy_path = rendered.out.with_suffix(".upload.mp4")
+    copy_path.unlink(missing_ok=True)
+    render.render(rendered)  # upload unset: no copy
+    assert not copy_path.exists()
+    cfg = copy.copy(rendered)
+    cfg.encode = rendered.encode | {"upload": "h264"}
+    render.render(cfg)
+    assert_upload(copy_path, rendered.out)
+    assert "warning" not in capsys.readouterr().out  # from the lossless parts, not a re-encode of talk.mp4
 
 
 def test_the_overlay_pass_writes_a_corrected_upload_copy_when_asked(rendered):

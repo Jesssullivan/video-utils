@@ -10,8 +10,8 @@
    (-16 LUFS, -1.5 dBTP). The encode is HEVC CRF 35 tagged hvc1, so QuickTime, Safari and iOS play it,
    with AAC.
 4. Upload, with `[encode] upload = "h264"`: the same frames once more as H.264 without B-frames and a
-   keyframe every 2 s, with the edit's audio copied. One video site scrambled the first seconds of the
-   HEVC file, whose negative CTS offsets stand in for an edit list.
+   keyframe every 2 s, with the edit's audio copied. One video site scrambled the first keyframe interval
+   of the HEVC file, whose negative CTS offsets stand in for an edit list.
 
 Sync rules. The first render broke each of them, and its sound ran up to 107 ms off the picture.
 - Video is never retimed with setpts=(PTS-STARTPTS)/speed. Frames are picked evenly and renumbered.
@@ -237,6 +237,7 @@ def upload(cfg, edl, draw="", suffix=""):
         inputs, graph = joined(cfg, names)
         graph += f";[a0]anullsink;[v]{video_filter(cfg)}{draw and ','}{draw}[vo]"
     else:
+        print(f"warning: no parts in {cfg.work}, so the upload copy re-encodes {cfg.out}, a second generation of loss")
         inputs, graph = ["-i", cfg.out], f"[0:v]{draw or 'null'}[vo]"
     out = cfg.out.with_suffix(f"{suffix}.upload.mp4")
     graph_file = cfg.f(f"upload{suffix}", "filter")

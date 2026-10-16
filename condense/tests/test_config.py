@@ -46,7 +46,8 @@ def test_drop_spans_are_source_seconds_in_order(tmp_path):
         ("[[1.0, 2.0, 3.0]]", "must be \\[start, end\\]"),
         ('[["1", "2"]]', "must be \\[start, end\\]"),
         ("[1.0, 2.0]", "must be \\[start, end\\]"),
-        ("[[1.0, 1.2]]", "shorter than the 0.333 s a cut keeps"),
+        ("[[1.0, 1.2]]", "under 10 frames \\(0.333 s\\); a cut keeps 9"),
+        ("[[1.0, 1.3]]", "under 10 frames"),
     ],
 )
 def test_a_bad_drop_span_is_refused(tmp_path, drop, message):
@@ -69,6 +70,14 @@ def test_the_preset_and_the_upload_copy_are_checked(tmp_path):
         config.Config(talk_toml(tmp_path, encode='preset = "fastest"'))
     with pytest.raises(ValueError, match="encode.upload = 'hevc'"):
         config.Config(talk_toml(tmp_path, encode='upload = "hevc"'))
+    assert config.Config(talk_toml(tmp_path, encode="upload_crf = 23")).encode["upload_crf"] == 23
+    for crf in ("52", "-1", "18.5", '"18"', "true"):
+        with pytest.raises(ValueError, match="encode.upload_crf = .*: a whole number from 0 to 51"):
+            config.Config(talk_toml(tmp_path, encode=f"upload_crf = {crf}"))
+
+
+def test_a_drop_of_exactly_one_frame_more_than_a_cut_keeps_is_accepted(tmp_path):
+    assert config.Config(talk_toml(tmp_path, "drop = [[3.0, 3.3333334]]")).clips[0]["drop"] == [[3.0, 3.3333334]]
 
 
 def test_no_output_may_overwrite_a_recording(tmp_path):

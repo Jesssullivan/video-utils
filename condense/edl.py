@@ -190,8 +190,11 @@ def drop(c, segs, spans):
 
     A drop is an editor's decision, such as a set-up stretch with talk in it: `[[clip]] drop` in talk.toml.
     The edges snap to the frame grid. An edge that lands inside a cut moves out to that cut's edge, so the
-    pause joins the drop and the frames that cut kept stay the same. Segments inside a span go, and a segment
-    across an edge is trimmed to it. Runs before the max_s check, so a drop counts before the speed rises.
+    pause joins the drop; a later span that then starts inside this drop's cut joins it too. The new cut keeps
+    keep_head_frames after its start and keep_tail_frames before its end, so a pause cut whose kept edge was
+    longer (a sound's margin pulled it out) loses those extra kept frames. Segments inside a span go, and a
+    segment across an edge is trimmed to it. Runs before the max_s check, so a drop counts before the speed
+    rises.
     """
     head, tail = c.r["keep_head_frames"] / c.fps, c.r["keep_tail_frames"] / c.fps
     for d0, d1 in spans:
@@ -338,6 +341,8 @@ def build_clip(cfg, clip):
     while True:
         zones = zones_for(clip, total, speed, r["filler_speed"], welcome)
         segs = coalesce(drop(c, event_segments(c, 0.0, total, events, zones), clip["drop"]))
+        # a pause span inside a drop span goes whatever whisper hears in it, so it is never read
+        c.missing -= {(a, b) for a, b in c.missing if any(c.snap(x) <= a and b <= c.snap(y) for x, y in clip["drop"])}
         if c.missing:  # whisper each pause span alone, then build again with the answers
             print(f"{c.name}: whisper on {len(c.missing)} pause spans")
             for a, b in sorted(c.missing):

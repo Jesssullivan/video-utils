@@ -191,3 +191,74 @@ def test_a_drop_past_the_end_of_the_clip_is_refused(talk):
     cfg = Config(talk.work.parent / "late.toml")
     with pytest.raises(ValueError, match="ends after the clip's 24.000 s"):
         edl.build_clip(cfg, cfg.clips[0])
+
+
+def test_a_drop_that_ends_inside_a_pause_cut_ends_where_that_cut_ends():
+    # A drop's end edge at 141.067 s fell inside a pause cut that ran on to 141.233 s: the drop takes the
+    # whole cut and keeps 4 frames before the cut's end, not before 141.067 s.
+    c = SimpleNamespace(
+        name="x", fps=30, r=dict(keep_head_frames=5, keep_tail_frames=4), snap=lambda t: round(round(t * 30) / 30, 6)
+    )
+    segs = [
+        dict(src="x", inp=0.0, out=2.0, speed=2.0, kind="speech"),
+        dict(src="x", inp=2.0, out=4.0, speed=2.0, kind="speech"),
+        dict(src="x", inp=4.0, out=6.0, speed=1.0, kind="cut", keep=[[4.0, 4.4], [5.866667, 6.0]]),
+        dict(src="x", inp=6.0, out=8.0, speed=2.0, kind="speech"),
+    ]
+    out = edl.drop(c, segs, [[1.0, 5.0]])
+    assert [(s["inp"], s["out"], s["kind"]) for s in out] == [
+        (0.0, 1.0, "speech"),
+        (1.0, 6.0, "cut"),
+        (6.0, 8.0, "speech"),
+    ]
+    # 5 head frames from the drop's start, 4 tail frames before the pause cut's own end
+    assert out[1]["keep"] == [[1.0, 1.166667], [5.866667, 6.0]]
+
+
+def test_two_drops_that_meet_once_an_edge_moves_become_one_cut():
+    # Each span is valid on its own and they are apart, but the first one's end moves out to 6.0 s, past the
+    # start of the second, so the second starts inside the first's cut and the two become one cut.
+    c = SimpleNamespace(
+        name="x", fps=30, r=dict(keep_head_frames=5, keep_tail_frames=4), snap=lambda t: round(round(t * 30) / 30, 6)
+    )
+    segs = [
+        dict(src="x", inp=0.0, out=4.0, speed=2.0, kind="speech"),
+        dict(src="x", inp=4.0, out=6.0, speed=1.0, kind="cut", keep=[[4.0, 4.166667], [5.866667, 6.0]]),
+        dict(src="x", inp=6.0, out=10.0, speed=2.0, kind="speech"),
+    ]
+    out = edl.drop(c, segs, [[1.0, 5.0], [5.5, 8.0]])
+    assert [(s["inp"], s["out"], s["kind"]) for s in out] == [
+        (0.0, 1.0, "speech"),
+        (1.0, 8.0, "cut"),
+        (8.0, 10.0, "speech"),
+    ]
+    assert out[1]["keep"] == [[1.0, 1.166667], [7.866667, 8.0]]
+
+
+def test_whisper_never_reads_a_pause_span_inside_a_drop(talk, monkeypatch):
+    """evidence = "asr" re-reads a pause span with a sound in it, unless a drop removes the span anyway."""
+    base = talk.work.parent
+    work = base / "asr-work"
+    work.mkdir(exist_ok=True)
+    for ext in ("16k.wav", "words.json", "rms.txt"):
+        (work / f"talk.{ext}").write_bytes(talk.f("talk", ext).read_bytes())
+    ev = json.loads(talk.f("talk", "events.json").read_text())
+    ev["fillers"] = [f for f in ev["fillers"] if not 14.0 <= f[0] < 18.6]  # the burst now sits in a pause
+    ev["pauses"] = [p for p in ev["pauses"] if not 14.0 <= p[0] < 18.6] + [[14.0, 18.6]]
+    (work / "talk.events.json").write_text(json.dumps(ev))
+    calls = []
+    monkeypatch.setattr(edl.transcribe, "read", lambda cfg, wav, a, b: calls.append((a, b)) or "")
+
+    def build(extra):
+        text = (base / "talk.toml").read_text().replace("speed = 2.0\n", f'speed = 2.0\nevidence = "asr"\n{extra}', 1)
+        (base / "asr.toml").write_text(f'work = "asr-work"\n{text}')
+        (work / "talk.pause_asr.json").unlink(missing_ok=True)
+        cfg = Config(base / "asr.toml")
+        return edl.build_clip(cfg, cfg.clips[0])[0]
+
+    build("")
+    assert calls and all(14.0 <= a < b <= 18.6 for a, b in calls)  # the control: the burst's span is read
+    calls.clear()
+    segs = build("drop = [[13.5, 18.6]]\n")
+    assert calls == []
+    assert any(s["kind"] == "cut" and s["inp"] <= 13.5 and s["out"] >= 18.6 for s in segs)
