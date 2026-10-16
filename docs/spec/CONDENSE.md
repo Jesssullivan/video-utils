@@ -49,6 +49,16 @@ per clip and never a default. The HEVC `talk.mp4` stays the archive copy. The
 receipt `docs/agent-notes/2026-10-15-condense-v5-rebuild.md` records how close
 the rebuild came and the decisions that remain gaps.
 
+TIN-6573 added a `[captions]` section for the walkthrough's caption style:
+which words are captioned (`words`, `fillers`), when a cue is full or ends
+(`fill`, `gap_s`, `max_s`, `sentence_chars`), how its lines break (`split`),
+how long it holds (`min_s`, `clear_s`, `squeeze_s`) and a caption over a card
+(`cards`, `card_inset_s`). Every key is checked at load, unknown keys are
+refused, and a talk.toml without the section writes the same captions as
+before, byte for byte. `condense/README.md` gives each key and default; the
+receipt `docs/agent-notes/2026-10-16-L11-captions.md` records the comparison
+with the published captions.
+
 ## Ownership in this repository
 
 - FFmpeg owns decode, filter, encode and loudness measurement.

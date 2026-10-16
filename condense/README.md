@@ -223,6 +223,40 @@ speed. A word is dropped when it is a filler, when it sits in a span that plays 
 plays none of it at speech speed. A caption holds at most 2 lines of 42 characters. It ends at a sentence
 end, at a gap of 1 s, or when it is full.
 
+That is the default style. A `[captions]` section changes it; every key is checked when the config loads,
+and an unknown key is refused. Left out, the captions are byte-for-byte what they were before the section
+existed.
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `words` | `"spoken"` | `spoken`: the rule above. `start`: a word is captioned when its start plays in a speech or pause segment; it ends where its end less 0.02 s plays, or 0.25 s after its start |
+| `fillers` | `false` | `true` captions a filler word said at speech speed; a span that plays as a filler stays uncaptioned |
+| `fill` | `"wrap"` | `wrap`: a cue is full when its words need more than `caption_lines` lines of `caption_chars`. `chars`: when they pass `caption_lines` x `caption_chars` characters (needs `split = "balanced"`) |
+| `split` | `"greedy"` | `greedy`: fill each line in turn. `balanced`: one line up to `caption_chars`, else two, broken at the last space before the middle plus 8 characters; a line can then run past `caption_chars` (needs `caption_lines = 2`) |
+| `gap_s` | `1.0` | a longer silence between two words starts a new cue |
+| `max_s` | `0` | a cue ends before a word that would end more than this after the cue's start; 0: no limit |
+| `sentence_chars` | half of `caption_chars` | a sentence end closes a cue that holds at least this many characters; 0: every sentence end |
+| `min_s` | `1.0` | a cue shows at least this long |
+| `clear_s` | `0` | a cue cut short by the next one ends this long before it (needs a larger `squeeze_s`) |
+| `squeeze_s` | `0` | a cue that the next would cut to this or less is not cut: it holds `min_s`, and the next waits for it. 0: always cut |
+| `cards` | `{}` | card clip name to caption lines, shown over that card |
+| `card_inset_s` | `0.5` | a card caption starts this long after its card and ends this long before the card ends |
+
+```toml
+[captions]  # the style of a published hand-cut walkthrough: one line of up to 84 characters, split in two
+words = "start"
+fillers = true
+fill = "chars"
+split = "balanced"
+gap_s = 1.2
+max_s = 6
+sentence_chars = 0
+min_s = 0.6
+clear_s = 0.02
+squeeze_s = 0.3
+cards = { lost = ["[This part of the talk", "was lost]"] }
+```
+
 ### overlay
 
 A correction is a short note for a moment where the speaker says something wrong:

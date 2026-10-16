@@ -89,3 +89,51 @@ def test_no_output_may_overwrite_a_recording(tmp_path):
     config.Config(talk_toml(tmp_path, f"[[clip]]\n{clip}", out="a.mp4"))  # no upload copy, no clash
     with pytest.raises(ValueError, match="a.upload.mp4 is a clip file"):
         config.Config(talk_toml(tmp_path, f"[[clip]]\n{clip}", encode='upload = "h264"', out="a.mp4"))
+
+
+def captions_toml(tmp_path, captions="", rules=""):
+    """A talk.toml with a card clip and a [captions] section."""
+    (tmp_path / "a.mov").write_bytes(b"")
+    path = tmp_path / "talk.toml"
+    clips = (
+        '[[clip]]\nname = "a"\nfile = "a.mov"\n[[clip]]\nname = "lost"\nfile = "a.mov"\ncard = ["lost"]\ncard_s = 4\n'
+    )
+    path.write_text(f"[rules]\n{rules}\n[captions]\n{captions}\n{clips}")
+    return path
+
+
+def test_the_caption_style_defaults_to_the_original_one(tmp_path):
+    cfg = config.Config(captions_toml(tmp_path))
+    assert cfg.captions == config.CAPTIONS | {"sentence_chars": 21}
+    assert config.Config(captions_toml(tmp_path, rules="caption_chars = 30")).captions["sentence_chars"] == 15
+    v5 = 'words = "start"\nfillers = true\nfill = "chars"\nsplit = "balanced"\ngap_s = 1.2\nmax_s = 6\n'
+    v5 += 'sentence_chars = 0\nmin_s = 0.6\nclear_s = 0.02\nsqueeze_s = 0.3\ncards = { lost = ["[lost]"] }'
+    cfg = config.Config(captions_toml(tmp_path, v5))
+    assert (cfg.captions["words"], cfg.captions["max_s"], cfg.captions["cards"]) == ("start", 6, {"lost": ["[lost]"]})
+
+
+@pytest.mark.parametrize(
+    ("captions", "rules", "message"),
+    [
+        ("width = 40", "", "unknown key width"),
+        ('words = "all"', "", "captions.words = 'all': one of spoken, start"),
+        ('fill = "lines"', "", "captions.fill"),
+        ('split = "even"', "", "captions.split"),
+        ('fillers = "yes"', "", "true or false"),
+        ("gap_s = 0", "", "captions.gap_s = 0: a number of seconds, over 0"),
+        ("max_s = -1", "", "captions.max_s = -1"),
+        ("min_s = true", "", "captions.min_s = True"),
+        ("sentence_chars = 2.5", "", "a whole number"),
+        ("clear_s = 0.02", "", "clear_s needs a larger squeeze_s"),
+        ('fill = "chars"', "", "needs split = 'balanced'"),
+        ('split = "balanced"', "caption_lines = 3", "needs rules.caption_lines = 2"),
+        ('cards = { a = ["x"] }', "", "captions.cards.a: not a card clip"),
+        ("cards = { lost = [] }", "", "a list of non-empty lines"),
+        ('cards = { lost = "x" }', "", "a list of non-empty lines"),
+        ('cards = ["x"]', "", "a table of card clip name"),
+        ('card_inset_s = 2\ncards = { lost = ["x"] }', "", "leaves no time on the lost card"),
+    ],
+)
+def test_a_bad_caption_style_is_refused(tmp_path, captions, rules, message):
+    with pytest.raises(ValueError, match=message):
+        config.Config(captions_toml(tmp_path, captions, rules))

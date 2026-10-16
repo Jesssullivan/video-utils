@@ -71,6 +71,21 @@ CLIP = {
     "card_s": 20,
     "drop": [],  # [[start, end]] source seconds cut like a long pause, before the speed rules (edl.drop)
 }
+CAPTIONS = {  # [captions]: how words become cues (captions.py). The defaults are the original style.
+    "words": "spoken",  # spoken | start: which words are captioned and on which times (captions.output_words)
+    "fillers": False,  # true: caption filler words that play at speech speed, as words
+    "fill": "wrap",  # wrap: a cue is full past caption_lines wrapped lines; chars: past lines x chars characters
+    "split": "greedy",  # greedy: textwrap; balanced: two lines broken near the middle
+    "gap_s": 1.0,  # a longer silence between two words starts a new cue
+    "max_s": 0.0,  # a cue never spans more than this from its first word's start to its last's end; 0: no limit
+    # "sentence_chars": a sentence end closes a cue that holds at least this many characters; caption_chars // 2
+    "min_s": 1.0,  # a cue shows at least this long, never into the next one
+    "clear_s": 0.0,  # a cue cut short by the next one ends this long before it
+    "squeeze_s": 0.0,  # a cue the next would cut to this or less holds min_s and pushes the next; 0: always cut
+    "cards": {},  # card clip name -> caption lines shown over the card
+    "card_inset_s": 0.5,  # a card caption starts this long after the card and ends this long before its end
+}
+CAPTION_CHOICES = {"words": ("spoken", "start"), "fill": ("wrap", "chars"), "split": ("greedy", "balanced")}
 CHECK = {"silence_db": -35, "silence_s": 1.0, "loudness_lu": 1.0, "sync_ms": 20}
 FF = ("ffmpeg", "-hide_banner", "-nostdin", "-y")
 # Every tool call is bounded. A long talk's mezzanine or untrunc pass takes minutes, not hours.
@@ -87,6 +102,8 @@ class Config:
         self.encode = ENCODE | raw.get("encode", {})
         self.whisper = WHISPER | raw.get("whisper", {})
         self.check = CHECK | raw.get("check", {})
+        self.captions = CAPTIONS | raw.get("captions", {})
+        self.captions.setdefault("sentence_chars", self.rules["caption_chars"] // 2)
         clips = {c["name"]: CLIP | c | {"file": str(base / c["file"])} for c in raw["clip"]}
         self.clips = [clips[name] for name in raw.get("order", clips)]
         self.corrections = raw.get("correction", [])
@@ -102,6 +119,7 @@ class Config:
         crf = self.encode["upload_crf"]
         if type(crf) is not int or not 0 <= crf <= 51:
             raise ValueError(f"encode.upload_crf = {crf!r}: a whole number from 0 to 51 (x264's 8-bit range)")
+        check_captions(self.captions, self.clips, self.rules)
         for clip in self.clips:
             check_drops(clip, self.rules["keep_head_frames"] + self.rules["keep_tail_frames"], self.fps)
         for path in self.outputs():
@@ -144,6 +162,41 @@ def check_drops(clip, kept, fps):
         if end is not None and span[0] <= end:
             raise ValueError(f"clip {name}: drop {span!r} touches, overlaps or precedes the one before it")
         end = span[1]
+
+
+def check_captions(c, clips, rules):
+    """Every [captions] key is known and in range, and every card caption names a card clip."""
+    extra = sorted(set(c) - set(CAPTIONS) - {"sentence_chars"})
+    if extra:
+        raise ValueError(f"captions: unknown key {', '.join(extra)}; the keys are in condense/README.md")
+    for key, choices in CAPTION_CHOICES.items():
+        if c[key] not in choices:
+            raise ValueError(f"captions.{key} = {c[key]!r}: one of {', '.join(choices)}")
+    if type(c["fillers"]) is not bool:
+        raise ValueError(f"captions.fillers = {c['fillers']!r}: true or false")
+    for key in ("gap_s", "max_s", "min_s", "clear_s", "squeeze_s", "card_inset_s"):
+        if type(c[key]) not in (int, float) or c[key] < 0 or (key == "gap_s" and not c[key]):
+            raise ValueError(
+                f"captions.{key} = {c[key]!r}: a number of seconds, {'over' if key == 'gap_s' else 'at least'} 0"
+            )
+    if type(c["sentence_chars"]) is not int or c["sentence_chars"] < 0:
+        raise ValueError(f"captions.sentence_chars = {c['sentence_chars']!r}: a whole number, at least 0")
+    if c["clear_s"] and c["clear_s"] >= c["squeeze_s"]:
+        raise ValueError("captions.clear_s needs a larger squeeze_s, so a cut-short cue never ends before it starts")
+    if c["fill"] == "chars" and c["split"] != "balanced":
+        raise ValueError("captions.fill = 'chars' needs split = 'balanced': a greedy wrap could need a third line")
+    if c["split"] == "balanced" and rules["caption_lines"] != 2:
+        raise ValueError("captions.split = 'balanced' breaks a cue into two lines: it needs rules.caption_lines = 2")
+    cards = {clip["name"]: clip for clip in clips if clip["card"]}
+    if not isinstance(c["cards"], dict):
+        raise ValueError("captions.cards: a table of card clip name = [caption lines]")
+    for name, lines in c["cards"].items():
+        if name not in cards:
+            raise ValueError(f"captions.cards.{name}: not a card clip in order")
+        if not (isinstance(lines, list) and lines and all(isinstance(x, str) and x.strip() for x in lines)):
+            raise ValueError(f"captions.cards.{name} = {lines!r}: a list of non-empty lines")
+        if 2 * c["card_inset_s"] >= cards[name]["card_s"]:
+            raise ValueError(f"captions.card_inset_s = {c['card_inset_s']}: leaves no time on the {name} card")
 
 
 def run(*args, cwd=None, timeout=None):

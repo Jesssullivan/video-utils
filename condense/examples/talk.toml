@@ -17,6 +17,12 @@ cut_over_s = 1.0        # a longer pause is cut down to 0.3 s
 short_pause_speed = 4   # a shorter pause plays at 4x
 filler_speed = 8        # fillers and false starts play at 8x
 
+# [captions]            # the caption style; left out, cues hold 2 lines of 42 characters (README)
+# fill = "chars"        # full past 84 characters (2 x 42), not past 2 wrapped lines
+# split = "balanced"    # two lines broken near the middle
+# max_s = 6             # no cue longer than 6 s
+# cards = { lost = ["[This part was lost]"] }  # a caption over a card clip
+
 [[clip]]
 name = "intro"
 file = "media/intro.mov"
