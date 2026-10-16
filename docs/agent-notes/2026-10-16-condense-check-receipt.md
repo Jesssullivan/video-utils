@@ -5,6 +5,10 @@ R-HOOK-CONVERGENCE-20261004 R-N13. The recordings, the private `talk.toml`, the 
 published run stay on the operator host. This receipt records hashes, counts, versions and measured numbers
 only.
 
+The sections from "What changed" to "Gates" record the first pass (commit `7304e8a`). The review fixes at
+the end supersede them where they differ: the first pass let the sync gate pass without evidence, and
+published a partial check as `passed`.
+
 ## What changed
 
 - `condense/check.py`: each gate measures, prints, and returns its limits, measured values and verdict.
@@ -123,3 +127,95 @@ Publish into a private root: `4 files, 37725 frames, check passed, verified` (`t
 
 Process note: this lane stopped its own two check processes once, to rerun the measurement from the
 committed script; no other session's process was touched.
+
+## Review fixes (2026-10-16, second pass)
+
+### Defects fixed
+
+1. **The sync gate passed without evidence (measured, synthetic, at `7304e8a`).** With an 8 s audio lead
+   the real measure had 0 of 5 spots clear and the joined measure 0 of 24, all three thirds empty, and
+   `check(["sync"])` returned true. Leads beyond the 0.25 s search window were judged on spurious matches:
+   at 1 s and 3 s every sound peak correlated at 0.57 or less, against 0.88 to 0.98 for the true match at
+   87 ms, yet 0.5 passed as clear. A missing set of parts returned `passed` with `measured` false; the
+   private `check-pass2.json` shows that state on the real talk.
+2. **A partial check was published as `passed`.** `check talk.toml silence loud` then `publish` gave
+   `check.status` `passed` with `complete` false, and a partial run overwrote a complete `check.json`.
+
+### What changed
+
+- `condense/avsync.py`: a spot is clear at a sound correlation of 0.75 or more at a lag inside the search
+  window (a peak on the window edge counts as 0) and a picture sharpness of 1.15. A median needs 4 clear
+  spots (`MIN_CLEAR`). A real clip or joined third that tried 4 and found fewer fails; one that could try
+  fewer is `not_measured`; a clip with no 1x speech and a third with only cards or short parts are recorded
+  as having nothing to measure. Each measure reports a `verdict` (`passed`, `failed`, `not_measured`) and
+  passes only when nothing failed and something passed. Missing parts give `not_measured`. The joined
+  measure now tries up to 8 distinct frames per third, spread over that third's usable frames, and skips
+  card parts; before, clamping in short parts measured the same frame up to four times.
+- `condense/check.py`: the sync gate's verdict combines the three; `not_measured` fails the stage. The
+  report has `status` (`passed`, `partial`, `not_measured`, `failed`) and `not_measured`. All four gates
+  write `work/check.json`; fewer write `work/check.partial.json` and leave `check.json` alone.
+- `condense/publish.py`: the manifest's `check.status` is the report's status, so a partial report reads
+  `partial`, never `passed`. A truncated, non-object or malformed `check.json` is refused with a
+  `RuntimeError` before staging, not a traceback. A verify-run with no verdict leaves
+  `.unverified-<run_id>` beside the run with the reason.
+- Docs: `docs/spec/CONDENSE.md` (no evidence, no pass; statuses; what `check.json` binds; thresholds with
+  the false-fail estimate) and `condense/README.md`.
+
+### Tests (synthetic media only)
+
+New: a 1, 3 and 8 s lead each fail the sync gate with every measured third and the real clip `failed`, and
+no clear spot under 0.75; missing parts leave sync `not_measured` and the stage failing; `judged` and
+`overall` on spot counts; a partial run never replaces `check.json`; a complete check is published as
+`passed`; a partial report is published as `partial` (also without a `status` field), never `passed`; four
+broken `check.json` files are refused with nothing staged; a usage error, a crash and a timeout each leave
+`.unverified-<run_id>`. On the synthetic edit the end third holds only the card and short parts, so it has
+nothing to measure; the start and middle carry 7 and 8 of 8 clear spots in sync.
+
+### Real talk, same inputs
+
+Script `2026-10-16-condense-check-fix.sh` (sha256
+`d69cbc6f005bff9b11841638fd422ae1b55cd5c6335b1b896249bba3a58ad78d`), same private run dir, inputs and
+versions as above, `WHISPER_MODEL` the registered model (sha256 `c6138d6d...c41e5d`). The first
+`check.json` is kept as `check-v1.json` (`7e1760d5...`). Host load 10 to 50.
+
+`check` exit 0 in 465 s wall. `check.json` sha256
+`f99a795337b57ea56297e138d0a9ebbb156ef4e10ce92624c6f3ac163a4fcf37`, `status` `passed`, `complete` true.
+Silence, loudness, probe, bounds and captions read as in the first pass.
+
+| Copy | Real (intro, 1x) | Joined start / middle / end (clear of 8) | Verdict |
+| --- | --- | --- | --- |
+| delivered | +0.31 ms, 6 of 9 clear | -5.05 (6) / -5.17 (7) / -5.22 ms (8) | passed |
+| upload | +0.31 ms, 6 of 9 | -5.08 (7) / -5.12 (8) / -5.22 ms (8); -16.0 LUFS, -1.0 dBTP | passed |
+| delivered, sound 87 ms early | +87.31 ms, 6 of 9 | +81.95 (6) / +81.83 (7) / +81.78 ms (8) | failed |
+| delivered, sound 1 s early | 0 of 9 clear | 0 of 8 / 0 of 8 / 0 of 8 | failed |
+
+Folds (card) and iphone have no 1x speech. Clear-spot correlations: 0.899 to 0.989 in sync, 0.799 to 0.984
+with the 87 ms lead. Reports: `check-fix-upload.json` `33c8e424...a541a176`, `check-fix-lead87.json`
+`62d03e45...4b038`, `check-fix-lead1000.json` `22d1e296...57558` (the moved copies were deleted after
+measuring). Publish: `4 files, 37725 frames, check passed, verified`; manifest sha256
+`00b973aabc1b7aacce29a792425196d2a3d28487b143ca632344aaf2bc9b7317`, `check.status` `passed`, `complete`
+true, five gates true.
+
+### One-frame reads and the 20 ms limit
+
+Misread spots (one frame off): this run 3 of 27 clear (+33.69 real, +28.37 twice joined); joined over three
+runs 7 of 54 (6 late, 1 early); the worst run 3 of 12. Inference, not measured: with independent misreads at
+the pooled rate, a third with 6, 7 or 8 clear spots fails falsely with probability 0.20 %, 0.40 % or 0.07 %,
+about 0.7 % per run; at 3 in 12 it is 3.8 %, 7.1 % or 2.7 % per third. The limit stays at 20 ms; frame-exact
+reads are a follow-up that has no tracker issue yet.
+
+### Still open
+
+- The tool descriptor (`program/tools.json`, `condense_check`: "a printed report only", "sync (probe and
+  real)") and the frozen `.agents/skills/condense-check/SKILL.md` do not name `check.json`, the joined
+  measure or `not_measured`. Both are hash-pinned by `tests/test_s4b_tool_admission.py`, so the change
+  needs an admission revision. This lane may not file tracker issues; it asks the integrator to file one,
+  with frame-exact reads as a second.
+- `check.json` binds `talk.mp4` and `edl.json` only. `talk.srt`, `talk.vtt` and `talk.corrected.mp4` are
+  written after `check` and are not measured by it (stated in `docs/spec/CONDENSE.md`).
+
+### Gates (second pass)
+
+- `nix develop .#condense -c just condense-lint condense-test`: lint clean, 131 passed.
+- `tests/test_s4b_tool_admission` and `tests/test_public_tree` in the condense shell: 16 tests OK, 1
+  skipped.

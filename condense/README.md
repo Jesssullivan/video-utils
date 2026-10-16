@@ -189,6 +189,13 @@ frame size or rate.
   - real: at 1x speech in the delivered file, each picture is matched against 25 mezzanine frames near the
     EDL's answer, and 0.4 s of sound is cross-correlated 0.25 s to each side. The median per clip must be
     within 20 ms. This part sees the source's own clocks, `atempo`, the encode and the mp4 timestamps.
+  - joined: 8 spots spread over each third of the edit, at any speed, are matched the same way against the
+    lossless parts the render joined. Each third's median must be within 20 ms.
+
+  A spot counts only when its sound correlates at 0.75 or more inside the search window and its picture
+  match is clear. A median needs 4 such spots: a clip or third that tried 4 and found fewer fails, so a
+  sound moved far beyond the window fails rather than passing on chance matches. A measure with nothing to
+  try (no 1x speech anywhere, or the parts gone from `work/`) is `not_measured`, and the gate does not pass.
 - `bounds`: whisper re-reads 6 s of the edit around two cuts per clip and around every clip join. It also
   reads the same span of the source. Both print side by side. A person reads them: a cut must not eat a word.
 
@@ -196,9 +203,12 @@ frame size or rate.
   compared with the nearest sound onset (a 10 dB rise after 50 ms below it) within 0.3 s in the delivered
   file. Positive means the caption appears after the speech starts.
 
-`just condense-check talk.toml silence loud` runs only the named checks. Every run writes `work/check.json`:
-each gate's limits, measured values and verdict, bound to the sha256 of the edit and of `edl.json`. It holds
-names, times and numbers only; the bounds text stays in the printed report.
+`just condense-check talk.toml silence loud` runs only the named checks. A run of all four gates writes
+`work/check.json`; a run of fewer writes `work/check.partial.json` and leaves `check.json` alone. Each holds
+every gate's limits, measured values and verdict, and a `status`: `passed`, `partial` (what ran passed, not
+every gate ran), `not_measured` or `failed`. It is bound to the sha256 of the edit and of `edl.json` only: the
+captions and overlay stages write `talk.srt`, `talk.vtt` and `talk.corrected.mp4` after it, and check measures
+none of them. It holds names, times and numbers only; the bounds text stays in the printed report.
 
 ### captions
 
@@ -256,10 +266,12 @@ fresh `artifacts/condense/<run_id>/`. Its `manifest.json` hashes every file and 
 timeline mapping is `edl_v1`: output time maps to source time through `edl.json`
 (`../docs/spec/TIMELINE_CONTRACT.md`). The stage then runs `video-utils verify-run --timeline edl_v1` on the
 run. A run that verify-run refuses is renamed to `.failed-<run_id>` and the stage exits 1. No binary stops the
-stage before anything is staged; a verify-run that cannot start or runs over the limit refuses nothing, so the
-run keeps its name, unverified, and the stage exits 1. When `work/check.json` measured this very edit, the run
-carries it as `check.json` and the manifest's `check` records its sha256, the gates and their summary numbers;
-a `check.json` of another edit is refused, and without one `check` says `not_run`. Guitar tools never
+stage before anything is staged; a verify-run that cannot start, crashes or runs over the limit refuses
+nothing, so the run keeps its name, a file `.unverified-<run_id>` beside it says why, and the stage exits 1.
+When `work/check.json` measured this very edit, the run carries it as `check.json` and the manifest's `check`
+records its sha256, its status, the gates and their summary numbers; a `check.json` of another edit, or one
+that is not a check report, is refused, and without one `check` says `not_run`. A partial check is never
+published. Guitar tools never
 list or accept these runs. `just condense-all` ends in this stage. To check a published run again:
 
 ```sh

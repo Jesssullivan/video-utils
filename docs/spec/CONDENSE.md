@@ -24,7 +24,7 @@ receipt in `docs/agent-notes/` records a per-file comparison.
 | events | `events.py` | the whisper JSON | words, events, 100 ms RMS frames |
 | edl | `edl.py` | words, events, RMS | `edl.json` |
 | render | `render.py` | `edl.json` | mezzanines, parts, `talk.mp4`, optional `talk.upload.mp4` |
-| check | `check.py`, `avsync.py` | the edit | a report; exit 1 when a gate fails |
+| check | `check.py`, `avsync.py` | the edit | `check.json`; exit 1 when a gate fails or is not measured |
 | captions | `captions.py` | words, `edl.json` | `talk.srt`, `talk.vtt` |
 | overlay | `overlay.py` | `[[correction]]` entries | `talk.corrected.mp4`, optional `talk.corrected.upload.mp4` |
 | publish | `publish.py` | the outputs and `edl.json` | `artifacts/condense/<run_id>/` with an `edl_v1` manifest |
@@ -136,18 +136,19 @@ claimed by any gate.
 
 ### check.json
 
-TIN-6545. Every `check` run writes `work/check.json` (`kind` `condense_check`,
-schema 1), whether its gates pass or fail. It binds the sha256 of the delivered
-file and of `edl.json`, lists the checks that ran (`complete` when all four
-gates did), and records per gate its limits, measured values and verdict:
+TIN-6545. A `check` run of all four gates writes `work/check.json` (`kind`
+`condense_check`, schema 1), whether its gates pass or fail; a run of fewer
+writes `work/check.partial.json` and never replaces `check.json`. The report
+lists the checks that ran (`complete` when all four gates did) and records per
+gate its limits, measured values and verdict:
 
 | Gate | Measured | Limit |
 | --- | --- | --- |
 | `silence` | hits at `silence_db` over `silence_s`, with output and source times | 0 hits |
 | `loud` | integrated LUFS, deviation from the target, true peak, loudness range | 1 LU; true peak under 0 dBTP |
 | `sync` probe | every frame of a coded stand-in, per clip: set-aside frames; min, median, max by window and by third | every frame within 20 ms |
-| `sync` real | the delivered file at 1x speech against the mezzanine, per spot and per clip; medians by third of the edit | each clip's median within 20 ms |
-| `sync` joined | the delivered file at 24 spots spread over the whole edit, at any speed, against the lossless parts | each third's median within 20 ms |
+| `sync` real | the delivered file at 1x speech against the mezzanine, per spot and per clip; medians by third of the edit | each measured clip's median within 20 ms |
+| `sync` joined | the delivered file at up to 8 spots per third of the edit, at any speed, against the lossless parts | each third's median within 20 ms |
 | `bounds` | the whisper match ratio at each cut and join; the text stays in the printed report | none; a person reads it |
 | `captions` | cue start minus the nearest sound onset at up to 24 cues after a 0.3 s lead-in | none; measured, not gated |
 
@@ -155,27 +156,67 @@ gates did), and records per gate its limits, measured values and verdict:
 in ms; positive means the sound leads the picture, or that the caption appears
 after the speech starts. The file holds names, times and numbers only.
 
+**No evidence, no pass.** A sync spot is clear when its sound correlates at
+0.75 or more at a lag inside the 0.25 s search window and its picture match is
+1.15 times better than the next frame. On the real talk the true matches
+correlate at 0.80 to 0.99 (in sync and with an 87 ms lead); on the synthetic
+talk with its sound moved 0.5 to 8 s early, beyond the window, every peak is
+spurious at 0.57 or less, and on the real talk a 1 s lead leaves 0 of 33 spots
+clear. A median
+needs 4 clear spots. A real clip or joined third that tried 4 spots and found
+fewer clear ones fails: a gross offset leaves nothing clear. One that could try
+fewer is not measured. A real clip with no 1x speech, and a joined third with
+only cards or parts under 60 frames, have nothing to measure and are recorded
+as such. Each measure is `passed` only when nothing failed and something
+passed; otherwise `failed` or `not_measured`. Missing parts in `work/` make
+the joined measure `not_measured`. The `sync` gate passes only when all three
+measures passed, so an unmeasured gate fails the stage.
+
+The report's `status` is `failed` when a gate failed, `not_measured` when none
+failed but one lacked evidence, `partial` when every gate that ran passed but
+not all four ran, and `passed` only for a complete run that passed.
+
+**What it binds.** The report binds the sha256 of the delivered `talk.mp4` and
+of `edl.json`, and nothing else. The `captions` measurement recomputes cues
+from the words and times them against `talk.mp4`'s sound; it does not read the
+delivered `talk.srt`. The captions and overlay stages write `talk.srt`,
+`talk.vtt` and `talk.corrected.mp4` after `check`, so a published run's
+captions and corrected copy are not what `check.json` measured.
+
 `publish` carries a `check.json` that measured this very edit into the run as
 an `output_sha256` file, so `verify-run` hashes it, and the manifest's `check`
-records its sha256, `status` (`passed` or `failed`), the gates and a summary.
-A `check.json` of another edit is refused; without one `check.status` is
-`not_run`. The manifest's `status` stays `rendered_unreviewed`: a machine check
-is not a listening review. `verify-run` reads the `check` object as an open
-field and checks only the file's hash.
+records its sha256, `status` (the report's, so `partial` is never `passed`),
+the gates and a summary. A `check.json` of another edit, or one that is not a
+readable check report, is refused before anything is staged; without one
+`check.status` is `not_run`. A partial report is never published. The
+manifest's `status` stays `rendered_unreviewed`: a machine check is not a
+listening review. `verify-run` reads the `check` object as an open field and
+checks only the file's hash. When `verify-run` gives no verdict (it cannot
+start, crashes or runs over the time limit), the run keeps its name and a file
+`.unverified-<run_id>` beside it records why.
 
 ### Thresholds against a real talk
 
 Measured on 2026-10-16 on the tool-tier v5 rebuild (TIN-6544; 37725 frames,
-1257.5 s, three clips), receipt `docs/agent-notes/2026-10-16-condense-check-receipt.md`:
+1257.5 s, three clips) with the review fixes, receipt
+`docs/agent-notes/2026-10-16-condense-check-receipt.md`:
 
 - **Sync, 20 ms: kept.** The coded probe's worst frame is 14.49 ms (sped
   phone speech; 8.79 ms in the room clip), the 1x real median +0.31 ms over 6
-  spots, and the joined medians -5.05, -5.17 and -5.12 ms at the start, middle
-  and end. The v2 bug, an 87 ms lead, is over four times the limit and fails
-  the gate (`condense/tests/test_check.py`). Single spots read one frame off
-  (+28 to +34 ms, -38.5 ms) at 3 of 27 clear spots, so the limit applies to
-  medians, never to one spot. The 1x real measure covers only the opening
-  welcome here: the other clips play no speech at 1x.
+  of 9 spots, and the joined medians -5.05, -5.17 and -5.22 ms at the start,
+  middle and end (6, 7 and 8 of 8 spots clear). The v2 bug, an 87 ms lead, is
+  over four times the limit: on the real talk it reads +87.31 ms (real) and
+  +81.95, +81.83 and +81.78 ms (joined), and fails; a 1 s lead fails with no
+  clear spot (`condense/tests/test_check.py` repeats both on synthetic media).
+  Single spots read one frame off (+28 to +34 ms, once -38.5 ms): 3 of 27 clear
+  spots in this run, 7 of 54 joined spots over three runs of the measure, and
+  3 of 12 in the worst run. So the limit applies to medians, never to one spot.
+  Inference, not a measurement: if misreads were independent at the pooled
+  rate (6 of 54 a frame late, 1 of 54 early), one third with 6 to 8 clear spots
+  would fail falsely with a probability of 0.07 % to 0.4 %, about 0.7 % per run
+  of three thirds; at the worst run's 3 in 12 it would be 3 % to 7 % per third.
+  Frame-exact reads would remove this; they are a follow-up. The 1x real measure
+  covers only the opening welcome here: the other clips play no speech at 1x.
 - **Loudness, 1 LU: kept.** The delivered and upload copies both measure
   -16.0 LUFS (deviation 0.0 LU), loudness range 3.5 LU and true peak -1.0 dBTP:
   0.5 dB over the render's -1.5 dBTP target after AAC, 1.0 dB under the gate.

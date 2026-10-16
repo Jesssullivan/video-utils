@@ -4,14 +4,20 @@ silence:  no silence of 1 s or more at -35 dB is left. Each hit prints with the 
 loud:     integrated loudness within 1 LU of the target, true peak under 0 dBTP.
 sync:     avsync.py. Every output frame of a coded stand-in, the delivered file at 1x speech (median per
           clip), and the delivered file against its lossless parts (median per third) must sit within 20 ms.
+          A median needs avsync.MIN_CLEAR clear spots. A measure without that evidence is not_measured, and
+          the gate then does not pass: its verdict is passed, failed or not_measured.
 bounds:   whisper reads 6 s of the edit around cuts and clip joins, and the same span of the source.
           Printed side by side for a human: a cut must not eat a word. It never fails on its own.
 captions: a measurement, not a gate. At sampled cues that follow a quiet lead-in, the cue start against the
           speech onset in the delivered sound. Positive means the caption appears after the speech starts.
 
-`check` writes work/check.json: per gate its limits, its measured values and whether it passed, bound to the
-sha256 of the delivered file and of edl.json. publish copies it into the run. Text stays in the printed report;
-check.json holds names, times and numbers only.
+`check` writes work/check.json when all four gates ran, and work/check.partial.json when only some did, so a
+partial run never replaces a complete report. Each holds per gate its limits, its measured values and its
+verdict, and a `status`: passed (all four gates passed), partial (the gates that ran passed, not all ran),
+not_measured (no gate failed, one lacked evidence) or failed. It is bound to the sha256 of the delivered file
+and of edl.json only: captions and overlay write talk.srt, talk.vtt and talk.corrected.mp4 after check, and
+check measures none of them. publish copies check.json into the run. Text stays in the printed report; the
+report holds names, times and numbers only.
 """
 
 import difflib
@@ -23,7 +29,7 @@ from . import audio, avsync, captions, transcribe
 from .config import FF, run
 from .edl import Timeline
 from .events import norm
-from .publish import CHECK_REPORT, sha256
+from .publish import CHECK_REPORT, PARTIAL_REPORT, sha256
 from .render import SR
 
 GATES = ("silence", "loud", "sync", "bounds")
@@ -74,8 +80,15 @@ def measure_sync(cfg, tl):
     probe, real = avsync.measure_probe(cfg, edl, limit), avsync.measure_real(cfg, tl, edl, limit)
     joined = avsync.measure_joined(cfg, edl, limit)
     measured = {"probe": probe, "real": real, "joined": joined}
-    passed = probe["passed"] and real["passed"] and joined["passed"]
-    return {"limits": {"sync_ms": limit}, "measured": measured, "passed": passed}
+    verdict = avsync.overall(m["verdict"] for m in measured.values())
+    print(f"sync: probe {probe['verdict']}, real {real['verdict']}, joined {joined['verdict']}: {verdict}")
+    limits = {
+        "sync_ms": limit,
+        "min_clear_spots": avsync.MIN_CLEAR,
+        "clear_correlation": avsync.CLEAR_CORR,
+        "clear_sharpness": avsync.CLEAR_SHARP,
+    }
+    return {"limits": limits, "measured": measured, "verdict": verdict, "passed": verdict == "passed"}
 
 
 def measure_bounds(cfg, tl):
@@ -197,6 +210,8 @@ def summary(gates):
     real = get("sync", "real", "thirds") or {}
     joined = get("sync", "joined", "thirds") or {}
     return {
+        "verdicts": {name: verdict(gate) for name, gate in gates.items()},
+        "sync_verdicts": {k: (v or {}).get("verdict") for k, v in (get("sync") or {}).items()} or None,
         "silence_hits": get("silence", "hits"),
         "integrated_lufs": get("loud", "integrated_lufs"),
         "true_peak_dbtp": get("loud", "true_peak_dbtp"),
@@ -207,30 +222,51 @@ def summary(gates):
     }
 
 
+def verdict(gate):
+    return gate.get("verdict") or ("passed" if gate["passed"] else "failed")
+
+
+def status(gates):
+    """failed, not_measured, partial (what ran passed, not every gate ran) or passed."""
+    verdicts = {verdict(g) for g in gates.values()}
+    if "failed" in verdicts:
+        return "failed"
+    if "not_measured" in verdicts:
+        return "not_measured"
+    return "passed" if all(name in gates for name in GATES) else "partial"
+
+
 def check(cfg, names, report=None):
-    """Run the named checks (default all), print them, write check.json, and return True when no gate failed."""
+    """Run the named checks (default all), print them, write the report, and return True when every gate that
+    ran passed. All four gates write work/check.json; fewer write work/check.partial.json."""
     unknown = [name for name in names if name not in CHECKS]
     if unknown:
         raise ValueError(f"unknown checks {unknown}; choose from {list(CHECKS)}")
     tl = Timeline.load(cfg)
     gates = {name: CHECKS[name](cfg, tl) for name in names or CHECKS}
-    failed = [name for name, gate in gates.items() if not gate["passed"]]
-    print("check:", f"FAILED {failed}" if failed else "ok")
+    failed = [name for name, gate in gates.items() if verdict(gate) == "failed"]
+    unmeasured = [name for name, gate in gates.items() if verdict(gate) == "not_measured"]
+    passed = not failed and not unmeasured
+    outcome = status(gates)
+    print("check:", f"FAILED {failed}" if failed else f"NOT MEASURED {unmeasured}" if unmeasured else outcome)
     version = run(*FF, "-version").stdout.splitlines()[0]
+    complete = all(name in gates for name in GATES)
     record = {
         "schema_version": 1,
         "kind": "condense_check",
         "delivery": {"file": cfg.out.name, "sha256": sha256(cfg.out), "video_frames": audio.frames(cfg.out)},
         "edl_sha256": sha256(cfg.f("edl", "json")),
         "ran": list(gates),
-        "complete": all(name in gates for name in GATES),
-        "passed": not failed,
+        "complete": complete,
+        "status": outcome,
+        "passed": passed,
         "failed": failed,
+        "not_measured": unmeasured,
         "summary": summary(gates),
         "gates": gates,
         "tools": {"ffmpeg": version},
     }
-    path = report or cfg.f(*CHECK_REPORT)
+    path = report or cfg.f(*(CHECK_REPORT if complete else PARTIAL_REPORT))
     path.write_text(json.dumps(record, indent=2) + "\n")
     print(f"check: wrote {path}")
-    return not failed
+    return passed

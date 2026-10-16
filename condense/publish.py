@@ -4,11 +4,13 @@ The manifest's timeline mapping is edl_v1 (docs/spec/TIMELINE_CONTRACT.md): outp
 through edl.json, so `no_time_stretch` is false and no guitar tool accepts the run. The run is staged, renamed
 into place, then checked by `video-utils verify-run --timeline edl_v1`. A run that verify-run refuses is
 renamed to .failed-<run_id> and the stage exits 1. The binary is found before anything is staged; a verify-run
-that cannot start or runs over the time limit refuses nothing, so the run keeps its name and stays unverified.
+that cannot start, crashes or runs over the time limit refuses nothing, so the run keeps its name, a file
+.unverified-<run_id> beside it says why, and the stage exits 1.
 
 When the check stage wrote work/check.json for this very edit (its delivery and edl.json sha256 equal the
-outputs'), the run carries it as check.json and the manifest records its sha256 and summary. A check.json
-of another edit is refused; without one the manifest says the check was not run.
+outputs'), the run carries it as check.json and the manifest records its sha256, status and summary. A
+check.json of another edit, or one that is not a check report, is refused; without one the manifest says the
+check was not run. A partial check (work/check.partial.json) is never published.
 """
 
 import hashlib
@@ -23,7 +25,9 @@ from . import audio, timeline
 from .config import TIMEOUT_S, run
 
 ARTIFACTS = timeline.ROOT / "artifacts" / "condense"
-CHECK_REPORT = ("check", "json")  # work/check.json, written by the check stage
+CHECK_REPORT = ("check", "json")  # work/check.json, written by the check stage when all four gates ran
+PARTIAL_REPORT = ("check", "partial.json")  # work/check.partial.json, when only some ran; never published
+STATUSES = ("passed", "partial", "not_measured", "failed")
 
 
 def sha256(path):
@@ -49,9 +53,8 @@ def outputs(cfg):
             raise FileNotFoundError(f"{found[name]}: run the render stage first")
     report = cfg.f(*CHECK_REPORT)
     if report.is_file():
-        bound = json.loads(report.read_text())
-        measured = ((bound.get("delivery") or {}).get("sha256"), bound.get("edl_sha256"))
-        if bound.get("kind") != "condense_check" or measured != (
+        bound = read_report(report)
+        if (bound["delivery"].get("sha256"), bound.get("edl_sha256")) != (
             sha256(found["talk.mp4"]),
             sha256(found["edl.json"]),
         ):
@@ -60,18 +63,36 @@ def outputs(cfg):
     return found
 
 
+def read_report(path):
+    """The check report at path, or a RuntimeError saying it is not one."""
+    try:
+        bound = json.loads(path.read_text())
+    except (OSError, UnicodeDecodeError, ValueError) as error:
+        raise RuntimeError(f"{path} is not a readable check report ({error}): run the check stage again") from None
+    shape = isinstance(bound, dict) and bound.get("kind") == "condense_check"
+    shape = shape and isinstance(bound.get("delivery"), dict) and isinstance(bound.get("gates"), dict)
+    shape = shape and all(isinstance(gate, dict) for gate in bound["gates"].values())
+    shape = shape and all(isinstance(bound.get(k), bool) for k in ("passed", "complete"))
+    if not shape or bound.get("status", "passed") not in STATUSES:
+        raise RuntimeError(f"{path} is not a condense check report: run the check stage again")
+    return bound
+
+
 def check_summary(files, digests):
     """The manifest's check entry: the report's sha256, which gates ran and passed, and its summary numbers."""
     if "check.json" not in files:
         return {"status": "not_run"}
-    report = json.loads(files["check.json"].read_text())
+    report = read_report(files["check.json"])
+    status = report.get("status") or ("failed" if not report["passed"] else "passed")
+    if status == "passed" and not report["complete"]:
+        status = "partial"  # a report that ran some gates only never says passed
     return {
-        "status": "passed" if report["passed"] else "failed",
+        "status": status,
         "file": "check.json",
         "sha256": digests["check.json"],
         "complete": report["complete"],
-        "gates": {name: gate["passed"] for name, gate in report["gates"].items()},
-        "summary": report["summary"],
+        "gates": {name: bool(gate.get("passed")) for name, gate in report["gates"].items()},
+        "summary": report.get("summary"),
     }
 
 
@@ -166,7 +187,9 @@ def publish(cfg, root=None):
     try:
         accepted, receipt = verify(verifier, final)
     except RuntimeError as error:
-        raise RuntimeError(f"{run_id} is unverified, not refused; it keeps its name: {error}") from None
+        marker = root / f".unverified-{run_id}"
+        marker.write_text(f"{run_id}: verify-run gave no verdict: {error}\n")
+        raise RuntimeError(f"{run_id} is unverified, not refused; it keeps its name ({marker.name}): {error}") from None
     if not accepted:
         final.rename(root / f".failed-{run_id}")
         raise RuntimeError(f"verify-run refused {run_id}; kept as .failed-{run_id}: {receipt}")

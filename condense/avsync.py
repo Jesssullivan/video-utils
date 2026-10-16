@@ -13,6 +13,13 @@ joined: measures the delivered file at any speed, at points spread over the whol
        lossless parts in work/ that the final step joined. The same picture and sound match, so it sees the
        join, the delivery filters, the encode and the mp4 timestamps, also where speech is sped up. Only
        atempo's own timing inside a sped segment is measured by none of the three.
+
+A spot is clear when its sound correlates at CLEAR_CORR or more at a lag inside the search window and its
+picture match is CLEAR_SHARP times better than the next frame. The same picture and sound matched on the
+real talk at 0.835 to 0.988; leads of 0.5 to 8 s, beyond the 0.25 s window, gave spurious peaks at 0.57 or
+less on the synthetic talk. A median needs MIN_CLEAR clear spots: fewer, where at least MIN_CLEAR were
+tried, fails (a gross offset leaves nothing clear), and fewer tried is not measured. No measure passes
+without evidence: each one's verdict is passed, failed or not_measured, and only passed passes.
 """
 
 import subprocess
@@ -25,6 +32,24 @@ from .render import SR, joined, parts, render_part, video_filter
 
 BITS, CELL, RAMP = 20, 4, 4000.0
 CODED = ("-c:v", "ffv1", "-g", "1", "-c:a", "pcm_f64le")
+CLEAR_CORR, CLEAR_SHARP = 0.75, 1.15
+MIN_CLEAR = 4  # clear spots behind a median: per clip (real) and per third of the edit (joined)
+
+
+def overall(verdicts):
+    """failed when any failed, else not_measured when any was not measured or there were none, else passed."""
+    verdicts = list(verdicts)
+    if "failed" in verdicts:
+        return "failed"
+    return "passed" if verdicts and all(v == "passed" for v in verdicts) else "not_measured"
+
+
+def judged(offsets, tried, limit_ms):
+    """(verdict, median ms or None) of the clear spots' offsets at `tried` spots."""
+    median = round(float(np.median(offsets)), 2) if len(offsets) else None
+    if len(offsets) >= MIN_CLEAR:
+        return ("passed" if abs(median) <= limit_ms else "failed"), median
+    return ("failed" if tried >= MIN_CLEAR else "not_measured"), median
 
 
 def coded_mezzanine(cfg, clip):
@@ -111,7 +136,7 @@ def thirds(t, total):
 
 def measure_probe(cfg, edl, limit_ms):
     """Per clip: set-aside frames, offset summaries by window and by third, and whether every frame is in limit."""
-    clips, ok = [], True
+    clips = []
     for clip in (c for c in edl["clips"] if c["segments"][0]["kind"] != "card"):
         off, good = probe(cfg, edl, clip)
         t = np.arange(len(off)) / edl["fps"]
@@ -125,7 +150,6 @@ def measure_probe(cfg, edl, limit_ms):
             print(f"  {name:10s} {stats(off[good & mask])}")
             windows[name] = summary(off[good & mask])
         passed = bool(good.any() and np.abs(off[good]).max() <= limit_ms)
-        ok &= passed
         clips.append(
             {
                 "clip": clip["name"],
@@ -133,14 +157,16 @@ def measure_probe(cfg, edl, limit_ms):
                 "set_aside_frames": int((~good).sum()),
                 "windows": windows,
                 "thirds": {k: summary(off[good & m]) for k, m in thirds(t, len(off) / edl["fps"]).items()},
+                "verdict": "passed" if passed else "failed",
                 "passed": passed,
             }
         )
-    return {"limit_ms": limit_ms, "passed": ok, "clips": clips}
+    verdict = overall(c["verdict"] for c in clips)  # an edit of cards only has nothing to probe
+    return {"limit_ms": limit_ms, "verdict": verdict, "passed": verdict == "passed", "clips": clips}
 
 
 def check_probe(cfg, edl, limit_ms):
-    """True when every readable output frame of every clip is within the limit."""
+    """True when every readable output frame of every probed clip is within the limit."""
     return measure_probe(cfg, edl, limit_ms)["passed"]
 
 
@@ -179,7 +205,8 @@ def offset_at(cfg, ref, j, want):
     """(audio - video in ms, correlation, sharpness) at output frame j, against `ref` near its time `want` s.
 
     The picture is matched against 25 frames of ref around `want` (through the delivery filters), and 0.4 s of
-    sound is cross-correlated against ref's sound 0.25 s to each side.
+    sound is cross-correlated against ref's sound 0.25 s to each side. A sound peak on the window's edge says
+    the match lies outside it, so its correlation is reported as 0.
     """
     fps = cfg.fps
     k0 = max(0, round(want * fps) - 12)
@@ -190,8 +217,15 @@ def offset_at(cfg, ref, j, want):
     c0 = max(0, round(want * SR) - 12000)
     y = pcm(ref, c0, len(x) + 24000)
     corr = match(y, x - x.mean())
-    heard = (c0 + int(np.argmax(corr))) / SR
-    return (heard - seen) * 1000, float(corr.max()), np.sort(miss)[1] / (min(miss) + 1e-9)
+    lag = int(np.argmax(corr))
+    heard = (c0 + lag) / SR
+    inside = 0 < lag < len(corr) - 1
+    return (heard - seen) * 1000, float(corr[lag]) if inside else 0.0, np.sort(miss)[1] / (min(miss) + 1e-9)
+
+
+def clear(corr, sharp):
+    """The sound and the picture both have a clear match there."""
+    return corr >= CLEAR_CORR and sharp >= CLEAR_SHARP
 
 
 def real_at(cfg, s, shift, t0, j):
@@ -200,89 +234,134 @@ def real_at(cfg, s, shift, t0, j):
     return offset_at(cfg, cfg.f(s["src"], "mezz.mkv"), j, want)
 
 
+def by_thirds(found, total):
+    """Clear spots and their median per third of an output timeline `total` seconds long."""
+    t = np.array([f["t_s"] for f in found])
+    off = np.array([f["offset_ms"] for f in found])
+    return {
+        name: {"spots": int(mask.sum()), "median_ms": round(float(np.median(off[mask])), 2) if mask.any() else None}
+        for name, mask in thirds(t, total).items()
+    }
+
+
 def measure_real(cfg, tl, edl, limit_ms, points=8):
-    """Per clip: every measured spot and its median. Then the spots of all clips by third of the edit."""
-    ok, clips, every = True, [], []
+    """Per clip: every measured spot, its median and verdict. Then the spots of all clips by third of the edit.
+
+    A clip with no 1x speech, or too little to try MIN_CLEAR spots, is not measured and does not count. The
+    measure passes when no clip failed and at least one passed.
+    """
+    clips, every = [], []
     for clip in edl["clips"]:
         rows = [r for r in tl.by_clip[clip["name"]][1] if r[2]["kind"] == "speech" and r[1] - r[0] >= 0.8]
         rows = [r for r in rows if r[2]["frames"] == round((r[2]["out"] - r[2]["inp"]) * cfg.fps)]
         spots = [(r, t) for r in rows for t in np.arange(r[0] + 0.2, r[1] - 0.45, 0.5)]
-        found, unclear = [], 0
-        for (t0, _, s), t in spots[:: max(1, len(spots) // points)]:
+        tried = spots[:: max(1, len(spots) // points)]
+        found = []
+        for (t0, _, s), t in tried:
             gap, corr, sharp = real_at(cfg, s, clip["shift"], t0, round(t * cfg.fps))
-            if corr >= 0.5 and sharp >= 1.15:  # else the sound or the picture has no clear match there
+            if clear(corr, sharp):  # else the sound or the picture has no clear match there
                 found.append(
                     {"t_s": round(float(t), 3), "offset_ms": round(float(gap), 2), "correlation": round(corr, 3)}
                 )
                 print(f"sync real: {clip['name']} at {t:8.2f} s: {gap:+6.1f} ms (correlation {corr:.2f})")
-            else:
-                unclear += 1
-        median = None
-        if found:
-            median = round(float(np.median([f["offset_ms"] for f in found])), 2)
-            ok &= abs(median) <= limit_ms
-            print(f"sync real: {clip['name']} median {median:+.1f} ms over {len(found)} spots")
-        elif clip["segments"][0]["kind"] != "card":
-            print(f"sync real: {clip['name']} has no clear 1x speech to measure")
-        clips.append({"clip": clip["name"], "spots": found, "unclear_spots": unclear, "median_ms": median})
-        every += found
-    t = np.array([f["t_s"] for f in every])
-    off = np.array([f["offset_ms"] for f in every])
-    by_third = {}
-    for name, mask in thirds(t, tl.total).items():
-        by_third[name] = (
-            {"spots": int(mask.sum()), "median_ms": round(float(np.median(off[mask])), 2)} if mask.any() else None
+        verdict, median = judged([f["offset_ms"] for f in found], len(tried), limit_ms)
+        if not tried:
+            verdict = "no_1x_speech"
+            if clip["segments"][0]["kind"] != "card":
+                print(f"sync real: {clip['name']} has no 1x speech to measure")
+        else:
+            at = f"median {median:+.1f} ms" if median is not None else "no median"
+            print(f"sync real: {clip['name']} {at} over {len(found)} of {len(tried)} spots clear: {verdict}")
+        clips.append(
+            {
+                "clip": clip["name"],
+                "spots": found,
+                "tried_spots": len(tried),
+                "unclear_spots": len(tried) - len(found),
+                "median_ms": median,
+                "verdict": verdict,
+            }
         )
-    return {"limit_ms": limit_ms, "passed": ok, "clips": clips, "thirds": by_third}
+        every += found
+    verdict = overall(c["verdict"] for c in clips if c["verdict"] in ("passed", "failed"))
+    return {
+        "limit_ms": limit_ms,
+        "min_clear_spots": MIN_CLEAR,
+        "verdict": verdict,
+        "passed": verdict == "passed",
+        "clips": clips,
+        "thirds": by_thirds(every, tl.total),
+    }
 
 
 def check_real(cfg, tl, edl, limit_ms, points=8):
-    """True when the median offset of every clip with 1x speech is within the limit."""
+    """True when no clip's 1x speech failed and at least one clip's was measured within the limit."""
     return measure_real(cfg, tl, edl, limit_ms, points)["passed"]
 
 
 def measure_joined(cfg, edl, limit_ms, points=24):
-    """Spots spread evenly over the edit, each against its lossless part. Passes when every third's median
-    is within the limit. Set aside, and passing, when the parts are no longer in work/."""
-    fps, found, unclear = cfg.fps, [], 0
-    names = [(cfg.f(name, "mezz.mkv"), sum(s["frames"] for s in segs)) for name, _, segs in parts(edl)]
-    if not all(path.is_file() for path, _ in names):
-        print("sync joined: the parts are not in work/, not measured")
-        return {"limit_ms": limit_ms, "passed": True, "measured": False, "spots": [], "thirds": None}
+    """Up to points // 3 distinct spots spread evenly over each third's usable frames, each against its lossless
+    part. Each third with usable frames needs MIN_CLEAR clear spots and a median within the limit; a third with
+    none (only cards or parts too short) is recorded as nothing_to_measure. Not measured, so not passed, when
+    the parts are no longer in work/ or no third can be measured."""
+    fps = cfg.fps
+    every = parts(edl)
+    names = [(cfg.f(name, "mezz.mkv"), sum(s["frames"] for s in segs)) for name, _, segs in every]
     starts = np.cumsum([0] + [n for _, n in names])
     total = int(starts[-1])
-    for i in range(points):
-        j = int(total * (i + 0.5) / points)
+    # Frames whose 29-frame and 0.9 s windows stay inside their part. Parts under 60 frames have none, and
+    # neither has a card, whose picture and sound are not speech.
+    usable = [
+        np.arange(a + 15, a + n - 44)
+        for a, (_, n), (_, _, segs) in zip(starts[:-1], names, every, strict=True)
+        if n >= 60 and segs[0]["kind"] != "card"
+    ]
+    usable = np.concatenate(usable) if usable else np.array([], int)
+    empty = {"spots": [], "tried_spots": 0, "unclear_spots": 0, "thirds": None}
+    if not all(path.is_file() for path, _ in names):
+        print("sync joined: the parts are not in work/: not measured")
+        return {"limit_ms": limit_ms, "verdict": "not_measured", "passed": False, "measured": False, **empty}
+    if not len(usable):
+        print("sync joined: no part is long enough to measure: not measured")
+        return {"limit_ms": limit_ms, "verdict": "not_measured", "passed": False, "measured": False, **empty}
+    tried = []  # points // 3 distinct frames spread evenly over each third's usable frames, or all of them
+    for mask in thirds(usable / fps, total / fps).values():
+        pool = usable[mask]
+        k = min(len(pool), points // 3)
+        tried += [int(pool[int(len(pool) * (i + 0.5) / k)]) for i in range(k)]
+    found, offsets = [], np.full(len(tried), np.nan)
+    for i, j in enumerate(tried):
         p = int(np.searchsorted(starts, j, side="right")) - 1
-        part, n = names[p]
-        if n < 60:  # too short to keep the 29-frame and 0.9 s windows inside it
-            unclear += 1
-            continue
-        local = min(max(j - int(starts[p]), 15), n - 45)  # keep both windows inside the part
-        j = int(starts[p]) + local
-        gap, corr, sharp = offset_at(cfg, part, j, local / fps)
-        if corr >= 0.5 and sharp >= 1.15:
-            found.append({"t_s": round(j / fps, 3), "offset_ms": round(float(gap), 2), "correlation": round(corr, 3)})
+        gap, corr, sharp = offset_at(cfg, names[p][0], j, (j - int(starts[p])) / fps)
+        if clear(corr, sharp):
+            offsets[i] = round(float(gap), 2)
+            found.append({"t_s": round(j / fps, 3), "offset_ms": float(offsets[i]), "correlation": round(corr, 3)})
             print(f"sync joined: at {j / fps:8.2f} s: {gap:+6.1f} ms (correlation {corr:.2f})")
-        else:
-            unclear += 1
-    t = np.array([f["t_s"] for f in found])
-    off = np.array([f["offset_ms"] for f in found])
     by_third = {}
-    for name, mask in thirds(t, total / fps).items():
-        by_third[name] = (
-            {"spots": int(mask.sum()), "median_ms": round(float(np.median(off[mask])), 2)} if mask.any() else None
-        )
-    ok = all(abs(v["median_ms"]) <= limit_ms for v in by_third.values() if v)
+    for third, mask in thirds(np.array(tried) / fps, total / fps).items():
+        mine = offsets[mask & ~np.isnan(offsets)]
+        verdict, median = judged(mine, int(mask.sum()), limit_ms)
+        if not mask.any():
+            verdict = "nothing_to_measure"  # no part there is long enough, or it is a card
+        by_third[third] = {"spots": len(mine), "tried": int(mask.sum()), "median_ms": median, "verdict": verdict}
+    verdict = overall(v["verdict"] for v in by_third.values() if v["verdict"] != "nothing_to_measure")
     print(
-        f"sync joined: {len(found)} of {points} spots clear, "
-        + ", ".join(f"{k} {v['median_ms']:+.1f} ms" for k, v in by_third.items() if v)
+        f"sync joined: {len(found)} of {len(tried)} spots clear, "
+        + ", ".join(
+            f"{k} {v['median_ms']:+.1f} ms ({v['spots']} of {v['tried']}, {v['verdict']})"
+            if v["median_ms"] is not None
+            else f"{k} no clear spot of {v['tried']} ({v['verdict']})"
+            for k, v in by_third.items()
+        )
     )
     return {
         "limit_ms": limit_ms,
-        "passed": ok,
+        "min_clear_spots": MIN_CLEAR,
+        "verdict": verdict,
+        "passed": verdict == "passed",
         "measured": True,
         "spots": found,
-        "unclear_spots": unclear,
+        "tried_spots": len(tried),
+        "unclear_spots": len(tried) - len(found),
         "thirds": by_third,
     }

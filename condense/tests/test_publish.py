@@ -81,17 +81,24 @@ def report(rendered):
     path.unlink(missing_ok=True)
 
 
-def test_a_check_report_is_published_hash_bound_and_summarised(rendered, report, tmp_path):
-    assert check.check(rendered, ["silence", "loud"])
+def bounds_read(cfg, tl):
+    """bounds needs whisper, which the synthetic tests never run: a stand-in with nothing to read."""
+    return {"limits": None, "measured": {"spots": []}, "passed": True, "review": "a person reads the printed text"}
+
+
+def test_a_complete_check_report_is_published_hash_bound_and_summarised(rendered, report, tmp_path, monkeypatch):
+    monkeypatch.setitem(check.CHECKS, "bounds", bounds_read)
+    assert check.check(rendered, [])
     run_dir = publish.publish(rendered, tmp_path)
     m = json.loads((run_dir / "manifest.json").read_text())
     r = json.loads(report.read_text())
+    assert r["status"] == "passed" and r["complete"]
     assert m["check"] == {
         "status": "passed",
         "file": "check.json",
         "sha256": publish.sha256(report),
-        "complete": False,
-        "gates": {"silence": True, "loud": True},
+        "complete": True,
+        "gates": {"silence": True, "loud": True, "sync": True, "bounds": True, "captions": True},
         "summary": r["summary"],
     }
     assert m["output_sha256"]["check.json"] == m["check"]["sha256"]
@@ -101,9 +108,40 @@ def test_a_check_report_is_published_hash_bound_and_summarised(rendered, report,
     assert verify(run_dir).returncode == 1
 
 
+def test_a_partial_check_is_never_published_as_passed(rendered, report, tmp_path):
+    assert check.check(rendered, ["silence", "loud"])  # writes work/check.partial.json, not check.json
+    partial = rendered.f(*publish.PARTIAL_REPORT)
+    try:
+        assert not report.exists() and json.loads(partial.read_text())["status"] == "partial"
+        m = json.loads((publish.publish(rendered, tmp_path / "a") / "manifest.json").read_text())
+        assert m["check"] == {"status": "not_run"}
+        # a partial report placed where the complete one goes is published as partial, never as passed
+        report.write_text(partial.read_text())
+        m = json.loads((publish.publish(rendered, tmp_path / "b") / "manifest.json").read_text())
+        assert m["check"]["status"] == "partial" and m["check"]["complete"] is False
+        older = json.loads(partial.read_text())
+        del older["status"]  # an older report without a status
+        report.write_text(json.dumps(older))
+        m = json.loads((publish.publish(rendered, tmp_path / "c") / "manifest.json").read_text())
+        assert m["check"]["status"] == "partial"
+    finally:
+        partial.unlink(missing_ok=True)
+
+
 def test_a_check_report_of_another_edit_is_refused(rendered, report, tmp_path):
-    report.write_text(json.dumps({"kind": "condense_check", "delivery": {"sha256": "0" * 64}, "edl_sha256": "0" * 64}))
+    assert check.check(rendered, ["silence"], report=report)
+    stale = json.loads(report.read_text())
+    stale["delivery"]["sha256"] = "0" * 64
+    report.write_text(json.dumps(stale))
     with pytest.raises(RuntimeError, match="checked another edit"):
+        publish.publish(rendered, tmp_path)
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("text", ['{"kind": "condense_check", "deliv', "[]", '{"kind": "condense_check"}', "\xff"])
+def test_a_broken_check_report_is_refused_not_a_traceback(rendered, report, tmp_path, text):
+    report.write_bytes(text.encode("latin-1"))
+    with pytest.raises(RuntimeError, match="is not a (readable|condense) check report"):
         publish.publish(rendered, tmp_path)
     assert list(tmp_path.iterdir()) == []
 
@@ -141,11 +179,14 @@ def test_only_a_refusal_renames_the_run_failed(rendered, tmp_path, monkeypatch, 
     root = tmp_path / "root"
     with pytest.raises(RuntimeError) as caught:
         publish.publish(rendered, root)
-    (entry,) = list(root.iterdir())
+    entries = sorted(root.iterdir())
     if kept:
         assert "unverified, not refused" in str(caught.value)
+        marker, entry = entries
         assert not entry.name.startswith(".") and (entry / "manifest.json").is_file()
+        assert marker.name == f".unverified-{entry.name}" and "gave no verdict" in marker.read_text()
     else:
+        (entry,) = entries
         assert str(caught.value).startswith("verify-run refused") and entry.name.startswith(".failed-")
 
 
@@ -161,7 +202,8 @@ def test_a_verify_run_timeout_is_not_a_refusal(rendered, tmp_path, monkeypatch):
     root = tmp_path / "root"
     with pytest.raises(RuntimeError, match="unverified, not refused.*ran over") as caught:
         publish.publish(rendered, root)
-    (entry,) = list(root.iterdir())
+    marker, entry = sorted(root.iterdir())
     assert not entry.name.startswith(".") and not str(caught.value).startswith("verify-run refused")
+    assert marker.name == f".unverified-{entry.name}" and "ran over" in marker.read_text()
     monkeypatch.undo()
     assert verify(entry).returncode == 0  # the run itself was good all along
