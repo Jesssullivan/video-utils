@@ -190,7 +190,10 @@ of `edl.json`, and nothing else. The `captions` measurement recomputes cues
 from the words and times them against `talk.mp4`'s sound; it does not read the
 delivered `talk.srt`. The captions and overlay stages write `talk.srt`,
 `talk.vtt` and `talk.corrected.mp4` after `check`, so a published run's
-captions and corrected copy are not what `check.json` measured.
+captions and corrected copy are not what `check.json` measured. The render
+stage writes `talk.upload.mp4` (`[encode] upload`) before `check`, but `check`
+does not measure it and `publish` does not carry it; its sync and loudness are
+measured only by calling the same measures with `out` set to the upload copy.
 
 `publish` carries a `check.json` that measured this very edit into the run as
 an `output_sha256` file, so `verify-run` hashes it, and the manifest's `check`

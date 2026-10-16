@@ -212,7 +212,7 @@ frame size or rate.
 every gate's limits, measured values and verdict, and a `status`: `passed`, `partial` (what ran passed, not
 every gate ran), `not_measured` or `failed`. It is bound to the sha256 of the edit and of `edl.json` only: the
 captions and overlay stages write `talk.srt`, `talk.vtt` and `talk.corrected.mp4` after it, and check measures
-none of them. It holds names, times and numbers only; the bounds text stays in the printed report.
+none of them. The upload copies are not measured or published either. It holds names, times and numbers only; the bounds text stays in the printed report.
 
 ### captions
 
