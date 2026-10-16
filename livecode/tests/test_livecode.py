@@ -203,7 +203,13 @@ class Livecode(unittest.TestCase):
         self.assertIn("audio input: MacBook Pro Microphone (macOS default input)", proc.stderr)
         self.assertIn("-i 0:none", joined, "the built-in camera, never Desk View")
         graph = argv[argv.index("-filter_complex") + 1]
-        self.assertEqual((graph.count("scale="), graph.count("overlay="), graph.count(";")), (2, 1, 2))
+        self.assertEqual((graph.count("scale="), graph.count("overlay="), graph.count(";")), (2, 1, 3),
+                         "screen, camera, overlay and the audio PTS reset only")
+        # avfoundation stamps each device on its own clock: every stream is reset to t=0 before composing.
+        self.assertIn("[0:v]setpts=PTS-STARTPTS,scale=1920:-2", graph)
+        self.assertIn("[1:v]setpts=PTS-STARTPTS,scale=480:-2", graph)
+        self.assertIn("[0:a]asetpts=PTS-STARTPTS[a]", graph)
+        self.assertEqual(argv[argv.index("-map", argv.index("-map") + 1) + 1], "[a]")
         self.assertIn("scale=480:-2", graph)
         self.assertIn("overlay=x=W-w-24:y=H-h-24", graph)
         self.assertEqual(argv[argv.index("-c:v") + 1], "h264_videotoolbox")
@@ -216,7 +222,7 @@ class Livecode(unittest.TestCase):
     def test_camera_none_drops_the_overlay(self):
         _, argv = self.run_livecode("rec", str(self.capture_dir / "x.mkv"), LIVECODE_CAMERA="none")
         graph = argv[argv.index("-filter_complex") + 1]
-        self.assertEqual(graph, "[0:v]scale=1920:-2:flags=bilinear[v]")
+        self.assertEqual(graph, "[0:v]setpts=PTS-STARTPTS,scale=1920:-2:flags=bilinear[v];[0:a]asetpts=PTS-STARTPTS[a]")
         self.assertEqual(argv.count("-i"), 1)
 
     def test_camera_corner_and_fraction(self):
@@ -321,6 +327,12 @@ class Livecode(unittest.TestCase):
         self.assertIn("scale=960:-2", graph)
         self.assertIn("scale=240:-2", graph)
         self.assertIn("overlay=x=W-w-12:y=H-h-12", graph)
+        self.assertIn("[0:v]setpts=PTS-STARTPTS,", graph)
+        self.assertIn("[1:v]setpts=PTS-STARTPTS,", graph)
+        self.assertIn("select=gte(n\\,15)[v]", graph, "warm-up frames skipped in the graph")
+        self.assertNotIn("asetpts", graph)
+        self.assertEqual(argv[argv.index("-fps_mode") + 1], "passthrough")
+        self.assertNotIn("-ss", argv, "-ss waits on raw device PTS")
         self.assertIn("-i 2:none", " ".join(argv), "preview captures no audio")
         self.assertEqual(argv[argv.index("-frames:v") + 1], "1")
         for encoder_flag in ("-c:v", "-b:v", "-c:a"):

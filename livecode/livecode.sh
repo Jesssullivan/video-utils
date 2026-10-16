@@ -240,20 +240,27 @@ build_args() {
     *) die "LIVECODE_CAM must be br, bl, tr or tl" ;;
   esac
 
+  # avfoundation stamps each device on its own clock, so the screen and camera
+  # streams start far apart; reset every stream to t=0 before composing, or
+  # overlay waits and fps conversion duplicates millions of frames.
+  # Preview skips the first 15 composed frames (camera exposure warm-up).
+  local vtail="" filter
+  [ "$mode" != preview ] || vtail=",select=gte(n\\,15)"
   ARGS=(-hide_banner -thread_queue_size 1024
     -f avfoundation -capture_cursor 1 -framerate "$fps" -pixel_format nv12
     -i "${screen}:${mic}")
   if [ "$camera" = none ]; then
-    ARGS+=(-filter_complex "[0:v]scale=${width}:-2:flags=bilinear[v]")
+    filter="[0:v]setpts=PTS-STARTPTS,scale=${width}:-2:flags=bilinear${vtail}[v]"
   else
     ARGS+=(-thread_queue_size 1024
       -f avfoundation -framerate "$fps" -video_size "${LIVECODE_CAM_SIZE:-1280x720}" -pixel_format nv12
-      -i "${camera}:none"
-      -filter_complex "[0:v]scale=${width}:-2:flags=bilinear[s];[1:v]scale=${cam_w}:-2:flags=bilinear[c];[s][c]overlay=${pos}:eof_action=pass[v]")
+      -i "${camera}:none")
+    filter="[0:v]setpts=PTS-STARTPTS,scale=${width}:-2:flags=bilinear[s];[1:v]setpts=PTS-STARTPTS,scale=${cam_w}:-2:flags=bilinear[c];[s][c]overlay=${pos}:eof_action=pass${vtail}[v]"
   fi
-  ARGS+=(-map "[v]")
+  [ "$mode" = preview ] || filter="${filter};[0:a]asetpts=PTS-STARTPTS[a]"
+  ARGS+=(-filter_complex "$filter" -map "[v]")
   [ "$mode" != preview ] || return 0
-  ARGS+=(-map 0:a -c:a aac -b:a 160k -ar 48000 -ac 2)
+  ARGS+=(-map "[a]" -c:a aac -b:a 160k -ar 48000 -ac 2)
   ARGS+=(-fps_mode cfr -r "$fps" -c:v h264_videotoolbox -realtime 1 -profile:v high
     -force_key_frames "expr:gte(t,n_forced*2)" -g $(( fps * 2 )))
 }
@@ -315,8 +322,9 @@ cmd_stream() {
 # file and renamed, so Quick Look never sees a half-written PNG.
 grab_preview() {
   local out="$LIVECODE_DIR/scratch/preview.png" tmp="$LIVECODE_DIR/scratch/.preview-next.png"
-  # -ss skips the camera's first, still-exposing frames; one frame, no encoder settings.
-  "$FFMPEG" "${ARGS[@]}" -loglevel error -ss 0.6 -frames:v 1 -update 1 -y "$tmp" </dev/null >&2 \
+  # The filter's select skips warm-up frames; passthrough stops the image muxer
+  # forcing a constant frame rate. One frame, no encoder settings.
+  "$FFMPEG" -loglevel error "${ARGS[@]}" -fps_mode passthrough -frames:v 1 -update 1 -y "$tmp" </dev/null >&2 \
     || die "ffmpeg could not grab a preview frame"
   [ -s "$tmp" ] || die "ffmpeg wrote no preview frame"
   mv -f "$tmp" "$out" || die "could not write $out"
