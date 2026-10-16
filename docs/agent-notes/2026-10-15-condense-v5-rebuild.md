@@ -228,7 +228,10 @@ beside this one; nothing imports or runs them.
 - 2026-10-15, code commit: `just condense-lint`: ruff check and format check pass on 33 files.
   `just condense-test`: 127 passed.
 - 2026-10-16, review fixes: `nix develop .#condense -c just condense-lint condense-test`: lint passes,
-  133 passed (six new tests).
+  133 passed (six new tests). `tests/test_public_tree.py` (4, 1 skipped), `test_s4b_tool_admission.py` (12,
+  1 skipped) and `test_condense_public_surface.py` pass. `just check` locally: 2018 tests, 26 failures and 6
+  errors, all in the known environment-only set (web: no offline pnpm mirror, 24; marked video, compact and
+  arrangement markers: no installed font, 8). No Rust changed, so `just test-rust` was not run.
 - `tests/test_s4b_tool_admission.py`: 12 tests OK (1 skipped); no descriptor or skill changed.
   `tests/test_condense_public_surface.py`: OK.
 - `just check` locally: 2014 tests, 27 failures and 6 errors, all in the known environment-only set
