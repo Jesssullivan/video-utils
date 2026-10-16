@@ -132,7 +132,7 @@ def check_drops(clip, kept, fps):
     spans, name, shortest = clip["drop"], clip["name"], (kept + 1) / fps
     if spans and clip["card"]:
         raise ValueError(f"clip {name}: a card clip plays whole, so it takes no drop")
-    end = 0.0
+    end = None
     for span in spans:
         ok = isinstance(span, list) and len(span) == 2 and all(type(x) in (int, float) for x in span)
         if not ok or not 0 <= span[0] < span[1]:
@@ -141,8 +141,8 @@ def check_drops(clip, kept, fps):
             raise ValueError(
                 f"clip {name}: drop {span!r} is under {kept + 1} frames ({shortest:.3f} s); a cut keeps {kept}"
             )
-        if span[0] < end:
-            raise ValueError(f"clip {name}: drop {span!r} overlaps or precedes the one before it")
+        if end is not None and span[0] <= end:
+            raise ValueError(f"clip {name}: drop {span!r} touches, overlaps or precedes the one before it")
         end = span[1]
 
 

@@ -235,6 +235,31 @@ def test_two_drops_that_meet_once_an_edge_moves_become_one_cut():
     assert out[1]["keep"] == [[1.0, 1.166667], [7.866667, 8.0]]
 
 
+def test_a_drop_that_starts_or_ends_on_a_pause_cut_edge_joins_it():
+    # A drop that meets a pause cut exactly at the cut's end (or start) would otherwise leave two cuts back to
+    # back, each keeping its own head and tail frames, so 18 frames instead of 9 played at the seam.
+    c = SimpleNamespace(
+        name="x", fps=30, r=dict(keep_head_frames=5, keep_tail_frames=4), snap=lambda t: round(round(t * 30) / 30, 6)
+    )
+    segs = [
+        dict(src="x", inp=0.0, out=2.0, speed=2.0, kind="speech"),
+        dict(src="x", inp=2.0, out=4.0, speed=1.0, kind="cut", keep=[[2.0, 2.166667], [3.866667, 4.0]]),
+        dict(src="x", inp=4.0, out=8.0, speed=2.0, kind="speech"),
+        dict(src="x", inp=8.0, out=9.0, speed=1.0, kind="cut", keep=[[8.0, 8.166667], [8.866667, 9.0]]),
+        dict(src="x", inp=9.0, out=10.0, speed=2.0, kind="speech"),
+    ]
+    out = edl.drop(c, segs, [[4.0, 6.0]])
+    assert [(s["inp"], s["out"], s["kind"]) for s in out] == [
+        (0.0, 2.0, "speech"),
+        (2.0, 6.0, "cut"),
+        (6.0, 8.0, "speech"),
+        *[(s["inp"], s["out"], s["kind"]) for s in segs[3:]],
+    ]
+    out = edl.drop(c, segs, [[6.0, 8.0]])
+    assert [(s["inp"], s["out"], s["kind"]) for s in out][2:4] == [(4.0, 6.0, "speech"), (6.0, 9.0, "cut")]
+    assert out[3]["keep"] == [[6.0, 6.166667], [8.866667, 9.0]]
+
+
 def test_whisper_never_reads_a_pause_span_inside_a_drop(talk, monkeypatch):
     """evidence = "asr" re-reads a pause span with a sound in it, unless a drop removes the span anyway."""
     base = talk.work.parent

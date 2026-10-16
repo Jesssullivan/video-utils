@@ -232,9 +232,13 @@ beside this one; nothing imports or runs them.
   1 skipped) and `test_condense_public_surface.py` pass. `just check` locally: 2018 tests, 26 failures and 6
   errors, all in the known environment-only set (web: no offline pnpm mirror, 24; marked video, compact and
   arrangement markers: no installed font, 8). No Rust changed, so `just test-rust` was not run.
-- `tests/test_s4b_tool_admission.py`: 12 tests OK (1 skipped); no descriptor or skill changed.
-  `tests/test_condense_public_surface.py`: OK.
-- `just check` locally: 2014 tests, 27 failures and 6 errors, all in the known environment-only set
-  (web: no offline pnpm mirror, 24; marked video/compact and arrangement markers: no installed font, 8;
-  the capture adapter: an `inspection failure` under load, 1). This lane changes no root Python or Rust.
-- Hosted CI on the code commit: `offline`, `condense`, `web` and `bazel` pass.
+- 2026-10-15, code commit: `tests/test_s4b_tool_admission.py`: 12 tests OK (1 skipped); no descriptor or
+  skill changed. `tests/test_condense_public_surface.py`: OK. `just check` locally: 2014 tests, 27 failures
+  and 6 errors, all in the known environment-only set (web: no offline pnpm mirror, 24; marked
+  video/compact and arrangement markers: no installed font, 8; the capture adapter: an `inspection failure`
+  under load, 1). This lane changes no root Python or Rust. Hosted CI: `offline`, `condense`, `web` and
+  `bazel` pass.
+- 2026-10-16, integration: drop spans that touch are refused, and a drop edge on a pause cut's far edge
+  joins that cut, so no seam keeps two sets of frames. `just condense-lint condense-test`: 135 passed. The
+  edl stage rebuilt on copies of both private runs (whisper stubbed to fail) gave the same sha256 as above:
+  seeded `3fdb0c65...`, tool `767cfcac...`.

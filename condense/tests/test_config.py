@@ -41,6 +41,7 @@ def test_drop_spans_are_source_seconds_in_order(tmp_path):
     [
         ("[[1.0, 4.0], [3.0, 6.0]]", "overlaps or precedes"),
         ("[[5.0, 9.0], [1.0, 3.0]]", "overlaps or precedes"),
+        ("[[1.0, 3.0], [3.0, 5.0]]", "touches"),
         ("[[3.0, 1.0]]", "0 <= start < end"),
         ("[[-1.0, 2.0]]", "0 <= start < end"),
         ("[[1.0, 2.0, 3.0]]", "must be \\[start, end\\]"),

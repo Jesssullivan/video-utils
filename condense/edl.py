@@ -189,8 +189,9 @@ def drop(c, segs, spans):
     """Cut each [start, end] of source out of segs as one cut that keeps its head and tail frames at 1x.
 
     A drop is an editor's decision, such as a set-up stretch with talk in it: `[[clip]] drop` in talk.toml.
-    The edges snap to the frame grid. An edge that lands inside a cut moves out to that cut's edge, so the
-    pause joins the drop; a later span that then starts inside this drop's cut joins it too. The new cut keeps
+    The edges snap to the frame grid. An edge that lands inside a cut, or on its far edge, moves out to that
+    cut's edge, so the pause joins the drop and no seam keeps two sets of frames; a later span that then
+    starts inside or at the end of this drop's cut joins it too. The new cut keeps
     keep_head_frames after its start and keep_tail_frames before its end, so a pause cut whose kept edge was
     longer (a sound's margin pulled it out) loses those extra kept frames. Segments inside a span go, and a
     segment across an edge is trimmed to it. Runs before the max_s check, so a drop counts before the speed
@@ -200,9 +201,9 @@ def drop(c, segs, spans):
     for d0, d1 in spans:
         d0, d1 = c.snap(d0), c.snap(d1)
         for s in segs:
-            if s["kind"] == "cut" and s["inp"] < d0 < s["out"]:
+            if s["kind"] == "cut" and s["inp"] < d0 <= s["out"] + 1e-6:
                 d0 = s["inp"]
-            if s["kind"] == "cut" and s["inp"] < d1 < s["out"]:
+            if s["kind"] == "cut" and s["inp"] - 1e-6 <= d1 < s["out"]:
                 d1 = s["out"]
         out = []
         for s in segs:
