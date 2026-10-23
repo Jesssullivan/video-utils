@@ -169,6 +169,8 @@ manifest. It is specified in `docs/spec/NARRATE.md` (parent TIN-7084).
   rendered narration and the real voice and engine registry stay outside git,
   bound by digest; tracked files hold types, digests and synthetic fixtures.
 - Narration is a new track. It never time-stretches source media; its runs
-  live outside `artifacts/runs/` and guitar tools refuse its manifests.
+  live outside `artifacts/runs/`. Every narration manifest writes
+  `timeline.no_time_stretch: false` and a non-identity `timeline.mapping`,
+  even when no stretch was applied, so guitar tools refuse it.
 - The guitar axioms above govern guitar takes, not narration speech. Every
   narration manifest sets `synthetic: true`.

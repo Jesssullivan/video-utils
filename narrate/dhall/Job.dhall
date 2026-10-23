@@ -1,5 +1,7 @@
 -- One narration job: what to read, through which pinned lexical release, in which voice, on which
 -- engine, and the gates every chunk must pass (docs/spec/NARRATE.md, "Dataflow").
+let Consent = ./Consent.dhall
+
 let Input = < PlainText | Markdown | Srt | Vtt | CondenseWords | Dialog >
 
 let AudioFormat = < Wav | Flac >
@@ -38,7 +40,9 @@ let T =
       { id : Text
       , input : Input
       , inputSha256 : Text
+      , scope : Consent.Scope
       , confidential : Bool
+      , allowHosted : Bool
       , lexical : Lexical
       , pronunciation : Text
       , voice : Text

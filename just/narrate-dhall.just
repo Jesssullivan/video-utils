@@ -21,13 +21,22 @@ narrate-dhall-check:
     done
     cd ../..
     python3 -I narrate/dhall/check.py || status=1
+    python3 -I narrate/dhall/check.py --self-test || status=1
     exit "$status"
 
-# Rewrite the committed example JSON from the Dhall sources.
+# Rewrite the committed example JSON from the Dhall sources. Each file is rendered to a temporary file
+# first and moved into place only when the render succeeds, so a failed render leaves the old JSON.
 narrate-dhall-render:
     #!/usr/bin/env bash
     set -euo pipefail
     cd narrate/dhall
     for file in examples/*.dhall; do
-        dhall-to-json --preserve-null --file "$file" > "${file%.dhall}.json"
+        target="${file%.dhall}.json"
+        tmp="$(mktemp "${target}.XXXXXX")"
+        if ! dhall-to-json --preserve-null --file "$file" > "$tmp"; then
+            rm -f "$tmp"
+            echo "narrate-dhall-render: $file failed to render; $target is unchanged" >&2
+            exit 1
+        fi
+        mv "$tmp" "$target"
     done

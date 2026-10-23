@@ -4,6 +4,7 @@
     "confidentialAllowed": true,
     "endpoint": "fake://sine",
     "estateControlled": true,
+    "files": [],
     "hfRepo": null,
     "hfRevision": null,
     "hosted": false,
@@ -13,7 +14,6 @@
     "model": "fake-sine-v1",
     "profile": "Fake",
     "sampleRateHz": 24000,
-    "sha256": [],
     "vramGiB": null
   }
 ]

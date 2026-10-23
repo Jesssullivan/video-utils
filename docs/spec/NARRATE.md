@@ -113,27 +113,36 @@ engine only.
 **Preference order** when a job names no engine: `gpu-switch` (once N1
 lands), `gpu-direct` (only inside an open attended window), `mac-mlx`,
 `rented-open`, `hosted`. The CLI never escalates to `rented-open` or `hosted`
-on its own: those need the job to name the engine, and `hosted` also needs an
-explicit flag. Model candidates and their pins are in
+on its own: those need the job to name the engine, and `hosted` also needs the
+job's `allowHosted` flag. Model candidates and their pins are in
 `program/model-drafts/narrate-tts-v2.json` (Ming-3.0-tts-0.5B, the favoured
 primary; Qwen3-TTS-12Hz-1.7B-Base, the fallback and baseline; VoxCPM2, the
 third arm; Fish Audio Drama 3, the rented tier). W3 picks among them.
 
 ## Consent and confidentiality policy
 
-- **No voice without consent.** A voice must name a consent record whose
-  `evidenceSha256` matches stored evidence, whose `scopes` include the job's
-  scope, and which is not revoked. Otherwise the job is refused
+- **No voice without consent.** A job declares its `scope` (`OwnContent` or
+  `ClientDisclosed`). Every voice it uses (`voice` and each `speakers` entry)
+  must name a consent record whose `evidenceSha256` matches stored evidence,
+  whose `scopes` include both the job's `scope` and the voice's `scope`, and
+  which is not revoked; the voice's `scope` must equal the job's, and the job's
+  `engine` must be in the voice's `allowedEngines`. Otherwise the job is refused
   (`consent_missing`, `consent_revoked`, `consent_scope`). v0 has one real
-  voice: the operator's own.
-- **Hosted engines** need the consent record's `hostedAllowed`. A job marked
-  `confidential` is refused on any engine for which `Engine.mayRunConfidential`
-  is false (`confidential_engine_refused`): every hosted engine, and every
-  rented engine that is not both estate-controlled and flagged
-  `confidentialAllowed`. The rule is defined once in `narrate/dhall/Engine.dhall`
-  and its truth table is asserted in `narrate/dhall/policy-test.dhall`; the
-  Python client implements the same rule and tests it against the rendered
-  JSON.
+  voice: the operator's own. A voice's reference clip is 10 to 30 s; the
+  synthetic fixture voice is a 10 s sine, so it needs no exemption.
+- **Hosted engines** need both the job's `allowHosted` flag and the consent
+  record's `hostedAllowed`. A job marked `confidential` is refused on any engine
+  for which `Engine.mayRunConfidential` is false
+  (`confidential_engine_refused`): every engine that is hosted by any of its
+  `hosted` flag, `profile` or `backend`; every engine that is rented by its
+  `profile` or `backend` and is not both estate-controlled and flagged
+  `confidentialAllowed`; and every engine whose `profile` and `backend` disagree
+  (`Engine.consistent`, the "Engine profiles" table). A single wrong field never
+  makes an engine look local. The rule is defined once in
+  `narrate/dhall/Engine.dhall` and its truth table is asserted in
+  `narrate/dhall/policy-test.dhall`. `narrate/dhall/check.py` ports it to
+  Python and applies it to the rendered examples; the W5 client implements the
+  same rule and tests it against the rendered JSON.
 - **Clips never enter git.** Reference clips, transcripts, consent evidence,
   rendered narration and the real voice registry live in a private store
   outside the repository, found by digest. Tracked files carry digests and
@@ -178,9 +187,17 @@ Narration runs live under `artifacts/narrate/<run_id>/`, outside
 - A narration EDL per `docs/spec/TIMELINE_CONTRACT.md`. Narration is a **new
   track** laid on an output clock: each segment's start on that clock, its
   duration and any fit stretch applied to the narration audio. Source media is
-  never time-stretched. A dedicated `timeline.mapping` value for narration
-  manifests is a contract amendment W5 proposes with the code; until it lands,
-  guitar consumers refuse these manifests as they refuse condense ones.
+  never time-stretched.
+- **Guitar tools must refuse every narration manifest.** Guitar consumers
+  check only `timeline.no_time_stretch is True`, and a render whose segments
+  needed no `atempo` fit did no stretching, so that flag alone cannot keep them
+  out. Every narration manifest therefore writes `timeline.no_time_stretch:
+  false` and a non-identity `timeline.mapping` (never absent, `null` or
+  `"identity"`), whatever stretch was applied. The narration mapping value is a
+  TIMELINE_CONTRACT amendment W5 proposes with the code, together with a
+  narration row in the contract's refusal-matrix test showing each guitar
+  consumer and `verify-run` refuse a narration manifest with zero applied
+  stretch.
 - `manifest.json` with `kind: "narration_render"` and `synthetic: true`,
   recording: input and IR digests; the lexical pin and Vale findings; the
   pronunciation table digest and substitutions; engine id, profile, model,
@@ -227,11 +244,17 @@ until the bench sets them. Every scoring model needs its own registry entry.
 `Engine`, `Voice`, `Consent`, `Job` and `Pronunciation`, collected in
 `package.dhall`. `dhall-to-json` renders instances; Python reads the JSON.
 `examples/` holds the only instances in git: the fake engine, a fixture voice
-bound to a generated one-second sine (`narrate/dhall/check.py` regenerates it
+bound to a generated ten-second sine (`narrate/dhall/check.py` regenerates it
 and checks the digest), a fixture consent record, a pronunciation table and a
-job. `just narrate-dhall-check` type-checks and format-checks every file,
-re-renders the examples against the committed JSON, checks the fixture digests
-and validates the models.json v2 drafts; CI runs it in the offline job.
+job. `Engine` binds each weight file by `files : List { path, sha256 }`, as
+the registry draft does, and `sampleRateHz` is optional until measured.
+`just narrate-dhall-check` type-checks and format-checks every file,
+re-renders the examples against the committed JSON, checks the fixture
+digests, checks every reference a job depends on (engine, voices, speakers,
+pronunciation table, consent, scope, revocation, hosted and confidential
+refusals), validates the models.json v2 drafts against the draft schema and
+runs `check.py --self-test`, which mutates copies of the inputs and expects
+each mutation to be refused; CI runs it in the offline job.
 
 ## Registry draft
 
@@ -241,7 +264,14 @@ and validates the models.json v2 drafts; CI runs it in the offline job.
 and primary `links`. `program/models.json` is unchanged and
 `scripts/model_prefetch.py` does not read the draft. A file's `sha256` stays
 `pending` until W3's verified download binds it; byte counts come from the
-pinned Hub listings and are not yet measured locally.
+pinned Hub listings and are not yet measured locally. The bench lane's
+`narrate/bench/sources.json` is the source listing: `check.py` requires each
+draft snapshot to list the same files (model cards excepted) with the same byte
+counts, and a bound `sha256` to equal the Hub-declared digest there. A
+conversion whose source revision is stated records it as `upstream.revision`.
+Scoring models (speaker verification, quality) have no draft entries yet;
+they are listed in `sources.json` and need their own entries before a
+registered gate uses them.
 
 ## Guitar axioms
 

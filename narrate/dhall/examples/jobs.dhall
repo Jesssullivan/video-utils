@@ -1,11 +1,13 @@
 -- An example job: the fixture script, the fake engine and the fixture voice. The gate values are
 -- placeholders, not calibrated thresholds (gates.calibrated = False); W3 measures them.
+let Consent = ../Consent.dhall
+
 let Job = ../Job.dhall
 
 let lexical
     : Job.Lexical
     = { release = "xoxd-lexical@0.2.0"
-      , commit = "83911757c9a5f9933345cdb11c8731637c548c11"
+      , commit = "4b4e5cfee84ddf1c6a720e9d9ecf9d4f87d6c79f"
       , lexiconSha256 =
           "4e1373fda976ad48ad2676fc2f554b6d8acd47a69aa1c21bf1d06d3af43b4873"
       , promptDigestSha256 =
@@ -20,7 +22,9 @@ in    [ { id = "job-fixture-fake"
         , input = Job.Input.Markdown
         , inputSha256 =
             "93f7f4183b4b6ccec0c3ef2c83cca16dcb0ec4a929d55941193ab84f4f355d3a"
+        , scope = Consent.Scope.OwnContent
         , confidential = False
+        , allowHosted = False
         , lexical
         , pronunciation = "narrate-en-example"
         , voice = "voice-fixture-sine"

@@ -2,7 +2,7 @@
   "schema_version": 2,
   "draft_for": "program/models.json",
   "recorded": "2026-10-22",
-  "bytes_source": "Hugging Face tree listings at the pinned revisions, read by the narrate bench lane on 2026-10-22 (no weights downloaded). The Hub-declared LFS ids are not copied here: sha256 binds only after a verified download.",
+  "bytes_source": "Hugging Face tree listings at the pinned revisions, read by the narrate bench lane on 2026-10-22 (no weights downloaded). The Hub-declared LFS ids are not copied here: sha256 binds only after a verified download. narrate/dhall/check.py cross-checks every listed file and byte count against narrate/bench/sources.json; a draft lists every file of the pinned snapshot except README.md.",
   "models": {
     "ming-3.0-tts-0.5b-gguf-bf16": {
       "kind": "tts",
@@ -107,6 +107,11 @@
               "path": "tokenizer_config.json",
               "sha256": "pending",
               "bytes": 16260
+            },
+            {
+              "path": "vocab.json",
+              "sha256": "pending",
+              "bytes": 2776833
             }
           ],
           "note": "Mac host arm; the full snapshot file list is in the bench lane's lookup"
@@ -238,6 +243,11 @@
               "path": "tokenizer_config.json",
               "sha256": "pending",
               "bytes": 7344
+            },
+            {
+              "path": "vocab.json",
+              "sha256": "pending",
+              "bytes": 2776833
             }
           ],
           "note": "Mac host arm; the full snapshot file list is in the bench lane's lookup"
@@ -252,7 +262,7 @@
       "runtime": {
         "url": "https://github.com/0xShug0/audio.cpp",
         "commit": "47c2756ec72c4e67cad7fb762fd0d5f2798096fd",
-        "note": "built with the Vulkan backend; offline generation only for ming3_tts"
+        "note": "built with the Vulkan backend"
       },
       "hf_repo": "audio-cpp/audio.cpp-gguf",
       "hf_revision": "ef1ab2598f6d4d101486e4c5b9e605c687f20642",
@@ -452,7 +462,12 @@
           "runtime": {
             "url": "https://github.com/0xShug0/audio.cpp",
             "commit": "47c2756ec72c4e67cad7fb762fd0d5f2798096fd",
-            "note": "built with the Vulkan backend; offline generation only for ming3_tts"
+            "note": "built with the Vulkan backend"
+          },
+          "upstream": {
+            "hf_repo": "fishaudio/drama-3",
+            "revision": "dd64a85cd82e9521f7202610ede97b367fc83946",
+            "note": "the conversion's stated source revision, which differs from this entry's pinned hf_revision"
           },
           "files": [
             {

@@ -1,5 +1,6 @@
 [
   {
+    "allowHosted": false,
     "audio": "Wav",
     "captions": [
       "Srt",
@@ -18,7 +19,7 @@
     "input": "Markdown",
     "inputSha256": "93f7f4183b4b6ccec0c3ef2c83cca16dcb0ec4a929d55941193ab84f4f355d3a",
     "lexical": {
-      "commit": "83911757c9a5f9933345cdb11c8731637c548c11",
+      "commit": "4b4e5cfee84ddf1c6a720e9d9ecf9d4f87d6c79f",
       "lexiconSha256": "4e1373fda976ad48ad2676fc2f554b6d8acd47a69aa1c21bf1d06d3af43b4873",
       "promptDigestSha256": "a1113fa9c0bba403c9b738dba102cce59bba5151316932f1e921dc6e0c9b5d4a",
       "release": "xoxd-lexical@0.2.0",
@@ -36,6 +37,7 @@
       "truePeakDbtp": -1.5
     },
     "pronunciation": "narrate-en-example",
+    "scope": "OwnContent",
     "seed": 0,
     "speakers": [],
     "voice": "voice-fixture-sine"

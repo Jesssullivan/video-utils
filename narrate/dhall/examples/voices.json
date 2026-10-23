@@ -7,8 +7,8 @@
     "fixture": true,
     "id": "voice-fixture-sine",
     "refClipSampleRateHz": 24000,
-    "refClipSeconds": 1,
-    "refClipSha256": "ccf6a2e994d21813138697ee3c33dc5459ed6b23778e8b98c44bf6f246e872a0",
+    "refClipSeconds": 10,
+    "refClipSha256": "c6b8094426ba0044cfead8d2d5055a94576b07493d724c851dc558801b539a68",
     "refTextSha256": "5987c41d1d7c41f66a5d0ae2a044b76accf8f7c5877a3f593223ac6b43f5712b",
     "scope": "OwnContent"
   }

@@ -2,7 +2,7 @@
   "entries": [
     {
       "caseSensitive": true,
-      "note": "Spoken in full on first use only; the chunker does not track first use yet.",
+      "note": "Expanded at every occurrence.",
       "spoken": "loudness units relative to full scale",
       "wholeWord": true,
       "written": "LUFS"

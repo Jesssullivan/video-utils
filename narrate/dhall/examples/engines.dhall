@@ -11,15 +11,17 @@ let fake
       , model = "fake-sine-v1"
       , hfRepo = None Text
       , hfRevision = None Text
-      , sha256 = [] : List Text
+      , files = [] : List Engine.File
       , licence = "repository licence; no weights"
       , licenceNotice = None Text
       , vramGiB = None Double
-      , sampleRateHz = 24000
+      , sampleRateHz = Some 24000
       , hosted = False
       , estateControlled = True
       , confidentialAllowed = True
       }
+
+let _consistent = assert : Engine.consistent fake === True
 
 let _policy = assert : Engine.mayRunConfidential fake === True
 

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "program/model-drafts/models-v2.schema.json",
   "title": "models.json v2 (draft)",
-  "description": "Draft successor to program/models.json schema_version 1 for multi-file model snapshots with resources. Not yet read by scripts/model_prefetch.py; program/models.json is unchanged. A file's sha256 is 'pending' until a verified download binds it (the narrate bench lane); an entry may move to gate_state 'registered' only when every file is bound. backend values are the narrate/dhall/Engine.dhall Backend union.",
+  "description": "Draft successor to program/models.json schema_version 1 for multi-file model snapshots with resources. Not yet read by scripts/model_prefetch.py; program/models.json is unchanged. A file's sha256 is 'pending' until a verified download binds it (the narrate bench lane); an entry may move to gate_state 'registered' only when every file is bound. backend values are the narrate/dhall/Engine.dhall Backend union. narrate/dhall/check.py enforces this schema (a standard-library subset validator) and cross-checks every file list and byte count against narrate/bench/sources.json at the same repository and revision.",
   "type": "object",
   "required": [
     "schema_version",
@@ -55,6 +55,7 @@
       "properties": {
         "path": {
           "type": "string",
+          "minLength": 1,
           "description": "path inside the pinned snapshot"
         },
         "sha256": {
@@ -96,40 +97,19 @@
           "$ref": "#/$defs/backend"
         },
         "runtime": {
-          "type": "object",
-          "required": [
-            "url",
-            "commit"
-          ],
-          "properties": {
-            "url": {
-              "type": "string"
-            },
-            "commit": {
-              "type": "string"
-            },
-            "note": {
-              "type": "string"
-            }
-          }
+          "$ref": "#/$defs/runtime"
         },
         "hf_repo": {
-          "type": "string"
+          "$ref": "#/$defs/hf_repo"
         },
         "hf_revision": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
+          "$ref": "#/$defs/revision"
         },
         "upstream": {
-          "type": "object",
-          "description": "the weights a conversion was made from"
+          "$ref": "#/$defs/upstream"
         },
         "files": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/$defs/file"
-          }
+          "$ref": "#/$defs/files"
         },
         "vram_gib": {
           "type": [
@@ -163,13 +143,14 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^https://"
           }
         },
         "variants": {
           "type": "array",
           "items": {
-            "type": "object"
+            "$ref": "#/$defs/variant"
           }
         },
         "gate_state": {
@@ -182,7 +163,101 @@
         "note": {
           "type": "string"
         }
+      },
+      "additionalProperties": false
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "runtime": {
+      "type": "object",
+      "required": [
+        "url",
+        "commit"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "pattern": "^https://"
+        },
+        "commit": {
+          "$ref": "#/$defs/revision"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "upstream": {
+      "type": "object",
+      "description": "the weights a conversion was made from: revision when the conversion states it, revision_at_lookup for the upstream head when it does not",
+      "required": [
+        "hf_repo"
+      ],
+      "properties": {
+        "hf_repo": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "revision_at_lookup": {
+          "$ref": "#/$defs/revision"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hf_repo": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$"
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/file"
       }
+    },
+    "variant": {
+      "type": "object",
+      "description": "the same model on another serving path; validated like an entry's serving fields",
+      "required": [
+        "hf_repo",
+        "hf_revision",
+        "backend",
+        "runtime",
+        "files"
+      ],
+      "properties": {
+        "hf_repo": {
+          "$ref": "#/$defs/hf_repo"
+        },
+        "hf_revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "backend": {
+          "$ref": "#/$defs/backend"
+        },
+        "runtime": {
+          "$ref": "#/$defs/runtime"
+        },
+        "upstream": {
+          "$ref": "#/$defs/upstream"
+        },
+        "files": {
+          "$ref": "#/$defs/files"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

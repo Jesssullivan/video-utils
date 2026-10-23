@@ -8,8 +8,7 @@ in    { id = "narrate-en-example"
           , spoken = "loudness units relative to full scale"
           , caseSensitive = True
           , wholeWord = True
-          , note = Some
-              "Spoken in full on first use only; the chunker does not track first use yet."
+          , note = Some "Expanded at every occurrence."
           }
         , { written = "MCP"
           , spoken = "M C P"
