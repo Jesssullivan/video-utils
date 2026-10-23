@@ -58,3 +58,11 @@ measurements on synthetic espeak speech only; no real voice, engine or listening
 - FFmpeg loudnorm reports `dynamic` on some limited inputs although the result is within tolerance; the type is
   recorded per run.
 - `narrate-bench` is a stub for lane W3.
+
+## Follow-up (2026-10-23, later run)
+
+- `just` exports `WHISPER_MODEL` (just/condense.just) for every recipe. On a host where the whisper model is
+  present, that override reached the fixture configs, so two render tests measured WER on fake-engine audio and
+  `just narrate-test` failed (108 of 110) while `pytest` alone passed. `narrate/tests/conftest.py` now clears
+  `WHISPER_MODEL`, `NARRATE_STORE`, `NARRATE_LEXICAL_DIR` and `NARRATE_ENGINE_TOKEN` for every test; after the
+  fix `just narrate-test` passed 110 of 110 with the model present.
