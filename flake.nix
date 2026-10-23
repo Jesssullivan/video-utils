@@ -46,7 +46,7 @@
           ffmpeg-headless whisper-cpp just ruff git gitleaks rustc cargo
           # dhall and dhall-json: `just narrate-dhall-check` runs in the shell the narrate recipes use.
           dhall dhall-json
-          # shellcheck: `just narrate-lint` checks narrate/bench/run-bench.sh in the same shell.
+          # shellcheck: `just narrate-lint` checks the narrate shell scripts in the same shell.
           shellcheck
           (python3.withPackages (ps: with ps; [ numpy pytest ]))
         ] ++ cpkgs.lib.optional (cpkgs ? untrunc-anthwlock
