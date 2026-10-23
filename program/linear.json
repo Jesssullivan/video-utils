@@ -684,7 +684,8 @@
       {
         "key": "LOCAL",
         "id": "e3339c26-2414-4186-aeb5-fc32695e67b8",
-        "name": "Future — Optional deeper tone and classified feedback"
+        "name": "(retired) Future — Optional deeper tone and classified feedback",
+        "state": "retired 2026-10-22: no issues; the tracker has no milestone delete, so it was renamed"
       },
       {
         "key": "LATER",
@@ -1212,7 +1213,7 @@
           ],
           "closed_state": "closed: 6 of 6 remaining issues Done (tracker progress 100%)",
           "carried": {
-            "TIN-6544": "S5 operator sessions: v5 gap (+194 frames; 0 of 520 cues before TIN-6573) and the long-clip full render moved into its scope"
+            "TIN-6544": "S5 operator sessions: v5 gap (tool tier +194 frames and 0/520 cues, unchanged by TIN-6573; seeded tier -1 frame and 520/520) and the long-clip full render moved into its scope"
           }
         },
         {
@@ -1343,7 +1344,8 @@
         "TIN-6578": {
           "id": "3a981d68-7896-4236-9213-c49717f2a975",
           "state": "Done",
-          "milestone": null,
+          "milestone": "S4 — Hygiene and peers",
+          "milestone_note": "attached 2026-10-23 after review; it had been Done with no milestone",
           "pr": 33,
           "note": "partial: STT cache key and provenance URL landed in 5f676a9; MCP admission of the HTTP STT backend and the archived-receipt residue moved to TIN-7083"
         },
@@ -1409,6 +1411,12 @@
         "TIN-7094": "1220c633-d9ba-4e21-a9e7-295ad32cfbab",
         "TIN-7095": "653f574f-d6ca-458b-8b18-ac45c04e6906"
       },
+      "priorities_at_open": {
+        "TIN-5491": "High",
+        "TIN-5494": "High",
+        "TIN-6576": "Low",
+        "TIN-6579": "Low"
+      },
       "states_at_open": {
         "TIN-6544": "In Progress",
         "TIN-5491": "In Progress",
@@ -1426,6 +1434,8 @@
     },
     "narrate": {
       "authority": "Operator decisions 2026-10-22 / R-HOOK-CONVERGENCE-20261004 R-N13",
+      "start": "2026-10-22",
+      "target": "2026-11-07",
       "plan": "docs/spec/sprints/20261022-S5.md",
       "parent": {
         "identifier": "TIN-7084",
@@ -1652,6 +1662,7 @@
     "key": "20261022-s5",
     "plan": "docs/spec/sprints/20261022-S5.md",
     "status": "In Progress",
-    "also_active": "narrate"
+    "also_active": "narrate",
+    "also_active_note": "a second sprint key under sprints that runs concurrently with key; both are In Progress"
   }
 }

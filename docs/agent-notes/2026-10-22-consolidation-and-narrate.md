@@ -30,12 +30,13 @@ Only public-safe facts are recorded here.
 
 | Milestone | Done | Carried to S5 | Closing evidence |
 | --- | --- | --- | --- |
-| Condense on real talks | TIN-6543, 6545, 6546, 6573, 6574, 6575 | TIN-6544, which now also covers the long-clip full render | Parity receipt (#25) with 12/12 and 11/11 matches; the long clip's full render was not compared; hash-bound `check.json`; `condense-all` ends in a verified run. Measured: the v5 cut is still +194 frames off, and captions matched 0 of 520 cues before TIN-6573 |
+| Condense on real talks | TIN-6543, 6545, 6546, 6573, 6574, 6575 | TIN-6544, which now also covers the long-clip full render | Parity receipt (#25) with 12/12 and 11/11 matches; the long clip's full render was not compared; hash-bound `check.json`; `condense-all` ends in a verified run. Measured: the tool tier is still +194 frames and 0/520 cues, unchanged by TIN-6573; the seeded tier is −1 frame and 520/520 |
 | Close the guitar core | none | TIN-5491 (labelling hour), TIN-5494 (Mac editor import) | The onset scorer landed (#27). No operator labels, so no precision/recall figure |
 | S3 hosting and site | TIN-5722 | TIN-5723 (Pages deploy go), TIN-5717 (parent) | The bazel job is blocking. The blocking site job landed (#26). No deploy |
 | Hygiene and peers | TIN-6515, 6514, 6577 | none | The whole-tree scan is in place. The HTTP STT backend landed. The site link is lock-neutral |
 
-TIN-6578 is Done, but only partly. The STT cache key and the provenance URL landed in 5f676a9. Two items moved to
+TIN-6578 is Done, but only partly. It had no milestone; it was attached to "S4 — Hygiene and peers" on 2026-10-23
+after review. The STT cache key and the provenance URL landed in 5f676a9. Two items moved to
 TIN-7083: MCP admission of the HTTP STT backend, and the archived-receipt residue. TIN-6576 and TIN-6579 are Low and
 in S5. TIN-5720 and TIN-5721 are Backlog under the Future hosting milestone; TIN-5721 is blocked by TIN-5619 and
 TIN-5590.
@@ -55,6 +56,8 @@ All of this happened in the operator's checkout of this repository. Nothing was 
   - 5 linked worktrees: the condense-parity worktree and the 4 sprint-1 worktrees.
   - 1 patch-equivalent branch with `-D`, after `git cherry` showed 5 of 5 commits already on main.
   - 50 merged `sprint/*` branches with `-d`.
+    The synthesis had counted 51. The pre-deletion branch list was not saved, and the reflog keeps only 6 of the
+    names, so the difference of one is unexplained. `-d` refuses unmerged branches, so no unmerged work was lost.
 - **Main checkout.**
   - 4 stale untracked paths were moved into salvage, not deleted. Each had been superseded by the RU1 site uplift
     or was a private session note, and none is referenced by tracked files.
