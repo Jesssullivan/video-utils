@@ -44,8 +44,9 @@
       in cpkgs.mkShell {
         packages = with cpkgs; [
           ffmpeg-headless whisper-cpp just ruff git gitleaks rustc cargo
-          # dhall and dhall-json: `just narrate-dhall-check` runs in the shell the narrate recipes use.
-          dhall dhall-json
+          # dhall and dhall-json: `just narrate-dhall-check` runs in the shell the narrate recipes use;
+          # shellcheck: `just narrate-lint` checks the narrate shell scripts.
+          dhall dhall-json shellcheck
           (python3.withPackages (ps: with ps; [ numpy pytest ]))
         ] ++ cpkgs.lib.optional (cpkgs ? untrunc-anthwlock
           && cpkgs.lib.meta.availableOn cpkgs.stdenv.hostPlatform cpkgs.untrunc-anthwlock) cpkgs.untrunc-anthwlock;
