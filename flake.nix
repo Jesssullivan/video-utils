@@ -27,7 +27,8 @@
         install -m 0755 "$t" "$out/bin/pandoc"
       '';
     in {
-      default = pkgs.mkShell { packages = core; CARGO_BUILD_JOBS = "1"; };
+      # dhall and dhall-json render the narrate types (narrate/dhall, `just narrate-dhall-check`).
+      default = pkgs.mkShell { packages = core ++ [ pkgs.dhall pkgs.dhall-json ]; CARGO_BUILD_JOBS = "1"; };
       analysis = pkgs.mkShell {
         packages = builtins.filter (p: p != pkgs.python3) core ++ [ analysisPython ];
         OMP_NUM_THREADS = "2";

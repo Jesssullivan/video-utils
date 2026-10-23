@@ -1,0 +1,16 @@
+[
+  {
+    "evidenceSha256": "7564736f7cb7bb107e7eb648370100d2ba2fe46f2223a84cd887ba94f4cfb7a9",
+    "grantedAt": "2026-10-22",
+    "grantedBy": "fixture",
+    "hostedAllowed": false,
+    "id": "consent-fixture-sine",
+    "revocable": true,
+    "revokedAt": null,
+    "scopes": [
+      "OwnContent"
+    ],
+    "speaker": "fixture",
+    "syntheticLabelRequired": true
+  }
+]

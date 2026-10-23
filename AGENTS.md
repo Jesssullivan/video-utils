@@ -151,3 +151,24 @@ fillers are sped up, speech plays faster and no word is dropped. It came from
   tools keep refusing any input without `no_time_stretch: true`.
 - whisper.cpp runs through the `condense` dev shell; its model is registered and
   hash-bound in `program/models.json` like every other model.
+
+## Narration (`narrate/`)
+
+`narrate/` voices text: scripts, manuscripts, captions or condense transcripts
+become a synthetic narration track with captions, a narration EDL and a
+manifest. It is specified in `docs/spec/NARRATE.md` (parent TIN-7084).
+
+- Lanes own their files: W4 the spec, `narrate/dhall/` and
+  `program/model-drafts/`; W5 the `narrate/` package and `just/narrate.just`;
+  W7 the tool drafts and skills. Serving and MCP exposure change only in their
+  owning repositories, through fork-first PRs or peer dialog.
+- Consent first: every voice names a consent record and the tool refuses one
+  without it. v0 clones only the operator's own voice. Hosted engines are a
+  last resort and refuse confidential jobs.
+- The repository is public. Voice clips, transcripts, consent evidence,
+  rendered narration and the real voice and engine registry stay outside git,
+  bound by digest; tracked files hold types, digests and synthetic fixtures.
+- Narration is a new track. It never time-stretches source media; its runs
+  live outside `artifacts/runs/` and guitar tools refuse its manifests.
+- The guitar axioms above govern guitar takes, not narration speech. Every
+  narration manifest sets `synthetic: true`.

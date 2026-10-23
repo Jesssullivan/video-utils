@@ -1,0 +1,19 @@
+[
+  {
+    "backend": "Fake",
+    "confidentialAllowed": true,
+    "endpoint": "fake://sine",
+    "estateControlled": true,
+    "hfRepo": null,
+    "hfRevision": null,
+    "hosted": false,
+    "id": "fake-sine",
+    "licence": "repository licence; no weights",
+    "licenceNotice": null,
+    "model": "fake-sine-v1",
+    "profile": "Fake",
+    "sampleRateHz": 24000,
+    "sha256": [],
+    "vramGiB": null
+  }
+]

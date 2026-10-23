@@ -1,0 +1,27 @@
+{
+  "entries": [
+    {
+      "caseSensitive": true,
+      "note": "Spoken in full on first use only; the chunker does not track first use yet.",
+      "spoken": "loudness units relative to full scale",
+      "wholeWord": true,
+      "written": "LUFS"
+    },
+    {
+      "caseSensitive": true,
+      "note": null,
+      "spoken": "M C P",
+      "wholeWord": true,
+      "written": "MCP"
+    },
+    {
+      "caseSensitive": true,
+      "note": "The digit stays a digit; the engine reads it.",
+      "spoken": "8 percent",
+      "wholeWord": false,
+      "written": "8%"
+    }
+  ],
+  "id": "narrate-en-example",
+  "language": "en"
+}

@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "program/model-drafts/models-v2.schema.json",
+  "title": "models.json v2 (draft)",
+  "description": "Draft successor to program/models.json schema_version 1 for multi-file model snapshots with resources. Not yet read by scripts/model_prefetch.py; program/models.json is unchanged. A file's sha256 is 'pending' until a verified download binds it (the narrate bench lane); an entry may move to gate_state 'registered' only when every file is bound. backend values are the narrate/dhall/Engine.dhall Backend union.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "models"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "recorded": {
+      "type": "string"
+    },
+    "models": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/entry"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "const": "pending"
+        }
+      ]
+    },
+    "backend": {
+      "enum": [
+        "VulkanAudioCpp",
+        "QwenTtsCpp",
+        "LlamaTts",
+        "MlxAudio",
+        "RentedOpen",
+        "Hosted",
+        "Fake"
+      ]
+    },
+    "file": {
+      "type": "object",
+      "required": [
+        "path",
+        "sha256",
+        "bytes"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "path inside the pinned snapshot"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "entry": {
+      "type": "object",
+      "required": [
+        "kind",
+        "backend",
+        "runtime",
+        "hf_repo",
+        "hf_revision",
+        "files",
+        "vram_gib",
+        "licence",
+        "links",
+        "gate_state"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "tts",
+            "asr",
+            "speaker_verification",
+            "quality",
+            "stems",
+            "pitch"
+          ]
+        },
+        "backend": {
+          "$ref": "#/$defs/backend"
+        },
+        "runtime": {
+          "type": "object",
+          "required": [
+            "url",
+            "commit"
+          ],
+          "properties": {
+            "url": {
+              "type": "string"
+            },
+            "commit": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            }
+          }
+        },
+        "hf_repo": {
+          "type": "string"
+        },
+        "hf_revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "upstream": {
+          "type": "object",
+          "description": "the weights a conversion was made from"
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/file"
+          }
+        },
+        "vram_gib": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "peak measured on the target card; null until measured"
+        },
+        "sample_rate_hz": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "licence": {
+          "type": "string"
+        },
+        "licence_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hosted": {
+          "type": "boolean"
+        },
+        "confidential_allowed": {
+          "type": "boolean"
+        },
+        "links": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "variants": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "gate_state": {
+          "enum": [
+            "draft_pending_fetch",
+            "registered",
+            "rejected"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

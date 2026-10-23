@@ -19,6 +19,10 @@ jobs:
       - uses: cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7 # v31
       - name: Python and synthetic media checks
         run: nix develop --no-write-lock-file --command just check
+      # Narration types: dhall type and format, example renders against the committed JSON, fixture digests
+      # and the models.json v2 drafts. Offline; no weights, voices or clips.
+      - name: Narrate Dhall types and rendered examples
+        run: nix develop --no-write-lock-file --command just narrate-dhall-check
       - name: Rust checks on the supported hosted builder
         run: nix develop --no-write-lock-file --command just test-rust
       - name: Secret scan

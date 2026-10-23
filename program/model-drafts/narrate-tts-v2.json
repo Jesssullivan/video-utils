@@ -1,0 +1,481 @@
+{
+  "schema_version": 2,
+  "draft_for": "program/models.json",
+  "recorded": "2026-10-22",
+  "bytes_source": "Hugging Face tree listings at the pinned revisions, read by the narrate bench lane on 2026-10-22 (no weights downloaded). The Hub-declared LFS ids are not copied here: sha256 binds only after a verified download.",
+  "models": {
+    "ming-3.0-tts-0.5b-gguf-bf16": {
+      "kind": "tts",
+      "backend": "VulkanAudioCpp",
+      "runtime": {
+        "url": "https://github.com/0xShug0/audio.cpp",
+        "commit": "47c2756ec72c4e67cad7fb762fd0d5f2798096fd",
+        "note": "built with the Vulkan backend; offline generation only for ming3_tts"
+      },
+      "hf_repo": "audio-cpp/Ming-3.0-TTS-0.5B-GGUF",
+      "hf_revision": "2eb8d37c7f10672e69c8aa33091baa04c461b66c",
+      "upstream": {
+        "hf_repo": "inclusionAI/Ming-3.0-tts-0.5B",
+        "revision_at_lookup": "8d66b70a00f05ad183fa8a863b4ce609fc83cbc0",
+        "note": "the conversion does not state its source revision; it predates the 2026-10-21 upstream long-text splitting fix"
+      },
+      "files": [
+        {
+          "path": "LICENSE",
+          "sha256": "pending",
+          "bytes": 1068
+        },
+        {
+          "path": "ming-3.0-tts-0.5b-bf16.gguf",
+          "sha256": "pending",
+          "bytes": 2998284288
+        }
+      ],
+      "vram_gib": null,
+      "sample_rate_hz": 44100,
+      "licence": "MIT",
+      "licence_conditions": [],
+      "hosted": false,
+      "confidential_allowed": true,
+      "links": [
+        "https://huggingface.co/inclusionAI/Ming-3.0-tts-0.5B",
+        "https://github.com/inclusionAI/Ming-3.0-tts",
+        "https://huggingface.co/audio-cpp/Ming-3.0-TTS-0.5B-GGUF"
+      ],
+      "variants": [
+        {
+          "hf_repo": "mlx-community/Ming-3.0-tts-0.5B-bf16",
+          "hf_revision": "283b3c342c6fb69a7a87832c97f9799567efe05d",
+          "backend": "MlxAudio",
+          "runtime": {
+            "url": "https://github.com/Blaizzy/mlx-audio",
+            "commit": "4510ba631faf5676b2bf4633161756664d154e28",
+            "note": "v0.6.1"
+          },
+          "files": [
+            {
+              "path": "LICENSE",
+              "sha256": "pending",
+              "bytes": 1067
+            },
+            {
+              "path": "added_tokens.json",
+              "sha256": "pending",
+              "bytes": 1785
+            },
+            {
+              "path": "campplus.safetensors",
+              "sha256": "pending",
+              "bytes": 27699096
+            },
+            {
+              "path": "config.json",
+              "sha256": "pending",
+              "bytes": 5882
+            },
+            {
+              "path": "configuration.json",
+              "sha256": "pending",
+              "bytes": 51
+            },
+            {
+              "path": "merges.txt",
+              "sha256": "pending",
+              "bytes": 1671853
+            },
+            {
+              "path": "model.safetensors",
+              "sha256": "pending",
+              "bytes": 2959055287
+            },
+            {
+              "path": "model.safetensors.index.json",
+              "sha256": "pending",
+              "bytes": 96296
+            },
+            {
+              "path": "special_tokens_map.json",
+              "sha256": "pending",
+              "bytes": 2726
+            },
+            {
+              "path": "tokenizer.json",
+              "sha256": "pending",
+              "bytes": 11431389
+            },
+            {
+              "path": "tokenizer_config.json",
+              "sha256": "pending",
+              "bytes": 16260
+            }
+          ],
+          "note": "Mac host arm; the full snapshot file list is in the bench lane's lookup"
+        }
+      ],
+      "gate_state": "draft_pending_fetch",
+      "note": "Bench arm A1, favoured primary. About 1.48B parameters in total; 0.5B is the backbone. The repository is days old: pin both the runtime commit and the Hub revision."
+    },
+    "qwen3-tts-12hz-1.7b-base-gguf-bf16": {
+      "kind": "tts",
+      "backend": "LlamaTts",
+      "runtime": {
+        "url": "https://github.com/ggml-org/llama.cpp",
+        "commit": "11fe02151f79c41d0d4af7da708755d73b9c0da6",
+        "note": "llama-tts; this pin has no OpenAI-style speech endpoint, so a shim serves /v1/audio/speech"
+      },
+      "hf_repo": "ggml-org/Qwen3-TTS-12Hz-1.7B-Base-GGUF",
+      "hf_revision": "ca27d74bc954b73dadab5b71ca265d87fc861a7c",
+      "upstream": {
+        "hf_repo": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+        "revision_at_lookup": "fd4b254389122332181a7c3db7f27e918eec64e3"
+      },
+      "files": [
+        {
+          "path": "Qwen3-TTS-12Hz-1.7B-Base-bf16.gguf",
+          "sha256": "pending",
+          "bytes": 3472593760
+        },
+        {
+          "path": "mmproj-Qwen3-TTS-12Hz-1.7B-Base-bf16.gguf",
+          "sha256": "pending",
+          "bytes": 669081472
+        }
+      ],
+      "vram_gib": null,
+      "sample_rate_hz": null,
+      "licence": "Apache-2.0",
+      "licence_conditions": [],
+      "hosted": false,
+      "confidential_allowed": true,
+      "links": [
+        "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+        "https://huggingface.co/ggml-org/Qwen3-TTS-12Hz-1.7B-Base-GGUF"
+      ],
+      "variants": [
+        {
+          "hf_repo": "Serveurperso/Qwen3-TTS-GGUF",
+          "hf_revision": "b7ee2e8c7459c3bea99da23e3d178125a7d1713c",
+          "backend": "QwenTtsCpp",
+          "runtime": {
+            "url": "https://github.com/ServeurpersoCom/qwentts.cpp",
+            "commit": "5916bf7c79dbb4e66fc059cdc507a79a23a28bb4",
+            "note": "ICL cloning with ref_text"
+          },
+          "files": [
+            {
+              "path": "qwen-talker-1.7b-base-BF16.gguf",
+              "sha256": "pending",
+              "bytes": 3876199616
+            },
+            {
+              "path": "qwen-tokenizer-12hz-F32.gguf",
+              "sha256": "pending",
+              "bytes": 647263104
+            }
+          ]
+        },
+        {
+          "hf_repo": "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16",
+          "hf_revision": "a6eb4f68e4b056f1215157bb696209bc82a6db48",
+          "backend": "MlxAudio",
+          "runtime": {
+            "url": "https://github.com/Blaizzy/mlx-audio",
+            "commit": "4510ba631faf5676b2bf4633161756664d154e28",
+            "note": "v0.6.1"
+          },
+          "files": [
+            {
+              "path": "config.json",
+              "sha256": "pending",
+              "bytes": 5317
+            },
+            {
+              "path": "generation_config.json",
+              "sha256": "pending",
+              "bytes": 245
+            },
+            {
+              "path": "merges.txt",
+              "sha256": "pending",
+              "bytes": 1671839
+            },
+            {
+              "path": "model.safetensors",
+              "sha256": "pending",
+              "bytes": 3857414009
+            },
+            {
+              "path": "model.safetensors.index.json",
+              "sha256": "pending",
+              "bytes": 38742
+            },
+            {
+              "path": "preprocessor_config.json",
+              "sha256": "pending",
+              "bytes": 127
+            },
+            {
+              "path": "speech_tokenizer/config.json",
+              "sha256": "pending",
+              "bytes": 2336
+            },
+            {
+              "path": "speech_tokenizer/configuration.json",
+              "sha256": "pending",
+              "bytes": 76
+            },
+            {
+              "path": "speech_tokenizer/model.safetensors",
+              "sha256": "pending",
+              "bytes": 682293092
+            },
+            {
+              "path": "speech_tokenizer/preprocessor_config.json",
+              "sha256": "pending",
+              "bytes": 234
+            },
+            {
+              "path": "tokenizer_config.json",
+              "sha256": "pending",
+              "bytes": 7344
+            }
+          ],
+          "note": "Mac host arm; the full snapshot file list is in the bench lane's lookup"
+        }
+      ],
+      "gate_state": "draft_pending_fetch",
+      "note": "Bench arm A2, fallback and baseline. Cloning needs a verified ref_text; long text needs chunking with rollback. Prefer Vulkan over ROCm on the target card."
+    },
+    "voxcpm2-gguf-bf16": {
+      "kind": "tts",
+      "backend": "VulkanAudioCpp",
+      "runtime": {
+        "url": "https://github.com/0xShug0/audio.cpp",
+        "commit": "47c2756ec72c4e67cad7fb762fd0d5f2798096fd",
+        "note": "built with the Vulkan backend; offline generation only for ming3_tts"
+      },
+      "hf_repo": "audio-cpp/audio.cpp-gguf",
+      "hf_revision": "ef1ab2598f6d4d101486e4c5b9e605c687f20642",
+      "upstream": {
+        "hf_repo": "openbmb/VoxCPM2",
+        "revision_at_lookup": "32279effe8c19989596f05d353d1447f51d9e915"
+      },
+      "files": [
+        {
+          "path": "VoxCPM2-GGUF/voxcpm2-bf16.gguf",
+          "sha256": "pending",
+          "bytes": 4772295296
+        }
+      ],
+      "vram_gib": null,
+      "sample_rate_hz": 48000,
+      "licence": "Apache-2.0",
+      "licence_conditions": [],
+      "hosted": false,
+      "confidential_allowed": true,
+      "links": [
+        "https://huggingface.co/openbmb/VoxCPM2",
+        "https://github.com/OpenBMB/VoxCPM",
+        "https://huggingface.co/audio-cpp/audio.cpp-gguf"
+      ],
+      "variants": [
+        {
+          "hf_repo": "mlx-community/VoxCPM2-bf16",
+          "hf_revision": "a7fb80d9056983135a54ca3f71fcc5a637ccddf5",
+          "backend": "MlxAudio",
+          "runtime": {
+            "url": "https://github.com/Blaizzy/mlx-audio",
+            "commit": "4510ba631faf5676b2bf4633161756664d154e28",
+            "note": "v0.6.1"
+          },
+          "files": [
+            {
+              "path": "config.json",
+              "sha256": "pending",
+              "bytes": 5210
+            },
+            {
+              "path": "model-00001.safetensors",
+              "sha256": "pending",
+              "bytes": 4286190791
+            },
+            {
+              "path": "model-00002.safetensors",
+              "sha256": "pending",
+              "bytes": 669068875
+            },
+            {
+              "path": "model.safetensors.index.json",
+              "sha256": "pending",
+              "bytes": 67424
+            },
+            {
+              "path": "special_tokens_map.json",
+              "sha256": "pending",
+              "bytes": 1632
+            },
+            {
+              "path": "tokenizer.json",
+              "sha256": "pending",
+              "bytes": 3676772
+            },
+            {
+              "path": "tokenizer_config.json",
+              "sha256": "pending",
+              "bytes": 4952
+            }
+          ]
+        }
+      ],
+      "gate_state": "draft_pending_fetch",
+      "note": "Bench arm A3. A PyTorch ROCm path must force bf16 and pass a CPU parity check (silent fp32 SDPA corruption on this GPU family, pytorch issue 201476)."
+    },
+    "fish-audio-drama-3": {
+      "kind": "tts",
+      "backend": "RentedOpen",
+      "runtime": {
+        "url": "https://github.com/fishaudio/fish-speech",
+        "commit": "1ff3c3ed2f80d3106a83909dd25b83129c3d816f",
+        "note": "v3.0.0-beta prerelease; production serving uses vLLM-Omni or SGLang-Omni on the rented card"
+      },
+      "hf_repo": "fishaudio/drama-3",
+      "hf_revision": "b2b5ee998034b2975720906c815e7fb0e9f007bd",
+      "files": [
+        {
+          "path": "LICENSE",
+          "sha256": "pending",
+          "bytes": 19685
+        },
+        {
+          "path": "README.md",
+          "sha256": "pending",
+          "bytes": 7996
+        },
+        {
+          "path": "chat_template.jinja",
+          "sha256": "pending",
+          "bytes": 7756
+        },
+        {
+          "path": "codec.pth",
+          "sha256": "pending",
+          "bytes": 1871099728
+        },
+        {
+          "path": "config.json",
+          "sha256": "pending",
+          "bytes": 5535
+        },
+        {
+          "path": "model-00001-of-00008.safetensors",
+          "sha256": "pending",
+          "bytes": 5000202800
+        },
+        {
+          "path": "model-00002-of-00008.safetensors",
+          "sha256": "pending",
+          "bytes": 5000496824
+        },
+        {
+          "path": "model-00003-of-00008.safetensors",
+          "sha256": "pending",
+          "bytes": 5000988520
+        },
+        {
+          "path": "model-00004-of-00008.safetensors",
+          "sha256": "pending",
+          "bytes": 5000496392
+        },
+        {
+          "path": "model-00005-of-00008.safetensors",
+          "sha256": "pending",
+          "bytes": 5000227096
+        },
+        {
+          "path": "model-00006-of-00008.safetensors",
+          "sha256": "pending",
+          "bytes": 4984792768
+        },
+        {
+          "path": "model-00007-of-00008.safetensors",
+          "sha256": "pending",
+          "bytes": 4977946704
+        },
+        {
+          "path": "model-00008-of-00008.safetensors",
+          "sha256": "pending",
+          "bytes": 4638423240
+        },
+        {
+          "path": "model.safetensors.index.json",
+          "sha256": "pending",
+          "bytes": 6880197
+        },
+        {
+          "path": "special_tokens_map.json",
+          "sha256": "pending",
+          "bytes": 102779
+        },
+        {
+          "path": "tokenizer.json",
+          "sha256": "pending",
+          "bytes": 20791070
+        },
+        {
+          "path": "tokenizer_config.json",
+          "sha256": "pending",
+          "bytes": 103580
+        }
+      ],
+      "vram_gib": null,
+      "sample_rate_hz": null,
+      "licence": "Fish Audio Community License v1.0",
+      "licence_conditions": [
+        "estate_and_affiliate_revenue_under_usd_500k",
+        "speaker_consent_for_cloning",
+        "built_with_fish_audio_notice",
+        "no_training_on_outputs",
+        "no_watermark_removal",
+        "no_hosting_as_a_service_without_a_separate_licence"
+      ],
+      "hosted": false,
+      "confidential_allowed": false,
+      "links": [
+        "https://huggingface.co/fishaudio/drama-3",
+        "https://github.com/fishaudio/fish-speech"
+      ],
+      "variants": [
+        {
+          "hf_repo": "Jmica/Drama-3-GGUF",
+          "hf_revision": "17a5b40c5dc2c2be986f5371a7e650108b828e29",
+          "backend": "VulkanAudioCpp",
+          "runtime": {
+            "url": "https://github.com/0xShug0/audio.cpp",
+            "commit": "47c2756ec72c4e67cad7fb762fd0d5f2798096fd",
+            "note": "built with the Vulkan backend; offline generation only for ming3_tts"
+          },
+          "files": [
+            {
+              "path": "LICENSE",
+              "sha256": "pending",
+              "bytes": 19685
+            },
+            {
+              "path": "NOTICE",
+              "sha256": "pending",
+              "bytes": 1102
+            },
+            {
+              "path": "drama-3-backbone-8bit-experts-Q3_K_S.gguf",
+              "sha256": "pending",
+              "bytes": 20325196992
+            }
+          ],
+          "note": "experimental only: CPU expert offload with a 16 GB profile is untested on a physical 16 GB card"
+        }
+      ],
+      "gate_state": "draft_pending_fetch",
+      "note": "Rented tier. Production needs a 48 GB or larger card. confidential_allowed stays false unless the rented host is estate-controlled and the operator flags it. The public leaderboard entry is named a preview, so whether it measured this checkpoint is unknown."
+    }
+  }
+}
