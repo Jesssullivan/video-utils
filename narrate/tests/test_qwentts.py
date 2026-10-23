@@ -1,10 +1,12 @@
 """The QwenTtsCpp request mapping against a loopback fake of qwentts.cpp's tts-server (pinned 5916bf7): the speech
-route takes no ref_audio, a voice is registered once by name from the reference WAV and its transcript, the
-registry is lost when the server restarts, an unknown voice is refused with 400, and `speed` is ignored."""
+route takes no ref_audio, a voice is registered by name from the reference WAV and its transcript once per session
+under a nonce name and deleted when the session ends, the registry is lost when the server restarts, an unknown
+voice is refused with 400, and `speed` is ignored."""
 
 import base64
 import json
 import threading
+import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
@@ -42,10 +44,19 @@ class QwenTtsServer:
                 outer.requests.append({"method": "GET", "path": self.path})
                 if self.path != "/v1/audio/voices":
                     return self.error(404, "no route")
-                if outer.mode == "garbled_list":
-                    return self.reply(200, b"[not json", "application/json")
                 listed = [{"name": n, "kind": "registered"} for n in outer.voices]
                 self.reply(200, json.dumps({"voices": listed}).encode(), "application/json")
+
+            def do_DELETE(self):
+                outer.requests.append({"method": "DELETE", "path": self.path})
+                prefix = "/v1/audio/voices/"
+                if outer.mode == "refuse_delete":
+                    return self.error(500, "fixture failure")
+                name = urllib.parse.unquote(self.path[len(prefix) :]).lower()
+                if not self.path.startswith(prefix) or name not in outer.voices:
+                    return self.error(404, "no registered voice with this name")
+                del outer.voices[name]
+                self.reply(200, b'{"status":"deleted"}', "application/json")
 
             def do_POST(self):
                 body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
@@ -55,12 +66,16 @@ class QwenTtsServer:
                         return self.error(400, "cannot decode the WAV payload")
                     name = body["name"].lower()
                     outer.voices[name] = {"wav": base64.b64decode(body["wav_b64"]), "ref_text": body["ref_text"]}
+                    if outer.mode == "garbled_register":
+                        return self.reply(200, b"[not json", "application/json")
                     return self.reply(
                         200, json.dumps({"name": name, "status": "registered"}).encode(), "application/json"
                     )
                 if self.path != "/v1/audio/speech":
                     return self.error(404, "no route")
                 voice = body.get("voice", "").lower()
+                if outer.mode == "forget_on_speech":
+                    outer.voices.clear()
                 if voice and voice not in outer.voices:
                     return self.error(400, f"unknown voice '{voice}'")
                 self.reply(200, engine.sine(body["input"], body.get("seed", 0), 1.0, 24000), "audio/wav")
@@ -99,47 +114,103 @@ def qwentts_engine(url):
     }
 
 
-def test_registers_the_reference_once_then_speaks_by_name(qwentts):
+def test_a_session_registers_once_speaks_by_a_nonce_name_and_deletes_at_the_end(qwentts):
     eng = qwentts_engine(qwentts.url)
-    data, facts = engine.synthesize(eng, "Read this.", VOICE, REF, 7, 1.1, ENGINE)
-    name = engine.qwentts_voice_name(VOICE, REF)
-    assert name == name.lower() and name.startswith("narrate-voice-fixture-sine-")
+    with engine.session(eng, ENGINE) as sess:
+        data, facts = engine.synthesize(eng, "Read this.", VOICE, REF, 7, 1.1, ENGINE, sess)
+        name = sess.name(VOICE, REF)
+        assert name == name.lower() and name.startswith(engine.qwentts_voice_name(VOICE, REF) + "-")
+        assert len(name) == len(engine.qwentts_voice_name(VOICE, REF)) + 17
+        assert qwentts.calls() == [("POST", "/v1/audio/voices"), ("POST", "/v1/audio/speech")]
+        registration, speech = qwentts.requests[0]["body"], qwentts.requests[1]["body"]
+        assert registration == {
+            "name": name,
+            "ref_text": REF["text"],
+            "wav_b64": base64.b64encode(REF["audio"]).decode(),
+        }
+        assert speech == {
+            "model": "qwen3-tts-1.7b-base",
+            "input": "Read this.",
+            "response_format": "wav",
+            "seed": 7,
+            "voice": name,
+        }
+        assert facts == {
+            "variant": "qwentts_registered_voice",
+            "speed_honoured": False,
+            "ref_audio_used": True,
+            "ref_text_used": True,
+            "conditioning": "icl",
+            "registered_now": True,
+        }
+        assert audio.parse(data).rate == 24000
+
+        _, again = engine.synthesize(eng, "And this.", VOICE, REF, 8, 1.0, ENGINE, sess)
+        assert again["registered_now"] is False
+        assert qwentts.calls()[2:] == [("POST", "/v1/audio/speech")]
+    assert qwentts.calls()[3:] == [("DELETE", "/v1/audio/voices/" + name)]
+    assert qwentts.voices == {}
+    assert ("GET", "/v1/audio/voices") not in qwentts.calls()
+
+
+def test_two_sessions_never_share_a_name(qwentts):
+    eng = qwentts_engine(qwentts.url)
+    with engine.session(eng, ENGINE) as one, engine.session(eng, ENGINE) as two:
+        assert one.name(VOICE, REF) != two.name(VOICE, REF)
+
+
+def test_without_a_session_one_take_registers_speaks_and_deletes(qwentts):
+    engine.synthesize(qwentts_engine(qwentts.url), "x", VOICE, REF, 0, 1.0, ENGINE)
+    assert [m for m, _ in qwentts.calls()] == ["POST", "POST", "DELETE"]
+    assert qwentts.voices == {}
+
+
+def test_a_listed_foreign_entry_is_never_trusted(qwentts):
+    """Another client registered something under the name stem: the client neither reads the list nor speaks with
+    that entry; it registers its own nonce name and leaves the foreign entry alone."""
+    stem = engine.qwentts_voice_name(VOICE, REF)
+    qwentts.voices[stem] = {"wav": b"someone else", "ref_text": "not the operator"}
+    eng = qwentts_engine(qwentts.url)
+    with engine.session(eng, ENGINE) as sess:
+        engine.synthesize(eng, "x", VOICE, REF, 0, 1.0, ENGINE, sess)
+        spoken_with = qwentts.requests[-1]["body"]["voice"]
+    assert spoken_with == sess.name(VOICE, REF) != stem
+    assert list(qwentts.voices) == [stem]
+    assert ("GET", "/v1/audio/voices") not in qwentts.calls()
+
+
+def test_the_session_deletes_its_voices_when_the_render_fails(qwentts):
+    eng = qwentts_engine(qwentts.url)
+    with pytest.raises(RuntimeError, match="render failed"), engine.session(eng, ENGINE) as sess:
+        engine.synthesize(eng, "x", VOICE, REF, 0, 1.0, ENGINE, sess)
+        raise RuntimeError("render failed")
+    assert qwentts.calls()[-1][0] == "DELETE" and qwentts.voices == {}
+
+
+def test_a_restarted_server_gets_the_voice_again_and_the_take_is_asked_once_more(qwentts):
+    eng = qwentts_engine(qwentts.url + "/v1/audio/speech")  # a speech-route endpoint maps to the same base
+    with engine.session(eng, ENGINE) as sess:
+        engine.synthesize(eng, "One.", VOICE, REF, 1, 1.0, ENGINE, sess)
+        qwentts.restart()
+        _, facts = engine.synthesize(eng, "Two.", VOICE, REF, 2, 1.0, ENGINE, sess)
+    assert facts["registered_now"] is True
     assert qwentts.calls() == [
-        ("GET", "/v1/audio/voices"),
         ("POST", "/v1/audio/voices"),
         ("POST", "/v1/audio/speech"),
+        ("POST", "/v1/audio/speech"),  # 400: unknown voice after the restart
+        ("POST", "/v1/audio/voices"),
+        ("POST", "/v1/audio/speech"),
+        ("DELETE", "/v1/audio/voices/" + sess.name(VOICE, REF)),
     ]
-    registration, speech = qwentts.requests[1]["body"], qwentts.requests[2]["body"]
-    assert registration == {"name": name, "ref_text": REF["text"], "wav_b64": base64.b64encode(REF["audio"]).decode()}
-    assert speech == {
-        "model": "qwen3-tts-1.7b-base",
-        "input": "Read this.",
-        "response_format": "wav",
-        "seed": 7,
-        "voice": name,
-    }
-    assert facts == {
-        "variant": "qwentts_registered_voice",
-        "speed_honoured": False,
-        "ref_audio_used": True,
-        "ref_text_used": True,
-        "conditioning": "icl",
-        "registered_now": True,
-    }
-    assert audio.parse(data).rate == 24000
-
-    _, again = engine.synthesize(eng, "And this.", VOICE, REF, 8, 1.0, ENGINE)
-    assert again["registered_now"] is False
-    assert qwentts.calls()[3:] == [("GET", "/v1/audio/voices"), ("POST", "/v1/audio/speech")]
 
 
-def test_a_restarted_server_gets_the_voice_again(qwentts):
-    eng = qwentts_engine(qwentts.url + "/v1/audio/speech")  # a speech-route endpoint maps to the same base
-    engine.synthesize(eng, "One.", VOICE, REF, 1, 1.0, ENGINE)
-    qwentts.restart()
-    _, facts = engine.synthesize(eng, "Two.", VOICE, REF, 2, 1.0, ENGINE)
-    assert facts["registered_now"] is True
-    assert [c for c in qwentts.calls() if c == ("POST", "/v1/audio/voices")] == [("POST", "/v1/audio/voices")] * 2
+def test_a_400_on_a_fresh_registration_is_not_asked_again(qwentts):
+    eng = qwentts_engine(qwentts.url)
+    qwentts.mode = "forget_on_speech"
+    with pytest.raises(EngineError) as caught, engine.session(eng, ENGINE) as sess:
+        engine.synthesize(eng, "x", VOICE, REF, 0, 1.0, ENGINE, sess)
+    assert caught.value.code == "engine_refused" and caught.value.status == 400
+    assert [c for c in qwentts.calls() if c == ("POST", "/v1/audio/speech")] == [("POST", "/v1/audio/speech")]
 
 
 def test_a_changed_clip_or_transcript_registers_under_a_new_name():
@@ -169,11 +240,22 @@ def test_a_refused_registration_never_reaches_the_speech_route(qwentts):
     assert ("POST", "/v1/audio/speech") not in qwentts.calls()
 
 
-def test_an_unreadable_voice_list_is_refused(qwentts):
-    qwentts.mode = "garbled_list"
+def test_an_unconfirmed_registration_is_refused_and_still_deleted(qwentts):
+    qwentts.mode = "garbled_register"
     with pytest.raises(EngineError) as caught:
         engine.synthesize(qwentts_engine(qwentts.url), "x", VOICE, REF, 0, 1.0, ENGINE)
     assert caught.value.code == "engine_reply_invalid"
+    assert ("POST", "/v1/audio/speech") not in qwentts.calls()
+    assert qwentts.calls()[-1][0] == "DELETE" and qwentts.voices == {}
+
+
+def test_a_failed_delete_is_reported_not_raised(qwentts, capsys):
+    eng = qwentts_engine(qwentts.url)
+    with engine.session(eng, ENGINE) as sess:
+        engine.synthesize(eng, "x", VOICE, REF, 0, 1.0, ENGINE, sess)
+        qwentts.mode = "refuse_delete"
+    assert sess.undeleted == [sess.name(VOICE, REF)]
+    assert "kept a registered voice" in capsys.readouterr().err
 
 
 def test_the_token_and_transport_rules_cover_the_registry_routes(qwentts, monkeypatch):
@@ -206,3 +288,5 @@ def test_render_fits_a_qwentts_engine_with_atempo_alone(workspace, qwentts):
     speech = [r for r in qwentts.requests if r["path"] == "/v1/audio/speech"]
     assert len(speech) == 1 and "speed" not in speech[0]["body"]
     assert "overrun" in segment["flags"]
+    assert [r["method"] for r in qwentts.requests if r["path"].startswith("/v1/audio/voices")] == ["POST", "DELETE"]
+    assert qwentts.voices == {}
