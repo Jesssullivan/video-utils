@@ -10,14 +10,15 @@ Research: [`docs/research/2026-10-22-tts-voice-cloning.md`](../research/2026-10-
 N0 renders with; the decision is due Saturday 2026-10-24.
 
 This file is frozen once the first scored render exists. Changing a bar, an arm, a decoy, a stop rule or the
-text after that is a new bench with a new preregistration (`text-v2`, a new dated file).
+text after that is a new bench with a new preregistration (`text-v2`, a new dated file). No render exists yet,
+so it is not frozen; revisions made before the first scored render are listed under "Revisions before freeze".
 
 ## Inputs
 
 | Input | Where | Binding |
 |---|---|---|
 | Bench text | [`narrate/bench/text-v1.md`](../../narrate/bench/text-v1.md), 795 spoken words, six sections s1..s6 (opening, technical fault, dialog, numbers and units, results, closing) | sha256 `f7ff6923899b72ade8da6f84678ca9bff81bc3d8ee61b70bda908b95951a704d` |
-| Pinned sources | [`narrate/bench/sources.json`](../../narrate/bench/sources.json), printed by `just narrate-fetch` | sha256 `af4596f3ef9218605e5f7e452e03da721ca88bd26b6e7d73883658d6a96e207d`; per-file sha256 recorded at download in `<dest>/fetch-receipt.json` |
+| Pinned sources | [`narrate/bench/sources.json`](../../narrate/bench/sources.json), printed by `just narrate-fetch` | sha256 `b1931a632c1a41affe06023cb604840eec607a9c17cee228ebf8a0ec783bb10b`; every file declares the Hub's LFS sha256 or, for a non-LFS file, its git blob sha1; the measured sha256 of each file is recorded in `<dest>/fetch-receipt.json` |
 | Consent clip | private voice store, never in Git | sha256 plus consent id in the receipt; script in [`narrate/bench/recording-script.md`](../../narrate/bench/recording-script.md) |
 | Reference clip, 25 to 30 s | private voice store, never in Git | clip sha256, verified-transcript sha256, consent id |
 | ASR model | `ggerganov-whisper-cpp-ggml-small.en`, already registered in `program/models.json` | existing registry hash |
@@ -40,26 +41,35 @@ Runtimes (git, cloned by each arm's build step, never by `narrate-fetch`):
 | fish-speech (optional rented tier) | `1ff3c3ed2f80d3106a83909dd25b83129c3d816f` | v3.0.0-beta |
 | UTMOSv2 | `14a281c6072d6fad2bf31f992ed2e60304400075` | v1.3.0 |
 
-Weights (Hugging Face, revision-pinned; LFS sha256 values are in `sources.json`):
+Weights (Hugging Face, revision-pinned; `sources.json` holds the LFS sha256 of every LFS file and the git blob
+sha1 of every non-LFS file, such as configs, tokenizer text and speechbrain's `hyperparams.yaml`). "Converted
+from" is the revision the card states; where a card states none, the base repository's HEAD at lookup is shown
+in brackets, which is not evidence of what was converted:
 
 | Source id | Repo @ revision | Converted from | Size |
 |---|---|---|---|
-| ming3-0.5b-gguf | `audio-cpp/Ming-3.0-TTS-0.5B-GGUF@2eb8d37c` (bf16) | `inclusionAI/Ming-3.0-tts-0.5B@8d66b70a` | 2.79 GiB |
-| qwen3-tts-1.7b-base-gguf | `ggml-org/Qwen3-TTS-12Hz-1.7B-Base-GGUF@ca27d74b` (bf16 + mmproj bf16) | `Qwen/Qwen3-TTS-12Hz-1.7B-Base@fd4b2543` | 3.86 GiB |
+| ming3-0.5b-gguf | `audio-cpp/Ming-3.0-TTS-0.5B-GGUF@2eb8d37c` (bf16) | `inclusionAI/Ming-3.0-tts-0.5B`, revision not stated [HEAD `8d66b70a`]; card's comparison pinned to upstream code `e999c39f` | 2.79 GiB |
+| qwen3-tts-1.7b-base-gguf | `ggml-org/Qwen3-TTS-12Hz-1.7B-Base-GGUF@ca27d74b` (bf16 + mmproj bf16) | `Qwen/Qwen3-TTS-12Hz-1.7B-Base`, not stated [HEAD `fd4b2543`] | 3.86 GiB |
 | qwen3-tts-1.7b-base-qwentts | `Serveurperso/Qwen3-TTS-GGUF@b7ee2e8c` (talker BF16, tokenizer F32) | same | 4.21 GiB |
-| voxcpm2-gguf | `audio-cpp/audio.cpp-gguf@ef1ab259` (`VoxCPM2-GGUF/voxcpm2-bf16.gguf` only) | `openbmb/VoxCPM2@32279eff` | 4.44 GiB |
+| voxcpm2-gguf | `audio-cpp/audio.cpp-gguf@ef1ab259` (`VoxCPM2-GGUF/voxcpm2-bf16.gguf` only) | `openbmb/VoxCPM2`, not stated [HEAD `32279eff`] | 4.44 GiB |
 | ming3-0.5b-mlx | `mlx-community/Ming-3.0-tts-0.5B-bf16@283b3c34` | Ming 0.5B | 2.80 GiB |
 | qwen3-tts-1.7b-base-mlx | `mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16@a6eb4f68` | Qwen3-TTS Base | 4.23 GiB |
 | voxcpm2-mlx | `mlx-community/VoxCPM2-bf16@a7fb80d9` | VoxCPM2 | 4.62 GiB |
 | ecapa-voxceleb | `speechbrain/spkrec-ecapa-voxceleb@0f99f2d0` | | 0.08 GiB |
 | utmosv2-fold0 | `sarulab-speech/UTMOSv2@506474f2` (fold 0 only) | | 0.76 GiB |
 | wavlm-base-plus-sv (optional) | `microsoft/wavlm-base-plus-sv@feb593a6`; licence not stated on the card | | 0.38 GiB |
-| drama3-gguf-q3 (optional) | `Jmica/Drama-3-GGUF@17a5b40c` (Q3_K_S backbone) | `fishaudio/drama-3@b2b5ee99` | 18.93 GiB |
+| drama3-gguf-q3 (optional) | `Jmica/Drama-3-GGUF@17a5b40c` (Q3_K_S backbone) | `fishaudio/drama-3@dd64a85c` (stated on the card) | 18.93 GiB |
 | drama3 (optional, rented host only) | `fishaudio/drama-3@b2b5ee99` | | 38.65 GiB |
 
 Default selection is 27.8 GiB (9 Hub sources); with the optional tier, 85.8 GiB. Three repositories were modified
 on the lookup day (the MLX Ming build, the audio.cpp GGUF collection, Ming upstream), which is why every pin is
 a full revision rather than a branch.
+
+Both Ming ports predate the upstream long-text fix (M, Hub and GitHub commit dates): the GGUF files were
+uploaded 2026-10-21 03:56 UTC and the MLX weights 2026-10-19, while `028c1eac` landed 2026-10-21 11:03 UTC, and
+the GGUF card's Python comparison is pinned to `e999c39f`, the commit before it. Whether the fix changes the
+converted weights or only upstream's Python splitting is U; the bench's own fixed chunking is the same for
+every arm either way.
 
 ## Arms
 
@@ -74,8 +84,8 @@ default unless listed.
 |---|---|---|---|---|
 | A1-gpu Ming-3.0-tts-0.5B | GPU host | audio.cpp `--family ming3_tts --task clon --backend vulkan` | ming3-0.5b-gguf (bf16) | `reference_text` = verified transcript, `language=en`, seed per run |
 | A1-mac | Mac host | mlx-audio 0.6.1 `mlx_audio.tts.generate` | ming3-0.5b-mlx | `--ref_audio`, `--ref_text`; note: no CAM++ embedding in the MLX port |
-| A2-gpu Qwen3-TTS-1.7B-Base | GPU host | llama.cpp `llama-tts`, Vulkan build, `-ngl 99` | qwen3-tts-1.7b-base-gguf | `--tts-speaker-file` only (this runtime takes no reference transcript) |
-| A2-gpu-alt | GPU host | qwentts.cpp, Vulkan | qwen3-tts-1.7b-base-qwentts | ICL cloning with `ref_text` |
+| A2-gpu-alt Qwen3-TTS-1.7B-Base (primary A2 arm) | GPU host | qwentts.cpp, Vulkan | qwen3-tts-1.7b-base-qwentts | ICL cloning with `ref_audio` + verified `ref_text`, the conditioning narrate's client sends (lanes W5, W6) |
+| A2-gpu Qwen3-TTS-1.7B-Base (secondary) | GPU host | llama.cpp `llama-tts`, Vulkan build, `-ngl 99` | qwen3-tts-1.7b-base-gguf | `--tts-speaker-file` only (this runtime takes no reference transcript, and the pin has no server endpoint) |
 | A2-mac | Mac host | mlx-audio 0.6.1 | qwen3-tts-1.7b-base-mlx | `ref_audio` + `ref_text` |
 | A3-gpu VoxCPM2 | GPU host | audio.cpp `voxcpm2`, Vulkan | voxcpm2-gguf (bf16) | prompt audio + transcript; `voxcpm2.mem_saver=true` only if the default run exceeds the VRAM bar |
 | A3-mac | Mac host | mlx-audio 0.6.1 | voxcpm2-mlx | `ref_audio` + `ref_text` |
@@ -130,7 +140,11 @@ bench.
 Metrics break a tie or a no-preference result, in this order: catastrophic chunks (seed 1), wSIM minimum, median
 SIM, RTF. Without a listening receipt by Saturday, the provisional pick is the passing arm with the highest median
 SIM, recorded as "metrics pick, listening pending", which is a separate state from listening acceptance. If no
-arm passes, A2 (Qwen3-TTS) is the N0 fallback with its misses written down, and the pick is reopened in N1.
+arm passes, the N0 fallback is **A2-gpu-alt** (Qwen3-TTS through qwentts.cpp with `ref_audio` and `ref_text`)
+with its misses written down, and the pick is reopened in N1. A2-gpu (`llama-tts`, speaker file only) is the
+fallback only if A2-gpu-alt does not complete text-v1 on the GPU host; the receipt then states that the
+fallback uses a different conditioning path from the approved plan's verified `ref_text` and from the one
+narrate's client sends. This choice is an open operator decision (below) and is recorded as such.
 
 ## Decoys
 
@@ -139,16 +153,23 @@ metric is invalid for the pick (it is still reported):
 
 1. **Reference self-match**: the second half of the reference clip scored against the first half. Expected SIM
    well above the SIM bar; proves the embedding sees the speaker at all.
-2. **Wrong speaker**: two chunks rendered with a built-in preset voice (Ming `UK_George`, no cloning). Expected
-   SIM below the bar; this is the decoy the SIM bar is defined against.
-3. **Robot baseline**: the full text rendered by espeak-ng. Expected UTMOS below 3.0 and SIM below the bar,
-   with low WER. Proves UTMOS and SIM are not just measuring intelligibility.
-4. **Corrupted chunk**: one A2 chunk with its second half replaced by silence, and one played time-reversed.
-   Expected: both flagged catastrophic. Proves the failure detector fires.
-5. **Shuffled transcript**: one correct chunk scored against the text of a different chunk. Expected WER over
-   30%. Proves WER alignment is per chunk and not lenient.
+2. **Wrong speaker**: two chunks rendered with a built-in preset voice (Ming `UK_George`, no cloning), made in
+   the window inside A1-gpu's budget, right after its one-chunk smoke (window step 4). Expected SIM below the
+   bar; this is the decoy the SIM bar is defined against.
+3. **Robot baseline**: the full text rendered by espeak-ng, pinned through the repository's flake lock
+   (`nix shell --inputs-from . nixpkgs#espeak-ng`, `1.52.0.1-unstable-2025-09-09` at the current lock) rather than any host binary;
+   the receipt records its store path, `--version` output and binary sha256. Expected UTMOS below 3.0 and SIM
+   below the bar, with low WER. Proves UTMOS and SIM are not just measuring intelligibility.
+4. **Corrupted chunk**: one espeak-ng chunk from decoy 3 with its second half replaced by silence, and one
+   played time-reversed. Expected: both flagged catastrophic. Proves the failure detector fires. After the
+   window, the same two corruptions are applied to one A2-gpu-alt chunk and scored again.
+5. **Shuffled transcript**: one espeak-ng chunk scored against the text of a different chunk. Expected WER
+   over 30%. Proves WER alignment is per chunk and not lenient. Repeated on one A2-gpu-alt chunk after the
+   window.
 
-Decoys 1 and 2 need G2; 3 to 5 can be produced and scored before the window.
+Decoys 3 to 5 need neither G1 nor G2 and are produced and scored before the window from espeak-ng chunks, so a
+scorer bug in the WER or catastrophic-chunk detector shows up before GPU time is spent. Decoys 1 and 2 need G2
+for their SIM scores; decoy 2 also needs G1 for its render.
 
 ## Stop rules
 
@@ -180,12 +201,13 @@ Before the window (no GPU use):
    `narrate/bench/recording-script.md`; consent record and hashes are created in the private voice store.
 2. `just narrate-fetch` (dry run) on the GPU host, review the plan, then `just narrate-fetch --apply --arm A1-gpu
    --arm A2-gpu --arm A3-gpu --arm scoring` into the private weights directory. Check `fetch-receipt.json`: every
-   LFS file `matched_declared`.
+   file `matched_declared_sha256` or `matched_declared_git_blob_sha1`; the fetch refuses any other outcome.
 3. Build audio.cpp, llama.cpp and qwentts.cpp at their pinned commits with the Vulkan backend on an approved
    builder; record each binary's sha256.
 4. Generate and record the chunk list; copy the reference clip and verified transcript to the host's private
    store and check their sha256 values.
-5. Score decoys 3 to 5 off the GPU.
+5. Render decoy 3 with the flake-pinned espeak-ng, build decoys 4 and 5 from its chunks, and score all three
+   off the GPU. A decoy on the wrong side of its bar stops the window from starting until the scorer is fixed.
 
 In the window:
 
@@ -196,9 +218,11 @@ In the window:
    most 30 minutes, and the arm list in the annotation. Record the lease version before and after, the holder
    and the start time.
 3. Record the idle VRAM baseline from sysfs; start the 10 Hz sampler.
-4. Run order (known-good first): A2-gpu (8 min budget), A1-gpu (8 min), A3-gpu (8 min); A2-gpu-alt and
-   D3-gpu-experimental only with time left. Per arm: load, one-chunk smoke, seed 1 full text, then seeds 2 and 3
-   if the arm's budget allows. One synthesis process at a time.
+4. Run order: A2-gpu-alt (8 min budget), A1-gpu (8 min, including the two decoy-2 preset-voice chunks after
+   its smoke), A3-gpu (8 min); A2-gpu and D3-gpu-experimental only with time left. A2-gpu-alt runs first
+   because it is both the fallback and the conditioning path narrate uses; the qwentts.cpp fork behind the
+   only measured gfx1201 run is close to, not identical with, this pin. Per arm: load, one-chunk smoke, seed 1
+   full text, then seeds 2 and 3 if the arm's budget allows. One synthesis process at a time.
 5. At minute 25 at the latest: stop this bench's own processes, confirm VRAM is back to baseline, then **release
    the Lease** by compare-and-swap and record the release version and time. Restore the prior claimant through
    the coordinator if one was released in step 1.
@@ -245,14 +269,37 @@ Lane W3 prep only; files are disjoint from the `narrate/` Python package of lane
 - `narrate/bench/text-v1.md`, `narrate/bench/recording-script.md`: written fresh for this bench.
 - `narrate/bench/sources.json`: pins looked up read-only (Hub API tree listings, `git ls-remote`); nothing downloaded.
 - `narrate/bench/fetch.py` and `just narrate-fetch`: the default prints the plan. `--apply` downloads into
-  `$NARRATE_WEIGHTS_DIR` (or `--dest`), refuses a destination inside the repository, checks declared size and
-  LFS sha256, writes `<source>/SHA256SUMS` plus a dated receipt, and never clones git sources. The apply path
-  was exercised only against a local `file://` mirror of synthetic bytes in
+  `$NARRATE_WEIGHTS_DIR` (or `--dest`), refuses a destination inside any checkout of the repository (the
+  running one, the main work tree and every linked worktree), checks declared size and the declared LFS sha256
+  or git blob sha1, writes `hf/<source>/SHA256SUMS` plus a dated receipt, and never clones git sources. The
+  apply path was exercised only against a local `file://` mirror of synthetic bytes in
   `tests/test_narrate_bench_fetch.py`; it has not downloaded any real weights.
 - Bazel: `narrate/bench/` is not a Bazel package; the root `//:repo_data` glob carries it to the Python tests.
   The S3 test classification supplement counts the new module.
 
+## Revisions before freeze
+
+- **Revision 1 (2026-10-23, review of PR #36; no render, download or GPU use had happened).**
+  R-HOOK-CONVERGENCE-20261004 R-N13.
+  - Hash binding: every non-LFS file now carries the Hub's `git_blob_sha1` (re-read from the pinned tree
+    listings; the formula was checked on one 1,919-byte file), and `fetch.py` verifies it at download and for
+    files already present. A file with no declared hash is refused. Check labels now say which declared value
+    matched.
+  - A2: A2-gpu-alt (qwentts.cpp, `ref_text`) is the primary A2 arm, runs first, and is the named fallback.
+  - Decoys 3 to 5 come from flake-pinned espeak-ng before the window; decoy 2 is scheduled inside A1-gpu.
+  - `converted_from` records the card-stated revision or null; the Drama 3 GGUF states `dd64a85c`.
+  - Fetch layout is `<dest>/hf/<id>`; `fish-speech` is optional; `--arm D3-rented` selects its optional sources;
+    the plan lists excluded optional ids; malformed entries are refused with a message; hashing runs on Python
+    3.9 (checked with CPython 3.9.25).
+
 ## Open questions
+
+- **Operator decision: which A2 path is the N0 fallback.** This plan names A2-gpu-alt, matching the approved
+  plan's "feed it a verified `ref_text`"; the approved plan's other sentence ("already runs through our
+  llama.cpp pin with `llama-tts`") describes A2-gpu, which cannot take `ref_text`. Until the operator confirms,
+  the receipt records the fallback as "A2-gpu-alt, operator confirmation pending".
+- Whether qwentts.cpp's `tts-server` exposes an OpenAI-style `/v1/audio/speech` route with `ref_audio` and
+  `ref_text` (U); if not, lane W6 needs a shim, as it would for `llama-server`.
 
 - Whether audio.cpp's Vulkan build runs `ming3_tts` and `voxcpm2` on gfx1201 at all (U until G1).
 - Whether `llama-tts` speaker-file cloning without a transcript is competitive with ICL (the reason A2-gpu-alt
