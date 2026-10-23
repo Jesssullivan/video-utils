@@ -1,0 +1,18 @@
+"""
+Narrate engine bench inputs (docs/agent-notes/2026-10-22-narrate-bench-plan.md): the frozen bench text,
+the recording script, the pinned sources and the stdlib fetch planner. tests/test_narrate_bench_fetch.py
+reads them as data. No weights live here; `just narrate-fetch --apply` writes outside the repository.
+"""
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/.DS_Store",
+        ],
+    ),
+)

@@ -5,6 +5,7 @@ import 'just/workflow.just'
 import 'just/bazel.just'
 import 'just/take.just'
 import 'just/condense.just'
+import 'just/narrate-bench.just'
 
 default:
     @just --list

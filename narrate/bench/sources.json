@@ -1,0 +1,688 @@
+{
+ "schema_version": 1,
+ "recorded": "2026-10-22",
+ "lookup": "Read-only Hugging Face API tree listings and git ls-remote on 2026-10-22. A file sha256 is the Hub's declared LFS object id; null means a small non-LFS file whose sha256 is recorded at download time. Nothing was downloaded.",
+ "dest_env": "NARRATE_WEIGHTS_DIR",
+ "whisper_asr": "ggerganov-whisper-cpp-ggml-small.en from program/models.json (already registered and hash-bound)",
+ "sources": [
+  {
+   "id": "audio.cpp",
+   "kind": "git",
+   "arms": [
+    "A1-gpu",
+    "A3-gpu",
+    "D3-gpu-experimental"
+   ],
+   "url": "https://github.com/0xShug0/audio.cpp",
+   "commit": "47c2756ec72c4e67cad7fb762fd0d5f2798096fd",
+   "ref": "main (HEAD at lookup; newest tag v0.9.2 ed1716a0 predates ming3_tts)",
+   "licence": "MIT",
+   "note": "Build with scripts/build_linux.sh --backend vulkan --target audiocpp_cli."
+  },
+  {
+   "id": "llama.cpp",
+   "kind": "git",
+   "arms": [
+    "A2-gpu"
+   ],
+   "url": "https://github.com/ggml-org/llama.cpp",
+   "commit": "11fe02151f79c41d0d4af7da708755d73b9c0da6",
+   "ref": "estate pin (2026-10-04); contains llama-tts Qwen3-TTS support, not the POST /tts server endpoint",
+   "licence": "MIT"
+  },
+  {
+   "id": "qwentts.cpp",
+   "kind": "git",
+   "arms": [
+    "A2-gpu-alt"
+   ],
+   "url": "https://github.com/ServeurpersoCom/qwentts.cpp",
+   "commit": "5916bf7c79dbb4e66fc059cdc507a79a23a28bb4",
+   "ref": "HEAD at lookup (no tags)",
+   "licence": "MIT",
+   "note": "Second Qwen3-TTS runtime: ICL cloning with ref_text, which llama-tts does not expose."
+  },
+  {
+   "id": "mlx-audio",
+   "kind": "git",
+   "arms": [
+    "A1-mac",
+    "A2-mac",
+    "A3-mac"
+   ],
+   "url": "https://github.com/Blaizzy/mlx-audio",
+   "commit": "4510ba631faf5676b2bf4633161756664d154e28",
+   "ref": "v0.6.1 (2026-10-20); the Ming MLX card requires 0.6.1 or later",
+   "licence": "MIT"
+  },
+  {
+   "id": "Ming-3.0-tts",
+   "kind": "git",
+   "arms": [
+    "A1-gpu",
+    "A1-mac"
+   ],
+   "url": "https://github.com/inclusionAI/Ming-3.0-tts",
+   "commit": "028c1eace193e7acdb256453da89b6e9207e052b",
+   "ref": "HEAD at lookup (2026-10-21 long-text splitting fix; no tags)",
+   "licence": "MIT",
+   "note": "Reference only: upstream long-text behaviour the GGUF and MLX ports should match."
+  },
+  {
+   "id": "VoxCPM",
+   "kind": "git",
+   "arms": [
+    "A3-gpu",
+    "A3-mac"
+   ],
+   "url": "https://github.com/OpenBMB/VoxCPM",
+   "commit": "19b6bf7590025418821a86dcb817504e0ad7e5df",
+   "ref": "2.0.3",
+   "licence": "Apache-2.0",
+   "note": "Reference only, and the PyTorch ROCm fallback arm (bf16 forced, CPU parity check)."
+  },
+  {
+   "id": "fish-speech",
+   "kind": "git",
+   "arms": [
+    "D3-rented"
+   ],
+   "url": "https://github.com/fishaudio/fish-speech",
+   "commit": "1ff3c3ed2f80d3106a83909dd25b83129c3d816f",
+   "ref": "v3.0.0-beta (prerelease)",
+   "licence": "see repository; licence field reports NOASSERTION"
+  },
+  {
+   "id": "UTMOSv2",
+   "kind": "git",
+   "arms": [
+    "scoring"
+   ],
+   "url": "https://github.com/sarulab-speech/UTMOSv2",
+   "commit": "14a281c6072d6fad2bf31f992ed2e60304400075",
+   "ref": "v1.3.0",
+   "licence": "MIT"
+  },
+  {
+   "id": "ming3-0.5b-gguf",
+   "kind": "hf",
+   "arms": [
+    "A1-gpu"
+   ],
+   "repo": "audio-cpp/Ming-3.0-TTS-0.5B-GGUF",
+   "revision": "2eb8d37c7f10672e69c8aa33091baa04c461b66c",
+   "licence": "MIT",
+   "optional": false,
+   "converted_from": {
+    "repo": "inclusionAI/Ming-3.0-tts-0.5B",
+    "revision": "8d66b70a00f05ad183fa8a863b4ce609fc83cbc0"
+   },
+   "files": [
+    {
+     "path": "LICENSE",
+     "bytes": 1068,
+     "sha256": null
+    },
+    {
+     "path": "README.md",
+     "bytes": 3338,
+     "sha256": null
+    },
+    {
+     "path": "ming-3.0-tts-0.5b-bf16.gguf",
+     "bytes": 2998284288,
+     "sha256": "43f108a4e6bb54af13071d0cb345a094e0b011b3b8318d8fb2c61753733f5312"
+    }
+   ]
+  },
+  {
+   "id": "qwen3-tts-1.7b-base-gguf",
+   "kind": "hf",
+   "arms": [
+    "A2-gpu"
+   ],
+   "repo": "ggml-org/Qwen3-TTS-12Hz-1.7B-Base-GGUF",
+   "revision": "ca27d74bc954b73dadab5b71ca265d87fc861a7c",
+   "licence": "Apache-2.0 (upstream weights)",
+   "optional": false,
+   "converted_from": {
+    "repo": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+    "revision": "fd4b254389122332181a7c3db7f27e918eec64e3"
+   },
+   "files": [
+    {
+     "path": "Qwen3-TTS-12Hz-1.7B-Base-bf16.gguf",
+     "bytes": 3472593760,
+     "sha256": "0322c634ad5d3282524bc45bff030ab3f6f2a32ba14d5e7dace7eed75ecede46"
+    },
+    {
+     "path": "mmproj-Qwen3-TTS-12Hz-1.7B-Base-bf16.gguf",
+     "bytes": 669081472,
+     "sha256": "b9503e95e44705739cf82c15ce909b040b96a31ad79d02cf4dc5e1484399265d"
+    }
+   ]
+  },
+  {
+   "id": "qwen3-tts-1.7b-base-qwentts",
+   "kind": "hf",
+   "arms": [
+    "A2-gpu-alt"
+   ],
+   "repo": "Serveurperso/Qwen3-TTS-GGUF",
+   "revision": "b7ee2e8c7459c3bea99da23e3d178125a7d1713c",
+   "licence": "Apache-2.0",
+   "optional": false,
+   "converted_from": {
+    "repo": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+    "revision": "fd4b254389122332181a7c3db7f27e918eec64e3"
+   },
+   "files": [
+    {
+     "path": "README.md",
+     "bytes": 4940,
+     "sha256": null
+    },
+    {
+     "path": "qwen-talker-1.7b-base-BF16.gguf",
+     "bytes": 3876199616,
+     "sha256": "7f4567113f3aa07e842fac6d17a10a98cf3d0068c0871ac245ac9befc63affa5"
+    },
+    {
+     "path": "qwen-tokenizer-12hz-F32.gguf",
+     "bytes": 647263104,
+     "sha256": "b16b95557c7c7340a121757bd6855b9609e1cf4ad3fad0778b89393293ae5f3d"
+    }
+   ]
+  },
+  {
+   "id": "voxcpm2-gguf",
+   "kind": "hf",
+   "arms": [
+    "A3-gpu"
+   ],
+   "repo": "audio-cpp/audio.cpp-gguf",
+   "revision": "ef1ab2598f6d4d101486e4c5b9e605c687f20642",
+   "licence": "Apache-2.0 (per the repository's table)",
+   "optional": false,
+   "converted_from": {
+    "repo": "openbmb/VoxCPM2",
+    "revision": "32279effe8c19989596f05d353d1447f51d9e915"
+   },
+   "note": "Multi-model repository modified on the lookup day; only the listed paths are fetched.",
+   "files": [
+    {
+     "path": "README.md",
+     "bytes": 12492,
+     "sha256": null
+    },
+    {
+     "path": "VoxCPM2-GGUF/voxcpm2-bf16.gguf",
+     "bytes": 4772295296,
+     "sha256": "dc48028ebf08b9fd2456cbf5fa1ab52568d16660e34d0fa418c35e251ca1ecab"
+    }
+   ]
+  },
+  {
+   "id": "ming3-0.5b-mlx",
+   "kind": "hf",
+   "arms": [
+    "A1-mac"
+   ],
+   "repo": "mlx-community/Ming-3.0-tts-0.5B-bf16",
+   "revision": "283b3c342c6fb69a7a87832c97f9799567efe05d",
+   "licence": "MIT",
+   "optional": false,
+   "converted_from": {
+    "repo": "inclusionAI/Ming-3.0-tts-0.5B",
+    "revision": "8d66b70a00f05ad183fa8a863b4ce609fc83cbc0"
+   },
+   "files": [
+    {
+     "path": "LICENSE",
+     "bytes": 1067,
+     "sha256": null
+    },
+    {
+     "path": "README.md",
+     "bytes": 4245,
+     "sha256": null
+    },
+    {
+     "path": "added_tokens.json",
+     "bytes": 1785,
+     "sha256": null
+    },
+    {
+     "path": "campplus.safetensors",
+     "bytes": 27699096,
+     "sha256": "a479586bd8f8f96cdb414eaa2fa07c6cd54d6d1636562e2d75a0211cb3b0a6fd"
+    },
+    {
+     "path": "config.json",
+     "bytes": 5882,
+     "sha256": null
+    },
+    {
+     "path": "configuration.json",
+     "bytes": 51,
+     "sha256": null
+    },
+    {
+     "path": "merges.txt",
+     "bytes": 1671853,
+     "sha256": null
+    },
+    {
+     "path": "model.safetensors",
+     "bytes": 2959055287,
+     "sha256": "16a7086c992a6eab7d855df90c9c2edbb0f4f3a702b3cd697f6011e198d0c8b4"
+    },
+    {
+     "path": "model.safetensors.index.json",
+     "bytes": 96296,
+     "sha256": null
+    },
+    {
+     "path": "special_tokens_map.json",
+     "bytes": 2726,
+     "sha256": null
+    },
+    {
+     "path": "tokenizer.json",
+     "bytes": 11431389,
+     "sha256": "87d54ca3b44ea2f822ba39a0a45cb1b61644bd6606d9d3536dea75367bffb06d"
+    },
+    {
+     "path": "tokenizer_config.json",
+     "bytes": 16260,
+     "sha256": null
+    },
+    {
+     "path": "vocab.json",
+     "bytes": 2776833,
+     "sha256": null
+    }
+   ]
+  },
+  {
+   "id": "qwen3-tts-1.7b-base-mlx",
+   "kind": "hf",
+   "arms": [
+    "A2-mac"
+   ],
+   "repo": "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16",
+   "revision": "a6eb4f68e4b056f1215157bb696209bc82a6db48",
+   "licence": "Apache-2.0",
+   "optional": false,
+   "converted_from": {
+    "repo": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+    "revision": "fd4b254389122332181a7c3db7f27e918eec64e3"
+   },
+   "files": [
+    {
+     "path": "README.md",
+     "bytes": 1026,
+     "sha256": null
+    },
+    {
+     "path": "config.json",
+     "bytes": 5317,
+     "sha256": null
+    },
+    {
+     "path": "generation_config.json",
+     "bytes": 245,
+     "sha256": null
+    },
+    {
+     "path": "merges.txt",
+     "bytes": 1671839,
+     "sha256": null
+    },
+    {
+     "path": "model.safetensors",
+     "bytes": 3857414009,
+     "sha256": "81fb76175ff74e69be25fef2cc3e54f016df3034f1514c8e1c89da06a3510cff"
+    },
+    {
+     "path": "model.safetensors.index.json",
+     "bytes": 38742,
+     "sha256": null
+    },
+    {
+     "path": "preprocessor_config.json",
+     "bytes": 127,
+     "sha256": null
+    },
+    {
+     "path": "speech_tokenizer/config.json",
+     "bytes": 2336,
+     "sha256": null
+    },
+    {
+     "path": "speech_tokenizer/configuration.json",
+     "bytes": 76,
+     "sha256": null
+    },
+    {
+     "path": "speech_tokenizer/model.safetensors",
+     "bytes": 682293092,
+     "sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258"
+    },
+    {
+     "path": "speech_tokenizer/preprocessor_config.json",
+     "bytes": 234,
+     "sha256": null
+    },
+    {
+     "path": "tokenizer_config.json",
+     "bytes": 7344,
+     "sha256": null
+    },
+    {
+     "path": "vocab.json",
+     "bytes": 2776833,
+     "sha256": null
+    }
+   ]
+  },
+  {
+   "id": "voxcpm2-mlx",
+   "kind": "hf",
+   "arms": [
+    "A3-mac"
+   ],
+   "repo": "mlx-community/VoxCPM2-bf16",
+   "revision": "a7fb80d9056983135a54ca3f71fcc5a637ccddf5",
+   "licence": "Apache-2.0",
+   "optional": false,
+   "converted_from": {
+    "repo": "openbmb/VoxCPM2",
+    "revision": "32279effe8c19989596f05d353d1447f51d9e915"
+   },
+   "files": [
+    {
+     "path": "README.md",
+     "bytes": 2170,
+     "sha256": null
+    },
+    {
+     "path": "config.json",
+     "bytes": 5210,
+     "sha256": null
+    },
+    {
+     "path": "model-00001.safetensors",
+     "bytes": 4286190791,
+     "sha256": "676b05649d915e63f2291a0b091bd72250785b2448fe14ec81f3566cf5f47950"
+    },
+    {
+     "path": "model-00002.safetensors",
+     "bytes": 669068875,
+     "sha256": "adddb9b85026763751beb20ba050aa46ef19b6b55cf6cb6a8c44ac8b06ec5cff"
+    },
+    {
+     "path": "model.safetensors.index.json",
+     "bytes": 67424,
+     "sha256": null
+    },
+    {
+     "path": "special_tokens_map.json",
+     "bytes": 1632,
+     "sha256": null
+    },
+    {
+     "path": "tokenizer.json",
+     "bytes": 3676772,
+     "sha256": null
+    },
+    {
+     "path": "tokenizer_config.json",
+     "bytes": 4952,
+     "sha256": null
+    }
+   ]
+  },
+  {
+   "id": "drama3-gguf-q3",
+   "kind": "hf",
+   "arms": [
+    "D3-gpu-experimental"
+   ],
+   "repo": "Jmica/Drama-3-GGUF",
+   "revision": "17a5b40c5dc2c2be986f5371a7e650108b828e29",
+   "licence": "Fish Audio Community License v1.0",
+   "optional": true,
+   "converted_from": {
+    "repo": "fishaudio/drama-3",
+    "revision": "b2b5ee998034b2975720906c815e7fb0e9f007bd"
+   },
+   "note": "Experimental only: CPU expert offload with a 16 GB profile is untested on physical 16 GB cards.",
+   "files": [
+    {
+     "path": "LICENSE",
+     "bytes": 19685,
+     "sha256": null
+    },
+    {
+     "path": "NOTICE",
+     "bytes": 1102,
+     "sha256": null
+    },
+    {
+     "path": "README.md",
+     "bytes": 11669,
+     "sha256": null
+    },
+    {
+     "path": "drama-3-backbone-8bit-experts-Q3_K_S.gguf",
+     "bytes": 20325196992,
+     "sha256": "b946a8c9806deba559590b98e37ffc9e0957109263e111513734fa93284db16b"
+    }
+   ]
+  },
+  {
+   "id": "drama3",
+   "kind": "hf",
+   "arms": [
+    "D3-rented"
+   ],
+   "repo": "fishaudio/drama-3",
+   "revision": "b2b5ee998034b2975720906c815e7fb0e9f007bd",
+   "licence": "Fish Audio Community License v1.0",
+   "optional": true,
+   "note": "Fetched on the rented GPU host, not locally. Licence terms: revenue under USD 500k, consent, no training on outputs, Built with Fish Audio notice.",
+   "files": [
+    {
+     "path": "LICENSE",
+     "bytes": 19685,
+     "sha256": null
+    },
+    {
+     "path": "README.md",
+     "bytes": 7996,
+     "sha256": null
+    },
+    {
+     "path": "chat_template.jinja",
+     "bytes": 7756,
+     "sha256": null
+    },
+    {
+     "path": "codec.pth",
+     "bytes": 1871099728,
+     "sha256": "74fc41c5a7151c6f350af8bd7e5d6e3accfcc7f3dfbfac23afd35af07052bb2f"
+    },
+    {
+     "path": "config.json",
+     "bytes": 5535,
+     "sha256": null
+    },
+    {
+     "path": "model-00001-of-00008.safetensors",
+     "bytes": 5000202800,
+     "sha256": "e486b4f438d0b2df28846e41e599bd2077a64a825893ed0371b332a40dc4b49b"
+    },
+    {
+     "path": "model-00002-of-00008.safetensors",
+     "bytes": 5000496824,
+     "sha256": "a67b726fe950ad57ebc15696009bde4a7dbbdc3645b42fa7d77e3a5fa1d70262"
+    },
+    {
+     "path": "model-00003-of-00008.safetensors",
+     "bytes": 5000988520,
+     "sha256": "acfdeb67b8c4cb4784d887339e85bddbc5d7b9be3bbee82e40fa10ffe305d965"
+    },
+    {
+     "path": "model-00004-of-00008.safetensors",
+     "bytes": 5000496392,
+     "sha256": "fa2960bddf128f51c3d4d74a1a942e34f61cc7ea294d10aec27f79dc10455c9f"
+    },
+    {
+     "path": "model-00005-of-00008.safetensors",
+     "bytes": 5000227096,
+     "sha256": "a49ed8717c47e12b354a711c71ecde8be153bad704ca0a25d4805534f4405971"
+    },
+    {
+     "path": "model-00006-of-00008.safetensors",
+     "bytes": 4984792768,
+     "sha256": "8867c0e3d600ebf28cf4734fc433dc98061fb990940e07b192ec0356ba1ff223"
+    },
+    {
+     "path": "model-00007-of-00008.safetensors",
+     "bytes": 4977946704,
+     "sha256": "51e7d473f8a270bf79b2896a6ea4f19162eeec5b1ea1c5a2ba7dc7750511dbda"
+    },
+    {
+     "path": "model-00008-of-00008.safetensors",
+     "bytes": 4638423240,
+     "sha256": "c5b065cce3b3b851369dfdb5a3b60f6abf2699121071c2b1a9dfd84acb7b8f7d"
+    },
+    {
+     "path": "model.safetensors.index.json",
+     "bytes": 6880197,
+     "sha256": null
+    },
+    {
+     "path": "special_tokens_map.json",
+     "bytes": 102779,
+     "sha256": null
+    },
+    {
+     "path": "tokenizer.json",
+     "bytes": 20791070,
+     "sha256": "0e9b9db76b2f0389b04b6ef057a2ac3b89100b7e96f2dd7034d19580a09654d6"
+    },
+    {
+     "path": "tokenizer_config.json",
+     "bytes": 103580,
+     "sha256": null
+    }
+   ]
+  },
+  {
+   "id": "ecapa-voxceleb",
+   "kind": "hf",
+   "arms": [
+    "scoring"
+   ],
+   "repo": "speechbrain/spkrec-ecapa-voxceleb",
+   "revision": "0f99f2d0ebe89ac095bcc5903c4dd8f72b367286",
+   "licence": "Apache-2.0",
+   "optional": false,
+   "files": [
+    {
+     "path": "README.md",
+     "bytes": 5377,
+     "sha256": null
+    },
+    {
+     "path": "classifier.ckpt",
+     "bytes": 5534328,
+     "sha256": "fd9e3634fe68bd0a427c95e354c0c677374f62b3f434e45b78599950d860d535"
+    },
+    {
+     "path": "config.json",
+     "bytes": 51,
+     "sha256": null
+    },
+    {
+     "path": "embedding_model.ckpt",
+     "bytes": 83316686,
+     "sha256": "0575cb64845e6b9a10db9bcb74d5ac32b326b8dc90352671d345e2ee3d0126a2"
+    },
+    {
+     "path": "hyperparams.yaml",
+     "bytes": 1919,
+     "sha256": null
+    },
+    {
+     "path": "label_encoder.txt",
+     "bytes": 128619,
+     "sha256": null
+    },
+    {
+     "path": "mean_var_norm_emb.ckpt",
+     "bytes": 1921,
+     "sha256": null
+    }
+   ]
+  },
+  {
+   "id": "wavlm-base-plus-sv",
+   "kind": "hf",
+   "arms": [
+    "scoring"
+   ],
+   "repo": "microsoft/wavlm-base-plus-sv",
+   "revision": "feb593a6c23c1cc3d9510425c29b0a14d2b07b1e",
+   "licence": "unknown on the model card (check before use)",
+   "optional": true,
+   "files": [
+    {
+     "path": "README.md",
+     "bytes": 4052,
+     "sha256": null
+    },
+    {
+     "path": "config.json",
+     "bytes": 58639,
+     "sha256": null
+    },
+    {
+     "path": "preprocessor_config.json",
+     "bytes": 215,
+     "sha256": null
+    },
+    {
+     "path": "pytorch_model.bin",
+     "bytes": 404547053,
+     "sha256": "e906bce2fa42fb497a1d1a9ecf81548adb7e03b12a5644e32d2f42f0d6500fad"
+    }
+   ]
+  },
+  {
+   "id": "utmosv2-fold0",
+   "kind": "hf",
+   "arms": [
+    "scoring"
+   ],
+   "repo": "sarulab-speech/UTMOSv2",
+   "revision": "506474f2b33dc77c234d668cc419be1861899cad",
+   "licence": "MIT",
+   "optional": false,
+   "files": [
+    {
+     "path": "README.md",
+     "bytes": 1819,
+     "sha256": null
+    },
+    {
+     "path": "fold0_s42_best_model.pth",
+     "bytes": 818531314,
+     "sha256": "c8149d988e4bbf3f347e6966b5d769de347a5f8c59ffca1dc4bd4bf5b8585e57"
+    }
+   ]
+  }
+ ]
+}
