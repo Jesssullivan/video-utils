@@ -183,7 +183,7 @@ Narration runs live under `artifacts/narrate/<run_id>/`, outside
 
 - Per-chunk WAV at the engine's native rate (recorded), and the final track as
   WAV or FLAC at that rate.
-- SRT and/or VTT built from the whisper alignment of the delivered audio.
+- SRT and/or VTT on the output clock (v0: script timing; whisper alignment of the delivered audio later).
 - A narration EDL per `docs/spec/TIMELINE_CONTRACT.md`. Narration is a **new
   track** laid on an output clock: each segment's start on that clock, its
   duration and any fit stretch applied to the narration audio. Source media is
@@ -272,6 +272,24 @@ conversion whose source revision is stated records it as `upstream.revision`.
 Scoring models (speaker verification, quality) have no draft entries yet;
 they are listed in `sources.json` and need their own entries before a
 registered gate uses them.
+
+## W5 implementation choices (2026-10-23)
+
+Lane W5 (TIN-7087) refines these details with the code in `narrate/` (see `narrate/README.md`):
+
+| Topic | Choice |
+| --- | --- |
+| Narration mapping | `timeline.mapping: "narration_v1"`, `no_time_stretch: false` on every run; the TIMELINE_CONTRACT amendment and its refusal-matrix row land in the same PR |
+| Private store | Clips, transcripts and consent evidence are found by hashing the files of the store directory (`NARRATE_STORE`); a file whose digest differs is not found, so a changed clip refuses as `ref_clip_missing` |
+| Markdown | One segment per slide file; headings, HTML comments and inline markup are not spoken; `[pause]`, `[pause 2s]` and `[pause 800ms]` add silence, other directions are recorded only |
+| Chunking | Chunks are cut on the written text and checked on the spoken text; a chunk whose spoken form runs past the limit is packed again word by word |
+| Timing fit | The speed knob goes up to `[fit] speed_max` (1.15) before `atempo` |
+| Captions | v0 times cues from the script placement (`captions.source: script_timing`); whisper alignment of the delivered audio is a later step |
+| Audio | Every run carries both `narration.wav` and `narration.flac`; the job's `audio` names the one consumers take first |
+| Narration EDL | Always written, whatever the job's `narrationEdl`: `verify` and the timeline contract read it |
+| `ref_audio` | Sent as a base64 WAV data URI (`[engine] ref_audio = "omit"` sends neither field); whether a server reads that form is checked per engine in W6 |
+| Vale | Run only when `vale` is on PATH; otherwise recorded `not_run` |
+| Exit codes | A refusal prints `{"refused": code}` on stderr and exits 1; a flagged run (overrun, `qa_failed`, loudness) still publishes and lists its flags |
 
 ## Guitar axioms
 
