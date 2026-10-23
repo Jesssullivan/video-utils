@@ -1,7 +1,7 @@
 {
  "schema_version": 1,
  "recorded": "2026-10-22",
- "lookup": "Read-only Hugging Face API tree listings and git ls-remote on 2026-10-22. A file sha256 is the Hub's declared LFS object id; null means a small non-LFS file whose sha256 is recorded at download time. Nothing was downloaded.",
+ "lookup": "Read-only Hugging Face API tree listings and git ls-remote on 2026-10-22; git blob ids re-read from the same pinned tree listings on 2026-10-23. A file sha256 is the Hub's declared LFS object id. A file the Hub stores outside LFS has sha256 null and carries git_blob_sha1, the Hub's git blob id: sha1 over 'blob <bytes>\\0' plus the content. Every file has one of the two, and fetch.py checks it both at download and for files already present. No model weights were downloaded; one 1,919-byte hyperparams.yaml was read once to confirm the blob formula.",
  "dest_env": "NARRATE_WEIGHTS_DIR",
  "whisper_asr": "ggerganov-whisper-cpp-ggml-small.en from program/models.json (already registered and hash-bound)",
  "sources": [
@@ -90,7 +90,8 @@
    "url": "https://github.com/fishaudio/fish-speech",
    "commit": "1ff3c3ed2f80d3106a83909dd25b83129c3d816f",
    "ref": "v3.0.0-beta (prerelease)",
-   "licence": "see repository; licence field reports NOASSERTION"
+   "licence": "see repository; licence field reports NOASSERTION",
+   "optional": true
   },
   {
    "id": "UTMOSv2",
@@ -115,18 +116,22 @@
    "optional": false,
    "converted_from": {
     "repo": "inclusionAI/Ming-3.0-tts-0.5B",
-    "revision": "8d66b70a00f05ad183fa8a863b4ce609fc83cbc0"
+    "revision": null,
+    "revision_note": "not stated on the card; its Python comparison is pinned to upstream code inclusionAI/Ming-3.0-tts@e999c39fa676722aaa9ea29b5aa19a90525b271f (2026-10-19), one commit before the 028c1eac long-text fix, and the GGUF files were uploaded 2026-10-21 03:56 UTC, before that fix",
+    "base_head_at_lookup": "8d66b70a00f05ad183fa8a863b4ce609fc83cbc0"
    },
    "files": [
     {
      "path": "LICENSE",
      "bytes": 1068,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "c7f8a47b40ffbbb7e4c8ed017eb3d9c247259c14"
     },
     {
      "path": "README.md",
      "bytes": 3338,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "f4c1d34146d469e7cca832ec7dafee4fedc09450"
     },
     {
      "path": "ming-3.0-tts-0.5b-bf16.gguf",
@@ -147,7 +152,9 @@
    "optional": false,
    "converted_from": {
     "repo": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
-    "revision": "fd4b254389122332181a7c3db7f27e918eec64e3"
+    "revision": null,
+    "revision_note": "not stated on the card",
+    "base_head_at_lookup": "fd4b254389122332181a7c3db7f27e918eec64e3"
    },
    "files": [
     {
@@ -174,13 +181,16 @@
    "optional": false,
    "converted_from": {
     "repo": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
-    "revision": "fd4b254389122332181a7c3db7f27e918eec64e3"
+    "revision": null,
+    "revision_note": "not stated on the card",
+    "base_head_at_lookup": "fd4b254389122332181a7c3db7f27e918eec64e3"
    },
    "files": [
     {
      "path": "README.md",
      "bytes": 4940,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "9f10ffc114989cc6c799438d06d20333b5c73b7e"
     },
     {
      "path": "qwen-talker-1.7b-base-BF16.gguf",
@@ -206,14 +216,17 @@
    "optional": false,
    "converted_from": {
     "repo": "openbmb/VoxCPM2",
-    "revision": "32279effe8c19989596f05d353d1447f51d9e915"
+    "revision": null,
+    "revision_note": "not stated on the card",
+    "base_head_at_lookup": "32279effe8c19989596f05d353d1447f51d9e915"
    },
    "note": "Multi-model repository modified on the lookup day; only the listed paths are fetched.",
    "files": [
     {
      "path": "README.md",
      "bytes": 12492,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "f8376898672bb4d8968eeaabd026dd3c5a6d6e8f"
     },
     {
      "path": "VoxCPM2-GGUF/voxcpm2-bf16.gguf",
@@ -234,23 +247,28 @@
    "optional": false,
    "converted_from": {
     "repo": "inclusionAI/Ming-3.0-tts-0.5B",
-    "revision": "8d66b70a00f05ad183fa8a863b4ce609fc83cbc0"
+    "revision": null,
+    "revision_note": "not stated on the card; the weights were uploaded 2026-10-19, before the 2026-10-21 upstream long-text fix",
+    "base_head_at_lookup": "8d66b70a00f05ad183fa8a863b4ce609fc83cbc0"
    },
    "files": [
     {
      "path": "LICENSE",
      "bytes": 1067,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "fc637dcc53bd81e03b6b896e632eee77b0e4ccae"
     },
     {
      "path": "README.md",
      "bytes": 4245,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "8d55d7723ae234fd8e5c7566b57fa10a69facb5a"
     },
     {
      "path": "added_tokens.json",
      "bytes": 1785,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "6ed12db23265d04f85fef76b45a75fe6e0a2c5d9"
     },
     {
      "path": "campplus.safetensors",
@@ -260,17 +278,20 @@
     {
      "path": "config.json",
      "bytes": 5882,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "9eae6e978153987e59d3b7d1affa5364c2e2a13f"
     },
     {
      "path": "configuration.json",
      "bytes": 51,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "b120f7ddae024b7ce9634614656c5120a241fa20"
     },
     {
      "path": "merges.txt",
      "bytes": 1671853,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "31349551d90c7606f325fe0f11bbb8bd5fa0d7c7"
     },
     {
      "path": "model.safetensors",
@@ -280,12 +301,14 @@
     {
      "path": "model.safetensors.index.json",
      "bytes": 96296,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "be9626c6c8b261ca6745c63602cd083e988789a8"
     },
     {
      "path": "special_tokens_map.json",
      "bytes": 2726,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "cfdd7ee20831ec9f4dc5db451063915b94381ce3"
     },
     {
      "path": "tokenizer.json",
@@ -295,12 +318,14 @@
     {
      "path": "tokenizer_config.json",
      "bytes": 16260,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "d26ca5cf2e50334e29ff075de13e7b3bed3c383b"
     },
     {
      "path": "vocab.json",
      "bytes": 2776833,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "4783fe10ac3adce15ac8f358ef5462739852c569"
     }
    ]
   },
@@ -316,28 +341,34 @@
    "optional": false,
    "converted_from": {
     "repo": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
-    "revision": "fd4b254389122332181a7c3db7f27e918eec64e3"
+    "revision": null,
+    "revision_note": "not stated on the card",
+    "base_head_at_lookup": "fd4b254389122332181a7c3db7f27e918eec64e3"
    },
    "files": [
     {
      "path": "README.md",
      "bytes": 1026,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "affb4cadf545f5bbfb01c04f3fe9525c486c1d51"
     },
     {
      "path": "config.json",
      "bytes": 5317,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "7292c06f63ee990989f1fa9475b2df7310f313d1"
     },
     {
      "path": "generation_config.json",
      "bytes": 245,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "1872b16d4535564abf2db5d6debe6cddd82b7f2e"
     },
     {
      "path": "merges.txt",
      "bytes": 1671839,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "20024bfe7c83998e9aeaf98a0cd6a2ce6306c2f0"
     },
     {
      "path": "model.safetensors",
@@ -347,22 +378,26 @@
     {
      "path": "model.safetensors.index.json",
      "bytes": 38742,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "565be76a6c664d2187bbe47a0d1700cebeb73642"
     },
     {
      "path": "preprocessor_config.json",
      "bytes": 127,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "0525dd953bb9241912f7147666f0d535165d5d4f"
     },
     {
      "path": "speech_tokenizer/config.json",
      "bytes": 2336,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "06cc8dc4c5ec8a1929086b71b98c313020d9268b"
     },
     {
      "path": "speech_tokenizer/configuration.json",
      "bytes": 76,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "ab58e2eaf53cd14a1a2a7527d9261ceea93a24cd"
     },
     {
      "path": "speech_tokenizer/model.safetensors",
@@ -372,17 +407,20 @@
     {
      "path": "speech_tokenizer/preprocessor_config.json",
      "bytes": 234,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "ba40914f4f49ab98a8ca545d4892ef7291a39592"
     },
     {
      "path": "tokenizer_config.json",
      "bytes": 7344,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "6ff9fd60cc623bb54bbd603cbd418c97a11528d7"
     },
     {
      "path": "vocab.json",
      "bytes": 2776833,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "4783fe10ac3adce15ac8f358ef5462739852c569"
     }
    ]
   },
@@ -398,18 +436,22 @@
    "optional": false,
    "converted_from": {
     "repo": "openbmb/VoxCPM2",
-    "revision": "32279effe8c19989596f05d353d1447f51d9e915"
+    "revision": null,
+    "revision_note": "not stated on the card",
+    "base_head_at_lookup": "32279effe8c19989596f05d353d1447f51d9e915"
    },
    "files": [
     {
      "path": "README.md",
      "bytes": 2170,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "aa76fb4c6b39c676ade8708571e8f89b3e6850ef"
     },
     {
      "path": "config.json",
      "bytes": 5210,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "8502c6139b3ca6d164ad3fe92af45140664e63ec"
     },
     {
      "path": "model-00001.safetensors",
@@ -424,22 +466,26 @@
     {
      "path": "model.safetensors.index.json",
      "bytes": 67424,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "0e36c6f8ce21f4cfe4d68a76471ed722eec609ad"
     },
     {
      "path": "special_tokens_map.json",
      "bytes": 1632,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "8619dda6f3eb6d60d0a1bb274820054e46f41699"
     },
     {
      "path": "tokenizer.json",
      "bytes": 3676772,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "41a5c2a8dba4058dd1ad73fb898abf5e4f64f0f9"
     },
     {
      "path": "tokenizer_config.json",
      "bytes": 4952,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "213f667d43be76ffdf226393fe58375f913747fc"
     }
    ]
   },
@@ -455,24 +501,29 @@
    "optional": true,
    "converted_from": {
     "repo": "fishaudio/drama-3",
-    "revision": "b2b5ee998034b2975720906c815e7fb0e9f007bd"
+    "revision": "dd64a85cd82e9521f7202610ede97b367fc83946",
+    "revision_note": "stated on the card",
+    "base_head_at_lookup": "b2b5ee998034b2975720906c815e7fb0e9f007bd"
    },
    "note": "Experimental only: CPU expert offload with a 16 GB profile is untested on physical 16 GB cards.",
    "files": [
     {
      "path": "LICENSE",
      "bytes": 19685,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "3109ed8be76ee63f8b79e8752deef2bce2886675"
     },
     {
      "path": "NOTICE",
      "bytes": 1102,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "1bfaeaa748fec81321a3747c8b7bd40cc4469c97"
     },
     {
      "path": "README.md",
      "bytes": 11669,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "5396e7dc873ec310173362b716b372beb3d101a0"
     },
     {
      "path": "drama-3-backbone-8bit-experts-Q3_K_S.gguf",
@@ -496,17 +547,20 @@
     {
      "path": "LICENSE",
      "bytes": 19685,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "3109ed8be76ee63f8b79e8752deef2bce2886675"
     },
     {
      "path": "README.md",
      "bytes": 7996,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "adcc9ce0dcc643e1beb983ac050598b64c2552c0"
     },
     {
      "path": "chat_template.jinja",
      "bytes": 7756,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "a585dec894e63da457d9440ec6aa7caa16d20860"
     },
     {
      "path": "codec.pth",
@@ -516,7 +570,8 @@
     {
      "path": "config.json",
      "bytes": 5535,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "7d55fb1de30150d0353349b9e1779cbfaa1e836c"
     },
     {
      "path": "model-00001-of-00008.safetensors",
@@ -561,12 +616,14 @@
     {
      "path": "model.safetensors.index.json",
      "bytes": 6880197,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "8e282a0cd1e03bdfb85f37c34484cea4b2d99b17"
     },
     {
      "path": "special_tokens_map.json",
      "bytes": 102779,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "aaac48f459bc88b562c2079a64d5b13aa23d2685"
     },
     {
      "path": "tokenizer.json",
@@ -576,7 +633,8 @@
     {
      "path": "tokenizer_config.json",
      "bytes": 103580,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "f6d3655491f93602f82a61a6ad6fa0658d737f63"
     }
    ]
   },
@@ -594,7 +652,8 @@
     {
      "path": "README.md",
      "bytes": 5377,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "6023cecccb30eba7ed77fea84a9e47d334dd3a6c"
     },
     {
      "path": "classifier.ckpt",
@@ -604,7 +663,8 @@
     {
      "path": "config.json",
      "bytes": 51,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "2e8b3b4d97ae58d7daa78954a5c7f5b8abb42934"
     },
     {
      "path": "embedding_model.ckpt",
@@ -614,17 +674,20 @@
     {
      "path": "hyperparams.yaml",
      "bytes": 1919,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "70e4cd0beb74ca08a2df9de6bd79d938670a4d15"
     },
     {
      "path": "label_encoder.txt",
      "bytes": 128619,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "72c6fa7b170cbfd169df5e09326cd97febdf086a"
     },
     {
      "path": "mean_var_norm_emb.ckpt",
      "bytes": 1921,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "1978c5e7f20d5ffd14c8a932a7e85a09816f3da9"
     }
    ]
   },
@@ -642,17 +705,20 @@
     {
      "path": "README.md",
      "bytes": 4052,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "09bcae205c83ecdc42853bf33bcd6f7f9f93af12"
     },
     {
      "path": "config.json",
      "bytes": 58639,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "1b6ea0f4e7116bf5ff45c29c05d161dbc083b2c8"
     },
     {
      "path": "preprocessor_config.json",
      "bytes": 215,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "10f6def8c83d70a2b087a567dcf523b75152a80b"
     },
     {
      "path": "pytorch_model.bin",
@@ -675,7 +741,8 @@
     {
      "path": "README.md",
      "bytes": 1819,
-     "sha256": null
+     "sha256": null,
+     "git_blob_sha1": "9edbc5f3ea10def88cef1ca046bfb5c6b85eea82"
     },
     {
      "path": "fold0_s42_best_model.pth",
@@ -684,5 +751,9 @@
     }
    ]
   }
+ ],
+ "optional_arms": [
+  "D3-rented",
+  "D3-gpu-experimental"
  ]
 }
