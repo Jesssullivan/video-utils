@@ -7,7 +7,8 @@ judges the take. The model file is hashed once per path and must match a sha256 
 unregistered or partial file leaves WER not_measured. The manifest records the model's digest and registry id, or
 the loopback endpoint of the http backend. Numbers are compared as digits on both sides ("seven" and "7" are one
 word), so whisper writing numerals is not an error. SIM: render does not score takes in v0; `narrate evaluate`
-scores the delivered chunks with the registered speaker-verification model (narrate/sim.py).
+scores the delivered chunks with the registered speaker-verification model (narrate/sim.py). Whisper runs with at
+most MAX_WHISPER_THREADS threads, whatever narrate.toml asks ("Host placement and memory").
 
 A take that fails a measured gate is synthesised again with the next seed, at most maxTakes takes in all. The
 best take by WER, then SIM, is kept; every take's numbers and the failure are recorded. A chunk that never
@@ -25,6 +26,7 @@ from .amounts import say as say_amounts
 from .ir import sha256_file
 
 PAD = 0.5  # seconds of silence around a take read back by whisper
+MAX_WHISPER_THREADS = 4  # the host placement rule's whisper ceiling
 MODELS = Path(__file__).resolve().parents[1] / "program" / "models.json"
 
 UNITS = {
@@ -172,6 +174,7 @@ class Whisper:
         self.cfg = cfg
         self.backend = cfg.whisper.get("backend", "cli")
         self.whisper = condense_config.WHISPER | {k: v for k, v in cfg.whisper.items() if k != "model"}
+        self.whisper["threads"] = max(1, min(int(self.whisper["threads"]), MAX_WHISPER_THREADS))
         self.model = str(cfg.whisper_model)
         self.work = None
         self.model_sha256, self.model_id, self.endpoint = None, None, None
