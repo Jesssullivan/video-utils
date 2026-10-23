@@ -67,6 +67,15 @@
         MKL_NUM_THREADS = "2";
       };
     });
+    # The GPU-host narrate bench image and its two pinned runtimes (narrate/bench/image, deploy/narrate-bench).
+    # x86_64-linux only: the GPU host is x86_64. Built on demand, never by `just check`.
+    packages = nixpkgs.lib.genAttrs [ "x86_64-linux" ] (system: let
+      bench = import ./narrate/bench/image { pkgs = import nixpkgs { inherit system; }; };
+    in {
+      narrate-bench-audiocpp = bench.audiocpp;
+      narrate-bench-qwentts = bench.qwentts;
+      narrate-bench-image = bench.image;
+    });
     formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
   };
 }

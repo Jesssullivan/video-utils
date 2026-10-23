@@ -1,0 +1,33 @@
+{
+ "arm": "A2-gpu-alt",
+ "backend": "vulkan",
+ "budget_s": 480,
+ "chunks": "/models/bench/narrate/inputs/chunks-v1.json",
+ "chunks_sha256": "CHUNKS_SHA256",
+ "device": "Vulkan0",
+ "language": "English",
+ "model": {
+  "codec": "/models/bench/narrate/hf/Serveurperso/Qwen3-TTS-GGUF/b7ee2e8c7459c3bea99da23e3d178125a7d1713c/qwen-tokenizer-12hz-F32.gguf",
+  "talker": "/models/bench/narrate/hf/Serveurperso/Qwen3-TTS-GGUF/b7ee2e8c7459c3bea99da23e3d178125a7d1713c/qwen-talker-1.7b-base-BF16.gguf"
+ },
+ "out_root": "/out",
+ "reference": {
+  "consent_id": "CONSENT_ID",
+  "text": "/models/bench/narrate/inputs/voices/VOICE_ID.txt",
+  "text_sha256": "REFERENCE_TEXT_SHA256",
+  "voice_id": "VOICE_ID",
+  "wav": "/models/bench/narrate/inputs/voices/VOICE_ID.wav",
+  "wav_sha256": "REFERENCE_WAV_SHA256"
+ },
+ "runtime": "qwentts",
+ "schema": "narrate-bench-job/1",
+ "seeds": [
+  1,
+  2,
+  3
+ ],
+ "smoke": true,
+ "stall_s": 120,
+ "threads": 4,
+ "vulkan_icd": "radv"
+}

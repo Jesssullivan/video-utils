@@ -1,0 +1,26 @@
+{
+ "arm": "D2-preset",
+ "backend": "vulkan",
+ "budget_s": 90,
+ "chunks": "/models/bench/narrate/inputs/chunks-v1.json",
+ "chunks_sha256": "CHUNKS_SHA256",
+ "device_index": 0,
+ "language": "en",
+ "limit_chunks": 2,
+ "model": {
+  "family": "ming3_tts",
+  "path": "/models/bench/narrate/hf/audio-cpp/Ming-3.0-TTS-0.5B-GGUF/2eb8d37c7f10672e69c8aa33091baa04c461b66c/ming-3.0-tts-0.5b-bf16.gguf",
+  "task": "tts"
+ },
+ "out_root": "/out",
+ "preset_voice": "UK_George",
+ "runtime": "audiocpp",
+ "schema": "narrate-bench-job/1",
+ "seeds": [
+  1
+ ],
+ "smoke": false,
+ "stall_s": 120,
+ "threads": 4,
+ "vulkan_icd": "radv"
+}
