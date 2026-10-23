@@ -66,3 +66,36 @@ measurements on synthetic espeak speech only; no real voice, engine or listening
   `just narrate-test` failed (108 of 110) while `pytest` alone passed. `narrate/tests/conftest.py` now clears
   `WHISPER_MODEL`, `NARRATE_STORE`, `NARRATE_LEXICAL_DIR` and `NARRATE_ENGINE_TOKEN` for every test; after the
   fix `just narrate-test` passed 110 of 110 with the model present.
+
+## Review fix round (2026-10-23)
+
+A read-only review of PR #38 at `dfe09d5` found no blockers, 6 major and 7 minor findings. Authority: the
+operator-approved narrate plan and R-HOOK-CONVERGENCE-20261004 (R-N11, R-N12, R-N13). Commits `859f876`,
+`78e7578`, `f00c436`; nothing was force-pushed.
+
+| # | Finding | Disposition |
+| --- | --- | --- |
+| 1 | runs could land under `artifacts/runs/` | `Config` and `Renderer.run` refuse `out_in_guitar_runs`; `verify` adds a `location` check |
+| 2 | WER not bound to a model | the model file is hashed once per path and must match a `program/models.json` sha256, else WER is `not_measured`; `qa.wer` records backend, `model_sha256`, `model_id` or the loopback endpoint |
+| 3 | unmeasured chunks published with no flag | `wer_not_measured` and `sim_not_measured` flags, printed in the CLI summary |
+| 4 | `voices add` record and clip checks | record is exactly `Voice.dhall`'s fields (test parses the type); non-mono, non-16-bit, unreadable and empty clips, no or unknown `--allow-engine` are typed refusals |
+| 5 | slide id with `/` crashed | `slide` must match `[A-Za-z0-9_-][A-Za-z0-9._-]{0,63}`; a file-name default is made safe |
+| 6 | contract shape test tested its own fixture | the matrix and `tests/cli.rs` read a real render's timeline and key sets from `narrate/tests/fixtures`; `test_contract_shape.py` renders that run and asserts the fixtures still hold |
+| 7 | empty `inputSha256` silently unpinned | recorded as `input.pinned: false` and flagged `input_unpinned`; the Dhall type is unchanged (the W4 types landed, and the test workspace needs unpinned inputs) |
+| 8 | `just` overrode the toml model | explicit `[whisper] model` wins, then `NARRATE_WHISPER_MODEL`, then `WHISPER_MODEL` |
+| 9 | loose, inconsistent loudness rule | `audio.loudness_verdict` serves render and evaluate: 0.1 dB peak tolerance, `true_peak_over_ceiling`, `loudnorm_dynamic` |
+| 10 | token over cleartext to any host | `engine_transport_insecure` unless https, a loopback host or no token; Hosted and RentedOpen always need https |
+| 11 | numerals fail WER | number words become digits on both sides (grammatical runs only; "one two three" stays three words) |
+| 12 | evaluate scored raw takes | WER cuts each chunk's `out_start_s..out_end_s` from `narration.wav` and says so in `scored` |
+| 13 | lexical docstring, verify crash | docstring corrected; a malformed EDL segment returns a failing receipt |
+| open | `dhall` missing from the condense shell | added; the narrate CI job runs `narrate-dhall-check` there |
+
+Gates on the dev host: `just narrate-lint` clean; `just narrate-test` 163 passed; `just narrate-dhall-check` in
+`nix develop .#condense` errors 0 and 29 mutations; `test_timeline_contract`, `test_public_tree`,
+`test_bazel_graph_s3` 85 ran, OK, 2 skipped; `cargo test --test cli narration` 1 passed; `bazel build --nobuild
+//... --lockfile_mode=error` passed; `bazel test //tests:rust_cli_test //narrate:stdlib_test` passed;
+`gitleaks dir` no leaks.
+
+Still open: the committed `narrate/examples/narrate.toml` pins the real xoxd-lexical 0.2.0 digests, so it renders
+only with that private release; no CI renders it. `ref_audio` per server (W6), script-timed captions, no SIM
+scorer and the `narrate-bench` stub (W3) are unchanged.
