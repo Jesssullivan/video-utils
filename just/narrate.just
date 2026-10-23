@@ -4,14 +4,15 @@
 # and the pinned xoxd-lexical release live outside git: NARRATE_STORE and NARRATE_LEXICAL_DIR.
 # Runs land in artifacts/narrate/<run_id>/, outside artifacts/runs/; no guitar tool reads them.
 
+# Per-chunk whisper runs inside a render, so it runs through narrate/bounded.sh (6G MemoryMax, nice 19, idle I/O).
 # Render a job: adapters, lexical pass, chunker, engine, per-chunk QA, timing fit, loudness, verify.
 narrate-render config="narrate.toml" *args:
-    python3 -m narrate render {{quote(config)}} {{args}}
+    narrate/bounded.sh python3 -m narrate render {{quote(config)}} {{args}}
 
-# Score a rendered run without changing it: loudness, overruns, WER on the delivered audio (whisper when
-# present), SIM.
+# Bounded like narrate-render (whisper reads the delivered audio).
+# Score a rendered run without changing it: loudness, overruns, WER (whisper when present), SIM.
 narrate-eval run_dir config="":
-    python3 -m narrate evaluate {{quote(run_dir)}} {{ if config == "" { "" } else { "--config " + quote(config) } }}
+    narrate/bounded.sh python3 -m narrate evaluate {{quote(run_dir)}} {{ if config == "" { "" } else { "--config " + quote(config) } }}
 
 # Re-hash and re-check a run.
 narrate-verify run_dir:
