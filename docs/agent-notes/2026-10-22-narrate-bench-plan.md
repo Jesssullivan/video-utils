@@ -249,8 +249,8 @@ Lane W3 prep only; files are disjoint from the `narrate/` Python package of lane
   LFS sha256, writes `<source>/SHA256SUMS` plus a dated receipt, and never clones git sources. The apply path
   was exercised only against a local `file://` mirror of synthetic bytes in
   `tests/test_narrate_bench_fetch.py`; it has not downloaded any real weights.
-- Bazel: `narrate/bench/BUILD.bazel` (filegroup) is a data dependency of the Python tests; the S3 test
-  classification supplement counts the new module.
+- Bazel: `narrate/bench/` is not a Bazel package; the root `//:repo_data` glob carries it to the Python tests.
+  The S3 test classification supplement counts the new module.
 
 ## Open questions
 
