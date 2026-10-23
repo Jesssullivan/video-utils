@@ -1,0 +1,49 @@
+name: Narrate bench image
+# Builds the GPU-host bench image (narrate/bench/image, deploy/narrate-bench) and pushes it to GHCR. The GPU
+# host pulls by digest only, so the job writes the pushed digest to its summary. Runs only by hand: no push or
+# pull request builds it. No weights, voices or text beyond the public bench text are in the image.
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Target repository, ghcr.io/<owner>/<path> (lowercase). Empty: ghcr.io/<this repo>/narrate-bench"
+        required: false
+        default: ""
+permissions:
+  contents: read
+  packages: write
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+jobs:
+  image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7 # v31
+      - name: Build the image
+        run: nix build --no-write-lock-file -L .#narrate-bench-image
+      - name: Push by digest
+        env:
+          # A token for another owner's GHCR namespace (for example an organisation's), else this repository's.
+          PUSH_TOKEN: ${{ secrets.NARRATE_BENCH_GHCR_TOKEN || secrets.GITHUB_TOKEN }}
+          PUSH_USER: ${{ github.actor }}
+          TARGET: ${{ inputs.image }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          target="${TARGET:-ghcr.io/${REPO,,}/narrate-bench}"
+          case "$target" in ghcr.io/*) ;; *) echo "target must be on ghcr.io" >&2; exit 2 ;; esac
+          tag="$(nix eval --raw --no-write-lock-file .#narrate-bench-image.imageTag)"
+          skopeo="$(nix build --no-link --print-out-paths --inputs-from . nixpkgs#skopeo)/bin/skopeo"
+          echo "$PUSH_TOKEN" | "$skopeo" login --username "$PUSH_USER" --password-stdin ghcr.io
+          "$skopeo" copy --digestfile digest "docker-archive:result" "docker://$target:$tag"
+          digest="$(cat digest)"
+          {
+            echo "### Narrate bench image"
+            echo
+            echo "- reference: \`$target@$digest\`"
+            echo "- tag: \`$tag\` (for people; pods pull by digest)"
+            echo "- archive sha256: \`$(sha256sum result | cut -d' ' -f1)\`"
+          } >> "$GITHUB_STEP_SUMMARY"

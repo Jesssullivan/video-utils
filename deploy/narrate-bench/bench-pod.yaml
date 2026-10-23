@@ -1,0 +1,116 @@
+# Narrate bench window pod (TIN-7088; plan docs/agent-notes/2026-10-22-narrate-bench-plan.md). NOT APPLIED.
+# Input to the GPU-host owner's window runner, which validates it against the owner's pod contract, takes
+# the GPU Lease by compare-and-swap, adds its run label and a DNS-only NetworkPolicy, creates the pod, waits
+# for the NARRATE-BENCH-DONE line, streams /out with tar, deletes the pod and releases the Lease
+# (README.md, "Window"). Fill these placeholders first (README.md, "Render the pod spec"):
+#   __WINDOW_ID__        a lowercase window id such as 20261024t1500 (the pod is narrate-bench-<id>)
+#   __GPU_NODE__         the GPU node's kubernetes.io/hostname
+#   __MODELS_PVC__       the GPU node's models PersistentVolumeClaim in namespace models
+#   __IMAGE__            ghcr.io/<owner>/<path>@sha256:<64 hex>, by digest only
+#   __IMAGE_DIGEST__     sha256:<64 hex>, the same digest, copied into every receipt
+#
+# Pod Security restricted: non-root uid and gid 10001, the render group 105 as a supplementary group (the
+# device plugin injects the render node and kfd for `devic.es/dri: 1`), no privilege escalation, every
+# capability dropped, the RuntimeDefault seccomp profile, a read-only root filesystem. CPU request 2 (the GPU
+# node is near its CPU request guard) and limit 4, which is also the jobs' thread count. Memory 12Gi request
+# and limit, inside the namespace's quota and the per-container LimitRange.
+#
+# The volume is read-only at /models with no subPath: the weights at /models/bench/narrate/hf/<repo>/<revision>/
+# (SHA256SUMS in each) and the inputs at /models/bench/narrate/inputs/ (job files, the chunk list, the consented
+# reference clip and transcript), all staged before the window (stage-job.yaml). The entrypoint hash-checks
+# every model file against the image's sources.json before the first arm, runs A2-gpu-alt, the decoy-2 preset
+# chunks, A1-gpu and A3-gpu one synthesis process at a time, starts no arm after NARRATE_WINDOW_S (25 min),
+# writes WAVs and receipts to /out/<window id>/, prints NARRATE-BENCH-DONE rc=N and sleeps until deleted.
+# activeDeadlineSeconds (30 min) ends the pod regardless.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: narrate-bench-__WINDOW_ID__
+  namespace: models
+  labels:
+    app.kubernetes.io/name: narrate-bench
+    app.kubernetes.io/part-of: narrate
+    app.kubernetes.io/component: bench
+    app.kubernetes.io/managed-by: narrate
+  annotations:
+    narrate.bench/plan: docs/agent-notes/2026-10-22-narrate-bench-plan.md
+    narrate.bench/arms: A2-gpu-alt,D2-preset,A1-gpu,A3-gpu
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: __GPU_NODE__
+  restartPolicy: Never
+  activeDeadlineSeconds: 1800
+  terminationGracePeriodSeconds: 15
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+  priorityClassName: gpu-exclusive
+  imagePullSecrets:
+    - name: ghcr-pull
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    supplementalGroups: [105]
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: bench
+      image: __IMAGE__
+      imagePullPolicy: IfNotPresent
+      command: ["/bin/narrate-bench-window"]
+      args:
+        - /models/bench/narrate/inputs/jobs/a2-gpu-alt.json
+        - /models/bench/narrate/inputs/jobs/d2-preset.json
+        - /models/bench/narrate/inputs/jobs/a1-gpu.json
+        - /models/bench/narrate/inputs/jobs/a3-gpu.json
+      env:
+        - name: NARRATE_IMAGE_DIGEST
+          value: __IMAGE_DIGEST__
+        - name: NARRATE_RUN_ID
+          value: __WINDOW_ID__
+        - name: NARRATE_WINDOW_S
+          value: "1500"
+        - name: NARRATE_LINGER_S
+          value: "600"
+        - name: NARRATE_VRAM_SYSFS
+          value: /sys/class/drm/renderD128/device/mem_info_vram_used
+        - name: HOME
+          value: /tmp
+        - name: XDG_CACHE_HOME
+          value: /tmp/cache
+        - name: MESA_SHADER_CACHE_DIR
+          value: /tmp/mesa-shader-cache
+      resources:
+        requests:
+          cpu: "2"
+          memory: 12Gi
+          devic.es/dri: "1"
+        limits:
+          cpu: "4"
+          memory: 12Gi
+          devic.es/dri: "1"
+      securityContext:
+        allowPrivilegeEscalation: false
+        privileged: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+      volumeMounts:
+        - name: models
+          mountPath: /models
+          readOnly: true
+        - name: out
+          mountPath: /out
+        - name: tmp
+          mountPath: /tmp
+  volumes:
+    - name: models
+      persistentVolumeClaim:
+        claimName: __MODELS_PVC__
+        readOnly: true
+    - name: out
+      emptyDir:
+        sizeLimit: 4Gi
+    - name: tmp
+      emptyDir:
+        sizeLimit: 2Gi

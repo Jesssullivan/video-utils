@@ -1,0 +1,34 @@
+{
+ "arm": "A1-gpu",
+ "backend": "vulkan",
+ "budget_s": 390,
+ "chunks": "/models/bench/narrate/inputs/chunks-v1.json",
+ "chunks_sha256": "CHUNKS_SHA256",
+ "device_index": 0,
+ "language": "en",
+ "model": {
+  "family": "ming3_tts",
+  "path": "/models/bench/narrate/hf/audio-cpp/Ming-3.0-TTS-0.5B-GGUF/2eb8d37c7f10672e69c8aa33091baa04c461b66c/ming-3.0-tts-0.5b-bf16.gguf",
+  "task": "clon"
+ },
+ "out_root": "/out",
+ "reference": {
+  "consent_id": "CONSENT_ID",
+  "text": "/models/bench/narrate/inputs/voices/VOICE_ID.txt",
+  "text_sha256": "REFERENCE_TEXT_SHA256",
+  "voice_id": "VOICE_ID",
+  "wav": "/models/bench/narrate/inputs/voices/VOICE_ID.wav",
+  "wav_sha256": "REFERENCE_WAV_SHA256"
+ },
+ "runtime": "audiocpp",
+ "schema": "narrate-bench-job/1",
+ "seeds": [
+  1,
+  2,
+  3
+ ],
+ "smoke": true,
+ "stall_s": 120,
+ "threads": 4,
+ "vulkan_icd": "radv"
+}

@@ -1,0 +1,101 @@
+# Narrate bench staging (TIN-7088; plan docs/agent-notes/2026-10-22-narrate-bench-plan.md). NOT APPLIED.
+# Puts the window's weights and inputs on the GPU node's models volume under bench/narrate/, before any
+# window. It needs no GPU, holds no Lease and has no network at all: the files arrive from the CPU host as a
+# tar stream through `kubectl exec` (README.md, "Stage"), never from the Hub or the model store. Fill these
+# placeholders first (README.md, "Render the specs"):
+#   __GPU_NODE__         the GPU node's kubernetes.io/hostname (the volume is node-local)
+#   __MODELS_PVC__       the GPU node's models PersistentVolumeClaim in namespace models
+#   __IMAGE__            ghcr.io/<owner>/<path>@sha256:<64 hex>, by digest only
+#
+# The Job's one pod waits up to 55 min for /models/bench/narrate/.upload-complete, which the operator writes
+# after the tar stream. It then hash-checks every weight file against the image's sources.json and the
+# directory's SHA256SUMS, checks each job file and the inputs it names (the reference clip and transcript by
+# sha256, the consent id present), writes /models/bench/narrate/receipts/stage-<utc>.json, prints
+# NARRATE-STAGE-DONE rc=N and exits. Weights need about 11.5 GiB.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: models-stage-narrate-bench
+  namespace: models
+  labels:
+    app.kubernetes.io/name: narrate-bench
+    app.kubernetes.io/part-of: narrate
+    app.kubernetes.io/component: stage
+    app.kubernetes.io/managed-by: narrate
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: narrate-bench
+      app.kubernetes.io/component: stage
+  policyTypes: ["Ingress", "Egress"]
+  ingress: []
+  egress: []
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: models-stage-narrate-bench
+  namespace: models
+  labels:
+    app.kubernetes.io/name: narrate-bench
+    app.kubernetes.io/part-of: narrate
+    app.kubernetes.io/component: stage
+    app.kubernetes.io/managed-by: narrate
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 3600
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: narrate-bench
+        app.kubernetes.io/part-of: narrate
+        app.kubernetes.io/component: stage
+        app.kubernetes.io/managed-by: narrate
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: __GPU_NODE__
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      imagePullSecrets:
+        - name: ghcr-pull
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: stage
+          image: __IMAGE__
+          imagePullPolicy: IfNotPresent
+          args: ["receive", "--root", "/models/bench/narrate", "--wait-s", "3300"]
+          env:
+            - name: HOME
+              value: /tmp
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: models
+              mountPath: /models
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: __MODELS_PVC__
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
