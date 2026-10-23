@@ -43,3 +43,6 @@ __pycache__/
 *.vtt
 .pytest_cache/
 .ruff_cache/
+# Narrate bench: pulled-back window runs and the GPU host's private bench.env never enter Git.
+/runs/
+bench.env

@@ -292,6 +292,23 @@ Lane W3 prep only; files are disjoint from the `narrate/` Python package of lane
     the plan lists excluded optional ids; malformed entries are refused with a message; hashing runs on Python
     3.9 (checked with CPython 3.9.25).
 
+- **Revision 2 (2026-10-23, host-process runner, lane E6; no render or GPU use had happened).**
+  R-HOOK-CONVERGENCE-20261004 R-N13. Operator ruling of 2026-10-23 (TIN-5770): the first window is a host process
+  on the GPU host. Runner and its receipt: [`2026-10-23-narrate-host-bench.md`](2026-10-23-narrate-host-bench.md).
+  - The chunk list is fixed in `narrate/bench/chunks-v1.json` (17 chunks, 795 words, `chunks_sha256`
+    `f6b109c78ffdf3e311dcd95b2b12c623c41a9ea99c170a0f58802ec20398c31e`): narrate's chunker, with each section's
+    paragraphs joined so sentences pack across the s3 dialog lines but never across a section.
+  - Host-run limits from the ruling: VRAM in use stays at or under 12,000,000,000 bytes (absolute, sampled every
+    0.2 s); above it, the window stops. The 14.5 GiB bar above idle is still reported.
+  - A1 (Ming): its 512-position context is shared by the reference's acoustic prefix and the output (about 80 ms
+    per position), so the 30 to 35 s reference with `reference_text` leaves too little room for a chunk of up to
+    300 codepoints. The one-chunk smoke requires at least half the chunk's expected duration; if the planned
+    conditioning fails it, A1 runs with speaker-embedding conditioning (the same clip without `reference_text`) and
+    the receipt records the deviation.
+  - Each runtime loads its model once per pass: qwentts.cpp through `qwen-tts --stream-by-line` (ICL with
+    `--ref-wav` and `--ref-text`), audio.cpp through `--request-sequence`. RTF is per-chunk synthesis time over
+    audio; load time is recorded apart.
+
 ## Open questions
 
 - **Operator decision: which A2 path is the N0 fallback.** This plan names A2-gpu-alt, matching the approved

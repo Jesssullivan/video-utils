@@ -1,0 +1,87 @@
+{
+ "schema": "narrate-bench-host-job/1",
+ "about": "GPU-host window job for narrate/bench/host_run.py (bench plan, docs/agent-notes/2026-10-22-narrate-bench-plan.md). Dollar-brace values come from the environment (run-bench.sh reads them from the private bench.env); this file holds no host path and no voice. The voice registry is a private, hash-bound file (voices_file) that never enters git. Weights use narrate-fetch's layout (<weights>/hf/<source id>/<file>) and their sha256 values from narrate/bench/sources.json. VK_DRIVER_FILES is set to vulkan_icd (RADV) for every engine.",
+ "chunks": {
+  "path": "${NARRATE_BENCH_JOB_DIR}/chunks-v1.json",
+  "sha256": "0c2900ff7ef01001d06886dff937efddb286da656051ec1cdfbac330b4d04d0f"
+ },
+ "voice": "${NARRATE_BENCH_VOICE}",
+ "voices_file": {"path": "${NARRATE_BENCH_VOICES_FILE}", "sha256": "${NARRATE_BENCH_VOICES_SHA256}"},
+ "vulkan_icd": "${NARRATE_BENCH_VK_ICD:-/usr/share/vulkan/icd.d/radeon_icd.x86_64.json}",
+ "seeds": [1, 2, 3],
+ "gap_s": 0.25,
+ "stall_s": 120,
+ "smoke_min_ratio": 0.5,
+ "vram": {"limit_bytes": 12000000000, "poll_s": 0.2, "required": true, "card": "", "min_rise_bytes": 268435456},
+ "arms": {
+  "A2-gpu-alt": {
+   "about": "Qwen3-TTS-12Hz-1.7B-Base through qwentts.cpp 5916bf7c, ICL cloning: --ref-wav plus the verified --ref-text. One model load; --stream-by-line makes every chunk one stdin line.",
+   "runtime": "qwentts",
+   "budget_s": 480,
+   "inputs": {
+    "binary": {"path": "${NARRATE_BENCH_QWEN_TTS}", "sha256": "${NARRATE_BENCH_QWEN_TTS_SHA256}"},
+    "model": {
+     "path": "${NARRATE_BENCH_WEIGHTS}/qwen3-tts-1.7b-base-qwentts/qwen-talker-1.7b-base-BF16.gguf",
+     "sha256": "7f4567113f3aa07e842fac6d17a10a98cf3d0068c0871ac245ac9befc63affa5"
+    },
+    "codec": {
+     "path": "${NARRATE_BENCH_WEIGHTS}/qwen3-tts-1.7b-base-qwentts/qwen-tokenizer-12hz-F32.gguf",
+     "sha256": "b16b95557c7c7340a121757bd6855b9609e1cf4ad3fad0778b89393293ae5f3d"
+    }
+   },
+   "settings": {"device": "${NARRATE_BENCH_QWEN_DEVICE}", "lang": "English"},
+   "variants": [{"name": "icl-ref-text", "voice": true, "reference_text": true}]
+  },
+  "A1-gpu": {
+   "about": "Ming-3.0-tts-0.5B (bf16 GGUF) through audio.cpp 47c2756e, --task clon. Ming's prompt and output share a 512-position context of about 80 ms patches, so a 30 to 35 s reference with its transcript leaves almost no room for a 300-codepoint chunk; the smoke's duration check then falls back to speaker-embedding conditioning (voice_ref without reference_text), recorded as a deviation. Decoy 2: two chunks in the preset voice UK_George (template ip), no cloning.",
+   "runtime": "audiocpp",
+   "budget_s": 480,
+   "inputs": {
+    "binary": {"path": "${NARRATE_BENCH_AUDIOCPP_CLI}", "sha256": "${NARRATE_BENCH_AUDIOCPP_CLI_SHA256}"},
+    "model": {
+     "path": "${NARRATE_BENCH_WEIGHTS}/ming3-0.5b-gguf/ming-3.0-tts-0.5b-bf16.gguf",
+     "sha256": "43f108a4e6bb54af13071d0cb345a094e0b011b3b8318d8fb2c61753733f5312"
+    }
+   },
+   "settings": {
+    "family": "ming3_tts",
+    "task": "clon",
+    "backend": "vulkan",
+    "device": "${NARRATE_BENCH_AUDIOCPP_DEVICE:-0}",
+    "options": {"language": "en", "raw_text": "true"}
+   },
+   "variants": [
+    {"name": "ref-text", "voice": true, "reference_text": true},
+    {"name": "speaker-embedding", "voice": true, "reference_text": false}
+   ],
+   "decoys": [
+    {
+     "id": "decoy2-preset-UK_George",
+     "task": "tts",
+     "chunks": ["s1.c01", "s3.c01"],
+     "options": {"language": "en", "raw_text": "true", "template_name": "ip", "voice_id": "UK_George"}
+    }
+   ]
+  },
+  "A3-gpu": {
+   "about": "VoxCPM2 (bf16 GGUF) through audio.cpp 47c2756e, ultimate clone: voice_ref plus reference_text. voxcpm2.mem_saver is already true by default at this pin.",
+   "runtime": "audiocpp",
+   "budget_s": 480,
+   "inputs": {
+    "binary": {"path": "${NARRATE_BENCH_AUDIOCPP_CLI}", "sha256": "${NARRATE_BENCH_AUDIOCPP_CLI_SHA256}"},
+    "model": {
+     "path": "${NARRATE_BENCH_WEIGHTS}/voxcpm2-gguf/VoxCPM2-GGUF/voxcpm2-bf16.gguf",
+     "sha256": "dc48028ebf08b9fd2456cbf5fa1ab52568d16660e34d0fa418c35e251ca1ecab"
+    }
+   },
+   "settings": {
+    "family": "voxcpm2",
+    "task": "clon",
+    "backend": "vulkan",
+    "device": "${NARRATE_BENCH_AUDIOCPP_DEVICE:-0}",
+    "options": {}
+   },
+   "variants": [{"name": "ref-text", "voice": true, "reference_text": true}]
+  }
+ }
+}
