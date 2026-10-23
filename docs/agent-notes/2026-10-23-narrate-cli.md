@@ -2,8 +2,8 @@
 
 Date: 2026-10-23. Lane W5 of the narrate plan (TIN-7087, parent TIN-7084, milestone N0 Narration v0).
 Authority: the operator-approved narrate plan of 2026-10-22, `docs/spec/NARRATE.md`, AGENTS.md and
-R-HOOK-CONVERGENCE-20261004 (R-N11, R-N12, R-N13). Branch `feat/narrate-cli`, stacked on `feat/narrate-spec`
-(lane W4, PR #37) until that lands; root lands both by fast-forward.
+R-HOOK-CONVERGENCE-20261004 (R-N11, R-N12, R-N13). Branch `feat/narrate-cli`, first stacked on `feat/narrate-spec`
+(lane W4, PR #37); rebased onto main after that landed. Root lands it by fast-forward.
 
 ## What landed
 
