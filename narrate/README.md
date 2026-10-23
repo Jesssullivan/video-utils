@@ -103,36 +103,48 @@ The rule, after the CPU host was driven to NotReady by narration work on 2026-10
   host** inside its leased window. Tests use fake engines and fake binaries.
 - **Scorers one at a time, bounded.** Whisper, a SIM model or any other heavy scoring step runs one at a time
   inside a transient user scope with `MemoryMax=6G` at nice 19 and the idle I/O class, whisper with at most 4
-  threads, and only while memory pressure (`/proc/pressure/memory`, `full avg10`) is 10 or below.
+  threads, and starts only when memory pressure (`/proc/pressure/memory`, `full avg10`) is 10 or below.
 
 The code holds to it: `just narrate-render` and `just narrate-eval`, the recipes that run whisper, go through
-`bounded.sh`, which waits on memory pressure (exit 75 after `NARRATE_PSI_WAIT_S`, default 600 s), then runs the
-step at nice 19 with `ionice -c3`, inside `systemd-run --user --scope -p MemoryMax=6G` where a user systemd answers
-(`NARRATE_MEMORY_MAX` changes the ceiling; without systemd, as on macOS, it says so and runs without a ceiling).
-`qa.py` gives whisper at most 4 threads whatever `narrate.toml` asks. `serve/qwentts.sh serve` refuses unless
-`NARRATE_TTS_HOST_ALLOWED=1`, which only an allowed host's private start script sets.
+`bounded.sh`. It takes a per-user `flock` so a second step waits for the first (exit 75 after
+`NARRATE_LOCK_WAIT_S`, default 3600 s), waits before starting while pressure is high (exit 75 after
+`NARRATE_PSI_WAIT_S`, default 600 s), then runs the step at nice 19 with `ionice -c3`, inside
+`systemd-run --user --scope -p MemoryMax=6G` where a user systemd answers (`NARRATE_MEMORY_MAX` changes the
+ceiling). Without systemd or flock, as on macOS, it says what it cannot do. A nested call is recognised by the
+outer step's pid, never by an inherited flag. `qa.py` gives whisper at most 4 threads whatever `narrate.toml` asks.
 
 ## The qwentts.cpp engine
 
-`just narrate-serve-qwentts` runs qwentts.cpp's `tts-server` (the commit pinned in `bench/sources.json`, built in
-`$TMPDIR` with the thread bound of `serve/qwentts-threads.patch`) on 127.0.0.1 with the pinned Qwen3-TTS 1.7B
-Base BF16 GGUF, through `bounded.sh` with a 14G ceiling (`NARRATE_QWENTTS_MEMORY_MAX`). It is host-agnostic:
-`NARRATE_QWENTTS_DEVICE` names the device and the build follows it (`Vulkan0` on the GPU host, `MTL0` on the Mac
-build host, `CPU` for a CPU-only build on an allowed host). Fetch the weights first with
-`NARRATE_WEIGHTS_DIR=... just narrate-fetch --only qwen3-tts-1.7b-base-qwentts --apply`. The script takes every
-path and knob from the environment (`NARRATE_TTS_HOST_ALLOWED`, `NARRATE_QWENTTS_DEVICE`, `NARRATE_WEIGHTS_DIR`,
-`NARRATE_QWENTTS_BUILD`, `NARRATE_QWENTTS_THREADS` and `NARRATE_QWENTTS_JOBS` at most 8, `NARRATE_QWENTTS_CPUS`,
-`NARRATE_QWENTTS_PORT`, `NARRATE_QWENTTS_LANG`), so no host path is in git. `just narrate-build-qwentts` builds
-without serving.
+`just narrate-build-qwentts` builds qwentts.cpp (the commit pinned in `bench/sources.json`, with
+`serve/qwentts-threads.patch`, a GGML CPU thread bound, and `serve/qwentts-loopback.patch`, which drops the
+server's permissive CORS and refuses browser origins and non-loopback `Host` headers) through `bounded.sh` with an
+8G ceiling, in `~/narrate-work/qwentts` or `NARRATE_QWENTTS_BUILD` (the user's own, mode 0700). The stamp records
+the pin, the patch digests, the backend and the built `tts-server`'s sha256. `just narrate-serve-qwentts` never
+builds: it hashes the pinned Qwen3-TTS 1.7B Base BF16 GGUF, checks the stamped binary, and runs `tts-server` on
+127.0.0.1 through `bounded.sh --no-lock` with a 14G ceiling (`NARRATE_QWENTTS_MEMORY_MAX`).
+`NARRATE_QWENTTS_DEVICE` names the device: `Vulkan0` on the GPU host, `MTL0` on the Mac build host (`CPU` builds
+only). Fetch the weights first with `NARRATE_WEIGHTS_DIR=... just narrate-fetch --only qwen3-tts-1.7b-base-qwentts
+--apply`.
+
+Both recipes run only on a host whose machine id (`/etc/machine-id`, or `IOPlatformUUID` on macOS) is a line of
+the private allow file `~/.config/narrate/tts-host`, owned by the user and writable by no one else. Set it up once
+on an allowed host with `mkdir -p ~/.config/narrate && cat /etc/machine-id > ~/.config/narrate/tts-host && chmod
+600 ~/.config/narrate/tts-host` (on macOS, the `IOPlatformUUID` from `ioreg -rd1 -c IOPlatformExpertDevice`). No
+environment variable opens the gate. Other knobs: `NARRATE_WEIGHTS_DIR`, `NARRATE_QWENTTS_BUILD`,
+`NARRATE_QWENTTS_THREADS` and `NARRATE_QWENTTS_JOBS` at most 8, `NARRATE_QWENTTS_BUILD_MEMORY_MAX`,
+`NARRATE_QWENTTS_CPUS`, `NARRATE_QWENTTS_PORT`, `NARRATE_QWENTTS_LANG`.
 
 This server does not read `ref_audio` on the speech route; it clones a voice registered by name. An engine
-record with `backend = QwenTtsCpp` makes `engine.py` register the reference clip and its verified transcript
-(`POST /v1/audio/voices {name, ref_text, wav_b64}`, name derived from the voice id and the clip and transcript
-digests), register again when a restarted server no longer lists it, and then call `/v1/audio/speech` with that
-name and the seed. The server ignores `speed`, so the client sends none, records `speed_honoured: false`, and the
-timing fit uses atempo alone. Each take records `conditioning: icl` (clip plus transcript) or `x_vector` (clip
-only). On the GPU host a record uses the `GpuDirect` profile. The Mac build is for development checks only: the
-`MacMlx` profile admits `MlxAudio` alone, so a Mac qwentts.cpp record would fail `Engine.consistent`.
+record with `backend = QwenTtsCpp` makes a render open one voice session in `engine.py`: the first take of each
+voice registers the reference clip and its verified transcript (`POST /v1/audio/voices {name, ref_text,
+wav_b64}`) under a name made of the voice id, the clip and transcript digest and a per-session random nonce;
+every take calls `/v1/audio/speech` with that name and the seed; and the session's end deletes the names it
+registered, also when the render fails. The client never trusts the server's voice list. A 400 on a later take
+(a restarted server) registers again and asks once more. The server ignores `speed`, so the client sends none,
+records `speed_honoured: false`, and the timing fit uses atempo alone. Each take records `conditioning: icl` (clip
+plus transcript) or `x_vector` (clip only). On the GPU host a record uses the `GpuDirect` profile. The Mac build
+is for development checks only: the `MacMlx` profile admits `MlxAudio` alone, so a Mac qwentts.cpp record would
+fail `Engine.consistent`.
 
 ## Outputs
 
