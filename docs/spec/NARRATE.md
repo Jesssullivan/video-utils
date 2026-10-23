@@ -121,9 +121,9 @@ third arm; Fish Audio Drama 3, the rented tier). W3 picks among them.
 
 ## Host placement and memory
 
-Operator rule after narration work drove the CPU host, a cluster control-plane member, to
-NotReady on 2026-10-23 (TIN-7085). It binds every narrate lane, recipe and
-test:
+Operator rule after narration work drove the CPU host, a cluster
+control-plane member, to NotReady on 2026-10-23 (TIN-7085). It binds every
+narrate lane, recipe and test:
 
 - **No TTS model on the CPU host.** No TTS server, no MLX, torch or GGML
   inference and no Vulkan or lavapipe model smoke test runs there. Synthesis
@@ -133,22 +133,36 @@ test:
 - **Scorers one at a time, bounded.** Whisper, a SIM model or any other heavy
   scoring step runs one at a time inside a transient user scope with
   `MemoryMax=6G`, at nice 19 and the idle I/O class, whisper with at most 4
-  threads, and only while memory pressure (`/proc/pressure/memory`,
+  threads, and starts only when memory pressure (`/proc/pressure/memory`,
   `full avg10`) is 10 or below.
 
 Enforcement in the code:
 
-- `narrate/bounded.sh` waits while `full avg10` is above 10 (exit 75 after
-  `NARRATE_PSI_WAIT_S`), then runs its command at nice 19 with `ionice -c3`,
+- `narrate/bounded.sh` takes a per-user lock (`flock` on
+  `$XDG_RUNTIME_DIR/narrate-heavy.lock`) so a second bounded step on the host
+  waits for the first (exit 75 after `NARRATE_LOCK_WAIT_S`; without `flock`,
+  as on macOS, it says the step is not serialised). It then waits before
+  starting while `full avg10` is above 10 (exit 75 after
+  `NARRATE_PSI_WAIT_S`) and runs its command at nice 19 with `ionice -c3`,
   inside `systemd-run --user --scope -p MemoryMax=6G` when a user systemd
-  answers. Without one (macOS, a CI container) it says so and runs without a
-  ceiling. `just narrate-render` and `just narrate-eval`, the recipes that run
-  whisper, go through it.
+  answers. Pressure is read before the start only; during the run the scope's
+  ceiling is the bound. Without a user systemd (macOS, a CI container) it says
+  so and runs without a ceiling. A nested call is recognised by the outer
+  step's pid among its own pid and ancestors, never by an inherited flag, so a
+  leaked variable cannot drop the bounds. `just narrate-render` and
+  `just narrate-eval`, the recipes that run whisper, go through it.
 - `qa.Whisper` caps whisper at 4 threads whatever `narrate.toml` asks.
-- `narrate/serve/qwentts.sh serve` (`just narrate-serve-qwentts`) refuses
-  unless `NARRATE_TTS_HOST_ALLOWED=1`, which only an allowed host's private
-  start script sets, and runs the server through `bounded.sh` with a 14G
-  ceiling.
+- `narrate/serve/qwentts.sh` builds and serves only on a host whose machine id
+  (`/etc/machine-id`, or `IOPlatformUUID` on macOS) is in the user's private
+  allow file `~/.config/narrate/tts-host`, which must be the user's own and
+  writable by no one else. No environment variable opens it and no host name
+  is in git. `serve` takes `Vulkan0..9` or `MTL0..9` only (`CPU` is a build
+  target), hashes the weights against the pin, refuses a build that is not
+  current or whose `tts-server` differs from the sha256 in its stamp, never
+  builds, and runs the server through `bounded.sh --no-lock` with a 14G
+  ceiling. `build` runs both cmake steps through `bounded.sh` with an 8G
+  ceiling, in a build tree of the user's own with mode 0700, with git hooks
+  off and the origin held to the pinned URL; build before a window opens.
 
 ## qwentts.cpp engine (2026-10-23)
 
@@ -157,13 +171,27 @@ read `ref_audio` or `ref_text` on `/v1/audio/speech`. It clones from a voice
 registered by name (`POST /v1/audio/voices {name, ref_text, wav_b64}`; ICL
 when `ref_text` is present), keeps the registry in memory only, refuses an
 unknown voice with HTTP 400 and parses `speed` without applying it. For a
-`QwenTtsCpp` engine the client therefore registers the reference under a name
-derived from the voice id and the clip and transcript digests, registers again
-when a restarted server no longer lists it, speaks by that name with the seed,
-sends no `speed`, records `speed_honoured: false` and fits timing with `atempo`
-alone (step 7's speed knob is skipped). The serve recipe is host-agnostic:
-`NARRATE_QWENTTS_DEVICE` (`Vulkan0`, `MTL0` or `CPU`) selects the build. A
-narrate engine record for it uses `GpuDirect` on the GPU host; `MacMlx` admits
+`QwenTtsCpp` engine a render opens one voice session: the first take of each
+voice registers the reference under a name made of the voice id, a digest of
+clip and transcript and a random per-session nonce, and the session's end
+deletes every name it registered (`DELETE /v1/audio/voices/{name}`), on
+success and on failure. The client never reads the server's voice list, so an
+entry another client registered is never spoken with or recorded as the
+operator's clone. A 400 on a later take (a restarted server) registers again
+and asks once more. Takes speak by that name with the seed, send no `speed`,
+record `speed_honoured: false` and fit timing with `atempo` alone (step 7's
+speed knob is skipped).
+
+The pinned server answers every origin with `Access-Control-Allow-Origin: *`.
+`narrate/serve/qwentts-loopback.patch` removes that and refuses, before
+routing, any request with an `Origin` header (a browser page) or a `Host`
+header that does not name the loopback interface (DNS rebinding). Any local
+process on the serving host can still reach the loopback port; the nonce names
+and the deletion keep a registered clone's exposure to the render that made
+it.
+
+`NARRATE_QWENTTS_DEVICE` (`Vulkan0` or `MTL0`) selects the build. A narrate
+engine record for it uses `GpuDirect` on the GPU host; `MacMlx` admits
 `MlxAudio` only, so a Mac build serves development checks, not a record.
 
 ## Consent and confidentiality policy

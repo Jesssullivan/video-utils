@@ -6,6 +6,11 @@ Linear TIN-7088 (narrate W6a interim serving, parent TIN-7084); the host-safety 
 stopped; no other session's process was touched), R-N12 (hooks advisory), R-N13 (this receipt; facts mirrored to
 TIN-7088).
 
+**Superseded in part.** The review fix round (`2026-10-23-e2-review-fixes.md`) replaced the
+`NARRATE_TTS_HOST_ALLOWED` opt-in, the `NARRATE_BOUNDED` nesting flag, the implicit build in `serve`, the
+receipt-only weight check and the client's trust in the server's voice list. The tables below describe the first
+push.
+
 **State.** The lane began as a CPU engine on the CPU host. Root stopped it mid-run when narration work drove that
 host, a cluster control-plane member, to NotReady at about 17:14Z, and retargeted it. This PR now delivers:
 
