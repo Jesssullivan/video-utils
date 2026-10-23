@@ -60,7 +60,8 @@ Voxtral TTS and OmniVoice weights (CC BY-NC), Fish S2 Pro (research licence, non
 - Independent paper (arXiv 2610.23678, M): leads on intelligibility, trails on prosody; ICL cloning degrades
   sharply with a wrong short transcript. Feed a human-verified `ref_text`.
 - Long form (arXiv 2609.16989, M): on the 0.6B, 26% of generations over 1,500-word prompts were catastrophic
-  (WER above 30%) without rollback; LACI reduced that below 1%. Chunk and regenerate.
+  (WER above 30%) without rollback; the paper's LACI method, an inference-only fix that detects text-audio
+  misalignment in the attention heads, rolls back and regenerates, reduced that below 1%. Chunk and regenerate.
 - gfx1201 ROCm/HIP failure reports exist in other projects (koboldcpp #2355, LocalAI #10666). Prefer Vulkan.
 
 ### VoxCPM2
@@ -94,7 +95,9 @@ Voxtral TTS and OmniVoice weights (CC BY-NC), Fish S2 Pro (research licence, non
   reproducible; professional cloning is limited to your own voice after verification. Official API prices:
   $0.08 per 1K characters (v4), $0.04 (Turbo).
 - HeyGen Voice Turbo: 2026-10-09 snapshot via OpenRouter, 5,000 characters per request; clone consent flow
-  and terms not reviewed (U).
+  and terms not reviewed (U). Its paper (arXiv 2610.30470, 2026-10-21, self-reported) describes a closed
+  multimodal autoregressive model conditioned on an image, scene captions and a voice recording, with an audio
+  anchor for long-script consistency; it names no weights or code (M, abstract page).
 - Both send the script and the reference voice to a third party.
 
 ## 2. Leaderboard caveats
@@ -132,6 +135,10 @@ Voxtral TTS and OmniVoice weights (CC BY-NC), Fish S2 Pro (research licence, non
   WER differences on technical text are mostly ASR error. Rare-word misses need human adjudication.
 - **Long-form drift is unbenchmarked** for every shortlisted model. Short-prompt SIM hides drift; arXiv
   2609.16989 proposes a sliding-window speaker similarity (wSIM) for long outputs.
+- **Reference length.** arXiv 2610.19774 (2026-10-14, LP-TTS-Bench) reports that prosody reproduction keeps
+  improving as the reference prompt grows, up to about 10 minutes, then saturates (V, abstract). The approved
+  plan caps the reference clip at 10 to 30 s and the bench uses 25 to 30 s, so the cap may cost prosody that a
+  longer reference would recover (I); a longer reference is a candidate for a later bench, not this one.
 - Most comparison tables copy figures from the original papers instead of re-running systems.
 - Vendor watermarks: none of the shortlisted open models ships one by default. Codecs and resynthesis strip
   classic audio watermarks (arXiv 2603.05310, 2505.19663), so a watermark is best effort only.
@@ -179,3 +186,5 @@ Voxtral TTS and OmniVoice weights (CC BY-NC), Fish S2 Pro (research licence, non
   their abstract pages; August to October 2026 papers may be missing.
 - Nothing was downloaded or run. All hardware statements for the GPU host and the Mac host are about published
   evidence, not local measurements.
+- The reference-length finding comes from a single benchmark paper on systems built for long prompts; whether
+  any shortlisted model accepts or benefits from a reference longer than 30 s is U.
