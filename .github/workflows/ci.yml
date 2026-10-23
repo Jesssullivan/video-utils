@@ -49,7 +49,7 @@ jobs:
       # Synthetic fixtures only: the fake engine and FFmpeg make every take. No voice, model, whisper model,
       # lexical release or network in CI; WER and SIM record not_measured.
       - name: Narration lint and tests
-        run: nix develop --no-write-lock-file .#condense --command just narrate-lint narrate-test
+        run: nix develop --no-write-lock-file .#condense --command just narrate-lint narrate-test narrate-dhall-check
   web:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
