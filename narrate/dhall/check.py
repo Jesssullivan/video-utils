@@ -326,8 +326,8 @@ def mutations() -> list:
     def consent(d):
         return d["consents"][0]
 
-    def entry(m, key="ming-3.0-tts-0.5b-gguf-bf16"):
-        return m["models"][key]
+    def entry(m, model_id="ming-3.0-tts-0.5b-gguf-bf16"):
+        return m["models"][model_id]
 
     def variant(m):
         return entry(m)["variants"][0]
