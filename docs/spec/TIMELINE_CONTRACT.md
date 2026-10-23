@@ -4,7 +4,7 @@ Authority: operator decision of 2026-10-15 (Linear TIN-6509), repository
 AGENTS.md and R-N13. This contract is written before the code that enforces it.
 
 Every run manifest has a `timeline` object. It says how output time relates to
-source time. There are two mappings. Each verifier accepts exactly one.
+source time. There are three mappings. Each verifier accepts exactly one.
 
 ## `identity`: guitar takes
 
@@ -64,10 +64,44 @@ other mapping (`timeline_mapping_invalid`). Its receipt adds `timeline.mapping`,
 `manifest_kind`, the `sources` checks, `delivery` and `uploads`. `--timeline identity` is the
 default path, named explicitly.
 
+## `narration_v1`: narration runs
+
+Amendment proposed with the narrate CLI (TIN-7087; docs/spec/NARRATE.md). A
+narration run lays a new track on an output clock. It maps no source media, and
+no source media is ever time-stretched; segments of the narration audio may be
+sped up by the engine's speed knob or FFmpeg `atempo` to fit a target duration.
+
+- `timeline.mapping` is `"narration_v1"` and `timeline.no_time_stretch` is JSON
+  `false` in every narration manifest, including a render whose segments needed
+  no fit at all (`timeline.stretch_applied: false`). Guitar consumers check only
+  `no_time_stretch is True`, so the flag alone keeps them out, and the mapping
+  is never absent, `null` or `"identity"`.
+- `timeline.edl` names `narration.edl.json` and its SHA-256, listed in
+  `output_sha256` with the same digest. The narration EDL has `kind:
+  "narration_edl"`, `sample_rate`, `total_samples` (equal to the delivered
+  WAV's) and one row per segment: its output start and end, target start and
+  duration when the input carried them, natural length, engine speed, `atempo`
+  factor, padding, late start and overrun.
+- The manifest has `kind: "narration_render"` and `synthetic: true`. It has no
+  top-level `source` or `pcm` block.
+- Narration manifests live under `artifacts/narrate/<run_id>/`, outside
+  `artifacts/runs/`.
+- `python -m narrate verify RUN_DIR` (`narrate/verify.py`) checks them: the
+  mapping and flag, every listed hash, no unlisted file, the IR digest, the
+  EDL against the WAV, and the manifest's content digest. `video-utils
+  verify-run` refuses a narration manifest on both paths: by default and with
+  `--timeline identity` (`time_stretch_not_excluded`), and with `--timeline
+  edl_v1` (`timeline_mapping_invalid`).
+- The refusal matrix test runs every guitar consumer case again with a
+  narration manifest whose `stretch_applied` is false
+  (`tests/test_timeline_contract.py`, the `Narration*` classes), and
+  `tests/cli.rs` asserts both `verify-run` refusals.
+
 ## What must not change
 
 - The default `verify-run` receipt for an identity manifest stays
   byte-identical.
 - Existing tamper tests pass unmodified.
-- A refusal matrix test feeds a condense manifest to every guitar consumer of
-  `no_time_stretch` and expects each to refuse.
+- A refusal matrix test feeds a condense manifest, and a narration manifest
+  with zero applied stretch, to every guitar consumer of `no_time_stretch` and
+  expects each to refuse.
