@@ -38,7 +38,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | `policy.py` | consent, scope, revocation, stored clip and transcript digests, hosted and confidential refusals |
 | `lexical.py` | the pinned xoxd-lexical release by digest; advisory Pattern findings and Vale; the RewriteCheck |
 | `chunker.py`, `normalise.py` | chunks of at most `chunkMaxCodepoints` spoken codepoints; the pronunciation table |
-| `engine.py` | `POST /v1/audio/speech` with `ref_audio` and `ref_text`, or the offline fake engine |
+| `engine.py` | `POST /v1/audio/speech` with `ref_audio` and `ref_text`; for QwenTtsCpp a registered voice; or the offline fake engine |
 | `qa.py` | per-chunk WER through condense's whisper path, SIM placeholder, best of `maxTakes` by seed |
 | `audio.py`, `render.py` | pauses, timing fit, placement, two-pass loudnorm, captions, EDL, manifest |
 | `verify.py`, `evaluate.py` | the re-check and the scores |
@@ -70,6 +70,23 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 - **Captions** are timed from the script placement (`captions.source: script_timing`), in the written text,
   with a synthetic-voice notice when the consent record asks for one. Whisper alignment of the delivered audio
   is a later step.
+
+## The CPU engine
+
+`just narrate-serve-cpu` runs qwentts.cpp's `tts-server` (the commit pinned in `bench/sources.json`, built CPU
+only in `$TMPDIR` with the thread bound of `serve/qwentts-cpu-threads.patch`) on 127.0.0.1 with the pinned
+Qwen3-TTS 1.7B Base BF16 GGUF. Fetch the weights first with
+`NARRATE_WEIGHTS_DIR=... just narrate-fetch --only qwen3-tts-1.7b-base-qwentts --apply`. The script takes every
+path and knob from the environment (`NARRATE_WEIGHTS_DIR`, `NARRATE_QWENTTS_BUILD`, `NARRATE_QWENTTS_THREADS` at
+most 8, `NARRATE_QWENTTS_CPUS`, `NARRATE_QWENTTS_PORT`, `NARRATE_QWENTTS_LANG`), so no host path is in git.
+
+This server does not read `ref_audio` on the speech route; it clones a voice registered by name. An engine
+record with `backend = QwenTtsCpp` makes `engine.py` register the reference clip and its verified transcript
+(`POST /v1/audio/voices`, name derived from the voice id and the clip and transcript digests), register again
+when a restarted server no longer lists it, and then call `/v1/audio/speech` with that name and the seed. The
+server ignores `speed`, so the client sends none, records `speed_honoured: false`, and the timing fit uses
+atempo alone. Each take records `conditioning: icl` (clip plus transcript) or `x_vector` (clip only). The
+`Profile` type has no CPU entry yet, so a private CPU record uses `GpuDirect`, the profile its backend fits.
 
 ## Outputs
 
