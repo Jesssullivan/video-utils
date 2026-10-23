@@ -193,7 +193,7 @@ class Renderer:
         target = segment.target_dur
         if target is not None and pcm.seconds > target + EPS:
             speed = min(pcm.seconds / target, float(self.cfg.fit["speed_max"]))
-            if speed > 1 + 1e-4:
+            if speed > 1 + 1e-4 and engine.honours_speed(self.engine):
                 synthesized = synthesize_all(round(speed, 4))
                 pcm, offsets = self.assemble(segment, synthesized)
                 fit["speed"] = round(speed, 4)
