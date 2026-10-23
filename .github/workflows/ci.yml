@@ -40,6 +40,16 @@ jobs:
       # The condense stage tools end to end through tool_api: this shell has the worker's numpy and FFmpeg.
       - name: Condense stage tool admission
         run: nix develop --no-write-lock-file .#condense --command bash -c 'cd tests && python3 -m unittest -v test_s4b_tool_admission'
+  narrate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7 # v31
+      # Synthetic fixtures only: the fake engine and FFmpeg make every take. No voice, model, whisper model,
+      # lexical release or network in CI; WER and SIM record not_measured.
+      - name: Narration lint and tests
+        run: nix develop --no-write-lock-file .#condense --command just narrate-lint narrate-test
   web:
     runs-on: ubuntu-24.04
     timeout-minutes: 20

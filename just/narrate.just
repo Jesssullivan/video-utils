@@ -1,0 +1,43 @@
+# Narration (docs/spec/NARRATE.md). Run inside `nix develop .#condense`: FFmpeg, whisper-cpp, python3, ruff.
+# Root imports this file from the root justfile (`import 'just/narrate.just'`).
+# One narrate.toml names the job and its rendered Dhall records. Reference clips, transcripts, consent evidence
+# and the pinned xoxd-lexical release live outside git: NARRATE_STORE and NARRATE_LEXICAL_DIR.
+# Runs land in artifacts/narrate/<run_id>/, outside artifacts/runs/; no guitar tool reads them.
+
+# Render a job: adapters, lexical pass, chunker, engine, per-chunk QA, timing fit, loudness, verify.
+narrate-render config="narrate.toml" *args:
+    python3 -m narrate render {{quote(config)}} {{args}}
+
+# Score a rendered run without changing it: loudness, overruns, WER (whisper when present), SIM.
+narrate-eval run_dir config="":
+    python3 -m narrate evaluate {{quote(run_dir)}} {{ if config == "" { "" } else { "--config " + quote(config) } }}
+
+# Re-hash and re-check a run.
+narrate-verify run_dir:
+    python3 -m narrate verify {{quote(run_dir)}}
+
+# Voices with consent state, and engines with confidentiality eligibility. Never a path or a clip.
+narrate-voices config="narrate.toml":
+    python3 -m narrate voices {{quote(config)}}
+
+# Engine profiles with confidentiality eligibility and availability.
+narrate-engines config="narrate.toml":
+    python3 -m narrate engines {{quote(config)}}
+
+# Copy a 10 to 30 s consented reference clip and its verified transcript into the private store by sha256,
+# and print the Voice record for the private registry. The consent record is added separately.
+narrate-voice-add config clip transcript id consent *args:
+    python3 -m narrate voices {{quote(config)}} add --clip {{quote(clip)}} --transcript {{quote(transcript)}} --id {{quote(id)}} --consent {{quote(consent)}} {{args}}
+
+# The engine bench. Lane W3 (TIN-7085) owns it; `just narrate-fetch` prints the pinned download plan.
+narrate-bench *args:
+    @echo "narrate-bench: not implemented yet; lane W3 (TIN-7085) fills this recipe. See just narrate-fetch." >&2
+    @exit 2
+
+# Lint and format check.
+narrate-lint:
+    cd narrate && ruff check . && ruff format --check .
+
+# The synthetic-fixture tests: the fake engine and FFmpeg make every take. No voice, model or network.
+narrate-test:
+    cd narrate && python3 -m pytest -q

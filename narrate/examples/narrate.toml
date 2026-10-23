@@ -1,0 +1,31 @@
+# One narration job. Paths are relative to this file. Copy it beside your script and edit.
+# The job, engine, voice, consent and pronunciation records are dhall-to-json renders (narrate/dhall); this
+# example names the committed fixtures: the fake engine and the synthetic sine voice.
+input = "../dhall/examples/script.md"
+job = "../dhall/examples/jobs.json"
+job_id = "job-fixture-fake"
+engines = "../dhall/examples/engines.json"
+voices = "../dhall/examples/voices.json"
+consents = "../dhall/examples/consents.json"
+pronunciation = "../dhall/examples/pronunciation.json"
+# The private store (reference clips, transcripts, consent evidence, found by sha256) and the pinned
+# xoxd-lexical release's dist/ directory both live outside git: set NARRATE_STORE and NARRATE_LEXICAL_DIR.
+# `python3 -I narrate/dhall/check.py --write-fixtures DIR` writes the fixture voice's store.
+store = ""
+lexical = ""
+# out = "runs"        # default: artifacts/narrate/ at the repository root
+
+# [input_options]     # CondenseWords only
+# edl = "work/edl.json"
+# clip = "talk"
+# sentence_gap_s = 1.0
+
+[fit]
+speed_max = 1.15      # the engine's speed knob first, up to this; then atempo within the job's fitMaxStretch
+
+[engine]
+timeout_s = 300
+ref_audio = "data_uri"  # ref_audio sent by content as a base64 WAV data URI; "omit" sends neither ref field
+
+[whisper]
+threads = 4           # condense's whisper-cli path; WHISPER_MODEL or just condense-model provides the model

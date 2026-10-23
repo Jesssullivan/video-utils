@@ -37,14 +37,14 @@ REQUIRED_FILES = (
     ".bazelversion", ".bazelrc", ".bazelignore", "MODULE.bazel", "BUILD.bazel",
     "src/BUILD.bazel", "scripts/BUILD.bazel", "tests/BUILD.bazel", "web/BUILD.bazel",
     "native/au-spike/BUILD.bazel", "just/bazel.just", "site/BUILD.bazel", "bazel/BUILD.bazel",
-    "condense/BUILD.bazel",
+    "condense/BUILD.bazel", "narrate/BUILD.bazel",
 )
 LANE_FILES = (
     "bazel/test_classification_s3_full.json", "bazel/known_host_failures.json", "bazel/ci-bazel-full.draft.yml",
     "bazel/site_build.mjs", "bazel/host_gate.py", "bazel/full_run_report.py",
 )
 OWNED_PACKAGES = ("", "src", "scripts", "tests", "web", "site", "native/au-spike", "tools/bazel", "bazel",
-                  "condense")
+                  "condense", "narrate")
 HELPER_FILES = (
     "tools/bazel/BUILD.bazel", "tools/bazel/python.bzl", "tools/bazel/rust.bzl",
     "tools/bazel/unittest_main.py", "tools/bazel/run.py", "tools/bazel/web/sveltekit.mjs",
@@ -371,7 +371,7 @@ def bazel_texts(root: Path) -> dict[str, str]:
     """Every Bazel-owned text file: MODULE.bazel, each BUILD.bazel and tools/bazel/*.bzl."""
     paths = [root / "MODULE.bazel", root / "BUILD.bazel"]
     paths += [root / package / "BUILD.bazel" for package in ("src", "scripts", "tests", "web", "native/au-spike",
-                                                               "tools/bazel", "bazel", "condense")]
+                                                               "tools/bazel", "bazel", "condense", "narrate")]
     paths += sorted((root / "tools/bazel").glob("*.bzl")) if (root / "tools/bazel").is_dir() else []
     return {str(path.relative_to(root)): path.read_text() for path in paths if path.is_file()}
 
@@ -875,7 +875,7 @@ class GraphFilesTest(unittest.TestCase):
     def test_required_graph_files_exist(self):
         missing = [name for name in REQUIRED_FILES + HELPER_FILES + LANE_FILES if not (ROOT / name).is_file()]
         self.assertEqual(missing, [])
-        self.assertEqual(len(REQUIRED_FILES), 14)
+        self.assertEqual(len(REQUIRED_FILES), 15)
 
     def test_bazelversion_is_one_exact_version(self):
         text = (ROOT / ".bazelversion").read_text()

@@ -1,0 +1,71 @@
+"""
+Narration (`python -m narrate`, docs/spec/NARRATE.md) in the Bazel graph.
+
+The module graph has a hermetic CPython 3.12 and no pip hub. narrate itself is standard library only, so the
+targets split by what they run:
+
+- `narrate` and `stdlib_test` run on the hermetic interpreter. stdlib_test imports every module and checks the
+  adapters, chunker, normaliser, policy (against narrate/dhall/check.py's port of Engine.dhall), lexical pass,
+  fake engine and WER on fixtures; no FFmpeg runs;
+- `pytest` runs the narrate suite (pytest, FFmpeg, the fake engine) on the dev shell's python3 from PATH. It is
+  tagged requires-host-tools, so hosted CI excludes it. Run it with
+    nix develop .#condense -c bazel test //narrate:pytest --config=host-tools
+
+`just narrate-test` stays the accepted gate. narrate/bench and narrate/dhall are not packages: `all_files`
+carries them (the Python tests under //tests read them as data).
+"""
+
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_files",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/.DS_Store",
+            "**/.pytest_cache/**",
+        ],
+    ),
+)
+
+# `import narrate` resolves from the runfiles root, as from the checkout root.
+py_library(
+    name = "narrate",
+    srcs = glob(["*.py"]),
+    data = glob([
+        "examples/narrate.toml",
+        "dhall/**",
+    ]),
+    imports = [".."],
+    deps = ["//condense"],
+)
+
+py_test(
+    name = "stdlib_test",
+    srcs = ["tests/stdlib_smoke.py"],
+    data = glob(["tests/fixtures/**"]),
+    env = {"PYTHONDONTWRITEBYTECODE": "1"},
+    main = "tests/stdlib_smoke.py",
+    tags = ["python-unittest"],
+    deps = [":narrate"],
+)
+
+# Unsandboxed like //condense:pytest: the suite resolves its own path back to the checkout.
+py_test(
+    name = "pytest",
+    srcs = ["tests/bazel_pytest.py"],
+    data = [
+        ":all_files",
+        "//condense:all_files",
+    ],
+    env = {"PYTHONDONTWRITEBYTECODE": "1"},
+    main = "tests/bazel_pytest.py",
+    tags = [
+        "no-sandbox",
+        "requires-host-tools",
+    ],
+    timeout = "long",
+)
