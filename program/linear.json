@@ -3,7 +3,7 @@
   "authority": "Operator approved plan / Implement the plan; R-HOOK-CONVERGENCE-20261004 / R-N13",
   "repository": "https://github.com/Jesssullivan/video-utils",
   "team_id": "a2c482c8-4d0d-4171-82d9-553265b6c706",
-  "updated_at": "2026-10-15T18:00:00+00:00",
+  "updated_at": "2026-10-22T23:59:00-04:00",
   "milestones": [
     {
       "id": "71bd7738-f346-48dd-8426-4095575a386a",
@@ -15,7 +15,8 @@
     },
     {
       "id": "cabe4152-556b-444b-a02a-391ad1f2b096",
-      "name": "Optional 35h extension"
+      "name": "(retired) Optional 35h extension",
+      "state": "retired 2026-10-22: no issues; the tracker has no milestone delete, so it was renamed"
     }
   ],
   "issues": [
@@ -87,11 +88,12 @@
       "kind": "ten_hour_goal"
     }
   ],
-  "evidence_state": "S4 in progress (2026-10-15 to 10-22). Talk-condense absorbed as ./condense (v0.2.0, TIN-6500..6513); typed tools 1-57 admitted; main CI green with four jobs. D6 (TIN-5491) and TIN-5494 carried into S4.",
+  "evidence_state": "S4 closed 2026-10-22 (main 5f676a9). Condense on real talks, S3 hosting and site, and Hygiene and peers closed with their own work Done; the guitar core closed with no Done work, both issues carried. Operator-gated carry-overs (TIN-6544 v5 gap and long-clip render, TIN-5491, TIN-5494, TIN-5723, TIN-5717) moved to S5. S5 (operator sessions + condense v5 closeout, livecode shard) and the narrate lane (N0 to 10-25, N1 to 11-07) are planned; no narrate code has landed. Typed tools 1-57 admitted; main CI green.",
   "project": {
     "id": "64d654ea-6569-44bb-ad30-f6e11b75c3fe",
     "name": "video-utils — media analysis toolkit",
-    "url": "https://linear.app/tinyland/project/video-utils-media-analysis-toolkit-243628f290ab"
+    "url": "https://linear.app/tinyland/project/video-utils-media-analysis-toolkit-243628f290ab",
+    "target_date": "2026-11-14"
   },
   "publication": {
     "authority": "R-HOOK-CONVERGENCE-20261004/R-N13",
@@ -1029,12 +1031,12 @@
         "done": [
           "TIN-5718",
           "TIN-5719",
+          "TIN-5722",
           "TIN-5724"
         ],
         "open": [
           "TIN-5720",
           "TIN-5721",
-          "TIN-5722",
           "TIN-5723"
         ]
       }
@@ -1194,47 +1196,80 @@
           "id": "2e86ca34-38b1-4518-bf7c-149aa7c4e293",
           "name": "S4 — Condense on real talks",
           "hours": 11,
-          "issues": [
+          "issues_at_start": [
             "TIN-6543",
             "TIN-6544",
             "TIN-6545",
             "TIN-6546"
-          ]
+          ],
+          "issues": [
+            "TIN-6543",
+            "TIN-6545",
+            "TIN-6546",
+            "TIN-6573",
+            "TIN-6574",
+            "TIN-6575"
+          ],
+          "closed_state": "closed: 6 of 6 remaining issues Done (tracker progress 100%)",
+          "carried": {
+            "TIN-6544": "S5 operator sessions: v5 gap (+194 frames; 0 of 520 cues before TIN-6573) and the long-clip full render moved into its scope"
+          }
         },
         {
           "id": "eb7d4916-46df-4681-815a-a9416ab42ac9",
           "name": "S4 — Close the guitar core",
           "hours": 7,
-          "issues": [
+          "issues_at_start": [
             "TIN-5491",
             "TIN-5494"
-          ]
+          ],
+          "issues": [],
+          "closed_state": "closed without Done work: both issues operator-gated (tracker progress 0%)",
+          "carried": {
+            "TIN-5491": "S5 operator sessions: the labelling hour (code landed in #27)",
+            "TIN-5494": "S5 operator sessions: real editor import on the Mac build host"
+          }
         },
         {
           "id": "9c09ace7-9695-4ac0-9527-9a545a6b5c97",
           "name": "S4 — S3 hosting and site",
           "hours": 6.5,
-          "issues": [
+          "issues_at_start": [
             "TIN-5722",
             "TIN-5723",
             "TIN-5717"
-          ]
+          ],
+          "issues": [
+            "TIN-5722"
+          ],
+          "closed_state": "closed: TIN-5722 Done; blocking CI site job landed (#26), deploy not done (tracker progress 100%)",
+          "carried": {
+            "TIN-5723": "S5 operator sessions: Pages deploy waits for the operator go",
+            "TIN-5717": "S5 operator sessions: S3 parent reconciled there"
+          }
         },
         {
           "id": "0c7895d8-cfce-4ce8-a5c6-b175e3bbb0b2",
           "name": "S4 — Hygiene and peers",
           "hours": 7,
-          "issues": [
+          "issues_at_start": [
             "TIN-6515",
             "TIN-6514"
-          ]
+          ],
+          "issues": [
+            "TIN-6515",
+            "TIN-6514",
+            "TIN-6577"
+          ],
+          "closed_state": "closed: 3 of 3 Done (tracker progress 100%)",
+          "carried": {}
         }
       ],
-      "outside": [
-        "TIN-5720",
-        "TIN-5721",
-        "TIN-5546"
-      ],
+      "outside": {
+        "TIN-5720": "Backlog, milestone Future — Hosting, score overlays and additional model qualification",
+        "TIN-5721": "Backlog, same Future milestone; blocked by TIN-5619 and TIN-5590",
+        "TIN-5546": "future-goal parent, open while its children exist"
+      },
       "issue_ids": {
         "TIN-6543": "70db6e50-4251-4122-9453-3b111cd59fd2",
         "TIN-6544": "2b751925-ea51-4047-b991-8128bf58abdb",
@@ -1246,8 +1281,237 @@
         "TIN-5723": "8a1fb576-2699-40c9-ab78-fd01deab6870",
         "TIN-5717": "5db4809c-480e-4c06-a425-5f94f9b6e0ef",
         "TIN-6515": "93bb434c-fbac-4127-b626-e5311778cf46",
-        "TIN-6514": "5f22e64a-4f72-4df1-8185-d6a7e50f08e6"
+        "TIN-6514": "5f22e64a-4f72-4df1-8185-d6a7e50f08e6",
+        "TIN-6573": "fcfed64a-793d-44f6-b127-bfea6ce142d8",
+        "TIN-6574": "90fcb9a2-ea7f-459c-b82f-d807fb21ad4f",
+        "TIN-6575": "cde3e61e-844f-4c1a-b6e0-036a4c0bb1d1",
+        "TIN-6576": "513828ab-f0fc-480f-8c0b-0b62098e313a",
+        "TIN-6577": "9ccbccba-af6d-4992-8e91-2259f1ef3427",
+        "TIN-6578": "3a981d68-7896-4236-9213-c49717f2a975",
+        "TIN-6579": "d86427ad-1ad7-43dc-b490-f99bf862b8fd",
+        "TIN-7083": "73f6f62d-584a-4361-af52-7596a516a886"
+      },
+      "status": "Closed",
+      "closed": "2026-10-22",
+      "final_source": "5f676a92827f",
+      "landed_prs": [
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        31,
+        32,
+        33,
+        34
+      ],
+      "follow_ups": {
+        "TIN-6573": {
+          "id": "fcfed64a-793d-44f6-b127-bfea6ce142d8",
+          "state": "Done",
+          "milestone": "S4 — Condense on real talks",
+          "pr": 32
+        },
+        "TIN-6574": {
+          "id": "90fcb9a2-ea7f-459c-b82f-d807fb21ad4f",
+          "state": "Done",
+          "milestone": "S4 — Condense on real talks",
+          "pr": 34
+        },
+        "TIN-6575": {
+          "id": "cde3e61e-844f-4c1a-b6e0-036a4c0bb1d1",
+          "state": "Done",
+          "milestone": "S4 — Condense on real talks",
+          "pr": 34
+        },
+        "TIN-6576": {
+          "id": "513828ab-f0fc-480f-8c0b-0b62098e313a",
+          "state": "Backlog",
+          "priority": "Low",
+          "milestone": "S5 — Operator sessions + condense v5 closeout"
+        },
+        "TIN-6577": {
+          "id": "9ccbccba-af6d-4992-8e91-2259f1ef3427",
+          "state": "Done",
+          "milestone": "S4 — Hygiene and peers",
+          "pr": 33
+        },
+        "TIN-6578": {
+          "id": "3a981d68-7896-4236-9213-c49717f2a975",
+          "state": "Done",
+          "milestone": null,
+          "pr": 33,
+          "note": "partial: STT cache key and provenance URL landed in 5f676a9; MCP admission of the HTTP STT backend and the archived-receipt residue moved to TIN-7083"
+        },
+        "TIN-6579": {
+          "id": "d86427ad-1ad7-43dc-b490-f99bf862b8fd",
+          "state": "Backlog",
+          "priority": "Low",
+          "milestone": "S5 — Operator sessions + condense v5 closeout"
+        },
+        "TIN-7083": {
+          "id": "73f6f62d-584a-4361-af52-7596a516a886",
+          "state": "Backlog",
+          "priority": "Medium",
+          "milestone": null,
+          "title": "Admit the HTTP STT backend under MCP"
+        }
       }
+    },
+    "20261022-s5": {
+      "authority": "Operator decisions 2026-10-22 / R-HOOK-CONVERGENCE-20261004 R-N13",
+      "plan": "docs/spec/sprints/20261022-S5.md",
+      "start": "2026-10-22",
+      "target": "2026-11-06",
+      "milestones": [
+        {
+          "id": "fd34061c-5066-423c-80ca-2bdb4d4e899f",
+          "name": "S5 — Operator sessions + condense v5 closeout",
+          "target": "2026-11-06",
+          "issues": [
+            "TIN-6544",
+            "TIN-5491",
+            "TIN-5494",
+            "TIN-5723",
+            "TIN-5717",
+            "TIN-6576",
+            "TIN-6579"
+          ]
+        },
+        {
+          "id": "21d1c251-665d-46b7-9734-faab8fd4169b",
+          "name": "S5 — livecode shard",
+          "target": "2026-11-06",
+          "parent": "TIN-6568",
+          "issues": [
+            "TIN-7092",
+            "TIN-7093",
+            "TIN-7094",
+            "TIN-7095"
+          ]
+        }
+      ],
+      "issue_ids": {
+        "TIN-6544": "2b751925-ea51-4047-b991-8128bf58abdb",
+        "TIN-5491": "28d0291e-6556-4f49-b6e3-5d50a016c539",
+        "TIN-5494": "99918a4a-9278-48a2-a9b8-34016a2a4279",
+        "TIN-5723": "8a1fb576-2699-40c9-ab78-fd01deab6870",
+        "TIN-5717": "5db4809c-480e-4c06-a425-5f94f9b6e0ef",
+        "TIN-6576": "513828ab-f0fc-480f-8c0b-0b62098e313a",
+        "TIN-6579": "d86427ad-1ad7-43dc-b490-f99bf862b8fd",
+        "TIN-6568": "39262f74-fee6-4da5-816f-c766a15d416e",
+        "TIN-7092": "59081f6f-8594-41dd-a3a8-3ca5a99e6de3",
+        "TIN-7093": "f1ac4d0a-f141-4837-b816-8546b5175328",
+        "TIN-7094": "1220c633-d9ba-4e21-a9e7-295ad32cfbab",
+        "TIN-7095": "653f574f-d6ca-458b-8b18-ac45c04e6906"
+      },
+      "states_at_open": {
+        "TIN-6544": "In Progress",
+        "TIN-5491": "In Progress",
+        "TIN-5494": "In Progress",
+        "TIN-5723": "In Progress",
+        "TIN-5717": "In Progress",
+        "TIN-6576": "Backlog",
+        "TIN-6579": "Backlog",
+        "TIN-6568": "Backlog",
+        "TIN-7092": "Todo",
+        "TIN-7093": "Todo",
+        "TIN-7094": "Todo",
+        "TIN-7095": "Todo"
+      }
+    },
+    "narrate": {
+      "authority": "Operator decisions 2026-10-22 / R-HOOK-CONVERGENCE-20261004 R-N13",
+      "plan": "docs/spec/sprints/20261022-S5.md",
+      "parent": {
+        "identifier": "TIN-7084",
+        "id": "53c5026f-3a9d-486d-85af-fffcd8f8a590",
+        "state": "Todo"
+      },
+      "milestones": [
+        {
+          "id": "35459e15-e8d1-43c8-ae60-7813a627132a",
+          "name": "N0 — Narration v0",
+          "target": "2026-10-25",
+          "issues": [
+            "TIN-7085",
+            "TIN-7086",
+            "TIN-7087",
+            "TIN-7088",
+            "TIN-7090"
+          ]
+        },
+        {
+          "id": "5ae860ad-75ad-4fe8-8888-4e65d68c3a93",
+          "name": "N1 — Narration v1",
+          "target": "2026-11-07",
+          "issues": [
+            "TIN-7089",
+            "TIN-7091"
+          ]
+        }
+      ],
+      "lanes": {
+        "W3_bench": {
+          "identifier": "TIN-7085",
+          "id": "30bbacbc-1332-4b08-baf2-bc65bfce1f6c",
+          "state": "Todo"
+        },
+        "W4_spec_dhall_registry": {
+          "identifier": "TIN-7086",
+          "id": "447169b2-304f-4ac6-bf86-b81ac1bbeeb1",
+          "state": "Todo"
+        },
+        "W5_cli_text_pipeline": {
+          "identifier": "TIN-7087",
+          "id": "37efea7f-65f4-469d-bf26-0e3b4b0517cc",
+          "state": "Todo"
+        },
+        "W6a_interim_serving": {
+          "identifier": "TIN-7088",
+          "id": "668ac8eb-a110-4268-a308-a9e60bd53854",
+          "state": "Todo"
+        },
+        "W6b_switch_native": {
+          "identifier": "TIN-7089",
+          "id": "34916fa0-d08e-4c80-8351-587943a63eae",
+          "state": "Backlog"
+        },
+        "W7a_tools_first_render": {
+          "identifier": "TIN-7090",
+          "id": "9d4a29ba-5bc7-4853-8ceb-f573698ac8bd",
+          "state": "Todo"
+        },
+        "W7b_mux_consumers": {
+          "identifier": "TIN-7091",
+          "id": "d5a6838f-2770-4889-92f1-737f44013691",
+          "state": "Backlog"
+        }
+      },
+      "peer_issues": {
+        "TIN-7096": {
+          "id": "0f08311f-54f1-44e3-a68c-f8489b05e4ce",
+          "project": "P-TIN-193",
+          "milestone": "M3b — Audio placement",
+          "milestone_id": "3cbd2409-7548-4f96-a373-da989b3fdc9e",
+          "note": "TTS Entry kind, /v1/audio/speech route, audio canary"
+        },
+        "TIN-7097": {
+          "id": "5743ac62-27be-475c-9521-2d69c68e4ef6",
+          "project": "P-TIN-209",
+          "note": "narration register and pronunciation table"
+        },
+        "TIN-7098": {
+          "id": "6a10d969-c2a1-42c0-8de7-4a76a058c09c",
+          "parent": "TIN-6938",
+          "note": "operator step in a peer project"
+        }
+      },
+      "evidence_state": "planned; no narrate code, bench or render has landed"
     }
   },
   "media_initiative": {
@@ -1385,8 +1649,9 @@
     }
   },
   "active_sprint": {
-    "key": "20261015-s4",
-    "plan": "docs/spec/sprints/20261015-S4.md",
-    "status": "In Progress"
+    "key": "20261022-s5",
+    "plan": "docs/spec/sprints/20261022-S5.md",
+    "status": "In Progress",
+    "also_active": "narrate"
   }
 }
