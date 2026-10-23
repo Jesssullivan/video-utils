@@ -289,7 +289,7 @@ Lane W5 (TIN-7087) refines these details with the code in `narrate/` (see `narra
 | Narration EDL | Always written, whatever the job's `narrationEdl`: `verify` and the timeline contract read it |
 | `ref_audio` | Sent as a base64 WAV data URI (`[engine] ref_audio = "omit"` sends neither field); whether a server reads that form is checked per engine in W6 |
 | Vale | Run only when `vale` is on PATH; otherwise recorded `not_run` |
-| Exit codes | A refusal prints `{"refused": code}` on stderr and exits 1; a flagged run (overrun, `qa_failed`, loudness) still publishes and lists its flags |
+| Exit codes | A refusal prints `{"refused": code}` on stderr and exits 1; a flagged run (overrun, `qa_failed`, loudness, `wer_not_measured`, `sim_not_measured`, `input_unpinned`) still publishes and lists its flags; only a run with no flag meets the acceptance gate |
 
 ## Guitar axioms
 

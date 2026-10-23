@@ -8,7 +8,8 @@
 narrate-render config="narrate.toml" *args:
     python3 -m narrate render {{quote(config)}} {{args}}
 
-# Score a rendered run without changing it: loudness, overruns, WER (whisper when present), SIM.
+# Score a rendered run without changing it: loudness, overruns, WER on the delivered audio (whisper when
+# present), SIM.
 narrate-eval run_dir config="":
     python3 -m narrate evaluate {{quote(run_dir)}} {{ if config == "" { "" } else { "--config " + quote(config) } }}
 

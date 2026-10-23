@@ -4,9 +4,10 @@ http(s) engines get one `POST /v1/audio/speech` per chunk:
   {model, input, voice, response_format: "wav", speed, seed, ref_audio, ref_text}
 ref_audio is the reference clip sent by content (a base64 data URI of the stored WAV, found by its digest) and
 ref_text its verified transcript. The bearer token, when an engine needs one, comes only from
-NARRATE_ENGINE_TOKEN. No proxy sees a request and no redirect is followed. Every failure raises EngineError with a
-typed code; nothing is retried here (qa.py owns retries). The endpoint is never recorded: real endpoints are
-private and live outside git.
+NARRATE_ENGINE_TOKEN. Plain http is allowed only to a loopback host (condense.transcribe.loopback) unless no token
+is sent; Hosted and RentedOpen engines always need https. No proxy sees a request and no redirect is followed.
+Every failure raises EngineError with a typed code; nothing is retried here (qa.py owns retries). The endpoint is
+never recorded: real endpoints are private and live outside git.
 
 fake engines (backend Fake) need no weights, GPU or network:
   fake://sine    a deterministic tone per chunk: its pitch follows the seed and the text, its length the text
@@ -126,6 +127,29 @@ def bearer():
     return f"Bearer {token}"
 
 
+REMOTE_PROFILES = ("Hosted", "RentedOpen")
+
+
+def transport_ok(engine, endpoint, with_token):
+    """Raise engine_transport_insecure when a request would cross a network in cleartext with a credential, or
+    reach a hosted or rented engine over http at all."""
+    from condense.transcribe import loopback
+
+    p = urllib.parse.urlsplit(endpoint)
+    if p.scheme == "https":
+        return
+    remote = engine.get("profile") in REMOTE_PROFILES or bool(engine.get("hosted"))
+    if remote:
+        raise EngineError(
+            "engine_transport_insecure", f"engine {engine['id']}: a {engine['profile']} engine needs https"
+        )
+    if with_token and not loopback(p.hostname):
+        raise EngineError(
+            "engine_transport_insecure",
+            f"engine {engine['id']}: {TOKEN_ENV} goes over https unless the host is loopback",
+        )
+
+
 def speech_url(endpoint):
     p = urllib.parse.urlsplit(endpoint)
     if p.scheme not in ("http", "https") or not p.hostname or "@" in p.netloc or p.fragment:
@@ -155,6 +179,7 @@ def speech(engine, text, voice, ref, seed, speed, options):
         method="POST",
     )
     token = bearer()
+    transport_ok(engine, engine["endpoint"], token is not None)
     if token:
         request.add_header("Authorization", token)
     limit, timeout = int(options["max_reply_bytes"]), float(options["timeout_s"])

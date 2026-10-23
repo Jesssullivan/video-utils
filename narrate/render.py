@@ -21,7 +21,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from . import adapters, audio, chunker, engine, lexical, policy, qa, verify
-from .config import run
+from .config import guard_out, run
 from .ir import canonical, sha256_bytes, sha256_file, sha256_text
 from .normalise import Normaliser
 
@@ -82,7 +82,9 @@ class Renderer:
         if self.input_path is None or not self.input_path.is_file():
             raise RenderError("input_missing", "name the script (input in narrate.toml, or --input)")
         input_sha = sha256_file(self.input_path)
-        if job.get("inputSha256") and job["inputSha256"] != input_sha:
+        # An empty inputSha256 leaves the input unpinned: recorded as input.pinned false and flagged input_unpinned.
+        self.input_pinned = bool(job.get("inputSha256"))
+        if self.input_pinned and job["inputSha256"] != input_sha:
             raise RenderError(
                 "input_digest_mismatch", f"the input is {input_sha[:12]}, the job pins {job['inputSha256'][:12]}"
             )
@@ -232,7 +234,7 @@ class Renderer:
         self.rate = self.engine.get("sampleRateHz")
         self.whisper = qa.Whisper(cfg)
         self.whisper_ready = (False, "a transcriber was injected") if self.transcriber else self.whisper.available()
-        root = Path(root or cfg.out)
+        root = guard_out(Path(root or cfg.out))
         root.mkdir(parents=True, exist_ok=True)
         run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:12]
         final, staging = root / run_id, root / f".staging-{run_id}"
@@ -308,6 +310,7 @@ class Renderer:
         loud = audio.loudnorm(raw, delivered, self.rate, post["loudnessLufs"], post["truePeakDbtp"])
         integrated, lra, peak = audio.ebur128(delivered)
         final_pcm = audio.read(delivered)
+        passed, loud_flags = audio.loudness_verdict(integrated, peak, post, loud["normalization_type"])
         loudness = {
             "target_lufs": post["loudnessLufs"],
             "true_peak_target_dbtp": post["truePeakDbtp"],
@@ -315,8 +318,9 @@ class Renderer:
             "loudnorm": loud,
             "measured": {"integrated_lufs": integrated, "loudness_range_lu": lra, "true_peak_dbtp": peak},
             "deviation_lu": round(integrated - post["loudnessLufs"], 2),
-            "passed": abs(integrated - post["loudnessLufs"]) <= post["loudnessToleranceLu"]
-            and peak <= post["truePeakDbtp"] + 0.5,
+            "peak_tolerance_db": audio.PEAK_TOLERANCE_DB,
+            "passed": passed,
+            "flags": loud_flags,
             "samples_before": len(out.samples),
             "samples_after": len(final_pcm.samples),
         }
@@ -346,11 +350,20 @@ class Renderer:
             files[r["file"]] = staging / r["file"]
         digests = {name: sha256_file(path) for name, path in sorted(files.items())}
         overruns = [{"segment": s["id"], "overrun_s": s["overrun_s"]} for s in segments if "overrun" in s["flags"]]
+        # A chunk whose kept take was never measured is not a pass: wer_not_measured and sim_not_measured say so.
+        unmeasured = {
+            f"{metric}_not_measured"
+            for r in chunk_records
+            for metric in ("wer", "sim")
+            if r["qa"][f"{metric}_status"] != "measured"
+        }
         flags = sorted(
             {f for s in segments for f in s["flags"]}
             | {f for r in chunk_records for f in r["qa"]["flags"]}
-            | ({"loudness_out_of_tolerance"} if not loudness["passed"] else set())
+            | set(loud_flags)
+            | unmeasured
             | ({"oversize_chunk"} if any(r["oversize"] for r in chunk_records) else set())
+            | ({"input_unpinned"} if not self.input_pinned else set())
         )
         statuses = [r["qa"]["status"] for r in chunk_records]
         manifest = {
@@ -380,6 +393,7 @@ class Renderer:
             "input": {
                 "kind": self.script.kind,
                 "sha256": self.input_sha,
+                "pinned": self.input_pinned,
                 "ir_file": "ir.json",
                 "ir_sha256": sha256_text(canonical(ir)),
                 "segments": len(segments),
@@ -404,6 +418,7 @@ class Renderer:
                     "available": self.whisper_ready[0] or self.transcriber is not None,
                     "how": "injected transcriber" if self.transcriber else self.whisper_ready[1],
                     "max_chunk_wer": job["gates"]["maxChunkWer"],
+                    **({} if self.transcriber else self.whisper.identity()),
                 },
                 "sim": qa.sim(self.cfg),
                 "calibrated": job["gates"]["calibrated"],

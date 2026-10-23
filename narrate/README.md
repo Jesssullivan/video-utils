@@ -27,7 +27,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | `just narrate-verify RUN` | `python -m narrate verify` | re-hashes the run and re-checks the manifest |
 | `just narrate-voices [CONFIG]` | `python -m narrate voices` | voice ids, consent state, scopes, engines |
 | `just narrate-engines [CONFIG]` | `python -m narrate engines` | profiles, confidentiality eligibility, availability |
-| `just narrate-voice-add CONFIG CLIP TEXT ID CONSENT` | `python -m narrate voices add` | stores a 10 to 30 s clip and its transcript by sha256 |
+| `just narrate-voice-add CONFIG CLIP TEXT ID CONSENT` | `python -m narrate voices add` | stores a 10 to 30 s mono 16-bit clip and its transcript by sha256; prints exactly a `Voice.dhall` record; needs `--allow-engine` |
 | `just narrate-bench` | | lane W3 (TIN-7085) fills it |
 
 ## The pipeline
@@ -48,14 +48,25 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
   confidential job are refused before any audio exists. The refusal prints `{"refused": code}` and exits 1.
 - **Fake engines.** `fake://sine` makes a deterministic tone whose length follows the text and the speed knob.
   `fake://espeak` uses espeak-ng when it is on PATH and records its version, else falls back to the sine.
-- **QA.** Without whisper-cli or the model, WER is `not_measured` and no gate judges a take. With them, a take
-  over `maxChunkWer` is synthesised again with the next seed; the best take is kept and a chunk that never
-  passes is flagged `qa_failed`. SIM is `not_measured` until a speaker-verification model is registered.
+- **QA.** Without whisper-cli or a model whose sha256 is registered in `program/models.json`, WER is
+  `not_measured`, no gate judges a take and the run is flagged `wer_not_measured`. With them, the manifest records
+  the model's sha256 and registry id (or the http backend's loopback endpoint), and a take over `maxChunkWer` is
+  synthesised again with the next seed; the best take is kept and a chunk that never passes is flagged
+  `qa_failed`. Numbers are compared as digits on both sides. SIM is `not_measured` (flag `sim_not_measured`)
+  until a speaker-verification model is registered. The model is `[whisper] model` in narrate.toml, else
+  `NARRATE_WHISPER_MODEL`, else `WHISPER_MODEL`.
 - **Timing fit.** A segment over its target first gets the engine's `speed` (at most `[fit] speed_max`, 1.15),
   then `atempo` within the job's `fitMaxStretch` (8%). What still runs over is flagged `overrun` with its excess,
   never truncated. A segment under its target is padded; one whose start has passed starts late, flagged.
 - **Loudness.** Two-pass `loudnorm` to the job's target (-16 LUFS, -1.5 dBTP), both passes recorded, then
-  measured with `ebur128`; outside the job's tolerance the run is flagged.
+  measured with `ebur128`. One rule (`audio.loudness_verdict`) serves render and evaluate: outside the job's
+  tolerance is `loudness_out_of_tolerance`, a true peak more than 0.1 dB over the ceiling is
+  `true_peak_over_ceiling`, and a non-linear loudnorm is `loudnorm_dynamic`.
+- **Location.** An `out` under `artifacts/runs/` is refused (`out_in_guitar_runs`) and `verify` refuses a run
+  there. An empty job `inputSha256` leaves the input unpinned: `input.pinned: false` and the flag
+  `input_unpinned`.
+- **Transport.** `NARRATE_ENGINE_TOKEN` goes over plain http only to a loopback host; Hosted and RentedOpen
+  engines always need https (`engine_transport_insecure`).
 - **Captions** are timed from the script placement (`captions.source: script_timing`), in the written text,
   with a synthetic-voice notice when the consent record asks for one. Whisper alignment of the delivered audio
   is a later step.

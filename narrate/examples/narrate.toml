@@ -28,4 +28,4 @@ timeout_s = 300
 ref_audio = "data_uri"  # ref_audio sent by content as a base64 WAV data URI; "omit" sends neither ref field
 
 [whisper]
-threads = 4           # condense's whisper-cli path; WHISPER_MODEL or just condense-model provides the model
+threads = 4           # condense's whisper-cli path; model here, else NARRATE_WHISPER_MODEL, WHISPER_MODEL or just condense-model

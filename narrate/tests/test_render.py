@@ -286,15 +286,15 @@ def test_voices_add_stores_by_digest_and_bounds_the_clip(workspace, tmp_path):
     clip, text = tmp_path / "clip.wav", tmp_path / "clip.txt"
     clip.write_bytes(dhall_check().sine_wav())
     text.write_text("A transcript.\n")
-    record = registry.add_voice(Config(config), clip, text, "voice-new", "consent-new")
+    record = registry.add_voice(Config(config), clip, text, "voice-new", "consent-new", engines_allowed=["fake-sine"])
     assert (workspace.store / f"{record['refClipSha256']}.wav").is_file()
     assert record["refClipSeconds"] == 10.0 and record["fixture"] is False
     short = tmp_path / "short.wav"
     pcm = audio.Pcm(24000)
     pcm.silence(2.0)
     pcm.write(short)
-    with pytest.raises(ValueError, match="10 to 30 s"):
-        registry.add_voice(Config(config), short, text, "voice-short", "consent-new")
+    with pytest.raises(registry.RegistryError, match="10 to 30 s"):
+        registry.add_voice(Config(config), short, text, "voice-short", "consent-new", engines_allowed=["fake-sine"])
 
 
 def test_module_entry_point_runs():

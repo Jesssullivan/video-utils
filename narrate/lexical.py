@@ -5,8 +5,9 @@ register file. The release directory (the release's dist/, fetched explicitly an
 path; every pinned file's sha256 must match or the pass refuses. Nothing is fetched.
 
 - Findings: every deterministic Pattern rule whose registers include the job's register is matched against
-  the spoken text. Findings are advisory and recorded, never blocking. A pattern Python cannot compile is
-  recorded as skipped, not dropped silently.
+  the written text of each segment (before spoken normalisation), where the house-style rules apply. Findings
+  are advisory and recorded, never blocking. A pattern Python cannot compile is recorded as skipped, not
+  dropped silently.
 - Vale: when `vale` is on PATH, the register's rules run through it and its findings are recorded. Absent,
   the record says not_run. Vale never blocks.
 - RewriteCheck (XL-ACC-001 and XL-ACC-002): a rewrite of the script (an agent's, after it read

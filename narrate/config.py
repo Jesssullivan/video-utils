@@ -4,6 +4,10 @@ One narrate.toml names the script, the rendered job, engine, voice, consent and 
 `narrate/dhall`, rendered by `dhall-to-json`), the private store that holds reference clips, transcripts and
 consent evidence by digest, and the pinned xoxd-lexical release directory. Paths are relative to the file.
 The store and the lexical release live outside git: NARRATE_STORE and NARRATE_LEXICAL_DIR override them.
+
+Runs never land under artifacts/runs/ (the guitar runs, TIMELINE_CONTRACT.md): an `out` there is refused.
+The whisper model is, in order: `[whisper] model` in narrate.toml, NARRATE_WHISPER_MODEL, WHISPER_MODEL (which
+`just` exports for condense), then the registered small.en path.
 """
 
 import json
@@ -16,7 +20,9 @@ ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts" / "narrate"  # outside artifacts/runs/: never a guitar run
 FF = ("ffmpeg", "-hide_banner", "-nostdin", "-y")
 TIMEOUT_S = float(os.environ.get("NARRATE_TOOL_TIMEOUT_S", 900))
+GUITAR_RUNS = ROOT / "artifacts" / "runs"
 STORE_ENV, LEXICAL_ENV = "NARRATE_STORE", "NARRATE_LEXICAL_DIR"
+WHISPER_ENVS = ("NARRATE_WHISPER_MODEL", "WHISPER_MODEL")
 
 INPUT = {
     "edl": "",  # CondenseWords: the condense edl.json whose output clock the words map to
@@ -41,6 +47,26 @@ WHISPER = {
 SIM = {"model": ""}  # a registered speaker-verification model; empty: SIM is not_measured
 
 
+class ConfigError(ValueError):
+    """narrate.toml (or a flag) asks for something narrate refuses. code is the typed refusal."""
+
+    def __init__(self, code, detail):
+        super().__init__(f"{code}: {detail}")
+        self.code, self.detail = code, detail
+
+
+def in_guitar_runs(path):
+    """True when path is artifacts/runs/ or lies under it (both resolved)."""
+    path, runs = Path(path).resolve(), GUITAR_RUNS.resolve()
+    return path == runs or runs in path.parents
+
+
+def guard_out(path):
+    if in_guitar_runs(path):
+        raise ConfigError("out_in_guitar_runs", f"{path} is under artifacts/runs/; narration runs live outside it")
+    return path
+
+
 class Config:
     def __init__(self, path, overrides=None):
         path = Path(path).resolve()
@@ -62,17 +88,20 @@ class Config:
         self.store = Path(os.environ[STORE_ENV]) if os.environ.get(STORE_ENV) else rel(raw.get("store", ""))
         lexical = os.environ.get(LEXICAL_ENV)
         self.lexical = Path(lexical) if lexical else rel(raw.get("lexical", ""))
-        self.out = rel(raw["out"]) if raw.get("out") else ARTIFACTS
+        self.out = guard_out(rel(raw["out"]) if raw.get("out") else ARTIFACTS)
         self.fit = FIT | raw.get("fit", {})
         self.engine_opts = ENGINE | raw.get("engine", {})
         self.whisper = WHISPER | raw.get("whisper", {})
         self.sim = SIM | raw.get("sim", {})
-        model = os.environ.get("WHISPER_MODEL") or self.whisper["model"]
+        explicit = raw.get("whisper", {}).get("model")
+        model = explicit or next((os.environ[e] for e in WHISPER_ENVS if os.environ.get(e)), self.whisper["model"])
         self.whisper_model = Path(model) if Path(model).is_absolute() else ROOT / model
         if not 1.0 <= float(self.fit["speed_max"]) <= 2.0:
-            raise ValueError(f"fit.speed_max = {self.fit['speed_max']!r}: from 1.0 to 2.0")
+            raise ConfigError("config_invalid", f"fit.speed_max = {self.fit['speed_max']!r}: from 1.0 to 2.0")
         if self.engine_opts["ref_audio"] not in ("data_uri", "omit"):
-            raise ValueError(f"engine.ref_audio = {self.engine_opts['ref_audio']!r}: data_uri or omit")
+            raise ConfigError(
+                "config_invalid", f"engine.ref_audio = {self.engine_opts['ref_audio']!r}: data_uri or omit"
+            )
 
     def job(self):
         """The job named by job_id (or the only job) from the rendered job JSON."""

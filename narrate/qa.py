@@ -3,26 +3,120 @@
 WER: the take is read back through condense's whisper path (condense.transcribe.read: whisper-cli with the
 registered model, or condense's loopback STT backend) and compared word by word with the chunk's spoken text.
 Without whisper-cli or the model the status is not_measured, as condense's check.json says it, and no gate
-judges the take. SIM: not_measured until a speaker-verification model is registered (docs/spec/NARRATE.md).
+judges the take. The model file is hashed once per path and must match a sha256 in program/models.json; an
+unregistered or partial file leaves WER not_measured. The manifest records the model's digest and registry id, or
+the loopback endpoint of the http backend. Numbers are compared as digits on both sides ("seven" and "7" are one
+word), so whisper writing numerals is not an error. SIM: not_measured until a speaker-verification model is
+registered (docs/spec/NARRATE.md).
 
 A take that fails a measured gate is synthesised again with the next seed, at most maxTakes takes in all. The
 best take by WER, then SIM, is kept; every take's numbers and the failure are recorded. A chunk that never
 passes is flagged qa_failed, never silently accepted. WER is a regression gate, not a ranking.
 """
 
+import json
 import re
 import shutil
 import tempfile
+import urllib.parse
 from pathlib import Path
 
+from .ir import sha256_file
+
 PAD = 0.5  # seconds of silence around a take read back by whisper
+MODELS = Path(__file__).resolve().parents[1] / "program" / "models.json"
+
+UNITS = {
+    w: n
+    for n, w in enumerate(
+        "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen "
+        "seventeen eighteen nineteen".split()
+    )
+}
+TENS = {w: 10 * n for n, w in enumerate("twenty thirty forty fifty sixty seventy eighty ninety".split(), 2)}
+SCALES = {"thousand": 10**3, "million": 10**6, "billion": 10**9}
+
+
+def numerals(tokens):
+    """tokens with each spoken number made digits: "twenty one" -> "21", "two point five" -> "2.5",
+    "one two three" -> "1 2 3" (a run joins only where English grammar does)."""
+    out, i = [], 0
+    while i < len(tokens):
+        total, current, last, scale, j = 0, 0, None, None, i
+        while j < len(tokens):
+            t = tokens[j]
+            n = UNITS.get(t)
+            if n is not None and n < 10 and last in (None, "tens", "hundred", "scale", "and") and t != "zero":
+                current, last = current + n, "unit"
+            elif n is not None and last in (None, "hundred", "scale", "and") and (n >= 10 or t == "zero"):
+                current, last = current + n, "teen" if n >= 10 else "zero"
+            elif t in TENS and last in (None, "hundred", "scale", "and"):
+                current, last = current + TENS[t], "tens"
+            elif t == "hundred" and last in ("unit", "teen") and current < 100:
+                current, last = current * 100, "hundred"
+            elif t in SCALES and last in ("unit", "teen", "tens", "hundred") and (scale is None or SCALES[t] < scale):
+                total, current, last, scale = total + current * SCALES[t], 0, "scale", SCALES[t]
+            elif (
+                t == "and"
+                and last in ("hundred", "scale")
+                and j + 1 < len(tokens)
+                and (tokens[j + 1] in UNITS or tokens[j + 1] in TENS)
+            ):
+                last = "and"
+            else:
+                break
+            j += 1
+            if last == "zero":
+                break
+        if j == i:
+            out.append(tokens[i])
+            i += 1
+            continue
+        number = str(total + current)
+        if j + 1 < len(tokens) and tokens[j] == "point" and tokens[j + 1] in UNITS and UNITS[tokens[j + 1]] < 10:
+            digits, j = [], j + 1
+            while j < len(tokens) and tokens[j] in UNITS and UNITS[tokens[j]] < 10:
+                digits.append(str(UNITS[tokens[j]]))
+                j += 1
+            number += "." + "".join(digits)
+        out.append(number)
+        i = j
+    return out
 
 
 def words(text):
     text = text.lower().replace("’", "'")
-    text = re.sub(r"[^\w\s'%.-]", " ", text)
+    text = re.sub(r"(?<=\d),(?=\d{3}\b)", "", text)  # 1,000 -> 1000
+    text = text.replace("%", " percent ")
+    text = re.sub(r"[^\w\s'.-]", " ", text)
     text = re.sub(r"(?<!\d)[.](?!\d)|(?<!\w)'|'(?!\w)|(?<!\w)-|-(?!\w)", " ", text)
-    return text.split()
+    tokens = []
+    for token in text.split():
+        parts = token.split("-")
+        spoken_number = len(parts) == 2 and parts[0] in TENS and parts[1] in UNITS and UNITS[parts[1]] < 10
+        tokens += parts if spoken_number else [token]
+    return numerals(tokens)
+
+
+_DIGESTS = {}
+
+
+def model_digest(path):
+    """The sha256 of a model file, hashed once per (path, size, mtime) in this process."""
+    st = Path(path).stat()
+    key = (str(path), st.st_size, st.st_mtime_ns)
+    if key not in _DIGESTS:
+        _DIGESTS[key] = sha256_file(path)
+    return _DIGESTS[key]
+
+
+def registered(digest, models=None):
+    """The program/models.json id whose sha256 is digest, else None."""
+    try:
+        entries = json.loads(Path(models or MODELS).read_text(encoding="utf-8"))["models"]
+    except (OSError, ValueError, KeyError):
+        return None
+    return next((k for k, v in entries.items() if isinstance(v, dict) and v.get("sha256") == digest), None)
 
 
 def wer(reference, hypothesis):
@@ -51,15 +145,38 @@ class Whisper:
         self.whisper = condense_config.WHISPER | {k: v for k, v in cfg.whisper.items() if k != "model"}
         self.model = str(cfg.whisper_model)
         self.work = None
+        self.model_sha256, self.model_id, self.endpoint = None, None, None
 
     def available(self):
         if self.backend == "http":
+            from condense import transcribe
+
+            try:
+                url = transcribe.stt_url(self)
+            except ValueError as error:
+                return False, str(error)
+            parts = urllib.parse.urlsplit(url)
+            self.endpoint = f"{parts.scheme}://{parts.netloc}{parts.path}"
             return True, "condense loopback STT backend"
         if not shutil.which("whisper-cli"):
             return False, "whisper-cli is not on PATH (nix develop .#condense)"
         if not Path(self.model).is_file():
-            return False, "no whisper model (just condense-model, or WHISPER_MODEL)"
-        return True, f"whisper-cli with {Path(self.model).name}"
+            return False, "no whisper model (just condense-model, or [whisper] model, NARRATE_WHISPER_MODEL)"
+        digest = model_digest(self.model)
+        model_id = registered(digest)
+        if model_id is None:
+            return False, f"whisper model sha256 {digest[:12]} is not registered in program/models.json"
+        self.model_sha256, self.model_id = digest, model_id
+        return True, f"whisper-cli with {model_id}"
+
+    def identity(self):
+        """What measured WER: the backend with the model digest and registry id, or the loopback endpoint."""
+        return {
+            "backend": self.backend,
+            "model_sha256": self.model_sha256,
+            "model_id": self.model_id,
+            "endpoint": self.endpoint,
+        }
 
     def read(self, pcm):
         """Whisper's text for one take. The take is read with PAD seconds of silence on each side: whisper drops a
@@ -125,6 +242,8 @@ def best_of(chunk_text, synth, measure, gates, base_seed):
     status = "not_measured" if kept[0]["passed"] is None else ("passed" if kept[0]["passed"] else "failed")
     record = {
         "status": status,
+        "wer_status": kept[0]["wer"].get("status"),
+        "sim_status": kept[0]["sim"].get("status"),
         "kept_take": kept[0]["take"],
         "seed": kept[0]["seed"],
         "takes": [t for t, _, _ in takes],

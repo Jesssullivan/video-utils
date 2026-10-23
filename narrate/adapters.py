@@ -4,9 +4,11 @@ Each returns an ir.Script. None of them changes its input; a condense run is rea
 
 - PlainText: one segment per paragraph (blank-line separated); lines of a paragraph join with a space.
 - Markdown: one slide manuscript per file and one segment per file. Front matter `slide` and `target_seconds`
-  are read (a small `key: value` subset of YAML). Only text before a `Sources:` line is spoken. A line wholly
-  in [brackets] is a direction, never spoken; `[pause]`, `[pause 2s]`, `[pause 800ms]` or `[pause for ...]`
-  add a pause. Headings, HTML comments and inline markup are not spoken; a link reads as its text.
+  are read (a small `key: value` subset of YAML). `slide` names chunk files: letters, digits, `.`, `_` and `-`,
+  not starting with `.`; without it the file name is used, other characters made `-`. Only text before a
+  `Sources:` line is spoken. A line wholly in [brackets] is a direction, never spoken; `[pause]`, `[pause 2s]`,
+  `[pause 800ms]` or `[pause for ...]` add a pause. Headings, HTML comments and inline markup are not spoken; a
+  link reads as its text.
 - Srt / Vtt: one segment per cue, with target_start and target_dur. A WebVTT `<v Name>` span names the
   speaker. Tags are dropped.
 - CondenseWords: a condense `<clip>.words.json` ([{start, end, word}] on the clip's analysis clock) grouped into
@@ -25,6 +27,7 @@ DIRECTION = re.compile(r"^\s*\[([^\[\]]+)\]\s*$")
 PAUSE = re.compile(r"^pause\b(?:\s+(\d+(?:\.\d+)?)\s*(ms|s)\b)?", re.IGNORECASE)
 SOURCES = re.compile(r"^\s*(?:\*\*|__)?Sources?\s*:", re.IGNORECASE)
 SPEAKER = re.compile(r"^([A-Z][A-Z0-9_ .'-]{0,31}):\s+(.*\S)\s*$")
+SLIDE_ID = re.compile(r"[A-Za-z0-9_-][A-Za-z0-9._-]{0,63}")  # a chunk file name part: no slash, no leading dot
 TIME = re.compile(r"(?:(\d+):)?(\d{1,2}):(\d{2})[,.](\d{3})")
 CUE_TIMES = re.compile(rf"^\s*({TIME.pattern})\s+-->\s+({TIME.pattern})")
 
@@ -114,9 +117,11 @@ def markdown(text, name="slide"):
     target = meta.get("target_seconds")
     if target is not None and (not isinstance(target, float) or target <= 0):
         raise InputError(f"{name}: target_seconds = {target!r}: a number of seconds above 0")
-    slide = str(meta.get("slide", name))
+    slide = str(meta["slide"]) if "slide" in meta else re.sub(r"[^A-Za-z0-9._-]", "-", name).lstrip(".")[:64] or "slide"
     if isinstance(meta.get("slide"), float) and meta["slide"].is_integer():
         slide = str(int(meta["slide"]))
+    if not SLIDE_ID.fullmatch(slide):
+        raise InputError(f"{name}: slide = {slide!r}: letters, digits, '.', '_' or '-', not starting with '.'")
     paragraphs, directions, block, ended, in_comment = [], [], [], None, False
     for number, line in enumerate(lines[first:], first + 1):
         if in_comment:

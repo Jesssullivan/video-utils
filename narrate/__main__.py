@@ -7,11 +7,12 @@ from pathlib import Path
 
 from . import evaluate, registry, render, verify
 from .adapters import InputError
-from .config import Config
+from .config import Config, ConfigError
 from .engine import EngineError
 from .lexical import LexicalError
 from .normalise import NormaliseError
 from .policy import Refused
+from .registry import RegistryError
 
 
 def emit(value):
@@ -68,7 +69,7 @@ def main(argv=None):
             print(
                 f"{final}: {manifest['input']['chunks']} chunks, {manifest['timeline']['total_samples']} samples "
                 f"at {manifest['timeline']['sample_rate']} Hz, {loud} LUFS, qa {manifest['qa']['chunks']}, "
-                f"flags {manifest['flags'] or 'none'}, verified"
+                f"flags {', '.join(manifest['flags']) or 'none'}, verified"
             )
             return 0
         if a.command == "verify":
@@ -90,7 +91,7 @@ def main(argv=None):
             return 0
         emit(registry.voices(cfg))
         return 0
-    except (Refused, LexicalError, EngineError, render.RenderError) as error:
+    except (Refused, LexicalError, EngineError, render.RenderError, RegistryError, ConfigError) as error:
         return refusal(error.code, error.detail)
     except (InputError, NormaliseError) as error:
         return refusal("input_invalid", str(error))

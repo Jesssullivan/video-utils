@@ -8,6 +8,7 @@ The receipt is JSON: ok, the run id, each check and the first failure as `reason
   ir           ir.json's canonical digest equals input.ir_sha256
   edl          segments in order, never overlapping, inside the track; total samples equal narration.wav's
   content      content_sha256 equals the digest of the manifest without its volatile fields
+  location     the run directory is not under artifacts/runs/ (the guitar runs)
 Exit 0 when every check holds, 1 when one fails, 2 when the run cannot be read.
 """
 
@@ -15,6 +16,7 @@ import json
 import wave
 from pathlib import Path
 
+from .config import in_guitar_runs
 from .ir import canonical, sha256_file, sha256_text
 
 VOLATILE = ("run_id", "run_dir", "created_utc", "content_sha256")
@@ -76,6 +78,7 @@ def verify(run_dir):
     check("edl", *edl_ok(run_dir, edl_ref.get("file") or "narration.edl.json", timeline))
     expected = sha256_text(canonical({k: v for k, v in manifest.items() if k not in VOLATILE}))
     check("content", manifest.get("content_sha256") == expected, "content_sha256 differs from the manifest")
+    check("location", not in_guitar_runs(run_dir), "a narration run under artifacts/runs/")
     return {
         "ok": reason is None,
         "run_id": manifest.get("run_id"),
@@ -93,6 +96,8 @@ def edl_ok(run_dir, name, timeline):
             samples, rate = w.getnframes(), w.getframerate()
     except (OSError, ValueError, wave.Error, EOFError) as error:
         return False, f"unreadable: {error}"
+    if not isinstance(edl, dict):
+        return False, "the EDL is not an object"
     if edl.get("kind") != "narration_edl" or edl.get("mapping") != "narration_v1":
         return False, "not a narration_v1 EDL"
     if (edl.get("total_samples"), edl.get("sample_rate")) != (samples, rate):
@@ -100,10 +105,17 @@ def edl_ok(run_dir, name, timeline):
     if (timeline.get("total_samples"), timeline.get("sample_rate")) != (samples, rate):
         return False, "manifest timeline totals differ from narration.wav"
     end = 0.0
-    for segment in edl.get("segments", []):
-        a, b = segment["out_start_s"], segment["out_end_s"]
+    segments = edl.get("segments", [])
+    if not isinstance(segments, list):
+        return False, "segments is not a list"
+    for index, segment in enumerate(segments):
+        try:
+            a, b = float(segment["out_start_s"]), float(segment["out_end_s"])
+            name = segment["id"]
+        except (KeyError, TypeError, ValueError):
+            return False, f"malformed segment {index}"
         if a < end - 1e-3 or b < a or b > samples / rate + 1e-3:
-            return False, f"segment {segment['id']} [{a}, {b}] overlaps, reverses or overruns the track"
+            return False, f"segment {name} [{a}, {b}] overlaps, reverses or overruns the track"
         end = b
     return True, ""
 

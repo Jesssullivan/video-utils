@@ -183,6 +183,23 @@ def loudnorm(source, target, rate, lufs, tp, lra=11.0, headroom_db=0.5):
     }
 
 
+PEAK_TOLERANCE_DB = 0.1  # a true peak this far over the ceiling still passes (meter and resampler spread)
+
+
+def loudness_verdict(integrated, peak, post, normalization_type=None):
+    """(passed, flags) for one delivered file, shared by render and evaluate: integrated loudness within the
+    job's tolerance, true peak at most PEAK_TOLERANCE_DB over the ceiling, and a linear loudnorm when its type is
+    known. Each failure names its own flag."""
+    flags = []
+    if not abs(integrated - post["loudnessLufs"]) <= post["loudnessToleranceLu"]:
+        flags.append("loudness_out_of_tolerance")
+    if not peak <= post["truePeakDbtp"] + PEAK_TOLERANCE_DB:
+        flags.append("true_peak_over_ceiling")
+    if normalization_type is not None and normalization_type != "linear":
+        flags.append("loudnorm_dynamic")
+    return not flags, flags
+
+
 def ebur128(path):
     """(integrated LUFS, loudness range LU, true peak dBTP) of a file's sound."""
     log = run(*FF, "-nostats", "-i", path, "-af", "ebur128=peak=true", "-f", "null", "-").stderr

@@ -21,7 +21,13 @@ LEXICAL = Path(__file__).resolve().parent / "fixtures" / "lexical"
 def hermetic_env(monkeypatch):
     """The fixtures name every input. `just` exports WHISPER_MODEL (just/condense.just), and an operator may export
     the private store, lexical release or engine token; none of them may reach a test."""
-    for name in ("WHISPER_MODEL", "NARRATE_STORE", "NARRATE_LEXICAL_DIR", "NARRATE_ENGINE_TOKEN"):
+    for name in (
+        "WHISPER_MODEL",
+        "NARRATE_WHISPER_MODEL",
+        "NARRATE_STORE",
+        "NARRATE_LEXICAL_DIR",
+        "NARRATE_ENGINE_TOKEN",
+    ):
         monkeypatch.delenv(name, raising=False)
 
 
