@@ -198,6 +198,8 @@ test_suite(
 rust_test(
     name = "rust_cli_test",
     srcs = ["cli.rs"],
+    # include_str!: the narration timeline a real render wrote (narrate/tests/test_contract_shape.py).
+    compile_data = ["//narrate:tests/fixtures/narration-timeline.json"],
     crate_root = "cli.rs",
     data = ["//src:video-utils"],
     edition = RUST_EDITION,

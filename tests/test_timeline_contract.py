@@ -9,6 +9,10 @@ for a narration render that applied no stretch at all:
 - a hybrid: a guitar take's manifest whose timeline is the condense timeline. Every other field the
   consumer reads first is valid, so the refusal comes from the no-time-stretch check itself.
 
+The narration manifest is built from narrate/tests/fixtures/narration-timeline.json and narration-shape.json,
+which narrate/tests/test_contract_shape.py checks against a real zero-stretch render of narrate/render.py: a
+renamed key or a dropped no_time_stretch there fails that test, and this matrix reads the same fixtures.
+
 Each case asserts a refusal (an exception, a `False` shape test, a rejected lineage or a rejected evidence
 row) and that the run directory holds the same files afterwards. phrase_anchor records the mapping instead
 of refusing; it must record `no_time_stretch_verified: false`.
@@ -43,6 +47,9 @@ import rhythm  # noqa: E402
 import tonal  # noqa: E402
 import web_jobs  # noqa: E402
 
+NARRATE_FIXTURES = ROOT / "narrate" / "tests" / "fixtures"
+NARRATION_TIMELINE = json.loads((NARRATE_FIXTURES / "narration-timeline.json").read_text())
+NARRATION_SHAPE = json.loads((NARRATE_FIXTURES / "narration-shape.json").read_text())
 PCM = {"sample_rate": 48000, "channels": 1, "sample_count": 48000, "codec": "pcm_s16le"}
 EDL_SHA = "e" * 64
 
@@ -70,10 +77,10 @@ def condense_manifest(run_dir: Path, outputs: dict) -> dict:
 
 
 def narration_timeline(**extra):
-    """The narration amendment's timeline for a render that stretched nothing: still no_time_stretch false."""
-    return {"mapping": "narration_v1", "no_time_stretch": False,
-            "edl": {"file": "narration.edl.json", "sha256": EDL_SHA}, "sample_rate": 24000, "total_samples": 48000,
-            "stretch_applied": False, **extra}
+    """A real render's timeline (narration-timeline.json) that stretched nothing: still no_time_stretch false."""
+    timeline = json.loads(json.dumps(NARRATION_TIMELINE))
+    timeline["edl"]["sha256"] = EDL_SHA
+    return {**timeline, **extra}
 
 
 def narration_manifest(run_dir: Path, outputs: dict) -> dict:
@@ -356,6 +363,12 @@ class NarrationCaptureConsumers(NarrationRow, CaptureConsumers):
 
 
 class NarrationManifestShape(unittest.TestCase):
+    def test_the_matrix_manifest_uses_the_rendered_shape(self):
+        manifest = narration_manifest(Path("/run"), {})
+        self.assertLessEqual(set(manifest), set(NARRATION_SHAPE["manifest_keys"]))
+        self.assertEqual(sorted(manifest["timeline"]), NARRATION_SHAPE["timeline_keys"])
+        self.assertEqual(manifest["timeline"]["edl"]["file"], "narration.edl.json")
+
     def test_a_render_with_no_stretch_still_says_no_time_stretch_false(self):
         manifest = narration_manifest(Path("/run"), {})
         self.assertIs(manifest["timeline"]["no_time_stretch"], False)

@@ -1,0 +1,13 @@
+{
+ "edl": {
+  "file": "narration.edl.json",
+  "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+ },
+ "mapping": "narration_v1",
+ "no_time_stretch": false,
+ "output_axis": "delivered sample index / sample_rate of narration.wav",
+ "sample_rate": 24000,
+ "source_axis": "none: narration is a new track; no source media is time-stretched",
+ "stretch_applied": false,
+ "total_samples": 720000
+}

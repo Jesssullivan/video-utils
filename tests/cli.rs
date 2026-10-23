@@ -1517,12 +1517,15 @@ fn verify_run_refuses_a_narration_manifest_with_zero_applied_stretch() {
     let edl = b"{\"kind\": \"narration_edl\", \"mapping\": \"narration_v1\", \"segments\": []}\n";
     fs::write(run_dir.join("narration.edl.json"), edl).unwrap();
     fs::write(run_dir.join("narration.wav"), b"fixture narration bytes").unwrap();
+    // The timeline is a real zero-stretch render's (narrate/tests/test_contract_shape.py keeps it current).
+    let timeline = include_str!("../narrate/tests/fixtures/narration-timeline.json")
+        .replace(&"0".repeat(64), &digest(edl).to_hex().to_string());
     let manifest = format!(
-        "{{\n  \"schema_version\": 1,\n  \"kind\": \"narration_render\",\n  \"status\": \"rendered_unreviewed\",\n  \"synthetic\": true,\n  \"run_id\": \"20261023T000000Z-narration\",\n  \"run_dir\": {},\n  \"output_sha256\": {{\"narration.edl.json\": \"{}\", \"narration.wav\": \"{}\"}},\n  \"timeline\": {{\"mapping\": \"narration_v1\", \"no_time_stretch\": false, \"stretch_applied\": false, \"edl\": {{\"file\": \"narration.edl.json\", \"sha256\": \"{}\"}}, \"sample_rate\": 24000, \"total_samples\": 0}}\n}}\n",
+        "{{\n  \"schema_version\": 1,\n  \"kind\": \"narration_render\",\n  \"status\": \"rendered_unreviewed\",\n  \"synthetic\": true,\n  \"run_id\": \"20261023T000000Z-narration\",\n  \"run_dir\": {},\n  \"output_sha256\": {{\"narration.edl.json\": \"{}\", \"narration.wav\": \"{}\"}},\n  \"timeline\": {}\n}}\n",
         json_string(run_dir.to_str().unwrap()),
         digest(edl).to_hex(),
         digest(b"fixture narration bytes").to_hex(),
-        digest(edl).to_hex(),
+        timeline.trim(),
     );
     fs::write(run_dir.join("manifest.json"), manifest).unwrap();
     for (args, reason) in [

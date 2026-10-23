@@ -19,6 +19,9 @@ load("@rules_python//python:defs.bzl", "py_library", "py_test")
 
 package(default_visibility = ["//visibility:public"])
 
+# tests/cli.rs builds its narration manifest from this rendered timeline (include_str!).
+exports_files(["tests/fixtures/narration-timeline.json"])
+
 filegroup(
     name = "all_files",
     srcs = glob(
