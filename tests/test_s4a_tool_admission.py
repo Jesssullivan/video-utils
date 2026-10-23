@@ -85,13 +85,13 @@ class S4AToolAdmissionTests(unittest.TestCase):
     # ----- registry freeze ----------------------------------------------------
     def test_first_46_descriptors_frozen_and_two_appended(self):
         tools = tool_api.descriptors()
-        self.assertEqual(len(tools), 57)  # tools[48:] admitted by tests/test_s4b_tool_admission.py
+        self.assertEqual(len(tools), 61)  # tools[48:57] admitted by tests/test_s4b_tool_admission.py, tools[57:] by tests/test_s5_tool_admission.py
         self.assertEqual(digest(tools, 46, False), ADMITTED_46_SHA256)
         self.assertEqual(digest(tools, 46, True), ADMITTED_46_ASCII_SHA256)
         self.assertEqual(digest(tools, 48, False), ADMITTED_48_SHA256)
         self.assertEqual(digest(tools, 48, True), ADMITTED_48_ASCII_SHA256)
         self.assertEqual([tool['name'] for tool in tools[46:48]], list(NEW))
-        self.assertEqual(len({tool['name'] for tool in tools}), 57)
+        self.assertEqual(len({tool['name'] for tool in tools}), 61)
 
     def test_freeze_hashes_match_the_s3g_record(self):
         import test_s3g_tool_admission as s3g
@@ -216,10 +216,10 @@ class S4AToolAdmissionTests(unittest.TestCase):
         replies, stderr = exchange(messages, timeout=60)
         self.assertEqual(stderr, '')
         tools = {row['name']: row for row in replies[1]['result']['tools']}
-        self.assertEqual(len(tools), 57)  # tools 49-57 by tests/test_s4b_tool_admission.py
+        self.assertEqual(len(tools), 61)  # tools 49-57 by tests/test_s4b_tool_admission.py, 58-61 by tests/test_s5_tool_admission.py
         names = [row['name'] for row in replies[2]['result']['prompts']]
         self.assertEqual(len(names), len(set(names)))
-        self.assertEqual(len(names), 55)
+        self.assertEqual(len(names), 59)  # four narration skills add four prompts
         self.assertIn('edl-timeline', names)
         for name in NEW:
             with self.subTest(name=name):

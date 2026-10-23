@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import evaluate, registry, render, verify
+from . import adapters, evaluate, registry, render, verify
 from .adapters import InputError
 from .config import Config, ConfigError
 from .engine import EngineError
@@ -35,6 +35,18 @@ def main(argv=None):
     r.add_argument("--engine", help="an engine id, instead of the job's")
     r.add_argument("--seed", type=int, help="the base seed, instead of the job's")
     r.add_argument("--out", help="the directory runs land in, instead of artifacts/narrate")
+    r.add_argument("--json", action="store_true", help="print a JSON summary with the manifest path")
+    o = r.add_argument_group("job overrides (recorded in the manifest's job.overrides; they never loosen policy)")
+    o.add_argument("--voice", help="the job's voice id; it must pass the same consent checks")
+    o.add_argument("--input-kind", choices=adapters.KINDS, help="the job's input kind")
+    o.add_argument("--confidential", action="store_true", help="mark the job confidential (never clears it)")
+    o.add_argument("--no-hosted", action="store_true", help="withdraw the job's allowHosted (never grants it)")
+    o.add_argument("--max-chunk-wer", type=float, help="gates.maxChunkWer, 0 to 1")
+    o.add_argument("--min-sim", type=float, help="gates.minSim, -1 to 1")
+    o.add_argument("--max-takes", type=int, help="gates.maxTakes, 1 to 3")
+    o.add_argument("--chunk-max-codepoints", type=int, help="chunkMaxCodepoints, 40 to 1000")
+    o.add_argument("--loudness-lufs", type=float, help="post.loudnessLufs, -30 to -10")
+    o.add_argument("--fit-max-stretch", type=float, help="post.fitMaxStretch, 0 to 0.08")
 
     e = sub.add_parser("evaluate", help="score a rendered run; writes nothing")
     e.add_argument("run_dir")
@@ -42,6 +54,7 @@ def main(argv=None):
     e.add_argument(
         "--metrics", default=",".join(evaluate.METRICS), help="comma-separated: " + ", ".join(evaluate.METRICS)
     )
+    e.add_argument("--reference-voice", help="sim: score every chunk against this voice's reference clip")
 
     v = sub.add_parser("voices", help="list voices with consent state, or add a reference clip to the store")
     v.add_argument("config", help="narrate.toml")
@@ -56,6 +69,7 @@ def main(argv=None):
     g = sub.add_parser("engines", help="list engine profiles with confidentiality eligibility and availability")
     g.add_argument("config", help="narrate.toml")
     g.add_argument("--profile", help="only this profile (GpuSwitch, GpuDirect, MacMlx, RentedOpen, Hosted, Fake)")
+    g.add_argument("--reach", action="store_true", help="also try a TCP connect to each http engine (2 s, no request)")
 
     f = sub.add_parser("verify", help="re-hash and re-check a run")
     f.add_argument("run_dir")
@@ -64,7 +78,15 @@ def main(argv=None):
     try:
         if a.command == "render":
             cfg = Config(a.config, {"out": str(Path(a.out).resolve())} if a.out else None)
-            final, manifest = render.render(cfg, input_path=a.input, rewrite=a.rewrite, engine_id=a.engine, seed=a.seed)
+            overrides = render.overrides_from(
+                {k: getattr(a, k) for k in render.OVERRIDES if getattr(a, k) is not None and getattr(a, k) is not False}
+            )
+            final, manifest = render.render(
+                cfg, input_path=a.input, rewrite=a.rewrite, engine_id=a.engine, seed=a.seed, overrides=overrides
+            )
+            if a.json:
+                emit(render.summary(final, manifest))
+                return 0
             loud = manifest["loudness"]["measured"]["integrated_lufs"]
             print(
                 f"{final}: {manifest['input']['chunks']} chunks, {manifest['timeline']['total_samples']} samples "
@@ -76,12 +98,16 @@ def main(argv=None):
             return verify.main(a.run_dir)
         if a.command == "evaluate":
             cfg = Config(a.config) if a.config else None
-            result = evaluate.evaluate(a.run_dir, tuple(m for m in a.metrics.split(",") if m), cfg)
+            metrics = tuple(m for m in a.metrics.split(",") if m)
+            unknown = sorted(set(metrics) - set(evaluate.METRICS))
+            if unknown:
+                return refusal("metric_unknown", f"{unknown}: one of {', '.join(evaluate.METRICS)}")
+            result = evaluate.evaluate(a.run_dir, metrics, cfg, a.reference_voice)
             emit(result)
             return 0 if result["ok"] else 1
         cfg = Config(a.config)
         if a.command == "engines":
-            emit(registry.engines(cfg, a.profile))
+            emit(registry.engines(cfg, a.profile, a.reach))
             return 0
         if a.action == "add":
             missing = [n for n in ("clip", "transcript", "id", "consent") if not getattr(a, n)]

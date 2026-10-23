@@ -5,13 +5,13 @@
   "recorded": "2026-10-07",
   "contract": "docs/spec/sprints/BAZEL_FULL_S3.md section 2 (ownership note) and section 12",
   "supplements": "tools/bazel/test_classification.json (bazel_graph, 95 modules at classification); that file is reused read-only",
-  "method": "Read of the five test modules added since the bazel_graph classification (git diff --name-status f44f962..549a14d -- tests/ for the first three at the lane baseline; git diff --name-status 549a14d..0ea22c3 -- tests/ for test_take_intake and test_timing_calibration, added on main and classified after the Phase 4 rebase): every FFmpeg/FFprobe, node/pnpm/git, artifacts/ and web/ or site/ reference located with grep, then the surrounding code read to separate real execution from string fixtures. The executed behaviour under Bazel of the first three is recorded in docs/agent-notes/sprints/20261007-s3/bazel_full-full-run.json; the two rebase additions were not part of that run (see its rebase_onto_main section). Root classified test_auth_token_s3 and test_stems_estimate at integration (merged on main after the lane returned) by reading their imports, subprocess calls and paths. Root classified test_s3g_tool_admission at root_admission_g (2026-10-07) by reading its imports, subprocess calls and paths: no FFmpeg, node, pnpm or git; workspace-artifacts for the reason recorded.",
+  "method": "Read of the five test modules added since the bazel_graph classification (git diff --name-status f44f962..549a14d -- tests/ for the first three at the lane baseline; git diff --name-status 549a14d..0ea22c3 -- tests/ for test_take_intake and test_timing_calibration, added on main and classified after the Phase 4 rebase): every FFmpeg/FFprobe, node/pnpm/git, artifacts/ and web/ or site/ reference located with grep, then the surrounding code read to separate real execution from string fixtures. The executed behaviour under Bazel of the first three is recorded in docs/agent-notes/sprints/20261007-s3/bazel_full-full-run.json; the two rebase additions were not part of that run (see its rebase_onto_main section). Root classified test_auth_token_s3 and test_stems_estimate at integration (merged on main after the lane returned) by reading their imports, subprocess calls and paths. Root classified test_s3g_tool_admission at root_admission_g (2026-10-07) by reading its imports, subprocess calls and paths: no FFmpeg, node, pnpm or git; workspace-artifacts for the reason recorded. Root classified test_s5_tool_admission at the narrate tool admission (2026-10-23, TIN-7090) by reading its imports, subprocess calls and paths: ffmpeg/ffprobe from PATH only, temporary directories only.",
   "claim_classes": {
     "tags_present": "measured by tests/test_bazel_graph_s3.py",
     "completeness": "inference",
     "behaviour_under_bazel": "measured by the single full run (bazel_full-full-run.json)"
   },
-  "module_count_at_supplement": 111,
+  "module_count_at_supplement": 112,
   "added_modules": [
     "test_auth_token_s3",
     "test_condense_public_surface",
@@ -24,6 +24,7 @@
     "test_s3g_tool_admission",
     "test_s4a_tool_admission",
     "test_s4b_tool_admission",
+    "test_s5_tool_admission",
     "test_stems_estimate",
     "test_take_intake",
     "test_timeline_contract",
@@ -54,6 +55,7 @@
         "test_s3_tool_admission",
         "test_s4a_tool_admission",
         "test_s4b_tool_admission",
+        "test_s5_tool_admission",
         "test_take_intake"
       ],
       "reasons": {
@@ -64,7 +66,8 @@
         "test_condense_public_surface": "runs `git ls-files` to list the condense sources it scans",
         "test_public_tree": "runs `git ls-files` to list the tracked and to-be-committed files it scans, and `git init` for its planted positive control",
         "test_s4a_tool_admission": "builds the checkout video-utils binary with cargo when absent (skips with that reason when cargo is unavailable) and runs it",
-        "test_s4b_tool_admission": "its end-to-end case runs ffmpeg/ffprobe from PATH, builds the video-utils binary with cargo and runs python -m condense, publishing one run under artifacts/condense that it then removes; it skips, naming the missing dependency, without ffmpeg, numpy in the worker interpreter or cargo"
+        "test_s4b_tool_admission": "its end-to-end case runs ffmpeg/ffprobe from PATH, builds the video-utils binary with cargo and runs python -m condense, publishing one run under artifacts/condense that it then removes; it skips, naming the missing dependency, without ffmpeg, numpy in the worker interpreter or cargo",
+        "test_s5_tool_admission": "its end-to-end case runs python -m narrate with ffmpeg/ffprobe from PATH on a synthetic workspace in a temporary directory (the fake engine, the generated sine voice, the fixture lexicon); it skips, naming ffmpeg, without it"
       }
     },
     "exclusive": {

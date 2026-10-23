@@ -44,7 +44,9 @@ WHISPER = {
     "language": "en",
     "threads": 4,
 }
-SIM = {"model": ""}  # a registered speaker-verification model; empty: SIM is not_measured
+# The registered speaker-verification model (embedding_model.ckpt) and the interpreter with torch and speechbrain
+# that runs narrate/sim_worker.py (narrate/sim.py); empty: NARRATE_SIM_MODEL / NARRATE_SIM_PYTHON, else not_measured.
+SIM = {"model": "", "python": "", "threads": 4}
 
 
 class ConfigError(ValueError):

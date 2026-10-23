@@ -42,3 +42,8 @@ narrate-lint:
 # The synthetic-fixture tests: the fake engine and FFmpeg make every take. No voice, model or network.
 narrate-test:
     cd narrate && python3 -m pytest -q
+
+# Fetch the registered speaker-verification model (SIM) into models/, hash-checked against program/models.json.
+# Scoring runs in `nix develop .#ml` (torch, speechbrain) or with NARRATE_SIM_PYTHON naming that interpreter.
+narrate-sim-model:
+    python3 scripts/model_prefetch.py speechbrain-spkrec-ecapa-voxceleb-embedding

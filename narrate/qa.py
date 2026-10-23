@@ -6,8 +6,8 @@ Without whisper-cli or the model the status is not_measured, as condense's check
 judges the take. The model file is hashed once per path and must match a sha256 in program/models.json; an
 unregistered or partial file leaves WER not_measured. The manifest records the model's digest and registry id, or
 the loopback endpoint of the http backend. Numbers are compared as digits on both sides ("seven" and "7" are one
-word), so whisper writing numerals is not an error. SIM: not_measured until a speaker-verification model is
-registered (docs/spec/NARRATE.md).
+word), so whisper writing numerals is not an error. SIM: render does not score takes in v0; `narrate evaluate`
+scores the delivered chunks with the registered speaker-verification model (narrate/sim.py).
 
 A take that fails a measured gate is synthesised again with the next seed, at most maxTakes takes in all. The
 best take by WER, then SIM, is kept; every take's numbers and the failure are recorded. A chunk that never
@@ -202,7 +202,7 @@ def not_measured(reason):
 def sim(cfg):
     if not cfg.sim.get("model"):
         return not_measured("no registered speaker-verification model")
-    return not_measured("registered SIM models have no scorer in narrate v0")
+    return not_measured("render does not score takes in v0; narrate evaluate scores the delivered chunks")
 
 
 def best_of(chunk_text, synth, measure, gates, base_seed):

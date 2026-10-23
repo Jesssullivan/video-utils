@@ -10,7 +10,9 @@
         "timeline_validate",
         "timeline_map",
         "condense_transcribe",
-        "condense_events"
+        "condense_events",
+        "narrate_voices",
+        "narrate_engines"
       ]
     },
     {
@@ -39,7 +41,8 @@
         "condense_render",
         "condense_captions",
         "condense_overlay",
-        "condense_publish"
+        "condense_publish",
+        "narrate_render"
       ]
     },
     {
@@ -99,7 +102,8 @@
         "annotation_markers",
         "flags_triage",
         "tone_ab",
-        "condense_check"
+        "condense_check",
+        "narrate_evaluate"
       ]
     }
   ],
@@ -124,6 +128,42 @@
       "url_host": "cloud.cp.jku.at"
     },
     {
+      "format": "ggml (whisper.cpp)",
+      "gate": null,
+      "gate_state": {
+        "reason": "recorded in program/models.json",
+        "value": "registered_hash_bound_runtime_not_qualified"
+      },
+      "lane": null,
+      "license": "MIT (whisper.cpp repository and OpenAI Whisper weights)",
+      "local_presence": "not_checked",
+      "max_bytes": 487614201,
+      "model_id": "ggerganov-whisper-cpp-ggml-small.en",
+      "registration": "registered_hash_bound",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000004",
+      "source_commit": "5359861c739e955e79d9a303bcbc70fb988958b1",
+      "status": null,
+      "url_host": "huggingface.co"
+    },
+    {
+      "format": "pytorch state_dict for speechbrain ECAPA_TDNN (torch.load weight",
+      "gate": null,
+      "gate_state": {
+        "reason": "recorded in program/models.json",
+        "value": "registered_hash_bound_cpu_inference_run_gate_uncalibrated"
+      },
+      "lane": null,
+      "license": "Apache-2.0 (model card front matter at the pinned revision); VoxCeleb training-data terms are distinct",
+      "local_presence": "not_checked",
+      "max_bytes": 83316686,
+      "model_id": "speechbrain-spkrec-ecapa-voxceleb-embedding",
+      "registration": "registered_hash_bound",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000005",
+      "source_commit": "0f99f2d0ebe89ac095bcc5903c4dd8f72b367286",
+      "status": null,
+      "url_host": "huggingface.co"
+    },
+    {
       "format": "onnx",
       "gate": null,
       "gate_state": {
@@ -136,7 +176,7 @@
       "max_bytes": 230444,
       "model_id": "spotify-basic-pitch-0.4.0-onnx",
       "registration": "registered_hash_bound",
-      "sha256": "0000000000000000000000000000000000000000000000000000000000000004",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000006",
       "source_commit": "9991303bba609a3b93089d13ec80d1d495083596",
       "status": null,
       "url_host": "raw.githubusercontent.com"
@@ -144,13 +184,13 @@
   ],
   "pilot_tool_count": 8,
   "registry_sha256": {
-    "capabilities": "0000000000000000000000000000000000000000000000000000000000000005",
-    "models": "0000000000000000000000000000000000000000000000000000000000000006",
-    "tools": "0000000000000000000000000000000000000000000000000000000000000007"
+    "capabilities": "0000000000000000000000000000000000000000000000000000000000000007",
+    "models": "0000000000000000000000000000000000000000000000000000000000000008",
+    "tools": "0000000000000000000000000000000000000000000000000000000000000009"
   },
   "schema_id": "video-utils.web-runs.capabilities",
   "schema_version": 1,
-  "tool_count": 57,
+  "tool_count": 61,
   "tools": [
     {
       "annotations": {
@@ -260,7 +300,7 @@
       },
       "limitations": [
         "No automatic high-pass or hum notch; denoising can still remove intended fundamentals and harmonics. Listening acceptance is required.",
-        "Captured presets require original SHA 0000000000000000000000000000000000000000000000000000000000000008 and root-reviewed 4.10\u20134.95 second audio-relative interval. Different sources reject before probe/render; music or sustain absence is uncertain.",
+        "Captured presets require original SHA 000000000000000000000000000000000000000000000000000000000000000a and root-reviewed 4.10\u20134.95 second audio-relative interval. Different sources reject before probe/render; music or sustain absence is uncertain.",
         "Pure denoised.wav and removed-signal residue remain separate from optional processed.wav EQ/compression and final cleaned.wav normalization. No optimal-tone or listening acceptance claim.",
         "Only fixed profile names are exposed; no arbitrary capture interval, EQ or compressor object. Actual source-bound presets are excluded from synthetic benchmark profile choices."
       ],
@@ -2884,9 +2924,10 @@
       },
       "limitations": [
         "Synthetic-media tests cover the stage; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
-        "bounds prints text for a person to read; it does not pass or fail on its own."
+        "bounds prints text for a person to read; it does not pass or fail on its own.",
+        "A run of fewer than four gates never replaces work/check.json; condense_publish refuses a newer check.partial.json of the same edit that says failed or not_measured."
       ],
-      "limitations_count": 2,
+      "limitations_count": 3,
       "name": "condense_check",
       "skill": ".agents/skills/condense-check/SKILL.md",
       "title": "Gate a rendered edit"
@@ -3038,12 +3079,184 @@
       },
       "limitations": [
         "The manifest binds hashes and the EDL timeline; listening quality, ASR accuracy and physical A/V sync beyond the avsync probe are not established.",
-        "Each call writes a new run; earlier runs are never changed or removed."
+        "Each call writes a new run; earlier runs are never changed or removed.",
+        "The manifest's check describes talk.mp4 only: check measures neither the captions nor the corrected or upload copies."
       ],
-      "limitations_count": 2,
+      "limitations_count": 3,
       "name": "condense_publish",
       "skill": ".agents/skills/condense-publish/SKILL.md",
       "title": "Publish a hash-bound condense run"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "area": "delivery",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "List voices and engines first; consent and engine eligibility are enforced by the render itself.",
+        "recommended_prior_tools": [
+          "narrate_voices",
+          "narrate_engines"
+        ]
+      },
+      "evidence_kind": "synthetic_narration_rendered_unreviewed",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "allow_hosted",
+          "chunk_max_codepoints",
+          "confidential",
+          "config",
+          "engine",
+          "fit_max_stretch",
+          "input",
+          "input_kind",
+          "loudness_lufs",
+          "max_chunk_wer",
+          "max_takes",
+          "min_sim",
+          "seed",
+          "text",
+          "timeout_seconds",
+          "voice"
+        ],
+        "required": [
+          "config"
+        ]
+      },
+      "limitations": [
+        "Synthetic-fixture tests and the fake engine cover the path; a real engine render, its WER and SIM gates and listening acceptance are separate states recorded per run.",
+        "Gate values are placeholders until the bench calibrates them (job gates.calibrated false); a run with no flag meets only the source gate, not listening acceptance.",
+        "Render does not score SIM per take in v0, so every run carries sim_not_measured; narrate_evaluate scores the delivered chunks.",
+        "The job's audio format, captions and narration EDL choice come from the job file; MCP overrides cover the voice, engine, seed, gates, chunking, loudness target and fit limit only."
+      ],
+      "limitations_count": 4,
+      "name": "narrate_render",
+      "skill": ".agents/skills/narrate-render/SKILL.md",
+      "title": "Render a narration in a consented voice"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "area": "analysis",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "The registry records are dhall-to-json renders the operator keeps outside git.",
+        "recommended_prior_tools": []
+      },
+      "evidence_kind": "consent_registry_listing",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "config",
+          "timeout_seconds"
+        ],
+        "required": [
+          "config"
+        ]
+      },
+      "limitations": [
+        "The listing reflects the private registry and store as they are; consent evidence itself is checked by digest only, never read or judged here."
+      ],
+      "limitations_count": 1,
+      "name": "narrate_voices",
+      "skill": ".agents/skills/narrate-voices/SKILL.md",
+      "title": "List consented narration voices"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "area": "analysis",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "Engine instances with private endpoints live in the operator's registry outside git.",
+        "recommended_prior_tools": []
+      },
+      "evidence_kind": "engine_registry_listing_with_tcp_reachability",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "config",
+          "probe_reachability",
+          "profile",
+          "timeout_seconds"
+        ],
+        "required": [
+          "config"
+        ]
+      },
+      "limitations": [
+        "A reachable port is not a working engine: only a render proves the speech route, the model and the reference-clip handling.",
+        "GPU lease and model-switch state are not read here; the attended-window receipt holds them."
+      ],
+      "limitations_count": 2,
+      "name": "narrate_engines",
+      "skill": ".agents/skills/narrate-engines/SKILL.md",
+      "title": "List narration engines and their reachability"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "area": "review",
+      "area_basis": "routes_review presentation map; not a registry field",
+      "capability": null,
+      "capability_reason": "capability pilot covers 8 tools",
+      "dependencies": {
+        "enforced": false,
+        "note": "The run comes from narrate_render or just narrate-render.",
+        "recommended_prior_tools": [
+          "narrate_render"
+        ]
+      },
+      "evidence_kind": "measured_narration_scores_uncalibrated",
+      "implementation_status": "experimental",
+      "input": {
+        "properties": [
+          "config",
+          "metrics",
+          "reference_voice",
+          "run_dir",
+          "timeout_seconds"
+        ],
+        "required": [
+          "run_dir"
+        ]
+      },
+      "limitations": [
+        "SIM is the cosine of ECAPA embeddings trained on VoxCeleb; the microphone and room move it as well as the voice, so a cross-channel reference scores lower. Its gate is uncalibrated until the bench sets it against a decoy.",
+        "SIM needs the registered model (just narrate-sim-model) and an interpreter with torch and speechbrain (nix develop .#ml, or [sim] python / NARRATE_SIM_PYTHON); otherwise it is not_measured.",
+        "WER is a regression gate, not a ranking; rare words are adjudicated by a person. UTMOS is not scored yet.",
+        "Metrics never stand in for the operator's blind listening receipt."
+      ],
+      "limitations_count": 4,
+      "name": "narrate_evaluate",
+      "skill": ".agents/skills/narrate-evaluate/SKILL.md",
+      "title": "Score a narration run"
     }
   ],
   "unknown_fields": {

@@ -1,0 +1,368 @@
+{
+  "schema_version": 1,
+  "status": "draft_for_root_admission",
+  "lane": "W7a",
+  "linear": "TIN-7090",
+  "spec": "docs/spec/NARRATE.md",
+  "worker": "python3 -m narrate {render,voices,engines,evaluate}",
+  "skill": ".agents/skills/narrate-*/SKILL.md",
+  "admission": "narrate_render, narrate_voices, narrate_engines and narrate_evaluate are admitted as tools 58-61 (tests/test_s5_tool_admission.py). The tools below equal the admitted descriptors. tool_api.validate_schema has no pattern or uniqueItems support, so the path rules, the input/text exclusion, the registry-id form and unique metrics are enforced in scripts/tool_api.py before any worker starts.",
+  "tools": [
+    {
+      "name": "narrate_render",
+      "title": "Render a narration in a consented voice",
+      "description": "Run `python -m narrate render --json` on one narrate.toml job: input adapter, lexical pass, chunker, pronunciation, engine (best of maxTakes per chunk), per-chunk WER through whisper when present, timing fit, two-pass loudnorm, captions, narration EDL and manifest, then verify. Every consent, scope, revocation, hosted and confidential refusal happens before any audio exists and returns its typed code. Returns the run directory, the manifest path and a summary (chunks, seconds, loudness, QA counts, overruns, overrides, flags). Reads the narrate.toml, its records, the private store and the script (a file, or inline text written to a private temporary file); writes one fresh run under the narrate.toml out directory (default artifacts/narrate/<run_id>/), never under artifacts/runs/. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration manifest says synthetic true and timeline mapping narration_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Let an agent voice a short script in a consented voice with bounded time, typed refusals and a manifest it can inspect and score.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular narrate.toml (not a symlink, at most 1 MiB). It names the rendered job, engine, voice, consent and pronunciation records and the private store; paths in it are relative to it."
+          },
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A script file instead of narrate.toml's input (a regular file, not a symlink, at most 16 MiB); read as the job's input kind."
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "Inline script text, at most 4000 characters, instead of a file. It is written to a private temporary file and read as input_kind (or the job's kind); a job that pins inputSha256 refuses text that differs. Longer scripts go through the CLI."
+          },
+          "input_kind": {
+            "type": "string",
+            "enum": [
+              "PlainText",
+              "Markdown",
+              "Srt",
+              "Vtt",
+              "CondenseWords",
+              "Dialog"
+            ],
+            "description": "Overrides the job's input kind. Inline text cannot be CondenseWords."
+          },
+          "voice": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Overrides the job's voice id. The voice passes the same consent, scope, revocation and allowed-engine checks."
+          },
+          "engine": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "An engine id instead of the job's. Hosted and rented engines still need the job and consent flags; a confidential job still refuses every engine that may not run it."
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647,
+            "description": "The base seed; take k uses seed + k - 1."
+          },
+          "confidential": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "description": "true marks the job confidential (refused on any engine that may not run it). It never clears a job's flag."
+          },
+          "allow_hosted": {
+            "type": "boolean",
+            "enum": [
+              false
+            ],
+            "description": "false withdraws the job's allowHosted. MCP never grants hosted use; that takes the job file and the consent record."
+          },
+          "max_chunk_wer": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "gates.maxChunkWer: a measured take over it is synthesised again with the next seed."
+          },
+          "min_sim": {
+            "type": "number",
+            "minimum": -1,
+            "maximum": 1,
+            "description": "gates.minSim, recorded with the job. Render does not score SIM in v0; narrate_evaluate does."
+          },
+          "max_takes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3,
+            "description": "gates.maxTakes: takes per chunk, best kept."
+          },
+          "chunk_max_codepoints": {
+            "type": "integer",
+            "minimum": 40,
+            "maximum": 1000,
+            "description": "chunkMaxCodepoints: the spoken length limit of one engine call."
+          },
+          "loudness_lufs": {
+            "type": "number",
+            "minimum": -30,
+            "maximum": -10,
+            "description": "post.loudnessLufs: the integrated loudness target of the two-pass loudnorm."
+          },
+          "fit_max_stretch": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 0.08,
+            "description": "post.fitMaxStretch: the atempo limit after the engine speed knob; what still overruns is flagged, never truncated."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Outer deadline for the whole call in seconds (at most 900). The engine calls, whisper and FFmpeg run inside it; a longer script goes through just narrate-render."
+          }
+        },
+        "required": [
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/narrate-render/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "synthetic_narration_rendered_unreviewed",
+      "limitations": [
+        "Synthetic-fixture tests and the fake engine cover the path; a real engine render, its WER and SIM gates and listening acceptance are separate states recorded per run.",
+        "Gate values are placeholders until the bench calibrates them (job gates.calibrated false); a run with no flag meets only the source gate, not listening acceptance.",
+        "Render does not score SIM per take in v0, so every run carries sim_not_measured; narrate_evaluate scores the delivered chunks.",
+        "The job's audio format, captions and narration EDL choice come from the job file; MCP overrides cover the voice, engine, seed, gates, chunking, loudness target and fit limit only."
+      ],
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "narrate_voices",
+          "narrate_engines"
+        ],
+        "enforced": false,
+        "note": "List voices and engines first; consent and engine eligibility are enforced by the render itself."
+      },
+      "agent_workflow": {
+        "identify": "Read run_dir, manifest, chunks, seconds, loudness, qa, overruns, overrides and flags; the manifest records every chunk's takes, seeds, WER and the engine, voice and consent ids.",
+        "research": "docs/spec/NARRATE.md gives the dataflow, consent policy and outputs; narrate/README.md gives every rule and default.",
+        "iterate": "Change one knob (seed, max_takes, chunk_max_codepoints, fit_max_stretch or the engine), render again and compare with narrate_evaluate on both runs.",
+        "acceptance": "A rendered run is not an accepted narration: narrate_evaluate scores it and the operator's blind listening receipt accepts it.",
+        "max_comparison_candidates_default": 2
+      }
+    },
+    {
+      "name": "narrate_voices",
+      "title": "List consented narration voices",
+      "description": "Run `python -m narrate voices` on one narrate.toml: each voice id with its consent id and state (active, revoked, missing or evidence_absent), scopes, allowed engines, whether hosted use is allowed, whether it is a fixture, and whether its reference clip and transcript are in the private store. Never a path, a clip, a transcript or a digest. Reads the registry records and hashes the private store; writes nothing. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration manifest says synthetic true and timeline mapping narration_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Let an agent pick a voice it may use before a render, from consent state rather than from files.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular narrate.toml (not a symlink, at most 1 MiB). It names the rendered job, engine, voice, consent and pronunciation records and the private store; paths in it are relative to it."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 300,
+            "default": 60,
+            "description": "Outer deadline for the whole call in seconds (at most 300). Hashing a large private store takes most of it."
+          }
+        },
+        "required": [
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/narrate-voices/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "consent_registry_listing",
+      "limitations": [
+        "The listing reflects the private registry and store as they are; consent evidence itself is checked by digest only, never read or judged here."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [],
+        "enforced": false,
+        "note": "The registry records are dhall-to-json renders the operator keeps outside git."
+      },
+      "agent_workflow": {
+        "identify": "Read id, consent_state, scope, consent_scopes, allowed_engines, hosted_allowed, fixture, ref_clip_stored and ref_text_stored per voice.",
+        "research": "docs/spec/NARRATE.md \"Consent and confidentiality policy\".",
+        "iterate": "There are no knobs; a voice that is not active needs the operator, never a workaround.",
+        "acceptance": "Only an active voice whose clip and transcript are stored can render; v0 clones only the operator's own voice.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "narrate_engines",
+      "title": "List narration engines and their reachability",
+      "description": "Run `python -m narrate engines` on one narrate.toml: each engine id with its profile, backend, model, licence and licence notice, whether it is hosted, whether its profile and backend agree, whether it may run a confidential job, and its availability; with probe_reachability, a 2 s TCP connect to each http engine (no request, no token, no synthesis). Never an endpoint. Reads the registry records; writes nothing. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration manifest says synthetic true and timeline mapping narration_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Let an agent see which engines a job may use and which answer, before it spends a render on one.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular narrate.toml (not a symlink, at most 1 MiB). It names the rendered job, engine, voice, consent and pronunciation records and the private store; paths in it are relative to it."
+          },
+          "profile": {
+            "type": "string",
+            "enum": [
+              "GpuSwitch",
+              "GpuDirect",
+              "MacMlx",
+              "RentedOpen",
+              "Hosted",
+              "Fake"
+            ],
+            "description": "Only engines of this profile."
+          },
+          "probe_reachability": {
+            "type": "boolean",
+            "default": false,
+            "description": "Also try a TCP connect (2 s each) to every http engine; the reply says reachable and how, never the endpoint."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 120,
+            "default": 60,
+            "description": "Outer deadline for the whole call in seconds (at most 120). Each reachability probe is bounded at 2 s inside it."
+          }
+        },
+        "required": [
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/narrate-engines/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "engine_registry_listing_with_tcp_reachability",
+      "limitations": [
+        "A reachable port is not a working engine: only a render proves the speech route, the model and the reference-clip handling.",
+        "GPU lease and model-switch state are not read here; the attended-window receipt holds them."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "dependencies": {
+        "recommended_prior_tools": [],
+        "enforced": false,
+        "note": "Engine instances with private endpoints live in the operator's registry outside git."
+      },
+      "agent_workflow": {
+        "identify": "Read id, profile, backend, hosted, consistent, may_run_confidential, licence_notice, available and reach per engine.",
+        "research": "docs/spec/NARRATE.md \"Engine profiles\" gives the preference order and who may run confidential work.",
+        "iterate": "Probe again after an engine starts; never start, stop or switch a server from here.",
+        "acceptance": "An engine is usable for a job only when the render admits it; this listing is advice.",
+        "max_comparison_candidates_default": 1
+      }
+    },
+    {
+      "name": "narrate_evaluate",
+      "title": "Score a narration run",
+      "description": "Run `python -m narrate evaluate` on one run directory after re-verifying it: loudness (EBU R128 against the job target), overruns (from the EDL), WER (each chunk cut from narration.wav and read back by the registered whisper model) and SIM (each chunk against the speaking voice's reference clip with the registered ECAPA speaker-verification model on the CPU, plus wSIM, the minimum over 10 s windows). A metric whose model or runtime is missing is not_measured with its reason, never a number. reference_voice scores every chunk against another voice's clip (a decoy check). Reads the run, the narrate.toml and the private store; writes nothing. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration manifest says synthetic true and timeline mapping narration_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+      "intent": "Give agents measured, typed evidence on a narration run (and its decoy) before anyone listens.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "run_dir": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A narration run directory with its manifest.json (no symlink components). A run that does not verify is refused (run_unverified)."
+          },
+          "config": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "A regular narrate.toml (not a symlink, at most 1 MiB): the whisper and [sim] settings and the private store that holds the reference clips. Without it WER and SIM are not_measured."
+          },
+          "metrics": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "items": {
+              "type": "string",
+              "enum": [
+                "loudness",
+                "overruns",
+                "wer",
+                "sim"
+              ]
+            },
+            "description": "Which metrics, each at most once (default all four)."
+          },
+          "reference_voice": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "sim: score every chunk against this registered voice's reference clip instead of the voice that spoke it."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 600,
+            "description": "Outer deadline for the whole call in seconds (at most 900). Whisper and the SIM worker (at most 8 CPU threads) run inside it."
+          }
+        },
+        "required": [
+          "run_dir"
+        ],
+        "additionalProperties": false
+      },
+      "skill": ".agents/skills/narrate-evaluate/SKILL.md",
+      "implementation_status": "experimental",
+      "evidence_kind": "measured_narration_scores_uncalibrated",
+      "limitations": [
+        "SIM is the cosine of ECAPA embeddings trained on VoxCeleb; the microphone and room move it as well as the voice, so a cross-channel reference scores lower. Its gate is uncalibrated until the bench sets it against a decoy.",
+        "SIM needs the registered model (just narrate-sim-model) and an interpreter with torch and speechbrain (nix develop .#ml, or [sim] python / NARRATE_SIM_PYTHON); otherwise it is not_measured.",
+        "WER is a regression gate, not a ranking; rare words are adjudicated by a person. UTMOS is not scored yet.",
+        "Metrics never stand in for the operator's blind listening receipt."
+      ],
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "dependencies": {
+        "recommended_prior_tools": [
+          "narrate_render"
+        ],
+        "enforced": false,
+        "note": "The run comes from narrate_render or just narrate-render."
+      },
+      "agent_workflow": {
+        "identify": "Read each metric's status; for sim read median, min, wsim.min, the per-chunk rows (short marks a chunk under 1 s), min_sim and calibrated; for wer the per-chunk rows and passed.",
+        "research": "docs/agent-notes/2026-10-22-narrate-bench-plan.md defines the SIM bar against a preset-voice decoy and wSIM; narrate/sim.py says what a SIM number means.",
+        "iterate": "Score the same run with reference_voice set to a decoy voice and compare medians; score two renders of one script to compare engines or seeds.",
+        "acceptance": "Measured scores are evidence for a gate, not acceptance; the operator's blind A/B listening receipt is a separate state.",
+        "max_comparison_candidates_default": 2
+      }
+    }
+  ]
+}

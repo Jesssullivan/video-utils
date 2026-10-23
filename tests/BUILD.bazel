@@ -82,6 +82,7 @@ HOST_TOOL_TESTS = [
     "test_s3_tool_admission",
     "test_s4a_tool_admission",
     "test_s4b_tool_admission",
+    "test_s5_tool_admission",
     "test_share_export",
     "test_share_export_preroll",
     "test_sprint1_audit",

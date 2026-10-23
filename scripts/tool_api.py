@@ -73,6 +73,21 @@ CONDENSE_MAX_CONFIG_BYTES = 1024 * 1024
 CONDENSE_MAX_MEDIA_BYTES = 64 * 1024**3
 CONDENSE_LOG_TAIL = 4000
 CONDENSE_MODEL_ID = 'ggerganov-whisper-cpp-ggml-small.en'
+# Narration tools (admitted as tools 58-61, docs/spec/NARRATE.md "MCP tools"): `python -m narrate COMMAND` from the
+# checkout. Paths are checked here before a worker starts; inline text goes through a private temporary file. The
+# worker prints one JSON object on stdout, or a typed refusal {"refused": code} on stderr and exits 1.
+NARRATE_TOOLS = {'narrate_render': 'render', 'narrate_voices': 'voices', 'narrate_engines': 'engines',
+                 'narrate_evaluate': 'evaluate'}
+NARRATE_MAX_CONFIG_BYTES = 1024 * 1024
+NARRATE_MAX_INPUT_BYTES = 16 * 1024 * 1024
+NARRATE_TEXT_SUFFIX = {'PlainText': '.txt', 'Markdown': '.md', 'Dialog': '.txt', 'Srt': '.srt', 'Vtt': '.vtt'}
+# narrate_render argument -> CLI flag; a boolean override is a bare flag (it only tightens the job).
+NARRATE_RENDER_FLAGS = {'input_kind': '--input-kind', 'voice': '--voice', 'engine': '--engine', 'seed': '--seed',
+                        'confidential': '--confidential', 'allow_hosted': '--no-hosted',
+                        'max_chunk_wer': '--max-chunk-wer', 'min_sim': '--min-sim', 'max_takes': '--max-takes',
+                        'chunk_max_codepoints': '--chunk-max-codepoints', 'loudness_lufs': '--loudness-lufs',
+                        'fit_max_stretch': '--fit-max-stretch'}
+NARRATE_STDERR_TAIL = 1500
 S2_DIGEST_FIELDS = {'annotation_markers': 'store_sha256', 'corpus_eval_s2': 'proposals_sha256'}
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
                          'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default',
@@ -690,6 +705,21 @@ def validate_tool_arguments(name, args):
         checks = args.get('checks', [])
         if len(checks) != len(set(checks)):
             raise ValidationError('condense_check checks must each appear once')
+    if name in NARRATE_TOOLS:
+        for field in ('config', 'input', 'run_dir'):
+            value = args.get(field)
+            if value is not None and (':' in value or '\\' in value or '..' in value.split('/')):
+                raise ValidationError(f'narrate {field} must be an exact local path without traversal or URL')
+        if 'input' in args and 'text' in args:
+            raise ValidationError('narrate_render takes input or text, not both')
+        if 'text' in args and args.get('input_kind') == 'CondenseWords':
+            raise ValidationError('narrate_render text cannot be CondenseWords; name the words.json as input')
+        for field in ('voice', 'engine', 'reference_voice'):
+            value = args.get(field)
+            if value is not None and not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,127}', value, flags=re.ASCII):
+                raise ValidationError(f'narrate {field} must be a registry id ([A-Za-z0-9_.-], at most 128)')
+        if len(args.get('metrics', [])) != len(set(args.get('metrics', []))):
+            raise ValidationError('narrate_evaluate metrics must each appear once')
     if name in TIMELINE_TOOLS:
         value = args['edl']
         if ':' in value or '\\' in value or '..' in value.split('/'):
@@ -1285,6 +1315,138 @@ def run_condense_tool(name, args, timeout):
     return result | ({'gates_passed': True} if name == 'condense_check' else {})
 
 
+def narrate_config(value):
+    try:
+        return s2_input_file(value, NARRATE_MAX_CONFIG_BYTES)
+    except ToolError as error:
+        raise ToolError('narrate config must be an existing regular narrate.toml of at most 1 MiB without symlink '
+                        'components') from error
+
+
+def narrate_command(name, args, scratch):
+    """The worker argv for one narrate tool; inline text is written beneath scratch, never into the repository."""
+    interpreter = os.environ.get('VIDEO_UTILS_PYTHON', sys.executable)
+    head = [interpreter, '-m', 'narrate', NARRATE_TOOLS[name]]
+    if name == 'narrate_evaluate':
+        run_dir = s2_original_path(args['run_dir'])
+        s2_reject_symlink_components(run_dir)
+        if not run_dir.is_dir() or not (run_dir / 'manifest.json').is_file():
+            raise ToolError('narrate_evaluate run_dir must be an existing run directory with a manifest.json')
+        command = head + [str(run_dir)]
+        if 'config' in args:
+            command += ['--config', str(narrate_config(args['config']))]
+        command += ['--metrics', ','.join(args.get('metrics', ['loudness', 'overruns', 'wer', 'sim']))]
+        if 'reference_voice' in args:
+            command += ['--reference-voice', args['reference_voice']]
+        return command
+    command = head + [str(narrate_config(args['config']))]
+    if name == 'narrate_voices':
+        return command
+    if name == 'narrate_engines':
+        command += ['--profile', args['profile']] if 'profile' in args else []
+        return command + (['--reach'] if args.get('probe_reachability') else [])
+    command.append('--json')
+    if 'input' in args:
+        try:
+            command += ['--input', str(s2_input_file(args['input'], NARRATE_MAX_INPUT_BYTES))]
+        except ToolError as error:
+            raise ToolError('narrate_render input must be an existing regular file of at most 16 MiB without '
+                            'symlink components') from error
+    elif 'text' in args:
+        kind = args.get('input_kind')
+        if kind is None:
+            import tomllib
+            config = narrate_config(args['config'])
+            try:
+                raw = tomllib.loads(config.read_text(encoding='utf-8'))
+                job_path = (config.parent / raw['job']).resolve()
+                jobs = strict_json(job_path.read_text(encoding='utf-8'))
+                jobs = jobs if isinstance(jobs, list) else [jobs]
+                job = next(j for j in jobs if not raw.get('job_id') or j.get('id') == raw['job_id'])
+                kind = job['input']
+            except (OSError, UnicodeError, ValueError, KeyError, TypeError, StopIteration) as error:
+                raise ToolError('narrate_render text needs input_kind, or a narrate.toml whose job names one') from error
+        if kind not in NARRATE_TEXT_SUFFIX:
+            raise ToolError(f'narrate_render text cannot be read as {kind}; name the file as input')
+        script = Path(scratch) / ('script' + NARRATE_TEXT_SUFFIX[kind])
+        script.write_text(args['text'], encoding='utf-8')
+        command += ['--input', str(script)]
+    for field, flag in NARRATE_RENDER_FLAGS.items():
+        if field not in args:
+            continue
+        value = args[field]
+        if isinstance(value, bool):
+            # The schema admits only confidential true and allow_hosted false: each tightens the job.
+            command += [flag]
+        else:
+            command += [flag, str(value)]
+    return command
+
+
+def run_narrate_tool(name, args, timeout):
+    if not (ROOT / 'narrate' / '__main__.py').is_file():
+        raise ToolError('implementation worker is unavailable; nothing was run')
+    with tempfile.TemporaryDirectory(prefix='video-utils-narrate-') as scratch, \
+            tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
+        command = narrate_command(name, args, scratch)
+        try:
+            process = subprocess.Popen(command, cwd=ROOT, stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr,
+                                       start_new_session=True)
+        except OSError as error:
+            raise ToolError(f'worker could not start: {error}') from error
+        try:
+            process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired as error:
+            # This new process group was created by this invocation; check its pgid before signalling it.
+            try:
+                if os.getpgid(process.pid) == process.pid:
+                    os.killpg(process.pid, signal.SIGKILL)
+                else:
+                    process.kill()
+            except ProcessLookupError:
+                pass
+            process.wait()
+            raise ToolError(f'worker deadline exceeded ({timeout}s); owned process group stopped') from error
+        stdout.seek(0, os.SEEK_END)
+        if stdout.tell() > MAX_WORKER_OUTPUT:
+            raise ToolError('worker result exceeds 2 MiB result limit; inspect the run directory')
+        stdout.seek(0)
+        out = stdout.read().decode('utf-8', errors='replace')
+        stderr.seek(0, os.SEEK_END)
+        stderr.seek(max(0, stderr.tell() - NARRATE_STDERR_TAIL))
+        err = stderr.read().decode('utf-8', errors='replace')
+    if process.returncode == 1:
+        try:
+            refusal = strict_json(err.strip().splitlines()[-1])
+        except (ValueError, IndexError):
+            refusal = None
+        if isinstance(refusal, dict) and isinstance(refusal.get('refused'), str):
+            raise ToolError(f'{name} refused: {refusal["refused"]}',
+                            receipt={'status': 'refused', 'tool': name, 'reason': refusal['refused'],
+                                     'detail': str(refusal.get('detail', ''))[:1000]})
+        if name == 'narrate_evaluate':
+            try:
+                result = strict_json(out)
+            except ValueError:
+                result = None
+            if isinstance(result, dict) and result.get('ok') is False:
+                raise ToolError(f'{name} refused: run_unverified',
+                                receipt={'status': 'refused', 'tool': name, 'reason': 'run_unverified',
+                                         'detail': str(result.get('reason', ''))[:1000]})
+    if process.returncode:
+        raise ToolError(f'{name} failed ({process.returncode}): {err[-1000:]}')
+    try:
+        result = strict_json(out)
+    except ValueError as error:
+        raise ToolError('worker did not return a single finite JSON object') from error
+    if isinstance(result, list):
+        key = 'voices' if name == 'narrate_voices' else 'engines'
+        result = {key: result}
+    if not isinstance(result, dict):
+        raise ToolError('worker result must be a JSON object')
+    return result
+
+
 def run_worker(command, timeout, error_json_tool=None):
     if not Path(command[1]).is_file():
         raise ToolError('implementation worker is unavailable; no analysis was performed')
@@ -1602,6 +1764,8 @@ def execute(name, arguments):
         result = run_timeline_tool(name, arguments, timeout)
     elif name in CONDENSE_STAGES:
         result = run_condense_tool(name, arguments, timeout)
+    elif name in NARRATE_TOOLS:
+        result = run_narrate_tool(name, arguments, timeout)
     elif name == 'capture_profile':
         result = run_worker(worker_command(name, arguments), timeout, error_json_tool=name)
     elif name in TYPED_REFUSAL_TOOLS:

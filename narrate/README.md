@@ -23,10 +23,11 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | Recipe | Command | Does |
 | --- | --- | --- |
 | `just narrate-render [CONFIG]` | `python -m narrate render` | the whole pipeline, then `verify` |
-| `just narrate-eval RUN [CONFIG]` | `python -m narrate evaluate` | loudness, overruns, WER, SIM; writes nothing |
+| `just narrate-eval RUN [CONFIG]` | `python -m narrate evaluate` | loudness, overruns, WER, SIM (`--reference-voice` for a decoy); writes nothing |
 | `just narrate-verify RUN` | `python -m narrate verify` | re-hashes the run and re-checks the manifest |
 | `just narrate-voices [CONFIG]` | `python -m narrate voices` | voice ids, consent state, scopes, engines |
-| `just narrate-engines [CONFIG]` | `python -m narrate engines` | profiles, confidentiality eligibility, availability |
+| `just narrate-engines [CONFIG]` | `python -m narrate engines` | profiles, confidentiality eligibility, availability; `--reach` tries a TCP connect |
+| `just narrate-sim-model` | `scripts/model_prefetch.py` | fetches the registered ECAPA speaker model into `models/`, hash-checked |
 | `just narrate-voice-add CONFIG CLIP TEXT ID CONSENT` | `python -m narrate voices add` | stores a 10 to 30 s mono 16-bit clip and its transcript by sha256; prints exactly a `Voice.dhall` record; needs `--allow-engine` |
 | `just narrate-bench` | | lane W3 (TIN-7085) fills it |
 
@@ -42,6 +43,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | `qa.py` | per-chunk WER through condense's whisper path, SIM placeholder, best of `maxTakes` by seed |
 | `audio.py`, `render.py` | pauses, timing fit, placement, two-pass loudnorm, captions, EDL, manifest |
 | `verify.py`, `evaluate.py` | the re-check and the scores |
+| `sim.py`, `sim_worker.py` | SIM: ECAPA-TDNN cosine on the CPU in an interpreter with torch and speechbrain |
 
 - **Refusals come first.** A missing, revoked or out-of-scope consent, a clip or transcript whose digest no stored
   file has, an unmapped dialog speaker, a hosted engine without `allowHosted`, and any engine that may not run a
@@ -52,9 +54,16 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
   `not_measured`, no gate judges a take and the run is flagged `wer_not_measured`. With them, the manifest records
   the model's sha256 and registry id (or the http backend's loopback endpoint), and a take over `maxChunkWer` is
   synthesised again with the next seed; the best take is kept and a chunk that never passes is flagged
-  `qa_failed`. Numbers are compared as digits on both sides. SIM is `not_measured` (flag `sim_not_measured`)
-  until a speaker-verification model is registered. The model is `[whisper] model` in narrate.toml, else
-  `NARRATE_WHISPER_MODEL`, else `WHISPER_MODEL`.
+  `qa_failed`. Numbers are compared as digits on both sides. The model is `[whisper] model` in narrate.toml,
+  else `NARRATE_WHISPER_MODEL`, else `WHISPER_MODEL`.
+- **SIM.** Render does not score takes in v0, so every run carries `sim_not_measured`. `evaluate` scores each
+  delivered chunk against the speaking voice's reference clip with the registered speechbrain ECAPA model
+  (`speechbrain-spkrec-ecapa-voxceleb-embedding`, Apache-2.0, bound by sha256 in `program/models.json`), plus wSIM,
+  the minimum over 10 s windows with a 5 s hop. It runs on the CPU (`[sim] threads`, at most 8) in an interpreter
+  with torch and speechbrain: `nix develop .#ml`, or `[sim] python` / `NARRATE_SIM_PYTHON`. The model is
+  `[sim] model`, else `NARRATE_SIM_MODEL`, else `models/<id>.bin` from `just narrate-sim-model`. Without them SIM is
+  `not_measured` with the reason. `--reference-voice ID` scores every chunk against another voice's clip, the decoy
+  check. A SIM number is a cosine from a model trained on VoxCeleb: the microphone and room move it too.
 - **Timing fit.** A segment over its target first gets the engine's `speed` (at most `[fit] speed_max`, 1.15),
   then `atempo` within the job's `fitMaxStretch` (8%). What still runs over is flagged `overrun` with its excess,
   never truncated. A segment under its target is padded; one whose start has passed starts late, flagged.
@@ -67,6 +76,11 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
   `input_unpinned`.
 - **Transport.** `NARRATE_ENGINE_TOKEN` goes over plain http only to a loopback host; Hosted and RentedOpen
   engines always need https (`engine_transport_insecure`).
+- **Overrides.** `render` takes `--voice`, `--input-kind`, `--max-chunk-wer`, `--min-sim`, `--max-takes`,
+  `--chunk-max-codepoints`, `--loudness-lufs` and `--fit-max-stretch` within their ranges, and `--confidential` and
+  `--no-hosted`, which only tighten the job. Each is recorded in the manifest's `job.overrides`; `--json` prints the
+  run directory, the manifest path and a summary. The MCP tools (`narrate_render`, `narrate_voices`,
+  `narrate_engines`, `narrate_evaluate`; skills under `.agents/skills/narrate-*`) call these commands.
 - **Captions** are timed from the script placement (`captions.source: script_timing`), in the written text,
   with a synthetic-voice notice when the consent record asks for one. Whisper alignment of the delivered audio
   is a later step.

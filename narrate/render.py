@@ -31,6 +31,77 @@ VOLATILE = ("run_id", "run_dir", "created_utc", "content_sha256")
 EPS = 0.001
 
 
+# CLI / MCP job overrides: name -> (job path, low, high). Booleans only tighten: confidential sets true, no_hosted
+# sets allowHosted false. Every override applied is recorded in the manifest's job.overrides.
+OVERRIDES = {
+    "voice": (("voice",), None, None),
+    "input_kind": (("input",), None, None),
+    "confidential": (("confidential",), None, None),
+    "no_hosted": (("allowHosted",), None, None),
+    "max_chunk_wer": (("gates", "maxChunkWer"), 0.0, 1.0),
+    "min_sim": (("gates", "minSim"), -1.0, 1.0),
+    "max_takes": (("gates", "maxTakes"), 1, 3),
+    "chunk_max_codepoints": (("chunkMaxCodepoints",), 40, 1000),
+    "loudness_lufs": (("post", "loudnessLufs"), -30.0, -10.0),
+    "fit_max_stretch": (("post", "fitMaxStretch"), 0.0, 0.08),
+}
+
+
+def overrides_from(values):
+    """{name: value} checked against OVERRIDES; raises RenderError("override_invalid") on a value out of range."""
+    out = {}
+    for name, value in values.items():
+        if name not in OVERRIDES:
+            raise RenderError("override_invalid", f"{name}: not a job override")
+        _, low, high = OVERRIDES[name]
+        if name in ("confidential", "no_hosted"):
+            if value is not True:
+                raise RenderError("override_invalid", f"{name} only tightens the job: true or absent")
+        elif low is not None and not (isinstance(value, (int, float)) and low <= value <= high):
+            raise RenderError("override_invalid", f"{name} = {value!r}: from {low} to {high}")
+        elif low is None and not (isinstance(value, str) and value):
+            raise RenderError("override_invalid", f"{name}: a non-empty id")
+        out[name] = value
+    return out
+
+
+def apply_overrides(job, overrides):
+    job = json.loads(json.dumps(job))
+    for name, value in overrides.items():
+        path = OVERRIDES[name][0]
+        node = job
+        for key in path[:-1]:
+            node = node[key]
+        node[path[-1]] = False if name == "no_hosted" else value
+    return job
+
+
+def summary(final, manifest):
+    """What the CLI's --json and the narrate_render tool return: where the run is and what it says of itself."""
+    return {
+        "run_id": manifest["run_id"],
+        "run_dir": str(final),
+        "manifest": str(final / "manifest.json"),
+        "kind": manifest["kind"],
+        "status": manifest["status"],
+        "synthetic": manifest["synthetic"],
+        "verified": True,
+        "engine": manifest["engine"]["id"],
+        "voices": sorted({v["voice"] for v in manifest["voices"]}),
+        "segments": manifest["input"]["segments"],
+        "chunks": manifest["input"]["chunks"],
+        "sample_rate": manifest["timeline"]["sample_rate"],
+        "seconds": round(manifest["timeline"]["total_samples"] / manifest["timeline"]["sample_rate"], 3),
+        "loudness": {**manifest["loudness"]["measured"], "passed": manifest["loudness"]["passed"]},
+        "qa": manifest["qa"]["chunks"],
+        "overruns": manifest["overruns"],
+        "overrides": manifest["job"].get("overrides", {}),
+        "flags": manifest["flags"],
+        "meets_acceptance_gate": not manifest["flags"],
+        "content_sha256": manifest["content_sha256"],
+    }
+
+
 class RenderError(RuntimeError):
     def __init__(self, code, detail):
         super().__init__(f"{code}: {detail}")
@@ -65,9 +136,12 @@ def chunk_spoken(segment, limit, normaliser):
 
 
 class Renderer:
-    def __init__(self, cfg, *, input_path=None, rewrite=None, engine_id=None, seed=None, transcriber=None):
+    def __init__(
+        self, cfg, *, input_path=None, rewrite=None, engine_id=None, seed=None, transcriber=None, overrides=None
+    ):
         self.cfg = cfg
-        self.job = cfg.job()
+        self.overrides = dict(overrides or {})
+        self.job = apply_overrides(cfg.job(), self.overrides)
         self.registry = cfg.registry()
         self.input_path = Path(input_path).resolve() if input_path else cfg.input
         self.rewrite_path = Path(rewrite).resolve() if rewrite else None
@@ -389,7 +463,8 @@ class Renderer:
                     "narrationEdl",
                 )
             }
-            | {"seed": self.seed},
+            | {"seed": self.seed}
+            | ({"overrides": self.overrides} if self.overrides else {}),
             "input": {
                 "kind": self.script.kind,
                 "sha256": self.input_sha,
