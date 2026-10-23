@@ -17,7 +17,7 @@ time, the server's synthesis and load seconds and memory headers when it sends t
 sha256. A take already recorded is skipped, so an interrupted run resumes. Reference clips and transcripts are
 read from private paths and never written to the output; only their sha256 values are.
 
-`score` reads every take with whisper-cli (16 kHz mono with 0.5 s of silence on each side, at most 8 threads),
+`score` reads every take with whisper-cli (16 kHz mono with 0.5 s of silence on each side, at most 4 threads),
 computes WER with narrate.qa.wer (narrate's normaliser, not the Whisper English normaliser), finds silences over
 2 s inside a take (50 ms frames under -50 dBFS), and writes <out>/scores.jsonl and <out>/summary.json: per arm,
 voice and seed the RTF (synthesis seconds over audio seconds, load excluded), load seconds, peak memory, whole-text
@@ -58,7 +58,7 @@ SILENCE_S = 2.0
 SILENCE_DBFS = -50.0
 FRAME_S = 0.05
 PAD_S = 0.5
-MAX_THREADS = 8
+MAX_THREADS = 4
 NO_PROXY = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 
