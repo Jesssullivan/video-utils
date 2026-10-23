@@ -1,98 +1,110 @@
-# Narrate CPU engine: qwentts.cpp on the CPU host (2026-10-23, lane E2)
+# Narrate qwentts.cpp engine and host placement (2026-10-23, lane E2)
 
 Authority: the operator-approved narrate plan, today's instruction to get the voice work working and landed;
-Linear TIN-7088 (narrate W6a interim serving, parent TIN-7084). R-HOOK-CONVERGENCE-20261004: R-N11 (the server
-is this lane's own process on loopback; no other session's process was touched), R-N12 (hooks advisory),
-R-N13 (this receipt; facts mirrored to TIN-7088).
+Linear TIN-7088 (narrate W6a interim serving, parent TIN-7084); the host-safety rule after the CPU-host incident
+(TIN-7085). R-HOOK-CONVERGENCE-20261004: R-N11 (only this lane's own server process was ever started, and it is
+stopped; no other session's process was touched), R-N12 (hooks advisory), R-N13 (this receipt; facts mirrored to
+TIN-7088).
 
-**State:** the CPU engine serves, `just narrate-render` renders through it end to end, and every render
-verified. It works but is slow on this host: synthesis RTF is 15 to 23 under the shared load measured below.
-The server is left **stopped**; E5 starts it. Reference clips, chunk WAVs, transcripts of the operator's voice,
-weights and run directories are private and outside git; this note carries digests and numbers only.
+**State.** The lane began as a CPU engine on the CPU host. Root stopped it mid-run when narration work drove that
+host, a cluster control-plane member, to NotReady at about 17:14Z, and retargeted it. This PR now delivers:
 
-## What runs
+- the generic qwentts.cpp engine support, which is host-agnostic;
+- the voice-registry clone adapter;
+- the host placement rule, both in the spec and in code.
+
+No TTS server runs on the CPU host, and none was started after the retarget. The private start script there is
+retired: it now refuses and exits 2. Reference clips, chunk WAVs, transcripts of the operator's voice, weights and
+run directories stay private and outside git. This note carries digests and numbers only.
+
+## What changed after the retarget
 
 | Part | Value |
 |---|---|
-| Runtime | qwentts.cpp `5916bf7c79dbb4e66fc059cdc507a79a23a28bb4` (the `sources.json` pin), CPU only, `-DGGML_NATIVE=ON` (AVX2, FMA, F16C; no AVX-512 on this host), no BLAS, built in `$TMPDIR` by `narrate/serve/qwentts-cpu.sh build` |
-| Local patch | `narrate/serve/qwentts-cpu-threads.patch`: `QWENTTS_CPU_THREADS` overrides the GGML thread count, which upstream sets to half the logical CPUs (16 here) with no flag or environment override. Process CPU affinity does not lower it (`std::thread::hardware_concurrency` returned 32 under `taskset -c 0-15`, measured) |
-| Weights | `Serveurperso/Qwen3-TTS-GGUF@b7ee2e8c`: `qwen-talker-1.7b-base-BF16.gguf` (sha256 `7f456711…`), `qwen-tokenizer-12hz-F32.gguf` (`b16b9555…`), fetched by `just narrate-fetch --only qwen3-tts-1.7b-base-qwentts --apply`; 3 files, each matched its pinned size and hash |
-| Server | `tts-server --device CPU --host 127.0.0.1 --lang English`, 8 GGML threads, pinned to 8 cores of one NUMA node, `max_batch` 1 |
-| Recipe | `just narrate-serve-cpu` (and `narrate-build-cpu`); paths and knobs come from `NARRATE_WEIGHTS_DIR`, `NARRATE_QWENTTS_BUILD`, `NARRATE_QWENTTS_THREADS` (1 to 8, refused above), `NARRATE_QWENTTS_CPUS`, `NARRATE_QWENTTS_PORT`, `NARRATE_QWENTTS_LANG` |
+| Serve script | `narrate/serve/qwentts.sh` (was `qwentts-cpu.sh`):<br>• `NARRATE_QWENTTS_DEVICE` is required: `Vulkan0`, `MTL0` or `CPU`. The cmake backend and the build directory follow it.<br>• `serve` refuses unless `NARRATE_TTS_HOST_ALLOWED=1`. Only an allowed host's private start script sets that.<br>• The server runs through `narrate/bounded.sh` with a 14G ceiling.<br>• Thread and job knobs: 1 to 8, default 4.<br>• The file digest uses python, so the script also runs on macOS. |
+| Recipes | `just narrate-serve-qwentts` and `just narrate-build-qwentts` replace `narrate-serve-cpu` and `narrate-build-cpu`. |
+| Local patch | `narrate/serve/qwentts-threads.patch` (renamed; content unchanged). `QWENTTS_CPU_THREADS` sets the GGML CPU thread count. Upstream fixes it at half the logical CPUs and offers no override. `taskset` does not lower it: `hardware_concurrency` still returned 32 under `taskset -c 0-15` (measured before the retarget). |
+| Bounded steps | `narrate/bounded.sh`:<br>1. Waits while `/proc/pressure/memory` `full avg10` is above 10 (exit 75 after `NARRATE_PSI_WAIT_S`, default 600 s).<br>2. Runs the step at nice 19 with `ionice -c3`.<br>3. Uses `systemd-run --user --scope --collect -p MemoryMax=6G` when a user systemd answers. Otherwise it says so and runs without a ceiling.<br>4. Sets `NARRATE_BOUNDED=1`, so a nested call does not open a sibling scope.<br>`just narrate-render` and `just narrate-eval` run through it. |
+| Whisper | `qa.Whisper` caps whisper at 4 threads, whatever `narrate.toml` asks. |
+| Docs | "Host placement and memory" and "qwentts.cpp engine" sections in `docs/spec/NARRATE.md`; matching sections in `narrate/README.md`. |
+| Tests | `narrate/tests/test_host_placement.py`, 17 tests with fake `systemd-run` and `systemctl`:<br>• the scope argv;<br>• the fallback without systemd;<br>• the nested call;<br>• the pressure hold (exit 75, command not run);<br>• the serve refusals (host opt-in, device, weights, thread and job caps);<br>• that the recipes are bounded;<br>• the whisper thread cap. |
 
-## The real API, and the adapter
+## The real API and the adapter (unchanged from the first push)
 
-Read from the pinned source (`tools/tts-server.cpp`, `src/tts-server.h`) and confirmed against the running
-server:
+The API was read from the pinned source (`tools/tts-server.cpp`, `src/tts-server.h`) at `5916bf7c` and confirmed
+against the running server before the retarget.
 
-- `POST /v1/audio/speech` takes `{input, voice, language, instructions, response_format: pcm|wav, speed, seed,
-  sampling overrides}`. It does not read `ref_audio` or `ref_text`. With the Base model, a voice name that is not
-  registered is refused: HTTP 400 `unknown voice '<name>'` (measured).
-- `speed` is parsed and ignored ("no time stretch in the ABI").
-- Cloning goes through a registry: `POST /v1/audio/voices {name, ref_text, wav_b64}` extracts the speaker
-  embedding and the reference codes server side (any WAV rate, resampled to 24 kHz); a registered voice with a
-  `ref_text` synthesises in ICL mode. The registry lives in memory and is lost on restart. Names are lowercased.
+**Speech route.** `POST /v1/audio/speech` takes `{input, voice, language, instructions, response_format, speed,
+seed, sampling overrides}`.
+- It reads neither `ref_audio` nor `ref_text`.
+- An unregistered voice name gets HTTP 400 `unknown voice '<name>'` (measured).
+- `speed` is parsed and ignored.
 
-So narrate's generic request does not work here, and `engine.py` now maps a `QwenTtsCpp` engine (the backend
-already in `Engine.dhall`) onto the registry: register the clip and verified transcript under
-`narrate-<voice id>-<16 hex of sha256(sha256(clip) + transcript)>`, check `GET /v1/audio/voices` before each
-chunk and register again when the name is missing, then speak by name with the seed and no ref fields. A changed
-clip or transcript gets a new name, so stale latents are never reused. Each take records
-`variant: qwentts_registered_voice`, `ref_audio_used`, `ref_text_used`, `conditioning` (`icl`, `x_vector` or
-`none`), `registered_now` and `speed_honoured: false`; `render.py` skips the speed re-synthesis for an engine
-that ignores speed and fits with atempo alone. No shim process is needed. Ten tests in
-`narrate/tests/test_qwentts.py` run against a loopback fake of the pinned server's routes, validation and error
-envelope, including restart, refusal and the render fit.
+**Cloning.** Cloning goes through `POST /v1/audio/voices {name, ref_text, wav_b64}`.
+- The registry lives in memory and is lost on restart.
+- Names are lowercased.
+- A voice registered with a `ref_text` synthesises in ICL mode.
 
-## Measurements
+**What `engine.py` does for a `QwenTtsCpp` engine:**
+1. Registers the reference as `narrate-<voice id>-<16 hex of sha256(sha256(clip) + transcript)>`.
+2. Before each chunk, checks `GET /v1/audio/voices` and registers again when the name is missing.
+3. Speaks by that name with the seed, with no ref fields and no speed.
+4. Records `variant: qwentts_registered_voice`, `conditioning` (`icl`, `x_vector` or `none`), `registered_now` and
+   `speed_honoured: false`.
 
-Host: the CPU host, two 8-core AVX2 sockets (32 logical CPUs), no usable GPU. The host was shared with other
-sessions' compile and analysis jobs throughout: 1-minute load average 52 to 89 at the sampled points, which
-inflates every time below. These numbers bound what E5 will see on a busy day; an idle-host figure is not
-measured.
+`render.py` skips the speed re-synthesis for an engine that ignores speed, and fits timing with atempo alone. No
+shim process is needed.
 
-Render jobs (private, outside git): Markdown input, `chunkMaxCodepoints` 300, seed 1, `maxTakes` 1 (no retakes,
-so every per-chunk WER is the first take's), WER gate 0.1, whisper.cpp small.en (registered) with 4 threads,
-empty pronunciation table, xoxd-lexical 0.3.0 dist pinned by digest. SIM is `not_measured` in narrate (no
-speaker-verification model registered), so voice continuity uses a proxy, below.
+## Measurements (taken on the CPU host before the retarget; historical)
 
-Smoke text `narrate/bench/smoke-v1.md` (61 words, sha256 `3c6af2bd…`):
+These runs are why the rule exists. They are kept as measured facts, not as a recommendation. Setup:
+- qwentts.cpp `5916bf7c`, built CPU-only (`-DGGML_NATIVE=ON`: AVX2, FMA, F16C), no BLAS.
+- 8 GGML threads, pinned to 8 cores of one NUMA node.
+- Weights: `Serveurperso/Qwen3-TTS-GGUF@b7ee2e8c`, fetched by `just narrate-fetch --only
+  qwen3-tts-1.7b-base-qwentts --apply`, 3 files, each matching its pinned size and sha256:
+  - talker BF16 `7f456711…`;
+  - tokenizer F32 `b16b9555…`.
 
-| Voice | Chunks | Audio | Synthesis wall (server) | RTF | Render wall | Chunk WER | Loudness | Flags |
-|---|---|---|---|---|---|---|---|---|
-| the operator's reading voice (29.9 s reference) | 2 | 23.1 s | 396.6 s | 17.2 (14.7, 23.5) | 530 s | 0.00, 0.00 | -15.9 LUFS | `sim_not_measured` |
+The host was shared with other sessions' jobs: the 1-minute load average was 52 to 89 at the sampled points.
 
-Per-stage (server `[Perf]`, smoke chunk 1 of the operator's reading voice): prompt prefill 19.5 s for a 383-frame context
-(373 of them the reference codes), talker 429 ms per frame, code predictor 449 ms per frame, codec decode 41.3 s,
-total 242.6 s for 207 frames (16.6 s). An earlier single-sentence probe on a less loaded moment ran the talker
-at 221 ms per frame and the code predictor at 258 ms per frame (RTF 21.0 for 2.7 s, dominated by the fixed
-20 s prefill and 20 s codec decode).
+| Measured | Value |
+|---|---|
+| Smoke render, `narrate/bench/smoke-v1.md` (61 words), the operator's reading voice | 2 chunks, 23.1 s of audio |
+| Smoke synthesis wall time | 396.6 s: RTF 17.2 overall, 14.7 and 23.5 per chunk |
+| Smoke render wall time | 530 s, WER 0.00 on both chunks, -15.9 LUFS, flag `sim_not_measured` |
+| Per stage, chunk 1 | prefill 19.5 s (383-frame context); talker 429 ms per frame; code predictor 449 ms per frame; codec decode 41.3 s |
+| Voice registration of a 29.9 s clip | 10.4 s |
+| Server process (GNU time) | about 16:55Z to 17:44:48Z (49 min 52 s wall); max RSS 8,148,592 kB; 111,483 major page faults; 68,075,848 file-system input blocks; 1877 s user, 270 s system |
+| Voice continuity proxy, not SIM | chunk median F0 9.4 % and 15.3 % below the reference clip's; log-mel cosine 0.985 and 0.984 to the reference, 0.995 between the chunks |
 
-Other measured facts: voice registration of the 29.9 s clip took 10.4 s; server resident set after load 8.1 GB,
-peak (VmHWM) 8.15 GB after the smoke render; build 72 s wall with 8 jobs.
+**Not measured.** text-v1 and the operator's presenter-voice runs never finished. Root stopped the presenter smoke render
+with SIGTERM before its first chunk returned, and its incomplete private staging directory was deleted.
+Also not measured: an idle-host RTF, any GPU-host or Mac figure, and the build of the Vulkan or Metal backend
+(the build path for those devices has not run).
 
-Voice continuity proxy (not SIM): per-chunk median F0 by autocorrelation and the cosine of each chunk's mean
-log-mel spectrum against the reference clip and the first chunk. reading-voice smoke: chunk median F0 9.4 % and 15.3 % below
-the reference clip's; log-mel cosine to the reference 0.985 and 0.984, to chunk 1 0.995. The proxy is
-coarse; it flags gross drift only, and says nothing about whether the voice sounds like the operator.
-
-text-v1 (795 words) and the operator's presenter-voice runs: in progress at the time of the first push; this section is
-updated in the same PR.
+**Not run after the retarget, by rule.** No build, server or whisper run on the CPU host. The gates below are
+source checks only.
 
 ## Inferences and unverified claims
 
-- Inference: the per-chunk fixed cost (about 20 to 31 s prefill of the reference context, 20 to 41 s codec
-  decode) makes many short chunks expensive; larger chunks amortise it.
-- Inference, untested: a Q8_0 talker (`quantize.sh` in the runtime) would roughly halve the talker's memory
-  traffic; it is a derived, unpinned file and was not built.
-- Unverified listening: nobody has listened to these renders. WER 0 says the words are intelligible to whisper,
-  not that the voice is the operator's or that prosody is acceptable.
+- **Inference about the incident.** This lane's server was resident through the incident window, with an 8.1 GB
+  RSS and heavy paging (the major faults and input blocks above). It most likely added to the memory pressure
+  that drove the host NotReady. Its share is not measured, against the other narration lanes running at the
+  same time.
+- **Inference about chunk size.** The fixed cost per chunk (prefill of the reference context plus codec decode,
+  20 to 41 s each on the CPU host) favours larger chunks on any device.
+- **Unverified listening.** Nobody has listened to the smoke render. WER 0 shows that whisper can make out the
+  words. It does not show that the voice is the operator's, or that the prosody is acceptable.
 
 ## Open problems
 
-1. `Engine.dhall`'s `Profile` has no CPU entry. The private CPU engine record uses `GpuDirect`, the profile its
-   `QwenTtsCpp` backend fits, so its manifests say `GpuDirect`. A `CpuLocal` profile needs the W4 type, the policy
-   port and the spec table.
-2. Speed is not a knob on this runtime; timing fit is atempo only (within `fitMaxStretch`).
-3. RTF 15 to 23 under load: the CPU engine suits overnight or short renders, not interactive iteration.
-4. SIM is not measured in narrate; the continuity numbers here are a proxy.
+1. The Vulkan (`Vulkan0`) and Metal (`MTL0`) builds of this script have not run. The GPU-host inference lane builds
+   qwentts.cpp under J79(a). `narrate-build-qwentts` must be proved there, or its build replaced by theirs, before
+   E5 uses `narrate-serve-qwentts` in the window.
+2. A narrate engine record for qwentts.cpp fits only `GpuDirect`/`GpuSwitch`. `MacMlx` admits `MlxAudio` alone, so
+   qwentts.cpp on the Mac build host serves development checks, not a narrate record.
+3. Speed is not a knob on this runtime. Timing fit is atempo only, within `fitMaxStretch`.
+4. SIM is not measured in narrate. The continuity numbers above are a proxy.
+5. On hosts without a user systemd, `bounded.sh` runs without a memory ceiling (macOS, containers). The Mac host's
+   own caps (cache in `~/narrate-work`, at most 20 GB, at least 15 GB free, hold markers, one loopback process)
+   still apply there.
