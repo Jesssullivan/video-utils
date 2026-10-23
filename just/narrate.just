@@ -31,17 +31,18 @@ narrate-engines config="narrate.toml":
 narrate-voice-add config clip transcript id consent *args:
     python3 -m narrate voices {{quote(config)}} add --clip {{quote(clip)}} --transcript {{quote(transcript)}} --id {{quote(id)}} --consent {{quote(consent)}} {{args}}
 
-# qwentts.cpp tts-server on 127.0.0.1 (default port 18089) with at most 8 CPU threads and the pinned Qwen3-TTS
-# 1.7B Base GGUF from NARRATE_WEIGHTS_DIR (`just narrate-fetch --only qwen3-tts-1.7b-base-qwentts --apply`). It
-# builds the pinned commit in $TMPDIR first when needed. Paths and knobs come from the environment only (see
-# narrate/serve/qwentts-cpu.sh); an engine record with backend QwenTtsCpp points at the printed address.
-# Start the CPU engine (qwentts.cpp, loopback, at most 8 threads) in the foreground.
-narrate-serve-cpu:
-    narrate/serve/qwentts-cpu.sh serve
+# The qwentts.cpp engine (backend QwenTtsCpp): its tts-server on 127.0.0.1 (default port 18089) with the pinned
+# Qwen3-TTS 1.7B Base GGUF from NARRATE_WEIGHTS_DIR (`just narrate-fetch --only qwen3-tts-1.7b-base-qwentts
+# --apply`), built for NARRATE_QWENTTS_DEVICE (Vulkan0, MTL0 or CPU) in $TMPDIR when needed. It runs only on a
+# host the placement rule allows (the GPU host in its window, the Mac build host): the host's private start script
+# sets NARRATE_TTS_HOST_ALLOWED=1, and serve refuses without it. Knobs: narrate/serve/qwentts.sh.
+# Start the qwentts.cpp engine on loopback, in the foreground (allowed hosts only).
+narrate-serve-qwentts:
+    narrate/serve/qwentts.sh serve
 
-# Build the CPU engine without starting it.
-narrate-build-cpu:
-    narrate/serve/qwentts-cpu.sh build
+# Build the qwentts.cpp engine for NARRATE_QWENTTS_DEVICE without starting it.
+narrate-build-qwentts:
+    narrate/serve/qwentts.sh build
 
 # The engine bench. Lane W3 (TIN-7085) owns it; `just narrate-fetch` prints the pinned download plan.
 narrate-bench *args:

@@ -9,7 +9,7 @@ is sent; Hosted and RentedOpen engines always need https. No proxy sees a reques
 Every failure raises EngineError with a typed code; nothing is retried here (qa.py owns retries). The endpoint is
 never recorded: real endpoints are private and live outside git.
 
-QwenTtsCpp engines (qwentts.cpp tts-server, narrate/serve/qwentts-cpu.sh) take no ref_audio on the speech route:
+QwenTtsCpp engines (qwentts.cpp tts-server, narrate/serve/qwentts.sh) take no ref_audio on the speech route:
 the server clones from a voice registered once by name. The client registers the reference clip and its verified
 transcript with `POST /v1/audio/voices {name, ref_text, wav_b64}` under a name derived from the voice id and the
 digest of the clip and transcript, re-registers when `GET /v1/audio/voices` no longer lists it (a restarted server
