@@ -29,6 +29,8 @@ MODULES = (
     "qa",
     "registry",
     "render",
+    "sim",
+    "sim_worker",
     "verify",
 )
 
