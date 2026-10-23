@@ -3,19 +3,21 @@
 Metrics: loudness (EBU R128 of narration.wav against the job's target, with render's own pass rule), overruns
 (from the EDL), wer and sim. WER scores the delivered audio: each chunk's out_start_s..out_end_s span is cut from
 narration.wav (after timing fit and loudnorm, as consumers hear it) and read back through condense's whisper path
-when it is available, else not_measured. SIM is not_measured until a speaker-verification model is registered.
-Prints JSON; writes nothing.
+when it is available, else not_measured. SIM scores the same cuts against the speaking voice's reference clip with
+the registered speaker-verification model (narrate/sim.py), plus wSIM over 10 s windows; without the model, the
+worker interpreter or a narrate.toml it is not_measured. --reference-voice scores every chunk against another
+voice's clip instead (a decoy or a cross-voice check). Prints JSON; writes nothing.
 """
 
 import json
 from pathlib import Path
 
-from . import audio, qa, verify
+from . import audio, qa, sim, verify
 
 METRICS = ("loudness", "overruns", "wer", "sim")
 
 
-def evaluate(run_dir, metrics=METRICS, cfg=None):
+def evaluate(run_dir, metrics=METRICS, cfg=None, reference_voice=None, scorer=None):
     run_dir = Path(run_dir)
     receipt = verify.verify(run_dir)
     if not receipt["ok"]:
@@ -66,5 +68,5 @@ def evaluate(run_dir, metrics=METRICS, cfg=None):
                 "passed": all(r["wer"] <= gate for r in rows),
             }
     if "sim" in metrics:
-        out["metrics"]["sim"] = qa.sim(cfg) if cfg is not None else qa.not_measured("no narrate.toml given")
+        out["metrics"]["sim"] = sim.evaluate(run_dir, manifest, cfg, reference_voice, scorer)
     return out

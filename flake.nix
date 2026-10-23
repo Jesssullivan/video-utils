@@ -60,7 +60,7 @@
       # Heavy optional dependencies are excluded from ordinary development.
       ml = pkgs.mkShell {
         packages = builtins.filter (p: p != pkgs.python3) core ++ [
-          (pkgs.python3.withPackages (ps: with ps; [ numpy scipy librosa soundfile torch torchaudio ]))
+          (pkgs.python3.withPackages (ps: with ps; [ numpy scipy librosa soundfile torch torchaudio speechbrain ]))
         ];
         OMP_NUM_THREADS = "2";
         OPENBLAS_NUM_THREADS = "2";

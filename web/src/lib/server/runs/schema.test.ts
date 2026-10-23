@@ -102,17 +102,17 @@ describe('run layers', () => {
 });
 
 describe('capabilities', () => {
-	it('tool_count equals the tool array length (57 at generation time) and every area tool is listed', () => {
+	it('tool_count equals the tool array length (61 at generation time) and every area tool is listed', () => {
 		const body = e2eFixture('capabilities.json') as { tools: Array<{ name: string }>; areas: Array<{ tools: string[] }> };
 		const decoded = decodeClosed(Capabilities, body);
 		expect(decoded.ok).toBe(true);
 		if (!decoded.ok) return;
 		expect(decoded.value.tool_count).toBe(body.tools.length);
-		expect(decoded.value.tool_count).toBe(57);
+		expect(decoded.value.tool_count).toBe(61);
 		const names = new Set(body.tools.map((tool) => tool.name));
-		expect(names.size).toBe(57);
+		expect(names.size).toBe(61);
 		const grouped = body.areas.flatMap((area) => area.tools);
-		expect(grouped.length).toBe(57);
+		expect(grouped.length).toBe(61);
 		expect(new Set(grouped)).toEqual(names);
 		for (const key of ['model_local_presence', 'model_gate_state', 'tool_area_basis'] as const) {
 			expect('value' in decoded.value.unknown_fields[key]).toBe(true);

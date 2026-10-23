@@ -172,7 +172,8 @@ TOOL_AREAS = {
     'timeline_validate': 'analysis', 'timeline_map': 'analysis', 'condense_transcribe': 'analysis',
     'condense_events': 'analysis', 'condense_edl': 'delivery', 'condense_render': 'delivery',
     'condense_check': 'review', 'condense_captions': 'delivery', 'condense_overlay': 'delivery',
-    'condense_recover': 'restoration', 'condense_publish': 'delivery',
+    'condense_recover': 'restoration', 'condense_publish': 'delivery', 'narrate_render': 'delivery',
+    'narrate_voices': 'analysis', 'narrate_engines': 'analysis', 'narrate_evaluate': 'review',
 }
 AREAS = ('restoration', 'analysis', 'phrase_rhythm', 'pitch', 'review', 'delivery', 'corpus_eval',
          'pipeline_report')
