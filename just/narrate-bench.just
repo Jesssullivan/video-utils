@@ -7,3 +7,11 @@
 # an optional arm named with --arm (D3-rented, D3-gpu-experimental) brings its optional sources.
 narrate-fetch *ARGS:
     python3 narrate/bench/fetch.py {{ARGS}}
+
+# Examples (outputs stay private, outside the repository):
+#   just narrate-bench-arm chunks
+#   just narrate-bench-arm run --endpoint URL --model M --arm A2-mac --voice ID --clip WAV --transcript TXT --seed 1 --out DIR
+#   just narrate-bench-arm score --out DIR --whisper-model models/ggerganov-whisper-cpp-ggml-small.en.bin
+# Run and score one bench arm against a speech endpoint on loopback or through an SSH forward.
+narrate-bench-arm *ARGS:
+    python3 narrate/bench/run_arm.py {{ARGS}}

@@ -71,6 +71,28 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
   with a synthetic-voice notice when the consent record asks for one. Whisper alignment of the delivered audio
   is a later step.
 
+## The Mac engine
+
+`serve/mlx_speech.py` serves the `mac-mlx` profile on the Mac host (`docs/spec/NARRATE.md`, "Mac engine"). Its
+virtual environment holds mlx-audio at the commit pinned in `bench/sources.json`; its weights are the A*-mac
+snapshots that `just narrate-fetch --apply --arm A1-mac --arm A2-mac --arm A3-mac` fetches and hash-checks.
+
+```sh
+# On the Mac host (Python 3.10 or later, Apple silicon); the paths are yours, outside git.
+uv venv --python 3.12 venv
+uv pip install --python venv/bin/python "mlx-audio[tts] @ git+https://github.com/Blaizzy/mlx-audio@4510ba631faf5676b2bf4633161756664d154e28"
+venv/bin/python -I narrate/serve/mlx_speech.py --port 18765 \
+  --model qwen3-tts-1.7b-base-mlx="$NARRATE_WEIGHTS_DIR/hf/qwen3-tts-1.7b-base-mlx" \
+  --model voxcpm2-mlx="$NARRATE_WEIGHTS_DIR/hf/voxcpm2-mlx" --ref-mode voxcpm2-mlx=combined
+# On the host that renders: a local forward, then an engine record whose endpoint is http://127.0.0.1:18765.
+ssh -N -L 18765:127.0.0.1:18765 <mac-host>
+```
+
+The engine record's `model` is the `NAME` given to `--model`. `bench/run_arm.py` runs and scores one bench arm
+against any such endpoint: `chunks` prints the fixed text-v1 chunk list and its sha256, `run` renders an arm, voice
+and seed list into a private directory with a resumable ledger, and `score` adds the whisper round trip, WER,
+catastrophic chunks and a summary.
+
 ## Outputs
 
 `artifacts/narrate/<run_id>/` holds `narration.wav` and `narration.flac` (the engine's native rate), the chunk
