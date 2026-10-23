@@ -127,6 +127,53 @@ job's `allowHosted` flag. Model candidates and their pins are in
 primary; Qwen3-TTS-12Hz-1.7B-Base, the fallback and baseline; VoxCPM2, the
 third arm; Fish Audio Drama 3, the rented tier). W3 picks among them.
 
+## Host placement and memory
+
+Operator rule after narration work drove the CPU host, a cluster control-plane member, to
+NotReady on 2026-10-23 (TIN-7085). It binds every narrate lane, recipe and
+test:
+
+- **No TTS model on the CPU host.** No TTS server, no MLX, torch or GGML
+  inference and no Vulkan or lavapipe model smoke test runs there. Synthesis
+  runs only on the Mac build host (MLX, within its cache and free-space caps)
+  or on the GPU host inside its leased window. Tests use fake engines and fake
+  binaries.
+- **Scorers one at a time, bounded.** Whisper, a SIM model or any other heavy
+  scoring step runs one at a time inside a transient user scope with
+  `MemoryMax=6G`, at nice 19 and the idle I/O class, whisper with at most 4
+  threads, and only while memory pressure (`/proc/pressure/memory`,
+  `full avg10`) is 10 or below.
+
+Enforcement in the code:
+
+- `narrate/bounded.sh` waits while `full avg10` is above 10 (exit 75 after
+  `NARRATE_PSI_WAIT_S`), then runs its command at nice 19 with `ionice -c3`,
+  inside `systemd-run --user --scope -p MemoryMax=6G` when a user systemd
+  answers. Without one (macOS, a CI container) it says so and runs without a
+  ceiling. `just narrate-render` and `just narrate-eval`, the recipes that run
+  whisper, go through it.
+- `qa.Whisper` caps whisper at 4 threads whatever `narrate.toml` asks.
+- `narrate/serve/qwentts.sh serve` (`just narrate-serve-qwentts`) refuses
+  unless `NARRATE_TTS_HOST_ALLOWED=1`, which only an allowed host's private
+  start script sets, and runs the server through `bounded.sh` with a 14G
+  ceiling.
+
+## qwentts.cpp engine (2026-10-23)
+
+qwentts.cpp's `tts-server` at the pin in `narrate/bench/sources.json` does not
+read `ref_audio` or `ref_text` on `/v1/audio/speech`. It clones from a voice
+registered by name (`POST /v1/audio/voices {name, ref_text, wav_b64}`; ICL
+when `ref_text` is present), keeps the registry in memory only, refuses an
+unknown voice with HTTP 400 and parses `speed` without applying it. For a
+`QwenTtsCpp` engine the client therefore registers the reference under a name
+derived from the voice id and the clip and transcript digests, registers again
+when a restarted server no longer lists it, speaks by that name with the seed,
+sends no `speed`, records `speed_honoured: false` and fits timing with `atempo`
+alone (step 7's speed knob is skipped). The serve recipe is host-agnostic:
+`NARRATE_QWENTTS_DEVICE` (`Vulkan0`, `MTL0` or `CPU`) selects the build. A
+narrate engine record for it uses `GpuDirect` on the GPU host; `MacMlx` admits
+`MlxAudio` only, so a Mac build serves development checks, not a record.
+
 ## Consent and confidentiality policy
 
 - **No voice without consent.** A job declares its `scope` (`OwnContent` or
