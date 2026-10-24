@@ -62,9 +62,10 @@ class Release:
             )
         self.dir, self.pin = Path(directory), pin
         self.register = pin["valeRegister"]
+        self.prompt_name = "prompt-digest-narration.txt" if self.register == "narration" else PROMPT_DIGEST
         files = {
             "lexicon": (self.dir / LEXICON, pin["lexiconSha256"]),
-            "prompt_digest": (self.dir / PROMPT_DIGEST, pin["promptDigestSha256"]),
+            "prompt_digest": (self.dir / self.prompt_name, pin["promptDigestSha256"]),
             "vale_register": (self.dir / "vale" / "registers" / f"{self.register}.ini", pin["valeRegisterSha256"]),
         }
         self.digests = {}
@@ -84,10 +85,34 @@ class Release:
                 "lexical_digest_mismatch", f"the lexicon says version {version!r}, the job pins {pin['release']}"
             )
         self.vale_register_path = files["vale_register"][0]
+        self.upstream_pronunciation = None
+        if self.register == "narration":
+            table = self.lexicon.get("pronunciation")
+            if not isinstance(table, dict) or not isinstance(table.get("entries"), list) or not table["entries"]:
+                raise LexicalError("lexical_missing", "the narration release has no pronunciation table")
+            if not isinstance(table.get("id"), str) or not table["id"] or not isinstance(table.get("language"), str):
+                raise LexicalError("lexical_invalid", "the narration pronunciation identity is invalid")
+            identities = set()
+            for entry in table["entries"]:
+                if not isinstance(entry, dict):
+                    raise LexicalError("lexical_invalid", "a narration pronunciation entry is invalid")
+                identity = entry.get("id")
+                if not isinstance(identity, str) or not identity or identity in identities:
+                    raise LexicalError("lexical_invalid", "narration pronunciation IDs must be unique")
+                identities.add(identity)
+                for name in ("written", "spoken"):
+                    value = entry.get(name)
+                    if not isinstance(value, str) or not value.strip() or any(ord(c) < 32 for c in value):
+                        raise LexicalError("lexical_invalid", "a narration pronunciation form is invalid")
+                if any(type(entry.get(name)) is not bool for name in ("wholeWord", "caseSensitive")):
+                    raise LexicalError("lexical_invalid", "narration pronunciation flags must be boolean")
+            # The table is already authenticated by lexiconSha256, not a separate
+            # unpinned local copy. The local Dhall overlay runs after this layer.
+            self.upstream_pronunciation = table
 
     def prompt_digest(self):
         """The text an agent reads before it writes or rewrites a script."""
-        return (self.dir / PROMPT_DIGEST).read_text(encoding="utf-8")
+        return (self.dir / self.prompt_name).read_text(encoding="utf-8")
 
     def rules(self):
         return [r for r in self.lexicon.get("rules", []) if self.register in r.get("registers", [])]
