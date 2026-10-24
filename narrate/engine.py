@@ -9,6 +9,19 @@ is sent; Hosted and RentedOpen engines always need https. No proxy sees a reques
 Every failure raises EngineError with a typed code; nothing is retried here (qa.py owns retries). The endpoint is
 never recorded: real endpoints are private and live outside git.
 
+QwenTtsCpp engines (qwentts.cpp tts-server, narrate/serve/qwentts.sh) take no ref_audio on the speech route:
+the server clones from a voice registered by name. A render opens one `session`: the first take of each voice
+registers the reference clip and its verified transcript with `POST /v1/audio/voices {name, ref_text, wav_b64}`
+under a name made of the voice id, a digest of clip and transcript and a random per-session nonce, and the
+session's end deletes every name it registered (`DELETE /v1/audio/voices/{name}`), whether the render succeeded
+or not. The client never trusts the server's voice list: it registers what it speaks with, so an entry another
+client put there under a guessable name is never used. Each take asks `POST /v1/audio/speech {model, input,
+voice: <name>, response_format: "wav", seed}`; a 400 there after an earlier registration (a restarted server
+forgets its registry) registers the voice again and asks once more. The server parses `speed` and ignores it, so
+the client sends none and records `speed_honoured: false`; render.py then fits timing with atempo alone. With
+`[engine] ref_audio = "omit"` nothing is registered and the request names no voice, which this runtime answers
+with its unconditioned default voice. synthesize() without a session registers, speaks and deletes in one call.
+
 fake engines (backend Fake) need no weights, GPU or network:
   fake://sine    a deterministic tone per chunk: its pitch follows the seed and the text, its length the text
                  length over the speed, with a syllable-rate envelope;
@@ -18,12 +31,14 @@ fake engines (backend Fake) need no weights, GPU or network:
 
 import array
 import base64
+import contextlib
 import hashlib
 import http.client
 import io
 import json
 import math
 import os
+import secrets
 import shutil
 import sys
 import tempfile
@@ -40,9 +55,9 @@ SECONDS_PER_CODEPOINT = 0.065
 
 
 class EngineError(RuntimeError):
-    def __init__(self, code, detail):
+    def __init__(self, code, detail, status=None):
         super().__init__(f"{code}: {detail}")
-        self.code, self.detail = code, detail
+        self.code, self.detail, self.status = code, detail, status
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -151,13 +166,64 @@ def transport_ok(engine, endpoint, with_token):
 
 
 def speech_url(endpoint):
+    return route(endpoint, "/v1/audio/speech")
+
+
+def base_url(endpoint):
     p = urllib.parse.urlsplit(endpoint)
     if p.scheme not in ("http", "https") or not p.hostname or "@" in p.netloc or p.fragment:
         raise EngineError("engine_endpoint_invalid", "an http(s) endpoint without user info or fragment")
     path = p.path.rstrip("/")
-    if not path.endswith("/v1/audio/speech"):
-        path += "/v1/audio/speech"
+    if path.endswith("/v1/audio/speech"):
+        path = path[: -len("/v1/audio/speech")]
     return urllib.parse.urlunsplit((p.scheme, p.netloc, path, p.query, ""))
+
+
+def route(endpoint, suffix):
+    p = urllib.parse.urlsplit(base_url(endpoint))
+    return urllib.parse.urlunsplit((p.scheme, p.netloc, p.path + suffix, p.query, ""))
+
+
+def call(engine, url, body, options, accept, method=None):
+    """(bytes, reply headers) of one request to the engine, POST when body is not None, else GET unless method
+    says otherwise; the token, transport and failure rules of every engine route."""
+    request = urllib.request.Request(
+        url,
+        data=None if body is None else json.dumps(body).encode("utf-8"),
+        headers={"Accept": accept, **({} if body is None else {"Content-Type": "application/json"})},
+        method=method or ("GET" if body is None else "POST"),
+    )
+    token = bearer()
+    transport_ok(engine, engine["endpoint"], token is not None)
+    if token:
+        request.add_header("Authorization", token)
+    limit, timeout = int(options["max_reply_bytes"]), float(options["timeout_s"])
+    try:
+        with OPENER.open(request, timeout=timeout) as reply:
+            if reply.status != 200:
+                raise EngineError("engine_http", f"engine {engine['id']} answered HTTP {reply.status}")
+            data = reply.read(limit + 1)
+            headers = reply.headers
+    except urllib.error.HTTPError as error:
+        error.close()
+        code = "engine_refused" if error.code in (400, 401, 403, 409, 422, 451) else "engine_http"
+        raise EngineError(code, f"engine {engine['id']} answered HTTP {error.code}", error.code) from None
+    except (urllib.error.URLError, http.client.HTTPException, OSError, ValueError) as error:
+        reason = getattr(error, "reason", error)
+        timed_out = isinstance(reason, TimeoutError) or isinstance(error, TimeoutError)
+        code = "engine_timeout" if timed_out else "engine_unreachable"
+        raise EngineError(
+            code, f"engine {engine['id']}: {type(reason).__name__} (wait bounded by {timeout:g} s)"
+        ) from None
+    if len(data) > limit:
+        raise EngineError("engine_reply_invalid", f"engine {engine['id']} sent more than {limit} bytes")
+    return data, headers
+
+
+def wav_reply(engine, data):
+    if data[:4] != b"RIFF" or data[8:12] != b"WAVE":
+        raise EngineError("engine_reply_invalid", f"engine {engine['id']} did not answer a WAV")
+    return data
 
 
 def speech(engine, text, voice, ref, seed, speed, options):
@@ -172,38 +238,8 @@ def speech(engine, text, voice, ref, seed, speed, options):
     if options["ref_audio"] == "data_uri":
         body["ref_audio"] = "data:audio/wav;base64," + base64.b64encode(ref["audio"]).decode("ascii")
         body["ref_text"] = ref["text"]
-    request = urllib.request.Request(
-        speech_url(engine["endpoint"]),
-        data=json.dumps(body).encode("utf-8"),
-        headers={"Content-Type": "application/json", "Accept": "audio/wav"},
-        method="POST",
-    )
-    token = bearer()
-    transport_ok(engine, engine["endpoint"], token is not None)
-    if token:
-        request.add_header("Authorization", token)
-    limit, timeout = int(options["max_reply_bytes"]), float(options["timeout_s"])
-    try:
-        with OPENER.open(request, timeout=timeout) as reply:
-            if reply.status != 200:
-                raise EngineError("engine_http", f"engine {engine['id']} answered HTTP {reply.status}")
-            data = reply.read(limit + 1)
-            used = reply.headers.get("X-Ref-Text-Used")
-    except urllib.error.HTTPError as error:
-        error.close()
-        code = "engine_refused" if error.code in (400, 401, 403, 409, 422, 451) else "engine_http"
-        raise EngineError(code, f"engine {engine['id']} answered HTTP {error.code}") from None
-    except (urllib.error.URLError, http.client.HTTPException, OSError, ValueError) as error:
-        reason = getattr(error, "reason", error)
-        timed_out = isinstance(reason, TimeoutError) or isinstance(error, TimeoutError)
-        code = "engine_timeout" if timed_out else "engine_unreachable"
-        raise EngineError(
-            code, f"engine {engine['id']}: {type(reason).__name__} (wait bounded by {timeout:g} s)"
-        ) from None
-    if len(data) > limit:
-        raise EngineError("engine_reply_invalid", f"engine {engine['id']} sent more than {limit} bytes")
-    if data[:4] != b"RIFF" or data[8:12] != b"WAVE":
-        raise EngineError("engine_reply_invalid", f"engine {engine['id']} did not answer a WAV")
+    data, headers = call(engine, speech_url(engine["endpoint"]), body, options, "audio/wav")
+    used = headers.get("X-Ref-Text-Used")
     record = {
         "variant": "http",
         "ref_audio_used": "unknown" if body.get("ref_audio") else False,
@@ -211,17 +247,129 @@ def speech(engine, text, voice, ref, seed, speed, options):
         if body.get("ref_text")
         else False,
     }
-    return data, record
+    return wav_reply(engine, data), record
 
 
-def synthesize(engine, text, voice, ref, seed, speed, options):
-    """(WAV bytes, facts about the take) for one chunk."""
+QWENTTS = "QwenTtsCpp"
+
+
+def qwentts_voice_name(voice, ref):
+    """The registry name stem of a voice's reference: its id and a digest of clip and transcript, so a changed clip
+    or transcript registers under a new name and never reuses stale latents. qwentts.cpp lowercases names."""
+    digest = hashlib.sha256(hashlib.sha256(ref["audio"]).digest() + ref["text"].encode("utf-8")).hexdigest()
+    return f"narrate-{voice['id']}-{digest[:16]}".lower()
+
+
+class Session:
+    """The voices one render registered on a QwenTtsCpp server. Names carry a random nonce, so no other client
+    can guess them, and close() deletes them all. For every other backend a session holds nothing."""
+
+    def __init__(self, engine, options):
+        self.engine, self.options = engine, options
+        self.nonce = secrets.token_hex(8)
+        self.names = {}  # stem -> registered name
+        self.undeleted = []
+
+    def name(self, voice, ref):
+        return f"{qwentts_voice_name(voice, ref)}-{self.nonce}"
+
+    def register(self, voice, ref):
+        name = self.name(voice, ref)
+        body = {"name": name, "ref_text": ref["text"], "wav_b64": base64.b64encode(ref["audio"]).decode("ascii")}
+        url = route(self.engine["endpoint"], "/v1/audio/voices")
+        self.names[qwentts_voice_name(voice, ref)] = name  # deleted at close even when the reply is unreadable
+        data, _ = call(self.engine, url, body, self.options, "application/json")
+        try:
+            reply = json.loads(data)
+        except ValueError:
+            reply = None
+        if not isinstance(reply, dict) or reply.get("status") != "registered" or reply.get("name") != name:
+            raise EngineError(
+                "engine_reply_invalid", f"engine {self.engine['id']} did not confirm the voice registration"
+            )
+        return name
+
+    def registered(self, voice, ref):
+        return self.names.get(qwentts_voice_name(voice, ref))
+
+    def close(self):
+        """Delete every name this session registered; a name the server no longer has is already gone."""
+        for name in list(self.names.values()):
+            url = route(self.engine["endpoint"], "/v1/audio/voices/" + urllib.parse.quote(name, safe=""))
+            try:
+                call(self.engine, url, None, self.options, "application/json", method="DELETE")
+            except EngineError as error:
+                if error.status != 404:
+                    self.undeleted.append(name)
+                    print(
+                        f"narrate: engine {self.engine['id']} kept a registered voice ({error.code}); "
+                        "restart the server to drop it",
+                        file=sys.stderr,
+                    )
+        self.names.clear()
+
+
+@contextlib.contextmanager
+def session(engine, options):
+    """A Session closed on every exit, the render's error paths included."""
+    s = Session(engine, options)
+    try:
+        yield s
+    finally:
+        s.close()
+
+
+def qwentts_speech(engine, text, voice, ref, seed, options, sess):
+    if sess is None:
+        with session(engine, options) as one:
+            return qwentts_speech(engine, text, voice, ref, seed, options, one)
+    body = {"model": engine["model"], "input": text, "response_format": "wav", "seed": seed}
+    record = {"variant": "qwentts_registered_voice", "speed_honoured": False}
+    if options["ref_audio"] != "data_uri":
+        record.update({"ref_audio_used": False, "ref_text_used": False, "conditioning": "none"})
+        data, _ = call(engine, speech_url(engine["endpoint"]), body, options, "audio/wav")
+        return wav_reply(engine, data), record
+    name = sess.registered(voice, ref)
+    registered_now = name is None
+    if registered_now:
+        name = sess.register(voice, ref)
+    try:
+        data, _ = call(engine, speech_url(engine["endpoint"]), body | {"voice": name}, options, "audio/wav")
+    except EngineError as error:
+        if registered_now or error.status != 400:
+            raise
+        # The name was registered earlier in this session and is now unknown: the server restarted.
+        name, registered_now = sess.register(voice, ref), True
+        data, _ = call(engine, speech_url(engine["endpoint"]), body | {"voice": name}, options, "audio/wav")
+    # qwentts.cpp (pinned 5916bf7) synthesises a registered voice from its speaker embedding, and in ICL mode
+    # from the reference codes and transcript whenever the registration carried a ref_text.
+    record.update(
+        {
+            "ref_audio_used": True,
+            "ref_text_used": bool(ref["text"]),
+            "conditioning": "icl" if ref["text"] else "x_vector",
+            "registered_now": registered_now,
+        }
+    )
+    return wav_reply(engine, data), record
+
+
+def honours_speed(engine):
+    """False for a runtime that ignores the speed knob; render.py then fits timing with atempo alone."""
+    return engine["backend"] != QWENTTS
+
+
+def synthesize(engine, text, voice, ref, seed, speed, options, sess=None):
+    """(WAV bytes, facts about the take) for one chunk. sess: the render's Session, for engines with a voice
+    registry; without one a QwenTtsCpp take registers, speaks and deletes on its own."""
     if engine["backend"] == "Fake":
         if not engine["endpoint"].startswith("fake://"):
             raise EngineError("engine_endpoint_invalid", f"fake engine {engine['id']} needs a fake:// endpoint")
         return fake(engine, text, seed, speed)
     if engine["endpoint"].startswith("fake://"):
         raise EngineError("engine_endpoint_invalid", f"engine {engine['id']} is not Fake but has a fake:// endpoint")
+    if engine["backend"] == QWENTTS:
+        return qwentts_speech(engine, text, voice, ref, seed, options, sess)
     return speech(engine, text, voice, ref, seed, speed, options)
 
 

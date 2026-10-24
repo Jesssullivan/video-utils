@@ -1,0 +1,47 @@
+diff --git a/src/tts-server.h b/src/tts-server.h
+index ca5bd8c..3d8e23f 100644
+--- a/src/tts-server.h
++++ b/src/tts-server.h
+@@ -611,13 +611,35 @@ static int tts_server_run(const tts_backend & be, const server_config & cfg) {
+ #endif
+     });
+ 
+-    // permissive CORS so a browser client can call the API directly.
+-    svr.set_default_headers({
+-        { "Access-Control-Allow-Origin", "*" }
+-    });
+-    svr.Options("/.*", [](const httplib::Request &, httplib::Response & res) {
+-        res.set_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+-        res.set_header("Access-Control-Allow-Headers", "Content-Type");
++    // narrate: no CORS. A request that carries an Origin header comes from a
++    // browser page, which may never list, register, replace or speak in a
++    // cloned voice ; it is refused before routing, and so is a Host header
++    // that does not name the loopback interface (DNS rebinding). Clients are
++    // local processes on the loopback interface only.
++    svr.set_pre_routing_handler([](const httplib::Request & req, httplib::Response & res) {
++        const std::string host = req.get_header_value("Host");
++        // Parse the entire authority, never a prefix (localhost.evil is remote).
++        const auto loopback_authority = [](const std::string & value) {
++            for (const std::string literal : {"127.0.0.1", "localhost", "[::1]"}) {
++                if (value == literal) return true;
++                if (value.compare(0, literal.size() + 1, literal + ":") != 0) continue;
++                const std::string port = value.substr(literal.size() + 1);
++                if (port.empty() || port.size() > 5) return false;
++                unsigned number = 0;
++                for (const char c : port) {
++                    if (c < '0' || c > '9') return false;
++                    number = number * 10 + static_cast<unsigned>(c - '0');
++                }
++                return number >= 1 && number <= 65535;
++            }
++            return false;
++        };
++        const bool loopback = loopback_authority(host);
++        if (req.has_header("Origin") || !loopback) {
++            tts_json_error(res, 403, "permission_error", "only loopback clients without a browser origin");
++            return httplib::Server::HandlerResponse::Handled;
++        }
++        return httplib::Server::HandlerResponse::Unhandled;
+     });
+ 
+     svr.Post("/v1/audio/speech",

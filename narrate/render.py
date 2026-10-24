@@ -75,6 +75,7 @@ class Renderer:
         self.seed = self.job["seed"] if seed is None else int(seed)
         self.transcriber = transcriber
         self.flags = []
+        self.session = None  # engine.Session while run() synthesises
 
     # -- before any audio ------------------------------------------------------------------------------
     def prepare(self):
@@ -136,7 +137,7 @@ class Renderer:
 
         def synth(seed):
             data, facts = engine.synthesize(
-                self.engine, spoken, voice, self.refs[voice["id"]], seed, speed, self.cfg.engine_opts
+                self.engine, spoken, voice, self.refs[voice["id"]], seed, speed, self.cfg.engine_opts, self.session
             )
             pcm, converted = audio.canonical(data, rate or self.rate, work)
             if self.rate is None:
@@ -193,7 +194,7 @@ class Renderer:
         target = segment.target_dur
         if target is not None and pcm.seconds > target + EPS:
             speed = min(pcm.seconds / target, float(self.cfg.fit["speed_max"]))
-            if speed > 1 + 1e-4:
+            if speed > 1 + 1e-4 and engine.honours_speed(self.engine):
                 synthesized = synthesize_all(round(speed, 4))
                 pcm, offsets = self.assemble(segment, synthesized)
                 fit["speed"] = round(speed, 4)
@@ -240,7 +241,7 @@ class Renderer:
         final, staging = root / run_id, root / f".staging-{run_id}"
         (staging / "chunks").mkdir(parents=True)
         try:
-            with tempfile.TemporaryDirectory() as work:
+            with tempfile.TemporaryDirectory() as work, engine.session(self.engine, cfg.engine_opts) as self.session:
                 record = self.build(staging, Path(work), run_id, final)
             staging.rename(final)
         except BaseException:
