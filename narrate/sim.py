@@ -194,7 +194,9 @@ def evaluate(run_dir, manifest, cfg, reference_voice=None, scorer=None):
         for voice_id, _ in set(refs.values()):
             consent = registry["consents"][registry["voices"][voice_id]["consentId"]]
             if consent["evidenceSha256"] not in index:
-                raise policy.Refused("consent_missing", "reference consent evidence is not in the private store (digest-bound lookup)")
+                raise policy.Refused(
+                    "consent_missing", "reference consent evidence is not in the private store (digest-bound lookup)"
+                )
     except (policy.Refused, KeyError, TypeError, ValueError) as error:
         return qa.not_measured(f"reference consent refused: {error}")
     missing = sorted({digest for _, digest in refs.values() if digest not in index})
