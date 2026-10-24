@@ -116,6 +116,7 @@ build_paths() {  # sets src, out, cmake_flags and stamp_want for the device
 }
 
 build_current() {  # the build matches the pin, the patches and the backend, and tts-server matches its stamp
+    build_custody || die "refused: unsafe build custody"
     [[ -x "$out/tts-server" && -f "$out/narrate-stamp" ]] || return 1
     local first second
     { read -r first; read -r second; } < "$out/narrate-stamp" || return 1
@@ -129,6 +130,55 @@ own_dir() {  # create or accept a directory only when it is this user's and clos
         || die "$1 must have mode 0700"
 }
 
+build_custody() {  # prove custody before reading a stamp, hashing or executing a build
+    python3 -I - "$build_dir" <<'PY_CUSTODY'
+import os, re, stat, sys
+from pathlib import Path
+root = Path(os.path.abspath(sys.argv[1]))
+def refuse(path):
+    sys.exit(f"qwentts: unsafe build custody: {path} must be owned, private and nonsymlink")
+# A writable ancestor can replace even a 0700 build root. Root-owned sticky
+# temporary directories protect owned entries; other writable ancestors do not.
+for path in reversed((root, *root.parents)):
+    st = path.lstat()
+    if not stat.S_ISDIR(st.st_mode) or stat.S_ISLNK(st.st_mode):
+        refuse(path)
+    if st.st_uid not in (0, os.getuid()):
+        refuse(path)
+    if st.st_mode & 0o022 and not (st.st_uid == 0 and st.st_mode & stat.S_ISVTX):
+        refuse(path)
+st = root.lstat()
+if st.st_uid != os.getuid() or st.st_mode & 0o077:
+    sys.exit(f"qwentts: {root} must have mode 0700 and be this user's own")
+# The stamp and binary alone are insufficient: cmake/Git consume descendants
+# and the dynamic loader may read libraries next to the executable.
+def walk_error(error):
+    raise error
+for directory, dirs, files in os.walk(root, followlinks=False, onerror=walk_error):
+    for name in dirs + files:
+        path = Path(directory) / name
+        st = path.lstat()
+        # CMake generates local soname links. Only library leaf aliases may
+        # link, and every hop must remain in this same validated directory.
+        seen = set()
+        while stat.S_ISLNK(st.st_mode):
+            if (st.st_uid != os.getuid() or path in seen
+                    or not re.fullmatch(r"lib[^/]+(?:\.so(?:\.[0-9]+)*|\.dylib)", path.name)):
+                refuse(path)
+            seen.add(path)
+            target = os.readlink(path)
+            if not target or target in (".", "..") or "/" in target:
+                refuse(path)
+            path = path.parent / target
+            st = path.lstat()
+            if stat.S_ISDIR(st.st_mode):
+                refuse(path)
+        if (st.st_uid != os.getuid() or st.st_mode & 0o022
+                or not (stat.S_ISDIR(st.st_mode) or stat.S_ISREG(st.st_mode))):
+            refuse(path)
+PY_CUSTODY
+}
+
 cmake_run() {
     local -a tool=(cmake)
     command -v cmake >/dev/null || tool=(nix shell --inputs-from "$root" nixpkgs#cmake -c cmake)
@@ -138,11 +188,11 @@ cmake_run() {
 build() {
     host_gate
     build_paths
+    own_dir "$build_dir"
     if build_current; then
         echo "qwentts: ${out##*/} build is current ($stamp_want)" >&2
         return
     fi
-    own_dir "$build_dir"
     # No hooks run from the checkout, and only the pinned origin is ever fetched from.
     local -a git=(git -c core.hooksPath=/dev/null -c protocol.file.allow=never)
     [[ -d "$src/.git" ]] || "${git[@]}" clone --quiet --no-checkout "$url" "$src"
@@ -156,6 +206,7 @@ build() {
     "${git[@]}" -C "$src" apply "${patches[@]}"
     cmake_run -S "$src" -B "$out" -DCMAKE_BUILD_TYPE=Release "${cmake_flags[@]}" >&2
     cmake_run --build "$out" --config Release -j "$jobs" --target tts-server qwen-tts qwen-codec >&2
+    build_custody || die "refused: unsafe build custody"
     printf '%s\n%s\n' "$stamp_want" "$(digest "$out/tts-server")" > "$out/narrate-stamp"
 }
 
