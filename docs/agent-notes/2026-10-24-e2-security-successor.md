@@ -25,7 +25,8 @@ same-directory leaf targets, owned at every hop, no cycle, and a checked regular
 file endpoint. Escaping, broken and directory aliases fail closed. Existing
 GGML source and build metadata confirm that these aliases are produced by the
 default shared-library build. This includes nearby libraries in custody checks. Newly built trees are checked again before writing their stamp.
-Custody failures explicitly exit: Bash disables errexit inside the build-current
+Parent path components are refused before normalization so a symlink/parent
+traversal cannot differ from the checked path. Custody failures explicitly exit: Bash disables errexit inside the build-current
 conditional, so an implicit failure return would be insufficient.
 
 Validation uses the actual added C++ pre-routing handler with HTTP type stubs,
@@ -34,7 +35,7 @@ and fake command fixtures. Root modes 0755/0777, writable ancestors and writable
 or symlinked source/output/binary/stamp/library descendants are refused before
 fake server execution or current-build acceptance. The unmodified E2 fixture
 reproduced both defects during independent review. Focused placement checks:
-108 passed. Shellcheck, Ruff, Bash syntax, patch parsing and diff checks pass.
+109 passed. Shellcheck, Ruff, Bash syntax, patch parsing and diff checks pass.
 
 Execution is synthetic source validation only. No model, production server,
 weights, real recording, GPU inference or host configuration was invoked or changed.

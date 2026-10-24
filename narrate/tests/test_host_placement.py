@@ -563,3 +563,9 @@ def test_library_aliases_cannot_escape_or_cycle(host, target):
     result = host.run("serve")
     assert result.returncode != 0
     assert "tts-server " not in result.stdout
+
+
+def test_build_custody_does_not_normalise_away_parent_components(host):
+    result = host.run("serve", NARRATE_QWENTTS_BUILD=str(host.build / ".." / "build"))
+    assert result.returncode != 0 and "parent path components" in result.stderr
+    assert "tts-server " not in result.stdout

@@ -134,6 +134,8 @@ build_custody() {  # prove custody before reading a stamp, hashing or executing 
     python3 -I - "$build_dir" <<'PY_CUSTODY'
 import os, re, stat, sys
 from pathlib import Path
+if ".." in Path(sys.argv[1]).parts:
+    sys.exit("qwentts: unsafe build custody: parent path components are refused")
 root = Path(os.path.abspath(sys.argv[1]))
 def refuse(path):
     sys.exit(f"qwentts: unsafe build custody: {path} must be owned, private and nonsymlink")
