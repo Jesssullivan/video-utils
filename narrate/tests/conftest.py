@@ -27,6 +27,8 @@ def hermetic_env(monkeypatch):
         "NARRATE_STORE",
         "NARRATE_LEXICAL_DIR",
         "NARRATE_ENGINE_TOKEN",
+        "NARRATE_SIM_MODEL",
+        "NARRATE_SIM_PYTHON",
     ):
         monkeypatch.delenv(name, raising=False)
 

@@ -269,9 +269,10 @@ pinned Hub listings and are not yet measured locally. The bench lane's
 draft snapshot to list the same files (model cards excepted) with the same byte
 counts, and a bound `sha256` to equal the Hub-declared digest there. A
 conversion whose source revision is stated records it as `upstream.revision`.
-Scoring models (speaker verification, quality) have no draft entries yet;
-they are listed in `sources.json` and need their own entries before a
-registered gate uses them.
+Scoring models are listed in `sources.json`; each needs its own registry
+entry before a gate uses it. The speaker-verification model (speechbrain
+ECAPA, `embedding_model.ckpt`) is registered in `program/models.json` by W7a;
+the quality model (UTMOSv2) has no entry yet.
 
 ## W5 implementation choices (2026-10-23)
 
@@ -290,6 +291,20 @@ Lane W5 (TIN-7087) refines these details with the code in `narrate/` (see `narra
 | `ref_audio` | Sent as a base64 WAV data URI (`[engine] ref_audio = "omit"` sends neither field); whether a server reads that form is checked per engine in W6 |
 | Vale | Run only when `vale` is on PATH; otherwise recorded `not_run` |
 | Exit codes | A refusal prints `{"refused": code}` on stderr and exits 1; a flagged run (overrun, `qa_failed`, loudness, `wer_not_measured`, `sim_not_measured`, `input_unpinned`) still publishes and lists its flags; only a run with no flag meets the acceptance gate |
+
+## W7a implementation choices (2026-10-23)
+
+Lane W7a (TIN-7090, tools half) refines these details with the tools:
+
+| Topic | Choice |
+| --- | --- |
+| Admission | `narrate_render`, `narrate_voices`, `narrate_engines`, `narrate_evaluate` are tools 58-61 (`program/tool-drafts/narrate.json`, `tests/test_s5_tool_admission.py`); each runs `python -m narrate COMMAND` from the checkout with a process-group deadline |
+| Render input | `input` (a file) or `text` (at most 4000 characters, written to a private temporary file of the job's input kind); `timeout_seconds` at most 900 |
+| Render knobs | voice, engine, seed, `max_chunk_wer`, `min_sim`, `max_takes`, `chunk_max_codepoints`, `loudness_lufs`, `fit_max_stretch`; `confidential` only as true and `allow_hosted` only as false, so MCP never loosens a job. Audio format, captions and EDL stay in the job file. Overrides are recorded in `job.overrides` |
+| Voices | ids, consent state, scopes, allowed engines, hosted permission, fixture and stored flags; never a path, clip, transcript or digest |
+| Engines | the registry view plus an opt-in TCP connect (2 s, no request, no token); never an endpoint. Lease and switch state are not read |
+| SIM | speechbrain ECAPA-TDNN (`speechbrain-spkrec-ecapa-voxceleb-embedding`, Apache-2.0 per the model card at the pinned revision) with the front end its `hyperparams.yaml` declares, loaded with strict keys from the hash-bound checkpoint; cosine per delivered chunk against the speaking voice's reference clip, wSIM minimum over 10 s windows (5 s hop). It runs on the CPU in the `ml` shell (torch and speechbrain from nixpkgs; no lock change), at most 8 threads. Why not ONNX: the bench had already pinned and licence-checked this checkpoint, torch is already in the `ml` shell, and an ONNX path would need a second model pin, onnxruntime in a shell and a reimplemented filterbank front end |
+| SIM in render | not scored per take in v0 (`sim_not_measured` on every run); `evaluate` scores the delivered chunks. Gating takes on SIM waits for a calibrated `minSim` |
 
 ## Guitar axioms
 
