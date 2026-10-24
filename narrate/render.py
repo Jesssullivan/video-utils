@@ -193,7 +193,7 @@ class Renderer:
         table = self.registry["pronunciation"].get(job["pronunciation"])
         if table is None:
             raise RenderError("pronunciation_unknown", f"pronunciation table {job['pronunciation']!r}")
-        self.normaliser = Normaliser(table)
+        self.normaliser = Normaliser(table, upstream=self.release.upstream_pronunciation)
         self.refs = {}
         for voice in {v["id"]: v for v in self.voices.values()}.values():
             self.refs[voice["id"]] = {

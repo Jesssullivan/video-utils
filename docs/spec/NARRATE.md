@@ -23,7 +23,7 @@ synthetic. It is a speech workflow beside the guitar workflow and beside
 | GPU use | Attended windows of 30 min or less on the GPU host, each holding the single GPU lease by compare-and-swap and leaving a receipt (load, synthesise, release). Development runs on the Mac host with MLX. Switch-native serving through the model coordinator waits for N1 |
 | Voices | v0 clones only the operator's own voice: a 10 to 30 s clip with a human-verified transcript and a consent record. Clip, transcript and consent evidence are hash-bound and kept outside git |
 | Engine order | Local open weights first, then rented GPUs running open weights, then hosted APIs last. Hosted engines refuse any job marked confidential |
-| Lexical rules | The pinned xoxd-lexical `slides` register plus a local pronunciation table. A narration register is a later upstream bump (TIN-7097) and does not block N0 |
+| Lexical rules | Pinned xoxd-lexical 0.3.0 `narration` register and its shared pronunciation table, followed by the local Dhall overlay (TIN-7097/E7) |
 
 ## Lanes
 
@@ -162,15 +162,27 @@ third arm; Fish Audio Drama 3, the rented tier). W3 picks among them.
 
 A job pins one xoxd-lexical release by all of:
 
-- `release` (for example `xoxd-lexical@0.2.0`) and `commit`;
+- `release` (for example `xoxd-lexical@0.3.0`) and `commit`;
 - `lexiconSha256`: the `dist/estate-lexicon.json` digest the release's
   `DIGESTS` file pins with the tag (tag and digest together);
-- `promptDigestSha256`: `dist/prompt-digest.txt`, injected when an agent writes
-  or rewrites the script;
-- `valeRegister` and `valeRegisterSha256`: the Vale register file (`slides`
-  for N0). Vale findings are advisory and recorded, never blocking;
+- `promptDigestSha256`: `dist/prompt-digest-narration.txt` for `narration`
+  (legacy registers retain `dist/prompt-digest.txt`), injected when an agent
+  writes or rewrites the script;
+- `valeRegister` and `valeRegisterSha256`: the Vale register file (`narration`
+  for the 0.3.0 consumer). Vale findings are advisory and recorded, never blocking;
 - `rewriteCheck`: when true (the default), a rewrite that changes any spoken
   number, unit or identifier is refused (the XL-ACC RewriteCheck rules).
+
+The digest-verified `estate-lexicon.json` also authenticates the shared
+pronunciation table. Narration refuses a missing or malformed table. Its entries
+run in longest-written-form order before the explicit local Dhall table. Both
+layers keep separate digest/substitution evidence. Written-script RewriteCheck
+runs before either spoken projection. Both layers retain the existing digit-run
+guard. It does not prove semantic equivalence for signs or units; pronunciation
+entries require review to preserve those values too. The pinned 47-entry table
+passes the text-only consumer qualification.
+The private lexical release stays outside this public repository. No table or
+Vale style is vendored into public source, and no implicit fetch is added.
 
 The pass refuses to run with a digest that does not match the fetched release.
 The release is fetched explicitly and hash-bound like a model; nothing is
