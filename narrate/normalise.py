@@ -26,7 +26,8 @@ def pattern(entry):
 
 
 class Normaliser:
-    def __init__(self, table):
+    def __init__(self, table, upstream=None):
+        self.upstream = Normaliser(upstream) if upstream is not None else None
         self.table = table
         entries = sorted(table["entries"], key=lambda e: (-len(e["written"]), e["written"]))
         self.compiled = [(e, pattern(e)) for e in entries]
@@ -34,6 +35,8 @@ class Normaliser:
 
     def say(self, text, segment, record=True):
         """The spoken form of text. With record, each substitution is recorded against segment."""
+        if self.upstream is not None:
+            text = self.upstream.say(text, segment, record=record)
         for entry, regex in self.compiled:
             new, count = regex.subn(lambda _m, e=entry: e["spoken"], text)
             if not count:
@@ -59,9 +62,12 @@ class Normaliser:
         substitutions = [
             {"segment": s, "written": w, "spoken": p, "count": c} for (s, w, p), c in sorted(merged.items())
         ]
-        return {
+        record = {
             "table": self.table["id"],
             "language": self.table["language"],
             "sha256": sha256_text(canonical(self.table)),
             "substitutions": substitutions,
         }
+        if self.upstream is not None:
+            record["upstream"] = self.upstream.record()
+        return record

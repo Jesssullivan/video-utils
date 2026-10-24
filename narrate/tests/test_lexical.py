@@ -1,9 +1,10 @@
 """The pinned lexical release (fixture lexicon), advisory findings, Vale's absence and the RewriteCheck."""
 
+import json
 import shutil
 
 import pytest
-from conftest import LEXICAL, fixture_pin
+from conftest import LEXICAL, fixture_pin, sha
 
 from narrate import lexical
 from narrate.ir import Script, Segment
@@ -105,3 +106,87 @@ def test_check_rewrite_on_scripts():
     assert caught.value.code == "rewrite_refused" and "p2" in caught.value.detail
     with pytest.raises(LexicalError, match="segment ids"):
         lexical.check_rewrite(original, Script(kind="PlainText", segments=segs("We ship 3 tools.")))
+
+
+def narration_release(tmp_path, table=None):
+    """Synthetic public fixture, never a vendored private lexical table."""
+    shutil.copytree(LEXICAL, tmp_path, dirs_exist_ok=True)
+    data = json.loads((tmp_path / "estate-lexicon.json").read_text())
+    data["pronunciation"] = table or {
+        "id": "fixture-upstream",
+        "language": "en",
+        "entries": [
+            {
+                "id": "fixture-1",
+                "written": "ABC",
+                "spoken": "A B C",
+                "caseSensitive": True,
+                "wholeWord": True,
+                "note": None,
+            },
+        ],
+    }
+    (tmp_path / "estate-lexicon.json").write_text(json.dumps(data))
+    (tmp_path / "prompt-digest-narration.txt").write_text("# fixture narration-only prompt\n")
+    register = tmp_path / "vale/registers/narration.ini"
+    register.write_text("BasedOnStyles = FixtureNarration\n")
+    pin = fixture_pin() | {
+        "valeRegister": "narration",
+        "lexiconSha256": sha((tmp_path / "estate-lexicon.json").read_bytes()),
+        "promptDigestSha256": sha((tmp_path / "prompt-digest-narration.txt").read_bytes()),
+        "valeRegisterSha256": sha(register.read_bytes()),
+    }
+    return lexical.Release(tmp_path, pin)
+
+
+def test_narration_uses_its_own_pinned_prompt_and_authenticated_table(tmp_path):
+    release = narration_release(tmp_path)
+    assert release.prompt_digest() == "# fixture narration-only prompt\n"
+    assert release.upstream_pronunciation["entries"][0]["id"] == "fixture-1"
+    assert lexical.Release(LEXICAL, fixture_pin()).upstream_pronunciation is None
+    (tmp_path / "prompt-digest-narration.txt").unlink()
+    with pytest.raises(LexicalError, match="lexical_missing"):
+        lexical.Release(tmp_path, release.pin)
+
+
+@pytest.mark.parametrize("change", ["missing", "empty", "duplicate", "flags", "blank-form"])
+def test_narration_refuses_missing_or_malformed_authenticated_pronunciation(tmp_path, change):
+    release = narration_release(tmp_path)
+    path = tmp_path / "estate-lexicon.json"
+    data = json.loads(path.read_text())
+    if change == "missing":
+        data.pop("pronunciation")
+    elif change == "empty":
+        data["pronunciation"]["entries"] = []
+    elif change == "duplicate":
+        data["pronunciation"]["entries"] *= 2
+    elif change == "flags":
+        data["pronunciation"]["entries"][0]["wholeWord"] = "yes"
+    else:
+        data["pronunciation"]["entries"][0]["spoken"] = " "
+    path.write_text(json.dumps(data))
+    with pytest.raises(LexicalError):
+        lexical.Release(tmp_path, release.pin | {"lexiconSha256": sha(path.read_bytes())})
+
+
+def test_narration_shared_layer_precedes_local_and_records_each_layer(tmp_path):
+    from narrate.normalise import Normaliser
+
+    release = narration_release(tmp_path)
+    local = {
+        "id": "fixture-local",
+        "language": "en",
+        "entries": [
+            {"written": "A B C", "spoken": "local letters", "caseSensitive": True, "wholeWord": True, "note": None},
+        ],
+    }
+    normaliser = Normaliser(local, upstream=release.upstream_pronunciation)
+    assert normaliser.say("ABC 24000 Hz", "p1", record=False) == "local letters 24000 Hz"
+    assert normaliser.record()["substitutions"] == []
+    assert normaliser.record()["upstream"]["substitutions"] == []
+    assert normaliser.say("ABC 24000 Hz", "p1") == "local letters 24000 Hz"
+    record = normaliser.record()
+    assert record["table"] == "fixture-local"
+    assert record["upstream"]["table"] == "fixture-upstream"
+    assert record["upstream"]["substitutions"][0]["written"] == "ABC"
+    assert record["substitutions"][0]["written"] == "A B C"
