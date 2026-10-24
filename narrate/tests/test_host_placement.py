@@ -395,3 +395,177 @@ def test_whisper_recipes_run_bounded():
 def test_whisper_gets_at_most_4_threads(asked, used):
     cfg = SimpleNamespace(whisper={"threads": asked, "language": "en"}, whisper_model="absent.bin")
     assert qa.Whisper(cfg).whisper["threads"] == used
+
+
+@pytest.mark.parametrize("command", ["build", "serve"])
+@pytest.mark.parametrize("mode", [0o755, 0o777])
+def test_current_build_rejects_nonprivate_root_before_trust(host, command, mode):
+    host.build.chmod(mode)
+    result = host.run(command)
+    assert result.returncode == 2
+    assert "tts-server " not in result.stdout and "build is current" not in result.stderr
+    assert "git must not run" not in result.stderr
+
+
+@pytest.mark.parametrize("command", ["build", "serve"])
+@pytest.mark.parametrize("target", ["source", "output", "binary", "stamp", "library"])
+@pytest.mark.parametrize("damage", ["writable", "symlink"])
+def test_current_build_rejects_untrusted_descendants(host, command, target, damage):
+    paths = {
+        "source": host.out.parent,
+        "output": host.out,
+        "binary": host.server,
+        "stamp": host.out / "narrate-stamp",
+        "library": host.out / "libfixture.so",
+    }
+    path = paths[target]
+    if target == "library":
+        path.write_bytes(b"fixture library")
+    if damage == "writable":
+        path.chmod(0o777)
+    else:
+        moved = host.tmp / "moved"
+        path.rename(moved)
+        path.symlink_to(moved, target_is_directory=moved.is_dir())
+    result = host.run(command)
+    assert result.returncode != 0
+    assert "custody" in result.stderr
+    assert "tts-server " not in result.stdout and "build is current" not in result.stderr
+    assert "git must not run" not in result.stderr
+
+
+def test_current_build_rejects_writable_ancestor(host):
+    host.tmp.chmod(0o777)
+    result = host.run("serve")
+    assert result.returncode != 0 and "custody" in result.stderr
+    assert "tts-server " not in result.stdout
+
+
+@pytest.fixture(scope="module")
+def loopback_handler(tmp_path_factory):
+    """Compile the actual added pre-routing handler with only HTTP type stubs.
+    No HTTP listener, TTS runtime, weights or audio are involved.
+    """
+    compiler = shutil.which("g++") or shutil.which("clang++")
+    if not compiler:
+        pytest.skip("C++ compiler needed for actual patched handler")
+    added = "\n".join(
+        line[1:]
+        for line in PATCHES[1].read_text().splitlines()
+        if line.startswith(("+", " ")) and not line.startswith("+++")
+    )
+    handler = added[added.index("    svr.set_pre_routing_handler") :]
+    handler = handler[: handler.index("    });") + len("    });")]
+    directory = tmp_path_factory.mktemp("loopback-handler")
+    source = directory / "handler.cpp"
+    source.write_text(
+        r"""
+#include <string>
+#include <functional>
+#include <iostream>
+namespace httplib {
+struct Request {
+    std::string host; bool origin;
+    std::string get_header_value(const char *) const { return host; }
+    bool has_header(const char *) const { return origin; }
+};
+struct Response { int status = 200; };
+struct Server {
+    enum class HandlerResponse { Handled, Unhandled };
+    std::function<HandlerResponse(const Request &, Response &)> handler;
+    template<class T> void set_pre_routing_handler(T h) { handler = h; }
+};
+}
+void tts_json_error(httplib::Response & r, int status, const char *, const char *) { r.status = status; }
+int main(int argc, char **argv) {
+    if (argc != 3) return 1;
+    httplib::Server svr;
+"""
+        + handler
+        + r"""
+    httplib::Request req{argv[1], std::string(argv[2]) == "origin"};
+    httplib::Response res;
+    auto result = svr.handler(req, res);
+    std::cout << res.status << " " << (result == httplib::Server::HandlerResponse::Handled);
+}
+"""
+    )
+    binary = directory / "handler"
+    built = subprocess.run(
+        [compiler, "-std=c++11", "-Wall", "-Wextra", "-Werror", str(source), "-o", str(binary)],
+        capture_output=True,
+        text=True,
+    )
+    assert built.returncode == 0, built.stderr
+    return binary
+
+
+@pytest.mark.parametrize(
+    "authority", ["127.0.0.1", "localhost", "[::1]", "127.0.0.1:1", "localhost:18089", "[::1]:65535"]
+)
+@pytest.mark.parametrize("origin", ["none", "origin"])
+def test_actual_loopback_handler_allows_only_originless_literals(loopback_handler, authority, origin):
+    result = subprocess.run([str(loopback_handler), authority, origin], capture_output=True, text=True)
+    assert result.returncode == 0
+    assert result.stdout == ("200 0" if origin == "none" else "403 1")
+
+
+@pytest.mark.parametrize(
+    "authority",
+    [
+        "",
+        "localhost.attacker.example",
+        "127.0.0.1.attacker.example",
+        "[::1].attacker.example",
+        "localhost@attacker.example",
+        "localhost:80@attacker.example",
+        "localhost\\attacker.example",
+        "localhost:80/path",
+        "localhost:",
+        "localhost:0",
+        "localhost:65536",
+        "localhost:-1",
+        "localhost:+80",
+        "localhost: 80",
+        "localhost:80junk",
+        "localhost:80:90",
+        "localhost:999999999999999999999",
+        "localhost\r\nX: y",
+        "localhost\t",
+        "localhost ",
+        "LOCALHOST",
+        "127.1",
+        "0.0.0.0",
+        "[::ffff:127.0.0.1]",
+        "attacker.example",
+        "localhost.:80",
+        "[::1]:80junk",
+    ],
+)
+def test_actual_loopback_handler_refuses_rebinding_and_malformed_authorities(loopback_handler, authority):
+    result = subprocess.run([str(loopback_handler), authority, "none"], capture_output=True, text=True)
+    assert result.returncode == 0 and result.stdout == "403 1"
+
+
+@pytest.mark.parametrize("command", ["build", "serve"])
+def test_owned_local_shared_library_aliases_are_safe(host, command):
+    library = host.out / "libfixture.so.1.2.3"
+    library.write_bytes(b"fixture library")
+    (host.out / "libfixture.so.1").symlink_to(library.name)
+    (host.out / "libfixture.so").symlink_to("libfixture.so.1")
+    result = host.run(command)
+    assert result.returncode == 0, result.stderr
+
+
+@pytest.mark.parametrize("target", ["../external.so", "/tmp/external.so", "libcycle.so", "missing.so"])
+def test_library_aliases_cannot_escape_or_cycle(host, target):
+    (host.out / "libcycle.so").symlink_to(target)
+    result = host.run("serve")
+    assert result.returncode != 0
+    assert "tts-server " not in result.stdout
+
+
+def test_build_custody_does_not_normalise_away_parent_components(host):
+    result = host.run("serve", NARRATE_QWENTTS_BUILD=str(host.build / ".." / "build"))
+    assert result.returncode != 0 and "parent path components" in result.stderr
+    assert "tts-server " not in result.stdout
