@@ -93,7 +93,15 @@ class Scorer:
         }
 
     def score(self, pairs, timeout=WORKER_TIMEOUT_S):
-        """{id: sim} for [(id, wav a, wav b)] (16-bit mono WAV paths). Raises RuntimeError with the reason."""
+        """{id: row} for [(id, wav a, wav b)] (16-bit mono WAV paths). Raises RuntimeError with the reason.
+
+        Only a worker that exits 0 with ok true, one score per requested id, finite cosines in [-1, 1], positive
+        finite durations, nonempty torch and speechbrain versions and the requested thread count is a measurement;
+        anything else raises, so evaluate reports not_measured without a summary or a passing gate."""
+        self.runtime = {}
+        expected = [i for i, _, _ in pairs]
+        if not expected or any(type(i) is not str or not i for i in expected) or len(set(expected)) != len(expected):
+            raise RuntimeError("the SIM request needs unique nonempty string IDs")
         request = {
             "model": str(self.model),
             "threads": self.threads,
@@ -113,26 +121,54 @@ class Scorer:
             raise RuntimeError(f"the SIM worker ran over {timeout:g} s") from None
         except OSError as error:
             raise RuntimeError(f"the SIM worker could not start: {error}") from None
+        if p.returncode != 0:
+            raise RuntimeError(f"the SIM worker failed (exit {p.returncode}): {worker_reason(p)}")
         try:
             reply = json.loads(p.stdout)
-        except ValueError:
-            tail = p.stderr.strip().splitlines()[-1:] or ["no output"]
-            raise RuntimeError(f"the SIM worker failed ({p.returncode}): {tail[0][:300]}") from None
-        if not reply.get("ok"):
-            raise RuntimeError(f"the SIM worker refused: {reply.get('reason')}")
-        rows = reply.get("scores")
-        if not isinstance(rows, list) or not all(isinstance(r, dict) for r in rows):
-            raise RuntimeError("the SIM worker reply has no score list")
-        found = {r.get("id"): r for r in rows}
-        wanted = {i for i, _, _ in pairs}
-        if set(found) != wanted or len(rows) != len(wanted):
-            raise RuntimeError(f"the SIM worker scored {len(found)} ids, not the {len(wanted)} requested")
-        for row in rows:
-            value = row.get("sim")
-            if isinstance(value, bool) or not isinstance(value, (int, float)) or not -1.0001 <= value <= 1.0001:
-                raise RuntimeError(f"the SIM worker gave {row['id']} a score that is not a cosine: {value!r}")
-        self.runtime = {"torch": reply.get("torch"), "speechbrain": reply.get("speechbrain")}
-        return found
+            if type(reply) is not dict or type(reply.get("ok")) is not bool:
+                raise ValueError("expected an object with boolean ok")
+            if reply["ok"] is not True:
+                raise ValueError(f"worker refused: {str(reply.get('reason'))[:300]}")
+            scores = reply["scores"]
+            if type(scores) is not list or len(scores) != len(expected):
+                raise ValueError("scores must match every requested ID exactly once")
+            rows = {}
+            for row in scores:
+                if type(row) is not dict or type(row.get("id")) is not str:
+                    raise ValueError("each score needs a string ID")
+                ident = row["id"]
+                if ident not in expected or ident in rows:
+                    raise ValueError("unexpected or duplicate score ID")
+                for key in ("sim", "a_seconds", "b_seconds"):
+                    value = row[key]
+                    if type(value) not in (int, float) or not math.isfinite(value):
+                        raise ValueError(f"{key} must be a finite number")
+                    if key == "sim" and not -1 <= value <= 1:
+                        raise ValueError("cosine must lie in [-1, 1]")
+                    if key != "sim" and value <= 0:
+                        raise ValueError("scored audio duration must be positive")
+                rows[ident] = row
+            for key in ("torch", "speechbrain"):
+                if type(reply[key]) is not str or not reply[key]:
+                    raise ValueError(f"{key} version must be a nonempty string")
+            if "threads" in reply and (type(reply["threads"]) is not int or reply["threads"] != self.threads):
+                raise ValueError("worker threads differ from the request")
+        except (ValueError, KeyError, TypeError, OverflowError) as error:
+            raise RuntimeError(f"invalid SIM worker response: {error}") from None
+        self.runtime = {"torch": reply["torch"], "speechbrain": reply["speechbrain"]}
+        return rows
+
+
+def worker_reason(p):
+    """The refusal reason of a failed worker's JSON reply, else the last stderr line (truncated)."""
+    try:
+        reply = json.loads(p.stdout)
+        if type(reply) is dict and type(reply.get("reason")) is str:
+            return reply["reason"][:300]
+    except ValueError:
+        pass
+    tail = (p.stderr or "").strip().splitlines()[-1:] or ["no output"]
+    return tail[0][:300]
 
 
 def check_threads(value):
@@ -183,28 +219,40 @@ def evaluate(run_dir, manifest, cfg, reference_voice=None, scorer=None):
     if cfg is None:
         return qa.not_measured("no narrate.toml given (--config): the reference clip is found through its store")
     registry = cfg.registry()
-    index = policy.store_index(cfg.store)
     by_speaker = {str(v["speaker"]): v for v in manifest["voices"]}
     edl = json.loads((Path(run_dir) / manifest["timeline"]["edl"]["file"]).read_text(encoding="utf-8"))
     chunk_voice = {c["id"]: s["voice"] for s in edl["segments"] for c in s["chunks"]}
     voice_ref = {v["voice"]: v["ref_clip_sha256"] for v in by_speaker.values()}
-    if reference_voice is not None and reference_voice not in registry["voices"]:
-        return qa.not_measured(f"reference voice {reference_voice!r} is not in the voice registry")
-    # consent is read now, not from the manifest: a consent revoked after the render stops SIM too
-    for voice_id in sorted({reference_voice} if reference_voice is not None else set(voice_ref)):
-        try:
-            policy.check_consent(voice_id, registry, index, manifest["job"]["scope"])
-        except policy.Refused as refusal:
-            return {**qa.not_measured(f"voice {voice_id}: {refusal.detail}"), "refused": refusal.code}
+    if reference_voice is not None:
+        record = registry["voices"].get(reference_voice)
+        if record is None:
+            return qa.not_measured(f"reference voice {reference_voice!r} is not in the voice registry")
+        refs = {c["id"]: (reference_voice, record["refClipSha256"]) for c in manifest["chunks"]}
+    else:
+        refs = {c["id"]: (chunk_voice[c["id"]], voice_ref[chunk_voice[c["id"]]]) for c in manifest["chunks"]}
+    # Consent is read now, not from the manifest: a historical render is not current permission to use its
+    # reference, including a decoy override. Registry metadata is checked before the store is hashed, and the
+    # stored evidence before any audio is decoded or embedded.
+    scope, voice_id = manifest["job"]["scope"], None
+    try:
+        wanted = sorted(set(refs.values()))
+        for voice_id, digest in wanted:
+            policy.check_consent(voice_id, registry, None, scope)
+            if registry["voices"][voice_id]["refClipSha256"] != digest:
+                raise policy.Refused("ref_clip_changed", "the reference clip differs from the current voice record")
+        index = policy.store_index(cfg.store)
+        for voice_id, _ in wanted:
+            policy.check_consent(voice_id, registry, index, scope)
+    except policy.Refused as refusal:
+        reason = f"reference consent refused: voice {voice_id}: {refusal.detail}"
+        return {**qa.not_measured(reason), "refused": refusal.code}
+    except (KeyError, TypeError, ValueError) as error:
+        reason = f"reference consent refused: voice {voice_id}: invalid record ({type(error).__name__})"
+        return {**qa.not_measured(reason), "refused": "consent_invalid"}
     scorer = scorer or Scorer(cfg)
     ready = scorer.available()
     if not ready[0]:
         return qa.not_measured(ready[1])
-    if reference_voice is not None:
-        record = registry["voices"][reference_voice]
-        refs = {c["id"]: (reference_voice, record["refClipSha256"]) for c in manifest["chunks"]}
-    else:
-        refs = {c["id"]: (chunk_voice[c["id"]], voice_ref[chunk_voice[c["id"]]]) for c in manifest["chunks"]}
     missing = sorted({digest for _, digest in refs.values() if digest not in index})
     if missing:
         return qa.not_measured(f"reference clip {missing[0][:12]} is not in the private store")

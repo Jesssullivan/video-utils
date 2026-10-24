@@ -108,22 +108,32 @@ def check_engine(job, engine_id, engines):
 def check_consent(voice_id, registry, index, job_scope):
     """The consent half of check_voice: the voice is registered, its consent is registered with stored evidence, not
     revoked, and grants both the voice's and the job's scope. Anything that uses a voice's reference clip (a render,
-    or a SIM embedding, which is a voiceprint) passes this first. Return (voice, consent) or raise Refused."""
+    or a SIM embedding, which is a voiceprint) passes this first. index None checks the registry metadata only, so
+    a caller can refuse before hashing the store. Return (voice, consent) or raise Refused."""
     voice = registry["voices"].get(voice_id)
     if voice is None:
         raise Refused("voice_unknown", f"voice {voice_id!r} is not registered")
-    consent = registry["consents"].get(voice["consentId"])
+    cid = voice["consentId"]
+    consent = registry["consents"].get(cid)
     if consent is None:
-        raise Refused(
-            "consent_missing", f"voice {voice_id} names consent {voice['consentId']!r}, which is not registered"
-        )
-    if consent["evidenceSha256"] not in index:
-        raise Refused("consent_missing", f"consent {consent['id']}: no stored evidence has its sha256")
+        raise Refused("consent_missing", f"voice {voice_id} names consent {cid!r}, which is not registered")
+    scopes, evidence = consent["scopes"], consent["evidenceSha256"]
+    if (
+        type(job_scope) is not str
+        or type(voice["scope"]) is not str
+        or type(scopes) is not list
+        or any(type(s) is not str for s in scopes)
+        or type(evidence) is not str
+        or not evidence
+    ):
+        raise Refused("consent_invalid", f"consent {cid} or voice {voice_id}: scope or evidence fields have bad types")
+    if index is not None and evidence not in index:
+        raise Refused("consent_missing", f"consent {cid}: no stored evidence has its sha256")
     if consent["revokedAt"] is not None:
-        raise Refused("consent_revoked", f"consent {consent['id']} was revoked {consent['revokedAt']}")
+        raise Refused("consent_revoked", f"consent {cid} was revoked {consent['revokedAt']}")
     for scope, whose in ((voice["scope"], "voice"), (job_scope, "job")):
-        if scope not in consent["scopes"]:
-            raise Refused("consent_scope", f"consent {consent['id']} does not grant the {whose} scope {scope}")
+        if scope not in scopes:
+            raise Refused("consent_scope", f"consent {cid} does not grant the {whose} scope {scope}")
     if voice["scope"] != job_scope:
         raise Refused("consent_scope", f"voice {voice_id} scope {voice['scope']} differs from the job's {job_scope}")
     return voice, consent
