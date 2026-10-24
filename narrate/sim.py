@@ -18,6 +18,7 @@ judgement that a listener hears the same person. Listening acceptance is a separ
 """
 
 import json
+import math
 import os
 import statistics
 import subprocess
@@ -73,6 +74,10 @@ class Scorer:
 
     def score(self, pairs, timeout=WORKER_TIMEOUT_S):
         """{id: sim} for [(id, wav a, wav b)] (16-bit mono WAV paths). Raises RuntimeError with the reason."""
+        self.runtime = {}
+        expected = [i for i, _, _ in pairs]
+        if not expected or any(type(i) is not str or not i for i in expected) or len(set(expected)) != len(expected):
+            raise RuntimeError("the SIM request needs unique nonempty string IDs")
         request = {
             "model": str(self.model),
             "threads": self.threads,
@@ -92,15 +97,42 @@ class Scorer:
             raise RuntimeError(f"the SIM worker ran over {timeout:g} s") from None
         except OSError as error:
             raise RuntimeError(f"the SIM worker could not start: {error}") from None
+        if p.returncode != 0:
+            raise RuntimeError(f"the SIM worker failed (exit {p.returncode})")
         try:
             reply = json.loads(p.stdout)
-        except ValueError:
-            tail = p.stderr.strip().splitlines()[-1:] or ["no output"]
-            raise RuntimeError(f"the SIM worker failed ({p.returncode}): {tail[0][:300]}") from None
-        if not reply.get("ok"):
-            raise RuntimeError(f"the SIM worker refused: {reply.get('reason')}")
-        self.runtime = {"torch": reply.get("torch"), "speechbrain": reply.get("speechbrain")}
-        return {row["id"]: row for row in reply["scores"]}
+            if type(reply) is not dict or type(reply.get("ok")) is not bool:
+                raise ValueError("expected an object with boolean ok")
+            if reply["ok"] is not True:
+                raise ValueError("worker refused")
+            scores = reply["scores"]
+            if type(scores) is not list or len(scores) != len(expected):
+                raise ValueError("scores must match every requested ID exactly once")
+            rows = {}
+            for row in scores:
+                if type(row) is not dict or type(row.get("id")) is not str:
+                    raise ValueError("each score needs a string ID")
+                ident = row["id"]
+                if ident not in expected or ident in rows:
+                    raise ValueError("unexpected or duplicate score ID")
+                for key in ("sim", "a_seconds", "b_seconds"):
+                    value = row[key]
+                    if type(value) not in (int, float) or not math.isfinite(value):
+                        raise ValueError(f"{key} must be a finite number")
+                    if key == "sim" and not -1 <= value <= 1:
+                        raise ValueError("cosine must lie in [-1, 1]")
+                    if key != "sim" and value <= 0:
+                        raise ValueError("scored audio duration must be positive")
+                rows[ident] = row
+            for key in ("torch", "speechbrain"):
+                if type(reply[key]) is not str or not reply[key]:
+                    raise ValueError(f"{key} version must be a nonempty string")
+            if "threads" in reply and (type(reply["threads"]) is not int or reply["threads"] != self.threads):
+                raise ValueError("worker threads differ from the request")
+        except (ValueError, KeyError, TypeError, OverflowError) as error:
+            raise RuntimeError(f"invalid SIM worker response: {error}") from None
+        self.runtime = {"torch": reply["torch"], "speechbrain": reply["speechbrain"]}
+        return rows
 
 
 def to16k(src, dst):
@@ -119,18 +151,52 @@ def evaluate(run_dir, manifest, cfg, reference_voice=None, scorer=None):
     ready = scorer.available()
     if not ready[0]:
         return qa.not_measured(ready[1])
-    index = policy.store_index(cfg.store)
     by_speaker = {str(v["speaker"]): v for v in manifest["voices"]}
     edl = json.loads((Path(run_dir) / manifest["timeline"]["edl"]["file"]).read_text(encoding="utf-8"))
     chunk_voice = {c["id"]: s["voice"] for s in edl["segments"] for c in s["chunks"]}
     voice_ref = {v["voice"]: v["ref_clip_sha256"] for v in by_speaker.values()}
+    registry = cfg.registry()
     if reference_voice is not None:
-        record = cfg.registry()["voices"].get(reference_voice)
+        record = registry["voices"].get(reference_voice)
         if record is None:
             return qa.not_measured(f"reference voice {reference_voice!r} is not in the voice registry")
         refs = {c["id"]: (reference_voice, record["refClipSha256"]) for c in manifest["chunks"]}
     else:
         refs = {c["id"]: (chunk_voice[c["id"]], voice_ref[chunk_voice[c["id"]]]) for c in manifest["chunks"]}
+    # A historical render is not current permission to use its reference, including a decoy override.
+    # Metadata checks precede even store hashing; digest-bound evidence precedes audio decoding/embedding.
+    try:
+        for voice_id, digest in set(refs.values()):
+            voice = registry["voices"].get(voice_id)
+            if voice is None:
+                raise policy.Refused("voice_unknown", "reference voice is not currently registered")
+            consent = registry["consents"].get(voice["consentId"])
+            if consent is None:
+                raise policy.Refused("consent_missing", "reference consent is not currently registered")
+            if consent["revokedAt"] is not None:
+                raise policy.Refused("consent_revoked", "reference consent has been revoked")
+            scope = manifest["job"]["scope"]
+            if (
+                type(scope) is not str
+                or scope not in ("OwnContent", "ClientDisclosed")
+                or type(voice["scope"]) is not str
+                or type(consent["scopes"]) is not list
+                or any(type(s) is not str for s in consent["scopes"])
+                or type(consent["evidenceSha256"]) is not str
+                or not consent["evidenceSha256"]
+            ):
+                raise policy.Refused("consent_invalid", "reference consent metadata has invalid types")
+            if voice["scope"] != scope or scope not in consent["scopes"]:
+                raise policy.Refused("consent_scope", "reference consent does not grant the job and voice scope")
+            if voice["refClipSha256"] != digest:
+                raise policy.Refused("ref_clip_changed", "reference clip differs from the current voice record")
+        index = policy.store_index(cfg.store)
+        for voice_id, _ in set(refs.values()):
+            consent = registry["consents"][registry["voices"][voice_id]["consentId"]]
+            if consent["evidenceSha256"] not in index:
+                raise policy.Refused("consent_missing", "reference consent has no digest-bound stored evidence")
+    except (policy.Refused, KeyError, TypeError, ValueError) as error:
+        return qa.not_measured(f"reference consent refused: {error}")
     missing = sorted({digest for _, digest in refs.values() if digest not in index})
     if missing:
         return qa.not_measured(f"reference clip {missing[0][:12]} is not in the private store")
