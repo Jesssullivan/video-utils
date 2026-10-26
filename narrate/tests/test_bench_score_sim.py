@@ -63,6 +63,9 @@ def window(tmp_path, reference_sha):
         if decoy:
             record["decoy"] = decoy
         passes.append(record)
+    # a smoke that produced nothing, as a crashed variant leaves it
+    passes.append({"name": "smoke-crashed", "variant": "ref-text", "complete": False, "chunks_done": 0})
+    passes[-1].update({"chunk_ids": ids[:1], "chunks": []})
     receipt = {"arm": "A9-fake", "chunk_list": {"chunks_sha256": CHUNKS["chunks_sha256"]}, "passes": passes}
     (arm / "receipt.json").write_text(json.dumps(receipt))
     return out
@@ -113,6 +116,8 @@ def test_sim_median_wsim_and_decoys_against_the_bars(score_module, bench, ffmpeg
     assert bars["decoy_checks_valid"] and bars["median_at_least_bar"] and bars["over_decoy_ok"] and bars["wsim_ok"]
     assert bars["over_decoy"] == 0.75
     assert decoy["decoy"] == "preset" and decoy["sim"]["median"] == 0.05 and "bars" not in decoy["sim"]
+    crashed = passes(doc)["smoke-crashed"]
+    assert crashed["sim"]["status"] == "not_measured" and crashed["catastrophic"] == 1
     assert "SIM decoy 2-wrong-speaker: observed 0.050" in (bench["out"] / "scored.md").read_text()
 
 

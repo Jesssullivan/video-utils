@@ -284,6 +284,8 @@ def score_pass(arm_dir, record, chunks_by_id, reader, sim, work):
                 "min": min(wsim) if wsim else None,
             },
         }
+    elif sim.scorer is not None:
+        out["sim"] = qa.not_measured("no chunk of this pass was scored")
     else:
         out["sim"] = sim.status()
     if record.get("decoy"):
@@ -314,7 +316,7 @@ def sim_checks(doc, self_sim):
     usable = all(c["valid"] for c in checks.values())
     for p in passes:
         s = p["sim"]
-        if p.get("decoy") or s.get("status") != "measured":
+        if p.get("decoy") or s.get("status") != "measured" or "wsim" not in s:
             continue
         wmin = s["wsim"]["min"]
         s["bars"] = {
