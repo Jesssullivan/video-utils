@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
-# The narrate bench window on the GPU host: run-bench.sh HOLDER
+# The narrate bench window on the GPU host: run-bench.sh HOLDER [VOICE]
 #
 # Copied to the bench directory on the GPU host (beside job/ with host_run.py, host-job.json and chunks-v1.json)
 # and started by the lease holder's helper once the Lease is held:
 #   cd <bench dir> && NARRATE_BENCH_EXPECT_RUN_BENCH=<sha256> NARRATE_BENCH_EXPECT_HOST_RUN=<sha256> \
-#     NARRATE_BENCH_EXPECT_JOB=<sha256> exec nice -n 19 timeout -k 15 1800 ./run-bench.sh <holder>
-# It takes no Lease and opens no device node. Plan: docs/agent-notes/2026-10-22-narrate-bench-plan.md.
+#     NARRATE_BENCH_EXPECT_JOB=<sha256> exec nice -n 19 timeout -k 15 1800 ./run-bench.sh <holder> <voice>
+# It takes no Lease and opens no device node. Plan: docs/agent-notes/2026-10-22-narrate-bench-plan.md (window 2:
+# its addendum of 2026-10-26).
+#
+# VOICE is the window's one cloning voice, a voice id of the private voices file; it replaces bench.env's
+# NARRATE_BENCH_VOICE for this window, so each window names its voice on its own command line (window 2: one voice
+# per window, a new holder each). Without VOICE, bench.env's value is used; with neither, host_run refuses the job.
 #
 # Outer stage: refuses root, a missing or malformed holder, an existing runs/<holder>, a bench.env line that is
 # not one of the allowed keys (bench.env is parsed, never sourced), and any runner file (this script,
@@ -15,14 +20,15 @@
 #
 # Inner stage: checks that /proc/self/cgroup is that unit's scope and that memory.max, memory.swap.max and
 # cpu.max hold the requested limits, records them, hashes every input (exit 2 on a mismatch), runs A2-gpu-alt,
-# A1-gpu and A3-gpu one at a time within 1500 s of its start, stops the window on host_run's window-stop code or
+# A1-gpu, A3-gpu, A2-gpu-alt-cut and A1-gpu-cut one at a time within 1500 s of its start (an arm the due date
+# reaches first is recorded not_started), stops the window on host_run's window-stop code or
 # a signal (HUP, TERM, INT), kills anything left in its scope (also from an EXIT trap) and writes
 # runs/<holder>/receipt.json.
 #
 # Every path out prints `NARRATE-BENCH-DONE rc=N`: 0 at least one arm completed seed 1 and no window stop;
 # 10 no arm completed; 20 window stop; 2 refused.
 #
-# Preflight, before the Lease: `run-bench.sh --preflight` (same NARRATE_BENCH_EXPECT_* values) parses bench.env,
+# Preflight, before the Lease: `run-bench.sh --preflight [VOICE]` (same NARRATE_BENCH_EXPECT_* values) parses bench.env,
 # checks the runner hashes and runs `host_run.py verify` for the window's arms: every input's sha256 and each arm's
 # reference policy (an oversized or missing reference cut is refused here, not in the window). No engine, no scope
 # and no runs/ directory. Its only write is its own hash cache, preflight-verified.json, never the window's
@@ -42,7 +48,8 @@ ARMS_MAX_S=1500
 MEMORY_MAX=14G
 MEMORY_MAX_BYTES=15032385536
 CPU_MAX="200000 100000"
-DEFAULT_ARMS="A2-gpu-alt A1-gpu A3-gpu"
+DEFAULT_ARMS="A2-gpu-alt A1-gpu A3-gpu A2-gpu-alt-cut A1-gpu-cut"
+NAME_RE='^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$'
 TEST_VARS=(NARRATE_BENCH_NO_SCOPE NARRATE_BENCH_ARMS NARRATE_BENCH_ARMS_S NARRATE_BENCH_HARD_S NARRATE_BENCH_PYTHON
     NARRATE_BENCH_DRM_ROOT NARRATE_BENCH_FORBIDDEN_DEV)
 ENV_KEYS=" NARRATE_BENCH_VOICE NARRATE_BENCH_VOICES_FILE NARRATE_BENCH_VOICES_SHA256 NARRATE_BENCH_QWEN_TTS"
@@ -95,6 +102,12 @@ runner_check() {  # prints runner.json content; returns 1 on a mismatch
     return "$ok"
 }
 
+set_voice() {  # $1: the window's voice id from the command line, if any; it replaces bench.env's
+    [ -n "${1:-}" ] || return 0
+    [[ $1 =~ $NAME_RE ]] || { echo "voice must be letters, digits, '.', '_' or '-'"; return 1; }
+    export NARRATE_BENCH_VOICE=$1
+}
+
 load_env() {  # bench.env: KEY=VALUE lines for the allowed keys only; never sourced
     local file=$BENCH_DIR/bench.env line key value n=0
     [ -f "$file" ] || return 0
@@ -125,9 +138,11 @@ if [ "${1:-}" = "--preflight" ] && [ -z "${NARRATE_BENCH_IN_SCOPE:-}" ]; then
         exit 2
     }
     [ "$(id -u)" -ne 0 ] || preflight_refuse "never run as root"
-    [ $# -eq 1 ] || preflight_refuse "usage: run-bench.sh --preflight"
+    [ $# -le 2 ] || preflight_refuse "usage: run-bench.sh --preflight [VOICE]"
     why=$(load_env) || preflight_refuse "$why"
     load_env >/dev/null
+    why=$(set_voice "${2:-}") || preflight_refuse "$why"
+    set_voice "${2:-}"
     runner_check >/dev/null || preflight_refuse "a runner file's sha256 is not the caller's NARRATE_BENCH_EXPECT_* value"
     export NARRATE_BENCH_ROOT=$BENCH_DIR NARRATE_BENCH_JOB_DIR=$BENCH_DIR/job NARRATE_BENCH_WEIGHTS=$BENCH_DIR/weights/hf
     ARMS_TEXT=$DEFAULT_ARMS
@@ -144,12 +159,15 @@ if [ -z "${NARRATE_BENCH_IN_SCOPE:-}" ]; then
     # ---- outer stage ----
     holder=${1:-}
     [ "$(id -u)" -ne 0 ] || refuse_early "never run as root"
-    [ $# -eq 1 ] || refuse_early "usage: run-bench.sh HOLDER (the lease holder id, passed by the lease command)"
-    [[ $holder =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$ ]] || refuse_early "holder must be letters, digits, '.', '_' or '-'"
+    [ $# -ge 1 ] && [ $# -le 2 ] ||
+        refuse_early "usage: run-bench.sh HOLDER [VOICE] (the lease holder id, passed by the lease command)"
+    [[ $holder =~ $NAME_RE ]] || refuse_early "holder must be letters, digits, '.', '_' or '-'"
     OUT=$BENCH_DIR/runs/$holder
     [ ! -e "$OUT" ] || refuse_early "runs/$holder already exists; every window gets a new holder"
     why=$(load_env) || refuse_early "$why"
     load_env >/dev/null
+    why=$(set_voice "${2:-}") || refuse_early "$why"
+    set_voice "${2:-}"
     runner_check >/dev/null || refuse_early "a runner file's sha256 is not the caller's NARRATE_BENCH_EXPECT_* value"
     hard=$HARD_MAX_S
     if [ "$TEST_MODE" = 1 ] && [ -n "${NARRATE_BENCH_HARD_S:-}" ] && [ "$NARRATE_BENCH_HARD_S" -lt "$hard" ]; then
@@ -277,7 +295,7 @@ if ! runner_check >"$OUT/runner.json"; then
     finish 2
 fi
 
-log "window start: holder $holder, arms ${ARMS[*]}, arms deadline +$ARMS_S s, test mode $TEST_MODE"
+log "window start: holder $holder, voice ${NARRATE_BENCH_VOICE:-none}, arms ${ARMS[*]}, arms deadline +$ARMS_S s, test mode $TEST_MODE"
 run_step "$PY" "$HOST_RUN" verify "$JOB" --cache "$CACHE" "${ARMS[@]/#/--arm=}" >"$OUT/inputs.json" 2>>"$OUT/window.log"
 if [ -n "$stop" ]; then
     finish 20

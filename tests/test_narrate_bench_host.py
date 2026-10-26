@@ -6,7 +6,9 @@ mem_info_vram_used, a temporary file stands in for a card node, and the voice re
 Covered: the committed chunk list and the tracked job (no voice in it), input hash refusal before any process
 starts, the qwentts stream split, the audiocpp variant fallback and decoy, the budget, stall, VRAM, unreadable
 VRAM, card-node, no-GPU-use and kernel-log stops, SIGHUP, SIGTERM and SIGKILL of the runner with a forking engine
-(no process left), and run-bench.sh's holder, bench.env, runner-hash, scope and signal handling.
+(no process left), run-bench.sh's holder, voice argument, bench.env, runner-hash, scope and signal handling, the
+matched-cut arms (cut reference for the control, full clip for its native arm, identity enforced), and the scorer's
+matched-cut comparison and multi-window combine.
 """
 
 import hashlib
@@ -247,7 +249,10 @@ class ChunkList(unittest.TestCase):
         raw = (BENCH / "host-job.json").read_text(encoding="utf-8")
         job = json.loads(raw)
         self.assertEqual(job["chunks"]["sha256"], sha(BENCH / "chunks-v1.json"))
-        self.assertEqual(list(job["arms"]), ["A2-gpu-alt", "A1-gpu", "A3-gpu"])
+        self.assertEqual(list(job["arms"]), ["A2-gpu-alt", "A1-gpu", "A3-gpu", "A2-gpu-alt-cut", "A1-gpu-cut"])
+        self.assertEqual(job["seeds"], [1])  # window 2: seed 1 only (J83(a) addendum)
+        run_bench = (BENCH / "run-bench.sh").read_text(encoding="utf-8")
+        self.assertIn(f'DEFAULT_ARMS="{" ".join(job["arms"])}"', run_bench)  # the window runs the job's order
         self.assertNotIn("voices", job)  # the registry is a private file named by the environment
         self.assertEqual(job["voices_file"]["sha256"], "${NARRATE_BENCH_VOICES_SHA256}")
         self.assertNotIn("consent", raw)
@@ -271,6 +276,24 @@ class ChunkList(unittest.TestCase):
         self.assertFalse(arm["variants"][1]["reference_text"])
         host_run.check_policy("A3-gpu", policy)
 
+    def test_tracked_cut_arms_are_their_native_arms_on_a3s_cut(self):
+        arms = json.loads((BENCH / "host-job.json").read_text(encoding="utf-8"))["arms"]
+        a3 = arms["A3-gpu"]["reference"]
+        for cut, native in (("A2-gpu-alt-cut", "A2-gpu-alt"), ("A1-gpu-cut", "A1-gpu")):
+            arm = arms[cut]
+            self.assertEqual(arm["matched_cut_of"], native)
+            for key in host_run.MATCHED_KEYS + ("budget_s",):
+                self.assertEqual(arm[key], arms[native][key], f"{cut}.{key}")
+            self.assertNotIn("reference", arms[native])  # the native arm keeps the full clip
+            policy = arm["reference"]
+            self.assertEqual(
+                (policy["cut"], policy["max_seconds"], policy["min_seconds"]),
+                (a3["cut"], a3["max_seconds"], a3["min_seconds"]),
+            )
+            self.assertNotIn("decoys", arm)  # decoy 2 renders once per window, inside A1-gpu
+            host_run.check_matched(cut, arm, arms)
+        self.assertTrue(arms["A1-gpu"]["decoys"])
+
     def test_tracked_job_needs_an_explicit_qwen_device_and_the_voices_file(self):
         with tempfile.TemporaryDirectory() as tmp:
             voices = Path(tmp) / "voices.json"
@@ -293,6 +316,7 @@ class ChunkList(unittest.TestCase):
             }
             loaded = host_run.load_job(BENCH / "host-job.json", env)
             self.assertEqual(loaded["arms"]["A1-gpu"]["settings"]["device"], "0")
+            self.assertEqual(loaded["arms"]["A2-gpu-alt-cut"]["settings"]["device"], "Vulkan0")
             self.assertEqual(loaded["vram"]["limit_bytes"], 12_000_000_000)
             self.assertTrue(loaded["vram"]["required"])
             with self.assertRaisesRegex(host_run.Refusal, "NARRATE_BENCH_QWEN_DEVICE"):
@@ -608,6 +632,52 @@ class RefPolicy(Workspace):
         self.job_path = self.job(V=self.vox_arm(dict(self.POLICY, cut="max14s")))
         with self.assertRaisesRegex(host_run.Refusal, "under the arm's min_seconds 5.0"):
             self.verify(["V"])
+
+    def test_a_matched_cut_arm_clones_from_the_cut_and_its_native_arm_from_the_full_clip(self):
+        cut_policy = {"cut": "max14s", "max_seconds": 14.5, "min_seconds": 5.0}
+        self.job_path = self.job(Q=self.qwentts_arm(), Qc=self.qwentts_arm(matched_cut_of="Q", reference=cut_policy))
+        records = self.verify(["Q", "Qc"])
+        self.assertEqual(records["voice.wav"]["file"], "ref.wav")
+        self.assertEqual(records["voice.max14s.wav"]["file"], "cut.wav")
+        self.assertTrue(records["Qc.reference"]["fits"])
+        self.assertNotIn("Q.reference", records)
+        for arm, wav, text in (("Q", "ref.wav", "ref.txt"), ("Qc", "cut.wav", "cut.txt")):
+            before = len(self.invocations())
+            code, receipt = self.run_arm(arm)
+            self.assertEqual(code, host_run.EXIT_OK, receipt["stop"])
+            self.assertEqual(receipt["passes"][-1]["name"], "seed3")
+            argv = self.invocations()[before]["argv"]
+            self.assertEqual(argv[argv.index("--ref-wav") + 1], str(self.dir / "v" / wav))
+            self.assertEqual(argv[argv.index("--ref-text") + 1], str(self.dir / "v" / text))
+            self.assertEqual(receipt["reference"]["wav_sha256"], sha(self.dir / "v" / wav))
+            self.assertEqual(receipt["reference"]["voice_clip_sha256"], sha(self.dir / "v" / "ref.wav"))
+            self.assertEqual(receipt["matched_cut_of"], "Q" if arm == "Qc" else None)
+
+    def test_a_matched_cut_arm_must_differ_from_its_native_arm_only_in_the_reference(self):
+        cut_policy = {"cut": "max14s", "max_seconds": 14.5}
+        other = [{"name": "x-vector", "reference_text": False}]
+        bad = [
+            ("must name another arm", dict(matched_cut_of="Nope", reference=cut_policy)),
+            ("must name another arm", dict(matched_cut_of="Qc", reference=cut_policy)),
+            ("policy that names a cut", dict(matched_cut_of="Q")),
+            ("differs from Q in settings;", dict(matched_cut_of="Q", reference=cut_policy, settings={"device": "V1"})),
+            ("differs from Q in variants;", dict(matched_cut_of="Q", reference=cut_policy, variants=other)),
+        ]  # fmt: skip
+        for message, extra in bad:
+            self.job_path = self.job(Q=self.qwentts_arm(), Qc=self.qwentts_arm(**extra))
+            with self.assertRaisesRegex(host_run.Refusal, message):
+                host_run.load_job(self.job_path)
+        self.job_path = self.job(
+            Q=self.qwentts_arm(reference=cut_policy), Qc=self.qwentts_arm(matched_cut_of="Q", reference=cut_policy)
+        )
+        with self.assertRaisesRegex(host_run.Refusal, "does not clone from the full clip"):
+            host_run.load_job(self.job_path)
+        # budget, decoys and about text may differ
+        native = self.audiocpp_arm()
+        control = self.audiocpp_arm(matched_cut_of="M", reference=cut_policy, budget_s=30, about="control")
+        del control["decoys"]
+        self.job_path = self.job(M=native, Mc=control)
+        host_run.load_job(self.job_path)
 
     def test_malformed_policies_and_prompt_audio_without_its_transcript_are_refused(self):
         for bad in ({"max_seconds": -1}, {"cut": "a/b"}, {"encoder": {"rate": 16000}}, "14s",
@@ -964,6 +1034,46 @@ class Window(Workspace):
         self.assertEqual(done.returncode, 2)
         self.assertIn("already exists", done.stderr)
 
+    def test_the_voice_argument_names_the_window_voice(self):
+        d = self.dir
+        silence_wav(d / "v" / "other.wav", 1.5)
+        (d / "v" / "other.txt").write_text("Another synthetic transcript.\n")
+        voices = json.loads(self.voices.read_text())
+        voices["voices"]["other-voice"] = {
+            "wav": {"path": "other.wav", "sha256": sha(d / "v" / "other.wav")},
+            "text": {"path": "other.txt", "sha256": sha(d / "v" / "other.txt")},
+        }
+        self.voices.write_text(json.dumps(voices))
+        job = json.loads(self.job(Q=self.qwentts_arm()).read_text())
+        job["voice"] = "${NARRATE_BENCH_VOICE}"
+        job["voices_file"] = {"path": str(self.voices), "sha256": sha(self.voices)}
+        (self.bench / "job" / "host-job.json").write_text(json.dumps(job))
+        (self.bench / "bench.env").write_text("NARRATE_BENCH_VOICE=fixture-voice\n")
+        expect = sha(self.bench / "job" / "host-job.json")
+        env = dict(self.base_env, NARRATE_BENCH_ARMS="Q", NARRATE_BENCH_EXPECT_JOB=expect)
+
+        def cloned_from(holder):
+            arm = json.loads((self.bench / "runs" / holder / "Q" / "receipt.json").read_text())
+            return arm["reference"]["wav_sha256"]
+
+        done = self.window("h10", "other-voice", env=env)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual(cloned_from("h10"), sha(d / "v" / "other.wav"))  # the argument replaces bench.env's
+        self.assertIn("voice other-voice", (self.bench / "runs" / "h10" / "window.log").read_text())
+        self.assertEqual(self.window("h11", env=env).returncode, 0)
+        self.assertEqual(cloned_from("h11"), sha(d / "v" / "ref.wav"))  # without it, bench.env's voice
+        for args, message in ((("h12", "bad voice"), "voice must be"), (("h13", "a", "b"), "usage")):
+            done = self.window(*args, env=env)
+            self.assertEqual(done.returncode, 2)
+            self.assertIn(message, done.stderr)
+            self.assertFalse((self.bench / "runs" / args[0]).exists())
+        done = self.window("--preflight", "other-voice", env=env)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("other.wav", done.stdout)
+        done = self.window("--preflight", "missing-voice", env=env)
+        self.assertEqual(done.returncode, 2)
+        self.assertIn("not in the voices file", done.stderr)
+
     def fake_systemd_run(self, body):
         tools = self.dir / "tools"
         tools.mkdir(exist_ok=True)
@@ -1030,7 +1140,10 @@ class Score(unittest.TestCase):
         self.assertEqual(score.conditioning_of({"reference": "voice.max14s"})["label"], "voice.max14s")
         self.assertIsNone(score.conditioning_of({}))
         arms = [{"arm": "A1", "conditioning": full}, {"arm": "A2", "conditioning": dict(full)}]
-        self.assertEqual(score.compare_conditioning(arms, clip), {"equal": True, "flags": []})
+        self.assertEqual(
+            score.compare_conditioning(arms, clip),
+            {"equal": True, "flags": [], "groups": [{"label": "voice", "wav_sha256": clip, "arms": ["A1", "A2"]}]},
+        )
         arms.append({"arm": "A3", "conditioning": part})
         result = score.compare_conditioning(arms, clip)
         self.assertFalse(result["equal"])
@@ -1049,6 +1162,132 @@ class Score(unittest.TestCase):
         text = score.table(doc)
         self.assertIn("SIM reference: aaaaaaaa, the one fixed SIM reference", text)
         self.assertIn("Conditioning: unequal conditioning", text)
+
+    CLIP, CUT = "a" * 64, "c" * 64
+
+    def arm(self, name, label, median, wer, variant="ref-text", matched=None, met=True):
+        wav = self.CLIP if label == "voice" else self.CUT
+        sim = {
+            "status": "measured",
+            "median": median,
+            "wsim": {"min": median - 0.05, "mean": median - 0.01},
+            "bars": {"all_met": met, "unmet": [] if met else ["wsim_ok"]},
+        }
+        seed = {"pass": "seed1", "complete": True, "wer_whole": wer, "catastrophic": 0, "rtf": 0.6, "load_s": 4.0}
+        smoke = dict(seed, **{"pass": "smoke-ref-text", "wer_whole": 0.9})
+        cond = {"label": label, "wav_sha256": wav, "text_sha256": "b" * 64, "voice_clip_sha256": self.CLIP}
+        return {"arm": name, "variant": variant, "conditioning": cond, "matched_cut_of": matched, "sim": sim,
+                "passes": [smoke, seed]}  # fmt: skip
+
+    def window_arms(self):
+        return [
+            self.arm("A2-gpu-alt", "voice", 0.70, 0.04),
+            self.arm("A1-gpu", "voice", 0.60, 0.05, variant="speaker-embedding", met=False),
+            self.arm("A3-gpu", "voice.max14s", 0.65, 0.06, variant="ultimate"),
+            self.arm("A2-gpu-alt-cut", "voice.max14s", 0.66, 0.05, matched="A2-gpu-alt"),
+            self.arm("A1-gpu-cut", "voice.max14s", 0.62, 0.07, matched="A1-gpu"),
+        ]
+
+    def test_matched_cut_arms_sit_beside_their_native_arms_and_the_cut_group_is_like_for_like(self):
+        arms = self.window_arms()
+        rows = score.matched_comparisons(arms)
+        self.assertEqual([(r["cut_arm"], r["native_arm"]) for r in rows],
+                         [("A1-gpu-cut", "A1-gpu"), ("A2-gpu-alt-cut", "A2-gpu-alt")])  # fmt: skip
+        a2 = rows[1]
+        self.assertEqual((a2["full"]["sim_median"], a2["cut"]["sim_median"]), (0.70, 0.66))
+        self.assertEqual(a2["cut_minus_full"]["sim_median"], -0.04)
+        self.assertEqual(a2["cut_minus_full"]["wer_whole"], 0.01)
+        self.assertEqual(a2["full"]["seed_pass"], "seed1")  # the seed pass, never the smoke
+        self.assertEqual((a2["full"]["conditioning"], a2["cut"]["conditioning"]), ("voice", "voice.max14s"))
+        self.assertNotIn("note", a2)
+        self.assertIn("variant ref-text on the cut and speaker-embedding on the full clip", rows[0]["note"])
+        cond = score.compare_conditioning(arms, self.CLIP)
+        self.assertEqual(
+            cond["groups"],
+            [
+                {"label": "voice", "wav_sha256": self.CLIP, "arms": ["A1-gpu", "A2-gpu-alt"]},
+                {"label": "voice.max14s", "wav_sha256": self.CUT, "arms": ["A1-gpu-cut", "A2-gpu-alt-cut", "A3-gpu"]},
+            ],
+        )
+        lone = score.matched_comparisons([a for a in arms if a["arm"] != "A1-gpu"])
+        self.assertEqual(lone[0]["note"], "A1-gpu was not scored in this window")
+        doc = {
+            "arms": [dict(a, passes=[], sim=None) for a in arms],  # per-pass and per-arm lines are covered elsewhere
+            "wer": {"status": "measured"},
+            "sim": {"status": "not_measured", "reason": "test"},
+            "sim_reference": {"sha256": self.CLIP, "role": score.SIM_REFERENCE_ROLE},
+            "conditioning": cond,
+            "matched": rows,
+        }
+        text = score.table(doc)
+        self.assertIn("Like for like on voice.max14s cccccccc: A1-gpu-cut, A2-gpu-alt-cut, A3-gpu", text)
+        self.assertIn("| A2-gpu-alt-cut minus A2-gpu-alt | | | -0.040 |", text)
+        self.assertIn("| A2-gpu-alt | voice aaaaaaaa | ref-text | 0.700 |", text)
+
+    def scored_dir(self, root, holder, voice, arms, model="m" * 64, chunks=None):
+        d = Path(root) / holder
+        d.mkdir(parents=True)
+        doc = {
+            "schema": "narrate-bench-scored/1",
+            "chunks_sha256": chunks or "f" * 64,
+            "window": {"holder": holder, "started_utc": "2026-10-26T00:00:00Z", "voice_clip_sha256": voice},
+            "sim": {"status": "measured", "model_sha256": model, "bars": {"bar": 0.45},
+                    "checks": {"1-reference-self-match": {"valid": True}, "2-wrong-speaker": {"valid": True}}},
+            "sim_reference": {"sha256": voice},
+            "conditioning": score.compare_conditioning(arms, voice),
+            "matched": score.matched_comparisons(arms),
+            "arms": arms,
+        }  # fmt: skip
+        (d / "scored.json").write_text(json.dumps(doc))
+        return d
+
+    def test_two_windows_combine_into_one_table(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            first = self.scored_dir(tmp, "w2-presenter", self.CLIP, self.window_arms())
+            other = [
+                dict(a, conditioning=dict(a["conditioning"], voice_clip_sha256="e" * 64)) for a in self.window_arms()
+            ]
+            other[1] = self.arm("A1-gpu", "voice", 0.61, 0.05, variant="speaker-embedding")
+            second = self.scored_dir(tmp, "w2-read", "e" * 64, other)
+            dest = Path(tmp) / "combined"
+            argv = [str(dest), "--combine", str(first), "--combine", str(second)]
+            self.assertEqual(score.main(argv), 0)
+            out = json.loads((dest / "combined.json").read_text())
+            self.assertEqual([w["window"] for w in out["windows"]], ["w2-presenter", "w2-read"])
+            self.assertEqual(len(out["arms"]), 10)
+            self.assertEqual(len(out["matched"]), 4)
+            self.assertEqual(out["per_arm"]["A1-gpu"]["bars_unmet_in"], ["w2-presenter"])
+            self.assertFalse(out["per_arm"]["A1-gpu"]["bars_met_in_every_window"])
+            self.assertTrue(out["per_arm"]["A3-gpu"]["bars_met_in_every_window"])
+            self.assertEqual(out["flags"], [])
+            text = (dest / "combined.md").read_text()
+            self.assertIn("| w2-read | eeeeeeee | A3-gpu | voice.max14s cccccccc | ultimate | 0.650 |", text)
+            self.assertIn("| w2-presenter | A2-gpu-alt-cut minus A2-gpu-alt |", text)
+            line = "Arm A1-gpu: in 2 window(s); SIM bars met in every window False (unmet in w2-presenter)"
+            self.assertIn(line, text)
+
+            # the same voice twice, or another SIM model, is flagged; another chunk list or no scored.json refuses
+            again = self.scored_dir(tmp, "w2-again", self.CLIP, self.window_arms(), model="n" * 64)
+            self.assertEqual(score.main([str(Path(tmp) / "c2"), "--combine", str(first), "--combine", str(again)]), 0)
+            flags = json.loads((Path(tmp) / "c2" / "combined.json").read_text())["flags"]
+            self.assertIn("windows w2-presenter and w2-again share the voice clip aaaaaaaa", flags)
+            self.assertIn("the windows used different SIM models or bars, so SIM is not comparable across them", flags)
+            odd = self.scored_dir(tmp, "w2-odd", "d" * 64, self.window_arms(), chunks="0" * 64)
+            self.assertEqual(score.main([str(Path(tmp) / "c3"), "--combine", str(first), "--combine", str(odd)]), 2)
+            self.assertEqual(score.main([str(Path(tmp) / "c4"), "--combine", str(Path(tmp) / "absent")]), 2)
+            self.assertFalse((Path(tmp) / "c3").exists() or (Path(tmp) / "c4").exists())
+
+    def test_a_window_of_cut_arms_only_binds_sim_to_the_clip_its_receipts_name(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cut = {"label": "voice.max14s", "wav_sha256": self.CUT, "text_sha256": "b" * 64}
+            receipts = [{"reference": dict(cut, voice_clip_sha256=self.CLIP)}]
+            self.assertEqual(score.window_voice_sha256(tmp, receipts), self.CLIP)
+            receipts.append({"reference": dict(cut, voice_clip_sha256="e" * 64)})
+            self.assertIsNone(score.window_voice_sha256(tmp, receipts))  # two clips: no binding is guessed
+            (Path(tmp) / "inputs.json").write_text(json.dumps({"verified": {"voice.wav": {"sha256": "9" * 64}}}))
+            self.assertEqual(score.window_voice_sha256(tmp, receipts), "9" * 64)  # the verified clip wins
+            ident = score.window_identity(tmp, self.CLIP)
+            self.assertEqual(ident, {"holder": Path(tmp).name, "started_utc": None, "voice_clip_sha256": self.CLIP})
 
     def test_score_refuses_a_destination_inside_a_git_work_tree(self):
         with tempfile.TemporaryDirectory() as tmp:
