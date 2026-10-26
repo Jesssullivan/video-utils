@@ -323,3 +323,204 @@ Lane W3 prep only; files are disjoint from the `narrate/` Python package of lane
   exists).
 - The WavLM speaker-verification licence; it stays optional until checked.
 - Whether UTMOSv2 fold 0 alone is the package default (U); if not, the receipt states which folds were used.
+
+## Addendum, 2026-10-26: window 2 under J83(a)
+
+Authority: operator ruling **J83(a)** (SSOT doc 3ca6e09afb44, 2026-10-26): re-run the bench with SIM measured and
+A3 fixed before any engine pick. Re-run plan: TIN-7085 comment `365540a1`. Two operator decisions of 2026-10-26
+shape this addendum:
+
+1. Add matched A1 (Ming) and A2 (Qwen3-TTS) runs on the same word-aligned cut of about 12 s that A3 (VoxCPM2)
+   uses, so that SIM compares like for like. A1 and A2 also keep their full-clip runs.
+2. Record every change for run 2 here, as a dated addendum, not as a new preregistration.
+
+R-HOOK-CONVERGENCE-20261004 R-N13.
+
+**State:** not run. Window 2 has not started, and no TTS model ran for this addendum.
+
+### What does not change
+
+- **The text.** The bench text is still text-v1, sha256 `f7ff6923…a704d`, with the same chunk list
+  (`chunks-v1.json`, 17 chunks).
+- **The rules.** The bars, the decoys, the stop rules and the pick rule are as preregistered above.
+- **The engines.** The binaries, weights and pins are run 1's: qwentts.cpp `5916bf7c`, audio.cpp `47c2756e`, and
+  the weight sha256 values in `sources.json`.
+- **The freeze.** The plan froze when run 1 was scored. The operator chose this addendum over a `text-v2`
+  preregistration. Each deviation is listed below, so run 2 is read against these rules plus this list.
+
+### Run 1, as context (measured 2026-10-23; re-scored with SIM 2026-10-26)
+
+| Arm | Variant | Chunks | RTF (seed 1 / seed 2) | Load s | Audio s | Seed 1 pass wall s | WER whole (seed 1 / seed 2) | Peak VRAM above idle |
+|---|---|---|---|---|---|---|---|---|
+| A2-gpu-alt | icl-ref-text | 17/17 ×2 | 0.555 / 0.639 | about 4 | 262 | 150 | 0.043 / 0.034 | 6.28 GiB |
+| A1-gpu | speaker-embedding (the ref-text smoke truncated) | 17/17 ×2 | 0.767 / 0.750 | about 12.5 | 218 | 181 | 0.031 / 0.034 | 3.26 GiB |
+| A3-gpu | none passed | 0/1 | | | | | | 4.27 GiB, smoke only |
+
+- **Window time.** The window took 884 s. The in-window verify took about 67 s.
+- **Smokes and the decoy.** A2's smoke took 18 s. A1 took 19 s for the failed ref-text smoke, 31 s for the
+  speaker-embedding smoke and 38 s for decoy 2.
+- **A3.** A3 exited 1: `VoxCPM2 AudioVAE encoder sample capacity exceeded`.
+- **SIM.** The private numbers are on TIN-7090.
+  - Decoys 1, 2, 4 and 5 are valid.
+  - A2 meets every SIM bar.
+  - A1 meets the median and decoy-margin bars. It misses the wSIM bar at arm level because of one weak seed-2
+    window.
+  - A3 has no audio.
+
+### SIM bars, as implemented
+
+The bars below come from PR #41: `narrate/sim.py` and `narrate/bench/score.py`, with the fix round in
+[`2026-10-26-narrate-sim-fix-round.md`](2026-10-26-narrate-sim-fix-round.md). The preregistered values are
+unchanged.
+
+- **Scorer.** The scorer is ECAPA (speechbrain `spkrec-ecapa-voxceleb`, registered in `program/models.json`). It
+  runs on the dev host, one scorer at a time under a host-wide lock, inside a 6G memory scope. Before the
+  reference is decoded, `policy.check_consent` must pass for every registered voice whose reference clip is that
+  clip.
+- **Reference.** SIM for every arm is measured against the window voice's **full** consented clip, including the
+  arms that clone from a cut. The scorer binds the clip to the window's verified `voice.wav` sha256.
+- **Per pass.** Each chunk is scored against the reference, and the pass reports the median and the minimum.
+  wSIM uses 10 s windows with a 5 s hop over the joined chunks and reports the minimum, the mean and every window.
+  It skips windows with under 3 s of voiced frames. A chunk over 60 s is skipped.
+- **Per arm.** An arm is read over the chunks and wSIM windows of its seed passes; smoke and decoy passes do not
+  count. The bars are:
+  - median at least 0.45;
+  - median at least 0.15 above decoy 2;
+  - wSIM minimum at least 0.8 × the arm's median.
+
+  `all_met` treats a missing value as unmet.
+- **Decoys.**
+  - Decoy 1 is the reference's second half scored against its first half. It must be at least 0.60. That number
+    reads "well above the bar" as the bar plus the margin. It is an interpretation, not a preregistered value.
+  - Decoy 2 is the preset voice. Its median must be below 0.45 and at least 0.15 below decoy 1.
+  - Decoy 2 is window-wide: it renders once per window, inside A1-gpu.
+
+### The A3 reference policy
+
+The A3 reference policy comes from PR #47 ([`2026-10-26-narrate-a3-ref-policy.md`](2026-10-26-narrate-a3-ref-policy.md)).
+
+- **The cut.** A3-gpu clones from the voice's `max14s` cut. This is a time-aligned slice of the same consented
+  clip, cut at whisper word gaps, with the verified transcript cut at the same words.
+- **Its bounds.** The cut runs from 5 to 14.5 s. The VoxCPM2 encoder's padded input is checked to the sample
+  against its capacity: 240000 samples at 16 kHz, so at most 14.88 s.
+- **Variants.** Variant `ultimate` sends the cut as reference and as prompt audio, with its transcript, which is
+  this plan's A3 row. `reference-only` is the fallback.
+- **Cut lengths.** The presenter cut is 11.97 s and the read cut is 12.63 s.
+- **Preflight.** `run-bench.sh --preflight` refuses a misfit before the lease.
+
+**Deviation:** the plan names one 25 to 30 s reference for every arm. A3's reference is about 12 s instead.
+
+### Matched-cut arms (new; operator decision 1)
+
+Two arms run after A3. Both are scored against the full clip like every arm.
+
+| Arm | Controls | Differs from it only in |
+|---|---|---|
+| `A2-gpu-alt-cut` | A2-gpu-alt | its reference: the `max14s` cut wav and cut transcript (`--ref-wav`, `--ref-text`), the same files A3-gpu uses |
+| `A1-gpu-cut` | A1-gpu | its reference: the same cut and cut transcript. It renders no decoy, because decoy 2 renders once, in A1-gpu |
+
+- **How `host_run` holds them to that.** It refuses a `matched_cut_of` arm unless all of these hold:
+  - it names a cut;
+  - the arm it controls clones from the full clip;
+  - the two have identical runtime, inputs, settings and variants.
+
+  The budget, the decoys and the `about` text may differ.
+- **What the receipts record.** Each receipt records `matched_cut_of` and its conditioning reference: the label
+  and the wav, text and clip sha256.
+- **What `score.py` does with them.**
+  - `matched` sets each control beside its native arm: variant, SIM median, wSIM minimum and mean, whether the
+    bars are met, seed-1 WER, catastrophic chunks and RTF, plus the cut-minus-full differences.
+  - `conditioning.groups` names the like-for-like set. In window 2 that set is A1-gpu-cut, A2-gpu-alt-cut and
+    A3-gpu, all on the same cut.
+- **A1's variant may differ between the two arms.** In run 1 the full-clip ref-text smoke truncated, because a
+  30 to 35 s prompt fills most of Ming's 512 positions. A cut of about 12 s leaves room for a chunk, so
+  A1-gpu-cut may pass with `ref-text`, which is this plan's A1 row. A1-gpu, as in run 1, will likely fall back to
+  `speaker-embedding`. The scorer notes when the variants differ, because then the conditioning path differs as
+  well as the reference.
+- **What they answer.**
+  - Across A1, A2 and A3 on one reference, whether SIM differences come from the engine or from the reference
+    length.
+  - Within A1 and within A2, what shortening the reference does.
+- **Candidates.** The controls do not add candidates to the pick. The pick rule still reads A2-gpu-alt, A1-gpu
+  and A3-gpu. Whether a control could stand in for its native arm is an open operator decision (below).
+
+### Per-voice windows and seeds
+
+- **One voice per window.** Each window clones one voice and has a new holder. The presenter voice goes first.
+  The read voice follows in a later window.
+- **Naming the voice.** `run-bench.sh HOLDER VOICE` takes the voice on the command line; it replaces bench.env's
+  `NARRATE_BENCH_VOICE`. `run-bench.sh --preflight VOICE` checks that voice before the lease.
+- **Seeds.** Each arm runs **seed 1 only** (`seeds: [1]`). Its smoke, and for A1-gpu decoy 2, run first.
+  - **Deviation:** this plan runs three seeds. The two bars read "best of 3" (catastrophic chunks and whole-text
+    WER) **cannot be read from window 2**. They stay not measured until a later window runs seeds 2 and 3.
+  - Run 1's seed 2 for A1 and A2 came from another window, and it does not fill this gap for the re-run.
+- **Arm order.** A2-gpu-alt, A1-gpu, A3-gpu, A2-gpu-alt-cut, A1-gpu-cut.
+  - A2 goes first because it is the N0 fallback.
+  - A3 goes before the controls because J83(a) needs it.
+  - The controls go last, so the 1500 s arms deadline cuts them first.
+- **Scoring.** Each window is scored on its own, with that voice's full clip as `--reference`. Then
+  `just narrate-bench-combine DEST DIR_A DIR_B` puts the windows in one table:
+  - one row per window and arm;
+  - every window's matched-cut rows;
+  - per arm, whether the SIM bars were met in every window.
+
+  Windows that share a voice clip are flagged, as are windows that used different SIM models or bars.
+
+### Wall time against the 1500 s arms cap
+
+This is an estimate from run 1's receipts. The inner arms cap is 1500 s. The other limits are:
+
+- scope RuntimeMaxSec 1680;
+- `timeout -k 15 1700`;
+- the service's RuntimeMaxSec 1740.
+
+| Step | Run-1 basis | Estimate s | Slow case s |
+|---|---|---|---|
+| In-window verify | 67 s | 67 | 67 |
+| A2-gpu-alt: smoke + seed 1 | 18 + 150 (RTF 0.555) | 169 | 190 (seed RTF 0.639) |
+| A1-gpu: ref-text smoke (fails) + speaker-embedding smoke + decoy 2 + seed 1 | 19 + 31 + 38 + 181 | 270 | 275 |
+| A3-gpu | unknown; its budget is the cap | 480 | 480 |
+| A2-gpu-alt-cut | as A2 | 169 | 190 |
+| A1-gpu-cut: ref-text smoke (may pass) + seed 1, or both smokes + seed 1 | 31 + 181, or 19 + 31 + 181 | 231 | 235 |
+| **Total** | | **1386** | **1437** |
+
+- **Margin.** The set fits with 63 to 114 s to spare, **even if A3 uses its whole 480 s budget**. If A3 finishes
+  in its run-1-like range (smoke plus seed 1 at an RTF near 1), the total is about 1150 to 1200 s.
+- **If it overruns.** The deadline caps the running arm's budget, and an arm not yet started is recorded
+  `not_started`. A1-gpu-cut is the arm at risk. A capped control is reported as such and re-run in the read-voice
+  window or a third window. No arm was dropped for window 2.
+
+### Changes for run 2
+
+All of these are on branch `feat/narrate-window2-matched-cut`:
+
+- **`host-job.json`:**
+  - `seeds: [1]`;
+  - the arms `A2-gpu-alt-cut` and `A1-gpu-cut`, with `matched_cut_of`.
+- **`host_run.py`:**
+  - the `matched_cut_of` checks;
+  - `matched_cut_of` in the arm receipt;
+  - the reference label in the window receipt.
+- **`run-bench.sh`:**
+  - the five default arms;
+  - the `VOICE` argument for the window and the preflight;
+  - the voice in `window.log`.
+- **`score.py`:**
+  - `window` identity, with the voice by clip sha256 and never by id;
+  - `conditioning.groups`;
+  - `matched`;
+  - SIM binding to the receipts' clip when no `voice.wav` was verified;
+  - `--combine`.
+- **`just narrate-bench-combine`:** the new recipe.
+- **Tests:** fake binaries and a fake SIM worker only.
+
+### Open
+
+- **Operator decision: can a matched-cut control stand in for its native arm in the pick?** Until there is a
+  decision, the answer is no.
+- **Seeds 2 and 3.** The "best of 3" bars need a later window.
+- **Unobserved until window 2:**
+  - whether A3 `ultimate` passes its smoke;
+  - VoxCPM2's VRAM and RTF with a prompt;
+  - whether A1-gpu-cut passes `ref-text`.
+- **Missing scorer checks.** Decoy 3 (espeak-ng) and UTMOS are still not scored.
