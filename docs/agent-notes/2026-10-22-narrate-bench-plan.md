@@ -437,6 +437,21 @@ Two arms run after A3. Both are scored against the full clip like every arm.
   A1-gpu-cut may pass with `ref-text`, which is this plan's A1 row. A1-gpu, as in run 1, will likely fall back to
   `speaker-embedding`. The scorer notes when the variants differ, because then the conditioning path differs as
   well as the reference.
+- **A1-gpu-cut's transcript join (a confound for the presenter window).** At audio.cpp 47c2756e, Ming's prompt
+  builder adds `reference_text` and then the trimmed chunk text as separate pieces with no separator
+  ([prompt.cpp:99 and 111](https://github.com/0xShug0/audio.cpp/blob/47c2756ec72c4e67cad7fb762fd0d5f2798096fd/src/models/ming3_tts/prompt.cpp#L99-L111)).
+  The pieces are tokenized one by one, so no tokens merge. The presenter cut's transcript ends on a bare word, so
+  the model still sees that word run straight into the chunk's first word. The read cut ends with a period.
+  - The request is not changed. A separator would make A1-gpu-cut's variants differ from A1-gpu's, and A1-gpu's
+    from run 1's.
+  - `model-text.json` now records Ming's joined text and `reference_ends_bare`. Read that flag before reading
+    A1-gpu-cut in window 2a.
+- **A1-gpu-cut's longest chunk is not smoke-tested.** The smoke uses `s1.c01`. The longest chunk is `s1.c02`.
+  Ming's output budget is 512 positions minus the prompt
+  ([generator.cpp:203](https://github.com/0xShug0/audio.cpp/blob/47c2756ec72c4e67cad7fb762fd0d5f2798096fd/src/models/ming3_tts/generator.cpp#L203)),
+  and generation ends at that budget without an error. The seed pass
+  has no per-chunk length check, so a truncated chunk shows only in the scorer's catastrophic count and WER. Read
+  A1-gpu-cut's catastrophic count before its SIM.
 - **What they answer.**
   - Across A1, A2 and A3 on one reference, whether SIM differences come from the engine or from the reference
     length.
@@ -451,9 +466,13 @@ Two arms run after A3. Both are scored against the full clip like every arm.
 - **Naming the voice.** `run-bench.sh HOLDER VOICE` takes the voice on the command line; it replaces bench.env's
   `NARRATE_BENCH_VOICE`. `run-bench.sh --preflight VOICE` checks that voice before the lease.
 - **Seeds.** Each arm runs **seed 1 only** (`seeds: [1]`). Its smoke, and for A1-gpu decoy 2, run first.
-  - **Deviation:** this plan runs three seeds. The two bars read "best of 3" (catastrophic chunks and whole-text
-    WER) **cannot be read from window 2**. They stay not measured until a later window runs seeds 2 and 3.
-  - Run 1's seed 2 for A1 and A2 came from another window, and it does not fill this gap for the re-run.
+  - **Deviation, not yet ratified.** This plan runs three seeds. Neither operator decision of 2026-10-26 covers
+    seed 1 only; it was chosen to fit the two controls into the 1500 s cap. The operator ratifies it, or approves
+    a later window for seeds 2 and 3, before window 2a's lease is requested.
+  - **What it costs.** The two bars read "best of 3" (catastrophic chunks and whole-text WER) **cannot be read
+    from window 2**. J83(a) asks for the re-run before any engine pick, so with seed 1 only the pick waits for
+    seeds 2 and 3 in a later window.
+  - Run 1 is a separate window from window 2. Its seed 2 for A1 and A2 does not fill this gap for the re-run.
 - **Arm order.** A2-gpu-alt, A1-gpu, A3-gpu, A2-gpu-alt-cut, A1-gpu-cut.
   - A2 goes first because it is the N0 fallback.
   - A3 goes before the controls because J83(a) needs it.
@@ -510,7 +529,10 @@ All of these are on branch `feat/narrate-window2-matched-cut`:
   - `conditioning.groups`;
   - `matched`;
   - SIM binding to the receipts' clip when no `voice.wav` was verified;
-  - `--combine`.
+  - `--combine`;
+  - each arm's variant in `conditioning.groups` and on the like-for-like line;
+  - in `--combine`, an arm that errored in a window or is absent from one counts as not meeting its bars there.
+- **`host_run.py` (fix round):** `model-text.json` records Ming's joined text and `reference_ends_bare`.
 - **`just narrate-bench-combine`:** the new recipe.
 - **Tests:** fake binaries and a fake SIM worker only.
 
@@ -518,7 +540,8 @@ All of these are on branch `feat/narrate-window2-matched-cut`:
 
 - **Operator decision: can a matched-cut control stand in for its native arm in the pick?** Until there is a
   decision, the answer is no.
-- **Seeds 2 and 3.** The "best of 3" bars need a later window.
+- **Operator decision: seed 1 only.** Ratify it, or approve a later window for seeds 2 and 3, before window 2a's
+  lease. The "best of 3" bars, and with them the pick, need seeds 2 and 3.
 - **Unobserved until window 2:**
   - whether A3 `ultimate` passes its smoke;
   - VoxCPM2's VRAM and RTF with a prompt;
