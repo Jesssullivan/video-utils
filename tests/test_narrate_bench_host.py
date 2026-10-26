@@ -595,6 +595,25 @@ class RefPolicy(Workspace):
         texts = json.loads((self.out / "V" / "seed1" / "model-text.json").read_text())["texts"]
         self.assertEqual(texts, {r["id"]: r["text"] for r in requests})
 
+    def test_ming_model_text_records_the_transcript_running_into_the_chunk(self):
+        # Ming tokenizes reference_text and the trimmed chunk text as two pieces with no separator; the request is
+        # left as it is, and model-text.json records the joined text and whether the transcript ends bare
+        self.job_path = self.job(M=self.audiocpp_arm(decoys=[]))
+        code, receipt = self.run_arm("M")
+        self.assertEqual(code, host_run.EXIT_OK, receipt["stop"])
+        requests = json.loads((self.out / "M" / "seed1" / "requests.json").read_text())["requests"]
+        transcript = "A synthetic reference transcript."
+        self.assertTrue(all(r["reference_text"] == transcript and "audio" not in r for r in requests))
+        record = json.loads((self.out / "M" / "seed1" / "model-text.json").read_text())
+        self.assertEqual(record["family"], "ming3_tts")
+        self.assertIn("no separator", record["composed_as"])
+        self.assertIs(record["reference_ends_bare"], False)  # the fixture transcript ends with "."
+        self.assertEqual(record["texts"], {r["id"]: transcript + r["text"].strip() for r in requests})
+        bare = {"id": "x", "text": " Next words\n", "voice_ref": "r.wav", "reference_text": "ends on a word"}
+        self.assertEqual(host_run.composed_text("ming3_tts", bare), "ends on a wordNext words")
+        self.assertEqual(host_run.composed_text("ming3_tts", {"id": "x", "text": " Preset "}), "Preset")
+        self.assertIsNone(host_run.composed_text("other", bare))
+
     def test_a_cut_must_exist_and_name_the_voice_clip_as_its_source(self):
         self.job_path = self.job(V=self.vox_arm(dict(self.POLICY, cut="other")))
         with self.assertRaisesRegex(host_run.Refusal, "no reference cut 'other'"):
@@ -1142,7 +1161,13 @@ class Score(unittest.TestCase):
         arms = [{"arm": "A1", "conditioning": full}, {"arm": "A2", "conditioning": dict(full)}]
         self.assertEqual(
             score.compare_conditioning(arms, clip),
-            {"equal": True, "flags": [], "groups": [{"label": "voice", "wav_sha256": clip, "arms": ["A1", "A2"]}]},
+            {
+                "equal": True,
+                "flags": [],
+                "groups": [
+                    {"label": "voice", "wav_sha256": clip, "arms": ["A1", "A2"], "variants": {"A1": None, "A2": None}}
+                ],
+            },
         )
         arms.append({"arm": "A3", "conditioning": part})
         result = score.compare_conditioning(arms, clip)
@@ -1205,8 +1230,18 @@ class Score(unittest.TestCase):
         self.assertEqual(
             cond["groups"],
             [
-                {"label": "voice", "wav_sha256": self.CLIP, "arms": ["A1-gpu", "A2-gpu-alt"]},
-                {"label": "voice.max14s", "wav_sha256": self.CUT, "arms": ["A1-gpu-cut", "A2-gpu-alt-cut", "A3-gpu"]},
+                {
+                    "label": "voice",
+                    "wav_sha256": self.CLIP,
+                    "arms": ["A1-gpu", "A2-gpu-alt"],
+                    "variants": {"A1-gpu": "speaker-embedding", "A2-gpu-alt": "ref-text"},
+                },
+                {
+                    "label": "voice.max14s",
+                    "wav_sha256": self.CUT,
+                    "arms": ["A1-gpu-cut", "A2-gpu-alt-cut", "A3-gpu"],
+                    "variants": {"A1-gpu-cut": "ref-text", "A2-gpu-alt-cut": "ref-text", "A3-gpu": "ultimate"},
+                },
             ],
         )
         lone = score.matched_comparisons([a for a in arms if a["arm"] != "A1-gpu"])
@@ -1220,7 +1255,8 @@ class Score(unittest.TestCase):
             "matched": rows,
         }
         text = score.table(doc)
-        self.assertIn("Like for like on voice.max14s cccccccc: A1-gpu-cut, A2-gpu-alt-cut, A3-gpu", text)
+        group = "on voice.max14s cccccccc: A1-gpu-cut (ref-text), A2-gpu-alt-cut (ref-text), A3-gpu (ultimate)"
+        self.assertIn("Like for like " + group, text)
         self.assertIn("| A2-gpu-alt-cut minus A2-gpu-alt | | | -0.040 |", text)
         self.assertIn("| A2-gpu-alt | voice aaaaaaaa | ref-text | 0.700 |", text)
 
@@ -1272,6 +1308,22 @@ class Score(unittest.TestCase):
             flags = json.loads((Path(tmp) / "c2" / "combined.json").read_text())["flags"]
             self.assertIn("windows w2-presenter and w2-again share the voice clip aaaaaaaa", flags)
             self.assertIn("the windows used different SIM models or bars, so SIM is not comparable across them", flags)
+            # an arm that errored in one window, or never ran there, has not met its bars in every window
+            broken = [a for a in other if a["arm"] != "A1-gpu-cut"]
+            broken[2] = {"arm": "A3-gpu", "error": "no receipt"}
+            third = self.scored_dir(tmp, "w2-third", "9" * 64, broken)
+            argv = [str(Path(tmp) / "c5"), "--combine", str(first), "--combine", str(third)]
+            self.assertEqual(score.main(argv), 0)
+            per_arm = json.loads((Path(tmp) / "c5" / "combined.json").read_text())["per_arm"]
+            a3, a1c = per_arm["A3-gpu"], per_arm["A1-gpu-cut"]
+            self.assertEqual((a3["windows"], a3["not_scored_in"]), (["w2-presenter"], ["w2-third"]))
+            self.assertEqual(a1c["absent_from"], ["w2-third"])
+            self.assertFalse(a3["bars_met_in_every_window"] or a1c["bars_met_in_every_window"])
+            self.assertTrue(per_arm["A2-gpu-alt"]["bars_met_in_every_window"])
+            text = (Path(tmp) / "c5" / "combined.md").read_text()
+            met = "in 1 window(s); SIM bars met in every window False"
+            self.assertIn(f"Arm A1-gpu-cut: {met} (absent from w2-third)", text)
+            self.assertIn(f"Arm A3-gpu: {met} (not scored in w2-third)", text)
             odd = self.scored_dir(tmp, "w2-odd", "d" * 64, self.window_arms(), chunks="0" * 64)
             self.assertEqual(score.main([str(Path(tmp) / "c3"), "--combine", str(first), "--combine", str(odd)]), 2)
             self.assertEqual(score.main([str(Path(tmp) / "c4"), "--combine", str(Path(tmp) / "absent")]), 2)

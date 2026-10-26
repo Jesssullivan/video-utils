@@ -4,7 +4,7 @@
 # Copied to the bench directory on the GPU host (beside job/ with host_run.py, host-job.json and chunks-v1.json)
 # and started by the lease holder's helper once the Lease is held:
 #   cd <bench dir> && NARRATE_BENCH_EXPECT_RUN_BENCH=<sha256> NARRATE_BENCH_EXPECT_HOST_RUN=<sha256> \
-#     NARRATE_BENCH_EXPECT_JOB=<sha256> exec nice -n 19 timeout -k 15 1800 ./run-bench.sh <holder> <voice>
+#     NARRATE_BENCH_EXPECT_JOB=<sha256> exec nice -n 19 timeout -k 15 1700 ./run-bench.sh <holder> <voice>
 # It takes no Lease and opens no device node. Plan: docs/agent-notes/2026-10-22-narrate-bench-plan.md (window 2:
 # its addendum of 2026-10-26).
 #

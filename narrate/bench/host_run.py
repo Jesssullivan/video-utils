@@ -28,8 +28,11 @@ its reference_text transcribes (VoxCPM2's ultimate clone). At audio.cpp 47c2756e
 prompt_text + target_text with no separator, so a prompt_audio variant's reference_text ends with one space; each
 pass writes model-text.json beside requests.json, the text that reaches the model per request (prompt text plus the
 chunk text with whitespace runs collapsed, as the pin's normalize_wrapper_text does, before any runtime text
-chunking). The run receipt's `reference` names the conditioning reference (label, wav and text sha256, and the voice
-clip's sha256) so a scorer can tell arms conditioned on different clips apart.
+chunking). Ming at the same pin tokenizes reference_text and the trimmed chunk text as separate pieces with no
+separator; its model-text.json records that text and `reference_ends_bare`, true when the transcript ends on a
+letter or digit. The request is left as it is, so a matched-cut arm keeps its native arm's variants. The run
+receipt's `reference` names the conditioning reference (label, wav and text sha256, and the voice clip's sha256) so
+a scorer can tell arms conditioned on different clips apart.
 
 A matched-cut arm (`matched_cut_of`: another arm of the job) is that arm's control on a cut: load_job refuses it unless
 its reference policy names a cut, the arm it names clones from the full clip, and the two have the same runtime,
@@ -913,12 +916,29 @@ def run_qwentts(ctx, chunks, seed, variant, pass_dir):
     return rule, gone, proc.returncode, results, load_s, ended - started
 
 
-MODEL_TEXT_RULE = "audio.cpp 47c2756e VoxCPM2: prompt_text + normalize_wrapper_text(text) with prompt audio"
+MODEL_TEXT_RULES = {
+    "voxcpm2": "audio.cpp 47c2756e VoxCPM2: prompt_text + normalize_wrapper_text(text) with prompt audio",
+    "ming3_tts": (
+        "audio.cpp 47c2756e Ming (src/models/ming3_tts/prompt.cpp:99,111): reference_text with a reference, then"
+        " trim_ascii_whitespace(text); each is tokenized as its own piece, with no separator between them"
+    ),
+}
 
 
 def wrapper_text(text):
     """audio.cpp 47c2756e VoxCPM2 normalize_wrapper_text: every run of C-locale whitespace becomes one space."""
     return re.sub(r"[ \t\n\v\f\r]+", " ", text)
+
+
+def composed_text(family, request):
+    """The text that reaches the model for one request at the pin; None when the family's rule is not known."""
+    if family == "voxcpm2":
+        prompt = request.get("reference_text", "") if "audio" in request else ""
+        return prompt + wrapper_text(request["text"])
+    if family == "ming3_tts":
+        prompt = request.get("reference_text", "") if "voice_ref" in request else ""
+        return prompt + request["text"].strip(" \t\n\v\f\r")
+    return None
 
 
 def run_audiocpp(ctx, chunks, seed, variant, pass_dir, decoy=None):
@@ -943,13 +963,14 @@ def run_audiocpp(ctx, chunks, seed, variant, pass_dir, decoy=None):
         if options:
             request["options"] = options
         requests.append(request)
-        prompt = request.get("reference_text", "") if "audio" in request else ""
-        model_text[request["id"]] = prompt + wrapper_text(request["text"])
+        model_text[request["id"]] = composed_text(s["family"], request)
     (pass_dir / "requests.json").write_text(json.dumps({"requests": requests}, indent=1), encoding="utf-8")
-    (pass_dir / "model-text.json").write_text(
-        json.dumps({"family": s["family"], "composed_as": MODEL_TEXT_RULE, "texts": model_text}, indent=1),
-        encoding="utf-8",
-    )
+    record = {"family": s["family"], "composed_as": MODEL_TEXT_RULES.get(s["family"]), "texts": model_text}
+    if s["family"] == "ming3_tts":
+        # a transcript that ends on a letter or digit runs straight into the chunk's first word
+        ending = {r.get("reference_text", "")[-1:] for r in requests if r.get("reference_text")}
+        record["reference_ends_bare"] = any(c.isalnum() for c in ending) if ending else None
+    (pass_dir / "model-text.json").write_text(json.dumps(record, indent=1), encoding="utf-8")
     out_dir = pass_dir / "out"
     out_dir.mkdir(exist_ok=True)
     argv = [ctx.inputs["binary"], "--task", task, "--family", s["family"], "--model", ctx.inputs["model"]]
