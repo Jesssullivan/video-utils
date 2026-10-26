@@ -35,9 +35,9 @@ narrate-bench *args:
     @echo "narrate-bench: not implemented yet; lane W3 (TIN-7085) fills this recipe. See just narrate-fetch." >&2
     @exit 2
 
-# Lint and format check.
+# Lint and format check: ruff over narrate/ (bench included), shellcheck over the bench window runner.
 narrate-lint:
-    cd narrate && ruff check . && ruff format --check .
+    cd narrate && ruff check . && ruff format --check . && shellcheck bench/run-bench.sh
 
 # The synthetic-fixture tests: the fake engine and FFmpeg make every take. No voice, model or network.
 narrate-test:
