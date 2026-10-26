@@ -39,7 +39,7 @@ NEW = {
     'narrate_render': ('42e68b04bcd76cdf1a4e4df4c542147683cd4fe38c5bd7616ffc8805e0b38cdc', {'config'}, (900, 600), 'synthetic_narration_rendered_unreviewed', False),
     'narrate_voices': ('4a7381c859b13fadbc2c95b55e7ba663f946f9778a066343a98ead0b2151eeeb', {'config'}, (300, 60), 'consent_registry_listing', True),
     'narrate_engines': ('73618e793b85768478f8d7604670f060ca703c79c7364cd186df23b2ee040c7d', {'config'}, (120, 60), 'engine_registry_listing_with_tcp_reachability', True),
-    'narrate_evaluate': ('fb4b3eb511e2246dc23f2849074e27ae2a57763da7a837be8a930513fe7013dc', {'run_dir'}, (900, 600), 'measured_narration_scores_uncalibrated', True),
+    'narrate_evaluate': ('a548c5666672a779f80cf1d973e2547c50c1fa130cce1d22651d39a02eaf9773', {'run_dir'}, (900, 600), 'measured_narration_scores_uncalibrated', True),
 }
 SPEECH_NOTE = (' Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration '
                'manifest says synthetic true and timeline mapping narration_v1, so no guitar tool accepts it '
@@ -239,6 +239,40 @@ class S5ToolAdmissionTests(unittest.TestCase):
         self.assertEqual(tail, ['--voice', 'voice-fixture-sine', '--seed', '7', '--confidential', '--no-hosted',
                                 '--min-sim', '0', '--max-takes', '1', '--fit-max-stretch', '0.05'])
 
+    def test_evaluate_scorers_start_inside_the_memory_scope(self):
+        run_dir = self.dir / 'run'
+        run_dir.mkdir()
+        (run_dir / 'manifest.json').write_text('{}')
+        ok = subprocess.CompletedProcess([], 0, '', '')
+        with patch.object(tool_api.sys, 'platform', 'linux'), \
+                patch.object(tool_api.shutil, 'which', return_value='/bin/tool'), \
+                patch.object(tool_api.subprocess, 'run', return_value=ok) as probe:
+            command = tool_api.narrate_command('narrate_evaluate', {'run_dir': str(run_dir)}, str(self.dir))
+            self.assertEqual(command[:14], ['systemd-run', '--user', '--scope', '--quiet', '--collect', '-p',
+                                            'MemoryMax=6G', '-p', 'MemorySwapMax=0', 'nice', '-n', '19', 'ionice',
+                                            '-c3'])
+            self.assertEqual(command[15:18], ['-m', 'narrate', 'evaluate'])
+            self.assertEqual(probe.call_args.args[0][-1], 'true')
+            probe.reset_mock()
+            light = tool_api.narrate_command('narrate_evaluate', {'run_dir': str(run_dir),
+                                                                  'metrics': ['loudness', 'overruns']}, str(self.dir))
+            self.assertEqual(light[1:4], ['-m', 'narrate', 'evaluate'])
+            probe.assert_not_called()
+            for metrics in (['sim'], ['wer']):
+                probe.return_value = subprocess.CompletedProcess([], 1, '', 'Failed to connect to bus\n')
+                with self.assertRaises(tool_api.ToolError) as caught:
+                    tool_api.narrate_command('narrate_evaluate', {'run_dir': str(run_dir), 'metrics': metrics},
+                                             str(self.dir))
+                self.assertIn('6G memory scope', str(caught.exception))
+                self.assertIn('Failed to connect to bus', str(caught.exception))
+        with patch.object(tool_api.sys, 'platform', 'linux'), patch.object(tool_api.shutil, 'which', return_value=None):
+            with self.assertRaises(tool_api.ToolError) as caught:
+                tool_api.narrate_command('narrate_evaluate', {'run_dir': str(run_dir)}, str(self.dir))
+            self.assertIn('systemd-run, nice, ionice not found', str(caught.exception))
+        with patch.object(tool_api.sys, 'platform', 'darwin'):
+            mac = tool_api.narrate_command('narrate_evaluate', {'run_dir': str(run_dir)}, str(self.dir))
+            self.assertEqual(mac[1:4], ['-m', 'narrate', 'evaluate'])
+
     # ----- end to end -----------------------------------------------------------
     def test_render_list_evaluate_and_refuse_through_tool_api(self):
         if shutil.which('ffmpeg') is None or shutil.which('ffprobe') is None:
@@ -270,7 +304,10 @@ class S5ToolAdmissionTests(unittest.TestCase):
             self.assertEqual([(e['id'], e['reach']['reachable']) for e in engines], [('fake-sine', True)])
             self.assertNotIn('endpoint', json.dumps(engines))
 
-            scores = tool_api.execute('narrate_evaluate', {'run_dir': str(run_dir), 'config': str(self.config)})
+            # CI has no systemd user manager; the scope prefix itself is covered by the case below
+            with patch.object(tool_api, 'narrate_scorer_scope', return_value=[]) as scope:
+                scores = tool_api.execute('narrate_evaluate', {'run_dir': str(run_dir), 'config': str(self.config)})
+            scope.assert_called_once()
             metrics = scores['result']['metrics']
             self.assertTrue(scores['result']['ok'])
             self.assertTrue(metrics['loudness']['passed'])

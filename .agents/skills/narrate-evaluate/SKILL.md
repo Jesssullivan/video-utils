@@ -13,7 +13,7 @@ description: Score a narration run.
 
 Fallback recipe: `just narrate-eval RUN narrate.toml`. Knobs: `metrics` (loudness, overruns, wer, sim), `reference_voice` (a decoy or cross-voice reference). SIM needs `just narrate-sim-model` once and an interpreter with torch and speechbrain named in `[sim] python` or `NARRATE_SIM_PYTHON` (for example the `python3` of `nix develop .#ml`); with neither set, SIM is not_measured and no torch starts. The SIM worker uses 1 to 8 CPU threads (`[sim] threads`, default 4).
 
-**Host:** SIM is torch inference on the CPU. On the shared CPU host, run one scorer at a time inside `systemd-run --user --scope -p MemoryMax=6G -p MemorySwapMax=0 nice -n 19 ionice -c3` after checking `/proc/pressure/memory`; the Mac build host also works. No TTS model runs on the shared CPU host, and the tests use a fake worker. Every reference voice (the speaking voices, or reference_voice) passes the consent check first: a revoked or out-of-scope consent gives not_measured with `refused`.
+**Host:** SIM is torch inference on the CPU. On Linux this tool starts an evaluation that asks for wer or sim inside `systemd-run --user --scope -p MemoryMax=6G -p MemorySwapMax=0 nice -n 19 ionice -c3`, and refuses those metrics where that scope cannot be made. `narrate evaluate` holds the host's one-scorer lock, shared with the bench scorer: while another scorer runs, wer and sim are not_measured, never queued. Check `/proc/pressure/memory` first; the Mac build host also works. No TTS model runs on the shared CPU host, and the tests use a fake worker. Every reference voice (the speaking voices, or reference_voice) passes the consent check first: a revoked or out-of-scope consent gives not_measured with `refused`.
 
 ## Speech, not guitar
 

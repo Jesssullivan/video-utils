@@ -9,6 +9,7 @@ import math
 import os
 from pathlib import Path
 import re
+import shutil
 import signal
 import subprocess
 import sys
@@ -88,6 +89,13 @@ NARRATE_RENDER_FLAGS = {'input_kind': '--input-kind', 'voice': '--voice', 'engin
                         'chunk_max_codepoints': '--chunk-max-codepoints', 'loudness_lufs': '--loudness-lufs',
                         'fit_max_stretch': '--fit-max-stretch'}
 NARRATE_STDERR_TAIL = 1500
+# narrate_evaluate's wer and sim start whisper and the torch SIM worker. On Linux (the shared CPU host) the worker
+# starts inside the TIN-7085 memory scope, or not at all; `narrate evaluate` holds the host's one-scorer lock
+# (narrate/sim.py scorer_lock), so scorers never overlap.
+NARRATE_SCORER_METRICS = frozenset({'wer', 'sim'})
+NARRATE_SCOPE = ('systemd-run', '--user', '--scope', '--quiet', '--collect', '-p', 'MemoryMax=6G',
+                 '-p', 'MemorySwapMax=0')
+NARRATE_NICE = ('nice', '-n', '19', 'ionice', '-c3')
 S2_DIGEST_FIELDS = {'annotation_markers': 'store_sha256', 'corpus_eval_s2': 'proposals_sha256'}
 SUPPORTED_SCHEMA_KEYS = {'type', 'properties', 'required', 'additionalProperties', 'enum',
                          'minimum', 'maximum', 'exclusiveMinimum', 'minLength', 'maxLength', 'description', 'default',
@@ -1323,6 +1331,30 @@ def narrate_config(value):
                         'components') from error
 
 
+def narrate_scorer_scope():
+    """The argv prefix that starts a scoring worker inside the 6G memory scope at nice 19 and idle I/O: empty off
+    Linux, ToolError on a Linux host where systemd-run --user cannot make the scope (whisper and torch never start
+    unscoped there)."""
+    if not sys.platform.startswith('linux'):
+        return []
+    hint = 'request metrics without wer and sim, or score with just narrate-eval inside a memory scope'
+    missing = [tool for tool in ('systemd-run', 'nice', 'ionice') if shutil.which(tool) is None]
+    if missing:
+        raise ToolError(f'narrate_evaluate wer and sim run only inside a 6G memory scope on Linux; '
+                        f'{", ".join(missing)} not found; {hint}')
+    try:
+        probe = subprocess.run([*NARRATE_SCOPE, 'true'], stdin=subprocess.DEVNULL, capture_output=True, text=True,
+                               timeout=30)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise ToolError(f'narrate_evaluate wer and sim run only inside a 6G memory scope on Linux; the scope probe '
+                        f'failed ({type(error).__name__}); {hint}') from error
+    if probe.returncode:
+        tail = (probe.stderr or '').strip().splitlines()[-1:] or [f'exit {probe.returncode}']
+        raise ToolError(f'narrate_evaluate wer and sim run only inside a 6G memory scope on Linux; systemd-run '
+                        f'--user could not make one ({tail[0][:200]}); {hint}')
+    return [*NARRATE_SCOPE, *NARRATE_NICE]
+
+
 def narrate_command(name, args, scratch):
     """The worker argv for one narrate tool; inline text is written beneath scratch, never into the repository."""
     interpreter = os.environ.get('VIDEO_UTILS_PYTHON', sys.executable)
@@ -1335,10 +1367,11 @@ def narrate_command(name, args, scratch):
         command = head + [str(run_dir)]
         if 'config' in args:
             command += ['--config', str(narrate_config(args['config']))]
-        command += ['--metrics', ','.join(args.get('metrics', ['loudness', 'overruns', 'wer', 'sim']))]
+        metrics = args.get('metrics', ['loudness', 'overruns', 'wer', 'sim'])
+        command += ['--metrics', ','.join(metrics)]
         if 'reference_voice' in args:
             command += ['--reference-voice', args['reference_voice']]
-        return command
+        return (narrate_scorer_scope() if NARRATE_SCORER_METRICS & set(metrics) else []) + command
     command = head + [str(narrate_config(args['config']))]
     if name == 'narrate_voices':
         return command
