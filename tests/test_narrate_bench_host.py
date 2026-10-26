@@ -666,6 +666,18 @@ class RefCut(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertFalse((out / "cut.wav").exists() and record and record["cut"]["seconds"] >= 20)
 
+    def test_no_cut_starts_or_ends_beside_a_word_whisper_did_not_hear(self):
+        info = ref_cut.read_wav(self.clip)
+        words = json.loads(self.words.read_text())["words"]
+        missed = [w for w in words if w["word"] != "Delta"]  # whisper missed the first word of sentence two
+        for max_s in (1.6, 2.2, 3.0, 4.5, 6.0):
+            chosen = ref_cut.plan(info, self.tokens, missed, max_s, 0.5)
+            i, j = chosen["word_range"]
+            self.assertNotEqual(i, 4, max_s)  # "echo" follows the unheard word: its gap is not trusted
+            self.assertNotEqual(j, 2, max_s)  # nor is the gap after "charlie."
+        self.assertEqual(ref_cut.kind_after(["one,", "two;", "three.", "four"], 0), "clause")
+        self.assertEqual([ref_cut.kind_after(["a,", "b?", "c"], k) for k in range(3)], ["clause", "sentence", "word"])
+
     def test_word_timings_from_another_clip_are_refused(self):
         self.words.write_text(json.dumps({"clip_sha256": "0" * 64, "words": []}))
         code, record, _ = self.cut("--max-s", "5")

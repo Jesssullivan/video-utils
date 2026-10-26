@@ -14,14 +14,17 @@ whisper's full JSON into [{start, end, word}]. Run it one process at a time insi
 
 `cut` is standard library only. It aligns the verified transcript's words to whisper's (difflib on lowercased
 alphanumerics), and considers a cut that starts before verified word i and ends after verified word j when both are
-matched words. Each cut point is the quietest 10 ms frame of the gap between the whisper word and its neighbour,
-and must lie within 12 dB of the clip's 10th-percentile frame level, so a cut lands in a pause, not in a word.
-Among the cuts that last from --min-s to --max-s seconds, whose words are at least 85% matched, and whose encoder
-input fits (--capacity-samples: the clip resampled to --encoder-rate and padded up to a multiple of --pad-samples,
-as audio.cpp's VoxCPM2 AudioVAE encoder does), it takes the one with sentence boundaries at both ends, then at the
-end only, then any; and among those the longest. The cut copies the source PCM frames unchanged (same rate,
-channels, sample format and fmt chunk; no fade, no resampling) and checks the copy byte for byte; the transcript
-cut is verified words i..j, joined by single spaces.
+matched words whose outer neighbours are matched to the adjacent whisper words (so no untranscribed or unheard word
+sits in the gap). Each cut point is the quietest 10 ms frame (nearest the gap's middle among equals) of the gap
+between the whisper word and its neighbour, and must lie within 12 dB of the clip's 10th-percentile frame level, so
+a cut lands in a pause, not in a word. Among the cuts that last from --min-s to --max-s seconds, whose words are at
+least 85% matched, and whose encoder input fits (--capacity-samples: the clip resampled to --encoder-rate and padded
+up to a multiple of --pad-samples, as audio.cpp's VoxCPM2 AudioVAE encoder does), it takes the one with the best
+boundaries, then the longest. A boundary scores 2 at a sentence end (. ! ?), 1 at a clause end (, ; : or a dash) and
+0 between other words; cuts rank by the sum of both scores, then by the end's score (the continuation prompt ends
+there). The cut copies the source PCM frames unchanged (same rate, channels, sample format and fmt chunk; no fade,
+no resampling) and checks the copy byte for byte; the transcript cut is verified words i..j, joined by single
+spaces.
 
 Every output is private: the clip, the transcript, the word timings and the record all stay outside git (the
 voice store). The record names files by basename and sha256 and holds times, word indices and counts, never the
@@ -48,6 +51,8 @@ QUIET_DB = 12.0  # a cut point is at most this far above the clip's 10th-percent
 MIN_MATCHED = 0.85
 EDGE_S = 0.02  # how far a cut window may reach into the words on either side of a gap
 SENTENCE_END = (".", "!", "?")
+CLAUSE_END = (",", ";", ":", "-", "\u2014", "\u2013")
+SCORE = {"sentence": 2, "clause": 1, "word": 0}
 WHISPER_MODEL = "models/ggerganov-whisper-cpp-ggml-small.en.bin"
 MAX_THREADS = 4
 
@@ -161,16 +166,19 @@ def quietest(levels, lo_s, hi_s, frame_s=FRAME_S):
     lo, hi = max(0, int(lo_s / frame_s)), min(len(levels) - 1, int(math.ceil(hi_s / frame_s)))
     if hi < lo:
         return None
-    best = min(range(lo, hi + 1), key=lambda k: (levels[k], k))
+    middle = (lo + hi) / 2
+    best = min(range(lo, hi + 1), key=lambda k: (levels[k], abs(k - middle), k))
     return (best + 0.5) * frame_s, levels[best]
 
 
-def kind_before(tokens, i):
-    return "sentence" if i == 0 or tokens[i - 1].endswith(SENTENCE_END) else "word"
-
-
 def kind_after(tokens, j):
-    return "sentence" if tokens[j].rstrip("\"')]").endswith(SENTENCE_END) else "word"
+    """The boundary after verified token j: sentence, clause or word."""
+    token = tokens[j].rstrip("\"')]\u201d\u2019")
+    return "sentence" if token.endswith(SENTENCE_END) else "clause" if token.endswith(CLAUSE_END) else "word"
+
+
+def kind_before(tokens, i):
+    return "sentence" if i == 0 else kind_after(tokens, i - 1)
 
 
 def encoder_fit(frames, rate, encoder):
@@ -205,15 +213,20 @@ def plan(info, tokens, words, max_s, min_s, encoder=None):
     if not matched:
         raise CutError("no verified word matches a whisper word")
     starts, ends = [], []
+    last = len(tokens) - 1
     for i in matched:
         w = mapping[i]
+        # a gap is trusted only between a matched word and its matched neighbour: an unmatched verified word, or
+        # one whisper heard that the transcript lacks, may lie in it
+        start_ok = i == 0 or mapping[i - 1] == w - 1
+        end_ok = i == last or mapping[i + 1] == w + 1
         prev_end = words[w - 1]["end"] if w > 0 else 0.0
         point = quietest(levels, min(prev_end, words[w]["start"]) - EDGE_S, words[w]["start"] + EDGE_S)
-        if point and point[1] <= quiet_max:
+        if start_ok and point and point[1] <= quiet_max:
             starts.append((i, point, kind_before(tokens, i)))
         next_start = words[w + 1]["start"] if w + 1 < len(words) else duration
         point = quietest(levels, words[w]["end"] - EDGE_S, max(next_start, words[w]["end"]) + EDGE_S)
-        if point and point[1] <= quiet_max:
+        if end_ok and point and point[1] <= quiet_max:
             ends.append((i, point, kind_after(tokens, i)))
     prefix = [0]
     for w in mapping:
@@ -233,7 +246,7 @@ def plan(info, tokens, words, max_s, min_s, encoder=None):
             fit = encoder_fit(b - a, rate, encoder)
             if fit is not None and not fit["fits"]:
                 continue
-            rank = 2 if (k0, k1) == ("sentence", "sentence") else 1 if k1 == "sentence" else 0
+            rank = (SCORE[k0] + SCORE[k1], SCORE[k1])
             ranked.append((rank, seconds, -i, -j, (i, j, a, b, k0, k1, db0, db1, ratio, fit)))
     if not ranked:
         raise CutError(
