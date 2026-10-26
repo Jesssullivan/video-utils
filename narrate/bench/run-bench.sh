@@ -20,8 +20,8 @@
 #
 # Inner stage: checks that /proc/self/cgroup is that unit's scope and that memory.max, memory.swap.max and
 # cpu.max hold the requested limits, records them, hashes every input (exit 2 on a mismatch), runs A2-gpu-alt,
-# A1-gpu, A3-gpu, A2-gpu-alt-cut and A1-gpu-cut one at a time within 1500 s of its start (an arm the due date
-# reaches first is recorded not_started), stops the window on host_run's window-stop code or
+# A1-gpu, A3-gpu, A2-gpu-alt-cut and A1-gpu-cut one at a time within 1500 s of its start (an arm not started
+# by then is recorded not_started), stops the window on host_run's window-stop code or
 # a signal (HUP, TERM, INT), kills anything left in its scope (also from an EXIT trap) and writes
 # runs/<holder>/receipt.json.
 #
