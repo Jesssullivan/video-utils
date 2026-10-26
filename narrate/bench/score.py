@@ -73,10 +73,11 @@ SILENCE_DBFS = -50.0
 # SIM bars preregistered in the bench plan ("Bars": median chunk SIM at least 0.45 and 0.15 above the preset-voice
 # decoy; wSIM minimum at least 0.8 times the arm's median chunk SIM). SIM_SELF_MIN is not preregistered: the plan
 # says only that decoy 1 lands "well above the SIM bar", and this scorer reads that as the bar plus the decoy margin
-# (an interpretation, recorded as such on TIN-7085). Where measurements sit against them (docs/agent-notes/2026-10-26-narrate-sim.md): the
-# synthetic formant voices of narrate/tests/test_tools_sim.py score 0.95 for the same tract and 0.60 and 0.40 for
-# its two decoys, so the absolute bar alone does not reject a near voice; the real-voice controls (self-match,
-# preset-voice decoy, the same speaker on another microphone) are private and recorded on the tracker.
+# (an interpretation, recorded as such on TIN-7085). Where measurements sit against them
+# (docs/agent-notes/2026-10-26-narrate-sim.md): the synthetic formant voices of narrate/tests/test_tools_sim.py score
+# 0.95 for the same tract and 0.60 and 0.40 for its two decoys, so the absolute bar alone does not reject a near
+# voice; the real-voice controls (self-match, preset-voice decoy, the same speaker on another microphone) are private
+# and recorded on the tracker.
 SIM_BAR, SIM_DECOY_MARGIN, WSIM_RATIO = 0.45, 0.15, 0.8
 SIM_SELF_MIN = SIM_BAR + SIM_DECOY_MARGIN
 DECOY2_PREFIX = "decoy2"  # host-job.json decoy ids: decoy 2 is the preset voice; other decoys never set its median
