@@ -215,6 +215,34 @@ def test_a_chunk_that_never_passes_is_flagged(workspace):
     assert manifest["chunks"][0]["qa"]["status"] == "failed" and "qa_failed" in manifest["flags"]
 
 
+@pytest.mark.parametrize(
+    "heard",
+    [
+        "The ABC tool lists every MCP voice.",
+        "the A B C tool lists every M C P voice",
+        "The ABC tool lists every M C P voice",
+    ],
+)
+def test_narration_register_renders_with_the_upstream_layer_and_verifies(workspace, heard):
+    """The narration pin end to end: the synthetic upstream table, the local overlay, the WER gate scoring a
+    transcript that writes either form, the manifest's layered record and verify over it."""
+    workspace.use_narration()
+    workspace.job["gates"]["maxChunkWer"] = 0.0
+    cfg = Config(workspace.write("The ABC tool lists every MCP voice.\n", "PlainText"))
+    final, manifest = render.render(cfg, transcriber=lambda pcm, text: heard)
+    assert verify.verify(final)["ok"]
+    (chunk,) = manifest["chunks"]
+    assert chunk["spoken"] == "The A B C tool lists every M C P voice."
+    assert (chunk["qa"]["status"], chunk["qa"]["kept_take"]) == ("passed", 1)
+    assert manifest["lexical"]["register"] == "narration"
+    assert manifest["lexical"]["prompt_digest_file"] == "prompt-digest-narration.txt"
+    upstream = manifest["pronunciation"]["upstream"]
+    assert upstream["table"] == "fixture-upstream" and upstream["overridden_by_local"] == []
+    assert [(s["written"], s["count"]) for s in upstream["substitutions"]] == [("ABC", 1)]
+    assert [s["written"] for s in manifest["pronunciation"]["substitutions"]] == ["MCP"]
+    assert "qa_failed" not in manifest["flags"]
+
+
 def test_rewrite_check_gates_an_agent_rewrite(workspace):
     cfg = Config(workspace.write("We ship 3 tools in 2026.\n", "PlainText"))
     bad = workspace.base / "bad.txt"

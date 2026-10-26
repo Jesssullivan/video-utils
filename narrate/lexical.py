@@ -1,6 +1,7 @@
 """The xoxd-lexical pass (docs/spec/NARRATE.md, "Lexical pin contract").
 
-A job pins one release by tag, commit and the digests of its estate-lexicon.json, prompt-digest.txt and Vale
+A job pins one release by tag, commit and the digests of its estate-lexicon.json, its prompt digest
+(prompt-digest-narration.txt for the narration register, prompt-digest.txt for the others) and its Vale
 register file. The release directory (the release's dist/, fetched explicitly and kept outside git) is read by
 path; every pinned file's sha256 must match or the pass refuses. Nothing is fetched.
 
@@ -11,7 +12,7 @@ path; every pinned file's sha256 must match or the pass refuses. Nothing is fetc
 - Vale: when `vale` is on PATH, the register's rules run through it and its findings are recorded. Absent,
   the record says not_run. Vale never blocks.
 - RewriteCheck (XL-ACC-001 and XL-ACC-002): a rewrite of the script (an agent's, after it read
-  prompt-digest.txt) is accepted only when every number, unit, version, link, path, ticket, handle and
+  the prompt digest) is accepted only when every number, unit, version, link, path, ticket, handle and
   identifier it speaks is the same, byte for byte and in the same order, as the original's.
 """
 
@@ -123,6 +124,7 @@ class Release:
             "commit": self.pin["commit"],
             "register": self.register,
             "lexicon_sha256": self.digests["lexicon"],
+            "prompt_digest_file": self.prompt_name,
             "prompt_digest_sha256": self.digests["prompt_digest"],
             "vale_register_sha256": self.digests["vale_register"],
             "rewrite_check": bool(self.pin["rewriteCheck"]),

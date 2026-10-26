@@ -4,7 +4,7 @@ import json
 import shutil
 
 import pytest
-from conftest import LEXICAL, fixture_pin, sha
+from conftest import LEXICAL, fixture_pin, narration_fixture, sha
 
 from narrate import lexical
 from narrate.ir import Script, Segment
@@ -110,33 +110,7 @@ def test_check_rewrite_on_scripts():
 
 def narration_release(tmp_path, table=None):
     """Synthetic public fixture, never a vendored private lexical table."""
-    shutil.copytree(LEXICAL, tmp_path, dirs_exist_ok=True)
-    data = json.loads((tmp_path / "estate-lexicon.json").read_text())
-    data["pronunciation"] = table or {
-        "id": "fixture-upstream",
-        "language": "en",
-        "entries": [
-            {
-                "id": "fixture-1",
-                "written": "ABC",
-                "spoken": "A B C",
-                "caseSensitive": True,
-                "wholeWord": True,
-                "note": None,
-            },
-        ],
-    }
-    (tmp_path / "estate-lexicon.json").write_text(json.dumps(data))
-    (tmp_path / "prompt-digest-narration.txt").write_text("# fixture narration-only prompt\n")
-    register = tmp_path / "vale/registers/narration.ini"
-    register.write_text("BasedOnStyles = FixtureNarration\n")
-    pin = fixture_pin() | {
-        "valeRegister": "narration",
-        "lexiconSha256": sha((tmp_path / "estate-lexicon.json").read_bytes()),
-        "promptDigestSha256": sha((tmp_path / "prompt-digest-narration.txt").read_bytes()),
-        "valeRegisterSha256": sha(register.read_bytes()),
-    }
-    return lexical.Release(tmp_path, pin)
+    return lexical.Release(tmp_path, narration_fixture(tmp_path, table))
 
 
 def test_narration_uses_its_own_pinned_prompt_and_authenticated_table(tmp_path):
@@ -190,3 +164,78 @@ def test_narration_shared_layer_precedes_local_and_records_each_layer(tmp_path):
     assert record["upstream"]["table"] == "fixture-upstream"
     assert record["upstream"]["substitutions"][0]["written"] == "ABC"
     assert record["substitutions"][0]["written"] == "A B C"
+
+
+def entry(written, spoken, case=True, whole=True, ident=None):
+    return {"id": ident or written, "written": written, "spoken": spoken, "caseSensitive": case, "wholeWord": whole}
+
+
+def test_longer_written_forms_apply_first_in_each_layer():
+    """An overlapping prefix: the shorter entry must not consume the start of the longer one."""
+    from narrate.normalise import Normaliser
+
+    entries = [entry("xy", "ex why"), entry("xy-lexical", "ex why lexical")]
+    upstream = {"id": "fixture-upstream", "language": "en", "entries": entries}
+    local = {
+        "id": "fixture-local",
+        "language": "en",
+        "entries": [entry("zq", "zed queue"), entry("zq-tool", "the tool")],
+    }
+    for order in (entries, entries[::-1]):
+        normaliser = Normaliser(local, upstream=upstream | {"entries": order})
+        assert normaliser.say("xy-lexical and xy, zq-tool and zq", "p1") == (
+            "ex why lexical and ex why, the tool and zed queue"
+        )
+
+
+def test_case_sensitive_entries_match_case_and_insensitive_entries_do_not():
+    from narrate.normalise import Normaliser
+
+    upstream = {
+        "id": "fixture-upstream",
+        "language": "en",
+        "entries": [entry("xy", "ex why", case=False), entry("SSOT", "S S O T", case=True)],
+    }
+    normaliser = Normaliser({"id": "fixture-local", "language": "en", "entries": []}, upstream=upstream)
+    assert normaliser.say("XY, Xy and xy; SSOT not ssot", "p1") == "ex why, ex why and ex why; S S O T not ssot"
+
+
+def test_a_local_entry_overrides_the_upstream_entry_with_its_written_form():
+    from narrate.normalise import Normaliser
+
+    upstream = {
+        "id": "fixture-upstream",
+        "language": "en",
+        "entries": [entry("SSOT", "S S O T", ident="fixture-ssot"), entry("ABC", "A B C", ident="fixture-abc")],
+    }
+    local = {"id": "fixture-local", "language": "en", "entries": [entry("ssot", "single source of truth", case=False)]}
+    normaliser = Normaliser(local, upstream=upstream)
+    assert normaliser.say("The SSOT and ABC.", "p1") == "The single source of truth and A B C."
+    record = normaliser.record()
+    assert record["upstream"]["overridden_by_local"] == ["fixture-ssot"]
+    assert [s["written"] for s in record["upstream"]["substitutions"]] == ["ABC"]
+    assert [s["written"] for s in record["substitutions"]] == ["ssot"]
+    assert (
+        Normaliser(local, upstream=upstream | {"entries": upstream["entries"][1:]}).record()["upstream"][
+            "overridden_by_local"
+        ]
+        == []
+    )
+
+
+def test_aliases_map_a_transcript_back_through_both_layers():
+    from narrate import qa
+    from narrate.normalise import Normaliser, recorded_aliases
+
+    upstream = {"id": "fixture-upstream", "language": "en", "entries": [entry("ABC", "A B C")]}
+    local = {"id": "fixture-local", "language": "en", "entries": [entry("A B C", "local letters")]}
+    normaliser = Normaliser(local, upstream=upstream)
+    text = "The ABC tool."
+    spoken = normaliser.say(text, "p1")
+    assert spoken == "The local letters tool."
+    aliases = normaliser.aliases(text, "p1")
+    assert aliases == [("local letters", "A B C"), ("A B C", "ABC")]
+    assert recorded_aliases(normaliser.record(), "p1") == aliases
+    assert recorded_aliases(normaliser.record(), "p2") == []
+    for heard in ("The ABC tool.", "the local letters tool", "The A B C tool"):
+        assert qa.chunk_wer(text, spoken, heard, aliases) == 0.0

@@ -15,6 +15,7 @@ import json
 from pathlib import Path
 
 from . import audio, qa, sim, verify
+from .normalise import recorded_aliases
 
 METRICS = ("loudness", "overruns", "wer", "sim")
 
@@ -72,7 +73,9 @@ def scored(run_dir, manifest, metrics, cfg, reference_voice, scorer):
                 a = round(chunk["out_start_s"] * delivered.rate)
                 b = round(chunk["out_end_s"] * delivered.rate)
                 heard = whisper.read(audio.Pcm(delivered.rate, delivered.samples[a:b]))
-                rows.append({"chunk": chunk["id"], "wer": qa.wer(chunk["spoken"], heard)})
+                aliases = recorded_aliases(manifest.get("pronunciation") or {}, chunk["segment"])
+                wer = qa.chunk_wer(chunk["written"], chunk["spoken"], heard, aliases)
+                rows.append({"chunk": chunk["id"], "wer": wer})
             gate = manifest["job"]["gates"]["maxChunkWer"]
             out["metrics"]["wer"] = {
                 "status": "measured",

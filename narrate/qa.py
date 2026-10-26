@@ -119,10 +119,29 @@ def registered(digest, models=None):
     return next((k for k, v in entries.items() if isinstance(v, dict) and v.get("sha256") == digest), None)
 
 
-def wer(reference, hypothesis):
+def unsay(tokens, aliases):
+    """tokens with each alias's spoken words put back as its written words, alias by alias in the given order."""
+    for spoken, written in aliases:
+        said, wrote = words(spoken), words(written)
+        if not said or said == wrote:
+            continue
+        out, i = [], 0
+        while i < len(tokens):
+            if tokens[i : i + len(said)] == said:
+                out += wrote
+                i += len(said)
+            else:
+                out.append(tokens[i])
+                i += 1
+        tokens = out
+    return tokens
+
+
+def wer(reference, hypothesis, aliases=()):
     """Word error rate of hypothesis against reference: (substitutions + deletions + insertions) / len(reference).
-    An empty reference scores 0.0 against an empty hypothesis and 1.0 otherwise."""
-    ref, hyp = words(reference), words(hypothesis)
+    An empty reference scores 0.0 against an empty hypothesis and 1.0 otherwise. aliases, (spoken, written) pairs
+    from the pronunciation tables, map the hypothesis back to written words before it is scored."""
+    ref, hyp = words(reference), unsay(words(hypothesis), aliases)
     if not ref:
         return 0.0 if not hyp else 1.0
     previous = list(range(len(hyp) + 1))
@@ -132,6 +151,13 @@ def wer(reference, hypothesis):
             current[j] = min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + (r != h))
         previous = current
     return round(previous[-1] / len(ref), 4)
+
+
+def chunk_wer(written, spoken, heard, aliases=()):
+    """A chunk's WER: the better of heard against the written text (spoken table forms in heard mapped back
+    through aliases) and heard against the spoken projection. A transcriber writes "MCP" or "M C P" for the
+    same correct reading; neither may fail the gate."""
+    return min(wer(written, heard, aliases), wer(spoken, heard))
 
 
 class Whisper:
