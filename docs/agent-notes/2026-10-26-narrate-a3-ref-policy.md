@@ -107,9 +107,10 @@ Run 1's A3 smoke failed when `audiocpp_cli` exited 1 with `VoxCPM2 AudioVAE enco
   | presenter voice | `f84b5a02…85fa2` | `3386e0bc…7014` |
   | read voice | `ca36f179…cf4d` | `7fdab163…4e9b` |
 
-  The staged bench voices registry has sha256 `eb89ec45…9227`. The private store's `voices.json` records each
-  cut (`refCuts.max14s`) with its source sha256, times, word range and record. `MANIFEST.sha256` covers the new
-  files.
+  The staged bench voices registry has sha256 `eb89ec45…9227`; it is the file `host_run` reads, and it names each
+  cut as `voices.<id>.cuts.max14s`. The private store's own voice registry is a different schema: it records each
+  cut as `refCuts.max14s`, with its source sha256, times, word range and record. `host_run` never reads that file.
+  `MANIFEST.sha256` covers the new files.
 - **Dry check.** The tracked job, loaded against the staged registry, sends:
   - A3 to the cut, with fits true for both voices;
   - A1 and A2 to the full clips.
@@ -138,9 +139,67 @@ voice work area, outside git: `voices-stage-20261026/` under the private host-wi
   A3 match the plan's preregistered conditioning (prompt audio + transcript). The reference length is a deviation
   made under J83(a). Root decides whether that needs a plan addendum or a `text-v2` preregistration.
 - **Unequal reference lengths.** A3 now clones from about 12 s and A1/A2 from about 30–35 s. SIM across arms is
-  therefore not like for like. A matched control would run A1/A2 with the same cut; it needs a decision.
+  therefore not like for like. The fix round makes the scorer say so (below). A matched control would run A1/A2
+  with the same cut; it needs a decision.
 - **Not yet observed.**
   - Whether `ultimate` passes its smoke on the GPU host.
   - VoxCPM2's VRAM with a prompt.
   - Whether audio.cpp reads the extensible 24-bit WAV cut. It reads the same format in the full clip, which got
     as far as the encoder in run 1.
+
+## Fix round (2026-10-26, review of PR #47)
+
+The review found no blockers, 2 majors and 7 minors. All are fixed on the same branch, with new signed commits.
+
+- **Major 1: the prompt transcript was glued to each chunk's text.**
+  - At the pin, `generator.cpp` builds `prompt_text + normalized_target_text` with no separator. The request
+    reader and `session.cpp` pass `reference_text` through untrimmed.
+  - The presenter cut ends on a bare word (end boundary `word`). Under `ultimate`, every chunk's model text would
+    have run that word into the chunk's first word.
+  - Fix: a `prompt_audio` variant's `reference_text` now ends with one space. Each pass also writes
+    `model-text.json` beside `requests.json`, holding the text that reaches the model per request. That text is
+    the prompt plus the chunk text with whitespace runs collapsed, as the pin's `normalize_wrapper_text` does,
+    before any runtime text chunking.
+  - A test asserts the separator, using a transcript that ends on a bare word.
+- **Major 2: the scorer compared unequal conditioning as like for like.**
+  - The run receipt's `reference` is now `{label, wav_sha256, text_sha256, voice_clip_sha256}`.
+  - `score.py` records each arm's conditioning. `--reference` is declared as the one fixed SIM reference, the full
+    clip, and its sha256 is recorded.
+  - `scored.json` `conditioning` and the `scored.md` table flag three cases:
+    - arms that cloned from different references;
+    - an arm with no recorded reference;
+    - a SIM reference that is not the clip an arm's conditioning came from.
+  - Still open: SIM itself stays `not_measured` until `narrate/sim.py` (PR #41) lands, so J83(a) is not met by
+    this PR alone. The matched A1/A2-on-cut control is root's decision.
+- **Minor 3: resample rounding was not tested at a real rate.** New tests use 44.1 kHz: 656208 frames fits
+  (238080), and 656209 is refused (240640). They cover both `host_run` and `ref_cut`. A ceiling-to-floor mutant now
+  fails in each file.
+- **Minor 4: speech whisper heard inside a cut but missing from the transcript.**
+  - `cut` now also requires `heard_ratio` ≥ 0.85, the matched share of whisper's words inside the cut.
+  - Re-running `cut` on the private inputs with the new rule chose the same cuts, with byte-identical outputs:
+    - presenter: heard_ratio 0.957;
+    - read: 1.0.
+  - The staged set is unchanged.
+- **Minor 5: non-atomic cut writes.** The WAV and transcript go to temporary names, are checked, then renamed. The
+  record is written last. A refused run replaces no output.
+- **Minor 6: a vacuous assertion.** The refused run now uses a fresh directory and asserts that it stays empty. A
+  new test makes the read-back fail after writing and asserts that the earlier outputs are byte-identical.
+- **Minor 7: preflight wrote the window's cache.** Preflight now uses its own `preflight-verified.json`, so the
+  window's verify hashes every input itself.
+- **Minor 8: bench was not linted in CI.**
+  - `narrate/ruff.toml` no longer excludes `bench`. `host_run.py` is held to `py39`, since the GPU host's Python
+    is 3.9 or later.
+  - `fetch.py`'s pre-existing lint errors are fixed, and the file is ruff-formatted.
+  - `just narrate-lint`, which CI's narrate job runs, now also runs shellcheck on `run-bench.sh`. shellcheck is
+    added to the condense dev shell.
+- **Minor 9: the whisper model and scope were trusted to the caller.**
+  - `words` refuses a model whose sha256 is not program/models.json's `ggerganov-whisper-cpp-ggml-small.en`.
+  - It also refuses to start without a cgroup v2 memory limit of at most 6 GiB, with swap off, on its own cgroup or
+    an ancestor. The receipt line on `refCuts` is corrected above.
+- **Gates.** All ran inside the 6G scope, after a memory PSI check (avg10 0.01–0.51):
+  - `test_narrate_bench_host`: 48 pass;
+  - `test_narrate_bench_fetch` + `test_public_tree` + `test_bazel_graph_s3`: 75 pass, 2 skipped;
+  - `just narrate-lint narrate-test` in the condense shell: lint clean, 163 pass;
+  - shellcheck clean.
+- **Pack.** `host_run.py` and `run-bench.sh` changed again, and `host-job.json` did not. Recompute the
+  `NARRATE_BENCH_EXPECT_*` values from the landed PR.
