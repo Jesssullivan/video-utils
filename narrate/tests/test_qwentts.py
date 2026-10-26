@@ -1,10 +1,15 @@
-"""The QwenTtsCpp request mapping against a loopback fake of qwentts.cpp's tts-server (pinned 5916bf7): the speech
-route takes no ref_audio, a voice is registered by name from the reference WAV and its transcript once per session
-under a nonce name and deleted when the session ends, the registry is lost when the server restarts, an unknown
-voice is refused with 400, and `speed` is ignored."""
+"""The QwenTtsCpp request mapping against a loopback fake of qwentts.cpp's tts-server (pinned 5916bf7c,
+tools/tts-server.cpp and src/tts-server.h): the speech route takes no ref_audio, a voice is registered by name from
+the reference WAV and its transcript once per session under a nonce name and deleted when the session ends, the
+registry is lost when the server restarts, an unknown voice is refused with 400, and `speed` is ignored. The fake
+checks what the pinned server checks: a non-empty name and either `wav_b64` (a PCM16, PCM24 or float32 RIFF WAVE)
+or both `spk_b64` and `rvq_b64`; a non-empty `input`; an integer `seed`; `response_format` pcm or wav; and it
+answers a wav request with a 24 kHz mono 16-bit RIFF file and a failed synthesis with 502."""
 
 import base64
+import binascii
 import json
+import struct
 import threading
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -16,7 +21,24 @@ from narrate.config import ENGINE, Config
 from narrate.engine import EngineError
 
 VOICE = {"id": "Voice-Fixture-Sine"}
-REF = {"audio": b"RIFF\x24\x00\x00\x00WAVEfixture", "text": "Synthetic sine fixture."}
+REF = {"audio": engine.sine("Synthetic sine fixture.", 3, 1.0, 16000), "text": "Synthetic sine fixture."}
+
+
+def decodable_wav(data):
+    """What the pinned read_wav_buf accepts: RIFF WAVE with a fmt chunk of PCM16, PCM24 or float32, then data."""
+    if len(data) < 12 or data[:4] != b"RIFF" or data[8:12] != b"WAVE":
+        return False
+    pos, fmt = 12, None
+    while pos + 8 <= len(data):
+        chunk, size = data[pos : pos + 4], struct.unpack("<I", data[pos + 4 : pos + 8])[0]
+        pos += 8
+        if chunk == b"fmt " and size >= 16:
+            tag, channels, _, _, _, bits = struct.unpack("<HHIIHH", data[pos : pos + 16])
+            fmt = (tag, bits) if channels > 0 else None
+        elif chunk == b"data":
+            return fmt in ((1, 16), (1, 24), (3, 32))
+        pos += size
+    return False
 
 
 class QwenTtsServer:
@@ -62,10 +84,21 @@ class QwenTtsServer:
                 body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
                 outer.requests.append({"method": "POST", "path": self.path, "body": body})
                 if self.path == "/v1/audio/voices":
-                    if outer.mode == "refuse_register" or not body.get("wav_b64"):
+                    name = body.get("name")
+                    if not isinstance(name, str) or not name:
+                        return self.error(400, "'name' must be a non-empty string")
+                    has_wav, has_spk, has_rvq = (bool(body.get(k)) for k in ("wav_b64", "spk_b64", "rvq_b64"))
+                    if has_spk != has_rvq or has_wav == (has_spk and has_rvq):
+                        return self.error(400, "provide either 'wav_b64' or both 'spk_b64' and 'rvq_b64'")
+                    try:
+                        wav = base64.b64decode(body["wav_b64"], validate=True)
+                    except (binascii.Error, ValueError):
+                        return self.error(400, "invalid base64 payload")
+                    if outer.mode == "refuse_register" or not decodable_wav(wav):
                         return self.error(400, "cannot decode the WAV payload")
-                    name = body["name"].lower()
-                    outer.voices[name] = {"wav": base64.b64decode(body["wav_b64"]), "ref_text": body["ref_text"]}
+                    name = name.lower()
+                    ref_text = body.get("ref_text") if isinstance(body.get("ref_text"), str) else ""
+                    outer.voices[name] = {"wav": wav, "ref_text": ref_text}
                     if outer.mode == "garbled_register":
                         return self.reply(200, b"[not json", "application/json")
                     return self.reply(
@@ -73,12 +106,23 @@ class QwenTtsServer:
                     )
                 if self.path != "/v1/audio/speech":
                     return self.error(404, "no route")
-                voice = body.get("voice", "").lower()
+                if not isinstance(body.get("input"), str) or not body["input"]:
+                    return self.error(400, "'input' must be a non-empty string")
+                if "seed" in body and (isinstance(body["seed"], bool) or not isinstance(body["seed"], int)):
+                    return self.error(400, "'seed' is out of domain")
+                if body.get("response_format", "pcm") not in ("pcm", "wav"):
+                    return self.error(400, "response_format must be 'pcm' or 'wav'")
+                voice = body.get("voice", "").lower() if isinstance(body.get("voice"), str) else ""
                 if outer.mode == "forget_on_speech":
                     outer.voices.clear()
                 if voice and voice not in outer.voices:
                     return self.error(400, f"unknown voice '{voice}'")
-                self.reply(200, engine.sine(body["input"], body.get("seed", 0), 1.0, 24000), "audio/wav")
+                if outer.mode == "synthesis_fails":
+                    return self.error(502, "generation failed")
+                take = engine.sine(body["input"], body.get("seed", 0), 1.0, 24000)
+                if body.get("response_format", "pcm") == "pcm":
+                    return self.reply(200, take[44:], "audio/pcm")
+                self.reply(200, take, "audio/wav")
 
         self.httpd = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
@@ -230,6 +274,30 @@ def test_omit_registers_nothing_and_names_no_voice(qwentts):
     assert qwentts.calls() == [("POST", "/v1/audio/speech")]
     assert "voice" not in qwentts.requests[0]["body"]
     assert facts["ref_audio_used"] is False and facts["conditioning"] == "none"
+
+
+def test_a_failed_synthesis_is_an_http_error_and_is_not_asked_again(qwentts):
+    """The pinned server maps a generation failure (status -3 and below) to 502; only a 400 after an earlier
+    registration means the server forgot the voice."""
+    eng = qwentts_engine(qwentts.url)
+    with engine.session(eng, ENGINE) as sess:
+        engine.synthesize(eng, "One.", VOICE, REF, 1, 1.0, ENGINE, sess)
+        qwentts.mode = "synthesis_fails"
+        with pytest.raises(EngineError) as caught:
+            engine.synthesize(eng, "Two.", VOICE, REF, 2, 1.0, ENGINE, sess)
+        qwentts.mode = "ok"
+    assert caught.value.code == "engine_http" and caught.value.status == 502
+    assert [c for c in qwentts.calls() if c == ("POST", "/v1/audio/voices")] == [("POST", "/v1/audio/voices")]
+
+
+def test_a_reference_the_server_cannot_decode_is_refused_before_speech(qwentts):
+    """The pinned server decodes the registration's WAV itself (PCM16, PCM24 or float32); anything else is 400."""
+    with pytest.raises(EngineError) as caught:
+        engine.synthesize(
+            qwentts_engine(qwentts.url), "x", VOICE, {**REF, "audio": b"RIFF\x04\x00\x00\x00WAVE"}, 0, 1.0, ENGINE
+        )
+    assert caught.value.code == "engine_refused" and caught.value.status == 400
+    assert ("POST", "/v1/audio/speech") not in qwentts.calls()
 
 
 def test_a_refused_registration_never_reaches_the_speech_route(qwentts):
