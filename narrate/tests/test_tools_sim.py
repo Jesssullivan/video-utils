@@ -15,6 +15,7 @@ import json
 import math
 import os
 import random
+import shutil
 import socket
 import stat
 import sys
@@ -24,7 +25,7 @@ from pathlib import Path
 import pytest
 from conftest import SLIDE
 
-from narrate import audio, evaluate, qa, registry, render, sim
+from narrate import audio, evaluate, policy, qa, registry, render, sim
 from narrate.__main__ import main
 from narrate.config import Config
 
@@ -189,7 +190,45 @@ def test_sim_is_not_measured_without_its_inputs(workspace, ffmpeg, tmp_path, mon
     assert "could not start" in evaluate.evaluate(final, ("sim",), cfg)["metrics"]["sim"]["reason"]
     cfg = Config(toml)
     cfg.store = tmp_path / "empty-store"
+    empty = evaluate.evaluate(final, ("sim",), cfg)["metrics"]["sim"]
+    assert empty["status"] == "not_measured" and empty["refused"] == "consent_missing"
+    cfg = Config(toml)
+    clipless = tmp_path / "clipless-store"
+    shutil.copytree(cfg.store, clipless)
+    ref = policy.store_index(clipless)[workspace.voices[0]["refClipSha256"]]
+    Path(ref).unlink()
+    cfg.store = clipless
     assert "not in the private store" in evaluate.evaluate(final, ("sim",), cfg)["metrics"]["sim"]["reason"]
+
+
+def test_a_revoked_consent_stops_sim_before_any_worker(workspace, ffmpeg, tmp_path, monkeypatch):
+    toml, final = sim_workspace(workspace, tmp_path, monkeypatch)
+    for consent in workspace.consents:
+        consent["revokedAt"] = "2026-10-26T00:00:00Z"
+    toml = workspace.write(SLIDE)
+    cfg = Config(toml)
+    cfg.sim = {**cfg.sim, "python": str(tmp_path / "no-such-python")}  # a worker start would say "could not start"
+    result = evaluate.evaluate(final, ("sim",), cfg)["metrics"]["sim"]
+    assert result["status"] == "not_measured" and result["refused"] == "consent_revoked"
+
+
+def test_sim_has_no_default_interpreter_and_bounded_threads(workspace, tmp_path):
+    cfg = Config(workspace.write(SLIDE))
+    assert cfg.sim["python"] == ""
+    ok, why = sim.Scorer(cfg).available()
+    assert not ok and "no SIM interpreter" in why
+    for threads in (0, 9, True, "4"):
+        with pytest.raises(ValueError):
+            sim.check_threads(threads)
+
+
+def test_wsim_windows_cover_the_track_and_end_with_it():
+    assert sim.window_starts(4.0) == [0.0]
+    assert sim.window_starts(20.0) == [0.0, 5.0, 10.0]
+    assert sim.window_starts(23.0) == [0.0, 5.0, 10.0, 13.0]
+    silent = audio.Pcm(16000)
+    silent.silence(20.0)
+    assert not sim.wsim_voiced(silent, 0.0)
 
 
 # -- SIM with the registered model --------------------------------------------------------------------------------

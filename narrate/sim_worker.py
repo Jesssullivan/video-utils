@@ -27,6 +27,7 @@ HYPERPARAMS = {
     "lin_neurons": 192,
 }
 MAX_THREADS = 8
+MAX_SECONDS = 60.0  # memory grows with the embedded length; narrate.sim cuts tracks into wSIM windows
 
 
 def read_wav(path, torch, resample):
@@ -37,6 +38,8 @@ def read_wav(path, torch, resample):
         raise ValueError(f"{path}: {8 * width}-bit; the SIM worker reads 16-bit PCM")
     x = torch.frombuffer(bytearray(data), dtype=torch.int16).to(torch.float32) / 32768.0
     x = x.reshape(-1, channels).mean(dim=1)
+    if frames / rate > MAX_SECONDS:
+        raise ValueError(f"{path}: {frames / rate:.1f} s; the SIM worker embeds at most {MAX_SECONDS:.0f} s")
     if rate != RATE:
         x = resample(x, rate, RATE)
     return x, x.numel() / RATE

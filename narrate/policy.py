@@ -105,7 +105,10 @@ def check_engine(job, engine_id, engines):
     return engine
 
 
-def check_voice(job, voice_id, engine, registry, index):
+def check_consent(voice_id, registry, index, job_scope):
+    """The consent half of check_voice: the voice is registered, its consent is registered with stored evidence, not
+    revoked, and grants both the voice's and the job's scope. Anything that uses a voice's reference clip (a render,
+    or a SIM embedding, which is a voiceprint) passes this first. Return (voice, consent) or raise Refused."""
     voice = registry["voices"].get(voice_id)
     if voice is None:
         raise Refused("voice_unknown", f"voice {voice_id!r} is not registered")
@@ -118,11 +121,16 @@ def check_voice(job, voice_id, engine, registry, index):
         raise Refused("consent_missing", f"consent {consent['id']}: no stored evidence has its sha256")
     if consent["revokedAt"] is not None:
         raise Refused("consent_revoked", f"consent {consent['id']} was revoked {consent['revokedAt']}")
-    for scope, whose in ((voice["scope"], "voice"), (job["scope"], "job")):
+    for scope, whose in ((voice["scope"], "voice"), (job_scope, "job")):
         if scope not in consent["scopes"]:
             raise Refused("consent_scope", f"consent {consent['id']} does not grant the {whose} scope {scope}")
-    if voice["scope"] != job["scope"]:
-        raise Refused("consent_scope", f"voice {voice_id} scope {voice['scope']} differs from the job's {job['scope']}")
+    if voice["scope"] != job_scope:
+        raise Refused("consent_scope", f"voice {voice_id} scope {voice['scope']} differs from the job's {job_scope}")
+    return voice, consent
+
+
+def check_voice(job, voice_id, engine, registry, index):
+    voice, consent = check_consent(voice_id, registry, index, job["scope"])
     if engine["id"] not in voice["allowedEngines"]:
         raise Refused("engine_not_allowed", f"engine {engine['id']} is not in voice {voice_id}'s allowedEngines")
     if is_hosted(engine) and not consent["hostedAllowed"]:

@@ -11,7 +11,7 @@
     "completeness": "inference",
     "behaviour_under_bazel": "measured by the single full run (bazel_full-full-run.json)"
   },
-  "module_count_at_supplement": 112,
+  "module_count_at_supplement": 113,
   "added_modules": [
     "test_auth_token_s3",
     "test_condense_public_surface",

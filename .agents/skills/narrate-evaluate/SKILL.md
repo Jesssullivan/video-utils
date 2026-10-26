@@ -11,7 +11,9 @@ description: Score a narration run.
 
 ## Use and controls
 
-Fallback recipe: `just narrate-eval RUN narrate.toml`. Knobs: `metrics` (loudness, overruns, wer, sim), `reference_voice` (a decoy or cross-voice reference). SIM needs `just narrate-sim-model` once and an interpreter with torch and speechbrain: run inside `nix develop .#ml`, or set `[sim] python` / `NARRATE_SIM_PYTHON` to that interpreter. The SIM worker uses at most 8 CPU threads (`[sim] threads`, default 4).
+Fallback recipe: `just narrate-eval RUN narrate.toml`. Knobs: `metrics` (loudness, overruns, wer, sim), `reference_voice` (a decoy or cross-voice reference). SIM needs `just narrate-sim-model` once and an interpreter with torch and speechbrain named in `[sim] python` or `NARRATE_SIM_PYTHON` (for example the `python3` of `nix develop .#ml`); with neither set, SIM is not_measured and no torch starts. The SIM worker uses 1 to 8 CPU threads (`[sim] threads`, default 4).
+
+**Host:** SIM is torch inference on the CPU. On the shared CPU host, run one scorer at a time inside `systemd-run --user --scope -p MemoryMax=6G -p MemorySwapMax=0 nice -n 19 ionice -c3` after checking `/proc/pressure/memory`; the Mac build host also works. No TTS model runs on the shared CPU host, and the tests use a fake worker. Every reference voice (the speaking voices, or reference_voice) passes the consent check first: a revoked or out-of-scope consent gives not_measured with `refused`.
 
 ## Speech, not guitar
 
@@ -20,7 +22,7 @@ Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not app
 ## Limits
 
 - SIM is the cosine of ECAPA embeddings trained on VoxCeleb; the microphone and room move it as well as the voice, so a cross-channel reference scores lower. Its gate is uncalibrated until the bench sets it against a decoy.
-- SIM needs the registered model (just narrate-sim-model) and an interpreter with torch and speechbrain (nix develop .#ml, or [sim] python / NARRATE_SIM_PYTHON); otherwise it is not_measured.
+- SIM needs the registered model (just narrate-sim-model) and an interpreter with torch and speechbrain named explicitly ([sim] python or NARRATE_SIM_PYTHON; there is no default); otherwise it is not_measured. On the shared CPU host it runs one scorer at a time inside a 6G memory scope; no TTS model runs there.
 - WER is a regression gate, not a ranking; rare words are adjudicated by a person. UTMOS is not scored yet.
 - Metrics never stand in for the operator's blind listening receipt.
 

@@ -18,6 +18,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from unittest.mock import patch
 
@@ -31,14 +32,14 @@ from test_s4a_tool_admission import digest  # noqa: E402
 ADMITTED_57_SHA256 = '0464f644801f8106e08a656cd15b11908b322644c1f0210d09d44a5492c4b705'
 ADMITTED_57_ASCII_SHA256 = 'fdb7c96127737e5fddab23e6313982c04dd50d51cdab0b908db448fa5546d1be'
 # tools[:61] as admitted here, same two serializers (recorded for the next freeze).
-ADMITTED_61_SHA256 = '401f5abfe1c4546bc7c8cf3d29c3e69273fa70df7842c0bf39bf46ca8029937a'
-ADMITTED_61_ASCII_SHA256 = '583498249caf04f4e1c3703077f905d18b6f2f63aee3f7659c0d019e7ba2ddf6'
+ADMITTED_61_SHA256 = 'bb32350b9af9a101b6164483d7605981e7ded050cd9e85e6ed6ae30f1e58c133'
+ADMITTED_61_ASCII_SHA256 = 'eced9ca1ba4f0a53325122f3ad2d1ce061ec3ff3a2e2982fbf722c1d60b13ce6'
 # name -> (sha256 of the admitted SKILL.md, required, (timeout max, default), evidence_kind, read only)
 NEW = {
     'narrate_render': ('42e68b04bcd76cdf1a4e4df4c542147683cd4fe38c5bd7616ffc8805e0b38cdc', {'config'}, (900, 600), 'synthetic_narration_rendered_unreviewed', False),
     'narrate_voices': ('4a7381c859b13fadbc2c95b55e7ba663f946f9778a066343a98ead0b2151eeeb', {'config'}, (300, 60), 'consent_registry_listing', True),
     'narrate_engines': ('73618e793b85768478f8d7604670f060ca703c79c7364cd186df23b2ee040c7d', {'config'}, (120, 60), 'engine_registry_listing_with_tcp_reachability', True),
-    'narrate_evaluate': ('625ecad9904ea05118ba2707d35d4e030c7c65fd3dceab2158d4b7cdd539e238', {'run_dir'}, (900, 600), 'measured_narration_scores_uncalibrated', True),
+    'narrate_evaluate': ('fb4b3eb511e2246dc23f2849074e27ae2a57763da7a837be8a930513fe7013dc', {'run_dir'}, (900, 600), 'measured_narration_scores_uncalibrated', True),
 }
 SPEECH_NOTE = (' Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration '
                'manifest says synthetic true and timeline mapping narration_v1, so no guitar tool accepts it '
@@ -52,6 +53,22 @@ PRIVATE_ENV = ('NARRATE_STORE', 'NARRATE_LEXICAL_DIR', 'NARRATE_WHISPER_MODEL', 
 
 def sha(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def process_alive(pid):
+    """True while pid exists and is not a zombie (a killed orphan may wait briefly for its reaper)."""
+    if pathlib.Path('/proc/self/stat').is_file():
+        try:
+            return pathlib.Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()[0] not in ('Z', 'X')
+        except FileNotFoundError:
+            return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
 
 
 def workspace(base):
@@ -272,6 +289,27 @@ class S5ToolAdmissionTests(unittest.TestCase):
                 tool_api.execute('narrate_evaluate', {'run_dir': str(run_dir), 'metrics': ['loudness']})
             self.assertEqual(caught.exception.receipt['reason'], 'run_unverified')
         self.assertEqual(sorted(p.name for p in (self.dir / 'ws' / 'runs').iterdir()), [run_dir.name])
+
+    # ----- deadline -------------------------------------------------------------
+    def test_deadline_stops_the_whole_worker_process_group(self):
+        """A worker past its deadline is killed with its process group: a SIM worker or FFmpeg child it started
+        must not outlive the tool call. The fake worker starts a sleeping child, records its pid and sleeps."""
+        pid_file = self.dir / 'child.pid'
+        script = ('import subprocess, sys, time\n'
+                  'child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"])\n'
+                  f'open({str(pid_file)!r}, "w").write(str(child.pid))\n'
+                  'time.sleep(120)\n')
+        with patch.object(tool_api, 'narrate_command', return_value=[sys.executable, '-c', script]):
+            started = time.monotonic()
+            with self.assertRaises(tool_api.ToolError) as caught:
+                tool_api.run_narrate_tool('narrate_voices', {}, 2)
+        self.assertIn('deadline exceeded', str(caught.exception))
+        self.assertLess(time.monotonic() - started, 30)
+        child = int(pid_file.read_text())
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline and process_alive(child):
+            time.sleep(0.05)
+        self.assertFalse(process_alive(child), 'the worker child outlived the deadline')
 
     # ----- MCP readback ---------------------------------------------------------
     def test_real_mcp_lists_61_tools_and_reads_the_new_prompts(self):

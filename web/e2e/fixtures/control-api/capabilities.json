@@ -3249,7 +3249,7 @@
       },
       "limitations": [
         "SIM is the cosine of ECAPA embeddings trained on VoxCeleb; the microphone and room move it as well as the voice, so a cross-channel reference scores lower. Its gate is uncalibrated until the bench sets it against a decoy.",
-        "SIM needs the registered model (just narrate-sim-model) and an interpreter with torch and speechbrain (nix develop .#ml, or [sim] python / NARRATE_SIM_PYTHON); otherwise it is not_measured.",
+        "SIM needs the registered model (just narrate-sim-model) and an interpreter with torch and speechbrain named explicitly ([sim] python or NARRATE_SIM_PYTHON; there is no default); otherwise it is not_measured. On the shared CPU host it runs one scorer at a time inside a 6G memory scope; no TTS model runs there.",
         "WER is a regression gate, not a ranking; rare words are adjudicated by a person. UTMOS is not scored yet.",
         "Metrics never stand in for the operator's blind listening receipt."
       ],

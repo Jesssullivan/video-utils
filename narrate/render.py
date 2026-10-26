@@ -32,7 +32,10 @@ EPS = 0.001
 
 
 # CLI / MCP job overrides: name -> (job path, low, high). Booleans only tighten: confidential sets true, no_hosted
-# sets allowHosted false. Every override applied is recorded in the manifest's job.overrides.
+# sets allowHosted false. The gates only tighten too (TIGHTEN): an override may lower maxChunkWer or fitMaxStretch
+# and raise minSim, never the reverse, so a caller cannot pass a run the job would flag. loudness_lufs is the
+# delivery target, not a gate; the loudness pass rule applies around whatever target is recorded. Every override
+# applied is recorded in the manifest's job.overrides.
 OVERRIDES = {
     "voice": (("voice",), None, None),
     "input_kind": (("input",), None, None),
@@ -45,6 +48,9 @@ OVERRIDES = {
     "loudness_lufs": (("post", "loudnessLufs"), -30.0, -10.0),
     "fit_max_stretch": (("post", "fitMaxStretch"), 0.0, 0.08),
 }
+
+
+TIGHTEN = {"max_chunk_wer": "lower", "fit_max_stretch": "lower", "min_sim": "higher"}
 
 
 def overrides_from(values):
@@ -66,12 +72,18 @@ def overrides_from(values):
 
 
 def apply_overrides(job, overrides):
+    """The job with overrides applied. A gate override that would loosen the job's own gate raises RenderError."""
     job = json.loads(json.dumps(job))
     for name, value in overrides.items():
         path = OVERRIDES[name][0]
         node = job
         for key in path[:-1]:
             node = node[key]
+        direction, current = TIGHTEN.get(name), node.get(path[-1])
+        if direction and current is not None and (value > current if direction == "lower" else value < current):
+            raise RenderError(
+                "override_invalid", f"{name} = {value!r} loosens the job's {path[-1]} {current!r}; gates only tighten"
+            )
         node[path[-1]] = False if name == "no_hosted" else value
     return job
 
