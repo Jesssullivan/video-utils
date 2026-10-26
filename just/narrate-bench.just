@@ -21,9 +21,11 @@ narrate-bench-host-pack dest:
     install -m 0755 narrate/bench/host_run.py {{quote(dest)}}/job/host_run.py
     install -m 0644 narrate/bench/host-job.json narrate/bench/chunks-v1.json {{quote(dest)}}/job/
 
-# SRC is host:dir or a local runs/<holder> directory; DEST must be outside every git work tree. Scoring is off the GPU: whisper WER with numeral
-# normalisation, catastrophic chunks, RTF, VRAM, and SIM when lane E4's scorer is on main (else not_measured).
-# Run inside `nix develop .#condense` for whisper-cli. ARGS: --reference CLIP --sim-model CKPT --decoys --arm A.
+# SRC is host:dir, a local runs/<holder> directory, or - to score DEST as it is (already pulled); DEST must be
+# outside every git work tree. Scoring is off the GPU: whisper WER with numeral normalisation, catastrophic chunks,
+# RTF, VRAM, and SIM (median, minimum, wSIM and the decoy 1/2 checks) with --reference CLIP --sim-model CKPT
+# --sim-python PY. Run inside `nix develop .#condense` for whisper-cli; on the shared CPU host, inside a 6G memory
+# scope, one scorer at a time. ARGS: --reference --sim-model --sim-python --sim-threads --decoys --arm A.
 # Pull a window's outputs back into DEST and score them: DEST/scored.json and DEST/scored.md.
 narrate-bench-score src dest *ARGS:
-    python3 narrate/bench/score.py {{quote(dest)}} --pull {{quote(src)}} {{ARGS}}
+    python3 narrate/bench/score.py {{quote(dest)}} {{ if src == "-" { "" } else { "--pull " + quote(src) } }} {{ARGS}}

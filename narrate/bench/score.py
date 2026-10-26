@@ -6,9 +6,19 @@ path, the registered small.en model, numbers compared as digits on both sides), 
 the catastrophic flags of the bench plan (chunk WER over 30%, silence over 2 s, longer than twice the expected
 duration at 150 words per minute, or a chunk missing). Per pass: whole-text WER over the joined read-backs, the
 worst chunk WER, catastrophic count, RTF and load time from the receipt. Per arm: peak VRAM above the idle
-baseline. SIM uses narrate/sim.py (lane E4) when it is on main and a registered model and --reference are given;
-otherwise it is not_measured with the reason, never a number. With --decoys, decoys 4 and 5 are rebuilt from one
-chunk of --decoy-arm (half silence, time reversal, shuffled transcript) and must land on their expected side.
+baseline. With --decoys, decoys 4 and 5 are rebuilt from one chunk of --decoy-arm (half silence, time reversal,
+shuffled transcript) and must land on their expected side.
+
+SIM (narrate/sim.py, the registered ECAPA model) needs --reference (the clip the window conditioned on; its sha256
+must equal the window's inputs-verified.json voice.wav when that file is present), --sim-model and an interpreter
+with torch and speechbrain (--sim-python or NARRATE_SIM_PYTHON; on the shared CPU host, inside a 6G memory scope).
+Per pass: each chunk against the reference, the median and minimum, and wSIM, the minimum over 10 s windows (5 s
+hop) of the pass's chunks joined in order, skipping windows with too little voice. Two scorer checks of the bench
+plan run in the same scoring pass: decoy 1, the reference's second half against its first half (expected at least
+SIM_SELF_MIN), and decoy 2, the passes the window rendered with a preset voice and no reference (a different
+speaker: expected median below SIM_BAR and at least SIM_DECOY_MARGIN below decoy 1). When both are valid, each
+pass is read against the preregistered bars: median at least SIM_BAR and SIM_DECOY_MARGIN above decoy 2, wSIM
+minimum at least WSIM_RATIO times the median. Without any input SIM is not_measured with the reason.
 
 The destination must lie outside every git work tree (voice renders never enter git); --pull SRC copies a window's
 run directory there first. A receipt whose chunks_sha256 is not the committed chunk list's is not scored, and a
@@ -35,6 +45,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from narrate import audio, qa  # noqa: E402
+from narrate import sim as simlib  # noqa: E402
 from narrate.config import SIM, WHISPER, WHISPER_ENVS  # noqa: E402
 
 CHUNKS = Path(__file__).resolve().parent / "chunks-v1.json"
@@ -43,14 +54,26 @@ MAX_SILENCE_S = 2.0
 MAX_DURATION_RATIO = 2.0
 FRAME_S = 0.05
 SILENCE_DBFS = -50.0
+# SIM bars preregistered in the bench plan ("Bars": median chunk SIM at least 0.45 and 0.15 above the preset-voice
+# decoy; wSIM minimum at least 0.8 times the median). SIM_SELF_MIN reads decoy 1's "well above the SIM bar" as the
+# bar plus the decoy margin. Where measurements sit against them (docs/agent-notes/2026-10-26-narrate-sim.md): the
+# synthetic formant voices of narrate/tests/test_tools_sim.py score 0.95 for the same tract and 0.60 and 0.40 for
+# its two decoys, so the absolute bar alone does not reject a near voice; the real-voice controls (self-match,
+# preset-voice decoy, the same speaker on another microphone) are private and recorded on the tracker.
+SIM_BAR, SIM_DECOY_MARGIN, WSIM_RATIO = 0.45, 0.15, 0.8
+SIM_SELF_MIN = SIM_BAR + SIM_DECOY_MARGIN
 
 
-def config(whisper_model=None, sim_model=None):
+def config(whisper_model=None, sim_model=None, sim_python=None, sim_threads=None):
     model = whisper_model or next((os.environ[e] for e in WHISPER_ENVS if os.environ.get(e)), WHISPER["model"])
     model = Path(model) if Path(model).is_absolute() else ROOT / model
     sim = dict(SIM)
     if sim_model:
         sim["model"] = str(sim_model)
+    if sim_python:
+        sim["python"] = str(sim_python)
+    if sim_threads is not None:
+        sim["threads"] = sim_threads
     return SimpleNamespace(whisper=dict(WHISPER), whisper_model=model, sim=sim, base=Path.cwd())
 
 
@@ -99,45 +122,99 @@ class Reader:
 
 
 class Sim:
-    """narrate/sim.py's scorer when it is on main, else a reason."""
+    """narrate/sim.py's scorer against one reference clip, or the reason SIM is not measured."""
 
-    def __init__(self, cfg, reference):
-        self.scorer, self.reference = None, reference
-        try:
-            from narrate import sim as sim_module
-        except ImportError:
-            self.why = "narrate/sim.py (lane E4 SIM scorer) is not on main"
-            return
+    def __init__(self, cfg, reference, work, expected_sha256=None):
+        self.scorer, self.reference, self.why, self.binding = None, None, None, None
         if reference is None:
             self.why = "no --reference clip given"
             return
-        scorer = sim_module.Scorer(cfg)
+        if not Path(reference).is_file():
+            self.why = f"the --reference clip {Path(reference).name} is absent"
+            return
+        digest = sha256_file(reference)
+        if expected_sha256 is not None and digest != expected_sha256:
+            self.why = f"--reference sha256 {digest[:12]} is not the window's voice.wav {expected_sha256[:12]}"
+            return
+        self.binding = {
+            "ref_clip_sha256": digest,
+            "window_voice_wav": "matched" if expected_sha256 else "no inputs-verified.json voice.wav to compare",
+        }
+        try:
+            scorer = simlib.Scorer(cfg)
+        except ValueError as error:
+            self.why = str(error)
+            return
         ok, why = scorer.available()
-        self.why = why
-        if ok:
-            self.scorer = scorer
+        if not ok:
+            self.why = why
+            return
+        work = Path(work)
+        self.reference = simlib.to16k(reference, work / "reference.16k.wav")
+        ref = audio.read(self.reference)
+        half = len(ref.samples) // 2
+        self.halves = (
+            audio.Pcm(ref.rate, ref.samples[:half]).write(work / "reference.first.wav"),
+            audio.Pcm(ref.rate, ref.samples[half:]).write(work / "reference.second.wav"),
+        )
+        self.scorer = scorer
 
     def score(self, pairs):
-        """{id: value} or None; pairs [(id, wav a)] scored against the reference."""
+        """{id: value} or None; pairs [(id, wav)] each scored against the reference."""
         if self.scorer is None or not pairs:
             return None
         try:
-            return self.scorer.score([(i, a, self.reference) for i, a in pairs])
+            rows = self.scorer.score([(i, a, self.reference) for i, a in pairs])
         except (RuntimeError, OSError, ValueError) as error:
             self.why = f"SIM scorer failed: {error}"
             self.scorer = None
             return None
+        return {i: rows[i]["sim"] for i, _ in pairs}
+
+    def self_match(self):
+        """Decoy 1: the reference's second half against its first half, or None."""
+        if self.scorer is None:
+            return None
+        try:
+            rows = self.scorer.score([("self", self.halves[1], self.halves[0])])
+        except (RuntimeError, OSError, ValueError) as error:
+            self.why = f"SIM scorer failed: {error}"
+            self.scorer = None
+            return None
+        return rows["self"]["sim"]
 
     def status(self):
-        return qa.not_measured(self.why)
+        if self.scorer is None:
+            return qa.not_measured(self.why)
+        return {"status": "measured", **self.scorer.identity(), "reference": self.binding}
+
+
+def pass_windows(pieces, work, name):
+    """wSIM windows over a pass's chunk takes joined in order: [(id, wav)], and the count skipped as silent."""
+    pieces = [p for p in pieces if p.seconds > 0]
+    if not pieces or len({p.rate for p in pieces}) != 1:
+        return [], 0
+    track = audio.Pcm(pieces[0].rate)
+    for piece in pieces:
+        track.extend(piece)
+    out, silent = [], 0
+    for k, start in enumerate(simlib.window_starts(track.seconds)):
+        if not simlib.wsim_voiced(track, start):
+            silent += 1
+            continue
+        a = round(start * track.rate)
+        b = min(len(track.samples), a + round(simlib.WINDOW_S * track.rate))
+        wid = f"{name}/window-{k}"
+        out.append((wid, audio.Pcm(track.rate, track.samples[a:b]).write(Path(work) / f"{name}-window-{k}.wav")))
+    return out, silent
 
 
 def score_chunk(path, text, expected_s, reader, work):
     pcm = load_pcm(path, work)
-    s16 = Path(work) / f"{Path(path).stem}.s16.wav"
+    s16 = Path(work) / f"{Path(path).parent.name}-{Path(path).stem}.s16.wav"  # pass directory: names stay unique
     pcm.write(s16)
     heard = reader.read(pcm)
-    row = {"audio_s": round(pcm.seconds, 3), "longest_silence_s": longest_silence(pcm), "s16": s16}
+    row = {"audio_s": round(pcm.seconds, 3), "longest_silence_s": longest_silence(pcm), "s16": s16, "pcm": pcm}
     row["wer"] = qa.wer(text, heard) if heard is not None else None
     row["heard"] = heard
     flags = []
@@ -168,9 +245,12 @@ def score_pass(arm_dir, record, chunks_by_id, reader, sim, work):
         rows.append(row)
         texts.append(chunk["text"])
         heard.append(row.pop("heard") or "")
-    sims = sim.score([(r["chunk"], r["s16"]) for r in rows if "s16" in r])
+    tag = f"{arm_dir.name}/{record['name']}"
+    windows, silent = pass_windows([r["pcm"] for r in rows if "pcm" in r], work, tag.replace("/", "-"))
+    sims = sim.score([(r["chunk"], r["s16"]) for r in rows if "s16" in r] + windows)
     for r in rows:
         r.pop("s16", None)
+        r.pop("pcm", None)
         if sims is not None and r["chunk"] in sims:
             r["sim"] = sims[r["chunk"]]
     measured = [r["wer"] for r in rows if r.get("wer") is not None]
@@ -190,8 +270,62 @@ def score_pass(arm_dir, record, chunks_by_id, reader, sim, work):
         "chunks": rows,
     }
     values = [r["sim"] for r in rows if "sim" in r]
-    out["sim"] = {"status": "measured", "median": round(statistics.median(values), 4)} if values else sim.status()
+    if values:
+        wsim = [sims[w] for w, _ in windows]
+        out["sim"] = {
+            "status": "measured",
+            "median": round(statistics.median(values), 4),
+            "min": min(values),
+            "wsim": {
+                "window_s": simlib.WINDOW_S,
+                "hop_s": simlib.HOP_S,
+                "windows": len(wsim),
+                "skipped_silent": silent,
+                "min": min(wsim) if wsim else None,
+            },
+        }
+    else:
+        out["sim"] = sim.status()
+    if record.get("decoy"):
+        out["decoy"] = record["decoy"]
     return out
+
+
+def sim_checks(doc, self_sim):
+    """Decoys 1 and 2 of the bench plan, then each non-decoy pass read against the SIM bars (in place)."""
+    passes = [p for arm in doc["arms"] for p in arm.get("passes", [])]
+    wrong = [p["sim"]["median"] for p in passes if p.get("decoy") and p["sim"].get("status") == "measured"]
+    checks = {
+        "1-reference-self-match": {
+            "observed": self_sim,
+            "expected": f"at least {SIM_SELF_MIN:.2f}",
+            "valid": None if self_sim is None else self_sim >= SIM_SELF_MIN,
+        }
+    }
+    decoy = statistics.median(wrong) if wrong else None
+    checks["2-wrong-speaker"] = {
+        "observed": None if decoy is None else round(decoy, 4),
+        "passes": len(wrong),
+        "expected": f"median below {SIM_BAR:.2f} and at least {SIM_DECOY_MARGIN:.2f} below decoy 1",
+        "valid": None
+        if decoy is None or self_sim is None
+        else decoy < SIM_BAR and decoy <= self_sim - SIM_DECOY_MARGIN,
+    }
+    usable = all(c["valid"] for c in checks.values())
+    for p in passes:
+        s = p["sim"]
+        if p.get("decoy") or s.get("status") != "measured":
+            continue
+        wmin = s["wsim"]["min"]
+        s["bars"] = {
+            "decoy_checks_valid": usable,
+            "median_at_least_bar": s["median"] >= SIM_BAR,
+            "over_decoy": None if decoy is None else round(s["median"] - decoy, 4),
+            "over_decoy_ok": None if decoy is None else s["median"] - decoy >= SIM_DECOY_MARGIN,
+            "wsim_ratio": None if wmin is None or s["median"] <= 0 else round(wmin / s["median"], 4),
+            "wsim_ok": None if wmin is None else wmin >= WSIM_RATIO * s["median"],
+        }
+    return checks
 
 
 def decoys(arm_dir, receipt, chunks, reader, work):
@@ -229,6 +363,17 @@ def decoys(arm_dir, receipt, chunks, reader, work):
     return out
 
 
+def window_voice_sha256(out_dir):
+    """The voice.wav sha256 the window verified (inputs-verified.json, else inputs.json), or None."""
+    for name in ("inputs-verified.json", "inputs.json"):
+        path = Path(out_dir) / name
+        if path.is_file():
+            entry = (json.loads(path.read_text(encoding="utf-8")).get("verified") or {}).get("voice.wav") or {}
+            if entry.get("sha256"):
+                return entry["sha256"]
+    return None
+
+
 def fmt(value, digits=3):
     return "" if value is None else (f"{value:.{digits}f}" if isinstance(value, float) else str(value))
 
@@ -236,26 +381,38 @@ def fmt(value, digits=3):
 def table(doc):
     lines = [
         "| arm | pass | variant | done | audio s | RTF | load s | WER whole | WER max | catastrophic | SIM median |"
-        " peak VRAM above idle GiB | stop |",
-        "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+        " SIM min | wSIM min | peak VRAM above idle GiB | stop |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for arm in doc["arms"]:
         if "error" in arm:
-            lines.append(f"| {arm['arm']} | not scored: {arm['error']} |" + " |" * 11)
+            lines.append(f"| {arm['arm']} | not scored: {arm['error']} |" + " |" * 13)
             continue
         peak = arm.get("peak_above_baseline_bytes")
         peak = f"{peak / 2**30:.2f}" if peak is not None else ""
         stop = (arm.get("stop") or {}).get("rule", "")
         for p in arm["passes"]:
-            sim = p["sim"]
-            sim_text = fmt(sim.get("median"), 3) if sim.get("status") == "measured" else "not_measured"
+            s = p["sim"]
+            if s.get("status") == "measured":
+                sim_text = [fmt(s["median"]), fmt(s["min"]), fmt(s["wsim"]["min"])]
+            else:
+                sim_text = ["not_measured", "", ""]
             lines.append(
                 f"| {arm['arm']} | {p['pass']} | {p['variant'] or ''} | {p['chunks_done']}/{p['chunks_total']} | "
                 f"{fmt(p['audio_s'], 1)} | {fmt(p['rtf'], 3)} | {fmt(p['load_s'], 1)} | {fmt(p['wer_whole'], 3)} | "
-                f"{fmt(p['wer_max_chunk'], 3)} | {p['catastrophic']} | {sim_text} | {peak} | {stop} |"
+                f"{fmt(p['wer_max_chunk'], 3)} | {p['catastrophic']} | {' | '.join(sim_text)} | {peak} | {stop} |"
             )
     lines.append("")
-    lines.append(f"WER: {doc['wer']}. SIM: {doc['sim']}.")
+    s = doc["sim"]
+    lines.append(f"WER: {doc['wer']}.")
+    if s.get("status") == "measured":
+        model = f"{s['model_id']} (sha256 {s['model_sha256'][:12]})"
+        lines.append(f"SIM: {model}, {s['threads']} threads, bars {s['bars']}.")
+    else:
+        lines.append(f"SIM: not_measured: {s.get('reason')}.")
+    for name, check in (s.get("checks") or {}).items():
+        observed = fmt(check["observed"])
+        lines.append(f"SIM decoy {name}: observed {observed}, expected {check['expected']}, valid {check['valid']}")
     for d in doc.get("decoys", []):
         lines.append(f"Decoy {d['decoy']}: expected {d.get('expected')}, valid {d['valid']}")
     return "\n".join(lines) + "\n"
@@ -266,7 +423,9 @@ def main(argv=None):
     parser.add_argument("out_dir", type=Path, help="a window's runs/<holder> directory, outside any git work tree")
     parser.add_argument("--pull", metavar="SRC", help="rsync SRC (host:dir or a directory) into out_dir first")
     parser.add_argument("--whisper-model", type=Path)
-    parser.add_argument("--sim-model", type=Path, help="the registered ECAPA embedding_model.ckpt (lane E4)")
+    parser.add_argument("--sim-model", type=Path, help="the registered ECAPA embedding_model.ckpt")
+    parser.add_argument("--sim-python", type=Path, help="interpreter with torch and speechbrain (NARRATE_SIM_PYTHON)")
+    parser.add_argument("--sim-threads", type=int, help="SIM worker CPU threads, 1 to 8 (default 4)")
     parser.add_argument("--reference", type=Path, help="the voice's reference clip, for SIM (private)")
     parser.add_argument("--arm", action="append", default=[], help="score only these arms")
     parser.add_argument("--decoys", action="store_true", help="rebuild and score decoys 4 and 5")
@@ -284,15 +443,14 @@ def main(argv=None):
         subprocess.run(["rsync", "-a", args.pull.rstrip("/") + "/", str(args.out_dir) + "/"], check=True)
     chunk_doc = json.loads(CHUNKS.read_text(encoding="utf-8"))
     chunks_by_id = {c["id"]: c for c in chunk_doc["chunks"]}
-    cfg = config(args.whisper_model, args.sim_model)
+    cfg = config(args.whisper_model, args.sim_model, args.sim_python, args.sim_threads)
     reader = Reader(cfg)
-    sim = Sim(cfg, args.reference)
     receipts = sorted(args.out_dir.glob("*/receipt.json"))
     doc = {
         "schema": "narrate-bench-scored/1",
         "chunks_sha256": chunk_doc["chunks_sha256"],
         "wer": {"status": "measured", **reader.whisper.identity()} if reader.ok else qa.not_measured(reader.why),
-        "sim": {"status": "available"} if sim.scorer else sim.status(),
+        "sim": None,
         "rules": {
             "max_chunk_wer": MAX_CHUNK_WER,
             "max_silence_s": MAX_SILENCE_S,
@@ -302,6 +460,7 @@ def main(argv=None):
         "arms": [],
     }
     with tempfile.TemporaryDirectory() as work:
+        sim = Sim(cfg, args.reference, work, window_voice_sha256(args.out_dir))
         for path in receipts:
             receipt = json.loads(path.read_text(encoding="utf-8"))
             if args.arm and receipt["arm"] not in args.arm:
@@ -328,6 +487,13 @@ def main(argv=None):
             doc["arms"].append(arm)
             if args.decoys and receipt["arm"] == args.decoy_arm:
                 doc["decoys"] = decoys(arm_dir, receipt, chunk_doc["chunks"], reader, work)
+        self_sim = sim.self_match()
+        doc["sim"] = {
+            **sim.status(),
+            "bars": {"bar": SIM_BAR, "decoy_margin": SIM_DECOY_MARGIN, "wsim_ratio": WSIM_RATIO},
+        }
+        if sim.scorer is not None:
+            doc["sim"]["checks"] = sim_checks(doc, self_sim)
     (args.out_dir / "scored.json").write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8")
     text = table(doc)
     (args.out_dir / "scored.md").write_text(text, encoding="utf-8")

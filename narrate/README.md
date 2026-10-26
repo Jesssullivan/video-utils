@@ -59,11 +59,17 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 - **SIM.** Render does not score takes in v0, so every run carries `sim_not_measured`. `evaluate` scores each
   delivered chunk against the speaking voice's reference clip with the registered speechbrain ECAPA model
   (`speechbrain-spkrec-ecapa-voxceleb-embedding`, Apache-2.0, bound by sha256 in `program/models.json`), plus wSIM,
-  the minimum over 10 s windows with a 5 s hop. It runs on the CPU (`[sim] threads`, at most 8) in an interpreter
-  with torch and speechbrain: `nix develop .#ml`, or `[sim] python` / `NARRATE_SIM_PYTHON`. The model is
-  `[sim] model`, else `NARRATE_SIM_MODEL`, else `models/<id>.bin` from `just narrate-sim-model`. Without them SIM is
-  `not_measured` with the reason. `--reference-voice ID` scores every chunk against another voice's clip, the decoy
-  check. A SIM number is a cosine from a model trained on VoxCeleb: the microphone and room move it too.
+  the minimum over 10 s windows with a 5 s hop that hold voice. It runs on the CPU (`[sim] threads`, 1 to 8) in an
+  interpreter with torch and speechbrain named by `[sim] python` or `NARRATE_SIM_PYTHON` (for example the `python3`
+  of `nix develop .#ml`; there is no default). On the shared CPU host it runs one scorer at a time inside a 6G
+  memory scope; the worker embeds at most 60 s per file. The model is `[sim] model`, else `NARRATE_SIM_MODEL`, else
+  `models/<id>.bin` from `just narrate-sim-model`. Every reference voice passes the consent check first. Without
+  them SIM is `not_measured` with the reason. `--reference-voice ID` scores every chunk against another voice's
+  clip, the decoy check. A SIM number is a cosine from a model trained on VoxCeleb: the microphone and room move it
+  too: the same speaker on another microphone scores far below a self-match of one recording.
+- **Bench SIM.** `just narrate-bench-score SRC DEST --reference CLIP --sim-model CKPT --sim-python PY` adds per-pass
+  SIM median, minimum and wSIM, and the bench plan's decoys 1 (reference self-match) and 2 (preset-voice wrong
+  speaker), then reads each pass against the preregistered SIM bars (narrate/bench/score.py).
 - **Timing fit.** A segment over its target first gets the engine's `speed` (at most `[fit] speed_max`, 1.15),
   then `atempo` within the job's `fitMaxStretch` (8%). What still runs over is flagged `overrun` with its excess,
   never truncated. A segment under its target is padded; one whose start has passed starts late, flagged.
