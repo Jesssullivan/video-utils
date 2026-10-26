@@ -39,6 +39,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | `policy.py` | consent, scope, revocation, stored clip and transcript digests, hosted and confidential refusals |
 | `lexical.py` | the pinned xoxd-lexical release by digest; advisory Pattern findings and Vale; the RewriteCheck |
 | `chunker.py`, `normalise.py` | chunks of at most `chunkMaxCodepoints` spoken codepoints; the pronunciation table |
+| `amounts.py` | numeric ranges and dollar amounts said in words, each read back to its written value |
 | `engine.py` | `POST /v1/audio/speech` with `ref_audio` and `ref_text`, or the offline fake engine |
 | `qa.py` | per-chunk WER through condense's whisper path, SIM placeholder, best of `maxTakes` by seed |
 | `audio.py`, `render.py` | pauses, timing fit, placement, two-pass loudnorm, captions, EDL, manifest |
@@ -98,7 +99,7 @@ WAVs under `chunks/`, `narration.srt` and/or `narration.vtt`, `narration.edl.jso
 `manifest.json`. The manifest's timeline mapping is `narration_v1` with `no_time_stretch: false` on every run,
 so no guitar tool and no `video-utils verify-run` path accepts it (`../docs/spec/TIMELINE_CONTRACT.md`). It
 records digests and ids only, never a store path: input and IR digests, the lexical pin and findings, the
-pronunciation table digest and substitutions, engine record and knobs, each voice's clip, transcript and
+pronunciation table digest, substitutions and range or amount expansions, engine record and knobs, each voice's clip, transcript and
 consent ids, every chunk's takes, seeds, WER and SIM, the fit per segment, loudness, flags and
 `content_sha256`, a digest of everything but the run id, run directory and time, so two renders of the same
 inputs compare equal.

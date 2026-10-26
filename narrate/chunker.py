@@ -3,13 +3,15 @@
 A chunk never crosses a paragraph. Inside a paragraph, sentences pack into chunks of at most `limit`
 codepoints. A longer sentence splits at the last clause mark (, ; : and dashes) that fits, then at the last
 space that fits. No split lands inside a protected span (a number with its unit, a version, an identifier, a
-link or a path, as lexical.PROTECTED reads them). A single span longer than the limit stays whole and its chunk
+link or a path, as lexical.PROTECTED reads them) or inside a range or dollar amount that spoken normalisation says
+in words ("$5 to $10", amounts.find). A single span longer than the limit stays whole and its chunk
 is flagged oversize rather than split.
 """
 
 import re
 from dataclasses import dataclass
 
+from . import amounts
 from .lexical import PROTECTED
 
 ABBREVIATIONS = {"e.g.", "i.e.", "etc.", "vs.", "dr.", "mr.", "mrs.", "ms.", "st.", "no.", "fig.", "approx."}
@@ -32,6 +34,12 @@ def blocked(text):
     inside = set()
     for match in PROTECTED.finditer(text):
         inside.update(range(match.start() + 1, match.end()))
+    try:
+        spans = [(e.start, e.end) for e in amounts.find(text)]
+    except amounts.AmountError:  # spoken normalisation refuses this text with its own error
+        spans = []
+    for start, end in spans:
+        inside.update(range(start + 1, end))
     return inside
 
 

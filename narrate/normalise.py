@@ -6,13 +6,23 @@ the text is refused. Ordered numeric literals also retain signs and notation, an
 recognized units permits only equivalent spoken aliases. This is not a general semantic parser.
 Every substitution is recorded with the segment it was made in.
 
+Before either table runs, each recognised numeric range and dollar amount is said in words (narrate/amounts.py):
+"$12,400–$27,000" becomes "twelve thousand four hundred to twenty-seven thousand dollars". This is not a table
+substitution and the digit guard does not refuse it: each expansion is read back from its words to the written
+values, unit and connector, refused on any difference, and recorded with its written and spoken forms under
+"expansions". The tables never see an expansion's words: each one is held out of the text while they run, so no
+entry can change its value or unit after the read-back. A span that a table entry with digits in its written form
+matches is not expanded; that entry is how a script keeps a range such as a year span for the table to say.
+
 With a pinned upstream table (the xoxd-lexical narration register), the upstream layer runs first and this
 table is an overlay: a local entry whose written form matches an upstream entry's (ignoring case) replaces that
 upstream entry, and the record names every upstream entry so replaced.
 """
 
+import json
 import re
 
+from . import amounts
 from .ir import canonical, sha256_text
 from .lexical import UNITS
 
@@ -69,6 +79,14 @@ def pattern(entry):
     return re.compile(body, 0 if entry["caseSensitive"] else re.IGNORECASE)
 
 
+# Private-use placeholders hold each expansion out of the text while the tables run.
+_HOLD = 0xF0000
+
+
+def _held(text):
+    return any(0xF0000 <= ord(c) <= 0xFFFFD for c in text)
+
+
 def unsay_order(pairs):
     """(spoken, written) pairs of one layer, longest spoken form first, for mapping a transcript back."""
     return sorted(dict.fromkeys(pairs), key=lambda p: (-len(p[0]), p))
@@ -76,32 +94,33 @@ def unsay_order(pairs):
 
 def recorded_aliases(record, segment):
     """The (spoken, written) pairs a manifest's pronunciation record applied in segment, in the order that maps a
-    transcript back to the written text: the local layer first, then the upstream layer."""
-    layers = [record, record.get("upstream") or {}]
+    transcript back to the written text: the local layer first, then the upstream layer, then the expansions."""
+    layers = [record.get("substitutions", []), (record.get("upstream") or {}).get("substitutions", [])]
+    layers.append(record.get("expansions", []))
     return [
         pair
         for layer in layers
-        for pair in unsay_order(
-            (s["spoken"], s["written"]) for s in layer.get("substitutions", []) if s["segment"] == segment
-        )
+        for pair in unsay_order((s["spoken"], s["written"]) for s in layer if s["segment"] == segment)
     ]
 
 
 class Normaliser:
-    def __init__(self, table, upstream=None):
+    def __init__(self, table, upstream=None, expand=True):
         self.table = table
+        self.expand = expand
         self.overridden = []
         if upstream is not None:
             local = {e["written"].casefold() for e in table["entries"]}
             kept = [e for e in upstream["entries"] if e["written"].casefold() not in local]
             self.overridden = sorted(e.get("id", e["written"]) for e in upstream["entries"] if e not in kept)
-            self.upstream = Normaliser(upstream)
+            self.upstream = Normaliser(upstream, expand=False)
             self.upstream.compiled = [(e, r) for e, r in self.upstream.compiled if e in kept]
         else:
             self.upstream = None
         entries = sorted(table["entries"], key=lambda e: (-len(e["written"]), e["written"]))
         self.compiled = [(e, pattern(e)) for e in entries]
         self.made = []
+        self.expanded = []
 
     def aliases(self, text, segment=""):
         """The (spoken, written) pairs saying text applies, in the order that maps a transcript back to text."""
@@ -110,7 +129,22 @@ class Normaliser:
         return fired
 
     def say(self, text, segment, record=True, fired=None):
-        """The spoken form of text. With record, each substitution is recorded against segment."""
+        """The spoken form of text. With record, each expansion and substitution is recorded against segment."""
+        said, found = [], []
+        if self.expand:
+            if _held(text):
+                raise NormaliseError(f"segment {segment} has a supplementary private-use character")
+            try:
+                found = amounts.find(text, keep=self.table_spans(text))
+            except amounts.AmountError as error:
+                raise NormaliseError(
+                    f"a range or amount in segment {segment} does not read back to its written value: {error}"
+                ) from error
+            for i, e in reversed(list(enumerate(found))):
+                text = text[: e.start] + chr(_HOLD + i) + text[e.end :]
+            if record:
+                self.expanded += [{"segment": segment, **e.record()} for e in found]
+            said = unsay_order((e.spoken, e.written) for e in found)
         upstream = []
         if self.upstream is not None:
             text = self.upstream.say(text, segment, record=record, fired=upstream)
@@ -136,9 +170,27 @@ class Normaliser:
                 )
             local.append((entry["spoken"], entry["written"]))
             text = new
+        if found:
+            holds = [c for c in text if _held(c)]
+            if holds != [chr(_HOLD + i) for i in range(len(found))]:
+                raise NormaliseError(f"a pronunciation entry moved a range or amount in segment {segment}")
+            for i, e in enumerate(found):
+                text = text.replace(chr(_HOLD + i), e.spoken)
         if fired is not None:
-            fired += unsay_order(local) + upstream
+            fired += unsay_order(local) + upstream + said
         return text
+
+    def table_spans(self, text):
+        """[(start, end)] that an entry with a digit in its written form matches, in either layer: such an entry
+        says that span itself, so the range and money stage leaves it as written."""
+        layers = [self.compiled] + ([self.upstream.compiled] if self.upstream is not None else [])
+        return [
+            m.span()
+            for compiled in layers
+            for entry, regex in compiled
+            if re.search(r"\d", entry["written"])
+            for m in regex.finditer(text)
+        ]
 
     def record(self):
         merged = {}
@@ -156,4 +208,13 @@ class Normaliser:
         }
         if self.upstream is not None:
             record["upstream"] = self.upstream.record() | {"overridden_by_local": self.overridden}
+        if self.expand:
+            counted = {}
+            for item in self.expanded:
+                key = json.dumps(item, sort_keys=True)
+                counted[key] = counted.get(key, 0) + 1
+            record["expansions"] = sorted(
+                ({**json.loads(k), "count": c} for k, c in counted.items()),
+                key=lambda e: (e["segment"], e["written"], e["spoken"]),
+            )
         return record

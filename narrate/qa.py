@@ -21,6 +21,7 @@ import tempfile
 import urllib.parse
 from pathlib import Path
 
+from .amounts import say as say_amounts
 from .ir import sha256_file
 
 PAD = 0.5  # seconds of silence around a take read back by whisper
@@ -154,10 +155,12 @@ def wer(reference, hypothesis, aliases=()):
 
 
 def chunk_wer(written, spoken, heard, aliases=()):
-    """A chunk's WER: the better of heard against the written text (spoken table forms in heard mapped back
-    through aliases) and heard against the spoken projection. A transcriber writes "MCP" or "M C P" for the
-    same correct reading; neither may fail the gate."""
-    return min(wer(written, heard, aliases), wer(spoken, heard))
+    """A chunk's WER: the best of heard against the written text (spoken table forms in heard mapped back
+    through aliases) and heard against the spoken projection, each with heard as written and with any range or
+    dollar amount heard wrote in digits said in words (amounts.say). A transcriber writes "MCP" or "M C P", and
+    "$5 to $10" or "five to ten dollars", for the same correct reading; neither may fail the gate."""
+    said = say_amounts(heard)
+    return min(wer(written, heard, aliases), wer(spoken, heard), wer(written, said, aliases), wer(spoken, said))
 
 
 class Whisper:
