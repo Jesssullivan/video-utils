@@ -22,6 +22,9 @@ the client sends none and records `speed_honoured: false`; render.py then fits t
 `[engine] ref_audio = "omit"` nothing is registered and the request names no voice, which this runtime answers
 with its unconditioned default voice. synthesize() without a session registers, speaks and deletes in one call.
 
+AudioCppBatch engines run out of process (narrate/prerender.py): narrate never calls them. synthesize() refuses
+them with engine_out_of_process; a render takes their takes from a prerendered batch instead.
+
 fake engines (backend Fake) need no weights, GPU or network:
   fake://sine    a deterministic tone per chunk: its pitch follows the seed and the text, its length the text
                  length over the speed, with a syllable-rate envelope;
@@ -354,9 +357,13 @@ def qwentts_speech(engine, text, voice, ref, seed, options, sess):
     return wav_reply(engine, data), record
 
 
+AUDIOCPP_BATCH = "AudioCppBatch"
+
+
 def honours_speed(engine):
-    """False for a runtime that ignores the speed knob; render.py then fits timing with atempo alone."""
-    return engine["backend"] != QWENTTS
+    """False for a runtime that ignores the speed knob, or a batch rendered before the fit; render.py then fits
+    timing with atempo alone."""
+    return engine["backend"] not in (QWENTTS, AUDIOCPP_BATCH)
 
 
 def synthesize(engine, text, voice, ref, seed, speed, options, sess=None):
@@ -368,6 +375,11 @@ def synthesize(engine, text, voice, ref, seed, speed, options, sess=None):
         return fake(engine, text, seed, speed)
     if engine["endpoint"].startswith("fake://"):
         raise EngineError("engine_endpoint_invalid", f"engine {engine['id']} is not Fake but has a fake:// endpoint")
+    if engine["backend"] == AUDIOCPP_BATCH:
+        raise EngineError(
+            "engine_out_of_process",
+            f"engine {engine['id']} runs as a batch on the GPU host: narrate plan, then render --prerendered",
+        )
     if engine["backend"] == QWENTTS:
         return qwentts_speech(engine, text, voice, ref, seed, options, sess)
     return speech(engine, text, voice, ref, seed, speed, options)
@@ -379,4 +391,6 @@ def probe(engine):
         variant = urllib.parse.urlsplit(engine["endpoint"]).netloc
         espeak_found = shutil.which("espeak-ng") is not None
         return {"available": True, "variant": "espeak-ng" if variant == "espeak" and espeak_found else "sine"}
+    if engine["backend"] == AUDIOCPP_BATCH:
+        return {"available": "out_of_process", "reason": "a batch run in a GPU window; narrate reads its takes"}
     return {"available": "not_probed", "reason": "http engines are reached only by a render"}

@@ -27,6 +27,7 @@ MODULES = (
     "lexical",
     "normalise",
     "policy",
+    "prerender",
     "qa",
     "registry",
     "render",

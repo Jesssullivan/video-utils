@@ -3,6 +3,9 @@
 input adapter -> script IR -> (rewrite check) -> policy -> lexical pass -> chunker -> spoken normalisation ->
 engine, best of maxTakes per chunk -> pauses -> timing fit -> placement -> two-pass loudnorm -> outputs.
 
+An AudioCppBatch engine (narrate/prerender.py) runs out of process: `plan` writes the request batch from the same
+pipeline, and a render with `prerendered` takes every take from the batch's outputs by request id.
+
 Every refusal happens before any audio is made. The run is staged, renamed into place and then checked by
 verify.verify; a run it refuses is renamed .failed-<run_id> and the render raises.
 
@@ -20,7 +23,7 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
-from . import adapters, audio, chunker, engine, lexical, policy, qa, verify
+from . import adapters, audio, chunker, engine, lexical, policy, prerender, qa, verify
 from .config import guard_out, run
 from .ir import canonical, sha256_bytes, sha256_file, sha256_text
 from .normalise import Normaliser
@@ -150,7 +153,17 @@ def chunk_spoken(segment, limit, normaliser):
 
 class Renderer:
     def __init__(
-        self, cfg, *, input_path=None, rewrite=None, engine_id=None, seed=None, transcriber=None, overrides=None
+        self,
+        cfg,
+        *,
+        input_path=None,
+        rewrite=None,
+        engine_id=None,
+        seed=None,
+        transcriber=None,
+        overrides=None,
+        prerendered=None,
+        planning=False,
     ):
         self.cfg = cfg
         self.overrides = dict(overrides or {})
@@ -163,6 +176,9 @@ class Renderer:
         self.transcriber = transcriber
         self.flags = []
         self.session = None  # engine.Session while run() synthesises
+        self.prerendered = Path(prerendered) if prerendered else None
+        self.planning = planning
+        self.pool = None  # prerender.Pool when the engine is an out-of-process batch
 
     # -- before any audio ------------------------------------------------------------------------------
     def prepare(self):
@@ -207,6 +223,51 @@ class Renderer:
         self.plan = [(segment, chunk_spoken(segment, limit, self.normaliser)) for segment in self.script.segments]
         if not any(chunks for _, chunks in self.plan):
             raise RenderError("input_empty", "nothing to speak")
+        self.prepare_batch()
+
+    def prepare_batch(self):
+        """For an AudioCppBatch engine: check the record and every reference, and outside a plan open the pool and
+        refuse a chunk whose first take it lacks. Any other engine refuses --prerendered."""
+        batch = prerender.is_batch(self.engine)
+        if not batch:
+            if self.prerendered is not None or self.planning:
+                raise RenderError(
+                    "engine_not_batch",
+                    f"engine {self.engine['id']} is {self.engine['backend']}; plan and --prerendered are for "
+                    f"{prerender.BACKEND} engines",
+                )
+            return
+        try:
+            prerender.check_engine(self.engine, self.cfg.engine_opts)
+            self.ref_fit = {
+                vid: prerender.reference_fit(self.engine, vid, ref["audio"]) for vid, ref in sorted(self.refs.items())
+            }
+            if self.planning:
+                return
+            if self.prerendered is None:
+                raise RenderError(
+                    "prerendered_required",
+                    f"engine {self.engine['id']} runs out of process: narrate plan, the GPU batch, then "
+                    "render --prerendered DIR",
+                )
+            self.pool = prerender.Pool(self.prerendered, self.engine, self.cfg.engine_opts)
+        except prerender.PrerenderError as error:
+            raise RenderError(error.code, error.detail) from None
+        missing = [
+            chunk.id
+            for segment, chunks in self.plan
+            for chunk, spoken in chunks
+            if not self.pool.has(self.request(self.voice_for(segment), spoken, self.seed)["id"])
+        ]
+        if missing:
+            raise RenderError(
+                "prerendered_take_missing",
+                f"{len(missing)} chunk(s) have no first take in the batch ({', '.join(missing[:5])}); plan again "
+                "from the same inputs and render the batch",
+            )
+
+    def request(self, voice, spoken, seed):
+        return prerender.request(self.engine, self.cfg.engine_opts, voice, self.refs[voice["id"]], spoken, seed)
 
     # -- audio -------------------------------------------------------------------------------------------
     def measure(self, pcm, chunk, spoken, work):
@@ -226,18 +287,29 @@ class Renderer:
         rate = self.engine.get("sampleRateHz")
 
         def synth(seed):
-            data, facts = engine.synthesize(
-                self.engine, spoken, voice, self.refs[voice["id"]], seed, speed, self.cfg.engine_opts, self.session
-            )
+            if self.pool is not None:
+                try:
+                    data, facts = self.pool.take(self.request(voice, spoken, seed))
+                except prerender.NoTake as missing:
+                    raise qa.NoTake(missing.request_id) from None
+                except prerender.PrerenderError as error:
+                    raise RenderError(error.code, error.detail) from None
+            else:
+                data, facts = engine.synthesize(
+                    self.engine, spoken, voice, self.refs[voice["id"]], seed, speed, self.cfg.engine_opts, self.session
+                )
             pcm, converted = audio.canonical(data, rate or self.rate, work)
             if self.rate is None:
                 self.rate = pcm.rate
             pcm, facts = apply_tempo(pcm, voice, facts, work)  # the voice's tempo, before QA and the fit
             return pcm, {**facts, "reply_sha256": sha256_bytes(data), "converted": converted}
 
-        return qa.best_of(
-            spoken, synth, lambda pcm, text: self.measure(pcm, chunk, text, work), self.job["gates"], self.seed
-        )
+        try:
+            return qa.best_of(
+                spoken, synth, lambda pcm, text: self.measure(pcm, chunk, text, work), self.job["gates"], self.seed
+            )
+        except qa.NoTake as missing:
+            raise RenderError("prerendered_take_missing", f"chunk {chunk.id}: no take {missing}") from None
 
     def assemble(self, segment, synthesized):
         """(segment pcm, [(chunk, start_s, end_s)]) with sentence, paragraph and direction pauses."""
@@ -287,7 +359,7 @@ class Renderer:
         target = segment.target_dur
         if target is not None and pcm.seconds > target + EPS:
             speed = min(pcm.seconds / target, float(self.cfg.fit["speed_max"]))
-            if speed > 1 + 1e-4 and engine.honours_speed(self.engine):
+            if speed > 1 + 1e-4 and engine.honours_speed(self.engine) and self.pool is None:
                 synthesized = synthesize_all(round(speed, 4))
                 pcm, offsets = self.assemble(segment, synthesized)
                 fit["speed"] = round(speed, 4)
@@ -459,6 +531,7 @@ class Renderer:
             | unmeasured
             | ({"oversize_chunk"} if any(r["oversize"] for r in chunk_records) else set())
             | ({"input_unpinned"} if not self.input_pinned else set())
+            | ({"prerendered_test_mode"} if self.pool is not None and self.pool.record()["test_mode"] else set())
         )
         statuses = [r["qa"]["status"] for r in chunk_records]
         manifest = {
@@ -503,7 +576,8 @@ class Renderer:
                 "vale": lexical.vale(self.release, self.script.segments),
             },
             "pronunciation": self.normaliser.record(),
-            "engine": engine_record(self.engine, self.cfg),
+            "engine": engine_record(self.engine, self.cfg)
+            | ({"synthesis": self.pool.record()} if self.pool is not None else {}),
             "voices": [
                 voice_record(speaker, v, self.consents)
                 for speaker, v in sorted(self.voices.items(), key=lambda kv: str(kv[0]))
@@ -560,15 +634,14 @@ def engine_record(eng, cfg):
         "confidentialAllowed",
         "sampleRateHz",
     )
-    return {
-        **{k: eng.get(k) for k in keep},
-        "may_run_confidential": policy.may_run_confidential(eng),
-        "knobs": {
-            "fit_speed_max": cfg.fit["speed_max"],
-            "ref_audio": cfg.engine_opts["ref_audio"],
-            "timeout_s": cfg.engine_opts["timeout_s"],
-        },
+    knobs = {
+        "fit_speed_max": cfg.fit["speed_max"],
+        "ref_audio": cfg.engine_opts["ref_audio"],
+        "timeout_s": cfg.engine_opts["timeout_s"],
     }
+    if prerender.is_batch(eng):
+        knobs = {"fit_speed_max": cfg.fit["speed_max"], "audiocpp_clone": prerender.clone_mode(cfg.engine_opts)}
+    return {**{k: eng.get(k) for k in keep}, "may_run_confidential": policy.may_run_confidential(eng), "knobs": knobs}
 
 
 def voice_record(speaker, voice, consents):
@@ -617,6 +690,92 @@ def write_captions(staging, chunks, formats, label):
 def tools():
     version = run("ffmpeg", "-hide_banner", "-version").stdout.splitlines()[0]
     return {"ffmpeg": version, "python": platform.python_version(), "narrate_schema": SCHEMA_VERSION}
+
+
+def plan(cfg, out, takes=None, **kwargs):
+    """Phase A of an AudioCppBatch render (narrate/prerender.py): run the text pipeline and write the request
+    batch to out, a new directory. takes: how many seeds per chunk, 1 to the job's maxTakes (default maxTakes).
+    Return (plan.json path, plan)."""
+    renderer = Renderer(cfg, planning=True, **kwargs)
+    renderer.prepare()
+    job, max_takes = renderer.job, int(renderer.job["gates"]["maxTakes"])
+    takes = max_takes if takes is None else takes
+    if isinstance(takes, bool) or not isinstance(takes, int) or not 1 <= takes <= max_takes:
+        raise RenderError("override_invalid", f"takes = {takes!r}: from 1 to the job's maxTakes {max_takes}")
+    out = guard_out(Path(out).resolve())
+    batches, chunks, seen = {}, [], set()
+    for segment, pieces in renderer.plan:
+        voice = renderer.voice_for(segment)
+        for chunk, spoken in pieces:
+            ids = []
+            for k in range(takes):
+                body = renderer.request(voice, spoken, renderer.seed + k)
+                ids.append({"take": k + 1, "seed": renderer.seed + k, "id": body["id"]})
+                if body["id"] not in seen:
+                    seen.add(body["id"])
+                    batches.setdefault(voice["id"], []).append(body)
+            chunks.append(
+                {
+                    "id": chunk.id,
+                    "segment": segment.id,
+                    "voice": voice["id"],
+                    "codepoints": len(spoken),
+                    "spoken_sha256": sha256_text(spoken),
+                    "requests": ids,
+                }
+            )
+    files = {prerender.batch_name(v): prerender.batch_bytes(reqs) for v, reqs in sorted(batches.items())}
+    if len(files) != len(batches):
+        raise RenderError("plan_invalid", "two voices map to one requests file name")
+    ir = renderer.script.to_json()
+    document = {
+        "schema": prerender.PLAN_SCHEMA,
+        "about": "narrate plan: the request batch of one render; run each requests file with "
+        "narrate/serve/audiocpp_batch.py, then narrate render --prerendered on this directory",
+        "job": {"id": job["id"], "seed": renderer.seed, "gates": job["gates"]}
+        | ({"overrides": renderer.overrides} if renderer.overrides else {}),
+        "engine": engine_record(renderer.engine, renderer.cfg),
+        "input": {
+            "kind": renderer.script.kind,
+            "sha256": renderer.input_sha,
+            "pinned": renderer.input_pinned,
+            "ir_sha256": sha256_text(canonical(ir)),
+            "rewrite": renderer.rewrite,
+        },
+        "pronunciation": renderer.normaliser.record(),
+        "takes": takes,
+        "batches": [
+            {
+                "voice": v,
+                "file": f"requests/{prerender.batch_name(v)}.json",
+                "sha256": sha256_bytes(files[prerender.batch_name(v)]),
+                "requests": len(reqs),
+            }
+            for v, reqs in sorted(batches.items())
+        ],
+        "refs": [
+            {
+                "voice": vid,
+                "file": prerender.ref_file(voice["refClipSha256"]),
+                "sha256": voice["refClipSha256"],
+                "ref_text_sha256": voice["refTextSha256"],
+                **renderer.ref_fit[vid],
+            }
+            for vid, voice in sorted({v["id"]: v for v in renderer.voices.values()}.items())
+        ],
+        "chunks": chunks,
+        "totals": {
+            "chunks": len(chunks),
+            "requests": sum(len(r) for r in batches.values()),
+            "codepoints": sum(len(r["text"]) for reqs in batches.values() for r in reqs),
+        },
+    }
+    refs = {v["refClipSha256"]: renderer.refs[v["id"]]["audio"] for v in renderer.voices.values()}
+    try:
+        path = prerender.write_plan(out, document, files, refs)
+    except prerender.PrerenderError as error:
+        raise RenderError(error.code, error.detail) from None
+    return path, document
 
 
 def render(cfg, **kwargs):

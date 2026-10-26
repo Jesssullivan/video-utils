@@ -129,7 +129,7 @@ engine only.
 | Profile | Backend(s) | Where | Notes |
 | --- | --- | --- | --- |
 | `gpu-switch` | `VulkanAudioCpp`, `QwenTtsCpp`, `LlamaTts` | the GPU host through the model coordinator | N1. Switch to the TTS entry, synthesise, release to the prior model. Needs a TTS entry kind, an audio canary and the speech route in the coordinator (TIN-7096) |
-| `gpu-direct` | same | the GPU host in an attended window | N0 interim. The server holds the GPU lease for the window (30 min or less) and scales to zero after; the window leaves a receipt |
+| `gpu-direct` | same, and `AudioCppBatch` | the GPU host in an attended window | N0 interim. The server holds the GPU lease for the window (30 min or less) and scales to zero after; the window leaves a receipt. `AudioCppBatch` is a request batch run in the window, not a server (see "Out-of-process batch engines") |
 | `mac-mlx` | `MlxAudio` | the Mac host | Development and fallback. No GPU lease involved |
 | `rented-open` | `RentedOpen` | a rented GPU running open weights | Confidential jobs only when the host is estate-controlled and flagged |
 | `hosted` | `Hosted` | a third-party API | Last resort, public content only, explicit flag per job |
@@ -218,6 +218,92 @@ it.
 `NARRATE_QWENTTS_DEVICE` (`Vulkan0` or `MTL0`) selects the build. A narrate
 engine record for it uses `GpuDirect` on the GPU host; `MacMlx` admits
 `MlxAudio` only, so a Mac build serves development checks, not a record.
+
+## Out-of-process batch engines (2026-10-26)
+
+The operator picked VoxCPM2 as the N0 engine after the blind A/B of
+2026-10-26 (TIN-7085 comment 6767db24). It runs through audio.cpp's `audiocpp_cli` at the pin
+`47c2756e`, which has no server: one process loads the model (about 30 s),
+renders every request of a `--request-sequence` file and writes one WAV per
+request id (48 kHz). A render cannot call it chunk by chunk. The backend
+`AudioCppBatch` (profile `GpuDirect` only) renders in three phases, so one
+GPU window renders a whole job, every chunk and every retake, with one model
+load per voice:
+
+| Phase | Host | Command | Writes |
+| --- | --- | --- | --- |
+| A | CPU host | `narrate plan CONFIG --out DIR [--takes N]` | `plan.json`, `requests/<voice>.json`, `refs/<sha256>.wav` |
+| B | GPU host, in the window | `narrate/serve/audiocpp_batch.py run DIR --requests requests/<voice>.json ...` | `wav/<id>.wav`, `receipts/<voice>.json`, `logs/<voice>.log` |
+| C | CPU host | `narrate render CONFIG --prerendered DIR` | the run, as for any engine |
+
+- **Plan.** `plan` runs the render's text pipeline unchanged: the input
+  adapter (SRT and WebVTT included), the RewriteCheck, policy, the lexical
+  pass, the chunker and spoken normalisation with ranges and amounts. For each
+  chunk it writes one request per take the job may keep (`--takes`, 1 to
+  `maxTakes`, default `maxTakes`; seeds `seed`, `seed + 1`, ...). It refuses
+  everything a render refuses, before any request exists, and also a reference
+  the family's encoder cannot take: VoxCPM2's AudioVAE encoder takes 240000
+  samples at 16 kHz after padding to a multiple of 2560, so a reference is 5
+  to 14.88 s (`ref_clip_misfit`; register a cut from
+  `narrate/bench/ref_cut.py`). The plan copies each reference clip from the
+  store as `refs/<sha256>.wav`; the directory stays private, outside git.
+- **Request id.** A request is `{id, text, seed, voice_ref, audio?,
+  reference_text?}`. Its id is the first 32 hex digits of the sha256 of its
+  canonical JSON without the id. A WAV named by an id answers exactly that
+  text, seed and reference; batches of many runs merge without collisions;
+  identical requests are rendered once.
+- **Clone.** `[engine] audiocpp_clone = "ultimate"` (the default, the
+  operator's choice) sends the reference as `voice_ref` and as `audio`, the
+  continuation prompt, with its verified transcript plus one space as
+  `reference_text` (the pin joins prompt and target text with no separator).
+  `"reference"` sends `voice_ref` alone.
+- **Batch.** `audiocpp_batch.py` (standard library, Python 3.9) checks every
+  request's id against its content and every reference against the sha256 in
+  its name, hashes the binary and the weights against the given pins, runs
+  one `audiocpp_cli --task clon --family voxcpm2 --backend vulkan --device N
+  --out-format pcm16 --metrics` in its own process group, stops it at its
+  deadline or on a signal, and keeps a WAV after a stop only when the runtime
+  reported it finished. The receipt lists each output's sha256 and each
+  missing id. `--only-missing` finishes a stopped batch in a later window.
+  The runner sets no limit itself: the caller runs it in the window's bounded
+  unit (memory, CPU, nice, idle I/O, runtime, VRAM watch, RADV ICD only), as
+  for the bench.
+- **Render.** `--prerendered DIR` trusts a receipt only when its requests file
+  has the sha256 it names, every request carries its content's id, the
+  binary's and the weights' sha256 are both among the engine record's
+  `files`, family and task match the record's `audiocpp://<family>` endpoint,
+  and each WAV has the sha256 the receipt lists
+  (`prerendered_batch_mismatch`, `prerendered_engine_mismatch`,
+  `prerendered_take_mismatch`). A chunk whose first take the batch lacks is
+  refused before any audio is made (`prerendered_take_missing`); a script,
+  seed or reference that changed after the plan therefore finds no take. QA,
+  best of `maxTakes`, timing fit (atempo alone: the batch ran before the fit),
+  loudness, captions, EDL and verify run as for any engine. A take that fails
+  its gate is replaced by the next prerendered seed; when the batch holds no
+  further seed, the chunk keeps its best take, records `missing_seeds` and is
+  flagged `qa_failed`, never passed.
+- **Manifest.** `engine.synthesis` records `mode: out_of_process_batch`, the
+  runtime, family, clone mode, audio.cpp commit, binary and weights sha256,
+  and each batch used (receipt and requests sha256, request and output
+  counts, exit code, stop rule). Every take records its request id. A receipt
+  written in test mode adds the flag `prerendered_test_mode`.
+- **Direct calls.** `engine.synthesize` refuses an `AudioCppBatch` record
+  (`engine_out_of_process`); a render without `--prerendered` is refused
+  (`prerendered_required`), and `plan` or `--prerendered` with any other
+  backend is refused (`engine_not_batch`). The MCP tools do not expose `plan`
+  or `--prerendered` yet; they stay CLI only until W7 admits them.
+
+An engine record for VoxCPM2 (values are placeholders; the real record is
+private):
+
+```json
+{"id": "voxcpm2-batch", "profile": "GpuDirect", "backend": "AudioCppBatch",
+ "endpoint": "audiocpp://voxcpm2", "model": "voxcpm2-bf16",
+ "files": [{"path": "audiocpp_cli", "sha256": "<binary sha256>"},
+           {"path": "voxcpm2-bf16.gguf", "sha256": "<weights sha256>"}],
+ "sampleRateHz": 48000, "hosted": false, "estateControlled": true,
+ "confidentialAllowed": true}
+```
 
 ## Consent and confidentiality policy
 
@@ -411,6 +497,9 @@ under `.agents/skills/` (W7a), admitted in its own PR.
 | `narrate_voices` | List voice ids with consent state, scopes and allowed engines | none; never returns a path or clip |
 | `narrate_evaluate` | Score a rendered run or a bench take: WER, SIM, loudness, overruns, optionally UTMOS | `run`, `metrics`, `reference_voice` |
 | `narrate_engines` | List engine profiles, availability, lease or switch state and confidentiality eligibility | `profile` filter |
+
+`narrate plan` and `narrate render --prerendered` (the `AudioCppBatch`
+phases) have no tool yet; W7 owns their admission.
 
 ## Evaluation and acceptance states
 

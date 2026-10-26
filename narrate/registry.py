@@ -70,6 +70,8 @@ def reach(eng, timeout=REACH_TIMEOUT_S):
     in process. The endpoint itself is never returned."""
     if eng["backend"] == "Fake":
         return {"reachable": True, "how": "in process"}
+    if eng["backend"] == engine.AUDIOCPP_BATCH:
+        return {"reachable": False, "how": "out of process: no endpoint to reach"}
     parts = urllib.parse.urlsplit(eng.get("endpoint") or "")
     if parts.scheme not in ("http", "https") or not parts.hostname:
         return {"reachable": False, "how": "no http(s) endpoint"}

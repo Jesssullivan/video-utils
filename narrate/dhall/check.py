@@ -52,7 +52,7 @@ OMITTABLE = {"README.md"}
 # Engine.dhall, ported. Keep in step with Engine.dhall and policy-test.dhall.
 PROFILE_BACKENDS = {
     "GpuSwitch": {"VulkanAudioCpp", "QwenTtsCpp", "LlamaTts"},
-    "GpuDirect": {"VulkanAudioCpp", "QwenTtsCpp", "LlamaTts"},
+    "GpuDirect": {"VulkanAudioCpp", "QwenTtsCpp", "LlamaTts", "AudioCppBatch"},
     "MacMlx": {"MlxAudio"},
     "RentedOpen": {"RentedOpen"},
     "Hosted": {"Hosted"},
@@ -341,6 +341,8 @@ def mutations() -> list:
                      "confidentialAllowed": True, "estateControlled": True}
     rented_engine = {"id": "probe-rented", "profile": "MacMlx", "backend": "RentedOpen", "hosted": False,
                      "confidentialAllowed": True, "estateControlled": False}
+    switch_batch = {"id": "probe-batch", "profile": "GpuSwitch", "backend": "AudioCppBatch", "hosted": False,
+                    "endpoint": "audiocpp://voxcpm2", "confidentialAllowed": True, "estateControlled": True}
 
     def with_engine(probe, confidential):
         def mutate(d, m):
@@ -367,6 +369,7 @@ def mutations() -> list:
         ("fake backend on a non-fake profile", lambda d, m: d["engines"][0].update(profile="GpuDirect")),
         ("hosted backend behind a local profile, confidential", with_engine(hosted_engine, True)),
         ("rented backend behind the Mac profile, confidential", with_engine(rented_engine, True)),
+        ("audio.cpp batch behind the switch profile, confidential", with_engine(switch_batch, True)),
         ("hosted engine without allowHosted", with_engine(
             {**hosted_engine, "id": "probe-h2", "profile": "Hosted", "hosted": True}, False)),
         ("fixture digest changed", lambda d, m: voice(d).update(refClipSha256="0" * 64)),

@@ -1,4 +1,4 @@
-"""python -m narrate {render,evaluate,voices,engines,verify}"""
+"""python -m narrate {render,plan,evaluate,voices,engines,verify}"""
 
 import argparse
 import json
@@ -28,25 +28,38 @@ def main(argv=None):
     p = argparse.ArgumentParser(prog="narrate", description=__doc__)
     sub = p.add_subparsers(dest="command", required=True)
 
+    def job_arguments(r):
+        r.add_argument("config", help="narrate.toml")
+        r.add_argument("--input", help="the script, instead of narrate.toml's input")
+        r.add_argument("--rewrite", help="a rewrite of the script; accepted only when the RewriteCheck holds")
+        r.add_argument("--engine", help="an engine id, instead of the job's")
+        r.add_argument("--seed", type=int, help="the base seed, instead of the job's")
+        o = r.add_argument_group("job overrides (recorded in the manifest's job.overrides; they never loosen policy)")
+        o.add_argument("--voice", help="the job's voice id; it must pass the same consent checks")
+        o.add_argument("--input-kind", choices=adapters.KINDS, help="the job's input kind")
+        o.add_argument("--confidential", action="store_true", help="mark the job confidential (never clears it)")
+        o.add_argument("--no-hosted", action="store_true", help="withdraw the job's allowHosted (never grants it)")
+        o.add_argument("--max-chunk-wer", type=float, help="gates.maxChunkWer, 0 to 1")
+        o.add_argument("--min-sim", type=float, help="gates.minSim, -1 to 1")
+        o.add_argument("--max-takes", type=int, help="gates.maxTakes, 1 to 3")
+        o.add_argument("--chunk-max-codepoints", type=int, help="chunkMaxCodepoints, 40 to 1000")
+        o.add_argument("--loudness-lufs", type=float, help="post.loudnessLufs, -30 to -10")
+        o.add_argument("--fit-max-stretch", type=float, help="post.fitMaxStretch, 0 to 0.08")
+
     r = sub.add_parser("render", help="render the job a narrate.toml names into artifacts/narrate/<run_id>/")
-    r.add_argument("config", help="narrate.toml")
-    r.add_argument("--input", help="the script, instead of narrate.toml's input")
-    r.add_argument("--rewrite", help="a rewrite of the script; accepted only when the RewriteCheck holds")
-    r.add_argument("--engine", help="an engine id, instead of the job's")
-    r.add_argument("--seed", type=int, help="the base seed, instead of the job's")
+    job_arguments(r)
     r.add_argument("--out", help="the directory runs land in, instead of artifacts/narrate")
     r.add_argument("--json", action="store_true", help="print a JSON summary with the manifest path")
-    o = r.add_argument_group("job overrides (recorded in the manifest's job.overrides; they never loosen policy)")
-    o.add_argument("--voice", help="the job's voice id; it must pass the same consent checks")
-    o.add_argument("--input-kind", choices=adapters.KINDS, help="the job's input kind")
-    o.add_argument("--confidential", action="store_true", help="mark the job confidential (never clears it)")
-    o.add_argument("--no-hosted", action="store_true", help="withdraw the job's allowHosted (never grants it)")
-    o.add_argument("--max-chunk-wer", type=float, help="gates.maxChunkWer, 0 to 1")
-    o.add_argument("--min-sim", type=float, help="gates.minSim, -1 to 1")
-    o.add_argument("--max-takes", type=int, help="gates.maxTakes, 1 to 3")
-    o.add_argument("--chunk-max-codepoints", type=int, help="chunkMaxCodepoints, 40 to 1000")
-    o.add_argument("--loudness-lufs", type=float, help="post.loudnessLufs, -30 to -10")
-    o.add_argument("--fit-max-stretch", type=float, help="post.fitMaxStretch, 0 to 0.08")
+    r.add_argument(
+        "--prerendered",
+        metavar="DIR",
+        help="an AudioCppBatch engine: the plan directory with the batch's receipts/ and wav/ (narrate plan)",
+    )
+
+    n = sub.add_parser("plan", help="an AudioCppBatch engine: write the request batch for a GPU window; no audio")
+    job_arguments(n)
+    n.add_argument("--out", required=True, help="a new directory for plan.json, requests/ and refs/")
+    n.add_argument("--takes", type=int, help="seeds per chunk, 1 to the job's maxTakes (default maxTakes)")
 
     e = sub.add_parser("evaluate", help="score a rendered run; writes nothing")
     e.add_argument("run_dir")
@@ -75,14 +88,37 @@ def main(argv=None):
     f.add_argument("run_dir")
 
     a = p.parse_args(argv)
+
+    def job_overrides():
+        return render.overrides_from(
+            {k: getattr(a, k) for k in render.OVERRIDES if getattr(a, k) is not None and getattr(a, k) is not False}
+        )
+
     try:
+        if a.command == "plan":
+            cfg = Config(a.config)
+            path, document = render.plan(
+                cfg,
+                a.out,
+                a.takes,
+                input_path=a.input,
+                rewrite=a.rewrite,
+                engine_id=a.engine,
+                seed=a.seed,
+                overrides=job_overrides(),
+            )
+            emit({"ok": True, "plan": str(path), "batches": document["batches"], "totals": document["totals"]})
+            return 0
         if a.command == "render":
             cfg = Config(a.config, {"out": str(Path(a.out).resolve())} if a.out else None)
-            overrides = render.overrides_from(
-                {k: getattr(a, k) for k in render.OVERRIDES if getattr(a, k) is not None and getattr(a, k) is not False}
-            )
             final, manifest = render.render(
-                cfg, input_path=a.input, rewrite=a.rewrite, engine_id=a.engine, seed=a.seed, overrides=overrides
+                cfg,
+                input_path=a.input,
+                rewrite=a.rewrite,
+                engine_id=a.engine,
+                seed=a.seed,
+                overrides=job_overrides(),
+                prerendered=a.prerendered,
             )
             if a.json:
                 emit(render.summary(final, manifest))

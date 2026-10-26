@@ -25,6 +25,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | `just narrate-render [CONFIG]` | `bounded.sh python -m narrate render` | the whole pipeline, then `verify` |
 | `just narrate-eval RUN [CONFIG]` | `bounded.sh python -m narrate evaluate` | loudness, overruns, WER, SIM (`--reference-voice` for a decoy); writes nothing |
 | `just narrate-verify RUN` | `python -m narrate verify` | re-hashes the run and re-checks the manifest |
+| `just narrate-plan CONFIG DIR` | `python -m narrate plan` | an `AudioCppBatch` engine: the request batch for a GPU window (no audio); then `serve/audiocpp_batch.py` on the GPU host and `just narrate-render CONFIG --prerendered DIR` |
 | `just narrate-voices [CONFIG]` | `python -m narrate voices` | voice ids, consent state, scopes, engines |
 | `just narrate-engines [CONFIG]` | `python -m narrate engines` | profiles, confidentiality eligibility, availability; `--reach` tries a TCP connect |
 | `just narrate-sim-model` | `scripts/model_prefetch.py` | fetches the registered ECAPA speaker model into `models/`, hash-checked |
@@ -42,6 +43,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | `chunker.py`, `normalise.py` | chunks of at most `chunkMaxCodepoints` spoken codepoints; the pronunciation table |
 | `amounts.py` | numeric ranges and dollar amounts said in words, each read back to its written value |
 | `engine.py` | `POST /v1/audio/speech` with `ref_audio` and `ref_text`; for QwenTtsCpp a registered voice; or the offline fake engine |
+| `prerender.py`, `serve/audiocpp_batch.py` | `AudioCppBatch`: request ids, the plan directory, the receipt checks and the takes by id; the GPU-host batch runner |
 | `qa.py` | per-chunk WER through condense's whisper path, SIM placeholder, best of `maxTakes` by seed |
 | `audio.py`, `render.py` | pauses, timing fit, placement, two-pass loudnorm, captions, EDL, manifest |
 | `verify.py`, `evaluate.py` | the re-check and the scores |
@@ -158,6 +160,30 @@ records `speed_honoured: false`, and the timing fit uses atempo alone. Each take
 plus transcript) or `x_vector` (clip only). On the GPU host a record uses the `GpuDirect` profile. The Mac build
 is for development checks only: the `MacMlx` profile admits `MlxAudio` alone, so a Mac qwentts.cpp record would
 fail `Engine.consistent`.
+
+## The VoxCPM2 engine (audio.cpp batch)
+
+VoxCPM2 runs through audio.cpp's `audiocpp_cli` (pin `47c2756e`), which has no server, so its record uses
+`backend = AudioCppBatch`, `profile = GpuDirect` and `endpoint = "audiocpp://voxcpm2"`, and its `files` pin the
+binary and the weights by sha256. A render runs in three phases (`../docs/spec/NARRATE.md`, "Out-of-process batch
+engines"):
+
+```sh
+python3 -m narrate plan job.toml --out PLAN --confidential          # CPU host: requests/, refs/, plan.json
+python3 serve/audiocpp_batch.py run PLAN --requests requests/VOICE.json --binary CLI --binary-sha256 SHA \
+    --model GGUF --model-sha256 SHA --audiocpp-commit 47c2756e        # GPU host, inside the bounded window unit
+just narrate-render job.toml --prerendered PLAN --confidential      # CPU host: QA, fit, loudness, outputs
+```
+
+`plan` runs the render's text pipeline and writes every chunk times `--takes` seeds (default `maxTakes`), one
+requests file per voice, so the window loads the model once per voice. Each request id is a digest of its text,
+seed and reference, and the render takes each take by that id; a changed script finds no take and is refused. The
+runner checks request ids, reference digests, binary and weights before it starts and writes a receipt with each
+output's sha256; `--only-missing` finishes a stopped batch. The render refuses a receipt whose requests file,
+binary, weights or WAV digests differ, picks the best prerendered take per chunk by WER, flags `qa_failed` when no
+take passes, and records the out-of-process synthesis in `engine.synthesis`. `[engine] audiocpp_clone` is
+`ultimate` (reference as voice and prompt audio, with its transcript; the default) or `reference`. The reference
+must fit VoxCPM2's encoder: 5 to 14.88 s (`ref_clip_misfit`).
 
 ## Outputs
 

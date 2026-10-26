@@ -20,6 +20,12 @@ narrate-eval run_dir config="":
 narrate-verify run_dir:
     python3 -m narrate verify {{quote(run_dir)}}
 
+# An AudioCppBatch engine (docs/spec/NARRATE.md, "Out-of-process batch engines"): write the request batch for a
+# GPU window into a new directory; no audio, no engine. Then narrate/serve/audiocpp_batch.py on the GPU host and
+# `just narrate-render CONFIG --prerendered DIR`.
+narrate-plan config out *args:
+    python3 -m narrate plan {{quote(config)}} --out {{quote(out)}} {{args}}
+
 # Voices with consent state, and engines with confidentiality eligibility. Never a path or a clip.
 narrate-voices config="narrate.toml":
     python3 -m narrate voices {{quote(config)}}

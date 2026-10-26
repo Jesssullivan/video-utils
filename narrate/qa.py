@@ -12,7 +12,9 @@ most MAX_WHISPER_THREADS threads, whatever narrate.toml asks ("Host placement an
 
 A take that fails a measured gate is synthesised again with the next seed, at most maxTakes takes in all. The
 best take by WER, then SIM, is kept; every take's numbers and the failure are recorded. A chunk that never
-passes is flagged qa_failed, never silently accepted. WER is a regression gate, not a ranking.
+passes is flagged qa_failed, never silently accepted. WER is a regression gate, not a ranking. A prerendered
+batch (narrate/prerender.py) may hold fewer takes than maxTakes: synth raises NoTake for a seed the batch lacks,
+the takes stop there and the record lists the seeds that were missing; a chunk with no take at all re-raises.
 """
 
 import json
@@ -237,14 +239,24 @@ def sim(cfg):
     return not_measured("render does not score takes in v0; narrate evaluate scores the delivered chunks")
 
 
+class NoTake(LookupError):
+    """synth has no take for this seed (a prerendered batch that did not render it)."""
+
+
 def best_of(chunk_text, synth, measure, gates, base_seed):
-    """Run takes until one passes or maxTakes ran. synth(seed) -> (pcm, facts); measure(pcm) -> {wer, sim}.
-    Returns (best pcm, best facts, record)."""
-    takes, kept = [], None
+    """Run takes until one passes or maxTakes ran. synth(seed) -> (pcm, facts), or NoTake; measure(pcm) ->
+    {wer, sim}. Returns (best pcm, best facts, record)."""
+    takes, kept, missing = [], None, []
     max_takes = max(1, int(gates["maxTakes"]))
     for k in range(max_takes):
         seed = base_seed + k
-        pcm, facts = synth(seed)
+        try:
+            pcm, facts = synth(seed)
+        except NoTake:
+            if not takes:
+                raise
+            missing = list(range(seed, base_seed + max_takes))
+            break
         scores = measure(pcm, chunk_text)
         w, s = scores["wer"], scores["sim"]
         measured_wer = w.get("status") == "measured"
@@ -281,4 +293,6 @@ def best_of(chunk_text, synth, measure, gates, base_seed):
         "takes": [t for t, _, _ in takes],
         "flags": ["qa_failed"] if status == "failed" else [],
     }
+    if missing:
+        record["missing_seeds"] = missing
     return kept[1], kept[2], record

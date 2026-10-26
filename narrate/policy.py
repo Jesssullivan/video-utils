@@ -17,7 +17,7 @@ from .ir import sha256_file
 
 PROFILE_BACKENDS = {
     "GpuSwitch": {"VulkanAudioCpp", "QwenTtsCpp", "LlamaTts"},
-    "GpuDirect": {"VulkanAudioCpp", "QwenTtsCpp", "LlamaTts"},
+    "GpuDirect": {"VulkanAudioCpp", "QwenTtsCpp", "LlamaTts", "AudioCppBatch"},
     "MacMlx": {"MlxAudio"},
     "RentedOpen": {"RentedOpen"},
     "Hosted": {"Hosted"},

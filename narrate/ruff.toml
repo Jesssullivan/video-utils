@@ -1,9 +1,10 @@
 line-length = 120
 extend-exclude = ["dhall"]
 
-# host_run.py runs on the GPU host's own Python, 3.9 or later, standard library only.
+# host_run.py and audiocpp_batch.py run on the GPU host's own Python, 3.9 or later, standard library only.
 [per-file-target-version]
 "bench/host_run.py" = "py39"
+"serve/audiocpp_batch.py" = "py39"
 
 [lint]
 select = ["E", "F", "I", "B", "UP"]

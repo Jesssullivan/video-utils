@@ -38,6 +38,9 @@ ENGINE = {
     "timeout_s": 300.0,  # one /v1/audio/speech request
     "max_reply_bytes": 256 << 20,
     "ref_audio": "data_uri",  # how ref_audio travels: data_uri (base64 WAV) or omit
+    # AudioCppBatch engines (narrate/prerender.py): ultimate (reference as voice_ref and prompt audio, with its
+    # transcript) or reference (voice_ref alone)
+    "audiocpp_clone": "ultimate",
 }
 WHISPER = {
     "model": "models/ggerganov-whisper-cpp-ggml-small.en.bin",  # relative to the repository root
