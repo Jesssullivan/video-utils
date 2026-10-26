@@ -349,8 +349,8 @@ def decoys(arm_dir, receipt, chunks, reader, work):
         path = Path(work) / f"decoy-{name}.wav"
         take.write(path)
         row = score_chunk(path, text, first["expected_s"], reader, work)
-        row.pop("s16")
-        row.pop("heard")
+        for key in ("s16", "pcm", "heard"):
+            row.pop(key)
         flagged = bool(row["catastrophic"]) if name.startswith("4") else (row["wer"] or 0) > MAX_CHUNK_WER
         measurable = reader.ok or name == "4-half-silence"
         out.append(

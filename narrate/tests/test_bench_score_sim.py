@@ -145,3 +145,23 @@ def test_sim_is_not_measured_without_its_inputs(score_module, bench, ffmpeg, tmp
     other = formant_voice(150, 0.9, "aeiu", 20.0, 9).write(tmp_path / "other-reference.wav")
     assert "is not the window's voice.wav" in reason("--reference", str(other), "--sim-python", python)
     assert "sim.threads" in reason("--reference", str(bench["reference"]), "--sim-python", python, "--sim-threads", "9")
+
+
+def test_decoys_4_and_5_rebuild_beside_sim_and_serialise(score_module, bench, ffmpeg):
+    worker = str(bench["worker"]())
+    doc = scored(
+        score_module,
+        bench,
+        "--reference",
+        str(bench["reference"]),
+        "--sim-python",
+        worker,
+        "--decoys",
+        "--decoy-arm",
+        "A9-fake",
+    )
+    names = [d["decoy"] for d in doc["decoys"]]
+    assert names == ["4-half-silence", "4-reversed", "5-shuffled-transcript"]
+    assert all(set(d["observed"]) >= {"audio_s", "catastrophic"} and "pcm" not in d["observed"] for d in doc["decoys"])
+    assert doc["decoys"][0]["valid"] is True and doc["decoys"][1]["valid"] is None
+    assert "Decoy 4-half-silence: expected catastrophic, valid True" in (bench["out"] / "scored.md").read_text()
