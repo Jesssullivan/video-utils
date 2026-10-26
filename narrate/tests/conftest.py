@@ -18,9 +18,11 @@ LEXICAL = Path(__file__).resolve().parent / "fixtures" / "lexical"
 
 
 @pytest.fixture(autouse=True)
-def hermetic_env(monkeypatch):
+def hermetic_env(monkeypatch, tmp_path):
     """The fixtures name every input. `just` exports WHISPER_MODEL (just/condense.just), and an operator may export
-    the private store, lexical release or engine token; none of them may reach a test."""
+    the private store, lexical release or engine token; none of them may reach a test. Each test has its own
+    one-scorer lock file, so a scorer running on the host never turns a test's SIM into not_measured."""
+    monkeypatch.setenv("NARRATE_SCORER_LOCK", str(tmp_path / "scorer.lock"))
     for name in (
         "WHISPER_MODEL",
         "NARRATE_WHISPER_MODEL",

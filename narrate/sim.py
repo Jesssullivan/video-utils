@@ -10,10 +10,14 @@ NARRATE_SIM_PYTHON (the worker interpreter), `[sim] threads` (1 to 8; default 4)
 models/<SIM_MODEL_ID>.bin is used when `just narrate-sim-model` has fetched it. The interpreter has no default:
 torch inference starts only when someone names it. On the shared CPU host a scorer runs one at a time inside a
 6G memory scope (systemd-run --user --scope -p MemoryMax=6G -p MemorySwapMax=0, nice 19, ionice -c3); no TTS
-model runs there. Every embedded file is at most MAX_SECONDS long, because the worker's memory grows with the
-length it embeds (a probe that embedded two 222 s and 266 s tracks peaked at 4.7 GB resident). Without a model
-file, with a file whose sha256 is not the registered one, without an interpreter, or when the worker cannot run
-or answers out of protocol, SIM is not_measured with the reason, never a number.
+model runs there. scorer_lock() is the host's one-scorer lock: `narrate evaluate` holds it while whisper or the
+SIM worker runs, and so does the bench scorer; the MCP tool also starts `narrate evaluate` inside that scope on
+Linux. Every embedded file is at most MAX_SECONDS long, because the worker's memory grows with the length it
+embeds (a probe that embedded two 222 s and 266 s tracks peaked at 4.7 GB resident): a longer chunk is skipped
+and marked too_long, never sent. Without a model file, with a file whose sha256 is not the registered one, without
+an interpreter, or when the worker cannot run or answers out of protocol, SIM is not_measured with the reason,
+never a number. A run with no chunk short enough to score is not_measured too, and a run with a skipped chunk has
+no passed verdict (None).
 
 Consent: an ECAPA embedding is a voiceprint. Every reference voice (the speaking voices the manifest names, or
 --reference-voice) passes policy.check_consent against the current registry before any clip is read: a revoked,
@@ -29,6 +33,8 @@ codec) moves it as well as the voice does. It is evidence for a gate the bench c
 judgement that a listener hears the same person. Listening acceptance is a separate state.
 """
 
+import contextlib
+import fcntl
 import json
 import math
 import os
@@ -51,6 +57,32 @@ DEFAULT_MODEL = ROOT / "models" / f"{SIM_MODEL_ID}.bin"  # where `just narrate-s
 # A wSIM window scores only when it holds MIN_VOICED_S of frames above VOICED_DBFS: padding to cue times can leave
 # windows of silence, whose embedding measures nothing about voice drift.
 FRAME_S, VOICED_DBFS, MIN_VOICED_S = 0.02, -45.0, 3.0
+# The host's one-scorer lock file: $XDG_RUNTIME_DIR (else the temporary directory)/SCORER_LOCK_NAME, or the path
+# NARRATE_SCORER_LOCK names (tests).
+SCORER_LOCK_NAME, SCORER_LOCK_ENV = "video-utils-narrate-scorer.lock", "NARRATE_SCORER_LOCK"
+SCORER_BUSY = "another narrate scorer holds the host's one-scorer lock; scorers run one at a time"
+
+
+def scorer_lock_path():
+    if os.environ.get(SCORER_LOCK_ENV):
+        return Path(os.environ[SCORER_LOCK_ENV])
+    return Path(os.environ.get("XDG_RUNTIME_DIR") or tempfile.gettempdir()) / SCORER_LOCK_NAME
+
+
+@contextlib.contextmanager
+def scorer_lock():
+    """Hold the one-scorer lock while whisper or the SIM worker runs. Yields True when held, False when another
+    scorer holds it (never waits). The lock is an flock on an open file, so a killed holder releases it."""
+    fd = os.open(scorer_lock_path(), os.O_RDWR | os.O_CREAT, 0o600)
+    try:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            yield False
+            return
+        yield True
+    finally:
+        os.close(fd)
 
 
 class Scorer:
@@ -256,15 +288,20 @@ def evaluate(run_dir, manifest, cfg, reference_voice=None, scorer=None):
     missing = sorted({digest for _, digest in refs.values() if digest not in index})
     if missing:
         return qa.not_measured(f"reference clip {missing[0][:12]} is not in the private store")
+    if not manifest["chunks"]:
+        return qa.not_measured("the run has no chunk to score")
     delivered = audio.read(Path(run_dir) / "narration.wav")
     with tempfile.TemporaryDirectory() as work:
         work = Path(work)
         ref_paths = {d: to16k(index[d], work / f"ref-{d[:16]}.wav") for d in {d for _, d in refs.values()}}
-        pairs, seconds = [], {}
+        pairs, seconds, skipped = [], {}, []
         for chunk in manifest["chunks"]:
             a, b = round(chunk["out_start_s"] * delivered.rate), round(chunk["out_end_s"] * delivered.rate)
             piece = audio.Pcm(delivered.rate, delivered.samples[a:b])
             seconds[chunk["id"]] = round(piece.seconds, 3)
+            if piece.seconds > MAX_SECONDS:
+                skipped.append(chunk["id"])  # the worker would refuse the whole request: only this chunk goes
+                continue
             path = to16k(piece.write(work / f"chunk-{chunk['id']}.raw.wav"), work / f"chunk-{chunk['id']}.wav")
             pairs.append((chunk["id"], path, ref_paths[refs[chunk["id"]][1]]))
         single = len(set(ref_paths)) == 1
@@ -280,6 +317,8 @@ def evaluate(run_dir, manifest, cfg, reference_voice=None, scorer=None):
                 path = work / f"{wid}.wav"
                 run(*FF, "-loglevel", "error", "-i", whole, "-ss", f"{start:.3f}", "-t", f"{WINDOW_S:.3f}", path)
                 windows.append((wid, path, next(iter(ref_paths.values())), start))
+        if not pairs and not windows:
+            return qa.not_measured(f"no chunk is at most {MAX_SECONDS:.0f} s long and no wSIM window has voice")
         try:
             rows = scorer.score(pairs + [(w, p, r) for w, p, r, _ in windows])
         except RuntimeError as error:
@@ -288,13 +327,14 @@ def evaluate(run_dir, manifest, cfg, reference_voice=None, scorer=None):
         {
             "chunk": cid,
             "voice": refs[cid][0],
-            "sim": rows[cid]["sim"],
+            "sim": rows[cid]["sim"] if cid in rows else None,
             "seconds": seconds[cid],
             **({"short": True} if seconds[cid] < SHORT_S else {}),
+            **({"skipped": "too_long"} if cid in skipped else {}),
         }
-        for cid, _, _ in pairs
+        for cid in (c["id"] for c in manifest["chunks"])
     ]
-    values = [c["sim"] for c in chunks]
+    values = [c["sim"] for c in chunks if c["sim"] is not None]
     gates = manifest["job"]["gates"]
     out = {
         "status": "measured",
@@ -309,8 +349,11 @@ def evaluate(run_dir, manifest, cfg, reference_voice=None, scorer=None):
         "min": min(values) if values else None,
         "min_sim": gates["minSim"],
         "calibrated": gates["calibrated"],
-        "passed": all(v >= gates["minSim"] for v in values),
+        # an unscored chunk is no evidence for the gate: passed is None, never True, while one is skipped
+        "passed": None if skipped or not values else all(v >= gates["minSim"] for v in values),
     }
+    if skipped:
+        out["skipped_too_long"] = len(skipped)
     if single:
         wsim = [rows[w]["sim"] for w, _, _, _ in windows]
         out["wsim"] = {

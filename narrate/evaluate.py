@@ -6,7 +6,9 @@ narration.wav (after timing fit and loudnorm, as consumers hear it) and read bac
 when it is available, else not_measured. SIM scores the same cuts against the speaking voice's reference clip with
 the registered speaker-verification model (narrate/sim.py), plus wSIM over 10 s windows; without the model, the
 worker interpreter or a narrate.toml it is not_measured. --reference-voice scores every chunk against another
-voice's clip instead (a decoy or a cross-voice check). Prints JSON; writes nothing.
+voice's clip instead (a decoy or a cross-voice check). wer and sim run under the host's one-scorer lock
+(narrate.sim.scorer_lock): while another scorer holds it they are not_measured, never queued. Prints JSON; writes
+nothing.
 """
 
 import json
@@ -45,6 +47,19 @@ def evaluate(run_dir, metrics=METRICS, cfg=None, reference_voice=None, scorer=No
         out["metrics"]["overruns"] = [
             {"segment": s["id"], "overrun_s": s["overrun_s"]} for s in edl["segments"] if "overrun" in s["flags"]
         ]
+    scorers = [m for m in ("wer", "sim") if m in metrics]
+    if scorers:
+        with sim.scorer_lock() as held:
+            if held:
+                out["metrics"] |= scored(run_dir, manifest, scorers, cfg, reference_voice, scorer)
+            else:
+                out["metrics"] |= {m: qa.not_measured(sim.SCORER_BUSY) for m in scorers}
+    return out
+
+
+def scored(run_dir, manifest, metrics, cfg, reference_voice, scorer):
+    """wer and sim: whisper and the SIM worker, run only while the one-scorer lock is held."""
+    out = {"metrics": {}}
     if "wer" in metrics:
         whisper = qa.Whisper(cfg) if cfg is not None else None
         ready = whisper.available() if whisper else (False, "no narrate.toml given (--config)")
@@ -69,4 +84,4 @@ def evaluate(run_dir, metrics=METRICS, cfg=None, reference_voice=None, scorer=No
             }
     if "sim" in metrics:
         out["metrics"]["sim"] = sim.evaluate(run_dir, manifest, cfg, reference_voice, scorer)
-    return out
+    return out["metrics"]

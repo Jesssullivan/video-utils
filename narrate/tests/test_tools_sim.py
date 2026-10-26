@@ -212,6 +212,42 @@ def test_a_revoked_consent_stops_sim_before_any_worker(workspace, ffmpeg, tmp_pa
     assert result["status"] == "not_measured" and result["refused"] == "consent_revoked"
 
 
+def test_a_chunk_over_the_worker_limit_is_skipped_and_leaves_no_verdict(workspace, ffmpeg, tmp_path, monkeypatch):
+    toml, final = sim_workspace(workspace, tmp_path, monkeypatch)
+    manifest = json.loads((final / "manifest.json").read_text())
+    seconds = sorted(c["out_end_s"] - c["out_start_s"] for c in manifest["chunks"])
+    assert seconds[0] < seconds[-1]
+    monkeypatch.setattr(sim, "MAX_SECONDS", (seconds[0] + seconds[-1]) / 2)
+    result = evaluate.evaluate(final, ("sim",), Config(toml))["metrics"]["sim"]
+    skipped = [c for c in result["chunks"] if c.get("skipped") == "too_long"]
+    assert skipped and all(c["sim"] is None for c in skipped) and len(result["chunks"]) == len(seconds)
+    assert result["skipped_too_long"] == len(skipped) and result["passed"] is None
+    assert result["median"] == 0.83  # the shorter chunks still scored in the same request
+    monkeypatch.setattr(sim, "MAX_SECONDS", 0.01)
+    result = evaluate.evaluate(final, ("sim",), Config(toml))["metrics"]["sim"]
+    assert result["median"] is None and result["passed"] is None and result["wsim"]["min"] == 0.83
+
+
+def test_an_empty_run_is_not_measured(workspace, ffmpeg, tmp_path, monkeypatch):
+    toml, final = sim_workspace(workspace, tmp_path, monkeypatch)
+    manifest = json.loads((final / "manifest.json").read_text())
+    result = sim.evaluate(final, {**manifest, "chunks": []}, Config(toml))
+    assert result["status"] == "not_measured" and "no chunk" in result["reason"] and "passed" not in result
+
+
+def test_scorers_run_one_at_a_time(workspace, ffmpeg, tmp_path, monkeypatch):
+    toml, final = sim_workspace(workspace, tmp_path, monkeypatch)
+    with sim.scorer_lock() as held:
+        assert held
+        with sim.scorer_lock() as again:
+            assert again is False
+        metrics = evaluate.evaluate(final, ("loudness", "wer", "sim"), Config(toml))["metrics"]
+    assert metrics["loudness"]["passed"] is not None
+    for name in ("wer", "sim"):
+        assert metrics[name]["status"] == "not_measured" and metrics[name]["reason"] == sim.SCORER_BUSY
+    assert evaluate.evaluate(final, ("sim",), Config(toml))["metrics"]["sim"]["status"] == "measured"
+
+
 def test_sim_has_no_default_interpreter_and_bounded_threads(workspace, tmp_path):
     cfg = Config(workspace.write(SLIDE))
     assert cfg.sim["python"] == ""
