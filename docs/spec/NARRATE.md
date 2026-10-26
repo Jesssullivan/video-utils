@@ -60,10 +60,12 @@ input adapters -> script IR -> lexical pass -> spoken normalisation -> chunker
 2. **Lexical pass** (xoxd-lexical; see "Lexical pin contract"). Advisory Vale
    findings are recorded. An agent rewrite is accepted only if the
    RewriteCheck holds.
-3. **Spoken normalisation.** The Dhall pronunciation table
-   (`Pronunciation.dhall`) expands acronyms, units and symbols the engine
-   misreads. It changes how a value is said, never the value. The manifest
-   records the table id and digest and every substitution made.
+3. **Spoken normalisation.** First, each recognised numeric range and dollar
+   amount is said in words (see "Ranges and money"). Then the Dhall
+   pronunciation table (`Pronunciation.dhall`) expands acronyms, units and
+   symbols the engine misreads. It changes how a value is said, never the
+   value. The manifest records the table id and digest, every substitution
+   made and every range or amount expansion.
 4. **Chunker.** Split at sentence, then paragraph boundaries into chunks of at
    most `chunkMaxCodepoints` (300 by default). A sentence longer than the limit
    splits at a clause boundary, then at whitespace. Voice continuity uses the
@@ -80,7 +82,10 @@ input adapters -> script IR -> lexical pass -> spoken normalisation -> chunker
      against the written chunk text and against its spoken projection, keeping
      the lower. Before the written comparison, each pronunciation entry's spoken
      words in the transcript are mapped back to its written form, so "MCP" and
-     "M C P" are both a correct reading of `MCP`.
+     "M C P" are both a correct reading of `MCP`. Each comparison also runs
+     with any range or dollar amount the transcript wrote in digits said in
+     words, so "$5 to $10" and "five to ten dollars" are both a correct reading
+     of `$5–$10`.
    - Speaker similarity (SIM) between the chunk and the reference clip with a
      registered speaker-verification model.
    - A chunk that fails either gate is regenerated with a new seed, at most
@@ -191,6 +196,79 @@ table, `lexical.UNITS`, which the RewriteCheck and the chunker also protect. The
 guard is a bounded regex check, not a proof of semantic equivalence; entries
 still need review. The pinned 47-entry table passes the text-only consumer
 qualification.
+The guard never lets a table entry turn `3-5` into `3 to 5`; ranges are said
+by the next section's stage, which checks its own output by value.
+
+### Ranges and money
+
+`narrate/amounts.py` runs before both pronunciation layers. It is engine
+agnostic: every engine receives the same words. The written script, the
+chunks' written text and the captions keep their digits.
+
+| Written | Spoken |
+| --- | --- |
+| `$12,400–$27,000` | twelve thousand four hundred to twenty-seven thousand dollars |
+| `17–19 Oak Lane` | seventeen to nineteen Oak Lane |
+| `120–275 h` | one hundred twenty to two hundred seventy-five hours |
+| `$2,346.08` | two thousand three hundred forty-six dollars and eight cents |
+| `$700` | seven hundred dollars |
+| `$4.75–$9.20` | four dollars and seventy-five cents to nine dollars and twenty cents |
+| `5-12%`, `$5-$10` | five to twelve percent, five to ten dollars |
+| `$600 through $850` | six hundred through eight hundred fifty dollars |
+
+- A range is two unsigned amounts in ascending order joined by an en dash
+  (no spaces, or one space on each side), by `to` or `through`, or by a
+  hyphen-minus with no spaces. A hyphen-minus, `to` or `through` range needs
+  a `$` or a recognised unit to mark it: `314-422` and `3 to 5` stay as
+  written. `B`, `x` and `dB` do not mark a hyphen-minus range (`Apt 3-4 B`,
+  `rooms 2-4 x 8`, `10-5 dB`). A money range joined by `to` or `through`
+  needs a `$` on both sides.
+- A unit after the second amount comes from `lexical.UNITS` and is said by its
+  plural spoken alias; a unit after the first amount must be the same unit.
+  `B` is never a range's unit, `x` only against the digits (`2–3x`), and a
+  bare `s` written against the digits is not taken as a unit (`1990–2000s`).
+- Left as written: signed amounts (`-$5`, `-5–10 dB`); amounts next to a
+  letter, digit, underscore, slash, dot, comma, colon, `#`, `@`, `§`, a
+  currency sign other than a leading `$`, a sign or another dash (`x86-64`,
+  `A7_31/0/88`, `2026-10-26`, `9:00–10:30`, `1–2–3`, `€5–10`, `TIN-7087`);
+  money with a scale word or suffix (`$2 million`, `$5k`, `$5-year`); cents
+  not in two digits (`$1.5`); leading zeros (`01–05`); descending or equal
+  ranges (`10–5`); an em dash or a spaced hyphen-minus (`5—10`, `5 - 10`);
+  and a range with no `$` or unit whose integer part has four or more
+  ungrouped digits: years, phone numbers and standards (`1990–1995`,
+  `555–1234`, `ISO 9001–2015`). `1,200–1,450`, `$1000–$2000` and
+  `1000–2000 h` are still said.
+- A pronunciation entry with a digit in its written form is the opt-out: the
+  stage leaves any span such an entry matches, in either layer, as written
+  for the entry to say (`17–19` -> `17 through 19`). The digit and quantity
+  guard still checks that entry.
+- Each expansion is read back: an independent parser turns the spoken words
+  into values, unit and connector, and any difference from the written digits
+  refuses the render (`NormaliseError`). Grouping commas are not part of the
+  value; every other digit is (`1.50 s` is said "one point five zero").
+- The pronunciation tables never see an expansion's words. Each expansion is
+  held out of the text while both layers run and put back afterwards, so a
+  table entry cannot change a value or unit after the read-back (`fifteen` ->
+  `sixteen` and `dollars` -> `euros` do not reach an expansion), and the
+  manifest's spoken form is what the engine receives.
+- The manifest's `pronunciation.expansions` lists each expansion per segment
+  with its kind, written and spoken forms, connector, values with units and
+  count. WER maps a spoken expansion in the transcript back to its written
+  form, as it does a table entry.
+- The chunker never splits inside a written range or amount, as it never
+  splits a protected span.
+- The RewriteCheck accepts a rewrite that says a recognised range or amount in
+  words when the words read back to the original's values and form a whole
+  number phrase: no sign word or sign before them, and no number, `and` with
+  a number, scale word, `hundred`, `point`, cents, currency or unit after
+  them. `seventeen to nineteen` keeps `17–19`; `eighteen to nineteen`,
+  `seventeen to nineteen hundred`, `minus five dollars` for `$5`, or `$12400`
+  for `$12,400`, is refused. A number the recogniser does not take (`3 to 5`)
+  must keep its digits.
+
+This is a bounded recogniser, not a general number parser. Only dollars are
+said; other currencies stay as written for the engine.
+
 The private lexical release stays outside this public repository. No table or
 Vale style is vendored into public source, and no implicit fetch is added.
 

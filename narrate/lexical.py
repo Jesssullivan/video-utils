@@ -13,7 +13,9 @@ path; every pinned file's sha256 must match or the pass refuses. Nothing is fetc
   the record says not_run. Vale never blocks.
 - RewriteCheck (XL-ACC-001 and XL-ACC-002): a rewrite of the script (an agent's, after it read
   the prompt digest) is accepted only when every number, unit, version, link, path, ticket, handle and
-  identifier it speaks is the same, byte for byte and in the same order, as the original's.
+  identifier it speaks is the same, byte for byte and in the same order, as the original's. A recognised range or
+  dollar amount the rewrite says in words (amounts.find) counts as kept when the words read back to the original's
+  values: "seventeen to nineteen" keeps "17–19", "eighteen to nineteen" does not.
 """
 
 import json
@@ -239,8 +241,11 @@ def protected_spans(text):
 
 def rewrite_check(before, after):
     """[] when the rewrite keeps every protected span; else one violation per difference (XL-ACC-001 for a span
-    only the rewrite has, XL-ACC-002 for one it changed, dropped or reordered)."""
-    a, b = protected_spans(before), protected_spans(after)
+    only the rewrite has, XL-ACC-002 for one it changed, dropped or reordered). A range or amount the rewrite says
+    in words is first put back as the original's written form when its words read back to the same values."""
+    from .amounts import restore  # amounts reads this module's UNITS
+
+    a, b = protected_spans(before), protected_spans(restore(before, after))
     violations = []
     missing = [s for s in a if s not in b]
     added = [s for s in b if s not in a]
