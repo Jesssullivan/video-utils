@@ -77,7 +77,10 @@ input adapters -> script IR -> lexical pass -> spoken normalisation -> chunker
 6. **Per-chunk QA.**
    - Round-trip the chunk through whisper.cpp (the `condense` shell's
      registered `small.en` model or a larger registered one) and compute WER
-     against the normalised chunk text.
+     against the written chunk text and against its spoken projection, keeping
+     the lower. Before the written comparison, each pronunciation entry's spoken
+     words in the transcript are mapped back to its written form, so "MCP" and
+     "M C P" are both a correct reading of `MCP`.
    - Speaker similarity (SIM) between the chunk and the reference clip with a
      registered speaker-verification model.
    - A chunk that fails either gate is regenerated with a new seed, at most
@@ -175,8 +178,11 @@ A job pins one xoxd-lexical release by all of:
 
 The digest-verified `estate-lexicon.json` also authenticates the shared
 pronunciation table. Narration refuses a missing or malformed table. Its entries
-run in longest-written-form order before the explicit local Dhall table. Both
-layers keep separate digest/substitution evidence. Written-script RewriteCheck
+run in longest-written-form order before the explicit local Dhall table. The
+local table is an overlay: a local entry whose written form matches an upstream
+entry's, ignoring case, replaces that upstream entry, and the manifest lists
+each replaced upstream entry in `pronunciation.upstream.overridden_by_local`.
+Both layers keep separate digest/substitution evidence. Written-script RewriteCheck
 runs before either spoken projection. Both layers retain the existing digit-run
 guard. It does not prove semantic equivalence for signs or units; pronunciation
 entries require review to preserve those values too. The pinned 47-entry table

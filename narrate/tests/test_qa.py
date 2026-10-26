@@ -67,3 +67,35 @@ def test_max_takes_bounds_the_loop():
 def test_not_measured_takes_once_and_never_claims_a_pass():
     seeds, record = run({}, measured=False)
     assert seeds == [10] and record["status"] == "not_measured" and record["takes"][0]["passed"] is None
+
+
+# Synthetic respellings shaped like a pronunciation table's: the spoken projection is what the engine reads, a
+# transcriber writes either form back. Neither correct reading may fail the WER gate.
+RESPELL = [("ex oh ex dee", "xoxd"), ("S S O T", "SSOT"), ("M C P", "MCP"), ("koo ber net eez", "Kubernetes")]
+
+
+@pytest.mark.parametrize(
+    "written,spoken,heard",
+    [
+        ("xoxd-lexical is pinned", "ex oh ex dee-lexical is pinned", "xoxd-lexical is pinned"),
+        ("xoxd-lexical is pinned", "ex oh ex dee-lexical is pinned", "ex oh ex dee-lexical is pinned"),
+        ("the SSOT lives here", "the S S O T lives here", "the SSOT lives here"),
+        ("the SSOT lives here", "the S S O T lives here", "The S S O T lives here."),
+        ("MCP server", "M C P server", "MCP server"),
+        (
+            "the SSOT and MCP on Kubernetes",
+            "the S S O T and M C P on koo ber net eez",
+            "the SSOT and M C P on Kubernetes",
+        ),
+    ],
+)
+def test_a_correct_reading_passes_whichever_form_the_transcript_writes(written, spoken, heard):
+    assert qa.chunk_wer(written, spoken, heard, RESPELL) == 0.0
+
+
+def test_a_misread_respelled_term_still_fails():
+    written, spoken = "the SSOT and MCP", "the S S O T and M C P"
+    assert qa.chunk_wer(written, spoken, "the SSO and M C P", RESPELL) > GATES["maxChunkWer"]
+    assert qa.chunk_wer(written, spoken, "the S S O and MCP", RESPELL) > GATES["maxChunkWer"]
+    assert qa.chunk_wer(written, spoken, "the SSOT and MCP", ()) == 0.0
+    assert qa.chunk_wer(written, spoken, "the SSOT and M C P", ()) > GATES["maxChunkWer"]

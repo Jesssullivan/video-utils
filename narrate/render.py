@@ -206,13 +206,15 @@ class Renderer:
             raise RenderError("input_empty", "nothing to speak")
 
     # -- audio -------------------------------------------------------------------------------------------
-    def measure(self, pcm, text, work):
+    def measure(self, pcm, chunk, spoken, work):
+        """WER scores the transcript against the written chunk and its spoken projection (qa.chunk_wer)."""
+        aliases = self.normaliser.aliases(chunk.text, chunk.segment)
         if self.transcriber is not None:
-            heard = self.transcriber(pcm, text)
-            wer = {"status": "measured", "value": qa.wer(text, heard), "heard": heard}
+            heard = self.transcriber(pcm, spoken)
+            wer = {"status": "measured", "value": qa.chunk_wer(chunk.text, spoken, heard, aliases), "heard": heard}
         elif self.whisper_ready[0]:
             heard = self.whisper.read(pcm)
-            wer = {"status": "measured", "value": qa.wer(text, heard), "heard": heard}
+            wer = {"status": "measured", "value": qa.chunk_wer(chunk.text, spoken, heard, aliases), "heard": heard}
         else:
             wer = qa.not_measured(self.whisper_ready[1])
         return {"wer": wer, "sim": qa.sim(self.cfg)}
@@ -229,7 +231,9 @@ class Renderer:
                 self.rate = pcm.rate
             return pcm, {**facts, "reply_sha256": sha256_bytes(data), "converted": converted}
 
-        return qa.best_of(spoken, synth, lambda pcm, text: self.measure(pcm, text, work), self.job["gates"], self.seed)
+        return qa.best_of(
+            spoken, synth, lambda pcm, text: self.measure(pcm, chunk, text, work), self.job["gates"], self.seed
+        )
 
     def assemble(self, segment, synthesized):
         """(segment pcm, [(chunk, start_s, end_s)]) with sentence, paragraph and direction pauses."""
