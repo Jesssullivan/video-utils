@@ -32,6 +32,7 @@ MODULES = (
     "render",
     "sim",
     "sim_worker",
+    "tempo",
     "verify",
 )
 

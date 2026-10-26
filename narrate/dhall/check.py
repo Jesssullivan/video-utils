@@ -41,6 +41,7 @@ TONE_HZ = 375
 SECONDS = 10
 AMPLITUDE = 8192
 REF_CLIP_SECONDS = (10, 30)
+TEMPO_RANGE = (0.5, 2.0)  # Voice.dhall tempo; narrate/audio.py TEMPO_RANGE
 FIXTURE_TEXT = "Synthetic sine fixture. This is not a voice and no person spoke it.\n"
 FIXTURE_CONSENT = ("Fixture consent record for the synthetic sine voice used by narrate tests. "
                    "It grants nothing for any real speaker.\n")
@@ -153,6 +154,10 @@ def check_examples(data: dict, errors: list) -> None:
         low, high = REF_CLIP_SECONDS
         if not low <= voice["refClipSeconds"] <= high:
             errors.append(f"examples: voice {voice['id']} reference clip is not {low} to {high} s")
+        tempo = voice.get("tempo")
+        if tempo is not None and (isinstance(tempo, bool) or not isinstance(tempo, (int, float))
+                                  or not TEMPO_RANGE[0] <= tempo <= TEMPO_RANGE[1]):
+            errors.append(f"examples: voice {voice['id']} tempo {tempo!r} is not {TEMPO_RANGE[0]} to {TEMPO_RANGE[1]}")
         if not voice["fixture"]:
             errors.append(f"examples: voice {voice['id']} is not a fixture; real voices live outside git")
             continue
@@ -354,6 +359,7 @@ def mutations() -> list:
         ("voice scope not granted", lambda d, m: voice(d).update(scope="ClientDisclosed")),
         ("job scope not granted", lambda d, m: job(d).update(scope="ClientDisclosed")),
         ("voice names no consent", lambda d, m: voice(d).update(consentId="no-such-consent")),
+        ("voice tempo out of range", lambda d, m: voice(d).update(tempo=0.4)),
         ("unmapped dialog speaker voice", lambda d, m: job(d).update(
             speakers=[{"speaker": "B", "voice": "no-such-voice"}])),
         ("reference clip too short", lambda d, m: voice(d).update(refClipSeconds=1.0)),

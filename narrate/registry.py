@@ -155,4 +155,5 @@ def add_voice(cfg, clip, transcript, voice_id, consent_id, scope="OwnContent", e
         "refClipSeconds": round(seconds, 3),
         "refClipSampleRateHz": rate,
         "fixture": False,
+        "tempo": None,
     }

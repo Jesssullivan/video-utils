@@ -1,5 +1,5 @@
-"""Mono 16-bit PCM WAV in and out, silence, and the FFmpeg steps: canonical form, atempo, two-pass loudnorm,
-EBU R128 measurement and FLAC.
+"""Mono 16-bit PCM WAV in and out, silence, and the FFmpeg steps: canonical form, atempo, a voice's time stretch,
+two-pass loudnorm, EBU R128 measurement and FLAC.
 
 Chunk audio stays at the engine's native rate. Only a reply that is not mono 16-bit PCM at that rate passes
 through FFmpeg to become so; the conversion is recorded by the caller.
@@ -10,6 +10,7 @@ import io
 import json
 import math
 import re
+import shutil
 import sys
 import wave
 from pathlib import Path
@@ -108,6 +109,59 @@ def atempo(pcm, factor, work):
         target,
     )
     return read(target)
+
+
+TEMPO_RANGE = (0.5, 2.0)  # one FFmpeg atempo filter; no chain of filters reaches past it
+PCM_CODECS = {1: "pcm_u8", 2: "pcm_s16le", 3: "pcm_s24le", 4: "pcm_s32le"}
+
+
+def wav_format(path):
+    """(channels, sample width in bytes, rate, frames) of a PCM WAV file. Raises ValueError for anything else."""
+    try:
+        with wave.open(str(path)) as w:
+            if w.getcomptype() != "NONE" or w.getsampwidth() not in PCM_CODECS:
+                raise ValueError(f"{path} is not PCM WAV")
+            return w.getnchannels(), w.getsampwidth(), w.getframerate(), w.getnframes()
+    except (wave.Error, EOFError) as error:
+        raise ValueError(f"{path} is not PCM WAV: {error}") from None
+
+
+def time_stretch(path_in, path_out, factor):
+    """path_in played factor times faster into path_out, pitch kept (one FFmpeg atempo), at the input's sample rate,
+    channels and sample width. A factor of None or 1.0 copies the bytes and calls no FFmpeg. Returns path_out's
+    duration in seconds. Raises ValueError for a factor outside TEMPO_RANGE or an input that is not PCM WAV."""
+    low, high = TEMPO_RANGE
+    if factor is not None and (
+        isinstance(factor, bool) or not isinstance(factor, (int, float)) or not low <= factor <= high
+    ):
+        raise ValueError(f"tempo {factor!r} is outside {low} to {high}")
+    channels, width, rate, frames = wav_format(path_in)
+    if factor is None or factor == 1.0:
+        if Path(path_in).resolve() != Path(path_out).resolve():
+            shutil.copyfile(path_in, path_out)
+        return frames / rate
+    run(
+        *FF,
+        "-v",
+        "error",
+        "-i",
+        path_in,
+        "-af",
+        f"atempo={factor:.6f}",
+        "-ac",
+        str(channels),
+        "-ar",
+        str(rate),
+        "-c:a",
+        PCM_CODECS[width],
+        "-fflags",
+        "+bitexact",
+        "-flags:a",
+        "+bitexact",
+        path_out,
+    )
+    _, _, out_rate, out_frames = wav_format(path_out)
+    return out_frames / out_rate
 
 
 def loudnorm_json(stderr):

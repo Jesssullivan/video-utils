@@ -24,6 +24,7 @@ from . import adapters, audio, chunker, engine, lexical, policy, qa, verify
 from .config import guard_out, run
 from .ir import canonical, sha256_bytes, sha256_file, sha256_text
 from .normalise import Normaliser
+from .tempo import apply_tempo, check_voices, voice_tempo
 
 SCHEMA_VERSION = 1
 MAPPING = "narration_v1"
@@ -190,6 +191,7 @@ class Renderer:
         self.engine, self.voices, self.consents = policy.admit(
             job, self.script, self.registry, self.index, self.engine_id
         )
+        check_voices(self.voices.values())
         self.release = lexical.Release(self.cfg.lexical, job["lexical"])
         table = self.registry["pronunciation"].get(job["pronunciation"])
         if table is None:
@@ -230,6 +232,7 @@ class Renderer:
             pcm, converted = audio.canonical(data, rate or self.rate, work)
             if self.rate is None:
                 self.rate = pcm.rate
+            pcm, facts = apply_tempo(pcm, voice, facts, work)  # the voice's tempo, before QA and the fit
             return pcm, {**facts, "reply_sha256": sha256_bytes(data), "converted": converted}
 
         return qa.best_of(
@@ -377,6 +380,7 @@ class Renderer:
                     "id": segment.id,
                     "speaker": segment.speaker,
                     "voice": voice["id"],
+                    "voice_tempo": voice_tempo(voice),
                     "origin": segment.origin,
                     "out_start_s": round(start, 4),
                     "out_end_s": round(end, 4),
@@ -577,6 +581,7 @@ def voice_record(speaker, voice, consents):
         "consent_id": consent["id"],
         "scope": voice["scope"],
         "fixture": voice["fixture"],
+        "tempo": voice_tempo(voice),
         "synthetic_label_required": consent["syntheticLabelRequired"],
         "hosted_allowed": consent["hostedAllowed"],
     }

@@ -103,6 +103,19 @@ input adapters -> script IR -> lexical pass -> spoken normalisation -> chunker
      `overrun` with its excess, never truncated and never stretched further.
 8. **Outputs** (see "Outputs and where they live").
 
+### Voice tempo (2026-10-26)
+
+Operator ruling 2026-10-26: a persona voice may speak faster than its engine,
+approved at 1.1. `Voice.dhall` carries `tempo : Optional Double` (0.5 to 2.0;
+`None` is 1.0). Between steps 5 and 6, every take passes through one
+pitch-preserving FFmpeg `atempo` at the voice's factor, at its own sample rate
+(`narrate/tempo.py`, `audio.time_stretch`). QA scores that take, and step 7's
+timing fit works on top of it, so its plus or minus 8% stays the fit's own. A
+tempo of 1.0 leaves the take untouched; a value out of range is refused before
+any audio (`voice_tempo_invalid`). The manifest records `tempo` and
+`pre_tempo_seconds` per take and `tempo` per voice; each EDL segment records
+`voice_tempo`. The segment's `stretch_applied` still means the fit alone.
+
 ## Engine profiles
 
 A profile is how a job reaches an engine. Real engine instances carry private

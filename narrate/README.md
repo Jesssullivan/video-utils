@@ -94,6 +94,16 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
   with a synthetic-voice notice when the consent record asks for one. Whisper alignment of the delivered audio
   is a later step.
 
+## Voice tempo
+
+A voice may carry `tempo` (`Voice.dhall`, `Optional Double`, 0.5 to 2.0; `None` is 1.0). `tempo.py` applies it to
+every take right after the engine returns it: one FFmpeg `atempo`, pitch kept, at the take's sample rate
+(`audio.time_stretch`). WER and SIM score the changed take, and the timing fit (speed knob, then `atempo` within
+`fitMaxStretch`) works on top of it. A tempo of 1.0 calls no FFmpeg. A value out of range is refused before any
+audio exists (`voice_tempo_invalid`). Each take records `tempo` and `pre_tempo_seconds`, each manifest voice its
+`tempo` and each EDL segment its `voice_tempo`. The EDL's `speed`, `atempo` and `stretch_applied` describe the fit
+alone. A persona voice the operator approved at 1.1 sets `tempo = Some 1.1` in the private registry.
+
 ## Host placement and memory
 
 The rule, after the CPU host was driven to NotReady by narration work on 2026-10-23:

@@ -38,6 +38,7 @@ def test_markdown_render_verifies_and_records_everything(workspace):
             "consent_id": "consent-fixture-sine",
             "scope": "OwnContent",
             "fixture": True,
+            "tempo": 1.0,
             "synthetic_label_required": True,
             "hosted_allowed": False,
         }
