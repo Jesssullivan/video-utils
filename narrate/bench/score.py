@@ -34,9 +34,10 @@ included) as unmet, as is a decoy check that is not valid. Without any input SIM
 Each arm records the conditioning reference its receipt names (label, wav and text sha256, and the voice clip it was
 cut from), and the output's `conditioning` flags arms that cloned from different references, and a SIM reference
 that is not the clip an arm's conditioning came from, so SIM and WER are never read as like for like across them.
-`conditioning.groups` lists the arms that share one conditioning reference: within a group the comparison is like
-for like. A window whose arms used different references (window 2: A3-gpu and the matched-cut controls on the max14s
-cut, A1-gpu and A2-gpu-alt on the full clip) is still scored against the one full clip; `matched` sets each
+`conditioning.groups` lists the arms that share one conditioning reference, with each arm's variant: within a group
+the reference is like for like, and the variant shows whether an arm fell back to another conditioning path. A
+window whose arms used different references (window 2: A3-gpu and the matched-cut controls on the max14s cut, A1-gpu
+and A2-gpu-alt on the full clip) is still scored against the one full clip; `matched` sets each
 matched-cut arm (receipt `matched_cut_of`) beside the arm it controls: variant, SIM median, wSIM, the bars, seed-1
 WER, catastrophic chunks and RTF, and the cut-minus-full differences. When the window verified no voice.wav (only cut
 arms ran), the SIM reference is bound to the one voice clip the receipts name instead. scored.json `window` names
@@ -45,8 +46,9 @@ the holder, the window's start and the voice clip by sha256 (never a voice id).
 Several windows (window 2 takes one voice per window): score each window's directory on its own, with that window's
 voice's full clip as --reference, then `score.py DEST --combine DIR_A --combine DIR_B` reads each DIR/scored.json and
 writes DEST/combined.json and DEST/combined.md: one row per window and arm, the matched-cut rows of every window,
-and per arm whether the bars were met in every window that ran it. Windows that share a voice clip, or that used
-different SIM models or bars, are flagged. Combining reruns no model.
+and per arm whether the bars were met in every window (an arm that errored in, or is absent from, a window counts
+as not met there). Windows that share a voice clip, or that used different SIM models or bars, are flagged.
+Combining reruns no model.
 
 The destination must lie outside every git work tree (voice renders never enter git); --pull SRC copies a window's
 run directory there first. A receipt whose chunks_sha256 is not the committed chunk list's is not scored, and a
@@ -581,6 +583,10 @@ def compare_conditioning(arms, sim_reference_sha256):
             "label": next(a["conditioning"]["label"] for a in scored if keys[a["arm"]] == key),
             "wav_sha256": key,
             "arms": sorted(n for n, k in keys.items() if k == key),
+            # one reference is not one conditioning path: a fallback variant (no transcript) changes the path
+            "variants": {
+                a["arm"]: a.get("variant") for a in sorted(scored, key=lambda a: a["arm"]) if keys[a["arm"]] == key
+            },
         }
         for key in distinct
     ]
@@ -751,9 +757,11 @@ def table(doc):
         lines.append(f"Conditioning: {flag}.")
     for group in doc["conditioning"].get("groups", []):
         if len(group["arms"]) > 1:
+            variants = group.get("variants") or {}
+            names = [f"{n} ({variants[n] or 'no variant'})" if n in variants else n for n in group["arms"]]
             lines.append(
-                f"Like for like on {group['label']} {group['wav_sha256'][:8]}: {', '.join(group['arms'])}"
-                " (one conditioning reference)."
+                f"Like for like on {group['label']} {group['wav_sha256'][:8]}: {', '.join(names)}"
+                " (one conditioning reference; the variant in brackets is each arm's conditioning path)."
             )
     if doc.get("matched"):
         lines += ["", "Matched cut (each control beside the arm it controls; both scored against the full clip):", ""]
@@ -926,14 +934,23 @@ def combine(dest, dirs):
     if len(sims) > 1:
         flags.append("the windows used different SIM models or bars, so SIM is not comparable across them")
     per_arm = {}
+    names = list(dict.fromkeys((doc.get("window") or {}).get("holder") or d.name for d, doc in windows))
     for row in rows:
+        entry = per_arm.setdefault(
+            row["arm"], {"windows": [], "bars_met_in": [], "bars_unmet_in": [], "not_scored_in": [], "absent_from": []}
+        )
         if "error" in row:
+            entry["not_scored_in"].append(row["window"])
             continue
-        entry = per_arm.setdefault(row["arm"], {"windows": [], "bars_met_in": [], "bars_unmet_in": []})
         entry["windows"].append(row["window"])
         (entry["bars_met_in"] if row["bars_all_met"] is True else entry["bars_unmet_in"]).append(row["window"])
-    for entry in per_arm.values():
-        entry["bars_met_in_every_window"] = not entry["bars_unmet_in"]
+    for arm, entry in per_arm.items():
+        present = {r["window"] for r in rows if r["arm"] == arm}
+        entry["absent_from"] = [n for n in names if n not in present]
+        # an arm that errored in, or never reached, a window has not met its bars there
+        entry["bars_met_in_every_window"] = not (
+            entry["bars_unmet_in"] or entry["not_scored_in"] or entry["absent_from"]
+        )
     out = {
         "schema": "narrate-bench-combined/1",
         "chunks_sha256": windows[0][1].get("chunks_sha256") if windows else None,
@@ -997,6 +1014,8 @@ def combined_table(out):
             f"Arm {arm}: in {len(entry['windows'])} window(s); SIM bars met in every window "
             f"{entry['bars_met_in_every_window']}"
             + (f" (unmet in {', '.join(entry['bars_unmet_in'])})" if entry["bars_unmet_in"] else "")
+            + (f" (not scored in {', '.join(entry['not_scored_in'])})" if entry.get("not_scored_in") else "")
+            + (f" (absent from {', '.join(entry['absent_from'])})" if entry.get("absent_from") else "")
         )
     for flag in out["flags"]:
         lines.append(f"Flag: {flag}.")
