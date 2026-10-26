@@ -37,6 +37,13 @@ def table(written, spoken):
         ("1e-3 s", "1e3 s"),
         ("1.2.3", "1,2,3"),
         ("-16 LUFS then 16 LUFS", "16 LUFS then -16 LUFS"),
+        ("-16 LUFS", "plus 16 LUFS"),
+        ("minus 16", "16"),
+        ("16", "negative 16"),
+        ("120 bpm", "120 Hz"),
+        ("5 MHz", "5 GHz"),
+        ("3 KB", "3 MB"),
+        ("3-5", "3 to 5"),
     ],
 )
 def test_sign_notation_and_recognized_unit_changes_are_refused(before, after):
@@ -63,6 +70,15 @@ def test_sign_notation_and_recognized_unit_changes_are_refused(before, after):
         ("RKE2", "R K E 2"),
         ("k8s", "K 8 S"),
         ("CC0", "C C 0"),
+        ("-16 LUFS", "minus 16 LUFS"),
+        ("−16 dB", "minus 16 decibels"),
+        ("- 16 dB", "Minus 16 dB"),
+        ("-16", "negative 16"),
+        ("+3 dB", "plus 3 decibels"),
+        ("5 MHz", "5 megahertz"),
+        ("120 bpm", "120 beats per minute"),
+        ("3 KB", "3 kilobytes"),
+        ("2x", "2 times"),
     ],
 )
 def test_explicit_aliases_and_identifier_spellouts_are_accepted(before, after):
@@ -88,3 +104,15 @@ def test_check_only_call_keeps_record_empty():
     normaliser = Normaliser(table("8%", "8 percent"))
     assert normaliser.say("8%", "s1", record=False) == "8 percent"
     assert normaliser.record()["substitutions"] == []
+
+
+def test_one_unit_table_serves_the_guard_and_the_rewrite_check():
+    """The RewriteCheck, the chunker's unsplittable spans and this guard read the same units."""
+    from narrate import lexical, normalise
+
+    assert set(normalise._UNIT_IDS.values()) == set(lexical.UNITS)
+    for symbol in [unit for unit in lexical.UNITS if unit != "%"] + ["KB"]:
+        assert ("number", f"5 {symbol}") in lexical.protected_spans(f"Set 5 {symbol} now."), symbol
+    assert lexical.rewrite_check("Tune to 5 MHz at 120 bpm.", "Tune to 5 GHz at 120 bpm.")
+    assert lexical.rewrite_check("Aim for −16 LUFS.", "Aim for 16 LUFS.")
+    assert lexical.rewrite_check("Aim for −16 LUFS at 120 bpm.", "We aim for −16 LUFS at 120 bpm.") == []

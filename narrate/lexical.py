@@ -27,6 +27,40 @@ from .ir import sha256_file
 
 LEXICON, PROMPT_DIGEST = "estate-lexicon.json", "prompt-digest.txt"
 REWRITE_RULES = ("XL-ACC-001", "XL-ACC-002")
+# The recognised units, shared by the RewriteCheck's protected spans (and so the chunker, which never splits
+# one) and spoken normalisation's quantity guard (narrate/normalise.py). Each unit's first alias is its
+# written symbol; KB is a second symbol for kB. Aliases are explicit, never inferred: 1 ms is not 1 s, nor
+# GiB GB. Symbols are case sensitive; written-out aliases use their conventional lower case.
+UNITS = {
+    "%": ("%", "percent", "per cent"),
+    "ms": ("ms", "millisecond", "milliseconds"),
+    "s": ("s", "second", "seconds"),
+    "min": ("min", "minute", "minutes"),
+    "h": ("h", "hour", "hours"),
+    "Hz": ("Hz", "hertz"),
+    "kHz": ("kHz", "kilohertz"),
+    "MHz": ("MHz", "megahertz"),
+    "GHz": ("GHz", "gigahertz"),
+    "dB": ("dB", "decibel", "decibels"),
+    "dBFS": ("dBFS", "decibels relative to full scale"),
+    "dBTP": ("dBTP", "decibels true peak"),
+    "LUFS": ("LUFS", "loudness units relative to full scale"),
+    "LU": ("LU", "loudness unit", "loudness units"),
+    "fps": ("fps", "frames per second"),
+    "bpm": ("bpm", "beats per minute"),
+    "px": ("px", "pixel", "pixels"),
+    "x": ("x", "times"),
+    "B": ("B", "byte", "bytes"),
+    "kB": ("kB", "KB", "kilobyte", "kilobytes"),
+    "MB": ("MB", "megabyte", "megabytes"),
+    "GB": ("GB", "gigabyte", "gigabytes"),
+    "TB": ("TB", "terabyte", "terabytes"),
+    "KiB": ("KiB", "kibibyte", "kibibytes"),
+    "MiB": ("MiB", "mebibyte", "mebibytes"),
+    "GiB": ("GiB", "gibibyte", "gibibytes"),
+    "TiB": ("TiB", "tebibyte", "tebibytes"),
+}
+_SYMBOLS = sorted([unit for unit in UNITS if unit != "%"] + ["KB"], key=len, reverse=True)
 # Spans a rewrite must keep: links, paths, tickets, handles, versions, identifiers, numbers with their units.
 PROTECTED = re.compile(
     r"""
@@ -36,9 +70,9 @@ PROTECTED = re.compile(
   | (?P<path>(?<![\w.])(?:\.{0,2}/)?(?:[\w.-]+/)+[\w.-]+)
   | (?P<version>\bv?\d+(?:\.\d+){1,3}(?:[-+][\w.]+)?\b)
   | (?P<ident>\b(?:[a-z]+(?:[A-Z][a-z0-9]*)+|[A-Za-z]+_[\w]+|[A-Za-z]*\d+[A-Za-z][\w]*)\b|`[^`]+`)
-  | (?P<number>(?<![\w.])[-+]?\d+(?:[.,]\d+)*
-        (?:\s?(?:%|(?:ms|s|min|h|Hz|kHz|dB|dBTP|dBFS|LUFS|LU|KiB|MiB|GiB|KB|MB|GB|TB|px|fps|x)\b))?)
-    """,
+  | (?P<number>(?<![\w.])[-+\N{MINUS SIGN}]?\d+(?:[.,]\d+)*
+        (?:\s?(?:%|(?:UNITS)\b))?)
+    """.replace("UNITS", "|".join(_SYMBOLS)),
     re.VERBOSE,
 )
 

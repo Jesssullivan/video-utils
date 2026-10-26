@@ -14,6 +14,7 @@ upstream entry, and the record names every upstream entry so replaced.
 import re
 
 from .ir import canonical, sha256_text
+from .lexical import UNITS
 
 
 class NormaliseError(ValueError):
@@ -26,37 +27,16 @@ def digits(text):
 
 # Numeric spelling is deliberately preserved: no rounding, unit conversion or words-to-number
 # inference. The original digits gate remains useful for identifiers such as v2 and ABC1201.
-_NUMBER = re.compile(r"(?:[+\-−]\s*)?(?:\d+(?:[.,]\d+)*|\.\d+)(?:[eE][+\-−]?\d+)?")
+# A sign is a symbol or an explicit spoken alias: -16, −16, - 16, minus 16 and negative 16 are one literal.
+_SIGNS = {"-": "-", "\N{MINUS SIGN}": "-", "minus": "-", "negative": "-", "+": "+", "plus": "+", "positive": "+"}
+_NUMBER = re.compile(
+    r"(?:(?P<sign>[+\-\N{MINUS SIGN}]|(?i:\b(?:minus|negative|plus|positive)\b))\s*)?"
+    r"(?P<body>(?:\d+(?:[.,]\d+)*|\.\d+)(?:[eE][+\-\N{MINUS SIGN}]?\d+)?)"
+)
 
-# Explicit aliases, not inferred dimensions: 1 ms is not interchangeable with 1 s, nor GiB
-# with GB. Symbols are case sensitive; written-out aliases use their conventional lower case.
-_UNIT_ALIASES = {
-    "%": ("%", "percent", "per cent"),
-    "ms": ("ms", "millisecond", "milliseconds"),
-    "s": ("s", "second", "seconds"),
-    "min": ("min", "minute", "minutes"),
-    "h": ("h", "hour", "hours"),
-    "Hz": ("Hz", "hertz"),
-    "kHz": ("kHz", "kilohertz"),
-    "MHz": ("MHz", "megahertz"),
-    "GHz": ("GHz", "gigahertz"),
-    "dB": ("dB", "decibel", "decibels"),
-    "dBFS": ("dBFS", "decibels relative to full scale"),
-    "dBTP": ("dBTP", "decibels true peak"),
-    "LUFS": ("LUFS", "loudness units relative to full scale"),
-    "fps": ("fps", "frames per second"),
-    "bpm": ("bpm", "beats per minute"),
-    "B": ("B", "byte", "bytes"),
-    "kB": ("kB", "kilobyte", "kilobytes"),
-    "MB": ("MB", "megabyte", "megabytes"),
-    "GB": ("GB", "gigabyte", "gigabytes"),
-    "TB": ("TB", "terabyte", "terabytes"),
-    "KiB": ("KiB", "kibibyte", "kibibytes"),
-    "MiB": ("MiB", "mebibyte", "mebibytes"),
-    "GiB": ("GiB", "gibibyte", "gibibytes"),
-    "TiB": ("TiB", "tebibyte", "tebibytes"),
-}
-_UNIT_IDS = {alias: unit for unit, aliases in _UNIT_ALIASES.items() for alias in aliases}
+# The recognised units and their explicit spoken aliases are lexical.UNITS, the table the RewriteCheck and
+# the chunker protect.
+_UNIT_IDS = {alias: unit for unit, aliases in UNITS.items() for alias in aliases}
 _UNIT = re.compile(r"\s*(" + "|".join(re.escape(a) for a in sorted(_UNIT_IDS, key=len, reverse=True)) + r")(?!\w)")
 
 
@@ -77,7 +57,8 @@ def quantities(text):
             match = _UNIT.match(text, number.end())
             if match:
                 unit = _UNIT_IDS[match.group(1)]
-        result.append((number.group(), unit))
+        sign = number.group("sign")
+        result.append(((_SIGNS[sign.lower()] if sign else "") + number.group("body"), unit))
     return result
 
 
