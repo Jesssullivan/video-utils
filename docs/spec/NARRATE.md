@@ -183,10 +183,14 @@ local table is an overlay: a local entry whose written form matches an upstream
 entry's, ignoring case, replaces that upstream entry, and the manifest lists
 each replaced upstream entry in `pronunciation.upstream.overridden_by_local`.
 Both layers keep separate digest/substitution evidence. Written-script RewriteCheck
-runs before either spoken projection. Both layers retain the existing digit-run
-guard. It does not prove semantic equivalence for signs or units; pronunciation
-entries require review to preserve those values too. The pinned 47-entry table
-passes the text-only consumer qualification.
+runs before either spoken projection. Both layers keep the digit-run guard and a
+quantity guard: each substitution must keep every numeric literal's sign and
+notation and every recognised unit, allowing only the explicit spoken aliases
+(`-16` and `minus 16`, `8%` and `8 percent`). The recognised units are one
+table, `lexical.UNITS`, which the RewriteCheck and the chunker also protect. The
+guard is a bounded regex check, not a proof of semantic equivalence; entries
+still need review. The pinned 47-entry table passes the text-only consumer
+qualification.
 The private lexical release stays outside this public repository. No table or
 Vale style is vendored into public source, and no implicit fetch is added.
 
