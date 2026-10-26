@@ -12,10 +12,12 @@ VRAM, card-node, no-GPU-use and kernel-log stops, SIGHUP, SIGTERM and SIGKILL of
 import hashlib
 import importlib.util
 import json
+import math
 import os
 import shutil
 import signal
 import stat
+import struct
 import subprocess
 import sys
 import tempfile
@@ -38,6 +40,7 @@ def load(name, path):
 
 
 host_run = load("narrate_bench_host_run", BENCH / "host_run.py")
+ref_cut = load("narrate_bench_ref_cut", BENCH / "ref_cut.py")
 
 
 def sha(path):
@@ -51,6 +54,23 @@ def chunk_doc(texts):
     ]
     digest = hashlib.sha256(host_run.canonical(chunks).encode("utf-8")).hexdigest()
     return {"schema": "narrate-bench-chunks/1", "chunks_sha256": digest, "chunks": chunks}
+
+
+def pcm_wav(path, samples, rate=16000, bits=16, extensible=False):
+    """A mono integer PCM WAV of samples (floats in [-1, 1))."""
+    peak = (1 << (bits - 1)) - 1
+    ints = [max(-peak - 1, min(peak, round(v * peak))) for v in samples]
+    pcm = b"".join(i.to_bytes(bits // 8, "little", signed=True) for i in ints)
+    block = bits // 8
+    fmt = struct.pack("<HHIIHH", 0xFFFE if extensible else 1, 1, rate, rate * block, block, bits)
+    if extensible:  # cbSize, valid bits, channel mask, then the PCM sub-format GUID
+        fmt += struct.pack("<HHI", 22, bits, 4) + bytes.fromhex("0100000000001000800000aa00389b71")
+    Path(path).write_bytes(host_run.wav_bytes(fmt, pcm))
+    return Path(path)
+
+
+def silence_wav(path, seconds, rate=16000):
+    return pcm_wav(path, [0.0] * round(seconds * rate), rate)
 
 
 def alive(pid):
@@ -98,7 +118,7 @@ class Workspace(unittest.TestCase):
         (d / "w" / "talker.gguf").write_bytes(b"talker" * 100)
         (d / "w" / "codec.gguf").write_bytes(b"codec" * 100)
         (d / "v").mkdir()
-        (d / "v" / "ref.wav").write_bytes(b"RIFF synthetic reference")
+        silence_wav(d / "v" / "ref.wav", 1.0)  # a synthetic reference: one second of silence
         (d / "v" / "ref.txt").write_text("A synthetic reference transcript.\n")
         self.voices = d / "v" / "voices.json"
         self.voices.write_text(
@@ -237,6 +257,18 @@ class ChunkList(unittest.TestCase):
                 if key != "binary":
                     self.assertIn(spec["sha256"], declared, f"{name}.{key}")
         self.assertNotRegex(raw, r'"/(home|srv|Users|root)/')  # every path comes from the environment
+
+    def test_tracked_a3_arm_clones_from_a_cut_that_fits_the_voxcpm2_encoder(self):
+        arm = json.loads((BENCH / "host-job.json").read_text(encoding="utf-8"))["arms"]["A3-gpu"]
+        policy = arm["reference"]
+        self.assertEqual(policy["cut"], "max14s")
+        self.assertEqual(policy["encoder"], {"rate": 16000, "capacity_samples": 240000, "pad_samples": 2560})
+        self.assertLessEqual(policy["max_seconds"], 238080 / 16000)  # the largest reference the encoder takes
+        self.assertGreaterEqual(policy["min_seconds"], 5.0)  # the VoxCPM2 usage guide's practical minimum
+        self.assertEqual([v["name"] for v in arm["variants"]], ["ultimate", "reference-only"])
+        self.assertTrue(arm["variants"][0]["prompt_audio"] and arm["variants"][0]["reference_text"])
+        self.assertFalse(arm["variants"][1]["reference_text"])
+        host_run.check_policy("A3-gpu", policy)
 
     def test_tracked_job_needs_an_explicit_qwen_device_and_the_voices_file(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -436,6 +468,243 @@ class Runner(Workspace):
         self.assertEqual(host_run.find_card(self.dir / "drm"), (None, None))
 
 
+class RefPolicy(Workspace):
+    """An arm's reference policy: the cut it names, its duration and its encoder fit, all checked before any engine
+    starts; prompt_audio sends the reference as the continuation prompt."""
+
+    POLICY = {"max_seconds": 14.5, "min_seconds": 5.0, "encoder": {"rate": 16000, "capacity_samples": 240000,
+                                                                    "pad_samples": 2560}}  # fmt: skip
+
+    def setUp(self):
+        super().setUp()
+        d = self.dir
+        silence_wav(d / "v" / "ref.wav", 20.0, rate=24000)  # the long consented clip
+        silence_wav(d / "v" / "cut.wav", 12.0, rate=24000)
+        (d / "v" / "cut.txt").write_text("A synthetic cut transcript.\n")
+        self.write_voices()
+
+    def write_voices(self, **cut):
+        d = self.dir
+        entry = {
+            "wav": {"path": "cut.wav", "sha256": sha(d / "v" / "cut.wav")},
+            "text": {"path": "cut.txt", "sha256": sha(d / "v" / "cut.txt")},
+            "source_sha256": sha(d / "v" / "ref.wav"),
+        }
+        entry.update(cut)
+        voice = {
+            "wav": {"path": "ref.wav", "sha256": sha(d / "v" / "ref.wav")},
+            "text": {"path": "ref.txt", "sha256": sha(d / "v" / "ref.txt")},
+            "cuts": {"max14s": entry},
+        }
+        self.voices.write_text(json.dumps({"voices": {"fixture-voice": voice}}))
+
+    def vox_arm(self, reference):
+        arm = self.audiocpp_arm(reference=reference, decoys=[])
+        arm["settings"] = {"family": "voxcpm2", "task": "clon", "options": {}}
+        arm["variants"] = [
+            {"name": "ultimate", "reference_text": True, "prompt_audio": True},
+            {"name": "reference-only", "reference_text": False},
+        ]
+        return arm
+
+    def verify(self, arms):
+        job = host_run.load_job(self.job_path)
+        return host_run.verify(job, arms, self.cache)
+
+    def test_an_oversized_reference_is_refused_before_any_engine_starts(self):
+        self.job_path = self.job(V=self.vox_arm(dict(self.POLICY)))  # no cut: the 20 s clip itself
+        with self.assertRaises(host_run.Refusal) as caught:
+            self.verify(["V"])
+        message = str(caught.exception)
+        self.assertIn("lasts 20.00 s, over the arm's max_seconds 14.5", message)
+        self.assertIn("needs 320000 encoder samples at 16000 Hz, over the capacity 240000", message)
+        argv = ["run", str(self.job_path), "--arm", "V", "--out", str(self.out), "--cache", str(self.cache)]
+        self.assertEqual(host_run.main(argv), host_run.EXIT_REFUSED)
+        self.assertEqual(self.invocations(), [])
+        self.assertFalse((self.out / "V").exists())
+
+    def test_the_named_cut_is_hashed_checked_and_sent_as_reference_and_prompt(self):
+        self.job_path = self.job(V=self.vox_arm(dict(self.POLICY, cut="max14s")))
+        records = self.verify(["V"])
+        self.assertEqual(records["voice.max14s.wav"]["file"], "cut.wav")
+        self.assertNotIn("voice.wav", records)  # the arm never reads the long clip
+        check = records["V.reference"]
+        self.assertTrue(check["fits"])
+        self.assertEqual((check["seconds"], check["rate"]), (12.0, 24000))
+        self.assertEqual(check["encoder"]["resampled_samples"], 192000)
+        self.assertEqual(check["encoder"]["padded_samples"], 192000)
+        code, receipt = self.run_arm("V")
+        self.assertEqual(code, host_run.EXIT_OK, receipt["stop"])
+        self.assertEqual((receipt["reference"], receipt["variant"]), ("voice.max14s", "ultimate"))
+        self.assertTrue(receipt["inputs"]["V.reference"]["fits"])
+        requests = json.loads((self.out / "V" / "seed1" / "requests.json").read_text())["requests"]
+        cut = str(self.dir / "v" / "cut.wav")
+        self.assertTrue(all(r["voice_ref"] == cut and r["audio"] == cut for r in requests))
+        self.assertTrue(all(r["reference_text"] == "A synthetic cut transcript." for r in requests))
+
+    def test_a_cut_must_exist_and_name_the_voice_clip_as_its_source(self):
+        self.job_path = self.job(V=self.vox_arm(dict(self.POLICY, cut="other")))
+        with self.assertRaisesRegex(host_run.Refusal, "no reference cut 'other'"):
+            self.verify(["V"])
+        self.write_voices(source_sha256="0" * 64)
+        self.job_path = self.job(V=self.vox_arm(dict(self.POLICY, cut="max14s")))
+        with self.assertRaisesRegex(host_run.Refusal, "does not name the voice clip's sha256 as its source"):
+            self.verify(["V"])
+
+    def test_encoder_capacity_is_checked_to_the_sample_and_a_short_cut_is_refused(self):
+        policy = {"cut": "max14s", "max_seconds": 15.0, "encoder": dict(self.POLICY["encoder"])}
+        for frames, fits in ((238080, True), (238081, False)):
+            pcm_wav(self.dir / "v" / "cut.wav", [0.0] * frames, rate=16000)
+            self.write_voices()
+            self.job_path = self.job(V=self.vox_arm(policy))
+            if fits:
+                self.assertEqual(self.verify(["V"])["V.reference"]["encoder"]["padded_samples"], 238080)
+            else:
+                with self.assertRaisesRegex(host_run.Refusal, "needs 240640 encoder samples"):
+                    self.verify(["V"])
+        silence_wav(self.dir / "v" / "cut.wav", 3.0)
+        self.write_voices()
+        self.job_path = self.job(V=self.vox_arm(dict(self.POLICY, cut="max14s")))
+        with self.assertRaisesRegex(host_run.Refusal, "under the arm's min_seconds 5.0"):
+            self.verify(["V"])
+
+    def test_malformed_policies_and_prompt_audio_without_its_transcript_are_refused(self):
+        for bad in ({"max_seconds": -1}, {"cut": "a/b"}, {"encoder": {"rate": 16000}}, "14s",
+                    {"min_seconds": 9, "max_seconds": 8}):  # fmt: skip
+            self.job_path = self.job(V=self.vox_arm(bad))
+            with self.assertRaises(host_run.Refusal):
+                host_run.load_job(self.job_path)
+        arm = self.vox_arm(dict(self.POLICY, cut="max14s"))
+        arm["variants"] = [{"name": "prompt-without-text", "reference_text": False, "prompt_audio": True}]
+        self.job_path = self.job(V=arm)
+        with self.assertRaisesRegex(host_run.Refusal, "prompt_audio"):
+            host_run.load_job(self.job_path)
+        self.job_path = self.job(Q=self.qwentts_arm(variants=[{"name": "icl", "prompt_audio": True}]))
+        with self.assertRaisesRegex(host_run.Refusal, "prompt_audio"):
+            host_run.load_job(self.job_path)
+
+
+class RefCut(unittest.TestCase):
+    """narrate/bench/ref_cut.py on a synthetic clip: tone-burst words, short gaps between words and long ones
+    between sentences, and word timings standing in for whisper's."""
+
+    RATE = 16000
+    SENTENCES = [["alpha", "bravo", "charlie."], ["delta", "echo", "foxtrot", "golf."], ["hotel", "india."],
+                 ["juliet", "kilo", "lima", "mike."]]  # fmt: skip
+
+    def setUp(self):
+        self.dir = Path(tempfile.mkdtemp(prefix="narrate-ref-cut-"))
+        self.addCleanup(shutil.rmtree, self.dir, ignore_errors=True)
+        samples, words, t = [], [], 0.0
+
+        def add(seconds, tone):
+            n = round(seconds * self.RATE)
+            start = len(samples)
+            samples.extend(
+                (0.4 * math.sin(2 * math.pi * 220 * (start + k) / self.RATE)) if tone else 0.0005 * ((k % 7) - 3)
+                for k in range(n)
+            )
+            return seconds
+
+        t += add(0.5, False)
+        for sentence in self.SENTENCES:
+            for k, word in enumerate(sentence):
+                words.append({"start": round(t + 0.01, 3), "end": round(t + 0.39, 3), "word": word.capitalize()})
+                t += add(0.4, True)
+                t += add(0.15 if k + 1 < len(sentence) else 0.6, False)
+        self.tokens = [w for s in self.SENTENCES for w in s]
+        self.clip = pcm_wav(self.dir / "clip.wav", samples, self.RATE, bits=24, extensible=True)
+        self.text = self.dir / "clip.txt"
+        self.text.write_text(" ".join(self.tokens) + "\n")
+        self.words = self.dir / "clip.words.json"
+        self.words.write_text(json.dumps({"clip_sha256": sha(self.clip), "words": words}))
+        self.duration = t
+
+    def cut(self, *extra):
+        out = self.dir / "out"
+        out.mkdir(exist_ok=True)
+        argv = ["cut", str(self.clip), str(self.text), "--words", str(self.words), *extra]
+        argv += [
+            "--out-wav",
+            str(out / "cut.wav"),
+            "--out-text",
+            str(out / "cut.txt"),
+            "--record",
+            str(out / "cut.json"),
+        ]
+        with mock.patch("sys.stdout"), mock.patch("sys.stderr"):
+            code = ref_cut.main(argv)
+        record = json.loads((out / "cut.json").read_text()) if (out / "cut.json").exists() else None
+        return code, record, out
+
+    def test_the_longest_cut_between_sentence_boundaries_is_a_byte_identical_slice(self):
+        code, record, out = self.cut("--max-s", "5.5", "--min-s", "2", "--capacity-samples", "240000",
+                                     "--pad-samples", "2560")  # fmt: skip
+        self.assertEqual(code, 0)
+        cut = record["cut"]
+        self.assertEqual((cut["start_boundary"], cut["end_boundary"]), ("sentence", "sentence"))
+        self.assertLessEqual(cut["seconds"], 5.5)
+        i, j = cut["word_range"]
+        self.assertEqual((i, j), (0, 6))  # alpha .. golf.: the longest run of whole sentences under 5.5 s
+        self.assertEqual((out / "cut.txt").read_text(), " ".join(self.tokens[i : j + 1]) + "\n")
+        source, copy = ref_cut.read_wav(self.clip), ref_cut.read_wav(out / "cut.wav")
+        a, b = cut["start_frame"] * source["block"], cut["end_frame"] * source["block"]
+        self.assertEqual(copy["pcm"], source["pcm"][a:b])
+        self.assertEqual(copy["fmt"], source["fmt"])  # 24-bit extensible kept as it was
+        self.assertLessEqual(cut["start_dbfs"], cut["floor_dbfs"] + ref_cut.QUIET_DB)
+        self.assertTrue(cut["encoder"]["fits"])
+        self.assertEqual(record["outputs"]["wav"]["sha256"], sha(out / "cut.wav"))
+        dumped = json.dumps(record).lower()
+        self.assertFalse(any(word.strip(".") in dumped for word in self.tokens))  # no transcript in the record
+
+    def test_without_a_whole_sentence_under_the_limit_it_cuts_at_word_gaps_and_refuses_the_impossible(self):
+        code, record, _ = self.cut("--max-s", "1.2")
+        self.assertEqual(code, 0)
+        self.assertLessEqual(record["cut"]["seconds"], 1.2)
+        self.assertEqual(record["cut"]["end_boundary"], "sentence")  # a sentence end still outranks a word gap
+        code, record, out = self.cut("--max-s", "30", "--min-s", "20", "--force")
+        self.assertEqual(code, 2)
+        self.assertFalse((out / "cut.wav").exists() and record and record["cut"]["seconds"] >= 20)
+
+    def test_word_timings_from_another_clip_are_refused(self):
+        self.words.write_text(json.dumps({"clip_sha256": "0" * 64, "words": []}))
+        code, record, _ = self.cut("--max-s", "5")
+        self.assertEqual((code, record), (2, None))
+
+    def test_24_bit_samples_decode_with_their_sign(self):
+        path = pcm_wav(self.dir / "s24.wav", [-1.0, -0.5, 0.0, 0.5], 16000, bits=24, extensible=True)
+        values = ref_cut.mono_samples(ref_cut.read_wav(path))
+        self.assertEqual([round(v, 3) for v in values], [-1.0, -0.5, 0.0, 0.5])
+
+    def test_words_runs_whisper_with_dtw_at_four_threads_at_most(self):
+        bin_dir = self.dir / "bin"
+        bin_dir.mkdir()
+        (bin_dir / "ffmpeg").write_text('#!/bin/sh\nfor last; do :; done\ncp "$5" "$last"\n')
+        full = {"transcription": [{"text": " Alpha bravo.", "offsets": {"from": 500, "to": 1300}, "tokens": [
+            {"text": " Alpha", "offsets": {"from": 500, "to": 900}, "t_dtw": 51},
+            {"text": " bravo", "offsets": {"from": 900, "to": 1250}, "t_dtw": 95},
+            {"text": ".", "offsets": {"from": 1250, "to": 1300}, "t_dtw": 125}]}]}  # fmt: skip
+        script = '#!/bin/sh\necho "$@" > "$FAKE_ARGS"\nwhile [ $# -gt 0 ]; do [ "$1" = -of ] && of=$2; shift; done\n'
+        script += f"cat > \"$of.json\" <<'EOF'\n{json.dumps(full)}\nEOF\n"
+        (bin_dir / "whisper-cli").write_text(script)
+        for tool in ("ffmpeg", "whisper-cli"):
+            (bin_dir / tool).chmod(0o755)
+        model = self.dir / "model.bin"
+        model.write_bytes(b"model")
+        out = self.dir / "w.json"
+        env = {"PATH": f"{bin_dir}:{os.environ['PATH']}", "FAKE_ARGS": str(self.dir / "args")}
+        argv = ["words", str(self.clip), "--out", str(out), "--model", str(model), "--threads", "16"]
+        with mock.patch.dict(os.environ, env), mock.patch("sys.stdout"):
+            self.assertEqual(ref_cut.main(argv), 0)
+        doc = json.loads(out.read_text())
+        self.assertEqual([w["word"] for w in doc["words"]], ["Alpha", "bravo."])
+        self.assertEqual(doc["clip_sha256"], sha(self.clip))
+        self.assertEqual(doc["whisper"]["threads"], 4)
+        args = (self.dir / "args").read_text().split()
+        self.assertEqual(args[args.index("-t") + 1], "4")
+        self.assertEqual(args[args.index("-dtw") + 1], "small.en")
+
+
 class Signals(Workspace):
     """The runner as its own process: a signal or its death leaves no engine behind."""
 
@@ -524,6 +793,25 @@ class Window(Workspace):
         self.assertEqual(done.returncode, 2, done.stderr)
         self.assertIn("NARRATE-BENCH-DONE rc=2", done.stdout)
         self.assertEqual((self.receipt("h3")["stop"], self.receipt("h3")["arms"]), ("inputs_refused", []))
+
+    def test_preflight_refuses_an_oversized_reference_before_the_lease_and_writes_no_run(self):
+        done = self.window("--preflight")
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("NARRATE-BENCH-PREFLIGHT rc=0", done.stdout)
+        self.assertFalse((self.bench / "runs").exists())
+        arm = self.audiocpp_arm(reference={"max_seconds": 0.5})  # the 1 s fixture reference is too long
+        job = self.job(Q=self.qwentts_arm(), M=arm, Q2=self.qwentts_arm())
+        shutil.copy(job, self.bench / "job" / "host-job.json")
+        env = dict(self.base_env, NARRATE_BENCH_EXPECT_JOB=sha(self.bench / "job" / "host-job.json"))
+        done = self.window("--preflight", env=env)
+        self.assertEqual(done.returncode, 2, done.stderr)
+        self.assertIn("NARRATE-BENCH-PREFLIGHT rc=2", done.stdout)
+        self.assertIn("over the arm's max_seconds 0.5", done.stderr)
+        self.assertFalse((self.bench / "runs").exists())
+        self.assertEqual(self.invocations(), [])
+        done = self.window("--preflight", env=dict(env, NARRATE_BENCH_EXPECT_JOB="0" * 64))
+        self.assertEqual(done.returncode, 2)
+        self.assertIn("runner file's sha256", done.stderr)
 
     def test_holder_bench_env_and_runner_hash_refusals_print_done(self):
         done = self.window()

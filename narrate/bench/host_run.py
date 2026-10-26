@@ -18,6 +18,14 @@ clip and its verified transcript; it never enters git. Every input must declare 
 value is refused before any process starts. The verify cache keys each file by size, mtime, ctime and inode, and a
 file whose key changed is hashed again.
 
+An arm's optional reference policy (`reference`: cut, max_seconds, min_seconds, encoder) is checked by verify, before
+any engine starts: `cut` names a time-aligned sub-clip of the voice's clip in the voices file (voices.<id>.cuts.<cut>,
+wav and text hash-bound like the clip, source_sha256 the clip's sha256; narrate/bench/ref_cut.py makes them), and
+the reference's duration from its WAV header and its encoder input (the clip resampled to encoder.rate, rounded up,
+then padded to a multiple of encoder.pad_samples) must fit the policy. A misfit refuses the inputs (exit 2). An
+audiocpp variant with prompt_audio also sends the reference as the request's `audio`, the continuation prompt that
+its reference_text transcribes (VoxCPM2's ultimate clone).
+
 An arm runs, one synthesis process at a time: a one-chunk smoke per conditioning variant until one passes (exit
 0, at least smoke_min_ratio of the chunk's expected duration, which catches a truncated take, and VRAM in use
 rising at least vram.min_rise_bytes above the idle baseline, which catches a CPU fallback), the arm's decoy
@@ -172,10 +180,13 @@ def load_voices(job, env):
     if missing:
         raise Refusal("voices_file needs these environment variables: " + ", ".join(sorted(missing)))
     for voice in voices.values():
-        for part in ("wav", "text"):
-            spec = voice.get(part) if isinstance(voice, dict) else None
-            if isinstance(spec, dict) and spec.get("path") and not Path(spec["path"]).is_absolute():
-                spec["path"] = str(path.parent / spec["path"])
+        cuts = voice.get("cuts") if isinstance(voice, dict) else None
+        entries = [voice] + (list(cuts.values()) if isinstance(cuts, dict) else [])
+        for entry in entries:
+            for part in ("wav", "text"):
+                spec = entry.get(part) if isinstance(entry, dict) else None
+                if isinstance(spec, dict) and spec.get("path") and not Path(spec["path"]).is_absolute():
+                    spec["path"] = str(path.parent / spec["path"])
     job["voices"] = voices
 
 
@@ -205,6 +216,17 @@ def load_job(path, env=None):
             raise Refusal(f"arm {name}: decoy renders are defined for the audiocpp runtime only")
         if arm["runtime"] == "qwentts" and not str(arm.get("settings", {}).get("device") or "").strip():
             raise Refusal(f"arm {name}: qwen-tts needs an explicit --device (settings.device), never a fallback")
+        for variant in arm["variants"]:
+            if variant.get("prompt_audio") and (
+                arm["runtime"] != "audiocpp"
+                or not variant.get("voice", True)
+                or not variant.get("reference_text", True)
+            ):
+                raise Refusal(
+                    f"arm {name} variant {variant.get('name')}: prompt_audio is the audiocpp runtime's continuation"
+                    " prompt and needs the voice and its reference_text"
+                )
+        check_policy(name, arm.get("reference"))
     job.setdefault("seeds", [1, 2, 3])
     job.setdefault("gap_s", 0.25)
     job.setdefault("stall_s", 120.0)
@@ -223,6 +245,30 @@ def load_job(path, env=None):
     return job
 
 
+def check_policy(name, policy):
+    """An arm's reference policy: {cut?, max_seconds?, min_seconds?, encoder?: {rate, capacity_samples,
+    pad_samples}}. Refuses a malformed one."""
+    if policy is None:
+        return
+    if not isinstance(policy, dict):
+        raise Refusal(f"arm {name}: reference must be an object")
+    if "cut" in policy and not (isinstance(policy["cut"], str) and re.fullmatch(r"[A-Za-z0-9_-]{1,40}", policy["cut"])):
+        raise Refusal(f"arm {name}: reference.cut must be a short name")
+    for key in ("max_seconds", "min_seconds"):
+        value = policy.get(key)
+        if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0):
+            raise Refusal(f"arm {name}: reference.{key} must be a positive number")
+    if policy.get("min_seconds") and policy.get("max_seconds") and policy["min_seconds"] > policy["max_seconds"]:
+        raise Refusal(f"arm {name}: reference.min_seconds is above max_seconds")
+    encoder = policy.get("encoder")
+    if encoder is not None:
+        keys = ("rate", "capacity_samples", "pad_samples")
+        if not isinstance(encoder, dict) or not all(
+            isinstance(encoder.get(k), int) and not isinstance(encoder.get(k), bool) and encoder[k] > 0 for k in keys
+        ):
+            raise Refusal(f"arm {name}: reference.encoder needs positive integers rate, capacity_samples, pad_samples")
+
+
 def voice_of(job):
     """(voice id, {"wav": input, "text": input}) of the job's cloning voice, or (None, None)."""
     vid = job.get("voice") or ""
@@ -234,17 +280,37 @@ def voice_of(job):
     return vid, voice
 
 
+def clones(arm):
+    return any(v.get("voice", True) for v in arm["variants"])
+
+
+def reference_of(job, arm_name):
+    """(label prefix, {"wav", "text"}) of the reference an arm clones from: the voice's clip, or the cut its
+    reference policy names (a time-aligned sub-clip of the same consented clip, private voices file)."""
+    vid, voice = voice_of(job)
+    if vid is None:
+        raise Refusal("an arm clones a voice but the job names none (voice)")
+    cut = (job["arms"][arm_name].get("reference") or {}).get("cut")
+    if not cut:
+        return "voice", voice
+    entry = (voice.get("cuts") or {}).get(cut)
+    if not isinstance(entry, dict) or "wav" not in entry or "text" not in entry:
+        raise Refusal(f"arm {arm_name}: the selected voice has no reference cut {cut!r} in the voices file")
+    source = str(entry.get("source_sha256") or "").lower()
+    if source != str(voice["wav"].get("sha256") or "").lower():
+        raise Refusal(f"arm {arm_name}: reference cut {cut!r} does not name the voice clip's sha256 as its source")
+    return f"voice.{cut}", entry
+
+
 def inputs_of(job, arms):
     """{label: {"path", "sha256"}} of everything the named arms read."""
     out = {"chunks": job["chunks"]}
     if job.get("voices_file"):
         out["voices_file"] = job["voices_file"]
-    needs_voice = any(v.get("voice", True) for a in arms for v in job["arms"][a]["variants"])
-    if needs_voice:
-        vid, voice = voice_of(job)
-        if vid is None:
-            raise Refusal("an arm clones a voice but the job names none (voice)")
-        out["voice.wav"], out["voice.text"] = voice["wav"], voice["text"]
+    for arm in arms:
+        if clones(job["arms"][arm]):
+            prefix, ref = reference_of(job, arm)
+            out[f"{prefix}.wav"], out[f"{prefix}.text"] = ref["wav"], ref["text"]
     for arm in arms:
         for key, spec in job["arms"][arm]["inputs"].items():
             out[f"{arm}.{key}"] = spec
@@ -291,6 +357,13 @@ def verify(job, arms, cache_path):
             continue
         cache[str(path)] = dict(key, sha256=measured)
         records[label] = {"file": path.name, "sha256": measured, "bytes": st.st_size, "rehashed": rehashed}
+    if not problems:
+        for arm in arms:
+            policy = job["arms"][arm].get("reference")
+            if policy and clones(job["arms"][arm]):
+                check = check_reference(job, arm, policy)
+                records[f"{arm}.reference"] = check
+                problems += check.pop("problems")
     if problems:
         raise Refusal("inputs refused:\n  " + "\n  ".join(problems))
     cache_path.parent.mkdir(parents=True, exist_ok=True)
@@ -298,6 +371,40 @@ def verify(job, arms, cache_path):
     tmp.write_text(json.dumps(cache, indent=1, sort_keys=True) + "\n", encoding="utf-8")
     tmp.replace(cache_path)
     return records
+
+
+def check_reference(job, arm_name, policy):
+    """The reference an arm clones from against its policy: duration from the WAV header, and the encoder's padded
+    input length (the clip resampled to encoder.rate, rounded up as soxr's exact-length output is, then padded up
+    to a multiple of encoder.pad_samples) against encoder.capacity_samples. Runs before any engine starts."""
+    prefix, ref = reference_of(job, arm_name)
+    path = Path(ref["wav"]["path"])
+    out = {"reference": prefix, "file": path.name, "policy": policy, "problems": []}
+    try:
+        info = wav_info(path.read_bytes())
+    except (OSError, ValueError) as error:
+        out["problems"].append(f"{arm_name}: reference {path.name} is not a readable WAV ({error})")
+        return out
+    frames = info["data"][1] // info["block"]
+    seconds = frames / info["rate"]
+    out.update(rate=info["rate"], channels=info["channels"], frames=frames, seconds=round(seconds, 4))
+    lasts = f"{arm_name}: reference {path.name} lasts {seconds:.2f} s"
+    if policy.get("max_seconds") and seconds > policy["max_seconds"]:
+        out["problems"].append(f"{lasts}, over the arm's max_seconds {policy['max_seconds']}")
+    if policy.get("min_seconds") and seconds < policy["min_seconds"]:
+        out["problems"].append(f"{lasts}, under the arm's min_seconds {policy['min_seconds']}")
+    encoder = policy.get("encoder")
+    if encoder:
+        resampled = -(-frames * encoder["rate"] // info["rate"])
+        padded = -(-resampled // encoder["pad_samples"]) * encoder["pad_samples"]
+        out["encoder"] = {"resampled_samples": resampled, "padded_samples": padded, **encoder}
+        if padded > encoder["capacity_samples"]:
+            out["problems"].append(
+                f"{arm_name}: reference {path.name} needs {padded} encoder samples at {encoder['rate']} Hz, over the"
+                f" capacity {encoder['capacity_samples']}"
+            )
+    out["fits"] = not out["problems"]
+    return out
 
 
 def load_chunks(path):
@@ -691,6 +798,9 @@ class Ctx:
         self.inputs = {k: v["path"] for k, v in self.arm["inputs"].items()}
         vid, voice = voice_of(job)
         self.voice_id = vid
+        self.reference = None
+        if voice is not None and clones(self.arm):
+            self.reference, voice = reference_of(job, arm_name)
         self.voice_wav = voice["wav"]["path"] if voice else None
         self.voice_text_file = voice["text"]["path"] if voice else None
         self.voice_text = (
@@ -777,6 +887,8 @@ def run_audiocpp(ctx, chunks, seed, variant, pass_dir, decoy=None):
             request["voice_ref"] = str(ctx.voice_wav)
             if variant.get("reference_text", True):
                 request["reference_text"] = ctx.voice_text
+            if variant.get("prompt_audio"):
+                request["audio"] = str(ctx.voice_wav)  # the continuation prompt the reference_text transcribes
         if options:
             request["options"] = options
         requests.append(request)
@@ -1014,6 +1126,7 @@ def run_arm(job, arm_name, out_dir, deadline_epoch=None, verified=None):
     receipt["vram"] = {"card": card, "limit_bytes": vram_cfg["limit_bytes"], "poll_s": vram_cfg["poll_s"]}
     receipt["vram"].update(baseline_bytes=base, min_rise_bytes=vram_cfg["min_rise_bytes"])
     ctx = Ctx(job, arm_name, deadline, monitor)
+    receipt["reference"] = ctx.reference
     code = EXIT_ARM_STOP
     try:
         code = arm_passes(ctx, chunks, out_root, receipt, base)

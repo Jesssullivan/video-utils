@@ -22,6 +22,11 @@
 # Every path out prints `NARRATE-BENCH-DONE rc=N`: 0 at least one arm completed seed 1 and no window stop;
 # 10 no arm completed; 20 window stop; 2 refused.
 #
+# Preflight, before the Lease: `run-bench.sh --preflight` (same NARRATE_BENCH_EXPECT_* values) parses bench.env,
+# checks the runner hashes and runs `host_run.py verify` for the window's arms: every input's sha256 and each arm's
+# reference policy (an oversized or missing reference cut is refused here, not in the window). No engine, no scope
+# and no runs/ directory; it prints the verified records and `NARRATE-BENCH-PREFLIGHT rc=N` (0 green, 2 refused).
+#
 # Test mode: NARRATE_BENCH_TEST_MODE=1 from the caller's environment (never from bench.env) allows
 # NARRATE_BENCH_NO_SCOPE, NARRATE_BENCH_ARMS, NARRATE_BENCH_ARMS_S, NARRATE_BENCH_HARD_S, NARRATE_BENCH_PYTHON and
 # host_run.py's own test settings, and every receipt records it. Without it those variables are cleared.
@@ -109,6 +114,29 @@ load_env() {  # bench.env: KEY=VALUE lines for the allowed keys only; never sour
         export "$key=$value"
     done <"$file"
 }
+
+if [ "${1:-}" = "--preflight" ] && [ -z "${NARRATE_BENCH_IN_SCOPE:-}" ]; then
+    # ---- preflight: before the Lease; hashes only, no engine, no scope, no runs/ directory ----
+    preflight_refuse() {
+        printf 'run-bench: preflight refused: %s\n' "$*" >&2 2>/dev/null
+        printf 'NARRATE-BENCH-PREFLIGHT rc=2\n' 2>/dev/null
+        exit 2
+    }
+    [ "$(id -u)" -ne 0 ] || preflight_refuse "never run as root"
+    [ $# -eq 1 ] || preflight_refuse "usage: run-bench.sh --preflight"
+    why=$(load_env) || preflight_refuse "$why"
+    load_env >/dev/null
+    runner_check >/dev/null || preflight_refuse "a runner file's sha256 is not the caller's NARRATE_BENCH_EXPECT_* value"
+    export NARRATE_BENCH_ROOT=$BENCH_DIR NARRATE_BENCH_JOB_DIR=$BENCH_DIR/job NARRATE_BENCH_WEIGHTS=$BENCH_DIR/weights/hf
+    ARMS_TEXT=$DEFAULT_ARMS
+    [ "$TEST_MODE" = 1 ] && ARMS_TEXT=${NARRATE_BENCH_ARMS:-$DEFAULT_ARMS}
+    read -r -a ARMS <<<"$ARMS_TEXT"
+    nice -n 19 ionice -c3 "$PY" "$BENCH_DIR/job/host_run.py" verify "$BENCH_DIR/job/host-job.json" \
+        --cache "$BENCH_DIR/inputs-verified.json" "${ARMS[@]/#/--arm=}"
+    rc=$?
+    printf 'NARRATE-BENCH-PREFLIGHT rc=%s\n' "$rc" 2>/dev/null
+    exit "$rc"
+fi
 
 if [ -z "${NARRATE_BENCH_IN_SCOPE:-}" ]; then
     # ---- outer stage ----

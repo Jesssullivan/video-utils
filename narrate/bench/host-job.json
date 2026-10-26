@@ -64,7 +64,7 @@
    ]
   },
   "A3-gpu": {
-   "about": "VoxCPM2 (bf16 GGUF) through audio.cpp 47c2756e, ultimate clone: voice_ref plus reference_text. voxcpm2.mem_saver is already true by default at this pin.",
+   "about": "VoxCPM2 (bf16 GGUF) through audio.cpp 47c2756e. At this pin a request's voice_ref is VoxCPM2's reference audio, and its reference_text is the prompt transcript, used only with prompt audio (the request's audio). Variant ultimate sends the reference as both, the model card's ultimate clone; reference-only sends voice_ref alone, the controllable clone. Run 1's ref-text variant sent voice_ref plus reference_text, so its transcript would have gone unused; it crashed before that mattered. voxcpm2.mem_saver is already true by default at this pin.",
    "runtime": "audiocpp",
    "budget_s": 480,
    "inputs": {
@@ -81,7 +81,17 @@
     "device": "${NARRATE_BENCH_AUDIOCPP_DEVICE:-0}",
     "options": {}
    },
-   "variants": [{"name": "ref-text", "voice": true, "reference_text": true}]
+   "reference": {
+    "about": "The AudioVAE encoder takes at most voxcpm2.audiovae_encoder_sample_capacity samples (default 240000) at the model's audio_vae_config.sample_rate (16000), after padding up to a multiple of patch_size x prod(encoder_rates) = 4 x 640 = 2560: references up to 238080 samples, 14.88 s. Run 1's 34.75 s reference exited 1 with 'VoxCPM2 AudioVAE encoder sample capacity exceeded'. The arm clones from the voice's cut max14s (narrate/bench/ref_cut.py; private voices file), at least 5 s per the VoxCPM2 usage guide's 5 to 30 s practical range. The reference and the prompt are the same clip, so both encodes fit.",
+    "cut": "max14s",
+    "max_seconds": 14.5,
+    "min_seconds": 5.0,
+    "encoder": {"rate": 16000, "capacity_samples": 240000, "pad_samples": 2560}
+   },
+   "variants": [
+    {"name": "ultimate", "voice": true, "reference_text": true, "prompt_audio": true},
+    {"name": "reference-only", "voice": true, "reference_text": false}
+   ]
   }
  }
 }
