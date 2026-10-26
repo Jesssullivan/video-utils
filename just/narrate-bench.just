@@ -23,9 +23,10 @@ narrate-bench-host-pack dest:
 
 # SRC is host:dir, a local runs/<holder> directory, or - to score DEST as it is (already pulled); DEST must be
 # outside every git work tree. Scoring is off the GPU: whisper WER with numeral normalisation, catastrophic chunks,
-# RTF, VRAM, and SIM (median, minimum, wSIM and the decoy 1/2 checks) with --reference CLIP --sim-model CKPT
-# --sim-python PY. Run inside `nix develop .#condense` for whisper-cli; on the shared CPU host, inside a 6G memory
-# scope, one scorer at a time. ARGS: --reference --sim-model --sim-python --sim-threads --decoys --arm A.
+# RTF, VRAM, and SIM (median, minimum, wSIM, the decoy 1/2 checks and each arm against the bars) with --reference
+# CLIP --config narrate.toml (the clip's consent) --sim-model CKPT --sim-python PY. Run inside `nix develop
+# .#condense` for whisper-cli; on the shared CPU host, inside a 6G memory scope (the scorer holds the one-scorer
+# lock). ARGS: --reference --config --sim-model --sim-python --sim-threads --decoys --arm A.
 # Pull a window's outputs back into DEST and score them: DEST/scored.json and DEST/scored.md.
 narrate-bench-score src dest *ARGS:
     python3 narrate/bench/score.py {{quote(dest)}} {{ if src == "-" { "" } else { "--pull " + quote(src) } }} {{ARGS}}
