@@ -192,6 +192,11 @@ def test_each_chunk_and_window_scores_and_the_arm_reads_against_the_bars(score_m
     assert doc["sim"]["status"] == "measured" and doc["sim"]["model_id"] == sim.SIM_MODEL_ID
     assert doc["sim"]["reference"]["window_voice_wav"] == "matched"
     assert doc["sim"]["reference"]["consent"]["voices"] == 1
+    # the full clip is the one SIM reference; these receipts name no conditioning reference, so that is flagged
+    assert doc["sim_reference"]["sha256"] == doc["sim"]["reference"]["ref_clip_sha256"] == sha(bench["reference"])
+    assert doc["conditioning"]["equal"] is False
+    assert "conditioning reference not recorded for A7-broken, A9-fake" in doc["conditioning"]["flags"]
+    assert "| arm | conditioning | pass |" in (bench["out"] / "scored.md").read_text(encoding="utf-8")
     checks = doc["sim"]["checks"]
     assert checks["1-reference-self-match"]["observed"] == 0.9 and checks["1-reference-self-match"]["valid"] is True
     # decoy 3 (0.95) is another decoy, not the preset voice: only decoy2-* sets decoy 2

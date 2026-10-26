@@ -7,24 +7,29 @@ never runs a TTS model.
     ref_cut.py cut CLIP TEXT --words WORDS.json --max-s S [--min-s S] [--capacity-samples N --encoder-rate R
         --pad-samples P] --out-wav OUT.wav --out-text OUT.txt --record OUT.cut.json
 
-`words` reads the clip's word timings with whisper-cli (the registered small.en model, DTW word onsets, -t 4 at
-most): ffmpeg makes a 16 kHz mono analysis copy in a temporary directory, and condense.events.words_from turns
-whisper's full JSON into [{start, end, word}]. Run it one process at a time inside a memory scope on a shared host
-(`systemd-run --user --scope -p MemoryMax=6G -p MemorySwapMax=0 nice -n 19 ionice -c3 ...`).
+`words` reads the clip's word timings with whisper-cli (DTW word onsets, -t 4 at most): ffmpeg makes a 16 kHz mono
+analysis copy in a temporary directory, and condense.events.words_from turns whisper's full JSON into [{start, end,
+word}]. It refuses a model whose sha256 is not program/models.json's ggerganov-whisper-cpp-ggml-small.en (the
+model -dtw small.en assumes), and refuses to start outside a memory limit of at most 6 GiB on its own cgroup or an
+ancestor, with swap off: run it one process at a time as
+`systemd-run --user --scope -p MemoryMax=6G -p MemorySwapMax=0 nice -n 19 ionice -c3 ...`.
 
 `cut` is standard library only. It aligns the verified transcript's words to whisper's (difflib on lowercased
 alphanumerics), and considers a cut that starts before verified word i and ends after verified word j when both are
 matched words whose outer neighbours are matched to the adjacent whisper words (so no untranscribed or unheard word
-sits in the gap). Each cut point is the quietest 10 ms frame (nearest the gap's middle among equals) of the gap
-between the whisper word and its neighbour, and must lie within 12 dB of the clip's 10th-percentile frame level, so
-a cut lands in a pause, not in a word. Among the cuts that last from --min-s to --max-s seconds, whose words are at
-least 85% matched, and whose encoder input fits (--capacity-samples: the clip resampled to --encoder-rate and padded
-up to a multiple of --pad-samples, as audio.cpp's VoxCPM2 AudioVAE encoder does), it takes the one with the best
-boundaries, then the longest. A boundary scores 2 at a sentence end (. ! ?), 1 at a clause end (, ; : or a dash) and
-0 between other words; cuts rank by the sum of both scores, then by the end's score (the continuation prompt ends
-there). The cut copies the source PCM frames unchanged (same rate, channels, sample format and fmt chunk; no fade,
-no resampling) and checks the copy byte for byte; the transcript cut is verified words i..j, joined by single
-spaces.
+sits in the gap). Inside the cut, at least 85% of the verified words i..j must be matched (matched_ratio), and at
+least 85% of the whisper words between the ones i and j map to must be matched too (heard_ratio), so speech whisper
+heard that the transcript lacks counts against the cut. Each cut point is the quietest 10 ms frame (nearest the
+gap's middle among equals) of the gap between the whisper word and its neighbour, and must lie within 12 dB of the
+clip's 10th-percentile frame level, so a cut lands in a pause, not in a word. Among the cuts that last from --min-s
+to --max-s seconds, whose words pass both ratios, and whose encoder input fits (--capacity-samples: the clip
+resampled to --encoder-rate and padded up to a multiple of --pad-samples, as audio.cpp's VoxCPM2 AudioVAE encoder
+does), it takes the one with the best boundaries, then the longest. A boundary scores 2 at a sentence end (. ! ?), 1
+at a clause end (, ; : or a dash) and 0 between other words; cuts rank by the sum of both scores, then by the end's
+score (the continuation prompt ends there). The cut copies the source PCM frames unchanged (same rate, channels,
+sample format and fmt chunk; no fade, no resampling) and checks the copy byte for byte; the transcript cut is
+verified words i..j, joined by single spaces. The WAV and transcript are written to temporary names beside their
+targets, checked, then renamed, and the record is written last: a refused run leaves every output as it was.
 
 Every output is private: the clip, the transcript, the word timings and the record all stay outside git (the
 voice store). The record names files by basename and sha256 and holds times, word indices and counts, never the
@@ -54,11 +59,16 @@ SENTENCE_END = (".", "!", "?")
 CLAUSE_END = (",", ";", ":", "-", "\u2014", "\u2013")
 SCORE = {"sentence": 2, "clause": 1, "word": 0}
 WHISPER_MODEL = "models/ggerganov-whisper-cpp-ggml-small.en.bin"
+WHISPER_MODEL_ID = "ggerganov-whisper-cpp-ggml-small.en"  # -dtw small.en is this model's alignment heads
+MODELS = ROOT / "program" / "models.json"
 MAX_THREADS = 4
+MAX_SCOPE_BYTES = 6 << 30
+CGROUP_ROOT = Path("/sys/fs/cgroup")
+SCOPE_HINT = "systemd-run --user --scope -p MemoryMax=6G -p MemorySwapMax=0 nice -n 19 ionice -c3"
 
 
 class CutError(ValueError):
-    """No cut satisfies the policy, or an input is not what it should be. Nothing was written."""
+    """No cut satisfies the policy, or an input is not what it should be. No output file was written or replaced."""
 
 
 def sha256_file(path):
@@ -231,6 +241,12 @@ def plan(info, tokens, words, max_s, min_s, encoder=None):
     prefix = [0]
     for w in mapping:
         prefix.append(prefix[-1] + (w is not None))
+    heard = [False] * len(words)
+    for w in matched:
+        heard[mapping[w]] = True
+    heard_prefix = [0]
+    for h in heard:
+        heard_prefix.append(heard_prefix[-1] + h)
     ranked = []
     for i, (t0, db0), k0 in starts:
         for j, (t1, db1), k1 in ends:
@@ -243,17 +259,21 @@ def plan(info, tokens, words, max_s, min_s, encoder=None):
             ratio = (prefix[j + 1] - prefix[i]) / (j + 1 - i)
             if ratio < MIN_MATCHED:
                 continue
+            wi, wj = mapping[i], mapping[j]
+            heard_ratio = (heard_prefix[wj + 1] - heard_prefix[wi]) / (wj + 1 - wi)
+            if heard_ratio < MIN_MATCHED:
+                continue  # whisper heard words inside the cut that its transcript lacks
             fit = encoder_fit(b - a, rate, encoder)
             if fit is not None and not fit["fits"]:
                 continue
             rank = (SCORE[k0] + SCORE[k1], SCORE[k1])
-            ranked.append((rank, seconds, -i, -j, (i, j, a, b, k0, k1, db0, db1, ratio, fit)))
+            ranked.append((rank, seconds, -i, -j, (i, j, a, b, k0, k1, db0, db1, ratio, heard_ratio, fit)))
     if not ranked:
         raise CutError(
             f"no cut of {min_s}-{max_s} s at quiet word boundaries fits the policy "
             f"({len(starts)} start and {len(ends)} end candidates, clip {duration:.2f} s)"
         )
-    i, j, a, b, k0, k1, db0, db1, ratio, fit = max(ranked)[4]
+    i, j, a, b, k0, k1, db0, db1, ratio, heard_ratio, fit = max(ranked)[4]
     return {
         "start_frame": a,
         "end_frame": b,
@@ -268,6 +288,7 @@ def plan(info, tokens, words, max_s, min_s, encoder=None):
         "end_dbfs": round(db1, 1),
         "floor_dbfs": round(floor, 1),
         "matched_ratio": round(ratio, 3),
+        "heard_ratio": round(heard_ratio, 3),
         "encoder": fit,
         "candidates": len(ranked),
     }
@@ -304,12 +325,25 @@ def cut(args):
         if path.exists() and not args.force:
             raise CutError(f"{path.name} exists; pass --force to replace it")
     i, j = chosen["word_range"]
-    out_wav.write_bytes(wav_bytes(info["fmt"], pcm))
-    out_text.write_text(" ".join(tokens[i : j + 1]) + "\n", encoding="utf-8")
-    copy = read_wav(out_wav)
-    if copy["pcm"] != pcm or copy["fmt"] != info["fmt"]:
-        raise CutError("the written cut is not the source frames")
-    record = {
+    temps = {path: path.with_name(f".{path.name}.{os.getpid()}.tmp") for path in (out_wav, out_text, record_path)}
+    try:
+        temps[out_wav].write_bytes(wav_bytes(info["fmt"], pcm))
+        temps[out_text].write_text(" ".join(tokens[i : j + 1]) + "\n", encoding="utf-8")
+        copy = read_wav(temps[out_wav])
+        if copy["pcm"] != pcm or copy["fmt"] != info["fmt"]:
+            raise CutError("the written cut is not the source frames")
+        record = cut_record(args, clip, text, info, tokens, words_doc, encoder, chosen, temps, out_wav, out_text)
+        temps[record_path].write_text(json.dumps(record, indent=1) + "\n", encoding="utf-8")
+        for path in (out_wav, out_text, record_path):  # the record last: it names outputs already in place
+            os.replace(temps[path], path)
+    finally:
+        for temp in temps.values():
+            temp.unlink(missing_ok=True)
+    return record
+
+
+def cut_record(args, clip, text, info, tokens, words_doc, encoder, chosen, temps, out_wav, out_text):
+    return {
         "schema": "narrate-bench-ref-cut/1",
         "source": {
             "file": clip.name,
@@ -330,15 +364,59 @@ def cut(args):
         "cut": chosen,
         "pcm_copy": "byte-identical source frames; no fade, resampling or level change",
         "outputs": {
-            "wav": {"file": out_wav.name, "sha256": sha256_file(out_wav)},
-            "text": {"file": out_text.name, "sha256": sha256_file(out_text)},
+            "wav": {"file": out_wav.name, "sha256": sha256_file(temps[out_wav])},
+            "text": {"file": out_text.name, "sha256": sha256_file(temps[out_text])},
         },
     }
-    record_path.write_text(json.dumps(record, indent=1) + "\n", encoding="utf-8")
-    return record
 
 
 # --- whisper word timings ---------------------------------------------------------------------------------------
+
+
+def registered_sha256(model_id=WHISPER_MODEL_ID, models=None):
+    """The sha256 program/models.json registers for model_id, or None."""
+    try:
+        entry = json.loads(Path(models or MODELS).read_text(encoding="utf-8"))["models"][model_id]
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    if not isinstance(entry, dict):
+        return None
+    return str(entry.get("sha256") or "").lower() or None
+
+
+def cgroup_limits(cgroup_root=None, proc_cgroup="/proc/self/cgroup"):
+    """(tightest memory.max, tightest memory.swap.max) in bytes over this process's cgroup v2 path and its ancestors;
+    None for a level with no limit ("max") or a missing file."""
+    root = Path(cgroup_root or CGROUP_ROOT)
+    try:
+        line = next(x for x in Path(proc_cgroup).read_text().splitlines() if x.startswith("0::"))
+    except (OSError, StopIteration):
+        return None, None
+    path = root / line[3:].strip().lstrip("/")
+    limits = {"memory.max": None, "memory.swap.max": None}
+    while True:
+        for name in limits:
+            try:
+                value = (path / name).read_text().strip()
+            except OSError:
+                continue
+            if value.isdigit() and (limits[name] is None or int(value) < limits[name]):
+                limits[name] = int(value)
+        if path == root or root not in path.parents:
+            break
+        path = path.parent
+    return limits["memory.max"], limits["memory.swap.max"]
+
+
+def check_scope():
+    """Refuse to run whisper outside a memory limit of at most MAX_SCOPE_BYTES with swap off."""
+    memory, swap = cgroup_limits()
+    if memory is None or memory > MAX_SCOPE_BYTES or swap != 0:
+        raise CutError(
+            f"whisper needs a memory scope of at most 6 GiB with swap off (memory.max {memory}, memory.swap.max "
+            f"{swap}); run one process at a time under: {SCOPE_HINT} ..."
+        )
+    return {"memory_max": memory, "memory_swap_max": swap}
 
 
 def words(args):
@@ -350,6 +428,16 @@ def words(args):
     model = Path(args.model) if Path(args.model).is_absolute() else ROOT / args.model
     if not model.is_file():
         raise CutError(f"no whisper model {model.name}")
+    expected = registered_sha256()
+    model_sha256 = sha256_file(model)
+    if expected is None or model_sha256 != expected:
+        raise CutError(
+            f"whisper model {model.name} sha256 {model_sha256[:12]} is not program/models.json's {WHISPER_MODEL_ID}"
+        )
+    out = Path(args.out)
+    if out.exists() and not args.force:
+        raise CutError(f"{out.name} exists; pass --force to replace it")
+    scope = check_scope()
     for tool in ("ffmpeg", "whisper-cli"):
         if not shutil.which(tool):
             raise CutError(f"{tool} is not on PATH (nix develop .#condense)")
@@ -370,12 +458,15 @@ def words(args):
     doc = {
         "schema": "narrate-bench-ref-words/1",
         "clip_sha256": sha256_file(clip),
-        "whisper": {"model_sha256": sha256_file(model), "threads": threads, "dtw": "small.en"},
+        "whisper": {
+            "model_id": WHISPER_MODEL_ID,
+            "model_sha256": model_sha256,
+            "threads": threads,
+            "dtw": "small.en",
+            "scope": scope,
+        },
         "words": found,
     }
-    out = Path(args.out)
-    if out.exists() and not args.force:
-        raise CutError(f"{out.name} exists; pass --force to replace it")
     out.write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8")
     return {"words": len(found), "out": out.name, "whisper_model_sha256": doc["whisper"]["model_sha256"]}
 

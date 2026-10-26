@@ -24,7 +24,12 @@ wav and text hash-bound like the clip, source_sha256 the clip's sha256; narrate/
 the reference's duration from its WAV header and its encoder input (the clip resampled to encoder.rate, rounded up,
 then padded to a multiple of encoder.pad_samples) must fit the policy. A misfit refuses the inputs (exit 2). An
 audiocpp variant with prompt_audio also sends the reference as the request's `audio`, the continuation prompt that
-its reference_text transcribes (VoxCPM2's ultimate clone).
+its reference_text transcribes (VoxCPM2's ultimate clone). At audio.cpp 47c2756e VoxCPM2 builds the model's text as
+prompt_text + target_text with no separator, so a prompt_audio variant's reference_text ends with one space; each
+pass writes model-text.json beside requests.json, the text that reaches the model per request (prompt text plus the
+chunk text with whitespace runs collapsed, as the pin's normalize_wrapper_text does, before any runtime text
+chunking). The run receipt's `reference` names the conditioning reference (label, wav and text sha256, and the voice
+clip's sha256) so a scorer can tell arms conditioned on different clips apart.
 
 An arm runs, one synthesis process at a time: a one-chunk smoke per conditioning variant until one passes (exit
 0, at least smoke_min_ratio of the chunk's expected duration, which catches a truncated take, and VRAM in use
@@ -800,7 +805,14 @@ class Ctx:
         self.voice_id = vid
         self.reference = None
         if voice is not None and clones(self.arm):
-            self.reference, voice = reference_of(job, arm_name)
+            clip_sha256 = str(voice["wav"].get("sha256") or "").lower()
+            label, voice = reference_of(job, arm_name)
+            self.reference = {
+                "label": label,
+                "wav_sha256": str(voice["wav"].get("sha256") or "").lower(),
+                "text_sha256": str(voice["text"].get("sha256") or "").lower(),
+                "voice_clip_sha256": clip_sha256,
+            }
         self.voice_wav = voice["wav"]["path"] if voice else None
         self.voice_text_file = voice["text"]["path"] if voice else None
         self.voice_text = (
@@ -873,10 +885,18 @@ def run_qwentts(ctx, chunks, seed, variant, pass_dir):
     return rule, gone, proc.returncode, results, load_s, ended - started
 
 
+MODEL_TEXT_RULE = "audio.cpp 47c2756e VoxCPM2: prompt_text + normalize_wrapper_text(text) with prompt audio"
+
+
+def wrapper_text(text):
+    """audio.cpp 47c2756e VoxCPM2 normalize_wrapper_text: every run of C-locale whitespace becomes one space."""
+    return re.sub(r"[ \t\n\v\f\r]+", " ", text)
+
+
 def run_audiocpp(ctx, chunks, seed, variant, pass_dir, decoy=None):
     s = ctx.settings
     task = (decoy or {}).get("task") or s.get("task", "clon")
-    requests = []
+    requests, model_text = [], {}
     for chunk in chunks:
         request = {"id": file_id(chunk["id"]), "text": chunk["text"], "seed": seed}
         options = dict(s.get("options", {}))
@@ -889,10 +909,19 @@ def run_audiocpp(ctx, chunks, seed, variant, pass_dir, decoy=None):
                 request["reference_text"] = ctx.voice_text
             if variant.get("prompt_audio"):
                 request["audio"] = str(ctx.voice_wav)  # the continuation prompt the reference_text transcribes
+                # the pin concatenates prompt_text + target_text with no separator: keep the last prompt word and
+                # the chunk's first word apart
+                request["reference_text"] = ctx.voice_text + " "
         if options:
             request["options"] = options
         requests.append(request)
+        prompt = request.get("reference_text", "") if "audio" in request else ""
+        model_text[request["id"]] = prompt + wrapper_text(request["text"])
     (pass_dir / "requests.json").write_text(json.dumps({"requests": requests}, indent=1), encoding="utf-8")
+    (pass_dir / "model-text.json").write_text(
+        json.dumps({"family": s["family"], "composed_as": MODEL_TEXT_RULE, "texts": model_text}, indent=1),
+        encoding="utf-8",
+    )
     out_dir = pass_dir / "out"
     out_dir.mkdir(exist_ok=True)
     argv = [ctx.inputs["binary"], "--task", task, "--family", s["family"], "--model", ctx.inputs["model"]]

@@ -9,13 +9,14 @@ worst chunk WER, catastrophic count, RTF and load time from the receipt. Per arm
 baseline. With --decoys, decoys 4 and 5 are rebuilt from one chunk of --decoy-arm (half silence, time reversal,
 shuffled transcript) and must land on their expected side.
 
-SIM (narrate/sim.py, the registered ECAPA model) needs --reference (the clip the window conditioned on; its sha256
-must equal the window's inputs-verified.json voice.wav when that file is present), --config (a narrate.toml whose
-registry holds a voice with that clip: an ECAPA embedding is a voiceprint, so policy.check_consent passes for every
-such voice, against the current registry and store, before the clip is decoded), --sim-model and an interpreter
-with torch and speechbrain (--sim-python or NARRATE_SIM_PYTHON; on the shared CPU host, inside a 6G memory scope).
-The scorer holds the host's one-scorer lock (narrate.sim.scorer_lock) for the whole run and refuses to start
-while another scorer holds it.
+SIM (narrate/sim.py, the registered ECAPA model) needs --reference (the voice's full consented clip: the one fixed
+SIM reference for every arm, so an arm conditioned on a cut of it, receipt `reference`, is still scored against the
+full clip; its sha256 must equal the window's inputs-verified.json voice.wav when that file names one), --config (a
+narrate.toml whose registry holds a voice with that clip: an ECAPA embedding is a voiceprint, so
+policy.check_consent passes for every such voice, against the current registry and store, before the clip is
+decoded), --sim-model and an interpreter with torch and speechbrain (--sim-python or NARRATE_SIM_PYTHON; on the
+shared CPU host, inside a 6G memory scope). The scorer holds the host's one-scorer lock (narrate.sim.scorer_lock)
+for the whole run and refuses to start while another scorer holds it.
 
 Per pass: each chunk against the reference, the median and minimum, and wSIM over 10 s windows (5 s hop) of the
 pass's chunks joined in order, skipping windows with too little voice: its minimum, mean and every window. A chunk
@@ -29,6 +30,10 @@ chunks and wSIM windows of its seed passes (smoke passes repeat a seed-1 chunk a
 neither counts): the preregistered bars, median at least SIM_BAR and SIM_DECOY_MARGIN above decoy 2, wSIM minimum
 at least WSIM_RATIO times the arm's median, and all_met, which counts any bar that is not True (a missing value
 included) as unmet, as is a decoy check that is not valid. Without any input SIM is not_measured with the reason.
+
+Each arm records the conditioning reference its receipt names (label, wav and text sha256, and the voice clip it was
+cut from), and the output's `conditioning` flags arms that cloned from different references, and a SIM reference
+that is not the clip an arm's conditioning came from, so SIM and WER are never read as like for like across them.
 
 The destination must lie outside every git work tree (voice renders never enter git); --pull SRC copies a window's
 run directory there first. A receipt whose chunks_sha256 is not the committed chunk list's is not scored, and a
@@ -75,6 +80,7 @@ SILENCE_DBFS = -50.0
 SIM_BAR, SIM_DECOY_MARGIN, WSIM_RATIO = 0.45, 0.15, 0.8
 SIM_SELF_MIN = SIM_BAR + SIM_DECOY_MARGIN
 DECOY2_PREFIX = "decoy2"  # host-job.json decoy ids: decoy 2 is the preset voice; other decoys never set its median
+SIM_REFERENCE_ROLE = "the one fixed SIM reference for every arm: the voice's full consented clip"
 
 
 def config(whisper_model=None, sim_model=None, sim_python=None, sim_threads=None):
@@ -502,20 +508,61 @@ def window_voice_sha256(out_dir):
     return None
 
 
+def conditioning_of(receipt):
+    """The conditioning reference a receipt names: {label, wav_sha256, text_sha256, voice_clip_sha256}, a bare
+    label from an older receipt, or None (not recorded, or the arm clones no voice)."""
+    ref = receipt.get("reference")
+    if isinstance(ref, dict):
+        return {k: ref.get(k) for k in ("label", "wav_sha256", "text_sha256", "voice_clip_sha256")}
+    if isinstance(ref, str):
+        return {"label": ref, "wav_sha256": None, "text_sha256": None, "voice_clip_sha256": None}
+    return None
+
+
+def compare_conditioning(arms, sim_reference_sha256):
+    """Flags: arms conditioned on different (or unrecorded) references, and a SIM reference that is not the voice
+    clip an arm's conditioning came from."""
+    scored = [a for a in arms if "error" not in a]
+    keys = {a["arm"]: (a.get("conditioning") or {}).get("wav_sha256") for a in scored}
+    flags = []
+    unknown = sorted(name for name, key in keys.items() if key is None)
+    if unknown:
+        flags.append("conditioning reference not recorded for " + ", ".join(unknown))
+    distinct = sorted({key for key in keys.values() if key})
+    if len(distinct) > 1:
+        groups = []
+        for key in distinct:
+            names = sorted(n for n, k in keys.items() if k == key)
+            label = next(a["conditioning"]["label"] for a in scored if keys[a["arm"]] == key)
+            groups.append(f"{label} {key[:8]} ({', '.join(names)})")
+        flags.append("unequal conditioning: " + "; ".join(groups) + "; SIM and WER are not like for like across these")
+    if sim_reference_sha256:
+        for a in scored:
+            cond = a.get("conditioning") or {}
+            clip = cond.get("voice_clip_sha256")
+            if clip and clip != sim_reference_sha256:
+                flags.append(f"{a['arm']}: the SIM reference is not the voice clip its conditioning came from")
+            elif cond.get("wav_sha256") and cond["wav_sha256"] != sim_reference_sha256:
+                flags.append(f"{a['arm']}: conditioned on {cond.get('label')}, SIM against the full clip")
+    return {"equal": not unknown and len(distinct) <= 1, "flags": flags}
+
+
 def fmt(value, digits=3):
     return "" if value is None else (f"{value:.{digits}f}" if isinstance(value, float) else str(value))
 
 
 def table(doc):
     lines = [
-        "| arm | pass | variant | done | audio s | RTF | load s | WER whole | WER max | catastrophic | SIM median |"
-        " SIM min | wSIM min | wSIM mean | peak VRAM above idle GiB | stop |",
-        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+        "| arm | conditioning | pass | variant | done | audio s | RTF | load s | WER whole | WER max | catastrophic |"
+        " SIM median | SIM min | wSIM min | wSIM mean | peak VRAM above idle GiB | stop |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for arm in doc["arms"]:
         if "error" in arm:
-            lines.append(f"| {arm['arm']} | not scored: {arm['error']} |" + " |" * 14)
+            lines.append(f"| {arm['arm']} | not scored: {arm['error']} |" + " |" * 15)
             continue
+        cond = arm.get("conditioning")
+        cond_text = "not recorded" if cond is None else f"{cond['label']} {(cond.get('wav_sha256') or '')[:8]}".strip()
         peak = arm.get("peak_above_baseline_bytes")
         peak = f"{peak / 2**30:.2f}" if peak is not None else ""
         stop = (arm.get("stop") or {}).get("rule", "")
@@ -526,7 +573,8 @@ def table(doc):
             else:
                 sim_text = ["not_measured", "", "", ""]
             lines.append(
-                f"| {arm['arm']} | {p['pass']} | {p['variant'] or ''} | {p['chunks_done']}/{p['chunks_total']} | "
+                f"| {arm['arm']} | {cond_text} | {p['pass']} | {p['variant'] or ''} | "
+                f"{p['chunks_done']}/{p['chunks_total']} | "
                 f"{fmt(p['audio_s'], 1)} | {fmt(p['rtf'], 3)} | {fmt(p['load_s'], 1)} | {fmt(p['wer_whole'], 3)} | "
                 f"{fmt(p['wer_max_chunk'], 3)} | {p['catastrophic']} | {' | '.join(sim_text)} | {peak} | {stop} |"
             )
@@ -555,6 +603,11 @@ def table(doc):
             f"{fmt(b['wsim_ratio'])}; all bars met {b['all_met']}"
             + (f", unmet {', '.join(b['unmet'])}" if b["unmet"] else "")
         )
+    ref = doc.get("sim_reference")
+    if ref:
+        lines.append(f"SIM reference: {ref['sha256'][:8]}, {ref['role']}.")
+    for flag in doc["conditioning"]["flags"]:
+        lines.append(f"Conditioning: {flag}.")
     for d in doc.get("decoys", []):
         lines.append(f"Decoy {d['decoy']}: expected {d.get('expected')}, valid {d['valid']}")
     return "\n".join(lines) + "\n"
@@ -568,7 +621,9 @@ def main(argv=None):
     parser.add_argument("--sim-model", type=Path, help="the registered ECAPA embedding_model.ckpt")
     parser.add_argument("--sim-python", type=Path, help="interpreter with torch and speechbrain (NARRATE_SIM_PYTHON)")
     parser.add_argument("--sim-threads", type=int, help="SIM worker CPU threads, 1 to 8 (default 4)")
-    parser.add_argument("--reference", type=Path, help="the voice's reference clip, for SIM (private)")
+    parser.add_argument(
+        "--reference", type=Path, help="the voice's full consented clip: the one SIM reference for every arm (private)"
+    )
     parser.add_argument("--config", type=Path, help="narrate.toml whose registry and store check the clip's consent")
     parser.add_argument("--arm", action="append", default=[], help="score only these arms")
     parser.add_argument("--decoys", action="store_true", help="rebuild and score decoys 4 and 5")
@@ -597,11 +652,14 @@ def score(args):
     cfg = config(args.whisper_model, args.sim_model, args.sim_python, args.sim_threads)
     reader = Reader(cfg)
     receipts = sorted(args.out_dir.glob("*/receipt.json"))
+    reference = Path(args.reference) if args.reference else None
+    reference_sha256 = sha256_file(reference) if reference is not None and reference.is_file() else None
     doc = {
         "schema": "narrate-bench-scored/1",
         "chunks_sha256": chunk_doc["chunks_sha256"],
         "wer": {"status": "measured", **reader.whisper.identity()} if reader.ok else qa.not_measured(reader.why),
         "sim": None,
+        "sim_reference": {"sha256": reference_sha256, "role": SIM_REFERENCE_ROLE} if reference_sha256 else None,
         "rules": {
             "max_chunk_wer": MAX_CHUNK_WER,
             "max_silence_s": MAX_SILENCE_S,
@@ -628,6 +686,7 @@ def score(args):
                 "arm": receipt["arm"],
                 "variant": receipt.get("variant"),
                 "stop": receipt.get("stop"),
+                "conditioning": conditioning_of(receipt),
                 "peak_bytes": vram.get("peak_bytes"),
                 "peak_above_baseline_bytes": vram.get("peak_above_baseline_bytes"),
                 "passes": [],
@@ -645,6 +704,7 @@ def score(args):
         }
         if sim.scorer is not None:
             doc["sim"]["checks"] = sim_checks(doc, self_sim, self_why)
+    doc["conditioning"] = compare_conditioning(doc["arms"], reference_sha256)
     (args.out_dir / "scored.json").write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8")
     text = table(doc)
     (args.out_dir / "scored.md").write_text(text, encoding="utf-8")

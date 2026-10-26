@@ -41,6 +41,7 @@ def load(name, path):
 
 host_run = load("narrate_bench_host_run", BENCH / "host_run.py")
 ref_cut = load("narrate_bench_ref_cut", BENCH / "ref_cut.py")
+score = load("narrate_bench_score", BENCH / "score.py")
 
 
 def sha(path):
@@ -524,6 +525,9 @@ class RefPolicy(Workspace):
         self.assertFalse((self.out / "V").exists())
 
     def test_the_named_cut_is_hashed_checked_and_sent_as_reference_and_prompt(self):
+        # the cut's transcript ends on a bare word, as a cut ending mid-phrase does
+        (self.dir / "v" / "cut.txt").write_text("A synthetic cut transcript  ending\non a bare word\n")
+        self.write_voices()
         self.job_path = self.job(V=self.vox_arm(dict(self.POLICY, cut="max14s")))
         records = self.verify(["V"])
         self.assertEqual(records["voice.max14s.wav"]["file"], "cut.wav")
@@ -535,12 +539,37 @@ class RefPolicy(Workspace):
         self.assertEqual(check["encoder"]["padded_samples"], 192000)
         code, receipt = self.run_arm("V")
         self.assertEqual(code, host_run.EXIT_OK, receipt["stop"])
-        self.assertEqual((receipt["reference"], receipt["variant"]), ("voice.max14s", "ultimate"))
+        self.assertEqual(receipt["variant"], "ultimate")
+        self.assertEqual(
+            receipt["reference"],
+            {
+                "label": "voice.max14s",
+                "wav_sha256": sha(self.dir / "v" / "cut.wav"),
+                "text_sha256": sha(self.dir / "v" / "cut.txt"),
+                "voice_clip_sha256": sha(self.dir / "v" / "ref.wav"),
+            },
+        )
         self.assertTrue(receipt["inputs"]["V.reference"]["fits"])
         requests = json.loads((self.out / "V" / "seed1" / "requests.json").read_text())["requests"]
         cut = str(self.dir / "v" / "cut.wav")
         self.assertTrue(all(r["voice_ref"] == cut and r["audio"] == cut for r in requests))
-        self.assertTrue(all(r["reference_text"] == "A synthetic cut transcript." for r in requests))
+        # the pin builds prompt_text + target_text with no separator: the prompt ends with one space
+        prompt = "A synthetic cut transcript ending on a bare word "
+        self.assertTrue(all(r["reference_text"] == prompt for r in requests))
+        texts = json.loads((self.out / "V" / "seed1" / "model-text.json").read_text())["texts"]
+        self.assertEqual(texts, {r["id"]: prompt + " ".join(r["text"].split()) for r in requests})
+        self.assertTrue(all(" word " + r["text"].split()[0] in texts[r["id"]] for r in requests))
+
+    def test_the_reference_only_variant_sends_no_prompt_and_no_transcript(self):
+        arm = self.vox_arm(dict(self.POLICY, cut="max14s"))
+        arm["variants"] = [arm["variants"][1]]
+        self.job_path = self.job(V=arm)
+        code, receipt = self.run_arm("V")
+        self.assertEqual(code, host_run.EXIT_OK, receipt["stop"])
+        requests = json.loads((self.out / "V" / "seed1" / "requests.json").read_text())["requests"]
+        self.assertTrue(all("audio" not in r and "reference_text" not in r for r in requests))
+        texts = json.loads((self.out / "V" / "seed1" / "model-text.json").read_text())["texts"]
+        self.assertEqual(texts, {r["id"]: r["text"] for r in requests})
 
     def test_a_cut_must_exist_and_name_the_voice_clip_as_its_source(self):
         self.job_path = self.job(V=self.vox_arm(dict(self.POLICY, cut="other")))
@@ -559,6 +588,18 @@ class RefPolicy(Workspace):
             self.job_path = self.job(V=self.vox_arm(policy))
             if fits:
                 self.assertEqual(self.verify(["V"])["V.reference"]["encoder"]["padded_samples"], 238080)
+            else:
+                with self.assertRaisesRegex(host_run.Refusal, "needs 240640 encoder samples"):
+                    self.verify(["V"])
+        # 44.1 kHz: 656208 frames resample to exactly 238080 samples; one frame more rounds up to 238081, which
+        # pads to 240640 (a floor would keep 238080 and wrongly pass)
+        for frames, fits in ((656208, True), (656209, False)):
+            pcm_wav(self.dir / "v" / "cut.wav", [0.0] * frames, rate=44100)
+            self.write_voices()
+            self.job_path = self.job(V=self.vox_arm(policy))
+            if fits:
+                encoder = self.verify(["V"])["V.reference"]["encoder"]
+                self.assertEqual((encoder["resampled_samples"], encoder["padded_samples"]), (238080, 238080))
             else:
                 with self.assertRaisesRegex(host_run.Refusal, "needs 240640 encoder samples"):
                     self.verify(["V"])
@@ -620,8 +661,8 @@ class RefCut(unittest.TestCase):
         self.words.write_text(json.dumps({"clip_sha256": sha(self.clip), "words": words}))
         self.duration = t
 
-    def cut(self, *extra):
-        out = self.dir / "out"
+    def cut(self, *extra, out=None):
+        out = out or self.dir / "out"
         out.mkdir(exist_ok=True)
         argv = ["cut", str(self.clip), str(self.text), "--words", str(self.words), *extra]
         argv += [
@@ -662,9 +703,50 @@ class RefCut(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertLessEqual(record["cut"]["seconds"], 1.2)
         self.assertEqual(record["cut"]["end_boundary"], "sentence")  # a sentence end still outranks a word gap
-        code, record, out = self.cut("--max-s", "30", "--min-s", "20", "--force")
+        code, record, out = self.cut("--max-s", "30", "--min-s", "20", "--force", out=self.dir / "fresh")
+        self.assertEqual((code, record), (2, None))
+        self.assertEqual(list(out.iterdir()), [])  # a refused cut writes nothing
+
+    def test_a_cut_refused_after_writing_leaves_the_earlier_outputs_as_they_were(self):
+        code, _, out = self.cut("--max-s", "1.2")
+        self.assertEqual(code, 0)
+        before = {p.name: p.read_bytes() for p in out.iterdir()}
+        real = ref_cut.read_wav
+
+        def tampered(path):
+            info = real(path)
+            if Path(path).name.endswith(".tmp"):
+                info["pcm"] = info["pcm"][:-2]  # the read-back differs from what was cut
+            return info
+
+        with mock.patch.object(ref_cut, "read_wav", tampered):
+            code, _, out = self.cut("--max-s", "5.5", "--min-s", "2", "--force")
         self.assertEqual(code, 2)
-        self.assertFalse((out / "cut.wav").exists() and record and record["cut"]["seconds"] >= 20)
+        self.assertEqual({p.name: p.read_bytes() for p in out.iterdir()}, before)  # no temporary file left either
+
+    def test_a_cut_needs_whisper_to_have_heard_no_more_than_the_transcript_inside_it(self):
+        info = ref_cut.read_wav(self.clip)
+        words = json.loads(self.words.read_text())["words"]
+        # whisper heard two words between "delta" and "echo" that the transcript lacks
+        k = next(n for n, w in enumerate(words) if w["word"] == "Delta")
+        gap = (words[k]["end"], words[k + 1]["start"])
+        extra = [{"start": gap[0] + 0.01, "end": gap[0] + 0.05, "word": "um"},
+                 {"start": gap[0] + 0.06, "end": gap[1] - 0.01, "word": "uh"}]  # fmt: skip
+        heard = words[: k + 1] + extra + words[k + 1 :]
+        chosen = ref_cut.plan(info, self.tokens, words, 5.5, 2)
+        self.assertEqual(tuple(chosen["word_range"]), (0, 6))  # alpha .. golf. without the extra words
+        for max_s in (2.5, 4.0, 5.5):
+            chosen = ref_cut.plan(info, self.tokens, heard, max_s, 1.0)
+            i, j = chosen["word_range"]
+            self.assertTrue(j < 3 or i > 6, (max_s, i, j))  # no cut keeps sentence two
+            self.assertEqual((chosen["matched_ratio"], chosen["heard_ratio"]), (1.0, 1.0))
+
+    def test_encoder_fit_rounds_the_resampled_length_up_at_44100_hz(self):
+        encoder = {"rate": 16000, "capacity_samples": 240000, "pad_samples": 2560}
+        fit = ref_cut.encoder_fit(656208, 44100, encoder)
+        self.assertEqual((fit["resampled_samples"], fit["padded_samples"], fit["fits"]), (238080, 238080, True))
+        fit = ref_cut.encoder_fit(656209, 44100, encoder)
+        self.assertEqual((fit["resampled_samples"], fit["padded_samples"], fit["fits"]), (238081, 240640, False))
 
     def test_no_cut_starts_or_ends_beside_a_word_whisper_did_not_hear(self):
         info = ref_cut.read_wav(self.clip)
@@ -682,6 +764,21 @@ class RefCut(unittest.TestCase):
         self.words.write_text(json.dumps({"clip_sha256": "0" * 64, "words": []}))
         code, record, _ = self.cut("--max-s", "5")
         self.assertEqual((code, record), (2, None))
+
+    def test_cgroup_limits_take_the_tightest_limit_over_the_cgroup_and_its_ancestors(self):
+        root = self.dir / "cg"
+        leaf = root / "user.slice" / "run-x.scope"
+        leaf.mkdir(parents=True)
+        (root / "user.slice" / "memory.max").write_text(f"{6 << 30}\n")
+        (root / "user.slice" / "memory.swap.max").write_text("max\n")
+        (leaf / "memory.max").write_text("max\n")
+        (leaf / "memory.swap.max").write_text("0\n")
+        proc = self.dir / "cgroup"
+        proc.write_text("0::/user.slice/run-x.scope\n")
+        self.assertEqual(ref_cut.cgroup_limits(root, proc), (6 << 30, 0))
+        (root / "user.slice" / "memory.max").write_text("max\n")
+        self.assertEqual(ref_cut.cgroup_limits(root, proc), (None, 0))
+        self.assertEqual(ref_cut.cgroup_limits(root, self.dir / "missing"), (None, None))
 
     def test_24_bit_samples_decode_with_their_sign(self):
         path = pcm_wav(self.dir / "s24.wav", [-1.0, -0.5, 0.0, 0.5], 16000, bits=24, extensible=True)
@@ -703,15 +800,30 @@ class RefCut(unittest.TestCase):
             (bin_dir / tool).chmod(0o755)
         model = self.dir / "model.bin"
         model.write_bytes(b"model")
+        models = self.dir / "models.json"
+        models.write_text(json.dumps({"models": {ref_cut.WHISPER_MODEL_ID: {"sha256": sha(model)}}}))
         out = self.dir / "w.json"
         env = {"PATH": f"{bin_dir}:{os.environ['PATH']}", "FAKE_ARGS": str(self.dir / "args")}
         argv = ["words", str(self.clip), "--out", str(out), "--model", str(model), "--threads", "16"]
-        with mock.patch.dict(os.environ, env), mock.patch("sys.stdout"):
-            self.assertEqual(ref_cut.main(argv), 0)
+        scoped = mock.patch.object(ref_cut, "cgroup_limits", return_value=(6 << 30, 0))
+        with mock.patch.dict(os.environ, env), mock.patch("sys.stdout"), mock.patch("sys.stderr"):
+            with mock.patch.object(ref_cut, "MODELS", models), scoped:
+                (self.dir / "other.bin").write_bytes(b"another model")
+                other = ["words", str(self.clip), "--out", str(out), "--model", str(self.dir / "other.bin")]
+                self.assertEqual(ref_cut.main(other), 2)  # not the registered small.en
+            with mock.patch.object(ref_cut, "MODELS", models):
+                for limits in ((None, None), (8 << 30, 0), (6 << 30, None)):
+                    with mock.patch.object(ref_cut, "cgroup_limits", return_value=limits):
+                        self.assertEqual(ref_cut.main(argv), 2, limits)  # no memory scope, too large, or swap on
+            self.assertFalse((self.dir / "args").exists() or out.exists())  # whisper never started
+            with mock.patch.object(ref_cut, "MODELS", models), scoped:
+                self.assertEqual(ref_cut.main(argv), 0)
         doc = json.loads(out.read_text())
         self.assertEqual([w["word"] for w in doc["words"]], ["Alpha", "bravo."])
         self.assertEqual(doc["clip_sha256"], sha(self.clip))
         self.assertEqual(doc["whisper"]["threads"], 4)
+        self.assertEqual(doc["whisper"]["model_sha256"], sha(model))
+        self.assertEqual(doc["whisper"]["scope"], {"memory_max": 6 << 30, "memory_swap_max": 0})
         args = (self.dir / "args").read_text().split()
         self.assertEqual(args[args.index("-t") + 1], "4")
         self.assertEqual(args[args.index("-dtw") + 1], "small.en")
@@ -811,6 +923,9 @@ class Window(Workspace):
         self.assertEqual(done.returncode, 0, done.stderr)
         self.assertIn("NARRATE-BENCH-PREFLIGHT rc=0", done.stdout)
         self.assertFalse((self.bench / "runs").exists())
+        # preflight keeps its own hash cache: the window's verify still hashes every input itself
+        self.assertTrue((self.bench / "preflight-verified.json").is_file())
+        self.assertFalse((self.bench / "inputs-verified.json").exists())
         arm = self.audiocpp_arm(reference={"max_seconds": 0.5})  # the 1 s fixture reference is too long
         job = self.job(Q=self.qwentts_arm(), M=arm, Q2=self.qwentts_arm())
         shutil.copy(job, self.bench / "job" / "host-job.json")
@@ -907,6 +1022,34 @@ class Wav(unittest.TestCase):
 
 
 class Score(unittest.TestCase):
+    def test_arms_conditioned_on_different_references_are_flagged(self):
+        clip, cut = "a" * 64, "c" * 64
+        full = {"label": "voice", "wav_sha256": clip, "text_sha256": "b" * 64, "voice_clip_sha256": clip}
+        part = {"label": "voice.max14s", "wav_sha256": cut, "text_sha256": "d" * 64, "voice_clip_sha256": clip}
+        self.assertEqual(score.conditioning_of({"reference": full}), full)
+        self.assertEqual(score.conditioning_of({"reference": "voice.max14s"})["label"], "voice.max14s")
+        self.assertIsNone(score.conditioning_of({}))
+        arms = [{"arm": "A1", "conditioning": full}, {"arm": "A2", "conditioning": dict(full)}]
+        self.assertEqual(score.compare_conditioning(arms, clip), {"equal": True, "flags": []})
+        arms.append({"arm": "A3", "conditioning": part})
+        result = score.compare_conditioning(arms, clip)
+        self.assertFalse(result["equal"])
+        self.assertIn("unequal conditioning: voice aaaaaaaa (A1, A2); voice.max14s cccccccc (A3)", result["flags"][0])
+        self.assertIn("A3: conditioned on voice.max14s, SIM against the full clip", result["flags"])
+        result = score.compare_conditioning(arms + [{"arm": "A0", "conditioning": None}], "e" * 64)
+        self.assertIn("conditioning reference not recorded for A0", result["flags"])
+        self.assertIn("A1: the SIM reference is not the voice clip its conditioning came from", result["flags"])
+        doc = {
+            "arms": [dict(a, passes=[]) for a in arms],
+            "wer": {"status": "not_measured"},
+            "sim": {"status": "not_measured"},
+            "sim_reference": {"sha256": clip, "role": score.SIM_REFERENCE_ROLE},
+            "conditioning": score.compare_conditioning(arms, clip),
+        }
+        text = score.table(doc)
+        self.assertIn("SIM reference: aaaaaaaa, the one fixed SIM reference", text)
+        self.assertIn("Conditioning: unequal conditioning", text)
+
     def test_score_refuses_a_destination_inside_a_git_work_tree(self):
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / ".git").mkdir()

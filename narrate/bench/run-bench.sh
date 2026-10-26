@@ -25,7 +25,9 @@
 # Preflight, before the Lease: `run-bench.sh --preflight` (same NARRATE_BENCH_EXPECT_* values) parses bench.env,
 # checks the runner hashes and runs `host_run.py verify` for the window's arms: every input's sha256 and each arm's
 # reference policy (an oversized or missing reference cut is refused here, not in the window). No engine, no scope
-# and no runs/ directory; it prints the verified records and `NARRATE-BENCH-PREFLIGHT rc=N` (0 green, 2 refused).
+# and no runs/ directory. Its only write is its own hash cache, preflight-verified.json, never the window's
+# inputs-verified.json, so the window's verify still hashes every input it has not hashed itself. It prints the
+# verified records and `NARRATE-BENCH-PREFLIGHT rc=N` (0 green, 2 refused).
 #
 # Test mode: NARRATE_BENCH_TEST_MODE=1 from the caller's environment (never from bench.env) allows
 # NARRATE_BENCH_NO_SCOPE, NARRATE_BENCH_ARMS, NARRATE_BENCH_ARMS_S, NARRATE_BENCH_HARD_S, NARRATE_BENCH_PYTHON and
@@ -116,7 +118,7 @@ load_env() {  # bench.env: KEY=VALUE lines for the allowed keys only; never sour
 }
 
 if [ "${1:-}" = "--preflight" ] && [ -z "${NARRATE_BENCH_IN_SCOPE:-}" ]; then
-    # ---- preflight: before the Lease; hashes only, no engine, no scope, no runs/ directory ----
+    # ---- preflight: before the Lease; no engine, no scope, no runs/ directory; writes only its own cache ----
     preflight_refuse() {
         printf 'run-bench: preflight refused: %s\n' "$*" >&2 2>/dev/null
         printf 'NARRATE-BENCH-PREFLIGHT rc=2\n' 2>/dev/null
@@ -132,7 +134,7 @@ if [ "${1:-}" = "--preflight" ] && [ -z "${NARRATE_BENCH_IN_SCOPE:-}" ]; then
     [ "$TEST_MODE" = 1 ] && ARMS_TEXT=${NARRATE_BENCH_ARMS:-$DEFAULT_ARMS}
     read -r -a ARMS <<<"$ARMS_TEXT"
     nice -n 19 ionice -c3 "$PY" "$BENCH_DIR/job/host_run.py" verify "$BENCH_DIR/job/host-job.json" \
-        --cache "$BENCH_DIR/inputs-verified.json" "${ARMS[@]/#/--arm=}"
+        --cache "$BENCH_DIR/preflight-verified.json" "${ARMS[@]/#/--arm=}"
     rc=$?
     printf 'NARRATE-BENCH-PREFLIGHT rc=%s\n' "$rc" 2>/dev/null
     exit "$rc"
