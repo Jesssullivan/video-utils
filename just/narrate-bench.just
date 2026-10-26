@@ -30,3 +30,9 @@ narrate-bench-host-pack dest:
 # Pull a window's outputs back into DEST and score them: DEST/scored.json and DEST/scored.md.
 narrate-bench-score src dest *ARGS:
     python3 narrate/bench/score.py {{quote(dest)}} {{ if src == "-" { "" } else { "--pull " + quote(src) } }} {{ARGS}}
+
+# Combine windows scored one voice at a time (window 2: one voice per window, each scored with its own voice's full
+# clip as --reference) into DEST/combined.json and DEST/combined.md: per window and arm, the matched-cut rows, and
+# per arm whether the SIM bars were met in every window. Reads each DIR/scored.json; reruns no model.
+narrate-bench-combine dest +dirs:
+    python3 narrate/bench/score.py {{quote(dest)}} {{ prepend("--combine ", dirs) }}
