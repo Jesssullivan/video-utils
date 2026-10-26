@@ -31,6 +31,11 @@ chunk text with whitespace runs collapsed, as the pin's normalize_wrapper_text d
 chunking). The run receipt's `reference` names the conditioning reference (label, wav and text sha256, and the voice
 clip's sha256) so a scorer can tell arms conditioned on different clips apart.
 
+A matched-cut arm (`matched_cut_of`: another arm of the job) is that arm's control on a cut: load_job refuses it unless
+its reference policy names a cut, the arm it names clones from the full clip, and the two have the same runtime,
+inputs, settings and variants (decoys, budget and the about text may differ). Its receipt records `matched_cut_of`, so
+a scorer can set the two side by side.
+
 An arm runs, one synthesis process at a time: a one-chunk smoke per conditioning variant until one passes (exit
 0, at least smoke_min_ratio of the chunk's expected duration, which catches a truncated take, and VRAM in use
 rising at least vram.min_rise_bytes above the idle baseline, which catches a CPU fallback), the arm's decoy
@@ -232,6 +237,8 @@ def load_job(path, env=None):
                     " prompt and needs the voice and its reference_text"
                 )
         check_policy(name, arm.get("reference"))
+    for name, arm in job["arms"].items():
+        check_matched(name, arm, job["arms"])
     job.setdefault("seeds", [1, 2, 3])
     job.setdefault("gap_s", 0.25)
     job.setdefault("stall_s", 120.0)
@@ -272,6 +279,27 @@ def check_policy(name, policy):
             isinstance(encoder.get(k), int) and not isinstance(encoder.get(k), bool) and encoder[k] > 0 for k in keys
         ):
             raise Refusal(f"arm {name}: reference.encoder needs positive integers rate, capacity_samples, pad_samples")
+
+
+MATCHED_KEYS = ("runtime", "inputs", "settings", "variants")
+
+
+def check_matched(name, arm, arms):
+    """A matched-cut arm: the control of arm `matched_cut_of` on a reference cut, identical in everything that
+    conditions the render except the reference. Refuses anything else."""
+    native = arm.get("matched_cut_of")
+    if native is None:
+        return
+    if not isinstance(native, str) or native == name or native not in arms:
+        raise Refusal(f"arm {name}: matched_cut_of must name another arm of the job, got {native!r}")
+    if not (arm.get("reference") or {}).get("cut"):
+        raise Refusal(f"arm {name}: a matched-cut arm needs a reference policy that names a cut")
+    other = arms[native]
+    if (other.get("reference") or {}).get("cut") or other.get("matched_cut_of"):
+        raise Refusal(f"arm {name}: matched_cut_of names {native}, which does not clone from the full clip")
+    differ = [k for k in MATCHED_KEYS if canonical(arm.get(k)) != canonical(other.get(k))]
+    if differ:
+        raise Refusal(f"arm {name}: differs from {native} in {', '.join(differ)}; only the reference may differ")
 
 
 def voice_of(job):
@@ -1136,6 +1164,7 @@ def run_arm(job, arm_name, out_dir, deadline_epoch=None, verified=None):
         "vulkan_icd": Path(job["vulkan_icd"]).name if job.get("vulkan_icd") else None,
         "inputs": verified or {},
         "voice_selected": bool(job.get("voice")),
+        "matched_cut_of": arm.get("matched_cut_of"),
         "passes": [],
         "stop": None,
         "authority": "R-HOOK-CONVERGENCE-20261004",
@@ -1285,6 +1314,8 @@ def summarize(out_dir, holder, started, ended, stop, exit_code, arm_results):
                 "arm": name,
                 "result": result,
                 "variant": receipt.get("variant"),
+                "reference": (receipt.get("reference") or {}).get("label"),
+                "matched_cut_of": receipt.get("matched_cut_of"),
                 "seed1_complete": receipt.get("seed1_complete", False),
                 "stop": receipt.get("stop"),
                 "peak_vram_bytes": vram.get("peak_bytes"),

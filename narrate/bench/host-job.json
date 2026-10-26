@@ -1,6 +1,6 @@
 {
  "schema": "narrate-bench-host-job/1",
- "about": "GPU-host window job for narrate/bench/host_run.py (bench plan, docs/agent-notes/2026-10-22-narrate-bench-plan.md). Dollar-brace values come from the environment (run-bench.sh reads them from the private bench.env); this file holds no host path and no voice. The voice registry is a private, hash-bound file (voices_file) that never enters git. Weights use narrate-fetch's layout (<weights>/hf/<source id>/<file>) and their sha256 values from narrate/bench/sources.json. VK_DRIVER_FILES is set to vulkan_icd (RADV) for every engine.",
+ "about": "GPU-host window job for narrate/bench/host_run.py (bench plan, docs/agent-notes/2026-10-22-narrate-bench-plan.md). Dollar-brace values come from the environment (run-bench.sh reads them from the private bench.env); this file holds no host path and no voice. The voice registry is a private, hash-bound file (voices_file) that never enters git. Weights use narrate-fetch's layout (<weights>/hf/<source id>/<file>) and their sha256 values from narrate/bench/sources.json. VK_DRIVER_FILES is set to vulkan_icd (RADV) for every engine. Window 2 (operator ruling J83(a); the bench plan's addendum of 2026-10-26) runs seed 1 only and one voice per window, in the arm order below; the two -cut arms are matched controls that clone from the same max14s cut and cut transcript as A3-gpu, so SIM compares like for like.",
  "chunks": {
   "path": "${NARRATE_BENCH_JOB_DIR}/chunks-v1.json",
   "sha256": "0c2900ff7ef01001d06886dff937efddb286da656051ec1cdfbac330b4d04d0f"
@@ -8,7 +8,7 @@
  "voice": "${NARRATE_BENCH_VOICE}",
  "voices_file": {"path": "${NARRATE_BENCH_VOICES_FILE}", "sha256": "${NARRATE_BENCH_VOICES_SHA256}"},
  "vulkan_icd": "${NARRATE_BENCH_VK_ICD:-/usr/share/vulkan/icd.d/radeon_icd.x86_64.json}",
- "seeds": [1, 2, 3],
+ "seeds": [1],
  "gap_s": 0.25,
  "stall_s": 120,
  "smoke_min_ratio": 0.5,
@@ -91,6 +91,61 @@
    "variants": [
     {"name": "ultimate", "voice": true, "reference_text": true, "prompt_audio": true},
     {"name": "reference-only", "voice": true, "reference_text": false}
+   ]
+  },
+  "A2-gpu-alt-cut": {
+   "about": "Matched-cut control of A2-gpu-alt (J83(a) addendum, 2026-10-26): the same runtime, inputs, settings and variant; the reference is the voice's max14s cut and its cut transcript (--ref-wav, --ref-text), the clip A3-gpu clones from, instead of the full clip. Scored against the full clip like every arm.",
+   "matched_cut_of": "A2-gpu-alt",
+   "runtime": "qwentts",
+   "budget_s": 480,
+   "inputs": {
+    "binary": {"path": "${NARRATE_BENCH_QWEN_TTS}", "sha256": "${NARRATE_BENCH_QWEN_TTS_SHA256}"},
+    "model": {
+     "path": "${NARRATE_BENCH_WEIGHTS}/qwen3-tts-1.7b-base-qwentts/qwen-talker-1.7b-base-BF16.gguf",
+     "sha256": "7f4567113f3aa07e842fac6d17a10a98cf3d0068c0871ac245ac9befc63affa5"
+    },
+    "codec": {
+     "path": "${NARRATE_BENCH_WEIGHTS}/qwen3-tts-1.7b-base-qwentts/qwen-tokenizer-12hz-F32.gguf",
+     "sha256": "b16b95557c7c7340a121757bd6855b9609e1cf4ad3fad0778b89393293ae5f3d"
+    }
+   },
+   "settings": {"device": "${NARRATE_BENCH_QWEN_DEVICE}", "lang": "English"},
+   "reference": {
+    "about": "A3-gpu's cut and its length bounds; qwentts.cpp has no encoder limit of its own here.",
+    "cut": "max14s",
+    "max_seconds": 14.5,
+    "min_seconds": 5.0
+   },
+   "variants": [{"name": "icl-ref-text", "voice": true, "reference_text": true}]
+  },
+  "A1-gpu-cut": {
+   "about": "Matched-cut control of A1-gpu (J83(a) addendum, 2026-10-26): the same runtime, inputs, settings and variants (ref-text first, speaker-embedding as the smoke fallback); the reference is the voice's max14s cut and its cut transcript, the clip A3-gpu clones from. About 12 s of prompt leaves Ming's 512-position context room for a chunk, so ref-text may pass the smoke here where it failed on the full clip in run 1; the receipt's variant says which conditioning ran. No decoy: decoy 2 renders once per window, inside A1-gpu.",
+   "matched_cut_of": "A1-gpu",
+   "runtime": "audiocpp",
+   "budget_s": 480,
+   "inputs": {
+    "binary": {"path": "${NARRATE_BENCH_AUDIOCPP_CLI}", "sha256": "${NARRATE_BENCH_AUDIOCPP_CLI_SHA256}"},
+    "model": {
+     "path": "${NARRATE_BENCH_WEIGHTS}/ming3-0.5b-gguf/ming-3.0-tts-0.5b-bf16.gguf",
+     "sha256": "43f108a4e6bb54af13071d0cb345a094e0b011b3b8318d8fb2c61753733f5312"
+    }
+   },
+   "settings": {
+    "family": "ming3_tts",
+    "task": "clon",
+    "backend": "vulkan",
+    "device": "${NARRATE_BENCH_AUDIOCPP_DEVICE:-0}",
+    "options": {"language": "en", "raw_text": "true"}
+   },
+   "reference": {
+    "about": "A3-gpu's cut and its length bounds; Ming's limit is its 512-position context, which the smoke checks.",
+    "cut": "max14s",
+    "max_seconds": 14.5,
+    "min_seconds": 5.0
+   },
+   "variants": [
+    {"name": "ref-text", "voice": true, "reference_text": true},
+    {"name": "speaker-embedding", "voice": true, "reference_text": false}
    ]
   }
  }
