@@ -358,3 +358,30 @@ def test_decoys_4_and_5_rebuild_beside_sim_and_serialise(score_module, bench, ff
     assert all(set(d["observed"]) >= {"audio_s", "catastrophic"} and "pcm" not in d["observed"] for d in doc["decoys"])
     assert doc["decoys"][0]["valid"] is True and doc["decoys"][1]["valid"] is None
     assert "Decoy 4-half-silence: expected catastrophic, valid True" in (bench["out"] / "scored.md").read_text()
+
+
+def test_a_matched_cut_arm_is_scored_against_the_full_clip_beside_its_native_arm(score_module, bench, ffmpeg):
+    out, clip = bench["out"], sha(bench["reference"])
+    write_arm(out, "A8-full", [("seed1", None, [(0, voice(12.0, 11)), (1, voice(12.0, 12))])])
+    write_arm(out, "A8-full-cut", [("seed1", None, [(0, voice(12.0, 13)), (1, voice(12.0, 14))])])
+    cut = "c" * 64
+    for arm, label, wav, matched in (("A8-full", "voice", clip, None), ("A8-full-cut", "voice.max14s", cut, "A8-full")):
+        path = out / arm / "receipt.json"
+        receipt = json.loads(path.read_text(encoding="utf-8"))
+        receipt["reference"] = {"label": label, "wav_sha256": wav, "text_sha256": "b" * 64, "voice_clip_sha256": clip}
+        receipt["matched_cut_of"] = matched
+        path.write_text(json.dumps(receipt), encoding="utf-8")
+    doc = measured(score_module, bench, **{"A8-full-seed1-": 0.72, "A8-full-cut-seed1-": 0.64})
+    # one SIM reference for both: the full clip the window verified
+    assert doc["sim"]["reference"]["window_voice_wav"] == "matched"
+    assert doc["window"]["voice_clip_sha256"] == clip and doc["window"]["holder"] == "holder"
+    [row] = doc["matched"]
+    assert (row["native_arm"], row["cut_arm"]) == ("A8-full", "A8-full-cut")
+    assert (row["full"]["sim_median"], row["cut"]["sim_median"]) == (0.72, 0.64)
+    assert row["cut_minus_full"]["sim_median"] == -0.08
+    assert (row["full"]["conditioning"], row["cut"]["conditioning"]) == ("voice", "voice.max14s")
+    groups = {g["label"]: g["arms"] for g in doc["conditioning"]["groups"]}
+    assert groups == {"voice": ["A8-full"], "voice.max14s": ["A8-full-cut"]}
+    assert "A8-full-cut: conditioned on voice.max14s, SIM against the full clip" in doc["conditioning"]["flags"]
+    text = (out / "scored.md").read_text(encoding="utf-8")
+    assert "| A8-full-cut minus A8-full | | | -0.080 |" in text
