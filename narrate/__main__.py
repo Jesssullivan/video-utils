@@ -1,4 +1,4 @@
-"""python -m narrate {render,plan,evaluate,voices,engines,verify,spoken}"""
+"""python -m narrate {render,plan,evaluate,voices,engines,verify,spoken,video}"""
 
 import argparse
 import json
@@ -25,8 +25,15 @@ def refusal(code, detail):
 
 
 def main(argv=None):
+    argv = sys.argv[1:] if argv is None else list(argv)
+    if argv[:1] == ["video"]:
+        # The narrated-video graph (docs/spec/NARRATED_VIDEO.md) has its own parser: python -m narrate video -h.
+        from .video import cli as video_cli
+
+        return video_cli.main(argv[1:])
     p = argparse.ArgumentParser(prog="narrate", description=__doc__)
     sub = p.add_subparsers(dest="command", required=True)
+    sub.add_parser("video", help="the narrated-video stage graph: init, plan, status, explain, verify")
 
     def job_arguments(r):
         r.add_argument("config", help="narrate.toml")

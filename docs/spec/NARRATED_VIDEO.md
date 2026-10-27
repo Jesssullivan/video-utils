@@ -82,12 +82,145 @@ inside `narrate/bounded.sh`. kitpip runs once per segment, on that segment's
 narrate run, so its admission chain (narrate manifest, `synthetic: true`,
 consent ids, output digest) stays intact.
 
-A stage key is the SHA-256 of canonical JSON over the stage id, a hand-bumped
-`impl`, the tool name, version and binary digest, resolved knobs, the edition
-and the sorted input digests. The git commit is recorded and kept out of the
-key. Freshness re-hashes outputs and never trusts mtimes. The store is
-`artifacts/narrated/<job_id>/`, outside `artifacts/runs/`. L3 fixes the
-details.
+`program/dags/narrated-video.json` publishes this table, and
+`narrate/video/graph.py` holds the same table. A test keeps the two equal.
+
+## Stage keys and the store
+
+Lane L3 implements this section in `narrate/video/{keys,store,graph,admit}.py`.
+
+A stage key is the SHA-256 of the canonical JSON of a key document. The
+document holds the stage id, the segment, a hand-bumped `impl`, the tool name,
+version and binary digest, the FFmpeg identity on render stages, the resolved
+knobs, the edition and the sorted inputs. The render stages are `base`,
+`place`, `music`, `mix`, `compose` and `handoff`. Their FFmpeg identity is the
+SHA-256 of the first line of `ffmpeg -version`. The git commit is recorded in
+the stage manifest and kept out of the key.
+
+Canonical JSON has sorted keys, no whitespace and UTF-8. `dhall-to-json` writes
+the Double `-16.0` as `-16`, so an integral number is written as an integer and
+any other float as its repr string. A non-finite number refuses.
+
+A key reads three kinds of input:
+
+- **Knobs.** Each job or record field belongs to the first stage whose output
+  depends on it (table below). A field that only a later stage reads reruns
+  only that stage and what follows it.
+- **Sources.** SHA-256 digests of private-store blobs: the script, still,
+  video, deck files and bed loops. With a private store named, `plan` blocks a
+  stage whose source is missing (`source_missing`).
+- **Upstream inputs.** An upstream node's manifest `content_sha256`, or one
+  measured value from it. `avatar` reads only the base's measured `fps`, so a
+  deck re-assembled at the same rate keeps every overlay fresh.
+
+| Stage | Knobs |
+| --- | --- |
+| `script` | narrate job id, input kind, lexical pin |
+| `voice` | the narrate job record without its gates, and its voice records |
+| `voice_qa` | the narrate job's gates |
+| `base` | base kind and fields except `tailS`, delivery profile |
+| `place` | segment ids and anchors, `tailS`, `keepBaseAudio`, `tighten` |
+| `avatar` | rig and rig revision (the pin's default rig when unset), render size |
+| `avatar_check` | `labels.persona` |
+| `music` | bed id, each layer's digest, bytes, rate, channels, tempo factor and gain, 48 kHz |
+| `mix` | the music block except the bed id, delivery loudness, true peak, drift and channels |
+| `compose` | avatar corner, width and margin, captions, labels, delivery profile |
+| `deliver_check` | delivery except `handoff`, the bed's licence PDF digest and Content ID result, labels |
+| `handoff` | none beyond its inputs |
+
+A stage manifest's `content_sha256` leaves out `run_dir`, `created_utc` and
+the commit. A rerun that writes the same outputs therefore keeps every
+downstream key, and the cascade stops there.
+
+`admit` is a gate, not a data input. It runs at every plan. Its refusal blocks
+every other stage. Its codes are `narrate_job_missing`,
+`script_digest_mismatch`, `consent_missing`, `consent_revoked`,
+`persona_label_missing`, `bed_record_missing`, `bed_acquisition_agent`,
+`bed_layers_invalid`, `tighten_on_synthetic`, `knob_out_of_bounds`,
+`avatar_external_unknown`, `kitpip_pin_mismatch` and the three edition codes.
+
+| State | Meaning |
+| --- | --- |
+| `fresh` | the current directory has this key and re-hashes |
+| `stale` | no run, a changed key, or an upstream node that is not fresh. The key is unknown until the upstream runs |
+| `corrupt` | the current directory has this key but fails re-hashing. A run moves it to `history/` |
+| `blocked` | admit refused, FFmpeg, kitpip or a source is missing, or an upstream node is blocked or refused |
+| `refused` | the stage refused for this exact key. It stays refused until the key changes |
+| `not_selected` | an optional stage the job turns off: no avatar, a segment's avatar off, no bed, handoff off |
+| `pending_operator` | `deliver_check` is fresh but an operator gate (licence PDF, Content ID) is open |
+
+The store:
+
+```text
+artifacts/narrated/<job_id>/        NARRATED_VIDEO_ROOT overrides artifacts/narrated
+  job.json                          the NarratedVideo record (dhall-to-json render)
+  graph.json                        the last recorded plan (init, plan --record)
+  current.json                      {stages: {node: {key, dir, content_sha256}}, refusals: {node: {key, code, detail}}}
+  history/                          stage directories that failed re-hashing, moved aside
+  stages/<stage>[/<segment>]/<key16>/  one finished stage: its outputs and manifest.json (kind nv_stage)
+```
+
+A stage writes into `<key16>.partial/`, which is renamed into place when the
+stage finishes. `current.json` then points at it. `plan` never reads a partial
+directory. `current.json` replaces symlinks, and a symlink in a stage directory
+makes it `corrupt`. Freshness re-hashes every listed output, refuses an
+unlisted file, checks the manifest's own digest and key, and never reads an
+mtime. The store refuses a root under `artifacts/runs/` or `artifacts/narrate/`.
+v1 keeps every stage directory until the operator removes the job.
+
+| Change | Reruns (tested) |
+| --- | --- |
+| Bed level | `mix`, `compose`, `deliver_check` |
+| One segment's script | that segment's `script`, `voice`, `voice_qa`, `avatar` and `avatar_check`, then `place`, `mix`, `compose`, `deliver_check` |
+| Overlay width | `compose`, `deliver_check` |
+| kitpip rig or pin | every `avatar` and `avatar_check`, then `compose`, `deliver_check` |
+| Deck re-assembled with the same takes | `base`, `place`, `mix`, `compose`, `deliver_check` |
+| Content ID result recorded | `deliver_check` |
+| Handoff turned on | `handoff` |
+
+### kitpip pin and the stub
+
+The kitpip pin is a private externals record (NV-1), named by
+`NARRATED_VIDEO_EXTERNALS`. It holds the version, the source commit, per-system
+binary digests and byte counts, the manifest schema `kitpip.manifest/v0`, the
+mapping `avatar_overlay_v1` and the default rig. It holds no URL, path or host.
+`KITPIP_BIN` names the binary. Its digest and size are checked against the pin
+at plan and again before every spawn. A mismatch refuses `kitpip_pin_mismatch`
+and nothing runs. A missing binary blocks the avatar stages (`kitpip_missing`).
+
+kitpip prints one JSON line. The wrapper relays a refusal line
+(`{"refused": code}`, exit 1) with kitpip's own code in the narrate stderr
+shape. It never passes `--allow-unlabelled-test`. The avatar stage runs
+`analyze`, `render` and `verify` into its partial directory in the job store.
+It refuses `avatar_outside_store` when that directory lies inside the narrate
+run or under `artifacts/runs/`.
+
+Public CI runs `narrate/tests/fixtures/narrated-video/kitpip_stub.py`, pinned
+by the test-only record `kitpip-externals.json` beside it. The stub draws an
+opaque square on a transparent ProRes 4444 field, so every corner pixel is
+transparent. It holds no kitpip art and draws each kitpip refusal on request.
+
+## Commands
+
+`python -m narrate video <command>`, standard library and FFmpeg, inside
+`nix develop .#condense`. A refusal prints `{"ok": false, "refused": code,
+"detail": ...}` on stderr and exits 1.
+
+| Command | Recipe | Effect |
+| --- | --- | --- |
+| `init --job ID --narrate-job ID --script FILE [--still SHA \| --card #RRGGBB] [--bed ID] [--edition E] [--avatar --persona P]` | `just nv-init` | writes a simple job from `NarratedVideo.defaults`. admit refuses (a voice without consent, for one) before anything is written |
+| `init --job ID --from FILE` | | writes a rendered record, or the one with that id in a list of them |
+| `plan JOB [--record] [--json]` | `just nv-plan` | keys every node and prints its state, reason and key. Read-only. `--record` writes `graph.json`. Exit 1 when admit refuses |
+| `status JOB [--json]` | `just nv-status` | prints the recorded `graph.json` and its `pending_operator` gates |
+| `explain JOB STAGE [--segment ID]` | `just nv-explain` | prints the key document and each field that changed since the stage's last run |
+| `verify DIR` | `just nv-verify` | re-hashes a stage directory or every current stage of a job |
+
+Paths come from flags or the environment: `--root` (`NARRATED_VIDEO_ROOT`),
+`--records` (`NARRATED_VIDEO_RECORDS`, the directory of `jobs.json`,
+`voices.json`, `consents.json` and `music-beds.json`), `--externals`
+(`NARRATED_VIDEO_EXTERNALS`) and `--store` (`NARRATE_STORE`). `just nv-fixture`
+plans the committed card example against the committed records. `run`, `stage`
+and `pin-check` come with lanes L4 to L6.
 
 ## Editions
 
@@ -162,6 +295,17 @@ Defaults (`NarratedVideo.defaults`, asserted in the type test):
 | labels | no persona, no caption cue, no description line (KP-15) |
 | captions | soft, SRT and VTT, not burned |
 | delivery | `Web1080p30`, -16 LUFS, -1.5 dBTP, 0.5 LU, `Mono`, no upload, no handoff, no voice-only listen |
+
+**Avatar opt-in until L6.** The design turns the avatar on by default when the
+edition allows it (KP-13). `init` leaves `avatar` unset unless `--avatar
+--persona P` is given. NV-4 starts the no-avatar half first. The avatar stages
+need the kitpip binary that L5 pins, and compose (L6) is the first stage that
+reads an overlay. Until then, an avatar on by default would block every default
+job at `avatar` (`kitpip_missing`) and every stage after it. An avatar also
+needs `labels.persona`, which `init` has no source for without a flag. The
+`avatar` default above is the block that `--avatar` writes and that a rendered
+record may set. L6 makes the avatar the `init` default for an edition that
+allows one, and refuses `persona_label_missing` when no persona is given.
 
 `examples/narrated-videos.dhall` holds four jobs: the simple Internal card job
 with the fixture bed, the same job with a kitpip avatar and a persona label, a
@@ -257,7 +401,9 @@ never a URL, an executable or a shell string.
 | 70 | `narrated_video_verify` | `deliver_check` |
 
 The workflow skill is `narrated-video`, with one skill per stage tool. The
-fallback recipes are `just nv-quick` and `just nv-run`.
+fallback recipes are `just nv-quick` and `just nv-run`. L3 drafts tool 62 in
+`program/tool-drafts/narrated_video.json` and writes the first part of the
+`narrated-video` skill (plan, status and explain). L7 admits it.
 
 ## Deck import
 

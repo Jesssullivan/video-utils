@@ -1,8 +1,9 @@
 """Stdlib smoke for `bazel test //narrate:stdlib_test`, on the hermetic CPython with no pip packages.
 
 Every narrate module imports, the example narrate.toml loads, and the pure parts give their documented answers:
-the adapters, chunker, normaliser, the engine predicates against narrate/dhall/check.py, the fixture lexicon and
-RewriteCheck, the fake engine and WER. No FFmpeg, whisper or engine runs here: the pytest suite covers those
+the narrated-video plan of the card example, the adapters, chunker, normaliser, the engine predicates against
+narrate/dhall/check.py, the fixture lexicon and RewriteCheck, the fake engine and WER. No FFmpeg, whisper or engine
+runs here: the pytest suite covers those
 (`just narrate-test`, or //narrate:pytest under --config=host-tools).
 """
 
@@ -38,6 +39,7 @@ MODULES = (
     "tempo",
     "verify",
 )
+VIDEO_MODULES = ("admit", "cli", "graph", "job", "keys", "kitpip", "store")
 
 
 class StdlibSmoke(unittest.TestCase):
@@ -47,6 +49,23 @@ class StdlibSmoke(unittest.TestCase):
         for name in names:
             with self.subTest(module=name):
                 importlib.import_module(f"narrate.{name}")
+
+    def test_every_narrated_video_module_imports_and_plans_the_card_example(self):
+        names = sorted(p.stem for p in (PACKAGE / "video").glob("*.py") if p.stem != "__init__")
+        self.assertEqual(sorted(VIDEO_MODULES), names)
+        for name in names:
+            with self.subTest(module=name):
+                importlib.import_module(f"narrate.video.{name}")
+        from narrate.video import graph, job
+
+        examples = PACKAGE / "dhall" / "examples"
+        card = next(
+            j for j in json.loads((examples / "narrated-videos.json").read_text()) if j["id"] == "nv-fixture-card"
+        )
+        ctx = {"pin": None, "kitpip": None, "ffmpeg": "f" * 64, "sources": None}
+        planned = graph.plan(card, job.load_records(examples), None, ctx)
+        self.assertEqual(planned["admit"]["verdict"], "Admitted")
+        self.assertEqual(sorted(planned["runnable"]), ["base", "music", "script/seg-1"])
 
     def test_the_example_config_loads(self):
         from narrate.config import Config

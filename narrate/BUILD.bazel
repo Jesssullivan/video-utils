@@ -42,7 +42,10 @@ filegroup(
 # `import narrate` resolves from the runfiles root, as from the checkout root.
 py_library(
     name = "narrate",
-    srcs = glob(["*.py"]),
+    srcs = glob([
+        "*.py",
+        "video/*.py",
+    ]),
     data = glob([
         "examples/narrate.toml",
         "dhall/**",

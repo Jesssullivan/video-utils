@@ -1,0 +1,249 @@
+{
+ "schema_version": 1,
+ "spec": "docs/spec/NARRATED_VIDEO.md",
+ "linear": "TIN-7476",
+ "speech_workflow": {
+  "guitar_axioms_apply": false,
+  "no_time_stretch_of_source": true,
+  "store": "artifacts/narrated/<job_id>/",
+  "never_under": [
+   "artifacts/runs/",
+   "artifacts/narrate/<run_id>/"
+  ]
+ },
+ "gated_by": "admit",
+ "stages": [
+  {
+   "id": "admit",
+   "tool": "narrated_video_plan",
+   "intent": "Resolve the job and refuse before any render: consent, persona, bed acquisition, tighten, bounds, kitpip pin and the edition at Plan",
+   "artifact": "graph.json",
+   "fan_out": null,
+   "depends_on": [],
+   "optional": false,
+   "mapping": null
+  },
+  {
+   "id": "script",
+   "tool": "narrate lexical-check",
+   "intent": "Lexical findings (advisory, R-N12) and the spoken-text digest",
+   "artifact": "manifest.json",
+   "fan_out": "segment",
+   "depends_on": [],
+   "optional": false,
+   "mapping": null
+  },
+  {
+   "id": "voice",
+   "tool": "narrate_render",
+   "intent": "One narrate run per segment",
+   "artifact": "manifest.json",
+   "fan_out": "segment",
+   "depends_on": [
+    {
+     "stage": "script",
+     "how": "segment"
+    }
+   ],
+   "optional": false,
+   "mapping": "narration_v1"
+  },
+  {
+   "id": "voice_qa",
+   "tool": "narrate_evaluate",
+   "intent": "narrate verify and evaluate receipt",
+   "artifact": "manifest.json",
+   "fan_out": "segment",
+   "depends_on": [
+    {
+     "stage": "voice",
+     "how": "segment"
+    }
+   ],
+   "optional": false,
+   "mapping": null
+  },
+  {
+   "id": "base",
+   "tool": "narrated_video_place",
+   "intent": "Conformed base picture and base.json (fps, size, length)",
+   "artifact": "base.json",
+   "fan_out": null,
+   "depends_on": [],
+   "optional": false,
+   "mapping": null
+  },
+  {
+   "id": "place",
+   "tool": "narrated_video_place",
+   "intent": "placements.json, voice.wav and clips.wav on the base clock; the base extended to narration plus tail",
+   "artifact": "placements.json",
+   "fan_out": null,
+   "depends_on": [
+    {
+     "stage": "base",
+     "how": "all"
+    },
+    {
+     "stage": "voice",
+     "how": "all"
+    },
+    {
+     "stage": "voice_qa",
+     "how": "all"
+    }
+   ],
+   "optional": false,
+   "mapping": "narrated_video_v1"
+  },
+  {
+   "id": "avatar",
+   "tool": "kitpip_overlay",
+   "intent": "kitpip overlay.mov (ProRes 4444) per segment",
+   "artifact": "overlay/overlay.mov",
+   "fan_out": "segment",
+   "depends_on": [
+    {
+     "stage": "voice",
+     "how": "segment"
+    },
+    {
+     "stage": "base",
+     "how": "measure:fps"
+    }
+   ],
+   "optional": true,
+   "mapping": "avatar_overlay_v1"
+  },
+  {
+   "id": "avatar_check",
+   "tool": "kitpip_verify",
+   "intent": "kitpip verify and the label chain",
+   "artifact": "manifest.json",
+   "fan_out": "segment",
+   "depends_on": [
+    {
+     "stage": "avatar",
+     "how": "segment"
+    },
+    {
+     "stage": "voice",
+     "how": "segment"
+    }
+   ],
+   "optional": true,
+   "mapping": null
+  },
+  {
+   "id": "music",
+   "tool": "music_bed_build",
+   "intent": "bed.wav (48 kHz) arranged from the record's loops",
+   "artifact": "bed.wav",
+   "fan_out": null,
+   "depends_on": [],
+   "optional": true,
+   "mapping": "music_bed_v1"
+  },
+  {
+   "id": "mix",
+   "tool": "narrated_video_mix",
+   "intent": "mix.wav: bed level, sidechain duck, fades, one limiter; measured loudness, true peak and duck depth",
+   "artifact": "mix.wav",
+   "fan_out": null,
+   "depends_on": [
+    {
+     "stage": "place",
+     "how": "all"
+    },
+    {
+     "stage": "music",
+     "how": "all"
+    }
+   ],
+   "optional": false,
+   "mapping": "narrated_video_v1"
+  },
+  {
+   "id": "compose",
+   "tool": "narrated_video_compose",
+   "intent": "video.mp4, upload copy, captions, description.txt and chapters",
+   "artifact": "video.mp4",
+   "fan_out": null,
+   "depends_on": [
+    {
+     "stage": "base",
+     "how": "all"
+    },
+    {
+     "stage": "place",
+     "how": "all"
+    },
+    {
+     "stage": "mix",
+     "how": "all"
+    },
+    {
+     "stage": "avatar",
+     "how": "all"
+    },
+    {
+     "stage": "avatar_check",
+     "how": "all"
+    }
+   ],
+   "optional": false,
+   "mapping": "narrated_video_v1"
+  },
+  {
+   "id": "deliver_check",
+   "tool": "narrated_video_verify",
+   "intent": "deliver_check.json: per-gate states and delivery_gate",
+   "artifact": "deliver_check.json",
+   "fan_out": null,
+   "depends_on": [
+    {
+     "stage": "compose",
+     "how": "all"
+    }
+   ],
+   "optional": false,
+   "mapping": null
+  },
+  {
+   "id": "handoff",
+   "tool": "narrated_video_compose",
+   "intent": "pre-VFX layers and edit.json",
+   "artifact": "edit.json",
+   "fan_out": null,
+   "depends_on": [
+    {
+     "stage": "base",
+     "how": "all"
+    },
+    {
+     "stage": "place",
+     "how": "all"
+    },
+    {
+     "stage": "mix",
+     "how": "all"
+    },
+    {
+     "stage": "avatar",
+     "how": "all"
+    },
+    {
+     "stage": "compose",
+     "how": "all"
+    }
+   ],
+   "optional": true,
+   "mapping": "narrated_video_v1"
+  }
+ ],
+ "parallel": {
+  "max_stages": 2,
+  "bound": "narrate/bounded.sh"
+ },
+ "execution_policy": "narrate/video/graph.py holds the same table (a test keeps them equal). plan keys every stage from its knobs, source digests and upstream manifests and never runs one; tool names are proposals until root admits them (program/tools.json). Stages land in lanes L4 to L6."
+}
