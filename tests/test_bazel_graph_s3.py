@@ -1008,12 +1008,18 @@ class RecipesTest(unittest.TestCase):
         self.assertEqual(launcher.refused_flags(["test", "--remote_executor=grpc://x", "--bes_backend=y"]),
                          ["--remote_executor=grpc://x", "--bes_backend=y"])
         self.assertEqual(launcher.refused_flags(["build", "//src:all", "--remote_cache="]), [])
+        self.assertEqual(launcher.refused_flags(["build", "--remote_local_fallback", "--remote_local_fallback=true"]),
+                         ["--remote_local_fallback", "--remote_local_fallback=true"])
+        self.assertEqual(launcher.refused_flags(["build", "--remote_local_fallback=false",
+                                                 "--remote_local_fallback_strategy=x"]), [])
         self.assertEqual(launcher.parse(["--timeout", "30", "mod", "graph"]), (30, False, ["mod", "graph"]))
         self.assertEqual(launcher.DEFAULT_TIMEOUT_S, 1800)
         for bad in ([], ["--timeout", "0", "build"], ["--timeout"]):
             with self.assertRaises(ValueError):
                 launcher.parse(bad)
         self.assertEqual(launcher.main(["build", "--remote_cache=grpc://cache"]), launcher.EXIT_USAGE)
+        self.assertEqual(launcher.main(["test", "--remote_local_fallback"]), launcher.EXIT_USAGE)
+        self.assertIn("local, non-qualifying", launcher.LOCAL_LABEL)
 
 
 class ShimSelfTest(unittest.TestCase):

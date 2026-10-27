@@ -7,6 +7,10 @@
   .bazelversion either way);
 - refuses remote cache, remote executor and build-event-service flags: this
   repository builds locally and never requires GloriousFlywheel;
+- refuses a flag that turns on --remote_local_fallback, so a remote attach added
+  later fails closed instead of running actions locally (TIN-5770 R471);
+- labels build, test, run and coverage output "local, non-qualifying": no
+  enrolled GloriousFlywheel lane exists, so a run here is not flywheel evidence;
 - bounds the invocation with a wall-clock timeout (default 1800 s, or
   VIDEO_UTILS_BAZEL_TIMEOUT_S) and terminates the whole process group on expiry;
 - shuts the per-workspace Bazel server down afterwards unless --keep-server or
@@ -28,14 +32,29 @@ ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_TIMEOUT_S = 1800
 SHUTDOWN_TIMEOUT_S = 60
 REFUSED_PREFIXES = ("--remote_cache", "--remote_executor", "--bes_backend", "--experimental_remote_downloader")
+LOCAL_FALLBACK_FLAG = "--remote_local_fallback"
+FALLBACK_OFF_VALUES = ("false", "0", "no")
+LABELED_COMMANDS = ("build", "test", "run", "coverage")
+LOCAL_LABEL = "run.py: local, non-qualifying (no enrolled GloriousFlywheel lane; not flywheel evidence)"
 EXIT_TIMEOUT = 124
 EXIT_MISSING = 127
 EXIT_USAGE = 2
 
 
 def refused_flags(arguments: list[str]) -> list[str]:
-    """Returns the arguments that would attach a remote backend."""
-    return [a for a in arguments if a.startswith(REFUSED_PREFIXES) and not a.endswith("=")]
+    """Returns the arguments that would attach a remote backend or turn on local fallback."""
+    remote = [a for a in arguments if a.startswith(REFUSED_PREFIXES) and not a.endswith("=")]
+    return remote + fallback_flags(arguments)
+
+
+def fallback_flags(arguments: list[str]) -> list[str]:
+    """Returns the arguments that would let a remote build fall back to local execution."""
+    refused = []
+    for argument in arguments:
+        name, _, value = argument.partition("=")
+        if name == LOCAL_FALLBACK_FLAG and value.lower() not in FALLBACK_OFF_VALUES:
+            refused.append(argument)
+    return refused
 
 
 def launcher() -> str | None:
@@ -95,13 +114,15 @@ def main(argv: list[str]) -> int:
         return EXIT_USAGE
     refused = refused_flags(arguments)
     if refused:
-        print(f"run.py: refused {refused}: this repository builds locally, without a remote backend",
-              file=sys.stderr)
+        print(f"run.py: refused {refused}: this repository builds locally, without a remote backend"
+              " and without local fallback", file=sys.stderr)
         return EXIT_USAGE
     binary = launcher()
     if binary is None:
         print("run.py: neither bazelisk nor bazel is on PATH", file=sys.stderr)
         return EXIT_MISSING
+    if arguments[0] in LABELED_COMMANDS:
+        print(LOCAL_LABEL, file=sys.stderr)
     status = run_bounded([binary, *arguments], timeout)
     if not keep and arguments[0] != "shutdown":
         try:
