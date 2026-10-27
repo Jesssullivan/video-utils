@@ -465,6 +465,27 @@ The pass refuses to run with a digest that does not match the fetched release.
 The release is fetched explicitly and hash-bound like a model; nothing is
 fetched implicitly.
 
+### Checking only the voiced text (TIN-7097)
+
+`xoxd-lexical check --register narration` on a raw manuscript page also
+checks lines no render voices. On one field script, 977 of 983 findings were
+on front matter, `[at m:ss: ...]` and `[clip: ...]` lines, `<!-- -->`
+comments and `Sources:` lines (TIN-7097 comment 723dd1b6).
+`python -m narrate spoken INPUT` runs the input through the render's adapter
+and prints only the IR's segment text, the written text the lexical pass
+reads. `lines` puts each voiced paragraph on its own line with a blank line
+between them. `json` gives `[{id, text}]` per segment, with `start_s`,
+`dur_s`, `speaker` and `origin` when the input has them. `srt` needs cue
+times and refuses an untimed input. `just narrate-lexical-check INPUT` pipes
+`lines` into the check CLI. It uses the release a render reads
+(`NARRATE_LEXICAL_DIR`, else `lexical` in `narrate.toml`), linked as `dist/`
+in a temporary `XOXD_LEXICAL_HOME`, and the `bin/xoxd-lexical` beside it or on
+PATH. It refuses a CLI whose `version` differs from that release's. It does
+not verify the job's digests. A render still does. Without the CLI or Vale,
+or with another release, it says so and exits 0 (R-N12). Otherwise it exits as
+the CLI does: 1 for an Error-severity finding, 2 for a fault. The MCP tool
+drafts are unchanged.
+
 ## Outputs and where they live
 
 Narration runs live under `artifacts/narrate/<run_id>/`, outside

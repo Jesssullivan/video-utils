@@ -28,6 +28,8 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | `just narrate-plan CONFIG DIR` | `python -m narrate plan` | an `AudioCppBatch` engine: the request batch for a GPU window (no audio); then `serve/audiocpp_batch.py` on the GPU host and `just narrate-render CONFIG --prerendered DIR` |
 | `just narrate-voices [CONFIG]` | `python -m narrate voices` | voice ids, consent state, scopes, engines |
 | `just narrate-engines [CONFIG]` | `python -m narrate engines` | profiles, confidentiality eligibility, availability; `--reach` tries a TCP connect |
+| `just narrate-spoken INPUT` | `python -m narrate spoken` | only the voiced text, through the input's adapter: `--format lines`, `json` (cue ids, origins) or `srt` |
+| `just narrate-lexical-check INPUT` | `narrate spoken` piped to `xoxd-lexical check --register narration -` | the narration register on voiced text only; exits 0 with a notice without the pinned check CLI or Vale |
 | `just narrate-sim-model` | `scripts/model_prefetch.py` | fetches the registered ECAPA speaker model into `models/`, hash-checked |
 | `just narrate-voice-add CONFIG CLIP TEXT ID CONSENT` | `python -m narrate voices add` | stores a 10 to 30 s mono 16-bit clip and its transcript by sha256; prints exactly a `Voice.dhall` record; needs `--allow-engine` |
 | `just narrate-serve-qwentts`, `just narrate-build-qwentts` | `serve/qwentts.sh` | the qwentts.cpp engine on loopback, on an allowed host only (see "Host placement and memory") |
@@ -38,6 +40,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | Module | Step |
 | --- | --- |
 | `adapters.py` | plain text, markdown manuscript, SRT, WebVTT, condense `words.json` (+ EDL), `SPEAKER:` dialog → script IR (`ir.py`) |
+| `spoken.py` | the voiced text of a script IR as lines, JSON records or SRT cues (`narrate spoken`) |
 | `policy.py` | consent, scope, revocation, stored clip and transcript digests, hosted and confidential refusals |
 | `lexical.py` | the pinned xoxd-lexical release by digest; advisory Pattern findings and Vale; the RewriteCheck |
 | `chunker.py`, `normalise.py` | chunks of at most `chunkMaxCodepoints` spoken codepoints; the pronunciation table |
@@ -95,6 +98,25 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 - **Captions** are timed from the script placement (`captions.source: script_timing`), in the written text,
   with a synthetic-voice notice when the consent record asks for one. Whisper alignment of the delivered audio
   is a later step.
+
+## Checking the voiced text
+
+`narrate spoken` prints what a render voices and nothing else. Front matter, headings, `[at 0:12: ...]`,
+`[clip: ...]` and other bracketed lines, HTML comments, inline markup, the `Sources:` line and what follows it,
+cue numbers, timings and speaker labels are dropped by the same adapter the render uses. The suffix picks the
+adapter (`.md`, `.srt`, `.vtt`, `.json`, else plain text). Pass `--adapter Dialog` for `SPEAKER:` scripts.
+
+```sh
+python3 -m narrate spoken page.md                      # one voiced paragraph per line
+python3 -m narrate spoken talk.srt --format json       # [{id, start_s, dur_s, text}]
+just narrate-lexical-check page.md                     # xoxd-lexical check --register narration on that text
+```
+
+The check reads the release a render pins (`NARRATE_LEXICAL_DIR`, else `lexical` in `narrate.toml`), under any
+directory name, and runs the `bin/xoxd-lexical` beside it, else the one on PATH. The CLI needs `vale` on PATH; the
+Nix package brings its own, `.#condense` does not. With no CLI, no Vale or a CLI that reports another release, it
+prints a notice and exits 0. Otherwise it exits as the CLI does: 1 for an Error-severity finding, 2 for a fault.
+JSON records carry `origin` (such as `line 6`) to trace a finding to the input.
 
 ## Voice tempo
 

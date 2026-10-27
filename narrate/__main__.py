@@ -1,11 +1,11 @@
-"""python -m narrate {render,plan,evaluate,voices,engines,verify}"""
+"""python -m narrate {render,plan,evaluate,voices,engines,verify,spoken}"""
 
 import argparse
 import json
 import sys
 from pathlib import Path
 
-from . import adapters, evaluate, registry, render, verify
+from . import adapters, evaluate, registry, render, spoken, verify
 from .adapters import InputError
 from .config import Config, ConfigError
 from .engine import EngineError
@@ -87,6 +87,19 @@ def main(argv=None):
     f = sub.add_parser("verify", help="re-hash and re-check a run")
     f.add_argument("run_dir")
 
+    s = sub.add_parser("spoken", help="print only the text a render voices, through the input's adapter")
+    s.add_argument("input", help="a script: manuscript page, SRT, WebVTT, words.json, dialog or plain text")
+    s.add_argument(
+        "--adapter",
+        choices=adapters.KINDS,
+        help="the input kind (default from the suffix: .md Markdown, .srt Srt, .vtt Vtt, .json CondenseWords, "
+        "else PlainText; Dialog is never inferred)",
+    )
+    s.add_argument("--format", choices=spoken.FORMATS, default="lines", help="lines (default), json or srt")
+    s.add_argument("--edl", help="CondenseWords: the condense edl.json whose output clock the words map to")
+    s.add_argument("--clip", help="CondenseWords: the clip the words were transcribed from")
+    s.add_argument("--sentence-gap-s", type=float, help="CondenseWords: a longer gap between words ends a segment")
+
     a = p.parse_args(argv)
 
     def job_overrides():
@@ -95,6 +108,19 @@ def main(argv=None):
         )
 
     try:
+        if a.command == "spoken":
+            path = Path(a.input)
+            if not path.is_file():
+                return refusal("input_invalid", f"{a.input}: no such file")
+            options = {"edl": a.edl, "clip": a.clip}
+            if a.sentence_gap_s is not None:
+                options["sentence_gap_s"] = a.sentence_gap_s
+            try:
+                script = adapters.load(a.adapter or spoken.kind_for(path), path, options)
+            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                return refusal("input_invalid", f"{a.input}: {exc}")
+            sys.stdout.write(spoken.render(script, a.format))
+            return 0
         if a.command == "plan":
             cfg = Config(a.config)
             path, document = render.plan(

@@ -56,6 +56,63 @@ narrate-bench *args:
     @echo "narrate-bench: not implemented yet; lane W3 (TIN-7085) fills this recipe. See just narrate-fetch." >&2
     @exit 2
 
+# Print only the text a render voices, through the input's adapter (lines, json with cue ids, or srt).
+narrate-spoken input *args:
+    python3 -m narrate spoken {{quote(input)}} {{args}}
+
+# Front matter, [at] and [clip:] directions, comments and Sources lines never reach the checker (TIN-7097). The
+# release is the one a render pins: NARRATE_LEXICAL_DIR, else `lexical` in narrate.toml. The check reads it through
+# a XOXD_LEXICAL_HOME whose dist/ is that directory, runs the bin/xoxd-lexical beside it, else xoxd-lexical from
+# PATH, and refuses a CLI whose `version` is not that release's. With no CLI, no check subcommand, no Vale or another
+# release, it says so and exits 0: lexical checks are advisory (R-N12). Otherwise the exit is the CLI's: 0, 1 for an
+# Error-severity finding, 2 for a tool fault. ARGS go to `narrate spoken`, such as --adapter Dialog.
+# Check only the voiced text with `xoxd-lexical check --register narration`.
+narrate-lexical-check input *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    say() { echo "narrate-lexical-check: $*" >&2; }
+    work="$(mktemp -d)"
+    trap 'rm -rf "$work"' EXIT
+    tool="" want="" status=0
+    python3 -m narrate.spoken lexical narrate.toml > "$work/pin" || status=$?
+    if [ "$status" -eq 0 ]; then
+        { read -r dist; read -r want; } < "$work/pin"
+        if [ -z "$want" ]; then say "$dist has no estate-lexicon.json; not checked (advisory)"; exit 0; fi
+        mkdir "$work/lexicon"
+        ln -s "$dist" "$work/lexicon/dist"
+        export XOXD_LEXICAL_HOME="$work/lexicon"
+        beside="$(dirname "$dist")/bin/xoxd-lexical"
+        if [ -x "$beside" ]; then tool="$beside"; fi
+    elif [ "$status" -eq 3 ]; then
+        say "no NARRATE_LEXICAL_DIR and no lexical in narrate.toml; the CLI's own release is used"
+    else
+        exit "$status"
+    fi
+    if [ -z "$tool" ] && command -v xoxd-lexical >/dev/null 2>&1; then tool="$(command -v xoxd-lexical)"; fi
+    if [ -z "$tool" ]; then
+        say "no xoxd-lexical CLI beside the release or on PATH; not checked (advisory)"
+        exit 0
+    fi
+    if ! "$tool" check --help >/dev/null 2>&1; then
+        say "$tool has no check subcommand (xoxd-lexical 0.4.0 added it); not checked (advisory)"
+        exit 0
+    fi
+    got="$("$tool" version 2>/dev/null || true)"
+    if [ -n "$want" ] && [ "$got" != "$want" ]; then
+        say "$tool reads ${got:-an unknown release}, the pinned release is $want; not checked (advisory)"
+        exit 0
+    fi
+    say "$got, register narration"
+    python3 -m narrate spoken {{quote(input)}} {{args}} > "$work/spoken.txt"
+    status=0
+    "$tool" check --register narration - < "$work/spoken.txt" 2> "$work/err" || status=$?
+    cat "$work/err" >&2
+    if [ "$status" -eq 2 ] && grep -q "vale not found" "$work/err"; then
+        say "Vale is not on PATH; not checked (advisory)"
+        exit 0
+    fi
+    exit "$status"
+
 # Lint and format check: ruff over narrate/ (bench included), shellcheck over the narrate shell scripts.
 narrate-lint:
     cd narrate && ruff check . && ruff format --check . && shellcheck bench/run-bench.sh bounded.sh serve/qwentts.sh
