@@ -23,7 +23,7 @@ synthetic. It is a speech workflow beside the guitar workflow and beside
 | GPU use | Attended windows of 30 min or less on the GPU host, each holding the single GPU lease by compare-and-swap and leaving a receipt (load, synthesise, release). Development runs on the Mac host with MLX. Switch-native serving through the model coordinator waits for N1 |
 | Voices | v0 clones only the operator's own voice: a 10 to 30 s clip with a human-verified transcript and a consent record. Clip, transcript and consent evidence are hash-bound and kept outside git |
 | Engine order | Local open weights first, then rented GPUs running open weights, then hosted APIs last. Hosted engines refuse any job marked confidential |
-| Lexical rules | Pinned xoxd-lexical 0.3.0 `narration` register and its shared pronunciation table, followed by the local Dhall overlay (TIN-7097/E7) |
+| Lexical rules | Pinned xoxd-lexical 0.7.0 `narration` register and its shared pronunciation table, followed by the local Dhall overlay (TIN-7097/E7) |
 
 ## Lanes
 
@@ -359,14 +359,14 @@ private):
 
 A job pins one xoxd-lexical release by all of:
 
-- `release` (for example `xoxd-lexical@0.3.0`) and `commit`;
+- `release` (for example `xoxd-lexical@0.7.0`) and `commit`;
 - `lexiconSha256`: the `dist/estate-lexicon.json` digest the release's
   `DIGESTS` file pins with the tag (tag and digest together);
 - `promptDigestSha256`: `dist/prompt-digest-narration.txt` for `narration`
   (legacy registers retain `dist/prompt-digest.txt`), injected when an agent
   writes or rewrites the script;
 - `valeRegister` and `valeRegisterSha256`: the Vale register file (`narration`
-  for the 0.3.0 consumer). Vale findings are advisory and recorded, never blocking;
+  for the 0.3.0 and later consumers). Vale findings are advisory and recorded, never blocking;
 - `rewriteCheck`: when true (the default), a rewrite that changes any spoken
   number, unit or identifier is refused (the XL-ACC RewriteCheck rules).
 
