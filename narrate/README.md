@@ -178,10 +178,11 @@ just narrate-render job.toml --prerendered PLAN --confidential      # CPU host: 
 `plan` runs the render's text pipeline and writes every chunk times `--takes` seeds (default `maxTakes`), one
 requests file per voice, so the window loads the model once per voice. Each request id is a digest of its text,
 seed and reference, and the render takes each take by that id; a changed script finds no take and is refused. The
-runner checks request ids, reference digests, binary and weights before it starts and writes a receipt with each
-output's sha256; `--only-missing` finishes a stopped batch. The render refuses a receipt whose requests file,
-binary, weights or WAV digests differ, picks the best prerendered take per chunk by WER, flags `qa_failed` when no
-take passes, and records the out-of-process synthesis in `engine.synthesis`. `[engine] audiocpp_clone` is
+runner checks request ids, reference digests, binary and weights before it starts, stops a runtime past its deadline
+or silent for `--stall-s` (default 120 s), keeps only complete WAVs the runtime reported finished, and writes a
+receipt with each output's sha256; `--only-missing` finishes a stopped batch. The render refuses a receipt whose
+requests file, binary, weights or WAV digests differ or a take that is not a complete WAV, before any audio is made.
+It scores every prerendered take of a chunk and keeps the best by WER, flags `qa_failed` when no take passes, and records the out-of-process synthesis in `engine.synthesis`. `[engine] audiocpp_clone` is
 `ultimate` (reference as voice and prompt audio, with its transcript; the default) or `reference`. The reference
 must fit VoxCPM2's encoder: 5 to 14.88 s (`ref_clip_misfit`).
 

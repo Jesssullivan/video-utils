@@ -226,8 +226,9 @@ class Renderer:
         self.prepare_batch()
 
     def prepare_batch(self):
-        """For an AudioCppBatch engine: check the record and every reference, and outside a plan open the pool and
-        refuse a chunk whose first take it lacks. Any other engine refuses --prerendered."""
+        """For an AudioCppBatch engine: check the record and every reference, and outside a plan open the pool,
+        refuse a chunk with no take among its maxTakes seeds, and check every take the render may read (its file,
+        sha256 and WAV sizes). Any other engine refuses --prerendered."""
         batch = prerender.is_batch(self.engine)
         if not batch:
             if self.prerendered is not None or self.planning:
@@ -253,16 +254,23 @@ class Renderer:
             self.pool = prerender.Pool(self.prerendered, self.engine, self.cfg.engine_opts)
         except prerender.PrerenderError as error:
             raise RenderError(error.code, error.detail) from None
-        missing = [
-            chunk.id
-            for segment, chunks in self.plan
-            for chunk, spoken in chunks
-            if not self.pool.has(self.request(self.voice_for(segment), spoken, self.seed)["id"])
-        ]
+        seeds = range(self.seed, self.seed + max(1, int(self.job["gates"]["maxTakes"])))
+        missing = []
+        for segment, chunks in self.plan:
+            voice = self.voice_for(segment)
+            for chunk, spoken in chunks:
+                present = [rid for rid in (self.request(voice, spoken, s)["id"] for s in seeds) if self.pool.has(rid)]
+                if not present:
+                    missing.append(chunk.id)
+                for rid in present:
+                    try:
+                        self.pool.check(rid)
+                    except prerender.PrerenderError as error:
+                        raise RenderError(error.code, error.detail) from None
         if missing:
             raise RenderError(
                 "prerendered_take_missing",
-                f"{len(missing)} chunk(s) have no first take in the batch ({', '.join(missing[:5])}); plan again "
+                f"{len(missing)} chunk(s) have no take in the batch ({', '.join(missing[:5])}); plan again "
                 "from the same inputs and render the batch",
             )
 
@@ -306,7 +314,12 @@ class Renderer:
 
         try:
             return qa.best_of(
-                spoken, synth, lambda pcm, text: self.measure(pcm, chunk, text, work), self.job["gates"], self.seed
+                spoken,
+                synth,
+                lambda pcm, text: self.measure(pcm, chunk, text, work),
+                self.job["gates"],
+                self.seed,
+                exhaustive=self.pool is not None,
             )
         except qa.NoTake as missing:
             raise RenderError("prerendered_take_missing", f"chunk {chunk.id}: no take {missing}") from None

@@ -19,6 +19,7 @@ from conftest import PACKAGE, SLIDE
 from narrate import engine, prerender, qa, render, verify
 from narrate.__main__ import main
 from narrate.config import Config
+from narrate.ir import sha256_file
 
 pytestmark = pytest.mark.usefixtures("ffmpeg")
 
@@ -52,7 +53,7 @@ def kit(tmp_path, monkeypatch):
 
     k = Kit()
     k.binary, k.model, k.log = binary, model, tmp_path / "argv.jsonl"
-    k.binary_sha, k.model_sha = prerender.sha256_file(binary), prerender.sha256_file(model)
+    k.binary_sha, k.model_sha = sha256_file(binary), sha256_file(model)
     return k
 
 
@@ -122,12 +123,12 @@ def test_plan_batch_render_end_to_end(workspace, kit, tmp_path):
     assert batch["voice"] == "voice-fixture-sine" and batch["file"] == "requests/voice-fixture-sine.json"
     requests = json.loads((plan_dir / batch["file"]).read_text())["requests"]
     assert len(requests) == 2 * len(plan["chunks"]) == batch["requests"]
-    assert prerender.sha256_file(plan_dir / batch["file"]) == batch["sha256"]
+    assert sha256_file(plan_dir / batch["file"]) == batch["sha256"]
     first = requests[0]
     clip = workspace.voices[0]["refClipSha256"]
     assert first["voice_ref"] == first["audio"] == f"refs/{clip}.wav"
     assert first["reference_text"].endswith(" ") and first["seed"] == workspace.job["seed"]
-    assert prerender.sha256_file(plan_dir / first["voice_ref"]) == clip
+    assert sha256_file(plan_dir / first["voice_ref"]) == clip
     assert {r["seed"] for r in requests} == {workspace.job["seed"], workspace.job["seed"] + 1}
     assert not workspace.runs()  # a plan makes no run and no audio
 
@@ -151,12 +152,13 @@ def test_plan_batch_render_end_to_end(workspace, kit, tmp_path):
         (take,) = chunk["qa"]["takes"]  # no whisper: not measured, the first take is kept
         assert take["variant"] == "audiocpp_prerendered" and take["out_of_process"] is True
         assert take["request_id"] in {r["id"] for r in requests}
-        assert take["reply_sha256"] == prerender.sha256_file(plan_dir / "wav" / f"{take['request_id']}.wav")
+        assert take["reply_sha256"] == sha256_file(plan_dir / "wav" / f"{take['request_id']}.wav")
     assert str(plan_dir) not in json.dumps(manifest)
 
 
-def test_best_of_chooses_among_the_prerendered_takes(workspace, kit, tmp_path):
+def test_best_of_scores_every_prerendered_take_and_keeps_the_best(workspace, kit, tmp_path):
     use_batch(workspace, kit)
+    workspace.job["gates"]["maxChunkWer"] = 0.5  # a two-word chunk that loses a word still passes
     cfg = Config(workspace.write(SLIDE))
     path, plan = render.plan(cfg, tmp_path / "plan")
     assert plan["takes"] == 3
@@ -165,12 +167,36 @@ def test_best_of_chooses_among_the_prerendered_takes(workspace, kit, tmp_path):
 
     def transcriber(pcm, text):
         seen.append(text)
-        return "wrong words" if len(seen) % 2 else text  # every chunk fails take 1 and passes take 2
+        heard = ("wrong words", " ".join(text.split()[:-1]), text)  # take 1 fails, 2 passes with a word lost, 3 exact
+        return heard[(len(seen) - 1) % 3]
 
     _, manifest = render.render(cfg, prerendered=path.parent, transcriber=transcriber)
     for chunk in manifest["chunks"]:
-        assert chunk["qa"]["status"] == "passed" and chunk["qa"]["kept_take"] == 2
-        assert [t["passed"] for t in chunk["qa"]["takes"]] == [False, True]
+        takes = chunk["qa"]["takes"]
+        assert chunk["qa"]["status"] == "passed" and chunk["qa"]["kept_take"] == 3
+        assert [t["passed"] for t in takes] == [False, True, True]
+        assert takes[1]["wer"]["value"] > takes[2]["wer"]["value"] == 0
+    assert len(seen) == 3 * len(manifest["chunks"])  # a passing take 2 does not end the scoring
+
+
+def test_a_missing_seed_does_not_hide_the_takes_after_it(workspace, kit, tmp_path):
+    use_batch(workspace, kit)
+    cfg = Config(workspace.write(SLIDE))
+    path, plan = render.plan(cfg, tmp_path / "plan")
+    root = path.parent
+    run_batch(kit, root)
+    seed = workspace.job["seed"]
+    second = {r["id"] for c in plan["chunks"] for r in c["requests"] if r["seed"] == seed + 1}
+    (receipt_path,) = (root / "receipts").glob("*.json")
+    receipt = json.loads(receipt_path.read_text())
+    for rid in second:  # as if the batch stopped before take 2 and a follow-up batch rendered take 3
+        del receipt["outputs"][rid]
+        (root / "wav" / f"{rid}.wav").unlink()
+    receipt_path.write_text(json.dumps(receipt))
+    _, manifest = render.render(cfg, prerendered=root, transcriber=lambda pcm, text: "wrong words")
+    for chunk in manifest["chunks"]:
+        assert [t["take"] for t in chunk["qa"]["takes"]] == [1, 3]
+        assert chunk["qa"]["missing_seeds"] == [seed + 1] and chunk["qa"]["status"] == "failed"
 
 
 def test_a_chunk_without_an_acceptable_take_is_flagged(workspace, kit, tmp_path):
@@ -225,6 +251,9 @@ def test_a_changed_script_finds_no_take(workspace, kit, tmp_path):
         ("requests", "prerendered_batch_mismatch"),
         ("request_id", "prerendered_batch_mismatch"),
         ("family", "prerendered_engine_mismatch"),
+        ("swapped", "prerendered_engine_mismatch"),
+        ("truncated", "prerendered_take_mismatch"),
+        ("deleted", "prerendered_take_mismatch"),
     ],
 )
 def test_every_binding_is_checked(workspace, kit, tmp_path, tamper, code):
@@ -243,13 +272,23 @@ def test_every_binding_is_checked(workspace, kit, tmp_path, tamper, code):
         receipt[f"{tamper}_sha256"] = "0" * 64
     elif tamper == "family":
         receipt["family"] = "ming3_tts"
+    elif tamper == "swapped":
+        receipt["binary_sha256"], receipt["model_sha256"] = receipt["model_sha256"], receipt["binary_sha256"]
+    elif tamper in ("truncated", "deleted"):
+        rid = sorted(receipt["outputs"])[-1]
+        wav = root / "wav" / f"{rid}.wav"
+        if tamper == "deleted":
+            wav.unlink()
+        else:  # cut short under its full-length header, with a receipt that hashes the cut file
+            wav.write_bytes(wav.read_bytes()[: wav.stat().st_size // 2])
+            receipt["outputs"][rid]["sha256"] = sha256_file(wav)
     elif tamper == "requests":
         requests_path.write_text(requests_path.read_text() + " ")
     elif tamper == "request_id":
         batch = json.loads(requests_path.read_text())
         batch["requests"][0]["seed"] += 100  # the id no longer names this content
         requests_path.write_text(json.dumps(batch))
-        receipt["requests_sha256"] = prerender.sha256_file(requests_path)
+        receipt["requests_sha256"] = sha256_file(requests_path)
     receipt_path.write_text(json.dumps(receipt))
     with pytest.raises(render.RenderError) as error:
         render.render(cfg, prerendered=root)
@@ -286,7 +325,7 @@ def test_a_reference_the_encoder_cannot_take_is_refused_at_the_plan(workspace, k
     with wave.open(str(long), "wb") as w:
         w.setparams(params)
         w.writeframes(frames * 2)  # 20 s: past the 14.88 s encoder capacity
-    workspace.voices[0]["refClipSha256"] = prerender.sha256_file(long)
+    workspace.voices[0]["refClipSha256"] = sha256_file(long)
     cfg = Config(workspace.write(SLIDE))
     with pytest.raises(render.RenderError) as error:
         render.plan(cfg, tmp_path / "plan")
@@ -361,6 +400,50 @@ def test_a_batch_past_its_deadline_is_stopped(workspace, kit, tmp_path, monkeypa
     receipt = json.loads(receipt_path.read_text())
     assert receipt["stop_rule"].startswith("deadline") and receipt["process_group_gone"] is True
     assert len(receipt["outputs"]) == 1  # the take the runtime reported finished
+    assert "model_load_ms" not in receipt  # the pin prints no load time
+
+
+def test_a_take_stopped_mid_write_is_dropped(workspace, kit, tmp_path, monkeypatch):
+    use_batch(workspace, kit)
+    path, plan = render.plan(Config(workspace.write(SLIDE)), tmp_path / "plan", takes=1)
+    root = path.parent
+    monkeypatch.setenv("FAKE_AUDIOCPP_CUT_AFTER", "1")
+    assert run_batch(kit, root, None, "--deadline-s", "2") == [20]
+    (receipt_path,) = (root / "receipts").glob("*.json")
+    receipt = json.loads(receipt_path.read_text())
+    requests = json.loads((root / plan["batches"][0]["file"]).read_text())["requests"]
+    cut = requests[1]["id"]
+    log = (root / receipt["log"]["file"]).read_text()
+    assert f"[TIMING] request.{cut}.wall_ms" in log and f"metrics[{cut}]" not in log  # stopped mid-write
+    assert list(receipt["outputs"]) == [requests[0]["id"]] and cut in receipt["missing"]
+    assert not (root / "wav" / f"{cut}.wav").exists()
+
+
+def test_a_stalled_runtime_is_stopped(workspace, kit, tmp_path, monkeypatch):
+    use_batch(workspace, kit)
+    path, _ = render.plan(Config(workspace.write(SLIDE)), tmp_path / "plan", takes=1)
+    monkeypatch.setenv("FAKE_AUDIOCPP_HANG_AFTER", "1")
+    assert run_batch(kit, path.parent, None, "--stall-s", "1.5") == [20]
+    (receipt_path,) = (path.parent / "receipts").glob("*.json")
+    receipt = json.loads(receipt_path.read_text())
+    assert receipt["stop_rule"] == "stall 1.5 s" and len(receipt["outputs"]) == 1
+
+
+def test_a_complete_wav_is_one_whose_sizes_account_for_every_byte(tmp_path):
+    path = tmp_path / "take.wav"
+    with wave.open(str(path), "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(48000)
+        w.writeframes(b"\1\0" * 4800)
+    data = path.read_bytes()
+    runner = runner_module()
+    for check in (runner.wav_complete, prerender.wav_complete):
+        assert check(data)
+        assert not check(data[: len(data) // 2])  # the header names every frame; half are there
+        assert not check(data + b"\0\0")
+        assert not check(data[:4] + (0).to_bytes(4, "little") + data[8:])  # a header not yet finalised
+        assert not check(b"RIFF" + (4).to_bytes(4, "little") + b"WAVE")  # no fmt or data chunk
 
 
 def test_the_cli_plans_and_renders(workspace, kit, tmp_path, capsys):
@@ -387,13 +470,35 @@ def test_policy_admits_a_batch_engine_only_under_gpu_direct(kit):
     assert not policy.consistent({**eng, "profile": "MacMlx"})
 
 
-def test_best_of_reraises_when_the_first_take_is_missing():
+def test_best_of_reraises_when_no_take_exists():
     def synth(seed):
         raise qa.NoTake("x")
 
     gates = {"maxTakes": 3, "maxChunkWer": 0.1, "minSim": 0}
-    with pytest.raises(qa.NoTake):
-        qa.best_of("text", synth, lambda pcm, text: {}, gates, 0)
+    for exhaustive in (False, True):
+        with pytest.raises(qa.NoTake):
+            qa.best_of("text", synth, lambda pcm, text: {}, gates, 0, exhaustive=exhaustive)
+
+
+def test_best_of_without_exhaustive_stops_at_the_first_pass():
+    class Pcm:
+        seconds = 1.0
+
+    def synth(seed):
+        if seed == 1:
+            raise qa.NoTake("seed 1")
+        return Pcm(), {"seed": seed}
+
+    wers = {0: 0.5, 2: 0.05}
+    scores = iter([0.5, 0.05])
+
+    def measure(pcm, text):
+        return {"wer": {"status": "measured", "value": next(scores)}, "sim": qa.not_measured("none")}
+
+    gates = {"maxTakes": 3, "maxChunkWer": 0.1, "minSim": 0}
+    _, facts, record = qa.best_of("text", synth, measure, gates, 0)
+    assert facts["seed"] == 2 and record["missing_seeds"] == [1] and record["kept_take"] == 3
+    assert [t["wer"]["value"] for t in record["takes"]] == [wers[0], wers[2]]
 
 
 def test_a_plan_directory_holds_no_store_path(workspace, kit, tmp_path):

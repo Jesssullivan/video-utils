@@ -8,7 +8,7 @@ bounded unit, with VK_DRIVER_FILES naming the RADV ICD, and watches VRAM.
 
     audiocpp_batch.py run DIR --requests requests/NAME.json --binary PATH --binary-sha256 SHA \\
         --model PATH --model-sha256 SHA [--family voxcpm2] [--backend vulkan] [--device 0] \\
-        [--audiocpp-commit REV] [--deadline-s N] [--only-missing]
+        [--audiocpp-commit REV] [--deadline-s N] [--stall-s N] [--only-missing]
     audiocpp_batch.py check DIR --requests requests/NAME.json     the request and reference checks alone
 
 DIR is a `narrate plan` directory (copied to the GPU host): requests/, refs/ and plan.json. `run`:
@@ -20,12 +20,17 @@ DIR is a `narrate plan` directory (copied to the GPU host): requests/, refs/ and
 3. writes the request sequence again with absolute reference paths under DIR/.run-NAME/, runs one
    `audiocpp_cli --task clon --family F --model M --backend B --device D --request-sequence R --out-dir O
    --out-format pcm16 --metrics` in its own process group, with stdout and stderr in DIR/logs/NAME.log;
-4. stops the process group (SIGTERM, then SIGKILL after 10 s) at --deadline-s or on SIGTERM, SIGHUP or SIGINT;
-5. moves each finished WAV to DIR/wav/<id>.wav. After a clean exit every WAV counts; after a stop, only the WAVs
-   whose `request.<id>.wall_ms` the runtime printed (a WAV still being written is dropped);
+4. stops the process group (SIGTERM, then SIGKILL after 10 s) at --deadline-s, after --stall-s seconds (default
+   120, 0 for none) in which neither the log nor the output directory grew, or on SIGTERM, SIGHUP or SIGINT;
+5. moves each finished, complete WAV to DIR/wav/<id>.wav. The pin prints `[TIMING] request.<id>.wall_ms` before it
+   writes the WAV, then `audio_out=<path>` and `metrics[<id>].*` after it, so only an `audio_out` line naming the
+   file or a `metrics[<id>]` line marks a request finished. After a clean exit every complete WAV counts; after a
+   stop, only the finished ones. A WAV counts as complete when its RIFF size, its chunk sizes and a data chunk
+   account for the file's length exactly, so a WAV cut short is dropped;
 6. writes DIR/receipts/NAME.json: schema narrate-audiocpp-batch-receipt/1, the requests file and its sha256, each
    reference's sha256, runtime, commit, binary and weights sha256, family, task, backend, device, VK_DRIVER_FILES,
    exit code, stop rule, times, and every output's file and sha256. Missing outputs are listed, never invented.
+   The pin prints no model load time, so the receipt records none.
 
 --only-missing runs only the requests whose WAV is not yet in DIR/wav/ from an earlier receipt: it writes the subset
 as requests/NAME.partK.json and its receipt as receipts/NAME.partK.json, so a window that stopped early can be
@@ -53,6 +58,15 @@ KEYS = {"id", "text", "seed", "voice_ref", "audio", "reference_text"}
 TASKS = {"voxcpm2": "clon"}
 EXIT_OK, EXIT_PARTIAL, EXIT_REFUSED, EXIT_STOPPED = 0, 1, 2, 20
 KILL_AFTER_S = 10
+STALL_S = 120.0
+FINISHED = (
+    re.compile(r"^audio_out=(.+)$", re.M),  # the file's path; its stem is the request id
+    re.compile(r"^metrics\[([^\]\s]+)\]\.", re.M),
+)
+WALL = (
+    re.compile(r"request\.(\S+?)\.wall_ms[ =]([\d.]+)"),
+    re.compile(r"^metrics\[([^\]\s]+)\]\.wall_ms=([\d.]+)", re.M),
+)
 STOP = {"signal": None}
 
 
@@ -164,9 +178,43 @@ def part_name(root, name):
     return f"{name}.part{k}"
 
 
+def wav_complete(data):
+    """True when a RIFF/WAVE file's sizes account for every byte: the RIFF size is the length less 8, each chunk
+    (padded to an even size) ends inside the file, the last ends at its end, and fmt and data chunks exist. A WAV
+    whose header was written for the whole take but whose samples stop short fails."""
+    if len(data) < 12 or data[:4] != b"RIFF" or data[8:12] != b"WAVE":
+        return False
+    if int.from_bytes(data[4:8], "little") != len(data) - 8:
+        return False
+    at, seen = 12, set()
+    while at < len(data):
+        if at + 8 > len(data):
+            return False
+        size = int.from_bytes(data[at + 4 : at + 8], "little")
+        seen.add(data[at : at + 4])
+        at += 8 + size + (size & 1)
+        if at > len(data) + (size & 1):
+            return False
+    return {b"fmt ", b"data"} <= seen
+
+
 def wav_ok(path):
-    data = path.read_bytes()[:12]
-    return len(data) == 12 and data[:4] == b"RIFF" and data[8:12] == b"WAVE"
+    return wav_complete(path.read_bytes())
+
+
+def finished_ids(text):
+    """Request ids the runtime reported finished: an `audio_out=` path's stem, or a `metrics[<id>]` line."""
+    done = {Path(m.group(1).strip()).stem for m in FINISHED[0].finditer(text)}
+    return done | {m.group(1) for m in FINISHED[1].finditer(text)}
+
+
+def progress(log, out_dir):
+    """What grows while the runtime works: the log's size and the output directory's bytes."""
+    try:
+        size = log.stat().st_size
+        return size, sum(p.stat().st_size for p in out_dir.iterdir())
+    except OSError:
+        return None
 
 
 def on_signal(signum, _frame):
@@ -249,11 +297,17 @@ def run(a):
     rule, gone = "exit", True
     with open(log, "wb") as out:
         proc = subprocess.Popen(argv, cwd=work, stdout=out, stderr=subprocess.STDOUT, start_new_session=True)
+        seen, moved = None, time.monotonic()
         while proc.poll() is None:
+            current = progress(log, out_dir)
+            if current != seen:
+                seen, moved = current, time.monotonic()
             if STOP["signal"]:
                 rule = f"signal {STOP['signal']}"
             elif deadline and time.monotonic() > deadline:
                 rule = f"deadline {a.deadline_s:g} s"
+            elif a.stall_s and time.monotonic() - moved > a.stall_s:
+                rule = f"stall {a.stall_s:g} s"
             if rule != "exit":
                 gone = stop_group(proc)
                 break
@@ -261,14 +315,14 @@ def run(a):
     code = proc.returncode
     ended = time.monotonic()
     text = log.read_text(encoding="utf-8", errors="replace")
-    walls = {m.group(1): float(m.group(2)) for m in re.finditer(r"request\.(\S+?)\.wall_ms[ =]([\d.]+)", text)}
-    load = re.search(r"model\.load_ms[ =]([\d.]+)", text)
+    walls = {m.group(1): float(m.group(2)) for pattern in WALL for m in pattern.finditer(text)}
+    finished = finished_ids(text)
     clean = rule == "exit" and code == 0
     outputs, missing = {}, []
     for body in requests:
         rid = body["id"]
         source = out_dir / f"{rid}.wav"
-        if source.is_file() and wav_ok(source) and (clean or rid in walls):
+        if source.is_file() and not source.is_symlink() and (clean or rid in finished) and wav_ok(source):
             target = root / "wav" / f"{rid}.wav"
             source.replace(target)
             outputs[rid] = {"file": f"wav/{rid}.wav", "sha256": sha256_file(target), "bytes": target.stat().st_size}
@@ -299,7 +353,6 @@ def run(a):
         "started_utc": started_utc,
         "ended_utc": now(),
         "wall_s": round(ended - started, 3),
-        "model_load_ms": float(load.group(1)) if load else None,
         "log": {"file": f"logs/{name}.log", "sha256": sha256_file(log)},
         "test_mode": os.environ.get("NARRATE_AUDIOCPP_BATCH_TEST_MODE") == "1",
         "outputs": outputs,
@@ -343,6 +396,7 @@ def main(argv=None):
             c.add_argument("--device", default="0")
             c.add_argument("--audiocpp-commit", default=None)
             c.add_argument("--deadline-s", type=float, default=0.0)
+            c.add_argument("--stall-s", type=float, default=STALL_S)
             c.add_argument("--only-missing", action="store_true")
     a = p.parse_args(argv)
     try:

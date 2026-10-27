@@ -261,27 +261,38 @@ load per voice:
   request's id against its content and every reference against the sha256 in
   its name, hashes the binary and the weights against the given pins, runs
   one `audiocpp_cli --task clon --family voxcpm2 --backend vulkan --device N
-  --out-format pcm16 --metrics` in its own process group, stops it at its
-  deadline or on a signal, and keeps a WAV after a stop only when the runtime
-  reported it finished. The receipt lists each output's sha256 and each
-  missing id. `--only-missing` finishes a stopped batch in a later window.
+  --out-format pcm16 --metrics` in its own process group, and stops it at its
+  deadline, on a signal, or after `--stall-s` seconds (default 120) in which
+  neither its log nor its output directory grew. The pin prints
+  `[TIMING] request.<id>.wall_ms` before it writes a WAV and
+  `audio_out=<path>` and `metrics[<id>].*` after it, so after a stop a WAV
+  counts only when one of the later lines names it. Any WAV counts only when
+  it is complete: its RIFF size, chunk sizes and data chunk account for every
+  byte, so a take cut short under a full-length header is dropped. The
+  receipt lists each output's sha256 and each missing id; the pin prints no
+  model load time. `--only-missing` finishes a stopped batch in a later window.
   The runner sets no limit itself: the caller runs it in the window's bounded
   unit (memory, CPU, nice, idle I/O, runtime, VRAM watch, RADV ICD only), as
   for the bench.
 - **Render.** `--prerendered DIR` trusts a receipt only when its requests file
   has the sha256 it names, every request carries its content's id, the
-  binary's and the weights' sha256 are both among the engine record's
-  `files`, family and task match the record's `audiocpp://<family>` endpoint,
-  and each WAV has the sha256 the receipt lists
-  (`prerendered_batch_mismatch`, `prerendered_engine_mismatch`,
-  `prerendered_take_mismatch`). A chunk whose first take the batch lacks is
-  refused before any audio is made (`prerendered_take_missing`); a script,
-  seed or reference that changed after the plan therefore finds no take. QA,
-  best of `maxTakes`, timing fit (atempo alone: the batch ran before the fit),
-  loudness, captions, EDL and verify run as for any engine. A take that fails
-  its gate is replaced by the next prerendered seed; when the batch holds no
-  further seed, the chunk keeps its best take, records `missing_seeds` and is
-  flagged `qa_failed`, never passed.
+  weights' sha256 is the record's `files` entry named like the receipt's
+  `model_file` and the binary's another `files` entry, family and task match
+  the record's `audiocpp://<family>` endpoint, and each WAV has the sha256
+  the receipt lists and is complete (`prerendered_batch_mismatch`,
+  `prerendered_engine_mismatch`, `prerendered_take_mismatch`). Before any
+  audio is made, a chunk with no take among its `maxTakes` seeds is refused
+  (`prerendered_take_missing`), and every take the render may read is checked;
+  a script, seed or reference that changed after the plan therefore finds no
+  take. Each take is read once and the bytes read are the bytes hashed. QA
+  scores every prerendered take a chunk has and keeps the best (passing
+  first, then lowest WER, then highest SIM, then the earliest), not the first
+  that passes; with nothing measured it keeps the first. A seed the batch
+  lacks is skipped and listed in `missing_seeds`; a chunk with no passing take
+  keeps its best take and is flagged `qa_failed`, never passed. Timing fit
+  (atempo alone: the batch ran before the fit), loudness, captions, EDL and
+  verify run as for any engine. `[engine] ref_audio = "omit"` is refused: a
+  batch request always names the reference.
 - **Manifest.** `engine.synthesis` records `mode: out_of_process_batch`, the
   runtime, family, clone mode, audio.cpp commit, binary and weights sha256,
   and each batch used (receipt and requests sha256, request and output

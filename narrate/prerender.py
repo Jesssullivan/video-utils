@@ -21,7 +21,10 @@ A request id is a digest of the request's content (text, seed, reference digests
 by an id answers exactly that request, batches of many runs merge without collisions, and a render whose text,
 seed or reference changed after its plan finds no take and is refused before any audio is made. A receipt is
 trusted only when its requests file has the digest it names, every request in it carries its own content's id,
-its binary and weights are among the engine record's pinned files, and each output has the sha256 it lists.
+its weights are the engine record's pinned file of the receipt's model_file name and its binary another pinned
+file, and each output has the sha256 it lists and is a complete WAV (its RIFF and chunk sizes account for every
+byte). A render checks every take it may use before any audio is made, and reads each take once, hashing the bytes
+it uses.
 
 VoxCPM2 (family voxcpm2 at audio.cpp 47c2756e) clones in one of two ways, `[engine] audiocpp_clone`:
   ultimate    voice_ref and audio both name the reference and reference_text is its transcript plus one space
@@ -40,7 +43,7 @@ import urllib.parse
 import wave
 from pathlib import Path
 
-from .ir import canonical, sha256_bytes, sha256_file
+from .ir import canonical, sha256_bytes
 
 BACKEND = "AudioCppBatch"
 PLAN_SCHEMA = "narrate-prerender-plan/1"
@@ -89,8 +92,9 @@ def clone_mode(options):
 
 
 def check_engine(engine, options):
-    """Refuse an AudioCppBatch record narrate cannot bind a take to: a bad endpoint, no pinned files, a clone mode
-    it does not know, or a reference sent by any route other than the request (ref_audio omit)."""
+    """Refuse an AudioCppBatch record narrate cannot bind a take to (a bad endpoint, no pinned files, a clone mode
+    it does not know), and `[engine] ref_audio = "omit"`: a batch request always names the reference file, so a
+    job that asks for no reference is refused rather than cloned."""
     family(engine)
     clone_mode(options)
     files = engine.get("files") or []
@@ -100,8 +104,10 @@ def check_engine(engine, options):
             f"engine {engine['id']}: an AudioCppBatch record lists the audiocpp_cli binary and the weights with "
             "their sha256 in files",
         )
-    if options.get("ref_audio") != "data_uri":
-        raise PrerenderError("config_invalid", "an AudioCppBatch engine clones from the reference: ref_audio data_uri")
+    if options.get("ref_audio") == "omit":
+        raise PrerenderError(
+            "config_invalid", "ref_audio omit sends no reference, but every AudioCppBatch request names the reference"
+        )
 
 
 def reference_fit(engine, voice_id, audio):
@@ -171,6 +177,26 @@ def inside(root, relative):
     return root.joinpath(*parts)
 
 
+def wav_complete(data):
+    """True when a RIFF/WAVE file's sizes account for every byte (narrate/serve/audiocpp_batch.py has the same
+    check): the RIFF size is the length less 8, each chunk ends inside the file, the last at its end, and fmt and
+    data chunks exist. A take whose samples stop short of its header fails."""
+    if len(data) < 12 or data[:4] != b"RIFF" or data[8:12] != b"WAVE":
+        return False
+    if int.from_bytes(data[4:8], "little") != len(data) - 8:
+        return False
+    at, seen = 12, set()
+    while at < len(data):
+        if at + 8 > len(data):
+            return False
+        size = int.from_bytes(data[at + 4 : at + 8], "little")
+        seen.add(data[at : at + 4])
+        at += 8 + size + (size & 1)
+        if at > len(data) + (size & 1):
+            return False
+    return {b"fmt ", b"data"} <= seen
+
+
 class NoTake(LookupError):
     """The pool holds no output for this request (it was not planned, or the batch stopped before it)."""
 
@@ -187,7 +213,7 @@ class Pool:
         self.engine, self.family, self.clone = engine, family(engine), clone_mode(options)
         if not self.root.is_dir():
             raise PrerenderError("prerendered_missing", "--prerendered names no directory")
-        pins = {f["sha256"] for f in engine.get("files") or []}
+        pins = [(Path(str(f.get("path", ""))).name, f["sha256"]) for f in engine.get("files") or []]
         self.takes, self.batches = {}, []
         receipts = sorted((self.root / "receipts").glob("*.json")) if (self.root / "receipts").is_dir() else []
         if not receipts:
@@ -204,9 +230,12 @@ class Pool:
 
         if not isinstance(receipt, dict) or receipt.get("schema") != RECEIPT_SCHEMA:
             refuse("prerendered_invalid", f"schema is not {RECEIPT_SCHEMA}")
-        for key in ("binary_sha256", "model_sha256"):
-            if receipt.get(key) not in pins:
-                refuse("prerendered_engine_mismatch", f"{key} is not a file the engine {self.engine['id']} pins")
+        model = [i for i, (file, sha) in enumerate(pins) if file == receipt.get("model_file")]
+        if not model or pins[model[0]][1] != receipt.get("model_sha256"):
+            refuse("prerendered_engine_mismatch", f"model_sha256 is not engine {self.engine['id']}'s pinned weights")
+        binaries = {sha for i, (_, sha) in enumerate(pins) if i not in model}
+        if receipt.get("binary_sha256") not in binaries:
+            refuse("prerendered_engine_mismatch", f"binary_sha256 is not a file the engine {self.engine['id']} pins")
         if receipt.get("family") != self.family or receipt.get("task") != FAMILIES[self.family]["task"]:
             refuse("prerendered_engine_mismatch", f"family or task differ from {self.family}")
         requests_path = inside(self.root, receipt.get("requests_file"))
@@ -265,16 +294,34 @@ class Pool:
     def has(self, request_id):
         return request_id in self.takes
 
+    def read(self, rid):
+        """The bytes of a listed take, read once: refused (prerendered_take_mismatch) when the file is missing, is
+        a link, differs from its receipt's sha256 or is not a complete WAV."""
+        out, _ = self.takes[rid]
+        path = self.root / out["file"]
+        try:
+            if path.is_symlink() or not path.is_file():
+                raise OSError("not a regular file")
+            data = path.read_bytes()
+        except OSError as error:
+            raise PrerenderError("prerendered_take_mismatch", f"wav/{rid}.wav: {error}") from None
+        if sha256_bytes(data) != out["sha256"]:
+            raise PrerenderError("prerendered_take_mismatch", f"wav/{rid}.wav differs from its receipt")
+        if not wav_complete(data):
+            raise PrerenderError("prerendered_take_mismatch", f"wav/{rid}.wav is not a complete WAV")
+        return data
+
+    def check(self, rid):
+        """Refuse a listed take that read() would refuse; nothing is kept."""
+        self.read(rid)
+
     def take(self, body):
-        """(WAV bytes, facts) for one request, or NoTake. A file whose sha256 differs from its receipt is refused."""
+        """(WAV bytes, facts) for one request, or NoTake. The bytes returned are the bytes hashed."""
         rid = body["id"]
         if rid not in self.takes:
             raise NoTake(rid)
-        out, index = self.takes[rid]
-        path = self.root / out["file"]
-        if path.is_symlink() or not path.is_file() or sha256_file(path) != out["sha256"]:
-            raise PrerenderError("prerendered_take_mismatch", f"wav/{rid}.wav differs from its receipt")
-        batch = self.batches[index]
+        data = self.read(rid)
+        batch = self.batches[self.takes[rid][1]]
         batch["used"] += 1
         facts = {
             "variant": "audiocpp_prerendered",
@@ -287,7 +334,7 @@ class Pool:
             "ref_audio_used": True,
             "ref_text_used": self.clone == "ultimate",
         }
-        return path.read_bytes(), facts
+        return data, facts
 
     def record(self):
         """What the manifest says of the synthesis: out of process, by which runtime, binary, weights and batches."""

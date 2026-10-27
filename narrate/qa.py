@@ -13,8 +13,9 @@ most MAX_WHISPER_THREADS threads, whatever narrate.toml asks ("Host placement an
 A take that fails a measured gate is synthesised again with the next seed, at most maxTakes takes in all. The
 best take by WER, then SIM, is kept; every take's numbers and the failure are recorded. A chunk that never
 passes is flagged qa_failed, never silently accepted. WER is a regression gate, not a ranking. A prerendered
-batch (narrate/prerender.py) may hold fewer takes than maxTakes: synth raises NoTake for a seed the batch lacks,
-the takes stop there and the record lists the seeds that were missing; a chunk with no take at all re-raises.
+batch (narrate/prerender.py) already holds its takes, so best_of scores every take it holds (exhaustive) and keeps
+the best rather than the first that passes. It may hold fewer takes than maxTakes: synth raises NoTake for a seed
+the batch lacks, the next seed is tried, and the record lists the missing seeds; a chunk with no take re-raises.
 """
 
 import json
@@ -243,20 +244,20 @@ class NoTake(LookupError):
     """synth has no take for this seed (a prerendered batch that did not render it)."""
 
 
-def best_of(chunk_text, synth, measure, gates, base_seed):
-    """Run takes until one passes or maxTakes ran. synth(seed) -> (pcm, facts), or NoTake; measure(pcm) ->
+def best_of(chunk_text, synth, measure, gates, base_seed, exhaustive=False):
+    """Run takes until one passes or maxTakes ran; with exhaustive (takes that already exist), score every take
+    unless nothing is measured. synth(seed) -> (pcm, facts), or NoTake for a seed with no take; measure(pcm) ->
     {wer, sim}. Returns (best pcm, best facts, record)."""
-    takes, kept, missing = [], None, []
+    takes, kept, missing, absent = [], None, [], None
     max_takes = max(1, int(gates["maxTakes"]))
     for k in range(max_takes):
         seed = base_seed + k
         try:
             pcm, facts = synth(seed)
-        except NoTake:
-            if not takes:
-                raise
-            missing = list(range(seed, base_seed + max_takes))
-            break
+        except NoTake as error:
+            missing.append(seed)
+            absent = absent or error
+            continue
         scores = measure(pcm, chunk_text)
         w, s = scores["wer"], scores["sim"]
         measured_wer = w.get("status") == "measured"
@@ -273,8 +274,10 @@ def best_of(chunk_text, synth, measure, gates, base_seed):
             **facts,
         }
         takes.append((take, pcm, facts))
-        if not (measured_wer or measured_sim) or (passed_wer and passed_sim):
+        if not (measured_wer or measured_sim) or (passed_wer and passed_sim and not exhaustive):
             break
+    if not takes:
+        raise absent
 
     def rank(item):
         take = item[0]

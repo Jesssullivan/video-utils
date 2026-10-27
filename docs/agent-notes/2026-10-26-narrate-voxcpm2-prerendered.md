@@ -44,6 +44,26 @@ Whisper and the fit run after the lease, so the window holds the GPU for synthes
 | `just narrate-test` | pass: 681 passed, 1 skipped |
 | `just narrate-dhall-check` | pass |
 
+## Review fix round (2026-10-26)
+
+Direction: the TIN-7088 fix round on PR #53 (R-HOOK-CONVERGENCE-20261004 R-N13).
+
+| Finding | Change |
+| --- | --- |
+| A stopped batch could keep a half-written take | The pin prints `[TIMING] request.<id>.wall_ms` before it writes a WAV. Only `audio_out=<path>` or `metrics[<id>]` now marks a take finished. A WAV counts only when its RIFF and chunk sizes account for every byte (`wav_complete`, in the runner and in `Pool`). The fake prints in the pin's order and can stop mid-write. |
+| Best of N kept the first passing take | A render from a batch scores every take it holds and keeps the best (`best_of(..., exhaustive=True)`). |
+| `Pool` checked late and read twice | `prepare_batch` checks every take the render may read before any audio. `Pool.take` reads once and hashes those bytes. |
+| `best_of` stopped at the first missing seed | A missing seed is skipped and listed in `missing_seeds`. A chunk needs any take, not the first. |
+| No stall stop | `--stall-s` (default 120) stops a runtime whose log and output stop growing. |
+| Nits | The receipt drops `model_load_ms` (the pin prints none). `check_engine` refuses only `ref_audio = "omit"`. The weights pin must be the `files` entry named like the receipt's `model_file`, so swapped pins are refused. |
+
+Tests: `test_prerender.py` has 31 tests. The new ones cover a take stopped mid-write, a stall, WAV completeness, scoring every take, a missing middle seed, swapped pins, a truncated WAV with a matching receipt and a deleted WAV.
+
+| Gate | Result |
+| --- | --- |
+| `just narrate-lint` | pass |
+| `just narrate-test` | pass: 702 passed, 1 skipped (after the rebase on main `c8d388a3`); `just narrate-dhall-check` pass |
+
 ## Open
 
 - The MCP tools do not expose `plan` or `--prerendered`. W7 owns their admission.
