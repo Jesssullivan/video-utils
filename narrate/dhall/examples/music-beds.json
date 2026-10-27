@@ -1,0 +1,43 @@
+[
+  {
+    "acquisition": {
+      "acquiredBy": "Operator",
+      "creditsSpent": 0,
+      "date": "2026-10-27",
+      "rulingRef": "TIN-7476 comment 9db389dc (NV-3)"
+    },
+    "id": "bed-fixture-emaj",
+    "layers": [
+      {
+        "bpm": 120,
+        "bytes": 192044,
+        "channels": 1,
+        "gainDb": 0,
+        "key": "E major",
+        "rateHz": 48000,
+        "sha256": "233a01a6cd3d2e27589f1d2ddb6f3c36bcf4b9e4f8c8ec9a28438cfc027311a8",
+        "source": "Fixture",
+        "tempoFactor": 1
+      },
+      {
+        "bpm": null,
+        "bytes": 288044,
+        "channels": 1,
+        "gainDb": -6,
+        "key": "E major",
+        "rateHz": 48000,
+        "sha256": "41b56340fe586a8880445e4e56d4a009ccac5336b34283bca9ab9b4bfa34e01b",
+        "source": "Fixture",
+        "tempoFactor": 1
+      }
+    ],
+    "licence": {
+      "attributionRequired": false,
+      "attributionText": null,
+      "certifiedPdfSha256": null,
+      "contentIdCheck": "NotRun",
+      "termsReadOn": null,
+      "termsRef": "fixture: generated sine loops, no licence applies"
+    }
+  }
+]

@@ -199,8 +199,14 @@ test_suite(
 rust_test(
     name = "rust_cli_test",
     srcs = ["cli.rs"],
-    # include_str!: the narration timeline a real render wrote (narrate/tests/test_contract_shape.py).
-    compile_data = ["//narrate:tests/fixtures/narration-timeline.json"],
+    # include_str!: the narration timeline a real render wrote (narrate/tests/test_contract_shape.py) and the
+    # three narrated-video stage timelines (docs/spec/TIMELINE_CONTRACT.md).
+    compile_data = [
+        "//narrate:tests/fixtures/narrated-video/avatar_overlay_v1.json",
+        "//narrate:tests/fixtures/narrated-video/music_bed_v1.json",
+        "//narrate:tests/fixtures/narrated-video/narrated_video_v1.json",
+        "//narrate:tests/fixtures/narration-timeline.json",
+    ],
     crate_root = "cli.rs",
     data = ["//src:video-utils"],
     edition = RUST_EDITION,

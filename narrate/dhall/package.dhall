@@ -4,4 +4,7 @@
 , Consent = ./Consent.dhall
 , Job = ./Job.dhall
 , Pronunciation = ./Pronunciation.dhall
+, Edition = ./Edition.dhall
+, MusicBed = ./MusicBed.dhall
+, NarratedVideo = ./NarratedVideo.dhall
 }
