@@ -658,6 +658,21 @@ def test_init_from_the_defaults_is_the_simple_card_example():
         lambda j: j.update(base={"slides": {}}),
         lambda j: j["segments"].append(copy.deepcopy(j["segments"][0])),
         lambda j: j.update(tighten={}),
+        lambda j: j["segments"][0].pop("avatar"),
+        lambda j: j["segments"][0].pop("anchor"),
+        lambda j: j["segments"][0].update(anchor={"atSeconds": "soon"}),
+        lambda j: j["segments"][0].update(scriptSha256="/a/script.md"),
+        lambda j: j["delivery"].pop("voiceOnlyListen"),
+        lambda j: j["delivery"].update(channels="Surround"),
+        lambda j: j["music"].pop("duckDb"),
+        lambda j: j["music"].update(attackMs=-1),
+        lambda j: j["labels"].update(badge="AI"),
+        lambda j: j["captions"].update(burn="no"),
+        lambda j: j["base"]["card"].pop("fps"),
+        lambda j: j["base"]["card"].update(colour="red"),
+        lambda j: j.update(avatar={"external": "kitpip"}),
+        lambda j: j.update(avatar=dict(DEFAULTS["avatar"], corner="Middle")),
+        lambda j: j.update(base={"deck": {"producer": "x", "videoSha256": "1" * 64}}),
     ],
 )
 def test_a_misshapen_job_refuses(edit):
@@ -799,7 +814,57 @@ def test_cli_init_from_a_render_and_a_refused_plan(tmp_path, capsys, cli_env):
     assert code == 1 and graph_doc["admit"]["edition"]["codes"] == ["VoiceRefused", "PipRefused", "BedRefused"]
 
 
+def test_cli_init_from_a_misshapen_record_refuses_and_writes_nothing(tmp_path, capsys, cli_env):
+    for name, edit in (
+        ("segment", lambda j: j["segments"][0].pop("avatar")),
+        ("delivery", lambda j: j["delivery"].pop("voiceOnlyListen")),
+    ):
+        job = example("nv-fixture-card")
+        edit(job)
+        record = tmp_path / f"{name}.json"
+        record.write_text(json.dumps(job))
+        code, out, err = call(capsys, ["init", *cli_env, "--job", "nv-fixture-card", "--from", str(record)])
+        assert code == 1 and out == "" and json.loads(err)["refused"] == "job_invalid"
+        assert not (tmp_path / "narrated" / "nv-fixture-card").exists()
+
+
+@pytest.mark.parametrize("damage", ["{", "[]", '{"stages": {"base": 1}}', '{"refusals": {"mix": {}}}', "\udcff"])
+def test_a_damaged_current_or_graph_file_refuses_store_invalid(tmp_path, capsys, cli_env, damage):
+    code, _, _ = call(
+        capsys, ["init", *cli_env, "--job", "nv-fixture-card", "--from", str(EXAMPLES / "narrated-videos.json")]
+    )
+    assert code == 0
+    s = store.JobStore(tmp_path / "narrated", "nv-fixture-card")
+    raw = damage.encode("utf-8", "surrogateescape")
+    s.current_file.write_bytes(raw)
+    for argv in (["plan", "nv-fixture-card"], ["explain", "nv-fixture-card", "mix"]):
+        code, out, err = call(capsys, [*argv, *cli_env])
+        assert code == 1 and out == "" and json.loads(err)["refused"] == "store_invalid"
+    s.current_file.unlink()
+    s.graph_file.write_bytes(raw)
+    code, out, err = call(capsys, ["status", "nv-fixture-card", *cli_env])
+    assert code == 1 and out == "" and json.loads(err)["refused"] == "store_invalid"
+
+
 # kitpip --------------------------------------------------------------------------------------------------------
+def test_the_avatar_keys_the_default_rig_revision_only_for_the_default_rig():
+    pin = kitpip.load_pin(EXTERNALS)
+    recs = records()
+    job = example("nv-fixture-avatar")
+    segment = job["segments"][0]
+    default = pin["default_rig"]
+    for rig, revision, want in (
+        (None, None, (default["id"], default["sha256"])),
+        (default["id"], None, (default["id"], default["sha256"])),
+        ("some-other-rig", None, ("some-other-rig", None)),
+        ("some-other-rig", "d" * 64, ("some-other-rig", "d" * 64)),
+        (None, "d" * 64, (default["id"], "d" * 64)),
+    ):
+        job["avatar"].update(rig=rig, rigRevisionSha256=revision)
+        knobs = graph.knobs_for("avatar", segment, job, recs, pin)
+        assert (knobs["rig"], knobs["rigRevisionSha256"]) == want
+
+
 def test_the_fixture_pin_is_the_stub_and_never_a_release():
     pin = kitpip.load_pin(EXTERNALS)
     want = pin["binaries"]["kitpip"]["any"]
@@ -930,6 +995,7 @@ def test_the_kitpip_stub_stage_renders_a_labelled_alpha_overlay_into_the_store(t
         "fixture-persona",
         ctx["kitpip"],
         ctx["pin"],
+        rig_sha256=ctx["pin"]["default_rig"]["sha256"],
     )
     directory = s.final_dir("avatar/seg-1", key)
     assert store.verify_stage_dir(directory, key) == []
@@ -937,6 +1003,8 @@ def test_the_kitpip_stub_stage_renders_a_labelled_alpha_overlay_into_the_store(t
     assert manifest["timeline"]["mapping"] == "avatar_overlay_v1" and manifest["timeline"]["no_time_stretch"] is False
     assert manifest["synthetic"] is True and manifest["labels"]["consent_ids"] == ["consent-fixture-sine"]
     assert manifest["labels"]["persona"] == "fixture-persona"
+    assert manifest["labels"]["voice_ids"] == [v["voice"] for v in narration["voices"]]
+    assert manifest["measurements"]["rig"] == {"id": "kitpip-stub-rig", "sha256": ctx["pin"]["default_rig"]["sha256"]}
     assert manifest["states"] == {"source_checks": "passed", "render": "stub", "lip_sync": "pending_operator"}
     assert manifest["timeline"]["narration"]["content_sha256"] == narration["content_sha256"]
     overlay = directory / "overlay" / "overlay.mov"
@@ -985,3 +1053,97 @@ def test_the_kitpip_stage_refuses_a_store_inside_the_narrate_run_and_records_ref
     assert caught.value.code == "unknown_rig"
     assert s.current()["refusals"]["avatar/seg-1"]["code"] == "unknown_rig"
     assert not s.partial_dir("avatar/seg-1", key).exists() and s.entry("avatar/seg-1") is None
+
+
+def run_stub_avatar(tmp_path, run_dir, narration, binary_body, timeout_s=kitpip.TIMEOUT_S):
+    """run_avatar through a pinned wrapper script; (store, key, the KitpipRefused it raised)."""
+    _, pin, resolution = pinned_script(tmp_path, binary_body)
+    ctx = {"pin": pin, "kitpip": resolution}
+    document = avatar_document(narration, ctx)
+    key = keys.stage_key(document)
+    s = new_store(tmp_path, example("nv-fixture-avatar"))
+    with pytest.raises(kitpip.KitpipRefused) as caught:
+        kitpip.run_avatar(
+            s,
+            "avatar/seg-1",
+            key,
+            document,
+            run_dir,
+            FPS,
+            "kitpip-stub-rig",
+            64,
+            "fixture-persona",
+            resolution,
+            pin,
+            timeout_s,
+            rig_sha256=pin["default_rig"]["sha256"],
+        )
+    return s, key, caught.value
+
+
+@pytest.mark.parametrize(
+    "body, code",
+    [
+        ("#!/bin/sh\nexec sleep 5\n", "kitpip_timeout"),
+        ('#!/bin/sh\necho \'{"error": "out of memory"}\'\nexit 2\n', "kitpip_error"),
+        ("#!/bin/sh\necho not-json\n", "kitpip_error"),
+    ],
+)
+def test_a_wrapper_failure_is_not_recorded_and_the_avatar_stays_runnable(tmp_path, workspace, body, code):
+    run_dir, narration = narrate_run(tmp_path, workspace)
+    s, key, refused = run_stub_avatar(tmp_path, run_dir, narration, body, timeout_s=1)
+    assert refused.code == code and refused.verdict is False
+    assert s.current()["refusals"] == {} and s.freshness("avatar/seg-1", key) == ("stale", "no_run")
+    assert not s.partial_dir("avatar/seg-1", key).exists()
+
+
+def test_a_binary_that_fails_its_pin_at_spawn_is_not_recorded(tmp_path, workspace):
+    run_dir, narration = narrate_run(tmp_path, workspace)
+    binary, pin, resolution = pinned_script(tmp_path, f'#!/bin/sh\nexec python3 "{STUB}" "$@"\n')
+    binary.write_text(binary.read_text() + "# changed\n")
+    ctx = {"pin": pin, "kitpip": resolution}
+    document = avatar_document(narration, ctx)
+    key = keys.stage_key(document)
+    s = new_store(tmp_path, example("nv-fixture-avatar"))
+    with pytest.raises(kitpip.KitpipRefused) as caught:
+        kitpip.run_avatar(s, "avatar/seg-1", key, document, run_dir, FPS, "kitpip-stub-rig", 64, "p", resolution, pin)
+    assert caught.value.code == "kitpip_pin_mismatch" and caught.value.verdict is False
+    assert s.current()["refusals"] == {} and s.freshness("avatar/seg-1", key) == ("stale", "no_run")
+
+
+def mutating_stub(mutation):
+    """A wrapper that runs the stub and then applies mutation (Python on manifest m) after a passing verify."""
+    return f"""#!/usr/bin/env python3
+import json, subprocess, sys
+from pathlib import Path
+done = subprocess.run([sys.executable, {str(STUB)!r}, *sys.argv[1:]], capture_output=True, text=True)
+if sys.argv[1] == "verify" and done.returncode == 0:
+    path = Path(sys.argv[2]) / "manifest.json"
+    m = json.loads(path.read_text())
+    {mutation}
+    path.write_text(json.dumps(m))
+sys.stdout.write(done.stdout)
+sys.exit(done.returncode)
+"""
+
+
+@pytest.mark.parametrize(
+    "mutation, code",
+    [
+        ('m["voice_ids"] = []', "label_chain_broken"),
+        ('m["voice_ids"] = ["voice-other"]', "label_chain_broken"),
+        ('m["consent_ids"] = []', "label_chain_broken"),
+        ('m["synthetic"] = False', "label_chain_broken"),
+        ('m["rig"]["sha256"] = "0" * 64', "kitpip_pin_mismatch"),
+    ],
+)
+def test_an_overlay_that_alters_a_label_or_the_rig_revision_refuses_and_is_recorded(
+    tmp_path, workspace, ffmpeg, mutation, code
+):
+    run_dir, narration = narrate_run(tmp_path, workspace)
+    s, key, refused = run_stub_avatar(tmp_path, run_dir, narration, mutating_stub(mutation))
+    assert refused.code == code and refused.verdict is True
+    assert s.freshness("avatar/seg-1", key) == ("refused", code)
+    assert not s.partial_dir("avatar/seg-1", key).exists() and s.entry("avatar/seg-1") is None
+    assert s.clear_refusal("avatar/seg-1")["code"] == code
+    assert s.freshness("avatar/seg-1", key) == ("stale", "no_run") and s.clear_refusal("avatar/seg-1") is None

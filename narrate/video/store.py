@@ -133,6 +133,14 @@ def verify_stage_dir(directory, key=None):
     return problems
 
 
+def load_store_json(path):
+    """A store file's JSON, or StoreError store_invalid when it is not UTF-8 JSON (a damaged or hand-edited file)."""
+    try:
+        return json.loads(Path(path).read_text(encoding="utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise StoreError("store_invalid", f"{Path(path).name}: {exc}") from None
+
+
 class JobStore:
     def __init__(self, root, job_id):
         if not isinstance(job_id, str) or not ID.match(job_id):
@@ -198,19 +206,34 @@ class JobStore:
         write_atomic(self.graph_file, graph)
 
     def read_graph(self):
+        if self.graph_file.is_symlink():
+            raise StoreError("stage_symlink", "graph.json is a symlink")
         if not self.graph_file.is_file():
             raise StoreError("graph_missing", f"{self.job_id} has no recorded plan; run plan --record")
-        return json.loads(self.graph_file.read_text(encoding="utf-8"))
+        value = load_store_json(self.graph_file)
+        if not isinstance(value, dict) or value.get("kind") != "nv_graph":
+            raise StoreError("store_invalid", "graph.json is not an nv_graph object; run plan --record")
+        return value
 
     # current.json ----------------------------------------------------------------------------------------------
     def current(self):
-        if not self.current_file.is_file():
-            return {"schema_version": SCHEMA_VERSION, "stages": {}, "refusals": {}}
         if self.current_file.is_symlink():
             raise StoreError("stage_symlink", "current.json is a symlink")
-        value = json.loads(self.current_file.read_text(encoding="utf-8"))
+        if not self.current_file.is_file():
+            return {"schema_version": SCHEMA_VERSION, "stages": {}, "refusals": {}}
+        value = load_store_json(self.current_file)
+        if not isinstance(value, dict):
+            raise StoreError("store_invalid", "current.json is not an object")
         value.setdefault("stages", {})
         value.setdefault("refusals", {})
+        for table in ("stages", "refusals"):
+            rows = value[table]
+            if not isinstance(rows, dict) or not all(
+                isinstance(row, dict) and isinstance(row.get("key"), str) for row in rows.values()
+            ):
+                raise StoreError("store_invalid", f"current.json {table} is not a table of entries with keys")
+        if not all(isinstance(row.get("dir"), str) for row in value["stages"].values()):
+            raise StoreError("store_invalid", "current.json has a stage entry without a dir")
         return value
 
     def entry(self, node_id):
@@ -312,6 +335,16 @@ class JobStore:
         current = self.current()
         current["refusals"][node_id] = {"key": key, "code": code, "detail": detail}
         write_atomic(self.current_file, current)
+
+    def clear_refusal(self, node_id):
+        """Drop a node's recorded refusal so it plans stale again; the refusal, or None. Only a verdict is ever
+        recorded (kitpip.KitpipRefused.verdict), so this is the operator's path after fixing what the key does not
+        hold, such as the host environment. `run --force` (lane L4) calls it."""
+        current = self.current()
+        refusal = current["refusals"].pop(node_id, None)
+        if refusal is not None:
+            write_atomic(self.current_file, current)
+        return refusal
 
     # Freshness -------------------------------------------------------------------------------------------------
     def freshness(self, node_id, key):

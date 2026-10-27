@@ -6,7 +6,8 @@ records directory with the file names narrate/dhall/examples uses: jobs.json, vo
 music-beds.json. The fixture records are that examples directory; real records live in the private store.
 
 DEFAULTS mirrors NarratedVideo.defaults. `init` builds a simple job from it: a colour card or a still, one segment
-anchored Auto, no avatar, the bed only when one is named, tighten off (NV-2).
+anchored Auto, the bed only when one is named, tighten off (NV-2). The avatar is opt-in (--avatar with --persona)
+until the kitpip lanes land: see "Avatar opt-in until L6" in docs/spec/NARRATED_VIDEO.md (NV-4).
 """
 
 import copy
@@ -113,8 +114,119 @@ def load_records(directory):
     return records
 
 
+# The NarratedVideo JSON shape (narrate/dhall/NarratedVideo.dhall rendered by dhall-to-json). A dict is a record with
+# exactly those fields; a tuple of strings is an enum; ("optional", s) is null or s; ("union", {tag: s}, (names))
+# is one {tag: payload} or one of the bare names. check_shape walks every field, so no stage meets a KeyError later.
+TEXT, BOOL, NATURAL, DOUBLE, DIGEST = "text", "bool", "natural", "double", "sha256"
+RATE = {"num": NATURAL, "den": NATURAL}
+SIZE = {"w": NATURAL, "h": NATURAL}
+SHAPE = {
+    "base": (
+        "union",
+        {
+            "still": {"sha256": DIGEST, "size": SIZE, "fps": RATE, "tailS": DOUBLE},
+            "card": {"colour": TEXT, "size": SIZE, "fps": RATE, "tailS": DOUBLE},
+            "video": {"sha256": DIGEST, "keepBaseAudio": BOOL},
+            "deck": {
+                "producer": TEXT,
+                "videoSha256": DIGEST,
+                "timelineSha256": DIGEST,
+                "stemsSha256": DIGEST,
+                "tightenEditsSha256": ("optional", DIGEST),
+            },
+        },
+        (),
+    ),
+    "segment": {
+        "id": TEXT,
+        "narrateJob": TEXT,
+        "scriptSha256": DIGEST,
+        "anchor": ("union", {"atSeconds": DOUBLE, "page": TEXT}, ("Auto",)),
+        "avatar": BOOL,
+    },
+    "avatar": (
+        "optional",
+        {
+            "external": TEXT,
+            "rig": ("optional", TEXT),
+            "rigRevisionSha256": ("optional", DIGEST),
+            "renderSize": NATURAL,
+            "corner": ("BR", "BL", "TR", "TL"),
+            "width": DOUBLE,
+            "marginPx": NATURAL,
+        },
+    ),
+    "music": (
+        "optional",
+        {
+            "bed": TEXT,
+            "bedBelowVoiceLu": DOUBLE,
+            "duckMode": ("Sidechain", "EdlEnvelope"),
+            "duckDb": DOUBLE,
+            "attackMs": NATURAL,
+            "releaseMs": NATURAL,
+            "fadeInS": DOUBLE,
+            "fadeOutS": DOUBLE,
+            "tailS": DOUBLE,
+        },
+    ),
+    "tighten": {"enabled": BOOL},
+    "captions": {"soft": BOOL, "burn": BOOL, "srt": BOOL, "vtt": BOOL},
+    "labels": {"persona": ("optional", TEXT), "personaCue": ("optional", TEXT), "extraNotice": ("optional", TEXT)},
+    "delivery": {
+        "profile": ("Web1080p30", "Talk", "Contingency"),
+        "targetLufs": DOUBLE,
+        "truePeakDbtp": DOUBLE,
+        "driftLu": DOUBLE,
+        "channels": ("Mono", "Stereo"),
+        "upload": BOOL,
+        "handoff": BOOL,
+        "voiceOnlyListen": ("optional", TEXT),
+    },
+}
+
+
+def shape_problem(value, shape, where):
+    """The first way value departs from shape, as text, or None when it fits."""
+    if shape == TEXT:
+        return None if isinstance(value, str) else f"{where} is not text"
+    if shape == BOOL:
+        return None if isinstance(value, bool) else f"{where} is not a bool"
+    if shape == NATURAL:
+        ok = isinstance(value, int) and not isinstance(value, bool) and value >= 0
+        return None if ok else f"{where} is not a natural number"
+    if shape == DOUBLE:
+        ok = isinstance(value, (int, float)) and not isinstance(value, bool) and value == value
+        return None if ok and abs(value) != float("inf") else f"{where} is not a finite number"
+    if shape == DIGEST:
+        return None if isinstance(value, str) and SHA256.match(value) else f"{where} is not a lowercase SHA-256"
+    if isinstance(shape, dict):
+        if not isinstance(value, dict):
+            return f"{where} is not a record"
+        if set(value) != set(shape):
+            missing, extra = sorted(set(shape) - set(value)), sorted(set(value) - set(shape))
+            return f"{where} has fields {sorted(shape)}; missing {missing}, unknown {extra}"
+        for name, field in shape.items():
+            problem = shape_problem(value[name], field, f"{where}.{name}")
+            if problem:
+                return problem
+        return None
+    if shape[0] == "optional":
+        return None if value is None else shape_problem(value, shape[1], where)
+    if shape[0] == "union":
+        _, payloads, names = shape
+        if isinstance(value, str) and value in names:
+            return None
+        if not isinstance(value, dict) or len(value) != 1 or next(iter(value)) not in payloads:
+            return f"{where} is not one of {', '.join(list(names) + sorted(payloads))}"
+        tag = next(iter(value))
+        return shape_problem(value[tag], payloads[tag], f"{where}.{tag}")
+    return None if value in shape else f"{where} {value!r} is not one of {', '.join(shape)}"
+
+
 def check_shape(job):
-    """The structure the graph reads. Values and cross-references are admit's (admit.py)."""
+    """The structure the graph reads: every field of the NarratedVideo shape (SHAPE), so a misshapen record is
+    refused before anything is written. Values and cross-references are admit's (admit.py)."""
     if not isinstance(job, dict) or set(job) != set(FIELDS):
         missing = sorted(set(FIELDS) - set(job)) if isinstance(job, dict) else FIELDS
         raise JobError("job_invalid", f"a NarratedVideo record has exactly {', '.join(FIELDS)}; missing {missing}")
@@ -136,6 +248,15 @@ def check_shape(job):
         raise JobError("job_invalid", "segment ids repeat")
     if not isinstance(job["tighten"], dict) or not isinstance(job["tighten"].get("enabled"), bool):
         raise JobError("job_invalid", "tighten is {enabled: bool}")
+    problems = [shape_problem(job["base"], SHAPE["base"], "base")]
+    problems += [shape_problem(s, SHAPE["segment"], f"segments[{i}]") for i, s in enumerate(job["segments"])]
+    records = ("avatar", "music", "tighten", "captions", "labels", "delivery")
+    problems += [shape_problem(job[f], SHAPE[f], f) for f in records]
+    problem = next((p for p in problems if p), None)
+    if problem:
+        raise JobError("job_invalid", problem)
+    if "card" in job["base"] and not COLOUR.match(job["base"]["card"]["colour"]):
+        raise JobError("job_invalid", "base.card.colour is not a #rrggbb colour")
     return job
 
 

@@ -11,7 +11,7 @@ description: Plan a labelled narrated video as a stage graph and rerun only the 
 
 ## Use and controls
 
-1. `just nv-init JOB NARRATE_JOB SCRIPT [--still SHA | --card #RRGGBB] [--bed ID]` writes a simple job from the defaults: one segment, a card or a still, no avatar, the bed only when named, edition `Internal` and tighten off (NV-2). Pass `--from FILE` through `python -m narrate video init` for a rendered `NarratedVideo` record instead.
+1. `just nv-init JOB NARRATE_JOB SCRIPT [--still SHA | --card #RRGGBB] [--bed ID]` writes a simple job from the defaults: one segment, a card or a still, no avatar unless `--avatar --persona P` (opt-in until L6, see "Avatar opt-in until L6" in the spec), the bed only when named, edition `Internal` and tighten off (NV-2). Pass `--from FILE` through `python -m narrate video init` for a rendered `NarratedVideo` record instead.
 2. `just nv-plan JOB` reads the edition verdict, the refusals, each node's state and reason, and the open operator gates. Fix every admit refusal before any render.
 3. Change one knob in the job, then `just nv-explain JOB STAGE`: the `changed` rows name the field, and the rerun set must match the table in the spec's "Stage keys and the store".
 

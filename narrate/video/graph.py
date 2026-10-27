@@ -184,12 +184,14 @@ def knobs_for(stage, segment, job, records, pin):
             "tighten": job["tighten"],
         }
     if stage == "avatar":
-        avatar = job["avatar"]
-        return {
-            "rig": avatar["rig"] or pin["default_rig"]["id"],
-            "rigRevisionSha256": avatar["rigRevisionSha256"] or pin["default_rig"].get("sha256"),
-            "renderSize": avatar["renderSize"],
-        }
+        # The pin's default-rig revision belongs only to the default rig. Another rig with no revision in the job
+        # keys None; its stage manifest records the revision kitpip reports (measurements.rig).
+        avatar, default = job["avatar"], pin["default_rig"]
+        rig = avatar["rig"] or default["id"]
+        revision = avatar["rigRevisionSha256"]
+        if revision is None and rig == default["id"]:
+            revision = default.get("sha256")
+        return {"rig": rig, "rigRevisionSha256": revision, "renderSize": avatar["renderSize"]}
     if stage == "avatar_check":
         return {"persona": job["labels"]["persona"]}
     if stage == "music":

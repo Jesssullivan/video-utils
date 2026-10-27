@@ -296,6 +296,17 @@ Defaults (`NarratedVideo.defaults`, asserted in the type test):
 | captions | soft, SRT and VTT, not burned |
 | delivery | `Web1080p30`, -16 LUFS, -1.5 dBTP, 0.5 LU, `Mono`, no upload, no handoff, no voice-only listen |
 
+**Avatar opt-in until L6.** The design turns the avatar on by default when the
+edition allows it (KP-13). `init` leaves `avatar` unset unless `--avatar
+--persona P` is given. NV-4 starts the no-avatar half first. The avatar stages
+need the kitpip binary that L5 pins, and compose (L6) is the first stage that
+reads an overlay. Until then, an avatar on by default would block every default
+job at `avatar` (`kitpip_missing`) and every stage after it. An avatar also
+needs `labels.persona`, which `init` has no source for without a flag. The
+`avatar` default above is the block that `--avatar` writes and that a rendered
+record may set. L6 makes the avatar the `init` default for an edition that
+allows one, and refuses `persona_label_missing` when no persona is given.
+
 `examples/narrated-videos.dhall` holds four jobs: the simple Internal card job
 with the fixture bed, the same job with a kitpip avatar and a persona label, a
 ClientVoiceOnly deck job with no narrate segment, avatar or bed, and a

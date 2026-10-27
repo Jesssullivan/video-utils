@@ -6,8 +6,9 @@
 # private kitpip pin from NARRATED_VIDEO_EXTERNALS and the binary from KITPIP_BIN. A job holds digests and record ids,
 # never a path. nv-quick, nv-run, nv-stage, nv-bed and kitpip-pin-check come with lanes L4 to L6.
 
-# The defaults: one segment voiced by NARRATE_JOB, a #101820 card (or --still SHA), no avatar, the bed only with
-# --bed ID, edition Internal and tighten off (NV-2). admit refuses a voice without consent before anything is written.
+# The defaults: one segment voiced by NARRATE_JOB, a #101820 card (or --still SHA), no avatar unless --avatar
+# --persona P (opt-in until L6, docs/spec/NARRATED_VIDEO.md), the bed only with --bed ID, edition Internal and tighten
+# off (NV-2). admit refuses a voice without consent before anything is written.
 # Write a simple job from the defaults into the store and record its first plan.
 nv-init job narrate_job script *args:
     python3 -m narrate video init --job {{quote(job)}} --narrate-job {{quote(narrate_job)}} --script {{quote(script)}} {{args}}

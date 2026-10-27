@@ -10,6 +10,13 @@ kitpip prints one JSON line on stdout: a result (exit 0), {"refused": code, "det
 {"error": ...} (exit 2). The wrapper relays a refusal as KitpipRefused with kitpip's code, which the CLI prints in
 the narrate stderr shape. It never passes --allow-unlabelled-test.
 
+A refusal is a verdict or a failure. A verdict (kitpip's own refusal line, or the wrapper's checks on a finished
+overlay: kitpip_unlabelled, label_chain_broken, a schema or rig that is not the keyed one) repeats for the same
+stage key, because the key holds the binary digest, the rig and the narration digest; the store records it and the
+node stays refused until its key changes. A failure (kitpip_timeout, kitpip_error, kitpip_missing, or a binary that
+fails its pin at spawn) says nothing about the key: the partial is removed, nothing is recorded and the node stays
+stale, so calling run again retries it.
+
 The avatar stage runs `analyze` on a segment's narrate run, then `render` and `verify`, all into the stage's
 partial directory under the job store, never inside the narrate run and never under artifacts/runs/. Its manifest
 uses timeline mapping avatar_overlay_v1. Public CI runs the stub (narrate/tests/fixtures/narrated-video/
@@ -35,7 +42,12 @@ TIMEOUT_S = 900
 
 
 class KitpipRefused(JobError):
-    """kitpip, or the wrapper around it, refused. code is kitpip's own code or one the wrapper adds."""
+    """kitpip, or the wrapper around it, refused. code is kitpip's own code or one the wrapper adds. verdict is
+    True when the same key would refuse again (the store records it) and False for a failure a retry may clear."""
+
+    def __init__(self, code, detail, verdict=True):
+        super().__init__(code, detail)
+        self.verdict = verdict
 
 
 def system():
@@ -96,7 +108,7 @@ def call(resolution, pin, args, timeout_s=TIMEOUT_S):
     again = resolve(pin, {BIN_ENV: resolution.get("binary") or ""})
     if again["state"] != "resolved":
         code = "kitpip_pin_mismatch" if again["state"] == "mismatch" else "kitpip_missing"
-        raise KitpipRefused(code, again["detail"])
+        raise KitpipRefused(code, again["detail"], verdict=False)
     try:
         done = subprocess.run(
             [again["binary"], *args],
@@ -107,7 +119,7 @@ def call(resolution, pin, args, timeout_s=TIMEOUT_S):
             env={"PATH": os.environ.get("PATH", ""), "LC_ALL": "C"},
         )
     except subprocess.TimeoutExpired:
-        raise KitpipRefused("kitpip_timeout", f"kitpip {args[0]} ran past {timeout_s} s") from None
+        raise KitpipRefused("kitpip_timeout", f"kitpip {args[0]} ran past {timeout_s} s", verdict=False) from None
     lines = [line for line in done.stdout.splitlines() if line.strip()]
     try:
         result = json.loads(lines[-1]) if lines else None
@@ -116,7 +128,7 @@ def call(resolution, pin, args, timeout_s=TIMEOUT_S):
     if done.returncode == 1 and isinstance(result, dict) and isinstance(result.get("refused"), str):
         raise KitpipRefused(result["refused"], str(result.get("detail", "")))
     if done.returncode != 0 or not isinstance(result, dict):
-        raise KitpipRefused("kitpip_error", f"kitpip {args[0]} exited {done.returncode}")
+        raise KitpipRefused("kitpip_error", f"kitpip {args[0]} exited {done.returncode}", verdict=False)
     return result
 
 
@@ -128,9 +140,25 @@ def narration(run_dir):
 
 
 def run_avatar(
-    store, node_id, key, document, narrate_run, fps, rig, render_size, persona, resolution, pin, timeout_s=TIMEOUT_S
+    store,
+    node_id,
+    key,
+    document,
+    narrate_run,
+    fps,
+    rig,
+    render_size,
+    persona,
+    resolution,
+    pin,
+    timeout_s=TIMEOUT_S,
+    rig_sha256=None,
 ):
-    """The avatar stage for one segment: analyze, render and verify into the store, then commit the stage."""
+    """The avatar stage for one segment: analyze, render and verify into the store, then commit the stage.
+
+    rig_sha256 is the rig revision the stage key holds (knobs.rigRevisionSha256). When it is set, the overlay's
+    rig must report that revision. When it is None (a rig other than the pin's default, with no revision in the
+    job), the manifest records the revision kitpip reports."""
     narrate_run = Path(narrate_run).resolve()
     partial = store.partial_dir(node_id, key)
     if (
@@ -169,12 +197,24 @@ def run_avatar(
         if verdict.get("labelled") is not True:
             raise KitpipRefused("kitpip_unlabelled", "kitpip verify did not report labelled: true")
         overlay = read_json(partial / "overlay" / "manifest.json", "kitpip manifest")
-        if overlay.get("schema") != pin["manifest_schema"] or overlay.get("rig", {}).get("id") != rig:
+        overlay_rig = overlay.get("rig") if isinstance(overlay.get("rig"), dict) else {}
+        if overlay.get("schema") != pin["manifest_schema"] or overlay_rig.get("id") != rig:
             raise KitpipRefused("kitpip_pin_mismatch", "the overlay manifest's schema or rig is not the pinned one")
-        if overlay.get("synthetic") is not True or sorted(overlay.get("consent_ids", [])) != consent_ids:
+        if rig_sha256 is not None and overlay_rig.get("sha256") != rig_sha256:
+            raise KitpipRefused("kitpip_pin_mismatch", "the overlay's rig revision is not the one the stage key holds")
+        if (
+            overlay.get("synthetic") is not True
+            or sorted(overlay.get("consent_ids", [])) != consent_ids
+            or sorted(overlay.get("voice_ids", [])) != voice_ids
+        ):
             raise KitpipRefused("label_chain_broken", "the overlay dropped or altered the narration's labels")
         fields = {
-            "measurements": {"frames": overlay["frames"], "fps": fps, "size": overlay["size"]},
+            "measurements": {
+                "frames": overlay["frames"],
+                "fps": fps,
+                "size": overlay["size"],
+                "rig": {"id": overlay_rig.get("id"), "sha256": overlay_rig.get("sha256")},
+            },
             "labels": {"synthetic": True, "consent_ids": consent_ids, "voice_ids": voice_ids, "persona": persona},
             "synthetic": True,
             "timeline": {
@@ -197,7 +237,8 @@ def run_avatar(
         return store.commit(node_id, key, document, fields)
     except KitpipRefused as exc:
         store.abort(node_id, key)
-        store.record_refusal(node_id, key, exc.code, exc.detail)
+        if exc.verdict:
+            store.record_refusal(node_id, key, exc.code, exc.detail)
         raise
     except BaseException:
         store.abort(node_id, key)

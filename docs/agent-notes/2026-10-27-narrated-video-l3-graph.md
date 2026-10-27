@@ -62,3 +62,34 @@ All runs used `nix develop .#condense` inside `systemd-run --user --scope -p Mem
   kitpip release (L5).
 - Root records the narrated-video issue ids in `program/linear.json` when it
   confirms the W8 lane name.
+
+## Review fixes for PR #58 (2026-10-27)
+
+Authority: the PR #58 review findings relayed by the narrated-video workflow,
+under KP-13 and NV-1 to NV-5. Receipt per R-HOOK-CONVERGENCE-20261004 (R-N13).
+
+| Finding | Fix | Test |
+| --- | --- | --- |
+| `run_avatar` recorded every refusal, so a timeout left the avatar refused for its key | `KitpipRefused.verdict`. kitpip's own refusal line and the wrapper's checks on a finished overlay are verdicts and are recorded. `kitpip_timeout`, `kitpip_error`, `kitpip_missing` and a pin mismatch at spawn are failures: the partial is removed, nothing is recorded and the node stays stale. `JobStore.clear_refusal` drops a verdict for `run --force` (L4) | `test_a_wrapper_failure_is_not_recorded_and_the_avatar_stays_runnable` (3 cases), `test_a_binary_that_fails_its_pin_at_spawn_is_not_recorded` |
+| `knobs_for('avatar')` keyed the default rig's revision for any rig | the pin's revision only for the default rig. Another rig with no revision keys none, and `measurements.rig` records what kitpip reports. `run_avatar(rig_sha256=...)` refuses `kitpip_pin_mismatch` when the overlay's revision differs | `test_the_avatar_keys_the_default_rig_revision_only_for_the_default_rig` (5 cases), the rig row below |
+| the label chain did not compare `voice_ids` | the overlay must carry the narration's `voice_ids` too | `test_an_overlay_that_alters_a_label_or_the_rig_revision_refuses_and_is_recorded` (5 cases: voice id dropped or altered, consent id dropped, synthetic false, rig revision) |
+| a damaged `current.json` or `graph.json` raised a traceback | both refuse `store_invalid` in the stderr shape | `test_a_damaged_current_or_graph_file_refuses_store_invalid` (5 cases) |
+| `check_shape` checked only the top level | `job.SHAPE` walks every NarratedVideo field, so `init --from` refuses `job_invalid` before writing | 15 new `test_a_misshapen_job_refuses` cases, `test_cli_init_from_a_misshapen_record_refuses_and_writes_nothing` |
+| `init` leaves the avatar off without a recorded reason | recorded as "Avatar opt-in until L6" beside the Defaults table in `docs/spec/NARRATED_VIDEO.md`, citing NV-4. The skill and `just nv-init` comment point to it | none, a documented decision |
+
+Negative control: the new tests run against the previous `narrate/video/`
+(stashed) gave 32 failed and 69 passed. With the fixes: 101 passed.
+
+Gates after the fixes, each inside `nix develop .#condense` under
+`systemd-run --user --scope -p MemoryMax=6G -p MemorySwapMax=0 nice -n 19`:
+
+| Check | Result |
+| --- | --- |
+| `narrate/tests/test_narrated_video_graph.py` | 101 passed |
+| `just narrate-test` | 858 passed, 1 skipped |
+| `just narrate-lint` | ruff check, ruff format and shellcheck clean |
+| `just narrate-dhall-check` | exit 0, 66 self-test mutations |
+| `narrate/tests/stdlib_smoke.py` (repo root on `PYTHONPATH`) | 7 tests OK |
+| `tests.test_public_tree`, `tests.test_timeline_contract` | 79 tests OK, 1 skipped |
+| `just check` (`just test`) | 2206 tests: 2 failed, 6 errors, 188 skipped. All 8 are marked-video, marked-compact, arrangement or tool-contract renders raising `No bounded supported installed font found`, as in the first round. None reads a file this branch changes |
+| `scripts/doctor.py --require-media` | exit 0 |
