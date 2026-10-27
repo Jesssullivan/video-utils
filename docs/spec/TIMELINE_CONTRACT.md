@@ -68,8 +68,11 @@ default path, named explicitly.
 
 Amendment proposed with the narrate CLI (TIN-7087; docs/spec/NARRATE.md). A
 narration run lays a new track on an output clock. It maps no source media, and
-no source media is ever time-stretched; segments of the narration audio may be
+no source media is ever time-stretched. Segments of the narration audio may be
 sped up by the engine's speed knob or FFmpeg `atempo` to fit a target duration.
+A voice's `tempo` (`Voice.dhall`) also changes every take's tempo with FFmpeg
+`atempo` before QA and the fit. Each EDL row records it as `voice_tempo`, and
+`stretch_applied` describes the fit alone.
 
 - `timeline.mapping` is `"narration_v1"` and `timeline.no_time_stretch` is JSON
   `false` in every narration manifest, including a render whose segments needed

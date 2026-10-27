@@ -102,7 +102,10 @@ every take right after the engine returns it: one FFmpeg `atempo`, pitch kept, a
 `fitMaxStretch`) works on top of it. A tempo of 1.0 calls no FFmpeg. A value out of range is refused before any
 audio exists (`voice_tempo_invalid`). Each take records `tempo` and `pre_tempo_seconds`, each manifest voice its
 `tempo` and each EDL segment its `voice_tempo`. The EDL's `speed`, `atempo` and `stretch_applied` describe the fit
-alone. A persona voice the operator approved at 1.1 sets `tempo = Some 1.1` in the private registry.
+alone. A persona voice the operator approved at 1.1 sets `tempo = Some 1.1` in the private registry. `Voice.Type`
+is an exact record, so every voice written as a plain record literal must add `tempo = None Double` (or a value)
+before its registry re-renders. A voice written as `Voice::{ ... }` takes the default. JSON already rendered without
+the key reads as 1.0.
 
 ## Host placement and memory
 

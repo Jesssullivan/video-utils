@@ -116,3 +116,21 @@ def test_every_take_is_shorter_by_the_voice_tempo_before_the_fit(workspace):
         assert 1.0 <= segment["atempo"] <= 1.08 + 1e-6
     long = next(s for s in edl["segments"] if s["id"] == "cue-0002")
     assert long["natural_s"] < plain_edl["cue-0002"]["natural_s"]
+
+
+def test_wer_hears_the_take_at_the_voice_tempo(workspace):
+    """The transcriber gets the faster take: QA scores what the voice speaks, not the engine's reply."""
+    workspace.voices[0]["tempo"] = 1.25
+    heard = []
+
+    def transcriber(pcm, text):
+        heard.append(pcm.seconds)
+        return text
+
+    _, manifest = render.render(Config(workspace.write(SLIDE)), transcriber=transcriber)
+    takes = [take for chunk in manifest["chunks"] for take in chunk["qa"]["takes"]]
+    assert len(heard) == len(takes) > 0
+    for seconds, take in zip(heard, takes, strict=True):
+        assert take["tempo"] == 1.25
+        assert seconds == pytest.approx(take["pre_tempo_seconds"] / 1.25, abs=0.010)
+        assert seconds < take["pre_tempo_seconds"]

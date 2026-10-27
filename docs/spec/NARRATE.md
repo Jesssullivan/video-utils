@@ -110,11 +110,15 @@ approved at 1.1. `Voice.dhall` carries `tempo : Optional Double` (0.5 to 2.0;
 `None` is 1.0). Between steps 5 and 6, every take passes through one
 pitch-preserving FFmpeg `atempo` at the voice's factor, at its own sample rate
 (`narrate/tempo.py`, `audio.time_stretch`). QA scores that take, and step 7's
-timing fit works on top of it, so its plus or minus 8% stays the fit's own. A
-tempo of 1.0 leaves the take untouched; a value out of range is refused before
+timing fit works on top of it, so its `fitMaxStretch` stays the fit's own. A
+tempo of 1.0 leaves the take untouched. A value out of range is refused before
 any audio (`voice_tempo_invalid`). The manifest records `tempo` and
-`pre_tempo_seconds` per take and `tempo` per voice; each EDL segment records
-`voice_tempo`. The segment's `stretch_applied` still means the fit alone.
+`pre_tempo_seconds` per take and `tempo` per voice. Each EDL segment records
+`voice_tempo`. The segment's `stretch_applied` still means the fit alone, so a
+voice at 1.1 with no fit has `stretch_applied: false` on faster audio.
+`Voice.Type` is an exact record: a registry voice written as a plain record
+literal must add `tempo = None Double` (or a value) before it re-renders, and
+one written as `Voice::{ ... }` takes the default.
 
 ## Engine profiles
 

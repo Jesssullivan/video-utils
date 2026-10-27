@@ -129,7 +129,9 @@ def wav_format(path):
 def time_stretch(path_in, path_out, factor):
     """path_in played factor times faster into path_out, pitch kept (one FFmpeg atempo), at the input's sample rate,
     channels and sample width. A factor of None or 1.0 copies the bytes and calls no FFmpeg. Returns path_out's
-    duration in seconds. Raises ValueError for a factor outside TEMPO_RANGE or an input that is not PCM WAV."""
+    duration in seconds. Raises ValueError for a factor outside TEMPO_RANGE or an input that is not PCM WAV.
+    Measured on 2 s tones: atempo drops about 9 ms of the input's tail at 0.5 and about 4 ms at 0.9, and about none
+    at 1.1, 1.25 and 2.0."""
     low, high = TEMPO_RANGE
     if factor is not None and (
         isinstance(factor, bool) or not isinstance(factor, (int, float)) or not low <= factor <= high
