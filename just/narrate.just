@@ -56,6 +56,12 @@ narrate-bench *args:
     @echo "narrate-bench: not implemented yet; lane W3 (TIN-7085) fills this recipe. See just narrate-fetch." >&2
     @exit 2
 
+# docs/spec/PRESENTATION.md. OUTPUT is a new absolute directory outside the source project. Planning checks
+# digests and prepares argument vectors; no media, provider or assembly command runs.
+# Plan a private character presentation from a typed manifest.
+narrate-presentation-plan manifest output:
+    python3 -m narrate.presentation {{quote(manifest)}} {{quote(output)}}
+
 # Print only the text a render voices, through the input's adapter (lines, json with cue ids, or srt).
 narrate-spoken input *args:
     python3 -m narrate spoken {{quote(input)}} {{args}}

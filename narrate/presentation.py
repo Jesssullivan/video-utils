@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import stat
 from pathlib import Path
 
@@ -249,9 +250,48 @@ def script_bundle(manifest, result, output):
     return rows
 
 
+def staged_relative(base, value):
+    """A staged capture keeps its path below the client clips directory."""
+    return Path(value).relative_to(base)
+
+
+def unique_targets(values, message):
+    seen = set()
+    for value in values:
+        key = str(value).casefold()
+        if key in seen:
+            fail(message)
+        seen.add(key)
+
+
+def stills_inventory(root, stills, rows):
+    """Every entry under the stills directory, whatever its suffix, needs an admitted digest."""
+    if not stills.exists():
+        return None
+    files = []
+    for directory, names, entries in os.walk(stills, followlinks=False):
+        for name in names + entries:
+            path = Path(directory) / name
+            if path.is_symlink():
+                fail("Symlink input paths are not accepted")
+            if name in entries:
+                files.append(path)
+        if len(files) > 4096:
+            fail("The stills inventory is oversized")
+    if not files:
+        return None
+    relatives = [str(path.relative_to(root)) for path in files]
+    if any(relative not in rows for relative in relatives):
+        return None
+    for relative in relatives:
+        asset(root, rows[relative])
+    return relatives
+
+
 def assembly_sources(manifest, client):
     root = private_root(manifest["projectRoot"])
     rows = {row["path"]: row for row in manifest["sourceFiles"]}
+    unique_targets(rows, "Two admitted source files would share one staged name")
     paths = {}
     for key in ("slides", "deck_html", "clip_map"):
         value = client.get(key)
@@ -274,6 +314,12 @@ def assembly_sources(manifest, client):
             if row["path"] in declared and declared[row["path"]] != row:
                 fail("Conflicting capture descriptors are not accepted")
             declared[row["path"]] = row
+    # Staged captures keep their path below clips_dir, so equal file names in two
+    # subdirectories stay distinct; a case-insensitive output volume could still merge them.
+    unique_targets(
+        (staged_relative(client["clips_dir"], path) for path in declared),
+        "Two admitted captures would share one staged name",
+    )
     mapping = json.loads(Path(paths["clip_map"]).read_text())
     if not isinstance(mapping, dict) or mapping.get("media") or not isinstance(mapping.get("clips"), list):
         fail("The adapter requires an explicit list-form project clip map")
@@ -301,18 +347,8 @@ def assembly_sources(manifest, client):
             fail("The authored manuscript selects a capture outside the admitted map")
     # Existing stills are derivatives, not authenticated by the original deck hash.
     # Every file the assembler may select needs its own explicit inventory row.
-    stills = Path(paths["stills_dir"])
-    files = list(stills.rglob("*")) if stills.exists() else []
-    if len(files) > 4096:
-        fail("The stills inventory is oversized")
-    pngs = [path for path in files if path.suffix.lower() == ".png"]
-    if not pngs:
+    if stills_inventory(root, Path(paths["stills_dir"]), rows) is None:
         return paths, ["digest-bound slide stills"]
-    for path in pngs:
-        relative = str(path.relative_to(root))
-        if relative not in rows:
-            return paths, ["digest-bound slide stills"]
-        asset(root, rows[relative])
     if client.get("captures_manifest"):
         value = client["captures_manifest"]
         optional = contained_path(root, value)
@@ -324,7 +360,60 @@ def assembly_sources(manifest, client):
     return paths, []
 
 
-def stage_captures(manifest, output):
+def source_readiness(manifest, client, ready):
+    """Bindings are enforced once character inputs are present; before that they are reported."""
+    try:
+        paths, missing = assembly_sources(manifest, client)
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        if ready:
+            raise
+        reason = str(error) if isinstance(error, PresentationError) else type(error).__name__
+        return {"checked": False, "missingPrerequisites": ["assembly source bindings: " + reason], "paths": {}}
+    return {"checked": True, "missingPrerequisites": missing, "paths": paths}
+
+
+def private_dirs(base, relative):
+    path = base
+    for part in relative.parts:
+        path = path / part
+        path.mkdir(mode=0o700, exist_ok=True)
+    return path
+
+
+def copy_admitted(root, row, target):
+    """Copy one digest-bound input into a new private file and recheck the copied bytes."""
+    source = asset(root, row)
+    read_fd = os.open(source, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    write_fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    digest = hashlib.sha256()
+    with os.fdopen(read_fd, "rb") as incoming, os.fdopen(write_fd, "wb") as outgoing:
+        for chunk in iter(lambda: incoming.read(1024 * 1024), b""):
+            digest.update(chunk)
+            outgoing.write(chunk)
+        outgoing.flush()
+        os.fsync(outgoing.fileno())
+    if digest.hexdigest() != row["sha256"]:
+        fail("A staged input differs from its admitted digest")
+    return target
+
+
+def stage_sources(manifest, client, output):
+    """Freeze admitted slide, HTML and still bytes; the internal cut never reads the client tree."""
+    root = private_root(manifest["projectRoot"])
+    directory = output / "source"
+    directory.mkdir(mode=0o700)
+    for row in manifest["sourceFiles"]:
+        relative = Path(row["path"])
+        copy_admitted(root, row, private_dirs(directory, relative.parent) / relative.name)
+    stills = private_dirs(directory, Path(client["stills_dir"]))
+    return {
+        "slides": str(directory / client["slides"]),
+        "deck_html": str(directory / client["deck_html"]),
+        "stills_dir": str(stills),
+    }
+
+
+def stage_captures(manifest, client, output):
     """Freeze only declared capture bytes, excluding historical directory discovery."""
     root = private_root(manifest["projectRoot"])
     directory = output / "clips"
@@ -334,21 +423,9 @@ def stage_captures(manifest, output):
         for row in page.get("captures", []):
             if row["path"] in copied:
                 continue
-            source = asset(root, row)
-            target = directory / source.name
-            read_fd = os.open(source, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
-            write_fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-            digest = hashlib.sha256()
-            with os.fdopen(read_fd, "rb") as incoming, os.fdopen(write_fd, "wb") as outgoing:
-                for chunk in iter(lambda: incoming.read(1024 * 1024), b""):
-                    digest.update(chunk)
-                    outgoing.write(chunk)
-                outgoing.flush()
-                os.fsync(outgoing.fileno())
-            if digest.hexdigest() != row["sha256"]:
-                fail("A staged capture differs from its admitted digest")
-            copied[row["path"]] = str(target)
-    client = json.loads(asset(root, manifest["clientConfig"]).read_text())
+            relative = staged_relative(client["clips_dir"], row["path"])
+            target = private_dirs(directory, relative.parent) / relative.name
+            copied[row["path"]] = str(copy_admitted(root, row, target))
     rows = {row["path"]: row for row in manifest["sourceFiles"]}
     original = json.loads(asset(root, rows[client["clip_map"]]).read_text())
     mapped = []
@@ -371,7 +448,7 @@ def assembly_bundle(manifest, result, output):
         return {"prepared": False, "reason": "character script/audio/avatar inputs are incomplete"}
     root = private_root(manifest["projectRoot"])
     client = json.loads(asset(root, manifest["clientConfig"]).read_text())
-    paths, missing_sources = assembly_sources(manifest, client)
+    missing_sources = result["assemblySourceReadiness"]["missingPrerequisites"]
     if missing_sources:
         return {"prepared": False, "sourcePrerequisites": missing_sources, "rendered": False}
     manuscript = output / "manuscript"
@@ -412,8 +489,8 @@ def assembly_bundle(manifest, result, output):
             }
         )
     internal = dict(client)
-    internal.update(paths)
-    internal.update(stage_captures(manifest, output))
+    internal.update(stage_sources(manifest, client, output))
+    internal.update(stage_captures(manifest, client, output))
     internal.update(
         {
             "speaker": "Cade, virtual spokesperson",
@@ -450,24 +527,34 @@ def write_plan(manifest_path, output):
     raw = Path(manifest_path).read_bytes()
     if len(raw) > 2 * 1024**2:
         fail("Presentation manifest is oversized")
-    result = plan(json.loads(raw))
+    manifest = json.loads(raw)
+    result = plan(manifest)
     output = Path(output)
     if not output.is_absolute() or output.is_symlink():
         fail("A new absolute private output directory is required")
-    root = private_root(json.loads(raw)["projectRoot"])
+    root = private_root(manifest["projectRoot"])
     if output.resolve().is_relative_to(root):
         fail("Derived outputs must not be written into the original client project")
-    output.mkdir(mode=0o700, parents=False, exist_ok=False)
-    info = output.stat()
-    if info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) != 0o700:
-        fail("Output custody must be private and owned")
-    paths, missing_sources = assembly_sources(
-        json.loads(raw), json.loads(asset(root, json.loads(raw)["clientConfig"]).read_text())
-    )
-    result["assemblySourceReadiness"] = {"missingPrerequisites": missing_sources, "paths": paths}
+    # Every source refusal is raised (or, while blocked, recorded) before the output exists.
+    client = json.loads(asset(root, manifest["clientConfig"]).read_text())
+    result["assemblySourceReadiness"] = source_readiness(manifest, client, result["inputInspectionReady"])
     result["inputManifestSha256"] = hashlib.sha256(raw).hexdigest()
-    private_json(output / "presentation-input.normalized.json", normalize_manifest(json.loads(raw)))
-    result["spokenScripts"] = script_bundle(json.loads(raw), result, output)
+    output.mkdir(mode=0o700, parents=False, exist_ok=False)
+    try:
+        info = output.stat()
+        if info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) != 0o700:
+            fail("Output custody must be private and owned")
+        write_bundle(manifest, result, output)
+    except BaseException:
+        # The directory was created above by this call, so a failed plan leaves no partial output.
+        shutil.rmtree(output, ignore_errors=True)
+        raise
+    return result
+
+
+def write_bundle(manifest, result, output):
+    private_json(output / "presentation-input.normalized.json", normalize_manifest(manifest))
+    result["spokenScripts"] = script_bundle(manifest, result, output)
     spoken_by_page = {row["page"]: row for row in result["spokenScripts"]}
     result["narrationJobs"] = [
         {
@@ -485,18 +572,11 @@ def write_plan(manifest_path, output):
         }
         for row in result["pages"]
     ]
-    result["assemblyBundle"] = assembly_bundle(json.loads(raw), result, output)
-    path = output / "presentation-plan.json"
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(fd, "w") as stream:
-        json.dump(result, stream, indent=2)
-        stream.write("\n")
-        stream.flush()
-        os.fsync(stream.fileno())
+    result["assemblyBundle"] = assembly_bundle(manifest, result, output)
+    private_json(output / "presentation-plan.json", result)
     marker = os.open(output / ".gitignore", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(marker, "w") as stream:
         stream.write("*\n")
-    return result
 
 
 def main():

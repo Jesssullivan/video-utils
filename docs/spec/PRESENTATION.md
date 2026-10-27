@@ -5,10 +5,11 @@ manuscripts, narration and avatar inputs. It prepares the existing assembly
 pipeline's files and argument vectors. It never generates speech, invokes a
 provider, runs FFmpeg, publishes or changes the original client edition.
 
-Run `just -f narrate/presentation.just plan MANIFEST NEW_PRIVATE_OUTPUT`, or
+Run `just narrate-presentation-plan MANIFEST NEW_PRIVATE_OUTPUT`, or
 `python3 -m narrate.presentation MANIFEST NEW_PRIVATE_OUTPUT`. The output must be
-a new absolute directory outside the source project. Files are0600 and directories
-0700. Existing output is never overwritten. No private inputs belong in Git.
+a new absolute directory outside the source project. Files are 0600 and directories
+0700. Existing output is never overwritten. A refused plan removes the directory it
+created, so a retry to the same path can succeed. No private inputs belong in Git.
 
 ## Input and meaning
 
@@ -52,14 +53,22 @@ digests are recorded; the canonical written script is not replaced by that proje
 Captions in the existing assembler use the exact approved character manuscript.
 
 Once script/audio/avatar inputs are present, the adapter also checks the assembly
-source bindings. Slide, HTML and clip-map files need explicit admitted hashes.
-Still images need a separate digest inventory, because a deck hash does not
+source bindings, before it creates the output. Until then a binding refusal is
+recorded in `assemblySourceReadiness.missingPrerequisites` and the blocked plan,
+with any spoken-script handoff, is still written. Slide, HTML and clip-map files
+need explicit admitted hashes. Every file under the stills directory, whatever its
+suffix, needs a separate digest inventory row, because a deck hash does not
 authenticate derivatives. Missing still evidence leaves assembly blocked. Config
 paths cannot escape the project or fall back to arbitrary external files. The
 supported clip map is an explicit `clips` list. Each row names `clip` and may
 provide a root-relative `path`; otherwise the source is `clips_dir/<clip>.mp4`.
 Alternate `media` maps are refused. Only admitted capture bytes are staged into
-the internal clip directory, with hashes rechecked after copying. Generated clip
+the internal clip directory, at their path below `clips_dir`, with hashes rechecked
+after copying. Two captures whose staged paths differ only by case are refused.
+Every admitted source file (slides, HTML, stills and other `sourceFiles` rows) is
+staged the same way under `source/`, and the internal config's slide, HTML and
+stills paths point there. The internal cut never reads or writes the client tree
+through those keys. Generated clip
 and capture maps point only at that namespace. Historical unselected media in
 the source directory is retained and cannot be discovered by the internal cut.
 
@@ -82,6 +91,8 @@ listening acceptance, lip synchronization, captions in a rendered video or relea
 Pure synthetic fixtures cover missing-input readiness, exact source preservation,
 private modes, source/output separation, identity/scope, script/audio binding,
 symlink/traversal refusal, inherited config path containment, digest-bound stills,
-source-trailer/control-cue exclusion and avatar/narration duration ordering. They
+source-trailer/control-cue exclusion, avatar/narration duration ordering, blocked
+plans with incomplete source bindings, output removal after a refusal, staged
+capture name collisions and staged stills. They
 run through the existing bounded test entrypoint without any media decoder,
 provider, model, real voice or GPU job.

@@ -248,3 +248,133 @@ def test_clip_map_selected_path_must_be_an_admitted_capture(project, tmp_path):
     incoming.write_text(json.dumps(data))
     with pytest.raises(PresentationError):
         write_plan(incoming, tmp_path / "derived")
+
+
+def replace_source(data, root, name, value):
+    row = descriptor(root, name, value)
+    if name == data["clientConfig"]["path"]:
+        data["clientConfig"] = row
+    data["sourceFiles"] = [row if old["path"] == name else old for old in data["sourceFiles"]]
+    return row
+
+
+def test_blocked_plan_reports_source_bindings_instead_of_failing(project, tmp_path):
+    root = tmp_path / "source"
+    client = json.loads((root / "video.json").read_text())
+    client.pop("deck_html")
+    replace_source(project, root, "video.json", json.dumps(client).encode())
+    project["pages"][0]["captures"] = []
+    incoming = tmp_path / "input.json"
+    incoming.write_text(json.dumps(project))
+    output = tmp_path / "blocked"
+    result = write_plan(incoming, output)
+    readiness = result["assemblySourceReadiness"]
+    assert readiness["checked"] is False and readiness["paths"] == {}
+    assert readiness["missingPrerequisites"] == ["assembly source bindings: A root-relative project path is required"]
+    assert result["assemblyBundle"]["prepared"] is False
+    assert (output / "presentation-plan.json").exists()
+    # A client config listed alone, as in the synthetic Dhall example, still yields a blocked plan.
+    project["sourceFiles"] = [project["clientConfig"]]
+    incoming.write_text(json.dumps(project))
+    assert write_plan(incoming, tmp_path / "config-only")["assemblySourceReadiness"]["checked"] is False
+
+
+def test_ready_source_refusal_leaves_no_output_and_retry_succeeds(project, tmp_path):
+    data = fill(project, tmp_path)
+    root = tmp_path / "source"
+    client = json.loads((root / "video.json").read_text())
+    replace_source(data, root, "video.json", json.dumps({**client, "deck_html": None}).encode())
+    incoming = tmp_path / "input.json"
+    incoming.write_text(json.dumps(data))
+    output = tmp_path / "derived"
+    with pytest.raises(PresentationError):
+        write_plan(incoming, output)
+    assert not output.exists()
+    replace_source(data, root, "video.json", json.dumps(client).encode())
+    incoming.write_text(json.dumps(data))
+    assert write_plan(incoming, output)["assemblyBundle"]["prepared"] is True
+
+
+def test_failure_after_output_creation_removes_partial_output(project, tmp_path, monkeypatch):
+    from narrate import presentation
+
+    data = fill(project, tmp_path)
+    incoming = tmp_path / "input.json"
+    incoming.write_text(json.dumps(data))
+
+    def interrupted(*_):
+        raise OSError("synthetic interruption")
+
+    monkeypatch.setattr(presentation, "stage_captures", interrupted)
+    with pytest.raises(OSError):
+        write_plan(incoming, tmp_path / "derived")
+    assert not (tmp_path / "derived").exists()
+
+
+def test_equal_capture_names_in_two_directories_stage_separately(project, tmp_path):
+    data = fill(project, tmp_path)
+    root = tmp_path / "source"
+    first = descriptor(root, "media/x/a.mp4", b"first opaque capture")
+    second = descriptor(root, "media/y/a.mp4", b"second opaque capture")
+    data["pages"][0]["captures"] = [first, second]
+    clips = {"clips": [{"clip": "a", "path": "media/x/a.mp4"}, {"clip": "b", "path": "media/y/a.mp4"}]}
+    replace_source(data, root, "clips.json", json.dumps(clips).encode())
+    incoming = tmp_path / "input.json"
+    incoming.write_text(json.dumps(data))
+    output = tmp_path / "derived"
+    result = write_plan(incoming, output)
+    assert result["assemblyBundle"]["prepared"] is True
+    mapped = json.loads((output / "clip-map.verified.json").read_text())["clips"]
+    assert [Path(row["path"]).read_bytes() for row in mapped] == [b"first opaque capture", b"second opaque capture"]
+    assert {Path(row["path"]).relative_to(output / "clips").as_posix() for row in mapped} == {"x/a.mp4", "y/a.mp4"}
+
+
+def test_case_folded_capture_collision_is_refused_before_output(project, tmp_path):
+    data = fill(project, tmp_path)
+    root = tmp_path / "source"
+    data["pages"][0]["captures"] = [
+        descriptor(root, "media/A.mp4", b"upper opaque capture"),
+        descriptor(root, "media/a.mp4", b"lower opaque capture"),
+    ]
+    clips = {"clips": [{"clip": "a", "path": "media/A.mp4"}, {"clip": "b", "path": "media/a.mp4"}]}
+    replace_source(data, root, "clips.json", json.dumps(clips).encode())
+    incoming = tmp_path / "input.json"
+    incoming.write_text(json.dumps(data))
+    with pytest.raises(PresentationError):
+        write_plan(incoming, tmp_path / "derived")
+    assert not (tmp_path / "derived").exists()
+
+
+def test_uninventoried_still_of_any_suffix_blocks_assembly(project, tmp_path):
+    data = fill(project, tmp_path)
+    descriptor(tmp_path / "source", "stills/notes.txt", b"unadmitted derivative")
+    incoming = tmp_path / "input.json"
+    incoming.write_text(json.dumps(data))
+    result = write_plan(incoming, tmp_path / "derived")
+    assert result["assemblyBundle"]["prepared"] is False
+    assert result["assemblySourceReadiness"]["missingPrerequisites"] == ["digest-bound slide stills"]
+
+
+def test_internal_config_reads_staged_sources_not_the_client_tree(project, tmp_path):
+    data = fill(project, tmp_path)
+    incoming = tmp_path / "input.json"
+    incoming.write_text(json.dumps(data))
+    output = tmp_path / "derived"
+    write_plan(incoming, output)
+    descriptor(tmp_path / "source", "stills/02-late.png", b"added after planning")
+    internal = json.loads((output / "video-internal.json").read_text())
+    for key in ("slides", "deck_html", "stills_dir", "clips_dir", "clip_map", "captures_manifest"):
+        assert Path(internal[key]).is_relative_to(output)
+    assert {path.name for path in Path(internal["stills_dir"]).iterdir()} == {"01-open.png"}
+    assert Path(internal["deck_html"]).read_bytes() == (tmp_path / "source/dist/index.html").read_bytes()
+
+
+def test_blocked_plan_with_undeclared_page_captures_is_still_written(project, tmp_path):
+    project["pages"][0]["captures"] = []
+    incoming = tmp_path / "input.json"
+    incoming.write_text(json.dumps(project))
+    result = write_plan(incoming, tmp_path / "blocked")
+    assert result["assemblySourceReadiness"]["missingPrerequisites"] == [
+        "assembly source bindings: The clip map selects undeclared or duplicate capture input"
+    ]
+    assert result["narrationJobs"][0]["status"] == "blocked-no-approved-script"
