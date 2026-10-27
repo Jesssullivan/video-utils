@@ -77,5 +77,11 @@ def key16(key):
 
 def content_digest(manifest):
     """A stage manifest's content_sha256: the digest of the manifest without its volatile fields (as narrate's
-    render.content_digest does for narration runs)."""
-    return digest({k: v for k, v in manifest.items() if k not in VOLATILE})
+    render.content_digest does for narration runs). An output the manifest lists under volatile_outputs is still
+    re-hashed for freshness but left out of this digest: its bytes differ between identical runs only by a run id
+    and a time (a narrate run's own manifest.json, whose content digest the stage records in its measurements)."""
+    body = {k: v for k, v in manifest.items() if k not in VOLATILE}
+    skip = set(manifest.get("volatile_outputs") or ())
+    if skip and isinstance(body.get("outputs"), dict):
+        body["outputs"] = {name: value for name, value in body["outputs"].items() if name not in skip}
+    return digest(body)

@@ -130,7 +130,11 @@ A key reads three kinds of input:
 
 A stage manifest's `content_sha256` leaves out `run_dir`, `created_utc` and
 the commit. A rerun that writes the same outputs therefore keeps every
-downstream key, and the cascade stops there.
+downstream key, and the cascade stops there. A stage may list an output under
+`volatile_outputs` when its bytes differ between identical runs only by a run id
+and a time. The `voice` stage lists its narrate run's own `manifest.json` and
+records that run's `content_sha256` in its measurements instead. Freshness still
+re-hashes a volatile output, and `volatile_outputs` may name only listed outputs.
 
 `admit` is a gate, not a data input. It runs at every plan. Its refusal blocks
 every other stage. Its codes are `narrate_job_missing`,
@@ -214,13 +218,21 @@ transparent. It holds no kitpip art and draws each kitpip refusal on request.
 | `status JOB [--json]` | `just nv-status` | prints the recorded `graph.json` and its `pending_operator` gates |
 | `explain JOB STAGE [--segment ID]` | `just nv-explain` | prints the key document and each field that changed since the stage's last run |
 | `verify DIR` | `just nv-verify` | re-hashes a stage directory or every current stage of a job |
+| `run JOB [--stages S,...] [--until S] [--force S,...] [--json]` | `just nv-run` | runs the stale stages (lane L4: `script` to `mix`) and stops at the first refusal. Finished stages stay fresh. Records `graph.json` |
+| `stage JOB STAGE [--segment ID]` | `just nv-stage` | runs one node when every input is fresh, else refuses `stage_input_stale` |
+| `fixture --out DIR` | `just nv-fixture` | writes a synthetic workspace: records, a private-store stand-in and a fixture lexical release |
+| `init` then `run` | `just nv-quick JOB NARRATE_JOB SCRIPT [ARGS]` | a simple job in one step |
 
 Paths come from flags or the environment: `--root` (`NARRATED_VIDEO_ROOT`),
 `--records` (`NARRATED_VIDEO_RECORDS`, the directory of `jobs.json`,
 `voices.json`, `consents.json` and `music-beds.json`), `--externals`
-(`NARRATED_VIDEO_EXTERNALS`) and `--store` (`NARRATE_STORE`). `just nv-fixture`
-plans the committed card example against the committed records. `run`, `stage`
-and `pin-check` come with lanes L4 to L6.
+(`NARRATED_VIDEO_EXTERNALS`), `--store` (`NARRATE_STORE`) and `--lexical`
+(`NARRATE_LEXICAL_DIR`). `run` and `stage` need the store, because every source
+comes from it by digest. Their records directory also holds `engines.json` and
+`pronunciation.json` for narrate. `just nv-fixture` plans the committed card
+example against the committed records. It then runs `nv-quick` end to end on a
+synthetic workspace and prints the mix measurements. `nv-run`, `nv-stage` and
+`nv-quick` run inside `narrate/bounded.sh`. `pin-check` comes with lane L5.
 
 ## Editions
 
@@ -403,7 +415,82 @@ never a URL, an executable or a shell string.
 The workflow skill is `narrated-video`, with one skill per stage tool. The
 fallback recipes are `just nv-quick` and `just nv-run`. L3 drafts tool 62 in
 `program/tool-drafts/narrated_video.json` and writes the first part of the
-`narrated-video` skill (plan, status and explain). L7 admits it.
+`narrated-video` skill (plan, status and explain). L4 drafts tools 63, 64, 65
+and 68 there, adds `run` to the `narrated-video` skill and writes the
+`narrated-video-place`, `music-bed` and `narrated-video-mix` skills. L7 admits
+them.
+
+## Simple path (lane L4)
+
+Lane L4 runs `script`, `voice`, `voice_qa`, `base`, `place`, `music` and `mix`
+(`narrate/video/{speech,place,music,mix,run}.py`). `run` plans the job and
+runs one runnable node at a time until none is left that the call may run. A
+node runs only when every upstream node is fresh, so its key is known before it
+starts. The avatar stages wait for lane L5, and `compose`, `deliver_check` and
+`handoff` wait for lane L6. `run` reports those nodes under
+`waiting_on_lane`.
+
+A refusal is a verdict or a failure. A verdict repeats for the same key, such as
+a level gate, an edition refusal or an overlap. The store records it, and the
+node stays `refused` until its key changes. A failure says nothing about the
+key, such as a source missing from the store, no lexical release, an FFmpeg
+crash or an engine that does not answer. Nothing is recorded, so `run` retries
+it. `--force S` archives a fresh stage to `history/` and clears its refusal.
+
+| Stage | Reads | Writes | Refuses |
+| --- | --- | --- | --- |
+| `script` | the segment's script by digest, through its narrate job's input adapter, and the pinned lexical release | `script.json` (spoken-text digest), `lexical.json` (advisory findings, R-N12) | `input_invalid`. Findings never refuse |
+| `voice` | the script, the narrate job and its records | one narrate run in `narration/` (mapping `narration_v1`), labels from its voices | narrate's own refusals, as failures |
+| `voice_qa` | the narrate run | `qa.json`: verify receipt and `narrate evaluate` metrics against the job's gates | `voice_unverified`, `voice_qa_failed` (a measured gate failed). `not_measured` never fails. Listening stays `pending_operator` |
+| `base` | a card colour, or a still or video by digest | `base.png` for a card or still at the job's size, or `base.mp4` (constant-rate H.264 at the video's own size and rate) with `clips.wav` when `keepBaseAudio`. `base.json` | `base_invalid`. A deck refuses `base_deck_pending` until lane L8 |
+| `place` | `base`, every `voice` and `voice_qa` | `voice.wav` and `clips.wav` at 48 kHz on the base clock, `placements.json` | `anchor_needs_deck`, `anchor_invalid`, `placement_overlap`, `base_too_short` and the edition codes at Place |
+| `music` | the bed record and its loops by digest | `bed.wav`, one arranged cycle at 48 kHz, and `bed.json` | `bed_acquisition_agent`, `bed_digest_mismatch` |
+| `mix` | `place` and `music` | `mix.wav`, `bed-ducked.wav` and `mix.json` | `foreground_not_normalised`, `loudness_drift`, `true_peak_exceeded`, `label_chain_broken` |
+
+Placement. `Auto` starts where the previous segment ends, and the first segment
+starts at 0. `AtSeconds` starts at that second. `Page` needs a deck base.
+Each narration is resampled to 48 kHz and placed sample-exact. Nothing is
+time-stretched. A card or still is extended to the last narration's end plus
+`tailS`, rounded up to a whole frame. A video base keeps its own length and
+must hold every segment.
+
+The bed. Each loop must have the record's byte count. It becomes 48 kHz mono
+with its gain, and with one FFmpeg `atempo` when its tempo factor is not 1.
+The cycle is the least common multiple of the layer lengths when that is at
+most 120 s, so every loop repeats whole. Otherwise it is the longest layer, and
+the record says `cycle_rule: longest`. A sum that would clip is scaled down as a
+whole and recorded. The stage measures the cycle's integrated loudness.
+
+Mix levels (NV-2, the deck project's ruling 58):
+
+1. The placed voice is re-measured. A voice further than `driftLu` from
+   `targetLufs` refuses `foreground_not_normalised`. Nothing loudness-normalises
+   the voice or the mix.
+2. The bed is tiled to the program's length and set `bedBelowVoiceLu` (20)
+   under the measured voice.
+3. A duck envelope lowers the bed by `duckDb` (7). `Sidechain` keys it on the
+   foreground, voice and kept clip sound, at -45 dBFS per 10 ms block.
+   `EdlEnvelope` keys it on the placed spans. The gain moves `duckDb` per
+   `attackMs` going down and per `releaseMs` coming back.
+4. Fades run `fadeInS` (3 s) from the start and `fadeOutS` (5 s) to the end.
+   With a bed on a card or still, the program runs to the last narration's end
+   plus the music `tailS`, rounded up to a whole frame.
+5. One limiter, FFmpeg `alimiter` with latency compensation and no auto level,
+   sits 0.5 dB under `truePeakDbtp` (-2.0 dBFS for -1.5 dBTP).
+6. The mix is measured. Drift over `driftLu` refuses `loudness_drift`. A true
+   peak above `truePeakDbtp` refuses `true_peak_exceeded`.
+
+`mix` records the applied duck depth: the median envelope depth over keyed
+blocks. A depth outside 6 to 8 dB adds the flag `duck_outside_6_8_db`. The deck
+playbook's gate, a duck of at least 3 dB, is recorded as `gates.duck_min_3db`.
+Mono is the default. `Stereo` writes the mix on both channels at -3.01 dB each,
+so the integrated loudness stays at the target. The program length in `mix`
+measurements is the length `compose` (L6) renders.
+
+`just nv-fixture` runs this path on generated inputs: the fake engine's sine
+voice, the two E-major loops and a colour card. Measured on 2026-10-27 at this
+lane's head: voice -15.8 LUFS, mix -15.8 LUFS (drift 0.2 LU), true peak
+-9.1 dBTP and a 7.0 dB duck. These are fixture numbers, not a listening result.
 
 ## Deck import
 
@@ -436,6 +523,13 @@ then ducks it 7 dB. `bedBelowVoiceLu = 20` before the duck is the default, and
 it stays a knob.
 
 ## Unknowns
+
+- The sidechain threshold (-45 dBFS per 10 ms block) is a starting value. It
+  has not been compared on a real narration with breaths and room tone.
+- `Stereo` writes the mono mix on both channels at -3.01 dB each. Whether the
+  operator wants a true stereo bed is open (NV-2 keeps mono until an A/B).
+- A video base keeps its own size and rate in `base`. Scaling to the delivery
+  profile is `compose`'s (L6).
 
 - Sidechain attack: 50 ms here (the deck seat's practice). The earlier music-bed
   draft used 20 ms. Not yet compared.

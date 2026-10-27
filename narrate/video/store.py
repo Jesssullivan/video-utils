@@ -121,6 +121,9 @@ def verify_stage_dir(directory, key=None):
             problems.append(f"output_missing: {name}")
         elif sha256_file(files[name]) != want:
             problems.append(f"output_digest_mismatch: {name}")
+    volatile = manifest.get("volatile_outputs", [])
+    if not isinstance(volatile, list) or any(name not in outputs for name in volatile):
+        problems.append("manifest_invalid: volatile_outputs names a file outputs does not list")
     if manifest.get("content_sha256") != keys.content_digest(manifest):
         problems.append("content_digest_mismatch: content_sha256 differs from the manifest")
     document = manifest.get("key_document")

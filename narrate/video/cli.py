@@ -1,4 +1,4 @@
-"""python -m narrate video {init,plan,status,explain,verify} (docs/spec/NARRATED_VIDEO.md, "Commands").
+"""python -m narrate video {init,plan,run,stage,status,explain,verify,fixture} (NARRATED_VIDEO.md, "Commands").
 
 Every command prints JSON with --json (status and explain always do) or a short table, and a typed refusal
 {"ok": false, "refused": code, "detail": ...} on stderr with exit 1. Paths come from flags or the environment:
@@ -6,10 +6,13 @@ Every command prints JSON with --json (status and explain always do) or a short 
   --root       NARRATED_VIDEO_ROOT        the stage store root (default artifacts/narrated)
   --records    NARRATED_VIDEO_RECORDS     dhall-to-json renders of narrate jobs, voices, consents and music beds
   --externals  NARRATED_VIDEO_EXTERNALS   the private kitpip pin record; KITPIP_BIN names the binary
-  --store      NARRATE_STORE              the private store; plan checks source digests only when one is named
+  --store      NARRATE_STORE              the private store; plan checks source digests only when one is named, and
+                                          run and stage read every source from it
+  --lexical    NARRATE_LEXICAL_DIR        the pinned xoxd-lexical release the script and voice stages read
 
-plan never runs a stage and never writes, except graph.json with --record. `run`, `stage` and `pin-check` come with
-lanes L4 to L6.
+plan never runs a stage and never writes, except graph.json with --record. run and stage run the lane L4 stages
+(narrate/video/run.py) and record graph.json when they finish; `pin-check` comes with lane L5. fixture writes a
+synthetic workspace (records, store and lexical release) for `just nv-fixture`.
 """
 
 import argparse
@@ -23,7 +26,9 @@ from pathlib import Path
 
 from .. import policy
 from ..ir import sha256_file
-from . import graph, kitpip, store
+from . import fixture, graph, kitpip, store
+from . import run as runner
+from .common import Env
 from .job import EDITIONS, JobError, check_shape, init_job, load_records, read_json
 
 RECORDS_ENV = "NARRATED_VIDEO_RECORDS"
@@ -159,6 +164,52 @@ def cmd_plan(a):
     return 0 if g["admit"]["verdict"] == "Admitted" else 1
 
 
+def run_env(a, records):
+    store_dir = a.store or os.environ.get("NARRATE_STORE")
+    if not store_dir or not Path(store_dir).is_dir():
+        raise JobError("store_missing", "run reads every source from the private store: pass --store or NARRATE_STORE")
+    records_dir = a.records or os.environ.get(RECORDS_ENV)
+    return Env(records_dir, records, store_dir, a.lexical or os.environ.get("NARRATE_LEXICAL_DIR"))
+
+
+def run_common(a, only=None):
+    s = job_store(a, a.job)
+    job, records = s.read_job(), records_for(a)
+    env = run_env(a, records)
+    ctx = context(a)
+    rc = runner.RunContext(job, records, s, ctx, env)
+    stages = [x for x in (a.stages or "").split(",") if x] if only is None else None
+    forced = [x for x in (a.force or "").split(",") if x] if only is None else []
+    result, g = runner.run(rc, stages=stages, until=None if only else a.until, forced=forced, only=only)
+    s.write_graph(graph.public(g))
+    if a.json:
+        emit(result)
+    else:
+        print(table(graph.public(g)))
+        for row in result["ran"]:
+            print(f"ran {row['node']} {row['key16']}" + (f" refused {row['refused']}" if "refused" in row else ""))
+        if "refused" in result:
+            print(f"refused {result['refused']} at {result['node']}: {result['detail']}")
+    return 0 if result["ok"] else 1
+
+
+def cmd_run(a):
+    return run_common(a)
+
+
+def cmd_stage(a):
+    return run_common(a, only=f"{a.stage}/{a.segment}" if a.segment else a.stage)
+
+
+def cmd_fixture(a):
+    out = Path(a.out)
+    if out.exists() and any(out.iterdir()):
+        return refusal("fixture_exists", "--out must be a new or empty directory")
+    paths = fixture.write(out)
+    emit({"ok": True, "narrate_job": fixture.NARRATE_JOB, "bed": fixture.BED} | {k: str(v) for k, v in paths.items()})
+    return 0
+
+
 def cmd_status(a):
     g = job_store(a, a.job).read_graph()
     if a.json:
@@ -201,6 +252,7 @@ def main(argv=None):
         r.add_argument("--records", help="the records directory, instead of NARRATED_VIDEO_RECORDS")
         r.add_argument("--externals", help="the kitpip pin record, instead of NARRATED_VIDEO_EXTERNALS")
         r.add_argument("--store", help="the private store for source digests, instead of NARRATE_STORE")
+        r.add_argument("--lexical", help="the pinned xoxd-lexical release, instead of NARRATE_LEXICAL_DIR")
         r.add_argument("--json", action="store_true", help="print JSON")
 
     i = sub.add_parser("init", help="write a job into the store from the defaults, or from a dhall-to-json render")
@@ -223,6 +275,20 @@ def main(argv=None):
     common(n)
     n.add_argument("--record", action="store_true", help="also write graph.json for status")
 
+    r = sub.add_parser("run", help="run the stale stages (lane L4: script to mix); stops at the first refusal")
+    common(r)
+    r.add_argument("--stages", help="comma-separated stages: run only these")
+    r.add_argument("--until", choices=[st.id for st in graph.STAGES], help="run this stage and what it depends on")
+    r.add_argument("--force", help="comma-separated stages to rerun although fresh (archived to history/)")
+
+    g = sub.add_parser("stage", help="run one stage node when its inputs are fresh")
+    common(g)
+    g.add_argument("stage", choices=[st.id for st in graph.STAGES])
+    g.add_argument("--segment", help="the segment of a fan-out stage")
+
+    f = sub.add_parser("fixture", help="write a synthetic workspace: records, a private store and a lexical release")
+    f.add_argument("--out", required=True, help="a new or empty directory outside git")
+
     s = sub.add_parser("status", help="print the recorded graph.json and its pending operator gates")
     common(s)
 
@@ -236,9 +302,17 @@ def main(argv=None):
 
     a = p.parse_args(argv)
     try:
-        return {"init": cmd_init, "plan": cmd_plan, "status": cmd_status, "explain": cmd_explain, "verify": cmd_verify}[
-            a.command
-        ](a)
+        commands = {
+            "init": cmd_init,
+            "plan": cmd_plan,
+            "run": cmd_run,
+            "stage": cmd_stage,
+            "fixture": cmd_fixture,
+            "status": cmd_status,
+            "explain": cmd_explain,
+            "verify": cmd_verify,
+        }
+        return commands[a.command](a)
     except JobError as exc:
         return refusal(exc.code, exc.detail)
     except policy.Refused as exc:

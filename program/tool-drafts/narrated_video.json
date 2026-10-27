@@ -1,12 +1,12 @@
 {
  "schema_version": 1,
  "status": "draft_for_root_admission",
- "lane": "W8 (L3)",
+ "lane": "W8 (L3, L4)",
  "linear": "TIN-7476",
  "spec": "docs/spec/NARRATED_VIDEO.md",
- "worker": "python3 -m narrate video {init,plan,status,explain,verify}",
+ "worker": "python3 -m narrate video {init,plan,run,stage,status,explain,verify,fixture}",
  "skill": ".agents/skills/narrated-video/SKILL.md",
- "admission": "Tool numbers are proposals: narrated_video_plan is proposed as 62. Root admits it in program/tools.json in lane L7 with tools 63 to 70. The path rules (no symlink components, root outside artifacts/runs/ and artifacts/narrate/) and the job-id form are enforced in narrate/video before any work; scripts/tool_api.py adds its own path checks at admission. No argument takes a URL, an executable or a shell string.",
+ "admission": "Tool numbers are proposals: narrated_video_plan is proposed as 62, narrated_video_run as 63, narrated_video_place as 64, music_bed_build as 65 and narrated_video_mix as 68. Root admits them in program/tools.json in lane L7 with tools 66, 67, 69 and 70. The path rules (no symlink components, root outside artifacts/runs/ and artifacts/narrate/) and the job-id form are enforced in narrate/video before any work; scripts/tool_api.py adds its own path checks at admission. No argument takes a URL, an executable or a shell string.",
  "tools": [
   {
    "name": "narrated_video_plan",
@@ -76,9 +76,9 @@
    "evidence_kind": "stage_graph_plan_with_keys",
    "limitations": [
     "A fresh state means the outputs re-hash to the recorded key; it is not listening, lip-sync or delivery acceptance.",
-    "Stages after admit land in lanes L4 to L6; until then a plan reports them stale and nothing runs them.",
     "A stage whose upstream is not fresh has no key yet: explain names what it waits on instead.",
-    "The kitpip stub in the tests draws no character; a real kitpip render is lane L5."
+    "The kitpip stub in the tests draws no character; a real kitpip render is lane L5.",
+    "Stages after admit run through narrated_video_run (63); lane L4 runs script to mix, L5 and L6 the rest."
    ],
    "annotations": {
     "readOnlyHint": true,
@@ -96,6 +96,387 @@
     "research": "docs/spec/NARRATED_VIDEO.md \"Stage keys and the store\" gives the knob owner of every field and the tested rerun set of each change.",
     "iterate": "Change one knob, plan again and explain the stage it should touch; compare the rerun set with the spec's table before any render.",
     "acceptance": "A plan is evidence of what would run. Listening, lip sync, Content ID and delivery are separate operator states.",
+    "max_comparison_candidates_default": 2
+   }
+  },
+  {
+   "name": "narrated_video_run",
+   "title": "Run a narrated-video job",
+   "description": "Run `python -m narrate video run --json` on one job: plan, then run every stale stage whose inputs are fresh, one at a time inside narrate/bounded.sh, until none is left. Stops at the first refusal and keeps finished stages fresh. A verdict (a level gate, an edition refusal, an overlap) is recorded for its stage key; a failure (a missing source, no lexical release, an FFmpeg crash, an engine that does not answer) is not, so calling again retries it. Writes stage directories and graph.json in the store, and narrate runs inside the voice stage directories; never under artifacts/runs/ or artifacts/narrate/. Results carry node ids, keys, states and refusal codes, never a store path or a clip. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every stage manifest that carries narration or a bed says no_time_stretch false with a non-identity mapping (narration_v1, narrated_video_v1 or music_bed_v1), so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+   "intent": "Let an agent turn a planned job into fresh stages and a mixed stem, resuming after a timeout without redoing finished work.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "job": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The job id: 1 to 64 of a-z, 0-9, '.', '_' and '-', starting with a letter or digit. The job lives in the store root as <root>/<job>/job.json (write it with `just nv-init`)."
+     },
+     "root": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The narrated-video store root (default artifacts/narrated, or NARRATED_VIDEO_ROOT). Refused under artifacts/runs/ or artifacts/narrate/."
+     },
+     "records": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json and, optionally, music-beds.json."
+     },
+     "store": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private store. Every source (script, still, video, bed loop) is read from it by SHA-256; required for a run."
+     },
+     "lexical": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The pinned xoxd-lexical release directory the script and voice stages read (NARRATE_LEXICAL_DIR)."
+     },
+     "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 900,
+      "default": 900,
+      "description": "Outer deadline for the whole call in seconds (at most 900). A run stopped by it keeps every finished stage fresh; call it again to resume."
+     },
+     "stages": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "enum": [
+        "script",
+        "voice",
+        "voice_qa",
+        "base",
+        "place",
+        "music",
+        "mix"
+       ]
+      },
+      "maxItems": 7,
+      "uniqueItems": true,
+      "description": "Run only these stages."
+     },
+     "until": {
+      "type": "string",
+      "enum": [
+       "script",
+       "voice",
+       "voice_qa",
+       "base",
+       "place",
+       "music",
+       "mix"
+      ],
+      "description": "Run this stage and every stage it depends on."
+     },
+     "force": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "enum": [
+        "script",
+        "voice",
+        "voice_qa",
+        "base",
+        "place",
+        "music",
+        "mix"
+       ]
+      },
+      "maxItems": 7,
+      "uniqueItems": true,
+      "description": "Rerun these stages although fresh: their current runs move to history/ and their refusals clear."
+     }
+    },
+    "required": [
+     "job",
+     "records",
+     "store"
+    ],
+    "additionalProperties": false
+   },
+   "skill": ".agents/skills/narrated-video/SKILL.md",
+   "implementation_status": "draft",
+   "evidence_kind": "stage_graph_run_with_keys",
+   "limitations": [
+    "fresh means the outputs re-hash to their key. Listening, Content ID and delivery are separate operator states; voice_qa and mix leave listening pending_operator.",
+    "Lane L4 runs script, voice, voice_qa, base, place, music and mix. avatar (L5), compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "v1 runs one stage at a time; the spec's at-most-2 bound holds with room to spare.",
+    "A voice rendered by the fake engine is a sine fixture, not speech."
+   ],
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "dependencies": {
+    "recommended_prior_tools": [
+     "narrated_video_plan"
+    ],
+    "enforced": false,
+    "note": "Plan first (narrated_video_plan, 62) and fix every admit refusal. narrate_render (58) and narrate_evaluate (61) run inside the voice and voice_qa stages."
+   },
+   "agent_workflow": {
+    "identify": "Read ok, ran, refused with its node and detail, states, waiting_on_lane and pending_operator.",
+    "research": "docs/spec/NARRATED_VIDEO.md \"Simple path (lane L4)\" lists each stage's reads, writes and refusals.",
+    "iterate": "Change one knob, explain the stage it should touch, run, and compare the ran list with the spec's rerun table.",
+    "acceptance": "A fresh stage is evidence that it ran on these inputs. Listening, Content ID and delivery are separate operator states.",
+    "max_comparison_candidates_default": 2
+   }
+  },
+  {
+   "name": "narrated_video_place",
+   "title": "Place narration on the base clock",
+   "description": "Run the base and place stages of one job (`python -m narrate video run --until place --json`): conform the base (a card or still to base.png at the job's size, a video to constant-rate H.264 at its own size and rate, with its sound as clips.wav when keepBaseAudio), then lay each segment's narration on the base clock at 48 kHz, sample-exact. Auto starts where the previous segment ends, AtSeconds at that second. A card or still is extended to the last narration plus tailS, rounded up to a whole frame. Runs Edition.check at Place over the placed stems' labels. Writes voice.wav, clips.wav and placements.json; nothing is time-stretched. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every stage manifest that carries narration or a bed says no_time_stretch false with a non-identity mapping (narration_v1, narrated_video_v1 or music_bed_v1), so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+   "intent": "Let an agent check where every segment lands on the picture's clock, and that a base holds them, before any mix.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "job": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The job id: 1 to 64 of a-z, 0-9, '.', '_' and '-', starting with a letter or digit. The job lives in the store root as <root>/<job>/job.json (write it with `just nv-init`)."
+     },
+     "root": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The narrated-video store root (default artifacts/narrated, or NARRATED_VIDEO_ROOT). Refused under artifacts/runs/ or artifacts/narrate/."
+     },
+     "records": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json and, optionally, music-beds.json."
+     },
+     "store": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private store. Every source (script, still, video, bed loop) is read from it by SHA-256; required for a run."
+     },
+     "lexical": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The pinned xoxd-lexical release directory the script and voice stages read (NARRATE_LEXICAL_DIR)."
+     },
+     "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 900,
+      "default": 600,
+      "description": "Outer deadline for the whole call in seconds (at most 900). A run stopped by it keeps every finished stage fresh; call it again to resume."
+     }
+    },
+    "required": [
+     "job",
+     "records",
+     "store"
+    ],
+    "additionalProperties": false
+   },
+   "skill": ".agents/skills/narrated-video-place/SKILL.md",
+   "implementation_status": "draft",
+   "evidence_kind": "base_clock_placements",
+   "limitations": [
+    "fresh means the outputs re-hash to their key. Listening, Content ID and delivery are separate operator states; voice_qa and mix leave listening pending_operator.",
+    "Lane L4 runs script, voice, voice_qa, base, place, music and mix. avatar (L5), compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "A deck base refuses base_deck_pending until lane L8 (the deck seam).",
+    "Page anchors need a deck base (anchor_needs_deck)."
+   ],
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "dependencies": {
+    "recommended_prior_tools": [
+     "narrated_video_plan"
+    ],
+    "enforced": false,
+    "note": "The voice and voice_qa stages must be fresh; narrated_video_run runs them first."
+   },
+   "agent_workflow": {
+    "identify": "Read placements.json: each segment's start and end samples, the program frames and whether clip sound was kept.",
+    "research": "docs/spec/NARRATED_VIDEO.md \"Simple path (lane L4)\", Placement.",
+    "iterate": "Move one anchor, run again and confirm only place and mix reran.",
+    "acceptance": "A fresh stage is evidence that it ran on these inputs. Listening, Content ID and delivery are separate operator states.",
+    "max_comparison_candidates_default": 2
+   }
+  },
+  {
+   "name": "music_bed_build",
+   "title": "Arrange a music bed",
+   "description": "Run the music stage of one job (`python -m narrate video stage JOB music --json`): read the operator-acquired MusicBed record, find each loop in the private store by SHA-256, check its byte count, convert it to 48 kHz mono with its gain and, only when its tempo factor is not 1, one FFmpeg atempo. Sum the layers into one cycle (the least common multiple of their lengths up to 120 s, else the longest) and measure its integrated loudness. Writes bed.wav and bed.json with layer digests only, never a loop name or vendor id. Refuses a record that an agent acquired (bed_acquisition_agent) and a loop off its record (bed_digest_mismatch). Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every stage manifest that carries narration or a bed says no_time_stretch false with a non-identity mapping (narration_v1, narrated_video_v1 or music_bed_v1), so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+   "intent": "Let an agent build the bed an operator acquired, reproducibly, without ever fetching, searching for or buying a loop.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "job": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The job id: 1 to 64 of a-z, 0-9, '.', '_' and '-', starting with a letter or digit. The job lives in the store root as <root>/<job>/job.json (write it with `just nv-init`)."
+     },
+     "root": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The narrated-video store root (default artifacts/narrated, or NARRATED_VIDEO_ROOT). Refused under artifacts/runs/ or artifacts/narrate/."
+     },
+     "records": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json and, optionally, music-beds.json."
+     },
+     "store": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private store. Every source (script, still, video, bed loop) is read from it by SHA-256; required for a run."
+     },
+     "lexical": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The pinned xoxd-lexical release directory the script and voice stages read (NARRATE_LEXICAL_DIR)."
+     },
+     "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 900,
+      "default": 600,
+      "description": "Outer deadline for the whole call in seconds (at most 900). A run stopped by it keeps every finished stage fresh; call it again to resume."
+     }
+    },
+    "required": [
+     "job",
+     "records",
+     "store"
+    ],
+    "additionalProperties": false
+   },
+   "skill": ".agents/skills/music-bed/SKILL.md",
+   "implementation_status": "draft",
+   "evidence_kind": "music_bed_cycle",
+   "limitations": [
+    "fresh means the outputs re-hash to their key. Listening, Content ID and delivery are separate operator states; voice_qa and mix leave listening pending_operator.",
+    "Lane L4 runs script, voice, voice_qa, base, place, music and mix. avatar (L5), compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "Agents never purchase, search for or download a loop; acquiredBy has one constructor, Operator.",
+    "No public upload until the record holds a certified licence PDF digest and a clear Content ID result; music records the licence state as pending_operator until then."
+   ],
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "dependencies": {
+    "recommended_prior_tools": [
+     "narrated_video_plan"
+    ],
+    "enforced": false,
+    "note": "The bed record comes from the operator's private store (MusicBed.dhall)."
+   },
+   "agent_workflow": {
+    "identify": "Read cycle_s, cycle_rule, headroom_gain_db and integrated_lufs.",
+    "research": "docs/spec/NARRATED_VIDEO.md \"Music bed\" and \"Simple path (lane L4)\".",
+    "iterate": "Change one layer's gain or tempo factor in the private record, run music and compare the two cycles' loudness.",
+    "acceptance": "A fresh stage is evidence that it ran on these inputs. Listening, Content ID and delivery are separate operator states.",
+    "max_comparison_candidates_default": 2
+   }
+  },
+  {
+   "name": "narrated_video_mix",
+   "title": "Mix voice and bed",
+   "description": "Run the mix stage of one job (`python -m narrate video stage JOB mix --json`): re-measure the placed voice (it must sit within driftLu of targetLufs; nothing loudness-normalises it), set the bed bedBelowVoiceLu under the measured voice, duck it duckDb under the foreground (Sidechain on voice plus kept clip sound, or EdlEnvelope on the placed spans) with attackMs and releaseMs ramps, fade it fadeInS in and fadeOutS out, sum, and run one limiter 0.5 dB under truePeakDbtp. Measures the mix: drift over driftLu refuses loudness_drift and a true peak above truePeakDbtp refuses true_peak_exceeded. Writes mix.wav, bed-ducked.wav and mix.json with the measured loudness, true peak, bed gain and applied duck depth. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every stage manifest that carries narration or a bed says no_time_stretch false with a non-identity mapping (narration_v1, narrated_video_v1 or music_bed_v1), so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+   "intent": "Let an agent compare bed level and duck settings at matched voice loudness, with the delivery gates checked on every mix.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "job": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The job id: 1 to 64 of a-z, 0-9, '.', '_' and '-', starting with a letter or digit. The job lives in the store root as <root>/<job>/job.json (write it with `just nv-init`)."
+     },
+     "root": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The narrated-video store root (default artifacts/narrated, or NARRATED_VIDEO_ROOT). Refused under artifacts/runs/ or artifacts/narrate/."
+     },
+     "records": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json and, optionally, music-beds.json."
+     },
+     "store": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private store. Every source (script, still, video, bed loop) is read from it by SHA-256; required for a run."
+     },
+     "lexical": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The pinned xoxd-lexical release directory the script and voice stages read (NARRATE_LEXICAL_DIR)."
+     },
+     "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 900,
+      "default": 600,
+      "description": "Outer deadline for the whole call in seconds (at most 900). A run stopped by it keeps every finished stage fresh; call it again to resume."
+     }
+    },
+    "required": [
+     "job",
+     "records",
+     "store"
+    ],
+    "additionalProperties": false
+   },
+   "skill": ".agents/skills/narrated-video-mix/SKILL.md",
+   "implementation_status": "draft",
+   "evidence_kind": "mix_levels_and_gates",
+   "limitations": [
+    "fresh means the outputs re-hash to their key. Listening, Content ID and delivery are separate operator states; voice_qa and mix leave listening pending_operator.",
+    "Lane L4 runs script, voice, voice_qa, base, place, music and mix. avatar (L5), compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "The applied duck depth is the envelope the stage applied, a measurement, not a listening result.",
+    "Stereo writes the mono mix on both channels at -3.01 dB each; mono is the default until an A/B (NV-2)."
+   ],
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "dependencies": {
+    "recommended_prior_tools": [
+     "narrated_video_plan"
+    ],
+    "enforced": false,
+    "note": "place and, when the job has a bed, music must be fresh."
+   },
+   "agent_workflow": {
+    "identify": "Read integrated_lufs, drift_lu, true_peak_dbtp, voice_integrated_lufs, bed_gain_db, duck_depth_db and flags.",
+    "research": "docs/spec/NARRATED_VIDEO.md \"Simple path (lane L4)\", Mix levels; the deck project's ruling 58 set 20 LU under the voice.",
+    "iterate": "Change duckDb (6 to 8) or duckMode alone, rerun mix only, and compare two mix.json files at the same voice loudness.",
+    "acceptance": "A fresh stage is evidence that it ran on these inputs. Listening, Content ID and delivery are separate operator states.",
     "max_comparison_candidates_default": 2
    }
   }
