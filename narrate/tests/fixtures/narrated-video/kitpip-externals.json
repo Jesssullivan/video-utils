@@ -1,0 +1,34 @@
+{
+ "externals": {
+  "kitpip": {
+   "binaries": {
+    "kitpip": {
+     "any": {
+      "bytes": 11068,
+      "sha256": "0a3663fd6e34f3d0ca0cbe6e65cf5d92b33967f7028ddc46a4868f78a2482ee4"
+     }
+    }
+   },
+   "default_rig": {
+    "id": "kitpip-stub-rig",
+    "revision": 0,
+    "sha256": "c2033e1b92dcca9cc911e392fb5f7d9591720a83e8d0737eafd46f936d5a20b1"
+   },
+   "fetch": "explicit",
+   "gate_state": "test_fixture_not_a_release",
+   "manifest_schema": "kitpip.manifest/v0",
+   "resolve": {
+    "env": [
+     "KITPIP_BIN"
+    ],
+    "store": "by_sha256"
+   },
+   "source_commit": "0000000000000000000000000000000000000000",
+   "timeline_mapping": "avatar_overlay_v1",
+   "version": "0.0.0-stub",
+   "visibility": "test_fixture"
+  }
+ },
+ "note": "Test-only externals record: it pins the synthetic kitpip stub beside it, never a kitpip release. The real kitpip pin is a private record (NV-1).",
+ "schema_version": 1
+}

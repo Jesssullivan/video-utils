@@ -1,0 +1,103 @@
+{
+ "schema_version": 1,
+ "status": "draft_for_root_admission",
+ "lane": "W8 (L3)",
+ "linear": "TIN-7476",
+ "spec": "docs/spec/NARRATED_VIDEO.md",
+ "worker": "python3 -m narrate video {init,plan,status,explain,verify}",
+ "skill": ".agents/skills/narrated-video/SKILL.md",
+ "admission": "Tool numbers are proposals: narrated_video_plan is proposed as 62. Root admits it in program/tools.json in lane L7 with tools 63 to 70. The path rules (no symlink components, root outside artifacts/runs/ and artifacts/narrate/) and the job-id form are enforced in narrate/video before any work; scripts/tool_api.py adds its own path checks at admission. No argument takes a URL, an executable or a shell string.",
+ "tools": [
+  {
+   "name": "narrated_video_plan",
+   "title": "Plan a narrated-video job",
+   "description": "Run `python -m narrate video plan --json` on one job in the narrated-video store: the admit gate (narrate job and script digest, consent and revocation, persona label, bed record and its acquisition by the operator, tighten on synthetic narration, knob bounds, the kitpip pin, Edition.check at Plan), then one stage key, state and reason per node of the 13-stage graph (fresh, stale, corrupt, blocked, refused, not_selected or pending_operator), the nodes ready to run and the operator gates still open. Reads the job, the record renders, the private kitpip pin and, when named, the private store's digests; writes nothing unless record is true, and then only graph.json. Runs no stage, starts no engine and never spawns kitpip. Results carry ids, keys and digests, never a store path or a clip. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narrated-video stage manifest that carries narration, an overlay or a bed says no_time_stretch false with a non-identity mapping (narrated_video_v1, avatar_overlay_v1 or music_bed_v1), so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+   "intent": "Let an agent see what a narrated-video job would run, what blocks it and which knob changed a stage, before any render.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "job": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The job id: 1 to 64 of a-z, 0-9, '.', '_' and '-', starting with a letter or digit. The job lives in the store root as <root>/<job>/job.json (write it with `just nv-init`)."
+     },
+     "root": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The narrated-video store root (default artifacts/narrated, or NARRATED_VIDEO_ROOT). Refused under artifacts/runs/ or artifacts/narrate/."
+     },
+     "records": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json and, optionally, music-beds.json."
+     },
+     "externals": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private externals record that pins kitpip; without it every avatar stage is blocked (kitpip_missing). The binary comes from KITPIP_BIN."
+     },
+     "store": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private store; when named, a stage whose source digest is missing from it is blocked (source_missing)."
+     },
+     "explain": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 130,
+      "description": "A node id (stage, or stage/segment for a fan-out stage): also return its key document and each field that changed since its last run."
+     },
+     "record": {
+      "type": "boolean",
+      "default": false,
+      "description": "Also write graph.json for status."
+     },
+     "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 900,
+      "default": 120,
+      "description": "Outer deadline for the whole call in seconds (at most 900). Planning re-hashes every current stage output."
+     }
+    },
+    "required": [
+     "job",
+     "records"
+    ],
+    "additionalProperties": false
+   },
+   "skill": ".agents/skills/narrated-video/SKILL.md",
+   "implementation_status": "draft",
+   "evidence_kind": "stage_graph_plan_with_keys",
+   "limitations": [
+    "A fresh state means the outputs re-hash to the recorded key; it is not listening, lip-sync or delivery acceptance.",
+    "Stages after admit land in lanes L4 to L6; until then a plan reports them stale and nothing runs them.",
+    "A stage whose upstream is not fresh has no key yet: explain names what it waits on instead.",
+    "The kitpip stub in the tests draws no character; a real kitpip render is lane L5."
+   ],
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "dependencies": {
+    "recommended_prior_tools": [],
+    "enforced": false,
+    "note": "The job comes from `just nv-init`; narrate_render (58) and narrate_evaluate (61) are the voice and voice_qa stages."
+   },
+   "agent_workflow": {
+    "identify": "Read admit.verdict and admit.refusals first, then each node's state and reason, runnable and pending_operator.",
+    "research": "docs/spec/NARRATED_VIDEO.md \"Stage keys and the store\" gives the knob owner of every field and the tested rerun set of each change.",
+    "iterate": "Change one knob, plan again and explain the stage it should touch; compare the rerun set with the spec's table before any render.",
+    "acceptance": "A plan is evidence of what would run. Listening, lip sync, Content ID and delivery are separate operator states.",
+    "max_comparison_candidates_default": 2
+   }
+  }
+ ]
+}

@@ -211,6 +211,19 @@ class PublicTree(unittest.TestCase):
             findings, _ = scan(root, names, self.rules)
             self.assertEqual([finding.split(":", 2)[:2] for finding in findings], [["planted.md", "2"]])
 
+    def test_narrated_video_files_hold_no_media_and_no_kitpip_repository(self):
+        """docs/spec/NARRATED_VIDEO.md, Safety (NV-1): kitpip may be named, but no kitpip repository URL or remote,
+        and no audio, video, picture or licence PDF, enters the narration or narrated-video trees."""
+        trees = ("narrate/", "program/", ".agents/skills/narrated-video/", "docs/spec/NARRATED_VIDEO.md")
+        media = re.compile(r"\.(wav|flac|mp3|m4a|aac|ogg|mov|mp4|mkv|webm|png|jpe?g|gif|pdf)$", re.I)
+        self.assertEqual([n for n in self.names if n.startswith(trees) and media.search(n)], [])
+        # Built from fragments so this file is not itself a finding.
+        repository = re.compile("(" + "|".join(("https?://", "git@", "ssh://", "git" + "hub:")) + r")[^\s\"'<>)]*"
+                                + "kit" + "pip", re.I)
+        self.assertEqual([n for n in self.names for text in [read_text(ROOT / n)]
+                          if text is not None and repository.search(text)], [])
+        self.assertIsNotNone(repository.search("see " + "https://" + "example.org/someone/" + "kit" + "pip"))
+
     def test_untracked_private_terms(self):
         patterns = private_terms()
         if not patterns:
