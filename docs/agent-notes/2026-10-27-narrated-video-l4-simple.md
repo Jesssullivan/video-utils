@@ -62,3 +62,29 @@ pattern with a -40 dB tone and AM noise bursts. No recording was used.
   marks them passed.
 - L5: the kitpip pin record and the avatar stage in `run`, reading
   `voice/<segment>/narration/`. L6: `compose`, `deliver_check`, `handoff`.
+
+## Review fixes (2026-10-27)
+
+Authority: the PR #60 review findings relayed by the root workflow under
+TIN-7476 and R-HOOK-CONVERGENCE-20261004 (R-N13).
+
+| Finding | Change | Test |
+| --- | --- | --- |
+| `voice` stayed fresh after a pronunciation edit or an engine re-pin | `load_records` reads `engines.json` and `pronunciation.json`. The `voice` knobs hold the engine record (no endpoint, files by digest only) and the pronunciation table's id and digest. The `voice` tool's `binary_sha256` is the digest of the engine's sorted file digests | graph rows "pronunciation entry", "engine model", "engine files"; a real run where each edit reruns `voice/seg-1` and what follows |
+| A stale persona in fresh `voice` and `voice_qa` manifests, then a recorded `label_chain_broken` | `voice` and `voice_qa` write no persona. It joins at `place`, whose knobs hold `labels.persona` | graph row "persona"; a real run: two persona changes and a `tailS` change each rerun `place` and `mix` only, with no refusal |
+| `music` reported a licence state its key does not hold | The `music` manifest drops `states.licence`. The skill and draft 65 point to `pending_operator` in plan and status, which `deliver_check` decides | the music test asserts the states |
+| No run-time bound on a bed layer's `tempoFactor` | `admit.bed_record` refuses `knob_out_of_bounds` outside `check.BED_TEMPO_RANGE` (0.5 to 2.0) | two admit rows; a real run refuses at admit with nothing run |
+
+Open: `kitpip.run_avatar` (L3, used by L5) writes the persona into the
+`avatar` labels, but the `avatar` knobs hold no persona. L5 should key it or
+leave it to `avatar_check`.
+
+Gates (`nix develop .#condense` in the bounded scope above):
+
+| Check | Result |
+| --- | --- |
+| narrated-video graph, simple and types tests | 175 passed |
+| `just narrate-test` | 894 passed, 1 skipped |
+| `just narrate-lint`, `just narrate-dhall-check` | clean, exit 0 |
+| `narrate/tests/stdlib_smoke.py`, `tests.test_public_tree`, `tests.test_timeline_contract` | 7 OK; 79 OK, 1 skipped |
+| `just check` (`just test`) | 2207 tests: 26 failed, 7 errors, 151 skipped. The same marked-video, marked-compact, `test_media` AAC and `test_web_stack`/`test_web_runs_s3` failures as above. `scripts/doctor.py --require-media` exit 0 |

@@ -210,6 +210,44 @@ def test_the_narrate_run_manifest_is_still_rehashed_and_tampering_makes_the_voic
     assert row["state"] == "corrupt" and row["reason"].startswith("output_digest_mismatch")
 
 
+def test_a_pronunciation_edit_and_an_engine_edit_each_rerun_the_voice_and_what_follows(copied):
+    ws, job = copied
+    narration = ws.store(job).manifest("voice/seg-1")["measurements"]["narration_sha256"]
+
+    def respell(table):
+        table["entries"].append(
+            {"caseSensitive": False, "note": None, "spoken": "fix sure", "wholeWord": True, "written": "fixture"}
+        )
+
+    ws.edit_records("pronunciation.json", respell)
+    s, result, _ = ws.run(job)
+    assert ran(result) == ["voice/seg-1", "voice_qa/seg-1", "place", "mix"] and result["ok"]
+    assert s.manifest("voice/seg-1")["measurements"]["narration_sha256"] != narration
+
+    def repin(rows):
+        rows[0]["model"] = "fake-sine-v2"
+
+    ws.edit_records("engines.json", repin)
+    s, result, _ = ws.run(job)
+    assert ran(result)[:2] == ["voice/seg-1", "voice_qa/seg-1"] and result["ok"]
+    assert ws.run(job)[1]["ran"] == []
+
+
+def test_a_persona_change_reruns_place_and_mix_only_and_the_chain_holds(copied):
+    ws, job = copied
+    keep = {n: ws.store(job).entry(n) for n in ("script/seg-1", "voice/seg-1", "voice_qa/seg-1", "base", "music")}
+    for persona in ("persona-probe-a", "persona-probe-b"):
+        job["labels"]["persona"] = persona
+        s, result, _ = ws.run(job, replace=True)
+        assert ran(result) == ["place", "mix"] and result["ok"] and "refused" not in result
+        assert {n: s.entry(n) for n in keep} == keep
+        assert s.manifest("place")["labels"]["persona"] == persona == s.manifest("mix")["labels"]["persona"]
+        assert s.manifest("voice/seg-1")["labels"]["persona"] is None
+    job["base"]["card"]["tailS"] += 1
+    s, result, _ = ws.run(job, replace=True)
+    assert ran(result) == ["place", "mix"] and result["ok"] and s.current()["refusals"] == {}
+
+
 def test_a_bed_level_change_reruns_only_mix(copied):
     ws, job = copied
     keep = {n: ws.store(job).entry(n) for n in L4 if n != "mix"}
@@ -514,6 +552,8 @@ def test_the_bed_cycle_repeats_every_loop_whole_and_records_its_layers(copied):
     m = manifest["measurements"]
     assert m["cycle_samples"] == 6 * RATE_HZ and m["cycle_rule"] == "lcm" and m["headroom_gain_db"] == 0
     assert manifest["timeline"]["stretch_applied"] is False
+    # The licence gates belong to deliver_check, whose key holds them; music records no licence state.
+    assert manifest["states"] == {"source_checks": "passed", "render": "local"}
     bed = json.loads((node_dir(s, "music") / "bed.json").read_text())
     assert [layer["repeats"] for layer in bed["layers"]] == [3, 2]
     assert music.cycle_length([96000, 144000]) == (288000, "lcm")
@@ -539,6 +579,12 @@ def test_a_tempo_factor_stretches_a_layer_and_a_wrong_byte_count_refuses(copied)
     ws.edit_records("music-beds.json", wrong_bytes)
     s, result, _ = ws.run(job, until="music")
     assert result["refused"] == "bed_digest_mismatch" and result["recorded"]
+
+    # A factor outside 0.5 to 2.0 refuses once at admit, before FFmpeg's atempo sees it.
+    for factor in (2.5, 0.25):
+        ws.edit_records("music-beds.json", lambda rows, f=factor: rows[0]["layers"][1].update(tempoFactor=f))
+        s, result, _ = ws.run(job, until="music")
+        assert (result["refused"], result["node"], ran(result)) == ("knob_out_of_bounds", "admit", [])
 
 
 # Timeline contract -----------------------------------------------------------------------------------------------

@@ -3,7 +3,8 @@
 admit resolves what a job names and refuses before any stage runs: an unknown narrate job, a script digest that is
 not the narrate job's pinned input, a voice without an active consent, a missing persona label, a bed record that is
 missing or not acquired by the operator, tighten edits on synthetic narration with tighten off, a knob outside its
-bound, a kitpip binary whose digest differs from its pin, and Edition.check at Plan.
+bound (a bed layer's tempo factor included), a kitpip binary whose digest differs from its pin, and Edition.check at
+Plan.
 
 The edition rule, the plan leaves and the bounds are narrate/dhall/check.py's port of Edition.dhall and
 NarratedVideo.dhall, loaded here so the Plan point and `just narrate-dhall-check` run one rule. Place (L4) and
@@ -97,6 +98,11 @@ def bed_record(job, records, refusals):
     layers = bed["layers"]
     if not 2 <= len(layers) <= 3 or len({layer["sha256"] for layer in layers}) != len(layers):
         refusals.append(refusal("bed_layers_invalid", "a bed arranges 2 or 3 distinct loops"))
+    check = port()
+    low, high = check.BED_TEMPO_RANGE
+    for i, layer in enumerate(layers):
+        if not check.within(layer.get("tempoFactor"), check.BED_TEMPO_RANGE):
+            refusals.append(refusal("knob_out_of_bounds", f"bed layer {i}'s tempoFactor is not {low} to {high}"))
     return bed
 
 

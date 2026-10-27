@@ -25,7 +25,7 @@ The bed sits under a speech workflow; the guitar axioms in AGENTS.md do not appl
 
 - Never purchase, search for or download a loop, and spend no credits: only the operator acquires a bed, and a record that says otherwise refuses `bed_acquisition_agent`. No argument takes a URL.
 - A loop off its record refuses `bed_digest_mismatch`. A loop missing from the store is a failure, not recorded.
-- No public upload until the record holds the certified licence PDF digest and a clear Content ID result; `music` records the licence state `pending_operator` until then. A client edition also needs a voice-only listen.
+- No public upload until the record holds the certified licence PDF digest and a clear Content ID result. `music` records no licence state: read the open gates from `pending_operator` in `nv-plan` or `nv-status`, which `deliver_check` decides. A client edition also needs a voice-only listen.
 - No loop, bed audio, loop name, vendor stack or asset id enters git, CI or logs. Layers are named by digest.
 
 ## Agent iteration

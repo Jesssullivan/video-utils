@@ -8,6 +8,10 @@ repeat is cut, recorded as cycle_rule "longest"). A sum that would clip is scale
 headroom_gain_db. bed.wav is that cycle; mix tiles it to the program's length, sets its level from the voice and
 ducks it. The stage measures the cycle's integrated loudness, which mix needs.
 
+The licence PDF and Content ID gates are not music's: its key holds no licence field, so a state recorded here would
+go stale when the operator records one. admit lists them under pending_operator and deliver_check, whose key holds
+them, decides them.
+
 The record's acquisition is checked again here: only the operator acquires a bed. No loop is fetched, searched for
 or bought, and no loop name, vendor id or path enters an output: layers are named by digest.
 """
@@ -120,9 +124,5 @@ def run_music(rc, row, partial):
             "output_axis": OUTPUT_AXIS,
             "source_axis": SOURCE_AXIS,
         },
-        "states": {
-            "source_checks": "passed",
-            "render": "local",
-            "licence": "recorded" if bed["licence"]["certifiedPdfSha256"] else "pending_operator",
-        },
+        "states": {"source_checks": "passed", "render": "local"},
     }

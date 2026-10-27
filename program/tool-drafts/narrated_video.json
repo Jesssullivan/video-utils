@@ -374,7 +374,7 @@
     "fresh means the outputs re-hash to their key. Listening, Content ID and delivery are separate operator states; voice_qa and mix leave listening pending_operator.",
     "Lane L4 runs script, voice, voice_qa, base, place, music and mix. avatar (L5), compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
     "Agents never purchase, search for or download a loop; acquiredBy has one constructor, Operator.",
-    "No public upload until the record holds a certified licence PDF digest and a clear Content ID result; music records the licence state as pending_operator until then."
+    "No public upload until the record holds a certified licence PDF digest and a clear Content ID result. music records no licence state; plan and status list the open gates under pending_operator, and deliver_check decides them."
    ],
    "annotations": {
     "readOnlyHint": false,

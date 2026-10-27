@@ -23,7 +23,13 @@ RECORD_FILES = {
     "voices": "voices.json",
     "consents": "consents.json",
     "music_beds": "music-beds.json",
+    "engines": "engines.json",
+    "pronunciation": "pronunciation.json",
 }
+# Tables a job may not need: a missing file is an empty table. engines.json and pronunciation.json are narrate's own
+# records; the voice stage keys the engine and pronunciation table its narrate job names, and narrate refuses a
+# missing one when it renders.
+OPTIONAL_RECORDS = ("music_beds", "engines", "pronunciation")
 MAX_RECORD_BYTES = 16 * 1024 * 1024
 EDITIONS = ("Internal", "OwnContent", "ClientVoiceOnly", "ClientNarrated")
 BASE_KINDS = ("still", "card", "video", "deck")
@@ -93,7 +99,8 @@ def read_json(path, what):
 
 
 def load_records(directory):
-    """{jobs, voices, consents, music_beds}: each {id: record}. A missing music-beds.json is an empty table."""
+    """{jobs, voices, consents, music_beds, engines, pronunciation}: each {id: record}. A file may hold one record
+    or a list (narrate renders pronunciation.json as one table). A missing optional file is an empty table."""
     if directory is None:
         raise JobError("records_missing", "no records directory: pass --records or set NARRATED_VIDEO_RECORDS")
     directory = Path(directory)
@@ -101,10 +108,12 @@ def load_records(directory):
         raise JobError("records_missing", "the records directory does not exist")
     records = {}
     for name, file in RECORD_FILES.items():
-        if name == "music_beds" and not (directory / file).exists():
+        if name in OPTIONAL_RECORDS and not (directory / file).exists():
             records[name] = {}
             continue
         rows = read_json(directory / file, "records")
+        if isinstance(rows, dict):
+            rows = [rows]
         if not isinstance(rows, list) or not all(isinstance(r, dict) and isinstance(r.get("id"), str) for r in rows):
             raise JobError("records_invalid", f"{file} is not a list of records with ids")
         table = {r["id"]: r for r in rows}

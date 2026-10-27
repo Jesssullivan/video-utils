@@ -8,6 +8,10 @@
   measured gate that fails refuses voice_qa_failed. A metric the host cannot measure stays not_measured, and the
   operator's listening receipt stays pending_operator: voice_qa never marks listening passed.
 
+voice and voice_qa carry only the labels a narrate run yields (synthetic, consent ids, voice ids) and no persona. The
+persona joins the chain at place, whose key holds labels.persona, so a persona change reruns place and what follows it
+and never re-synthesises a voice.
+
 The script is copied to a fixed name before narrate reads it, so the run's IR and content digest depend on the
 script's bytes and never on its name in the store.
 """
@@ -142,7 +146,7 @@ def run_voice(rc, row, partial):
             "synthetic": True,
             "consent_ids": consent_ids,
             "voice_ids": voice_ids,
-            "persona": rc.job["labels"]["persona"],
+            "persona": None,
         },
         "timeline": {
             "mapping": manifest["timeline"]["mapping"],
@@ -208,7 +212,7 @@ def run_voice_qa(rc, row, partial):
     return {
         "synthetic": True,
         "measurements": measured,
-        "labels": labels.grow([voice_manifest], rc.job["labels"]["persona"]),
+        "labels": labels.grow([voice_manifest], None),
         "states": {"source_checks": "passed", "listening": "pending_operator"},
     }
 

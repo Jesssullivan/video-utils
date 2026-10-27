@@ -94,7 +94,9 @@ document holds the stage id, the segment, a hand-bumped `impl`, the tool name,
 version and binary digest, the FFmpeg identity on render stages, the resolved
 knobs, the edition and the sorted inputs. The render stages are `base`,
 `place`, `music`, `mix`, `compose` and `handoff`. Their FFmpeg identity is the
-SHA-256 of the first line of `ffmpeg -version`. The git commit is recorded in
+SHA-256 of the first line of `ffmpeg -version`. The `voice` tool's binary
+digest is the SHA-256 of its engine's sorted file digests (binary and
+weights), or null for an engine that pins no file. The git commit is recorded in
 the stage manifest and kept out of the key.
 
 Canonical JSON has sorted keys, no whitespace and UTF-8. `dhall-to-json` writes
@@ -116,10 +118,10 @@ A key reads three kinds of input:
 | Stage | Knobs |
 | --- | --- |
 | `script` | narrate job id, input kind, lexical pin |
-| `voice` | the narrate job record without its gates, and its voice records |
+| `voice` | the narrate job record without its gates, its voice records, its engine record (no endpoint, files by digest) and its pronunciation table's digest |
 | `voice_qa` | the narrate job's gates |
 | `base` | base kind and fields except `tailS`, delivery profile |
-| `place` | segment ids and anchors, `tailS`, `keepBaseAudio`, `tighten` |
+| `place` | segment ids and anchors, `tailS`, `keepBaseAudio`, `tighten`, `labels.persona` |
 | `avatar` | rig and rig revision (the pin's default rig when unset), render size |
 | `avatar_check` | `labels.persona` |
 | `music` | bed id, each layer's digest, bytes, rate, channels, tempo factor and gain, 48 kHz |
@@ -338,6 +340,7 @@ and expects each mutation to be refused.
 | `driftLu` | above 0, at most 0.5 | hard gate |
 | `truePeakDbtp` | at most -1.5 | hard gate |
 | bed layers | 2 or 3 distinct loops | `bed_layers_invalid` |
+| bed layer `tempoFactor` | 0.5 to 2.0 | out of bounds |
 | `acquiredBy` | `Operator` | `bed_acquisition_agent` |
 | tighten edits on narrate segments | only with `tighten.enabled` | `tighten_on_synthetic` |
 
@@ -379,7 +382,9 @@ unchanged.
 Labels are manifest metadata, and they only grow. A stage with any synthetic
 input writes `synthetic: true` and the union of upstream consent ids and voice
 ids. `persona` passes through unchanged. A stage that drops or alters one
-refuses `label_chain_broken`.
+refuses `label_chain_broken`. In the audio chain the persona joins at `place`,
+whose key holds `labels.persona`: `voice` and `voice_qa` carry no persona, so a
+persona change reruns `place` and what follows it and no voice.
 
 No visible synthetic or AI-persona label is required in captions,
 `description.txt` or on the frame (KP-15). `labels.personaCue` (an opening

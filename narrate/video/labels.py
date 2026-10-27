@@ -1,7 +1,8 @@
 """Stage labels: they only grow (docs/spec/NARRATED_VIDEO.md, "Labels").
 
 A stage with any synthetic input writes synthetic: true and the union of its upstream consent ids and voice ids, and
-passes the job's persona through unchanged. check() compares a stage's labels with its parents' and refuses
+passes the job's persona through unchanged. In the audio chain the persona joins at place, whose key holds
+labels.persona: voice and voice_qa write none. check() compares a stage's labels with its parents' and refuses
 label_chain_broken when one was dropped or altered. Labels are manifest metadata only (KP-15): no stage draws them.
 """
 
