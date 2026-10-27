@@ -69,6 +69,12 @@
         MKL_NUM_THREADS = "2";
       };
     });
+    # audio.cpp 47c2756e audiocpp_cli with the Vulkan backend (narrate/bench/image/audiocpp.nix): the source of
+    # the binary sha256 an AudioCppBatch engine record pins (narrate/serve/audiocpp_batch.py --binary-sha256).
+    # x86_64-linux only: the GPU host is x86_64. Built on demand, never by `just check`.
+    packages = nixpkgs.lib.genAttrs [ "x86_64-linux" ] (system: {
+      narrate-bench-audiocpp = nixpkgs.legacyPackages.${system}.callPackage ./narrate/bench/image/audiocpp.nix {};
+    });
     formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
   };
 }

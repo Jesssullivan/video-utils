@@ -1,0 +1,140 @@
+# Narrate GPU window pod (TIN-7085; README.md). NOT APPLIED. The later pod phase of an AudioCppBatch render:
+# today phase B runs narrate/serve/audiocpp_batch.py as a host process on the GPU host, inside the bounded window
+# unit. This spec runs the same script, unchanged, inside a pod. Input to the GPU-host owner's window runner,
+# which validates it against the owner's pod contract, takes the GPU Lease by compare-and-swap, adds its run
+# label and a DNS-only NetworkPolicy, creates the pod, waits for the NARRATE-BENCH-DONE line, streams /out with
+# tar, deletes the pod and releases the Lease (README.md, "Window"). Fill these placeholders at apply time, on
+# the CPU host, never in git (README.md, "Render the specs"):
+#   __WINDOW_ID__        a lowercase window id such as 20261024t1500 (the pod is narrate-bench-<id>)
+#   __GPU_NODE__         the GPU node's kubernetes.io/hostname label value
+#   __MODELS_PVC__       the GPU node's models PersistentVolumeClaim in namespace models
+#   __IMAGE__            ghcr.io/<owner>/<path>@sha256:<64 hex>, by digest only (README.md, "Image")
+#   __PLAN_ID__          the staged `narrate plan` directory under /models/bench/narrate/plans/
+#   __VOICE__            the requests file's name, requests/<voice>.json in that plan
+#   __MODEL_FILE__       the weights under /models/bench/narrate/hf/: <repo>/<revision>/<path>
+#   __MODEL_SHA256__     the weights' sha256, the engine record's `files` entry
+#   __BINARY_SHA256__    audiocpp_cli's sha256, the engine record's `files` entry (nix build .#narrate-bench-audiocpp)
+#
+# Pod Security restricted: non-root uid and gid 10001, the render group 105 as a supplementary group (the
+# device plugin injects the render node and kfd for `devic.es/dri: 1`), no privilege escalation, every
+# capability dropped, the RuntimeDefault seccomp profile, a read-only root filesystem. CPU request 2 (the GPU
+# node is near its CPU request guard) and limit 4. Memory 12Gi request and limit, inside the namespace's quota
+# and the per-container LimitRange.
+#
+# The volume is read-only at /models with no subPath: the weights at /models/bench/narrate/hf/<repo>/<revision>/
+# (SHA256SUMS in each) and the plan at /models/bench/narrate/plans/<plan id>/, both staged before the window
+# (stage-job.yaml). The batch runner writes into its plan directory, so the pod copies the plan to
+# /out/<window id>/plan first. audiocpp_batch.py checks every request id and reference digest and hashes the
+# binary and the weights against the pins before audiocpp_cli starts, stops it at NARRATE_WINDOW_S (25 min) or
+# after 120 s without progress, and writes wav/, receipts/ and logs/ there. The pod then prints
+# NARRATE-BENCH-DONE rc=N and sleeps until deleted. activeDeadlineSeconds (30 min) ends the pod regardless.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: narrate-bench-__WINDOW_ID__
+  namespace: models
+  labels:
+    app.kubernetes.io/name: narrate-bench
+    app.kubernetes.io/part-of: narrate
+    app.kubernetes.io/component: bench
+    app.kubernetes.io/managed-by: narrate
+  annotations:
+    narrate.bench/runner: narrate/serve/audiocpp_batch.py
+    narrate.bench/plan-id: __PLAN_ID__
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: __GPU_NODE__
+  restartPolicy: Never
+  activeDeadlineSeconds: 1800
+  terminationGracePeriodSeconds: 15
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+  priorityClassName: gpu-exclusive
+  imagePullSecrets:
+    - name: ghcr-pull
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    supplementalGroups: [105]
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: bench
+      image: __IMAGE__
+      imagePullPolicy: IfNotPresent
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          w="/out/$NARRATE_RUN_ID"
+          if mkdir -p "$w" && cp -R "/models/bench/narrate/plans/$NARRATE_PLAN_ID" "$w/plan"; then
+            python3 -I /share/narrate/audiocpp_batch.py run "$w/plan" --requests "requests/$NARRATE_VOICE.json" \
+              --binary /bin/audiocpp_cli --binary-sha256 "$NARRATE_BINARY_SHA256" \
+              --model "/models/bench/narrate/hf/$NARRATE_MODEL_FILE" --model-sha256 "$NARRATE_MODEL_SHA256" \
+              --family voxcpm2 --backend vulkan --device 0 --audiocpp-commit 47c2756e \
+              --deadline-s "$NARRATE_WINDOW_S" --stall-s 120
+            rc=$?
+          else
+            rc=2
+          fi
+          echo "NARRATE-BENCH-DONE rc=$rc"
+          exec sleep "$NARRATE_LINGER_S"
+      env:
+        - name: NARRATE_RUN_ID
+          value: __WINDOW_ID__
+        - name: NARRATE_PLAN_ID
+          value: __PLAN_ID__
+        - name: NARRATE_VOICE
+          value: __VOICE__
+        - name: NARRATE_MODEL_FILE
+          value: __MODEL_FILE__
+        - name: NARRATE_MODEL_SHA256
+          value: __MODEL_SHA256__
+        - name: NARRATE_BINARY_SHA256
+          value: __BINARY_SHA256__
+        - name: NARRATE_WINDOW_S
+          value: "1500"
+        - name: NARRATE_LINGER_S
+          value: "600"
+        - name: VK_DRIVER_FILES
+          value: /share/vulkan/icd.d/radeon_icd.x86_64.json
+        - name: HOME
+          value: /tmp
+        - name: XDG_CACHE_HOME
+          value: /tmp/cache
+        - name: MESA_SHADER_CACHE_DIR
+          value: /tmp/mesa-shader-cache
+      resources:
+        requests:
+          cpu: "2"
+          memory: 12Gi
+          devic.es/dri: "1"
+        limits:
+          cpu: "4"
+          memory: 12Gi
+          devic.es/dri: "1"
+      securityContext:
+        allowPrivilegeEscalation: false
+        privileged: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+      volumeMounts:
+        - name: models
+          mountPath: /models
+          readOnly: true
+        - name: out
+          mountPath: /out
+        - name: tmp
+          mountPath: /tmp
+  volumes:
+    - name: models
+      persistentVolumeClaim:
+        claimName: __MODELS_PVC__
+        readOnly: true
+    - name: out
+      emptyDir:
+        sizeLimit: 4Gi
+    - name: tmp
+      emptyDir:
+        sizeLimit: 2Gi
