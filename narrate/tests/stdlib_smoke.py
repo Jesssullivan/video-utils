@@ -28,6 +28,7 @@ MODULES = (
     "normalise",
     "policy",
     "prerender",
+    "presentation",
     "qa",
     "registry",
     "render",

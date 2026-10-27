@@ -429,7 +429,7 @@ def assembly_bundle(manifest, result, output):
             "output_name": "internal-cade-{date}",
         }
     )
-    config = output / "video.internal.json"
+    config = output / "video-internal.json"
     private_json(config, internal)
     return {
         "prepared": True,

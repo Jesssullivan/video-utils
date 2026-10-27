@@ -103,7 +103,7 @@ def test_private_approved_bundle_preserves_source_and_prepares_only_commands(pro
     assert "pip: off" in (tmp_path / "source/manuscript/01-open.md").read_text()
     assert (output / "manuscript/01-open.md").read_bytes() == (tmp_path / "approved/open.md").read_bytes()
     assert list((output / "takes").iterdir()) == []
-    internal = json.loads((output / "video.internal.json").read_text())
+    internal = json.loads((output / "video-internal.json").read_text())
     assert internal["voice_only"] is False and internal["pip"]["default"] == "br"
     assert internal["recording_remote"] is internal["edit_host"] is internal["watch_slug"] is None
     assert "-n" in result["assemblyBundle"]["commands"][0]["argv"]
@@ -152,7 +152,7 @@ def test_missing_bundle_has_no_usable_assembly_or_client_source_writes(project, 
     output = tmp_path / "blocked"
     result = write_plan(incoming, output)
     assert result["assemblyBundle"]["prepared"] is False
-    assert not (output / "video.internal.json").exists()
+    assert not (output / "video-internal.json").exists()
     with pytest.raises(PresentationError):
         write_plan(incoming, tmp_path / "source/new-output")
 
@@ -187,7 +187,7 @@ def test_provider_script_projection_is_available_before_media_and_keeps_sources_
     assert spoken == "Cade speaks. More.\n"
     assert (output / "manuscript/01-open.md").read_bytes() == text
     assert result["assemblyBundle"]["prepared"] is False
-    assert not (output / "video.internal.json").exists()
+    assert not (output / "video-internal.json").exists()
 
 
 def test_avatar_video_does_not_truncate_narration_at_its_own_end(project, tmp_path):
@@ -222,7 +222,7 @@ def test_existing_stills_need_explicit_digest_inventory_before_usable_config(pro
     incoming.write_text(json.dumps(data))
     result = write_plan(incoming, tmp_path / "derived")
     assert result["assemblyBundle"]["prepared"] is False
-    assert not (tmp_path / "derived/video.internal.json").exists()
+    assert not (tmp_path / "derived/video-internal.json").exists()
 
 
 def test_directory_discovery_cannot_add_unmapped_historical_capture(project, tmp_path):
@@ -232,7 +232,7 @@ def test_directory_discovery_cannot_add_unmapped_historical_capture(project, tmp
     incoming.write_text(json.dumps(data))
     result = write_plan(incoming, tmp_path / "derived")
     assert result["assemblyBundle"]["prepared"] is True
-    internal = json.loads((tmp_path / "derived/video.internal.json").read_text())
+    internal = json.loads((tmp_path / "derived/video-internal.json").read_text())
     assert Path(internal["clips_dir"]) == tmp_path / "derived/clips"
     assert {path.name for path in Path(internal["clips_dir"]).iterdir()} == {"fixture.mp4"}
     assert (tmp_path / "source/media/extra.mp4").exists()
