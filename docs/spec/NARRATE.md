@@ -352,6 +352,9 @@ private):
   disclosure. Licence notices an engine requires (for example "Built with
   Fish Audio" for Drama 3) are carried into the manifest and the delivery
   description.
+- **Persona label.** A consent record may name a `persona` (NV-1, TIN-7476
+  comment `9db389dc`). A narrated video whose segment uses that voice must
+  carry the same `labels.persona` (docs/spec/NARRATED_VIDEO.md).
 - **Watermarks** are best effort and recorded as such; codecs and resynthesis
   strip them.
 
@@ -555,7 +558,11 @@ until the bench sets them. Every scoring model needs its own registry entry.
 ## Types (`narrate/dhall/`)
 
 `Engine`, `Voice`, `Consent`, `Job` and `Pronunciation`, collected in
-`package.dhall`. `dhall-to-json` renders instances; Python reads the JSON.
+`package.dhall`. The narrated-video types `Edition`, `MusicBed` and
+`NarratedVideo` sit beside them (docs/spec/NARRATED_VIDEO.md, TIN-7476).
+`Consent` carries an optional `persona` (NV-1): the AI-persona name that a
+persona voice's manifests carry as metadata (KP-15), `None` by default, with the real value in the private
+record. A narrate render does not read it. `dhall-to-json` renders instances; Python reads the JSON.
 `examples/` holds the only instances in git: the fake engine, a fixture voice
 bound to a generated ten-second sine (`narrate/dhall/check.py` regenerates it
 and checks the digest), a fixture consent record, a pronunciation table and a

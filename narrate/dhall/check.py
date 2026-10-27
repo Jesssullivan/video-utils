@@ -11,6 +11,11 @@ Engine.dhall's `consistent` and `mayRunConfidential`. It validates the models.js
 program/model-drafts/ against the draft schema and cross-checks their file lists and byte counts
 with narrate/bench/sources.json.
 
+It also checks the narrated-video examples (docs/spec/NARRATED_VIDEO.md): the music-bed records against two
+generated E-major sine loops (48 kHz mono, 16-bit PCM WAV, 2 s and 3 s), the deck base against four
+generated placeholder files, and every job against a port of Edition.dhall's `check` (at the Plan point),
+the persona label rule, the tighten rule, the delivery gates and the bounds the spec sets.
+
 `--self-test` is the negative control: it mutates copies of the examples and drafts and expects
 every mutation to be refused.
 
@@ -92,8 +97,42 @@ def sine_wav() -> bytes:
     return buffer.getvalue()
 
 
+# Bed loops: E-major triads at 48 kHz from whole-sample periods (146, 116 and 97 samples: about 329, 414 and
+# 495 Hz, near E4, G#4 and B4), so each table repeats exactly. Loop A holds the triad 2 s; loop B the root and
+# fifth 3 s.
+BED_RATE_HZ = 48000
+BED_LOOPS = {"bed-loop-a.wav": (2, (146, 116, 97)), "bed-loop-b.wav": (3, (146, 97))}
+BED_AMPLITUDE = 2000
+DECK_FIXTURES = {
+    "deck-video.txt": "Synthetic deck video placeholder. No deck, slide or client material.\n",
+    "deck-timeline.txt": "Synthetic deck timeline placeholder. No deck, slide or client material.\n",
+    "deck-stems.txt": "Synthetic deck stems placeholder. No deck, slide or client material.\n",
+    "deck-tighten-edits.txt": "Synthetic deck tighten-edits placeholder. No deck, slide or client material.\n",
+}
+
+
+def pcm_wav(rate: int, frames: bytes) -> bytes:
+    buffer = io.BytesIO()
+    with wave.open(buffer, "wb") as out:
+        out.setnchannels(1)
+        out.setsampwidth(2)
+        out.setframerate(rate)
+        out.writeframes(frames)
+    return buffer.getvalue()
+
+
+def loop_wav(seconds: int, periods: tuple) -> bytes:
+    """A deterministic chord: one exact table per period, summed. Never a recording."""
+    tables = [[round(BED_AMPLITUDE * math.sin(2 * math.pi * k / p)) for k in range(p)] for p in periods]
+    frames = b"".join(struct.pack("<h", sum(t[n % len(t)] for t in tables)) for n in range(BED_RATE_HZ * seconds))
+    return pcm_wav(BED_RATE_HZ, frames)
+
+
 def fixtures() -> dict:
-    return {"sine.wav": sine_wav(), "ref.txt": FIXTURE_TEXT.encode(), "consent.txt": FIXTURE_CONSENT.encode()}
+    files = {"sine.wav": sine_wav(), "ref.txt": FIXTURE_TEXT.encode(), "consent.txt": FIXTURE_CONSENT.encode()}
+    files.update({name: loop_wav(*spec) for name, spec in BED_LOOPS.items()})
+    files.update({name: text.encode() for name, text in DECK_FIXTURES.items()})
+    return files
 
 
 def sha(data: bytes) -> str:
@@ -107,6 +146,8 @@ def load_json(path: Path):
 def load_examples() -> dict:
     tables = load_json(EXAMPLES / "pronunciation.json")
     return {
+        "narrated_videos": load_json(EXAMPLES / "narrated-videos.json"),
+        "music_beds": load_json(EXAMPLES / "music-beds.json"),
         "voices": load_json(EXAMPLES / "voices.json"),
         "consents": load_json(EXAMPLES / "consents.json"),
         "engines": load_json(EXAMPLES / "engines.json"),
@@ -200,6 +241,193 @@ def check_examples(data: dict, errors: list) -> None:
                 errors.append(f"examples: job {job['id']} engine {engine['id']} is inconsistent")
         for voice_id in [job["voice"]] + [s["voice"] for s in job["speakers"]]:
             check_voice_for_job(job, voice_id, data, engine, errors)
+
+
+# Edition.dhall and NarratedVideo.dhall, ported. Keep in step with them and narrated-video-test.dhall.
+EDITIONS = ("Internal", "OwnContent", "ClientVoiceOnly", "ClientNarrated")
+CLIENT_EDITIONS = ("ClientVoiceOnly", "ClientNarrated")
+POINTS = ("Plan", "Place", "DeliverCheck")
+EDITION_REFUSALS = {"VoiceRefused": "edition_voice_refused", "PipRefused": "edition_pip_refused",
+                    "BedRefused": "edition_bed_refused"}
+LEAVES = ("syntheticVoice", "avatar", "pip", "bed", "bedCleared")
+NV_BOUNDS = {"avatar.width": (0.10, 0.30), "music.bedBelowVoiceLu": (10.0, 30.0), "music.duckDb": (0.0, 12.0)}
+NV_DRIFT_MAX_LU = 0.5
+NV_TRUE_PEAK_MAX_DBTP = -1.5
+BED_LAYERS = (2, 3)
+BED_TEMPO_RANGE = (0.5, 2.0)
+
+
+def edition_check(point: str, edition: str, leaves: dict) -> dict:
+    """Edition.check: the one rule the Plan, Place and DeliverCheck points run, each over its own leaves."""
+    if point not in POINTS or edition not in EDITIONS or set(leaves) != set(LEAVES):
+        raise ValueError(f"edition_check: bad point {point!r}, edition {edition!r} or leaves {sorted(leaves)}")
+    codes = []
+    if edition == "ClientVoiceOnly":
+        if leaves["syntheticVoice"]:
+            codes.append("VoiceRefused")
+        if leaves["avatar"] or leaves["pip"]:
+            codes.append("PipRefused")
+    elif edition in CLIENT_EDITIONS and leaves["pip"]:
+        codes.append("PipRefused")
+    if edition in CLIENT_EDITIONS and leaves["bed"] and not leaves["bedCleared"]:
+        codes.append("BedRefused")
+    if not codes:
+        return {"verdict": "Admitted"}
+    return {"verdict": "Refused", "point": point, "codes": codes}
+
+
+def bed_licence_cleared(bed: dict) -> bool:
+    """MusicBed.licenceCleared: a certified licence PDF digest and a clear Content ID result."""
+    content_id = bed["licence"]["contentIdCheck"]
+    return bed["licence"]["certifiedPdfSha256"] is not None and isinstance(content_id, dict) and "clear" in content_id
+
+
+def avatar_on(job: dict) -> bool:
+    return job["avatar"] is not None and any(s["avatar"] for s in job["segments"])
+
+
+def plan_leaves(job: dict, bed) -> dict:
+    """NarratedVideo.planLeaves. `bed` is the resolved record the job's music names, or None. A job has no camera
+    field, so pip is False at Plan; Place reads camera picture-in-picture from a deck's stems."""
+    return {"syntheticVoice": bool(job["segments"]), "avatar": job["avatar"] is not None, "pip": False,
+            "bed": job["music"] is not None,
+            "bedCleared": bed is not None and bed_licence_cleared(bed)
+            and job["delivery"]["voiceOnlyListen"] is not None}
+
+
+def within(value, bounds) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and bounds[0] <= value <= bounds[1]
+
+
+def check_music_beds(data: dict, errors: list) -> None:
+    files = fixtures()
+    loops = {sha(files[name]): (name, len(files[name])) for name in BED_LOOPS}
+    for bed in data["music_beds"]:
+        where = f"examples: music bed {bed['id']}"
+        if bed["acquisition"]["acquiredBy"] != "Operator":
+            errors.append(f"{where}: bed_acquisition_agent ({bed['acquisition']['acquiredBy']!r})")
+        if not bed["acquisition"]["rulingRef"]:
+            errors.append(f"{where}: acquisition names no ruling")
+        layers = bed["layers"]
+        if not BED_LAYERS[0] <= len(layers) <= BED_LAYERS[1]:
+            errors.append(f"{where}: bed_layers_invalid ({len(layers)} layers; a bed arranges 2 or 3 loops)")
+        if len({layer["sha256"] for layer in layers}) != len(layers):
+            errors.append(f"{where}: bed_layers_invalid (a loop is layered twice)")
+        for layer in layers:
+            if not within(layer["tempoFactor"], BED_TEMPO_RANGE):
+                errors.append(f"{where}: tempoFactor {layer['tempoFactor']!r} is not 0.5 to 2.0")
+            if layer["source"] != "Fixture":
+                errors.append(f"{where}: layer source {layer['source']} is not Fixture; real beds live outside git")
+                continue
+            loop = loops.get(layer["sha256"])
+            if loop is None:
+                errors.append(f"{where}: bed_digest_mismatch (layer {layer['sha256'][:12]} is no generated loop)")
+            elif (layer["bytes"], layer["rateHz"], layer["channels"]) != (loop[1], BED_RATE_HZ, 1):
+                errors.append(f"{where}: layer {loop[0]} bytes, rate or channels differ from the fixture")
+        licence = bed["licence"]
+        pdf = licence["certifiedPdfSha256"]
+        if pdf is not None and not SHA256.match(pdf):
+            errors.append(f"{where}: certifiedPdfSha256 is not hex")
+        content_id = licence["contentIdCheck"]
+        if content_id != "NotRun" and not (isinstance(content_id, dict) and len(content_id) == 1
+                                           and set(content_id) <= {"clear", "claimed"}):
+            errors.append(f"{where}: contentIdCheck {content_id!r} is not NotRun, clear or claimed")
+
+
+def check_base(nv: dict, where: str, files: dict, errors: list) -> None:
+    base = nv["base"]
+    if not isinstance(base, dict) or len(base) != 1 or next(iter(base)) not in ("still", "card", "video", "deck"):
+        errors.append(f"{where}: base {base!r} is not one of still, card, video or deck")
+        return
+    kind, body = next(iter(base.items()))
+    if kind in ("still", "video") and not SHA256.match(body["sha256"]):
+        errors.append(f"{where}: {kind} sha256 is not hex")
+    if kind in ("still", "card") and (body["fps"]["num"] < 1 or body["fps"]["den"] < 1 or body["tailS"] < 0):
+        errors.append(f"{where}: {kind} fps or tailS is invalid")
+    if kind == "deck":
+        for field, name in (("videoSha256", "deck-video.txt"), ("timelineSha256", "deck-timeline.txt"),
+                            ("stemsSha256", "deck-stems.txt")):
+            if body[field] != sha(files[name]):
+                errors.append(f"{where}: deck {field} is not the generated {name}")
+        edits = body["tightenEditsSha256"]
+        if edits is not None and edits != sha(files["deck-tighten-edits.txt"]):
+            errors.append(f"{where}: deck tightenEditsSha256 is not the generated deck-tighten-edits.txt")
+        if edits is not None and nv["segments"] and not nv["tighten"]["enabled"]:
+            errors.append(f"{where}: tighten_on_synthetic (tighten edits on narrate segments need tighten.enabled; "
+                          "it is off by default, NV-2)")
+
+
+def check_narrated_videos(data: dict, errors: list) -> None:
+    files = fixtures()
+    jobs = {j["id"]: j for j in data["jobs"]}
+    voices = {v["id"]: v for v in data["voices"]}
+    consents = {c["id"]: c for c in data["consents"]}
+    beds = {b["id"]: b for b in data["music_beds"]}
+    ids = [nv["id"] for nv in data["narrated_videos"]]
+    if len(set(ids)) != len(ids):
+        errors.append("examples: narrated-video ids repeat")
+    for edition in CLIENT_EDITIONS:
+        if edition not in {nv["edition"] for nv in data["narrated_videos"]}:
+            errors.append(f"examples: no {edition} narrated video")
+    for nv in data["narrated_videos"]:
+        where = f"examples: narrated video {nv['id']}"
+        if nv["edition"] not in EDITIONS:
+            errors.append(f"{where}: edition {nv['edition']!r} is unknown")
+            continue
+        if not isinstance(nv["tighten"], dict) or not isinstance(nv["tighten"].get("enabled"), bool):
+            errors.append(f"{where}: tighten {nv['tighten']!r} is not {{enabled: bool}}")
+            continue
+        check_base(nv, where, files, errors)
+        segment_ids = [s["id"] for s in nv["segments"]]
+        if len(set(segment_ids)) != len(segment_ids):
+            errors.append(f"{where}: segment ids repeat")
+        personas = set()
+        for segment in nv["segments"]:
+            job = jobs.get(segment["narrateJob"])
+            if job is None:
+                errors.append(f"{where}: segment {segment['id']} narrate job {segment['narrateJob']} is unknown")
+                continue
+            if segment["scriptSha256"] != job["inputSha256"]:
+                errors.append(f"{where}: segment {segment['id']} scriptSha256 is not its job's input")
+            anchor = segment["anchor"]
+            if anchor != "Auto" and not (isinstance(anchor, dict) and len(anchor) == 1
+                                         and set(anchor) <= {"atSeconds", "page"}):
+                errors.append(f"{where}: segment {segment['id']} anchor {anchor!r} is invalid")
+            for voice_id in [job["voice"]] + [s["voice"] for s in job["speakers"]]:
+                consent = consents.get(voices.get(voice_id, {}).get("consentId"))
+                if consent is not None and consent.get("persona") is not None:
+                    personas.add(consent["persona"])
+        labels = nv["labels"]
+        if avatar_on(nv) and labels["persona"] is None:
+            errors.append(f"{where}: persona_label_missing (an avatar is on)")
+        for persona in sorted(personas):
+            if labels["persona"] != persona:
+                errors.append(f"{where}: persona_label_missing (a voice's consent names a persona the labels lack)")
+        if nv["avatar"] is not None:
+            if nv["avatar"]["external"] != "kitpip":
+                errors.append(f"{where}: avatar external {nv['avatar']['external']!r} is not kitpip")
+            if not within(nv["avatar"]["width"], NV_BOUNDS["avatar.width"]):
+                errors.append(f"{where}: avatar width {nv['avatar']['width']!r} is not 0.10 to 0.30")
+        bed = None
+        if nv["music"] is not None:
+            music = nv["music"]
+            bed = beds.get(music["bed"])
+            if bed is None:
+                errors.append(f"{where}: bed_record_missing ({music['bed']})")
+            for key in ("bedBelowVoiceLu", "duckDb"):
+                if not within(music[key], NV_BOUNDS[f"music.{key}"]) or (key == "duckDb" and music[key] == 0):
+                    errors.append(f"{where}: music {key} {music[key]!r} is out of bounds")
+            if min(music["fadeInS"], music["fadeOutS"], music["tailS"]) < 0:
+                errors.append(f"{where}: music fades and tail must not be negative")
+        delivery = nv["delivery"]
+        if not 0 < delivery["driftLu"] <= NV_DRIFT_MAX_LU:
+            errors.append(f"{where}: driftLu {delivery['driftLu']!r} is not above 0 and at most 0.5")
+        if delivery["truePeakDbtp"] > NV_TRUE_PEAK_MAX_DBTP:
+            errors.append(f"{where}: truePeakDbtp {delivery['truePeakDbtp']!r} is above -1.5")
+        verdict = edition_check("Plan", nv["edition"], plan_leaves(nv, bed))
+        if verdict["verdict"] != "Admitted":
+            refusals = ", ".join(EDITION_REFUSALS[c] for c in verdict["codes"])
+            errors.append(f"{where}: refused at Plan: {refusals}")
 
 
 def validate(value, schema: dict, root: dict, where: str, errors: list) -> None:
@@ -312,6 +540,8 @@ def check_drafts(schema: dict, draft: dict, bench: dict, errors: list) -> None:
 def run_checks(data: dict, schema: dict, draft: dict, bench: dict) -> list:
     errors: list = []
     for name, step in (("examples", lambda: check_examples(data, errors)),
+                       ("music beds", lambda: check_music_beds(data, errors)),
+                       ("narrated videos", lambda: check_narrated_videos(data, errors)),
                        ("drafts", lambda: check_drafts(schema, draft, bench, errors))):
         try:
             step()
@@ -388,6 +618,89 @@ def mutations() -> list:
             "upstream")),
         ("registered with pending hashes", lambda d, m: entry(m).update(gate_state="registered")),
         ("draft unexpected key", lambda d, m: entry(m).update(sha256_list=[])),
+    ] + narrated_video_mutations()
+
+
+def narrated_video_mutations() -> list:
+    """(name, mutate(data, draft)) pairs for the music-bed and narrated-video examples."""
+    def nv(d, nv_id):
+        return next(x for x in d["narrated_videos"] if x["id"] == nv_id)
+
+    def bed(d):
+        return d["music_beds"][0]
+
+    def layer(d):
+        return bed(d)["layers"][0]
+
+    def client(d):
+        return nv(d, "nv-fixture-client-deck")
+
+    def card(d):
+        return nv(d, "nv-fixture-card")
+
+    def clear_bed(d):
+        bed(d)["licence"].update(certifiedPdfSha256="f" * 64, contentIdCheck={"clear": "probe-receipt"})
+
+    def client_with(**fields):
+        def mutate(d, m):
+            client(d).update({k: copy.deepcopy(v(d)) for k, v in fields.items()})
+        return mutate
+
+    def client_cleared_bed_without_listen(d, m):
+        clear_bed(d)
+        client(d).update(music=copy.deepcopy(card(d)["music"]))
+
+    def narrated(d):
+        return nv(d, "nv-fixture-client-narrated")
+
+    def client_narrated_bed(d, m):
+        narrated(d).update(music=copy.deepcopy(card(d)["music"]))
+
+    def client_narrated_cleared_bed_without_listen(d, m):
+        clear_bed(d)
+        client_narrated_bed(d, m)
+
+    def persona_differs(d, m):
+        d["consents"][0].update(persona="fixture-persona-other")
+
+    return [
+        ("bed acquired by an agent", lambda d, m: bed(d)["acquisition"].update(acquiredBy="Agent")),
+        ("bed of one loop as-is", lambda d, m: bed(d).update(layers=bed(d)["layers"][:1])),
+        ("bed layers one loop twice", lambda d, m: bed(d)["layers"][1].update(sha256=layer(d)["sha256"])),
+        ("bed loop digest changed", lambda d, m: layer(d).update(sha256="0" * 64)),
+        ("bed loop bytes changed", lambda d, m: layer(d).update(bytes=1)),
+        ("bed loop not a fixture in git", lambda d, m: layer(d).update(source="Splice")),
+        ("bed tempoFactor out of range", lambda d, m: layer(d).update(tempoFactor=2.5)),
+        ("bed content id malformed", lambda d, m: bed(d)["licence"].update(contentIdCheck="Clear")),
+        ("bed acquisition without ruling", lambda d, m: bed(d)["acquisition"].update(rulingRef="")),
+        ("client edition with a synthetic segment", client_with(segments=lambda d: card(d)["segments"])),
+        ("client edition with an avatar block", client_with(
+            avatar=lambda d: nv(d, "nv-fixture-avatar")["avatar"])),
+        ("client edition with an uncleared bed", client_with(music=lambda d: card(d)["music"])),
+        ("client edition with a cleared bed and no voice-only listen", client_cleared_bed_without_listen),
+        ("tighten edits on synthetic narration with tighten off",
+         lambda d, m: narrated(d).update(tighten={"enabled": False})),
+        ("tighten edits digest changed", lambda d, m: narrated(d)["base"]["deck"].update(tightenEditsSha256="e" * 64)),
+        ("tighten knob malformed", lambda d, m: card(d).update(tighten=True)),
+        ("client narrated with an uncleared bed", client_narrated_bed),
+        ("client narrated with a cleared bed and no voice-only listen", client_narrated_cleared_bed_without_listen),
+        ("deck digest changed", lambda d, m: client(d)["base"]["deck"].update(stemsSha256="0" * 64)),
+        ("base kind unknown", lambda d, m: card(d).update(base={"slides": {}})),
+        ("segment narrate job unknown", lambda d, m: card(d)["segments"][0].update(narrateJob="no-such-job")),
+        ("segment script digest wrong", lambda d, m: card(d)["segments"][0].update(scriptSha256="0" * 64)),
+        ("segment anchor malformed", lambda d, m: card(d)["segments"][0].update(anchor={"at": 1})),
+        ("bed record missing", lambda d, m: card(d)["music"].update(bed="no-such-bed")),
+        ("avatar without a persona label", lambda d, m: nv(d, "nv-fixture-avatar")["labels"].update(persona=None)),
+        ("consent persona the labels lack", persona_differs),
+        ("avatar external not kitpip", lambda d, m: nv(d, "nv-fixture-avatar")["avatar"].update(external="x")),
+        ("avatar width out of range", lambda d, m: nv(d, "nv-fixture-avatar")["avatar"].update(width=0.4)),
+        ("duck above 12 dB", lambda d, m: card(d)["music"].update(duckDb=13.0)),
+        ("bed level out of range", lambda d, m: card(d)["music"].update(bedBelowVoiceLu=5.0)),
+        ("drift gate loosened", lambda d, m: card(d)["delivery"].update(driftLu=0.6)),
+        ("true peak above -1.5 dBTP", lambda d, m: card(d)["delivery"].update(truePeakDbtp=-1.0)),
+        ("edition unknown", lambda d, m: card(d).update(edition="Public")),
+        ("no ClientVoiceOnly example", lambda d, m: client(d).update(edition="Internal")),
+        ("no ClientNarrated example", lambda d, m: narrated(d).update(edition="Internal")),
     ]
 
 
