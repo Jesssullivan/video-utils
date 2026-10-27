@@ -6,15 +6,15 @@ let Job = ../Job.dhall
 
 let lexical
     : Job.Lexical
-    = { release = "xoxd-lexical@0.3.0"
-      , commit = "a054ff37082d3f89391d90de5665f0799cb7c87e"
+    = { release = "xoxd-lexical@0.7.0"
+      , commit = "a1f580147d7b95b14e6a2085205021f91fd9e221"
       , lexiconSha256 =
-          "0337b0dcfefda437e6524310c8ba76f37d95aaf97f6ae1f55810b7282b2d5d10"
+          "dedfa123ed7f4d4e5d528097a62589330e71f9be7c7baa9f97e5cb0678c39c84"
       , promptDigestSha256 =
-          "c51d15e97fccf5c0b479a7864bd0ef5cfb7c099da51f56d5d13be741680c01b0"
+          "20b2b3e744a3d2462abeee08ae50f0bf0e2a32cb9cbba3dc7ee9a6149a58aa3f"
       , valeRegister = "narration"
       , valeRegisterSha256 =
-          "380274db85557f01b8293fe308bcff6e3ba4233939fe8949e3082f6512d2c076"
+          "d490bdc794832b6842f89fb758bb4a265a74c660080222d119a6f8931ffacc2a"
       , rewriteCheck = True
       }
 
