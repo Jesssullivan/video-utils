@@ -33,7 +33,7 @@ def main(argv=None):
         return video_cli.main(argv[1:])
     p = argparse.ArgumentParser(prog="narrate", description=__doc__)
     sub = p.add_subparsers(dest="command", required=True)
-    sub.add_parser("video", help="the narrated-video stage graph: init, plan, status, explain, verify")
+    sub.add_parser("video", help="the narrated-video stage graph: init, plan, run, stage, status, explain, verify")
 
     def job_arguments(r):
         r.add_argument("config", help="narrate.toml")

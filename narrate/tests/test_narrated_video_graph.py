@@ -312,7 +312,28 @@ def handoff_on(job, recs, ctx):
     job["delivery"]["handoff"] = True
 
 
+def pronunciation_entry(job, recs, ctx):
+    table = recs["pronunciation"]["narrate-en-example"]
+    table["entries"].append(
+        {"caseSensitive": False, "note": None, "spoken": "fix sure", "wholeWord": True, "written": "fixture"}
+    )
+
+
+def engine_model(job, recs, ctx):
+    recs["engines"]["fake-sine"]["model"] = "fake-sine-v2"
+
+
+def engine_files(job, recs, ctx):
+    recs["engines"]["fake-sine"]["files"] = [{"path": "private/model.bin", "sha256": "d" * 64}]
+
+
+def persona(job, recs, ctx):
+    job["labels"]["persona"] = "fixture-persona-b"
+
+
 AVATARS = {"avatar/seg-1", "avatar/seg-2", "avatar_check/seg-1", "avatar_check/seg-2"}
+# Both fixture narrate jobs name the same engine and pronunciation table, so an edit to either reruns both voices.
+VOICES = {"voice/seg-1", "voice/seg-2", "voice_qa/seg-1", "voice_qa/seg-2"}
 ROWS = {
     "bed level": (bed_level, {"mix", "compose", "deliver_check"}),
     "one segment's script": (
@@ -334,6 +355,11 @@ ROWS = {
     "kitpip pin": (kitpip_pin, AVATARS | {"compose", "deliver_check"}),
     "content id recorded": (content_id, {"deliver_check"}),
     "handoff turned on": (handoff_on, {"handoff"}),
+    "pronunciation entry": (pronunciation_entry, VOICES | AVATARS | {"place", "mix", "compose", "deliver_check"}),
+    "engine model": (engine_model, VOICES | AVATARS | {"place", "mix", "compose", "deliver_check"}),
+    "engine files": (engine_files, VOICES | AVATARS | {"place", "mix", "compose", "deliver_check"}),
+    # The persona joins at place (and at avatar_check for the overlay); no voice reruns.
+    "persona": (persona, {"avatar_check/seg-1", "avatar_check/seg-2", "place", "mix", "compose", "deliver_check"}),
 }
 
 
@@ -351,6 +377,26 @@ def test_invalidation_reruns_exactly_the_rows_stages(tmp_path, row):
     assert {n for n, state in states(g).items() if state in ("stale", "corrupt")} == want
     ran, _ = run_all(job, recs, s, ctx)
     assert set(ran) == want and len(ran) == len(want)
+
+
+def test_the_voice_key_holds_the_engine_by_digest_and_the_pronunciation_table_and_no_private_path():
+    recs = records()
+    recs["engines"]["fake-sine"] |= {
+        "endpoint": "http://private-host.invalid:9000",
+        "files": [{"path": "/private/b.bin", "sha256": "b" * 64}, {"path": "/private/a.bin", "sha256": "a" * 64}],
+    }
+    job = example("nv-fixture-card")
+    segment = job["segments"][0]
+    knobs = graph.knobs_for("voice", segment, job, recs, None)
+    assert knobs["engine"]["files"] == ["a" * 64, "b" * 64] and "endpoint" not in knobs["engine"]
+    assert knobs["engine"]["model"] == "fake-sine-v1"
+    table = recs["pronunciation"]["narrate-en-example"]
+    assert knobs["pronunciation"] == {"id": "narrate-en-example", "sha256": keys.digest(table)}
+    assert "/private" not in keys.canonical(knobs) and "private-host" not in keys.canonical(knobs)
+    tool = graph.tool_for("voice", plain_ctx(), segment, recs)
+    assert tool["binary_sha256"] == keys.digest(["a" * 64, "b" * 64])
+    del recs["engines"]["fake-sine"]
+    assert graph.knobs_for("voice", segment, job, recs, None)["engine"] is None
 
 
 def test_deck_reassembly_with_the_same_takes_keeps_voice_and_avatar(tmp_path):
@@ -558,6 +604,14 @@ def peak_hot(job, recs):
     job["delivery"]["truePeakDbtp"] = -1.0
 
 
+def tempo_fast(job, recs):
+    recs["music_beds"]["bed-fixture-emaj"]["layers"][1]["tempoFactor"] = 2.5
+
+
+def tempo_slow(job, recs):
+    recs["music_beds"]["bed-fixture-emaj"]["layers"][0]["tempoFactor"] = 0.25
+
+
 ADMIT = {
     "consent_missing": consent_gone,
     "consent_revoked": consent_revoked,
@@ -575,6 +629,8 @@ ADMIT = {
     "knob_out_of_bounds (duck)": duck_zero,
     "knob_out_of_bounds (drift)": drift_wide,
     "knob_out_of_bounds (peak)": peak_hot,
+    "knob_out_of_bounds (tempo above 2)": tempo_fast,
+    "knob_out_of_bounds (tempo below 0.5)": tempo_slow,
 }
 
 

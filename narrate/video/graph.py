@@ -152,6 +152,34 @@ def base_kind(job):
     return kind, body
 
 
+def engine_identity(records, narrate_job):
+    """The engine record narrate renders with, as the voice key holds it: every field but the endpoint (a serving
+    path, private and not part of the output), with its files named by digest only (their paths are private).
+    None when the records hold no such engine; narrate then refuses at render."""
+    engine = (records.get("engines") or {}).get(narrate_job["engine"])
+    if engine is None:
+        return None
+    out = {k: v for k, v in engine.items() if k not in ("endpoint", "files")}
+    out["files"] = sorted(f["sha256"] for f in engine.get("files") or [])
+    return out
+
+
+def pronunciation_identity(records, narrate_job):
+    """{id, sha256} of the pronunciation table narrate's normaliser reads, or None when the records lack it."""
+    table = (records.get("pronunciation") or {}).get(narrate_job.get("pronunciation"))
+    if table is None:
+        return None
+    return {"id": table["id"], "sha256": keys.digest(table)}
+
+
+def engine_binary_sha256(records, narrate_job):
+    """The voice tool's binary digest: the SHA-256 of the canonical sorted list of the engine's pinned file digests
+    (binary and weights), or None for an engine that pins no file (the in-process fake)."""
+    engine = (records.get("engines") or {}).get(narrate_job["engine"]) if narrate_job else None
+    files = sorted(f["sha256"] for f in (engine or {}).get("files") or [])
+    return keys.digest(files) if files else None
+
+
 def knobs_for(stage, segment, job, records, pin):
     """The job and record fields one node's output depends on. Each field belongs to the first stage that uses it."""
     narrate_job = records["jobs"].get(segment["narrateJob"]) if segment else None
@@ -167,6 +195,8 @@ def knobs_for(stage, segment, job, records, pin):
         return {
             "narrate_job": {k: v for k, v in narrate_job.items() if k != "gates"},
             "voices": [records["voices"][v] for v in sorted(set(voices))],
+            "engine": engine_identity(records, narrate_job),
+            "pronunciation": pronunciation_identity(records, narrate_job),
         }
     if stage == "voice_qa":
         return {"gates": narrate_job["gates"]}
@@ -182,6 +212,7 @@ def knobs_for(stage, segment, job, records, pin):
             "tailS": body.get("tailS"),
             "keepBaseAudio": body.get("keepBaseAudio"),
             "tighten": job["tighten"],
+            "persona": job["labels"]["persona"],
         }
     if stage == "avatar":
         # The pin's default-rig revision belongs only to the default rig. Another rig with no revision in the job
@@ -282,11 +313,14 @@ def upstream(node, by_stage):
     return rows
 
 
-def tool_for(stage, ctx):
+def tool_for(stage, ctx, segment=None, records=None):
     if stage in KITPIP_STAGES:
         return (ctx.get("kitpip") or {}).get("tool")
     name, version = TOOLS[stage]
-    return {"name": name, "version": version, "binary_sha256": None}
+    binary = None
+    if stage == "voice" and segment is not None and records is not None:
+        binary = engine_binary_sha256(records, records["jobs"].get(segment["narrateJob"]))
+    return {"name": name, "version": version, "binary_sha256": binary}
 
 
 # Planning ------------------------------------------------------------------------------------------------------
@@ -324,7 +358,7 @@ def plan(job, records, store, ctx):
         if gate["verdict"] != "Admitted":
             node["state"], node["reason"] = "blocked", "admit_refused"
             continue
-        tool = tool_for(stage, ctx)
+        tool = tool_for(stage, ctx, node["segment"], records)
         if stage in KITPIP_STAGES and kitpip_state != "resolved":
             node["state"], node["reason"] = "blocked", "kitpip_missing"
             continue

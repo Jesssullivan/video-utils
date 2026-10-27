@@ -39,7 +39,23 @@ MODULES = (
     "tempo",
     "verify",
 )
-VIDEO_MODULES = ("admit", "cli", "graph", "job", "keys", "kitpip", "store")
+VIDEO_MODULES = (
+    "admit",
+    "cli",
+    "common",
+    "fixture",
+    "graph",
+    "job",
+    "keys",
+    "kitpip",
+    "labels",
+    "mix",
+    "music",
+    "place",
+    "run",
+    "speech",
+    "store",
+)
 
 
 class StdlibSmoke(unittest.TestCase):
