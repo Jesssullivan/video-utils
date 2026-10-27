@@ -1,0 +1,121 @@
+# Narrate GPU window staging (TIN-7085; README.md). NOT APPLIED. Puts a window's weights and its `narrate plan`
+# directory on the GPU node's models volume under bench/narrate/, before any window. It needs no GPU, holds no
+# Lease and has no network at all: the NetworkPolicy below denies every ingress and egress, and the files arrive
+# from the CPU host as a tar stream through `kubectl exec` (README.md, "Stage"), never from the Hub or the model
+# store. Fill these placeholders at apply time, on the CPU host, never in git (README.md, "Render the specs"):
+#   __GPU_NODE__         the GPU node's kubernetes.io/hostname label value (the volume is node-local)
+#   __MODELS_PVC__       the GPU node's models PersistentVolumeClaim in namespace models
+#   __IMAGE__            ghcr.io/<owner>/<path>@sha256:<64 hex>, by digest only (README.md, "Image")
+#
+# The Job's one pod waits up to 55 min for /models/bench/narrate/.upload-complete, which the operator writes
+# after the tar stream. It then checks every weight directory's SHA256SUMS with `sha256sum -c`, runs
+# `audiocpp_batch.py check` on every staged requests file (request ids against their content, references
+# against the sha256 in their names), prints NARRATE-STAGE-DONE rc=N and exits. It runs no model.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: models-stage-narrate-bench
+  namespace: models
+  labels:
+    app.kubernetes.io/name: narrate-bench
+    app.kubernetes.io/part-of: narrate
+    app.kubernetes.io/component: stage
+    app.kubernetes.io/managed-by: narrate
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: narrate-bench
+      app.kubernetes.io/component: stage
+  policyTypes: ["Ingress", "Egress"]
+  ingress: []
+  egress: []
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: models-stage-narrate-bench
+  namespace: models
+  labels:
+    app.kubernetes.io/name: narrate-bench
+    app.kubernetes.io/part-of: narrate
+    app.kubernetes.io/component: stage
+    app.kubernetes.io/managed-by: narrate
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 3600
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: narrate-bench
+        app.kubernetes.io/part-of: narrate
+        app.kubernetes.io/component: stage
+        app.kubernetes.io/managed-by: narrate
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: __GPU_NODE__
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      imagePullSecrets:
+        - name: ghcr-pull
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: stage
+          image: __IMAGE__
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              root=/models/bench/narrate
+              waited=0
+              until [ -e "$root/.upload-complete" ]; do
+                if [ "$waited" -ge 3300 ]; then echo "NARRATE-STAGE-DONE rc=3"; exit 3; fi
+                sleep 10; waited=$((waited + 10))
+              done
+              rc=0
+              sums=$(find "$root/hf" -name SHA256SUMS -type f | sort)
+              [ -n "$sums" ] || rc=1
+              for s in $sums; do (cd "${s%/SHA256SUMS}" && sha256sum --quiet -c SHA256SUMS) || rc=1; done
+              found=0
+              for r in "$root"/plans/*/requests/*.json; do
+                [ -f "$r" ] || continue
+                found=1
+                python3 -I /share/narrate/audiocpp_batch.py check "${r%/requests/*}" --requests "requests/${r##*/}" || rc=1
+              done
+              [ "$found" = 1 ] || rc=1
+              echo "NARRATE-STAGE-DONE rc=$rc"
+              exit "$rc"
+          env:
+            - name: HOME
+              value: /tmp
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: models
+              mountPath: /models
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: __MODELS_PVC__
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
