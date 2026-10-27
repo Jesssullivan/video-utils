@@ -560,8 +560,8 @@ until the bench sets them. Every scoring model needs its own registry entry.
 `Engine`, `Voice`, `Consent`, `Job` and `Pronunciation`, collected in
 `package.dhall`. The narrated-video types `Edition`, `MusicBed` and
 `NarratedVideo` sit beside them (docs/spec/NARRATED_VIDEO.md, TIN-7476).
-`Consent` carries an optional `persona` (NV-1): the AI-persona label a persona
-voice's media must carry, `None` by default, with the real value in the private
+`Consent` carries an optional `persona` (NV-1): the AI-persona name that a
+persona voice's manifests carry as metadata (KP-15), `None` by default, with the real value in the private
 record. A narrate render does not read it. `dhall-to-json` renders instances; Python reads the JSON.
 `examples/` holds the only instances in git: the fake engine, a fixture voice
 bound to a generated ten-second sine (`narrate/dhall/check.py` regenerates it

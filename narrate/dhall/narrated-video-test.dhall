@@ -1,7 +1,8 @@
--- Type-level tests of the edition rule, bed clearance and the persona label (docs/spec/NARRATED_VIDEO.md).
--- `dhall type` fails if any assertion is false. Each ClientVoiceOnly refusal is asserted alone at each of
--- its three points (Plan, Place, DeliverCheck); narrate/dhall/check.py ports the same rule to Python and
--- narrate/tests/test_narrated_video_types.py asserts the port against this table.
+-- Type-level tests of the edition rule, bed clearance, the persona label and the tighten knob
+-- (docs/spec/NARRATED_VIDEO.md). `dhall type` fails if any assertion is false. Each client-edition refusal
+-- is asserted alone at each of its three points (Plan, Place, DeliverCheck); narrate/dhall/check.py ports
+-- the same rule to Python and narrate/tests/test_narrated_video_types.py asserts the port against this
+-- table.
 let Edition = ./Edition.dhall
 
 let MusicBed = ./MusicBed.dhall
@@ -122,6 +123,58 @@ let ownContentAllowsAll =
         assert
       : Edition.check P.DeliverCheck E.OwnContent everything === V.Admitted
 
+let narratedAllowsVoiceAndAvatar =
+        assert
+      :     Edition.check
+              P.DeliverCheck
+              E.ClientNarrated
+              (clean // { syntheticVoice = True, avatar = True })
+        ===  V.Admitted
+
+let narratedPipPlan =
+        assert
+      :     Edition.check P.Plan E.ClientNarrated (clean // { pip = True })
+        ===  refusedAt P.Plan [ C.PipRefused ]
+
+let narratedPipPlace =
+        assert
+      :     Edition.check P.Place E.ClientNarrated (clean // { pip = True })
+        ===  refusedAt P.Place [ C.PipRefused ]
+
+let narratedPipDeliver =
+        assert
+      :     Edition.check
+              P.DeliverCheck
+              E.ClientNarrated
+              (clean // { pip = True })
+        ===  refusedAt P.DeliverCheck [ C.PipRefused ]
+
+let narratedBedPlan =
+        assert
+      :     Edition.check P.Plan E.ClientNarrated (clean // { bed = True })
+        ===  refusedAt P.Plan [ C.BedRefused ]
+
+let narratedBedPlace =
+        assert
+      :     Edition.check P.Place E.ClientNarrated (clean // { bed = True })
+        ===  refusedAt P.Place [ C.BedRefused ]
+
+let narratedBedDeliver =
+        assert
+      :     Edition.check
+              P.DeliverCheck
+              E.ClientNarrated
+              (clean // { bed = True })
+        ===  refusedAt P.DeliverCheck [ C.BedRefused ]
+
+let narratedClearedBedAdmitted =
+        assert
+      :     Edition.check
+              P.Place
+              E.ClientNarrated
+              (everything // { pip = False, bedCleared = True })
+        ===  V.Admitted
+
 let bed
     : MusicBed.Type
     = { id = "probe-bed"
@@ -200,9 +253,9 @@ let job
       , segments = [] : List NarratedVideo.Segment
       , avatar = None NarratedVideo.Avatar
       , music = None NarratedVideo.Music
+      , tighten = d.tighten
       , captions = d.captions
-      , labels =
-        { persona = None Text, personaCue = "probe", extraNotice = None Text }
+      , labels = d.labels
       , delivery = d.delivery
       }
 
@@ -294,6 +347,63 @@ let avatarOffNeedsNoPersona =
               )
         ===  True
 
+let narratedPlanAdmitsSyntheticAvatar =
+        assert
+      :     NarratedVideo.plan
+              (     job
+                //  { edition = E.ClientNarrated
+                    , segments = [ segment ]
+                    , avatar = Some d.avatar
+                    }
+              )
+              (None MusicBed.Type)
+        ===  V.Admitted
+
+let narratedPlanBedUncleared =
+        assert
+      :     NarratedVideo.plan
+              (withMusic // { edition = E.ClientNarrated })
+              (Some clearedBed)
+        ===  refusedAt P.Plan [ C.BedRefused ]
+
+let deckWithEdits =
+      NarratedVideo.Base.Deck
+        { deck =
+          { producer = "probe"
+          , videoSha256 = "probe"
+          , timelineSha256 = "probe"
+          , stemsSha256 = "probe"
+          , tightenEditsSha256 = Some "probe-edits"
+          }
+        }
+
+let tightened = job // { edition = E.Internal, base = deckWithEdits }
+
+let tightenOffRefusesSyntheticEdits =
+        assert
+      :     NarratedVideo.tightenAdmitted
+              (tightened // { segments = [ segment ] })
+        ===  False
+
+let tightenOnAdmitsSyntheticEdits =
+        assert
+      :     NarratedVideo.tightenAdmitted
+              (tightened // { segments = [ segment ], tighten.enabled = True })
+        ===  True
+
+let tightenOffAdmitsOperatorTakes =
+      assert : NarratedVideo.tightenAdmitted tightened === True
+
+let tightenOffAdmitsUneditedNarration =
+        assert
+      :     NarratedVideo.tightenAdmitted (job // { segments = [ segment ] })
+        ===  True
+
+let labelsNeedNoVisibleCue =
+        assert
+      :     { cue = d.labels.personaCue, notice = d.labels.extraNotice }
+        ===  { cue = None Text, notice = None Text }
+
 let defaultsMatchNv2 =
         assert
       :     { edition = d.edition
@@ -305,6 +415,7 @@ let defaultsMatchNv2 =
             , duck = d.music.duckDb
             , fadeIn = d.music.fadeInS
             , fadeOut = d.music.fadeOutS
+            , tighten = d.tighten.enabled
             }
         ===  { edition = E.Internal
              , channels = NarratedVideo.Channels.Mono
@@ -315,6 +426,7 @@ let defaultsMatchNv2 =
              , duck = 7.0
              , fadeIn = 3.0
              , fadeOut = 5.0
+             , tighten = False
              }
 
 in  True

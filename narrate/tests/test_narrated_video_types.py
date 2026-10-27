@@ -1,5 +1,5 @@
 """The narrated-video types (docs/spec/NARRATED_VIDEO.md, TIN-7476): the edition rule at its three points, the
-music-bed acquisition rule, the persona label and the Consent persona field (NV-1).
+music-bed acquisition rule, the persona label, the tighten knob and the Consent persona field (NV-1).
 
 The rule is defined in narrate/dhall/Edition.dhall and asserted in narrate/dhall/narrated-video-test.dhall.
 check.py ports it; these tests pin the port to that table and name the refusal each example mutation draws.
@@ -58,6 +58,19 @@ def test_a_cleared_bed_and_a_voice_only_job_pass_at_every_point(check, point):
     assert check.edition_check(point, "ClientVoiceOnly", cleared) == {"verdict": "Admitted"}
 
 
+@pytest.mark.parametrize("point", POINTS)
+@pytest.mark.parametrize(("leaf", "code"), [({"pip": True}, "PipRefused"), ({"bed": True}, "BedRefused")])
+def test_client_narrated_refuses_camera_pip_and_an_uncleared_bed_alone_at_each_point(check, point, leaf, code):
+    verdict = check.edition_check(point, "ClientNarrated", {**CLEAN, **leaf})
+    assert verdict == {"verdict": "Refused", "point": point, "codes": [code]}
+
+
+@pytest.mark.parametrize("point", POINTS)
+def test_client_narrated_admits_the_synthetic_narrator_and_avatar(check, point):
+    leaves = {**CLEAN, "syntheticVoice": True, "avatar": True, "bed": True, "bedCleared": True}
+    assert check.edition_check(point, "ClientNarrated", leaves) == {"verdict": "Admitted"}
+
+
 def test_internal_and_own_content_admit_every_leaf_combination(check):
     for edition, point, values in itertools.product(
         ("Internal", "OwnContent"), POINTS, itertools.product((False, True), repeat=5)
@@ -79,11 +92,16 @@ def test_the_committed_examples_pass(check, data):
         "nv-fixture-card": "Internal",
         "nv-fixture-avatar": "Internal",
         "nv-fixture-client-deck": "ClientVoiceOnly",
+        "nv-fixture-client-narrated": "ClientNarrated",
     }
 
 
 def client(data):
     return next(nv for nv in data["narrated_videos"] if nv["id"] == "nv-fixture-client-deck")
+
+
+def narrated(data):
+    return next(nv for nv in data["narrated_videos"] if nv["id"] == "nv-fixture-client-narrated")
 
 
 def card(data):
@@ -121,11 +139,38 @@ def test_an_agent_acquired_bed_is_refused(check, data):
     assert any("bed_acquisition_agent" in line for line in refusals(check, data))
 
 
-def test_tighten_is_refused_on_synthetic_narration(check, data):
-    deck = client(data)
-    deck.update(edition="Internal", segments=copy.deepcopy(card(data)["segments"]))
-    deck["base"]["deck"]["tightenEditsSha256"] = "e" * 64
-    assert any("tighten_on_synthetic" in line for line in refusals(check, data))
+def test_tighten_defaults_off_and_a_project_may_enable_it(check, data):
+    assert card(data)["tighten"] == {"enabled": False}
+    deck = narrated(data)
+    assert deck["tighten"] == {"enabled": True} and deck["base"]["deck"]["tightenEditsSha256"]
+    assert refusals(check, data) == []
+    deck["tighten"]["enabled"] = False
+    assert [line for line in refusals(check, data) if "tighten_on_synthetic" in line] == [
+        "examples: narrated video nv-fixture-client-narrated: tighten_on_synthetic (tighten edits on narrate "
+        "segments need tighten.enabled; it is off by default, NV-2)"
+    ]
+
+
+def test_tighten_edits_on_operator_takes_need_no_override(check, data):
+    client(data)["base"]["deck"]["tightenEditsSha256"] = narrated(data)["base"]["deck"]["tightenEditsSha256"]
+    assert refusals(check, data) == []
+
+
+def test_client_narrated_gates_the_bed_like_every_client_edition(check, data):
+    narrated(data)["music"] = copy.deepcopy(card(data)["music"])
+    assert [line for line in refusals(check, data) if "refused at Plan" in line] == [
+        "examples: narrated video nv-fixture-client-narrated: refused at Plan: edition_bed_refused"
+    ]
+    data["music_beds"][0]["licence"].update(certifiedPdfSha256="f" * 64, contentIdCheck={"clear": "probe-receipt"})
+    narrated(data)["delivery"]["voiceOnlyListen"] = "probe-listen-receipt"
+    assert refusals(check, data) == []
+
+
+def test_no_visible_label_is_required(check, data):
+    """KP-15 (TIN-7476 comment 4ab7fc27): captions and description.txt need no synthetic or persona label."""
+    for nv in data["narrated_videos"]:
+        assert nv["labels"]["personaCue"] is None and nv["labels"]["extraNotice"] is None
+    assert refusals(check, data) == []
 
 
 def test_a_consent_persona_must_reach_the_labels(check, data):

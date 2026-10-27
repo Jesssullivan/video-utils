@@ -1,6 +1,6 @@
 -- A fixture music bed: two generated E-major sine loops (narrate/dhall/check.py), never a recording or a
--- licensed loop. It has no licence PDF and no Content ID result, so it is not cleared: a ClientVoiceOnly
--- delivery refuses it. Real bed records, loops and licence PDFs live in the private store.
+-- licensed loop. It has no licence PDF and no Content ID result, so it is not cleared: a delivery under
+-- either client edition refuses it. Real bed records, loops and licence PDFs live in the private store.
 let MusicBed = ../MusicBed.dhall
 
 in    [ { id = "bed-fixture-emaj"

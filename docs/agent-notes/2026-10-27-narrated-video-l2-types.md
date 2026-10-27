@@ -37,9 +37,35 @@ NV-4 starts this lane. Receipt per R-HOOK-CONVERGENCE-20261004 (R-N13).
 | `cargo test --locked` (`just test-rust`) | exit 0 |
 | `test_bazel_graph_s3` | exit 0 |
 
-Inferences, not measured: the bed-level reading ("about 20 dB under the voice"
-as un-ducked bed loudness against the narration target) and the 50 ms attack
-default. The spec lists both as unknowns until a matched-loudness A/B.
+The bed level is decided: the deck project's ruling 58 picked 20 dB under the
+voice from a matched-loudness A/B, before a 7 dB duck. The 50 ms attack default
+is an inference, not measured, and stays an unknown.
+
+## Review fixes (2026-10-27)
+
+Authority: the PR #56 review, with KP-15 (TIN-7476 comment `4ab7fc27`) and the
+deck project's ruling 59(d) (`e427ecfc`). Receipt per R-HOOK-CONVERGENCE-20261004
+(R-N13).
+
+| Finding | Change |
+| --- | --- |
+| Tighten was an unconditional refusal | `NarratedVideo.tighten : { enabled : Bool }`, default off (NV-2). `tighten_on_synthetic` refuses only while tighten is off. The spec's "Tighten" section records the per-project override and the `stems.json` binding (edits digest plus pre-tighten take digest) that keeps `place` from `voice_stem_unbound` |
+| Visible labels were mandatory | rebased on KP-15. `labels.personaCue` is `Optional Text`, default none. The empty-cue check, the caption prefix and the description notice rules are gone. Manifest labels still only grow |
+| No edition fit a client cut with the narrator and avatar | new `ClientNarrated` edition (59(d)): synthetic voice and kitpip allowed, camera PiP refused. The bed gate now covers every client edition. At Plan, `avatar` is any avatar block and `pip` is false |
+| Bed level listed as unknown | replaced by the ruling 58 decision. The attack time stays open |
+
+| Check | Result |
+| --- | --- |
+| `just narrate-dhall-check` | types, format, renders and `check.py` ok. Self-test 66 mutations refused |
+| Dhall negative control | gating the bed on `voiceOnly` alone fails `dhall type` (`Assertion failed`) |
+| `just narrate-lint narrate-test` | ruff clean, 757 passed, 1 skipped |
+| `tests.test_public_tree`, `tests.test_timeline_contract` | 78 tests OK, 1 skipped (no private terms file) |
+| `just check` | 2206 tests: 8 failed or errored, 188 skipped. All 8 are the same marked-video and marked-compact renders raising `No bounded supported installed font found`, as in the first run. `scripts/doctor.py --require-media` exit 0 |
+
+Open for the operator: whether `ClientNarrated` applies beyond the deck
+project. Open for L8: the deck's `stems.json` must add the pre-tighten take
+digest. Narrate's own renderer still writes a caption and VTT label. KP-15 no
+longer requires it, and removing it is a narrate change outside L2.
 
 ## Next
 

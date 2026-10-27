@@ -36,7 +36,7 @@
     "labels": {
       "extraNotice": null,
       "persona": null,
-      "personaCue": "Narrated by a synthetic voice"
+      "personaCue": null
     },
     "music": {
       "attackMs": 50,
@@ -57,7 +57,10 @@
         "narrateJob": "job-fixture-fake",
         "scriptSha256": "93f7f4183b4b6ccec0c3ef2c83cca16dcb0ec4a929d55941193ab84f4f355d3a"
       }
-    ]
+    ],
+    "tighten": {
+      "enabled": false
+    }
   },
   {
     "avatar": {
@@ -104,7 +107,7 @@
     "labels": {
       "extraNotice": null,
       "persona": "fixture-persona",
-      "personaCue": "Narrated by an AI persona"
+      "personaCue": null
     },
     "music": {
       "attackMs": 50,
@@ -125,7 +128,10 @@
         "narrateJob": "job-fixture-fake",
         "scriptSha256": "93f7f4183b4b6ccec0c3ef2c83cca16dcb0ec4a929d55941193ab84f4f355d3a"
       }
-    ]
+    ],
+    "tighten": {
+      "enabled": false
+    }
   },
   {
     "avatar": null,
@@ -159,9 +165,68 @@
     "labels": {
       "extraNotice": null,
       "persona": null,
-      "personaCue": "Narrated by the presenter"
+      "personaCue": null
     },
     "music": null,
-    "segments": []
+    "segments": [],
+    "tighten": {
+      "enabled": false
+    }
+  },
+  {
+    "avatar": {
+      "corner": "BR",
+      "external": "kitpip",
+      "marginPx": 32,
+      "renderSize": 512,
+      "rig": null,
+      "rigRevisionSha256": null,
+      "width": 0.22
+    },
+    "base": {
+      "deck": {
+        "producer": "fixture-deck-assembler",
+        "stemsSha256": "ba12eea14e9c325423bd4e9ec9e2db79452f82e14518d52fee7632a01470b626",
+        "tightenEditsSha256": "00954c81b66e26d5077c9853b7087ea4545f489b7823b237c08bcc9eb0ca852f",
+        "timelineSha256": "767e6bb830e8f2a4b89cda71bd9ff152573e108761393bd7fab11871f9e420a9",
+        "videoSha256": "84c0b8d31bfe1b39386a634f91ed79b6210b6da497685e8ce4ccaaf97e436b9f"
+      }
+    },
+    "captions": {
+      "burn": false,
+      "soft": true,
+      "srt": true,
+      "vtt": true
+    },
+    "delivery": {
+      "channels": "Mono",
+      "driftLu": 0.5,
+      "handoff": false,
+      "profile": "Web1080p30",
+      "targetLufs": -16,
+      "truePeakDbtp": -1.5,
+      "upload": false,
+      "voiceOnlyListen": null
+    },
+    "edition": "ClientNarrated",
+    "id": "nv-fixture-client-narrated",
+    "labels": {
+      "extraNotice": null,
+      "persona": "fixture-persona",
+      "personaCue": null
+    },
+    "music": null,
+    "segments": [
+      {
+        "anchor": "Auto",
+        "avatar": true,
+        "id": "seg-1",
+        "narrateJob": "job-fixture-fake",
+        "scriptSha256": "93f7f4183b4b6ccec0c3ef2c83cca16dcb0ec4a929d55941193ab84f4f355d3a"
+      }
+    ],
+    "tighten": {
+      "enabled": true
+    }
   }
 ]

@@ -1,8 +1,9 @@
 # Narrated video (`narrate/video/`)
 
 Authority: operator direction KP-13 (Linear TIN-7476 comment `94248deb`), rulings
-KP-7 (`0f367c48`), KP-14 (`1c16fbda`) and NV-1 to NV-5 (`9db389dc`), repository
-AGENTS.md and R-HOOK-CONVERGENCE-20261004 (R-N11, R-N12, R-N13). This spec is
+KP-7 (`0f367c48`), KP-14 (`1c16fbda`), NV-1 to NV-5 (`9db389dc`), the deck
+project's ruling 59(d) (`e427ecfc`) and KP-15 (`4ab7fc27`), repository AGENTS.md
+and R-HOOK-CONVERGENCE-20261004 (R-N11, R-N12, R-N13). This spec is
 written before the code that implements it. Where it names a later lane, that
 lane owns the code and may refine a detail here in the same PR that implements
 it.
@@ -20,16 +21,19 @@ source media.
 | Id | Decision |
 | --- | --- |
 | NV-1 | This repository may name `kitpip`. The narrate `Consent` type gains an optional `persona` field whose real value stays private. No kitpip repository URL or art enters this repository, and the kitpip pin lives in a private record |
-| NV-2 | Simple-job defaults: edition `Internal` until a first listening receipt. A mono mix when a bed is present, until an A/B. No music bed in a client delivery until the licence PDF, the Content ID check and a voice-only listen pass. Tighten off for synthetic narration |
+| NV-2 | Simple-job defaults: edition `Internal` until a first listening receipt. A mono mix when a bed is present, until an A/B. No music bed in a client delivery until the licence PDF, the Content ID check and a voice-only listen pass. Tighten off for synthetic narration. These are defaults: a project may override tighten (see "Tighten") |
 | NV-3 | An agent may read and summarise a vendor's public licence terms. The operator downloads the certified licence PDF, and its digest goes into the private `MusicBed` record. Agents never purchase |
 | NV-4 | The no-avatar half starts now: L2 spec and types, L3 graph core, L4 simple path with voice and music bed. kitpip plugs in after its procedural-geometry release (KP-12) merges |
-| KP-7, KP-14 | The overlay shows the narrator mark with no visible "AI persona" badge. The label stays in the manifests, the captions and `description.txt`. Client deliveries stay voice-only with picture-in-picture off |
+| KP-7, KP-14 | The overlay shows the narrator mark with no visible "AI persona" badge. Client deliveries stay voice-only with picture-in-picture off, except where 59(d) applies |
+| 59(d) | The deck project's ship cut carries the kitpip avatar. Its "picture-in-picture off" meant no camera of the operator, not the avatar. For that video this supersedes the voice-only part of KP-14. The `ClientNarrated` edition carries it |
+| KP-15 | No visible synthetic or AI-persona label is required in captions, descriptions or on-frame marks. Manifest metadata (`synthetic: true`, consent ids, persona) stays. This supersedes KP-7's "labels in captions and description" |
 
 Music-bed levels (NV-2, from the deck seat's answers the operator adopted): the
-bed sits about 20 dB under the voice and a sidechain ducks it a further 6 to
-8 dB under the foreground. Fades are 3 s in and 5 s out. Narration is
-re-measured at -16 LUFS integrated, and the whole mix is never
-loudness-normalised. Drift over 0.5 LU or a true peak above -1.5 dBTP fails.
+bed sits 20 dB under the voice and a sidechain ducks it a further 6 to 8 dB
+under the foreground. The operator picked the 20 dB level from a
+matched-loudness A/B (the deck project's ruling 58). Fades are 3 s in and 5 s
+out. Narration is re-measured at -16 LUFS integrated, and the whole mix is
+never loudness-normalised. Drift over 0.5 LU or a true peak above -1.5 dBTP fails.
 Bed audio never enters git.
 
 ## Lanes
@@ -87,16 +91,19 @@ details.
 
 ## Editions
 
-| Edition | Synthetic voice | Avatar or other PiP | Music bed |
-| --- | --- | --- | --- |
-| `Internal` (default, NV-2) | yes | yes | yes |
-| `OwnContent` | yes | yes | yes |
-| `ClientVoiceOnly` | refused | refused | only when cleared |
+| Edition | Synthetic voice | kitpip avatar | Camera or other PiP | Music bed |
+| --- | --- | --- | --- | --- |
+| `Internal` (default, NV-2) | yes | yes | yes | yes |
+| `OwnContent` | yes | yes | yes | yes |
+| `ClientVoiceOnly` (default for a client delivery) | refused | refused | refused | only when cleared |
+| `ClientNarrated` (59(d)) | yes | yes | refused | only when cleared |
 
-A bed is cleared for a `ClientVoiceOnly` delivery when its private record holds
-a certified licence PDF digest and a clear Content ID result
+Every client edition gates the bed. A bed is cleared when its private record
+holds a certified licence PDF digest and a clear Content ID result
 (`MusicBed.licenceCleared`), and the job's `delivery.voiceOnlyListen` names the
-receipt of a voice-only listen pass.
+receipt of a voice-only listen pass. A client delivery with a synthetic
+narrator files as `ClientNarrated`, never as `Internal` or `OwnContent`, so the
+bed gate applies to it.
 
 One rule, `Edition.check`, runs at three points. Each point builds its own
 leaves (`syntheticVoice`, `avatar`, `pip`, `bed`, `bedCleared`) from what it
@@ -104,8 +111,8 @@ can see, so a check that one point misses is still made at the next:
 
 | Point | Stage | Leaves come from |
 | --- | --- | --- |
-| `Plan` | `admit` | the job: any segment is a synthetic voice, any avatar block is PiP, `music` is a bed (`NarratedVideo.planLeaves`) |
-| `Place` | `place` | the placed stems' manifests: a stem whose manifest says `synthetic: true`, and any overlay or camera PiP in an imported deck's stems |
+| `Plan` | `admit` | the job: any segment is a synthetic voice, any avatar block is an avatar, `music` is a bed. A job has no camera field, so `pip` is false (`NarratedVideo.planLeaves`) |
+| `Place` | `place` | the placed stems' manifests: a stem whose manifest says `synthetic: true`, any overlay, and any camera PiP in an imported deck's stems |
 | `DeliverCheck` | `deliver_check` | the label set re-derived from the composed leaves |
 
 Refusals are `edition_voice_refused`, `edition_pip_refused` and
@@ -123,16 +130,14 @@ never paths. The executor reads the `dhall-to-json` render.
 - **`NarratedVideo`**: `id`, `edition`, `base` (`Still`, `Card`, `Video` or an
   imported `Deck`), `segments` (each a narrate job id, its script digest, an
   anchor and a per-segment avatar switch), an optional `avatar`, an optional
-  `music`, `captions`, `labels` and `delivery`. A `Deck` records
-  `tightenEditsSha256`. Tighten is off for synthetic narration (NV-2), and
-  `check.py` refuses a deck with tighten edits under narrate segments
-  (`tighten_on_synthetic`).
+  `music`, `tighten`, `captions`, `labels` and `delivery`. A `Deck` records
+  `tightenEditsSha256`. `tighten.enabled` defaults to false (see "Tighten").
 - **`MusicBed`**: 2 or 3 layers, each a loop by SHA-256 with bytes, rate,
   channels, source, tempo factor (0.5 to 2.0) and gain. A licence block holds the
   terms reference, the certified PDF digest and the Content ID state. The
   acquisition block's `acquiredBy` has one constructor, `Operator`, so a record
   that says an agent acquired the bed cannot type-check.
-- **`Edition`**: the three editions, the three points, the refusal codes and
+- **`Edition`**: the four editions, the three points, the refusal codes and
   `check`.
 - **`Consent.persona`** (NV-1): `Optional Text`, `None` by default
   (`Consent.default`). When a segment's voice has a consent persona, the job's
@@ -152,18 +157,22 @@ Defaults (`NarratedVideo.defaults`, asserted in the type test):
 | edition | `Internal` |
 | base | a 1920x1080 card at 30/1, or a still when given |
 | avatar | `kitpip`, pin default rig, 512 px render, bottom right, 0.22 of base width, 32 px margin |
-| music | `None` unless a bed record id is given. When given: 20 LU under the voice, sidechain duck 7 dB, attack 50 ms, release 400 ms, fades 3 s and 5 s, tail 5 s |
+| music | `None` unless a bed record id is given. When given: 20 LU under the voice (the deck project's ruling 58), sidechain duck 7 dB, attack 50 ms, release 400 ms, fades 3 s and 5 s, tail 5 s |
+| tighten | `{ enabled = False }` (NV-2) |
+| labels | no persona, no caption cue, no description line (KP-15) |
 | captions | soft, SRT and VTT, not burned |
 | delivery | `Web1080p30`, -16 LUFS, -1.5 dBTP, 0.5 LU, `Mono`, no upload, no handoff, no voice-only listen |
 
-`examples/narrated-videos.dhall` holds three jobs: the simple Internal card job
-with the fixture bed, the same job with a kitpip avatar and a persona label, and
-a ClientVoiceOnly deck job with no narrate segment, avatar or bed.
+`examples/narrated-videos.dhall` holds four jobs: the simple Internal card job
+with the fixture bed, the same job with a kitpip avatar and a persona label, a
+ClientVoiceOnly deck job with no narrate segment, avatar or bed, and a
+ClientNarrated deck job with a narrate segment, an avatar, tighten enabled and
+generated tighten edits.
 `examples/music-beds.dhall` holds one fixture bed of two generated E-major sine
 loops. `check.py` regenerates the loops and the deck placeholders and checks
-every digest, every reference, the edition rule at Plan, the persona rule and
-the bounds below. Its self-test mutates the examples 30 more ways and expects
-each mutation to be refused.
+every digest, every reference, the edition rule at Plan, the persona rule, the
+tighten rule and the bounds below. Its self-test mutates the examples 35 ways
+and expects each mutation to be refused.
 
 | Bound | Value | Refusal or check |
 | --- | --- | --- |
@@ -174,6 +183,7 @@ each mutation to be refused.
 | `truePeakDbtp` | at most -1.5 | hard gate |
 | bed layers | 2 or 3 distinct loops | `bed_layers_invalid` |
 | `acquiredBy` | `Operator` | `bed_acquisition_agent` |
+| tighten edits on narrate segments | only with `tighten.enabled` | `tighten_on_synthetic` |
 
 ## Music bed
 
@@ -183,18 +193,43 @@ each mutation to be refused.
 - No tool takes a URL. Loops are found by SHA-256 in the private store.
 - No public upload until the record holds the certified licence PDF digest and
   a Content ID result: `delivery_gate.public_upload_allowed` stays false
-  until both exist. `ClientVoiceOnly` also needs the voice-only listen pass.
+  until both exist. A client edition also needs the voice-only listen pass.
 - One limiter, in `mix`. The sidechain keys on the whole foreground, voice and
   kept clip sound alike.
 
+## Tighten
+
+Tighten trims dead air, spans that are silent and still at once. It is off by
+default for synthetic narration (NV-2), because narrate's pause settings set the
+pacing. A project may set `tighten.enabled: true` as a per-project override.
+The deck project does: its motion-aware tighten took one cut's dead air from
+40.3 s to 0.0 s (its rulings 58 to 60).
+
+In phase 1 only an imported `Deck` applies tighten, in the deck's own
+assembler. `Deck.tightenEditsSha256` names the edits it applied.
+`check.py` refuses tighten edits on narrate segments while tighten is off
+(`tighten_on_synthetic`). Edits on operator takes need no override.
+
+A tightened take no longer equals its narrate run's output, so `place` binds it
+through the deck's `stems.json`. Per page that file carries the take digest, the
+pre-tighten take digest and the tighten edits digest. `place` requires the edits
+digest to equal `Deck.tightenEditsSha256` and the pre-tighten digest to equal
+the narrate run's `output_sha256["narration.wav"]`. Without that binding it
+refuses `voice_stem_unbound`. The labels pass through a tightened take
+unchanged.
+
 ## Labels
 
-Labels only grow. A stage with any synthetic input writes `synthetic: true` and
-the union of upstream consent ids and voice ids. `persona` passes through
-unchanged. A stage that drops or alters one refuses `label_chain_broken`.
-Captions open with "[Synthetic voice] " and the persona cue. `description.txt`
-comes from a fixed template, and `labels.extraNotice` is appended, never
-substituted. The overlay carries no visible badge (KP-7).
+Labels are manifest metadata, and they only grow. A stage with any synthetic
+input writes `synthetic: true` and the union of upstream consent ids and voice
+ids. `persona` passes through unchanged. A stage that drops or alters one
+refuses `label_chain_broken`.
+
+No visible synthetic or AI-persona label is required in captions,
+`description.txt` or on the frame (KP-15). `labels.personaCue` (an opening
+caption cue) and `labels.extraNotice` (a `description.txt` line) are optional
+and default to none. When a job sets one, the stages keep it. The overlay
+carries no visible badge (KP-7).
 
 ## Timeline
 
@@ -241,19 +276,28 @@ deck's private repository.
 | No voice clip, rendered narration, overlay, frame, bed audio, loop name, vendor stack or asset id, licence PDF, transcript, client text, host name or personal path in git, CI or logs | `tests/test_public_tree.py`. Tool results carry ids and digests |
 | kitpip is never a flake input and never vendored | the private pin record holds digests only, checked before spawn |
 | Agents never acquire music | `acquiredBy : < Operator >` |
-| Client deliveries stay voice-only | `Edition.check` at Plan, Place and DeliverCheck |
+| Client deliveries stay voice-only, except the synthetic narrator and kitpip avatar under `ClientNarrated` (59(d)). Every client delivery gates the bed | `Edition.check` at Plan, Place and DeliverCheck |
 | Never loudness-normalise the mix. One limiter at -1.5 dBTP. Drift over 0.5 LU fails | `Delivery` bounds, `loudness_drift`, `true_peak_exceeded` |
 | Never write under `artifacts/runs/` or inside a narrate run | the store layout, `avatar_outside_store` |
 | Verified is not accepted | separate states: source checks, stub render, local render, lip sync, listening, Content ID, delivery |
 
+## Decided bed level
+
+The deck project's ruling 58 settled the bed level: the operator picked 20 dB
+under the voice from a matched-loudness A/B. The meaning follows the deck's
+bed recipe: the un-ducked bed sits 20 dB under the voice, and the sidechain
+then ducks it 7 dB. `bedBelowVoiceLu = 20` before the duck is the default, and
+it stays a knob.
+
 ## Unknowns
 
-- How "about 20 dB under the voice" maps to a measurement. This spec reads it
-  as the un-ducked bed's integrated loudness relative to the narration target.
-  The deck seat reads it as about -36 LUFS during speech after the duck. A
-  matched-loudness A/B settles it, and `bedBelowVoiceLu` stays a knob.
 - Sidechain attack: 50 ms here (the deck seat's practice). The earlier music-bed
   draft used 20 ms. Not yet compared.
+- Whether `ClientNarrated` applies to client deliveries beyond the deck project.
+  59(d) rules for that video only. Other client deliveries default to
+  `ClientVoiceOnly` until the operator rules.
+- The deck's `stems.json` (L8) does not yet carry the pre-tighten take digest
+  that `place` needs to bind a tightened take.
 - The kitpip release date and its knob set (KP-12).
 - Whether kitpip writes `avatar_overlay_v1` itself or the `avatar` stage wraps
   its manifest. L5 decides and keeps the fixture current.

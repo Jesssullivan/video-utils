@@ -12,9 +12,9 @@ program/model-drafts/ against the draft schema and cross-checks their file lists
 with narrate/bench/sources.json.
 
 It also checks the narrated-video examples (docs/spec/NARRATED_VIDEO.md): the music-bed records against two
-generated E-major sine loops (48 kHz mono, 16-bit PCM WAV, 2 s and 3 s), the deck base against three
+generated E-major sine loops (48 kHz mono, 16-bit PCM WAV, 2 s and 3 s), the deck base against four
 generated placeholder files, and every job against a port of Edition.dhall's `check` (at the Plan point),
-the persona label rule, the delivery gates and the bounds the spec sets.
+the persona label rule, the tighten rule, the delivery gates and the bounds the spec sets.
 
 `--self-test` is the negative control: it mutates copies of the examples and drafts and expects
 every mutation to be refused.
@@ -107,6 +107,7 @@ DECK_FIXTURES = {
     "deck-video.txt": "Synthetic deck video placeholder. No deck, slide or client material.\n",
     "deck-timeline.txt": "Synthetic deck timeline placeholder. No deck, slide or client material.\n",
     "deck-stems.txt": "Synthetic deck stems placeholder. No deck, slide or client material.\n",
+    "deck-tighten-edits.txt": "Synthetic deck tighten-edits placeholder. No deck, slide or client material.\n",
 }
 
 
@@ -243,7 +244,8 @@ def check_examples(data: dict, errors: list) -> None:
 
 
 # Edition.dhall and NarratedVideo.dhall, ported. Keep in step with them and narrated-video-test.dhall.
-EDITIONS = ("Internal", "OwnContent", "ClientVoiceOnly")
+EDITIONS = ("Internal", "OwnContent", "ClientVoiceOnly", "ClientNarrated")
+CLIENT_EDITIONS = ("ClientVoiceOnly", "ClientNarrated")
 POINTS = ("Plan", "Place", "DeliverCheck")
 EDITION_REFUSALS = {"VoiceRefused": "edition_voice_refused", "PipRefused": "edition_pip_refused",
                     "BedRefused": "edition_bed_refused"}
@@ -265,8 +267,10 @@ def edition_check(point: str, edition: str, leaves: dict) -> dict:
             codes.append("VoiceRefused")
         if leaves["avatar"] or leaves["pip"]:
             codes.append("PipRefused")
-        if leaves["bed"] and not leaves["bedCleared"]:
-            codes.append("BedRefused")
+    elif edition in CLIENT_EDITIONS and leaves["pip"]:
+        codes.append("PipRefused")
+    if edition in CLIENT_EDITIONS and leaves["bed"] and not leaves["bedCleared"]:
+        codes.append("BedRefused")
     if not codes:
         return {"verdict": "Admitted"}
     return {"verdict": "Refused", "point": point, "codes": codes}
@@ -283,8 +287,9 @@ def avatar_on(job: dict) -> bool:
 
 
 def plan_leaves(job: dict, bed) -> dict:
-    """NarratedVideo.planLeaves. `bed` is the resolved record the job's music names, or None."""
-    return {"syntheticVoice": bool(job["segments"]), "avatar": avatar_on(job), "pip": job["avatar"] is not None,
+    """NarratedVideo.planLeaves. `bed` is the resolved record the job's music names, or None. A job has no camera
+    field, so pip is False at Plan; Place reads camera picture-in-picture from a deck's stems."""
+    return {"syntheticVoice": bool(job["segments"]), "avatar": job["avatar"] is not None, "pip": False,
             "bed": job["music"] is not None,
             "bedCleared": bed is not None and bed_licence_cleared(bed)
             and job["delivery"]["voiceOnlyListen"] is not None}
@@ -344,8 +349,12 @@ def check_base(nv: dict, where: str, files: dict, errors: list) -> None:
                             ("stemsSha256", "deck-stems.txt")):
             if body[field] != sha(files[name]):
                 errors.append(f"{where}: deck {field} is not the generated {name}")
-        if body["tightenEditsSha256"] is not None and nv["segments"]:
-            errors.append(f"{where}: tighten_on_synthetic (tighten is off for synthetic narration, NV-2)")
+        edits = body["tightenEditsSha256"]
+        if edits is not None and edits != sha(files["deck-tighten-edits.txt"]):
+            errors.append(f"{where}: deck tightenEditsSha256 is not the generated deck-tighten-edits.txt")
+        if edits is not None and nv["segments"] and not nv["tighten"]["enabled"]:
+            errors.append(f"{where}: tighten_on_synthetic (tighten edits on narrate segments need tighten.enabled; "
+                          "it is off by default, NV-2)")
 
 
 def check_narrated_videos(data: dict, errors: list) -> None:
@@ -357,12 +366,16 @@ def check_narrated_videos(data: dict, errors: list) -> None:
     ids = [nv["id"] for nv in data["narrated_videos"]]
     if len(set(ids)) != len(ids):
         errors.append("examples: narrated-video ids repeat")
-    if "ClientVoiceOnly" not in {nv["edition"] for nv in data["narrated_videos"]}:
-        errors.append("examples: no ClientVoiceOnly narrated video")
+    for edition in CLIENT_EDITIONS:
+        if edition not in {nv["edition"] for nv in data["narrated_videos"]}:
+            errors.append(f"examples: no {edition} narrated video")
     for nv in data["narrated_videos"]:
         where = f"examples: narrated video {nv['id']}"
         if nv["edition"] not in EDITIONS:
             errors.append(f"{where}: edition {nv['edition']!r} is unknown")
+            continue
+        if not isinstance(nv["tighten"], dict) or not isinstance(nv["tighten"].get("enabled"), bool):
+            errors.append(f"{where}: tighten {nv['tighten']!r} is not {{enabled: bool}}")
             continue
         check_base(nv, where, files, errors)
         segment_ids = [s["id"] for s in nv["segments"]]
@@ -390,8 +403,6 @@ def check_narrated_videos(data: dict, errors: list) -> None:
         for persona in sorted(personas):
             if labels["persona"] != persona:
                 errors.append(f"{where}: persona_label_missing (a voice's consent names a persona the labels lack)")
-        if not labels["personaCue"]:
-            errors.append(f"{where}: personaCue is empty")
         if nv["avatar"] is not None:
             if nv["avatar"]["external"] != "kitpip":
                 errors.append(f"{where}: avatar external {nv['avatar']['external']!r} is not kitpip")
@@ -639,9 +650,15 @@ def narrated_video_mutations() -> list:
         clear_bed(d)
         client(d).update(music=copy.deepcopy(card(d)["music"]))
 
-    def tighten_on_synthetic(d, m):
-        client(d).update(edition="Internal", segments=copy.deepcopy(card(d)["segments"]))
-        client(d)["base"]["deck"].update(tightenEditsSha256="e" * 64)
+    def narrated(d):
+        return nv(d, "nv-fixture-client-narrated")
+
+    def client_narrated_bed(d, m):
+        narrated(d).update(music=copy.deepcopy(card(d)["music"]))
+
+    def client_narrated_cleared_bed_without_listen(d, m):
+        clear_bed(d)
+        client_narrated_bed(d, m)
 
     def persona_differs(d, m):
         d["consents"][0].update(persona="fixture-persona-other")
@@ -661,7 +678,12 @@ def narrated_video_mutations() -> list:
             avatar=lambda d: nv(d, "nv-fixture-avatar")["avatar"])),
         ("client edition with an uncleared bed", client_with(music=lambda d: card(d)["music"])),
         ("client edition with a cleared bed and no voice-only listen", client_cleared_bed_without_listen),
-        ("tighten on synthetic narration", tighten_on_synthetic),
+        ("tighten edits on synthetic narration with tighten off",
+         lambda d, m: narrated(d).update(tighten={"enabled": False})),
+        ("tighten edits digest changed", lambda d, m: narrated(d)["base"]["deck"].update(tightenEditsSha256="e" * 64)),
+        ("tighten knob malformed", lambda d, m: card(d).update(tighten=True)),
+        ("client narrated with an uncleared bed", client_narrated_bed),
+        ("client narrated with a cleared bed and no voice-only listen", client_narrated_cleared_bed_without_listen),
         ("deck digest changed", lambda d, m: client(d)["base"]["deck"].update(stemsSha256="0" * 64)),
         ("base kind unknown", lambda d, m: card(d).update(base={"slides": {}})),
         ("segment narrate job unknown", lambda d, m: card(d)["segments"][0].update(narrateJob="no-such-job")),
@@ -678,6 +700,7 @@ def narrated_video_mutations() -> list:
         ("true peak above -1.5 dBTP", lambda d, m: card(d)["delivery"].update(truePeakDbtp=-1.0)),
         ("edition unknown", lambda d, m: card(d).update(edition="Public")),
         ("no ClientVoiceOnly example", lambda d, m: client(d).update(edition="Internal")),
+        ("no ClientNarrated example", lambda d, m: narrated(d).update(edition="Internal")),
     ]
 
 

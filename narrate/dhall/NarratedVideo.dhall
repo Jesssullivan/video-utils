@@ -6,9 +6,12 @@
 -- the only instances in git, bound to synthetic fixtures (narrate/dhall/check.py).
 --
 -- Base.Deck: a slide-deck result assembled outside this repository, imported by digest. `producer` is
---   recorded, never executed. tightenEditsSha256 names the dead-air edits the deck applied, if any. Tighten is
---   off for synthetic narration (NV-2): place checks every take against its narrate run, so an edited take
---   is unbound (voice_stem_unbound).
+--   recorded, never executed. tightenEditsSha256 names the dead-air edits the deck applied, if any.
+-- Tighten: off by default for synthetic narration (NV-2). A project may set tighten.enabled True; the deck
+--   project does, under its rulings 58 to 60. tightenAdmitted refuses tighten edits on narrate segments while tighten
+--   is off (tighten_on_synthetic). With tighten on, place binds each tightened take through the deck's
+--   stems.json: the edits digest must equal tightenEditsSha256 and the pre-tighten take digest must equal the
+--   narrate run's output, or place refuses voice_stem_unbound.
 -- Segment.narrateJob: a narrate Job id in the private store (examples: job-fixture-fake). Every segment is a
 --   narrate render, so any segment is a synthetic voice. Segment.avatar False hides the overlay for that
 --   segment (dense screens).
@@ -17,9 +20,10 @@
 -- Music levels (NV-2): the un-ducked bed sits bedBelowVoiceLu (about 20) below the narration's integrated
 --   loudness. The sidechain ducks it a further duckDb (6 to 8; refused above 12) under the whole foreground,
 --   voice and kept clip sound alike. Fades are 3 s in and 5 s out.
--- Labels.persona: required when an avatar is on, and equal to the consent record's persona when a
---   segment's voice has one. personaCue opens the captions. extraNotice is appended to description.txt and
---   never replaces it.
+-- Labels.persona: manifest metadata. Required when an avatar is on, and equal to the consent record's persona
+--   when a segment's voice has one. No visible label is required in captions or description.txt (KP-15,
+--   TIN-7476 comment 4ab7fc27). personaCue (an opening caption cue) and extraNotice (a description.txt line)
+--   are optional; when a job sets one, the stages keep it.
 -- Delivery: narration is measured at targetLufs integrated and the whole mix is never loudness-normalised.
 --   One limiter, in mix. driftLu (at most 0.5) and truePeakDbtp (at most -1.5) are hard gates. upload arms
 --   the licence and Content ID gates. voiceOnlyListen names the receipt of a voice-only listen pass, one of
@@ -27,8 +31,9 @@
 -- Union payloads are records keyed by the constructor's name ({ still = ... }, { atSeconds = ... }), because
 --   dhall-to-json drops union tags: the rendered JSON stays unambiguous ({"still": {...}}, "Auto").
 -- planLeaves and plan: the Plan point of Edition.check. `bed` is the resolved private record that the job's
---   music names, if any. At Plan, pip is any avatar block, so a ClientVoiceOnly job that configures an
---   avatar with every segment switched off is still refused.
+--   music names, if any. At Plan, avatar is any avatar block, so a ClientVoiceOnly job that configures an
+--   avatar with every segment switched off is still refused. A job has no camera field, so pip is False at
+--   Plan; Place reads camera picture-in-picture from an imported deck's stems.
 let Edition = ./Edition.dhall
 
 let MusicBed = ./MusicBed.dhall
@@ -95,11 +100,13 @@ let Music =
       , tailS : Double
       }
 
+let Tighten = { enabled : Bool }
+
 let Captions = { soft : Bool, burn : Bool, srt : Bool, vtt : Bool }
 
 let Labels =
       { persona : Optional Text
-      , personaCue : Text
+      , personaCue : Optional Text
       , extraNotice : Optional Text
       }
 
@@ -125,6 +132,7 @@ let T =
       , segments : List Segment
       , avatar : Optional Avatar
       , music : Optional Music
+      , tighten : Tighten
       , captions : Captions
       , labels : Labels
       , delivery : Delivery
@@ -163,8 +171,8 @@ let planLeaves =
       \(job : T) ->
       \(bed : Optional MusicBed.Type) ->
         { syntheticVoice = syntheticVoice job
-        , avatar = avatarOn job
-        , pip = isSome Avatar job.avatar
+        , avatar = isSome Avatar job.avatar
+        , pip = False
         , bed = isSome Music job.music
         , bedCleared = bedCleared job bed
         }
@@ -176,6 +184,23 @@ let plan =
 
 let personaLabelled =
       \(job : T) -> avatarOn job == False || isSome Text job.labels.persona
+
+let tightenEdits =
+      \(job : T) ->
+        merge
+          { Still = \(_ : { still : Still }) -> False
+          , Card = \(_ : { card : Card }) -> False
+          , Video = \(_ : { video : Video }) -> False
+          , Deck =
+              \(d : { deck : Deck }) -> isSome Text d.deck.tightenEditsSha256
+          }
+          job.base
+
+let tightenAdmitted =
+      \(job : T) ->
+            job.tighten.enabled
+        ||  tightenEdits job == False
+        ||  syntheticVoice job == False
 
 let defaults =
       { edition = Edition.Edition.Internal
@@ -201,6 +226,9 @@ let defaults =
         , fadeOutS = 5.0
         , tailS = 5.0
         }
+      , tighten.enabled = False
+      , labels =
+        { persona = None Text, personaCue = None Text, extraNotice = None Text }
       , captions = { soft = True, burn = False, srt = True, vtt = True }
       , delivery =
         { profile = Profile.Web1080p30
@@ -228,6 +256,7 @@ in  { Type = T
     , Avatar
     , DuckMode
     , Music
+    , Tighten
     , Captions
     , Labels
     , Profile
@@ -239,5 +268,7 @@ in  { Type = T
     , planLeaves
     , plan
     , personaLabelled
+    , tightenEdits
+    , tightenAdmitted
     , defaults
     }
