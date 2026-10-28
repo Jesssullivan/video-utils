@@ -102,6 +102,9 @@ SHA-256 of the first line of `ffmpeg -version`. The `voice` tool's binary
 digest is the SHA-256 of its engine's sorted file digests (binary and
 weights), or null for an engine that pins no file. The git commit is recorded in
 the stage manifest and kept out of the key.
+A stage's `impl` rises when its output changes for the same inputs. `voice`
+is at 2 because KP-15 removed its caption label, so a voice rendered before
+KP-15 plans stale.
 
 Canonical JSON has sorted keys, no whitespace and UTF-8. `dhall-to-json` writes
 the Double `-16.0` as `-16`, so an integral number is written as an integer and
@@ -248,7 +251,7 @@ and `show_badge`. Its states are `source_checks: passed`, `render: stub` or
 
 | Command | Recipe | Effect |
 | --- | --- | --- |
-| `init --job ID --narrate-job ID --script FILE [--still SHA \| --card #RRGGBB] [--bed ID] [--edition E] [--client] [--avatar --persona P]` | `just nv-init` | writes a simple job from `NarratedVideo.defaults`. `--client` makes a client delivery: `ClientNarrated` (NV-6), or `--edition ClientVoiceOnly`; another edition refuses `edition_not_client`. admit refuses (a voice without consent, for one) before anything is written |
+| `init --job ID --narrate-job ID --script FILE [--still SHA \| --card #RRGGBB] [--bed ID] [--edition E] [--client] [--avatar --persona P]` | `just nv-init` | writes a simple job from `NarratedVideo.defaults`. `--client` makes a client delivery: `ClientNarrated` (NV-6); another edition refuses `edition_not_client`. The defaults voice a synthetic segment, so `--edition ClientVoiceOnly` refuses `edition_voice_refused`: a voice-only job comes through `--from` (the deck example). admit refuses (a voice without consent, for one) before anything is written |
 | `init --job ID --from FILE` | | writes a rendered record, or the one with that id in a list of them |
 | `plan JOB [--record] [--json]` | `just nv-plan` | keys every node and prints its state, reason and key. Read-only. `--record` writes `graph.json`. Exit 1 when admit refuses |
 | `status JOB [--json]` | `just nv-status` | prints the recorded `graph.json` and its `pending_operator` gates |

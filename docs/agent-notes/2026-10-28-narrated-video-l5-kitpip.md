@@ -5,7 +5,7 @@ Authority: operator direction KP-13 and rulings NV-1 (`9db389dc`), KP-15
 Linear TIN-7476 comments. NV-8 and the L4 review asked for the persona in the
 avatar key. Receipt per R-HOOK-CONVERGENCE-20261004 (R-N11, R-N12, R-N13).
 
-`narrated-video L5 | narrate seat | video-utils feat/narrated-video-l5-kitpip from main 0a55e660 | pin, avatar stages, NV-6, KP-15; gates below | root review and merge, then a real kitpip render after the quiet window and a release binary digest`
+`narrated-video L5 | narrate seat | video-utils feat/narrated-video-l5-kitpip from main e4aa6a95 | pin, avatar stages, NV-6, KP-15; gates below | root review and merge, then a real kitpip render after the quiet window and a release binary digest`
 
 ## What changed
 
@@ -17,7 +17,7 @@ avatar key. Receipt per R-HOOK-CONVERGENCE-20261004 (R-N11, R-N12, R-N13).
 | Command shape | `narrate/video/kitpip.py`, stub | `analyze` gets `--rig`. `render` gets `--size WxH` and `--encode mov`. The wrapper never passes `--badge` (KP-19) |
 | Persona key | `narrate/video/graph.py` | `labels.persona` is an avatar knob, so a persona change reruns the overlay |
 | Pin check | `narrate/video/cli.py`, `just/narrated-video.just` | `pin-check` and `just kitpip-pin-check` |
-| NV-6 | `narrate/dhall/{Edition,NarratedVideo}.dhall`, `narrated-video-test.dhall`, `check.py`, `narrate/video/job.py` | `Edition.clientDefault` and `defaults.clientEdition` are `ClientNarrated`. `init --client` uses it. `ClientVoiceOnly` stays per project |
+| NV-6 | `narrate/dhall/{Edition,NarratedVideo}.dhall`, `narrated-video-test.dhall`, `check.py`, `narrate/video/job.py` | `Edition.clientDefault` and `defaults.clientEdition` are `ClientNarrated`. `init --client` uses it. `ClientVoiceOnly` stays per project through `init --from`. `init --edition ClientVoiceOnly` refuses `edition_voice_refused` |
 | KP-15 | `narrate/render.py`, `narrate/tests/test_render.py` | no `[Synthetic voice] ` caption prefix and no VTT NOTE. `synthetic: true`, consent ids and `synthetic_label_required` stay in the manifest |
 | Hooks and skills | `program/tool-drafts/narrated_video.json`, `.agents/skills/{kitpip-overlay,kitpip-verify,narrated-video}/SKILL.md` | drafts of tools 66 and 67, not admitted. L7 admits them |
 | Spec | `docs/spec/NARRATED_VIDEO.md`, `docs/spec/NARRATE.md`, `narrate/README.md` | the decisions table, pin, avatar stages, editions and KP-15 |
@@ -52,6 +52,14 @@ package. The binary table is empty and `gate_state` is
 The command shape comes from kitpip's own CLI flag table at the pinned commit.
 No real kitpip binary ran.
 
+## Review fixes
+
+| Finding | Fix | Test |
+| --- | --- | --- |
+| KP-15 changed narrate render's output for the same inputs, but the voice key kept impl 1 | `IMPL["voice"]` is 2 in `narrate/video/graph.py`, and the spec says why | an impl-1 voice plans `key_changed`, with the voice row's rerun set |
+| `init --client --edition ClientVoiceOnly` was documented but always refused at admit | `init_job` refuses `ClientVoiceOnly` with `edition_voice_refused` and points to `--from`. Spec, skill, justfile and help text say so | a CLI test runs both flag sets, plain `--client` and the deck example through `--from` |
+| The board row named base `0a55e660` | the row names `e4aa6a95`, the PR's merge base | none |
+
 ## Evidence
 
 All runs used `nix develop .#condense` inside `systemd-run --user --scope -p
@@ -61,7 +69,7 @@ no cargo, Bazel, Go or image build.
 | Check | Result |
 | --- | --- |
 | `narrate/tests/test_narrated_video_{graph,simple,types,avatar}.py`, `test_render.py` | 226 passed |
-| full `narrate/tests` | 950 passed, 1 skipped |
+| full `narrate/tests` | 952 passed, 1 skipped after the review fixes |
 | narrate-dhall-check steps | every file types, formats and renders. `check.py` ok, self-test 66 mutations |
 | Red control | `clientDefaultIsNarrated` set to `ClientVoiceOnly` fails `dhall type` |
 | ruff and shellcheck over `narrate/` | clean |

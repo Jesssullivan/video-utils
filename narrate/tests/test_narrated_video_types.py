@@ -206,7 +206,10 @@ def test_the_client_default_is_client_narrated_in_the_types_the_port_and_init(ch
     assert check.edition_check("Plan", "ClientVoiceOnly", narrator)["codes"] == ["VoiceRefused", "PipRefused"]
     digest = "a" * 64
     assert job.init_job("j", "n", digest, client=True)["edition"] == "ClientNarrated"
-    assert job.init_job("j", "n", digest, client=True, edition="ClientVoiceOnly")["edition"] == "ClientVoiceOnly"
+    for client in (True, False):
+        with pytest.raises(job.JobError) as caught:
+            job.init_job("j", "n", digest, client=client, edition="ClientVoiceOnly")
+        assert caught.value.code == "edition_voice_refused" and "--from" in caught.value.detail
     assert job.init_job("j", "n", digest)["edition"] == "Internal"
     with pytest.raises(job.JobError) as caught:
         job.init_job("j", "n", digest, client=True, edition="OwnContent")

@@ -106,7 +106,9 @@ STAGES = (
     ),
 )
 BY_ID = {s.id: s for s in STAGES}
-IMPL = {s.id: 1 for s in STAGES}  # bump a stage's impl by hand when its output changes for the same inputs
+# Bump a stage's impl by hand when its output changes for the same inputs. voice is 2: KP-15 (TIN-7476 comment
+# 4ab7fc27) dropped the "[Synthetic voice] " caption prefix and the VTT NOTE from narrate render.
+IMPL = {s.id: 1 for s in STAGES} | {"voice": 2}
 TOOLS = {
     "admit": ("narrate.video.admit", "1"),
     "script": ("narrate.lexical", "1"),

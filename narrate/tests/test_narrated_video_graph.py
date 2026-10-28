@@ -380,6 +380,24 @@ def test_invalidation_reruns_exactly_the_rows_stages(tmp_path, row):
     assert set(ran) == want and len(ran) == len(want)
 
 
+def test_a_voice_rendered_before_kp15_plans_stale(tmp_path, monkeypatch):
+    """KP-15 changed narrate render's captions for the same inputs, so voice is at impl 2 and an impl-1 voice reruns."""
+    assert graph.IMPL["voice"] == 2
+    assert all(impl == 1 for stage, impl in graph.IMPL.items() if stage != "voice")
+    recs = records()
+    job = two_segment_avatar_job(recs)
+    ctx = stub_ctx()
+    s = new_store(tmp_path, job)
+    with monkeypatch.context() as m:
+        m.setitem(graph.IMPL, "voice", 1)
+        run_all(job, recs, s, ctx)
+    g = graph.plan(job, recs, s, ctx)
+    stale = {n for n, state in states(g).items() if state in ("stale", "corrupt")}
+    assert stale == VOICES | AVATARS | {"place", "mix", "compose", "deliver_check"}
+    voices = {n["id"]: n["reason"] for n in g["nodes"] if n["stage"] == "voice"}
+    assert voices == {"voice/seg-1": "key_changed", "voice/seg-2": "key_changed"}
+
+
 def test_the_voice_key_holds_the_engine_by_digest_and_the_pronunciation_table_and_no_private_path():
     recs = records()
     recs["engines"]["fake-sine"] |= {
@@ -837,6 +855,35 @@ def test_cli_refusals_use_the_narrate_stderr_shape(tmp_path, capsys, cli_env):
     assert code == 1 and json.loads(err)["refused"] == "graph_missing"
     code, _, err = call(capsys, ["plan", "nv-none", *cli_env])
     assert code == 1 and json.loads(err)["refused"] == "job_missing"
+
+
+def test_cli_init_client_voice_only_refuses_and_points_to_a_render(tmp_path, capsys, cli_env):
+    """NV-6: init voices a synthetic segment, so ClientVoiceOnly comes only through --from (the deck example)."""
+    defaults = ["init", *cli_env, "--narrate-job", "job-fixture-fake", "--script", str(EXAMPLES / "script.md")]
+    for flags in (["--client", "--edition", "ClientVoiceOnly"], ["--edition", "ClientVoiceOnly"]):
+        code, out, err = call(capsys, [*defaults, "--job", "nv-voice-only", *flags, "--json"])
+        refused = json.loads(err)
+        assert code == 1 and out == "" and refused["refused"] == "edition_voice_refused"
+        assert "--from" in refused["detail"]
+        assert not (tmp_path / "narrated" / "nv-voice-only").exists()
+    code, out, _ = call(capsys, [*defaults, "--job", "nv-client", "--client", "--json"])
+    assert code == 0 and json.loads(out)["ok"] is True
+    assert store.JobStore(tmp_path / "narrated", "nv-client").read_job()["edition"] == "ClientNarrated"
+    code, out, _ = call(
+        capsys,
+        [
+            "init",
+            *cli_env,
+            "--job",
+            "nv-fixture-client-deck",
+            "--from",
+            str(EXAMPLES / "narrated-videos.json"),
+            "--json",
+        ],
+    )
+    assert code == 0 and json.loads(out)["ok"] is True
+    deck = store.JobStore(tmp_path / "narrated", "nv-fixture-client-deck").read_job()
+    assert deck["edition"] == "ClientVoiceOnly"
 
 
 def test_cli_init_from_a_render_and_a_refused_plan(tmp_path, capsys, cli_env):

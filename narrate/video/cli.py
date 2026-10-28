@@ -284,7 +284,7 @@ def main(argv=None):
     i.add_argument(
         "--client",
         action="store_true",
-        help=f"a client delivery: edition {CLIENT_DEFAULT_EDITION} (NV-6) unless --edition ClientVoiceOnly",
+        help=f"a client delivery: edition {CLIENT_DEFAULT_EDITION} (NV-6). ClientVoiceOnly comes only through --from",
     )
     i.add_argument("--avatar", action="store_true", help="turn the kitpip avatar on (needs --persona)")
     i.add_argument("--persona", help="labels.persona")

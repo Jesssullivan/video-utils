@@ -12,8 +12,8 @@
 
 # The defaults: one segment voiced by NARRATE_JOB, a #101820 card (or --still SHA), no avatar unless --avatar
 # --persona P (opt-in until L6, docs/spec/NARRATED_VIDEO.md), the bed only with --bed ID, edition Internal and tighten
-# off (NV-2). --client makes a client delivery: edition ClientNarrated (NV-6), or --edition ClientVoiceOnly per
-# project. admit refuses a voice without consent before anything is written.
+# off (NV-2). --client makes a client delivery: edition ClientNarrated (NV-6). A ClientVoiceOnly job comes only
+# through python -m narrate video init --from FILE. admit refuses a voice without consent before anything is written.
 # Write a simple job from the defaults into the store and record its first plan.
 nv-init job narrate_job script *args:
     python3 -m narrate video init --job {{quote(job)}} --narrate-job {{quote(narrate_job)}} --script {{quote(script)}} {{args}}
