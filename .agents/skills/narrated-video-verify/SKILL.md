@@ -18,7 +18,7 @@ description: Check a composed narrated video against its delivery profile, loudn
 | `listening`, `lip_sync` | never here: `pending_operator` until the operator's receipt |
 | `bed_licence_pdf`, `bed_content_id` | with `upload` and a bed: the record holds the certified licence PDF digest and a clear Content ID result |
 
-`delivery_gate.internal_review_allowed` is true when every machine gate passes. `public_upload_allowed` also needs `upload`, closed bed gates and, in a client edition with a bed, `voiceOnlyListen`. Uploading, sending and Content ID stay operator actions.
+`delivery_gate.internal_review_allowed` is true when every machine gate passes. `upload_gates_closed` also needs `upload`, closed bed gates and, in a client edition with a bed, `voiceOnlyListen`. `public_upload_allowed` also needs every operator state closed (`operator_states_open` empty). Verified is not accepted: deliver_check never closes listening or lip sync, so it never reports a public upload as allowed. Uploading, sending and Content ID stay operator actions.
 
 ## Use and controls
 

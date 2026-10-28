@@ -37,6 +37,8 @@ Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not app
 
 - The slide card was built from the deck seat's description of its card (design Addendum B), not from its code. Card fades, crossfades and the dim match that description; an A/B against a deck cut is not recorded.
 - Cards of different heights crossfade with the outgoing card's edge visible until the incoming card is opaque.
+- `Full` fades are eased against the mean luma under them; card fades are linear. A `Full` fade shorter than the `min_fade_s` that `compose.json` records for it fails the flash gate. A tall slide's card is narrowed to fit the frame height less two margins.
+- An `avatarOff` id that names no slide page refuses `page_unknown` at compose.
 - FCPXML and OTIO export are phase 2. `edit.json` is not verified in an editing application.
 - Refusals: `captions_burn_unsupported`, `captions_missing`, `slides_exceed_program`, `overlay_exceeds_base`, `frames_mismatch` and `label_chain_broken`, each recorded for its key. An FFmpeg failure is not recorded.
 - No video, overlay, slide picture or caption text enters git. Results carry ids, keys and numbers.

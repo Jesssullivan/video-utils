@@ -203,7 +203,8 @@ def test_deliver_check_reports_every_gate_and_keeps_upload_closed(simple):
     assert report["profile"]["findings"] == {} and abs(report["loudness"]["drift_lu"]) <= job["delivery"]["driftLu"]
     assert report["loudness"]["true_peak_dbtp"] <= -1.5
     assert report["delivery_gate"]["internal_review_allowed"] is True
-    assert report["delivery_gate"]["public_upload_allowed"] is False  # upload is off
+    assert report["delivery_gate"]["upload_gates_closed"] is False  # upload is off
+    assert report["delivery_gate"]["public_upload_allowed"] is False
     assert report["edition"]["verdict"] == "Admitted" and report["edition"]["leaves"]["syntheticVoice"] is True
 
 
@@ -226,7 +227,10 @@ def test_upload_with_an_unlicensed_bed_leaves_deliver_check_pending_operator(sim
     result, g = run.run(rc)
     assert ran(result) == ["deliver_check"]
     report = json.loads((node_dir(s, "deliver_check") / "deliver_check.json").read_text())
-    assert report["delivery_gate"]["public_upload_allowed"] is True
+    assert report["delivery_gate"]["upload_gates_closed"] is True
+    # Verified is not accepted: listening stays an operator state, so public upload stays closed (NV-2).
+    assert report["delivery_gate"]["operator_states_open"] == ["listening"]
+    assert report["delivery_gate"]["public_upload_allowed"] is False
     ws.edit_records("music-beds.json", lambda rows: rows[0]["licence"].update(
         certifiedPdfSha256=None, contentIdCheck="NotRun"))  # fmt: skip
 
@@ -387,6 +391,71 @@ def test_the_flash_gate_passes_the_card_and_fails_a_hard_full_frame_cut(slides, 
     assert report["delivery_gate"]["internal_review_allowed"] is False
 
 
+def test_a_full_slide_at_the_default_fade_passes_the_flash_gate_on_the_default_card(tmp_path, ffmpeg):
+    """The defaults: layout Full, fadeS 0.35 and the #101820 card under a light fixture slide. A linear alpha ramp
+    jumps about 40% on its first frame here; the eased fade keeps every frame under 30%."""
+    ws = Bench(tmp_path)
+    job = ws.slides_job("nv-full", **{"base.card.colour": DEFAULTS["colour"]})
+    job["slides"] = copy.deepcopy(DEFAULTS["slides"]) | {"pages": [
+        {"id": "open", "startS": 0, "endS": 1, "show": "Base"},
+        {"id": "bright", "startS": 1, "endS": 3, "show": job["slides"]["pages"][0]["show"]},
+        {"id": "close", "startS": 3, "endS": 4, "show": "Base"},
+    ]}  # fmt: skip
+    assert (job["slides"]["layout"], job["slides"]["fadeS"]) == ("Full", 0.35)
+    job["avatar"] = None
+    job["labels"]["persona"] = None
+    s, result, _ = ws.run(job)
+    assert result["ok"], result
+    layer = s.manifest("compose")["measurements"]["slides"]["runs"][0]["layers"][0]
+    ease = layer["ease"]
+    assert ease["in"]["under_y"] == ease["out"]["under_y"] and ease["in"]["under_y"] < 40
+    assert ease["in"]["over_y"] > 180 and ease["in"]["min_fade_s"] <= 0.35
+    report = json.loads((node_dir(s, "deliver_check") / "deliver_check.json").read_text())
+    assert report["gates"]["flash"] == "passed" and report["flash"]["worst"] <= 0.30, report["flash"]
+    assert [c["at_s"] for c in report["flash"]["changes"]] == [1, 3]
+    assert report["delivery_gate"]["internal_review_allowed"] is True
+
+
+def test_the_card_on_a_video_base_holds_the_next_clip_frame_dimmed_and_hands_over_without_a_step(tmp_path, ffmpeg):
+    ws = Bench(tmp_path)
+    video = tmp_path / "base.mp4"
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "testsrc2=s=320x180:r=30:d=8", "-c:v", "libx264",
+         "-pix_fmt", "yuv420p", "-threads", "2", str(video)],
+        check=True,
+    )  # fmt: skip
+    job = ws.slides_job("nv-held")
+    job["base"] = {"video": {"sha256": ws.add_source(video), "keepBaseAudio": False}}
+    slide = job["slides"]["pages"][0]["show"]
+    job["slides"]["pages"] = [{"id": "open", "startS": 0, "endS": 1, "show": "Base"},
+                              {"id": "card", "startS": 1, "endS": 3, "show": slide}]  # fmt: skip
+    job["avatar"] = None
+    job["labels"]["persona"] = None
+    s, result, _ = ws.run(job)
+    assert result["ok"], result
+    m = s.manifest("compose")["measurements"]
+    run_plan = m["slides"]["runs"][0]
+    assert run_plan["held"] == "base frame at the run's end" and run_plan["dim_to"] == 0.5
+    out = node_dir(s, "compose") / "video.mp4"
+    points = [(700, 100), (900, 300), (1100, 500), (1200, 150), (800, 650)]  # all outside the card
+
+    def lumas(at):
+        pixel = frame_rgb(out, at, m["size"])
+        return [luma(pixel(*p)) for p in points], pixel
+
+    early, early_px = lumas(1.6)  # the card is in: the held frame, dimmed
+    late, late_px = lumas(2.4)
+    after, after_px = lumas(3.0)  # the live base at the run's end: the frame that was held
+    edge, _ = lumas(2.96)  # the last frame of the run
+    assert all(close(early_px(*p), late_px(*p), 4) for p in points)  # held: nothing moves under the card
+    assert 0.45 <= sum(early) / sum(after) <= 0.55, (early, after)  # dimmed to dimTo of the next clip's frame
+    assert sum(edge) / sum(after) >= 0.9, (edge, after)  # the dim has lifted: the handover has no step
+    live, _ = lumas(0.5)
+    assert live != after  # the base moves outside the run
+    report = json.loads((node_dir(s, "deliver_check") / "deliver_check.json").read_text())
+    assert report["gates"]["flash"] == "passed", report["flash"]
+
+
 def test_a_hold_page_on_a_video_base_holds_the_frame_at_its_start(tmp_path, ffmpeg, stand_in):
     ws = Bench(tmp_path)
     video = tmp_path / "base.mp4"
@@ -428,9 +497,52 @@ def test_slide_runs_layers_and_avatar_off_spans_are_planned_exactly():
     assert compose.slide_layers(runs[1], 0.4)[0]["fade_out"] == (0.6, 0.4)
     assert deliver.slide_changes(pages) == [0, 2, 4, 5, 6, 6.4]
     assert compose.avatar_off_spans(pages, ["b", "a", "e"], 6.2) == [(0, 4), (6, 6.2)]
-    filters = compose.avatar_off_filters([(0, 4), (6, 6.2)], 0.35, 6.2, 1 / 30)
-    assert len(filters) == 3 and filters[0].startswith("fade=t=out:st=0.000000:d=0.033333")
-    assert "between(t,4.000000,4.350000)" in filters[1]
+    with pytest.raises(StageRefused) as caught:
+        compose.avatar_off_spans(pages, ["b", "deck-06"], 6.2)  # an id compose has no span for
+    assert caught.value.code == "page_unknown" and caught.value.verdict is True
+    filters = compose.avatar_off_filters([(0, 4), (6, 6.2)], 0.35, 6.2)
+    assert filters == [
+        "lut=a=0:enable='between(t,0.000000,4.000000)'",  # from the first frame: no fade out before the start
+        "fade=t=in:st=4.000000:d=0.350000:alpha=1:enable='between(t,4.000000,4.350000)'",
+        "fade=t=out:st=5.650000:d=0.350000:alpha=1:enable='between(t,5.650000,6.000000)'",
+        "lut=a=0:enable='between(t,6.000000,6.200000)'",
+    ]
+
+
+def test_an_avatar_off_page_at_the_program_start_hides_the_first_frame(tmp_path, ffmpeg):
+    filters = ",".join(compose.avatar_off_filters([(0, 1)], 0.35, 2))
+    raw = subprocess.run(
+        ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "color=c=white:s=16x16:r=30:d=2",
+         "-vf", f"format=yuva420p,{filters},alphaextract", "-f", "rawvideo", "-pix_fmt", "gray", "-"],
+        capture_output=True, check=True,
+    ).stdout  # fmt: skip
+    alpha = [raw[i * 256] for i in range(len(raw) // 256)]
+    assert len(alpha) == 60
+    assert alpha[:31] == [0] * 31  # frames 0 to 30 (t = 0 to 1 s): hidden from the first frame
+    assert 0 < alpha[36] < 255 and alpha[45:] == [255] * 15  # fading back in, then opaque
+
+
+def test_the_card_fits_a_tall_slide_inside_the_frame():
+    assert compose.card_box(0.42, 64, 1920, 1080, 320, 180) == (64, 1080 - 64 - 454, 806, 454)
+    x, y, cw, ch = compose.card_box(0.42, 64, 1920, 1080, 180, 320)  # portrait
+    assert (x, y, ch) == (64, 64, 952) and cw == compose.even(952 * 180 / 320)
+    x, y, cw, ch = compose.card_box(0.42, 64, 1280, 720, 1000, 1001)  # just taller than wide
+    assert y >= 64 and y + ch == 720 - 64 and cw <= compose.even(0.42 * 1280)
+
+
+def test_eased_fades_step_the_mean_luma_by_one_ratio():
+    assert compose.eased_fade("in", 0.0, 0.35, 100, 100) == "fade=t=in:st=0.000000:d=0.350000:alpha=1"
+    eased = compose.eased_fade("out", 1.65, 0.35, 35, 189)
+    assert eased.startswith("geq=") and "between(t,1.650000,2.000000)" in eased and "(2.000000-T)" in eased
+    # The curve: alpha a(t) = (r^t - 1) / (r - 1) puts Y = under + a (over - under) on under * r^t.
+    under, over, frames = 35.0, 189.0, 10
+    r = over / under
+    ys = [under + (r ** (n / frames) - 1) / (r - 1) * (over - under) for n in range(frames + 1)]
+    worst = max(deliver.jump(a, b) for a, b in zip(ys, ys[1:], strict=False))
+    linear = deliver.jump(under, under + (over - under) / frames)
+    assert worst == pytest.approx(r ** (1 / frames) - 1) and worst < 0.30 < linear
+    assert compose.min_fade_s(35, 189, {"num": 30, "den": 1}) == round(7 / 30, 6)
+    assert compose.min_fade_s(16, 235, {"num": 30, "den": 1}) == round(11 / 30, 6)  # black to white: over 0.35 s
 
 
 def test_the_flash_measure_is_relative_to_the_darker_frame_with_a_black_floor():

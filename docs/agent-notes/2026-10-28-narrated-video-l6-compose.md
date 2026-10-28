@@ -76,3 +76,34 @@ inside `systemd-run --user --scope -p MemoryMax=6G -p MemorySwapMax=0 nice -n 19
   ID and delivery stay operator states.
 - `just check` and the Bazel targets were not run (quiet window). Root runs
   them after 16:55Z.
+
+## Review fixes (2026-10-28, fixer pass)
+
+Receipt per R-HOOK-CONVERGENCE-20261004 (R-N11, R-N12, R-N13), on the
+review findings for PR #63 and the same TIN-7476 rulings (NV-2, NV-8, KP-15).
+Every check below ran in the same bounded scope, during the quiet window.
+
+| Finding | Outcome |
+| --- | --- |
+| Flash gate fails at the defaults (`Full`, 0.35 s, `#101820` card, light slide: 39.7% with a linear ramp) | fixed: each `Full` fade is eased against the mean luma under it (`compose.eased_fade`), so the luma moves by one ratio per frame. `compose.json` records both lumas and `min_fade_s`. New test composes the defaults: flash passes. Card fades stay linear |
+| `public_upload_allowed` true while listening is pending | fixed: it now also needs `operator_states_open` empty, so deliver_check never reports it true. The old meaning is `upload_gates_closed`. Test, spec, verify skill and tool draft 70 updated |
+| Rebase onto #62 hides a ClientVoiceOnly conflict | partly fixed: the `init_job(..., edition="ClientVoiceOnly")` assertion is gone, and `deliver.py` imports `CLIENT_EDITIONS` from `job.py`, added there on the same line as #62. Simplifying `AVATAR_EDITIONS` waits for the rebase, since `init` still accepts ClientVoiceOnly on main |
+| An avatarOff page at t=0 shows the first frame | fixed: a span is held at alpha 0 by `lut=a=0` for its whole length, with a fade out only when there is time before it. Pixel test at frame 0 |
+| avatarOff ignored for deck bases | fixed: `avatar_off_spans` refuses `page_unknown` (a verdict) for an id with no slide page |
+| A tall slide's card leaves the frame | fixed: `card_box` narrows the card to fit the frame height less two margins. Unit test with a portrait slide |
+| No test of the held next-clip frame on a video base | fixed: a `CardLowerLeft` run on a `testsrc2` base. Outside the card the frame is still, at 0.45 to 0.55 of the next clip's frame, within 10% of it on the run's last frame, and flash passes |
+
+Negative controls (scratch edits, restored): a linear `Full` fade (flash
+39.7% and 79.4%), no `lut` hide, the old upload gate, no card clamp, no held
+layer and no unknown-id check each fail their test.
+
+| Check after the fixes | Result |
+| --- | --- |
+| full narrate suite (`python -m pytest -q` in `narrate/`) | 952 passed, 1 skipped |
+| ruff check and format on `narrate/` | clean |
+| `narrate/tests/stdlib_smoke.py` | 7 tests OK |
+| `narrate/dhall/check.py` and `--self-test` | 0 errors; 79 mutations all refused |
+| `tests.test_public_tree`, `tests.test_timeline_contract` | 79 tests OK, 1 skipped |
+
+`just check`, the Bazel targets and the `tests/cli.rs` rows still wait for
+root after 16:55Z. The rebase onto #62 is still open.

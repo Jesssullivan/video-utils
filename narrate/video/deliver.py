@@ -21,22 +21,19 @@ Machine gates:
   extraNotice ends description.txt when the job sets them.
 
 Operator gates stay pending_operator here and never pass: listening, lip sync (with an avatar), and with upload and a
-bed, the licence PDF digest and a clear Content ID result. delivery_gate.public_upload_allowed stays false until the
-machine gates pass, upload is set and every bed gate is closed (a client edition also needs voiceOnlyListen).
+bed, the licence PDF digest and a clear Content ID result. delivery_gate.upload_gates_closed says the machine gates
+pass, upload is set and every bed gate is closed (a client edition also needs voiceOnlyListen).
+delivery_gate.public_upload_allowed also needs every operator state closed: verified is not accepted (NV-2: internal
+until a first listening receipt; an overlay without lip-sync acceptance stays private). deliver_check never closes
+listening itself, so it never reports a public upload as allowed.
 """
-
-import re
 
 from ..config import FF, run
 from . import admit, labels
 from .common import StageRefused, ffprobe, loudness, upstream, work_dir, write_json
-from .compose import page_kind, parse_cues, profile_for, slide_runs
+from .compose import FLASH_FLOOR_Y, FLASH_MAX, YAVG, page_kind, parse_cues, profile_for, slide_runs
 from .graph import selection
-
-FLASH_MAX = 0.30
-FLASH_FLOOR_Y = 16.0
-CLIENT_EDITIONS = ("ClientVoiceOnly", "ClientNarrated")
-YAVG = re.compile(r"lavfi\.signalstats\.YAVG=([0-9.]+)")
+from .job import CLIENT_EDITIONS
 
 
 # Pure parts ------------------------------------------------------------------------------------------------------
@@ -128,11 +125,14 @@ def delivery_gate(job, bed, machine, operator):
         and "clear" in bed["licence"]["contentIdCheck"]
     )
     listen_ok = bed is None or job["edition"] not in CLIENT_EDITIONS or job["delivery"]["voiceOnlyListen"] is not None
+    upload_closed = bool(job["delivery"]["upload"] and machine_ok and bed_closed and listen_ok)
+    open_states = sorted(k for k, v in operator.items() if v == "pending_operator")
     return {
         "machine_gates_passed": machine_ok,
         "internal_review_allowed": machine_ok,
-        "public_upload_allowed": bool(job["delivery"]["upload"] and machine_ok and bed_closed and listen_ok),
-        "operator_states_open": sorted(k for k, v in operator.items() if v == "pending_operator"),
+        "upload_gates_closed": upload_closed,
+        "public_upload_allowed": upload_closed and not open_states,
+        "operator_states_open": open_states,
         "note": "public upload, sending and Content ID stay operator actions (the deck playbook's ship step)",
     }
 

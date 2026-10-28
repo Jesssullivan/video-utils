@@ -594,9 +594,11 @@ synthetic label is added (KP-15).
 
 Avatar-off pages. Every page `avatar.avatarOff` lists hides the overlays for
 its whole span. They fade out over `avatar.fadeS` (0.35 s) ending at the
-page's start and fade in over `fadeS` from its end. Adjacent listed pages merge
-into one span. This is the deck pattern of switching the avatar off on dense
-screens.
+page's start, stay hidden through it and fade in over `fadeS` from its end. A
+page that starts the program hides the overlay from its first frame. Adjacent
+listed pages merge into one span. This is the deck pattern of switching the
+avatar off on dense screens. `compose` refuses `page_unknown` for an id that
+names none of the job's slide pages, so it never drops one without a word.
 
 ### Slides
 
@@ -608,15 +610,22 @@ Adjacent slide pages form a run.
   At a page change inside a run the incoming slide starts `fadeS/2` early and
   fades in over `fadeS` above the outgoing one, which stays opaque until
   `fadeS/2` after the change: a crossfade in place.
-- `Full` shows each slide over the whole frame, fitted and padded black.
+- `Full` shows each slide over the whole frame, fitted and padded black. Each
+  of its fades is eased against what is under it (the base, or the outgoing
+  slide): `compose` measures both mean lumas and shapes the alpha so the
+  frame's mean luma changes by the same ratio on every frame. A linear ramp
+  puts most of a dark-to-light step on its first frames. `compose.json`
+  records both lumas and the shortest fade that keeps each step within the
+  flash gate (`min_fade_s`).
 - `CardLowerLeft` is the deck seat's slide card, built here from its
   description only (design Addendum B, the deck project's ruling 59(b)). No deck
   code or asset was read or copied. Each slide is a card `cardWidth` (0.42) of
   the frame wide at its own aspect ratio, `marginPx` (64) from the left and
-  bottom edges. Under the card, the base frame at the run's end (the next
-  clip's first frame) is held, fading in with the card, and a black layer dims
-  it to `dimTo` (0.5) of its brightness, lifting as the card fades out. The
-  avatar keeps its own corner.
+  bottom edges, narrower when a tall slide would not fit the frame height less
+  two margins. Card fades are linear. Under the card, the base frame at the
+  run's end (the next clip's first frame) is held, fading in with the card,
+  and a black layer dims it to `dimTo` (0.5) of its brightness, lifting as the
+  card fades out. The avatar keeps its own corner.
 - A `Hold` page shows no card and holds the base frame at its start at full
   brightness, as the deck's 0.4 s end page does.
 - On a card or still base the picture never changes, so nothing is held there.
@@ -645,9 +654,13 @@ this lane's reading of "the largest mean-luma jump between adjacent frames",
 not a port of the deck's check.
 
 `delivery_gate.internal_review_allowed` is true when every machine gate passes.
-`public_upload_allowed` also needs `upload`, a closed bed gate and, for a client
-edition with a bed, `voiceOnlyListen`. It is a gate state: uploading, sending
-and Content ID stay operator actions.
+`upload_gates_closed` also needs `upload`, a closed bed gate and, for a client
+edition with a bed, `voiceOnlyListen`. `public_upload_allowed` also needs every
+operator state closed (`operator_states_open` empty): verified is not accepted.
+`deliver_check` never closes listening itself (NV-2: internal until a first
+listening receipt), and an overlay without lip-sync acceptance stays private,
+so it never reports a public upload as allowed. Every field is a gate state:
+uploading, sending and Content ID stay operator actions.
 
 ### Handoff
 
@@ -714,4 +727,8 @@ it stays a knob.
   card's edge visible until the incoming card is opaque.
 - The flash formula is an inference from the deck seat's figures. Its exact
   formula was not read.
+- Even eased, a `Full` fade cannot keep a step within 30% when the slide and
+  what is under it differ too much in mean luma for the fade's frame count
+  (video black to white needs 11 frames at 30 fps, over 0.35 s). The gate
+  then fails, and `min_fade_s` in `compose.json` names the fade that passes.
 - Burned captions and the deck project's own delivery profiles are not built.

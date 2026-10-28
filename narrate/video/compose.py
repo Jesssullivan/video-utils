@@ -17,22 +17,28 @@ captions.burn refuses captions_burn_unsupported in v1 (the design keeps burn off
 Slides (docs/spec/NARRATED_VIDEO.md, "Slides"). Adjacent slide pages form a run. A run fades in over fadeS, crossfades
 in place at each page change (the incoming slide fades in over fadeS centred on the change, above the outgoing one,
 which stays opaque until the incoming one is), and fades out over fadeS before the run ends. layout Full shows each
-slide over the whole frame. CardLowerLeft shows it as a card cardWidth of the frame wide, marginPx from the left and
-bottom edges; under the card the base frame at the run's end (the next clip's first frame) is held, fading in with the
-card, and a black layer dims it to dimTo of its brightness, lifting as the card fades out. A Hold page shows no card
-and holds the base frame at its start at full brightness. On a card or still base the picture does not change, so
+slide over the whole frame, and eases each of its fades against what is under it (eased_fade): the frame's mean luma
+moves by the same ratio on every frame, so a light slide over a dark base passes the flash gate at the default fadeS.
+CardLowerLeft shows it as a card cardWidth of the frame wide (narrower when a tall slide would not fit the frame
+height less two margins), marginPx from the left and bottom edges, with linear fades. Under the card the base
+frame at the run's end (the next clip's first frame) is held, fading in with the card, and a black layer dims it to
+dimTo of its brightness, lifting as the card fades out. A Hold page shows no card and holds the base frame at its
+start at full brightness. On a card or still base the picture does not change, so
 nothing is held there. This layout was built from the deck seat's description of its slide card (design Addendum B);
 no deck code or asset was read or copied.
 
 The avatar overlays (ProRes 4444, straight alpha) are scaled to avatar.width of the frame and placed at their corner,
 each from its segment's start. A page listed in avatar.avatarOff hides them for its whole span: they fade out over
-avatar.fadeS before it and back in over fadeS after it.
+avatar.fadeS before it, stay at alpha 0 through it (from its first frame when it starts the program) and fade back in
+over fadeS after it. An avatarOff id that names no slide page refuses page_unknown.
 
-Every refusal here is a verdict for the stage key except an FFmpeg failure: slides_exceed_program,
+Every refusal here is a verdict for the stage key except an FFmpeg failure: slides_exceed_program, page_unknown,
 captions_missing, captions_burn_unsupported, overlay_exceeds_base and label_chain_broken.
 """
 
 import json
+import math
+import re
 from fractions import Fraction
 
 from . import labels
@@ -55,6 +61,11 @@ PIX_FMT = "yuv420p"
 AUDIO_CODEC = "aac"
 EPSILON_S = 1e-3  # two pages are adjacent when one ends within a millisecond of the next one's start
 BLACK = "0x000000"
+# The flash gate (deliver_check): the largest adjacent-frame mean-luma jump at a slide change, relative to the darker
+# frame with video black (Y 16) as the floor, is at most FLASH_MAX. Full slide fades are eased against it.
+FLASH_MAX = 0.30
+FLASH_FLOOR_Y = 16.0
+YAVG = re.compile(r"lavfi\.signalstats\.YAVG=([0-9.]+)")
 
 
 # Pure parts: tested alone ----------------------------------------------------------------------------------------
@@ -77,9 +88,14 @@ def avatar_box(corner, width, margin, w, h):
 
 
 def card_box(card_width, margin, w, h, slide_w, slide_h):
-    """(x, y, cw, ch) of a lower-left slide card cardWidth of the frame wide, keeping the slide's aspect ratio."""
+    """(x, y, cw, ch) of a lower-left slide card at the slide's aspect ratio: cardWidth of the frame wide, or less
+    when a tall slide would not fit in the frame height less a margin above and below."""
     cw = even(card_width * w)
     ch = even(cw * slide_h / slide_w)
+    room = h - 2 * margin
+    if ch > room:
+        ch = room - room % 2
+        cw = even(ch * slide_w / slide_h)
     return margin, h - margin - ch, cw, ch
 
 
@@ -125,8 +141,35 @@ def slide_layers(run, fade):
     return layers
 
 
+def eased_fade(direction, start, length, y_under, y_over):
+    """An alpha fade (direction "in" or "out", over [start, start + length] in the layer's seconds) whose curve moves
+    the frame's mean luma geometrically from y_under to y_over, so every frame of the fade changes it by the same
+    ratio. A linear alpha ramp puts the whole step on its first frames when the slide is much brighter or darker than
+    what is under it. Equal lumas give the linear fade."""
+    ratio = max(y_over, FLASH_FLOOR_Y) / max(y_under, FLASH_FLOOR_Y)
+    if abs(ratio - 1) < 0.01:
+        return f"fade=t={direction}:st={start:.6f}:d={length:.6f}:alpha=1"
+    elapsed = f"(T-{start:.6f})" if direction == "in" else f"({start + length:.6f}-T)"
+    curve = f"(pow({ratio:.6f},{elapsed}/{length:.6f})-1)/({ratio:.6f}-1)"
+    return (
+        f"geq=lum='lum(X,Y)':cb='cb(X,Y)':cr='cr(X,Y)':a='alpha(X,Y)*clip({curve},0,1)':"
+        f"enable='between(t,{start:.6f},{start + length:.6f})'"
+    )
+
+
+def min_fade_s(y_a, y_b, fps):
+    """The shortest fade (whole frames) whose eased curve keeps each frame's luma step at or under FLASH_MAX."""
+    ratio = max(y_a, FLASH_FLOOR_Y) / max(y_b, FLASH_FLOOR_Y)
+    frames = math.ceil(abs(math.log(ratio)) / math.log(1 + FLASH_MAX))
+    return round(frames * fps["den"] / fps["num"], 6)
+
+
 def avatar_off_spans(pages, off, total_s):
-    """Merged [start, end] spans of the pages avatarOff lists, clipped to the program."""
+    """Merged [start, end] spans of the pages avatarOff lists, clipped to the program. An id that names no page of
+    the job's slides refuses page_unknown: compose never drops one without a word."""
+    unknown = sorted(set(off) - {p["id"] for p in pages})
+    if unknown:
+        raise StageRefused("page_unknown", f"avatar.avatarOff names no slide page: {', '.join(unknown)}")
     spans = sorted((p["startS"], min(p["endS"], total_s)) for p in pages if p["id"] in set(off))
     merged = []
     for start, end in spans:
@@ -137,13 +180,17 @@ def avatar_off_spans(pages, off, total_s):
     return [(round(s, 6), round(e, 6)) for s, e in merged if e > s]
 
 
-def avatar_off_filters(spans, fade, total_s, frame_s):
-    """FFmpeg alpha fades, each enabled only around its span: out over fade before a span, in over fade after it."""
+def avatar_off_filters(spans, fade, total_s):
+    """FFmpeg alpha filters per span: a fade out over the time before the span (up to fade), alpha 0 for the whole
+    span, and a fade in over fade after it. A span from the program start has no fade out: its first frame is
+    already hidden."""
     out = []
     for start, end in spans:
-        fade_at = max(0.0, start - fade)
-        length = max(frame_s, start - fade_at)
-        out.append(f"fade=t=out:st={fade_at:.6f}:d={length:.6f}:alpha=1:enable='between(t,{fade_at:.6f},{end:.6f})'")
+        if start > 0:
+            fade_at = max(0.0, start - fade)
+            span = f"between(t,{fade_at:.6f},{start:.6f})"
+            out.append(f"fade=t=out:st={fade_at:.6f}:d={start - fade_at:.6f}:alpha=1:enable='{span}'")
+        out.append(f"lut=a=0:enable='between(t,{start:.6f},{end:.6f})'")
         if end < total_s:
             out.append(f"fade=t=in:st={end:.6f}:d={fade:.6f}:alpha=1:enable='between(t,{end:.6f},{end + fade:.6f})'")
     return out
@@ -244,11 +291,29 @@ def conform(w, h):
     return f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1"
 
 
+def last_frame_s(base):
+    return float((base["frames"] - 1) * Fraction(base["fps"]["den"], base["fps"]["num"]))
+
+
 def held_frame(base_mp4, at_s, base, target):
     """One frame of the conformed base video at at_s (clamped to its last frame), as a PNG."""
-    last = (base["frames"] - 1) * Fraction(base["fps"]["den"], base["fps"]["num"])
-    ffmpeg("-ss", f"{min(at_s, float(last)):.6f}", "-i", str(base_mp4), "-frames:v", "1", "-update", "1", str(target))
+    ffmpeg("-ss", f"{min(at_s, last_frame_s(base)):.6f}", "-i", str(base_mp4), "-frames:v", "1", "-update", "1",
+           str(target))  # fmt: skip
     return target
+
+
+def mean_luma(source, w, h, at_s=None):
+    """Mean luma (Y, 8-bit) of one picture conformed to w x h in yuv420p: a still, or a video's frame at at_s."""
+    seek = ["-ss", f"{at_s:.6f}"] if at_s is not None else []
+    done = ffmpeg(
+        *seek, "-i", str(source), "-frames:v", "1",
+        "-vf", f"{conform(w, h)},format={PIX_FMT},signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-",
+        "-f", "null", "-",
+    )  # fmt: skip
+    found = YAVG.search(done.stdout)
+    if not found:
+        raise StageRefused("ffmpeg_failed", f"no mean luma measured for {source.name}", verdict=False)
+    return float(found.group(1))
 
 
 def run_compose(rc, row, partial):
@@ -311,6 +376,11 @@ def run_compose(rc, row, partial):
             runs = slide_runs(pages)
             sources = {page: rc.env.source(digest, f"slide {page}") for page, digest in slide_sources(job)}
             plan["slides"] = {"layout": slides["layout"], "runs": [], "holds": []}
+            still_y = None if moving else mean_luma(picture, w, h)
+
+            def base_y(at_s):
+                return mean_luma(picture, w, h, min(at_s, last_frame_s(base))) if moving else still_y
+
             for k, page in enumerate(p for p in pages if page_kind(p) == "hold"):
                 if not moving:
                     continue
@@ -343,6 +413,7 @@ def run_compose(rc, row, partial):
                     record["held"] = "base frame at the run's end" if moving else "static base"
                     record["dim_to"] = slides["dimTo"]
                 record["layers"] = []
+                under_y = None if card else base_y(run["start"])
                 for j, spec in enumerate(slide_layers(run, fade)):
                     source = sources[spec["page"]]
                     info = next(s for s in ffprobe(source)["streams"] if s.get("codec_type") == "video")
@@ -356,9 +427,22 @@ def run_compose(rc, row, partial):
                     else:
                         x, y, cw, ch = 0, 0, w, h
                         fit = conform(w, h)
-                    fades = f"fade=t=in:st={spec['fade_in'][0]}:d={spec['fade_in'][1]}:alpha=1"
-                    if spec["fade_out"]:
-                        fades += f",fade=t=out:st={spec['fade_out'][0]:.6f}:d={spec['fade_out'][1]}:alpha=1"
+                    if card:
+                        fades = f"fade=t=in:st={spec['fade_in'][0]}:d={spec['fade_in'][1]}:alpha=1"
+                        if spec["fade_out"]:
+                            fades += f",fade=t=out:st={spec['fade_out'][0]:.6f}:d={spec['fade_out'][1]}:alpha=1"
+                    else:
+                        # Full: each fade is eased against what is under it (the base, or the outgoing slide).
+                        over_y = mean_luma(source, w, h)
+                        fades = eased_fade("in", *spec["fade_in"], under_y, over_y)
+                        spec["ease"] = {"in": {"under_y": under_y, "over_y": over_y,
+                                               "min_fade_s": min_fade_s(under_y, over_y, fps)}}  # fmt: skip
+                        if spec["fade_out"]:
+                            end_y = base_y(run["end"])
+                            fades += "," + eased_fade("out", *spec["fade_out"], end_y, over_y)
+                            spec["ease"]["out"] = {"under_y": end_y, "over_y": over_y,
+                                                   "min_fade_s": min_fade_s(end_y, over_y, fps)}  # fmt: skip
+                        under_y = over_y
                     label = f"s{r}_{j}"
                     chain.append(f"[{idx}:v]{fit},format=yuva420p,{fades},{timed(label, spec['start'])}")
                     overlay(label, str(x), str(y))
@@ -370,7 +454,7 @@ def run_compose(rc, row, partial):
             ax, ay, side = avatar_box(avatar["corner"], avatar["width"], avatar["marginPx"], w, h)
             spans = avatar_off_spans(pages, avatar["avatarOff"], total_s)
             plan["avatar_off"] = [{"start_s": s, "end_s": e, "fade_s": avatar["fadeS"]} for s, e in spans]
-            offs = avatar_off_filters(spans, avatar["fadeS"], total_s, frame_s)
+            offs = avatar_off_filters(spans, avatar["fadeS"], total_s)
             starts = {s["id"]: s["start_s"] for s in placements["segments"]}
             for segment in avatar_nodes:
                 node = f"avatar/{segment['id']}"

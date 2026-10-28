@@ -720,7 +720,6 @@ def test_init_from_the_defaults_is_the_simple_card_example():
     # NV-8: the avatar is on by default where the edition allows one, with the persona the caller gives.
     on = init_job("nv-fixture-avatar", "job-fixture-fake", digest, bed="bed-fixture-emaj", persona="fixture-persona")
     assert on == examples()["nv-fixture-avatar"]
-    assert init_job("nv-c", "job-fixture-fake", digest, edition="ClientVoiceOnly")["avatar"] is None
     assert init_job("nv-n", "job-fixture-fake", digest, edition="ClientNarrated")["avatar"] == DEFAULTS["avatar"]
     still = init_job("nv-still", "job-fixture-fake", "1" * 64, still="2" * 64, avatar=False)
     assert still["base"] == {"still": {"sha256": "2" * 64, "size": {"w": 1920, "h": 1080}, "fps": FPS, "tailS": 1}}
