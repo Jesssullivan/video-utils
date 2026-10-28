@@ -219,6 +219,38 @@ it.
 engine record for it uses `GpuDirect` on the GPU host; `MacMlx` admits
 `MlxAudio` only, so a Mac build serves development checks, not a record.
 
+## Switch engine client (N1, 2026-10-28)
+
+A `GpuSwitch` engine speaks to the models switch's own `POST /v1/audio/speech`
+(xoxd-ai/fuzzy `models/models_switch/tts.py`, TIN-7096, read at `22dd29f9`).
+The backend names the runtime behind the switch's active tts entry, but the
+client is the same for each: `narrate/engine.py` `switch_speech`. It covers
+the client half of TIN-7089. The switch receipt for load, synthesise and
+release is still an operator step.
+
+- **Reference by content.** The take sends `ref_audio` as a base64 WAV data
+  URI with `ref_text`. The switch registers the clip upstream under a
+  content-addressed name and speaks with it, so narrate never calls
+  `/v1/audio/voices` on the switch and its render session holds nothing.
+  The switch has no delete route and keeps the voice until its upstream
+  restarts. Each take records `voice_kept_by_switch: true`.
+- **Bounds checked before upload.** `input` is 1 to 4096 characters,
+  `ref_text` at most 2000, the decoded clip 1 to 4 MiB and `seed` an
+  integer, from 0 to 2**32 - 1 for `VulkanAudioCpp`. A take outside them is
+  refused with `engine_input_invalid`, `engine_ref_too_large`,
+  `engine_ref_text_too_long` or `engine_seed_range`, and nothing is sent.
+- **No speed.** The audio.cpp engine refuses `speed` and qwentts.cpp ignores
+  it, so no switch take sends it. `speed_honoured` is false and the fit uses
+  atempo alone.
+- **Switch answers.** 409 (the active entry is not tts) is
+  `engine_switch_not_tts`: the operator switches to the tts entry first.
+  413 is `engine_ref_too_large`. 429 waits for `Retry-After`, at most 30
+  seconds, and asks again, up to 3 attempts in all, before `engine_busy`.
+  Every other failure keeps its usual code and is not asked again.
+
+Tests: `narrate/tests/test_switch.py`, against a loopback fake of the route.
+No model runs.
+
 ## Out-of-process batch engines (2026-10-26)
 
 The operator picked VoxCPM2 as the N0 engine after the blind A/B of

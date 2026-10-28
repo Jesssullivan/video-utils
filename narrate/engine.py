@@ -25,6 +25,18 @@ with its unconditioned default voice. synthesize() without a session registers, 
 AudioCppBatch engines run out of process (narrate/prerender.py): narrate never calls them. synthesize() refuses
 them with engine_out_of_process; a render takes their takes from a prerendered batch instead.
 
+GpuSwitch engines reach the models switch's own `POST /v1/audio/speech` (xoxd-ai/fuzzy models_switch/tts.py,
+TIN-7096), whatever runtime the switch's active tts entry runs. The switch takes the reference by content
+(ref_audio, a base64 WAV data URI, with ref_text), registers it upstream under a content-addressed name and speaks
+with that name, so the client never calls /v1/audio/voices there. Its flat contract bounds what is sent: input
+up to 4096 characters, ref_text up to 2000, a decoded clip of 1 to 4 MiB, an integer seed (0 to 2**32 - 1 for
+the audio.cpp engine) and no `speed` (audio.cpp refuses it, qwentts.cpp ignores it), so speed_honoured is false
+and render.py fits timing with atempo alone. A request outside those bounds is refused here, before any upload.
+The switch answers 409 while its active entry is not a tts entry (engine_switch_not_tts: the operator switches
+first), 413 for a clip it will not decode (engine_ref_too_large) and 429 with Retry-After while its voice-clone
+slots are taken; a 429 is asked again after the wait, at most SWITCH_ATTEMPTS times in all. The switch keeps a
+registered voice until its upstream restarts and has no delete route: the take records that.
+
 fake engines (backend Fake) need no weights, GPU or network:
   fake://sine    a deterministic tone per chunk: its pitch follows the seed and the text, its length the text
                  length over the speed, with a syllable-rate envelope;
@@ -45,6 +57,7 @@ import secrets
 import shutil
 import sys
 import tempfile
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -58,9 +71,19 @@ SECONDS_PER_CODEPOINT = 0.065
 
 
 class EngineError(RuntimeError):
-    def __init__(self, code, detail, status=None):
+    def __init__(self, code, detail, status=None, retry_after=None):
         super().__init__(f"{code}: {detail}")
-        self.code, self.detail, self.status = code, detail, status
+        self.code, self.detail, self.status, self.retry_after = code, detail, status, retry_after
+
+
+def retry_after_s(headers):
+    """A Retry-After of delta seconds as a float, else None (an HTTP date is not followed)."""
+    value = headers.get("Retry-After") if headers is not None else None
+    try:
+        seconds = float(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+    return seconds if math.isfinite(seconds) and seconds >= 0 else None
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -208,9 +231,10 @@ def call(engine, url, body, options, accept, method=None):
             data = reply.read(limit + 1)
             headers = reply.headers
     except urllib.error.HTTPError as error:
+        wait = retry_after_s(error.headers)
         error.close()
         code = "engine_refused" if error.code in (400, 401, 403, 409, 422, 451) else "engine_http"
-        raise EngineError(code, f"engine {engine['id']} answered HTTP {error.code}", error.code) from None
+        raise EngineError(code, f"engine {engine['id']} answered HTTP {error.code}", error.code, wait) from None
     except (urllib.error.URLError, http.client.HTTPException, OSError, ValueError) as error:
         reason = getattr(error, "reason", error)
         timed_out = isinstance(reason, TimeoutError) or isinstance(error, TimeoutError)
@@ -360,10 +384,83 @@ def qwentts_speech(engine, text, voice, ref, seed, options, sess):
 AUDIOCPP_BATCH = "AudioCppBatch"
 
 
+SWITCH = "GpuSwitch"
+SWITCH_MAX_INPUT_CHARS = 4096
+SWITCH_MAX_REF_TEXT_CHARS = 2000
+SWITCH_MAX_REF_AUDIO_BYTES = 4 * 1024 * 1024
+SWITCH_SEED_RANGE = {"VulkanAudioCpp": (0, 2**32 - 1)}
+SWITCH_ANY_SEED = (-(2**63), 2**63 - 1)
+SWITCH_STATUS = {409: "engine_switch_not_tts", 413: "engine_ref_too_large", 429: "engine_busy"}
+SWITCH_ATTEMPTS = 3
+SWITCH_MAX_WAIT_S = 30.0
+
+
+def switch_body(engine, text, ref, seed, options):
+    """(request body, facts) for one take on the switch, refused with a typed code when the switch would refuse it."""
+    if not text.strip() or len(text) > SWITCH_MAX_INPUT_CHARS:
+        raise EngineError(
+            "engine_input_invalid", f"engine {engine['id']}: a switch take is 1 to {SWITCH_MAX_INPUT_CHARS} characters"
+        )
+    low, high = SWITCH_SEED_RANGE.get(engine["backend"], SWITCH_ANY_SEED)
+    if isinstance(seed, bool) or not isinstance(seed, int) or not low <= seed <= high:
+        raise EngineError("engine_seed_range", f"engine {engine['id']}: the switch takes an integer seed {low}..{high}")
+    body = {"model": engine["model"], "input": text, "response_format": "wav", "seed": seed}
+    facts = {"variant": "switch", "speed_honoured": False}
+    if options["ref_audio"] != "data_uri":
+        return body, facts | {"ref_audio_used": False, "ref_text_used": False, "conditioning": "none"}
+    if not 0 < len(ref["audio"]) <= SWITCH_MAX_REF_AUDIO_BYTES:
+        raise EngineError(
+            "engine_ref_too_large",
+            f"engine {engine['id']}: the switch takes a reference clip of 1 to {SWITCH_MAX_REF_AUDIO_BYTES} bytes",
+        )
+    transcript = ref["text"] if ref["text"].strip() else ""
+    if len(transcript) > SWITCH_MAX_REF_TEXT_CHARS:
+        raise EngineError(
+            "engine_ref_text_too_long",
+            f"engine {engine['id']}: the switch takes a transcript of at most {SWITCH_MAX_REF_TEXT_CHARS} characters",
+        )
+    body["ref_audio"] = "data:audio/wav;base64," + base64.b64encode(ref["audio"]).decode("ascii")
+    if transcript:
+        body["ref_text"] = transcript
+    return body, facts | {
+        "ref_audio_used": True,
+        "ref_text_used": bool(transcript),
+        "conditioning": "reference_and_transcript" if transcript else "reference",
+        "voice_kept_by_switch": True,
+    }
+
+
+SWITCH_DETAIL = {
+    "engine_switch_not_tts": "the switch's active entry is not a tts entry; switch to one first",
+    "engine_ref_too_large": "the switch would not take the reference clip",
+    "engine_busy": f"the switch's voice-clone slots stayed taken over {SWITCH_ATTEMPTS} attempts",
+}
+SLEEP = time.sleep  # tests replace it
+
+
+def switch_speech(engine, text, ref, seed, options):
+    body, facts = switch_body(engine, text, ref, seed, options)
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            data, _ = call(engine, speech_url(engine["endpoint"]), body, options, "audio/wav")
+            return wav_reply(engine, data), facts | {"attempts": attempt}
+        except EngineError as error:
+            code = SWITCH_STATUS.get(error.status)
+            if code is None:
+                raise
+            if code == "engine_busy" and attempt < SWITCH_ATTEMPTS:
+                SLEEP(min(5.0 if error.retry_after is None else error.retry_after, SWITCH_MAX_WAIT_S))
+                continue
+            detail = f"engine {engine['id']}: {SWITCH_DETAIL[code]} (HTTP {error.status})"
+            raise EngineError(code, detail, error.status) from None
+
+
 def honours_speed(engine):
-    """False for a runtime that ignores the speed knob, or a batch rendered before the fit; render.py then fits
-    timing with atempo alone."""
-    return engine["backend"] not in (QWENTTS, AUDIOCPP_BATCH)
+    """False for a runtime that ignores the speed knob, a switch take (the switch sends none), or a batch rendered
+    before the fit; render.py then fits timing with atempo alone."""
+    return engine["backend"] not in (QWENTTS, AUDIOCPP_BATCH) and engine.get("profile") != SWITCH
 
 
 def synthesize(engine, text, voice, ref, seed, speed, options, sess=None):
@@ -380,6 +477,8 @@ def synthesize(engine, text, voice, ref, seed, speed, options, sess=None):
             "engine_out_of_process",
             f"engine {engine['id']} runs as a batch on the GPU host: narrate plan, then render --prerendered",
         )
+    if engine.get("profile") == SWITCH:
+        return switch_speech(engine, text, ref, seed, options)
     if engine["backend"] == QWENTTS:
         return qwentts_speech(engine, text, voice, ref, seed, options, sess)
     return speech(engine, text, voice, ref, seed, speed, options)
