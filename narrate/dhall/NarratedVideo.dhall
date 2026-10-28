@@ -16,7 +16,17 @@
 --   narrate render, so any segment is a synthetic voice. Segment.avatar False hides the overlay for that
 --   segment (dense screens).
 -- Avatar.external: "kitpip", resolved through the private pin record. rig None takes the pin's default rig.
---   width is a fraction of the base width, 0.10 to 0.30.
+--   width is a fraction of the base width, 0.10 to 0.30. avatarOff names pages (Slides.pages ids) whose whole
+--   span hides the overlay, the deck pattern for dense screens; it fades out over fadeS before such a span and
+--   back in over fadeS after it. The avatar is on by default for an edition that allows one (NV-8); a job turns
+--   it off with avatar None or a segment's avatar False.
+-- Slides: named pages on the base clock, each showing the base, a slide picture (by SHA-256 in the private
+--   store) or a hold of the base frame at the page's start. layout Full shows a slide over the whole frame.
+--   CardLowerLeft (the deck seat's slide card, built here from its description only) shows it as a card in the
+--   lower left, cardWidth of the frame wide and marginPx from the edges. A run of adjacent slide pages fades
+--   in over fadeS, crossfades in place between pages and fades out over fadeS. Under the card the base frame
+--   at the run's end (the next clip's first frame) is held and dims to dimTo of its brightness, lifting again
+--   as the card fades out. A Hold page shows no card at full brightness. The avatar keeps its own corner.
 -- Music levels (NV-2): the un-ducked bed sits bedBelowVoiceLu (about 20) below the narration's integrated
 --   loudness. The sidechain ducks it a further duckDb (6 to 8; refused above 12) under the whole foreground,
 --   voice and kept clip sound alike. Fades are 3 s in and 5 s out.
@@ -86,6 +96,25 @@ let Avatar =
       , corner : Corner
       , width : Double
       , marginPx : Natural
+      , avatarOff : List Text
+      , fadeS : Double
+      }
+
+let SlideLayout = < Full | CardLowerLeft >
+
+let Slide = { sha256 : Text }
+
+let PageShow = < Base | Hold | Slide : { slide : Slide } >
+
+let Page = { id : Text, startS : Double, endS : Double, show : PageShow }
+
+let Slides =
+      { layout : SlideLayout
+      , cardWidth : Double
+      , marginPx : Natural
+      , fadeS : Double
+      , dimTo : Double
+      , pages : List Page
       }
 
 let DuckMode = < Sidechain | EdlEnvelope >
@@ -133,6 +162,7 @@ let T =
       , base : Base
       , segments : List Segment
       , avatar : Optional Avatar
+      , slides : Optional Slides
       , music : Optional Music
       , tighten : Tighten
       , captions : Captions
@@ -218,6 +248,15 @@ let defaults =
         , corner = Corner.BR
         , width = 0.22
         , marginPx = 32
+        , avatarOff = [] : List Text
+        , fadeS = 0.35
+        }
+      , slides =
+        { layout = SlideLayout.Full
+        , cardWidth = 0.42
+        , marginPx = 64
+        , fadeS = 0.35
+        , dimTo = 0.5
         }
       , music =
         { bedBelowVoiceLu = 20.0
@@ -257,6 +296,11 @@ in  { Type = T
     , Anchor
     , Segment
     , Avatar
+    , SlideLayout
+    , Slide
+    , PageShow
+    , Page
+    , Slides
     , DuckMode
     , Music
     , Tighten

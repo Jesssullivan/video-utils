@@ -58,14 +58,17 @@
         "scriptSha256": "93f7f4183b4b6ccec0c3ef2c83cca16dcb0ec4a929d55941193ab84f4f355d3a"
       }
     ],
+    "slides": null,
     "tighten": {
       "enabled": false
     }
   },
   {
     "avatar": {
+      "avatarOff": [],
       "corner": "BR",
       "external": "kitpip",
+      "fadeS": 0.35,
       "marginPx": 32,
       "renderSize": 512,
       "rig": null,
@@ -129,6 +132,7 @@
         "scriptSha256": "93f7f4183b4b6ccec0c3ef2c83cca16dcb0ec4a929d55941193ab84f4f355d3a"
       }
     ],
+    "slides": null,
     "tighten": {
       "enabled": false
     }
@@ -169,14 +173,17 @@
     },
     "music": null,
     "segments": [],
+    "slides": null,
     "tighten": {
       "enabled": false
     }
   },
   {
     "avatar": {
+      "avatarOff": [],
       "corner": "BR",
       "external": "kitpip",
+      "fadeS": 0.35,
       "marginPx": 32,
       "renderSize": 512,
       "rig": null,
@@ -225,8 +232,125 @@
         "scriptSha256": "93f7f4183b4b6ccec0c3ef2c83cca16dcb0ec4a929d55941193ab84f4f355d3a"
       }
     ],
+    "slides": null,
     "tighten": {
       "enabled": true
+    }
+  },
+  {
+    "avatar": {
+      "avatarOff": [
+        "slide-b"
+      ],
+      "corner": "BR",
+      "external": "kitpip",
+      "fadeS": 0.35,
+      "marginPx": 32,
+      "renderSize": 512,
+      "rig": null,
+      "rigRevisionSha256": null,
+      "width": 0.22
+    },
+    "base": {
+      "card": {
+        "colour": "#101820",
+        "fps": {
+          "den": 1,
+          "num": 30
+        },
+        "size": {
+          "h": 1080,
+          "w": 1920
+        },
+        "tailS": 1
+      }
+    },
+    "captions": {
+      "burn": false,
+      "soft": true,
+      "srt": true,
+      "vtt": true
+    },
+    "delivery": {
+      "channels": "Mono",
+      "driftLu": 0.5,
+      "handoff": false,
+      "profile": "Web1080p30",
+      "targetLufs": -16,
+      "truePeakDbtp": -1.5,
+      "upload": false,
+      "voiceOnlyListen": null
+    },
+    "edition": "Internal",
+    "id": "nv-fixture-slides",
+    "labels": {
+      "extraNotice": null,
+      "persona": "fixture-persona",
+      "personaCue": null
+    },
+    "music": {
+      "attackMs": 50,
+      "bed": "bed-fixture-emaj",
+      "bedBelowVoiceLu": 20,
+      "duckDb": 7,
+      "duckMode": "Sidechain",
+      "fadeInS": 3,
+      "fadeOutS": 5,
+      "releaseMs": 400,
+      "tailS": 5
+    },
+    "segments": [
+      {
+        "anchor": "Auto",
+        "avatar": true,
+        "id": "seg-1",
+        "narrateJob": "job-fixture-fake",
+        "scriptSha256": "93f7f4183b4b6ccec0c3ef2c83cca16dcb0ec4a929d55941193ab84f4f355d3a"
+      }
+    ],
+    "slides": {
+      "cardWidth": 0.42,
+      "dimTo": 0.5,
+      "fadeS": 0.35,
+      "layout": "CardLowerLeft",
+      "marginPx": 64,
+      "pages": [
+        {
+          "endS": 2,
+          "id": "slide-a",
+          "show": {
+            "slide": {
+              "sha256": "3b3071d75a77285d84f1427864df16d6aba49d5d1015e33be8ef024d66383a09"
+            }
+          },
+          "startS": 0
+        },
+        {
+          "endS": 4,
+          "id": "slide-b",
+          "show": {
+            "slide": {
+              "sha256": "f428bf2bc4488211d76cb234074cea1da1ffddef19122426bc83e2719f7db86e"
+            }
+          },
+          "startS": 2
+        },
+        {
+          "endS": 5,
+          "id": "body",
+          "show": "Base",
+          "startS": 4
+        },
+        {
+          "endS": 5.4,
+          "id": "end",
+          "show": "Hold",
+          "startS": 5
+        }
+      ]
+    },
+    "tighten": {
+      "enabled": false
     }
   }
 ]

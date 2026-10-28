@@ -1,12 +1,12 @@
 {
  "schema_version": 1,
  "status": "draft_for_root_admission",
- "lane": "W8 (L3, L4, L5)",
+ "lane": "W8 (L3, L4, L5, L6)",
  "linear": "TIN-7476",
  "spec": "docs/spec/NARRATED_VIDEO.md",
  "worker": "python3 -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture}",
  "skill": ".agents/skills/narrated-video/SKILL.md",
- "admission": "Tool numbers are proposals: narrated_video_plan is proposed as 62, narrated_video_run as 63, narrated_video_place as 64, music_bed_build as 65, kitpip_overlay as 66, kitpip_verify as 67 and narrated_video_mix as 68. Root admits them in program/tools.json in lane L7 with tools 69 and 70. The path rules (no symlink components, root outside artifacts/runs/ and artifacts/narrate/) and the job-id form are enforced in narrate/video before any work; scripts/tool_api.py adds its own path checks at admission. No argument takes a URL, an executable or a shell string.",
+ "admission": "Tool numbers are proposals: narrated_video_plan is proposed as 62, narrated_video_run as 63, narrated_video_place as 64, music_bed_build as 65, kitpip_overlay as 66, kitpip_verify as 67, narrated_video_mix as 68, narrated_video_compose as 69 and narrated_video_verify as 70. Root admits them in program/tools.json in lane L7. The path rules (no symlink components, root outside artifacts/runs/ and artifacts/narrate/) and the job-id form are enforced in narrate/video before any work; scripts/tool_api.py adds its own path checks at admission. No argument takes a URL, an executable or a shell string.",
  "tools": [
   {
    "name": "narrated_video_plan",
@@ -212,7 +212,7 @@
    "evidence_kind": "stage_graph_run_with_keys",
    "limitations": [
     "fresh means the outputs re-hash to their key. Listening, Content ID and delivery are separate operator states; voice_qa and mix leave listening pending_operator.",
-    "Lanes L4 and L5 run script, voice, voice_qa, base, place, music, mix, avatar and avatar_check. compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "Lanes L4 to L6 run every stage: script, voice, voice_qa, base, place, music, mix, compose, deliver_check and handoff, and avatar and avatar_check when the job has an avatar and its kitpip pin resolves. compose waits behind the avatar stages.",
     "v1 runs one stage at a time; the spec's at-most-2 bound holds with room to spare.",
     "A voice rendered by the fake engine is a sine fixture, not speech."
    ],
@@ -295,7 +295,7 @@
    "evidence_kind": "base_clock_placements",
    "limitations": [
     "fresh means the outputs re-hash to their key. Listening, Content ID and delivery are separate operator states; voice_qa and mix leave listening pending_operator.",
-    "Lanes L4 and L5 run script, voice, voice_qa, base, place, music, mix, avatar and avatar_check. compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "Lanes L4 to L6 run every stage: script, voice, voice_qa, base, place, music, mix, compose, deliver_check and handoff, and avatar and avatar_check when the job has an avatar and its kitpip pin resolves. compose waits behind the avatar stages.",
     "A deck base refuses base_deck_pending until lane L8 (the deck seam).",
     "Page anchors need a deck base (anchor_needs_deck)."
    ],
@@ -378,7 +378,7 @@
    "evidence_kind": "music_bed_cycle",
    "limitations": [
     "fresh means the outputs re-hash to their key. Listening, Content ID and delivery are separate operator states; voice_qa and mix leave listening pending_operator.",
-    "Lanes L4 and L5 run script, voice, voice_qa, base, place, music, mix, avatar and avatar_check. compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "Lanes L4 to L6 run every stage: script, voice, voice_qa, base, place, music, mix, compose, deliver_check and handoff, and avatar and avatar_check when the job has an avatar and its kitpip pin resolves. compose waits behind the avatar stages.",
     "Agents never purchase, search for or download a loop; acquiredBy has one constructor, Operator.",
     "No public upload until the record holds a certified licence PDF digest and a clear Content ID result. music records no licence state; plan and status list the open gates under pending_operator, and deliver_check decides them."
    ],
@@ -658,7 +658,7 @@
    "evidence_kind": "mix_levels_and_gates",
    "limitations": [
     "fresh means the outputs re-hash to their key. Listening, Content ID and delivery are separate operator states; voice_qa and mix leave listening pending_operator.",
-    "Lanes L4 and L5 run script, voice, voice_qa, base, place, music, mix, avatar and avatar_check. compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "Lanes L4 to L6 run every stage: script, voice, voice_qa, base, place, music, mix, compose, deliver_check and handoff, and avatar and avatar_check when the job has an avatar and its kitpip pin resolves. compose waits behind the avatar stages.",
     "The applied duck depth is the envelope the stage applied, a measurement, not a listening result.",
     "Stereo writes the mono mix on both channels at -3.01 dB each; mono is the default until an A/B (NV-2)."
    ],
@@ -680,6 +680,182 @@
     "research": "docs/spec/NARRATED_VIDEO.md \"Simple path (lane L4)\", Mix levels; the deck project's ruling 58 set 20 LU under the voice.",
     "iterate": "Change duckDb (6 to 8) or duckMode alone, rerun mix only, and compare two mix.json files at the same voice loudness.",
     "acceptance": "A fresh stage is evidence that it ran on these inputs. Listening, Content ID and delivery are separate operator states.",
+    "max_comparison_candidates_default": 2
+   }
+  },
+  {
+   "name": "narrated_video_compose",
+   "title": "Compose a narrated video",
+   "description": "Run the compose stage of one job (`python -m narrate video stage JOB compose --json`) and, with handoff true, the handoff stage: scale the base to the delivery profile (Web1080p30, Talk or Contingency), lay on the slide pages (layout Full or CardLowerLeft: a lower-left card over the held next-clip frame dimmed to dimTo, fades and in-place crossfades over fadeS) and each segment's kitpip overlay (ProRes 4444, straight alpha) at its corner from the segment start, hidden with fades over every page avatarOff lists, then encode video.mp4 (H.264 yuv420p, AAC 48 kHz, soft captions) and video.upload.mp4. Writes captions.srt and captions.vtt from the narrate runs' cues on the base clock, description.txt from a fixed template, chapters.json and compose.json. Handoff writes layers/ (bare base, overlays, slide pictures, stems, captions) and edit.json with every input's stage key. Refuses captions_burn_unsupported, captions_missing, slides_exceed_program, overlay_exceeds_base, frames_mismatch and label_chain_broken. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every stage manifest that carries narration, an overlay or a bed says no_time_stretch false with a non-identity mapping (narration_v1, narrated_video_v1, avatar_overlay_v1 or music_bed_v1), so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+   "intent": "Let an agent compose a labelled narrated cut at a delivery profile, compare slide and overlay layouts, and hand pre-VFX layers to an editor.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "job": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The job id: 1 to 64 of a-z, 0-9, '.', '_' and '-', starting with a letter or digit. The job lives in the store root as <root>/<job>/job.json (write it with `just nv-init`)."
+     },
+     "root": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The narrated-video store root (default artifacts/narrated, or NARRATED_VIDEO_ROOT). Refused under artifacts/runs/ or artifacts/narrate/."
+     },
+     "records": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json and, optionally, music-beds.json."
+     },
+     "store": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private store. Every source (script, still, video, bed loop) is read from it by SHA-256; required for a run."
+     },
+     "lexical": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The pinned xoxd-lexical release directory the script and voice stages read (NARRATE_LEXICAL_DIR)."
+     },
+     "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 900,
+      "default": 600,
+      "description": "Outer deadline for the whole call in seconds (at most 900). A run stopped by it keeps every finished stage fresh; call it again to resume."
+     },
+     "handoff": {
+      "type": "boolean",
+      "default": false,
+      "description": "Also run the handoff stage (it runs only when the job's delivery.handoff is true)."
+     },
+     "externals": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private kitpip pin record (NARRATED_VIDEO_EXTERNALS); needed when the job has an avatar."
+     }
+    },
+    "required": [
+     "job",
+     "records",
+     "store"
+    ],
+    "additionalProperties": false
+   },
+   "skill": ".agents/skills/narrated-video-compose/SKILL.md",
+   "implementation_status": "draft",
+   "evidence_kind": "composed_cut_and_layer_plan",
+   "limitations": [
+    "fresh means the outputs re-hash to their key. Listening, lip sync, Content ID and delivery are separate operator states; compose leaves listening and lip_sync pending_operator.",
+    "The slide card was built from the deck seat's description (design Addendum B), not from its code; no A/B against a deck cut is recorded.",
+    "Burned captions are not composed in v1. FCPXML and OTIO export are phase 2, and edit.json is unverified in an editing application.",
+    "With an avatar on, compose waits for the avatar and avatar_check stages of lane L5."
+   ],
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "dependencies": {
+    "recommended_prior_tools": [
+     "narrated_video_plan",
+     "narrated_video_mix"
+    ],
+    "enforced": false,
+    "note": "mix and, with an avatar, every avatar and avatar_check node must be fresh."
+   },
+   "agent_workflow": {
+    "identify": "Read compose.json: overlay boxes and starts, slide runs and layers, avatar-off spans, the profile.",
+    "research": "docs/spec/NARRATED_VIDEO.md \"Compose and delivery (lane L6)\" and \"Slides\"; design Addendum B for the deck seat's slide card.",
+    "iterate": "Change slides.layout, avatar.width or avatar.avatarOff alone, rerun compose and deliver_check, and compare the layer plans and the flash results.",
+    "acceptance": "A fresh compose is evidence that it ran on these inputs. Listening, lip sync, Content ID and delivery are separate operator states.",
+    "max_comparison_candidates_default": 2
+   }
+  },
+  {
+   "name": "narrated_video_verify",
+   "title": "Check delivery gates",
+   "description": "Run the deliver_check stage of one job (`python -m narrate video stage JOB deliver_check --json`): probe video.mp4 against its profile (codec, pixel format, size, rate, channels, frames, caption track), measure the delivered loudness and true peak, measure the flash gate at every slide change (the largest adjacent-frame mean-luma jump, at most 30%), check the captions, persona cue and description notice, and report the operator gates (listening, lip sync, and with upload and a bed the licence PDF digest and Content ID) as pending_operator. Writes deliver_check.json with per-gate states and delivery_gate (internal_review_allowed, public_upload_allowed). A failed machine gate is a state; the stage refuses only edition_voice_refused, edition_pip_refused or edition_bed_refused at DeliverCheck and label_chain_broken. Never uploads or publishes. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every stage manifest that carries narration, an overlay or a bed says no_time_stretch false with a non-identity mapping (narration_v1, narrated_video_v1, avatar_overlay_v1 or music_bed_v1), so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+   "intent": "Let an agent read every delivery gate of a composed cut and compare two runs, without marking an operator gate passed.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "job": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The job id: 1 to 64 of a-z, 0-9, '.', '_' and '-', starting with a letter or digit. The job lives in the store root as <root>/<job>/job.json (write it with `just nv-init`)."
+     },
+     "root": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The narrated-video store root (default artifacts/narrated, or NARRATED_VIDEO_ROOT). Refused under artifacts/runs/ or artifacts/narrate/."
+     },
+     "records": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json and, optionally, music-beds.json."
+     },
+     "store": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private store. Every source (script, still, video, bed loop) is read from it by SHA-256; required for a run."
+     },
+     "lexical": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The pinned xoxd-lexical release directory the script and voice stages read (NARRATE_LEXICAL_DIR)."
+     },
+     "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 900,
+      "default": 600,
+      "description": "Outer deadline for the whole call in seconds (at most 900). A run stopped by it keeps every finished stage fresh; call it again to resume."
+     }
+    },
+    "required": [
+     "job",
+     "records",
+     "store"
+    ],
+    "additionalProperties": false
+   },
+   "skill": ".agents/skills/narrated-video-verify/SKILL.md",
+   "implementation_status": "draft",
+   "evidence_kind": "delivery_gate_states",
+   "limitations": [
+    "The flash formula (jump relative to the darker frame, floor Y 16) is this lane's reading of the deck seat's gate, not a port of its check.",
+    "Listening, lip sync, Content ID and delivery stay operator states; public_upload_allowed is a gate, not an upload."
+   ],
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "dependencies": {
+    "recommended_prior_tools": [
+     "narrated_video_compose"
+    ],
+    "enforced": false,
+    "note": "compose must be fresh."
+   },
+   "agent_workflow": {
+    "identify": "Read gates, flash.changes, loudness, profile.findings and delivery_gate.",
+    "research": "docs/spec/NARRATED_VIDEO.md \"Deliver check\"; the deck playbook's gates as the design records them.",
+    "iterate": "Compare two deliver_check.json reports from runs that differ by one knob, at matched loudness.",
+    "acceptance": "Machine gates are measurements. Only the operator closes pending_operator.",
     "max_comparison_candidates_default": 2
    }
   }

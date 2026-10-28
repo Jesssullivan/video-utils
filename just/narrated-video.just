@@ -1,6 +1,6 @@
-# Narrated video (docs/spec/NARRATED_VIDEO.md), lanes L3 to L5: the stage graph's init, plan, status, explain and
-# verify, the simple path's run, stage and quick recipes (script, voice, voice_qa, base, place, music and mix), and
-# the kitpip avatar stages with their pin check.
+# Narrated video (docs/spec/NARRATED_VIDEO.md), lanes L3 to L6: the stage graph's init, plan, status, explain and
+# verify, the run, stage and quick recipes (script, voice, voice_qa, base, place, music, mix, avatar, avatar_check,
+# compose, deliver_check and handoff), and the kitpip pin check.
 # Run inside `nix develop .#condense` (FFmpeg, python3, pytest).
 # Root imports this file from the root justfile (`import 'just/narrated-video.just'`).
 # Jobs and their stage directories land in artifacts/narrated/<job_id>/ (NARRATED_VIDEO_ROOT), outside
@@ -8,12 +8,12 @@
 # from the private store NARRATE_STORE, the lexical release from NARRATE_LEXICAL_DIR, the private kitpip pin from
 # NARRATED_VIDEO_EXTERNALS and the binary from KITPIP_BIN. A job holds digests and record ids, never a path.
 # Runs go through narrate/bounded.sh (nice 19, a 6G memory scope, one heavy narrate step at a time).
-# nv-bed comes with lane L6.
 
-# The defaults: one segment voiced by NARRATE_JOB, a #101820 card (or --still SHA), no avatar unless --avatar
-# --persona P (opt-in until L6, docs/spec/NARRATED_VIDEO.md), the bed only with --bed ID, edition Internal and tighten
+# The defaults: one segment voiced by NARRATE_JOB, a #101820 card (or --still SHA), the kitpip avatar on where the
+# edition allows one (NV-8: pass --persona P, or --no-avatar), the bed only with --bed ID, edition Internal and tighten
 # off (NV-2). --client makes a client delivery: edition ClientNarrated (NV-6). A ClientVoiceOnly job comes only
-# through python -m narrate video init --from FILE. admit refuses a voice without consent before anything is written.
+# through python -m narrate video init --from FILE. admit refuses a voice without consent, or an avatar without a
+# persona, before anything is written.
 # Write a simple job from the defaults into the store and record its first plan.
 nv-init job narrate_job script *args:
     python3 -m narrate video init --job {{quote(job)}} --narrate-job {{quote(narrate_job)}} --script {{quote(script)}} {{args}}
@@ -39,8 +39,9 @@ kitpip-pin-check *args:
 nv-verify dir:
     python3 -m narrate video verify {{quote(dir)}}
 
-# Run the stale stages of a job: script to mix, and avatar and avatar_check when the job has an avatar and KITPIP_BIN
-# resolves to its pin. Stops at the first refusal; finished stages stay fresh. ARGS: --stages S,... | --until STAGE | --force S,... | --json.
+# Run the stale stages of a job, script to handoff, and stop at the first refusal; finished stages stay fresh. The
+# avatar and avatar_check stages run when the job has an avatar and KITPIP_BIN resolves to its pin; compose waits
+# for them. ARGS: --stages S,... | --until STAGE | --force S,... | --json.
 nv-run job *args:
     narrate/bounded.sh python3 -m narrate video run {{quote(job)}} {{args}}
 
@@ -49,13 +50,14 @@ nv-stage job stage *args:
     narrate/bounded.sh python3 -m narrate video stage {{quote(job)}} {{quote(stage)}} {{args}}
 
 # A simple job in one step: init from the defaults, then run. ARGS go to init (--card, --still SHA, --bed ID,
-# --edition E); the store, records and lexical release come from the environment.
+# --edition E, --persona P or --no-avatar); the store, records and lexical release come from the environment.
 nv-quick job narrate_job script *args:
     python3 -m narrate video init --job {{quote(job)}} --narrate-job {{quote(narrate_job)}} --script {{quote(script)}} {{args}}
     narrate/bounded.sh python3 -m narrate video run {{quote(job)}}
 
 # Plan the committed card example against the committed records, then run nv-quick end to end on a synthetic
-# workspace (generated sine voice, generated E-major bed loops, a colour card) and print the mix measurements.
+# workspace (generated sine voice, generated E-major bed loops, a colour card, no avatar until lane L5 runs it) through
+# compose and deliver_check, and print the mix measurements and the delivery gates.
 # Whisper is pointed at no model: the fixture voice is a sine, not speech, so WER stays not_measured.
 nv-fixture:
     #!/usr/bin/env bash
@@ -70,22 +72,25 @@ nv-fixture:
     export NARRATED_VIDEO_ROOT="$root/narrated" NARRATED_VIDEO_RECORDS="$root/ws/records"
     export NARRATE_STORE="$root/ws/store" NARRATE_LEXICAL_DIR="$root/ws/lexical"
     export NARRATE_WHISPER_MODEL="$root/no-whisper-model.bin"
-    just nv-quick nv-fixture-quick job-fixture-fake "$root/ws/store/script.md" --bed bed-fixture-emaj
+    just nv-quick nv-fixture-quick job-fixture-fake "$root/ws/store/script.md" --bed bed-fixture-emaj --no-avatar
     python3 -m narrate video verify "$root/narrated/nv-fixture-quick"
     python3 - "$root/narrated/nv-fixture-quick" <<'PY'
     import json, sys
     from pathlib import Path
     job = Path(sys.argv[1])
-    entry = json.loads((job / "current.json").read_text())["stages"]["mix"]
-    m = json.loads((job / entry["dir"] / "manifest.json").read_text())["measurements"]
+    stages = json.loads((job / "current.json").read_text())["stages"]
+    m = json.loads((job / stages["mix"]["dir"] / "manifest.json").read_text())["measurements"]
     keep = ("integrated_lufs", "drift_lu", "true_peak_dbtp", "voice_integrated_lufs", "bed_below_voice_lu",
             "duck_depth_db", "length_s", "channels", "flags")
-    print(json.dumps({k: m[k] for k in keep}, sort_keys=True))
+    d = json.loads((job / stages["deliver_check"]["dir"] / "manifest.json").read_text())["measurements"]
+    print(json.dumps({"mix": {k: m[k] for k in keep}, "deliver_check": {k: d[k] for k in ("gates", "delivery_gate")}},
+                     sort_keys=True))
     PY
 
-# The graph-core, simple-path and avatar tests: keys, invalidation rows, freshness, admit, the CLI, the kitpip pin
-# and avatar stages on the stub, and the L4 stages on synthetic fixtures (levels, duck, placement property, editions
-# at Place, labels, bases, the bed).
+# The graph-core, simple-path, avatar and compose tests: keys, invalidation rows, freshness, admit, the CLI, the
+# kitpip pin and avatar stages on the stub, the L4 stages on synthetic fixtures (levels, duck, placement property,
+# editions at Place, labels, bases, the bed) and the L6 stages (alpha, captions, labels, profiles, slides, the flash
+# gate, avatarOff and handoff).
 nv-test:
     cd narrate && python3 -m pytest -q tests/test_narrated_video_graph.py tests/test_narrated_video_types.py \
-        tests/test_narrated_video_simple.py tests/test_narrated_video_avatar.py
+        tests/test_narrated_video_simple.py tests/test_narrated_video_avatar.py tests/test_narrated_video_compose.py

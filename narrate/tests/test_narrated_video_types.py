@@ -93,6 +93,7 @@ def test_the_committed_examples_pass(check, data):
         "nv-fixture-avatar": "Internal",
         "nv-fixture-client-deck": "ClientVoiceOnly",
         "nv-fixture-client-narrated": "ClientNarrated",
+        "nv-fixture-slides": "Internal",
     }
 
 

@@ -6,8 +6,9 @@ records directory with the file names narrate/dhall/examples uses: jobs.json, vo
 music-beds.json. The fixture records are that examples directory; real records live in the private store.
 
 DEFAULTS mirrors NarratedVideo.defaults. `init` builds a simple job from it: a colour card or a still, one segment
-anchored Auto, the bed only when one is named, tighten off (NV-2). The avatar is opt-in (--avatar with --persona)
-until the kitpip lanes land: see "Avatar opt-in until L6" in docs/spec/NARRATED_VIDEO.md (NV-4).
+anchored Auto, the bed only when one is named, tighten off (NV-2). The kitpip avatar is on by default for an edition
+that allows one (NV-8, TIN-7476 comment df0ed8e6), so it needs a persona label; --no-avatar turns it off. See
+"Avatar default" in docs/spec/NARRATED_VIDEO.md.
 """
 
 import copy
@@ -37,7 +38,10 @@ CLIENT_EDITIONS = ("ClientVoiceOnly", "ClientNarrated")
 # NarratedVideo.defaults.clientEdition (narrate/dhall/NarratedVideo.dhall) holds the same value.
 CLIENT_DEFAULT_EDITION = "ClientNarrated"
 BASE_KINDS = ("still", "card", "video", "deck")
-FIELDS = ("id", "edition", "base", "segments", "avatar", "music", "tighten", "captions", "labels", "delivery")
+FIELDS = (
+    "id", "edition", "base", "segments", "avatar", "slides", "music", "tighten", "captions", "labels", "delivery",
+)  # fmt: skip
+AVATAR_EDITIONS = ("Internal", "OwnContent", "ClientNarrated")  # Edition.check refuses an avatar in ClientVoiceOnly
 
 # NarratedVideo.defaults (narrate/dhall/NarratedVideo.dhall). tests/test_narrated_video_graph.py pins init's output
 # to the nv-fixture-card example, which is built from these defaults.
@@ -55,7 +59,12 @@ DEFAULTS = {
         "corner": "BR",
         "width": 0.22,
         "marginPx": 32,
+        "avatarOff": [],
+        "fadeS": 0.35,
     },
+    # The slide card (docs/spec/NARRATED_VIDEO.md, "Slides"): off by default (layout Full); a job sets
+    # CardLowerLeft and its pages.
+    "slides": {"layout": "Full", "cardWidth": 0.42, "marginPx": 64, "fadeS": 0.35, "dimTo": 0.5},
     "music": {
         "bedBelowVoiceLu": 20,
         "duckMode": "Sidechain",
@@ -167,6 +176,27 @@ SHAPE = {
             "corner": ("BR", "BL", "TR", "TL"),
             "width": DOUBLE,
             "marginPx": NATURAL,
+            "avatarOff": ("list", TEXT),
+            "fadeS": DOUBLE,
+        },
+    ),
+    "slides": (
+        "optional",
+        {
+            "layout": ("Full", "CardLowerLeft"),
+            "cardWidth": DOUBLE,
+            "marginPx": NATURAL,
+            "fadeS": DOUBLE,
+            "dimTo": DOUBLE,
+            "pages": (
+                "list",
+                {
+                    "id": TEXT,
+                    "startS": DOUBLE,
+                    "endS": DOUBLE,
+                    "show": ("union", {"slide": {"sha256": DIGEST}}, ("Base", "Hold")),
+                },
+            ),
         },
     ),
     "music": (
@@ -226,6 +256,10 @@ def shape_problem(value, shape, where):
         return None
     if shape[0] == "optional":
         return None if value is None else shape_problem(value, shape[1], where)
+    if shape[0] == "list":
+        if not isinstance(value, list):
+            return f"{where} is not a list"
+        return next((p for i, v in enumerate(value) if (p := shape_problem(v, shape[1], f"{where}[{i}]"))), None)
     if shape[0] == "union":
         _, payloads, names = shape
         if isinstance(value, str) and value in names:
@@ -263,7 +297,7 @@ def check_shape(job):
         raise JobError("job_invalid", "tighten is {enabled: bool}")
     problems = [shape_problem(job["base"], SHAPE["base"], "base")]
     problems += [shape_problem(s, SHAPE["segment"], f"segments[{i}]") for i, s in enumerate(job["segments"])]
-    records = ("avatar", "music", "tighten", "captions", "labels", "delivery")
+    records = ("avatar", "slides", "music", "tighten", "captions", "labels", "delivery")
     problems += [shape_problem(job[f], SHAPE[f], f) for f in records]
     problem = next((p for p in problems if p), None)
     if problem:
@@ -282,7 +316,7 @@ def init_job(
     colour=None,
     bed=None,
     edition=None,
-    avatar=False,
+    avatar=None,
     persona=None,
     client=False,
 ):
@@ -290,7 +324,10 @@ def init_job(
 
     client: a client delivery. Its edition is CLIENT_DEFAULT_EDITION (ClientNarrated, NV-6); a non-client edition
     refuses edition_not_client. The defaults voice seg-1 with a synthetic narrate job, which ClientVoiceOnly
-    refuses at Plan, so init refuses ClientVoiceOnly up front: that job comes from a render through --from."""
+    refuses at Plan, so init refuses ClientVoiceOnly up front: that job comes from a render through --from.
+
+    avatar None takes the default: on for an edition that allows one (NV-8), off for ClientVoiceOnly. With the
+    avatar on, persona is required (admit refuses persona_label_missing without it). avatar False turns it off."""
     d = DEFAULTS
     if client:
         if edition is not None and edition not in CLIENT_EDITIONS:
@@ -302,6 +339,8 @@ def init_job(
             "edition ClientVoiceOnly at Plan: init voices seg-1 with a synthetic narrate job; write a voice-only"
             " job with --from FILE (a rendered NarratedVideo record)",
         )
+    if avatar is None:
+        avatar = (edition or d["edition"]) in AVATAR_EDITIONS
     if still is not None and not SHA256.match(still):
         raise JobError("job_invalid", "--still is the still's SHA-256 in the private store, never a path")
     if colour is not None and not COLOUR.match(colour):
@@ -316,6 +355,7 @@ def init_job(
             {"id": "seg-1", "narrateJob": narrate_job, "scriptSha256": script_sha256, "anchor": "Auto", "avatar": True}
         ],
         "avatar": copy.deepcopy(d["avatar"]) if avatar else None,
+        "slides": None,
         "music": copy.deepcopy(d["music"]) | {"bed": bed} if bed else None,
         "tighten": copy.deepcopy(d["tighten"]),
         "captions": copy.deepcopy(d["captions"]),

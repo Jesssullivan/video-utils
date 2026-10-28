@@ -216,7 +216,8 @@ class PublicTree(unittest.TestCase):
         and no audio, video, picture or licence PDF, enters the narration or narrated-video trees."""
         trees = ("narrate/", "program/", ".agents/skills/narrated-video/", ".agents/skills/narrated-video-place/",
                  ".agents/skills/narrated-video-mix/", ".agents/skills/music-bed/", ".agents/skills/kitpip-overlay/",
-                 ".agents/skills/kitpip-verify/", "docs/spec/NARRATED_VIDEO.md")
+                 ".agents/skills/kitpip-verify/", ".agents/skills/narrated-video-compose/",
+                 ".agents/skills/narrated-video-verify/", "docs/spec/NARRATED_VIDEO.md")
         media = re.compile(r"\.(wav|flac|mp3|m4a|aac|ogg|mov|mp4|mkv|webm|png|jpe?g|gif|pdf)$", re.I)
         self.assertEqual([n for n in self.names if n.startswith(trees) and media.search(n)], [])
         # Built from fragments so this file is not itself a finding.
