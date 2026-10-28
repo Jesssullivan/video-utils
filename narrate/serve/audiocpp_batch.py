@@ -271,8 +271,10 @@ def run(a):
     check_pin(a.model, a.model_sha256, "model")
     holder = a.lease_holder or os.environ.get("NARRATE_LEASE_HOLDER") or None
     records = run_records()
-    if holder is not None and not records.RUN_ID.match(holder):
-        raise Refusal(f"Lease holder {holder!r} is not a plain name")
+    try:
+        records.check_holder(holder)
+    except records.Refusal as error:
+        raise Refusal(str(error)) from None
     for sub in ("wav", "receipts", "logs"):
         (root / sub).mkdir(mode=0o700, exist_ok=True)
     relative = a.requests

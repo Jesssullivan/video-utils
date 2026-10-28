@@ -444,7 +444,7 @@ def test_finalize_stops_a_running_batch_through_its_run_record(workspace, kit, t
     name = sorted((root / "requests").glob("*.json"))[0].stem
     argv = [sys.executable, str(RUNNER), "run", str(root), "--requests", f"requests/{name}.json"]
     argv += ["--binary", str(kit.binary), "--binary-sha256", kit.binary_sha, "--model", str(kit.model)]
-    argv += ["--model-sha256", kit.model_sha, "--lease-holder", "narrate-batch-fixture"]
+    argv += ["--model-sha256", kit.model_sha, "--lease-holder", "narrate-bench-20261028-s204500"]
     monkeypatch.setenv("FAKE_AUDIOCPP_HANG_AFTER", "1")
     proc = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
     runs = finalize.runs_dir()
@@ -455,7 +455,7 @@ def test_finalize_stops_a_running_batch_through_its_run_record(workspace, kit, t
             assert time.monotonic() < deadline, "the batch never finished its first take"
             time.sleep(0.05)
         (record,) = [json.loads(p.read_text()) for p in runs.glob("audiocpp-*.json") if ".finalize." not in p.name]
-        assert record["lease_holder"] == "narrate-batch-fixture" and record["engine_pgid"]
+        assert record["lease_holder"] == "narrate-bench-20261028-s204500" and record["engine_pgid"]
         code, receipt = finalize.finalize("latest", reason="preempted", call_id="call-7", directory=runs)
         assert proc.wait(timeout=10) == 20
     finally:
@@ -467,7 +467,7 @@ def test_finalize_stops_a_running_batch_through_its_run_record(workspace, kit, t
     assert receipt["engine_gone"] is True and receipt["signals"][0]["signal"] == "SIGTERM"
     batch = json.loads((root / "receipts" / f"{name}.json").read_text())
     assert batch["stop_rule"] == "signal SIGTERM" and batch["process_group_gone"] is True
-    assert (batch["run_id"], batch["lease_holder"]) == (record["run_id"], "narrate-batch-fixture")
+    assert (batch["run_id"], batch["lease_holder"]) == (record["run_id"], "narrate-bench-20261028-s204500")
     assert len(batch["outputs"]) == 1  # the finished take is kept
     assert (root / "receipts" / f"{record['run_id']}.finalize.json").is_file()
 
@@ -476,8 +476,9 @@ def test_a_batch_refuses_a_bad_lease_holder_and_a_missing_finalize_py(workspace,
     use_batch(workspace, kit)
     path, _ = render.plan(Config(workspace.write(SLIDE)), tmp_path / "plan", takes=1)
     name = sorted((path.parent / "requests").glob("*.json"))[0].stem
-    assert run_batch(kit, path.parent, name, "--lease-holder", "bad holder") == [2]
-    assert "is not a plain name" in capsys.readouterr().err
+    for bad in ("bad holder", "narrate-batch-fixture", "narrate-bench-20261023-s1526140"):
+        assert run_batch(kit, path.parent, name, "--lease-holder", bad) == [2]
+        assert "narrate-bench-YYYYMMDD-sHHMMSS" in capsys.readouterr().err
     alone = tmp_path / "alone"
     alone.mkdir()
     shutil.copy(RUNNER, alone / "audiocpp_batch.py")

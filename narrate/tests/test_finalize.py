@@ -19,6 +19,7 @@ import pytest
 from conftest import PACKAGE
 
 FINALIZE = PACKAGE / "serve" / "finalize.py"
+HOLDER = "narrate-bench-20261028-s200000"
 
 RUNNER = """
 import importlib.util, os, signal, subprocess, sys, time
@@ -99,7 +100,7 @@ def lab(tmp_path):
         helper = tmp_path / "lease" / "fixture_gpu_lease.py"
         released = tmp_path / "released"
 
-        def start(self, run_id, holder="holder-1", *, via_helper=False, env=None, argv=None):
+        def start(self, run_id, holder=HOLDER, *, via_helper=False, env=None, argv=None):
             cmd = argv or [sys.executable, str(self.runner), str(FINALIZE), run_id, holder, str(self.out)]
             if via_helper:
                 cmd = [sys.executable, str(self.helper), str(self.released), *cmd]
@@ -153,7 +154,7 @@ def test_operator_finalize_stops_the_runner_and_its_engine_and_writes_a_values_f
     assert receipt["reason"] == "operator" and receipt["call_id"] is None
     assert (receipt["runner_exit_status"], receipt["runner_closed_record"]) == (20, True)
     assert (receipt["engine_gone"], receipt["lease_helper"], receipt["outcome"]) == (True, "not_local", "stopped")
-    assert receipt["lease_holder"] == "holder-1" and receipt["ruling"].startswith("J130")
+    assert receipt["lease_holder"] == HOLDER and receipt["ruling"].startswith("J130")
     assert receipt["requested_utc"] <= receipt["runner_gone_utc"] <= receipt["finished_utc"]
     assert json.loads((lab.runs / "run-a.finalize.json").read_text()) == receipt
     assert json.loads((lab.out / "run-a.finalize.json").read_text()) == receipt  # the run's own receipt dir
@@ -161,9 +162,17 @@ def test_operator_finalize_stops_the_runner_and_its_engine_and_writes_a_values_f
 
 
 def test_the_preempt_hook_selects_by_holder_and_waits_for_the_local_lease_helper(lab):
-    proc = lab.start("run-b", "call-preempt-holder", via_helper=True)
+    proc = lab.start("run-b", "narrate-bench-20261028-s203000", via_helper=True)
     cli = subprocess.run(
-        [sys.executable, str(FINALIZE), "--runs-dir", str(lab.runs), "finalize", "--holder", "call-preempt-holder"]
+        [
+            sys.executable,
+            str(FINALIZE),
+            "--runs-dir",
+            str(lab.runs),
+            "finalize",
+            "--holder",
+            "narrate-bench-20261028-s203000",
+        ]
         + ["--reason", "preempted", "--call-id", "call-42"],
         capture_output=True,
         text=True,
@@ -193,7 +202,7 @@ def test_a_runner_that_ignores_sigterm_is_killed_only_after_its_engine(lab):
 
 def test_a_runner_that_does_not_lead_its_group_is_signalled_alone(lab):
     # The group leader is a sleep standing in for a lease helper that shares the runner's group.
-    argv = [sys.executable, str(lab.runner), str(FINALIZE), "run-d", "holder-1", str(lab.out)]
+    argv = [sys.executable, str(lab.runner), str(FINALIZE), "run-d", HOLDER, str(lab.out)]
     cmd = " ".join(f"'{a}'" for a in argv)
     leader = lab.start("run-d", argv=["sh", "-c", f"{cmd} & exec sleep 60"])
     code, receipt = fin.finalize("run-d", reason="operator", directory=lab.runs)
@@ -230,7 +239,7 @@ def write_record(lab, run_id, **runner):
         "schema": fin.RECORD_SCHEMA,
         "run_id": run_id,
         "kind": "fake",
-        "lease_holder": "holder-1",
+        "lease_holder": HOLDER,
         "runner": {**base, **runner},
         "boot_id": fin.boot_id(),
         "engine_pgid": None,
@@ -288,8 +297,8 @@ def test_finished_closes_an_ended_run_without_a_signal_and_is_refused_on_a_live_
 
 
 def test_latest_is_the_newest_unfinalized_record(lab):
-    lab.start("run-g1", "holder-g1")
-    lab.start("run-g2", "holder-g2")
+    lab.start("run-g1", "narrate-bench-20261028-s201000")
+    lab.start("run-g2", "narrate-bench-20261028-s202000")
     assert fin.finalize("latest", reason="operator", directory=lab.runs)[1]["run_id"] == "run-g2"
     assert fin.finalize("latest", reason="operator", directory=lab.runs)[1]["run_id"] == "run-g1"
 
@@ -301,3 +310,20 @@ def test_a_run_record_is_written_once_per_id(lab):
         fin.open_record("fake", "once", directory=lab.runs)
     with pytest.raises(fin.Refusal, match="plain name"):
         fin.open_record("fake", "a/b", directory=lab.runs)
+
+
+def test_only_the_lease_guard_holder_form_is_accepted(lab):
+    """TIN-7564 ec74214b: the GPU Lease guard admits narrate holders matching narrate-bench-YYYYMMDD-sHHMMSS."""
+    lab.runs.mkdir()
+    for bad in ("holder-1", "narrate-bench-20261023-s1526140", "narrate-bench-20261028-s20000", "x/narrate-bench"):
+        with pytest.raises(fin.Refusal, match="narrate-bench-YYYYMMDD-sHHMMSS"):
+            fin.open_record("fake", "bad-holder", lease_holder=bad, directory=lab.runs)
+        with pytest.raises(fin.Refusal, match="narrate-bench-YYYYMMDD-sHHMMSS"):
+            fin.finalize(holder=bad, reason="preempted", directory=lab.runs)
+    assert not list(lab.runs.iterdir())
+    fin.open_record("fake", "no-holder", lease_holder=None, directory=lab.runs)  # a run without a Lease
+    made = fin.new_holder()
+    assert fin.HOLDER.match(made) and fin.check_holder(made) == made
+    cli = subprocess.run([sys.executable, str(FINALIZE), "holder"], capture_output=True, text=True, check=True)
+    assert fin.HOLDER.match(cli.stdout.strip())
+    assert fin.new_holder(fin.datetime.datetime(2026, 10, 23, 15, 26, 14)) == "narrate-bench-20261023-s152614"

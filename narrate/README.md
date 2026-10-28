@@ -35,6 +35,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | `just narrate-serve-qwentts`, `just narrate-build-qwentts` | `serve/qwentts.sh` | the qwentts.cpp engine on loopback, on an allowed host only (see "Host placement and memory") |
 | `just narrate-bench` | | lane W3 (TIN-7085) fills it |
 | `just narrate-finalize [RUN]`, `just narrate-runs` | `serve/finalize.py` | J130: stop an unattended GPU run by hand on its host (`latest` by default, `--holder H`, `--reason operator`, `preempted --call-id ID` or `finished`); list the run records |
+| `just narrate-holder` | `serve/finalize.py holder` | a new Lease holder, `narrate-bench-YYYYMMDD-sHHMMSS` (UTC), the only narrate form the GPU Lease guard admits |
 
 ## The pipeline
 

@@ -15,6 +15,7 @@ a reused pid is told apart), the boot id, the engine's process group and the run
 own receipt directory, the state (running, then ended) and the runner's exit status.
 
     finalize.py list                                        every record: id, kind, holder, state, live
+    finalize.py holder                                      a new Lease holder: narrate-bench-YYYYMMDD-sHHMMSS
     finalize.py finalize RUN|latest --reason operator       stop one run by hand
     finalize.py finalize --holder H --reason preempted [--call-id ID]   the hook a preempt watcher calls
 
@@ -22,7 +23,9 @@ finalize, in order:
 
 1. refuses an unknown or malformed run id, a run already finalized, a record from another boot, and a record whose
    runner pid is gone or now names another process (start time or owner differ) while the record says running.
-   `latest` is the newest record not yet finalized; `--holder H` the newest one naming that Lease holder;
+   `latest` is the newest record not yet finalized; `--holder H` the newest one naming that Lease holder. A
+   holder must have the one form the GPU Lease guard admits, narrate-bench-YYYYMMDD-sHHMMSS (UTC), and so must
+   the holder a runner records;
 2. a run that already ended gets no signal (reason `finished` asks for exactly this, and is refused on a live run);
 3. otherwise sends SIGTERM to the runner: to its process group when it leads that group, else to its pid alone, so
    a caller sharing the group (the lease helper) is never signalled. The runner's own handler stops the engine
@@ -59,6 +62,10 @@ RULING = "J130; R-HOOK-CONVERGENCE-20261004 R-N13"
 TICKET = "TIN-7564"
 REASONS = ("preempted", "operator", "finished")
 RUN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,200}$")
+# The only Lease holder form the GPU Lease guard admits for narrate (TIN-7564 ec74214b): UTC date and time of day,
+# made by `just narrate-holder` or narrate-bench-$(date -u +%Y%m%d-s%H%M%S).
+HOLDER = re.compile(r"^narrate-bench-[0-9]{8}-s[0-9]{6}$")
+HOLDER_FORM = "narrate-bench-YYYYMMDD-sHHMMSS (just narrate-holder)"
 CALL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 HELPER_SUFFIX = "_gpu_lease.py"  # the lease helper script; no host name in git
 EXIT_OK, EXIT_SURVIVED, EXIT_REFUSED = 0, 1, 2
@@ -131,6 +138,19 @@ def write_json(path, value):
     os.replace(tmp, path)
 
 
+def check_holder(holder):
+    """None, or a Lease holder in the one form the Lease guard admits; else Refusal."""
+    if holder is not None and not HOLDER.match(holder):
+        raise Refusal(f"Lease holder {holder!r} is not of the form {HOLDER_FORM}")
+    return holder
+
+
+def new_holder(at=None):
+    """A Lease holder for a run starting now (UTC), the form the Lease guard admits."""
+    at = at or datetime.datetime.now(datetime.timezone.utc)
+    return at.strftime("narrate-bench-%Y%m%d-s%H%M%S")
+
+
 # ---- the runner side --------------------------------------------------------------------------------------------
 
 
@@ -152,8 +172,7 @@ def open_record(kind, run_id, lease_holder=None, receipt_dir=None, directory=Non
     """Write RUNS/<run_id>.json for this process (the runner) and return its Record."""
     if not RUN_ID.match(run_id):
         raise Refusal(f"run id {run_id!r} is not a plain name")
-    if lease_holder is not None and not RUN_ID.match(lease_holder):
-        raise Refusal(f"Lease holder {lease_holder!r} is not a plain name")
+    check_holder(lease_holder)
     directory = Path(directory) if directory else runs_dir()
     directory.mkdir(mode=0o700, parents=True, exist_ok=True)
     path = directory / f"{run_id}.json"
@@ -226,8 +245,7 @@ def runner_live(record):
 
 def select(directory, run=None, holder=None):
     if holder is not None:
-        if not RUN_ID.match(holder):
-            raise Refusal(f"Lease holder {holder!r} is not a plain name")
+        check_holder(holder)
         found = [r for r in load_records(directory) if r.get("lease_holder") == holder]
         found = [r for r in found if not receipt_path(directory, r["run_id"]).exists()]
         if not found:
@@ -473,6 +491,7 @@ def main(argv=None):
     p.add_argument("--runs-dir", default=None, help="default: NARRATE_RUNS_DIR, else $XDG_RUNTIME_DIR/narrate-runs")
     sub = p.add_subparsers(dest="command", required=True)
     sub.add_parser("list")
+    sub.add_parser("holder", help="print a new Lease holder for a run starting now")
     f = sub.add_parser("finalize")
     f.add_argument("run", nargs="?", default=None, help="a run id or latest (default latest)")
     f.add_argument("--holder", default=None, help="the newest unfinalized run naming this Lease holder")
@@ -486,6 +505,9 @@ def main(argv=None):
     directory = Path(a.runs_dir) if a.runs_dir else runs_dir()
     if a.command == "list":
         print(json.dumps(listing(directory), indent=1))
+        return EXIT_OK
+    if a.command == "holder":
+        print(new_holder())
         return EXIT_OK
     if a.run not in (None, "latest") and a.holder is not None:
         print(json.dumps({"ok": False, "refused": "give a run id or --holder, not both"}), file=sys.stderr)

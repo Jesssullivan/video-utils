@@ -338,6 +338,14 @@ starts and rewrites it as ended with its exit code just before it exits.
 | `serve/audiocpp_batch.py run` | `audiocpp-<requests name>-<UTC time>-<pid>` | the runner | the engine's process group; `--lease-holder` or `NARRATE_LEASE_HOLDER` |
 | `bench/run-bench.sh` | `bench-<holder>` | the inner stage, in the window scope | the scope's cgroup once verified; the holder argument |
 
+**Lease holder.** The operator names the holder; narrate never makes one up
+for a run. The GPU Lease guard (blahaj #2404) admits a narrate holder only in
+the form `narrate-bench-YYYYMMDD-sHHMMSS`, UTC, with 6 digits after `s`
+(TIN-7564 ec74214b). `just narrate-holder` prints one for a run starting now,
+as does `narrate-bench-$(date -u +%Y%m%d-s%H%M%S)`. `run-bench.sh`,
+`audiocpp_batch.py --lease-holder` and `finalize --holder` refuse any other
+form, so a holder the guard would refuse never reaches the Lease or a record.
+
 A record holds the runner's pid, process group and start time in clock ticks
 after boot, the boot id, the user id, the Lease holder, the run's receipt
 directory, its state and its exit status. The batch runner refuses to start
@@ -386,6 +394,15 @@ this holder and calls finalize on the GPU host, as
 `finalize.py finalize --holder H --reason preempted --call-id ID` or as the
 function `finalize(holder=H, reason="preempted", call_id=ID)`. This change
 builds no watcher.
+
+**The lease helper's own finalize.** blahaj #2362 at `c876747b`, under
+review (TIN-7564 ec74214b), gives the lease helper
+`finalize --holder H --reason {operator,preempted,finished} [--call-id ID]
+[--wait-s 270]`. Its exit codes are 0 freed, 1 no live run on this host and
+3 unknown or still running. It signals only its own host's live `run`, and
+that `run` releases the Lease when its command exits. Narrate's finalize
+stays as it is: it stops the runner and waits for the run's parent, the
+lease helper, to exit.
 
 ## Consent and confidentiality policy
 

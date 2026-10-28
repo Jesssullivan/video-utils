@@ -64,6 +64,12 @@ narrate-bench *args:
 narrate-finalize run="latest" *args:
     python3 narrate/serve/finalize.py finalize {{quote(run)}} {{ if args =~ '--reason' { '' } else { '--reason operator' } }} {{args}}
 
+# The form the GPU Lease guard admits for narrate (TIN-7564 ec74214b); the same as
+# narrate-bench-$(date -u +%Y%m%d-s%H%M%S).
+# Print a new Lease holder for a narrate GPU run starting now: narrate-bench-YYYYMMDD-sHHMMSS (UTC).
+narrate-holder:
+    @python3 narrate/serve/finalize.py holder
+
 # The run records on this host: id, kind, Lease holder, state (live, ended or stale) and whether it is finalized.
 narrate-runs:
     python3 narrate/serve/finalize.py list

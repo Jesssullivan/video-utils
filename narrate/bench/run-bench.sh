@@ -12,6 +12,9 @@
 # NARRATE_BENCH_VOICE for this window, so each window names its voice on its own command line (window 2: one voice
 # per window, a new holder each). Without VOICE, bench.env's value is used; with neither, host_run refuses the job.
 #
+# HOLDER is narrate-bench-YYYYMMDD-sHHMMSS, UTC, 6 digits after s: the only narrate form the GPU Lease guard admits
+# (TIN-7564 ec74214b). Make it with `just narrate-holder` or narrate-bench-$(date -u +%Y%m%d-s%H%M%S).
+#
 # Outer stage: refuses root, a missing or malformed holder, an existing runs/<holder>, a bench.env line that is
 # not one of the allowed keys (bench.env is parsed, never sourced), and any runner file (this script,
 # job/host_run.py, job/host-job.json) whose sha256 is not the caller's NARRATE_BENCH_EXPECT_* value. It then runs
@@ -57,6 +60,7 @@ MEMORY_MAX_BYTES=15032385536
 CPU_MAX="200000 100000"
 DEFAULT_ARMS="A2-gpu-alt A1-gpu A3-gpu A2-gpu-alt-cut A1-gpu-cut"
 NAME_RE='^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$'
+HOLDER_RE='^narrate-bench-[0-9]{8}-s[0-9]{6}$'  # the one narrate form the GPU Lease guard admits (TIN-7564)
 TEST_VARS=(NARRATE_BENCH_NO_SCOPE NARRATE_BENCH_ARMS NARRATE_BENCH_ARMS_S NARRATE_BENCH_HARD_S NARRATE_BENCH_PYTHON
     NARRATE_BENCH_DRM_ROOT NARRATE_BENCH_FORBIDDEN_DEV)
 ENV_KEYS=" NARRATE_BENCH_VOICE NARRATE_BENCH_VOICES_FILE NARRATE_BENCH_VOICES_SHA256 NARRATE_BENCH_QWEN_TTS"
@@ -168,7 +172,8 @@ if [ -z "${NARRATE_BENCH_IN_SCOPE:-}" ]; then
     [ "$(id -u)" -ne 0 ] || refuse_early "never run as root"
     [ $# -ge 1 ] && [ $# -le 2 ] ||
         refuse_early "usage: run-bench.sh HOLDER [VOICE] (the lease holder id, passed by the lease command)"
-    [[ $holder =~ $NAME_RE ]] || refuse_early "holder must be letters, digits, '.', '_' or '-'"
+    [[ $holder =~ $HOLDER_RE ]] ||
+        refuse_early "holder must be narrate-bench-YYYYMMDD-sHHMMSS (UTC; just narrate-holder), the form the Lease guard admits"
     OUT=$BENCH_DIR/runs/$holder
     [ ! -e "$OUT" ] || refuse_early "runs/$holder already exists; every window gets a new holder"
     why=$(load_env) || refuse_early "$why"
