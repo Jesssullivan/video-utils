@@ -3,11 +3,13 @@
 -- Internal: synthetic voice, avatar and bed allowed; the default for a simple job until a first listening
 -- receipt (NV-2, TIN-7476 comment 9db389dc).
 -- OwnContent: the operator's own voice and content; synthetic voice, avatar and bed allowed.
--- ClientVoiceOnly: operator takes only. Refuses synthetic voice, any avatar or other picture-in-picture,
--- and an uncleared music bed.
--- ClientNarrated: a client delivery that carries the synthetic narrator and the kitpip avatar (the deck
--- project's ruling 59(d), TIN-7476 comment e427ecfc). Refuses camera picture-in-picture and an uncleared
--- music bed.
+-- ClientNarrated: the default edition of every client delivery (NV-6, TIN-7476 comment 92605219). It carries
+-- the synthetic narrator and the kitpip avatar (first ruled for the deck project in 59(d), comment e427ecfc).
+-- Refuses camera picture-in-picture and an uncleared music bed.
+-- ClientVoiceOnly: operator takes only, available per project. Refuses synthetic voice, any avatar or other
+-- picture-in-picture, and an uncleared music bed.
+-- clientDefault names the client default; NarratedVideo.defaults.clientEdition and narrate/dhall/check.py
+-- (CLIENT_DEFAULT_EDITION) hold the same value.
 --
 -- Every client edition gates the bed: it is cleared only when its licence PDF digest is recorded, its
 -- Content ID result is clear and a voice-only listen pass is recorded (NV-2).
@@ -75,6 +77,10 @@ let check =
             then  Verdict.Admitted
             else  Verdict.Refused { point = p, codes = found }
 
+let clientDefault
+    : Edition
+    = Edition.ClientNarrated
+
 let clean
     : Leaves
     = { syntheticVoice = False
@@ -93,5 +99,6 @@ in  { Type = Edition
     , voiceOnly
     , client
     , check
+    , clientDefault
     , clean
     }

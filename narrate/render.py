@@ -507,8 +507,7 @@ class Renderer:
         # Both forms of the same samples: the job's audio format names the one consumers take first.
         audio.flac(delivered, staging / "narration.flac")
         files = {"narration.wav": delivered, "narration.flac": staging / "narration.flac"}
-        label = any(c["syntheticLabelRequired"] for c in self.consents.values())
-        caption_files = write_captions(staging, chunk_records, job["captions"], label)
+        caption_files = write_captions(staging, chunk_records, job["captions"])
         files.update(caption_files)
         edl = {
             "schema_version": SCHEMA_VERSION,
@@ -619,7 +618,7 @@ class Renderer:
                 "output_axis": edl["output_axis"],
                 "source_axis": edl["source_axis"],
             },
-            "captions": {"source": "script_timing", "files": sorted(caption_files), "synthetic_notice": label},
+            "captions": {"source": "script_timing", "files": sorted(caption_files), "synthetic_notice": False},
             "licence_notices": [self.engine["licenceNotice"]] if self.engine.get("licenceNotice") else [],
             "watermark": {"status": "not_applied", "note": "best effort when applied; codecs and resynthesis strip it"},
             "flags": flags,
@@ -681,20 +680,19 @@ def stamp(seconds, sep):
     return f"{h:02d}:{m:02d}:{s:02d}{sep}{ms:03d}"
 
 
-def write_captions(staging, chunks, formats, label):
-    """SRT and/or WebVTT, one cue per chunk on the output clock, in the written (not the spoken) text."""
+def write_captions(staging, chunks, formats):
+    """SRT and/or WebVTT, one cue per chunk on the output clock, in the written (not the spoken) text.
+
+    Captions carry no synthetic-voice prefix or VTT NOTE (KP-15, TIN-7476 comment 4ab7fc27): no visible synthetic
+    label is required. The manifest keeps synthetic: true, the consent ids and synthetic_label_required."""
     cues = [(c["out_start_s"], c["out_end_s"], c["written"]) for c in chunks]
-    if label and cues:
-        a, b, text = cues[0]
-        cues[0] = (a, b, "[Synthetic voice] " + text)
     files = {}
     if "Srt" in formats:
         body = "".join(f"{i}\n{stamp(a, ',')} --> {stamp(b, ',')}\n{t}\n\n" for i, (a, b, t) in enumerate(cues, 1))
         (staging / "narration.srt").write_text(body)
         files["narration.srt"] = staging / "narration.srt"
     if "Vtt" in formats:
-        note = "NOTE This narration is a synthetic voice.\n\n" if label else ""
-        body = "WEBVTT\n\n" + note + "".join(f"{stamp(a, '.')} --> {stamp(b, '.')}\n{t}\n\n" for a, b, t in cues)
+        body = "WEBVTT\n\n" + "".join(f"{stamp(a, '.')} --> {stamp(b, '.')}\n{t}\n\n" for a, b, t in cues)
         (staging / "narration.vtt").write_text(body)
         files["narration.vtt"] = staging / "narration.vtt"
     return files

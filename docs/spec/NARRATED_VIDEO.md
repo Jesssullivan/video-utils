@@ -2,8 +2,9 @@
 
 Authority: operator direction KP-13 (Linear TIN-7476 comment `94248deb`), rulings
 KP-7 (`0f367c48`), KP-14 (`1c16fbda`), NV-1 to NV-5 (`9db389dc`), the deck
-project's ruling 59(d) (`e427ecfc`) and KP-15 (`4ab7fc27`), repository AGENTS.md
-and R-HOOK-CONVERGENCE-20261004 (R-N11, R-N12, R-N13). This spec is
+project's ruling 59(d) (`e427ecfc`), KP-15 (`4ab7fc27`), NV-6 (`92605219`),
+KP-19 (`f446ae28`) and NV-8 (`df0ed8e6`), repository AGENTS.md and
+R-HOOK-CONVERGENCE-20261004 (R-N11, R-N12, R-N13). This spec is
 written before the code that implements it. Where it names a later lane, that
 lane owns the code and may refine a detail here in the same PR that implements
 it.
@@ -27,6 +28,9 @@ source media.
 | KP-7, KP-14 | The overlay shows the narrator mark with no visible "AI persona" badge. Client deliveries stay voice-only with picture-in-picture off, except where 59(d) applies |
 | 59(d) | The deck project's ship cut carries the kitpip avatar. Its "picture-in-picture off" meant no camera of the operator, not the avatar. For that video this supersedes the voice-only part of KP-14. The `ClientNarrated` edition carries it |
 | KP-15 | No visible synthetic or AI-persona label is required in captions, descriptions or on-frame marks. Manifest metadata (`synthetic: true`, consent ids, persona) stays. This supersedes KP-7's "labels in captions and description" |
+| NV-6 | `ClientNarrated` is the default edition of every client delivery: synthetic voice and kitpip allowed, the bed gated on licence and Content ID. `ClientVoiceOnly` stays available per project. This supersedes the voice-only part of KP-14 for client deliveries |
+| KP-19 | kitpip's default overlay is the unadorned character, with no ring, picture-in-picture background or logo stamp. `--badge` restores the ring and mark. The wrapper never passes it |
+| NV-8 | The avatar stays opt-in (`--avatar`) until the L6 compose stage lands. After that it is on by default, and a job can still turn it off |
 
 Music-bed levels (NV-2, from the deck seat's answers the operator adopted): the
 bed sits 20 dB under the voice and a sidechain ducks it a further 6 to 8 dB
@@ -43,7 +47,7 @@ Bed audio never enters git.
 | L2 spec and types | this spec, the `TIMELINE_CONTRACT.md` amendment, `narrate/dhall/{Edition,MusicBed,NarratedVideo}.dhall`, the Consent `persona` field, examples and their checks | the design | `just narrate-dhall-check` passes, the contract rows run red then green |
 | L3 graph core | `narrate/video/{graph,keys,store,admit}.py`, `program/dags/narrated-video.json`, the kitpip stub, `init`, `plan`, `status`, `explain` | L2 | key, invalidation and freshness tests |
 | L4 simple path | `script`, `voice`, `voice_qa`, `base`, `place`, `music`, `mix` | L3 | `nv-quick` on fixtures yields a mixed stem. Audio tests pass |
-| L5 kitpip pin and avatar | the private pin record, `avatar` and `avatar_check` | kitpip release, L4 | pin tests and one local render with a digest-only receipt |
+| L5 kitpip pin and avatar | `program/externals.json` (the public registration), the private pin record, `pin-check`, `avatar` and `avatar_check`, tools 66 and 67 drafts and skills | kitpip release, L4 | pin tests and one local render with a digest-only receipt |
 | L6 compose and delivery | `compose`, `deliver_check`, `handoff`, `just/narrated-video.just` | L5 | alpha, caption, label and profile tests |
 | L7 tools and skills | tool drafts and 8 skills, admission of tools 62 to 70 | L6 | `just mcp` lists the tools, admission tests pass |
 | L8 deck seam | the deck seat with L3 to L6 owners | L6 | a fake-deck fixture passes, then one internal deck cut |
@@ -98,6 +102,9 @@ SHA-256 of the first line of `ffmpeg -version`. The `voice` tool's binary
 digest is the SHA-256 of its engine's sorted file digests (binary and
 weights), or null for an engine that pins no file. The git commit is recorded in
 the stage manifest and kept out of the key.
+A stage's `impl` rises when its output changes for the same inputs. `voice`
+is at 2 because KP-15 removed its caption label, so a voice rendered before
+KP-15 plans stale.
 
 Canonical JSON has sorted keys, no whitespace and UTF-8. `dhall-to-json` writes
 the Double `-16.0` as `-16`, so an integral number is written as an integer and
@@ -122,7 +129,7 @@ A key reads three kinds of input:
 | `voice_qa` | the narrate job's gates |
 | `base` | base kind and fields except `tailS`, delivery profile |
 | `place` | segment ids and anchors, `tailS`, `keepBaseAudio`, `tighten`, `labels.persona` |
-| `avatar` | rig and rig revision (the pin's default rig when unset), render size |
+| `avatar` | rig and rig revision (the pin's default rig when unset), render size, `labels.persona` |
 | `avatar_check` | `labels.persona` |
 | `music` | bed id, each layer's digest, bytes, rate, channels, tempo factor and gain, 48 kHz |
 | `mix` | the music block except the bed id, delivery loudness, true peak, drift and channels |
@@ -180,31 +187,61 @@ v1 keeps every stage directory until the operator removes the job.
 | One segment's script | that segment's `script`, `voice`, `voice_qa`, `avatar` and `avatar_check`, then `place`, `mix`, `compose`, `deliver_check` |
 | Overlay width | `compose`, `deliver_check` |
 | kitpip rig or pin | every `avatar` and `avatar_check`, then `compose`, `deliver_check` |
+| Persona label | every `avatar` and `avatar_check`, then `place`, `mix`, `compose`, `deliver_check`. No voice |
 | Deck re-assembled with the same takes | `base`, `place`, `mix`, `compose`, `deliver_check` |
 | Content ID result recorded | `deliver_check` |
 | Handoff turned on | `handoff` |
 
 ### kitpip pin and the stub
 
-The kitpip pin is a private externals record (NV-1), named by
-`NARRATED_VIDEO_EXTERNALS`. It holds the version, the source commit, per-system
-binary digests and byte counts, the manifest schema `kitpip.manifest/v0`, the
-mapping `avatar_overlay_v1` and the default rig. It holds no URL, path or host.
-`KITPIP_BIN` names the binary. Its digest and size are checked against the pin
-at plan and again before every spawn. A mismatch refuses `kitpip_pin_mismatch`
-and nothing runs. A missing binary blocks the avatar stages (`kitpip_missing`).
+kitpip is registered publicly and pinned privately (NV-1). `program/externals.json`
+registers it: the record shape, the manifest schema `kitpip.manifest/v0`, the
+mapping `avatar_overlay_v1`, how a binary resolves and the gate states. It holds
+no pin value, and a test refuses a registration that holds one. The pin itself
+is a private externals record, named by `NARRATED_VIDEO_EXTERNALS`. It holds the
+version, the full source commit, per-system binary digests and byte counts, the
+manifest schema, the mapping, the default rig (id, revision and the SHA-256 of
+its rendered JSON) and a gate state. It holds no URL, path or host, and loading
+refuses one.
+
+A pin whose release binary does not exist yet names the commit, leaves its
+binary table empty and says `gate_state: commit_pinned_digest_pending`. It
+resolves `pending`: plan blocks both avatar stages with `kitpip_pin_pending`, and
+`pin-check` refuses the same code. A pin with a digest says
+`registered_hash_bound_not_accepted`. `KITPIP_BIN` names the binary. Its digest
+and size are checked against the pin at plan and again before every spawn. A
+mismatch refuses `kitpip_pin_mismatch` and nothing runs. A missing binary blocks
+the avatar stages (`kitpip_missing`).
 
 kitpip prints one JSON line. The wrapper relays a refusal line
 (`{"refused": code}`, exit 1) with kitpip's own code in the narrate stderr
-shape. It never passes `--allow-unlabelled-test`. The avatar stage runs
+shape. It never passes `--allow-unlabelled-test`, `--pipe` or `--badge`, so the
+overlay is the unadorned default character (KP-19). The avatar stage runs
 `analyze`, `render` and `verify` into its partial directory in the job store.
 It refuses `avatar_outside_store` when that directory lies inside the narrate
 run or under `artifacts/runs/`.
 
 Public CI runs `narrate/tests/fixtures/narrated-video/kitpip_stub.py`, pinned
-by the test-only record `kitpip-externals.json` beside it. The stub draws an
-opaque square on a transparent ProRes 4444 field, so every corner pixel is
-transparent. It holds no kitpip art and draws each kitpip refusal on request.
+by the test-only record `kitpip-externals.json` beside it. The stub speaks the
+command shape of kitpip at the pinned commit. It draws an opaque square on a
+transparent ProRes 4444 field, so every corner pixel is transparent. It holds no
+kitpip art and draws each kitpip refusal on request.
+
+### Avatar stages (lane L5)
+
+`run` runs `avatar` and `avatar_check` once per segment when the job has an
+avatar block, the segment's `avatar` is on and `KITPIP_BIN` resolves to its pin.
+
+| Stage | Reads | Runs | Writes | Refuses |
+| --- | --- | --- | --- | --- |
+| `avatar` | the segment's narrate run, the base's measured `fps`, the pin | `analyze RUN --fps N/D --rig ID --out analyze/`, `render prosody.json --rig ID --size WxH --encode mov --out overlay/`, `verify overlay/` | `overlay/` (kitpip's manifest, `overlay.mov`, `frames.sha256`, `prosody.json`) and `analyze/` | kitpip's own codes, `kitpip_unlabelled`, `kitpip_pin_mismatch` (schema, rig or rig revision not the keyed one), `label_chain_broken`, `avatar_outside_store` |
+| `avatar_check` | the stored overlay, the `voice` and `avatar` manifests | `verify overlay/` | `check.json` (labelled, frame digest, consent ids, the avatar's content digest) | `kitpip_unlabelled`, `label_chain_broken` (a frame digest or consent id that differs, or a dropped label) |
+
+kitpip writes `avatar_overlay_v1` into its own manifest, and the avatar stage
+manifest records the same mapping with the narration's run id and content
+digest. The stage manifest measures frames, the frame digest, fps, size, the rig
+and `show_badge`. Its states are `source_checks: passed`, `render: stub` or
+`local`, and `lip_sync: pending_operator`. Only the operator closes lip sync.
 
 ## Commands
 
@@ -214,13 +251,14 @@ transparent. It holds no kitpip art and draws each kitpip refusal on request.
 
 | Command | Recipe | Effect |
 | --- | --- | --- |
-| `init --job ID --narrate-job ID --script FILE [--still SHA \| --card #RRGGBB] [--bed ID] [--edition E] [--avatar --persona P]` | `just nv-init` | writes a simple job from `NarratedVideo.defaults`. admit refuses (a voice without consent, for one) before anything is written |
+| `init --job ID --narrate-job ID --script FILE [--still SHA \| --card #RRGGBB] [--bed ID] [--edition E] [--client] [--avatar --persona P]` | `just nv-init` | writes a simple job from `NarratedVideo.defaults`. `--client` makes a client delivery: `ClientNarrated` (NV-6); another edition refuses `edition_not_client`. The defaults voice a synthetic segment, so `--edition ClientVoiceOnly` refuses `edition_voice_refused`: a voice-only job comes through `--from` (the deck example). admit refuses (a voice without consent, for one) before anything is written |
 | `init --job ID --from FILE` | | writes a rendered record, or the one with that id in a list of them |
 | `plan JOB [--record] [--json]` | `just nv-plan` | keys every node and prints its state, reason and key. Read-only. `--record` writes `graph.json`. Exit 1 when admit refuses |
 | `status JOB [--json]` | `just nv-status` | prints the recorded `graph.json` and its `pending_operator` gates |
 | `explain JOB STAGE [--segment ID]` | `just nv-explain` | prints the key document and each field that changed since the stage's last run |
 | `verify DIR` | `just nv-verify` | re-hashes a stage directory or every current stage of a job |
-| `run JOB [--stages S,...] [--until S] [--force S,...] [--json]` | `just nv-run` | runs the stale stages (lane L4: `script` to `mix`) and stops at the first refusal. Finished stages stay fresh. Records `graph.json` |
+| `run JOB [--stages S,...] [--until S] [--force S,...] [--json]` | `just nv-run` | runs the stale stages (lane L4: `script` to `mix`; lane L5: `avatar` and `avatar_check`) and stops at the first refusal. Finished stages stay fresh. Records `graph.json` |
+| `pin-check [--externals FILE]` | `just kitpip-pin-check` | checks the private pin against `program/externals.json` and `KITPIP_BIN` against the pin. Refuses `kitpip_pin_missing`, `kitpip_pin_pending`, `kitpip_pin_mismatch` or `kitpip_missing` |
 | `stage JOB STAGE [--segment ID]` | `just nv-stage` | runs one node when every input is fresh, else refuses `stage_input_stale` |
 | `fixture --out DIR` | `just nv-fixture` | writes a synthetic workspace: records, a private-store stand-in and a fixture lexical release |
 | `init` then `run` | `just nv-quick JOB NARRATE_JOB SCRIPT [ARGS]` | a simple job in one step |
@@ -234,7 +272,7 @@ comes from it by digest. Their records directory also holds `engines.json` and
 `pronunciation.json` for narrate. `just nv-fixture` plans the committed card
 example against the committed records. It then runs `nv-quick` end to end on a
 synthetic workspace and prints the mix measurements. `nv-run`, `nv-stage` and
-`nv-quick` run inside `narrate/bounded.sh`. `pin-check` comes with lane L5.
+`nv-quick` run inside `narrate/bounded.sh`.
 
 ## Editions
 
@@ -242,15 +280,18 @@ synthetic workspace and prints the mix measurements. `nv-run`, `nv-stage` and
 | --- | --- | --- | --- | --- |
 | `Internal` (default, NV-2) | yes | yes | yes | yes |
 | `OwnContent` | yes | yes | yes | yes |
-| `ClientVoiceOnly` (default for a client delivery) | refused | refused | refused | only when cleared |
-| `ClientNarrated` (59(d)) | yes | yes | refused | only when cleared |
+| `ClientNarrated` (default for a client delivery, NV-6) | yes | yes | refused | only when cleared |
+| `ClientVoiceOnly` (per project) | refused | refused | refused | only when cleared |
 
 Every client edition gates the bed. A bed is cleared when its private record
 holds a certified licence PDF digest and a clear Content ID result
 (`MusicBed.licenceCleared`), and the job's `delivery.voiceOnlyListen` names the
-receipt of a voice-only listen pass. A client delivery with a synthetic
-narrator files as `ClientNarrated`, never as `Internal` or `OwnContent`, so the
-bed gate applies to it.
+receipt of a voice-only listen pass. A client delivery files as
+`ClientNarrated` unless its project picks `ClientVoiceOnly` (NV-6), never as
+`Internal` or `OwnContent`, so the bed gate applies to it.
+`Edition.clientDefault`, `NarratedVideo.defaults.clientEdition`, `check.py`'s
+`CLIENT_DEFAULT_EDITION` and `init --client` hold the same default, and the type
+test asserts it.
 
 One rule, `Edition.check`, runs at three points. Each point builds its own
 leaves (`syntheticVoice`, `avatar`, `pip`, `bed`, `bedCleared`) from what it
@@ -302,6 +343,7 @@ Defaults (`NarratedVideo.defaults`, asserted in the type test):
 | Field | Default |
 | --- | --- |
 | edition | `Internal` |
+| clientEdition | `ClientNarrated` (NV-6), the edition of a client delivery |
 | base | a 1920x1080 card at 30/1, or a still when given |
 | avatar | `kitpip`, pin default rig, 512 px render, bottom right, 0.22 of base width, 32 px margin |
 | music | `None` unless a bed record id is given. When given: 20 LU under the voice (the deck project's ruling 58), sidechain duck 7 dB, attack 50 ms, release 400 ms, fades 3 s and 5 s, tail 5 s |
@@ -311,7 +353,7 @@ Defaults (`NarratedVideo.defaults`, asserted in the type test):
 | delivery | `Web1080p30`, -16 LUFS, -1.5 dBTP, 0.5 LU, `Mono`, no upload, no handoff, no voice-only listen |
 
 **Avatar opt-in until L6.** The design turns the avatar on by default when the
-edition allows it (KP-13). `init` leaves `avatar` unset unless `--avatar
+edition allows it (KP-13), and NV-8 keeps it opt-in until L6 lands. `init` leaves `avatar` unset unless `--avatar
 --persona P` is given. NV-4 starts the no-avatar half first. The avatar stages
 need the kitpip binary that L5 pins, and compose (L6) is the first stage that
 reads an overlay. Until then, an avatar on by default would block every default
@@ -383,8 +425,10 @@ Labels are manifest metadata, and they only grow. A stage with any synthetic
 input writes `synthetic: true` and the union of upstream consent ids and voice
 ids. `persona` passes through unchanged. A stage that drops or alters one
 refuses `label_chain_broken`. In the audio chain the persona joins at `place`,
-whose key holds `labels.persona`: `voice` and `voice_qa` carry no persona, so a
-persona change reruns `place` and what follows it and no voice.
+whose key holds `labels.persona`: `voice` and `voice_qa` carry no persona. The
+overlay chain joins it at `avatar`, whose manifest carries it, so `avatar` keys
+it too. A persona change reruns `place`, the avatar stages and what follows
+them, and no voice.
 
 No visible synthetic or AI-persona label is required in captions,
 `description.txt` or on the frame (KP-15). `labels.personaCue` (an opening
@@ -422,8 +466,9 @@ fallback recipes are `just nv-quick` and `just nv-run`. L3 drafts tool 62 in
 `program/tool-drafts/narrated_video.json` and writes the first part of the
 `narrated-video` skill (plan, status and explain). L4 drafts tools 63, 64, 65
 and 68 there, adds `run` to the `narrated-video` skill and writes the
-`narrated-video-place`, `music-bed` and `narrated-video-mix` skills. L7 admits
-them.
+`narrated-video-place`, `music-bed` and `narrated-video-mix` skills. L5 drafts
+tools 66 and 67 and writes the `kitpip-overlay` and `kitpip-verify` skills. L7
+admits them.
 
 ## Simple path (lane L4)
 
@@ -512,9 +557,9 @@ deck's private repository.
 | Rule | Enforced by |
 | --- | --- |
 | No voice clip, rendered narration, overlay, frame, bed audio, loop name, vendor stack or asset id, licence PDF, transcript, client text, host name or personal path in git, CI or logs | `tests/test_public_tree.py`. Tool results carry ids and digests |
-| kitpip is never a flake input and never vendored | the private pin record holds digests only, checked before spawn |
+| kitpip is never a flake input and never vendored | `program/externals.json` registers the shape with no pin value; the private pin record holds digests and ids only, checked before spawn |
 | Agents never acquire music | `acquiredBy : < Operator >` |
-| Client deliveries stay voice-only, except the synthetic narrator and kitpip avatar under `ClientNarrated` (59(d)). Every client delivery gates the bed | `Edition.check` at Plan, Place and DeliverCheck |
+| Client deliveries default to `ClientNarrated`: the synthetic narrator and kitpip avatar, no camera picture-in-picture (NV-6). `ClientVoiceOnly` stays available per project. Every client delivery gates the bed | `Edition.check` at Plan, Place and DeliverCheck |
 | Never loudness-normalise the mix. One limiter at -1.5 dBTP. Drift over 0.5 LU fails | `Delivery` bounds, `loudness_drift`, `true_peak_exceeded` |
 | Never write under `artifacts/runs/` or inside a narrate run | the store layout, `avatar_outside_store` |
 | Verified is not accepted | separate states: source checks, stub render, local render, lip sync, listening, Content ID, delivery |
@@ -538,11 +583,11 @@ it stays a knob.
 
 - Sidechain attack: 50 ms here (the deck seat's practice). The earlier music-bed
   draft used 20 ms. Not yet compared.
-- Whether `ClientNarrated` applies to client deliveries beyond the deck project.
-  59(d) rules for that video only. Other client deliveries default to
-  `ClientVoiceOnly` until the operator rules.
 - The deck's `stems.json` (L8) does not yet carry the pre-tighten take digest
   that `place` needs to bind a tightened take.
-- The kitpip release date and its knob set (KP-12).
-- Whether kitpip writes `avatar_overlay_v1` itself or the `avatar` stage wraps
-  its manifest. L5 decides and keeps the fixture current.
+- The kitpip release binary. The private pin names the kitpip commit that
+  merged KP-19, the face schema and stream mode. No release build exists yet,
+  so the binary digest is pending and the avatar stages stay blocked on a real
+  pin.
+- How long a real kitpip render takes on an idle builder. No real render has
+  run through this wrapper yet.

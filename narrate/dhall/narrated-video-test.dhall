@@ -429,4 +429,26 @@ let defaultsMatchNv2 =
              , tighten = False
              }
 
+let clientDefaultIsNarrated =
+        assert
+      :     { edition = d.clientEdition
+            , client = Edition.client d.clientEdition
+            , voiceOnly = Edition.voiceOnly d.clientEdition
+            }
+        ===  { edition = E.ClientNarrated, client = True, voiceOnly = False }
+
+let clientDefaultAdmitsTheNarrator =
+        assert
+      :     Edition.check
+              P.Plan
+              d.clientEdition
+              (clean // { syntheticVoice = True, avatar = True })
+        ===  V.Admitted
+
+let clientVoiceOnlyStaysAvailable =
+        assert
+      :         Edition.client E.ClientVoiceOnly
+            &&  Edition.voiceOnly E.ClientVoiceOnly
+        ===  True
+
 in  True

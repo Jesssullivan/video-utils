@@ -32,6 +32,10 @@ RECORD_FILES = {
 OPTIONAL_RECORDS = ("music_beds", "engines", "pronunciation")
 MAX_RECORD_BYTES = 16 * 1024 * 1024
 EDITIONS = ("Internal", "OwnContent", "ClientVoiceOnly", "ClientNarrated")
+CLIENT_EDITIONS = ("ClientVoiceOnly", "ClientNarrated")
+# NV-6 (TIN-7476 comment 92605219): a client delivery is ClientNarrated unless its project picks ClientVoiceOnly.
+# NarratedVideo.defaults.clientEdition (narrate/dhall/NarratedVideo.dhall) holds the same value.
+CLIENT_DEFAULT_EDITION = "ClientNarrated"
 BASE_KINDS = ("still", "card", "video", "deck")
 FIELDS = ("id", "edition", "base", "segments", "avatar", "music", "tighten", "captions", "labels", "delivery")
 
@@ -270,10 +274,34 @@ def check_shape(job):
 
 
 def init_job(
-    job_id, narrate_job, script_sha256, *, still=None, colour=None, bed=None, edition=None, avatar=False, persona=None
+    job_id,
+    narrate_job,
+    script_sha256,
+    *,
+    still=None,
+    colour=None,
+    bed=None,
+    edition=None,
+    avatar=False,
+    persona=None,
+    client=False,
 ):
-    """A simple job from DEFAULTS. still is a SHA-256 (with the default size, rate and tail); otherwise a card."""
+    """A simple job from DEFAULTS. still is a SHA-256 (with the default size, rate and tail); otherwise a card.
+
+    client: a client delivery. Its edition is CLIENT_DEFAULT_EDITION (ClientNarrated, NV-6); a non-client edition
+    refuses edition_not_client. The defaults voice seg-1 with a synthetic narrate job, which ClientVoiceOnly
+    refuses at Plan, so init refuses ClientVoiceOnly up front: that job comes from a render through --from."""
     d = DEFAULTS
+    if client:
+        if edition is not None and edition not in CLIENT_EDITIONS:
+            raise JobError("edition_not_client", f"a client delivery is {' or '.join(CLIENT_EDITIONS)}, not {edition}")
+        edition = edition or CLIENT_DEFAULT_EDITION
+    if edition == "ClientVoiceOnly":
+        raise JobError(
+            "edition_voice_refused",
+            "edition ClientVoiceOnly at Plan: init voices seg-1 with a synthetic narrate job; write a voice-only"
+            " job with --from FILE (a rendered NarratedVideo record)",
+        )
     if still is not None and not SHA256.match(still):
         raise JobError("job_invalid", "--still is the still's SHA-256 in the private store, never a path")
     if colour is not None and not COLOUR.match(colour):

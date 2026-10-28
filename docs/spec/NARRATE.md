@@ -346,12 +346,13 @@ private):
   synthetic fixtures only. The repository is public: no voice clip, real
   script under confidentiality, host name or personal path in tracked files,
   CI or logs.
-- **Synthetic label.** Every manifest sets `synthetic: true`. When the consent
-  record sets `syntheticLabelRequired`, captions and the delivery description
-  carry a synthetic-voice notice. Client deliverables need explicit
-  disclosure. Licence notices an engine requires (for example "Built with
-  Fish Audio" for Drama 3) are carried into the manifest and the delivery
-  description.
+- **Synthetic label.** Every manifest sets `synthetic: true` and records each
+  voice's consent id and `synthetic_label_required`. Captions carry no
+  synthetic-voice prefix or VTT note: KP-15 (Linear TIN-7476 comment
+  `4ab7fc27`) removed the visible label requirement from captions,
+  descriptions and on-frame marks. Licence notices an engine requires (for
+  example "Built with Fish Audio" for Drama 3) are carried into the manifest
+  and the delivery description.
 - **Persona label.** A consent record may name a `persona` (NV-1, TIN-7476
   comment `9db389dc`). A narrated video whose segment uses that voice must
   carry the same `labels.persona` (docs/spec/NARRATED_VIDEO.md).

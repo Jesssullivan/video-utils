@@ -215,7 +215,8 @@ class PublicTree(unittest.TestCase):
         """docs/spec/NARRATED_VIDEO.md, Safety (NV-1): kitpip may be named, but no kitpip repository URL or remote,
         and no audio, video, picture or licence PDF, enters the narration or narrated-video trees."""
         trees = ("narrate/", "program/", ".agents/skills/narrated-video/", ".agents/skills/narrated-video-place/",
-                 ".agents/skills/narrated-video-mix/", ".agents/skills/music-bed/", "docs/spec/NARRATED_VIDEO.md")
+                 ".agents/skills/narrated-video-mix/", ".agents/skills/music-bed/", ".agents/skills/kitpip-overlay/",
+                 ".agents/skills/kitpip-verify/", "docs/spec/NARRATED_VIDEO.md")
         media = re.compile(r"\.(wav|flac|mp3|m4a|aac|ogg|mov|mp4|mkv|webm|png|jpe?g|gif|pdf)$", re.I)
         self.assertEqual([n for n in self.names if n.startswith(trees) and media.search(n)], [])
         # Built from fragments so this file is not itself a finding.
@@ -224,6 +225,11 @@ class PublicTree(unittest.TestCase):
         self.assertEqual([n for n in self.names for text in [read_text(ROOT / n)]
                           if text is not None and repository.search(text)], [])
         self.assertIsNotNone(repository.search("see " + "https://" + "example.org/someone/" + "kit" + "pip"))
+        # NV-1: program/externals.json registers kitpip publicly, but the pin (commit, digests, rig) is private.
+        registered = json.loads((ROOT / "program" / "externals.json").read_text(encoding="utf-8"))
+        entry = registered["externals"]["kit" + "pip"]
+        self.assertEqual(entry["pin"], "private_record")
+        self.assertEqual(sorted(set(entry) & {"source_commit", "binaries", "default_rig", "version"}), [])
 
     def test_untracked_private_terms(self):
         patterns = private_terms()

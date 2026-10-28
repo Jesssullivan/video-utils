@@ -27,7 +27,9 @@
 -- Delivery: narration is measured at targetLufs integrated and the whole mix is never loudness-normalised.
 --   One limiter, in mix. driftLu (at most 0.5) and truePeakDbtp (at most -1.5) are hard gates. upload arms
 --   the licence and Content ID gates. voiceOnlyListen names the receipt of a voice-only listen pass, one of
---   the three conditions a ClientVoiceOnly delivery needs before it may carry a bed.
+--   the three conditions a client delivery needs before it may carry a bed.
+-- defaults.edition is Internal for a simple job (NV-2). defaults.clientEdition is the edition of a client
+--   delivery, ClientNarrated (NV-6); a project may pick ClientVoiceOnly instead.
 -- Union payloads are records keyed by the constructor's name ({ still = ... }, { atSeconds = ... }), because
 --   dhall-to-json drops union tags: the rendered JSON stays unambiguous ({"still": {...}}, "Auto").
 -- planLeaves and plan: the Plan point of Edition.check. `bed` is the resolved private record that the job's
@@ -204,6 +206,7 @@ let tightenAdmitted =
 
 let defaults =
       { edition = Edition.Edition.Internal
+      , clientEdition = Edition.clientDefault
       , fps = { num = 30, den = 1 }
       , size = { w = 1920, h = 1080 }
       , tailS = 1.0

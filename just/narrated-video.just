@@ -1,5 +1,6 @@
-# Narrated video (docs/spec/NARRATED_VIDEO.md), lanes L3 and L4: the stage graph's init, plan, status, explain and
-# verify, and the simple path's run, stage and quick recipes (script, voice, voice_qa, base, place, music and mix).
+# Narrated video (docs/spec/NARRATED_VIDEO.md), lanes L3 to L5: the stage graph's init, plan, status, explain and
+# verify, the simple path's run, stage and quick recipes (script, voice, voice_qa, base, place, music and mix), and
+# the kitpip avatar stages with their pin check.
 # Run inside `nix develop .#condense` (FFmpeg, python3, pytest).
 # Root imports this file from the root justfile (`import 'just/narrated-video.just'`).
 # Jobs and their stage directories land in artifacts/narrated/<job_id>/ (NARRATED_VIDEO_ROOT), outside
@@ -7,11 +8,12 @@
 # from the private store NARRATE_STORE, the lexical release from NARRATE_LEXICAL_DIR, the private kitpip pin from
 # NARRATED_VIDEO_EXTERNALS and the binary from KITPIP_BIN. A job holds digests and record ids, never a path.
 # Runs go through narrate/bounded.sh (nice 19, a 6G memory scope, one heavy narrate step at a time).
-# nv-bed and kitpip-pin-check come with lanes L5 and L6.
+# nv-bed comes with lane L6.
 
 # The defaults: one segment voiced by NARRATE_JOB, a #101820 card (or --still SHA), no avatar unless --avatar
 # --persona P (opt-in until L6, docs/spec/NARRATED_VIDEO.md), the bed only with --bed ID, edition Internal and tighten
-# off (NV-2). admit refuses a voice without consent before anything is written.
+# off (NV-2). --client makes a client delivery: edition ClientNarrated (NV-6). A ClientVoiceOnly job comes only
+# through python -m narrate video init --from FILE. admit refuses a voice without consent before anything is written.
 # Write a simple job from the defaults into the store and record its first plan.
 nv-init job narrate_job script *args:
     python3 -m narrate video init --job {{quote(job)}} --narrate-job {{quote(narrate_job)}} --script {{quote(script)}} {{args}}
@@ -28,12 +30,17 @@ nv-status job *args:
 nv-explain job stage *args:
     python3 -m narrate video explain {{quote(job)}} {{quote(stage)}} {{args}}
 
+# Check the private kitpip pin (NARRATED_VIDEO_EXTERNALS) against its public registration in program/externals.json,
+# then KITPIP_BIN against the pin's digest and size. Refuses kitpip_pin_pending while the release digest is pending.
+kitpip-pin-check *args:
+    python3 -m narrate video pin-check {{args}}
+
 # Re-hash a stage directory, or every current stage of a job directory.
 nv-verify dir:
     python3 -m narrate video verify {{quote(dir)}}
 
-# Run the stale stages of a job: lane L4 runs script to mix and stops at the first refusal; finished stages stay
-# fresh. ARGS: --stages S,... | --until STAGE | --force S,... | --json.
+# Run the stale stages of a job: script to mix, and avatar and avatar_check when the job has an avatar and KITPIP_BIN
+# resolves to its pin. Stops at the first refusal; finished stages stay fresh. ARGS: --stages S,... | --until STAGE | --force S,... | --json.
 nv-run job *args:
     narrate/bounded.sh python3 -m narrate video run {{quote(job)}} {{args}}
 
@@ -76,8 +83,9 @@ nv-fixture:
     print(json.dumps({k: m[k] for k in keep}, sort_keys=True))
     PY
 
-# The graph-core and simple-path tests: keys, invalidation rows, freshness, admit, the CLI, the kitpip stub stage and
-# the L4 stages on synthetic fixtures (levels, duck, placement property, editions at Place, labels, bases, the bed).
+# The graph-core, simple-path and avatar tests: keys, invalidation rows, freshness, admit, the CLI, the kitpip pin
+# and avatar stages on the stub, and the L4 stages on synthetic fixtures (levels, duck, placement property, editions
+# at Place, labels, bases, the bed).
 nv-test:
     cd narrate && python3 -m pytest -q tests/test_narrated_video_graph.py tests/test_narrated_video_types.py \
-        tests/test_narrated_video_simple.py
+        tests/test_narrated_video_simple.py tests/test_narrated_video_avatar.py

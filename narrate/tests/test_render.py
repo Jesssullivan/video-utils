@@ -65,8 +65,13 @@ def test_markdown_render_verifies_and_records_everything(workspace):
     } <= files
     assert all(c["file"] in files for c in manifest["chunks"])
     srt = (final / "narration.srt").read_text()
-    assert srt.startswith("1\n00:00:00,") and "[Synthetic voice] Narrate reads" in srt and "8%" in srt
-    assert (final / "narration.vtt").read_text().startswith("WEBVTT\n\nNOTE This narration is a synthetic voice.")
+    # KP-15: no visible synthetic label in the captions; the manifest keeps the labels.
+    assert srt.startswith("1\n00:00:00,") and "\nNarrate reads" in srt and "8%" in srt
+    assert "[Synthetic voice]" not in srt
+    vtt = (final / "narration.vtt").read_text()
+    assert vtt.startswith("WEBVTT\n\n00:00:00.") and "NOTE" not in vtt and "synthetic" not in vtt.lower()
+    assert manifest["synthetic"] is True and all(v["consent_id"] for v in manifest["voices"])
+    assert manifest["captions"]["synthetic_notice"] is False
     edl = json.loads((final / "narration.edl.json").read_text())
     (segment,) = edl["segments"]
     assert segment["target_dur_s"] == 30.0 and segment["padded_s"] > 0 and segment["flags"] == []
