@@ -96,8 +96,8 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
   run directory, the manifest path and a summary. The MCP tools (`narrate_render`, `narrate_voices`,
   `narrate_engines`, `narrate_evaluate`; skills under `.agents/skills/narrate-*`) call these commands.
 - **Captions** are timed from the script placement (`captions.source: script_timing`), in the written text,
-  with a synthetic-voice notice when the consent record asks for one. Whisper alignment of the delivered audio
-  is a later step.
+  with no synthetic-voice prefix or note (KP-15). The manifest keeps `synthetic: true` and the consent ids.
+  Whisper alignment of the delivered audio is a later step.
 
 ## Checking the voiced text
 

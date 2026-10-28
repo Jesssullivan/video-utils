@@ -246,6 +246,9 @@ def check_examples(data: dict, errors: list) -> None:
 # Edition.dhall and NarratedVideo.dhall, ported. Keep in step with them and narrated-video-test.dhall.
 EDITIONS = ("Internal", "OwnContent", "ClientVoiceOnly", "ClientNarrated")
 CLIENT_EDITIONS = ("ClientVoiceOnly", "ClientNarrated")
+# Edition.clientDefault and NarratedVideo.defaults.clientEdition: a client delivery is ClientNarrated (NV-6, TIN-7476
+# comment 92605219) unless its project picks ClientVoiceOnly.
+CLIENT_DEFAULT_EDITION = "ClientNarrated"
 POINTS = ("Plan", "Place", "DeliverCheck")
 EDITION_REFUSALS = {"VoiceRefused": "edition_voice_refused", "PipRefused": "edition_pip_refused",
                     "BedRefused": "edition_bed_refused"}
@@ -274,6 +277,15 @@ def edition_check(point: str, edition: str, leaves: dict) -> dict:
     if not codes:
         return {"verdict": "Admitted"}
     return {"verdict": "Refused", "point": point, "codes": codes}
+
+
+def client_edition(project_edition=None) -> str:
+    """The edition of a client delivery: CLIENT_DEFAULT_EDITION, or the client edition its project picks."""
+    if project_edition is None:
+        return CLIENT_DEFAULT_EDITION
+    if project_edition not in CLIENT_EDITIONS:
+        raise ValueError(f"client_edition: {project_edition!r} is not a client edition")
+    return project_edition
 
 
 def bed_licence_cleared(bed: dict) -> bool:

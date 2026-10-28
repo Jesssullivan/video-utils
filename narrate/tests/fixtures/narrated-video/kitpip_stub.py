@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """A synthetic stand-in for the kitpip binary (docs/spec/NARRATED_VIDEO.md, lane L3). Standard library and FFmpeg.
 
-It speaks kitpip's command shape as video-utils consumes it: `analyze RUN --fps N/D --out DIR`, `render PROSODY
---rig ID [--size PX] --out DIR`, `verify DIR` and `--version`. Every command prints one JSON line on stdout: a
-result (exit 0), {"refused": code, "detail": ...} (exit 1) or {"error": ...} (exit 2). KITPIP_STUB_REFUSE=code
-makes any command refuse with that code, so a test can draw each refusal on request.
+It speaks kitpip's command shape as video-utils consumes it, at the pinned kitpip commit: `analyze RUN --fps N/D
+[--rig ID] --out DIR`, `render PROSODY --rig ID [--size WxH] [--encode mov] --out DIR`, `verify DIR` and `--version`.
+verify answers as kitpip does: verified, labelled, the consent ids and the frame digest. Every command prints one
+JSON line on stdout: a result (exit 0), {"refused": code, "detail": ...} (exit 1) or {"error": ...} (exit 2).
+KITPIP_STUB_REFUSE=code makes any command refuse with that code, so a test can draw each refusal on request.
 
 It draws no character and holds no kitpip art. `render` writes a ProRes 4444 overlay (prores_ks, yuva444p10le) of
 an opaque centred square on a fully transparent field, so every corner pixel is transparent, plus a
@@ -76,6 +77,17 @@ def parse_fps(text):
     return {"num": num, "den": den}
 
 
+def parse_size(text):
+    """kitpip's WxH. The stub draws square overlays only: 16 to 2048 px, a multiple of 4."""
+    try:
+        w, h = (int(x) for x in text.split("x"))
+    except ValueError:
+        raise Refused("contract_invalid", "size is WxH") from None
+    if w != h or not 16 <= w <= 2048 or w % 4:
+        raise Refused("contract_invalid", "the stub's size is square, 16 to 2048 and a multiple of 4")
+    return w
+
+
 def analyze(args):
     run = Path(args["input"]).resolve()
     out = out_dir(args["out"], [run])
@@ -92,6 +104,8 @@ def analyze(args):
     if not wav.is_file() or sha_file(wav) != manifest.get("output_sha256", {}).get("narration.wav"):
         raise Refused("digest_mismatch", "narration.wav is not the manifest's")
     fps = parse_fps(args["fps"])
+    if args.get("rig", "kitpip-stub-rig") not in RIGS:
+        raise Refused("unknown_rig", f"rig {args['rig']} is not in the stub's catalogue")
     try:
         with wave.open(str(wav), "rb") as stream:
             if stream.getsampwidth() != 2 or stream.getnchannels() != 1:
@@ -131,9 +145,9 @@ def render(args):
     if ffmpeg is None:
         raise Refused("ffmpeg_missing", "no ffmpeg on PATH")
     prosody = json.loads(prosody_path.read_text())
-    size = int(args.get("size") or DEFAULT_SIZE)
-    if not 16 <= size <= 2048 or size % 4:
-        raise Refused("contract_invalid", "size is 16 to 2048 and a multiple of 4")
+    size = parse_size(args.get("size") or f"{DEFAULT_SIZE}x{DEFAULT_SIZE}")
+    if args.get("encode", "mov") != "mov":
+        raise Refused("contract_invalid", "the stub writes only the ProRes 4444 .mov (--encode mov)")
     fps, frames = prosody["fps"], prosody["frames"]
     box = size // 2
     graph = (
@@ -191,6 +205,7 @@ def render(args):
         "kind": "avatar_overlay",
         "synthetic": True,
         "label": "AI persona",
+        "show_badge": False,
         "consent_ids": prosody["consent_ids"],
         "voice_ids": prosody["voice_ids"],
         "voice_tempo": None,
@@ -235,7 +250,16 @@ def verify(args):
         and manifest.get("label") == "AI persona"
         and bool(manifest.get("consent_ids"))
     )
-    return {"labelled": labelled}
+    return {
+        "command": "verify",
+        "kind": manifest.get("kind"),
+        "files": len(listed),
+        "frames_sha256": manifest.get("frames_sha256"),
+        "consent_ids": manifest.get("consent_ids", []),
+        "verified": True,
+        "labelled": labelled,
+        "unlabelled_test": False,
+    }
 
 
 def parse(argv):
@@ -243,15 +267,15 @@ def parse(argv):
         return "version", {}
     if not argv or argv[0] not in ("analyze", "render", "verify"):
         raise ValueError(
-            "usage: kitpip_stub.py {analyze,render,verify} INPUT [--fps N/D] [--rig ID] [--size PX] "
-            "[--out DIR] | --version"
+            "usage: kitpip_stub.py {analyze,render,verify} INPUT [--fps N/D] [--rig ID] [--size WxH] "
+            "[--encode mov] [--out DIR] | --version"
         )
     command, rest = argv[0], argv[1:]
     args = {}
     while rest:
         head = rest.pop(0)
         if head.startswith("--"):
-            if head in ("--allow-unlabelled-test", "--pipe"):
+            if head in ("--allow-unlabelled-test", "--pipe", "--badge"):
                 raise ValueError(f"{head}: not supported by the stub")
             if not rest:
                 raise ValueError(f"{head} needs a value")

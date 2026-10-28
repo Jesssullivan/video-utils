@@ -358,8 +358,9 @@ ROWS = {
     "pronunciation entry": (pronunciation_entry, VOICES | AVATARS | {"place", "mix", "compose", "deliver_check"}),
     "engine model": (engine_model, VOICES | AVATARS | {"place", "mix", "compose", "deliver_check"}),
     "engine files": (engine_files, VOICES | AVATARS | {"place", "mix", "compose", "deliver_check"}),
-    # The persona joins at place (and at avatar_check for the overlay); no voice reruns.
-    "persona": (persona, {"avatar_check/seg-1", "avatar_check/seg-2", "place", "mix", "compose", "deliver_check"}),
+    # The persona joins at place and at avatar (its overlay manifest carries labels.persona, so the persona is an
+    # avatar knob, lane L5); no voice reruns.
+    "persona": (persona, AVATARS | {"place", "mix", "compose", "deliver_check"}),
 }
 
 

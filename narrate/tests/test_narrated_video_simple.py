@@ -649,8 +649,10 @@ def test_cli_fixture_init_run_and_stage(tmp_path, capsys, ffmpeg):
     assert code == 1 and json.loads(err)["refused"] == "fixture_exists"
 
 
-def test_the_runner_table_covers_lane_l4_and_names_the_lanes_still_to_come():
+def test_the_runner_table_covers_lanes_l4_and_l5_and_names_the_lane_still_to_come():
     assert set(run.RUNNERS) | set(run.LANES) | {"admit"} == set(graph.BY_ID)
-    assert set(run.RUNNERS) == {"script", "voice", "voice_qa", "base", "place", "music", "mix"}
+    lane_l4 = {"script", "voice", "voice_qa", "base", "place", "music", "mix"}
+    assert set(run.RUNNERS) == lane_l4 | {"avatar", "avatar_check"}
+    assert run.LANES == {"compose": "L6", "deliver_check": "L6", "handoff": "L6"}
     assert run.ancestors("mix") == {"mix", "place", "music", "base", "voice", "voice_qa", "script"}
     assert speech.measured_failures({"wer": {"passed": False}, "sim": {"status": "not_measured"}}) == ["wer"]

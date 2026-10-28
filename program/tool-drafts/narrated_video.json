@@ -1,12 +1,12 @@
 {
  "schema_version": 1,
  "status": "draft_for_root_admission",
- "lane": "W8 (L3, L4)",
+ "lane": "W8 (L3, L4, L5)",
  "linear": "TIN-7476",
  "spec": "docs/spec/NARRATED_VIDEO.md",
- "worker": "python3 -m narrate video {init,plan,run,stage,status,explain,verify,fixture}",
+ "worker": "python3 -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture}",
  "skill": ".agents/skills/narrated-video/SKILL.md",
- "admission": "Tool numbers are proposals: narrated_video_plan is proposed as 62, narrated_video_run as 63, narrated_video_place as 64, music_bed_build as 65 and narrated_video_mix as 68. Root admits them in program/tools.json in lane L7 with tools 66, 67, 69 and 70. The path rules (no symlink components, root outside artifacts/runs/ and artifacts/narrate/) and the job-id form are enforced in narrate/video before any work; scripts/tool_api.py adds its own path checks at admission. No argument takes a URL, an executable or a shell string.",
+ "admission": "Tool numbers are proposals: narrated_video_plan is proposed as 62, narrated_video_run as 63, narrated_video_place as 64, music_bed_build as 65, kitpip_overlay as 66, kitpip_verify as 67 and narrated_video_mix as 68. Root admits them in program/tools.json in lane L7 with tools 69 and 70. The path rules (no symlink components, root outside artifacts/runs/ and artifacts/narrate/) and the job-id form are enforced in narrate/video before any work; scripts/tool_api.py adds its own path checks at admission. No argument takes a URL, an executable or a shell string.",
  "tools": [
   {
    "name": "narrated_video_plan",
@@ -155,10 +155,12 @@
         "base",
         "place",
         "music",
-        "mix"
+        "mix",
+        "avatar",
+        "avatar_check"
        ]
       },
-      "maxItems": 7,
+      "maxItems": 9,
       "uniqueItems": true,
       "description": "Run only these stages."
      },
@@ -171,7 +173,9 @@
        "base",
        "place",
        "music",
-       "mix"
+       "mix",
+       "avatar",
+       "avatar_check"
       ],
       "description": "Run this stage and every stage it depends on."
      },
@@ -186,10 +190,12 @@
         "base",
         "place",
         "music",
-        "mix"
+        "mix",
+        "avatar",
+        "avatar_check"
        ]
       },
-      "maxItems": 7,
+      "maxItems": 9,
       "uniqueItems": true,
       "description": "Rerun these stages although fresh: their current runs move to history/ and their refusals clear."
      }
@@ -206,7 +212,7 @@
    "evidence_kind": "stage_graph_run_with_keys",
    "limitations": [
     "fresh means the outputs re-hash to their key. Listening, Content ID and delivery are separate operator states; voice_qa and mix leave listening pending_operator.",
-    "Lane L4 runs script, voice, voice_qa, base, place, music and mix. avatar (L5), compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "Lanes L4 and L5 run script, voice, voice_qa, base, place, music, mix, avatar and avatar_check. compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
     "v1 runs one stage at a time; the spec's at-most-2 bound holds with room to spare.",
     "A voice rendered by the fake engine is a sine fixture, not speech."
    ],
@@ -289,7 +295,7 @@
    "evidence_kind": "base_clock_placements",
    "limitations": [
     "fresh means the outputs re-hash to their key. Listening, Content ID and delivery are separate operator states; voice_qa and mix leave listening pending_operator.",
-    "Lane L4 runs script, voice, voice_qa, base, place, music and mix. avatar (L5), compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "Lanes L4 and L5 run script, voice, voice_qa, base, place, music, mix, avatar and avatar_check. compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
     "A deck base refuses base_deck_pending until lane L8 (the deck seam).",
     "Page anchors need a deck base (anchor_needs_deck)."
    ],
@@ -372,7 +378,7 @@
    "evidence_kind": "music_bed_cycle",
    "limitations": [
     "fresh means the outputs re-hash to their key. Listening, Content ID and delivery are separate operator states; voice_qa and mix leave listening pending_operator.",
-    "Lane L4 runs script, voice, voice_qa, base, place, music and mix. avatar (L5), compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "Lanes L4 and L5 run script, voice, voice_qa, base, place, music, mix, avatar and avatar_check. compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
     "Agents never purchase, search for or download a loop; acquiredBy has one constructor, Operator.",
     "No public upload until the record holds a certified licence PDF digest and a clear Content ID result. music records no licence state; plan and status list the open gates under pending_operator, and deliver_check decides them."
    ],
@@ -394,6 +400,203 @@
     "research": "docs/spec/NARRATED_VIDEO.md \"Music bed\" and \"Simple path (lane L4)\".",
     "iterate": "Change one layer's gain or tempo factor in the private record, run music and compare the two cycles' loudness.",
     "acceptance": "A fresh stage is evidence that it ran on these inputs. Listening, Content ID and delivery are separate operator states.",
+    "max_comparison_candidates_default": 2
+   }
+  },
+  {
+   "name": "kitpip_overlay",
+   "title": "Render a kitpip overlay",
+   "description": "Run the avatar stage of one job (`python -m narrate video stage JOB avatar --segment ID --json`): resolve KITPIP_BIN against the private pin, then run kitpip `analyze` on the segment's narrate run at the base's frame rate, `render` a ProRes 4444 overlay at renderSize and `verify` it, all inside the stage's partial directory in the job store, never inside the narrate run or under artifacts/runs/. Relays kitpip's own refusal codes (no_consent, not_synthetic, digest_mismatch, contract_invalid, inside_narration_run, would_overwrite_input, unknown_rig) and adds kitpip_missing, kitpip_pin_pending, kitpip_pin_mismatch, kitpip_unlabelled, label_chain_broken and avatar_outside_store. Never passes --allow-unlabelled-test, --pipe or --badge. The stage key holds the binary digest, the rig and its revision, renderSize, the persona and the narration digest. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; the overlay manifest says no_time_stretch false with the non-identity mapping avatar_overlay_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+   "intent": "Let an agent render the narrator overlay for each segment from its consented narration, bound to a pinned kitpip binary by digest.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "job": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The job id: 1 to 64 of a-z, 0-9, '.', '_' and '-', starting with a letter or digit. The job lives in the store root as <root>/<job>/job.json (write it with `just nv-init`)."
+     },
+     "root": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The narrated-video store root (default artifacts/narrated, or NARRATED_VIDEO_ROOT). Refused under artifacts/runs/ or artifacts/narrate/."
+     },
+     "records": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json and, optionally, music-beds.json."
+     },
+     "store": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private store. Every source (script, still, video, bed loop) is read from it by SHA-256; required for a run."
+     },
+     "lexical": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The pinned xoxd-lexical release directory the script and voice stages read (NARRATE_LEXICAL_DIR)."
+     },
+     "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 900,
+      "default": 600,
+      "description": "Outer deadline for the whole call in seconds (at most 900). A run stopped by it keeps every finished stage fresh; call it again to resume."
+     },
+     "externals": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private kitpip pin record (NARRATED_VIDEO_EXTERNALS): version, source commit, binary digests and default rig, digests and ids only. The binary is KITPIP_BIN; its digest and size are checked against the pin at plan and before every spawn."
+     },
+     "segment": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The segment id of the node to run (for example seg-1): one node per call."
+     }
+    },
+    "required": [
+     "job",
+     "records",
+     "store",
+     "externals",
+     "segment"
+    ],
+    "additionalProperties": false
+   },
+   "skill": ".agents/skills/kitpip-overlay/SKILL.md",
+   "implementation_status": "draft",
+   "evidence_kind": "kitpip_overlay_render",
+   "limitations": [
+    "fresh means the outputs re-hash to their key. Lip sync is a separate operator state; avatar and avatar_check leave it pending_operator.",
+    "Lanes L4 and L5 run script, voice, voice_qa, base, place, music, mix, avatar and avatar_check. compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "kitpip is never a flake input and never vendored. Its pin is a private record (NV-1); program/externals.json registers the shape only. A pin whose release binary digest is pending blocks both stages (kitpip_pin_pending).",
+    "The overlay is kitpip's unadorned default character (KP-19) with no visible label (KP-7, KP-15); synthetic: true, consent ids and the persona stay in the manifest.",
+    "Public CI renders the synthetic stub (an opaque square on a transparent field), never kitpip art. A real render is local, CPU-only and bounded."
+   ],
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "dependencies": {
+    "recommended_prior_tools": [
+     "narrated_video_plan",
+     "narrated_video_run"
+    ],
+    "enforced": false,
+    "note": "voice for the segment and base must be fresh; the job needs an avatar block and labels.persona."
+   },
+   "agent_workflow": {
+    "identify": "Read frames, frames_sha256, fps, size, rig {id, sha256}, show_badge and states.render (stub or local).",
+    "research": "docs/spec/NARRATED_VIDEO.md \"kitpip pin and the stub\" and \"Avatar stages (lane L5)\"; kitpip's own manifest contract kitpip.manifest/v0.",
+    "iterate": "Change rig or renderSize alone, rerun avatar only, and compare frames_sha256 and frame counts; overlay width and corner are compose knobs and rerun no avatar.",
+    "acceptance": "A fresh stage is evidence that it ran on these inputs. Lip sync, listening and delivery are separate operator states.",
+    "max_comparison_candidates_default": 2
+   }
+  },
+  {
+   "name": "kitpip_verify",
+   "title": "Verify a kitpip overlay",
+   "description": "Run the avatar_check stage of one job (`python -m narrate video stage JOB avatar_check --segment ID --json`): run kitpip `verify` on the stored overlay, which re-hashes every file kitpip's manifest lists and refuses unlisted ones, then check the label chain. The overlay must report labelled: true, keep the frame digest the avatar stage measured and carry the narration's consent ids; the stage labels must hold everything the voice and avatar stages carry, with the job's labels.persona. Writes check.json. Refuses kitpip_unlabelled and label_chain_broken. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; the overlay manifest says no_time_stretch false with the non-identity mapping avatar_overlay_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+   "intent": "Let an agent prove that a stored overlay is the one rendered and that its synthetic and consent labels survived.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "job": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The job id: 1 to 64 of a-z, 0-9, '.', '_' and '-', starting with a letter or digit. The job lives in the store root as <root>/<job>/job.json (write it with `just nv-init`)."
+     },
+     "root": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The narrated-video store root (default artifacts/narrated, or NARRATED_VIDEO_ROOT). Refused under artifacts/runs/ or artifacts/narrate/."
+     },
+     "records": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json and, optionally, music-beds.json."
+     },
+     "store": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private store. Every source (script, still, video, bed loop) is read from it by SHA-256; required for a run."
+     },
+     "lexical": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The pinned xoxd-lexical release directory the script and voice stages read (NARRATE_LEXICAL_DIR)."
+     },
+     "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 900,
+      "default": 600,
+      "description": "Outer deadline for the whole call in seconds (at most 900). A run stopped by it keeps every finished stage fresh; call it again to resume."
+     },
+     "externals": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private kitpip pin record (NARRATED_VIDEO_EXTERNALS): version, source commit, binary digests and default rig, digests and ids only. The binary is KITPIP_BIN; its digest and size are checked against the pin at plan and before every spawn."
+     },
+     "segment": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The segment id of the node to run (for example seg-1): one node per call."
+     }
+    },
+    "required": [
+     "job",
+     "records",
+     "store",
+     "externals",
+     "segment"
+    ],
+    "additionalProperties": false
+   },
+   "skill": ".agents/skills/kitpip-verify/SKILL.md",
+   "implementation_status": "draft",
+   "evidence_kind": "kitpip_overlay_label_chain",
+   "limitations": [
+    "fresh means the outputs re-hash to their key. Lip sync is a separate operator state; avatar and avatar_check leave it pending_operator.",
+    "Lanes L4 and L5 run script, voice, voice_qa, base, place, music, mix, avatar and avatar_check. compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "kitpip is never a flake input and never vendored. Its pin is a private record (NV-1); program/externals.json registers the shape only. A pin whose release binary digest is pending blocks both stages (kitpip_pin_pending).",
+    "The overlay is kitpip's unadorned default character (KP-19) with no visible label (KP-7, KP-15); synthetic: true, consent ids and the persona stay in the manifest.",
+    "verified means integrity and labels, not lip-sync acceptance."
+   ],
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "dependencies": {
+    "recommended_prior_tools": [
+     "kitpip_overlay"
+    ],
+    "enforced": false,
+    "note": "avatar and voice for the segment must be fresh."
+   },
+   "agent_workflow": {
+    "identify": "Read labelled, frames_sha256 and labels (synthetic, consent_ids, voice_ids, persona).",
+    "research": "docs/spec/NARRATED_VIDEO.md \"kitpip pin and the stub\" and \"Avatar stages (lane L5)\"; kitpip's own manifest contract kitpip.manifest/v0.",
+    "iterate": "Run after every avatar rerun; compare check.json frames_sha256 with the avatar stage's measurement.",
+    "acceptance": "A fresh stage is evidence that it ran on these inputs. Lip sync, listening and delivery are separate operator states.",
     "max_comparison_candidates_default": 2
    }
   },
@@ -455,7 +658,7 @@
    "evidence_kind": "mix_levels_and_gates",
    "limitations": [
     "fresh means the outputs re-hash to their key. Listening, Content ID and delivery are separate operator states; voice_qa and mix leave listening pending_operator.",
-    "Lane L4 runs script, voice, voice_qa, base, place, music and mix. avatar (L5), compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "Lanes L4 and L5 run script, voice, voice_qa, base, place, music, mix, avatar and avatar_check. compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
     "The applied duck depth is the envelope the stage applied, a measurement, not a listening result.",
     "Stereo writes the mono mix on both channels at -3.01 dB each; mono is the default until an A/B (NV-2)."
    ],

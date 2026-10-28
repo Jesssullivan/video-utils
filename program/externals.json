@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "authority": "docs/spec/NARRATED_VIDEO.md (kitpip pin and the stub); NV-1, Linear TIN-7476 comment 9db389dc: the kitpip pin lives in a private record, and no kitpip repository URL or art enters this repository",
+  "externals": {
+    "kitpip": {
+      "kind": "binary",
+      "pin": "private_record",
+      "record_env": "NARRATED_VIDEO_EXTERNALS",
+      "record_shape": "narrate/tests/fixtures/narrated-video/kitpip-externals.json",
+      "record_fields": [
+        "version",
+        "source_commit",
+        "binaries",
+        "default_rig",
+        "manifest_schema",
+        "timeline_mapping",
+        "visibility",
+        "gate_state",
+        "resolve",
+        "fetch"
+      ],
+      "manifest_schema": "kitpip.manifest/v0",
+      "timeline_mapping": "avatar_overlay_v1",
+      "resolve": {
+        "env": [
+          "KITPIP_BIN"
+        ],
+        "check": "sha256 and byte count against the pin, at plan and before every spawn",
+        "store": "by_sha256"
+      },
+      "fetch": "explicit",
+      "flake_input": false,
+      "vendored": false,
+      "gate_states": {
+        "commit_pinned_digest_pending": "the pin names a source commit; no release binary digest exists yet, so the avatar stages stay blocked (kitpip_pin_pending)",
+        "registered_hash_bound_not_accepted": "the pin holds a release binary digest; renders are local and unaccepted until the operator's lip-sync and listening receipts",
+        "test_fixture_not_a_release": "the test-only record that pins the synthetic stub"
+      },
+      "stages": [
+        "avatar",
+        "avatar_check"
+      ],
+      "check": "just kitpip-pin-check"
+    }
+  }
+}

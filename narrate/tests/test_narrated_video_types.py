@@ -191,3 +191,34 @@ def test_consent_persona_field_renders_and_narrate_policy_accepts_it():
         registry = {"voices": voices, "consents": {c["id"]: {**c, "persona": persona} for c in consents}}
         voice, consent = policy.check_consent("voice-fixture-sine", registry, None, "OwnContent")
         assert consent["persona"] == persona
+
+
+# NV-6 (TIN-7476 comment 92605219): ClientNarrated is the default edition of a client delivery --------------------
+def test_the_client_default_is_client_narrated_in_the_types_the_port_and_init(check):
+    from narrate.video import job
+
+    assert check.CLIENT_DEFAULT_EDITION == job.CLIENT_DEFAULT_EDITION == "ClientNarrated"
+    assert check.client_edition() == "ClientNarrated" and check.client_edition("ClientVoiceOnly") == "ClientVoiceOnly"
+    with pytest.raises(ValueError):
+        check.client_edition("Internal")
+    narrator = {**CLEAN, "syntheticVoice": True, "avatar": True}
+    assert all(check.edition_check(p, check.client_edition(), narrator) == {"verdict": "Admitted"} for p in POINTS)
+    assert check.edition_check("Plan", "ClientVoiceOnly", narrator)["codes"] == ["VoiceRefused", "PipRefused"]
+    digest = "a" * 64
+    assert job.init_job("j", "n", digest, client=True)["edition"] == "ClientNarrated"
+    assert job.init_job("j", "n", digest, client=True, edition="ClientVoiceOnly")["edition"] == "ClientVoiceOnly"
+    assert job.init_job("j", "n", digest)["edition"] == "Internal"
+    with pytest.raises(job.JobError) as caught:
+        job.init_job("j", "n", digest, client=True, edition="OwnContent")
+    assert caught.value.code == "edition_not_client"
+
+
+def test_the_dhall_client_default_renders_client_narrated():
+    import shutil
+    import subprocess
+
+    if not shutil.which("dhall-to-json"):
+        pytest.skip("dhall-to-json is not on PATH (nix develop .#condense)")
+    expression = f"({EXAMPLES.parent / 'NarratedVideo.dhall'}).defaults.clientEdition\n"
+    done = subprocess.run(["dhall-to-json"], input=expression, capture_output=True, text=True, timeout=120, check=True)
+    assert json.loads(done.stdout) == "ClientNarrated"

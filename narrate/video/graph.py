@@ -222,7 +222,14 @@ def knobs_for(stage, segment, job, records, pin):
         revision = avatar["rigRevisionSha256"]
         if revision is None and rig == default["id"]:
             revision = default.get("sha256")
-        return {"rig": rig, "rigRevisionSha256": revision, "renderSize": avatar["renderSize"]}
+        # The overlay's manifest carries labels.persona, so the persona is an avatar knob: a persona change
+        # reruns the overlay rather than leaving a stage whose labels no longer match its key.
+        return {
+            "rig": rig,
+            "rigRevisionSha256": revision,
+            "renderSize": avatar["renderSize"],
+            "persona": job["labels"]["persona"],
+        }
     if stage == "avatar_check":
         return {"persona": job["labels"]["persona"]}
     if stage == "music":
@@ -360,7 +367,8 @@ def plan(job, records, store, ctx):
             continue
         tool = tool_for(stage, ctx, node["segment"], records)
         if stage in KITPIP_STAGES and kitpip_state != "resolved":
-            node["state"], node["reason"] = "blocked", "kitpip_missing"
+            reason = "kitpip_pin_pending" if kitpip_state == "pending" else "kitpip_missing"
+            node["state"], node["reason"] = "blocked", reason
             continue
         if stage in RENDER_STAGES and not ctx.get("ffmpeg"):
             node["state"], node["reason"] = "blocked", "ffmpeg_missing"

@@ -1,4 +1,6 @@
-"""python -m narrate video {init,plan,run,stage,status,explain,verify,fixture} (NARRATED_VIDEO.md, "Commands").
+"""python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture}.
+
+The commands are docs/spec/NARRATED_VIDEO.md, "Commands".
 
 Every command prints JSON with --json (status and explain always do) or a short table, and a typed refusal
 {"ok": false, "refused": code, "detail": ...} on stderr with exit 1. Paths come from flags or the environment:
@@ -10,8 +12,9 @@ Every command prints JSON with --json (status and explain always do) or a short 
                                           run and stage read every source from it
   --lexical    NARRATE_LEXICAL_DIR        the pinned xoxd-lexical release the script and voice stages read
 
-plan never runs a stage and never writes, except graph.json with --record. run and stage run the lane L4 stages
-(narrate/video/run.py) and record graph.json when they finish; `pin-check` comes with lane L5. fixture writes a
+plan never runs a stage and never writes, except graph.json with --record. run and stage run the lane L4 and L5
+stages (narrate/video/run.py) and record graph.json when they finish. pin-check checks the private kitpip pin
+against its public registration in program/externals.json and KITPIP_BIN against the pin. fixture writes a
 synthetic workspace (records, store and lexical release) for `just nv-fixture`.
 """
 
@@ -29,7 +32,7 @@ from ..ir import sha256_file
 from . import fixture, graph, kitpip, store
 from . import run as runner
 from .common import Env
-from .job import EDITIONS, JobError, check_shape, init_job, load_records, read_json
+from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_job, load_records, read_json
 
 RECORDS_ENV = "NARRATED_VIDEO_RECORDS"
 
@@ -91,11 +94,11 @@ def cmd_init(a):
         for n in ("narrate_job", "script", "voice", "still", "card", "bed", "edition", "persona")
         if getattr(a, n) is not None
     ]
-    if a.from_file and (defaults_flags or a.avatar):
+    switches = [f"--{n}" for n in ("avatar", "client") if getattr(a, n)]
+    if a.from_file and (defaults_flags or switches):
         return refusal(
             "usage",
-            "--from takes the rendered record as it is; drop "
-            + ", ".join(defaults_flags + (["--avatar"] if a.avatar else [])),
+            "--from takes the rendered record as it is; drop " + ", ".join(defaults_flags + switches),
         )
     if a.from_file:
         value = read_json(a.from_file, "job")
@@ -127,6 +130,7 @@ def cmd_init(a):
             edition=a.edition,
             avatar=a.avatar,
             persona=a.persona,
+            client=a.client,
         )
     s = job_store(a, a.job)
     ctx = context(a)
@@ -226,6 +230,16 @@ def cmd_explain(a):
     return 0
 
 
+def cmd_pin_check(a):
+    pin = kitpip.load_pin(a.externals or os.environ.get(kitpip.EXTERNALS_ENV))
+    result = kitpip.pin_check(pin)
+    if result["ok"]:
+        emit(result)
+        return 0
+    code = {"unregistered": "kitpip_pin_missing", "pending": "kitpip_pin_pending", "mismatch": "kitpip_pin_mismatch"}
+    return refusal(code.get(result["state"], "kitpip_missing"), result["detail"])
+
+
 def cmd_verify(a):
     path = Path(a.dir)
     if (path / store.MANIFEST).is_file():
@@ -267,6 +281,11 @@ def main(argv=None):
     picture.add_argument("--card", help="a #rrggbb colour card (default #101820)")
     i.add_argument("--bed", help="a music bed record id")
     i.add_argument("--edition", choices=EDITIONS, help="the edition (default Internal, NV-2)")
+    i.add_argument(
+        "--client",
+        action="store_true",
+        help=f"a client delivery: edition {CLIENT_DEFAULT_EDITION} (NV-6) unless --edition ClientVoiceOnly",
+    )
     i.add_argument("--avatar", action="store_true", help="turn the kitpip avatar on (needs --persona)")
     i.add_argument("--persona", help="labels.persona")
     i.add_argument("--replace", action="store_true", help="replace a different job with the same id")
@@ -275,7 +294,7 @@ def main(argv=None):
     common(n)
     n.add_argument("--record", action="store_true", help="also write graph.json for status")
 
-    r = sub.add_parser("run", help="run the stale stages (lane L4: script to mix); stops at the first refusal")
+    r = sub.add_parser("run", help="run the stale stages (lanes L4 and L5); stops at the first refusal")
     common(r)
     r.add_argument("--stages", help="comma-separated stages: run only these")
     r.add_argument("--until", choices=[st.id for st in graph.STAGES], help="run this stage and what it depends on")
@@ -300,6 +319,9 @@ def main(argv=None):
     v = sub.add_parser("verify", help="re-hash a stage directory or every current stage of a job")
     v.add_argument("dir")
 
+    k = sub.add_parser("pin-check", help="check the kitpip pin against program/externals.json and KITPIP_BIN")
+    k.add_argument("--externals", help="the kitpip pin record, instead of NARRATED_VIDEO_EXTERNALS")
+
     a = p.parse_args(argv)
     try:
         commands = {
@@ -311,6 +333,7 @@ def main(argv=None):
             "status": cmd_status,
             "explain": cmd_explain,
             "verify": cmd_verify,
+            "pin-check": cmd_pin_check,
         }
         return commands[a.command](a)
     except JobError as exc:
