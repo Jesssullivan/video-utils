@@ -200,7 +200,7 @@ def test_run_renders_and_checks_the_avatar_per_segment(settled):
     assert result["ok"] is True and "refused" not in result
     assert set(AVATAR) <= set(ran(result))
     assert {n: result["states"][n] for n in AVATAR} == {n: "fresh" for n in AVATAR}
-    assert result["waiting_on_lane"] == {"compose": "L6", "deliver_check": "L6"}
+    assert result["waiting_on_lane"] == {}
     assert all(problems == [] for problems in s.verify().values())
     avatar = s.manifest("avatar/seg-1")
     assert avatar["knobs"]["persona"] == "fixture-persona" and avatar["knobs"]["renderSize"] == 64
@@ -248,7 +248,7 @@ def test_a_persona_change_reruns_the_avatar_and_the_chain_holds(copied):
     ws, job = copied
     job["labels"]["persona"] = "fixture-persona-b"
     s, result, _ = run_job(ws, job, stub_ctx(ws), replace=True)
-    assert set(ran(result)) == {"place", "mix", *AVATAR}
+    assert set(ran(result)) == {"place", "mix", *AVATAR, "compose", "deliver_check"}
     assert s.manifest("avatar/seg-1")["labels"]["persona"] == "fixture-persona-b"
     assert s.manifest("avatar_check/seg-1")["labels"]["persona"] == "fixture-persona-b"
 
@@ -257,7 +257,8 @@ def test_a_compose_knob_reruns_no_avatar(copied):
     ws, job = copied
     job["avatar"]["width"] = 0.18
     _, result, g = run_job(ws, job, stub_ctx(ws), replace=True)
-    assert result["ran"] == [] and {n["id"]: n["state"] for n in g["nodes"]}["avatar/seg-1"] == "fresh"
+    assert sorted(ran(result)) == ["compose", "deliver_check"]
+    assert {n["id"]: n["state"] for n in g["nodes"]}["avatar/seg-1"] == "fresh"
 
 
 def test_a_segment_switched_off_selects_no_avatar(copied):

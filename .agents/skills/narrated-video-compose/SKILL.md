@@ -11,7 +11,7 @@ description: Compose a narrated video from its base, kitpip overlays, slide page
 
 ## Use and controls
 
-1. `mix` and, with an avatar, every `avatar` and `avatar_check` node must be fresh (lane L5 runs those). `just nv-plan JOB` shows what waits.
+1. `mix` and, with an avatar, every `avatar` and `avatar_check` node must be fresh (`run` runs those when `KITPIP_BIN` resolves to its pin). `just nv-plan JOB` shows what waits.
 2. `just nv-stage JOB compose`, then read `compose.json`: the overlay boxes and starts, the slide runs and their layers, and the avatar-off spans.
 3. Change one picture knob and run again: only `compose`, `deliver_check` and `handoff` rerun.
 

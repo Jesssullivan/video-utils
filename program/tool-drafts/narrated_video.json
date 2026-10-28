@@ -475,7 +475,7 @@
    "evidence_kind": "kitpip_overlay_render",
    "limitations": [
     "fresh means the outputs re-hash to their key. Lip sync is a separate operator state; avatar and avatar_check leave it pending_operator.",
-    "Lanes L4 and L5 run script, voice, voice_qa, base, place, music, mix, avatar and avatar_check. compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "Lanes L4 to L6 run every stage: script, voice, voice_qa, base, place, music, mix, compose, deliver_check and handoff, and avatar and avatar_check when the job has an avatar and its kitpip pin resolves. compose waits behind the avatar stages.",
     "kitpip is never a flake input and never vendored. Its pin is a private record (NV-1); program/externals.json registers the shape only. A pin whose release binary digest is pending blocks both stages (kitpip_pin_pending).",
     "The overlay is kitpip's unadorned default character (KP-19) with no visible label (KP-7, KP-15); synthetic: true, consent ids and the persona stay in the manifest.",
     "Public CI renders the synthetic stub (an opaque square on a transparent field), never kitpip art. A real render is local, CPU-only and bounded."
@@ -574,7 +574,7 @@
    "evidence_kind": "kitpip_overlay_label_chain",
    "limitations": [
     "fresh means the outputs re-hash to their key. Lip sync is a separate operator state; avatar and avatar_check leave it pending_operator.",
-    "Lanes L4 and L5 run script, voice, voice_qa, base, place, music, mix, avatar and avatar_check. compose, deliver_check and handoff (L6) stay stale and are listed under waiting_on_lane.",
+    "Lanes L4 to L6 run every stage: script, voice, voice_qa, base, place, music, mix, compose, deliver_check and handoff, and avatar and avatar_check when the job has an avatar and its kitpip pin resolves. compose waits behind the avatar stages.",
     "kitpip is never a flake input and never vendored. Its pin is a private record (NV-1); program/externals.json registers the shape only. A pin whose release binary digest is pending blocks both stages (kitpip_pin_pending).",
     "The overlay is kitpip's unadorned default character (KP-19) with no visible label (KP-7, KP-15); synthetic: true, consent ids and the persona stay in the manifest.",
     "verified means integrity and labels, not lip-sync acceptance."

@@ -892,7 +892,8 @@ def test_cli_init_client_voice_only_refuses_and_points_to_a_render(tmp_path, cap
         assert code == 1 and out == "" and refused["refused"] == "edition_voice_refused"
         assert "--from" in refused["detail"]
         assert not (tmp_path / "narrated" / "nv-voice-only").exists()
-    code, out, _ = call(capsys, [*defaults, "--job", "nv-client", "--client", "--json"])
+    # --client turns the avatar on (NV-8), so the job needs a persona label.
+    code, out, _ = call(capsys, [*defaults, "--job", "nv-client", "--client", "--persona", "fixture-persona", "--json"])
     assert code == 0 and json.loads(out)["ok"] is True
     assert store.JobStore(tmp_path / "narrated", "nv-client").read_job()["edition"] == "ClientNarrated"
     code, out, _ = call(

@@ -56,7 +56,7 @@ nv-quick job narrate_job script *args:
     narrate/bounded.sh python3 -m narrate video run {{quote(job)}}
 
 # Plan the committed card example against the committed records, then run nv-quick end to end on a synthetic
-# workspace (generated sine voice, generated E-major bed loops, a colour card, no avatar until lane L5 runs it) through
+# workspace (generated sine voice, generated E-major bed loops, a colour card, --no-avatar: no kitpip binary) through
 # compose and deliver_check, and print the mix measurements and the delivery gates.
 # Whisper is pointed at no model: the fixture voice is a sine, not speech, so WER stays not_measured.
 nv-fixture:

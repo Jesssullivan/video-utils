@@ -491,9 +491,9 @@ Lane L4 runs `script`, `voice`, `voice_qa`, `base`, `place`, `music` and `mix`
 (`narrate/video/{speech,place,music,mix,run}.py`). `run` plans the job and
 runs one runnable node at a time until none is left that the call may run. A
 node runs only when every upstream node is fresh, so its key is known before it
-starts. The avatar stages wait for lane L5, and `run` reports those nodes under
-`waiting_on_lane`. Lane L6 adds `compose`, `deliver_check` and `handoff` (see
-"Compose and delivery").
+starts. Lane L5 adds `avatar` and `avatar_check` (see "Avatar stages (lane
+L5)"), and lane L6 adds `compose`, `deliver_check` and `handoff` (see "Compose
+and delivery"). No stage waits on a lane, so `waiting_on_lane` is empty.
 
 A refusal is a verdict or a failure. A verdict repeats for the same key, such as
 a level gate, an edition refusal or an overlap. The store records it, and the

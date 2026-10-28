@@ -6,9 +6,7 @@ loops, the two generated slide pictures (narrate/dhall/check.py), colour cards, 
 stub, which draws an opaque square on a transparent ProRes 4444 field and holds no kitpip art. Nothing is a recording
 or deck material.
 
-The avatar and avatar_check runners belong to lane L5. Until it lands, AVATAR_STAND_IN below runs the stub through the
-pinned wrapper (kitpip.call) into the stage directory with the layout kitpip.run_avatar writes, so compose reads an
-overlay exactly where L5 will put it.
+The avatar and avatar_check stages run through lane L5's runners (narrate/video/kitpip.py) on the stub.
 """
 
 import copy
@@ -22,7 +20,7 @@ import pytest
 from test_narrated_video_simple import FIXTURES, Workspace, ran
 
 from narrate.video import admit, cli, compose, deliver, graph, kitpip, labels, run
-from narrate.video.common import RATE_HZ, StageRefused, upstream
+from narrate.video.common import RATE_HZ, StageRefused
 from narrate.video.job import DEFAULTS, load_records
 from narrate.video.speech import RUN
 
@@ -45,40 +43,8 @@ def no_whisper(monkeypatch, tmp_path):
     monkeypatch.setenv("NARRATE_WHISPER_MODEL", str(tmp_path / "no-whisper-model.bin"))
 
 
-# A stand-in for lane L5's avatar runners ---------------------------------------------------------------------------
-def stub_avatar(rc, row, partial):
-    segment = row["segment"]
-    voice_manifest, voice_dir = upstream(rc.store, f"voice/{segment}")
-    fps = upstream(rc.store, "base")[0]["measurements"]["fps"]
-    resolution, pin = rc.ctx["kitpip"], rc.ctx["pin"]
-    size = rc.job["avatar"]["renderSize"]
-    rig = rc.job["avatar"]["rig"] or pin["default_rig"]["id"]
-    kitpip.call(resolution, pin, ["analyze", str(voice_dir / RUN), "--fps", f"{fps['num']}/{fps['den']}",
-                                  "--out", str(partial / "analyze")])  # fmt: skip
-    kitpip.call(resolution, pin, ["render", str(partial / "analyze" / "prosody.json"), "--rig", rig,
-                                  "--size", str(size), "--out", str(partial / "overlay")])  # fmt: skip
-    overlay = json.loads((partial / "overlay" / "manifest.json").read_text())
-    grown = labels.grow([voice_manifest], rc.job["labels"]["persona"])
-    return {
-        "synthetic": True,
-        "labels": grown,
-        "measurements": {"frames": overlay["frames"], "fps": fps, "size": overlay["size"]},
-        "timeline": {"mapping": "avatar_overlay_v1", "no_time_stretch": False, "stretch_applied": False},
-        "states": {"render": "stub", "lip_sync": "pending_operator"},
-    }
-
-
-def stub_avatar_check(rc, row, partial):
-    manifest, _ = upstream(rc.store, f"avatar/{row['segment']}")
-    (partial / "check.json").write_text(json.dumps({"labelled": True}))
-    return {"synthetic": True, "labels": manifest["labels"]}
-
-
-AVATAR_STAND_IN = {"avatar": stub_avatar, "avatar_check": stub_avatar_check}
-
-
 class Bench(Workspace):
-    """A fixture workspace whose ctx resolves the kitpip stub, with the L5 stand-in runners patched in."""
+    """A fixture workspace whose ctx resolves the kitpip stub."""
 
     def ctx(self):
         pin = kitpip.load_pin(EXTERNALS)
@@ -99,13 +65,6 @@ class Bench(Workspace):
                 node = node[part]
             node[last] = value
         return job
-
-
-@pytest.fixture
-def stand_in(monkeypatch):
-    for stage, runner in AVATAR_STAND_IN.items():
-        monkeypatch.setitem(run.RUNNERS, stage, runner)
-    monkeypatch.setattr(run, "LANES", {})
 
 
 def node_dir(s, node):
@@ -287,9 +246,6 @@ def slides(tmp_path_factory, ffmpeg):
         for name in HOST_ENV:
             mp.delenv(name, raising=False)
         mp.setenv("NARRATE_WHISPER_MODEL", str(base / "no-whisper-model.bin"))
-        for stage, runner in AVATAR_STAND_IN.items():
-            mp.setitem(run.RUNNERS, stage, runner)
-        mp.setattr(run, "LANES", {})
         ws = Bench(base)
         job = ws.slides_job("nv-slides", **{"delivery.handoff": True})
         s, result, _ = ws.run(job)
@@ -370,7 +326,7 @@ def test_the_slide_card_sits_lower_left_dims_the_held_frame_and_crossfades_in_pl
     assert close(two(*inside), b, 8)
 
 
-def test_the_flash_gate_passes_the_card_and_fails_a_hard_full_frame_cut(slides, tmp_path, stand_in):
+def test_the_flash_gate_passes_the_card_and_fails_a_hard_full_frame_cut(slides, tmp_path):
     s = slides["store"]
     report = json.loads((node_dir(s, "deliver_check") / "deliver_check.json").read_text())
     assert report["gates"]["flash"] == "passed" and report["flash"]["max"] == 0.30
@@ -456,7 +412,7 @@ def test_the_card_on_a_video_base_holds_the_next_clip_frame_dimmed_and_hands_ove
     assert report["gates"]["flash"] == "passed", report["flash"]
 
 
-def test_a_hold_page_on_a_video_base_holds_the_frame_at_its_start(tmp_path, ffmpeg, stand_in):
+def test_a_hold_page_on_a_video_base_holds_the_frame_at_its_start(tmp_path, ffmpeg):
     ws = Bench(tmp_path)
     video = tmp_path / "base.mp4"
     subprocess.run(
@@ -618,7 +574,7 @@ def test_edition_at_deliver_check_refuses_an_overlay_in_a_voice_only_cut():
          "slides_exceed_program"),
     ],
 )  # fmt: skip
-def test_compose_verdicts_are_recorded_for_their_key(tmp_path, ffmpeg, stand_in, edit, code):
+def test_compose_verdicts_are_recorded_for_their_key(tmp_path, ffmpeg, edit, code):
     ws = Bench(tmp_path)
     job = ws.slides_job("nv-refuse")
     edit(job)
@@ -676,7 +632,7 @@ def test_handoff_writes_the_pre_vfx_layers_and_edit_json(slides):
     assert m["timeline"]["mapping"] == "narrated_video_v1" and m["states"]["application_import"] == "unverified"
 
 
-def test_a_layout_or_avatar_off_change_reruns_compose_and_what_follows_only(slides, tmp_path, stand_in):
+def test_a_layout_or_avatar_off_change_reruns_compose_and_what_follows_only(slides, tmp_path):
     shutil.copytree(slides["ws"].base, tmp_path / "copy")
     ws = Bench.__new__(Bench)
     ws.base = tmp_path / "copy"
@@ -693,7 +649,7 @@ def test_a_layout_or_avatar_off_change_reruns_compose_and_what_follows_only(slid
     assert s.manifest("compose")["measurements"]["avatar_off"] == []
 
 
-def test_cli_init_keeps_the_avatar_on_by_default_and_run_waits_for_lane_l5(tmp_path, capsys, ffmpeg):
+def test_cli_init_keeps_the_avatar_on_by_default_and_run_waits_for_the_kitpip_binary(tmp_path, capsys, ffmpeg):
     code = cli.main(["fixture", "--out", str(tmp_path / "ws")])
     paths = json.loads(capsys.readouterr().out)
     common = ["--root", str(tmp_path / "narrated"), "--records", paths["records"]]
@@ -706,8 +662,8 @@ def test_cli_init_keeps_the_avatar_on_by_default_and_run_waits_for_lane_l5(tmp_p
     result = json.loads(capsys.readouterr().out)
     # No kitpip binary is named: the avatar blocks, and compose waits for it instead of composing without it.
     assert code == 1 and result["states"]["avatar/seg-1"] == "blocked" and result["states"]["mix"] == "fresh"
-    assert result["states"]["compose"] == "blocked" and result["refused"] == "upstream_blocked"
-    assert result["waiting_on_lane"] == {"avatar/seg-1": "L5", "avatar_check/seg-1": "L5"}
+    assert result["states"]["compose"] == "blocked" and result["refused"] == "kitpip_missing"
+    assert result["waiting_on_lane"] == {}
     plan = graph.public(graph.plan(*plan_args(tmp_path, paths)))
     assert {n["id"]: n["reason"] for n in plan["nodes"]}["avatar/seg-1"] == "kitpip_missing"
 
