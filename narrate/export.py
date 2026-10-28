@@ -9,7 +9,8 @@ consumer layout). export copies a run's narration.wav there as `<stem>.wav` and 
 - The stem is letters, digits, `.`, `_` and `-`, starting with a letter or digit, at most 128 characters.
 - export never replaces a file. Any `<stem>.*` already in the directory (a camera take, an older render) refuses
   the export, except the same narration.wav bytes under `<stem>.wav`, which is reported as unchanged.
-- The file is written under a temporary name and linked into place, so a reader never sees a partial WAV.
+- The file is written under a temporary name and linked into place, so a reader never sees a partial WAV. It
+  keeps the mode of the run's narration.wav. A directory that takes no hard link refuses the export.
 
 The receipt names the file, never the directory. It carries the run id, the manifest's content digest, the WAV's
 sha256 and `synthetic: true`. The WAV itself carries no label: a consumer that needs one reads the receipt.
@@ -18,6 +19,7 @@ sha256 and `synthetic: true`. The WAV itself carries no label: a consumer that n
 import json
 import os
 import re
+import stat
 import tempfile
 from pathlib import Path
 
@@ -71,10 +73,14 @@ def export(run_dir, to_dir, stem):
                     out.write(block)
             if sha256_file(Path(partial)) != digest:
                 raise ExportError("export_copy_changed", f"{NARRATION} changed while it was copied")
+            os.chmod(partial, stat.S_IMODE(source.stat().st_mode))  # mkstemp makes it 0600; keep the run's mode
             try:
                 os.link(partial, target)  # fails when the name appeared meanwhile: never replaces
             except FileExistsError:
                 raise ExportError("export_take_exists", f"{target.name} appeared during the export") from None
+            except OSError as error:
+                detail = f"the target directory took no link: {error.strerror}"
+                raise ExportError("export_link_failed", detail) from None
         finally:
             os.unlink(partial)
         state = "written"

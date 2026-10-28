@@ -4,6 +4,7 @@ NN-<slide-id>.wav beside camera takes), refusing anything that would replace a f
 import json
 import os
 import shutil
+import stat
 
 import pytest
 from conftest import SLIDE, Workspace
@@ -147,6 +148,29 @@ def test_a_name_that_appears_during_the_copy_is_kept(run, narration, monkeypatch
         export.export(run_dir, narration, "07-3")
     assert (narration / "07-3.wav").read_bytes() == b"arrived first"
     assert sorted(p.name for p in narration.iterdir()) == ["07-3.wav"]
+
+
+def test_the_export_keeps_the_mode_of_the_run(run, narration):
+    run_dir, _ = run
+    source = run_dir / "narration.wav"
+    for mode in (0o644, 0o640):
+        source.chmod(mode)
+        folder = narration / f"m{mode:o}"
+        folder.mkdir()
+        export.export(run_dir, folder, "07-3")
+        assert stat.S_IMODE((folder / "07-3.wav").stat().st_mode) == mode
+
+
+def test_a_directory_without_hard_links_is_a_typed_refusal(run, narration, monkeypatch):
+    run_dir, _ = run
+
+    def no_link(src, dst):
+        raise PermissionError(1, "Operation not permitted")
+
+    monkeypatch.setattr(export.os, "link", no_link)
+    with pytest.raises(export.ExportError, match="export_link_failed"):
+        export.export(run_dir, narration, "07-3")
+    assert list(narration.iterdir()) == []
 
 
 def test_cli_export_prints_the_receipt_and_refuses_with_a_code(run, narration, capsys):
