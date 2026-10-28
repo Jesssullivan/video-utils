@@ -24,6 +24,7 @@ MODULES = (
     "config",
     "engine",
     "evaluate",
+    "export",
     "ir",
     "lexical",
     "normalise",

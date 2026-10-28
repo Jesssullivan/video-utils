@@ -20,6 +20,10 @@ narrate-eval run_dir config="":
 narrate-verify run_dir:
     python3 -m narrate verify {{quote(run_dir)}}
 
+# Copy a verified run's narration.wav to a consumer folder as <stem>.wav, never replacing a file.
+narrate-export run_dir to stem:
+    python3 -m narrate export {{quote(run_dir)}} --to {{quote(to)}} --stem {{quote(stem)}}
+
 # An AudioCppBatch engine (docs/spec/NARRATE.md, "Out-of-process batch engines"): write the request batch for a
 # GPU window into a new directory; no audio, no engine. Then narrate/serve/audiocpp_batch.py on the GPU host and
 # `just narrate-render CONFIG --prerendered DIR`.

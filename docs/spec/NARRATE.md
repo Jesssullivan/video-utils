@@ -553,6 +553,15 @@ Narration runs live under `artifacts/narrate/<run_id>/`, outside
   notices and watermark status.
 - Consumer adapters may also write `NN-<slide-id>.wav` into a slide-deck
   pipeline's narration folder, so its assembler needs no change.
+  `python -m narrate export RUN_DIR --to DIR --stem NN-<slide-id>`
+  (`just narrate-export`, `narrate/export.py`, TIN-7091) does this for one
+  run. It runs `verify` first and refuses a run that fails. A run made from
+  a manuscript must be exported under its own slide id: the stem is that
+  id or ends in `-<slide-id>`. It never replaces a file. Any `<stem>.*` in
+  the folder, such as a camera take, refuses the export, and the same bytes
+  again report `unchanged`. The JSON receipt names the file, never the
+  folder, and carries the run id, the content digest, the WAV digest and
+  `synthetic: true`. The typed MCP hook for export is W7b work.
 
 ## MCP tools
 

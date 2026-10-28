@@ -1,11 +1,11 @@
-"""python -m narrate {render,plan,evaluate,voices,engines,verify,spoken,video}"""
+"""python -m narrate {render,plan,evaluate,voices,engines,verify,export,spoken,video}"""
 
 import argparse
 import json
 import sys
 from pathlib import Path
 
-from . import adapters, evaluate, registry, render, spoken, verify
+from . import adapters, evaluate, export, registry, render, spoken, verify
 from .adapters import InputError
 from .config import Config, ConfigError
 from .engine import EngineError
@@ -94,6 +94,13 @@ def main(argv=None):
     f = sub.add_parser("verify", help="re-hash and re-check a run")
     f.add_argument("run_dir")
 
+    x = sub.add_parser(
+        "export", help="copy a verified run's narration.wav to a consumer as <stem>.wav, never replacing"
+    )
+    x.add_argument("run_dir")
+    x.add_argument("--to", required=True, help="the consumer's narration directory (it must exist)")
+    x.add_argument("--stem", required=True, help="the file stem, for example NN-<slide-id> for a deck page")
+
     s = sub.add_parser("spoken", help="print only the text a render voices, through the input's adapter")
     s.add_argument("input", help="a script: manuscript page, SRT, WebVTT, words.json, dialog or plain text")
     s.add_argument(
@@ -165,6 +172,9 @@ def main(argv=None):
             return 0
         if a.command == "verify":
             return verify.main(a.run_dir)
+        if a.command == "export":
+            emit(export.export(a.run_dir, a.to, a.stem))
+            return 0
         if a.command == "evaluate":
             cfg = Config(a.config) if a.config else None
             metrics = tuple(m for m in a.metrics.split(",") if m)
@@ -186,7 +196,15 @@ def main(argv=None):
             return 0
         emit(registry.voices(cfg))
         return 0
-    except (Refused, LexicalError, EngineError, render.RenderError, RegistryError, ConfigError) as error:
+    except (
+        Refused,
+        LexicalError,
+        EngineError,
+        render.RenderError,
+        RegistryError,
+        ConfigError,
+        export.ExportError,
+    ) as error:
         return refusal(error.code, error.detail)
     except (InputError, NormaliseError) as error:
         return refusal("input_invalid", str(error))
