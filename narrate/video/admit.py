@@ -3,8 +3,9 @@
 admit resolves what a job names and refuses before any stage runs: an unknown narrate job, a script digest that is
 not the narrate job's pinned input, a voice without an active consent, a missing persona label, a bed record that is
 missing or not acquired by the operator, tighten edits on synthetic narration with tighten off, a knob outside its
-bound (a bed layer's tempo factor included), a kitpip binary whose digest differs from its pin, and Edition.check at
-Plan.
+bound (a bed layer's tempo factor included), slide pages that break the slide rules (slides_invalid) or an avatarOff
+list naming a page the job does not define (page_unknown), a kitpip binary whose digest differs from its pin, and
+Edition.check at Plan.
 
 The edition rule, the plan leaves and the bounds are narrate/dhall/check.py's port of Edition.dhall and
 NarratedVideo.dhall, loaded here so the Plan point and `just narrate-dhall-check` run one rule. Place (L4) and
@@ -166,6 +167,8 @@ def admit(job, records, kitpip_state=None):
     if edits and job["segments"] and not job["tighten"]["enabled"]:
         refusals.append(refusal("tighten_on_synthetic", "tighten edits on narrate segments need tighten.enabled"))
     bounds(job, refusals)
+    for code, detail in check.slides_problems(job):
+        refusals.append(refusal(code, detail))
     if kitpip_state == "mismatch":
         refusals.append(refusal("kitpip_pin_mismatch", "the kitpip binary's digest is not its pin's"))
     edition = check.edition_check("Plan", job["edition"], check.plan_leaves(job, bed))

@@ -10,6 +10,8 @@
 -- no avatar and no bed.
 -- nv-fixture-client-narrated: ClientNarrated (deck ruling 59(d)). A tightened deck with tighten enabled as a
 -- per-project override, one narrate segment, a kitpip avatar with its persona label, and no bed.
+-- nv-fixture-slides: the avatar job with two generated slide pictures as a lower-left card, a base page and a
+-- 0.4 s hold at the end. The avatar is off for the second slide page.
 let NarratedVideo = ../NarratedVideo.dhall
 
 let Edition = ../Edition.dhall
@@ -40,6 +42,7 @@ let simple
       , base = card
       , segments = [ segment ]
       , avatar = None NarratedVideo.Avatar
+      , slides = None NarratedVideo.Slides
       , music = Some music
       , tighten = d.tighten
       , captions = d.captions
@@ -73,6 +76,7 @@ let clientDeck
       , base = NarratedVideo.Base.Deck { deck }
       , segments = [] : List NarratedVideo.Segment
       , avatar = None NarratedVideo.Avatar
+      , slides = None NarratedVideo.Slides
       , music = None NarratedVideo.Music
       , tighten = d.tighten
       , captions = d.captions
@@ -97,4 +101,50 @@ let clientNarrated
           , tighten.enabled = True
           }
 
-in  [ simple, withAvatar, clientDeck, clientNarrated ] : List NarratedVideo.Type
+let slide =
+      \(id : Text) ->
+      \(startS : Double) ->
+      \(endS : Double) ->
+      \(sha256 : Text) ->
+        { id
+        , startS
+        , endS
+        , show = NarratedVideo.PageShow.Slide { slide.sha256 = sha256 }
+        }
+
+let withSlides
+    : NarratedVideo.Type
+    =     withAvatar
+      //  { id = "nv-fixture-slides"
+          , avatar = Some (d.avatar // { avatarOff = [ "slide-b" ] })
+          , slides = Some
+              (     d.slides
+                //  { layout = NarratedVideo.SlideLayout.CardLowerLeft
+                    , pages =
+                      [ slide
+                          "slide-a"
+                          0.0
+                          2.0
+                          "3b3071d75a77285d84f1427864df16d6aba49d5d1015e33be8ef024d66383a09"
+                      , slide
+                          "slide-b"
+                          2.0
+                          4.0
+                          "f428bf2bc4488211d76cb234074cea1da1ffddef19122426bc83e2719f7db86e"
+                      , { id = "body"
+                        , startS = 4.0
+                        , endS = 5.0
+                        , show = NarratedVideo.PageShow.Base
+                        }
+                      , { id = "end"
+                        , startS = 5.0
+                        , endS = 5.4
+                        , show = NarratedVideo.PageShow.Hold
+                        }
+                      ]
+                    }
+              )
+          }
+
+in    [ simple, withAvatar, clientDeck, clientNarrated, withSlides ]
+    : List NarratedVideo.Type

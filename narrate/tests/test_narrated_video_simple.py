@@ -1,5 +1,6 @@
 """The narrated-video simple path (lane L4, docs/spec/NARRATED_VIDEO.md): script, voice, voice_qa, base, place, music
-and mix run for real on synthetic fixtures, end to end and stage by stage.
+and mix run for real on synthetic fixtures, end to end and stage by stage. Since lane L6, compose and deliver_check
+follow every change too; their own checks are in test_narrated_video_compose.py.
 
 Every input is generated or a committed synthetic fixture: the fake engine's sine voice, the two generated E-major bed
 loops, colour cards, an FFmpeg test pattern with a quiet tone and AM noise bursts as a speech-like signal. Nothing
@@ -25,6 +26,7 @@ from narrate.video.job import init_job, load_records
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "narrated-video"
 L4 = ("script/seg-1", "base", "music", "voice/seg-1", "voice_qa/seg-1", "place", "mix")
+L6 = ("compose", "deliver_check")
 
 
 @pytest.fixture(autouse=True)
@@ -63,7 +65,7 @@ class Workspace:
         return sha(target)
 
     def job(self, job_id="nv-simple", bed=fixture.BED, **edits):
-        job = init_job(job_id, fixture.NARRATE_JOB, sha(self.paths["script"]), bed=bed)
+        job = init_job(job_id, fixture.NARRATE_JOB, sha(self.paths["script"]), bed=bed, avatar=False)
         for path, value in edits.items():
             node = job
             *parents, last = path.split(".")
@@ -113,6 +115,7 @@ def settled(tmp_path_factory, ffmpeg):
         mp.setenv("NARRATE_WHISPER_MODEL", str(base / "no-whisper-model.bin"))
         ws = Workspace(base)
         job = ws.job()
+        job["delivery"]["profile"] = "Contingency"  # 720p keeps the compose reruns short; profiles are tested in L6
         s, result, g = ws.run(job)
     return {"base": base, "job": job, "result": result}
 
@@ -142,9 +145,9 @@ def ran(result):
 def test_a_simple_job_runs_script_to_mix_and_yields_a_labelled_mixed_stem(settled):
     result = settled["result"]
     assert result["ok"] is True and "refused" not in result
-    assert sorted(ran(result)) == sorted(L4)
-    assert {n: result["states"][n] for n in L4} == {n: "fresh" for n in L4}
-    assert result["waiting_on_lane"] == {"compose": "L6", "deliver_check": "L6"}
+    assert sorted(ran(result)) == sorted(L4 + L6)
+    assert {n: result["states"][n] for n in L4 + L6} == {n: "fresh" for n in L4 + L6}
+    assert result["waiting_on_lane"] == {}
     assert result["states"]["avatar/seg-1"] == "not_selected" and result["states"]["handoff"] == "not_selected"
     s = store.JobStore(settled["base"] / "narrated", "nv-simple")
     assert all(problems == [] for problems in s.verify().values())
@@ -174,7 +177,7 @@ def test_a_simple_job_runs_script_to_mix_and_yields_a_labelled_mixed_stem(settle
 def test_a_second_run_runs_nothing_and_every_stage_dir_holds_no_private_path(settled):
     s = store.JobStore(settled["base"] / "narrated", "nv-simple")
     ws_root = str(settled["base"])
-    for node in L4:
+    for node in L4 + L6:
         directory = node_dir(s, node)
         for path in directory.rglob("*.json"):
             if path.parent.name == speech.RUN:
@@ -221,7 +224,7 @@ def test_a_pronunciation_edit_and_an_engine_edit_each_rerun_the_voice_and_what_f
 
     ws.edit_records("pronunciation.json", respell)
     s, result, _ = ws.run(job)
-    assert ran(result) == ["voice/seg-1", "voice_qa/seg-1", "place", "mix"] and result["ok"]
+    assert ran(result) == ["voice/seg-1", "voice_qa/seg-1", "place", "mix", *L6] and result["ok"]
     assert s.manifest("voice/seg-1")["measurements"]["narration_sha256"] != narration
 
     def repin(rows):
@@ -239,13 +242,13 @@ def test_a_persona_change_reruns_place_and_mix_only_and_the_chain_holds(copied):
     for persona in ("persona-probe-a", "persona-probe-b"):
         job["labels"]["persona"] = persona
         s, result, _ = ws.run(job, replace=True)
-        assert ran(result) == ["place", "mix"] and result["ok"] and "refused" not in result
+        assert ran(result) == ["place", "mix", *L6] and result["ok"] and "refused" not in result
         assert {n: s.entry(n) for n in keep} == keep
         assert s.manifest("place")["labels"]["persona"] == persona == s.manifest("mix")["labels"]["persona"]
         assert s.manifest("voice/seg-1")["labels"]["persona"] is None
     job["base"]["card"]["tailS"] += 1
     s, result, _ = ws.run(job, replace=True)
-    assert ran(result) == ["place", "mix"] and result["ok"] and s.current()["refusals"] == {}
+    assert ran(result) == ["place", "mix", *L6] and result["ok"] and s.current()["refusals"] == {}
 
 
 def test_a_bed_level_change_reruns_only_mix(copied):
@@ -253,7 +256,7 @@ def test_a_bed_level_change_reruns_only_mix(copied):
     keep = {n: ws.store(job).entry(n) for n in L4 if n != "mix"}
     job["music"]["bedBelowVoiceLu"] = 24
     s, result, _ = ws.run(job, replace=True)
-    assert ran(result) == ["mix"]
+    assert ran(result) == ["mix", *L6]
     assert {n: s.entry(n) for n in keep} == keep
     m = s.manifest("mix")["measurements"]
     assert m["bed_below_voice_lu"] == 24
@@ -263,7 +266,7 @@ def test_stereo_delivery_keeps_the_integrated_loudness(copied):
     ws, job = copied
     job["delivery"]["channels"] = "Stereo"
     s, result, _ = ws.run(job, replace=True)
-    assert ran(result) == ["mix"] and result["ok"]
+    assert ran(result) == ["mix", *L6] and result["ok"]
     m = s.manifest("mix")["measurements"]
     assert audio.wav_format(node_dir(s, "mix") / "mix.wav")[0] == 2
     assert abs(m["drift_lu"]) <= 0.5 and m["true_peak_dbtp"] <= -1.5
@@ -470,7 +473,7 @@ def test_a_still_is_conformed_to_the_job_size_and_a_card_to_its_colour(tmp_path,
     ws = Workspace(tmp_path)
     still = make_media(tmp_path / "still.png", "-f", "lavfi", "-i", "testsrc2=s=640x360:d=1", "-frames:v", "1")
     digest = ws.add_source(still)
-    job = init_job("nv-still", fixture.NARRATE_JOB, sha(ws.paths["script"]), still=digest)
+    job = init_job("nv-still", fixture.NARRATE_JOB, sha(ws.paths["script"]), still=digest, avatar=False)
     s, result, _ = ws.run(job, until="base")
     assert ran(result) == ["base"]
     probe = json.loads(
@@ -623,7 +626,7 @@ def test_cli_fixture_init_run_and_stage(tmp_path, capsys, ffmpeg):
     code, _, _ = call(
         capsys,
         ["init", "--job", "nv-cli", "--narrate-job", paths["narrate_job"], "--script", paths["script"]]
-        + ["--bed", "bed-fixture-emaj"]
+        + ["--bed", "bed-fixture-emaj", "--no-avatar"]
         + common,
     )
     assert code == 0
@@ -649,10 +652,10 @@ def test_cli_fixture_init_run_and_stage(tmp_path, capsys, ffmpeg):
     assert code == 1 and json.loads(err)["refused"] == "fixture_exists"
 
 
-def test_the_runner_table_covers_lanes_l4_and_l5_and_names_the_lane_still_to_come():
+def test_the_runner_table_covers_every_lane():
     assert set(run.RUNNERS) | set(run.LANES) | {"admit"} == set(graph.BY_ID)
     lane_l4 = {"script", "voice", "voice_qa", "base", "place", "music", "mix"}
-    assert set(run.RUNNERS) == lane_l4 | {"avatar", "avatar_check"}
-    assert run.LANES == {"compose": "L6", "deliver_check": "L6", "handoff": "L6"}
+    assert set(run.RUNNERS) == lane_l4 | {"avatar", "avatar_check", "compose", "deliver_check", "handoff"}
+    assert run.LANES == {}
     assert run.ancestors("mix") == {"mix", "place", "music", "base", "voice", "voice_qa", "script"}
     assert speech.measured_failures({"wer": {"passed": False}, "sim": {"status": "not_measured"}}) == ["wer"]

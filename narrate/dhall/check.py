@@ -13,8 +13,10 @@ with narrate/bench/sources.json.
 
 It also checks the narrated-video examples (docs/spec/NARRATED_VIDEO.md): the music-bed records against two
 generated E-major sine loops (48 kHz mono, 16-bit PCM WAV, 2 s and 3 s), the deck base against four
-generated placeholder files, and every job against a port of Edition.dhall's `check` (at the Plan point),
-the persona label rule, the tighten rule, the delivery gates and the bounds the spec sets.
+generated placeholder files, the slide pages against two generated slide pictures (320x180 RGB PNG, stored
+deflate blocks so every zlib writes the same bytes), and every job against a port of Edition.dhall's `check` (at
+the Plan point), the persona label rule, the tighten rule, the slide and avatarOff rules, the delivery gates and the
+bounds the spec sets.
 
 `--self-test` is the negative control: it mutates copies of the examples and drafts and expects
 every mutation to be refused.
@@ -25,6 +27,7 @@ Exit 0 when every check holds, 1 otherwise. Standard library only.
 
 import argparse
 import copy
+import functools
 import hashlib
 import io
 import json
@@ -33,6 +36,7 @@ import re
 import struct
 import sys
 import wave
+import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -128,10 +132,55 @@ def loop_wav(seconds: int, periods: tuple) -> bytes:
     return pcm_wav(BED_RATE_HZ, frames)
 
 
+# Slide pictures for the slides example: a light field with one dark bar, in two colourings. Synthetic shapes, no
+# deck, slide or client material. 320x180 RGB, written with stored deflate blocks.
+SLIDE_SIZE = (320, 180)
+SLIDE_FIXTURES = {
+    "slide-a.png": ((232, 228, 216), (40, 52, 70)),
+    "slide-b.png": ((214, 228, 240), (90, 40, 60)),
+}
+
+
+def png_chunk(kind: bytes, data: bytes) -> bytes:
+    return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xFFFFFFFF)
+
+
+def stored_zlib(raw: bytes) -> bytes:
+    """A zlib stream of stored (uncompressed) deflate blocks: the same bytes from every zlib implementation."""
+    out = bytearray(b"\x78\x01")
+    for start in range(0, max(len(raw), 1), 65535):
+        block = raw[start : start + 65535]
+        final = 1 if start + 65535 >= len(raw) else 0
+        out += bytes([final]) + struct.pack("<HH", len(block), 0xFFFF ^ len(block)) + block
+    return bytes(out) + struct.pack(">I", zlib.adler32(raw) & 0xFFFFFFFF)
+
+
+def slide_png(field: tuple, bar: tuple) -> bytes:
+    w, h = SLIDE_SIZE
+    plain, f, b = b"\x00" + bytes(field) * w, bytes(field), bytes(bar)
+    title = b"\x00" + f * 24 + b * (w - 48) + f * 24
+    line = b"\x00" + f * 24 + b * (w // 2 - 24) + f * (w // 2)
+    rows = [title if 24 <= y < 52 else line if 72 <= y < 80 else plain for y in range(h)]
+    header = struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + png_chunk(b"IHDR", header)
+        + png_chunk(b"IDAT", stored_zlib(b"".join(rows)))
+        + png_chunk(b"IEND", b"")
+    )
+
+
 def fixtures() -> dict:
+    """Every generated fixture by file name. Generated once per process (the self-test checks 79 mutations)."""
+    return dict(_fixtures())
+
+
+@functools.cache
+def _fixtures() -> dict:
     files = {"sine.wav": sine_wav(), "ref.txt": FIXTURE_TEXT.encode(), "consent.txt": FIXTURE_CONSENT.encode()}
     files.update({name: loop_wav(*spec) for name, spec in BED_LOOPS.items()})
     files.update({name: text.encode() for name, text in DECK_FIXTURES.items()})
+    files.update({name: slide_png(*colours) for name, colours in SLIDE_FIXTURES.items()})
     return files
 
 
@@ -253,7 +302,10 @@ POINTS = ("Plan", "Place", "DeliverCheck")
 EDITION_REFUSALS = {"VoiceRefused": "edition_voice_refused", "PipRefused": "edition_pip_refused",
                     "BedRefused": "edition_bed_refused"}
 LEAVES = ("syntheticVoice", "avatar", "pip", "bed", "bedCleared")
-NV_BOUNDS = {"avatar.width": (0.10, 0.30), "music.bedBelowVoiceLu": (10.0, 30.0), "music.duckDb": (0.0, 12.0)}
+NV_BOUNDS = {"avatar.width": (0.10, 0.30), "music.bedBelowVoiceLu": (10.0, 30.0), "music.duckDb": (0.0, 12.0),
+             "avatar.fadeS": (0.0, 2.0), "slides.cardWidth": (0.25, 0.60), "slides.fadeS": (0.0, 2.0),
+             "slides.dimTo": (0.0, 1.0)}
+SLIDE_LAYOUTS = ("Full", "CardLowerLeft")
 NV_DRIFT_MAX_LU = 0.5
 NV_TRUE_PEAK_MAX_DBTP = -1.5
 BED_LAYERS = (2, 3)
@@ -369,6 +421,57 @@ def check_base(nv: dict, where: str, files: dict, errors: list) -> None:
                           "it is off by default, NV-2)")
 
 
+def slides_problems(nv: dict) -> list:
+    """The ways a job's slides block and avatarOff list break the slide rules (docs/spec/NARRATED_VIDEO.md,
+    "Slides"): ordered, non-overlapping pages with unique ids, each slide page at least two fades long, the
+    layout bounds, and avatarOff naming only pages the job defines. A deck base brings its own pages (lane L8),
+    so avatarOff is not checked against it here. Each problem is (code, text): slides_invalid, page_unknown or
+    knob_out_of_bounds, the codes admit refuses with (narrate/video/admit.py)."""
+    out = []
+
+    def bad(text, code="slides_invalid"):
+        out.append((code, text))
+
+    slides, avatar = nv.get("slides"), nv.get("avatar")
+    pages = (slides or {}).get("pages") or []
+    if slides is not None:
+        if slides["layout"] not in SLIDE_LAYOUTS:
+            bad(f"slides layout {slides['layout']!r} is not one of {', '.join(SLIDE_LAYOUTS)}")
+        for key in ("cardWidth", "fadeS", "dimTo"):
+            low, high = NV_BOUNDS[f"slides.{key}"]
+            value = slides[key]
+            if not within(value, NV_BOUNDS[f"slides.{key}"]) or (key == "fadeS" and value == 0):
+                bad(f"slides {key} {value!r} is not {low} to {high}", "knob_out_of_bounds")
+        ids = [p["id"] for p in pages]
+        if len(set(ids)) != len(ids):
+            bad("slides page ids repeat")
+        if not pages:
+            bad("slides has no pages")
+        previous_end = 0.0
+        for page in pages:
+            if not 0 <= page["startS"] < page["endS"]:
+                bad(f"slides page {page['id']} does not start at or after 0 and end after its start")
+            if page["startS"] < previous_end - 1e-9:
+                bad(f"slides page {page['id']} starts before the previous page ends")
+            previous_end = max(previous_end, page["endS"])
+            show = page["show"]
+            if isinstance(show, dict) and set(show) == {"slide"}:
+                if not SHA256.match(show["slide"]["sha256"]):
+                    bad(f"slides page {page['id']} slide sha256 is not hex")
+                if page["endS"] - page["startS"] < 2 * slides["fadeS"]:
+                    bad(f"slides page {page['id']} is shorter than two fades")
+            elif show not in ("Base", "Hold"):
+                bad(f"slides page {page['id']} show {show!r} is not Base, Hold or a slide")
+    if avatar is not None:
+        if not within(avatar["fadeS"], NV_BOUNDS["avatar.fadeS"]):
+            bad(f"avatar fadeS {avatar['fadeS']!r} is not 0.0 to 2.0", "knob_out_of_bounds")
+        known = {p["id"] for p in pages}
+        unknown = sorted(set(avatar["avatarOff"]) - known)
+        if unknown and "deck" not in nv["base"]:
+            bad(f"avatarOff names {len(unknown)} pages the job does not define", "page_unknown")
+    return out
+
+
 def check_narrated_videos(data: dict, errors: list) -> None:
     files = fixtures()
     jobs = {j["id"]: j for j in data["jobs"]}
@@ -420,6 +523,13 @@ def check_narrated_videos(data: dict, errors: list) -> None:
                 errors.append(f"{where}: avatar external {nv['avatar']['external']!r} is not kitpip")
             if not within(nv["avatar"]["width"], NV_BOUNDS["avatar.width"]):
                 errors.append(f"{where}: avatar width {nv['avatar']['width']!r} is not 0.10 to 0.30")
+        for _, problem in slides_problems(nv):
+            errors.append(f"{where}: {problem}")
+        for page in (nv.get("slides") or {}).get("pages") or []:
+            show = page["show"]
+            if isinstance(show, dict) and "slide" in show:
+                if show["slide"]["sha256"] not in {sha(files[n]) for n in SLIDE_FIXTURES}:
+                    errors.append(f"{where}: slides page {page['id']} is not a generated slide fixture")
         bed = None
         if nv["music"] is not None:
             music = nv["music"]
@@ -675,6 +785,12 @@ def narrated_video_mutations() -> list:
     def persona_differs(d, m):
         d["consents"][0].update(persona="fixture-persona-other")
 
+    def slides(d):
+        return nv(d, "nv-fixture-slides")["slides"]
+
+    def page(d, i):
+        return slides(d)["pages"][i]
+
     return [
         ("bed acquired by an agent", lambda d, m: bed(d)["acquisition"].update(acquiredBy="Agent")),
         ("bed of one loop as-is", lambda d, m: bed(d).update(layers=bed(d)["layers"][:1])),
@@ -713,6 +829,20 @@ def narrated_video_mutations() -> list:
         ("edition unknown", lambda d, m: card(d).update(edition="Public")),
         ("no ClientVoiceOnly example", lambda d, m: client(d).update(edition="Internal")),
         ("no ClientNarrated example", lambda d, m: narrated(d).update(edition="Internal")),
+        ("slide layout unknown", lambda d, m: slides(d).update(layout="Corner")),
+        ("slide card width out of range", lambda d, m: slides(d).update(cardWidth=0.9)),
+        ("slide fade of zero", lambda d, m: slides(d).update(fadeS=0)),
+        ("slide dim above 1", lambda d, m: slides(d).update(dimTo=1.5)),
+        ("slide pages without pages", lambda d, m: slides(d).update(pages=[])),
+        ("slide page ids repeat", lambda d, m: page(d, 1).update(id=page(d, 0)["id"])),
+        ("slide pages overlap", lambda d, m: page(d, 1).update(startS=1.5)),
+        ("slide page ends before it starts", lambda d, m: page(d, 2).update(endS=3.0)),
+        ("slide page shorter than two fades", lambda d, m: page(d, 0).update(endS=0.5)),
+        ("slide picture not a fixture", lambda d, m: page(d, 0)["show"]["slide"].update(sha256="0" * 64)),
+        ("slide page show unknown", lambda d, m: page(d, 3).update(show="Blank")),
+        ("avatarOff names an unknown page", lambda d, m: nv(d, "nv-fixture-slides")["avatar"].update(
+            avatarOff=["no-such-page"])),
+        ("avatar fade out of range", lambda d, m: nv(d, "nv-fixture-slides")["avatar"].update(fadeS=3.0)),
     ]
 
 

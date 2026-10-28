@@ -252,6 +252,7 @@ let job
             }
       , segments = [] : List NarratedVideo.Segment
       , avatar = None NarratedVideo.Avatar
+      , slides = None NarratedVideo.Slides
       , music = None NarratedVideo.Music
       , tighten = d.tighten
       , captions = d.captions
@@ -450,5 +451,24 @@ let clientVoiceOnlyStaysAvailable =
       :         Edition.client E.ClientVoiceOnly
             &&  Edition.voiceOnly E.ClientVoiceOnly
         ===  True
+
+let slideCardMatchesTheDeckSeat =
+        assert
+      :     { width = d.slides.cardWidth
+            , margin = d.slides.marginPx
+            , fade = d.slides.fadeS
+            , dim = d.slides.dimTo
+            , layout = d.slides.layout
+            , avatarFade = d.avatar.fadeS
+            , avatarOff = d.avatar.avatarOff
+            }
+        ===  { width = 0.42
+             , margin = 64
+             , fade = 0.35
+             , dim = 0.5
+             , layout = NarratedVideo.SlideLayout.Full
+             , avatarFade = 0.35
+             , avatarOff = [] : List Text
+             }
 
 in  True

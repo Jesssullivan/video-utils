@@ -246,9 +246,11 @@ def knobs_for(stage, segment, job, records, pin):
         delivery = {k: job["delivery"][k] for k in ("targetLufs", "truePeakDbtp", "driftLu", "channels")}
         return {"music": music, "delivery": delivery}
     if stage == "compose":
-        placement = {k: job["avatar"][k] for k in ("corner", "width", "marginPx")} if job["avatar"] else None
+        fields = ("corner", "width", "marginPx", "avatarOff", "fadeS")
+        placement = {k: job["avatar"][k] for k in fields} if job["avatar"] else None
         return {
             "avatar": placement,
+            "slides": job["slides"],
             "captions": job["captions"],
             "labels": job["labels"],
             "profile": job["delivery"]["profile"],
@@ -279,7 +281,15 @@ def sources_for(stage, segment, job, records):
     elif stage == "music":
         bed = records["music_beds"][job["music"]["bed"]]
         rows.extend((f"loop.{i}", layer["sha256"]) for i, layer in enumerate(bed["layers"]))
+    elif stage in ("compose", "handoff"):
+        rows.extend((f"slide.{page_id}", digest) for page_id, digest in slide_sources(job))
     return [{"slot": slot, "stage": "source", "digest": digest} for slot, digest in rows]
+
+
+def slide_sources(job):
+    """[(page id, SHA-256)] of every slide picture the job's pages show, in page order."""
+    pages = (job["slides"] or {}).get("pages") or []
+    return [(p["id"], p["show"]["slide"]["sha256"]) for p in pages if isinstance(p["show"], dict)]
 
 
 # Nodes ---------------------------------------------------------------------------------------------------------

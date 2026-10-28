@@ -12,10 +12,11 @@ Every command prints JSON with --json (status and explain always do) or a short 
                                           run and stage read every source from it
   --lexical    NARRATE_LEXICAL_DIR        the pinned xoxd-lexical release the script and voice stages read
 
-plan never runs a stage and never writes, except graph.json with --record. run and stage run the lane L4 and L5
+plan never runs a stage and never writes, except graph.json with --record. run and stage run the lane L4, L5 and L6
 stages (narrate/video/run.py) and record graph.json when they finish. pin-check checks the private kitpip pin
 against its public registration in program/externals.json and KITPIP_BIN against the pin. fixture writes a
-synthetic workspace (records, store and lexical release) for `just nv-fixture`.
+synthetic workspace (records, store and lexical release) for `just nv-fixture`. init turns the kitpip avatar on by
+default for an edition that allows one (NV-8), which needs --persona; --no-avatar turns it off.
 """
 
 import argparse
@@ -94,7 +95,7 @@ def cmd_init(a):
         for n in ("narrate_job", "script", "voice", "still", "card", "bed", "edition", "persona")
         if getattr(a, n) is not None
     ]
-    switches = [f"--{n}" for n in ("avatar", "client") if getattr(a, n)]
+    switches = [f"--{n.replace('_', '-')}" for n in ("avatar", "no_avatar", "client") if getattr(a, n)]
     if a.from_file and (defaults_flags or switches):
         return refusal(
             "usage",
@@ -128,7 +129,7 @@ def cmd_init(a):
             colour=a.card,
             bed=a.bed,
             edition=a.edition,
-            avatar=a.avatar,
+            avatar=True if a.avatar else False if a.no_avatar else None,
             persona=a.persona,
             client=a.client,
         )
@@ -137,7 +138,10 @@ def cmd_init(a):
     g = graph.plan(job, records, None, ctx)
     if g["admit"]["verdict"] != "Admitted":
         first = g["admit"]["refusals"][0]
-        return refusal(first["code"], first["detail"])
+        detail = first["detail"]
+        if first["code"] == "persona_label_missing" and not (a.from_file or a.avatar):
+            detail += "; the avatar is on by default (NV-8): pass --persona P, or --no-avatar"
+        return refusal(first["code"], detail)
     s.write_job(job, replace=a.replace)
     g = graph.public(graph.plan(job, records, s, ctx))
     s.write_graph(g)
@@ -286,15 +290,19 @@ def main(argv=None):
         action="store_true",
         help=f"a client delivery: edition {CLIENT_DEFAULT_EDITION} (NV-6). ClientVoiceOnly comes only through --from",
     )
-    i.add_argument("--avatar", action="store_true", help="turn the kitpip avatar on (needs --persona)")
-    i.add_argument("--persona", help="labels.persona")
+    switch = i.add_mutually_exclusive_group()
+    switch.add_argument(
+        "--avatar", action="store_true", help="turn the kitpip avatar on (the default where the edition allows one)"
+    )
+    switch.add_argument("--no-avatar", action="store_true", help="turn the kitpip avatar off")
+    i.add_argument("--persona", help="labels.persona (required while the avatar is on)")
     i.add_argument("--replace", action="store_true", help="replace a different job with the same id")
 
     n = sub.add_parser("plan", help="key every stage and print its state; read-only")
     common(n)
     n.add_argument("--record", action="store_true", help="also write graph.json for status")
 
-    r = sub.add_parser("run", help="run the stale stages (lanes L4 and L5); stops at the first refusal")
+    r = sub.add_parser("run", help="run the stale stages (script to handoff); stops at the first refusal")
     common(r)
     r.add_argument("--stages", help="comma-separated stages: run only these")
     r.add_argument("--until", choices=[st.id for st in graph.STAGES], help="run this stage and what it depends on")

@@ -30,7 +30,7 @@ source media.
 | KP-15 | No visible synthetic or AI-persona label is required in captions, descriptions or on-frame marks. Manifest metadata (`synthetic: true`, consent ids, persona) stays. This supersedes KP-7's "labels in captions and description" |
 | NV-6 | `ClientNarrated` is the default edition of every client delivery: synthetic voice and kitpip allowed, the bed gated on licence and Content ID. `ClientVoiceOnly` stays available per project. This supersedes the voice-only part of KP-14 for client deliveries |
 | KP-19 | kitpip's default overlay is the unadorned character, with no ring, picture-in-picture background or logo stamp. `--badge` restores the ring and mark. The wrapper never passes it |
-| NV-8 | The avatar stays opt-in (`--avatar`) until the L6 compose stage lands. After that it is on by default, and a job can still turn it off |
+| NV-8 | kitpip stayed opt-in until lane L6 landed. The avatar is now on by default (KP-13, NV-6), and a job can still turn it off |
 
 Music-bed levels (NV-2, from the deck seat's answers the operator adopted): the
 bed sits 20 dB under the voice and a sidechain ducks it a further 6 to 8 dB
@@ -48,7 +48,7 @@ Bed audio never enters git.
 | L3 graph core | `narrate/video/{graph,keys,store,admit}.py`, `program/dags/narrated-video.json`, the kitpip stub, `init`, `plan`, `status`, `explain` | L2 | key, invalidation and freshness tests |
 | L4 simple path | `script`, `voice`, `voice_qa`, `base`, `place`, `music`, `mix` | L3 | `nv-quick` on fixtures yields a mixed stem. Audio tests pass |
 | L5 kitpip pin and avatar | `program/externals.json` (the public registration), the private pin record, `pin-check`, `avatar` and `avatar_check`, tools 66 and 67 drafts and skills | kitpip release, L4 | pin tests and one local render with a digest-only receipt |
-| L6 compose and delivery | `compose`, `deliver_check`, `handoff`, `just/narrated-video.just` | L5 | alpha, caption, label and profile tests |
+| L6 compose and delivery | `compose`, `deliver_check`, `handoff`, `just/narrated-video.just`, the slide card, the avatar default (NV-8) | L5 | alpha, caption, label, profile, slide and flash tests |
 | L7 tools and skills | tool drafts and 8 skills, admission of tools 62 to 70 | L6 | `just mcp` lists the tools, admission tests pass |
 | L8 deck seam | the deck seat with L3 to L6 owners | L6 | a fake-deck fixture passes, then one internal deck cut |
 | L9 acceptance | the operator | L7, L8 | listening, lip sync and labels leave `pending_operator` by receipt |
@@ -133,7 +133,7 @@ A key reads three kinds of input:
 | `avatar_check` | `labels.persona` |
 | `music` | bed id, each layer's digest, bytes, rate, channels, tempo factor and gain, 48 kHz |
 | `mix` | the music block except the bed id, delivery loudness, true peak, drift and channels |
-| `compose` | avatar corner, width and margin, captions, labels, delivery profile |
+| `compose` | avatar corner, width, margin, `avatarOff` and `fadeS`, the slides block, captions, labels, delivery profile |
 | `deliver_check` | delivery except `handoff`, the bed's licence PDF digest and Content ID result, labels |
 | `handoff` | none beyond its inputs |
 
@@ -150,7 +150,8 @@ every other stage. Its codes are `narrate_job_missing`,
 `script_digest_mismatch`, `consent_missing`, `consent_revoked`,
 `persona_label_missing`, `bed_record_missing`, `bed_acquisition_agent`,
 `bed_layers_invalid`, `tighten_on_synthetic`, `knob_out_of_bounds`,
-`avatar_external_unknown`, `kitpip_pin_mismatch` and the three edition codes.
+`slides_invalid`, `page_unknown`, `avatar_external_unknown`,
+`kitpip_pin_mismatch` and the three edition codes.
 
 | State | Meaning |
 | --- | --- |
@@ -186,6 +187,7 @@ v1 keeps every stage directory until the operator removes the job.
 | Bed level | `mix`, `compose`, `deliver_check` |
 | One segment's script | that segment's `script`, `voice`, `voice_qa`, `avatar` and `avatar_check`, then `place`, `mix`, `compose`, `deliver_check` |
 | Overlay width | `compose`, `deliver_check` |
+| Avatar-off pages or slide layout | `compose`, `deliver_check`, and `handoff` when it is on |
 | kitpip rig or pin | every `avatar` and `avatar_check`, then `compose`, `deliver_check` |
 | Persona label | every `avatar` and `avatar_check`, then `place`, `mix`, `compose`, `deliver_check`. No voice |
 | Deck re-assembled with the same takes | `base`, `place`, `mix`, `compose`, `deliver_check` |
@@ -251,13 +253,13 @@ and `show_badge`. Its states are `source_checks: passed`, `render: stub` or
 
 | Command | Recipe | Effect |
 | --- | --- | --- |
-| `init --job ID --narrate-job ID --script FILE [--still SHA \| --card #RRGGBB] [--bed ID] [--edition E] [--client] [--avatar --persona P]` | `just nv-init` | writes a simple job from `NarratedVideo.defaults`. `--client` makes a client delivery: `ClientNarrated` (NV-6); another edition refuses `edition_not_client`. The defaults voice a synthetic segment, so `--edition ClientVoiceOnly` refuses `edition_voice_refused`: a voice-only job comes through `--from` (the deck example). admit refuses (a voice without consent, for one) before anything is written |
+| `init --job ID --narrate-job ID --script FILE [--still SHA \| --card #RRGGBB] [--bed ID] [--edition E] [--client] [--persona P \| --no-avatar]` | `just nv-init` | writes a simple job from `NarratedVideo.defaults`, with the avatar on where the edition allows one (NV-8). `--client` makes a client delivery: `ClientNarrated` (NV-6); another edition refuses `edition_not_client`. The defaults voice a synthetic segment, so `--edition ClientVoiceOnly` refuses `edition_voice_refused`: a voice-only job comes through `--from` (the deck example). admit refuses (a voice without consent, an avatar without a persona) before anything is written |
 | `init --job ID --from FILE` | | writes a rendered record, or the one with that id in a list of them |
 | `plan JOB [--record] [--json]` | `just nv-plan` | keys every node and prints its state, reason and key. Read-only. `--record` writes `graph.json`. Exit 1 when admit refuses |
 | `status JOB [--json]` | `just nv-status` | prints the recorded `graph.json` and its `pending_operator` gates |
 | `explain JOB STAGE [--segment ID]` | `just nv-explain` | prints the key document and each field that changed since the stage's last run |
 | `verify DIR` | `just nv-verify` | re-hashes a stage directory or every current stage of a job |
-| `run JOB [--stages S,...] [--until S] [--force S,...] [--json]` | `just nv-run` | runs the stale stages (lane L4: `script` to `mix`; lane L5: `avatar` and `avatar_check`) and stops at the first refusal. Finished stages stay fresh. Records `graph.json` |
+| `run JOB [--stages S,...] [--until S] [--force S,...] [--json]` | `just nv-run` | runs the stale stages (`script` to `handoff`, with `avatar` and `avatar_check` when the job has an avatar) and stops at the first refusal. Finished stages stay fresh. Records `graph.json` |
 | `pin-check [--externals FILE]` | `just kitpip-pin-check` | checks the private pin against `program/externals.json` and `KITPIP_BIN` against the pin. Refuses `kitpip_pin_missing`, `kitpip_pin_pending`, `kitpip_pin_mismatch` or `kitpip_missing` |
 | `stage JOB STAGE [--segment ID]` | `just nv-stage` | runs one node when every input is fresh, else refuses `stage_input_stale` |
 | `fixture --out DIR` | `just nv-fixture` | writes a synthetic workspace: records, a private-store stand-in and a fixture lexical release |
@@ -270,8 +272,9 @@ Paths come from flags or the environment: `--root` (`NARRATED_VIDEO_ROOT`),
 (`NARRATE_LEXICAL_DIR`). `run` and `stage` need the store, because every source
 comes from it by digest. Their records directory also holds `engines.json` and
 `pronunciation.json` for narrate. `just nv-fixture` plans the committed card
-example against the committed records. It then runs `nv-quick` end to end on a
-synthetic workspace and prints the mix measurements. `nv-run`, `nv-stage` and
+example against the committed records. It then runs `nv-quick --no-avatar` end
+to end on a synthetic workspace through `deliver_check` and prints the mix
+measurements and the delivery gates. `nv-run`, `nv-stage` and
 `nv-quick` run inside `narrate/bounded.sh`.
 
 ## Editions
@@ -318,8 +321,10 @@ never paths. The executor reads the `dhall-to-json` render.
 - **`NarratedVideo`**: `id`, `edition`, `base` (`Still`, `Card`, `Video` or an
   imported `Deck`), `segments` (each a narrate job id, its script digest, an
   anchor and a per-segment avatar switch), an optional `avatar`, an optional
-  `music`, `tighten`, `captions`, `labels` and `delivery`. A `Deck` records
-  `tightenEditsSha256`. `tighten.enabled` defaults to false (see "Tighten").
+  `music`, `tighten`, `captions`, `labels`, `delivery` and optional `slides`
+  (see "Slides"). The avatar block adds `avatarOff` (page ids) and `fadeS`. A
+  `Deck` records `tightenEditsSha256`. `tighten.enabled` defaults to false (see
+  "Tighten").
 - **`MusicBed`**: 2 or 3 layers, each a loop by SHA-256 with bytes, rate,
   channels, source, tempo factor (0.5 to 2.0) and gain. A licence block holds the
   terms reference, the certified PDF digest and the Content ID state. The
@@ -345,34 +350,38 @@ Defaults (`NarratedVideo.defaults`, asserted in the type test):
 | edition | `Internal` |
 | clientEdition | `ClientNarrated` (NV-6), the edition of a client delivery |
 | base | a 1920x1080 card at 30/1, or a still when given |
-| avatar | `kitpip`, pin default rig, 512 px render, bottom right, 0.22 of base width, 32 px margin |
+| avatar | on where the edition allows one (NV-8): `kitpip`, pin default rig, 512 px render, bottom right, 0.22 of base width, 32 px margin, no `avatarOff` page, 0.35 s fades |
+| slides | `None`. The block's defaults: layout `Full`, card 0.42 of the frame wide, 64 px margin, 0.35 s fades, held frame at 0.5 brightness |
 | music | `None` unless a bed record id is given. When given: 20 LU under the voice (the deck project's ruling 58), sidechain duck 7 dB, attack 50 ms, release 400 ms, fades 3 s and 5 s, tail 5 s |
 | tighten | `{ enabled = False }` (NV-2) |
 | labels | no persona, no caption cue, no description line (KP-15) |
 | captions | soft, SRT and VTT, not burned |
 | delivery | `Web1080p30`, -16 LUFS, -1.5 dBTP, 0.5 LU, `Mono`, no upload, no handoff, no voice-only listen |
 
-**Avatar opt-in until L6.** The design turns the avatar on by default when the
-edition allows it (KP-13), and NV-8 keeps it opt-in until L6 lands. `init` leaves `avatar` unset unless `--avatar
---persona P` is given. NV-4 starts the no-avatar half first. The avatar stages
-need the kitpip binary that L5 pins, and compose (L6) is the first stage that
-reads an overlay. Until then, an avatar on by default would block every default
-job at `avatar` (`kitpip_missing`) and every stage after it. An avatar also
-needs `labels.persona`, which `init` has no source for without a flag. The
-`avatar` default above is the block that `--avatar` writes and that a rendered
-record may set. L6 makes the avatar the `init` default for an edition that
-allows one, and refuses `persona_label_missing` when no persona is given.
+**Avatar default (NV-8).** `init` turns the kitpip avatar on for an edition
+that allows one (`Internal`, `OwnContent`, `ClientNarrated`) and off for
+`ClientVoiceOnly`. An avatar needs `labels.persona`, so `init` without
+`--persona P` refuses `persona_label_missing` and names `--no-avatar` as the
+other way out. A job turns the avatar off with `avatar = None`, per segment
+with `avatar = False`, or for named pages with `avatar.avatarOff`. With the
+avatar on, `compose` waits for `avatar` and `avatar_check`: it never composes a
+cut without an overlay the job asked for. A pin whose release binary digest is
+pending blocks both (`kitpip_pin_pending`).
 
-`examples/narrated-videos.dhall` holds four jobs: the simple Internal card job
+`examples/narrated-videos.dhall` holds five jobs: the simple Internal card job
 with the fixture bed, the same job with a kitpip avatar and a persona label, a
-ClientVoiceOnly deck job with no narrate segment, avatar or bed, and a
+ClientVoiceOnly deck job with no narrate segment, avatar or bed, a
 ClientNarrated deck job with a narrate segment, an avatar, tighten enabled and
-generated tighten edits.
+generated tighten edits, and the avatar job with two generated slide pictures as
+a lower-left card, a base page, a 0.4 s hold and the avatar off on the second
+slide.
 `examples/music-beds.dhall` holds one fixture bed of two generated E-major sine
-loops. `check.py` regenerates the loops and the deck placeholders and checks
-every digest, every reference, the edition rule at Plan, the persona rule, the
-tighten rule and the bounds below. Its self-test mutates the examples 35 ways
-and expects each mutation to be refused.
+loops. `check.py` regenerates the loops, the deck placeholders and the two
+slide pictures (320x180 RGB PNG in stored deflate blocks, so every zlib writes
+the same bytes) and checks every digest, every reference, the edition rule at
+Plan, the persona rule, the tighten rule, the slide rules and the bounds below.
+Its self-test mutates the narrated-video examples 48 ways and expects each
+mutation to be refused.
 
 | Bound | Value | Refusal or check |
 | --- | --- | --- |
@@ -385,6 +394,12 @@ and expects each mutation to be refused.
 | bed layer `tempoFactor` | 0.5 to 2.0 | out of bounds |
 | `acquiredBy` | `Operator` | `bed_acquisition_agent` |
 | tighten edits on narrate segments | only with `tighten.enabled` | `tighten_on_synthetic` |
+| `avatar.fadeS` | 0 to 2.0 | out of bounds |
+| `avatar.avatarOff` | ids of the job's pages | `page_unknown` |
+| `slides.cardWidth` | 0.25 to 0.60 | out of bounds |
+| `slides.fadeS` | above 0, at most 2.0 | out of bounds |
+| `slides.dimTo` | 0 to 1.0 | out of bounds |
+| slide pages | unique ids, in order, none overlapping, each slide page at least two fades long | `slides_invalid` |
 
 ## Music bed
 
@@ -476,9 +491,9 @@ Lane L4 runs `script`, `voice`, `voice_qa`, `base`, `place`, `music` and `mix`
 (`narrate/video/{speech,place,music,mix,run}.py`). `run` plans the job and
 runs one runnable node at a time until none is left that the call may run. A
 node runs only when every upstream node is fresh, so its key is known before it
-starts. The avatar stages wait for lane L5, and `compose`, `deliver_check` and
-`handoff` wait for lane L6. `run` reports those nodes under
-`waiting_on_lane`.
+starts. Lane L5 adds `avatar` and `avatar_check` (see "Avatar stages (lane
+L5)"), and lane L6 adds `compose`, `deliver_check` and `handoff` (see "Compose
+and delivery"). No stage waits on a lane, so `waiting_on_lane` is empty.
 
 A refusal is a verdict or a failure. A verdict repeats for the same key, such as
 a level gate, an edition refusal or an overlap. The store records it, and the
@@ -542,6 +557,123 @@ voice, the two E-major loops and a colour card. Measured on 2026-10-27 at this
 lane's head: voice -15.8 LUFS, mix -15.8 LUFS (drift 0.2 LU), true peak
 -9.1 dBTP and a 7.0 dB duck. These are fixture numbers, not a listening result.
 
+## Compose and delivery (lane L6)
+
+Lane L6 runs `compose`, `deliver_check` and `handoff`
+(`narrate/video/{compose,deliver,handoff}.py`).
+
+| Stage | Reads | Writes | Refuses |
+| --- | --- | --- | --- |
+| `compose` | `base`, `place`, `mix`, every selected `avatar` and `avatar_check`, slide pictures by digest | `video.mp4`, `video.upload.mp4`, `captions.srt`, `captions.vtt`, `description.txt`, `chapters.json`, `compose.json` | `captions_burn_unsupported`, `captions_missing`, `slides_exceed_program`, `overlay_exceeds_base`, `frames_mismatch`, `label_chain_broken` |
+| `deliver_check` | `compose`, the voice and avatar manifests, the bed record | `deliver_check.json`: gate states and `delivery_gate` | the edition codes at DeliverCheck, `label_chain_broken`. A failed gate is a state |
+| `handoff` | `base`, `place`, `mix`, `avatar`, `compose` | `layers/` and `edit.json` | `label_chain_broken` |
+
+Profiles. The deck project's own profiles port in phase 2. These are this
+lane's, each H.264 High in yuv420p with AAC-LC at 48 kHz:
+
+| Profile | Size | Rate | CRF | Preset | Audio |
+| --- | --- | --- | --- | --- | --- |
+| `Web1080p30` | 1920x1080 | 30/1 | 18 | fast | 192 kb/s |
+| `Talk` | 1920x1080 | the base's | 16 | fast | 256 kb/s |
+| `Contingency` | 1280x720 | 30/1 | 23 | veryfast | 128 kb/s |
+
+Compose. The base is scaled to fit the profile and padded black. Layers sit
+on it bottom to top: slide layers, then the avatar overlays. Each overlay
+(ProRes 4444, straight alpha, decoded by FFmpeg's default ProRes decoder) is
+scaled to a square `avatar.width` of the frame wide, placed `marginPx` from its
+corner and starts at its segment's start on the base clock. `video.mp4`
+carries the captions as a soft `mov_text` track when `captions.soft` is set.
+`video.upload.mp4` holds the same picture and sound with no caption track.
+`captions.burn` refuses in v1 (the design keeps it off). Captions are each
+narrate run's cues (its `narration.srt`, else `narration.vtt`) shifted to the
+segment's start. `labels.personaCue`, when set, sits on its own line above the
+first cue's text. `description.txt` follows a fixed template: the job id, the
+length, the segment count, the chapters (one per page, else one per segment,
+titled by id) and `labels.extraNotice` as its last line when set. No visible
+synthetic label is added (KP-15).
+
+Avatar-off pages. Every page `avatar.avatarOff` lists hides the overlays for
+its whole span. They fade out over `avatar.fadeS` (0.35 s) ending at the
+page's start, stay hidden through it and fade in over `fadeS` from its end. A
+page that starts the program hides the overlay from its first frame. Adjacent
+listed pages merge into one span. This is the deck pattern of switching the
+avatar off on dense screens. `compose` refuses `page_unknown` for an id that
+names none of the job's slide pages, so it never drops one without a word.
+
+### Slides
+
+`slides` names pages on the base clock. A page shows the base (`Base`, a named
+span), a slide picture by SHA-256 from the private store (`Slide`), or a `Hold`.
+Adjacent slide pages form a run.
+
+- A run fades in over `fadeS` from its start and out over `fadeS` to its end.
+  At a page change inside a run the incoming slide starts `fadeS/2` early and
+  fades in over `fadeS` above the outgoing one, which stays opaque until
+  `fadeS/2` after the change: a crossfade in place.
+- `Full` shows each slide over the whole frame, fitted and padded black. Each
+  of its fades is eased against what is under it (the base, or the outgoing
+  slide): `compose` measures both mean lumas and shapes the alpha so the
+  frame's mean luma changes by the same ratio on every frame. A linear ramp
+  puts most of a dark-to-light step on its first frames. `compose.json`
+  records both lumas and the shortest fade that keeps each step within the
+  flash gate (`min_fade_s`).
+- `CardLowerLeft` is the deck seat's slide card, built here from its
+  description only (design Addendum B, the deck project's ruling 59(b)). No deck
+  code or asset was read or copied. Each slide is a card `cardWidth` (0.42) of
+  the frame wide at its own aspect ratio, `marginPx` (64) from the left and
+  bottom edges, narrower when a tall slide would not fit the frame height less
+  two margins. Card fades are linear. Under the card, the base frame at the
+  run's end (the next clip's first frame) is held, fading in with the card,
+  and a black layer dims it to `dimTo` (0.5) of its brightness, lifting as the
+  card fades out. The avatar keeps its own corner.
+- A `Hold` page shows no card and holds the base frame at its start at full
+  brightness, as the deck's 0.4 s end page does.
+- On a card or still base the picture never changes, so nothing is held there.
+
+`slides` is off by default (`None`), and its layout default is `Full`. A
+slide page shorter than two fades refuses `slides_invalid` at admit. A page
+that ends after the program refuses `slides_exceed_program` at compose.
+
+### Deliver check
+
+| Gate | Passes when |
+| --- | --- |
+| `profile` | H.264 yuv420p and AAC at 48 kHz, the profile's size and rate, the delivery's channel count, the planned frame count and one caption track with `captions.soft` |
+| `loudness` | the delivered sound (after the AAC encode) is within `driftLu` of `targetLufs` and its true peak is at or under `truePeakDbtp` |
+| `flash` | at each slide change the largest adjacent-frame mean-luma jump is at most 30%. `not_applicable` without slides |
+| `captions` | the files `captions` asks for exist, the persona cue opens the first cue and `extraNotice` ends `description.txt` when set |
+| `listening`, `lip_sync` | `pending_operator` here. Lip sync only with an overlay |
+| `bed_licence_pdf`, `bed_content_id` | with `upload` and a bed: the record holds the licence PDF digest and a clear Content ID result, else `pending_operator` |
+
+Flash. A slide change is a run's start and end, each page change inside a
+run, and a hold's start and end. Within `fadeS` plus one frame of each change
+the stage takes the mean luma Y (8-bit, FFmpeg `signalstats`) of every frame.
+A jump is |Y1 - Y0| / max(min(Y0, Y1), 16): relative to the darker frame, with
+video black as the floor. The 30% limit is the deck seat's gate. The formula is
+this lane's reading of "the largest mean-luma jump between adjacent frames",
+not a port of the deck's check.
+
+`delivery_gate.internal_review_allowed` is true when every machine gate passes.
+`upload_gates_closed` also needs `upload`, a closed bed gate and, for a client
+edition with a bed, `voiceOnlyListen`. `public_upload_allowed` also needs every
+operator state closed (`operator_states_open` empty): verified is not accepted.
+`deliver_check` never closes listening itself (NV-2: internal until a first
+listening receipt), and an overlay without lip-sync acceptance stays private,
+so it never reports a public upload as allowed. Every field is a gate state:
+uploading, sending and Content ID stay operator actions.
+
+### Handoff
+
+`handoff` runs when `delivery.handoff` is set. `layers/` holds `base.mp4` (the
+base at the profile, no overlay, slide, caption or sound),
+`avatar-<segment>.mov` (each overlay as kitpip wrote it), `slide-<page>.<ext>`
+(each slide picture as stored), `voice.wav`, `clips.wav` (when the base kept
+its sound), `bed-ducked.wav` (with a bed, before the limiter) and the captions.
+`edit.json` holds the placements, the overlay boxes and starts, the slide runs,
+the avatar-off spans, the mix gains and the stage key of every input. FCPXML
+and OTIO export is phase 2. Until an editor imports one, it stays unverified in
+an application.
+
 ## Deck import
 
 A slide deck assembled outside this repository enters as a `Deck` base by
@@ -578,16 +710,25 @@ it stays a knob.
   has not been compared on a real narration with breaths and room tone.
 - `Stereo` writes the mono mix on both channels at -3.01 dB each. Whether the
   operator wants a true stereo bed is open (NV-2 keeps mono until an A/B).
-- A video base keeps its own size and rate in `base`. Scaling to the delivery
-  profile is `compose`'s (L6).
+- A video base keeps its own size and rate in `base`. `compose` scales it to
+  the delivery profile (lane L6).
 
 - Sidechain attack: 50 ms here (the deck seat's practice). The earlier music-bed
   draft used 20 ms. Not yet compared.
 - The deck's `stems.json` (L8) does not yet carry the pre-tighten take digest
   that `place` needs to bind a tightened take.
-- The kitpip release binary. The private pin names the kitpip commit that
-  merged KP-19, the face schema and stream mode. No release build exists yet,
-  so the binary digest is pending and the avatar stages stay blocked on a real
-  pin.
-- How long a real kitpip render takes on an idle builder. No real render has
-  run through this wrapper yet.
+- Only the x86_64-linux kitpip binary is pinned. Darwin and aarch64 need a
+  build on those systems.
+- The first real kitpip render ran on the fixture voice
+  (`docs/agent-notes/2026-10-28-kitpip-010-avatar-render.md`). A render of a
+  real narration, and its time on an idle builder, are not recorded.
+- The slide card matches the deck seat's description. No matched A/B against a
+  deck cut is recorded. Cards of different heights crossfade with the outgoing
+  card's edge visible until the incoming card is opaque.
+- The flash formula is an inference from the deck seat's figures. Its exact
+  formula was not read.
+- Even eased, a `Full` fade cannot keep a step within 30% when the slide and
+  what is under it differ too much in mean luma for the fade's frame count
+  (video black to white needs 11 frames at 30 fps, over 0.35 s). The gate
+  then fails, and `min_fade_s` in `compose.json` names the fade that passes.
+- Burned captions and the deck project's own delivery profiles are not built.

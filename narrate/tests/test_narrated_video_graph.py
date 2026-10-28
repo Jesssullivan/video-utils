@@ -714,9 +714,14 @@ def test_admit_carries_the_labels_and_the_open_operator_gates(tmp_path):
 # Jobs ----------------------------------------------------------------------------------------------------------
 def test_init_from_the_defaults_is_the_simple_card_example():
     script = (EXAMPLES / "script.md").read_bytes()
-    job = init_job("nv-fixture-card", "job-fixture-fake", hashlib.sha256(script).hexdigest(), bed="bed-fixture-emaj")
+    digest = hashlib.sha256(script).hexdigest()
+    job = init_job("nv-fixture-card", "job-fixture-fake", digest, bed="bed-fixture-emaj", avatar=False)
     assert job == examples()["nv-fixture-card"]
-    still = init_job("nv-still", "job-fixture-fake", "1" * 64, still="2" * 64)
+    # NV-8: the avatar is on by default where the edition allows one, with the persona the caller gives.
+    on = init_job("nv-fixture-avatar", "job-fixture-fake", digest, bed="bed-fixture-emaj", persona="fixture-persona")
+    assert on == examples()["nv-fixture-avatar"]
+    assert init_job("nv-n", "job-fixture-fake", digest, edition="ClientNarrated")["avatar"] == DEFAULTS["avatar"]
+    still = init_job("nv-still", "job-fixture-fake", "1" * 64, still="2" * 64, avatar=False)
     assert still["base"] == {"still": {"sha256": "2" * 64, "size": {"w": 1920, "h": 1080}, "fps": FPS, "tailS": 1}}
     assert still["music"] is None and still["avatar"] is None and still["tighten"] == {"enabled": False}
     for bad in ({"still": "/a/path.png"}, {"colour": "red"}):
@@ -787,6 +792,7 @@ def test_cli_init_plan_status_and_explain(tmp_path, capsys, cli_env):
             str(EXAMPLES / "script.md"),
             "--bed",
             "bed-fixture-emaj",
+            "--no-avatar",
             "--json",
         ],
     )
@@ -851,6 +857,26 @@ def test_cli_refusals_use_the_narrate_stderr_shape(tmp_path, capsys, cli_env):
         ],
     )
     assert code == 1 and json.loads(err)["refused"] == "voice_mismatch"
+    # NV-8: the avatar is on by default, so init without a persona refuses and names both ways out.
+    argv = [
+        "init",
+        *cli_env,
+        "--job",
+        "nv-c",
+        "--narrate-job",
+        "job-fixture-fake",
+        "--script",
+        str(EXAMPLES / "script.md"),
+    ]
+    code, _, err = call(capsys, argv)
+    refused = json.loads(err)
+    assert code == 1 and refused["refused"] == "persona_label_missing"
+    assert "--persona P, or --no-avatar" in refused["detail"] and not (tmp_path / "narrated" / "nv-c").exists()
+    code, _, _ = call(capsys, argv + ["--persona", "fixture-persona"])
+    assert code == 0 and store.JobStore(tmp_path / "narrated", "nv-c").read_job()["avatar"] == DEFAULTS["avatar"]
+    with pytest.raises(SystemExit):
+        cli.main(argv + ["--avatar", "--no-avatar"])
+    capsys.readouterr()
     code, _, err = call(capsys, ["status", "nv-none", *cli_env])
     assert code == 1 and json.loads(err)["refused"] == "graph_missing"
     code, _, err = call(capsys, ["plan", "nv-none", *cli_env])
@@ -866,7 +892,8 @@ def test_cli_init_client_voice_only_refuses_and_points_to_a_render(tmp_path, cap
         assert code == 1 and out == "" and refused["refused"] == "edition_voice_refused"
         assert "--from" in refused["detail"]
         assert not (tmp_path / "narrated" / "nv-voice-only").exists()
-    code, out, _ = call(capsys, [*defaults, "--job", "nv-client", "--client", "--json"])
+    # --client turns the avatar on (NV-8), so the job needs a persona label.
+    code, out, _ = call(capsys, [*defaults, "--job", "nv-client", "--client", "--persona", "fixture-persona", "--json"])
     assert code == 0 and json.loads(out)["ok"] is True
     assert store.JobStore(tmp_path / "narrated", "nv-client").read_job()["edition"] == "ClientNarrated"
     code, out, _ = call(

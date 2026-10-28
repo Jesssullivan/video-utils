@@ -11,7 +11,7 @@ description: Render the kitpip narrator overlay for each narrated segment from a
 
 ## Use and controls
 
-1. The job needs an `avatar` block and `labels.persona` (`just nv-init ... --avatar --persona P`; opt-in until L6, NV-8). `voice` for the segment and `base` must be fresh.
+1. The job needs an `avatar` block and `labels.persona` (`just nv-init ... --persona P`; on by default where the edition allows one, NV-8). `voice` for the segment and `base` must be fresh.
 2. `just kitpip-pin-check` must print `ok: true`. While the pin's release binary digest is pending it refuses `kitpip_pin_pending`, and plan shows both avatar stages `blocked`.
 3. `just nv-stage JOB avatar --segment seg-1`, then read `frames`, `frames_sha256`, `fps`, `size`, `rig` and `states.render` in the stage manifest.
 
