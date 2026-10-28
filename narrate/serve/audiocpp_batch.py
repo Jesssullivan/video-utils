@@ -8,7 +8,7 @@ bounded unit, with VK_DRIVER_FILES naming the RADV ICD, and watches VRAM.
 
     audiocpp_batch.py run DIR --requests requests/NAME.json --binary PATH --binary-sha256 SHA \\
         --model PATH --model-sha256 SHA [--family voxcpm2] [--backend vulkan] [--device 0] \\
-        [--audiocpp-commit REV] [--deadline-s N] [--stall-s N] [--only-missing]
+        [--audiocpp-commit REV] [--deadline-s N] [--stall-s N] [--only-missing] [--lease-holder H]
     audiocpp_batch.py check DIR --requests requests/NAME.json     the request and reference checks alone
 
 DIR is a `narrate plan` directory (copied to the GPU host): requests/, refs/ and plan.json. `run`:
@@ -27,7 +27,11 @@ DIR is a `narrate plan` directory (copied to the GPU host): requests/, refs/ and
    file or a `metrics[<id>]` line marks a request finished. After a clean exit every complete WAV counts; after a
    stop, only the finished ones. A WAV counts as complete when its RIFF size, its chunk sizes and a data chunk
    account for the file's length exactly, so a WAV cut short is dropped;
-6. writes DIR/receipts/NAME.json: schema narrate-audiocpp-batch-receipt/1, the requests file and its sha256, each
+6. keeps a run record (narrate/serve/finalize.py, J130) from just before the runtime starts until it exits: this
+   process's pid, process group and start time, the engine's process group and the Lease holder (--lease-holder,
+   else NARRATE_LEASE_HOLDER). finalize.py must sit beside this file; `finalize.py finalize RUN --reason ...` sends
+   this process SIGTERM, which stops the runtime as in step 4;
+7. writes DIR/receipts/NAME.json: schema narrate-audiocpp-batch-receipt/1, the requests file and its sha256, each
    reference's sha256, runtime, commit, binary and weights sha256, family, task, backend, device, VK_DRIVER_FILES,
    exit code, stop rule, times, and every output's file and sha256. Missing outputs are listed, never invented.
    The pin prints no model load time, so the receipt records none.
@@ -41,6 +45,7 @@ runtime started; 20 the runtime was stopped (deadline or signal).
 import argparse
 import datetime
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -235,6 +240,17 @@ def stop_group(proc):
     return proc.poll() is not None
 
 
+def run_records():
+    """finalize.py from beside this file: the run record a manual or preempting finalize reads (J130)."""
+    path = Path(__file__).resolve().with_name("finalize.py")
+    if not path.is_file():
+        raise Refusal("finalize.py is not beside audiocpp_batch.py; copy both to the GPU host (the run record, J130)")
+    spec = importlib.util.spec_from_file_location("narrate_finalize", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def write_json(path, value):
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(json.dumps(value, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -253,6 +269,10 @@ def run(a):
         raise Refusal(f"requests file name {name!r} is not a plain name")
     check_pin(a.binary, a.binary_sha256, "binary")
     check_pin(a.model, a.model_sha256, "model")
+    holder = a.lease_holder or os.environ.get("NARRATE_LEASE_HOLDER") or None
+    records = run_records()
+    if holder is not None and not records.RUN_ID.match(holder):
+        raise Refusal(f"Lease holder {holder!r} is not a plain name")
     for sub in ("wav", "receipts", "logs"):
         (root / sub).mkdir(mode=0o700, exist_ok=True)
     relative = a.requests
@@ -271,6 +291,29 @@ def run(a):
     receipt_path = root / "receipts" / f"{name}.json"
     if receipt_path.exists():
         raise Refusal(f"receipts/{name}.json exists; a batch runs once (use --only-missing to finish it)")
+    run_id = f"audiocpp-{name}-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}-{os.getpid()}"
+    try:
+        record = records.open_record(
+            "audiocpp-batch",
+            run_id,
+            lease_holder=holder,
+            receipt_dir=root / "receipts",
+            test_mode=os.environ.get("NARRATE_AUDIOCPP_BATCH_TEST_MODE") == "1",
+        )
+    except (records.Refusal, OSError) as error:
+        raise Refusal(f"no run record: {error}") from None
+    result = None
+    try:
+        result = batch(a, root, name, relative, requests, batch_sha, refs, receipt_path, record)
+        return result
+    finally:
+        try:
+            record.close(result)
+        except OSError as error:
+            print(json.dumps({"run_record": "not closed", "error": str(error)}), file=sys.stderr)
+
+
+def batch(a, root, name, relative, requests, batch_sha, refs, receipt_path, record):
     work = root / f".run-{name}"
     work.mkdir(mode=0o700)
     absolute = []
@@ -297,6 +340,7 @@ def run(a):
     rule, gone = "exit", True
     with open(log, "wb") as out:
         proc = subprocess.Popen(argv, cwd=work, stdout=out, stderr=subprocess.STDOUT, start_new_session=True)
+        record.update(engine_pgid=proc.pid)
         seen, moved = None, time.monotonic()
         while proc.poll() is None:
             current = progress(log, out_dir)
@@ -355,6 +399,8 @@ def run(a):
         "wall_s": round(ended - started, 3),
         "log": {"file": f"logs/{name}.log", "sha256": sha256_file(log)},
         "test_mode": os.environ.get("NARRATE_AUDIOCPP_BATCH_TEST_MODE") == "1",
+        "run_id": record.data["run_id"],
+        "lease_holder": record.data["lease_holder"],
         "outputs": outputs,
         "missing": missing,
     }
@@ -398,6 +444,7 @@ def main(argv=None):
             c.add_argument("--deadline-s", type=float, default=0.0)
             c.add_argument("--stall-s", type=float, default=STALL_S)
             c.add_argument("--only-missing", action="store_true")
+            c.add_argument("--lease-holder", default=None, help="the Lease holder id, for the run record")
     a = p.parse_args(argv)
     try:
         if a.command == "check":

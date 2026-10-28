@@ -149,6 +149,7 @@ class Workspace(unittest.TestCase):
             "FAKE_VRAM_FILE": str(self.vram),
             "FAKE_VRAM_BYTES": str(2 * GiB),
             "FAKE_VRAM_IDLE": "1000000",
+            "NARRATE_RUNS_DIR": str(d / "run-records"),
         }
         for patcher in (
             mock.patch.dict(os.environ, self.env),
@@ -993,6 +994,9 @@ class Window(Workspace):
         self.assertTrue(receipt["test_mode"])
         self.assertEqual(receipt["scope"], {"test_mode_no_scope": True})
         self.assertEqual(receipt["runner"]["host_run.py"]["measured"], sha(BENCH / "host_run.py"))
+        record = json.loads((self.dir / "run-records" / "bench-h1.json").read_text())
+        self.assertEqual((record["kind"], record["lease_holder"]), ("bench-window", "h1"))
+        self.assertEqual((record["state"], record["exit_status"], record["test_mode"]), ("ended", 0, True))
 
         env = dict(self.base_env, FAKE_VRAM_BYTES="12500000000", FAKE_SLEEP_S="1")
         done = self.window("h2", env=env)
@@ -1135,6 +1139,31 @@ class Window(Workspace):
         self.assertEqual(proc.returncode, 20, err)
         self.assertIn("NARRATE-BENCH-DONE rc=20", out)
         self.assertEqual(self.receipt("h9")["stop"], "terminated")
+        self.assertTrue(wait_for(lambda: not any(alive(pid) for pid in self.engine_pids()), 5))
+
+    def test_finalize_stops_a_window_through_its_run_record(self):
+        """J130 (TIN-7564): finalize.py sends the inner stage SIGTERM; the window stops as on a hangup."""
+        finalize = load("narrate_finalize", ROOT / "narrate" / "serve" / "finalize.py")
+        runs = self.dir / "run-records"
+        env = dict(self.base_env, FAKE_SLEEP_S="30", FAKE_FORK="1")
+        argv = ["bash", str(self.bench / "run-bench.sh"), "h14"]
+        proc = subprocess.Popen(
+            argv, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True
+        )
+        self.addCleanup(lambda: proc.poll() is None and os.killpg(proc.pid, signal.SIGKILL))
+        self.assertTrue(wait_for(lambda: any("helper" in r for r in self.invocations()), 30), "engine never forked")
+        record = json.loads((runs / "bench-h14.json").read_text())
+        self.assertEqual((record["lease_holder"], record["state"]), ("h14", "running"))
+        code, receipt = finalize.finalize("bench-h14", reason="operator", directory=runs)
+        out, err = proc.communicate(timeout=60)
+        self.assertEqual(code, 0, receipt)
+        self.assertEqual(proc.returncode, 20, err)
+        self.assertIn("NARRATE-BENCH-DONE rc=20", out)
+        # The inner stage shares the outer stage's group, so it alone gets the signal.
+        self.assertEqual([(s["signal"], s["target"]) for s in receipt["signals"]], [("SIGTERM", "process")])
+        self.assertEqual((receipt["runner_exit_status"], receipt["engine_gone"]), (20, True))
+        self.assertEqual(self.receipt("h14")["stop"], "terminated")
+        self.assertTrue((self.bench / "runs" / "h14" / "bench-h14.finalize.json").is_file())
         self.assertTrue(wait_for(lambda: not any(alive(pid) for pid in self.engine_pids()), 5))
 
 

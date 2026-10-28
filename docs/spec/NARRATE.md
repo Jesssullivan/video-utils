@@ -316,6 +316,77 @@ private):
  "confidentialAllowed": true}
 ```
 
+## Finalizing an unattended GPU run (2026-10-28)
+
+Authority: J130 in the Linear doc "Rulings in force" (2026-10-28 interview),
+TIN-7564 comment bbd8af5d, R-HOOK-CONVERGENCE-20261004 (R-N11, R-N13).
+J130(a) lets narration runs on the GPU host run unattended under the Lease,
+its time cap, consent checks and receipts. J130(b) says a ringing live call
+preempts an unattended batch run: the run stops and the Lease is released for
+the call. TIN-7564 builds that preempt, due 2026-11-25. Until then a waiting
+call relies on the run's time cap or on an operator who finalizes the run by
+hand. `narrate/serve/finalize.py` is that manual path. It is standard library
+only, Python 3.9, Linux `/proc`, and it takes, reads and writes no Lease.
+
+**Run records.** Each narrate GPU run writes `RUNS/<run_id>.json` as it
+starts and rewrites it as ended with its exit code just before it exits.
+`RUNS` is `NARRATE_RUNS_DIR`, else `$XDG_RUNTIME_DIR/narrate-runs`, else
+`~/.local/state/narrate/runs`, never a path in git. Two runners write one:
+
+| Runner | Run id | Signalled process | Also recorded |
+| --- | --- | --- | --- |
+| `serve/audiocpp_batch.py run` | `audiocpp-<requests name>-<UTC time>-<pid>` | the runner | the engine's process group; `--lease-holder` or `NARRATE_LEASE_HOLDER` |
+| `bench/run-bench.sh` | `bench-<holder>` | the inner stage, in the window scope | the scope's cgroup once verified; the holder argument |
+
+A record holds the runner's pid, process group and start time in clock ticks
+after boot, the boot id, the user id, the Lease holder, the run's receipt
+directory, its state and its exit status. The batch runner refuses to start
+without `finalize.py` beside it. The bench window logs a record it cannot
+write and still runs under its time cap.
+
+**Finalize.** `just narrate-finalize [RUN]` (default `latest`, the newest
+record not yet finalized) or `python3 finalize.py finalize`, run on the host
+the run runs on:
+
+1. It refuses an unknown or malformed run id and a run already finalized. It
+   also refuses a record from another boot and a running record whose pid is
+   gone or now names another process (start time or owner differ). A stale
+   record gets no signal.
+2. A run that already ended gets no signal. `--reason finished` asks for
+   exactly this, and finalize refuses it on a live run.
+3. It sends SIGTERM to the runner's process group when the runner leads it,
+   else to the runner's pid alone, so a lease helper in the same group is never
+   signalled. The runner's own handler stops the engine (SIGTERM, then
+   SIGKILL, then a wait until the group is gone), writes its GPU-free evidence
+   and its receipt, and exits. The batch receipt's stop rule reads
+   `signal SIGTERM`. The bench window's receipt reads `terminated`.
+4. After `--grace-s` (60) it stops every process it saw under the runner, in
+   the engine group or in the cgroup (SIGTERM, `--kill-wait-s`, SIGKILL), and
+   only then sends the runner SIGKILL. The runner's exit lets the lease helper
+   release, so the engine is gone first.
+5. It waits `--lease-wait-s` (60) for the lease helper to exit when the helper
+   runs on this host as an ancestor of the runner whose argv names a script
+   ending in `_gpu_lease.py`. The helper releases in its `finally` once its command
+   exits, and its own receipt records how the release went. A helper on
+   another host, such as a window started over ssh, is recorded as
+   `not_local`. Confirm that release with the helper's receipt or its `show`.
+6. It writes a values-free receipt to `RUNS/<run_id>.finalize.json` and a copy
+   in the run's receipt directory. The receipt holds the reason, the times,
+   each signal and its target, the runner's exit status and whether the engine
+   and the local lease helper are gone. It holds no path, command line,
+   environment or text.
+
+Exit codes: 0 finalized, 1 something survived, 2 refused. `just narrate-runs`
+lists the records with their state: live, ended or stale.
+
+**The preempt hook.** `--reason` is `operator`, `preempted` (with an
+optional `--call-id`) or `finished`. A later TIN-7564 design adds a seat-side
+watcher. It sees a "preempt requested" annotation on the GPU Lease that names
+this holder and calls finalize on the GPU host, as
+`finalize.py finalize --holder H --reason preempted --call-id ID` or as the
+function `finalize(holder=H, reason="preempted", call_id=ID)`. This change
+builds no watcher.
+
 ## Consent and confidentiality policy
 
 - **No voice without consent.** A job declares its `scope` (`OwnContent` or

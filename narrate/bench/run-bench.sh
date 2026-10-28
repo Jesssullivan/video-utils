@@ -25,6 +25,13 @@
 # a signal (HUP, TERM, INT), kills anything left in its scope (also from an EXIT trap) and writes
 # runs/<holder>/receipt.json.
 #
+# Run record (J130, TIN-7564): once runs/<holder> exists the inner stage writes RUNS/bench-<holder>.json (RUNS is
+# NARRATE_RUNS_DIR, else $XDG_RUNTIME_DIR/narrate-runs, else ~/.local/state/narrate/runs) with its own pid, process
+# group, start time, the Lease holder and, once verified, its scope's cgroup; it rewrites the record as ended with
+# its exit code just before it exits. An operator stops a window by hand with narrate/serve/finalize.py (copied
+# anywhere on the GPU host; the window never runs it): `finalize.py finalize bench-<holder> --reason operator`
+# sends this stage SIGTERM, which stops the window as a HUP, TERM or INT does.
+#
 # Every path out prints `NARRATE-BENCH-DONE rc=N`: 0 at least one arm completed seed 1 and no window stop;
 # 10 no arm completed; 20 window stop; 2 refused.
 #
@@ -222,6 +229,40 @@ child=""
 CGROUP_PROCS=""
 log() { printf '%s %s\n' "$(date -u +%FT%TZ)" "$*" >>"$OUT/window.log"; printf '%s %s\n' "$(date -u +%FT%TZ)" "$*" >&2 2>/dev/null; }
 
+# The run record narrate/serve/finalize.py reads (header). A record that cannot be written is logged; the window
+# still runs under its time cap.
+RUNS_DIR=${NARRATE_RUNS_DIR:-}
+if [ -z "$RUNS_DIR" ]; then
+    if [ -n "${XDG_RUNTIME_DIR:-}" ]; then RUNS_DIR=$XDG_RUNTIME_DIR/narrate-runs; else RUNS_DIR=$HOME/.local/state/narrate/runs; fi
+fi
+RUN_RECORD=$RUNS_DIR/bench-$holder.json
+RUN_CGROUP=null
+RUN_STARTED_UTC=$(date -u +%FT%TZ)
+RUN_BOOT=$(cat /proc/sys/kernel/random/boot_id 2>/dev/null)
+run_stat=$(cat "/proc/$$/stat" 2>/dev/null)
+read -r -a run_fields <<<"${run_stat##*) }"  # fields 3 onward: [2] is the process group, [19] the start time
+RUN_PGID=${run_fields[2]:-}
+RUN_START=${run_fields[19]:-}
+run_record() {  # $1 running or ended, $2 the exit code or null
+    [ -n "$RUN_RECORD" ] || return 0
+    local ended=null
+    [ "$1" = ended ] && ended="\"$(date -u +%FT%TZ)\""
+    (umask 077 && mkdir -p "$RUNS_DIR" &&
+        printf '{"schema":"narrate-gpu-run-record/1","run_id":%s,"kind":"bench-window","lease_holder":%s,"runner":{"pid":%s,"pgid":%s,"starttime":%s,"uid":%s},"boot_id":%s,"engine_pgid":null,"cgroup":%s,"receipt_dir":%s,"started_utc":"%s","state":"%s","ended_utc":%s,"exit_status":%s,"test_mode":%s}\n' \
+            "$(json_str "bench-$holder")" "$(json_str "$holder")" "$$" "$RUN_PGID" "$RUN_START" "$(id -u)" \
+            "$(json_str "$RUN_BOOT")" "$RUN_CGROUP" "$(json_str "$OUT")" "$RUN_STARTED_UTC" "$1" "$ended" "$2" \
+            "$([ "$TEST_MODE" = 1 ] && echo true || echo false)" >"$RUN_RECORD.tmp.$$" &&
+        mv "$RUN_RECORD.tmp.$$" "$RUN_RECORD") 2>/dev/null || { log "run record not written"; RUN_RECORD=""; }
+}
+if [ -z "$RUN_PGID" ] || [ -z "$RUN_START" ]; then
+    log "no /proc stat for this stage: no run record, so finalize.py cannot find this window"
+    RUN_RECORD=""
+elif [ -e "$RUN_RECORD" ]; then
+    log "a run record for bench-$holder exists: not replaced, so finalize.py cannot find this window"
+    RUN_RECORD=""
+fi
+run_record running null
+
 sweep() {  # kill anything but this shell left in the scope; records the pids
     [ -n "$CGROUP_PROCS" ] && [ -r "$CGROUP_PROCS" ] || return 0
     local pid left=()
@@ -254,6 +295,7 @@ finish() {
         minimal_receipt "$OUT" "${stop:-summarize_failed}" "$rc" "host_run.py summarize failed"
     fi
     log "NARRATE-BENCH-DONE rc=$rc"
+    run_record ended "$rc"
     done_line "$rc"
     exit "$rc"
 }
@@ -288,6 +330,8 @@ else
         finish 2
     fi
     CGROUP_PROCS=/sys/fs/cgroup$cg/cgroup.procs  # swept only once it is proven to be this window's own scope
+    RUN_CGROUP=$(json_str "$cg")
+    run_record running null
 fi
 if ! runner_check >"$OUT/runner.json"; then
     log "refused: a runner file's sha256 is not the caller's expected value (runner.json)"

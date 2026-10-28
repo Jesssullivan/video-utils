@@ -23,7 +23,9 @@ def hermetic_env(monkeypatch, tmp_path):
     the private store, lexical release or engine token; none of them may reach a test. Each test has its own
     one-scorer lock file, so a scorer running on the host never turns a test's SIM into not_measured."""
     monkeypatch.setenv("NARRATE_SCORER_LOCK", str(tmp_path / "scorer.lock"))
+    monkeypatch.setenv("NARRATE_RUNS_DIR", str(tmp_path / "narrate-runs"))  # GPU run records (serve/finalize.py)
     for name in (
+        "NARRATE_LEASE_HOLDER",
         "WHISPER_MODEL",
         "NARRATE_WHISPER_MODEL",
         "NARRATE_STORE",

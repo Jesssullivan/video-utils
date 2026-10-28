@@ -34,6 +34,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | `just narrate-voice-add CONFIG CLIP TEXT ID CONSENT` | `python -m narrate voices add` | stores a 10 to 30 s mono 16-bit clip and its transcript by sha256; prints exactly a `Voice.dhall` record; needs `--allow-engine` |
 | `just narrate-serve-qwentts`, `just narrate-build-qwentts` | `serve/qwentts.sh` | the qwentts.cpp engine on loopback, on an allowed host only (see "Host placement and memory") |
 | `just narrate-bench` | | lane W3 (TIN-7085) fills it |
+| `just narrate-finalize [RUN]`, `just narrate-runs` | `serve/finalize.py` | J130: stop an unattended GPU run by hand on its host (`latest` by default, `--holder H`, `--reason operator`, `preempted --call-id ID` or `finished`); list the run records |
 
 ## The pipeline
 
@@ -52,6 +53,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | `verify.py`, `evaluate.py` | the re-check and the scores |
 | `sim.py`, `sim_worker.py` | SIM: ECAPA-TDNN cosine on the CPU in an interpreter with torch and speechbrain |
 | `bounded.sh`, `serve/qwentts.sh` | the memory-bounded wrapper for heavy steps; the qwentts.cpp engine's build and serve |
+| `serve/finalize.py` | GPU run records and the finalize path (J130, TIN-7564); copied beside `audiocpp_batch.py` on the GPU host |
 
 - **Refusals come first.** A missing, revoked or out-of-scope consent, a clip or transcript whose digest no stored
   file has, an unmapped dialog speaker, a hosted engine without `allowHosted`, and any engine that may not run a
@@ -207,6 +209,11 @@ requests file, binary, weights or WAV digests differ or a take that is not a com
 It scores every prerendered take of a chunk and keeps the best by WER, flags `qa_failed` when no take passes, and records the out-of-process synthesis in `engine.synthesis`. `[engine] audiocpp_clone` is
 `ultimate` (reference as voice and prompt audio, with its transcript; the default) or `reference`. The reference
 must fit VoxCPM2's encoder: 5 to 14.88 s (`ref_clip_misfit`).
+
+Copy `serve/finalize.py` beside `audiocpp_batch.py`: the runner refuses to start without it, and keeps a run record
+for the whole batch (pass `--lease-holder` with the Lease holder id). To give the GPU to a live call, the operator
+runs `python3 finalize.py finalize latest --reason operator` on the GPU host (`../docs/spec/NARRATE.md`, "Finalizing
+an unattended GPU run").
 
 ## Outputs
 
