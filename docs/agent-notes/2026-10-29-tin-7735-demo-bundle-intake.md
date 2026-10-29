@@ -52,3 +52,20 @@ listening `pending_operator`. These are fixture numbers, not a listening result.
 - The gate reads English number words and the unit table in the spec. It checks
   that a receipt is named, not what it says.
 - A bundle's MP4 plays from program second 0 under every beat.
+
+## Review fixes (2026-10-29)
+
+`review fixes | narrate seat | video-utils feat/tin-7735-demo-bundle-intake (PR #68, from b2bc2b0) | five findings applied as new signed commits; checks below | root review`
+
+| Finding | Change |
+| --- | --- |
+| high: spoken numbers past the gate | `claims.py`: a scale word with no count is `scale_without_count`; plural scale words, "-fold" words, "nil", "nought", "naught", decade words, "a third" and "an eighth" are vague; any non-ASCII numeral makes a digit token; Roman numerals of I, V and X are `roman_numeral`; U+2010, U+2011 and the soft hyphen join words and other dashes between number words are `dash_between_numbers`; "five's" reads as 5; "90s" is `decade_or_seconds` |
+| medium: writes before `put()` refused | `bundle.py`: every store target is checked first, then staged; the output tree is built in a temporary sibling and renamed; a refusal removes staged files, new store files and new directories |
+| medium: asset re-read unchecked | each asset is copied through descriptors opened with `O_NOFOLLOW` per component and re-hashed against its manifest sha256 (`asset_digest_mismatch`, `asset_missing`) |
+| low: pronunciation tables | `intake` says each paragraph through the template's `Normaliser` (and the narration register's upstream table from `NARRATE_LEXICAL_DIR`) and refuses `pronunciation_adds_number` |
+| low: unknown scales and units | a single letter, a scale abbreviation, a vowel-less lower-case unit, a binary prefix, a mixed-case unit or a listed capital unit after a number is `unknown_scale_or_unit`; symbols match in exact case and after spelled numbers; "m/s" reads as `m/s`, a "/" to a non-unit is `unit_not_read` |
+| nit: claims tool draft | read-only timeout and closing sentences; intake draft states the atomic write |
+
+Spec "Demo bundle intake" and its unknowns, the intake skill and both drafts
+follow the code. Each finding has a synthetic regression test in
+`narrate/tests/test_narrated_video_intake.py`.

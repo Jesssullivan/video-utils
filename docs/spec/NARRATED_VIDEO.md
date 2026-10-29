@@ -750,7 +750,7 @@ in the file, and the claims gate refuses every number that relies on it.
 | --- | --- |
 | `bundle_invalid` | a file is missing, malformed, too large or has a missing or unknown field; an asset path leaves the bundle |
 | `asset_missing` | an asset file is absent, not a regular file, or reached through a symlink |
-| `asset_digest_mismatch` | an asset file does not hash to its manifest `sha256` |
+| `asset_digest_mismatch` | an asset file does not hash to its manifest `sha256`, when it is read or when its store copy is hashed |
 | `asset_kind_mismatch` | an asset's extension, bytes or PNG size differ from its manifest entry |
 | `asset_unreceipted` | an asset's receipt is empty |
 | `asset_unknown` | a beat's `asset_id` is not in the manifest |
@@ -761,7 +761,8 @@ in the file, and the claims gate refuses every number that relies on it.
 | `claim_invalid`, `claim_unknown` | a claim breaks its rules; a beat cites a claim id that `claims.json` lacks |
 | `number_unclaimed`, `claim_unreceipted`, `claim_ambiguous`, `number_ambiguous` | the claims gate, per segment (below) |
 | `narrate_job_missing`, `records_invalid`, `voice_unknown`, `engine_unknown`, `engine_not_allowed`, `consent_scope`, `confidential_engine_refused` | the template narrate job, voice or engine cannot voice a confidential job |
-| `out_exists`, `store_conflict`, `narrate_job_exists` | the output directory is not new or empty; the store holds a different file under a digest name; the records hold a different narrate job with a new job's id |
+| `pronunciation_unknown`, `pronunciation_refused`, `pronunciation_adds_number`, `lexical_missing`, `lexical_digest_mismatch` | the template's pronunciation table has no record; narrate's normaliser refuses a beat; a table makes narrate say a number word or digit group that the voiced text lacks; the template pins the narration register and its xoxd-lexical release (`NARRATE_LEXICAL_DIR`) is absent or does not match its pin |
+| `out_exists`, `store_conflict`, `narrate_job_exists` | the output directory is not new or empty (or fills while the intake runs); the store holds a different file, a symlink or a directory under a digest name, or `--store` is `--out` itself; the records hold a different narrate job with a new job's id |
 | admit's codes | the converted job fails admit at Plan, such as `slides_invalid` for a PNG beat shorter than two fades |
 
 ### Conversion
@@ -783,7 +784,13 @@ the template's `fitMaxStretch`. `place` still refuses `placement_overlap` or `ba
 fit.
 
 The intake writes nothing until every check passes, including admit on the converted job against the merged
-records. Then it writes into a new or empty `--out`:
+records and the pronunciation check below. Then it checks every store target (absent, or a regular file with the
+same digest; anything else refuses `store_conflict`) before it creates anything. It copies each cited asset into a
+temporary file in the store, opening every path component without following a symlink, and hashes the copy: a copy
+that does not match the manifest `sha256` refuses `asset_digest_mismatch`. It builds the output tree in a temporary
+sibling of `--out`, links each store file into place without replacing one, and renames the tree to `--out`. A
+refusal at any step removes the temporary files, the store files this run added and the directories it created, so
+`--out` stays absent or empty and a retry can use it. The result in a new or empty `--out` is:
 
 ```text
 OUT/
@@ -797,8 +804,9 @@ STORE/                  --store, default OUT/store: each beat's Markdown as <sha
 `intake.json` names the bundle by slug and by the digests of its three files, never by path. It holds the job id and
 digest, the narrate template, voice and engine, and one row per segment. Each row holds the narrate job, script
 digest, span, asset (id, kind, digest, receipt), shown layer and the claims result. It also holds `unused_assets`,
-the store digests written, the digest of every output, admit's verdict and pending operator gates, and the states
-`source_checks: passed`, `claims: passed`, `render: not_run` and `listening: pending_operator`. Then
+the store digests written, the digest of every output, admit's verdict and pending operator gates, the template's
+pronunciation table id and pinned upstream release (or `null`), and the states `source_checks: passed`,
+`claims: passed`, `pronunciation_numbers: passed`, `render: not_run` and `listening: pending_operator`. Then
 `init --job ID --from OUT/narrated-video.json --records OUT/records` and `run` proceed as for any job. The beats'
 narrate jobs are confidential, so the engine must be one that `Engine.mayRunConfidential` admits.
 
@@ -821,14 +829,47 @@ beat cites, with the same number and unit and a non-empty receipt.
 The gate fails closed. These readings are ambiguous and never match:
 
 - adjacent number words that do not form one number ("nineteen eighty four", "one two three");
-- fractions and vague quantities ("one third", "two thirds", "a half", "quarter", "dozen", "couple", "twice");
+- fractions and vague quantities ("one third", "two thirds", "a half", "a third", "an eighth", "quarter", "dozen",
+  "couple", "twice"), plural scale words ("hundreds", "thousands", "millions", "tens of thousands"), "-fold" words
+  ("tenfold", "ten-fold", "10 fold"), "nil", "nought", "naught" and decade words ("teens", "the nineties"):
+  reason `fraction_or_vague_quantity`;
+- a scale word with no count before it ("hundred files", "thousand users"): `scale_without_count`;
 - "point" and digit words with no whole part ("point five");
 - "second" where it may be the ordinal or the unit ("twenty second", "one hundred second");
-- digit tokens that are not one plain number ("1.2.3", "10:30", "1/2", "2026-10-29", "MP4", "1,23", "4K").
+- a Roman numeral of two or more capital I, V and X ("World War II", "Phase IV"): `roman_numeral`;
+- a dash other than a hyphen inside one word chunk between number words (an en or em dash, or U+2212, between
+  "five" and "hundred"): `dash_between_numbers`;
+- digit tokens that are not one plain number ("1.2.3", "10:30", "1/2", "2026-10-29", "MP4", "1,23", "4K", "5M",
+  any chunk with a non-ASCII numeral such as "½", "²" or an Arabic-Indic digit): `digits_not_one_number`;
+- a whole ten with an attached "s" ("the 90s", "1990s"), a decade or seconds: `decade_or_seconds`. "12s" and
+  "30 s" are seconds;
+- a number followed by a word that may scale it or that names a unit the gate does not read:
+  `unknown_scale_or_unit`. These are a single letter other than "a" and "I" ("17 K", "3 B", "17 M"), a scale
+  abbreviation (`k`, `bn`, `mn`, `mln`, `mio`, `tn`, `mil`, `thou`, `grand`, `lakh`, `crore` and their variants), a
+  lower-case unit of up to five letters with no vowel ("kph", "rpm", "kbps", "Mb" in lower case), a binary prefix
+  ("GiB", "MiB"), a mixed-case unit ("Mbps", "kWh") and the capital units `MW`, `MV`, `MA`, `KM`, `PB`, `EB`,
+  `KPH`, `MPH`, `RPM`, `BPM`, `PPM`, `KBPS` and `MBPS`;
+- a unit joined by "/" to something that is not a unit ("5 m/furlong"): `unit_not_read`. "5 m/s" and
+  "five km/h" read as `m/s` and `km/h`.
+
+A hyphen joins words: U+002D, U+2010, U+2011 (the non-breaking hyphen) and the soft hyphen, so "five‑hundred"
+written with U+2011 reads as 500, never as 5. A possessive or contraction of a number word ("five's", "seven’s")
+reads as the number. Unit symbols match in their exact case after digits or spelled numbers ("twelve ms"): "m" is
+metres and "M" is not a unit, "mW" is milliwatts and "MW" is ambiguous, "MB" is megabytes and "Mb" is ambiguous.
+Other words after a number, acronyms such as "MCP" and "PRs" among them, leave it a bare count.
 
 "one" is always the number 1, and "first" and "second" alone are the ordinals 1 and 2: a script that uses them as
 ordinary words cites a claim or rewords. "once", "single", "both", "none", and "a" before anything but a scale word
-are not numbers. A cited claim that no number uses is listed in `unused_claims` and never refused.
+or an ordinal are not numbers. A cited claim that no number uses is listed in `unused_claims` and never refused.
+
+The gate reads the voiced text as written. narrate then says it through the template's pronunciation table, and,
+when the template pins the narration register, the xoxd-lexical upstream table first. narrate's own guard refuses an
+entry that changes digits or a recognised numeric literal, but not one that turns a word into number words. So
+`intake`, after admit, says each beat's paragraphs through the same `Normaliser` and refuses
+`pronunciation_adds_number` when the spoken form holds a number word, vague quantity, Roman numeral or digit group
+that the written form lacks. Units are not compared: a table may spell out "LUFS". With the narration register
+pinned, the intake reads the release from `NARRATE_LEXICAL_DIR` and refuses `lexical_missing` without it.
+`claims` alone reads no records and does not run this check.
 
 `claims` runs the gate alone on `script.md` and `claims.json` and prints `{ok, bundle, segments}`, one row per
 segment with its status, codes, mentions (text, number, unit, kind, status, claim and receipt, or code and reason)
@@ -894,7 +935,14 @@ it stays a knob.
   then fails, and `min_fade_s` in `compose.json` names the fade that passes.
 - Burned captions and the deck project's own delivery profiles are not built.
 - The claims gate reads English number words and the units listed in "Demo bundle intake". A number said in
-  another language, or a unit outside the table, reads as a bare count or not at all. The gate checks that
-  a receipt is named, not what the receipt says.
+  another language reads as a bare count or not at all. A unit outside the table reads as a bare count unless
+  its shape marks it as a possible scale (single letters, scale abbreviations, vowel-less lower-case units,
+  binary prefixes, mixed-case units and the listed capital ones). A real word unit outside the table ("beats
+  per minute") still reads as a bare count. Roman numerals with L, C, D or M ("CLI", "MD") are not read, because
+  they collide with common acronyms. The gate checks that a receipt is named, not what the receipt says.
+- The pronunciation check compares the number tokens of a paragraph before and after the tables, not their
+  values or order: an entry that only reorders a paragraph's number words passes. narrate's chunker normalises per
+  chunk, and the check normalises per paragraph, so an entry that matches across a chunk boundary is read
+  differently. `claims` alone does not check pronunciation tables.
 - A demo bundle's MP4 plays from program second 0 under every beat. A bundle with clips at several
   offsets, or more than one clip, needs a deck base or a later stage.
