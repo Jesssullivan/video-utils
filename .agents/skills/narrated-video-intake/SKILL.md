@@ -1,0 +1,36 @@
+---
+name: narrated-video-intake
+description: Turn a receipt-backed demo bundle into a narrated-video job, and refuse any spoken number that no cited receipt backs.
+---
+
+# Let an agent take in a demo bundle (manifest, script, claims and assets) as an existing narrated-video job, with every asset bound by digest and every spoken number bound to a receipt.
+
+**Hook:** MCP tools `narrated_video_claims` and `narrated_video_intake`, drafted in `program/tool-drafts/narrated_video.json` with no proposed number yet, not admitted. Root assigns their numbers at admission. Until then the fallback recipes are the hook: `just narrated-video-claims BUNDLE`, `just narrated-video-intake BUNDLE OUT ARGS` and `just nv-intake-fixture`, each a `python -m narrate video` command inside `nix develop .#condense`.
+
+**Capability:** a bundle is a directory with `manifest.json` (each asset's id, path, sha256, kind `png`, `mp4` or `gif`, receipt, and optional size and fps), `script.md` (`## beat-id` beats, each with `- target_s:`, `- asset_id:`, `- claims:` and one ```` ```voiced ```` block of the exact words) and `claims.json` (each claim's id, value as spoken text and as number and unit, and receipt). `claims` extracts every number the voiced text speaks: digits, spelled-out cardinals, decimals ("seventeen point eight seven seven"), ordinals, percentages and the unit words after them. Each must match exactly one claim the beat cites, with the same value and unit and a non-empty receipt. `intake` also hashes every asset and converts the bundle to one `NarratedVideo` job with edition `Internal`, one segment per beat, PNG beats as slide pages by sha256, and one MP4 as the base video or else the default card. It writes one confidential Markdown narrate job per beat with `allowHosted` false, plus `intake.json` with per-segment claims results. It writes only after admit accepts the job and the template's pronunciation tables add no spoken number, and it writes atomically: a refusal leaves no output and no new store file. No schema is new: the records are the ones `init --from` and `run` already read.
+
+## Use and controls
+
+1. `just narrated-video-claims BUNDLE`: read each segment's `status`, `codes` and refused mentions (`number_unclaimed`, `claim_unreceipted`, `claim_ambiguous`, `number_ambiguous` with its `reason`) and `unused_claims`.
+2. Fix the bundle in its producer's repository, never here. Reword the number, cite a receipted claim, or ask the producer for one. Convert a cited GIF to a PNG or MP4 asset with its own digest and receipt.
+3. `just narrated-video-intake BUNDLE OUT --records DIR --narrate-template ID --voice ID --engine ID (--persona P | --no-avatar)`. Optionally add `--store DIR` (the private store, default `OUT/store`), `--job ID` and `--tail-s S`. OUT must be new or empty, and a refusal writes nothing.
+4. `python3 -m narrate video init --job ID --from OUT/narrated-video.json --records OUT/records`, then `just nv-plan ID` and `just nv-run ID` (skill `narrated-video`).
+
+Knobs: `--voice` and `--engine` (the engine must admit a confidential job), `--narrate-template` (lexical pin, pronunciation table, scope, gates and post settings), `--persona` or `--no-avatar` (NV-8) and `--tail-s` for a card base. Each beat's `target_s` sets its span and narrate's fit target. A PNG beat shorter than two slide fades (0.7 s) refuses `slides_invalid` at admit.
+
+## Speech, not guitar
+
+Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply. The intake renders nothing and writes no media. The job it writes runs through the narrated-video stages, whose manifests say `no_time_stretch: false` with a non-identity mapping, so no guitar tool accepts them.
+
+## Limits
+
+- The repository is public. A real bundle, its assets, receipts, script and claims stay in the producer's private repository and the private store. Tracked files hold only the synthetic `demo-fixture` bundle that `narrate/video/fixture.py` generates.
+- The gate fails closed. Adjacent number words ("nineteen eighty four"), fractions and vague quantities ("two thirds", "a half", "a third", "twice", "thousands of", "tenfold"), a scale word with no count ("hundred files"), "point five" with no whole part, "twenty second", Roman numerals ("II"), a dash between number words, "the 90s", a scale abbreviation or unknown unit symbol after a number ("17 K", "17 bn", "1.5 GiB", "5 kph") and digit tokens such as "1.2.3", "10:30", "MP4" or "½" never match. "one", "first" and "second" are always numbers, and "five's" is 5.
+- `claims` reads the text as written. `intake` also says each beat through the template's pronunciation tables and refuses `pronunciation_adds_number` when a table adds a number word; with the narration register pinned it needs `NARRATE_LEXICAL_DIR`.
+- The gate checks that each number names a receipt, not what the receipt says. English only, with the unit table in the spec.
+- One MP4 per bundle, playing from program second 0 under every beat. Two different MP4s refuse `asset_video_multiple`.
+- A passed intake is a source check. Render, lip sync, listening and delivery are later, separate states, and only the operator closes listening.
+
+## Agent iteration
+
+Run `claims`, fix one thing in the bundle's producer repository, run `claims` again and compare the two reports segment by segment. Then run `intake` into a new OUT and keep `intake.json`. Record a dated receipt in `docs/agent-notes/` with the bundle slug, digests, codes and counts only: no voiced text, claim value, receipt text, asset, store path or host name.
