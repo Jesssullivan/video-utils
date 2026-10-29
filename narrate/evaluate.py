@@ -20,12 +20,16 @@ from .normalise import recorded_aliases
 METRICS = ("loudness", "overruns", "wer", "sim")
 
 
-def evaluate(run_dir, metrics=METRICS, cfg=None, reference_voice=None, scorer=None):
+def evaluate(run_dir, metrics=METRICS, cfg=None, reference_voice=None, scorer=None, gates=None):
+    """gates: the job's gates (maxChunkWer, minSim, calibrated) to score against instead of the ones the run's
+    manifest carries, so a caller that holds the job record (the narrated-video voice_qa stage) applies its own."""
     run_dir = Path(run_dir)
     receipt = verify.verify(run_dir)
     if not receipt["ok"]:
         return {"ok": False, "reason": f"the run does not verify: {receipt['reason']}"}
     manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+    if gates is not None:
+        manifest = {**manifest, "job": {**manifest["job"], "gates": gates}}
     post = manifest["job"]["post"]
     out = {"ok": True, "run_id": manifest["run_id"], "metrics": {}}
     if "loudness" in metrics:

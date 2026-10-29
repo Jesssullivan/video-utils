@@ -286,32 +286,51 @@ makes the run. The `voice` stage cannot do that itself (`run_voice` would refuse
 `prerendered_required`), so `stage JOB voice --from-run RUN_DIR` adopts that run
 (TIN-7564). The segment defaults to the job's only one. `script` must be fresh.
 
-1. The run must be a directory with a `manifest.json`, outside `artifacts/runs/`,
+1. The narrate job is admitted first, against this job's records and private
+   store, exactly as the stage's own render would admit it (`policy.admit` over
+   the segment's script): the engine rules, every voice the narrate job names,
+   consent with its stored evidence, its scopes, `allowedEngines` and the hosted
+   rules. A run rendered against other records, or before a consent narrowed,
+   is refused with narrate's own code (`consent_scope`, `consent_missing`,
+   `engine_not_allowed`, `hosted_not_allowed` and the rest).
+2. The run must be a directory with a `manifest.json`, outside `artifacts/runs/`,
    with no symlink in it (`voice_run_missing`, `voice_run_manifest_missing`,
    `voice_run_in_guitar_runs`, `voice_run_invalid`).
-2. It is copied into the stage's `narration/`, and the copy, never the source, is
+3. It is copied into the stage's `narration/`, and the copy, never the source, is
    checked by `narrate verify`: every digest, `synthetic: true`, mapping
    `narration_v1`, `no_time_stretch: false` and `content_sha256`
    (`voice_run_unverified`).
-3. A test-mode batch refuses `voice_run_test_mode` (the flag
+4. A test-mode batch refuses `voice_run_test_mode` (the flag
    `prerendered_test_mode`, or `engine.synthesis.test_mode`).
-4. The chunk gates must hold: every chunk lists its take and a QA status, the
+5. The chunk gates must hold: every chunk lists its take and a QA status, the
    counts in `qa.chunks` agree, and no chunk failed its measured gate
    (`voice_chunk_gate_failed`).
-5. The run must be what the voice key names: the narrate job's fields and seed
-   with no overrides or rewrite, the segment's script digest and input kind, the
-   engine id and pinned file digests, the voices with their reference clips,
-   consents and scopes, the lexical release and the pronunciation table
-   (`voice_run_mismatch`, naming the first field that differs).
+6. The run must be what the stage would render (`voice_run_mismatch`, naming the
+   first field that differs): the narrate job's fields, gates and seed with no
+   overrides or rewrite; the segment's script digest and input kind; the engine
+   record narrate writes (every field and the knobs the stage's own
+   `narrate.toml` gives, such as `fit_speed_max` and `audiocpp_clone`, with
+   pinned files compared by digest, never by path, and the batch's own
+   `synthesis` record left out); the voice records by speaker, for the voices
+   the script uses (a named speaker the script leaves out is not required),
+   with clips, transcripts, consents, scopes and tempo; the lexical release; and
+   the pronunciation table.
 
 Each refusal is a failure, not a verdict: nothing is recorded, and another run
 may be adopted. The stage manifest is the one a local render writes, with
 `states.render: adopted` and `measurements.adopted` holding the run id and
 content digest, never the source path. `voice_qa` and the stages after it run as
-usual. Adopting the run the node already holds is a no-op; another run refuses
-`voice_already_fresh` unless `--replace` first archives the node to `history/`.
+usual, and `voice_qa` scores against the narrate job's gates from the records,
+never the gates a run's manifest carries. Adopting the run the node already
+holds runs every check on `RUN_DIR` again and is then a no-op; another run
+refuses `voice_already_fresh` unless `--replace` is given. `--replace` runs every
+check on `RUN_DIR` in place first, and only a run that passes them archives the
+node to `history/`, so a run that would be refused never costs the node it would
+replace. These two refusals print on stderr as `{"ok": false, "refused", ...}`.
 `narrate render --result-line` and `narrate verify --result-line` print the
-`{ok, run_id, content_sha256}` line a workflow task reads before it adopts.
+`{ok, run_id, content_sha256}` line a workflow task reads before it adopts;
+verify prints it with `ok: false` and a `reason` even when the manifest is
+missing or unreadable.
 
 ## Editions
 

@@ -135,7 +135,8 @@ def edl_ok(run_dir, name, timeline):
 def main(run_dir, line=False):
     receipt = verify(run_dir)
     if line:
-        print(result_line(receipt["ok"], receipt["run_id"], receipt["content_sha256"], receipt["reason"]))
+        # an unreadable or non-object manifest returns early, without run_id or content_sha256
+        print(result_line(receipt["ok"], receipt.get("run_id"), receipt.get("content_sha256"), receipt["reason"]))
     else:
         print(json.dumps(receipt, indent=1, sort_keys=True))
     return 0 if receipt["ok"] else 1

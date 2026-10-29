@@ -51,10 +51,12 @@ nv-stage job stage *args:
 
 # Adopt a narrate run already rendered and verified elsewhere (an AudioCppBatch engine's `just narrate-render CONFIG
 # --prerendered DIR`) as the job's voice node instead of voicing it again. The run is copied into the stage
-# directory, re-verified there and bound to the voice key (narrate job, script, voices and consents, engine, lexical
-# release, pronunciation). It refuses a run that fails narrate verify, a test-mode batch (prerendered_test_mode), a
-# failed chunk gate or a run that differs from the key. ARGS: --segment ID (default the job's only segment),
-# --replace to archive a fresh voice node first, --json.
+# directory, re-verified there and bound to what the stage would render (narrate job and gates, script, engine record
+# and knobs, voices by speaker with clips and consents, lexical release, pronunciation), after narrate's consent
+# policy admits the job against this job's own records and store. It refuses a policy failure, a run that fails
+# narrate verify, a test-mode batch (prerendered_test_mode), a failed chunk gate or a run that differs. ARGS:
+# --segment ID (default the job's only segment), --replace to archive a fresh voice node once the new run passes
+# every check, --json.
 # Record an already rendered narrate run as a job's voice stage output.
 nv-stage-voice-from-run job run_dir *args:
     narrate/bounded.sh python3 -m narrate video stage {{quote(job)}} voice --from-run {{quote(run_dir)}} {{args}}

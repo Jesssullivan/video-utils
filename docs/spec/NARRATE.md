@@ -341,7 +341,9 @@ load per voice:
   `narrate video stage JOB voice --from-run RUN_DIR`
   (docs/spec/NARRATED_VIDEO.md, "Commands") then adopts the rendered run as
   the narrated-video voice node, so a batch run is never voiced again. It
-  refuses a test-mode batch (`prerendered_test_mode`) and a failed chunk gate.
+  admits the narrate job against the video job's own records and store first
+  (`policy.admit`), and refuses a test-mode batch (`prerendered_test_mode`), a
+  failed chunk gate and a run whose job, gates, engine record or voices differ.
 
 An engine record for VoxCPM2 (values are placeholders; the real record is
 private):

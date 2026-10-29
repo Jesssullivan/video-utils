@@ -5,8 +5,11 @@
 - voice renders the segment with narrate (`narrate.render`, tool 58) into its stage directory. The narrate run keeps
   its own manifest, mapping narration_v1 and verification; the stage manifest adds the labels. `stage JOB voice
   --from-run RUN_DIR` adopts a run narrate already rendered instead (an AudioCppBatch engine's
-  `narrate render --prerendered`): the run is copied in, re-verified and bound to the voice key, never voiced again.
-- voice_qa re-verifies that run and scores it with `narrate.evaluate` (tool 61) against the narrate job's gates. A
+  `narrate render --prerendered`): the narrate job is admitted against this job's records and private store as a
+  render would admit it, then the run is copied in, re-verified and bound to what the stage would render (job and
+  gates, script, engine record and knobs, voices by speaker), never voiced again.
+- voice_qa re-verifies that run and scores it with `narrate.evaluate` (tool 61) against the narrate job's gates from
+  the records, never the gates the run's manifest carries. A
   measured gate that fails refuses voice_qa_failed. A metric the host cannot measure stays not_measured, and the
   operator's listening receipt stays pending_operator: voice_qa never marks listening passed.
 
@@ -22,7 +25,7 @@ import json
 import shutil
 from pathlib import Path
 
-from .. import adapters, evaluate, lexical, render, spoken, verify
+from .. import adapters, evaluate, lexical, policy, render, spoken, verify
 from ..adapters import InputError
 from ..config import Config, ConfigError, in_guitar_runs
 from ..engine import EngineError
@@ -30,10 +33,11 @@ from ..ir import canonical, sha256_text
 from ..lexical import LexicalError
 from ..normalise import NormaliseError
 from ..policy import Refused
+from ..prerender import PrerenderError
 from ..registry import RegistryError
-from . import graph, labels
+from . import labels
 from .common import StageRefused, upstream, work_dir, write_json
-from .keys import normalise
+from .keys import KeyDocumentError, normalise
 from .store import StoreError, files_under
 
 SUFFIX = {"Markdown": ".md", "PlainText": ".txt", "Srt": ".srt", "Vtt": ".vtt", "Dialog": ".txt"}
@@ -176,14 +180,16 @@ def voice_fields(manifest, states, adopted=None):
 
 
 # voice --from-run -----------------------------------------------------------------------------------------------
-# The narrate job fields a run's manifest copies (render.py, manifest["job"]) that the voice key holds. gates is not
-# one: the voice key leaves it to voice_qa, which scores the adopted run against the job's own gates.
+# The narrate job fields a run's manifest copies (render.py, manifest["job"]), each equal to the narrate job record.
+# gates is one of them: the chunk statuses a run carries were decided under its own gates and maxTakes, so a run
+# rendered with looser gates is refused here rather than passed by voice_qa.
 JOB_FIELDS = (
     "id",
     "scope",
     "confidential",
     "allowHosted",
     "chunkMaxCodepoints",
+    "gates",
     "post",
     "audio",
     "captions",
@@ -207,9 +213,9 @@ def adopt_refused(code, detail):
     return StageRefused(code, detail, verdict=False)
 
 
-def adopted_copy(source, target):
-    """Copy a narrate run directory into target. Refuses a missing run, a run without a manifest, a run under
-    artifacts/runs/ and a symlink anywhere in the run, before a byte is copied."""
+def check_source(source):
+    """Refuse a missing run, a run without a manifest, a run under artifacts/runs/ and a symlink anywhere in the run,
+    before a byte is copied. Returns the run directory."""
     source = Path(source)
     if source.is_symlink() or not source.is_dir():
         raise adopt_refused("voice_run_missing", "--from-run is not a narrate run directory")
@@ -222,8 +228,40 @@ def adopted_copy(source, target):
         files_under(source)
     except StoreError as exc:
         raise adopt_refused("voice_run_invalid", exc.detail) from None
-    shutil.copytree(source, target, symlinks=True)
+    return source
+
+
+def adopted_copy(source, target):
+    """Copy a narrate run directory that passes check_source into target."""
+    shutil.copytree(check_source(source), target, symlinks=True)
     return target
+
+
+def admitted(rc, segment):
+    """(engine record, voice records) that the voice stage's own render would admit and write for the segment.
+
+    It runs narrate's policy.admit over the segment's script with this job's records and private store: engine
+    rules, every voice the narrate job names, consent with stored evidence and its scopes, allowedEngines and the
+    hosted rules. The engine record takes its knobs from the stage's own narrate.toml. The voice records are the
+    {speaker: voice} map the script uses. A policy refusal keeps narrate's code and is never recorded."""
+    narrate_job = rc.records["jobs"][segment["narrateJob"]]
+    with work_dir(rc.store) as work:
+        path = script_copy(rc, segment, narrate_job["input"], work)
+        cfg = narrate_config(rc, segment["narrateJob"], path, work / "unused", work)
+        try:
+            script = adapters.load(narrate_job["input"], path, cfg.input_opts)
+        except (InputError, NormaliseError, UnicodeDecodeError, ValueError) as exc:
+            raise adopt_refused("input_invalid", str(exc)[:200]) from None
+        try:
+            engine, voices, consents = policy.admit(narrate_job, script, rc.records, rc.env.index)
+            want_voices = [
+                render.voice_record(speaker, voice, consents)
+                for speaker, voice in sorted(voices.items(), key=lambda kv: str(kv[0]))
+            ]
+            want_engine = render.engine_record(engine, cfg)
+        except (Refused, PrerenderError) as exc:
+            raise adopt_refused(exc.code, exc.detail) from None
+    return want_engine, want_voices
 
 
 def chunk_gate_problem(manifest):
@@ -252,10 +290,42 @@ def chunk_gate_problem(manifest):
     return None
 
 
-def binding_problem(rc, segment, manifest):
-    """The first field where the run differs from what the voice key holds, or None: the narrate job, the script,
-    the voices and their consents, the engine, the lexical release and the pronunciation table."""
-    records, narrate_job = rc.records, rc.records["jobs"][segment["narrateJob"]]
+def file_digests(files):
+    return sorted(str(f.get("sha256")) for f in files if isinstance(f, dict)) if isinstance(files, list) else None
+
+
+def engine_problem(engine, want):
+    """The first engine field where the run differs from what the voice stage would record, or None. Pinned files
+    compare by digest only (their paths are private to each host); synthesis is the batch's own record."""
+    fields = set(want) | set(engine)
+    fields.discard("synthesis")
+    for field in ["id"] + sorted(fields - {"id"}):
+        if field == "files":
+            if file_digests(engine.get("files")) != file_digests(want.get("files")):
+                return "engine.files"
+        elif normalise(engine.get(field)) != normalise(want.get(field)):
+            return f"engine.{field}"
+    return None
+
+
+def voices_problem(voices, want):
+    """Where the run's voice records differ from the ones the script's {speaker: voice} map yields, or None."""
+    if not isinstance(voices, list) or not all(isinstance(v, dict) for v in voices):
+        return "voices"
+    if [(v.get("speaker"), v.get("voice")) for v in voices] != [(v["speaker"], v["voice"]) for v in want]:
+        return "voices: the run's {speaker: voice} map is not the one the script uses"
+    for got, record in zip(voices, want, strict=True):
+        if normalise(got) != normalise(record):
+            return f"voices.{record['voice']}"
+    return None
+
+
+def binding_problem(rc, segment, manifest, want):
+    """The first field where the run differs from what the voice stage would render, or None: the narrate job and
+    its gates, the script, the engine record and its knobs, the voices by speaker with their clips, consents and
+    scopes, the lexical release and the pronunciation table. want is admitted()'s result."""
+    narrate_job = rc.records["jobs"][segment["narrateJob"]]
+    want_engine, want_voices = want
     job = manifest.get("job") if isinstance(manifest.get("job"), dict) else {}
     if job.get("overrides"):
         return "job.overrides: an adopted run renders the job record as it is"
@@ -271,56 +341,66 @@ def binding_problem(rc, segment, manifest):
     if not isinstance(rewrite, dict) or rewrite.get("status") != "none":
         return "input.rewrite: an adopted run voices the script itself"
     engine = manifest.get("engine") if isinstance(manifest.get("engine"), dict) else {}
-    want_engine = graph.engine_identity(records, narrate_job)
-    if want_engine is None or engine.get("id") != narrate_job["engine"]:
-        return "engine.id"
-    files = engine.get("files") if isinstance(engine.get("files"), list) else []
-    if sorted(str(f.get("sha256")) for f in files if isinstance(f, dict)) != want_engine["files"]:
-        return "engine.files"
-    wanted = {v: records["voices"][v] for v in {narrate_job["voice"]} | {s["voice"] for s in narrate_job["speakers"]}}
-    voices = manifest.get("voices") if isinstance(manifest.get("voices"), list) else []
-    if not all(isinstance(v, dict) for v in voices) or sorted({v.get("voice") for v in voices}) != sorted(wanted):
-        return "voices"
-    for v in voices:
-        record = wanted[v["voice"]]
-        if (v.get("ref_clip_sha256"), v.get("consent_id"), v.get("scope")) != (
-            record["refClipSha256"],
-            record["consentId"],
-            record["scope"],
-        ):
-            return f"voices.{v['voice']}"
+    problem = engine_problem(engine, want_engine) or voices_problem(manifest.get("voices"), want_voices)
+    if problem:
+        return problem
     run_lexical = manifest.get("lexical") if isinstance(manifest.get("lexical"), dict) else {}
-    for got, want in LEXICAL_FIELDS.items():
-        if normalise(run_lexical.get(got)) != normalise(narrate_job["lexical"].get(want)):
+    for got, field in LEXICAL_FIELDS.items():
+        if normalise(run_lexical.get(got)) != normalise(narrate_job["lexical"].get(field)):
             return f"lexical.{got}"
-    table = (records.get("pronunciation") or {}).get(narrate_job.get("pronunciation"))
+    table = (rc.records.get("pronunciation") or {}).get(narrate_job.get("pronunciation"))
     pron = manifest.get("pronunciation") if isinstance(manifest.get("pronunciation"), dict) else {}
     if table is None or pron.get("table") != table["id"] or pron.get("sha256") != sha256_text(canonical(table)):
         return "pronunciation"
     return None
 
 
-def adopt_voice(rc, row, partial):
-    """voice --from-run: copy an already rendered narrate run into the stage directory, re-verify the copy (never
-    the source, which could change after the check) and bind it to this node's key. Refusals: voice_run_missing,
-    voice_run_manifest_missing, voice_run_in_guitar_runs, voice_run_invalid, voice_run_unverified (narrate verify:
-    digests, synthetic, narration_v1, no_time_stretch false, content_sha256), voice_run_test_mode,
-    voice_chunk_gate_failed and voice_run_mismatch."""
-    segment = segment_of(rc, row)
-    copied = adopted_copy(rc.from_run, partial / RUN)
-    receipt = verify.verify(copied)
+def check_run(rc, segment, run_dir, want):
+    """The run's manifest when run_dir passes narrate verify, is not a test-mode batch, holds its chunk gates and
+    binds to the voice stage (binding_problem). Raises voice_run_unverified, voice_run_test_mode,
+    voice_chunk_gate_failed or voice_run_mismatch."""
+    receipt = verify.verify(run_dir)
     if not receipt["ok"]:
         raise adopt_refused("voice_run_unverified", f"the narrate run does not verify: {receipt['reason']}")
-    manifest = json.loads((copied / "manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads((Path(run_dir) / "manifest.json").read_text(encoding="utf-8"))
     synthesis = (manifest.get("engine") or {}).get("synthesis") or {}
     if "prerendered_test_mode" in manifest.get("flags", []) or synthesis.get("test_mode"):
         raise adopt_refused("voice_run_test_mode", "the batch ran in test mode (prerendered_test_mode)")
     problem = chunk_gate_problem(manifest)
     if problem:
         raise adopt_refused("voice_chunk_gate_failed", problem)
-    problem = binding_problem(rc, segment, manifest)
+    try:
+        problem = binding_problem(rc, segment, manifest, want)
+    except KeyDocumentError as exc:
+        raise adopt_refused("voice_run_invalid", f"the manifest holds a value with no canonical form: {exc}") from None
     if problem:
         raise adopt_refused("voice_run_mismatch", f"the run differs from voice/{segment['id']}'s key at {problem}")
+    return manifest
+
+
+def check_adoptable(rc, segment_id, run_dir):
+    """Every adoption check on run_dir in place, without copying it, and its manifest; None for an unknown segment
+    (the stage command then refuses node_unknown). `--replace` runs it before it archives the node, and adopting the
+    held run again runs it before it reports a no-op."""
+    segment = next((s for s in rc.job["segments"] if s["id"] == segment_id), None)
+    if segment is None:
+        return None
+    want = admitted(rc, segment)
+    return check_run(rc, segment, check_source(run_dir), want)
+
+
+def adopt_voice(rc, row, partial):
+    """voice --from-run: admit the narrate job against this job's records and store, copy an already rendered
+    narrate run into the stage directory, re-check the copy (never the source, which could change after the check)
+    and bind it to this node's key. Refusals: narrate's policy codes (consent_scope, consent_missing,
+    engine_not_allowed, hosted_not_allowed...), voice_run_missing, voice_run_manifest_missing,
+    voice_run_in_guitar_runs, voice_run_invalid, voice_run_unverified (narrate verify: digests, synthetic,
+    narration_v1, no_time_stretch false, content_sha256), voice_run_test_mode, voice_chunk_gate_failed and
+    voice_run_mismatch."""
+    segment = segment_of(rc, row)
+    want = admitted(rc, segment)
+    copied = adopted_copy(rc.from_run, partial / RUN)
+    manifest = check_run(rc, segment, copied, want)
     adopted = {"run_id": manifest.get("run_id"), "content_sha256": manifest["content_sha256"]}
     states = {"source_checks": "passed", "render": "adopted", "listening": "pending_operator"}
     try:
@@ -346,7 +426,7 @@ def run_voice_qa(rc, row, partial):
     with work_dir(rc.store) as work:
         script = script_copy(rc, segment, narrate_job["input"], work)
         cfg = narrate_config(rc, segment["narrateJob"], script, work / "unused", work)
-        result = evaluate.evaluate(run_dir, evaluate.METRICS, cfg)
+        result = evaluate.evaluate(run_dir, evaluate.METRICS, cfg, gates=narrate_job["gates"])
     if not result.get("ok"):
         raise StageRefused("voice_unverified", str(result.get("reason"))[:200])
     metrics = result["metrics"]

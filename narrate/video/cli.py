@@ -32,7 +32,7 @@ from pathlib import Path
 
 from .. import policy
 from ..ir import sha256_file
-from . import fixture, graph, kitpip, store
+from . import fixture, graph, kitpip, speech, store
 from . import run as runner
 from .common import Env
 from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_job, load_records, read_json
@@ -191,11 +191,15 @@ def run_common(a, only=None, from_run=None):
     stages = [x for x in (a.stages or "").split(",") if x] if only is None else None
     forced = [x for x in (a.force or "").split(",") if x] if only is None else []
     if from_run is not None and getattr(a, "replace", False):
+        # check RUN_DIR in place first: a run that would be refused never costs the node it would replace
+        problem, _ = checked(rc, only, from_run)
+        if problem is not None:
+            return refusal(*problem)
         s.clear_refusal(only)
         s.archive(only)
     result, g = runner.run(rc, stages=stages, until=None if only else a.until, forced=forced, only=only)
     if from_run is not None and result["ok"]:
-        problem = adoption(s, only, from_run, result)
+        problem = adoption(rc, only, from_run, result)
         if problem is not None:
             s.write_graph(graph.public(g))
             return refusal(*problem)
@@ -211,9 +215,20 @@ def run_common(a, only=None, from_run=None):
     return 0 if result["ok"] else 1
 
 
-def adoption(s, node, from_run, result):
+def checked(rc, node, from_run):
+    """(problem, manifest): every adoption check run on RUN_DIR in place (speech.check_adoptable), problem a
+    (code, detail) refusal or None."""
+    try:
+        return None, speech.check_adoptable(rc, node.partition("/")[2], from_run)
+    except JobError as exc:
+        return (exc.code, exc.detail), None
+
+
+def adoption(rc, node, from_run, result):
     """After `stage JOB voice --from-run RUN_DIR`: record what the voice node now holds in result["adopted"], or
-    (code, detail) when it was already fresh with another narrate run (pass --replace to adopt this one)."""
+    (code, detail) when it was already fresh with another narrate run (pass --replace to adopt this one), or when
+    RUN_DIR, the run it already holds, no longer passes the adoption checks."""
+    s = rc.store
     manifest = s.manifest(node) or {}
     have = (manifest.get("measurements") or {}).get("narrate_content_sha256")
     adopted = (manifest.get("measurements") or {}).get("adopted")
@@ -224,6 +239,10 @@ def adoption(s, node, from_run, result):
             return "voice_run_manifest_missing", "the run has no readable manifest.json"
         if have != want:
             return "voice_already_fresh", f"{node} is fresh with another narrate run; pass --replace to adopt this one"
+        # the node is unharmed either way, but exit 0 says RUN_DIR itself passed the checks
+        problem, _ = checked(rc, node, from_run)
+        if problem is not None:
+            return problem
     result["adopted"] = {
         "node": node,
         "run_id": (adopted or {}).get("run_id"),
