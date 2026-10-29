@@ -368,6 +368,31 @@ def test_loudnorm_limits_peaks_that_one_linear_gain_would_push_over_the_ceiling(
     assert len(audio.read(tmp_path / "out.wav").samples) == len(pcm.samples)
 
 
+def test_loudnorm_stays_linear_when_the_take_is_wider_than_the_lra_target(tmp_path):
+    import math
+
+    pcm = audio.Pcm(24000)
+    for step in (0, 3, 6, 9, 12, 15, 18, 0, 18):  # 3 s blocks stepping down 18 dB: a range over 11 LU inside the gate
+        amplitude = 9000 * 10 ** (-step / 20)
+        pcm.samples.extend(round(amplitude * math.sin(2 * math.pi * 220 * n / 24000)) for n in range(72000))
+    source = pcm.write(tmp_path / "wide.wav")
+    record = audio.loudnorm(source, tmp_path / "out.wav", 24000, -16, -1.5)
+    assert record["first_pass"]["input_lra"] > 11.0
+    assert record["lra_target"] >= record["first_pass"]["input_lra"]
+    assert record["normalization_type"] == "linear"
+    # loudnorm's meter reads this stepped tone about 0.5 LU under ebur128's, so the level check is wider here
+    integrated, _, peak = audio.ebur128(tmp_path / "out.wav")
+    assert abs(integrated + 16) <= 1.0 and peak <= -1.4
+
+
+def test_lra_fit_raises_the_target_to_the_measured_range_and_never_lowers_it():
+    assert audio.lra_fit(4.1, 11.0) == 11.0
+    assert audio.lra_fit(11.0, 11.0) == 11.0
+    assert audio.lra_fit(19.5, 11.0) == 19.5
+    assert audio.lra_fit(13.12, 11.0) == 13.2
+    assert audio.lra_fit(72.0, 11.0) == audio.LRA_MAX
+
+
 def test_whisper_reads_a_padded_take(monkeypatch):
     from condense import transcribe
     from narrate import qa

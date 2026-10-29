@@ -171,7 +171,8 @@ def loudnorm_json(stderr):
     return json.loads(block)
 
 
-LIMIT_ATTEMPTS = 4
+LIMIT_ATTEMPTS = 8  # each pass lowers the limit by what is still over, and a speech take can need 6
+LRA_MAX = 50.0  # FFmpeg loudnorm's largest LRA target
 
 
 def measure_loudnorm(source, chain, lufs, tp, lra):
@@ -179,11 +180,21 @@ def measure_loudnorm(source, chain, lufs, tp, lra):
     return loudnorm_json(run(*FF, "-nostats", "-i", source, "-af", first, "-f", "null", "-").stderr)
 
 
+def lra_fit(input_lra, lra):
+    """The LRA target for a linear second pass: lra, or the measured range rounded up to the next tenth when it is
+    wider, capped at LRA_MAX."""
+    if input_lra <= lra:
+        return lra
+    return min(LRA_MAX, math.ceil(round(input_lra * 10, 6)) / 10)
+
+
 def loudnorm(source, target, rate, lufs, tp, lra=11.0, headroom_db=0.5):
     """Two-pass FFmpeg loudnorm of source into target at rate, linear. When the one linear gain would carry a
     peak past the ceiling, a limiter (alimiter, latency compensated) first holds the source's peaks to where the
     gain lands them headroom_db under it, as condense's delivery chain does; the source is measured again through
-    it. Returns both passes' measured values and the limiter, if any."""
+    it. FFmpeg keeps linear mode only when the measured loudness range fits the LRA target. Linear mode applies one
+    gain and leaves the range as it is, so the second pass raises the target to the measured range and never lowers
+    it. Returns both passes' measured values, the LRA target applied and the limiter, if any."""
     measured = measure_loudnorm(source, "", lufs, tp, lra)
     chain, limiter, limit_db = "", None, None
     for attempt in range(1, LIMIT_ATTEMPTS + 1):
@@ -203,8 +214,9 @@ def loudnorm(source, target, rate, lufs, tp, lra=11.0, headroom_db=0.5):
             "reason": "one linear gain would carry a peak over the ceiling",
         }
         measured = measure_loudnorm(source, chain, lufs, tp, lra)
+    lra_target = lra_fit(float(measured["input_lra"]), lra)
     second = (
-        f"{chain}loudnorm=I={lufs}:TP={tp}:LRA={lra}:measured_I={measured['input_i']}:"
+        f"{chain}loudnorm=I={lufs}:TP={tp}:LRA={lra_target}:measured_I={measured['input_i']}:"
         f"measured_TP={measured['input_tp']}:measured_LRA={measured['input_lra']}:"
         f"measured_thresh={measured['input_thresh']}:offset={measured['target_offset']}:linear=true:"
         "print_format=json"
@@ -235,6 +247,7 @@ def loudnorm(source, target, rate, lufs, tp, lra=11.0, headroom_db=0.5):
         "first_pass": {k: float(measured[k]) for k in keep},
         "second_pass": {k: float(applied[k]) for k in (*keep, "output_i", "output_tp", "output_lra")},
         "normalization_type": applied.get("normalization_type"),
+        "lra_target": lra_target,
         "limiter": limiter,
     }
 
