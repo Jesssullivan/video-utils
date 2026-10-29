@@ -264,6 +264,9 @@ and `show_badge`. Its states are `source_checks: passed`, `render: stub` or
 | `stage JOB STAGE [--segment ID]` | `just nv-stage` | runs one node when every input is fresh, else refuses `stage_input_stale` |
 | `fixture --out DIR` | `just nv-fixture` | writes a synthetic workspace: records, a private-store stand-in and a fixture lexical release |
 | `init` then `run` | `just nv-quick JOB NARRATE_JOB SCRIPT [ARGS]` | a simple job in one step |
+| `intake BUNDLE --out DIR --narrate-template ID --voice ID --engine ID (--persona P \| --no-avatar) [--job ID] [--store DIR] [--tail-s S]` | `just narrated-video-intake` | a demo bundle to a job and one narrate job per beat, claims gated (see "Demo bundle intake"). Writes nothing on a refusal |
+| `claims BUNDLE` | `just narrated-video-claims` | the spoken-number claims gate alone, one row per segment. Exit 1 when a segment refuses |
+| `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
 
 Paths come from flags or the environment: `--root` (`NARRATED_VIDEO_ROOT`),
 `--records` (`NARRATED_VIDEO_RECORDS`, the directory of `jobs.json`,
@@ -674,6 +677,164 @@ the avatar-off spans, the mix gains and the stage key of every input. FCPXML
 and OTIO export is phase 2. Until an editor imports one, it stays unverified in
 an application.
 
+## Demo bundle intake
+
+Linear TIN-7735. A demo bundle is a directory that a producing lane writes in its own private repository, as
+`docs/demo/<slug>/`. `python -m narrate video intake` turns it into the records this spec already defines: one
+`NarratedVideo` job and one narrate `Job` per beat. It adds no schema (SPR-84): `job.check_shape` and admit accept
+its output unchanged. No real bundle, asset, receipt or render enters this repository. The tests use the synthetic
+bundle `demo-fixture` (`narrate/video/fixture.py`).
+
+### Format
+
+The parser (`narrate/video/bundle.py`) is strict. JSON files hold at most 4 MiB, `script.md` at most 1 MiB. A key
+that repeats, an unknown field or a missing field refuses `bundle_invalid`. Ids are 1 to 64 of `a-z`, `0-9`, `.`,
+`_` and `-`, starting with a letter or digit.
+
+`manifest.json` is `{"assets": [...]}`, with an optional `slug` equal to the directory's name. Each asset has these
+fields:
+
+| Field | Rule |
+| --- | --- |
+| `id` | an id, unique in the manifest |
+| `path` | a relative POSIX path inside the bundle: no leading `/`, no `.`, `..` or empty part, no backslash, no symlink on the way. It ends in `.png`, `.mp4` or `.gif` to match `kind` |
+| `sha256` | 64 lowercase hex digits. The file is hashed, and a different digest refuses `asset_digest_mismatch` |
+| `kind` | `png`, `mp4` or `gif`. The bytes must match: the PNG signature, an MP4 `ftyp` box, or `GIF87a`/`GIF89a` |
+| `receipt` | non-empty text naming the asset's source receipt (`asset_unreceipted` when empty) |
+| `size` | optional `{w, h}`. A PNG's header must hold the same size |
+| `fps` | optional `{num, den}`, recorded and never used |
+
+`script.md` is a sequence of beats. Before the first beat it allows one `# title` line, notes (lines starting with
+`>`) and blank lines. A beat is:
+
+````text
+## intro
+
+- target_s: 8
+- asset_id: slide-a
+- claims: build-ms, files
+
+```voiced
+The exact words to speak, with every number spelled as read.
+
+A blank line starts a paragraph.
+```
+````
+
+The heading is `## ` and the beat id, unique in the script. The three `- key: value` lines are each required once,
+in any order. `target_s` is seconds above 0 and at most 3600, with up to three decimals. `asset_id` names a manifest
+asset. `claims` is a comma-separated list of distinct claim ids, or empty. One ```` ```voiced ```` block holds the
+words to speak, closed by a ```` ``` ```` line. Notes and blank lines may sit anywhere in a beat. Any other line
+refuses `script_invalid` with its line number. A beat without its three lines refuses `beat_invalid`, and a beat with
+no voiced block or an empty one refuses `beat_voiced_missing`.
+
+`claims.json` is a list of claims, each with exactly three fields:
+
+```json
+{"id": "build-ms",
+ "value": {"spoken": "seventeen point eight seven seven milliseconds", "number": 17.877, "unit": "ms"},
+ "receipt": "the receipt that measured it"}
+```
+
+`number` is a JSON number, compared as an exact decimal. `unit` is `""` for a bare count, `ordinal`, one of the
+gate's canonical units (`percent`, `pp`, `s`, `ms`, `us`, `ns`, `min`, `h`, `day`, `week`, `month`, `year`, `Hz`,
+`kHz`, `MHz`, `GHz`, `dB`, `dBFS`, `LUFS`, `LU`, `dBTP`, `V`, `mV`, `A`, `mA`, `W`, `kW`, `mW`, `ohm`, `m`, `cm`,
+`mm`, `km`, `in`, `ft`, `g`, `kg`, `mg`, `degC`, `degF`, `deg`, `B`, `KB`, `MB`, `GB`, `TB`, `bit`, `fps`, `px`,
+`x`, `USD`) or two of them joined by `/` (`m/s`). `spoken` must read, through the gate's own extractor, as exactly
+that one number and unit, else `claim_invalid`. `receipt` is text or `null`. An empty or `null` receipt is legal
+in the file, and the claims gate refuses every number that relies on it.
+
+### Refusals
+
+| Code | When |
+| --- | --- |
+| `bundle_invalid` | a file is missing, malformed, too large or has a missing or unknown field; an asset path leaves the bundle |
+| `asset_missing` | an asset file is absent, not a regular file, or reached through a symlink |
+| `asset_digest_mismatch` | an asset file does not hash to its manifest `sha256` |
+| `asset_kind_mismatch` | an asset's extension, bytes or PNG size differ from its manifest entry |
+| `asset_unreceipted` | an asset's receipt is empty |
+| `asset_unknown` | a beat's `asset_id` is not in the manifest |
+| `asset_needs_conversion` | a beat cites a GIF. No stage reads GIF: a slide is a still picture and the base is one video. The producer converts it to a PNG or an MP4 in the bundle, with its own digest and receipt. An unused GIF is listed in `unused_assets` and never refused |
+| `asset_video_multiple` | beats cite two different MP4s: one MP4 becomes the base, and no stage joins clips |
+| `script_invalid`, `beat_invalid`, `beat_voiced_missing` | the script rules above |
+| `voiced_not_verbatim` | narrate's Markdown adapter would not speak the voiced text as written: inline markup, a `[bracketed]` line, a heading or a `Sources:` line |
+| `claim_invalid`, `claim_unknown` | a claim breaks its rules; a beat cites a claim id that `claims.json` lacks |
+| `number_unclaimed`, `claim_unreceipted`, `claim_ambiguous`, `number_ambiguous` | the claims gate, per segment (below) |
+| `narrate_job_missing`, `records_invalid`, `voice_unknown`, `engine_unknown`, `engine_not_allowed`, `consent_scope`, `confidential_engine_refused` | the template narrate job, voice or engine cannot voice a confidential job |
+| `out_exists`, `store_conflict`, `narrate_job_exists` | the output directory is not new or empty; the store holds a different file under a digest name; the records hold a different narrate job with a new job's id |
+| admit's codes | the converted job fails admit at Plan, such as `slides_invalid` for a PNG beat shorter than two fades |
+
+### Conversion
+
+| Bundle | Becomes |
+| --- | --- |
+| a beat | a segment with the beat's id, anchored `AtSeconds` at the beat's start. Beats run back to back from 0, each `target_s` long |
+| its voiced text | a narrate Markdown input: front matter `slide: <beat id>` and `target_seconds: <target_s>`, a blank line and the voiced text. Its SHA-256 is the narrate job's `inputSha256` and the segment's `scriptSha256` |
+| its narrate job | `<job>-<beat>`: a copy of the template narrate job (`--narrate-template`: lexical pin, pronunciation table, scope, gates, post settings) with `input` `Markdown`, `confidential` true, `allowHosted` false, no speakers table, and `voice` and `engine` from `--voice` and `--engine` |
+| a PNG beat | a `Slide` page by SHA-256 over the beat's span, layout `Full` |
+| an MP4 beat | a `Base` page over the beat's span. The MP4 is the base video (`keepBaseAudio` false) |
+| no MP4 | the default card (`#101820`, 1920x1080 at 30/1), held `--tail-s` (default 1 s) after the last narration |
+| the job | edition `Internal`, no music bed, tighten off, the default captions and delivery. The kitpip avatar is on with `--persona P` and off with `--no-avatar`, and one of them is required (NV-8) |
+
+The base video runs from program second 0. A PNG beat covers it with a full-frame slide, and an MP4 beat shows the
+video's own seconds at that span. A bundle that wants a clip from its first frame cites it in its first beat, or
+cuts the clip so that its seconds line up with the beat. narrate fits each narration to its beat's `target_s` within
+the template's `fitMaxStretch`. `place` still refuses `placement_overlap` or `base_too_short` when a narration cannot
+fit.
+
+The intake writes nothing until every check passes, including admit on the converted job against the merged
+records. Then it writes into a new or empty `--out`:
+
+```text
+OUT/
+  narrated-video.json   the NarratedVideo record, as `init --from` reads it
+  records/              the input record renders, with one narrate job per beat added to jobs.json
+  intake.json           the run manifest (kind nv_bundle_intake)
+STORE/                  --store, default OUT/store: each beat's Markdown as <sha256>.md and each cited asset as
+                        <sha256>.png or <sha256>.mp4
+```
+
+`intake.json` names the bundle by slug and by the digests of its three files, never by path. It holds the job id and
+digest, the narrate template, voice and engine, and one row per segment. Each row holds the narrate job, script
+digest, span, asset (id, kind, digest, receipt), shown layer and the claims result. It also holds `unused_assets`,
+the store digests written, the digest of every output, admit's verdict and pending operator gates, and the states
+`source_checks: passed`, `claims: passed`, `render: not_run` and `listening: pending_operator`. Then
+`init --job ID --from OUT/narrated-video.json --records OUT/records` and `run` proceed as for any job. The beats'
+narrate jobs are confidential, so the engine must be one that `Engine.mayRunConfidential` admits.
+
+### Claims gate
+
+`narrate/video/claims.py` extracts every number a voiced text speaks. It reads digits (`17.877`, `1,024`, `42%`,
+`3rd`, `12ms`, `3.5 million`) and spelled-out English cardinals, decimals and ordinals ("one hundred and five",
+"seventeen point eight seven seven", "a hundred", "twenty-one", "twenty first", "minus five"). After a number it reads
+the unit words ("milliseconds", "percent", "per cent", "%", "frames per second", "metres per second") as one
+canonical unit. A number without a unit word has the unit `""`. Each number must match exactly one claim that the
+beat cites, with the same number and unit and a non-empty receipt.
+
+| Per-number result | Code |
+| --- | --- |
+| no cited claim has that number and unit | `number_unclaimed` |
+| only cited claims without a receipt match | `claim_unreceipted` |
+| two cited claims with receipts match | `claim_ambiguous` |
+| the reading is not one value | `number_ambiguous` |
+
+The gate fails closed. These readings are ambiguous and never match:
+
+- adjacent number words that do not form one number ("nineteen eighty four", "one two three");
+- fractions and vague quantities ("one third", "two thirds", "a half", "quarter", "dozen", "couple", "twice");
+- "point" and digit words with no whole part ("point five");
+- "second" where it may be the ordinal or the unit ("twenty second", "one hundred second");
+- digit tokens that are not one plain number ("1.2.3", "10:30", "1/2", "2026-10-29", "MP4", "1,23", "4K").
+
+"one" is always the number 1, and "first" and "second" alone are the ordinals 1 and 2: a script that uses them as
+ordinary words cites a claim or rewords. "once", "single", "both", "none", and "a" before anything but a scale word
+are not numbers. A cited claim that no number uses is listed in `unused_claims` and never refused.
+
+`claims` runs the gate alone on `script.md` and `claims.json` and prints `{ok, bundle, segments}`, one row per
+segment with its status, codes, mentions (text, number, unit, kind, status, claim and receipt, or code and reason)
+and unused claims. A refused gate exits 1 with the first segment's code on stderr. `intake` runs the same gate
+first. A refusal prints the per-segment report and writes nothing. A pass copies the report into `intake.json`.
+
 ## Deck import
 
 A slide deck assembled outside this repository enters as a `Deck` base by
@@ -732,3 +893,8 @@ it stays a knob.
   (video black to white needs 11 frames at 30 fps, over 0.35 s). The gate
   then fails, and `min_fade_s` in `compose.json` names the fade that passes.
 - Burned captions and the deck project's own delivery profiles are not built.
+- The claims gate reads English number words and the units listed in "Demo bundle intake". A number said in
+  another language, or a unit outside the table, reads as a bare count or not at all. The gate checks that
+  a receipt is named, not what the receipt says.
+- A demo bundle's MP4 plays from program second 0 under every beat. A bundle with clips at several
+  offsets, or more than one clip, needs a deck base or a later stage.
