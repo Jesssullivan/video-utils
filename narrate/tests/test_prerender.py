@@ -8,9 +8,13 @@ weights, the requests file, the text after the plan, a missing take, and a refer
 
 import importlib.util
 import json
+import os
 import shutil
+import signal
 import stat
+import subprocess
 import sys
+import time
 import wave
 
 import pytest
@@ -427,6 +431,65 @@ def test_a_stalled_runtime_is_stopped(workspace, kit, tmp_path, monkeypatch):
     (receipt_path,) = (path.parent / "receipts").glob("*.json")
     receipt = json.loads(receipt_path.read_text())
     assert receipt["stop_rule"] == "stall 1.5 s" and len(receipt["outputs"]) == 1
+
+
+def test_finalize_stops_a_running_batch_through_its_run_record(workspace, kit, tmp_path, monkeypatch):
+    """J130 (TIN-7564): the batch keeps a run record; finalize sends it SIGTERM and it stops as on any signal."""
+    spec = importlib.util.spec_from_file_location("narrate_finalize", RUNNER.with_name("finalize.py"))
+    finalize = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(finalize)
+    use_batch(workspace, kit)
+    path, _ = render.plan(Config(workspace.write(SLIDE)), tmp_path / "plan", takes=1)
+    root = path.parent
+    name = sorted((root / "requests").glob("*.json"))[0].stem
+    argv = [sys.executable, str(RUNNER), "run", str(root), "--requests", f"requests/{name}.json"]
+    argv += ["--binary", str(kit.binary), "--binary-sha256", kit.binary_sha, "--model", str(kit.model)]
+    argv += ["--model-sha256", kit.model_sha, "--lease-holder", "narrate-bench-20261028-s204500"]
+    monkeypatch.setenv("FAKE_AUDIOCPP_HANG_AFTER", "1")
+    proc = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+    runs = finalize.runs_dir()
+    try:
+        log, deadline = root / "logs" / f"{name}.log", time.monotonic() + 30
+        while not (log.is_file() and "audio_out=" in log.read_text()):  # the first take is finished
+            assert proc.poll() is None, proc.communicate()
+            assert time.monotonic() < deadline, "the batch never finished its first take"
+            time.sleep(0.05)
+        (record,) = [json.loads(p.read_text()) for p in runs.glob("audiocpp-*.json") if ".finalize." not in p.name]
+        assert record["lease_holder"] == "narrate-bench-20261028-s204500" and record["engine_pgid"]
+        code, receipt = finalize.finalize("latest", reason="preempted", call_id="call-7", directory=runs)
+        assert proc.wait(timeout=10) == 20
+    finally:
+        if proc.poll() is None:
+            os.killpg(proc.pid, signal.SIGKILL)
+            proc.wait()
+    assert code == 0, receipt
+    assert (receipt["reason"], receipt["call_id"], receipt["runner_exit_status"]) == ("preempted", "call-7", 20)
+    assert receipt["engine_gone"] is True and receipt["signals"][0]["signal"] == "SIGTERM"
+    batch = json.loads((root / "receipts" / f"{name}.json").read_text())
+    assert batch["stop_rule"] == "signal SIGTERM" and batch["process_group_gone"] is True
+    assert (batch["run_id"], batch["lease_holder"]) == (record["run_id"], "narrate-bench-20261028-s204500")
+    assert len(batch["outputs"]) == 1  # the finished take is kept
+    assert (root / "receipts" / f"{record['run_id']}.finalize.json").is_file()
+
+
+def test_a_batch_refuses_a_bad_lease_holder_and_a_missing_finalize_py(workspace, kit, tmp_path, capsys):
+    use_batch(workspace, kit)
+    path, _ = render.plan(Config(workspace.write(SLIDE)), tmp_path / "plan", takes=1)
+    name = sorted((path.parent / "requests").glob("*.json"))[0].stem
+    for bad in ("bad holder", "narrate-batch-fixture", "narrate-bench-20261023-s1526140"):
+        assert run_batch(kit, path.parent, name, "--lease-holder", bad) == [2]
+        assert "narrate-bench-YYYYMMDD-sHHMMSS" in capsys.readouterr().err
+    alone = tmp_path / "alone"
+    alone.mkdir()
+    shutil.copy(RUNNER, alone / "audiocpp_batch.py")
+    spec = importlib.util.spec_from_file_location("audiocpp_batch_alone", alone / "audiocpp_batch.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    argv = ["run", str(path.parent), "--requests", f"requests/{name}.json", "--binary", str(kit.binary)]
+    argv += ["--binary-sha256", kit.binary_sha, "--model", str(kit.model), "--model-sha256", kit.model_sha]
+    assert module.main(argv) == 2
+    assert "finalize.py is not beside audiocpp_batch.py" in capsys.readouterr().err
+    assert not kit.log.exists()  # nothing ran
 
 
 def test_a_complete_wav_is_one_whose_sizes_account_for_every_byte(tmp_path):

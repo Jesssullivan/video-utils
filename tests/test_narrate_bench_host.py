@@ -46,6 +46,11 @@ ref_cut = load("narrate_bench_ref_cut", BENCH / "ref_cut.py")
 score = load("narrate_bench_score", BENCH / "score.py")
 
 
+def H(n):
+    """A Lease holder of the one narrate form the GPU Lease guard admits (narrate-bench-YYYYMMDD-sHHMMSS)."""
+    return f"narrate-bench-20261028-s{n:06d}"
+
+
 def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
@@ -149,6 +154,7 @@ class Workspace(unittest.TestCase):
             "FAKE_VRAM_FILE": str(self.vram),
             "FAKE_VRAM_BYTES": str(2 * GiB),
             "FAKE_VRAM_IDLE": "1000000",
+            "NARRATE_RUNS_DIR": str(d / "run-records"),
         }
         for patcher in (
             mock.patch.dict(os.environ, self.env),
@@ -984,28 +990,31 @@ class Window(Workspace):
         return json.loads((self.bench / "runs" / holder / "receipt.json").read_text())
 
     def test_arms_run_in_order_then_a_window_stop_ends_the_window(self):
-        done = self.window("h1")
+        done = self.window(H(1))
         self.assertEqual(done.returncode, 0, done.stderr)
         self.assertIn("NARRATE-BENCH-DONE rc=0", done.stdout)
-        receipt = self.receipt("h1")
+        receipt = self.receipt(H(1))
         self.assertEqual([(a["arm"], a["result"]) for a in receipt["arms"]], [("Q", "0"), ("M", "0"), ("Q2", "0")])
         self.assertIsNone(receipt["stop"])
         self.assertTrue(receipt["test_mode"])
         self.assertEqual(receipt["scope"], {"test_mode_no_scope": True})
         self.assertEqual(receipt["runner"]["host_run.py"]["measured"], sha(BENCH / "host_run.py"))
+        record = json.loads((self.dir / "run-records" / f"bench-{H(1)}.json").read_text())
+        self.assertEqual((record["kind"], record["lease_holder"]), ("bench-window", H(1)))
+        self.assertEqual((record["state"], record["exit_status"], record["test_mode"]), ("ended", 0, True))
 
         env = dict(self.base_env, FAKE_VRAM_BYTES="12500000000", FAKE_SLEEP_S="1")
-        done = self.window("h2", env=env)
+        done = self.window(H(2), env=env)
         self.assertEqual(done.returncode, 20, done.stderr)
-        self.assertEqual([(a["arm"], a["result"]) for a in self.receipt("h2")["arms"]], [("Q", "20")])
-        self.assertEqual(self.receipt("h2")["stop"], "window_stop_from_Q")
+        self.assertEqual([(a["arm"], a["result"]) for a in self.receipt(H(2))["arms"]], [("Q", "20")])
+        self.assertEqual(self.receipt(H(2))["stop"], "window_stop_from_Q")
 
     def test_changed_inputs_refuse_the_window_with_a_receipt(self):
         (self.dir / "w" / "codec.gguf").write_bytes(b"changed")
-        done = self.window("h3")
+        done = self.window(H(3))
         self.assertEqual(done.returncode, 2, done.stderr)
         self.assertIn("NARRATE-BENCH-DONE rc=2", done.stdout)
-        self.assertEqual((self.receipt("h3")["stop"], self.receipt("h3")["arms"]), ("inputs_refused", []))
+        self.assertEqual((self.receipt(H(3))["stop"], self.receipt(H(3))["arms"]), ("inputs_refused", []))
 
     def test_preflight_refuses_an_oversized_reference_before_the_lease_and_writes_no_run(self):
         done = self.window("--preflight")
@@ -1035,21 +1044,26 @@ class Window(Workspace):
         self.assertIn("usage: run-bench.sh HOLDER", done.stderr)
         self.assertIn("NARRATE-BENCH-DONE rc=2", done.stdout)
         self.assertEqual(self.window("bad holder").returncode, 2)
+        for holder in ("h4", "narrate-bench-20261023-s1526140", "narrate-bench-2026102-s152614"):
+            done = self.window(holder)
+            self.assertEqual(done.returncode, 2, holder)
+            self.assertIn("holder must be narrate-bench-YYYYMMDD-sHHMMSS", done.stderr)
+            self.assertFalse((self.bench / "runs" / holder).exists())
 
         (self.bench / "bench.env").write_text("NARRATE_BENCH_TEST_MODE=1\n")
-        done = self.window("h4")
+        done = self.window(H(4))
         self.assertEqual(done.returncode, 2)
         self.assertIn("not an allowed key", done.stderr)
         (self.bench / "bench.env").write_text("export NARRATE_BENCH_QWEN_DEVICE=Vulkan0\n")
 
         env = dict(self.base_env, NARRATE_BENCH_EXPECT_HOST_RUN="0" * 64)
-        done = self.window("h5", env=env)
+        done = self.window(H(5), env=env)
         self.assertEqual(done.returncode, 2)
         self.assertIn("NARRATE_BENCH_EXPECT_", done.stderr)
-        self.assertFalse((self.bench / "runs" / "h5").exists())
+        self.assertFalse((self.bench / "runs" / H(5)).exists())
 
-        self.assertEqual(self.window("h6").returncode, 0)
-        done = self.window("h6")
+        self.assertEqual(self.window(H(6)).returncode, 0)
+        done = self.window(H(6))
         self.assertEqual(done.returncode, 2)
         self.assertIn("already exists", done.stderr)
 
@@ -1075,13 +1089,13 @@ class Window(Workspace):
             arm = json.loads((self.bench / "runs" / holder / "Q" / "receipt.json").read_text())
             return arm["reference"]["wav_sha256"]
 
-        done = self.window("h10", "other-voice", env=env)
+        done = self.window(H(10), "other-voice", env=env)
         self.assertEqual(done.returncode, 0, done.stderr)
-        self.assertEqual(cloned_from("h10"), sha(d / "v" / "other.wav"))  # the argument replaces bench.env's
-        self.assertIn("voice other-voice", (self.bench / "runs" / "h10" / "window.log").read_text())
-        self.assertEqual(self.window("h11", env=env).returncode, 0)
-        self.assertEqual(cloned_from("h11"), sha(d / "v" / "ref.wav"))  # without it, bench.env's voice
-        for args, message in ((("h12", "bad voice"), "voice must be"), (("h13", "a", "b"), "usage")):
+        self.assertEqual(cloned_from(H(10)), sha(d / "v" / "other.wav"))  # the argument replaces bench.env's
+        self.assertIn("voice other-voice", (self.bench / "runs" / H(10) / "window.log").read_text())
+        self.assertEqual(self.window(H(11), env=env).returncode, 0)
+        self.assertEqual(cloned_from(H(11)), sha(d / "v" / "ref.wav"))  # without it, bench.env's voice
+        for args, message in (((H(12), "bad voice"), "voice must be"), ((H(13), "a", "b"), "usage")):
             done = self.window(*args, env=env)
             self.assertEqual(done.returncode, 2)
             self.assertIn(message, done.stderr)
@@ -1104,27 +1118,27 @@ class Window(Workspace):
     def test_test_settings_are_ignored_without_test_mode_and_a_failed_scope_still_reports(self):
         env = self.fake_systemd_run('echo "$*" > "$(dirname "$0")/called"; exit 1\n')
         del env["NARRATE_BENCH_TEST_MODE"]  # NO_SCOPE alone must not skip the scope
-        done = self.window("h7", env=env)
+        done = self.window(H(7), env=env)
         self.assertEqual(done.returncode, 2, done.stderr)
         self.assertIn("NARRATE-BENCH-DONE rc=2", done.stdout)
         called = (self.dir / "tools" / "called").read_text()
         for prop in ("MemoryMax=14G", "MemorySwapMax=0", "CPUQuota=200%", "RuntimeMaxSec=1680"):
             self.assertIn(prop, called)
-        receipt = self.receipt("h7")
+        receipt = self.receipt(H(7))
         self.assertEqual((receipt["stop"], receipt["exit_code"], receipt["test_mode"]), ("scope_failed", 2, False))
 
     def test_a_process_outside_the_requested_scope_is_refused(self):
         # A systemd-run that drops the properties and runs the command in place: the cgroup is not the unit's.
         env = self.fake_systemd_run('while [ "$1" != nice ]; do shift; done\nexec "$@"\n')
         del env["NARRATE_BENCH_NO_SCOPE"]
-        done = self.window("h8", env=env)
+        done = self.window(H(8), env=env)
         self.assertEqual(done.returncode, 2, done.stderr)
-        self.assertEqual(self.receipt("h8")["stop"], "scope_unverified")
-        self.assertEqual(self.receipt("h8")["arms"], [])
+        self.assertEqual(self.receipt(H(8))["stop"], "scope_unverified")
+        self.assertEqual(self.receipt(H(8))["arms"], [])
 
     def test_sighup_to_the_window_stops_it_and_leaves_nothing(self):
         env = dict(self.base_env, FAKE_SLEEP_S="30", FAKE_FORK="1")
-        argv = ["bash", str(self.bench / "run-bench.sh"), "h9"]
+        argv = ["bash", str(self.bench / "run-bench.sh"), H(9)]
         proc = subprocess.Popen(
             argv, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True
         )
@@ -1134,7 +1148,32 @@ class Window(Workspace):
         out, err = proc.communicate(timeout=60)
         self.assertEqual(proc.returncode, 20, err)
         self.assertIn("NARRATE-BENCH-DONE rc=20", out)
-        self.assertEqual(self.receipt("h9")["stop"], "terminated")
+        self.assertEqual(self.receipt(H(9))["stop"], "terminated")
+        self.assertTrue(wait_for(lambda: not any(alive(pid) for pid in self.engine_pids()), 5))
+
+    def test_finalize_stops_a_window_through_its_run_record(self):
+        """J130 (TIN-7564): finalize.py sends the inner stage SIGTERM; the window stops as on a hangup."""
+        finalize = load("narrate_finalize", ROOT / "narrate" / "serve" / "finalize.py")
+        runs = self.dir / "run-records"
+        env = dict(self.base_env, FAKE_SLEEP_S="30", FAKE_FORK="1")
+        argv = ["bash", str(self.bench / "run-bench.sh"), H(14)]
+        proc = subprocess.Popen(
+            argv, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True
+        )
+        self.addCleanup(lambda: proc.poll() is None and os.killpg(proc.pid, signal.SIGKILL))
+        self.assertTrue(wait_for(lambda: any("helper" in r for r in self.invocations()), 30), "engine never forked")
+        record = json.loads((runs / f"bench-{H(14)}.json").read_text())
+        self.assertEqual((record["lease_holder"], record["state"]), (H(14), "running"))
+        code, receipt = finalize.finalize(f"bench-{H(14)}", reason="operator", directory=runs)
+        out, err = proc.communicate(timeout=60)
+        self.assertEqual(code, 0, receipt)
+        self.assertEqual(proc.returncode, 20, err)
+        self.assertIn("NARRATE-BENCH-DONE rc=20", out)
+        # The inner stage shares the outer stage's group, so it alone gets the signal.
+        self.assertEqual([(s["signal"], s["target"]) for s in receipt["signals"]], [("SIGTERM", "process")])
+        self.assertEqual((receipt["runner_exit_status"], receipt["engine_gone"]), (20, True))
+        self.assertEqual(self.receipt(H(14))["stop"], "terminated")
+        self.assertTrue((self.bench / "runs" / H(14) / f"bench-{H(14)}.finalize.json").is_file())
         self.assertTrue(wait_for(lambda: not any(alive(pid) for pid in self.engine_pids()), 5))
 
 

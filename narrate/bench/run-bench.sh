@@ -12,6 +12,9 @@
 # NARRATE_BENCH_VOICE for this window, so each window names its voice on its own command line (window 2: one voice
 # per window, a new holder each). Without VOICE, bench.env's value is used; with neither, host_run refuses the job.
 #
+# HOLDER is narrate-bench-YYYYMMDD-sHHMMSS, UTC, 6 digits after s: the only narrate form the GPU Lease guard admits
+# (TIN-7564 ec74214b). Make it with `just narrate-holder` or narrate-bench-$(date -u +%Y%m%d-s%H%M%S).
+#
 # Outer stage: refuses root, a missing or malformed holder, an existing runs/<holder>, a bench.env line that is
 # not one of the allowed keys (bench.env is parsed, never sourced), and any runner file (this script,
 # job/host_run.py, job/host-job.json) whose sha256 is not the caller's NARRATE_BENCH_EXPECT_* value. It then runs
@@ -24,6 +27,13 @@
 # by then is recorded not_started), stops the window on host_run's window-stop code or
 # a signal (HUP, TERM, INT), kills anything left in its scope (also from an EXIT trap) and writes
 # runs/<holder>/receipt.json.
+#
+# Run record (J130, TIN-7564): once runs/<holder> exists the inner stage writes RUNS/bench-<holder>.json (RUNS is
+# NARRATE_RUNS_DIR, else $XDG_RUNTIME_DIR/narrate-runs, else ~/.local/state/narrate/runs) with its own pid, process
+# group, start time, the Lease holder and, once verified, its scope's cgroup; it rewrites the record as ended with
+# its exit code just before it exits. An operator stops a window by hand with narrate/serve/finalize.py (copied
+# anywhere on the GPU host; the window never runs it): `finalize.py finalize bench-<holder> --reason operator`
+# sends this stage SIGTERM, which stops the window as a HUP, TERM or INT does.
 #
 # Every path out prints `NARRATE-BENCH-DONE rc=N`: 0 at least one arm completed seed 1 and no window stop;
 # 10 no arm completed; 20 window stop; 2 refused.
@@ -50,6 +60,7 @@ MEMORY_MAX_BYTES=15032385536
 CPU_MAX="200000 100000"
 DEFAULT_ARMS="A2-gpu-alt A1-gpu A3-gpu A2-gpu-alt-cut A1-gpu-cut"
 NAME_RE='^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$'
+HOLDER_RE='^narrate-bench-[0-9]{8}-s[0-9]{6}$'  # the one narrate form the GPU Lease guard admits (TIN-7564)
 TEST_VARS=(NARRATE_BENCH_NO_SCOPE NARRATE_BENCH_ARMS NARRATE_BENCH_ARMS_S NARRATE_BENCH_HARD_S NARRATE_BENCH_PYTHON
     NARRATE_BENCH_DRM_ROOT NARRATE_BENCH_FORBIDDEN_DEV)
 ENV_KEYS=" NARRATE_BENCH_VOICE NARRATE_BENCH_VOICES_FILE NARRATE_BENCH_VOICES_SHA256 NARRATE_BENCH_QWEN_TTS"
@@ -161,7 +172,8 @@ if [ -z "${NARRATE_BENCH_IN_SCOPE:-}" ]; then
     [ "$(id -u)" -ne 0 ] || refuse_early "never run as root"
     [ $# -ge 1 ] && [ $# -le 2 ] ||
         refuse_early "usage: run-bench.sh HOLDER [VOICE] (the lease holder id, passed by the lease command)"
-    [[ $holder =~ $NAME_RE ]] || refuse_early "holder must be letters, digits, '.', '_' or '-'"
+    [[ $holder =~ $HOLDER_RE ]] ||
+        refuse_early "holder must be narrate-bench-YYYYMMDD-sHHMMSS (UTC; just narrate-holder), the form the Lease guard admits"
     OUT=$BENCH_DIR/runs/$holder
     [ ! -e "$OUT" ] || refuse_early "runs/$holder already exists; every window gets a new holder"
     why=$(load_env) || refuse_early "$why"
@@ -222,6 +234,40 @@ child=""
 CGROUP_PROCS=""
 log() { printf '%s %s\n' "$(date -u +%FT%TZ)" "$*" >>"$OUT/window.log"; printf '%s %s\n' "$(date -u +%FT%TZ)" "$*" >&2 2>/dev/null; }
 
+# The run record narrate/serve/finalize.py reads (header). A record that cannot be written is logged; the window
+# still runs under its time cap.
+RUNS_DIR=${NARRATE_RUNS_DIR:-}
+if [ -z "$RUNS_DIR" ]; then
+    if [ -n "${XDG_RUNTIME_DIR:-}" ]; then RUNS_DIR=$XDG_RUNTIME_DIR/narrate-runs; else RUNS_DIR=$HOME/.local/state/narrate/runs; fi
+fi
+RUN_RECORD=$RUNS_DIR/bench-$holder.json
+RUN_CGROUP=null
+RUN_STARTED_UTC=$(date -u +%FT%TZ)
+RUN_BOOT=$(cat /proc/sys/kernel/random/boot_id 2>/dev/null)
+run_stat=$(cat "/proc/$$/stat" 2>/dev/null)
+read -r -a run_fields <<<"${run_stat##*) }"  # fields 3 onward: [2] is the process group, [19] the start time
+RUN_PGID=${run_fields[2]:-}
+RUN_START=${run_fields[19]:-}
+run_record() {  # $1 running or ended, $2 the exit code or null
+    [ -n "$RUN_RECORD" ] || return 0
+    local ended=null
+    [ "$1" = ended ] && ended="\"$(date -u +%FT%TZ)\""
+    (umask 077 && mkdir -p "$RUNS_DIR" &&
+        printf '{"schema":"narrate-gpu-run-record/1","run_id":%s,"kind":"bench-window","lease_holder":%s,"runner":{"pid":%s,"pgid":%s,"starttime":%s,"uid":%s},"boot_id":%s,"engine_pgid":null,"cgroup":%s,"receipt_dir":%s,"started_utc":"%s","state":"%s","ended_utc":%s,"exit_status":%s,"test_mode":%s}\n' \
+            "$(json_str "bench-$holder")" "$(json_str "$holder")" "$$" "$RUN_PGID" "$RUN_START" "$(id -u)" \
+            "$(json_str "$RUN_BOOT")" "$RUN_CGROUP" "$(json_str "$OUT")" "$RUN_STARTED_UTC" "$1" "$ended" "$2" \
+            "$([ "$TEST_MODE" = 1 ] && echo true || echo false)" >"$RUN_RECORD.tmp.$$" &&
+        mv "$RUN_RECORD.tmp.$$" "$RUN_RECORD") 2>/dev/null || { log "run record not written"; RUN_RECORD=""; }
+}
+if [ -z "$RUN_PGID" ] || [ -z "$RUN_START" ]; then
+    log "no /proc stat for this stage: no run record, so finalize.py cannot find this window"
+    RUN_RECORD=""
+elif [ -e "$RUN_RECORD" ]; then
+    log "a run record for bench-$holder exists: not replaced, so finalize.py cannot find this window"
+    RUN_RECORD=""
+fi
+run_record running null
+
 sweep() {  # kill anything but this shell left in the scope; records the pids
     [ -n "$CGROUP_PROCS" ] && [ -r "$CGROUP_PROCS" ] || return 0
     local pid left=()
@@ -254,6 +300,7 @@ finish() {
         minimal_receipt "$OUT" "${stop:-summarize_failed}" "$rc" "host_run.py summarize failed"
     fi
     log "NARRATE-BENCH-DONE rc=$rc"
+    run_record ended "$rc"
     done_line "$rc"
     exit "$rc"
 }
@@ -288,6 +335,8 @@ else
         finish 2
     fi
     CGROUP_PROCS=/sys/fs/cgroup$cg/cgroup.procs  # swept only once it is proven to be this window's own scope
+    RUN_CGROUP=$(json_str "$cg")
+    run_record running null
 fi
 if ! runner_check >"$OUT/runner.json"; then
     log "refused: a runner file's sha256 is not the caller's expected value (runner.json)"

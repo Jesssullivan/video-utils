@@ -60,6 +60,24 @@ narrate-bench *args:
     @echo "narrate-bench: not implemented yet; lane W3 (TIN-7085) fills this recipe. See just narrate-fetch." >&2
     @exit 2
 
+# J130 (TIN-7564), run on the host the run runs on. RUN is a run id from `just narrate-runs`, or latest. It sends the
+# runner SIGTERM, waits for it and its engine to be gone (SIGKILL after --grace-s), waits for a local lease helper to
+# exit, and writes a values-free receipt. ARGS: --reason operator (the default), preempted [--call-id ID] or
+# finished; --holder H selects by Lease holder.
+# Stop an unattended narrate GPU run by hand so a live call can have the Lease.
+narrate-finalize run="latest" *args:
+    python3 narrate/serve/finalize.py finalize {{quote(run)}} {{ if args =~ '--reason' { '' } else { '--reason operator' } }} {{args}}
+
+# The form the GPU Lease guard admits for narrate (TIN-7564 ec74214b); the same as
+# narrate-bench-$(date -u +%Y%m%d-s%H%M%S).
+# Print a new Lease holder for a narrate GPU run starting now: narrate-bench-YYYYMMDD-sHHMMSS (UTC).
+narrate-holder:
+    @python3 narrate/serve/finalize.py holder
+
+# The run records on this host: id, kind, Lease holder, state (live, ended or stale) and whether it is finalized.
+narrate-runs:
+    python3 narrate/serve/finalize.py list
+
 # docs/spec/PRESENTATION.md. OUTPUT is a new absolute directory outside the source project. Planning checks
 # digests and prepares argument vectors; no media, provider or assembly command runs.
 # Plan a private character presentation from a typed manifest.
