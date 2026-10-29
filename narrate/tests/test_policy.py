@@ -75,6 +75,13 @@ def test_voice_scope_differs_from_the_job(workspace):
     refused(workspace, "consent_scope")
 
 
+def test_a_likeness_consent_never_grants_a_voice(workspace):
+    workspace.consents[0]["scopes"] = ["OwnContent", "Likeness"]
+    workspace.voices[0]["scope"] = workspace.job["scope"] = "Likeness"
+    caught = refused(workspace, "consent_scope")
+    assert "Likeness" in caught.detail
+
+
 def test_ref_clip_digest_must_match_a_stored_clip(workspace):
     (workspace.store / "sine.wav").write_bytes(b"RIFF not the fixture clip")
     refused(workspace, "ref_clip_missing")

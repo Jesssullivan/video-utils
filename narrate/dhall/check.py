@@ -206,6 +206,10 @@ def load_examples() -> dict:
     }
 
 
+# Consent.Scope.Likeness (SP-R13): an avatar likeness grant a VRM model record names. It never grants a voice.
+LIKENESS_SCOPE = "Likeness"
+
+
 def check_voice_for_job(job: dict, voice_id: str, data: dict, engine, errors: list) -> None:
     voices = {v["id"]: v for v in data["voices"]}
     consents = {c["id"]: c for c in data["consents"]}
@@ -226,6 +230,8 @@ def check_voice_for_job(job: dict, voice_id: str, data: dict, engine, errors: li
         errors.append(f"{where}: consent_scope (job scope {job['scope']} not granted)")
     if voice["scope"] != job["scope"]:
         errors.append(f"{where}: voice scope {voice['scope']} differs from job scope {job['scope']}")
+    if LIKENESS_SCOPE in (voice["scope"], job["scope"]):
+        errors.append(f"{where}: consent_scope (the {LIKENESS_SCOPE} scope grants an avatar likeness, never a voice)")
     if job["engine"] not in voice["allowedEngines"]:
         errors.append(f"{where}: engine {job['engine']} is not in the voice's allowedEngines")
     if engine is not None and is_hosted(engine) and not consent["hostedAllowed"]:
@@ -307,6 +313,8 @@ NV_BOUNDS = {"avatar.width": (0.10, 0.30), "music.bedBelowVoiceLu": (10.0, 30.0)
              "slides.dimTo": (0.0, 1.0)}
 SLIDE_LAYOUTS = ("Full", "CardLowerLeft")
 NV_DRIFT_MAX_LU = 0.5
+# NarratedVideo.Avatar.external: kitpip, or the VRM offline renderer (SPR-128; narrate/video/vrm.py gates it at admit).
+AVATAR_EXTERNALS = ("kitpip", "vrm")
 NV_TRUE_PEAK_MAX_DBTP = -1.5
 BED_LAYERS = (2, 3)
 BED_TEMPO_RANGE = (0.5, 2.0)
@@ -519,8 +527,8 @@ def check_narrated_videos(data: dict, errors: list) -> None:
             if labels["persona"] != persona:
                 errors.append(f"{where}: persona_label_missing (a voice's consent names a persona the labels lack)")
         if nv["avatar"] is not None:
-            if nv["avatar"]["external"] != "kitpip":
-                errors.append(f"{where}: avatar external {nv['avatar']['external']!r} is not kitpip")
+            if nv["avatar"]["external"] not in AVATAR_EXTERNALS:
+                errors.append(f"{where}: avatar external {nv['avatar']['external']!r} is not kitpip or vrm")
             if not within(nv["avatar"]["width"], NV_BOUNDS["avatar.width"]):
                 errors.append(f"{where}: avatar width {nv['avatar']['width']!r} is not 0.10 to 0.30")
         for _, problem in slides_problems(nv):
@@ -696,6 +704,11 @@ def mutations() -> list:
     switch_batch = {"id": "probe-batch", "profile": "GpuSwitch", "backend": "AudioCppBatch", "hosted": False,
                     "endpoint": "audiocpp://voxcpm2", "confidentialAllowed": True, "estateControlled": True}
 
+    def likeness_voice(d, m):
+        consent(d)["scopes"].append("Likeness")
+        voice(d)["scope"] = "Likeness"
+        job(d)["scope"] = "Likeness"
+
     def with_engine(probe, confidential):
         def mutate(d, m):
             d["engines"].append({**d["engines"][0], **probe})
@@ -712,6 +725,7 @@ def mutations() -> list:
         ("consent revoked", lambda d, m: consent(d).update(revokedAt="2026-10-23")),
         ("voice scope not granted", lambda d, m: voice(d).update(scope="ClientDisclosed")),
         ("job scope not granted", lambda d, m: job(d).update(scope="ClientDisclosed")),
+        ("voice and job scope Likeness", likeness_voice),
         ("voice names no consent", lambda d, m: voice(d).update(consentId="no-such-consent")),
         ("voice tempo out of range", lambda d, m: voice(d).update(tempo=0.4)),
         ("unmapped dialog speaker voice", lambda d, m: job(d).update(
@@ -820,7 +834,7 @@ def narrated_video_mutations() -> list:
         ("bed record missing", lambda d, m: card(d)["music"].update(bed="no-such-bed")),
         ("avatar without a persona label", lambda d, m: nv(d, "nv-fixture-avatar")["labels"].update(persona=None)),
         ("consent persona the labels lack", persona_differs),
-        ("avatar external not kitpip", lambda d, m: nv(d, "nv-fixture-avatar")["avatar"].update(external="x")),
+        ("avatar external not kitpip or vrm", lambda d, m: nv(d, "nv-fixture-avatar")["avatar"].update(external="x")),
         ("avatar width out of range", lambda d, m: nv(d, "nv-fixture-avatar")["avatar"].update(width=0.4)),
         ("duck above 12 dB", lambda d, m: card(d)["music"].update(duckDb=13.0)),
         ("bed level out of range", lambda d, m: card(d)["music"].update(bedBelowVoiceLu=5.0)),

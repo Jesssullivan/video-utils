@@ -607,12 +607,14 @@ def test_handoff_writes_the_pre_vfx_layers_and_edit_json(slides):
     out = node_dir(s, "handoff")
     m = s.manifest("handoff")
     assert m["measurements"]["layers"] == sorted([
-        "layers/avatar-seg-1.mov", "layers/base.mp4", "layers/captions.srt", "layers/captions.vtt",
-        "layers/slide-slide-a.png", "layers/slide-slide-b.png", "layers/voice.wav",
+        "layers/avatar-seg-1.manifest.json", "layers/avatar-seg-1.mov", "layers/base.mp4", "layers/captions.srt",
+        "layers/captions.vtt", "layers/slide-slide-a.png", "layers/slide-slide-b.png", "layers/voice.wav",
     ])  # fmt: skip
     edit = json.loads((out / "edit.json").read_text())
     assert edit["kind"] == "nv_edit" and edit["profile"]["frames"] == s.manifest("compose")["measurements"]["frames"]
     assert edit["overlays"][0]["file"] == "layers/avatar-seg-1.mov"
+    assert edit["overlays"][0]["manifest"] == "layers/avatar-seg-1.manifest.json"
+    assert edit["overlays"][0]["renderer_kind"] == "kitpip"
     assert set(edit["stage_keys"]) == {"base", "place", "mix", "compose", "avatar/seg-1"}
     assert edit["stage_keys"]["compose"] == s.entry("compose")["key"]
     assert edit["export"]["application_import"] == "unverified"

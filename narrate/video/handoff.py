@@ -4,22 +4,29 @@ handoff is optional (delivery.handoff). It writes the parts of a narrated video 
 from, each on the base clock, beside the composed cut:
 
   layers/base.mp4                    the base at the delivery profile: no overlay, no slide, no captions, no sound
-  layers/avatar-<segment>.mov        each kitpip overlay as kitpip wrote it (ProRes 4444, straight alpha)
+  layers/avatar-<segment>.mov        each avatar overlay as its external (kitpip or vrm) wrote it (ProRes 4444,
+                                     straight alpha)
+  layers/avatar-<segment>.manifest.json
+                                     that overlay's manifest (kitpip.manifest/v0 or avatar.manifest/v1), so its
+                                     renderer, frames identity and, for vrm, the open badge decision and the
+                                     likeness consent id travel with the layer
   layers/slide-<page>.<ext>          each slide picture the job's pages show, as stored
   layers/voice.wav, layers/clips.wav the placed stems (clips only when the base kept its sound)
   layers/bed-ducked.wav              the bed after level, duck and fades, before the limiter (with a bed)
   layers/captions.srt, .vtt          the composed captions
-  edit.json                          placements, overlay boxes and starts, slide runs, avatar-off spans, the mix
-                                     gains and the stage keys of every input
+  edit.json                          placements, overlay boxes and starts (each with its layer, manifest file and
+                                     digest, renderer kind and frames identity), slide runs, avatar-off spans, the
+                                     mix gains and the stage keys of every input
 
 FCPXML and OTIO export is phase 2 (design section 5.2). Until an editor imports one, it stays unverified in an
 application, as AGENTS.md rules for markers.
 """
 
+import hashlib
 import json
 import shutil
 
-from . import labels
+from . import avatar_manifest, labels
 from .common import ffmpeg, upstream, write_json
 from .compose import PIX_FMT, conform, profile_for
 from .graph import selection, slide_sources
@@ -75,7 +82,18 @@ def run_handoff(rc, row, partial):
         parents.append(manifest)
         keys[node] = rc.store.entry(node)["key"]
         copy(directory / "overlay" / "overlay.mov", layers / f"avatar-{segment['id']}.mov")
-        overlays.append(f"layers/avatar-{segment['id']}.mov")
+        manifest_file = layers / f"avatar-{segment['id']}.manifest.json"
+        copy(directory / "overlay" / "manifest.json", manifest_file)
+        seen = avatar_manifest.view(json.loads(manifest_file.read_text(encoding="utf-8")))
+        overlays.append(
+            {
+                "file": f"layers/avatar-{segment['id']}.mov",
+                "manifest": f"layers/{manifest_file.name}",
+                "manifest_sha256": hashlib.sha256(manifest_file.read_bytes()).hexdigest(),
+                "renderer_kind": seen["renderer_kind"],
+                "frames_identity": seen["frames_identity"],
+            }
+        )
     slides = []
     for page, digest in slide_sources(job):
         source = rc.env.source(digest, f"slide {page}")
@@ -89,7 +107,7 @@ def run_handoff(rc, row, partial):
         "clock": placements["clock"],
         "profile": {"name": profile["name"], "size": size, "fps": fps, "frames": composed["frames"]},
         "segments": placements["segments"],
-        "overlays": [o | {"file": f} for o, f in zip(composed["overlays"], overlays, strict=True)],
+        "overlays": [o | layer for o, layer in zip(composed["overlays"], overlays, strict=True)],
         "slides": composed["slides"],
         "slide_files": slides,
         "avatar_off": composed["avatar_off"],

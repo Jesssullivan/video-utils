@@ -7,7 +7,8 @@ Every command prints JSON with --json (status and explain always do) or a short 
 
   --root       NARRATED_VIDEO_ROOT        the stage store root (default artifacts/narrated)
   --records    NARRATED_VIDEO_RECORDS     dhall-to-json renders of narrate jobs, voices, consents and music beds
-  --externals  NARRATED_VIDEO_EXTERNALS   the private kitpip pin record; KITPIP_BIN names the binary
+  --externals  NARRATED_VIDEO_EXTERNALS   the private pin record of the avatar externals: KITPIP_BIN names the kitpip
+                                          binary, VRM_RENDERER_BIN the VRM renderer
   --store      NARRATE_STORE              the private store; plan checks source digests only when one is named, and
                                           run and stage read every source from it
   --lexical    NARRATE_LEXICAL_DIR        the pinned xoxd-lexical release the script and voice stages read
@@ -15,10 +16,10 @@ Every command prints JSON with --json (status and explain always do) or a short 
 plan never runs a stage and never writes, except graph.json with --record. run and stage run the lane L4, L5 and L6
 stages (narrate/video/run.py) and record graph.json when they finish. `stage JOB voice --from-run RUN_DIR` adopts a
 narrate run already rendered elsewhere (narrate render --prerendered) as the voice node instead of voicing it.
-pin-check checks the private kitpip pin against its public registration in program/externals.json and KITPIP_BIN
-against the pin. fixture writes a synthetic workspace (records, store and lexical release) for `just nv-fixture`.
-init turns the kitpip avatar on by default for an edition that allows one (NV-8), which needs --persona; --no-avatar
-turns it off.
+pin-check checks the private kitpip pin (or, with --external vrm, the VRM renderer pin) against its public
+registration in program/externals.json and the binary against the pin. fixture writes a synthetic workspace (records,
+store and lexical release) for `just nv-fixture`. init turns the kitpip avatar on by default for an edition that
+allows one (NV-8), which needs --persona; --no-avatar turns it off.
 
 intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
 "Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,
@@ -37,7 +38,7 @@ from pathlib import Path
 
 from .. import policy
 from ..ir import sha256_file
-from . import bundle, fixture, graph, kitpip, speech, store
+from . import bundle, fixture, graph, kitpip, speech, store, vrm
 from . import run as runner
 from .common import Env
 from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_job, load_records, read_json
@@ -68,10 +69,20 @@ def ffmpeg_identity():
 
 
 def context(a):
-    pin = kitpip.load_pin(a.externals or os.environ.get(kitpip.EXTERNALS_ENV))
+    path = a.externals or os.environ.get(kitpip.EXTERNALS_ENV)
+    pin, vrm_pin = kitpip.load_pin(path, required=False), vrm.load_pin(path)
+    if path is not None and pin is None and vrm_pin is None:
+        raise JobError("externals_invalid", "the externals record pins neither kitpip nor a vrm renderer")
     store_dir = a.store or os.environ.get("NARRATE_STORE")
     sources = set(policy.store_index(store_dir)) if store_dir else None
-    return {"pin": pin, "kitpip": kitpip.resolve(pin), "ffmpeg": ffmpeg_identity(), "sources": sources}
+    return {
+        "pin": pin,
+        "kitpip": kitpip.resolve(pin),
+        "vrm_pin": vrm_pin,
+        "vrm": vrm.resolve(vrm_pin),
+        "ffmpeg": ffmpeg_identity(),
+        "sources": sources,
+    }
 
 
 def job_store(a, job_id):
@@ -346,13 +357,22 @@ def cmd_explain(a):
 
 
 def cmd_pin_check(a):
-    pin = kitpip.load_pin(a.externals or os.environ.get(kitpip.EXTERNALS_ENV))
-    result = kitpip.pin_check(pin)
+    path = a.externals or os.environ.get(kitpip.EXTERNALS_ENV)
+    if getattr(a, "external", "kitpip") == "vrm":
+        result = vrm.pin_check(vrm.load_pin(path))
+        prefix, missing = "vrm", "vrm_renderer_missing"
+    else:
+        result = kitpip.pin_check(kitpip.load_pin(path))
+        prefix, missing = "kitpip", "kitpip_missing"
     if result["ok"]:
         emit(result)
         return 0
-    code = {"unregistered": "kitpip_pin_missing", "pending": "kitpip_pin_pending", "mismatch": "kitpip_pin_mismatch"}
-    return refusal(code.get(result["state"], "kitpip_missing"), result["detail"])
+    code = {
+        "unregistered": f"{prefix}_pin_missing",
+        "pending": f"{prefix}_pin_pending",
+        "mismatch": f"{prefix}_pin_mismatch",
+    }
+    return refusal(code.get(result["state"], missing), result["detail"])
 
 
 def cmd_verify(a):
@@ -471,8 +491,14 @@ def main(argv=None):
     v = sub.add_parser("verify", help="re-hash a stage directory or every current stage of a job")
     v.add_argument("dir")
 
-    k = sub.add_parser("pin-check", help="check the kitpip pin against program/externals.json and KITPIP_BIN")
-    k.add_argument("--externals", help="the kitpip pin record, instead of NARRATED_VIDEO_EXTERNALS")
+    k = sub.add_parser("pin-check", help="check an avatar external's pin against program/externals.json and its binary")
+    k.add_argument("--externals", help="the private pin record, instead of NARRATED_VIDEO_EXTERNALS")
+    k.add_argument(
+        "--external",
+        choices=("kitpip", "vrm"),
+        default="kitpip",
+        help="which pin to check: kitpip (KITPIP_BIN, the default) or vrm (VRM_RENDERER_BIN)",
+    )
 
     a = p.parse_args(argv)
     try:

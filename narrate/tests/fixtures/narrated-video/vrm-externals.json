@@ -1,0 +1,35 @@
+{
+ "externals": {
+  "vrm": {
+   "binaries": {
+    "vrm-renderer": {
+     "any": {
+      "bytes": 6915,
+      "sha256": "0f9f95620a46290d5d34bb2dd56dfae390e6b79dc8ca6c5af0fff08e10bca78c"
+     }
+    }
+   },
+   "engine": {
+    "kind": "stub",
+    "lock_sha256": null
+   },
+   "face_schema": "face.timeline/v1",
+   "fetch": "explicit",
+   "gate_state": "test_fixture_not_a_release",
+   "manifest_schema": "avatar.manifest/v1",
+   "renderer_kind": "vrm",
+   "resolve": {
+    "env": [
+     "VRM_RENDERER_BIN"
+    ],
+    "store": "by_sha256"
+   },
+   "source_commit": "0000000000000000000000000000000000000000",
+   "timeline_mapping": "avatar_overlay_v1",
+   "version": "0.0.0-stub",
+   "visibility": "test_fixture"
+  }
+ },
+ "note": "Test-only externals record: it pins the synthetic VRM renderer stub beside it, never a renderer release. The real VRM renderer pin is the vrm entry of the private externals record.",
+ "schema_version": 1
+}

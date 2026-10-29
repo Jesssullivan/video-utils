@@ -42,12 +42,15 @@ MODULES = (
 )
 VIDEO_MODULES = (
     "admit",
+    "avatar",
+    "avatar_manifest",
     "bundle",
     "claims",
     "cli",
     "common",
     "compose",
     "deliver",
+    "face",
     "fixture",
     "graph",
     "handoff",
@@ -61,6 +64,7 @@ VIDEO_MODULES = (
     "run",
     "speech",
     "store",
+    "vrm",
 )
 
 

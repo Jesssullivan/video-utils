@@ -20,9 +20,10 @@ Machine gates:
 - captions: the files captions asks for exist, a soft track when soft is set, the personaCue opens the first cue and
   extraNotice ends description.txt when the job sets them.
 
-Operator gates stay pending_operator here and never pass: listening, lip sync (with an avatar), and with upload and a
-bed, the licence PDF digest and a clear Content ID result. delivery_gate.upload_gates_closed says the machine gates
-pass, upload is set and every bed gate is closed (a client edition also needs voiceOnlyListen).
+Operator gates stay pending_operator here and never pass: listening, lip sync (with an avatar), the burned-in badge
+decision (vrm_badge_decision, with a VRM overlay: not ruled, SPR-128), and with upload and a bed, the licence PDF
+digest and a clear Content ID result. delivery_gate.upload_gates_closed says the machine gates pass, upload is set
+and every bed gate is closed (a client edition also needs voiceOnlyListen).
 delivery_gate.public_upload_allowed also needs every operator state closed: verified is not accepted (NV-2: internal
 until a first listening receipt; an overlay without lip-sync acceptance stays private). deliver_check never closes
 listening itself, so it never reports a public upload as allowed.
@@ -180,6 +181,17 @@ def edition_at_deliver(job, bed, derived, overlays):
     return verdict | {"leaves": leaves}
 
 
+def vrm_overlays(rc):
+    """The segments whose composed overlay a VRM renderer drew (the avatar stage's measured renderer kind)."""
+    found = []
+    for segment in rc.job["segments"]:
+        if selection("avatar", segment, rc.job)[0]:
+            measured = upstream(rc.store, f"avatar/{segment['id']}")[0].get("measurements") or {}
+            if (measured.get("renderer") or {}).get("kind") == "vrm":
+                found.append(segment["id"])
+    return found
+
+
 def run_deliver_check(rc, row, partial):
     job = rc.job
     compose_manifest, compose_dir = upstream(rc.store, "compose")
@@ -222,6 +234,8 @@ def run_deliver_check(rc, row, partial):
         "bed_licence_pdf": "not_applicable",
         "bed_content_id": "not_applicable",
     }
+    if vrm_overlays(rc):
+        operator["vrm_badge_decision"] = "pending_operator"
     if job["delivery"]["upload"] and bed is not None:
         licence = bed["licence"]
         operator["bed_licence_pdf"] = "passed" if licence["certifiedPdfSha256"] else "pending_operator"
