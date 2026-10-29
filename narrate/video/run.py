@@ -40,8 +40,11 @@ LANES = {}
 
 
 class RunContext:
-    def __init__(self, job, records, store, ctx, env):
+    """from_run: a narrate run directory the voice stage adopts instead of voicing (`stage JOB voice --from-run`)."""
+
+    def __init__(self, job, records, store, ctx, env, from_run=None):
         self.job, self.records, self.store, self.ctx, self.env = job, records, store, ctx, env
+        self.from_run = from_run
 
 
 def ancestors(stage_id):

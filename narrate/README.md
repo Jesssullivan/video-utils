@@ -24,7 +24,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | --- | --- | --- |
 | `just narrate-render [CONFIG]` | `bounded.sh python -m narrate render` | the whole pipeline, then `verify` |
 | `just narrate-eval RUN [CONFIG]` | `bounded.sh python -m narrate evaluate` | loudness, overruns, WER, SIM (`--reference-voice` for a decoy); writes nothing |
-| `just narrate-verify RUN` | `python -m narrate verify` | re-hashes the run and re-checks the manifest |
+| `just narrate-verify RUN` | `python -m narrate verify` | re-hashes the run and re-checks the manifest; `--result-line` prints one line `{ok, run_id, content_sha256}` (as `narrate-render --result-line` does) |
 | `just narrate-plan CONFIG DIR` | `python -m narrate plan` | an `AudioCppBatch` engine: the request batch for a GPU window (no audio); then `serve/audiocpp_batch.py` on the GPU host and `just narrate-render CONFIG --prerendered DIR` |
 | `just narrate-voices [CONFIG]` | `python -m narrate voices` | voice ids, consent state, scopes, engines |
 | `just narrate-engines [CONFIG]` | `python -m narrate engines` | profiles, confidentiality eligibility, availability; `--reach` tries a TCP connect |

@@ -49,6 +49,18 @@ nv-run job *args:
 nv-stage job stage *args:
     narrate/bounded.sh python3 -m narrate video stage {{quote(job)}} {{quote(stage)}} {{args}}
 
+# Adopt a narrate run already rendered and verified elsewhere (an AudioCppBatch engine's `just narrate-render CONFIG
+# --prerendered DIR`) as the job's voice node instead of voicing it again. The run is copied into the stage
+# directory, re-verified there and bound to what the stage would render (narrate job and gates, script, engine record
+# and knobs, voices by speaker with clips and consents, lexical release, pronunciation), after narrate's consent
+# policy admits the job against this job's own records and store. It refuses a policy failure, a run that fails
+# narrate verify, a test-mode batch (prerendered_test_mode), a failed chunk gate or a run that differs. ARGS:
+# --segment ID (default the job's only segment), --replace to archive a fresh voice node once the new run passes
+# every check, --json.
+# Record an already rendered narrate run as a job's voice stage output.
+nv-stage-voice-from-run job run_dir *args:
+    narrate/bounded.sh python3 -m narrate video stage {{quote(job)}} voice --from-run {{quote(run_dir)}} {{args}}
+
 # A simple job in one step: init from the defaults, then run. ARGS go to init (--card, --still SHA, --bed ID,
 # --edition E, --persona P or --no-avatar); the store, records and lexical release come from the environment.
 nv-quick job narrate_job script *args:
@@ -123,8 +135,9 @@ nv-intake-fixture:
 # The graph-core, simple-path, avatar and compose tests: keys, invalidation rows, freshness, admit, the CLI, the
 # kitpip pin and avatar stages on the stub, the L4 stages on synthetic fixtures (levels, duck, placement property,
 # editions at Place, labels, bases, the bed) and the L6 stages (alpha, captions, labels, profiles, slides, the flash
-# gate, avatarOff and handoff) and the demo bundle intake and claims gate.
+# gate, avatarOff and handoff), voice --from-run adoption with its refusals, and the demo bundle intake and claims
+# gate.
 nv-test:
     cd narrate && python3 -m pytest -q tests/test_narrated_video_graph.py tests/test_narrated_video_types.py \
         tests/test_narrated_video_simple.py tests/test_narrated_video_avatar.py tests/test_narrated_video_compose.py \
-        tests/test_narrated_video_intake.py
+        tests/test_narrated_video_adopt.py tests/test_narrated_video_intake.py

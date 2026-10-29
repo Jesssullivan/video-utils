@@ -315,6 +315,20 @@ def test_cli_render_verify_voices_engines_and_refusal(workspace, capsys):
     assert json.loads(capsys.readouterr().err)["refused"] == "consent_revoked"
 
 
+def test_cli_render_and_verify_print_one_result_line(workspace, capsys):
+    config = workspace.write(SLIDE)
+    assert main(["render", str(config), "--result-line"]) == 0
+    out = capsys.readouterr().out
+    run_dir = workspace.base / "runs" / workspace.runs()[0]
+    manifest = json.loads((run_dir / "manifest.json").read_text())
+    want = {"ok": True, "run_id": manifest["run_id"], "content_sha256": manifest["content_sha256"]}
+    assert out.count("\n") == 1 and json.loads(out) == want
+    assert main(["verify", str(run_dir), "--result-line"]) == 0
+    assert json.loads(capsys.readouterr().out) == want
+    with pytest.raises(SystemExit):
+        main(["render", str(config), "--json", "--result-line"])
+
+
 def test_voices_add_stores_by_digest_and_bounds_the_clip(workspace, tmp_path):
     config = workspace.write(SLIDE)
     clip, text = tmp_path / "clip.wav", tmp_path / "clip.txt"

@@ -262,6 +262,7 @@ and `show_badge`. Its states are `source_checks: passed`, `render: stub` or
 | `run JOB [--stages S,...] [--until S] [--force S,...] [--json]` | `just nv-run` | runs the stale stages (`script` to `handoff`, with `avatar` and `avatar_check` when the job has an avatar) and stops at the first refusal. Finished stages stay fresh. Records `graph.json` |
 | `pin-check [--externals FILE]` | `just kitpip-pin-check` | checks the private pin against `program/externals.json` and `KITPIP_BIN` against the pin. Refuses `kitpip_pin_missing`, `kitpip_pin_pending`, `kitpip_pin_mismatch` or `kitpip_missing` |
 | `stage JOB STAGE [--segment ID]` | `just nv-stage` | runs one node when every input is fresh, else refuses `stage_input_stale` |
+| `stage JOB voice --from-run RUN_DIR [--segment ID] [--replace]` | `just nv-stage-voice-from-run JOB RUN_DIR` | adopts a narrate run already rendered and verified elsewhere (`narrate render --prerendered` for an `AudioCppBatch` engine) as the voice node instead of voicing it. See "Adopting a rendered run" |
 | `fixture --out DIR` | `just nv-fixture` | writes a synthetic workspace: records, a private-store stand-in and a fixture lexical release |
 | `init` then `run` | `just nv-quick JOB NARRATE_JOB SCRIPT [ARGS]` | a simple job in one step |
 | `intake BUNDLE --out DIR --narrate-template ID --voice ID --engine ID (--persona P \| --no-avatar) [--job ID] [--store DIR] [--tail-s S]` | `just narrated-video-intake` | a demo bundle to a job and one narrate job per beat, claims gated (see "Demo bundle intake"). Writes nothing on a refusal |
@@ -279,6 +280,60 @@ example against the committed records. It then runs `nv-quick --no-avatar` end
 to end on a synthetic workspace through `deliver_check` and prints the mix
 measurements and the delivery gates. `nv-run`, `nv-stage` and
 `nv-quick` run inside `narrate/bounded.sh`.
+
+## Adopting a rendered run
+
+An `AudioCppBatch` engine renders out of process: `narrate plan` writes the
+batch, the GPU window runs it, and `narrate render CONFIG --prerendered DIR`
+makes the run. The `voice` stage cannot do that itself (`run_voice` would refuse
+`prerendered_required`), so `stage JOB voice --from-run RUN_DIR` adopts that run
+(TIN-7564). The segment defaults to the job's only one. `script` must be fresh.
+
+1. The narrate job is admitted first, against this job's records and private
+   store, exactly as the stage's own render would admit it (`policy.admit` over
+   the segment's script): the engine rules, every voice the narrate job names,
+   consent with its stored evidence, its scopes, `allowedEngines` and the hosted
+   rules. A run rendered against other records, or before a consent narrowed,
+   is refused with narrate's own code (`consent_scope`, `consent_missing`,
+   `engine_not_allowed`, `hosted_not_allowed` and the rest).
+2. The run must be a directory with a `manifest.json`, outside `artifacts/runs/`,
+   with no symlink in it (`voice_run_missing`, `voice_run_manifest_missing`,
+   `voice_run_in_guitar_runs`, `voice_run_invalid`).
+3. It is copied into the stage's `narration/`, and the copy, never the source, is
+   checked by `narrate verify`: every digest, `synthetic: true`, mapping
+   `narration_v1`, `no_time_stretch: false` and `content_sha256`
+   (`voice_run_unverified`).
+4. A test-mode batch refuses `voice_run_test_mode` (the flag
+   `prerendered_test_mode`, or `engine.synthesis.test_mode`).
+5. The chunk gates must hold: every chunk lists its take and a QA status, the
+   counts in `qa.chunks` agree, and no chunk failed its measured gate
+   (`voice_chunk_gate_failed`).
+6. The run must be what the stage would render (`voice_run_mismatch`, naming the
+   first field that differs): the narrate job's fields, gates and seed with no
+   overrides or rewrite; the segment's script digest and input kind; the engine
+   record narrate writes (every field and the knobs the stage's own
+   `narrate.toml` gives, such as `fit_speed_max` and `audiocpp_clone`, with
+   pinned files compared by digest, never by path, and the batch's own
+   `synthesis` record left out); the voice records by speaker, for the voices
+   the script uses (a named speaker the script leaves out is not required),
+   with clips, transcripts, consents, scopes and tempo; the lexical release; and
+   the pronunciation table.
+
+Each refusal is a failure, not a verdict: nothing is recorded, and another run
+may be adopted. The stage manifest is the one a local render writes, with
+`states.render: adopted` and `measurements.adopted` holding the run id and
+content digest, never the source path. `voice_qa` and the stages after it run as
+usual, and `voice_qa` scores against the narrate job's gates from the records,
+never the gates a run's manifest carries. Adopting the run the node already
+holds runs every check on `RUN_DIR` again and is then a no-op; another run
+refuses `voice_already_fresh` unless `--replace` is given. `--replace` runs every
+check on `RUN_DIR` in place first, and only a run that passes them archives the
+node to `history/`, so a run that would be refused never costs the node it would
+replace. These two refusals print on stderr as `{"ok": false, "refused", ...}`.
+`narrate render --result-line` and `narrate verify --result-line` print the
+`{ok, run_id, content_sha256}` line a workflow task reads before it adopts;
+verify prints it with `ok: false` and a `reason` even when the manifest is
+missing or unreadable.
 
 ## Editions
 
@@ -508,7 +563,7 @@ it. `--force S` archives a fresh stage to `history/` and clears its refusal.
 | Stage | Reads | Writes | Refuses |
 | --- | --- | --- | --- |
 | `script` | the segment's script by digest, through its narrate job's input adapter, and the pinned lexical release | `script.json` (spoken-text digest), `lexical.json` (advisory findings, R-N12) | `input_invalid`. Findings never refuse |
-| `voice` | the script, the narrate job and its records | one narrate run in `narration/` (mapping `narration_v1`), labels from its voices | narrate's own refusals, as failures |
+| `voice` | the script, the narrate job and its records, or with `--from-run` a run rendered elsewhere | one narrate run in `narration/` (mapping `narration_v1`), labels from its voices | narrate's own refusals, as failures; with `--from-run` the adoption refusals in "Adopting a rendered run" |
 | `voice_qa` | the narrate run | `qa.json`: verify receipt and `narrate evaluate` metrics against the job's gates | `voice_unverified`, `voice_qa_failed` (a measured gate failed). `not_measured` never fails. Listening stays `pending_operator` |
 | `base` | a card colour, or a still or video by digest | `base.png` for a card or still at the job's size, or `base.mp4` (constant-rate H.264 at the video's own size and rate) with `clips.wav` when `keepBaseAudio`. `base.json` | `base_invalid`. A deck refuses `base_deck_pending` until lane L8 |
 | `place` | `base`, every `voice` and `voice_qa` | `voice.wav` and `clips.wav` at 48 kHz on the base clock, `placements.json` | `anchor_needs_deck`, `anchor_invalid`, `placement_overlap`, `base_too_short` and the edition codes at Place |

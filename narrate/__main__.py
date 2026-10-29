@@ -56,7 +56,13 @@ def main(argv=None):
     r = sub.add_parser("render", help="render the job a narrate.toml names into artifacts/narrate/<run_id>/")
     job_arguments(r)
     r.add_argument("--out", help="the directory runs land in, instead of artifacts/narrate")
-    r.add_argument("--json", action="store_true", help="print a JSON summary with the manifest path")
+    out_format = r.add_mutually_exclusive_group()
+    out_format.add_argument("--json", action="store_true", help="print a JSON summary with the manifest path")
+    out_format.add_argument(
+        "--result-line",
+        action="store_true",
+        help="print one compact JSON line {ok, run_id, content_sha256} (for a workflow task)",
+    )
     r.add_argument(
         "--prerendered",
         metavar="DIR",
@@ -93,6 +99,11 @@ def main(argv=None):
 
     f = sub.add_parser("verify", help="re-hash and re-check a run")
     f.add_argument("run_dir")
+    f.add_argument(
+        "--result-line",
+        action="store_true",
+        help="print one compact JSON line {ok, run_id, content_sha256} instead of the receipt",
+    )
 
     x = sub.add_parser(
         "export", help="copy a verified run's narration.wav to a consumer as <stem>.wav, never replacing"
@@ -163,6 +174,10 @@ def main(argv=None):
             if a.json:
                 emit(render.summary(final, manifest))
                 return 0
+            if a.result_line:
+                # render verified the run before returning it (render.py raises verify_refused otherwise)
+                print(verify.result_line(True, manifest["run_id"], manifest["content_sha256"]))
+                return 0
             loud = manifest["loudness"]["measured"]["integrated_lufs"]
             print(
                 f"{final}: {manifest['input']['chunks']} chunks, {manifest['timeline']['total_samples']} samples "
@@ -171,7 +186,7 @@ def main(argv=None):
             )
             return 0
         if a.command == "verify":
-            return verify.main(a.run_dir)
+            return verify.main(a.run_dir, line=a.result_line)
         if a.command == "export":
             emit(export.export(a.run_dir, a.to, a.stem))
             return 0

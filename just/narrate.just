@@ -6,7 +6,8 @@
 # Runs land in artifacts/narrate/<run_id>/, outside artifacts/runs/; no guitar tool reads them.
 
 # Per-chunk whisper runs inside a render, so it runs through narrate/bounded.sh (one step at a time, 6G MemoryMax,
-# nice 19, idle I/O, started only below the memory-pressure threshold).
+# nice 19, idle I/O, started only below the memory-pressure threshold). ARGS: --prerendered DIR, --json, or
+# --result-line for one compact line {ok, run_id, content_sha256}.
 # Render a job: adapters, lexical pass, chunker, engine, per-chunk QA, timing fit, loudness, verify.
 narrate-render config="narrate.toml" *args:
     narrate/bounded.sh python3 -m narrate render {{quote(config)}} {{args}}
@@ -16,9 +17,10 @@ narrate-render config="narrate.toml" *args:
 narrate-eval run_dir config="":
     narrate/bounded.sh python3 -m narrate evaluate {{quote(run_dir)}} {{ if config == "" { "" } else { "--config " + quote(config) } }}
 
+# ARGS: --result-line prints one compact line {ok, run_id, content_sha256} instead of the receipt.
 # Re-hash and re-check a run.
-narrate-verify run_dir:
-    python3 -m narrate verify {{quote(run_dir)}}
+narrate-verify run_dir *args:
+    python3 -m narrate verify {{quote(run_dir)}} {{args}}
 
 # Copy a verified run's narration.wav to a consumer folder as <stem>.wav, never replacing a file.
 narrate-export run_dir to stem:
