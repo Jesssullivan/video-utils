@@ -335,6 +335,13 @@ load per voice:
   (`prerendered_required`), and `plan` or `--prerendered` with any other
   backend is refused (`engine_not_batch`). The MCP tools do not expose `plan`
   or `--prerendered` yet; they stay CLI only until W7 admits them.
+- **Hand-off (TIN-7564).** `render --result-line` and `verify --result-line`
+  print one compact JSON line, `{"ok", "run_id", "content_sha256"}` (and
+  `reason` when verify fails), for a workflow task that passes the run on.
+  `narrate video stage JOB voice --from-run RUN_DIR`
+  (docs/spec/NARRATED_VIDEO.md, "Commands") then adopts the rendered run as
+  the narrated-video voice node, so a batch run is never voiced again. It
+  refuses a test-mode batch (`prerendered_test_mode`) and a failed chunk gate.
 
 An engine record for VoxCPM2 (values are placeholders; the real record is
 private):

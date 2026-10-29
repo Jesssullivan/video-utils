@@ -49,6 +49,16 @@ nv-run job *args:
 nv-stage job stage *args:
     narrate/bounded.sh python3 -m narrate video stage {{quote(job)}} {{quote(stage)}} {{args}}
 
+# Adopt a narrate run already rendered and verified elsewhere (an AudioCppBatch engine's `just narrate-render CONFIG
+# --prerendered DIR`) as the job's voice node instead of voicing it again. The run is copied into the stage
+# directory, re-verified there and bound to the voice key (narrate job, script, voices and consents, engine, lexical
+# release, pronunciation). It refuses a run that fails narrate verify, a test-mode batch (prerendered_test_mode), a
+# failed chunk gate or a run that differs from the key. ARGS: --segment ID (default the job's only segment),
+# --replace to archive a fresh voice node first, --json.
+# Record an already rendered narrate run as a job's voice stage output.
+nv-stage-voice-from-run job run_dir *args:
+    narrate/bounded.sh python3 -m narrate video stage {{quote(job)}} voice --from-run {{quote(run_dir)}} {{args}}
+
 # A simple job in one step: init from the defaults, then run. ARGS go to init (--card, --still SHA, --bed ID,
 # --edition E, --persona P or --no-avatar); the store, records and lexical release come from the environment.
 nv-quick job narrate_job script *args:
@@ -90,7 +100,8 @@ nv-fixture:
 # The graph-core, simple-path, avatar and compose tests: keys, invalidation rows, freshness, admit, the CLI, the
 # kitpip pin and avatar stages on the stub, the L4 stages on synthetic fixtures (levels, duck, placement property,
 # editions at Place, labels, bases, the bed) and the L6 stages (alpha, captions, labels, profiles, slides, the flash
-# gate, avatarOff and handoff).
+# gate, avatarOff and handoff), and voice --from-run adoption with its refusals.
 nv-test:
     cd narrate && python3 -m pytest -q tests/test_narrated_video_graph.py tests/test_narrated_video_types.py \
-        tests/test_narrated_video_simple.py tests/test_narrated_video_avatar.py tests/test_narrated_video_compose.py
+        tests/test_narrated_video_simple.py tests/test_narrated_video_avatar.py tests/test_narrated_video_compose.py \
+        tests/test_narrated_video_adopt.py
