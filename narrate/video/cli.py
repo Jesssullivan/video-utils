@@ -1,4 +1,4 @@
-"""python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture}.
+"""python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims}.
 
 The commands are docs/spec/NARRATED_VIDEO.md, "Commands".
 
@@ -19,6 +19,11 @@ pin-check checks the private kitpip pin against its public registration in progr
 against the pin. fixture writes a synthetic workspace (records, store and lexical release) for `just nv-fixture`.
 init turns the kitpip avatar on by default for an edition that allows one (NV-8), which needs --persona; --no-avatar
 turns it off.
+
+intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
+"Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,
+writes one NarratedVideo record, one narrate job per beat and their sources, and refuses before writing anything when
+a check fails. fixture --bundle also writes a synthetic bundle.
 """
 
 import argparse
@@ -32,7 +37,7 @@ from pathlib import Path
 
 from .. import policy
 from ..ir import sha256_file
-from . import fixture, graph, kitpip, speech, store
+from . import bundle, fixture, graph, kitpip, speech, store
 from . import run as runner
 from .common import Env
 from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_job, load_records, read_json
@@ -276,8 +281,52 @@ def cmd_fixture(a):
     if out.exists() and any(out.iterdir()):
         return refusal("fixture_exists", "--out must be a new or empty directory")
     paths = fixture.write(out)
+    if a.bundle:
+        paths["bundle"] = fixture.write_bundle(out / "bundle")
     emit({"ok": True, "narrate_job": fixture.NARRATE_JOB, "bed": fixture.BED} | {k: str(v) for k, v in paths.items()})
     return 0
+
+
+def cmd_intake(a):
+    records_dir = a.records or os.environ.get(RECORDS_ENV)
+    if not records_dir:
+        return refusal("records_missing", "no records directory: pass --records or set NARRATED_VIDEO_RECORDS")
+    if not (a.persona or a.no_avatar):
+        return refusal("persona_label_missing", "the avatar is on by default (NV-8): pass --persona P, or --no-avatar")
+    if a.tail_s is not None and not 0 <= a.tail_s <= 60:
+        return refusal("knob_out_of_bounds", "--tail-s is 0 to 60 seconds")
+    manifest = bundle.intake(
+        a.bundle,
+        a.out,
+        records_dir,
+        job_id=a.job,
+        template=a.narrate_template,
+        voice=a.voice,
+        engine=a.engine,
+        persona=a.persona,
+        tail_s=a.tail_s,
+        store=a.store,
+    )
+    summary = {
+        "ok": True,
+        "job_id": manifest["job_id"],
+        "job_sha256": manifest["job_sha256"],
+        "segments": [
+            {"segment": s["segment"], "show": s["show"], "claims": s["claims"]["status"]} for s in manifest["segments"]
+        ],
+        "unused_assets": manifest["unused_assets"],
+    }
+    emit(manifest if a.json else summary)
+    return 0
+
+
+def cmd_claims(a):
+    result = bundle.claims_only(a.bundle)
+    emit(result)
+    if result["ok"]:
+        return 0
+    refused = bundle.gate_refusal(result["segments"])
+    return refusal(refused.code, refused.detail)
 
 
 def cmd_status(a):
@@ -386,6 +435,30 @@ def main(argv=None):
 
     f = sub.add_parser("fixture", help="write a synthetic workspace: records, a private store and a lexical release")
     f.add_argument("--out", required=True, help="a new or empty directory outside git")
+    f.add_argument("--bundle", action="store_true", help="also write a synthetic demo bundle under OUT/bundle/")
+
+    t = sub.add_parser("intake", help="a demo bundle to a NarratedVideo job and its narrate jobs, claims gated")
+    t.add_argument("bundle", help="the bundle directory (manifest.json, script.md, claims.json, assets)")
+    t.add_argument("--out", required=True, help="a new or empty directory: the job, records and intake.json")
+    t.add_argument("--records", help="the records directory, instead of NARRATED_VIDEO_RECORDS")
+    t.add_argument("--store", help="where the beat scripts and assets go by digest (default OUT/store)")
+    t.add_argument("--job", help="the job id (default the bundle directory's name)")
+    t.add_argument(
+        "--narrate-template",
+        required=True,
+        help="a narrate job record whose lexical pin, pronunciation"
+        " table, scope, gates and post settings every beat's narrate job copies",
+    )
+    t.add_argument("--voice", required=True, help="the voice record id every beat reads in")
+    t.add_argument("--engine", required=True, help="the engine record id; it must allow a confidential job")
+    avatar = t.add_mutually_exclusive_group()
+    avatar.add_argument("--persona", help="turn the kitpip avatar on with this labels.persona")
+    avatar.add_argument("--no-avatar", action="store_true", help="no kitpip avatar")
+    t.add_argument("--tail-s", type=float, help="seconds a card base holds after the last narration (default 1)")
+    t.add_argument("--json", action="store_true", help="print the whole intake manifest")
+
+    c = sub.add_parser("claims", help="the spoken-number claims gate of a demo bundle, alone")
+    c.add_argument("bundle", help="the bundle directory (script.md and claims.json are read)")
 
     s = sub.add_parser("status", help="print the recorded graph.json and its pending operator gates")
     common(s)
@@ -413,8 +486,14 @@ def main(argv=None):
             "explain": cmd_explain,
             "verify": cmd_verify,
             "pin-check": cmd_pin_check,
+            "intake": cmd_intake,
+            "claims": cmd_claims,
         }
         return commands[a.command](a)
+    except bundle.BundleError as exc:
+        if exc.report is not None:
+            emit({"ok": False, "segments": exc.report})
+        return refusal(exc.code, exc.detail)
     except JobError as exc:
         return refusal(exc.code, exc.detail)
     except policy.Refused as exc:

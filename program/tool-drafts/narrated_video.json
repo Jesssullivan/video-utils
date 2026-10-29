@@ -4,9 +4,9 @@
  "lane": "W8 (L3, L4, L5, L6)",
  "linear": "TIN-7476",
  "spec": "docs/spec/NARRATED_VIDEO.md",
- "worker": "python3 -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture}",
+ "worker": "python3 -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims}",
  "skill": ".agents/skills/narrated-video/SKILL.md",
- "admission": "Tool numbers are proposals: narrated_video_plan is proposed as 62, narrated_video_run as 63, narrated_video_place as 64, music_bed_build as 65, kitpip_overlay as 66, kitpip_verify as 67, narrated_video_mix as 68, narrated_video_compose as 69 and narrated_video_verify as 70. Root admits them in program/tools.json in lane L7. The path rules (no symlink components, root outside artifacts/runs/ and artifacts/narrate/) and the job-id form are enforced in narrate/video before any work; scripts/tool_api.py adds its own path checks at admission. No argument takes a URL, an executable or a shell string.",
+ "admission": "Tool numbers are proposals: narrated_video_plan is proposed as 62, narrated_video_run as 63, narrated_video_place as 64, music_bed_build as 65, kitpip_overlay as 66, kitpip_verify as 67, narrated_video_mix as 68, narrated_video_compose as 69 and narrated_video_verify as 70. Root admits them in program/tools.json in lane L7. The path rules (no symlink components, root outside artifacts/runs/ and artifacts/narrate/) and the job-id form are enforced in narrate/video before any work; scripts/tool_api.py adds its own path checks at admission. No argument takes a URL, an executable or a shell string. narrated_video_intake and narrated_video_claims (TIN-7735) carry no proposed number yet; root assigns them at admission. Their skill is .agents/skills/narrated-video-intake/SKILL.md.",
  "tools": [
   {
    "name": "narrated_video_plan",
@@ -856,6 +856,179 @@
     "research": "docs/spec/NARRATED_VIDEO.md \"Deliver check\"; the deck playbook's gates as the design records them.",
     "iterate": "Compare two deliver_check.json reports from runs that differ by one knob, at matched loudness.",
     "acceptance": "Machine gates are measurements. Only the operator closes pending_operator.",
+    "max_comparison_candidates_default": 2
+   }
+  },
+  {
+   "name": "narrated_video_intake",
+   "title": "Take in a demo bundle",
+   "description": "Run `python -m narrate video intake BUNDLE --out DIR --json`: parse the bundle strictly, hash every asset against its manifest sha256, run the spoken-number claims gate on every beat, convert the bundle to one NarratedVideo job (edition Internal, one segment per beat anchored at its start, PNG beats as Full slide pages by sha256, one MP4 as the base video, otherwise the default card) and one confidential narrate job per beat (Markdown input over the voiced text, inputSha256 bound, allowHosted false, voice and engine from the arguments, the rest copied from a template narrate job), check the job with admit, check that the template's pronunciation tables add no spoken number, and only then write narrated-video.json, records/ (the input renders plus the new narrate jobs), intake.json (per-segment spans, assets, receipts and claims results) and the beat scripts and cited assets into the store by digest. Every store target is checked before anything is written, each asset copy is opened without following a symlink and re-hashed against its manifest sha256, and the output is built in a temporary sibling and renamed into place. Refuses with a typed code and leaves no output and no new store file on any failure: bundle_invalid, asset_missing, asset_digest_mismatch, asset_kind_mismatch, asset_unreceipted, asset_unknown, asset_needs_conversion (a beat cites a GIF; no stage reads GIF), asset_video_multiple, script_invalid, beat_invalid, beat_voiced_missing, voiced_not_verbatim, claim_invalid, claim_unknown, the claims-gate codes number_unclaimed, claim_unreceipted, claim_ambiguous and number_ambiguous (with the per-segment report), the template, voice and engine codes, pronunciation_unknown, pronunciation_refused, pronunciation_adds_number, lexical_missing, lexical_digest_mismatch, out_exists, store_conflict, narrate_job_exists and admit's codes. Renders nothing, starts no engine and publishes nothing. Results carry ids, digests and the claims report; intake.json names the bundle by slug and digests, never by path. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply. The intake renders nothing and writes no media manifest; the job it writes runs through the stages above, whose manifests say no_time_stretch false with a non-identity mapping (docs/spec/TIMELINE_CONTRACT.md).",
+   "intent": "Let an agent turn a receipt-backed demo bundle into a narrated-video job without speaking a number no receipt backs.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "bundle": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The demo bundle directory: manifest.json, script.md, claims.json and the assets the manifest lists (docs/spec/NARRATED_VIDEO.md, \"Demo bundle intake\"). It lives in its producer's private repository; no symlink component."
+     },
+     "out": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "A new or empty directory for narrated-video.json, records/ and intake.json. Never under artifacts/runs/."
+     },
+     "records": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "A directory of dhall-to-json renders: jobs.json (holding the template narrate job), voices.json, consents.json, engines.json and, optionally, pronunciation.json and music-beds.json."
+     },
+     "store": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The private store that receives each beat's Markdown and each cited asset as <sha256><suffix> (default out/store)."
+     },
+     "job": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The job id (default the bundle directory's name): 1 to 64 of a-z, 0-9, '.', '_' and '-'. Each narrate job is <job>-<beat>."
+     },
+     "narrate_template": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "A narrate job record id whose lexical pin, pronunciation table, scope, gates and post settings every beat's narrate job copies."
+     },
+     "voice": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The voice record id every beat reads in. Its consent is checked by admit; never a clip or a path."
+     },
+     "engine": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The engine record id. It must admit a confidential job (Engine.mayRunConfidential): no hosted engine."
+     },
+     "persona": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Turn the kitpip avatar on with this labels.persona. Exactly one of persona and no_avatar."
+     },
+     "no_avatar": {
+      "type": "boolean",
+      "default": false,
+      "description": "No kitpip avatar."
+     },
+     "tail_s": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 60,
+      "description": "Seconds a card base holds after the last narration (default 1)."
+     },
+     "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 900,
+      "default": 300,
+      "description": "Outer deadline for the whole call in seconds (at most 900). A timed-out intake has written nothing, or only its complete output; call it again with a new out directory."
+     }
+    },
+    "required": [
+     "bundle",
+     "out",
+     "records",
+     "narrate_template",
+     "voice",
+     "engine"
+    ],
+    "additionalProperties": false
+   },
+   "skill": ".agents/skills/narrated-video-intake/SKILL.md",
+   "implementation_status": "draft",
+   "evidence_kind": "bundle_intake_manifest",
+   "limitations": [
+    "The claims gate reads English digits and number words and a fixed unit table; it checks that a cited claim names a receipt, not what the receipt says.",
+    "One MP4 per bundle becomes the base video and plays from program second 0 under every beat; GIF assets refuse until the producer converts them.",
+    "A converted job is checked by admit only; its narration, placement and delivery are measured by the stage tools, and listening stays an operator state."
+   ],
+   "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+   },
+   "dependencies": {
+    "recommended_prior_tools": [
+     "narrated_video_claims"
+    ],
+    "enforced": false,
+    "note": "intake runs the claims gate itself; narrated_video_claims shows the report without writing. narrated_video_plan follows once the job is initialised from narrated-video.json."
+   },
+   "agent_workflow": {
+    "identify": "Read the refusal code and the per-segment claims report, or intake.json's segments, unused_assets and admit verdict.",
+    "research": "docs/spec/NARRATED_VIDEO.md \"Demo bundle intake\"; the bundle's own receipts in its producer's repository.",
+    "iterate": "Fix the bundle in its producer's repository (reword a number, cite or add a receipted claim, convert a GIF), then rerun claims and intake into a new out directory and compare the reports.",
+    "acceptance": "A passed intake is a source check. Render, listening and delivery are later, separate states.",
+    "max_comparison_candidates_default": 2
+   }
+  },
+  {
+   "name": "narrated_video_claims",
+   "title": "Check a demo bundle's spoken numbers",
+   "description": "Run `python -m narrate video claims BUNDLE`: read script.md and claims.json only, extract every number each beat's voiced text speaks (digits, spelled-out cardinals, decimals such as 'seventeen point eight seven seven', ordinals, percentages and the unit words after them) and match each to exactly one claim the beat cites with the same exact decimal value and canonical unit and a non-empty receipt. Returns {ok, bundle (script and claims digests), segments: [{segment, status, codes, mentions, unused_claims}]}; each mention carries its text, number, unit, kind and either the matched claim and receipt or a code (number_unclaimed, claim_unreceipted, claim_ambiguous, number_ambiguous with a reason). Fails closed on ambiguity: adjacent number words, fractions and vague quantities (including 'a third', plural scale words and '-fold' words), a scale word with no count, 'point' with no whole part, 'second' as ordinal or unit, Roman numerals, a dash between number words, a decade such as '90s', a scale abbreviation or unknown unit symbol after a number ('17 K', 'bn', 'GiB') and digit tokens that are not one plain number (including any non-ASCII numeral) never match. Refuses bundle_invalid, script_invalid, beat_invalid, beat_voiced_missing, claim_invalid and claim_unknown before the gate runs. Reads no records, so it does not check the pronunciation tables; narrated_video_intake does. Read-only: writes nothing and renders nothing. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply.",
+   "intent": "Let an agent see which spoken numbers in a demo script lack a receipt before any intake or render.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "bundle": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "The demo bundle directory: manifest.json, script.md, claims.json and the assets the manifest lists (docs/spec/NARRATED_VIDEO.md, \"Demo bundle intake\"). It lives in its producer's private repository; no symlink component."
+     },
+     "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 900,
+      "default": 300,
+      "description": "Outer deadline for the whole call in seconds (at most 900). The gate is read-only, so a timed-out call has changed nothing; call it again."
+     }
+    },
+    "required": [
+     "bundle"
+    ],
+    "additionalProperties": false
+   },
+   "skill": ".agents/skills/narrated-video-intake/SKILL.md",
+   "implementation_status": "draft",
+   "evidence_kind": "spoken_number_claims_report",
+   "limitations": [
+    "English number words and the unit table in the spec only; a number in another language or an unknown unit reads as a bare count or not at all.",
+    "'one', 'first' and 'second' are always numbers: a script that uses them as ordinary words cites a claim or rewords."
+   ],
+   "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+   },
+   "dependencies": {
+    "recommended_prior_tools": [],
+    "enforced": false,
+    "note": "Run before narrated_video_intake."
+   },
+   "agent_workflow": {
+    "identify": "Read each refused mention's code and reason, and each segment's unused_claims.",
+    "research": "The claim's receipt in the bundle producer's repository; docs/spec/NARRATED_VIDEO.md \"Claims gate\".",
+    "iterate": "Reword or cite, rerun, and compare the two reports segment by segment.",
+    "acceptance": "Every segment passed. A passed gate says each number names a receipt, not that the receipt is right.",
     "max_comparison_candidates_default": 2
    }
   }

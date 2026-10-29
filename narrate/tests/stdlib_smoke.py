@@ -42,6 +42,8 @@ MODULES = (
 )
 VIDEO_MODULES = (
     "admit",
+    "bundle",
+    "claims",
     "cli",
     "common",
     "compose",
