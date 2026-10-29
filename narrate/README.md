@@ -87,7 +87,9 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 - **Loudness.** Two-pass `loudnorm` to the job's target (-16 LUFS, -1.5 dBTP), both passes recorded, then
   measured with `ebur128`. One rule (`audio.loudness_verdict`) serves render and evaluate: outside the job's
   tolerance is `loudness_out_of_tolerance`, a true peak more than 0.1 dB over the ceiling is
-  `true_peak_over_ceiling`, and a non-linear loudnorm is `loudnorm_dynamic`.
+  `true_peak_over_ceiling`, and a non-linear loudnorm is `loudnorm_dynamic`. The second pass raises the LRA
+  target from 11 LU to the take's measured range, capped at 20 LU (`audio.LRA_MAX`), so a wider take still fails
+  as `loudnorm_dynamic`. The manifest records it as `loudness.loudnorm.lra_target`.
 - **Location.** An `out` under `artifacts/runs/` is refused (`out_in_guitar_runs`) and `verify` refuses a run
   there. An empty job `inputSha256` leaves the input unpinned: `input.pinned: false` and the flag
   `input_unpinned`.

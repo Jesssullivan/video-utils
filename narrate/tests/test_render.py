@@ -368,6 +368,50 @@ def test_loudnorm_limits_peaks_that_one_linear_gain_would_push_over_the_ceiling(
     assert len(audio.read(tmp_path / "out.wav").samples) == len(pcm.samples)
 
 
+def stepped_tone(steps, block):
+    import math
+
+    pcm = audio.Pcm(24000)
+    for step in steps:
+        amplitude = 9000 * 10 ** (-step / 20)
+        pcm.samples.extend(round(amplitude * math.sin(2 * math.pi * 220 * n / 24000)) for n in range(block))
+    return pcm
+
+
+POST = {"loudnessLufs": -16, "loudnessToleranceLu": 0.5, "truePeakDbtp": -1.5}
+
+
+def test_loudnorm_stays_linear_when_the_take_is_wider_than_the_lra_target(tmp_path):
+    # blocks of 55000 samples (about 2.3 s) stepping down 18 dB: a range over 11 LU inside the gate. Blocks of
+    # exactly 3 s line up with loudnorm's 3 s windows, and its first pass then reads the take about 0.6 LU low.
+    source = stepped_tone((0, 3, 6, 9, 12, 15, 18, 0, 18), 55000).write(tmp_path / "wide.wav")
+    record = audio.loudnorm(source, tmp_path / "out.wav", 24000, -16, -1.5)
+    assert record["first_pass"]["input_lra"] > 11.0
+    assert record["lra_target"] >= record["first_pass"]["input_lra"]
+    assert record["normalization_type"] == "linear"
+    integrated, _, peak = audio.ebur128(tmp_path / "out.wav")
+    assert audio.loudness_verdict(integrated, peak, POST, record["normalization_type"]) == (True, [])
+
+
+def test_loudnorm_fails_closed_when_the_take_is_wider_than_lra_max(tmp_path):
+    source = stepped_tone((0, 5, 10, 15, 20, 25, 30, 35, 40, 0, 40), 55000).write(tmp_path / "wider.wav")
+    record = audio.loudnorm(source, tmp_path / "out.wav", 24000, -16, -1.5)
+    assert record["first_pass"]["input_lra"] > audio.LRA_MAX
+    assert record["lra_target"] == audio.LRA_MAX
+    assert record["normalization_type"] != "linear"
+    integrated, _, peak = audio.ebur128(tmp_path / "out.wav")
+    assert "loudnorm_dynamic" in audio.loudness_verdict(integrated, peak, POST, record["normalization_type"])[1]
+
+
+def test_lra_fit_raises_the_target_to_the_measured_range_and_never_lowers_it():
+    assert audio.lra_fit(4.1, 11.0) == 11.0
+    assert audio.lra_fit(11.0, 11.0) == 11.0
+    assert audio.lra_fit(19.5, 11.0) == 19.5
+    assert audio.lra_fit(20.0, 11.0) == audio.LRA_MAX == 20.0
+    assert audio.lra_fit(13.12, 11.0) == 13.2
+    assert audio.lra_fit(72.0, 11.0) == audio.LRA_MAX
+
+
 def test_whisper_reads_a_padded_take(monkeypatch):
     from condense import transcribe
     from narrate import qa

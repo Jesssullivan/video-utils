@@ -96,6 +96,13 @@ input adapters -> script IR -> lexical pass -> spoken normalisation -> chunker
 7. **Post.**
    - Loudness to -16 LUFS integrated, -1.5 dBTP true peak (two-pass FFmpeg
      `loudnorm`), within 0.5 LU.
+   - Loudness range: FFmpeg keeps `loudnorm` linear only when the measured
+     range fits the LRA target. The second pass raises the target from 11 LU
+     to the measured range, rounded up to a tenth and capped at 20 LU. It
+     never lowers it. Linear mode applies one gain, so the target does not
+     change the samples. A take wider than 20 LU goes dynamic and fails as
+     `loudnorm_dynamic`. The manifest records the target as
+     `loudness.loudnorm.lra_target`.
    - Pauses from directions and the job's sentence and paragraph pause knobs.
    - Timing fit for segments with a target duration: first the engine's
      `speed` knob, then FFmpeg `atempo` within plus or minus 8%
