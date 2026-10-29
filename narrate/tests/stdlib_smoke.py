@@ -44,6 +44,8 @@ VIDEO_MODULES = (
     "admit",
     "avatar",
     "avatar_manifest",
+    "bundle",
+    "claims",
     "cli",
     "common",
     "compose",

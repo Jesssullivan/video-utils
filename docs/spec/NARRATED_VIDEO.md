@@ -394,8 +394,12 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `run JOB [--stages S,...] [--until S] [--force S,...] [--json]` | `just nv-run` | runs the stale stages (`script` to `handoff`, with `avatar` and `avatar_check` when the job has an avatar) and stops at the first refusal. Finished stages stay fresh. Records `graph.json` |
 | `pin-check [--externals FILE] [--external kitpip\|vrm]` | `just kitpip-pin-check`, `just vrm-pin-check` | checks the private pin against `program/externals.json` and `KITPIP_BIN` (or, with `--external vrm`, `VRM_RENDERER_BIN`) against the pin. Refuses `kitpip_pin_missing`, `kitpip_pin_pending`, `kitpip_pin_mismatch` or `kitpip_missing`, or the `vrm_` forms (`vrm_renderer_missing` for a missing renderer) |
 | `stage JOB STAGE [--segment ID]` | `just nv-stage` | runs one node when every input is fresh, else refuses `stage_input_stale` |
+| `stage JOB voice --from-run RUN_DIR [--segment ID] [--replace]` | `just nv-stage-voice-from-run JOB RUN_DIR` | adopts a narrate run already rendered and verified elsewhere (`narrate render --prerendered` for an `AudioCppBatch` engine) as the voice node instead of voicing it. See "Adopting a rendered run" |
 | `fixture --out DIR` | `just nv-fixture` | writes a synthetic workspace: records, a private-store stand-in and a fixture lexical release |
 | `init` then `run` | `just nv-quick JOB NARRATE_JOB SCRIPT [ARGS]` | a simple job in one step |
+| `intake BUNDLE --out DIR --narrate-template ID --voice ID --engine ID (--persona P \| --no-avatar) [--job ID] [--store DIR] [--tail-s S]` | `just narrated-video-intake` | a demo bundle to a job and one narrate job per beat, claims gated (see "Demo bundle intake"). Writes nothing on a refusal |
+| `claims BUNDLE` | `just narrated-video-claims` | the spoken-number claims gate alone, one row per segment. Exit 1 when a segment refuses |
+| `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
 
 Paths come from flags or the environment: `--root` (`NARRATED_VIDEO_ROOT`),
 `--records` (`NARRATED_VIDEO_RECORDS`, the directory of `jobs.json`,
@@ -408,6 +412,60 @@ example against the committed records. It then runs `nv-quick --no-avatar` end
 to end on a synthetic workspace through `deliver_check` and prints the mix
 measurements and the delivery gates. `nv-run`, `nv-stage` and
 `nv-quick` run inside `narrate/bounded.sh`.
+
+## Adopting a rendered run
+
+An `AudioCppBatch` engine renders out of process: `narrate plan` writes the
+batch, the GPU window runs it, and `narrate render CONFIG --prerendered DIR`
+makes the run. The `voice` stage cannot do that itself (`run_voice` would refuse
+`prerendered_required`), so `stage JOB voice --from-run RUN_DIR` adopts that run
+(TIN-7564). The segment defaults to the job's only one. `script` must be fresh.
+
+1. The narrate job is admitted first, against this job's records and private
+   store, exactly as the stage's own render would admit it (`policy.admit` over
+   the segment's script): the engine rules, every voice the narrate job names,
+   consent with its stored evidence, its scopes, `allowedEngines` and the hosted
+   rules. A run rendered against other records, or before a consent narrowed,
+   is refused with narrate's own code (`consent_scope`, `consent_missing`,
+   `engine_not_allowed`, `hosted_not_allowed` and the rest).
+2. The run must be a directory with a `manifest.json`, outside `artifacts/runs/`,
+   with no symlink in it (`voice_run_missing`, `voice_run_manifest_missing`,
+   `voice_run_in_guitar_runs`, `voice_run_invalid`).
+3. It is copied into the stage's `narration/`, and the copy, never the source, is
+   checked by `narrate verify`: every digest, `synthetic: true`, mapping
+   `narration_v1`, `no_time_stretch: false` and `content_sha256`
+   (`voice_run_unverified`).
+4. A test-mode batch refuses `voice_run_test_mode` (the flag
+   `prerendered_test_mode`, or `engine.synthesis.test_mode`).
+5. The chunk gates must hold: every chunk lists its take and a QA status, the
+   counts in `qa.chunks` agree, and no chunk failed its measured gate
+   (`voice_chunk_gate_failed`).
+6. The run must be what the stage would render (`voice_run_mismatch`, naming the
+   first field that differs): the narrate job's fields, gates and seed with no
+   overrides or rewrite; the segment's script digest and input kind; the engine
+   record narrate writes (every field and the knobs the stage's own
+   `narrate.toml` gives, such as `fit_speed_max` and `audiocpp_clone`, with
+   pinned files compared by digest, never by path, and the batch's own
+   `synthesis` record left out); the voice records by speaker, for the voices
+   the script uses (a named speaker the script leaves out is not required),
+   with clips, transcripts, consents, scopes and tempo; the lexical release; and
+   the pronunciation table.
+
+Each refusal is a failure, not a verdict: nothing is recorded, and another run
+may be adopted. The stage manifest is the one a local render writes, with
+`states.render: adopted` and `measurements.adopted` holding the run id and
+content digest, never the source path. `voice_qa` and the stages after it run as
+usual, and `voice_qa` scores against the narrate job's gates from the records,
+never the gates a run's manifest carries. Adopting the run the node already
+holds runs every check on `RUN_DIR` again and is then a no-op; another run
+refuses `voice_already_fresh` unless `--replace` is given. `--replace` runs every
+check on `RUN_DIR` in place first, and only a run that passes them archives the
+node to `history/`, so a run that would be refused never costs the node it would
+replace. These two refusals print on stderr as `{"ok": false, "refused", ...}`.
+`narrate render --result-line` and `narrate verify --result-line` print the
+`{ok, run_id, content_sha256}` line a workflow task reads before it adopts;
+verify prints it with `ok: false` and a `reason` even when the manifest is
+missing or unreadable.
 
 ## Editions
 
@@ -639,7 +697,7 @@ it. `--force S` archives a fresh stage to `history/` and clears its refusal.
 | Stage | Reads | Writes | Refuses |
 | --- | --- | --- | --- |
 | `script` | the segment's script by digest, through its narrate job's input adapter, and the pinned lexical release | `script.json` (spoken-text digest), `lexical.json` (advisory findings, R-N12) | `input_invalid`. Findings never refuse |
-| `voice` | the script, the narrate job and its records | one narrate run in `narration/` (mapping `narration_v1`), labels from its voices | narrate's own refusals, as failures |
+| `voice` | the script, the narrate job and its records, or with `--from-run` a run rendered elsewhere | one narrate run in `narration/` (mapping `narration_v1`), labels from its voices | narrate's own refusals, as failures; with `--from-run` the adoption refusals in "Adopting a rendered run" |
 | `voice_qa` | the narrate run | `qa.json`: verify receipt and `narrate evaluate` metrics against the job's gates | `voice_unverified`, `voice_qa_failed` (a measured gate failed). `not_measured` never fails. Listening stays `pending_operator` |
 | `base` | a card colour, or a still or video by digest | `base.png` for a card or still at the job's size, or `base.mp4` (constant-rate H.264 at the video's own size and rate) with `clips.wav` when `keepBaseAudio`. `base.json` | `base_invalid`. A deck refuses `base_deck_pending` until lane L8 |
 | `place` | `base`, every `voice` and `voice_qa` | `voice.wav` and `clips.wav` at 48 kHz on the base clock, `placements.json` | `anchor_needs_deck`, `anchor_invalid`, `placement_overlap`, `base_too_short` and the edition codes at Place |
@@ -810,6 +868,205 @@ frames identity), the slide runs, the avatar-off spans, the mix gains and the
 stage key of every input. FCPXML and OTIO export is phase 2. Until an editor
 imports one, it stays unverified in an application.
 
+## Demo bundle intake
+
+Linear TIN-7735. A demo bundle is a directory that a producing lane writes in its own private repository, as
+`docs/demo/<slug>/`. `python -m narrate video intake` turns it into the records this spec already defines: one
+`NarratedVideo` job and one narrate `Job` per beat. It adds no schema (SPR-84): `job.check_shape` and admit accept
+its output unchanged. No real bundle, asset, receipt or render enters this repository. The tests use the synthetic
+bundle `demo-fixture` (`narrate/video/fixture.py`).
+
+### Format
+
+The parser (`narrate/video/bundle.py`) is strict. JSON files hold at most 4 MiB, `script.md` at most 1 MiB. A key
+that repeats, an unknown field or a missing field refuses `bundle_invalid`. Ids are 1 to 64 of `a-z`, `0-9`, `.`,
+`_` and `-`, starting with a letter or digit.
+
+`manifest.json` is `{"assets": [...]}`, with an optional `slug` equal to the directory's name. Each asset has these
+fields:
+
+| Field | Rule |
+| --- | --- |
+| `id` | an id, unique in the manifest |
+| `path` | a relative POSIX path inside the bundle: no leading `/`, no `.`, `..` or empty part, no backslash, no symlink on the way. It ends in `.png`, `.mp4` or `.gif` to match `kind` |
+| `sha256` | 64 lowercase hex digits. The file is hashed, and a different digest refuses `asset_digest_mismatch` |
+| `kind` | `png`, `mp4` or `gif`. The bytes must match: the PNG signature, an MP4 `ftyp` box, or `GIF87a`/`GIF89a` |
+| `receipt` | non-empty text naming the asset's source receipt (`asset_unreceipted` when empty) |
+| `size` | optional `{w, h}`. A PNG's header must hold the same size |
+| `fps` | optional `{num, den}`, recorded and never used |
+
+`script.md` is a sequence of beats. Before the first beat it allows one `# title` line, notes (lines starting with
+`>`) and blank lines. A beat is:
+
+````text
+## intro
+
+- target_s: 8
+- asset_id: slide-a
+- claims: build-ms, files
+
+```voiced
+The exact words to speak, with every number spelled as read.
+
+A blank line starts a paragraph.
+```
+````
+
+The heading is `## ` and the beat id, unique in the script. The three `- key: value` lines are each required once,
+in any order. `target_s` is seconds above 0 and at most 3600, with up to three decimals. `asset_id` names a manifest
+asset. `claims` is a comma-separated list of distinct claim ids, or empty. One ```` ```voiced ```` block holds the
+words to speak, closed by a ```` ``` ```` line. Notes and blank lines may sit anywhere in a beat. Any other line
+refuses `script_invalid` with its line number. A beat without its three lines refuses `beat_invalid`, and a beat with
+no voiced block or an empty one refuses `beat_voiced_missing`.
+
+`claims.json` is a list of claims, each with exactly three fields:
+
+```json
+{"id": "build-ms",
+ "value": {"spoken": "seventeen point eight seven seven milliseconds", "number": 17.877, "unit": "ms"},
+ "receipt": "the receipt that measured it"}
+```
+
+`number` is a JSON number, compared as an exact decimal. `unit` is `""` for a bare count, `ordinal`, one of the
+gate's canonical units (`percent`, `pp`, `s`, `ms`, `us`, `ns`, `min`, `h`, `day`, `week`, `month`, `year`, `Hz`,
+`kHz`, `MHz`, `GHz`, `dB`, `dBFS`, `LUFS`, `LU`, `dBTP`, `V`, `mV`, `A`, `mA`, `W`, `kW`, `mW`, `ohm`, `m`, `cm`,
+`mm`, `km`, `in`, `ft`, `g`, `kg`, `mg`, `degC`, `degF`, `deg`, `B`, `KB`, `MB`, `GB`, `TB`, `bit`, `fps`, `px`,
+`x`, `USD`) or two of them joined by `/` (`m/s`). `spoken` must read, through the gate's own extractor, as exactly
+that one number and unit, else `claim_invalid`. `receipt` is text or `null`. An empty or `null` receipt is legal
+in the file, and the claims gate refuses every number that relies on it.
+
+### Refusals
+
+| Code | When |
+| --- | --- |
+| `bundle_invalid` | a file is missing, malformed, too large or has a missing or unknown field; an asset path leaves the bundle |
+| `asset_missing` | an asset file is absent, not a regular file, or reached through a symlink |
+| `asset_digest_mismatch` | an asset file does not hash to its manifest `sha256`, when it is read or when its store copy is hashed |
+| `asset_kind_mismatch` | an asset's extension, bytes or PNG size differ from its manifest entry |
+| `asset_unreceipted` | an asset's receipt is empty |
+| `asset_unknown` | a beat's `asset_id` is not in the manifest |
+| `asset_needs_conversion` | a beat cites a GIF. No stage reads GIF: a slide is a still picture and the base is one video. The producer converts it to a PNG or an MP4 in the bundle, with its own digest and receipt. An unused GIF is listed in `unused_assets` and never refused |
+| `asset_video_multiple` | beats cite two different MP4s: one MP4 becomes the base, and no stage joins clips |
+| `script_invalid`, `beat_invalid`, `beat_voiced_missing` | the script rules above |
+| `voiced_not_verbatim` | narrate's Markdown adapter would not speak the voiced text as written: inline markup, a `[bracketed]` line, a heading or a `Sources:` line |
+| `claim_invalid`, `claim_unknown` | a claim breaks its rules; a beat cites a claim id that `claims.json` lacks |
+| `number_unclaimed`, `claim_unreceipted`, `claim_ambiguous`, `number_ambiguous` | the claims gate, per segment (below) |
+| `narrate_job_missing`, `records_invalid`, `voice_unknown`, `engine_unknown`, `engine_not_allowed`, `consent_scope`, `confidential_engine_refused` | the template narrate job, voice or engine cannot voice a confidential job |
+| `pronunciation_unknown`, `pronunciation_refused`, `pronunciation_adds_number`, `lexical_missing`, `lexical_digest_mismatch` | the template's pronunciation table has no record; narrate's normaliser refuses a beat; a table makes narrate say a number word or digit group that the voiced text lacks; the template pins the narration register and its xoxd-lexical release (`NARRATE_LEXICAL_DIR`) is absent or does not match its pin |
+| `out_exists`, `store_conflict`, `narrate_job_exists` | the output directory is not new or empty (or fills while the intake runs); the store holds a different file, a symlink or a directory under a digest name, or `--store` is `--out` itself; the records hold a different narrate job with a new job's id |
+| admit's codes | the converted job fails admit at Plan, such as `slides_invalid` for a PNG beat shorter than two fades |
+
+### Conversion
+
+| Bundle | Becomes |
+| --- | --- |
+| a beat | a segment with the beat's id, anchored `AtSeconds` at the beat's start. Beats run back to back from 0, each `target_s` long |
+| its voiced text | a narrate Markdown input: front matter `slide: <beat id>` and `target_seconds: <target_s>`, a blank line and the voiced text. Its SHA-256 is the narrate job's `inputSha256` and the segment's `scriptSha256` |
+| its narrate job | `<job>-<beat>`: a copy of the template narrate job (`--narrate-template`: lexical pin, pronunciation table, scope, gates, post settings) with `input` `Markdown`, `confidential` true, `allowHosted` false, no speakers table, and `voice` and `engine` from `--voice` and `--engine` |
+| a PNG beat | a `Slide` page by SHA-256 over the beat's span, layout `Full` |
+| an MP4 beat | a `Base` page over the beat's span. The MP4 is the base video (`keepBaseAudio` false) |
+| no MP4 | the default card (`#101820`, 1920x1080 at 30/1), held `--tail-s` (default 1 s) after the last narration |
+| the job | edition `Internal`, no music bed, tighten off, the default captions and delivery. The kitpip avatar is on with `--persona P` and off with `--no-avatar`, and one of them is required (NV-8) |
+
+The base video runs from program second 0. A PNG beat covers it with a full-frame slide, and an MP4 beat shows the
+video's own seconds at that span. A bundle that wants a clip from its first frame cites it in its first beat, or
+cuts the clip so that its seconds line up with the beat. narrate fits each narration to its beat's `target_s` within
+the template's `fitMaxStretch`. `place` still refuses `placement_overlap` or `base_too_short` when a narration cannot
+fit.
+
+The intake writes nothing until every check passes, including admit on the converted job against the merged
+records and the pronunciation check below. Then it checks every store target (absent, or a regular file with the
+same digest; anything else refuses `store_conflict`) before it creates anything. It copies each cited asset into a
+temporary file in the store, opening every path component without following a symlink, and hashes the copy: a copy
+that does not match the manifest `sha256` refuses `asset_digest_mismatch`. It builds the output tree in a temporary
+sibling of `--out`, links each store file into place without replacing one, and renames the tree to `--out`. A
+refusal at any step removes the temporary files, the store files this run added and the directories it created, so
+`--out` stays absent or empty and a retry can use it. The result in a new or empty `--out` is:
+
+```text
+OUT/
+  narrated-video.json   the NarratedVideo record, as `init --from` reads it
+  records/              the input record renders, with one narrate job per beat added to jobs.json
+  intake.json           the run manifest (kind nv_bundle_intake)
+STORE/                  --store, default OUT/store: each beat's Markdown as <sha256>.md and each cited asset as
+                        <sha256>.png or <sha256>.mp4
+```
+
+`intake.json` names the bundle by slug and by the digests of its three files, never by path. It holds the job id and
+digest, the narrate template, voice and engine, and one row per segment. Each row holds the narrate job, script
+digest, span, asset (id, kind, digest, receipt), shown layer and the claims result. It also holds `unused_assets`,
+the store digests written, the digest of every output, admit's verdict and pending operator gates, the template's
+pronunciation table id and pinned upstream release (or `null`), and the states `source_checks: passed`,
+`claims: passed`, `pronunciation_numbers: passed`, `render: not_run` and `listening: pending_operator`. Then
+`init --job ID --from OUT/narrated-video.json --records OUT/records` and `run` proceed as for any job. The beats'
+narrate jobs are confidential, so the engine must be one that `Engine.mayRunConfidential` admits.
+
+### Claims gate
+
+`narrate/video/claims.py` extracts every number a voiced text speaks. It reads digits (`17.877`, `1,024`, `42%`,
+`3rd`, `12ms`, `3.5 million`) and spelled-out English cardinals, decimals and ordinals ("one hundred and five",
+"seventeen point eight seven seven", "a hundred", "twenty-one", "twenty first", "minus five"). After a number it reads
+the unit words ("milliseconds", "percent", "per cent", "%", "frames per second", "metres per second") as one
+canonical unit. A number without a unit word has the unit `""`. Each number must match exactly one claim that the
+beat cites, with the same number and unit and a non-empty receipt.
+
+| Per-number result | Code |
+| --- | --- |
+| no cited claim has that number and unit | `number_unclaimed` |
+| only cited claims without a receipt match | `claim_unreceipted` |
+| two cited claims with receipts match | `claim_ambiguous` |
+| the reading is not one value | `number_ambiguous` |
+
+The gate fails closed. These readings are ambiguous and never match:
+
+- adjacent number words that do not form one number ("nineteen eighty four", "one two three");
+- fractions and vague quantities ("one third", "two thirds", "a half", "a third", "an eighth", "quarter", "dozen",
+  "couple", "twice"), plural scale words ("hundreds", "thousands", "millions", "tens of thousands"), "-fold" words
+  ("tenfold", "ten-fold", "10 fold"), "nil", "nought", "naught" and decade words ("teens", "the nineties"):
+  reason `fraction_or_vague_quantity`;
+- a scale word with no count before it ("hundred files", "thousand users"): `scale_without_count`;
+- "point" and digit words with no whole part ("point five");
+- "second" where it may be the ordinal or the unit ("twenty second", "one hundred second");
+- a Roman numeral of two or more capital I, V and X ("World War II", "Phase IV"): `roman_numeral`;
+- a dash other than a hyphen inside one word chunk between number words (an en or em dash, or U+2212, between
+  "five" and "hundred"): `dash_between_numbers`;
+- digit tokens that are not one plain number ("1.2.3", "10:30", "1/2", "2026-10-29", "MP4", "1,23", "4K", "5M",
+  any chunk with a non-ASCII numeral such as "½", "²" or an Arabic-Indic digit): `digits_not_one_number`;
+- a whole ten with an attached "s" ("the 90s", "1990s"), a decade or seconds: `decade_or_seconds`. "12s" and
+  "30 s" are seconds;
+- a number followed by a word that may scale it or that names a unit the gate does not read:
+  `unknown_scale_or_unit`. These are a single letter other than "a" and "I" ("17 K", "3 B", "17 M"), a scale
+  abbreviation (`k`, `bn`, `mn`, `mln`, `mio`, `tn`, `mil`, `thou`, `grand`, `lakh`, `crore` and their variants), a
+  lower-case unit of up to five letters with no vowel ("kph", "rpm", "kbps", "Mb" in lower case), a binary prefix
+  ("GiB", "MiB"), a mixed-case unit ("Mbps", "kWh") and the capital units `MW`, `MV`, `MA`, `KM`, `PB`, `EB`,
+  `KPH`, `MPH`, `RPM`, `BPM`, `PPM`, `KBPS` and `MBPS`;
+- a unit joined by "/" to something that is not a unit ("5 m/furlong"): `unit_not_read`. "5 m/s" and
+  "five km/h" read as `m/s` and `km/h`.
+
+A hyphen joins words: U+002D, U+2010, U+2011 (the non-breaking hyphen) and the soft hyphen, so "five‑hundred"
+written with U+2011 reads as 500, never as 5. A possessive or contraction of a number word ("five's", "seven’s")
+reads as the number. Unit symbols match in their exact case after digits or spelled numbers ("twelve ms"): "m" is
+metres and "M" is not a unit, "mW" is milliwatts and "MW" is ambiguous, "MB" is megabytes and "Mb" is ambiguous.
+Other words after a number, acronyms such as "MCP" and "PRs" among them, leave it a bare count.
+
+"one" is always the number 1, and "first" and "second" alone are the ordinals 1 and 2: a script that uses them as
+ordinary words cites a claim or rewords. "once", "single", "both", "none", and "a" before anything but a scale word
+or an ordinal are not numbers. A cited claim that no number uses is listed in `unused_claims` and never refused.
+
+The gate reads the voiced text as written. narrate then says it through the template's pronunciation table, and,
+when the template pins the narration register, the xoxd-lexical upstream table first. narrate's own guard refuses an
+entry that changes digits or a recognised numeric literal, but not one that turns a word into number words. So
+`intake`, after admit, says each beat's paragraphs through the same `Normaliser` and refuses
+`pronunciation_adds_number` when the spoken form holds a number word, vague quantity, Roman numeral or digit group
+that the written form lacks. Units are not compared: a table may spell out "LUFS". With the narration register
+pinned, the intake reads the release from `NARRATE_LEXICAL_DIR` and refuses `lexical_missing` without it.
+`claims` alone reads no records and does not run this check.
+
+`claims` runs the gate alone on `script.md` and `claims.json` and prints `{ok, bundle, segments}`, one row per
+segment with its status, codes, mentions (text, number, unit, kind, status, claim and receipt, or code and reason)
+and unused claims. A refused gate exits 1 with the first segment's code on stderr. `intake` runs the same gate
+first. A refusal prints the per-segment report and writes nothing. A pass copies the report into `intake.json`.
+
 ## Deck import
 
 A slide deck assembled outside this repository enters as a `Deck` base by
@@ -885,3 +1142,15 @@ it stays a knob.
   not gated. The model's author and the permission that fits are an open operator decision.
 - Whether offline VRM video carries a burned-in badge is open. So is VRM in any edition except
   `Internal`.
+- The claims gate reads English number words and the units listed in "Demo bundle intake". A number said in
+  another language reads as a bare count or not at all. A unit outside the table reads as a bare count unless
+  its shape marks it as a possible scale (single letters, scale abbreviations, vowel-less lower-case units,
+  binary prefixes, mixed-case units and the listed capital ones). A real word unit outside the table ("beats
+  per minute") still reads as a bare count. Roman numerals with L, C, D or M ("CLI", "MD") are not read, because
+  they collide with common acronyms. The gate checks that a receipt is named, not what the receipt says.
+- The pronunciation check compares the number tokens of a paragraph before and after the tables, not their
+  values or order: an entry that only reorders a paragraph's number words passes. narrate's chunker normalises per
+  chunk, and the check normalises per paragraph, so an entry that matches across a chunk boundary is read
+  differently. `claims` alone does not check pronunciation tables.
+- A demo bundle's MP4 plays from program second 0 under every beat. A bundle with clips at several
+  offsets, or more than one clip, needs a deck base or a later stage.

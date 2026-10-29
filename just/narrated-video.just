@@ -1,6 +1,6 @@
 # Narrated video (docs/spec/NARRATED_VIDEO.md), lanes L3 to L6: the stage graph's init, plan, status, explain and
 # verify, the run, stage and quick recipes (script, voice, voice_qa, base, place, music, mix, avatar, avatar_check,
-# compose, deliver_check and handoff), and the kitpip pin check.
+# compose, deliver_check and handoff), the kitpip pin check, and demo bundle intake with its claims gate (TIN-7735).
 # Run inside `nix develop .#condense` (FFmpeg, python3, pytest).
 # Root imports this file from the root justfile (`import 'just/narrated-video.just'`).
 # Jobs and their stage directories land in artifacts/narrated/<job_id>/ (NARRATED_VIDEO_ROOT), outside
@@ -55,6 +55,18 @@ nv-run job *args:
 nv-stage job stage *args:
     narrate/bounded.sh python3 -m narrate video stage {{quote(job)}} {{quote(stage)}} {{args}}
 
+# Adopt a narrate run already rendered and verified elsewhere (an AudioCppBatch engine's `just narrate-render CONFIG
+# --prerendered DIR`) as the job's voice node instead of voicing it again. The run is copied into the stage
+# directory, re-verified there and bound to what the stage would render (narrate job and gates, script, engine record
+# and knobs, voices by speaker with clips and consents, lexical release, pronunciation), after narrate's consent
+# policy admits the job against this job's own records and store. It refuses a policy failure, a run that fails
+# narrate verify, a test-mode batch (prerendered_test_mode), a failed chunk gate or a run that differs. ARGS:
+# --segment ID (default the job's only segment), --replace to archive a fresh voice node once the new run passes
+# every check, --json.
+# Record an already rendered narrate run as a job's voice stage output.
+nv-stage-voice-from-run job run_dir *args:
+    narrate/bounded.sh python3 -m narrate video stage {{quote(job)}} voice --from-run {{quote(run_dir)}} {{args}}
+
 # A simple job in one step: init from the defaults, then run. ARGS go to init (--card, --still SHA, --bed ID,
 # --edition E, --persona P or --no-avatar); the store, records and lexical release come from the environment.
 nv-quick job narrate_job script *args:
@@ -93,11 +105,45 @@ nv-fixture:
                      sort_keys=True))
     PY
 
+# Demo bundle intake (docs/spec/NARRATED_VIDEO.md, "Demo bundle intake", TIN-7735). A bundle is a directory with
+# manifest.json, script.md, claims.json and its PNG, MP4 and GIF assets. The claims gate refuses a segment that speaks
+# a number no cited, receipted claims.json entry backs. Run both on the private bundle where it lives; nothing renders.
+# Run the spoken-number claims gate alone: one row per segment; exit 1 when a segment refuses.
+narrated-video-claims bundle:
+    python3 -m narrate video claims {{quote(bundle)}}
+
+# One NarratedVideo job (edition Internal) and one confidential narrate job per beat, written only after the claims
+# gate, every asset digest and admit pass. OUT is a new or empty directory. ARGS: --records DIR (or
+# NARRATED_VIDEO_RECORDS) --narrate-template ID --voice ID --engine ID (--persona P | --no-avatar) [--job ID]
+# [--store DIR, default OUT/store] [--tail-s S] [--json]. Then `python3 -m narrate video init --job ID --from
+# OUT/narrated-video.json --records OUT/records` and `just nv-run ID`.
+# Turn a demo bundle into a narrated-video job and its narrate jobs, claims gated; nothing is written on a refusal.
+narrated-video-intake bundle out *args:
+    python3 -m narrate video intake {{quote(bundle)}} --out {{quote(out)}} {{args}}
+
+# The synthetic demo-fixture bundle and workspace: claims gate, intake, then init (which plans) against the intake's
+# records. No render; tests/test_narrated_video_intake.py runs the job through deliver_check.
+# Run the claims gate, intake and init on the synthetic demo-fixture bundle.
+nv-intake-fixture:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    root="$(mktemp -d)"
+    trap 'rm -rf "$root"' EXIT
+    python3 -m narrate video fixture --out "$root/ws" --bundle > /dev/null
+    bundle="$root/ws/bundle/demo-fixture"
+    python3 -m narrate video claims "$bundle" > "$root/claims.json"
+    python3 -m narrate video intake "$bundle" --out "$root/out" --records "$root/ws/records" \
+        --narrate-template job-fixture-fake --voice voice-fixture-sine --engine fake-sine --no-avatar \
+        --store "$root/ws/store"
+    python3 -m narrate video init --root "$root/narrated" --records "$root/out/records" --store "$root/ws/store" \
+        --job demo-fixture --from "$root/out/narrated-video.json"
+
 # The graph-core, simple-path, avatar and compose tests: keys, invalidation rows, freshness, admit, the CLI, the
 # kitpip pin and avatar stages on the stub, the L4 stages on synthetic fixtures (levels, duck, placement property,
 # editions at Place, labels, bases, the bed) and the L6 stages (alpha, captions, labels, profiles, slides, the flash
-# gate, avatarOff and handoff), and the VRM renderer draft on its stub (pin, avatar.manifest/v1, face timeline, gates).
+# gate, avatarOff and handoff), voice --from-run adoption with its refusals, the demo bundle intake and claims
+# gate, and the VRM renderer draft on its stub (pin, avatar.manifest/v1, face timeline, gates).
 nv-test:
     cd narrate && python3 -m pytest -q tests/test_narrated_video_graph.py tests/test_narrated_video_types.py \
         tests/test_narrated_video_simple.py tests/test_narrated_video_avatar.py tests/test_narrated_video_compose.py \
-        tests/test_narrated_video_vrm.py
+        tests/test_narrated_video_adopt.py tests/test_narrated_video_intake.py tests/test_narrated_video_vrm.py
