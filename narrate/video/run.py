@@ -7,7 +7,7 @@ writes into its <key16>.partial/ directory and is committed into the store with 
 - The first refusal stops the run. Finished stages stay fresh. A verdict (StageRefused.verdict, or a kitpip verdict)
   is recorded for its key; a failure is not, so calling run again retries it.
 - Lanes L4, L5 and L6 run every stage: script, voice, voice_qa, base, place, music, mix, avatar and avatar_check
-  (kitpip, narrate/video/kitpip.py), compose, deliver_check and handoff. No stage waits on a lane.
+  (kitpip or vrm, narrate/video/avatar.py), compose, deliver_check and handoff. No stage waits on a lane.
 - --stages limits a run to those stages, --until to one stage and the stages it depends on, and --force reruns a
   stage whose current run is fresh by archiving it to history/ (its refusal, if any, is cleared too).
 - v1 runs one stage at a time inside one process. `just nv-run` and `just nv-quick` wrap that process in
@@ -16,7 +16,7 @@ writes into its <key16>.partial/ directory and is committed into the store with 
 
 import time
 
-from . import compose, deliver, graph, handoff, kitpip, music, place, speech
+from . import avatar, compose, deliver, graph, handoff, music, place, speech
 from . import mix as mix_stage
 from .common import StageRefused
 from .job import JobError
@@ -30,8 +30,8 @@ RUNNERS = {
     "place": place.run_place,
     "music": music.run_music,
     "mix": mix_stage.run_mix,
-    "avatar": kitpip.run_avatar_stage,
-    "avatar_check": kitpip.run_avatar_check,
+    "avatar": avatar.run_avatar_stage,
+    "avatar_check": avatar.run_avatar_check,
     "compose": compose.run_compose,
     "deliver_check": deliver.run_deliver_check,
     "handoff": handoff.run_handoff,

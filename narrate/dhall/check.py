@@ -307,6 +307,8 @@ NV_BOUNDS = {"avatar.width": (0.10, 0.30), "music.bedBelowVoiceLu": (10.0, 30.0)
              "slides.dimTo": (0.0, 1.0)}
 SLIDE_LAYOUTS = ("Full", "CardLowerLeft")
 NV_DRIFT_MAX_LU = 0.5
+# NarratedVideo.Avatar.external: kitpip, or the VRM offline renderer (SPR-128; narrate/video/vrm.py gates it at admit).
+AVATAR_EXTERNALS = ("kitpip", "vrm")
 NV_TRUE_PEAK_MAX_DBTP = -1.5
 BED_LAYERS = (2, 3)
 BED_TEMPO_RANGE = (0.5, 2.0)
@@ -519,8 +521,8 @@ def check_narrated_videos(data: dict, errors: list) -> None:
             if labels["persona"] != persona:
                 errors.append(f"{where}: persona_label_missing (a voice's consent names a persona the labels lack)")
         if nv["avatar"] is not None:
-            if nv["avatar"]["external"] != "kitpip":
-                errors.append(f"{where}: avatar external {nv['avatar']['external']!r} is not kitpip")
+            if nv["avatar"]["external"] not in AVATAR_EXTERNALS:
+                errors.append(f"{where}: avatar external {nv['avatar']['external']!r} is not kitpip or vrm")
             if not within(nv["avatar"]["width"], NV_BOUNDS["avatar.width"]):
                 errors.append(f"{where}: avatar width {nv['avatar']['width']!r} is not 0.10 to 0.30")
         for _, problem in slides_problems(nv):
@@ -820,7 +822,7 @@ def narrated_video_mutations() -> list:
         ("bed record missing", lambda d, m: card(d)["music"].update(bed="no-such-bed")),
         ("avatar without a persona label", lambda d, m: nv(d, "nv-fixture-avatar")["labels"].update(persona=None)),
         ("consent persona the labels lack", persona_differs),
-        ("avatar external not kitpip", lambda d, m: nv(d, "nv-fixture-avatar")["avatar"].update(external="x")),
+        ("avatar external not kitpip or vrm", lambda d, m: nv(d, "nv-fixture-avatar")["avatar"].update(external="x")),
         ("avatar width out of range", lambda d, m: nv(d, "nv-fixture-avatar")["avatar"].update(width=0.4)),
         ("duck above 12 dB", lambda d, m: card(d)["music"].update(duckDb=13.0)),
         ("bed level out of range", lambda d, m: card(d)["music"].update(bedBelowVoiceLu=5.0)),

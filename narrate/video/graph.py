@@ -26,7 +26,7 @@ from collections import namedtuple
 from datetime import UTC, datetime
 
 from . import admit as admit_stage
-from . import keys
+from . import keys, vrm
 from .job import JobError
 
 Stage = namedtuple("Stage", "id fan_out depends_on optional mapping intent")
@@ -123,6 +123,13 @@ TOOLS = {
     "handoff": ("narrate.video.handoff", "1"),
 }
 KITPIP_STAGES = ("avatar", "avatar_check")
+AVATAR_STAGES = KITPIP_STAGES  # run by the job's avatar external: kitpip or vrm (narrate/video/avatar.py)
+# ctx keys of each external's pin and resolution, and the plan reasons for avatar stages it cannot run.
+AVATAR_CTX = {"kitpip": ("pin", "kitpip"), "vrm": ("vrm_pin", "vrm")}
+AVATAR_BLOCKED = {
+    "kitpip": {"pending": "kitpip_pin_pending", None: "kitpip_missing"},
+    "vrm": {"pending": "vrm_pin_pending", None: "vrm_renderer_missing"},
+}
 RENDER_STAGES = ("base", "place", "music", "mix", "compose", "handoff")
 STATES = ("fresh", "stale", "corrupt", "blocked", "refused", "not_selected", "pending_operator")
 MUSIC_RATE_HZ = 48000
@@ -146,6 +153,28 @@ def toposort(stages):
 
 
 ORDER = toposort(STAGES)
+
+
+def avatar_external(job):
+    """The job's avatar.external (kitpip or vrm), or None without an avatar block."""
+    return (job.get("avatar") or {}).get("external")
+
+
+def avatar_pin(job, ctx):
+    """The pin of the job's avatar external from the plan context, or None."""
+    keys_ = AVATAR_CTX.get(avatar_external(job))
+    return ctx.get(keys_[0]) if keys_ else None
+
+
+def avatar_resolution(job, ctx):
+    """The resolution ({state, binary, tool, detail}) of the job's avatar external, or None."""
+    keys_ = AVATAR_CTX.get(avatar_external(job))
+    return ctx.get(keys_[1]) if keys_ else None
+
+
+def avatar_blocked(job, state):
+    table = AVATAR_BLOCKED.get(avatar_external(job), AVATAR_BLOCKED["kitpip"])
+    return table.get(state, table[None])
 
 
 # Knobs ---------------------------------------------------------------------------------------------------------
@@ -216,6 +245,8 @@ def knobs_for(stage, segment, job, records, pin):
             "tighten": job["tighten"],
             "persona": job["labels"]["persona"],
         }
+    if stage == "avatar" and avatar_external(job) == "vrm":
+        return vrm.knobs(job, records, pin)
     if stage == "avatar":
         # The pin's default-rig revision belongs only to the default rig. Another rig with no revision in the job
         # keys None; its stage manifest records the revision kitpip reports (measurements.rig).
@@ -232,6 +263,8 @@ def knobs_for(stage, segment, job, records, pin):
             "renderSize": avatar["renderSize"],
             "persona": job["labels"]["persona"],
         }
+    if stage == "avatar_check" and avatar_external(job) == "vrm":
+        return {"external": "vrm", "persona": job["labels"]["persona"]}
     if stage == "avatar_check":
         return {"persona": job["labels"]["persona"]}
     if stage == "music":
@@ -295,7 +328,7 @@ def slide_sources(job):
 # Nodes ---------------------------------------------------------------------------------------------------------
 def selection(stage, segment, job):
     """(selected, reason) for one node."""
-    if stage in KITPIP_STAGES:
+    if stage in AVATAR_STAGES:
         if job["avatar"] is None:
             return False, "no_avatar"
         if not segment["avatar"]:
@@ -332,9 +365,10 @@ def upstream(node, by_stage):
     return rows
 
 
-def tool_for(stage, ctx, segment=None, records=None):
-    if stage in KITPIP_STAGES:
-        return (ctx.get("kitpip") or {}).get("tool")
+def tool_for(stage, ctx, segment=None, records=None, job=None):
+    if stage in AVATAR_STAGES:
+        found = avatar_resolution(job, ctx) if job is not None else ctx.get("kitpip")
+        return (found or {}).get("tool")
     name, version = TOOLS[stage]
     binary = None
     if stage == "voice" and segment is not None and records is not None:
@@ -346,11 +380,13 @@ def tool_for(stage, ctx, segment=None, records=None):
 def plan(job, records, store, ctx):
     """The graph for a job: admit's verdict and one state, reason and key per node. Writes nothing.
 
-    ctx: {"kitpip": kitpip.resolve() result or None, "pin": the kitpip pin or None, "ffmpeg": FFmpeg identity
-    or None, "sources": set of SHA-256 digests in the private store, or None when no store is configured}.
+    ctx: {"kitpip": kitpip.resolve() result or None, "pin": the kitpip pin or None, "vrm": vrm.resolve() result
+    or None, "vrm_pin": the vrm pin or None, "ffmpeg": FFmpeg identity or None, "sources": set of SHA-256 digests
+    in the private store, or None when no store is configured}. The avatar stages use the pin and resolution of
+    the job's avatar.external.
     """
-    kitpip_state = (ctx.get("kitpip") or {}).get("state")
-    gate = admit_stage.admit(job, records, kitpip_state if job["avatar"] is not None else None)
+    avatar_state = (avatar_resolution(job, ctx) or {}).get("state")
+    gate = admit_stage.admit(job, records, avatar_state if job["avatar"] is not None else None)
     nodes = nodes_for(job)
     by_stage = {}
     for node in nodes:
@@ -377,10 +413,9 @@ def plan(job, records, store, ctx):
         if gate["verdict"] != "Admitted":
             node["state"], node["reason"] = "blocked", "admit_refused"
             continue
-        tool = tool_for(stage, ctx, node["segment"], records)
-        if stage in KITPIP_STAGES and kitpip_state != "resolved":
-            reason = "kitpip_pin_pending" if kitpip_state == "pending" else "kitpip_missing"
-            node["state"], node["reason"] = "blocked", reason
+        tool = tool_for(stage, ctx, node["segment"], records, job)
+        if stage in AVATAR_STAGES and avatar_state != "resolved":
+            node["state"], node["reason"] = "blocked", avatar_blocked(job, avatar_state)
             continue
         if stage in RENDER_STAGES and not ctx.get("ffmpeg"):
             node["state"], node["reason"] = "blocked", "ffmpeg_missing"
@@ -403,7 +438,8 @@ def plan(job, records, store, ctx):
             else:
                 value = (up.get("measurements") or {}).get(how)
                 inputs.append({"slot": f"{slot}.{how}", "stage": up["stage"], "value": value})
-        knobs = knobs_for(stage, node["segment"], job, records, ctx.get("pin"))
+        pin = avatar_pin(job, ctx) if stage in AVATAR_STAGES else ctx.get("pin")
+        knobs = knobs_for(stage, node["segment"], job, records, pin)
         document = keys.key_document(
             stage,
             node["segment"]["id"] if node["segment"] else None,

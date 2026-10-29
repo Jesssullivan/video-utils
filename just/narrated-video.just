@@ -6,7 +6,8 @@
 # Jobs and their stage directories land in artifacts/narrated/<job_id>/ (NARRATED_VIDEO_ROOT), outside
 # artifacts/runs/ and artifacts/narrate/. Records come from NARRATED_VIDEO_RECORDS (dhall-to-json renders), sources
 # from the private store NARRATE_STORE, the lexical release from NARRATE_LEXICAL_DIR, the private kitpip pin from
-# NARRATED_VIDEO_EXTERNALS and the binary from KITPIP_BIN. A job holds digests and record ids, never a path.
+# NARRATED_VIDEO_EXTERNALS and the binary from KITPIP_BIN (the VRM renderer draft from VRM_RENDERER_BIN). A job holds
+# digests and record ids, never a path.
 # Runs go through narrate/bounded.sh (nice 19, a 6G memory scope, one heavy narrate step at a time).
 
 # The defaults: one segment voiced by NARRATE_JOB, a #101820 card (or --still SHA), the kitpip avatar on where the
@@ -34,6 +35,11 @@ nv-explain job stage *args:
 # then KITPIP_BIN against the pin's digest and size. Refuses kitpip_pin_pending while the release digest is pending.
 kitpip-pin-check *args:
     python3 -m narrate video pin-check {{args}}
+
+# Check the private VRM renderer pin (the vrm entry of NARRATED_VIDEO_EXTERNALS) against its public registration, then
+# VRM_RENDERER_BIN against the pin's digest and size (SPR-128, a draft). Refuses vrm_pin_pending until a renderer exists.
+vrm-pin-check *args:
+    python3 -m narrate video pin-check --external vrm {{args}}
 
 # Re-hash a stage directory, or every current stage of a job directory.
 nv-verify dir:
@@ -90,7 +96,8 @@ nv-fixture:
 # The graph-core, simple-path, avatar and compose tests: keys, invalidation rows, freshness, admit, the CLI, the
 # kitpip pin and avatar stages on the stub, the L4 stages on synthetic fixtures (levels, duck, placement property,
 # editions at Place, labels, bases, the bed) and the L6 stages (alpha, captions, labels, profiles, slides, the flash
-# gate, avatarOff and handoff).
+# gate, avatarOff and handoff), and the VRM renderer draft on its stub (pin, avatar.manifest/v1, face timeline, gates).
 nv-test:
     cd narrate && python3 -m pytest -q tests/test_narrated_video_graph.py tests/test_narrated_video_types.py \
-        tests/test_narrated_video_simple.py tests/test_narrated_video_avatar.py tests/test_narrated_video_compose.py
+        tests/test_narrated_video_simple.py tests/test_narrated_video_avatar.py tests/test_narrated_video_compose.py \
+        tests/test_narrated_video_vrm.py

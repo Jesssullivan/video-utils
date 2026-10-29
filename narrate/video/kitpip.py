@@ -39,7 +39,7 @@ from pathlib import Path
 
 from ..config import in_guitar_runs
 from ..ir import sha256_file
-from . import labels
+from . import avatar_manifest, labels
 from .common import StageRefused, upstream, write_json
 from .graph import knobs_for
 from .job import JobError, read_json
@@ -47,6 +47,9 @@ from .job import JobError, read_json
 EXTERNALS_ENV = "NARRATED_VIDEO_EXTERNALS"
 BIN_ENV = "KITPIP_BIN"
 MANIFEST_SCHEMA = "kitpip.manifest/v0"
+# kitpip 0.1.0 writes kitpip.manifest/v0. A later kitpip may write avatar.manifest/v1 with renderer.kind kitpip; a pin
+# names which one, and both are accepted (docs/spec/NARRATED_VIDEO.md, "Avatar manifest v1").
+MANIFEST_SCHEMAS = (MANIFEST_SCHEMA, avatar_manifest.SCHEMA_V1)
 MAPPING = "avatar_overlay_v1"
 FORBIDDEN_FLAGS = ("--allow-unlabelled-test", "--pipe", "--badge")
 TIMEOUT_S = 900
@@ -96,14 +99,17 @@ def load_registry(path=REGISTRY):
     return entry
 
 
-def load_pin(path):
-    """The kitpip entry of an externals record, or None when no record is named."""
+def load_pin(path, required=True):
+    """The kitpip entry of an externals record, or None when no record is named. required False also returns None
+    for a record that pins no kitpip (one that pins only the vrm renderer)."""
     if path is None:
         return None
     record = read_json(path, "externals")
     if not isinstance(record, dict) or not isinstance(record.get("externals"), dict):
         raise JobError("externals_invalid", "the externals record is not an object with an externals table")
     pin = record["externals"].get("kitpip")
+    if pin is None and not required:
+        return None
     if record.get("schema_version") != 1 or not isinstance(pin, dict):
         raise JobError("externals_invalid", "the externals record has no schema_version 1 kitpip entry")
     for field in (
@@ -118,8 +124,8 @@ def load_pin(path):
     ):
         if field not in pin:
             raise JobError("externals_invalid", f"the kitpip pin has no {field}")
-    if pin["manifest_schema"] != MANIFEST_SCHEMA or pin["timeline_mapping"] != MAPPING:
-        raise JobError("externals_invalid", f"the kitpip pin is not {MANIFEST_SCHEMA} with {MAPPING}")
+    if pin["manifest_schema"] not in MANIFEST_SCHEMAS or pin["timeline_mapping"] != MAPPING:
+        raise JobError("externals_invalid", f"the kitpip pin is not {' or '.join(MANIFEST_SCHEMAS)} with {MAPPING}")
     if pin["visibility"] not in VISIBILITIES:
         raise JobError("externals_invalid", f"the kitpip pin's visibility is not one of {', '.join(VISIBILITIES)}")
     if not isinstance(pin["source_commit"], str) or not HEX40.fullmatch(pin["source_commit"]):
@@ -258,6 +264,10 @@ def render_overlay(partial, narrate_run, fps, rig, render_size, persona, resolut
     if verdict.get("labelled") is not True:
         raise KitpipRefused("kitpip_unlabelled", "kitpip verify did not report labelled: true")
     overlay = read_json(partial / "overlay" / "manifest.json", "kitpip manifest")
+    try:
+        avatar_manifest.view(overlay, "kitpip")
+    except JobError as exc:
+        raise KitpipRefused("kitpip_pin_mismatch", exc.detail) from None
     overlay_rig = overlay.get("rig") if isinstance(overlay.get("rig"), dict) else {}
     if overlay.get("schema") != pin["manifest_schema"] or overlay_rig.get("id") != rig:
         raise KitpipRefused("kitpip_pin_mismatch", "the overlay manifest's schema or rig is not the pinned one")
@@ -417,9 +427,10 @@ def pin_check(pin, env=None, registry=REGISTRY):
     entry = load_registry(registry)
     if pin is None:
         return {"ok": False, "state": "unregistered", "detail": f"no pin record: set {EXTERNALS_ENV}"}
-    for field in ("manifest_schema", "timeline_mapping"):
-        if pin[field] != entry[field]:
-            raise JobError("externals_invalid", f"the pin's {field} is not the registered one")
+    if pin["manifest_schema"] not in entry.get("manifest_schemas", [entry["manifest_schema"]]):
+        raise JobError("externals_invalid", "the pin's manifest_schema is not a registered one")
+    if pin["timeline_mapping"] != entry["timeline_mapping"]:
+        raise JobError("externals_invalid", "the pin's timeline_mapping is not the registered one")
     resolution = resolve(pin, env)
     return {
         "ok": resolution["state"] == "resolved",

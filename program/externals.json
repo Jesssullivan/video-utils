@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "authority": "docs/spec/NARRATED_VIDEO.md (kitpip pin and the stub); NV-1, Linear TIN-7476 comment 9db389dc: the kitpip pin lives in a private record, and no kitpip repository URL or art enters this repository",
+  "authority": "docs/spec/NARRATED_VIDEO.md (kitpip pin and the stub); NV-1, Linear TIN-7476 comment 9db389dc: the kitpip pin lives in a private record, and no kitpip repository URL or art enters this repository; the vrm renderer is the second avatar external, a draft (SPR-128, Linear TIN-7125 comment 33022456): registered here with no pin value, pinned in the same private record",
   "externals": {
     "kitpip": {
       "kind": "binary",
@@ -40,7 +40,78 @@
         "avatar",
         "avatar_check"
       ],
-      "check": "just kitpip-pin-check"
+      "check": "just kitpip-pin-check",
+      "manifest_schemas": [
+        "kitpip.manifest/v0",
+        "avatar.manifest/v1"
+      ],
+      "renderer_kind": "kitpip"
+    },
+    "vrm": {
+      "kind": "renderer",
+      "renderer_kind": "vrm",
+      "status": "draft",
+      "pin": "private_record",
+      "record_env": "NARRATED_VIDEO_EXTERNALS",
+      "record_shape": "narrate/tests/fixtures/narrated-video/vrm-externals.json",
+      "record_fields": [
+        "version",
+        "source_commit",
+        "renderer_kind",
+        "manifest_schema",
+        "timeline_mapping",
+        "face_schema",
+        "engine",
+        "binaries",
+        "visibility",
+        "gate_state",
+        "resolve",
+        "fetch"
+      ],
+      "manifest_schema": "avatar.manifest/v1",
+      "timeline_mapping": "avatar_overlay_v1",
+      "face_schema": "face.timeline/v1",
+      "engine": {
+        "primary": "three-vrm-chromium: @pixiv/three-vrm on three.js in headless Chromium, driven by Puppeteer or Playwright; each face frame sets expressions, look-at and head, then calls vrm.update(1/fps) once, so time advances only by frame steps",
+        "fallback": "blender-vrm: Blender with the VRM add-on, noted and not built",
+        "lock": "the engine's dependency lock is hash-bound in the pin (engine.lock_sha256); browsers are never downloaded in CI"
+      },
+      "protocol": {
+        "version": "RENDERER --version prints one JSON line {version, commit}",
+        "render": "RENDERER render --vrm FILE --face FILE --size WxH writes raw RGBA8 frames (straight alpha, rows top-down) to stdout, exactly frames*W*H*4 bytes; its last stderr line is one JSON report {frames, step, renderer, gpu} or {refused, detail} with exit 1",
+        "never_passed": [
+          "--badge",
+          "--realtime"
+        ]
+      },
+      "frames_identity": "per_host: GPU raster is not bit-exact, so frames_sha256 matches only another render on the same host, renderer and driver",
+      "records": "avatars.json in the private records directory: one VRM model record per id (sha256, bytes, likenessConsent, approval, badge)",
+      "gates": {
+        "likeness_consent": "SP-R13: the model record's likenessConsent carries the Likeness scope, an evidence digest and no revocation (vrm_consent_missing, vrm_consent_revoked)",
+        "appearance_approval": "TIN-7130: approved by the operator for this model digest (vrm_approval_missing)",
+        "edition": "Internal only until a ruling after the 11-14 bench (vrm_edition_unruled); the demos keep kitpip (SPR-120)",
+        "badge": "open: no renderer draws a burned-in badge and no record may settle it (vrm_badge_undecided)"
+      },
+      "resolve": {
+        "env": [
+          "VRM_RENDERER_BIN"
+        ],
+        "check": "sha256 and byte count against the pin, at plan and before every spawn",
+        "store": "by_sha256"
+      },
+      "fetch": "explicit",
+      "flake_input": false,
+      "vendored": false,
+      "gate_states": {
+        "commit_pinned_digest_pending": "the pin names a source commit; no renderer digest exists yet, so the avatar stages stay blocked (vrm_pin_pending)",
+        "registered_hash_bound_not_accepted": "the pin holds a renderer digest and an engine lock digest; renders are local and unaccepted until the operator's lip-sync receipt and the 11-14 bench",
+        "test_fixture_not_a_release": "the test-only record that pins the synthetic stub renderer"
+      },
+      "stages": [
+        "avatar",
+        "avatar_check"
+      ],
+      "check": "just vrm-pin-check"
     }
   }
 }

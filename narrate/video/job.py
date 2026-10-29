@@ -26,11 +26,12 @@ RECORD_FILES = {
     "music_beds": "music-beds.json",
     "engines": "engines.json",
     "pronunciation": "pronunciation.json",
+    "avatars": "avatars.json",
 }
 # Tables a job may not need: a missing file is an empty table. engines.json and pronunciation.json are narrate's own
 # records; the voice stage keys the engine and pronunciation table its narrate job names, and narrate refuses a
-# missing one when it renders.
-OPTIONAL_RECORDS = ("music_beds", "engines", "pronunciation")
+# missing one when it renders. avatars.json holds the VRM model records a vrm avatar names (narrate/video/vrm.py).
+OPTIONAL_RECORDS = ("music_beds", "engines", "pronunciation", "avatars")
 MAX_RECORD_BYTES = 16 * 1024 * 1024
 EDITIONS = ("Internal", "OwnContent", "ClientVoiceOnly", "ClientNarrated")
 CLIENT_EDITIONS = ("ClientVoiceOnly", "ClientNarrated")
