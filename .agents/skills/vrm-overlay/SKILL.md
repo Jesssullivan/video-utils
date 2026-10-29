@@ -11,7 +11,7 @@ description: Render and verify the VRM narrator overlay (draft) for each narrate
 
 ## Use and controls
 
-1. The model record holds `sha256`, `bytes`, `likenessConsent` (with the `Likeness` scope and an evidence digest), `approval` (`ref: TIN-7130`, `state: approved`, `decidedBy: Operator`, `vrmSha256` equal to the model) and `badge: {burnedIn: null}`. The operator writes it. An agent never writes or edits consent or approval.
+1. The model record holds `sha256`, `bytes`, `likenessConsent` (`{id, ruling: SP-R13}`: the id names a `consents.json` row with the `Likeness` scope, `grantedBy: Operator`, an evidence digest and no revocation), `approval` (`ref: TIN-7130`, `state: approved`, `decidedBy: Operator`, `vrmSha256` equal to the model) and `badge: {burnedIn: null}`. The operator writes it. An agent never writes or edits consent or approval.
 2. `just vrm-pin-check` must print `ok: true`. Until the real renderer is built, its pin says `commit_pinned_digest_pending`. It refuses `vrm_pin_pending`, and plan shows both avatar stages `blocked`.
 3. `just nv-stage JOB avatar --segment seg-1`. Then read `frames`, `frames_sha256`, `frames_identity`, `gpu`, `vrm.meta` and `states` in the stage manifest.
 
@@ -23,7 +23,7 @@ Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not app
 
 ## Limits
 
-- Draft (SPR-128). The demos keep kitpip (SPR-120), and the switch waits for the 11-14 go/hold bench.
+- Draft (SPR-128). The demos keep kitpip (SPR-120), and the switch waits for the 11-14 bench.
 - The registered engine is three-vrm in headless Chromium, stepping `vrm.update(1/fps)` once per frame. Blender with the VRM add-on is the fallback. Neither is built here yet. Public CI renders the stub on a synthetic glTF with no mesh, and never downloads a browser.
 - GPU raster is not bit-exact. Compare `frames_sha256` only between renders on one host, renderer and driver.
 - The face timeline follows loudness only, so lip sync stays `pending_operator`. Whether offline VRM video carries a burned-in badge is open, so `deliver_check` plans `pending_operator`.

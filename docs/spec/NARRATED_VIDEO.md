@@ -32,7 +32,7 @@ source media.
 | NV-6 | `ClientNarrated` is the default edition of every client delivery: synthetic voice and kitpip allowed, the bed gated on licence and Content ID. `ClientVoiceOnly` stays available per project. This supersedes the voice-only part of KP-14 for client deliveries |
 | KP-19 | kitpip's default overlay is the unadorned character, with no ring, picture-in-picture background or logo stamp. `--badge` restores the ring and mark. The wrapper never passes it |
 | NV-8 | kitpip stayed opt-in until lane L6 landed. The avatar is now on by default (KP-13, NV-6), and a job can still turn it off |
-| SPR-120 | kitpip now, VRM after the bench. Internal demos use kitpip v0.1.0. The VRM offline renderer (`avatar.manifest/v1`, a second external) is built as a draft, and the switch waits for the 11-14 go/hold bench |
+| SPR-120 | kitpip now, VRM after the bench. Internal demos use kitpip v0.1.0. The VRM offline renderer (`avatar.manifest/v1`, a second external) is built as a draft, and the switch waits for the 11-14 bench |
 | SPR-128 | The VRM offline renderer draft goes into this repository: `avatar.manifest/v1`, a second external and synthetic rig fixtures, ready for the 11-14 bench. The demos keep kitpip (see "Avatar externals and `avatar.manifest/v1`") |
 
 Music-bed levels (NV-2, from the deck seat's answers the operator adopted): the
@@ -264,7 +264,7 @@ external.
 | Field | Meaning |
 | --- | --- |
 | `schema`, `kind` | `avatar.manifest/v1`, `avatar_overlay` |
-| `renderer` | `{kind: kitpip \| vrm, name, version}`. A vrm renderer also names its `engine`, its `step` and the `gpu` (`vendor`, `renderer`, `driver`) that drew the frames |
+| `renderer` | `{kind: kitpip \| vrm, name, version}`. A vrm renderer also names its `engine` (`kind` and `lock_sha256` as pinned), its `step` (the rational `{num, den}` equal to `1 / rate`, as the renderer reported it) and the `gpu` (`vendor`, `renderer`, `driver`) that drew the frames |
 | `synthetic`, `consent_ids`, `voice_ids` | the narration's labels |
 | `rig` | `{id, sha256}`. For vrm, the model record id and the model's SHA-256 |
 | `rate`, `size`, `frames`, `frames_sha256` | the overlay's rational fps, size, frame count and the SHA-256 of its frames as drawn |
@@ -293,40 +293,55 @@ both avatar stages (`vrm_pin_pending`). No renderer blocks them as `vrm_renderer
 **Engine.** The registered engine is `@pixiv/three-vrm` on three.js in headless Chromium, driven by
 Puppeteer or Playwright. For each face frame the page sets the expressions, look-at and head from
 `face.json` and calls `vrm.update(1 / fps)` once, so time moves only by frame steps, never by the wall
-clock. Blender with the VRM add-on is the fallback. Neither is built here yet. Its lockfile will be
-hash-bound in the pin, and CI never downloads a browser. Tests run a stub renderer.
+clock. That stepping is the renderer's contract. The wrapper cannot watch the page's clock, so it checks
+the renderer's report instead: `step` must be the rational `{num, den}` equal to `1 / fps`, and
+`renderer.engine.kind` must be the pin's `engine.kind`. Blender with the VRM add-on is the fallback.
+Neither is built here yet. Its lockfile will be hash-bound in the pin, and CI never downloads a browser.
+Tests run a stub renderer.
 
 **Command shape.** The wrapper (`narrate/video/vrm.py`) speaks one:
 
 | Command | Output |
 | --- | --- |
 | `RENDERER --version` | one JSON line on stdout: `{version, commit}` |
-| `RENDERER render --vrm FILE --face FILE --size WxH` | raw RGBA8 frames on stdout (straight alpha, rows top-down), exactly `frames * W * H * 4` bytes, with frames and fps from `face.json`. The last stderr line is one JSON report `{frames, step, renderer: {name, version, engine}, gpu: {vendor, renderer, driver}}` on exit 0, or `{refused, detail}` on exit 1 |
+| `RENDERER render --vrm FILE --face FILE --size WxH` | raw RGBA8 frames on stdout (straight alpha, rows top-down), exactly `frames * W * H * 4` bytes, with frames and fps from `face.json`. The last stderr line is one JSON report `{frames, step: {num, den}, renderer: {name, version, engine: {kind}}, gpu: {vendor, renderer, driver}}` on exit 0, or `{refused, detail}` on exit 1 |
 
-The wrapper hashes the pipe as it streams it into FFmpeg (`prores_ks` 4444, `yuva444p10le`), then
-writes `frames.sha256` and the v1 manifest itself. It never passes `--badge` or `--realtime`. It refuses
+The wrapper hashes the pipe as it streams it into FFmpeg (`prores_ks` 4444, `yuva444p10le`), then writes
+`frames.sha256` and the v1 manifest itself. It never passes `--badge` or `--realtime`. It refuses
 `vrm_frames_mismatch` when the byte count is not the face timeline's frame count. A report without a
-renderer, GPU vendor or driver refuses `vrm_report_invalid`. A renderer refusal is relayed with its own
-code. A timeout, a crash, an FFmpeg failure or a renderer off its pin is a failure, not a verdict.
+renderer, GPU vendor or driver, with a step other than `{num, den}` equal to `1 / fps`, or with an
+engine kind other than the pin's refuses `vrm_report_invalid`. The manifest records the pin's engine
+kind and lock digest, so the overlay traces to the engine lock without the stage manifest. A renderer
+refusal is relayed with its own code. A timeout, a crash, an FFmpeg failure or a renderer off its pin is
+a failure, not a verdict.
 
 **Face timeline.** `face.json` (`narrate/video/face.py`, schema `face.timeline/v1`) is the renderer's
 only view of the narration. It holds one frame per overlay frame on the `narration_output` clock, at the
-base's fps. Frame i shows the face at `i * den / num` seconds into its segment's `narration.wav`. Each
-frame has a mouth viseme and weight (`sil`, `aa`, `ih`, `ou`, `ee`, `oh`), blink `[left, right]`, the
-five VRM mood presets, look `[yaw, pitch]` and head `[yaw, pitch, roll]`. It is bound to the narrate run
-by `run_id`, `content_sha256` and the WAV's digest. v1 has one source, `loudness_envelope`. The mouth
-opens with the RMS of each frame (`aa`, weight `min(1, 4 rms)`) and closes to `sil` below 0.01. The
-eyes blink on a fixed schedule (first at 1.3 s, then every 3.7 s), and mood, look and head stay neutral.
-A forced aligner's word timings, phonemes within words and an expression track are later sources.
+base's fps. Frame i shows the face at `i * den / num` seconds into its segment's `narration.wav`: its
+loudness window starts at sample `floor(i * rate * den / num)` and ends where frame i + 1 starts, and a
+remainder shorter than one frame at the end is not drawn. Each frame has a mouth viseme and weight
+(`sil`, `aa`, `ih`, `ou`, `ee`, `oh`), blink `[left, right]`, the five VRM mood presets, look `[yaw,
+pitch]` and head `[yaw, pitch, roll]`. It is bound to the narrate run by `run_id`, `content_sha256` and
+the WAV's digest. v1 has one source, `loudness_envelope`. The mouth opens with the RMS of each frame
+(`aa`, weight `min(1, 4 rms)`) and closes to `sil` below 0.01. The eyes blink on a fixed schedule (first
+at 1.3 s, then every 3.7 s), and mood, look and head stay neutral. A forced aligner's word timings,
+phonemes within words and an expression track are later sources.
 
 **The model record.** `avatar.rig` names a record in the private `avatars.json`. The record holds `id`,
-`kind: vrm`, the model's `sha256` and `bytes`, a `likenessConsent` (`id`, `scopes`, `grantedBy`,
-`grantedAt`, `revokedAt`, `evidenceSha256`), an `approval` (`ref`, `state`, `decidedBy`,
-`decidedAt`, `vrmSha256`, `evidenceSha256`) and `badge: {burnedIn: null}`. The model is a
-private-store blob found by digest and re-hashed before the renderer spawns. The wrapper reads its VRM
-meta from the glTF JSON chunk: `VRMC_vrm` for 1.0, `VRM` for 0.x. It records the licence fields and
-nothing else from the meta, so no author or model name. A model with no meta licence refuses
-`vrm_meta_missing`, and a file that is not a VRM binary glTF refuses `vrm_invalid`.
+`kind: vrm`, the model's `sha256` and `bytes`, a `likenessConsent` reference (`id`, `ruling: SP-R13`),
+an `approval` (`ref`, `state`, `decidedBy`, `decidedAt`, `vrmSha256`, `evidenceSha256`) and `badge:
+{burnedIn: null}`. The model is a private-store blob found by digest and re-hashed before the renderer
+spawns. The wrapper reads its VRM meta from the glTF JSON chunk: `VRMC_vrm` for 1.0, `VRM` for 0.x. It
+records the licence fields and nothing else from the meta, so no author or model name. A model with no
+meta licence refuses `vrm_meta_missing`, and a file that is not a VRM binary glTF refuses `vrm_invalid`.
+
+**Likeness consent.** The consent itself is not in the model record. `likenessConsent.id` names a row
+of `consents.json`, the table voice consent goes through, typed by `narrate/dhall/Consent.dhall`. Its
+`Scope` union has a `Likeness` alternative for SP-R13. The row's `scopes` list holds `Likeness`, its
+`grantedBy` is `Operator`, its `evidenceSha256` is a 64-hex digest and its `revokedAt` is null. A consent
+written inside the model record grants nothing. Revoking the row in `consents.json` stops the next plan
+and the next render. `Likeness` never grants a voice: a voice or job scope of `Likeness` refuses
+`consent_scope` (`narrate/policy.py`, and `narrate/dhall/check.py` for the examples).
 
 **Gates.** admit refuses, and the stage refuses again before the renderer spawns, when:
 
@@ -334,13 +349,17 @@ nothing else from the meta, so no author or model name. A model with no meta lic
 | --- | --- |
 | `vrm_model_missing`, `vrm_model_invalid` | `avatar.rig` names no record, or the record does not read |
 | `vrm_digest_mismatch` | `avatar.rigRevisionSha256`, when set, is not the record's `sha256` |
-| `vrm_consent_missing`, `vrm_consent_revoked` | the SP-R13 likeness consent lacks the `Likeness` scope or an evidence digest, or is revoked |
+| `vrm_consent_missing`, `vrm_consent_revoked` | `likenessConsent` has no non-empty `id` or its `ruling` is not `SP-R13`; the id names no `consents.json` row; the row's `scopes` is not a list holding `Likeness`, its `grantedBy` is not `Operator` or it has no evidence digest; or the row is revoked |
 | `vrm_approval_missing` | no TIN-7130 approval with `state: approved`, `decidedBy: Operator`, an evidence digest and `vrmSha256` equal to this model. A new model revision needs a new approval |
 | `vrm_badge_undecided` | the record sets `badge.burnedIn`. Whether offline VRM video carries a burned-in badge is not ruled: no renderer draws one, and no record may settle it |
 | `vrm_edition_unruled` | the edition is not `Internal`. Other editions wait for a ruling after the 11-14 bench |
 
 With a VRM avatar, admit also lists `vrm_badge_decision` as an operator gate at `deliver_check`, so
-`deliver_check` plans `pending_operator`.
+`deliver_check` plans `pending_operator`. `deliver_check` reports the gate as well: when an avatar stage
+measured renderer kind `vrm`, `gates.vrm_badge_decision` is `pending_operator`, so
+`delivery_gate.operator_states_open` lists it and `public_upload_allowed` stays false on that gate alone.
+`handoff` copies each overlay's manifest beside its layer, so the open badge, `frames_identity: per_host`
+and the likeness consent id travel with `avatar-<segment>.mov`.
 
 **Stages.** `avatar` builds `face.json` from the segment's narrate run at the base's fps, renders the
 model and writes the overlay. `avatar_check` re-hashes the overlay directory under its v1 manifest,
@@ -781,13 +800,15 @@ uploading, sending and Content ID stay operator actions.
 
 `handoff` runs when `delivery.handoff` is set. `layers/` holds `base.mp4` (the
 base at the profile, no overlay, slide, caption or sound),
-`avatar-<segment>.mov` (each overlay as kitpip wrote it), `slide-<page>.<ext>`
-(each slide picture as stored), `voice.wav`, `clips.wav` (when the base kept
-its sound), `bed-ducked.wav` (with a bed, before the limiter) and the captions.
-`edit.json` holds the placements, the overlay boxes and starts, the slide runs,
-the avatar-off spans, the mix gains and the stage key of every input. FCPXML
-and OTIO export is phase 2. Until an editor imports one, it stays unverified in
-an application.
+`avatar-<segment>.mov` (each overlay as its external, kitpip or vrm, wrote it),
+`avatar-<segment>.manifest.json` (that overlay's manifest),
+`slide-<page>.<ext>` (each slide picture as stored), `voice.wav`, `clips.wav`
+(when the base kept its sound), `bed-ducked.wav` (with a bed, before the
+limiter) and the captions. `edit.json` holds the placements, the overlay boxes
+and starts (each with its layer, manifest file and digest, renderer kind and
+frames identity), the slide runs, the avatar-off spans, the mix gains and the
+stage key of every input. FCPXML and OTIO export is phase 2. Until an editor
+imports one, it stays unverified in an application.
 
 ## Deck import
 
@@ -851,12 +872,15 @@ it stays a knob.
 - Burned captions and the deck project's own delivery profiles are not built.
 - The VRM renderer itself (the three-vrm page, its Puppeteer or Playwright driver and their lockfile)
   is not built. Its pin stays `commit_pinned_digest_pending` until it is, and only the stub has rendered.
-  three-vrm on three.js r186, headless Chromium's GPU path on AMD and every VRM frame rate are unmeasured.
+  three-vrm on three.js r186, GPU raster in headless Chromium on the target host and every VRM frame rate
+  are unmeasured.
 - Whether a GPU render repeats bit for bit on one host is unmeasured. `frames_identity: per_host` is
   the manifest's claim, not a measurement.
 - The face timeline follows loudness only. Word timings from a forced aligner and phonemes within
   words come later, so VRM lip sync is not expected to pass review until they land.
-- `avatars.json` has no Dhall type yet. `vrm.model_problems` and `vrm.gates` hold its shape.
+- `avatars.json` has no Dhall type yet. `vrm.model_problems` and `vrm.gates` hold its shape. The likeness
+  consent it names is typed (`Consent.Scope.Likeness`); `Consent.Type` has no ruling field, so the SP-R13
+  ruling is the `Likeness` scope itself plus the model record's `likenessConsent.ruling`.
 - The VRM meta permission fields (`avatarPermission`, `commercialUsage` and the rest) are recorded,
   not gated. The model's author and the permission that fits are an open operator decision.
 - Whether offline VRM video carries a burned-in badge is open. So is VRM in any edition except

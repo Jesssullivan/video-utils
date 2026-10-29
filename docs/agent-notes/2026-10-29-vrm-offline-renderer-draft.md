@@ -2,7 +2,7 @@
 
 Authority: SPR-128 (Linear TIN-7125 comment `33022456`) and SPR-120 (comment
 `59b5cb12`). This draft is filed under TIN-7084. The dispatch named TIN-7503, but
-TIN-7503 is the /call speech-adapter and LiveKit lane (SPR-20). Receipt per
+TIN-7503 belongs to another lane (SPR-20). Receipt per
 R-HOOK-CONVERGENCE-20261004 (R-N11, R-N12, R-N13).
 
 `vrm offline renderer | narrate seat dispatch | video-utils feat/narrated-video-vrm-renderer from main eb8f2779 | draft PR, stub only | root review; the real renderer page and lockfile, then the 11-14 bench`
@@ -46,3 +46,19 @@ R-HOOK-CONVERGENCE-20261004 (R-N11, R-N12, R-N13).
 | Stub render | the executor ran a VRM job on the stub through `deliver_check` |
 | Real VRM render | not run |
 | Lip sync, badge decision, bench | `pending_operator` |
+
+## Review fixes (2026-10-29)
+
+| Finding | Change |
+| --- | --- |
+| The likeness consent was self-contained in the model record | `likenessConsent` is now a reference, `{id, ruling: SP-R13}`. `vrm.gates` resolves the id in `consents.json`, the table voice consent goes through. The row needs a `scopes` list holding `Likeness`, `grantedBy: Operator`, a 64-hex evidence digest and no revocation. `Consent.Scope` gains `Likeness`, and a voice or job scope of `Likeness` refuses `consent_scope` in `narrate/policy.py` and `narrate/dhall/check.py`. An empty id, a scope string, another ruling, an agent grantor and a missing table now refuse at admit, before any render. Tests revoke and drop the table row, not the inline block |
+| Deterministic stepping was not checked | The report's `step` must be the rational `{num, den}` equal to `1 / fps`, and `renderer.engine.kind` must be the pin's. Otherwise the wrapper refuses `vrm_report_invalid`. The manifest records the pin's `engine.kind` and `engine.lock_sha256`, and `avatar_manifest.check_vrm` checks both fields. The spec says the stepping itself is the renderer's contract, because the wrapper cannot watch the page's clock |
+| The badge decision was visible only in plan | `deliver_check` reports `gates.vrm_badge_decision: pending_operator` when an avatar stage measured renderer kind `vrm`, so `operator_states_open` lists it. `handoff` copies each overlay manifest to `layers/avatar-<segment>.manifest.json`, and each `edit.json` overlay names its manifest, digest, renderer kind and frames identity |
+| Private program details | The note and spec no longer name the other lane's stack, the bench's private name or the GPU vendor |
+| Face windows drifted by up to one frame | Frame i reads the samples from `floor(i * rate * den / num)` to frame i + 1's first sample |
+
+Fix source checks, 2026-10-29, in `nix develop .#condense` under a 6G memory scope: the VRM and
+policy suites with `tests/test_public_tree.py` and `tests/test_s5_tool_admission.py` passed (141, 1
+skipped); the avatar, compose, graph, simple, types and contract-shape suites passed (240); the stdlib
+smoke passed (7); `just narrate-dhall-check` passed (80 self-test mutations); `ruff check` and
+`ruff format --check` passed. No real render ran.
