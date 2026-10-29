@@ -172,7 +172,7 @@ def loudnorm_json(stderr):
 
 
 LIMIT_ATTEMPTS = 8  # each pass lowers the limit by what is still over, and a speech take can need 6
-LRA_MAX = 50.0  # FFmpeg loudnorm's largest LRA target
+LRA_MAX = 20.0  # widest LRA target a linear pass may use. A wider take goes dynamic: loudnorm_dynamic
 
 
 def measure_loudnorm(source, chain, lufs, tp, lra):
@@ -193,8 +193,8 @@ def loudnorm(source, target, rate, lufs, tp, lra=11.0, headroom_db=0.5):
     peak past the ceiling, a limiter (alimiter, latency compensated) first holds the source's peaks to where the
     gain lands them headroom_db under it, as condense's delivery chain does; the source is measured again through
     it. FFmpeg keeps linear mode only when the measured loudness range fits the LRA target. Linear mode applies one
-    gain and leaves the range as it is, so the second pass raises the target to the measured range and never lowers
-    it. Returns both passes' measured values, the LRA target applied and the limiter, if any."""
+    gain and leaves the range as it is, so the second pass raises the target to the measured range, at most LRA_MAX,
+    and never lowers it. Returns both passes' measured values, the LRA target applied and the limiter, if any."""
     measured = measure_loudnorm(source, "", lufs, tp, lra)
     chain, limiter, limit_db = "", None, None
     for attempt in range(1, LIMIT_ATTEMPTS + 1):
