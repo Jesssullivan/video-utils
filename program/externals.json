@@ -78,16 +78,16 @@
       },
       "protocol": {
         "version": "RENDERER --version prints one JSON line {version, commit}",
-        "render": "RENDERER render --vrm FILE --face FILE --size WxH writes raw RGBA8 frames (straight alpha, rows top-down) to stdout, exactly frames*W*H*4 bytes; its last stderr line is one JSON report {frames, step, renderer, gpu} or {refused, detail} with exit 1",
+        "render": "RENDERER render --vrm FILE --face FILE --size WxH writes raw RGBA8 frames (straight alpha, rows top-down) to stdout, exactly frames*W*H*4 bytes; its last stderr line is one JSON report {frames, step: {num, den} equal to 1/fps, renderer: {name, version, engine: {kind}}, gpu} or {refused, detail} with exit 1; the wrapper refuses vrm_report_invalid when step is not 1/fps or engine.kind is not the pin's",
         "never_passed": [
           "--badge",
           "--realtime"
         ]
       },
       "frames_identity": "per_host: GPU raster is not bit-exact, so frames_sha256 matches only another render on the same host, renderer and driver",
-      "records": "avatars.json in the private records directory: one VRM model record per id (sha256, bytes, likenessConsent, approval, badge)",
+      "records": "avatars.json in the private records directory: one VRM model record per id (sha256, bytes, likenessConsent {id, ruling}, approval, badge)",
       "gates": {
-        "likeness_consent": "SP-R13: the model record's likenessConsent carries the Likeness scope, an evidence digest and no revocation (vrm_consent_missing, vrm_consent_revoked)",
+        "likeness_consent": "SP-R13: the model record's likenessConsent {id, ruling: SP-R13} names a consents.json row with the Likeness scope, grantedBy Operator, an evidence digest and no revocation (vrm_consent_missing, vrm_consent_revoked)",
         "appearance_approval": "TIN-7130: approved by the operator for this model digest (vrm_approval_missing)",
         "edition": "Internal only until a ruling after the 11-14 bench (vrm_edition_unruled); the demos keep kitpip (SPR-120)",
         "badge": "open: no renderer draws a burned-in badge and no record may settle it (vrm_badge_undecided)"

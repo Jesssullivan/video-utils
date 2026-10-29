@@ -6,8 +6,9 @@ and handoff read kitpip and VRM overlays through one view:
 
   schema           avatar.manifest/v1
   kind             avatar_overlay
-  renderer         {kind: kitpip | vrm, name, version, ...}. A vrm renderer also names its engine and the GPU and
-                   driver that rasterised the frames
+  renderer         {kind: kitpip | vrm, name, version, ...}. A vrm renderer also names its engine {kind,
+                   lock_sha256} as pinned, its frame step {num, den} (1 / rate) as the renderer reported it, and the
+                   GPU and driver that rasterised the frames
   synthetic        true. consent_ids and voice_ids are the narration's
   rig              {id, sha256}. For a vrm overlay the rig is the VRM model and sha256 is vrm.sha256
   rate, size       the overlay's rational fps and {w, h}
@@ -131,8 +132,20 @@ def check_vrm(manifest, out):
     gpu = renderer.get("gpu") if isinstance(renderer.get("gpu"), dict) else {}
     if not all(text(gpu.get(k)) for k in ("vendor", "renderer", "driver")):
         refuse("a vrm renderer names its GPU vendor, renderer string and driver")
-    if not isinstance(renderer.get("engine"), dict):
-        refuse("a vrm renderer names its engine")
+    engine = renderer.get("engine") if isinstance(renderer.get("engine"), dict) else {}
+    lock = engine.get("lock_sha256")
+    if not text(engine.get("kind")) or not (lock is None or digest(lock)):
+        refuse("a vrm renderer names its engine kind and its pinned lock digest (null only for the test stub)")
+    step, rate = renderer.get("step"), out["rate"]
+    if not (
+        isinstance(step, dict)
+        and set(step) == {"num", "den"}
+        and natural(step["num"])
+        and natural(step["den"])
+        and step["num"] > 0
+        and step["num"] * rate["num"] == step["den"] * rate["den"]
+    ):
+        refuse("a vrm renderer's step is the rational {num, den} equal to 1 / rate")
     if out["frames_identity"] != "per_host":
         refuse("GPU raster is not bit-exact: a vrm overlay's frames_identity is per_host")
     vrm = manifest.get("vrm") if isinstance(manifest.get("vrm"), dict) else {}

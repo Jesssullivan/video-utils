@@ -15,17 +15,19 @@ both avatar stages (vrm_pin_pending).
 
 The renderer. The registered engine is @pixiv/three-vrm in headless Chromium: the page loads the model, and for each
 face frame i it sets the expressions, look-at and head from face.json and calls vrm.update(1 / fps) once, so time
-advances only by frame steps and never by the wall clock. Blender with the VRM add-on is the noted fallback; neither is
-built in this repository yet (gate_state stays commit_pinned_digest_pending until one is). The wrapper speaks one
-command shape:
+advances only by frame steps and never by the wall clock. That stepping is the renderer's contract: the wrapper cannot
+watch the page's clock. It checks what the renderer reports instead, so a report whose step is not the rational
+{num, den} equal to 1 / fps, or whose engine.kind is not the pin's, refuses vrm_report_invalid. Blender with the VRM
+add-on is the noted fallback; neither is built in this repository yet (gate_state stays
+commit_pinned_digest_pending until one is). The wrapper speaks one command shape:
 
   RENDERER --version                                     one JSON line on stdout: {version, commit}
   RENDERER render --vrm FILE --face FILE --size WxH      stdout: raw RGBA8 frames, straight alpha, rows top-down,
                                                          exactly frames * W * H * 4 bytes, frames and fps from face.json
                                                          stderr: its last line is one JSON report
-                                                         {frames, step, renderer: {name, version, engine}, gpu:
-                                                         {vendor, renderer, driver}} on exit 0, or {refused: code,
-                                                         detail} on exit 1
+                                                         {frames, step: {num, den}, renderer: {name, version,
+                                                         engine: {kind}}, gpu: {vendor, renderer, driver}} on exit
+                                                         0, or {refused: code, detail} on exit 1
 
 The wrapper hashes the pipe as it streams it into FFmpeg (ProRes 4444, yuva444p10le, the overlay compose reads) and
 writes the avatar.manifest/v1 itself. GPU raster is not bit-exact, so the manifest says frames_identity per_host:
@@ -33,11 +35,12 @@ frames_sha256 matches only another render on the same host, renderer and driver.
 --realtime.
 
 Gates. The VRM path refuses at admit, and again before the renderer spawns, without the model's likeness consent
-(SP-R13: a likenessConsent with the Likeness scope, unrevoked) and its appearance approval (TIN-7130: approved by the
-operator for this model digest). Whether offline VRM video carries a burned-in badge is open: no renderer draws one,
-the manifest records badge {burned_in: false, decision: open}, and a record that tries to settle it refuses
-vrm_badge_undecided. Until a ruling after the 11-14 bench, only the Internal edition may carry a VRM overlay
-(vrm_edition_unruled); the demos keep kitpip (SPR-120, SPR-128).
+(SP-R13: the record's likenessConsent {id, ruling} names a consents.json row with the Likeness scope, granted by
+the operator and unrevoked) and its appearance approval (TIN-7130: approved by the operator for this model digest).
+Whether offline VRM video carries a burned-in badge is open: no renderer draws one, the manifest records badge
+{burned_in: false, decision: open}, and a record that tries to settle it refuses vrm_badge_undecided. Until a ruling
+after the 11-14 bench, only the Internal edition may carry a VRM overlay (vrm_edition_unruled); the demos keep kitpip
+(SPR-120, SPR-128).
 """
 
 import hashlib
@@ -75,6 +78,7 @@ HEX64 = re.compile(r"[0-9a-f]{64}")
 NARRATION = "narration"
 LIKENESS_SCOPE = "Likeness"
 LIKENESS_RULING = "SP-R13"
+LIKENESS_GRANTOR = "Operator"
 APPROVAL_REF = "TIN-7130"
 EDITIONS = ("Internal",)
 MAX_VRM_BYTES = 512 * 1024 * 1024
@@ -248,11 +252,51 @@ def model_problems(record):
     return problems
 
 
+def likeness_consent(reference, records):
+    """The consents.json row a model's likenessConsent reference names, or None."""
+    table = records.get("consents")
+    consent_id = reference.get("id")
+    if not isinstance(table, dict) or not isinstance(consent_id, str) or not consent_id:
+        return None
+    row = table.get(consent_id)
+    return row if isinstance(row, dict) else None
+
+
+def likeness_problem(reference, records):
+    """(code, detail) of the model's SP-R13 likeness consent, or (None, None) when it holds.
+
+    The model record carries only a reference, {id, ruling}. The consent itself is a Consent row in consents.json,
+    the table voice consent goes through: its scopes list holds Likeness, the operator granted it, its evidence is a
+    64-hex digest and it is not revoked. A consent written inside the model record grants nothing."""
+    consent_id = reference.get("id")
+    if not isinstance(consent_id, str) or not consent_id:
+        return "vrm_consent_missing", "the model's likenessConsent.id names no consent"
+    if reference.get("ruling") != LIKENESS_RULING:
+        return "vrm_consent_missing", f"the model's likeness consent is not under {LIKENESS_RULING}"
+    consent = likeness_consent(reference, records)
+    if consent is None:
+        return "vrm_consent_missing", f"likeness consent {consent_id} is not in consents.json"
+    scopes = consent.get("scopes")
+    if (
+        not isinstance(scopes, list)
+        or not all(isinstance(scope, str) for scope in scopes)
+        or LIKENESS_SCOPE not in scopes
+        or consent.get("grantedBy") != LIKENESS_GRANTOR
+        or not HEX64.fullmatch(str(consent.get("evidenceSha256")))
+    ):
+        detail = f"consent {consent_id} is not a {LIKENESS_SCOPE} grant by the {LIKENESS_GRANTOR} with evidence"
+        return "vrm_consent_missing", detail
+    if consent.get("revokedAt") is not None:
+        return "vrm_consent_revoked", f"likeness consent {consent_id} is revoked"
+    return None, None
+
+
 def gates(job, records):
     """[(code, detail)] the VRM path refuses at admit for this job; empty when every gate holds.
 
     The model record must exist and read; the job's rigRevisionSha256, when set, must be its digest; its likeness
-    consent (SP-R13) must carry the Likeness scope, an evidence digest and no revocation; its appearance approval
+    consent (SP-R13) must resolve in consents.json with the Likeness scope, the operator as grantor, an evidence digest
+    and no revocation (likeness_problem); its appearance approval
     (TIN-7130) must be approved by the operator for this model digest; the badge decision must still be open; and
     the edition must be one a VRM overlay is ruled for."""
     avatar = job["avatar"]
@@ -270,15 +314,9 @@ def gates(job, records):
         return out
     if avatar.get("rigRevisionSha256") not in (None, record["sha256"]):
         out.append(("vrm_digest_mismatch", "avatar.rigRevisionSha256 is not the model record's sha256"))
-    consent = record["likenessConsent"]
-    if (
-        not isinstance(consent.get("id"), str)
-        or LIKENESS_SCOPE not in (consent.get("scopes") or [])
-        or not HEX64.fullmatch(str(consent.get("evidenceSha256")))
-    ):
-        out.append(("vrm_consent_missing", f"the model has no {LIKENESS_RULING} likeness consent with evidence"))
-    elif consent.get("revokedAt") is not None:
-        out.append(("vrm_consent_revoked", "the model's likeness consent is revoked"))
+    code, detail = likeness_problem(record["likenessConsent"], records)
+    if code is not None:
+        out.append((code, detail))
     approval = record["approval"]
     if (
         approval.get("ref") != APPROVAL_REF
@@ -479,13 +517,36 @@ def render(resolution, pin, vrm_path, face_path, size, fps, frames, out_mov, tim
         raise VrmRefused("vrm_frames_mismatch", f"the renderer wrote {got} bytes, not {frames} frames of {size}x{size}")
     if encoder_code != 0:
         raise VrmRefused("ffmpeg_failed", "ffmpeg could not encode the overlay", verdict=False)
+    check_report(report, pin, fps)
+    return report, digest.hexdigest()
+
+
+def is_step(step, fps):
+    """True when step is the rational {num, den}, both positive integers, equal to 1 / fps."""
+    if not isinstance(step, dict) or set(step) != {"num", "den"}:
+        return False
+    num, den = step["num"], step["den"]
+    if not all(isinstance(v, int) and not isinstance(v, bool) and v > 0 for v in (num, den)):
+        return False
+    return num * fps["num"] == den * fps["den"]
+
+
+def check_report(report, pin, fps):
+    """vrm_report_invalid unless the report names the renderer, its engine (the pin's kind), a frame step of exactly
+    1 / fps and the GPU vendor, renderer string and driver."""
     gpu = report.get("gpu") if isinstance(report.get("gpu"), dict) else {}
     named = report.get("renderer") if isinstance(report.get("renderer"), dict) else {}
     if not all(isinstance(gpu.get(k), str) and gpu[k] for k in ("vendor", "renderer", "driver")) or not all(
         isinstance(named.get(k), str) and named[k] for k in ("name", "version")
     ):
         raise VrmRefused("vrm_report_invalid", "the renderer's report names no renderer, GPU vendor or driver")
-    return report, digest.hexdigest()
+    engine = named.get("engine") if isinstance(named.get("engine"), dict) else {}
+    if engine.get("kind") != pin["engine"]["kind"]:
+        raise VrmRefused("vrm_report_invalid", f"the renderer reports engine {engine.get('kind')!r}, not its pin's")
+    if not is_step(report.get("step"), fps):
+        raise VrmRefused(
+            "vrm_report_invalid", f"the renderer's step is not {{num, den}} equal to {fps['den']}/{fps['num']} s"
+        )
 
 
 # The stages ----------------------------------------------------------------------------------------------------
@@ -509,8 +570,9 @@ def model_file(env, record):
     return path
 
 
-def overlay_manifest(record, meta, report, frames, frames_sha256, fps, size, face_doc, outputs, narration_labels):
+def overlay_manifest(record, meta, report, pin, frames_sha256, fps, size, face_doc, outputs, narration_labels):
     consent_ids, voice_ids = narration_labels
+    frames = face_doc["frames"]
     return {
         "schema": MANIFEST_SCHEMA,
         "kind": "avatar_overlay",
@@ -529,8 +591,8 @@ def overlay_manifest(record, meta, report, frames, frames_sha256, fps, size, fac
             "kind": EXTERNAL,
             "name": report["renderer"]["name"],
             "version": report["renderer"]["version"],
-            "engine": report["renderer"].get("engine") or {},
-            "step": report.get("step"),
+            "engine": {"kind": pin["engine"]["kind"], "lock_sha256": pin["engine"].get("lock_sha256")},
+            "step": {"num": report["step"]["num"], "den": report["step"]["den"]},
             "gpu": {k: report["gpu"][k] for k in ("vendor", "renderer", "driver")},
         },
         "rate": fps,
@@ -571,7 +633,7 @@ def render_overlay(rc, partial, narrate_run, fps, job_knobs, pin, resolution, ti
     (overlay / "frames.sha256").write_text(frames_sha256 + "\n", encoding="utf-8")
     outputs = {name: sha256_file(overlay / name) for name in ("face.json", "frames.sha256", "overlay.mov")}
     written = overlay_manifest(
-        record, meta, report, frames, frames_sha256, fps, size, face_doc, outputs, (consent_ids, voice_ids)
+        record, meta, report, pin, frames_sha256, fps, size, face_doc, outputs, (consent_ids, voice_ids)
     )
     write_json(overlay / "manifest.json", written)
     seen, problems = avatar_manifest.verify_dir(overlay, EXTERNAL)

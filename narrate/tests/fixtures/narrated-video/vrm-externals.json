@@ -4,8 +4,8 @@
    "binaries": {
     "vrm-renderer": {
      "any": {
-      "bytes": 6556,
-      "sha256": "43420ef707ecd2f607ca29e76ca2372a9cd1320503094a47e6d0f5fc94e65e15"
+      "bytes": 6915,
+      "sha256": "0f9f95620a46290d5d34bb2dd56dfae390e6b79dc8ca6c5af0fff08e10bca78c"
      }
     }
    },

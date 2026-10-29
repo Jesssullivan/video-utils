@@ -206,6 +206,10 @@ def load_examples() -> dict:
     }
 
 
+# Consent.Scope.Likeness (SP-R13): an avatar likeness grant a VRM model record names. It never grants a voice.
+LIKENESS_SCOPE = "Likeness"
+
+
 def check_voice_for_job(job: dict, voice_id: str, data: dict, engine, errors: list) -> None:
     voices = {v["id"]: v for v in data["voices"]}
     consents = {c["id"]: c for c in data["consents"]}
@@ -226,6 +230,8 @@ def check_voice_for_job(job: dict, voice_id: str, data: dict, engine, errors: li
         errors.append(f"{where}: consent_scope (job scope {job['scope']} not granted)")
     if voice["scope"] != job["scope"]:
         errors.append(f"{where}: voice scope {voice['scope']} differs from job scope {job['scope']}")
+    if LIKENESS_SCOPE in (voice["scope"], job["scope"]):
+        errors.append(f"{where}: consent_scope (the {LIKENESS_SCOPE} scope grants an avatar likeness, never a voice)")
     if job["engine"] not in voice["allowedEngines"]:
         errors.append(f"{where}: engine {job['engine']} is not in the voice's allowedEngines")
     if engine is not None and is_hosted(engine) and not consent["hostedAllowed"]:
@@ -698,6 +704,11 @@ def mutations() -> list:
     switch_batch = {"id": "probe-batch", "profile": "GpuSwitch", "backend": "AudioCppBatch", "hosted": False,
                     "endpoint": "audiocpp://voxcpm2", "confidentialAllowed": True, "estateControlled": True}
 
+    def likeness_voice(d, m):
+        consent(d)["scopes"].append("Likeness")
+        voice(d)["scope"] = "Likeness"
+        job(d)["scope"] = "Likeness"
+
     def with_engine(probe, confidential):
         def mutate(d, m):
             d["engines"].append({**d["engines"][0], **probe})
@@ -714,6 +725,7 @@ def mutations() -> list:
         ("consent revoked", lambda d, m: consent(d).update(revokedAt="2026-10-23")),
         ("voice scope not granted", lambda d, m: voice(d).update(scope="ClientDisclosed")),
         ("job scope not granted", lambda d, m: job(d).update(scope="ClientDisclosed")),
+        ("voice and job scope Likeness", likeness_voice),
         ("voice names no consent", lambda d, m: voice(d).update(consentId="no-such-consent")),
         ("voice tempo out of range", lambda d, m: voice(d).update(tempo=0.4)),
         ("unmapped dialog speaker voice", lambda d, m: job(d).update(

@@ -12,9 +12,10 @@ It speaks the renderer's command shape as narrate/video/vrm.py consumes it:
 It checks that the model is a binary glTF carrying VRMC_vrm or VRM, and that face.json is a face.timeline/v1 on the
 narration_output clock. Each frame is a transparent field with an opaque square, two eye marks that close when the
 frame's blink passes 0.5 and a mouth bar as tall as the frame's mouth weight. It draws no character and holds no model
-art. Test knobs: VRM_STUB_REFUSE=code refuses with that code; VRM_STUB_EXTRA_FRAMES=n writes n frames too many;
-VRM_STUB_NO_GPU=1 leaves the GPU out of the report. The pin for this file is
-narrate/tests/fixtures/narrated-video/vrm-externals.json.
+art. It reports a frame step of 1 / fps from face.json (it steps no model). Test knobs: VRM_STUB_REFUSE=code refuses
+with that code; VRM_STUB_EXTRA_FRAMES=n writes n frames too many; VRM_STUB_NO_GPU=1 leaves the GPU out of the
+report; VRM_STUB_WALL_CLOCK=1 reports a free-text step; VRM_STUB_ENGINE=kind reports another engine. The pin for
+this file is narrate/tests/fixtures/narrated-video/vrm-externals.json.
 """
 
 import json
@@ -109,10 +110,18 @@ def render(args):
     for frame in track:
         out.write(draw(size, frame))
     out.flush()
+    fps = face.get("fps") or {}
+    step = {"num": fps.get("den"), "den": fps.get("num")}
+    if os.environ.get("VRM_STUB_WALL_CLOCK"):
+        step = "wall clock"
     report = {
         "frames": len(face["track"]),
-        "step": "vrm.update(1/fps) per frame (stub: no model is stepped)",
-        "renderer": {"name": "vrm-renderer-stub", "version": VERSION, "engine": {"kind": "stub"}},
+        "step": step,
+        "renderer": {
+            "name": "vrm-renderer-stub",
+            "version": VERSION,
+            "engine": {"kind": os.environ.get("VRM_STUB_ENGINE") or "stub"},
+        },
     }
     if not os.environ.get("VRM_STUB_NO_GPU"):
         report["gpu"] = {"vendor": "none", "renderer": "stub-cpu", "driver": "none"}

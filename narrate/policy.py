@@ -24,6 +24,8 @@ PROFILE_BACKENDS = {
     "Fake": {"Fake"},
 }
 STORE_MAX_FILES = 4096
+# Consent.Scope.Likeness (SP-R13) grants an avatar likeness to a VRM model record, never a voice.
+LIKENESS_SCOPE = "Likeness"
 
 
 class Refused(RuntimeError):
@@ -131,6 +133,8 @@ def check_consent(voice_id, registry, index, job_scope):
         raise Refused("consent_missing", f"consent {cid}: no stored evidence has its sha256")
     if consent["revokedAt"] is not None:
         raise Refused("consent_revoked", f"consent {cid} was revoked {consent['revokedAt']}")
+    if LIKENESS_SCOPE in (voice["scope"], job_scope):
+        raise Refused("consent_scope", f"the {LIKENESS_SCOPE} scope (SP-R13) grants an avatar likeness, never a voice")
     for scope, whose in ((voice["scope"], "voice"), (job_scope, "job")):
         if scope not in scopes:
             raise Refused("consent_scope", f"consent {cid} does not grant the {whose} scope {scope}")

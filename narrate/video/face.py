@@ -74,9 +74,16 @@ def blink_closure(i, fps):
     return BLINK_FRAMES[phase] if phase < len(BLINK_FRAMES) else 0
 
 
+def window(i, per_frame, num):
+    """The first sample of frame i on the narration clock: floor(i * rate * den / num), in integers."""
+    return i * per_frame // num
+
+
 def from_narration(run_dir, manifest, fps):
     """The loudness_envelope face timeline of one narrate run at fps. run_dir holds narration.wav and the run's
-    manifest; frames = floor(samples * num / (rate * den)), at least 1."""
+    manifest; frames = floor(samples * num / (rate * den)), at least 1. Frame i reads the samples from
+    floor(i * rate * den / num) up to frame i + 1's first sample, so each window starts at i * den / num s on the
+    narration clock; any remainder shorter than one frame at the end is not drawn."""
     wav = Path(run_dir) / "narration.wav"
     try:
         pcm = audio.read(wav)
@@ -86,10 +93,10 @@ def from_narration(run_dir, manifest, fps):
     count = max(1, math.floor(len(samples) * fps["num"] / (pcm.rate * fps["den"])))
     if count > MAX_FRAMES:
         refuse(f"the narration is longer than {MAX_FRAMES} frames")
-    step = len(samples) / count
+    per_frame = pcm.rate * fps["den"]  # samples per frame, times num
     track = []
     for i in range(count):
-        chunk = samples[int(i * step) : int((i + 1) * step)] or (0,)
+        chunk = samples[window(i, per_frame, fps["num"]) : window(i + 1, per_frame, fps["num"])] or (0,)
         rms = math.sqrt(sum(s * s for s in chunk) / len(chunk)) / 32768
         frame = neutral(i)
         if rms >= SILENCE_RMS:

@@ -603,7 +603,7 @@
   {
    "name": "vrm_overlay",
    "title": "Render a VRM overlay (draft)",
-   "description": "Run the avatar stage of one job whose avatar.external is vrm (`python -m narrate video stage JOB avatar --segment ID --json`): check the model's likeness consent (SP-R13), appearance approval (TIN-7130), open badge decision and Internal edition, resolve VRM_RENDERER_BIN against the private pin, build face.json (face.timeline/v1) from the segment's narrate run at the base's frame rate, run the renderer (three-vrm in headless Chromium stepping vrm.update(1/fps) per frame) on the model from the private store, stream its raw RGBA frames into a ProRes 4444 overlay and write an avatar.manifest/v1 with the model digest, the VRM meta licence fields, the renderer, the GPU and driver and frames_identity per_host. Everything lands in the stage's partial directory in the job store, never inside the narrate run or under artifacts/runs/. Refuses vrm_model_missing, vrm_model_invalid, vrm_digest_mismatch, vrm_consent_missing, vrm_consent_revoked, vrm_approval_missing, vrm_badge_undecided, vrm_edition_unruled, vrm_pin_pending, vrm_pin_mismatch, vrm_renderer_missing, vrm_invalid, vrm_meta_missing, vrm_frames_mismatch, vrm_report_invalid, face_timeline_invalid and avatar_outside_store, and relays the renderer's own codes. Never passes --badge or --realtime. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; the overlay manifest says no_time_stretch false with the non-identity mapping avatar_overlay_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+   "description": "Run the avatar stage of one job whose avatar.external is vrm (`python -m narrate video stage JOB avatar --segment ID --json`): check the model's likeness consent (SP-R13: the consents.json row its likenessConsent.id names, with the Likeness scope, granted by the operator), appearance approval (TIN-7130), open badge decision and Internal edition, resolve VRM_RENDERER_BIN against the private pin, build face.json (face.timeline/v1) from the segment's narrate run at the base's frame rate, run the renderer (three-vrm in headless Chromium stepping vrm.update(1/fps) per frame) on the model from the private store, stream its raw RGBA frames into a ProRes 4444 overlay and write an avatar.manifest/v1 with the model digest, the VRM meta licence fields, the renderer, the pinned engine kind and lock digest, the reported frame step (refused unless it is {num, den} equal to 1/fps and the engine kind is the pin's), the GPU and driver and frames_identity per_host. Everything lands in the stage's partial directory in the job store, never inside the narrate run or under artifacts/runs/. Refuses vrm_model_missing, vrm_model_invalid, vrm_digest_mismatch, vrm_consent_missing, vrm_consent_revoked, vrm_approval_missing, vrm_badge_undecided, vrm_edition_unruled, vrm_pin_pending, vrm_pin_mismatch, vrm_renderer_missing, vrm_invalid, vrm_meta_missing, vrm_frames_mismatch, vrm_report_invalid, face_timeline_invalid and avatar_outside_store, and relays the renderer's own codes. Never passes --badge or --realtime. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; the overlay manifest says no_time_stretch false with the non-identity mapping avatar_overlay_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
    "intent": "Let an agent render the consented, approved VRM narrator overlay for each segment from its narration's face timeline, bound to a pinned renderer and model by digest, as a draft for the 11-14 bench.",
    "inputSchema": {
     "type": "object",
@@ -624,7 +624,7 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 4096,
-      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json, avatars.json (the VRM model records: digest, likeness consent, appearance approval, badge) and, optionally, music-beds.json."
+      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json, avatars.json (the VRM model records: digest, likeness consent reference, appearance approval, badge; the likeness consent itself is a consents.json row with the Likeness scope) and, optionally, music-beds.json."
      },
      "store": {
       "type": "string",
@@ -671,7 +671,7 @@
    "implementation_status": "draft",
    "evidence_kind": "vrm_overlay_render",
    "limitations": [
-    "Draft (SPR-128). The demos keep kitpip (SPR-120); the switch waits for the 11-14 go/hold bench. Only the Internal edition may carry a VRM overlay until a ruling.",
+    "Draft (SPR-128). The demos keep kitpip (SPR-120); the switch waits for the 11-14 bench. Only the Internal edition may carry a VRM overlay until a ruling.",
     "The renderer itself (the three-vrm page, its Chromium driver and their lockfile) is not built in this repository yet; its pin stays commit_pinned_digest_pending and blocks both stages (vrm_pin_pending). Public CI renders the synthetic stub on a synthetic model with no mesh.",
     "GPU raster is not bit-exact: frames_sha256 holds per host only (frames_identity per_host). Compare digests only between renders on one host, renderer and driver.",
     "face.json follows narration loudness only (source loudness_envelope); word and phoneme timings are a later source. Lip sync stays pending_operator.",
@@ -723,7 +723,7 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 4096,
-      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json, avatars.json (the VRM model records: digest, likeness consent, appearance approval, badge) and, optionally, music-beds.json."
+      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json, avatars.json (the VRM model records: digest, likeness consent reference, appearance approval, badge; the likeness consent itself is a consents.json row with the Likeness scope) and, optionally, music-beds.json."
      },
      "store": {
       "type": "string",
@@ -770,7 +770,7 @@
    "implementation_status": "draft",
    "evidence_kind": "vrm_overlay_verify",
    "limitations": [
-    "Draft (SPR-128). The demos keep kitpip (SPR-120); the switch waits for the 11-14 go/hold bench. Only the Internal edition may carry a VRM overlay until a ruling.",
+    "Draft (SPR-128). The demos keep kitpip (SPR-120); the switch waits for the 11-14 bench. Only the Internal edition may carry a VRM overlay until a ruling.",
     "The renderer itself (the three-vrm page, its Chromium driver and their lockfile) is not built in this repository yet; its pin stays commit_pinned_digest_pending and blocks both stages (vrm_pin_pending). Public CI renders the synthetic stub on a synthetic model with no mesh.",
     "GPU raster is not bit-exact: frames_sha256 holds per host only (frames_identity per_host). Compare digests only between renders on one host, renderer and driver.",
     "face.json follows narration loudness only (source loudness_envelope); word and phoneme timings are a later source. Lip sync stays pending_operator.",

@@ -66,13 +66,25 @@ def vrm_ctx(ws, binary=STUB, record=EXTERNALS):
     return ws.ctx() | {"vrm_pin": pin, "vrm": vrm.resolve(pin, {vrm.BIN_ENV: str(binary)})}
 
 
-def add_model(ws, spec="1.0", edit=None):
-    """Put a synthetic model in the store and its record in avatars.json. edit(record) changes the record."""
+def put_consent(ws, consent):
+    """Add or replace a row of the workspace's consents.json, the table voice and likeness consent go through."""
+    path = ws.paths["records"] / "consents.json"
+    rows = [r for r in json.loads(path.read_text()) if r["id"] != consent["id"]]
+    path.write_text(json.dumps([*rows, consent], indent=1))
+
+
+def add_model(ws, spec="1.0", edit=None, consent_edit=None):
+    """Put a synthetic model in the store, its record in avatars.json and its likeness consent in consents.json.
+    edit(record) changes the model record; consent_edit(row) changes the consent row."""
     data = rig.model(spec)
     (ws.paths["store"] / "fixture.vrm").write_bytes(data)
     record = rig.record(data)
     if edit is not None:
         edit(record)
+    consent = rig.likeness_consent()
+    if consent_edit is not None:
+        consent_edit(consent)
+    put_consent(ws, consent)
     (ws.paths["records"] / "avatars.json").write_text(json.dumps([record], indent=1))
     ws.reload()
     return record
@@ -279,7 +291,8 @@ def vrm_v1():
             "kind": "vrm",
             "name": "r",
             "version": "1",
-            "engine": {"kind": "stub"},
+            "engine": {"kind": "stub", "lock_sha256": None},
+            "step": {"num": 1, "den": 30},
             "gpu": {"vendor": "v", "renderer": "r", "driver": "d"},
         },
         "rate": {"num": 30, "den": 1},
@@ -326,6 +339,11 @@ def test_v0_reads_as_a_kitpip_overlay_and_v1_names_its_renderer():
         lambda m: m.update(show_badge=True),
         lambda m: m["timeline"].update(no_time_stretch=True),
         lambda m: m.update(frames=0),
+        lambda m: m["renderer"].update(step="vrm.update(1/fps) per frame"),
+        lambda m: m["renderer"].update(step={"num": 1, "den": 25}),
+        lambda m: m["renderer"].pop("step"),
+        lambda m: m["renderer"].update(engine={"kind": ""}),
+        lambda m: m["renderer"]["engine"].update(lock_sha256="not-a-digest"),
     ],
 )
 def test_a_vrm_manifest_missing_a_required_record_refuses(edit):
@@ -376,6 +394,34 @@ def test_a_malformed_face_timeline_refuses(edit):
     assert caught.value.code == "face_timeline_invalid"
 
 
+def test_face_windows_start_on_the_narration_clock(tmp_path):
+    """Frame i reads the samples from i * den / num s: a sound that starts exactly on frame 5 opens frame 5's mouth
+    and leaves frame 4 shut, and the remainder shorter than one frame is not drawn."""
+    rate, per_frame = 24000, 800  # 30 fps
+    loud = struct_pack_samples([0] * (5 * per_frame) + [16384] * (5 * per_frame + per_frame // 2))
+    write_wav(tmp_path / "narration.wav", rate, loud)
+    doc = face.from_narration(tmp_path, {"run_id": "r", "content_sha256": "0" * 64}, {"num": 30, "den": 1})
+    assert doc["frames"] == 10
+    assert [f["mouth"]["viseme"] for f in doc["track"]] == ["sil"] * 5 + ["aa"] * 5
+    assert face.window(5, rate * 1, 30) == 5 * per_frame
+    ntsc = {"num": 30000, "den": 1001}
+    assert [face.window(i, rate * ntsc["den"], ntsc["num"]) for i in (0, 1, 2, 3)] == [0, 800, 1601, 2402]
+
+
+def struct_pack_samples(samples):
+    return b"".join(int(v).to_bytes(2, "little", signed=True) for v in samples)
+
+
+def write_wav(path, rate, frames):
+    import wave
+
+    with wave.open(str(path), "wb") as out:
+        out.setnchannels(1)
+        out.setsampwidth(2)
+        out.setframerate(rate)
+        out.writeframes(frames)
+
+
 def test_the_blink_schedule_is_fixed_by_frame_index():
     fps = {"num": 30, "den": 1}
     closures = [face.blink_closure(i, fps) for i in range(300)]
@@ -411,20 +457,58 @@ def test_a_model_without_vrm_meta_or_not_a_glb_refuses(tmp_path):
 
 # The gates ------------------------------------------------------------------------------------------------------
 GATES = {
-    "vrm_consent_missing": lambda r: r["likenessConsent"].update(scopes=["Avatar"]),
-    "vrm_consent_revoked": lambda r: r["likenessConsent"].update(revokedAt="2026-10-30T00:00:00Z"),
-    "vrm_approval_missing": lambda r: r["approval"].update(state="pending"),
-    "vrm_badge_undecided": lambda r: r["badge"].update(burnedIn=False),
+    "vrm_consent_missing": {"consent_edit": lambda c: c.update(scopes=["OwnContent"])},
+    "vrm_consent_revoked": {"consent_edit": lambda c: c.update(revokedAt="2026-10-30T00:00:00Z")},
+    "vrm_approval_missing": {"edit": lambda r: r["approval"].update(state="pending")},
+    "vrm_badge_undecided": {"edit": lambda r: r["badge"].update(burnedIn=False)},
 }
 
 
 @pytest.mark.parametrize("code", sorted(GATES))
 def test_the_vrm_path_refuses_without_its_consent_and_approval(tmp_path, code):
     ws = Workspace(tmp_path)
-    add_model(ws, edit=GATES[code])
+    add_model(ws, **GATES[code])
     g = plan(ws, vrm_job(ws, "nv-gate"), vrm_ctx(ws))
     assert [r["code"] for r in g["admit"]["refusals"]] == [code]
     assert {n["id"]: n["state"] for n in g["nodes"]}["avatar/seg-1"] == "blocked"
+
+
+def drop_consent(ws):
+    path = ws.paths["records"] / "consents.json"
+    path.write_text(json.dumps([r for r in json.loads(path.read_text()) if r["id"] != rig.LIKENESS_ID]))
+
+
+@pytest.mark.parametrize(
+    "where, edit",
+    [
+        ("record", lambda r: r["likenessConsent"].update(id="")),
+        ("record", lambda r: r["likenessConsent"].update(id=7)),
+        ("record", lambda r: r["likenessConsent"].update(ruling="SP-R12")),
+        ("record", lambda r: r["likenessConsent"].pop("ruling")),
+        ("record", lambda r: r["likenessConsent"].update(id="no-such-consent")),
+        ("consent", lambda c: c.update(scopes="NoLikenessGiven")),
+        ("consent", lambda c: c.update(scopes=["NoLikeness"])),
+        ("consent", lambda c: c.update(grantedBy="Agent")),
+        ("consent", lambda c: c.update(evidenceSha256="")),
+    ],
+)
+def test_the_likeness_consent_resolves_in_the_consents_table(tmp_path, where, edit):
+    ws = Workspace(tmp_path)
+    add_model(ws, **{"edit" if where == "record" else "consent_edit": edit})
+    gate = admit.admit(vrm_job(ws, "nv-gate"), ws.records, "resolved")
+    assert [r["code"] for r in gate["refusals"]] == ["vrm_consent_missing"]
+
+
+def test_a_consent_written_inside_the_model_record_grants_nothing(tmp_path):
+    """The model record carries a reference only: a full consent inline, with no consents.json row, refuses."""
+    ws = Workspace(tmp_path)
+    add_model(ws, edit=lambda r: r["likenessConsent"].update(rig.likeness_consent()))
+    drop_consent(ws)
+    ws.reload()
+    job = vrm_job(ws, "nv-gate")
+    assert [r["code"] for r in admit.admit(job, ws.records, "resolved")["refusals"]] == ["vrm_consent_missing"]
+    no_table = {k: v for k, v in ws.records.items() if k != "consents"}
+    assert [c for c, _ in vrm.gates(job, no_table)] == ["vrm_consent_missing"]
 
 
 @pytest.mark.parametrize(
@@ -433,7 +517,7 @@ def test_the_vrm_path_refuses_without_its_consent_and_approval(tmp_path, code):
         (lambda r: r["approval"].update(vrmSha256="0" * 64), "vrm_approval_missing"),
         (lambda r: r["approval"].update(decidedBy="Agent"), "vrm_approval_missing"),
         (lambda r: r["approval"].update(ref="TIN-0000"), "vrm_approval_missing"),
-        (lambda r: r["likenessConsent"].pop("evidenceSha256"), "vrm_consent_missing"),
+        (lambda r: r.pop("likenessConsent"), "vrm_model_invalid"),
         (lambda r: r.update(kind="kitpip"), "vrm_model_invalid"),
     ],
 )
@@ -524,6 +608,8 @@ def test_the_stub_streams_rgba_frames_into_a_prores_overlay(tmp_path, ffmpeg):
     [
         ("VRM_STUB_EXTRA_FRAMES=2", "vrm_frames_mismatch"),
         ("VRM_STUB_NO_GPU=1", "vrm_report_invalid"),
+        ("VRM_STUB_WALL_CLOCK=1", "vrm_report_invalid"),
+        ("VRM_STUB_ENGINE=three-vrm-chromium", "vrm_report_invalid"),
         ("VRM_STUB_REFUSE=vrm_invalid", "vrm_invalid"),
         ("VRM_STUB_REFUSE=face_invalid", "face_invalid"),
     ],
@@ -533,6 +619,23 @@ def test_renderer_faults_and_refusals_are_typed(tmp_path, ffmpeg, env, code):
     with pytest.raises(vrm.VrmRefused) as caught:
         stub_render(tmp_path, binary, record)
     assert caught.value.code == code
+
+
+@pytest.mark.parametrize(
+    "step, fps, ok",
+    [
+        ({"num": 1, "den": 30}, {"num": 30, "den": 1}, True),
+        ({"num": 1001, "den": 30000}, {"num": 30000, "den": 1001}, True),
+        ({"num": 2, "den": 60}, {"num": 30, "den": 1}, True),
+        ({"num": 1, "den": 25}, {"num": 30, "den": 1}, False),
+        ({"num": 0, "den": 30}, {"num": 30, "den": 1}, False),
+        ({"num": True, "den": 30}, {"num": 30, "den": 1}, False),
+        ({"num": 1, "den": 30, "unit": "s"}, {"num": 30, "den": 1}, False),
+        ("1/30", {"num": 30, "den": 1}, False),
+    ],
+)
+def test_the_reported_step_is_one_frame_at_the_base_rate(step, fps, ok):
+    assert vrm.is_step(step, fps) is ok
 
 
 # The executor ---------------------------------------------------------------------------------------------------
@@ -560,6 +663,10 @@ def test_run_renders_and_checks_a_vrm_overlay(settled):
     written = json.loads((overlay / "manifest.json").read_text())
     assert written["vrm"]["sha256"] == measured["rig"]["sha256"] and written["face"]["clock"] == "narration_output"
     assert written["badge"] == {"burned_in": False, "decision": "open"}
+    pin = vrm.load_pin(EXTERNALS)
+    assert written["renderer"]["engine"] == {"kind": "stub", "lock_sha256": pin["engine"]["lock_sha256"]}
+    assert written["renderer"]["step"] == {"num": measured["fps"]["den"], "den": measured["fps"]["num"]}
+    assert written["likeness_consent_id"] == rig.LIKENESS_ID
     face_doc = json.loads((overlay / "face.json").read_text())
     assert face_doc["frames"] == measured["frames"] and face_doc["fps"] == measured["fps"]
     assert face_doc["narration"]["run_id"] == avatar["timeline"]["narration"]["run_id"]
@@ -570,10 +677,32 @@ def test_run_renders_and_checks_a_vrm_overlay(settled):
 
 
 def test_the_open_badge_decision_holds_delivery_at_the_operator(settled):
-    g = settled["graph"]
+    g, s = settled["graph"], settled["store"]
     gates = {p["gate"] for p in g["pending_operator"]}
     assert {"vrm_badge_decision", "lip_sync_acceptance"} <= gates
     assert {n["id"]: n["state"] for n in g["nodes"]}["deliver_check"] == "pending_operator"
+    report = json.loads((node_dir(s, "deliver_check") / "deliver_check.json").read_text())
+    assert report["gates"]["vrm_badge_decision"] == "pending_operator"
+    assert "vrm_badge_decision" in report["delivery_gate"]["operator_states_open"]
+    assert report["delivery_gate"]["public_upload_allowed"] is False
+    assert s.manifest("deliver_check")["states"]["vrm_badge_decision"] == "pending_operator"
+
+
+def test_the_handoff_carries_each_vrm_overlay_manifest(copied):
+    ws, job = copied
+    job["delivery"]["handoff"] = True
+    s, result, _ = run_job(ws, job, vrm_ctx(ws), replace=True)
+    assert "handoff" in ran(result) and "avatar/seg-1" not in ran(result)
+    out = node_dir(s, "handoff")
+    edit = json.loads((out / "edit.json").read_text())
+    layer = edit["overlays"][0]
+    assert layer["file"] == "layers/avatar-seg-1.mov" and layer["manifest"] == "layers/avatar-seg-1.manifest.json"
+    assert layer["renderer_kind"] == "vrm" and layer["frames_identity"] == "per_host"
+    carried = out / layer["manifest"]
+    assert sha(carried) == layer["manifest_sha256"]
+    assert carried.read_bytes() == (node_dir(s, "avatar/seg-1") / "overlay" / "manifest.json").read_bytes()
+    written = json.loads(carried.read_text())
+    assert written["badge"] == {"burned_in": False, "decision": "open"} and written["likeness_consent_id"]
 
 
 def test_a_second_run_runs_nothing(settled):
@@ -598,6 +727,28 @@ def test_a_new_model_revision_needs_a_new_approval_and_reruns_the_avatar(copied)
     s, result, _ = run_job(ws, job, vrm_ctx(ws), replace=True)
     assert set(ran(result)) == {*AVATAR, "compose", "deliver_check"}
     assert s.manifest("avatar/seg-1")["measurements"]["vrm"]["spec_version"] == "0.x"
+
+
+def test_revoking_the_likeness_consent_in_the_table_stops_the_next_run(copied):
+    """The consents.json row, not the model record, decides: revoking it there refuses before any stage runs."""
+    ws, job = copied
+    put_consent(ws, rig.likeness_consent() | {"revokedAt": "2026-10-30T00:00:00Z"})
+    ws.reload()
+    _, result, _ = run_job(ws, job, vrm_ctx(ws), replace=True)
+    assert result["refused"] == "vrm_consent_revoked" and result["ran"] == []
+
+
+def test_the_stage_rechecks_the_consent_table_before_the_renderer_spawns(copied):
+    ws, job = copied
+    s = ws.store(job, replace=True)
+    rc = run.RunContext(job, ws.records, s, vrm_ctx(ws), ws.env)
+    drop_path = ws.paths["records"] / "consents.json"
+    drop_path.write_text(json.dumps([r for r in json.loads(drop_path.read_text()) if r["id"] != rig.LIKENESS_ID]))
+    ws.reload()
+    rc.records = ws.records
+    with pytest.raises(vrm.VrmRefused) as caught:
+        vrm.run_avatar_stage(rc, {"segment": "seg-1"}, s.dir / "unused")
+    assert caught.value.code == "vrm_consent_missing" and not (s.dir / "unused").exists()
 
 
 def test_avatar_check_refuses_an_overlay_changed_after_render(copied):
