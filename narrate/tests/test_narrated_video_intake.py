@@ -507,6 +507,16 @@ def test_admit_refusal_stops_the_intake(ws, tmp_path):
         ("Version 2 allows 8% of stretch.", [("2", ""), ("8", "percent")]),
         ("a dog, someone, once, no one else", [("1", "")]),
         ("forty two decibels and 6 dBFS", [("42", "dB"), ("6", "dBFS")]),
+        ("five\u2011hundred generated files", [("500", "")]),
+        ("twenty\u2010one files", [("21", "")]),
+        ("five's company", [("5", "")]),
+        ("seven\u2019s turn", [("7", "")]),
+        ("twelve ms and nine dB", [("12", "ms"), ("9", "dB")]),
+        ("5 m/s and five km/h", [("5", "m/s"), ("5", "km/h")]),
+        ("12 MB, 5 mW and 3 m", [("12", "MB"), ("5", "mW"), ("3", "m")]),
+        ("2 MCP servers and 12 PRs", [("2", ""), ("12", "")]),
+        ("a manifold, a fold", []),
+        ("12s and 1.5s", [("12", "s"), ("1.5", "s")]),
     ],
 )
 def test_extract_reads_numbers(text, readings):
@@ -538,6 +548,47 @@ def test_extract_reads_numbers(text, readings):
         ("an MP4 file", "digits_not_one_number"),
         ("1,23", "digits_not_one_number"),
         ("4K", "digits_not_one_number"),
+        # A scale word with no count, plural scales, -fold words and other vague quantities (TIN-7735 review).
+        ("hundred files", "scale_without_count"),
+        ("thousand users", "scale_without_count"),
+        ("millions of rows", "fraction_or_vague_quantity"),
+        ("thousands of users", "fraction_or_vague_quantity"),
+        ("hundreds of files", "fraction_or_vague_quantity"),
+        ("tenfold", "fraction_or_vague_quantity"),
+        ("threefold", "fraction_or_vague_quantity"),
+        ("ten-fold", "fraction_or_vague_quantity"),
+        ("10 fold", "fraction_or_vague_quantity"),
+        ("nil errors", "fraction_or_vague_quantity"),
+        ("nought errors", "fraction_or_vague_quantity"),
+        ("since the nineties", "fraction_or_vague_quantity"),
+        ("a third of it", "fraction_or_vague_quantity"),
+        ("an eighth of it", "fraction_or_vague_quantity"),
+        # Non-ASCII numerals, Roman numerals, dashes and decades.
+        ("\u00bd of it", "digits_not_one_number"),
+        ("\u00bc of it", "digits_not_one_number"),
+        ("\u0663 items", "digits_not_one_number"),
+        ("5\u00b2 tiles", "digits_not_one_number"),
+        ("World War II", "roman_numeral"),
+        ("Phase IV", "roman_numeral"),
+        ("five\u2013hundred files", "dash_between_numbers"),
+        ("five\u2014six", "dash_between_numbers"),
+        ("the 90s", "decade_or_seconds"),
+        ("the 1990s", "decade_or_seconds"),
+        # Scale abbreviations and units the gate does not read.
+        ("17 K users", "unknown_scale_or_unit"),
+        ("17 k users", "unknown_scale_or_unit"),
+        ("17 bn", "unknown_scale_or_unit"),
+        ("3 B rows", "unknown_scale_or_unit"),
+        ("17 M users", "unknown_scale_or_unit"),
+        ("two lakh", "unknown_scale_or_unit"),
+        ("1.5 GiB", "unknown_scale_or_unit"),
+        ("5 kph", "unknown_scale_or_unit"),
+        ("5 Mbps", "unknown_scale_or_unit"),
+        ("12 Mb", "unknown_scale_or_unit"),
+        ("5 MW", "unknown_scale_or_unit"),
+        ("3 kWh", "unknown_scale_or_unit"),
+        ("5M users", "digits_not_one_number"),
+        ("5 m/furlong", "unit_not_read"),
     ],
 )
 def test_extract_fails_closed_on_ambiguity(text, reason):
@@ -555,3 +606,156 @@ def test_ambiguous_mentions_never_match():
 def test_units_are_canonical():
     assert all(claims.unit_valid(u) for u in ("", "ordinal", "ms", "percent", "m/s", "Hz"))
     assert not any(claims.unit_valid(u) for u in ("%", "furlong", "m/s/s", "ms/"))
+
+
+def test_tens_of_thousands_is_two_vague_quantities():
+    found = claims.extract("tens of thousands of users")
+    assert [m["ambiguous"] for m in found] == ["fraction_or_vague_quantity"] * 2
+
+
+def test_a_hyphen_variant_cannot_change_the_value(ws):
+    # Written with U+2011, "five-hundred" is 500: a claim of 5 must not back it.
+    set_script(ws["bundle"], "four hundred generated", "five\u2011hundred generated")
+    set_claims(ws["bundle"], lambda rows: rows[2]["value"].update(spoken="five", number=5))
+    result = bundle.claims_only(ws["bundle"])
+    assert not result["ok"]
+    rows = [m for s in result["segments"] for m in s["mentions"] if m["status"] == "refused"]
+    assert [(r["number"], r["code"]) for r in rows] == [("500", "number_unclaimed")]
+
+
+@pytest.mark.parametrize(
+    "said",
+    ["hundred", "thousands of", "tenfold more", "\u00bd of the", "five's", "the 90s of", "17 K"],
+)
+def test_review_cases_refuse_without_a_claim(ws, said):
+    set_script(ws["bundle"], "four hundred generated", f"{said} generated")
+    set_claims(ws["bundle"], lambda rows: rows.pop(2))
+    set_script(ws["bundle"], "- claims: cache-rate, files", "- claims: cache-rate")
+    assert not bundle.claims_only(ws["bundle"])["ok"]
+
+
+# Atomic writes -----------------------------------------------------------------------------------------------------
+def store_listing(store_dir):
+    return sorted((p.name, sha(p)) for p in Path(store_dir).iterdir()) if Path(store_dir).exists() else []
+
+
+def test_store_conflict_refuses_before_writing(ws, tmp_path):
+    digest = {a["id"]: a["sha256"] for a in manifest(ws["bundle"])["assets"]}["slide-a"]
+    ws["store"].mkdir(parents=True, exist_ok=True)
+    (ws["store"] / f"{digest}.png").write_bytes(b"not the slide")
+    before = store_listing(ws["store"])
+    refused("store_conflict", intake, ws, tmp_path / "out")
+    assert not (tmp_path / "out").exists()
+    assert store_listing(ws["store"]) == before
+    assert not [p for p in tmp_path.iterdir() if p.name.startswith(".out.intake-")]
+
+
+def test_an_asset_changed_after_reading_refuses(ws, tmp_path, monkeypatch):
+    original = bundle.read
+
+    def read_then_change(path):
+        b = original(path)
+        (Path(path) / "assets" / "slide-a.png").write_bytes(b"\x89PNG\r\n\x1a\nchanged after the read")
+        return b
+
+    monkeypatch.setattr(bundle, "read", read_then_change)
+    before = store_listing(ws["store"])
+    error = refused("asset_digest_mismatch", intake, ws, tmp_path / "out")
+    assert "slide-a" in error.detail
+    assert not (tmp_path / "out").exists()
+    assert store_listing(ws["store"]) == before
+    assert not [p for p in ws["store"].iterdir() if p.name.endswith(".part")]
+
+
+def test_an_asset_swapped_for_a_symlink_after_reading_refuses(ws, tmp_path, monkeypatch):
+    original = bundle.read
+    elsewhere = tmp_path / "elsewhere.png"
+
+    def read_then_swap(path):
+        b = original(path)
+        slide = Path(path) / "assets" / "slide-a.png"
+        elsewhere.write_bytes(slide.read_bytes())
+        slide.unlink()
+        slide.symlink_to(elsewhere)
+        return b
+
+    monkeypatch.setattr(bundle, "read", read_then_swap)
+    before = store_listing(ws["store"])
+    refused("asset_missing", intake, ws, tmp_path / "out")
+    assert not (tmp_path / "out").exists()
+    assert store_listing(ws["store"]) == before
+
+
+def test_intake_fills_an_empty_out_and_a_default_store(ws, tmp_path):
+    out = tmp_path / "nested" / "out"
+    out.mkdir(parents=True)
+    m = bundle.intake(ws["bundle"], out, ws["records"], template=TEMPLATE, voice=VOICE, engine=ENGINE)
+    assert (out / "intake.json").is_file() and (out / "records" / "jobs.json").is_file()
+    assert sorted(m["sources"]) == sorted(p.name.split(".")[0] for p in (out / "store").iterdir())
+    assert "store/" not in json.dumps(m["outputs"])
+    assert out.stat().st_mode & 0o777 == bundle.umask_mode(0o777)  # not mkdtemp's 0700
+    assert not [p for p in out.parent.iterdir() if p.name.startswith(".out.intake-")]
+
+
+def test_a_default_store_refusal_leaves_no_out(ws, tmp_path, monkeypatch):
+    original = bundle.read
+
+    def read_then_change(path):
+        b = original(path)
+        (Path(path) / "assets" / "slide-b.png").write_bytes(b"changed")
+        return b
+
+    monkeypatch.setattr(bundle, "read", read_then_change)
+    out = tmp_path / "new" / "out"
+    refused(
+        "asset_digest_mismatch",
+        bundle.intake,
+        ws["bundle"],
+        out,
+        ws["records"],
+        template=TEMPLATE,
+        voice=VOICE,
+        engine=ENGINE,
+    )
+    assert not (tmp_path / "new").exists()
+
+
+# Pronunciation tables ----------------------------------------------------------------------------------------------
+def add_pronunciation(ws, written, spoken):
+    path = ws["records"] / "pronunciation.json"
+    table = json.loads(path.read_text())
+    rows = table if isinstance(table, list) else [table]
+    rows[0]["entries"].append(
+        {"caseSensitive": True, "note": None, "spoken": spoken, "wholeWord": True, "written": written}
+    )
+    path.write_text(json.dumps(table, indent=1))
+
+
+def test_a_pronunciation_entry_that_adds_a_number_refuses(ws, tmp_path):
+    add_pronunciation(ws, "synthetic", "forty two")
+    before = store_listing(ws["store"])
+    error = refused("pronunciation_adds_number", intake, ws, tmp_path / "out")
+    assert "forty" in error.detail and "intro" in error.detail
+    assert not (tmp_path / "out").exists()
+    assert store_listing(ws["store"]) == before
+
+
+def test_a_pronunciation_entry_that_spells_a_word_passes(ws, tmp_path):
+    add_pronunciation(ws, "synthetic", "sin thetic")
+    m = intake(ws, tmp_path / "out")
+    assert m["narrate"]["pronunciation"] == "narrate-en-example"
+    assert m["narrate"]["pronunciation_upstream"] is None
+    assert m["states"]["pronunciation_numbers"] == "passed"
+
+
+def test_a_narration_register_needs_its_release_to_check(ws, tmp_path, monkeypatch):
+    monkeypatch.delenv("NARRATE_LEXICAL_DIR", raising=False)
+    path = ws["records"] / "jobs.json"
+    rows = json.loads(path.read_text())
+    rows = rows if isinstance(rows, list) else [rows]
+    for row in rows:
+        if row["id"] == TEMPLATE:
+            row["lexical"]["valeRegister"] = "narration"
+    path.write_text(json.dumps(rows, indent=1))
+    refused("lexical_missing", intake, ws, tmp_path / "out")
+    assert not (tmp_path / "out").exists()

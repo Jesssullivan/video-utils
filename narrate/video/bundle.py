@@ -4,7 +4,9 @@ A demo bundle is a directory (docs/demo/<slug>/ in its producer's private reposi
 script.md, claims.json and the PNG, MP4 and GIF assets the manifest lists. read() parses it strictly and refuses
 with a typed code; claims_report() runs the spoken-number claims gate (claims.py); convert() turns a bundle into the
 existing records: one NarratedVideo job and one narrate Job per beat, with no new schema (SPR-84). intake() checks
-the result with job.check_shape and admit, then writes it to a new directory.
+the result with job.check_shape and admit, checks that the template's pronunciation tables add no spoken number,
+and only then writes it: every store file is checked, copied and hashed first, and the output directory is built
+as a temporary sibling and renamed into place, so a refusal leaves no output and no new store file.
 
 Everything here reads and writes local files only. Nothing renders, and nothing is published.
 """
@@ -12,14 +14,20 @@ Everything here reads and writes local files only. Nothing renders, and nothing 
 import copy
 import hashlib
 import json
+import os
 import re
 import shutil
+import stat
+import tempfile
+from collections import Counter
 from decimal import Decimal
 from pathlib import Path, PurePosixPath
 
-from .. import adapters
+from .. import adapters, lexical
 from ..adapters import InputError
+from ..config import LEXICAL_ENV
 from ..ir import canonical, sha256_file
+from ..normalise import NormaliseError, Normaliser
 from . import claims as gate
 from .admit import admit, port
 from .job import DEFAULTS, ID, RECORD_FILES, SHA256, JobError, check_shape, load_records
@@ -381,6 +389,7 @@ def read(bundle):
         )
     return {
         "slug": bundle.resolve().name,
+        "root": bundle,
         "assets": assets,
         "beats": beats,
         "report": report,
@@ -459,6 +468,55 @@ def narrate_jobs(b, records, job_id, template, voice, engine):
     return out
 
 
+def number_words(text):
+    """The number-like tokens text speaks, as a multiset: each digit token's digit groups and each number word,
+    vague quantity or Roman numeral. A unit a table spells out ("LUFS" said in words) is not a number word."""
+    return Counter(
+        tuple(re.findall(r"[0-9]+", t.text)) if t.kind == "num" else t.low
+        for t in gate.tokens(text)
+        if gate.numberish(t)
+    )
+
+
+def pronunciation_check(b, records, template):
+    """The template's pronunciation tables must not make narrate say a number the voiced text does not: each beat's
+    paragraphs go through Normaliser.say, as narrate's render does, and the spoken form may hold no number word or
+    digit group that the written form lacks (number_words). With the narration register pinned, the upstream
+    xoxd-lexical table runs too, from NARRATE_LEXICAL_DIR. Returns {table, upstream}: the table id and the pinned
+    release, or None."""
+    base = records["jobs"][template]
+    table = records["pronunciation"].get(base["pronunciation"])
+    if table is None:
+        raise BundleError("pronunciation_unknown", f"template {template}'s pronunciation table has no record")
+    pin, upstream = base["lexical"], None
+    if pin.get("valeRegister") == "narration":
+        directory = os.environ.get(LEXICAL_ENV)
+        try:
+            upstream = lexical.Release(Path(directory) if directory else None, pin).upstream_pronunciation
+        except lexical.LexicalError as exc:
+            raise BundleError(
+                exc.code,
+                f"template {template} pins the narration register, whose pronunciation table the intake reads to"
+                f" check spoken numbers: {exc.detail}",
+            ) from None
+    normaliser = Normaliser(table, upstream=upstream)
+    for beat in b["beats"]:
+        for paragraph in paragraphs(beat["voiced"]):
+            try:
+                spoken = normaliser.say(paragraph, beat["id"], record=False)
+            except NormaliseError as exc:
+                raise BundleError("pronunciation_refused", f"beat {beat['id']}: {exc}") from None
+            added = number_words(spoken) - number_words(paragraph)
+            if added:
+                said = sorted(" ".join(w) if isinstance(w, tuple) else w for w in added.elements())
+                raise BundleError(
+                    "pronunciation_adds_number",
+                    f"beat {beat['id']}: the pronunciation tables make narrate say {', '.join(said)}, which the voiced"
+                    " text does not; no claim backs a number a table adds",
+                )
+    return {"table": base["pronunciation"], "upstream": pin["release"] if upstream is not None else None}
+
+
 def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s=None):
     """(NarratedVideo record, {beat id: (narrate Job record, Markdown bytes)}).
 
@@ -517,21 +575,95 @@ def write_json(path, value):
     path.write_text(json.dumps(value, indent=1, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def put(store, data_or_file, kind):
-    """Write one source into the store as <sha256><suffix>; an existing file of that name must hash the same."""
-    if isinstance(data_or_file, bytes):
-        digest = hashlib.sha256(data_or_file).hexdigest()
-    else:
-        digest = sha256_file(data_or_file)
-    target = store / f"{digest}{SUFFIX[kind]}"
-    if target.is_symlink() or (target.exists() and (not target.is_file() or sha256_file(target) != digest)):
+def held(target, digest):
+    """True when the store already holds target with digest; refuses store_conflict for anything else there."""
+    if not target.is_symlink() and not target.exists():
+        return False
+    if target.is_symlink() or not target.is_file() or sha256_file(target) != digest:
         raise BundleError("store_conflict", f"the store holds a different file named {target.name}")
-    if not target.exists():
-        if isinstance(data_or_file, bytes):
-            target.write_bytes(data_or_file)
-        else:
-            shutil.copyfile(data_or_file, target)
-    return digest
+    return True
+
+
+def open_asset(root, relative, where):
+    """A read-only descriptor of root/relative, every component opened without following a symlink."""
+    parts = PurePosixPath(relative).parts
+    fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        for part in parts[:-1]:
+            child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+            os.close(fd)
+            fd = child
+        asset = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW, dir_fd=fd)
+    except OSError:
+        raise BundleError("asset_missing", f"{where}: {relative} is gone or passes through a symlink") from None
+    finally:
+        os.close(fd)
+    if not stat.S_ISREG(os.fstat(asset).st_mode):
+        os.close(asset)
+        raise BundleError("asset_missing", f"{where}: {relative} is not a regular file in the bundle")
+    return asset
+
+
+def stage(directory, digest, data=None, source=None, where="a source"):
+    """A new temporary file in directory holding data, or the bytes read from the descriptor source. It must hash to
+    digest (the manifest sha256 for an asset): else it is removed and the intake refuses asset_digest_mismatch."""
+    fd, name = tempfile.mkstemp(prefix=".intake-", suffix=".part", dir=directory)
+    path, hasher = Path(name), hashlib.sha256()
+    try:
+        os.fchmod(fd, umask_mode(0o666))
+        with os.fdopen(fd, "wb") as out:
+            if data is not None:
+                hasher.update(data)
+                out.write(data)
+            else:
+                with os.fdopen(source, "rb") as f:
+                    while chunk := f.read(1 << 20):
+                        hasher.update(chunk)
+                        out.write(chunk)
+        if hasher.hexdigest() != digest:
+            raise BundleError(
+                "asset_digest_mismatch",
+                f"{where} changed after it was read: its copy does not hash to its manifest sha256",
+            )
+    except BaseException:
+        path.unlink(missing_ok=True)
+        raise
+    return path
+
+
+def commit(part, target, digest):
+    """Move a staged file to target without replacing anything. True when target is new."""
+    try:
+        os.link(part, target)
+    except FileExistsError:
+        held(target, digest)
+        return False
+    except OSError:
+        if held(target, digest):
+            return False
+        os.rename(part, target)
+        return True
+    finally:
+        part.unlink(missing_ok=True)
+    return True
+
+
+def umask_mode(mode):
+    """mode under the process umask, as open() and mkdir() would create it: mkstemp and mkdtemp use 0600 and 0700."""
+    current = os.umask(0)
+    os.umask(current)
+    return mode & ~current
+
+
+def make_dirs(path):
+    """Create path and its missing parents; the directories created, outermost first."""
+    missing, p = [], Path(path)
+    while not p.exists():
+        missing.append(p)
+        p = p.parent
+    for d in reversed(missing):
+        d.mkdir()
+    return list(reversed(missing))
 
 
 def merged_records(records_dir, new_jobs):
@@ -562,8 +694,12 @@ def intake(bundle, out, records_dir, *, job_id=None, template, voice, engine, pe
     renders with one narrate job per beat added to jobs.json) and intake.json; store (default out/store) receives
     each beat's Markdown and each used asset as <sha256><suffix>. Nothing is written when any check refuses."""
     out = Path(out)
-    if out.exists() and (not out.is_dir() or any(out.iterdir())):
+    if out.is_symlink() or (out.exists() and (not out.is_dir() or any(out.iterdir()))):
         raise BundleError("out_exists", "--out must be a new or empty directory")
+    store = Path(store) if store else out / "store"
+    within = store.resolve() == out.resolve() or out.resolve() in store.resolve().parents
+    if store.resolve() == out.resolve():
+        raise BundleError("store_conflict", "--store must not be --out itself")
     b = read(bundle)
     refused = gate_refusal(b["report"])
     if refused:
@@ -581,22 +717,77 @@ def intake(bundle, out, records_dir, *, job_id=None, template, voice, engine, pe
     if verdict["verdict"] != "Admitted":
         first = verdict["refusals"][0]
         raise BundleError(first["code"], f"admit: {first['detail']}")
+    spoken = pronunciation_check(b, records, template)
 
-    out.mkdir(parents=True, exist_ok=True)
-    store = Path(store) if store else out / "store"
-    store.mkdir(parents=True, exist_ok=True)
-    (out / "records").mkdir()
-    for name, rows in tables.items():
-        write_json(out / "records" / name, rows)
-    write_json(out / "narrated-video.json", job)
-    sources = []
-    for beat in b["beats"]:
-        _, data = jobs[beat["id"]]
-        sources.append(put(store, data, "md"))
     used = {beat["asset_id"] for beat in b["beats"]}
+    sources = {}  # store file name: (digest, Markdown bytes or None, asset or None)
+    for beat in b["beats"]:
+        record, data = jobs[beat["id"]]
+        sources[f"{record['inputSha256']}.md"] = (record["inputSha256"], data, None)
     for asset_id in sorted(used):
         asset = b["assets"][asset_id]
-        sources.append(put(store, asset["file"], asset["kind"]))
+        sources[f"{asset['sha256']}{SUFFIX[asset['kind']]}"] = (asset["sha256"], None, asset)
+    if not within:
+        for name, (digest, _, _) in sources.items():
+            held(store / name, digest)  # store_conflict before anything is written
+    manifest = write_intake(out, store, within, sources, b, job, jobs, tables, verdict, template, voice, engine, spoken)
+    return manifest
+
+
+def write_intake(out, store, within, sources, b, job, jobs, tables, verdict, template, voice, engine, spoken):
+    """Write the checked intake: stage every store file and the output tree, then commit them. On any failure every
+    staged file, new store file and new directory is removed."""
+    created, parts, new_store, staging = [], [], [], None
+    try:
+        created += make_dirs(out.parent)
+        staging = Path(tempfile.mkdtemp(prefix=f".{out.name}.intake-", dir=out.parent))
+        staging.chmod(umask_mode(0o777))
+        if within:
+            store_dir = staging / store.resolve().relative_to(out.resolve())
+            store_dir.mkdir(parents=True)
+        else:
+            store_dir = store
+            created += make_dirs(store)
+        for name, (digest, data, asset) in sources.items():
+            if not within and held(store / name, digest):
+                continue
+            where = "a beat script" if asset is None else f"asset {asset['id']}"
+            source = None if asset is None else open_asset(b["root"], asset["path"], where)
+            parts.append((stage(store_dir, digest, data, source, where), store_dir / name, digest))
+        manifest = intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, template, voice,
+                                   engine, spoken)  # fmt: skip
+        for part, target, digest in parts:
+            if commit(part, target, digest) and not within:
+                new_store.append(target)
+        parts = []
+        try:
+            os.rename(staging, out)
+        except OSError:
+            raise BundleError("out_exists", "--out appeared or filled while the intake ran") from None
+        staging = None
+        return manifest
+    except BaseException:
+        for part, _, _ in parts:
+            part.unlink(missing_ok=True)
+        for target in new_store:
+            target.unlink(missing_ok=True)
+        if staging is not None:
+            shutil.rmtree(staging, ignore_errors=True)
+        for d in reversed(created):
+            try:
+                d.rmdir()
+            except OSError:
+                pass
+        raise
+
+
+def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, template, voice, engine, spoken):
+    """Write records/, narrated-video.json and intake.json into the staging directory; returns the manifest."""
+    (staging / "records").mkdir()
+    for name, rows in tables.items():
+        write_json(staging / "records" / name, rows)
+    write_json(staging / "narrated-video.json", job)
+    used = {beat["asset_id"] for beat in b["beats"]}
     report = {r["segment"]: r for r in b["report"]}
     start = Decimal(0)
     segments = []
@@ -618,8 +809,8 @@ def intake(bundle, out, records_dir, *, job_id=None, template, voice, engine, pe
             }
         )  # fmt: skip
         start = end
-    written = [p for p in sorted(out.rglob("*")) if p.is_file() and store not in p.parents]
-    outputs = {str(p.relative_to(out)): sha256_file(p) for p in written}
+    written = [p for p in sorted(staging.rglob("*")) if p.is_file() and store_dir not in p.parents]
+    outputs = {str(p.relative_to(staging)): sha256_file(p) for p in written}
     manifest = {
         "kind": "nv_bundle_intake",
         "schema_version": 1,
@@ -629,16 +820,17 @@ def intake(bundle, out, records_dir, *, job_id=None, template, voice, engine, pe
         "job_sha256": hashlib.sha256(canonical(job).encode()).hexdigest(),
         "edition": job["edition"],
         "narrate": {"template": template, "voice": voice, "engine": engine, "confidential": True,
-                    "allowHosted": False, "input": "Markdown"},
+                    "allowHosted": False, "input": "Markdown", "pronunciation": spoken["table"],
+                    "pronunciation_upstream": spoken["upstream"]},
         "segments": segments,
         "unused_assets": sorted(set(b["assets"]) - used),
-        "sources": sorted(set(sources)),
+        "sources": sorted({digest for digest, _, _ in sources.values()}),
         "outputs": outputs,
         "admit": {"verdict": verdict["verdict"], "pending_operator": [p["gate"] for p in verdict["pending_operator"]]},
-        "states": {"source_checks": "passed", "claims": "passed", "render": "not_run",
-                   "listening": "pending_operator"},
+        "states": {"source_checks": "passed", "claims": "passed", "pronunciation_numbers": "passed",
+                   "render": "not_run", "listening": "pending_operator"},
     }  # fmt: skip
-    write_json(out / "intake.json", manifest)
+    write_json(staging / "intake.json", manifest)
     return manifest
 
 
