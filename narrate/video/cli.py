@@ -24,7 +24,10 @@ allows one (NV-8), which needs --persona; --no-avatar turns it off.
 intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
 "Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,
 writes one NarratedVideo record, one narrate job per beat and their sources, and refuses before writing anything when
-a check fails. fixture --bundle also writes a synthetic bundle.
+a check fails. Both run the private-terms guard first: a manifest that declares ip_private or never_name needs
+--denylist (or NARRATED_VIDEO_DENYLIST), the private denylist it binds by digest. --denylist-sha256 (or
+NARRATED_VIDEO_DENYLIST_SHA256) pins that digest outside the bundle and marks the lane private. fixture --bundle
+also writes a synthetic bundle.
 """
 
 import argparse
@@ -38,12 +41,21 @@ from pathlib import Path
 
 from .. import policy
 from ..ir import sha256_file
-from . import bundle, fixture, graph, kitpip, speech, store, vrm
+from . import bundle, fixture, graph, kitpip, private_terms, speech, store, vrm
 from . import run as runner
 from .common import Env
 from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_job, load_records, read_json
 
 RECORDS_ENV = "NARRATED_VIDEO_RECORDS"
+DENYLIST_ENV = "NARRATED_VIDEO_DENYLIST"
+PIN_HELP = (
+    "the operator's pinned sha256 of the denylist, instead of NARRATED_VIDEO_DENYLIST_SHA256: the lane is private, so"
+    " an undeclared bundle refuses and the file must hash to it, whatever the manifest says"
+)
+DENYLIST_HELP = (
+    "the private denylist file (kind nv_denylist) that a manifest declaring ip_private or never_name binds by sha256,"
+    " instead of NARRATED_VIDEO_DENYLIST; kept outside the bundle and outside git"
+)
 
 
 def emit(value):
@@ -89,8 +101,13 @@ def job_store(a, job_id):
     return store.JobStore(a.root or os.environ.get(store.ROOT_ENV) or store.DEFAULT_ROOT, job_id)
 
 
-def records_for(a):
-    return load_records(a.records or os.environ.get(RECORDS_ENV))
+def records_for(a, job=None):
+    """The records. When they come from a guarded intake (or the lane is private), job must be the NarratedVideo
+    record that intake wrote (private_terms.check_job), so an edit to its persona label or segments refuses."""
+    directory = a.records or os.environ.get(RECORDS_ENV)
+    records = load_records(directory)
+    private_terms.check_job(directory, job)
+    return records
 
 
 def table(g):
@@ -107,7 +124,7 @@ def table(g):
 
 
 def cmd_init(a):
-    records = records_for(a)
+    records = load_records(a.records or os.environ.get(RECORDS_ENV))
     defaults_flags = [
         f"--{n.replace('_', '-')}"
         for n in ("narrate_job", "script", "voice", "still", "card", "bed", "edition", "persona")
@@ -151,6 +168,7 @@ def cmd_init(a):
             persona=a.persona,
             client=a.client,
         )
+    records = records_for(a, job)
     s = job_store(a, a.job)
     ctx = context(a)
     g = graph.plan(job, records, None, ctx)
@@ -180,7 +198,8 @@ def cmd_init(a):
 
 def cmd_plan(a):
     s = job_store(a, a.job)
-    g = graph.public(graph.plan(s.read_job(), records_for(a), s, context(a)))
+    job = s.read_job()
+    g = graph.public(graph.plan(job, records_for(a, job), s, context(a)))
     if a.record:
         s.write_graph(g)
     if a.json:
@@ -200,7 +219,8 @@ def run_env(a, records):
 
 def run_common(a, only=None, from_run=None):
     s = job_store(a, a.job)
-    job, records = s.read_job(), records_for(a)
+    job = s.read_job()
+    records = records_for(a, job)
     env = run_env(a, records)
     ctx = context(a)
     rc = runner.RunContext(job, records, s, ctx, env, from_run=from_run)
@@ -317,6 +337,8 @@ def cmd_intake(a):
         persona=a.persona,
         tail_s=a.tail_s,
         store=a.store,
+        denylist=denylist(a),
+        pin=a.denylist_sha256,
     )
     summary = {
         "ok": True,
@@ -331,8 +353,13 @@ def cmd_intake(a):
     return 0
 
 
+def denylist(a):
+    """The private denylist file: --denylist, else NARRATED_VIDEO_DENYLIST, else None."""
+    return a.denylist or os.environ.get(DENYLIST_ENV) or None
+
+
 def cmd_claims(a):
-    result = bundle.claims_only(a.bundle)
+    result = bundle.claims_only(a.bundle, denylist(a), a.denylist_sha256)
     emit(result)
     if result["ok"]:
         return 0
@@ -352,7 +379,8 @@ def cmd_status(a):
 def cmd_explain(a):
     s = job_store(a, a.job)
     node = f"{a.stage}/{a.segment}" if a.segment else a.stage
-    emit(graph.explain(s.read_job(), records_for(a), s, context(a), node))
+    job = s.read_job()
+    emit(graph.explain(job, records_for(a, job), s, context(a), node))
     return 0
 
 
@@ -476,9 +504,13 @@ def main(argv=None):
     avatar.add_argument("--no-avatar", action="store_true", help="no kitpip avatar")
     t.add_argument("--tail-s", type=float, help="seconds a card base holds after the last narration (default 1)")
     t.add_argument("--json", action="store_true", help="print the whole intake manifest")
+    t.add_argument("--denylist", help=DENYLIST_HELP)
+    t.add_argument("--denylist-sha256", help=PIN_HELP)
 
     c = sub.add_parser("claims", help="the spoken-number claims gate of a demo bundle, alone")
-    c.add_argument("bundle", help="the bundle directory (script.md and claims.json are read)")
+    c.add_argument("bundle", help="the bundle directory (script.md, claims.json and the manifest's privacy are read)")
+    c.add_argument("--denylist", help=DENYLIST_HELP)
+    c.add_argument("--denylist-sha256", help=PIN_HELP)
 
     s = sub.add_parser("status", help="print the recorded graph.json and its pending operator gates")
     common(s)
@@ -517,7 +549,9 @@ def main(argv=None):
         }
         return commands[a.command](a)
     except bundle.BundleError as exc:
-        if exc.report is not None:
+        if isinstance(exc.report, dict):
+            emit({"ok": False, "private_terms": exc.report})
+        elif exc.report is not None:
             emit({"ok": False, "segments": exc.report})
         return refusal(exc.code, exc.detail)
     except JobError as exc:

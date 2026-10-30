@@ -653,8 +653,8 @@ def test_store_conflict_refuses_before_writing(ws, tmp_path):
 def test_an_asset_changed_after_reading_refuses(ws, tmp_path, monkeypatch):
     original = bundle.read
 
-    def read_then_change(path):
-        b = original(path)
+    def read_then_change(path, *args):
+        b = original(path, *args)
         (Path(path) / "assets" / "slide-a.png").write_bytes(b"\x89PNG\r\n\x1a\nchanged after the read")
         return b
 
@@ -671,8 +671,8 @@ def test_an_asset_swapped_for_a_symlink_after_reading_refuses(ws, tmp_path, monk
     original = bundle.read
     elsewhere = tmp_path / "elsewhere.png"
 
-    def read_then_swap(path):
-        b = original(path)
+    def read_then_swap(path, *args):
+        b = original(path, *args)
         slide = Path(path) / "assets" / "slide-a.png"
         elsewhere.write_bytes(slide.read_bytes())
         slide.unlink()
@@ -700,8 +700,8 @@ def test_intake_fills_an_empty_out_and_a_default_store(ws, tmp_path):
 def test_a_default_store_refusal_leaves_no_out(ws, tmp_path, monkeypatch):
     original = bundle.read
 
-    def read_then_change(path):
-        b = original(path)
+    def read_then_change(path, *args):
+        b = original(path, *args)
         (Path(path) / "assets" / "slide-b.png").write_bytes(b"changed")
         return b
 

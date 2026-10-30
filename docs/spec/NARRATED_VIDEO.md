@@ -397,8 +397,8 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `stage JOB voice --from-run RUN_DIR [--segment ID] [--replace]` | `just nv-stage-voice-from-run JOB RUN_DIR` | adopts a narrate run already rendered and verified elsewhere (`narrate render --prerendered` for an `AudioCppBatch` engine) as the voice node instead of voicing it. See "Adopting a rendered run" |
 | `fixture --out DIR` | `just nv-fixture` | writes a synthetic workspace: records, a private-store stand-in and a fixture lexical release |
 | `init` then `run` | `just nv-quick JOB NARRATE_JOB SCRIPT [ARGS]` | a simple job in one step |
-| `intake BUNDLE --out DIR --narrate-template ID --voice ID --engine ID (--persona P \| --no-avatar) [--job ID] [--store DIR] [--tail-s S]` | `just narrated-video-intake` | a demo bundle to a job and one narrate job per beat, claims gated (see "Demo bundle intake"). Writes nothing on a refusal |
-| `claims BUNDLE` | `just narrated-video-claims` | the spoken-number claims gate alone, one row per segment. Exit 1 when a segment refuses |
+| `intake BUNDLE --out DIR --narrate-template ID --voice ID --engine ID (--persona P \| --no-avatar) [--job ID] [--store DIR] [--tail-s S] [--denylist FILE] [--denylist-sha256 HEX]` | `just narrated-video-intake` | a demo bundle to a job and one narrate job per beat, claims gated (see "Demo bundle intake"). Writes nothing on a refusal |
+| `claims BUNDLE [--denylist FILE] [--denylist-sha256 HEX]` | `just narrated-video-claims` | the private-terms guard and the spoken-number claims gate alone, one row per segment. Exit 1 when a segment refuses |
 | `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
 
 Paths come from flags or the environment: `--root` (`NARRATED_VIDEO_ROOT`),
@@ -882,8 +882,8 @@ The parser (`narrate/video/bundle.py`) is strict. JSON files hold at most 4 MiB,
 that repeats, an unknown field or a missing field refuses `bundle_invalid`. Ids are 1 to 64 of `a-z`, `0-9`, `.`,
 `_` and `-`, starting with a letter or digit.
 
-`manifest.json` is `{"assets": [...]}`, with an optional `slug` equal to the directory's name. Each asset has these
-fields:
+`manifest.json` is `{"assets": [...]}`, with an optional `slug` equal to the directory's name and an optional
+`privacy` block (see "Private terms"). Each asset has these fields:
 
 | Field | Rule |
 | --- | --- |
@@ -951,6 +951,7 @@ in the file, and the claims gate refuses every number that relies on it.
 | `script_invalid`, `beat_invalid`, `beat_voiced_missing` | the script rules above |
 | `voiced_not_verbatim` | narrate's Markdown adapter would not speak the voiced text as written: inline markup, a `[bracketed]` line, a heading or a `Sources:` line |
 | `claim_invalid`, `claim_unknown` | a claim breaks its rules; a beat cites a claim id that `claims.json` lacks |
+| `denylist_missing`, `denylist_misplaced`, `denylist_digest_mismatch`, `denylist_invalid`, `denylist_pin_invalid`, `privacy_undeclared`, `private_term` | the private-terms guard (see "Private terms"): the declared denylist is not given, lies inside the bundle or a git work tree, is not bound or malformed, the operator's pin is malformed or names a private lane for an undeclared bundle, or a text says one of its terms |
 | `number_unclaimed`, `claim_unreceipted`, `claim_ambiguous`, `number_ambiguous` | the claims gate, per segment (below) |
 | `narrate_job_missing`, `records_invalid`, `voice_unknown`, `engine_unknown`, `engine_not_allowed`, `consent_scope`, `confidential_engine_refused` | the template narrate job, voice or engine cannot voice a confidential job |
 | `pronunciation_unknown`, `pronunciation_refused`, `pronunciation_adds_number`, `lexical_missing`, `lexical_digest_mismatch` | the template's pronunciation table has no record; narrate's normaliser refuses a beat; a table makes narrate say a number word or digit group that the voiced text lacks; the template pins the narration register and its xoxd-lexical release (`NARRATE_LEXICAL_DIR`) is absent or does not match its pin |
@@ -1095,10 +1096,134 @@ that the written form lacks. Units are not compared: a table may spell out "LUFS
 pinned, the intake reads the release from `NARRATE_LEXICAL_DIR` and refuses `lexical_missing` without it.
 `claims` alone reads no records and does not run this check.
 
-`claims` runs the gate alone on `script.md` and `claims.json` and prints `{ok, bundle, segments}`, one row per
+`claims` runs the private-terms guard and then the gate on `script.md` and `claims.json` and prints
+`{ok, bundle, segments, private_terms}`, one row per
 segment with its status, codes, mentions (text, number, unit, kind, status, claim and receipt, or code and reason)
 and unused claims. A refused gate exits 1 with the first segment's code on stderr. `intake` runs the same gate
 first. A refusal prints the per-segment report and writes nothing. A pass copies the report into `intake.json`.
+
+### Private terms
+
+Linear TIN-7735, SPR-220. Some work is private: an `ip_private` bundle keeps its numbers and geometry private, and a
+`never_name` bundle must not name a party. A bundle declares this in `manifest.json`:
+
+```json
+"privacy": {"ip_private": true, "never_name": false, "denylist_sha256": "<64 lowercase hex digits>"}
+```
+
+`ip_private` and `never_name` are required booleans, and `denylist_sha256` binds the denylist by digest. Any other
+field, or a value of the wrong type, refuses `bundle_invalid`. When either flag is true, `claims` and `intake` need
+the denylist through `--denylist FILE` or `NARRATED_VIDEO_DENYLIST`. The file lives outside the bundle and outside
+every git work tree, and only its digest appears in a record.
+
+The bundle's own manifest cannot be the only binding, because whoever edits the bundle can drop the block or bind
+another list. The operator of a lane marked private sets `NARRATED_VIDEO_DENYLIST` and pins the list's digest with
+`--denylist-sha256 HEX` or `NARRATED_VIDEO_DENYLIST_SHA256`. A pin marks the lane private: a bundle that declares
+neither flag refuses `privacy_undeclared`, and the file must hash to the pin whatever the manifest binds. The guard
+(`narrate/video/private_terms.py`) fails closed:
+
+| Code | When |
+| --- | --- |
+| `denylist_missing` | a flag is true or a pin is set and no file is given, the file is absent, not a regular file or a symlink, or the manifest names no `denylist_sha256` and no pin is set |
+| `denylist_misplaced` | the file lies inside the bundle or inside a git work tree |
+| `denylist_digest_mismatch` | the file's bytes do not hash to the pin, or with no pin to `denylist_sha256`, or the manifest binds another digest than the pin |
+| `denylist_pin_invalid` | the pin is not 64 lowercase hex digits |
+| `privacy_undeclared` | a pin is set and the manifest declares neither `ip_private` nor `never_name` |
+| `denylist_invalid` | the file is over 1 MiB, not UTF-8 JSON, repeats a key, is not `{kind: "nv_denylist", schema_version: 1, salt, entries}` with 1 to 10000 entries, holds a malformed entry, or lacks the class a flag needs |
+| `private_term` | an entry matches a text the job speaks, shows or records, a letter is not ASCII after NFKD, mark stripping and case folding, or a word mixes two scripts |
+| `private_terms_stale` | at every records load, a narrate job or the pronunciation table it names differs from what a guarded intake recorded, or a private lane's records hold no marker; at `init`, `plan`, `run` and `explain`, the NarratedVideo record is not the one the guarded intake wrote |
+
+`salt` is 32 to 128 random lowercase hex digits with at least 8 distinct digits. Records carry the file's digest,
+and the salt keeps that digest from confirming a guessed short list, the reason Cade's claims gate keeps no digest
+of its name list.
+
+Each entry is `{id, class, literal}`, `{id, class, regex}` or `{id, class: "number", number, unit}`. `class` is
+`number`, `geometry` or `name`. `ip_private` needs at least one number or geometry entry and `never_name` needs at
+least one name entry. A literal holds 2 to 256 letters or digits. A name entry is never a number entry. An entry id
+must not match any entry, number entries included. Reports name entries by position and never carry an id, so an
+id that spells a term in a form the entries do not read ("angle-12-5") still never reaches a log. A number entry's
+`unit` is `null` or a unit the claims gate reads. It is kept for the record and no longer narrows the match.
+
+A regex holds at most 512 characters of a subset that cade `src/bs21-guard.ts` reads the same way: ASCII letters,
+digits and spaces, the escapes `\s`, `\d`, `\b`, `\.` and `\-`, `.`, groups `(` and `(?:`, `|`, character classes
+of those (a bare `-` only last) and the quantifiers `?`, `*`, `+`, `{n}`, `{n,}` and `{n,m}`. Both compile it
+case-insensitive, with `.` matching every character and `\s`, `\d` and `\b` reading ASCII only. It must not match
+empty or blank text, before or after its separators are removed.
+
+Matching fails closed and over-matches on purpose. A text refuses as class `script` when one of its letters is not
+ASCII after NFKD, mark stripping and case folding, or when one word mixes letters of two scripts. So small capitals
+and Greek, Cyrillic, Armenian and Lisu letters refuse in a guarded bundle, while "é", "ß" and fullwidth Latin letters
+fold to ASCII and pass. Each text is then folded: NFKD, combining marks stripped, case folded, the Cyrillic, Greek
+and Latin look-alike letters that `CONFUSABLES` lists mapped to Latin, and every decimal digit mapped to ASCII. A
+literal matches when its letters and digits occur in the text's letters and digits, anywhere. So "FixtureCorp",
+"fixture-corp.com", "#FixtureCorp", "Fixture" plus a soft hyphen or word joiner plus "Corp", "F" plus Cyrillic "і"
+plus "xture Corp", "Fixture Corps" and "Fixture Corporation" all match the literal "Fixture Corp". A literal also
+matches in a looser fold of both the entry and the text, where `i`, `l`, `1`, `|` and `!` read as `l` and `0` reads
+as `o`. So "ZorbIax" with a capital I, "Zorb|ax", "Zorb1ax", "Z0rblax" and "F1xture Corp" match. A regex runs on the NFKC text, on the fold with punctuation as spaces, and with its separators
+removed on the fold's letters and digits, so `chamfer\s+angle` also matches "ChamferAngle". A number entry matches
+its value in any unit in any of these forms: a mention the claims gate's extractor reads; a digit run read whole,
+at its one decimal point and as a grouped integer ("3.375" for 3375), or, when it holds a comma or two separators,
+group by group and at its last separator ("12,5", ".5"); a middle dot, an Arabic decimal separator or a one-dot
+leader as the point ("12·5"); a point with spaces around it ("12 .5", "12 . 5"); a fraction ("25/2", "12 1/2") or a
+vulgar fraction ("12½", "12 and 1/2"); digit groups of 3 split by a space, a no-break or thin space, an apostrophe
+or an underscore, read joined ("3 375", "3'375", "3_375"); an exponent ("1.25e1"); fullwidth or other decimal
+digits; and its English spelling ("twelve point five", "twelve point fifty", "twelve point five zero", "twelve dot
+five", "twelve comma five", "twelve and a half", "12 and a half", "twelve and 1/2", "one hundred and five"). The
+whole part is also read as two pairs ("thirty three seventy five") and digit by digit ("one two point five", "three
+three seven five" from 3 digits up). Hyphen-joined digits ("12-5") are not read as a decimal, because dates would
+then match. Inflections the fold does not reach, abbreviations and other
+leetspeak ("Z3rblax") need entries of their own. `narrate/tests/fixtures/narrated-video/nv-denylist-conformance.json` holds the cases both
+repositories must agree on. cade keeps a byte-identical copy. The grouped, exponent, pair, digit-by-digit and
+trailing-zero forms are tested here only (`test_a_grouped_exponent_or_spelled_number_refuses`) until cade reads them
+and the shared fixture adds them in step.
+
+The guard checks these texts, in this order, and refuses at the first group that matches:
+
+| Group | Texts | Reported as |
+| --- | --- | --- |
+| record | the slug, each asset's id, path and receipt, each beat's id and asset id, each claim's id and receipt, and at intake the bundle directory's name and the job id; the numbers records hold: each asset's `size` and `fps` (with `num/den`), each beat's `target_s` and the start and end the intake writes for it | `slug`, `asset#N`, `beat#N`, `claim#N` and `job`, by position |
+| voiced | each beat's voiced text, which the captions show | the beat id |
+| claim | each claim's `spoken` text | the claim id |
+| label | `--persona` at intake | `labels` |
+| spoken | each paragraph after the pronunciation tables, at intake | the beat id |
+| joined | each two adjacent voiced texts, and at intake each two adjacent spoken paragraphs, read as one text; it reports only an entry neither part matches alone | `a+b`, the two beat ids |
+
+The guard is built before any other bundle check. Record texts are checked first and named by position, so a
+refusal never repeats a private id. A report holds `{status, ip_private, never_name, denylist_sha256, pinned,
+entries, checked, matches}`. Each match names its segment, group, the entry's position (`entry`, null for class
+`script`) and class, and a refusal detail names the entry by position too. No other refusal echoes a bundle value it
+refuses: a malformed beat id, `target_s`, `asset_id`, asset `kind` or claim `value.unit` is named by its field, and an
+unknown key is counted. Every other refusal of `claims` and `intake` whose detail an entry matches, or that holds a
+backslash escape (repr of a format character), keeps its code and has its detail withheld. So does every refusal
+while a given denylist cannot be read, and while a pin is set and no denylist is bound yet. No report or detail
+holds the matched text, a literal, a pattern or a denylist number, so a refusal may go to a log. A pass records
+`private_terms` and the state `private_terms: passed` in `intake.json`. A bundle with no `privacy` block and no pin
+records `not_declared`. A denylist given to such a bundle still runs.
+
+A guarded intake writes `records/private-terms.json` (schema 2): the guard's status and digest, the digest of the
+NarratedVideo record it wrote to `narrated-video.json` and the narrate jobs its segments name, and, per narrate job,
+the digests of the job record and of the pronunciation table it names. Every load of that records directory checks
+it and refuses `private_terms_stale` on a change, so a table edited after intake cannot add a spoken term. `init`,
+`plan`, `run` and `explain` also refuse a NarratedVideo record that is not the one the intake wrote. So an edited
+persona label or a segment pointed at another narrate job refuses, and so does a job built from `init` flags. A
+records directory with no marker refuses too when the `intake.json` beside it says the guard passed or refused, or
+when `NARRATED_VIDEO_DENYLIST` or `NARRATED_VIDEO_DENYLIST_SHA256` is set. The intake's own `--records` input is
+exempt, because the operator's base records come from no intake. Deleting both the marker and `intake.json` outside
+a private lane still removes the check, so the producer keeps OUT where the bundle lives. So does deleting the
+marker and editing the `intake.json` status to `not_declared`, outside a private lane; both edits need write access
+to OUT itself, which the producer controls. A pinned lane refuses either way.
+
+The guard reads text only. These pass it, and the producer reviews them:
+
+| Not read | Why |
+| --- | --- |
+| a paraphrase or a translation | no entry spells it |
+| PNG slide pixels, MP4 and GIF frames and text burned into them | the guard reads no pixels; on-screen asset text reaches the video |
+| asset container metadata (PNG text chunks, MP4 atoms) | the intake copies asset bytes by digest. The rendered outputs drop metadata (`-map_metadata -1` in `compose.py` and `handoff.py`) |
+| a job or records written another way than intake | no intake ran, so no marker exists |
+
+The intake states record `private_terms` and, beside it, `producer_review: pending_operator` for these. Tests use
+invented terms only.
 
 ## Deck import
 
