@@ -19,12 +19,14 @@ Ambiguous readings (refused as number_ambiguous):
 - a digit token that is not one plain number: "1.2.3", "10:30", "1/2", "2026-10-29", "MP4", "1,23", "4K", "½",
   "5M", or a whole ten with an attached "s" ("the 90s", "1990s"), which may be a decade or seconds;
 - a number followed by a scale abbreviation or a unit the gate does not read: a single letter ("17 K", "3 B"),
-  "k", "bn", "mn", "lakh", "crore", "grand", a lower-case unit with no vowel ("kph", "rpm", "kbps"), a binary
-  prefix ("GiB"), a mixed-case unit such as "Mbps" or "kWh", or "/" joining a unit to something that is not one.
+  "k", "bn", "mn", "lakh", "crore", "grand", a lower-case unit with no vowel ("kph", "kbps"), a binary prefix
+  ("GiB"), a mixed-case unit such as "Mbps" or "kWh", a unit symbol in another case that is not all capitals
+  ("mpa", "Kpa", "dba"), or "/" joining a unit to something that is not one.
 
 A hyphen (U+002D, U+2010, U+2011 or a soft hyphen) joins words ("twenty-one"). A possessive or contraction of a
 number word ("five's") reads as the number. Unit symbols are read in their exact case ("m" is metres, "M" is not a
-unit). Other unknown words after a number, acronyms such as "MCP" among them, leave it a bare count.
+unit, "MPa" is megapascals). Other unknown words after a number, acronyms such as "MCP" and "GPA" among them, leave
+it a bare count.
 
 Not extracted: once, single, both, none and "a" or "an" before anything but hundred, thousand, million, billion,
 trillion or an ordinal. "one" is always the number 1, and "first" or "second" alone are the ordinals 1 and 2: a
@@ -90,6 +92,12 @@ UNITS = {
     "LUFS": ("lufs",),
     "LU": ("lu",),
     "dBTP": ("dbtp",),
+    "dBA": (
+        ("decibel", "a", "weighted"),
+        ("decibels", "a", "weighted"),
+        ("a", "weighted", "decibel"),
+        ("a", "weighted", "decibels"),
+    ),
     "V": ("volt", "volts"),
     "mV": ("millivolt", "millivolts"),
     "A": ("amp", "amps", "ampere", "amperes"),
@@ -98,9 +106,18 @@ UNITS = {
     "kW": ("kilowatt", "kilowatts"),
     "mW": ("milliwatt", "milliwatts"),
     "ohm": ("ohm", "ohms"),
+    "N": ("newton", "newtons"),
+    "kN": ("kilonewton", "kilonewtons"),
+    "Nm": (("newton", "metre"), ("newton", "metres"), ("newton", "meter"), ("newton", "meters")),
+    "Pa": ("pascal", "pascals"),
+    "kPa": ("kilopascal", "kilopascals"),
+    "MPa": ("megapascal", "megapascals"),
+    "GPa": ("gigapascal", "gigapascals"),
+    "K": ("kelvin", "kelvins"),
     "m": ("metre", "metres", "meter", "meters"),
     "cm": ("centimetre", "centimetres", "centimeter", "centimeters"),
     "mm": ("millimetre", "millimetres", "millimeter", "millimeters"),
+    "um": ("micrometre", "micrometres", "micrometer", "micrometers", "micron", "microns"),
     "km": ("kilometre", "kilometres", "kilometer", "kilometers"),
     "in": ("inch", "inches"),
     "ft": ("foot", "feet"),
@@ -118,11 +135,14 @@ UNITS = {
     "bit": ("bit", "bits"),
     "fps": (("frames", "per", "second"), ("frame", "per", "second")),
     "px": ("pixel", "pixels"),
+    "rpm": (("revolution", "per", "minute"), ("revolutions", "per", "minute")),
+    "ppm": (("part", "per", "million"), ("parts", "per", "million")),
     "x": ("times",),
     "USD": ("dollar", "dollars"),
 }
-# Case matters: "m" is metres and "M" a scale, "mW" is milliwatts and "MW" megawatts, "MB" is bytes and "Mb" bits.
-# A symbol in any other case is not read as a unit.
+# Case matters: "m" is metres and "M" a scale, "mW" is milliwatts and "MW" megawatts, "MB" is bytes and "Mb" bits,
+# "Pa" is pascals and "PA" an acronym. A symbol in any other case is not read as a unit. "K" is no symbol: "17 K"
+# and "4K" may be thousands, so kelvin is read only as the word.
 SYMBOL_UNITS = {
     "%": "percent", "s": "s", "sec": "s", "ms": "ms", "us": "us", "µs": "us", "μs": "us", "ns": "ns",
     "min": "min", "h": "h", "Hz": "Hz", "hz": "Hz", "kHz": "kHz", "khz": "kHz", "MHz": "MHz", "mhz": "MHz",
@@ -131,8 +151,12 @@ SYMBOL_UNITS = {
     "mv": "mV", "mA": "mA", "ma": "mA", "W": "W", "w": "W", "kW": "kW", "kw": "kW", "mW": "mW", "mw": "mW",
     "Ω": "ohm", "m": "m", "cm": "cm", "mm": "mm", "km": "km", "g": "g", "kg": "kg", "mg": "mg", "°C": "degC",
     "°c": "degC", "°F": "degF", "°f": "degF", "°": "deg", "KB": "KB", "kB": "KB", "MB": "MB", "GB": "GB",
-    "TB": "TB", "fps": "fps", "px": "px", "x": "x",
+    "TB": "TB", "fps": "fps", "px": "px", "x": "x", "dBA": "dBA", "N": "N", "kN": "kN", "N·m": "Nm",
+    "N⋅m": "Nm", "Nm": "Nm", "Pa": "Pa", "kPa": "kPa", "MPa": "MPa", "GPa": "GPa", "µm": "um", "μm": "um",
+    "rpm": "rpm", "RPM": "rpm", "ppm": "ppm", "PPM": "ppm",
 }  # fmt: skip
+# Lower case of every symbol: a word that is one of these in another case, not all capitals, is a miscased unit.
+SYMBOL_LOWER = {s.lower() for s in SYMBOL_UNITS}
 # After a number these may change its value or name a unit the gate does not read, so the number is ambiguous rather
 # than a bare count. Compared in lower case; single letters, vowel-less lower-case units, binary prefixes and
 # mixed-case units are caught by their shape in unknown_after.
@@ -140,7 +164,7 @@ SCALE_ABBREVIATIONS = {
     "k", "kk", "bn", "mn", "mln", "mio", "bil", "tn", "mil", "thou", "grand", "lakh", "lakhs", "lac", "crore",
     "crores",
 }  # fmt: skip
-UPPER_UNKNOWN = {"BN", "MN", "MW", "MV", "MA", "KM", "PB", "EB", "KPH", "MPH", "RPM", "BPM", "PPM", "KBPS", "MBPS"}
+UPPER_UNKNOWN = {"BN", "MN", "MW", "MV", "MA", "KM", "PB", "EB", "KPH", "MPH", "BPM", "KBPS", "MBPS"}
 VOWELS = set("aeiouy")
 IEC = re.compile(r"[KMGTPEkmgtpe]i[Bb](?:ps)?")
 LETTER_WORDS = {"a", "A", "I"}  # single letters that may follow a number without changing it
@@ -173,7 +197,7 @@ WORD = re.compile("[A-Za-z]+(?:['\u2019][A-Za-z]+)?")
 LEAD = "([{\"'“‘"
 TRAIL = ".,;:!?)]}\"'”’"
 DIGITS = re.compile(
-    r"(?P<sign>[-−+]?)(?P<int>[0-9]{1,3}(?:,[0-9]{3})+|[0-9]+)(?:\.(?P<frac>[0-9]+))?(?P<suffix>%|[A-Za-zµμ°Ω]+)?"
+    r"(?P<sign>[-−+]?)(?P<int>[0-9]{1,3}(?:,[0-9]{3})+|[0-9]+)(?:\.(?P<frac>[0-9]+))?(?P<suffix>%|[A-Za-zµμ°Ω·⋅]+)?"
 )
 
 
@@ -218,8 +242,9 @@ def tokens(text):
         if any(c.isnumeric() for c in core):
             out.append(Token("num", core, start, start + len(core), brk=trailing))
             continue
-        if core == "%":
-            out.append(Token("word", "%", start, start + 1, brk=trailing))
+        if core in SYMBOL_UNITS and not WORD.fullmatch(core):
+            # One token for a unit symbol with a mark the word pattern splits on: "%", "°C", "µs", "Ω", "N·m".
+            out.append(Token("word", core, start, start + len(core), brk=trailing))
             continue
         words = list(WORD.finditer(core))
         if not words:
@@ -419,6 +444,8 @@ def unknown_after(tok):
         return text not in LETTER_WORDS
     if tok.low in SCALE_ABBREVIATIONS or text in UPPER_UNKNOWN or IEC.fullmatch(text):
         return True
+    if tok.low in SYMBOL_LOWER and not text.isupper():
+        return True  # a unit symbol in the wrong case ("mpa", "Kpa", "dba")
     if text.islower():
         return len(text) <= 5 and not set(text) & VOWELS
     if text.isupper():

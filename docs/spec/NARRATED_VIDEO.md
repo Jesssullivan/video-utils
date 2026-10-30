@@ -929,9 +929,10 @@ no voiced block or an empty one refuses `beat_voiced_missing`.
 
 `number` is a JSON number, compared as an exact decimal. `unit` is `""` for a bare count, `ordinal`, one of the
 gate's canonical units (`percent`, `pp`, `s`, `ms`, `us`, `ns`, `min`, `h`, `day`, `week`, `month`, `year`, `Hz`,
-`kHz`, `MHz`, `GHz`, `dB`, `dBFS`, `LUFS`, `LU`, `dBTP`, `V`, `mV`, `A`, `mA`, `W`, `kW`, `mW`, `ohm`, `m`, `cm`,
-`mm`, `km`, `in`, `ft`, `g`, `kg`, `mg`, `degC`, `degF`, `deg`, `B`, `KB`, `MB`, `GB`, `TB`, `bit`, `fps`, `px`,
-`x`, `USD`) or two of them joined by `/` (`m/s`). `spoken` must read, through the gate's own extractor, as exactly
+`kHz`, `MHz`, `GHz`, `dB`, `dBA`, `dBFS`, `LUFS`, `LU`, `dBTP`, `V`, `mV`, `A`, `mA`, `W`, `kW`, `mW`, `ohm`,
+`N`, `kN`, `Nm`, `Pa`, `kPa`, `MPa`, `GPa`, `K`, `m`, `cm`, `mm`, `um`, `km`, `in`, `ft`, `g`, `kg`, `mg`, `degC`,
+`degF`, `deg`, `B`, `KB`, `MB`, `GB`, `TB`, `bit`, `fps`, `px`, `rpm`, `ppm`, `x`, `USD`) or two of them joined by
+`/` (`m/s`, `N/m`). A claim names the canonical unit: `Nm`, not `N·m`, and `um`, not `µm`. `spoken` must read, through the gate's own extractor, as exactly
 that one number and unit, else `claim_invalid`. `receipt` is text or `null`. An empty or `null` receipt is legal
 in the file, and the claims gate refuses every number that relies on it.
 
@@ -1010,6 +1011,26 @@ the unit words ("milliseconds", "percent", "per cent", "%", "frames per second",
 canonical unit. A number without a unit word has the unit `""`. Each number must match exactly one claim that the
 beat cites, with the same number and unit and a non-empty receipt.
 
+The engineering units read like this (TIN-7735). Each word form has a singular and a plural.
+
+| Canonical unit | Symbols after a number | Spoken words |
+| --- | --- | --- |
+| `Pa`, `kPa`, `MPa`, `GPa` | `Pa`, `kPa`, `MPa`, `GPa` | pascals, kilopascals, megapascals, gigapascals |
+| `N`, `kN` | `N`, `kN` | newtons, kilonewtons |
+| `Nm` | `N·m`, `N⋅m`, `Nm` | newton metres, newton meters, newton-metres |
+| `dBA` | `dBA` | decibels A-weighted, A-weighted decibels |
+| `um` | `µm`, `μm` | micrometres, micrometers, microns |
+| `us` | `us`, `µs`, `μs` | microseconds |
+| `K` | none | kelvin, kelvins |
+| `rpm` | `rpm`, `RPM` | revolutions per minute |
+| `ppm` | `ppm`, `PPM` | parts per million |
+
+The gate also reads `dB`, `mm`, `ms`, `kHz`, `MHz`, `A`, `mA`, `V`, `mV`, `W`, `mW`, `°C`, `m/s`, `g`, `kg` and `%`.
+"K" is not a symbol, because "17 K" and "4K" may mean thousands: kelvin is read only as the word. A symbol with a
+mark the word pattern splits on ("°C", "µs", "Ω", "N·m") reads the same attached ("20°C") or as the next word
+("20 °C"). Units never convert: "17 MPa" does not match a claim of 17000 `kPa`, and "45 dBA" does not match a `dB`
+claim.
+
 | Per-number result | Code |
 | --- | --- |
 | no cited claim has that number and unit | `number_unclaimed` |
@@ -1037,17 +1058,19 @@ The gate fails closed. These readings are ambiguous and never match:
 - a number followed by a word that may scale it or that names a unit the gate does not read:
   `unknown_scale_or_unit`. These are a single letter other than "a" and "I" ("17 K", "3 B", "17 M"), a scale
   abbreviation (`k`, `bn`, `mn`, `mln`, `mio`, `tn`, `mil`, `thou`, `grand`, `lakh`, `crore` and their variants), a
-  lower-case unit of up to five letters with no vowel ("kph", "rpm", "kbps", "Mb" in lower case), a binary prefix
-  ("GiB", "MiB"), a mixed-case unit ("Mbps", "kWh") and the capital units `MW`, `MV`, `MA`, `KM`, `PB`, `EB`,
-  `KPH`, `MPH`, `RPM`, `BPM`, `PPM`, `KBPS` and `MBPS`;
+  lower-case unit of up to five letters with no vowel ("kph", "kbps", "Mb" in lower case), a binary prefix
+  ("GiB", "MiB"), a mixed-case unit ("Mbps", "kWh"), a unit symbol in another case that is not all capitals
+  ("mpa", "Kpa", "dba", "kn", "Min") and the capital units `MW`, `MV`, `MA`, `KM`, `PB`, `EB`, `KPH`, `MPH`, `BPM`,
+  `KBPS` and `MBPS`;
 - a unit joined by "/" to something that is not a unit ("5 m/furlong"): `unit_not_read`. "5 m/s" and
   "five km/h" read as `m/s` and `km/h`.
 
 A hyphen joins words: U+002D, U+2010, U+2011 (the non-breaking hyphen) and the soft hyphen, so "five‑hundred"
 written with U+2011 reads as 500, never as 5. A possessive or contraction of a number word ("five's", "seven’s")
 reads as the number. Unit symbols match in their exact case after digits or spelled numbers ("twelve ms"): "m" is
-metres and "M" is not a unit, "mW" is milliwatts and "MW" is ambiguous, "MB" is megabytes and "Mb" is ambiguous.
-Other words after a number, acronyms such as "MCP" and "PRs" among them, leave it a bare count.
+metres and "M" is not a unit, "mW" is milliwatts and "MW" is ambiguous, "MB" is megabytes and "Mb" is ambiguous,
+"MPa" is megapascals and "mpa" is ambiguous. Other words after a number, acronyms such as "MCP", "PRs", "GPA" and
+"PA" among them, leave it a bare count, so "12 MPA" is the bare count 12 and does not match an `MPa` claim.
 
 "one" is always the number 1, and "first" and "second" alone are the ordinals 1 and 2: a script that uses them as
 ordinary words cites a claim or rewords. "once", "single", "both", "none", and "a" before anything but a scale word
