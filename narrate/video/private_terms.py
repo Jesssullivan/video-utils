@@ -47,6 +47,9 @@ CLASSES = ("number", "geometry", "name")
 NEEDS = {"ip_private": {"number", "geometry"}, "never_name": {"name"}}
 PRIVACY_FIELDS = {"ip_private", "never_name"}
 PRIVACY_OPTIONAL = {"denylist_sha256"}
+# A random salt in the file, so that its digest cannot confirm a guessed short list (cade src/claims-gate.ts keeps
+# no digest of its name list for that reason). Records carry the digest; the salt makes it unguessable.
+SALT = re.compile(r"^[0-9a-f]{32,128}$")
 SOURCES = ("record", "voiced", "spoken", "claim", "label")
 
 
@@ -134,10 +137,12 @@ def read_denylist(path, declared):
         )
     except (UnicodeDecodeError, ValueError):
         bad("is not UTF-8 JSON with distinct keys and finite numbers")
-    if not isinstance(value, dict) or set(value) != {"kind", "schema_version", "entries"}:
-        bad("is not {kind, schema_version, entries}")
+    if not isinstance(value, dict) or set(value) != {"kind", "schema_version", "salt", "entries"}:
+        bad("is not {kind, schema_version, salt, entries}")
     if value["kind"] != KIND or value["schema_version"] != SCHEMA_VERSION:
         bad(f"is not kind {KIND} schema_version {SCHEMA_VERSION}")
+    if not isinstance(value["salt"], str) or not SALT.match(value["salt"]):
+        bad("salt is not 32 to 128 lowercase hex digits")
     rows = value["entries"]
     if not isinstance(rows, list) or not rows or len(rows) > MAX_ENTRIES:
         bad(f"entries is not a list of 1 to {MAX_ENTRIES} entries")

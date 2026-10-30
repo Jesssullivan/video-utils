@@ -1120,8 +1120,11 @@ git, and only its digest appears in a record. The guard (`narrate/video/private_
 | --- | --- |
 | `denylist_missing` | a flag is true and no file is given, the file is absent, not a regular file or a symlink, or the manifest names no `denylist_sha256` |
 | `denylist_digest_mismatch` | the file's bytes do not hash to `denylist_sha256` |
-| `denylist_invalid` | the file is over 1 MiB, not UTF-8 JSON, repeats a key, is not `{kind: "nv_denylist", schema_version: 1, entries}` with 1 to 10000 entries, holds a malformed entry, or lacks the class a flag needs |
+| `denylist_invalid` | the file is over 1 MiB, not UTF-8 JSON, repeats a key, is not `{kind: "nv_denylist", schema_version: 1, salt, entries}` with 1 to 10000 entries, holds a malformed entry, or lacks the class a flag needs |
 | `private_term` | an entry matches a text the job speaks, shows or records |
+
+`salt` is 32 to 128 random lowercase hex digits. Records carry the file's digest, and the salt keeps that digest
+from confirming a guessed short list, the reason Cade's claims gate keeps no digest of its name list.
 
 Each entry is `{id, class, literal}`, `{id, class, regex}` or `{id, class: "number", number, unit}`. `class` is
 `number`, `geometry` or `name`. `ip_private` needs at least one number or geometry entry and `never_name` needs at

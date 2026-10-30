@@ -17,9 +17,9 @@ R-N12, R-N13).
 | Recipes | `just/narrated-video.just` | `narrated-video-claims` passes arguments; `nv-test` runs the guard tests |
 | Hooks and skill | `program/tool-drafts/narrated_video.json`, `.agents/skills/narrated-video-intake/SKILL.md` | a `denylist` input on both drafted tools, the new codes and a limitation |
 | Spec | `docs/spec/NARRATED_VIDEO.md` | "Private terms" under "Demo bundle intake", four refusal codes and the command rows |
-| Tests | `narrate/tests/test_narrated_video_private_terms.py`, `narrate/tests/stdlib_smoke.py` | 70 synthetic cases; the module joins the smoke list |
+| Tests | `narrate/tests/test_narrated_video_private_terms.py`, `narrate/tests/stdlib_smoke.py` | 73 synthetic cases; the module joins the smoke list |
 
-The denylist schema is new and lives outside git. The bundle manifest gains
+The denylist schema is new and lives outside git. It holds a random salt, so the digest that records carry cannot confirm a guessed short list. The bundle manifest gains
 one optional block. No Dhall type or `check.py` rule changed.
 
 ## Evidence
@@ -29,8 +29,8 @@ only in CI. Each check ran under `nice -n 10` inside `nix develop .#condense`.
 
 | Check | Result |
 | --- | --- |
-| guard, intake, units and tools-sim tests | 601 passed, 1 skipped |
-| `test_narrated_video_private_terms.py` | 70 passed |
+| guard, intake and units tests | 587 passed |
+| `test_narrated_video_private_terms.py` | 73 passed |
 | `just narrate-lint` ruff check and ruff format | clean |
 | `test_s5_tool_admission`, `test_s4b_tool_admission` | 24 tests OK |
 | `just capabilities-check` | exit 0 |

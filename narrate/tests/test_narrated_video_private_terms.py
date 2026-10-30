@@ -14,6 +14,7 @@ from narrate.video import bundle, cli, fixture, private_terms
 
 TEMPLATE, VOICE, ENGINE = fixture.NARRATE_JOB, "voice-fixture-sine", "fake-sine"
 NAME = "Quillfeather Labs"
+SALT = "0f" * 16  # a fixed synthetic salt; a real denylist holds random bytes
 ENTRIES = [
     {"id": "name-a", "class": "name", "literal": NAME},
     {"id": "geom-a", "class": "geometry", "regex": r"chamfer\s+angle"},
@@ -37,7 +38,11 @@ def ws(tmp_path):
 
 def write_denylist(path, entries=ENTRIES, raw=None):
     path.parent.mkdir(parents=True, exist_ok=True)
-    data = raw if raw is not None else json.dumps({"kind": "nv_denylist", "schema_version": 1, "entries": entries})
+    data = (
+        raw
+        if raw is not None
+        else json.dumps({"kind": "nv_denylist", "schema_version": 1, "salt": SALT, "entries": entries})
+    )
     path.write_bytes(data.encode() if isinstance(data, str) else data)
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -158,12 +163,17 @@ NAME_ROW = {"id": "name-a", "class": "name", "literal": NAME}
     [
         "not json",
         b"\xff\xfe",
-        json.dumps({"kind": "nv_denylist", "schema_version": 1, "entries": [NAME_ROW], "extra": 1}),
-        json.dumps({"kind": "other", "schema_version": 1, "entries": [NAME_ROW]}),
-        json.dumps({"kind": "nv_denylist", "schema_version": 2, "entries": [NAME_ROW]}),
-        json.dumps({"kind": "nv_denylist", "schema_version": 1, "entries": []}),
+        json.dumps({"kind": "nv_denylist", "schema_version": 1, "salt": SALT, "entries": [NAME_ROW], "extra": 1}),
+        json.dumps({"kind": "nv_denylist", "schema_version": 1, "entries": [NAME_ROW]}),  # no salt
+        json.dumps({"kind": "nv_denylist", "schema_version": 1, "salt": "0f" * 8, "entries": [NAME_ROW]}),
+        json.dumps({"kind": "nv_denylist", "schema_version": 1, "salt": "ZZ" * 16, "entries": [NAME_ROW]}),
+        json.dumps({"kind": "other", "schema_version": 1, "salt": SALT, "entries": [NAME_ROW]}),
+        json.dumps({"kind": "nv_denylist", "schema_version": 2, "salt": SALT, "entries": [NAME_ROW]}),
+        json.dumps({"kind": "nv_denylist", "schema_version": 1, "salt": SALT, "entries": []}),
         '{"kind": "nv_denylist", "kind": "nv_denylist", "schema_version": 1, "entries": []}',
-        json.dumps({"kind": "nv_denylist", "schema_version": 1, "entries": [{"id": "x", "class": "name"}]}),
+        json.dumps(
+            {"kind": "nv_denylist", "schema_version": 1, "salt": SALT, "entries": [{"id": "x", "class": "name"}]}
+        ),
     ],
 )
 def test_a_malformed_denylist_file_refuses(ws, raw):
