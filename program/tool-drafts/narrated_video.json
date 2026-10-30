@@ -6,7 +6,7 @@
  "spec": "docs/spec/NARRATED_VIDEO.md",
  "worker": "python3 -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims}",
  "skill": ".agents/skills/narrated-video/SKILL.md",
- "admission": "Tool numbers are proposals: narrated_video_plan is proposed as 62, narrated_video_run as 63, narrated_video_place as 64, music_bed_build as 65, kitpip_overlay as 66, kitpip_verify as 67, narrated_video_mix as 68, narrated_video_compose as 69, narrated_video_verify as 70, and the VRM renderer draft's vrm_overlay as 71 and vrm_verify as 72 (SPR-128). Root admits them in program/tools.json in lane L7. The path rules (no symlink components, root outside artifacts/runs/ and artifacts/narrate/) and the job-id form are enforced in narrate/video before any work; scripts/tool_api.py adds its own path checks at admission. No argument takes a URL, an executable or a shell string. narrated_video_intake and narrated_video_claims (TIN-7735) carry no proposed number yet; root assigns them at admission. Their skill is .agents/skills/narrated-video-intake/SKILL.md.",
+ "admission": "Tool numbers are proposals: narrated_video_plan is proposed as 62, narrated_video_run as 63, narrated_video_place as 64, music_bed_build as 65, avatar_overlay as 66, avatar_verify as 67, narrated_video_mix as 68, narrated_video_compose as 69 and narrated_video_verify as 70. avatar_overlay and avatar_verify are neutral: the job's avatar.external picks kitpip (the current implementation) or the vrm renderer draft (SPR-128), so they replace the earlier drafts kitpip_overlay, kitpip_verify, vrm_overlay and vrm_verify (TIN-7788). None of those was admitted, so no alias is kept. Root admits them in program/tools.json in lane L7. The path rules (no symlink components, root outside artifacts/runs/ and artifacts/narrate/) and the job-id form are enforced in narrate/video before any work; scripts/tool_api.py adds its own path checks at admission. No argument takes a URL, an executable or a shell string. narrated_video_intake and narrated_video_claims (TIN-7735) carry no proposed number yet; root assigns them at admission. Their skill is .agents/skills/narrated-video-intake/SKILL.md.",
  "tools": [
   {
    "name": "narrated_video_plan",
@@ -404,10 +404,10 @@
    }
   },
   {
-   "name": "kitpip_overlay",
-   "title": "Render a kitpip overlay",
-   "description": "Run the avatar stage of one job (`python -m narrate video stage JOB avatar --segment ID --json`): resolve KITPIP_BIN against the private pin, then run kitpip `analyze` on the segment's narrate run at the base's frame rate, `render` a ProRes 4444 overlay at renderSize and `verify` it, all inside the stage's partial directory in the job store, never inside the narrate run or under artifacts/runs/. Relays kitpip's own refusal codes (no_consent, not_synthetic, digest_mismatch, contract_invalid, inside_narration_run, would_overwrite_input, unknown_rig) and adds kitpip_missing, kitpip_pin_pending, kitpip_pin_mismatch, kitpip_unlabelled, label_chain_broken and avatar_outside_store. Never passes --allow-unlabelled-test, --pipe or --badge. The stage key holds the binary digest, the rig and its revision, renderSize, the persona and the narration digest. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; the overlay manifest says no_time_stretch false with the non-identity mapping avatar_overlay_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
-   "intent": "Let an agent render the narrator overlay for each segment from its consented narration, bound to a pinned kitpip binary by digest.",
+   "name": "avatar_overlay",
+   "title": "Render the avatar overlay",
+   "description": "Run the avatar stage of one job (`python -m narrate video stage JOB avatar --segment ID --json`). The job's avatar.external picks the implementation: kitpip (the default and the current one) or vrm (a draft, SPR-128). The tool name stays the same when a job moves from kitpip to vrm, so the DAG (program/dags/narrated-video.json), a catalog row and a guard record that name it keep that name across the swap. With kitpip: resolve KITPIP_BIN against the private pin, then run kitpip `analyze` on the segment's narrate run at the base's frame rate, `render` a ProRes 4444 overlay at renderSize and `verify` it, all inside the stage's partial directory in the job store, never inside the narrate run or under artifacts/runs/. Relays kitpip's own refusal codes (no_consent, not_synthetic, digest_mismatch, contract_invalid, inside_narration_run, would_overwrite_input, unknown_rig) and adds kitpip_missing, kitpip_pin_pending, kitpip_pin_mismatch, kitpip_unlabelled, label_chain_broken and avatar_outside_store. Never passes --allow-unlabelled-test, --pipe or --badge. The stage key holds the binary digest, the rig and its revision, renderSize, the persona and the narration digest. With vrm: check the model's likeness consent (SP-R13: the consents.json row its likenessConsent.id names, with the Likeness scope, granted by the operator), appearance approval (TIN-7130), open badge decision and Internal edition, resolve VRM_RENDERER_BIN against the private pin, build face.json (face.timeline/v1) from the segment's narrate run at the base's frame rate, run the renderer (three-vrm in headless Chromium stepping vrm.update(1/fps) per frame) on the model from the private store, stream its raw RGBA frames into a ProRes 4444 overlay and write an avatar.manifest/v1 with the model digest, the VRM meta licence fields, the renderer, the pinned engine kind and lock digest, the reported frame step (refused unless it is {num, den} equal to 1/fps and the engine kind is the pin's), the GPU and driver and frames_identity per_host. Everything lands in the stage's partial directory in the job store, never inside the narrate run or under artifacts/runs/. Refuses vrm_model_missing, vrm_model_invalid, vrm_digest_mismatch, vrm_consent_missing, vrm_consent_revoked, vrm_approval_missing, vrm_badge_undecided, vrm_edition_unruled, vrm_pin_pending, vrm_pin_mismatch, vrm_renderer_missing, vrm_invalid, vrm_meta_missing, vrm_frames_mismatch, vrm_report_invalid, face_timeline_invalid and avatar_outside_store, and relays the renderer's own codes. Never passes --badge or --realtime. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; the overlay manifest says no_time_stretch false with the non-identity mapping avatar_overlay_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+   "intent": "Let an agent render the narrator overlay for each segment from its consented narration, with the avatar external the job names, bound to a pinned binary by digest.",
    "inputSchema": {
     "type": "object",
     "properties": {
@@ -427,13 +427,13 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 4096,
-      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json and, optionally, music-beds.json."
+      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json, with avatar.external vrm, avatars.json (the VRM model records: digest, likeness consent reference, appearance approval, badge; the likeness consent itself is a consents.json row with the Likeness scope) and, optionally, music-beds.json."
      },
      "store": {
       "type": "string",
       "minLength": 1,
       "maxLength": 4096,
-      "description": "The private store. Every source (script, still, video, bed loop) is read from it by SHA-256; required for a run."
+      "description": "The private store. Every source (script, still, video, bed loop, and, with avatar.external vrm, the VRM model) is read from it by SHA-256; required for a run."
      },
      "lexical": {
       "type": "string",
@@ -452,7 +452,7 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 4096,
-      "description": "The private kitpip pin record (NARRATED_VIDEO_EXTERNALS): version, source commit, binary digests and default rig, digests and ids only. The binary is KITPIP_BIN; its digest and size are checked against the pin at plan and before every spawn."
+      "description": "The private externals record (NARRATED_VIDEO_EXTERNALS) whose entry for the job's avatar.external pins the implementation, digests and ids only. kitpip: version, source commit, binary digests and default rig; the binary is KITPIP_BIN. vrm: version, source commit, renderer digests, engine kind and lock digest; the renderer is VRM_RENDERER_BIN. Its digest and size are checked against the pin at plan and before every spawn."
      },
      "segment": {
       "type": "string",
@@ -470,15 +470,20 @@
     ],
     "additionalProperties": false
    },
-   "skill": ".agents/skills/kitpip-overlay/SKILL.md",
+   "skill": ".agents/skills/avatar-overlay/SKILL.md",
    "implementation_status": "draft",
-   "evidence_kind": "kitpip_overlay_render",
+   "evidence_kind": "avatar_overlay_render",
    "limitations": [
     "fresh means the outputs re-hash to their key. Lip sync is a separate operator state; avatar and avatar_check leave it pending_operator.",
     "Lanes L4 to L6 run every stage: script, voice, voice_qa, base, place, music, mix, compose, deliver_check and handoff, and avatar and avatar_check when the job has an avatar and its kitpip pin resolves. compose waits behind the avatar stages.",
     "kitpip is never a flake input and never vendored. Its pin is a private record (NV-1); program/externals.json registers the shape only. A pin whose release binary digest is pending blocks both stages (kitpip_pin_pending).",
     "The overlay is kitpip's unadorned default character (KP-19) with no visible label (KP-7, KP-15); synthetic: true, consent ids and the persona stay in the manifest.",
-    "Public CI renders the synthetic stub (an opaque square on a transparent field), never kitpip art. A real render is local, CPU-only and bounded."
+    "Public CI renders the synthetic stub (an opaque square on a transparent field), never kitpip art. A real render is local, CPU-only and bounded.",
+    "Draft (SPR-128). The demos keep kitpip (SPR-120); the switch waits for the 11-14 bench. Only the Internal edition may carry a VRM overlay until a ruling.",
+    "The renderer itself (the three-vrm page, its Chromium driver and their lockfile) is not built in this repository yet; its pin stays commit_pinned_digest_pending and blocks both stages (vrm_pin_pending). Public CI renders the synthetic stub on a synthetic model with no mesh.",
+    "GPU raster is not bit-exact: frames_sha256 holds per host only (frames_identity per_host). Compare digests only between renders on one host, renderer and driver.",
+    "face.json follows narration loudness only (source loudness_envelope); word and phoneme timings are a later source. Lip sync stays pending_operator.",
+    "Whether offline VRM video carries a burned-in badge is open: no renderer draws one, and a model record that tries to settle it refuses vrm_badge_undecided."
    ],
    "annotations": {
     "readOnlyHint": false,
@@ -492,21 +497,21 @@
      "narrated_video_run"
     ],
     "enforced": false,
-    "note": "voice for the segment and base must be fresh; the job needs an avatar block and labels.persona."
+    "note": "voice for the segment and base must be fresh; the job needs an avatar block and labels.persona, and with avatar.external vrm a rig naming an avatars.json record."
    },
    "agent_workflow": {
-    "identify": "Read frames, frames_sha256, fps, size, rig {id, sha256}, show_badge and states.render (stub or local).",
-    "research": "docs/spec/NARRATED_VIDEO.md \"kitpip pin and the stub\" and \"Avatar stages (lane L5)\"; kitpip's own manifest contract kitpip.manifest/v0.",
-    "iterate": "Change rig or renderSize alone, rerun avatar only, and compare frames_sha256 and frame counts; overlay width and corner are compose knobs and rerun no avatar.",
-    "acceptance": "A fresh stage is evidence that it ran on these inputs. Lip sync, listening and delivery are separate operator states.",
+    "identify": "Read renderer.kind, then read frames, frames_sha256, fps, size, rig {id, sha256}, show_badge and states.render (stub or local). A vrm overlay also carries frames_identity, renderer, gpu, vrm {spec_version, meta} and states.badge_decision.",
+    "research": "docs/spec/NARRATED_VIDEO.md \"Avatar stages (lane L5)\", \"Avatar externals and avatar.manifest/v1\", \"kitpip pin and the stub\" and \"VRM external (draft)\"; kitpip.manifest/v0; the VRM 1.0 and 0.x meta specifications for the licence fields.",
+    "iterate": "Change rig or renderSize alone, rerun avatar only, and compare frames_sha256 and frame counts; overlay width and corner are compose knobs and rerun no avatar. A vrm digest compares only with a render on the same host, renderer and driver.",
+    "acceptance": "A fresh stage is evidence that it ran on these inputs. Lip sync, listening, delivery and, for vrm, the badge decision and the 11-14 bench are separate operator states.",
     "max_comparison_candidates_default": 2
    }
   },
   {
-   "name": "kitpip_verify",
-   "title": "Verify a kitpip overlay",
-   "description": "Run the avatar_check stage of one job (`python -m narrate video stage JOB avatar_check --segment ID --json`): run kitpip `verify` on the stored overlay, which re-hashes every file kitpip's manifest lists and refuses unlisted ones, then check the label chain. The overlay must report labelled: true, keep the frame digest the avatar stage measured and carry the narration's consent ids; the stage labels must hold everything the voice and avatar stages carry, with the job's labels.persona. Writes check.json. Refuses kitpip_unlabelled and label_chain_broken. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; the overlay manifest says no_time_stretch false with the non-identity mapping avatar_overlay_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
-   "intent": "Let an agent prove that a stored overlay is the one rendered and that its synthetic and consent labels survived.",
+   "name": "avatar_verify",
+   "title": "Verify the avatar overlay",
+   "description": "Run the avatar_check stage of one job (`python -m narrate video stage JOB avatar_check --segment ID --json`). The job's avatar.external picks the implementation: kitpip (the default and the current one) or vrm (a draft, SPR-128). The tool name stays the same when a job moves from kitpip to vrm, so the DAG (program/dags/narrated-video.json), a catalog row and a guard record that name it keep that name across the swap. With kitpip: run kitpip `verify` on the stored overlay, which re-hashes every file kitpip's manifest lists and refuses unlisted ones, then check the label chain. The overlay must report labelled: true, keep the frame digest the avatar stage measured and carry the narration's consent ids; the stage labels must hold everything the voice and avatar stages carry, with the job's labels.persona. Writes check.json. Refuses kitpip_unlabelled and label_chain_broken. With vrm: re-check the likeness consent and approval gates, re-hash the stored overlay directory under its avatar.manifest/v1, keep the frame digest the avatar stage measured and the narration's consent ids, grow the labels (adding the likeness consent id) and write check.json. frames_sha256 is the digest of the renderer's raw RGBA stream; the ProRes encode is not lossless, so the check keeps the recorded digest rather than recomputing it from overlay.mov. Refuses digest_mismatch, vrm_unlabelled, label_chain_broken and the vrm gate codes. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; the overlay manifest says no_time_stretch false with the non-identity mapping avatar_overlay_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+   "intent": "Let an agent prove that a stored overlay is the one rendered, with the avatar external the job names, and that its synthetic and consent labels survived.",
    "inputSchema": {
     "type": "object",
     "properties": {
@@ -526,13 +531,13 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 4096,
-      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json and, optionally, music-beds.json."
+      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json, with avatar.external vrm, avatars.json (the VRM model records: digest, likeness consent reference, appearance approval, badge; the likeness consent itself is a consents.json row with the Likeness scope) and, optionally, music-beds.json."
      },
      "store": {
       "type": "string",
       "minLength": 1,
       "maxLength": 4096,
-      "description": "The private store. Every source (script, still, video, bed loop) is read from it by SHA-256; required for a run."
+      "description": "The private store. Every source (script, still, video, bed loop, and, with avatar.external vrm, the VRM model) is read from it by SHA-256; required for a run."
      },
      "lexical": {
       "type": "string",
@@ -551,7 +556,7 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 4096,
-      "description": "The private kitpip pin record (NARRATED_VIDEO_EXTERNALS): version, source commit, binary digests and default rig, digests and ids only. The binary is KITPIP_BIN; its digest and size are checked against the pin at plan and before every spawn."
+      "description": "The private externals record (NARRATED_VIDEO_EXTERNALS) whose entry for the job's avatar.external pins the implementation, digests and ids only. kitpip: version, source commit, binary digests and default rig; the binary is KITPIP_BIN. vrm: version, source commit, renderer digests, engine kind and lock digest; the renderer is VRM_RENDERER_BIN. Its digest and size are checked against the pin at plan and before every spawn."
      },
      "segment": {
       "type": "string",
@@ -569,15 +574,20 @@
     ],
     "additionalProperties": false
    },
-   "skill": ".agents/skills/kitpip-verify/SKILL.md",
+   "skill": ".agents/skills/avatar-verify/SKILL.md",
    "implementation_status": "draft",
-   "evidence_kind": "kitpip_overlay_label_chain",
+   "evidence_kind": "avatar_overlay_verify",
    "limitations": [
     "fresh means the outputs re-hash to their key. Lip sync is a separate operator state; avatar and avatar_check leave it pending_operator.",
     "Lanes L4 to L6 run every stage: script, voice, voice_qa, base, place, music, mix, compose, deliver_check and handoff, and avatar and avatar_check when the job has an avatar and its kitpip pin resolves. compose waits behind the avatar stages.",
     "kitpip is never a flake input and never vendored. Its pin is a private record (NV-1); program/externals.json registers the shape only. A pin whose release binary digest is pending blocks both stages (kitpip_pin_pending).",
     "The overlay is kitpip's unadorned default character (KP-19) with no visible label (KP-7, KP-15); synthetic: true, consent ids and the persona stay in the manifest.",
-    "verified means integrity and labels, not lip-sync acceptance."
+    "verified means integrity and labels, not lip-sync acceptance.",
+    "Draft (SPR-128). The demos keep kitpip (SPR-120); the switch waits for the 11-14 bench. Only the Internal edition may carry a VRM overlay until a ruling.",
+    "The renderer itself (the three-vrm page, its Chromium driver and their lockfile) is not built in this repository yet; its pin stays commit_pinned_digest_pending and blocks both stages (vrm_pin_pending). Public CI renders the synthetic stub on a synthetic model with no mesh.",
+    "GPU raster is not bit-exact: frames_sha256 holds per host only (frames_identity per_host). Compare digests only between renders on one host, renderer and driver.",
+    "face.json follows narration loudness only (source loudness_envelope); word and phoneme timings are a later source. Lip sync stays pending_operator.",
+    "Whether offline VRM video carries a burned-in badge is open: no renderer draws one, and a model record that tries to settle it refuses vrm_badge_undecided."
    ],
    "annotations": {
     "readOnlyHint": false,
@@ -587,214 +597,16 @@
    },
    "dependencies": {
     "recommended_prior_tools": [
-     "kitpip_overlay"
+     "avatar_overlay"
     ],
     "enforced": false,
     "note": "avatar and voice for the segment must be fresh."
    },
    "agent_workflow": {
-    "identify": "Read labelled, frames_sha256 and labels (synthetic, consent_ids, voice_ids, persona).",
-    "research": "docs/spec/NARRATED_VIDEO.md \"kitpip pin and the stub\" and \"Avatar stages (lane L5)\"; kitpip's own manifest contract kitpip.manifest/v0.",
-    "iterate": "Run after every avatar rerun; compare check.json frames_sha256 with the avatar stage's measurement.",
-    "acceptance": "A fresh stage is evidence that it ran on these inputs. Lip sync, listening and delivery are separate operator states.",
-    "max_comparison_candidates_default": 2
-   }
-  },
-  {
-   "name": "vrm_overlay",
-   "title": "Render a VRM overlay (draft)",
-   "description": "Run the avatar stage of one job whose avatar.external is vrm (`python -m narrate video stage JOB avatar --segment ID --json`): check the model's likeness consent (SP-R13: the consents.json row its likenessConsent.id names, with the Likeness scope, granted by the operator), appearance approval (TIN-7130), open badge decision and Internal edition, resolve VRM_RENDERER_BIN against the private pin, build face.json (face.timeline/v1) from the segment's narrate run at the base's frame rate, run the renderer (three-vrm in headless Chromium stepping vrm.update(1/fps) per frame) on the model from the private store, stream its raw RGBA frames into a ProRes 4444 overlay and write an avatar.manifest/v1 with the model digest, the VRM meta licence fields, the renderer, the pinned engine kind and lock digest, the reported frame step (refused unless it is {num, den} equal to 1/fps and the engine kind is the pin's), the GPU and driver and frames_identity per_host. Everything lands in the stage's partial directory in the job store, never inside the narrate run or under artifacts/runs/. Refuses vrm_model_missing, vrm_model_invalid, vrm_digest_mismatch, vrm_consent_missing, vrm_consent_revoked, vrm_approval_missing, vrm_badge_undecided, vrm_edition_unruled, vrm_pin_pending, vrm_pin_mismatch, vrm_renderer_missing, vrm_invalid, vrm_meta_missing, vrm_frames_mismatch, vrm_report_invalid, face_timeline_invalid and avatar_outside_store, and relays the renderer's own codes. Never passes --badge or --realtime. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; the overlay manifest says no_time_stretch false with the non-identity mapping avatar_overlay_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
-   "intent": "Let an agent render the consented, approved VRM narrator overlay for each segment from its narration's face timeline, bound to a pinned renderer and model by digest, as a draft for the 11-14 bench.",
-   "inputSchema": {
-    "type": "object",
-    "properties": {
-     "job": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 64,
-      "description": "The job id: 1 to 64 of a-z, 0-9, '.', '_' and '-', starting with a letter or digit. The job lives in the store root as <root>/<job>/job.json (write it with `just nv-init`)."
-     },
-     "root": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 4096,
-      "description": "The narrated-video store root (default artifacts/narrated, or NARRATED_VIDEO_ROOT). Refused under artifacts/runs/ or artifacts/narrate/."
-     },
-     "records": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 4096,
-      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json, avatars.json (the VRM model records: digest, likeness consent reference, appearance approval, badge; the likeness consent itself is a consents.json row with the Likeness scope) and, optionally, music-beds.json."
-     },
-     "store": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 4096,
-      "description": "The private store. Every source (script, still, video, bed loop, VRM model) is read from it by SHA-256; required for a run."
-     },
-     "lexical": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 4096,
-      "description": "The pinned xoxd-lexical release directory the script and voice stages read (NARRATE_LEXICAL_DIR)."
-     },
-     "timeout_seconds": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 900,
-      "default": 600,
-      "description": "Outer deadline for the whole call in seconds (at most 900). A run stopped by it keeps every finished stage fresh; call it again to resume."
-     },
-     "externals": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 4096,
-      "description": "The private externals record (NARRATED_VIDEO_EXTERNALS) whose vrm entry pins the renderer: version, source commit, renderer digests, engine kind and lock digest, digests and ids only. The renderer is VRM_RENDERER_BIN; its digest and size are checked against the pin at plan and before every spawn."
-     },
-     "segment": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 64,
-      "description": "The segment id of the node to run (for example seg-1): one node per call."
-     }
-    },
-    "required": [
-     "job",
-     "records",
-     "store",
-     "externals",
-     "segment"
-    ],
-    "additionalProperties": false
-   },
-   "skill": ".agents/skills/vrm-overlay/SKILL.md",
-   "implementation_status": "draft",
-   "evidence_kind": "vrm_overlay_render",
-   "limitations": [
-    "Draft (SPR-128). The demos keep kitpip (SPR-120); the switch waits for the 11-14 bench. Only the Internal edition may carry a VRM overlay until a ruling.",
-    "The renderer itself (the three-vrm page, its Chromium driver and their lockfile) is not built in this repository yet; its pin stays commit_pinned_digest_pending and blocks both stages (vrm_pin_pending). Public CI renders the synthetic stub on a synthetic model with no mesh.",
-    "GPU raster is not bit-exact: frames_sha256 holds per host only (frames_identity per_host). Compare digests only between renders on one host, renderer and driver.",
-    "face.json follows narration loudness only (source loudness_envelope); word and phoneme timings are a later source. Lip sync stays pending_operator.",
-    "Whether offline VRM video carries a burned-in badge is open: no renderer draws one, and a model record that tries to settle it refuses vrm_badge_undecided."
-   ],
-   "annotations": {
-    "readOnlyHint": false,
-    "destructiveHint": false,
-    "idempotentHint": true,
-    "openWorldHint": false
-   },
-   "dependencies": {
-    "recommended_prior_tools": [
-     "narrated_video_plan",
-     "narrated_video_run"
-    ],
-    "enforced": false,
-    "note": "voice for the segment and base must be fresh; the job needs an avatar block with external vrm, rig naming an avatars.json record, and labels.persona."
-   },
-   "agent_workflow": {
-    "identify": "Read frames, frames_sha256, frames_identity, fps, size, rig {id, sha256}, renderer, gpu, vrm {spec_version, meta} and states (render, lip_sync, badge_decision).",
-    "research": "docs/spec/NARRATED_VIDEO.md \"Avatar externals and avatar.manifest/v1\" and \"VRM external (draft)\"; the VRM 1.0 and 0.x meta specifications for the licence fields.",
-    "iterate": "Change renderSize alone, rerun avatar only on the same host, and compare frames_sha256 and frame counts; a digest from another host or driver is not comparable.",
-    "acceptance": "A fresh stage is evidence that it ran on these inputs. Lip sync, the badge decision, the 11-14 bench and delivery are separate operator states.",
-    "max_comparison_candidates_default": 2
-   }
-  },
-  {
-   "name": "vrm_verify",
-   "title": "Verify a VRM overlay (draft)",
-   "description": "Run the avatar_check stage of one job whose avatar.external is vrm (`python -m narrate video stage JOB avatar_check --segment ID --json`): re-check the likeness consent and approval gates, re-hash the stored overlay directory under its avatar.manifest/v1, keep the frame digest the avatar stage measured and the narration's consent ids, grow the labels (adding the likeness consent id) and write check.json. frames_sha256 is the digest of the renderer's raw RGBA stream; the ProRes encode is not lossless, so the check keeps the recorded digest rather than recomputing it from overlay.mov. Refuses digest_mismatch, vrm_unlabelled, label_chain_broken and the vrm gate codes. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply.",
-   "intent": "Let an agent confirm that a stored VRM overlay is the one rendered, under its consent, approval and label chain, before compose.",
-   "inputSchema": {
-    "type": "object",
-    "properties": {
-     "job": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 64,
-      "description": "The job id: 1 to 64 of a-z, 0-9, '.', '_' and '-', starting with a letter or digit. The job lives in the store root as <root>/<job>/job.json (write it with `just nv-init`)."
-     },
-     "root": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 4096,
-      "description": "The narrated-video store root (default artifacts/narrated, or NARRATED_VIDEO_ROOT). Refused under artifacts/runs/ or artifacts/narrate/."
-     },
-     "records": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 4096,
-      "description": "A directory of dhall-to-json renders: jobs.json, voices.json, consents.json, engines.json, pronunciation.json, avatars.json (the VRM model records: digest, likeness consent reference, appearance approval, badge; the likeness consent itself is a consents.json row with the Likeness scope) and, optionally, music-beds.json."
-     },
-     "store": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 4096,
-      "description": "The private store. Every source (script, still, video, bed loop, VRM model) is read from it by SHA-256; required for a run."
-     },
-     "lexical": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 4096,
-      "description": "The pinned xoxd-lexical release directory the script and voice stages read (NARRATE_LEXICAL_DIR)."
-     },
-     "timeout_seconds": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 900,
-      "default": 600,
-      "description": "Outer deadline for the whole call in seconds (at most 900). A run stopped by it keeps every finished stage fresh; call it again to resume."
-     },
-     "externals": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 4096,
-      "description": "The private externals record (NARRATED_VIDEO_EXTERNALS) whose vrm entry pins the renderer: version, source commit, renderer digests, engine kind and lock digest, digests and ids only. The renderer is VRM_RENDERER_BIN; its digest and size are checked against the pin at plan and before every spawn."
-     },
-     "segment": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 64,
-      "description": "The segment id of the node to run (for example seg-1): one node per call."
-     }
-    },
-    "required": [
-     "job",
-     "records",
-     "store",
-     "externals",
-     "segment"
-    ],
-    "additionalProperties": false
-   },
-   "skill": ".agents/skills/vrm-overlay/SKILL.md",
-   "implementation_status": "draft",
-   "evidence_kind": "vrm_overlay_verify",
-   "limitations": [
-    "Draft (SPR-128). The demos keep kitpip (SPR-120); the switch waits for the 11-14 bench. Only the Internal edition may carry a VRM overlay until a ruling.",
-    "The renderer itself (the three-vrm page, its Chromium driver and their lockfile) is not built in this repository yet; its pin stays commit_pinned_digest_pending and blocks both stages (vrm_pin_pending). Public CI renders the synthetic stub on a synthetic model with no mesh.",
-    "GPU raster is not bit-exact: frames_sha256 holds per host only (frames_identity per_host). Compare digests only between renders on one host, renderer and driver.",
-    "face.json follows narration loudness only (source loudness_envelope); word and phoneme timings are a later source. Lip sync stays pending_operator.",
-    "Whether offline VRM video carries a burned-in badge is open: no renderer draws one, and a model record that tries to settle it refuses vrm_badge_undecided."
-   ],
-   "annotations": {
-    "readOnlyHint": false,
-    "destructiveHint": false,
-    "idempotentHint": true,
-    "openWorldHint": false
-   },
-   "dependencies": {
-    "recommended_prior_tools": [
-     "narrated_video_plan",
-     "narrated_video_run"
-    ],
-    "enforced": false,
-    "note": "voice for the segment and base must be fresh; the job needs an avatar block with external vrm, rig naming an avatars.json record, and labels.persona."
-   },
-   "agent_workflow": {
-    "identify": "Read check.json: labelled, frames_sha256, frames_identity, consent_ids, likeness_consent_id and the avatar's content digest.",
-    "research": "docs/spec/NARRATED_VIDEO.md \"Avatar externals and avatar.manifest/v1\" and \"VRM external (draft)\"; the VRM 1.0 and 0.x meta specifications for the licence fields.",
-    "iterate": "After any change to the overlay directory, rerun avatar_check alone; a re-hash failure means rerun avatar with --force avatar.",
-    "acceptance": "A fresh stage is evidence that it ran on these inputs. Lip sync, the badge decision, the 11-14 bench and delivery are separate operator states.",
+    "identify": "Read check.json: labelled, frames_sha256, labels (synthetic, consent_ids, voice_ids, persona) and, for vrm, frames_identity, likeness_consent_id and the avatar's content digest.",
+    "research": "docs/spec/NARRATED_VIDEO.md \"Avatar stages (lane L5)\", \"Avatar externals and avatar.manifest/v1\", \"kitpip pin and the stub\" and \"VRM external (draft)\"; kitpip.manifest/v0; the VRM 1.0 and 0.x meta specifications for the licence fields.",
+    "iterate": "Run after every avatar rerun; compare check.json frames_sha256 with the avatar stage's measurement. For vrm, a re-hash failure means rerun avatar with --force avatar.",
+    "acceptance": "A fresh stage is evidence that it ran on these inputs. Lip sync, listening, delivery and, for vrm, the badge decision and the 11-14 bench are separate operator states.",
     "max_comparison_candidates_default": 2
    }
   },

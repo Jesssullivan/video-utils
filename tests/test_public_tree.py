@@ -218,6 +218,7 @@ class PublicTree(unittest.TestCase):
         trees = ("narrate/", "program/", ".agents/skills/narrated-video/", ".agents/skills/narrated-video-place/",
                  ".agents/skills/narrated-video-mix/", ".agents/skills/music-bed/", ".agents/skills/kitpip-overlay/",
                  ".agents/skills/kitpip-verify/", ".agents/skills/vrm-overlay/",
+                 ".agents/skills/avatar-overlay/", ".agents/skills/avatar-verify/",
                  ".agents/skills/narrated-video-compose/",
                  ".agents/skills/narrated-video-verify/", "docs/spec/NARRATED_VIDEO.md")
         media = re.compile(r"\.(wav|flac|mp3|m4a|aac|ogg|mov|mp4|mkv|webm|png|jpe?g|gif|pdf)$", re.I)

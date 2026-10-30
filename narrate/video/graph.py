@@ -19,10 +19,12 @@ it keys each node in topological order from the store's current.json and reports
   blocked          admit refused, a tool or source is missing, or an upstream node is blocked or refused
   refused          the stage refused for this exact key; it stays refused until the key changes
   not_selected     an optional stage the job turns off
-  pending_operator deliver_check is fresh but an operator gate (licence PDF, Content ID) is open
+  pending_operator deliver_check is fresh but an operator gate (listening, lip sync, licence PDF, Content ID, unread
+                   on-screen text) is open
 
 The graph also lists the operator's acceptances (`accept`, narrate/video/accept.py) that bind the fresh deliver_check
-render under accepted, and drops the gates they close from pending_operator.
+render under accepted, and drops the gates they close (listening and lip sync) from pending_operator. Every other
+operator gate, visible_text_unread among them, stays listed.
 """
 
 from collections import namedtuple
@@ -65,7 +67,7 @@ STAGES = (
         (("voice", "segment"), ("base", "measure:fps")),
         True,
         "avatar_overlay_v1",
-        "kitpip overlay.mov (ProRes 4444) per segment",
+        "overlay.mov (ProRes 4444) per segment, drawn by the job's avatar external",
     ),
     Stage(
         "avatar_check",
@@ -73,7 +75,7 @@ STAGES = (
         (("avatar", "segment"), ("voice", "segment")),
         True,
         None,
-        "kitpip verify and the label chain",
+        "the avatar external's verify and the label chain",
     ),
     Stage("music", False, (), True, "music_bed_v1", "bed.wav (48 kHz) arranged from the record's loops"),
     Stage(
@@ -111,8 +113,11 @@ STAGES = (
 )
 BY_ID = {s.id: s for s in STAGES}
 # Bump a stage's impl by hand when its output changes for the same inputs. voice is 2: KP-15 (TIN-7476 comment
-# 4ab7fc27) dropped the "[Synthetic voice] " caption prefix and the VTT NOTE from narrate render.
-IMPL = {s.id: 1 for s in STAGES} | {"voice": 2}
+# 4ab7fc27) dropped the "[Synthetic voice] " caption prefix and the VTT NOTE from narrate render. compose and handoff
+# are 2: they drop chapters and record the metadata check, and handoff writes each slide layer stripped (TIN-7788).
+# base is 2: its clips.wav drops the source's tags. deliver_check is 2: it reports the intake's visible_text state as
+# an operator gate (TIN-7788). music and place also call to_mono, but they re-encode its samples, so their bytes stay.
+IMPL = {s.id: 1 for s in STAGES} | {"voice": 2, "base": 2, "compose": 2, "handoff": 2, "deliver_check": 2}
 TOOLS = {
     "admit": ("narrate.video.admit", "1"),
     "script": ("narrate.lexical", "1"),
@@ -128,6 +133,10 @@ TOOLS = {
 }
 KITPIP_STAGES = ("avatar", "avatar_check")
 AVATAR_STAGES = KITPIP_STAGES  # run by the job's avatar external: kitpip or vrm (narrate/video/avatar.py)
+# The neutral tool name of each avatar stage. program/dags/narrated-video.json publishes them with dispatch.by
+# avatar.external, so a job that moves from kitpip to vrm keeps the same stage tools (TIN-7788).
+AVATAR_TOOLS = {"avatar": "avatar_overlay", "avatar_check": "avatar_verify"}
+AVATAR_DISPATCH = "avatar.external"
 # ctx keys of each external's pin and resolution, and the plan reasons for avatar stages it cannot run.
 AVATAR_CTX = {"kitpip": ("pin", "kitpip"), "vrm": ("vrm_pin", "vrm")}
 AVATAR_BLOCKED = {
@@ -296,7 +305,10 @@ def knobs_for(stage, segment, job, records, pin):
         bed = records["music_beds"].get(job["music"]["bed"]) if job["music"] else None
         gates = {k: bed["licence"][k] for k in ("certifiedPdfSha256", "contentIdCheck")} if bed else None
         delivery = {k: v for k, v in job["delivery"].items() if k != "handoff"}
-        return {"delivery": delivery, "bed_gates": gates, "labels": job["labels"]}
+        # The guarded intake's visible-text summary (job.load_records from the marker): a re-intake that reads
+        # more slides changes it, so deliver_check reruns.
+        visible = records.get("visible_text")
+        return {"delivery": delivery, "bed_gates": gates, "labels": job["labels"], "visible_text": visible}
     if stage == "handoff":
         return {}
     raise JobError("graph_cycle", f"no knobs for stage {stage}")

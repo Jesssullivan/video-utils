@@ -75,9 +75,12 @@ BITEXACT = ("-fflags", "+bitexact", "-flags:a", "+bitexact")
 
 
 def to_mono(source, target, rate=RATE_HZ, chain=None):
-    """source as mono 16-bit PCM at rate into target, through an optional filter chain. Returns target."""
+    """source as mono 16-bit PCM at rate into target, through an optional filter chain. Returns target. No tag or
+    chapter of the source passes: without -map_metadata -1 the WAV muxer writes a source's title and comment into a
+    LIST/INFO chunk, and base's clips.wav reaches the handoff layers (TIN-7788)."""
     filters = ["-af", chain] if chain else []
-    ffmpeg("-i", str(source), *filters, "-ac", "1", "-ar", str(rate), "-c:a", "pcm_s16le", *BITEXACT, str(target))
+    ffmpeg("-i", str(source), *filters, "-ac", "1", "-ar", str(rate), "-c:a", "pcm_s16le",
+           "-map_metadata", "-1", "-map_chapters", "-1", *BITEXACT, str(target))  # fmt: skip
     return target
 
 

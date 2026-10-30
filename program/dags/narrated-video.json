@@ -98,8 +98,16 @@
   },
   {
    "id": "avatar",
-   "tool": "kitpip_overlay",
-   "intent": "kitpip overlay.mov (ProRes 4444) per segment",
+   "tool": "avatar_overlay",
+   "dispatch": {
+    "by": "avatar.external",
+    "default": "kitpip",
+    "externals": [
+     "kitpip",
+     "vrm"
+    ]
+   },
+   "intent": "overlay.mov (ProRes 4444) per segment, drawn by the job's avatar external",
    "artifact": "overlay/overlay.mov",
    "fan_out": "segment",
    "depends_on": [
@@ -117,8 +125,16 @@
   },
   {
    "id": "avatar_check",
-   "tool": "kitpip_verify",
-   "intent": "kitpip verify and the label chain",
+   "tool": "avatar_verify",
+   "dispatch": {
+    "by": "avatar.external",
+    "default": "kitpip",
+    "externals": [
+     "kitpip",
+     "vrm"
+    ]
+   },
+   "intent": "the avatar external's verify and the label chain",
    "artifact": "manifest.json",
    "fan_out": "segment",
    "depends_on": [
@@ -245,5 +261,5 @@
   "max_stages": 2,
   "bound": "narrate/bounded.sh"
  },
- "execution_policy": "narrate/video/graph.py holds the same table (a test keeps them equal). plan keys every stage from its knobs, source digests and upstream manifests and never runs one; tool names are proposals until root admits them (program/tools.json). Stages land in lanes L4 to L6."
+ "execution_policy": "narrate/video/graph.py holds the same table (a test keeps them equal). plan keys every stage from its knobs, source digests and upstream manifests and never runs one; tool names are proposals until root admits them (program/tools.json). Stages land in lanes L4 to L6. avatar_overlay and avatar_verify are neutral: dispatch.by names the job field (avatar.external) that picks the implementation, kitpip by default or the vrm draft, so the stage tool names stay the same when a job moves from one to the other."
 }

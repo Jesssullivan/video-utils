@@ -5,7 +5,7 @@ description: Render the kitpip narrator overlay for each narrated segment from a
 
 # Let an agent render the narrator overlay for each segment from its consented narration, bound to a pinned binary by digest.
 
-**Hook:** MCP tool `kitpip_overlay` (proposed as tool 66, drafted in `program/tool-drafts/narrated_video.json`, not yet admitted). Fallback: `just nv-stage JOB avatar --segment ID` or `just nv-run JOB`, inside `nix develop .#condense`. Check the pin first with `just kitpip-pin-check`.
+**Hook:** MCP tool `avatar_overlay` with `avatar.external` `kitpip`, the default (skill `avatar-overlay`; proposed as tool 66, drafted in `program/tool-drafts/narrated_video.json`, not yet admitted). Fallback: `just nv-stage JOB avatar --segment ID` or `just nv-run JOB`, inside `nix develop .#condense`. Check the pin first with `just kitpip-pin-check`.
 
 **Capability:** the `avatar` stage resolves `KITPIP_BIN` against the private pin record (`NARRATED_VIDEO_EXTERNALS`) and checks its SHA-256 and size at plan and again before every spawn. It runs kitpip `analyze` on the segment's narrate run at the base's frame rate, `render` at `renderSize` (WxH, ProRes 4444 `overlay.mov`) and `verify`, all inside the stage's partial directory in the job store. It never writes inside the narrate run or under `artifacts/runs/` (`avatar_outside_store`). It relays kitpip's own refusal codes and adds `kitpip_missing`, `kitpip_pin_pending`, `kitpip_pin_mismatch`, `kitpip_unlabelled` and `label_chain_broken`. It never passes `--allow-unlabelled-test`, `--pipe` or `--badge`, so the overlay is kitpip's unadorned default character (KP-19).
 

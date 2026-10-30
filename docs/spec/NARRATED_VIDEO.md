@@ -76,8 +76,8 @@ music -------------------------------------------+-----------> mix -------------
 | 3 | `voice_qa` | segment | narrate verify and evaluate receipt | none | no |
 | 4 | `base` | none | conformed `base.mp4` and `base.json` (fps, size, length, clip sound if kept) | none | no |
 | 5 | `place` | none | `placements.json`, `voice.wav` and `clips.wav` on the base clock. Edition check at Place | `narrated_video_v1` | no |
-| 6 | `avatar` | segment | `overlay.mov` (ProRes 4444) and its manifest, drawn by the job's avatar external (kitpip or vrm) | `avatar_overlay_v1` | edition-gated |
-| 7 | `avatar_check` | segment | label-chain result | none | with avatar |
+| 6 | `avatar` | segment | `overlay.mov` (ProRes 4444) and its manifest, drawn by the job's avatar external (kitpip or vrm). Tool `avatar_overlay` | `avatar_overlay_v1` | edition-gated |
+| 7 | `avatar_check` | segment | label-chain result. Tool `avatar_verify` | none | with avatar |
 | 8 | `music` | none | `bed.wav` (48 kHz) and the bed manifest | `music_bed_v1` | yes |
 | 9 | `mix` | none | `mix.wav`, ducked bed stem, measured loudness, true peak and duck depth | `narrated_video_v1` | no |
 | 10 | `compose` | none | `video.mp4`, upload copy, captions, `description.txt`, chapters | `narrated_video_v1` | no |
@@ -107,7 +107,8 @@ weights), or null for an engine that pins no file. The git commit is recorded in
 the stage manifest and kept out of the key.
 A stage's `impl` rises when its output changes for the same inputs. `voice`
 is at 2 because KP-15 removed its caption label, so a voice rendered before
-KP-15 plans stale.
+KP-15 plans stale. `base`, `compose`, `handoff` and `deliver_check` are at 2
+for TIN-7788 (see "Compose and delivery").
 
 Canonical JSON has sorted keys, no whitespace and UTF-8. `dhall-to-json` writes
 the Double `-16.0` as `-16`, so an integral number is written as an integer and
@@ -137,7 +138,7 @@ A key reads three kinds of input:
 | `music` | bed id, each layer's digest, bytes, rate, channels, tempo factor and gain, 48 kHz |
 | `mix` | the music block except the bed id, delivery loudness, true peak, drift and channels |
 | `compose` | avatar corner, width, margin, `avatarOff` and `fadeS`, the slides block, captions, labels, delivery profile |
-| `deliver_check` | delivery except `handoff`, the bed's licence PDF digest and Content ID result, labels |
+| `deliver_check` | delivery except `handoff`, the bed's licence PDF digest and Content ID result, labels, the guarded intake's visible-text summary |
 | `handoff` | none beyond its inputs |
 
 A stage manifest's `content_sha256` leaves out `run_dir`, `created_utc` and
@@ -661,22 +662,36 @@ never a URL, an executable or a shell string.
 | 63 | `narrated_video_run` | stale stages, resumable after a timeout |
 | 64 | `narrated_video_place` | `base`, `place` |
 | 65 | `music_bed_build` | `music` |
-| 66 | `kitpip_overlay` | `avatar` |
-| 67 | `kitpip_verify` | `avatar_check` |
+| 66 | `avatar_overlay` | `avatar`, by the job's `avatar.external` (kitpip, or the vrm draft) |
+| 67 | `avatar_verify` | `avatar_check`, by the job's `avatar.external` |
 | 68 | `narrated_video_mix` | `mix` |
 | 69 | `narrated_video_compose` | `compose`, `handoff` |
 | 70 | `narrated_video_verify` | `deliver_check` |
-| 71 | `vrm_overlay` | `avatar` with a vrm external (draft, SPR-128) |
-| 72 | `vrm_verify` | `avatar_check` with a vrm external (draft, SPR-128) |
 
 The workflow skill is `narrated-video`, with one skill per stage tool. The
 fallback recipes are `just nv-quick` and `just nv-run`. L3 drafts tool 62 in
 `program/tool-drafts/narrated_video.json` and writes the first part of the
 `narrated-video` skill (plan, status and explain). L4 drafts tools 63, 64, 65
 and 68 there, adds `run` to the `narrated-video` skill and writes the
-`narrated-video-place`, `music-bed` and `narrated-video-mix` skills. L5 drafts
-tools 66 and 67 and writes the `kitpip-overlay` and `kitpip-verify` skills. The VRM
-draft drafts tools 71 and 72 and writes the `vrm-overlay` skill. L7 admits them.
+`narrated-video-place`, `music-bed` and `narrated-video-mix` skills. L7 admits them.
+
+The avatar tools are neutral (TIN-7788). `avatar_overlay` and `avatar_verify`
+name the `avatar` and `avatar_check` stages whatever external draws the
+overlay. `program/dags/narrated-video.json` gives both stages
+`dispatch: {by: avatar.external, default: kitpip, externals: [kitpip, vrm]}`,
+and `narrate/video/avatar.py` sends each node to its external. The tool names
+stay the same when a job moves from kitpip to vrm, so the DAG, a catalog row
+that pins the DAG and a guard record that names a stage tool keep them across
+the swap. The skills are `avatar-overlay` and `avatar-verify`. The
+implementation skills stay: `kitpip-overlay`, `kitpip-verify` and
+`vrm-overlay`.
+
+They replace the drafts `kitpip_overlay` (66), `kitpip_verify` (67),
+`vrm_overlay` (71) and `vrm_verify` (72). None of those was admitted to
+`program/tools.json`, so no alias is kept. A consumer that pinned the DAG
+before this change, at `kitpip_overlay` and `kitpip_verify`, keeps its pinned
+blob until it re-pins. The stage keys do not change: a key holds the external's
+own tool (`kitpip` or the vrm renderer) and its digest, not the MCP tool name.
 
 ## Simple path (lane L4)
 
@@ -757,9 +772,9 @@ Lane L6 runs `compose`, `deliver_check` and `handoff`
 
 | Stage | Reads | Writes | Refuses |
 | --- | --- | --- | --- |
-| `compose` | `base`, `place`, `mix`, every selected `avatar` and `avatar_check`, slide pictures by digest | `video.mp4`, `video.upload.mp4`, `captions.srt`, `captions.vtt`, `description.txt`, `chapters.json`, `compose.json` | `captions_burn_unsupported`, `captions_missing`, `slides_exceed_program`, `overlay_exceeds_base`, `frames_mismatch`, `label_chain_broken` |
+| `compose` | `base`, `place`, `mix`, every selected `avatar` and `avatar_check`, slide pictures by digest | `video.mp4`, `video.upload.mp4`, `captions.srt`, `captions.vtt`, `description.txt`, `chapters.json`, `compose.json` | `captions_burn_unsupported`, `captions_missing`, `slides_exceed_program`, `overlay_exceeds_base`, `frames_mismatch`, `metadata_present`, `label_chain_broken` |
 | `deliver_check` | `compose`, the voice and avatar manifests, the bed record | `deliver_check.json`: gate states and `delivery_gate` | the edition codes at DeliverCheck, `label_chain_broken`. A failed gate is a state |
-| `handoff` | `base`, `place`, `mix`, `avatar`, `compose` | `layers/` and `edit.json` | `label_chain_broken` |
+| `handoff` | `base`, `place`, `mix`, `avatar`, `compose` | `layers/` and `edit.json` | `metadata_present`, `label_chain_broken` |
 
 Profiles. The deck project's own profiles port in phase 2. These are this
 lane's, each H.264 High in yuv420p with AAC-LC at 48 kHz:
@@ -784,6 +799,30 @@ first cue's text. `description.txt` follows a fixed template: the job id, the
 length, the segment count, the chapters (one per page, else one per segment,
 titled by id) and `labels.extraNotice` as its last line when set. No visible
 synthetic label is added (KP-15).
+
+Metadata. Both MP4s are encoded with `-map_metadata -1`, `-map_chapters -1`
+and the bit-exact flags (TIN-7788). `-map_metadata -1` alone keeps an input's
+chapter with an empty title, so `-map_chapters -1` is needed too. Then
+`narrate/video/strip.py` checks what each file holds:
+
+| Check | Passes when |
+| --- | --- |
+| container tags | only `major_brand`, `minor_version` and `compatible_brands` |
+| stream tags | only a three-letter `language`, the muxer's default `handler_name` (`VideoHandler`, `SoundHandler`, `SubtitleHandler`), `vendor_id` `[0][0][0][0]` and FFmpeg's bit-exact `encoder` name (`Lavc` and a codec, no version) |
+| chapters | none |
+| bytes | no XMP packet, no EXIF block and no local path: the job store, the private store, the records directory or the home directory |
+| text outputs | `compose.json`, `chapters.json`, `description.txt` and the captions hold no local path |
+
+Anything else refuses `metadata_present`. The detail names the file and the
+tag key or the kind of finding, never a value or a path. `compose.json`
+records the tag keys each MP4 kept under `metadata`. The H.264 stream keeps
+x264's settings SEI. It names the encoder settings and no input. compose and
+handoff moved to impl 2 with this change, so a cut composed before it plans
+stale and reruns. `base` writes `clips.wav` with `-map_metadata -1` and
+`-map_chapters -1` as well: without them FFmpeg's WAV muxer keeps a source
+clip's title and comment in a `LIST`/`INFO` chunk, and `clips.wav` reaches the
+handoff layers. `base` moved to impl 2 for it. `music` and `place` decode the
+same way, but they rewrite the samples, so their outputs do not change.
 
 Avatar-off pages. Every page `avatar.avatarOff` lists hides the overlays for
 its whole span. They fade out over `avatar.fadeS` (0.35 s) ending at the
@@ -837,6 +876,7 @@ that ends after the program refuses `slides_exceed_program` at compose.
 | `captions` | the files `captions` asks for exist, the persona cue opens the first cue and `extraNotice` ends `description.txt` when set |
 | `listening`, `lip_sync` | `pending_operator` here. Lip sync only with an overlay |
 | `bed_licence_pdf`, `bed_content_id` | with `upload` and a bed: the record holds the licence PDF digest and a clear Content ID result, else `pending_operator` |
+| `visible_text` | records from a guarded intake: `passed` when the guard read a text source for every shown asset and none was opaque. `pending_operator` when one was unread or opaque, or when the marker holds no summary. `not_applicable` without a guarded intake. `deliver_check.json` repeats the summary under `visible_text`. admit lists the open gate as `visible_text_unread`, so `plan` and `status` show `deliver_check` as `pending_operator` |
 
 Flash. A slide change is a run's start and end, each page change inside a
 run, and a hold's start and end. Within `fadeS` plus one frame of each change
@@ -861,13 +901,35 @@ uploading, sending and Content ID stay operator actions.
 base at the profile, no overlay, slide, caption or sound),
 `avatar-<segment>.mov` (each overlay as its external, kitpip or vrm, wrote it),
 `avatar-<segment>.manifest.json` (that overlay's manifest),
-`slide-<page>.<ext>` (each slide picture as stored), `voice.wav`, `clips.wav`
+`slide-<page>.png` (each slide picture with its metadata stripped), `voice.wav`, `clips.wav`
 (when the base kept its sound), `bed-ducked.wav` (with a bed, before the
 limiter) and the captions. `edit.json` holds the placements, the overlay boxes
 and starts (each with its layer, manifest file and digest, renderer kind and
 frames identity), the slide runs, the avatar-off spans, the mix gains and the
 stage key of every input. FCPXML and OTIO export is phase 2. Until an editor
 imports one, it stays unverified in an application.
+
+A slide layer keeps a PNG's critical chunks and its colour chunks (`tRNS`,
+`gAMA`, `cHRM`, `sRGB`, `sBIT`, `pHYs`, `bKGD`), so its pixels and their bytes
+stay the same. It loses every text chunk (`tEXt`, `zTXt`, `iTXt`, which carry
+XMP), `eXIf`, `iCCP`, `tIME` and any unknown chunk. A picture that is not a PNG
+is decoded to one first. `edit.json` lists each slide's source digest
+(`sha256`), its layer digest (`layer_sha256`) and the chunk types dropped
+(`stripped`). FFmpeg applies no ICC profile when it composes, so a layer
+without `iCCP` shows what the cut shows. The overlays are copied as their
+external wrote them, because their manifests bind the bytes.
+
+Then every layer but `base.mp4`, which compose's MP4 check reads, is read as
+it is (`strip.check_layer`). Its bytes must hold no XMP packet, no EXIF block
+and no local path, and a WAV must hold only `fmt `, `data` and `fact` chunks.
+A MOV or MP4 layer, such as an avatar overlay, is also probed with `ffprobe`. It
+must hold no chapter and no tag outside compose's allowlist, the mov muxer's
+vendor id `FFMP` and an FFmpeg library version, so a title, artist, comment or
+handler name the external wrote refuses. Anything else refuses
+`metadata_present`, naming the file and the chunk, the tag key or the kind of
+finding. The check never rewrites a layer, so the overlays and their
+manifests keep the bytes their digests bind. `edit.json` lists the layers
+checked under `metadata_checked`.
 
 ## Operator acceptance
 
@@ -888,6 +950,7 @@ current composed video, so a decision about one render never closes a later one.
 | `sp:dec:` with a wrong length, lower case, a letter outside Crockford base32, a time past 48 bits or a trailing character | `decision_invalid` |
 | `profile`, `loudness`, `flash` or `captions` | `gate_automated`. A decision never closes a machine gate |
 | `bed_licence_pdf` or `bed_content_id` | `gate_record_bound`. They close through the private `MusicBed` record |
+| `visible_text` | `gate_intake_bound`. It closes when a re-intake's private-terms guard reads the text of every shown asset |
 | `vrm_badge_decision` | `vrm_badge_undecided` until a ruling settles the badge |
 | any other gate name | `gate_unknown` |
 | `lip_sync` without an overlay | `gate_not_applicable` |
@@ -926,7 +989,10 @@ acceptance that record does not hold for that render and the current video.
 Reading `acceptance.json` re-checks every row, so a hand-written row for a
 machine gate or the VRM badge refuses `store_invalid` and closes nothing. `accept` updates a recorded `graph.json` whose
 `deliver_check` row is that render. `admit` and the `deliver_check` report stay
-as they were, so `public_upload_allowed` stays false. Upload, sending and
+as they were, so `public_upload_allowed` stays false. An acceptance drops only
+`listening_acceptance` and `lip_sync_acceptance`. A `visible_text_unread` gate
+stays in `pending_operator`, so a partial `visible_text` keeps `deliver_check`
+at `pending_operator` after both acceptances. Upload, sending and
 Content ID stay operator actions.
 
 `accept` checks the id's form, not its meaning. It cannot tell whether
@@ -960,6 +1026,7 @@ that repeats, an unknown field or a missing field refuses `bundle_invalid`. Ids 
 | `receipt` | non-empty text naming the asset's source receipt (`asset_unreceipted` when empty) |
 | `size` | optional `{w, h}`. A PNG's header must hold the same size |
 | `fps` | optional `{num, den}`, recorded and never used |
+| `text` | optional `{path, sha256}` on a `png` or `mp4` asset: the text source of what it shows on screen (see "Private terms"). `path` follows the asset path rules and ends in `.svg` or `.json`. The file is hashed, and a different digest refuses `asset_digest_mismatch`. It is read and bound, never copied to the store |
 
 `script.md` is a sequence of beats. Before the first beat it allows one `# title` line, notes (lines starting with
 `>`) and blank lines. A beat is:
@@ -1011,6 +1078,7 @@ in the file, and the claims gate refuses every number that relies on it.
 | `asset_digest_mismatch` | an asset file does not hash to its manifest `sha256`, when it is read or when its store copy is hashed |
 | `asset_kind_mismatch` | an asset's extension, bytes or PNG size differ from its manifest entry |
 | `asset_unreceipted` | an asset's receipt is empty |
+| `asset_text_invalid` | an asset's text source is malformed: an SVG that is not UTF-8 (another byte-order mark, a NUL or a declared encoding other than UTF-8), is not well-formed, holds a document type or entity declaration anywhere or has no `svg` root, or a JSON file that is not `nv_asset_text` schema 1 with at most 10000 strings of at most 4096 characters, or a file over 4 MiB. A `text` field on a GIF, or with a missing or unknown field, refuses `bundle_invalid`, and a path that does not end in `.svg` or `.json` refuses `asset_kind_mismatch` |
 | `asset_unknown` | a beat's `asset_id` is not in the manifest |
 | `asset_needs_conversion` | a beat cites a GIF. No stage reads GIF: a slide is a still picture and the base is one video. The producer converts it to a PNG or an MP4 in the bundle, with its own digest and receipt. An unused GIF is listed in `unused_assets` and never refused |
 | `asset_video_multiple` | beats cite two different MP4s: one MP4 becomes the base, and no stage joins clips |
@@ -1062,10 +1130,12 @@ STORE/                  --store, default OUT/store: each beat's Markdown as <sha
 
 `intake.json` names the bundle by slug and by the digests of its three files, never by path. It holds the job id and
 digest, the narrate template, voice and engine, and one row per segment. Each row holds the narrate job, script
-digest, span, asset (id, kind, digest, receipt), shown layer and the claims result. It also holds `unused_assets`,
+digest, span, asset (id, kind, digest, receipt, text source), shown layer and the claims result. It also holds
+`visible_text` (the shown assets read, unread and opaque to the guard), `unused_assets`,
 the store digests written, the digest of every output, admit's verdict and pending operator gates, the template's
 pronunciation table id and pinned upstream release (or `null`), and the states `source_checks: passed`,
-`claims: passed`, `pronunciation_numbers: passed`, `render: not_run` and `listening: pending_operator`. Then
+`claims: passed`, `pronunciation_numbers: passed`, `private_terms`, `visible_text`, `producer_review:
+pending_operator`, `render: not_run` and `listening: pending_operator`. Then
 `init --job ID --from OUT/narrated-video.json --records OUT/records` and `run` proceed as for any job. The beats'
 narrate jobs are confidential, so the engine must be one that `Engine.mayRunConfidential` admits.
 
@@ -1247,10 +1317,11 @@ The guard checks these texts, in this order, and refuses at the first group that
 
 | Group | Texts | Reported as |
 | --- | --- | --- |
-| record | the slug, each asset's id, path and receipt, each beat's id and asset id, each claim's id and receipt, and at intake the bundle directory's name and the job id; the numbers records hold: each asset's `size` and `fps` (with `num/den`), each beat's `target_s` and the start and end the intake writes for it | `slug`, `asset#N`, `beat#N`, `claim#N` and `job`, by position |
+| record | the slug, each asset's id, path, receipt and text source path, each beat's id and asset id, each claim's id and receipt, and at intake the bundle directory's name and the job id; the numbers records hold: each asset's `size` and `fps` (with `num/den`), each beat's `target_s` and the start and end the intake writes for it | `slug`, `asset#N`, `beat#N`, `claim#N` and `job`, by position |
 | voiced | each beat's voiced text, which the captions show | the beat id |
 | claim | each claim's `spoken` text | the claim id |
 | label | `--persona` at intake | `labels` |
+| visible | at intake, the text source of each asset a beat shows (below), its strings joined into one text | `asset#N`, by manifest position |
 | spoken | each paragraph after the pronunciation tables, at intake | the beat id |
 | joined | each two adjacent voiced texts, and at intake each two adjacent spoken paragraphs, read as one text; it reports only an entry neither part matches alone | `a+b`, the two beat ids |
 
@@ -1268,7 +1339,10 @@ records `not_declared`. A denylist given to such a bundle still runs.
 
 A guarded intake writes `records/private-terms.json` (schema 2): the guard's status and digest, the digest of the
 NarratedVideo record it wrote to `narrated-video.json` and the narrate jobs its segments name, and, per narrate job,
-the digests of the job record and of the pronunciation table it names. Every load of that records directory checks
+the digests of the job record and of the pronunciation table it names. It also holds `visible_text`: the intake's
+visible-text state and the unread and opaque asset positions, which `deliver_check` reports (TIN-7788). The state
+is `passed` exactly when both lists are empty and `partial` otherwise. When an `intake.json` lies beside the records,
+its `states.visible_text` and its `visible_text` unread and opaque lists must equal the marker's. Every load of that records directory checks
 it and refuses `private_terms_stale` on a change, so a table edited after intake cannot add a spoken term. `init`,
 `plan`, `run` and `explain` also refuse a NarratedVideo record that is not the one the intake wrote. So an edited
 persona label or a segment pointed at another narrate job refuses, and so does a job built from `init` flags. A
@@ -1279,13 +1353,42 @@ a private lane still removes the check, so the producer keeps OUT where the bund
 marker and editing the `intake.json` status to `not_declared`, outside a private lane; both edits need write access
 to OUT itself, which the producer controls. A pinned lane refuses either way.
 
+Visible text (TIN-7788). A slide or plot shows text the script never says: a title, axis labels, a legend, tick
+values. The guard reads no pixels, and this repository has no OCR dependency. So an asset names its on-screen text
+in a text source, bound by digest in its manifest `text` field (`narrate/video/visible_text.py`):
+
+| Source | What counts |
+| --- | --- |
+| `.svg`, the vector the picture was drawn from | every run of character data and every comment, including character references as the XML parser decodes them, and the `aria-label` and `xlink:title` attributes. A plotting library that draws glyphs as paths writes each label as a comment beside them. The `metadata`, `style` and `script` elements are skipped, because none of them is drawn. A `script` still makes the source opaque. The file must be UTF-8 |
+| `.json`, `{"kind": "nv_asset_text", "schema_version": 1, "texts": [...]}` | each string the producer drew. An empty list says the asset draws no text |
+
+An SVG source is opaque when it may draw text that no string names. It holds an
+`image`, `feImage`, `foreignObject` or another embedding element. It runs script
+through a `script` element or an event handler attribute. It refers to another
+file through an `href` or a `url()` that is not a `#` fragment, a CSS `@import`,
+a CSS backslash escape or an `xml-stylesheet` processing instruction. Or it
+gives no string at all, as text outlined to paths does. Its strings are still
+guarded. A JSON source is never opaque. Text outlined to paths beside another
+string, such as a `title`, is not opaque. The guard cannot compare the SVG with
+the picture's pixels, so that text stays the producer's review.
+
+The guard reads each shown asset's strings joined by newlines as one `visible` text, so a term split across two
+labels still matches. Only assets a beat shows are read. `intake.json` lists them under `visible_text` as `read`
+(with a text source), `unread` (without one) and `opaque` (read, with an opaque SVG), by manifest position, and each
+segment row's `asset.text` holds the source's kind and digest or `null`. The state `visible_text` is `passed` when
+every shown asset had a text source and none was opaque, `partial` otherwise, and `not_declared` when no denylist
+runs. An unread or opaque asset does not refuse at intake. The records marker carries the state, and `deliver_check`
+reports it as the operator gate `visible_text`, so a partial cut keeps `operator_states_open` non-empty and
+`public_upload_allowed` false. Whether a private lane should refuse one at intake is open.
+
 The guard reads text only. These pass it, and the producer reviews them:
 
 | Not read | Why |
 | --- | --- |
 | a paraphrase or a translation | no entry spells it |
-| PNG slide pixels, MP4 and GIF frames and text burned into them | the guard reads no pixels; on-screen asset text reaches the video |
-| asset container metadata (PNG text chunks, MP4 atoms) | the intake copies asset bytes by digest. The rendered outputs drop metadata (`-map_metadata -1` in `compose.py` and `handoff.py`) |
+| the pixels of a slide, plot or clip with no text source or an opaque one, and text burned into an MP4 or GIF frame | the guard reads no pixels and runs no OCR; on-screen asset text reaches the video, and the `visible_text` gate holds the delivery at the operator |
+| a text source's drawing that differs from its picture | the digest binds the file, not that it matches the picture; the producer keeps them in step |
+| asset container metadata (PNG text chunks, MP4 atoms) | it is not shown. The intake copies asset bytes by digest into the private store, and the outputs drop it: compose checks both MP4s and handoff strips each slide layer ("Compose and delivery") |
 | a job or records written another way than intake | no intake ran, so no marker exists |
 
 The intake states record `private_terms` and, beside it, `producer_review: pending_operator` for these. Tests use

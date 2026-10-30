@@ -112,8 +112,9 @@ def bed_record(job, records, refusals):
     return bed
 
 
-def pending_operator(job, bed):
-    """Gates only the operator closes. admit lists them; nothing here marks one passed."""
+def pending_operator(job, bed, visible=None):
+    """Gates only the operator closes. admit lists them; nothing here marks one passed. visible is the guarded
+    intake's visible-text summary (job.load_records), which holds deliver_check open when it is not passed."""
     items = [
         {
             "gate": "listening_acceptance",
@@ -162,6 +163,17 @@ def pending_operator(job, bed):
                     "detail": "the bed record holds no clear Content ID result",
                 }
             )
+    if visible is not None and visible["state"] not in ("passed", "not_declared"):
+        unread = sorted(set(visible["unread"]) | set(visible["opaque"]), key=lambda p: int(p.split("#")[1]))
+        items.append(
+            {
+                "gate": "visible_text_unread",
+                "stage": "deliver_check",
+                "segment": None,
+                "detail": "the private-terms guard did not read the on-screen text of every shown asset"
+                + (f": {', '.join(unread)}" if unread else ""),
+            }
+        )
     return items
 
 
@@ -204,5 +216,5 @@ def admit(job, records, avatar_state=None):
             "voice_ids": sorted(voice_ids),
             "persona": job["labels"]["persona"],
         },
-        "pending_operator": pending_operator(job, bed),
+        "pending_operator": pending_operator(job, bed, records.get("visible_text")),
     }

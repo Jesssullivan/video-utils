@@ -9,10 +9,11 @@ privacy_undeclared and the file must hash to the pin, whatever the manifest says
 denylist_missing, denylist_misplaced, denylist_digest_mismatch and denylist_invalid before it reads any text.
 
 It then checks every text the job would speak or show or record: each beat's voiced text (the captions' text), its
-spoken form after the pronunciation tables (intake only), each claim's spoken text, the persona label, and every
-bundle text that reaches a record or report (the slug, the job id, beat, claim and asset ids, asset paths and claim
-and asset receipts). A match refuses private_term. Record texts are checked first and reported by position (beat#2,
-not the beat's id), so a report never carries a private id.
+spoken form after the pronunciation tables (intake only), each claim's spoken text, the persona label, the visible
+text of each slide, plot or clip a beat shows (intake only: the text source the asset names, visible_text.py), and
+every bundle text that reaches a record or report (the slug, the job id, beat, claim and asset ids, asset and text
+source paths and claim and asset receipts). A match refuses private_term. Record texts are checked first and
+reported by position (beat#2, not the beat's id), so a report never carries a private id.
 
 Matching fails closed, so it over-matches on purpose. A text with a letter that is not ASCII after NFKD, mark
 stripping and case folding ("Z\\u0585rblax", small capitals), or with a word that mixes two scripts, refuses as class
@@ -66,7 +67,7 @@ PRIVACY_OPTIONAL = {"denylist_sha256"}
 # of fewer than SALT_DISTINCT distinct hex digits ("00...", "0f0f...") is not random.
 SALT = re.compile(r"^[0-9a-f]{32,128}$")
 SALT_DISTINCT = 8
-SOURCES = ("record", "voiced", "spoken", "claim", "label", "joined")
+SOURCES = ("record", "voiced", "spoken", "claim", "label", "joined", "visible")
 PIN_ENV = "NARRATED_VIDEO_DENYLIST_SHA256"
 
 # Letters that look like Latin ones: Cyrillic, Greek and Latin extensions. UPPER_CONFUSABLES maps capitals before
@@ -680,10 +681,10 @@ def number_text(value):
 def record_texts(manifest, beats, claims):
     """(position, "record", text) for every bundle text that reaches a record or a report: the manifest's slug and
     each asset's id, path and receipt, each beat's id and asset id, and each claim's id and receipt. Positions, not
-    ids, name them, so a refusal never echoes a private id. The numbers a record holds are texts too: each asset's
-    size and fps (its num, den and num/den), and each beat's target_s with the start and end the intake writes for
-    it (narrated-video.json pages, intake.json segments, the beat's front matter). The manifest is read leniently:
-    read() checks it."""
+    ids, name them, so a refusal never echoes a private id. An asset's text source path is a record text too. The
+    numbers a record holds are texts too: each asset's size and fps (its num, den and num/den), and each beat's
+    target_s with the start and end the intake writes for it (narrated-video.json pages, intake.json segments, the
+    beat's front matter). The manifest is read leniently: read() checks it."""
     texts = []
     manifest = manifest if isinstance(manifest, dict) else {}
     if isinstance(manifest.get("slug"), str):
@@ -695,6 +696,9 @@ def record_texts(manifest, beats, claims):
         for key in ("id", "path", "receipt"):
             if isinstance(asset.get(key), str):
                 texts.append((f"asset#{n}", "record", asset[key]))
+        text = asset.get("text") if isinstance(asset.get("text"), dict) else {}
+        if isinstance(text.get("path"), str):
+            texts.append((f"asset#{n}", "record", text["path"]))
         for key, names in (("size", ("w", "h")), ("fps", ("num", "den"))):
             part = asset.get(key) if isinstance(asset.get(key), dict) else {}
             said = [number_text(part.get(name)) for name in names]
@@ -790,11 +794,12 @@ def job_digest(job):
     return hashlib.sha256(canonical(job).encode()).hexdigest()
 
 
-def marker(report, narrate_jobs, records, job):
+def marker(report, narrate_jobs, records, job, visible=None):
     """The records marker of a guarded intake: the guard's status and digest; the job_digest of the NarratedVideo
-    record it wrote, as nv init --from reads narrated-video.json back, and the narrate jobs its segments name; and,
-    per narrate job, the digests of the job record and of the pronunciation table it names. A later edit to any of
-    them refuses."""
+    record it wrote, as nv init --from reads narrated-video.json back, and the narrate jobs its segments name; per
+    narrate job, the digests of the job record and of the pronunciation table it names; and visible, the intake's
+    visible-text state with the unread and opaque asset positions (bundle.visible_record), which deliver_check
+    reports as an operator gate. A later edit to a bound record refuses."""
     jobs = {}
     for narrate_job in narrate_jobs:
         table = (records.get("pronunciation") or {}).get(narrate_job.get("pronunciation"))
@@ -811,6 +816,7 @@ def marker(report, narrate_jobs, records, job):
         "narrated_video_sha256": job_digest(job),
         "segment_jobs": segment_jobs(job),
         "jobs": jobs,
+        "visible_text": visible,
     }
 
 
@@ -860,7 +866,66 @@ def read_marker(directory, optional=False):
         or not isinstance(value.get("narrated_video_sha256"), str)
     ):
         raise JobError("private_terms_stale", f"{MARKER} is not a {MARKER_KIND} record of schema {MARKER_VERSION}")
+    if not visible_shape(value.get("visible_text")):
+        raise JobError("private_terms_stale", f"{MARKER} holds a visible_text that is not a visible-text summary")
+    if value.get("visible_text") is not None and not visible_agrees(directory, value["visible_text"]):
+        raise JobError(
+            "private_terms_stale",
+            f"{MARKER} holds a visible_text that the intake.json beside the records does not; run the intake again",
+        )
     return value
+
+
+# A guarded intake writes a marker only when a denylist runs, so its visible_text is passed or partial, never
+# not_declared (bundle.visible_state).
+VISIBLE_STATES = ("passed", "partial")
+POSITION = re.compile(r"^asset#[1-9][0-9]{0,5}$")
+
+
+def visible_shape(value):
+    """True for a marker's visible_text: null (a marker written before TIN-7788 read slide text) or {state, unread,
+    opaque} with lists of asset positions, whose state is passed exactly when both lists are empty and partial
+    otherwise."""
+    if value is None:
+        return True
+    return (
+        isinstance(value, dict)
+        and set(value) == {"state", "unread", "opaque"}
+        and value["state"] in VISIBLE_STATES
+        and all(isinstance(v, list) and all(isinstance(p, str) and POSITION.match(p) for p in v)
+                for v in (value["unread"], value["opaque"]))
+        and (value["state"] == "passed") == (not value["unread"] and not value["opaque"])
+    )  # fmt: skip
+
+
+def visible_agrees(directory, value):
+    """True when no intake.json lies beside the records, or when its states.visible_text and its visible_text unread
+    and opaque lists equal the marker's summary. An unreadable intake.json disagrees, so the check fails closed."""
+    intake = Path(directory).parent / "intake.json"
+    if not intake.is_symlink() and not intake.exists():
+        return True
+    try:
+        manifest = json.loads(intake.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return False
+    if not isinstance(manifest, dict):
+        return False
+    states = manifest.get("states") if isinstance(manifest.get("states"), dict) else {}
+    shown = manifest.get("visible_text") if isinstance(manifest.get("visible_text"), dict) else {}
+    return (
+        states.get("visible_text") == value["state"]
+        and shown.get("unread") == value["unread"]
+        and shown.get("opaque") == value["opaque"]
+    )
+
+
+def visible_summary(value):
+    """What deliver_check reads from a records marker (read_marker's value): None outside a guarded intake, else
+    {state, unread, opaque}. A marker with no visible_text (a guarded intake that read no slide text) is
+    not_recorded."""
+    if value is None:
+        return None
+    return value.get("visible_text") or {"state": "not_recorded", "unread": [], "opaque": []}
 
 
 def check_marker(directory, records, optional=False):

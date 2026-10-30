@@ -27,6 +27,11 @@ and every bed gate is closed (a client edition also needs voiceOnlyListen).
 delivery_gate.public_upload_allowed also needs every operator state closed: verified is not accepted (NV-2: internal
 until a first listening receipt; an overlay without lip-sync acceptance stays private). deliver_check never closes
 listening itself, so it never reports a public upload as allowed.
+
+visible_text (TIN-7788): records from a guarded intake carry its visible-text summary (job.load_records). The gate is
+passed when the guard read a text source for every shown asset and none was opaque, pending_operator when one was
+unread or opaque (or the marker predates the summary), and not_applicable without a guarded intake. So on a private
+lane a cut whose on-screen text the guard did not read keeps operator_states_open non-empty.
 """
 
 from ..config import FF, run
@@ -181,6 +186,13 @@ def edition_at_deliver(job, bed, derived, overlays):
     return verdict | {"leaves": leaves}
 
 
+def visible_gate(summary):
+    """(gate state, report) of the guarded intake's visible-text summary, or ("not_applicable", None)."""
+    if summary is None or summary["state"] == "not_declared":
+        return "not_applicable", summary
+    return ("passed" if summary["state"] == "passed" else "pending_operator"), summary
+
+
 def vrm_overlays(rc):
     """The segments whose composed overlay a VRM renderer drew (the avatar stage's measured renderer kind)."""
     found = []
@@ -236,6 +248,7 @@ def run_deliver_check(rc, row, partial):
     }
     if vrm_overlays(rc):
         operator["vrm_badge_decision"] = "pending_operator"
+    operator["visible_text"], visible = visible_gate(rc.records.get("visible_text"))
     if job["delivery"]["upload"] and bed is not None:
         licence = bed["licence"]
         operator["bed_licence_pdf"] = "passed" if licence["certifiedPdfSha256"] else "pending_operator"
@@ -250,6 +263,7 @@ def run_deliver_check(rc, row, partial):
         "loudness": loud,
         "flash": flash,
         "captions": {"findings": caption_findings, "cues": len(cues)},
+        "visible_text": visible,
         "edition": edition,
         "labels": derived,
         "delivery_gate": gate,

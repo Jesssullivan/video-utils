@@ -31,7 +31,7 @@ from ..config import LEXICAL_ENV
 from ..ir import canonical, sha256_file
 from ..normalise import NormaliseError, Normaliser
 from . import claims as gate
-from . import private_terms
+from . import private_terms, visible_text
 from .admit import admit, port
 from .job import DEFAULTS, ID, RECORD_FILES, SHA256, JobError, check_shape, load_records
 
@@ -41,7 +41,9 @@ MAX_SCRIPT_BYTES = 1024 * 1024
 MAX_TARGET_S = Decimal(3600)
 ASSET_KINDS = ("png", "mp4", "gif")
 ASSET_FIELDS = {"id", "path", "sha256", "kind", "receipt"}
-ASSET_OPTIONAL = {"size", "fps"}
+ASSET_OPTIONAL = {"size", "fps", "text"}
+TEXT_FIELDS = {"path", "sha256"}
+TEXT_KINDS = ("png", "mp4")  # the kinds a beat shows; a GIF is never shown (asset_needs_conversion)
 MANIFEST_FIELDS = {"assets"}
 MANIFEST_OPTIONAL = {"slug", "privacy"}
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
@@ -146,6 +148,37 @@ def kind_problem(path, kind):
     return None
 
 
+def bundle_path(path, where):
+    """path's parts when it is a relative POSIX path inside the bundle, else bundle_invalid."""
+    parts = path.split("/") if isinstance(path, str) else [""]
+    if "\\" in "".join(parts) or any(p in ("", ".", "..") for p in parts):
+        raise BundleError("bundle_invalid", f"{where}: path is not a relative path inside the bundle")
+    return parts
+
+
+def read_text_source(bundle, asset, where):
+    """visible_text.Read (the strings an asset's text source shows, and whether it is opaque) after its path, digest
+    and form are checked; None when the asset names no text source."""
+    if "text" not in asset:
+        return None
+    if asset["kind"] not in TEXT_KINDS:
+        raise BundleError("bundle_invalid", f"{where}: text is allowed on a png or mp4 asset only")
+    text = asset["text"]
+    fields(text, TEXT_FIELDS, set(), f"{where} text")
+    bundle_path(text["path"], f"{where} text")
+    if visible_text.kind_of(text["path"]) is None:
+        raise BundleError("asset_kind_mismatch", f"{where}: text path does not end in .svg or .json")
+    if not isinstance(text["sha256"], str) or not SHA256.match(text["sha256"]):
+        raise BundleError("bundle_invalid", f"{where}: text sha256 is not 64 lowercase hex digits")
+    file = regular_file(bundle, text["path"], f"{where} text")
+    if sha256_file(file) != text["sha256"]:
+        raise BundleError("asset_digest_mismatch", f"{where}: the text source does not hash to its manifest sha256")
+    try:
+        return visible_text.texts(file)
+    except visible_text.TextSourceError as exc:
+        raise BundleError("asset_text_invalid", f"{where}: {exc}") from None
+
+
 def read_manifest(bundle):
     """({asset id: asset}, manifest sha256). Every asset's file is re-hashed against its sha256."""
     manifest, digest = read_json(bundle, MANIFEST)
@@ -170,9 +203,7 @@ def read_manifest(bundle):
         if not isinstance(asset["receipt"], str) or not asset["receipt"].strip():
             raise BundleError("asset_unreceipted", f"{where}: receipt is empty; every asset names its source receipt")
         path = asset["path"]
-        parts = path.split("/") if isinstance(path, str) else [""]
-        if "\\" in "".join(parts) or any(p in ("", ".", "..") for p in parts):
-            raise BundleError("bundle_invalid", f"{where}: path is not a relative path inside the bundle")
+        bundle_path(path, where)
         if not path.lower().endswith(SUFFIX[asset["kind"]]):
             raise BundleError("asset_kind_mismatch", f"{where}: path does not end in {SUFFIX[asset['kind']]}")
         for key, names in (("size", ("w", "h")), ("fps", ("num", "den"))):
@@ -190,7 +221,8 @@ def read_manifest(bundle):
             size = png_size(file)
             if size != (int(asset["size"]["w"]), int(asset["size"]["h"])):
                 raise BundleError("asset_kind_mismatch", f"{where}: the PNG is {size}, not its manifest size")
-        assets[asset["id"]] = asset | {"file": file}
+        shown = read_text_source(bundle, asset, where)
+        assets[asset["id"]] = asset | {"file": file, "position": n + 1, "visible": shown}
     return assets, digest
 
 
@@ -472,6 +504,8 @@ def read_assets(bundle, beats, report, digests, guard, private):
             "asset_video_multiple",
             f"beats use {len(videos)} different MP4 assets; one MP4 becomes the base video and no stage joins clips",
         )
+    shown = visible(assets, beats)
+    private = private_check(guard, shown["texts"])
     return {
         "slug": bundle.resolve().name,
         "root": bundle,
@@ -481,7 +515,31 @@ def read_assets(bundle, beats, report, digests, guard, private):
         "digests": {"manifest_sha256": manifest_digest} | digests,
         "guard": guard,
         "private": private,
+        "visible": {k: shown[k] for k in ("read", "unread", "opaque")},
     }
+
+
+def visible(assets, beats):
+    """The visible text of every asset a beat shows, for the guard: {texts, read, unread, opaque}. texts holds one
+    (asset#N, "visible", text) per asset whose text source names any string, its strings joined by newlines, so a
+    term split across two labels still matches. read and unread list the shown assets by manifest position, with and
+    without a text source; opaque lists the read ones whose SVG may draw text no string names (an embedded image,
+    another file, or no string at all). The guard reads no pixels, so an unread or opaque asset's on-screen text
+    stays the producer's review."""
+    cited = sorted({beat["asset_id"] for beat in beats}, key=lambda a: assets[a]["position"])
+    out = {"texts": [], "read": [], "unread": [], "opaque": []}
+    for asset_id in cited:
+        asset = assets[asset_id]
+        where = f"asset#{asset['position']}"
+        if asset["visible"] is None:
+            out["unread"].append(where)
+            continue
+        out["read"].append(where)
+        if asset["visible"].opaque:
+            out["opaque"].append(where)
+        if asset["visible"].texts:
+            out["texts"].append((where, "visible", "\n".join(asset["visible"].texts)))
+    return out
 
 
 # Converting -----------------------------------------------------------------------------------------------------
@@ -903,7 +961,9 @@ def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, 
         written = load_records(staging / "records", marker_optional=True)  # digests as a later load reads them
         narrate_jobs = [written["jobs"][r["id"]] for r, _ in jobs.values()]
         read_back = check_shape(json.loads((staging / "narrated-video.json").read_text(encoding="utf-8")))
-        marker = private_terms.marker(b["private"], narrate_jobs, written, read_back)  # as nv init --from reads it
+        marker = private_terms.marker(  # as nv init --from reads it
+            b["private"], narrate_jobs, written, read_back, visible_record(b)
+        )
         write_json(staging / "records" / private_terms.MARKER, marker)
     used = {beat["asset_id"] for beat in b["beats"]}
     report = {r["segment"]: r for r in b["report"]}
@@ -921,7 +981,7 @@ def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, 
                 "start_s": number(start),
                 "end_s": number(end),
                 "asset": {"id": asset["id"], "kind": asset["kind"], "sha256": asset["sha256"],
-                          "receipt": asset["receipt"]},
+                          "receipt": asset["receipt"], "text": text_source(asset)},
                 "show": "slide" if asset["kind"] == "png" else "base",
                 "claims": {k: v for k, v in report[beat["id"]].items() if k != "segment"},
             }
@@ -946,12 +1006,32 @@ def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, 
         "outputs": outputs,
         "admit": {"verdict": verdict["verdict"], "pending_operator": [p["gate"] for p in verdict["pending_operator"]]},
         "private_terms": b["private"],
+        "visible_text": b["visible"],
         "states": {"source_checks": "passed", "claims": "passed", "pronunciation_numbers": "passed",
-                   "private_terms": b["private"]["status"], "producer_review": "pending_operator", "render": "not_run",
-                   "listening": "pending_operator"},
+                   "private_terms": b["private"]["status"], "visible_text": visible_state(b),
+                   "producer_review": "pending_operator", "render": "not_run", "listening": "pending_operator"},
     }  # fmt: skip
     write_json(staging / "intake.json", manifest)
     return manifest
+
+
+def text_source(asset):
+    """{kind, sha256} of an asset's text source, or None."""
+    text = asset.get("text")
+    return None if text is None else {"kind": visible_text.kind_of(text["path"]), "sha256": text["sha256"]}
+
+
+def visible_state(b):
+    """not_declared with no denylist; passed when the guard read a text source for every shown asset and none is
+    opaque; partial when a shown asset has none or an opaque one, so some on-screen text was not checked."""
+    if b["guard"].entries is None:
+        return "not_declared"
+    return "partial" if b["visible"]["unread"] or b["visible"]["opaque"] else "passed"
+
+
+def visible_record(b):
+    """The marker's visible_text: the state and the unread and opaque positions, which deliver_check reads."""
+    return {"state": visible_state(b), "unread": b["visible"]["unread"], "opaque": b["visible"]["opaque"]}
 
 
 def claims_only(bundle, denylist=None, pin=None):

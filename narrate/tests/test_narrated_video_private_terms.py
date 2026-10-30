@@ -227,7 +227,15 @@ def test_a_clean_bundle_passes_and_intake_records_the_guard(ws, tmp_path):
     assert result["ok"] is True
     private = result["private_terms"]
     assert private["status"] == "passed" and private["denylist_sha256"] == digest and private["entries"] == 3
-    assert private["checked"] == {"record": 29, "voiced": 2, "spoken": 0, "claim": 3, "label": 0, "joined": 1}
+    assert private["checked"] == {
+        "record": 29,
+        "voiced": 2,
+        "spoken": 0,
+        "claim": 3,
+        "label": 0,
+        "joined": 1,
+        "visible": 0,
+    }
     m = intake(ws, tmp_path / "out", persona="fixture-persona", denylist=ws["denylist"])
     assert m["private_terms"]["status"] == "passed" and m["states"]["private_terms"] == "passed"
     assert m["private_terms"]["checked"] == {
@@ -237,6 +245,7 @@ def test_a_clean_bundle_passes_and_intake_records_the_guard(ws, tmp_path):
         "claim": 3,
         "label": 1,
         "joined": 4,
+        "visible": 0,  # the fixture's slides name no text source (test_narrated_video_visible_text.py)
     }
     assert m["private_terms"]["denylist_sha256"] == digest
     assert not leaks(m) and str(ws["denylist"]) not in json.dumps(m)

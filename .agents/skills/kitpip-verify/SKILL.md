@@ -5,7 +5,7 @@ description: Verify a stored kitpip overlay and its synthetic and consent label 
 
 # Let an agent prove that a stored overlay is the one rendered and that its labels survived.
 
-**Hook:** MCP tool `kitpip_verify` (proposed as tool 67, drafted in `program/tool-drafts/narrated_video.json`, not yet admitted). Fallback: `just nv-stage JOB avatar_check --segment ID` or `just nv-run JOB`, inside `nix develop .#condense`.
+**Hook:** MCP tool `avatar_verify` with `avatar.external` `kitpip`, the default (skill `avatar-verify`; proposed as tool 67, drafted in `program/tool-drafts/narrated_video.json`, not yet admitted). Fallback: `just nv-stage JOB avatar_check --segment ID` or `just nv-run JOB`, inside `nix develop .#condense`.
 
 **Capability:** the `avatar_check` stage runs kitpip `verify` on the stored overlay. kitpip re-hashes every file its manifest lists and refuses an unlisted one. The stage then requires `labelled: true`, the frame digest the `avatar` stage measured and the narration's consent ids. Its labels must hold everything the `voice` and `avatar` stages carry, with the job's `labels.persona`. It writes `check.json` and refuses `kitpip_unlabelled` and `label_chain_broken`.
 

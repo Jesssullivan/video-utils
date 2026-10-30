@@ -9,7 +9,12 @@ compose reads the conformed base, the placements, the mix and, per segment, the 
   segment's start on the base clock. labels.personaCue, when a job sets one, opens the first cue (KP-15: no visible
   label is required, so none is added otherwise);
 - description.txt from a fixed template, with labels.extraNotice as its last line when set, and chapters.json;
-- compose.json: the profile, the layer plan (overlay boxes, slide runs, avatar-off spans) and the encode settings.
+- compose.json: the profile, the layer plan (overlay boxes, slide runs, avatar-off spans), the encode settings and
+  the metadata check.
+
+Both MP4s are encoded with -map_metadata -1, -map_chapters -1 and the bit-exact flags, and strip.py then checks them:
+a tag outside its allowlist, a chapter, an XMP or EXIF block or a local path in either file, or a local path in a text
+output, refuses metadata_present (TIN-7788).
 
 Layers, bottom to top: the base scaled to the profile, the slide layers, the avatar overlays, and nothing burned in.
 captions.burn refuses captions_burn_unsupported in v1 (the design keeps burn off, N5).
@@ -33,7 +38,7 @@ avatar.fadeS before it, stay at alpha 0 through it (from its first frame when it
 over fadeS after it. An avatarOff id that names no slide page refuses page_unknown.
 
 Every refusal here is a verdict for the stage key except an FFmpeg failure: slides_exceed_program, page_unknown,
-captions_missing, captions_burn_unsupported, overlay_exceeds_base and label_chain_broken.
+captions_missing, captions_burn_unsupported, overlay_exceeds_base, metadata_present and label_chain_broken.
 """
 
 import json
@@ -41,7 +46,7 @@ import math
 import re
 from fractions import Fraction
 
-from . import labels
+from . import labels, strip
 from .common import RATE_HZ, StageRefused, ffmpeg, ffprobe, upstream, work_dir, write_json
 from .graph import base_kind, selection, slide_sources
 from .place import parse_rate, timeline
@@ -504,14 +509,14 @@ def run_compose(rc, row, partial):
             "-c:v", "libx264", "-preset", profile["preset"], "-crf", str(profile["crf"]), "-profile:v", "high",
             "-pix_fmt", PIX_FMT, "-threads", "2",
             "-c:a", AUDIO_CODEC, "-b:a", f"{profile['audio_kbps']}k", "-ar", str(RATE_HZ),
-            *subtitle, "-movflags", "+faststart", "-map_metadata", "-1",
+            *subtitle, "-movflags", "+faststart", "-map_metadata", "-1", "-map_chapters", "-1",
             "-fflags", "+bitexact", "-flags:v", "+bitexact", "-flags:a", "+bitexact",
         ]  # fmt: skip
         graph = ";".join(chain)
         ffmpeg(*inputs, "-filter_complex", graph, *maps, *encode, str(partial / "video.mp4"))
     ffmpeg(
         "-i", str(partial / "video.mp4"), "-map", "0:v", "-map", "0:a", "-c", "copy", "-movflags", "+faststart",
-        "-map_metadata", "-1", "-fflags", "+bitexact", str(partial / "video.upload.mp4"),
+        "-map_metadata", "-1", "-map_chapters", "-1", "-fflags", "+bitexact", str(partial / "video.upload.mp4"),
     )  # fmt: skip
     chapters = chapters_for(job, placements)
     write_json(partial / "chapters.json", {"chapters": chapters})
@@ -540,6 +545,12 @@ def run_compose(rc, row, partial):
     write_json(partial / "compose.json", measured | {"filter": graph, "encode": encode})
     if measured["frames"] != frames:
         raise StageRefused("frames_mismatch", f"the encode holds {measured['frames']} frames, not {frames}")
+    roots = strip.local_roots(rc.store.root, rc.env.store_dir, rc.env.records_dir, partial)
+    metadata = {name: strip.check_media(partial / name, roots) for name in ("video.mp4", "video.upload.mp4")}
+    write_json(partial / "compose.json", measured | {"filter": graph, "encode": encode, "metadata": metadata})
+    for name in ("compose.json", "chapters.json", "description.txt", "captions.srt", "captions.vtt"):
+        if (partial / name).is_file():
+            strip.check_text(partial / name, roots)
     persona = job["labels"]["persona"]
     grown = labels.grow(parents, persona)
     labels.check(grown, parents, persona)
