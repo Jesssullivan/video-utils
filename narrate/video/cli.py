@@ -1,4 +1,4 @@
-"""python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims}.
+"""python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims,accept}.
 
 The commands are docs/spec/NARRATED_VIDEO.md, "Commands".
 
@@ -21,6 +21,11 @@ registration in program/externals.json and the binary against the pin. fixture w
 store and lexical release) for `just nv-fixture`. init turns the kitpip avatar on by default for an edition that
 allows one (NV-8), which needs --persona; --no-avatar turns it off.
 
+accept records the operator's acceptance of one operator gate (listening or lip_sync) of the current deliver_check
+render, and only with a Softproxy decision id (sp:dec:<ulid>) and the sha256 of the cut that decision saw: free text,
+an empty value, a malformed id, a missing or other cut, a machine gate and an unknown gate refuse
+(narrate/video/accept.py).
+
 intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
 "Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,
 writes one NarratedVideo record, one narrate job per beat and their sources, and refuses before writing anything when
@@ -41,7 +46,7 @@ from pathlib import Path
 
 from .. import policy
 from ..ir import sha256_file
-from . import bundle, fixture, graph, kitpip, private_terms, speech, store, vrm
+from . import accept, bundle, fixture, graph, kitpip, private_terms, speech, store, vrm
 from . import run as runner
 from .common import Env
 from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_job, load_records, read_json
@@ -368,7 +373,8 @@ def cmd_claims(a):
 
 
 def cmd_status(a):
-    g = job_store(a, a.job).read_graph()
+    s = job_store(a, a.job)
+    g = accept.check_recorded(s, s.read_graph())
     if a.json:
         emit(g)
     else:
@@ -381,6 +387,11 @@ def cmd_explain(a):
     node = f"{a.stage}/{a.segment}" if a.segment else a.stage
     job = s.read_job()
     emit(graph.explain(job, records_for(a, job), s, context(a), node))
+    return 0
+
+
+def cmd_accept(a):
+    emit(accept.accept(job_store(a, a.job), a.gate, a.decision, a.video_sha256))
     return 0
 
 
@@ -523,6 +534,21 @@ def main(argv=None):
     v = sub.add_parser("verify", help="re-hash a stage directory or every current stage of a job")
     v.add_argument("dir")
 
+    acc = sub.add_parser(
+        "accept",
+        help="record the operator's acceptance of one operator gate of the current cut, by Softproxy decision id",
+    )
+    acc.add_argument("job", help="the job id (artifacts/narrated/<job_id>/)")
+    acc.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+    acc.add_argument("--gate", help="the operator gate: " + " or ".join(accept.ACCEPTABLE))
+    acc.add_argument("--decision", help="the Softproxy decision id of the operator's accept: sp:dec:<ulid>, only")
+    acc.add_argument(
+        "--video-sha256",
+        help="the sha256 of the cut the decision saw (required: video_sha256_missing without it, video_mismatch when "
+        "it is not the current composed video)",
+    )
+    acc.add_argument("--json", action="store_true", help="print JSON (accept always does)")
+
     k = sub.add_parser("pin-check", help="check an avatar external's pin against program/externals.json and its binary")
     k.add_argument("--externals", help="the private pin record, instead of NARRATED_VIDEO_EXTERNALS")
     k.add_argument(
@@ -546,6 +572,7 @@ def main(argv=None):
             "pin-check": cmd_pin_check,
             "intake": cmd_intake,
             "claims": cmd_claims,
+            "accept": cmd_accept,
         }
         return commands[a.command](a)
     except bundle.BundleError as exc:
