@@ -6,7 +6,12 @@ one write path that does. It records the operator's decision against the gate of
 and only when the decision is a Softproxy decision id (`sp:dec:<ulid>`, softproxy docs/spec/SOFTPROXY.md section 5.1:
 the 26-character Crockford base32 ULID). Free text ("GO", "yes", "lgtm"), an empty value, a proposal id or any other
 malformed id refuses. accept checks the id's form only: that Softproxy holds an Operator accept under that id is the
-caller's check (Cade's decision poll), and the id is the receipt a reader resolves.
+caller's check (Cade's decision poll), and the id is the receipt a reader resolves. Every row says so: resolution
+"form_only", which plan, run and status show beside the decision.
+
+The decision names the cut it saw: --video-sha256 is required, and refuses video_mismatch unless it is the current
+composed video. A decision about one render therefore never closes the gates of a later render of the same job, nor
+of any other job's cut.
 
 Gates:
 
@@ -21,8 +26,13 @@ job's digest. A new render (a new deliver_check) plans every operator gate open 
 The record is acceptance.json in the job directory, beside job.json, and append-only. job.json stays the NarratedVideo
 record as rendered, so no stage key or private-terms binding moves. The same gate and decision for the same render is
 a no-op (exit 0, recorded false). One decision may close several gates of one render (a GO closes listening and lip
-sync, SPR-258), never a second render, and a gate holds one decision per render. The recorded graph.json (plan
---record, run, status) lists the acceptances that bind its deliver_check and drops their gates from pending_operator.
+sync, SPR-258), never a second render or another job: accept reads every job's acceptance.json under the store root,
+under one root lock, and refuses decision_bound_elsewhere. A gate holds one decision per render. The recorded
+graph.json (plan --record, run, status) lists the acceptances that bind its deliver_check and drops their gates from
+pending_operator.
+
+Reading acceptance.json re-checks every row, so a hand-written row cannot close what accept refuses: its gate must be
+listening or lip_sync, and its digests, decision and resolution well formed. Anything else is store_invalid.
 """
 
 import fcntl
@@ -31,10 +41,14 @@ import re
 from contextlib import contextmanager
 
 from . import keys
-from .job import SHA256, JobError
+from .job import ID, SHA256, JobError
 from .store import load_store_json, utc_now, verify_stage_dir, write_atomic
 
 ACCEPTANCE = "acceptance.json"
+LOCK = ".acceptance.lock"  # at the store root; a job id starts with a-z or 0-9, so this is never a job directory
+# The row says how far the decision id was checked. form_only: its sp:dec form, not that Softproxy holds an Operator
+# accept under it (the caller's check, docs/spec/NARRATED_VIDEO.md "Operator acceptance").
+RESOLUTION = "form_only"
 KIND = "nv_acceptance"
 SCHEMA_VERSION = 1
 # sp:dec:<ulid>: 10 time characters (48 bits, so the first is 0 to 7) and 16 random ones, Crockford base32 upper case
@@ -46,11 +60,11 @@ UNRULED = {"vrm_badge_decision": "whether offline VRM video carries a burned-in 
 AUTOMATED = ("profile", "loudness", "flash", "captions")
 RECORD_BOUND = ("bed_licence_pdf", "bed_content_id")
 GATES = ACCEPTABLE + tuple(UNRULED) + AUTOMATED + RECORD_BOUND
-# admit's pending_operator gate names (narrate/video/admit.py) and the deliver_check gate each one waits on
+# admit's pending_operator gate names (narrate/video/admit.py) and the deliver_check gate each one waits on. Only the
+# gates accept may close are here: vrm_badge_decision joins once a ruling settles the badge and it leaves UNRULED.
 ADMIT_GATES = {
     "listening_acceptance": "listening",
     "lip_sync_acceptance": "lip_sync",
-    "vrm_badge_decision": "vrm_badge_decision",
 }
 
 
@@ -119,36 +133,95 @@ def empty(job_id):
     return {"kind": KIND, "schema_version": SCHEMA_VERSION, "job_id": job_id, "acceptances": []}
 
 
-ROW_FIELDS = {"gate", "decision", "accepted_utc", "job_sha256", "deliver_check", "video_sha256"}
+ROW_FIELDS = {"gate", "decision", "resolution", "accepted_utc", "job_sha256", "deliver_check", "video_sha256"}
+RENDER_FIELDS = {"stage_key", "content_sha256"}
+UTC_STAMP = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
 
 
-def read(store):
-    """The job's acceptance record (an empty one when there is none). store_invalid when it is malformed."""
-    path = store.dir / ACCEPTANCE
+def sha256(value):
+    return isinstance(value, str) and SHA256.fullmatch(value) is not None
+
+
+def valid_row(row):
+    """A row accept could have written: an acceptable gate, a well-formed decision and resolution, and SHA256 digests
+    for the job, the deliver_check render and the video."""
+    if not isinstance(row, dict) or set(row) != ROW_FIELDS:
+        return False
+    render = row["deliver_check"]
+    return (
+        row["gate"] in ACCEPTABLE
+        and isinstance(row["decision"], str)
+        and DECISION.fullmatch(row["decision"]) is not None
+        and row["resolution"] == RESOLUTION
+        and isinstance(row["accepted_utc"], str)
+        and UTC_STAMP.fullmatch(row["accepted_utc"]) is not None
+        and sha256(row["job_sha256"])
+        and isinstance(render, dict)
+        and set(render) == RENDER_FIELDS
+        and sha256(render["stage_key"])
+        and sha256(render["content_sha256"])
+        and sha256(row["video_sha256"])
+    )
+
+
+def consistent(rows):
+    """A gate holds one decision per render, and a decision binds one render."""
+    gates, decisions = set(), {}
+    for row in rows:
+        render = (row["deliver_check"]["stage_key"], row["deliver_check"]["content_sha256"], row["video_sha256"])
+        if (row["gate"], render) in gates or decisions.setdefault(row["decision"], render) != render:
+            return False
+        gates.add((row["gate"], render))
+    return True
+
+
+def read_path(path, job_id):
+    """The acceptance record at path for job_id (an empty one when there is none). store_invalid when it is malformed
+    or holds a row accept would have refused."""
     if path.is_symlink():
         raise JobError("stage_symlink", f"{ACCEPTANCE} is a symlink")
     if not path.is_file():
-        return empty(store.job_id)
+        return empty(job_id)
     value = load_store_json(path)
     rows = value.get("acceptances") if isinstance(value, dict) else None
     if (
         not isinstance(value, dict)
         or value.get("kind") != KIND
-        or value.get("job_id") != store.job_id
+        or value.get("schema_version") != SCHEMA_VERSION
+        or value.get("job_id") != job_id
         or not isinstance(rows, list)
-        or not all(
-            isinstance(r, dict) and set(r) == ROW_FIELDS and DECISION.fullmatch(str(r["decision"])) for r in rows
-        )
+        or not all(valid_row(r) for r in rows)
+        or not consistent(rows)
     ):
-        raise JobError("store_invalid", f"{ACCEPTANCE} is not this job's {KIND} record")
+        raise JobError("store_invalid", f"{job_id}/{ACCEPTANCE} is not that job's {KIND} record")
     return value
+
+
+def read(store):
+    """The job's acceptance record (an empty one when there is none). store_invalid when it is malformed."""
+    return read_path(store.dir / ACCEPTANCE, store.job_id)
+
+
+def bound_elsewhere(store, decision, render):
+    """True when decision already accepted another render, of this job or of any other job under the store root. An
+    unreadable record of another job refuses too, since it may hold the decision."""
+    for directory in sorted(store.root.iterdir()):
+        if directory.is_symlink() or not directory.is_dir() or not ID.match(directory.name):
+            continue
+        path = directory / ACCEPTANCE
+        if not (path.is_file() or path.is_symlink()):
+            continue
+        for row in read_path(path, directory.name)["acceptances"]:
+            if row["decision"] == decision and (directory.name != store.job_id or not same_render(row, render)):
+                return True
+    return False
 
 
 @contextmanager
 def locked(store):
-    """One accept at a time per job directory."""
-    store.dir.mkdir(parents=True, exist_ok=True)
-    fd = os.open(store.dir / ".acceptance.lock", os.O_RDWR | os.O_CREAT, 0o600)
+    """One accept at a time per store root, so two jobs never take one decision at once."""
+    store.root.mkdir(parents=True, exist_ok=True)
+    fd = os.open(store.root / LOCK, os.O_RDWR | os.O_CREAT, 0o600)
     try:
         fcntl.flock(fd, fcntl.LOCK_EX)
         yield
@@ -161,26 +234,35 @@ def same_render(row, render):
     return row["deliver_check"] == render["deliver_check"] and row["video_sha256"] == render["video_sha256"]
 
 
-def accept(store, gate, decision, video_sha256=None, now=utc_now):
-    """Record one acceptance. Returns {ok, job_id, gate, decision, accepted_utc, recorded, render,
-    operator_states_open}; recorded is False when the same gate, decision and render were already recorded."""
+def check_video(value):
+    """The sha256 of the cut the decision saw, or JobError: video_sha256_missing without one, video_sha256_invalid
+    when it is not 64 lower-case hex characters."""
+    if value is None or (isinstance(value, str) and not value.strip()):
+        raise JobError("video_sha256_missing", "--video-sha256 needs the sha256 of the composed cut the decision saw")
+    if not sha256(value):
+        raise JobError("video_sha256_invalid", "--video-sha256 is 64 lower-case hex characters")
+    return value
+
+
+def accept(store, gate, decision, video_sha256, now=utc_now):
+    """Record one acceptance of the cut whose sha256 is video_sha256. Returns {ok, job_id, gate, decision, resolution,
+    accepted_utc, recorded, render, operator_states_open}; recorded is False when the same gate, decision and render
+    were already recorded."""
     check_decision(decision)
     check_gate(gate)
-    if video_sha256 is not None and not SHA256.fullmatch(video_sha256):
-        raise JobError("video_sha256_invalid", "--video-sha256 is 64 lower-case hex characters")
+    check_video(video_sha256)
     job = store.read_job()
     with locked(store):
         render, gates = render_of(store)
-        if video_sha256 is not None and video_sha256 != render["video_sha256"]:
+        if video_sha256 != render["video_sha256"]:
             raise JobError("video_mismatch", "the decision names another cut than the current composed video")
         state = gates.get(gate)
         if state != "pending_operator":
             raise JobError("gate_not_applicable", f"deliver_check reports {gate} as {state or 'absent'}, not pending")
         record = read(store)
         rows = record["acceptances"]
-        for row in rows:
-            if row["decision"] == decision and not same_render(row, render):
-                raise JobError("decision_bound_elsewhere", "this decision already accepted another render")
+        if bound_elsewhere(store, decision, render):
+            raise JobError("decision_bound_elsewhere", "this decision already accepted another render or job")
         existing = next((r for r in rows if r["gate"] == gate and same_render(r, render)), None)
         recorded = existing is None
         if existing is not None and existing["decision"] != decision:
@@ -191,6 +273,7 @@ def accept(store, gate, decision, video_sha256=None, now=utc_now):
             existing = {
                 "gate": gate,
                 "decision": decision,
+                "resolution": RESOLUTION,
                 "accepted_utc": now(),
                 "job_sha256": keys.digest(job),
             } | render
@@ -203,6 +286,7 @@ def accept(store, gate, decision, video_sha256=None, now=utc_now):
         "job_id": store.job_id,
         "gate": gate,
         "decision": decision,
+        "resolution": existing["resolution"],
         "accepted_utc": existing["accepted_utc"],
         "recorded": recorded,
         "render": render,
@@ -223,7 +307,8 @@ def binding(record, stage_key, content_sha256=None):
 def apply(document, rows):
     """A graph document with its acceptances: accepted lists them, pending_operator drops each gate they close."""
     closed = {row["gate"] for row in rows}
-    document["accepted"] = [{k: row[k] for k in ("gate", "decision", "accepted_utc", "video_sha256")} for row in rows]
+    shown = ("gate", "decision", "resolution", "accepted_utc", "video_sha256")
+    document["accepted"] = [{k: row[k] for k in shown} for row in rows]
     document["pending_operator"] = [p for p in document["pending_operator"] if ADMIT_GATES.get(p["gate"]) not in closed]
     return document
 

@@ -14,7 +14,7 @@ from test_narrated_video_graph import FPS, example, new_store, plain_ctx, record
 
 from narrate.config import ROOT
 from narrate.video import accept, cli, graph, keys
-from narrate.video.job import JobError
+from narrate.video.job import ID, JobError
 
 GO = "sp:dec:01JD00000000000000000000F1"
 GO_2 = "sp:dec:01JD00000000000000000000F2"
@@ -145,7 +145,7 @@ def test_free_text_an_empty_value_and_a_malformed_id_refuse(value, code):
 def test_a_machine_gate_a_record_gate_an_unruled_gate_and_an_unknown_gate_refuse(avatar_job, gate, code):
     _, _, s = avatar_job
     with pytest.raises(JobError) as caught:
-        accept.accept(s, gate, GO, now=clock)
+        accept.accept(s, gate, GO, video_of(s), now=clock)
     assert caught.value.code == code
     assert not (s.dir / accept.ACCEPTANCE).exists()
 
@@ -159,9 +159,9 @@ def test_every_deliver_check_gate_is_classified():
 # Recording ---------------------------------------------------------------------------------------------------
 def test_listening_and_lip_sync_are_recorded_with_the_decision_time_gate_and_render(avatar_job):
     job, _, s = avatar_job
-    first = accept.accept(s, "listening", GO, now=clock)
+    first = accept.accept(s, "listening", GO, video_of(s), now=clock)
     assert first["recorded"] and first["operator_states_open"] == ["lip_sync"]
-    second = accept.accept(s, "lip_sync", GO, video_sha256=video_of(s), now=clock)
+    second = accept.accept(s, "lip_sync", GO, video_of(s), now=clock)
     assert second["recorded"] and second["operator_states_open"] == []
     record = json.loads((s.dir / accept.ACCEPTANCE).read_text())
     assert record["kind"] == "nv_acceptance" and record["job_id"] == job["id"]
@@ -170,6 +170,7 @@ def test_listening_and_lip_sync_are_recorded_with_the_decision_time_gate_and_ren
         assert row == {
             "gate": gate,
             "decision": GO,
+            "resolution": "form_only",
             "accepted_utc": NOW,
             "job_sha256": keys.digest(job),
             "deliver_check": {"stage_key": entry["key"], "content_sha256": entry["content_sha256"]},
@@ -180,25 +181,25 @@ def test_listening_and_lip_sync_are_recorded_with_the_decision_time_gate_and_ren
 def test_job_json_and_every_stage_stay_as_they_were(avatar_job):
     job, _, s = avatar_job
     before = s.job_file.read_bytes(), json.dumps(s.current(), sort_keys=True)
-    accept.accept(s, "listening", GO, now=clock)
+    accept.accept(s, "listening", GO, video_of(s), now=clock)
     assert (s.job_file.read_bytes(), json.dumps(s.current(), sort_keys=True)) == before
     assert s.read_job() == job and not any(s.verify().values())
 
 
 def test_the_same_gate_and_decision_again_is_a_no_op(avatar_job):
     _, _, s = avatar_job
-    accept.accept(s, "listening", GO, now=clock)
+    accept.accept(s, "listening", GO, video_of(s), now=clock)
     before = (s.dir / accept.ACCEPTANCE).read_bytes()
-    again = accept.accept(s, "listening", GO, now=lambda: "2026-10-31T00:00:00Z")
+    again = accept.accept(s, "listening", GO, video_of(s), now=lambda: "2026-10-31T00:00:00Z")
     assert not again["recorded"] and again["accepted_utc"] == NOW
     assert (s.dir / accept.ACCEPTANCE).read_bytes() == before
 
 
 def test_a_second_decision_for_an_accepted_gate_refuses(avatar_job):
     _, _, s = avatar_job
-    accept.accept(s, "listening", GO, now=clock)
+    accept.accept(s, "listening", GO, video_of(s), now=clock)
     with pytest.raises(JobError) as caught:
-        accept.accept(s, "listening", GO_2, now=clock)
+        accept.accept(s, "listening", GO_2, video_of(s), now=clock)
     assert caught.value.code == "gate_already_accepted"
     assert len(accept.read(s)["acceptances"]) == 1
 
@@ -206,9 +207,9 @@ def test_a_second_decision_for_an_accepted_gate_refuses(avatar_job):
 def test_lip_sync_without_an_overlay_refuses(card_job):
     _, _, s = card_job
     with pytest.raises(JobError) as caught:
-        accept.accept(s, "lip_sync", GO, now=clock)
+        accept.accept(s, "lip_sync", GO, video_of(s), now=clock)
     assert caught.value.code == "gate_not_applicable"
-    assert accept.accept(s, "listening", GO, now=clock)["operator_states_open"] == []
+    assert accept.accept(s, "listening", GO, video_of(s), now=clock)["operator_states_open"] == []
 
 
 def test_a_decision_about_another_cut_refuses(avatar_job):
@@ -222,26 +223,37 @@ def test_a_decision_about_another_cut_refuses(avatar_job):
     assert not (s.dir / accept.ACCEPTANCE).exists()
 
 
+@pytest.mark.parametrize("value", [None, "", "  "])
+def test_no_video_sha256_refuses(avatar_job, value):
+    """The decision must name the cut it saw; without one it could close the gates of any later render."""
+    _, _, s = avatar_job
+    with pytest.raises(JobError) as caught:
+        accept.accept(s, "listening", GO, value, now=clock)
+    assert caught.value.code == "video_sha256_missing"
+    assert not (s.dir / accept.ACCEPTANCE).exists()
+
+
 def test_no_deliver_check_run_refuses(tmp_path):
     job = example("nv-fixture-card")
     s = new_store(tmp_path, job)
     with pytest.raises(JobError) as caught:
-        accept.accept(s, "listening", GO, now=clock)
+        accept.accept(s, "listening", GO, "0" * 64, now=clock)
     assert caught.value.code == "deliver_check_missing"
 
 
 def test_a_corrupt_deliver_check_or_a_recomposed_cut_refuses(avatar_job):
     _, _, s = avatar_job
+    video = video_of(s)
     out = s.dir / s.entry("deliver_check")["dir"] / "out.json"
     saved = out.read_text()
     out.write_text("{}")
     with pytest.raises(JobError) as caught:
-        accept.accept(s, "listening", GO, now=clock)
+        accept.accept(s, "listening", GO, video_of(s), now=clock)
     assert caught.value.code == "deliver_check_corrupt"
     out.write_text(saved)
     s.archive("compose")
     with pytest.raises(JobError) as caught:
-        accept.accept(s, "listening", GO, now=clock)
+        accept.accept(s, "listening", GO, video, now=clock)
     assert caught.value.code == "deliver_check_stale"
 
 
@@ -253,7 +265,7 @@ def test_a_cut_composed_after_deliver_check_refuses(avatar_job):
     partial = s.begin("compose", key)
     s.commit("compose", key, document, fields_for("compose", partial, key, job))
     with pytest.raises(JobError) as caught:
-        accept.accept(s, "listening", GO, now=clock)
+        accept.accept(s, "listening", GO, video_of(s), now=clock)
     assert caught.value.code == "deliver_check_stale"
 
 
@@ -261,8 +273,91 @@ def test_a_malformed_acceptance_record_refuses(avatar_job):
     _, _, s = avatar_job
     (s.dir / accept.ACCEPTANCE).write_text(json.dumps({"kind": "nv_acceptance", "job_id": "x", "acceptances": []}))
     with pytest.raises(JobError) as caught:
-        accept.accept(s, "listening", GO, now=clock)
+        accept.accept(s, "listening", GO, video_of(s), now=clock)
     assert caught.value.code == "store_invalid"
+
+
+# Forged rows: reading acceptance.json re-checks what accept would refuse -------------------------------------------
+def forge(row):
+    """A copy of row changed by one forgery."""
+    return lambda r: r | row
+
+
+FORGERIES = {
+    "a machine gate": forge({"gate": "loudness"}),
+    "the unruled badge": forge({"gate": "vrm_badge_decision"}),
+    "an admit gate name": forge({"gate": "listening_acceptance"}),
+    "a deliver_check string": forge({"deliver_check": "x"}),
+    "a deliver_check list": forge({"deliver_check": []}),
+    "a deliver_check without its content digest": lambda r: r | {"deliver_check": {"stage_key": "a" * 64}},
+    "a short stage key": lambda r: r | {"deliver_check": r["deliver_check"] | {"stage_key": "abc"}},
+    "a numeric content digest": lambda r: r | {"deliver_check": r["deliver_check"] | {"content_sha256": 7}},
+    "a malformed video digest": forge({"video_sha256": "x"}),
+    "an upper-case job digest": lambda r: r | {"job_sha256": r["job_sha256"].upper()},
+    "a lower-case decision": lambda r: r | {"decision": r["decision"].lower()},
+    "a resolved claim": forge({"resolution": "resolved"}),
+    "no resolution": lambda r: {k: v for k, v in r.items() if k != "resolution"},
+    "a free-text time": forge({"accepted_utc": "yesterday"}),
+    "an extra field": forge({"note": "lgtm"}),
+}
+
+
+@pytest.mark.parametrize("name", sorted(FORGERIES))
+def test_a_forged_row_is_store_invalid_everywhere(avatar_job, capsys, name):
+    job, recs, s = avatar_job
+    accept.accept(s, "listening", GO, video_of(s), now=clock)
+    path = s.dir / accept.ACCEPTANCE
+    record = json.loads(path.read_text())
+    record["acceptances"] = [FORGERIES[name](dict(record["acceptances"][0]))]  # one row, so only the forgery is wrong
+    path.write_text(json.dumps(record))
+    for call_ in (
+        lambda: accept.read(s),
+        lambda: graph.plan(job, recs, s, stub_ctx()),
+        lambda: accept.accept(s, "lip_sync", GO, video_of(s), now=clock),
+    ):
+        with pytest.raises(JobError) as caught:
+            call_()
+        assert caught.value.code == "store_invalid"
+    argv = ["accept", s.job_id, "--root", str(s.root), "--gate", "lip_sync", "--decision", GO]
+    status, out, err = call(capsys, [*argv, "--video-sha256", video_of(s)])
+    assert status == 1 and out == "" and json.loads(err)["refused"] == "store_invalid"
+
+
+@pytest.mark.parametrize(
+    "rows",
+    [
+        "two decisions for one gate of one render",
+        "one decision on two renders",
+    ],
+)
+def test_an_inconsistent_record_is_store_invalid(avatar_job, rows):
+    _, _, s = avatar_job
+    accept.accept(s, "listening", GO, video_of(s), now=clock)
+    path = s.dir / accept.ACCEPTANCE
+    record = json.loads(path.read_text())
+    first = record["acceptances"][0]
+    if rows == "two decisions for one gate of one render":
+        record["acceptances"].append(first | {"decision": GO_2})
+    else:
+        record["acceptances"].append(first | {"gate": "lip_sync", "video_sha256": "f" * 64})
+    path.write_text(json.dumps(record))
+    with pytest.raises(JobError) as caught:
+        accept.read(s)
+    assert caught.value.code == "store_invalid"
+
+
+def test_the_plan_view_closes_only_the_gates_accept_may_close():
+    """The plan's view closes only listening and lip sync, whatever a row names."""
+    assert "vrm_badge_decision" not in accept.ADMIT_GATES.values()
+    assert set(accept.ADMIT_GATES.values()) == set(accept.ACCEPTABLE)
+
+
+def test_plan_shows_each_acceptance_is_checked_by_form_only(avatar_job):
+    job, recs, s = avatar_job
+    accept.accept(s, "listening", GO, video_of(s), now=clock)
+    (row,) = graph.plan(job, recs, s, stub_ctx())["accepted"]
+    assert row["resolution"] == "form_only"
+    assert s.read_graph()["accepted"][0]["resolution"] == "form_only"
 
 
 # A new render ------------------------------------------------------------------------------------------------
@@ -275,8 +370,8 @@ def recaption(job):
 
 def test_a_new_render_reopens_the_gates_and_a_decision_never_moves_to_it(avatar_job):
     job, recs, s = avatar_job
-    accept.accept(s, "listening", GO, now=clock)
-    accept.accept(s, "lip_sync", GO, now=clock)
+    accept.accept(s, "listening", GO, video_of(s), now=clock)
+    accept.accept(s, "lip_sync", GO, video_of(s), now=clock)
     old_video = video_of(s)
     job = recaption(job)
     s.write_job(job, replace=True)
@@ -286,16 +381,66 @@ def test_a_new_render_reopens_the_gates_and_a_decision_never_moves_to_it(avatar_
     assert g["accepted"] == []
     assert {p["gate"] for p in g["pending_operator"]} >= {"listening_acceptance", "lip_sync_acceptance"}
     with pytest.raises(JobError) as caught:
-        accept.accept(s, "listening", GO, now=clock)
+        accept.accept(s, "listening", GO, video_of(s), now=clock)
     assert caught.value.code == "decision_bound_elsewhere"
-    result = accept.accept(s, "listening", GO_3, now=clock)
+    result = accept.accept(s, "listening", GO_3, video_of(s), now=clock)
     assert result["recorded"] and result["operator_states_open"] == ["lip_sync"]
     assert [r["decision"] for r in accept.read(s)["acceptances"]] == [GO, GO, GO_3]  # append-only
 
 
+def test_a_decision_about_render_one_refuses_after_a_re_render(avatar_job):
+    """The operator said GO on render 1, and a re-render landed before accept ran: the GO never closes render 2."""
+    job, recs, s = avatar_job
+    seen = video_of(s)
+    job = recaption(job)
+    s.write_job(job, replace=True)
+    settle(job, recs, s, stub_ctx())
+    assert video_of(s) != seen
+    for gate in ("listening", "lip_sync"):
+        with pytest.raises(JobError) as caught:
+            accept.accept(s, gate, GO, seen, now=clock)
+        assert caught.value.code == "video_mismatch"
+    assert not (s.dir / accept.ACCEPTANCE).exists()
+    assert graph.plan(job, recs, s, stub_ctx())["accepted"] == []
+
+
+def test_one_decision_never_closes_a_second_job(avatar_job, card_job):
+    _, _, a = avatar_job
+    _, _, b = card_job
+    assert a.root == b.root and a.job_id != b.job_id
+    assert accept.accept(a, "listening", GO, video_of(a), now=clock)["recorded"]
+    with pytest.raises(JobError) as caught:
+        accept.accept(b, "listening", GO, video_of(b), now=clock)
+    assert caught.value.code == "decision_bound_elsewhere"
+    assert not (b.dir / accept.ACCEPTANCE).exists()
+    assert accept.accept(b, "listening", GO_2, video_of(b), now=clock)["recorded"]
+    # and the first job takes the second job's decision no more than the other way round
+    with pytest.raises(JobError) as caught:
+        accept.accept(a, "lip_sync", GO_2, video_of(a), now=clock)
+    assert caught.value.code == "decision_bound_elsewhere"
+
+
+def test_an_unreadable_record_of_another_job_refuses(avatar_job, card_job):
+    """Another job's record may hold the decision, so accept refuses rather than skip it."""
+    _, _, a = avatar_job
+    _, _, b = card_job
+    (b.dir / accept.ACCEPTANCE).write_text("{not json")
+    with pytest.raises(JobError) as caught:
+        accept.accept(a, "listening", GO, video_of(a), now=clock)
+    assert caught.value.code == "store_invalid"
+    assert not (a.dir / accept.ACCEPTANCE).exists()
+
+
+def test_the_root_lock_is_never_a_job_directory(avatar_job):
+    _, _, s = avatar_job
+    accept.accept(s, "listening", GO, video_of(s), now=clock)
+    assert (s.root / accept.LOCK).is_file() and not (s.dir / accept.LOCK).exists()
+    assert ID.match(accept.LOCK) is None
+
+
 def test_a_changed_job_plans_the_accepted_render_stale_and_shows_no_acceptance(avatar_job):
     job, recs, s = avatar_job
-    accept.accept(s, "listening", GO, now=clock)
+    accept.accept(s, "listening", GO, video_of(s), now=clock)
     g = graph.plan(recaption(job), recs, s, stub_ctx())
     assert {n["id"]: n["state"] for n in g["nodes"]}["deliver_check"] == "stale"
     assert g["accepted"] == []
@@ -306,7 +451,7 @@ def test_plan_and_the_recorded_graph_list_the_acceptance_and_close_its_gates(ava
     job, recs, s = avatar_job
     open_before = {p["gate"] for p in s.read_graph()["pending_operator"]}
     assert {"listening_acceptance", "lip_sync_acceptance"} <= open_before
-    accept.accept(s, "listening", GO, now=clock)
+    accept.accept(s, "listening", GO, video_of(s), now=clock)
     recorded = s.read_graph()
     assert [r["gate"] for r in recorded["accepted"]] == ["listening"]
     assert recorded["accepted"][0]["decision"] == GO
@@ -314,7 +459,7 @@ def test_plan_and_the_recorded_graph_list_the_acceptance_and_close_its_gates(ava
     planned = graph.plan(job, recs, s, stub_ctx())
     assert planned["accepted"] == recorded["accepted"]
     assert planned["pending_operator"] == recorded["pending_operator"]
-    accept.accept(s, "lip_sync", GO, now=clock)
+    accept.accept(s, "lip_sync", GO, video_of(s), now=clock)
     assert {p["gate"] for p in s.read_graph()["pending_operator"]} == open_before - {
         "listening_acceptance",
         "lip_sync_acceptance",
@@ -324,7 +469,7 @@ def test_plan_and_the_recorded_graph_list_the_acceptance_and_close_its_gates(ava
 def test_admit_is_unchanged_by_an_acceptance(avatar_job):
     """admit lists the operator gates from the job alone; only the plan's view folds acceptances in."""
     job, recs, s = avatar_job
-    accept.accept(s, "listening", GO, now=clock)
+    accept.accept(s, "listening", GO, video_of(s), now=clock)
     gate = graph.admit_stage.admit(job, recs, "resolved")
     assert any(p["gate"] == "listening_acceptance" for p in gate["pending_operator"])
 
@@ -343,11 +488,13 @@ def call(capsys, argv):
 
 def test_cli_accept_records_and_prints_json(cli_root, capsys):
     s, root = cli_root
-    code, out, _ = call(capsys, ["accept", s.job_id, *root, "--gate", "listening", "--decision", GO])
+    video = ["--video-sha256", video_of(s)]
+    code, out, _ = call(capsys, ["accept", s.job_id, *root, "--gate", "listening", "--decision", GO, *video])
     assert code == 0
     result = json.loads(out)
     assert result["ok"] and result["recorded"] and result["decision"] == GO and result["gate"] == "listening"
-    code, out, _ = call(capsys, ["accept", s.job_id, *root, "--gate", "listening", "--decision", GO, "--json"])
+    assert result["resolution"] == "form_only"
+    code, out, _ = call(capsys, ["accept", s.job_id, *root, "--gate", "listening", "--decision", GO, *video, "--json"])
     assert code == 0 and json.loads(out)["recorded"] is False
 
 
@@ -361,6 +508,10 @@ def test_cli_accept_records_and_prints_json(cli_root, capsys):
         (["--gate", "loudness", "--decision", GO], "gate_automated"),
         (["--gate", "listen", "--decision", GO], "gate_unknown"),
         (["--decision", GO], "gate_unknown"),
+        (["--gate", "listening", "--decision", GO], "video_sha256_missing"),
+        (["--gate", "listening", "--decision", GO, "--video-sha256", ""], "video_sha256_missing"),
+        (["--gate", "listening", "--decision", GO, "--video-sha256", "ABC"], "video_sha256_invalid"),
+        (["--gate", "listening", "--decision", GO, "--video-sha256", "0" * 64], "video_mismatch"),
     ],
 )
 def test_cli_accept_refusals_are_typed_and_write_nothing(cli_root, capsys, argv, code):
@@ -375,7 +526,13 @@ def test_cli_accept_refusals_are_typed_and_write_nothing(cli_root, capsys, argv,
 
 def test_cli_accept_an_unknown_job_refuses(tmp_path, capsys):
     status, _, err = call(
-        capsys, ["accept", "nv-nothing", "--root", str(tmp_path / "narrated"), "--gate", "listening", "--decision", GO]
+        capsys,
+        [
+            "accept",
+            "nv-nothing",
+            *("--root", str(tmp_path / "narrated"), "--gate", "listening", "--decision", GO),
+            *("--video-sha256", "0" * 64),
+        ],
     )
     assert status == 1 and json.loads(err)["refused"] == "job_missing"
 
@@ -383,7 +540,10 @@ def test_cli_accept_an_unknown_job_refuses(tmp_path, capsys):
 def test_the_module_entry_point_runs_accept(cli_root):
     s, root = cli_root
     done = subprocess.run(
-        [sys.executable, "-m", "narrate", "video", "accept", s.job_id, *root, "--gate", "lip_sync", "--decision", GO],
+        [
+            *(sys.executable, "-m", "narrate", "video", "accept", s.job_id, *root),
+            *("--gate", "lip_sync", "--decision", GO, "--video-sha256", video_of(s)),
+        ],
         capture_output=True,
         text=True,
         cwd=ROOT,

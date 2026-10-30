@@ -400,7 +400,7 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `intake BUNDLE --out DIR --narrate-template ID --voice ID --engine ID (--persona P \| --no-avatar) [--job ID] [--store DIR] [--tail-s S] [--denylist FILE] [--denylist-sha256 HEX]` | `just narrated-video-intake` | a demo bundle to a job and one narrate job per beat, claims gated (see "Demo bundle intake"). Writes nothing on a refusal |
 | `claims BUNDLE [--denylist FILE] [--denylist-sha256 HEX]` | `just narrated-video-claims` | the private-terms guard and the spoken-number claims gate alone, one row per segment. Exit 1 when a segment refuses |
 | `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
-| `accept JOB --gate G --decision ID [--video-sha256 HEX]` | `just nv-accept JOB GATE DECISION` | records the operator's acceptance of `listening` or `lip_sync` for the current `deliver_check` render, by Softproxy decision id only. See "Operator acceptance" |
+| `accept JOB --gate G --decision ID --video-sha256 HEX` | `just nv-accept JOB GATE DECISION VIDEO` | records the operator's acceptance of `listening` or `lip_sync` for the current `deliver_check` render, by Softproxy decision id and the sha256 of the cut it saw. See "Operator acceptance" |
 
 Paths come from flags or the environment: `--root` (`NARRATED_VIDEO_ROOT`),
 `--records` (`NARRATED_VIDEO_RECORDS`, the directory of `jobs.json`,
@@ -876,10 +876,12 @@ Linear TIN-7788, design P1. `deliver_check` leaves `listening` and `lip_sync` at
 the operator's decision against one gate of the current `deliver_check` render.
 It takes a Softproxy decision id and nothing else: `sp:dec:` and a 26-character
 upper-case Crockford base32 ULID, the form Softproxy writes for a decision.
+`--video-sha256` is required and names the cut the decision saw. It must be the
+current composed video, so a decision about one render never closes a later one.
 
 | Input | Result |
 | --- | --- |
-| `listening`, or `lip_sync` with an overlay, that `deliver_check` reports `pending_operator`, and a well-formed id | one row appended to `acceptance.json`, exit 0 |
+| `listening`, or `lip_sync` with an overlay, that `deliver_check` reports `pending_operator`, a well-formed id and the current video's sha256 | one row appended to `acceptance.json`, exit 0 |
 | the same gate, id and render again | no new row, `recorded: false`, exit 0 |
 | no `--decision`, or an empty one | `decision_missing` |
 | free text such as `GO`, `yes` or `lgtm`, a GO line or another record's id such as `sp:prp:` | `decision_free_text` |
@@ -890,22 +892,30 @@ upper-case Crockford base32 ULID, the form Softproxy writes for a decision.
 | any other gate name | `gate_unknown` |
 | `lip_sync` without an overlay | `gate_not_applicable` |
 | a gate of this render that holds another decision | `gate_already_accepted` |
-| an id that already accepted another render | `decision_bound_elsewhere` |
+| an id that already accepted another render, of this job or of any job under the store root | `decision_bound_elsewhere` |
+| no `--video-sha256`, or an empty one | `video_sha256_missing` |
+| `--video-sha256` that is not 64 lower-case hex characters | `video_sha256_invalid` |
 | `--video-sha256` that is not the current composed video | `video_mismatch` |
+| an `acceptance.json` with a row `accept` would refuse, such as a machine gate, `vrm_badge_decision` or a malformed digest | `store_invalid` |
 | no `deliver_check` run, one that fails re-hashing, or a `compose` newer than it | `deliver_check_missing`, `deliver_check_corrupt` or `deliver_check_stale` |
 
-Each row holds the gate, the decision id, `accepted_utc`, the job digest, the
-`deliver_check` stage key and content digest, and the composed video's sha256.
-One acceptance binds one render. One decision may close both gates of a render,
+Each row holds the gate, the decision id, `resolution`, `accepted_utc`, the job
+digest, the `deliver_check` stage key and content digest, and the composed
+video's sha256. `resolution` is `form_only`: `accept` checked the id's form,
+not that Softproxy holds it. One acceptance binds one render. One decision may close both gates of a render,
 so one GO covers listening and lip sync for that render version. A new render
-opens both gates again until it has its own decision.
+opens both gates again until it has its own decision. A decision binds one
+job: `accept` reads every job's `acceptance.json` under the store root, under
+one lock at that root, before it records one.
 
 `acceptance.json` sits in the job directory beside `job.json` and is
 append-only. `job.json` stays the `NarratedVideo` record as rendered, so no
 stage key and no private-terms binding moves, and `verify` still re-hashes every
 stage. `plan`, `run` and `status` list the acceptances that bind a fresh
-`deliver_check` under `accepted`, and drop the gates they close from
-`pending_operator`. `accept` updates a recorded `graph.json` whose
+`deliver_check` under `accepted`, with their `resolution`, and drop the gates
+they close from `pending_operator`. Reading `acceptance.json` re-checks every
+row, so a hand-written row for a machine gate or the VRM badge refuses
+`store_invalid` and closes nothing. `accept` updates a recorded `graph.json` whose
 `deliver_check` row is that render. `admit` and the `deliver_check` report stay
 as they were, so `public_upload_allowed` stays false. Upload, sending and
 Content ID stay operator actions.
@@ -1344,7 +1354,9 @@ it stays a knob.
   consent it names is typed (`Consent.Scope.Likeness`); `Consent.Type` has no ruling field, so the SP-R13
   ruling is the `Likeness` scope itself plus the model record's `likenessConsent.ruling`.
 - `accept` reads a decision id's form only. Whether Softproxy holds an Operator accept under it is the
-  caller's check, and no tool here resolves the id.
+  caller's check, and no tool here resolves the id. Rows say `resolution: form_only` until one does.
+- The acceptance lock is a local `flock` at the store root. Two hosts writing one store root at once are
+  not covered.
 - The VRM meta permission fields (`avatarPermission`, `commercialUsage` and the rest) are recorded,
   not gated. The model's author and the permission that fits are an open operator decision.
 - Whether offline VRM video carries a burned-in badge is open. So is VRM in any edition except

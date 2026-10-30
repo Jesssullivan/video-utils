@@ -43,10 +43,11 @@ vrm-pin-check *args:
 
 # Record the operator's acceptance of one operator gate (listening or lip_sync) of the job's current deliver_check
 # render. DECISION is the Softproxy decision id of the operator's accept (sp:dec:<ulid>) and nothing else: free text,
-# an empty or malformed id, a machine gate and an unknown gate refuse. The same gate and decision again is a no-op.
-# ARGS: --video-sha256 HEX (the cut the decision saw), --root DIR.
-nv-accept job gate decision *args:
-    python3 -m narrate video accept {{quote(job)}} --gate {{quote(gate)}} --decision {{quote(decision)}} {{args}}
+# an empty or malformed id, a machine gate and an unknown gate refuse. VIDEO is the sha256 of the cut the decision saw;
+# it refuses unless it is the current composed video. The same gate and decision again is a no-op. ARGS: --root DIR.
+nv-accept job gate decision video *args:
+    python3 -m narrate video accept {{quote(job)}} --gate {{quote(gate)}} --decision {{quote(decision)}} \
+        --video-sha256 {{quote(video)}} {{args}}
 
 # Re-hash a stage directory, or every current stage of a job directory.
 nv-verify dir:

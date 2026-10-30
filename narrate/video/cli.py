@@ -22,8 +22,9 @@ store and lexical release) for `just nv-fixture`. init turns the kitpip avatar o
 allows one (NV-8), which needs --persona; --no-avatar turns it off.
 
 accept records the operator's acceptance of one operator gate (listening or lip_sync) of the current deliver_check
-render, and only with a Softproxy decision id (sp:dec:<ulid>): free text, an empty value, a malformed id, a machine
-gate and an unknown gate refuse (narrate/video/accept.py).
+render, and only with a Softproxy decision id (sp:dec:<ulid>) and the sha256 of the cut that decision saw: free text,
+an empty value, a malformed id, a missing or other cut, a machine gate and an unknown gate refuse
+(narrate/video/accept.py).
 
 intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
 "Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,
@@ -541,7 +542,9 @@ def main(argv=None):
     acc.add_argument("--gate", help="the operator gate: " + " or ".join(accept.ACCEPTABLE))
     acc.add_argument("--decision", help="the Softproxy decision id of the operator's accept: sp:dec:<ulid>, only")
     acc.add_argument(
-        "--video-sha256", help="the sha256 of the cut the decision saw; refuses video_mismatch when it is not current"
+        "--video-sha256",
+        help="the sha256 of the cut the decision saw (required: video_sha256_missing without it, video_mismatch when "
+        "it is not the current composed video)",
     )
     acc.add_argument("--json", action="store_true", help="print JSON (accept always does)")
 
