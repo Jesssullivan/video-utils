@@ -1165,11 +1165,17 @@ its value in any unit in any of these forms: a mention the claims gate's extract
 at its one decimal point and as a grouped integer ("3.375" for 3375), or, when it holds a comma or two separators,
 group by group and at its last separator ("12,5", ".5"); a middle dot, an Arabic decimal separator or a one-dot
 leader as the point ("12·5"); a point with spaces around it ("12 .5", "12 . 5"); a fraction ("25/2", "12 1/2") or a
-vulgar fraction ("12½"); fullwidth or other decimal digits; and its English spelling ("twelve point five", "twelve
-dot five", "twelve comma five", "twelve and a half", "one hundred and five"). Hyphen-joined digits ("12-5") are not
-read as a decimal, because dates would then match. Inflections the fold does not reach, abbreviations and other
+vulgar fraction ("12½", "12 and 1/2"); digit groups of 3 split by a space, a no-break or thin space, an apostrophe
+or an underscore, read joined ("3 375", "3'375", "3_375"); an exponent ("1.25e1"); fullwidth or other decimal
+digits; and its English spelling ("twelve point five", "twelve point fifty", "twelve point five zero", "twelve dot
+five", "twelve comma five", "twelve and a half", "12 and a half", "twelve and 1/2", "one hundred and five"). The
+whole part is also read as two pairs ("thirty three seventy five") and digit by digit ("one two point five", "three
+three seven five" from 3 digits up). Hyphen-joined digits ("12-5") are not read as a decimal, because dates would
+then match. Inflections the fold does not reach, abbreviations and other
 leetspeak ("Z3rblax") need entries of their own. `narrate/tests/fixtures/narrated-video/nv-denylist-conformance.json` holds the cases both
-repositories must agree on. cade keeps a byte-identical copy.
+repositories must agree on. cade keeps a byte-identical copy. The grouped, exponent, pair, digit-by-digit and
+trailing-zero forms are tested here only (`test_a_grouped_exponent_or_spelled_number_refuses`) until cade reads them
+and the shared fixture adds them in step.
 
 The guard checks these texts, in this order, and refuses at the first group that matches:
 
@@ -1180,12 +1186,16 @@ The guard checks these texts, in this order, and refuses at the first group that
 | claim | each claim's `spoken` text | the claim id |
 | label | `--persona` at intake | `labels` |
 | spoken | each paragraph after the pronunciation tables, at intake | the beat id |
+| joined | each two adjacent voiced texts, and at intake each two adjacent spoken paragraphs, read as one text; it reports only an entry neither part matches alone | `a+b`, the two beat ids |
 
 The guard is built before any other bundle check. Record texts are checked first and named by position, so a
 refusal never repeats a private id. A report holds `{status, ip_private, never_name, denylist_sha256, pinned,
 entries, checked, matches}`. Each match names its segment, group, the entry's position (`entry`, null for class
-`script`) and class, and a refusal detail names the entry by position too. Every other refusal of `claims` and `intake` whose detail an entry matches keeps its
-code and has its detail withheld, as does every refusal while a given denylist cannot be read. No report or detail
+`script`) and class, and a refusal detail names the entry by position too. No other refusal echoes a bundle value it
+refuses: a malformed beat id, `target_s`, `asset_id`, asset `kind` or claim `value.unit` is named by its field, and an
+unknown key is counted. Every other refusal of `claims` and `intake` whose detail an entry matches, or that holds a
+backslash escape (repr of a format character), keeps its code and has its detail withheld. So does every refusal
+while a given denylist cannot be read, and while a pin is set and no denylist is bound yet. No report or detail
 holds the matched text, a literal, a pattern or a denylist number, so a refusal may go to a log. A pass records
 `private_terms` and the state `private_terms: passed` in `intake.json`. A bundle with no `privacy` block and no pin
 records `not_declared`. A denylist given to such a bundle still runs.
@@ -1199,7 +1209,9 @@ persona label or a segment pointed at another narrate job refuses, and so does a
 records directory with no marker refuses too when the `intake.json` beside it says the guard passed or refused, or
 when `NARRATED_VIDEO_DENYLIST` or `NARRATED_VIDEO_DENYLIST_SHA256` is set. The intake's own `--records` input is
 exempt, because the operator's base records come from no intake. Deleting both the marker and `intake.json` outside
-a private lane still removes the check, so the producer keeps OUT where the bundle lives.
+a private lane still removes the check, so the producer keeps OUT where the bundle lives. So does deleting the
+marker and editing the `intake.json` status to `not_declared`, outside a private lane; both edits need write access
+to OUT itself, which the producer controls. A pinned lane refuses either way.
 
 The guard reads text only. These pass it, and the producer reviews them:
 

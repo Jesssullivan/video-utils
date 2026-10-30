@@ -120,9 +120,9 @@ def natural(value):
 def fields(value, required, optional, where):
     if not isinstance(value, dict):
         raise BundleError("bundle_invalid", f"{where} is not an object")
-    missing, unknown = sorted(required - set(value)), sorted(set(value) - required - optional)
-    if missing or unknown:
-        raise BundleError("bundle_invalid", f"{where}: missing {missing}, unknown {unknown}")
+    missing, unknown = sorted(required - set(value)), set(value) - required - optional
+    if missing or unknown:  # the required names are this module's; an unknown key is counted, never echoed
+        raise BundleError("bundle_invalid", f"{where}: missing {missing}, holds {len(unknown)} unknown fields")
 
 
 def png_size(path):
@@ -164,7 +164,7 @@ def read_manifest(bundle):
         if asset["id"] in assets:
             raise BundleError("bundle_invalid", f"{where}: the id repeats")
         if asset["kind"] not in ASSET_KINDS:
-            raise BundleError("bundle_invalid", f"{where}: kind {asset['kind']!r} is not png, mp4 or gif")
+            raise BundleError("bundle_invalid", f"{where}: kind is not png, mp4 or gif")
         if not isinstance(asset["sha256"], str) or not SHA256.match(asset["sha256"]):
             raise BundleError("bundle_invalid", f"{where}: sha256 is not 64 lowercase hex digits")
         if not isinstance(asset["receipt"], str) or not asset["receipt"].strip():
@@ -226,10 +226,10 @@ def parse_script(text):
             raise BundleError("beat_voiced_missing", f"{where}: no ```voiced block with the words to speak")
         target = b["meta"]["target_s"]
         if not TARGET.match(target) or not 0 < Decimal(target) <= MAX_TARGET_S:
-            raise BundleError("beat_invalid", f"{where}: target_s {target!r} is not seconds above 0 and at most 3600")
+            raise BundleError("beat_invalid", f"{where}: target_s is not seconds above 0 and at most 3600")
         asset_id = b["meta"]["asset_id"]
         if not ID.match(asset_id):
-            raise BundleError("beat_invalid", f"{where}: asset_id {asset_id!r} is not an asset id")
+            raise BundleError("beat_invalid", f"{where}: asset_id is not an asset id")
         cited = [c.strip() for c in b["meta"]["claims"].split(",")] if b["meta"]["claims"] else []
         if any(not ID.match(c) for c in cited) or len(set(cited)) != len(cited):
             raise BundleError("beat_invalid", f"{where}: claims is not a comma-separated list of distinct claim ids")
@@ -258,7 +258,7 @@ def parse_script(text):
         if heading:
             close(beat)
             if not ID.match(heading["id"]):
-                bad(number, f"beat id {heading['id']!r} is not 1 to 64 of a-z, 0-9, '.', '_' and '-'", "beat_invalid")
+                bad(number, "the beat id is not 1 to 64 of a-z, 0-9, '.', '_' and '-'", "beat_invalid")
             if any(b["id"] == heading["id"] for b in beats):
                 bad(number, f"beat id {heading['id']} repeats", "beat_invalid")
             beat = {"id": heading["id"], "line": number, "meta": {}, "voiced": None}
@@ -307,7 +307,7 @@ def read_claims(bundle):
         if not isinstance(value["number"], Decimal):
             raise BundleError("claim_invalid", f"{where}: value.number is not a JSON number")
         if not isinstance(value["unit"], str) or not gate.unit_valid(value["unit"]):
-            raise BundleError("claim_invalid", f"{where}: value.unit {value['unit']!r} is not a unit the gate reads")
+            raise BundleError("claim_invalid", f"{where}: value.unit is not a unit the gate reads")
         if not isinstance(value["spoken"], str) or not value["spoken"].strip():
             raise BundleError("claim_invalid", f"{where}: value.spoken is empty")
         if claim["receipt"] is not None and not isinstance(claim["receipt"], str):
@@ -395,13 +395,17 @@ def withheld(state):
     """Withhold the detail of any refusal raised inside that says a private term (F9). state["entries"] is the
     denylist's entries: preloaded before the manifest is read, then the bound guard's. A refusal of the guard's own
     passes as it is; any other refusal whose detail an entry matches, or every one while the denylist is given but
-    unreadable, keeps its code and loses its detail and report."""
+    unreadable or while the lane is private (state["pinned"]: a pin is set) and no denylist is bound yet, keeps its
+    code and loses its detail and report."""
     try:
         yield
     except BundleError as exc:
         if exc.code in GUARD_CODES:
             raise
-        detail = private_terms.redact(state.get("entries"), exc.code, exc.detail)
+        entries = state.get("entries")
+        if entries is None and state.get("pinned"):
+            entries = False  # a pinned lane is private: with no denylist to test against, withhold every detail
+        detail = private_terms.redact(entries, exc.code, exc.detail)
         if detail == exc.detail:
             raise
         raise BundleError(exc.code, detail) from None
@@ -411,6 +415,7 @@ def guarded_read(bundle, denylist, pin, state):
     """(beats, claims, digests, guard, private): the privacy declaration and the guard first, then script.md and
     claims.json, then the record, voiced and claim texts through the guard. Every refusal passes withheld()."""
     state.setdefault("entries", private_terms.preload(denylist))
+    state.setdefault("pinned", private_terms.pinned(pin))
     with withheld(state):
         declared, manifest = read_privacy(bundle)
         guard = private_guard(declared, denylist, pin, bundle)
@@ -612,7 +617,7 @@ def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s
     shows its picture as a Full slide page over the beat's span; an MP4 beat shows the base, which is that MP4. With
     no MP4 the base is the default card. Edition Internal; the avatar is on with persona, off without it."""
     if not ID.match(job_id):
-        raise BundleError("job_invalid", f"job id {job_id!r} is not 1 to 64 of a-z, 0-9, '.', '_' and '-'")
+        raise BundleError("job_invalid", "the job id is not 1 to 64 of a-z, 0-9, '.', '_' and '-'")
     jobs = narrate_jobs(b, records, job_id, template, voice, engine)
     d = DEFAULTS
     segments, pages, start, video = [], [], Decimal(0), None
@@ -786,7 +791,7 @@ def intake(
     each beat's Markdown and each used asset as <sha256><suffix>. denylist is the private denylist file that a
     manifest declaring ip_private or never_name binds by digest, and pin the operator's pinned digest of it. Nothing
     is written when any check refuses, and a refusal whose detail says a private term is withheld."""
-    state = {}
+    state = {"entries": private_terms.preload(denylist), "pinned": private_terms.pinned(pin)}
     with withheld(state):
         return guarded_intake(bundle, out, records_dir, state, job_id=job_id, template=template, voice=voice,
                               engine=engine, persona=persona, tail_s=tail_s, store=store, denylist=denylist,
@@ -824,7 +829,7 @@ def guarded_intake(
         first = verdict["refusals"][0]
         raise BundleError(first["code"], f"admit: {first['detail']}")
     spoken = pronunciation_check(b, records, template)
-    b["private"] = private_check(b["guard"], spoken["said"])
+    b["private"] = private_check(b["guard"], spoken["said"] + private_terms.joined(spoken["said"]))
 
     used = {beat["asset_id"] for beat in b["beats"]}
     sources = {}  # store file name: (digest, Markdown bytes or None, asset or None)

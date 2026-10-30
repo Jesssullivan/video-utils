@@ -115,3 +115,24 @@ decision.
 F4 (CODEOWNERS and ruleset 25222169) stays Jess's act, with the paths and
 settings in the F4 proposal above. Until it is applied, the guard does not
 count as enforced.
+
+## Final review fixes (2026-10-30)
+
+Authority: SPR-214 (TIN-7125 comment 0cbbe60a), SPR-220 (comment 4842e728)
+and the final review of #74 head 304938c6 (TIN-7735 comment d2925e47).
+Receipt per R-HOOK-CONVERGENCE-20261004 (R-N13).
+
+| Finding | Change |
+| --- | --- |
+| F-A, a refusal echoed a value | the beat id, `target_s`, `asset_id`, asset `kind`, claim `value.unit` and job id refusals name the field only. An unknown key is counted. `redact()` withholds a detail with a backslash escape |
+| F-B, a pinned lane with no denylist | `withheld()` withholds every non-guard detail while a pin is set and no denylist is bound |
+| F-C, number forms | 3-digit groups split by a space, no-break or thin space, apostrophe or underscore. An exponent. Trailing zeros ("point fifty"), pairs, digits one by one, "12 and a half" and "and 1/2" |
+| split term | adjacent voiced texts and adjacent spoken paragraphs are read joined, as group `joined` |
+| marker bypass | the spec records the `intake.json` edit that needs write access to OUT |
+
+The shared conformance fixture is unchanged and stays byte-identical with
+cade. The new number forms are tested in this repository only, until cade
+reads them and both copies add them together.
+
+The cade guard step code, the sprint ruling reference, the ruleset id and the
+hook trailer host field stay for Jess to judge.

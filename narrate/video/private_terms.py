@@ -24,14 +24,18 @@ and 0 as o, so "ZorbIax", "Zorb|ax", "Zorb1ax" and "F1xture Corp" match. A regex
 (REGEX_TOKEN, which cade src/bs21-guard.ts reads alike); it runs on the NFKC text, on the spaced fold and, with its
 separators removed, on the squeezed fold. A number entry matches its value in any unit: every mention the claims
 gate's extractor reads as it, every digit run read as a whole, a decimal or its groups ("12,5", ".5", "3.375" for
-3375), a middle dot or Arabic decimal separator ("12\\u00b75"), a point with spaces ("12 .5"), a fraction ("25/2",
-"12 1/2", "12\\u00bd") and its English spelling ("twelve point five", "twelve dot five", "twelve and a half").
+3375), digit groups split by a space, an apostrophe or an underscore ("3 375", "3'375"), an exponent ("1.25e1"), a
+middle dot or Arabic decimal separator ("12\\u00b75"), a point with spaces ("12 .5"), a fraction ("25/2", "12 1/2",
+"12 and 1/2", "12\\u00bd") and its English spelling ("twelve point five", "twelve point fifty", "twelve dot five",
+"twelve and a half", "thirty three seventy five", "one two point five"). Two adjacent beats or paragraphs are also
+read joined (joined()), so a term split across them matches.
 Inflections, abbreviations and other leetspeak ("Z3rblax") need entries of their own.
 
 A report names the beat, the text's source and the entry's position and class. No report holds an entry id, the
 matched text, a literal, a pattern or a number from the denylist, so a refusal can go to a log. An entry id that
 any entry matches is still refused as denylist_invalid. redact() withholds a refusal detail from any earlier check
-that says a term.
+that says a term or holds a backslash escape; bundle.withheld() withholds every detail of a pinned lane until its
+denylist is bound.
 
 Standard library only.
 """
@@ -62,7 +66,7 @@ PRIVACY_OPTIONAL = {"denylist_sha256"}
 # of fewer than SALT_DISTINCT distinct hex digits ("00...", "0f0f...") is not random.
 SALT = re.compile(r"^[0-9a-f]{32,128}$")
 SALT_DISTINCT = 8
-SOURCES = ("record", "voiced", "spoken", "claim", "label")
+SOURCES = ("record", "voiced", "spoken", "claim", "label", "joined")
 PIN_ENV = "NARRATED_VIDEO_DENYLIST_SHA256"
 
 # Letters that look like Latin ones: Cyrillic, Greek and Latin extensions. UPPER_CONFUSABLES maps capitals before
@@ -94,14 +98,18 @@ FRACTIONS = {
     "\u2158": ".8", "\u215b": ".125", "\u215c": ".375", "\u215d": ".625", "\u215e": ".875", "\u2152": ".1",
 }  # fmt: skip
 FRACTION = re.compile(r"(\d?)\s*([" + "".join(FRACTIONS) + "])")
-DIGIT_RUN = re.compile(r"[0-9]+(?:[.,][0-9]+)*|[.,][0-9]+")
+DIGIT_RUN = re.compile(r"(?:[0-9]+(?:[.,][0-9]+)*|[.,][0-9]+)(?:[eE][+-]?[0-9]{1,3}(?![0-9]))?")
+# Digit groups split by a space, a no-break or thin space, an apostrophe or an underscore, each later group of
+# exactly 3 digits ("3 375", "3'375", "3_375"): number_hit also reads them joined.
+GROUP_SEP = "[ \u00a0\u2009\u202f'\u2019\u02bc_]"
+GROUPED = re.compile(r"(?<![0-9])[0-9]{1,3}(?:" + GROUP_SEP + r"[0-9]{3}(?![0-9]))+")
 # Decimal separators that are not ".": the middle dot, the Arabic decimal separator and the one-dot leader; and the
 # Arabic thousands separator, read as ",".
 SEPARATOR_MAP = str.maketrans({"\u00b7": ".", "\u066b": ".", "\u2024": ".", "\u066c": ","})
 # A point with spaces around it between two digits ("12 .5", "12 . 5") joins them.
 SPACED_POINT = re.compile(r"(?<=[0-9])[ \t]*\.[ \t]*(?=[0-9])")
 # A fraction a/b, or a whole number and a fraction "n a/b", in ASCII digits.
-FRACTION_TEXT = re.compile(r"(?<![0-9.,])(?:([0-9]+)[ \t]+)?([0-9]+)[ \t]*/[ \t]*([0-9]+)(?![0-9])")
+FRACTION_TEXT = re.compile(r"(?<![0-9.,])(?:([0-9]+)[ \t]+(?:and[ \t]+)?)?([0-9]+)[ \t]*/[ \t]*([0-9]+)(?![0-9])", re.I)
 # The loose fold of a literal: look-alike letters and digits read as one letter (after case folding).
 LOOSE = str.maketrans({"i": "l", "1": "l", "|": "l", "!": "l", "0": "o"})
 # The shared regex subset: ASCII letters, digits and spaces, the escapes \s \d \b \. \-, ".", groups "(" "(?:" ")",
@@ -121,6 +129,9 @@ SCALE_WORDS = ((10**12, "trillion"), (10**9, "billion"), (10**6, "million"), (10
 POINT_WORDS = ("point", "dot", "comma")
 FRACTION_WORDS = {"5": ("and a half", "and one half"), "25": ("and a quarter", "and one quarter"),
                   "75": ("and three quarters",)}  # fmt: skip
+# A fraction in digits after a whole number in words ("twelve and 1/2"), spaced as spaced() reads it. fraction_hit
+# reads it after a whole number in digits ("12 and 1/2").
+FRACTION_DIGITS = {"5": "and 1 2", "25": "and 1 4", "75": "and 3 4"}
 
 
 class PrivateError(JobError):
@@ -218,7 +229,21 @@ def fraction_hit(want, numeric):
 def run_values(run):
     """Every value a digit run may be read as. A run with one "." is that decimal or that grouped integer. A run
     with a "," or two or more separators is ambiguous, so it is read whole, group by group, and as a decimal at its
-    last separator."""
+    last separator. A run with an exponent ("1.25e1") is read with and without it."""
+    run, _, exponent = run.lower().partition("e")
+    values = plain_run_values(run)
+    if exponent:
+        values |= {abs(v.scaleb(int(exponent))) for v in values}
+    return values
+
+
+def grouped_text(numeric):
+    """numeric with every GROUPED run of digit groups joined ("3 375" as "3375"), or None when it holds none."""
+    joined = GROUPED.sub(lambda m: re.sub(GROUP_SEP, "", m[0]), numeric)
+    return None if joined == numeric else joined
+
+
+def plain_run_values(run):
     seps = [ch for ch in run if ch in ".,"]
     groups = [g for g in re.split(r"[.,]", run) if g]
     if not seps:
@@ -256,24 +281,52 @@ def int_words(n, with_and):
     raise ValueError(n)
 
 
+def digit_words(digits):
+    return " ".join(SMALL_WORDS[int(d)] for d in digits)
+
+
+def pair_words(n):
+    """A four-digit number said as two pairs ("thirty three seventy five", "thirty three oh five"); {} for others."""
+    if not 1000 <= n <= 9999 or n // 100 < 10:
+        return set()
+    high, low = int_words(n // 100, False), n % 100
+    if low == 0:
+        return {high + " hundred"}
+    return {high + " " + int_words(low, False)} | ({f"{high} oh {SMALL_WORDS[low]}"} if low < 10 else set())
+
+
 def spelled_forms(value):
-    """The English spellings of a number (its absolute value) that a text may say, spaced; [] when too long."""
+    """The English spellings of a number (its absolute value) that a text may say, spaced; [] when too long. The
+    whole part is said as words, as pairs (four digits) or digit by digit (three or more digits, or with a fraction);
+    the fraction digit by digit, with one or two trailing zeros, as a whole number ("point fifty") or as a half or
+    quarter ("and a half", "and 1/2"), after the whole part in words or in digits ("12 and a half")."""
     value = abs(value)
     text = format(value.normalize(), "f")
     whole, _, frac = text.partition(".")
     if len(whole) > 15 or len(frac) > 12:
         return []
-    heads = {int_words(int(whole), True), int_words(int(whole), False)}
+    heads = {int_words(int(whole), True), int_words(int(whole), False)} | pair_words(int(whole))
+    if len(whole) >= 3:
+        heads.add(digit_words(whole))
     if not frac:
         return sorted(heads)
-    forms, digits = set(), " ".join(SMALL_WORDS[int(d)] for d in frac)
+    heads.add(digit_words(whole))
+    tails = set()
+    for zeros in ("", "0", "00"):
+        tails.add(digit_words(frac + zeros))
+        if not frac.startswith("0"):
+            tails |= {int_words(int(frac + zeros), True), int_words(int(frac + zeros), False)}
+    forms = set()
     for head in heads:
         for point in POINT_WORDS:
-            forms.add(f"{head} {point} {digits}")
+            forms |= {f"{head} {point} {tail}" for tail in tails}
+    for head in heads | {whole}:
         for tail in FRACTION_WORDS.get(frac, ()):
             forms.add(head + " " + tail)
+    if frac in FRACTION_DIGITS:
+        forms |= {f"{head} {FRACTION_DIGITS[frac]}" for head in heads}
     if whole == "0":
-        forms |= {f"{point} {digits}" for point in POINT_WORDS}
+        forms |= {f"{point} {tail}" for point in POINT_WORDS for tail in tails}
         if frac == "5":
             forms |= {"a half", "one half"}
     return sorted(forms)
@@ -362,6 +415,12 @@ def declaration(value, where="manifest.json privacy"):
 
 def required(declared, pin=None):
     return declared["ip_private"] or declared["never_name"] or declared["denylist_sha256"] is not None or bool(pin)
+
+
+def pinned(pin=None):
+    """True when the operator set a denylist pin (pin or NARRATED_VIDEO_DENYLIST_SHA256), valid or not: the lane is
+    private before the pin is checked."""
+    return bool(pin or os.environ.get(PIN_ENV))
 
 
 def operator_pin(pin=None):
@@ -529,19 +588,24 @@ def entry(row, n, ids):
             "number": value,
             "unit": unit,
             "spelled": [" " + f + " " for f in forms],
-            "spelled_tight": [f.replace(" ", "") for f in forms if " " in f],
+            # a form with two digit groups ("twelve and 1 2") is matched spaced only: squeezed, it would read
+            # "12and12"-like text as a fraction
+            "spelled_tight": [f.replace(" ", "") for f in forms if " " in f and not re.search("[0-9] [0-9]", f)],
         }
     return out
 
 
 def number_hit(e, text):
     """True when text says e's number in any unit, as the claims gate reads it, as a digit run or spelled out."""
-    numeric = numeric_text(text)
     want = e["number"]
-    if any(m["number"] is not None and abs(m["number"]) == want for m in gate.extract(numeric)):
-        return True
-    if any(want in run_values(m[0]) for m in DIGIT_RUN.finditer(numeric)) or fraction_hit(want, numeric):
-        return True
+    first = numeric_text(text)
+    for numeric in (first, grouped_text(first)):
+        if numeric is None:
+            continue
+        if any(m["number"] is not None and abs(m["number"]) == want for m in gate.extract(numeric)):
+            return True
+        if any(want in run_values(m[0]) for m in DIGIT_RUN.finditer(numeric)) or fraction_hit(want, numeric):
+            return True
     words, tight = spaced(text), squeezed(text)
     return any(f in words for f in e["spelled"]) or any(f in tight for f in e["spelled_tight"])
 
@@ -559,11 +623,17 @@ def hits(e, text):
     return number_hit(e, text)
 
 
+# A Python escape in a detail (backslash x, u, U or N{): repr() of a text with a format or other invisible character
+# prints one, and the escaped form would hide a term from every fold.
+ESCAPE = re.compile(r"\\(?:x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|U[0-9a-fA-F]{8}|N\{)")
+
+
 def redact(entries, code, detail):
-    """detail, or a withheld detail when it says a term. entries False (an unreadable denylist) withholds all."""
+    """detail, or a withheld detail when it says a term. entries False (an unreadable denylist, or a private lane
+    with no denylist yet) withholds all, and so does any escape (ESCAPE) in detail."""
     if entries is None:
         return detail
-    if entries is False or script_hit(detail) or any(hits(e, detail) for e in entries):
+    if entries is False or ESCAPE.search(detail) or script_hit(detail) or any(hits(e, detail) for e in entries):
         return f"{code}: the detail is withheld because it may say a private term"
     return detail
 
@@ -572,20 +642,30 @@ def redact(entries, code, detail):
 def scan(entries, texts):
     """[{segment, source, entry, class}] for every (segment, source, text) that an entry matches, in order; entry is
     the entry's position in the denylist, never its id. A text with a letter outside ASCII or a word of two scripts
-    is a match of class script (entry null)."""
-    out = []
+    is a match of class script (entry null). A joined text (joined()) reports only what neither of its parts says."""
+    out, seen = [], set()
     for segment, source, text in texts:
-        if script_hit(text):
-            out.append({"segment": segment, "source": source, "entry": None, "class": "script"})
-        for e in entries:
-            if hits(e, text):
-                out.append({"segment": segment, "source": source, "entry": e["index"], "class": e["class"]})
+        found = [(None, "script")] if script_hit(text) else []
+        found += [(e["index"], e["class"]) for e in entries if hits(e, text)]
+        for index, kind in found:
+            if source == "joined" and any((part, index) in seen for part in segment.split("+")):
+                continue
+            seen.add((segment, index))
+            out.append({"segment": segment, "source": source, "entry": index, "class": kind})
     return out
+
+
+def joined(texts):
+    """(a+b, "joined", text a + newline + text b) for each two adjacent texts, so a term split across two beats or two
+    paragraphs ("... Zorb." then "Lax. ...") is read as the listener hears it."""
+    texts = list(texts)
+    return [(f"{a[0]}+{b[0]}", "joined", a[2] + "\n" + b[2]) for a, b in zip(texts, texts[1:], strict=False)]
 
 
 def written_texts(beats, claims, persona=None):
     """(segment, source, text) for every text a bundle speaks or shows before the pronunciation tables run."""
     texts = [(b["id"], "voiced", b["voiced"]) for b in beats]
+    texts += joined(texts)
     texts += [(c["id"], "claim", c["value"]["spoken"]) for c in claims.values()]
     if persona is not None:
         texts.append(("labels", "label", persona))
