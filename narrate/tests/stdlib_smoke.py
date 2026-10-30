@@ -65,6 +65,8 @@ VIDEO_MODULES = (
     "run",
     "speech",
     "store",
+    "strip",
+    "visible_text",
     "vrm",
 )
 
