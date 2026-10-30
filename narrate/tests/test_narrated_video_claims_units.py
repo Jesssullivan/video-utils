@@ -109,9 +109,61 @@ def test_a_miscased_symbol_is_not_read(said):
     assert result["codes"] == ["number_ambiguous"]
 
 
-@pytest.mark.parametrize(("said", "number"), [("a 3.9 GPA", "3.9"), ("5 PA speakers", "5"), ("12 MPA", "12")])
-def test_an_all_capital_acronym_stays_a_bare_count(said, number):
+@pytest.mark.parametrize(("said", "number"), [("12 MCP servers", "12"), ("5 PRs", "5"), ("3 CI checks", "3")])
+def test_an_acronym_that_is_no_unit_stays_a_bare_count(said, number):
     assert [(claims.fmt(m["number"]), m["unit"]) for m in claims.extract(said)] == [(number, "")]
+
+
+# A spelling the gate does not read as one unit, and the claims it must not pass against.
+REFUSED = {
+    # Torque and other compounds that start with a known symbol.
+    "40 N·mm": ["N", "Nm", ""], "5 kN-m": ["kN", ""], "5 kN·m": ["kN", ""], "5 kN m": ["kN", ""],
+    "5 kN.m": ["kN", ""], "5 N-type": ["N", ""], "5 Pa s": ["Pa", ""], "5 Pa·s": ["Pa", ""],
+    "5 kilonewton metres": ["kN", "Nm"], "5 degrees kelvin": ["deg", "K"], "5 dB(A)": ["dB", "dBA"],
+    "5 newtons per square metre": ["N", "N/m"], "5 N per m s": ["N/m", "N"],
+    # Unit marks on a symbol the gate does not list.
+    "5 µA": ["", "A", "mA"], "5 µg": ["", "g"], "5 µV": ["", "V"], "5 µS": ["", "s"], "5 µΩ": ["", "ohm"],
+    "5 °K": ["", "K", "deg"], "5 ‰": ["", "percent"], "5 ℃": ["", "degC"], "5 Ω·m": ["", "ohm"],
+    "5 µm·s": ["", "um"], "5 mΩ": ["m", "", "ohm"],
+    # Pressure units and SI prefixes said as their own word.
+    "5 psi": [""], "5 PSI": [""], "5 bar": [""], "5 mbar": [""], "5 atm": [""], "5 torr": [""], "5 HPa": [""],
+    "5 hPa": ["", "Pa"], "5 mega pascals": ["", "Pa", "MPa"], "5 kilo pascals": ["", "Pa", "kPa"],
+    "5 milli seconds": ["", "s", "ms"], "5 micro metres": ["", "m", "um"], "5 mega": [""], "5 PPB": [""],
+    # A unit symbol in all capitals.
+    "12 MPA": ["", "MPa"], "5 KPA": ["", "kPa"], "5 PA": ["", "Pa"], "5 DBA": ["", "dBA"], "5 KN": ["", "kN"],
+    "5 NM": ["", "Nm"], "5 MIN": ["", "min"], "5 MS": ["", "ms"], "5 KG": ["", "kg"], "5 MM": ["", "mm"],
+    "a 3.9 GPA": [""],
+}  # fmt: skip
+REFUSED_CASES = [(said, unit) for said, units in REFUSED.items() for unit in units]
+
+
+@pytest.mark.parametrize("said", REFUSED)
+def test_a_spelling_the_gate_cannot_read_is_ambiguous(said):
+    assert [m["ambiguous"] for m in claims.extract(f"It held {said} here.")] == ["unknown_scale_or_unit"]
+
+
+@pytest.mark.parametrize(("said", "claimed"), REFUSED_CASES)
+def test_a_spelling_the_gate_cannot_read_never_passes(said, claimed):
+    number = "3.9" if said.startswith("a ") else said.split()[0]
+    result = claims.check_segment(f"It held {said} here.", ["c"], {"c": claim(number, claimed)})
+    assert result["codes"] == ["number_ambiguous"], result
+
+
+@pytest.mark.parametrize(
+    ("said", "unit"),
+    [
+        ("40 N-m", "Nm"), ("40 N m", "Nm"), ("40 N.m", "Nm"), ("40 N‐m", "Nm"), ("5 um", "um"), ("5um", "um"),
+        ("40 N·m/s", "Nm/s"), ("5 µm/s", "um/s"), ("5 °C/min", "degC/min"), ("5 °C/s", "degC/s"), ("5 Ω/m", "ohm/m"),
+        ("5 N per m", "N/m"), ("5 MB", "MB"), ("5 GB", "GB"), ("5 LUFS", "LUFS"), ("5 seconds in total", "s"),
+    ],
+)  # fmt: skip
+def test_a_joined_or_slashed_symbol_reads_as_its_whole_unit(said, unit):
+    found = claims.extract(f"It held {said} here.")
+    assert [(m["unit"], m["ambiguous"]) for m in found] == [(unit, None)]
+    number = found[0]["number"]
+    for wrong in sorted({"", "N", "m"} - {unit}):
+        result = claims.check_segment(f"It held {said} here.", ["c"], {"c": claim(number, wrong)})
+        assert result["codes"] == ["number_unclaimed"], (wrong, result)
 
 
 def test_the_new_units_are_canonical():
