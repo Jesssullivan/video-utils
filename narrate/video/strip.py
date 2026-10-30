@@ -5,8 +5,8 @@ compose encodes with -map_metadata -1, -map_chapters -1 and the bit-exact flags,
 creation time, chapter or encoder version passes from an input to video.mp4 or video.upload.mp4. Then it checks
 what the files hold, and refuses metadata_present when:
 
-- a container or stream tag is outside MEDIA_TAGS (the brand fields, a three-letter language, the muxer's default
-  handler names and FFmpeg's bit-exact encoder name), or a chapter remains;
+- a container or stream tag is outside FORMAT_TAGS and STREAM_TAGS (the brand fields, a three-letter language, the
+  muxer's default handler names and FFmpeg's bit-exact encoder name), or a chapter remains;
 - the file's bytes hold an XMP packet, an EXIF block or a local path (the job store, the private store, the records
   directory or the home directory);
 - a text output (compose.json, chapters.json, description.txt, captions) holds a local path.
@@ -14,8 +14,10 @@ what the files hold, and refuses metadata_present when:
 handoff writes each slide layer through strip_png: a PNG keeps its critical chunks and the colour chunks in
 PNG_KEEP, and loses every text, EXIF, ICC profile, time and unknown chunk. Its pixels and their bytes stay the same.
 Then check_layer reads every other file in layers/ as it is and refuses metadata_present when its bytes hold an XMP
-packet, an EXIF block or a local path, or a WAV holds a chunk outside WAV_KEEP (a LIST/INFO chunk carries a source's
-title and comment). It never rewrites a layer, so the avatar overlays keep the bytes their manifests bind.
+packet, an EXIF block or a local path, a WAV holds a chunk outside WAV_KEEP (a LIST/INFO chunk carries a source's
+title and comment), or a MOV or MP4 keeps a chapter or a tag outside the layer allowlists: those tags, the mov
+muxer's vendor id FFMP and an FFmpeg library version. It never rewrites a layer, so the avatar overlays keep the bytes
+their manifests bind.
 
 A refusal names the file and the tag key or the kind of finding, never a tag value or a path.
 """
@@ -39,6 +41,14 @@ STREAM_TAGS = {
     "vendor_id": re.compile(r"^\[0\]\[0\]\[0\]\[0\]$"),
     "encoder": re.compile(r"^Lavc(?: [a-z0-9_]{1,32})?$"),  # bit-exact: no version
 }
+# A handoff layer the avatar external wrote keeps its bytes, so it may also carry the FFmpeg mov muxer's vendor id and
+# a library version; neither names a person, a file or a term.
+LAYER_FORMAT_TAGS = FORMAT_TAGS | {"encoder": re.compile(r"^Lavf[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")}
+LAYER_STREAM_TAGS = STREAM_TAGS | {
+    "vendor_id": re.compile(r"^(?:\[0\]\[0\]\[0\]\[0\]|FFMP)$"),
+    "encoder": re.compile(r"^Lavc(?:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})?(?: [a-z0-9_]{1,32})?$"),
+}
+LAYER_MEDIA = (".mov", ".mp4")
 # Byte markers of embedded metadata blocks: an XMP packet and an EXIF header.
 MARKERS = {"xmp": (b"<x:xmpmeta", b"http://ns.adobe.com/xap/1.0/"), "exif": (b"Exif\x00\x00",)}
 CHUNK = 1 << 20
@@ -89,22 +99,30 @@ def scan_bytes(path, needles):
     return found
 
 
-def check_media(path, roots):
-    """A metadata report for one composed MP4: {format_tags, stream_tags, chapters}, each tag by key. Refuses
-    metadata_present on a tag outside the allowlist, a chapter, an XMP or EXIF block, or a local path."""
+def check_tags(path, format_allowed=FORMAT_TAGS, stream_allowed=STREAM_TAGS):
+    """(format tags, [stream tags]) of a media file after refusing metadata_present on a container or stream tag
+    outside the allowlists, or on a chapter."""
     name = Path(path).name
     format_tags, streams, chapters = probe_tags(path)
     for key, value in format_tags.items():
-        allowed = FORMAT_TAGS.get(key)
+        allowed = format_allowed.get(key)
         if allowed is None or not allowed.match(str(value)):
             refuse(name, f"keeps the container tag {key}")
     for n, tags in enumerate(streams):
         for key, value in tags.items():
-            allowed = STREAM_TAGS.get(key)
+            allowed = stream_allowed.get(key)
             if allowed is None or not allowed.match(str(value)):
                 refuse(name, f"keeps the tag {key} on stream {n}")
     if chapters:
         refuse(name, f"keeps {chapters} chapters")
+    return format_tags, streams
+
+
+def check_media(path, roots):
+    """A metadata report for one composed MP4: {format_tags, stream_tags, chapters}, each tag by key. Refuses
+    metadata_present on a tag outside the allowlist, a chapter, an XMP or EXIF block, or a local path."""
+    name = Path(path).name
+    format_tags, streams = check_tags(path)
     needles = dict(MARKERS) | {"path": tuple(r.encode() for r in roots)}
     found = scan_bytes(path, needles)
     if found:
@@ -138,8 +156,9 @@ def wav_chunks(path):
 
 
 def check_layer(path, roots):
-    """Refuse metadata_present when a handoff layer's bytes hold an XMP packet, an EXIF block or a local path, or a
-    WAV layer holds a chunk outside WAV_KEEP. Reads only: the layer's bytes stay as they are."""
+    """Refuse metadata_present when a handoff layer's bytes hold an XMP packet, an EXIF block or a local path, a WAV
+    layer holds a chunk outside WAV_KEEP, or a MOV or MP4 layer keeps a tag outside the layer allowlists or a chapter.
+    Reads only: the layer's bytes stay as they are."""
     name = Path(path).name
     if name.lower().endswith(".wav"):
         chunks = wav_chunks(path)
@@ -152,6 +171,8 @@ def check_layer(path, roots):
     if found:
         refuse(name, "holds " + " and ".join(f"an embedded {k} block" if k != "path" else "a local path"
                                              for k in sorted(found)))  # fmt: skip
+    if name.lower().endswith(LAYER_MEDIA):
+        check_tags(path, LAYER_FORMAT_TAGS, LAYER_STREAM_TAGS)
 
 
 def png_chunks(data):

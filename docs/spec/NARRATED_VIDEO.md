@@ -875,7 +875,7 @@ that ends after the program refuses `slides_exceed_program` at compose.
 | `captions` | the files `captions` asks for exist, the persona cue opens the first cue and `extraNotice` ends `description.txt` when set |
 | `listening`, `lip_sync` | `pending_operator` here. Lip sync only with an overlay |
 | `bed_licence_pdf`, `bed_content_id` | with `upload` and a bed: the record holds the licence PDF digest and a clear Content ID result, else `pending_operator` |
-| `visible_text` | records from a guarded intake: `passed` when the guard read a text source for every shown asset and none was opaque. `pending_operator` when one was unread or opaque, or when the marker holds no summary. `not_applicable` without a guarded intake. `deliver_check.json` repeats the summary under `visible_text` |
+| `visible_text` | records from a guarded intake: `passed` when the guard read a text source for every shown asset and none was opaque. `pending_operator` when one was unread or opaque, or when the marker holds no summary. `not_applicable` without a guarded intake. `deliver_check.json` repeats the summary under `visible_text`. admit lists the open gate as `visible_text_unread`, so `plan` and `status` show `deliver_check` as `pending_operator` |
 
 Flash. A slide change is a run's start and end, each page change inside a
 run, and a hold's start and end. Within `fadeS` plus one frame of each change
@@ -921,8 +921,12 @@ external wrote them, because their manifests bind the bytes.
 Then every layer but `base.mp4`, which compose's MP4 check reads, is read as
 it is (`strip.check_layer`). Its bytes must hold no XMP packet, no EXIF block
 and no local path, and a WAV must hold only `fmt `, `data` and `fact` chunks.
-Anything else refuses `metadata_present`, naming the file and the chunk or the
-kind of finding. The check never rewrites a layer, so the overlays and their
+A MOV or MP4 layer, such as an avatar overlay, is also probed with `ffprobe`. It
+must hold no chapter and no tag outside compose's allowlist, the mov muxer's
+vendor id `FFMP` and an FFmpeg library version, so a title, artist, comment or
+handler name the external wrote refuses. Anything else refuses
+`metadata_present`, naming the file and the chunk, the tag key or the kind of
+finding. The check never rewrites a layer, so the overlays and their
 manifests keep the bytes their digests bind. `edit.json` lists the layers
 checked under `metadata_checked`.
 
@@ -1266,7 +1270,9 @@ records `not_declared`. A denylist given to such a bundle still runs.
 A guarded intake writes `records/private-terms.json` (schema 2): the guard's status and digest, the digest of the
 NarratedVideo record it wrote to `narrated-video.json` and the narrate jobs its segments name, and, per narrate job,
 the digests of the job record and of the pronunciation table it names. It also holds `visible_text`: the intake's
-visible-text state and the unread and opaque asset positions, which `deliver_check` reports (TIN-7788). Every load of that records directory checks
+visible-text state and the unread and opaque asset positions, which `deliver_check` reports (TIN-7788). The state
+is `passed` exactly when both lists are empty and `partial` otherwise. When an `intake.json` lies beside the records,
+its `states.visible_text` and its `visible_text` unread and opaque lists must equal the marker's. Every load of that records directory checks
 it and refuses `private_terms_stale` on a change, so a table edited after intake cannot add a spoken term. `init`,
 `plan`, `run` and `explain` also refuse a NarratedVideo record that is not the one the intake wrote. So an edited
 persona label or a segment pointed at another narrate job refuses, and so does a job built from `init` flags. A
@@ -1283,14 +1289,18 @@ in a text source, bound by digest in its manifest `text` field (`narrate/video/v
 
 | Source | What counts |
 | --- | --- |
-| `.svg`, the vector the picture was drawn from | every run of character data and every comment, including character references as the XML parser decodes them, and the `aria-label` and `xlink:title` attributes. A plotting library that draws glyphs as paths writes each label as a comment beside them. The `metadata`, `style` and `script` elements are skipped, because none of them is drawn. The file must be UTF-8 |
+| `.svg`, the vector the picture was drawn from | every run of character data and every comment, including character references as the XML parser decodes them, and the `aria-label` and `xlink:title` attributes. A plotting library that draws glyphs as paths writes each label as a comment beside them. The `metadata`, `style` and `script` elements are skipped, because none of them is drawn. A `script` still makes the source opaque. The file must be UTF-8 |
 | `.json`, `{"kind": "nv_asset_text", "schema_version": 1, "texts": [...]}` | each string the producer drew. An empty list says the asset draws no text |
 
 An SVG source is opaque when it may draw text that no string names. It holds an
-`image`, `feImage`, `foreignObject` or another embedding element, or it refers
-to another file through an `href` or a `url()` that is not a `#` fragment, or it
+`image`, `feImage`, `foreignObject` or another embedding element. It runs script
+through a `script` element or an event handler attribute. It refers to another
+file through an `href` or a `url()` that is not a `#` fragment, a CSS `@import`,
+a CSS backslash escape or an `xml-stylesheet` processing instruction. Or it
 gives no string at all, as text outlined to paths does. Its strings are still
-guarded. A JSON source is never opaque.
+guarded. A JSON source is never opaque. Text outlined to paths beside another
+string, such as a `title`, is not opaque. The guard cannot compare the SVG with
+the picture's pixels, so that text stays the producer's review.
 
 The guard reads each shown asset's strings joined by newlines as one `visible` text, so a term split across two
 labels still matches. Only assets a beat shows are read. `intake.json` lists them under `visible_text` as `read`

@@ -48,6 +48,17 @@ the compose, visible-text, graph, intake, private-terms and VRM suites gave 592 
 with the repository root on the path. Mutation probes: removing the metadata flags from `to_mono` failed 2 tests,
 and removing the `visible_text` gate failed the private-lane delivery test.
 
+## Second review fixes
+
+A review of head `0087669d` found these. Each fix is a new signed commit on the same branch.
+
+| Finding | Fix | Files |
+| --- | --- | --- |
+| An edited marker summary changed the `visible_text` gate: `not_declared` gave `not_applicable`, and `passed` with unread positions gave `passed` | a marker holds only `passed` or `partial`, `passed` exactly when no position is listed, and it must equal the `intake.json` beside the records | `private_terms.py` |
+| An overlay's container tags reached `layers/` | handoff probes each MOV and MP4 layer against a tag allowlist and refuses `metadata_present` | `strip.py` |
+| `plan`, `status` and `run` showed `deliver_check` fresh while `visible_text` was open | admit lists `visible_text_unread`, so the node shows `pending_operator` | `admit.py`, `graph.py` |
+| An SVG with script, an `@import`, a CSS escape or an `xml-stylesheet` instruction was not opaque | each makes the source opaque | `visible_text.py` |
+
 ## Open
 
 - A private lane does not refuse a shown asset with no text source or an opaque one at intake. It records
@@ -56,4 +67,6 @@ and removing the `visible_text` gate failed the private-lane delivery test.
 - No raster text JSON existed before this change, and no OCR dependency exists. The `nv_asset_text` schema is new
   and needs a producer to write it.
 - The overlays in `layers/` keep the external's bytes, because their manifests bind them. handoff reads them for
-  XMP, EXIF and local paths only. It cannot read their tags against the denylist.
+  XMP, EXIF, local paths and container tags, and refuses a tag outside its allowlist. It does not rewrite them.
+- An SVG text source with text outlined to paths beside one other string is not opaque. The guard cannot compare
+  the SVG with the picture's pixels, so that text stays the producer's review.

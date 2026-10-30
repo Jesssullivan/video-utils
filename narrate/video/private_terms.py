@@ -868,16 +868,24 @@ def read_marker(directory, optional=False):
         raise JobError("private_terms_stale", f"{MARKER} is not a {MARKER_KIND} record of schema {MARKER_VERSION}")
     if not visible_shape(value.get("visible_text")):
         raise JobError("private_terms_stale", f"{MARKER} holds a visible_text that is not a visible-text summary")
+    if value.get("visible_text") is not None and not visible_agrees(directory, value["visible_text"]):
+        raise JobError(
+            "private_terms_stale",
+            f"{MARKER} holds a visible_text that the intake.json beside the records does not; run the intake again",
+        )
     return value
 
 
-VISIBLE_STATES = ("passed", "partial", "not_declared")
+# A guarded intake writes a marker only when a denylist runs, so its visible_text is passed or partial, never
+# not_declared (bundle.visible_state).
+VISIBLE_STATES = ("passed", "partial")
 POSITION = re.compile(r"^asset#[1-9][0-9]{0,5}$")
 
 
 def visible_shape(value):
     """True for a marker's visible_text: null (a marker written before TIN-7788 read slide text) or {state, unread,
-    opaque} with a known state and lists of asset positions."""
+    opaque} with lists of asset positions, whose state is passed exactly when both lists are empty and partial
+    otherwise."""
     if value is None:
         return True
     return (
@@ -886,7 +894,29 @@ def visible_shape(value):
         and value["state"] in VISIBLE_STATES
         and all(isinstance(v, list) and all(isinstance(p, str) and POSITION.match(p) for p in v)
                 for v in (value["unread"], value["opaque"]))
+        and (value["state"] == "passed") == (not value["unread"] and not value["opaque"])
     )  # fmt: skip
+
+
+def visible_agrees(directory, value):
+    """True when no intake.json lies beside the records, or when its states.visible_text and its visible_text unread
+    and opaque lists equal the marker's summary. An unreadable intake.json disagrees, so the check fails closed."""
+    intake = Path(directory).parent / "intake.json"
+    if not intake.is_symlink() and not intake.exists():
+        return True
+    try:
+        manifest = json.loads(intake.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return False
+    if not isinstance(manifest, dict):
+        return False
+    states = manifest.get("states") if isinstance(manifest.get("states"), dict) else {}
+    shown = manifest.get("visible_text") if isinstance(manifest.get("visible_text"), dict) else {}
+    return (
+        states.get("visible_text") == value["state"]
+        and shown.get("unread") == value["unread"]
+        and shown.get("opaque") == value["opaque"]
+    )
 
 
 def visible_summary(value):

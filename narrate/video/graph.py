@@ -19,7 +19,7 @@ it keys each node in topological order from the store's current.json and reports
   blocked          admit refused, a tool or source is missing, or an upstream node is blocked or refused
   refused          the stage refused for this exact key; it stays refused until the key changes
   not_selected     an optional stage the job turns off
-  pending_operator deliver_check is fresh but an operator gate (licence PDF, Content ID) is open
+  pending_operator deliver_check is fresh but an operator gate (licence PDF, Content ID, unread on-screen text) is open
 """
 
 from collections import namedtuple

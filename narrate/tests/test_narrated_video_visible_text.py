@@ -263,6 +263,11 @@ PIXEL = "data:image/png;base64,iVBORw0KGgo="
         '<use href="labels.svg#title"/>',  # another file's drawing
         '<rect width="4" height="4" style="fill: url(other.svg#pattern)"/>',
         "<style>rect { fill: url('other.svg#pattern') }</style>",
+        '<style>@import "other.css";</style>',  # an import needs no url()
+        "<style>rect { fill: u\\72l(other.svg#pattern) }</style>",  # a CSS escape spells url
+        '<rect width="4" height="4" style="fill: u\\72l(other.svg#p)"/>',
+        '<script>document.querySelector("g").append("x")</script>',  # script may draw text
+        '<rect width="4" height="4" onload="this.after(1)"/>',
     ],
 )
 def test_an_svg_that_draws_an_image_or_another_file_is_opaque(extra):
@@ -281,6 +286,19 @@ def test_an_svg_that_draws_an_image_or_another_file_is_opaque(extra):
 )
 def test_an_svg_that_refers_only_to_itself_is_not_opaque(extra):
     assert visible_text.svg_read(plot_svg("0", extra=extra)).opaque is False
+
+
+def test_an_svg_with_an_xml_stylesheet_instruction_is_opaque():
+    data = plot_svg("0").replace(b"\n<svg", b'\n<?xml-stylesheet href="other.css" type="text/css"?><svg', 1)
+    assert b"xml-stylesheet" in data
+    read = visible_text.svg_read(data)
+    assert read.opaque is True and "Build time" in read.texts
+
+
+def test_outlined_text_beside_one_string_is_not_opaque():
+    """The guard cannot compare an SVG with its picture: paths beside a title stay the producer's review."""
+    data = b'<svg xmlns="http://www.w3.org/2000/svg"><title>Chart</title><path d="M0 0h10v10z"/></svg>'
+    assert visible_text.svg_read(data) == visible_text.Read(["Chart"], False)
 
 
 def test_an_svg_with_no_string_is_opaque_and_a_json_list_is_not():
@@ -335,6 +353,13 @@ def test_the_visible_text_gate(summary, gate):
         {"state": "passed", "unread": ["slide-a"], "opaque": []},  # an id, not a position
         {"state": "passed", "unread": []},
         "partial",
+        # a guarded intake never writes not_declared: a denylist ran, so the gate must not become not_applicable
+        {"state": "not_declared", "unread": ["asset#2"], "opaque": []},
+        {"state": "not_declared", "unread": [], "opaque": []},
+        # passed holds exactly when no asset is unread or opaque
+        {"state": "passed", "unread": ["asset#2"], "opaque": ["asset#3"]},
+        {"state": "passed", "unread": [], "opaque": ["asset#1"]},
+        {"state": "partial", "unread": [], "opaque": []},
     ],
 )
 def test_a_marker_with_a_bad_visible_text_refuses(ws, tmp_path, value):
@@ -350,7 +375,42 @@ def test_a_marker_with_a_bad_visible_text_refuses(ws, tmp_path, value):
     assert load_records(tmp_path / "out" / "records")["visible_text"]["state"] == "not_recorded"
 
 
-def test_an_unread_slide_on_a_private_lane_holds_the_upload_at_the_operator(ws, tmp_path, ffmpeg):
+@pytest.mark.parametrize(
+    "edit",
+    [
+        # partial edited to passed, as a well-formed summary
+        {"state": "passed", "unread": [], "opaque": []},
+        # the unread position moved
+        {"state": "partial", "unread": ["asset#3"], "opaque": []},
+        {"state": "partial", "unread": ["asset#2"], "opaque": ["asset#1"]},
+    ],
+)
+def test_a_marker_summary_that_disagrees_with_intake_json_refuses(ws, tmp_path, edit):
+    private_bundle(ws)
+    add_text_source(ws["bundle"], "slide-a", "slide-a.svg", plot_svg("0"))
+    out = tmp_path / "out"
+    m = intake(ws, out, denylist=ws["denylist"])
+    assert m["states"]["visible_text"] == "partial" and m["visible_text"]["unread"] == ["asset#2"]
+    path = out / "records" / private_terms.MARKER
+    marker = json.loads(path.read_text())
+    assert load_records(out / "records")["visible_text"] == marker["visible_text"]
+    path.write_text(json.dumps(marker | {"visible_text": edit}))
+    with pytest.raises(JobError) as caught:
+        load_records(out / "records")
+    assert caught.value.code == "private_terms_stale" and "intake.json" in caught.value.detail
+    # an intake.json edited the other way disagrees too
+    path.write_text(json.dumps(marker))
+    manifest = json.loads((out / "intake.json").read_text())
+    manifest["states"]["visible_text"] = "passed"
+    (out / "intake.json").write_text(json.dumps(manifest))
+    with pytest.raises(JobError):
+        load_records(out / "records")
+    (out / "intake.json").write_text("not json")
+    with pytest.raises(JobError):
+        load_records(out / "records")
+
+
+def test_an_unread_slide_on_a_private_lane_holds_the_upload_at_the_operator(ws, tmp_path, ffmpeg, capsys):
     private_bundle(ws)
     add_text_source(ws["bundle"], "slide-a", "slide-a.svg", plot_svg("0"))
     out = tmp_path / "out"
@@ -367,6 +427,13 @@ def test_an_unread_slide_on_a_private_lane_holds_the_upload_at_the_operator(ws, 
     assert report["visible_text"] == {"state": "partial", "unread": ["asset#2"], "opaque": []}
     assert "visible_text" in report["delivery_gate"]["operator_states_open"]
     assert report["delivery_gate"]["public_upload_allowed"] is False
+    # nv plan shows the hold too: admit lists the gate, so a fresh deliver_check stays pending_operator
+    capsys.readouterr()
+    assert cli.main(["plan", "demo-fixture", "--json", *common]) == 0
+    g = json.loads(capsys.readouterr().out)
+    held = [p for p in g["pending_operator"] if p["gate"] == "visible_text_unread"]
+    assert held and held[0]["stage"] == "deliver_check" and held[0]["detail"].endswith(": asset#2")
+    assert {n["id"]: n["state"] for n in g["nodes"]}["deliver_check"] == "pending_operator"
 
 
 def test_the_visible_source_is_a_guard_source():
@@ -510,6 +577,39 @@ def test_check_layer_refuses_a_wav_info_chunk_xmp_exif_and_a_local_path(tmp_path
     (tmp_path / "bad.wav").write_bytes(b"not a wav")
     with pytest.raises(StageRefused):
         strip.check_layer(tmp_path / "bad.wav", [])
+
+
+def prores(path, *args):
+    """A synthetic ProRes 4444 overlay, as an avatar external writes one."""
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "color=c=red@0.5:s=32x32:r=10:d=0.3", "-c:v",
+         "prores_ks", "-profile:v", "4444", "-pix_fmt", "yuva444p10le", "-an", *args, str(path)],
+        check=True,
+    )  # fmt: skip
+    return path
+
+
+def test_check_layer_reads_an_overlay_s_tags_against_the_allowlist(tmp_path, ffmpeg):
+    plain = prores(tmp_path / "avatar-seg-1.mov", "-fflags", "+bitexact", "-flags:v", "+bitexact")
+    strip.check_layer(plain, [str(tmp_path)])  # vendor_id FFMP and the bit-exact encoder pass
+    versioned = prores(tmp_path / "avatar-seg-2.mov")  # a library version names no person or file
+    strip.check_layer(versioned, [str(tmp_path)])
+    for n, args in enumerate([
+        ["-metadata", f"title={NAME}"],
+        ["-metadata", f"artist={NAME}"],
+        ["-metadata", "comment=client session"],
+        ["-metadata:s:v", f"handler_name={NAME}"],
+    ]):  # fmt: skip
+        tagged = prores(tmp_path / f"avatar-tag-{n}.mov", "-fflags", "+bitexact", *args)
+        before = tagged.read_bytes()
+        with pytest.raises(StageRefused) as caught:
+            strip.check_layer(tagged, [str(tmp_path)])
+        assert caught.value.code == "metadata_present" and NAME not in caught.value.detail
+        assert tagged.read_bytes() == before  # read only: the bytes a manifest binds stay
+    chaptered = with_chapter(tmp_path, encode(tmp_path / "plain.mp4", "-fflags", "+bitexact"))
+    with pytest.raises(StageRefused) as caught:
+        strip.check_layer(chaptered, [])
+    assert caught.value.code == "metadata_present"
 
 
 def test_handoff_from_a_tagged_base_clip_keeps_no_tag(tmp_path, ffmpeg):
