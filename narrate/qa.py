@@ -255,7 +255,7 @@ def _say_unit(m):
 
 
 _HYPHEN = r"[-\u2010\u2011\u2013]"
-# email, T-shirt, U-turn: a one-letter part before a hyphen, which wer() may rejoin (_closed)
+# T-shirt, U-turn, x-ray: a one-letter part before a hyphen, which wer() may rejoin (_closed)
 _LETTER_PREFIX = re.compile(r"(?<![\w'])([^\W\d_])" + _HYPHEN + r"([^\W\d_]{2,})(?![\w])")
 
 
@@ -330,7 +330,7 @@ COMPOUND_PARTS = 3  # the most words an open compound is written in (head board 
 def _closed(parts, joins=frozenset()):
     """The closed compound parts spell, or None when any part is not two or more letters: numbers never join, and
     spelled letters (M C P) never join into a word, which only a pronunciation alias allows. The one exception is a
-    one-letter part a hyphen split off in either text (email, T-shirt): joins holds those closed words."""
+    one-letter part a hyphen split off in either text (T-shirt, U-turn): joins holds those closed words."""
     if all(p.isalpha() and len(p) > 1 for p in parts):
         return "".join(parts)
     closed = "".join(parts)

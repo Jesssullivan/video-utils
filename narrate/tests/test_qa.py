@@ -228,7 +228,7 @@ def test_a_one_letter_symbol_and_a_unit_after_a_number_still_map(ref, hyp):
     [("send an e-mail now", "send an email now"), ("a T-shirt", "a tshirt"), ("a U-turn", "a uturn")],
 )
 def test_a_one_letter_hyphen_prefix_rejoins(ref, hyp):
-    # narrate-wer-1 scored email against email as 1 error; the split must not make it 2
+    # narrate-wer-1 scored T-shirt against tshirt as 1 error; the hyphen split must not make it 2
     assert qa.wer(ref, hyp) == 0.0
     assert qa.wer(hyp, ref) == 0.0
     assert qa.wer(ref, ref.replace("-", " ")) == 0.0
