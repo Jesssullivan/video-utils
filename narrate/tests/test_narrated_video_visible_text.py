@@ -272,6 +272,10 @@ PIXEL = "data:image/png;base64,iVBORw0KGgo="
         '<rect width="4" height="4" style="fill: u\\72l(other.svg#p)"/>',
         '<rect width="4" height="4" filter="u\\72l(other.svg#f)"/>',  # a presentation attribute takes CSS too
         '<rect width="4" height="4" fill="\\75rl(other.svg#g)"/>',
+        '<rect width="4" height="4" style="mask-image: image-set(\'other.png\' 1x)"/>',  # a string, no url()
+        "<style>rect { mask-image: -webkit-image-set('other.png' 1x) }</style>",
+        '<rect width="4" height="4" style="mask-image: IMAGE(\'other.png\')"/>',
+        '<rect xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" inkscape:label="url(other.svg#g)"/>',
         '<script>document.querySelector("g").append("x")</script>',  # script may draw text
         '<rect width="4" height="4" onload="this.after(1)"/>',
     ],
@@ -288,6 +292,10 @@ def test_an_svg_that_draws_an_image_or_another_file_is_opaque(extra):
         '<rect fill="url(#gradient)"/>',
         "<rect style=\"fill:url( '#g' )\"/>",
         '<a href="https://example.invalid/"><text>link</text></a>',
+        # metadata is not CSS: a Windows export path from Inkscape and a plot's TeX source hold a backslash
+        '<rect xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"'
+        ' inkscape:export-filename="C:\\Users\\x\\slide.png"/>',
+        '<g data-unformatted="$\\alpha$"><text>a</text></g>',
     ],
 )
 def test_an_svg_that_refers_only_to_itself_is_not_opaque(extra):

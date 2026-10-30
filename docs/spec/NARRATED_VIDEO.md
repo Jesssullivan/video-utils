@@ -138,7 +138,7 @@ A key reads three kinds of input:
 | `music` | bed id, each layer's digest, bytes, rate, channels, tempo factor and gain, 48 kHz |
 | `mix` | the music block except the bed id, delivery loudness, true peak, drift and channels |
 | `compose` | avatar corner, width, margin, `avatarOff` and `fadeS`, the slides block, captions, labels, delivery profile |
-| `deliver_check` | delivery except `handoff`, the bed's licence PDF digest and Content ID result, labels, the guarded intake's visible-text summary, the job's digest |
+| `deliver_check` | the job's digest, which covers all of delivery with `handoff`, plus the bed's licence PDF digest and Content ID result, labels and the guarded intake's visible-text summary |
 | `handoff` | none beyond its inputs |
 
 A stage manifest's `content_sha256` leaves out `run_dir`, `created_utc` and
@@ -987,12 +987,16 @@ and the current composed video under `accepted`, with their `resolution`, and
 drop the gates they close from `pending_operator`. A row for another video
 closes nothing. `status` trusts no operator view in `graph.json`. It
 recomputes `accepted` and `pending_operator` and refuses `graph_stale` when the
-recorded ones differ. The job digest must be that of `job.json`. `admit` must
-list every gate `job.json` opens and every gate the current `deliver_check`
-render reports from the records. `accepted` must be the rows that bind that
-render and the current video. `pending_operator` must be `admit`'s list less
-the gates they close. `deliver_check` must show `pending_operator` while
-`admit` holds a gate at it. A hand edit therefore cannot hide an open gate.
+recorded ones differ. The job digest must be that of `job.json`, and the
+nodes must be the ones `job.json` gives, `deliver_check` among them. `admit`
+must list every gate `job.json` opens and every gate the current
+`deliver_check` render reports from the records. `accepted` must be the rows
+that bind that render and the current video. `pending_operator` must be
+`admit`'s list less the gates they close. `deliver_check` must show
+`pending_operator` while `admit` holds a gate at it. `graph.json` carries no
+signature, so one hand edit still passes `status`: it rewrites the
+`deliver_check` node's key and state and drops a records gate from both lists.
+`plan` recomputes every state from the store and the records.
 `deliver_check` keys on the job's digest, and `accept` refuses a render made
 for another `job.json`. A row therefore never pairs a new job with an old
 render. `accept` checks `graph.json` before it writes `acceptance.json`, so a
@@ -1380,9 +1384,12 @@ An SVG source is opaque when it may draw text that no string names. It holds an
 `image`, `feImage`, `foreignObject` or another embedding element. It runs script
 through a `script` element or an event handler attribute. It refers to another
 file through an `href` or a `url()` that is not a `#` fragment, a CSS `@import`,
-a CSS backslash escape or an `xml-stylesheet` processing instruction. A
-presentation attribute such as `fill` or `filter` takes CSS as `style` does, so
-a backslash in any attribute other than a label counts as an escape. Or it
+a CSS `image()` or `image-set()`, a CSS backslash escape or an
+`xml-stylesheet` processing instruction. A presentation attribute such as
+`fill` or `filter` takes CSS as `style` does, so a backslash in an attribute in
+no namespace counts as an escape. A `data-*` attribute or a namespaced one,
+such as `inkscape:export-filename`, is metadata: a `url()` there counts, a
+backslash does not. Or it
 gives no string at all, as text outlined to paths does. Its strings are still
 guarded. A JSON source is never opaque. Text outlined to paths beside another
 string, such as a `title`, is not opaque. The guard cannot compare the SVG with

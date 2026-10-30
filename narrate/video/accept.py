@@ -380,11 +380,16 @@ def current_video(store):
 
 def graph_shape(document):
     """The recorded graph, or JobError store_invalid when it lacks a shape accept and status read: job_sha256, admit
-    with its pending_operator gates, nodes with ids, pending_operator gates and an accepted list when present."""
+    with its pending_operator gates, nodes with ids, pending_operator gates and an accepted list when present. A gate
+    names its gate and stage as strings and its segment as a string or null."""
 
     def gates(value):
         return isinstance(value, list) and all(
-            isinstance(p, dict) and isinstance(p.get("gate"), str) and isinstance(p.get("stage"), str) for p in value
+            isinstance(p, dict)
+            and isinstance(p.get("gate"), str)
+            and isinstance(p.get("stage"), str)
+            and (p.get("segment") is None or isinstance(p.get("segment"), str))
+            for p in value
         )
 
     admitted = document.get("admit")
@@ -455,10 +460,11 @@ def stale(detail):
 def check_recorded(store, document):
     """status: the recorded graph, once its operator view is what job.json, the current deliver_check render and
     acceptance.json give. graph.json is never trusted for it: status recomputes accepted and pending_operator and
-    refuses graph_stale when the recorded ones differ, so a hand edit cannot hide an open operator gate.
+    refuses graph_stale when the recorded ones differ. graph.json carries no signature: an edit that rewrites the
+    deliver_check node's key and state and drops a records gate from both lists still passes. plan recomputes it.
 
-    - job_sha256 must be the digest of job.json, and admit must list every gate job.json alone opens (listening per
-      segment, lip sync, the VRM badge);
+    - job_sha256 must be the digest of job.json, the node ids must be the ones job.json gives (deliver_check among
+      them), and admit must list every gate job.json alone opens (listening per segment, lip sync, the VRM badge);
     - a fresh or pending_operator deliver_check must be the current, re-hashing render, a node keyed as that render
       must be one of the two, and admit must list every gate that render reports pending_operator from the records
       (bed licence, Content ID, visible text);
@@ -472,6 +478,11 @@ def check_recorded(store, document):
     job = store.read_job()
     if document["job_sha256"] != keys.digest(job):
         raise stale("graph.json was planned for another job.json")
+    from .graph import nodes_for  # graph imports this module
+
+    recorded = [n["id"] for n in document["nodes"]]
+    if sorted(recorded) != sorted(n["id"] for n in nodes_for(job)) or len(set(recorded)) != len(recorded):
+        raise stale("graph.json's nodes are not the ones job.json gives")
     admitted = document["admit"]["pending_operator"]
     listed = {(p["gate"], p.get("segment")) for p in admitted}
     if any((p["gate"], p["segment"]) not in listed for p in admit_stage.pending_operator(job, None)):

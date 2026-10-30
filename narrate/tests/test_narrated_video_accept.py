@@ -861,6 +861,10 @@ def mark_deliver_check_stale(document):
     node["state"], node["reason"] = "stale", "key_changed"
 
 
+def remove_deliver_check_node(document):
+    document["nodes"] = [n for n in document["nodes"] if n["id"] != "deliver_check"]
+
+
 @pytest.mark.parametrize(
     "edits",
     [
@@ -880,6 +884,19 @@ def test_status_never_hides_the_visible_text_gate(partial_job, capsys, edits):
     assert accept.check_recorded(s, document) is document
     for edit in edits:
         edit(document)
+    s.write_graph(document)
+    status, out, err = status_of(capsys, s)
+    assert status == 1 and out == "" and json.loads(err)["refused"] == "graph_stale"
+
+
+def test_status_refuses_a_graph_without_the_deliver_check_node(partial_job, capsys):
+    """job.json gives the node set: removing deliver_check, with no acceptance recorded and visible_text_unread
+    dropped from both lists, still refuses."""
+    _, _, s = partial_job
+    document = s.read_graph()
+    assert accept.check_recorded(s, document) is document
+    drop_admitted_gate("visible_text_unread")(document)
+    remove_deliver_check_node(document)
     s.write_graph(document)
     status, out, err = status_of(capsys, s)
     assert status == 1 and out == "" and json.loads(err)["refused"] == "graph_stale"
@@ -918,6 +935,12 @@ def malformed_admit(s):
     s.write_graph(document)
 
 
+def malformed_segment(s):
+    document = s.read_graph()
+    document["admit"]["pending_operator"][0]["segment"] = ["x"]
+    s.write_graph(document)
+
+
 def graph_directory(s):
     s.graph_file.unlink()
     s.graph_file.mkdir()
@@ -933,6 +956,7 @@ def graph_symlink(s):
     [
         (malformed_nodes, "store_invalid"),
         (malformed_admit, "store_invalid"),
+        (malformed_segment, "store_invalid"),
         (graph_directory, "store_invalid"),
         (graph_symlink, "stage_symlink"),
     ],
@@ -948,6 +972,15 @@ def test_a_malformed_graph_refuses_accept_typed_before_anything_is_recorded(cli_
     status, out, err = call(capsys, argv)
     assert status == 1 and out == "" and json.loads(err)["refused"] == code
     assert not (s.dir / accept.ACCEPTANCE).exists()
+
+
+@pytest.mark.parametrize("damage", [malformed_nodes, malformed_admit, malformed_segment])
+def test_status_refuses_a_malformed_graph_typed(cli_root, capsys, damage):
+    """A gate segment that is not a string or null refuses store_invalid, never an untyped crash."""
+    s, _ = cli_root
+    damage(s)
+    status, out, err = status_of(capsys, s)
+    assert status == 1 and out == "" and json.loads(err)["refused"] == "store_invalid"
 
 
 def test_no_graph_json_still_records_and_writes_none(avatar_job):

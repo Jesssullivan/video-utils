@@ -13,12 +13,13 @@ texts() returns the strings and whether the source is opaque; the guard reads th
 asset, so a term split across two labels still matches. An SVG is opaque when it may draw text no string names: it
 holds an image (image, feImage, foreignObject or another embedding element), runs script (a script element or an
 event handler attribute), refers to another file (an href that is not a #fragment, a url() that is not one, a CSS
-@import, a CSS backslash escape or an xml-stylesheet processing instruction), or gives no string at all (text
-outlined to paths). A presentation attribute such as fill or filter takes CSS as a style attribute does, so a
-backslash in any attribute other than a label counts as an escape that may spell url(). The intake lists an opaque
-asset, so its visible-text state is partial, not passed. Text outlined to paths beside some other string (a title or
-an aria-label) is not opaque: the guard cannot compare the SVG with the picture's pixels, so that text stays the
-producer's review.
+@import, a CSS image() or image-set(), a CSS backslash escape or an xml-stylesheet processing instruction), or gives
+no string at all (text outlined to paths). A presentation attribute such as fill or filter takes CSS as a style
+attribute does, so a backslash in an attribute in no namespace counts as an escape that may spell url(). A data-*
+attribute or a namespaced one such as inkscape:export-filename is metadata, not CSS: a url() there still counts, a
+backslash does not. The intake lists an opaque asset, so its visible-text state is partial, not passed. Text
+outlined to paths beside some other string (a title or an aria-label) is not opaque: the guard cannot compare the
+SVG with the picture's pixels, so that text stays the producer's review.
 
 An SVG that is not UTF-8 (a byte-order mark other than UTF-8's, a NUL, or an XML declaration naming another
 encoding) refuses, and so does one with a document type or entity declaration anywhere: the decoded text is searched
@@ -49,6 +50,7 @@ LABEL_ATTRIBUTES = {"aria-label", f"{{{XLINK_NS}}}title"}
 OPAQUE_ELEMENTS = {"image", "feImage", "foreignObject", "video", "canvas", "iframe", "object", "embed", "script"}
 HREF_ATTRIBUTES = {"href", f"{{{XLINK_NS}}}href"}
 URL = re.compile(r"url\(([^)]*)", re.IGNORECASE)
+IMAGE = re.compile(r"image(?:-set)?\s*\(", re.IGNORECASE)  # image("x.png") and image-set("x.png" 1x) load a string
 ENCODING = re.compile(r"^<\?xml\s[^>]*?\bencoding\s*=\s*[\"']([^\"']*)[\"']")
 
 
@@ -80,8 +82,16 @@ def external_url(value):
 
 def external_css(value):
     """True when CSS text (a style element or attribute) may load another file: a url() that is not a #fragment, an
-    @import (which needs no url()), or a backslash escape, which can spell either one."""
-    return external_url(value) or "@import" in value.lower() or "\\" in value
+    @import (which needs no url()), an image() or image-set() (which take a plain string), or a backslash escape,
+    which can spell any of them."""
+    return external_url(value) or "@import" in value.lower() or IMAGE.search(value) is not None or "\\" in value
+
+
+def css_attribute(key):
+    """True when an attribute may be read as CSS: one in no namespace that is not data-*. A presentation attribute
+    such as fill or filter takes CSS as style does. A namespaced attribute (inkscape:export-filename) or a data-*
+    attribute is metadata no renderer reads as CSS."""
+    return "}" not in key and not key.startswith("data-")
 
 
 def utf8_prolog(data):
@@ -161,8 +171,8 @@ def svg_read(data):
                     opaque.append(name)
                 elif local(key).lower().startswith("on"):
                     opaque.append(name)  # an event handler runs script
-                elif external_css(value):  # a style attribute or a presentation attribute such as filter
-                    opaque.append(name)
+                elif external_css(value) if css_attribute(key) else external_url(value):
+                    opaque.append(name)  # a style or presentation attribute may load a file; metadata only by url()
             for child in element:
                 walk(child)
                 add(child.tail)

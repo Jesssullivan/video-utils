@@ -17,6 +17,42 @@ findings left by the final reviews of PR #76 (`fc0eca97`) and PR #77
 | A CSS escape in a presentation attribute was not opaque | a backslash in any attribute other than a label makes the SVG opaque, as in `style` | `visible_text.py` |
 | `intake.json` `admit.pending_operator` missed `visible_text_unread` | the intake passes its own visible-text summary to admit, so the gate is listed exactly when `states.visible_text` is `partial` | `bundle.py` |
 
+## Review follow-up
+
+The review of `0c1ddaee` found five issues. New commits on the same branch fix
+them.
+
+| Finding | Fix | Files |
+| --- | --- | --- |
+| A backslash in metadata made an SVG opaque, such as `inkscape:export-filename` or `data-unformatted` | the backslash, `@import` and `image()` rule reads only attributes in no namespace that are not `data-*`. A `url()` still counts in every attribute | `visible_text.py` |
+| A gate whose `segment` was a list crashed `status` untyped | `graph_shape` requires a segment that is a string or null, so it refuses `store_invalid` | `accept.py` |
+| `status` passed a graph with no `deliver_check` node | `check_recorded` requires the node ids `job.json` gives. The spec no longer says a hand edit cannot hide a gate | `accept.py`, spec |
+| The key table said `delivery except handoff` | the row names the job's digest, which covers all of delivery with `handoff` | spec |
+| `image-set()` and `image()` load a file from a plain string | `external_css` treats both as external, `-webkit-image-set()` included | `visible_text.py` |
+
+Upgrade: the `deliver_check` key now includes the job's digest, so every render
+keyed before this change is stale. Acceptance rows recorded before it bind
+nothing after `deliver_check` reruns. The operator records the same decision
+again for the same cut.
+
+Mutation probes of the follow-up, each reverted after the run:
+
+| Probe | New tests failing |
+| --- | --- |
+| gate segment type not checked | 2 |
+| node set not checked | 1 |
+| backslash read in metadata attributes | 2 |
+| `image-set()` and `image()` not external | 3 |
+
+Checks of the follow-up:
+
+| Check | Result |
+| --- | --- |
+| narrate pytest, run through tinyland-heavy | 2227 passed, 1 skipped |
+| ruff check and format | clean |
+| stdlib smoke, repository root on the path | 7 tests OK |
+| `tests/test_public_tree.py` | 4 passed, 1 skipped |
+
 ## Choice for review
 
 Keying `deliver_check` on the job's digest changes one tested row: turning
@@ -49,3 +85,7 @@ Suite results are in the PR body.
 - `graph.json` carries no signature. An edit that rewrites the `deliver_check`
   node's key and state and drops a records gate from both lists still passes
   `status`. `plan` recomputes every state from the store and the records.
+  Removing the node now refuses `graph_stale`.
+- The `Huskycat-Receipt` trailer that the commit hook writes names the host.
+  The lane keeps hook trailers as the brief says. Earlier commits on main
+  carry the same trailer.
