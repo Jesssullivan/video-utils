@@ -19,12 +19,18 @@ it keys each node in topological order from the store's current.json and reports
   blocked          admit refused, a tool or source is missing, or an upstream node is blocked or refused
   refused          the stage refused for this exact key; it stays refused until the key changes
   not_selected     an optional stage the job turns off
-  pending_operator deliver_check is fresh but an operator gate (licence PDF, Content ID, unread on-screen text) is open
+  pending_operator deliver_check is fresh but an operator gate (listening, lip sync, licence PDF, Content ID, unread
+                   on-screen text) is open
+
+The graph also lists the operator's acceptances (`accept`, narrate/video/accept.py) that bind the fresh deliver_check
+render under accepted, and drops the gates they close (listening and lip sync) from pending_operator. Every other
+operator gate, visible_text_unread among them, stays listed.
 """
 
 from collections import namedtuple
 from datetime import UTC, datetime
 
+from . import accept as acceptance
 from . import admit as admit_stage
 from . import keys, vrm
 from .job import JobError
@@ -471,7 +477,7 @@ def plan(job, records, store, ctx):
             node["measurements"] = (manifest or {}).get("measurements", {})
             if stage == "deliver_check" and any(p["stage"] == "deliver_check" for p in gate["pending_operator"]):
                 node["state"], node["reason"] = "pending_operator", "operator_gate_open"
-    return graph_document(job, gate, nodes)
+    return acceptance.apply(graph_document(job, gate, nodes), acceptance.for_plan(store, nodes))
 
 
 def graph_document(job, gate, nodes):

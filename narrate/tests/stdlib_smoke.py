@@ -41,6 +41,7 @@ MODULES = (
     "verify",
 )
 VIDEO_MODULES = (
+    "accept",
     "admit",
     "avatar",
     "avatar_manifest",
