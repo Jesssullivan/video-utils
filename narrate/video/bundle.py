@@ -12,6 +12,7 @@ renamed into place, so a refusal leaves no output and no new store file.
 Everything here reads and writes local files only. Nothing renders, and nothing is published.
 """
 
+import contextlib
 import copy
 import hashlib
 import json
@@ -87,7 +88,7 @@ def reject_constant(name):
 def no_duplicates(pairs):
     keys = [k for k, _ in pairs]
     if len(set(keys)) != len(keys):
-        raise ValueError(f"a key repeats in one object: {sorted(k for k in keys if keys.count(k) > 1)[0]}")
+        raise ValueError("a key repeats in one object")  # the key itself is never echoed: it may be private
     return dict(pairs)
 
 
@@ -365,11 +366,11 @@ def read_privacy(bundle):
         raise BundleError(exc.code, exc.detail) from None
 
 
-def private_guard(declared, denylist):
-    """The bundle's private-terms guard: the denylist is read and checked when the manifest declares private terms
-    or a denylist is given."""
+def private_guard(declared, denylist, pin=None, bundle=None):
+    """The bundle's private-terms guard: the denylist is read and checked when the manifest declares private terms,
+    a denylist is given or the operator pins one."""
     try:
-        return private_terms.Guard(declared, denylist)
+        return private_terms.Guard(declared, denylist, pin, bundle)
     except private_terms.PrivateError as exc:
         raise BundleError(exc.code, exc.detail) from None
 
@@ -382,29 +383,71 @@ def private_check(guard, texts):
         raise BundleError(exc.code, exc.detail, exc.report) from None
 
 
-def read_claims_only(bundle, denylist=None):
-    """The claims gate alone: script.md, claims.json and the manifest's privacy declaration, no asset. The
-    private-terms guard runs first, on the record texts and then on every voiced text and claim text, and refuses
-    before the number gate."""
-    beats, script_digest = read_script(bundle)
-    claims, claims_digest = read_claims(bundle)
-    cited_known(beats, claims)
-    declared, manifest = read_privacy(bundle)
-    guard = private_guard(declared, denylist)
-    private_check(guard, private_terms.record_texts(manifest, beats, claims))
-    private = private_check(guard, private_terms.written_texts(beats, claims))
+# The guard's own refusals name positions only, so they are never withheld.
+GUARD_CODES = {
+    "denylist_missing", "denylist_misplaced", "denylist_digest_mismatch", "denylist_invalid", "denylist_pin_invalid",
+    "privacy_undeclared", "private_term",
+}  # fmt: skip
+
+
+@contextlib.contextmanager
+def withheld(state):
+    """Withhold the detail of any refusal raised inside that says a private term (F9). state["entries"] is the
+    denylist's entries: preloaded before the manifest is read, then the bound guard's. A refusal of the guard's own
+    passes as it is; any other refusal whose detail an entry matches, or every one while the denylist is given but
+    unreadable, keeps its code and loses its detail and report."""
+    try:
+        yield
+    except BundleError as exc:
+        if exc.code in GUARD_CODES:
+            raise
+        detail = private_terms.redact(state.get("entries"), exc.code, exc.detail)
+        if detail == exc.detail:
+            raise
+        raise BundleError(exc.code, detail) from None
+
+
+def guarded_read(bundle, denylist, pin, state):
+    """(beats, claims, digests, guard, private): the privacy declaration and the guard first, then script.md and
+    claims.json, then the record, voiced and claim texts through the guard. Every refusal passes withheld()."""
+    state.setdefault("entries", private_terms.preload(denylist))
+    with withheld(state):
+        declared, manifest = read_privacy(bundle)
+        guard = private_guard(declared, denylist, pin, bundle)
+        if guard.entries is not None:
+            state["entries"] = guard.entries
+        beats, script_digest = read_script(bundle)
+        claims, claims_digest = read_claims(bundle)
+        cited_known(beats, claims)
+        private_check(guard, private_terms.record_texts(manifest, beats, claims))
+        private = private_check(guard, private_terms.written_texts(beats, claims))
     digests = {"script_sha256": script_digest, "claims_sha256": claims_digest}
+    return beats, claims, digests, guard, private
+
+
+def read_claims_only(bundle, denylist=None, pin=None, state=None):
+    """The claims gate alone: script.md, claims.json and the manifest's privacy declaration, no asset. The
+    private-terms guard is built first and runs on the record texts and then on every voiced text and claim text,
+    and refuses before the number gate."""
+    beats, claims, digests, guard, private = guarded_read(bundle, denylist, pin, {} if state is None else state)
     return beats, claims_report(beats, claims), digests, guard, private
 
 
-def read(bundle, denylist=None):
+def read(bundle, denylist=None, pin=None, state=None):
     """The parsed bundle: {slug, assets, beats, claims, report, digests}. Refuses structure, assets and references;
-    the claims report is returned, not raised, so a caller can print it."""
+    the claims report is returned, not raised, so a caller can print it. The private-terms guard runs before any
+    asset is read, and every refusal passes withheld()."""
     bundle = Path(bundle)
     if not bundle.is_dir():
         raise BundleError("bundle_invalid", "the bundle is not a directory")
+    state = {} if state is None else state
+    beats, report, digests, guard, private = read_claims_only(bundle, denylist, pin, state)
+    with withheld(state):
+        return read_assets(bundle, beats, report, digests, guard, private)
+
+
+def read_assets(bundle, beats, report, digests, guard, private):
     assets, manifest_digest = read_manifest(bundle)
-    beats, report, digests, guard, private = read_claims_only(bundle, denylist)
     videos = set()
     for beat in beats:
         asset = assets.get(beat["asset_id"])
@@ -734,14 +777,25 @@ def merged_records(records_dir, new_jobs):
 
 def intake(
     bundle, out, records_dir, *, job_id=None, template, voice, engine, persona=None, tail_s=None, store=None,
-    denylist=None,
+    denylist=None, pin=None,
 ):  # fmt: skip
     """Read, gate, convert, check and write one bundle. Returns the intake manifest written to out/intake.json.
 
     out must be new or empty. It receives narrated-video.json (the NarratedVideo record), records/ (the input
     renders with one narrate job per beat added to jobs.json) and intake.json; store (default out/store) receives
     each beat's Markdown and each used asset as <sha256><suffix>. denylist is the private denylist file that a
-    manifest declaring ip_private or never_name binds by digest. Nothing is written when any check refuses."""
+    manifest declaring ip_private or never_name binds by digest, and pin the operator's pinned digest of it. Nothing
+    is written when any check refuses, and a refusal whose detail says a private term is withheld."""
+    state = {}
+    with withheld(state):
+        return guarded_intake(bundle, out, records_dir, state, job_id=job_id, template=template, voice=voice,
+                              engine=engine, persona=persona, tail_s=tail_s, store=store, denylist=denylist,
+                              pin=pin)  # fmt: skip
+
+
+def guarded_intake(
+    bundle, out, records_dir, state, *, job_id, template, voice, engine, persona, tail_s, store, denylist, pin
+):  # fmt: skip
     out = Path(out)
     if out.is_symlink() or (out.exists() and (not out.is_dir() or any(out.iterdir()))):
         raise BundleError("out_exists", "--out must be a new or empty directory")
@@ -749,7 +803,7 @@ def intake(
     within = store.resolve() == out.resolve() or out.resolve() in store.resolve().parents
     if store.resolve() == out.resolve():
         raise BundleError("store_conflict", "--store must not be --out itself")
-    b = read(bundle, denylist)
+    b = read(bundle, denylist, pin, state)
     job_id = job_id or b["slug"]
     private_check(b["guard"], [("slug", "record", b["slug"]), ("job", "record", job_id)])  # the directory's name
     if persona is not None:
@@ -839,6 +893,10 @@ def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, 
     (staging / "records").mkdir()
     for name, rows in tables.items():
         write_json(staging / "records" / name, rows)
+    if b["guard"].entries is not None:  # job.load_records refuses a later edit to a job or its table (F8)
+        written = load_records(staging / "records")  # digests of the records as a later load reads them
+        marker = private_terms.marker(b["private"], [written["jobs"][r["id"]] for r, _ in jobs.values()], written)
+        write_json(staging / "records" / private_terms.MARKER, marker)
     write_json(staging / "narrated-video.json", job)
     used = {beat["asset_id"] for beat in b["beats"]}
     report = {r["segment"]: r for r in b["report"]}
@@ -882,14 +940,15 @@ def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, 
         "admit": {"verdict": verdict["verdict"], "pending_operator": [p["gate"] for p in verdict["pending_operator"]]},
         "private_terms": b["private"],
         "states": {"source_checks": "passed", "claims": "passed", "pronunciation_numbers": "passed",
-                   "private_terms": b["private"]["status"], "render": "not_run", "listening": "pending_operator"},
+                   "private_terms": b["private"]["status"], "producer_review": "pending_operator", "render": "not_run",
+                   "listening": "pending_operator"},
     }  # fmt: skip
     write_json(staging / "intake.json", manifest)
     return manifest
 
 
-def claims_only(bundle, denylist=None):
+def claims_only(bundle, denylist=None, pin=None):
     """The claims gate on a bundle's script.md and claims.json, after the private-terms guard:
     {ok, bundle, segments, private_terms}. A private term raises BundleError private_term with the guard's report."""
-    _, report, digests, _, private = read_claims_only(bundle, denylist)
+    _, report, digests, _, private = read_claims_only(bundle, denylist, pin)
     return {"ok": gate_refusal(report) is None, "bundle": digests, "segments": report, "private_terms": private}

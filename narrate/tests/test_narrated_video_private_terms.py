@@ -14,7 +14,7 @@ from narrate.video import bundle, cli, fixture, private_terms
 
 TEMPLATE, VOICE, ENGINE = fixture.NARRATE_JOB, "voice-fixture-sine", "fake-sine"
 NAME = "Quillfeather Labs"
-SALT = "0f" * 16  # a fixed synthetic salt; a real denylist holds random bytes
+SALT = "3a9f0c71e6b28d45" * 2  # a fixed synthetic salt; a real denylist holds random bytes
 ENTRIES = [
     {"id": "name-a", "class": "name", "literal": NAME},
     {"id": "geom-a", "class": "geometry", "regex": r"chamfer\s+angle"},
@@ -256,10 +256,11 @@ def test_a_name_in_voiced_text_refuses_in_any_spelling(ws, said):
     assert not leaks(error.detail, error.report)
 
 
-def test_a_name_inside_a_longer_word_does_not_match(ws):
+def test_a_name_inside_a_longer_word_matches_because_the_guard_fails_closed(ws):
     private_bundle(ws)
     set_script(ws["bundle"], "stands in for a demo", "stands in for Quillfeather Labsworth")
-    assert bundle.claims_only(ws["bundle"], ws["denylist"])["private_terms"]["status"] == "passed"
+    error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
+    assert error.report["matches"][0]["entry"] == "name-a"
 
 
 def test_a_geometry_pattern_refuses(ws):
@@ -277,12 +278,10 @@ def test_a_private_number_refuses_in_digits_or_words(ws, said):
     assert error.report["matches"][0] == {"segment": "intro", "source": "voiced", "entry": "num-a", "class": "number"}
 
 
-def test_a_number_entry_with_a_unit_matches_only_that_unit(ws):
-    rows = [NAME_ROW, {"id": "num-b", "class": "number", "number": 42, "unit": "ms"}]
-    private_bundle(ws, rows)
-    assert bundle.claims_only(ws["bundle"], ws["denylist"])["ok"] is True  # the fixture says 42 percent
-    rows = [NAME_ROW, {"id": "num-b", "class": "number", "number": 42, "unit": "percent"}]
-    private_bundle(ws, rows)
+@pytest.mark.parametrize("unit", ["ms", "percent", None])
+def test_a_number_entry_matches_its_value_in_any_unit(ws, unit):
+    rows = [NAME_ROW, {"id": "num-b", "class": "number", "number": 42, "unit": unit}]
+    private_bundle(ws, rows)  # the fixture says 42 percent; a unit-bound entry no longer narrows the match
     error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
     sources = {(m["segment"], m["source"]) for m in error.report["matches"]}
     assert sources == {("result", "voiced"), ("cache-rate", "claim")}
@@ -412,3 +411,205 @@ def test_cli_intake_takes_the_denylist(ws, tmp_path, capsys):
 def test_the_guard_reads_declarations_directly():
     assert not private_terms.required(private_terms.declaration(None))
     assert private_terms.required(private_terms.declaration({"ip_private": False, "never_name": True}))
+
+
+# Review round 2 (TIN-7735 F3, F7 to F12) ---------------------------------------------------------------------------
+CONFORMANCE = Path(__file__).parent / "fixtures" / "narrated-video" / "nv-denylist-conformance.json"
+
+
+def test_the_shared_conformance_fixture_agrees_with_this_guard():
+    """cade src/bs21-guard.ts reads the same file (tests/fixtures/nv-denylist-conformance.json) and must agree."""
+    case = json.loads(CONFORMANCE.read_text())
+    entries = private_terms.parse(case["denylist"].encode())
+    missed = [t for t in case["refuse"] if not private_terms.scan(entries, [("x", "voiced", t)])]
+    over = [t for t in case["pass"] if private_terms.scan(entries, [("x", "voiced", t)])]
+    assert missed == [] and over == []
+    for raw in case["invalid"]:
+        with pytest.raises(private_terms.PrivateError) as caught:
+            private_terms.parse(raw.encode())
+        assert caught.value.code == "denylist_invalid"
+    for raw in case["valid"]:
+        private_terms.parse(raw.encode())
+
+
+@pytest.mark.parametrize(
+    "said",
+    [
+        "QuillfeatherLabs", "quillfeatherlabs.com", "#QuillfeatherLabs", "Quillfeather­Labs",
+        "Quillfeather⁠Labs", "Quillfeather‍Labs", "Quіllfeather Labs", "Qui̱llfeather Labs",
+        "Quillféather Labs", "Quillféather Labs", "Quillfeather Labses", "Quill-feather Labs",
+    ],
+)  # fmt: skip
+def test_a_respelled_name_refuses(ws, said):
+    private_bundle(ws)
+    set_script(ws["bundle"], "stands in for a demo", f"stands in for {said}")
+    error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
+    assert {m["class"] for m in error.report["matches"]} <= {"name", "script"}
+    assert not leaks(error.detail, error.report)
+
+
+@pytest.mark.parametrize("said", ["Chamfer​Angle", "chamferangle", "chamferAngle"])
+def test_a_squeezed_geometry_phrase_refuses(ws, said):
+    private_bundle(ws)
+    set_script(ws["bundle"], "stands in for a demo", f"shows the {said}")
+    assert refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"]).report["matches"]
+
+
+def test_a_word_mixing_latin_and_cyrillic_refuses_as_script(ws):
+    private_bundle(ws)
+    set_script(ws["bundle"], "stands in for a demo", "stands in for a dеmo")
+    error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
+    assert error.report["matches"][0] == {"segment": "intro", "source": "voiced", "entry": None, "class": "script"}
+
+
+@pytest.mark.parametrize(
+    "receipt",
+    ["３.１４１６", "3,1416", "run 3.1416-b", "three point one four one six", "٣.١٤١٦"],
+)  # fmt: skip
+def test_a_private_number_in_a_record_text_refuses_in_any_form(ws, receipt):
+    private_bundle(ws)
+    edit_json(ws["bundle"] / "claims.json", lambda rows: rows[0].update(receipt=f"measured {receipt}"))
+    error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
+    assert error.report["matches"][0]["segment"] == "claim#1"
+
+
+@pytest.mark.parametrize("said", ["12,5", "12½", "twelve and a half", ".5 of 12.5", "12.5 deg", "12.5-degree"])
+def test_number_forms_near_a_private_value_refuse(said):
+    entries = private_terms.parse(json.dumps({"kind": "nv_denylist", "schema_version": 1, "salt": SALT, "entries": [
+        {"id": "num-x", "class": "number", "number": 12.5, "unit": "deg"}]}).encode())  # fmt: skip
+    assert private_terms.scan(entries, [("x", "record", f"value {said}")])
+
+
+def test_a_number_entry_id_that_says_its_number_refuses_and_details_name_positions(ws):
+    rows = [NAME_ROW, {"id": "angle-12.5", "class": "geometry", "number": 12.5, "unit": None}]
+    declare(ws["bundle"], write_denylist(ws["denylist"], rows))
+    error = refused("denylist_invalid", bundle.claims_only, ws["bundle"], ws["denylist"])
+    assert "12.5" not in error.detail
+    private_bundle(ws)
+    set_script(ws["bundle"], "stands in for a demo", f"stands in for {NAME}")
+    error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
+    assert "name-a" not in error.detail and "entry #0" in error.detail
+
+
+@pytest.mark.parametrize("salt", ["0" * 32, "0f" * 16, "01234560123456" + "0" * 18])
+def test_a_low_entropy_salt_refuses(ws, salt):
+    raw = json.dumps({"kind": "nv_denylist", "schema_version": 1, "salt": salt, "entries": ENTRIES})
+    declare(ws["bundle"], write_denylist(ws["denylist"], raw=raw))
+    refused("denylist_invalid", bundle.claims_only, ws["bundle"], ws["denylist"])
+
+
+@pytest.mark.parametrize("pattern", [r"chamfer(?P<x>a)", r"\w+angle", r"(?=a)b", r"a\1", r"[[:alpha:]]", r"^chamfer$"])
+def test_a_regex_outside_the_shared_subset_refuses(ws, pattern):
+    rows = [NAME_ROW, {"id": "g", "class": "geometry", "regex": pattern}]
+    declare(ws["bundle"], write_denylist(ws["denylist"], rows))
+    refused("denylist_invalid", bundle.claims_only, ws["bundle"], ws["denylist"])
+
+
+# F7: the operator's pin and the denylist's place -------------------------------------------------------------------
+def test_a_pinned_lane_refuses_an_undeclared_bundle(ws, monkeypatch):
+    digest = write_denylist(ws["denylist"])
+    refused("privacy_undeclared", bundle.claims_only, ws["bundle"], ws["denylist"], digest)
+    monkeypatch.setenv(private_terms.PIN_ENV, digest)
+    refused("privacy_undeclared", bundle.claims_only, ws["bundle"], ws["denylist"])
+    refused("denylist_missing", bundle.claims_only, ws["bundle"])  # a pin needs the file
+
+
+def test_a_pin_outranks_the_manifest_digest(ws):
+    digest = write_denylist(ws["denylist"])
+    declare(ws["bundle"], digest)
+    other = ws["denylist"].with_name("other.json")
+    swapped = write_denylist(other, [NAME_ROW, {"id": "g", "class": "geometry", "regex": "nothing\\s+here"}])
+    declare(ws["bundle"], swapped)  # a bundle edit that binds another list
+    refused("denylist_digest_mismatch", bundle.claims_only, ws["bundle"], other, digest)
+    declare(ws["bundle"], None)
+    refused("denylist_digest_mismatch", bundle.claims_only, ws["bundle"], other, digest)
+    declare(ws["bundle"], digest)
+    assert bundle.claims_only(ws["bundle"], ws["denylist"], digest)["private_terms"]["pinned"] is True
+
+
+def test_a_bad_pin_refuses(ws):
+    private_bundle(ws)
+    refused("denylist_pin_invalid", bundle.claims_only, ws["bundle"], ws["denylist"], "ABC")
+
+
+def test_a_denylist_inside_the_bundle_or_a_work_tree_refuses(ws, tmp_path):
+    inside = ws["bundle"] / "denylist.json"
+    declare(ws["bundle"], write_denylist(inside))
+    refused("denylist_misplaced", bundle.claims_only, ws["bundle"], inside)
+    tree = tmp_path / "repo"
+    (tree / ".git").mkdir(parents=True)
+    in_tree = tree / "lists" / "denylist.json"
+    declare(ws["bundle"], write_denylist(in_tree))
+    refused("denylist_misplaced", bundle.claims_only, ws["bundle"], in_tree)
+
+
+def test_cli_reads_the_pin_flag(ws, capsys):
+    digest = write_denylist(ws["denylist"])
+    assert cli.main(["claims", str(ws["bundle"]), "--denylist", str(ws["denylist"]), "--denylist-sha256", digest]) == 1
+    assert json.loads(capsys.readouterr().err)["refused"] == "privacy_undeclared"
+
+
+# F8: a guarded intake binds its narrate jobs and their pronunciation tables --------------------------------------
+def add_entry(row):
+    return lambda table: (table if isinstance(table, list) else [table])[0]["entries"].append(row)
+
+
+def test_a_guarded_intake_binds_the_pronunciation_table(ws, tmp_path):
+    from narrate.video.job import JobError, load_records
+
+    private_bundle(ws)
+    out = tmp_path / "out"
+    intake(ws, out, denylist=ws["denylist"])
+    marker = json.loads((out / "records" / private_terms.MARKER).read_text())
+    assert marker["status"] == "passed" and len(marker["jobs"]) == 2 and not leaks(marker)
+    load_records(out / "records")
+    row = {"caseSensitive": True, "note": None, "spoken": "quillfeather labs", "wholeWord": True, "written": "demo"}
+    edit_json(out / "records" / "pronunciation.json", add_entry(row))
+    with pytest.raises(JobError) as caught:
+        load_records(out / "records")
+    assert caught.value.code == "private_terms_stale" and not leaks(caught.value.detail)
+
+
+def test_an_undeclared_intake_writes_no_marker(ws, tmp_path):
+    intake(ws, tmp_path / "out")
+    assert not (tmp_path / "out" / "records" / private_terms.MARKER).exists()
+
+
+# F9: refusals before and around the guard withhold private text ----------------------------------------------------
+def test_a_claim_refusal_that_reads_a_private_number_is_withheld(ws):
+    private_bundle(ws)
+    edit_json(ws["bundle"] / "claims.json", lambda rows: rows[0]["value"].update(spoken="3.1416 and 7"))
+    error = refused("claim_invalid", bundle.claims_only, ws["bundle"], ws["denylist"])
+    assert "withheld" in error.detail and not leaks(error.detail)
+
+
+def test_an_asset_refusal_that_names_a_private_path_is_withheld(ws, tmp_path):
+    private_bundle(ws)
+    m = json.loads((ws["bundle"] / "manifest.json").read_text())
+    old = ws["bundle"] / m["assets"][0]["path"]
+    new = old.with_name("quillfeather-labs-" + old.name)
+    old.rename(new)
+    m["assets"][0]["path"] = str(new.relative_to(ws["bundle"]))
+    m["assets"][0]["receipt"] = "synthetic receipt"
+    (ws["bundle"] / "manifest.json").write_text(json.dumps(m, indent=1))
+    error = refused("private_term", intake, ws, tmp_path / "out", denylist=ws["denylist"])
+    assert not leaks(error.detail, error.report)
+    m["assets"][0]["sha256"] = "0" * 64
+    (ws["bundle"] / "manifest.json").write_text(json.dumps(m, indent=1))
+    error = refused("private_term", intake, ws, tmp_path / "out", denylist=ws["denylist"])
+    assert not leaks(error.detail)
+
+
+def test_a_refusal_while_the_given_denylist_is_unreadable_is_withheld(ws):
+    ws["denylist"].parent.mkdir(parents=True, exist_ok=True)
+    ws["denylist"].write_text("not json")
+    edit_json(ws["bundle"] / "manifest.json", lambda m: m.update({NAME: 1}))  # refused before the guard is built
+    error = refused("bundle_invalid", bundle.claims_only, ws["bundle"], ws["denylist"])
+    assert "withheld" in error.detail and not leaks(error.detail)
+
+
+def test_a_redacted_detail_keeps_unrelated_refusals_readable(ws):
+    private_bundle(ws)
+    set_script(ws["bundle"], "## result", "## Bad Id")
+    error = refused("beat_invalid", bundle.claims_only, ws["bundle"], ws["denylist"])
+    assert "Bad Id" in error.detail

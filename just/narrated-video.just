@@ -109,14 +109,15 @@ nv-fixture:
 # manifest.json, script.md, claims.json and its PNG, MP4 and GIF assets. The claims gate refuses a segment that speaks
 # a number no cited, receipted claims.json entry backs. Run both on the private bundle where it lives; nothing renders.
 # Run the spoken-number claims gate alone: one row per segment; exit 1 when a segment refuses. ARGS: [--denylist
-# FILE] (or NARRATED_VIDEO_DENYLIST), needed when the manifest declares ip_private or never_name.
+# FILE] (or NARRATED_VIDEO_DENYLIST), needed when the manifest declares ip_private or never_name, and
+# [--denylist-sha256 HEX] (or NARRATED_VIDEO_DENYLIST_SHA256), the operator's pin for a private lane.
 narrated-video-claims bundle *args:
     python3 -m narrate video claims {{quote(bundle)}} {{args}}
 
 # One NarratedVideo job (edition Internal) and one confidential narrate job per beat, written only after the claims
 # gate, every asset digest and admit pass. OUT is a new or empty directory. ARGS: --records DIR (or
 # NARRATED_VIDEO_RECORDS) --narrate-template ID --voice ID --engine ID (--persona P | --no-avatar) [--job ID]
-# [--store DIR, default OUT/store] [--tail-s S] [--denylist FILE] [--json]. Then `python3 -m narrate video init --job ID --from
+# [--store DIR, default OUT/store] [--tail-s S] [--denylist FILE] [--denylist-sha256 HEX] [--json]. Then `python3 -m narrate video init --job ID --from
 # OUT/narrated-video.json --records OUT/records` and `just nv-run ID`.
 # Turn a demo bundle into a narrated-video job and its narrate jobs, claims gated; nothing is written on a refusal.
 narrated-video-intake bundle out *args:

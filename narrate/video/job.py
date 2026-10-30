@@ -134,6 +134,9 @@ def load_records(directory):
         if len(table) != len(rows):
             raise JobError("records_invalid", f"{file}: ids repeat")
         records[name] = table
+    from . import private_terms  # a guarded intake's marker binds its narrate jobs and their tables (TIN-7735)
+
+    private_terms.check_marker(directory, records)
     return records
 
 

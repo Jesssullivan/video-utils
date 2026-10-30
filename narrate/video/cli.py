@@ -25,8 +25,9 @@ intake and claims read a demo bundle (manifest.json, script.md, claims.json and 
 "Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,
 writes one NarratedVideo record, one narrate job per beat and their sources, and refuses before writing anything when
 a check fails. Both run the private-terms guard first: a manifest that declares ip_private or never_name needs
---denylist (or NARRATED_VIDEO_DENYLIST), the private denylist it binds by digest. fixture --bundle also writes a
-synthetic bundle.
+--denylist (or NARRATED_VIDEO_DENYLIST), the private denylist it binds by digest. --denylist-sha256 (or
+NARRATED_VIDEO_DENYLIST_SHA256) pins that digest outside the bundle and marks the lane private. fixture --bundle
+also writes a synthetic bundle.
 """
 
 import argparse
@@ -47,6 +48,10 @@ from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_j
 
 RECORDS_ENV = "NARRATED_VIDEO_RECORDS"
 DENYLIST_ENV = "NARRATED_VIDEO_DENYLIST"
+PIN_HELP = (
+    "the operator's pinned sha256 of the denylist, instead of NARRATED_VIDEO_DENYLIST_SHA256: the lane is private, so"
+    " an undeclared bundle refuses and the file must hash to it, whatever the manifest says"
+)
 DENYLIST_HELP = (
     "the private denylist file (kind nv_denylist) that a manifest declaring ip_private or never_name binds by sha256,"
     " instead of NARRATED_VIDEO_DENYLIST; kept outside the bundle and outside git"
@@ -325,6 +330,7 @@ def cmd_intake(a):
         tail_s=a.tail_s,
         store=a.store,
         denylist=denylist(a),
+        pin=a.denylist_sha256,
     )
     summary = {
         "ok": True,
@@ -345,7 +351,7 @@ def denylist(a):
 
 
 def cmd_claims(a):
-    result = bundle.claims_only(a.bundle, denylist(a))
+    result = bundle.claims_only(a.bundle, denylist(a), a.denylist_sha256)
     emit(result)
     if result["ok"]:
         return 0
@@ -490,10 +496,12 @@ def main(argv=None):
     t.add_argument("--tail-s", type=float, help="seconds a card base holds after the last narration (default 1)")
     t.add_argument("--json", action="store_true", help="print the whole intake manifest")
     t.add_argument("--denylist", help=DENYLIST_HELP)
+    t.add_argument("--denylist-sha256", help=PIN_HELP)
 
     c = sub.add_parser("claims", help="the spoken-number claims gate of a demo bundle, alone")
     c.add_argument("bundle", help="the bundle directory (script.md, claims.json and the manifest's privacy are read)")
     c.add_argument("--denylist", help=DENYLIST_HELP)
+    c.add_argument("--denylist-sha256", help=PIN_HELP)
 
     s = sub.add_parser("status", help="print the recorded graph.json and its pending operator gates")
     common(s)

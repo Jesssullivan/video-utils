@@ -42,3 +42,51 @@ only in CI. Each check ran under `nice -n 10` inside `nix develop .#condense`.
   the guard. The producer still reviews the script.
 - The guard runs on bundle intake and the claims gate. A job written another way
   never meets it. Cade's BS-21 step (TIN-7788) is the publish-side check.
+
+## Review round 2 (2026-10-30)
+
+Authority: SPR-214 (TIN-7125 comment 0cbbe60a) and the review verdict FIX on
+#74 head 4eb3a2f6. Receipt per R-HOOK-CONVERGENCE-20261004 (R-N13).
+
+| Finding | Change |
+| --- | --- |
+| F3 respellings | literals match squeezed (letters and digits only, anywhere); NFKD with marks stripped; capital and small confusables mapped; a Latin and Cyrillic word refuses as class `script`; regexes also run on the squeezed fold |
+| F7 self opt-in | `--denylist-sha256` or `NARRATED_VIDEO_DENYLIST_SHA256` pins the list outside the bundle and refuses `privacy_undeclared`; a list inside the bundle or a git work tree refuses `denylist_misplaced` |
+| F8 later edits | a guarded intake writes `records/private-terms.json`; every records load refuses `private_terms_stale` when a narrate job or its pronunciation table changed |
+| F9 early refusals | the guard is built before any bundle check, and any other refusal whose detail says a term is withheld; the duplicate-key detail no longer names the key |
+| F10 ids | number entries run against ids too; a refusal detail names the entry by index |
+| F11 numbers | NFKC and ASCII digits before reading; digit runs read whole, as a decimal and by group; vulgar fractions; English spellings; units no longer narrow |
+| F12 parsers | a shared regex subset, a salt of at least 8 distinct hex digits, and `nv-denylist-conformance.json`, which cade keeps byte-identical |
+| F13 unread | the spec lists pixels, frames, burned-in text and container metadata; intake states add `producer_review: pending_operator` |
+
+### F4 proposal, not applied (Jess's act, SPR-138)
+
+1. Add `.github/CODEOWNERS` owning `/narrate/video/private_terms.py`,
+   `/narrate/video/bundle.py`, `/narrate/video/claims.py`,
+   `/narrate/video/cli.py`, `/narrate/video/job.py`, `/narrate/normalise.py`,
+   `/narrate/tests/test_narrated_video_private_terms.py`,
+   `/narrate/tests/fixtures/narrated-video/nv-denylist-conformance.json`,
+   `/just/narrated-video.just`, `/docs/spec/NARRATED_VIDEO.md`, `/.github/`
+   and `/flake.nix` with `@Jesssullivan`.
+2. Add to ruleset 25222169 on `main`: `pull_request`
+   `{required_approving_review_count: 0, require_code_owner_review: true,
+   dismiss_stale_reviews_on_push: true, require_last_push_approval: false}`;
+   `required_status_checks` `{strict_required_status_checks_policy: true,
+   checks: [narrate, offline, bazel]}`; no bypass actors.
+
+### Round 2 evidence
+
+Local, non-qualifying, under `nice -n 10` in `nix develop .#condense`, load1
+about 13.
+
+| Check | Result |
+| --- | --- |
+| private-terms, intake, units, graph, types, simple, adopt and stdlib smoke tests | 877 passed, 47 subtests |
+| `ruff check .` and `ruff format --check .` in `narrate/` | clean |
+
+### Unknowns after round 2
+
+- Hyphen-joined digits ("12-5") are not read as a decimal, because dates would
+  then match every short private number.
+- Leetspeak and abbreviations need their own entries.
+- Deleting `records/private-terms.json` removes the F8 check.
