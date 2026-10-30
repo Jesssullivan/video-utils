@@ -406,8 +406,9 @@ def test_invalidation_reruns_exactly_the_rows_stages(tmp_path, row):
 
 def test_a_voice_rendered_before_kp15_plans_stale(tmp_path, monkeypatch):
     """KP-15 changed narrate render's captions for the same inputs, so voice is at impl 2 and an impl-1 voice reruns."""
-    assert graph.IMPL["voice"] == 2 and graph.IMPL["compose"] == 2 and graph.IMPL["handoff"] == 2
-    assert all(impl == 1 for stage, impl in graph.IMPL.items() if stage not in ("voice", "compose", "handoff"))
+    twos = ("voice", "base", "compose", "handoff", "deliver_check")
+    assert all(graph.IMPL[stage] == 2 for stage in twos)
+    assert all(impl == 1 for stage, impl in graph.IMPL.items() if stage not in twos)
     recs = records()
     job = two_segment_avatar_job(recs)
     ctx = stub_ctx()

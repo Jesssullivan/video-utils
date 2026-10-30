@@ -13,6 +13,9 @@ what the files hold, and refuses metadata_present when:
 
 handoff writes each slide layer through strip_png: a PNG keeps its critical chunks and the colour chunks in
 PNG_KEEP, and loses every text, EXIF, ICC profile, time and unknown chunk. Its pixels and their bytes stay the same.
+Then check_layer reads every other file in layers/ as it is and refuses metadata_present when its bytes hold an XMP
+packet, an EXIF block or a local path, or a WAV holds a chunk outside WAV_KEEP (a LIST/INFO chunk carries a source's
+title and comment). It never rewrites a layer, so the avatar overlays keep the bytes their manifests bind.
 
 A refusal names the file and the tag key or the kind of finding, never a tag value or a path.
 """
@@ -42,6 +45,7 @@ CHUNK = 1 << 20
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 PNG_CRITICAL = {b"IHDR", b"PLTE", b"IDAT", b"IEND"}
 PNG_KEEP = {b"tRNS", b"gAMA", b"cHRM", b"sRGB", b"sBIT", b"pHYs", b"bKGD"}
+WAV_KEEP = {b"fmt ", b"data", b"fact"}
 
 
 def refuse(name, what):
@@ -117,6 +121,37 @@ def check_text(path, roots):
     """Refuse metadata_present when a text output holds a local path."""
     if any(root in Path(path).read_text(encoding="utf-8", errors="replace") for root in roots):
         refuse(Path(path).name, "holds a local path")
+
+
+def wav_chunks(path):
+    """The chunk types of a RIFF WAVE file, or None when it is not one."""
+    out = []
+    with open(path, "rb") as f:
+        head = f.read(12)
+        if len(head) != 12 or head[:4] != b"RIFF" or head[8:] != b"WAVE":
+            return None
+        while len(header := f.read(8)) == 8:
+            (length,) = struct.unpack("<I", header[4:])
+            out.append(header[:4])
+            f.seek(length + (length & 1), 1)
+    return out
+
+
+def check_layer(path, roots):
+    """Refuse metadata_present when a handoff layer's bytes hold an XMP packet, an EXIF block or a local path, or a
+    WAV layer holds a chunk outside WAV_KEEP. Reads only: the layer's bytes stay as they are."""
+    name = Path(path).name
+    if name.lower().endswith(".wav"):
+        chunks = wav_chunks(path)
+        if chunks is None:
+            refuse(name, "is not a RIFF WAVE file")
+        extra = sorted({c.decode("latin-1").strip() for c in chunks if c not in WAV_KEEP})
+        if extra:
+            refuse(name, "keeps the chunk " + " and ".join(extra))
+    found = scan_bytes(path, dict(MARKERS) | {"path": tuple(r.encode() for r in roots)})
+    if found:
+        refuse(name, "holds " + " and ".join(f"an embedded {k} block" if k != "path" else "a local path"
+                                             for k in sorted(found)))  # fmt: skip
 
 
 def png_chunks(data):

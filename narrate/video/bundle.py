@@ -157,8 +157,8 @@ def bundle_path(path, where):
 
 
 def read_text_source(bundle, asset, where):
-    """The strings an asset's text source shows (visible_text.py), after its path, digest and form are checked;
-    None when the asset names no text source."""
+    """visible_text.Read (the strings an asset's text source shows, and whether it is opaque) after its path, digest
+    and form are checked; None when the asset names no text source."""
     if "text" not in asset:
         return None
     if asset["kind"] not in TEXT_KINDS:
@@ -515,18 +515,19 @@ def read_assets(bundle, beats, report, digests, guard, private):
         "digests": {"manifest_sha256": manifest_digest} | digests,
         "guard": guard,
         "private": private,
-        "visible": {k: shown[k] for k in ("read", "unread")},
+        "visible": {k: shown[k] for k in ("read", "unread", "opaque")},
     }
 
 
 def visible(assets, beats):
-    """The visible text of every asset a beat shows, for the guard: {texts, read, unread}. texts holds one
+    """The visible text of every asset a beat shows, for the guard: {texts, read, unread, opaque}. texts holds one
     (asset#N, "visible", text) per asset whose text source names any string, its strings joined by newlines, so a
     term split across two labels still matches. read and unread list the shown assets by manifest position, with and
-    without a text source; the guard reads no pixels, so an unread asset's on-screen text stays the producer's
-    review."""
+    without a text source; opaque lists the read ones whose SVG may draw text no string names (an embedded image,
+    another file, or no string at all). The guard reads no pixels, so an unread or opaque asset's on-screen text
+    stays the producer's review."""
     cited = sorted({beat["asset_id"] for beat in beats}, key=lambda a: assets[a]["position"])
-    out = {"texts": [], "read": [], "unread": []}
+    out = {"texts": [], "read": [], "unread": [], "opaque": []}
     for asset_id in cited:
         asset = assets[asset_id]
         where = f"asset#{asset['position']}"
@@ -534,8 +535,10 @@ def visible(assets, beats):
             out["unread"].append(where)
             continue
         out["read"].append(where)
-        if asset["visible"]:
-            out["texts"].append((where, "visible", "\n".join(asset["visible"])))
+        if asset["visible"].opaque:
+            out["opaque"].append(where)
+        if asset["visible"].texts:
+            out["texts"].append((where, "visible", "\n".join(asset["visible"].texts)))
     return out
 
 
@@ -958,7 +961,9 @@ def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, 
         written = load_records(staging / "records", marker_optional=True)  # digests as a later load reads them
         narrate_jobs = [written["jobs"][r["id"]] for r, _ in jobs.values()]
         read_back = check_shape(json.loads((staging / "narrated-video.json").read_text(encoding="utf-8")))
-        marker = private_terms.marker(b["private"], narrate_jobs, written, read_back)  # as nv init --from reads it
+        marker = private_terms.marker(  # as nv init --from reads it
+            b["private"], narrate_jobs, written, read_back, visible_record(b)
+        )
         write_json(staging / "records" / private_terms.MARKER, marker)
     used = {beat["asset_id"] for beat in b["beats"]}
     report = {r["segment"]: r for r in b["report"]}
@@ -1017,11 +1022,16 @@ def text_source(asset):
 
 
 def visible_state(b):
-    """not_declared with no denylist; passed when the guard read a text source for every shown asset; partial
-    when a shown asset has none, so its on-screen text was not checked."""
+    """not_declared with no denylist; passed when the guard read a text source for every shown asset and none is
+    opaque; partial when a shown asset has none or an opaque one, so some on-screen text was not checked."""
     if b["guard"].entries is None:
         return "not_declared"
-    return "partial" if b["visible"]["unread"] else "passed"
+    return "partial" if b["visible"]["unread"] or b["visible"]["opaque"] else "passed"
+
+
+def visible_record(b):
+    """The marker's visible_text: the state and the unread and opaque positions, which deliver_check reads."""
+    return {"state": visible_state(b), "unread": b["visible"]["unread"], "opaque": b["visible"]["opaque"]}
 
 
 def claims_only(bundle, denylist=None, pin=None):

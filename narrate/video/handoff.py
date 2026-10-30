@@ -20,6 +20,10 @@ from, each on the base clock, beside the composed cut:
                                      digest, renderer kind and frames identity), slide runs, avatar-off spans, the
                                      mix gains and the stage keys of every input
 
+Every layer but base.mp4 (strip.check_media) then passes strip.check_layer: no XMP packet, EXIF block or local path in
+its bytes, and no WAV chunk but fmt, data and fact. It reads and never rewrites, so an overlay keeps the bytes its
+manifest binds; a layer that fails refuses metadata_present (TIN-7788).
+
 FCPXML and OTIO export is phase 2 (design section 5.2). Until an editor imports one, it stays unverified in an
 application, as AGENTS.md rules for markers.
 """
@@ -82,7 +86,8 @@ def run_handoff(rc, row, partial):
         "-crf", str(profile["crf"]), "-pix_fmt", PIX_FMT, "-threads", "2", "-map_metadata", "-1", "-map_chapters", "-1",
         "-fflags", "+bitexact", "-flags:v", "+bitexact", str(layers / "base.mp4"),
     )  # fmt: skip
-    strip.check_media(layers / "base.mp4", strip.local_roots(rc.store.root, rc.env.store_dir, rc.env.records_dir))
+    roots = strip.local_roots(rc.store.root, rc.env.store_dir, rc.env.records_dir)
+    strip.check_media(layers / "base.mp4", roots)
     copy(place_dir / "voice.wav", layers / "voice.wav")
     if placements["clips"]:
         copy(place_dir / "clips.wav", layers / "clips.wav")
@@ -126,6 +131,9 @@ def run_handoff(rc, row, partial):
             {"page": page, "file": f"layers/{target.name}", "sha256": digest, "layer_sha256": layer_sha256,
              "stripped": dropped}
         )  # fmt: skip
+    checked = sorted(p.name for p in layers.iterdir() if p.name != "base.mp4")
+    for name in checked:
+        strip.check_layer(layers / name, roots)
     mix = mix_manifest["measurements"]
     edit = {
         "kind": "nv_edit",
@@ -155,6 +163,7 @@ def run_handoff(rc, row, partial):
             )
         },  # fmt: skip
         "stage_keys": keys,
+        "metadata_checked": [f"layers/{name}" for name in checked],
         "export": {"fcpxml": "phase 2", "otio": "phase 2", "application_import": "unverified"},
     }
     write_json(partial / "edit.json", edit)

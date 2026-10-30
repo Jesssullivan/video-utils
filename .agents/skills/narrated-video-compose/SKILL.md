@@ -39,7 +39,8 @@ Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not app
 - Cards of different heights crossfade with the outgoing card's edge visible until the incoming card is opaque.
 - `Full` fades are eased against the mean luma under them; card fades are linear. A `Full` fade shorter than the `min_fade_s` that `compose.json` records for it fails the flash gate. A tall slide's card is narrowed to fit the frame height less two margins.
 - An `avatarOff` id that names no slide page refuses `page_unknown` at compose.
-- Both MP4s drop every input tag and chapter. A tag outside the allowlist, a chapter, an XMP or EXIF block or a local path in an output refuses `metadata_present`; `compose.json` records the tag keys kept. Handoff slide layers lose their PNG text, EXIF, ICC and time chunks.
+- Both MP4s drop every input tag and chapter. A tag outside the allowlist, a chapter, an XMP or EXIF block or a local path in an output refuses `metadata_present`; `compose.json` records the tag keys kept. Handoff slide layers lose their PNG text, EXIF, ICC and time chunks, and every other layer is read for XMP, EXIF, a local path or a WAV chunk beyond `fmt `, `data` and `fact`, which refuses `metadata_present`.
+- With records from a guarded intake, `deliver_check` reports `visible_text`: `pending_operator` when a shown asset's text went unread or was opaque.
 - FCPXML and OTIO export are phase 2. `edit.json` is not verified in an editing application.
 - Refusals: `captions_burn_unsupported`, `captions_missing`, `slides_exceed_program`, `overlay_exceeds_base`, `frames_mismatch` and `label_chain_broken`, each recorded for its key. An FFmpeg failure is not recorded.
 - No video, overlay, slide picture or caption text enters git. Results carry ids, keys and numbers.

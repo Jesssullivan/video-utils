@@ -25,8 +25,9 @@ from test_narrated_video_private_terms import (
     write_denylist,
 )
 
-from narrate.video import bundle, cli, fixture, handoff, private_terms, strip, visible_text
-from narrate.video.common import StageRefused
+from narrate.video import bundle, cli, deliver, fixture, handoff, private_terms, store, strip, visible_text
+from narrate.video.common import StageRefused, to_mono
+from narrate.video.job import JobError, load_records
 
 
 @pytest.fixture(autouse=True)
@@ -93,6 +94,16 @@ def test_svg_text_reads_text_tspans_comments_and_labels_but_not_metadata_or_styl
         b'<svg xmlns="http://www.w3.org/2000/svg"><text>unclosed</svg>',
         b'<html xmlns="http://www.w3.org/1999/xhtml"><p>not svg</p></html>',
         b'<svg xmlns="http://example.invalid/other"><text>other namespace</text></svg>',
+        # an entity in UTF-16, with and without its byte-order mark: the raw bytes never spell <!ENTITY
+        '<?xml version="1.0" encoding="UTF-16"?><!DOCTYPE svg [<!ENTITY a "Quill">]>'
+        '<svg xmlns="http://www.w3.org/2000/svg"><text>&a;feather</text></svg>'.encode("utf-16"),
+        '<?xml version="1.0" encoding="UTF-16"?><!DOCTYPE svg [<!ENTITY a "Quill">]>'
+        '<svg xmlns="http://www.w3.org/2000/svg"><text>&a;feather</text></svg>'.encode("utf-16-le"),
+        # a document type after more than 4096 bytes of leading comment
+        b"<!--" + b"x" * 5000 + b'--><!DOCTYPE svg [<!ENTITY a "Quill">]>'
+        b'<svg xmlns="http://www.w3.org/2000/svg"><text>&a;feather</text></svg>',
+        # ASCII bytes that declare another encoding
+        b'<?xml version="1.0" encoding="ISO-8859-1"?><svg xmlns="http://www.w3.org/2000/svg"><text>a</text></svg>',
     ],
 )
 def test_a_malformed_or_entity_svg_refuses(data):
@@ -167,7 +178,7 @@ def test_clean_text_sources_pass_and_intake_records_them(ws, tmp_path):
     js = add_text_source(ws["bundle"], "slide-b", "slide-b.json", text_json("Cache rate", "forty two percent"))
     m = intake(ws, tmp_path / "out", persona="fixture-persona", denylist=ws["denylist"])
     assert m["private_terms"]["checked"]["visible"] == 2
-    assert m["visible_text"] == {"read": ["asset#1", "asset#2"], "unread": []}
+    assert m["visible_text"] == {"read": ["asset#1", "asset#2"], "unread": [], "opaque": []}
     assert m["states"]["visible_text"] == "passed" and m["states"]["producer_review"] == "pending_operator"
     rows = {s["segment"]: s["asset"]["text"] for s in m["segments"]}
     assert rows == {"intro": {"kind": "svg", "sha256": svg}, "result": {"kind": "json", "sha256": js}}
@@ -179,8 +190,11 @@ def test_a_shown_asset_without_a_text_source_is_listed_unread(ws, tmp_path):
     private_bundle(ws)
     add_text_source(ws["bundle"], "slide-a", "slide-a.svg", plot_svg("0"))
     m = intake(ws, tmp_path / "out", persona="fixture-persona", denylist=ws["denylist"])
-    assert m["visible_text"] == {"read": ["asset#1"], "unread": ["asset#2"]}
+    assert m["visible_text"] == {"read": ["asset#1"], "unread": ["asset#2"], "opaque": []}
     assert m["states"]["visible_text"] == "partial"
+    marker = json.loads((tmp_path / "out" / "records" / private_terms.MARKER).read_text())
+    assert marker["visible_text"] == {"state": "partial", "unread": ["asset#2"], "opaque": []}
+    assert load_records(tmp_path / "out" / "records")["visible_text"] == marker["visible_text"]
 
 
 def test_an_undeclared_bundle_records_visible_text_not_declared(ws, tmp_path):
@@ -233,6 +247,126 @@ def test_a_malformed_text_source_refuses_asset_text_invalid(ws, tmp_path):
 def test_a_text_source_on_a_gif_refuses(ws, tmp_path):
     add_text_source(ws["bundle"], "loop-a", "loop-a.svg", plot_svg("0"))
     refused("bundle_invalid", intake, ws, tmp_path / "out")
+
+
+# Opaque SVG text sources: text drawn as an image or as outlines -----------------------------------------------------
+PIXEL = "data:image/png;base64,iVBORw0KGgo="
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        f'<image href="{PIXEL}" width="10" height="10"/>',  # an embedded raster
+        '<image xlink:href="slide-raster.png" width="10" height="10"/>',  # a raster in another file
+        '<filter id="f"><feImage href="slide-raster.png"/></filter>',
+        '<foreignObject width="10" height="10"><p xmlns="http://www.w3.org/1999/xhtml">x</p></foreignObject>',
+        '<use href="labels.svg#title"/>',  # another file's drawing
+        '<rect width="4" height="4" style="fill: url(other.svg#pattern)"/>',
+        "<style>rect { fill: url('other.svg#pattern') }</style>",
+    ],
+)
+def test_an_svg_that_draws_an_image_or_another_file_is_opaque(extra):
+    read = visible_text.svg_read(plot_svg("0", extra=extra))
+    assert read.opaque is True and "Build time" in read.texts
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        '<use href="#axis"/>',
+        '<rect fill="url(#gradient)"/>',
+        "<rect style=\"fill:url( '#g' )\"/>",
+        '<a href="https://example.invalid/"><text>link</text></a>',
+    ],
+)
+def test_an_svg_that_refers_only_to_itself_is_not_opaque(extra):
+    assert visible_text.svg_read(plot_svg("0", extra=extra)).opaque is False
+
+
+def test_an_svg_with_no_string_is_opaque_and_a_json_list_is_not():
+    outlined = b'<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0h10v10z"/></svg>'  # text outlined to paths
+    assert visible_text.svg_read(outlined) == visible_text.Read([], True)
+    assert visible_text.svg_texts(outlined) == []
+
+
+def test_an_opaque_slide_makes_the_intake_partial(ws, tmp_path):
+    private_bundle(ws)
+    add_text_source(ws["bundle"], "slide-a", "slide-a.svg", plot_svg("0", extra=f'<image href="{PIXEL}"/>'))
+    add_text_source(ws["bundle"], "slide-b", "slide-b.svg",
+                    b'<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0h1"/></svg>')  # fmt: skip
+    m = intake(ws, tmp_path / "out", persona="fixture-persona", denylist=ws["denylist"])
+    assert m["visible_text"] == {"read": ["asset#1", "asset#2"], "unread": [], "opaque": ["asset#1", "asset#2"]}
+    assert m["states"]["visible_text"] == "partial" and m["private_terms"]["checked"]["visible"] == 1
+    marker = json.loads((tmp_path / "out" / "records" / private_terms.MARKER).read_text())
+    assert marker["visible_text"]["opaque"] == ["asset#1", "asset#2"]
+
+
+def test_an_opaque_slide_still_has_its_strings_guarded(ws, tmp_path):
+    private_bundle(ws)
+    add_text_source(ws["bundle"], "slide-a", "slide-a.svg", plot_svg(NAME, extra=f'<image href="{PIXEL}"/>'))
+    error = refused("private_term", intake, ws, tmp_path / "out", denylist=ws["denylist"])
+    assert error.report["matches"][0]["source"] == "visible"
+
+
+# The visible-text state reaches deliver_check ----------------------------------------------------------------------
+@pytest.mark.parametrize(
+    "summary, gate",
+    [
+        (None, "not_applicable"),
+        ({"state": "passed", "unread": [], "opaque": []}, "passed"),
+        ({"state": "partial", "unread": ["asset#2"], "opaque": []}, "pending_operator"),
+        ({"state": "partial", "unread": [], "opaque": ["asset#1"]}, "pending_operator"),
+        ({"state": "not_recorded", "unread": [], "opaque": []}, "pending_operator"),
+    ],
+)
+def test_the_visible_text_gate(summary, gate):
+    assert deliver.visible_gate(summary) == (gate, summary)
+    operator = {"listening": "passed", "visible_text": gate}
+    job = {"delivery": {"upload": True}, "edition": "Internal"}
+    closed = deliver.delivery_gate(job, None, {"profile": "passed"}, operator)
+    assert closed["public_upload_allowed"] is (gate != "pending_operator")
+    assert ("visible_text" in closed["operator_states_open"]) is (gate == "pending_operator")
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        {"state": "maybe", "unread": [], "opaque": []},
+        {"state": "passed", "unread": ["slide-a"], "opaque": []},  # an id, not a position
+        {"state": "passed", "unread": []},
+        "partial",
+    ],
+)
+def test_a_marker_with_a_bad_visible_text_refuses(ws, tmp_path, value):
+    private_bundle(ws)
+    intake(ws, tmp_path / "out", persona="fixture-persona", denylist=ws["denylist"])
+    path = tmp_path / "out" / "records" / private_terms.MARKER
+    marker = json.loads(path.read_text())
+    path.write_text(json.dumps(marker | {"visible_text": value}))
+    with pytest.raises(JobError) as caught:
+        load_records(tmp_path / "out" / "records")
+    assert caught.value.code == "private_terms_stale"
+    path.write_text(json.dumps({k: v for k, v in marker.items() if k != "visible_text"}))
+    assert load_records(tmp_path / "out" / "records")["visible_text"]["state"] == "not_recorded"
+
+
+def test_an_unread_slide_on_a_private_lane_holds_the_upload_at_the_operator(ws, tmp_path, ffmpeg):
+    private_bundle(ws)
+    add_text_source(ws["bundle"], "slide-a", "slide-a.svg", plot_svg("0"))
+    out = tmp_path / "out"
+    intake(ws, out, denylist=ws["denylist"])
+    root = tmp_path / "narrated"
+    common = ["--root", str(root), "--records", str(out / "records"), "--store", str(ws["store"]),
+              "--lexical", str(ws["lexical"])]  # fmt: skip
+    assert cli.main(["init", "--job", "demo-fixture", "--from", str(out / "narrated-video.json"), *common]) == 0
+    assert cli.main(["run", "demo-fixture", *common]) == 0
+    s = store.JobStore(root, "demo-fixture")
+    current = json.loads((s.dir / "current.json").read_text())["stages"]
+    report = json.loads((s.dir / current["deliver_check"]["dir"] / "deliver_check.json").read_text())
+    assert report["gates"]["visible_text"] == "pending_operator"
+    assert report["visible_text"] == {"state": "partial", "unread": ["asset#2"], "opaque": []}
+    assert "visible_text" in report["delivery_gate"]["operator_states_open"]
+    assert report["delivery_gate"]["public_upload_allowed"] is False
 
 
 def test_the_visible_source_is_a_guard_source():
@@ -338,3 +472,66 @@ def test_check_text_refuses_a_local_path(tmp_path):
     assert caught.value.code == "metadata_present" and str(tmp_path) not in caught.value.detail
     out.write_text("job nv-1\n")
     strip.check_text(out, [str(tmp_path)])
+
+
+# Handoff layers: tags from the base clip, and a byte check of every layer ------------------------------------------
+def wav_chunks(path):
+    return [c.decode() for c in strip.wav_chunks(path)]
+
+
+def test_to_mono_drops_the_source_tags(tmp_path, ffmpeg):
+    tagged = encode(tmp_path / "tagged.mp4", "-metadata", f"title={NAME}", "-metadata", f"comment={tmp_path}/deck")
+    target = to_mono(tagged, tmp_path / "clips.wav")
+    assert wav_chunks(target) == ["fmt ", "data"]
+    assert NAME.encode() not in target.read_bytes() and str(tmp_path).encode() not in target.read_bytes()
+    strip.check_layer(target, [str(tmp_path)])
+
+
+def test_check_layer_refuses_a_wav_info_chunk_xmp_exif_and_a_local_path(tmp_path, ffmpeg):
+    tagged = encode(tmp_path / "tagged.mp4", "-metadata", f"comment={tmp_path}/deck")
+    kept = tmp_path / "kept.wav"  # the old to_mono: no -map_metadata -1
+    subprocess.run(["ffmpeg", "-v", "error", "-i", str(tagged), "-ac", "1", "-c:a", "pcm_s16le", "-fflags",
+                    "+bitexact", str(kept)], check=True)  # fmt: skip
+    assert "LIST" in wav_chunks(kept)
+    with pytest.raises(StageRefused) as caught:
+        strip.check_layer(kept, [])
+    assert caught.value.code == "metadata_present" and caught.value.detail == "kept.wav keeps the chunk LIST"
+    for name, data, finding in [
+        ("avatar-seg-1.mov", b"\x00\x00moov<x:xmpmeta>x</x:xmpmeta>", "an embedded xmp block"),
+        ("avatar-seg-1.manifest.json", b'{"exif": "Exif\x00\x00MM"}', "an embedded exif block"),
+        ("avatar-seg-1.manifest.json", f'{{"bin": "{tmp_path}/kitpip"}}'.encode(), "a local path"),
+    ]:
+        (tmp_path / name).write_bytes(data)
+        with pytest.raises(StageRefused) as caught:
+            strip.check_layer(tmp_path / name, [str(tmp_path)])
+        assert caught.value.detail == f"{name} holds {finding}" and str(tmp_path) not in caught.value.detail
+    (tmp_path / "plain.json").write_text('{"kind": "kitpip.manifest/v0"}')
+    strip.check_layer(tmp_path / "plain.json", [str(tmp_path)])
+    (tmp_path / "bad.wav").write_bytes(b"not a wav")
+    with pytest.raises(StageRefused):
+        strip.check_layer(tmp_path / "bad.wav", [])
+
+
+def test_handoff_from_a_tagged_base_clip_keeps_no_tag(tmp_path, ffmpeg):
+    from test_narrated_video_simple import Workspace
+
+    ws = Workspace(tmp_path)
+    video = tmp_path / "tagged-base.mp4"
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "testsrc2=s=160x90:r=25:d=12", "-f", "lavfi", "-i",
+         "sine=f=220:d=12:sample_rate=48000", "-af", "volume=-40dB", "-metadata", f"title={NAME}",
+         "-metadata", f"comment={ws.paths['store']}/deck-a.key", "-c:v", "libx264", "-preset", "ultrafast",
+         "-c:a", "aac", "-shortest", str(video)],
+        check=True,
+    )  # fmt: skip
+    job = ws.job("nv-tagged", bed=None, **{"delivery.handoff": True, "delivery.profile": "Contingency"})
+    job["base"] = {"video": {"sha256": ws.add_source(video), "keepBaseAudio": True}}
+    s, result, _ = ws.run(job)
+    assert result["ok"], result
+    layers = s.dir / s.entry("handoff")["dir"] / "layers"
+    assert wav_chunks(layers / "clips.wav") == ["fmt ", "data"]
+    for layer in layers.iterdir():
+        assert NAME.encode() not in layer.read_bytes()
+        assert str(ws.paths["store"].resolve()).encode() not in layer.read_bytes()
+    edit = json.loads((layers.parent / "edit.json").read_text())
+    assert "layers/clips.wav" in edit["metadata_checked"] and "layers/base.mp4" not in edit["metadata_checked"]

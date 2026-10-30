@@ -30,11 +30,30 @@ keys do not change: a key holds the external's own tool and digest, not the MCP 
 - Mutation probes: dropping the visible-text guard call failed 10 visible-text tests. Reading SVG `metadata`,
   `style` and `script` text failed 2.
 
+## Review fixes
+
+A review of head `906f832e` found these. Each fix is a new signed commit on the same branch.
+
+| Finding | Fix | Files |
+| --- | --- | --- |
+| Bazel `//narrate:stdlib_test` failed: its module list lacked `strip` and `visible_text` | both added | `narrate/tests/stdlib_smoke.py` |
+| A tagged base clip's title and comment reached `layers/clips.wav` in a `LIST`/`INFO` chunk | `to_mono` drops tags and chapters, and `base` moves to impl 2. handoff reads every layer but `base.mp4` for XMP, EXIF, a local path or an extra WAV chunk, and never rewrites one | `common.py`, `strip.py`, `handoff.py`, `graph.py` |
+| A shown asset with no text source left no trace after intake | the marker carries the visible-text state, and `deliver_check` reports the operator gate `visible_text`. `deliver_check` moves to impl 2 | `bundle.py`, `private_terms.py`, `job.py`, `deliver.py` |
+| An SVG that embeds a raster, refers to another file or has only paths counted as read | such an SVG is opaque, and the intake state is then `partial` | `visible_text.py`, `bundle.py` |
+| A UTF-16 SVG or a late document type got past the byte check | a text source SVG must be UTF-8, the decoded text is searched, and the parser refuses any declaration | `visible_text.py` |
+
+Measured for the fixes, local, non-qualifying, under `tinyland-heavy`. `just narrate-test` gave 2073 passed,
+1 skipped and 1 failed. The failure was the compose gate-set test, which now lists `visible_text`. After that fix,
+the compose, visible-text, graph, intake, private-terms and VRM suites gave 592 passed. The stdlib smoke passes
+with the repository root on the path. Mutation probes: removing the metadata flags from `to_mono` failed 2 tests,
+and removing the `visible_text` gate failed the private-lane delivery test.
+
 ## Open
 
-- A private lane does not refuse a shown asset with no text source. It records `visible_text: partial`. Whether
-  it should refuse is an operator decision.
+- A private lane does not refuse a shown asset with no text source or an opaque one at intake. It records
+  `visible_text: partial`, and `deliver_check` holds the `visible_text` gate at `pending_operator`. Whether intake
+  should refuse is an operator decision.
 - No raster text JSON existed before this change, and no OCR dependency exists. The `nv_asset_text` schema is new
   and needs a producer to write it.
-- The overlays in `layers/` keep the external's bytes, because their manifests bind them. They are not
-  metadata-checked.
+- The overlays in `layers/` keep the external's bytes, because their manifests bind them. handoff reads them for
+  XMP, EXIF and local paths only. It cannot read their tags against the denylist.

@@ -107,7 +107,8 @@ weights), or null for an engine that pins no file. The git commit is recorded in
 the stage manifest and kept out of the key.
 A stage's `impl` rises when its output changes for the same inputs. `voice`
 is at 2 because KP-15 removed its caption label, so a voice rendered before
-KP-15 plans stale.
+KP-15 plans stale. `base`, `compose`, `handoff` and `deliver_check` are at 2
+for TIN-7788 (see "Compose and delivery").
 
 Canonical JSON has sorted keys, no whitespace and UTF-8. `dhall-to-json` writes
 the Double `-16.0` as `-16`, so an integral number is written as an integer and
@@ -137,7 +138,7 @@ A key reads three kinds of input:
 | `music` | bed id, each layer's digest, bytes, rate, channels, tempo factor and gain, 48 kHz |
 | `mix` | the music block except the bed id, delivery loudness, true peak, drift and channels |
 | `compose` | avatar corner, width, margin, `avatarOff` and `fadeS`, the slides block, captions, labels, delivery profile |
-| `deliver_check` | delivery except `handoff`, the bed's licence PDF digest and Content ID result, labels |
+| `deliver_check` | delivery except `handoff`, the bed's licence PDF digest and Content ID result, labels, the guarded intake's visible-text summary |
 | `handoff` | none beyond its inputs |
 
 A stage manifest's `content_sha256` leaves out `run_dir`, `created_utc` and
@@ -772,7 +773,7 @@ Lane L6 runs `compose`, `deliver_check` and `handoff`
 | --- | --- | --- | --- |
 | `compose` | `base`, `place`, `mix`, every selected `avatar` and `avatar_check`, slide pictures by digest | `video.mp4`, `video.upload.mp4`, `captions.srt`, `captions.vtt`, `description.txt`, `chapters.json`, `compose.json` | `captions_burn_unsupported`, `captions_missing`, `slides_exceed_program`, `overlay_exceeds_base`, `frames_mismatch`, `metadata_present`, `label_chain_broken` |
 | `deliver_check` | `compose`, the voice and avatar manifests, the bed record | `deliver_check.json`: gate states and `delivery_gate` | the edition codes at DeliverCheck, `label_chain_broken`. A failed gate is a state |
-| `handoff` | `base`, `place`, `mix`, `avatar`, `compose` | `layers/` and `edit.json` | `label_chain_broken` |
+| `handoff` | `base`, `place`, `mix`, `avatar`, `compose` | `layers/` and `edit.json` | `metadata_present`, `label_chain_broken` |
 
 Profiles. The deck project's own profiles port in phase 2. These are this
 lane's, each H.264 High in yuv420p with AAC-LC at 48 kHz:
@@ -816,7 +817,11 @@ tag key or the kind of finding, never a value or a path. `compose.json`
 records the tag keys each MP4 kept under `metadata`. The H.264 stream keeps
 x264's settings SEI. It names the encoder settings and no input. compose and
 handoff moved to impl 2 with this change, so a cut composed before it plans
-stale and reruns.
+stale and reruns. `base` writes `clips.wav` with `-map_metadata -1` and
+`-map_chapters -1` as well: without them FFmpeg's WAV muxer keeps a source
+clip's title and comment in a `LIST`/`INFO` chunk, and `clips.wav` reaches the
+handoff layers. `base` moved to impl 2 for it. `music` and `place` decode the
+same way, but they rewrite the samples, so their outputs do not change.
 
 Avatar-off pages. Every page `avatar.avatarOff` lists hides the overlays for
 its whole span. They fade out over `avatar.fadeS` (0.35 s) ending at the
@@ -870,6 +875,7 @@ that ends after the program refuses `slides_exceed_program` at compose.
 | `captions` | the files `captions` asks for exist, the persona cue opens the first cue and `extraNotice` ends `description.txt` when set |
 | `listening`, `lip_sync` | `pending_operator` here. Lip sync only with an overlay |
 | `bed_licence_pdf`, `bed_content_id` | with `upload` and a bed: the record holds the licence PDF digest and a clear Content ID result, else `pending_operator` |
+| `visible_text` | records from a guarded intake: `passed` when the guard read a text source for every shown asset and none was opaque. `pending_operator` when one was unread or opaque, or when the marker holds no summary. `not_applicable` without a guarded intake. `deliver_check.json` repeats the summary under `visible_text` |
 
 Flash. A slide change is a run's start and end, each page change inside a
 run, and a hold's start and end. Within `fadeS` plus one frame of each change
@@ -911,6 +917,14 @@ is decoded to one first. `edit.json` lists each slide's source digest
 (`stripped`). FFmpeg applies no ICC profile when it composes, so a layer
 without `iCCP` shows what the cut shows. The overlays are copied as their
 external wrote them, because their manifests bind the bytes.
+
+Then every layer but `base.mp4`, which compose's MP4 check reads, is read as
+it is (`strip.check_layer`). Its bytes must hold no XMP packet, no EXIF block
+and no local path, and a WAV must hold only `fmt `, `data` and `fact` chunks.
+Anything else refuses `metadata_present`, naming the file and the chunk or the
+kind of finding. The check never rewrites a layer, so the overlays and their
+manifests keep the bytes their digests bind. `edit.json` lists the layers
+checked under `metadata_checked`.
 
 ## Demo bundle intake
 
@@ -990,7 +1004,7 @@ in the file, and the claims gate refuses every number that relies on it.
 | `asset_digest_mismatch` | an asset file does not hash to its manifest `sha256`, when it is read or when its store copy is hashed |
 | `asset_kind_mismatch` | an asset's extension, bytes or PNG size differ from its manifest entry |
 | `asset_unreceipted` | an asset's receipt is empty |
-| `asset_text_invalid` | an asset's text source is malformed: an SVG that is not well-formed, holds a document type or entity declaration or has no `svg` root, or a JSON file that is not `nv_asset_text` schema 1 with at most 10000 strings of at most 4096 characters, or a file over 4 MiB. A `text` field on a GIF, or with a missing or unknown field, refuses `bundle_invalid`, and a path that does not end in `.svg` or `.json` refuses `asset_kind_mismatch` |
+| `asset_text_invalid` | an asset's text source is malformed: an SVG that is not UTF-8 (another byte-order mark, a NUL or a declared encoding other than UTF-8), is not well-formed, holds a document type or entity declaration anywhere or has no `svg` root, or a JSON file that is not `nv_asset_text` schema 1 with at most 10000 strings of at most 4096 characters, or a file over 4 MiB. A `text` field on a GIF, or with a missing or unknown field, refuses `bundle_invalid`, and a path that does not end in `.svg` or `.json` refuses `asset_kind_mismatch` |
 | `asset_unknown` | a beat's `asset_id` is not in the manifest |
 | `asset_needs_conversion` | a beat cites a GIF. No stage reads GIF: a slide is a still picture and the base is one video. The producer converts it to a PNG or an MP4 in the bundle, with its own digest and receipt. An unused GIF is listed in `unused_assets` and never refused |
 | `asset_video_multiple` | beats cite two different MP4s: one MP4 becomes the base, and no stage joins clips |
@@ -1043,7 +1057,7 @@ STORE/                  --store, default OUT/store: each beat's Markdown as <sha
 `intake.json` names the bundle by slug and by the digests of its three files, never by path. It holds the job id and
 digest, the narrate template, voice and engine, and one row per segment. Each row holds the narrate job, script
 digest, span, asset (id, kind, digest, receipt, text source), shown layer and the claims result. It also holds
-`visible_text` (the shown assets read and unread by the guard), `unused_assets`,
+`visible_text` (the shown assets read, unread and opaque to the guard), `unused_assets`,
 the store digests written, the digest of every output, admit's verdict and pending operator gates, the template's
 pronunciation table id and pinned upstream release (or `null`), and the states `source_checks: passed`,
 `claims: passed`, `pronunciation_numbers: passed`, `private_terms`, `visible_text`, `producer_review:
@@ -1251,7 +1265,8 @@ records `not_declared`. A denylist given to such a bundle still runs.
 
 A guarded intake writes `records/private-terms.json` (schema 2): the guard's status and digest, the digest of the
 NarratedVideo record it wrote to `narrated-video.json` and the narrate jobs its segments name, and, per narrate job,
-the digests of the job record and of the pronunciation table it names. Every load of that records directory checks
+the digests of the job record and of the pronunciation table it names. It also holds `visible_text`: the intake's
+visible-text state and the unread and opaque asset positions, which `deliver_check` reports (TIN-7788). Every load of that records directory checks
 it and refuses `private_terms_stale` on a change, so a table edited after intake cannot add a spoken term. `init`,
 `plan`, `run` and `explain` also refuse a NarratedVideo record that is not the one the intake wrote. So an edited
 persona label or a segment pointed at another narrate job refuses, and so does a job built from `init` flags. A
@@ -1268,22 +1283,30 @@ in a text source, bound by digest in its manifest `text` field (`narrate/video/v
 
 | Source | What counts |
 | --- | --- |
-| `.svg`, the vector the picture was drawn from | every run of character data and every comment, including entity and character references as the XML parser decodes them, and the `aria-label` and `xlink:title` attributes. A plotting library that draws glyphs as paths writes each label as a comment beside them. The `metadata`, `style` and `script` elements are skipped, because none of them is drawn |
-| `.json`, `{"kind": "nv_asset_text", "schema_version": 1, "texts": [...]}` | each string the producer drew |
+| `.svg`, the vector the picture was drawn from | every run of character data and every comment, including character references as the XML parser decodes them, and the `aria-label` and `xlink:title` attributes. A plotting library that draws glyphs as paths writes each label as a comment beside them. The `metadata`, `style` and `script` elements are skipped, because none of them is drawn. The file must be UTF-8 |
+| `.json`, `{"kind": "nv_asset_text", "schema_version": 1, "texts": [...]}` | each string the producer drew. An empty list says the asset draws no text |
+
+An SVG source is opaque when it may draw text that no string names. It holds an
+`image`, `feImage`, `foreignObject` or another embedding element, or it refers
+to another file through an `href` or a `url()` that is not a `#` fragment, or it
+gives no string at all, as text outlined to paths does. Its strings are still
+guarded. A JSON source is never opaque.
 
 The guard reads each shown asset's strings joined by newlines as one `visible` text, so a term split across two
 labels still matches. Only assets a beat shows are read. `intake.json` lists them under `visible_text` as `read`
-(with a text source) and `unread` (without one), by manifest position, and each segment row's `asset.text` holds the
-source's kind and digest or `null`. The state `visible_text` is `passed` when every shown asset had a text source,
-`partial` when one had none, and `not_declared` when no denylist runs. An unread asset does not refuse: whether a
-private lane should refuse one is open.
+(with a text source), `unread` (without one) and `opaque` (read, with an opaque SVG), by manifest position, and each
+segment row's `asset.text` holds the source's kind and digest or `null`. The state `visible_text` is `passed` when
+every shown asset had a text source and none was opaque, `partial` otherwise, and `not_declared` when no denylist
+runs. An unread or opaque asset does not refuse at intake. The records marker carries the state, and `deliver_check`
+reports it as the operator gate `visible_text`, so a partial cut keeps `operator_states_open` non-empty and
+`public_upload_allowed` false. Whether a private lane should refuse one at intake is open.
 
 The guard reads text only. These pass it, and the producer reviews them:
 
 | Not read | Why |
 | --- | --- |
 | a paraphrase or a translation | no entry spells it |
-| the pixels of a slide, plot or clip with no text source, and text burned into an MP4 or GIF frame | the guard reads no pixels and runs no OCR; on-screen asset text reaches the video |
+| the pixels of a slide, plot or clip with no text source or an opaque one, and text burned into an MP4 or GIF frame | the guard reads no pixels and runs no OCR; on-screen asset text reaches the video, and the `visible_text` gate holds the delivery at the operator |
 | a text source's drawing that differs from its picture | the digest binds the file, not that it matches the picture; the producer keeps them in step |
 | asset container metadata (PNG text chunks, MP4 atoms) | it is not shown. The intake copies asset bytes by digest into the private store, and the outputs drop it: compose checks both MP4s and handoff strips each slide layer ("Compose and delivery") |
 | a job or records written another way than intake | no intake ran, so no marker exists |

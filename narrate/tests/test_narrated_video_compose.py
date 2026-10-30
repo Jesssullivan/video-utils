@@ -163,8 +163,9 @@ def test_deliver_check_reports_every_gate_and_keeps_upload_closed(simple):
     assert report["gates"] == {
         "profile": "passed", "loudness": "passed", "flash": "not_applicable", "captions": "passed",
         "listening": "pending_operator", "lip_sync": "not_applicable", "bed_licence_pdf": "not_applicable",
-        "bed_content_id": "not_applicable",
+        "bed_content_id": "not_applicable", "visible_text": "not_applicable",
     }  # fmt: skip
+    assert report["visible_text"] is None  # the fixture records come from no guarded intake (TIN-7788)
     assert report["profile"]["findings"] == {} and abs(report["loudness"]["drift_lu"]) <= job["delivery"]["driftLu"]
     assert report["loudness"]["true_peak_dbtp"] <= -1.5
     assert report["delivery_gate"]["internal_review_allowed"] is True

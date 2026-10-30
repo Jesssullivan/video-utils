@@ -794,11 +794,12 @@ def job_digest(job):
     return hashlib.sha256(canonical(job).encode()).hexdigest()
 
 
-def marker(report, narrate_jobs, records, job):
+def marker(report, narrate_jobs, records, job, visible=None):
     """The records marker of a guarded intake: the guard's status and digest; the job_digest of the NarratedVideo
-    record it wrote, as nv init --from reads narrated-video.json back, and the narrate jobs its segments name; and,
-    per narrate job, the digests of the job record and of the pronunciation table it names. A later edit to any of
-    them refuses."""
+    record it wrote, as nv init --from reads narrated-video.json back, and the narrate jobs its segments name; per
+    narrate job, the digests of the job record and of the pronunciation table it names; and visible, the intake's
+    visible-text state with the unread and opaque asset positions (bundle.visible_record), which deliver_check
+    reports as an operator gate. A later edit to a bound record refuses."""
     jobs = {}
     for narrate_job in narrate_jobs:
         table = (records.get("pronunciation") or {}).get(narrate_job.get("pronunciation"))
@@ -815,6 +816,7 @@ def marker(report, narrate_jobs, records, job):
         "narrated_video_sha256": job_digest(job),
         "segment_jobs": segment_jobs(job),
         "jobs": jobs,
+        "visible_text": visible,
     }
 
 
@@ -864,7 +866,36 @@ def read_marker(directory, optional=False):
         or not isinstance(value.get("narrated_video_sha256"), str)
     ):
         raise JobError("private_terms_stale", f"{MARKER} is not a {MARKER_KIND} record of schema {MARKER_VERSION}")
+    if not visible_shape(value.get("visible_text")):
+        raise JobError("private_terms_stale", f"{MARKER} holds a visible_text that is not a visible-text summary")
     return value
+
+
+VISIBLE_STATES = ("passed", "partial", "not_declared")
+POSITION = re.compile(r"^asset#[1-9][0-9]{0,5}$")
+
+
+def visible_shape(value):
+    """True for a marker's visible_text: null (a marker written before TIN-7788 read slide text) or {state, unread,
+    opaque} with a known state and lists of asset positions."""
+    if value is None:
+        return True
+    return (
+        isinstance(value, dict)
+        and set(value) == {"state", "unread", "opaque"}
+        and value["state"] in VISIBLE_STATES
+        and all(isinstance(v, list) and all(isinstance(p, str) and POSITION.match(p) for p in v)
+                for v in (value["unread"], value["opaque"]))
+    )  # fmt: skip
+
+
+def visible_summary(value):
+    """What deliver_check reads from a records marker (read_marker's value): None outside a guarded intake, else
+    {state, unread, opaque}. A marker with no visible_text (a guarded intake that read no slide text) is
+    not_recorded."""
+    if value is None:
+        return None
+    return value.get("visible_text") or {"state": "not_recorded", "unread": [], "opaque": []}
 
 
 def check_marker(directory, records, optional=False):
