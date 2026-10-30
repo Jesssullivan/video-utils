@@ -112,9 +112,11 @@ def read_json(path, what):
         raise JobError("records_invalid", f"{what}: {path.name}: {exc}") from None
 
 
-def load_records(directory):
+def load_records(directory, *, marker_optional=False):
     """{jobs, voices, consents, music_beds, engines, pronunciation}: each {id: record}. A file may hold one record
-    or a list (narrate renders pronunciation.json as one table). A missing optional file is an empty table."""
+    or a list (narrate renders pronunciation.json as one table). A missing optional file is an empty table. A
+    guarded intake's marker must match (private_terms.check_marker); marker_optional, for the intake's own input,
+    lets a private lane's records hold none."""
     if directory is None:
         raise JobError("records_missing", "no records directory: pass --records or set NARRATED_VIDEO_RECORDS")
     directory = Path(directory)
@@ -136,7 +138,7 @@ def load_records(directory):
         records[name] = table
     from . import private_terms  # a guarded intake's marker binds its narrate jobs and their tables (TIN-7735)
 
-    private_terms.check_marker(directory, records)
+    private_terms.check_marker(directory, records, optional=marker_optional)
     return records
 
 

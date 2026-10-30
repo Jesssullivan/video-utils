@@ -90,3 +90,28 @@ about 13.
   then match every short private number.
 - Leetspeak and abbreviations need their own entries.
 - Deleting `records/private-terms.json` removes the F8 check.
+
+## Review round 3 (2026-10-30)
+
+Authority: SPR-214 (TIN-7125 comment 0cbbe60a) and the round 3 review of #74
+head 216f267d. Receipt per R-HOOK-CONVERGENCE-20261004 (R-N13).
+
+The earlier commits named a private brand code and a ruling code in the spec,
+the skill, a module docstring and two commit messages. The branch history was
+rewritten so neither code reaches `main`: `9e5d1041`, `4eb3a2f6` and
+`216f267d` became `dad6fd2`, `a096209` and `c32ba68`, which change only those
+lines. The old commits stay in GitHub's cached PR refs. Purging them is Jess's
+decision.
+
+| Finding | Change |
+| --- | --- |
+| look-alike letters | a letter that is not ASCII after NFKD, mark stripping and case folding refuses as class `script`, and so does a word of two scripts; literals also match in a loose fold where `i`, `l`, `1`, `\|` and `!` read as `l` and `0` as `o` |
+| number forms | middle dot, Arabic and one-dot-leader separators; a spaced point; fractions `a/b` and `n a/b`; one point read as a grouped integer too; "dot" and "comma" spellings |
+| records marker | schema 2 binds the `narrated-video.json` record and its segment jobs; `init`, `plan`, `run` and `explain` refuse another record; a private lane's records with no marker refuse |
+| entry ids | reports name entries by position only |
+| record numbers | asset `size` and `fps`, beat `target_s` and the start and end the intake writes are record texts |
+| PR body | `Linear: TIN-7735` only |
+
+F4 (CODEOWNERS and ruleset 25222169) stays Jess's act, with the paths and
+settings in the F4 proposal above. Until it is applied, the guard does not
+count as enforced.

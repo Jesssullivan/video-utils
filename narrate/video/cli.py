@@ -41,7 +41,7 @@ from pathlib import Path
 
 from .. import policy
 from ..ir import sha256_file
-from . import bundle, fixture, graph, kitpip, speech, store, vrm
+from . import bundle, fixture, graph, kitpip, private_terms, speech, store, vrm
 from . import run as runner
 from .common import Env
 from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_job, load_records, read_json
@@ -101,8 +101,13 @@ def job_store(a, job_id):
     return store.JobStore(a.root or os.environ.get(store.ROOT_ENV) or store.DEFAULT_ROOT, job_id)
 
 
-def records_for(a):
-    return load_records(a.records or os.environ.get(RECORDS_ENV))
+def records_for(a, job=None):
+    """The records. When they come from a guarded intake (or the lane is private), job must be the NarratedVideo
+    record that intake wrote (private_terms.check_job), so an edit to its persona label or segments refuses."""
+    directory = a.records or os.environ.get(RECORDS_ENV)
+    records = load_records(directory)
+    private_terms.check_job(directory, job)
+    return records
 
 
 def table(g):
@@ -119,7 +124,7 @@ def table(g):
 
 
 def cmd_init(a):
-    records = records_for(a)
+    records = load_records(a.records or os.environ.get(RECORDS_ENV))
     defaults_flags = [
         f"--{n.replace('_', '-')}"
         for n in ("narrate_job", "script", "voice", "still", "card", "bed", "edition", "persona")
@@ -163,6 +168,7 @@ def cmd_init(a):
             persona=a.persona,
             client=a.client,
         )
+    records = records_for(a, job)
     s = job_store(a, a.job)
     ctx = context(a)
     g = graph.plan(job, records, None, ctx)
@@ -192,7 +198,8 @@ def cmd_init(a):
 
 def cmd_plan(a):
     s = job_store(a, a.job)
-    g = graph.public(graph.plan(s.read_job(), records_for(a), s, context(a)))
+    job = s.read_job()
+    g = graph.public(graph.plan(job, records_for(a, job), s, context(a)))
     if a.record:
         s.write_graph(g)
     if a.json:
@@ -212,7 +219,8 @@ def run_env(a, records):
 
 def run_common(a, only=None, from_run=None):
     s = job_store(a, a.job)
-    job, records = s.read_job(), records_for(a)
+    job = s.read_job()
+    records = records_for(a, job)
     env = run_env(a, records)
     ctx = context(a)
     rc = runner.RunContext(job, records, s, ctx, env, from_run=from_run)
@@ -371,7 +379,8 @@ def cmd_status(a):
 def cmd_explain(a):
     s = job_store(a, a.job)
     node = f"{a.stage}/{a.segment}" if a.segment else a.stage
-    emit(graph.explain(s.read_job(), records_for(a), s, context(a), node))
+    job = s.read_job()
+    emit(graph.explain(job, records_for(a, job), s, context(a), node))
     return 0
 
 

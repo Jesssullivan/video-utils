@@ -6,7 +6,7 @@
   "TIN-7788"
  ],
  "note": "Synthetic only. Jesssullivan/video-utils narrate/video/private_terms.py and xoxd-ai/cade src/bs21-guard.ts must agree on every case. Keep the two copies byte-identical.",
- "denylist": "{\"kind\": \"nv_denylist\", \"schema_version\": 1, \"salt\": \"3a9f0c71e6b28d453a9f0c71e6b28d45\", \"entries\": [{\"id\": \"name-a\", \"class\": \"name\", \"literal\": \"Fixture Corp\"}, {\"id\": \"name-b\", \"class\": \"name\", \"literal\": \"Zorblax\"}, {\"id\": \"name-c\", \"class\": \"name\", \"literal\": \"Quillfeather Labs\"}, {\"id\": \"geom-a\", \"class\": \"geometry\", \"regex\": \"chamfer\\\\s+angle\"}, {\"id\": \"num-a\", \"class\": \"number\", \"number\": 12.5, \"unit\": \"deg\"}, {\"id\": \"num-b\", \"class\": \"number\", \"number\": 3.1415926535897932, \"unit\": null}]}",
+ "denylist": "{\"kind\": \"nv_denylist\", \"schema_version\": 1, \"salt\": \"3a9f0c71e6b28d453a9f0c71e6b28d45\", \"entries\": [{\"id\": \"name-a\", \"class\": \"name\", \"literal\": \"Fixture Corp\"}, {\"id\": \"name-b\", \"class\": \"name\", \"literal\": \"Zorblax\"}, {\"id\": \"name-c\", \"class\": \"name\", \"literal\": \"Quillfeather Labs\"}, {\"id\": \"geom-a\", \"class\": \"geometry\", \"regex\": \"chamfer\\\\s+angle\"}, {\"id\": \"num-a\", \"class\": \"number\", \"number\": 12.5, \"unit\": \"deg\"}, {\"id\": \"num-b\", \"class\": \"number\", \"number\": 3.1415926535897932, \"unit\": null}, {\"id\": \"num-c\", \"class\": \"number\", \"number\": 3375, \"unit\": null}]}",
  "refuse": [
   "FixtureCorp",
   "fixturecorp.com",
@@ -44,7 +44,29 @@
   "angle-12.5",
   "it is 12.50",
   "3.1415926535897932",
-  "H\u0435llo there"
+  "H\u0435llo there",
+  "\u0396\u03b5\u03c5\u03c2 is a Greek name",
+  "ZorbIax",
+  "Z\u0585rblax",
+  "\ua4dcorblax",
+  "\u1d22\u1d0f\u0280\u0299\u029f\u1d00x",
+  "Zorb\u0399ax",
+  "Zorb|ax",
+  "Zorb1ax",
+  "Zorb!ax",
+  "Z0rblax",
+  "F1xture Corp",
+  "12\u00b75",
+  "twelve dot five",
+  "twelve comma five",
+  "12\u066b5",
+  "25/2",
+  "12 1/2",
+  "12 .5",
+  "12 . 5",
+  "3.375",
+  "3,375",
+  "three thousand three hundred and seventy five"
  ],
  "pass": [
   "a plain sentence with nothing private",
@@ -59,7 +81,10 @@
   "dated 2026-10-25",
   "3.141592653589793",
   "twelve apples",
-  "\u0396\u03b5\u03c5\u03c2 is a Greek name"
+  "Stra\u00dfe und caf\u00e9",
+  "the ratio is 25/3",
+  "12 1/3 cups",
+  "Zorb lane"
  ],
  "invalid": [
   "{\"kind\": \"nv_denylist\", \"schema_version\": 1, \"salt\": \"0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f\", \"entries\": [{\"id\": \"name-a\", \"class\": \"name\", \"literal\": \"Fixture Corp\"}]}",

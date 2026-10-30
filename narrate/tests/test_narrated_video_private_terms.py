@@ -227,10 +227,10 @@ def test_a_clean_bundle_passes_and_intake_records_the_guard(ws, tmp_path):
     assert result["ok"] is True
     private = result["private_terms"]
     assert private["status"] == "passed" and private["denylist_sha256"] == digest and private["entries"] == 3
-    assert private["checked"] == {"record": 19, "voiced": 2, "spoken": 0, "claim": 3, "label": 0}
+    assert private["checked"] == {"record": 29, "voiced": 2, "spoken": 0, "claim": 3, "label": 0}
     m = intake(ws, tmp_path / "out", persona="fixture-persona", denylist=ws["denylist"])
     assert m["private_terms"]["status"] == "passed" and m["states"]["private_terms"] == "passed"
-    assert m["private_terms"]["checked"] == {"record": 21, "voiced": 2, "spoken": 4, "claim": 3, "label": 1}
+    assert m["private_terms"]["checked"] == {"record": 31, "voiced": 2, "spoken": 4, "claim": 3, "label": 1}
     assert m["private_terms"]["denylist_sha256"] == digest
     assert not leaks(m) and str(ws["denylist"]) not in json.dumps(m)
 
@@ -252,7 +252,7 @@ def test_a_name_in_voiced_text_refuses_in_any_spelling(ws, said):
     private_bundle(ws)
     set_script(ws["bundle"], "stands in for a demo", f"stands in for {said}")
     error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
-    assert error.report["matches"] == [{"segment": "intro", "source": "voiced", "entry": "name-a", "class": "name"}]
+    assert error.report["matches"] == [{"segment": "intro", "source": "voiced", "entry": 0, "class": "name"}]
     assert not leaks(error.detail, error.report)
 
 
@@ -260,14 +260,14 @@ def test_a_name_inside_a_longer_word_matches_because_the_guard_fails_closed(ws):
     private_bundle(ws)
     set_script(ws["bundle"], "stands in for a demo", "stands in for Quillfeather Labsworth")
     error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
-    assert error.report["matches"][0]["entry"] == "name-a"
+    assert error.report["matches"][0]["entry"] == 0
 
 
 def test_a_geometry_pattern_refuses(ws):
     private_bundle(ws)
     set_script(ws["bundle"], "stands in for a demo", "shows its Chamfer   angle")
     error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
-    assert error.report["matches"][0]["entry"] == "geom-a"
+    assert error.report["matches"][0]["entry"] == 1
 
 
 @pytest.mark.parametrize("said", ["3.1416", "three point one four one six", "three point one four one six metres"])
@@ -275,7 +275,7 @@ def test_a_private_number_refuses_in_digits_or_words(ws, said):
     private_bundle(ws)
     set_script(ws["bundle"], "stands in for a demo", f"stands in for {said}")
     error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
-    assert error.report["matches"][0] == {"segment": "intro", "source": "voiced", "entry": "num-a", "class": "number"}
+    assert error.report["matches"][0] == {"segment": "intro", "source": "voiced", "entry": 2, "class": "number"}
 
 
 @pytest.mark.parametrize("unit", ["ms", "percent", None])
@@ -297,7 +297,7 @@ def test_a_claim_spoken_text_is_checked(ws):
 def test_a_persona_label_is_checked(ws, tmp_path):
     private_bundle(ws)
     error = refused("private_term", intake, ws, tmp_path / "out", persona=NAME, denylist=ws["denylist"])
-    assert error.report["matches"] == [{"segment": "labels", "source": "label", "entry": "name-a", "class": "name"}]
+    assert error.report["matches"] == [{"segment": "labels", "source": "label", "entry": 0, "class": "name"}]
     assert not (tmp_path / "out").exists()
 
 
@@ -328,7 +328,7 @@ def test_a_private_beat_id_refuses_by_position(ws):
     private_bundle(ws)
     set_script(ws["bundle"], "## result", "## quillfeather-labs-result")
     error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
-    assert error.report["matches"] == [{"segment": "beat#2", "source": "record", "entry": "name-a", "class": "name"}]
+    assert error.report["matches"] == [{"segment": "beat#2", "source": "record", "entry": 0, "class": "name"}]
     assert not leaks(error.detail, error.report)
 
 
@@ -336,7 +336,7 @@ def test_a_private_claim_receipt_refuses(ws):
     private_bundle(ws)
     edit_json(ws["bundle"] / "claims.json", lambda rows: rows[0].update(receipt=f"measured at {NAME}"))
     error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
-    assert error.report["matches"][0] == {"segment": "claim#1", "source": "record", "entry": "name-a", "class": "name"}
+    assert error.report["matches"][0] == {"segment": "claim#1", "source": "record", "entry": 0, "class": "name"}
     assert not leaks(error.detail, error.report)
 
 
@@ -346,7 +346,7 @@ def test_a_private_asset_text_refuses_before_any_asset_check(ws, key):
     value = {"receipt": "the chamfer angle run", "path": "assets/chamfer-angle.png", "id": "chamfer-angle"}[key]
     edit_json(ws["bundle"] / "manifest.json", lambda m: m["assets"][0].update({key: value}))
     error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
-    match = {"segment": "asset#1", "source": "record", "entry": "geom-a", "class": "geometry"}
+    match = {"segment": "asset#1", "source": "record", "entry": 1, "class": "geometry"}
     assert error.report["matches"][0] == match
     assert not leaks(error.detail, error.report)
 
@@ -354,7 +354,7 @@ def test_a_private_asset_text_refuses_before_any_asset_check(ws, key):
 def test_a_private_job_id_refuses_at_intake(ws, tmp_path):
     private_bundle(ws)
     error = refused("private_term", intake, ws, tmp_path / "out", job_id="quillfeather-labs", denylist=ws["denylist"])
-    assert error.report["matches"] == [{"segment": "job", "source": "record", "entry": "name-a", "class": "name"}]
+    assert error.report["matches"] == [{"segment": "job", "source": "record", "entry": 0, "class": "name"}]
     assert not (tmp_path / "out").exists()
 
 
@@ -364,7 +364,7 @@ def test_a_private_bundle_directory_name_refuses_at_intake(ws, tmp_path):
     ws["bundle"].rename(renamed)
     ws["bundle"] = renamed  # the fixture manifest has no slug, so only the directory's name says the term
     error = refused("private_term", intake, ws, tmp_path / "out", job_id="demo", denylist=ws["denylist"])
-    assert error.report["matches"] == [{"segment": "slug", "source": "record", "entry": "name-a", "class": "name"}]
+    assert error.report["matches"] == [{"segment": "slug", "source": "record", "entry": 0, "class": "name"}]
 
 
 def test_intake_refuses_a_term_and_writes_nothing(ws, tmp_path):
@@ -393,7 +393,7 @@ def test_cli_claims_prints_no_term_when_it_refuses(ws, capsys):
     assert cli.main(["claims", str(ws["bundle"]), "--denylist", str(ws["denylist"])]) == 1
     captured = capsys.readouterr()
     assert json.loads(captured.err)["refused"] == "private_term"
-    assert json.loads(captured.out)["private_terms"]["matches"][0]["entry"] == "name-a"
+    assert json.loads(captured.out)["private_terms"]["matches"][0]["entry"] == 0
     assert not leaks(captured.out, captured.err)
 
 
@@ -613,3 +613,137 @@ def test_a_redacted_detail_keeps_unrelated_refusals_readable(ws):
     set_script(ws["bundle"], "## result", "## Bad Id")
     error = refused("beat_invalid", bundle.claims_only, ws["bundle"], ws["denylist"])
     assert "Bad Id" in error.detail
+
+
+# Review round 3 (TIN-7735): look-alike letters, number forms, the records marker and record numbers -----------------
+@pytest.mark.parametrize(
+    "said",
+    [
+        "QuiIlfeather Labs", "Qu1llfeather Labs", "Quil|feather Labs", "Qui!lfeather Labs", "Quillfeաther Labs",
+        "ꓖuillfeather Labs", "ᴏᴜɪʟʟꜰᴇᴀᴛʜᴇʀ Labs",
+        "QuilΙfeather Labs", "Quillfeather Lօbs",
+    ],
+)  # fmt: skip
+def test_a_look_alike_name_refuses(ws, said):
+    private_bundle(ws)
+    set_script(ws["bundle"], "stands in for a demo", f"stands in for {said}")
+    error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
+    assert {m["class"] for m in error.report["matches"]} <= {"name", "script"}
+    assert not leaks(error.detail, error.report)
+
+
+def test_a_letter_outside_ascii_refuses_as_script_and_an_accent_does_not(ws):
+    private_bundle(ws)
+    set_script(ws["bundle"], "stands in for a demo", "stands in for a dօmo")
+    error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
+    assert error.report["matches"][0] == {"segment": "intro", "source": "voiced", "entry": None, "class": "script"}
+    set_script(ws["bundle"], "stands in for a dօmo", "stands in for a démo of Straße")
+    assert bundle.claims_only(ws["bundle"], ws["denylist"])["private_terms"]["status"] == "passed"
+
+
+@pytest.mark.parametrize("said", ["QuiIlfeather Labs", "Quillfeաther Labs"])
+def test_a_look_alike_persona_and_asset_receipt_refuse_at_intake(ws, tmp_path, said):
+    private_bundle(ws)
+    error = refused("private_term", intake, ws, tmp_path / "out", persona=said, denylist=ws["denylist"])
+    assert error.report["matches"][0]["segment"] == "labels"
+    edit_json(ws["bundle"] / "manifest.json", lambda m: m["assets"][0].update(receipt=f"run at {said}"))
+    error = refused("private_term", intake, ws, tmp_path / "out", denylist=ws["denylist"])
+    assert error.report["matches"][0]["segment"] == "asset#1"
+    assert not (tmp_path / "out").exists()
+
+
+@pytest.mark.parametrize(
+    "receipt",
+    ["12·5", "twelve dot five", "twelve comma five", "12٫5", "25/2", "12 1/2", "12 .5", "12 . 5"],
+)  # fmt: skip
+def test_a_private_number_in_a_receipt_refuses_in_more_forms(ws, receipt):
+    rows = [NAME_ROW, {"id": "e1", "class": "number", "number": 12.5, "unit": None}]
+    private_bundle(ws, rows)
+    edit_json(ws["bundle"] / "claims.json", lambda rows: rows[0].update(receipt=f"measured {receipt}"))
+    error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
+    assert error.report["matches"][0] == {"segment": "claim#1", "source": "record", "entry": 1, "class": "number"}
+
+
+def test_a_grouped_integer_with_one_point_refuses():
+    entries = private_terms.parse(json.dumps({"kind": "nv_denylist", "schema_version": 1, "salt": SALT, "entries": [
+        {"id": "e0", "class": "number", "number": 3375, "unit": None}]}).encode())  # fmt: skip
+    assert private_terms.scan(entries, [("x", "record", "a run of 3.375 parts")])
+    assert not private_terms.scan(entries, [("x", "record", "a run of 3.38 parts and 12 1/3 cups")])
+
+
+def test_an_entry_id_never_reaches_a_report(ws):
+    rows = [NAME_ROW, {"id": "angle-12-5", "class": "geometry", "number": 12.5, "unit": None}]
+    private_bundle(ws, rows)
+    edit_json(ws["bundle"] / "claims.json", lambda rows: rows[0].update(receipt="measured 12.5"))
+    error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
+    assert "angle" not in json.dumps(error.report) + error.detail
+    assert error.report["matches"][0]["entry"] == 1
+
+
+@pytest.mark.parametrize(("number", "segment"), [(8.5, "beat#2"), (16.5, "beat#2"), (320, "asset#1")])
+def test_a_private_number_a_record_holds_refuses(ws, number, segment):
+    private_bundle(ws, [NAME_ROW, {"id": "e1", "class": "number", "number": number, "unit": None}])
+    error = refused("private_term", bundle.claims_only, ws["bundle"], ws["denylist"])
+    assert (segment, "record") in {(m["segment"], m["source"]) for m in error.report["matches"]}
+
+
+def guarded_out(ws, tmp_path):
+    private_bundle(ws)
+    out = tmp_path / "out"
+    intake(ws, out, persona="fixture-persona", denylist=ws["denylist"])
+    return out
+
+
+def init_args(ws, tmp_path, out, job_file):
+    common = ["--root", str(tmp_path / "narrated"), "--records", str(out / "records"), "--store", str(ws["store"])]
+    return ["init", "--job", "demo-fixture", "--from", str(job_file), *common]
+
+
+def test_a_deleted_marker_refuses_beside_a_guarded_intake(ws, tmp_path, monkeypatch):
+    from narrate.video.job import JobError, load_records
+
+    out = guarded_out(ws, tmp_path)
+    (out / "records" / private_terms.MARKER).unlink()
+    row = {"caseSensitive": True, "note": None, "spoken": "quillfeather labs", "wholeWord": True, "written": "demo"}
+    edit_json(out / "records" / "pronunciation.json", add_entry(row))
+    with pytest.raises(JobError) as caught:
+        load_records(out / "records")
+    assert caught.value.code == "private_terms_stale"
+    (out / "intake.json").unlink()
+    load_records(out / "records")  # no intake.json and no private lane: nothing says the records were guarded
+    monkeypatch.setenv(private_terms.DENYLIST_ENV, str(ws["denylist"]))
+    with pytest.raises(JobError) as caught:
+        load_records(out / "records")
+    assert caught.value.code == "private_terms_stale"
+
+
+def test_init_from_takes_only_the_record_a_guarded_intake_wrote(ws, tmp_path, capsys):
+    out = guarded_out(ws, tmp_path)
+    assert cli.main(init_args(ws, tmp_path, out, out / "narrated-video.json")) == 0
+    capsys.readouterr()
+    job = json.loads((out / "narrated-video.json").read_text())
+    edits = {
+        "persona": lambda j: j["labels"].update(persona=NAME),
+        "segment": lambda j: j["segments"][0].update(narrateJob=TEMPLATE),
+    }
+    for name, change in edits.items():
+        edited = json.loads(json.dumps(job))
+        change(edited)
+        path = tmp_path / f"{name}.json"
+        path.write_text(json.dumps(edited))
+        args = init_args(ws, tmp_path, out, path) + ["--replace"]
+        assert cli.main(args) == 1, name
+        captured = capsys.readouterr()
+        assert json.loads(captured.err)["refused"] == "private_terms_stale"
+        assert not leaks(captured.out, captured.err)
+
+
+def test_init_from_flags_refuses_on_guarded_records(ws, tmp_path, capsys):
+    out = guarded_out(ws, tmp_path)
+    script = tmp_path / "script.md"
+    script.write_text("synthetic\n")
+    narrate_job = sorted(json.loads((out / "records" / private_terms.MARKER).read_text())["jobs"])[0]
+    args = ["init", "--job", "flags-job", "--narrate-job", narrate_job, "--script", str(script), "--no-avatar",
+            "--root", str(tmp_path / "narrated"), "--records", str(out / "records")]  # fmt: skip
+    assert cli.main(args) == 1
+    assert json.loads(capsys.readouterr().err)["refused"] in {"private_terms_stale", "input_mismatch", "job_invalid"}

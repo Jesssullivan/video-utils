@@ -1130,8 +1130,8 @@ neither flag refuses `privacy_undeclared`, and the file must hash to the pin wha
 | `denylist_pin_invalid` | the pin is not 64 lowercase hex digits |
 | `privacy_undeclared` | a pin is set and the manifest declares neither `ip_private` nor `never_name` |
 | `denylist_invalid` | the file is over 1 MiB, not UTF-8 JSON, repeats a key, is not `{kind: "nv_denylist", schema_version: 1, salt, entries}` with 1 to 10000 entries, holds a malformed entry, or lacks the class a flag needs |
-| `private_term` | an entry matches a text the job speaks, shows or records, or a word mixes Latin and Cyrillic letters |
-| `private_terms_stale` | at `init`, `run` and every records load, a narrate job or the pronunciation table it names differs from what a guarded intake recorded |
+| `private_term` | an entry matches a text the job speaks, shows or records, a letter is not ASCII after NFKD, mark stripping and case folding, or a word mixes two scripts |
+| `private_terms_stale` | at every records load, a narrate job or the pronunciation table it names differs from what a guarded intake recorded, or a private lane's records hold no marker; at `init`, `plan`, `run` and `explain`, the NarratedVideo record is not the one the guarded intake wrote |
 
 `salt` is 32 to 128 random lowercase hex digits with at least 8 distinct digits. Records carry the file's digest,
 and the salt keeps that digest from confirming a guessed short list, the reason Cade's claims gate keeps no digest
@@ -1140,8 +1140,9 @@ of its name list.
 Each entry is `{id, class, literal}`, `{id, class, regex}` or `{id, class: "number", number, unit}`. `class` is
 `number`, `geometry` or `name`. `ip_private` needs at least one number or geometry entry and `never_name` needs at
 least one name entry. A literal holds 2 to 256 letters or digits. A name entry is never a number entry. An entry id
-must not match any entry, number entries included, because reports carry ids. A number entry's `unit` is `null` or
-a unit the claims gate reads. It is kept for the record and no longer narrows the match.
+must not match any entry, number entries included. Reports name entries by position and never carry an id, so an
+id that spells a term in a form the entries do not read ("angle-12-5") still never reaches a log. A number entry's
+`unit` is `null` or a unit the claims gate reads. It is kept for the record and no longer narrows the match.
 
 A regex holds at most 512 characters of a subset that cade `src/bs21-guard.ts` reads the same way: ASCII letters,
 digits and spaces, the escapes `\s`, `\d`, `\b`, `\.` and `\-`, `.`, groups `(` and `(?:`, `|`, character classes
@@ -1149,26 +1150,32 @@ of those (a bare `-` only last) and the quantifiers `?`, `*`, `+`, `{n}`, `{n,}`
 case-insensitive, with `.` matching every character and `\s`, `\d` and `\b` reading ASCII only. It must not match
 empty or blank text, before or after its separators are removed.
 
-Matching fails closed and over-matches on purpose. Each text is folded: NFKD, combining marks stripped, case folded,
-the Cyrillic, Greek and Latin look-alike letters that `CONFUSABLES` lists mapped to Latin, and every decimal digit
-mapped to ASCII. A literal matches when its letters and digits occur in the text's letters and digits, anywhere. So
-"FixtureCorp", "fixture-corp.com", "#FixtureCorp", "Fixture" plus a soft hyphen or word joiner plus "Corp",
-"F" plus Cyrillic "і" plus "xture Corp", "Fixture Corps" and "Fixture Corporation" all match the literal
-"Fixture Corp". A regex runs on the NFKC text, on the fold with punctuation as spaces, and with its separators
+Matching fails closed and over-matches on purpose. A text refuses as class `script` when one of its letters is not
+ASCII after NFKD, mark stripping and case folding, or when one word mixes letters of two scripts. So small capitals
+and Greek, Cyrillic, Armenian and Lisu letters refuse in a guarded bundle, while "é", "ß" and fullwidth Latin letters
+fold to ASCII and pass. Each text is then folded: NFKD, combining marks stripped, case folded, the Cyrillic, Greek
+and Latin look-alike letters that `CONFUSABLES` lists mapped to Latin, and every decimal digit mapped to ASCII. A
+literal matches when its letters and digits occur in the text's letters and digits, anywhere. So "FixtureCorp",
+"fixture-corp.com", "#FixtureCorp", "Fixture" plus a soft hyphen or word joiner plus "Corp", "F" plus Cyrillic "і"
+plus "xture Corp", "Fixture Corps" and "Fixture Corporation" all match the literal "Fixture Corp". A literal also
+matches in a looser fold of both the entry and the text, where `i`, `l`, `1`, `|` and `!` read as `l` and `0` reads
+as `o`. So "ZorbIax" with a capital I, "Zorb|ax", "Zorb1ax", "Z0rblax" and "F1xture Corp" match. A regex runs on the NFKC text, on the fold with punctuation as spaces, and with its separators
 removed on the fold's letters and digits, so `chamfer\s+angle` also matches "ChamferAngle". A number entry matches
 its value in any unit in any of these forms: a mention the claims gate's extractor reads; a digit run read whole,
-at its one decimal point, or, when it holds a comma or two separators, group by group and at its last separator
-("12,5", ".5"); a vulgar fraction ("12½"); fullwidth or other decimal digits; and its English spelling ("twelve
-point five", "twelve and a half", "one hundred and five"). Hyphen-joined digits ("12-5") are not read as a decimal,
-because dates would then match. Inflections the fold does not reach, abbreviations and leetspeak ("Z0rblax") need
-entries of their own. `narrate/tests/fixtures/narrated-video/nv-denylist-conformance.json` holds the cases both
+at its one decimal point and as a grouped integer ("3.375" for 3375), or, when it holds a comma or two separators,
+group by group and at its last separator ("12,5", ".5"); a middle dot, an Arabic decimal separator or a one-dot
+leader as the point ("12·5"); a point with spaces around it ("12 .5", "12 . 5"); a fraction ("25/2", "12 1/2") or a
+vulgar fraction ("12½"); fullwidth or other decimal digits; and its English spelling ("twelve point five", "twelve
+dot five", "twelve comma five", "twelve and a half", "one hundred and five"). Hyphen-joined digits ("12-5") are not
+read as a decimal, because dates would then match. Inflections the fold does not reach, abbreviations and other
+leetspeak ("Z3rblax") need entries of their own. `narrate/tests/fixtures/narrated-video/nv-denylist-conformance.json` holds the cases both
 repositories must agree on. cade keeps a byte-identical copy.
 
 The guard checks these texts, in this order, and refuses at the first group that matches:
 
 | Group | Texts | Reported as |
 | --- | --- | --- |
-| record | the slug, each asset's id, path and receipt, each beat's id and asset id, each claim's id and receipt, and at intake the bundle directory's name and the job id | `slug`, `asset#N`, `beat#N`, `claim#N` and `job`, by position |
+| record | the slug, each asset's id, path and receipt, each beat's id and asset id, each claim's id and receipt, and at intake the bundle directory's name and the job id; the numbers records hold: each asset's `size` and `fps` (with `num/den`), each beat's `target_s` and the start and end the intake writes for it | `slug`, `asset#N`, `beat#N`, `claim#N` and `job`, by position |
 | voiced | each beat's voiced text, which the captions show | the beat id |
 | claim | each claim's `spoken` text | the claim id |
 | label | `--persona` at intake | `labels` |
@@ -1176,17 +1183,23 @@ The guard checks these texts, in this order, and refuses at the first group that
 
 The guard is built before any other bundle check. Record texts are checked first and named by position, so a
 refusal never repeats a private id. A report holds `{status, ip_private, never_name, denylist_sha256, pinned,
-entries, checked, matches}`. Each match names its segment, group, entry id and class, and a refusal detail names
-the entry by position only. Every other refusal of `claims` and `intake` whose detail an entry matches keeps its
+entries, checked, matches}`. Each match names its segment, group, the entry's position (`entry`, null for class
+`script`) and class, and a refusal detail names the entry by position too. Every other refusal of `claims` and `intake` whose detail an entry matches keeps its
 code and has its detail withheld, as does every refusal while a given denylist cannot be read. No report or detail
 holds the matched text, a literal, a pattern or a denylist number, so a refusal may go to a log. A pass records
 `private_terms` and the state `private_terms: passed` in `intake.json`. A bundle with no `privacy` block and no pin
 records `not_declared`. A denylist given to such a bundle still runs.
 
-A guarded intake writes `records/private-terms.json`: the guard's status and digest and, per narrate job, the
-digests of the job record and of the pronunciation table it names. Every load of that records directory checks it
-and refuses `private_terms_stale` on a change, so a table edited after intake cannot add a spoken term. Removing
-the file removes the check, so the producer keeps OUT where the bundle lives.
+A guarded intake writes `records/private-terms.json` (schema 2): the guard's status and digest, the digest of the
+NarratedVideo record it wrote to `narrated-video.json` and the narrate jobs its segments name, and, per narrate job,
+the digests of the job record and of the pronunciation table it names. Every load of that records directory checks
+it and refuses `private_terms_stale` on a change, so a table edited after intake cannot add a spoken term. `init`,
+`plan`, `run` and `explain` also refuse a NarratedVideo record that is not the one the intake wrote. So an edited
+persona label or a segment pointed at another narrate job refuses, and so does a job built from `init` flags. A
+records directory with no marker refuses too when the `intake.json` beside it says the guard passed or refused, or
+when `NARRATED_VIDEO_DENYLIST` or `NARRATED_VIDEO_DENYLIST_SHA256` is set. The intake's own `--records` input is
+exempt, because the operator's base records come from no intake. Deleting both the marker and `intake.json` outside
+a private lane still removes the check, so the producer keeps OUT where the bundle lives.
 
 The guard reads text only. These pass it, and the producer reviews them:
 

@@ -811,7 +811,7 @@ def guarded_intake(
     refused = gate_refusal(b["report"])
     if refused:
         raise refused
-    records = load_records(records_dir)
+    records = load_records(records_dir, marker_optional=True)
     job, jobs = convert(
         b, records, job_id=job_id, template=template, voice=voice, engine=engine, persona=persona, tail_s=tail_s
     )
@@ -893,11 +893,13 @@ def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, 
     (staging / "records").mkdir()
     for name, rows in tables.items():
         write_json(staging / "records" / name, rows)
-    if b["guard"].entries is not None:  # job.load_records refuses a later edit to a job or its table (F8)
-        written = load_records(staging / "records")  # digests of the records as a later load reads them
-        marker = private_terms.marker(b["private"], [written["jobs"][r["id"]] for r, _ in jobs.values()], written)
-        write_json(staging / "records" / private_terms.MARKER, marker)
     write_json(staging / "narrated-video.json", job)
+    if b["guard"].entries is not None:  # a later edit to a narrate job, its table or this job refuses (F8)
+        written = load_records(staging / "records", marker_optional=True)  # digests as a later load reads them
+        narrate_jobs = [written["jobs"][r["id"]] for r, _ in jobs.values()]
+        read_back = check_shape(json.loads((staging / "narrated-video.json").read_text(encoding="utf-8")))
+        marker = private_terms.marker(b["private"], narrate_jobs, written, read_back)  # as nv init --from reads it
+        write_json(staging / "records" / private_terms.MARKER, marker)
     used = {beat["asset_id"] for beat in b["beats"]}
     report = {r["segment"]: r for r in b["report"]}
     start = Decimal(0)

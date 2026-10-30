@@ -14,21 +14,24 @@ bundle text that reaches a record or report (the slug, the job id, beat, claim a
 and asset receipts). A match refuses private_term. Record texts are checked first and reported by position (beat#2,
 not the beat's id), so a report never carries a private id.
 
-Matching fails closed, so it over-matches on purpose. Every text is folded: NFKD, combining marks stripped, case
-folded, the confusable letters in CONFUSABLES mapped to Latin and every decimal digit mapped to ASCII. A literal
-matches when its squeezed form (letters and digits only) occurs anywhere in the squeezed text, so "FixtureCorp",
-"fixture-corp.com", "Fixture\\u00adCorp" and "Fixture Corps" all match "Fixture Corp". A word that mixes Latin and
-Cyrillic letters refuses as class script. A regex entry uses the shared subset (REGEX_TOKEN, which cade
-src/bs21-guard.ts reads alike); it runs on the NFKC text, on the spaced fold and, with its separators removed, on
-the squeezed fold. A number entry matches its value in any unit: every mention the claims gate's extractor reads
-as it, every digit run read as a whole, a decimal or its groups ("12,5", ".5", "12-5"), a vulgar fraction ("12½")
-and its English spelling ("twelve point five", "twelve and a half"). Inflections, abbreviations and leetspeak
-("Z0rblax") need entries of their own.
+Matching fails closed, so it over-matches on purpose. A text with a letter that is not ASCII after NFKD, mark
+stripping and case folding ("Z\\u0585rblax", small capitals), or with a word that mixes two scripts, refuses as class
+script. Every text is then folded: NFKD, combining marks stripped, case folded, the confusable letters in CONFUSABLES
+mapped to Latin and every decimal digit mapped to ASCII. A literal matches when its squeezed form (letters and
+digits only) occurs anywhere in the squeezed text, so "FixtureCorp", "fixture-corp.com", "Fixture\\u00adCorp" and
+"Fixture Corps" all match "Fixture Corp". It also matches in the loose fold, where i, l, 1, | and ! all read as l
+and 0 as o, so "ZorbIax", "Zorb|ax", "Zorb1ax" and "F1xture Corp" match. A regex entry uses the shared subset
+(REGEX_TOKEN, which cade src/bs21-guard.ts reads alike); it runs on the NFKC text, on the spaced fold and, with its
+separators removed, on the squeezed fold. A number entry matches its value in any unit: every mention the claims
+gate's extractor reads as it, every digit run read as a whole, a decimal or its groups ("12,5", ".5", "3.375" for
+3375), a middle dot or Arabic decimal separator ("12\\u00b75"), a point with spaces ("12 .5"), a fraction ("25/2",
+"12 1/2", "12\\u00bd") and its English spelling ("twelve point five", "twelve dot five", "twelve and a half").
+Inflections, abbreviations and other leetspeak ("Z3rblax") need entries of their own.
 
-A report names the beat, the text's source and the entry id and class. Its detail names the entry by position only.
-No report holds the matched text, a literal, a pattern or a number from the denylist, so a refusal can go to a log.
-An entry id that any entry matches is refused as denylist_invalid, because reports carry ids. redact() withholds a
-refusal detail from any earlier check that says a term.
+A report names the beat, the text's source and the entry's position and class. No report holds an entry id, the
+matched text, a literal, a pattern or a number from the denylist, so a refusal can go to a log. An entry id that
+any entry matches is still refused as denylist_invalid. redact() withholds a refusal detail from any earlier check
+that says a term.
 
 Standard library only.
 """
@@ -38,7 +41,7 @@ import json
 import os
 import re
 import unicodedata
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, localcontext
 from pathlib import Path
 
 from . import claims as gate
@@ -92,6 +95,15 @@ FRACTIONS = {
 }  # fmt: skip
 FRACTION = re.compile(r"(\d?)\s*([" + "".join(FRACTIONS) + "])")
 DIGIT_RUN = re.compile(r"[0-9]+(?:[.,][0-9]+)*|[.,][0-9]+")
+# Decimal separators that are not ".": the middle dot, the Arabic decimal separator and the one-dot leader; and the
+# Arabic thousands separator, read as ",".
+SEPARATOR_MAP = str.maketrans({"\u00b7": ".", "\u066b": ".", "\u2024": ".", "\u066c": ","})
+# A point with spaces around it between two digits ("12 .5", "12 . 5") joins them.
+SPACED_POINT = re.compile(r"(?<=[0-9])[ \t]*\.[ \t]*(?=[0-9])")
+# A fraction a/b, or a whole number and a fraction "n a/b", in ASCII digits.
+FRACTION_TEXT = re.compile(r"(?<![0-9.,])(?:([0-9]+)[ \t]+)?([0-9]+)[ \t]*/[ \t]*([0-9]+)(?![0-9])")
+# The loose fold of a literal: look-alike letters and digits read as one letter (after case folding).
+LOOSE = str.maketrans({"i": "l", "1": "l", "|": "l", "!": "l", "0": "o"})
 # The shared regex subset: ASCII letters, digits and spaces, the escapes \s \d \b \. \-, ".", groups "(" "(?:" ")",
 # "|", character classes of those, and the quantifiers ? * + {n} {n,} {n,m}. Both repositories compile it
 # case-insensitive with "." matching every character, and \s \d \b read ASCII only.
@@ -106,6 +118,7 @@ SMALL_WORDS = (
 ).split()
 TENS_WORDS = "twenty thirty forty fifty sixty seventy eighty ninety".split()
 SCALE_WORDS = ((10**12, "trillion"), (10**9, "billion"), (10**6, "million"), (10**3, "thousand"))
+POINT_WORDS = ("point", "dot", "comma")
 FRACTION_WORDS = {"5": ("and a half", "and one half"), "25": ("and a quarter", "and one quarter"),
                   "75": ("and three quarters",)}  # fmt: skip
 
@@ -147,6 +160,11 @@ def squeezed(text):
     return "".join(ch for ch in skeleton(text) if is_word_char(ch))
 
 
+def loose(text):
+    """The squeezed fold after LOOSE: i, l, 1, | and ! read as l, and 0 as o."""
+    return "".join(ch for ch in skeleton(text).translate(LOOSE) if is_word_char(ch))
+
+
 def plain(text):
     """text for a regex match: NFKC with no format characters."""
     return "".join(ch for ch in unicodedata.normalize("NFKC", text) if unicodedata.category(ch) != "Cf")
@@ -158,23 +176,49 @@ def folded(text):
 
 
 def mixed_script(text):
-    """True when one word of text holds both Latin and Cyrillic letters."""
+    """True when one word of text holds letters of two scripts (the first word of each letter's Unicode name)."""
     for word in re.split(r"[^\w]|_|\d", unmarked(text)):
         scripts = {unicodedata.name(ch, "").split(" ")[0] for ch in word if unicodedata.category(ch)[0] == "L"}
-        if {"LATIN", "CYRILLIC"} <= scripts:
+        if len(scripts) > 1:
             return True
     return False
 
 
+def foreign_letter(text):
+    """True when a letter of text is not ASCII after NFKD, mark stripping and case folding. Small capitals, Greek,
+    Cyrillic, Armenian and Lisu letters are; "\u00e9", "\uff3a" and "\u00df" are not."""
+    return any(ord(ch) > 127 and unicodedata.category(ch)[0] == "L" for ch in unmarked(unmarked(text).casefold()))
+
+
+def script_hit(text):
+    """True when text refuses as class script: a letter outside ASCII or a word of two scripts."""
+    return foreign_letter(text) or mixed_script(text)
+
+
 def numeric_text(text):
-    """text for number matching: vulgar fractions as decimals, NFKC, ASCII digits and no format characters."""
+    """text for number matching: vulgar fractions as decimals, NFKC, ASCII digits, no format characters, every
+    decimal separator as "." and a spaced point joined."""
     text = FRACTION.sub(lambda m: (m[1] or "0") + FRACTIONS[m[2]], text)
-    return ascii_digits(plain(text))
+    return SPACED_POINT.sub(".", ascii_digits(plain(text)).translate(SEPARATOR_MAP))
+
+
+def fraction_hit(want, numeric):
+    """True when a fraction a/b or n a/b in numeric equals want exactly (a/b alone is read too)."""
+    for m in FRACTION_TEXT.finditer(numeric):
+        a, b = Decimal(m[2]), Decimal(m[3])
+        if b == 0:
+            continue
+        with localcontext() as ctx:
+            ctx.prec = 200
+            if want * b == a or (m[1] is not None and (want - Decimal(m[1])) * b == a):
+                return True
+    return False
 
 
 def run_values(run):
-    """Every value a digit run may be read as. A run with one "." is that decimal. A run with a "," or two or more
-    separators is ambiguous, so it is read whole, group by group, and as a decimal at its last separator."""
+    """Every value a digit run may be read as. A run with one "." is that decimal or that grouped integer. A run
+    with a "," or two or more separators is ambiguous, so it is read whole, group by group, and as a decimal at its
+    last separator."""
     seps = [ch for ch in run if ch in ".,"]
     groups = [g for g in re.split(r"[.,]", run) if g]
     if not seps:
@@ -182,7 +226,7 @@ def run_values(run):
     elif run[0] in ".,":
         values = {"0." + "".join(groups)} | set(groups)
     elif seps == ["."]:
-        values = {run}
+        values = {run, run.replace(".", "")}  # a decimal, or a grouped integer ("3.375" for 3375)
     else:
         last = max(run.rfind("."), run.rfind(","))
         values = {"".join(groups), re.sub(r"[.,]", "", run[:last]) + "." + run[last + 1 :]} | set(groups)
@@ -222,13 +266,14 @@ def spelled_forms(value):
     heads = {int_words(int(whole), True), int_words(int(whole), False)}
     if not frac:
         return sorted(heads)
-    forms = set()
+    forms, digits = set(), " ".join(SMALL_WORDS[int(d)] for d in frac)
     for head in heads:
-        forms.add(head + " point " + " ".join(SMALL_WORDS[int(d)] for d in frac))
+        for point in POINT_WORDS:
+            forms.add(f"{head} {point} {digits}")
         for tail in FRACTION_WORDS.get(frac, ()):
             forms.add(head + " " + tail)
     if whole == "0":
-        forms.add("point " + " ".join(SMALL_WORDS[int(d)] for d in frac))
+        forms |= {f"{point} {digits}" for point in POINT_WORDS}
         if frac == "5":
             forms |= {"a half", "one half"}
     return sorted(forms)
@@ -455,7 +500,7 @@ def entry(row, n, ids):
         text = row["literal"]
         if not isinstance(text, str) or len(text) > MAX_LITERAL or len(squeezed(text)) < 2:
             bad(f"{where}: literal is not text of 2 to {MAX_LITERAL} letters or digits")
-        out["squeezed"] = squeezed(text)
+        out |= {"squeezed": squeezed(text), "loose": loose(text)}
     elif kind == "regex":
         pattern = row["regex"]
         if not isinstance(pattern, str) or not pattern or len(pattern) > MAX_REGEX:
@@ -495,7 +540,7 @@ def number_hit(e, text):
     want = e["number"]
     if any(m["number"] is not None and abs(m["number"]) == want for m in gate.extract(numeric)):
         return True
-    if any(want in run_values(m[0]) for m in DIGIT_RUN.finditer(numeric)):
+    if any(want in run_values(m[0]) for m in DIGIT_RUN.finditer(numeric)) or fraction_hit(want, numeric):
         return True
     words, tight = spaced(text), squeezed(text)
     return any(f in words for f in e["spelled"]) or any(f in tight for f in e["spelled_tight"])
@@ -504,7 +549,7 @@ def number_hit(e, text):
 def hits(e, text):
     """True when entry e matches text."""
     if e["kind"] == "literal":
-        return e["squeezed"] in squeezed(text)
+        return e["squeezed"] in squeezed(text) or e["loose"] in loose(text)
     if e["kind"] == "regex":
         return (
             e["regex"].search(plain(text)) is not None
@@ -518,22 +563,23 @@ def redact(entries, code, detail):
     """detail, or a withheld detail when it says a term. entries False (an unreadable denylist) withholds all."""
     if entries is None:
         return detail
-    if entries is False or mixed_script(detail) or any(hits(e, detail) for e in entries):
+    if entries is False or script_hit(detail) or any(hits(e, detail) for e in entries):
         return f"{code}: the detail is withheld because it may say a private term"
     return detail
 
 
 # The guard ------------------------------------------------------------------------------------------------------
 def scan(entries, texts):
-    """[{segment, source, entry, class}] for every (segment, source, text) that an entry matches, in order. A word
-    that mixes Latin and Cyrillic letters is a match of class script (entry null)."""
+    """[{segment, source, entry, class}] for every (segment, source, text) that an entry matches, in order; entry is
+    the entry's position in the denylist, never its id. A text with a letter outside ASCII or a word of two scripts
+    is a match of class script (entry null)."""
     out = []
     for segment, source, text in texts:
-        if mixed_script(text):
+        if script_hit(text):
             out.append({"segment": segment, "source": source, "entry": None, "class": "script"})
         for e in entries:
             if hits(e, text):
-                out.append({"segment": segment, "source": source, "entry": e["id"], "class": e["class"]})
+                out.append({"segment": segment, "source": source, "entry": e["index"], "class": e["class"]})
     return out
 
 
@@ -546,21 +592,41 @@ def written_texts(beats, claims, persona=None):
     return texts
 
 
+def number_text(value):
+    """A number a record holds, as the text the number entries read: plain decimal notation."""
+    return format(Decimal(str(value)).normalize(), "f") if isinstance(value, (int, float, Decimal)) else None
+
+
 def record_texts(manifest, beats, claims):
     """(position, "record", text) for every bundle text that reaches a record or a report: the manifest's slug and
     each asset's id, path and receipt, each beat's id and asset id, and each claim's id and receipt. Positions, not
-    ids, name them, so a refusal never echoes a private id. The manifest is read leniently: read() checks it."""
+    ids, name them, so a refusal never echoes a private id. The numbers a record holds are texts too: each asset's
+    size and fps (its num, den and num/den), and each beat's target_s with the start and end the intake writes for
+    it (narrated-video.json pages, intake.json segments, the beat's front matter). The manifest is read leniently:
+    read() checks it."""
     texts = []
     manifest = manifest if isinstance(manifest, dict) else {}
     if isinstance(manifest.get("slug"), str):
         texts.append(("slug", "record", manifest["slug"]))
     assets = manifest.get("assets") if isinstance(manifest.get("assets"), list) else []
     for n, asset in enumerate(assets, 1):
+        if not isinstance(asset, dict):
+            continue
         for key in ("id", "path", "receipt"):
-            if isinstance(asset, dict) and isinstance(asset.get(key), str):
+            if isinstance(asset.get(key), str):
                 texts.append((f"asset#{n}", "record", asset[key]))
+        for key, names in (("size", ("w", "h")), ("fps", ("num", "den"))):
+            part = asset.get(key) if isinstance(asset.get(key), dict) else {}
+            said = [number_text(part.get(name)) for name in names]
+            texts += [(f"asset#{n}", "record", t) for t in said if t is not None]
+            if key == "fps" and None not in said:
+                texts.append((f"asset#{n}", "record", "/".join(said)))
+    start = Decimal(0)
     for n, b in enumerate(beats, 1):
         texts += [(f"beat#{n}", "record", b["id"]), (f"beat#{n}", "record", b["asset_id"])]
+        end = start + b["target_s"]
+        texts += [(f"beat#{n}", "record", number_text(v)) for v in (b["target_s"], start, end)]
+        start = end
     for n, c in enumerate(claims.values(), 1):
         texts.append((f"claim#{n}", "record", c["id"]))
         if isinstance(c["receipt"], str):
@@ -589,8 +655,10 @@ class Guard:
         report = self.report(found)
         if found:
             first = found[0]
-            index = next((e["index"] for e in self.entries if e["id"] == first["entry"]), None)
-            said = "mixes Latin and Cyrillic letters" if index is None else f"matches denylist entry #{index}"
+            index = first["entry"]
+            said = f"matches denylist entry #{index}"
+            if index is None:
+                said = "holds a letter outside ASCII or mixes scripts"
             raise PrivateError(
                 "private_term",
                 f"{len(found)} private-term matches; segment {first['segment']} {first['source']} text {said}"
@@ -616,40 +684,86 @@ class Guard:
         }
 
 
-# The records marker (intake writes it; job.load_records checks it) -------------------------------------------------
+# The records marker (intake writes it; job.load_records and the CLI check it) ---------------------------------------
 MARKER = "private-terms.json"
 MARKER_KIND = "nv_private_terms"
+MARKER_VERSION = 2
+DENYLIST_ENV = "NARRATED_VIDEO_DENYLIST"
+GUARDED_STATUSES = ("passed", "refused")
 
 
 def digest_of(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode()).hexdigest()
 
 
-def marker(report, narrate_jobs, records):
-    """The records marker of a guarded intake: the guard's status and digest and, per narrate job, the digests of
-    the job record and of the pronunciation table it names. A later edit to either refuses at load."""
+def segment_jobs(job):
+    """The sorted narrate job ids a NarratedVideo record's segments name."""
+    segments = job.get("segments") if isinstance(job, dict) else None
+    ids = {s.get("narrateJob") for s in segments or [] if isinstance(s, dict)}
+    return sorted(i for i in ids if isinstance(i, str))
+
+
+def job_digest(job):
+    """The sha256 the marker binds a NarratedVideo record by: keys.canonical of the record as check_shape returns it."""
+    from .keys import canonical
+
+    return hashlib.sha256(canonical(job).encode()).hexdigest()
+
+
+def marker(report, narrate_jobs, records, job):
+    """The records marker of a guarded intake: the guard's status and digest; the job_digest of the NarratedVideo
+    record it wrote, as nv init --from reads narrated-video.json back, and the narrate jobs its segments name; and,
+    per narrate job, the digests of the job record and of the pronunciation table it names. A later edit to any of
+    them refuses."""
     jobs = {}
-    for job in narrate_jobs:
-        table = (records.get("pronunciation") or {}).get(job.get("pronunciation"))
-        jobs[job["id"]] = {
-            "job_sha256": digest_of(job),
-            "pronunciation": job.get("pronunciation"),
+    for narrate_job in narrate_jobs:
+        table = (records.get("pronunciation") or {}).get(narrate_job.get("pronunciation"))
+        jobs[narrate_job["id"]] = {
+            "job_sha256": digest_of(narrate_job),
+            "pronunciation": narrate_job.get("pronunciation"),
             "pronunciation_sha256": None if table is None else digest_of(table),
         }
     return {
         "kind": MARKER_KIND,
-        "schema_version": 1,
+        "schema_version": MARKER_VERSION,
         "status": report["status"],
         "denylist_sha256": report["denylist_sha256"],
+        "narrated_video_sha256": job_digest(job),
+        "segment_jobs": segment_jobs(job),
         "jobs": jobs,
     }
 
 
-def check_marker(directory, records):
-    """Refuse private_terms_stale when the records' marker no longer matches a narrate job or its pronunciation
-    table. A records directory with no marker passes: only a guarded intake writes one."""
+def private_lane(directory):
+    """True when a records directory must carry a marker: its sibling intake.json says the guard passed or refused,
+    or the operator set a denylist or a pin (NARRATED_VIDEO_DENYLIST, NARRATED_VIDEO_DENYLIST_SHA256)."""
+    if os.environ.get(DENYLIST_ENV) or os.environ.get(PIN_ENV):
+        return True
+    intake = Path(directory).parent / "intake.json"
+    if intake.is_symlink() or intake.exists():
+        try:
+            value = json.loads(intake.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            return True  # an unreadable intake.json beside the records fails closed
+        if not isinstance(value, dict):
+            return True
+        guard = value.get("private_terms") if isinstance(value.get("private_terms"), dict) else {}
+        states = value.get("states") if isinstance(value.get("states"), dict) else {}
+        return guard.get("status") in GUARDED_STATUSES or states.get("private_terms") in GUARDED_STATUSES
+    return False
+
+
+def read_marker(directory, optional=False):
+    """The records' marker, or None when there is none and the records are not a private lane's (private_lane). A
+    private lane's records with no marker refuse private_terms_stale; optional (the intake's own input) skips that."""
     path = Path(directory) / MARKER
     if not path.exists() and not path.is_symlink():
+        if not optional and private_lane(directory):
+            raise JobError(
+                "private_terms_stale",
+                f"the records hold no {MARKER}, but they come from a guarded intake or the lane is private; run the"
+                " intake again",
+            )
         return None
     if path.is_symlink() or not path.is_file():
         raise JobError("private_terms_stale", f"{MARKER} is not a regular file")
@@ -657,8 +771,26 @@ def check_marker(directory, records):
         value = json.loads(path.read_text(encoding="utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError):
         raise JobError("private_terms_stale", f"{MARKER} is not JSON") from None
-    if not isinstance(value, dict) or value.get("kind") != MARKER_KIND or not isinstance(value.get("jobs"), dict):
-        raise JobError("private_terms_stale", f"{MARKER} is not a {MARKER_KIND} record")
+    if (
+        not isinstance(value, dict)
+        or value.get("kind") != MARKER_KIND
+        or value.get("schema_version") != MARKER_VERSION
+        or not isinstance(value.get("jobs"), dict)
+        or not isinstance(value.get("segment_jobs"), list)
+        or not isinstance(value.get("narrated_video_sha256"), str)
+    ):
+        raise JobError("private_terms_stale", f"{MARKER} is not a {MARKER_KIND} record of schema {MARKER_VERSION}")
+    return value
+
+
+def check_marker(directory, records, optional=False):
+    """Refuse private_terms_stale when the records' marker no longer matches a narrate job or its pronunciation
+    table, or when a private lane's records hold no marker (read_marker)."""
+    value = read_marker(directory, optional)
+    if value is None:
+        return None
+    if not set(value["segment_jobs"]) <= set(value["jobs"]):
+        raise JobError("private_terms_stale", f"{MARKER} names a segment job it does not bind")
     for n, (job_id, want) in enumerate(sorted(value["jobs"].items()), 1):
         job = records["jobs"].get(job_id)
         if job is None or not isinstance(want, dict) or digest_of(job) != want.get("job_sha256"):
@@ -670,4 +802,22 @@ def check_marker(directory, records):
                 f"the pronunciation table of narrate job #{n} changed after the private-terms guard ran; run the"
                 " intake again",
             )
+    return value
+
+
+def check_job(directory, job):
+    """Refuse private_terms_stale when the records carry a marker (or must) and job is not the NarratedVideo record
+    the guarded intake wrote (job_digest): an edited persona label, segment or narrate job refuses, and so does a job
+    built from flags."""
+    value = read_marker(directory)
+    if value is None:
+        return None
+    if job is None or job_digest(job) != value["narrated_video_sha256"]:
+        raise JobError(
+            "private_terms_stale",
+            "the records come from a guarded intake, and this NarratedVideo record is not the narrated-video.json it"
+            " wrote; pass that file with --from, or run the intake again",
+        )
+    if segment_jobs(job) != value["segment_jobs"]:
+        raise JobError("private_terms_stale", "the record's segments name other narrate jobs than the intake bound")
     return value
