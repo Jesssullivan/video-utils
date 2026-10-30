@@ -1017,9 +1017,9 @@ The engineering units read like this (TIN-7735). Each word form has a singular a
 | --- | --- | --- |
 | `Pa`, `kPa`, `MPa`, `GPa` | `Pa`, `kPa`, `MPa`, `GPa` | pascals, kilopascals, megapascals, gigapascals |
 | `N`, `kN` | `N`, `kN` | newtons, kilonewtons |
-| `Nm` | `N·m`, `N⋅m`, `Nm` | newton metres, newton meters, newton-metres |
+| `Nm` | `N·m`, `N⋅m`, `N.m`, `N m`, `N-m`, `Nm` | newton metres, newton meters, newton-metres |
 | `dBA` | `dBA` | decibels A-weighted, A-weighted decibels |
-| `um` | `µm`, `μm` | micrometres, micrometers, microns |
+| `um` | `um`, `µm`, `μm` | micrometres, micrometers, microns |
 | `us` | `us`, `µs`, `μs` | microseconds |
 | `K` | none | kelvin, kelvins |
 | `rpm` | `rpm`, `RPM` | revolutions per minute |
@@ -1028,8 +1028,9 @@ The engineering units read like this (TIN-7735). Each word form has a singular a
 The gate also reads `dB`, `mm`, `ms`, `kHz`, `MHz`, `A`, `mA`, `V`, `mV`, `W`, `mW`, `°C`, `m/s`, `g`, `kg` and `%`.
 "K" is not a symbol, because "17 K" and "4K" may mean thousands: kelvin is read only as the word. A symbol with a
 mark the word pattern splits on ("°C", "µs", "Ω", "N·m") reads the same attached ("20°C") or as the next word
-("20 °C"). Units never convert: "17 MPa" does not match a claim of 17000 `kPa`, and "45 dBA" does not match a `dB`
-claim.
+("20 °C"). A listed symbol over a unit reads as both ("5 µm/s" is `um/s`, "5 °C/min" is `degC/min`, "40 N·m/s" is
+`Nm/s`), and "per" takes a symbol after it ("5 N per m" is `N/m`). Units never convert: "17 MPa" does not match a
+claim of 17000 `kPa`, and "45 dBA" does not match a `dB` claim.
 
 | Per-number result | Code |
 | --- | --- |
@@ -1059,9 +1060,17 @@ The gate fails closed. These readings are ambiguous and never match:
   `unknown_scale_or_unit`. These are a single letter other than "a" and "I" ("17 K", "3 B", "17 M"), a scale
   abbreviation (`k`, `bn`, `mn`, `mln`, `mio`, `tn`, `mil`, `thou`, `grand`, `lakh`, `crore` and their variants), a
   lower-case unit of up to five letters with no vowel ("kph", "kbps", "Mb" in lower case), a binary prefix
-  ("GiB", "MiB"), a mixed-case unit ("Mbps", "kWh"), a unit symbol in another case that is not all capitals
-  ("mpa", "Kpa", "dba", "kn", "Min") and the capital units `MW`, `MV`, `MA`, `KM`, `PB`, `EB`, `KPH`, `MPH`, `BPM`,
-  `KBPS` and `MBPS`;
+  ("GiB", "MiB"), a mixed-case unit ("Mbps", "kWh"), a unit symbol in another case ("mpa", "Kpa", "dba", "kn",
+  "Min", "MPA", "PA", "KG", "MS") and the capital units `MW`, `MV`, `MA`, `KM`, `PB`, `EB`, `KPH`, `MPH`, `BPM`,
+  `KBPS` and `MBPS`. The all-capital symbols `KB`, `MB`, `GB`, `TB`, `LUFS`, `LU`, `RPM` and `PPM` read as units;
+- a unit the gate does not read: `psi`, `bar`, `mbar`, `atm`, `torr`, `hPa`, `mmHg`, `inHg`, `ppb`, `ppt` and
+  their spoken forms, and an SI prefix said as its own word ("5 mega pascals", "5 milli seconds", "5 mega"):
+  `unknown_scale_or_unit`;
+- a chunk with a unit mark (µ, μ, °, Ω, ·, ⋅, ‰, ℃) that is not a listed symbol ("5 µA", "5 mΩ", "5 °K",
+  "5 Ω·m", "5 µm·s"): `unknown_scale_or_unit`;
+- a unit that runs on into another one, joined in its chunk ("5 kN-m", "5 kN·m", "5 N·mm", "5 N-type", "5 dB(A)")
+  or followed by another unit ("5 Pa s", "5 kN m", "5 kilonewton metres", "5 degrees kelvin"), and "per square" or
+  "per cubic" after a unit ("5 newtons per square metre"): `unknown_scale_or_unit`;
 - a unit joined by "/" to something that is not a unit ("5 m/furlong"): `unit_not_read`. "5 m/s" and
   "five km/h" read as `m/s` and `km/h`.
 
@@ -1069,8 +1078,9 @@ A hyphen joins words: U+002D, U+2010, U+2011 (the non-breaking hyphen) and the s
 written with U+2011 reads as 500, never as 5. A possessive or contraction of a number word ("five's", "seven’s")
 reads as the number. Unit symbols match in their exact case after digits or spelled numbers ("twelve ms"): "m" is
 metres and "M" is not a unit, "mW" is milliwatts and "MW" is ambiguous, "MB" is megabytes and "Mb" is ambiguous,
-"MPa" is megapascals and "mpa" is ambiguous. Other words after a number, acronyms such as "MCP", "PRs", "GPA" and
-"PA" among them, leave it a bare count, so "12 MPA" is the bare count 12 and does not match an `MPa` claim.
+"MPa" is megapascals and "mpa" and "MPA" are ambiguous. Other words after a number, acronyms such as "MCP" and
+"PRs" among them, leave it a bare count. An acronym that is a unit symbol in capitals ("GPA", "PA") is refused, and
+the script rewords it.
 
 "one" is always the number 1, and "first" and "second" alone are the ordinals 1 and 2: a script that uses them as
 ordinary words cites a claim or rewords. "once", "single", "both", "none", and "a" before anything but a scale word

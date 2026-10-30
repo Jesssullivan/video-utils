@@ -20,13 +20,16 @@ Ambiguous readings (refused as number_ambiguous):
   "5M", or a whole ten with an attached "s" ("the 90s", "1990s"), which may be a decade or seconds;
 - a number followed by a scale abbreviation or a unit the gate does not read: a single letter ("17 K", "3 B"),
   "k", "bn", "mn", "lakh", "crore", "grand", a lower-case unit with no vowel ("kph", "kbps"), a binary prefix
-  ("GiB"), a mixed-case unit such as "Mbps" or "kWh", a unit symbol in another case that is not all capitals
-  ("mpa", "Kpa", "dba"), or "/" joining a unit to something that is not one.
+  ("GiB"), a mixed-case unit such as "Mbps" or "kWh", a unit symbol in another case ("mpa", "Kpa", "MPA"), a unit
+  the gate does not read ("psi", "bar", "atm", "torr", "hPa", "ppb"), an SI prefix said as its own word ("mega"), a
+  chunk with a unit mark that is no listed symbol ("µA", "mΩ", "Ω·m", "‰"), a unit that runs on into another one
+  ("kN-m", "N·mm", "Pa s", "degrees kelvin", "dB(A)", "per square metre"), or "/" joining a unit to something that
+  is not one.
 
 A hyphen (U+002D, U+2010, U+2011 or a soft hyphen) joins words ("twenty-one"). A possessive or contraction of a
 number word ("five's") reads as the number. Unit symbols are read in their exact case ("m" is metres, "M" is not a
-unit, "MPa" is megapascals). Other unknown words after a number, acronyms such as "MCP" and "GPA" among them, leave
-it a bare count.
+unit, "MPa" is megapascals). "N m", "N-m" and "N.m" read as newton metres. Other unknown words after a number,
+acronyms such as "MCP" among them, leave it a bare count.
 
 Not extracted: once, single, both, none and "a" or "an" before anything but hundred, thousand, million, billion,
 trillion or an ordinal. "one" is always the number 1, and "first" or "second" alone are the ordinals 1 and 2: a
@@ -152,17 +155,28 @@ SYMBOL_UNITS = {
     "Ω": "ohm", "m": "m", "cm": "cm", "mm": "mm", "km": "km", "g": "g", "kg": "kg", "mg": "mg", "°C": "degC",
     "°c": "degC", "°F": "degF", "°f": "degF", "°": "deg", "KB": "KB", "kB": "KB", "MB": "MB", "GB": "GB",
     "TB": "TB", "fps": "fps", "px": "px", "x": "x", "dBA": "dBA", "N": "N", "kN": "kN", "N·m": "Nm",
-    "N⋅m": "Nm", "Nm": "Nm", "Pa": "Pa", "kPa": "kPa", "MPa": "MPa", "GPa": "GPa", "µm": "um", "μm": "um",
-    "rpm": "rpm", "RPM": "rpm", "ppm": "ppm", "PPM": "ppm",
+    "N⋅m": "Nm", "N.m": "Nm", "Nm": "Nm", "Pa": "Pa", "kPa": "kPa", "MPa": "MPa", "GPa": "GPa", "µm": "um",
+    "μm": "um", "um": "um", "rpm": "rpm", "RPM": "rpm", "ppm": "ppm", "PPM": "ppm",
 }  # fmt: skip
-# Lower case of every symbol: a word that is one of these in another case, not all capitals, is a miscased unit.
+# Two symbols that read as one unit when a space or a hyphen joins them: "40 N m", "40 N-m".
+SYMBOL_PAIRS = {("N", "m"): "Nm"}
+# Lower case of every symbol: a word that is one of these in another case ("mpa", "MPA", "Min") is a miscased unit.
 SYMBOL_LOWER = {s.lower() for s in SYMBOL_UNITS}
+# Marks that only a unit symbol carries. A chunk with one that is not a listed symbol ("µA", "mΩ", "Ω·m", "‰") is one
+# token naming a unit the gate does not read.
+UNIT_MARKS = set("µμ°Ω·⋅‰‱℃℉ÅΩKÅ")
 # After a number these may change its value or name a unit the gate does not read, so the number is ambiguous rather
 # than a bare count. Compared in lower case; single letters, vowel-less lower-case units, binary prefixes and
 # mixed-case units are caught by their shape in unknown_after.
 SCALE_ABBREVIATIONS = {
     "k", "kk", "bn", "mn", "mln", "mio", "bil", "tn", "mil", "thou", "grand", "lakh", "lakhs", "lac", "crore",
     "crores",
+}  # fmt: skip
+# Units the gate does not read and SI prefixes said as their own word ("5 mega pascals"). Compared in lower case.
+UNREAD_UNITS = {
+    "psi", "bar", "bars", "mbar", "millibar", "millibars", "atm", "atmosphere", "atmospheres", "torr", "hpa",
+    "hectopascal", "hectopascals", "mmhg", "inhg", "ppb", "ppt", "kilo", "kilos", "mega", "giga", "tera", "peta",
+    "hecto", "deca", "deka", "deci", "centi", "milli", "micro", "nano", "pico",
 }  # fmt: skip
 UPPER_UNKNOWN = {"BN", "MN", "MW", "MV", "MA", "KM", "PB", "EB", "KPH", "MPH", "BPM", "KBPS", "MBPS"}
 VOWELS = set("aeiouy")
@@ -203,13 +217,16 @@ DIGITS = re.compile(
 
 class Token:
     """brk: punctuation follows. dash: that punctuation, inside one chunk, is a dash other than a hyphen. slash: it is
-    a "/". low is the lower-case text, without the "'s" or other apostrophe ending of a number word ("five's")."""
+    a "/". chunk: the index of the whitespace-separated chunk the token came from. odd: a chunk with a unit mark that
+    is no listed symbol ("µA"). low is the lower-case text, without the "'s" or other apostrophe ending of a number
+    word ("five's")."""
 
-    __slots__ = ("kind", "text", "low", "start", "end", "brk", "dash", "slash")
+    __slots__ = ("kind", "text", "low", "start", "end", "brk", "dash", "slash", "chunk", "odd")
 
-    def __init__(self, kind, text, start, end, brk=False):
+    def __init__(self, kind, text, start, end, brk=False, chunk=0, odd=False):
         self.kind, self.text, self.low, self.start, self.end, self.brk = kind, text, text.lower(), start, end, brk
         self.dash = self.slash = False
+        self.chunk, self.odd = chunk, odd
         base = APOSTROPHES.split(self.low)[0]
         if base != self.low and (word_class(base) is not None or vague(base)):
             self.low, self.brk = base, True
@@ -227,7 +244,7 @@ def tokens(text):
             out[-1].dash = out[-1].dash or any(c in DASHES for c in between)
             out[-1].slash = out[-1].slash or between == "/"
 
-    for chunk in CHUNK.finditer(text):
+    for n, chunk in enumerate(CHUNK.finditer(text)):
         raw = chunk.group()
         core = raw.lstrip(LEAD)
         if len(core) != len(raw):
@@ -240,11 +257,23 @@ def tokens(text):
             mark()
             continue
         if any(c.isnumeric() for c in core):
-            out.append(Token("num", core, start, start + len(core), brk=trailing))
+            out.append(Token("num", core, start, start + len(core), brk=trailing, chunk=n))
             continue
         if core in SYMBOL_UNITS and not WORD.fullmatch(core):
             # One token for a unit symbol with a mark the word pattern splits on: "%", "°C", "µs", "Ω", "N·m".
-            out.append(Token("word", core, start, start + len(core), brk=trailing))
+            out.append(Token("word", core, start, start + len(core), brk=trailing, chunk=n))
+            continue
+        if set(core) & UNIT_MARKS:
+            over, _, under = core.partition("/")
+            if over in SYMBOL_UNITS and (under in SYMBOL_UNITS or WORD.fullmatch(under)):
+                # A listed symbol over a unit ("µm/s", "°C/min"): unit_after reads the "/".
+                out.append(Token("word", over, start, start + len(over), brk=True, chunk=n))
+                out[-1].slash = True
+                at = start + len(over) + 1
+                out.append(Token("word", under, at, at + len(under), brk=trailing, chunk=n))
+            else:
+                # A unit the gate does not read ("µA", "mΩ", "Ω·m", "‰"): one token, so the number is refused.
+                out.append(Token("word", core, start, start + len(core), brk=trailing, chunk=n, odd=True))
             continue
         words = list(WORD.finditer(core))
         if not words:
@@ -255,7 +284,7 @@ def tokens(text):
             between = core[position : word.start()]
             if between and (k == 0 or between not in JOINERS):
                 mark(between if k else "")
-            out.append(Token("word", word.group(), start + word.start(), start + word.end()))
+            out.append(Token("word", word.group(), start + word.start(), start + word.end(), chunk=n))
             position = word.end()
         out[-1].brk = out[-1].brk or trailing or position != len(core)
     return out
@@ -436,16 +465,19 @@ def spelled(toks, i):
 def unknown_after(tok):
     """True for a word after a number that may scale it or names a unit the gate does not read: a single letter
     ("17 K"), a scale abbreviation ("bn", "lakh"), a lower-case unit with no vowel ("kph"), a binary prefix ("GiB"),
-    a mixed-case unit ("Mbps", "kWh") or a listed capital one ("MW", "RPM"). An acronym such as "MCP" is not."""
+    a mixed-case unit ("Mbps", "kWh"), a listed capital one ("MW", "BPM"), a unit the gate does not read ("psi",
+    "bar", "µA") or a unit symbol in another case ("mpa", "MPA"). An acronym such as "MCP" is not."""
     text = tok.text
+    if tok.kind == "word" and tok.odd:
+        return True
     if tok.kind != "word" or not text.isalpha():
         return False
     if len(text) == 1:
         return text not in LETTER_WORDS
-    if tok.low in SCALE_ABBREVIATIONS or text in UPPER_UNKNOWN or IEC.fullmatch(text):
+    if tok.low in SCALE_ABBREVIATIONS or tok.low in UNREAD_UNITS or text in UPPER_UNKNOWN or IEC.fullmatch(text):
         return True
-    if tok.low in SYMBOL_LOWER and not text.isupper():
-        return True  # a unit symbol in the wrong case ("mpa", "Kpa", "dba")
+    if tok.low in SYMBOL_LOWER:
+        return True  # a unit symbol in another case ("mpa", "Kpa", "MPA"); a listed symbol never reaches here
     if text.islower():
         return len(text) <= 5 and not set(text) & VOWELS
     if text.isupper():
@@ -462,16 +494,25 @@ def symbol_at(toks, i):
     return SYMBOL_UNITS.get(toks[i].text, "")
 
 
+def unit_like(tok):
+    """True for a word that is a unit symbol in its exact case or a one-word unit ("s", "Pa", "metres", "kelvin")."""
+    return tok.kind == "word" and (tok.text in SYMBOL_UNITS or (tok.low,) in WORD_UNITS)
+
+
 def unit_after(toks, end, symbols):
     """(unit, last index, ambiguous) for the unit words right after toks[end], or ("", end, ambiguous). ambiguous is
-    None, "unknown_scale_or_unit" (the next word may scale the number; last is end) or "unit_not_read" (a "/" joins
-    the unit to something that is not one; last is that thing)."""
+    None, "unknown_scale_or_unit" (the next word may scale the number, or the unit runs on into another one; the
+    reading ends at last + 1) or "unit_not_read" (a "/" joins the unit to something that is not one; last is that
+    thing)."""
     i = end + 1
     if follows(toks, end) is None or toks[i].kind != "word":
         return "", end, None
     unit, last = "", end
     if toks[i].text == "%" or (symbols and symbol_at(toks, i)):
         unit, last = symbol_at(toks, i), i
+        pair = follows(toks, i)
+        if pair is not None and (toks[i].text, pair.text) in SYMBOL_PAIRS:
+            unit, last = SYMBOL_PAIRS[toks[i].text, pair.text], i + 1
     for size in range(min(LONGEST_UNIT, len(toks) - i), 0, -1):
         words = toks[i : i + size]
         if any(t.brk for t in words[:-1]) or any(t.kind != "word" for t in words):
@@ -488,9 +529,20 @@ def unit_after(toks, end, symbols):
         if not over or "/" in over or over in ("percent", "x") or toks[k].slash:
             return unit, min(k, len(toks) - 1), "unit_not_read"
         return f"{unit}/{over}", k, None
-    per = follows(toks, last)
-    if per is not None and per.low == "per":
-        over, over_last, _ = unit_after(toks, last + 1, symbols=False)
+    if last + 1 < len(toks) and toks[last + 1].chunk == toks[last].chunk:
+        # The unit runs on inside its chunk ("N-type", "kN-m", "kN.m", "dB(A)"): not one unit the gate reads.
+        return unit, last, "unknown_scale_or_unit"
+    after = follows(toks, last)
+    if after is not None and unit_like(after):
+        # Another unit follows that the longest match did not take ("Pa s", "kN m", "degrees kelvin").
+        return unit, last, "unknown_scale_or_unit"
+    if after is not None and after.low == "per":
+        area = follows(toks, last + 1)
+        if area is not None and area.low in ("square", "cubic"):
+            return unit, last + 1, "unknown_scale_or_unit"  # "newtons per square metre"
+        over, over_last, unclear = unit_after(toks, last + 1, symbols=True)
+        if unclear:
+            return unit, over_last, unclear  # "5 N per m s", "5 USD per kWh"
         if over and "/" not in over and over != "percent":
             return f"{unit}/{over}", over_last, None
     return unit, last, None
