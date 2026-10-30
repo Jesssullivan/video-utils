@@ -600,6 +600,7 @@ class Renderer:
                     "available": self.whisper_ready[0] or self.transcriber is not None,
                     "how": "injected transcriber" if self.transcriber else self.whisper_ready[1],
                     "max_chunk_wer": job["gates"]["maxChunkWer"],
+                    "normalisation": qa.NORMALISATION,
                     **({} if self.transcriber else self.whisper.identity()),
                 },
                 "sim": qa.sim(self.cfg),

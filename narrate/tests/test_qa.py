@@ -99,3 +99,166 @@ def test_a_misread_respelled_term_still_fails():
     assert qa.chunk_wer(written, spoken, "the S S O and MCP", RESPELL) > GATES["maxChunkWer"]
     assert qa.chunk_wer(written, spoken, "the SSOT and MCP", ()) == 0.0
     assert qa.chunk_wer(written, spoken, "the SSOT and M C P", ()) > GATES["maxChunkWer"]
+
+
+# narrate-wer-2: one normalisation for both sides. The fixture is synthetic: 32 reference words, read back word for
+# word, scored 6 errors (0.1875) under narrate-wer-1 because "low-end" and "nine-string" stayed whole (2 errors
+# each) and "Hz" did not match "hertz" (1 error each).
+LOW_END = (
+    "The low-end check reads 32 Hz on the nine-string guitar, and the fan floor sits near 120 Hz. "
+    "A tuned take keeps every pick attack and the sustain of each note clear."
+)
+LOW_END_HEARD = (
+    "the low end check reads 32 hertz on the nine string guitar and the fan floor sits near 120 hertz "
+    "a tuned take keeps every pick attack and the sustain of each note clear"
+)
+
+
+def test_the_normalisation_version_is_named():
+    assert qa.NORMALISATION == "narrate-wer-2"
+
+
+def test_a_word_for_word_take_with_hyphens_and_hertz_passes():
+    assert len(qa.words(LOW_END)) == 34  # the two hyphenated words now score as two words each
+    assert qa.chunk_wer(LOW_END, LOW_END, LOW_END_HEARD) == 0.0
+
+
+@pytest.mark.parametrize(
+    "ref,hyp",
+    [
+        ("a tool-head swap", "a tool head swap"),
+        ("a tool–head swap", "a tool head swap"),
+        ("32 Hz", "32 hertz"),
+        ("32Hz", "thirty two hertz"),
+        ("a 2.5 kHz shelf", "a 2.5 kilohertz shelf"),
+        ("the Hz axis", "the hertz axis"),
+        ("a 10 mm gap", "a 10 millimeter gap"),
+        ("a 10 mm gap", "a 10 millimetres gap"),
+        ("at 5 V and 20 mA", "at 5 volts and 20 milliamperes"),
+        ("at 1 V", "at 1 volt"),
+        ("draws 40 µA", "draws 40 microamperes"),
+        ("draws 40 uA", "draws 40 microamperes"),
+        ("a 3 W amp", "a 3 watt amp"),
+        ("a 6 dB cut", "a 6 decibel cut"),
+        ("a 6 dB cut", "a 6 decibels cut"),
+        ("in 5 ms", "in 5 milliseconds"),
+        ("in 5 s", "in 5 seconds"),
+        ("in 1 s", "in 1 second"),
+        ("at 40 °C", "at 40 degrees celsius"),
+        ("at 40°C", "at 40 degrees Celsius"),
+        ("a grey cable", "a gray cable"),
+        ("the colour and behaviour", "the color and behavior"),
+        ("a millimetre off centre", "a millimeter off center"),
+        ("normalise and analyse it", "normalize and analyze it"),
+        ("the signal was normalised", "the signal was normalized"),
+        ("a travelling labelled case", "a traveling labeled case"),
+        ("the toolhead moves", "the tool head moves"),
+        ("the tool head moves", "the toolhead moves"),
+        ("a headboard", "a head board"),
+        ("a head board", "a headboard"),
+        ("into the room", "in to the room"),
+    ],
+)
+def test_equivalent_forms_score_equal(ref, hyp):
+    assert qa.wer(ref, hyp) == 0.0
+    assert qa.wer(hyp, ref) == 0.0
+
+
+@pytest.mark.parametrize(
+    "ref,hyp",
+    [
+        ("Bazel builds the take", "basil builds the take"),  # a misheard name is a substitution
+        ("a grey cable", "a green cable"),  # a wrong word
+        ("32 Hz", "33 hertz"),  # a wrong number
+        ("32 Hz", "32 kilohertz"),  # a wrong unit
+        ("5 mA", "5 amperes"),
+        ("in 5 ms", "in 5 seconds"),
+        ("12 strings", "1 2 strings"),  # digits never join
+        ("the MCP server", "the M C P server"),  # spelled letters join only through a pronunciation alias
+        ("the toolhead moves", "the tool bed moves"),  # concatenation must match exactly
+        ("a headboard", "a head"),
+        ("the 1990s", "the 1990 seconds"),  # s written against the digits is not a unit
+        ("Apt 3B", "Apt 3 bytes"),  # neither is B
+        ("James Watt built it", "James Watts built it"),  # a unit word in a name keeps its number
+        ("the Google Pixel camera", "the Google pixels camera"),
+        ("Georg Ohm wrote it", "Georg Ohms wrote it"),
+        ("a Chevy Volt", "a Chevy Volts"),
+        ("a way out", "away out"),  # a one-letter word joins only where a hyphen split it
+        ("an email", "an e mail"),
+    ],
+)
+def test_a_real_error_still_counts(ref, hyp):
+    # each fixture is short enough that one error is over the gate: a false pass under 0.1 would fail here
+    assert qa.wer(ref, hyp) > GATES["maxChunkWer"]
+    assert qa.chunk_wer(ref, ref, hyp) > GATES["maxChunkWer"]
+
+
+@pytest.mark.parametrize(
+    "written,heard",
+    [
+        ("meet at 3 A.M. and leave", "meet at 3 a.m. and leave"),
+        ("meet at 3 A.M. and leave", "meet at three a m and leave"),
+        ("the top 10 A-list acts", "the top ten a list acts"),
+        ("the top 10 A-list acts", "the top 10 a-list acts"),
+        ("Part 2 A New Hope", "part two a new hope"),
+        ("Plan 3 B Then", "plan 3 b then"),
+    ],
+)
+def test_a_one_letter_symbol_is_a_unit_only_where_a_unit_can_stand(written, heard):
+    assert qa.chunk_wer(written, written, heard) == 0.0
+
+
+@pytest.mark.parametrize(
+    "ref,hyp",
+    [
+        ("the rail is 5 V.", "the rail is five volts"),
+        ("a 3 A fuse", "a three amperes fuse"),
+        ("5 V, 2 A and 10 W", "5 volts 2 amperes and 10 watts"),
+        ("in 1 s", "in one seconds"),  # after a number, every unit word scores singular and plural alike
+        ("1 dB", "1 decibels"),
+        ("the dB scale", "the decibel scale"),  # a prefixed unit word folds anywhere
+    ],
+)
+def test_a_one_letter_symbol_and_a_unit_after_a_number_still_map(ref, hyp):
+    assert qa.wer(ref, hyp) == 0.0
+
+
+@pytest.mark.parametrize(
+    "ref,hyp",
+    [("send an e-mail now", "send an email now"), ("a T-shirt", "a tshirt"), ("a U-turn", "a uturn")],
+)
+def test_a_one_letter_hyphen_prefix_rejoins(ref, hyp):
+    # narrate-wer-1 scored T-shirt against tshirt as 1 error; the hyphen split must not make it 2
+    assert qa.wer(ref, hyp) == 0.0
+    assert qa.wer(hyp, ref) == 0.0
+    assert qa.wer(ref, ref.replace("-", " ")) == 0.0
+
+
+def test_a_name_split_into_the_same_letters_matches_and_other_letters_do_not():
+    # the letters alone decide: whisper splitting Bazel into "baz el" is the same reading, basil is not
+    assert qa.wer("Bazel builds the take", "baz el builds the take") == 0.0
+    assert qa.wer("Bazel builds the take", "ba zel builds the take") == 0.0
+    assert qa.wer("Bazel builds the take", "bay zel builds the take") > GATES["maxChunkWer"]
+
+
+def test_a_misheard_name_still_fails_the_gate():
+    ref = "Bazel builds the take and Kubernetes runs it"
+    heard = "basil builds the take and Kubernetes runs it"
+    assert qa.chunk_wer(ref, ref, heard) > GATES["maxChunkWer"]
+    assert qa.chunk_wer(ref, ref, "builds the take and Kubernetes runs it") > GATES["maxChunkWer"]
+
+
+def test_numbers_and_names_are_still_scored():
+    assert "32" in qa.words(LOW_END) and "120" in qa.words(LOW_END)
+    assert qa.chunk_wer(LOW_END, LOW_END, LOW_END_HEARD.replace("120", "112")) > 0.0
+    assert qa.words("Bazel and Kubernetes") == ["bazel", "and", "kubernetes"]
+
+
+def test_the_gate_limit_is_unchanged():
+    # one word wrong in eight is over the 0.1 limit, as it was under narrate-wer-1
+    ref = "the low end check reads 32 hertz today"
+    assert qa.wer(ref, "the low end check reads 33 hertz today") == 0.125 > GATES["maxChunkWer"]
+
+
+def test_identifiers_with_digits_keep_their_hyphen():
+    assert qa.words("x86-64 and TIN-7088") == ["x86-64", "and", "tin-7088"]

@@ -87,6 +87,7 @@ def scored(run_dir, manifest, metrics, cfg, reference_voice, scorer):
                 **whisper.identity(),
                 "chunks": rows,
                 "max_chunk_wer": gate,
+                "normalisation": qa.NORMALISATION,
                 "passed": all(r["wer"] <= gate for r in rows),
             }
     if "sim" in metrics:

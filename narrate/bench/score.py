@@ -830,7 +830,11 @@ def score(args):
     doc = {
         "schema": "narrate-bench-scored/1",
         "chunks_sha256": chunk_doc["chunks_sha256"],
-        "wer": {"status": "measured", **reader.whisper.identity()} if reader.ok else qa.not_measured(reader.why),
+        "wer": (
+            {"status": "measured", "normalisation": qa.NORMALISATION, **reader.whisper.identity()}
+            if reader.ok
+            else qa.not_measured(reader.why)
+        ),
         "sim": None,
         "sim_reference": {"sha256": reference_sha256, "role": SIM_REFERENCE_ROLE} if reference_sha256 else None,
         "window": window_identity(args.out_dir, voice_sha256),

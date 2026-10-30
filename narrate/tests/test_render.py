@@ -9,7 +9,7 @@ import pytest
 from conftest import PACKAGE, SLIDE, dhall_check
 from test_adapters import EDL, WORDS
 
-from narrate import audio, evaluate, registry, render, verify
+from narrate import audio, evaluate, qa, registry, render, verify
 from narrate.__main__ import main
 from narrate.config import Config
 from narrate.lexical import LexicalError
@@ -49,6 +49,7 @@ def test_markdown_render_verifies_and_records_everything(workspace):
     assert "8 percent" in spoken and "M C P" in spoken
     assert {c["qa"]["status"] for c in manifest["chunks"]} == {"not_measured"}
     assert manifest["qa"]["wer"]["available"] is False
+    assert manifest["qa"]["wer"]["normalisation"] == qa.NORMALISATION
     loud = manifest["loudness"]
     assert loud["passed"] and abs(loud["measured"]["integrated_lufs"] + 16) <= 0.5
     assert loud["measured"]["true_peak_dbtp"] <= -1.0

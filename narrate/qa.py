@@ -6,9 +6,15 @@ Without whisper-cli or the model the status is not_measured, as condense's check
 judges the take. The model file is hashed once per path and must match a sha256 in program/models.json; an
 unregistered or partial file leaves WER not_measured. The manifest records the model's digest and registry id, or
 the loopback endpoint of the http backend. Numbers are compared as digits on both sides ("seven" and "7" are one
-word), so whisper writing numerals is not an error. SIM: render does not score takes in v0; `narrate evaluate`
-scores the delivered chunks with the registered speaker-verification model (narrate/sim.py). Whisper runs with at
-most MAX_WHISPER_THREADS threads, whatever narrate.toml asks ("Host placement and memory").
+word), so whisper writing numerals is not an error. Both sides go through the same normalisation (NORMALISATION
+names its version and every WER receipt records it): a hyphen or en dash between letters splits a word, a unit
+symbol after a number is said as its unit word, a unit word after a number scores its singular and plural alike, a
+British spelling from SPELLING is folded to its American form, and a closed compound scores equal to its open form
+when the letters concatenate to the same word.
+
+SIM: render does not score takes in v0; `narrate evaluate` scores the delivered chunks with the registered
+speaker-verification model (narrate/sim.py). Whisper runs with at most MAX_WHISPER_THREADS threads, whatever
+narrate.toml asks ("Host placement and memory").
 
 A take that fails a measured gate is synthesised again with the next seed, at most maxTakes takes in all. The
 best take by WER, then SIM, is kept; every take's numbers and the failure are recorded. A chunk that never
@@ -25,8 +31,11 @@ import tempfile
 import urllib.parse
 from pathlib import Path
 
+from .amounts import _SYMBOLS as _UNIT_SYMBOLS
+from .amounts import _TIGHT_REFUSED
 from .amounts import say as say_amounts
 from .ir import sha256_file
+from .lexical import UNITS as _SHARED_UNITS
 
 PAD = 0.5  # seconds of silence around a take read back by whisper
 MAX_WHISPER_THREADS = 4  # the host placement rule's whisper ceiling
@@ -41,6 +50,139 @@ UNITS = {
 }
 TENS = {w: 10 * n for n, w in enumerate("twenty thirty forty fifty sixty seventy eighty ninety".split(), 2)}
 SCALES = {"thousand": 10**3, "million": 10**6, "billion": 10**9}
+
+# The WER normalisation version. narrate-wer-1 (no field in a receipt) kept hyphenated words whole, left unit
+# symbols as written and scored spelling variants and open compounds as errors; narrate-wer-2 is words() and wer()
+# below.
+NORMALISATION = "narrate-wer-2"
+
+# Unit symbols said as words: the shared table (lexical.UNITS, each symbol with its singular and plural spoken
+# alias) and the units below, which only WER reads. % is said by words() itself; x is left out because "3 x 4" is
+# said "by" as often as "times". A symbol maps only after a number (32 Hz, 5mA), case sensitive, except
+# STANDALONE ones, which no English word spells. s and B written against the digits (1990s, 20B) stay as written.
+# A one-letter symbol (A, V, W, s, B, h, Ω) maps only before a space, closing punctuation, a full stop that ends
+# a sentence or the end of the text, and never before a capitalised word: see _one_letter_ends.
+_EXTRA_UNITS = {
+    "mm": ("millimeter", "millimeters"),
+    "cm": ("centimeter", "centimeters"),
+    "km": ("kilometer", "kilometers"),
+    "nm": ("nanometer", "nanometers"),
+    "µm": ("micrometer", "micrometers"),
+    "μm": ("micrometer", "micrometers"),
+    "um": ("micrometer", "micrometers"),
+    "V": ("volt", "volts"),
+    "mV": ("millivolt", "millivolts"),
+    "kV": ("kilovolt", "kilovolts"),
+    "A": ("ampere", "amperes"),
+    "mA": ("milliampere", "milliamperes"),
+    "µA": ("microampere", "microamperes"),
+    "μA": ("microampere", "microamperes"),
+    "uA": ("microampere", "microamperes"),
+    "W": ("watt", "watts"),
+    "mW": ("milliwatt", "milliwatts"),
+    "kW": ("kilowatt", "kilowatts"),
+    "Ω": ("ohm", "ohms"),
+    "kΩ": ("kilohm", "kilohms"),
+    "µs": ("microsecond", "microseconds"),
+    "μs": ("microsecond", "microseconds"),
+    "ns": ("nanosecond", "nanoseconds"),
+    "°C": ("degree celsius", "degrees celsius"),
+    "°F": ("degree fahrenheit", "degrees fahrenheit"),
+    "°": ("degree", "degrees"),
+}
+
+
+def _said_units():
+    out = {}
+    for unit, aliases in _SHARED_UNITS.items():
+        spoken = [a for a in aliases if a not in _UNIT_SYMBOLS]
+        if unit in ("%", "x") or not spoken:
+            continue
+        for symbol in (a for a in aliases if a in _UNIT_SYMBOLS):
+            out[symbol] = (spoken[0], spoken[-1])
+    return out | _EXTRA_UNITS
+
+
+UNIT_WORDS = _said_units()
+STANDALONE = set("Hz kHz MHz GHz dB dBFS dBTP LUFS mV kV mA uA µA μA mW kW kΩ µs μs µm μm °C °F".split())
+_NUMBER_UNIT = re.compile(
+    r"(?<![\w.,])(?P<n>\d+(?:[.,]\d+)*)(?P<gap>[ \N{NO-BREAK SPACE}]?)(?P<u>"
+    + "|".join(re.escape(u) for u in sorted(UNIT_WORDS, key=len, reverse=True))
+    + r")(?![\w°])"
+)
+_BARE_UNIT = re.compile(
+    r"(?<![\w°])(" + "|".join(re.escape(u) for u in sorted(STANDALONE, key=len, reverse=True)) + r")(?!\w)"
+)
+# A unit word right after a number scores its singular and plural alike (1 dB and "one decibels", 3 W and "3 watt").
+# Elsewhere only PREFIXED unit words fold: no name or ordinary word spells milliampere or decibel, but watt, volt,
+# ohm, pixel and byte are names or words too (James Watt, Google Pixel), so their number is kept.
+_UNIT_PLURAL = {one: many for one, many in UNIT_WORDS.values() if " " not in one and one != many}
+_PREFIXES = ("milli", "micro", "nano", "centi", "kilo", "mega", "giga", "tera", "kibi", "mebi", "gibi", "tebi")
+_PREFIXED = {one for one in _UNIT_PLURAL if one.startswith(_PREFIXES) or one == "decibel"}
+_NUMERAL = re.compile(r"\d+(?:\.\d+)?")
+
+# British spellings folded to American ones, a closed list (-our/-or, -re/-er, -ise/-ize, -yse/-yze, doubled l
+# and single words); a word not listed is scored as written. Each stem takes the inflections its rule lists.
+_OUR = "armour behaviour colour endeavour favour flavour harbour honour humour labour neighbour odour rumour vapour"
+_RE = "calibre centre fibre litre lustre metre centimetre millimetre kilometre micrometre nanometre sabre theatre"
+_ISE = (
+    "apologise authorise categorise characterise customise emphasise finalise initialise maximise memorise "
+    "minimise normalise optimise organise prioritise realise recognise serialise specialise stabilise "
+    "standardise summarise synchronise utilise visualise"
+)
+_LL = "cancel channel equal fuel label level model signal travel"
+
+
+def _spelling():
+    table = {}
+    for word in _OUR.split():
+        stem = word[:-3]
+        for end in ("", "s", "ed", "ing", "ite", "ites", "able", "ful"):
+            table[stem + "our" + end] = stem + "or" + end
+    for word in _RE.split():
+        stem = word[:-2]
+        for uk, us in (("re", "er"), ("res", "ers"), ("red", "ered"), ("ring", "ering")):
+            table[stem + uk] = stem + us
+    for word in _ISE.split():
+        stem = word[:-3]
+        for end in ("e", "ed", "es", "ing", "ation", "ations", "er", "ers"):
+            table[stem + "is" + end] = stem + "iz" + end
+    for stem in ("analy", "paraly", "cataly"):
+        for end in ("se", "sed", "sing"):
+            table[stem + end] = stem + "z" + end[1:]
+    for stem in _LL.split():
+        for end in ("ed", "ing", "er", "ers"):
+            table[stem + "l" + end] = stem + end
+    table |= {
+        "grey": "gray",
+        "greys": "grays",
+        "greyed": "grayed",
+        "greyish": "grayish",
+        "aluminium": "aluminum",
+        "tyre": "tire",
+        "tyres": "tires",
+        "programme": "program",
+        "programmes": "programs",
+        "catalogue": "catalog",
+        "catalogues": "catalogs",
+        "analogue": "analog",
+        "defence": "defense",
+        "licence": "license",
+        "offence": "offense",
+        "practise": "practice",
+        "practised": "practiced",
+        "practising": "practicing",
+        "jewellery": "jewelry",
+        "sulphur": "sulfur",
+        "mould": "mold",
+        "plough": "plow",
+        "manoeuvre": "maneuver",
+        "aeroplane": "airplane",
+    }
+    return table
+
+
+SPELLING = _spelling()
 
 
 def numerals(tokens):
@@ -90,18 +232,57 @@ def numerals(tokens):
     return out
 
 
-def words(text):
-    text = text.lower().replace("’", "'")
+def _one_letter_ends(rest):
+    """Whether rest, the text after a one-letter symbol, lets it be a unit: 5 V, 5 V. and 5 V, do; 3 A.M., the
+    10 A-list and Part 2 A New Hope do not."""
+    if not rest.strip():
+        return True
+    if rest[0] in ",;:!?)]":
+        return True
+    if rest[0] == ".":
+        return not rest[1:].strip() or rest[1].isspace()
+    return rest[0].isspace() and not rest.lstrip()[0].isupper()
+
+
+def _say_unit(m):
+    n, gap, unit = m.group("n"), m.group("gap"), m.group("u")
+    if unit in _TIGHT_REFUSED and not gap:
+        return m.group(0)
+    if len(unit) == 1 and unit.isalpha() and not _one_letter_ends(m.string[m.end() :]):
+        return m.group(0)
+    one, many = UNIT_WORDS[unit]
+    return f"{n} {one if n == '1' else many}"
+
+
+_HYPHEN = r"[-\u2010\u2011\u2013]"
+# T-shirt, U-turn, x-ray: a one-letter part before a hyphen, which wer() may rejoin (_closed)
+_LETTER_PREFIX = re.compile(r"(?<![\w'])([^\W\d_])" + _HYPHEN + r"([^\W\d_]{2,})(?![\w])")
+
+
+def _normalise(text):
+    """(tokens, joins): the scored tokens of text and the closed words its one-letter hyphen splits spell."""
+    text = text.replace("’", "'")
+    text = _NUMBER_UNIT.sub(_say_unit, text)
+    text = _BARE_UNIT.sub(lambda m: UNIT_WORDS[m.group(1)][1], text)
+    text = text.lower()
     text = re.sub(r"(?<=\d),(?=\d{3}\b)", "", text)  # 1,000 -> 1000
     text = text.replace("%", " percent ")
+    joins = {a + b for a, b in _LETTER_PREFIX.findall(text)}
+    # tool-head, tool–head: a hyphen, non-breaking hyphen or en dash between letters splits the word
+    text = re.sub(r"(?<=[^\W\d_])" + _HYPHEN + r"(?=[^\W\d_])", " ", text)
     text = re.sub(r"[^\w\s'.-]", " ", text)
     text = re.sub(r"(?<!\d)[.](?!\d)|(?<!\w)'|'(?!\w)|(?<!\w)-|-(?!\w)", " ", text)
-    tokens = []
-    for token in text.split():
-        parts = token.split("-")
-        spoken_number = len(parts) == 2 and parts[0] in TENS and parts[1] in UNITS and UNITS[parts[1]] < 10
-        tokens += parts if spoken_number else [token]
-    return numerals(tokens)
+    tokens = [SPELLING.get(t, t) for t in numerals(text.split())]
+    out = []
+    for t in tokens:
+        after_number = bool(out) and _NUMERAL.fullmatch(out[-1]) is not None
+        out.append(_UNIT_PLURAL[t] if t in _UNIT_PLURAL and (after_number or t in _PREFIXED) else t)
+    return out, joins
+
+
+def words(text):
+    """The scored tokens of text, normalised as NORMALISATION names (the module docstring)."""
+    return _normalise(text)[0]
 
 
 _DIGESTS = {}
@@ -143,20 +324,42 @@ def unsay(tokens, aliases):
     return tokens
 
 
+COMPOUND_PARTS = 3  # the most words an open compound is written in (head board rail)
+
+
+def _closed(parts, joins=frozenset()):
+    """The closed compound parts spell, or None when any part is not two or more letters: numbers never join, and
+    spelled letters (M C P) never join into a word, which only a pronunciation alias allows. The one exception is a
+    one-letter part a hyphen split off in either text (T-shirt, U-turn): joins holds those closed words."""
+    if all(p.isalpha() and len(p) > 1 for p in parts):
+        return "".join(parts)
+    closed = "".join(parts)
+    return closed if len(parts) == 2 and closed in joins else None
+
+
 def wer(reference, hypothesis, aliases=()):
     """Word error rate of hypothesis against reference: (substitutions + deletions + insertions) / len(reference).
     An empty reference scores 0.0 against an empty hypothesis and 1.0 otherwise. aliases, (spoken, written) pairs
-    from the pronunciation tables, map the hypothesis back to written words before it is scored."""
-    ref, hyp = words(reference), unsay(words(hypothesis), aliases)
+    from the pronunciation tables, map the hypothesis back to written words before it is scored. One word on one
+    side matches 2 to COMPOUND_PARTS words on the other at no cost when their letters concatenate to it
+    (toolhead and tool head); the reference length stays the count of its words. The letters alone decide, so a
+    name whisper splits into pieces of the same letters (Bazel and "baz el") also matches; a name heard with other
+    letters (basil) does not."""
+    (ref, ref_joins), (hyp, hyp_joins) = _normalise(reference), _normalise(hypothesis)
+    hyp, joins = unsay(hyp, aliases), ref_joins | hyp_joins
     if not ref:
         return 0.0 if not hyp else 1.0
-    previous = list(range(len(hyp) + 1))
-    for i, r in enumerate(ref, 1):
-        current = [i] + [0] * len(hyp)
-        for j, h in enumerate(hyp, 1):
-            current[j] = min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + (r != h))
-        previous = current
-    return round(previous[-1] / len(ref), 4)
+    d = [[i + j if not (i and j) else 0 for j in range(len(hyp) + 1)] for i in range(len(ref) + 1)]
+    for i in range(1, len(ref) + 1):
+        for j in range(1, len(hyp) + 1):
+            best = min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (ref[i - 1] != hyp[j - 1]))
+            for k in range(2, COMPOUND_PARTS + 1):
+                if j >= k and ref[i - 1].isalpha() and ref[i - 1] == _closed(hyp[j - k : j], joins):
+                    best = min(best, d[i - 1][j - k])
+                if i >= k and hyp[j - 1].isalpha() and hyp[j - 1] == _closed(ref[i - k : i], joins):
+                    best = min(best, d[i - k][j - 1])
+            d[i][j] = best
+    return round(d[-1][-1] / len(ref), 4)
 
 
 def chunk_wer(written, spoken, heard, aliases=()):
