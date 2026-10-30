@@ -101,8 +101,16 @@ input adapters -> script IR -> lexical pass -> spoken normalisation -> chunker
        nm, µm, V, mV, kV, A, mA, µA and uA, W, mW, kW, Ω, kΩ, µs, ns, °C, °F
        and °. A symbol no English word spells, such as Hz, dB or mA, maps
        without a number too. `s` and `B` written against the digits (`1990s`,
-       `20B`) stay as written. Unit words whose singular is not an ordinary
-       word score singular and plural alike, so "6 decibel" matches `6 dB`.
+       `20B`) stay as written. A one-letter symbol (A, V, W, s, B, h, Ω) maps
+       only before a space, closing punctuation, a sentence-ending full stop or
+       the end of the text, and never before a capitalised word, so `3 A.M.`,
+       `the 10 A-list` and `Part 2 A New Hope` stay as written.
+     - A unit word right after a number scores its singular and plural alike,
+       so "6 decibel" matches `6 dB` and "one seconds" matches `1 s`.
+       Elsewhere only prefixed unit words such as milliampere, kilohertz and
+       decibel fold. Watt, volt, ohm, pixel and byte keep their number, because
+       they are also names and words: "James Watts" against `James Watt` is an
+       error.
      - A closed list of British spellings folds to American ones: -our and
        -or, -re and -er, -ise and -ize, -yse and -yze, a doubled l before -ed
        or -ing and single words such as grey and gray. Each word in the list
@@ -111,6 +119,10 @@ input adapters -> script IR -> lexical pass -> spoken normalisation -> chunker
        their letters concatenate to it, as in `toolhead` and "tool head". Each
        part must have two or more letters, so digits never join and spelled
        letters such as "M C P" match `MCP` only through a pronunciation alias.
+       A one-letter part joins only when a hyphen split it off in either text:
+       `e-mail` matches "email", but "a way" does not match "away". The letters
+       alone decide, so a name split into the same letters ("baz el" for
+       `Bazel`) matches, and a name heard with other letters ("basil") does not.
      The 0.1 limit is unchanged. Numbers and names stay in the scored words,
      and a wrong word, number, unit or name still counts as an error.
    - Speaker similarity (SIM) between the chunk and the reference clip with a
