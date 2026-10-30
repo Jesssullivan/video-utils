@@ -132,6 +132,30 @@ def test_the_published_dag_equals_the_graph_table():
     assert len(graph.STAGES) == 13 and graph.ORDER[0] == "admit"
 
 
+def test_the_avatar_stage_tools_are_neutral_and_keyed_by_avatar_external():
+    """TIN-7788: avatar_overlay and avatar_verify name the stages whatever external draws the overlay, so the DAG
+    keeps its tool names when a job moves from kitpip to vrm."""
+    dag = {s["id"]: s for s in json.loads(DAG.read_text())["stages"]}
+    for stage, tool in graph.AVATAR_TOOLS.items():
+        assert dag[stage]["tool"] == tool
+        assert dag[stage]["dispatch"] == {
+            "by": graph.AVATAR_DISPATCH,
+            "default": DEFAULTS["avatar"]["external"],
+            "externals": list(admit.AVATAR_EXTERNALS),
+        }
+    assert set(graph.AVATAR_TOOLS) == set(graph.AVATAR_STAGES)
+    # no stage tool names an implementation; every other stage has no dispatch
+    assert not [s["tool"] for s in dag.values() if s["tool"].startswith(("kitpip", "vrm"))]
+    assert [s for s in dag if "dispatch" in dag[s]] == list(graph.AVATAR_TOOLS)
+    drafts = json.loads((ROOT / "program" / "tool-drafts" / "narrated_video.json").read_text())
+    names = [t["name"] for t in drafts["tools"]]
+    assert set(graph.AVATAR_TOOLS.values()) <= set(names)
+    assert not [n for n in names if n.startswith(("kitpip", "vrm"))]
+    for tool in graph.AVATAR_TOOLS.values():
+        draft = next(t for t in drafts["tools"] if t["name"] == tool)
+        assert (ROOT / draft["skill"]).is_file() and "avatar.external" in draft["description"]
+
+
 def test_a_looping_or_dangling_graph_refuses():
     loop = (
         graph.Stage("a", False, (("b", "all"),), False, None, ""),
@@ -382,8 +406,8 @@ def test_invalidation_reruns_exactly_the_rows_stages(tmp_path, row):
 
 def test_a_voice_rendered_before_kp15_plans_stale(tmp_path, monkeypatch):
     """KP-15 changed narrate render's captions for the same inputs, so voice is at impl 2 and an impl-1 voice reruns."""
-    assert graph.IMPL["voice"] == 2
-    assert all(impl == 1 for stage, impl in graph.IMPL.items() if stage != "voice")
+    assert graph.IMPL["voice"] == 2 and graph.IMPL["compose"] == 2 and graph.IMPL["handoff"] == 2
+    assert all(impl == 1 for stage, impl in graph.IMPL.items() if stage not in ("voice", "compose", "handoff"))
     recs = records()
     job = two_segment_avatar_job(recs)
     ctx = stub_ctx()

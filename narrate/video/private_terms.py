@@ -9,10 +9,11 @@ privacy_undeclared and the file must hash to the pin, whatever the manifest says
 denylist_missing, denylist_misplaced, denylist_digest_mismatch and denylist_invalid before it reads any text.
 
 It then checks every text the job would speak or show or record: each beat's voiced text (the captions' text), its
-spoken form after the pronunciation tables (intake only), each claim's spoken text, the persona label, and every
-bundle text that reaches a record or report (the slug, the job id, beat, claim and asset ids, asset paths and claim
-and asset receipts). A match refuses private_term. Record texts are checked first and reported by position (beat#2,
-not the beat's id), so a report never carries a private id.
+spoken form after the pronunciation tables (intake only), each claim's spoken text, the persona label, the visible
+text of each slide, plot or clip a beat shows (intake only: the text source the asset names, visible_text.py), and
+every bundle text that reaches a record or report (the slug, the job id, beat, claim and asset ids, asset and text
+source paths and claim and asset receipts). A match refuses private_term. Record texts are checked first and
+reported by position (beat#2, not the beat's id), so a report never carries a private id.
 
 Matching fails closed, so it over-matches on purpose. A text with a letter that is not ASCII after NFKD, mark
 stripping and case folding ("Z\\u0585rblax", small capitals), or with a word that mixes two scripts, refuses as class
@@ -66,7 +67,7 @@ PRIVACY_OPTIONAL = {"denylist_sha256"}
 # of fewer than SALT_DISTINCT distinct hex digits ("00...", "0f0f...") is not random.
 SALT = re.compile(r"^[0-9a-f]{32,128}$")
 SALT_DISTINCT = 8
-SOURCES = ("record", "voiced", "spoken", "claim", "label", "joined")
+SOURCES = ("record", "voiced", "spoken", "claim", "label", "joined", "visible")
 PIN_ENV = "NARRATED_VIDEO_DENYLIST_SHA256"
 
 # Letters that look like Latin ones: Cyrillic, Greek and Latin extensions. UPPER_CONFUSABLES maps capitals before
@@ -680,10 +681,10 @@ def number_text(value):
 def record_texts(manifest, beats, claims):
     """(position, "record", text) for every bundle text that reaches a record or a report: the manifest's slug and
     each asset's id, path and receipt, each beat's id and asset id, and each claim's id and receipt. Positions, not
-    ids, name them, so a refusal never echoes a private id. The numbers a record holds are texts too: each asset's
-    size and fps (its num, den and num/den), and each beat's target_s with the start and end the intake writes for
-    it (narrated-video.json pages, intake.json segments, the beat's front matter). The manifest is read leniently:
-    read() checks it."""
+    ids, name them, so a refusal never echoes a private id. An asset's text source path is a record text too. The
+    numbers a record holds are texts too: each asset's size and fps (its num, den and num/den), and each beat's
+    target_s with the start and end the intake writes for it (narrated-video.json pages, intake.json segments, the
+    beat's front matter). The manifest is read leniently: read() checks it."""
     texts = []
     manifest = manifest if isinstance(manifest, dict) else {}
     if isinstance(manifest.get("slug"), str):
@@ -695,6 +696,9 @@ def record_texts(manifest, beats, claims):
         for key in ("id", "path", "receipt"):
             if isinstance(asset.get(key), str):
                 texts.append((f"asset#{n}", "record", asset[key]))
+        text = asset.get("text") if isinstance(asset.get("text"), dict) else {}
+        if isinstance(text.get("path"), str):
+            texts.append((f"asset#{n}", "record", text["path"]))
         for key, names in (("size", ("w", "h")), ("fps", ("num", "den"))):
             part = asset.get(key) if isinstance(asset.get(key), dict) else {}
             said = [number_text(part.get(name)) for name in names]

@@ -61,7 +61,7 @@ STAGES = (
         (("voice", "segment"), ("base", "measure:fps")),
         True,
         "avatar_overlay_v1",
-        "kitpip overlay.mov (ProRes 4444) per segment",
+        "overlay.mov (ProRes 4444) per segment, drawn by the job's avatar external",
     ),
     Stage(
         "avatar_check",
@@ -69,7 +69,7 @@ STAGES = (
         (("avatar", "segment"), ("voice", "segment")),
         True,
         None,
-        "kitpip verify and the label chain",
+        "the avatar external's verify and the label chain",
     ),
     Stage("music", False, (), True, "music_bed_v1", "bed.wav (48 kHz) arranged from the record's loops"),
     Stage(
@@ -107,8 +107,9 @@ STAGES = (
 )
 BY_ID = {s.id: s for s in STAGES}
 # Bump a stage's impl by hand when its output changes for the same inputs. voice is 2: KP-15 (TIN-7476 comment
-# 4ab7fc27) dropped the "[Synthetic voice] " caption prefix and the VTT NOTE from narrate render.
-IMPL = {s.id: 1 for s in STAGES} | {"voice": 2}
+# 4ab7fc27) dropped the "[Synthetic voice] " caption prefix and the VTT NOTE from narrate render. compose and handoff
+# are 2: they drop chapters and record the metadata check, and handoff writes each slide layer stripped (TIN-7788).
+IMPL = {s.id: 1 for s in STAGES} | {"voice": 2, "compose": 2, "handoff": 2}
 TOOLS = {
     "admit": ("narrate.video.admit", "1"),
     "script": ("narrate.lexical", "1"),
@@ -124,6 +125,10 @@ TOOLS = {
 }
 KITPIP_STAGES = ("avatar", "avatar_check")
 AVATAR_STAGES = KITPIP_STAGES  # run by the job's avatar external: kitpip or vrm (narrate/video/avatar.py)
+# The neutral tool name of each avatar stage. program/dags/narrated-video.json publishes them with dispatch.by
+# avatar.external, so a job that moves from kitpip to vrm keeps the same stage tools (TIN-7788).
+AVATAR_TOOLS = {"avatar": "avatar_overlay", "avatar_check": "avatar_verify"}
+AVATAR_DISPATCH = "avatar.external"
 # ctx keys of each external's pin and resolution, and the plan reasons for avatar stages it cannot run.
 AVATAR_CTX = {"kitpip": ("pin", "kitpip"), "vrm": ("vrm_pin", "vrm")}
 AVATAR_BLOCKED = {

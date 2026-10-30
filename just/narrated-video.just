@@ -144,10 +144,10 @@ nv-intake-fixture:
 # kitpip pin and avatar stages on the stub, the L4 stages on synthetic fixtures (levels, duck, placement property,
 # editions at Place, labels, bases, the bed) and the L6 stages (alpha, captions, labels, profiles, slides, the flash
 # gate, avatarOff and handoff), voice --from-run adoption with its refusals, the demo bundle intake and claims
-# gate with its units and its private-terms guard, and the VRM renderer draft on its stub (pin, avatar.manifest/v1, face timeline, gates).
+# gate with its units and its private-terms guard (with the slides' visible text and the metadata strip), and the VRM renderer draft on its stub (pin, avatar.manifest/v1, face timeline, gates).
 nv-test:
     cd narrate && python3 -m pytest -q tests/test_narrated_video_graph.py tests/test_narrated_video_types.py \
         tests/test_narrated_video_simple.py tests/test_narrated_video_avatar.py tests/test_narrated_video_compose.py \
         tests/test_narrated_video_adopt.py tests/test_narrated_video_intake.py \
         tests/test_narrated_video_claims_units.py tests/test_narrated_video_private_terms.py \
-        tests/test_narrated_video_vrm.py
+        tests/test_narrated_video_vrm.py tests/test_narrated_video_visible_text.py

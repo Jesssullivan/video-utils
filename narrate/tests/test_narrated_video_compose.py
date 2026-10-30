@@ -19,7 +19,7 @@ from pathlib import Path
 import pytest
 from test_narrated_video_simple import FIXTURES, Workspace, ran
 
-from narrate.video import admit, cli, compose, deliver, graph, kitpip, labels, run
+from narrate.video import admit, cli, compose, deliver, graph, kitpip, labels, run, strip
 from narrate.video.common import RATE_HZ, StageRefused
 from narrate.video.job import DEFAULTS, load_records
 from narrate.video.speech import RUN
@@ -136,6 +136,12 @@ def test_a_simple_job_composes_a_profiled_cut_with_captions_and_a_description(si
         ).stdout
     )
     assert sorted(st["codec_type"] for st in probe["streams"]) == ["audio", "video"]
+    # TIN-7788: both cuts keep only the allowlisted tags and no chapter, and compose.json records the keys kept.
+    metadata = json.loads((out / "compose.json").read_text())["metadata"]
+    assert sorted(metadata) == ["video.mp4", "video.upload.mp4"]
+    for kept in metadata.values():
+        assert kept["chapters"] == 0 and set(kept["format_tags"]) <= set(strip.FORMAT_TAGS)
+        assert all(set(tags) <= set(strip.STREAM_TAGS) for tags in kept["stream_tags"])
     # Captions: the narrate run's cues on the base clock, the persona cue on its own line above the first one.
     narrated = (node_dir(s, "voice/seg-1") / RUN / "narration.srt").read_text()
     cues = compose.parse_cues((out / "captions.srt").read_text())
@@ -619,7 +625,9 @@ def test_handoff_writes_the_pre_vfx_layers_and_edit_json(slides):
     assert edit["stage_keys"]["compose"] == s.entry("compose")["key"]
     assert edit["export"]["application_import"] == "unverified"
     slide_a = hashlib.sha256((out / "layers" / "slide-slide-a.png").read_bytes()).hexdigest()
+    # the fixture slides hold no metadata chunk, so the stripped layer keeps the stored bytes (TIN-7788)
     assert slide_a == slides["job"]["slides"]["pages"][0]["show"]["slide"]["sha256"]
+    assert edit["slide_files"][0]["layer_sha256"] == slide_a and edit["slide_files"][0]["stripped"] == []
     mov = hashlib.sha256((out / "layers" / "avatar-seg-1.mov").read_bytes()).hexdigest()
     assert mov == s.manifest("avatar/seg-1")["outputs"]["overlay/overlay.mov"]
     probe = json.loads(

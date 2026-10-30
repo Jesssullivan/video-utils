@@ -10,7 +10,9 @@ from, each on the base clock, beside the composed cut:
                                      that overlay's manifest (kitpip.manifest/v0 or avatar.manifest/v1), so its
                                      renderer, frames identity and, for vrm, the open badge decision and the
                                      likeness consent id travel with the layer
-  layers/slide-<page>.<ext>          each slide picture the job's pages show, as stored
+  layers/slide-<page>.png            each slide picture the job's pages show, with its metadata stripped: a PNG
+                                     keeps its pixel bytes and colour chunks and loses its text, EXIF, ICC and
+                                     time chunks (strip.strip_png); any other picture is decoded to a PNG first
   layers/voice.wav, layers/clips.wav the placed stems (clips only when the base kept its sound)
   layers/bed-ducked.wav              the bed after level, duck and fades, before the limiter (with a bed)
   layers/captions.srt, .vtt          the composed captions
@@ -26,8 +28,8 @@ import hashlib
 import json
 import shutil
 
-from . import avatar_manifest, labels
-from .common import ffmpeg, upstream, write_json
+from . import avatar_manifest, labels, strip
+from .common import StageRefused, ffmpeg, upstream, write_json
 from .compose import PIX_FMT, conform, profile_for
 from .graph import selection, slide_sources
 from .place import timeline
@@ -36,6 +38,25 @@ from .place import timeline
 def copy(source, target):
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(source, target)
+
+
+def slide_layer(source, target, partial):
+    """Write a slide picture as a PNG with no metadata chunk; returns the chunk types dropped. A picture that is not
+    a PNG is decoded to one first (bit-exact, no metadata)."""
+    data = source.read_bytes()
+    stripped = strip.strip_png(data)
+    if stripped is None:
+        decoded = partial / f".{target.stem}.decoded.png"
+        ffmpeg("-i", str(source), "-frames:v", "1", "-map_metadata", "-1", "-fflags", "+bitexact",
+               "-flags:v", "+bitexact", "-c:v", "png", "-f", "image2", str(decoded))  # fmt: skip
+        stripped = strip.strip_png(decoded.read_bytes())
+        decoded.unlink()
+        if stripped is None:
+            raise StageRefused("ffmpeg_failed", f"{target.name} did not decode to a PNG", verdict=False)
+    data, dropped = stripped
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(data)
+    return dropped
 
 
 def run_handoff(rc, row, partial):
@@ -58,9 +79,10 @@ def run_handoff(rc, row, partial):
         *loop, "-i", str(picture), "-an",
         "-vf", f"{conform(size['w'], size['h'])},fps={fps['num']}/{fps['den']}{pad},format={PIX_FMT}",
         "-frames:v", str(composed["frames"]), "-c:v", "libx264", "-preset", profile["preset"],
-        "-crf", str(profile["crf"]), "-pix_fmt", PIX_FMT, "-threads", "2", "-map_metadata", "-1",
+        "-crf", str(profile["crf"]), "-pix_fmt", PIX_FMT, "-threads", "2", "-map_metadata", "-1", "-map_chapters", "-1",
         "-fflags", "+bitexact", "-flags:v", "+bitexact", str(layers / "base.mp4"),
     )  # fmt: skip
+    strip.check_media(layers / "base.mp4", strip.local_roots(rc.store.root, rc.env.store_dir, rc.env.records_dir))
     copy(place_dir / "voice.wav", layers / "voice.wav")
     if placements["clips"]:
         copy(place_dir / "clips.wav", layers / "clips.wav")
@@ -97,9 +119,13 @@ def run_handoff(rc, row, partial):
     slides = []
     for page, digest in slide_sources(job):
         source = rc.env.source(digest, f"slide {page}")
-        target = layers / f"slide-{page}{source.suffix.lower() or '.bin'}"
-        copy(source, target)
-        slides.append({"page": page, "file": f"layers/{target.name}", "sha256": digest})
+        target = layers / f"slide-{page}.png"
+        dropped = slide_layer(source, target, partial)
+        layer_sha256 = hashlib.sha256(target.read_bytes()).hexdigest()
+        slides.append(
+            {"page": page, "file": f"layers/{target.name}", "sha256": digest, "layer_sha256": layer_sha256,
+             "stripped": dropped}
+        )  # fmt: skip
     mix = mix_manifest["measurements"]
     edit = {
         "kind": "nv_edit",
