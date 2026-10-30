@@ -720,6 +720,8 @@ def test_a_deleted_marker_refuses_beside_a_guarded_intake(ws, tmp_path, monkeypa
 def test_init_from_takes_only_the_record_a_guarded_intake_wrote(ws, tmp_path, capsys):
     out = guarded_out(ws, tmp_path)
     assert cli.main(init_args(ws, tmp_path, out, out / "narrated-video.json")) == 0
+    common = ["--root", str(tmp_path / "narrated"), "--records", str(out / "records"), "--store", str(ws["store"])]
+    assert cli.main(["plan", "demo-fixture", "--json", *common]) == 0  # the stored record still matches the marker
     capsys.readouterr()
     job = json.loads((out / "narrated-video.json").read_text())
     edits = {
