@@ -25,6 +25,7 @@ description: Check a composed narrated video against its delivery profile, loudn
 1. `compose` must be fresh.
 2. `just nv-stage JOB deliver_check`, then read `gates`, `flash.changes`, `loudness`, `profile.findings` and `delivery_gate`.
 3. With `upload` and an open bed gate the node plans `pending_operator`. Recording the licence digest or the Content ID result in the private bed record reruns only `deliver_check`.
+4. The operator's decision closes `listening` and `lip_sync`: `just nv-accept JOB GATE sp:dec:<ulid>` records it for the current render, by Softproxy decision id only. An agent passes on an id the operator's accept produced and never writes one. Free text, a machine gate and an unknown gate refuse. See "Operator acceptance" in docs/spec/NARRATED_VIDEO.md.
 
 ## Speech, not guitar
 

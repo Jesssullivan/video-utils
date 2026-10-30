@@ -41,6 +41,13 @@ kitpip-pin-check *args:
 vrm-pin-check *args:
     python3 -m narrate video pin-check --external vrm {{args}}
 
+# Record the operator's acceptance of one operator gate (listening or lip_sync) of the job's current deliver_check
+# render. DECISION is the Softproxy decision id of the operator's accept (sp:dec:<ulid>) and nothing else: free text,
+# an empty or malformed id, a machine gate and an unknown gate refuse. The same gate and decision again is a no-op.
+# ARGS: --video-sha256 HEX (the cut the decision saw), --root DIR.
+nv-accept job gate decision *args:
+    python3 -m narrate video accept {{quote(job)}} --gate {{quote(gate)}} --decision {{quote(decision)}} {{args}}
+
 # Re-hash a stage directory, or every current stage of a job directory.
 nv-verify dir:
     python3 -m narrate video verify {{quote(dir)}}
@@ -144,10 +151,11 @@ nv-intake-fixture:
 # kitpip pin and avatar stages on the stub, the L4 stages on synthetic fixtures (levels, duck, placement property,
 # editions at Place, labels, bases, the bed) and the L6 stages (alpha, captions, labels, profiles, slides, the flash
 # gate, avatarOff and handoff), voice --from-run adoption with its refusals, the demo bundle intake and claims
-# gate with its units and its private-terms guard, and the VRM renderer draft on its stub (pin, avatar.manifest/v1, face timeline, gates).
+# gate with its units and its private-terms guard, the VRM renderer draft on its stub (pin, avatar.manifest/v1, face timeline, gates)
+# and operator acceptance by Softproxy decision id with its refusals.
 nv-test:
     cd narrate && python3 -m pytest -q tests/test_narrated_video_graph.py tests/test_narrated_video_types.py \
         tests/test_narrated_video_simple.py tests/test_narrated_video_avatar.py tests/test_narrated_video_compose.py \
         tests/test_narrated_video_adopt.py tests/test_narrated_video_intake.py \
         tests/test_narrated_video_claims_units.py tests/test_narrated_video_private_terms.py \
-        tests/test_narrated_video_vrm.py
+        tests/test_narrated_video_vrm.py tests/test_narrated_video_accept.py

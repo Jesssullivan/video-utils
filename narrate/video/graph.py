@@ -20,11 +20,15 @@ it keys each node in topological order from the store's current.json and reports
   refused          the stage refused for this exact key; it stays refused until the key changes
   not_selected     an optional stage the job turns off
   pending_operator deliver_check is fresh but an operator gate (licence PDF, Content ID) is open
+
+The graph also lists the operator's acceptances (`accept`, narrate/video/accept.py) that bind the fresh deliver_check
+render under accepted, and drops the gates they close from pending_operator.
 """
 
 from collections import namedtuple
 from datetime import UTC, datetime
 
+from . import accept as acceptance
 from . import admit as admit_stage
 from . import keys, vrm
 from .job import JobError
@@ -461,7 +465,7 @@ def plan(job, records, store, ctx):
             node["measurements"] = (manifest or {}).get("measurements", {})
             if stage == "deliver_check" and any(p["stage"] == "deliver_check" for p in gate["pending_operator"]):
                 node["state"], node["reason"] = "pending_operator", "operator_gate_open"
-    return graph_document(job, gate, nodes)
+    return acceptance.apply(graph_document(job, gate, nodes), acceptance.for_plan(store, nodes))
 
 
 def graph_document(job, gate, nodes):

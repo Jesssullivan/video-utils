@@ -110,6 +110,7 @@ def summary(g, ran, refusal=None):
         "states": {n["id"]: n["state"] for n in g["nodes"]},
         "waiting_on_lane": {node: LANES[rows[node]["stage"]] for node in waiting},
         "pending_operator": g["pending_operator"],
+        "accepted": g.get("accepted", []),
     }
     if g["admit"]["verdict"] != "Admitted":
         first = g["admit"]["refusals"][0]
