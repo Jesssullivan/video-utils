@@ -61,6 +61,7 @@ VIDEO_MODULES = (
     "mix",
     "music",
     "place",
+    "private_terms",
     "run",
     "speech",
     "store",

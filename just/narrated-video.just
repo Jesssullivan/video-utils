@@ -108,14 +108,15 @@ nv-fixture:
 # Demo bundle intake (docs/spec/NARRATED_VIDEO.md, "Demo bundle intake", TIN-7735). A bundle is a directory with
 # manifest.json, script.md, claims.json and its PNG, MP4 and GIF assets. The claims gate refuses a segment that speaks
 # a number no cited, receipted claims.json entry backs. Run both on the private bundle where it lives; nothing renders.
-# Run the spoken-number claims gate alone: one row per segment; exit 1 when a segment refuses.
-narrated-video-claims bundle:
-    python3 -m narrate video claims {{quote(bundle)}}
+# Run the spoken-number claims gate alone: one row per segment; exit 1 when a segment refuses. ARGS: [--denylist
+# FILE] (or NARRATED_VIDEO_DENYLIST), needed when the manifest declares ip_private or never_name.
+narrated-video-claims bundle *args:
+    python3 -m narrate video claims {{quote(bundle)}} {{args}}
 
 # One NarratedVideo job (edition Internal) and one confidential narrate job per beat, written only after the claims
 # gate, every asset digest and admit pass. OUT is a new or empty directory. ARGS: --records DIR (or
 # NARRATED_VIDEO_RECORDS) --narrate-template ID --voice ID --engine ID (--persona P | --no-avatar) [--job ID]
-# [--store DIR, default OUT/store] [--tail-s S] [--json]. Then `python3 -m narrate video init --job ID --from
+# [--store DIR, default OUT/store] [--tail-s S] [--denylist FILE] [--json]. Then `python3 -m narrate video init --job ID --from
 # OUT/narrated-video.json --records OUT/records` and `just nv-run ID`.
 # Turn a demo bundle into a narrated-video job and its narrate jobs, claims gated; nothing is written on a refusal.
 narrated-video-intake bundle out *args:
@@ -142,9 +143,10 @@ nv-intake-fixture:
 # kitpip pin and avatar stages on the stub, the L4 stages on synthetic fixtures (levels, duck, placement property,
 # editions at Place, labels, bases, the bed) and the L6 stages (alpha, captions, labels, profiles, slides, the flash
 # gate, avatarOff and handoff), voice --from-run adoption with its refusals, the demo bundle intake and claims
-# gate with its units, and the VRM renderer draft on its stub (pin, avatar.manifest/v1, face timeline, gates).
+# gate with its units and its private-terms guard, and the VRM renderer draft on its stub (pin, avatar.manifest/v1, face timeline, gates).
 nv-test:
     cd narrate && python3 -m pytest -q tests/test_narrated_video_graph.py tests/test_narrated_video_types.py \
         tests/test_narrated_video_simple.py tests/test_narrated_video_avatar.py tests/test_narrated_video_compose.py \
         tests/test_narrated_video_adopt.py tests/test_narrated_video_intake.py \
-        tests/test_narrated_video_claims_units.py tests/test_narrated_video_vrm.py
+        tests/test_narrated_video_claims_units.py tests/test_narrated_video_private_terms.py \
+        tests/test_narrated_video_vrm.py

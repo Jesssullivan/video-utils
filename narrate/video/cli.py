@@ -24,7 +24,9 @@ allows one (NV-8), which needs --persona; --no-avatar turns it off.
 intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
 "Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,
 writes one NarratedVideo record, one narrate job per beat and their sources, and refuses before writing anything when
-a check fails. fixture --bundle also writes a synthetic bundle.
+a check fails. Both run the private-terms guard first: a manifest that declares ip_private or never_name needs
+--denylist (or NARRATED_VIDEO_DENYLIST), the private denylist it binds by digest. fixture --bundle also writes a
+synthetic bundle.
 """
 
 import argparse
@@ -44,6 +46,11 @@ from .common import Env
 from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_job, load_records, read_json
 
 RECORDS_ENV = "NARRATED_VIDEO_RECORDS"
+DENYLIST_ENV = "NARRATED_VIDEO_DENYLIST"
+DENYLIST_HELP = (
+    "the private denylist file (kind nv_denylist) that a manifest declaring ip_private or never_name binds by sha256,"
+    " instead of NARRATED_VIDEO_DENYLIST; kept outside the bundle and outside git"
+)
 
 
 def emit(value):
@@ -317,6 +324,7 @@ def cmd_intake(a):
         persona=a.persona,
         tail_s=a.tail_s,
         store=a.store,
+        denylist=denylist(a),
     )
     summary = {
         "ok": True,
@@ -331,8 +339,13 @@ def cmd_intake(a):
     return 0
 
 
+def denylist(a):
+    """The private denylist file: --denylist, else NARRATED_VIDEO_DENYLIST, else None."""
+    return a.denylist or os.environ.get(DENYLIST_ENV) or None
+
+
 def cmd_claims(a):
-    result = bundle.claims_only(a.bundle)
+    result = bundle.claims_only(a.bundle, denylist(a))
     emit(result)
     if result["ok"]:
         return 0
@@ -476,9 +489,11 @@ def main(argv=None):
     avatar.add_argument("--no-avatar", action="store_true", help="no kitpip avatar")
     t.add_argument("--tail-s", type=float, help="seconds a card base holds after the last narration (default 1)")
     t.add_argument("--json", action="store_true", help="print the whole intake manifest")
+    t.add_argument("--denylist", help=DENYLIST_HELP)
 
     c = sub.add_parser("claims", help="the spoken-number claims gate of a demo bundle, alone")
-    c.add_argument("bundle", help="the bundle directory (script.md and claims.json are read)")
+    c.add_argument("bundle", help="the bundle directory (script.md, claims.json and the manifest's privacy are read)")
+    c.add_argument("--denylist", help=DENYLIST_HELP)
 
     s = sub.add_parser("status", help="print the recorded graph.json and its pending operator gates")
     common(s)
@@ -517,7 +532,9 @@ def main(argv=None):
         }
         return commands[a.command](a)
     except bundle.BundleError as exc:
-        if exc.report is not None:
+        if isinstance(exc.report, dict):
+            emit({"ok": False, "private_terms": exc.report})
+        elif exc.report is not None:
             emit({"ok": False, "segments": exc.report})
         return refusal(exc.code, exc.detail)
     except JobError as exc:

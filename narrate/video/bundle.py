@@ -5,8 +5,9 @@ script.md, claims.json and the PNG, MP4 and GIF assets the manifest lists. read(
 with a typed code; claims_report() runs the spoken-number claims gate (claims.py); convert() turns a bundle into the
 existing records: one NarratedVideo job and one narrate Job per beat, with no new schema (SPR-84). intake() checks
 the result with job.check_shape and admit, checks that the template's pronunciation tables add no spoken number,
-and only then writes it: every store file is checked, copied and hashed first, and the output directory is built
-as a temporary sibling and renamed into place, so a refusal leaves no output and no new store file.
+runs the private-terms guard (private_terms.py) on every text it would speak or show, and only then writes it:
+every store file is checked, copied and hashed first, and the output directory is built as a temporary sibling and
+renamed into place, so a refusal leaves no output and no new store file.
 
 Everything here reads and writes local files only. Nothing renders, and nothing is published.
 """
@@ -29,6 +30,7 @@ from ..config import LEXICAL_ENV
 from ..ir import canonical, sha256_file
 from ..normalise import NormaliseError, Normaliser
 from . import claims as gate
+from . import private_terms
 from .admit import admit, port
 from .job import DEFAULTS, ID, RECORD_FILES, SHA256, JobError, check_shape, load_records
 
@@ -40,7 +42,7 @@ ASSET_KINDS = ("png", "mp4", "gif")
 ASSET_FIELDS = {"id", "path", "sha256", "kind", "receipt"}
 ASSET_OPTIONAL = {"size", "fps"}
 MANIFEST_FIELDS = {"assets"}
-MANIFEST_OPTIONAL = {"slug"}
+MANIFEST_OPTIONAL = {"slug", "privacy"}
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 HEADING = re.compile(r"^## (?P<id>.*?)\s*$")
 META = re.compile(r"^- (?P<key>[a-z_]+):(?P<value>.*)$")
@@ -352,22 +354,57 @@ def gate_refusal(report):
     return BundleError(first["codes"][0], detail, report)
 
 
-def read_claims_only(bundle):
-    """The claims gate alone: script.md and claims.json, no manifest or asset."""
+def read_privacy(bundle):
+    """(declaration, manifest): the manifest's privacy declaration {ip_private, never_name, denylist_sha256}, read
+    without an asset, and the parsed manifest."""
+    manifest, _ = read_json(bundle, MANIFEST)
+    fields(manifest, MANIFEST_FIELDS, MANIFEST_OPTIONAL, MANIFEST)
+    try:
+        return private_terms.declaration(manifest.get("privacy")), manifest
+    except private_terms.PrivateError as exc:
+        raise BundleError(exc.code, exc.detail) from None
+
+
+def private_guard(declared, denylist):
+    """The bundle's private-terms guard: the denylist is read and checked when the manifest declares private terms
+    or a denylist is given."""
+    try:
+        return private_terms.Guard(declared, denylist)
+    except private_terms.PrivateError as exc:
+        raise BundleError(exc.code, exc.detail) from None
+
+
+def private_check(guard, texts):
+    """The guard's report for texts; a match raises BundleError private_term carrying the report."""
+    try:
+        return guard.check(texts)
+    except private_terms.PrivateError as exc:
+        raise BundleError(exc.code, exc.detail, exc.report) from None
+
+
+def read_claims_only(bundle, denylist=None):
+    """The claims gate alone: script.md, claims.json and the manifest's privacy declaration, no asset. The
+    private-terms guard runs first, on the record texts and then on every voiced text and claim text, and refuses
+    before the number gate."""
     beats, script_digest = read_script(bundle)
     claims, claims_digest = read_claims(bundle)
     cited_known(beats, claims)
-    return beats, claims_report(beats, claims), {"script_sha256": script_digest, "claims_sha256": claims_digest}
+    declared, manifest = read_privacy(bundle)
+    guard = private_guard(declared, denylist)
+    private_check(guard, private_terms.record_texts(manifest, beats, claims))
+    private = private_check(guard, private_terms.written_texts(beats, claims))
+    digests = {"script_sha256": script_digest, "claims_sha256": claims_digest}
+    return beats, claims_report(beats, claims), digests, guard, private
 
 
-def read(bundle):
+def read(bundle, denylist=None):
     """The parsed bundle: {slug, assets, beats, claims, report, digests}. Refuses structure, assets and references;
     the claims report is returned, not raised, so a caller can print it."""
     bundle = Path(bundle)
     if not bundle.is_dir():
         raise BundleError("bundle_invalid", "the bundle is not a directory")
     assets, manifest_digest = read_manifest(bundle)
-    beats, report, digests = read_claims_only(bundle)
+    beats, report, digests, guard, private = read_claims_only(bundle, denylist)
     videos = set()
     for beat in beats:
         asset = assets.get(beat["asset_id"])
@@ -394,6 +431,8 @@ def read(bundle):
         "beats": beats,
         "report": report,
         "digests": {"manifest_sha256": manifest_digest} | digests,
+        "guard": guard,
+        "private": private,
     }
 
 
@@ -482,8 +521,8 @@ def pronunciation_check(b, records, template):
     """The template's pronunciation tables must not make narrate say a number the voiced text does not: each beat's
     paragraphs go through Normaliser.say, as narrate's render does, and the spoken form may hold no number word or
     digit group that the written form lacks (number_words). With the narration register pinned, the upstream
-    xoxd-lexical table runs too, from NARRATE_LEXICAL_DIR. Returns {table, upstream}: the table id and the pinned
-    release, or None."""
+    xoxd-lexical table runs too, from NARRATE_LEXICAL_DIR. Returns {table, upstream, said}: the table id, the pinned
+    release or None, and each paragraph's spoken form as (beat id, "spoken", text) for the private-terms guard."""
     base = records["jobs"][template]
     table = records["pronunciation"].get(base["pronunciation"])
     if table is None:
@@ -500,12 +539,14 @@ def pronunciation_check(b, records, template):
                 f" check spoken numbers: {exc.detail}",
             ) from None
     normaliser = Normaliser(table, upstream=upstream)
+    said_texts = []
     for beat in b["beats"]:
         for paragraph in paragraphs(beat["voiced"]):
             try:
                 spoken = normaliser.say(paragraph, beat["id"], record=False)
             except NormaliseError as exc:
                 raise BundleError("pronunciation_refused", f"beat {beat['id']}: {exc}") from None
+            said_texts.append((beat["id"], "spoken", spoken))
             added = number_words(spoken) - number_words(paragraph)
             if added:
                 said = sorted(" ".join(w) if isinstance(w, tuple) else w for w in added.elements())
@@ -514,7 +555,11 @@ def pronunciation_check(b, records, template):
                     f"beat {beat['id']}: the pronunciation tables make narrate say {', '.join(said)}, which the voiced"
                     " text does not; no claim backs a number a table adds",
                 )
-    return {"table": base["pronunciation"], "upstream": pin["release"] if upstream is not None else None}
+    return {
+        "table": base["pronunciation"],
+        "upstream": pin["release"] if upstream is not None else None,
+        "said": said_texts,
+    }
 
 
 def convert(b, records, *, job_id, template, voice, engine, persona=None, tail_s=None):
@@ -687,12 +732,16 @@ def merged_records(records_dir, new_jobs):
     return tables
 
 
-def intake(bundle, out, records_dir, *, job_id=None, template, voice, engine, persona=None, tail_s=None, store=None):
+def intake(
+    bundle, out, records_dir, *, job_id=None, template, voice, engine, persona=None, tail_s=None, store=None,
+    denylist=None,
+):  # fmt: skip
     """Read, gate, convert, check and write one bundle. Returns the intake manifest written to out/intake.json.
 
     out must be new or empty. It receives narrated-video.json (the NarratedVideo record), records/ (the input
     renders with one narrate job per beat added to jobs.json) and intake.json; store (default out/store) receives
-    each beat's Markdown and each used asset as <sha256><suffix>. Nothing is written when any check refuses."""
+    each beat's Markdown and each used asset as <sha256><suffix>. denylist is the private denylist file that a
+    manifest declaring ip_private or never_name binds by digest. Nothing is written when any check refuses."""
     out = Path(out)
     if out.is_symlink() or (out.exists() and (not out.is_dir() or any(out.iterdir()))):
         raise BundleError("out_exists", "--out must be a new or empty directory")
@@ -700,11 +749,14 @@ def intake(bundle, out, records_dir, *, job_id=None, template, voice, engine, pe
     within = store.resolve() == out.resolve() or out.resolve() in store.resolve().parents
     if store.resolve() == out.resolve():
         raise BundleError("store_conflict", "--store must not be --out itself")
-    b = read(bundle)
+    b = read(bundle, denylist)
+    job_id = job_id or b["slug"]
+    private_check(b["guard"], [("slug", "record", b["slug"]), ("job", "record", job_id)])  # the directory's name
+    if persona is not None:
+        private_check(b["guard"], [("labels", "label", persona)])
     refused = gate_refusal(b["report"])
     if refused:
         raise refused
-    job_id = job_id or b["slug"]
     records = load_records(records_dir)
     job, jobs = convert(
         b, records, job_id=job_id, template=template, voice=voice, engine=engine, persona=persona, tail_s=tail_s
@@ -718,6 +770,7 @@ def intake(bundle, out, records_dir, *, job_id=None, template, voice, engine, pe
         first = verdict["refusals"][0]
         raise BundleError(first["code"], f"admit: {first['detail']}")
     spoken = pronunciation_check(b, records, template)
+    b["private"] = private_check(b["guard"], spoken["said"])
 
     used = {beat["asset_id"] for beat in b["beats"]}
     sources = {}  # store file name: (digest, Markdown bytes or None, asset or None)
@@ -827,14 +880,16 @@ def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, 
         "sources": sorted({digest for digest, _, _ in sources.values()}),
         "outputs": outputs,
         "admit": {"verdict": verdict["verdict"], "pending_operator": [p["gate"] for p in verdict["pending_operator"]]},
+        "private_terms": b["private"],
         "states": {"source_checks": "passed", "claims": "passed", "pronunciation_numbers": "passed",
-                   "render": "not_run", "listening": "pending_operator"},
+                   "private_terms": b["private"]["status"], "render": "not_run", "listening": "pending_operator"},
     }  # fmt: skip
     write_json(staging / "intake.json", manifest)
     return manifest
 
 
-def claims_only(bundle):
-    """The claims gate on a bundle's script.md and claims.json: {ok, digests, segments}."""
-    _, report, digests = read_claims_only(bundle)
-    return {"ok": gate_refusal(report) is None, "bundle": digests, "segments": report}
+def claims_only(bundle, denylist=None):
+    """The claims gate on a bundle's script.md and claims.json, after the private-terms guard:
+    {ok, bundle, segments, private_terms}. A private term raises BundleError private_term with the guard's report."""
+    _, report, digests, _, private = read_claims_only(bundle, denylist)
+    return {"ok": gate_refusal(report) is None, "bundle": digests, "segments": report, "private_terms": private}
