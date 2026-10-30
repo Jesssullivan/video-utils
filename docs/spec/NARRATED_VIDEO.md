@@ -388,7 +388,7 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `init --job ID --narrate-job ID --script FILE [--still SHA \| --card #RRGGBB] [--bed ID] [--edition E] [--client] [--persona P \| --no-avatar]` | `just nv-init` | writes a simple job from `NarratedVideo.defaults`, with the avatar on where the edition allows one (NV-8). `--client` makes a client delivery: `ClientNarrated` (NV-6); another edition refuses `edition_not_client`. The defaults voice a synthetic segment, so `--edition ClientVoiceOnly` refuses `edition_voice_refused`: a voice-only job comes through `--from` (the deck example). admit refuses (a voice without consent, an avatar without a persona) before anything is written |
 | `init --job ID --from FILE` | | writes a rendered record, or the one with that id in a list of them |
 | `plan JOB [--record] [--json]` | `just nv-plan` | keys every node and prints its state, reason and key. Read-only. `--record` writes `graph.json`. Exit 1 when admit refuses |
-| `status JOB [--json]` | `just nv-status` | prints the recorded `graph.json` and its `pending_operator` gates |
+| `status JOB [--json]` | `just nv-status` | prints the recorded `graph.json` and its `pending_operator` gates. Refuses `graph_stale` when it lists an acceptance `acceptance.json` does not hold |
 | `explain JOB STAGE [--segment ID]` | `just nv-explain` | prints the key document and each field that changed since the stage's last run |
 | `verify DIR` | `just nv-verify` | re-hashes a stage directory or every current stage of a job |
 | `run JOB [--stages S,...] [--until S] [--force S,...] [--json]` | `just nv-run` | runs the stale stages (`script` to `handoff`, with `avatar` and `avatar_check` when the job has an avatar) and stops at the first refusal. Finished stages stay fresh. Records `graph.json` |
@@ -892,30 +892,39 @@ current composed video, so a decision about one render never closes a later one.
 | any other gate name | `gate_unknown` |
 | `lip_sync` without an overlay | `gate_not_applicable` |
 | a gate of this render that holds another decision | `gate_already_accepted` |
-| an id that already accepted another render, of this job or of any job under the store root | `decision_bound_elsewhere` |
+| an id that already accepted another cut of this job, or any cut of another job under the store root | `decision_bound_elsewhere` |
 | no `--video-sha256`, or an empty one | `video_sha256_missing` |
 | `--video-sha256` that is not 64 lower-case hex characters | `video_sha256_invalid` |
 | `--video-sha256` that is not the current composed video | `video_mismatch` |
-| an `acceptance.json` with a row `accept` would refuse, such as a machine gate, `vrm_badge_decision` or a malformed digest | `store_invalid` |
+| an `acceptance.json` with a row `accept` would refuse, such as a machine gate, `vrm_badge_decision` or a malformed digest, one that names two cuts for one render or one that is not a regular file | `store_invalid` |
 | no `deliver_check` run, one that fails re-hashing, or a `compose` newer than it | `deliver_check_missing`, `deliver_check_corrupt` or `deliver_check_stale` |
 
 Each row holds the gate, the decision id, `resolution`, `accepted_utc`, the job
 digest, the `deliver_check` stage key and content digest, and the composed
 video's sha256. `resolution` is `form_only`: `accept` checked the id's form,
-not that Softproxy holds it. One acceptance binds one render. One decision may close both gates of a render,
-so one GO covers listening and lip sync for that render version. A new render
-opens both gates again until it has its own decision. A decision binds one
-job: `accept` reads every job's `acceptance.json` under the store root, under
-one lock at that root, before it records one.
+not that Softproxy holds it. One acceptance binds one render. One decision
+binds one cut, the composed video the operator judged. It may close both gates
+of that cut, so one GO covers listening and lip sync for that render version.
+A new cut opens both gates again until it has its own decision. The earlier
+decision refuses `decision_bound_elsewhere` there. A rerun of `deliver_check`
+alone, such as a licence PDF digest or a Content ID result recorded in the bed
+record, keeps the video. It also opens both gates of its new render. `accept`
+then records the same decision against that render, with no second operator
+decision. A decision binds one job: `accept` reads every job's
+`acceptance.json` under the store root, under one lock at that root, before it
+records one.
 
 `acceptance.json` sits in the job directory beside `job.json` and is
 append-only. `job.json` stays the `NarratedVideo` record as rendered, so no
 stage key and no private-terms binding moves, and `verify` still re-hashes every
-stage. `plan`, `run` and `status` list the acceptances that bind a fresh
-`deliver_check` under `accepted`, with their `resolution`, and drop the gates
-they close from `pending_operator`. Reading `acceptance.json` re-checks every
-row, so a hand-written row for a machine gate or the VRM badge refuses
-`store_invalid` and closes nothing. `accept` updates a recorded `graph.json` whose
+stage. `plan` and `run` list the acceptances that bind a fresh `deliver_check`
+and the current composed video under `accepted`, with their `resolution`, and
+drop the gates they close from `pending_operator`. A row for another video
+closes nothing. `status` prints the recorded view after it re-reads
+`acceptance.json`. It refuses `graph_stale` when `graph.json` lists an
+acceptance that record does not hold for that render and the current video.
+Reading `acceptance.json` re-checks every row, so a hand-written row for a
+machine gate or the VRM badge refuses `store_invalid` and closes nothing. `accept` updates a recorded `graph.json` whose
 `deliver_check` row is that render. `admit` and the `deliver_check` report stay
 as they were, so `public_upload_allowed` stays false. Upload, sending and
 Content ID stay operator actions.
@@ -1356,7 +1365,9 @@ it stays a knob.
 - `accept` reads a decision id's form only. Whether Softproxy holds an Operator accept under it is the
   caller's check, and no tool here resolves the id. Rows say `resolution: form_only` until one does.
 - The acceptance lock is a local `flock` at the store root. Two hosts writing one store root at once are
-  not covered.
+  not covered. `plan --record` and `run` write `graph.json` outside that lock. An `accept` that lands while
+  one runs can leave `graph.json` without its row. That view shows fewer acceptances, never more, and the
+  next `plan --record` adds the row.
 - The VRM meta permission fields (`avatarPermission`, `commercialUsage` and the rest) are recorded,
   not gated. The model's author and the permission that fits are an open operator decision.
 - Whether offline VRM video carries a burned-in badge is open. So is VRM in any edition except

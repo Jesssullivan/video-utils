@@ -373,7 +373,8 @@ def cmd_claims(a):
 
 
 def cmd_status(a):
-    g = job_store(a, a.job).read_graph()
+    s = job_store(a, a.job)
+    g = accept.check_recorded(s, s.read_graph())
     if a.json:
         emit(g)
     else:
