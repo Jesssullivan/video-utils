@@ -86,6 +86,33 @@ input adapters -> script IR -> lexical pass -> spoken normalisation -> chunker
      with any range or dollar amount the transcript wrote in digits said in
      words, so "$5 to $10" and "five to ten dollars" are both a correct reading
      of `$5–$10`.
+   - Both sides of every comparison go through one normalisation, version
+     `narrate-wer-2` (`narrate/qa.py` `NORMALISATION`). The manifest's
+     `qa.wer`, the `narrate evaluate` WER metric and the bench scorer's `wer`
+     record it as `normalisation`. A receipt without the field was scored by
+     `narrate-wer-1`, so its scores are not comparable with version 2 scores.
+     Version 2 does the following:
+     - A hyphen, non-breaking hyphen or en dash between letters splits a word:
+       `low-end` and "low end" are the same two words. A hyphen next to a digit
+       stays, as in `x86-64` and ticket ids.
+     - A unit symbol after a number is said as its unit word, singular after
+       `1` and plural otherwise, case sensitive. The symbols are those in
+       `lexical.UNITS` except `%` and `x`, plus a WER-only table: mm, cm, km,
+       nm, µm, V, mV, kV, A, mA, µA and uA, W, mW, kW, Ω, kΩ, µs, ns, °C, °F
+       and °. A symbol no English word spells, such as Hz, dB or mA, maps
+       without a number too. `s` and `B` written against the digits (`1990s`,
+       `20B`) stay as written. Unit words whose singular is not an ordinary
+       word score singular and plural alike, so "6 decibel" matches `6 dB`.
+     - A closed list of British spellings folds to American ones: -our and
+       -or, -re and -er, -ise and -ize, -yse and -yze, a doubled l before -ed
+       or -ing and single words such as grey and gray. Each word in the list
+       carries its inflections. Spelling outside the list is scored as written.
+     - One word on one side matches 2 or 3 words on the other at no cost when
+       their letters concatenate to it, as in `toolhead` and "tool head". Each
+       part must have two or more letters, so digits never join and spelled
+       letters such as "M C P" match `MCP` only through a pronunciation alias.
+     The 0.1 limit is unchanged. Numbers and names stay in the scored words,
+     and a wrong word, number, unit or name still counts as an error.
    - Speaker similarity (SIM) between the chunk and the reference clip with a
      registered speaker-verification model.
    - A chunk that fails either gate is regenerated with a new seed, at most
