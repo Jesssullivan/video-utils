@@ -950,6 +950,7 @@ current composed video, so a decision about one render never closes a later one.
 | `sp:dec:` with a wrong length, lower case, a letter outside Crockford base32, a time past 48 bits or a trailing character | `decision_invalid` |
 | `profile`, `loudness`, `flash` or `captions` | `gate_automated`. A decision never closes a machine gate |
 | `bed_licence_pdf` or `bed_content_id` | `gate_record_bound`. They close through the private `MusicBed` record |
+| `visible_text` | `gate_intake_bound`. It closes when a re-intake's private-terms guard reads the text of every shown asset |
 | `vrm_badge_decision` | `vrm_badge_undecided` until a ruling settles the badge |
 | any other gate name | `gate_unknown` |
 | `lip_sync` without an overlay | `gate_not_applicable` |
@@ -988,7 +989,10 @@ acceptance that record does not hold for that render and the current video.
 Reading `acceptance.json` re-checks every row, so a hand-written row for a
 machine gate or the VRM badge refuses `store_invalid` and closes nothing. `accept` updates a recorded `graph.json` whose
 `deliver_check` row is that render. `admit` and the `deliver_check` report stay
-as they were, so `public_upload_allowed` stays false. Upload, sending and
+as they were, so `public_upload_allowed` stays false. An acceptance drops only
+`listening_acceptance` and `lip_sync_acceptance`. A `visible_text_unread` gate
+stays in `pending_operator`, so a partial `visible_text` keeps `deliver_check`
+at `pending_operator` after both acceptances. Upload, sending and
 Content ID stay operator actions.
 
 `accept` checks the id's form, not its meaning. It cannot tell whether

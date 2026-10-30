@@ -59,6 +59,19 @@ A review of head `0087669d` found these. Each fix is a new signed commit on the 
 | `plan`, `status` and `run` showed `deliver_check` fresh while `visible_text` was open | admit lists `visible_text_unread`, so the node shows `pending_operator` | `admit.py`, `graph.py` |
 | An SVG with script, an `@import`, a CSS escape or an `xml-stylesheet` instruction was not opaque | each makes the source opaque | `visible_text.py` |
 
+## Merge with operator acceptance
+
+PR #76 (`accept`, TIN-7788) merged into main as `fc0eca97`. This branch took main in a signed merge commit. Three
+files conflicted: the graph docstring, the `nv-test` list and the spec. Each kept both sides. A later signed commit
+joins the two features.
+
+| Point | Result | Files |
+| --- | --- | --- |
+| `accept --gate visible_text` | refuses `gate_intake_bound`. Only a re-intake that reads every shown asset closes it | `accept.py` |
+| `visible_text_unread` after both acceptances | stays in `pending_operator`, and `deliver_check` plans `pending_operator` | `accept.py`, `graph.py` |
+| deliver_check knobs | keep `visible_text`, so a re-intake reruns `deliver_check` over the same cut and the same decision is recorded again | `graph.py` |
+| the accept test's deliver_check fake | reports `visible_text` through `deliver.visible_gate`, so every reported gate is classified | `test_narrated_video_accept.py` |
+
 ## Open
 
 - A private lane does not refuse a shown asset with no text source or an opaque one at intake. It records

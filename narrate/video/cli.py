@@ -23,8 +23,8 @@ allows one (NV-8), which needs --persona; --no-avatar turns it off.
 
 accept records the operator's acceptance of one operator gate (listening or lip_sync) of the current deliver_check
 render, and only with a Softproxy decision id (sp:dec:<ulid>) and the sha256 of the cut that decision saw: free text,
-an empty value, a malformed id, a missing or other cut, a machine gate and an unknown gate refuse
-(narrate/video/accept.py).
+an empty value, a malformed id, a missing or other cut, a machine gate, the visible_text gate and an unknown gate
+refuse (narrate/video/accept.py).
 
 intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
 "Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,

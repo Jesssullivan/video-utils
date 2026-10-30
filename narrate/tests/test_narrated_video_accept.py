@@ -13,7 +13,7 @@ import pytest
 from test_narrated_video_graph import FPS, example, new_store, plain_ctx, records, stub_ctx
 
 from narrate.config import ROOT
-from narrate.video import accept, cli, graph, keys
+from narrate.video import accept, cli, deliver, graph, keys
 from narrate.video.job import ID, JobError
 
 GO = "sp:dec:01JD00000000000000000000F1"
@@ -22,7 +22,8 @@ GO_3 = "sp:dec:01JD0000000000000000000ZZZ"
 NOW = "2026-10-30T12:00:00Z"
 
 
-def gates_for(job):
+def gates_for(job, visible=None):
+    """deliver_check's gate table for job, with visible_text from the intake's summary as deliver.py reads it."""
     overlay = job["avatar"] is not None and any(s["avatar"] for s in job["segments"])
     return {
         "profile": "passed",
@@ -33,16 +34,17 @@ def gates_for(job):
         "lip_sync": "pending_operator" if overlay else "not_applicable",
         "bed_licence_pdf": "not_applicable",
         "bed_content_id": "not_applicable",
+        "visible_text": deliver.visible_gate(visible)[0],
     }
 
 
-def fields_for(node_id, partial, key, job):
+def fields_for(node_id, partial, key, job, visible=None):
     if node_id == "base":
         return {"measurements": {"fps": FPS}}
     if node_id == "compose":
         (partial / "video.mp4").write_bytes(b"synthetic cut " + key.encode())
     if node_id == "deliver_check":
-        return {"measurements": {"gates": gates_for(job)}}
+        return {"measurements": {"gates": gates_for(job, visible)}}
     return {}
 
 
@@ -56,7 +58,7 @@ def settle(job, recs, s, ctx):
             key = keys.stage_key(document)
             partial = s.begin(node_id, key)
             (partial / "out.json").write_text(json.dumps({"node": node_id, "key": key}))
-            s.commit(node_id, key, document, fields_for(node_id, partial, key, job))
+            s.commit(node_id, key, document, fields_for(node_id, partial, key, job, recs.get("visible_text")))
     raise AssertionError("the graph did not settle")
 
 
@@ -129,6 +131,8 @@ def test_free_text_an_empty_value_and_a_malformed_id_refuse(value, code):
 @pytest.mark.parametrize(
     ("gate", "code"),
     [
+        ("visible_text", "gate_intake_bound"),
+        ("visible_text_unread", "gate_unknown"),
         ("profile", "gate_automated"),
         ("loudness", "gate_automated"),
         ("flash", "gate_automated"),
@@ -591,6 +595,87 @@ def test_admit_is_unchanged_by_an_acceptance(avatar_job):
     accept.accept(s, "listening", GO, video_of(s), now=clock)
     gate = graph.admit_stage.admit(job, recs, "resolved")
     assert any(p["gate"] == "listening_acceptance" for p in gate["pending_operator"])
+
+
+# The visible-text gate beside the acceptances (TIN-7788) -------------------------------------------------------
+PARTIAL = {"state": "partial", "unread": ["asset#2"], "opaque": []}
+READ_ALL = {"state": "passed", "unread": [], "opaque": []}
+
+
+def open_gates(g):
+    return {p["gate"] for p in g["pending_operator"]}
+
+
+def test_accept_never_closes_visible_text_and_a_partial_read_keeps_deliver_check_at_the_operator(tmp_path):
+    """A guarded intake left asset#2's on-screen text unread. Listening and lip sync are accepted by one GO, yet
+    visible_text stays open: accept refuses it, admit still lists visible_text_unread, and deliver_check plans
+    pending_operator. Only a re-intake that reads every shown asset closes it. That reruns deliver_check over the same
+    cut, so the same GO is recorded again for the new render and no operator gate stays open."""
+    job, recs = example("nv-fixture-avatar"), records()
+    recs["visible_text"] = dict(PARTIAL)
+    s = new_store(tmp_path, job)
+    settle(job, recs, s, stub_ctx())
+    s.write_graph(graph.public(graph.plan(job, recs, s, stub_ctx())))
+    gates = s.manifest("deliver_check")["measurements"]["gates"]
+    assert (gates["listening"], gates["lip_sync"], gates["visible_text"]) == ("pending_operator",) * 3
+    before = open_gates(s.read_graph())
+    assert {"listening_acceptance", "lip_sync_acceptance", "visible_text_unread"} <= before
+
+    with pytest.raises(JobError) as caught:
+        accept.accept(s, "visible_text", GO, video_of(s), now=clock)
+    assert caught.value.code == "gate_intake_bound"
+    assert not (s.dir / accept.ACCEPTANCE).exists()
+
+    first = accept.accept(s, "listening", GO, video_of(s), now=clock)
+    assert first["recorded"] and first["operator_states_open"] == ["lip_sync", "visible_text"]
+    second = accept.accept(s, "lip_sync", GO, video_of(s), now=clock)
+    assert second["recorded"] and second["operator_states_open"] == ["visible_text"]
+
+    for g in (graph.plan(job, recs, s, stub_ctx()), s.read_graph()):
+        assert [r["gate"] for r in g["accepted"]] == ["listening", "lip_sync"]
+        assert open_gates(g) == before - {"listening_acceptance", "lip_sync_acceptance"}
+        (held,) = [p for p in g["pending_operator"] if p["gate"] == "visible_text_unread"]
+        assert held["stage"] == "deliver_check" and held["detail"].endswith(": asset#2")
+        assert {n["id"]: n["state"] for n in g["nodes"]}["deliver_check"] == "pending_operator"
+    with pytest.raises(JobError) as caught:  # still no decision closes it, after both acceptances
+        accept.accept(s, "visible_text", GO, video_of(s), now=clock)
+    assert caught.value.code == "gate_intake_bound"
+    assert [r["gate"] for r in accept.read(s)["acceptances"]] == ["listening", "lip_sync"]
+
+    # A re-intake reads asset#2: the summary is a deliver_check knob, so deliver_check reruns over the same cut.
+    video, check = video_of(s), s.entry("deliver_check")["key"]
+    recs["visible_text"] = dict(READ_ALL)
+    settle(job, recs, s, stub_ctx())
+    assert video_of(s) == video and s.entry("deliver_check")["key"] != check
+    assert s.manifest("deliver_check")["measurements"]["gates"]["visible_text"] == "passed"
+    g = graph.plan(job, recs, s, stub_ctx())
+    assert g["accepted"] == [] and "visible_text_unread" not in open_gates(g)
+    assert {"listening_acceptance", "lip_sync_acceptance"} <= open_gates(g)
+    s.write_graph(graph.public(g))
+    assert accept.accept(s, "listening", GO, video, now=clock)["operator_states_open"] == ["lip_sync"]
+    assert accept.accept(s, "lip_sync", GO, video, now=clock)["operator_states_open"] == []
+    g = graph.plan(job, recs, s, stub_ctx())
+    assert [r["gate"] for r in g["accepted"]] == ["listening", "lip_sync"]
+    assert not {"listening_acceptance", "lip_sync_acceptance", "visible_text_unread"} & open_gates(g)
+
+
+def test_admit_lists_visible_text_unread_beside_the_acceptance_gates():
+    """admit's operator gates are the union: listening and lip sync from #76's acceptance model, visible_text_unread
+    from the guarded intake, and the acceptance view drops only the first two."""
+    job, recs = example("nv-fixture-avatar"), records()
+    recs["visible_text"] = dict(PARTIAL)
+    gate = graph.admit_stage.admit(job, recs, "resolved")
+    assert {"listening_acceptance", "lip_sync_acceptance", "visible_text_unread"} <= {
+        p["gate"] for p in gate["pending_operator"]
+    }
+    assert "visible_text_unread" not in accept.ADMIT_GATES
+    rows = [
+        {"gate": g, "decision": GO, "resolution": "form_only", "accepted_utc": NOW, "video_sha256": "0" * 64}
+        for g in accept.ACCEPTABLE
+    ]
+    shown = accept.apply({"pending_operator": list(gate["pending_operator"])}, rows)
+    assert "visible_text_unread" in open_gates(shown)
+    assert not {"listening_acceptance", "lip_sync_acceptance"} & open_gates(shown)
 
 
 @pytest.fixture

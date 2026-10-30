@@ -19,6 +19,9 @@ Gates:
 - vrm_badge_decision refuses vrm_badge_undecided until a ruling settles the badge (SPR-128, narrate/video/vrm.py);
 - the machine gates (profile, loudness, flash, captions) never close here: gate_automated;
 - bed_licence_pdf and bed_content_id close only through the private MusicBed record: gate_record_bound;
+- visible_text closes only through a re-intake whose private-terms guard reads every shown asset's text:
+  gate_intake_bound. admit's visible_text_unread is no acceptance gate, so an acceptance never drops it from
+  pending_operator;
 - any other name refuses gate_unknown.
 
 One acceptance binds one render: the deliver_check stage key and content digest, the composed video's sha256 and the
@@ -64,7 +67,10 @@ ACCEPTABLE = ("listening", "lip_sync")
 UNRULED = {"vrm_badge_decision": "whether offline VRM video carries a burned-in badge is not ruled (SPR-128)"}
 AUTOMATED = ("profile", "loudness", "flash", "captions")
 RECORD_BOUND = ("bed_licence_pdf", "bed_content_id")
-GATES = ACCEPTABLE + tuple(UNRULED) + AUTOMATED + RECORD_BOUND
+# deliver_check's visible_text gate (narrate/video/deliver.py, TIN-7788) reads the guarded intake's summary. Only a
+# re-intake that reads every shown asset's text moves it to passed; no decision does.
+INTAKE_BOUND = ("visible_text",)
+GATES = ACCEPTABLE + tuple(UNRULED) + AUTOMATED + RECORD_BOUND + INTAKE_BOUND
 # admit's pending_operator gate names (narrate/video/admit.py) and the deliver_check gate each one waits on. Only the
 # gates accept may close are here: vrm_badge_decision joins once a ruling settles the badge and it leaves UNRULED.
 ADMIT_GATES = {
@@ -104,6 +110,11 @@ def check_gate(gate):
         )
     if gate in RECORD_BOUND:
         raise JobError("gate_record_bound", f"{gate} closes through the private MusicBed record, not by a decision")
+    if gate in INTAKE_BOUND:
+        raise JobError(
+            "gate_intake_bound",
+            f"{gate} closes when a re-intake's private-terms guard reads every shown asset's text, not by a decision",
+        )
     raise JobError("gate_unknown", "the operator gates accept closes are " + ", ".join(ACCEPTABLE))
 
 
