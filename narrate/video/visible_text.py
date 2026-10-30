@@ -14,9 +14,11 @@ asset, so a term split across two labels still matches. An SVG is opaque when it
 holds an image (image, feImage, foreignObject or another embedding element), runs script (a script element or an
 event handler attribute), refers to another file (an href that is not a #fragment, a url() that is not one, a CSS
 @import, a CSS backslash escape or an xml-stylesheet processing instruction), or gives no string at all (text
-outlined to paths). The intake lists an opaque asset, so its visible-text state is partial, not passed. Text outlined
-to paths beside some other string (a title or an aria-label) is not opaque: the guard cannot compare the SVG with the
-picture's pixels, so that text stays the producer's review.
+outlined to paths). A presentation attribute such as fill or filter takes CSS as a style attribute does, so a
+backslash in any attribute other than a label counts as an escape that may spell url(). The intake lists an opaque
+asset, so its visible-text state is partial, not passed. Text outlined to paths beside some other string (a title or
+an aria-label) is not opaque: the guard cannot compare the SVG with the picture's pixels, so that text stays the
+producer's review.
 
 An SVG that is not UTF-8 (a byte-order mark other than UTF-8's, a NUL, or an XML declaration naming another
 encoding) refuses, and so does one with a document type or entity declaration anywhere: the decoded text is searched
@@ -159,7 +161,7 @@ def svg_read(data):
                     opaque.append(name)
                 elif local(key).lower().startswith("on"):
                     opaque.append(name)  # an event handler runs script
-                elif external_url(value) or (local(key) == "style" and external_css(value)):
+                elif external_css(value):  # a style attribute or a presentation attribute such as filter
                     opaque.append(name)
             for child in element:
                 walk(child)

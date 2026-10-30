@@ -138,7 +138,7 @@ A key reads three kinds of input:
 | `music` | bed id, each layer's digest, bytes, rate, channels, tempo factor and gain, 48 kHz |
 | `mix` | the music block except the bed id, delivery loudness, true peak, drift and channels |
 | `compose` | avatar corner, width, margin, `avatarOff` and `fadeS`, the slides block, captions, labels, delivery profile |
-| `deliver_check` | delivery except `handoff`, the bed's licence PDF digest and Content ID result, labels, the guarded intake's visible-text summary |
+| `deliver_check` | delivery except `handoff`, the bed's licence PDF digest and Content ID result, labels, the guarded intake's visible-text summary, the job's digest |
 | `handoff` | none beyond its inputs |
 
 A stage manifest's `content_sha256` leaves out `run_dir`, `created_utc` and
@@ -198,7 +198,7 @@ v1 keeps every stage directory until the operator removes the job.
 | Persona label | every `avatar` and `avatar_check`, then `place`, `mix`, `compose`, `deliver_check`. No voice |
 | Deck re-assembled with the same takes | `base`, `place`, `mix`, `compose`, `deliver_check` |
 | Content ID result recorded | `deliver_check` |
-| Handoff turned on | `handoff` |
+| Handoff turned on | `handoff`, and `deliver_check` because it keys on the job's digest |
 
 ### kitpip pin and the stub
 
@@ -961,6 +961,8 @@ current composed video, so a decision about one render never closes a later one.
 | `--video-sha256` that is not the current composed video | `video_mismatch` |
 | an `acceptance.json` with a row `accept` would refuse, such as a machine gate, `vrm_badge_decision` or a malformed digest, one that names two cuts for one render or one that is not a regular file | `store_invalid` |
 | no `deliver_check` run, one that fails re-hashing, or a `compose` newer than it | `deliver_check_missing`, `deliver_check_corrupt` or `deliver_check_stale` |
+| a `deliver_check` render whose job digest is not that of `job.json` on disk | `deliver_check_stale` |
+| a `graph.json` that is not an `nv_graph` record with nodes and operator gates, or not a regular file | `store_invalid`, and `stage_symlink` for a symlink. Nothing is recorded |
 
 Each row holds the gate, the decision id, `resolution`, `accepted_utc`, the job
 digest, the `deliver_check` stage key and content digest, and the composed
@@ -983,16 +985,28 @@ stage key and no private-terms binding moves, and `verify` still re-hashes every
 stage. `plan` and `run` list the acceptances that bind a fresh `deliver_check`
 and the current composed video under `accepted`, with their `resolution`, and
 drop the gates they close from `pending_operator`. A row for another video
-closes nothing. `status` prints the recorded view after it re-reads
-`acceptance.json`. It refuses `graph_stale` when `graph.json` lists an
-acceptance that record does not hold for that render and the current video.
+closes nothing. `status` trusts no operator view in `graph.json`. It
+recomputes `accepted` and `pending_operator` and refuses `graph_stale` when the
+recorded ones differ. The job digest must be that of `job.json`. `admit` must
+list every gate `job.json` opens and every gate the current `deliver_check`
+render reports from the records. `accepted` must be the rows that bind that
+render and the current video. `pending_operator` must be `admit`'s list less
+the gates they close. `deliver_check` must show `pending_operator` while
+`admit` holds a gate at it. A hand edit therefore cannot hide an open gate.
+`deliver_check` keys on the job's digest, and `accept` refuses a render made
+for another `job.json`. A row therefore never pairs a new job with an old
+render. `accept` checks `graph.json` before it writes `acceptance.json`, so a
+malformed graph refuses with nothing recorded.
 Reading `acceptance.json` re-checks every row, so a hand-written row for a
-machine gate or the VRM badge refuses `store_invalid` and closes nothing. `accept` updates a recorded `graph.json` whose
-`deliver_check` row is that render. `admit` and the `deliver_check` report stay
+machine gate or the VRM badge refuses `store_invalid` and closes nothing.
+`accept` updates a recorded `graph.json` whose `deliver_check` row is that
+render, and recomputes its `pending_operator` from `admit`'s list. `admit` and the `deliver_check` report stay
 as they were, so `public_upload_allowed` stays false. An acceptance drops only
 `listening_acceptance` and `lip_sync_acceptance`. A `visible_text_unread` gate
 stays in `pending_operator`, so a partial `visible_text` keeps `deliver_check`
-at `pending_operator` after both acceptances. Upload, sending and
+at `pending_operator` after both acceptances. A re-intake that reads every
+shown asset reruns `deliver_check`. Once the same decision is recorded for both
+gates of that render, `deliver_check` plans `fresh` (tested). Upload, sending and
 Content ID stay operator actions.
 
 `accept` checks the id's form, not its meaning. It cannot tell whether
@@ -1366,7 +1380,9 @@ An SVG source is opaque when it may draw text that no string names. It holds an
 `image`, `feImage`, `foreignObject` or another embedding element. It runs script
 through a `script` element or an event handler attribute. It refers to another
 file through an `href` or a `url()` that is not a `#` fragment, a CSS `@import`,
-a CSS backslash escape or an `xml-stylesheet` processing instruction. Or it
+a CSS backslash escape or an `xml-stylesheet` processing instruction. A
+presentation attribute such as `fill` or `filter` takes CSS as `style` does, so
+a backslash in any attribute other than a label counts as an escape. Or it
 gives no string at all, as text outlined to paths does. Its strings are still
 guarded. A JSON source is never opaque. Text outlined to paths beside another
 string, such as a `title`, is not opaque. The guard cannot compare the SVG with
@@ -1379,7 +1395,9 @@ segment row's `asset.text` holds the source's kind and digest or `null`. The sta
 every shown asset had a text source and none was opaque, `partial` otherwise, and `not_declared` when no denylist
 runs. An unread or opaque asset does not refuse at intake. The records marker carries the state, and `deliver_check`
 reports it as the operator gate `visible_text`, so a partial cut keeps `operator_states_open` non-empty and
-`public_upload_allowed` false. Whether a private lane should refuse one at intake is open.
+`public_upload_allowed` false. The intake's admit reads the same summary, so `intake.json` lists
+`visible_text_unread` under `admit.pending_operator` exactly when the state is `partial`. Whether a private lane
+should refuse one at intake is open.
 
 The guard reads text only. These pass it, and the producer reviews them:
 

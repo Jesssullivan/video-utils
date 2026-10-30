@@ -882,6 +882,10 @@ def guarded_intake(
     tables = merged_records(records_dir, new_jobs)
     checked = copy.deepcopy(records)
     checked["jobs"] = {j["id"]: j for j in tables["jobs.json"]}
+    # The marker this intake writes holds this summary, so admit reads it here too: intake.json's
+    # admit.pending_operator then lists visible_text_unread exactly when states.visible_text is partial. The input
+    # records' own marker (an earlier intake) never stands in for it.
+    checked["visible_text"] = visible_record(b)
     verdict = admit(job, checked)
     if verdict["verdict"] != "Admitted":
         first = verdict["refusals"][0]

@@ -308,7 +308,15 @@ def knobs_for(stage, segment, job, records, pin):
         # The guarded intake's visible-text summary (job.load_records from the marker): a re-intake that reads
         # more slides changes it, so deliver_check reruns.
         visible = records.get("visible_text")
-        return {"delivery": delivery, "bed_gates": gates, "labels": job["labels"], "visible_text": visible}
+        # The job's digest too: accept pairs one deliver_check render with job.json (accept.render_of), so any edit
+        # to job.json, delivery.handoff included, plans a new render rather than leaving an old one current.
+        return {
+            "delivery": delivery,
+            "bed_gates": gates,
+            "labels": job["labels"],
+            "visible_text": visible,
+            "job_sha256": keys.digest(job),
+        }
     if stage == "handoff":
         return {}
     raise JobError("graph_cycle", f"no knobs for stage {stage}")

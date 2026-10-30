@@ -657,6 +657,11 @@ def test_accept_never_closes_visible_text_and_a_partial_read_keeps_deliver_check
     g = graph.plan(job, recs, s, stub_ctx())
     assert [r["gate"] for r in g["accepted"]] == ["listening", "lip_sync"]
     assert not {"listening_acceptance", "lip_sync_acceptance", "visible_text_unread"} & open_gates(g)
+    # visible_text passed and both acceptances recorded: deliver_check is fresh again, in the plan, the recorded
+    # graph and status alike
+    for shown_graph in (g, s.read_graph(), accept.check_recorded(s, s.read_graph())):
+        assert {n["id"]: n["state"] for n in shown_graph["nodes"]}["deliver_check"] == "fresh"
+        assert not any(p["stage"] == "deliver_check" for p in shown_graph["pending_operator"])
 
 
 def test_admit_lists_visible_text_unread_beside_the_acceptance_gates():
@@ -787,6 +792,169 @@ def test_status_refuses_an_acceptance_of_an_earlier_cut(avatar_job, capsys):
     s.commit("compose", key, document, fields_for("compose", partial, key, job))
     status, _, err = status_of(capsys, s)
     assert status == 1 and json.loads(err)["refused"] == "graph_stale"
+
+
+def drop_gate(name):
+    def edit(document):
+        document["pending_operator"] = [p for p in document["pending_operator"] if p["gate"] != name]
+
+    return edit
+
+
+def drop_admitted_gate(name):
+    def edit(document):
+        drop_gate(name)(document)
+        document["admit"]["pending_operator"] = [p for p in document["admit"]["pending_operator"] if p["gate"] != name]
+
+    return edit
+
+
+def other_job_digest(document):
+    document["job_sha256"] = "0" * 64
+
+
+def another_deliver_check_key(document):
+    (node,) = [n for n in document["nodes"] if n["id"] == "deliver_check"]
+    node["key"] = "0" * 64
+
+
+@pytest.mark.parametrize(
+    "edit",
+    [
+        drop_gate("listening_acceptance"),
+        drop_admitted_gate("listening_acceptance"),
+        drop_admitted_gate("lip_sync_acceptance"),
+        other_job_digest,
+        another_deliver_check_key,
+    ],
+    ids=["pending", "admit and pending", "lip sync from both", "job digest", "deliver_check key"],
+)
+def test_status_recomputes_the_operator_view_and_refuses_a_hand_edit(cli_root, capsys, edit):
+    """status trusts no operator view in graph.json: hiding a gate, in pending_operator or in admit too, refuses."""
+    s, _ = cli_root
+    document = s.read_graph()
+    assert accept.check_recorded(s, document) is document
+    edit(document)
+    s.write_graph(document)
+    status, out, err = status_of(capsys, s)
+    assert status == 1 and out == "" and json.loads(err)["refused"] == "graph_stale"
+
+
+@pytest.fixture
+def partial_job(tmp_path):
+    """The avatar fixture after a guarded intake that left asset#2 unread: deliver_check plans pending_operator."""
+    job, recs = example("nv-fixture-avatar"), records()
+    recs["visible_text"] = dict(PARTIAL)
+    s = new_store(tmp_path, job)
+    settle(job, recs, s, stub_ctx())
+    s.write_graph(graph.public(graph.plan(job, recs, s, stub_ctx())))
+    return job, recs, s
+
+
+def mark_deliver_check_fresh(document):
+    (node,) = [n for n in document["nodes"] if n["id"] == "deliver_check"]
+    node["state"], node["reason"] = "fresh", None
+
+
+def mark_deliver_check_stale(document):
+    (node,) = [n for n in document["nodes"] if n["id"] == "deliver_check"]
+    node["state"], node["reason"] = "stale", "key_changed"
+
+
+@pytest.mark.parametrize(
+    "edits",
+    [
+        (drop_gate("visible_text_unread"),),
+        (drop_admitted_gate("visible_text_unread"),),
+        (mark_deliver_check_fresh,),
+        (drop_admitted_gate("visible_text_unread"), mark_deliver_check_fresh),
+        (drop_admitted_gate("visible_text_unread"), mark_deliver_check_stale),
+    ],
+    ids=["pending", "admit and pending", "node fresh", "all three", "node stale"],
+)
+def test_status_never_hides_the_visible_text_gate(partial_job, capsys, edits):
+    """The deliver_check render reports visible_text pending_operator, so admit must list it and the node must hold."""
+    _, _, s = partial_job
+    accept.accept(s, "listening", GO, video_of(s), now=clock)
+    document = s.read_graph()
+    assert accept.check_recorded(s, document) is document
+    for edit in edits:
+        edit(document)
+    s.write_graph(document)
+    status, out, err = status_of(capsys, s)
+    assert status == 1 and out == "" and json.loads(err)["refused"] == "graph_stale"
+
+
+def test_a_job_changed_after_deliver_check_refuses_until_it_reruns(avatar_job):
+    """deliver_check keys on job.json's digest: after an edit (here only delivery.handoff, which no cut reads),
+    accept refuses the old render, plan shows deliver_check stale, and the rerun takes the same decision for the
+    same cut."""
+    job, recs, s = avatar_job
+    video = video_of(s)
+    changed = json.loads(json.dumps(job))
+    changed["delivery"]["handoff"] = not job["delivery"]["handoff"]
+    s.write_job(changed, replace=True)
+    with pytest.raises(JobError) as caught:
+        accept.accept(s, "listening", GO, video, now=clock)
+    assert caught.value.code == "deliver_check_stale"
+    assert not (s.dir / accept.ACCEPTANCE).exists()
+    assert {n["id"]: n["state"] for n in graph.plan(changed, recs, s, stub_ctx())["nodes"]}["deliver_check"] == "stale"
+    settle(changed, recs, s, stub_ctx())
+    assert video_of(s) == video
+    s.write_graph(graph.public(graph.plan(changed, recs, s, stub_ctx())))
+    row = accept.accept(s, "listening", GO, video, now=clock)
+    assert row["recorded"] and accept.read(s)["acceptances"][0]["job_sha256"] == keys.digest(changed)
+
+
+def malformed_nodes(s):
+    document = s.read_graph()
+    document["nodes"] = "deliver_check"
+    s.write_graph(document)
+
+
+def malformed_admit(s):
+    document = s.read_graph()
+    document["admit"]["pending_operator"] = [None]
+    s.write_graph(document)
+
+
+def graph_directory(s):
+    s.graph_file.unlink()
+    s.graph_file.mkdir()
+
+
+def graph_symlink(s):
+    s.graph_file.unlink()
+    s.graph_file.symlink_to(s.dir / "job.json")
+
+
+@pytest.mark.parametrize(
+    ("damage", "code"),
+    [
+        (malformed_nodes, "store_invalid"),
+        (malformed_admit, "store_invalid"),
+        (graph_directory, "store_invalid"),
+        (graph_symlink, "stage_symlink"),
+    ],
+)
+def test_a_malformed_graph_refuses_accept_typed_before_anything_is_recorded(cli_root, capsys, damage, code):
+    s, root = cli_root
+    damage(s)
+    with pytest.raises(JobError) as caught:
+        accept.accept(s, "listening", GO, video_of(s), now=clock)
+    assert caught.value.code == code
+    assert not (s.dir / accept.ACCEPTANCE).exists()
+    argv = ["accept", s.job_id, *root, "--gate", "listening", "--decision", GO, "--video-sha256", video_of(s)]
+    status, out, err = call(capsys, argv)
+    assert status == 1 and out == "" and json.loads(err)["refused"] == code
+    assert not (s.dir / accept.ACCEPTANCE).exists()
+
+
+def test_no_graph_json_still_records_and_writes_none(avatar_job):
+    _, _, s = avatar_job
+    s.graph_file.unlink()
+    assert accept.accept(s, "listening", GO, video_of(s), now=clock)["recorded"]
+    assert not s.graph_file.exists()
 
 
 def test_the_module_entry_point_runs_accept(cli_root):

@@ -35,8 +35,14 @@ a no-op (exit 0, recorded false). One decision may close several gates of one cu
 sync, SPR-258), never another cut or another job: accept reads every job's acceptance.json under the store root,
 under one root lock, and refuses decision_bound_elsewhere. A gate holds one decision per render. The recorded
 graph.json (plan --record, run) lists the acceptances that bind its deliver_check and the current composed video,
-and drops their gates from pending_operator. status re-reads acceptance.json and refuses graph_stale when graph.json
-lists an acceptance it no longer holds for that render and cut.
+and drops their gates from pending_operator. accept checks graph.json before it writes acceptance.json, so a
+malformed graph refuses store_invalid with nothing recorded. status trusts no operator view in graph.json: it
+recomputes accepted and pending_operator from job.json, admit's list, the current deliver_check render and
+acceptance.json, and refuses graph_stale when the recorded ones differ (check_recorded).
+
+The render is bound to job.json too: deliver_check keys on the job's digest (narrate/video/graph.py), and accept
+refuses deliver_check_stale when the current render's job_sha256 knob is not the digest of job.json on disk, so a
+row never pairs a new job with an old render.
 
 Reading acceptance.json re-checks every row, so a hand-written row cannot close what accept refuses: its gate must be
 listening or lip_sync, and its digests, decision and resolution well formed. An acceptance.json that is not a regular
@@ -48,6 +54,7 @@ import os
 import re
 from contextlib import contextmanager
 
+from . import admit as admit_stage
 from . import keys
 from .job import ID, SHA256, JobError
 from .store import load_store_json, utc_now, verify_stage_dir, write_atomic
@@ -118,15 +125,20 @@ def check_gate(gate):
     raise JobError("gate_unknown", "the operator gates accept closes are " + ", ".join(ACCEPTABLE))
 
 
-def render_of(store):
+def render_of(store, job):
     """The current deliver_check render: {deliver_check: {stage_key, content_sha256}, video_sha256} and its gates.
-    Refuses when deliver_check has not run, fails re-hashing, or no longer reads the current compose."""
+    Refuses when deliver_check has not run, fails re-hashing, ran for another job.json than job (its job_sha256
+    knob, narrate/video/graph.py) or no longer reads the current compose."""
     entry = store.entry("deliver_check")
     if entry is None:
         raise JobError("deliver_check_missing", f"{store.job_id} has no deliver_check run to accept")
     if verify_stage_dir(store.dir / entry["dir"], entry["key"]):
         raise JobError("deliver_check_corrupt", "the current deliver_check fails re-hashing; run it again")
     manifest = store.manifest("deliver_check")
+    if (manifest.get("knobs") or {}).get("job_sha256") != keys.digest(job):
+        raise JobError(
+            "deliver_check_stale", "deliver_check ran for another job.json than the one on disk; run it again"
+        )
     compose = store.entry("compose")
     compose_manifest = store.manifest("compose")
     if compose is None or compose_manifest is None or verify_stage_dir(store.dir / compose["dir"], compose["key"]):
@@ -284,7 +296,7 @@ def accept(store, gate, decision, video_sha256, now=utc_now):
     check_video(video_sha256)
     job = store.read_job()
     with locked(store):
-        render, gates = render_of(store)
+        render, gates = render_of(store, job)
         if video_sha256 != render["video_sha256"]:
             raise JobError("video_mismatch", "the decision names another cut than the current composed video")
         state = gates.get(gate)
@@ -311,8 +323,12 @@ def accept(store, gate, decision, video_sha256, now=utc_now):
             rows.append(existing)
             if not consistent(rows):  # a hand-written row names another cut for this render
                 raise JobError("store_invalid", f"{store.job_id}/{ACCEPTANCE} holds another cut for this render")
+            # graph.json is read and checked before acceptance.json is written: a malformed one refuses typed with
+            # nothing recorded, and what is left is two atomic writes of checked documents.
+            refreshed = refresh_graph(store, record, render)
             write_atomic(store.dir / ACCEPTANCE, record)
-            refresh_graph(store, record, render)
+            if refreshed is not None:
+                store.write_graph(refreshed)
     closed = {r["gate"] for r in rows if same_render(r, render)}
     return {
         "ok": True,
@@ -362,21 +378,52 @@ def current_video(store):
     return video if sha256(video) else None
 
 
+def graph_shape(document):
+    """The recorded graph, or JobError store_invalid when it lacks a shape accept and status read: job_sha256, admit
+    with its pending_operator gates, nodes with ids, pending_operator gates and an accepted list when present."""
+
+    def gates(value):
+        return isinstance(value, list) and all(
+            isinstance(p, dict) and isinstance(p.get("gate"), str) and isinstance(p.get("stage"), str) for p in value
+        )
+
+    admitted = document.get("admit")
+    nodes = document.get("nodes")
+    if (
+        not isinstance(document.get("job_sha256"), str)
+        or not isinstance(admitted, dict)
+        or not gates(admitted.get("pending_operator"))
+        or not isinstance(nodes, list)
+        or not all(isinstance(n, dict) and isinstance(n.get("id"), str) for n in nodes)
+        or not gates(document.get("pending_operator"))
+        or not isinstance(document.get("accepted", []), list)
+    ):
+        raise JobError("store_invalid", "graph.json is not an nv_graph record; run plan --record")
+    return document
+
+
+def node_of(document, node_id):
+    return next((n for n in document["nodes"] if n["id"] == node_id), None)
+
+
 def refresh_graph(store, record, render):
-    """Fold the acceptance into the recorded graph.json when its deliver_check node is this render, so status shows
-    it before the next plan. A graph recorded for another render is left for the next plan --record."""
-    if not store.graph_file.is_file() or store.graph_file.is_symlink():
-        return
-    try:
-        document = store.read_graph()
-    except JobError:
-        return
-    row = next((n for n in document.get("nodes", []) if n.get("id") == "deliver_check"), None)
+    """The recorded graph.json with the acceptances of this render folded in, when its deliver_check node is this
+    render, so status shows them before the next plan; None when there is no graph.json or it was recorded for
+    another render (the next plan --record shows them). pending_operator is recomputed from admit's list, never from
+    the recorded one. Writes nothing: accept writes the result after acceptance.json. A graph.json that is a symlink
+    refuses stage_symlink and a malformed one store_invalid, before accept records anything."""
+    if not present(store.graph_file):
+        return None
+    if not store.graph_file.is_symlink() and not store.graph_file.is_file():
+        raise JobError("store_invalid", "graph.json is not a regular file; run plan --record")
+    document = graph_shape(store.read_graph())
+    row = node_of(document, "deliver_check")
     key = render["deliver_check"]["stage_key"]
     if row is None or row.get("key") != key or row.get("state") not in FRESH:
-        return
+        return None
     rows = binding(record, key, render["deliver_check"]["content_sha256"], render["video_sha256"])
-    store.write_graph(apply(document, rows))
+    document["pending_operator"] = list(document["admit"]["pending_operator"])
+    return apply(document, rows)
 
 
 def for_plan(store, nodes):
@@ -392,22 +439,63 @@ def for_plan(store, nodes):
     return [] if video is None else binding(record, node["key"], node["content_sha256"], video)
 
 
+# deliver_check's report gates that the records open, and admit's name for each. job.json alone opens listening, lip
+# sync and the VRM badge, and status recomputes those from it (admit.pending_operator).
+RECORD_GATES = {
+    "bed_licence_pdf": "bed_licence_incomplete",
+    "bed_content_id": "bed_content_id_unchecked",
+    "visible_text": "visible_text_unread",
+}
+
+
+def stale(detail):
+    return JobError("graph_stale", f"{detail}; run plan --record")
+
+
 def check_recorded(store, document):
-    """status: the recorded graph, once acceptance.json still holds every acceptance it lists for its deliver_check
-    render and the current composed video. store_invalid when acceptance.json is unreadable, graph_stale when
-    graph.json lists an acceptance acceptance.json does not back (a hand edit, or a record deleted since)."""
+    """status: the recorded graph, once its operator view is what job.json, the current deliver_check render and
+    acceptance.json give. graph.json is never trusted for it: status recomputes accepted and pending_operator and
+    refuses graph_stale when the recorded ones differ, so a hand edit cannot hide an open operator gate.
+
+    - job_sha256 must be the digest of job.json, and admit must list every gate job.json alone opens (listening per
+      segment, lip sync, the VRM badge);
+    - a fresh or pending_operator deliver_check must be the current, re-hashing render, a node keyed as that render
+      must be one of the two, and admit must list every gate that render reports pending_operator from the records
+      (bed licence, Content ID, visible text);
+    - accepted must be the acceptance.json rows that bind that render and the current composed video, and
+      pending_operator admit's list less the gates they close;
+    - deliver_check must plan pending_operator while admit lists a gate at it.
+
+    store_invalid when graph.json or acceptance.json is malformed."""
+    graph_shape(document)
     record = read(store)
-    listed = document.get("accepted", [])
-    if listed == []:
-        return document
-    nodes = document.get("nodes") if isinstance(document.get("nodes"), list) else []
-    node = next((n for n in nodes if isinstance(n, dict) and n.get("id") == "deliver_check"), None)
-    video = current_video(store)
-    backed = []
-    if node is not None and node.get("state") in FRESH and video is not None:
-        backed = shown(binding(record, node.get("key"), None, video))
-    if not isinstance(listed, list) or any(entry not in backed for entry in listed):
-        raise JobError(
-            "graph_stale", "graph.json lists an acceptance that acceptance.json does not hold; run plan --record"
-        )
+    job = store.read_job()
+    if document["job_sha256"] != keys.digest(job):
+        raise stale("graph.json was planned for another job.json")
+    admitted = document["admit"]["pending_operator"]
+    listed = {(p["gate"], p.get("segment")) for p in admitted}
+    if any((p["gate"], p["segment"]) not in listed for p in admit_stage.pending_operator(job, None)):
+        raise stale("graph.json's admit drops an operator gate job.json opens")
+    node = node_of(document, "deliver_check")
+    entry = store.entry("deliver_check")
+    current = entry is not None and not verify_stage_dir(store.dir / entry["dir"], entry["key"])
+    names_current = node is not None and current and node.get("key") == entry["key"]
+    if node is not None and node.get("state") in FRESH and not names_current:
+        raise stale("graph.json's deliver_check is not the current render")
+    if names_current and node.get("state") not in FRESH:
+        raise stale("graph.json shows the current deliver_check render as not fresh")
+    rows = []
+    if names_current:
+        reported = ((store.manifest("deliver_check") or {}).get("measurements") or {}).get("gates") or {}
+        names = {p["gate"] for p in admitted}
+        if any(reported.get(gate) == "pending_operator" and name not in names for gate, name in RECORD_GATES.items()):
+            raise stale("graph.json's admit drops an operator gate the deliver_check render reports")
+        video = current_video(store)
+        rows = [] if video is None else binding(record, entry["key"], entry["content_sha256"], video)
+    if document.get("accepted", []) != shown(rows):
+        raise stale("graph.json's accepted is not what acceptance.json holds for this render and cut")
+    if document["pending_operator"] != apply({"pending_operator": list(admitted)}, rows)["pending_operator"]:
+        raise stale("graph.json's pending_operator is not admit's gates less the accepted ones")
+    if node is not None and node.get("state") == "fresh" and any(p["stage"] == "deliver_check" for p in admitted):
+        raise stale("graph.json shows deliver_check fresh while admit holds a gate at it")
     return document
