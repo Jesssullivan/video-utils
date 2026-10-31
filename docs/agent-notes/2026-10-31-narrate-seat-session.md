@@ -14,7 +14,7 @@ Authority: R-HOOK-CONVERGENCE-20261004 (R-N13) and repository AGENTS.md. The sta
 | #77 | TIN-7788 | 6d594a42 | 44231111 | Neutral avatar tools, visible slide text in the guard and a metadata strip at compose. Demo DAG item P2 |
 | #78 | TIN-7788 | 24e65095 | 94d2fcbd | Low findings from the #76 and #77 reviews. `status` recomputes the operator view and `accept` binds `job.json` |
 
-Root merged each head with `--match-head-commit` after a final adversarial review. CI was green with 12 of 12 checks on each. The Linear receipts for #76, #77 and #78 are TIN-7788 comments 87fac6c4, 20354041 and edfa1a3a. The #75 receipt is on TIN-7088.
+CI was green with 12 of 12 checks on each head. Root merged #76, #77 and #78 with `--match-head-commit` after a final adversarial review. Their Linear receipts are TIN-7788 comments 87fac6c4, 20354041 and edfa1a3a. The #74 merge is recorded in TIN-7125 dc152f20 and the #75 merge in TIN-7088 7cd07bc7. Both records give the head, the merge commit and the 12 green checks.
 
 The per-PR receipts sit beside this note:
 
@@ -42,7 +42,13 @@ These ids are listed by anchor only. Their content concerns other repositories.
 
 | Ids | Linear anchor |
 | --- | --- |
-| SPR-215 to SPR-223 | decisions from the autonomy audit, document fefbd8cf033c on TIN-7125 |
+| SPR-213 | TIN-7125 4ceba226 |
+| SPR-215 to SPR-218 | TIN-7125 d77257d7, from the autonomy audit document fefbd8cf033c |
+| SPR-219 to SPR-222 | TIN-7125 4842e728, from the same audit |
+| SPR-223 | TIN-7776 bfd8e4a1 |
+| SPR-224 to SPR-226 | TIN-7125 b746eb82 |
+| SPR-227 | TIN-7125 54692ca6 |
+| SPR-228 to SPR-230 | TIN-7125 64e570dd |
 | SPR-231 | TIN-7125 ba81eb1d |
 | SPR-232 to SPR-234 | TIN-7699 |
 | SPR-235 to SPR-238, SPR-253 | TIN-7580, SPR-253 in 4e980d3b |
@@ -56,7 +62,7 @@ These ids are listed by anchor only. Their content concerns other repositories.
 | SPR-288, R-DAG-20261030-a | TIN-7788 ac4bd797 and 60fca3e8 |
 | SPR-289 to SPR-294, SPR-297 to SPR-300 | TIN-7125 300adc2e. SPR-300 is tracked as TIN-7821 |
 
-The Softproxy register holds SPR-280 to SPR-284 and SPR-286. The next narrate id is SPR-301.
+The Softproxy register holds SPR-273 to SPR-275 (R-SENSOR-20261030-a to -c, renumber note TIN-7806 55e6e29a), SPR-280 to SPR-284 and SPR-286. The next narrate id is SPR-301.
 
 ## Open
 
@@ -68,4 +74,4 @@ The Softproxy register holds SPR-280 to SPR-284 and SPR-286. The next narrate id
 | Live call face before the VRM demo avatar (SPR-295) | narrate, Softproxy seat | kitpip stays the demo avatar |
 | Demo DAG render-check PR | narrate | no PR found on 10-30, per document 6fb6f03dd829 |
 | Demo footage and acts J4 and J6 (SPR-261) | operator | waiting |
-| `program/linear.json` narrate block | root | last updated 10-23. Its evidence state predates any narrate code, and it does not list TIN-7476, TIN-7580, TIN-7735 or TIN-7788. The seat opened no issue in the video-utils project this session |
+| `program/linear.json` narrate block | root | last updated 10-22. Its evidence state predates any narrate code, and it does not list TIN-7476, TIN-7580, TIN-7735 or TIN-7788. The seat opened no issue in the video-utils project this session |
