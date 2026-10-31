@@ -62,7 +62,7 @@ These ids are listed by anchor only. Their content concerns other repositories.
 | SPR-288, R-DAG-20261030-a | TIN-7788 ac4bd797 and 60fca3e8 |
 | SPR-289 to SPR-294, SPR-297 to SPR-300 | TIN-7125 300adc2e. SPR-300 is tracked as TIN-7821 |
 
-The Softproxy register holds SPR-273 to SPR-275 (R-SENSOR-20261030-a to -c, renumber note TIN-7806 55e6e29a), SPR-280 to SPR-284 and SPR-286. The next narrate id is SPR-301.
+The Softproxy register holds SPR-273 to SPR-275 (R-SENSOR-20261030-a to -c, renumber note TIN-7806 55e6e29a), SPR-280 to SPR-284 and SPR-286. SPR-301 (TIN-7765 18bdba8a) records Cade's model set: Sol through the SIWC relay, Opus 5.5 and Kimi. The next narrate id is SPR-302.
 
 ## Open
 
