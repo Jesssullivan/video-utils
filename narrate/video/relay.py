@@ -69,6 +69,8 @@ STALE = {
     "recipient_superseded": "agent_id_superseded",
     "recipient_stale": "agent_id_stale",
 }
+# The contexts a PASS needs: the plain remote command and the user's login shell (docs/spec/HANDOFF_RELAY_READBACK.md).
+PASS_CONTEXTS = ("ssh", "login")
 MAX_WRAPPER_BYTES = 65536
 MAX_SCRIPT_BYTES = 1 << 20
 
@@ -108,6 +110,14 @@ def read_json(path) -> dict | None:
     except (OSError, ValueError):
         return None
     return value if isinstance(value, dict) else None
+
+
+def read_record(path, ignored: list) -> dict:
+    """A delivery record, or {} with a note in `ignored` when the file exists and holds no JSON object."""
+    value = read_json(path)
+    if not value and os.path.lexists(path):
+        ignored.append(f"{Path(path).name} holds no record")
+    return value or {}
 
 
 def in_context(command: str, env: dict, timeout: int = 30) -> subprocess.CompletedProcess:
@@ -234,11 +244,11 @@ def generation(env: dict, state_dir: Path, delivered: Path, hm_attr: str | None 
     attr and a clean tree, as lab local_switch_as_delivered requires. The attr is `hm_attr`, else the one
     deployed.json records. With no attr known, hm-delivered.json is ignored."""
     active = active_generation(env)
-    dep = read_json(state_dir / "deployed.json") or {}
-    rec = read_json(delivered) or {}
+    records, ignored = [], []
+    dep = read_record(state_dir / "deployed.json", ignored)
+    rec = read_record(delivered, ignored)
     tick = read_json(state_dir / "tick.json") or {}
     attr = hm_attr or (dep.get("hm_attr") if isinstance(dep.get("hm_attr"), str) else None)
-    records, ignored = [], []
     if SHA_RE.match(str(dep.get("sha") or "")):
         if dep.get("verdict") not in VERDICTS_SUCCESS:
             ignored.append(f"deployed.json verdict {dep.get('verdict')}")
@@ -254,6 +264,8 @@ def generation(env: dict, state_dir: Path, delivered: Path, hm_attr: str | None 
                     "source": "pull-switch deployed.json",
                 }
             )
+    elif dep:
+        ignored.append("deployed.json sha is missing or malformed")
     if SHA_RE.match(str(rec.get("head") or "")):
         if not attr or rec.get("attr") != attr:
             ignored.append(f"hm-delivered.json attr {rec.get('attr')} is not the host attr {attr}")
@@ -270,8 +282,11 @@ def generation(env: dict, state_dir: Path, delivered: Path, hm_attr: str | None 
                     "source": "hm-delivered.json",
                 }
             )
+    elif rec:
+        ignored.append("hm-delivered.json head is missing or malformed")
     matching = [r for r in records if active and r["path"] == active]
     running = max(matching, key=lambda r: r["timestamp"]) if matching else None
+    ignored += [f"{r['source']} is not the running record" for r in records if r is not running]
     return {
         "active_path": active,
         "hm_attr": attr,
@@ -480,6 +495,20 @@ def resolve(mod: types.ModuleType, path: Path, peers) -> str:
         raise Refused(STALE.get(r.code, r.code), r.where) from None
 
 
+def existing_map_refusal(code: str, where: str) -> Refused:
+    return Refused("existing_map_" + ("unsafe" if code.endswith("unsafe") else "invalid"), where)
+
+
+def resolve_existing(mod: types.ModuleType, path: Path, peers) -> str:
+    """resolve for the file already in place, where a recipient_config_* refusal means that file is bad."""
+    try:
+        return resolve(mod, path, peers)
+    except Refused as r:
+        if r.code.startswith("recipient_config_"):
+            raise existing_map_refusal(r.code, f"{r.code}: {r.where}") from None
+        raise
+
+
 def write_map(
     env: dict,
     agent_id: str,
@@ -507,13 +536,15 @@ def write_map(
         try:
             cfg = mod.load_mapping(path)
         except mod.Refusal as r:
-            raise Refused("existing_map_" + ("unsafe" if r.code.endswith("unsafe") else "invalid"), r.code) from None
+            raise existing_map_refusal(r.code, r.code) from None
         others = {k: v for k, v in cfg["recipients"].items() if k != RECIPIENT}
-        entry = cfg["recipients"].get(RECIPIENT)
-        if isinstance(entry, dict):
+        if RECIPIENT in cfg["recipients"]:
+            entry = cfg["recipients"][RECIPIENT]
+            if not isinstance(entry, dict):
+                raise existing_map_refusal("recipient_config_invalid", f"recipients.{RECIPIENT} is not an object")
             previous = entry.get("agent_id") or entry.get("delivery_key")
             if previous == agent_id:
-                resolve(mod, path, peers)
+                resolve_existing(mod, path, peers)
                 st = os.lstat(path)
                 return {
                     "schema": "narrate.relay-map/v1",
@@ -526,9 +557,11 @@ def write_map(
                     "previous_state": "live",
                 }
             try:
-                resolve(mod, path, peers)
+                resolve_existing(mod, path, peers)
                 previous_state = "live"
             except Refused as r:
+                if r.code not in STALE.values():  # any other refusal says nothing about the holder, so it stays
+                    raise
                 previous_state = r.code
             if previous_state == "live" and not supersede_live:
                 raise Refused("map_held_by_live_session", f"{previous} is live; pass --supersede-live to replace it")
@@ -648,10 +681,16 @@ def gh_contains(lab_repo: str):
     return contains
 
 
+def shown_host(host: str, context: str) -> str:
+    """The host a row or receipt names. The local context runs on this machine, whatever --host says."""
+    return local_host() if context == "local" else host
+
+
 def readback(a, contains=None) -> int:
     contains = contains or gh_contains(a.lab_repo)
     report, ok_all = [], True
-    for context in a.context or ["ssh", "login"]:
+    contexts = a.context or list(PASS_CONTEXTS)
+    for context in contexts:
         try:
             hm_attr = getattr(a, "hm_attr", None)
             p = run_on(
@@ -665,17 +704,25 @@ def readback(a, contains=None) -> int:
         ok_all &= all(ok for _, ok, _ in rows)
         report.append(
             {
-                "host": a.host,
+                "host": shown_host(a.host, context),
                 "context": context,
                 "probe": p,
                 "checks": [{"check": c, "ok": ok, "detail": d} for c, ok, d in rows],
             }
         )
-    verdict = "PASS" if ok_all else "FAIL"
+    missing = [c for c in PASS_CONTEXTS if c not in contexts]
+    verdict = "FAIL" if not ok_all else "PARTIAL" if missing else "PASS"
     if a.json:
         print(
             json.dumps(
-                {"schema": "narrate.relay-readback/v1", "merge": a.merge, "verdict": verdict, "rows": report}, indent=1
+                {
+                    "schema": "narrate.relay-readback/v1",
+                    "merge": a.merge,
+                    "verdict": verdict,
+                    "contexts_not_run": missing,
+                    "rows": report,
+                },
+                indent=1,
             )
         )
     else:
@@ -686,8 +733,11 @@ def readback(a, contains=None) -> int:
                     f"| {item['host']} | {item['context']} | {c['check']} | {'yes' if c['ok'] else 'NO'} "
                     f"| {c['detail']} |"
                 )
-        print(f"\nreadback {a.host} at lab {a.merge[:12]}: {verdict}")
-    return 0 if ok_all else 1
+        hosts = ", ".join(dict.fromkeys(item["host"] for item in report))
+        print(f"\nreadback {hosts} at lab {a.merge[:12]}: {verdict}")
+        if verdict == "PARTIAL":
+            print(f"not run: {', '.join(missing)}")
+    return 0 if verdict == "PASS" else 1
 
 
 def swb_whoami(env: dict) -> str | None:
@@ -845,8 +895,9 @@ def main(argv: list[str] | None = None) -> int:
         print(
             json.dumps(out, indent=1)
             if a.json
-            else f"map {a.host}: {out['result']} {out['path']} mode {out['mode']} agent_id {out['agent_id']} "
-            f"(previous {out.get('previous_agent_id')}: {out.get('previous_state')}) sha256 {out['sha256'][:12]}"
+            else f"map {shown_host(a.host, a.context)}: {out['result']} {out['path']} mode {out['mode']} "
+            f"agent_id {out['agent_id']} (previous {out.get('previous_agent_id')}: {out.get('previous_state')}) "
+            f"sha256 {out['sha256'][:12]}"
         )
         return 0
     except Refused as r:

@@ -25,7 +25,7 @@ relay inherits that environment.
 
 | Check | Passes when |
 |---|---|
-| `generation_moved` | The delivered record for the activated generation names a lab commit that contains `<merge>`, checked with `gh api` compare. The record is `deployed.json` with verdict `SWITCHED` or `NO-OP`, or `hm-delivered.json` for the host's Home Manager attr with `tree` equal to `clean`, as lab `local_switch_as_delivered` reads it. The attr is `--hm-attr`, else the one `deployed.json` records. A generation is an int or a digit string, the form lab writes. A bool or any other value is no generation. A `SWITCHED` record also needs `after_gen` above `before_gen`. The generation must be above `<since-gen>`, and a `NO-OP` record passes only through that comparison. The detail names the source, the `hm-delivered.json` tree and every record it ignored |
+| `generation_moved` | The delivered record for the activated generation names a lab commit that contains `<merge>`, checked with `gh api` compare. The record is `deployed.json` with verdict `SWITCHED` or `NO-OP`, or `hm-delivered.json` for the host's Home Manager attr with `tree` equal to `clean`, as lab `local_switch_as_delivered` reads it. The attr is `--hm-attr`, else the one `deployed.json` records. A generation is an int or a digit string, the form lab writes. A bool or any other value is no generation. A `SWITCHED` record also needs `after_gen` above `before_gen`. The generation must be above `<since-gen>`, and a `NO-OP` record passes only through that comparison. The detail names the source, the `hm-delivered.json` tree and every record it ignored: a file that holds no JSON object, a missing or malformed commit id, a failed verdict, attr or tree, and a record that is not the running one |
 | `relay_from_active_generation` | The relay on PATH is the file the activated generation's `home-files` links |
 | `command_v` | `command -v cade-handoff-relay` prints a path in this launch context |
 | `version` | `cade-handoff-relay --version` prints `cade-handoff-relay 0.1.0 (fab-dag-handoff/1)` and exits 0 |
@@ -48,6 +48,11 @@ plain `ssh` context blocks the PASS: that context fails, so the verdict is FAIL.
 its rows and does not tell a child to set `notify`. Lab `docs/operations/AGENT_SWITCHBOARD.md` says a producer
 started from such a context must name the absolute install path. That does not turn the row into a pass.
 
+The verdict is PASS only when `ssh` and `login` both ran and every row passed. A failing row gives FAIL. `--context`
+can narrow the run to fewer contexts, and every row passing then gives PARTIAL, which names the contexts not run.
+Both exit nonzero. `local` runs on the machine that runs the driver, so its rows name that host and not `<host>`.
+Neither FAIL nor PARTIAL lets a child set `notify`.
+
 ## The cade-delivery map
 
 swb v0.5.0 addresses only a per-session agent id, so the relay maps `cade-delivery` to the narrate seat's id
@@ -62,12 +67,17 @@ writes it on one host. It is a dry run unless `--write` is passed.
    `agent_id_missing`.
 2. On the host, write-map finds the installed relay the way the probe does. It loads the relay only when the
    script's sha256 is pinned, and it loads the bytes it hashed.
-3. It builds the entry `{agent_id, seat: narrate, ruling: R-DAG-20261030-a, updated_utc}` and keeps any other
+3. When the file already maps `cade-delivery`, it resolves that entry first. Only `agent_id_stale`,
+   `agent_id_superseded` or `agent_id_unknown` lets it replace the entry. A live holder refuses
+   `map_held_by_live_session` unless `--supersede-live` is passed. Any other result refuses with its own code, even
+   with `--supersede-live`, because it says nothing about the holder. Those results are a switchboard error on the
+   holder's host, an unbound delivery key and an entry the relay rejects.
+4. It builds the entry `{agent_id, seat: narrate, ruling: R-DAG-20261030-a, updated_utc}` and keeps any other
    recipient in an existing file.
-4. It writes the bytes to a mode 0600 file and calls the installed relay's own `resolve_recipient` on them, with
+5. It writes the bytes to a mode 0600 file and calls the installed relay's own `resolve_recipient` on them, with
    the swb the wrapper names. A dry run uses a private scratch directory. A write uses a temporary file beside the
    target, then renames it into place and resolves the final file again. The directory is created with mode 0700.
-5. It prints a receipt: the result, the path shown under `~`, the sha256, the mode, the new id and the id it
+6. It prints a receipt: the result, the path shown under `~`, the sha256, the mode, the new id and the id it
    replaced with that id's state.
 
 | Refusal | Meaning |
@@ -83,7 +93,7 @@ writes it on one host. It is a dry run unless `--write` is passed.
 | `agent_id_superseded` | The session restarted under a new pid. The map is written from the new session |
 | `agent_id_unknown` | swb peers lists no session for the id |
 | `map_held_by_live_session` | The file maps another id that is still live. `--supersede-live` replaces it |
-| `existing_map_unsafe`, `existing_map_invalid` | The current file is a link, writable by others or not the schema. Nothing is changed |
+| `existing_map_unsafe`, `existing_map_invalid` | The current file is a link, writable by others or not the schema, or its `cade-delivery` entry is one the relay rejects: not an object, an unknown field, or not exactly one valid `agent_id` or `delivery_key`. Nothing is changed |
 | `config_path_override` | The relay would read another path in this context |
 | `config_path_absent` | The relay resolves no mapping path, because HOME is unset |
 | `config_dir_absent` | The parent of the mapping directory, `~/.config` by default, does not exist |
@@ -91,7 +101,8 @@ writes it on one host. It is a dry run unless `--write` is passed.
 | `wrapper_unparsed` | The wrapper has no `exec <python> -I <script> "$@"` line |
 | `file_too_large` | The wrapper or the mapping file is over 64 KiB, or the script is over 1 MiB |
 | `recipient_config_invalid` | In the probe's `mapping_written` row: the file's `recipients` or its `cade-delivery` entry is not an object |
-| `swb_unavailable` and the other relay switchboard codes | The relay's own `swb peers` refusal |
+| `swb_unavailable` and the other relay switchboard codes | The relay's own `swb peers` refusal, for the new id or for the current holder |
+| `recipient_unbound` | The current holder is a delivery key that swb lists as not bound |
 
 Every refusal leaves the existing file as it was. The relay checks the same id again at every send. When the narrate
 session changes, the relay refuses `recipient_superseded` or `recipient_stale` until the new session runs
