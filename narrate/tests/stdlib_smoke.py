@@ -63,6 +63,7 @@ VIDEO_MODULES = (
     "music",
     "place",
     "private_terms",
+    "relay",
     "run",
     "speech",
     "store",
