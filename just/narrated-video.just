@@ -75,6 +75,18 @@ nv-stage job stage *args:
 nv-stage-voice-from-run job run_dir *args:
     narrate/bounded.sh python3 -m narrate video stage {{quote(job)}} voice --from-run {{quote(run_dir)}} {{args}}
 
+# The Cade render stage's task body (docs/spec/RENDER_STAGE.md, TIN-7788). Check a request of ids and digests and
+# print its phases; it writes nothing and never takes the GPU Lease. ARGS: --inputs DIR checks VIDEO_UTILS_COMMIT
+# and re-hashes each input at DIR/<sha256>; --gpu-draft plans a gpu_window request, which v1 otherwise refuses.
+nv-render-stage-check request *args:
+    python3 -m narrate video render-stage check --request {{quote(request)}} {{args}}
+
+# Report a job that ran to deliver_check, every output by digest, for the request that started it. Refuses unless
+# VIDEO_UTILS_COMMIT is the request's commit and JOB/intake read the request's inputs. ARGS: --export DIR copies the
+# video, the report and the result there by sha256, --root DIR.
+nv-render-stage-result job request *args:
+    python3 -m narrate video render-stage result {{quote(job)}} --request {{quote(request)}} {{args}}
+
 # A simple job in one step: init from the defaults, then run. ARGS go to init (--card, --still SHA, --bed ID,
 # --edition E, --persona P or --no-avatar); the store, records and lexical release come from the environment.
 nv-quick job narrate_job script *args:
