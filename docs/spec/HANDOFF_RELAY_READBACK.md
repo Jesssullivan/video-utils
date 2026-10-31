@@ -15,16 +15,17 @@ Host names and checkout paths are arguments. This repository is public, so none 
 
 ## Readback
 
-`just nv-relay-readback <host> <child> <merge>` runs once per producer host and changes nothing there. `<child>` is
-a fab child repo checkout on that host, such as the one whose `mfg-handoff` will call the relay. `<merge>` is the
-lab#3167 merge commit. The driver pipes `relay.py` over ssh to the host's own `python3`, so nothing is copied to
-the host. In `<child>` it runs `just --command python3 -I - probe`, and the probe runs `bash -c`. That is the
-chain the template's `mfg.py` follows: `just` runs the recipe, Python runs `bash -c <notify>`, and the relay
-inherits that environment.
+`just nv-relay-readback <host> <child> <merge> <since-gen>` runs once per producer host and changes nothing there.
+`<child>` is a fab child repo checkout on that host, such as the one whose `mfg-handoff` will call the relay.
+`<merge>` is the lab#3167 merge commit. `<since-gen>` is the host's generation before the merge's switch, and the
+driver refuses to run without it. The driver pipes `relay.py` over ssh to the host's own `python3`, so nothing is
+copied to the host. In `<child>` it runs `just --command python3 -I - probe`, and the probe runs `bash -c`. That
+is the chain the template's `mfg.py` follows: `just` runs the recipe, Python runs `bash -c <notify>`, and the
+relay inherits that environment.
 
 | Check | Passes when |
 |---|---|
-| `generation_moved` | The delivered record for the activated generation names a lab commit that contains `<merge>`, checked with `gh api` compare. The record is `deployed.json` with verdict `SWITCHED` or `NO-OP`, or `hm-delivered.json` for the host's Home Manager attr, as lab `local_switch_as_delivered` reads it. The attr is `--hm-attr`, else the one `deployed.json` records. A `SWITCHED` record also needs `after_gen` above `before_gen`. `--since-gen N` requires a generation above N |
+| `generation_moved` | The delivered record for the activated generation names a lab commit that contains `<merge>`, checked with `gh api` compare. The record is `deployed.json` with verdict `SWITCHED` or `NO-OP`, or `hm-delivered.json` for the host's Home Manager attr with `tree` equal to `clean`, as lab `local_switch_as_delivered` reads it. The attr is `--hm-attr`, else the one `deployed.json` records. A generation is an int or a digit string, the form lab writes. A bool or any other value is no generation. A `SWITCHED` record also needs `after_gen` above `before_gen`. The generation must be above `<since-gen>`, and a `NO-OP` record passes only through that comparison. The detail names the source, the `hm-delivered.json` tree and every record it ignored |
 | `relay_from_active_generation` | The relay on PATH is the file the activated generation's `home-files` links |
 | `command_v` | `command -v cade-handoff-relay` prints a path in this launch context |
 | `version` | `cade-handoff-relay --version` prints `cade-handoff-relay 0.1.0 (fab-dag-handoff/1)` and exits 0 |
@@ -42,9 +43,10 @@ which context each row came from. The producer seat gives the third row from its
 just --command bash -c 'command -v cade-handoff-relay && cade-handoff-relay --version'
 ```
 
-A PASS needs every row on both hosts plus that producer row. A row from a context where `command -v` finds nothing
-means a producer started there must name the absolute install path, as lab `docs/operations/AGENT_SWITCHBOARD.md`
-says.
+A PASS needs every row in both contexts on both hosts, plus that producer row. A missing `command_v` row in the
+plain `ssh` context blocks the PASS: that context fails, so the verdict is FAIL. Narrate then posts the FAIL with
+its rows and does not tell a child to set `notify`. Lab `docs/operations/AGENT_SWITCHBOARD.md` says a producer
+started from such a context must name the absolute install path. That does not turn the row into a pass.
 
 ## The cade-delivery map
 
@@ -54,7 +56,8 @@ writes it on one host. It is a dry run unless `--write` is passed.
 
 1. The driver takes the id `swb whoami` prints for this session. It does not pass `--register`, so nothing is
    written. The id's host must be this machine's host name. Its pid must be an ancestor of the driver process, and
-   that process's command must name the id's harness. `--agent-id` and `SWB_AGENT_ID` are optional, and each one
+   the id's harness must be a whole `-`, `_` or `.` separated word of the basename of that process's `argv[0]` or
+   `argv[1]`. So `pi` matches `pi-agent` and not `pip`. `--agent-id` and `SWB_AGENT_ID` are optional, and each one
    that is set must equal that id. A typed id is never the source: without a `swb whoami` id the driver refuses
    `agent_id_missing`.
 2. On the host, write-map finds the installed relay the way the probe does. It loads the relay only when the
@@ -70,16 +73,24 @@ writes it on one host. It is a dry run unless `--write` is passed.
 | Refusal | Meaning |
 |---|---|
 | `agent_id_missing` | `swb whoami` named no id for this session |
+| `agent_id_mismatch` | After the write, the installed relay resolves another id than the one written |
 | `agent_id_not_self` | The id's host, pid or harness is not this session, or `--agent-id` or `SWB_AGENT_ID` names another id |
 | `agent_id_invalid` | The id is not `harness:host:pid:session_id` |
 | `host_invalid` | The host argument could be read as an ssh option. It must be a host or `user@host` that starts with a letter or digit |
+| `merge_invalid` | `--merge` is not a full 40-character commit id |
+| `probe_failed` | ssh or `just` failed, timed out or printed no JSON object as its last line |
 | `agent_id_stale` | swb peers lists the id as gone or ended |
 | `agent_id_superseded` | The session restarted under a new pid. The map is written from the new session |
 | `agent_id_unknown` | swb peers lists no session for the id |
 | `map_held_by_live_session` | The file maps another id that is still live. `--supersede-live` replaces it |
 | `existing_map_unsafe`, `existing_map_invalid` | The current file is a link, writable by others or not the schema. Nothing is changed |
 | `config_path_override` | The relay would read another path in this context |
+| `config_path_absent` | The relay resolves no mapping path, because HOME is unset |
+| `config_dir_absent` | The parent of the mapping directory, `~/.config` by default, does not exist |
 | `relay_absent`, `relay_unreadable`, `relay_pin_mismatch`, `relay_module_unloadable` | No relay, an unreadable wrapper, an unpinned script or one that does not load |
+| `wrapper_unparsed` | The wrapper has no `exec <python> -I <script> "$@"` line |
+| `file_too_large` | The wrapper or the mapping file is over 64 KiB, or the script is over 1 MiB |
+| `recipient_config_invalid` | In the probe's `mapping_written` row: the file's `recipients` or its `cade-delivery` entry is not an object |
 | `swb_unavailable` and the other relay switchboard codes | The relay's own `swb peers` refusal |
 
 Every refusal leaves the existing file as it was. The relay checks the same id again at every send. When the narrate
@@ -90,11 +101,11 @@ session changes, the relay refuses `recipient_superseded` or `recipient_stale` u
 
 1. The canary's `lab/pull-switch/<canary>` status is `success` on a commit that contains the merge. Then the
    follower switches.
-2. `just nv-relay-readback` for each host with `--since-gen N`, where N is that host's generation before the
+2. `just nv-relay-readback` for each host with `<since-gen>` N, where N is that host's generation before the
    merge's switch. Take N from a readback before the merge, or from the `before_gen` of the merge's `SWITCHED`
    receipt, and say which in the comment. The rows include `mapping_absent`. The producer seat posts its own row.
 3. `just nv-relay-map` for each host as a dry run, then with `--write`.
-4. `just nv-relay-readback` again for each host with `--expect-agent-id`.
+4. `just nv-relay-readback` again for each host with the same N and `--expect-agent-id`.
 5. One TIN-7788 comment carries both hosts' rows and the map receipts. Then the producer seat may set
    `notify = Some "cade-handoff-relay"`.
 

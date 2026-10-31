@@ -136,8 +136,8 @@ def host(tmp_path, monkeypatch):
         json.dumps(
             {
                 "sha": MERGE,
-                "before_gen": 40,
-                "after_gen": 41,
+                "before_gen": "40",  # lab writes generations as digit strings (hm-pull-switch.py parse_generation)
+                "after_gen": "41",
                 "after_path": str(gen),
                 "verdict": "SWITCHED",
                 "hm_attr": ATTR,
@@ -361,7 +361,7 @@ def seat(monkeypatch):
     monkeypatch.setattr(relay, "swb_whoami", lambda env: SELF)
     monkeypatch.setattr(relay, "local_host", lambda: "seat-host")
     monkeypatch.setattr(relay, "ancestor_pids", lambda: [3000, 4242, 1])
-    monkeypatch.setattr(relay, "command_of", lambda pid: "/opt/harness/bin/claude --resume s")
+    monkeypatch.setattr(relay, "command_of", lambda pid: ["/opt/harness/bin/claude", "--resume", "s"])
     monkeypatch.setattr(relay, "run_on", lambda *a: calls.append(a) or {"result": "written"})
     return calls
 
@@ -407,7 +407,8 @@ def test_map_driver_refuses_an_id_that_is_not_the_sessions_own(seat, args, env):
     [
         ("local_host", lambda: "producer-a"),
         ("ancestor_pids", lambda: [3000, 1]),
-        ("command_of", lambda pid: "/usr/bin/python3 forged"),
+        ("command_of", lambda pid: ["/usr/bin/python3", "forged"]),
+        ("command_of", lambda pid: ["/usr/bin/bash", "-c", "claude --resume s"]),
     ],
 )
 def test_map_driver_refuses_a_whoami_id_from_another_host_pid_or_harness(seat, monkeypatch, name, value):
@@ -426,7 +427,23 @@ def test_map_driver_surfaces_a_write_map_refusal(seat, monkeypatch):
 
 def test_ancestor_pids_reaches_this_process_parent():
     assert os.getppid() in relay.ancestor_pids()
-    assert relay.command_of(os.getpid())
+    assert relay.command_of(os.getpid())[0]
+
+
+@pytest.mark.parametrize(
+    "argv, harness, want",
+    [
+        (["/opt/x-claude-code/bin/claude", "--resume"], "claude", True),
+        (["node", "/usr/local/bin/codex"], "codex", True),
+        (["pi-agent", "run"], "pi", True),
+        (["/usr/bin/pip", "install"], "pi", False),
+        (["python3", "-m", "pip"], "pi", False),
+        (["bash", "-c", "pi"], "pi", False),
+        ([], "claude", False),
+    ],
+)
+def test_the_harness_is_a_word_of_the_program_name(argv, harness, want):
+    assert relay.runs_harness(argv, harness) is want
 
 
 def fake_run(monkeypatch, stdout=b"", returncode=0, raises=None):
@@ -539,14 +556,17 @@ def test_the_probe_cli_prints_one_json_object(host, monkeypatch, capsys):
     assert relay.main(["probe", "--via", "login"]) == 0
     out = json.loads(capsys.readouterr().out)
     assert out["schema"] == "narrate.relay-probe/v1" and out["via"] == "login"
-    assert relay.main(["readback", "--host", "producer-a", "--child-repo", "~/c", "--merge", "x"]) == 1
+    readback = ["readback", "--host", "producer-a", "--child-repo", "~/c", "--merge", "x"]
+    assert relay.main(readback + ["--since-gen", "40"]) == 1
+    with pytest.raises(SystemExit):  # the readback needs the generation from before the switch
+        relay.main(readback)
 
 
 @pytest.mark.parametrize("verdict", ["EVAL-FAILED", "INTERRUPTED", "FAILED", None])
 def test_a_deployed_record_without_a_success_verdict_does_not_vouch(host, verdict):
     """Lab writes deployed.json only on SWITCHED or NO-OP. A record that says otherwise never passes."""
     dep = json.loads((host["state"] / "deployed.json").read_text())
-    dep.update(verdict=verdict, after_gen=40)
+    dep.update(verdict=verdict, after_gen="40")
     (host["state"] / "deployed.json").write_text(json.dumps(dep))
     p = relay.probe(host["env"], "ssh")
     assert p["generation"]["running"] is None
@@ -557,18 +577,75 @@ def test_a_deployed_record_without_a_success_verdict_does_not_vouch(host, verdic
 
 def test_a_switched_record_whose_generation_did_not_move_fails(host):
     dep = json.loads((host["state"] / "deployed.json").read_text())
-    dep.update(after_gen=40)
+    dep.update(after_gen="40")
     (host["state"] / "deployed.json").write_text(json.dumps(dep))
     p = relay.probe(host["env"], "ssh")
     assert failing(relay.evaluate(p, MERGE, contains_merge)) == ["generation_moved"]
 
 
-def delivered(host, attr):
+def deployed(host, **fields):
+    dep = json.loads((host["state"] / "deployed.json").read_text())
+    dep.update(fields)
+    (host["state"] / "deployed.json").write_text(json.dumps(dep))
+    return relay.probe(host["env"], "ssh")
+
+
+@pytest.mark.parametrize("before, after", [("40", "41"), (40, 41)])
+def test_a_switched_record_passes_with_string_or_int_generations(host, before, after):
+    """Lab's receipts carry digit strings. An int is accepted too, and both compare as numbers."""
+    p = deployed(host, before_gen=before, after_gen=after)
+    assert p["generation"]["running"]["generation"] == 41
+    assert failing(relay.evaluate(p, MERGE, contains_merge, since_gen=40)) == []
+    assert failing(relay.evaluate(p, MERGE, contains_merge, since_gen=41)) == ["generation_moved"]
+
+
+@pytest.mark.parametrize(
+    "before, after", [(False, True), ("40", True), ("40", "4l"), ("40", "-41"), ("40", 41.0), ("40", None)]
+)
+def test_a_generation_that_is_not_a_number_never_passes(host, before, after):
+    p = deployed(host, before_gen=before, after_gen=after)
+    for since_gen in (None, 0, 40):
+        assert failing(relay.evaluate(p, MERGE, contains_merge, since_gen=since_gen)) == ["generation_moved"]
+
+
+def test_a_no_op_record_needs_a_baseline(host):
+    """A NO-OP moved nothing, so it passes only when its generation is above --since-gen."""
+    p = deployed(host, verdict="NO-OP", before_gen="41", after_gen="41")
+    rows = relay.evaluate(p, MERGE, contains_merge)
+    assert failing(rows) == ["generation_moved"]
+    assert failing(relay.evaluate(p, MERGE, contains_merge, since_gen=40)) == []
+    assert failing(relay.evaluate(p, MERGE, contains_merge, since_gen=41)) == ["generation_moved"]
+    p = deployed(host, verdict="NO-OP", before_gen=True, after_gen=True)
+    assert failing(relay.evaluate(p, MERGE, contains_merge, since_gen=0)) == ["generation_moved"]
+
+
+def delivered(host, attr, tree="clean", generation="41"):
     (host["state"] / "deployed.json").unlink(missing_ok=True)
-    record = {"head": MERGE, "generation_path": str(host["gen"]), "generation": 41, "timestamp": "2026-11-01"}
+    record = {"head": MERGE, "generation_path": str(host["gen"]), "generation": generation, "timestamp": "2026-11-01"}
     if attr:
         record["attr"] = attr
+    if tree is not None:
+        record["tree"] = tree
     (host["home"] / relay.DELIVERED).write_text(json.dumps(record))
+
+
+@pytest.mark.parametrize("tree", ["DIRTY", "unknown", None])
+def test_hm_delivered_counts_only_for_a_clean_tree(host, tree):
+    """A dirty switch built HEAD plus uncommitted edits, so it does not show that the merge was delivered."""
+    delivered(host, ATTR, tree)
+    p = relay.probe(host["env"], "ssh", ATTR)
+    assert p["generation"]["running"] is None
+    rows = relay.evaluate(p, MERGE, contains_merge, since_gen=40)
+    assert failing(rows) == ["generation_moved"]
+    assert f"hm-delivered.json tree {tree}" in dict((c, d) for c, _ok, d in rows)["generation_moved"]
+
+
+@pytest.mark.parametrize("generation", ["41", 41])
+def test_hm_delivered_with_a_clean_tree_names_it(host, generation):
+    delivered(host, ATTR, generation=generation)
+    rows = relay.evaluate(relay.probe(host["env"], "ssh", ATTR), MERGE, contains_merge, since_gen=40)
+    assert failing(rows) == []
+    assert "gen 41 from hm-delivered.json tree clean" in dict((c, d) for c, _ok, d in rows)["generation_moved"]
 
 
 def test_hm_delivered_counts_only_for_the_hosts_attr(host):
@@ -600,6 +677,19 @@ def test_config_path_without_a_loadable_relay_uses_the_0_1_0_rule(host, tmp_path
     assert relay.mapping(env, None)["default"] is False
     assert relay.mapping(env, None)["resolved_by"] == "relay 0.1.0 rule"
     assert relay.mapping(host["env"], None)["default"] is True
+
+
+@pytest.mark.parametrize("entry", ["x", ["a"], 7, ""])
+def test_a_mapping_entry_that_is_not_an_object_is_a_refusal_row(host, entry):
+    seed(host, SELF)
+    cfg = json.loads(host["config"].read_text())
+    cfg["recipients"]["cade-delivery"] = entry
+    host["config"].write_text(json.dumps(cfg))
+    p = relay.probe(host["env"], "ssh")
+    assert p["mapping"]["refusal"] == "recipient_config_invalid"
+    rows = relay.evaluate(p, MERGE, contains_merge, since_gen=40, expect_agent_id=SELF)
+    assert failing(rows) == ["mapping_written"]
+    assert "refusal recipient_config_invalid" in dict((c, d) for c, _ok, d in rows)["mapping_written"]
 
 
 def test_write_map_refuses_an_unchanged_entry_whose_id_is_stale(host):

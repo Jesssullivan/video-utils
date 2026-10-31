@@ -214,13 +214,25 @@ def active_generation(env: dict) -> str | None:
     return str(target) if target.is_dir() and not target.is_symlink() else None
 
 
+def as_generation(value) -> int | None:
+    """A Home Manager generation number. Lab writes it as a digit string (hm-pull-switch.py parse_generation and
+    nix-switch-local.sh), so an int or a digit string counts. A bool or anything else is no generation."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value if value >= 0 else None
+    if isinstance(value, str) and value.isascii() and value.isdigit() and len(value) <= 18:
+        return int(value)
+    return None
+
+
 def generation(env: dict, state_dir: Path, delivered: Path, hm_attr: str | None = None) -> dict:
     """The commit the running Home Manager generation came from: deployed.json or hm-delivered.json, whichever
     names the activated generation's store path (the newer when both do), as the pull-switch reads it.
 
-    deployed.json counts only with a success verdict, and hm-delivered.json only for this host's Home Manager attr,
-    as lab local_switch_as_delivered requires. The attr is `hm_attr`, else the one deployed.json records. With no
-    attr known, hm-delivered.json is ignored."""
+    deployed.json counts only with a success verdict. hm-delivered.json counts only for this host's Home Manager
+    attr and a clean tree, as lab local_switch_as_delivered requires. The attr is `hm_attr`, else the one
+    deployed.json records. With no attr known, hm-delivered.json is ignored."""
     active = active_generation(env)
     dep = read_json(state_dir / "deployed.json") or {}
     rec = read_json(delivered) or {}
@@ -235,8 +247,8 @@ def generation(env: dict, state_dir: Path, delivered: Path, hm_attr: str | None 
                 {
                     "sha": dep["sha"],
                     "path": dep.get("after_path"),
-                    "generation": dep.get("after_gen"),
-                    "before_generation": dep.get("before_gen"),
+                    "generation": as_generation(dep.get("after_gen")),
+                    "before_generation": as_generation(dep.get("before_gen")),
                     "verdict": dep.get("verdict"),
                     "timestamp": str(dep.get("timestamp") or dep.get("finished_at") or ""),
                     "source": "pull-switch deployed.json",
@@ -245,12 +257,15 @@ def generation(env: dict, state_dir: Path, delivered: Path, hm_attr: str | None 
     if SHA_RE.match(str(rec.get("head") or "")):
         if not attr or rec.get("attr") != attr:
             ignored.append(f"hm-delivered.json attr {rec.get('attr')} is not the host attr {attr}")
+        elif rec.get("tree") != "clean":
+            ignored.append(f"hm-delivered.json tree {rec.get('tree')}")
         else:
             records.append(
                 {
                     "sha": rec["head"],
                     "path": rec.get("generation_path"),
-                    "generation": rec.get("generation"),
+                    "generation": as_generation(rec.get("generation")),
+                    "tree": rec.get("tree"),
                     "timestamp": str(rec.get("timestamp") or ""),
                     "source": "hm-delivered.json",
                 }
@@ -313,9 +328,14 @@ def mapping(env: dict, mod: types.ModuleType | None) -> dict:
         out["sha256"] = sha256_file(path, 65536)[0]
     if mod:
         try:
-            entry = mod.load_mapping(path)["recipients"].get(RECIPIENT) or {}
-            out["agent_id"] = entry.get("agent_id")
-            out["delivery_key"] = entry.get("delivery_key")
+            cfg = mod.load_mapping(path)
+            recipients = cfg.get("recipients") if isinstance(cfg, dict) else None
+            entry = recipients.get(RECIPIENT, {}) if isinstance(recipients, dict) else None
+            if isinstance(entry, dict):
+                out["agent_id"] = entry.get("agent_id")
+                out["delivery_key"] = entry.get("delivery_key")
+            else:
+                out["refusal"] = "recipient_config_invalid"
         except mod.Refusal as r:
             out["refusal"] = r.code
     return out
@@ -355,24 +375,31 @@ def evaluate(
     rows = []
     gen = p.get("generation") or {}
     run = gen.get("running")
+    since = as_generation(since_gen)
     moved = bool(run) and contains(merge, run["sha"]) is True
+    after = as_generation(run.get("generation")) if run else None
     if moved and run.get("source") == "pull-switch deployed.json":
         moved = run.get("verdict") in VERDICTS_SUCCESS
         if moved and run.get("verdict") == "SWITCHED":
-            after, before = run.get("generation"), run.get("before_generation")
-            moved = isinstance(after, int) and isinstance(before, int) and after > before
+            before = as_generation(run.get("before_generation"))
+            moved = after is not None and before is not None and after > before
+        elif moved and since is None:
+            moved = False  # a NO-OP moved nothing, so only a baseline shows the generation is past it
     if moved and since_gen is not None:
-        moved = isinstance(run.get("generation"), int) and run["generation"] > since_gen
+        moved = since is not None and after is not None and after > since
     dep = gen.get("deployed") or {}
+    ignored = f" (ignored: {'; '.join(gen['ignored'])})" if gen.get("ignored") else ""
     rows.append(
         (
             "generation_moved",
             moved,
-            f"running {run['sha'][:12]} gen {run.get('generation')} from {run['source']}; deployed "
-            f"{dep.get('before_gen')}->{dep.get('after_gen')} {dep.get('verdict')}"
+            f"running {run['sha'][:12]} gen {after} from {run['source']}"
+            + (f" tree {run.get('tree')}" if "tree" in run else "")
+            + f"; deployed {dep.get('before_gen')}->{dep.get('after_gen')} {dep.get('verdict')}"
+            + f"; since gen {since_gen}"
+            + ignored
             if run
-            else "no delivered record names the activated generation"
-            + (f" (ignored: {'; '.join(gen['ignored'])})" if gen.get("ignored") else ""),
+            else "no delivered record names the activated generation" + ignored,
         )
     )
     rows.append(
@@ -711,18 +738,31 @@ def ancestor_pids() -> list[int]:
     return out
 
 
-def command_of(pid: int) -> str:
+def command_of(pid: int) -> list[str]:
+    """The pid's argv. The `ps` fallback splits on whitespace, which is exact for the first two words."""
     try:
-        return Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ").decode("utf-8", "replace")
+        raw = Path(f"/proc/{pid}/cmdline").read_bytes()
+        return [x.decode("utf-8", "replace") for x in raw.split(b"\0") if x]
     except OSError:
         pass
     try:
         r = subprocess.run(
             ["ps", "-o", "command=", "-p", str(pid)], capture_output=True, timeout=5, stdin=subprocess.DEVNULL
         )
-        return r.stdout.decode("utf-8", "replace") if r.returncode == 0 else ""
+        return r.stdout.decode("utf-8", "replace").split() if r.returncode == 0 else []
     except (OSError, subprocess.SubprocessError):
-        return ""
+        return []
+
+
+def runs_harness(argv: list[str], harness: str) -> bool:
+    """True when the program, or the script an interpreter runs, is named for the harness: `harness` is a whole
+    `-`, `_` or `.` separated word of the basename of argv[0] or argv[1]. A substring is not enough, so `pi`
+    matches `pi` or `pi-agent` and not `pip` or `python3 -m pip`."""
+    for word in argv[:2]:
+        base = word.rstrip("/").rsplit("/", 1)[-1].lstrip("-")
+        if harness in re.split(r"[-_.]", base):
+            return True
+    return False
 
 
 def self_id(env: dict) -> str:
@@ -738,7 +778,7 @@ def self_id(env: dict) -> str:
         raise Refused("agent_id_not_self", "the id's host is not this machine")
     if int(pid) not in ancestor_pids():
         raise Refused("agent_id_not_self", "the id's pid is not an ancestor of this process")
-    if harness not in command_of(int(pid)):
+    if not runs_harness(command_of(int(pid)), harness):
         raise Refused("agent_id_not_self", f"the id's pid does not run {harness}")
     return own
 
@@ -778,7 +818,9 @@ def main(argv: list[str] | None = None) -> int:
     rb, mp = sub.choices["readback"], sub.choices["map"]
     rb.add_argument("--merge", required=True, help="the lab#3167 merge commit")
     rb.add_argument("--context", action="append", choices=("ssh", "login", "local"))
-    rb.add_argument("--since-gen", type=int)
+    rb.add_argument(
+        "--since-gen", type=int, required=True, help="the host's generation before the merge's switch (spec step 2)"
+    )
     rb.add_argument("--expect-agent-id")
     rb.add_argument("--hm-attr", help="the host's Home Manager attr, for hm-delivered.json")
     rb.add_argument("--lab-repo", default="xoxd-ai/lab")

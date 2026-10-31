@@ -150,12 +150,13 @@ nv-intake-fixture:
 
 # The cade-handoff-relay post-switch readback on one producer host (docs/spec/HANDOFF_RELAY_READBACK.md, SPR-288).
 # Read-only. It pipes narrate/video/relay.py over ssh into CHILD, a fab child repo on HOST, and runs the probe with
-# `just --command` there, in a plain and a login shell. MERGE is the lab merge commit that delivers the relay.
-# ARGS: --context ssh|login|local (repeatable), --since-gen N, --expect-agent-id ID, --hm-attr ATTR, --json.
+# `just --command` there, in a plain and a login shell. MERGE is the lab merge commit that delivers the relay, and
+# SINCE_GEN the host's Home Manager generation before that switch (spec step 2).
+# ARGS: --context ssh|login|local (repeatable), --expect-agent-id ID, --hm-attr ATTR, --json.
 # Read back the relay on one producer host after the lab pull-switch delivers it.
-nv-relay-readback host child merge *args:
+nv-relay-readback host child merge since_gen *args:
     python3 -I narrate/video/relay.py readback --host {{quote(host)}} --child-repo {{quote(child)}} \
-        --merge {{quote(merge)}} {{args}}
+        --merge {{quote(merge)}} --since-gen {{quote(since_gen)}} {{args}}
 
 # Write the interim cade-delivery map on one producer host: the id `swb whoami` names for this session, mode 0600,
 # once the installed relay accepts that id as live and current. ARGS: --write, --supersede-live, --context, --json.

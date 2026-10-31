@@ -65,3 +65,23 @@ stays as a guard on that contract.
 Checks, local and non-qualifying: load1 was 27 to 42. `tests/test_relay_readback.py` gives 53 passed. Each of 11
 mutation probes, one per new guard, fails 1 test. `narrate.tests.stdlib_smoke` gives 7 OK.
 `tests/test_public_tree.py` gives 4 passed and 1 skipped. Ruff is clean, and the file parses under Python 3.9.
+
+## Second review fixes, October 31, 2026
+
+Authority: the narrate seat brief on TIN-7788, which lists seven findings against head `e556f191`. Receipt per
+R-HOOK-CONVERGENCE-20261004 (R-N13).
+
+| Finding | Fix | Test |
+|---|---|---|
+| Medium: lab writes generations as digit strings, so `generation_moved` never passed | `as_generation` turns an int or a digit string into an int. A bool, a sign, a float or other text is no generation. The `SWITCHED` and `--since-gen` comparisons use those ints | the fixture uses `"40"` and `"41"`. One case uses ints, six use values that are not numbers |
+| Medium: a dirty local switch passed | `hm-delivered.json` counts only with `tree` equal to `clean`. Otherwise it is ignored with its tree value. The detail names the tree | `DIRTY`, `unknown` and a missing tree fail. A clean tree names it in the detail |
+| Low: a mapping entry that is not an object crashed the probe | The probe reports `recipient_config_invalid` in the mapping row | four entry types |
+| Low: a `NO-OP` record and bool generations passed without `--since-gen` | `--since-gen` is required, and the recipe takes it as a positional argument. A `NO-OP` record fails without a baseline | the CLI exits without `--since-gen`. A `NO-OP` passes only above the baseline |
+| Low: the refusal table left out codes, and the PASS rule contradicted itself | The table adds the 7 missing codes and `recipient_config_invalid`. A missing `command_v` row in the `ssh` context blocks the PASS | none, a doc fix |
+| Low: the harness check was a substring match | The harness must be a whole `-`, `_` or `.` separated word of the basename of `argv[0]` or `argv[1]` | 7 cases, including `pip` and `bash -c pi` |
+| Low: the hook trailer names the host | Not changed. History is not rewritten, since force-push is barred. It is the operator's decision | none |
+
+Checks, local and non-qualifying: load1 was 31 to 87, so the full narrate suite and tinyland-heavy were not run.
+`tests/test_relay_readback.py` gives 79 passed. Each of 7 mutation probes, one per new guard, fails 1 to 14
+tests. `narrate.tests.stdlib_smoke` gives 7 OK. `tests/test_public_tree.py` gives 4 passed and 1 skipped. Ruff
+check and format are clean, and the file parses under the Python 3.9 grammar.
