@@ -402,6 +402,8 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `claims BUNDLE [--denylist FILE] [--denylist-sha256 HEX]` | `just narrated-video-claims` | the private-terms guard and the spoken-number claims gate alone, one row per segment. Exit 1 when a segment refuses |
 | `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
 | `accept JOB --gate G --decision ID --video-sha256 HEX` | `just nv-accept JOB GATE DECISION VIDEO` | records the operator's acceptance of `listening` or `lip_sync` for the current `deliver_check` render, by Softproxy decision id and the sha256 of the cut it saw. See "Operator acceptance" |
+| `subject JOB [--json]` | `just nv-subject` | prints the job's guard subject: every text its records hold that it voices or shows. The Cade narrate worker reads it in its own process for the BS-21 guard. See "Guard subject and cut" |
+| `cut JOB [--json]` | `just nv-cut` | prints the current `deliver_check` render, its machine gate states, the operator gates still pending and the gates an acceptance of that render closed. Digests and gate names only. Refuses `machine_gates_failed` when a machine gate failed. See "Guard subject and cut" |
 
 Paths come from flags or the environment: `--root` (`NARRATED_VIDEO_ROOT`),
 `--records` (`NARRATED_VIDEO_RECORDS`, the directory of `jobs.json`,
@@ -1017,6 +1019,55 @@ Content ID stay operator actions.
 Softproxy holds an Operator accept under that id. The caller resolves that
 first: in the Cade demo DAG, the decision poll reads the decision and calls
 `accept` only for a GO. The id is the receipt a reader resolves.
+
+## Guard subject and cut
+
+Linear TIN-7788, SPR-220. The Cade worker runs the narrated-video DAG as Hatchet
+tasks (xoxd-ai/cade-infra `config/hatchet-workflows.json`, row
+`client-video-narrated-render`). Its `bs21_privacy_guard` task checks every
+text the DAG voices or shows against the private name and term lists before any
+render task runs. Every render task checks the same texts again before it acts
+(xoxd-ai/cade `src/bs21-guard.ts`). Hatchet carries ids only, so the worker
+reads the texts with `subject` inside its own process. `narrate/video/subject.py`
+lists them in this order:
+
+| Field | Text | Where it appears |
+| --- | --- | --- |
+| `narration` | each segment's voiced text, read as the `script` stage reads it | the voice and the captions |
+| `title` | the job id, each segment id and each slide page id | `description.txt` and `chapters.json` |
+| `caption` | `labels.personaCue`, when set | above the first cue |
+| `description` | `labels.extraNotice`, when set | the last line of `description.txt` |
+| `label` | `labels.persona`, when set | every stage manifest from `place` on |
+
+An asset's own text, such as a slide, a plot or a clip, is not in the subject.
+The intake's private-terms guard reads it (`private_terms.py`,
+`visible_text.py`), and the `visible_text` gate stays open until a guarded
+intake has read all of it. `subject` refuses `subject_too_large` above 4096
+texts or 200000 UTF-16 code units in one text, the limits the Cade guard holds.
+The guard measures with JavaScript's `String.length`, so `subject` counts the
+same units: an emoji is 1 Python character and 2 units. A
+segment whose narrate job is not in the records refuses `records_invalid`, and
+a script missing from the store refuses `source_missing`. It writes only a
+scratch copy inside the job directory and removes it. The caller never logs its
+output.
+
+`cut` prints the current `deliver_check` render as `accept` binds it: the
+composed video's sha256, the `deliver_check` stage key and content digest, the
+machine gate states, `internal_review_allowed`, the gates still
+`pending_operator` and the gates an acceptance of that same render closed. An
+acceptance of an earlier cut closes nothing. It holds digests and gate names
+only. The Cade worker's `outbox_post` task names this cut when it asks Jess for
+her decision, and `accept` later checks the same sha256. It refuses as `accept`
+does: `deliver_check_missing`, `deliver_check_corrupt`, `deliver_check_stale` or
+`deliver_check_invalid`.
+
+`deliver_check` records a failed machine gate as a state and finishes, with
+`delivery_gate.internal_review_allowed` false. `cut` refuses
+`machine_gates_failed` for that cut, and the refusal names the failed gates. A
+cut that failed `flash`, a photosensitivity risk, or `loudness`, `profile` or
+`captions` therefore never reaches Jess as a request for a decision. A
+`deliver_check` with no machine gate state or no `delivery_gate` refuses
+`deliver_check_invalid`.
 
 ## Demo bundle intake
 

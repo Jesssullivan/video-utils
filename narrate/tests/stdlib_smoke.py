@@ -67,6 +67,7 @@ VIDEO_MODULES = (
     "speech",
     "store",
     "strip",
+    "subject",
     "visible_text",
     "vrm",
 )
