@@ -24,14 +24,14 @@ inherits that environment.
 
 | Check | Passes when |
 |---|---|
-| `generation_moved` | The delivered record for the activated generation names a lab commit that contains `<merge>`, checked with `gh api` compare. The record is `deployed.json` or `hm-delivered.json`, read as the pull-switch reads it. `--since-gen N` also requires a generation above N |
+| `generation_moved` | The delivered record for the activated generation names a lab commit that contains `<merge>`, checked with `gh api` compare. The record is `deployed.json` with verdict `SWITCHED` or `NO-OP`, or `hm-delivered.json` for the host's Home Manager attr, as lab `local_switch_as_delivered` reads it. The attr is `--hm-attr`, else the one `deployed.json` records. A `SWITCHED` record also needs `after_gen` above `before_gen`. `--since-gen N` requires a generation above N |
 | `relay_from_active_generation` | The relay on PATH is the file the activated generation's `home-files` links |
 | `command_v` | `command -v cade-handoff-relay` prints a path in this launch context |
 | `version` | `cade-handoff-relay --version` prints `cade-handoff-relay 0.1.0 (fab-dag-handoff/1)` and exits 0 |
 | `interpreter` | The wrapper execs a Nix store `python3` with `-I`, and that interpreter runs. The row names it and its version |
 | `script_pinned` | The wrapped script's sha256 is in `relay.PINS`, the pin lab#3167 vendors |
 | `swb` | The wrapper's default `CADE_HANDOFF_RELAY_SWB` is an executable |
-| `config_path_default` | The relay would read `~/.config/cade/handoff-relay.json`, with no `CADE_HANDOFF_RELAY_CONFIG` or `XDG_CONFIG_HOME` override |
+| `config_path_default` | The path the relay resolves is `~/.config/cade/handoff-relay.json`. An `XDG_CONFIG_HOME` set to `~/.config` passes. The row names any `CADE_HANDOFF_RELAY_CONFIG` or `XDG_CONFIG_HOME` that is set |
 | `mapping_absent` | No mapping file exists yet. After narrate writes it, `--expect-agent-id ID` replaces this row with `mapping_written`: a regular file, mode 0600, owned by the user, naming ID |
 
 The driver runs two contexts by default. `ssh` is the plain remote command and `login` wraps it in the user's
@@ -52,8 +52,11 @@ swb v0.5.0 addresses only a per-session agent id, so the relay maps `cade-delive
 through `~/.config/cade/handoff-relay.json`. Lab leaves that file unmanaged. `just nv-relay-map <host> <child>`
 writes it on one host. It is a dry run unless `--write` is passed.
 
-1. The driver takes this session's own `SWB_AGENT_ID`. `--agent-id` must equal it, so narrate never maps another
-   session's id.
+1. The driver takes the id `swb whoami` prints for this session. It does not pass `--register`, so nothing is
+   written. The id's host must be this machine's host name. Its pid must be an ancestor of the driver process, and
+   that process's command must name the id's harness. `--agent-id` and `SWB_AGENT_ID` are optional, and each one
+   that is set must equal that id. A typed id is never the source: without a `swb whoami` id the driver refuses
+   `agent_id_missing`.
 2. On the host, write-map finds the installed relay the way the probe does. It loads the relay only when the
    script's sha256 is pinned, and it loads the bytes it hashed.
 3. It builds the entry `{agent_id, seat: narrate, ruling: R-DAG-20261030-a, updated_utc}` and keeps any other
@@ -66,7 +69,10 @@ writes it on one host. It is a dry run unless `--write` is passed.
 
 | Refusal | Meaning |
 |---|---|
-| `agent_id_missing`, `agent_id_not_self`, `agent_id_invalid` | No id, an id that is not this session's own, or not `harness:host:pid:session_id` |
+| `agent_id_missing` | `swb whoami` named no id for this session |
+| `agent_id_not_self` | The id's host, pid or harness is not this session, or `--agent-id` or `SWB_AGENT_ID` names another id |
+| `agent_id_invalid` | The id is not `harness:host:pid:session_id` |
+| `host_invalid` | The host argument could be read as an ssh option. It must be a host or `user@host` that starts with a letter or digit |
 | `agent_id_stale` | swb peers lists the id as gone or ended |
 | `agent_id_superseded` | The session restarted under a new pid. The map is written from the new session |
 | `agent_id_unknown` | swb peers lists no session for the id |
@@ -84,7 +90,9 @@ session changes, the relay refuses `recipient_superseded` or `recipient_stale` u
 
 1. The canary's `lab/pull-switch/<canary>` status is `success` on a commit that contains the merge. Then the
    follower switches.
-2. `just nv-relay-readback` for each host, with `mapping_absent`. The producer seat posts its own row.
+2. `just nv-relay-readback` for each host with `--since-gen N`, where N is that host's generation before the
+   merge's switch. Take N from a readback before the merge, or from the `before_gen` of the merge's `SWITCHED`
+   receipt, and say which in the comment. The rows include `mapping_absent`. The producer seat posts its own row.
 3. `just nv-relay-map` for each host as a dry run, then with `--write`.
 4. `just nv-relay-readback` again for each host with `--expect-agent-id`.
 5. One TIN-7788 comment carries both hosts' rows and the map receipts. Then the producer seat may set
@@ -96,7 +104,10 @@ Each host step is a host act. It needs a run that may act on that host.
 
 - The readback does not check that the lab `swb` wrapper builds a sender id inside a `just mfg-handoff`
   subprocess. The relay contract leaves that to the first dry run on each host.
-- The relay checks only that `manifest.signature` is present. Narrate verifies the sha256 and the signature of
-  each forwarded record.
+- The relay checks only that `manifest.signature` is present and named `<packet_rel>/manifest.json.asc` or
+  `.sig`. It never verifies the signature. Narrate must verify the manifest sha256 and signature of each forwarded
+  record before it acts on one. No code here does that yet. It is `verify_packet`, step 9b of the Activeplug plan
+  in TIN-7788 comment `8121fcfd`, which narrate drafts and CADE-1 lands. A readback PASS shows only that the relay
+  is installed. It is not that verification.
 - A new relay version changes the vendored sha256. The probe then fails `script_pinned`, and write-map refuses until
   `relay.PINS` names the new pin.

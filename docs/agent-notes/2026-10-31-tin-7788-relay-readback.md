@@ -42,3 +42,26 @@ load1 below 24.
   relay, so the probe reported `command_v` as none and the mapping as absent.
 
 Nothing ran on a producer host, and nothing was written outside this branch.
+
+## Review fixes, October 31, 2026
+
+Authority: the lane readback brief on TIN-7788, which lists seven findings against head `966902bf`. Receipt per
+R-HOOK-CONVERGENCE-20261004 (R-N13).
+
+| Finding | Fix | Test |
+|---|---|---|
+| High: the map driver's self check failed open with `SWB_AGENT_ID` unset | The id comes from `swb whoami`. Its host must be this machine, its pid an ancestor of the driver and that process's command its harness. A typed `--agent-id` or `SWB_AGENT_ID` must equal it. Without a `swb whoami` id the driver refuses `agent_id_missing` | a foreign `--agent-id` with no `SWB_AGENT_ID` refuses. So does a forged host, pid or harness |
+| Medium: `generation_moved` matched a record by path only | `deployed.json` counts only with `SWITCHED` or `NO-OP`. A `SWITCHED` record needs `after_gen` above `before_gen`. `hm-delivered.json` counts only for the host's attr. Step 2 of the procedure now passes `--since-gen` | EVAL-FAILED, INTERRUPTED, FAILED, an unmoved generation and three attr cases |
+| Medium: the spec claimed a signature check | The Limits section states it as an open obligation, `verify_packet`, step 9b in TIN-7788 `8121fcfd` | none, a doc fix |
+| Low: driver half untested | Tests for `readback()` across two contexts, a refused or unreachable probe, `run_on` parsing, a write-map refusal through the driver and `gh_contains` | 8 `gh_contains` cases |
+| Low: `config_path_default` failed on `XDG_CONFIG_HOME=~/.config` | The row compares the resolved path. Without a loadable relay the probe applies the relay 0.1.0 rule | both cases |
+| Low: an ssh host could be read as an option | `run_on` refuses a host that does not match `HOST_RE` | 5 bad hosts, no ssh call |
+| Low: the hook trailer names the host | Not changed. History is not rewritten, since force-push is barred. The conflict is open for the operator | none |
+
+One premise did not reproduce. At lab `b2ce9ec9`, `write_receipt` writes `deployed.json` only for `SWITCHED` or
+`NO-OP` (line 1336). EVAL-FAILED and INTERRUPTED receipts go to `last.json` and `receipts/`. The verdict filter
+stays as a guard on that contract.
+
+Checks, local and non-qualifying: load1 was 27 to 42. `tests/test_relay_readback.py` gives 53 passed. Each of 11
+mutation probes, one per new guard, fails 1 test. `narrate.tests.stdlib_smoke` gives 7 OK.
+`tests/test_public_tree.py` gives 4 passed and 1 skipped. Ruff is clean, and the file parses under Python 3.9.

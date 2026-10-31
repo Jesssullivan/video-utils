@@ -14,7 +14,8 @@ One stdlib file, so the driver can pipe it to a host's own python3 and nothing i
              resolve_recipient accepts the exact bytes. A dry run unless --write
   readback   the driver at the narrate seat. It runs probe on one host per context, checks the delivered lab commit
              with `gh api` and prints one row per check
-  map        the driver for write-map. It refuses an id that is not the caller's own SWB_AGENT_ID
+  map        the driver for write-map. It writes only the calling session's own switchboard id: `swb whoami`
+             names it, its host is this machine and its pid is an ancestor of this process
 
 The relay stays the authority on the mapping: write-map loads the installed copy only when its sha256 is in PINS
 and calls its config_path, load_mapping, swb_peers and resolve_recipient, so a stale, superseded or unknown id
@@ -30,6 +31,7 @@ import os
 import re
 import shlex
 import shutil
+import socket
 import stat
 import subprocess
 import sys
@@ -56,6 +58,10 @@ SEAT = "narrate"
 HARNESS_KINDS = ("claude", "kimi", "codex", "junie", "opencode", "pi", "hermes", "kimicode")  # relay 0.1.0
 ID_PART_RE = re.compile(r"\A[A-Za-z0-9._-]+\Z")
 SHA_RE = re.compile(r"\A[0-9a-f]{40}\Z")
+# An ssh destination: a host or user@host that cannot be read as an ssh option.
+HOST_RE = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9._@-]{0,252}\Z")
+# The verdicts lab hm-pull-switch.py writes to deployed.json (VERDICTS_SUCCESS at lab b2ce9ec9).
+VERDICTS_SUCCESS = ("SWITCHED", "NO-OP")
 EXEC_RE = re.compile(r'^\s*exec (\S+) -I (\S+) "\$@"\s*$', re.M)
 SWB_RE = re.compile(r'^\s*export CADE_HANDOFF_RELAY_SWB="\$\{CADE_HANDOFF_RELAY_SWB:-(\S+)\}"\s*$', re.M)
 STALE = {
@@ -208,39 +214,54 @@ def active_generation(env: dict) -> str | None:
     return str(target) if target.is_dir() and not target.is_symlink() else None
 
 
-def generation(env: dict, state_dir: Path, delivered: Path) -> dict:
+def generation(env: dict, state_dir: Path, delivered: Path, hm_attr: str | None = None) -> dict:
     """The commit the running Home Manager generation came from: deployed.json or hm-delivered.json, whichever
-    names the activated generation's store path (the newer when both do), as the pull-switch reads it."""
+    names the activated generation's store path (the newer when both do), as the pull-switch reads it.
+
+    deployed.json counts only with a success verdict, and hm-delivered.json only for this host's Home Manager attr,
+    as lab local_switch_as_delivered requires. The attr is `hm_attr`, else the one deployed.json records. With no
+    attr known, hm-delivered.json is ignored."""
     active = active_generation(env)
     dep = read_json(state_dir / "deployed.json") or {}
     rec = read_json(delivered) or {}
     tick = read_json(state_dir / "tick.json") or {}
-    records = []
+    attr = hm_attr or (dep.get("hm_attr") if isinstance(dep.get("hm_attr"), str) else None)
+    records, ignored = [], []
     if SHA_RE.match(str(dep.get("sha") or "")):
-        records.append(
-            {
-                "sha": dep["sha"],
-                "path": dep.get("after_path"),
-                "generation": dep.get("after_gen"),
-                "timestamp": str(dep.get("timestamp") or dep.get("finished_at") or ""),
-                "source": "pull-switch deployed.json",
-            }
-        )
+        if dep.get("verdict") not in VERDICTS_SUCCESS:
+            ignored.append(f"deployed.json verdict {dep.get('verdict')}")
+        else:
+            records.append(
+                {
+                    "sha": dep["sha"],
+                    "path": dep.get("after_path"),
+                    "generation": dep.get("after_gen"),
+                    "before_generation": dep.get("before_gen"),
+                    "verdict": dep.get("verdict"),
+                    "timestamp": str(dep.get("timestamp") or dep.get("finished_at") or ""),
+                    "source": "pull-switch deployed.json",
+                }
+            )
     if SHA_RE.match(str(rec.get("head") or "")):
-        records.append(
-            {
-                "sha": rec["head"],
-                "path": rec.get("generation_path"),
-                "generation": rec.get("generation"),
-                "timestamp": str(rec.get("timestamp") or ""),
-                "source": "hm-delivered.json",
-            }
-        )
+        if not attr or rec.get("attr") != attr:
+            ignored.append(f"hm-delivered.json attr {rec.get('attr')} is not the host attr {attr}")
+        else:
+            records.append(
+                {
+                    "sha": rec["head"],
+                    "path": rec.get("generation_path"),
+                    "generation": rec.get("generation"),
+                    "timestamp": str(rec.get("timestamp") or ""),
+                    "source": "hm-delivered.json",
+                }
+            )
     matching = [r for r in records if active and r["path"] == active]
     running = max(matching, key=lambda r: r["timestamp"]) if matching else None
     return {
         "active_path": active,
+        "hm_attr": attr,
         "running": running,
+        "ignored": ignored,
         "deployed": {k: dep.get(k) for k in ("sha", "before_gen", "after_gen", "verdict", "finished_at")}
         if dep
         else None,
@@ -262,12 +283,21 @@ def from_active(env: dict, active: str | None, command: str | None) -> bool | No
         return False
 
 
+def config_path_0_1_0(env: dict) -> Path | None:
+    """The relay 0.1.0 config_path rule (cade 64f10799), for a probe that could not load the relay."""
+    if env.get("CADE_HANDOFF_RELAY_CONFIG"):
+        return Path(env["CADE_HANDOFF_RELAY_CONFIG"])
+    base = env.get("XDG_CONFIG_HOME") or (str(Path(env["HOME"]) / ".config") if env.get("HOME") else "")
+    return Path(base) / "cade" / "handoff-relay.json" if base else None
+
+
 def mapping(env: dict, mod: types.ModuleType | None) -> dict:
-    configured = mod.config_path(env) if mod else None
+    configured = mod.config_path(env) if mod else config_path_0_1_0(env)
     path = Path(configured) if configured else home_of(env) / DEFAULT_CONFIG
     out = {
         "path": tilde(path, env),
-        "default": path == home_of(env) / DEFAULT_CONFIG,
+        "resolved_by": "relay" if mod else "relay 0.1.0 rule",
+        "default": os.path.normpath(path) == os.path.normpath(home_of(env) / DEFAULT_CONFIG),
         "override_env": sorted(k for k in ("CADE_HANDOFF_RELAY_CONFIG", "XDG_CONFIG_HOME") if env.get(k)),
     }
     if not os.path.lexists(path):
@@ -291,7 +321,7 @@ def mapping(env: dict, mod: types.ModuleType | None) -> dict:
     return out
 
 
-def probe(env: dict, via: str) -> dict:
+def probe(env: dict, via: str, hm_attr: str | None = None) -> dict:
     home = home_of(env)
     command = locate(env)
     out = {
@@ -312,7 +342,7 @@ def probe(env: dict, via: str) -> dict:
         except (Refused, OSError, subprocess.SubprocessError) as e:
             out["wrapper"] = {"error": getattr(e, "code", type(e).__name__)}
     out["mapping"] = mapping(env, mod)
-    gen = generation(env, home / PULL_STATE, home / DELIVERED)
+    gen = generation(env, home / PULL_STATE, home / DELIVERED, hm_attr)
     out["generation"] = gen
     out["relay_from_active_generation"] = from_active(env, gen["active_path"], command)
     return out
@@ -323,11 +353,17 @@ def evaluate(
 ) -> list[tuple[str, bool, str]]:
     """One (check, ok, detail) per readback item. `contains(base, head)` is True when head contains base."""
     rows = []
-    run = (p.get("generation") or {}).get("running")
+    gen = p.get("generation") or {}
+    run = gen.get("running")
     moved = bool(run) and contains(merge, run["sha"]) is True
+    if moved and run.get("source") == "pull-switch deployed.json":
+        moved = run.get("verdict") in VERDICTS_SUCCESS
+        if moved and run.get("verdict") == "SWITCHED":
+            after, before = run.get("generation"), run.get("before_generation")
+            moved = isinstance(after, int) and isinstance(before, int) and after > before
     if moved and since_gen is not None:
         moved = isinstance(run.get("generation"), int) and run["generation"] > since_gen
-    dep = (p.get("generation") or {}).get("deployed") or {}
+    dep = gen.get("deployed") or {}
     rows.append(
         (
             "generation_moved",
@@ -335,7 +371,8 @@ def evaluate(
             f"running {run['sha'][:12]} gen {run.get('generation')} from {run['source']}; deployed "
             f"{dep.get('before_gen')}->{dep.get('after_gen')} {dep.get('verdict')}"
             if run
-            else "no delivered record names the activated generation",
+            else "no delivered record names the activated generation"
+            + (f" (ignored: {'; '.join(gen['ignored'])})" if gen.get("ignored") else ""),
         )
     )
     rows.append(
@@ -369,8 +406,8 @@ def evaluate(
     rows.append(
         (
             "config_path_default",
-            bool(m.get("default")) and not m.get("override_env"),
-            f"{m.get('path')} overrides {m.get('override_env')}",
+            bool(m.get("default")),
+            f"{m.get('path')} by {m.get('resolved_by')}, env set {m.get('override_env')}",
         )
     )
     if expect_agent_id is None:
@@ -535,6 +572,8 @@ def remote_command(child_repo: str, context: str, args: list[str]) -> str:
 
 
 def run_on(host: str, child_repo: str, context: str, args: list[str], timeout: int = 120) -> dict:
+    if context != "local" and not HOST_RE.match(host or ""):
+        raise Refused("host_invalid", "a host or user@host that does not start with '-'")
     source = Path(__file__).read_bytes()
     if context == "local":
         cmd, cwd = ["just", "--command", "python3", "-I", "-", *args], os.path.expanduser(child_repo)
@@ -567,12 +606,16 @@ def run_on(host: str, child_repo: str, context: str, args: list[str], timeout: i
 
 def gh_contains(lab_repo: str):
     def contains(base: str, head: str) -> bool | None:
-        r = subprocess.run(
-            ["gh", "api", f"repos/{lab_repo}/compare/{base}...{head}", "--jq", ".status"],
-            capture_output=True,
-            timeout=60,
-        )
-        status = r.stdout.decode().strip()
+        try:
+            r = subprocess.run(
+                ["gh", "api", f"repos/{lab_repo}/compare/{base}...{head}", "--jq", ".status"],
+                capture_output=True,
+                timeout=60,
+                stdin=subprocess.DEVNULL,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return None
+        status = r.stdout.decode("utf-8", "replace").strip()
         return status in ("ahead", "identical") if r.returncode == 0 and status else None
 
     return contains
@@ -583,7 +626,12 @@ def readback(a, contains=None) -> int:
     report, ok_all = [], True
     for context in a.context or ["ssh", "login"]:
         try:
-            p = run_on(a.host, a.child_repo, context, ["probe", "--via", context])
+            hm_attr = getattr(a, "hm_attr", None)
+            p = run_on(
+                a.host, a.child_repo, context, ["probe", "--via", context] + (["--hm-attr", hm_attr] if hm_attr else [])
+            )
+            if p.get("refused"):
+                raise Refused(p["refused"], p.get("where", ""))
             rows = evaluate(p, a.merge, contains, a.since_gen, a.expect_agent_id)
         except Refused as r:
             p, rows = None, [("probe", False, f"{r.code}: {r.where}")]
@@ -615,14 +663,91 @@ def readback(a, contains=None) -> int:
     return 0 if ok_all else 1
 
 
+def swb_whoami(env: dict) -> str | None:
+    """This session's agent id as `swb whoami` builds it, without --register, so nothing is written."""
+    swb = shutil.which("swb", path=env.get("PATH"))
+    if not swb:
+        return None
+    try:
+        r = subprocess.run([swb, "whoami"], env=env, capture_output=True, timeout=15, stdin=subprocess.DEVNULL)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    lines = r.stdout.decode("utf-8", "replace").strip().splitlines()
+    try:
+        value = json.loads(lines[-1]) if r.returncode == 0 and lines else None
+    except ValueError:
+        return None
+    agent_id = value.get("agent_id") if isinstance(value, dict) else None
+    return agent_id if isinstance(agent_id, str) else None
+
+
+def local_host() -> str:
+    return socket.gethostname().split(".")[0]
+
+
+def parent_pid(pid: int) -> int | None:
+    try:
+        return int(Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()[1])
+    except (OSError, ValueError, IndexError):
+        pass
+    try:
+        r = subprocess.run(
+            ["ps", "-o", "ppid=", "-p", str(pid)], capture_output=True, timeout=5, stdin=subprocess.DEVNULL
+        )
+        return int(r.stdout.decode().strip()) if r.returncode == 0 else None
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return None
+
+
+def ancestor_pids() -> list[int]:
+    out, pid = [], os.getpid()
+    for _ in range(64):
+        pid = parent_pid(pid)
+        if not pid or pid in out:
+            break
+        out.append(pid)
+        if pid == 1:
+            break
+    return out
+
+
+def command_of(pid: int) -> str:
+    try:
+        return Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ").decode("utf-8", "replace")
+    except OSError:
+        pass
+    try:
+        r = subprocess.run(
+            ["ps", "-o", "command=", "-p", str(pid)], capture_output=True, timeout=5, stdin=subprocess.DEVNULL
+        )
+        return r.stdout.decode("utf-8", "replace") if r.returncode == 0 else ""
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def self_id(env: dict) -> str:
+    """The calling session's own id. `swb whoami` names it, and the id's host, pid and harness must be this
+    machine, an ancestor of this process and that ancestor's command. A typed id is never the source."""
+    own = swb_whoami(env)
+    if not own:
+        raise Refused("agent_id_missing", "`swb whoami` names no id for this session; a typed id is not accepted")
+    if not valid_agent_id(own):
+        raise Refused("agent_id_invalid", "`swb whoami` printed an id that is not harness:host:pid:session_id")
+    harness, host, pid, _session = own.split(":")
+    if host.lower() != local_host().lower():
+        raise Refused("agent_id_not_self", "the id's host is not this machine")
+    if int(pid) not in ancestor_pids():
+        raise Refused("agent_id_not_self", "the id's pid is not an ancestor of this process")
+    if harness not in command_of(int(pid)):
+        raise Refused("agent_id_not_self", f"the id's pid does not run {harness}")
+    return own
+
+
 def map_driver(a, env: dict) -> dict:
-    agent_id = a.agent_id or env.get("SWB_AGENT_ID")
-    if not agent_id:
-        raise Refused("agent_id_missing", "pass --agent-id or run from a session with SWB_AGENT_ID")
-    if env.get("SWB_AGENT_ID") and agent_id != env["SWB_AGENT_ID"]:
-        raise Refused("agent_id_not_self", "narrate writes only its own switchboard id")
-    if not valid_agent_id(agent_id):
-        raise Refused("agent_id_invalid", "not harness:host:pid:session_id")
+    agent_id = self_id(env)
+    for given, name in ((a.agent_id, "--agent-id"), (env.get("SWB_AGENT_ID"), "SWB_AGENT_ID")):
+        if given and given != agent_id:
+            raise Refused("agent_id_not_self", f"{name} is not this session's own id; narrate writes only its own")
     args = (
         ["write-map", "--agent-id", agent_id]
         + (["--write"] if a.write else [])
@@ -639,6 +764,7 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     pr = sub.add_parser("probe", help="read-only probe, on a producer host")
     pr.add_argument("--via", default="local")
+    pr.add_argument("--hm-attr", help="this host's Home Manager attr; default: the one deployed.json records")
     wm = sub.add_parser("write-map", help="write the cade-delivery entry, on a producer host")
     wm.add_argument("--agent-id", required=True)
     wm.add_argument("--write", action="store_true")
@@ -654,8 +780,9 @@ def main(argv: list[str] | None = None) -> int:
     rb.add_argument("--context", action="append", choices=("ssh", "login", "local"))
     rb.add_argument("--since-gen", type=int)
     rb.add_argument("--expect-agent-id")
+    rb.add_argument("--hm-attr", help="the host's Home Manager attr, for hm-delivered.json")
     rb.add_argument("--lab-repo", default="xoxd-ai/lab")
-    mp.add_argument("--agent-id")
+    mp.add_argument("--agent-id", help="optional; must equal this session's own id")
     mp.add_argument("--write", action="store_true")
     mp.add_argument("--supersede-live", action="store_true")
     mp.add_argument("--context", default="login", choices=("ssh", "login", "local"))
@@ -663,7 +790,7 @@ def main(argv: list[str] | None = None) -> int:
     env = dict(os.environ)
     try:
         if a.cmd == "probe":
-            print(json.dumps(probe(env, a.via)))
+            print(json.dumps(probe(env, a.via, a.hm_attr)))
             return 0
         if a.cmd == "write-map":
             print(json.dumps(write_map(env, a.agent_id, a.write, a.supersede_live, a.allow_config_override)))

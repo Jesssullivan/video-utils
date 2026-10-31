@@ -5,10 +5,12 @@ fake `swb` that answers `peers` from a file, and a fake Home Manager generation.
 is reached. The stub's sha256 replaces the real pin for each test.
 """
 
+import argparse
 import hashlib
 import json
 import os
 import shlex
+import subprocess
 import sys
 from pathlib import Path
 
@@ -20,6 +22,8 @@ MERGE = "a" * 40
 LATER = "b" * 40
 SELF = "claude:seat-host:4242:narrate-session"
 OTHER = "claude:seat-host:5151:older-session"
+FOREIGN = "claude:producer-a:999:someone-else"
+ATTR = "user@producer-a"
 
 STUB = """from __future__ import annotations
 import json, os, stat, subprocess, sys
@@ -136,6 +140,7 @@ def host(tmp_path, monkeypatch):
                 "after_gen": 41,
                 "after_path": str(gen),
                 "verdict": "SWITCHED",
+                "hm_attr": ATTR,
                 "timestamp": "2026-11-01T00:00:00Z",
             }
         )
@@ -170,6 +175,7 @@ def host(tmp_path, monkeypatch):
         "peers": peers,
         "config": home / ".config" / "cade" / "handoff-relay.json",
         "roots": roots,
+        "state": state,
     }
 
 
@@ -189,6 +195,7 @@ def test_a_fresh_switch_passes_every_check(host):
     assert p["wrapper"]["interpreter_version"].startswith("Python 3")
     assert p["mapping"] == {
         "path": "~/.config/cade/handoff-relay.json",
+        "resolved_by": "relay",
         "default": True,
         "override_env": [],
         "state": "absent",
@@ -343,24 +350,187 @@ def test_remote_command_enters_the_child_repo_and_wraps_a_login_shell():
     )
 
 
-def test_map_driver_writes_only_the_callers_own_id(monkeypatch):
-    class A:
-        host, child_repo, context, write, supersede_live, agent_id = "producer-a", "~/child", "login", True, False, None
+class MapArgs:
+    host, child_repo, context, write, supersede_live, agent_id = "producer-a", "~/child", "login", True, False, None
 
+
+@pytest.fixture
+def seat(monkeypatch):
+    """The narrate seat: `swb whoami` names SELF, whose pid 4242 is an ancestor running claude on seat-host."""
     calls = []
+    monkeypatch.setattr(relay, "swb_whoami", lambda env: SELF)
+    monkeypatch.setattr(relay, "local_host", lambda: "seat-host")
+    monkeypatch.setattr(relay, "ancestor_pids", lambda: [3000, 4242, 1])
+    monkeypatch.setattr(relay, "command_of", lambda pid: "/opt/harness/bin/claude --resume s")
     monkeypatch.setattr(relay, "run_on", lambda *a: calls.append(a) or {"result": "written"})
-    with pytest.raises(relay.Refused, match="agent_id_missing"):
-        relay.map_driver(A, {})
-    A.agent_id = OTHER
+    return calls
+
+
+def map_args(**kw):
+    a = MapArgs()
+    for k, v in kw.items():
+        setattr(a, k, v)
+    return a
+
+
+def test_map_driver_writes_the_id_swb_whoami_names(seat):
+    relay.map_driver(map_args(), {})
+    relay.map_driver(map_args(agent_id=SELF), {"SWB_AGENT_ID": SELF})
+    assert seat == [("producer-a", "~/child", "login", ["write-map", "--agent-id", SELF, "--write"])] * 2
+
+
+def test_map_driver_refuses_a_typed_id_without_swb_whoami(seat, monkeypatch):
+    monkeypatch.setattr(relay, "swb_whoami", lambda env: None)
+    for env in ({}, {"SWB_AGENT_ID": FOREIGN}):
+        with pytest.raises(relay.Refused, match="agent_id_missing"):
+            relay.map_driver(map_args(agent_id=FOREIGN), env)
+    assert seat == []
+
+
+@pytest.mark.parametrize(
+    "args, env",
+    [
+        ({"agent_id": FOREIGN}, {}),
+        ({"agent_id": OTHER}, {"SWB_AGENT_ID": SELF}),
+        ({}, {"SWB_AGENT_ID": FOREIGN}),
+        ({"agent_id": "seat-host:1:x"}, {}),
+    ],
+)
+def test_map_driver_refuses_an_id_that_is_not_the_sessions_own(seat, args, env):
     with pytest.raises(relay.Refused, match="agent_id_not_self"):
-        relay.map_driver(A, {"SWB_AGENT_ID": SELF})
-    A.agent_id = "seat-host:1:x"
-    with pytest.raises(relay.Refused, match="agent_id_invalid"):
-        relay.map_driver(A, {})
+        relay.map_driver(map_args(**args), env)
+    assert seat == []
+
+
+@pytest.mark.parametrize(
+    "name, value",
+    [
+        ("local_host", lambda: "producer-a"),
+        ("ancestor_pids", lambda: [3000, 1]),
+        ("command_of", lambda pid: "/usr/bin/python3 forged"),
+    ],
+)
+def test_map_driver_refuses_a_whoami_id_from_another_host_pid_or_harness(seat, monkeypatch, name, value):
+    """SWB_* can be set by hand, so the id `swb whoami` builds must also be this machine and this process tree."""
+    monkeypatch.setattr(relay, name, value)
+    with pytest.raises(relay.Refused, match="agent_id_not_self"):
+        relay.map_driver(map_args(), {})
+    assert seat == []
+
+
+def test_map_driver_surfaces_a_write_map_refusal(seat, monkeypatch):
+    monkeypatch.setattr(relay, "run_on", lambda *a: {"refused": "agent_id_stale", "where": "gone", "exit": 1})
+    with pytest.raises(relay.Refused, match="agent_id_stale: gone"):
+        relay.map_driver(map_args(), {})
+
+
+def test_ancestor_pids_reaches_this_process_parent():
+    assert os.getppid() in relay.ancestor_pids()
+    assert relay.command_of(os.getpid())
+
+
+def fake_run(monkeypatch, stdout=b"", returncode=0, raises=None):
+    calls = []
+
+    def run(cmd, **kw):
+        calls.append(cmd)
+        if raises:
+            raise raises
+        return subprocess.CompletedProcess(cmd, returncode, stdout, b"err line\n")
+
+    monkeypatch.setattr(relay.subprocess, "run", run)
+    return calls
+
+
+def test_run_on_reads_the_last_stdout_line_and_a_refusal(monkeypatch):
+    calls = fake_run(monkeypatch, b"motd noise\n" + json.dumps({"schema": "x"}).encode() + b"\n")
+    assert relay.run_on("user@producer-a", "~/c", "ssh", ["probe"]) == {"schema": "x", "exit": 0}
+    assert calls[0][:6] == ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=15", "user@producer-a"]
+    assert calls[0][6] == "--"
+    fake_run(monkeypatch, json.dumps({"refused": "agent_id_stale", "where": "gone"}).encode(), returncode=1)
+    assert relay.run_on("producer-a", "~/c", "login", ["write-map"])["refused"] == "agent_id_stale"
+    fake_run(monkeypatch, b"not json\n", returncode=255)
+    with pytest.raises(relay.Refused, match="probe_failed: exit 255: err line"):
+        relay.run_on("producer-a", "~/c", "ssh", ["probe"])
+
+
+@pytest.mark.parametrize("bad", ["-oProxyCommand=touch x", "producer a", "", "a\nb", "-p"])
+def test_run_on_refuses_a_host_that_ssh_could_read_as_an_option(monkeypatch, bad):
+    calls = fake_run(monkeypatch, b"{}\n")
+    with pytest.raises(relay.Refused, match="host_invalid"):
+        relay.run_on(bad, "~/c", "ssh", ["probe"])
     assert calls == []
-    A.agent_id = None
-    relay.map_driver(A, {"SWB_AGENT_ID": SELF})
-    assert calls == [("producer-a", "~/child", "login", ["write-map", "--agent-id", SELF, "--write"])]
+
+
+@pytest.mark.parametrize(
+    "stdout, code, raises, want",
+    [
+        (b"ahead\n", 0, None, True),
+        (b"identical\n", 0, None, True),
+        (b"behind\n", 0, None, False),
+        (b"diverged\n", 0, None, False),
+        (b"", 0, None, None),
+        (b"ahead\n", 1, None, None),
+        (b"", 0, FileNotFoundError("gh"), None),
+        (b"", 0, subprocess.TimeoutExpired("gh", 60), None),
+    ],
+)
+def test_gh_contains_reads_the_compare_status(monkeypatch, stdout, code, raises, want):
+    calls = fake_run(monkeypatch, stdout, code, raises)
+    assert relay.gh_contains("org/lab")(MERGE, LATER) is want
+    assert calls == [["gh", "api", f"repos/org/lab/compare/{MERGE}...{LATER}", "--jq", ".status"]]
+
+
+def readback_args(**kw):
+    base = dict(
+        host="producer-a",
+        child_repo="~/c",
+        merge=MERGE,
+        context=None,
+        since_gen=40,
+        expect_agent_id=None,
+        hm_attr=None,
+        json=True,
+        lab_repo="org/lab",
+    )
+    return argparse.Namespace(**{**base, **kw})
+
+
+def test_readback_passes_only_when_every_context_passes(host, monkeypatch, capsys):
+    good = relay.probe(host["env"], "ssh")
+    bad = {**good, "command_v": None}
+    seen = []
+
+    def run_on(h, child, context, args):
+        seen.append((context, args))
+        return good if context == "ssh" else bad
+
+    monkeypatch.setattr(relay, "run_on", lambda *a: dict(good))
+    assert relay.readback(readback_args(), contains_merge) == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["verdict"] == "PASS" and [r["context"] for r in out["rows"]] == ["ssh", "login"]
+    monkeypatch.setattr(relay, "run_on", run_on)
+    assert relay.readback(readback_args(hm_attr=ATTR), contains_merge) == 1
+    out = json.loads(capsys.readouterr().out)
+    assert out["verdict"] == "FAIL"
+    assert [c["check"] for c in out["rows"][1]["checks"] if not c["ok"]] == ["command_v"]
+    assert seen[0] == ("ssh", ["probe", "--via", "ssh", "--hm-attr", ATTR])
+
+
+def test_readback_fails_a_refused_or_unreachable_probe(monkeypatch, capsys):
+    replies = iter([{"refused": "relay_unreadable", "where": "x", "exit": 1}])
+
+    def run_on(*a):
+        try:
+            return next(replies)
+        except StopIteration:
+            raise relay.Refused("probe_failed", "exit 255") from None
+
+    monkeypatch.setattr(relay, "run_on", run_on)
+    assert relay.readback(readback_args(json=False), contains_merge) == 1
+    text = capsys.readouterr().out
+    assert "| probe | NO | relay_unreadable: x |" in text and "probe_failed: exit 255" in text
+    assert text.rstrip().endswith("FAIL")
 
 
 def test_the_probe_cli_prints_one_json_object(host, monkeypatch, capsys):
@@ -370,6 +540,75 @@ def test_the_probe_cli_prints_one_json_object(host, monkeypatch, capsys):
     out = json.loads(capsys.readouterr().out)
     assert out["schema"] == "narrate.relay-probe/v1" and out["via"] == "login"
     assert relay.main(["readback", "--host", "producer-a", "--child-repo", "~/c", "--merge", "x"]) == 1
+
+
+@pytest.mark.parametrize("verdict", ["EVAL-FAILED", "INTERRUPTED", "FAILED", None])
+def test_a_deployed_record_without_a_success_verdict_does_not_vouch(host, verdict):
+    """Lab writes deployed.json only on SWITCHED or NO-OP. A record that says otherwise never passes."""
+    dep = json.loads((host["state"] / "deployed.json").read_text())
+    dep.update(verdict=verdict, after_gen=40)
+    (host["state"] / "deployed.json").write_text(json.dumps(dep))
+    p = relay.probe(host["env"], "ssh")
+    assert p["generation"]["running"] is None
+    rows = relay.evaluate(p, MERGE, contains_merge)
+    assert failing(rows) == ["generation_moved"]
+    assert f"deployed.json verdict {verdict}" in dict((c, d) for c, _ok, d in rows)["generation_moved"]
+
+
+def test_a_switched_record_whose_generation_did_not_move_fails(host):
+    dep = json.loads((host["state"] / "deployed.json").read_text())
+    dep.update(after_gen=40)
+    (host["state"] / "deployed.json").write_text(json.dumps(dep))
+    p = relay.probe(host["env"], "ssh")
+    assert failing(relay.evaluate(p, MERGE, contains_merge)) == ["generation_moved"]
+
+
+def delivered(host, attr):
+    (host["state"] / "deployed.json").unlink(missing_ok=True)
+    record = {"head": MERGE, "generation_path": str(host["gen"]), "generation": 41, "timestamp": "2026-11-01"}
+    if attr:
+        record["attr"] = attr
+    (host["home"] / relay.DELIVERED).write_text(json.dumps(record))
+
+
+def test_hm_delivered_counts_only_for_the_hosts_attr(host):
+    """As lab local_switch_as_delivered: hm-delivered.json vouches only for this host's Home Manager attr."""
+    delivered(host, ATTR)
+    assert failing(relay.evaluate(relay.probe(host["env"], "ssh", ATTR), MERGE, contains_merge)) == []
+    for attr in ("someone@else", None):
+        delivered(host, attr)
+        p = relay.probe(host["env"], "ssh", ATTR)
+        assert failing(relay.evaluate(p, MERGE, contains_merge)) == ["generation_moved"]
+    delivered(host, ATTR)
+    p = relay.probe(host["env"], "ssh")  # no attr given and no deployed.json to name one
+    assert p["generation"]["hm_attr"] is None
+    assert failing(relay.evaluate(p, MERGE, contains_merge)) == ["generation_moved"]
+
+
+def test_config_path_default_follows_the_resolved_path(host, tmp_path):
+    env = {**host["env"], "XDG_CONFIG_HOME": str(host["home"] / ".config") + "/"}
+    p = relay.probe(env, "ssh")
+    rows = relay.evaluate(p, MERGE, contains_merge)
+    assert failing(rows) == []
+    assert "XDG_CONFIG_HOME" in dict((c, d) for c, _ok, d in rows)["config_path_default"]
+    p = relay.probe({**host["env"], "XDG_CONFIG_HOME": str(tmp_path / "xdg")}, "ssh")
+    assert failing(relay.evaluate(p, MERGE, contains_merge)) == ["config_path_default"]
+
+
+def test_config_path_without_a_loadable_relay_uses_the_0_1_0_rule(host, tmp_path):
+    env = {**host["env"], "CADE_HANDOFF_RELAY_CONFIG": str(tmp_path / "x.json")}
+    assert relay.mapping(env, None)["default"] is False
+    assert relay.mapping(env, None)["resolved_by"] == "relay 0.1.0 rule"
+    assert relay.mapping(host["env"], None)["default"] is True
+
+
+def test_write_map_refuses_an_unchanged_entry_whose_id_is_stale(host):
+    seed(host, SELF)
+    before = host["config"].read_bytes()
+    host["peers"].write_text(json.dumps([live(SELF, "gone")]))
+    with pytest.raises(relay.Refused, match="agent_id_stale"):
+        relay.write_map(host["env"], SELF, write=True)
+    assert host["config"].read_bytes() == before
 
 
 def test_the_file_runs_on_its_own_with_python_isolated():
