@@ -1,5 +1,5 @@
-"""python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims,accept,subject,
-cut}.
+"""python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims,accept,
+render-stage,subject,cut}.
 
 The commands are docs/spec/NARRATED_VIDEO.md, "Commands".
 
@@ -27,6 +27,11 @@ render, and only with a Softproxy decision id (sp:dec:<ulid>) and the sha256 of 
 an empty value, a malformed id, a missing or other cut, a machine gate, the visible_text gate and an unknown gate
 refuse (narrate/video/accept.py).
 
+render-stage is the Cade render stage's task body (narrate/video/render_stage.py, docs/spec/RENDER_STAGE.md): check
+validates a request of ids and digests and prints its phases (with --inputs it also checks the worker's commit and
+re-hashes the mounted inputs), and result reports a job that ran to deliver_check by digest, bound to the job's
+intake. Neither takes the GPU Lease, and v1 refuses a gpu_window request outside check --gpu-draft.
+
 subject prints the guard subject of a job: every text its records hold that it voices or shows, which the Cade narrate
 worker reads in its own process for the BS-21 guard and never logs. cut prints the current deliver_check render (the
 composed video's sha256, the deliver_check key and digest), its machine gate states and the operator gates still
@@ -53,7 +58,7 @@ from pathlib import Path
 
 from .. import policy
 from ..ir import sha256_file
-from . import accept, bundle, fixture, graph, kitpip, private_terms, speech, store, subject, vrm
+from . import accept, bundle, fixture, graph, kitpip, private_terms, render_stage, speech, store, subject, vrm
 from . import run as runner
 from .common import Env
 from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_job, load_records, read_json
@@ -402,6 +407,34 @@ def cmd_accept(a):
     return 0
 
 
+def read_request(path):
+    try:
+        return json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise render_stage.RenderStageError("request_unreadable", f"the request is not readable JSON: {exc}") from exc
+
+
+def cmd_render_stage(a):
+    if a.action == "check" and a.job:
+        return refusal("usage", "check takes no job")
+    if a.action == "check" and a.gpu_draft and a.inputs:
+        return refusal("usage", "--gpu-draft plans a GPU window only; verify_inputs (--inputs) never admits one")
+    if a.action == "result" and (a.inputs or a.gpu_draft):
+        return refusal("usage", "--inputs and --gpu-draft go with check")
+    if a.action == "result" and not a.job:
+        return refusal("usage", "result names the job")
+    request = read_request(a.request)
+    if a.action == "check":
+        out = render_stage.check_worker(request, a.inputs) if a.inputs else render_stage.plan(request, a.gpu_draft)
+        emit(out)
+        return 0
+    value = render_stage.result(request, job_store(a, a.job))
+    if a.export:
+        value = value | {"exported": render_stage.export(job_store(a, a.job), value, a.export)}
+    emit(value)
+    return 0
+
+
 def cmd_subject(a):
     s = job_store(a, a.job)
     job = s.read_job()
@@ -570,6 +603,21 @@ def main(argv=None):
     )
     acc.add_argument("--json", action="store_true", help="print JSON (accept always does)")
 
+    rs = sub.add_parser("render-stage", help="the Cade render stage's task body: check a request, or report a result")
+    rs.add_argument("action", choices=("check", "result"), help="check: validate and plan; result: report by digest")
+    rs.add_argument("job", nargs="?", help="result: the job id")
+    rs.add_argument("--request", required=True, help="the request JSON (narrate_render_stage_request/1)")
+    rs.add_argument(
+        "--inputs",
+        help="check on the worker (verify_inputs): compare VIDEO_UTILS_COMMIT with the request, then re-hash each input"
+        " at <root>/<sha256>",
+    )
+    rs.add_argument(
+        "--gpu-draft", action="store_true", help="check: plan a gpu_window request, which v1 otherwise refuses"
+    )
+    rs.add_argument("--export", help="result: copy the video, the report and the result here by sha256")
+    rs.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+
     sj = sub.add_parser(
         "subject", help="print every text the job voices or shows, for the BS-21 guard; the caller never logs it"
     )
@@ -603,6 +651,7 @@ def main(argv=None):
             "intake": cmd_intake,
             "claims": cmd_claims,
             "accept": cmd_accept,
+            "render-stage": cmd_render_stage,
             "subject": cmd_subject,
             "cut": cmd_cut,
         }

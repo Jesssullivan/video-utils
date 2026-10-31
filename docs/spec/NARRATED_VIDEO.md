@@ -1197,7 +1197,9 @@ STORE/                  --store, default OUT/store: each beat's Markdown as <sha
                         <sha256>.png or <sha256>.mp4
 ```
 
-`intake.json` names the bundle by slug and by the digests of its three files, never by path. It holds the job id and
+`intake.json` names the bundle by slug and by the digests of its three files, never by path. `inputs.records_sha256`
+is the tree digest of the records directory it read (docs/spec/RENDER_STAGE.md), or `null` when that tree holds a
+symlink or a file that is not regular. It holds the job id and
 digest, the narrate template, voice and engine, and one row per segment. Each row holds the narrate job, script
 digest, span, asset (id, kind, digest, receipt, text source), shown layer and the claims result. It also holds
 `visible_text` (the shown assets read, unread and opaque to the guard), `unused_assets`,

@@ -13,9 +13,11 @@ never reads an mtime. The store lives outside artifacts/runs/ and outside artifa
 no narrate run reader ever sees it. v1 keeps every stage directory until the operator removes the job (no gc).
 """
 
+import hashlib
 import json
 import os
 import shutil
+import stat
 import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
@@ -89,6 +91,19 @@ def files_under(directory):
             path = Path(here) / name
             found[path.relative_to(directory).as_posix()] = path
     return found
+
+
+def tree_sha256(directory):
+    """sha256 of the sorted "relative path NUL sha256 LF" lines of every file under directory (the render stage's
+    tree digest, docs/spec/RENDER_STAGE.md). A symlink anywhere raises StoreError stage_symlink, and an entry that is
+    neither a directory nor a regular file (a FIFO, a socket, a device) raises tree_irregular before any file is
+    read, so a FIFO can never block the hash."""
+    files = files_under(directory)
+    for name, path in files.items():
+        if not stat.S_ISREG(os.lstat(path).st_mode):
+            raise StoreError("tree_irregular", f"{name} is not a regular file")
+    lines = "".join(f"{name}\0{sha256_file(path)}\n" for name, path in sorted(files.items()))
+    return hashlib.sha256(lines.encode("utf-8")).hexdigest()
 
 
 def verify_stage_dir(directory, key=None):
