@@ -378,7 +378,8 @@ ROWS = {
     "kitpip rig": (kitpip_rig, AVATARS | {"compose", "deliver_check"}),
     "kitpip pin": (kitpip_pin, AVATARS | {"compose", "deliver_check"}),
     "content id recorded": (content_id, {"deliver_check"}),
-    "handoff turned on": (handoff_on, {"handoff"}),
+    # deliver_check keys on the job's digest (accept pairs its render with job.json, TIN-7788), so it reruns too.
+    "handoff turned on": (handoff_on, {"handoff", "deliver_check"}),
     "pronunciation entry": (pronunciation_entry, VOICES | AVATARS | {"place", "mix", "compose", "deliver_check"}),
     "engine model": (engine_model, VOICES | AVATARS | {"place", "mix", "compose", "deliver_check"}),
     "engine files": (engine_files, VOICES | AVATARS | {"place", "mix", "compose", "deliver_check"}),

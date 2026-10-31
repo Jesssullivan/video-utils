@@ -180,6 +180,7 @@ def test_clean_text_sources_pass_and_intake_records_them(ws, tmp_path):
     assert m["private_terms"]["checked"]["visible"] == 2
     assert m["visible_text"] == {"read": ["asset#1", "asset#2"], "unread": [], "opaque": []}
     assert m["states"]["visible_text"] == "passed" and m["states"]["producer_review"] == "pending_operator"
+    assert "visible_text_unread" not in m["admit"]["pending_operator"]
     rows = {s["segment"]: s["asset"]["text"] for s in m["segments"]}
     assert rows == {"intro": {"kind": "svg", "sha256": svg}, "result": {"kind": "json", "sha256": js}}
     # the text source is bound, not copied: the store holds the pictures and scripts only
@@ -192,6 +193,8 @@ def test_a_shown_asset_without_a_text_source_is_listed_unread(ws, tmp_path):
     m = intake(ws, tmp_path / "out", persona="fixture-persona", denylist=ws["denylist"])
     assert m["visible_text"] == {"read": ["asset#1"], "unread": ["asset#2"], "opaque": []}
     assert m["states"]["visible_text"] == "partial"
+    # admit reads this intake's summary, so intake.json lists the gate deliver_check will hold
+    assert "visible_text_unread" in m["admit"]["pending_operator"]
     marker = json.loads((tmp_path / "out" / "records" / private_terms.MARKER).read_text())
     assert marker["visible_text"] == {"state": "partial", "unread": ["asset#2"], "opaque": []}
     assert load_records(tmp_path / "out" / "records")["visible_text"] == marker["visible_text"]
@@ -201,6 +204,7 @@ def test_an_undeclared_bundle_records_visible_text_not_declared(ws, tmp_path):
     add_text_source(ws["bundle"], "slide-a", "slide-a.svg", plot_svg(NAME))
     m = intake(ws, tmp_path / "out", persona="fixture-persona")
     assert m["states"]["visible_text"] == "not_declared" and m["visible_text"]["read"] == ["asset#1"]
+    assert "visible_text_unread" not in m["admit"]["pending_operator"]
 
 
 def test_a_denylist_given_to_an_undeclared_bundle_still_reads_the_slides(ws, tmp_path):
@@ -266,6 +270,12 @@ PIXEL = "data:image/png;base64,iVBORw0KGgo="
         '<style>@import "other.css";</style>',  # an import needs no url()
         "<style>rect { fill: u\\72l(other.svg#pattern) }</style>",  # a CSS escape spells url
         '<rect width="4" height="4" style="fill: u\\72l(other.svg#p)"/>',
+        '<rect width="4" height="4" filter="u\\72l(other.svg#f)"/>',  # a presentation attribute takes CSS too
+        '<rect width="4" height="4" fill="\\75rl(other.svg#g)"/>',
+        '<rect width="4" height="4" style="mask-image: image-set(\'other.png\' 1x)"/>',  # a string, no url()
+        "<style>rect { mask-image: -webkit-image-set('other.png' 1x) }</style>",
+        '<rect width="4" height="4" style="mask-image: IMAGE(\'other.png\')"/>',
+        '<rect xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" inkscape:label="url(other.svg#g)"/>',
         '<script>document.querySelector("g").append("x")</script>',  # script may draw text
         '<rect width="4" height="4" onload="this.after(1)"/>',
     ],
@@ -282,6 +292,10 @@ def test_an_svg_that_draws_an_image_or_another_file_is_opaque(extra):
         '<rect fill="url(#gradient)"/>',
         "<rect style=\"fill:url( '#g' )\"/>",
         '<a href="https://example.invalid/"><text>link</text></a>',
+        # metadata is not CSS: a Windows export path from Inkscape and a plot's TeX source hold a backslash
+        '<rect xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"'
+        ' inkscape:export-filename="C:\\Users\\x\\slide.png"/>',
+        '<g data-unformatted="$\\alpha$"><text>a</text></g>',
     ],
 )
 def test_an_svg_that_refers_only_to_itself_is_not_opaque(extra):
@@ -315,6 +329,7 @@ def test_an_opaque_slide_makes_the_intake_partial(ws, tmp_path):
     m = intake(ws, tmp_path / "out", persona="fixture-persona", denylist=ws["denylist"])
     assert m["visible_text"] == {"read": ["asset#1", "asset#2"], "unread": [], "opaque": ["asset#1", "asset#2"]}
     assert m["states"]["visible_text"] == "partial" and m["private_terms"]["checked"]["visible"] == 1
+    assert "visible_text_unread" in m["admit"]["pending_operator"]
     marker = json.loads((tmp_path / "out" / "records" / private_terms.MARKER).read_text())
     assert marker["visible_text"]["opaque"] == ["asset#1", "asset#2"]
 
