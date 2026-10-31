@@ -18,8 +18,9 @@ The task body is `python -m narrate video render-stage` (`narrate/video/render_s
 
 | Action | What it does | Writes |
 | --- | --- | --- |
-| `check --request R [--inputs DIR]` | Validates the request and prints its phases. With `--inputs`, it re-hashes every input at `DIR/<sha256>` | nothing |
-| `result JOB --request R [--export DIR]` | Reports a job that ran to `deliver_check`, every output by digest. With `--export`, it copies the cut, the report and the result into `DIR` under their sha256 names | `DIR/<sha256>.mp4`, `DIR/<sha256>.json` |
+| `check --request R [--inputs DIR]` | Validates the request and prints its phases. With `--inputs`, the `verify_inputs` phase, it also compares the worker's commit with the request and then re-hashes every input at `DIR/<sha256>` | nothing |
+| `check --request R --gpu-draft` | Prints the plan of a `gpu_window` request, which v1 refuses otherwise. It never goes with `--inputs` | nothing |
+| `result JOB --request R [--export DIR]` | Binds the request to the job's intake and reports a job that ran to `deliver_check`, every output by digest. With `--export`, it copies the cut, the report and the result into `DIR` under their sha256 names | `DIR/<sha256>.mp4`, `DIR/<sha256>.json` |
 
 The recipes are `just nv-render-stage-check` and `just nv-render-stage-result`. The phases between them run the
 existing commands: `narrate video intake`, `narrate plan`, `narrate render --prerendered`,
@@ -37,11 +38,11 @@ terms out of Hatchet payloads and logs.
 | `workflow` | `cade-hardware-handoff` | `workflow_mismatch` |
 | `run_id`, `packet_id` | one token each. The job ledger keys on `packet_id` plus the bundle digest | `token_invalid` |
 | `job_id` | a narrated-video job id | `token_invalid` |
-| `edition` | `Internal`. A client or KSL edition waits for its own tenant | `edition_not_v1` |
+| `edition` | `Internal`. A client edition waits for its own tenant (T4) | `edition_not_v1` |
 | `video_utils_commit` | 40 hex. The worker's own commit must match it | `commit_invalid` |
 | `worker_image` | `sha256:<64 hex>`, the OCI digest the task ran in | `image_invalid` |
 | `inputs` | digests, listed below | `digest_invalid`, `inputs_keys` |
-| `voice` | `{mode: gpu_window, runs: null}` or `{mode: from_run, runs: {segment: narrate content_sha256}}` | `voice_invalid` and the codes below |
+| `voice` | `{mode: from_run, runs: {segment: narrate content_sha256}}`. `{mode: gpu_window, runs: null}` refuses in v1 outside `check --gpu-draft` | `voice_invalid`, `gpu_window_not_v1` and the codes below |
 | `lease` | the window's Lease binding with `gpu_window`. Null with `from_run` | `lease_missing`, `lease_unneeded` |
 | `until` | `deliver_check` | `until_invalid` |
 
@@ -60,15 +61,39 @@ image holds none of them.
 | `denylist_sha256` | no | a file. Required by intake when the manifest declares `ip_private` or `never_name` |
 
 The tree digest is the sha256 of the sorted lines `relative path NUL sha256 LF` over every regular file. A symlink
-anywhere refuses `input_symlink`. A missing input refuses `input_missing`, and a changed one refuses
-`input_digest_mismatch`.
+anywhere refuses `input_symlink`. A FIFO, socket or device refuses `input_irregular` before any file is read. A
+missing input refuses `input_missing`, and a changed one refuses `input_digest_mismatch`.
+
+`check --inputs` first compares `VIDEO_UTILS_COMMIT` with `video_utils_commit` and refuses `commit_unknown` or
+`commit_mismatch`. A worker on another commit or a dirty image therefore stops before intake, the GPU window or
+compose writes anything.
+
+### Binding inputs to the job
+
+`verify_inputs` proves what was mounted. `result` proves what intake read. The intake phase writes its `--out` at
+`JOB/intake` in the job's store directory, and `init --from` reads `JOB/intake/narrated-video.json`. `intake.json`
+records the bundle's `manifest_sha256`, the tree digest of the records directory it read (`inputs.records_sha256`)
+and the denylist digest the guard read. `result` refuses `input_binding_mismatch` unless all of these hold:
+
+- `narrated-video.json` hashes to the digest `intake.json` holds, and the store's `job.json` is that record;
+- the intake's job id and edition are the request's;
+- the intake's bundle manifest, records tree and denylist digests are the request's.
+
+A missing intake refuses `intake_missing` and an unreadable one `intake_invalid`. The result names `intake_sha256`
+and, for each input, how it is bound:
+
+| Input | Bound by | Meaning |
+| --- | --- | --- |
+| `bundle_manifest_sha256`, `records_sha256`, `denylist_sha256` | `intake` | `intake.json` records the digest it read |
+| `lexical_release_sha256` | `records_pin` | the bound records pin the release file by file, and the script stage re-hashes those files |
+| `engine_record_sha256`, `kitpip_sha256` | `mount_only` | only `verify_inputs` checked it. No later phase records reading it |
 
 ## Phases
 
 | Phase | GPU | Runs | Output |
 | --- | --- | --- | --- |
 | `verify_inputs` | no | `render-stage check --inputs` | none |
-| `intake` | no | `narrate video intake` with the bundle, the records and the denylist | the job and its narrate jobs |
+| `intake` | no | `narrate video intake --out JOB/intake` with the bundle, the records and the denylist, then `init --from` | the job, its narrate jobs and `JOB/intake/intake.json` |
 | `voice_plan` | no | `narrate plan`, the AudioCppBatch requests | a plan directory and its digest |
 | `voice_gpu` | yes | the lease helper's `run`, then `audiocpp_batch.py run` inside it | WAVs and a batch receipt by sha256 |
 | `voice_render` | no | `narrate render --prerendered` | a narrate run with its `content_sha256` |
@@ -84,6 +109,12 @@ names stay as they are.
 
 ## Lease protocol
 
+**v1 runs no GPU window.** A `gpu_window` request refuses `gpu_window_not_v1` in `check` (and so in
+`verify_inputs`) and in `result`. Only `check --gpu-draft` plans one, and that flag never goes with `--inputs`. Two
+gaps keep it closed. Nobody posts the TIN-5397 notice for Cade yet (R3), and no result binds the helper's run receipt
+or the batch receipt. A later version needs `lease.receipt_sha256` and `batch_receipt_sha256` in a `gpu_window`
+result before it can lift the refusal. The protocol below is the design that version follows.
+
 The task body never takes, reads or writes the GPU Lease. The estate lease helper holds custody. It does a
 compare-and-swap acquire, runs one command, passes a GPU census gate and then releases in its own `finally`. This
 repository names the helper only by the sha256 the request pins.
@@ -93,11 +124,15 @@ repository names the helper only by the sha256 the request pins.
    Lease guard admits. The worker writes the holder and the run id into the job ledger before anything else. The
    request refuses any other form with `lease_holder_form`. A test keeps this module's form equal to `finalize.py`'s.
 2. **Notice.** Before the acquire, Cade posts a TIN-5397 notice comment. It names the holder, the run id and the
-   window cap, and no host. The request carries that comment's id. Without it the request refuses
-   `lease_notice_missing`.
+   window cap, and no host. The request carries that comment's id. Without one the request refuses
+   `lease_notice_missing`. This check has resolution `form_only`, as `nv accept` labels its decision ids: it checks
+   the ticket and that the id is UUID-shaped. It never reads Linear, so it does not prove that the comment exists
+   or names the holder. Cade's `voice_gpu` must check both before the acquire. The draft plan lists them under
+   `verify_before_run`.
 3. **Window cap.** `lease.max_seconds` is at most 1800, the 30-minute window `docs/spec/NARRATE.md` sets. The
    helper's `--max-seconds` takes this value. `audiocpp_batch.py --deadline-s` stays under it.
-4. **Helper pin.** Cade's worker hashes the helper before it runs it. A helper that differs from
+4. **Helper pin.** This module checks only that `lease.helper_sha256` is sha256-shaped (`form_only`). It hashes no
+   helper. Cade's `voice_gpu` hashes the helper before it runs it. A helper that differs from
    `lease.helper_sha256` does not run, and the window does not start.
 5. **Run.** The window is one helper `run` with `--holder H`, `--duration` of `max_seconds` plus 420,
    `--max-seconds`, `--census-cmd`, `--receipt` and `--execute`. Its command is `audiocpp_batch.py run ...
@@ -152,11 +187,15 @@ an open decision for the GPU host's owner and the operator.
 - this repository's `narrate/`, the condense Python modules and `program/` at the flake's revision, under
   `/share/video-utils`. The narrate tests are left out;
 - user 10001, the working directory `/work` for the stage store, empty `/inputs` and `/out`, and the entrypoint
-  `python3 -s -B -m narrate video render-stage`.
+  `python3 -s -B -m narrate video render-stage`. `/work` and `/out` belong to 10001:10001 in the image, so the
+  worker can write them without a volume. A volume mounted over either must be writable by uid 10001, for example an
+  `emptyDir` or a directory that 10001 owns. `/inputs` stays read-only.
 
 It holds no GPU binary, model, record, voice clip, consent, denylist, kitpip binary or credential. The flake's
-revision is baked into `VIDEO_UTILS_COMMIT`. A dirty tree has no revision, so every result from that image refuses
-`commit_unknown`. The image is built on demand and never by `just check`. This repository pushes no image.
+revision is baked into `VIDEO_UTILS_COMMIT`. A dirty tree has no revision, so `verify_inputs` and every result
+from that image refuse `commit_unknown`. The image is built on demand and never by `just check`. This repository
+pushes no image. No container has run from it yet. The layer ownership was read from the built archive, not
+observed at runtime.
 
 ## Result
 
@@ -168,7 +207,8 @@ A result is `narrate_render_stage_result` at schema version 1. It holds no path.
 | `video_utils_commit`, `worker_image` | the request's pins. The commit was checked against the worker's own. Cade binds the image digest from the pod or unit that ran the task |
 | `job_sha256` | the digest of `job.json` that `deliver_check` keyed on |
 | `voice` | the mode and each segment's narrate `content_sha256` |
-| `lease` | the holder, or null |
+| `intake_sha256`, `inputs_bound_by` | the digest of the job's `intake.json` and how each input is bound (see "Binding inputs to the job") |
+| `lease` | null in v1. Only `from_run` results pass, so no Lease attests the voice |
 | `outputs.video_sha256` | the composed cut |
 | `outputs.deliver_check` | the stage key, the content digest and `report_sha256` of `deliver_check.json` |
 | `outputs.stages` | every current node's content digest |
@@ -176,8 +216,11 @@ A result is `narrate_render_stage_result` at schema version 1. It holds no path.
 
 `result` reads the current render through the same check `nv accept` uses. A `deliver_check` that ran for another
 `job.json`, or did not read the current compose, refuses `deliver_check_stale`. A node that fails re-hashing refuses
-`stage_corrupt`. `--export` copies by sha256 and re-hashes each copy. A file already there with other content refuses
-`export_conflict`. A second export of the same result is a no-op.
+`stage_corrupt`. `deliver_check` must hold all four machine gates (`profile`, `loudness`, `flash` and `captions`,
+`accept.AUTOMATED`), and its `delivery_gate.machine_gates_passed` must agree with them. Otherwise the result refuses
+`deliver_check_invalid`. `machine_passed` is true only when every one of the four passed or does not apply.
+`--export` copies by sha256 and re-hashes each copy. A file already there, the result's own JSON included, is
+re-hashed, and other content refuses `export_conflict`. A second export of the same result is a no-op.
 
 `deliver_internal` serves the exported `<video_sha256>.mp4`. The served file's sha256 must equal
 `outputs.video_sha256`, which is criterion A7 of the demo DAG.
@@ -188,7 +231,8 @@ A result is `narrate_render_stage_result` at schema version 1. It holds no path.
 | --- | --- | --- |
 | R1 | GPU window placement for the first demo: host batch path or a GPU pod | the GPU host's owner, then the operator |
 | R2 | Which field of the producer's `handoff.json` carries the bundle digest that `bundle_manifest_sha256` takes | Cade and the template owner |
-| R3 | Who posts the TIN-5397 notice for Cade before the Cade Linear app exists. Until then only `from_run` requests can pass | Cade |
+| R3 | Who posts the TIN-5397 notice for Cade before the Cade Linear app exists. Until then v1 refuses `gpu_window`, and only `from_run` requests pass | Cade |
+| R8 | Whether `intake` should also record the engine record and kitpip digests it read, so that they are bound like the bundle. Today they are `mount_only` | this repository |
 | R4 | Where the hash-pinned VoxCPM2 batch body and its weights live for Cade's worker (P7) | the kit owner |
 | R5 | Multi-clip bundles. Intake refuses a second MP4 until P18 | this repository |
 

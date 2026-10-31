@@ -28,8 +28,9 @@ an empty value, a malformed id, a missing or other cut, a machine gate, the visi
 refuse (narrate/video/accept.py).
 
 render-stage is the Cade render stage's task body (narrate/video/render_stage.py, docs/spec/RENDER_STAGE.md): check
-validates a request of ids and digests and prints its phases, and result reports a job that ran to deliver_check by
-digest. Neither takes the GPU Lease.
+validates a request of ids and digests and prints its phases (with --inputs it also checks the worker's commit and
+re-hashes the mounted inputs), and result reports a job that ran to deliver_check by digest, bound to the job's
+intake. Neither takes the GPU Lease, and v1 refuses a gpu_window request outside check --gpu-draft.
 
 intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
 "Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,
@@ -408,15 +409,19 @@ def read_request(path):
 
 
 def cmd_render_stage(a):
+    if a.action == "check" and a.job:
+        return refusal("usage", "check takes no job")
+    if a.action == "check" and a.gpu_draft and a.inputs:
+        return refusal("usage", "--gpu-draft plans a GPU window only; verify_inputs (--inputs) never admits one")
+    if a.action == "result" and (a.inputs or a.gpu_draft):
+        return refusal("usage", "--inputs and --gpu-draft go with check")
+    if a.action == "result" and not a.job:
+        return refusal("usage", "result names the job")
     request = read_request(a.request)
     if a.action == "check":
-        out = render_stage.plan(request)
-        if a.inputs:
-            out["inputs_checked"] = render_stage.check_input_dir(request["inputs"], a.inputs)
+        out = render_stage.check_worker(request, a.inputs) if a.inputs else render_stage.plan(request, a.gpu_draft)
         emit(out)
         return 0
-    if not a.job:
-        return refusal("usage", "result names the job")
     value = render_stage.result(request, job_store(a, a.job))
     if a.export:
         value = value | {"exported": render_stage.export(job_store(a, a.job), value, a.export)}
@@ -582,7 +587,14 @@ def main(argv=None):
     rs.add_argument("action", choices=("check", "result"), help="check: validate and plan; result: report by digest")
     rs.add_argument("job", nargs="?", help="result: the job id")
     rs.add_argument("--request", required=True, help="the request JSON (narrate_render_stage_request/1)")
-    rs.add_argument("--inputs", help="check: the inputs root, re-hashing each input at <root>/<sha256>")
+    rs.add_argument(
+        "--inputs",
+        help="check on the worker (verify_inputs): compare VIDEO_UTILS_COMMIT with the request, then re-hash each input"
+        " at <root>/<sha256>",
+    )
+    rs.add_argument(
+        "--gpu-draft", action="store_true", help="check: plan a gpu_window request, which v1 otherwise refuses"
+    )
     rs.add_argument("--export", help="result: copy the video, the report and the result here by sha256")
     rs.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
 

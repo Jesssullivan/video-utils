@@ -5,11 +5,15 @@ the packet, the job, every input by sha256, how the voice is made and, for a GPU
 TIN-5397 notice. The module never takes, reads or writes the GPU Lease. The estate lease helper does that, and the
 GPU window runs outside this process (docs/spec/RENDER_STAGE.md, "Lease protocol").
 
-    check REQUEST [--inputs DIR]   validate the request and print its phase plan; with --inputs, re-hash every
-                                   input under DIR/<sha256> first. Writes nothing.
+    check REQUEST [--inputs DIR | --gpu-draft]
+                                   validate the request and print its phase plan. With --inputs (verify_inputs, on
+                                   the worker) also check the worker's commit and re-hash every input under
+                                   DIR/<sha256>. --gpu-draft plans a gpu_window request, which v1 otherwise refuses;
+                                   it never goes with --inputs. Writes nothing.
     result JOB --request REQUEST [--export DIR]
                                    the result of a job that ran to deliver_check: every output by digest and the
-                                   deliver_check gates. With --export, copy the composed video and the
+                                   deliver_check gates, after binding the request's inputs to the job's intake
+                                   (JOB/intake/intake.json). With --export, copy the composed video and the
                                    deliver_check report into DIR under their sha256 names, then the result itself.
 
 A request or a result holds no path, host, address or prose: every string is a single token, a digest or a fixed
@@ -25,8 +29,9 @@ from pathlib import Path
 
 from ..ir import sha256_file
 from . import accept, keys
-from .job import ID, SHA256, JobError
-from .store import files_under, verify_stage_dir
+from .job import ID, SHA256, JobError, check_shape
+from .store import StoreError, verify_stage_dir
+from .store import tree_sha256 as store_tree_sha256
 
 REQUEST_KIND = "narrate_render_stage_request"
 RESULT_KIND = "narrate_render_stage_result"
@@ -42,7 +47,7 @@ HOLDER = re.compile(r"^narrate-bench-[0-9]{8}-s[0-9]{6}$")
 LEASE_NAME = "gpu-lease"  # the one GPU Lease; its cluster name stays outside this public repository
 NOTICE_TICKET = "TIN-5397"
 WINDOW_MAX_S = 1800  # docs/spec/NARRATE.md, "GPU use": attended or unattended windows of 30 minutes or less
-EDITIONS_V1 = ("Internal",)  # T1 renders Internal demos only; a client or KSL edition needs its own tenant (T4)
+EDITIONS_V1 = ("Internal",)  # T1 renders Internal demos only; a client edition needs its own tenant (T4)
 UNTIL = ("deliver_check",)
 VOICE_MODES = ("gpu_window", "from_run")
 # inputs: name -> (required, how DIR/<sha256> is checked). "file" re-hashes a file, "tree" a directory's tree
@@ -71,6 +76,24 @@ REQUEST_KEYS = {
     "until",
 }
 LEASE_KEYS = {"lease", "holder", "max_seconds", "helper_sha256", "notice"}
+# How far this module checks the Lease binding: form_only. It checks the shape of the notice comment id and of the
+# helper digest. It never reads Linear or hashes a helper; Cade's voice_gpu does both before the window starts.
+LEASE_RESOLUTION = "form_only"
+LEASE_VERIFIED_BY_VOICE_GPU = ("notice_comment_on_ticket_names_holder", "helper_hashes_to_helper_sha256")
+# The intake phase writes its --out here, under the job's store directory, and init --from reads it.
+INTAKE_DIR = "intake"
+INTAKE_KIND = "nv_bundle_intake"
+# How each input reaches the job after verify_inputs re-hashed its mount. intake: intake.json records the digest it
+# read. records_pin: the bound records pin the release file by file, and the script stage re-hashes those files.
+# mount_only: only verify_inputs checked it; no later phase records reading it.
+BOUND_BY = {
+    "bundle_manifest_sha256": "intake",
+    "records_sha256": "intake",
+    "denylist_sha256": "intake",
+    "lexical_release_sha256": "records_pin",
+    "engine_record_sha256": "mount_only",
+    "kitpip_sha256": "mount_only",
+}
 
 
 class RenderStageError(JobError):
@@ -82,14 +105,13 @@ def canonical_sha256(value):
 
 
 def tree_sha256(directory):
-    """sha256 of the sorted "relative path NUL sha256 LF" lines of every regular file under directory. A symlink
-    anywhere refuses (store.files_under)."""
+    """store.tree_sha256 with the render stage's codes: a symlink refuses input_symlink, and a FIFO, socket or device
+    refuses input_irregular before any file is read."""
     try:
-        files = files_under(directory)
-    except JobError as exc:
-        raise RenderStageError("input_symlink", exc.detail) from exc
-    lines = "".join(f"{name}\0{sha256_file(path)}\n" for name, path in sorted(files.items()))
-    return hashlib.sha256(lines.encode("utf-8")).hexdigest()
+        return store_tree_sha256(directory)
+    except StoreError as exc:
+        code = "input_irregular" if exc.code == "tree_irregular" else "input_symlink"
+        raise RenderStageError(code, exc.detail) from exc
 
 
 def _sha(value):
@@ -100,8 +122,9 @@ def _refuse(code, detail):
     raise RenderStageError(code, detail)
 
 
-def check_request(request):
-    """The request, checked. Refuses the first problem with a typed code; returns the request unchanged."""
+def check_request(request, gpu_draft=False):
+    """The request, checked. Refuses the first problem with a typed code; returns the request unchanged. A
+    gpu_window request refuses gpu_window_not_v1 unless gpu_draft (check --gpu-draft) asks for its plan only."""
     if not isinstance(request, dict):
         _refuse("request_invalid", "the request is not a JSON object")
     extra, missing = sorted(set(request) - REQUEST_KEYS), sorted(REQUEST_KEYS - set(request))
@@ -117,7 +140,7 @@ def check_request(request):
     if not isinstance(request["job_id"], str) or not ID.fullmatch(request["job_id"]):
         _refuse("token_invalid", "job_id must be a job id")
     if request["edition"] not in EDITIONS_V1:
-        _refuse("edition_not_v1", f"v1 renders {', '.join(EDITIONS_V1)} only; a client or KSL edition needs its tenant")
+        _refuse("edition_not_v1", f"v1 renders {', '.join(EDITIONS_V1)} only; a client edition needs its own tenant")
     if not isinstance(request["video_utils_commit"], str) or not COMMIT.fullmatch(request["video_utils_commit"]):
         _refuse("commit_invalid", "video_utils_commit must be a 40-hex commit")
     if not isinstance(request["worker_image"], str) or not IMAGE.fullmatch(request["worker_image"]):
@@ -126,6 +149,12 @@ def check_request(request):
         _refuse("until_invalid", f"the render stage stops at {', '.join(UNTIL)}; delivery is deliver_internal's")
     check_inputs(request["inputs"])
     check_voice(request["voice"], request["lease"])
+    if request["voice"]["mode"] == "gpu_window" and not gpu_draft:
+        _refuse(
+            "gpu_window_not_v1",
+            "v1 runs no GPU window: no TIN-5397 notice poster exists yet (R3) and no lease or batch receipt binds a"
+            " voice; use from_run, or check --gpu-draft for the plan only",
+        )
     return request
 
 
@@ -164,6 +193,9 @@ def check_voice(voice, lease):
 
 
 def check_lease(lease):
+    """The Lease binding's form (LEASE_RESOLUTION): the guard's holder form, the window cap, a sha256-shaped helper
+    pin and a UUID-shaped notice comment id on TIN-5397. It does not prove the comment exists or names the holder,
+    or that a helper hashes to the pin."""
     if not isinstance(lease, dict) or set(lease) != LEASE_KEYS:
         _refuse("lease_missing", f"a GPU window needs lease with {sorted(LEASE_KEYS)}")
     if lease["lease"] != LEASE_NAME:
@@ -230,7 +262,7 @@ def phases(request):
     gpu = request["voice"]["mode"] == "gpu_window"
     rows = [
         {"id": "verify_inputs", "gpu": False, "runs": "render-stage check --inputs"},
-        {"id": "intake", "gpu": False, "runs": "narrate video intake"},
+        {"id": "intake", "gpu": False, "runs": "narrate video intake --out JOB/intake, then init --from"},
     ]
     if gpu:
         lease = request["lease"]
@@ -240,7 +272,13 @@ def phases(request):
                 "id": "voice_gpu",
                 "gpu": True,
                 "runs": "lease helper run -- audiocpp_batch.py run",
-                "lease": {"lease": lease["lease"], "holder": lease["holder"], "max_seconds": lease["max_seconds"]},
+                "lease": {
+                    "lease": lease["lease"],
+                    "holder": lease["holder"],
+                    "max_seconds": lease["max_seconds"],
+                    "resolution": LEASE_RESOLUTION,
+                    "verify_before_run": list(LEASE_VERIFIED_BY_VOICE_GPU),
+                },
             },
             {"id": "voice_render", "gpu": False, "runs": "narrate render --prerendered"},
         ]
@@ -252,17 +290,92 @@ def phases(request):
     return rows
 
 
-def plan(request):
-    check_request(request)
+def plan(request, gpu_draft=False):
+    check_request(request, gpu_draft)
+    gpu = request["voice"]["mode"] == "gpu_window"
     return {
         "ok": True,
         "kind": "narrate_render_stage_plan",
         "request_sha256": canonical_sha256(request),
         "run_id": request["run_id"],
         "job_id": request["job_id"],
-        "gpu": request["voice"]["mode"] == "gpu_window",
+        "gpu": gpu,
+        "draft": gpu,
         "phases": phases(request),
     }
+
+
+def check_worker(request, root, env=None):
+    """verify_inputs on the worker: the request, the worker's commit, then every mounted input. Refuses before any
+    phase writes or takes the Lease. Returns the plan with inputs_checked."""
+    out = plan(request)
+    check_commit(request, env)
+    out["inputs_checked"] = check_input_dir(request["inputs"], root)
+    return out
+
+
+def _obj(value):
+    return value if isinstance(value, dict) else {}
+
+
+def _intake_file(directory, name):
+    path = directory / name
+    if path.is_symlink() or not path.is_file():
+        _refuse("intake_missing", f"the job's intake holds no {name}; run intake with --out JOB/{INTAKE_DIR}")
+    return path
+
+
+def _intake_json(path):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise RenderStageError("intake_invalid", f"{path.name} is not JSON") from exc
+
+
+def intake_binding(request, store, job):
+    """The sha256 of the job's intake.json, after binding the request to it. The intake at JOB/intake must have
+    written the store's job.json and read the request's bundle manifest, records tree and denylist; any other
+    intake refuses input_binding_mismatch."""
+    directory = store.dir / INTAKE_DIR
+    if directory.is_symlink():
+        _refuse("intake_missing", f"JOB/{INTAKE_DIR} is a symlink")
+    manifest_path = _intake_file(directory, "intake.json")
+    record_path = _intake_file(directory, "narrated-video.json")
+    intake = _intake_json(manifest_path)
+    if not isinstance(intake, dict) or intake.get("kind") != INTAKE_KIND:
+        _refuse("intake_invalid", f"intake.json is not {INTAKE_KIND}")
+    if sha256_file(record_path) != _obj(intake.get("outputs")).get("narrated-video.json"):
+        _refuse("input_binding_mismatch", "narrated-video.json does not hash to the digest intake.json holds")
+    try:
+        written = check_shape(_intake_json(record_path))
+    except JobError as exc:
+        raise RenderStageError("input_binding_mismatch", "the intake's narrated-video.json is not a job") from exc
+    if written != job:
+        _refuse("input_binding_mismatch", "the store's job.json is not the record this intake wrote")
+    if intake.get("job_id") != request["job_id"] or intake.get("edition") != request["edition"]:
+        _refuse("input_binding_mismatch", "the intake wrote another job id or edition than the request names")
+    read = {
+        "bundle_manifest_sha256": _obj(intake.get("bundle")).get("manifest_sha256"),
+        "records_sha256": _obj(intake.get("inputs")).get("records_sha256"),
+        "denylist_sha256": _obj(intake.get("private_terms")).get("denylist_sha256"),
+    }
+    for name, digest in read.items():
+        if digest != request["inputs"].get(name):
+            _refuse("input_binding_mismatch", f"the intake read another {name} than the request names")
+    return sha256_file(manifest_path)
+
+
+def machine_gates(gates, delivery_gate):
+    """True when every machine gate (accept.AUTOMATED) passed or does not apply. A gate table missing one, or a
+    delivery_gate whose machine_gates_passed disagrees, refuses deliver_check_invalid."""
+    missing = [g for g in accept.AUTOMATED if g not in gates]
+    if missing:
+        _refuse("deliver_check_invalid", f"deliver_check holds no {', '.join(missing)} gate")
+    passed = all(gates[g] in ("passed", "not_applicable") for g in accept.AUTOMATED)
+    recorded = delivery_gate.get("machine_gates_passed") if isinstance(delivery_gate, dict) else None
+    if recorded is not passed:
+        _refuse("deliver_check_invalid", "delivery_gate.machine_gates_passed is missing or disagrees with the gates")
+    return passed
 
 
 def voice_runs(store, job):
@@ -287,6 +400,7 @@ def result(request, store, env=None):
     if job.get("edition") != request["edition"]:
         _refuse("edition_mismatch", "the job's edition is not the request's")
     render, gates = accept.render_of(store, job)
+    intake_sha256 = intake_binding(request, store, job)
     manifest = store.manifest("deliver_check")
     report = (manifest.get("outputs") or {}).get("deliver_check.json")
     if not _sha(report):
@@ -300,7 +414,7 @@ def result(request, store, env=None):
             _refuse("stage_corrupt", f"{node_id} fails re-hashing")
         stages[node_id] = row["content_sha256"]
     measurements = manifest.get("measurements") or {}
-    machine = {g: gates[g] for g in ("profile", "loudness", "flash", "captions") if g in gates}
+    machine_passed = machine_gates(gates, measurements.get("delivery_gate"))
     return {
         "kind": RESULT_KIND,
         "schema_version": SCHEMA_VERSION,
@@ -312,8 +426,12 @@ def result(request, store, env=None):
         "video_utils_commit": request["video_utils_commit"],
         "worker_image": request["worker_image"],
         "job_sha256": keys.digest(job),
+        "intake_sha256": intake_sha256,
+        "inputs_bound_by": {name: BOUND_BY[name] for name in INPUTS if request["inputs"].get(name) is not None},
         "voice": {"mode": request["voice"]["mode"], "runs": runs},
-        "lease": None if request["lease"] is None else {"holder": request["lease"]["holder"]},
+        # v1 results are from_run only (check_request), so no Lease attests this voice. A gpu_window result would
+        # need the helper's run receipt and the batch receipt by digest.
+        "lease": None,
         "outputs": {
             "video_sha256": render["video_sha256"],
             "deliver_check": render["deliver_check"] | {"report_sha256": report},
@@ -322,7 +440,7 @@ def result(request, store, env=None):
         "deliver_check": {
             "gates": gates,
             "delivery_gate": measurements.get("delivery_gate"),
-            "machine_passed": bool(machine) and all(v in ("passed", "not_applicable") for v in machine.values()),
+            "machine_passed": machine_passed,
             "pending_operator": sorted(g for g, v in gates.items() if v == "pending_operator"),
         },
     }
@@ -368,7 +486,10 @@ def export(store, value, directory):
     target = directory / f"{digest}.json"
     if target.is_symlink():
         _refuse("export_symlink", f"{target.name} is a symlink")
-    if not target.exists():
+    if target.exists():
+        if sha256_file(target) != digest:
+            _refuse("export_conflict", f"{target.name} exists with other content")
+    else:
         tmp = directory / f".{digest}.json.partial"
         tmp.write_bytes(body)
         os.replace(tmp, target)

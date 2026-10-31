@@ -10,7 +10,7 @@
 #
 # The narrate and condense sources and program/ come from this repository at the flake's revision. `commit` is that
 # revision, baked into VIDEO_UTILS_COMMIT, which the render stage compares with the request's video_utils_commit. A
-# dirty tree has no revision, so the image sets no commit and every result refuses commit_unknown.
+# dirty tree has no revision, so the image sets no commit and verify_inputs and every result refuse commit_unknown.
 #
 # FFmpeg and whisper.cpp come from the condense nixpkgs pin (ffmpeg 8.1.2, whisper-cpp 1.8.4), the same tools the
 # condense dev shell gives the narrate recipes. Built on demand, never by `just check`; nothing here pushes it.
@@ -58,9 +58,16 @@ in
       mkdir -p work tmp inputs out
       chmod 1777 tmp
     '';
+    # The customisation layer is root-owned unless fakeroot says otherwise. /work (HOME and the stage store) and
+    # /out (the --export target) belong to the worker user, so user 10001 can write them without a volume. A volume
+    # mounted over either must be writable by 10001 too. /inputs stays root-owned: its mounts are read-only.
+    fakeRootCommands = ''
+      chown 10001:10001 work out
+      chmod 0755 work out inputs
+    '';
     config = {
       User = "10001:10001";
-      WorkingDir = "/share/video-utils";
+      WorkingDir = "/work";
       # -s and PYTHONSAFEPATH keep user site-packages and the working directory off sys.path; PYTHONPATH names
       # the one tree. (-I would also drop PYTHONPATH.)
       Entrypoint = ["${python3}/bin/python3" "-s" "-B" "-m" "narrate" "video" "render-stage"];

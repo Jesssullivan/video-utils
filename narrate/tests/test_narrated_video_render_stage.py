@@ -9,13 +9,16 @@ import copy
 import hashlib
 import importlib.util
 import json
+import os
 
 import pytest
 from test_narrated_video_accept import gates_for
 from test_narrated_video_graph import FPS, example, new_store, plain_ctx, records
+from test_narrated_video_intake import intake as run_intake
+from test_narrated_video_intake import no_whisper, ws  # noqa: F401  (fixtures)
 
 from narrate.config import ROOT
-from narrate.video import cli, graph, keys, render_stage
+from narrate.video import accept, cli, graph, keys, render_stage, store
 from narrate.video.job import JobError
 
 COMMIT = "a" * 40
@@ -81,11 +84,23 @@ def test_a_from_run_request_plans_no_gpu_phase():
     assert out["request_sha256"] == keys.digest(request())
 
 
-def test_a_gpu_request_puts_the_lease_on_voice_gpu_only():
-    out = render_stage.plan(gpu_request())
+def test_v1_refuses_a_gpu_window_outside_the_draft_plan():
+    assert refused(render_stage.check_request, gpu_request()) == "gpu_window_not_v1"
+    assert refused(render_stage.plan, gpu_request()) == "gpu_window_not_v1"
+
+
+def test_a_gpu_draft_puts_the_lease_on_voice_gpu_only_and_labels_it_form_only():
+    out = render_stage.plan(gpu_request(), gpu_draft=True)
+    assert out["draft"] is True
     held = [p for p in out["phases"] if p["gpu"]]
     assert [p["id"] for p in held] == ["voice_gpu"]
-    assert held[0]["lease"] == {"lease": "gpu-lease", "holder": HOLDER, "max_seconds": 1500}
+    assert held[0]["lease"] == {
+        "lease": "gpu-lease",
+        "holder": HOLDER,
+        "max_seconds": 1500,
+        "resolution": "form_only",
+        "verify_before_run": ["notice_comment_on_ticket_names_holder", "helper_hashes_to_helper_sha256"],
+    }
     assert [p["id"] for p in out["phases"]].index("voice_plan") < [p["id"] for p in out["phases"]].index("voice_gpu")
 
 
@@ -134,19 +149,19 @@ def test_inputs_are_digests_only():
     ],
 )
 def test_a_gpu_window_needs_the_guard_holder_form_a_pinned_helper_and_its_notice(change, code):
-    assert refused(render_stage.check_request, gpu_request(**change)) == code
+    assert refused(render_stage.check_request, gpu_request(**change), gpu_draft=True) == code
 
 
 def test_voice_modes_do_not_mix():
     no_lease = request(voice={"mode": "gpu_window", "runs": None})
-    assert refused(render_stage.check_request, no_lease) == "lease_missing"
+    assert refused(render_stage.check_request, no_lease, gpu_draft=True) == "lease_missing"
     adopted_with_lease = gpu_request()
     adopted_with_lease["voice"] = {"mode": "from_run", "runs": {"seg-1": RUN}}
     assert refused(render_stage.check_request, adopted_with_lease) == "lease_unneeded"
     assert refused(render_stage.check_request, request(voice={"mode": "from_run", "runs": {}})) == "voice_runs_missing"
     gpu_with_runs = gpu_request()
     gpu_with_runs["voice"]["runs"] = {"seg-1": RUN}
-    assert refused(render_stage.check_request, gpu_with_runs) == "voice_runs_unexpected"
+    assert refused(render_stage.check_request, gpu_with_runs, gpu_draft=True) == "voice_runs_unexpected"
 
 
 def test_the_holder_form_is_finalize_py_s():
@@ -208,8 +223,25 @@ def test_a_symlinked_or_missing_input_refuses(tmp_path):
     assert refused(render_stage.check_input_dir, value["inputs"], tmp_path) == "input_missing"
 
 
+def test_a_fifo_in_an_input_tree_refuses_before_it_is_read(tmp_path):
+    value = write_inputs(tmp_path)
+    records_dir = tmp_path / value["inputs"]["records_sha256"]
+    os.mkfifo(records_dir / "pipe")
+    assert refused(render_stage.check_input_dir, value["inputs"], tmp_path) == "input_irregular"
+    assert refused(render_stage.tree_sha256, records_dir) == "input_irregular"
+
+
+def test_check_inputs_compares_the_worker_commit_before_any_input(tmp_path):
+    value = write_inputs(tmp_path)
+    out = render_stage.check_worker(value, tmp_path, ENV)
+    assert sorted(out["inputs_checked"]) == sorted(k for k, v in value["inputs"].items() if v is not None)
+    assert refused(render_stage.check_worker, value, tmp_path, {}) == "commit_unknown"
+    assert refused(render_stage.check_worker, value, tmp_path, {"VIDEO_UTILS_COMMIT": "d" * 40}) == "commit_mismatch"
+    assert refused(render_stage.check_worker, gpu_request(), tmp_path, ENV) == "gpu_window_not_v1"
+
+
 # The result ------------------------------------------------------------------------------------------------------
-def fields_for(node_id, partial, key, job):
+def fields_for(node_id, partial, key, job, gates=None, report=True):
     if node_id == "base":
         return {"measurements": {"fps": FPS}}
     if node_id.startswith("voice/"):
@@ -217,13 +249,40 @@ def fields_for(node_id, partial, key, job):
     if node_id == "compose":
         (partial / "video.mp4").write_bytes(b"synthetic cut " + key.encode())
     if node_id == "deliver_check":
-        gates = gates_for(job)
-        (partial / "deliver_check.json").write_text(json.dumps({"kind": "nv_deliver_check", "gates": gates}))
-        return {"measurements": {"gates": gates, "delivery_gate": {"upload_gates_closed": False}}}
+        gates = gates_for(job) if gates is None else gates
+        if report:
+            (partial / "deliver_check.json").write_text(json.dumps({"kind": "nv_deliver_check", "gates": gates}))
+        machine = all(gates.get(g) in ("passed", "not_applicable") for g in accept.AUTOMATED)
+        return {
+            "measurements": {
+                "gates": gates,
+                "delivery_gate": {"machine_gates_passed": machine, "upload_gates_closed": False},
+            }
+        }
     return {}
 
 
-def settle(job, recs, s, ctx):
+def write_intake(s, job, read, **changes):
+    """A synthetic intake at JOB/intake, as `narrate video intake --out JOB/intake` writes one: the record init
+    --from read and the manifest that names the inputs it read."""
+    directory = s.dir / "intake"
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "narrated-video.json").write_text(json.dumps(job, indent=1, sort_keys=True))
+    manifest = {
+        "kind": "nv_bundle_intake",
+        "schema_version": 1,
+        "bundle": {"slug": "demo-fixture", "manifest_sha256": read["bundle_manifest_sha256"]},
+        "inputs": {"records_sha256": read["records_sha256"]},
+        "job_id": job["id"],
+        "edition": job["edition"],
+        "private_terms": {"status": "not_declared", "denylist_sha256": read["denylist_sha256"]},
+        "outputs": {"narrated-video.json": render_stage.sha256_file(directory / "narrated-video.json")},
+    } | changes
+    (directory / "intake.json").write_text(json.dumps(manifest))
+    return manifest
+
+
+def settle(job, recs, s, ctx, **fields):
     for _ in range(30):
         g = graph.plan(job, recs, s, ctx)
         if not g["runnable"]:
@@ -233,16 +292,22 @@ def settle(job, recs, s, ctx):
             key = keys.stage_key(document)
             partial = s.begin(node_id, key)
             (partial / "out.json").write_text(json.dumps({"node": node_id, "key": key}))
-            s.commit(node_id, key, document, fields_for(node_id, partial, key, job))
+            s.commit(node_id, key, document, fields_for(node_id, partial, key, job, **fields))
+            if node_id == "deliver_check":
+                write_intake(s, job, request()["inputs"])
     raise AssertionError("the graph did not settle")
+
+
+def settled(tmp_path, **fields):
+    job, recs = example("nv-fixture-card"), records()
+    s = new_store(tmp_path, job)
+    settle(job, recs, s, plain_ctx(), **fields)
+    return job, s
 
 
 @pytest.fixture
 def card(tmp_path):
-    job, recs = example("nv-fixture-card"), records()
-    s = new_store(tmp_path, job)
-    settle(job, recs, s, plain_ctx())
-    return job, s
+    return settled(tmp_path)
 
 
 def adopted_request(job):
@@ -265,6 +330,14 @@ def test_the_result_names_every_output_by_digest_and_returns_deliver_check(card)
     assert value["deliver_check"]["machine_passed"] is True
     assert "listening" in value["deliver_check"]["pending_operator"]
     assert value["job_sha256"] == keys.digest(job)
+    assert value["intake_sha256"] == render_stage.sha256_file(s.dir / "intake" / "intake.json")
+    assert value["inputs_bound_by"] == {
+        "bundle_manifest_sha256": "intake",
+        "records_sha256": "intake",
+        "engine_record_sha256": "mount_only",
+        "lexical_release_sha256": "records_pin",
+    }
+    assert value["lease"] is None
     text = json.dumps(value)
     assert str(s.dir) not in text and str(s.dir.parent) not in text
     # the only slashes are the stage[/segment] node ids that key outputs.stages
@@ -281,6 +354,87 @@ def test_the_result_refuses_another_commit_job_or_voice(card):
     other["voice"]["runs"] = {seg["id"]: "e" * 64 for seg in job["segments"]}
     assert refused(render_stage.result, other, s, ENV) == "voice_run_mismatch"
     assert refused(render_stage.result, request(job_id="nv-other"), s, ENV) == "job_mismatch"
+    gpu = gpu_request()
+    gpu["job_id"] = job["id"]
+    assert refused(render_stage.result, gpu, s, ENV) == "gpu_window_not_v1"
+
+
+# Input binding ---------------------------------------------------------------------------------------------------
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"bundle": {"slug": "demo-fixture", "manifest_sha256": "f" * 64}},
+        {"inputs": {"records_sha256": "f" * 64}},
+        {"inputs": {"records_sha256": None}},
+        {"private_terms": {"status": "passed", "denylist_sha256": "f" * 64}},
+        {"job_id": "nv-other"},
+        {"edition": "ClientNarrated"},
+        {"outputs": {"narrated-video.json": "f" * 64}},
+    ],
+)
+def test_a_job_intaken_from_other_inputs_refuses_the_result(card, change):
+    job, s = card
+    write_intake(s, job, request()["inputs"], **change)
+    assert refused(render_stage.result, adopted_request(job), s, ENV) == "input_binding_mismatch"
+
+
+def test_a_missing_or_other_intake_refuses_the_result(card):
+    job, s = card
+    other = copy.deepcopy(job)
+    other["labels"]["persona"] = "someone else"
+    write_intake(s, other, request()["inputs"])
+    assert refused(render_stage.result, adopted_request(job), s, ENV) == "input_binding_mismatch"
+    (s.dir / "intake" / "intake.json").write_text("not json")
+    assert refused(render_stage.result, adopted_request(job), s, ENV) == "intake_invalid"
+    (s.dir / "intake" / "intake.json").unlink()
+    assert refused(render_stage.result, adopted_request(job), s, ENV) == "intake_missing"
+
+
+def test_a_real_intake_records_what_it_read_and_binds_the_request(ws, tmp_path):  # noqa: F811
+    root = tmp_path / "narrated"
+    out = root / "demo-fixture" / "intake"
+    manifest = run_intake(ws, out)
+    assert manifest["inputs"] == {"records_sha256": render_stage.tree_sha256(ws["records"])}
+    common = ["--root", str(root), "--records", str(out / "records"), "--store", str(ws["store"])]
+    assert cli.main(["init", "--job", "demo-fixture", "--from", str(out / "narrated-video.json"), *common]) == 0
+    s = store.JobStore(root, "demo-fixture")
+    job = s.read_job()
+    value = request(job_id="demo-fixture")
+    value["inputs"] |= {
+        "bundle_manifest_sha256": render_stage.sha256_file(ws["bundle"] / "manifest.json"),
+        "records_sha256": render_stage.tree_sha256(ws["records"]),
+    }
+    assert render_stage.intake_binding(value, s, job) == render_stage.sha256_file(out / "intake.json")
+    other = copy.deepcopy(value)
+    other["inputs"]["records_sha256"] = render_stage.tree_sha256(out / "records")  # the merged copy, not the input
+    assert refused(render_stage.intake_binding, other, s, job) == "input_binding_mismatch"
+
+
+# deliver_check ---------------------------------------------------------------------------------------------------
+def test_a_failed_machine_gate_gives_machine_passed_false(tmp_path):
+    job = example("nv-fixture-card")
+    job, s = settled(tmp_path, gates=gates_for(job) | {"loudness": "failed"})
+    value = render_stage.result(adopted_request(job), s, ENV)
+    assert value["deliver_check"]["machine_passed"] is False
+
+
+def test_a_missing_machine_gate_refuses(tmp_path):
+    gates = gates_for(example("nv-fixture-card"))
+    del gates["captions"]
+    job, s = settled(tmp_path, gates=gates)
+    assert refused(render_stage.result, adopted_request(job), s, ENV) == "deliver_check_invalid"
+
+
+def test_a_deliver_check_without_its_report_refuses(tmp_path):
+    job, s = settled(tmp_path, report=False)
+    assert refused(render_stage.result, adopted_request(job), s, ENV) == "deliver_check_report_missing"
+
+
+def test_a_corrupt_stage_refuses_the_result(card):
+    job, s = card
+    base = s.dir / s.entry("base")["dir"] / "out.json"
+    base.write_text('{"tampered": true}')
+    assert refused(render_stage.result, adopted_request(job), s, ENV) == "stage_corrupt"
 
 
 def test_a_job_edit_after_deliver_check_refuses_the_result(card):
@@ -301,8 +455,24 @@ def test_export_writes_by_sha256_and_is_idempotent(card, tmp_path):
     for name in first.values():
         assert render_stage.sha256_file(out / name) == name.split(".")[0]
     assert render_stage.export(s, value, out) == first
+    (out / first["result"]).write_text("tampered")
+    assert refused(render_stage.export, s, value, out) == "export_conflict"
+    (out / first["result"]).unlink()
     (out / first["video"]).write_bytes(b"tampered")
     assert refused(render_stage.export, s, value, out) == "export_conflict"
+
+
+def test_export_refuses_a_symlinked_target_and_a_copy_that_does_not_hash(card, tmp_path):
+    job, s = card
+    value = render_stage.result(adopted_request(job), s, ENV)
+    out = tmp_path / "out"
+    out.mkdir()
+    (out / (value["outputs"]["video_sha256"] + ".mp4")).symlink_to(tmp_path / "elsewhere.mp4")
+    assert refused(render_stage.export, s, value, out) == "export_symlink"
+    (out / (value["outputs"]["video_sha256"] + ".mp4")).unlink()
+    (s.dir / s.entry("compose")["dir"] / "video.mp4").write_bytes(b"changed after the result")
+    assert refused(render_stage.export, s, value, out) == "export_digest_mismatch"
+    assert sorted(p.name for p in out.iterdir()) == []
 
 
 def test_the_cli_checks_and_reports(card, tmp_path, capsys, monkeypatch):
@@ -315,6 +485,29 @@ def test_the_cli_checks_and_reports(card, tmp_path, capsys, monkeypatch):
     root = str(s.dir.parent)
     assert cli.main(["render-stage", "result", job["id"], "--request", str(path), "--root", root]) == 0
     assert json.loads(capsys.readouterr().out)["outputs"]["video_sha256"]
+    assert cli.main(["render-stage", "result", "--request", str(path), "--root", root]) == 1
+    assert json.loads(capsys.readouterr().err)["refused"] == "usage"
     path.write_text(json.dumps(request(run_id="a b")))
     assert cli.main(["render-stage", "check", "--request", str(path)]) == 1
     assert json.loads(capsys.readouterr().err)["refused"] == "token_invalid"
+
+
+def test_the_cli_check_inputs_path(tmp_path, capsys, monkeypatch):
+    inputs = tmp_path / "inputs"
+    value = write_inputs(inputs)
+    path = tmp_path / "request.json"
+    path.write_text(json.dumps(value))
+    monkeypatch.setenv("VIDEO_UTILS_COMMIT", COMMIT)
+    assert cli.main(["render-stage", "check", "--request", str(path), "--inputs", str(inputs)]) == 0
+    assert "records_sha256" in json.loads(capsys.readouterr().out)["inputs_checked"]
+    monkeypatch.setenv("VIDEO_UTILS_COMMIT", "d" * 40)
+    assert cli.main(["render-stage", "check", "--request", str(path), "--inputs", str(inputs)]) == 1
+    assert json.loads(capsys.readouterr().err)["refused"] == "commit_mismatch"
+    gpu = tmp_path / "gpu.json"
+    gpu.write_text(json.dumps(gpu_request()))
+    assert cli.main(["render-stage", "check", "--request", str(gpu)]) == 1
+    assert json.loads(capsys.readouterr().err)["refused"] == "gpu_window_not_v1"
+    assert cli.main(["render-stage", "check", "--request", str(gpu), "--gpu-draft"]) == 0
+    assert json.loads(capsys.readouterr().out)["draft"] is True
+    assert cli.main(["render-stage", "check", "--request", str(gpu), "--gpu-draft", "--inputs", str(inputs)]) == 1
+    assert json.loads(capsys.readouterr().err)["refused"] == "usage"
