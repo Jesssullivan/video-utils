@@ -403,7 +403,7 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
 | `accept JOB --gate G --decision ID --video-sha256 HEX` | `just nv-accept JOB GATE DECISION VIDEO` | records the operator's acceptance of `listening` or `lip_sync` for the current `deliver_check` render, by Softproxy decision id and the sha256 of the cut it saw. See "Operator acceptance" |
 | `subject JOB [--json]` | `just nv-subject` | prints the job's guard subject: every text its records hold that it voices or shows. The Cade narrate worker reads it in its own process for the BS-21 guard. See "Guard subject and cut" |
-| `cut JOB [--json]` | `just nv-cut` | prints the current `deliver_check` render, the operator gates still pending and the gates an acceptance of that render closed. Digests and gate names only. See "Guard subject and cut" |
+| `cut JOB [--json]` | `just nv-cut` | prints the current `deliver_check` render, its machine gate states, the operator gates still pending and the gates an acceptance of that render closed. Digests and gate names only. Refuses `machine_gates_failed` when a machine gate failed. See "Guard subject and cut" |
 
 Paths come from flags or the environment: `--root` (`NARRATED_VIDEO_ROOT`),
 `--records` (`NARRATED_VIDEO_RECORDS`, the directory of `jobs.json`,
@@ -1043,7 +1043,9 @@ An asset's own text, such as a slide, a plot or a clip, is not in the subject.
 The intake's private-terms guard reads it (`private_terms.py`,
 `visible_text.py`), and the `visible_text` gate stays open until a guarded
 intake has read all of it. `subject` refuses `subject_too_large` above 4096
-texts or 200000 characters in one text, the limits the Cade guard holds. A
+texts or 200000 UTF-16 code units in one text, the limits the Cade guard holds.
+The guard measures with JavaScript's `String.length`, so `subject` counts the
+same units: an emoji is 1 Python character and 2 units. A
 segment whose narrate job is not in the records refuses `records_invalid`, and
 a script missing from the store refuses `source_missing`. It writes only a
 scratch copy inside the job directory and removes it. The caller never logs its
@@ -1051,12 +1053,21 @@ output.
 
 `cut` prints the current `deliver_check` render as `accept` binds it: the
 composed video's sha256, the `deliver_check` stage key and content digest, the
-gates still `pending_operator` and the gates an acceptance of that same render
-closed. An acceptance of an earlier cut closes nothing. It holds digests and gate
-names only. The Cade worker's `outbox_post` task names this cut when it asks
-Jess for her decision, and `accept` later checks the same sha256. It refuses as
-`accept` does: `deliver_check_missing`, `deliver_check_corrupt`,
-`deliver_check_stale` or `deliver_check_invalid`.
+machine gate states, `internal_review_allowed`, the gates still
+`pending_operator` and the gates an acceptance of that same render closed. An
+acceptance of an earlier cut closes nothing. It holds digests and gate names
+only. The Cade worker's `outbox_post` task names this cut when it asks Jess for
+her decision, and `accept` later checks the same sha256. It refuses as `accept`
+does: `deliver_check_missing`, `deliver_check_corrupt`, `deliver_check_stale` or
+`deliver_check_invalid`.
+
+`deliver_check` records a failed machine gate as a state and finishes, with
+`delivery_gate.internal_review_allowed` false. `cut` refuses
+`machine_gates_failed` for that cut, and the refusal names the failed gates. A
+cut that failed `flash`, a photosensitivity risk, or `loudness`, `profile` or
+`captions` therefore never reaches Jess as a request for a decision. A
+`deliver_check` with no machine gate state or no `delivery_gate` refuses
+`deliver_check_invalid`.
 
 ## Demo bundle intake
 

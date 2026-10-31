@@ -29,8 +29,9 @@ refuse (narrate/video/accept.py).
 
 subject prints the guard subject of a job: every text its records hold that it voices or shows, which the Cade narrate
 worker reads in its own process for the BS-21 guard and never logs. cut prints the current deliver_check render (the
-composed video's sha256, the deliver_check key and digest) and the operator gates still pending, digests and gate
-names only (narrate/video/subject.py).
+composed video's sha256, the deliver_check key and digest), its machine gate states and the operator gates still
+pending, digests and gate names only, and refuses machine_gates_failed when a machine gate failed
+(narrate/video/subject.py).
 
 intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
 "Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,

@@ -55,8 +55,9 @@ nv-accept job gate decision video *args:
 nv-subject job *args:
     python3 -m narrate video subject {{quote(job)}} {{args}}
 
-# Print the current cut: the composed video's sha256, the deliver_check key and digest, the operator gates still
-# pending and the gates an acceptance of this cut closed. Digests and gate names only. ARGS: --root DIR.
+# Print the current cut: the composed video's sha256, the deliver_check key and digest, the machine gate states, the
+# operator gates still pending and the gates an acceptance of this cut closed. Digests and gate names only. A failed
+# machine gate refuses machine_gates_failed. ARGS: --root DIR.
 nv-cut job *args:
     python3 -m narrate video cut {{quote(job)}} {{args}}
 

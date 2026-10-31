@@ -20,8 +20,11 @@ reads it from each asset's text source (narrate/video/private_terms.py, visible_
 visible_text gate stays open until a guarded intake has read all of it.
 
 cut(store, job) is the current deliver_check render as accept.render_of binds it: the composed video's sha256, the
-deliver_check stage key and content digest, and the operator gates still pending. It holds digests and gate names
-only, so the Cade worker can ask Jess about that cut, and `nv accept` later checks the same digest.
+deliver_check stage key and content digest, the machine gate states, deliver_check's internal-review flag and the
+operator gates still pending. It holds digests and gate names only, so the Cade worker can ask Jess about that cut,
+and `nv accept` later checks the same digest. deliver_check records a failed machine gate as a state, not a refusal
+(narrate/video/deliver.py delivery_gate), so cut refuses machine_gates_failed for it: a cut that failed flash,
+loudness, profile or captions never reaches Jess as an ordinary request for a decision.
 """
 
 from types import SimpleNamespace
@@ -35,9 +38,18 @@ from .job import JobError
 from .speech import script_copy
 
 # xoxd-ai/cade src/bs21-guard.ts MAX_TEXTS and MAX_TEXT: the guard refuses a larger subject, so this refuses first.
+# The guard measures a text with JavaScript's String.length, in UTF-16 code units, so MAX_TEXT counts those units.
 MAX_TEXTS = 4096
 MAX_TEXT = 200_000
 LABEL_FIELDS = (("personaCue", "caption"), ("extraNotice", "description"), ("persona", "label"))
+# deliver.py's machine gate states. A passed or not_applicable gate lets the cut go to internal review.
+MACHINE_STATES = ("passed", "failed", "not_applicable")
+MACHINE_OK = ("passed", "not_applicable")
+
+
+def utf16_units(text):
+    """The length of text as JavaScript's String.length reads it: one unit per BMP code point, two per astral one."""
+    return len(text.encode("utf-16-le", "surrogatepass")) // 2
 
 
 def voiced(records, env, segment, store):
@@ -65,8 +77,8 @@ def texts(job, records, env, store):
         value = job["labels"][key]
         if isinstance(value, str) and value:
             out.append({"field": field, "text": value})
-    if len(out) > MAX_TEXTS or any(len(t["text"]) > MAX_TEXT for t in out):
-        raise JobError("subject_too_large", f"the guard reads at most {MAX_TEXTS} texts of {MAX_TEXT} characters")
+    if len(out) > MAX_TEXTS or any(utf16_units(t["text"]) > MAX_TEXT for t in out):
+        raise JobError("subject_too_large", f"the guard reads at most {MAX_TEXTS} texts of {MAX_TEXT} UTF-16 units")
     return out
 
 
@@ -75,11 +87,38 @@ def subject(job, records, env, store):
     return {"ok": True, "job_id": job["id"], "texts": texts(job, records, env, store)}
 
 
+def machine_gates(store, gates):
+    """The machine gate states of the current deliver_check. Refuses deliver_check_invalid when a state or
+    delivery_gate.internal_review_allowed is missing, and machine_gates_failed when a gate failed or the flag is not
+    true. The refusal names the failed gates, never a measured value."""
+    measurements = (store.manifest("deliver_check") or {}).get("measurements") or {}
+    delivery = measurements.get("delivery_gate")
+    states = {g: gates.get(g) for g in accept.AUTOMATED}
+    allowed = delivery.get("internal_review_allowed") if isinstance(delivery, dict) else None
+    if not isinstance(allowed, bool) or any(v not in MACHINE_STATES for v in states.values()):
+        raise JobError("deliver_check_invalid", "deliver_check holds no machine gate states or no delivery_gate")
+    failed = sorted(g for g, v in states.items() if v not in MACHINE_OK)
+    if failed or not allowed:
+        named = ", ".join(failed) if failed else "delivery_gate.internal_review_allowed"
+        raise JobError("machine_gates_failed", f"deliver_check failed {named}; the cut is not for internal review")
+    return states
+
+
 def cut(store, job):
-    """{ok, job_id, video_sha256, deliver_check, pending_operator, accepted}: the current cut, the gates still open
-    and the gates an acceptance of this same render has closed (accept.same_render). An acceptance of an earlier cut
-    closes nothing here."""
+    """{ok, job_id, video_sha256, deliver_check, machine_gates, internal_review_allowed, pending_operator, accepted}:
+    the current cut, its machine gate states, the operator gates still open and the gates an acceptance of this same
+    render has closed (accept.same_render). An acceptance of an earlier cut closes nothing here. A cut whose machine
+    gates failed refuses machine_gates_failed."""
     render, gates = accept.render_of(store, job)
+    machine = machine_gates(store, gates)
     closed = sorted({row["gate"] for row in accept.read(store)["acceptances"] if accept.same_render(row, render)})
     pending = sorted(g for g, state in gates.items() if state == "pending_operator" and g not in closed)
-    return {"ok": True, "job_id": job["id"], **render, "pending_operator": pending, "accepted": closed}
+    return {
+        "ok": True,
+        "job_id": job["id"],
+        **render,
+        "machine_gates": machine,
+        "internal_review_allowed": True,
+        "pending_operator": pending,
+        "accepted": closed,
+    }
