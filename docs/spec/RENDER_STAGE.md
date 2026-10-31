@@ -97,26 +97,37 @@ repository names the helper only by the sha256 the request pins.
    `lease_notice_missing`.
 3. **Window cap.** `lease.max_seconds` is at most 1800, the 30-minute window `docs/spec/NARRATE.md` sets. The
    helper's `--max-seconds` takes this value. `audiocpp_batch.py --deadline-s` stays under it.
-4. **Helper pin.** The worker hashes the helper before it runs it. A helper that differs from
+4. **Helper pin.** Cade's worker hashes the helper before it runs it. A helper that differs from
    `lease.helper_sha256` does not run, and the window does not start.
-5. **Run.** The window is one helper `run` with `--holder`, `--duration`, `--max-seconds`, `--census-cmd` and
-   `--execute`, whose command is `audiocpp_batch.py run ... --lease-holder H` with `finalize.py` beside it.
-6. **Preempt.** A ringing call preempts the window. The preempt watcher calls
-   `finalize.py finalize --holder H --reason preempted --call-id ID`. The runner stops the engine and writes its
-   receipt. The helper then passes its census gate and releases.
-7. **Release and receipt.** The helper's receipt is the truth. The worker records its `outcome` and `rc_source` in
-   the ledger and replies on the notice comment with the outcome.
+5. **Run.** The window is one helper `run` with `--holder H`, `--duration` of `max_seconds` plus 420,
+   `--max-seconds`, `--census-cmd`, `--receipt` and `--execute`. Its command is `audiocpp_batch.py run ...
+   --lease-holder H`, with `finalize.py` beside it. This is the argv that xoxd-ai/cade `leaseRunArgv` builds for
+   the client-video service.
+6. **Preempt.** A ringing call preempts the window. The host that runs the helper calls the helper's
+   `finalize --holder H --reason preempted --call-id ID`. The runner stops the engine and writes its receipt. The
+   helper then passes its census gate and releases. Hatchet cancellation of the GPU task maps to that finalize and
+   never to SIGKILL, because SIGKILL of the helper skips the release.
+7. **Release and receipt.** The helper's run receipt is the truth. Cade records its digest in the ledger and
+   replies on the notice comment with its `outcome`.
 8. **Resume.** A later tick takes a new holder and posts a new notice. It runs `audiocpp_batch.py run --only-missing`
    against the same plan digest, so finished WAVs stay.
 
-| Helper exit | Meaning | Task outcome |
+Cade classifies the window from the helper's run receipt, not from an exit code, because the helper passes a clean
+run's command exit through. The hardware render reuses the client-video lifecycle as merged in xoxd-ai/cade
+(`docs/CLIENT_VIDEO_SERVICE.md`, "Run states and failure states", and `runFactsFromReceipt`). A receipt it cannot
+read counts as `release-unknown`. In summary:
+
+| Receipt outcome | State | Next |
 | --- | --- | --- |
-| 0 | done, the command's own exit 0 | continue to `voice_render` |
-| 1 | refused: held, CAS lost, owner changed or GPU busy before the acquire | re-queue with backoff. Not a failure |
-| 2 | bad input | dead-letter. The request or the worker is wrong |
-| 3 | needs reconciliation: release or acquire unknown, or the census gate kept the Lease | dead-letter with one operator-class notice. No retry and no takeover |
-| 127 | the command did not start. The Lease is released | dead-letter |
-| other | the command's own exit, per `rc_source` | `audiocpp_batch.py`'s exit 20 or a stop: resume on a later tick |
+| `released` with command exit 0 | Rendered | `voice_render` |
+| `released` and preempted | Preempted | requeue after the call with a new holder, up to the deferral cap |
+| `released` with command exit 1 or 20 | Partial or TimeCapped | requeue with `--only-missing` while windows remain |
+| `not-acquired` | LeaseBusy | retry later. Not a failure |
+| `acquire-unknown`, `census-failed-lease-kept` or `release-unknown` | NeedsReconcile | dead-letter with one operator-class notice. No retry and no takeover |
+| `refused`, `refused-input`, command exit 2, helper exit 127 or any other exit | Refused or Failed | stop and alert |
+
+The client-video contract lets `maxSeconds` reach 6780. The hardware render keeps the 1800-second cap of
+`docs/spec/NARRATE.md`, which is the stricter of the two.
 
 An expired holder is still a holder. The worker never treats expiry as permission to take over.
 
