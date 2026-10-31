@@ -34,6 +34,7 @@ from . import claims as gate
 from . import private_terms, visible_text
 from .admit import admit, port
 from .job import DEFAULTS, ID, RECORD_FILES, SHA256, JobError, check_shape, load_records
+from .store import tree_sha256
 
 MANIFEST, SCRIPT, CLAIMS = "manifest.json", "script.md", "claims.json"
 MAX_JSON_BYTES = 4 * 1024 * 1024
@@ -875,6 +876,7 @@ def guarded_intake(
     if refused:
         raise refused
     records = load_records(records_dir, marker_optional=True)
+    b["records_sha256"] = records_tree(records_dir)
     job, jobs = convert(
         b, records, job_id=job_id, template=template, voice=voice, engine=engine, persona=persona, tail_s=tail_s
     )
@@ -998,6 +1000,7 @@ def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, 
         "schema_version": 1,
         "linear": "TIN-7735",
         "bundle": {"slug": b["slug"]} | b["digests"],
+        "inputs": {"records_sha256": b["records_sha256"]},
         "job_id": job["id"],
         "job_sha256": hashlib.sha256(canonical(job).encode()).hexdigest(),
         "edition": job["edition"],
@@ -1017,6 +1020,16 @@ def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, 
     }  # fmt: skip
     write_json(staging / "intake.json", manifest)
     return manifest
+
+
+def records_tree(records_dir):
+    """The tree digest of the input records directory (store.tree_sha256), which the render stage binds its request's
+    records_sha256 to (docs/spec/RENDER_STAGE.md). None when the tree holds a symlink or a file that is not regular:
+    intake still reads such records, but no render stage request can bind them."""
+    try:
+        return tree_sha256(records_dir)
+    except JobError:
+        return None
 
 
 def text_source(asset):
