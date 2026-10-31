@@ -4,7 +4,7 @@
   # Talk condensing keeps the revision its edits were made with: ffmpeg 8.1.2, whisper-cpp 1.8.4.
   inputs.nixpkgs-condense.url = "github:NixOS/nixpkgs/7c8764b7c7b09b34f632464276218ef9090eaa11";
 
-  outputs = { nixpkgs, nixpkgs-condense, ... }: let
+  outputs = { self, nixpkgs, nixpkgs-condense, ... }: let
     systems = [ "aarch64-darwin" "x86_64-linux" "aarch64-linux" ];
     forAllSystems = nixpkgs.lib.genAttrs systems;
   in {
@@ -74,6 +74,12 @@
     # x86_64-linux only: the GPU host is x86_64. Built on demand, never by `just check`.
     packages = nixpkgs.lib.genAttrs [ "x86_64-linux" ] (system: {
       narrate-bench-audiocpp = nixpkgs.legacyPackages.${system}.callPackage ./narrate/bench/image/audiocpp.nix {};
+      # The Cade render worker's CPU image (deploy/cade-render-worker/image.nix, docs/spec/RENDER_STAGE.md): no
+      # private input, no GPU binary. Its tools come from the condense pin; its commit is this flake's revision.
+      cade-render-worker-image = nixpkgs-condense.legacyPackages.${system}.callPackage ./deploy/cade-render-worker/image.nix {
+        src = ./.;
+        commit = self.rev or null;
+      };
     });
     formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
   };

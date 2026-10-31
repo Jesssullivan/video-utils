@@ -1,4 +1,5 @@
-"""python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims,accept}.
+"""python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims,accept,
+render-stage}.
 
 The commands are docs/spec/NARRATED_VIDEO.md, "Commands".
 
@@ -26,6 +27,10 @@ render, and only with a Softproxy decision id (sp:dec:<ulid>) and the sha256 of 
 an empty value, a malformed id, a missing or other cut, a machine gate, the visible_text gate and an unknown gate
 refuse (narrate/video/accept.py).
 
+render-stage is the Cade render stage's task body (narrate/video/render_stage.py, docs/spec/RENDER_STAGE.md): check
+validates a request of ids and digests and prints its phases, and result reports a job that ran to deliver_check by
+digest. Neither takes the GPU Lease.
+
 intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
 "Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,
 writes one NarratedVideo record, one narrate job per beat and their sources, and refuses before writing anything when
@@ -46,7 +51,7 @@ from pathlib import Path
 
 from .. import policy
 from ..ir import sha256_file
-from . import accept, bundle, fixture, graph, kitpip, private_terms, speech, store, vrm
+from . import accept, bundle, fixture, graph, kitpip, private_terms, render_stage, speech, store, vrm
 from . import run as runner
 from .common import Env
 from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_job, load_records, read_json
@@ -395,6 +400,30 @@ def cmd_accept(a):
     return 0
 
 
+def read_request(path):
+    try:
+        return json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise render_stage.RenderStageError("request_unreadable", f"the request is not readable JSON: {exc}") from exc
+
+
+def cmd_render_stage(a):
+    request = read_request(a.request)
+    if a.action == "check":
+        out = render_stage.plan(request)
+        if a.inputs:
+            out["inputs_checked"] = render_stage.check_input_dir(request["inputs"], a.inputs)
+        emit(out)
+        return 0
+    if not a.job:
+        return refusal("usage", "result names the job")
+    value = render_stage.result(request, job_store(a, a.job))
+    if a.export:
+        value = value | {"exported": render_stage.export(job_store(a, a.job), value, a.export)}
+    emit(value)
+    return 0
+
+
 def cmd_pin_check(a):
     path = a.externals or os.environ.get(kitpip.EXTERNALS_ENV)
     if getattr(a, "external", "kitpip") == "vrm":
@@ -549,6 +578,14 @@ def main(argv=None):
     )
     acc.add_argument("--json", action="store_true", help="print JSON (accept always does)")
 
+    rs = sub.add_parser("render-stage", help="the Cade render stage's task body: check a request, or report a result")
+    rs.add_argument("action", choices=("check", "result"), help="check: validate and plan; result: report by digest")
+    rs.add_argument("job", nargs="?", help="result: the job id")
+    rs.add_argument("--request", required=True, help="the request JSON (narrate_render_stage_request/1)")
+    rs.add_argument("--inputs", help="check: the inputs root, re-hashing each input at <root>/<sha256>")
+    rs.add_argument("--export", help="result: copy the video, the report and the result here by sha256")
+    rs.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+
     k = sub.add_parser("pin-check", help="check an avatar external's pin against program/externals.json and its binary")
     k.add_argument("--externals", help="the private pin record, instead of NARRATED_VIDEO_EXTERNALS")
     k.add_argument(
@@ -573,6 +610,7 @@ def main(argv=None):
             "intake": cmd_intake,
             "claims": cmd_claims,
             "accept": cmd_accept,
+            "render-stage": cmd_render_stage,
         }
         return commands[a.command](a)
     except bundle.BundleError as exc:
