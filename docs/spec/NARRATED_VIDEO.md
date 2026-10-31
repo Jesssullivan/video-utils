@@ -1047,7 +1047,9 @@ texts or 200000 UTF-16 code units in one text, the limits the Cade guard holds.
 The guard measures with JavaScript's `String.length`, so `subject` counts the
 same units: an emoji is 1 Python character and 2 units. A
 segment whose narrate job is not in the records refuses `records_invalid`, and
-a script missing from the store refuses `source_missing`. It writes only a
+a script missing from the store refuses `source_missing`. A script that does
+not load refuses `input_invalid`, and that refusal quotes none of the script.
+It writes only a
 scratch copy inside the job directory and removes it. The caller never logs its
 output.
 

@@ -90,6 +90,19 @@ def test_a_script_missing_from_the_store_refuses(ws):
     assert exc.value.code == "source_missing"
 
 
+def test_a_script_that_does_not_load_refuses_without_quoting_it(ws):
+    # adapters.py quotes the unreadable timing line, so run_script's detail would carry the script's own words here.
+    script = ws["paths"]["store"] / "unreadable.srt"
+    script.write_text("1\nsynthetic private words --> more of them\nhello\n", encoding="utf-8")
+    digest = fixture.sha(script)
+    ws["env"].index[digest] = script
+    ws["records"]["jobs"][fixture.NARRATE_JOB]["input"] = "Srt"
+    ws["job"]["segments"][0]["scriptSha256"] = digest
+    with pytest.raises(JobError) as exc:
+        subject.texts(ws["job"], ws["records"], ws["env"], ws["store"])
+    assert exc.value.code == "input_invalid" and "synthetic private words" not in exc.value.detail
+
+
 def test_a_subject_the_guard_would_refuse_as_too_large_refuses_first(ws, monkeypatch):
     monkeypatch.setattr(subject, "MAX_TEXT", 4)
     with pytest.raises(JobError) as exc:

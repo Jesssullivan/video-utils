@@ -63,8 +63,9 @@ def voiced(records, env, segment, store):
             return spoken.lines(adapters.load(narrate_job["input"], path))
         except StageRefused as exc:
             raise JobError(exc.code, exc.detail) from None
-        except (InputError, NormaliseError, UnicodeDecodeError, ValueError) as exc:
-            raise JobError("input_invalid", str(exc)[:200]) from None
+        except (InputError, NormaliseError, UnicodeDecodeError, ValueError):
+            # A parser error can quote a line of the script, and a refusal goes to stderr: name the segment only.
+            raise JobError("input_invalid", f"segment {segment['id']}'s script does not load") from None
 
 
 def texts(job, records, env, store):
