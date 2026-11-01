@@ -32,10 +32,11 @@ validates a request of ids and digests and prints its phases (with --inputs it a
 re-hashes the mounted inputs), and result reports a job that ran to deliver_check by digest, bound to the job's
 intake. Neither takes the GPU Lease, and v1 refuses a gpu_window request outside check --gpu-draft.
 
-subject prints the guard subject of a job: every text its records hold that it voices or shows, which the Cade narrate
-worker reads in its own process for the BS-21 guard and never logs. cut prints the current deliver_check render (the
-composed video's sha256, the deliver_check key and digest), its machine gate states and the operator gates still
-pending, digests and gate names only, and refuses machine_gates_failed when a machine gate failed
+subject prints the guard subject of a job: every text its records hold that it voices or labels, written and spoken,
+which the Cade narrate worker reads in its own process for the BS-21 guard and never logs. It refuses shown_text_unread
+for a job that shows an asset when its records carry no guarded intake's marker. cut prints the current deliver_check
+render (the composed video's sha256, the deliver_check key and digest), its machine gate states and the operator gates
+still pending, digests and gate names only, and refuses machine_gates_failed when a machine gate failed
 (narrate/video/subject.py).
 
 intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
@@ -619,7 +620,7 @@ def main(argv=None):
     rs.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
 
     sj = sub.add_parser(
-        "subject", help="print every text the job voices or shows, for the BS-21 guard; the caller never logs it"
+        "subject", help="print every text the job voices or labels, for the BS-21 guard; the caller never logs it"
     )
     common(sj)
     cu = sub.add_parser("cut", help="print the current cut's digests and the operator gates still pending")

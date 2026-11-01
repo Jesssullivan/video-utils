@@ -11,10 +11,10 @@ import test_narrated_video_accept as accept_tests
 from test_narrated_video_accept import GO, avatar_job, video_of  # noqa: F401  (pytest fixture)
 from test_narrated_video_graph import example, new_store, records, stub_ctx
 
-from narrate import adapters, spoken
+from narrate import adapters, lexical, spoken
 from narrate.video import accept, cli, fixture, store, subject
 from narrate.video.common import Env
-from narrate.video.job import JobError, init_job, load_records
+from narrate.video.job import EDITIONS, JobError, init_job, load_records
 
 
 @pytest.fixture
@@ -42,21 +42,148 @@ def expected_narration(ws):
     return spoken.lines(adapters.load(kind, ws["paths"]["script"]))
 
 
-def test_the_subject_lists_the_voiced_text_then_the_ids_and_no_unset_label(ws):
+def test_the_subject_lists_both_forms_of_the_voiced_text_then_the_ids_and_no_unset_label(ws):
     got = subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])
     assert got["ok"] and got["job_id"] == "nv-subject"
     segment = ws["job"]["segments"][0]["id"]
-    assert got["texts"] == [
-        {"field": "narration", "text": expected_narration(ws)},
-        {"field": "title", "text": "nv-subject"},
-        {"field": "title", "text": segment},
-    ]
+    assert [t["field"] for t in got["texts"]] == ["narration", "spoken", "title", "title"]
+    assert got["texts"][0]["text"] == expected_narration(ws)
+    assert got["texts"][2:] == [{"field": "title", "text": "nv-subject"}, {"field": "title", "text": segment}]
+
+
+def table_of(ws):
+    return ws["records"]["pronunciation"][ws["records"]["jobs"][fixture.NARRATE_JOB]["pronunciation"]]
+
+
+def entry(written, said):
+    return {"written": written, "spoken": said, "wholeWord": True, "caseSensitive": True, "note": None}
+
+
+def use_script(ws, text):
+    """Point the job's one segment at a synthetic script in the store."""
+    path = ws["paths"]["store"] / "said.md"
+    path.write_text(text, encoding="utf-8")
+    digest = fixture.sha(path)
+    ws["env"].index[digest] = path
+    ws["job"]["segments"][0]["scriptSha256"] = digest
+
+
+def field(job_texts, name):
+    return [t["text"] for t in job_texts if t["field"] == name]
+
+
+def test_a_pronunciation_substitution_reaches_the_subject_as_the_voice_says_it(ws):
+    # The substitution appears in no written text, so the guard can read it only in the spoken field.
+    use_script(ws, "The Widget ships today.\n")
+    table_of(ws)["entries"].append(entry("Widget", "Sentinel Phrase"))
+    got = subject.texts(ws["job"], ws["records"], ws["env"], ws["store"])
+    assert field(got, "narration") == ["The Widget ships today.\n"]
+    assert field(got, "spoken") == ["The Sentinel Phrase ships today.\n"]
+    assert not any("Sentinel" in t["text"] for t in got if t["field"] != "spoken")
+
+
+def test_an_upstream_substitution_reaches_the_spoken_field(ws, monkeypatch):
+    use_script(ws, "The Widget ships today.\n")
+    upstream = {"id": "fixture-upstream", "language": "en", "entries": [entry("Widget", "Upstream Phrase")]}
+    real = lexical.Release
+
+    def pinned(directory, pin):
+        release = real(directory, pin)
+        release.upstream_pronunciation = upstream
+        return release
+
+    monkeypatch.setattr(subject.lexical, "Release", pinned)
+    got = subject.texts(ws["job"], ws["records"], ws["env"], ws["store"])
+    assert field(got, "spoken") == ["The Upstream Phrase ships today.\n"]
+
+
+def test_the_spoken_field_holds_what_the_chunker_splits(ws):
+    # Each spoken line is one chunk, so a script longer than chunkMaxCodepoints stays whole across the lines.
+    sentences = [f"Sentence number {n} of the synthetic script ends here." for n in ("one", "two", "three", "four")]
+    use_script(ws, " ".join(sentences * 40) + "\n")
+    got = field(subject.texts(ws["job"], ws["records"], ws["env"], ws["store"]), "spoken")[0]
+    assert len(got.splitlines()) > 1
+    assert " ".join(got.split()) == " ".join(sentences * 40)
+
+
+def test_a_narrate_job_with_no_pronunciation_table_refuses(ws):
+    ws["records"]["jobs"][fixture.NARRATE_JOB]["pronunciation"] = "table-none"
+    with pytest.raises(JobError) as exc:
+        subject.texts(ws["job"], ws["records"], ws["env"], ws["store"])
+    assert exc.value.code == "pronunciation_unknown"
+
+
+def test_a_text_the_tables_refuse_to_say_refuses_without_quoting_it(ws):
+    use_script(ws, "The Widget ships today.\n")
+    table_of(ws)["entries"].append(entry("Widget", "Widget 7"))
+    with pytest.raises(JobError) as exc:
+        subject.texts(ws["job"], ws["records"], ws["env"], ws["store"])
+    assert exc.value.code == "pronunciation_refused" and "Widget" not in exc.value.detail
+
+
+def test_a_subject_without_its_lexical_release_refuses(ws):
+    ws["env"].lexical = None
+    with pytest.raises(JobError) as exc:
+        subject.texts(ws["job"], ws["records"], ws["env"], ws["store"])
+    assert exc.value.code == "lexical_missing"
+
+
+SHA = "0" * 64
+PICTURE = {"size": {"w": 16, "h": 16}, "fps": {"num": 30, "den": 1}, "tailS": 0.0}
+SHOWN_BASES = {
+    "still": {"sha256": SHA} | PICTURE,
+    "video": {"sha256": SHA, "keepBaseAudio": False},
+    "deck": {"producer": "fixture", "videoSha256": SHA, "timelineSha256": SHA, "stemsSha256": SHA,
+             "tightenEditsSha256": None},
+}  # fmt: skip
+
+
+def slide_pages(*shows):
+    pages = [{"id": f"page-{n}", "startS": n, "endS": n + 1, "show": s} for n, s in enumerate(shows)]
+    return {"layout": "Full", "cardWidth": 0.42, "marginPx": 64, "fadeS": 0.35, "dimTo": 0.5, "pages": pages}
+
+
+@pytest.mark.parametrize("kind", sorted(SHOWN_BASES))
+def test_a_base_that_shows_an_asset_refuses_with_no_guarded_marker(ws, kind):
+    ws["job"]["base"] = {kind: SHOWN_BASES[kind]}
+    with pytest.raises(JobError) as exc:
+        subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])
+    assert exc.value.code == "shown_text_unread" and kind in exc.value.detail
+
+
+def test_a_slide_page_refuses_with_no_guarded_marker_and_names_no_page(ws):
+    ws["job"]["slides"] = slide_pages("Hold", {"slide": {"sha256": SHA}})
+    with pytest.raises(JobError) as exc:
+        subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])
+    assert exc.value.code == "shown_text_unread" and "page-" not in exc.value.detail
+
+
+def test_every_edition_refuses_an_unguarded_shown_asset(ws):
+    ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
+    for edition in EDITIONS:
+        ws["job"]["edition"] = edition
+        with pytest.raises(JobError) as exc:
+            subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])
+        assert exc.value.code == "shown_text_unread"
+
+
+def test_a_card_with_only_base_and_hold_pages_shows_no_asset(ws):
+    assert next(iter(ws["job"]["base"])) == "card"
+    ws["job"]["slides"] = slide_pages("Base", "Hold")
+    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["ok"]
+
+
+@pytest.mark.parametrize("state", ["passed", "partial", "not_recorded"])
+def test_a_guarded_marker_lets_a_shown_asset_through_and_the_gate_holds_the_rest(ws, state):
+    ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
+    ws["records"]["visible_text"] = {"state": state, "unread": [], "opaque": []}
+    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["ok"]
 
 
 def test_each_set_label_joins_the_subject_in_a_fixed_order(ws):
     job = ws["job"]
     job["labels"] = {"persona": "Synthetic narrator", "personaCue": "A synthetic voice", "extraNotice": "Fixture only"}
-    fields = [(t["field"], t["text"]) for t in subject.texts(job, ws["records"], ws["env"], ws["store"])][3:]
+    fields = [(t["field"], t["text"]) for t in subject.texts(job, ws["records"], ws["env"], ws["store"])][4:]
     want = [("caption", "A synthetic voice"), ("description", "Fixture only"), ("label", "Synthetic narrator")]
     assert fields == want
 
@@ -227,6 +354,20 @@ def test_the_cut_of_a_job_with_no_deliver_check_refuses(ws):
     with pytest.raises(JobError) as exc:
         subject.cut(ws["store"], ws["job"])
     assert exc.value.code == "deliver_check_missing"
+
+
+def test_a_cut_refuses_a_damaged_acceptance_record(avatar_job):  # noqa: F811
+    job, _, s = avatar_job
+    record = s.dir / accept.ACCEPTANCE
+    record.write_text("{}", encoding="utf-8")
+    with pytest.raises(JobError) as exc:
+        subject.cut(s, job)
+    assert exc.value.code == "store_invalid"
+    record.unlink()
+    record.symlink_to(s.dir / "current.json")
+    with pytest.raises(JobError) as exc:
+        subject.cut(s, job)
+    assert exc.value.code == "stage_symlink"
 
 
 def test_cli_cut_prints_digests_and_gate_names_only(avatar_job, capsys):  # noqa: F811

@@ -49,9 +49,10 @@ nv-accept job gate decision video *args:
     python3 -m narrate video accept {{quote(job)}} --gate {{quote(gate)}} --decision {{quote(decision)}} \
         --video-sha256 {{quote(video)}} {{args}}
 
-# Print the job's guard subject: every text its records hold that it voices or shows (narration, ids, labels). The
-# Cade narrate worker reads it in its own process for the BS-21 guard (TIN-7788, SPR-220) and never logs it. The
-# store, records and lexical release come from the environment or ARGS.
+# Print the job's guard subject: every text its records hold that it voices or labels (written and spoken narration,
+# ids, labels). It refuses a job that shows an asset with no guarded intake's marker. The Cade narrate worker reads it
+# in its own process for the BS-21 guard (TIN-7788, SPR-220) and never logs it. The store, records and lexical release
+# come from the environment or ARGS.
 nv-subject job *args:
     python3 -m narrate video subject {{quote(job)}} {{args}}
 

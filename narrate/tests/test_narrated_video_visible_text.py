@@ -425,6 +425,26 @@ def test_a_marker_summary_that_disagrees_with_intake_json_refuses(ws, tmp_path, 
         load_records(out / "records")
 
 
+def test_nv_subject_needs_the_guarded_intake_of_a_job_that_shows_a_slide(ws, tmp_path, capsys):
+    private_bundle(ws)
+    add_text_source(ws["bundle"], "slide-a", "slide-a.svg", plot_svg("0"))
+    out = tmp_path / "out"
+    intake(ws, out, denylist=ws["denylist"])
+    common = ["--root", str(tmp_path / "narrated"), "--records", str(out / "records"), "--store", str(ws["store"]),
+              "--lexical", str(ws["lexical"])]  # fmt: skip
+    assert cli.main(["init", "--job", "demo-fixture", "--from", str(out / "narrated-video.json"), *common]) == 0
+    capsys.readouterr()
+    assert cli.main(["subject", "demo-fixture", *common]) == 0
+    fields = {t["field"] for t in json.loads(capsys.readouterr().out)["texts"]}
+    assert {"narration", "spoken", "title"} <= fields
+    # Deleting the marker and intake.json leaves records no guard read: the job still shows its slides.
+    (out / "records" / private_terms.MARKER).unlink()
+    (out / "intake.json").unlink()
+    assert cli.main(["subject", "demo-fixture", *common]) == 1
+    captured = capsys.readouterr()
+    assert captured.out == "" and json.loads(captured.err)["refused"] == "shown_text_unread"
+
+
 def test_an_unread_slide_on_a_private_lane_holds_the_upload_at_the_operator(ws, tmp_path, ffmpeg, capsys):
     private_bundle(ws)
     add_text_source(ws["bundle"], "slide-a", "slide-a.svg", plot_svg("0"))

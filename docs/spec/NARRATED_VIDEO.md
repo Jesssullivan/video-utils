@@ -402,7 +402,7 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `claims BUNDLE [--denylist FILE] [--denylist-sha256 HEX]` | `just narrated-video-claims` | the private-terms guard and the spoken-number claims gate alone, one row per segment. Exit 1 when a segment refuses |
 | `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
 | `accept JOB --gate G --decision ID --video-sha256 HEX` | `just nv-accept JOB GATE DECISION VIDEO` | records the operator's acceptance of `listening` or `lip_sync` for the current `deliver_check` render, by Softproxy decision id and the sha256 of the cut it saw. See "Operator acceptance" |
-| `subject JOB [--json]` | `just nv-subject` | prints the job's guard subject: every text its records hold that it voices or shows. The Cade narrate worker reads it in its own process for the BS-21 guard. See "Guard subject and cut" |
+| `subject JOB [--json]` | `just nv-subject` | prints the job's guard subject: every text its records hold that it voices or labels, written and spoken. The Cade narrate worker reads it in its own process for the BS-21 guard. Refuses `shown_text_unread` for a job that shows an asset with no guarded intake's marker. See "Guard subject and cut" |
 | `cut JOB [--json]` | `just nv-cut` | prints the current `deliver_check` render, its machine gate states, the operator gates still pending and the gates an acceptance of that render closed. Digests and gate names only. Refuses `machine_gates_failed` when a machine gate failed. See "Guard subject and cut" |
 
 Paths come from flags or the environment: `--root` (`NARRATED_VIDEO_ROOT`),
@@ -1025,7 +1025,7 @@ first: in the Cade demo DAG, the decision poll reads the decision and calls
 Linear TIN-7788, SPR-220. The Cade worker runs the narrated-video DAG as Hatchet
 tasks (xoxd-ai/cade-infra `config/hatchet-workflows.json`, row
 `client-video-narrated-render`). Its `bs21_privacy_guard` task checks every
-text the DAG voices or shows against the private name and term lists before any
+text in the job's subject against the private name and term lists before any
 render task runs. Every render task checks the same texts again before it acts
 (xoxd-ai/cade `src/bs21-guard.ts`). Hatchet carries ids only, so the worker
 reads the texts with `subject` inside its own process. `narrate/video/subject.py`
@@ -1033,22 +1033,33 @@ lists them in this order:
 
 | Field | Text | Where it appears |
 | --- | --- | --- |
-| `narration` | each segment's voiced text, read as the `script` stage reads it | the voice and the captions |
+| `narration` | each segment's written text, read as the `script` stage reads it | the captions |
+| `spoken` | the same segment's text after the narrate job's pronunciation table and its pinned upstream table, in `render.py`'s chunks, one chunk per line | the voice |
 | `title` | the job id, each segment id and each slide page id | `description.txt` and `chapters.json` |
 | `caption` | `labels.personaCue`, when set | above the first cue |
 | `description` | `labels.extraNotice`, when set | the last line of `description.txt` |
 | `label` | `labels.persona`, when set | every stage manifest from `place` on |
 
-An asset's own text, such as a slide, a plot or a clip, is not in the subject.
-The intake's private-terms guard reads it (`private_terms.py`,
-`visible_text.py`), and the `visible_text` gate stays open until a guarded
-intake has read all of it. `subject` refuses `subject_too_large` above 4096
+An asset's own text, such as a still, a slide, a plot, a clip or a deck, is not
+in the subject, so the BS-21 name list never reads it. Only the intake's
+private-terms guard reads it, against the `nv` denylist (`private_terms.py`,
+`visible_text.py`). A name must be on that denylist for shown text to refuse it.
+The `visible_text` gate stays open while a guarded intake left an asset unread.
+With no guarded intake that gate reads `not_applicable`, so `subject` refuses
+`shown_text_unread` at any edition when the job has a still, video or deck base
+or a slide page and the records carry no guarded intake's marker. The refusal
+names the kinds of asset. A `card` base with no slide page shows no asset.
+
+`subject` refuses `subject_too_large` above 4096
 texts or 200000 UTF-16 code units in one text, the limits the Cade guard holds.
 The guard measures with JavaScript's `String.length`, so `subject` counts the
 same units: an emoji is 1 Python character and 2 units. A
 segment whose narrate job is not in the records refuses `records_invalid`, and
 a script missing from the store refuses `source_missing`. A script that does
 not load refuses `input_invalid`, and that refusal quotes none of the script.
+A pronunciation table with no record refuses `pronunciation_unknown`, a text the
+tables refuse to say refuses `pronunciation_refused`, and a lexical release that
+does not match the pin refuses `lexical_missing` or `lexical_digest_mismatch`.
 It writes only a
 scratch copy inside the job directory and removes it. The caller never logs its
 output.
@@ -1060,8 +1071,8 @@ machine gate states, `internal_review_allowed`, the gates still
 acceptance of an earlier cut closes nothing. It holds digests and gate names
 only. The Cade worker's `outbox_post` task names this cut when it asks Jess for
 her decision, and `accept` later checks the same sha256. It refuses as `accept`
-does: `deliver_check_missing`, `deliver_check_corrupt`, `deliver_check_stale` or
-`deliver_check_invalid`.
+does: `deliver_check_missing`, `deliver_check_corrupt`, `deliver_check_stale`,
+`deliver_check_invalid`, `store_invalid` or `stage_symlink`.
 
 `deliver_check` records a failed machine gate as a state and finishes, with
 `delivery_gate.internal_review_allowed` false. `cut` refuses
@@ -1469,7 +1480,7 @@ The guard reads text only. These pass it, and the producer reviews them:
 | the pixels of a slide, plot or clip with no text source or an opaque one, and text burned into an MP4 or GIF frame | the guard reads no pixels and runs no OCR; on-screen asset text reaches the video, and the `visible_text` gate holds the delivery at the operator |
 | a text source's drawing that differs from its picture | the digest binds the file, not that it matches the picture; the producer keeps them in step |
 | asset container metadata (PNG text chunks, MP4 atoms) | it is not shown. The intake copies asset bytes by digest into the private store, and the outputs drop it: compose checks both MP4s and handoff strips each slide layer ("Compose and delivery") |
-| a job or records written another way than intake | no intake ran, so no marker exists |
+| a job or records written another way than intake | no intake ran, so no marker exists. `subject` refuses `shown_text_unread` for such a job when it shows an asset |
 
 The intake states record `private_terms` and, beside it, `producer_review: pending_operator` for these. Tests use
 invented terms only.
