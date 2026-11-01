@@ -5,7 +5,7 @@ video-utils#84 `be5da311` and xoxd-ai/cade#259 `2878256d`. Receipt cites R-HOOK-
 
 | stream | owner | repo/branch | state/evidence | next |
 | --- | --- | --- | --- | --- |
-| shown text reader | narrate visibletext lane | Jesssullivan/video-utils `feat/tin-7788-nv-visible-text-subject-20261031`, Jesssullivan/cade `feat/tin-7788-bs21-shown-text-20261031` | **HOLD** on #81 and cade#250. Local, non-qualifying | root review, CI on both heads |
+| shown text reader | narrate visibletext lane | Jesssullivan/video-utils `feat/tin-7788-nv-visible-text-subject-20261031`, Jesssullivan/cade `feat/tin-7788-bs21-shown-text-20261031` | **HOLD** on cade#250. Local, non-qualifying | root review, CI on both heads |
 
 ## Changed here
 
@@ -25,12 +25,12 @@ The cade side of this refix holds the linear scans and the time-bounded test. Py
 
 | Land | PR | Note |
 | --- | --- | --- |
+| done | video-utils#81 | merged to main as `6aa4aca1`, ahead of #83. cade#246 calls its recipes |
 | 1 | video-utils#83 | known limit |
-| 2 | video-utils#81 | cade#246 calls its recipes |
-| 3 | video-utils#84 | retarget to main after #81 lands |
-| 4 | xoxd-ai/cade#250 | |
-| 5 | xoxd-ai/cade#246 | a signed merge of main resolves `docs/BS21_GUARD.md`: keep #246's client-video row and #250's hardware hand-off row |
-| 6 | xoxd-ai/cade#259 | a signed merge of main, then the doc update below |
+| 2 | video-utils#84 | retarget to main first. This branch merges with `6aa4aca1` with no conflict |
+| 3 | xoxd-ai/cade#250 | |
+| 4 | xoxd-ai/cade#246 | a signed merge of main resolves `docs/BS21_GUARD.md`: keep #246's client-video row and #250's hardware hand-off row |
+| 5 | xoxd-ai/cade#259 | a signed merge of main, then the doc update below |
 
 CADE-1 lands cade PRs under SPR-290, and each merge above is the narrate lane's to draft. Whichever of cade#246 and
 cade#259 lands second updates `docs/HATCHET_CLIENT_VIDEO.md` lines 23, 37, 44 and 50, as numbered at `749d5d14`. Those
