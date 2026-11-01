@@ -517,6 +517,7 @@ def read_assets(bundle, beats, report, digests, guard, private):
         "guard": guard,
         "private": private,
         "visible": {k: shown[k] for k in ("read", "unread", "opaque")},
+        "shown_texts": shown["texts"],
     }
 
 
@@ -887,6 +888,8 @@ def guarded_intake(
     # The marker this intake writes holds this summary, so admit reads it here too: intake.json's
     # admit.pending_operator then lists visible_text_unread exactly when states.visible_text is partial. The input
     # records' own marker (an earlier intake) never stands in for it.
+    stored = visible_source(b)
+    b["visible_source"] = None if stored is None else hashlib.sha256(stored).hexdigest()
     checked["visible_text"] = visible_record(b)
     verdict = admit(job, checked)
     if verdict["verdict"] != "Admitted":
@@ -903,6 +906,8 @@ def guarded_intake(
     for asset_id in sorted(used):
         asset = b["assets"][asset_id]
         sources[f"{asset['sha256']}{SUFFIX[asset['kind']]}"] = (asset["sha256"], None, asset)
+    if stored is not None:
+        sources[f"{b['visible_source']}.json"] = (b["visible_source"], stored, None)
     if not within:
         for name, (digest, _, _) in sources.items():
             held(store / name, digest)  # store_conflict before anything is written
@@ -1046,9 +1051,22 @@ def visible_state(b):
     return "partial" if b["visible"]["unread"] or b["visible"]["opaque"] else "passed"
 
 
+def visible_source(b):
+    """The stored visible-text source of a guarded intake (private_terms.VISIBLE_KIND): the canonical JSON of each
+    read asset's position and its strings joined, which nv subject hands the BS-21 guard. None with no denylist: no
+    marker would bind its digest. The private store holds it by digest, as it holds each script and asset."""
+    if b["guard"].entries is None:
+        return None
+    rows = [{"asset": where, "text": text} for where, _, text in b["shown_texts"]]
+    document = {"kind": private_terms.VISIBLE_KIND, "schema_version": private_terms.VISIBLE_VERSION, "texts": rows}
+    return canonical(document).encode()
+
+
 def visible_record(b):
-    """The marker's visible_text: the state and the unread and opaque positions, which deliver_check reads."""
-    return {"state": visible_state(b), "unread": b["visible"]["unread"], "opaque": b["visible"]["opaque"]}
+    """The marker's visible_text: the state, the unread and opaque positions, which deliver_check reads, and the
+    digest of the stored visible-text source, which nv subject reads."""
+    record = {"state": visible_state(b), "unread": b["visible"]["unread"], "opaque": b["visible"]["opaque"]}
+    return record | ({} if b["visible_source"] is None else {"source_sha256": b["visible_source"]})
 
 
 def claims_only(bundle, denylist=None, pin=None):

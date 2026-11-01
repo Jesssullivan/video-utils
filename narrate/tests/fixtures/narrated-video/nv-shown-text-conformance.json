@@ -1,0 +1,546 @@
+{
+ "kind": "nv_shown_text_conformance",
+ "schema_version": 1,
+ "linear": "TIN-7788",
+ "sources": [
+  {
+   "name": "text and tspans in order",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>Build <tspan>time</tspan> runs</text></svg>",
+   "texts": [
+    "Build",
+    "time",
+    "runs"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "a name split across two tspans reads as two strings",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text><tspan>Quill</tspan><tspan>feather</tspan></text></svg>",
+   "texts": [
+    "Quill",
+    "feather"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "a comment counts, as a plotting library writes a label",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><!-- Axis one --><path d=\"M0 0h1\"/></svg>",
+   "texts": [
+    "Axis one"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "aria-label then xlink:title, after the element's first text",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><g xlink:title=\"Title\" aria-label=\"Aria\">first<text>second</text>tail</g></svg>",
+   "texts": [
+    "first",
+    "Aria",
+    "Title",
+    "second",
+    "tail"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "metadata, style and script are not read, a tail is",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><metadata>Hidden meta</metadata>after meta<style>.a{fill:red}</style><text>shown</text></svg>",
+   "texts": [
+    "after meta",
+    "shown"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "character references and predefined entities",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>&#81;uill &#x66;eather &amp; &lt;co&gt; &quot;a&apos;</text></svg>",
+   "texts": [
+    "Quill feather & <co> \"a'"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "CDATA joins its run",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>one <![CDATA[two & three]]> four</text></svg>",
+   "texts": [
+    "one two & three four"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "a comment ends a text run",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>one<!-- two -->three</text></svg>",
+   "texts": [
+    "one",
+    "two",
+    "three"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "a processing instruction ends no text run",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>one<?note x?>two</text></svg>",
+   "texts": [
+    "onetwo"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "a comment outside the root is not read",
+   "kind": "svg",
+   "source": "<!-- outside --><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>inside</text></svg><!-- after -->",
+   "texts": [
+    "inside"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "an xml declaration and a byte order mark",
+   "kind": "svg",
+   "source": "\ufeff<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>declared</text></svg>",
+   "texts": [
+    "declared"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "an image inside metadata is not read",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><metadata><image href=\"x.png\"/></metadata><text>kept</text></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "a self-closing element keeps its label",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect aria-label=\"Boxed\"/></svg>",
+   "texts": [
+    "Boxed"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "non-ASCII text stays",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>caf\u00e9</text></svg>",
+   "texts": [
+    "caf\u00e9"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "an image is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>kept</text><image href=\"#a\"/></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "foreignObject is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>kept</text><foreignObject/></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "a namespaced image is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>kept</text><s:image xmlns:s=\"http://www.w3.org/2000/svg\"/></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "a script is opaque and its source unread",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>kept</text><script>draw(\"hidden\")</script></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "an event handler is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text onclick=\"x()\">kept</text></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "an external href is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>kept</text><use href=\"other.svg#a\"/></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "an external xlink href is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>kept</text><use xlink:href=\"other.svg#a\"/></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "a fragment href is not",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>kept</text><use href=\"#a\"/></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "a link's own href is not",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><a href=\"https://example.org/\"><text>kept</text></a></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "an external url in fill is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text fill=\"url(other.svg#a)\">kept</text></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "a fragment url is not",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text fill=\"url(#a)\">kept</text></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "a quoted fragment url is not",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text fill=\"url('#a')\">kept</text></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "an import in a style element is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><style>@import \"x.css\";</style><text>kept</text></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "an image set in a style attribute is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text style=\"background: image-set('x.png' 1x)\">kept</text></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "a backslash in a style element is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><style>.a{background:u\\72l(x)}</style><text>kept</text></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "a backslash in a presentation attribute is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text fill=\"u\\72l(x)\">kept</text></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "a backslash in a data attribute is not",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text data-note=\"a\\b\">kept</text></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "a backslash in a namespaced attribute is not",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text ink:name=\"a\\b\" xmlns:ink=\"urn:fixture:ink\">kept</text></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "a url in a data attribute is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text data-note=\"url(x.png)\">kept</text></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "a stylesheet instruction is opaque",
+   "kind": "svg",
+   "source": "<?xml-stylesheet href=\"x.css\"?><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>kept</text></svg>",
+   "texts": [
+    "kept"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "no string at all is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><path d=\"M0 0h1\"/></svg>",
+   "texts": [],
+   "opaque": true
+  },
+  {
+   "name": "a document type refuses",
+   "kind": "svg",
+   "source": "<!DOCTYPE svg><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>x</text></svg>",
+   "refused": true
+  },
+  {
+   "name": "an entity declaration refuses",
+   "kind": "svg",
+   "source": "<?xml version=\"1.0\"?><!DOCTYPE svg [<!ENTITY a \"b\">]><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>&a;</text></svg>",
+   "refused": true
+  },
+  {
+   "name": "another encoding refuses",
+   "kind": "svg",
+   "source": "<?xml version=\"1.0\" encoding=\"latin-1\"?><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>x</text></svg>",
+   "refused": true
+  },
+  {
+   "name": "an undefined entity refuses",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>&nope;</text></svg>",
+   "refused": true
+  },
+  {
+   "name": "a bare ampersand refuses",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>a & b</text></svg>",
+   "refused": true
+  },
+  {
+   "name": "an unclosed element refuses",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>x</svg>",
+   "refused": true
+  },
+  {
+   "name": "a crossed close refuses",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><g><text>x</g></text></svg>",
+   "refused": true
+  },
+  {
+   "name": "another root refuses",
+   "kind": "svg",
+   "source": "<html><text>x</text></html>",
+   "refused": true
+  },
+  {
+   "name": "a root in another namespace refuses",
+   "kind": "svg",
+   "source": "<svg xmlns=\"urn:fixture:other\"><text>x</text></svg>",
+   "refused": true
+  },
+  {
+   "name": "a second root refuses",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>x</text></svg><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>y</text></svg>",
+   "refused": true
+  },
+  {
+   "name": "text after the root refuses",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>x</text></svg>tail",
+   "refused": true
+  },
+  {
+   "name": "an unbound prefix refuses",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text bad:a=\"b\">x</text></svg>",
+   "refused": true
+  },
+  {
+   "name": "a repeated attribute refuses",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text x=\"1\" x=\"2\">y</text></svg>",
+   "refused": true
+  },
+  {
+   "name": "a less-than in an attribute refuses",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text x=\"a<b\">y</text></svg>",
+   "refused": true
+  },
+  {
+   "name": "a double hyphen in a comment refuses",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><!-- a -- b --><text>x</text></svg>",
+   "refused": true
+  },
+  {
+   "name": "a control character refuses",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>a\u0001b</text></svg>",
+   "refused": true
+  },
+  {
+   "name": "a bad character reference refuses",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>&#0;</text></svg>",
+   "refused": true
+  },
+  {
+   "name": "an empty file refuses",
+   "kind": "svg",
+   "source": "",
+   "refused": true
+  },
+  {
+   "name": "utf-16 refuses",
+   "kind": "svg",
+   "base64": "//48AHMAdgBnACAAeABtAGwAbgBzAD0AIgBoAHQAdABwADoALwAvAHcAdwB3AC4AdwAzAC4AbwByAGcALwAyADAAMAAwAC8AcwB2AGcAIgAgAHgAbQBsAG4AcwA6AHgAbABpAG4AawA9ACIAaAB0AHQAcAA6AC8ALwB3AHcAdwAuAHcAMwAuAG8AcgBnAC8AMQA5ADkAOQAvAHgAbABpAG4AawAiAD4APAB0AGUAeAB0AD4AeAA8AC8AdABlAHgAdAA+ADwALwBzAHYAZwA+AA==",
+   "refused": true
+  },
+  {
+   "name": "bad utf-8 refuses",
+   "kind": "svg",
+   "base64": "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48dGV4dD7pPC90ZXh0Pjwvc3ZnPg==",
+   "refused": true
+  },
+  {
+   "name": "a nul refuses",
+   "kind": "svg",
+   "base64": "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48dGV4dD54PC90ZXh0Pjwvc3ZnPgA=",
+   "refused": true
+  },
+  {
+   "name": "a list of strings",
+   "kind": "json",
+   "source": "{\"kind\": \"nv_asset_text\", \"schema_version\": 1, \"texts\": [\"  Cache rate \", \"\", \"forty two\"]}",
+   "texts": [
+    "Cache rate",
+    "forty two"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "an empty list draws no text and is not opaque",
+   "kind": "json",
+   "source": "{\"kind\": \"nv_asset_text\", \"schema_version\": 1, \"texts\": []}",
+   "texts": [],
+   "opaque": false
+  },
+  {
+   "name": "another kind refuses",
+   "kind": "json",
+   "source": "{\"kind\": \"other\", \"schema_version\": 1, \"texts\": []}",
+   "refused": true
+  },
+  {
+   "name": "another schema refuses",
+   "kind": "json",
+   "source": "{\"kind\": \"nv_asset_text\", \"schema_version\": 2, \"texts\": []}",
+   "refused": true
+  },
+  {
+   "name": "another key refuses",
+   "kind": "json",
+   "source": "{\"kind\": \"nv_asset_text\", \"schema_version\": 1, \"texts\": [], \"x\": 1}",
+   "refused": true
+  },
+  {
+   "name": "a repeated key refuses",
+   "kind": "json",
+   "source": "{\"kind\": \"nv_asset_text\", \"kind\": \"nv_asset_text\", \"schema_version\": 1, \"texts\": []}",
+   "refused": true
+  },
+  {
+   "name": "a number in the list refuses",
+   "kind": "json",
+   "source": "{\"kind\": \"nv_asset_text\", \"schema_version\": 1, \"texts\": [1]}",
+   "refused": true
+  },
+  {
+   "name": "not JSON refuses",
+   "kind": "json",
+   "source": "nope",
+   "refused": true
+  }
+ ],
+ "scripts": [
+  {
+   "name": "a beat",
+   "script": "# T\n\n## one\n- target_s: 1\n- asset_id: slide-a\n- claims:\n\n```voiced\nHello.\n```\n",
+   "ids": [
+    "slide-a"
+   ]
+  },
+  {
+   "name": "two beats and one repeat",
+   "script": "## one\n- target_s: 1\n- asset_id: slide-b\n- claims:\n\n```voiced\nA.\n```\n\n## two\n- target_s: 1\n- asset_id: slide-a\n- claims:\n\n```voiced\nB.\n```\n\n## three\n- target_s: 1\n- asset_id: slide-b\n- claims:\n\n```voiced\nC.\n```\n",
+   "ids": [
+    "slide-b",
+    "slide-a"
+   ]
+  },
+  {
+   "name": "a Unicode line separator splits a line, as Python reads it",
+   "script": "## one\n- target_s: 1\n- claims:\u2028- asset_id: slide-a\n\n```voiced\nHello.\n```\n",
+   "ids": [
+    "slide-a"
+   ]
+  },
+  {
+   "name": "a voiced line is over-read",
+   "script": "## one\n- target_s: 1\n- asset_id: slide-a\n- claims:\n\n```voiced\n- asset_id: slide-z\n```\n",
+   "ids": [
+    "slide-a",
+    "slide-z"
+   ]
+  },
+  {
+   "name": "no beat cites nothing",
+   "script": "# T\n",
+   "ids": []
+  }
+ ]
+}

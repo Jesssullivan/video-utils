@@ -6,11 +6,13 @@ JSON text sources, PNGs built in the test and the invented party name "Quillfeat
 denylist, name or number is used.
 """
 
+import base64
 import hashlib
 import json
 import struct
 import subprocess
 import zlib
+from pathlib import Path
 
 import pytest
 from test_narrated_video_private_terms import (
@@ -77,6 +79,36 @@ def text_json(*texts):
 
 
 # Extraction ------------------------------------------------------------------------------------------------------
+CONFORMANCE = Path(__file__).parent / "fixtures" / "narrated-video" / "nv-shown-text-conformance.json"
+
+
+def conformance():
+    return json.loads(CONFORMANCE.read_text(encoding="utf-8"))
+
+
+@pytest.mark.parametrize("case", conformance()["sources"], ids=lambda c: c["name"])
+def test_the_shared_conformance_fixture_agrees_with_the_cade_reader(tmp_path, case):
+    # xoxd-ai/cade holds the same bytes in tests/fixtures and src/bs21-shown-text.ts reads them.
+    data = base64.b64decode(case["base64"]) if "base64" in case else case["source"].encode()
+    path = tmp_path / f"source.{case['kind']}"
+    path.write_bytes(data)
+    if case.get("refused"):
+        with pytest.raises(visible_text.TextSourceError):
+            visible_text.texts(path)
+        return
+    read = visible_text.texts(path)
+    assert (read.texts, read.opaque) == (case["texts"], case["opaque"])
+
+
+@pytest.mark.parametrize("case", conformance()["scripts"], ids=lambda c: c["name"])
+def test_the_cade_reader_cites_at_least_every_asset_a_beat_shows(case):
+    try:
+        beats = bundle.parse_script(case["script"])
+    except bundle.BundleError:  # the over-read cases hold no valid beat: only the ids below bind the cade reader
+        return
+    assert {beat["asset_id"] for beat in beats} <= set(case["ids"])
+
+
 def test_svg_text_reads_text_tspans_comments_and_labels_but_not_metadata_or_style():
     data = (
         b'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">'
@@ -183,7 +215,7 @@ def test_clean_text_sources_pass_and_intake_records_them(ws, tmp_path):
     assert "visible_text_unread" not in m["admit"]["pending_operator"]
     rows = {s["segment"]: s["asset"]["text"] for s in m["segments"]}
     assert rows == {"intro": {"kind": "svg", "sha256": svg}, "result": {"kind": "json", "sha256": js}}
-    # the text source is bound, not copied: the store holds the pictures and scripts only
+    # the text source file is bound, not copied: the store holds its strings in the one nv_visible_text file instead
     assert svg not in " ".join(store_listing(ws["store"])) and js not in " ".join(store_listing(ws["store"]))
 
 
@@ -196,8 +228,11 @@ def test_a_shown_asset_without_a_text_source_is_listed_unread(ws, tmp_path):
     # admit reads this intake's summary, so intake.json lists the gate deliver_check will hold
     assert "visible_text_unread" in m["admit"]["pending_operator"]
     marker = json.loads((tmp_path / "out" / "records" / private_terms.MARKER).read_text())
+    digest = marker["visible_text"].pop("source_sha256")
     assert marker["visible_text"] == {"state": "partial", "unread": ["asset#2"], "opaque": []}
-    assert load_records(tmp_path / "out" / "records")["visible_text"] == marker["visible_text"]
+    assert load_records(tmp_path / "out" / "records")["visible_text"] == marker["visible_text"] | {
+        "source_sha256": digest
+    }
 
 
 def test_an_undeclared_bundle_records_visible_text_not_declared(ws, tmp_path):
@@ -375,6 +410,10 @@ def test_the_visible_text_gate(summary, gate):
         {"state": "passed", "unread": ["asset#2"], "opaque": ["asset#3"]},
         {"state": "passed", "unread": [], "opaque": ["asset#1"]},
         {"state": "partial", "unread": [], "opaque": []},
+        # the stored source's digest is 64 lowercase hex digits
+        {"state": "partial", "unread": ["asset#1", "asset#2"], "opaque": [], "source_sha256": "abc"},
+        {"state": "partial", "unread": ["asset#1", "asset#2"], "opaque": [], "source_sha256": None},
+        {"state": "partial", "unread": ["asset#1", "asset#2"], "opaque": [], "source": "0" * 64},
     ],
 )
 def test_a_marker_with_a_bad_visible_text_refuses(ws, tmp_path, value):
@@ -425,24 +464,139 @@ def test_a_marker_summary_that_disagrees_with_intake_json_refuses(ws, tmp_path, 
         load_records(out / "records")
 
 
-def test_nv_subject_needs_the_guarded_intake_of_a_job_that_shows_a_slide(ws, tmp_path, capsys):
+def subject_workspace(ws, tmp_path, capsys, *texts):
+    """A guarded intake of the private bundle with the given text sources, its job initialised, and a CLI call that
+    prints the job's subject: (out, [row] or the refusal)."""
     private_bundle(ws)
-    add_text_source(ws["bundle"], "slide-a", "slide-a.svg", plot_svg("0"))
+    for asset_id, name, data in texts:
+        add_text_source(ws["bundle"], asset_id, name, data)
     out = tmp_path / "out"
     intake(ws, out, denylist=ws["denylist"])
     common = ["--root", str(tmp_path / "narrated"), "--records", str(out / "records"), "--store", str(ws["store"]),
               "--lexical", str(ws["lexical"])]  # fmt: skip
     assert cli.main(["init", "--job", "demo-fixture", "--from", str(out / "narrated-video.json"), *common]) == 0
     capsys.readouterr()
-    assert cli.main(["subject", "demo-fixture", *common]) == 0
-    fields = {t["field"] for t in json.loads(capsys.readouterr().out)["texts"]}
-    assert {"narration", "spoken", "title"} <= fields
+
+    def run():
+        code = cli.main(["subject", "demo-fixture", *common])
+        captured = capsys.readouterr()
+        if code == 0:
+            return json.loads(captured.out)["texts"]
+        assert captured.out == ""
+        return json.loads(captured.err)
+
+    return out, run
+
+
+BOTH = (("slide-a", "slide-a.svg", plot_svg("0")), ("slide-b", "slide-b.json", text_json("Cache rate", "forty two")))
+
+
+def stored_path(ws, out):
+    marker = json.loads((out / "records" / private_terms.MARKER).read_text())
+    return ws["store"] / f"{marker['visible_text']['source_sha256']}.json"
+
+
+def test_nv_subject_needs_the_guarded_intake_of_a_job_that_shows_a_slide(ws, tmp_path, capsys):
+    out, run = subject_workspace(ws, tmp_path, capsys, *BOTH)
+    assert {"narration", "spoken", "title", "visible_text"} <= {t["field"] for t in run()}
     # Deleting the marker and intake.json leaves records no guard read: the job still shows its slides.
     (out / "records" / private_terms.MARKER).unlink()
     (out / "intake.json").unlink()
-    assert cli.main(["subject", "demo-fixture", *common]) == 1
-    captured = capsys.readouterr()
-    assert captured.out == "" and json.loads(captured.err)["refused"] == "shown_text_unread"
+    assert run()["refused"] == "shown_text_unread"
+
+
+def test_nv_subject_hands_the_name_list_each_shown_asset_s_text(ws, tmp_path, capsys):
+    # A party on no nv denylist entry passes intake, and reaches the guard subject so the BS-21 name list can refuse it.
+    slide = ("slide-a", "slide-a.svg", plot_svg("Marrowbank", "Industries"))
+    _, run = subject_workspace(ws, tmp_path, capsys, slide, BOTH[1])
+    rows = run()
+    shown = [t["text"] for t in rows if t["field"] == "visible_text"]
+    assert len(shown) == 2 and "Marrowbank\nIndustries" in shown[0] and shown[1] == "Cache rate\nforty two"
+    assert [t["field"] for t in rows][-2:] == ["visible_text", "visible_text"]
+
+
+def test_an_intake_stores_the_shown_text_by_digest_and_only_when_guarded(ws, tmp_path, capsys):
+    out, _ = subject_workspace(ws, tmp_path, capsys, *BOTH)
+    path = stored_path(ws, out)
+    assert path.name[:-5] == hashlib.sha256(path.read_bytes()).hexdigest()
+    document = json.loads(path.read_text())
+    assert document["kind"] == "nv_visible_text" and document["schema_version"] == 1
+    assert [r["asset"] for r in document["texts"]] == ["asset#1", "asset#2"]
+    assert path.name[:-5] in json.loads((out / "intake.json").read_text())["sources"]
+
+
+def test_an_undeclared_intake_stores_no_shown_text(ws, tmp_path):
+    add_text_source(ws["bundle"], "slide-a", "slide-a.svg", plot_svg("0"))
+    intake(ws, tmp_path / "out", persona="fixture-persona")
+    assert not any(name.endswith(".json") for name in store_listing(ws["store"]))
+
+
+def test_nv_subject_refuses_an_unread_shown_asset_by_position(ws, tmp_path, capsys):
+    _, run = subject_workspace(ws, tmp_path, capsys, BOTH[0])
+    got = run()
+    assert got["refused"] == "shown_text_unread" and "asset#2" in got["detail"]
+
+
+def test_nv_subject_refuses_an_opaque_shown_asset_by_position(ws, tmp_path, capsys):
+    opaque = ("slide-a", "slide-a.svg", plot_svg("Quartzline", extra=f'<image href="{PIXEL}"/>'))
+    _, run = subject_workspace(ws, tmp_path, capsys, opaque, BOTH[1])
+    got = run()
+    assert got["refused"] == "shown_text_unread" and "asset#1" in got["detail"] and "Quartzline" not in got["detail"]
+
+
+@pytest.mark.parametrize(
+    "spoil",
+    [
+        lambda path: path.unlink(),
+        lambda path: path.write_bytes(b'{"kind": "nv_visible_text", "schema_version": 1, "texts": []}'),  # edited
+    ],
+)
+def test_nv_subject_refuses_a_stored_source_that_is_gone_or_changed(ws, tmp_path, capsys, spoil):
+    out, run = subject_workspace(ws, tmp_path, capsys, *BOTH)
+    spoil(stored_path(ws, out))
+    assert run()["refused"] == "shown_text_unread"
+
+
+@pytest.mark.parametrize(
+    "document",
+    [
+        b"not json",
+        b"[]",
+        b'{"kind": "nv_visible_text", "schema_version": 2, "texts": []}',
+        b'{"kind": "other", "schema_version": 1, "texts": []}',
+        b'{"kind": "nv_visible_text", "schema_version": 1, "texts": "x"}',
+        b'{"kind": "nv_visible_text", "schema_version": 1, "texts": [{"asset": "asset#1"}]}',
+        b"\xff\xfe",
+    ],
+)
+def test_nv_subject_refuses_a_malformed_stored_source_that_the_marker_binds(ws, tmp_path, capsys, document):
+    out, run = subject_workspace(ws, tmp_path, capsys, *BOTH)
+    path = stored_path(ws, out)
+    path.write_bytes(document)
+    digest = hashlib.sha256(document).hexdigest()
+    marker_file = out / "records" / private_terms.MARKER
+    marker = json.loads(marker_file.read_text())
+    marker["visible_text"]["source_sha256"] = digest
+    marker_file.write_text(json.dumps(marker))
+    assert run()["refused"] == "shown_text_unread"
+
+
+def test_nv_subject_refuses_a_marker_with_no_stored_source(ws, tmp_path, capsys):
+    # An intake from before this field keeps its marker, its other gates and its load: only the subject refuses.
+    out, run = subject_workspace(ws, tmp_path, capsys, *BOTH)
+    marker_file = out / "records" / private_terms.MARKER
+    marker = json.loads(marker_file.read_text())
+    del marker["visible_text"]["source_sha256"]
+    marker_file.write_text(json.dumps(marker))
+    assert load_records(out / "records")["visible_text"]["state"] == "passed"
+    assert run()["refused"] == "shown_text_unread"
+    marker_file.write_text(json.dumps({k: v for k, v in marker.items() if k != "visible_text"}))
+    assert run()["refused"] == "shown_text_unread"
+
+
+def test_an_empty_text_list_says_the_asset_draws_no_text_and_gives_no_row(ws, tmp_path, capsys):
+    _, run = subject_workspace(ws, tmp_path, capsys, BOTH[0], ("slide-b", "slide-b.json", text_json()))
+    assert len([t for t in run() if t["field"] == "visible_text"]) == 1
 
 
 def test_an_unread_slide_on_a_private_lane_holds_the_upload_at_the_operator(ws, tmp_path, ffmpeg, capsys):
@@ -459,6 +613,7 @@ def test_an_unread_slide_on_a_private_lane_holds_the_upload_at_the_operator(ws, 
     current = json.loads((s.dir / "current.json").read_text())["stages"]
     report = json.loads((s.dir / current["deliver_check"]["dir"] / "deliver_check.json").read_text())
     assert report["gates"]["visible_text"] == "pending_operator"
+    assert len(report["visible_text"].pop("source_sha256")) == 64
     assert report["visible_text"] == {"state": "partial", "unread": ["asset#2"], "opaque": []}
     assert "visible_text" in report["delivery_gate"]["operator_states_open"]
     assert report["delivery_gate"]["public_upload_allowed"] is False

@@ -799,7 +799,8 @@ def marker(report, narrate_jobs, records, job, visible=None):
     record it wrote, as nv init --from reads narrated-video.json back, and the narrate jobs its segments name; per
     narrate job, the digests of the job record and of the pronunciation table it names; and visible, the intake's
     visible-text state with the unread and opaque asset positions (bundle.visible_record), which deliver_check
-    reports as an operator gate. A later edit to a bound record refuses."""
+    reports as an operator gate, and the digest of the stored visible-text source, which nv subject reads. A later
+    edit to a bound record refuses."""
     jobs = {}
     for narrate_job in narrate_jobs:
         table = (records.get("pronunciation") or {}).get(narrate_job.get("pronunciation"))
@@ -880,17 +881,24 @@ def read_marker(directory, optional=False):
 # not_declared (bundle.visible_state).
 VISIBLE_STATES = ("passed", "partial")
 POSITION = re.compile(r"^asset#[1-9][0-9]{0,5}$")
+SOURCE_DIGEST = re.compile(r"^[0-9a-f]{64}$")
+# The stored visible-text source: a guarded intake writes it to the private store (bundle.visible_source), the
+# marker binds its digest and nv subject reads it for the BS-21 guard (subject.shown_texts).
+VISIBLE_KIND, VISIBLE_VERSION = "nv_visible_text", 1
 
 
 def visible_shape(value):
     """True for a marker's visible_text: null (a marker written before TIN-7788 read slide text) or {state, unread,
     opaque} with lists of asset positions, whose state is passed exactly when both lists are empty and partial
-    otherwise."""
+    otherwise. A marker written since nv subject reads shown text also holds source_sha256, the stored source's
+    digest. One without it still loads, and nv subject refuses it."""
     if value is None:
         return True
     return (
         isinstance(value, dict)
-        and set(value) == {"state", "unread", "opaque"}
+        and set(value) - {"source_sha256"} == {"state", "unread", "opaque"}
+        and ("source_sha256" not in value or (isinstance(value["source_sha256"], str)
+                                              and SOURCE_DIGEST.match(value["source_sha256"]) is not None))
         and value["state"] in VISIBLE_STATES
         and all(isinstance(v, list) and all(isinstance(p, str) and POSITION.match(p) for p in v)
                 for v in (value["unread"], value["opaque"]))
@@ -921,8 +929,8 @@ def visible_agrees(directory, value):
 
 def visible_summary(value):
     """What deliver_check reads from a records marker (read_marker's value): None outside a guarded intake, else
-    {state, unread, opaque}. A marker with no visible_text (a guarded intake that read no slide text) is
-    not_recorded."""
+    {state, unread, opaque}, with source_sha256 when the intake stored its visible text. A marker with no visible_text
+    (a guarded intake that read no slide text) is not_recorded."""
     if value is None:
         return None
     return value.get("visible_text") or {"state": "not_recorded", "unread": [], "opaque": []}

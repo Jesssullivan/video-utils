@@ -4,6 +4,7 @@ Every input is synthetic: the fixture workspace (narrate/video/fixture.py) and i
 accept tests' fake-runner job, whose compose writes a synthetic video.mp4. The decision id is a made-up ULID.
 """
 
+import hashlib
 import json
 
 import pytest
@@ -173,11 +174,57 @@ def test_a_card_with_only_base_and_hold_pages_shows_no_asset(ws):
     assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["ok"]
 
 
-@pytest.mark.parametrize("state", ["passed", "partial", "not_recorded"])
-def test_a_guarded_marker_lets_a_shown_asset_through_and_the_gate_holds_the_rest(ws, state):
+@pytest.mark.parametrize(
+    "summary",
+    [
+        {"state": "not_recorded", "unread": [], "opaque": []},
+        {"state": "partial", "unread": ["asset#2"], "opaque": []},
+        {"state": "partial", "unread": [], "opaque": ["asset#1"]},
+        {"state": "passed", "unread": [], "opaque": []},  # a marker from before the stored source
+        {"state": "passed", "unread": [], "opaque": [], "source_sha256": SHA},  # not in the store
+    ],
+)
+def test_a_guarded_marker_with_unreadable_shown_text_refuses(ws, summary):
     ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
-    ws["records"]["visible_text"] = {"state": state, "unread": [], "opaque": []}
-    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["ok"]
+    ws["records"]["visible_text"] = summary
+    with pytest.raises(JobError) as exc:
+        subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])
+    assert exc.value.code == "shown_text_unread"
+
+
+def visible_store(ws, *texts):
+    """An env whose store holds an nv_visible_text file with these texts; returns (env, its digest)."""
+    rows = [{"asset": f"asset#{n}", "text": t} for n, t in enumerate(texts, 1)]
+    data = json.dumps({"kind": "nv_visible_text", "schema_version": 1, "texts": rows}).encode()
+    digest = hashlib.sha256(data).hexdigest()
+    (ws["paths"]["store"] / f"{digest}.json").write_bytes(data)
+    return Env(ws["paths"]["records"], ws["records"], ws["paths"]["store"], ws["paths"]["lexical"]), digest
+
+
+def test_a_passed_marker_adds_each_stored_text_after_the_labels(ws):
+    env, digest = visible_store(ws, "Fixture board, top view", "Fixture plot")
+    ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
+    ws["job"]["labels"] = {"persona": "Synthetic narrator", "personaCue": None, "extraNotice": None}
+    ws["records"]["visible_text"] = {"state": "passed", "unread": [], "opaque": [], "source_sha256": digest}
+    got = subject.subject(ws["job"], ws["records"], env, ws["store"])["texts"]
+    assert got[-3:] == [
+        {"field": "label", "text": "Synthetic narrator"},
+        {"field": "visible_text", "text": "Fixture board, top view"},
+        {"field": "visible_text", "text": "Fixture plot"},
+    ]
+
+
+def test_a_job_that_shows_no_asset_reads_no_stored_source(ws):
+    assert not subject.shown_texts(ws["job"], ws["records"], ws["env"])
+
+
+def test_the_size_limit_counts_shown_text(ws):
+    env, digest = visible_store(ws, "x" * (subject.MAX_TEXT + 1))
+    ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
+    ws["records"]["visible_text"] = {"state": "passed", "unread": [], "opaque": [], "source_sha256": digest}
+    with pytest.raises(JobError) as exc:
+        subject.subject(ws["job"], ws["records"], env, ws["store"])
+    assert exc.value.code == "subject_too_large"
 
 
 def test_each_set_label_joins_the_subject_in_a_fixed_order(ws):
