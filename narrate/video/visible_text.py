@@ -94,6 +94,22 @@ def css_attribute(key):
     return "}" not in key and not key.startswith("data-")
 
 
+def style_text(element):
+    """Every run of character data inside a style element, in document order, so a comment or a nested element hides
+    no CSS after it. A comment's own text is not read. It loops because a skipped element's depth is otherwise free."""
+    parts, todo = [], [element]
+    while todo:
+        node = todo.pop()
+        if isinstance(node, str):
+            parts.append(node)
+            continue
+        if node.tag is not ET.Comment:
+            parts.append(node.text or "")
+        for child in reversed(node):
+            todo += [child.tail or "", child]
+    return "".join(parts)
+
+
 def utf8_prolog(data):
     """Refuse an SVG that is not UTF-8 or holds a document type or entity declaration, before any parser reads it."""
     try:
@@ -155,7 +171,7 @@ def svg_read(data):
     def walk(element):
         comment = element.tag is ET.Comment
         name = None if comment else local(element.tag)
-        if name == "style" and external_css(element.text or ""):
+        if name == "style" and external_css(style_text(element)):
             opaque.append(name)
         if name in OPAQUE_ELEMENTS:
             opaque.append(name)

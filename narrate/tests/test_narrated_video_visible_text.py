@@ -119,6 +119,17 @@ def test_svg_text_reads_text_tspans_comments_and_labels_but_not_metadata_or_styl
     assert visible_text.svg_texts(data) == ["Quill", "axis", "Quill", "feather", "tail", "link label", "Labs"]
 
 
+def test_a_style_element_deeper_than_the_recursion_limit_still_reads():
+    data = (
+        b'<svg xmlns="http://www.w3.org/2000/svg"><text>a</text><style>'
+        + b"<g>" * 5000
+        + b'@import "x.css";'
+        + b"</g>" * 5000
+        + b"</style></svg>"
+    )
+    assert visible_text.svg_read(data) == (["a"], True)
+
+
 @pytest.mark.parametrize(
     "data",
     [

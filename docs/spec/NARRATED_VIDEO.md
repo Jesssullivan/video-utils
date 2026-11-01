@@ -1467,7 +1467,8 @@ An SVG source is opaque when it may draw text that no string names. It holds an
 through a `script` element or an event handler attribute. It refers to another
 file through an `href` or a `url()` that is not a `#` fragment, a CSS `@import`,
 a CSS `image()` or `image-set()`, a CSS backslash escape or an
-`xml-stylesheet` processing instruction. A presentation attribute such as
+`xml-stylesheet` processing instruction. A `style` element's CSS is all the
+character data inside it, across its comments and nested elements. A presentation attribute such as
 `fill` or `filter` takes CSS as `style` does, so a backslash in an attribute in
 no namespace counts as an escape. A `data-*` attribute or a namespaced one,
 such as `inkscape:export-filename`, is metadata: a `url()` there counts, a

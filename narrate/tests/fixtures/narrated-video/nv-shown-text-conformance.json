@@ -504,6 +504,137 @@
    "kind": "json",
    "source": "nope",
    "refused": true
+  },
+  {
+   "name": "a style nested in a style keeps the outer import",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>a</text><style>@import url(x.css);<style></style></style></svg>",
+   "texts": [
+    "a"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "a style in metadata in a style keeps the outer import",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>a</text><style>@import url(x.css);<metadata><style></style></metadata></style></svg>",
+   "texts": [
+    "a"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "an import after a comment in a style is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>a</text><style><!-- c -->@import \"x.css\";</style></svg>",
+   "texts": [
+    "a"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "an import after a child element in a style is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>a</text><style><g/>@import \"x.css\";</style></svg>",
+   "texts": [
+    "a"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "an import inside a child element of a style is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>a</text><style><g>@import \"x.css\";</g></style></svg>",
+   "texts": [
+    "a"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "an import spelled across a comment in a style is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>a</text><style>@im<!-- c -->port \"x.css\";</style></svg>",
+   "texts": [
+    "a"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "an import in a comment in a style is not read",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>a</text><style><!-- @import \"x.css\"; --></style></svg>",
+   "texts": [
+    "a"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "a style in metadata is not read",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>a</text><metadata><style>@import \"x.css\";</style></metadata></svg>",
+   "texts": [
+    "a"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "strip removes what Python removes and keeps a byte-order mark",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text>\u00a0a\ufeff\u2003</text></svg>",
+   "texts": [
+    "a\ufeff"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "a json text strips separators and keeps a byte-order mark",
+   "kind": "json",
+   "source": "{\"kind\": \"nv_asset_text\", \"schema_version\": 1, \"texts\": [\"\\u001c a \\ufeff\\u0085\", \"\\u3000\\u001f\"]}",
+   "texts": [
+    "a \ufeff"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "a fragment url in nested quotes and spaces stays a fragment",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text fill=\"url( &quot;'#a'&quot; )\">a</text></svg>",
+   "texts": [
+    "a"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "a run of quotes before a name is not a fragment",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><text fill=\"url('''x''')\">a</text></svg>",
+   "texts": [
+    "a"
+   ],
+   "opaque": true
+  },
+  {
+   "name": "a prefix leaves scope when its element ends",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><g xmlns:p=\"urn:x\"><text>a</text></g><p:text>b</p:text></svg>",
+   "refused": true
+  },
+  {
+   "name": "a prefix on a self-closed element leaves scope",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><g xmlns:p=\"urn:x\"/><p:text>b</p:text></svg>",
+   "refused": true
+  },
+  {
+   "name": "a rebound prefix returns to its outer namespace",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:a=\"http://www.w3.org/1999/xlink\"><g xmlns:a=\"urn:x\"><text a:title=\"not a label\">b</text></g><text a:title=\"label\">c</text></svg>",
+   "texts": [
+    "b",
+    "c",
+    "label"
+   ],
+   "opaque": false
   }
  ],
  "scripts": [
