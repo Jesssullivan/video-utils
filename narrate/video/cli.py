@@ -1,5 +1,5 @@
 """python -m narrate video {init,plan,run,stage,status,explain,verify,pin-check,fixture,intake,claims,accept,
-render-stage}.
+render-stage,subject,cut}.
 
 The commands are docs/spec/NARRATED_VIDEO.md, "Commands".
 
@@ -32,6 +32,13 @@ validates a request of ids and digests and prints its phases (with --inputs it a
 re-hashes the mounted inputs), and result reports a job that ran to deliver_check by digest, bound to the job's
 intake. Neither takes the GPU Lease, and v1 refuses a gpu_window request outside check --gpu-draft.
 
+subject prints the guard subject of a job: every text its records hold that it voices or labels, written and spoken,
+which the Cade narrate worker reads in its own process for the BS-21 guard and never logs. It refuses shown_text_unread
+for a job that shows an asset when its records carry no guarded intake's marker. cut prints the current deliver_check
+render (the composed video's sha256, the deliver_check key and digest), its machine gate states and the operator gates
+still pending, digests and gate names only, and refuses machine_gates_failed when a machine gate failed
+(narrate/video/subject.py).
+
 intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
 "Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,
 writes one NarratedVideo record, one narrate job per beat and their sources, and refuses before writing anything when
@@ -52,7 +59,7 @@ from pathlib import Path
 
 from .. import policy
 from ..ir import sha256_file
-from . import accept, bundle, fixture, graph, kitpip, private_terms, render_stage, speech, store, vrm
+from . import accept, bundle, fixture, graph, kitpip, private_terms, render_stage, speech, store, subject, vrm
 from . import run as runner
 from .common import Env
 from .job import CLIENT_DEFAULT_EDITION, EDITIONS, JobError, check_shape, init_job, load_records, read_json
@@ -429,6 +436,20 @@ def cmd_render_stage(a):
     return 0
 
 
+def cmd_subject(a):
+    s = job_store(a, a.job)
+    job = s.read_job()
+    records = records_for(a, job)
+    emit(subject.subject(job, records, run_env(a, records), s))
+    return 0
+
+
+def cmd_cut(a):
+    s = job_store(a, a.job)
+    emit(subject.cut(s, s.read_job()))
+    return 0
+
+
 def cmd_pin_check(a):
     path = a.externals or os.environ.get(kitpip.EXTERNALS_ENV)
     if getattr(a, "external", "kitpip") == "vrm":
@@ -598,6 +619,15 @@ def main(argv=None):
     rs.add_argument("--export", help="result: copy the video, the report and the result here by sha256")
     rs.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
 
+    sj = sub.add_parser(
+        "subject", help="print every text the job voices or labels, for the BS-21 guard; the caller never logs it"
+    )
+    common(sj)
+    cu = sub.add_parser("cut", help="print the current cut's digests and the operator gates still pending")
+    cu.add_argument("job", help="the job id (artifacts/narrated/<job_id>/)")
+    cu.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
+    cu.add_argument("--json", action="store_true", help="print JSON (cut always does)")
+
     k = sub.add_parser("pin-check", help="check an avatar external's pin against program/externals.json and its binary")
     k.add_argument("--externals", help="the private pin record, instead of NARRATED_VIDEO_EXTERNALS")
     k.add_argument(
@@ -623,6 +653,8 @@ def main(argv=None):
             "claims": cmd_claims,
             "accept": cmd_accept,
             "render-stage": cmd_render_stage,
+            "subject": cmd_subject,
+            "cut": cmd_cut,
         }
         return commands[a.command](a)
     except bundle.BundleError as exc:
