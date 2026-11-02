@@ -404,6 +404,53 @@ def test_loudnorm_fails_closed_when_the_take_is_wider_than_lra_max(tmp_path):
     assert "loudnorm_dynamic" in audio.loudness_verdict(integrated, peak, POST, record["normalization_type"])[1]
 
 
+def short_take(head_s, head_amp, tail_amp, seconds=4.0, rate=48000):
+    """A synthetic speech-like take: 0.2 s syllables of a five-harmonic 140 Hz buzz with 0.08 s gaps, each opened
+    by a 4 ms 2 kHz burst near full scale, at head_amp for head_s and tail_amp after it."""
+    import math
+
+    syllable, gap, burst = int(0.2 * rate), int(0.08 * rate), int(0.004 * rate)
+    values = []
+    while len(values) < seconds * rate:
+        amp = head_amp if len(values) < head_s * rate else tail_amp
+        values.extend(26000 * math.sin(2 * math.pi * 2000 * n / rate) * (1 - n / burst) for n in range(burst))
+        values.extend(
+            amp
+            * math.sin(math.pi * n / syllable)
+            * sum(math.sin(2 * math.pi * 140 * k * n / rate) / k for k in range(1, 6))
+            for n in range(syllable)
+        )
+        values.extend([0.0] * gap)
+    pcm = audio.Pcm(rate)
+    pcm.samples.extend(round(v) for v in values[: int(seconds * rate)])
+    return pcm
+
+
+@pytest.mark.parametrize(("head_s", "head_amp", "tail_amp"), [(0.6, 6000, 2000), (1.0, 3000, 6000)])
+def test_loudnorm_lands_a_short_limited_take_within_tolerance(tmp_path, head_s, head_amp, tail_amp):
+    # TIN-7879: on a 4 s take loudnorm's first pass reads the integrated loudness off by up to about 1 LU, and the
+    # one linear gain carried that error into the delivered file (-15.2 LUFS for the first case before the fix).
+    pcm = short_take(head_s, head_amp, tail_amp)
+    source = pcm.write(tmp_path / "short.wav")
+    record = audio.loudnorm(source, tmp_path / "out.wav", 48000, -16, -1.5)
+    integrated, _, peak = audio.ebur128(tmp_path / "out.wav")
+    assert audio.loudness_verdict(integrated, peak, POST, record["normalization_type"]) == (True, [])
+    assert abs(integrated + 16) <= 0.1
+    assert record["limiter"] is not None and record["normalization_type"] == "linear"
+    assert abs(record["first_pass"]["input_i"] - record["metered_input_i"]) >= 0.2
+    assert len(audio.read(tmp_path / "out.wav").samples) == len(pcm.samples)
+
+
+def test_integrated_lufs_reads_as_the_gate_meter_and_none_for_silence(tmp_path):
+    source = short_take(1.0, 6000, 2000).write(tmp_path / "take.wav")
+    assert abs(audio.integrated_lufs(source) - audio.ebur128(source)[0]) <= 0.05
+    halved = audio.integrated_lufs(source, "volume=-6dB,")
+    assert abs(audio.integrated_lufs(source) - 6 - halved) <= 0.02
+    silent = audio.Pcm(48000)
+    silent.silence(2.0)
+    assert audio.integrated_lufs(silent.write(tmp_path / "silent.wav")) is None
+
+
 def test_lra_fit_raises_the_target_to_the_measured_range_and_never_lowers_it():
     assert audio.lra_fit(4.1, 11.0) == 11.0
     assert audio.lra_fit(11.0, 11.0) == 11.0
