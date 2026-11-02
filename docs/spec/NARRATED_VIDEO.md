@@ -1476,7 +1476,7 @@ The guard reads text only. These pass it, and the producer reviews them:
 
 | Not read | Why |
 | --- | --- |
-| a paraphrase or a translation | no entry spells it |
+| a paraphrase, or a translation in ASCII letters | no entry spells it. A letter outside ASCII after folding refuses as class `script` |
 | the pixels of a slide, plot or clip with no text source or an opaque one, and text burned into an MP4 or GIF frame | the guard reads no pixels and runs no OCR; on-screen asset text reaches the video, and the `visible_text` gate holds the delivery at the operator |
 | a text source's drawing that differs from its picture | the digest binds the file, not that it matches the picture; the producer keeps them in step |
 | asset container metadata (PNG text chunks, MP4 atoms) | it is not shown. The intake copies asset bytes by digest into the private store, and the outputs drop it: compose checks both MP4s and handoff strips each slide layer ("Compose and delivery") |
@@ -1484,6 +1484,9 @@ The guard reads text only. These pass it, and the producer reviews them:
 
 The intake states record `private_terms` and, beside it, `producer_review: pending_operator` for these. Tests use
 invented terms only.
+
+`docs/spec/DEMO_PACKET.md` lists the limits a demo packet carries. No machine gate catches a read slide, and
+`producer_review` is a label no code reads, so the operator's own read of each slide is what remains.
 
 ## Deck import
 
