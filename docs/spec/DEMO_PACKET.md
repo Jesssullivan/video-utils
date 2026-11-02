@@ -24,7 +24,7 @@ J168 (TIN-7125 `9738d494`) removes the BS-21 and `ip_private` code refusals for 
 30 audit. J168 lifts neither SPR-102 nor anything the law requires. SPR-339 (`1786d297`) says the removal adds no
 brand-only refusal. Jess's decision TIN-7125 `654c5b08` keeps the `shown-text-unread` refusal on `never_name`
 packets. It narrows the scope note TIN-7125 `2201b219` for that refusal and for `shown_text_unread` in `nv subject`.
-Elsewhere the removal stands. This table follows both. The removals are video-utils#86, which ships this file, and
+Elsewhere the removal stands. This table follows both. The removals are video-utils#86, which updates this file, and
 xoxd-ai/cade#267. They land together with TIN-7874. The first draft of the re-land closed unmerged.
 
 | Part | After the removal |
