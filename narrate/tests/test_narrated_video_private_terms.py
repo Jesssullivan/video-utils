@@ -740,6 +740,27 @@ def test_a_deleted_marker_refuses_beside_a_guarded_intake(ws, tmp_path, monkeypa
     assert caught.value.code == "private_terms_stale"
 
 
+def test_a_never_name_intake_json_needs_the_marker_whatever_its_status(ws, tmp_path):
+    # CADE-1 swb seq 1089: subject refuses never_name when intake.json says so. subject reads the flag from the marker,
+    # so an intake.json that says never_name with no guarded status and no marker refuses; it must not read as False.
+    from narrate.video.job import JobError, load_records
+
+    out = guarded_out(ws, tmp_path)
+    (out / "records" / private_terms.MARKER).unlink()
+    for status in ("skipped", "not_declared", None, 7):
+        guard = {"never_name": True} if status is None else {"never_name": True, "status": status}
+        (out / "intake.json").write_text(json.dumps({"private_terms": guard, "states": {}}))
+        assert private_terms.private_lane(out / "records"), status
+        with pytest.raises(JobError) as caught:
+            load_records(out / "records")
+        assert caught.value.code == "private_terms_stale", status
+    for never_name in (False, None, "true", 1):
+        guard = {"never_name": never_name, "status": "skipped"}
+        (out / "intake.json").write_text(json.dumps({"private_terms": guard, "states": {}}))
+        assert not private_terms.private_lane(out / "records"), never_name
+    load_records(out / "records")
+
+
 def test_init_from_takes_only_the_record_a_guarded_intake_wrote(ws, tmp_path, capsys):
     out = guarded_out(ws, tmp_path)
     assert cli.main(init_args(ws, tmp_path, out, out / "narrated-video.json")) == 0

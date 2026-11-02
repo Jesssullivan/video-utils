@@ -835,8 +835,9 @@ def marker(report, narrate_jobs, records, job, visible=None):
 
 def private_lane(directory):
     """True when a records directory must carry a marker: its sibling intake.json says the guard passed or refused or
-    the bundle declared ip_private, or the operator set a denylist or a pin (NARRATED_VIDEO_DENYLIST,
-    NARRATED_VIDEO_DENYLIST_SHA256)."""
+    the bundle declared ip_private or never_name, or the operator set a denylist or a pin (NARRATED_VIDEO_DENYLIST,
+    NARRATED_VIDEO_DENYLIST_SHA256). subject reads never_name from the marker, so a never_name intake.json needs the
+    marker whatever status it holds (CADE-1 swb seq 1089)."""
     if os.environ.get(DENYLIST_ENV) or os.environ.get(PIN_ENV):
         return True
     intake = Path(directory).parent / "intake.json"
@@ -849,7 +850,7 @@ def private_lane(directory):
             return True
         guard = value.get("private_terms") if isinstance(value.get("private_terms"), dict) else {}
         states = value.get("states") if isinstance(value.get("states"), dict) else {}
-        declared = guard.get("ip_private") is True
+        declared = guard.get("ip_private") is True or guard.get("never_name") is True
         return declared or guard.get("status") in GUARDED_STATUSES or states.get("private_terms") in GUARDED_STATUSES
     return False
 

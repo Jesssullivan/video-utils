@@ -1463,12 +1463,12 @@ visible-text state and the unread and opaque asset positions, which `deliver_che
 digest of the stored `nv_visible_text` file that `nv subject` reads (TIN-7788). The state
 is `passed` exactly when both lists are empty and `partial` otherwise. When an `intake.json` lies beside the records,
 its `states.visible_text`, its `visible_text` unread and opaque lists and its `private_terms.never_name` must equal the
-marker's, and so must its `visible_text.source_sha256` when the marker holds one. `subject` reads `never_name` from the marker, so it needs no `intake.json`. Every load of that records directory checks
+marker's, and so must its `visible_text.source_sha256` when the marker holds one. `subject` reads `never_name` from the marker, so it needs no `intake.json`, and a `never_name` `intake.json` needs the marker whatever status it holds. Every load of that records directory checks
 it and refuses `private_terms_stale` on a change, so a table edited after intake cannot add a spoken term. `init`,
 `plan`, `run` and `explain` also refuse a NarratedVideo record that is not the one the intake wrote. So an edited
 persona label or a segment pointed at another narrate job refuses, and so does a job built from `init` flags. A
 records directory with no marker refuses too when the `intake.json` beside it says the guard passed or refused or the
-bundle declared `ip_private`, or when `NARRATED_VIDEO_DENYLIST` or `NARRATED_VIDEO_DENYLIST_SHA256` is set. The intake's own `--records` input is
+bundle declared `ip_private` or `never_name`, or when `NARRATED_VIDEO_DENYLIST` or `NARRATED_VIDEO_DENYLIST_SHA256` is set. The intake's own `--records` input is
 exempt, because the operator's base records come from no intake. Deleting both the marker and `intake.json` outside
 a private lane still removes the check, so the producer keeps OUT where the bundle lives. So does deleting the
 marker and editing the `intake.json` status to `not_declared`, outside a private lane; both edits need write access
@@ -1515,12 +1515,15 @@ every shown asset had a text source and none was opaque, `partial` otherwise, an
 runs and the bundle does not declare `ip_private`. An unread or opaque asset does not refuse at intake. The records marker carries the state, and `deliver_check`
 reports it as the operator gate `visible_text`, so a partial cut keeps `operator_states_open` non-empty and
 `public_upload_allowed` false. The intake's admit reads the same summary, so `intake.json` lists
-`visible_text_unread` under `admit.pending_operator` exactly when the state is `partial`. `nv subject` refuses
-`shown_text_unread` in that state too ("Guard subject and cut"), so a partial cut fails its BS-21 guard before any
-render in a Cade DAG. Whether a private lane should refuse one at intake is open.
+`visible_text_unread` under `admit.pending_operator` exactly when the state is `partial`. On a `never_name` marker, or
+one older than the flag, `nv subject` refuses `shown_text_unread` in that state too, so such a partial cut fails its
+BS-21 guard before any render in a Cade DAG. On any other marker `subject` prints the rows it can read and
+`shown_unread`, and the gate holds the cut ("Guard subject and cut"). Whether a private lane should refuse one at intake is open.
 
 A shown asset that truly draws no text cannot say so. An empty list reads as opaque. On a guarded intake the asset
-waits at the operator on the `visible_text` gate, and `nv subject` refuses it as it refuses any opaque asset. On a
+waits at the operator on the `visible_text` gate. On a `never_name` marker, or one older than the flag, `nv subject`
+refuses it as it refuses any opaque asset, and on any other marker it lists it under `shown_unread` ("Guard subject
+and cut"). On a
 `never_name` packet Cade keeps its `shown-text-unread` refusal, so the producer must list a string or drop the asset.
 Records written by an intake before this rule keep the state that intake gave them. The marker version did not move,
 so `nv subject` trusts that state: run the intake again for a bundle with an empty or zero-width list.
