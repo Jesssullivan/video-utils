@@ -899,7 +899,7 @@ def guarded_intake(
     b["private"] = private_check(b["guard"], spoken["said"] + private_terms.joined(spoken["said"]))
 
     used = {beat["asset_id"] for beat in b["beats"]}
-    sources = {}  # store file name: (digest, Markdown bytes or None, asset or None)
+    sources = {}  # store file name: (digest, bytes to write or None, asset or None)
     for beat in b["beats"]:
         record, data = jobs[beat["id"]]
         sources[f"{record['inputSha256']}.md"] = (record["inputSha256"], data, None)
@@ -932,7 +932,7 @@ def write_intake(out, store, within, sources, b, job, jobs, tables, verdict, tem
         for name, (digest, data, asset) in sources.items():
             if not within and held(store / name, digest):
                 continue
-            where = "a beat script" if asset is None else f"asset {asset['id']}"
+            where = "a stored source" if asset is None else f"asset {asset['id']}"
             source = None if asset is None else open_asset(b["root"], asset["path"], where)
             parts.append((stage(store_dir, digest, data, source, where), store_dir / name, digest))
         manifest = intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, template, voice,
@@ -1018,7 +1018,7 @@ def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, 
         "outputs": outputs,
         "admit": {"verdict": verdict["verdict"], "pending_operator": [p["gate"] for p in verdict["pending_operator"]]},
         "private_terms": b["private"],
-        "visible_text": b["visible"],
+        "visible_text": b["visible"] | visible_binding(b),
         "states": {"source_checks": "passed", "claims": "passed", "pronunciation_numbers": "passed",
                    "private_terms": b["private"]["status"], "visible_text": visible_state(b),
                    "producer_review": "pending_operator", "render": "not_run", "listening": "pending_operator"},
@@ -1066,7 +1066,13 @@ def visible_record(b):
     """The marker's visible_text: the state, the unread and opaque positions, which deliver_check reads, and the
     digest of the stored visible-text source, which nv subject reads."""
     record = {"state": visible_state(b), "unread": b["visible"]["unread"], "opaque": b["visible"]["opaque"]}
-    return record | ({} if b["visible_source"] is None else {"source_sha256": b["visible_source"]})
+    return record | visible_binding(b)
+
+
+def visible_binding(b):
+    """The source_sha256 field the marker and intake.json both hold, so private_terms.visible_agrees can compare them.
+    Empty with no denylist, when nothing was stored."""
+    return {} if b["visible_source"] is None else {"source_sha256": b["visible_source"]}
 
 
 def claims_only(bundle, denylist=None, pin=None):

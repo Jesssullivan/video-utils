@@ -165,11 +165,26 @@ def test_a_malformed_or_entity_svg_refuses(data):
         json.dumps({"kind": "nv_asset_text", "schema_version": 1, "texts": ["a", 3]}).encode(),
         json.dumps({"kind": "nv_asset_text", "schema_version": 1, "texts": ["x" * 5000]}).encode(),
         b'{"kind": "nv_asset_text", "kind": "nv_asset_text", "schema_version": 1, "texts": []}',
+        b'{"kind": "nv_asset_text", "schema_version": 1, "texts": ["\\ud800Name"]}',  # a lone surrogate
     ],
 )
 def test_a_malformed_text_json_refuses(data):
     with pytest.raises(visible_text.TextSourceError):
         visible_text.json_texts(data)
+
+
+def test_a_surrogate_pair_in_text_json_reads_as_its_character():
+    data = b'{"kind": "nv_asset_text", "schema_version": 1, "texts": ["\\ud83d\\ude00"]}'
+    assert visible_text.json_texts(data) == ["\U0001f600"]
+
+
+def test_a_deeply_nested_svg_reads_in_document_order():
+    depth = 5000
+    data = (
+        b'<svg xmlns="http://www.w3.org/2000/svg">' + b"<g>" * depth + b"<text>deep</text>" + b"</g>tail" * depth
+        + b"</svg>"
+    )  # fmt: skip
+    assert visible_text.svg_read(data) == visible_text.Read(["deep", *["tail"] * depth], False)
 
 
 # The guard reads the visible text ----------------------------------------------------------------------------------
@@ -221,7 +236,9 @@ def test_clean_text_sources_pass_and_intake_records_them(ws, tmp_path):
     js = add_text_source(ws["bundle"], "slide-b", "slide-b.json", text_json("Cache rate", "forty two percent"))
     m = intake(ws, tmp_path / "out", persona="fixture-persona", denylist=ws["denylist"])
     assert m["private_terms"]["checked"]["visible"] == 2
+    digest = m["visible_text"].pop("source_sha256")
     assert m["visible_text"] == {"read": ["asset#1", "asset#2"], "unread": [], "opaque": []}
+    assert (ws["store"] / f"{digest}.json").is_file()
     assert m["states"]["visible_text"] == "passed" and m["states"]["producer_review"] == "pending_operator"
     assert "visible_text_unread" not in m["admit"]["pending_operator"]
     rows = {s["segment"]: s["asset"]["text"] for s in m["segments"]}
@@ -234,12 +251,17 @@ def test_a_shown_asset_without_a_text_source_is_listed_unread(ws, tmp_path):
     private_bundle(ws)
     add_text_source(ws["bundle"], "slide-a", "slide-a.svg", plot_svg("0"))
     m = intake(ws, tmp_path / "out", persona="fixture-persona", denylist=ws["denylist"])
-    assert m["visible_text"] == {"read": ["asset#1"], "unread": ["asset#2"], "opaque": []}
+    assert {k: m["visible_text"][k] for k in ("read", "unread", "opaque")} == {
+        "read": ["asset#1"],
+        "unread": ["asset#2"],
+        "opaque": [],
+    }
     assert m["states"]["visible_text"] == "partial"
     # admit reads this intake's summary, so intake.json lists the gate deliver_check will hold
     assert "visible_text_unread" in m["admit"]["pending_operator"]
     marker = json.loads((tmp_path / "out" / "records" / private_terms.MARKER).read_text())
     digest = marker["visible_text"].pop("source_sha256")
+    assert digest == m["visible_text"]["source_sha256"]
     assert marker["visible_text"] == {"state": "partial", "unread": ["asset#2"], "opaque": []}
     assert load_records(tmp_path / "out" / "records")["visible_text"] == marker["visible_text"] | {
         "source_sha256": digest
@@ -373,7 +395,11 @@ def test_an_opaque_slide_makes_the_intake_partial(ws, tmp_path):
     add_text_source(ws["bundle"], "slide-b", "slide-b.svg",
                     b'<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0h1"/></svg>')  # fmt: skip
     m = intake(ws, tmp_path / "out", persona="fixture-persona", denylist=ws["denylist"])
-    assert m["visible_text"] == {"read": ["asset#1", "asset#2"], "unread": [], "opaque": ["asset#1", "asset#2"]}
+    assert {k: m["visible_text"][k] for k in ("read", "unread", "opaque")} == {
+        "read": ["asset#1", "asset#2"],
+        "unread": [],
+        "opaque": ["asset#1", "asset#2"],
+    }
     assert m["states"]["visible_text"] == "partial" and m["private_terms"]["checked"]["visible"] == 1
     assert "visible_text_unread" in m["admit"]["pending_operator"]
     marker = json.loads((tmp_path / "out" / "records" / private_terms.MARKER).read_text())
@@ -577,6 +603,7 @@ def test_nv_subject_refuses_a_stored_source_that_is_gone_or_changed(ws, tmp_path
         b'{"kind": "other", "schema_version": 1, "texts": []}',
         b'{"kind": "nv_visible_text", "schema_version": 1, "texts": "x"}',
         b'{"kind": "nv_visible_text", "schema_version": 1, "texts": [{"asset": "asset#1"}]}',
+        b'{"kind": "nv_visible_text", "schema_version": 1, "texts": [{"text": "x"}]}',
         b"\xff\xfe",
     ],
 )
@@ -589,7 +616,31 @@ def test_nv_subject_refuses_a_malformed_stored_source_that_the_marker_binds(ws, 
     marker = json.loads(marker_file.read_text())
     marker["visible_text"]["source_sha256"] = digest
     marker_file.write_text(json.dumps(marker))
+    manifest = json.loads((out / "intake.json").read_text())
+    manifest["visible_text"]["source_sha256"] = digest
+    (out / "intake.json").write_text(json.dumps(manifest))
     assert run()["refused"] == "shown_text_unread"
+
+
+def test_nv_subject_refuses_a_marker_digest_repointed_at_another_stored_source(ws, tmp_path, capsys):
+    # A valid stored document with no rows would otherwise hand the guard no shown text at all.
+    out, run = subject_workspace(ws, tmp_path, capsys, *BOTH)
+    empty = b'{"kind": "nv_visible_text", "schema_version": 1, "texts": []}'
+    digest = hashlib.sha256(empty).hexdigest()
+    (ws["store"] / f"{digest}.json").write_bytes(empty)
+    marker_file = out / "records" / private_terms.MARKER
+    marker = json.loads(marker_file.read_text())
+    marker["visible_text"]["source_sha256"] = digest
+    marker_file.write_text(json.dumps(marker))
+    assert run()["refused"] == "private_terms_stale"
+
+
+def test_an_intake_json_from_before_the_digest_disagrees_with_a_marker_that_holds_one(ws, tmp_path, capsys):
+    out, run = subject_workspace(ws, tmp_path, capsys, *BOTH)
+    manifest = json.loads((out / "intake.json").read_text())
+    del manifest["visible_text"]["source_sha256"]
+    (out / "intake.json").write_text(json.dumps(manifest))
+    assert run()["refused"] == "private_terms_stale"
 
 
 def test_nv_subject_refuses_a_marker_with_no_stored_source(ws, tmp_path, capsys):

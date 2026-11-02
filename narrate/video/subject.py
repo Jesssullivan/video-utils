@@ -147,7 +147,9 @@ def stored_rows(digest, env):
         isinstance(rows, list)
         and document.get("kind") == private_terms.VISIBLE_KIND
         and document.get("schema_version") == private_terms.VISIBLE_VERSION
-        and all(isinstance(r, dict) and isinstance(r.get("text"), str) for r in rows)
+        and all(
+            isinstance(r, dict) and isinstance(r.get("asset"), str) and isinstance(r.get("text"), str) for r in rows
+        )
     )
     if not well_formed:
         raise unread
@@ -156,7 +158,8 @@ def stored_rows(digest, env):
 
 def shown_texts(job, records, env):
     """The visible_text rows of a job: [] when it shows no asset. Refuses shown_text_unread when any shown text is
-    unreadable, so the guard never passes a subject that leaves on-screen text out."""
+    unreadable, so the guard never passes a subject with an unread or opaque shown asset. A JSON source with an empty
+    list gives no row: that source states the asset draws no text, and the operator reviews that statement."""
     shown = shown_assets(job)
     if not shown:
         return []

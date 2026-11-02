@@ -1043,8 +1043,8 @@ lists them in this order:
 
 A guarded intake stores the shown text. It writes an `nv_visible_text` file,
 `{kind, schema_version: 1, texts: [{asset, text}]}`, to the private store under
-its digest and holds that digest in the records marker as
-`visible_text.source_sha256`. `subject` reads that file, so the Cade worker hands
+its digest and holds that digest in the records marker and in `intake.json`, each
+as `visible_text.source_sha256`. `subject` reads that file, so the Cade worker hands
 the BS-21 guard each `visible_text` row with the rest. Its name list then reads
 the text an asset shows, and a name need not be on the `nv` denylist for a slide
 to refuse it. The text comes from the asset's text source, not from its pixels
@@ -1442,7 +1442,7 @@ the digests of the job record and of the pronunciation table it names. It also h
 visible-text state and the unread and opaque asset positions, which `deliver_check` reports, and `source_sha256`, the
 digest of the stored `nv_visible_text` file that `nv subject` reads (TIN-7788). The state
 is `passed` exactly when both lists are empty and `partial` otherwise. When an `intake.json` lies beside the records,
-its `states.visible_text` and its `visible_text` unread and opaque lists must equal the marker's. Every load of that records directory checks
+its `states.visible_text` and its `visible_text` unread and opaque lists must equal the marker's, and so must its `visible_text.source_sha256` when the marker holds one. Every load of that records directory checks
 it and refuses `private_terms_stale` on a change, so a table edited after intake cannot add a spoken term. `init`,
 `plan`, `run` and `explain` also refuse a NarratedVideo record that is not the one the intake wrote. So an edited
 persona label or a segment pointed at another narrate job refuses, and so does a job built from `init` flags. A
@@ -1497,6 +1497,7 @@ The guard reads text only. These pass it, and the producer reviews them:
 | a paraphrase or a translation | no entry spells it |
 | the pixels of a slide, plot or clip with no text source or an opaque one, and text burned into an MP4 or GIF frame | the guard reads no pixels and runs no OCR; on-screen asset text reaches the video, and the `visible_text` gate holds the delivery at the operator |
 | a text source's drawing that differs from its picture | the digest binds the file, not that it matches the picture; the producer keeps them in step |
+| a shown asset whose JSON source lists no strings | that source states the asset draws no text, so the state is `passed`, `nv subject` gives it no row and the guard has only the producer's word |
 | asset container metadata (PNG text chunks, MP4 atoms) | it is not shown. The intake copies asset bytes by digest into the private store, and the outputs drop it: compose checks both MP4s and handoff strips each slide layer ("Compose and delivery") |
 | a job or records written another way than intake | no intake ran, so no marker exists. `subject` refuses `shown_text_unread` for such a job when it shows an asset |
 

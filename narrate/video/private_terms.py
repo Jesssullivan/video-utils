@@ -908,7 +908,9 @@ def visible_shape(value):
 
 def visible_agrees(directory, value):
     """True when no intake.json lies beside the records, or when its states.visible_text and its visible_text unread
-    and opaque lists equal the marker's summary. An unreadable intake.json disagrees, so the check fails closed."""
+    and opaque lists equal the marker's summary, and its source_sha256 equals the marker's when the marker holds one.
+    nv subject hands the BS-21 guard whatever that digest names, so a repointed digest is stale here. A marker with no
+    digest still loads, and nv subject refuses it. An unreadable intake.json disagrees, so the check fails closed."""
     intake = Path(directory).parent / "intake.json"
     if not intake.is_symlink() and not intake.exists():
         return True
@@ -924,6 +926,7 @@ def visible_agrees(directory, value):
         states.get("visible_text") == value["state"]
         and shown.get("unread") == value["unread"]
         and shown.get("opaque") == value["opaque"]
+        and ("source_sha256" not in value or shown.get("source_sha256") == value["source_sha256"])
     )
 
 

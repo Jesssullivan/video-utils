@@ -621,7 +621,8 @@ def main(argv=None):
     rs.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
 
     sj = sub.add_parser(
-        "subject", help="print every text the job voices or labels, for the BS-21 guard; the caller never logs it"
+        "subject",
+        help="print every text the job voices, labels or shows, for the BS-21 guard; the caller never logs it",
     )
     common(sj)
     cu = sub.add_parser("cut", help="print the current cut's digests and the operator gates still pending")

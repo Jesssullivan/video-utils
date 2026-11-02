@@ -5,7 +5,7 @@ intake lives in video-utils. Receipt cites R-HOOK-CONVERGENCE-20261004 (R-N13).
 
 | stream | owner | repo/branch | state/evidence | next |
 | --- | --- | --- | --- | --- |
-| visible_text in `nv subject` | narrate visibletext lane | Jesssullivan/video-utils `feat/tin-7788-nv-visible-text-subject-20261031`, stacked on #81 | **HOLD** on #81. Local, non-qualifying | root review after #81 |
+| visible_text in `nv subject` | narrate visibletext lane | Jesssullivan/video-utils `feat/tin-7788-nv-visible-text-subject-20261031`, based on main | **HOLD** on video-utils#83. Local, non-qualifying | root review, see the November 1 refix note |
 
 ## What changed
 
