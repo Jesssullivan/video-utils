@@ -1,8 +1,8 @@
 """Operator acceptance by Softproxy decision id (docs/spec/NARRATED_VIDEO.md, "Operator acceptance", Linear TIN-7788).
 
 Every stage runs through a fake runner that writes one small output per node, a synthetic video.mp4 for compose and a
-deliver_check gate table shaped like narrate/video/deliver.py's, so no FFmpeg runs. The decision ids are made-up ULIDs
-in Softproxy's form; none names a real decision.
+deliver_check gate table and delivery_gate shaped like narrate/video/deliver.py's, so no FFmpeg runs. The decision ids
+are made-up ULIDs in Softproxy's form; none names a real decision.
 """
 
 import json
@@ -44,7 +44,10 @@ def fields_for(node_id, partial, key, job, visible=None):
     if node_id == "compose":
         (partial / "video.mp4").write_bytes(b"synthetic cut " + key.encode())
     if node_id == "deliver_check":
-        return {"measurements": {"gates": gates_for(job, visible)}}
+        gates = gates_for(job, visible)
+        machine = {g: gates[g] for g in accept.AUTOMATED}
+        operator = {g: v for g, v in gates.items() if g not in machine}
+        return {"measurements": {"gates": gates, "delivery_gate": deliver.delivery_gate(job, None, machine, operator)}}
     return {}
 
 

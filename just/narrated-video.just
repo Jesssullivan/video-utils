@@ -49,6 +49,19 @@ nv-accept job gate decision video *args:
     python3 -m narrate video accept {{quote(job)}} --gate {{quote(gate)}} --decision {{quote(decision)}} \
         --video-sha256 {{quote(video)}} {{args}}
 
+# Print the job's guard subject: every text its records hold that it voices or labels (written and spoken narration,
+# ids, labels). It refuses a job that shows an asset with no guarded intake's marker. The Cade narrate worker reads it
+# in its own process for the BS-21 guard (TIN-7788, SPR-220) and never logs it. The store, records and lexical release
+# come from the environment or ARGS.
+nv-subject job *args:
+    python3 -m narrate video subject {{quote(job)}} {{args}}
+
+# Print the current cut: the composed video's sha256, the deliver_check key and digest, the machine gate states, the
+# operator gates still pending and the gates an acceptance of this cut closed. Digests and gate names only. A failed
+# machine gate refuses machine_gates_failed. ARGS: --root DIR.
+nv-cut job *args:
+    python3 -m narrate video cut {{quote(job)}} {{args}}
+
 # Re-hash a stage directory, or every current stage of a job directory.
 nv-verify dir:
     python3 -m narrate video verify {{quote(dir)}}
@@ -189,4 +202,4 @@ nv-test:
         tests/test_narrated_video_adopt.py tests/test_narrated_video_intake.py \
         tests/test_narrated_video_claims_units.py tests/test_narrated_video_private_terms.py \
         tests/test_narrated_video_vrm.py tests/test_narrated_video_visible_text.py tests/test_narrated_video_accept.py \
-        tests/test_relay_readback.py
+        tests/test_narrated_video_subject.py tests/test_relay_readback.py
