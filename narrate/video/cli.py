@@ -33,8 +33,9 @@ re-hashes the mounted inputs), and result reports a job that ran to deliver_chec
 intake. Neither takes the GPU Lease, and v1 refuses a gpu_window request outside check --gpu-draft.
 
 subject prints the guard subject of a job: every text its records hold that it voices or labels, written and spoken,
-which the Cade narrate worker reads in its own process for the BS-21 guard and never logs. It refuses shown_text_unread
-for a job that shows an asset when its records carry no guarded intake's marker. cut prints the current deliver_check
+and the text each shown asset draws, from the source a guarded intake stored. The Cade narrate worker reads it in its
+own process for the BS-21 guard and never logs it. It refuses shown_text_unread for a job that shows an asset when
+any of that text is unreadable. cut prints the current deliver_check
 render (the composed video's sha256, the deliver_check key and digest), its machine gate states and the operator gates
 still pending, digests and gate names only, and refuses machine_gates_failed when a machine gate failed
 (narrate/video/subject.py).
@@ -620,7 +621,8 @@ def main(argv=None):
     rs.add_argument("--root", help="the stage store root, instead of NARRATED_VIDEO_ROOT or artifacts/narrated")
 
     sj = sub.add_parser(
-        "subject", help="print every text the job voices or labels, for the BS-21 guard; the caller never logs it"
+        "subject",
+        help="print every text the job voices, labels or shows, for the BS-21 guard; the caller never logs it",
     )
     common(sj)
     cu = sub.add_parser("cut", help="print the current cut's digests and the operator gates still pending")

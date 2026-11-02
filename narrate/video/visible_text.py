@@ -94,6 +94,22 @@ def css_attribute(key):
     return "}" not in key and not key.startswith("data-")
 
 
+def style_text(element):
+    """Every run of character data inside a style element, in document order, so a comment or a nested element hides
+    no CSS after it. A comment's own text is not read. It loops, as svg_read does, because nesting depth is free."""
+    parts, todo = [], [element]
+    while todo:
+        node = todo.pop()
+        if isinstance(node, str):
+            parts.append(node)
+            continue
+        if node.tag is not ET.Comment:
+            parts.append(node.text or "")
+        for child in reversed(node):
+            todo += [child.tail or "", child]
+    return "".join(parts)
+
+
 def utf8_prolog(data):
     """Refuse an SVG that is not UTF-8 or holds a document type or entity declaration, before any parser reads it."""
     try:
@@ -152,15 +168,20 @@ def svg_read(data):
         if isinstance(text, str) and text.strip():
             out.append(text.strip())
 
-    def walk(element):
+    todo = [root]  # a loop, so nesting depth cannot exhaust the Python stack; a string is a tail to add in turn
+    while todo:
+        element = todo.pop()
+        if isinstance(element, str):
+            add(element)
+            continue
         comment = element.tag is ET.Comment
         name = None if comment else local(element.tag)
-        if name == "style" and external_css(element.text or ""):
+        if name == "style" and external_css(style_text(element)):
             opaque.append(name)
         if name in OPAQUE_ELEMENTS:
             opaque.append(name)
         if not comment and name in SKIPPED:
-            return
+            continue
         add(element.text)
         if not comment:
             for key in sorted(element.attrib):
@@ -173,11 +194,9 @@ def svg_read(data):
                     opaque.append(name)  # an event handler runs script
                 elif external_css(value) if css_attribute(key) else external_url(value):
                     opaque.append(name)  # a style or presentation attribute may load a file; metadata only by url()
-            for child in element:
-                walk(child)
-                add(child.tail)
+            for child in reversed(element):
+                todo += [child.tail or "", child]
 
-    walk(root)
     return Read(out, bool(opaque) or not out)
 
 
@@ -208,6 +227,10 @@ def json_texts(data):
         raise TextSourceError(f"texts is not a list of at most {MAX_TEXTS} strings")
     if not all(isinstance(t, str) and len(t) <= MAX_TEXT for t in texts):
         raise TextSourceError(f"texts holds an entry that is not a string of at most {MAX_TEXT} characters")
+    try:
+        "".join(texts).encode("utf-8")  # JSON can spell a lone surrogate, and the stored source is UTF-8
+    except UnicodeEncodeError:
+        raise TextSourceError("texts holds a lone surrogate, which is not text") from None
     return [t.strip() for t in texts if t.strip()]
 
 

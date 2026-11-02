@@ -402,7 +402,7 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `claims BUNDLE [--denylist FILE] [--denylist-sha256 HEX]` | `just narrated-video-claims` | the private-terms guard and the spoken-number claims gate alone, one row per segment. Exit 1 when a segment refuses |
 | `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
 | `accept JOB --gate G --decision ID --video-sha256 HEX` | `just nv-accept JOB GATE DECISION VIDEO` | records the operator's acceptance of `listening` or `lip_sync` for the current `deliver_check` render, by Softproxy decision id and the sha256 of the cut it saw. See "Operator acceptance" |
-| `subject JOB [--json]` | `just nv-subject` | prints the job's guard subject: every text its records hold that it voices or labels, written and spoken. The Cade narrate worker reads it in its own process for the BS-21 guard. Refuses `shown_text_unread` for a job that shows an asset with no guarded intake's marker. See "Guard subject and cut" |
+| `subject JOB [--json]` | `just nv-subject` | prints the job's guard subject: every text its records hold that it voices or labels, written and spoken, and each shown asset's stored text. The Cade narrate worker reads it in its own process for the BS-21 guard. Refuses `shown_text_unread` for a job that shows an asset when any of that text is unreadable. See "Guard subject and cut" |
 | `cut JOB [--json]` | `just nv-cut` | prints the current `deliver_check` render, its machine gate states, the operator gates still pending and the gates an acceptance of that render closed. Digests and gate names only. Refuses `machine_gates_failed` when a machine gate failed. See "Guard subject and cut" |
 
 Paths come from flags or the environment: `--root` (`NARRATED_VIDEO_ROOT`),
@@ -1039,16 +1039,31 @@ lists them in this order:
 | `caption` | `labels.personaCue`, when set | above the first cue |
 | `description` | `labels.extraNotice`, when set | the last line of `description.txt` |
 | `label` | `labels.persona`, when set | every stage manifest from `place` on |
+| `visible_text` | each shown asset's strings joined by newlines, one text per asset, from the stored source below | the video's frames |
 
-An asset's own text, such as a still, a slide, a plot, a clip or a deck, is not
-in the subject, so the BS-21 name list never reads it. Only the intake's
-private-terms guard reads it, against the `nv` denylist (`private_terms.py`,
-`visible_text.py`). A name must be on that denylist for shown text to refuse it.
-The `visible_text` gate stays open while a guarded intake left an asset unread.
-With no guarded intake that gate reads `not_applicable`, so `subject` refuses
-`shown_text_unread` at any edition when the job has a still, video or deck base
-or a slide page and the records carry no guarded intake's marker. The refusal
-names the kinds of asset. A `card` base with no slide page shows no asset.
+A guarded intake stores the shown text. It writes an `nv_visible_text` file,
+`{kind, schema_version: 1, texts: [{asset, text}]}`, to the private store under
+its digest and holds that digest in the records marker and in `intake.json`, each
+as `visible_text.source_sha256`. `subject` reads that file, so the Cade worker hands
+the BS-21 guard each `visible_text` row with the rest. Its name list then reads
+the text an asset shows, and a name need not be on the `nv` denylist for a slide
+to refuse it. The text comes from the asset's text source, not from its pixels
+("Private terms", "Visible text").
+
+`subject` fails closed when a job with a still, video or deck base or a slide
+page has shown text it cannot read. It refuses `shown_text_unread` at any edition
+in each of these cases:
+
+| Case | Refusal names |
+| --- | --- |
+| the records carry no guarded intake's marker | the kinds of asset |
+| the intake's state is `partial`: a shown asset is unread or opaque | the asset positions |
+| the marker holds no `visible_text`, or no `source_sha256`, as a marker written before this field does | the fix: run the intake again |
+| the stored source is missing from the store, changed or malformed | the fix: run the intake again |
+
+No acceptance closes this refusal: only a re-intake reads the text. An
+`nv_visible_text` file holds strings that passed the intake's guard, and a
+refusal quotes none of them. A `card` base with no slide page shows no asset.
 
 `subject` refuses `subject_too_large` above 4096
 texts or 200000 UTF-16 code units in one text, the limits the Cade guard holds.
@@ -1424,9 +1439,10 @@ records `not_declared`. A denylist given to such a bundle still runs.
 A guarded intake writes `records/private-terms.json` (schema 2): the guard's status and digest, the digest of the
 NarratedVideo record it wrote to `narrated-video.json` and the narrate jobs its segments name, and, per narrate job,
 the digests of the job record and of the pronunciation table it names. It also holds `visible_text`: the intake's
-visible-text state and the unread and opaque asset positions, which `deliver_check` reports (TIN-7788). The state
+visible-text state and the unread and opaque asset positions, which `deliver_check` reports, and `source_sha256`, the
+digest of the stored `nv_visible_text` file that `nv subject` reads (TIN-7788). The state
 is `passed` exactly when both lists are empty and `partial` otherwise. When an `intake.json` lies beside the records,
-its `states.visible_text` and its `visible_text` unread and opaque lists must equal the marker's. Every load of that records directory checks
+its `states.visible_text` and its `visible_text` unread and opaque lists must equal the marker's, and so must its `visible_text.source_sha256` when the marker holds one. Every load of that records directory checks
 it and refuses `private_terms_stale` on a change, so a table edited after intake cannot add a spoken term. `init`,
 `plan`, `run` and `explain` also refuse a NarratedVideo record that is not the one the intake wrote. So an edited
 persona label or a segment pointed at another narrate job refuses, and so does a job built from `init` flags. A
@@ -1435,7 +1451,9 @@ when `NARRATED_VIDEO_DENYLIST` or `NARRATED_VIDEO_DENYLIST_SHA256` is set. The i
 exempt, because the operator's base records come from no intake. Deleting both the marker and `intake.json` outside
 a private lane still removes the check, so the producer keeps OUT where the bundle lives. So does deleting the
 marker and editing the `intake.json` status to `not_declared`, outside a private lane; both edits need write access
-to OUT itself, which the producer controls. A pinned lane refuses either way.
+to OUT itself, which the producer controls. A pinned lane refuses either way. Deleting `intake.json` alone leaves the
+marker's `visible_text.source_sha256` with nothing to compare, in any lane, so a digest repointed at another stored
+source passes `subject`. That edit needs the same write access to OUT.
 
 Visible text (TIN-7788). A slide or plot shows text the script never says: a title, axis labels, a legend, tick
 values. The guard reads no pixels, and this repository has no OCR dependency. So an asset names its on-screen text
@@ -1444,14 +1462,15 @@ in a text source, bound by digest in its manifest `text` field (`narrate/video/v
 | Source | What counts |
 | --- | --- |
 | `.svg`, the vector the picture was drawn from | every run of character data and every comment, including character references as the XML parser decodes them, and the `aria-label` and `xlink:title` attributes. A plotting library that draws glyphs as paths writes each label as a comment beside them. The `metadata`, `style` and `script` elements are skipped, because none of them is drawn. A `script` still makes the source opaque. The file must be UTF-8 |
-| `.json`, `{"kind": "nv_asset_text", "schema_version": 1, "texts": [...]}` | each string the producer drew. An empty list says the asset draws no text |
+| `.json`, `{"kind": "nv_asset_text", "schema_version": 1, "texts": [...]}` | each string the producer drew. An empty list, or a list of only whitespace, says the asset draws no text |
 
 An SVG source is opaque when it may draw text that no string names. It holds an
 `image`, `feImage`, `foreignObject` or another embedding element. It runs script
 through a `script` element or an event handler attribute. It refers to another
 file through an `href` or a `url()` that is not a `#` fragment, a CSS `@import`,
 a CSS `image()` or `image-set()`, a CSS backslash escape or an
-`xml-stylesheet` processing instruction. A presentation attribute such as
+`xml-stylesheet` processing instruction. A `style` element's CSS is all the
+character data inside it, across its comments and nested elements. A presentation attribute such as
 `fill` or `filter` takes CSS as `style` does, so a backslash in an attribute in
 no namespace counts as an escape. A `data-*` attribute or a namespaced one,
 such as `inkscape:export-filename`, is metadata: a `url()` there counts, a
@@ -1469,8 +1488,9 @@ every shown asset had a text source and none was opaque, `partial` otherwise, an
 runs. An unread or opaque asset does not refuse at intake. The records marker carries the state, and `deliver_check`
 reports it as the operator gate `visible_text`, so a partial cut keeps `operator_states_open` non-empty and
 `public_upload_allowed` false. The intake's admit reads the same summary, so `intake.json` lists
-`visible_text_unread` under `admit.pending_operator` exactly when the state is `partial`. Whether a private lane
-should refuse one at intake is open.
+`visible_text_unread` under `admit.pending_operator` exactly when the state is `partial`. `nv subject` refuses
+`shown_text_unread` in that state too ("Guard subject and cut"), so a partial cut fails its BS-21 guard before any
+render in a Cade DAG. Whether a private lane should refuse one at intake is open.
 
 The guard reads text only. These pass it, and the producer reviews them:
 
@@ -1479,6 +1499,7 @@ The guard reads text only. These pass it, and the producer reviews them:
 | a paraphrase or a translation | no entry spells it |
 | the pixels of a slide, plot or clip with no text source or an opaque one, and text burned into an MP4 or GIF frame | the guard reads no pixels and runs no OCR; on-screen asset text reaches the video, and the `visible_text` gate holds the delivery at the operator |
 | a text source's drawing that differs from its picture | the digest binds the file, not that it matches the picture; the producer keeps them in step |
+| a shown asset whose JSON source lists no strings, or only whitespace | that source states the asset draws no text, so the state is `passed`, `nv subject` gives it no row and the guard has only the producer's word |
 | asset container metadata (PNG text chunks, MP4 atoms) | it is not shown. The intake copies asset bytes by digest into the private store, and the outputs drop it: compose checks both MP4s and handoff strips each slide layer ("Compose and delivery") |
 | a job or records written another way than intake | no intake ran, so no marker exists. `subject` refuses `shown_text_unread` for such a job when it shows an asset |
 
