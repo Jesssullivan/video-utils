@@ -55,14 +55,23 @@ at `666e13a4` with 64 source cases and sha256 `15812b8e`, and its reader failed 
 | Finding | Result |
 | --- | --- |
 | Parity unpublished | true now, see Corrections and Evidence |
-| A repointed marker digest passed `nv subject` with no rows | fixed. `intake.json` holds `visible_text.source_sha256`, and `visible_agrees` refuses `private_terms_stale` when a marker's digest differs. A row also needs a string `asset` |
+| A repointed marker digest passed `nv subject` with no rows | fixed when an `intake.json` lies beside the records. That file holds `visible_text.source_sha256`, and `visible_agrees` refuses `private_terms_stale` when a marker's digest differs. A row also needs a string `asset` |
 | A lone surrogate crashed a guarded intake | fixed. `json_texts` refuses it as a `TextSourceError` |
 | A deep SVG raised `RecursionError` | fixed. `svg_read` loops, so it reads what the TS reader reads |
 | Stale strings | fixed in `cli.py`, the just recipe, `bundle.py` and `subject.py` |
-| An empty JSON list gives no row | rule kept, and the spec's table of what passes now lists it. Whether to treat it as opaque in both readers stays open for Jess |
+| An empty JSON list gives no row | rule kept, and the spec's table of what passes now lists it, with a list of only whitespace. Whether to treat it as opaque in both readers stays open for Jess |
 
 Row positions are not compared with the intake's. The review offered that as a second check, but a job's rows differ from
 `read` for an empty source, and a forger who can edit both `intake.json` and the marker can edit a position list too.
+
+### Before a worker binding
+
+The digest check has a condition, and a test pins it. With no `intake.json` beside the records, a marker digest
+repointed at a stored document with no rows passes `nv subject` with 0 `visible_text` rows, in any lane. A dangling
+symlink at that path refuses. The spec accepts this class because the producer controls OUT. The Cade worker's records
+layout is unknown, because no worker binding exists. If `NARRATED_VIDEO_RECORDS` points at a directory with no
+`intake.json` beside it, a single marker edit passes. Before that binding, record whether `intake.json` travels with
+the records, or make `nv subject` refuse without it.
 
 ### Parity left open
 
@@ -80,15 +89,20 @@ for the next pass that moves cade#259.
 ## What J168 changes
 
 J168 (TIN-7125 `9738d494`) removes the BS-21 and `ip_private` code refusals for go-live, with a revisit at the November
-30 audit. SPR-339 (`1786d297`) keeps brand-only refusals out of that change. No removal PR exists yet, so this is the
-plan as ruled, and that PR's own text decides.
+30 audit. J168 lifts neither SPR-102 nor anything the law requires. SPR-339 (`1786d297`) says the removal adds no
+brand-only refusal. This section follows the scope note TIN-7125 `2201b219` and the draft removal video-utils#85 at
+`95d1a15f`. That draft has had no review and has not merged, so its final text decides each row.
 
 | Part | After the removal |
 | --- | --- |
-| `visible_text` rows | `nv subject` still prints them. A name in one no longer refuses at the Cade guard |
-| Stored source and digest binding | no change from this branch |
+| `visible_text` rows and the name check | `nv subject` still prints a row for each asset it reads. The name check stays with its `private-term` refusal. A name in a row still refuses wherever the guard step runs. The registration hook stops forcing that step on a DAG, so a DAG without it reads no row |
+| `shown_text_unread` and cade's `shown-text-unread` | Both refusals go. `nv subject` stops refusing the first, and the hand-off worker drops the second |
+| The `nv` denylist | `private_terms.py` and `subject.py` change. `ip_private` no longer needs a denylist, and number and geometry entries and the `script` class stop matching. `never_name` keeps its denylist, its name entry and its match |
+| This branch's `shown_text_unread` cases | They reverse. An unread or opaque asset, a marker with no stored source and a stored source that is gone, changed or malformed stop no subject. #85 branched before these cases and removes only the no-marker refusal. It conflicts with this branch in 5 files, so the PR that lands second takes a signed merge and drops them |
+| A `partial` intake | It passes `nv subject`, so a Cade DAG no longer stops there. #85 does not change `deliver.py`, so the delivery still waits at the operator |
+| A bundle with no text source | It can pass a Cade guard. The name check then has no text to read for that asset |
+| Stored source and digest binding | Neither the note nor #85 changes them. `private_terms_stale` on a repointed digest stays, when an `intake.json` lies beside the records |
 | Shared fixture | still binds what each reader reads. It tests no name-list refusal |
-| `shown_text_unread` and cade's `shown-text-unread` | J168 names neither code. The removal PR must say whether they stay |
 
 `docs/spec/DEMO_PACKET.md` on video-utils#83 holds the same plan for the known-limit row.
 
@@ -114,5 +128,14 @@ The review fixes ran on the same local setup, with main `6aa4aca1` merged. Load1
 | Fixture sha256 at this branch and at cade#259 `17d6ee8f` | both `a770516f` |
 | `tests/bs21-shown-text.test.ts` at cade#259 `17d6ee8f`, no dependencies installed | 7 pass, 0 fail, 79 source and 5 script cases |
 | Full `just nv-test` | not run. CI runs it |
+
+The second review's fixes on this head did not run locally. The load gate returned 75 at load5 36.60, above its limit
+of 24, and nothing ran ungated. These edits have no local run, so CI's hosted `narrate` job is their first run.
+
+| Run | Result |
+| --- | --- |
+| `test_narrated_video_visible_text.py`, with the new digest test and the whitespace case | not run locally. CI runs it |
+| `ruff check` and `ruff format --check` on the changed Python files | not run locally. CI runs them |
+| Mutation probes on the new test, full `just nv-test` locally | not run |
 
 No test uses a real slide, name or number. Nothing was merged or marked ready. No host act ran.

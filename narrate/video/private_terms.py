@@ -910,7 +910,8 @@ def visible_agrees(directory, value):
     """True when no intake.json lies beside the records, or when its states.visible_text and its visible_text unread
     and opaque lists equal the marker's summary, and its source_sha256 equals the marker's when the marker holds one.
     nv subject hands the BS-21 guard whatever that digest names, so a repointed digest is stale here. A marker with no
-    digest still loads, and nv subject refuses it. An unreadable intake.json disagrees, so the check fails closed."""
+    digest still loads, and nv subject refuses it. An unreadable intake.json disagrees, so the check fails closed. With
+    no intake.json there is nothing to compare, at any lane, so a repointed digest passes."""
     intake = Path(directory).parent / "intake.json"
     if not intake.is_symlink() and not intake.exists():
         return True

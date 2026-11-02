@@ -1451,7 +1451,9 @@ when `NARRATED_VIDEO_DENYLIST` or `NARRATED_VIDEO_DENYLIST_SHA256` is set. The i
 exempt, because the operator's base records come from no intake. Deleting both the marker and `intake.json` outside
 a private lane still removes the check, so the producer keeps OUT where the bundle lives. So does deleting the
 marker and editing the `intake.json` status to `not_declared`, outside a private lane; both edits need write access
-to OUT itself, which the producer controls. A pinned lane refuses either way.
+to OUT itself, which the producer controls. A pinned lane refuses either way. Deleting `intake.json` alone leaves the
+marker's `visible_text.source_sha256` with nothing to compare, in any lane, so a digest repointed at another stored
+source passes `subject`. That edit needs the same write access to OUT.
 
 Visible text (TIN-7788). A slide or plot shows text the script never says: a title, axis labels, a legend, tick
 values. The guard reads no pixels, and this repository has no OCR dependency. So an asset names its on-screen text
@@ -1460,7 +1462,7 @@ in a text source, bound by digest in its manifest `text` field (`narrate/video/v
 | Source | What counts |
 | --- | --- |
 | `.svg`, the vector the picture was drawn from | every run of character data and every comment, including character references as the XML parser decodes them, and the `aria-label` and `xlink:title` attributes. A plotting library that draws glyphs as paths writes each label as a comment beside them. The `metadata`, `style` and `script` elements are skipped, because none of them is drawn. A `script` still makes the source opaque. The file must be UTF-8 |
-| `.json`, `{"kind": "nv_asset_text", "schema_version": 1, "texts": [...]}` | each string the producer drew. An empty list says the asset draws no text |
+| `.json`, `{"kind": "nv_asset_text", "schema_version": 1, "texts": [...]}` | each string the producer drew. An empty list, or a list of only whitespace, says the asset draws no text |
 
 An SVG source is opaque when it may draw text that no string names. It holds an
 `image`, `feImage`, `foreignObject` or another embedding element. It runs script
@@ -1497,7 +1499,7 @@ The guard reads text only. These pass it, and the producer reviews them:
 | a paraphrase or a translation | no entry spells it |
 | the pixels of a slide, plot or clip with no text source or an opaque one, and text burned into an MP4 or GIF frame | the guard reads no pixels and runs no OCR; on-screen asset text reaches the video, and the `visible_text` gate holds the delivery at the operator |
 | a text source's drawing that differs from its picture | the digest binds the file, not that it matches the picture; the producer keeps them in step |
-| a shown asset whose JSON source lists no strings | that source states the asset draws no text, so the state is `passed`, `nv subject` gives it no row and the guard has only the producer's word |
+| a shown asset whose JSON source lists no strings, or only whitespace | that source states the asset draws no text, so the state is `passed`, `nv subject` gives it no row and the guard has only the producer's word |
 | asset container metadata (PNG text chunks, MP4 atoms) | it is not shown. The intake copies asset bytes by digest into the private store, and the outputs drop it: compose checks both MP4s and handoff strips each slide layer ("Compose and delivery") |
 | a job or records written another way than intake | no intake ran, so no marker exists. `subject` refuses `shown_text_unread` for such a job when it shows an asset |
 

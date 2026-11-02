@@ -635,6 +635,28 @@ def test_nv_subject_refuses_a_marker_digest_repointed_at_another_stored_source(w
     assert run()["refused"] == "private_terms_stale"
 
 
+@pytest.mark.parametrize("pinned", [False, True])
+def test_a_repointed_marker_digest_passes_nv_subject_when_no_intake_json_lies_beside_the_records(
+    ws, tmp_path, capsys, monkeypatch, pinned
+):
+    # This pins a known gap: the digest check compares with intake.json only, at any lane. A symlink still refuses.
+    out, run = subject_workspace(ws, tmp_path, capsys, *BOTH)
+    assert len([t for t in run() if t["field"] == "visible_text"]) == 2
+    if pinned:
+        monkeypatch.setenv("NARRATED_VIDEO_DENYLIST", str(ws["denylist"]))
+    empty = b'{"kind": "nv_visible_text", "schema_version": 1, "texts": []}'
+    digest = hashlib.sha256(empty).hexdigest()
+    (ws["store"] / f"{digest}.json").write_bytes(empty)
+    marker_file = out / "records" / private_terms.MARKER
+    marker = json.loads(marker_file.read_text())
+    marker["visible_text"]["source_sha256"] = digest
+    marker_file.write_text(json.dumps(marker))
+    (out / "intake.json").unlink()
+    assert [t for t in run() if t["field"] == "visible_text"] == []
+    (out / "intake.json").symlink_to(out / "gone.json")
+    assert run()["refused"] == "private_terms_stale"
+
+
 def test_an_intake_json_from_before_the_digest_disagrees_with_a_marker_that_holds_one(ws, tmp_path, capsys):
     out, run = subject_workspace(ws, tmp_path, capsys, *BOTH)
     manifest = json.loads((out / "intake.json").read_text())
@@ -656,8 +678,11 @@ def test_nv_subject_refuses_a_marker_with_no_stored_source(ws, tmp_path, capsys)
     assert run()["refused"] == "shown_text_unread"
 
 
-def test_an_empty_text_list_says_the_asset_draws_no_text_and_gives_no_row(ws, tmp_path, capsys):
-    _, run = subject_workspace(ws, tmp_path, capsys, BOTH[0], ("slide-b", "slide-b.json", text_json()))
+@pytest.mark.parametrize("strings", [(), ("  ", "\n\t")])
+def test_a_text_list_with_no_visible_string_says_the_asset_draws_no_text_and_gives_no_row(
+    ws, tmp_path, capsys, strings
+):
+    _, run = subject_workspace(ws, tmp_path, capsys, BOTH[0], ("slide-b", "slide-b.json", text_json(*strings)))
     assert len([t for t in run() if t["field"] == "visible_text"]) == 1
 
 

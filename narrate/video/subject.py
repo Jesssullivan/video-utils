@@ -5,8 +5,8 @@ The Cade narrate worker runs the BS-21 guard (xoxd-ai/cade src/bs21-guard.ts) be
 renders a text. That guard needs the texts themselves, and Hatchet carries job ids only, so the worker reads them
 here, inside its own process, and never hands them to Hatchet, a log or a receipt.
 
-texts(job, records, env, store) lists every text that the job's own records hold and that the job voices or labels,
-in a fixed order:
+texts(job, records, env, store) lists every text that the job's own records hold and that the job voices, labels or
+shows, in a fixed order:
 
   narration    each segment's written text, read as the script stage reads it (narrate.spoken.lines of its script
                through its narrate job's input adapter). The captions show it
@@ -159,7 +159,8 @@ def stored_rows(digest, env):
 def shown_texts(job, records, env):
     """The visible_text rows of a job: [] when it shows no asset. Refuses shown_text_unread when any shown text is
     unreadable, so the guard never passes a subject with an unread or opaque shown asset. A JSON source with an empty
-    list gives no row: that source states the asset draws no text, and the operator reviews that statement."""
+    list, or a list of only whitespace, gives no row: that source states the asset draws no text, and the operator
+    reviews that statement."""
     shown = shown_assets(job)
     if not shown:
         return []
