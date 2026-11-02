@@ -22,14 +22,17 @@ open rows and cites this file for the limits that stay. That copy is a manual st
 
 J168 (TIN-7125 `9738d494`) removes the BS-21 and `ip_private` code refusals for go-live, with a revisit at the November
 30 audit. J168 lifts neither SPR-102 nor anything the law requires. SPR-339 (`1786d297`) says the removal adds no
-brand-only refusal. This table follows the scope note TIN-7125 `2201b219` and the draft removals video-utils#85 and
-xoxd-ai/cade#267. Neither draft has had a review or merged, so their final text decides each row.
+brand-only refusal. Jess's decision TIN-7125 `654c5b08` narrows the scope note TIN-7125 `2201b219` on `never_name`
+packets, and elsewhere the removal stands. This table follows both. The removals are the J168 re-land here and
+xoxd-ai/cade#267. The first draft of the re-land closed unmerged, and cade#267 has review findings to fix. Neither has
+merged, so their final text decides each row.
 
 | Part | After the removal |
 | --- | --- |
 | Name check on `visible_text` rows | It stays with its `private-term` refusal, so a name in a row still refuses wherever the guard step runs. The registration hook stops forcing that step on a DAG, and a DAG without the step reads no row |
 | The open limit | Its effect returns on a DAG without the step, this time by ruling. The root rewrites the row to say so and keeps it until the audit decides |
-| `shown_text_unread` and `shown-text-unread` | Both refusals go. `nv subject` stops refusing the first, and the hand-off worker drops the second. A subject can then leave shown text out |
-| The `visible_text` gate | video-utils#85 does not change `deliver.py`, so an unread or opaque asset still waits at the operator |
+| `shown-text-unread` in the hand-off worker | It stays on a `never_name` packet, and BIZ-17 coverage stays with it. The hand-off worker drops it on any other packet |
+| `shown_text_unread` in `nv subject` | `nv subject` stops refusing it, so a subject can leave shown text out. It cannot narrow to `never_name`: it refuses when the records carry no guarded intake's marker, so the job holds no declaration, and the packet record holds that flag. On a `never_name` packet the hand-off refusal above still applies |
+| The `visible_text` gate | The J168 re-land does not change `deliver.py`, so an unread or opaque asset still waits at the operator |
 | The intake's `nv` denylist | `ip_private` no longer needs a denylist, and number and geometry entries and the `script` class stop matching. `never_name` keeps its denylist, its name entry and its match |
 | Limits that stay | The first row has no change. In the second, a letter outside ASCII stops refusing, so a translation passes in any letters |
