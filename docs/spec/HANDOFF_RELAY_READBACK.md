@@ -28,7 +28,7 @@ relay inherits that environment.
 |---|---|
 | `generation_moved` | The delivered record for the activated generation names a lab commit that contains `<merge>`, checked with `gh api` compare. The detail prints the compare answer, and `None` means the call gave no answer. The record is `deployed.json` with verdict `SWITCHED` or `NO-OP`, or `hm-delivered.json` for the host's Home Manager attr with `tree` equal to `clean`, as lab `local_switch_as_delivered` reads it. The attr is `--hm-attr`, else the one `deployed.json` records. A generation is an int or a digit string, the form lab writes. A bool or any other value is no generation. A `SWITCHED` record also needs `after_gen` above `before_gen`. The generation must be above `<since-gen>`, and a `NO-OP` record passes only through that comparison. The detail names the source, the `hm-delivered.json` tree and every record it ignored: a file that holds no JSON object, a missing or malformed commit id, a failed verdict, attr or tree, and a record that is not the running one. It also names the outcome of the last pull-switch tick, so a `deferred-live-sessions` run reads as a deferral |
 | `relay_from_active_generation` | The relay is the file the activated generation's `home-files` links |
-| `child_repo` | The probe runs in `<child>` and that directory holds a justfile. `just --command` runs in the directory of the justfile it finds, so a `<child>` without one runs the probe in a parent's directory, measured with just 1.51.0 on November 2, 2026 |
+| `child_repo` | The probe runs in `<child>` and that directory holds a justfile. `just --command` runs in the directory of the justfile it finds, so a `<child>` without one runs the probe in a parent's directory, measured with just 1.51.0 on November 2, 2026. Name `<child>` as an absolute path or one under `~/`. The probe resolves `<child>` again from inside the child, so a relative path such as `fab/child` fails the row |
 | `command_v` | `command -v cade-handoff-relay` prints a path in this launch context. The row is advisory in `ssh` |
 | `version` | `cade-handoff-relay --version` prints `cade-handoff-relay 0.1.0 (fab-dag-handoff/1)` and exits 0. A command that does not finish in 30 seconds reads as exit 124, and one that does not start as exit 127 |
 | `interpreter` | The wrapper execs a Nix store `python3` with `-I`, and that interpreter runs. The row names it and its version |
@@ -104,7 +104,7 @@ writes it on one host. It is a dry run unless `--write` is passed.
 | `agent_id_invalid` | The id is not `harness:host:pid:session_id` |
 | `host_invalid` | The host argument could be read as an ssh option. It must be a host or `user@host` that starts with a letter or digit |
 | `merge_invalid` | `--merge` is not a full 40-character commit id |
-| `probe_failed` | ssh or `just` failed, timed out or printed no JSON object as its last line |
+| `probe_failed` | ssh or `just` failed, timed out or printed no JSON object as its last line. The driver gives each probe or write-map 120 seconds. The relay's `swb peers` calls count toward that limit, so a long or slow peers listing can end the run with this code |
 | `agent_id_stale` | swb peers lists the id as gone or ended |
 | `agent_id_superseded` | The session restarted under a new pid. The map is written from the new session |
 | `agent_id_unknown` | swb peers lists no session for the id |
@@ -154,7 +154,7 @@ Each host step is a host act. It needs a run that may act on that host.
   another way, so the producer row stays required.
 - The relay checks only that `manifest.signature` is present and named `<packet_rel>/manifest.json.asc` or
   `.sig`. It never verifies the signature. Narrate must verify the manifest sha256 and signature of each forwarded
-  record before it acts on one. No code here does that yet. It is `verify_packet`, step 9b of the Activeplug plan
+  record before it acts on one. No code here does that yet. It is `verify_packet`, step 9b of the producer's plan
   in TIN-7788 comment `8121fcfd`, which narrate drafts and CADE-1 lands. A readback PASS shows only that the relay
   is installed. It is not that verification.
 - A new relay version changes the vendored sha256. The probe then fails `script_pinned`, and write-map refuses until

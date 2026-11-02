@@ -16,7 +16,7 @@ map procedure, with no host act.
   `vars/cade_handoff_relay.json` and the `AGENT_SWITCHBOARD.md` section.
 - lab main `b2ce9ec9`: `scripts/validation/hm-pull-switch.py` for the delivered record and the activated
   generation, and `LOCAL_CONSOLIDATION_DELIVERY.md` section 7 for the state files.
-- fab-agent-template v0.5.0 `15dd05d`: `just/mfg.just` and `mfg.py`, which runs notify with `bash -c`.
+- The fab child template v0.5.0 `15dd05d`: `just/mfg.just` and `mfg.py`, which runs notify with `bash -c`.
 
 ## Choices
 
@@ -173,6 +173,33 @@ Checks ran in the tinyland-heavy slice through the seat's gate, in the condense 
 The full narrate suite was not run.
 
 The first readback, step 7 of the lane, is not run. It needs lab#3167, a held draft.
+
+## Independent read lows, November 2, 2026
+
+Authority: the narrate seat's TIN-7788 brief to fix the three lows of the independent read of head `51b133c8`.
+Receipt per R-HOOK-CONVERGENCE-20261004 (R-N13). Main `04cda829` was merged first with a signed merge.
+
+| Low | Fix |
+|---|---|
+| A relative swb override passed only because no `swb` existed in the working directory | The override test copies a working swb into the child repo and adds `./swb`. It asserts each relative value is executable from there, so only the absolute-path rule can fail the row |
+| No test for a directory sync that fails after the rename | A new test fails only a directory fsync. It expects `map_written_unverified`, the new entry in place, no temporary file and no home path in the refusal |
+| A private project name in the spec, and a private repo name in `relay.py` and this note | Neutral wording: the producer's plan and the fab child template |
+
+The spec now also states two fail-closed limits from the read. A relative `<child>` such as `fab/child` fails
+`child_repo`, because the probe resolves it again from inside the child. The driver's 120-second limit covers the
+relay's `swb peers` calls, so a long or slow listing gives `probe_failed`.
+
+Checks ran in the condense dev shell on the merged tree, one bounded scope per file. They are local and
+non-qualifying.
+
+| Check | Result |
+|---|---|
+| `tests/test_relay_readback.py` | 155 passed |
+| `tests/test_narrated_video_subject.py` | 44 passed |
+| `tests/test_narrated_video_visible_text.py` | 220 passed |
+| `just narrate-lint` | clean |
+| `os.path.isabs` removed from `swb_override_ok` | killed by the `swb` and `./swb` cases |
+| the directory sync's raise replaced with `pass` | killed by the new test |
 
 ## First readback checklist
 

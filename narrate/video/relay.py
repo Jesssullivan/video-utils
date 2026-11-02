@@ -125,7 +125,7 @@ def read_record(path, ignored: list) -> dict:
 
 
 def in_context(command: str, env: dict, timeout: int = 30) -> subprocess.CompletedProcess:
-    """`bash -c COMMAND`, as fab-agent-template mfg.py handoff_packet runs the notify command. A command that
+    """`bash -c COMMAND`, as the child template's mfg.py handoff_packet runs the notify command. A command that
     does not start or does not finish comes back as a failed result, exit 127 or 124, so the probe still prints
     its other rows."""
     cmd = ["bash", "-c", command]

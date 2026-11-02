@@ -12,6 +12,8 @@ import hashlib
 import json
 import os
 import shlex
+import shutil
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -1064,12 +1066,15 @@ def test_the_probe_reads_no_switchboard_while_the_mapping_is_absent(host):
     assert failing(relay.evaluate(p, MERGE, contains_merge, since_gen=40)) == []
 
 
-@pytest.mark.parametrize("override", ["swb", "{store}/no-such-swb", "{home}/swb-not-executable"])
+@pytest.mark.parametrize("override", ["swb", "./swb", "{store}/no-such-swb", "{home}/swb-not-executable"])
 def test_a_swb_override_the_relay_would_refuse_fails_the_swb_row(host, override):
     """The wrapper keeps a CADE_HANDOFF_RELAY_SWB the caller set, and relay 0.1.0 refuses one that is not an
-    absolute executable path."""
+    absolute executable path. A relative one fails even when it names a working swb from the working directory."""
     (host["home"] / "swb-not-executable").write_text("")
+    shutil.copy2(host["store"] / "ccc-swb" / "bin" / "swb", host["child"] / "swb")
     value = override.format(store=host["store"], home=host["home"])
+    if not os.path.isabs(value):
+        assert os.access(value, os.X_OK)  # so only the absolute-path rule can fail the row
     env = {**host["env"], "CADE_HANDOFF_RELAY_SWB": value}
     p = run_probe(env, "ssh")
     rows = relay.evaluate(p, MERGE, contains_merge, since_gen=40)
@@ -1155,3 +1160,22 @@ def test_a_write_that_fails_in_a_new_directory_leaves_it_empty(host, monkeypatch
         relay.write_map(host["env"], SELF, write=True)
     assert e.value.code == "map_write_failed" and str(host["home"]) not in e.value.where
     assert list(host["config"].parent.iterdir()) == []
+
+
+def test_a_directory_sync_that_fails_after_the_rename_is_unverified(host, monkeypatch):
+    """The file's own fsync succeeds and the rename lands, so the refusal says the new entry is in place."""
+    seed(host, OTHER)
+    host["peers"].write_text(json.dumps([live(OTHER, "gone"), live(SELF)]))
+    real = os.fsync
+
+    def directory_sync_fails(fd):
+        if stat.S_ISDIR(os.fstat(fd).st_mode):
+            raise OSError(5, "Input/output error")
+        return real(fd)
+
+    monkeypatch.setattr(relay.os, "fsync", directory_sync_fails)
+    with pytest.raises(relay.Refused, match="map_written_unverified: the new entry is in place: OSError") as e:
+        relay.write_map(host["env"], SELF, write=True)
+    assert str(host["home"]) not in e.value.where
+    assert json.loads(host["config"].read_text())["recipients"]["cade-delivery"]["agent_id"] == SELF
+    assert [p.name for p in host["config"].parent.iterdir()] == ["handoff-relay.json"]
