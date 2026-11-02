@@ -15,7 +15,7 @@ open rows and cites this file for the limits that stay. That copy is a manual st
 
 | Limit | Why |
 | --- | --- |
-| Text burned into a frame that the asset's text source does not list, or a text source that differs from its picture, passes every machine check | No check reads pixels or runs OCR. The digest binds the file, not its match to the picture. On a guarded intake an asset with no text source is `unread`, and it waits at the operator. Once video-utils#84 and cade#259 land, a JSON source with an empty list, or a list of only whitespace or zero-width text, is `opaque` and waits there too. Without a guarded intake the `visible_text` gate reads `not_applicable`, so nothing waits |
+| Text burned into a frame that the asset's text source does not list, or a text source that differs from its picture, passes every machine check | No check reads pixels or runs OCR. The digest binds the file, not its match to the picture. On a guarded intake an asset with no text source is `unread`, and it waits at the operator. Since video-utils#84 and cade#259 landed, a JSON source with an empty list, or a list of only whitespace or zero-width text, is `opaque` and waits there too. Without a guarded intake the `visible_text` gate reads `not_applicable`, so nothing waits |
 | A paraphrase or a translation passes, in any letters | No denylist entry spells it. J168 stops the `script` class on every bundle, `never_name` included |
 
 ## J168 removal
