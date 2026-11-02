@@ -21,9 +21,9 @@ in a fixed order:
 The text an asset shows on screen (a still, a slide, a plot, a clip, a deck) is not in this list, so the BS-21 name
 list never reads it. Only the intake's private-terms guard does, against the nv denylist, from each asset's text
 source (narrate/video/private_terms.py, visible_text.py). deliver_check's visible_text gate stays open while a guarded
-intake left an asset unread, and with no guarded intake it reads not_applicable. So subject refuses
-shown_text_unread when the job shows an asset and its records carry no guarded intake's marker: without one, no check
-would read that text. A card base with no slide page shows no asset.
+intake left an asset unread, and with no guarded intake it reads not_applicable. J168 removes subject's
+shown_text_unread refusal for go-live, so a job with no guarded intake's marker can show text no check reads, and the
+November 30, 2026 audit revisits that.
 
 cut(store, job) is the current deliver_check render as accept.render_of binds it: the composed video's sha256, the
 deliver_check stage key and content digest, the machine gate states, deliver_check's internal-review flag and the
@@ -40,8 +40,6 @@ from ..adapters import InputError
 from ..normalise import NormaliseError, Normaliser
 from . import accept
 from .common import StageRefused, work_dir
-from .compose import page_kind
-from .deliver import visible_gate
 from .job import JobError
 from .speech import script_copy
 
@@ -117,23 +115,8 @@ def texts(job, records, env, store):
     return out
 
 
-def shown_assets(job):
-    """The kinds of asset the job puts on screen, each of which can show text no subject field holds."""
-    kinds = sorted(set(job["base"]) - {"card"})
-    pages = (job.get("slides") or {}).get("pages") or []
-    return kinds + (["slide"] if any(page_kind(p) == "slide" for p in pages) else [])
-
-
 def subject(job, records, env, store):
-    """{ok, job_id, texts}. The worker adds the packet id from its run input; the packet record names the brand.
-    Refuses shown_text_unread for a job that shows an asset when its records carry no guarded intake's marker."""
-    shown = shown_assets(job)
-    if shown and visible_gate(records.get("visible_text"))[0] == "not_applicable":
-        raise JobError(
-            "shown_text_unread",
-            f"the job shows {', '.join(shown)} and its records carry no guarded intake's marker, so no check reads"
-            " that text; run a guarded intake",
-        )
+    """{ok, job_id, texts}. The worker adds the packet id from its run input; the packet record names the brand."""
     return {"ok": True, "job_id": job["id"], "texts": texts(job, records, env, store)}
 
 

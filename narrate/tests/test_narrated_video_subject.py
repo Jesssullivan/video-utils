@@ -144,27 +144,21 @@ def slide_pages(*shows):
 
 
 @pytest.mark.parametrize("kind", sorted(SHOWN_BASES))
-def test_a_base_that_shows_an_asset_refuses_with_no_guarded_marker(ws, kind):
+def test_j168_a_base_that_shows_an_asset_passes_with_no_guarded_marker(ws, kind):
     ws["job"]["base"] = {kind: SHOWN_BASES[kind]}
-    with pytest.raises(JobError) as exc:
-        subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])
-    assert exc.value.code == "shown_text_unread" and kind in exc.value.detail
+    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["ok"] is True
 
 
-def test_a_slide_page_refuses_with_no_guarded_marker_and_names_no_page(ws):
+def test_j168_a_slide_page_passes_with_no_guarded_marker(ws):
     ws["job"]["slides"] = slide_pages("Hold", {"slide": {"sha256": SHA}})
-    with pytest.raises(JobError) as exc:
-        subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])
-    assert exc.value.code == "shown_text_unread" and "page-" not in exc.value.detail
+    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["ok"] is True
 
 
-def test_every_edition_refuses_an_unguarded_shown_asset(ws):
+def test_j168_every_edition_passes_a_shown_asset_with_no_guarded_marker(ws):
     ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
     for edition in EDITIONS:
         ws["job"]["edition"] = edition
-        with pytest.raises(JobError) as exc:
-            subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])
-        assert exc.value.code == "shown_text_unread"
+        assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["ok"] is True
 
 
 def test_a_card_with_only_base_and_hold_pages_shows_no_asset(ws):

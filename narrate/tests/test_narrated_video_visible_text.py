@@ -18,6 +18,7 @@ from test_narrated_video_private_terms import (
     NAME,
     TEMPLATE,
     VOICE,
+    audit_rules,  # noqa: F401 (an autouse fixture)
     leaks,
     private_bundle,
     refused,
@@ -425,7 +426,7 @@ def test_a_marker_summary_that_disagrees_with_intake_json_refuses(ws, tmp_path, 
         load_records(out / "records")
 
 
-def test_nv_subject_needs_the_guarded_intake_of_a_job_that_shows_a_slide(ws, tmp_path, capsys):
+def test_nv_subject_reads_a_job_that_shows_a_slide_with_or_without_a_guarded_intake(ws, tmp_path, capsys):
     private_bundle(ws)
     add_text_source(ws["bundle"], "slide-a", "slide-a.svg", plot_svg("0"))
     out = tmp_path / "out"
@@ -437,12 +438,11 @@ def test_nv_subject_needs_the_guarded_intake_of_a_job_that_shows_a_slide(ws, tmp
     assert cli.main(["subject", "demo-fixture", *common]) == 0
     fields = {t["field"] for t in json.loads(capsys.readouterr().out)["texts"]}
     assert {"narration", "spoken", "title"} <= fields
-    # Deleting the marker and intake.json leaves records no guard read: the job still shows its slides.
+    # J168: deleting the marker and intake.json leaves records no guard read, and subject no longer refuses them.
     (out / "records" / private_terms.MARKER).unlink()
     (out / "intake.json").unlink()
-    assert cli.main(["subject", "demo-fixture", *common]) == 1
-    captured = capsys.readouterr()
-    assert captured.out == "" and json.loads(captured.err)["refused"] == "shown_text_unread"
+    assert cli.main(["subject", "demo-fixture", *common]) == 0
+    assert {"narration", "spoken", "title"} <= {t["field"] for t in json.loads(capsys.readouterr().out)["texts"]}
 
 
 def test_an_unread_slide_on_a_private_lane_holds_the_upload_at_the_operator(ws, tmp_path, ffmpeg, capsys):

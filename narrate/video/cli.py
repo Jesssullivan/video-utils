@@ -33,16 +33,15 @@ re-hashes the mounted inputs), and result reports a job that ran to deliver_chec
 intake. Neither takes the GPU Lease, and v1 refuses a gpu_window request outside check --gpu-draft.
 
 subject prints the guard subject of a job: every text its records hold that it voices or labels, written and spoken,
-which the Cade narrate worker reads in its own process for the BS-21 guard and never logs. It refuses shown_text_unread
-for a job that shows an asset when its records carry no guarded intake's marker. cut prints the current deliver_check
-render (the composed video's sha256, the deliver_check key and digest), its machine gate states and the operator gates
-still pending, digests and gate names only, and refuses machine_gates_failed when a machine gate failed
+which the Cade narrate worker reads in its own process for the BS-21 guard and never logs. cut prints the current
+deliver_check render (the composed video's sha256, the deliver_check key and digest), its machine gate states and the
+operator gates still pending, digests and gate names only, and refuses machine_gates_failed when a machine gate failed
 (narrate/video/subject.py).
 
 intake and claims read a demo bundle (manifest.json, script.md, claims.json and its assets; docs/spec/NARRATED_VIDEO.md,
 "Demo bundle intake"). claims runs the spoken-number claims gate alone. intake also checks every asset by digest,
 writes one NarratedVideo record, one narrate job per beat and their sources, and refuses before writing anything when
-a check fails. Both run the private-terms guard first: a manifest that declares ip_private or never_name needs
+a check fails. Both run the private-terms guard first: a manifest that declares never_name needs
 --denylist (or NARRATED_VIDEO_DENYLIST), the private denylist it binds by digest. --denylist-sha256 (or
 NARRATED_VIDEO_DENYLIST_SHA256) pins that digest outside the bundle and marks the lane private. fixture --bundle
 also writes a synthetic bundle.
@@ -71,7 +70,7 @@ PIN_HELP = (
     " an undeclared bundle refuses and the file must hash to it, whatever the manifest says"
 )
 DENYLIST_HELP = (
-    "the private denylist file (kind nv_denylist) that a manifest declaring ip_private or never_name binds by sha256,"
+    "the private denylist file (kind nv_denylist) that a manifest declaring never_name binds by sha256,"
     " instead of NARRATED_VIDEO_DENYLIST; kept outside the bundle and outside git"
 )
 

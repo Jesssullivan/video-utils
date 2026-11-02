@@ -848,7 +848,7 @@ def intake(
     out must be new or empty. It receives narrated-video.json (the NarratedVideo record), records/ (the input
     renders with one narrate job per beat added to jobs.json) and intake.json; store (default out/store) receives
     each beat's Markdown and each used asset as <sha256><suffix>. denylist is the private denylist file that a
-    manifest declaring ip_private or never_name binds by digest, and pin the operator's pinned digest of it. Nothing
+    manifest declaring never_name binds by digest, and pin the operator's pinned digest of it. Nothing
     is written when any check refuses, and a refusal whose detail says a private term is withheld."""
     state = {"entries": private_terms.preload(denylist), "pinned": private_terms.pinned(pin)}
     with withheld(state):

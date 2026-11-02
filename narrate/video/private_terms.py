@@ -1,8 +1,10 @@
 """The private-terms guard of a demo bundle (docs/spec/NARRATED_VIDEO.md, "Private terms", TIN-7735, SPR-220).
 
-A bundle's manifest.json may declare `privacy: {ip_private, never_name, denylist_sha256}`. ip_private marks work
-whose numbers and geometry stay private. never_name marks a bundle that must not name a party. When
-either is true, the manifest names a denylist digest, the operator gives a denylist, or the operator pins its digest
+A bundle's manifest.json may declare `privacy: {ip_private, never_name, denylist_sha256}`. never_name marks a bundle
+that must not name a party. ip_private marks work whose numbers and geometry were private: J168 and SPR-339 remove its
+refusals for go-live, so the flag is recorded and needs no denylist, and the November 30, 2026 audit revisits that
+(docs/spec/NARRATED_VIDEO.md, "Private terms"). When never_name is true, the manifest names a denylist digest, the
+operator gives a denylist, or the operator pins its digest
 (--denylist-sha256 or NARRATED_VIDEO_DENYLIST_SHA256), the claims gate needs the denylist: a JSON file kept outside
 the bundle and outside any git work tree. A pin marks the lane private, so an undeclared bundle refuses
 privacy_undeclared and the file must hash to the pin, whatever the manifest says. The guard refuses
@@ -12,7 +14,9 @@ It then checks every text the job would speak or show or record: each beat's voi
 spoken form after the pronunciation tables (intake only), each claim's spoken text, the persona label, the visible
 text of each slide, plot or clip a beat shows (intake only: the text source the asset names, visible_text.py), and
 every bundle text that reaches a record or report (the slug, the job id, beat, claim and asset ids, asset and text
-source paths and claim and asset receipts). A match refuses private_term. Record texts are checked first and
+source paths and claim and asset receipts). A name entry that matches refuses private_term. J168 stops the number and
+geometry entries and the script class from matching, and the readers below stay for that audit, shared with
+xoxd-ai/cade. Record texts are checked first and
 reported by position (beat#2, not the beat's id), so a report never carries a private id.
 
 Matching fails closed, so it over-matches on purpose. A text with a letter that is not ASCII after NFKD, mark
@@ -59,7 +63,11 @@ MAX_LITERAL = 256
 MAX_REGEX = 512
 CLASSES = ("number", "geometry", "name")
 # The class a declaration needs at least one entry of: a never_name denylist that names nobody is malformed.
-NEEDS = {"ip_private": {"number", "geometry"}, "never_name": {"name"}}
+NEEDS = {"never_name": {"name"}}
+# J168 and SPR-339: what refuses for go-live. Number and geometry entries parse and do not match, and no script class
+# refuses. The November 30, 2026 audit restores the ip_private rules with MATCHED = CLASSES and SCRIPT_MATCHES = True.
+MATCHED = ("name",)
+SCRIPT_MATCHES = False
 PRIVACY_FIELDS = {"ip_private", "never_name"}
 PRIVACY_OPTIONAL = {"denylist_sha256"}
 # A random salt in the file, so that its digest cannot confirm a guessed short list (cade src/claims-gate.ts keeps
@@ -415,7 +423,7 @@ def declaration(value, where="manifest.json privacy"):
 
 
 def required(declared, pin=None):
-    return declared["ip_private"] or declared["never_name"] or declared["denylist_sha256"] is not None or bool(pin)
+    return declared["never_name"] or declared["denylist_sha256"] is not None or bool(pin)
 
 
 def pinned(pin=None):
@@ -516,7 +524,7 @@ def read_denylist(path, declared, pin=None, bundle=None):
             raise PrivateError("denylist_digest_mismatch", "manifest.json binds another denylist than the pin")
         if digest != pin:
             raise PrivateError("denylist_digest_mismatch", "the --denylist file does not hash to the pin")
-    elif declared["denylist_sha256"] is None and (declared["ip_private"] or declared["never_name"]):
+    elif declared["denylist_sha256"] is None and declared["never_name"]:
         raise PrivateError("denylist_missing", "manifest.json declares private terms but names no denylist_sha256")
     elif declared["denylist_sha256"] is not None and digest != declared["denylist_sha256"]:
         raise PrivateError("denylist_digest_mismatch", "the --denylist file does not hash to the manifest's digest")
@@ -641,13 +649,14 @@ def redact(entries, code, detail):
 
 # The guard ------------------------------------------------------------------------------------------------------
 def scan(entries, texts):
-    """[{segment, source, entry, class}] for every (segment, source, text) that an entry matches, in order; entry is
-    the entry's position in the denylist, never its id. A text with a letter outside ASCII or a word of two scripts
-    is a match of class script (entry null). A joined text (joined()) reports only what neither of its parts says."""
+    """[{segment, source, entry, class}] for every (segment, source, text) that a MATCHED entry matches, in order;
+    entry is the entry's position in the denylist, never its id. Under SCRIPT_MATCHES a text with a letter outside
+    ASCII or a word of two scripts is a match of class script (entry null). A joined text (joined()) reports only what
+    neither of its parts says."""
     out, seen = [], set()
     for segment, source, text in texts:
-        found = [(None, "script")] if script_hit(text) else []
-        found += [(e["index"], e["class"]) for e in entries if hits(e, text)]
+        found = [(None, "script")] if SCRIPT_MATCHES and script_hit(text) else []
+        found += [(e["index"], e["class"]) for e in entries if e["class"] in MATCHED and hits(e, text)]
         for index, kind in found:
             if source == "joined" and any((part, index) in seen for part in segment.split("+")):
                 continue

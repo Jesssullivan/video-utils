@@ -142,7 +142,7 @@ nv-fixture:
 # manifest.json, script.md, claims.json and its PNG, MP4 and GIF assets. The claims gate refuses a segment that speaks
 # a number no cited, receipted claims.json entry backs. Run both on the private bundle where it lives; nothing renders.
 # Run the spoken-number claims gate alone: one row per segment; exit 1 when a segment refuses. ARGS: [--denylist
-# FILE] (or NARRATED_VIDEO_DENYLIST), needed when the manifest declares ip_private or never_name, and
+# FILE] (or NARRATED_VIDEO_DENYLIST), needed when the manifest declares never_name, and
 # [--denylist-sha256 HEX] (or NARRATED_VIDEO_DENYLIST_SHA256), the operator's pin for a private lane.
 narrated-video-claims bundle *args:
     python3 -m narrate video claims {{quote(bundle)}} {{args}}

@@ -1045,10 +1045,9 @@ in the subject, so the BS-21 name list never reads it. Only the intake's
 private-terms guard reads it, against the `nv` denylist (`private_terms.py`,
 `visible_text.py`). A name must be on that denylist for shown text to refuse it.
 The `visible_text` gate stays open while a guarded intake left an asset unread.
-With no guarded intake that gate reads `not_applicable`, so `subject` refuses
-`shown_text_unread` at any edition when the job has a still, video or deck base
-or a slide page and the records carry no guarded intake's marker. The refusal
-names the kinds of asset. A `card` base with no slide page shows no asset.
+With no guarded intake that gate reads `not_applicable`. J168 removes `subject`'s
+`shown_text_unread` refusal for go-live, so a job with no guarded intake's marker
+can show text no check reads. The November 30, 2026 audit revisits that.
 
 `subject` refuses `subject_too_large` above 4096
 texts or 200000 UTF-16 code units in one text, the limits the Cade guard holds.
@@ -1324,15 +1323,17 @@ first. A refusal prints the per-segment report and writes nothing. A pass copies
 
 ### Private terms
 
-Linear TIN-7735, SPR-220. Some work is private: an `ip_private` bundle keeps its numbers and geometry private, and a
-`never_name` bundle must not name a party. A bundle declares this in `manifest.json`:
+Linear TIN-7735, SPR-220. A `never_name` bundle must not name a party. An `ip_private` bundle marks work whose numbers
+and geometry were private. J168 (TIN-7125 `9738d494`) and SPR-339 (`1786d297`) remove the `ip_private` and BS-21
+refusals for go-live, and the November 30, 2026 audit revisits them, so `ip_private` is recorded and refuses nothing. A
+bundle declares this in `manifest.json`:
 
 ```json
 "privacy": {"ip_private": true, "never_name": false, "denylist_sha256": "<64 lowercase hex digits>"}
 ```
 
 `ip_private` and `never_name` are required booleans, and `denylist_sha256` binds the denylist by digest. Any other
-field, or a value of the wrong type, refuses `bundle_invalid`. When either flag is true, `claims` and `intake` need
+field, or a value of the wrong type, refuses `bundle_invalid`. When `never_name` is true, `claims` and `intake` need
 the denylist through `--denylist FILE` or `NARRATED_VIDEO_DENYLIST`. The file lives outside the bundle and outside
 every git work tree, and only its digest appears in a record.
 
@@ -1350,7 +1351,7 @@ neither flag refuses `privacy_undeclared`, and the file must hash to the pin wha
 | `denylist_pin_invalid` | the pin is not 64 lowercase hex digits |
 | `privacy_undeclared` | a pin is set and the manifest declares neither `ip_private` nor `never_name` |
 | `denylist_invalid` | the file is over 1 MiB, not UTF-8 JSON, repeats a key, is not `{kind: "nv_denylist", schema_version: 1, salt, entries}` with 1 to 10000 entries, holds a malformed entry, or lacks the class a flag needs |
-| `private_term` | an entry matches a text the job speaks, shows or records, a letter is not ASCII after NFKD, mark stripping and case folding, or a word mixes two scripts |
+| `private_term` | a name entry matches a text the job speaks, shows or records |
 | `private_terms_stale` | at every records load, a narrate job or the pronunciation table it names differs from what a guarded intake recorded, or a private lane's records hold no marker; at `init`, `plan`, `run` and `explain`, the NarratedVideo record is not the one the guarded intake wrote |
 
 `salt` is 32 to 128 random lowercase hex digits with at least 8 distinct digits. Records carry the file's digest,
@@ -1358,8 +1359,8 @@ and the salt keeps that digest from confirming a guessed short list, the reason 
 of its name list.
 
 Each entry is `{id, class, literal}`, `{id, class, regex}` or `{id, class: "number", number, unit}`. `class` is
-`number`, `geometry` or `name`. `ip_private` needs at least one number or geometry entry and `never_name` needs at
-least one name entry. A literal holds 2 to 256 letters or digits. A name entry is never a number entry. An entry id
+`number`, `geometry` or `name`. `never_name` needs at least one name entry. Number and geometry entries parse and do
+not match (J168). The reading rules below stay for the audit, shared with xoxd-ai/cade. A literal holds 2 to 256 letters or digits. A name entry is never a number entry. An entry id
 must not match any entry, number entries included. Reports name entries by position and never carry an id, so an
 id that spells a term in a form the entries do not read ("angle-12-5") still never reaches a log. A number entry's
 `unit` is `null` or a unit the claims gate reads. It is kept for the record and no longer narrows the match.
@@ -1370,7 +1371,7 @@ of those (a bare `-` only last) and the quantifiers `?`, `*`, `+`, `{n}`, `{n,}`
 case-insensitive, with `.` matching every character and `\s`, `\d` and `\b` reading ASCII only. It must not match
 empty or blank text, before or after its separators are removed.
 
-Matching fails closed and over-matches on purpose. A text refuses as class `script` when one of its letters is not
+Matching fails closed and over-matches on purpose. Before J168 a text refused as class `script` when one of its letters was not
 ASCII after NFKD, mark stripping and case folding, or when one word mixes letters of two scripts. So small capitals
 and Greek, Cyrillic, Armenian and Lisu letters refuse in a guarded bundle, while "é", "ß" and fullwidth Latin letters
 fold to ASCII and pass. Each text is then folded: NFKD, combining marks stripped, case folded, the Cyrillic, Greek
@@ -1480,7 +1481,7 @@ The guard reads text only. These pass it, and the producer reviews them:
 | the pixels of a slide, plot or clip with no text source or an opaque one, and text burned into an MP4 or GIF frame | the guard reads no pixels and runs no OCR; on-screen asset text reaches the video, and the `visible_text` gate holds the delivery at the operator |
 | a text source's drawing that differs from its picture | the digest binds the file, not that it matches the picture; the producer keeps them in step |
 | asset container metadata (PNG text chunks, MP4 atoms) | it is not shown. The intake copies asset bytes by digest into the private store, and the outputs drop it: compose checks both MP4s and handoff strips each slide layer ("Compose and delivery") |
-| a job or records written another way than intake | no intake ran, so no marker exists. `subject` refuses `shown_text_unread` for such a job when it shows an asset |
+| a job or records written another way than intake | no intake ran, so no marker exists, and J168 removes `subject`'s refusal for such a job |
 
 The intake states record `private_terms` and, beside it, `producer_review: pending_operator` for these. Tests use
 invented terms only.
