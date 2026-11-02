@@ -31,6 +31,7 @@ Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not app
 - `claims` reads the text as written. `intake` also says each beat through the template's pronunciation tables and refuses `pronunciation_adds_number` when a table adds a number word; with the narration register pinned it needs `NARRATE_LEXICAL_DIR`.
 - The gate checks that each number names a receipt, not what the receipt says. English only, with the unit table in the spec.
 - One MP4 per bundle, playing from program second 0 under every beat. Two different MP4s refuse `asset_video_multiple`.
+- `docs/spec/DEMO_PACKET.md` lists the limits a demo packet carries. No machine gate catches a read slide, and `producer_review` is a label no code reads, so the operator reads each slide. The demo README in the producer's private repository copies the open rows by hand, and no check reads it.
 - A passed intake is a source check. Render, lip sync, listening and delivery are later, separate states, and only the operator closes listening.
 
 ## Agent iteration
