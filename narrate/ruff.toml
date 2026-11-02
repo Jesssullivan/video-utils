@@ -6,6 +6,8 @@ extend-exclude = ["dhall"]
 "bench/host_run.py" = "py39"
 "serve/audiocpp_batch.py" = "py39"
 "serve/finalize.py" = "py39"
+# relay.py is piped to a producer host's own python3 (narrate/video/relay.py, TIN-7788).
+"video/relay.py" = "py39"
 
 [lint]
 select = ["E", "F", "I", "B", "UP"]
