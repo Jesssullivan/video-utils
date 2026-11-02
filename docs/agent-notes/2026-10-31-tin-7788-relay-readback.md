@@ -143,6 +143,37 @@ Checks, local and non-qualifying: load1 was 34 to 42, so the full narrate suite 
 The PATH measurement comes from a seat with the same lab shell modules, not from a producer host. The first
 readback confirms it there.
 
+## Mining findings U3 and U4, November 2, 2026
+
+Authority: the narrate seat's mining manifest of November 2, rows U3 and U4, raised against head `7bca4af4`. The
+brief asks for each finding checked against the code and the real ones fixed with tests. Receipt per
+R-HOOK-CONVERGENCE-20261004 (R-N13). Main `5a45d1ac` was merged first with a signed merge.
+
+| Finding | Verdict | Fix | Test |
+|---|---|---|---|
+| U3: `mapping_written` passed an entry the relay refuses and an id that is gone | Real. The row read `agent_id` from `load_mapping` and never called `resolve_recipient` | With a file in place, the probe runs the installed relay's `resolve_recipient` with the wrapper's swb. The row needs the resolved id to equal the expected one and names the relay's code. `swb peers --all` is read-only, and an absent map makes no swb call | a second key, an unknown field, gone, superseded, unknown, a failed swb, and no swb call while absent |
+| U4: an OSError in a write left the temporary file | Real. `write_private(tmp)` ran outside the `finally` that removes it | The write, check and rename share the cleanup. An OSError before the rename refuses `map_write_failed` and names only its type. A failed directory sync after the rename refuses `map_written_unverified` | a full disk on dry run and write leaves the old bytes and no other file, and a new directory empty |
+| U4: `--version` could raise a raw TimeoutExpired | Real. `in_context` had no handler, so the probe printed a traceback and no JSON | A timeout reads as exit 124 and a command that does not start as exit 127. The `version` detail names the exit | a hung `--version` gives a failed row and the other rows. A missing bash gives 127 |
+| U4: a bad swb override passed | Real. The wrapper keeps a set `CADE_HANDOFF_RELAY_SWB`, which the relay refuses unless it is an absolute executable path | The probe records the override, and the `swb` row needs it to pass that test | relative, missing and non-executable overrides fail the row, and write-map refuses `swb_unavailable`. A good override passes |
+| U4: `child_justfile` was never gated | Real, but gating it alone checks nothing. `just --command` fails without a justfile and runs in the directory of the one it finds, a parent's when `<child>` has none, as just 1.51.0 showed here | The driver passes `--child-repo`. The new `child_repo` row needs the probe to run in that directory and that directory to hold a justfile | another directory, a missing one, no `--child-repo`, no justfile |
+| U4: the test stub invented swb exit codes | Real. It mapped exits 7, 75 and 69 to three codes. Relay 0.1.0 maps any nonzero exit to `swb_peers_failed`, a timeout to `swb_timeout` and a failed start to `swb_unavailable` | The stub follows that mapping and `swb_binary`. The holder test uses exits 1 and 75 and a hung swb. `swb_unavailable` is tested through a bad override | the same cases |
+
+The third review's note that the stub followed relay 0.1.0 for `swb peers` failures was wrong for the exit codes.
+
+Checks ran in the tinyland-heavy slice through the seat's gate, in the condense dev shell, on the merged tree:
+
+| Check | Result |
+|---|---|
+| `tests/test_relay_readback.py` | 153 passed |
+| the same file with the real relay bytes, sha256 `19b287a5`, in scratch | 150 passed. The 3 hung-swb cases were deselected, because the real relay waits 30 seconds |
+| `tests/test_narrated_video_subject.py` and `tests/test_narrated_video_visible_text.py`, from the main merge | 264 passed |
+| `narrate.tests.stdlib_smoke` | 7 OK |
+| `just narrate-lint` | clean |
+
+The full narrate suite was not run.
+
+The first readback, step 7 of the lane, is not run. It needs lab#3167, a held draft.
+
 ## First readback checklist
 
 Authority: the same lane brief. Every box is open. All of them wait on lab#3167 and need a run that may act on hosts.

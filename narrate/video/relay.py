@@ -125,10 +125,16 @@ def read_record(path, ignored: list) -> dict:
 
 
 def in_context(command: str, env: dict, timeout: int = 30) -> subprocess.CompletedProcess:
-    """`bash -c COMMAND`, as fab-agent-template mfg.py handoff_packet runs the notify command."""
-    return subprocess.run(
-        ["bash", "-c", command], env=env, capture_output=True, timeout=timeout, stdin=subprocess.DEVNULL
-    )
+    """`bash -c COMMAND`, as fab-agent-template mfg.py handoff_packet runs the notify command. A command that
+    does not start or does not finish comes back as a failed result, exit 127 or 124, so the probe still prints
+    its other rows."""
+    cmd = ["bash", "-c", command]
+    try:
+        return subprocess.run(cmd, env=env, capture_output=True, timeout=timeout, stdin=subprocess.DEVNULL)
+    except subprocess.TimeoutExpired:
+        return subprocess.CompletedProcess(cmd, 124, b"", f"timed out after {timeout} s".encode())
+    except OSError as e:
+        return subprocess.CompletedProcess(cmd, 127, b"", type(e).__name__.encode())
 
 
 def printable(text: str) -> str:
@@ -174,6 +180,9 @@ def wrapper(path: str, env: dict) -> dict:
     store = store_dir(env)
     script_sha, _ = sha256_file(script, MAX_SCRIPT_BYTES)
     v = subprocess.run([interpreter, "-V"], capture_output=True, timeout=15, stdin=subprocess.DEVNULL)
+    # The wrapper's `${CADE_HANDOFF_RELAY_SWB:-x}` keeps a value the caller set, and relay 0.1.0 swb_binary
+    # refuses one that is not an absolute executable path.
+    override = env.get("CADE_HANDOFF_RELAY_SWB") or None
     return {
         "interpreter": interpreter,
         "interpreter_in_store": interpreter.startswith(store) and os.access(interpreter, os.X_OK),
@@ -185,6 +194,8 @@ def wrapper(path: str, env: dict) -> dict:
         "pinned": script_sha in PINS,
         "swb": swb.group(1) if swb else None,
         "swb_executable": bool(swb) and os.access(swb.group(1), os.X_OK),
+        "swb_override": tilde(override, env),
+        "swb_override_ok": None if override is None else os.path.isabs(override) and os.access(override, os.X_OK),
     }
 
 
@@ -341,7 +352,10 @@ def config_path_0_1_0(env: dict) -> Path | None:
     return Path(base) / "cade" / "handoff-relay.json" if base else None
 
 
-def mapping(env: dict, mod: types.ModuleType | None) -> dict:
+def mapping(env: dict, mod: types.ModuleType | None, info: dict | None = None) -> dict:
+    """The mapping file the relay reads. With the relay loaded and a file in place, the relay's own
+    resolve_recipient runs on it with the swb the wrapper gives the relay, as a send would. `swb peers --all` is a
+    read-only listing (relay 0.1.0 swb_peers), so the probe still changes nothing."""
     configured = mod.config_path(env) if mod else config_path_0_1_0(env)
     path = Path(configured) if configured else home_of(env) / DEFAULT_CONFIG
     out = {
@@ -373,10 +387,27 @@ def mapping(env: dict, mod: types.ModuleType | None) -> dict:
                 out["refusal"] = "recipient_config_invalid"
         except mod.Refusal as r:
             out["refusal"] = r.code
+            return out
+        renv = relay_env(env, info or {})
+        try:
+            out["resolved"] = mod.resolve_recipient(RECIPIENT, path, mod.swb_peers(mod.swb_binary(renv), renv))
+        except mod.Refusal as r:
+            out["resolve_refusal"] = r.code
     return out
 
 
-def probe(env: dict, via: str, hm_attr: str | None = None) -> dict:
+def in_child_repo(child_repo: str | None) -> bool | None:
+    """True when this process runs in CHILD_REPO. `just --command` runs in the directory of the justfile it
+    finds, which is a parent directory's when CHILD_REPO has none. None when no child repo was named."""
+    if not child_repo:
+        return None
+    try:
+        return os.path.samefile(os.getcwd(), os.path.expanduser(child_repo))
+    except OSError:
+        return False
+
+
+def probe(env: dict, via: str, hm_attr: str | None = None, child_repo: str | None = None) -> dict:
     home = home_of(env)
     command = locate(env)
     target = command or install_path(env)
@@ -385,6 +416,7 @@ def probe(env: dict, via: str, hm_attr: str | None = None) -> dict:
         "via": via,
         "python": sys.version.split()[0],
         "child_justfile": any(Path(n).is_file() for n in ("justfile", "Justfile", ".justfile")),
+        "in_child_repo": in_child_repo(child_repo),
         "command_v": tilde(command, env),
         "command_is_install_path": command == str(home / INSTALL_PATH),
         "relay_path": tilde(target, env),
@@ -398,7 +430,7 @@ def probe(env: dict, via: str, hm_attr: str | None = None) -> dict:
             mod = load_relay(out["wrapper"]["script"]) if out["wrapper"]["pinned"] else None
         except (Refused, OSError, subprocess.SubprocessError) as e:
             out["wrapper"] = {"error": getattr(e, "code", type(e).__name__)}
-    out["mapping"] = mapping(env, mod)
+    out["mapping"] = mapping(env, mod, out.get("wrapper"))
     gen = generation(env, home / PULL_STATE, home / DELIVERED, hm_attr)
     out["generation"] = gen
     out["relay_from_active_generation"] = from_active(env, gen["active_path"], target)
@@ -450,11 +482,20 @@ def evaluate(
             str(p.get("relay_from_active_generation")),
         )
     )
+    rows.append(
+        (
+            "child_repo",
+            p.get("in_child_repo") is True and p.get("child_justfile") is True,
+            f"in the named child repo {p.get('in_child_repo')}, justfile {p.get('child_justfile')}",
+        )
+    )
     rows.append(("command_v", bool(p.get("command_v")), f"{p.get('command_v')} via {p.get('via')}"))
     w = p.get("wrapper") or {}
     want = PINS.get(w.get("script_sha256") or "", next(iter(PINS.values())))
     ver = p.get("version") or {}
-    rows.append(("version", ver.get("exit") == 0 and ver.get("stdout") == want, f"{ver.get('stdout')!r}"))
+    rows.append(
+        ("version", ver.get("exit") == 0 and ver.get("stdout") == want, f"{ver.get('stdout')!r} exit {ver.get('exit')}")
+    )
     rows.append(
         (
             "interpreter",
@@ -469,7 +510,15 @@ def evaluate(
             f"sha256 {str(w.get('script_sha256'))[:12]}",
         )
     )
-    rows.append(("swb", bool(w.get("swb_executable")), str(w.get("swb"))))
+    override = w.get("swb_override")
+    shown = f"; CADE_HANDOFF_RELAY_SWB set to {override} ok {w.get('swb_override_ok')}" if override else ""
+    rows.append(
+        (
+            "swb",
+            bool(w.get("swb_executable")) and (override is None or w.get("swb_override_ok") is True),
+            str(w.get("swb")) + shown,
+        )
+    )
     m = p.get("mapping") or {}
     rows.append(
         (
@@ -487,13 +536,18 @@ def evaluate(
             and m.get("mode") == "0600"
             and m.get("owner_is_user") is True
             and m.get("agent_id") == expect_agent_id
+            and not m.get("refusal")
+            and not m.get("resolve_refusal")
+            and m.get("resolved") == expect_agent_id
         )
         rows.append(
             (
                 "mapping_written",
                 ok,
                 f"{m.get('state')} mode {m.get('mode')} agent_id {m.get('agent_id')}"
-                + (f" refusal {m['refusal']}" if m.get("refusal") else ""),
+                + (f" refusal {m['refusal']}" if m.get("refusal") else "")
+                + (f"; relay resolves {m.get('resolved')}" if "resolved" in m else "")
+                + (f"; relay refuses {m['resolve_refusal']}" if m.get("resolve_refusal") else ""),
             )
         )
     return rows
@@ -620,29 +674,40 @@ def write_map(
         "previous_state": previous_state,
         "updated_utc": now,
     }
+    # An OSError before the rename is one refusal, and the temporary file goes with it. Only the type is named,
+    # because an OSError's text carries the home directory.
     if not write:
-        scratch = Path(tempfile.mkdtemp(prefix="relay-map-"))
         try:
-            write_private(scratch / "handoff-relay.json", data)
-            resolve(mod, scratch / "handoff-relay.json", peers)
-        finally:
-            shutil.rmtree(scratch, ignore_errors=True)
+            scratch = Path(tempfile.mkdtemp(prefix="relay-map-"))
+            try:
+                write_private(scratch / "handoff-relay.json", data)
+                resolve(mod, scratch / "handoff-relay.json", peers)
+            finally:
+                shutil.rmtree(scratch, ignore_errors=True)
+        except OSError as e:
+            raise Refused("map_write_failed", f"{type(e).__name__} in the dry run's scratch directory") from None
         return {**receipt, "result": "dry-run"}
-    if not path.parent.exists():
-        os.mkdir(path.parent, 0o700)
     tmp = path.parent / f".handoff-relay.json.{os.getpid()}.tmp"
-    write_private(tmp, data)
     try:
-        resolve(mod, tmp, peers)
-        os.replace(tmp, path)
-    finally:
-        if os.path.lexists(tmp):
-            os.unlink(tmp)
-    dfd = os.open(path.parent, os.O_RDONLY)
+        if not path.parent.exists():
+            os.mkdir(path.parent, 0o700)
+        try:
+            write_private(tmp, data)
+            resolve(mod, tmp, peers)
+            os.replace(tmp, path)
+        finally:
+            if os.path.lexists(tmp):
+                os.unlink(tmp)
+    except OSError as e:
+        raise Refused("map_write_failed", f"{type(e).__name__}; the existing file is as it was") from None
     try:
-        os.fsync(dfd)
-    finally:
-        os.close(dfd)
+        dfd = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(dfd)
+        finally:
+            os.close(dfd)
+    except OSError as e:
+        raise Refused("map_written_unverified", f"the new entry is in place: {type(e).__name__}") from None
     try:
         resolved = resolve(mod, path, peers)
     except Refused as r:
@@ -738,9 +803,8 @@ def readback(a, contains=None) -> int:
     for context in contexts:
         try:
             hm_attr = getattr(a, "hm_attr", None)
-            p = run_on(
-                a.host, a.child_repo, context, ["probe", "--via", context] + (["--hm-attr", hm_attr] if hm_attr else [])
-            )
+            args = ["probe", "--via", context, "--child-repo", a.child_repo]
+            p = run_on(a.host, a.child_repo, context, args + (["--hm-attr", hm_attr] if hm_attr else []))
             if p.get("refused"):
                 raise Refused(p["refused"], p.get("where", ""))
             rows = evaluate(p, a.merge, contains, a.since_gen, a.expect_agent_id)
@@ -900,6 +964,7 @@ def main(argv: list[str] | None = None) -> int:
     pr = sub.add_parser("probe", help="read-only probe, on a producer host")
     pr.add_argument("--via", default="local")
     pr.add_argument("--hm-attr", help="this host's Home Manager attr; default: the one deployed.json records")
+    pr.add_argument("--child-repo", help="the child repo the driver named; the probe checks that it runs there")
     wm = sub.add_parser("write-map", help="write the cade-delivery entry, on a producer host")
     wm.add_argument("--agent-id", required=True)
     wm.add_argument("--write", action="store_true")
@@ -930,7 +995,7 @@ def main(argv: list[str] | None = None) -> int:
     env = dict(os.environ)
     try:
         if a.cmd == "probe":
-            print(json.dumps(probe(env, a.via, a.hm_attr)))
+            print(json.dumps(probe(env, a.via, a.hm_attr, a.child_repo)))
             return 0
         if a.cmd == "write-map":
             print(json.dumps(write_map(env, a.agent_id, a.write, a.supersede_live, a.allow_config_override)))

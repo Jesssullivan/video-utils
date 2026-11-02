@@ -19,7 +19,8 @@ Host names and checkout paths are arguments. This repository is public, so none 
 `<child>` is a fab child repo checkout on that host, such as the one whose `mfg-handoff` will call the relay.
 `<merge>` is the lab#3167 merge commit. `<since-gen>` is the host's generation before the merge's switch, and the
 driver refuses to run without it. The driver pipes `relay.py` over ssh to the host's own `python3`, so nothing is
-copied to the host. In `<child>` it runs `just --command python3 -I - probe`, and the probe runs `bash -c`. That
+copied to the host. In `<child>` it runs `just --command python3 -I - probe --child-repo <child>`, and the probe
+runs `bash -c`. That
 is the chain the template's `mfg.py` follows: `just` runs the recipe, Python runs `bash -c <notify>`, and the
 relay inherits that environment.
 
@@ -27,13 +28,14 @@ relay inherits that environment.
 |---|---|
 | `generation_moved` | The delivered record for the activated generation names a lab commit that contains `<merge>`, checked with `gh api` compare. The detail prints the compare answer, and `None` means the call gave no answer. The record is `deployed.json` with verdict `SWITCHED` or `NO-OP`, or `hm-delivered.json` for the host's Home Manager attr with `tree` equal to `clean`, as lab `local_switch_as_delivered` reads it. The attr is `--hm-attr`, else the one `deployed.json` records. A generation is an int or a digit string, the form lab writes. A bool or any other value is no generation. A `SWITCHED` record also needs `after_gen` above `before_gen`. The generation must be above `<since-gen>`, and a `NO-OP` record passes only through that comparison. The detail names the source, the `hm-delivered.json` tree and every record it ignored: a file that holds no JSON object, a missing or malformed commit id, a failed verdict, attr or tree, and a record that is not the running one. It also names the outcome of the last pull-switch tick, so a `deferred-live-sessions` run reads as a deferral |
 | `relay_from_active_generation` | The relay is the file the activated generation's `home-files` links |
+| `child_repo` | The probe runs in `<child>` and that directory holds a justfile. `just --command` runs in the directory of the justfile it finds, so a `<child>` without one runs the probe in a parent's directory, measured with just 1.51.0 on November 2, 2026 |
 | `command_v` | `command -v cade-handoff-relay` prints a path in this launch context. The row is advisory in `ssh` |
-| `version` | `cade-handoff-relay --version` prints `cade-handoff-relay 0.1.0 (fab-dag-handoff/1)` and exits 0 |
+| `version` | `cade-handoff-relay --version` prints `cade-handoff-relay 0.1.0 (fab-dag-handoff/1)` and exits 0. A command that does not finish in 30 seconds reads as exit 124, and one that does not start as exit 127 |
 | `interpreter` | The wrapper execs a Nix store `python3` with `-I`, and that interpreter runs. The row names it and its version |
 | `script_pinned` | The wrapped script's sha256 is in `relay.PINS`, the pin lab#3167 vendors |
-| `swb` | The wrapper's default `CADE_HANDOFF_RELAY_SWB` is an executable |
+| `swb` | The wrapper's default `CADE_HANDOFF_RELAY_SWB` is an executable. The wrapper keeps a value the caller set, so a set `CADE_HANDOFF_RELAY_SWB` must also be an absolute executable path, as relay 0.1.0 `swb_binary` requires. The row names a set value |
 | `config_path_default` | The path the relay resolves is `~/.config/cade/handoff-relay.json`. An `XDG_CONFIG_HOME` set to `~/.config` passes. The row names any `CADE_HANDOFF_RELAY_CONFIG` or `XDG_CONFIG_HOME` that is set |
-| `mapping_absent` | No mapping file exists yet. After narrate writes it, `--expect-agent-id ID` replaces this row with `mapping_written`: a regular file, mode 0600, owned by the user, naming ID |
+| `mapping_absent` | No mapping file exists yet. After narrate writes it, `--expect-agent-id ID` replaces this row with `mapping_written`: a regular file, mode 0600, owned by the user, naming ID, that the installed relay's own `resolve_recipient` resolves to ID. The probe runs it with the swb the wrapper gives the relay. `swb peers --all` is a read-only listing, so the probe still changes nothing. An entry a send would refuse fails the row and names the relay's code: a second key such as `delivery_key`, an unknown field, or an id that is gone, superseded or unknown. A switchboard error fails it too |
 
 The driver runs two contexts by default. `ssh` is the plain remote command. `login` runs `"$SHELL" -lic`, the user's
 interactive login shell. It needs `-i` because lab renders `~/.local/bin` in the part of the rc files that an
@@ -97,7 +99,7 @@ writes it on one host. It is a dry run unless `--write` is passed.
 |---|---|
 | `agent_id_missing` | `swb whoami` named no id for this session |
 | `agent_id_mismatch` | After the rename, the installed relay resolves another id than the one written |
-| `map_written_unverified` | After the rename, the second resolve refused. The file holds the new entry. The code it names says why. Step 5's `mapping_written` row checks the file |
+| `map_written_unverified` | After the rename, the directory sync failed or the second resolve refused. The file holds the new entry. The code or error type it names says why. Step 5's `mapping_written` row checks the file |
 | `agent_id_not_self` | The id's host, pid or harness is not this session, or `--agent-id` or `SWB_AGENT_ID` names another id |
 | `agent_id_invalid` | The id is not `harness:host:pid:session_id` |
 | `host_invalid` | The host argument could be read as an ssh option. It must be a host or `user@host` that starts with a letter or digit |
@@ -108,6 +110,7 @@ writes it on one host. It is a dry run unless `--write` is passed.
 | `agent_id_unknown` | swb peers lists no session for the id |
 | `map_held_by_live_session` | The file maps another id that is still live. `--supersede-live` replaces it |
 | `existing_map_unsafe`, `existing_map_invalid` | The current file is a link, writable by others or not the schema, or its `cade-delivery` entry is one the relay rejects: not an object, an unknown field, or not exactly one valid `agent_id` or `delivery_key`. Nothing is changed |
+| `map_write_failed` | An OSError before the rename, such as a full disk, in a write or in the dry run's scratch directory. The temporary file is removed and the existing file is as it was. The refusal names only the error type, because its text holds the home directory |
 | `config_path_override` | The relay would read another path in this context |
 | `config_path_absent` | The relay resolves no mapping path, because HOME is unset |
 | `config_dir_absent` | The parent of the mapping directory, `~/.config` by default, does not exist |
