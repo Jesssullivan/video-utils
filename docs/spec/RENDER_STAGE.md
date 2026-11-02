@@ -58,7 +58,7 @@ image holds none of them.
 | `engine_record_sha256` | yes | a file that hashes to the name |
 | `lexical_release_sha256` | yes | a directory whose tree digest is the name |
 | `kitpip_sha256` | no | a file. Null when the job has no avatar |
-| `denylist_sha256` | no | a file. Required by intake when the manifest declares `ip_private` or `never_name` |
+| `denylist_sha256` | no | a file. Required by intake when the manifest declares `never_name`, binds a `denylist_sha256` or a pin is set. `ip_private` alone needs none (J168) |
 
 The tree digest is the sha256 of the sorted lines `relative path NUL sha256 LF` over every regular file. A symlink
 anywhere refuses `input_symlink`. A FIFO, socket or device refuses `input_irregular` before any file is read. A

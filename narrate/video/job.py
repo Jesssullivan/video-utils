@@ -113,8 +113,9 @@ def read_json(path, what):
 
 
 def load_records(directory, *, marker_optional=False):
-    """{jobs, voices, consents, music_beds, engines, pronunciation}: each {id: record}, and visible_text: the guarded
-    intake's visible-text summary (private_terms.visible_summary) or None. A file may hold one record
+    """{jobs, voices, consents, music_beds, engines, pronunciation}: each {id: record}; visible_text: the guarded
+    intake's visible-text summary (private_terms.visible_summary) or None; and never_name: the flag its marker holds,
+    or None with no marker or a marker from before TIN-7125 added it. A file may hold one record
     or a list (narrate renders pronunciation.json as one table). A missing optional file is an empty table. A
     guarded intake's marker must match (private_terms.check_marker); marker_optional, for the intake's own input,
     lets a private lane's records hold none."""
@@ -141,6 +142,7 @@ def load_records(directory, *, marker_optional=False):
 
     marker = private_terms.check_marker(directory, records, optional=marker_optional)
     records["visible_text"] = private_terms.visible_summary(marker)  # deliver_check's visible_text gate (TIN-7788)
+    records["never_name"] = None if marker is None else marker.get("never_name")  # nv subject (TIN-7125 654c5b08)
     return records
 
 

@@ -50,7 +50,8 @@ nv-accept job gate decision video *args:
         --video-sha256 {{quote(video)}} {{args}}
 
 # Print the job's guard subject: every text its records hold that it voices or labels (written and spoken narration,
-# ids, labels). It refuses a job that shows an asset with no guarded intake's marker. The Cade narrate worker reads it
+# ids, labels) and shown_unread, the kinds of asset it shows whose text no check read. It refuses shown_text_unread on
+# a guarded intake's never_name marker, and with no marker the worker refuses on a never_name packet. The worker reads it
 # in its own process for the BS-21 guard (TIN-7788, SPR-220) and never logs it. The store, records and lexical release
 # come from the environment or ARGS.
 nv-subject job *args:
@@ -142,7 +143,7 @@ nv-fixture:
 # manifest.json, script.md, claims.json and its PNG, MP4 and GIF assets. The claims gate refuses a segment that speaks
 # a number no cited, receipted claims.json entry backs. Run both on the private bundle where it lives; nothing renders.
 # Run the spoken-number claims gate alone: one row per segment; exit 1 when a segment refuses. ARGS: [--denylist
-# FILE] (or NARRATED_VIDEO_DENYLIST), needed when the manifest declares never_name, and
+# FILE] (or NARRATED_VIDEO_DENYLIST), needed when the manifest declares never_name or binds a digest, and
 # [--denylist-sha256 HEX] (or NARRATED_VIDEO_DENYLIST_SHA256), the operator's pin for a private lane.
 narrated-video-claims bundle *args:
     python3 -m narrate video claims {{quote(bundle)}} {{args}}

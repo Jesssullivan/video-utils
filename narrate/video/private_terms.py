@@ -19,9 +19,10 @@ geometry entries and the script class from matching, and the readers below stay 
 xoxd-ai/cade. Record texts are checked first and
 reported by position (beat#2, not the beat's id), so a report never carries a private id.
 
-Matching fails closed, so it over-matches on purpose. Under SCRIPT_MATCHES, which J168 turns off, a text with a letter
-that is not ASCII after NFKD, mark stripping and case folding ("Z\\u0585rblax", small capitals), or with a word that
-mixes two scripts, refuses as class script. Every text is folded: NFKD, combining marks stripped, case folded, the
+Matching over-matches on purpose. Under SCRIPT_MATCHES, which J168 turns off for every bundle, never_name included, a
+text with a letter that is not ASCII after NFKD, mark stripping and case folding ("Z\\u0585rblax", small capitals), or
+with a word that mixes two scripts, refuses as class script. So until the audit a listed name spelled with a letter
+outside CONFUSABLES does not refuse. Every text is folded: NFKD, combining marks stripped, case folded, the
 confusable letters in CONFUSABLES mapped to Latin and every decimal digit mapped to ASCII. A literal matches when its
 squeezed form (letters and digits only) occurs anywhere in the squeezed text, so "FixtureCorp", "fixture-corp.com",
 "Fixture\\u00adCorp" and
@@ -805,11 +806,12 @@ def job_digest(job):
 
 
 def marker(report, narrate_jobs, records, job, visible=None):
-    """The records marker of a guarded intake: the guard's status and digest; the job_digest of the NarratedVideo
-    record it wrote, as nv init --from reads narrated-video.json back, and the narrate jobs its segments name; per
-    narrate job, the digests of the job record and of the pronunciation table it names; and visible, the intake's
-    visible-text state with the unread and opaque asset positions (bundle.visible_record), which deliver_check
-    reports as an operator gate. A later edit to a bound record refuses."""
+    """The records marker of a guarded intake: the guard's status and digest; the manifest's never_name, which nv
+    subject reads because the marker travels with the records; the job_digest of the NarratedVideo record it wrote, as
+    nv init --from reads narrated-video.json back, and the narrate jobs its segments name; per narrate job, the digests
+    of the job record and of the pronunciation table it names; and visible, the intake's visible-text state with the
+    unread and opaque asset positions (bundle.visible_record), which deliver_check reports as an operator gate. A
+    later edit to a bound record refuses."""
     jobs = {}
     for narrate_job in narrate_jobs:
         table = (records.get("pronunciation") or {}).get(narrate_job.get("pronunciation"))
@@ -823,6 +825,7 @@ def marker(report, narrate_jobs, records, job, visible=None):
         "schema_version": MARKER_VERSION,
         "status": report["status"],
         "denylist_sha256": report["denylist_sha256"],
+        "never_name": report["never_name"],
         "narrated_video_sha256": job_digest(job),
         "segment_jobs": segment_jobs(job),
         "jobs": jobs,
@@ -831,8 +834,9 @@ def marker(report, narrate_jobs, records, job, visible=None):
 
 
 def private_lane(directory):
-    """True when a records directory must carry a marker: its sibling intake.json says the guard passed or refused,
-    or the operator set a denylist or a pin (NARRATED_VIDEO_DENYLIST, NARRATED_VIDEO_DENYLIST_SHA256)."""
+    """True when a records directory must carry a marker: its sibling intake.json says the guard passed or refused or
+    the bundle declared ip_private, or the operator set a denylist or a pin (NARRATED_VIDEO_DENYLIST,
+    NARRATED_VIDEO_DENYLIST_SHA256)."""
     if os.environ.get(DENYLIST_ENV) or os.environ.get(PIN_ENV):
         return True
     intake = Path(directory).parent / "intake.json"
@@ -845,7 +849,8 @@ def private_lane(directory):
             return True
         guard = value.get("private_terms") if isinstance(value.get("private_terms"), dict) else {}
         states = value.get("states") if isinstance(value.get("states"), dict) else {}
-        return guard.get("status") in GUARDED_STATUSES or states.get("private_terms") in GUARDED_STATUSES
+        declared = guard.get("ip_private") is True
+        return declared or guard.get("status") in GUARDED_STATUSES or states.get("private_terms") in GUARDED_STATUSES
     return False
 
 
@@ -883,11 +888,17 @@ def read_marker(directory, optional=False):
             "private_terms_stale",
             f"{MARKER} holds a visible_text that the intake.json beside the records does not; run the intake again",
         )
+    if "never_name" in value and not never_name_agrees(directory, value["never_name"]):
+        raise JobError(
+            "private_terms_stale",
+            f"{MARKER} holds a never_name that is not a boolean or that the intake.json beside the records does not;"
+            " run the intake again",
+        )
     return value
 
 
-# A guarded intake writes a marker only when a denylist runs, so its visible_text is passed or partial, never
-# not_declared (bundle.visible_state).
+# A guarded intake writes a marker only when a denylist runs or the bundle declares ip_private, so its visible_text is
+# passed or partial, never not_declared (bundle.guarded, bundle.visible_state).
 VISIBLE_STATES = ("passed", "partial")
 POSITION = re.compile(r"^asset#[1-9][0-9]{0,5}$")
 
@@ -927,6 +938,23 @@ def visible_agrees(directory, value):
         and shown.get("unread") == value["unread"]
         and shown.get("opaque") == value["opaque"]
     )
+
+
+def never_name_agrees(directory, value):
+    """True when value is a boolean and no intake.json lies beside the records, or when its private_terms.never_name
+    equals value. The marker holds the flag so that a job with no intake.json beside its records still has one. An
+    unreadable intake.json disagrees, so the check fails closed."""
+    if not isinstance(value, bool):
+        return False
+    intake = Path(directory).parent / "intake.json"
+    if not intake.is_symlink() and not intake.exists():
+        return True
+    try:
+        manifest = json.loads(intake.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return False
+    guard = manifest.get("private_terms") if isinstance(manifest, dict) else None
+    return isinstance(guard, dict) and guard.get("never_name") is value
 
 
 def visible_summary(value):

@@ -402,7 +402,7 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `claims BUNDLE [--denylist FILE] [--denylist-sha256 HEX]` | `just narrated-video-claims` | the private-terms guard and the spoken-number claims gate alone, one row per segment. Exit 1 when a segment refuses |
 | `fixture --out DIR --bundle` | `just nv-intake-fixture` | also writes the synthetic bundle `demo-fixture` under `DIR/bundle/` |
 | `accept JOB --gate G --decision ID --video-sha256 HEX` | `just nv-accept JOB GATE DECISION VIDEO` | records the operator's acceptance of `listening` or `lip_sync` for the current `deliver_check` render, by Softproxy decision id and the sha256 of the cut it saw. See "Operator acceptance" |
-| `subject JOB [--json]` | `just nv-subject` | prints the job's guard subject: every text its records hold that it voices or labels, written and spoken. The Cade narrate worker reads it in its own process for the BS-21 guard. See "Guard subject and cut" |
+| `subject JOB [--json]` | `just nv-subject` | prints the job's guard subject: every text its records hold that it voices or labels, written and spoken, and `shown_unread`, the kinds of asset it shows whose text no check read. The Cade narrate worker reads it in its own process for the BS-21 guard. Refuses `shown_text_unread` on a guarded intake's `never_name` marker. See "Guard subject and cut" |
 | `cut JOB [--json]` | `just nv-cut` | prints the current `deliver_check` render, its machine gate states, the operator gates still pending and the gates an acceptance of that render closed. Digests and gate names only. Refuses `machine_gates_failed` when a machine gate failed. See "Guard subject and cut" |
 
 Paths come from flags or the environment: `--root` (`NARRATED_VIDEO_ROOT`),
@@ -1045,13 +1045,24 @@ in the subject, so the BS-21 name list never reads it. Only the intake's
 private-terms guard reads it, against the `nv` denylist (`private_terms.py`,
 `visible_text.py`). A name must be on that denylist for shown text to refuse it.
 The `visible_text` gate stays open while a guarded intake left an asset unread.
-With no guarded intake that gate reads `not_applicable`. J168 removes `subject`'s
-`shown_text_unread` refusal for go-live, so a job with no guarded intake's marker
-can show text no check reads. `subject` cannot narrow this to `never_name` packets,
-because the packet record holds that flag and a job with no marker holds no
-declaration. So the name list loses that coverage for such a job. Jess's decision
-`654c5b08` keeps Cade's hand-off refusal on a `never_name` packet, which narrows
-the scope note `2201b219` there. The November 30, 2026 audit revisits the removal.
+With no guarded intake that gate reads `not_applicable`.
+
+`subject` prints `shown_unread`, the kinds of asset the job shows whose text no
+check read. It lists every kind the job shows when the records carry no guarded
+intake's marker or that intake left an asset unread or opaque, and it is empty
+otherwise. A `card` base with no slide page shows no asset.
+
+J168 removes `shown_text_unread` for go-live. Jess's decision `654c5b08` keeps it on
+`never_name`, which narrows the scope note `2201b219` there. Each reader refuses
+where it can see the flag:
+
+| Records | `never_name` | `subject` | On a non-empty `shown_unread` |
+| --- | --- | --- | --- |
+| guarded intake's marker | true, or absent from a marker older than the flag | refuses `shown_text_unread` | no stage runs |
+| guarded intake's marker | false | prints `shown_unread` | `deliver_check` waits at the operator |
+| no marker | only the packet record holds it | prints `shown_unread` | the Cade worker refuses on a `never_name` packet. On any other packet no check reads that text |
+
+The November 30, 2026 audit revisits the removal.
 
 `subject` refuses `subject_too_large` above 4096
 texts or 200000 UTF-16 code units in one text, the limits the Cade guard holds.
@@ -1329,16 +1340,17 @@ first. A refusal prints the per-segment report and writes nothing. A pass copies
 
 Linear TIN-7735, SPR-220. A `never_name` bundle must not name a party. An `ip_private` bundle marks work whose numbers
 and geometry were private. J168 (TIN-7125 `9738d494`) and SPR-339 (`1786d297`) remove the `ip_private` and BS-21
-refusals for go-live, and the November 30, 2026 audit revisits them, so `ip_private` is recorded and refuses nothing. A
-bundle declares this in `manifest.json`:
+refusals for go-live, and the November 30, 2026 audit revisits them, so `ip_private` is recorded and its text refuses
+nothing. A bundle declares this in `manifest.json`:
 
 ```json
 "privacy": {"ip_private": true, "never_name": false, "denylist_sha256": "<64 lowercase hex digits>"}
 ```
 
 `ip_private` and `never_name` are required booleans, and `denylist_sha256` binds the denylist by digest. Any other
-field, or a value of the wrong type, refuses `bundle_invalid`. When `never_name` is true, `claims` and `intake` need
-the denylist through `--denylist FILE` or `NARRATED_VIDEO_DENYLIST`. The file lives outside the bundle and outside
+field, or a value of the wrong type, refuses `bundle_invalid`. When `never_name` is true, a `denylist_sha256` is
+bound or a pin is set, `claims` and `intake` need the denylist through `--denylist FILE` or `NARRATED_VIDEO_DENYLIST`.
+An `ip_private` bundle with neither needs none. The file lives outside the bundle and outside
 every git work tree, and only its digest appears in a record.
 
 The bundle's own manifest cannot be the only binding, because whoever edits the bundle can drop the block or bind
@@ -1349,7 +1361,7 @@ neither flag refuses `privacy_undeclared`, and the file must hash to the pin wha
 
 | Code | When |
 | --- | --- |
-| `denylist_missing` | a flag is true or a pin is set and no file is given, the file is absent, not a regular file or a symlink, or the manifest names no `denylist_sha256` and no pin is set |
+| `denylist_missing` | `never_name` is true, a digest is bound or a pin is set and no file is given, the file is absent, not a regular file or a symlink, or the manifest names no `denylist_sha256` and no pin is set |
 | `denylist_misplaced` | the file lies inside the bundle or inside a git work tree |
 | `denylist_digest_mismatch` | the file's bytes do not hash to the pin, or with no pin to `denylist_sha256`, or the manifest binds another digest than the pin |
 | `denylist_pin_invalid` | the pin is not 64 lowercase hex digits |
@@ -1375,10 +1387,12 @@ of those (a bare `-` only last) and the quantifiers `?`, `*`, `+`, `{n}`, `{n,}`
 case-insensitive, with `.` matching every character and `\s`, `\d` and `\b` reading ASCII only. It must not match
 empty or blank text, before or after its separators are removed.
 
-Matching fails closed and over-matches on purpose. Before J168 a text refused as class `script` when one of its letters was not
-ASCII after NFKD, mark stripping and case folding, or when one word mixes letters of two scripts. So small capitals
-and Greek, Cyrillic, Armenian and Lisu letters refuse in a guarded bundle, while "é", "ß" and fullwidth Latin letters
-fold to ASCII and pass. Each text is then folded: NFKD, combining marks stripped, case folded, the Cyrillic, Greek
+Matching over-matches on purpose. Before J168 a text refused as class `script` when one of its letters was not
+ASCII after NFKD, mark stripping and case folding, or when one word mixed letters of two scripts. So small capitals
+and Greek, Cyrillic, Armenian and Lisu letters refused in a guarded bundle, while "é", "ß" and fullwidth Latin letters
+folded to ASCII and passed. J168 stops that class on every bundle, `never_name` included. `never_name` keeps its list
+and its name match, but until the audit a listed name spelled with a letter outside `CONFUSABLES`, such as a small
+capital or an Armenian or Lisu letter, does not refuse. Each text is folded: NFKD, combining marks stripped, case folded, the Cyrillic, Greek
 and Latin look-alike letters that `CONFUSABLES` lists mapped to Latin, and every decimal digit mapped to ASCII. A
 literal matches when its letters and digits occur in the text's letters and digits, anywhere. So "FixtureCorp",
 "fixture-corp.com", "#FixtureCorp", "Fixture" plus a soft hyphen or word joiner plus "Corp", "F" plus Cyrillic "і"
@@ -1424,19 +1438,22 @@ backslash escape (repr of a format character), keeps its code and has its detail
 while a given denylist cannot be read, and while a pin is set and no denylist is bound yet. No report or detail
 holds the matched text, a literal, a pattern or a denylist number, so a refusal may go to a log. A pass records
 `private_terms` and the state `private_terms: passed` in `intake.json`. A bundle with no `privacy` block and no pin
-records `not_declared`. A denylist given to such a bundle still runs.
+records `not_declared`, and so does an `ip_private` bundle with no denylist. A denylist given to either still runs.
 
-A guarded intake writes `records/private-terms.json` (schema 2): the guard's status and digest, the digest of the
+An intake writes `records/private-terms.json` (schema 2) when a denylist ran or the bundle declares `ip_private`. J168
+names no `visible_text` check, so an `ip_private` bundle with no denylist keeps this marker and the operator hold on an
+unread or opaque shown asset. The marker holds the guard's status and digest, `never_name`, the digest of the
 NarratedVideo record it wrote to `narrated-video.json` and the narrate jobs its segments name, and, per narrate job,
 the digests of the job record and of the pronunciation table it names. It also holds `visible_text`: the intake's
 visible-text state and the unread and opaque asset positions, which `deliver_check` reports (TIN-7788). The state
 is `passed` exactly when both lists are empty and `partial` otherwise. When an `intake.json` lies beside the records,
-its `states.visible_text` and its `visible_text` unread and opaque lists must equal the marker's. Every load of that records directory checks
+its `states.visible_text`, its `visible_text` unread and opaque lists and its `private_terms.never_name` must equal the
+marker's. `subject` reads `never_name` from the marker, so it needs no `intake.json`. Every load of that records directory checks
 it and refuses `private_terms_stale` on a change, so a table edited after intake cannot add a spoken term. `init`,
 `plan`, `run` and `explain` also refuse a NarratedVideo record that is not the one the intake wrote. So an edited
 persona label or a segment pointed at another narrate job refuses, and so does a job built from `init` flags. A
-records directory with no marker refuses too when the `intake.json` beside it says the guard passed or refused, or
-when `NARRATED_VIDEO_DENYLIST` or `NARRATED_VIDEO_DENYLIST_SHA256` is set. The intake's own `--records` input is
+records directory with no marker refuses too when the `intake.json` beside it says the guard passed or refused or the
+bundle declared `ip_private`, or when `NARRATED_VIDEO_DENYLIST` or `NARRATED_VIDEO_DENYLIST_SHA256` is set. The intake's own `--records` input is
 exempt, because the operator's base records come from no intake. Deleting both the marker and `intake.json` outside
 a private lane still removes the check, so the producer keeps OUT where the bundle lives. So does deleting the
 marker and editing the `intake.json` status to `not_declared`, outside a private lane; both edits need write access
@@ -1471,7 +1488,7 @@ labels still matches. Only assets a beat shows are read. `intake.json` lists the
 (with a text source), `unread` (without one) and `opaque` (read, with an opaque SVG), by manifest position, and each
 segment row's `asset.text` holds the source's kind and digest or `null`. The state `visible_text` is `passed` when
 every shown asset had a text source and none was opaque, `partial` otherwise, and `not_declared` when no denylist
-runs. An unread or opaque asset does not refuse at intake. The records marker carries the state, and `deliver_check`
+runs and the bundle does not declare `ip_private`. An unread or opaque asset does not refuse at intake. The records marker carries the state, and `deliver_check`
 reports it as the operator gate `visible_text`, so a partial cut keeps `operator_states_open` non-empty and
 `public_upload_allowed` false. The intake's admit reads the same summary, so `intake.json` lists
 `visible_text_unread` under `admit.pending_operator` exactly when the state is `partial`. Whether a private lane
@@ -1485,7 +1502,7 @@ The guard reads text only. These pass it, and the producer reviews them:
 | the pixels of a slide, plot or clip with no text source or an opaque one, and text burned into an MP4 or GIF frame | the guard reads no pixels and runs no OCR; on-screen asset text reaches the video, and the `visible_text` gate holds the delivery at the operator |
 | a text source's drawing that differs from its picture | the digest binds the file, not that it matches the picture; the producer keeps them in step |
 | asset container metadata (PNG text chunks, MP4 atoms) | it is not shown. The intake copies asset bytes by digest into the private store, and the outputs drop it: compose checks both MP4s and handoff strips each slide layer ("Compose and delivery") |
-| a job or records written another way than intake | no intake ran, so no marker exists, and J168 removes `subject`'s refusal for such a job |
+| a job or records written another way than intake | no intake ran, so no marker exists. `subject` prints `shown_unread` for such a job, and the Cade worker refuses it on a `never_name` packet |
 
 The intake states record `private_terms` and, beside it, `producer_review: pending_operator` for these. Tests use
 invented terms only.

@@ -146,32 +146,57 @@ def slide_pages(*shows):
 @pytest.mark.parametrize("kind", sorted(SHOWN_BASES))
 def test_j168_a_base_that_shows_an_asset_passes_with_no_guarded_marker(ws, kind):
     ws["job"]["base"] = {kind: SHOWN_BASES[kind]}
-    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["ok"] is True
+    got = subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])
+    assert got["ok"] is True and got["shown_unread"] == [kind]
 
 
 def test_j168_a_slide_page_passes_with_no_guarded_marker(ws):
     ws["job"]["slides"] = slide_pages("Hold", {"slide": {"sha256": SHA}})
-    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["ok"] is True
+    got = subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])
+    assert got["ok"] is True and got["shown_unread"] == ["slide"]
+    assert "page-" not in json.dumps(got["shown_unread"])
 
 
 def test_j168_every_edition_passes_a_shown_asset_with_no_guarded_marker(ws):
     ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
     for edition in EDITIONS:
         ws["job"]["edition"] = edition
-        assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["ok"] is True
+        assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["shown_unread"] == ["still"]
 
 
 def test_a_card_with_only_base_and_hold_pages_shows_no_asset(ws):
     assert next(iter(ws["job"]["base"])) == "card"
     ws["job"]["slides"] = slide_pages("Base", "Hold")
-    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["ok"]
+    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["shown_unread"] == []
 
 
-@pytest.mark.parametrize("state", ["passed", "partial", "not_recorded"])
-def test_a_guarded_marker_lets_a_shown_asset_through_and_the_gate_holds_the_rest(ws, state):
+@pytest.mark.parametrize("state", ["partial", "not_recorded"])
+def test_a_marker_that_is_not_never_name_prints_the_fact_and_the_gate_holds_it(ws, state):
     ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
-    ws["records"]["visible_text"] = {"state": state, "unread": [], "opaque": []}
-    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["ok"]
+    ws["records"] |= {"visible_text": {"state": state, "unread": [], "opaque": []}, "never_name": False}
+    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["shown_unread"] == ["still"]
+
+
+@pytest.mark.parametrize("never_name", [True, False, None])
+def test_a_marker_whose_guard_read_every_shown_asset_passes_with_no_fact(ws, never_name):
+    ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
+    ws["records"] |= {"visible_text": {"state": "passed", "unread": [], "opaque": []}, "never_name": never_name}
+    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["shown_unread"] == []
+
+
+@pytest.mark.parametrize("state", ["partial", "not_recorded"])
+@pytest.mark.parametrize("never_name", [True, None], ids=["never_name", "marker_older_than_the_flag"])
+def test_a_never_name_marker_keeps_the_refusal_when_a_shown_asset_went_unread(ws, state, never_name):
+    ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
+    ws["records"] |= {"visible_text": {"state": state, "unread": [], "opaque": []}, "never_name": never_name}
+    with pytest.raises(JobError) as exc:
+        subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])
+    assert exc.value.code == "shown_text_unread" and "still" in exc.value.detail
+
+
+def test_a_never_name_marker_on_a_job_that_shows_no_asset_refuses_nothing(ws):
+    ws["records"] |= {"visible_text": {"state": "partial", "unread": ["asset#1"], "opaque": []}, "never_name": True}
+    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["shown_unread"] == []
 
 
 def test_each_set_label_joins_the_subject_in_a_fixed_order(ws):

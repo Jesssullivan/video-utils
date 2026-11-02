@@ -426,7 +426,7 @@ def test_a_marker_summary_that_disagrees_with_intake_json_refuses(ws, tmp_path, 
         load_records(out / "records")
 
 
-def test_nv_subject_reads_a_job_that_shows_a_slide_with_or_without_a_guarded_intake(ws, tmp_path, capsys):
+def test_nv_subject_follows_never_name_on_a_marker_and_prints_the_fact_with_none(ws, tmp_path, capsys):
     private_bundle(ws)
     add_text_source(ws["bundle"], "slide-a", "slide-a.svg", plot_svg("0"))
     out = tmp_path / "out"
@@ -435,14 +435,17 @@ def test_nv_subject_reads_a_job_that_shows_a_slide_with_or_without_a_guarded_int
               "--lexical", str(ws["lexical"])]  # fmt: skip
     assert cli.main(["init", "--job", "demo-fixture", "--from", str(out / "narrated-video.json"), *common]) == 0
     capsys.readouterr()
-    assert cli.main(["subject", "demo-fixture", *common]) == 0
-    fields = {t["field"] for t in json.loads(capsys.readouterr().out)["texts"]}
-    assert {"narration", "spoken", "title"} <= fields
-    # J168: deleting the marker and intake.json leaves records no guard read, and subject no longer refuses them.
+    # The intake left an asset unread on a never_name job, and the marker says so (TIN-7125 654c5b08).
+    assert cli.main(["subject", "demo-fixture", *common]) == 1
+    captured = capsys.readouterr()
+    assert captured.out == "" and json.loads(captured.err)["refused"] == "shown_text_unread"
+    # J168: deleting the marker and intake.json leaves no flag to read, so subject prints the fact for the Cade worker.
     (out / "records" / private_terms.MARKER).unlink()
     (out / "intake.json").unlink()
     assert cli.main(["subject", "demo-fixture", *common]) == 0
-    assert {"narration", "spoken", "title"} <= {t["field"] for t in json.loads(capsys.readouterr().out)["texts"]}
+    printed = json.loads(capsys.readouterr().out)
+    assert {"narration", "spoken", "title"} <= {t["field"] for t in printed["texts"]}
+    assert "slide" in printed["shown_unread"]
 
 
 def test_an_unread_slide_on_a_private_lane_holds_the_upload_at_the_operator(ws, tmp_path, ffmpeg, capsys):
