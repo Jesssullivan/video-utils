@@ -28,6 +28,14 @@ def no_whisper(monkeypatch, tmp_path):
     monkeypatch.delenv(cli.DENYLIST_ENV, raising=False)
 
 
+@pytest.fixture(autouse=True)
+def audit_rules(monkeypatch):
+    """These tests keep the rules J168 stops for go-live, for the November 30, 2026 audit. The shipped defaults are in
+    test_narrated_video_j168.py."""
+    monkeypatch.setattr(private_terms, "MATCHED", private_terms.CLASSES)
+    monkeypatch.setattr(private_terms, "SCRIPT_MATCHES", True)
+
+
 @pytest.fixture
 def ws(tmp_path):
     paths = fixture.write(tmp_path / "ws")
@@ -201,7 +209,6 @@ def test_a_malformed_denylist_file_refuses(ws, raw):
         [NAME_ROW, {"id": "n", "class": "number", "number": 5, "unit": "furlong"}],
         [NAME_ROW, {"id": "n", "class": "name", "number": 5, "unit": None}],
         [{"id": "g", "class": "geometry", "literal": "chamfer angle"}],  # never_name without a name entry
-        [NAME_ROW],  # ip_private without a number or geometry entry
         [NAME_ROW, {"id": "chamfer-a", "class": "geometry", "literal": "chamfer"}],  # an id that says a term
     ],
 )
@@ -731,6 +738,27 @@ def test_a_deleted_marker_refuses_beside_a_guarded_intake(ws, tmp_path, monkeypa
     with pytest.raises(JobError) as caught:
         load_records(out / "records")
     assert caught.value.code == "private_terms_stale"
+
+
+def test_a_never_name_intake_json_needs_the_marker_whatever_its_status(ws, tmp_path):
+    # CADE-1 swb seq 1089: subject refuses never_name when intake.json says so. subject reads the flag from the marker,
+    # so an intake.json that says never_name with no guarded status and no marker refuses; it must not read as False.
+    from narrate.video.job import JobError, load_records
+
+    out = guarded_out(ws, tmp_path)
+    (out / "records" / private_terms.MARKER).unlink()
+    for status in ("skipped", "not_declared", None, 7):
+        guard = {"never_name": True} if status is None else {"never_name": True, "status": status}
+        (out / "intake.json").write_text(json.dumps({"private_terms": guard, "states": {}}))
+        assert private_terms.private_lane(out / "records"), status
+        with pytest.raises(JobError) as caught:
+            load_records(out / "records")
+        assert caught.value.code == "private_terms_stale", status
+    for never_name in (False, None, "true", 1):
+        guard = {"never_name": never_name, "status": "skipped"}
+        (out / "intake.json").write_text(json.dumps({"private_terms": guard, "states": {}}))
+        assert not private_terms.private_lane(out / "records"), never_name
+    load_records(out / "records")
 
 
 def test_init_from_takes_only_the_record_a_guarded_intake_wrote(ws, tmp_path, capsys):

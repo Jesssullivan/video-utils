@@ -849,7 +849,7 @@ def intake(
     out must be new or empty. It receives narrated-video.json (the NarratedVideo record), records/ (the input
     renders with one narrate job per beat added to jobs.json) and intake.json; store (default out/store) receives
     each beat's Markdown and each used asset as <sha256><suffix>. denylist is the private denylist file that a
-    manifest declaring ip_private or never_name binds by digest, and pin the operator's pinned digest of it. Nothing
+    manifest declaring never_name binds by digest, and pin the operator's pinned digest of it. Nothing
     is written when any check refuses, and a refusal whose detail says a private term is withheld."""
     state = {"entries": private_terms.preload(denylist), "pinned": private_terms.pinned(pin)}
     with withheld(state):
@@ -968,7 +968,7 @@ def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, 
     for name, rows in tables.items():
         write_json(staging / "records" / name, rows)
     write_json(staging / "narrated-video.json", job)
-    if b["guard"].entries is not None:  # a later edit to a narrate job, its table or this job refuses (F8)
+    if guarded(b):  # a later edit to a narrate job, its table or this job refuses (F8)
         written = load_records(staging / "records", marker_optional=True)  # digests as a later load reads them
         narrate_jobs = [written["jobs"][r["id"]] for r, _ in jobs.values()]
         read_back = check_shape(json.loads((staging / "narrated-video.json").read_text(encoding="utf-8")))
@@ -1043,19 +1043,27 @@ def text_source(asset):
     return None if text is None else {"kind": visible_text.kind_of(text["path"]), "sha256": text["sha256"]}
 
 
+def guarded(b):
+    """True when the intake writes a records marker: a denylist ran, or the bundle declares ip_private. J168 lets
+    ip_private run with no denylist. It names no visible_text check, so that bundle keeps its marker and the operator
+    hold on an unread or opaque shown asset (TIN-7125 9738d494)."""
+    return b["guard"].entries is not None or b["guard"].declared["ip_private"]
+
+
 def visible_state(b):
-    """not_declared with no denylist; passed when the guard read a text source for every shown asset and none is
+    """not_declared when the intake is not guarded; passed when every shown asset has a text source and none is
     opaque; partial when a shown asset has none or an opaque one, so some on-screen text was not checked."""
-    if b["guard"].entries is None:
+    if not guarded(b):
         return "not_declared"
     return "partial" if b["visible"]["unread"] or b["visible"]["opaque"] else "passed"
 
 
 def visible_source(b):
     """The stored visible-text source of a guarded intake (private_terms.VISIBLE_KIND): the canonical JSON of each
-    read asset's position and its strings joined, which nv subject hands the BS-21 guard. None with no denylist: no
-    marker would bind its digest. The private store holds it by digest, as it holds each script and asset."""
-    if b["guard"].entries is None:
+    read asset's position and its strings joined, which nv subject hands the BS-21 guard. None when the intake is not
+    guarded: no marker would bind its digest. An ip_private bundle with no denylist is guarded (guarded), so it stores
+    its shown text too. The private store holds it by digest, as it holds each script and asset."""
+    if not guarded(b):
         return None
     rows = [{"asset": where, "text": text} for where, _, text in b["shown_texts"]]
     document = {"kind": private_terms.VISIBLE_KIND, "schema_version": private_terms.VISIBLE_VERSION, "texts": rows}
@@ -1071,7 +1079,7 @@ def visible_record(b):
 
 def visible_binding(b):
     """The source_sha256 field the marker and intake.json both hold, so private_terms.visible_agrees can compare them.
-    Empty with no denylist, when nothing was stored."""
+    Empty when the intake is not guarded, when nothing was stored."""
     return {} if b["visible_source"] is None else {"source_sha256": b["visible_source"]}
 
 

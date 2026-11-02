@@ -20,6 +20,7 @@ from test_narrated_video_private_terms import (
     NAME,
     TEMPLATE,
     VOICE,
+    audit_rules,  # noqa: F401 (an autouse fixture)
     leaks,
     private_bundle,
     refused,
@@ -514,10 +515,14 @@ def test_a_marker_summary_that_disagrees_with_intake_json_refuses(ws, tmp_path, 
         load_records(out / "records")
 
 
-def subject_workspace(ws, tmp_path, capsys, *texts):
+def subject_workspace(ws, tmp_path, capsys, *texts, never_name=True):
     """A guarded intake of the private bundle with the given text sources, its job initialised, and a CLI call that
-    prints the job's subject: (out, [row] or the refusal)."""
+    prints the job's subject: (out, [row] or the refusal). run(full=True) returns the whole printed subject."""
     private_bundle(ws)
+    if not never_name:
+        manifest = json.loads((ws["bundle"] / "manifest.json").read_text())
+        manifest["privacy"]["never_name"] = False
+        (ws["bundle"] / "manifest.json").write_text(json.dumps(manifest, indent=1))
     for asset_id, name, data in texts:
         add_text_source(ws["bundle"], asset_id, name, data)
     out = tmp_path / "out"
@@ -527,11 +532,12 @@ def subject_workspace(ws, tmp_path, capsys, *texts):
     assert cli.main(["init", "--job", "demo-fixture", "--from", str(out / "narrated-video.json"), *common]) == 0
     capsys.readouterr()
 
-    def run():
+    def run(full=False):
         code = cli.main(["subject", "demo-fixture", *common])
         captured = capsys.readouterr()
         if code == 0:
-            return json.loads(captured.out)["texts"]
+            printed = json.loads(captured.out)
+            return printed if full else printed["texts"]
         assert captured.out == ""
         return json.loads(captured.err)
 
@@ -546,13 +552,49 @@ def stored_path(ws, out):
     return ws["store"] / f"{marker['visible_text']['source_sha256']}.json"
 
 
-def test_nv_subject_needs_the_guarded_intake_of_a_job_that_shows_a_slide(ws, tmp_path, capsys):
+def test_nv_subject_follows_never_name_on_a_marker_and_prints_the_fact_with_none(ws, tmp_path, capsys):
     out, run = subject_workspace(ws, tmp_path, capsys, *BOTH)
-    assert {"narration", "spoken", "title", "visible_text"} <= {t["field"] for t in run()}
-    # Deleting the marker and intake.json leaves records no guard read: the job still shows its slides.
+    printed = run(full=True)
+    assert {"narration", "spoken", "title", "visible_text"} <= {t["field"] for t in printed["texts"]}
+    assert printed["shown_unread"] == []
+    # J168: deleting the marker and intake.json leaves no flag to read, so subject prints the fact for the Cade worker.
     (out / "records" / private_terms.MARKER).unlink()
     (out / "intake.json").unlink()
+    printed = run(full=True)
+    assert {"narration", "spoken", "title"} <= {t["field"] for t in printed["texts"]}
+    assert "visible_text" not in {t["field"] for t in printed["texts"]} and "slide" in printed["shown_unread"]
+
+
+def test_a_never_name_marker_agrees_with_intake_json_and_keeps_the_refusal(ws, tmp_path, capsys):
+    # CADE-1 seq 1089: nv subject refuses where intake.json says never_name, and the marker must say the same.
+    out, run = subject_workspace(ws, tmp_path, capsys, BOTH[0])
+    assert json.loads((out / "intake.json").read_text())["private_terms"]["never_name"] is True
     assert run()["refused"] == "shown_text_unread"
+    marker_file = out / "records" / private_terms.MARKER
+    marker = json.loads(marker_file.read_text())
+    marker_file.write_text(json.dumps(marker | {"never_name": False}))
+    assert run()["refused"] == "private_terms_stale"
+
+
+def test_off_never_name_unread_shown_text_keeps_the_rows_that_read_and_prints_the_fact(ws, tmp_path, capsys):
+    # J168 and 654c5b08: off never_name nothing here refuses. The Cade worker reads shown_unread with the packet record.
+    out, run = subject_workspace(ws, tmp_path, capsys, BOTH[0], never_name=False)
+    printed = run(full=True)
+    shown = [t["text"] for t in printed["texts"] if t["field"] == "visible_text"]
+    assert len(shown) == 1 and "Build time" in shown[0]
+    assert printed["shown_unread"] == ["slide"]
+    stored_path(ws, out).unlink()
+    printed = run(full=True)
+    assert "visible_text" not in {t["field"] for t in printed["texts"]} and printed["shown_unread"] == ["slide"]
+
+
+@pytest.mark.parametrize("strings", [(), ("\u200b", "\u2060")])
+def test_off_never_name_an_opaque_list_refuses_nothing(ws, tmp_path, capsys, strings):
+    _, run = subject_workspace(ws, tmp_path, capsys, BOTH[0], ("slide-b", "slide-b.json", text_json(*strings)),
+                               never_name=False)  # fmt: skip
+    printed = run(full=True)
+    assert len([t for t in printed["texts"] if t["field"] == "visible_text"]) == 1
+    assert printed["shown_unread"] == ["slide"]
 
 
 def test_nv_subject_hands_the_name_list_each_shown_asset_s_text(ws, tmp_path, capsys):
