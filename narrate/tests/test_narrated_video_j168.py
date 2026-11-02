@@ -140,8 +140,15 @@ def test_an_ip_private_bundle_with_no_denylist_keeps_the_unread_asset_hold(ws, t
     assert m["private_terms"]["status"] == "not_declared" and m["states"]["private_terms"] == "not_declared"
     assert m["states"]["visible_text"] == "partial" and "visible_text_unread" in m["admit"]["pending_operator"]
     summary = load_records(out / "records")["visible_text"]
-    assert summary == {"state": "partial", "unread": ["asset#2"], "opaque": []}
+    assert {k: summary[k] for k in ("state", "unread", "opaque")} == {
+        "state": "partial",
+        "unread": ["asset#2"],
+        "opaque": [],
+    }
     assert deliver.visible_gate(summary)[0] == "pending_operator"
+    # The bundle is guarded, so it stores its shown text and both records bind the digest.
+    assert summary["source_sha256"] == m["visible_text"]["source_sha256"]
+    assert (ws["store"] / f"{summary['source_sha256']}.json").is_file()
     assert load_records(out / "records")["never_name"] is False
 
 
@@ -168,7 +175,9 @@ def test_nv_subject_on_an_ip_private_marker_prints_the_fact_and_does_not_refuse(
     assert cli.main(["init", "--job", "demo-fixture", "--from", str(out / "narrated-video.json"), *common]) == 0
     capsys.readouterr()
     assert cli.main(["subject", "demo-fixture", *common]) == 0
-    assert json.loads(capsys.readouterr().out)["shown_unread"] == ["slide"]
+    printed = json.loads(capsys.readouterr().out)
+    assert printed["shown_unread"] == ["slide"]
+    assert [t["text"] for t in printed["texts"] if t["field"] == "visible_text"] == ["Cache rate"]
 
 
 def write_denylist_bytes(ws):  # noqa: F811

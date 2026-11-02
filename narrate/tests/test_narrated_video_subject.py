@@ -4,6 +4,7 @@ Every input is synthetic: the fixture workspace (narrate/video/fixture.py) and i
 accept tests' fake-runner job, whose compose writes a synthetic video.mp4. The decision id is a made-up ULID.
 """
 
+import hashlib
 import json
 
 import pytest
@@ -170,33 +171,95 @@ def test_a_card_with_only_base_and_hold_pages_shows_no_asset(ws):
     assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["shown_unread"] == []
 
 
-@pytest.mark.parametrize("state", ["partial", "not_recorded"])
-def test_a_marker_that_is_not_never_name_prints_the_fact_and_the_gate_holds_it(ws, state):
-    ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
-    ws["records"] |= {"visible_text": {"state": state, "unread": [], "opaque": []}, "never_name": False}
-    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["shown_unread"] == ["still"]
+UNREADABLE = [
+    {"state": "not_recorded", "unread": [], "opaque": []},
+    {"state": "partial", "unread": ["asset#2"], "opaque": []},
+    {"state": "partial", "unread": [], "opaque": ["asset#1"]},
+    {"state": "passed", "unread": [], "opaque": []},  # a marker from before the stored source
+    {"state": "passed", "unread": [], "opaque": [], "source_sha256": SHA},  # not in the store
+]
 
 
-@pytest.mark.parametrize("never_name", [True, False, None])
-def test_a_marker_whose_guard_read_every_shown_asset_passes_with_no_fact(ws, never_name):
-    ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
-    ws["records"] |= {"visible_text": {"state": "passed", "unread": [], "opaque": []}, "never_name": never_name}
-    assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["shown_unread"] == []
-
-
-@pytest.mark.parametrize("state", ["partial", "not_recorded"])
+@pytest.mark.parametrize("summary", UNREADABLE)
 @pytest.mark.parametrize("never_name", [True, None], ids=["never_name", "marker_older_than_the_flag"])
-def test_a_never_name_marker_keeps_the_refusal_when_a_shown_asset_went_unread(ws, state, never_name):
+def test_a_never_name_marker_with_unreadable_shown_text_refuses(ws, summary, never_name):
+    # Jess TIN-7125 654c5b08 and CADE-1 seq 1089: the refusal stays wherever never_name is known.
     ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
-    ws["records"] |= {"visible_text": {"state": state, "unread": [], "opaque": []}, "never_name": never_name}
+    ws["records"] |= {"visible_text": summary, "never_name": never_name}
     with pytest.raises(JobError) as exc:
         subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])
-    assert exc.value.code == "shown_text_unread" and "still" in exc.value.detail
+    assert exc.value.code == "shown_text_unread"
+
+
+@pytest.mark.parametrize("summary", UNREADABLE)
+def test_a_marker_that_is_not_never_name_prints_the_fact_and_the_gate_holds_it(ws, summary):
+    ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
+    ws["records"] |= {"visible_text": summary, "never_name": False}
+    printed = subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])
+    assert printed["shown_unread"] == ["still"]
+    assert "visible_text" not in {t["field"] for t in printed["texts"]}
 
 
 def test_a_never_name_marker_on_a_job_that_shows_no_asset_refuses_nothing(ws):
     ws["records"] |= {"visible_text": {"state": "partial", "unread": ["asset#1"], "opaque": []}, "never_name": True}
     assert subject.subject(ws["job"], ws["records"], ws["env"], ws["store"])["shown_unread"] == []
+
+
+def visible_store(ws, *texts):
+    """An env whose store holds an nv_visible_text file with these texts; returns (env, its digest)."""
+    rows = [{"asset": f"asset#{n}", "text": t} for n, t in enumerate(texts, 1)]
+    data = json.dumps({"kind": "nv_visible_text", "schema_version": 1, "texts": rows}).encode()
+    digest = hashlib.sha256(data).hexdigest()
+    (ws["paths"]["store"] / f"{digest}.json").write_bytes(data)
+    return Env(ws["paths"]["records"], ws["records"], ws["paths"]["store"], ws["paths"]["lexical"]), digest
+
+
+def test_a_passed_marker_adds_each_stored_text_after_the_labels(ws):
+    env, digest = visible_store(ws, "Fixture board, top view", "Fixture plot")
+    ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
+    ws["job"]["labels"] = {"persona": "Synthetic narrator", "personaCue": None, "extraNotice": None}
+    ws["records"]["visible_text"] = {"state": "passed", "unread": [], "opaque": [], "source_sha256": digest}
+    got = subject.subject(ws["job"], ws["records"], env, ws["store"])["texts"]
+    assert got[-3:] == [
+        {"field": "label", "text": "Synthetic narrator"},
+        {"field": "visible_text", "text": "Fixture board, top view"},
+        {"field": "visible_text", "text": "Fixture plot"},
+    ]
+
+
+@pytest.mark.parametrize("refuse", [True, False])
+def test_a_job_that_shows_no_asset_reads_no_stored_source(ws, refuse):
+    assert subject.shown_texts(ws["job"], ws["records"], ws["env"], refuse) == ([], [])
+
+
+def test_the_size_limit_counts_shown_text(ws):
+    env, digest = visible_store(ws, "x" * (subject.MAX_TEXT + 1))
+    ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
+    ws["records"]["visible_text"] = {"state": "passed", "unread": [], "opaque": [], "source_sha256": digest}
+    with pytest.raises(JobError) as exc:
+        subject.subject(ws["job"], ws["records"], env, ws["store"])
+    assert exc.value.code == "subject_too_large"
+
+
+@pytest.mark.parametrize("never_name", [True, False, None])
+def test_a_marker_whose_guard_read_every_shown_asset_passes_with_no_fact(ws, never_name):
+    env, digest = visible_store(ws, "Fixture board, top view")
+    ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
+    summary = {"state": "passed", "unread": [], "opaque": [], "source_sha256": digest}
+    ws["records"] |= {"visible_text": summary, "never_name": never_name}
+    printed = subject.subject(ws["job"], ws["records"], env, ws["store"])
+    assert printed["shown_unread"] == []
+    assert printed["texts"][-1] == {"field": "visible_text", "text": "Fixture board, top view"}
+
+
+def test_off_never_name_a_partial_marker_keeps_the_stored_rows(ws):
+    env, digest = visible_store(ws, "Fixture plot")
+    ws["job"]["base"] = {"still": SHOWN_BASES["still"]}
+    summary = {"state": "partial", "unread": ["asset#2"], "opaque": [], "source_sha256": digest}
+    ws["records"] |= {"visible_text": summary, "never_name": False}
+    printed = subject.subject(ws["job"], ws["records"], env, ws["store"])
+    assert printed["shown_unread"] == ["still"]
+    assert printed["texts"][-1] == {"field": "visible_text", "text": "Fixture plot"}
 
 
 def test_each_set_label_joins_the_subject_in_a_fixed_order(ws):

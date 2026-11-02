@@ -5,8 +5,8 @@ The Cade narrate worker runs the BS-21 guard (xoxd-ai/cade src/bs21-guard.ts) be
 renders a text. That guard needs the texts themselves, and Hatchet carries job ids only, so the worker reads them
 here, inside its own process, and never hands them to Hatchet, a log or a receipt.
 
-texts(job, records, env, store) lists every text that the job's own records hold and that the job voices or labels,
-in a fixed order:
+texts(job, records, env, store) lists every text that the job's own records hold and that the job voices, labels or
+shows, in a fixed order:
 
   narration    each segment's written text, read as the script stage reads it (narrate.spoken.lines of its script
                through its narrate job's input adapter). The captions show it
@@ -17,19 +17,24 @@ in a fixed order:
   caption      labels.personaCue, which compose puts above the first cue
   description  labels.extraNotice, the last line of description.txt
   label        labels.persona, which every stage manifest from place on carries
+  visible_text the strings each shown asset draws, one text per asset, from the source a guarded intake stored
 
-The text an asset shows on screen (a still, a slide, a plot, a clip, a deck) is not in this list, so the BS-21 name
-list never reads it. Only the intake's private-terms guard does, against the nv denylist, from each asset's text
-source (narrate/video/private_terms.py, visible_text.py). deliver_check's visible_text gate stays open while a guarded
-intake left an asset unread, and with no guarded intake it reads not_applicable.
+The worker reads the visible_text rows like any other, so the BS-21 name list reads what a slide shows, and a name
+need not be on the nv denylist for a slide to refuse it. Those rows come from the stored source, by the digest the
+records marker binds (private_terms.VISIBLE_KIND, bundle.visible_source), never from a pixel. deliver_check's
+visible_text gate stays open while a guarded intake left an asset unread, and with no guarded intake it reads
+not_applicable.
 
 subject prints shown_unread, the kinds of asset the job shows whose text no check read: every kind it shows when the
-records carry no guarded intake's marker or that intake left an asset unread or opaque, and [] otherwise. A card base
-with no slide page shows no asset. J168 removes shown_text_unread for go-live, and Jess's decision TIN-7125 654c5b08
-keeps it on never_name, so the refusal follows the flag where this process can read it. A marker holds never_name, so
-subject refuses on a never_name marker, and on a marker too old to hold the flag, and prints the fact on any other.
-With no marker this process cannot see the flag, because the packet record holds it, so the Cade worker reads
-shown_unread with the packet record and refuses there. The November 30, 2026 audit revisits the removal.
+records carry no guarded intake's marker, that intake left an asset unread or opaque, the marker binds no stored
+source, or that source is missing from the store or malformed, and [] otherwise. A card base with no slide page shows
+no asset. J168 removes shown_text_unread for go-live, and Jess's decision TIN-7125 654c5b08 keeps it on never_name, so
+the refusal follows the flag where this process can read it (CADE-1 swb seq 1089). A marker holds never_name, and
+private_terms refuses one that differs from the intake.json beside the records. So subject refuses on a never_name
+marker, and on a marker too old to hold the flag, in each case above, and only a re-intake clears it. On any other
+marker it keeps the rows that read and prints the fact. With no marker this process cannot see the flag, because the
+packet record holds it, so the Cade worker reads shown_unread with the packet record and refuses there. The November
+30, 2026 audit revisits the removal.
 
 cut(store, job) is the current deliver_check render as accept.render_of binds it: the composed video's sha256, the
 deliver_check stage key and content digest, the machine gate states, deliver_check's internal-review flag and the
@@ -39,12 +44,13 @@ and `nv accept` later checks the same digest. deliver_check records a failed mac
 loudness, profile or captions never reaches Jess as an ordinary request for a decision.
 """
 
+import json
 from types import SimpleNamespace
 
 from .. import adapters, lexical, render, spoken
 from ..adapters import InputError
 from ..normalise import NormaliseError, Normaliser
-from . import accept
+from . import accept, private_terms
 from .common import StageRefused, work_dir
 from .compose import page_kind
 from .deliver import visible_gate
@@ -106,8 +112,9 @@ def voiced(records, env, segment, store):
     return written, said(records, env, segment, narrate_job, script)
 
 
-def texts(job, records, env, store):
-    """[{field, text}] for every text the job's records hold that it voices or labels, in the module's order."""
+def texts(job, records, env, store, shown=()):
+    """[{field, text}] for every text the job's records hold that it voices, labels or, through shown (the rows of
+    shown_texts), shows, in the module's order."""
     read = [voiced(records, env, s, store) for s in job["segments"]]
     out = [{"field": "narration", "text": written} for written, _ in read]
     out += [{"field": "spoken", "text": text} for _, text in read]
@@ -118,6 +125,7 @@ def texts(job, records, env, store):
         value = job["labels"][key]
         if isinstance(value, str) and value:
             out.append({"field": field, "text": value})
+    out += shown
     if len(out) > MAX_TEXTS or any(utf16_units(t["text"]) > MAX_TEXT for t in out):
         raise JobError("subject_too_large", f"the guard reads at most {MAX_TEXTS} texts of {MAX_TEXT} UTF-16 units")
     return out
@@ -130,24 +138,78 @@ def shown_assets(job):
     return kinds + (["slide"] if any(page_kind(p) == "slide" for p in pages) else [])
 
 
-def shown_unread(job, records):
-    """The kinds of asset the job shows whose text no check read: [] when visible_text passed or it shows no asset."""
-    return [] if visible_gate(records.get("visible_text"))[0] == "passed" else shown_assets(job)
+def stored_rows(digest, env):
+    """The visible_text rows of the stored source with this digest. The store index hashes each file, so a changed
+    file has no entry. Refuses shown_text_unread, naming no text from the source."""
+    unread = JobError(
+        "shown_text_unread", "the stored visible-text source is missing or malformed; run the intake again"
+    )
+    try:
+        data = env.source(digest, "the stored visible text").read_bytes()
+        document = json.loads(data.decode("utf-8"))
+    except (StageRefused, OSError, UnicodeDecodeError, ValueError):
+        raise unread from None
+    rows = document.get("texts") if isinstance(document, dict) else None
+    well_formed = (
+        isinstance(rows, list)
+        and document.get("kind") == private_terms.VISIBLE_KIND
+        and document.get("schema_version") == private_terms.VISIBLE_VERSION
+        and all(
+            isinstance(r, dict) and isinstance(r.get("asset"), str) and isinstance(r.get("text"), str) for r in rows
+        )
+    )
+    if not well_formed:
+        raise unread
+    return [{"field": "visible_text", "text": r["text"]} for r in rows]
+
+
+def vouched_rows(shown, summary, env):
+    """The stored rows when the guarded intake read every shown asset and stored them. Refuses shown_text_unread
+    otherwise: no marker, an unread or opaque asset, no stored source, or one that is gone or malformed."""
+    if visible_gate(summary)[0] == "not_applicable":
+        raise JobError(
+            "shown_text_unread",
+            f"the job shows {', '.join(shown)} and its records carry no guarded intake's marker, so no check reads"
+            " that text; run a guarded intake",
+        )
+    if summary["state"] != "passed":
+        where = ", ".join(summary["unread"] + summary["opaque"]) or "assets the intake did not record"
+        raise JobError("shown_text_unread", f"the intake read no text source it can vouch for at {where}")
+    if "source_sha256" not in summary:
+        raise JobError("shown_text_unread", "the guarded intake stored no visible text; run the intake again")
+    return stored_rows(summary["source_sha256"], env)
+
+
+def shown_texts(job, records, env, refuse):
+    """(rows, shown_unread) of a job: its visible_text rows and the kinds of asset it shows whose text no check read,
+    both empty when it shows no asset. With refuse, as on a never_name marker, any unreadable shown text refuses
+    shown_text_unread (vouched_rows). Without it, the rows of a stored source that reads are kept and every shown kind
+    is reported. A JSON source with an empty list, or a list of only whitespace or zero-width text, is opaque."""
+    shown = shown_assets(job)
+    if not shown:
+        return [], []
+    summary = records.get("visible_text")
+    try:
+        return vouched_rows(shown, summary, env), []
+    except JobError:
+        if refuse:
+            raise
+    if visible_gate(summary)[0] == "not_applicable" or "source_sha256" not in summary:
+        return [], shown
+    try:
+        return stored_rows(summary["source_sha256"], env), shown
+    except JobError:
+        return [], shown
 
 
 def subject(job, records, env, store):
     """{ok, job_id, texts, shown_unread}. The worker adds the packet id from its run input; the packet record names the
-    brand and holds never_name. Refuses shown_text_unread when shown_unread is not empty and a guarded intake's marker
-    says never_name or predates that flag. With no marker it prints the fact for the worker to refuse on."""
-    unread = shown_unread(job, records)
-    guarded = records.get("visible_text") is not None
-    if unread and guarded and records.get("never_name") is not False:
-        raise JobError(
-            "shown_text_unread",
-            f"the job shows {', '.join(unread)} and the guarded intake left some of it unread on a never_name job, so"
-            " no check reads that text; run the intake again with a text source for each shown asset",
-        )
-    return {"ok": True, "job_id": job["id"], "texts": texts(job, records, env, store), "shown_unread": unread}
+    brand and holds never_name. A guarded intake's marker that says never_name, or predates that flag, refuses
+    shown_text_unread when any shown text is unreadable. Any other job keeps the rows that read and prints
+    shown_unread for the worker to refuse on with the packet record."""
+    never_name = records.get("visible_text") is not None and records.get("never_name") is not False
+    rows, unread = shown_texts(job, records, env, never_name)
+    return {"ok": True, "job_id": job["id"], "texts": texts(job, records, env, store, rows), "shown_unread": unread}
 
 
 def machine_gates(store, gates):
