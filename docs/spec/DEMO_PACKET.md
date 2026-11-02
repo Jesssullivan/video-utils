@@ -24,16 +24,16 @@ J168 (TIN-7125 `9738d494`) removes the BS-21 and `ip_private` code refusals for 
 30 audit. J168 lifts neither SPR-102 nor anything the law requires. SPR-339 (`1786d297`) says the removal adds no
 brand-only refusal. Jess's decision TIN-7125 `654c5b08` keeps the `shown-text-unread` refusal on `never_name`
 packets. It narrows the scope note TIN-7125 `2201b219` for that refusal and for `shown_text_unread` in `nv subject`.
-Elsewhere the removal stands. This table follows both. The removals are video-utils#86 at `dd245b21` and
-xoxd-ai/cade#267 at `4ade48d2`. #86 holds a signed merge of video-utils#84 at `0e469d01`. The first draft of the
-re-land closed unmerged. Neither removal has merged, so their final text decides each row.
+Elsewhere the removal stands. This table follows both. The removals are video-utils#86 and xoxd-ai/cade#267, which
+land together with TIN-7874. The first draft of the re-land closed unmerged. Neither removal has merged, so their
+final text decides each row.
 
 | Part | After the removal |
 | --- | --- |
 | Name check on `visible_text` rows | It stays with its `private-term` refusal, so a name in a row still refuses wherever the guard step runs. The registration hook stops forcing that step on a DAG, and a DAG without the step reads no row |
 | The open limit | Its effect returns on a DAG without the step, this time by ruling. The root rewrites the row to say so and keeps it until the audit decides |
 | `shown-text-unread` in the hand-off worker | It stays on a `never_name` packet, and BIZ-17 coverage stays with it. The hand-off worker drops it on any other packet |
-| `shown_text_unread` in `nv subject` | It stays on a `never_name` packet. `nv subject` refuses it when the guarded intake's marker says `never_name`, or predates that flag, and any shown text is unreadable. The marker's `never_name` must match `private_terms.never_name` in the `intake.json` beside the records, or the read refuses `private_terms_stale`. On any other packet `nv subject` stops refusing it. It keeps the rows that read and prints the unread kinds as `shown_unread`, so a subject can leave shown text out. The hand-off refusal above also applies on a `never_name` packet |
+| `shown_text_unread` in `nv subject` | It stays on a `never_name` packet. `nv subject` refuses it when the guarded intake's marker says `never_name`, or predates that flag, and any shown text is unreadable. The marker's `never_name` must match `private_terms.never_name` in the `intake.json` beside the records, or the read refuses `private_terms_stale`. On any other packet `nv subject` stops refusing it. It keeps the rows that read and prints the unread kinds as `shown_unread`, so a subject can leave shown text out. The Cade client-video worker reads `never_name` from the packet record and refuses `shown_text_unread` from a non-empty `shown_unread` on a `never_name` packet, and `subject-invalid` when that subject has no `shown_unread` key (TIN-7874). The hand-off refusal above also applies on a `never_name` packet |
 | The `visible_text` gate | #86 does not change `deliver.py`. On a guarded intake an unread or opaque asset still waits at the operator. Without one the gate reads `not_applicable`, so nothing waits there |
 | The intake's `nv` denylist | `ip_private` no longer needs a denylist, and number and geometry entries and the `script` class stop matching. `never_name` keeps its denylist, its name entry and its match |
 | Limits that stay | The first row has no change. In the second, a letter outside ASCII stops refusing, so a translation passes in any letters |
