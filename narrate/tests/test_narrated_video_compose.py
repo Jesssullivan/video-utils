@@ -19,7 +19,7 @@ from pathlib import Path
 import pytest
 from test_narrated_video_simple import FIXTURES, Workspace, ran
 
-from narrate.video import admit, cli, compose, deliver, graph, kitpip, labels, run, strip
+from narrate.video import admit, cli, compose, deliver, graph, kitpip, labels, run, strip, subject
 from narrate.video.common import RATE_HZ, StageRefused
 from narrate.video.job import DEFAULTS, load_records
 from narrate.video.speech import RUN
@@ -172,6 +172,16 @@ def test_deliver_check_reports_every_gate_and_keeps_upload_closed(simple):
     assert report["delivery_gate"]["upload_gates_closed"] is False  # upload is off
     assert report["delivery_gate"]["public_upload_allowed"] is False
     assert report["edition"]["verdict"] == "Admitted" and report["edition"]["leaves"]["syntheticVoice"] is True
+
+
+def test_nv_cut_reads_the_deliver_check_the_real_stage_wrote(simple):
+    # test_narrated_video_subject.py reads a fake runner's manifest. This one is the stage's own, run through FFmpeg.
+    s = simple["store"]
+    got = subject.cut(s, s.read_job())
+    assert got["video_sha256"] == s.manifest("compose")["outputs"]["video.mp4"]
+    want = {"profile": "passed", "loudness": "passed", "flash": "not_applicable", "captions": "passed"}
+    assert got["machine_gates"] == want and got["internal_review_allowed"] is True
+    assert got["pending_operator"] == ["listening"] and got["accepted"] == []
 
 
 def test_upload_with_an_unlicensed_bed_leaves_deliver_check_pending_operator(simple, tmp_path):
