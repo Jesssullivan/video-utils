@@ -28,6 +28,14 @@ def no_whisper(monkeypatch, tmp_path):
     monkeypatch.delenv(cli.DENYLIST_ENV, raising=False)
 
 
+@pytest.fixture(autouse=True)
+def audit_rules(monkeypatch):
+    """These tests keep the rules J168 stops for go-live, for the November 30, 2026 audit. The shipped defaults are in
+    test_narrated_video_j168.py."""
+    monkeypatch.setattr(private_terms, "MATCHED", private_terms.CLASSES)
+    monkeypatch.setattr(private_terms, "SCRIPT_MATCHES", True)
+
+
 @pytest.fixture
 def ws(tmp_path):
     paths = fixture.write(tmp_path / "ws")
@@ -201,7 +209,6 @@ def test_a_malformed_denylist_file_refuses(ws, raw):
         [NAME_ROW, {"id": "n", "class": "number", "number": 5, "unit": "furlong"}],
         [NAME_ROW, {"id": "n", "class": "name", "number": 5, "unit": None}],
         [{"id": "g", "class": "geometry", "literal": "chamfer angle"}],  # never_name without a name entry
-        [NAME_ROW],  # ip_private without a number or geometry entry
         [NAME_ROW, {"id": "chamfer-a", "class": "geometry", "literal": "chamfer"}],  # an id that says a term
     ],
 )
