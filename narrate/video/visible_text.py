@@ -19,7 +19,13 @@ attribute does, so a backslash in an attribute in no namespace counts as an esca
 attribute or a namespaced one such as inkscape:export-filename is metadata, not CSS: a url() there still counts, a
 backslash does not. The intake lists an opaque asset, so its visible-text state is partial, not passed. Text
 outlined to paths beside some other string (a title or an aria-label) is not opaque: the guard cannot compare the
-SVG with the picture's pixels, so that text stays the producer's review.
+SVG with the picture's pixels, so that text stays the producer's review. A JSON source is opaque when no string is
+left, an empty list or a list of only whitespace: it cannot tell an asset that draws no text from a producer that
+listed nothing, so both readers fail closed.
+
+A string counts only when it draws: it holds a character that is neither whitespace nor default-ignorable. A string
+of only zero-width characters, such as U+200B, or of only whitespace names no text, so both kinds of source drop it.
+Its other strings keep any zero-width characters they hold.
 
 An SVG that is not UTF-8 (a byte-order mark other than UTF-8's, a NUL, or an XML declaration naming another
 encoding) refuses, and so does one with a document type or entity declaration anywhere: the decoded text is searched
@@ -52,6 +58,12 @@ HREF_ATTRIBUTES = {"href", f"{{{XLINK_NS}}}href"}
 URL = re.compile(r"url\(([^)]*)", re.IGNORECASE)
 IMAGE = re.compile(r"image(?:-set)?\s*\(", re.IGNORECASE)  # image("x.png") and image-set("x.png" 1x) load a string
 ENCODING = re.compile(r"^<\?xml\s[^>]*?\bencoding\s*=\s*[\"']([^\"']*)[\"']")
+# Unicode's Default_Ignorable_Code_Point ranges (DerivedCoreProperties.txt): rendering draws none of them. \s is
+# str.isspace(), the set str.strip() removes. src/bs21-shown-text.ts holds the same table.
+DRAWS = re.compile(
+    r"[^\s\u00ad\u034f\u061c\u115f\u1160\u17b4\u17b5\u180b-\u180f\u200b-\u200f\u202a-\u202e\u2060-\u206f\u3164"
+    r"\ufe00-\ufe0f\ufeff\uffa0\ufff0-\ufff8\U0001bca0-\U0001bca3\U0001d173-\U0001d17a\U000e0000-\U000e0fff]"
+)
 
 
 class Read(NamedTuple):
@@ -63,6 +75,11 @@ class Read(NamedTuple):
 
 class TextSourceError(ValueError):
     """A text source that cannot be read. The message names a rule, never the file's text."""
+
+
+def draws(text):
+    """Whether text holds a character that is neither whitespace nor default-ignorable."""
+    return DRAWS.search(text) is not None
 
 
 def kind_of(path):
@@ -92,6 +109,22 @@ def css_attribute(key):
     such as fill or filter takes CSS as style does. A namespaced attribute (inkscape:export-filename) or a data-*
     attribute is metadata no renderer reads as CSS."""
     return "}" not in key and not key.startswith("data-")
+
+
+def style_text(element):
+    """Every run of character data inside a style element, in document order, so a comment or a nested element hides
+    no CSS after it. A comment's own text is not read. It loops, as svg_read does, because nesting depth is free."""
+    parts, todo = [], [element]
+    while todo:
+        node = todo.pop()
+        if isinstance(node, str):
+            parts.append(node)
+            continue
+        if node.tag is not ET.Comment:
+            parts.append(node.text or "")
+        for child in reversed(node):
+            todo += [child.tail or "", child]
+    return "".join(parts)
 
 
 def utf8_prolog(data):
@@ -149,18 +182,23 @@ def svg_read(data):
     out, opaque = [], ["xml-stylesheet"] if stylesheet else []
 
     def add(text):
-        if isinstance(text, str) and text.strip():
+        if isinstance(text, str) and draws(text):
             out.append(text.strip())
 
-    def walk(element):
+    todo = [root]  # a loop, so nesting depth cannot exhaust the Python stack; a string is a tail to add in turn
+    while todo:
+        element = todo.pop()
+        if isinstance(element, str):
+            add(element)
+            continue
         comment = element.tag is ET.Comment
         name = None if comment else local(element.tag)
-        if name == "style" and external_css(element.text or ""):
+        if name == "style" and external_css(style_text(element)):
             opaque.append(name)
         if name in OPAQUE_ELEMENTS:
             opaque.append(name)
         if not comment and name in SKIPPED:
-            return
+            continue
         add(element.text)
         if not comment:
             for key in sorted(element.attrib):
@@ -173,11 +211,9 @@ def svg_read(data):
                     opaque.append(name)  # an event handler runs script
                 elif external_css(value) if css_attribute(key) else external_url(value):
                     opaque.append(name)  # a style or presentation attribute may load a file; metadata only by url()
-            for child in element:
-                walk(child)
-                add(child.tail)
+            for child in reversed(element):
+                todo += [child.tail or "", child]
 
-    walk(root)
     return Read(out, bool(opaque) or not out)
 
 
@@ -208,12 +244,16 @@ def json_texts(data):
         raise TextSourceError(f"texts is not a list of at most {MAX_TEXTS} strings")
     if not all(isinstance(t, str) and len(t) <= MAX_TEXT for t in texts):
         raise TextSourceError(f"texts holds an entry that is not a string of at most {MAX_TEXT} characters")
-    return [t.strip() for t in texts if t.strip()]
+    try:
+        "".join(texts).encode("utf-8")  # JSON can spell a lone surrogate, and the stored source is UTF-8
+    except UnicodeEncodeError:
+        raise TextSourceError("texts holds a lone surrogate, which is not text") from None
+    return [t.strip() for t in texts if draws(t)]
 
 
 def texts(path, kind=None):
     """Read(the strings a text source at path shows, opaque). kind is svg or json (default: from the suffix). A JSON
-    source lists what its producer drew, so it is never opaque, even when its list is empty."""
+    source is opaque when no string is left: an empty list, or a list of only whitespace or zero-width text."""
     kind = kind or kind_of(path)
     with open(path, "rb") as f:
         data = f.read(MAX_BYTES + 1)
@@ -222,5 +262,6 @@ def texts(path, kind=None):
     if kind == "svg":
         return svg_read(data)
     if kind == "json":
-        return Read(json_texts(data), False)
+        strings = json_texts(data)
+        return Read(strings, not strings)
     raise TextSourceError("a text source ends in .svg or .json")
