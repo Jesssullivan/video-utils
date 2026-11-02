@@ -525,9 +525,9 @@ def visible(assets, beats):
     """The visible text of every asset a beat shows, for the guard: {texts, read, unread, opaque}. texts holds one
     (asset#N, "visible", text) per asset whose text source names any string, its strings joined by newlines, so a
     term split across two labels still matches. read and unread list the shown assets by manifest position, with and
-    without a text source; opaque lists the read ones whose SVG may draw text no string names (an embedded image,
-    another file, or no string at all). The guard reads no pixels, so an unread or opaque asset's on-screen text
-    stays the producer's review."""
+    without a text source; opaque lists the read ones that may draw text no string names (an SVG's embedded image or
+    other file, or a source with no string at all). The guard reads no pixels, so an unread or opaque asset's on-screen
+    text stays the producer's review."""
     cited = sorted({beat["asset_id"] for beat in beats}, key=lambda a: assets[a]["position"])
     out = {"texts": [], "read": [], "unread": [], "opaque": []}
     for asset_id in cited:

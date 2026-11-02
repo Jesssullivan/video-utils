@@ -463,10 +463,56 @@
    "opaque": false
   },
   {
-   "name": "an empty list draws no text and is not opaque",
+   "name": "an empty list names no string and is opaque",
    "kind": "json",
    "source": "{\"kind\": \"nv_asset_text\", \"schema_version\": 1, \"texts\": []}",
    "texts": [],
+   "opaque": true
+  },
+  {
+   "name": "a list of only whitespace names no string and is opaque",
+   "kind": "json",
+   "source": "{\"kind\": \"nv_asset_text\", \"schema_version\": 1, \"texts\": [\"\", \"  \", \"\\n\\t\", \"\\u3000\\u001f\"]}",
+   "texts": [],
+   "opaque": true
+  },
+  {
+   "name": "a list of only zero-width text names no string and is opaque",
+   "kind": "json",
+   "source": "{\"kind\": \"nv_asset_text\", \"schema_version\": 1, \"texts\": [\"\\u200b\", \"\\u200b\\u200d\", \" \\ufeff \", \"\\u2060\\u00ad\", \"\\udb40\\udc01\"]}",
+   "texts": [],
+   "opaque": true
+  },
+  {
+   "name": "raw zero-width characters read as their escapes do",
+   "kind": "json",
+   "source": "{\"kind\": \"nv_asset_text\", \"schema_version\": 1, \"texts\": [\"\u200b\u200c\", \"\u3000\u200b\"]}",
+   "texts": [],
+   "opaque": true
+  },
+  {
+   "name": "zero-width text beside a string is dropped and the list is not opaque",
+   "kind": "json",
+   "source": "{\"kind\": \"nv_asset_text\", \"schema_version\": 1, \"texts\": [\"\\u200b\", \" Cache\\u200brate \"]}",
+   "texts": [
+    "Cache\u200brate"
+   ],
+   "opaque": false
+  },
+  {
+   "name": "an SVG whose only text is zero-width is opaque",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>\u200b</text><text>&#x200B;&#xFEFF;</text><path d=\"M0 0h1\"/></svg>",
+   "texts": [],
+   "opaque": true
+  },
+  {
+   "name": "zero-width SVG text beside a string is dropped",
+   "kind": "svg",
+   "source": "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>\u200c</text><text> Rate </text></svg>",
+   "texts": [
+    "Rate"
+   ],
    "opaque": false
   },
   {

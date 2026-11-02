@@ -1462,7 +1462,7 @@ in a text source, bound by digest in its manifest `text` field (`narrate/video/v
 | Source | What counts |
 | --- | --- |
 | `.svg`, the vector the picture was drawn from | every run of character data and every comment, including character references as the XML parser decodes them, and the `aria-label` and `xlink:title` attributes. A plotting library that draws glyphs as paths writes each label as a comment beside them. The `metadata`, `style` and `script` elements are skipped, because none of them is drawn. A `script` still makes the source opaque. The file must be UTF-8 |
-| `.json`, `{"kind": "nv_asset_text", "schema_version": 1, "texts": [...]}` | each string the producer drew. An empty list, or a list of only whitespace, says the asset draws no text |
+| `.json`, `{"kind": "nv_asset_text", "schema_version": 1, "texts": [...]}` | each string the producer drew. An empty list, or a list of only whitespace or zero-width text, leaves no string, so the source is opaque |
 
 An SVG source is opaque when it may draw text that no string names. It holds an
 `image`, `feImage`, `foreignObject` or another embedding element. It runs script
@@ -1476,13 +1476,19 @@ no namespace counts as an escape. A `data-*` attribute or a namespaced one,
 such as `inkscape:export-filename`, is metadata: a `url()` there counts, a
 backslash does not. Or it
 gives no string at all, as text outlined to paths does. Its strings are still
-guarded. A JSON source is never opaque. Text outlined to paths beside another
-string, such as a `title`, is not opaque. The guard cannot compare the SVG with
-the picture's pixels, so that text stays the producer's review.
+guarded. A JSON source is opaque when no string is left: an empty list or a list
+of only whitespace. It cannot tell an asset that draws no text from a producer
+that listed nothing, so both readers fail closed. A string counts only when it
+holds a character that is neither whitespace nor in Unicode's
+Default_Ignorable_Code_Point ranges. So a string of only zero-width text, such as
+U+200B, names nothing in either kind of source, and a list of only such strings is
+opaque. A string that counts keeps any zero-width characters it holds. Text outlined to paths beside
+another string, such as a `title`, is not opaque. The guard cannot compare the SVG
+with the picture's pixels, so that text stays the producer's review.
 
 The guard reads each shown asset's strings joined by newlines as one `visible` text, so a term split across two
 labels still matches. Only assets a beat shows are read. `intake.json` lists them under `visible_text` as `read`
-(with a text source), `unread` (without one) and `opaque` (read, with an opaque SVG), by manifest position, and each
+(with a text source), `unread` (without one) and `opaque` (read, with an opaque source), by manifest position, and each
 segment row's `asset.text` holds the source's kind and digest or `null`. The state `visible_text` is `passed` when
 every shown asset had a text source and none was opaque, `partial` otherwise, and `not_declared` when no denylist
 runs. An unread or opaque asset does not refuse at intake. The records marker carries the state, and `deliver_check`
@@ -1492,6 +1498,12 @@ reports it as the operator gate `visible_text`, so a partial cut keeps `operator
 `shown_text_unread` in that state too ("Guard subject and cut"), so a partial cut fails its BS-21 guard before any
 render in a Cade DAG. Whether a private lane should refuse one at intake is open.
 
+A shown asset that truly draws no text cannot say so. An empty list reads as opaque. On a guarded intake the asset
+waits at the operator on the `visible_text` gate, and `nv subject` refuses it as it refuses any opaque asset. On a
+`never_name` packet Cade keeps its `shown-text-unread` refusal, so the producer must list a string or drop the asset.
+Records written by an intake before this rule keep the state that intake gave them. The marker version did not move,
+so `nv subject` trusts that state: run the intake again for a bundle with an empty or zero-width list.
+
 The guard reads text only. These pass it, and the producer reviews them:
 
 | Not read | Why |
@@ -1499,7 +1511,6 @@ The guard reads text only. These pass it, and the producer reviews them:
 | a paraphrase or a translation | no entry spells it |
 | the pixels of a slide, plot or clip with no text source or an opaque one, and text burned into an MP4 or GIF frame | the guard reads no pixels and runs no OCR; on-screen asset text reaches the video, and the `visible_text` gate holds the delivery at the operator |
 | a text source's drawing that differs from its picture | the digest binds the file, not that it matches the picture; the producer keeps them in step |
-| a shown asset whose JSON source lists no strings, or only whitespace | that source states the asset draws no text, so the state is `passed`, `nv subject` gives it no row and the guard has only the producer's word |
 | asset container metadata (PNG text chunks, MP4 atoms) | it is not shown. The intake copies asset bytes by digest into the private store, and the outputs drop it: compose checks both MP4s and handoff strips each slide layer ("Compose and delivery") |
 | a job or records written another way than intake | no intake ran, so no marker exists. `subject` refuses `shown_text_unread` for such a job when it shows an asset |
 

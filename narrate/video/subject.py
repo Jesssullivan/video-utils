@@ -159,8 +159,7 @@ def stored_rows(digest, env):
 def shown_texts(job, records, env):
     """The visible_text rows of a job: [] when it shows no asset. Refuses shown_text_unread when any shown text is
     unreadable, so the guard never passes a subject with an unread or opaque shown asset. A JSON source with an empty
-    list, or a list of only whitespace, gives no row: that source states the asset draws no text, and the operator
-    reviews that statement."""
+    list, or a list of only whitespace or zero-width text, is opaque, so it refuses here."""
     shown = shown_assets(job)
     if not shown:
         return []

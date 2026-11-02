@@ -59,10 +59,10 @@ at `666e13a4` with 64 source cases and sha256 `15812b8e`, and its reader failed 
 | A lone surrogate crashed a guarded intake | fixed. `json_texts` refuses it as a `TextSourceError` |
 | A deep SVG raised `RecursionError` | fixed. `svg_read` loops, so it reads what the TS reader reads |
 | Stale strings | fixed in `cli.py`, the just recipe, `bundle.py` and `subject.py` |
-| An empty JSON list gives no row | rule kept, and the spec's table of what passes now lists it, with a list of only whitespace. Whether to treat it as opaque in both readers stays open for Jess |
+| An empty JSON list gives no row | reversed. CADE-1 ruled in seq 1070 that it is opaque in both readers, because that fails closed. A list of only whitespace reads the same, and so does a list of only zero-width text such as U+200B, by CADE-1 seq 1089. A string counts only when it holds a character that is neither whitespace nor in Unicode's Default_Ignorable_Code_Point ranges, in both readers and both kinds of source. A shown asset that truly draws no text cannot say so: on a guarded intake it waits at the operator, and on a `never_name` packet the producer must list a string or drop the asset |
 
-Row positions are not compared with the intake's. The review offered that as a second check, but a job's rows differ from
-`read` for an empty source, and a forger who can edit both `intake.json` and the marker can edit a position list too.
+Row positions are not compared with the intake's. The review offered that as a second check, but a forger who can edit
+both `intake.json` and the marker can edit a position list too.
 
 ### Before a worker binding
 
@@ -75,8 +75,8 @@ the records, or make `nv subject` refuse without it.
 
 ### Parity left open
 
-The shared fixture stays at `a770516f` here, because a new case needs cade#259 to carry the same bytes. These stay open
-for the next pass that moves cade#259.
+The empty-list pass moved the shared fixture in both repositories, for that rule alone. These stay open for the next
+pass that moves cade#259.
 
 | Difference | Direction |
 | --- | --- |
@@ -86,22 +86,39 @@ for the next pass that moves cade#259.
 | Non-ASCII element or attribute names, `schema_version` true | Python reads, TS refuses |
 | Attribute `&#10;` and `&#9;`, a dotless i in `image(` | the readers differ |
 
+### Third pass, CADE-1 seq 1089
+
+A list of only zero-width text is opaque in both readers. The shared fixture gains 5 cases, 85 in all, sha256
+`bd6ebb2a`, byte-identical in cade#259. Runs were local and non-qualifying, through the heavy-step queue.
+
+| Run | Result |
+| --- | --- |
+| Fixture cases, Python and TS readers | 85 of 85 agree on each side |
+| Code point differential: every code point alone and beside a space, plus shape edges, 2224149 inputs | identical but for 2 inputs: the JSON byte-order mark and the lone surrogate, both listed under Parity left open |
+| `ruff check` and `ruff format --check` over `narrate/` | clean |
+| visible-text, subject and private-terms files | 477 passed |
+| cade `bs21-shown-text`, `hatchet-hardware-handoff`, `guard-closure` and `guard-files` tests | 98 pass, 0 fail |
+| 4 TS mutants: zero-width rule, JSON opaque, SVG add, supplementary-plane range | each failed a test |
+| 2 Python mutants: zero-width rule, JSON opaque | each failed a test. A third, the supplementary-plane range, did not apply in the bundle. Its rerun result is in the vu#84 body |
+
 ## What J168 changes
 
 J168 (TIN-7125 `9738d494`) removes the BS-21 and `ip_private` code refusals for go-live, with a revisit at the November
 30 audit. J168 lifts neither SPR-102 nor anything the law requires. SPR-339 (`1786d297`) says the removal adds no
-brand-only refusal. This section follows the scope note TIN-7125 `2201b219` and the draft removal video-utils#85 at
-`95d1a15f`. That draft has had no review and has not merged, so its final text decides each row.
+brand-only refusal. This section follows the scope note TIN-7125 `2201b219`, Jess's decision TIN-7125 `654c5b08`, which
+narrows that note on `never_name` packets, and the J168 re-land. The re-land has not merged, so its final text decides
+each row. CADE-1's seq 1061 gives cade#267 refix findings.
 
 | Part | After the removal |
 | --- | --- |
 | `visible_text` rows and the name check | `nv subject` still prints a row for each asset it reads. The name check stays with its `private-term` refusal. A name in a row still refuses wherever the guard step runs. The registration hook stops forcing that step on a DAG, so a DAG without it reads no row |
-| `shown_text_unread` and cade's `shown-text-unread` | Both refusals go. `nv subject` stops refusing the first, and the hand-off worker drops the second |
+| `shown_text_unread` in `nv subject` | It goes where no `never_name` is known. The re-land keeps it when the records' marker or the `intake.json` beside them says `never_name`, by Jess `654c5b08` and CADE-1 seq 1089. The marker at this head omits the flag, but `intake.json` holds `private_terms.never_name`. With no marker, the Cade worker refuses on the packet record |
+| cade's `shown-text-unread` in the hand-off worker | It stays on a `never_name` packet, with BIZ-17 coverage. It goes on any other packet |
 | The `nv` denylist | `private_terms.py` and `subject.py` change. `ip_private` no longer needs a denylist, and number and geometry entries and the `script` class stop matching. `never_name` keeps its denylist, its name entry and its match |
-| This branch's `shown_text_unread` cases | They reverse. An unread or opaque asset, a marker with no stored source and a stored source that is gone, changed or malformed stop no subject. #85 branched before these cases and removes only the no-marker refusal. It conflicts with this branch in 5 files, so the PR that lands second takes a signed merge and drops them |
-| A `partial` intake | It passes `nv subject`, so a Cade DAG no longer stops there. #85 does not change `deliver.py`, so the delivery still waits at the operator |
-| A bundle with no text source | It can pass a Cade guard. The name check then has no text to read for that asset |
-| Stored source and digest binding | Neither the note nor #85 changes them. `private_terms_stale` on a repointed digest stays, when an `intake.json` lies beside the records |
+| This branch's `shown_text_unread` cases | They reverse. An unread or opaque asset, a marker with no stored source and a stored source that is gone, changed or malformed stop no subject in `nv subject`. The J168 re-land branched before these cases and removes only the no-marker refusal. It conflicts with this branch in 5 files, so it takes a signed merge of this branch and drops them |
+| A `partial` intake | Off `never_name` it passes `nv subject`, so a Cade DAG no longer stops there. The J168 re-land does not change `deliver.py`, so the delivery still waits at the operator. On a `never_name` packet `nv subject` and Cade's hand-off both still refuse it |
+| A bundle with no text source | It can pass a Cade guard off `never_name`, and the name check then has no text to read for that asset. On a `never_name` packet the hand-off still refuses it |
+| Stored source and digest binding | Neither the note nor the J168 re-land changes them. `private_terms_stale` on a repointed digest stays, when an `intake.json` lies beside the records |
 | Shared fixture | still binds what each reader reads. It tests no name-list refusal |
 
 `docs/spec/DEMO_PACKET.md` on video-utils#83 holds the same plan for the known-limit row.

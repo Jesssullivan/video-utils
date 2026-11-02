@@ -383,10 +383,23 @@ def test_outlined_text_beside_one_string_is_not_opaque():
     assert visible_text.svg_read(data) == visible_text.Read(["Chart"], False)
 
 
-def test_an_svg_with_no_string_is_opaque_and_a_json_list_is_not():
+def test_an_svg_with_no_string_is_opaque():
     outlined = b'<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0h10v10z"/></svg>'  # text outlined to paths
     assert visible_text.svg_read(outlined) == visible_text.Read([], True)
     assert visible_text.svg_texts(outlined) == []
+
+
+@pytest.mark.parametrize(("strings", "read"), [
+    ((), ([], True)),
+    (("  ", "\n\t"), ([], True)),
+    (("\u200b", "\u200d\ufeff", "\U000e0001"), ([], True)),
+    (("  ", "Cache rate"), (["Cache rate"], False)),
+    (("\u200b", "Cache\u200brate"), (["Cache\u200brate"], False)),
+])  # fmt: skip
+def test_a_json_list_is_opaque_exactly_when_no_string_is_left(tmp_path, strings, read):
+    path = tmp_path / "source.json"
+    path.write_bytes(text_json(*strings))
+    assert visible_text.texts(path) == visible_text.Read(*read)
 
 
 def test_an_opaque_slide_makes_the_intake_partial(ws, tmp_path):
@@ -635,15 +648,17 @@ def test_nv_subject_refuses_a_marker_digest_repointed_at_another_stored_source(w
     assert run()["refused"] == "private_terms_stale"
 
 
-@pytest.mark.parametrize("pinned", [False, True])
+@pytest.mark.parametrize("lane", [None, "NARRATED_VIDEO_DENYLIST", "NARRATED_VIDEO_DENYLIST_SHA256"])
 def test_a_repointed_marker_digest_passes_nv_subject_when_no_intake_json_lies_beside_the_records(
-    ws, tmp_path, capsys, monkeypatch, pinned
+    ws, tmp_path, capsys, monkeypatch, lane
 ):
     # This pins a known gap: the digest check compares with intake.json only, at any lane. A symlink still refuses.
     out, run = subject_workspace(ws, tmp_path, capsys, *BOTH)
     assert len([t for t in run() if t["field"] == "visible_text"]) == 2
-    if pinned:
-        monkeypatch.setenv("NARRATED_VIDEO_DENYLIST", str(ws["denylist"]))
+    if lane == "NARRATED_VIDEO_DENYLIST":
+        monkeypatch.setenv(lane, str(ws["denylist"]))
+    if lane == "NARRATED_VIDEO_DENYLIST_SHA256":
+        monkeypatch.setenv(lane, hashlib.sha256(ws["denylist"].read_bytes()).hexdigest())
     empty = b'{"kind": "nv_visible_text", "schema_version": 1, "texts": []}'
     digest = hashlib.sha256(empty).hexdigest()
     (ws["store"] / f"{digest}.json").write_bytes(empty)
@@ -678,12 +693,13 @@ def test_nv_subject_refuses_a_marker_with_no_stored_source(ws, tmp_path, capsys)
     assert run()["refused"] == "shown_text_unread"
 
 
-@pytest.mark.parametrize("strings", [(), ("  ", "\n\t")])
-def test_a_text_list_with_no_visible_string_says_the_asset_draws_no_text_and_gives_no_row(
-    ws, tmp_path, capsys, strings
-):
-    _, run = subject_workspace(ws, tmp_path, capsys, BOTH[0], ("slide-b", "slide-b.json", text_json(*strings)))
-    assert len([t for t in run() if t["field"] == "visible_text"]) == 1
+@pytest.mark.parametrize("strings", [(), ("  ", "\n\t"), ("\u200b", "\u2060")])
+def test_a_text_list_with_no_visible_string_is_opaque_and_refuses_nv_subject(ws, tmp_path, capsys, strings):
+    # A shown asset that truly draws no text cannot say so: it waits at the operator until the producer lists a string.
+    out, run = subject_workspace(ws, tmp_path, capsys, BOTH[0], ("slide-b", "slide-b.json", text_json(*strings)))
+    marker = json.loads((out / "records" / private_terms.MARKER).read_text())
+    assert (marker["visible_text"]["state"], marker["visible_text"]["opaque"]) == ("partial", ["asset#2"])
+    assert run()["refused"] == "shown_text_unread"
 
 
 def test_an_unread_slide_on_a_private_lane_holds_the_upload_at_the_operator(ws, tmp_path, ffmpeg, capsys):
