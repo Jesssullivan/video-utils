@@ -437,7 +437,7 @@ def test_remote_command_enters_the_child_repo_and_wraps_a_login_shell():
     plain = relay.remote_command("~/git/child repo", "ssh", ["probe", "--via", "ssh"])
     assert plain == "cd \"$HOME\"/'git/child repo' && exec just --command python3 -I - probe --via ssh"
     login = relay.remote_command("/srv/child", "login", ["write-map", "--agent-id", SELF])
-    assert login == 'exec "$SHELL" -lc ' + shlex.quote(
+    assert login == 'exec "$SHELL" -lic ' + shlex.quote(
         f"cd /srv/child && exec just --command python3 -I - write-map --agent-id {SELF}"
     )
 
@@ -658,7 +658,7 @@ def test_readback_needs_both_contexts_and_a_failing_row_stays_a_fail(host, monke
     assert (out["verdict"], out["contexts_not_run"]) == ("PASS", [])
     assert [r["host"] for r in out["rows"]] == ["producer-a", "producer-a", "seat-host"]
     monkeypatch.setattr(relay, "run_on", lambda *a: {**good, "command_v": None})
-    assert relay.readback(readback_args(context=["ssh"]), contains_merge) == 1
+    assert relay.readback(readback_args(context=["login"]), contains_merge) == 1
     assert json.loads(capsys.readouterr().out)["verdict"] == "FAIL"
 
 
@@ -885,3 +885,101 @@ def test_the_file_runs_on_its_own_with_python_isolated():
     """The driver pipes this file to a host's python3, where the narrate package is not installed."""
     source = Path(relay.__file__).read_text()
     assert "from ." not in source and "import narrate" not in source
+
+
+def no_local_bin(host):
+    """The PATH of a non-interactive lab shell: lab renders ~/.local/bin below the rc files' interactive guard."""
+    return {**host["env"], "PATH": os.environ.get("PATH", "")}
+
+
+def test_a_context_without_local_bin_still_reads_the_installed_relay(host):
+    p = relay.probe(no_local_bin(host), "ssh")
+    assert p["command_v"] is None and p["relay_path"] == "~/.local/bin/cade-handoff-relay"
+    assert p["version"]["stdout"] == "cade-handoff-relay 0.1.0 (fab-dag-handoff/1)"
+    assert failing(relay.evaluate(p, MERGE, contains_merge, since_gen=40)) == ["command_v"]
+
+
+def test_write_map_finds_the_relay_at_the_install_path(host):
+    assert relay.write_map(no_local_bin(host), SELF, write=True)["result"] == "written"
+
+
+def test_only_the_bare_name_row_in_the_ssh_context_is_advisory(host, monkeypatch, capsys):
+    good = relay.probe(host["env"], "ssh")
+    bare = relay.probe(no_local_bin(host), "ssh")
+
+    def contexts(ssh, login):
+        monkeypatch.setattr(relay, "run_on", lambda h, c, context, a: dict(ssh if context == "ssh" else login))
+
+    contexts(bare, good)
+    assert relay.readback(readback_args(json=False), contains_merge) == 0
+    out = capsys.readouterr().out
+    assert "| ssh | command_v | no (advisory) |" in out and ": PASS" in out
+    contexts(bare, good)
+    assert relay.readback(readback_args(), contains_merge) == 0
+    rows = json.loads(capsys.readouterr().out)["rows"]
+    assert [c["check"] for c in rows[0]["checks"] if c["advisory"]] == ["command_v"]
+    assert not [c for c in rows[1]["checks"] if c["advisory"]]
+    contexts(good, bare)
+    assert relay.readback(readback_args(), contains_merge) == 1  # the login row is the rendered PATH
+    assert json.loads(capsys.readouterr().out)["verdict"] == "FAIL"
+    contexts({**bare, "version": {"exit": 1, "stdout": ""}}, good)
+    assert relay.readback(readback_args(), contains_merge) == 1  # every other ssh row still counts
+    assert json.loads(capsys.readouterr().out)["verdict"] == "FAIL"
+
+
+@pytest.mark.parametrize("write", [False, True])
+def test_a_directory_the_relay_refuses_refuses_a_dry_run_too(host, write):
+    host["config"].parent.mkdir()
+    host["config"].parent.chmod(0o775)
+    with pytest.raises(relay.Refused, match="recipient_config_unsafe"):
+        relay.write_map(host["env"], SELF, write=write)
+    assert list(host["config"].parent.iterdir()) == []
+
+
+@pytest.mark.parametrize("write", [False, True])
+def test_a_missing_config_directory_refuses_a_dry_run_too(host, write):
+    (host["home"] / ".config").rmdir()
+    with pytest.raises(relay.Refused, match="config_dir_absent"):
+        relay.write_map(host["env"], SELF, write=write)
+
+
+def test_a_refusal_after_the_rename_says_the_new_entry_is_in_place(host, monkeypatch):
+    real = relay.resolve
+
+    def down_after_rename(mod, path, peers):
+        if Path(path).name == "handoff-relay.json":
+            raise relay.Refused("swb_peers_failed", "down")
+        return real(mod, path, peers)
+
+    monkeypatch.setattr(relay, "resolve", down_after_rename)
+    with pytest.raises(relay.Refused, match="map_written_unverified: the new entry is in place: swb_peers_failed"):
+        relay.write_map(host["env"], SELF, write=True)
+    assert json.loads(host["config"].read_text())["recipients"]["cade-delivery"]["agent_id"] == SELF
+
+
+def test_the_sessions_own_id_in_a_wider_mode_is_rewritten(host):
+    relay.write_map(host["env"], SELF, write=True)
+    host["config"].chmod(0o644)
+    assert relay.write_map(host["env"], SELF, write=False)["result"] == "dry-run"
+    assert oct(host["config"].stat().st_mode & 0o777) == "0o644"
+    out = relay.write_map(host["env"], SELF, write=True)
+    assert out["result"] == "written" and out["previous_state"] == "live"
+    assert oct(host["config"].stat().st_mode & 0o777) == "0o600"
+    assert relay.write_map(host["env"], SELF, write=True)["result"] == "unchanged"
+
+
+def test_the_generation_row_names_the_last_tick_and_an_unanswered_compare(host):
+    (host["state"] / "tick.json").write_text(json.dumps({"outcome": "deferred-live-sessions", "timestamp": "t"}))
+    p = relay.probe(host["env"], "ssh")
+    details = {c: d for c, _, d in relay.evaluate(p, MERGE, lambda base, head: None, since_gen=40)}
+    assert "contains merge None" in details["generation_moved"]
+    assert "last tick deferred-live-sessions" in details["generation_moved"]
+
+
+def test_run_on_names_the_last_stderr_line(monkeypatch):
+    def run(cmd, **kw):
+        return subprocess.CompletedProcess(cmd, 127, b"", b"bash: no job control in this shell\njust: not found\n")
+
+    monkeypatch.setattr(relay.subprocess, "run", run)
+    with pytest.raises(relay.Refused, match="probe_failed: exit 127: just: not found"):
+        relay.run_on("producer-a", "~/c", "login", ["probe"])

@@ -109,3 +109,69 @@ expected result. The real file is not vendored here.
 
 A holder whose host stays unreachable now blocks the write. `--supersede-live` does not clear it, so the operator
 has to edit or remove the entry by hand.
+
+## Final review, November 2, 2026
+
+Authority: the narrate seat lane brief vu80 on TIN-7788, on Jess's word to run wide, which asks for a final adversarial
+review at `0959c699` and the findings applied. Rulings: SPR-288 (TIN-7788 `ac4bd797`) and R-HOOK-CONVERGENCE-20261004
+(R-N13). The earlier reviews used a stub relay and a PATH that held `~/.local/bin`, so this pass ran the real tools.
+
+| Finding | Fix | Test |
+|---|---|---|
+| High: no PASS was reachable. Lab renders `~/.local/bin` below the interactive guard, so `bash -lc` and a plain shell lack it. Then `command_v` failed in both contexts, every wrapper row failed with it, and `nv-relay-map` refused `relay_absent` in its default context. The spec line that `login` loads the lab PATH was false | `login` runs `-lic`. The probe and write-map fall back to the install path. Every other row stays gating in `ssh`. The bare-name row in `ssh` is advisory, because SPR-288 names the producer's real launch context and a plain ssh command is not one | no `~/.local/bin` on PATH for the probe and write-map. Only the `ssh` bare-name row is advisory, a `login` miss and any other `ssh` miss still FAIL |
+| Low: a dry run passed a mapping directory the write then refused, with a code the table did not list. It also missed `config_dir_absent` | `check_new_map_dir` runs for both, through the relay's own `load_mapping`. The table adds the code | group-writable and missing directories, dry run and write |
+| Low: a refusal after the rename broke the spec line that every refusal keeps the file | `map_written_unverified` says the new entry is in place. The spec names both post-rename codes | a resolve that fails only for the final file |
+| Low: the session's own id at a wider mode gave `unchanged`, and step 5's `mapping_written` could not then pass | That file is rewritten to 0600 | mode 0644 on dry run and write |
+| Low: a deferred switch and a failed compare looked like a commit without the merge | The row names the last tick's outcome and the compare answer | deferred tick, unanswered compare |
+| Low: the spec's pre-merge N had no command, and `probe_failed` printed the shell's tty notes | The order adds step 1 with the command. `probe_failed` prints the last stderr line | last stderr line |
+
+These held against the real tools:
+
+| Claim | Evidence |
+|---|---|
+| `just --command python3 -I -` passes `--via`, `--hm-attr`, `--agent-id`, `--write` and `--supersede-live` | just 1.51.0 with the real relay bytes, sha256 `19b287a5`, in a scratch HOME |
+| `self_id` accepts a real harness | the real `swb whoami` and process tree on the seat |
+| The relay's `swb peers` call and its live and superseded answers | a real broker read with a scratch map. The session's old pid gave `recipient_superseded` |
+| The pin is current | cade main still has blob `4cb1a3a2`. Lab main still has `cliPackage` and `commissioned` |
+| The lab record shapes are current | lab main `52437c22` keeps `VERDICTS_SUCCESS`, `write_receipt`, `activated_generation_path` and `local_switch_as_delivered` as at `b2ce9ec9` |
+| The exact `login` string runs with a piped script | `bash -c` on that string with the rendered rc files, in a clean environment, with no bash process growth |
+
+Checks, local and non-qualifying: load1 was 34 to 42, so the full narrate suite was not run.
+`tests/test_relay_readback.py` gives 136 passed. Each of 16 mutation probes, one per new guard, fails a test.
+`narrate.tests.stdlib_smoke` gives OK. Ruff check and format are clean. Nothing ran on a producer host.
+
+The PATH measurement comes from a seat with the same lab shell modules, not from a producer host. The first
+readback confirms it there.
+
+## First readback checklist
+
+Authority: the same lane brief. Every box is open. All of them wait on lab#3167 and need a run that may act on hosts.
+`<canary>` and `<follower>` are the two hosts SPR-288 names. TIN-7788 carries the names.
+
+| stream | owner | repo/branch | state/evidence | next |
+|---|---|---|---|---|
+| relay readback | narrate | video-utils#80 | reviewed, awaiting CI and root merge | the checklist below |
+| relay install | lab landing lane | lab#3167 | draft at `53e494ad`, 98 commits behind main, merge state blocked | HOLD on its merge |
+
+Before the merge:
+
+- [ ] Root merges video-utils#80, so the recipes exist at the seat.
+- [ ] Name `<child>` on each host: a fab child repo with a justfile, and the seat that gives the producer row.
+- [ ] Record N on each host with the pre-merge command in step 1 of the order. After the merge, N comes only from a
+      receipt on the host.
+- [ ] Confirm lab#3167 still pins sha256 `19b287a5` at its final head, and that `relay.PINS` names it.
+
+After the merge:
+
+- [ ] The `<canary>` status `lab/pull-switch/<canary>` is `success` on a commit that contains the merge.
+- [ ] If it stays `pending` with `deferred-live-sessions`, stop and take the deferral to Jess.
+- [ ] `<follower>` switches, and its receipt is `SWITCHED`.
+- [ ] Readback on each host with N. Expect `no (advisory)` on the `ssh` `command_v` row and PASS overall.
+- [ ] The producer seat posts its row. If the bare name is missing, take the absolute `notify` path to the child.
+- [ ] Map dry run, then `--write`, on each host, from the live narrate session. The id binds that session's pid.
+- [ ] Readback on each host with N and `--expect-agent-id`.
+- [ ] One TIN-7788 comment with both hosts' rows, the map receipts and the source of N.
+
+Outside this checklist: the first relay `--dry-run` on each host, which the relay contract keeps for the sender id
+question, then `notify` in the child and Jess's GO for a live send. A narrate restart makes the map stale, and the
+relay then refuses `recipient_superseded` until the new session runs the map again.

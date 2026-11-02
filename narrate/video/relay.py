@@ -8,8 +8,8 @@ keep `notify` unset until narrate posts this readback.
 
 One stdlib file, so the driver can pipe it to a host's own python3 and nothing is copied to the host:
 
-  probe      on a producer host, read-only. It runs where the producer runs: `just --command` in a child repo,
-             then `bash -c`, the way the template's mfg.py runs notify. It prints one JSON object
+  probe      on a producer host, read-only. It runs as a producer runs: `just --command` in a child repo, then
+             `bash -c`, the way the template's mfg.py runs notify. It prints one JSON object
   write-map  on a producer host. It writes the cade-delivery entry, mode 0600, after the installed relay's own
              resolve_recipient accepts the exact bytes. A dry run unless --write
   readback   the driver at the narrate seat. It runs probe on one host per context, checks the delivered lab commit
@@ -69,8 +69,12 @@ STALE = {
     "recipient_superseded": "agent_id_superseded",
     "recipient_stale": "agent_id_stale",
 }
-# The contexts a PASS needs: the plain remote command and the user's login shell (docs/spec/HANDOFF_RELAY_READBACK.md).
+# The contexts a PASS needs: the plain remote command and the user's interactive login shell
+# (docs/spec/HANDOFF_RELAY_READBACK.md).
 PASS_CONTEXTS = ("ssh", "login")
+# Rows that report without changing the verdict, as (context, check). Lab renders ~/.local/bin only in interactive
+# shells, and SPR-288 asks for `command -v` from the producer's real launch context, which a plain ssh command is not.
+ADVISORY = {("ssh", "command_v")}
 MAX_WRAPPER_BYTES = 65536
 MAX_SCRIPT_BYTES = 1 << 20
 
@@ -127,9 +131,19 @@ def in_context(command: str, env: dict, timeout: int = 30) -> subprocess.Complet
     )
 
 
+def printable(text: str) -> str:
+    return "".join(c if c.isprintable() else "?" for c in text)[:200]
+
+
 def first_line(b: bytes) -> str:
     lines = b.decode("utf-8", "replace").strip().splitlines()
-    return "".join(c if c.isprintable() else "?" for c in (lines[0] if lines else ""))[:200]
+    return printable(lines[0] if lines else "")
+
+
+def last_line(b: bytes) -> str:
+    """The cause in a failed command's stderr. An interactive shell without a tty opens stderr with its own notes."""
+    lines = b.decode("utf-8", "replace").strip().splitlines()
+    return printable(lines[-1] if lines else "")
 
 
 # ------------------------------------------------------------------ the installed relay
@@ -139,6 +153,12 @@ def locate(env: dict) -> str | None:
     r = in_context(f"command -v {RELAY}", env)
     path = r.stdout.decode("utf-8", "replace").strip()
     return path if r.returncode == 0 and path.startswith("/") else None
+
+
+def install_path(env: dict) -> str | None:
+    """Lab's install path when it is executable. A context without ~/.local/bin on PATH still has the relay to read."""
+    path = home_of(env) / INSTALL_PATH
+    return str(path) if os.access(path, os.X_OK) else None
 
 
 def wrapper(path: str, env: dict) -> dict:
@@ -194,9 +214,9 @@ def relay_env(env: dict, info: dict) -> dict:
 
 
 def installed(env: dict) -> tuple[dict, types.ModuleType]:
-    path = locate(env)
+    path = locate(env) or install_path(env)
     if not path:
-        raise Refused("relay_absent", f"`command -v {RELAY}` found nothing in this context")
+        raise Refused("relay_absent", f"`command -v {RELAY}` and the install path found nothing in this context")
     try:
         info = wrapper(path, env)
     except (OSError, subprocess.SubprocessError) as e:
@@ -359,6 +379,7 @@ def mapping(env: dict, mod: types.ModuleType | None) -> dict:
 def probe(env: dict, via: str, hm_attr: str | None = None) -> dict:
     home = home_of(env)
     command = locate(env)
+    target = command or install_path(env)
     out = {
         "schema": "narrate.relay-probe/v1",
         "via": via,
@@ -366,20 +387,21 @@ def probe(env: dict, via: str, hm_attr: str | None = None) -> dict:
         "child_justfile": any(Path(n).is_file() for n in ("justfile", "Justfile", ".justfile")),
         "command_v": tilde(command, env),
         "command_is_install_path": command == str(home / INSTALL_PATH),
+        "relay_path": tilde(target, env),
     }
-    v = in_context(f"{RELAY} --version", env)
+    v = in_context(f"{shlex.quote(target or RELAY)} --version", env)
     out["version"] = {"exit": v.returncode, "stdout": first_line(v.stdout)}
     mod = None
-    if command:
+    if target:
         try:
-            out["wrapper"] = wrapper(command, env)
+            out["wrapper"] = wrapper(target, env)
             mod = load_relay(out["wrapper"]["script"]) if out["wrapper"]["pinned"] else None
         except (Refused, OSError, subprocess.SubprocessError) as e:
             out["wrapper"] = {"error": getattr(e, "code", type(e).__name__)}
     out["mapping"] = mapping(env, mod)
     gen = generation(env, home / PULL_STATE, home / DELIVERED, hm_attr)
     out["generation"] = gen
-    out["relay_from_active_generation"] = from_active(env, gen["active_path"], command)
+    out["relay_from_active_generation"] = from_active(env, gen["active_path"], target)
     return out
 
 
@@ -391,7 +413,8 @@ def evaluate(
     gen = p.get("generation") or {}
     run = gen.get("running")
     since = as_generation(since_gen)
-    moved = bool(run) and contains(merge, run["sha"]) is True
+    contained = contains(merge, run["sha"]) if run else None
+    moved = contained is True
     after = as_generation(run.get("generation")) if run else None
     if moved and run.get("source") == "pull-switch deployed.json":
         moved = run.get("verdict") in VERDICTS_SUCCESS
@@ -404,6 +427,8 @@ def evaluate(
         moved = since is not None and after is not None and after > since
     dep = gen.get("deployed") or {}
     ignored = f" (ignored: {'; '.join(gen['ignored'])})" if gen.get("ignored") else ""
+    tick = gen.get("tick") or {}
+    ignored += f"; last tick {tick['outcome']}" if tick.get("outcome") else ""
     rows.append(
         (
             "generation_moved",
@@ -412,6 +437,7 @@ def evaluate(
             + (f" tree {run.get('tree')}" if "tree" in run else "")
             + f"; deployed {dep.get('before_gen')}->{dep.get('after_gen')} {dep.get('verdict')}"
             + f"; since gen {since_gen}"
+            + f"; contains merge {contained}"  # None means the compare call gave no answer
             + ignored
             if run
             else "no delivered record names the activated generation" + ignored,
@@ -509,6 +535,19 @@ def resolve_existing(mod: types.ModuleType, path: Path, peers) -> str:
         raise
 
 
+def check_new_map_dir(mod: types.ModuleType, path: Path, env: dict) -> None:
+    """Refuse a directory the relay would refuse. A dry run resolves its bytes in scratch, so it would not see one."""
+    if not path.parent.exists():
+        if not path.parent.parent.is_dir():
+            raise Refused("config_dir_absent", f"{tilde(path.parent.parent, env)} does not exist")
+        return
+    try:
+        mod.load_mapping(path)
+    except mod.Refusal as r:
+        if r.code != "recipient_config_absent":
+            raise Refused(r.code, r.where) from None
+
+
 def write_map(
     env: dict,
     agent_id: str,
@@ -543,28 +582,31 @@ def write_map(
             if not isinstance(entry, dict):
                 raise existing_map_refusal("recipient_config_invalid", f"recipients.{RECIPIENT} is not an object")
             previous = entry.get("agent_id") or entry.get("delivery_key")
-            if previous == agent_id:
-                resolve_existing(mod, path, peers)
-                st = os.lstat(path)
-                return {
-                    "schema": "narrate.relay-map/v1",
-                    "result": "unchanged",
-                    "path": tilde(path, env),
-                    "sha256": sha256_file(path, 65536)[0],
-                    "mode": f"{stat.S_IMODE(st.st_mode):04o}",
-                    "agent_id": agent_id,
-                    "previous_agent_id": previous,
-                    "previous_state": "live",
-                }
             try:
                 resolve_existing(mod, path, peers)
                 previous_state = "live"
             except Refused as r:
-                if r.code not in STALE.values():  # any other refusal says nothing about the holder, so it stays
+                # Only the session's own id, or a refusal that names the holder as gone, can go further.
+                if previous == agent_id or r.code not in STALE.values():
                     raise
                 previous_state = r.code
-            if previous_state == "live" and not supersede_live:
+            if previous == agent_id:
+                mode = stat.S_IMODE(os.lstat(path).st_mode)
+                if mode == 0o600:  # any other mode falls through to a rewrite, which step 5's mapping_written needs
+                    return {
+                        "schema": "narrate.relay-map/v1",
+                        "result": "unchanged",
+                        "path": tilde(path, env),
+                        "sha256": sha256_file(path, 65536)[0],
+                        "mode": f"{mode:04o}",
+                        "agent_id": agent_id,
+                        "previous_agent_id": previous,
+                        "previous_state": "live",
+                    }
+            elif previous_state == "live" and not supersede_live:
                 raise Refused("map_held_by_live_session", f"{previous} is live; pass --supersede-live to replace it")
+    else:
+        check_new_map_dir(mod, path, env)
     now = now or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     entry = {"agent_id": agent_id, "seat": SEAT, "ruling": RULING, "updated_utc": now}
     data = (json.dumps({"schema": CONFIG_SCHEMA, "recipients": {**others, RECIPIENT: entry}}, indent=1) + "\n").encode()
@@ -587,8 +629,6 @@ def write_map(
             shutil.rmtree(scratch, ignore_errors=True)
         return {**receipt, "result": "dry-run"}
     if not path.parent.exists():
-        if not path.parent.parent.is_dir():
-            raise Refused("config_dir_absent", f"{tilde(path.parent.parent, env)} does not exist")
         os.mkdir(path.parent, 0o700)
     tmp = path.parent / f".handoff-relay.json.{os.getpid()}.tmp"
     write_private(tmp, data)
@@ -603,7 +643,11 @@ def write_map(
         os.fsync(dfd)
     finally:
         os.close(dfd)
-    if resolve(mod, path, peers) != agent_id:
+    try:
+        resolved = resolve(mod, path, peers)
+    except Refused as r:
+        raise Refused("map_written_unverified", f"the new entry is in place: {r.code}: {r.where}") from None
+    if resolved != agent_id:
         raise Refused("agent_id_mismatch", "the relay resolves a different id after the write")
     st = os.lstat(path)
     return {**receipt, "result": "written", "mode": f"{stat.S_IMODE(st.st_mode):04o}"}
@@ -625,10 +669,11 @@ def valid_agent_id(agent_id) -> bool:
 
 def remote_command(child_repo: str, context: str, args: list[str]) -> str:
     """The command for the host's shell: cd into the child repo, then `just --command python3 -I - ARGS`, the
-    script on stdin. `login` wraps it in the user's login shell, so lab-rendered PATH lines load."""
+    script on stdin. `login` wraps it in the user's interactive login shell: lab renders ~/.local/bin in the part of
+    the rc files that an interactive shell reads, so `-lc` alone leaves it off PATH."""
     where = '"$HOME"/' + shlex.quote(child_repo[2:]) if child_repo.startswith("~/") else shlex.quote(child_repo)
     inner = f"cd {where} && exec just --command python3 -I - " + " ".join(shlex.quote(a) for a in args)
-    return 'exec "$SHELL" -lc ' + shlex.quote(inner) if context == "login" else inner
+    return 'exec "$SHELL" -lic ' + shlex.quote(inner) if context == "login" else inner
 
 
 def run_on(host: str, child_repo: str, context: str, args: list[str], timeout: int = 120) -> dict:
@@ -659,7 +704,7 @@ def run_on(host: str, child_repo: str, context: str, args: list[str], timeout: i
     except ValueError:
         out = None
     if not isinstance(out, dict):
-        raise Refused("probe_failed", f"exit {r.returncode}: {first_line(r.stderr)}")
+        raise Refused("probe_failed", f"exit {r.returncode}: {last_line(r.stderr)}")
     out["exit"] = r.returncode
     return out
 
@@ -701,13 +746,15 @@ def readback(a, contains=None) -> int:
             rows = evaluate(p, a.merge, contains, a.since_gen, a.expect_agent_id)
         except Refused as r:
             p, rows = None, [("probe", False, f"{r.code}: {r.where}")]
-        ok_all &= all(ok for _, ok, _ in rows)
+        ok_all &= all(ok or (context, c) in ADVISORY for c, ok, _ in rows)
         report.append(
             {
                 "host": shown_host(a.host, context),
                 "context": context,
                 "probe": p,
-                "checks": [{"check": c, "ok": ok, "detail": d} for c, ok, d in rows],
+                "checks": [
+                    {"check": c, "ok": ok, "detail": d, "advisory": (context, c) in ADVISORY} for c, ok, d in rows
+                ],
             }
         )
     missing = [c for c in PASS_CONTEXTS if c not in contexts]
@@ -729,10 +776,8 @@ def readback(a, contains=None) -> int:
         print("| host | context | check | ok | detail |\n|---|---|---|---|---|")
         for item in report:
             for c in item["checks"]:
-                print(
-                    f"| {item['host']} | {item['context']} | {c['check']} | {'yes' if c['ok'] else 'NO'} "
-                    f"| {c['detail']} |"
-                )
+                ok = "yes" if c["ok"] else "no (advisory)" if c["advisory"] else "NO"
+                print(f"| {item['host']} | {item['context']} | {c['check']} | {ok} | {c['detail']} |")
         hosts = ", ".join(dict.fromkeys(item["host"] for item in report))
         print(f"\nreadback {hosts} at lab {a.merge[:12]}: {verdict}")
         if verdict == "PARTIAL":
@@ -869,7 +914,10 @@ def main(argv: list[str] | None = None) -> int:
     rb.add_argument("--merge", required=True, help="the lab#3167 merge commit")
     rb.add_argument("--context", action="append", choices=("ssh", "login", "local"))
     rb.add_argument(
-        "--since-gen", type=int, required=True, help="the host's generation before the merge's switch (spec step 2)"
+        "--since-gen",
+        type=int,
+        required=True,
+        help="the host's generation before the merge's switch (spec order step 1)",
     )
     rb.add_argument("--expect-agent-id")
     rb.add_argument("--hm-attr", help="the host's Home Manager attr, for hm-delivered.json")
