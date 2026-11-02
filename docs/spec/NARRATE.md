@@ -142,6 +142,11 @@ input adapters -> script IR -> lexical pass -> spoken normalisation -> chunker
      change the samples. A take wider than 20 LU goes dynamic and fails as
      `loudnorm_dynamic`. The manifest records the target as
      `loudness.loudnorm.lra_target`.
+   - Gain basis: the linear gain and the limiter follow the integrated
+     loudness that the gate's meter (FFmpeg `ebur128`) reads through the
+     limiter chain, recorded as `loudness.loudnorm.metered_input_i`.
+     loudnorm's first pass still gives the peak, range and threshold. On a
+     4 s take its integrated reading can be about 1 LU off (TIN-7879).
    - Pauses from directions and the job's sentence and paragraph pause knobs.
    - Timing fit for segments with a target duration: first the engine's
      `speed` knob, then FFmpeg `atempo` within plus or minus 8%
