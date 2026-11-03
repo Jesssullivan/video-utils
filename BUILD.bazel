@@ -38,6 +38,18 @@ filegroup(
     ),
 )
 
+# Every agent skill under .agents/skills, for a consuming module to reach by
+# label (@video_utils//:agent_skills). The glob reads the tree when Bazel loads
+# this package, so a new or renamed skill joins without an edit here. Harnesses
+# do not load skills from Bazel labels; skill install stays a Home Manager job.
+filegroup(
+    name = "agent_skills",
+    srcs = glob(
+        [".agents/skills/**"],
+        exclude = ["**/.DS_Store"],
+    ),
+)
+
 alias(
     name = "cli",
     actual = "//src:video-utils",
