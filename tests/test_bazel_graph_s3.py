@@ -919,6 +919,20 @@ class GraphFilesTest(unittest.TestCase):
                          "MODULE.bazel.lock was generated against a different registry pin than .bazelrc")
 
 
+class AgentSkillsFilegroupTest(unittest.TestCase):
+    """//:agent_skills exposes every skill to a consuming module by label (TIN-7844)."""
+
+    def test_agent_skills_filegroup_holds_every_skill(self):
+        groups = [call for call in read_build(ROOT, "").named("filegroup")
+                  if call.kwargs.get("name") == "agent_skills"]
+        self.assertEqual(len(groups), 1)
+        srcs = set(groups[0].kwargs["srcs"])
+        skills = sorted(path.parent.name for path in (ROOT / ".agents/skills").glob("*/SKILL.md"))
+        self.assertTrue(skills, "no .agents/skills/<name>/SKILL.md in the tree")
+        self.assertEqual([name for name in skills if f".agents/skills/{name}/SKILL.md" not in srcs], [])
+        self.assertEqual([path for path in srcs if not path.startswith(".agents/skills/")], [])
+
+
 class RegistryOrderTest(unittest.TestCase):
     def test_bazelrc_registry_order_and_no_remote_backend(self):
         self.assertEqual(bazelrc_errors((ROOT / ".bazelrc").read_text()), [])
