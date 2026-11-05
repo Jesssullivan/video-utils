@@ -100,9 +100,23 @@ nv-render-stage-check request *args:
 nv-render-stage-preflight job request *args:
     python3 -m narrate video render-stage preflight {{quote(job)}} --request {{quote(request)}} {{args}}
 
-# Report a job that ran to deliver_check, every output by digest, for the request that started it. Refuses unless
-# VIDEO_UTILS_COMMIT is the request's commit and JOB/intake read the request's inputs. ARGS: --export DIR copies the
-# video, the report and the result there by sha256, --root DIR.
+# Compare a job's voice nodes with a request, one action per segment: keep, adopt, revoice or revoiced. It writes
+# nothing and refuses a request that would spend on a fresh beat or adopt a take its beat outgrew. ARGS: --after-window
+# is the voice_ready phase, --gpu-draft reads a gpu_window or mixed request, which v1 otherwise refuses, --root DIR,
+# --records DIR, --store DIR.
+nv-render-stage-takes job request *args:
+    python3 -m narrate video render-stage takes {{quote(job)}} --request {{quote(request)}} {{args}}
+
+# Record the operator's FIX of the job's current cut against the job root's 3 rounds (docs/spec/RENDER_STAGE.md,
+# "Reruns"). DECISION is the Softproxy decision id (sp:dec:<ulid>) and VIDEO the sha256 of the cut it saw. The fourth
+# FIX refuses fix_cap_reached with nothing recorded: stop and ask the operator. ARGS: --root DIR.
+nv-fix job decision video *args:
+    python3 -m narrate video fix {{quote(job)}} --decision {{quote(decision)}} --video-sha256 {{quote(video)}} {{args}}
+
+# Report a job that ran to deliver_check, every output by digest, for the request that started it, and record the
+# render in JOB/rerun.json with what ran since the last one. Refuses unless VIDEO_UTILS_COMMIT is the request's commit
+# and JOB/intake read the request's inputs. ARGS: --export DIR copies the video, the report and the result there by
+# sha256, --root DIR.
 nv-render-stage-result job request *args:
     python3 -m narrate video render-stage result {{quote(job)}} --request {{quote(request)}} {{args}}
 
@@ -213,4 +227,4 @@ nv-test:
         tests/test_narrated_video_adopt.py tests/test_narrated_video_intake.py \
         tests/test_narrated_video_claims_units.py tests/test_narrated_video_private_terms.py \
         tests/test_narrated_video_vrm.py tests/test_narrated_video_visible_text.py tests/test_narrated_video_accept.py \
-        tests/test_narrated_video_subject.py tests/test_relay_readback.py
+        tests/test_narrated_video_subject.py tests/test_relay_readback.py tests/test_narrated_video_rerun.py

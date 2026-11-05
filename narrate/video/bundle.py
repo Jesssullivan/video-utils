@@ -22,6 +22,7 @@ import shutil
 import stat
 import tempfile
 from collections import Counter
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path, PurePosixPath
 
@@ -848,11 +849,13 @@ def merged_records(records_dir, new_jobs):
 
 def intake(
     bundle, out, records_dir, *, job_id=None, template, voice, engine, persona=None, tail_s=None, store=None,
-    denylist=None, pin=None,
+    denylist=None, pin=None, replace=False,
 ):  # fmt: skip
     """Read, gate, convert, check and write one bundle. Returns the intake manifest written to out/intake.json.
 
-    out must be new or empty. It receives narrated-video.json (the NarratedVideo record), records/ (the input
+    out must be new or empty, or with replace hold an earlier intake. A rerun event of one job root takes that path:
+    the earlier intake moves to history/ beside out only once this one passed every check, so a refusal leaves it
+    current. out receives narrated-video.json (the NarratedVideo record), records/ (the input
     renders with one narrate job per beat added to jobs.json) and intake.json; store (default out/store) receives
     each beat's Markdown and each used asset as <sha256><suffix>. denylist is the private denylist file that a
     manifest declaring never_name binds by digest, and pin the operator's pinned digest of it. Nothing
@@ -861,15 +864,44 @@ def intake(
     with withheld(state):
         return guarded_intake(bundle, out, records_dir, state, job_id=job_id, template=template, voice=voice,
                               engine=engine, persona=persona, tail_s=tail_s, store=store, denylist=denylist,
-                              pin=pin)  # fmt: skip
+                              pin=pin, replace=replace)  # fmt: skip
+
+
+def earlier_intake(out):
+    """True when out holds what an intake wrote: its intake.json as a regular file."""
+    manifest = out / "intake.json"
+    return out.is_dir() and manifest.is_file() and not manifest.is_symlink()
+
+
+def check_earlier_job(out, job_id):
+    """A rerun replaces its own job's intake: job_mismatch unless the earlier intake at out wrote job_id."""
+    try:
+        earlier = json.loads((out / "intake.json").read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise BundleError("out_exists", "--out holds an intake.json that cannot be read") from exc
+    if not isinstance(earlier, dict) or earlier.get("job_id") != job_id:
+        raise BundleError("job_mismatch", "--replace takes only an intake of the same job")
+
+
+def retire_intake(out):
+    """Move the earlier intake at out to history/ beside it. Returns where it went, or None when out holds nothing."""
+    if not out.exists() or not any(out.iterdir()):
+        return None
+    history = out.parent / "history"
+    history.mkdir(exist_ok=True)
+    target = history / f"{out.name}--{datetime.now(UTC).strftime('%Y%m%dT%H%M%S%fZ')}"
+    os.rename(out, target)
+    return target
 
 
 def guarded_intake(
-    bundle, out, records_dir, state, *, job_id, template, voice, engine, persona, tail_s, store, denylist, pin
+    bundle, out, records_dir, state, *, job_id, template, voice, engine, persona, tail_s, store, denylist, pin, replace
 ):  # fmt: skip
     out = Path(out)
-    if out.is_symlink() or (out.exists() and (not out.is_dir() or any(out.iterdir()))):
-        raise BundleError("out_exists", "--out must be a new or empty directory")
+    if out.is_symlink() or (
+        out.exists() and (not out.is_dir() or (any(out.iterdir()) and not (replace and earlier_intake(out))))
+    ):
+        raise BundleError("out_exists", "--out must be a new or empty directory, or an earlier intake with --replace")
     store = Path(store) if store else out / "store"
     within = store.resolve() == out.resolve() or out.resolve() in store.resolve().parents
     if store.resolve() == out.resolve():
@@ -877,6 +909,8 @@ def guarded_intake(
     b = read(bundle, denylist, pin, state)
     job_id = job_id or b["slug"]
     private_check(b["guard"], [("slug", "record", b["slug"]), ("job", "record", job_id)])  # the directory's name
+    if replace and earlier_intake(out):
+        check_earlier_job(out, job_id)
     if persona is not None:
         private_check(b["guard"], [("labels", "label", persona)])
     refused = gate_refusal(b["report"])
@@ -917,14 +951,17 @@ def guarded_intake(
     if not within:
         for name, (digest, _, _) in sources.items():
             held(store / name, digest)  # store_conflict before anything is written
-    manifest = write_intake(out, store, within, sources, b, job, jobs, tables, verdict, template, voice, engine, spoken)
+    manifest = write_intake(
+        out, store, within, sources, b, job, jobs, tables, verdict, template, voice, engine, spoken, replace
+    )
     return manifest
 
 
-def write_intake(out, store, within, sources, b, job, jobs, tables, verdict, template, voice, engine, spoken):
+def write_intake(out, store, within, sources, b, job, jobs, tables, verdict, template, voice, engine, spoken, replace):
     """Write the checked intake: stage every store file and the output tree, then commit them. On any failure every
-    staged file, new store file and new directory is removed."""
-    created, parts, new_store, staging = [], [], [], None
+    staged file, new store file and new directory is removed, and a retired intake returns to out unless another
+    writer took out meanwhile."""
+    created, parts, new_store, staging, retired = [], [], [], None, None
     try:
         created += make_dirs(out.parent)
         staging = Path(tempfile.mkdtemp(prefix=f".{out.name}.intake-", dir=out.parent))
@@ -947,6 +984,7 @@ def write_intake(out, store, within, sources, b, job, jobs, tables, verdict, tem
             if commit(part, target, digest) and not within:
                 new_store.append(target)
         parts = []
+        retired = retire_intake(out) if replace else None
         try:
             os.rename(staging, out)
         except OSError:
@@ -960,6 +998,8 @@ def write_intake(out, store, within, sources, b, job, jobs, tables, verdict, tem
             target.unlink(missing_ok=True)
         if staging is not None:
             shutil.rmtree(staging, ignore_errors=True)
+        if retired is not None and not out.exists():
+            os.rename(retired, out)
         for d in reversed(created):
             try:
                 d.rmdir()

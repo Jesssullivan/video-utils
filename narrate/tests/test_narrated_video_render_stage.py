@@ -67,7 +67,8 @@ def gpu_request(**lease_changes):
         "notice": {"ticket": "TIN-5397", "comment_id": NOTICE},
     }
     lease.update(lease_changes)
-    return request(voice={"mode": "gpu_window", "runs": None}, lease=lease)
+    spend = {"window_cap_usd_cents": 500, "rate_usd_cents_per_hour": 0}
+    return request(voice={"mode": "gpu_window", "runs": None}, lease=lease, spend=spend)
 
 
 def refused(fn, *args, **kwargs):
@@ -366,7 +367,9 @@ def test_the_result_names_every_output_by_digest_and_returns_deliver_check(card)
     assert str(s.dir) not in text and str(s.dir.parent) not in text
     # the only slashes are the stage[/segment] node ids that key outputs.stages
     assert all("/" not in n or n.split("/")[0] in graph.BY_ID for n in value["outputs"]["stages"])
-    assert "/" not in json.dumps({k: v for k, v in value.items() if k != "outputs"})
+    # and the node ids that rerun lists
+    assert all(n.partition("/")[0] in graph.BY_ID for n in value["rerun"]["ran"])
+    assert "/" not in json.dumps({k: v for k, v in value.items() if k not in ("outputs", "rerun")})
 
 
 def test_the_result_refuses_another_commit_job_or_voice(card):

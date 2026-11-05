@@ -12,6 +12,13 @@
 - `condense publish`: a hash-bound run under `artifacts/condense/<run_id>/`.
 - MCP tools 47 to 57: `timeline_validate`, `timeline_map` and the nine condense
   stages, each with a skill.
+- Narrated video reruns on one job root: `intake --replace`, a commit counter in
+  `current.json`, `JOB/rerun.json`, a compose-only proof in the render stage
+  result, `narrate video fix` with a cap of 3 rounds, a `mixed` voice mode with
+  `render-stage takes`, and a spend cap per GPU window as a request parameter.
+  A FIX binds its decision and its cut: `nv accept` refuses `cut_sent_back` and
+  a render of that cut refuses `fix_unchanged_cut`.
+  A real mixed window stays refused until the Lease gaps close.
 
 ### Changed
 
@@ -33,6 +40,8 @@
   bundle's jobs keep the template's `confidential` and `allowHosted` flags. A rented
   batch uses the `RentedAudioCppBatch` backend. SP-4 health rows stay kept on client
   renders, and no narrate code enforces that limit.
+- Narrate: `narrate voices` lists a private voice row that predates the Voice type,
+  with missing fields as null or empty, and such a row refuses `consent_invalid`.
 - Narrated video: J168 removes the `ip_private` and BS-21 refusals for go-live,
   and the November 30, 2026 audit revisits them. `ip_private` needs no denylist,
   number and geometry entries and the `script` class stop matching, and
