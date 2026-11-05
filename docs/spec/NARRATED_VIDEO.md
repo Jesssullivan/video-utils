@@ -114,6 +114,12 @@ input. A cut `deliver_check` refuses never reaches `handoff`, and a row whose
 writes layers for a cut with a failed machine gate, since a failed gate is a
 state, not a refusal.
 
+The row runs one stage per task with `--stages`. A skipped `handoff` must not
+pass as a finished one, so `run --stages handoff` and `run --stages
+compose,handoff` refuse `stage_input_stale` while `deliver_check` is stale. The
+second call keeps its `compose`. On a changed cut the order is `compose`,
+`deliver_check`, `handoff`.
+
 ## Stage keys and the store
 
 Lane L3 implements this section in `narrate/video/{keys,store,graph,admit}.py`.
@@ -415,7 +421,7 @@ and a mouth bar as tall as the mouth weight, on a transparent field. It holds no
 | `status JOB [--json]` | `just nv-status` | prints the recorded `graph.json` and its `pending_operator` gates. Refuses `graph_stale` when it lists an acceptance `acceptance.json` does not hold |
 | `explain JOB STAGE [--segment ID]` | `just nv-explain` | prints the key document and each field that changed since the stage's last run |
 | `verify DIR` | `just nv-verify` | re-hashes a stage directory or every current stage of a job |
-| `run JOB [--stages S,...] [--until S] [--force S,...] [--json]` | `just nv-run` | runs the stale stages (`script` to `handoff`, with `avatar` and `avatar_check` when the job has an avatar) and stops at the first refusal. Finished stages stay fresh. Records `graph.json` |
+| `run JOB [--stages S,...] [--until S] [--force S,...] [--json]` | `just nv-run` | runs the stale stages (`script` to `handoff`, with `avatar` and `avatar_check` when the job has an avatar) and stops at the first refusal. Finished stages stay fresh. A stage `--stages` selects that stays stale behind an upstream outside the list refuses `stage_input_stale`. A fresh stage or one the job turns off is no refusal. Records `graph.json` |
 | `pin-check [--externals FILE] [--external kitpip\|vrm]` | `just kitpip-pin-check`, `just vrm-pin-check` | checks the private pin against `program/externals.json` and `KITPIP_BIN` (or, with `--external vrm`, `VRM_RENDERER_BIN`) against the pin. Refuses `kitpip_pin_missing`, `kitpip_pin_pending`, `kitpip_pin_mismatch` or `kitpip_missing`, or the `vrm_` forms (`vrm_renderer_missing` for a missing renderer) |
 | `stage JOB STAGE [--segment ID]` | `just nv-stage` | runs one node when every input is fresh, else refuses `stage_input_stale` |
 | `stage JOB voice --from-run RUN_DIR [--segment ID] [--replace]` | `just nv-stage-voice-from-run JOB RUN_DIR` | adopts a narrate run already rendered and verified elsewhere (`narrate render --prerendered` for an `AudioCppBatch` engine) as the voice node instead of voicing it. See "Adopting a rendered run" |

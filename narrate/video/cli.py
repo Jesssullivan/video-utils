@@ -531,7 +531,10 @@ def main(argv=None):
 
     r = sub.add_parser("run", help="run the stale stages (script to handoff); stops at the first refusal")
     common(r)
-    r.add_argument("--stages", help="comma-separated stages: run only these")
+    r.add_argument(
+        "--stages",
+        help="comma-separated stages: run only these; one that stays stale behind any other stage refuses",
+    )
     r.add_argument("--until", choices=[st.id for st in graph.STAGES], help="run this stage and what it depends on")
     r.add_argument("--force", help="comma-separated stages to rerun although fresh (archived to history/)")
 

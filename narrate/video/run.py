@@ -10,6 +10,9 @@ writes into its <key16>.partial/ directory and is committed into the store with 
   (kitpip or vrm, narrate/video/avatar.py), compose, deliver_check and handoff. No stage waits on a lane.
 - --stages limits a run to those stages, --until to one stage and the stages it depends on, and --force reruns a
   stage whose current run is fresh by archiving it to history/ (its refusal, if any, is cleared too).
+- A stage the limit selects that stays stale because an upstream sits outside the limit refuses stage_input_stale, so
+  a caller that runs one stage at a time never reads a skipped stage as a finished one. A stage that is fresh or not
+  selected by the job is no refusal.
 - v1 runs one stage at a time inside one process. `just nv-run` and `just nv-quick` wrap that process in
   narrate/bounded.sh, which holds the at-most-2 bound with room to spare.
 """
@@ -120,6 +123,13 @@ def summary(g, ran, refusal=None):
     return out
 
 
+def input_refusal(row, rows):
+    """The refusal of a node a run cannot reach, naming what it waits on."""
+    waiting = [d for d in row["depends_on"] if rows[d]["state"] not in graph.DONE]
+    code = "stage_input_stale" if row["state"] in ("stale", "corrupt") else row["reason"] or row["state"]
+    return {"refused": code, "node": row["id"], "detail": f"{row['id']} is {row['state']}; waits on {waiting}"}
+
+
 def run(rc, stages=None, until=None, forced=(), only=None, clock=time.monotonic):
     """Run stale nodes until none the call may run is left. only: one node id (the `stage` command). Returns the
     summary and the last plan."""
@@ -142,20 +152,20 @@ def run(rc, stages=None, until=None, forced=(), only=None, clock=time.monotonic)
             if only in ran or row["state"] in ("fresh", "pending_operator", "not_selected"):
                 return summary(g, ran), g
             if only not in g["runnable"]:
-                waiting = [d for d in row["depends_on"] if rows[d]["state"] not in ("fresh", "pending_operator")]
-                code = "stage_input_stale" if row["state"] in ("stale", "corrupt") else row["reason"] or row["state"]
-                refusal = {"refused": code, "node": only, "detail": f"{only} is {row['state']}; waits on {waiting}"}
-                return summary(g, ran, refusal), g
+                return summary(g, ran, input_refusal(row, rows)), g
             todo = [only]
         else:
             todo = [n for n in g["runnable"] if rows[n]["stage"] in allowed]
         if not todo:
             blocked = [n for n in g["nodes"] if n["state"] in ("refused", "blocked") and n["stage"] in allowed]
+            stranded = [n for n in g["nodes"] if n["state"] in ("stale", "corrupt") and n["stage"] in allowed]
             refusal = None
             if blocked:
                 first = blocked[0]
                 detail = f"{first['id']} is {first['state']}"
                 refusal = {"refused": first["reason"], "node": first["id"], "detail": detail}
+            elif stranded:
+                refusal = input_refusal(stranded[0], rows)
             return summary(g, ran, refusal), g
         node_id = todo[0]
         started = clock()

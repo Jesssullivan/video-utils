@@ -30,6 +30,9 @@
   a `row` block whose `tasks_sha256` binds the 16-task Hatchet row (TIN-7788), and
   `narrate/dhall/check.py` holds its `selected_by` and `edition_point` fields to
   the Dhall types.
+- Narrated video: `nv run --stages` refuses `stage_input_stale` when a selected
+  stage stays stale behind an upstream outside the list, where it used to return
+  ok with nothing run (TIN-7788).
 - Narrated video: J168 removes the `ip_private` and BS-21 refusals for go-live,
   and the November 30, 2026 audit revisits them. `ip_private` needs no denylist,
   number and geometry entries and the `script` class stop matching, and

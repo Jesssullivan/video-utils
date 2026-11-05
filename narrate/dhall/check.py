@@ -18,10 +18,10 @@ deflate blocks so every zlib writes the same bytes), and every job against a por
 the Plan point), the persona label rule, the tighten rule, the slide and avatarOff rules, the delivery gates and the
 bounds the spec sets.
 
-It also holds program/dags/narrated-video.json to the Dhall types the graph reads: each edition_point is a point
-of Edition.dhall's Point union and every point has one stage, each optional stage names the job fields that select
-it under selected_by and those fields render in every narrated-video example, and every avatar.external an example
-uses is in the DAG's dispatch.externals. Workflow task graphs stay out of Dhall here: the DAG is the graph.
+It also holds program/dags/narrated-video.json to the Dhall types the graph reads: each point of Edition.dhall's
+Point union has the one stage EDITION_POINTS names, each optional stage lists exactly the job fields SELECTED_BY names
+and those fields render in every narrated-video example, and every avatar.external an example uses is in the DAG's
+dispatch.externals. Workflow task graphs stay out of Dhall here: the DAG is the graph.
 
 `--self-test` is the negative control: it mutates copies of the examples and drafts and expects
 every mutation to be refused.
@@ -315,6 +315,15 @@ CLIENT_EDITIONS = ("ClientVoiceOnly", "ClientNarrated")
 # comment 92605219) unless its project picks ClientVoiceOnly.
 CLIENT_DEFAULT_EDITION = "ClientNarrated"
 POINTS = ("Plan", "Place", "DeliverCheck")
+# The stage that runs each Edition.Point, and the job fields that select each optional stage. Literal, because a list
+# that only names real fields can drop one or swap two and stay well formed.
+EDITION_POINTS = {"Plan": "admit", "Place": "place", "DeliverCheck": "deliver_check"}
+SELECTED_BY = {
+    "avatar": ["avatar", "segments.avatar"],
+    "avatar_check": ["avatar", "segments.avatar"],
+    "music": ["music"],
+    "handoff": ["delivery.handoff"],
+}
 EDITION_REFUSALS = {"VoiceRefused": "edition_voice_refused", "PipRefused": "edition_pip_refused",
                     "BedRefused": "edition_bed_refused"}
 LEAVES = ("syntheticVoice", "avatar", "pip", "bed", "bedCleared")
@@ -507,14 +516,16 @@ def check_stage_graph(data: dict, errors: list) -> None:
     points = [p.strip() for p in union.group(1).split("|")] if union else []
     if set(points) != set(POINTS):
         errors.append(f"{where}: Edition.dhall Point is {points}, not {sorted(POINTS)}")
-    named = [s["edition_point"] for s in stages if "edition_point" in s]
-    if sorted(named) != sorted(points):
-        errors.append(f"{where}: edition_point names {sorted(named)}, not one stage for each of {sorted(points)}")
+    named = sorted((s["edition_point"], s["id"]) for s in stages if "edition_point" in s)
+    if named != sorted(EDITION_POINTS.items()):
+        errors.append(f"{where}: edition_point names {named}, not {sorted(EDITION_POINTS.items())}")
     jobs = data["narrated_videos"]
     for stage in stages:
         selectors = stage.get("selected_by", [])
         if bool(selectors) != stage["optional"]:
             errors.append(f"{where}: {stage['id']} is optional {stage['optional']} with selected_by {selectors}")
+        if selectors != SELECTED_BY.get(stage["id"], []):
+            errors.append(f"{where}: {stage['id']} selected_by {selectors}, not {SELECTED_BY.get(stage['id'], [])}")
         for selector in selectors:
             for job in jobs:
                 if not field_present(job, selector.split(".")):
@@ -925,10 +936,16 @@ def narrated_video_mutations() -> list:
         ("edition point has no stage", lambda d, m: stage(d, "place").pop("edition_point"), "stage graph"),
         ("edition point outside the union", lambda d, m: stage(d, "admit").update(edition_point="Compose"),
          "stage graph"),
+        ("edition points swap stages", lambda d, m: (stage(d, "admit").update(edition_point="Place"),
+                                                     stage(d, "place").update(edition_point="Plan")), "stage graph"),
         ("Edition.dhall drops a point", lambda d, m: d.update(
             edition_types=d["edition_types"].replace("| DeliverCheck ", "")), "stage graph"),
         ("optional stage names no selector", lambda d, m: stage(d, "handoff").pop("selected_by"), "stage graph"),
         ("required stage names a selector", lambda d, m: stage(d, "mix").update(selected_by=["music"]), "stage graph"),
+        ("avatar selector drops the segment field", lambda d, m: stage(d, "avatar").update(selected_by=["avatar"]),
+         "stage graph"),
+        ("avatar_check selector drops the segment field",
+         lambda d, m: stage(d, "avatar_check").update(selected_by=["avatar"]), "stage graph"),
         ("selector is no job field", lambda d, m: stage(d, "handoff").update(selected_by=["delivery.layers"]),
          "stage graph"),
         ("job field the selector reads is gone", lambda d, m: card(d)["delivery"].pop("handoff"), "stage graph"),
