@@ -20,9 +20,9 @@ synthetic. It is a speech workflow beside the guitar workflow and beside
 | Topic | Decision |
 | --- | --- |
 | Owner | A `narrate/` lane in this repository owns the client, CLI, spec, Dhall types, MCP tools and evaluation. Model serving and MCP exposure live in their owning repositories and are changed there only through fork-first PRs or peer dialog |
-| GPU use | Attended windows of 30 min or less on the GPU host, each holding the single GPU lease by compare-and-swap and leaving a receipt (load, synthesise, release). Development runs on the Mac host with MLX. Switch-native serving through the model coordinator waits for N1 |
+| GPU use | Attended windows of 30 min or less on the GPU host, each holding the single GPU lease by compare-and-swap and leaving a receipt (load, synthesise, release). Development runs on the Mac host with MLX. Modal or another offsite GPU carries work that does not fit on the local card, with its own spend go and no local lease (TIN-7125 `704438d7`). Switch-native serving through the model coordinator waits for N1 |
 | Voices | v0 clones only the operator's own voice: a 10 to 30 s clip with a human-verified transcript and a consent record. Clip, transcript and consent evidence are hash-bound and kept outside git |
-| Engine order | Local open weights first, then rented GPUs running open weights, then hosted APIs last. Hosted engines refuse any job marked confidential |
+| Engine order | Local open weights first, then rented or offsite GPUs running open weights, then hosted APIs. A cloned voice reaches a rented or hosted engine only when its consent record allows it (TIN-7125 `af4ceb3b`) |
 | Lexical rules | Pinned xoxd-lexical 0.7.0 `narration` register and its shared pronunciation table, followed by the local Dhall overlay (TIN-7097/E7) |
 
 ## Lanes
@@ -182,15 +182,16 @@ engine only.
 | `gpu-switch` | `VulkanAudioCpp`, `QwenTtsCpp`, `LlamaTts` | the GPU host through the model coordinator | N1. Switch to the TTS entry, synthesise, release to the prior model. Needs a TTS entry kind, an audio canary and the speech route in the coordinator (TIN-7096) |
 | `gpu-direct` | same, and `AudioCppBatch` | the GPU host in an attended window | N0 interim. The server holds the GPU lease for the window (30 min or less) and scales to zero after; the window leaves a receipt. `AudioCppBatch` is a request batch run in the window, not a server (see "Out-of-process batch engines") |
 | `mac-mlx` | `MlxAudio` | the Mac host | Development and fallback. No GPU lease involved |
-| `rented-open` | `RentedOpen` | a rented GPU running open weights | Confidential jobs only when the host is estate-controlled and flagged |
-| `hosted` | `Hosted` | a third-party API | Last resort, public content only, explicit flag per job |
+| `rented-open` | `RentedOpen`, `AudioCppBatch` | a rented or offsite GPU running open weights, Modal among them | Needs the consent record's `hostedAllowed`. `AudioCppBatch` here is a request batch on the rented card, so no rented run is labelled `GpuDirect`. Its effect on Modal is an inference until a run proves it |
+| `hosted` | `Hosted` | a third-party API | Explicit flag per job, plus the consent record's `hostedAllowed` |
 | `fake` | `Fake` | in process | Deterministic tone per chunk for tests. No GPU, no weights, no network |
 
 **Preference order** when a job names no engine: `gpu-switch` (once N1
 lands), `gpu-direct` (only inside an open attended window), `mac-mlx`,
 `rented-open`, `hosted`. The CLI never escalates to `rented-open` or `hosted`
-on its own: those need the job to name the engine, and `hosted` also needs the
-job's `allowHosted` flag. Model candidates and their pins are in
+on its own: those need the job to name the engine and the consent record's
+`hostedAllowed`, and `hosted` also needs the job's `allowHosted` flag. Model
+candidates and their pins are in
 `program/model-drafts/narrate-tts-v2.json` (Ming-3.0-tts-0.5B, the favoured
 primary; Qwen3-TTS-12Hz-1.7B-Base, the fallback and baseline; VoxCPM2, the
 third arm; Fish Audio Drama 3, the rented tier). W3 picks among them.
@@ -203,9 +204,9 @@ narrate lane, recipe and test:
 
 - **No TTS model on the CPU host.** No TTS server, no MLX, torch or GGML
   inference and no Vulkan or lavapipe model smoke test runs there. Synthesis
-  runs only on the Mac build host (MLX, within its cache and free-space caps)
-  or on the GPU host inside its leased window. Tests use fake engines and fake
-  binaries.
+  runs only on the Mac build host (MLX, within its cache and free-space caps),
+  on the GPU host inside its leased window or on a rented or offsite GPU. Tests
+  use fake engines and fake binaries.
 - **Scorers one at a time, bounded.** Whisper, a SIM model or any other heavy
   scoring step runs one at a time inside a transient user scope with
   `MemoryMax=6G`, at nice 19 and the idle I/O class, whisper with at most 4
@@ -309,7 +310,7 @@ The operator picked VoxCPM2 as the N0 engine after the blind A/B of
 `47c2756e`, which has no server: one process loads the model (about 30 s),
 renders every request of a `--request-sequence` file and writes one WAV per
 request id (48 kHz). A render cannot call it chunk by chunk. The backend
-`AudioCppBatch` (profile `GpuDirect` only) renders in three phases, so one
+`AudioCppBatch` (profile `GpuDirect`, or `RentedOpen` on a rented card) renders in three phases, so one
 GPU window renders a whole job, every chunk and every retake, with one model
 load per voice:
 
@@ -496,7 +497,7 @@ that `run` releases the Lease when its command exits. Narrate's finalize
 stays as it is: it stops the runner and waits for the run's parent, the
 lease helper, to exit.
 
-## Consent and confidentiality policy
+## Consent policy
 
 - **No voice without consent.** A job declares its `scope` (`OwnContent` or
   `ClientDisclosed`). Every voice it uses (`voice` and each `speakers` entry)
@@ -507,19 +508,24 @@ lease helper, to exit.
   (`consent_missing`, `consent_revoked`, `consent_scope`). v0 has one real
   voice: the operator's own. A voice's reference clip is 10 to 30 s; the
   synthetic fixture voice is a 10 s sine, so it needs no exemption.
-- **Hosted engines** need both the job's `allowHosted` flag and the consent
-  record's `hostedAllowed`. A job marked `confidential` is refused on any engine
-  for which `Engine.mayRunConfidential` is false
-  (`confidential_engine_refused`): every engine that is hosted by any of its
-  `hosted` flag, `profile` or `backend`; every engine that is rented by its
-  `profile` or `backend` and is not both estate-controlled and flagged
-  `confidentialAllowed`; and every engine whose `profile` and `backend` disagree
-  (`Engine.consistent`, the "Engine profiles" table). A single wrong field never
-  makes an engine look local. The rule is defined once in
-  `narrate/dhall/Engine.dhall` and its truth table is asserted in
-  `narrate/dhall/policy-test.dhall`. `narrate/dhall/check.py` ports it to
-  Python and applies it to the rendered examples; the W5 client implements the
-  same rule and tests it against the rendered JSON.
+- **Rented and hosted engines** need the consent record's `hostedAllowed`, the
+  speaker's grant for any engine the operator does not run (TIN-7125
+  `af4ceb3b`). A hosted engine also needs the job's `allowHosted` flag.
+  `hosted_not_allowed` refuses either gap at bundle intake and before any audio
+  exists. `Engine.isOffsite` names these engines, by any of the `hosted` flag,
+  `profile` or `backend`, whether or not the host is estate-controlled. Every
+  engine whose `profile` and `backend` disagree is refused (`Engine.consistent`,
+  the "Engine profiles" table), so a single wrong field never makes an engine
+  look local. The rule is defined once in `narrate/dhall/Engine.dhall` and its
+  truth table is asserted in `narrate/dhall/policy-test.dhall`.
+  `narrate/dhall/check.py` ports it to Python and applies it to the rendered
+  examples; the W5 client implements the same rule and tests it against the
+  rendered JSON.
+- **The `confidential` label refuses no engine** (TIN-7125 `f98fd1ac` and
+  `af4ceb3b`). Client jobs may render on rented hosts and be hosted, with the
+  consent above. The job label, the report-only `may_run_confidential` field and
+  the engine fields `confidentialAllowed` and `estateControlled` stay until the
+  TIN-7994 audit decides which guards come back.
 - **Clips never enter git.** Reference clips, transcripts, consent evidence,
   rendered narration and the real voice registry live in a private store
   outside the repository, found by digest. Tracked files carry digests and
@@ -721,7 +727,7 @@ under `.agents/skills/` (W7a), admitted in its own PR.
 | `narrate_render` | Render a job; returns the manifest path and a summary | `input` (inline segments or a script file), `input_kind`, `voice`, `engine` (optional; preference order otherwise), `confidential`, `allow_hosted`, `max_chunk_wer`, `min_sim`, `max_takes` (1 to 3), `chunk_max_codepoints`, `loudness_lufs`, `fit_max_stretch` (0 to 0.08), `audio_format`, `captions`, `seed`, `timeout_seconds` (at most 900; longer scripts go through the CLI) |
 | `narrate_voices` | List voice ids with consent state, scopes and allowed engines | none; never returns a path or clip |
 | `narrate_evaluate` | Score a rendered run or a bench take: WER, SIM, loudness, overruns, optionally UTMOS | `run`, `metrics`, `reference_voice` |
-| `narrate_engines` | List engine profiles, availability, lease or switch state and confidentiality eligibility | `profile` filter |
+| `narrate_engines` | List engine profiles, availability, lease or switch state and the report-only `may_run_confidential` label | `profile` filter |
 
 `narrate plan` and `narrate render --prerendered` (the `AudioCppBatch`
 phases) have no tool yet; W7 owns their admission.
@@ -733,7 +739,7 @@ states, recorded separately:
 
 1. **Source checks:** `just narrate-dhall-check`, the W5 synthetic-fixture
    tests (timing fit, dialog mapping, `words.json`, overrun flag, consent
-   refusal, confidential refusal) and an end-to-end run with the fake engine.
+   refusal, hosted and rented refusal) and an end-to-end run with the fake engine.
 2. **Rendered:** a real render on the picked engine produces audio, captions,
    EDL and manifest; every chunk passes its WER and SIM gates or is flagged;
    loudness is within 0.5 LU of the target.
@@ -761,7 +767,7 @@ the registry draft does, and `sampleRateHz` is optional until measured.
 `just narrate-dhall-check` type-checks and format-checks every file,
 re-renders the examples against the committed JSON, checks the fixture
 digests, checks every reference a job depends on (engine, voices, speakers,
-pronunciation table, consent, scope, revocation, hosted and confidential
+pronunciation table, consent, scope, revocation, hosted and rented
 refusals), validates the models.json v2 drafts against the draft schema and
 runs `check.py --self-test`, which mutates copies of the inputs and expects
 each mutation to be refused; CI runs it in the offline job.

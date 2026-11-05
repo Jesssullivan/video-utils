@@ -5,7 +5,12 @@
 -- AudioCppBatch is audio.cpp's audiocpp_cli run out of process as a request batch (it has no server at the
 -- pinned commit): `narrate plan` writes the requests, the GPU window runs them, and `narrate render
 -- --prerendered` reads the takes by request id (narrate/prerender.py). Its endpoint is audiocpp://<family>,
--- and its files pin the binary and the weights by sha256. Only the attended-window profile GpuDirect admits it.
+-- and its files pin the binary and the weights by sha256. GpuDirect admits it for an attended window on the local
+-- card, and RentedOpen admits it for a rented or offsite GPU, so no rented run is labelled GpuDirect.
+--
+-- isOffsite is a hosted or rented engine, and the voice's consent record must allow it (hostedAllowed, TIN-7125
+-- af4ceb3b). mayRunConfidential is a report-only label (TIN-7125 f98fd1ac): no refusal reads it, and it and the fields
+-- estateControlled and confidentialAllowed stay until the TIN-7994 audit decides what comes back.
 let Backend =
       < VulkanAudioCpp
       | AudioCppBatch
@@ -153,7 +158,7 @@ let backendFitsProfile =
               { GpuSwitch = local
               , GpuDirect = local || batch
               , MacMlx = mlx
-              , RentedOpen = backendIsRented e
+              , RentedOpen = backendIsRented e || batch
               , Hosted = backendIsHosted e
               , Fake = fake
               }
@@ -162,12 +167,9 @@ let backendFitsProfile =
 let consistent =
       \(e : T) -> backendFitsProfile e && e.hosted == profileIsHosted e
 
-let mayRunConfidential =
-      \(e : T) ->
-            consistent e
-        &&  isHosted e == False
-        &&  e.confidentialAllowed
-        &&  (isRented e == False || e.estateControlled)
+let isOffsite = \(e : T) -> isHosted e || isRented e
+
+let mayRunConfidential = consistent
 
 in  { Type = T
     , File
@@ -175,6 +177,7 @@ in  { Type = T
     , Profile
     , isRented
     , isHosted
+    , isOffsite
     , consistent
     , mayRunConfidential
     }

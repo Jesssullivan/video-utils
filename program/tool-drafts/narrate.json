@@ -11,7 +11,7 @@
     {
       "name": "narrate_render",
       "title": "Render a narration in a consented voice",
-      "description": "Run `python -m narrate render --json` on one narrate.toml job: input adapter, lexical pass, chunker, pronunciation, engine (best of maxTakes per chunk), per-chunk WER through whisper when present, timing fit, two-pass loudnorm, captions, narration EDL and manifest, then verify. Every consent, scope, revocation, hosted and confidential refusal happens before any audio exists and returns its typed code. Returns the run directory, the manifest path and a summary (chunks, seconds, loudness, QA counts, overruns, overrides, flags). Reads the narrate.toml, its records, the private store and the script (a file, or inline text written to a private temporary file); writes one fresh run under the narrate.toml out directory (default artifacts/narrate/<run_id>/), never under artifacts/runs/. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration manifest says synthetic true and timeline mapping narration_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+      "description": "Run `python -m narrate render --json` on one narrate.toml job: input adapter, lexical pass, chunker, pronunciation, engine (best of maxTakes per chunk), per-chunk WER through whisper when present, timing fit, two-pass loudnorm, captions, narration EDL and manifest, then verify. Every consent, scope, revocation, hosted and rented refusal happens before any audio exists and returns its typed code. Returns the run directory, the manifest path and a summary (chunks, seconds, loudness, QA counts, overruns, overrides, flags). Reads the narrate.toml, its records, the private store and the script (a file, or inline text written to a private temporary file); writes one fresh run under the narrate.toml out directory (default artifacts/narrate/<run_id>/), never under artifacts/runs/. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration manifest says synthetic true and timeline mapping narration_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
       "intent": "Let an agent voice a short script in a consented voice with bounded time, typed refusals and a manifest it can inspect and score.",
       "inputSchema": {
         "type": "object",
@@ -56,7 +56,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 128,
-            "description": "An engine id instead of the job's. Hosted and rented engines still need the job and consent flags; a confidential job still refuses every engine that may not run it."
+            "description": "An engine id instead of the job's. Rented engines still need the consent flag, and hosted engines need the job and consent flags."
           },
           "seed": {
             "type": "integer",
@@ -69,7 +69,7 @@
             "enum": [
               true
             ],
-            "description": "true marks the job confidential (refused on any engine that may not run it). It never clears a job's flag."
+            "description": "true marks the job confidential. The label refuses no engine. It never clears a job's flag."
           },
           "allow_hosted": {
             "type": "boolean",
@@ -204,7 +204,7 @@
       },
       "agent_workflow": {
         "identify": "Read id, consent_state, scope, consent_scopes, allowed_engines, hosted_allowed, fixture, ref_clip_stored and ref_text_stored per voice.",
-        "research": "docs/spec/NARRATE.md \"Consent and confidentiality policy\".",
+        "research": "docs/spec/NARRATE.md \"Consent policy\".",
         "iterate": "There are no knobs; a voice that is not active needs the operator, never a workaround.",
         "acceptance": "Only an active voice whose clip and transcript are stored can render; v0 clones only the operator's own voice.",
         "max_comparison_candidates_default": 1
@@ -213,7 +213,7 @@
     {
       "name": "narrate_engines",
       "title": "List narration engines and their reachability",
-      "description": "Run `python -m narrate engines` on one narrate.toml: each engine id with its profile, backend, model, licence and licence notice, whether it is hosted, whether its profile and backend agree, whether it may run a confidential job, and its availability; with probe_reachability, a 2 s TCP connect to each http engine (no request, no token, no synthesis). Never an endpoint. Reads the registry records; writes nothing. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration manifest says synthetic true and timeline mapping narration_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
+      "description": "Run `python -m narrate engines` on one narrate.toml: each engine id with its profile, backend, model, licence and licence notice, whether it is hosted, whether its profile and backend agree, the report-only may_run_confidential label, and its availability; with probe_reachability, a 2 s TCP connect to each http engine (no request, no token, no synthesis). Never an endpoint. Reads the registry records; writes nothing. Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration manifest says synthetic true and timeline mapping narration_v1, so no guitar tool accepts it (docs/spec/TIMELINE_CONTRACT.md).",
       "intent": "Let an agent see which engines a job may use and which answer, before it spends a render on one.",
       "inputSchema": {
         "type": "object",
@@ -274,7 +274,7 @@
       },
       "agent_workflow": {
         "identify": "Read id, profile, backend, hosted, consistent, may_run_confidential, licence_notice, available and reach per engine.",
-        "research": "docs/spec/NARRATE.md \"Engine profiles\" gives the preference order and who may run confidential work.",
+        "research": "docs/spec/NARRATE.md \"Engine profiles\" gives the preference order and the consent each profile needs.",
         "iterate": "Probe again after an engine starts; never start, stop or switch a server from here.",
         "acceptance": "An engine is usable for a job only when the render admits it; this listing is advice.",
         "max_comparison_candidates_default": 1

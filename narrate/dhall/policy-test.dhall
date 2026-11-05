@@ -1,4 +1,4 @@
--- Type-level tests of the confidentiality rule. `dhall type` fails if any assertion is false.
+-- Type-level tests of the engine predicates. `dhall type` fails if any assertion is false.
 let Engine = ./Engine.dhall
 
 let base
@@ -20,41 +20,6 @@ let base
       , confidentialAllowed = True
       }
 
-let localFlagged = assert : Engine.mayRunConfidential base === True
-
-let localUnflagged =
-        assert
-      :     Engine.mayRunConfidential (base // { confidentialAllowed = False })
-        ===  False
-
-let hostedNeverEvenIfFlagged =
-        assert
-      :     Engine.mayRunConfidential
-              (     base
-                //  { profile = Engine.Profile.Hosted
-                    , backend = Engine.Backend.Hosted
-                    , hosted = True
-                    }
-              )
-        ===  False
-
-let hostedProfileWithoutFlag =
-        assert
-      :     Engine.mayRunConfidential
-              (base // { profile = Engine.Profile.Hosted })
-        ===  False
-
-let hostedBackendBehindLocalProfile =
-        assert
-      :     Engine.mayRunConfidential
-              (     base
-                //  { profile = Engine.Profile.GpuDirect
-                    , backend = Engine.Backend.Hosted
-                    , hosted = False
-                    }
-              )
-        ===  False
-
 let hostedBackendIsHosted =
         assert
       : Engine.isHosted (base // { backend = Engine.Backend.Hosted }) === True
@@ -62,43 +27,11 @@ let hostedBackendIsHosted =
 let hostedFlagAloneIsHosted =
       assert : Engine.isHosted (base // { hosted = True }) === True
 
-let rentedNotEstate =
-        assert
-      :     Engine.mayRunConfidential
-              (     base
-                //  { profile = Engine.Profile.RentedOpen
-                    , backend = Engine.Backend.RentedOpen
-                    , estateControlled = False
-                    }
-              )
-        ===  False
-
-let rentedBackendBehindMacProfile =
-        assert
-      :     Engine.mayRunConfidential
-              (     base
-                //  { profile = Engine.Profile.MacMlx
-                    , backend = Engine.Backend.RentedOpen
-                    , estateControlled = False
-                    }
-              )
-        ===  False
-
 let rentedBackendIsRented =
         assert
       :     Engine.isRented
               (     base
                 //  { profile = Engine.Profile.MacMlx
-                    , backend = Engine.Backend.RentedOpen
-                    }
-              )
-        ===  True
-
-let rentedEstateFlagged =
-        assert
-      :     Engine.mayRunConfidential
-              (     base
-                //  { profile = Engine.Profile.RentedOpen
                     , backend = Engine.Backend.RentedOpen
                     }
               )
@@ -143,12 +76,6 @@ let audioCppBatchDirectConsistent =
               )
         ===  True
 
-let audioCppBatchDirectMayRunConfidential =
-        assert
-      :     Engine.mayRunConfidential
-              (base // { backend = Engine.Backend.AudioCppBatch })
-        ===  True
-
 let audioCppBatchBehindSwitchIsInconsistent =
         assert
       :     Engine.consistent
@@ -168,5 +95,58 @@ let audioCppBatchBehindMacIsInconsistent =
                     }
               )
         ===  False
+
+let localIsNotOffsite = assert : Engine.isOffsite base === False
+
+let hostedIsOffsite =
+        assert
+      :     Engine.isOffsite
+              (     base
+                //  { profile = Engine.Profile.Hosted
+                    , backend = Engine.Backend.Hosted
+                    , hosted = True
+                    }
+              )
+        ===  True
+
+let rentedIsOffsiteEvenIfEstateControlled =
+        assert
+      :     Engine.isOffsite
+              (     base
+                //  { profile = Engine.Profile.RentedOpen
+                    , backend = Engine.Backend.RentedOpen
+                    }
+              )
+        ===  True
+
+let rentedBackendBehindMacProfileIsOffsite =
+        assert
+      :     Engine.isOffsite
+              (     base
+                //  { profile = Engine.Profile.MacMlx
+                    , backend = Engine.Backend.RentedOpen
+                    }
+              )
+        ===  True
+
+let audioCppBatchRentedConsistent =
+        assert
+      :     Engine.consistent
+              (     base
+                //  { profile = Engine.Profile.RentedOpen
+                    , backend = Engine.Backend.AudioCppBatch
+                    }
+              )
+        ===  True
+
+let audioCppBatchRentedIsOffsite =
+        assert
+      :     Engine.isOffsite
+              (     base
+                //  { profile = Engine.Profile.RentedOpen
+                    , backend = Engine.Backend.AudioCppBatch
+                    }
+              )
+        ===  True
 
 in  True

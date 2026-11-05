@@ -179,7 +179,7 @@ def test_condense_words_render_lands_on_the_edit_clock(workspace):
                 )
                 or ws.voices[0]["allowedEngines"].append("probe-hosted")
             ),
-            "confidential_engine_refused",
+            "hosted_not_allowed",
         ),
     ],
 )

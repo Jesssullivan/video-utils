@@ -1,4 +1,4 @@
-"""Consent and confidentiality refusals, dialog speaker mapping and parity with Engine.dhall's port in check.py."""
+"""Consent, hosted and rented refusals, dialog speaker mapping and parity with Engine.dhall's port in check.py."""
 
 import itertools
 
@@ -25,7 +25,7 @@ def test_engine_predicates_match_the_dhall_port_on_the_whole_truth_table():
             "confidentialAllowed": confidential,
             "estateControlled": estate,
         }
-        for name in ("is_hosted", "is_rented", "consistent", "may_run_confidential"):
+        for name in ("is_hosted", "is_rented", "is_offsite", "consistent", "may_run_confidential"):
             assert getattr(policy, name)(engine) == getattr(check, name)(engine), (name, engine)
 
 
@@ -114,11 +114,14 @@ def hosted(workspace, **extra):
     workspace.job["engine"] = engine["id"]
 
 
-def test_confidential_job_refuses_a_hosted_engine(workspace):
+def test_a_confidential_client_job_runs_on_a_hosted_engine_once_job_and_consent_allow_it(workspace):
     hosted(workspace)
-    workspace.job["confidential"] = True
-    workspace.job["allowHosted"] = True
-    refused(workspace, "confidential_engine_refused")
+    workspace.consents[0]["scopes"] = ["ClientDisclosed"]
+    workspace.voices[0]["scope"] = workspace.job["scope"] = "ClientDisclosed"
+    workspace.job.update(confidential=True, allowHosted=True)
+    refused(workspace, "hosted_not_allowed")
+    workspace.consents[0]["hostedAllowed"] = True
+    assert admit(workspace)[0]["id"] == "probe-hosted"
 
 
 def test_hosted_engine_needs_allow_hosted_then_consent(workspace):
@@ -131,23 +134,84 @@ def test_hosted_engine_needs_allow_hosted_then_consent(workspace):
     assert admit(workspace)[0]["id"] == "probe-hosted"
 
 
-@pytest.mark.parametrize(
-    "probe",
-    [
-        {"profile": "RentedOpen", "backend": "RentedOpen", "estateControlled": False, "confidentialAllowed": True},
-        {"profile": "MacMlx", "backend": "RentedOpen", "estateControlled": True, "confidentialAllowed": True},
-        {"profile": "GpuDirect", "backend": "Hosted", "estateControlled": True, "confidentialAllowed": True},
-        {"profile": "GpuDirect", "backend": "QwenTtsCpp", "estateControlled": True, "confidentialAllowed": False},
-    ],
-)
-def test_confidential_job_refuses_every_ineligible_engine(workspace, probe):
-    engine = {**workspace.engines[0], "id": "probe", "hosted": False, "endpoint": "http://127.0.0.1:9/", **probe}
+def probe(workspace, **fields):
+    engine = {
+        **workspace.engines[0],
+        "id": "probe",
+        "hosted": False,
+        "endpoint": "https://gpu.example.invalid",
+        **fields,
+    }
     workspace.engines.append(engine)
     workspace.voices[0]["allowedEngines"].append("probe")
-    workspace.job.update(engine="probe", confidential=True)
-    with pytest.raises(Refused) as caught:
-        admit(workspace)
-    assert caught.value.code in ("confidential_engine_refused", "engine_inconsistent")
+    workspace.job["engine"] = "probe"
+
+
+@pytest.mark.parametrize("backend", ["RentedOpen", "AudioCppBatch"])
+@pytest.mark.parametrize("estate", [False, True])
+@pytest.mark.parametrize("confidential", [False, True])
+def test_a_rented_engine_must_pass_the_consent_check(workspace, backend, estate, confidential):
+    probe(workspace, profile="RentedOpen", backend=backend, estateControlled=estate, confidentialAllowed=confidential)
+    workspace.job["confidential"] = confidential
+    error = refused(workspace, "hosted_not_allowed")
+    assert "consent" in error.detail
+    workspace.consents[0]["hostedAllowed"] = True
+    assert admit(workspace)[0]["id"] == "probe"
+
+
+def test_a_confidential_client_job_may_render_on_a_rented_engine(workspace):
+    probe(workspace, profile="RentedOpen", backend="RentedOpen", estateControlled=False, confidentialAllowed=False)
+    workspace.consents[0].update(scopes=["ClientDisclosed"], hostedAllowed=True)
+    workspace.voices[0]["scope"] = workspace.job["scope"] = "ClientDisclosed"
+    workspace.job["confidential"] = True
+    assert admit(workspace)[0]["id"] == "probe"
+
+
+def test_every_named_voice_passes_the_rented_consent_check(workspace):
+    probe(workspace, profile="RentedOpen", backend="RentedOpen")
+    workspace.consents[0]["hostedAllowed"] = True
+    workspace.add_voice("voice-fixture-b")
+    workspace.consents.append({**workspace.consents[0], "id": "consent-without-hosted", "hostedAllowed": False})
+    workspace.voices[-1]["consentId"] = "consent-without-hosted"
+    workspace.job["speakers"] = [{"speaker": "BEN", "voice": "voice-fixture-b"}]
+    error = refused(workspace, "hosted_not_allowed", script="BEN: Hi.\n", kind="Dialog")
+    assert "consent-without-hosted" in error.detail
+
+
+def test_the_rented_consent_check_holds_when_the_cli_names_the_engine(workspace):
+    probe(workspace, profile="RentedOpen", backend="RentedOpen")
+    workspace.job["engine"] = "fake-sine"
+    refused(workspace, "hosted_not_allowed", engine_id="probe")
+
+
+def test_the_dhall_port_refuses_a_rented_engine_without_hosted_allowed():
+    check = dhall_check()
+    data = {
+        "voices": [{"id": "v", "consentId": "c", "scope": "OwnContent", "allowedEngines": ["r"]}],
+        "consents": [{"id": "c", "scopes": ["OwnContent"], "revokedAt": None, "hostedAllowed": False}],
+    }
+    job = {"id": "j", "engine": "r", "scope": "OwnContent"}
+    engine = {"id": "r", "profile": "RentedOpen", "backend": "RentedOpen", "hosted": False}
+    errors = []
+    check.check_voice_for_job(job, "v", data, engine, errors)
+    assert [e for e in errors if "hostedAllowed" in e]
+    data["consents"][0]["hostedAllowed"] = True
+    errors = []
+    check.check_voice_for_job(job, "v", data, engine, errors)
+    assert errors == []
+
+
+def test_an_inconsistent_engine_stays_refused_on_every_job(workspace):
+    probe(workspace, profile="GpuDirect", backend="Hosted")
+    refused(workspace, "engine_inconsistent")
+
+
+def test_a_rented_batch_engine_is_rented_and_a_batch_is_not_rented_behind_the_switch():
+    rented = {"profile": "RentedOpen", "backend": "AudioCppBatch", "hosted": False}
+    assert policy.consistent(rented) and policy.is_rented(rented) and policy.is_offsite(rented)
+    direct = {"profile": "GpuDirect", "backend": "AudioCppBatch", "hosted": False}
+    assert policy.consistent(direct) and not policy.is_offsite(direct)
+    assert not policy.consistent({"profile": "GpuSwitch", "backend": "AudioCppBatch", "hosted": False})
 
 
 def test_confidential_job_runs_on_the_fake_engine(workspace):

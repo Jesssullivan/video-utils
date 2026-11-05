@@ -23,4 +23,4 @@ Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not app
 
 ## Agent iteration
 
-Read id, consent_state, scope, consent_scopes, allowed_engines, hosted_allowed, fixture, ref_clip_stored and ref_text_stored per voice. docs/spec/NARRATE.md "Consent and confidentiality policy". There are no knobs; a voice that is not active needs the operator, never a workaround. Only an active voice whose clip and transcript are stored can render; v0 clones only the operator's own voice. Never download a model, start or stop an engine, or send a clip anywhere implicitly.
+Read id, consent_state, scope, consent_scopes, allowed_engines, hosted_allowed, fixture, ref_clip_stored and ref_text_stored per voice. docs/spec/NARRATE.md "Consent policy". There are no knobs; a voice that is not active needs the operator, never a workaround. Only an active voice whose clip and transcript are stored can render; v0 clones only the operator's own voice. Never download a model, start or stop an engine, or send a clip anywhere implicitly.

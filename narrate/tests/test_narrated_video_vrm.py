@@ -443,12 +443,11 @@ def test_the_vrm_meta_licence_fields_are_read_from_the_model(tmp_path, spec):
     assert "authors" not in read["meta"] and "name" not in read["meta"]
 
 
-def test_a_model_without_vrm_meta_or_not_a_glb_refuses(tmp_path):
+def test_a_model_without_licence_fields_records_them_as_null_and_a_non_glb_refuses(tmp_path):
     path = tmp_path / "m.vrm"
     path.write_bytes(rig.model("1.0", meta={"name": "x"}))
-    with pytest.raises(vrm.VrmRefused) as caught:
-        vrm.read_meta(path)
-    assert caught.value.code == "vrm_meta_missing"
+    read = vrm.read_meta(path)
+    assert read["spec_version"] == "1.0" and set(read["meta"].values()) == {None} and "name" not in read["meta"]
     path.write_bytes(b"not a model at all, just bytes")
     with pytest.raises(vrm.VrmRefused) as caught:
         vrm.read_meta(path)

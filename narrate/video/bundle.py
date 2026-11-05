@@ -585,8 +585,10 @@ def narrate_jobs(b, records, job_id, template, voice, engine):
     engine_record = records["engines"].get(engine)
     if engine_record is None:
         raise BundleError("engine_unknown", f"engine {engine} has no record")
-    if not check.may_run_confidential(engine_record):
-        raise BundleError("confidential_engine_refused", f"engine {engine} may not run a confidential job")
+    if not check.consistent(engine_record):
+        raise BundleError("engine_inconsistent", f"engine {engine}: its profile and backend disagree")
+    if check.is_hosted(engine_record) and not base["allowHosted"]:
+        raise BundleError("hosted_not_allowed", f"engine {engine} is hosted and template {template} lacks allowHosted")
     voice_record = records["voices"].get(voice)
     if voice_record is None:
         raise BundleError("voice_unknown", f"voice {voice} has no record")
@@ -594,6 +596,9 @@ def narrate_jobs(b, records, job_id, template, voice, engine):
         raise BundleError("engine_not_allowed", f"voice {voice} does not allow engine {engine}")
     if voice_record.get("scope") != base["scope"]:
         raise BundleError("consent_scope", f"voice {voice}'s scope is not template {template}'s scope")
+    consent = records["consents"].get(voice_record.get("consentId"))
+    if check.is_offsite(engine_record) and not (consent and consent.get("hostedAllowed")):
+        raise BundleError("hosted_not_allowed", f"voice {voice}'s consent does not allow hosted or rented engines")
     out = {}
     for beat in b["beats"]:
         narrate_id = f"{job_id}-{beat['id']}"
@@ -605,8 +610,6 @@ def narrate_jobs(b, records, job_id, template, voice, engine):
             "id": narrate_id,
             "input": "Markdown",
             "inputSha256": hashlib.sha256(data).hexdigest(),
-            "confidential": True,
-            "allowHosted": False,
             "voice": voice,
             "speakers": [],
             "engine": engine,
@@ -964,6 +967,7 @@ def write_intake(out, store, within, sources, b, job, jobs, tables, verdict, tem
 
 def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, template, voice, engine, spoken):
     """Write records/, narrated-video.json and intake.json into the staging directory; returns the manifest."""
+    flags = next(j for j in tables["jobs.json"] if j["id"] == template)  # every beat's job copies the template's
     (staging / "records").mkdir()
     for name, rows in tables.items():
         write_json(staging / "records" / name, rows)
@@ -1009,8 +1013,9 @@ def intake_manifest(staging, store_dir, sources, b, job, jobs, tables, verdict, 
         "job_id": job["id"],
         "job_sha256": hashlib.sha256(canonical(job).encode()).hexdigest(),
         "edition": job["edition"],
-        "narrate": {"template": template, "voice": voice, "engine": engine, "confidential": True,
-                    "allowHosted": False, "input": "Markdown", "pronunciation": spoken["table"],
+        "narrate": {"template": template, "voice": voice, "engine": engine,
+                    "confidential": flags["confidential"], "allowHosted": flags["allowHosted"],
+                    "input": "Markdown", "pronunciation": spoken["table"],
                     "pronunciation_upstream": spoken["upstream"]},
         "segments": segments,
         "unused_assets": sorted(set(b["assets"]) - used),

@@ -52,7 +52,9 @@ overlapping features, and retain unverified specialized accuracy as unknown.
 - Preserve source rate/channels and timeline in masters. Analysis resampling is
   separate and recorded. Never overwrite the input.
 - Keep workers bounded; use existing approved builders for heavy compilation,
-  and cluster placement for GPU work after checking capacity. No new host daemon.
+  and cluster placement for GPU work after checking capacity. Modal or another
+  offsite GPU may carry work that does not fit on the local card (TIN-7125
+  comment 704438d7), and each spend keeps its own go. No new host daemon.
 - Contributors own named files; root integrates and publishes. Parallel research
   and implementation lanes are authorized by the operator for this project.
 - Verify behavior with meaningful synthetic fixtures and the actual demo.
@@ -163,8 +165,10 @@ manifest. It is specified in `docs/spec/NARRATE.md` (parent TIN-7084).
   W7 the tool drafts and skills. Serving and MCP exposure change only in their
   owning repositories, through fork-first PRs or peer dialog.
 - Consent first: every voice names a consent record and the tool refuses one
-  without it. v0 clones only the operator's own voice. Hosted engines are a
-  last resort and refuse confidential jobs.
+  without it. v0 clones only the operator's own voice. A cloned voice reaches a
+  rented or hosted engine only when its consent record sets `hostedAllowed`, and
+  a hosted engine also needs the job's `allowHosted` flag. The `confidential`
+  job label refuses no engine until the TIN-7994 audit.
 - The repository is public. Voice clips, transcripts, consent evidence,
   rendered narration and the real voice and engine registry stay outside git,
   bound by digest; tracked files hold types, digests and synthetic fixtures.

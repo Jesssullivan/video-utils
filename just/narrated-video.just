@@ -148,7 +148,7 @@ nv-fixture:
 narrated-video-claims bundle *args:
     python3 -m narrate video claims {{quote(bundle)}} {{args}}
 
-# One NarratedVideo job (edition Internal) and one confidential narrate job per beat, written only after the claims
+# One NarratedVideo job (edition Internal) and one narrate job per beat, written only after the claims
 # gate, every asset digest and admit pass. OUT is a new or empty directory. ARGS: --records DIR (or
 # NARRATED_VIDEO_RECORDS) --narrate-template ID --voice ID --engine ID (--persona P | --no-avatar) [--job ID]
 # [--store DIR, default OUT/store] [--tail-s S] [--denylist FILE] [--denylist-sha256 HEX] [--json]. Then `python3 -m narrate video init --job ID --from

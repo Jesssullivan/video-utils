@@ -89,7 +89,7 @@
       "gates": {
         "likeness_consent": "SP-R13: the model record's likenessConsent {id, ruling: SP-R13} names a consents.json row with the Likeness scope, grantedBy Operator, an evidence digest and no revocation (vrm_consent_missing, vrm_consent_revoked)",
         "appearance_approval": "TIN-7130: approved by the operator for this model digest (vrm_approval_missing)",
-        "edition": "Internal only until a ruling after the 11-14 bench (vrm_edition_unruled); the demos keep kitpip (SPR-120)",
+        "edition": "Internal only until a ruling (vrm_edition_unruled); the demos keep kitpip (SPR-120)",
         "badge": "open: no renderer draws a burned-in badge and no record may settle it (vrm_badge_undecided)"
       },
       "resolve": {
@@ -104,7 +104,7 @@
       "vendored": false,
       "gate_states": {
         "commit_pinned_digest_pending": "the pin names a source commit; no renderer digest exists yet, so the avatar stages stay blocked (vrm_pin_pending)",
-        "registered_hash_bound_not_accepted": "the pin holds a renderer digest and an engine lock digest; renders are local and unaccepted until the operator's lip-sync receipt and the 11-14 bench",
+        "registered_hash_bound_not_accepted": "the pin holds a renderer digest and an engine lock digest; renders are local and unaccepted until the operator's lip-sync receipt",
         "test_fixture_not_a_release": "the test-only record that pins the synthetic stub renderer"
       },
       "stages": [

@@ -6,8 +6,8 @@ statement. No real clip exists or is committed. The script regenerates them in m
 rendered example JSON carries their sha256.
 
 It also checks every cross-reference a job depends on (engine, voice, speakers, pronunciation table,
-consent record, scope, revocation, hosted and confidential refusals), using a port of
-Engine.dhall's `consistent` and `mayRunConfidential`. It validates the models.json v2 drafts in
+consent record, scope, revocation, hosted and rented refusals), using a port of
+Engine.dhall's `consistent` and `isOffsite`. It validates the models.json v2 drafts in
 program/model-drafts/ against the draft schema and cross-checks their file lists and byte counts
 with narrate/bench/sources.json.
 
@@ -63,7 +63,7 @@ PROFILE_BACKENDS = {
     "GpuSwitch": {"VulkanAudioCpp", "QwenTtsCpp", "LlamaTts"},
     "GpuDirect": {"VulkanAudioCpp", "QwenTtsCpp", "LlamaTts", "AudioCppBatch"},
     "MacMlx": {"MlxAudio"},
-    "RentedOpen": {"RentedOpen"},
+    "RentedOpen": {"RentedOpen", "AudioCppBatch"},
     "Hosted": {"Hosted"},
     "Fake": {"Fake"},
 }
@@ -77,14 +77,17 @@ def is_rented(engine: dict) -> bool:
     return engine["profile"] == "RentedOpen" or engine["backend"] == "RentedOpen"
 
 
+def is_offsite(engine: dict) -> bool:
+    return is_hosted(engine) or is_rented(engine)
+
+
 def consistent(engine: dict) -> bool:
     fits = engine["backend"] in PROFILE_BACKENDS.get(engine["profile"], set())
     return fits and bool(engine["hosted"]) == (engine["profile"] == "Hosted")
 
 
 def may_run_confidential(engine: dict) -> bool:
-    return (consistent(engine) and not is_hosted(engine) and bool(engine["confidentialAllowed"])
-            and (not is_rented(engine) or bool(engine["estateControlled"])))
+    return consistent(engine)
 
 
 def sine_wav() -> bytes:
@@ -234,8 +237,8 @@ def check_voice_for_job(job: dict, voice_id: str, data: dict, engine, errors: li
         errors.append(f"{where}: consent_scope (the {LIKENESS_SCOPE} scope grants an avatar likeness, never a voice)")
     if job["engine"] not in voice["allowedEngines"]:
         errors.append(f"{where}: engine {job['engine']} is not in the voice's allowedEngines")
-    if engine is not None and is_hosted(engine) and not consent["hostedAllowed"]:
-        errors.append(f"{where}: hosted engine without the consent record's hostedAllowed")
+    if engine is not None and is_offsite(engine) and not consent["hostedAllowed"]:
+        errors.append(f"{where}: hosted or rented engine without the consent record's hostedAllowed")
 
 
 def check_examples(data: dict, errors: list) -> None:
@@ -288,8 +291,6 @@ def check_examples(data: dict, errors: list) -> None:
         if engine is None:
             errors.append(f"examples: job {job['id']} engine {job['engine']} is unknown")
         else:
-            if job["confidential"] and not may_run_confidential(engine):
-                errors.append(f"examples: job {job['id']}: confidential_engine_refused ({engine['id']})")
             if is_hosted(engine) and not job["allowHosted"]:
                 errors.append(f"examples: job {job['id']}: hosted engine {engine['id']} without allowHosted")
             if not consistent(engine):
@@ -697,23 +698,20 @@ def mutations() -> list:
     def variant(m):
         return entry(m)["variants"][0]
 
-    hosted_engine = {"id": "probe-hosted", "profile": "GpuDirect", "backend": "Hosted", "hosted": False,
-                     "confidentialAllowed": True, "estateControlled": True}
-    rented_engine = {"id": "probe-rented", "profile": "MacMlx", "backend": "RentedOpen", "hosted": False,
-                     "confidentialAllowed": True, "estateControlled": False}
+    hosted_engine = {"id": "probe-hosted", "profile": "GpuDirect", "backend": "Hosted", "hosted": False}
+    rented_engine = {"id": "probe-rented", "profile": "MacMlx", "backend": "RentedOpen", "hosted": False}
     switch_batch = {"id": "probe-batch", "profile": "GpuSwitch", "backend": "AudioCppBatch", "hosted": False,
-                    "endpoint": "audiocpp://voxcpm2", "confidentialAllowed": True, "estateControlled": True}
+                    "endpoint": "audiocpp://voxcpm2"}
 
     def likeness_voice(d, m):
         consent(d)["scopes"].append("Likeness")
         voice(d)["scope"] = "Likeness"
         job(d)["scope"] = "Likeness"
 
-    def with_engine(probe, confidential):
+    def with_engine(probe):
         def mutate(d, m):
             d["engines"].append({**d["engines"][0], **probe})
             job(d)["engine"] = probe["id"]
-            job(d)["confidential"] = confidential
             voice(d)["allowedEngines"].append(probe["id"])
         return mutate
 
@@ -733,11 +731,13 @@ def mutations() -> list:
         ("reference clip too short", lambda d, m: voice(d).update(refClipSeconds=1.0)),
         ("non-fixture voice in git", lambda d, m: voice(d).update(fixture=False)),
         ("fake backend on a non-fake profile", lambda d, m: d["engines"][0].update(profile="GpuDirect")),
-        ("hosted backend behind a local profile, confidential", with_engine(hosted_engine, True)),
-        ("rented backend behind the Mac profile, confidential", with_engine(rented_engine, True)),
-        ("audio.cpp batch behind the switch profile, confidential", with_engine(switch_batch, True)),
+        ("hosted backend behind a local profile", with_engine(hosted_engine)),
+        ("rented backend behind the Mac profile", with_engine(rented_engine)),
+        ("audio.cpp batch behind the switch profile", with_engine(switch_batch)),
         ("hosted engine without allowHosted", with_engine(
-            {**hosted_engine, "id": "probe-h2", "profile": "Hosted", "hosted": True}, False)),
+            {**hosted_engine, "id": "probe-h2", "profile": "Hosted", "hosted": True})),
+        ("rented engine without the consent's hostedAllowed", with_engine(
+            {**rented_engine, "id": "probe-r2", "profile": "RentedOpen"})),
         ("fixture digest changed", lambda d, m: voice(d).update(refClipSha256="0" * 64)),
         ("draft hf_revision short", lambda d, m: entry(m).update(hf_revision="abc")),
         ("draft kind invalid", lambda d, m: entry(m).update(kind="music")),

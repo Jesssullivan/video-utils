@@ -27,7 +27,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | `just narrate-verify RUN` | `python -m narrate verify` | re-hashes the run and re-checks the manifest; `--result-line` prints one line `{ok, run_id, content_sha256}` (as `narrate-render --result-line` does) |
 | `just narrate-plan CONFIG DIR` | `python -m narrate plan` | an `AudioCppBatch` engine: the request batch for a GPU window (no audio); then `serve/audiocpp_batch.py` on the GPU host and `just narrate-render CONFIG --prerendered DIR` |
 | `just narrate-voices [CONFIG]` | `python -m narrate voices` | voice ids, consent state, scopes, engines |
-| `just narrate-engines [CONFIG]` | `python -m narrate engines` | profiles, confidentiality eligibility, availability; `--reach` tries a TCP connect |
+| `just narrate-engines [CONFIG]` | `python -m narrate engines` | profiles, the report-only `may_run_confidential` label, availability; `--reach` tries a TCP connect |
 | `just narrate-spoken INPUT` | `python -m narrate spoken` | only the voiced text, through the input's adapter: `--format lines`, `json` (cue ids, origins) or `srt` |
 | `just narrate-lexical-check INPUT` | `narrate spoken` piped to `xoxd-lexical check --register narration -` | the narration register on voiced text only; exits 0 with a notice without the pinned check CLI or Vale |
 | `just narrate-sim-model` | `scripts/model_prefetch.py` | fetches the registered ECAPA speaker model into `models/`, hash-checked |
@@ -43,7 +43,7 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | --- | --- |
 | `adapters.py` | plain text, markdown manuscript, SRT, WebVTT, condense `words.json` (+ EDL), `SPEAKER:` dialog → script IR (`ir.py`) |
 | `spoken.py` | the voiced text of a script IR as lines, JSON records or SRT cues (`narrate spoken`) |
-| `policy.py` | consent, scope, revocation, stored clip and transcript digests, hosted and confidential refusals |
+| `policy.py` | consent, scope, revocation, stored clip and transcript digests, hosted and rented refusals |
 | `lexical.py` | the pinned xoxd-lexical release by digest; advisory Pattern findings and Vale; the RewriteCheck |
 | `chunker.py`, `normalise.py` | chunks of at most `chunkMaxCodepoints` spoken codepoints; the pronunciation table |
 | `amounts.py` | numeric ranges and dollar amounts said in words, each read back to its written value |
@@ -57,8 +57,8 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 | `serve/finalize.py` | GPU run records and the finalize path (J130, TIN-7564); copied beside `audiocpp_batch.py` on the GPU host |
 
 - **Refusals come first.** A missing, revoked or out-of-scope consent, a clip or transcript whose digest no stored
-  file has, an unmapped dialog speaker, a hosted engine without `allowHosted`, and any engine that may not run a
-  confidential job are refused before any audio exists. The refusal prints `{"refused": code}` and exits 1.
+  file has, an unmapped dialog speaker, a hosted engine without `allowHosted`, and a rented or hosted engine without
+  the consent record's `hostedAllowed` are refused before any audio exists. The refusal prints `{"refused": code}` and exits 1.
 - **Fake engines.** `fake://sine` makes a deterministic tone whose length follows the text and the speed knob.
   `fake://espeak` uses espeak-ng when it is on PATH and records its version, else falls back to the sine.
 - **QA.** Without whisper-cli or a model whose sha256 is registered in `program/models.json`, WER is
@@ -98,8 +98,8 @@ outside git. `NARRATE_STORE` and `NARRATE_LEXICAL_DIR` override the file.
 - **Transport.** `NARRATE_ENGINE_TOKEN` goes over plain http only to a loopback host; Hosted and RentedOpen
   engines always need https (`engine_transport_insecure`).
 - **Overrides.** `render` takes `--voice`, `--input-kind`, `--max-chunk-wer`, `--min-sim`, `--max-takes`,
-  `--chunk-max-codepoints`, `--loudness-lufs` and `--fit-max-stretch` within their ranges, and `--confidential` and
-  `--no-hosted`, which only tighten the job. Each is recorded in the manifest's `job.overrides`; `--json` prints the
+  `--chunk-max-codepoints`, `--loudness-lufs` and `--fit-max-stretch` within their ranges, `--no-hosted`, which only
+  tightens the job, and `--confidential`, a label that refuses no engine. Each is recorded in the manifest's `job.overrides`; `--json` prints the
   run directory, the manifest path and a summary. The MCP tools (`narrate_render`, `narrate_voices`,
   `narrate_engines`, `narrate_evaluate`; skills under `.agents/skills/narrate-*`) call these commands.
 - **Captions** are timed from the script placement (`captions.source: script_timing`), in the written text,
@@ -198,10 +198,10 @@ binary and the weights by sha256. A render runs in three phases (`../docs/spec/N
 engines"):
 
 ```sh
-python3 -m narrate plan job.toml --out PLAN --confidential          # CPU host: requests/, refs/, plan.json
+python3 -m narrate plan job.toml --out PLAN                         # CPU host: requests/, refs/, plan.json
 python3 serve/audiocpp_batch.py run PLAN --requests requests/VOICE.json --binary CLI --binary-sha256 SHA \
     --model GGUF --model-sha256 SHA --audiocpp-commit 47c2756e        # GPU host, inside the bounded window unit
-just narrate-render job.toml --prerendered PLAN --confidential      # CPU host: QA, fit, loudness, outputs
+just narrate-render job.toml --prerendered PLAN                     # CPU host: QA, fit, loudness, outputs
 ```
 
 `plan` runs the render's text pipeline and writes every chunk times `--takes` seeds (default `maxTakes`), one

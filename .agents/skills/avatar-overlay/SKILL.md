@@ -7,7 +7,7 @@ description: Render the narrator overlay for each narrated segment with the avat
 
 **Hook:** MCP tool `avatar_overlay` (proposed as tool 66, drafted in `program/tool-drafts/narrated_video.json`, not yet admitted). Fallback: `just nv-stage JOB avatar --segment ID` or `just nv-run JOB`, inside `nix develop .#condense`.
 
-**Capability:** the `avatar` stage dispatches on the job's `avatar.external` (`narrate/video/avatar.py`). `kitpip` is the default and the current implementation (skill `kitpip-overlay`). `vrm` is the renderer draft for the 11-14 bench (skill `vrm-overlay`). Any other value refuses `avatar_external_unknown` at admit. Both write `overlay/overlay.mov` (ProRes 4444, straight alpha) and `overlay/manifest.json` into the stage directory, so compose reads either the same way. `program/dags/narrated-video.json` names the stage `avatar_overlay` with `dispatch.by: avatar.external`. The tool name stays the same when a job moves from kitpip to vrm.
+**Capability:** the `avatar` stage dispatches on the job's `avatar.external` (`narrate/video/avatar.py`). `kitpip` is the default and the current implementation (skill `kitpip-overlay`). `vrm` is the dark fallback renderer draft (skill `vrm-overlay`). Any other value refuses `avatar_external_unknown` at admit. Both write `overlay/overlay.mov` (ProRes 4444, straight alpha) and `overlay/manifest.json` into the stage directory, so compose reads either the same way. `program/dags/narrated-video.json` names the stage `avatar_overlay` with `dispatch.by: avatar.external`. The tool name stays the same when a job moves from kitpip to vrm.
 
 ## Use and controls
 

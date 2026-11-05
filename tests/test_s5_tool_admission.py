@@ -32,13 +32,13 @@ from test_s4a_tool_admission import digest  # noqa: E402
 ADMITTED_57_SHA256 = '0464f644801f8106e08a656cd15b11908b322644c1f0210d09d44a5492c4b705'
 ADMITTED_57_ASCII_SHA256 = 'fdb7c96127737e5fddab23e6313982c04dd50d51cdab0b908db448fa5546d1be'
 # tools[:61] as admitted here, same two serializers (recorded for the next freeze).
-ADMITTED_61_SHA256 = 'bb32350b9af9a101b6164483d7605981e7ded050cd9e85e6ed6ae30f1e58c133'
-ADMITTED_61_ASCII_SHA256 = 'eced9ca1ba4f0a53325122f3ad2d1ce061ec3ff3a2e2982fbf722c1d60b13ce6'
+ADMITTED_61_SHA256 = '6de259d18dee6d6e8365dffa04543092be44ed20934a4f4d6d88c3100bab5302'
+ADMITTED_61_ASCII_SHA256 = '4fcc1c21eceefdeb43f4727b31538b39de7d8f4317670ae93ebe3ba0a846ee57'
 # name -> (sha256 of the admitted SKILL.md, required, (timeout max, default), evidence_kind, read only)
 NEW = {
-    'narrate_render': ('42e68b04bcd76cdf1a4e4df4c542147683cd4fe38c5bd7616ffc8805e0b38cdc', {'config'}, (900, 600), 'synthetic_narration_rendered_unreviewed', False),
-    'narrate_voices': ('4a7381c859b13fadbc2c95b55e7ba663f946f9778a066343a98ead0b2151eeeb', {'config'}, (300, 60), 'consent_registry_listing', True),
-    'narrate_engines': ('73618e793b85768478f8d7604670f060ca703c79c7364cd186df23b2ee040c7d', {'config'}, (120, 60), 'engine_registry_listing_with_tcp_reachability', True),
+    'narrate_render': ('136726af74494258700a3b6017be58d16bccbfcefbac03672798bef1bbf1f691', {'config'}, (900, 600), 'synthetic_narration_rendered_unreviewed', False),
+    'narrate_voices': ('ed5d5a71b0ef78f0500c3cf0f5edf24593dc90d46a3c1710a07a86a95326befb', {'config'}, (300, 60), 'consent_registry_listing', True),
+    'narrate_engines': ('94565611c494e5cf2d7bf621324e6e6c964e9fb2783513cb6aef21ab9cee462f', {'config'}, (120, 60), 'engine_registry_listing_with_tcp_reachability', True),
     'narrate_evaluate': ('a548c5666672a779f80cf1d973e2547c50c1fa130cce1d22651d39a02eaf9773', {'run_dir'}, (900, 600), 'measured_narration_scores_uncalibrated', True),
 }
 SPEECH_NOTE = (' Speech workflow, not a guitar default: the guitar axioms in AGENTS.md do not apply; every narration '
